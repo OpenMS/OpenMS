@@ -309,7 +309,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
               acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
             }
             std::string pos_str = std::string(residue.getOneLetterCode()) + "." + std::to_string(pos + 1);
-            if (mod_map.find(name) == mod_map.end())
+            if (!mod_map.contains(name))
             {
               mod_map[name] = {acc_str, {}};
             }
@@ -328,7 +328,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
             acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
           }
           std::string pos_str = "C-term." + std::to_string(seq.size() + 1);
-          if (mod_map.find(name) == mod_map.end())
+          if (!mod_map.contains(name))
           {
             mod_map[name] = {acc_str, {}};
           }
@@ -418,7 +418,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
         hit.getKeys(keys);
         for (const auto& key : keys)
         {
-          if (excluded_hit_mvs_psm.count(key)) continue;
+          if (excluded_hit_mvs_psm.contains(key)) continue;
           const DataValue& val = hit.getMetaValue(key);
           if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
               && Scores::isKnownScoreType(key))
@@ -568,7 +568,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
         hit.getKeys(keys);
         for (const auto& key : keys)
         {
-          if (excluded_hit_mvs_psm.count(key)) continue;
+          if (excluded_hit_mvs_psm.contains(key)) continue;
           const DataValue& val = hit.getMetaValue(key);
           // Skip known scores (already in additional_scores)
           if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
@@ -981,7 +981,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
             {
               acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
             }
-            if (mod_map.find(name) == mod_map.end())
+            if (!mod_map.contains(name))
             {
               mod_map[name] = {acc_str, {}};
             }
@@ -999,7 +999,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
           {
             acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
           }
-          if (mod_map.find(name) == mod_map.end())
+          if (!mod_map.contains(name))
           {
             mod_map[name] = {acc_str, {}};
           }
@@ -1098,7 +1098,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
         hit.getKeys(keys);
         for (const auto& key : keys)
         {
-          if (excluded_hit_mvs.count(key)) continue;
+          if (excluded_hit_mvs.contains(key)) continue;
           const DataValue& val = hit.getMetaValue(key);
           if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
               && Scores::isKnownScoreType(key))

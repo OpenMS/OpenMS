@@ -324,7 +324,7 @@ namespace OpenMS::Internal
             if (cv_.exists(parsed_term.unit_accession))
             {
               // check whether this unit is allowed within the cv term
-              if (term.units.find(parsed_term.unit_accession) == term.units.end())
+              if (!term.units.contains(parsed_term.unit_accession))
               {
                 // last chance, a child term of the units was used
                 set<String> child_terms;

@@ -144,7 +144,7 @@ namespace OpenMS
     bool LogStreamBuf::isInCache_(std::string const & line)
     {
       //cout << "LogCache (count)" << log_cache_.count(line) << endl;
-      if (log_cache_.count(line) == 0)
+      if (!log_cache_.contains(line))
       {
         return false;
       }

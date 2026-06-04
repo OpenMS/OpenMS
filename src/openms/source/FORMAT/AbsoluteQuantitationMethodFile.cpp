@@ -79,14 +79,14 @@ namespace OpenMS
     aqm.setComponentName(headers.count("component_name") ? tl[headers.at("component_name")] : "");
     aqm.setFeatureName(headers.count("feature_name") ? tl[headers.at("feature_name")] : "");
     aqm.setISName(headers.count("IS_name") ? tl[headers.at("IS_name")] : "");
-    aqm.setLLOD(!headers.count("llod") || tl[headers.at("llod")].empty() ? 0 : std::stod(tl[headers.at("llod")]));
-    aqm.setULOD(!headers.count("ulod") || tl[headers.at("ulod")].empty() ? 0 : std::stod(tl[headers.at("ulod")]));
-    aqm.setLLOQ(!headers.count("lloq") || tl[headers.at("lloq")].empty() ? 0 : std::stod(tl[headers.at("lloq")]));
-    aqm.setULOQ(!headers.count("uloq") || tl[headers.at("uloq")].empty() ? 0 : std::stod(tl[headers.at("uloq")]));
+    aqm.setLLOD(!headers.contains("llod") || tl[headers.at("llod")].empty() ? 0 : std::stod(tl[headers.at("llod")]));
+    aqm.setULOD(!headers.contains("ulod") || tl[headers.at("ulod")].empty() ? 0 : std::stod(tl[headers.at("ulod")]));
+    aqm.setLLOQ(!headers.contains("lloq") || tl[headers.at("lloq")].empty() ? 0 : std::stod(tl[headers.at("lloq")]));
+    aqm.setULOQ(!headers.contains("uloq") || tl[headers.at("uloq")].empty() ? 0 : std::stod(tl[headers.at("uloq")]));
     aqm.setConcentrationUnits(headers.count("concentration_units") ? tl[headers.at("concentration_units")] : "");
-    aqm.setNPoints(!headers.count("n_points") || tl[headers.at("n_points")].empty() ? 0 : std::stoi(tl[headers.at("n_points")]));
+    aqm.setNPoints(!headers.contains("n_points") || tl[headers.at("n_points")].empty() ? 0 : std::stoi(tl[headers.at("n_points")]));
     aqm.setCorrelationCoefficient(
-      !headers.count("correlation_coefficient") || tl[headers.at("correlation_coefficient")].empty()
+      !headers.contains("correlation_coefficient") || tl[headers.at("correlation_coefficient")].empty()
         ? 0
         : std::stod(tl[headers.at("correlation_coefficient")])
     );

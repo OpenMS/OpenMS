@@ -917,7 +917,7 @@ namespace OpenMS
            library_.getCompounds().begin(); it != library_.getCompounds().end();
          ++it)
     {
-      if (!found_refs.count(it->id))
+      if (!found_refs.contains(it->id))
       {
         PeptideIdentification peptide;
         peptide.setIdentifier("id");

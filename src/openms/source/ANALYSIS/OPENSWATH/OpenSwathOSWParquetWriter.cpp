@@ -412,7 +412,7 @@ namespace OpenMS
     int64_t next_precursor_id = 1;
     for (const auto& compound : assay_library.compounds)
     {
-      if (compound_to_precursor.find(compound.id) != compound_to_precursor.end())
+      if (compound_to_precursor.contains(compound.id))
       {
         continue;
       }
@@ -434,7 +434,7 @@ namespace OpenMS
         // If numeric id collides with an already-used id, reject the numeric
         // value and fall back to auto-assigning. This prevents accidental
         // collisions between user-provided numeric ids and our auto ids.
-        if (used_precursor_ids.find(precursor_id) != used_precursor_ids.end() || precursor_id <= 0)
+        if (used_precursor_ids.contains(precursor_id) || precursor_id <= 0)
         {
           precursor_id = next_precursor_id++;
         }

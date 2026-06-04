@@ -907,11 +907,11 @@ namespace OpenMS
         SignedSize target_cf0 = -1, target_cf1 = -1;
 
         // find the index of the ConsensusFeatures for the current pair
-        if (clique_register.count(f0_idx) > 0)
+        if (clique_register.contains(f0_idx))
         {
           target_cf0 = clique_register[f0_idx];
         }
-        if (clique_register.count(f1_idx) > 0)
+        if (clique_register.contains(f1_idx))
         {
           target_cf1 = clique_register[f1_idx];
         }
@@ -1023,7 +1023,7 @@ namespace OpenMS
     for (Size i = 0; i < fm_out.size(); ++i)
     {
       // find the index of the ConsensusFeature for the current feature
-      if (clique_register.count(i) > 0)
+      if (clique_register.contains(i))
         continue;
 
       Feature f_single = fm_out_untouched[i];

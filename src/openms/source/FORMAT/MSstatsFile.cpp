@@ -121,7 +121,7 @@ void MSstatsFile::constructFile_(const String& retention_time_summarization_meth
       set<MSstatsFile::Intensity> intensities{};
       for (const auto &p : line.second)
       {
-        if (retention_times.find(get<1>(p)) != retention_times.end())
+        if (retention_times.contains(get<1>(p)))
         {
           OPENMS_LOG_WARN << "Peptide ion appears multiple times at the same retention time."
                              " This is not expected."
@@ -751,7 +751,7 @@ void MSstatsFile::assembleRunMap_(
   for (ExperimentalDesign::MSFileSectionEntry const& r : msfile_section)
   {
     std::pair< String, unsigned> tpl = std::make_pair(File::basename(r.path), r.fraction);
-    if (run_map.find(tpl) == run_map.end())
+    if (!run_map.contains(tpl))
     {
       run_map[tpl] = run_counter++;
     }

@@ -1130,7 +1130,7 @@ PercolatorModel Percolator::loadModel(const String& filename)
     // between feature name and weight. A feature name cannot contain a ':'
     // without a TAB (names are written as the left-hand side of TAB-split
     // data rows), so checking for TAB first is unambiguous.
-    if (line.find('\t') == std::string::npos)
+    if (!line.contains('\t'))
     {
       const size_t colon = line.find(':');
       if (colon == std::string::npos)
@@ -1141,7 +1141,7 @@ PercolatorModel Percolator::loadModel(const String& filename)
       }
       const std::string key = trim(line.substr(0, colon));
       const std::string val = trim(line.substr(colon + 1));
-      if (known_keys.find(key) == known_keys.end())
+      if (!known_keys.contains(key))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           filename + ": unknown header key '" + key + "'", line);
@@ -1159,7 +1159,7 @@ PercolatorModel Percolator::loadModel(const String& filename)
         else if (key == "bias")         { bias = std::stod(val); bias_seen = true; }
         else if (key == "normalizer")
         {
-          if (known_normalizers.find(val) == known_normalizers.end())
+          if (!known_normalizers.contains(val))
           {
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               filename + ": invalid normalizer value (expected stdv|uni|none)",
@@ -1193,7 +1193,7 @@ PercolatorModel Percolator::loadModel(const String& filename)
   // Required-key completeness.
   for (const auto& required : known_keys)
   {
-    if (seen_keys.find(required) == seen_keys.end())
+    if (!seen_keys.contains(required))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         filename + ": missing required header key '" + required + "'", "");

@@ -131,14 +131,14 @@ namespace OpenMS
     UInt index = registry_.getIndex(name);
     if (index != UInt(-1))
     {
-      return (index_to_value_.find(index) != index_to_value_.end());
+      return (index_to_value_.contains(index));
     }
     return false;
   }
 
   bool MetaInfo::exists(UInt index) const
   {
-    return (index_to_value_.find(index) != index_to_value_.end());
+    return (index_to_value_.contains(index));
   }
 
   void MetaInfo::removeValue(const String& name)

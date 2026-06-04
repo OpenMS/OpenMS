@@ -131,7 +131,7 @@ namespace OpenMS
     std::set<std::string> matching_proteins;
     for (Size i = 0; i < targeted_exp.compounds.size(); i++)
     {
-      if (matching_compounds.find(targeted_exp.compounds[i].id) != matching_compounds.end())
+      if (matching_compounds.contains(targeted_exp.compounds[i].id))
       {
         transition_exp_used.compounds.push_back( targeted_exp.compounds[i] );
         for (Size j = 0; j < targeted_exp.compounds[i].protein_refs.size(); j++)
@@ -142,7 +142,7 @@ namespace OpenMS
     }
     for (Size i = 0; i < targeted_exp.proteins.size(); i++)
     {
-      if (matching_proteins.find(targeted_exp.proteins[i].id) != matching_proteins.end())
+      if (matching_proteins.contains(targeted_exp.proteins[i].id))
       {
         transition_exp_used.proteins.push_back( targeted_exp.proteins[i] );
       }
@@ -195,9 +195,9 @@ namespace OpenMS
     // Separate compounds into priority and regular candidates
     for (auto & cmp : exp.getCompounds())
     {
-      if (good_ids.count(cmp.id))
+      if (good_ids.contains(cmp.id))
       {
-        if (priority_peptides.count(cmp.sequence))
+        if (priority_peptides.contains(cmp.sequence))
         {
           priority_candidates.push_back(cmp);
         }
@@ -281,7 +281,7 @@ namespace OpenMS
         
         for (auto & cmp : priority_candidates)
         {
-          if (cmp.rt >= lo && cmp.rt < hi && picked_sequences.find(cmp.sequence) == picked_sequences.end())
+          if (cmp.rt >= lo && cmp.rt < hi && !picked_sequences.contains(cmp.sequence))
             bucket.push_back(cmp);
         }
         
@@ -329,7 +329,7 @@ namespace OpenMS
           std::vector<OpenSwath::LightCompound> bucket;
           for (auto & cmp : candidates)
           {
-            if (cmp.rt >= lo && cmp.rt < hi && picked_sequences.find(cmp.sequence) == picked_sequences.end())
+            if (cmp.rt >= lo && cmp.rt < hi && !picked_sequences.contains(cmp.sequence))
               bucket.push_back(cmp);
           }
           
@@ -368,7 +368,7 @@ namespace OpenMS
         prot_ids.insert(pid);
     for (auto & prot : exp.getProteins())
     {
-      if (prot_ids.count(prot.id))
+      if (prot_ids.contains(prot.id))
         out_exp.proteins.push_back(prot);
     }
 

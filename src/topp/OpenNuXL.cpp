@@ -221,11 +221,11 @@ struct NuXLLinearRescore
               predictors[f].push_back(value);
             }
             // only add label for training data (rank = 0 and previously selected for training)
-            if (psm_rank == 0 && top_indices.count(index) != 0)
+            if (psm_rank == 0 && top_indices.contains(index))
             {
               labels[current_row] = 1.0;
             }
-            else if (psm_rank == 0 && bottom_indices.count(index) != 0)
+            else if (psm_rank == 0 && bottom_indices.contains(index))
             {
               labels[current_row] = 0.0;
             }
@@ -360,7 +360,7 @@ struct NuXLLinearRescore
                predictors[f].push_back(value);
              }
              // only add label for training data (rank = 0 and previously selected for training)
-             if (psm_rank == 0 && training_indices.count(index) > 0)
+             if (psm_rank == 0 && training_indices.contains(index))
              {
                labels[current_row] = is_target;
              }
@@ -3554,7 +3554,7 @@ static void scoreXLIons_(
       { 
         const Residue& r = fixed_and_variable_modified_peptide[i];
         if (!r.isModified()) continue;
-        if (variable_modifications.val.find(r.getModification()) != variable_modifications.val.end())
+        if (variable_modifications.val.contains(r.getModification()))
         {
           ++n_var_mods;
         }
@@ -3565,9 +3565,9 @@ static void scoreXLIons_(
       auto c_term_mod = fixed_and_variable_modified_peptide.getCTerminalModification();
 
       if (n_term_mod != nullptr &&
-        variable_modifications.val.find(n_term_mod) != variable_modifications.val.end()) ++n_var_mods;
+        variable_modifications.val.contains(n_term_mod)) ++n_var_mods;
       if (c_term_mod != nullptr &&
-        variable_modifications.val.find(c_term_mod) != variable_modifications.val.end()) ++n_var_mods;
+        variable_modifications.val.contains(c_term_mod)) ++n_var_mods;
 
       ph.setMetaValue(String("variable_modifications"), n_var_mods);
       ph.setMetaValue(String("n_theoretical_peaks"), ah.n_theoretical_peaks);
@@ -3817,7 +3817,7 @@ static void scoreXLIons_(
       for (auto & ph : pid.getHits())
       {
         const String& unmodified_sequence = ph.getSequence().toUnmodifiedString();
-        if (sequence_is_topPSM.find(unmodified_sequence) != sequence_is_topPSM.end())
+        if (sequence_is_topPSM.contains(unmodified_sequence))
         {  
           ph.setMetaValue("CountSequenceIsTop", sequence_is_topPSM[unmodified_sequence]);
           ph.setMetaValue("CountSequenceCharges", sequence_charges[unmodified_sequence].size());
@@ -4626,7 +4626,7 @@ static void scoreXLIons_(
         vector<size_t> idx_to_keep; // inverse
         for (size_t i = 0; i != s.size(); ++i)
         { // add indices we don't want to remove
-          if (idx_to_remove.find(i) == idx_to_remove.end()) idx_to_keep.push_back(i);
+          if (!idx_to_remove.contains(i)) idx_to_keep.push_back(i);
         }
         filtered_peaks_count += idx_to_remove.size();
         s.select(idx_to_keep);
@@ -4881,7 +4881,7 @@ static void scoreXLIons_(
                 const String other_native_id = f->getMetaValue("native_id");
 
                 // skip self-comparison and already identified spectra
-                if (this_native_id == other_native_id || skip_peptide_spectrum.count(other_native_id) > 0) continue;
+                if (this_native_id == other_native_id || skip_peptide_spectrum.contains(other_native_id)) continue;
 
                 const MSSpectrum& this_spec = spectra[lookup.findByNativeID(this_native_id)];
                 const MSSpectrum& other_spec = spectra[lookup.findByNativeID(other_native_id)];
@@ -5387,7 +5387,7 @@ static void scoreXLIons_(
 #endif
         {
           // skip peptide (and all modified variants) if already processed
-          if (processed_petides.find(*cit) != processed_petides.end())
+          if (processed_petides.contains(*cit))
           {
             already_processed = true;
           }
@@ -5692,7 +5692,7 @@ static void scoreXLIons_(
                       const PeakSpectrum & exp_spectrum = spectra[scan_index];
                       //////////////////////////////////////////
                       //               ID-Filter
-                      if (skip_peptide_spectrum.find(exp_spectrum.getNativeID()) != skip_peptide_spectrum.end()) { continue; }
+                      if (skip_peptide_spectrum.contains(exp_spectrum.getNativeID())) { continue; }
 
 #pragma omp atomic
                       ++nr_candidates[scan_index]; // count candidate for spectrum
@@ -5900,7 +5900,7 @@ static void scoreXLIons_(
                 const String& precursor_na_adduct = *mod_combinations_it->second.begin(); // For fast scoring it should be sufficient to only consider any of the adducts for this mass and formula (e.g., C-H3N vs U-H2O)
                 MSSpectrum& exp_spectrum = spectra[scan_index];
 
-                if (precursor_na_adduct != "none" && skip_peptide_spectrum.find(exp_spectrum.getNativeID()) != skip_peptide_spectrum.end()) continue;
+                if (precursor_na_adduct != "none" && skip_peptide_spectrum.contains(exp_spectrum.getNativeID())) continue;
 
 #pragma omp atomic       
                 ++nr_candidates[scan_index];

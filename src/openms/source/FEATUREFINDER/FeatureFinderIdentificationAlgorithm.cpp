@@ -1434,7 +1434,7 @@ namespace OpenMS
           RTMap &external_ids = ref_rt_map[peptide_id].second;
           for (RTRegion& reg : rt_regions)
           {
-            if (reg.ids.count(charge))
+            if (reg.ids.contains(charge))
             {
               OPENMS_LOG_DEBUG_NOFILE << "Charge " << charge << ", Region# " << counter + 1 << " (RT: "
                                << float(reg.start) << "-" << float(reg.end)
@@ -1637,7 +1637,7 @@ namespace OpenMS
     for (RTMap::const_iterator rt_it = rt_internal.begin();
          rt_it != rt_internal.end(); ++rt_it)
     {
-      if (!assigned_ids.count(rt_it->second))
+      if (!assigned_ids.contains(rt_it->second))
       {
         const PeptideIdentification& pep_id = *(rt_it->second);
         features.getUnassignedPeptideIdentifications().push_back(pep_id);
@@ -1680,7 +1680,7 @@ namespace OpenMS
       // - IM_min/max: spread of IM distribution (large spread may indicate issues)
       // Note: Uses full peptide ref (with region number) as this is the key in im_stats_
       String full_peptide_ref = peptide_ref; // keep full ref with region number
-      if (im_stats_.count(full_peptide_ref))
+      if (im_stats_.contains(full_peptide_ref))
       {
         const IMStats& stats = im_stats_.at(full_peptide_ref);
         feat.setMetaValue("IM_median", stats.median);

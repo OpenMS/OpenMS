@@ -107,9 +107,9 @@ class TOPPOpenSwathRewriteToFeatureXML :
       }
     }
 
-    if (header_dict_inv.find("id") == header_dict_inv.end() || 
-        header_dict_inv.find("m_score") == header_dict_inv.end() || 
-        header_dict_inv.find("d_score") == header_dict_inv.end() )
+    if (!header_dict_inv.contains("id") || 
+        !header_dict_inv.contains("m_score") || 
+        !header_dict_inv.contains("d_score") )
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: The tsv file is expected to have at least the following headers: id, m_score, d_score. " );
     }
@@ -148,13 +148,13 @@ class TOPPOpenSwathRewriteToFeatureXML :
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Could not convert String" + ((String)current_row[header_dict_inv["d_score"]]) + " on line " + String(line_nr));
       }
 
-      if (feature_map_ref.find(id) != feature_map_ref.end() )
+      if (feature_map_ref.contains(id) )
       {
         Feature* feature = feature_map_ref.find(id)->second;
         feature->setMetaValue("m_score", m_score);
         feature->setMetaValue("d_score", d_score);
         // we are not allowed to have duplicate unique ids
-        if (added_already.find(id) != added_already.end())
+        if (added_already.contains(id))
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Duplicate id found in CSV file: " + id );
         }

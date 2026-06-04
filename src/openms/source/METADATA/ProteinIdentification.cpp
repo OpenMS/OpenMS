@@ -351,7 +351,7 @@ namespace OpenMS
     for (const ProteinHit& protein : getHits())
     {
       const String& acc = protein.getAccession();
-      if (groupedAccessions.find(acc) == groupedAccessions.end())
+      if (!groupedAccessions.contains(acc))
       {
         groupedAccessions.insert(acc);
         ProteinGroup pg;
@@ -640,7 +640,7 @@ namespace OpenMS
 
       const String& accession = this->protein_hits_[i].getAccession();
       double coverage = 0.0;
-      if (map_acc_2_evidence.find(accession) != map_acc_2_evidence.end())
+      if (map_acc_2_evidence.contains(accession))
       {
         const set<PeptideEvidence>& evidences = map_acc_2_evidence.find(accession)->second;
         for (const auto & evidence : evidences)
@@ -684,7 +684,7 @@ namespace OpenMS
     for (auto & protein_hit : protein_hits_)
     {
       const String& accession = protein_hit.getAccession();
-      if (prot2mod.find(accession) != prot2mod.end())
+      if (prot2mod.contains(accession))
       {
         protein_hit.setModifications(prot2mod[accession]);
       }
@@ -708,7 +708,7 @@ namespace OpenMS
     for (auto & protein_hit : protein_hits_)
     {
       const String& accession = protein_hit.getAccession();
-      if (prot2mod.find(accession) != prot2mod.end())
+      if (prot2mod.contains(accession))
       {
         protein_hit.setModifications(prot2mod[accession]);
       }

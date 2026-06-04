@@ -275,7 +275,7 @@ namespace OpenMS
       {
         for (const auto& acc : hit.extractProteinAccessionsSet())
         {
-          if (accessions.count(acc) > 0)
+          if (accessions.contains(acc))
             return true;
         }
         return false;
@@ -283,12 +283,12 @@ namespace OpenMS
 
       bool operator()(const ProteinHit& hit) const
       {
-        return accessions.count(hit.getAccession()) > 0;
+        return accessions.contains(hit.getAccession());
       }
 
       bool operator()(const PeptideEvidence& evidence) const
       {
-        return accessions.count(evidence.getProteinAccession()) > 0;
+        return accessions.contains(evidence.getProteinAccession());
       }
     };
 
@@ -330,7 +330,7 @@ namespace OpenMS
 
       bool exists(const HitType& hit) const
       {
-        return items.count(getHitKey(hit)) > 0;
+        return items.contains(getHitKey(hit));
       }
 
       const String& getHitKey(const PeptideEvidence& p) const

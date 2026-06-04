@@ -51,7 +51,7 @@ namespace OpenMS
       {
         Size f1 = pairs[i].getElementIndex(0);
         Size f2 = pairs[i].getElementIndex(1);
-        if ((f2g.find(f1) != f2g.end()) && (f2g.find(f2) != f2g.end())) // edge connects two distinct groups
+        if ((f2g.contains(f1)) && (f2g.contains(f2))) // edge connects two distinct groups
         {
           Size group1 = f2g[f1];
           Size group2 = f2g[f2];
@@ -68,13 +68,13 @@ namespace OpenMS
             g2f.erase(group2);
           }
         }
-        else if ((f2g.find(f1) != f2g.end()) && !(f2g.find(f2) != f2g.end())) // only f1 is part of a group
+        else if ((f2g.contains(f1)) && !(f2g.contains(f2))) // only f1 is part of a group
         {
           Size group1 = f2g[f1];
           f2g[f2] = group1;
           g2f[group1].insert(f2);
         }
-        else if (!(f2g.find(f1) != f2g.end()) && f2g.find(f2) != f2g.end()) // only f2 is part of a group
+        else if (!(f2g.contains(f1)) && f2g.contains(f2)) // only f2 is part of a group
         {
           Size group2 = f2g[f2];
           f2g[f1] = group2;

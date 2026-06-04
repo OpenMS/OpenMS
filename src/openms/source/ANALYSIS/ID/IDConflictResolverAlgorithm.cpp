@@ -215,7 +215,7 @@ namespace OpenMS
       for (Size j = 0; j < hits.size(); ++j)
       {
         const AASequence& seq = hits[j].getSequence();
-        if (seen_in_run.count(seq) == 0)
+        if (!seen_in_run.contains(seq))
         {
           // First occurrence of this sequence in this ID: use its rank
           rank_sums[seq] += static_cast<double>(j);

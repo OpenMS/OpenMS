@@ -305,7 +305,7 @@ public:
       y.push_back(it->second);
     }
 
-    if (rate2score.find(100.0) == rate2score.end() && x[x.size() - 1] < 100.0)
+    if (!rate2score.contains(100.0) && x[x.size() - 1] < 100.0)
     {
       x.push_back(100.0);
       y.push_back(0);
@@ -369,7 +369,7 @@ public:
       // build histogram of rates
       for (vector<SIPIncorporation>::const_iterator iit = cit->incorporations.begin(); iit != cit->incorporations.end(); ++iit)
       {
-        if (hist.find(iit->rate) == hist.end())
+        if (!hist.contains(iit->rate))
         {
           hist[iit->rate] = 1.0;
         }
@@ -1017,7 +1017,7 @@ public:
 
         String protein_accession = prot_it->first;
         String protein_description = "none";
-        if (proteinid_to_description.find(protein_accession.trim().toUpper()) != proteinid_to_description.end())
+        if (proteinid_to_description.contains(protein_accession.trim().toUpper()))
         {
           protein_description = proteinid_to_description.at(protein_accession.trim().toUpper());
         }
@@ -1146,7 +1146,7 @@ public:
             String protein_accession = v_it->accessions[ac];
             accessions_string += protein_accession;
 
-            if (proteinid_to_description.find(protein_accession.trim().toUpper()) != proteinid_to_description.end())
+            if (proteinid_to_description.contains(protein_accession.trim().toUpper()))
             {
               if (description_string == "none")
               {
@@ -1264,7 +1264,7 @@ public:
         current_accession.trim().toUpper();
         accession_string += current_accession;
 
-        if (proteinid_to_description.find(current_accession) != proteinid_to_description.end())
+        if (proteinid_to_description.contains(current_accession))
         {
           if (protein_descriptions == "none")
           {
@@ -1899,7 +1899,7 @@ public:
       for (; it != peak_map.areaEndConst(); ++it)
       {
         double rt = it.getRT();
-        if (xic.find(rt) != xic.end())
+        if (xic.contains(rt))
         {
           xic[rt] += it->getIntensity();
         }

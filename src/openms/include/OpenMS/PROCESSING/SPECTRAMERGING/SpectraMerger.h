@@ -740,7 +740,7 @@ protected:
       MapType exp_tmp;
       for (Size i = 0; i < exp.size(); ++i)
       {
-        if (merged_indices.count(i) == 0) // save unclustered ones
+        if (!merged_indices.contains(i)) // save unclustered ones
         {
           exp_tmp.addSpectrum(exp[i]);
           exp[i] = empty_spec;

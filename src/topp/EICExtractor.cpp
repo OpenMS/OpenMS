@@ -346,7 +346,7 @@ public:
         {
           if (cf.getRT() < 0)
           {
-            if (mz_doubles.find(cf.getMZ()) == mz_doubles.end())
+            if (!mz_doubles.contains(cf.getMZ()))
             {
               mz_doubles.insert(cf.getMZ());
             }

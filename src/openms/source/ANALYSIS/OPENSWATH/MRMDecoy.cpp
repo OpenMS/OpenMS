@@ -602,7 +602,7 @@ namespace OpenMS
       // Check that the decoy precursor does not happen to be a target precursor AND is not already present.
       // Use getModifiedPeptideSequence_ to match the key format used when populating allPeptideSequences above.
       const std::string peptide_key = MRMDecoy::getModifiedPeptideSequence_(peptide) + String(peptide.getChargeState());
-      if (allPeptideSequences.find(peptide_key) != allPeptideSequences.end())
+      if (allPeptideSequences.contains(peptide_key))
       {
         OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy peptide is also a target peptide or this decoy peptide is already present\n";
         exclusion_peptides.insert(peptide.id);
@@ -712,7 +712,7 @@ namespace OpenMS
                             decoy_transitions.begin(), decoy_transitions.end(),
                             [&exclusion_peptides](const OpenMS::ReactionMonitoringTransition& tr)
     {
-      return exclusion_peptides.find(tr.getPeptideRef()) != exclusion_peptides.end();
+      return exclusion_peptides.contains(tr.getPeptideRef());
     }), decoy_transitions.end());
     dec.setTransitions(std::move(decoy_transitions));
 
@@ -721,7 +721,7 @@ namespace OpenMS
     for (const auto& peptide : peptides)
     {
       // Check if peptide has any transitions left
-      if (exclusion_peptides.find(peptide.id) == exclusion_peptides.end())
+      if (!exclusion_peptides.contains(peptide.id))
       {
         decoy_peptides.push_back(peptide);
         for (Size j = 0; j < peptide.protein_refs.size(); ++j)
@@ -739,7 +739,7 @@ namespace OpenMS
     for (const auto& protein : proteins)
     {
       // Check if protein has any peptides left
-      if (protein_ids.find(protein.id) != protein_ids.end())
+      if (protein_ids.contains(protein.id))
       {
         decoy_proteins.push_back(protein);
       }
@@ -955,7 +955,7 @@ namespace OpenMS
       // which includes UniMod annotations. This ensures peptides with the same unmodified
       // sequence but different modifications are NOT considered duplicates.
       std::string decoy_key = full_decoy_sequence + String(decoy_compound.charge);
-      if (allPeptideSequences.find(decoy_key) != allPeptideSequences.end())
+      if (allPeptideSequences.contains(decoy_key))
       {
         OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " since decoy peptide is also a target peptide or this decoy peptide is already present\n";
         exclusion_peptides.insert(decoy_compound.id);
@@ -1123,7 +1123,7 @@ namespace OpenMS
     decoy_transitions.erase(
         std::remove_if(decoy_transitions.begin(), decoy_transitions.end(),
                        [&exclusion_peptides](const OpenSwath::LightTransition& tr) {
-                         return exclusion_peptides.find(tr.peptide_ref) != exclusion_peptides.end();
+                         return exclusion_peptides.contains(tr.peptide_ref);
                        }),
         decoy_transitions.end());
 
@@ -1132,7 +1132,7 @@ namespace OpenMS
     std::unordered_set<std::string> protein_ids;
     for (const auto& compound : decoy_compounds)
     {
-      if (exclusion_peptides.find(compound.id) == exclusion_peptides.end())
+      if (!exclusion_peptides.contains(compound.id))
       {
         filtered_compounds.push_back(compound);
         for (const auto& prot_ref : compound.protein_refs)
@@ -1146,7 +1146,7 @@ namespace OpenMS
     std::vector<OpenSwath::LightProtein> filtered_proteins;
     for (const auto& protein : decoy_proteins)
     {
-      if (protein_ids.find(protein.id) != protein_ids.end())
+      if (protein_ids.contains(protein.id))
       {
         filtered_proteins.push_back(protein);
       }

@@ -426,7 +426,7 @@ protected:
           const PeptideHit& hit = pep_it->getHits()[0];
           OPENMS_LOG_DEBUG << "peptide: " << hit.getSequence().toString() << endl;
           // skip ahead if peptide is not new:
-          if (sequences.find(hit.getSequence()) != sequences.end()) continue;
+          if (sequences.contains(hit.getSequence())) continue;
           OPENMS_LOG_DEBUG << "new peptide!" << endl;
           pep_it->getHits().resize(1); // restrict to best hit for simplicity
           peptides.push_back(*pep_it);
@@ -438,7 +438,7 @@ protected:
           {
             OPENMS_LOG_DEBUG << "accession: " << acc << endl;
             // skip ahead if accession is not new:
-            if (accessions.find(acc) != accessions.end())
+            if (accessions.contains(acc))
             {
               continue;
             }
@@ -446,7 +446,7 @@ protected:
             // first find the right protein identification:
             const String& id = pep_it->getIdentifier();
             OPENMS_LOG_DEBUG << "identifier: " << id << endl;
-            if (proteins_by_id.find(id) == proteins_by_id.end())
+            if (!proteins_by_id.contains(id))
             {
               writeLogError_("Error: identifier '" + id + "' linking peptides and proteins not found. Skipping.");
               continue;
@@ -461,7 +461,7 @@ protected:
               continue;
             }
             // we may need to copy protein ID meta data, if we haven't yet:
-            if (selected_proteins.find(id) == selected_proteins.end())
+            if (!selected_proteins.contains(id))
             {
               OPENMS_LOG_DEBUG << "adding protein identification" << endl;
               selected_proteins_order.push_back(id);

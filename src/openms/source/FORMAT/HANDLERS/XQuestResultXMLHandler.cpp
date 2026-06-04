@@ -138,7 +138,7 @@ namespace OpenMS::Internal
         PeptideEvidence pep_ev;
         const String& accession = *prot_list_it;
 
-        if (this->accessions_.find(accession) == this->accessions_.end())
+        if (!this->accessions_.contains(accession))
         {
           this->accessions_.insert(accession);
 

@@ -94,7 +94,7 @@ namespace OpenMS
       {
         Size idx = group_it - groups.begin();
         prot_acc_to_indist_prot_grp[*acc_it] = idx;
-        if (decoy_accs.find(*acc_it) != decoy_accs.end())
+        if (decoy_accs.contains(*acc_it))
         {
           indist_prot_grp_decoy[idx] = true;
         }

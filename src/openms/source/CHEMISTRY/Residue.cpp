@@ -584,7 +584,7 @@ namespace OpenMS
 
   bool Residue::isInResidueSet(const String& residue_set)
   {
-    return residue_sets_.find(residue_set) != residue_sets_.end();
+    return residue_sets_.contains(residue_set);
   }
 
   std::string Residue::residueTypeToIonLetter(const Residue::ResidueType& res_type)

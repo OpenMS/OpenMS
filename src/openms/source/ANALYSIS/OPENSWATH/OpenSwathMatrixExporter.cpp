@@ -64,12 +64,12 @@ namespace OpenMS
       std::set<String> used;
       for (const auto& row : rows)
       {
-        if (names.find(row.run_id) != names.end())
+        if (names.contains(row.run_id))
         {
           continue;
         }
         String label = row.run_name.empty() ? (String("RUN_ID_") + String(row.run_id)) : row.run_name;
-        if (used.count(label))
+        if (used.contains(label))
         {
           label += "_RUN" + String(row.run_id);
         }
@@ -150,7 +150,7 @@ namespace OpenMS
         {
           const PeptideKey key{row.sequence, row.full_peptide_name};
           const auto selected_it = selected_precursors.find(key);
-          if (selected_it == selected_precursors.end() || !selected_it->second.count(row.transition_group_id))
+          if (selected_it == selected_precursors.end() || !selected_it->second.contains(row.transition_group_id))
           {
             continue;
           }

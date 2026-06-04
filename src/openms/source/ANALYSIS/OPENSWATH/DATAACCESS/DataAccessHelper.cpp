@@ -157,19 +157,19 @@ namespace OpenMS
       // legacy
 #if 1
       const auto& cv_terms = transition.getCVTerms();
-      if (cv_terms.find("decoy") != cv_terms.end() && cv_terms.at("decoy")[0].getValue().toString() == "1" )
+      if (cv_terms.contains("decoy") && cv_terms.at("decoy")[0].getValue().toString() == "1" )
       {
         t.setDecoy(true);
       }
-      else if (cv_terms.find("MS:1002007") != cv_terms.end())    // target SRM transition
+      else if (cv_terms.contains("MS:1002007"))    // target SRM transition
       {
         t.setDecoy(false);
       }
-      else if (cv_terms.find("MS:1002008") != cv_terms.end())    // decoy SRM transition
+      else if (cv_terms.contains("MS:1002008"))    // decoy SRM transition
       {
         t.setDecoy(true);
       }
-      else if (cv_terms.find("MS:1002007") != cv_terms.end() && cv_terms.find("MS:1002008") != cv_terms.end())    // both == illegal
+      else if (cv_terms.contains("MS:1002007") && cv_terms.contains("MS:1002008"))    // both == illegal
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Transition " + t.transition_name + " cannot be target and decoy at the same time.");

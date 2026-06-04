@@ -119,7 +119,7 @@ namespace OpenMS
       String full_name = residue->getFullName();
       double diff_mono_mass = residue->getDiffMonoMass();
       
-      if (full_name.find("substitution") == std::string::npos)
+      if (!full_name.contains("substitution"))
       {
         mass_to_modification[diff_mono_mass] = full_name;
       }
@@ -138,7 +138,7 @@ namespace OpenMS
     // Helper function to add or update modifications
     auto addOrUpdateModification = [&](const String& mod_name, double mass, double count, int num_charges)
     {
-      if (modifications.find(mod_name) == modifications.end())
+      if (!modifications.contains(mod_name))
       {
         ModificationPattern pattern;
         pattern.masses.push_back(mass);
@@ -720,13 +720,13 @@ namespace OpenMS
         stats.total_modified_psms++;
 
         // Get or create PTM entry
-        if (ptm_map.find(ptm_name) == ptm_map.end())
+        if (!ptm_map.contains(ptm_name))
         {
           PTMEntry entry;
           entry.name = ptm_name;
 
           // Get theoretical mass
-          if (name_to_mass.find(ptm_name) != name_to_mass.end())
+          if (name_to_mass.contains(ptm_name))
           {
             entry.theoretical_mass = name_to_mass[ptm_name];
           }
@@ -925,7 +925,7 @@ namespace OpenMS
       double diff_mono_mass = residue->getDiffMonoMass();
 
       // Skip substitutions
-      if (full_name.find("substitution") == std::string::npos)
+      if (!full_name.contains("substitution"))
       {
         mass_to_mod[diff_mono_mass] = full_name;
       }
@@ -938,7 +938,7 @@ namespace OpenMS
   {
     // Split compound names (e.g. "Oxidation//Deamidated" or "Oxidation+1Da") and resolve each part
     std::vector<String> parts;
-    if (mod_name.find("//") != std::string::npos)
+    if (mod_name.contains("//"))
     {
       mod_name.split("//", parts);
     }

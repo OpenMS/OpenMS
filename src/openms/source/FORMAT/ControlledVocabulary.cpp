@@ -573,7 +573,7 @@ namespace OpenMS
 
   bool ControlledVocabulary::exists(const String& id) const
   {
-    return terms_.find(id) != terms_.end();
+    return terms_.contains(id);
   }
 
   const ControlledVocabulary::CVTerm* ControlledVocabulary::checkAndGetTermByName(const OpenMS::String& name) const

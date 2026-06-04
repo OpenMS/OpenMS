@@ -429,7 +429,7 @@ namespace OpenMS
           {
             sv << "invalid"; // this only happens if ALL models are invalid (since otherwise they would use 'neighbour')
           }
-          else if (invalid_models.count(i) > 0)
+          else if (invalid_models.contains(i))
           {
             sv << "neighbor";
           }

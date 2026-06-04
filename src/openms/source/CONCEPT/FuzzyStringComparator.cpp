@@ -280,8 +280,8 @@ namespace OpenMS
     for (StringList::const_iterator slit = whitelist_.begin();
          slit != whitelist_.end(); ++slit)
     {
-      if (line_str_1.find(*slit) != String::npos &&
-          line_str_2.find(*slit) != String::npos)
+      if (line_str_1.contains(*slit) &&
+          line_str_2.contains(*slit))
       {
         ++whitelist_cases_[*slit];
         // *log_dest_ << "whitelist_ case: " << *slit << '\n';
@@ -294,11 +294,11 @@ namespace OpenMS
     for (std::vector< std::pair<std::string, std::string> >::const_iterator pair_it = matched_whitelist_.begin(); 
          pair_it != matched_whitelist_.end(); ++pair_it)
     {
-      if ((line_str_1.find(pair_it->first) != String::npos &&
-           line_str_2.find(pair_it->second) != String::npos
+      if ((line_str_1.contains(pair_it->first) &&
+           line_str_2.contains(pair_it->second)
           ) ||
-          (line_str_1.find(pair_it->second) != String::npos &&
-           line_str_2.find(pair_it->first) != String::npos
+          (line_str_1.contains(pair_it->second) &&
+           line_str_2.contains(pair_it->first)
           )
          )
       {
