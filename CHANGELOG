@@ -17,6 +17,7 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 General:
+  - Performance: SimpleSearchEngine no longer serializes peptide-candidate parsing/modification on a global critical section. The per-candidate fromString()+modification application only does lock-free ResidueDB lookups of immutable standard residues and reads pre-resolved modification maps (no ResidueDB/ModificationsDB mutation), so the OpenMP parallel-for over the protein database now scales across threads where it previously bottlenecked on one lock.
   - macOS Intel builds discontinued; macOS deployment target raised to macOS 14
   - Ubuntu CI runners updated to 24.04
   - macOS code signing and notarization integrated directly into CI (#8486, #8494, #8527)
