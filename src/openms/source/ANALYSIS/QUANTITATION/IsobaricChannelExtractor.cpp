@@ -433,36 +433,90 @@ namespace OpenMS
 
     HasActivationMethod<PeakMap::SpectrumType> isValidActivation(ListUtils::create<String>(selected_activation_));
 
-    // walk through spectra and count the number of scans with valid activation method per MS-level
-    // only the highest level will be used for quantification (e.g. MS3, if present)
-    std::map<UInt, UInt> ms_level;
-    std::map<String, int> activation_modes;
+    // Walk through the spectra and count, per MS-level, the total number of MSn scans, the number of
+    // scans passing the activation-method filter, and a per-level breakdown of the activation modes
+    // encountered (used for diagnostics below).
+    //
+    // The MS level used for quantification is the *highest* MS level present in the data (e.g. MS3 for
+    // SPS-MS3 experiments, otherwise MS2). This is deliberately decided based on the MS-level structure
+    // alone and NOT on the activation filter: for SPS-MS3 the reporter ions are contained in the MS3
+    // scans, so quantifying a lower level would yield wrong results. The activation filter is only used
+    // to select the scans *within* the chosen quantification level. See OpenMS issue #7165.
+    std::map<UInt, UInt> ms_level_total;                            // all MSn scans per level
+    std::map<UInt, UInt> ms_level_pass;                             // scans passing the activation filter per level
+    std::map<UInt, std::map<String, UInt>> level_activation_modes;  // per-level activation-mode counts
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
       if (it->getMSLevel() == 1) continue; // never report MS1
-      ++activation_modes[getActivationMethod_(*it)]; // count HCD, CID, ...
+      const UInt lvl = it->getMSLevel();
+      ++ms_level_total[lvl];
+      ++level_activation_modes[lvl][getActivationMethod_(*it)]; // count HCD, CID, ... per level
       if (selected_activation_ == "any" || isValidActivation(*it))
       {
-        ++ms_level[it->getMSLevel()];
+        ++ms_level_pass[lvl];
       }
     }
-    if (ms_level.empty())
+
+    // helper to format the activation-mode breakdown of a given MS level, e.g. "HCD (106), CID (3)"
+    auto formatActivationModes = [&level_activation_modes](UInt lvl) -> String
     {
-      OPENMS_LOG_WARN << "Filtering by MS/MS(/MS) and activation mode: no spectra pass activation mode filter!\n"
-               << "Activation modes found:\n";
-      for (std::map<String, int>::const_iterator it = activation_modes.begin(); it != activation_modes.end(); ++it)
+      const auto lvl_it = level_activation_modes.find(lvl);
+      if (lvl_it == level_activation_modes.end()) return "<none>";
+      String s;
+      bool first = true;
+      for (const auto& am : lvl_it->second)
       {
-        OPENMS_LOG_WARN << "  mode " << (it->first.empty() ? "<none>" : it->first) << ": " << it->second << " scans\n";
+        if (!first) s += ", ";
+        s += (am.first.empty() ? "<none>" : am.first) + " (" + String(am.second) + ")";
+        first = false;
       }
-      OPENMS_LOG_WARN << "Result will be empty!\n";
+      return s;
+    };
+
+    if (ms_level_total.empty())
+    { // only MS1 (or no MSn) scans present
+      OPENMS_LOG_WARN << "No MS/MS(/MS) spectra found in the input. Result will be empty!\n";
       return;
     }
-    OPENMS_LOG_INFO << "Filtering by MS/MS(/MS) and activation mode:\n";
-    for (std::map<UInt, UInt>::const_iterator it = ms_level.begin(); it != ms_level.end(); ++it)
-    {
-      OPENMS_LOG_INFO << "  level " << it->first << ": " << it->second << " scans\n";
+
+    if (ms_level_pass.empty())
+    { // no scan at any MS level passes the activation filter
+      OPENMS_LOG_WARN << "Filtering by MS/MS(/MS) and activation mode '" << selected_activation_ << "': no spectra pass the activation mode filter!\n"
+               << "Activation modes found:\n";
+      for (const auto& lvl : level_activation_modes)
+      {
+        OPENMS_LOG_WARN << "  MS" << lvl.first << ": " << formatActivationModes(lvl.first) << "\n";
+      }
+      OPENMS_LOG_WARN << "Set 'select_activation' to 'auto', 'any', or a matching activation method. Result will be empty!\n";
+      return;
     }
-    UInt quant_ms_level = ms_level.rbegin()->first;
+
+    OPENMS_LOG_INFO << "Filtering by MS/MS(/MS) and activation mode '" << selected_activation_ << "':\n";
+    for (const auto& lvl : ms_level_total)
+    {
+      const UInt passed = ms_level_pass.count(lvl.first) ? ms_level_pass[lvl.first] : 0;
+      OPENMS_LOG_INFO << "  MS" << lvl.first << ": " << passed << "/" << lvl.second << " scans pass [activation modes: " << formatActivationModes(lvl.first) << "]\n";
+    }
+
+    // quantify on the highest MS level present in the data (see comment above)
+    const UInt quant_ms_level = ms_level_total.rbegin()->first;
+    const UInt passing_at_quant = ms_level_pass.count(quant_ms_level) ? ms_level_pass[quant_ms_level] : 0;
+
+    if (passing_at_quant == 0)
+    { // The highest MS level (used for quantification) contains scans, but none of them match the
+      // selected activation, while a lower MS level does. Silently quantifying the lower level would
+      // produce nonsensical results (e.g. SPS-MS3, where the reporter ions reside in the MS3 scans).
+      // Fail loudly instead of silently returning wrong quantities. See OpenMS issue #7165.
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "None of the " + String(ms_level_total[quant_ms_level]) + " MS" + String(quant_ms_level) +
+        " scans (the highest MS level present, which is used for isobaric quantification) match the selected activation '" +
+        selected_activation_ + "', but lower MS-level scans do. For SPS-MS" + String(quant_ms_level) +
+        " experiments the reporter ions reside in the MS" + String(quant_ms_level) + " scans; quantifying a lower MS level "
+        "would give wrong results. Activation modes of the MS" + String(quant_ms_level) + " scans: " + formatActivationModes(quant_ms_level) +
+        ". Please set 'select_activation' to 'auto' (HCD/HCID), 'any' (disable filtering), or the activation method matching your MS" +
+        String(quant_ms_level) + " scans.");
+    }
+
     OPENMS_LOG_INFO << "Using MS-level " << quant_ms_level << " for quantification.\n";
 
     // now we have picked data
