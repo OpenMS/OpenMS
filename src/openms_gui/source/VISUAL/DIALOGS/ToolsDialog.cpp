@@ -583,7 +583,7 @@ namespace OpenMS
 
   void ToolsDialog::applyThreadsToSingleToolParam_()
   {
-    int threads = threads = threads_combo_->currentData().toInt();
+    const int threads = threads_combo_->currentData().toInt();
 
     if (single_tool_param_.exists("threads")) // safeguard for tools without a threads parameter (could be the case for plugins)
     {
