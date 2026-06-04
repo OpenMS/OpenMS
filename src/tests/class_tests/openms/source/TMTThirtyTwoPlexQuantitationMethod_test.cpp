@@ -97,8 +97,9 @@ END_SECTION
 START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const)){
   TMTThirtyTwoPlexQuantitationMethod quant_meth;
 
-  // Default correction matrix is the identity (no isotope correction).
-  // Calibrated values are not yet available for TMT 32-plex.
+  // The default correction matrix is derived from the Thermo TMTpro deuterated reagent
+  // set Certificate of Analysis (product A40000817). The 16 non-deuterated channels match
+  // the TMTpro datasheet (identical to TMT 16-/18-plex), so this is not an identity matrix.
   Matrix<double> m = quant_meth.getIsotopeCorrectionMatrix();
 
   TEST_EQUAL(m.rows(), 32)
@@ -107,20 +108,24 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const)){
   ABORT_IF(m.rows() != 32)
   ABORT_IF(m.cols() != 32)
 
-  for(size_t i = 0; i < m.rows(); ++i)
-  {
-    for(size_t j = 0; j < m.cols(); ++j)
-    {
-      if (i == j)
-      {
-        TEST_REAL_SIMILAR(m(i,j), 1.0)
-      }
-      else
-      {
-        TEST_REAL_SIMILAR(m(i,j), 0.0)
-      }
-    }
-  }
+  // Channel "126" loses 9.74% to isotope impurities (0.31 + 9.09 + 0.02 + 0.32), so its
+  // self-contribution (diagonal) is 1 - 0.0974 = 0.9026 and the +13C share (9.09%) leaks
+  // into its neighbour 127C (channel index 2).
+  TEST_REAL_SIMILAR(m(0,0), 0.9026)
+  TEST_REAL_SIMILAR(m(2,0), 0.0909)
+
+  // each channel column conserves intensity (self-contribution + leakages = 100%);
+  // for "126" all impurity shares map to valid in-range neighbours
+  double col0 = 0.0;
+  for (Size i = 0; i < m.rows(); ++i) col0 += m(i, 0);
+  TEST_REAL_SIMILAR(col0, 1.0)
+
+  // the default is no longer an identity matrix
+  Size off_diagonal_nonzero = 0;
+  for (Size i = 0; i < m.rows(); ++i)
+    for (Size j = 0; j < m.cols(); ++j)
+      if (i != j && m(i, j) > 0.0) ++off_diagonal_nonzero;
+  TEST_EQUAL(off_diagonal_nonzero > 0, true)
 }
 END_SECTION
 

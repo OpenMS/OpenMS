@@ -135,16 +135,42 @@ namespace OpenMS{
         defaults_.setValue("reference_channel", "126","The reference channel (126, 127N, 127C, 127D, 128N, 128C, 128ND, 128CD, 129N, 129C, 129ND, 129CD, 130N, 130C, 130ND, 130CD, 131N, 131C, 131ND, 131CD, 132N, 132C, 132ND, 132CD, 133N, 133C, 133ND, 133CD, 134N, 134ND, 134CD, 135ND).");
         defaults_.setValidStrings("reference_channel", TMTThirtyTwoPlexQuantitationMethod::channel_names_);
 
-        // Identity matrix (no isotope correction). Calibrated correction values are
-        // not yet available for TMT 32-plex. The correction_matrix parameter is ignored;
-        // getIsotopeCorrectionMatrix() always returns an identity matrix regardless of user input.
-        //
-        // Each row has 14 NA entries → all off-diagonal contributions are 0, diagonal is 1.0.
-        const std::string identity_row = "NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA";
-        defaults_.setValue("correction_matrix",
-                           std::vector<std::string>(32, identity_row),
-                           "Ignored for TMT 32-plex (identity matrix is always used). "
-                           "Isotope correction is not yet supported for this method.");
+        defaults_.setValue("correction_matrix", std::vector<std::string>{
+                                            "NA/NA/NA/NA            /NA/NA/NA          /0.31/9.09/NA      /0.02/NA/0.32/NA",//126 
+                                            "NA/NA/NA/NA            /NA/NA/0.78        /NA/9.41/NA        /NA/NA/0.33/NA",//127N
+                                            "NA/NA/NA/NA            /NA/0.93/NA        /0.35/8.63/NA      /0.01/NA/0.27/NA",//127C
+                                            "NA/NA/NA/NA            /0.82/NA/NA        /0.30/8.71/0.33    /0.00/0.00/0.26/0.00",//127D
+                                            "NA/NA/NA/0.00          /NA/0.82/0.65      /NA/8.13/NA        /NA/NA/0.26/NA",//128N
+                                            "NA/0.00/NA/NA          /NA/1.47/NA        /0.34/6.91/NA      /0.00/NA/0.15/NA",//128C
+                                            "NA/NA/0.00/NA          /1.13/NA/0.59     /NA/8.61/0.24      /NA/NA/0.28/0.00",//128ND
+                                            "0.00/NA/NA/NA          /1.47/0.70/NA      /0.30/7.55/0.27    /0.00/0.00/0.21/0.00",//128CD
+                                            "NA/0.00/NA/0.00        /NA/1.46/1.28      /NA/6.86/NA        /NA/NA/0.15/NA",//129N
+                                            "NA/0.13/NA/NA          /NA/2.59/NA        /0.32/6.07/NA      /0.1/NA/0.09/NA",//129C
+                                            "0.00/NA/0.00/0.00      /1.97/0.91/0.61    /NA/7.58/0.35      /NA/NA/0.19/0.00",//129ND
+                                            "0.00/0.00/NA/NA        /1.39/1.37/NA      /0.31/6.02/0.50    /0.00/0.00/0.08/0.00",//129CD
+                                            "NA/0.13/NA/0.00        /NA/2.41/0.27      /NA/5.58/NA        /NA/NA/0.10/NA",//130N
+                                            "NA/0.04/NA/NA          /NA/3.10/NA        /0.42/4.82/NA      /0.02/NA/0.06/NA",//130C
+                                            "0.00/0.08/0.00/0.00    /1.77/1.50/0.59    /NA/6.10/0.54      /NA/NA/0.09/0.00",//130ND
+                                            "0.00/0.10/NA/NA        /1.44/2.18/NA      /0.33/5.49/0.40    /0.00/0.00/0.06/0.00",//130CD
+                                            "NA/0.03/NA/0.00        /NA/2.78/0.63      /NA/4.57/NA        /NA/NA/0.12/NA",//131N
+                                            "NA/0.08/NA/NA          /NA/3.90/NA        /0.47/3.57/NA      /0.00/NA/0.04/NA",//131C
+                                            "0.01/0.19/0.00/0.00    /1.47/2.23/0.61    /NA/5.48/0.41      /NA/NA/0.05/0.00",//131ND
+                                            "0.02/0.02/NA/NA        /2.52/2.61/NA      /0.98/4.14/1.15    /0.01/0.00/0.02/0.01",//131CD
+                                            "NA/0.15/NA/0.01        /NA/3.58/0.72      /NA/1.80/NA        /NA/NA/0.00/NA",//132N
+                                            "NA/0.11/NA/NA          /NA/4.55/NA        /0.43/1.86/NA      /0.00/NA/0.00/NA",//132C
+                                            "0.02/0.02/0.00/0.00    /3.52/1.70/0.60    /NA/4.19/0.85      /NA/NA/0.01/0.00",//132ND
+                                            "0.00/0.03/NA/NA        /1.00/3.35/NA      /1.00/3.07/0.94    /0.00/0.00/0.00/0.00",//132CD
+                                            "NA/0.07/NA/0.01        /NA/3.14/0.73      /NA/3.40/NA        /NA/NA/0.03/NA",//133N
+                                            "NA/0.22/NA/NA          /NA/4.96/NA        /0.34/1.03/NA      /0.00/NA/NA/NA",//133C
+                                            "0.00/0.01/0.00/0.00    /0.89/2.48/0.63    /NA/3.14/0.51      /NA/NA/0.00/0.00",//133ND
+                                            "0.01/0.01/NA/NA        /1.86/3.73/NA      /0.31/1.63/0.79    /0.00/0.00/0.00/0.00",//133CD
+                                            "NA/0.30/NA/0.03        /NA/5.49/0.62      /NA/1.14/NA        /NA/NA/NA/NA", //134N
+                                            "0.02/0.10/0.00/0.00    /1.66/3.76/0.22    /NA /1.73/0.31     /NA/NA/0.00/0.00",//134ND
+                                            "0.03/0.23/NA/NA        /1.53/4.94/NA      /0.31/0.95/0.31    /0.00/0.00/NA/0.00",//134CD
+                                            "0.04/0.23/0.00/0.00    /1.54/4.85/0.21    /NA/1.03/0.32      /NA/NA/NA/0.00",//135ND
+                                            },
+                                    "Correction matrix for isotope distributions in percent. Defaults are derived from the Thermo TMTpro deuterated reagent set Certificate of Analysis (product A40000817); the non-deuterated channels match the TMTpro datasheet (identical to TMT 16-/18-plex). Replace these with the values from your reagent lot's Certificate of Analysis for accurate quantitation;"
+                                    "Please provide 32 entries (rows), separated by comma, where each entry contains 14 values in the following format: <-C13-H2>/<-2C13>/<-N15-H2>/<-C13-N15>/<-H2>/<-C13>/<-N15>/<+N15>/<+C13>/<+H2>/<+N15+C13>/<+N15+H2>/<+2C13>/<+C13+H2> e.g. one row may look like this: 'NA/NA/NA/NA   /0.82/NA/NA/  /0.30/8.71/0.33  /0.00/0.00/0.26/0.00'. You may use whitespaces at your leisure to ease reading.");
         defaultsToParam_();
     }
 
@@ -212,10 +238,7 @@ Size TMTThirtyTwoPlexQuantitationMethod::getNumberOfChannels() const
 
 Matrix<double> TMTThirtyTwoPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
 {
-    // Always return identity matrix — isotope correction is not yet validated for TMT 32-plex.
-    // User-supplied correction_matrix parameter is ignored.
-    const std::string identity_row = "NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA";
-    StringList iso_correction(32, identity_row);
+    StringList iso_correction = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
     return stringListToIsotopeCorrectionMatrix_(iso_correction);
 }
 

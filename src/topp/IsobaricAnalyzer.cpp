@@ -61,7 +61,7 @@ using namespace std;
 The input MSn spectra have to be in centroid mode for the tool to work properly. Use e.g. @ref TOPP_PeakPickerHiRes to perform centroiding of profile data, if necessary.
 
 This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, 18-plex, 32-plex, and 35-plex as labeling methods.
-Note: TMT 32-plex and 35-plex default to an identity correction matrix (no isotope correction) until lot-specific values are provided via the correction_matrix parameter.
+Note: For TMT 32-plex and 35-plex the default isotope correction matrix is derived from the Thermo TMTpro deuterated reagent set Certificate of Analysis (product A40000817); the non-deuterated channels match the TMTpro datasheet. As for all isobaric methods, replace the correction_matrix parameter with the values from your reagent lot's Certificate of Analysis for accurate quantitation.
 It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
 in which each consensus feature represents one relevant MSn scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
 The MS level for quantification is chosen automatically, i.e. if MS3 is present, MS2 will be ignored.
