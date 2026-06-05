@@ -17,6 +17,7 @@ Tutorial_FeatureMap
 Tutorial_FileIO
 Tutorial_FileIO_Consumer
 Tutorial_FileIO_mzML
+Tutorial_ImzMLFile
 Tutorial_GaussFilter
 Tutorial_IdentificationClasses
 Tutorial_Labeled

@@ -20,6 +20,7 @@
 #include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/ImzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
@@ -346,6 +347,8 @@ namespace OpenMS
     // only the first five lines will be set for compressed files
     // so far, compression is only supported for XML files
     vector<std::string> complete_file;
+    bool is_uncompressed = false;
+    String decompressed_preview;
 
     // test whether the file is compressed (bzip2, gzip, or zip)
     ifstream compressed_file(filename.c_str());
@@ -362,13 +365,14 @@ namespace OpenMS
     {
       Bzip2Ifstream bzip2_file(filename.c_str());
 
-      // read in 1024 bytes (keep last byte for zero to end string)
-      char buffer[1024];
-      size_t bytes_read = bzip2_file.read(buffer, 1024-1);
+      // read in 8192 bytes (keep last byte for zero to end string)
+      char buffer[8192];
+      size_t bytes_read = bzip2_file.read(buffer, 8192 - 1);
       buffer[bytes_read] = '\0';
 
       // get first five lines
       std::string buffer_str(buffer);
+      decompressed_preview = buffer_str;
       vector<std::string> split;
       StringUtils::split(buffer_str, '\n', split);
       split.resize(5);
@@ -382,13 +386,14 @@ namespace OpenMS
     {
       GzipIfstream gzip_file(filename.c_str());
 
-      // read in 1024 bytes (keep last byte for zero to end string)
-      char buffer[1024];
-      size_t bytes_read = gzip_file.read(buffer, 1024-1);
+      // read in 8192 bytes (keep last byte for zero to end string)
+      char buffer[8192];
+      size_t bytes_read = gzip_file.read(buffer, 8192 - 1);
       buffer[bytes_read] = '\0';
 
       // get first five lines
       std::string buffer_str(buffer);
+      decompressed_preview = buffer_str;
       vector<std::string> split;
       StringUtils::split(buffer_str, '\n', split);
       split.resize(5);
@@ -402,13 +407,14 @@ namespace OpenMS
     {
       ZipIfstream zip_file(filename.c_str());
 
-      // read in 1024 bytes (keep last byte for zero to end string)
-      char buffer[1024];
-      size_t bytes_read = zip_file.read(buffer, 1024-1);
+      // read in 8192 bytes (keep last byte for zero to end string)
+      char buffer[8192];
+      size_t bytes_read = zip_file.read(buffer, 8192 - 1);
       buffer[bytes_read] = '\0';
 
       // get first five lines
       std::string buffer_str(buffer);
+      decompressed_preview = buffer_str;
       vector<std::string> split;
       StringUtils::split(buffer_str, '\n', split);
       split.resize(5);
@@ -420,6 +426,7 @@ namespace OpenMS
     }
     else // uncompressed
     {
+      is_uncompressed = true;
       //load first 5 lines
       TextFile file(filename, true, 5);
       TextFile::ConstIterator file_it = file.begin();
@@ -472,9 +479,48 @@ namespace OpenMS
     { 
       return FileTypes::MZDATA;
     }
-    //mzML (all lines)
+    //imzML / mzML (all lines) — imzML uses mzML root + IMS ontology
     if (StringUtils::hasSubstring(all_simple, "<mzML"))
     {
+      auto isImzMLContent = [](const String& text) -> bool
+      {
+        return text.hasSubstring("Imaging MS Ontology")
+               || text.hasSubstring("IMS:1000050")
+               || text.hasSubstring("IMS:1000030")
+               || text.hasSubstring("IMS:1000080");
+      };
+      if (isImzMLContent(all_simple))
+      {
+        return FileTypes::IMZML;
+      }
+      if (!decompressed_preview.empty() && isImzMLContent(decompressed_preview))
+      {
+        return FileTypes::IMZML;
+      }
+      if (!decompressed_preview.empty())
+      {
+        vector<String> preview_lines;
+        decompressed_preview.split('\n', preview_lines);
+        for (const String& line : preview_lines)
+        {
+          if (isImzMLContent(line))
+          {
+            return FileTypes::IMZML;
+          }
+        }
+      }
+      if (is_uncompressed)
+      {
+        // IMS metadata can appear well after the root element (cvList, scanSettings, …)
+        TextFile header(filename, true, 512);
+        for (TextFile::ConstIterator it = header.begin(); it != header.end(); ++it)
+        {
+          if (isImzMLContent(*it))
+          {
+            return FileTypes::IMZML;
+          }
+        }
+      }
       return FileTypes::MZML;
     }
     //"analysisXML" aka. mzid (all lines)
@@ -906,6 +952,15 @@ namespace OpenMS
       }
       break;
 
+      case FileTypes::IMZML:
+      {
+        ImzMLFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
+      break;
+
       case FileTypes::MGF: 
       {
         MascotGenericFile f;
@@ -1220,7 +1275,16 @@ namespace OpenMS
       }
       break;
 
-      default: 
+      case FileTypes::IMZML:
+      {
+        ImzMLFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.store(filename, exp);
+      }
+      break;
+
+      default:
       {
         throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing experiments");
       }

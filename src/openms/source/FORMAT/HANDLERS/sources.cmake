@@ -9,6 +9,9 @@ set(sources_list
   FidHandler.cpp
   FeatureXMLHandler.cpp
   IndexedMzMLDecoder.cpp
+  ImzMLHandler.cpp
+  ImzMLHandlerHelper.cpp
+  ImzMLWriter.cpp
   IndexedMzMLHandler.cpp
   MascotXMLHandler.cpp
   MzDataHandler.cpp

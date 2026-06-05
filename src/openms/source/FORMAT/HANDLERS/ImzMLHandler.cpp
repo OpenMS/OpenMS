@@ -1,0 +1,475 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Aditya Sarna $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/FORMAT/HANDLERS/ImzMLHandler.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
+#include <xercesc/util/XMLString.hpp>
+
+#include <cstring>
+#include <limits>
+#include <stdexcept>
+
+namespace OpenMS
+{
+namespace Internal
+{
+
+namespace
+{
+  [[noreturn]] void throwImsParseError_(const String& file, const String& acc, const String& val, const String& reason)
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file,
+                                "Invalid IMS CV value for " + acc + " ('" + val + "'): " + reason);
+  }
+
+  uint32_t parseImsUInt32_(const String& file, const String& acc, const String& val)
+  {
+    if (val.empty())
+    {
+      throwImsParseError_(file, acc, val, "empty value");
+    }
+    try
+    {
+      size_t pos = 0;
+      const unsigned long long v = std::stoull(val, &pos);
+      if (pos != val.size())
+      {
+        throwImsParseError_(file, acc, val, "trailing characters");
+      }
+      if (v > std::numeric_limits<uint32_t>::max())
+      {
+        throwImsParseError_(file, acc, val, "out of range for uint32");
+      }
+      return static_cast<uint32_t>(v);
+    }
+    catch (const Exception::ParseError&)
+    {
+      throw;
+    }
+    catch (...)
+    {
+      throwImsParseError_(file, acc, val, "not a valid unsigned integer");
+    }
+  }
+
+  uint64_t parseImsUInt64_(const String& file, const String& acc, const String& val)
+  {
+    if (val.empty())
+    {
+      throwImsParseError_(file, acc, val, "empty value");
+    }
+    try
+    {
+      size_t pos = 0;
+      const unsigned long long v = std::stoull(val, &pos);
+      if (pos != val.size())
+      {
+        throwImsParseError_(file, acc, val, "trailing characters");
+      }
+      return v;
+    }
+    catch (const Exception::ParseError&)
+    {
+      throw;
+    }
+    catch (...)
+    {
+      throwImsParseError_(file, acc, val, "not a valid unsigned integer");
+    }
+  }
+
+  double parseImsDouble_(const String& file, const String& acc, const String& val)
+  {
+    if (val.empty())
+    {
+      throwImsParseError_(file, acc, val, "empty value");
+    }
+    try
+    {
+      size_t pos = 0;
+      const double v = std::stod(val, &pos);
+      if (pos != val.size())
+      {
+        throwImsParseError_(file, acc, val, "trailing characters");
+      }
+      return v;
+    }
+    catch (const Exception::ParseError&)
+    {
+      throw;
+    }
+    catch (...)
+    {
+      throwImsParseError_(file, acc, val, "not a valid floating-point number");
+    }
+  }
+} // namespace
+
+// ===========================================================================
+// ImzMLInterceptConsumer — internal consumer wired between MzMLHandler and
+// the user's IMSDataConsumer (or PeakMap collector).
+//
+// MzMLHandler fires consumeSpectrum() for every finalised spectrum.  This
+// consumer attaches the IMS pixel coordinates and decodes the binary arrays
+// from the companion .ibd file using the offsets captured by ImzMLHandler.
+// ===========================================================================
+class ImzMLInterceptConsumer final : public Interfaces::IMSDataConsumer
+{
+public:
+  ImzMLInterceptConsumer(ImzMLHandler&                handler,
+                         Interfaces::IMSDataConsumer* downstream)
+    : handler_(handler), downstream_(downstream)
+  {}
+
+  void setExpectedSize(size_t n_spectra, size_t n_chromatograms) override
+  {
+    if (downstream_) downstream_->setExpectedSize(n_spectra, n_chromatograms);
+  }
+
+  void setExperimentalSettings(const ExperimentalSettings& es) override
+  {
+    if (downstream_) downstream_->setExperimentalSettings(es);
+  }
+
+  void consumeSpectrum(MSSpectrum& s) override
+  {
+    // MzMLHandler batches delivery — consumeSpectrum fires after the entire
+    // <spectrumList> is parsed, so live cur_x_/y_/z_ in handler_ are 0.
+    // Use the per-spectrum snapshot stored at endElement("spectrum").
+    const int idx = spec_idx_++;
+    const ImzMLHandler::SpecIMS* ims = nullptr;
+    if (idx < static_cast<int>(handler_.spec_ims_.size()))
+      ims = &handler_.spec_ims_[idx];
+
+    // Annotate pixel coordinates as MetaValues
+    if (ims)
+    {
+      s.setMetaValue("imzml:x", static_cast<Int>(ims->x));
+      s.setMetaValue("imzml:y", static_cast<Int>(ims->y));
+      s.setMetaValue("imzml:z", static_cast<Int>(ims->z));
+
+      // Update dataset-level bounding box
+      if (ims->x > handler_.meta_.max_count_x) handler_.meta_.max_count_x = ims->x;
+      if (ims->y > handler_.meta_.max_count_y) handler_.meta_.max_count_y = ims->y;
+      if (ims->z > handler_.meta_.max_count_z) handler_.meta_.max_count_z = ims->z;
+
+      // Decode binary arrays from .ibd when either array is external; keep inline arrays from MzMLHandler.
+      if (handler_.ibd_ && handler_.decode_ibd_ && (ims->mz_meta.is_ext || ims->int_meta.is_ext))
+      {
+        std::vector<double> mz_vec;
+        std::vector<float>  int_vec;
+        const String& ibd_path = handler_.meta_.ibd_file_path;
+        if (ims->mz_meta.is_ext)
+        {
+          ImzMLBinaryIO::readMzArray(handler_.ibd_, ims->mz_meta.offset, ims->mz_meta.count,
+                                     ims->mz_meta.dt, mz_vec, ibd_path);
+        }
+        else
+        {
+          mz_vec.resize(s.size());
+          for (Size i = 0; i < s.size(); ++i)
+          {
+            mz_vec[i] = s[i].getMZ();
+          }
+        }
+        if (ims->int_meta.is_ext)
+        {
+          ImzMLBinaryIO::readIntArray(handler_.ibd_, ims->int_meta.offset, ims->int_meta.count,
+                                      ims->int_meta.dt, int_vec, ibd_path);
+        }
+        else
+        {
+          int_vec.resize(s.size());
+          for (Size i = 0; i < s.size(); ++i)
+          {
+            int_vec[i] = s[i].getIntensity();
+          }
+        }
+
+        if (mz_vec.size() != int_vec.size())
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path,
+            String("m/z and intensity array length mismatch at pixel (") + ims->x + "," + ims->y + "," + ims->z
+            + "): mz=" + mz_vec.size() + " intensity=" + int_vec.size());
+        }
+
+        s.resize(mz_vec.size());
+        for (Size i = 0; i < s.size(); ++i)
+        {
+          s[i].setMZ(mz_vec[i]);
+          s[i].setIntensity(int_vec[i]);
+        }
+
+        // Record first-seen data types at dataset level
+        if (handler_.meta_.mz_data_type.empty())
+          handler_.meta_.mz_data_type  = dtStr_(ims->mz_meta.dt);
+        if (handler_.meta_.int_data_type.empty())
+          handler_.meta_.int_data_type = dtStr_(ims->int_meta.dt);
+      }
+
+      // Build full spectrum index entry
+      ImzMLSpectrumIndex entry;
+      entry.index      = idx;
+      entry.x          = ims->x;
+      entry.y          = ims->y;
+      entry.z          = ims->z;
+      entry.mz_offset  = ims->mz_meta.offset;
+      entry.mz_length  = ims->mz_meta.count;
+      entry.mz_type    = ims->mz_meta.dt;
+      entry.int_offset = ims->int_meta.offset;
+      entry.int_length = ims->int_meta.count;
+      entry.int_type   = ims->int_meta.dt;
+      handler_.index_.push_back(entry);
+    }
+
+    if (downstream_) downstream_->consumeSpectrum(s);
+  }
+
+  void consumeChromatogram(MSChromatogram& c) override
+  {
+    if (downstream_) downstream_->consumeChromatogram(c);
+  }
+
+private:
+  ImzMLHandler&                handler_;
+  Interfaces::IMSDataConsumer* downstream_;
+  int                          spec_idx_  {0};
+
+  static String dtStr_(ImzMLSpectrumIndex::DataType dt)
+  {
+    switch (dt)
+    {
+      case ImzMLSpectrumIndex::DataType::FLOAT32: return "float32";
+      case ImzMLSpectrumIndex::DataType::FLOAT64: return "float64";
+      case ImzMLSpectrumIndex::DataType::INT32:   return "int32";
+      case ImzMLSpectrumIndex::DataType::INT64:   return "int64";
+      default:                                    return "unknown";
+    }
+  }
+};
+
+// ===========================================================================
+// ImzMLHandler — constructor / destructor
+// ===========================================================================
+
+ImzMLHandler::ImzMLHandler(PeakMap&              exp,
+                            const String&         filename,
+                            const ProgressLogger& logger)
+  : MzMLHandler(exp, filename, "1.1.0", logger)
+{}
+
+ImzMLHandler::~ImzMLHandler()
+{
+  decode_bridge_.reset();
+  if (ibd_) { fclose(ibd_); ibd_ = nullptr; }
+}
+
+void ImzMLHandler::connectDecodeConsumer(Interfaces::IMSDataConsumer* downstream,
+                                         bool append_spectra_to_map,
+                                         bool decode_ibd)
+{
+  decode_ibd_ = decode_ibd;
+  decode_bridge_ = std::make_unique<ImzMLInterceptConsumer>(*this, downstream);
+  setMSDataConsumer(decode_bridge_.get());
+  PeakFileOptions opt = getOptions();
+  opt.setAlwaysAppendData(append_spectra_to_map);
+  setOptions(opt);
+}
+
+void ImzMLHandler::openIBD(const String& ibd_path)
+{
+  FILE* new_ibd = fopen(ibd_path.c_str(), "rb");
+  if (!new_ibd)
+  {
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path);
+  }
+  if (ibd_)
+  {
+    fclose(ibd_);
+  }
+  ibd_ = new_ibd;
+}
+
+// ===========================================================================
+// SAX2 overrides
+// ===========================================================================
+
+void ImzMLHandler::startElement(const XMLCh*               uri,
+                                 const XMLCh*               localname,
+                                 const XMLCh*               qname,
+                                 const xercesc::Attributes& attrs)
+{
+  const std::string tag = sm_.convert(qname);
+
+  // --- Track IMS parsing state BEFORE handing off to MzMLHandler base ---
+
+  if (tag == "spectrum")
+  {
+    in_spectrum_ = true;
+    cur_x_ = cur_y_ = 0;
+    cur_z_ = 1;
+    cur_x_seen_ = false;
+    cur_y_seen_ = false;
+    cur_mz_meta_.reset();
+    cur_int_meta_.reset();
+  }
+  if (tag == "scan"            && in_spectrum_) in_scan_ = true;
+  if (tag == "binaryDataArray" && in_spectrum_)
+  {
+    in_bda_ = true;
+    cur_array_.reset();
+  }
+
+  if (tag == "referenceableParamGroup")
+  {
+    in_ref_group_ = true;
+    String id_om;
+    optionalAttributeAsString_(id_om, attrs, "id");
+    cur_ref_id_ = id_om;
+    ref_groups_[cur_ref_id_]; // ensure key exists
+  }
+  if (tag == "referenceableParamGroupRef")
+  {
+    String ref_id_om;
+    optionalAttributeAsString_(ref_id_om, attrs, "ref");
+    applyRefGroup_(ref_id_om);
+  }
+
+  // Intercept <cvParam> before MzMLHandler: capture IMS:* terms
+  if (tag == "cvParam")
+  {
+    String acc_om, val_om;
+    optionalAttributeAsString_(acc_om, attrs, "accession");
+    optionalAttributeAsString_(val_om, attrs, "value");
+
+    if (in_ref_group_)
+      ref_groups_[cur_ref_id_].emplace_back(acc_om, val_om);
+    else
+      handleIMSCvParam_(acc_om, val_om);
+    // Fall through: MzMLHandler still processes MS:* terms below
+  }
+
+  MzMLHandler::startElement(uri, localname, qname, attrs);
+}
+
+void ImzMLHandler::endElement(const XMLCh* uri,
+                               const XMLCh* localname,
+                               const XMLCh* qname)
+{
+  const std::string tag = sm_.convert(qname);
+
+  if (tag == "binaryDataArray" && in_spectrum_)
+  {
+    if      (cur_array_.is_mz)  cur_mz_meta_  = cur_array_;
+    else if (cur_array_.is_int) cur_int_meta_ = cur_array_;
+    cur_array_.reset();
+    in_bda_ = false;
+  }
+  if (tag == "scan")     in_scan_ = false;
+  if (tag == "spectrum")
+  {
+    if (!cur_x_seen_ || !cur_y_seen_)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_,
+                                  "imzML spectrum missing required IMS pixel coordinate (x and/or y)");
+    }
+    // Snapshot per-spectrum IMS state NOW — before cur_* are reset.
+    // MzMLHandler delivers spectra to consumeSpectrum() after the entire
+    // spectrumList is parsed, so live cur_* fields would all be 0 by then.
+    SpecIMS snap;
+    snap.x        = cur_x_;
+    snap.y        = cur_y_;
+    snap.z        = cur_z_;
+    snap.mz_meta  = cur_mz_meta_;
+    snap.int_meta = cur_int_meta_;
+    spec_ims_.push_back(snap);
+    in_spectrum_ = false;
+  }
+  if (tag == "referenceableParamGroup")
+  {
+    in_ref_group_ = false;
+    cur_ref_id_.clear();
+  }
+
+  MzMLHandler::endElement(uri, localname, qname);
+
+  if (tag == "spectrum")
+  {
+    cur_x_ = cur_y_ = 0;
+    cur_z_ = 1;
+    cur_mz_meta_.reset();
+    cur_int_meta_.reset();
+  }
+}
+
+// ===========================================================================
+// IMS CV dispatch
+// ===========================================================================
+
+void ImzMLHandler::handleIMSCvParam_(const String& acc, const String& val)
+{
+  // Pixel coordinates (inside <scan> inside <spectrum>)
+  if (in_scan_ && in_spectrum_)
+  {
+    if (acc == "IMS:1000050") { cur_x_ = parseImsUInt32_(file_, acc, val); cur_x_seen_ = true; return; }
+    if (acc == "IMS:1000051") { cur_y_ = parseImsUInt32_(file_, acc, val); cur_y_seen_ = true; return; }
+    if (acc == "IMS:1000052") { cur_z_ = parseImsUInt32_(file_, acc, val); return; }
+  }
+
+  // Inside a binaryDataArray
+  if (in_bda_)
+  {
+    using DT = ImzMLSpectrumIndex::DataType;
+    if (acc == "MS:1000521") { cur_array_.dt = DT::FLOAT32; return; }
+    if (acc == "MS:1000523") { cur_array_.dt = DT::FLOAT64; return; }
+    if (acc == "MS:1000519") { cur_array_.dt = DT::INT32;   return; }
+    if (acc == "MS:1000522") { cur_array_.dt = DT::INT64;   return; }
+    if (acc == "MS:1000514") { cur_array_.is_mz  = true;    return; }
+    if (acc == "MS:1000515") { cur_array_.is_int = true;    return; }
+    if (acc == "IMS:1000101"){ cur_array_.is_ext = true;    return; }
+    if (acc == "IMS:1000102") { cur_array_.offset = parseImsUInt64_(file_, acc, val); return; }
+    if (acc == "IMS:1000103") { cur_array_.count  = parseImsUInt64_(file_, acc, val); return; }
+  }
+
+  // Dataset-level imaging metadata
+  if (acc == "IMS:1000042") { meta_.max_count_x = parseImsUInt32_(file_, acc, val); return; }
+  if (acc == "IMS:1000043") { meta_.max_count_y = parseImsUInt32_(file_, acc, val); return; }
+  if (acc == "IMS:1000030") { meta_.imaging_mode        = "continuous";  return; }
+  if (acc == "IMS:1000031") { meta_.imaging_mode        = "processed";   return; }
+  if (acc == "IMS:1000091") { meta_.ibd_sha1            = val;           return; }
+  if (acc == "IMS:1000090") { meta_.ibd_md5             = val;           return; }
+  if (acc == "IMS:1000046") { meta_.pixel_size_x  = parseImsDouble_(file_, acc, val); return; }
+  if (acc == "IMS:1000047") { meta_.pixel_size_y  = parseImsDouble_(file_, acc, val); return; }
+  if (acc == "IMS:1000080") { if (!val.empty()) meta_.uuid = val;        return; }
+  if (acc == "IMS:1000044") { meta_.max_dim_x     = parseImsDouble_(file_, acc, val); return; }
+  if (acc == "IMS:1000045") { meta_.max_dim_y     = parseImsDouble_(file_, acc, val); return; }
+  if (acc == "MS:1000129")  { meta_.polarity            = "negative";    return; }
+  if (acc == "MS:1000130")  { meta_.polarity            = "positive";    return; }
+  if (acc == "IMS:1000401") { meta_.scan_pattern        = "top down";    return; }
+  if (acc == "IMS:1000402") { meta_.scan_pattern        = "bottom up";   return; }
+  if (acc == "IMS:1000413") { meta_.scan_direction      = "flyback";     return; }
+  if (acc == "IMS:1000412") { meta_.scan_direction      = "meander";     return; }
+  if (acc == "IMS:1000480") { meta_.scan_direction      = "horizontal";  return; }
+  if (acc == "IMS:1000481") { meta_.scan_direction      = "vertical";    return; }
+  if (acc == "IMS:1000491") { meta_.line_scan_direction = "left-right";  return; }
+  if (acc == "IMS:1000492") { meta_.line_scan_direction = "right-left";  return; }
+}
+
+void ImzMLHandler::applyRefGroup_(const String& id)
+{
+  auto it = ref_groups_.find(id);
+  if (it == ref_groups_.end()) return;
+  for (const auto& kv : it->second)
+    handleIMSCvParam_(kv.first, kv.second);
+}
+
+} // namespace Internal
+} // namespace OpenMS

@@ -26,6 +26,7 @@ MSChromatogram.cpp
 MSExperiment.cpp
 MSSpectrum.cpp
 OnDiscMSExperiment.cpp
+OnDiscImzMLExperiment.cpp
 Peak1D.cpp
 Peak2D.cpp
 PeakIndex.cpp

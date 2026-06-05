@@ -111,6 +111,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::FEATUREPARQUET, "featureparquet", "OpenMS feature map parquet bundle (directory)", {PROP::PROVIDES_FEATURES, PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::CONSENSUSPARQUET, "consensusparquet", "OpenMS consensus map parquet bundle (directory)", {PROP::PROVIDES_CONSENSUSFEATURES, PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::BRUKER_TDF, "d", "Bruker TDF", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE}),
+    TypeNameBinding(FileTypes::IMZML, "imzML", "imzML mass spectrometry imaging file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::XML, "xml", "any XML file", {PROP::READABLE}),  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
 
@@ -260,6 +261,7 @@ namespace OpenMS
       case FileTypes::DTA: return "DTA file";
       case FileTypes::DTA2D: return "DTA file"; // technically not correct, but closer than just a random CV term (currently mzData) - entry cannot be left empty
       case FileTypes::MZML: return "mzML file";
+      case FileTypes::IMZML: return "mzML file"; // imzML is mzML 1.1 + IMS; reuse mzML source file term
       case FileTypes::MZDATA: return "PSI mzData file";
       case FileTypes::MZXML: return "ISB mzXML file";
       case FileTypes::MGF: return "Mascot MGF file";
