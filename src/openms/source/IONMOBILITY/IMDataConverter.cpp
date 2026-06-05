@@ -354,15 +354,15 @@ namespace OpenMS
 
       if (cv.isChildOf(cv_term.id, "MS:1002893")) // is child of generic 'ion mobility array'?
       {
-        if (cv_term.units.find("MS:1002814") != cv_term.units.end())
+        if (cv_term.units.contains("MS:1002814"))
         { // MS:1002814 ! volt-second per square centimeter
           unit = DriftTimeUnit::VSSC;
         }
-        else if (cv_term.units.find("UO:0000028") != cv_term.units.end())
+        else if (cv_term.units.contains("UO:0000028"))
         { // UO:0000028 ! millisecond
           unit = DriftTimeUnit::MILLISECOND;
         }
-        else if (cv_term.units.find("UO:0000324") != cv_term.units.end())
+        else if (cv_term.units.contains("UO:0000324"))
         { // UO:0000324 ! square angstrom (CCS)
           unit = DriftTimeUnit::CCS;
         }

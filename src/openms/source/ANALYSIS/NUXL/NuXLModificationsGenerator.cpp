@@ -260,7 +260,7 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
           }
         }
 
-        if (formulas_of_modified_nucleotide.find(sum_formula.toString()) == formulas_of_modified_nucleotide.end())
+        if (!formulas_of_modified_nucleotide.contains(sum_formula.toString()))
         {
           actual_combinations.push_back(sum_formula);
           result.mod_combinations[sum_formula.toString()].insert(nt);  // add sum formula -> nucleotide
@@ -355,7 +355,7 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
       
       // check if nucleotide formula contains a cross-linkable amino acid
       bool has_xl_nt(false);
-      for (auto const & c : nucleotide_style_formula) { if (can_xl.count(c) > 0) { has_xl_nt = true; break;};  }
+      for (auto const & c : nucleotide_style_formula) { if (can_xl.contains(c)) { has_xl_nt = true; break;};  }
 
       if (!has_xl_nt) 
       { // no cross-linked nucleotide => not valid
@@ -479,7 +479,7 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
       }
 
       // only print ambiguous sequences once
-      if (printed.find(nucleotide_style_formula) == printed.end())
+      if (!printed.contains(nucleotide_style_formula))
       {
         OPENMS_LOG_INFO << nucleotide_style_formula << " ";
         printed.insert(nucleotide_style_formula);

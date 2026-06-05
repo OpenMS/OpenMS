@@ -116,7 +116,7 @@ namespace OpenMS
  
       String seq = attributeAsString_(attributes, "seq");
       // is this the same peptide as before, just in a different protein (scores will be the same)?
-      if ((peptide_hits_.find(id) == peptide_hits_.end()) || (seq != previous_seq_))
+      if ((!peptide_hits_.contains(id)) || (seq != previous_seq_))
       {
         PeptideHit hit;
         // can't parse sequences permissively because that would skip characters
@@ -300,7 +300,7 @@ namespace OpenMS
     if (tag_ == "protein")
     {
       UInt uid = attributeAsInt_(attributes, "uid");
-      if (protein_uids_.find(uid) == protein_uids_.end()) // new protein
+      if (!protein_uids_.contains(uid)) // new protein
       {
         ProteinHit hit;
         // accession may be overwritten based on '<note label="description">', but set it for now:

@@ -125,7 +125,7 @@ namespace OpenMS
     bool found = false;
     #pragma omp critical (ResidueDB)
     {
-      found = residue_names_.find(res_name) != residue_names_.end();
+      found = residue_names_.contains(res_name);
     }  
     return found;
   }
@@ -135,8 +135,8 @@ namespace OpenMS
     bool found = false;
     #pragma omp critical (ResidueDB)
     {
-      found = (const_residues_.find(residue) != const_residues_.end() ||
-          const_modified_residues_.find(residue) != const_modified_residues_.end());
+      found = (const_residues_.contains(residue) ||
+          const_modified_residues_.contains(residue));
     } 
     return found;
   }
@@ -366,7 +366,7 @@ namespace OpenMS
       const auto& rm_entry = residue_mod_names_.find(res_name);
       if (rm_entry == residue_mod_names_.end())
       {
-        if (residue_names_.find(res_name) == residue_names_.end())
+        if (!residue_names_.contains(res_name))
         {
           residue_found = false;
         }
@@ -469,7 +469,7 @@ namespace OpenMS
       const auto& rm_entry = residue_mod_names_.find(res_name);
       if (rm_entry == residue_mod_names_.end())
       {
-        if (residue_names_.find(res_name) == residue_names_.end())
+        if (!residue_names_.contains(res_name))
         {
           residue_found = false;
         }

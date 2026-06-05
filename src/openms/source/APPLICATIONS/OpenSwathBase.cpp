@@ -46,9 +46,9 @@ namespace OpenMS
           for (const auto& arr : spectrum->getDataArrays())
           {
             // Check for CCS CV term (MS:1002954) or square angstrom unit (UO:0000324)
-            if (arr->description.find("MS:1002954") != std::string::npos ||
-                arr->description.find("UO:0000324") != std::string::npos ||
-                arr->description.find("collision cross section") != std::string::npos)
+            if (arr->description.contains("MS:1002954") ||
+                arr->description.contains("UO:0000324") ||
+                arr->description.contains("collision cross section"))
             {
               OPENMS_LOG_WARN << "Warning: Ion mobility data appears to be in CCS (Collisional Cross Section) format. "
                               << "OpenSwath expects ion mobility in 1/K0 (inverse reduced ion mobility) units. "

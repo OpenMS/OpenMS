@@ -330,7 +330,7 @@ protected:
       l_psm.predicted_pep_score = elements[8].toDouble();
       l_psm.global_flr = elements[10].toDouble();
       l_psm.local_flr = elements[11].toDouble();
-      if (l_psms.count(l_psm.scan_idx) > 0)
+      if (l_psms.contains(l_psm.scan_idx))
       {
         return "Duplicate scannr existing " + String(l_psm.scan_nr) + ".";
       }
@@ -618,7 +618,7 @@ protected:
         addScoreToMetaValues_(scored_hit, pep.getScoreType());
         
         struct LuciphorPSM l_psm;
-        if (l_psms.count(scan_idx) > 0)
+        if (l_psms.contains(scan_idx))
         {
           l_psm = l_psms.at(scan_idx);
           AASequence original_seq = scored_hit.getSequence();

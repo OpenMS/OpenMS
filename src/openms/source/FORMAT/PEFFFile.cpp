@@ -811,7 +811,7 @@ namespace OpenMS
               size_t local_pos = var->position - 1 - start;  // Position within peptide
 
               // Check for conflicting variants at same position
-              if (modified_positions.count(local_pos))
+              if (modified_positions.contains(local_pos))
               {
                 has_conflict = true;
                 break;
@@ -1157,7 +1157,7 @@ namespace OpenMS
             size_t local_pos = var->position - 1 - start;
 
             // Check for conflicting variants at same position
-            if (modified_positions.count(local_pos))
+            if (modified_positions.contains(local_pos))
             {
               has_conflict = true;
               break;
@@ -1757,7 +1757,7 @@ namespace OpenMS
       else if (line[start] == '>')
       {
         // Check if description contains PEFF annotations (backslash keywords)
-        if (line.find('\\') != std::string::npos)
+        if (line.contains('\\'))
         {
           return true;
         }
@@ -2097,7 +2097,7 @@ namespace OpenMS
       const char up = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
       // IUPAC nucleotide ambiguity codes.
       const std::string allowed = "ACGTURYSWKMBDHVN";
-      return allowed.find(up) != std::string::npos;
+      return allowed.contains(up);
     };
 
     // Parse each annotation
@@ -2136,7 +2136,7 @@ namespace OpenMS
       String value = annotation.substr(eq_pos + 1);
 
       // Fix #7: Detect duplicate keys (spec section 3.3.3: same key MUST NOT appear twice)
-      if (seen_keys.count(key))
+      if (seen_keys.contains(key))
       {
         OPENMS_LOG_WARN << "PEFF: Duplicate key '" << key << "' in entry '" << entry.identifier << "'.\n";
       }
@@ -2258,7 +2258,7 @@ namespace OpenMS
             (void)annot_id;
 
             std::vector<String> pos_tokens;
-            if (pos_field.find(',') != String::npos)
+            if (pos_field.contains(','))
             {
               pos_field.split(',', pos_tokens);
             }
@@ -2310,7 +2310,7 @@ namespace OpenMS
 	          if (!parts_check.empty())
 	          {
 	            auto [annot_id, pos_field] = extractAnnotationId(parts_check[0]);
-	            if (pos_field.find(',') != String::npos)
+	            if (pos_field.contains(','))
             {
               std::vector<String> positions;
               pos_field.split(',', positions);
@@ -2709,7 +2709,7 @@ namespace OpenMS
       {
         mod.position = 0;
       }
-      else if (pos_field.find(',') != String::npos)
+      else if (pos_field.contains(','))
       {
         // Take first position; caller will handle expansion
         std::vector<String> positions;

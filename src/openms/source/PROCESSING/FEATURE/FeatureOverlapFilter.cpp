@@ -200,7 +200,7 @@ namespace OpenMS
     std::unordered_set<Size> removed_uids;
     for (auto& f : fmap)
     {
-      if (removed_uids.count(f.getUniqueId()) == 0)
+      if (!removed_uids.contains(f.getUniqueId()))
       {
         for (auto& overlap : quadtree.query(getBox(&f)))
         {

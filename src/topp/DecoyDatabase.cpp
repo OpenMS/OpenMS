@@ -385,7 +385,7 @@ protected:
       //-------------------------------------------------------------
       while (f.readNext(entry))
       {
-        if (identifiers.find(entry.identifier) != identifiers.end())
+        if (identifiers.contains(entry.identifier))
         {
           OPENMS_LOG_WARN << "DecoyDatabase: Warning, identifier '" << entry.identifier << "' occurs more than once!" << endl;
         }

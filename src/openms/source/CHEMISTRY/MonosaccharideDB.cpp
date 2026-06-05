@@ -121,7 +121,7 @@ namespace OpenMS
 
   bool MonosaccharideDB::hasSymbol(const String& symbol) const
   {
-    return synonym_to_symbol_.find(symbol) != synonym_to_symbol_.end();
+    return synonym_to_symbol_.contains(symbol);
   }
 
   const MonosaccharideDB::Monosaccharide* MonosaccharideDB::getMonosaccharide(const String& symbol) const

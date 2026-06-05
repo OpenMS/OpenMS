@@ -835,7 +835,7 @@ namespace OpenMS
       ++cl_it)
     {
       OPENMS_LOG_INFO << "  ch " << String(cl_it->name).fillRight(' ', 4) << " (~" << String(cl_it->center).substr(0, 7).fillRight(' ', 7) << "): ";
-      if (stats.find(cl_it->name) != stats.end())
+      if (stats.contains(cl_it->name))
       {
         // sort
         double median = Math::median(stats[cl_it->name].mz_deltas.begin(), stats[cl_it->name].mz_deltas.end(), false);

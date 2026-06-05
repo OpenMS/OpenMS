@@ -287,7 +287,7 @@ namespace OpenMS
 
         for (Size m : group_maps_[b])
         {
-          if (group_maps_[a].count(m)) return false; // would create duplicate map entry
+          if (group_maps_[a].contains(m)) return false; // would create duplicate map entry
         }
 
         if (rank_[a] < rank_[b]) swap(a, b);

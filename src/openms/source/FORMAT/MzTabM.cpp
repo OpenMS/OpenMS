@@ -364,7 +364,7 @@ namespace OpenMS
 
     for (const auto& db : id_data.getDBSearchParams())
     {
-      if (db.database.find("custom") != std::string::npos) // custom database
+      if (db.database.contains("custom")) // custom database
       {
         meta_db.prefix.setNull(true);
         meta_db.version = MzTabString(db.database_version);
@@ -728,7 +728,7 @@ namespace OpenMS
     {
       adduct_name = (*match_ref->adduct_opt)->getName();
       // M+H;1+ -> [M+H]1+
-      if (adduct_name.find(';') != std::string::npos) // wrong format -> reformat
+      if (adduct_name.contains(';')) // wrong format -> reformat
       {
         String prefix = adduct_name.substr(0, adduct_name.find(';'));
         String suffix = adduct_name.substr(adduct_name.find(';') + 1, adduct_name.size());

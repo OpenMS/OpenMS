@@ -183,7 +183,7 @@ namespace OpenMS
               mod_split[i].split(',', single_mod);
 
               String mod_name = single_mod[2];
-              if (modname_to_unimod.find(mod_name) != modname_to_unimod.end())
+              if (modname_to_unimod.contains(mod_name))
               {
                 mod_name = modname_to_unimod[mod_name];
               }

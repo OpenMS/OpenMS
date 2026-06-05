@@ -83,7 +83,7 @@ namespace OpenMS
   {
     Int state = 1;
 
-    if (name_to_stream_map_.count(stream_name) == 0) // this is an unknown stream .. register
+    if (!name_to_stream_map_.contains(stream_name)) // this is an unknown stream .. register
     {
       name_to_stream_map_[stream_name] = createStream_(type, stream_name);
       name_to_type_map_[stream_name] = type;
@@ -110,7 +110,7 @@ namespace OpenMS
 
   bool StreamHandler::hasStream(const StreamType type, const String & stream_name)
   {
-    if (name_to_stream_map_.count(stream_name) != 0)
+    if (name_to_stream_map_.contains(stream_name))
     {
       return name_to_type_map_[stream_name] == type;
     }
@@ -122,7 +122,7 @@ namespace OpenMS
 
   void StreamHandler::unregisterStream(StreamType const type, const String & stream_name)
   {
-    if (name_to_stream_map_.count(stream_name) != 0) // check if we know this stream
+    if (name_to_stream_map_.contains(stream_name)) // check if we know this stream
     {
       if (name_to_counter_map_[stream_name] > 1)
       {

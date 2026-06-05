@@ -157,24 +157,24 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   }
 
   // handle decoy tag
-  if (peptide_transition_map.find(peptide_ref) != peptide_transition_map.end() && !peptide_transition_map[peptide_ref].empty())
+  if (peptide_transition_map.contains(peptide_ref) && !peptide_transition_map[peptide_ref].empty())
   {
     const ReactionMonitoringTransition *transition = peptide_transition_map[peptide_ref][0];
 #if 1
     const auto& terms = transition->getCVTerms();
-    if (terms.find("decoy") != terms.end())
+    if (terms.contains("decoy"))
     {
       decoy = transition->getCVTerms().at("decoy")[0].getValue().toString();
     }
-    else if (terms.find("MS:1002007") != terms.end() )    // target SRM transition
+    else if (terms.contains("MS:1002007") )    // target SRM transition
     {
       decoy = "0";
     }
-    else if (terms.find("MS:1002008") != terms.end() )    // decoy SRM transition
+    else if (terms.contains("MS:1002008") )    // decoy SRM transition
     {
       decoy = "1";
     }
-    else if (terms.find("MS:1002007") != terms.end() && terms.find("MS:1002008") != terms.end() )    // both == illegal
+    else if (terms.contains("MS:1002007") && terms.contains("MS:1002008") )    // both == illegal
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Peptide " + peptide_ref + " cannot be target and decoy at the same time.");

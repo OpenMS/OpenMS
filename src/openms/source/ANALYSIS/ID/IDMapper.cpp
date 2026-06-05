@@ -491,7 +491,7 @@ namespace OpenMS
                 {
                   id_mapped = true;
                   was_added = true;
-                  if (mapping[cm_index].count(i) == 0)
+                  if (!mapping[cm_index].contains(i))
                   {
                     // Store the map index of the peptide feature in the id the feature was mapped to.
                     PeptideIdentification id_pep = ids[i];

@@ -218,7 +218,7 @@ namespace OpenMS
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqConstants: Invalid entry in Param 'channel_active'; key or value is empty ('" + (*it) + "')");
       }
       Int channel = result[0].toInt();
-      if (map.find(channel) == map.end())
+      if (!map.contains(channel))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqConstants: Invalid entry in Param 'channel_active'; channel is not valid ('" + String(channel) + "')");
       }

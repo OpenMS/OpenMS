@@ -2053,7 +2053,7 @@ namespace OpenMS
             Sql::extractDouble(stmt, 4),
             Sql::extractDouble(stmt, 5)
           };
-          if (!existing_ids.count(aligned_feature_id))
+          if (!existing_ids.contains(aligned_feature_id))
           {
             new_feature_ids.push_back(aligned_feature_id);
             existing_ids.insert(aligned_feature_id);

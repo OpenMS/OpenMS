@@ -369,7 +369,7 @@ namespace OpenMS
 
   bool EmpiricalFormula::hasElement(const Element* element) const
   {
-    return formula_.find(element) != formula_.end();
+    return formula_.contains(element);
   }
 
   bool EmpiricalFormula::contains(const EmpiricalFormula& ef) const

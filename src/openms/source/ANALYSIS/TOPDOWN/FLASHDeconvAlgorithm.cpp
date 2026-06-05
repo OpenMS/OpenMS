@@ -187,7 +187,7 @@ void FLASHDeconvAlgorithm::mergeSpectra_(MSExperiment& map, uint ms_level)
         const auto& native_id = spec.getNativeID();
         original_precursor_map[native_id] = spec.getPrecursors();
 
-        if (! spec.getPrecursors().empty() && native_id_precursor_peak_group_map_.find(native_id) != native_id_precursor_peak_group_map_.end())
+        if (! spec.getPrecursors().empty() && native_id_precursor_peak_group_map_.contains(native_id))
         {
           auto precursor_pg = native_id_precursor_peak_group_map_[native_id];
           auto precursor = spec.getPrecursors()[0];
@@ -213,7 +213,7 @@ void FLASHDeconvAlgorithm::mergeSpectra_(MSExperiment& map, uint ms_level)
 
         for (auto& native_id : native_ids)
         {
-          if (original_precursor_map.find(native_id) == original_precursor_map.end()) continue;
+          if (!original_precursor_map.contains(native_id)) continue;
           mspec.setPrecursors(original_precursor_map[native_id]);
         }
       }
@@ -316,7 +316,7 @@ void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vec
     for (Size index = 0; index < map.size(); index++)
     {
       int scan_number = merge_spec_ == 0 ? getScanNumber(map, index) :
-                        (rt_scan_map.find(map[index].getRT()) == rt_scan_map.end() ? getScanNumber(map, index) :
+                        (!rt_scan_map.contains(map[index].getRT()) ? getScanNumber(map, index) :
                                                                                      rt_scan_map[map[index].getRT()]);
       const auto& spec = map[index];
 
@@ -326,7 +326,7 @@ void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vec
 
       String native_id = spec.getNativeID();
       PeakGroup precursor_pg;
-      if (native_id_precursor_peak_group_map_.find(native_id) != native_id_precursor_peak_group_map_.end())
+      if (native_id_precursor_peak_group_map_.contains(native_id))
       {
         precursor_pg = native_id_precursor_peak_group_map_[native_id];
       }
@@ -660,7 +660,7 @@ void FLASHDeconvAlgorithm::updatePrecursorQScores_(std::vector<DeconvolvedSpectr
     auto precursor_pg = dspec.getPrecursorPeakGroup();
 
     int pscan = precursor_pg.getScanNumber();
-    if (scan_fullscan.find(pscan) == scan_fullscan.end()) continue;
+    if (!scan_fullscan.contains(pscan)) continue;
 
     auto fullscan = scan_fullscan[pscan];
 

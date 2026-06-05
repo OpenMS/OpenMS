@@ -976,7 +976,7 @@ namespace OpenMS
       bool trace_coll = false;   // trace collision?
       for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)
       {
-        if (trace_excl_map.find(labels[lab_idx]) != trace_excl_map.end())
+        if (trace_excl_map.contains(labels[lab_idx]))
         {
           trace_coll = true;
           break;

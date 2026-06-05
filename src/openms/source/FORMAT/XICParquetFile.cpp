@@ -696,8 +696,8 @@ namespace OpenMS
           cond.column = it->second;
         }
 
-        const bool unsupported_col = unsupported.count(upper_(cond.column)) > 0;
-        const bool exists_in_schema = name_map.find(upper_(cond.column)) != name_map.end();
+        const bool unsupported_col = unsupported.contains(upper_(cond.column));
+        const bool exists_in_schema = name_map.contains(upper_(cond.column));
         if (unsupported_col || !exists_in_schema)
         {
           dropped_columns.push_back(original);
@@ -1604,12 +1604,12 @@ namespace OpenMS
     for (const auto& name : requested_columns)
     {
       const String upper_name = upper_(name);
-      if (allowed_columns.find(upper_name) == allowed_columns.end())
+      if (!allowed_columns.contains(upper_name))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Unsupported analyte column", name);
       }
-      if (schema_columns.find(upper_name) == schema_columns.end())
+      if (!schema_columns.contains(upper_name))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Column not found in parquet schema", name);
@@ -1626,7 +1626,7 @@ namespace OpenMS
 
     auto want = [&](const String& name) -> bool
     {
-      return requested_set.find(name) != requested_set.end();
+      return requested_set.contains(name);
     };
 
     auto table = readParquetTableColumns_(filenames_, normalized_columns);

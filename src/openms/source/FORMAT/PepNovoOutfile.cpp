@@ -100,7 +100,7 @@ namespace OpenMS
       if (mod_it.empty())
         continue;
       //cout<<*mod_it<<endl;
-      if (pnovo_modkey_to_mod_id.find(mod_it) != pnovo_modkey_to_mod_id.end())
+      if (pnovo_modkey_to_mod_id.contains(mod_it))
       {
         //cout<<keys_to_id.find(*mod_it)->second<<endl;
         const ResidueModification* tmp_mod = ModificationsDB::getInstance()->getModification(pnovo_modkey_to_mod_id.find(mod_it)->second);
@@ -167,7 +167,7 @@ namespace OpenMS
         bool success = false;
         if (!index_to_precursor.empty())
         {
-          if (index_to_precursor.find(index) != index_to_precursor.end())
+          if (index_to_precursor.contains(index))
           {
             peptide_identification.setRT(index_to_precursor.find(index)->second.first);
             peptide_identification.setMZ(index_to_precursor.find(index)->second.second);

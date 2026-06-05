@@ -738,7 +738,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         #pragma omp critical (processed_peptides_access)
         {
           // peptide (and all modified variants) already processed so skip it
-          if (processed_petides.find(c) != processed_petides.end())
+          if (processed_petides.contains(c))
           {
             already_processed = true;
           }

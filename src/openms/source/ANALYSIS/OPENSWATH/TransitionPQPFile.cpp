@@ -739,11 +739,11 @@ namespace OpenMS
 
         int group_set_index = group_map[transition.group_id];
 
-        if (precursor_mz_map.find(group_set_index) == precursor_mz_map.end())
+        if (!precursor_mz_map.contains(group_set_index))
         {
           precursor_mz_map[group_set_index] = transition.precursor;
         }
-        if (precursor_decoy_map.find(group_set_index) == precursor_decoy_map.end())
+        if (!precursor_decoy_map.contains(group_set_index))
         {
           if (transition.detecting_transition == 1)
           {
@@ -829,7 +829,7 @@ namespace OpenMS
         gene_name = peptide.getMetaValue("GeneName");
       }
 
-      if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = (int)gene_map.size();
+      if (!gene_map.contains(gene_name)) gene_map[gene_name] = (int)gene_map.size();
       peptide_gene_map.emplace_back(peptide_set_index, gene_map[gene_name]);
 
       insert_precursor_sql <<
@@ -1230,11 +1230,11 @@ namespace OpenMS
         const auto& tr = targeted_exp.transitions[i];
         int group_set_index = group_map[tr.peptide_ref];
 
-        if (precursor_mz_map.find(group_set_index) == precursor_mz_map.end())
+        if (!precursor_mz_map.contains(group_set_index))
         {
           precursor_mz_map[group_set_index] = tr.precursor_mz;
         }
-        if (precursor_decoy_map.find(group_set_index) == precursor_decoy_map.end())
+        if (!precursor_decoy_map.contains(group_set_index))
         {
           if (tr.isDetectingTransition())
           {
@@ -1314,14 +1314,14 @@ namespace OpenMS
 
         for (const auto& prot_ref : compound.protein_refs)
         {
-          if (protein_map.find(prot_ref) != protein_map.end())
+          if (protein_map.contains(prot_ref))
           {
             peptide_protein_map_vec.emplace_back(peptide_set_index, protein_map[prot_ref]);
           }
         }
 
         std::string gene_name = compound.gene_name.empty() ? "NA" : compound.gene_name;
-        if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = (int)gene_map.size();
+        if (!gene_map.contains(gene_name)) gene_map[gene_name] = (int)gene_map.size();
         peptide_gene_map_vec.emplace_back(peptide_set_index, gene_map[gene_name]);
 
         insert_precursor_sql <<

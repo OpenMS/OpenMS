@@ -289,7 +289,7 @@ namespace OpenMS
     bool has_mod;
     #pragma omp critical(OpenMS_ModificationsDB)
     {
-      has_mod = (modification_names_.find(modification) != modification_names_.end());
+      has_mod = (modification_names_.contains(modification));
     }
     return has_mod;
   }

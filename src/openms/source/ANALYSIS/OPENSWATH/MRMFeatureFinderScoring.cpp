@@ -1423,7 +1423,7 @@ namespace OpenMS
       chromatogram.setNativeID(transition->getNativeID());
 
       // Create new transition group if there is none for this peptide
-      if (transition_group_map.find(transition->getPeptideRef()) == transition_group_map.end())
+      if (!transition_group_map.contains(transition->getPeptideRef()))
       {
         MRMTransitionGroupType transition_group;
         transition_group.setTransitionGroupID(transition->getPeptideRef());

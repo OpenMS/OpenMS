@@ -308,7 +308,7 @@ namespace OpenMS
 
       for (const auto& accession : info.protein_accessions)
       {
-        if (protein_map.find(accession) == protein_map.end())
+        if (!protein_map.contains(accession))
         {
           OpenSwath::LightProtein protein;
           protein.id = accession;
@@ -429,7 +429,7 @@ namespace OpenMS
     std::unordered_set<int64_t> used_precursor_ids;
     for (const auto& compound : targeted_exp.compounds)
     {
-      if (compound_to_precursor.find(compound.id) != compound_to_precursor.end())
+      if (compound_to_precursor.contains(compound.id))
       {
         continue;
       }
@@ -448,7 +448,7 @@ namespace OpenMS
 
       if (parsed_numeric)
       {
-        if (precursor_id <= 0 || used_precursor_ids.find(precursor_id) != used_precursor_ids.end())
+        if (precursor_id <= 0 || used_precursor_ids.contains(precursor_id))
         {
           precursor_id = next_precursor_id++;
         }
@@ -472,7 +472,7 @@ namespace OpenMS
     std::unordered_map<std::string, double> precursor_mz;
     for (const auto& transition : targeted_exp.transitions)
     {
-      if (precursor_mz.find(transition.peptide_ref) == precursor_mz.end())
+      if (!precursor_mz.contains(transition.peptide_ref))
       {
         precursor_mz[transition.peptide_ref] = transition.precursor_mz;
       }

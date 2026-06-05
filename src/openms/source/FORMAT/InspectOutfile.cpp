@@ -182,7 +182,7 @@ namespace OpenMS
 
       // map the database position of the protein to its position in the
       // protein hits and insert it, if it's a new protein
-      if (rn_position_map.find(record_number) == rn_position_map.end())
+      if (!rn_position_map.contains(record_number))
       {
         rn_position_map[record_number] = protein_identification.getHits().size();
         protein_identification.insertHit(protein_hit);

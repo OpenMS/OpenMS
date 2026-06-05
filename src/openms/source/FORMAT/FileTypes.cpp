@@ -32,7 +32,7 @@ namespace OpenMS
     {
       // Check that there are no double-spaces in the description, since Qt will replace "  " with " " in filters supplied to QFileDialog::getSaveFileName.
       // And if you later ask for the selected filter, you will get a different string back.
-      assert(description.find("  ") == std::string::npos);
+      assert(!description.contains("  "));
     }
   };
 

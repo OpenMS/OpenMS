@@ -83,7 +83,7 @@ namespace OpenMS::Internal
       }
 
       // skip tags where nothing is to do
-      if (tags_to_ignore.find(tag_) != tags_to_ignore.end())
+      if (tags_to_ignore.contains(tag_))
       {
         return;
       }
@@ -327,7 +327,7 @@ namespace OpenMS::Internal
       }
 
       // skip tags where nothing is to do
-      if (tags_to_ignore.find(tag_) != tags_to_ignore.end())
+      if (tags_to_ignore.contains(tag_))
       {
         return;
       }
