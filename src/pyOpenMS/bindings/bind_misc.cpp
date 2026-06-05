@@ -50,6 +50,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
@@ -57,6 +58,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakMapExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
@@ -2310,6 +2312,75 @@ ProgressLogger
             while (nb::len(extraction_coordinates_py) > 0) { extraction_coordinates_py.attr("pop")(); }
             for (auto& c : extraction_coordinates) { extraction_coordinates_py.append(nb::cast(c)); }
         }, "output_chromatograms"_a, "extraction_coordinates"_a, "targeted"_a, "rt_extraction_window"_a, "ms1"_a = false, "ms1_isotopes"_a = 0, "Prepare extraction coordinates from targeted experiment")
+        ;
+
+    // -----------------------------------------------------------------------
+    // PeakMapExtractor_ExtractedPeakMap
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::PeakMapExtractor::ExtractedPeakMap>(m, "ExtractedPeakMap",
+        R"doc(
+One extracted targeted peak map.
+
+Each object stores the extraction target metadata together with parallel
+arrays of mz, rt, ion_mobility, and intensity values for every matching
+raw point.
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::PeakMapExtractor::ExtractedPeakMap&>())
+        .def("__copy__", [](const OpenMS::PeakMapExtractor::ExtractedPeakMap& self) { return OpenMS::PeakMapExtractor::ExtractedPeakMap(self); })
+        .def("__deepcopy__", [](const OpenMS::PeakMapExtractor::ExtractedPeakMap& self, nb::dict) { return OpenMS::PeakMapExtractor::ExtractedPeakMap(self); }, "memo"_a)
+        .def_rw("native_id", &OpenMS::PeakMapExtractor::ExtractedPeakMap::native_id)
+        .def_rw("target_mz", &OpenMS::PeakMapExtractor::ExtractedPeakMap::target_mz)
+        .def_rw("target_rt", &OpenMS::PeakMapExtractor::ExtractedPeakMap::target_rt)
+        .def_rw("target_ion_mobility", &OpenMS::PeakMapExtractor::ExtractedPeakMap::target_ion_mobility)
+        .def_rw("rt_start", &OpenMS::PeakMapExtractor::ExtractedPeakMap::rt_start)
+        .def_rw("rt_end", &OpenMS::PeakMapExtractor::ExtractedPeakMap::rt_end)
+        .def_rw("mz", &OpenMS::PeakMapExtractor::ExtractedPeakMap::mz)
+        .def_rw("rt", &OpenMS::PeakMapExtractor::ExtractedPeakMap::rt)
+        .def_rw("ion_mobility", &OpenMS::PeakMapExtractor::ExtractedPeakMap::ion_mobility)
+        .def_rw("intensity", &OpenMS::PeakMapExtractor::ExtractedPeakMap::intensity)
+        ;
+
+    // -----------------------------------------------------------------------
+    // PeakMapExtractor
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::PeakMapExtractor, OpenMS::ProgressLogger>(m, "PeakMapExtractor",
+        R"doc(
+Extract raw mz/RT/IM peak clouds for targeted OpenSWATH coordinates.
+
+Use this together with SpectrumAccessOpenMS and a list of
+ExtractionCoordinates. If you start from a TargetedExperiment, you can reuse
+ChromatogramExtractor.prepare_coordinates(...) to generate the coordinates
+before calling extractPeakMaps(...).
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::PeakMapExtractor&>())
+        .def("__copy__", [](const OpenMS::PeakMapExtractor& self) { return OpenMS::PeakMapExtractor(self); })
+        .def("__deepcopy__", [](const OpenMS::PeakMapExtractor& self, nb::dict) { return OpenMS::PeakMapExtractor(self); }, "memo"_a)
+        .def("extractPeakMaps", [](OpenMS::PeakMapExtractor& self,
+                std::shared_ptr<OpenMS::SpectrumAccessOpenMS> input,
+                const std::vector<OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates>& extraction_coordinates,
+                double mz_extraction_window,
+                bool ppm,
+                double im_extraction_window,
+                const std::string& filter) {
+            std::vector<OpenMS::PeakMapExtractor::ExtractedPeakMap> output;
+            self.extractPeakMaps(input, output, extraction_coordinates, mz_extraction_window, ppm, im_extraction_window, filter);
+            return output;
+        }, "input"_a, "extraction_coordinates"_a, "mz_extraction_window"_a, "ppm"_a, "im_extraction_window"_a, "filter"_a = "tophat",
+        "Extract targeted raw peak maps from an OpenMS-backed spectrum access object.")
+        .def("extractPeakMaps", [](OpenMS::PeakMapExtractor& self,
+                std::shared_ptr<OpenMS::SpectrumAccessOpenMSInMemory> input,
+                const std::vector<OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates>& extraction_coordinates,
+                double mz_extraction_window,
+                bool ppm,
+                double im_extraction_window,
+                const std::string& filter) {
+            std::vector<OpenMS::PeakMapExtractor::ExtractedPeakMap> output;
+            self.extractPeakMaps(input, output, extraction_coordinates, mz_extraction_window, ppm, im_extraction_window, filter);
+            return output;
+        }, "input"_a, "extraction_coordinates"_a, "mz_extraction_window"_a, "ppm"_a, "im_extraction_window"_a, "filter"_a = "tophat",
+        "Extract targeted raw peak maps from an in-memory spectrum access object.")
         ;
 
     // -----------------------------------------------------------------------
