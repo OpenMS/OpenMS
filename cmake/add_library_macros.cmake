@@ -237,7 +237,8 @@ function(openms_add_library)
             $<TARGET_FILE_DIR:${openms_add_library_TARGET_NAME}>
             )
 
-    if(GENERATOR_IS_MULTI_CONFIG)
+    get_property(is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    if(is_multi_config)
       file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$<CONFIG>/" DLL_TEST_TARGET_PATH)
       file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$<CONFIG>/" DLL_DOC_TARGET_PATH)
     else()
