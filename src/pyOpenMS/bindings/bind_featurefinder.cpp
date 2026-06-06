@@ -307,17 +307,17 @@ Arguments:
 
 For a pandas-based interface see FeatureFinderAlgorithmMetaboIdent.compounds_from_df().
 )doc")
-        .def(nb::init<const OpenMS::String&, const OpenMS::String&, double, const std::vector<int>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const OpenMS::String&>(),
-            "name"_a, "formula"_a, "mass"_a, "charges"_a, "rts"_a, "rt_ranges"_a, "iso_distrib"_a, "ion_mobilities"_a = std::vector<double>(), "adduct"_a = OpenMS::String(""))
-        .def("getName", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const OpenMS::String& { return self.getName(); }, nb::rv_policy::reference_internal, "Returns the compound name")
-        .def("getFormula", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const OpenMS::String& { return self.getFormula(); }, nb::rv_policy::reference_internal, "Returns the molecular formula")
+        .def(nb::init<const std::string&, const std::string&, double, const std::vector<int>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::string&>(),
+            "name"_a, "formula"_a, "mass"_a, "charges"_a, "rts"_a, "rt_ranges"_a, "iso_distrib"_a, "ion_mobilities"_a = std::vector<double>(), "adduct"_a = std::string(""))
+        .def("getName", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::string& { return self.getName(); }, nb::rv_policy::reference_internal, "Returns the compound name")
+        .def("getFormula", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::string& { return self.getFormula(); }, nb::rv_policy::reference_internal, "Returns the molecular formula")
         .def("getMass", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) { return self.getMass(); }, "Returns the neutral mass")
         .def("getCharges", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<int>& { return self.getCharges(); }, nb::rv_policy::reference_internal, "Returns the charge states")
         .def("getRTs", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getRTs(); }, nb::rv_policy::reference_internal, "Returns the expected retention times")
         .def("getRTRanges", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) { return self.getRTRanges(); }, "Returns the RT ranges")
         .def("getIsotopeDistribution", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getIsotopeDistribution(); }, nb::rv_policy::reference_internal, "Returns the isotope distribution")
         .def("getIonMobilities", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getIonMobilities(); }, nb::rv_policy::reference_internal, "Returns the expected ion mobility values")
-        .def("getAdduct", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const OpenMS::String& { return self.getAdduct(); }, nb::rv_policy::reference_internal, "Returns the adduct string (e.g. 'M+H;1+', 'M+Na;1+', 'M-H;1-')")
+        .def("getAdduct", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::string& { return self.getAdduct(); }, nb::rv_policy::reference_internal, "Returns the adduct string (e.g. 'M+H;1+', 'M+Na;1+', 'M-H;1-')")
         ;
 
     // -----------------------------------------------------------------------

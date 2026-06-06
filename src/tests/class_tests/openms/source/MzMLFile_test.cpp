@@ -622,7 +622,7 @@ START_SECTION((template <typename MapType> void load(const std::string& filename
   TEST_STRING_EQUAL((std::string)exp[1].getFloatDataArrays()[0].getMetaValue("name"),"binaryDataArray_sn")
   TEST_STRING_EQUAL((std::string)exp[1].getFloatDataArrays()[0].getMetaValue("name2"),"binaryDataArray_sn2")
   TEST_STRING_EQUAL((std::string)exp[1].getFloatDataArrays()[1].getMetaValue("name"),"binaryDataArray_c")
-  TEST_STRING_EQUAL((std::string)exp[1].getFloatDataArrays()[1].getMetaValue("name2"),"")
+  TEST_STRING_EQUAL(StringUtils::toStr(exp[1].getFloatDataArrays()[1].getMetaValue("name2")),"")
   //acquisition list
   TEST_STRING_EQUAL((std::string)exp[0].getAcquisitionInfo().getMetaValue("name"),"acquisition_list")
   //acquisition

@@ -883,7 +883,7 @@ namespace OpenMS
             }
             for (const auto& ck : common_keys)
             {
-              const DataValue& dv = StringUtils::toStr(ph.getMetaValue(ck));
+              const DataValue& dv = ph.getMetaValue(ck);
               if (dv.valueType() == DataValue::DOUBLE_VALUE)
               {
                 table_widget_->setAtBottomRow(double(dv), current_col, bg_color);

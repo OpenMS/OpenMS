@@ -814,7 +814,7 @@ Each parameter can be annotated with an arbitrary number of tags (e.g., 'advance
         .def("empty", [](const OpenMS::Param& self) { return self.empty(); }, "Returns True if there are no entries")
         .def("clear", [](OpenMS::Param& self) { return self.clear(); }, "Deletes all entries")
         .def("insert", [](OpenMS::Param& self, const std::string& prefix, const OpenMS::Param& param) { return self.insert(prefix, param); }, "prefix"_a, "param"_a, "Inserts all values of another Param object with the given prefix")
-        .def("remove", [](OpenMS::Param& self, const std::string& key) { return StringUtils::remove(self, key); }, "key"_a, "Removes an entry or section (when key ends with ':') by exact name match")
+        .def("remove", [](OpenMS::Param& self, const std::string& key) { return self.remove(key); }, "key"_a, "Removes an entry or section (when key ends with ':') by exact name match")
         .def("removeAll", [](OpenMS::Param& self, const std::string& prefix) { return self.removeAll(prefix); }, "prefix"_a, "Removes all entries and sections that start with the given prefix")
         .def("copy", [](const OpenMS::Param& self, const std::string& prefix, bool remove_prefix) { return self.copy(prefix, remove_prefix); }, "prefix"_a, "remove_prefix"_a = false,
             R"doc(
@@ -1259,11 +1259,11 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     // -----------------------------------------------------------------------
     // QuotingMethod (OpenMS::QuotingMethod)
     // -----------------------------------------------------------------------
-    nb::enum_<std::string::QuotingMethod>(m, "QuotingMethod",
+    nb::enum_<OpenMS::QuotingMethod>(m, "QuotingMethod",
         "Method for quoting strings in CSV output", nb::is_arithmetic())
-        .value("NONE", std::string::NONE)
-        .value("ESCAPE", std::string::ESCAPE)
-        .value("DOUBLE", std::string::DOUBLE)
+        .value("NONE", OpenMS::QuotingMethod::NONE)
+        .value("ESCAPE", OpenMS::QuotingMethod::ESCAPE)
+        .value("DOUBLE", OpenMS::QuotingMethod::DOUBLE)
 
         ;
 

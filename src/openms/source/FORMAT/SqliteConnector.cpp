@@ -241,7 +241,7 @@ namespace OpenMS
       {
         if (sqlite3_column_type(stmt, pos) == SQLITE_INTEGER)
         {
-          *dst = sqlite3_column_int(stmt, pos);
+          *dst = StringUtils::toStr(sqlite3_column_int(stmt, pos));
           return true;
         }
         return false;

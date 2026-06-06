@@ -67,7 +67,7 @@ namespace OpenMS
     bool extractMetaDouble_(const Feature& feature, const std::string& key, double& value)
     {
       if (!feature.metaValueExists(key)) return false;
-      const DataValue& meta = StringUtils::toStr(feature.getMetaValue(key));
+      const DataValue& meta = feature.getMetaValue(key);
       if (meta.isEmpty()) return false;
       try
       {
@@ -105,7 +105,7 @@ namespace OpenMS
     bool extractMetaDouble_(const BaseFeature& feature, const std::string& key, double& value)
     {
       if (!feature.metaValueExists(key)) return false;
-      const DataValue& meta = StringUtils::toStr(feature.getMetaValue(key));
+      const DataValue& meta = feature.getMetaValue(key);
       if (meta.isEmpty()) return false;
       try
       {

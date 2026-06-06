@@ -852,7 +852,7 @@ namespace OpenMS::Internal
       os << "RT=\"" << id.getRT() << "\" ";
     }
     // spectrum_reference
-    DataValue dv = StringUtils::toStr(id.getMetaValue("spectrum_reference"));
+    DataValue dv = id.getMetaValue("spectrum_reference");
     if (dv != DataValue::EMPTY)
     {
       os << "spectrum_reference=\"" << writeXMLEscape(dv.toString()) << "\" ";

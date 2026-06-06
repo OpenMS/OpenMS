@@ -118,7 +118,7 @@ namespace OpenMS
 
     if (headers.size() >= 5)
     {
-      if (StringUtils::toUpper(StringUtils::trim(headers[4])) == "RT1")
+      if (StringUtils::toUppered(StringUtils::trim(headers[4])) == "RT1")
       {
         input_type = TYPE_CONSENSUS;
       }

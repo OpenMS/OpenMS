@@ -247,7 +247,7 @@ namespace OpenMS
         // set parent intensity
         entry->parent_intens = cFeature.getIntensity();
         entry->retention_time = cFeature.getRT();
-        entry->spectrum = cFeature.getUniqueId();
+        entry->spectrum = StringUtils::toStr(cFeature.getUniqueId());
         entry->exp_mass = cFeature.getMZ();
 
         // create output line

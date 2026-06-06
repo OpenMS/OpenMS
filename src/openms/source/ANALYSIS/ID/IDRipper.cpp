@@ -45,7 +45,7 @@ namespace OpenMS
       }
       UInt idx = this->index_map.size();
       this->index_map[id_run_id] = idx;
-      const DataValue& mv_spectra_data = StringUtils::toStr(prot_id.getMetaValue("spectra_data"));
+      const DataValue& mv_spectra_data = prot_id.getMetaValue("spectra_data");
       spectra_data.push_back(mv_spectra_data.isEmpty() ? StringList() : mv_spectra_data.toStringList());
     }
   }

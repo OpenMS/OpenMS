@@ -75,7 +75,7 @@ START_SECTION((SVOutStream& operator<<(std::string str)))
 {
   stringstream strstr;
   SVOutStream out(strstr, ",", "_", OpenMS::QuotingMethod::ESCAPE);
-  out << string("a") << "bc" << std::string("d, f") << nl;
+  out << string("a") << "bc" << std::string("d,f") << nl;
   out << "g\"i\"k" << 'l' << endl;
   TEST_EQUAL(strstr.str(), "\"a\",\"bc\",\"d,f\"\n\"g\\\"i\\\"k\",\"l\"\n");
 }

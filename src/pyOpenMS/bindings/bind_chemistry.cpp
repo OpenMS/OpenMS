@@ -439,7 +439,7 @@ Returns the "cuts before ..." regular expression
         .def(nb::init<const OpenMS::Element &>())
         .def("__copy__", [](const OpenMS::Element& self) { return OpenMS::Element(self); })
         .def("__deepcopy__", [](const OpenMS::Element& self, nb::dict) { return OpenMS::Element(self); }, "memo"_a)
-        .def(nb::init<OpenMS::String, OpenMS::String, unsigned int, double, double, OpenMS::IsotopeDistribution>())
+        .def(nb::init<std::string, std::string, unsigned int, double, double, OpenMS::IsotopeDistribution>())
         .def("getAtomicNumber", [](const OpenMS::Element& self) { return self.getAtomicNumber(); }, "Returns the unique atomic number")
         .def("getAverageWeight", [](const OpenMS::Element& self) { return self.getAverageWeight(); }, "Returns the average weight of the element")
         .def("getMonoWeight", [](const OpenMS::Element& self) { return self.getMonoWeight(); }, "Returns the mono isotopic weight of the element")
@@ -934,7 +934,7 @@ Database of modifications (amino acid modifications). This is a singleton class.
 The modifications are read from the unimod.xml file on construction.
 )doc")
         .def_static("isInstantiated", []() { return OpenMS::ModificationsDB::isInstantiated(); }, "Check whether ModificationsDB was instantiated before")
-        .def("has", [](const OpenMS::ModificationsDB& self, const std::string& modification) { return StringUtils::has(self, modification); }, "modification"_a, "Returns True if the modification exists")
+        .def("has", [](const OpenMS::ModificationsDB& self, const std::string& modification) { return self.has(modification); }, "modification"_a, "Returns True if the modification exists")
         .def("findModificationIndex", [](const OpenMS::ModificationsDB& self, const std::string& mod_name) { return self.findModificationIndex(mod_name); }, "mod_name"_a, "Returns the index of the modification in the mods_ vector; a unique name must be given")
 
         .def("searchModifications", [](const OpenMS::ModificationsDB& self, const std::string& mod_name, const std::string& residue, nb::object term_spec_obj) {
@@ -963,11 +963,11 @@ The modifications are read from the unimod.xml file on construction.
             self.getAllSearchModifications(mods);
             return mods;
         }, "Returns all modifications that can be used for identification searches")
-        .def("getBestModificationByDiffMonoMass", [](const OpenMS::ModificationsDB& self, double mass, double max_error, const OpenMS::String& residue, nb::object term_spec_obj) {
+        .def("getBestModificationByDiffMonoMass", [](const OpenMS::ModificationsDB& self, double mass, double max_error, const std::string& residue, nb::object term_spec_obj) {
             int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
             return self.getBestModificationByDiffMonoMass(mass, max_error, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
         }, "mass"_a, "max_error"_a, "residue"_a = "", "term_spec"_a = nb::int_(static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)), nb::rv_policy::reference, "Returns the best modification by diff mono mass")
-        .def("searchModificationsByDiffMonoMass", [](const OpenMS::ModificationsDB& self, double mass, double max_error, const OpenMS::String& residue, nb::object term_spec_obj) {
+        .def("searchModificationsByDiffMonoMass", [](const OpenMS::ModificationsDB& self, double mass, double max_error, const std::string& residue, nb::object term_spec_obj) {
             int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
             std::vector<std::string> mods;
             self.searchModificationsByDiffMonoMass(mods, mass, max_error, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
@@ -1401,7 +1401,7 @@ urlretrieve ("http://www.uniprot.org/uniprot/P02769.fasta", "bsa.fasta")
 dig = ProteaseDigestion()
 dig.setEnzyme('Lys-C')
 bsa_string = "".join([l.strip() for l in open("bsa.fasta").readlines()[1:]])
-bsa_oms_string =StringUtils::toStr(bsa_string) # convert python string to std::string for further processing
+bsa_oms_string = bsa_string # pyOpenMS uses native Python str directly
 #
 minlen = 6
 maxlen = 30
@@ -1755,10 +1755,10 @@ Modified residues get created and added if getModifiedResidue is called.
         .def("getNumberOfModifiedResidues", [](const OpenMS::ResidueDB& self) { return self.getNumberOfModifiedResidues(); }, "Returns the number of modified residues stored")
         .def("getResidue", [](const OpenMS::ResidueDB& self, const std::string& name) { return self.getResidue(name); }, "name"_a, nb::rv_policy::reference, "Returns a pointer to the residue with name, 3 letter code or 1 letter code name")
         .def("getResidue", [](const OpenMS::ResidueDB& self, const unsigned char& one_letter_code) { return self.getResidue(one_letter_code); }, "one_letter_code"_a, nb::rv_policy::reference, "Returns a pointer to the residue with name, 3 letter code or 1 letter code name")
-        .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, const OpenMS::String& name) { return self.getModifiedResidue(name); }, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a modification name")
-        .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue, const OpenMS::String& name) { return self.getModifiedResidue(residue, name); }, "residue"_a, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
+        .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, const std::string& name) { return self.getModifiedResidue(name); }, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a modification name")
+        .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue, const std::string& name) { return self.getModifiedResidue(residue, name); }, "residue"_a, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
         .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue, OpenMS::ResidueModification * mod) { return self.getModifiedResidue(residue, mod); }, "residue"_a, "mod"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
-        .def("getResidues", [](const OpenMS::ResidueDB& self, const OpenMS::String& residue_set) { return self.getResidues(residue_set); }, "residue_set"_a = "All", nb::rv_policy::reference, "Returns a set of all residues stored in this residue db")
+        .def("getResidues", [](const OpenMS::ResidueDB& self, const std::string& residue_set) { return self.getResidues(residue_set); }, "residue_set"_a = "All", nb::rv_policy::reference, "Returns a set of all residues stored in this residue db")
         .def("getResidueSets", [](const OpenMS::ResidueDB& self) { return self.getResidueSets(); }, "Returns all residue sets that are registered which this instance")
         .def("hasResidue", [](const OpenMS::ResidueDB& self, const std::string& name) { return self.hasResidue(name); }, "name"_a, "Returns True if the db contains a residue with the given name")
         .def("hasResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue) { return self.hasResidue(residue); }, "residue"_a, "Returns True if the db contains a residue with the given name")

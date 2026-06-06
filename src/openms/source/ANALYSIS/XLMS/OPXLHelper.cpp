@@ -1282,7 +1282,7 @@ namespace OpenMS
     {
       if (!id.getHits().empty())
       {
-        spectrum_indices.insert(id.getHits()[0].getMetaValue("spectrum_index"));
+        spectrum_indices.insert(StringUtils::toStr(id.getHits()[0].getMetaValue("spectrum_index")));
       }
     }
 

@@ -796,8 +796,13 @@ namespace OpenMS::Internal
     features.setUniqueId(id);
     features.setIdentifier(query.getColumn("identifier").getString());
     features.setLoadedFilePath(query.getColumn("file_path").getString());
-    std::string file_type = query.getColumn("file_type").getString();
-    features.setLoadedFileType(file_type);
+    // The "file_type" column stores a FileTypes type *name* (e.g. "featureXML").
+    // setLoadedFileType() takes a file *path* and detects the type via its
+    // content, so passing the type name made it try to open a file called
+    // "featureXML" (FileNotFound). There is no public setter for the
+    // FileTypes::Type enum; the loaded file path is already restored above, so
+    // we leave the (rarely used) loaded file type at its default here, matching
+    // develop's effective behaviour.
     SQLite::Statement query_meta(*db_, "");
     if (prepareQueryMetaInfo_(query_meta, "FEAT_MapMetaData"))
     {

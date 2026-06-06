@@ -127,7 +127,7 @@ namespace detail
     {
       size_t start = (pos > before) ? (pos - before) : 0;
       size_t end = std::min(pos + after, input_.size());
-      return StringUtils::substr(input_, start, end - start);
+      return input_.substr(start, end - start);
     }
 
     static const char* tokenTypeName(TokenType type)
@@ -173,22 +173,22 @@ namespace detail
 
       switch (c)
       {
-        case '[': advance_(); return Token{TokenType::LBRACKET, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case ']': advance_(); return Token{TokenType::RBRACKET, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case '(': advance_(); return Token{TokenType::LPAREN, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case ')': advance_(); return Token{TokenType::RPAREN, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case '{': advance_(); return Token{TokenType::LBRACE, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case '}': advance_(); return Token{TokenType::RBRACE, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case '<': advance_(); return Token{TokenType::LANGLE, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case '>': advance_(); return Token{TokenType::RANGLE, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case '/': advance_(); return Token{TokenType::SLASH, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case '|': advance_(); return Token{TokenType::PIPE, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case '#': advance_(); return Token{TokenType::HASH, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case ':': advance_(); return Token{TokenType::COLON, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case ',': advance_(); return Token{TokenType::COMMA, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case '^': advance_(); return Token{TokenType::CARET, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case '?': advance_(); return Token{TokenType::QUESTION, StringUtils::substr(input_, start_pos, 1), start_pos};
-        case '@': advance_(); return Token{TokenType::AT, StringUtils::substr(input_, start_pos, 1), start_pos};
+        case '[': advance_(); return Token{TokenType::LBRACKET, input_.substr(start_pos, 1), start_pos};
+        case ']': advance_(); return Token{TokenType::RBRACKET, input_.substr(start_pos, 1), start_pos};
+        case '(': advance_(); return Token{TokenType::LPAREN, input_.substr(start_pos, 1), start_pos};
+        case ')': advance_(); return Token{TokenType::RPAREN, input_.substr(start_pos, 1), start_pos};
+        case '{': advance_(); return Token{TokenType::LBRACE, input_.substr(start_pos, 1), start_pos};
+        case '}': advance_(); return Token{TokenType::RBRACE, input_.substr(start_pos, 1), start_pos};
+        case '<': advance_(); return Token{TokenType::LANGLE, input_.substr(start_pos, 1), start_pos};
+        case '>': advance_(); return Token{TokenType::RANGLE, input_.substr(start_pos, 1), start_pos};
+        case '/': advance_(); return Token{TokenType::SLASH, input_.substr(start_pos, 1), start_pos};
+        case '|': advance_(); return Token{TokenType::PIPE, input_.substr(start_pos, 1), start_pos};
+        case '#': advance_(); return Token{TokenType::HASH, input_.substr(start_pos, 1), start_pos};
+        case ':': advance_(); return Token{TokenType::COLON, input_.substr(start_pos, 1), start_pos};
+        case ',': advance_(); return Token{TokenType::COMMA, input_.substr(start_pos, 1), start_pos};
+        case '^': advance_(); return Token{TokenType::CARET, input_.substr(start_pos, 1), start_pos};
+        case '?': advance_(); return Token{TokenType::QUESTION, input_.substr(start_pos, 1), start_pos};
+        case '@': advance_(); return Token{TokenType::AT, input_.substr(start_pos, 1), start_pos};
         default: break;
       }
 
@@ -202,7 +202,7 @@ namespace detail
         else
         {
           advance_();
-          return Token{c == '+' ? TokenType::PLUS : TokenType::MINUS, StringUtils::substr(input_, start_pos, 1), start_pos};
+          return Token{c == '+' ? TokenType::PLUS : TokenType::MINUS, input_.substr(start_pos, 1), start_pos};
         }
       }
 
@@ -217,7 +217,7 @@ namespace detail
       }
 
       advance_();
-      return Token{TokenType::IDENTIFIER, StringUtils::substr(input_, start_pos, 1), start_pos};
+      return Token{TokenType::IDENTIFIER, input_.substr(start_pos, 1), start_pos};
     }
 
     Token scanNumber_()
@@ -228,7 +228,7 @@ namespace detail
       {
         advance_();
         while (!isAtEnd_() && isDigit_(current_())) advance_();
-        return Token{TokenType::NUMBER, StringUtils::substr(input_, start_pos, pos_ - start_pos), start_pos};
+        return Token{TokenType::NUMBER, input_.substr(start_pos, pos_ - start_pos), start_pos};
       }
       while (!isAtEnd_() && isDigit_(current_())) advance_();
       if (!isAtEnd_() && current_() == '.' && isDigit_(peek_(1)))
@@ -236,14 +236,14 @@ namespace detail
         advance_();
         while (!isAtEnd_() && isDigit_(current_())) advance_();
       }
-      return Token{TokenType::NUMBER, StringUtils::substr(input_, start_pos, pos_ - start_pos), start_pos};
+      return Token{TokenType::NUMBER, input_.substr(start_pos, pos_ - start_pos), start_pos};
     }
 
     Token scanIdentifier_()
     {
       size_t start_pos = pos_;
       while (!isAtEnd_() && isLetter_(current_())) advance_();
-      return Token{TokenType::IDENTIFIER, StringUtils::substr(input_, start_pos, pos_ - start_pos), start_pos};
+      return Token{TokenType::IDENTIFIER, input_.substr(start_pos, pos_ - start_pos), start_pos};
     }
 
     bool isAtEnd_() const { return pos_ >= input_.size(); }

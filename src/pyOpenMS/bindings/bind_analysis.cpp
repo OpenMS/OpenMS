@@ -1772,7 +1772,7 @@ Estimate the retention time span of a targeted experiment by returning the min/m
     // OpenSwathOSWWriter
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::OpenSwathOSWWriter>(m, "OpenSwathOSWWriter", "Class to write out an OpenSwath OSW SQLite output (PyProphet input)")
-        .def(nb::init<OpenMS::String, bool>())
+        .def(nb::init<std::string, bool>())
         .def("isActive", [](const OpenMS::OpenSwathOSWWriter& self) { return self.isActive(); })
         .def("writeHeader", [](OpenMS::OpenSwathOSWWriter& self) { return self.writeHeader(); }, "Initializes file by generating SQLite tables")
         .def("addRun", [](OpenMS::OpenSwathOSWWriter& self, size_t run_id, const std::string& input_filename) { return self.addRun(run_id, input_filename); }, "run_id"_a, "input_filename"_a, 
@@ -2652,7 +2652,7 @@ params.select_transition_group = False
         .def("getSMILESString", [](const OpenMS::SpectralMatch& self) { return self.getSMILESString(); })
         .def("setSMILESString", [](OpenMS::SpectralMatch& self, const std::string& p0) { return self.setSMILESString(p0); })
         .def("getPrecursorAdduct", [](const OpenMS::SpectralMatch& self) { return self.getPrecursorAdduct(); })
-        .def("setPrecursorAdduct", [](OpenMS::SpectralMatch& self, const OpenMS::String& p0) { return self.setPrecursorAdduct(p0); })
+        .def("setPrecursorAdduct", [](OpenMS::SpectralMatch& self, const std::string& p0) { return self.setPrecursorAdduct(p0); })
         .def("getObservedCCS", [](const OpenMS::SpectralMatch& self) { return self.getObservedCCS(); })
         .def("setObservedCCS", [](OpenMS::SpectralMatch& self, const double& p0) { return self.setObservedCCS(p0); })
         .def("getFoundCCS", [](const OpenMS::SpectralMatch& self) { return self.getFoundCCS(); })

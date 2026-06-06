@@ -139,7 +139,7 @@ namespace OpenMS
       } 
       else 
       { // use native id for mapping
-        DataValue native_id = StringUtils::toStr(peptide_ids[i].getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE));
+        DataValue native_id = peptide_ids[i].getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
         try
         { // spectrum can be retrieved
           Size spectrum_idx = lookup.findByNativeID(native_id);

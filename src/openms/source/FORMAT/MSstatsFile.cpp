@@ -299,10 +299,10 @@ void MSstatsFile::storeLFQ(const std::string& filename,
   // The output file of the MSstats converter
   TextFile csv_out;
   csv_out.addLine(
-    std::string(rt_summarization_manual ? "RetentionTime, ": "") +
+    std::string(rt_summarization_manual ? "RetentionTime,": "") +
     "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,"
     "ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," +
-    std::string(has_fraction ? "Fraction, ": "") + "Intensity,Reference");
+    std::string(has_fraction ? "Fraction,": "") + "Intensity,Reference");
 
   // From the MSstats user guide: endogenous peptides (use "L") or labeled reference peptides (use "H").
   std::string isotope_label_type = "L";

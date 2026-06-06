@@ -177,7 +177,7 @@ protected:
       Param old_param = p.copy(sec_inst + "parameters", true);
       new_param.update(old_param);
       // push back changes
-      StringUtils::remove(p, sec_inst + "parameters:");
+      p.remove(sec_inst + "parameters:");
       p.insert(sec_inst + "parameters", new_param);
     }
 
@@ -310,7 +310,7 @@ protected:
       Param old_param = p.copy(sections[s], true);
       new_param.update(old_param);
       // push back changes
-      StringUtils::remove(p, sections[s] + ":");
+      p.remove(sections[s] + ":");
       p.insert(new_tool, new_param);
     }
 

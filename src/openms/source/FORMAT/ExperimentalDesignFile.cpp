@@ -240,7 +240,7 @@ namespace OpenMS
           std::string samplename = "";
           if (!has_sample) 
           {
-            samplename = fraction_group; // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label
+            samplename = StringUtils::toStr(fraction_group); // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label
             cells.push_back(samplename);
           }
 

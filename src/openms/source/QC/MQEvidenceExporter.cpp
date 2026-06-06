@@ -273,7 +273,7 @@ void MQEvidence::exportRowFromFeature_(
 
   ptr_best_hit->isDecoy() ? file_ << "1\t" : file_ << "\t"; // reverse
 
-  std::string pot_containment = ptr_best_hit->getMetaValue("is_contaminant", "NA");
+  std::string pot_containment = StringUtils::toStr(ptr_best_hit->getMetaValue("is_contaminant", "NA"));
   if (pot_containment == "1")
   {
     file_ << "+"

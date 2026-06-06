@@ -1147,15 +1147,15 @@ namespace OpenMS::Internal
 
           if (ph.metaValueExists("XFDR:used_for_FDR"))
           {
-            os << "\" xprophet_f = (std::string)\"" << ph.getMetaValue("XFDR:used_for_FDR");
+            os << "\" xprophet_f=\"" << ph.getMetaValue("XFDR:used_for_FDR");
           }
           if (ph.metaValueExists("XFDR:fdr_type"))
           {
-            os << "\" fdr_type = (std::string)\"" << ph.getMetaValue("XFDR:fdr_type");
+            os << "\" fdr_type=\"" << ph.getMetaValue("XFDR:fdr_type");
           }
           if (ph.metaValueExists(Constants::UserParam::XFDR_FDR))
           {
-            os << "\" fdr = (std::string)\"" << ph.getMetaValue(Constants::UserParam::XFDR_FDR);
+            os << "\" fdr=\"" << ph.getMetaValue(Constants::UserParam::XFDR_FDR);
           }
 
           // remove MetaValues, that were already used and written out with a different key.

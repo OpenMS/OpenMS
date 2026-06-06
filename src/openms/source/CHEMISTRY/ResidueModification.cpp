@@ -779,7 +779,7 @@ namespace OpenMS
   }
   std::string ResidueModification::getDiffMonoMassString(const double diff_mono_mass)
   {
-    return StringUtils::toStr(diff_mono_mass < 0.0 ? "-" : "+") += std::fabs(diff_mono_mass);
+    return StringUtils::toStr(diff_mono_mass < 0.0 ? "-" : "+") + StringUtils::toStr(std::fabs(diff_mono_mass));
   }
   std::string ResidueModification::getDiffMonoMassWithBracket(const double diff_mono_mass)
   {

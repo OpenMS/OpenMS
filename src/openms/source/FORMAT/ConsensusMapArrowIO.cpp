@@ -198,7 +198,7 @@ namespace // anonymous
       for (const auto& key : keys)
       {
         if (!first_mv) json += ",";
-        const DataValue& val = StringUtils::toStr(dp.getMetaValue(key));
+        const DataValue& val = dp.getMetaValue(key);
         std::string type_str;
         switch (val.valueType())
         {
@@ -449,7 +449,7 @@ namespace // anonymous
     for (const auto& key : keys)
     {
       if (!first) json += ",";
-      const DataValue& val = StringUtils::toStr(mii.getMetaValue(key));
+      const DataValue& val = mii.getMetaValue(key);
       std::string type_str;
       switch (val.valueType())
       {

@@ -703,7 +703,7 @@ namespace OpenMS::Internal
         //~ collect SpectraData element for each ProteinIdentification
         std::string sdat_id;
         StringList sdat_files;
-        std::string sdat_file(it->getMetaValue("spectra_data"));
+        std::string sdat_file(StringUtils::toStr(it->getMetaValue("spectra_data")));
 
         if (sdat_file.empty())
         {
@@ -826,7 +826,7 @@ namespace OpenMS::Internal
         const double rt = it->getRT();
         std::string ert = rt == rt ? StringUtils::toStr(rt) : "nan";
 
-        std::string sid = it->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
+        std::string sid = StringUtils::toStr(it->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE));
         if (sid.empty())
         {
           sid =StringUtils::toStr(it->getMetaValue("spectrum_id"));
@@ -1111,7 +1111,7 @@ namespace OpenMS::Internal
         {
           s +=std::string(indent, '\t') + "<userParam name=\"" + keys[i] + "\" unitName=\"";
 
-          const DataValue& d = StringUtils::toStr(meta.getMetaValue(keys[i]));
+          const DataValue& d = meta.getMetaValue(keys[i]);
           //determine type
           if (d.valueType() == DataValue::INT_VALUE)
           {
@@ -1125,7 +1125,7 @@ namespace OpenMS::Internal
           {
             s += "xsd:string";
           }
-          s += "\" value=\"" + (std::string)(d) + "\"/>\n";
+          s += "\" value=\"" + StringUtils::toStr(d) + "\"/>\n";
         }
       }
     }
@@ -1517,7 +1517,7 @@ namespace OpenMS::Internal
           }
           else
           {
-            pte = true;
+            pte = "1";
           }
         }
 
@@ -1928,7 +1928,7 @@ namespace OpenMS::Internal
           }
           else // xl_chain = "MS:1002510", acceptor, beta peptide
           {
-            i = StringUtils::toInt32(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1).toString());
+            i = StringUtils::toInt32(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2).toString());
             if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA) && hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA) == "N_TERM")
             {
               p += "\t\t<Modification location=\"0";
@@ -1956,7 +1956,7 @@ namespace OpenMS::Internal
         }
         if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE) && hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "loop-link")
         {
-          int i = StringUtils::toInt32(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1).toString());
+          int i = StringUtils::toInt32(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2).toString());
           p += "\t\t<Modification location=\"" + StringUtils::toStr(i + 1);
           p += "\" residues=\"" + StringUtils::toStr(peptide_sequence[i].getOneLetterCode());
           p += "\" monoisotopicMassDelta=\"0";
@@ -2162,7 +2162,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          pte = true;
+          pte = "1";
         }
       }
 

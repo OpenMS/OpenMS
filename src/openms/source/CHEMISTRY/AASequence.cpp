@@ -1658,7 +1658,8 @@ namespace OpenMS
 
   const std::string& AASequence::getNTerminalModificationName() const
   {
-    if (n_term_mod_ == nullptr) return "";
+    static const std::string EMPTY;
+    if (n_term_mod_ == nullptr) return EMPTY;
     return n_term_mod_->getId();
   }
 
@@ -1674,7 +1675,8 @@ namespace OpenMS
 
   const std::string& AASequence::getCTerminalModificationName() const
   {
-    if (c_term_mod_ == nullptr) return "";
+    static const std::string EMPTY;
+    if (c_term_mod_ == nullptr) return EMPTY;
     return c_term_mod_->getId();
   }
 

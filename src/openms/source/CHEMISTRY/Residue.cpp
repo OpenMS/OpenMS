@@ -466,7 +466,8 @@ namespace OpenMS
 
   const std::string& Residue::getModificationName() const
   {
-    if (!isModified()) return "";
+    static const std::string EMPTY;
+    if (!isModified()) return EMPTY;
     return modification_->getId();
   }
 

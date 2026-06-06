@@ -552,17 +552,17 @@ namespace OpenMS
           for (unsigned int j = 0; j != feature->getPeptideIdentifications()[0].getHits().size(); ++j)
           {
            std::string adduct;
-           description = (std::string)feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("description");
+           description = StringUtils::toStr(feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("description"));
            if (description == "[null]")
            {
              description = "[UNKNOWN]";
            }
-           sumformula = (std::string)feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("chemical_formula");
+           sumformula = StringUtils::toStr(feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("chemical_formula"));
            if (sumformula.empty())
            {
              sumformula = "UNKNOWN";
            }
-           adduct = (std::string)feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("modifications");
+           adduct = StringUtils::toStr(feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("modifications"));
            if (adduct != "null")
            {
              // change format of adduct information M+H;1+ -> [M+H]1+

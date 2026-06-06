@@ -1692,7 +1692,7 @@ namespace OpenMS::Internal
       {
         os << std::string(2 * indent, ' ') << "<userParam name=\"" << writeXMLEscape(keys[i]) << "\" type=\"";
 
-        const DataValue& d = StringUtils::toStr(meta.getMetaValue(keys[i]));
+        const DataValue& d = meta.getMetaValue(keys[i]);
         //determine type
         if (d.valueType() == DataValue::INT_VALUE)
         {
@@ -1706,7 +1706,7 @@ namespace OpenMS::Internal
         {
           os << "xsd:string";
         }
-        os << "\" value=\"" << writeXMLEscape((std::string)(d)) << "\"/>" << "\n";
+        os << "\" value=\"" << writeXMLEscape(StringUtils::toStr(d)) << "\"/>" << "\n";
       }
     }
 

@@ -520,7 +520,7 @@ namespace OpenMS
       }
       else
       {
-        mytransition.fragment_charge = 1; // assume 1 (most frequent charge state)
+        mytransition.fragment_charge = "1"; // assume 1 (most frequent charge state)
       }
 
       if (best_fragment_annotation.contains("-"))
@@ -952,7 +952,7 @@ namespace OpenMS
         compound.charge = 0;
         if (!mytransition.precursor_charge.empty() && mytransition.precursor_charge != "NA")
         {
-          compound.charge = StringUtils::toInt32(mytransition.fragment_charge);
+          compound.charge = StringUtils::toInt32(mytransition.precursor_charge);
         }
         compound.peptide_group_label = effective_label;  // Use potentially corrected label
         compound.gene_name = mytransition.GeneName;

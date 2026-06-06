@@ -300,7 +300,7 @@ namespace OpenMS
           os << "RT=\"" << StringUtils::toStr(peptide_ids[l].getRT()) << "\" ";
         }
         // spectrum_reference
-        const DataValue& dv = (std::string)peptide_ids[l].getMetaValue("spectrum_reference");
+        const DataValue& dv = peptide_ids[l].getMetaValue("spectrum_reference");
         if (dv != DataValue::EMPTY)
         {
           os << "spectrum_reference=\"" << writeXMLEscape(dv.toString()) << "\" ";

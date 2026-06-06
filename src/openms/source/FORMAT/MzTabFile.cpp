@@ -253,7 +253,7 @@ namespace OpenMS
     {
       sections_present.insert("MTD");
       StringList meta_key_fields; // the "-" separated fields of the metavalue key
-      StringUtils::split(cells[1], ""-"", meta_key_fields);
+      StringUtils::split(cells[1], "-", meta_key_fields);
       std::string meta_key = meta_key_fields[0];
 
       if (StringUtils::hasPrefix(cells[1], "mzTab-version"))

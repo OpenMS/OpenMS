@@ -1141,7 +1141,7 @@ namespace OpenMS::Internal
       {
         if (key[0] != '#') // internally used meta info start with '#'
         {
-          os << std::string(indent, '\t') << "<" << tag << " name=\"" << key << "\" value=\"" << writeXMLEscape(meta.getMetaValue(key)) << "\"/>\n";
+          os << std::string(indent, '\t') << "<" << tag << " name=\"" << key << "\" value=\"" << writeXMLEscape(StringUtils::toStr(meta.getMetaValue(key))) << "\"/>\n";
         }
       }
     }

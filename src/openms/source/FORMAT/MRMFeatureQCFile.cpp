@@ -210,34 +210,34 @@ namespace OpenMS
       {
         StringList row(headers.size());
         row[0] = component_qc.component_group_name;
-        row[1] = component_qc.retention_time_l;
-        row[2] = component_qc.retention_time_u;
-        row[3] = component_qc.intensity_l;
-        row[4] = component_qc.intensity_u;
-        row[5] = component_qc.overall_quality_l;
-        row[6] = component_qc.overall_quality_u;
-        row[7] = component_qc.n_heavy_l;
-        row[8] = component_qc.n_heavy_u;
-        row[9] = component_qc.n_light_l;
-        row[10] = component_qc.n_light_u;
-        row[11] = component_qc.n_detecting_l;
-        row[12] = component_qc.n_detecting_u;
-        row[13] = component_qc.n_quantifying_l;
-        row[14] = component_qc.n_quantifying_u;
-        row[15] = component_qc.n_identifying_l;
-        row[16] = component_qc.n_identifying_u;
-        row[17] = component_qc.n_transitions_l;
-        row[18] = component_qc.n_transitions_u;
+        row[1] = StringUtils::toStr(component_qc.retention_time_l);
+        row[2] = StringUtils::toStr(component_qc.retention_time_u);
+        row[3] = StringUtils::toStr(component_qc.intensity_l);
+        row[4] = StringUtils::toStr(component_qc.intensity_u);
+        row[5] = StringUtils::toStr(component_qc.overall_quality_l);
+        row[6] = StringUtils::toStr(component_qc.overall_quality_u);
+        row[7] = StringUtils::toStr(component_qc.n_heavy_l);
+        row[8] = StringUtils::toStr(component_qc.n_heavy_u);
+        row[9] = StringUtils::toStr(component_qc.n_light_l);
+        row[10] = StringUtils::toStr(component_qc.n_light_u);
+        row[11] = StringUtils::toStr(component_qc.n_detecting_l);
+        row[12] = StringUtils::toStr(component_qc.n_detecting_u);
+        row[13] = StringUtils::toStr(component_qc.n_quantifying_l);
+        row[14] = StringUtils::toStr(component_qc.n_quantifying_u);
+        row[15] = StringUtils::toStr(component_qc.n_identifying_l);
+        row[16] = StringUtils::toStr(component_qc.n_identifying_u);
+        row[17] = StringUtils::toStr(component_qc.n_transitions_l);
+        row[18] = StringUtils::toStr(component_qc.n_transitions_u);
         row[19] = component_qc.ion_ratio_pair_name_1;
         row[20] = component_qc.ion_ratio_pair_name_2;
-        row[21] = component_qc.ion_ratio_l;
-        row[22] = component_qc.ion_ratio_u;
+        row[21] = StringUtils::toStr(component_qc.ion_ratio_l);
+        row[22] = StringUtils::toStr(component_qc.ion_ratio_u);
         row[23] = component_qc.ion_ratio_feature_name;
         size_t meta_data_iter = 24;
         for (const auto& meta_data : component_qc.meta_value_qc) {
-          row[meta_data_iter] = meta_data.second.first;
+          row[meta_data_iter] = StringUtils::toStr(meta_data.second.first);
           ++meta_data_iter;
-          row[meta_data_iter] = meta_data.second.second;
+          row[meta_data_iter] = StringUtils::toStr(meta_data.second.second);
           ++meta_data_iter;
         }
         addRow(row);
@@ -266,18 +266,18 @@ namespace OpenMS
       {
         StringList row(headers.size());
         row[0] = component_qc.component_name;
-        row[1] = component_qc.retention_time_l;
-        row[2] = component_qc.retention_time_u;
-        row[3] = component_qc.intensity_l;
-        row[4] = component_qc.intensity_u;
-        row[5] = component_qc.overall_quality_l;
-        row[6] = component_qc.overall_quality_u;
+        row[1] = StringUtils::toStr(component_qc.retention_time_l);
+        row[2] = StringUtils::toStr(component_qc.retention_time_u);
+        row[3] = StringUtils::toStr(component_qc.intensity_l);
+        row[4] = StringUtils::toStr(component_qc.intensity_u);
+        row[5] = StringUtils::toStr(component_qc.overall_quality_l);
+        row[6] = StringUtils::toStr(component_qc.overall_quality_u);
         size_t meta_data_iter = 7;
-        for (const auto& meta_data : component_qc.meta_value_qc) 
+        for (const auto& meta_data : component_qc.meta_value_qc)
         {
-          row[meta_data_iter] = meta_data.second.first;
+          row[meta_data_iter] = StringUtils::toStr(meta_data.second.first);
           ++meta_data_iter;
-          row[meta_data_iter] = meta_data.second.second;
+          row[meta_data_iter] = StringUtils::toStr(meta_data.second.second);
           ++meta_data_iter;
         }
         addRow(row);

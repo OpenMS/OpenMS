@@ -238,7 +238,7 @@ namespace OpenMS
       {
         MzTabOptionalColumnEntry opt_meta;
         opt_meta.first = "opt_isotope_offset";
-        opt_meta.second.set(match.getMetaValue("isotope_offset"));
+        opt_meta.second.set(StringUtils::toStr(match.getMetaValue("isotope_offset")));
         xsm.opt_.push_back(opt_meta);
       }
       // don't repeat data from the peptide section (e.g. accessions)

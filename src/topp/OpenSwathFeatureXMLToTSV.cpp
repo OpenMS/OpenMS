@@ -113,7 +113,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
 {
 
   std::string peptide_ref = feature_it->getMetaValue("PeptideRef");
-  std::string precursor_mz = feature_it->getMetaValue("PrecursorMZ");
+  std::string precursor_mz = StringUtils::toStr(feature_it->getMetaValue("PrecursorMZ"));
 
   std::string sequence;
   std::string full_peptide_name = "NA";

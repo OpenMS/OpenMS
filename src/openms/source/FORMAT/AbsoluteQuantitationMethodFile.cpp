@@ -132,12 +132,12 @@ namespace OpenMS
       row[1] = aqm.getComponentName();
       row[2] = aqm.getFeatureName();
       row[3] = aqm.getConcentrationUnits();
-      row[4] = aqm.getLLOD();
-      row[5] = aqm.getULOD();
-      row[6] = aqm.getLLOQ();
-      row[7] = aqm.getULOQ();
-      row[8] = aqm.getCorrelationCoefficient();
-      row[9] = aqm.getNPoints();
+      row[4] = StringUtils::toStr(aqm.getLLOD());
+      row[5] = StringUtils::toStr(aqm.getULOD());
+      row[6] = StringUtils::toStr(aqm.getLLOQ());
+      row[7] = StringUtils::toStr(aqm.getULOQ());
+      row[8] = StringUtils::toStr(aqm.getCorrelationCoefficient());
+      row[9] = StringUtils::toStr(aqm.getNPoints());
       row[10] = aqm.getTransformationModel();
       const Param tm_params = aqm.getTransformationModelParams();
       for (Size i = 0, j = 11; i < tm_params_names.size(); ++i, ++j)

@@ -169,18 +169,18 @@ runtime.
 )doc");
     brukertimsfile_class
         .def(nb::init<>())
-        .def("load", [](OpenMS::BrukerTimsFile& self, const OpenMS::String& path) {
+        .def("load", [](OpenMS::BrukerTimsFile& self, const std::string& path) {
             OpenMS::MSExperiment exp; self.load(path, exp); return exp;
         }, "path"_a, "Load a .d directory into a new MSExperiment using default configuration")
-        .def("load", [](OpenMS::BrukerTimsFile& self, const OpenMS::String& path, const OpenMS::BrukerTimsFile::Config& config) {
+        .def("load", [](OpenMS::BrukerTimsFile& self, const std::string& path, const OpenMS::BrukerTimsFile::Config& config) {
             OpenMS::MSExperiment exp; self.load(path, exp, config); return exp;
         }, "path"_a, "config"_a, "Load a .d directory into a new MSExperiment with explicit configuration")
-        .def("readDIAMetadata", [](OpenMS::BrukerTimsFile& self, const OpenMS::String& path) {
+        .def("readDIAMetadata", [](OpenMS::BrukerTimsFile& self, const std::string& path) {
             OpenMS::ExperimentalSettings settings;
             auto meta = self.readDIAMetadata(path, settings);
             return nb::make_tuple(meta, settings);
         }, "path"_a, "Read DIA SWATH boundaries and spectrum counts (no peak data). Returns (DIAStreamingMetadata, ExperimentalSettings).")
-        .def("readDIAMetadata", [](OpenMS::BrukerTimsFile& self, const OpenMS::String& path, const OpenMS::BrukerTimsFile::Config& config) {
+        .def("readDIAMetadata", [](OpenMS::BrukerTimsFile& self, const std::string& path, const OpenMS::BrukerTimsFile::Config& config) {
             OpenMS::ExperimentalSettings settings;
             auto meta = self.readDIAMetadata(path, settings, config);
             return nb::make_tuple(meta, settings);

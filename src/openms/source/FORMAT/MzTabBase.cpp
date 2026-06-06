@@ -251,7 +251,7 @@ namespace OpenMS
       }
 
       spec_ref_ = fields[1];
-      { std::string f0 = fields[0]; StringUtils::remove(f0, ']'); ms_run_ = (Size)(StringUtils::toInt32(f0)); }
+      { std::string f0 = fields[0]; StringUtils::substitute(f0, "ms_run[", ""); StringUtils::remove(f0, ']'); ms_run_ = (Size)(StringUtils::toInt32(f0)); }
     }
   }
   MzTabParameter::MzTabParameter()

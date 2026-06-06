@@ -401,7 +401,7 @@ namespace OpenMS
       Size l = fragment_positions[i] - fragment_positions[i - 1];
       if (l >= min_length && l <= max_length)
       {
-        output.push_back(sequence.getString().substr(fragment_positions[i - 1], l));
+        output.push_back(sequence.substr(fragment_positions[i - 1], l));
       }
       else
         ++wrong_size;
@@ -411,7 +411,7 @@ namespace OpenMS
     Size l = sequence.size() - fragment_positions[count - 1];
     if (l >= min_length && l <= max_length)
     {
-      output.push_back(sequence.getString().substr(fragment_positions[count - 1], l));
+      output.push_back(sequence.substr(fragment_positions[count - 1], l));
     }
     else
       ++wrong_size;
@@ -424,7 +424,7 @@ namespace OpenMS
         Size m = fragment_positions[j + i] - fragment_positions[j - 1];
         if (m >= min_length && m <= max_length)
         {
-          output.push_back(sequence.getString().substr(fragment_positions[j - 1], m));
+          output.push_back(sequence.substr(fragment_positions[j - 1], m));
         }
         else
           ++wrong_size;
@@ -434,7 +434,7 @@ namespace OpenMS
       Size n = sequence.size() - fragment_positions[count - i - 1];
       if (n >= min_length && n <= max_length)
       {
-        output.push_back(sequence.getString().substr(fragment_positions[count - i - 1], n));
+        output.push_back(sequence.substr(fragment_positions[count - i - 1], n));
       }
       else
       {
@@ -475,7 +475,7 @@ namespace OpenMS
         const Size right = std::min(i + max_length, sequence.size());
         for (Size j = i + min_length; j <= right; ++j)
         {
-          output.emplace_back(sequence.getString().substr(i, j - i));
+          output.emplace_back(sequence.substr(i, j - i));
         }
       }
       return 0;
@@ -495,7 +495,7 @@ namespace OpenMS
       wrong_size += semiSpecificDigestion_(fragment_positions, semi_pairs, min_length, max_length);
       for (const auto& p : semi_pairs)
       {
-        output.emplace_back(sequence.getString().substr(p.first, p.second - p.first));
+        output.emplace_back(sequence.substr(p.first, p.second - p.first));
       }
     }
 

@@ -3533,7 +3533,7 @@ namespace OpenMS::Internal
           {
             std::string userParam = "<userParam name=\"" + *key + "\" type=\"";
 
-            const DataValue& d = StringUtils::toStr(meta.getMetaValue(*key));
+            const DataValue& d = meta.getMetaValue(*key);
             //determine type
             if (d.valueType() == DataValue::INT_VALUE)
             {

@@ -711,7 +711,7 @@ protected:
                 {
                   // we do not cut the tool (here Percolator) prefix since we will use it as is
                   // in the new params
-                  get<2>(rescore_ver_settings).emplace_back(mvkey, sp.getMetaValue(mvkey));
+                  get<2>(rescore_ver_settings).emplace_back(mvkey, StringUtils::toStr(sp.getMetaValue(mvkey)));
                 }
               }
             }
