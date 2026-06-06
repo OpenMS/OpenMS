@@ -413,7 +413,7 @@ namespace OpenMS::Internal
               hit_pev_.push_back(pepevs);
 
               String pepref = String("OpenMS") + String(UniqueIdGenerator::getUniqueId());
-              if (pepset.find(ph->getSequence()) != pepset.end())
+              if (pepset.contains(ph->getSequence()))
               {
                 pepset.insert(ph->getSequence());
                 pep_map_.insert(make_pair(pepref, ph->getSequence()));
@@ -663,7 +663,7 @@ namespace OpenMS::Internal
                 cv_.getAllChildTerms(software_terms, "MS:1000531");
                 for (map<String, vector<CVTerm> >::const_iterator it = swn.first.getCVTerms().begin(); it != swn.first.getCVTerms().end(); ++it)
                 {
-                  if (software_terms.find(it->first) != software_terms.end())
+                  if (software_terms.contains(it->first))
                   {
                     swname = it->second.front().getName();
                     break;
@@ -1118,7 +1118,7 @@ namespace OpenMS::Internal
                     pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(sub->getChildNodes());
                     for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
                     {
-                      if (enzymes_terms.find(it->first) != enzymes_terms.end())
+                      if (enzymes_terms.contains(it->first))
                       {
                         enzymename = it->second.front().getName();
                       }
@@ -1186,7 +1186,7 @@ namespace OpenMS::Internal
           cv_.getAllChildTerms(threshold_terms, "MS:1002482"); //statistical threshold
           for (map<String, vector<OpenMS::CVTerm> >::const_iterator thit = tcv.getCVTerms().begin(); thit != tcv.getCVTerms().end(); ++thit)
           {
-            if (threshold_terms.find(thit->first) != threshold_terms.end())
+            if (threshold_terms.contains(thit->first))
             {
               if (thit->first != "MS:1001494") // no threshold
               {
@@ -1889,7 +1889,7 @@ namespace OpenMS::Internal
         ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, xl_mod_map_.at(peptides[alpha[0]]));
         ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS,DataValue(xl_mass_map_.at(peptides[alpha[0]])));
       }
-      else if ( xl_mod_map_.find(peptides[alpha[0]]) != xl_mod_map_.end() )
+      else if ( xl_mod_map_.contains(peptides[alpha[0]]) )
       {
         ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, xl_mod_map_.at(peptides[alpha[0]]));
       }
@@ -1994,7 +1994,7 @@ namespace OpenMS::Internal
         {
           bool idec = false;
           OpenMS::PeptideEvidence pev;
-          if (pe_ev_map_.find(pev_it->second) != pe_ev_map_.end())
+          if (pe_ev_map_.contains(pev_it->second))
           {
             MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
             if (pv.pre != '-') pev.setAABefore(pv.pre);
@@ -2045,7 +2045,7 @@ namespace OpenMS::Internal
             }
           }
 
-          if (pv_db_map_.find(pev_it->second) != pv_db_map_.end())
+          if (pv_db_map_.contains(pev_it->second))
           {
             String& dpv = pv_db_map_[pev_it->second];
             DBSequence& db = db_sq_map_[dpv];
@@ -2128,7 +2128,7 @@ namespace OpenMS::Internal
       bool scoretype = false;
       for (map<String, vector<OpenMS::CVTerm>>::const_iterator scoreit = param_cv.getCVTerms().begin(); scoreit != param_cv.getCVTerms().end(); ++scoreit)
       {
-        if (q_score_child_terms_.find(scoreit->first) != q_score_child_terms_.end() || scoreit->first == "MS:1002354")
+        if (q_score_child_terms_.contains(scoreit->first) || scoreit->first == "MS:1002354")
         {
           if (scoreit->first != "MS:1002055") // do not use peptide-level q-values for now
           {
@@ -2140,7 +2140,7 @@ namespace OpenMS::Internal
           }
         }
         else if (scoreit->first != "MS:1001143" && // the parent term itself has no numeric value; handled in the special case below
-                 specific_score_child_terms_.find(scoreit->first) != specific_score_child_terms_.end())
+                 specific_score_child_terms_.contains(scoreit->first))
         {
           score = toDoubleOrZero_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));
@@ -2148,7 +2148,7 @@ namespace OpenMS::Internal
           scoretype = true;
           break;
         }
-        else if (e_score_child_terms_.find(scoreit->first) != e_score_child_terms_.end())
+        else if (e_score_child_terms_.contains(scoreit->first))
         {
           score = toDoubleOrZero_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(false);
@@ -2202,7 +2202,7 @@ namespace OpenMS::Internal
         {
           bool idec = false;
           OpenMS::PeptideEvidence pev;
-          if (pe_ev_map_.find(pev_it->second) != pe_ev_map_.end())
+          if (pe_ev_map_.contains(pev_it->second))
           {
             MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
             if (pv.pre != '-') pev.setAABefore(pv.pre);
@@ -2255,7 +2255,7 @@ namespace OpenMS::Internal
             }
           }
 
-          if (pv_db_map_.find(pev_it->second) != pv_db_map_.end())
+          if (pv_db_map_.contains(pev_it->second))
           {
             String& dpv = pv_db_map_[pev_it->second];
             DBSequence& db = db_sq_map_[dpv];
@@ -2686,7 +2686,7 @@ namespace OpenMS::Internal
                     // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
 
                     // compare with String::ConstIterator AASequence::parseModSquareBrackets_
-                    ModificationsDB* mod_db = ModificationsDB::getInstance();
+                    const ModificationsDB* mod_db = ModificationsDB::getInstance();
                     if (index == 0)
                     {
                       // n-terminal

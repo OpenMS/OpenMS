@@ -174,7 +174,7 @@ namespace OpenMS
     bool multi_mod_switch = false;
     bool skip_invalid_mod_seq = false;
 
-    OpenMS::ModificationsDB* ptr = ModificationsDB::getInstance();
+    const OpenMS::ModificationsDB* ptr = ModificationsDB::getInstance();
     std::set<const ResidueModification*> modifiable_nterm;
     ptr->searchModifications(modifiable_nterm, modification, "", ResidueModification::N_TERM);
     std::set<const ResidueModification*> modifiable_cterm;
@@ -245,7 +245,7 @@ namespace OpenMS
     std::map<OpenMS::String, size_t> mods;
     std::vector<OpenMS::AASequence> sequences = {AASequence::fromString(sequence.toUnmodifiedString())};
 
-    OpenMS::ModificationsDB* ptr = ModificationsDB::getInstance();
+    const OpenMS::ModificationsDB* ptr = ModificationsDB::getInstance();
 
     if (sequence.hasNTerminalModification())
     {
@@ -305,7 +305,7 @@ namespace OpenMS
     std::vector<OpenMS::AASequence> decoy_sequences;
     decoy_sequences.push_back(AASequence::fromString(decoy_sequence.toUnmodifiedString()));
 
-    OpenMS::ModificationsDB* ptr = ModificationsDB::getInstance();
+    const OpenMS::ModificationsDB* ptr = ModificationsDB::getInstance();
 
     if (sequence.hasNTerminalModification())
     {
@@ -531,7 +531,7 @@ namespace OpenMS
       }
 
       // Skip if target peptide is not in map, e.g. permutation threshold was reached
-      if (TargetPeptideMap.find(peptide.id) == TargetPeptideMap.end())
+      if (!TargetPeptideMap.contains(peptide.id))
       {
         continue;
       }
@@ -947,7 +947,7 @@ namespace OpenMS
           ReactionMonitoringTransition tr = *tr_it;
 
           if (
-              top_intensities.find(tr.getLibraryIntensity()) != top_intensities.end() &&
+              top_intensities.contains(tr.getLibraryIntensity()) &&
                tr.getDecoyTransitionType() != ReactionMonitoringTransition::DECOY &&
                j < (Size)max_transitions)
           {
@@ -974,7 +974,7 @@ namespace OpenMS
       setProgress(++progress);
 
       // Check if peptide has any transitions left
-      if (peptide_ids.find(peptide.id) != peptide_ids.end())
+      if (peptide_ids.contains(peptide.id))
       {
         peptides.push_back(peptide);
         for (const auto& protein_ref : peptide.protein_refs)
@@ -993,7 +993,7 @@ namespace OpenMS
       setProgress(++progress);
 
       // Check if protein has any peptides left
-      if (ProteinList.find(protein.id) != ProteinList.end())
+      if (ProteinList.contains(protein.id))
       {
         proteins.push_back(protein);
       }
@@ -1122,7 +1122,7 @@ namespace OpenMS
         for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
         {
           ReactionMonitoringTransition tr = *tr_it;
-          if (top_intensities.find(tr.getLibraryIntensity()) != top_intensities.end() && j < (Size)max_transitions)
+          if (top_intensities.contains(tr.getLibraryIntensity()) && j < (Size)max_transitions)
           {
             // Set meta value tag for detecting transition
             tr.setDetectingTransition(true);
@@ -1176,7 +1176,7 @@ namespace OpenMS
     for (const auto &it : compounds)
     {
       // extract potential target TransitionIds based on the decoy annotation '0_CompoundName_decoy_[M+H]+_448_0'
-      if (it.id.find("decoy") != std::string::npos)
+      if (it.id.contains("decoy"))
       {
         String current_decoy = it.id;
         String potential_target = current_decoy;
@@ -1498,7 +1498,7 @@ namespace OpenMS
         size_t j = 0;
         for (auto& tr : m.second)
         {
-          if (top_intensities.find(tr.library_intensity) != top_intensities.end() &&
+          if (top_intensities.contains(tr.library_intensity) &&
               !tr.getDecoy() &&
               j < static_cast<size_t>(max_transitions))
           {
@@ -1522,7 +1522,7 @@ namespace OpenMS
     {
       setProgress(++progress);
 
-      if (peptide_ids.find(compound.id) != peptide_ids.end())
+      if (peptide_ids.contains(compound.id))
       {
         compounds.push_back(compound);
         for (const auto& protein_ref : compound.protein_refs)
@@ -1536,7 +1536,7 @@ namespace OpenMS
     {
       setProgress(++progress);
 
-      if (protein_list.find(protein.id) != protein_list.end())
+      if (protein_list.contains(protein.id))
       {
         proteins.push_back(protein);
       }
@@ -1584,7 +1584,7 @@ namespace OpenMS
       }
 
       // Otherwise, apply modifications from the LightCompound (TraML case)
-      OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
+      const OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
 
       for (const auto& mod : compound.modifications)
       {
@@ -1749,7 +1749,7 @@ namespace OpenMS
       }
 
       // Skip compounds that are not in target peptide map (e.g., those with too many permutations)
-      if (TargetPeptideMap.find(compound.id) == TargetPeptideMap.end())
+      if (!TargetPeptideMap.contains(compound.id))
       {
         continue;
       }

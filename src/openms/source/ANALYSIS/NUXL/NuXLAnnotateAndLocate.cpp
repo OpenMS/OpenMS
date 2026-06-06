@@ -526,7 +526,7 @@ namespace OpenMS
         for (auto pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
         {
           // only annotate experimental peaks with shift - i.e. do not annotated complete loss peaks again
-          if (peak_is_annotated.find(pair_it->second) != peak_is_annotated.end()) { continue; }
+          if (peak_is_annotated.contains(pair_it->second)) { continue; }
 
           // information on the experimental fragment in the alignment
           const Size & fragment_index = pair_it->second;
@@ -658,20 +658,20 @@ namespace OpenMS
 
         for (Size i = 0; i != n_shifts.size(); ++i)
         {
-          if (shifted_b_ions.find(i + 1) == shifted_b_ions.end()) { continue; }
+          if (!shifted_b_ions.contains(i + 1)) { continue; }
           for (auto& k : shifted_b_ions[i + 1]) { n_shifts[i] += k.intensity; }
         }
 
         for (Size i = 0; i != n_shifts.size(); ++i)
         {
-          if (shifted_a_ions.find(i + 1) == shifted_a_ions.end()) { continue; }
+          if (!shifted_a_ions.contains(i + 1)) { continue; }
           for (auto& k : shifted_a_ions[i + 1]) { n_shifts[i] += k.intensity; }
         }
 
         for (Size i = 0; i != c_shifts.size(); ++i)
         {
           const Size ion_index = c_shifts.size() - i;
-          if (shifted_y_ions.find(ion_index) == shifted_y_ions.end()) { continue; }
+          if (!shifted_y_ions.contains(ion_index)) { continue; }
           for (auto& k : shifted_y_ions[ion_index]) { c_shifts[i] += k.intensity; }
         }
 
@@ -679,20 +679,20 @@ namespace OpenMS
         vector<double> c_noshifts(sites_sum_score.size(), 0);
         for (Size i = 0; i != n_noshifts.size(); ++i)
         {
-          if (unshifted_b_ions.find(i + 1) == unshifted_b_ions.end()) { continue; }
+          if (!unshifted_b_ions.contains(i + 1)) { continue; }
           for (auto& k : unshifted_b_ions[i + 1]) { n_noshifts[i] += k.intensity; }
         }
 
         for (Size i = 0; i != n_noshifts.size(); ++i)
         {
-          if (unshifted_a_ions.find(i + 1) == unshifted_a_ions.end()) { continue; }
+          if (!unshifted_a_ions.contains(i + 1)) { continue; }
           for (auto& k : unshifted_a_ions[i + 1]) { n_noshifts[i] += k.intensity; }
         }
 
         for (Size i = 0; i != c_noshifts.size(); ++i)
         {
           const Size ion_index = c_noshifts.size() - i;
-          if (unshifted_y_ions.find(ion_index) == unshifted_y_ions.end()) { continue; }
+          if (!unshifted_y_ions.contains(ion_index)) { continue; }
           for (auto& k : unshifted_y_ions[ion_index]) { c_noshifts[i] += k.intensity; }
         }
 

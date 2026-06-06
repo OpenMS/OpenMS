@@ -258,7 +258,7 @@ namespace OpenMS
             PTMXMLFile().load(modifications_filename, ptm_informations);
           }
           // if the modification cannot be found
-          if (ptm_informations.find(mod_parts.front()) != ptm_informations.end())
+          if (ptm_informations.contains(mod_parts.front()))
           {
             mass = ptm_informations[mod_parts.front()].first; // composition
             residues = ptm_informations[mod_parts.front()].second; // residues
@@ -335,7 +335,7 @@ namespace OpenMS
         {
           type = mod_parts.front();
           type.toUpper();
-          if (types.find(type) != String::npos)
+          if (types.contains(type))
           {
             mod_parts.erase(mod_parts.begin());
           }
@@ -365,7 +365,7 @@ namespace OpenMS
         }
 
         // insert the modification
-        if (PTMname_residues_mass_type_.find(name) == PTMname_residues_mass_type_.end())
+        if (!PTMname_residues_mass_type_.contains(name))
         {
           PTMname_residues_mass_type_[name] = vector<String>(3);
           PTMname_residues_mass_type_[name][0] = residues;

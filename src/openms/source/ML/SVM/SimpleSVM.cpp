@@ -553,7 +553,7 @@ void scaleDataUsingTrainingRanges(SimpleSVM::PredictorMap& predictors, const map
     auto val_end = pred_it->second.end();
     for (; val_begin != val_end; ++val_begin)
     {
-      if (scaling.count(pred_it->first) == 0)
+      if (!scaling.contains(pred_it->first))
       {
         //std::cout << "Predictor: '" << pred_it->first << "' not found in scale map because it was uninformative during training." << std::endl;
         continue;

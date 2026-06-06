@@ -54,7 +54,7 @@ namespace OpenMS
       chopped = chopped.chop(6);
     }
     const std::set<String>& possible_types = maps.type_to_str.at(type);
-    return possible_types.find(chopped) != possible_types.end();
+    return possible_types.contains(chopped);
   }
 
   Scores::IDType Scores::parseIDType(const String& score_type_in)
@@ -123,7 +123,7 @@ namespace OpenMS
     const auto& maps = getMaps_();
     for (const auto& [scoretype, names] : maps.type_to_str)
     {
-      if (names.find(name) != names.end())
+      if (names.contains(name))
       {
         type = scoretype;
         return true;
@@ -149,7 +149,7 @@ namespace OpenMS
 
     for (const auto& [type, names] : maps.type_to_str)
     {
-      if (names.find(normalized) != names.end())
+      if (names.contains(normalized))
       {
         return true;
       }

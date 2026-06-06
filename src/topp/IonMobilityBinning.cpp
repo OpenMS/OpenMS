@@ -65,7 +65,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (containing RT, IM, m/z, i.e. IM-frames).");
-    setValidFormats_("in", {"mzML"});
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+    });
     registerOutputPrefix_("out", "<directory>", "", "Path to the output directory to write the binned mzML files to.", true, false);
     registerIntOption_("bins", "<number>", 5, "Number of ion mobility bins to split the input file into", false, false);
     registerDoubleOption_("bin_extension_abs", "<number>", 0.0,
@@ -135,7 +139,7 @@ protected:
     MZ_UNITS mz_binning_width_unit = getStringOption_("SpectraMerging:mz_binning_width_unit") == "Da" ? MZ_UNITS::DA : MZ_UNITS::PPM;
 
     PeakMap experiment;
-    FileHandler().loadExperiment(input_file, experiment, {FileTypes::MZML}, log_type_);
+    FileHandler().loadExperiment(input_file, experiment, {FileTypes::MZML, FileTypes::BRUKER_TDF}, log_type_);
 
     // Decide FAIMS vs. regular IM processing first (avoid moving 'experiment' before branching)
     const auto cvs = FAIMSHelper::getCompensationVoltages(experiment);

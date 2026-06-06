@@ -341,7 +341,7 @@ using namespace OpenMS;
         String id = getId_(ph);
         ph.setMetaValue("OpenPepXL:id", id);
         // candidates with the same ID will also have the same types
-        if (this->cross_link_classes_.find(id) == this->cross_link_classes_.end())
+        if (!this->cross_link_classes_.contains(id))
         {
           assignTypes_(ph, this->cross_link_classes_[id]);
         }
@@ -449,9 +449,9 @@ using namespace OpenMS;
                     std::vector< double > & fdr, bool mono) const
   {
     // Determine whether targetclass, decoyclass, and fulldecoyclass are present in the histogram map
-    bool targetclass_present = cum_histograms.find(targetclass) != cum_histograms.end();
-    bool decoyclass_present = cum_histograms.find(decoyclass) != cum_histograms.end();
-    bool fulldecoyclass_present = cum_histograms.find(fulldecoyclass) != cum_histograms.end();
+    bool targetclass_present = cum_histograms.contains(targetclass);
+    bool decoyclass_present = cum_histograms.contains(decoyclass);
+    bool fulldecoyclass_present = cum_histograms.contains(fulldecoyclass);
 
     for (double current_score = this->min_score_ +  (arg_binsize_/2);
         current_score <= this->max_score_ - (arg_binsize_/2);

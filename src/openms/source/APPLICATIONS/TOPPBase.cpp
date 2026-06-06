@@ -958,7 +958,7 @@ namespace OpenMS
     {
       String full_name = it.getName();
       String subsection = getSubsection_(full_name);
-      if (!subsection.empty() && (subsections_TOPP_.count(subsection) == 0))
+      if (!subsection.empty() && (!subsections_TOPP_.contains(subsection)))
       {
         subsections_TOPP_[subsection] = param.getSectionDescription(subsection);
       }
@@ -1887,10 +1887,10 @@ namespace OpenMS
     {
       // subsections (do not check content, but warn if not registered)
       String subsection = getSubsection_(it.getName());
-      if (!subsection.empty() && subsections_TOPP_.count(subsection) == 0) // not found in TOPP subsections
+      if (!subsection.empty() && !subsections_TOPP_.contains(subsection)) // not found in TOPP subsections
       {
         // for multi-level subsections, check only the first level:
-        if (subsections_.count(subsection.substr(0, subsection.find(':'))) == 0) // not found in normal subsections
+        if (!subsections_.contains(subsection.substr(0, subsection.find(':')))) // not found in normal subsections
         {
           if (!(location == "common::" && subsection == tool_name_))
           {

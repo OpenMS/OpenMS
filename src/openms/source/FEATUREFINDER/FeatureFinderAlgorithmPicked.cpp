@@ -153,12 +153,12 @@ namespace OpenMS
 
     Size max_isotopes = 20;
 
-    //check if non-natural isotopic abundances are set. If so modify
+    //check if non-natural isotopic abundances are set. If so, apply them locally to the
+    //isotope-pattern generator below instead of mutating the shared global ElementDB.
     double abundance_12C = param_.getValue("isotopic_pattern:abundance_12C");
     double abundance_14N = param_.getValue("isotopic_pattern:abundance_14N");
 
-    const Element* carbon_const = ElementDB::getInstance()->getElement("Carbon");
-    Element* carbon = const_cast<Element*>(carbon_const);
+    std::map<const Element*, IsotopeDistribution> isotope_overrides;
 
     if (param_.getValue("isotopic_pattern:abundance_12C") != defaults_.getValue("isotopic_pattern:abundance_12C"))
     {
@@ -166,11 +166,8 @@ namespace OpenMS
       IsotopeDistribution isotopes;
       isotopes.insert(12, abundance_12C / 100.0);
       isotopes.insert(13, 1.0 - (abundance_12C / 100.0));
-      carbon->setIsotopeDistribution(isotopes);
+      isotope_overrides[ElementDB::getInstance()->getElement("Carbon")] = isotopes;
     }
-
-    const Element* nitrogen_const = ElementDB::getInstance()->getElement("Nitrogen");
-    Element* nitrogen = const_cast<Element*>(nitrogen_const);
 
     if (param_.getValue("isotopic_pattern:abundance_14N") != defaults_.getValue("isotopic_pattern:abundance_14N"))
     {
@@ -178,7 +175,7 @@ namespace OpenMS
       IsotopeDistribution isotopes;
       isotopes.insert(14, abundance_14N / 100.0);
       isotopes.insert(15, 1.0 - (abundance_14N / 100.0));
-      nitrogen->setIsotopeDistribution(isotopes);
+      isotope_overrides[ElementDB::getInstance()->getElement("Nitrogen")] = isotopes;
     }
 
     // initialize trace fitter parameters here to avoid
@@ -368,6 +365,7 @@ namespace OpenMS
       {
         //if(debug_) log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << '\n';
         CoarseIsotopePatternGenerator solver(max_isotopes);
+        for (const auto& ov : isotope_overrides) { solver.setIsotopeOverride(ov.first, ov.second); }
         auto d = solver.estimateFromPeptideWeight(0.5 * mass_window_width_ + index * mass_window_width_);
         //trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak
         Size size_before = d.size();

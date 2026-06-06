@@ -119,8 +119,8 @@ protected:
     std::set<const ResidueModification*> mods_nterm;
     std::set<const ResidueModification*> mods_cterm;
     
-    ModificationsDB* mod_DB = ModificationsDB::getInstance();
-    ResidueDB* res_DB = ResidueDB::getInstance();
+    const ModificationsDB* mod_DB = ModificationsDB::getInstance();
+    const ResidueDB* res_DB = ResidueDB::getInstance();
 
     if (s_mods.empty())
     {

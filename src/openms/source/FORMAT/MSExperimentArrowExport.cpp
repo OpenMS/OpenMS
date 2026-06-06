@@ -47,7 +47,7 @@ bool passesMSLevelFilter(const MSSpectrum& spec,
                          const std::unordered_set<UInt>& ms_levels_set)
 {
   if (ms_levels_set.empty()) return true;
-  return ms_levels_set.find(spec.getMSLevel()) != ms_levels_set.end();
+  return ms_levels_set.contains(spec.getMSLevel());
 }
 
 /// Get iterator range for RT-filtered spectra using binary search

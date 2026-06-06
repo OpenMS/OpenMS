@@ -129,7 +129,7 @@ namespace OpenMS
       std::set< String > accessions_;
 
       /// The enzyme database for enzyme lookup
-      ProteaseDB* enzymes_db_;
+      const ProteaseDB* enzymes_db_;
 
       /// Keeps track of the charges of the hits
       std::set< UInt > charges_;

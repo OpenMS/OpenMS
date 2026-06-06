@@ -124,7 +124,7 @@ namespace OpenMS
         annos.getRow(i, row);
         
         //Check if mapping already has PSM, if it does add 
-        if (anno_mapping.find(row[to_idx_a.at("psm_id")].toInt()) == anno_mapping.end())
+        if (!anno_mapping.contains(row[to_idx_a.at("psm_id")].toInt()))
         {                 
           //Make a new vector of annotations 
           PeptideHit::PeakAnnotation peak_temp; 
@@ -244,7 +244,7 @@ namespace OpenMS
       if (file_name_column_index >= 0)
       {
         raw_file_name = row[file_name_column_index];
-        if (map_filename_to_idx.find(raw_file_name) == map_filename_to_idx.end())
+        if (!map_filename_to_idx.contains(raw_file_name))
         {
           filenames.push_back(raw_file_name);
           map_filename_to_idx[raw_file_name] = filenames.size() - 1;
@@ -370,7 +370,7 @@ namespace OpenMS
       // add annotations
       if (SageAnnotation)
       {
-        if (anno_mapping.find(sSpecId.toInt()) != anno_mapping.end())
+        if (anno_mapping.contains(sSpecId.toInt()))
         {
           // copy annotations from mapping to PeptideHit
           vector<PeptideHit::PeakAnnotation> pep_vec;
@@ -554,7 +554,7 @@ namespace OpenMS
       const auto& hits = stamped[pid_idx].getHits();
       for (size_t hit_idx = 0; hit_idx < hits.size(); ++hit_idx)
       {
-        if (skipped.count({pid_idx, hit_idx})) continue;
+        if (skipped.contains({pid_idx, hit_idx})) continue;
         const PeptideHit& hit = hits[hit_idx];
 
         StringList feats;

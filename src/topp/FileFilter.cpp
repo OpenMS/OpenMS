@@ -394,6 +394,10 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
+    // FileFilter only processes mzML/featureXML/consensusXML; the input dispatch in main_()
+    // has no branch for vendor formats (Bruker .d / Thermo .raw) and they are not IM-aware
+    // pass-throughs (its m/z/intensity and S/N filters mutate peaks without updating the
+    // parallel ion-mobility array). Use FileConverter to convert vendor data to mzML first.
     std::vector<String> formats = ListUtils::create<String>("mzML,featureXML,consensusXML");
 
     registerInputFile_("in", "<file>", "", "Input file");
@@ -1451,7 +1455,7 @@ protected:
       for (const FeatureHandle& fh : cm)
       {
         UInt64 map_index = fh.getMapIndex();
-        if (map_ids.empty() || map_ids.find(map_index) != map_ids.end())
+        if (map_ids.empty() || map_ids.contains(map_index))
         {
           Peak2D p;
           p.setMZ(fh.getMZ());
@@ -1502,14 +1506,14 @@ protected:
       if (is_blacklist)
       {
         // blacklist: add all spectra not contained in list
-        if (list_idx.find(i) == list_idx.end())
+        if (!list_idx.contains(i))
         {
           exp2.addSpectrum(exp[i]);
         }
       }
       else   // whitelist: add all non MS2 spectra, and MS2 only if in list
       {
-        if (exp[i].getMSLevel() != 2 || list_idx.find(i) != list_idx.end())
+        if (exp[i].getMSLevel() != 2 || list_idx.contains(i))
         {
           exp2.addSpectrum(exp[i]);
         }
@@ -1590,14 +1594,14 @@ protected:
       if (is_blacklist)
       {
         // blacklist: add all spectra not contained in list
-        if (list_idx.find(i) == list_idx.end())
+        if (!list_idx.contains(i))
         {
           exp2.addSpectrum(exp[i]);
         }
       }
       else   // whitelist: add all non-MS2 spectra + matched MS2 spectra
       {
-        if (exp[i].getMSLevel() != 2 || list_idx.find(i) != list_idx.end())
+        if (exp[i].getMSLevel() != 2 || list_idx.contains(i))
         {
           exp2.addSpectrum(exp[i]);
         }

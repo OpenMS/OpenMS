@@ -899,7 +899,7 @@ protected:
       {
         for (char c : entry.sequence)
         {
-          if (NUCLEOTIDE_CHARS.find(c) == std::string_view::npos)
+          if (!NUCLEOTIDE_CHARS.contains(c))
           {
             is_nucleic_acid = false;
             break;
@@ -1475,13 +1475,13 @@ protected:
         }
 
         // annotate peak type (profile / centroided) from meta data
-        if (level_annotated_picked.count(level) == 0)
+        if (!level_annotated_picked.contains(level))
         {
           level_annotated_picked[level] = static_cast<UInt>(spectrum.getType(false));
         }
 
         // estimate peak type once for every level (take a spectrum with enough peaks for stable estimation)
-        if (level_estimated_picked.count(level) == 0 && spectrum.size() > 10)
+        if (!level_estimated_picked.contains(level) && spectrum.size() > 10)
         {
           level_estimated_picked[level] = static_cast<UInt>(PeakTypeEstimator::estimateType(spectrum.begin(), spectrum.end()));
         }
@@ -1609,7 +1609,7 @@ protected:
           os << String("  ") + ChromatogramSettings::ChromatogramNames[static_cast<size_t>(it->first)] + ":                         "
              << it->second << '\n';
         }
-        if (getFlag_("d") && chrom_types.find(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM) != chrom_types.end())
+        if (getFlag_("d") && chrom_types.contains(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM))
         {
           os << '\n'
              << " -- Detailed chromatogram listing -- "
@@ -1714,7 +1714,7 @@ protected:
           for (Size m = 0; m < exp[s].getFloatDataArrays().size(); ++m)
           {
             String name = exp[s].getFloatDataArrays()[m].getName();
-            if (names.find(name) != names.end())
+            if (names.contains(name))
             {
               os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")"
                  << '\n';
@@ -1727,7 +1727,7 @@ protected:
           for (Size m = 0; m < exp[s].getIntegerDataArrays().size(); ++m)
           {
             String name = exp[s].getIntegerDataArrays()[m].getName();
-            if (names.find(name) != names.end())
+            if (names.contains(name))
             {
               os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")"
                  << '\n';
@@ -1740,7 +1740,7 @@ protected:
           for (Size m = 0; m < exp[s].getStringDataArrays().size(); ++m)
           {
             String name = exp[s].getStringDataArrays()[m].getName();
-            if (names.find(name) != names.end())
+            if (names.contains(name))
             {
               os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")"
                  << '\n';

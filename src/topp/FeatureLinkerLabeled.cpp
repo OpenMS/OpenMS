@@ -68,9 +68,9 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file", true);
-    setValidFormats_("in", ListUtils::create<String>("featureXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML,featureparquet"));
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("consensusXML,consensusparquet"));
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 

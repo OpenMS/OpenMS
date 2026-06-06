@@ -232,8 +232,8 @@ namespace OpenMS
       if (it->isModified())
       {
         String mod = it->getModification()->getFullId();
-        if (var_names.find(mod) == var_names.end() &&
-            fixed_names.find(mod) == fixed_names.end())
+        if (!var_names.contains(mod) &&
+            !fixed_names.contains(mod))
         {
           return false;
         }
@@ -243,8 +243,8 @@ namespace OpenMS
     if (peptide.hasNTerminalModification())
     {
       String mod = peptide.getNTerminalModification()->getFullId();
-      if (var_names.find(mod) == var_names.end() &&
-          fixed_names.find(mod) == fixed_names.end())
+      if (!var_names.contains(mod) &&
+          !fixed_names.contains(mod))
       {
         return false;
       }
@@ -253,8 +253,8 @@ namespace OpenMS
     if (peptide.hasCTerminalModification())
     {
       String mod = peptide.getCTerminalModification()->getFullId();
-      if (var_names.find(mod) == var_names.end() &&
-          fixed_names.find(mod) == fixed_names.end())
+      if (!var_names.contains(mod) &&
+          !fixed_names.contains(mod))
       {
         return false;
       }

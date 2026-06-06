@@ -40,7 +40,7 @@ namespace OpenMS::TargetedExperimentHelper
       // Note that the peptide.sequence is the "naked sequence" without any
       // modifications on it, therefore we have to populate the AASequence with
       // the correct modifications afterwards.
-      OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
+      const OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
       OpenMS::AASequence aas = AASequence::fromString(peptide.sequence);
 
       // Populate the AASequence with the correct modifications derived from

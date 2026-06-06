@@ -121,7 +121,7 @@ public:
 
             double score_align = diff_align;
 
-            if (matrix.find(i - 1) != matrix.end() && matrix[i - 1].find(j - 1) != matrix[i - 1].end())
+            if (matrix.contains(i - 1) && matrix[i - 1].contains(j - 1))
             {
               score_align += matrix[i - 1][j - 1];
             }
@@ -131,7 +131,7 @@ public:
             }
 
             double score_up = tolerance;
-            if (matrix.find(i) != matrix.end() && matrix[i].find(j - 1) != matrix[i].end())
+            if (matrix.contains(i) && matrix[i].contains(j - 1))
             {
               score_up += matrix[i][j - 1];
             }
@@ -141,7 +141,7 @@ public:
             }
 
             double score_left = tolerance;
-            if (matrix.find(i - 1) != matrix.end() && matrix[i - 1].find(j) != matrix[i - 1].end())
+            if (matrix.contains(i - 1) && matrix[i - 1].contains(j))
             {
               score_left += matrix[i - 1][j];
             }

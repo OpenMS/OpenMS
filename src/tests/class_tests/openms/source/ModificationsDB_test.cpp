@@ -38,10 +38,10 @@ START_SECTION(bool ModificationsDB::isInstantiated())
 }
 END_SECTION
 
-ModificationsDB* ptr = nullptr;
-ModificationsDB* nullPointer = nullptr;
+const ModificationsDB* ptr = nullptr;
+const ModificationsDB* nullPointer = nullptr;
 
-START_SECTION(ModificationsDB* getInstance())
+START_SECTION(const ModificationsDB* getInstance())
 {
 	ptr = ModificationsDB::getInstance();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -279,7 +279,7 @@ START_SECTION([EXTRA] multithreaded example)
   // 1e6 iterations -> 6.28 seconds with std::mutex
   // 1e6 iterations -> 4.64 seconds with pragma critical
 
-   static ModificationsDB* mdb = ModificationsDB::getInstance();
+   static const ModificationsDB* mdb = ModificationsDB::getInstance();
 
    int nr_iterations (1e4), test (0);
 #pragma omp parallel for reduction (+: test)

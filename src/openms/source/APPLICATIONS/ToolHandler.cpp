@@ -213,7 +213,7 @@ namespace OpenMS
     std::vector<Internal::ToolDescription> internal_tools = getInternalTools_();
     for (std::vector<Internal::ToolDescription>::const_iterator it = internal_tools.begin(); it != internal_tools.end(); ++it)
     {
-      if (tools_map.find(it->name) == tools_map.end())
+      if (!tools_map.contains(it->name))
       {
         tools_map[it->name] = *it;
       }
@@ -230,7 +230,7 @@ namespace OpenMS
   {
     Internal::ToolDescription ret;
     ToolListType tools = getTOPPToolList();
-    if (tools.find(toolname) != tools.end())
+    if (tools.contains(toolname))
     {
       return tools[toolname].types;
     }
@@ -304,7 +304,7 @@ namespace OpenMS
   {
     ToolListType tools = getTOPPToolList();
     String s;
-    if (tools.find(toolname) != tools.end())
+    if (tools.contains(toolname))
     {
       s = tools[toolname].category;
     }

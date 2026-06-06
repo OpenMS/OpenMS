@@ -34,9 +34,9 @@ START_TEST(CrossLinksDB, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CrossLinksDB* ptr = nullptr;
-CrossLinksDB* nullPointer = nullptr;
-START_SECTION(CrossLinksDB* getInstance())
+const CrossLinksDB* ptr = nullptr;
+const CrossLinksDB* nullPointer = nullptr;
+START_SECTION(const CrossLinksDB* getInstance())
 {
 	ptr = CrossLinksDB::getInstance();
 	TEST_NOT_EQUAL(ptr, nullPointer)

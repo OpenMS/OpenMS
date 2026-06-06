@@ -24,7 +24,7 @@ namespace OpenMS
     loadFromJSON_();
   }
 
-  MonosaccharideDB* MonosaccharideDB::getInstance()
+  const MonosaccharideDB* MonosaccharideDB::getInstance()
   {
     // Meyers' singleton - thread safe in C++11 and later
     static MonosaccharideDB* instance_ = new MonosaccharideDB();
@@ -121,7 +121,7 @@ namespace OpenMS
 
   bool MonosaccharideDB::hasSymbol(const String& symbol) const
   {
-    return synonym_to_symbol_.find(symbol) != synonym_to_symbol_.end();
+    return synonym_to_symbol_.contains(symbol);
   }
 
   const MonosaccharideDB::Monosaccharide* MonosaccharideDB::getMonosaccharide(const String& symbol) const

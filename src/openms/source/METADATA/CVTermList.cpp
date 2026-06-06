@@ -70,7 +70,7 @@ namespace OpenMS
 
   bool CVTermList::hasCVTerm(const String& accession) const
   {
-    return cv_terms_.find(accession) != cv_terms_.end();
+    return cv_terms_.contains(accession);
   }
 
   bool CVTermList::operator==(const CVTermList& cv_term_list) const

@@ -42,7 +42,7 @@ namespace OpenMS
   {
     removeFromSetIf_(container, [&lookup](typename ContainerType::iterator it)
                       {
-                        return !lookup.count(uintptr_t(&(*it)));
+                        return !lookup.contains(uintptr_t(&(*it)));
                       });
   }
 
@@ -102,7 +102,7 @@ namespace OpenMS
       removeFromSetIf_(element.parent_matches,
                         [&](const ParentMatches::iterator it)
                         {
-                          return !lookup.count(it->first);
+                          return !lookup.contains(it->first);
                         });
     }
 
@@ -845,7 +845,7 @@ namespace OpenMS
     }
     removeFromSetIf_(observation_matches_, [&](ObservationMatches::iterator it)
                      {
-                       return !id_vars.count(it->identified_molecule_var);
+                       return !id_vars.contains(it->identified_molecule_var);
                      });
 
     // remove observation matches based on observation match groups:
@@ -897,7 +897,7 @@ namespace OpenMS
       removeFromSetIfNotHashed_(identified_oligos_, identified_oligo_lookup_);
       removeFromSetIf_(adducts_, [&](Adducts::iterator it)
       {
-        return !adduct_refs.count(it);
+        return !adduct_refs.contains(it);
       });
     }
     // update look-up tables of addresses:

@@ -88,7 +88,14 @@ class ProSE :
     void registerOptionsAndFlags_() override
     {
       registerInputFileList_("in", "<files>", StringList(), "Input spectrum file(s). Multiple files are searched against the same database; the fragment index is built once and reused.");
-      setValidFormats_("in", ListUtils::create<String>("mzML,d"));
+      setValidFormats_("in", { "mzML",
+#ifdef WITH_OPENTIMS
+        "d",
+#endif
+#ifdef WITH_THERMO_RAW
+        "raw",
+#endif
+      });
 
       registerInputFile_("database", "<file>", "", "Input protein sequence database in FASTA format.");
       setValidFormats_("database", ListUtils::create<String>("fasta"));

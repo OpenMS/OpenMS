@@ -111,17 +111,17 @@ namespace OpenMS
           break;
 
         case ParamValue::STRING_VALUE:
-          if (tag_list.find("input file") != tag_list.end())
+          if (tag_list.contains("input file"))
           {
             os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << R"(" type="input-file")";
             tag_list.erase("input file");
           }
-          else if (tag_list.find("output file") != tag_list.end())
+          else if (tag_list.contains("output file"))
           {
             os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << R"(" type="output-file")";
             tag_list.erase("output file");
           }
-          else if (tag_list.find("output prefix") != tag_list.end())
+          else if (tag_list.contains("output prefix"))
           {
             os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << R"(" type="output-prefix")";
             tag_list.erase("output prefix");
@@ -141,12 +141,12 @@ namespace OpenMS
           break;
 
         case ParamValue::STRING_LIST:
-          if (tag_list.find("input file") != tag_list.end())
+          if (tag_list.contains("input file"))
           {
             os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << R"(" type="input-file")";
             tag_list.erase("input file");
           }
-          else if (tag_list.find("output file") != tag_list.end())
+          else if (tag_list.contains("output file"))
           {
             os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << R"(" type="output-file")";
             tag_list.erase("output file");
@@ -178,7 +178,7 @@ namespace OpenMS
         os << " description=\"" << writeXMLEscape(d) << "\"";
 
         // required
-        if (tag_list.find("required") != tag_list.end())
+        if (tag_list.contains("required"))
         {
           os << " required=\"true\"";
           tag_list.erase("required");
@@ -189,7 +189,7 @@ namespace OpenMS
         }
 
         // advanced
-        if (tag_list.find("advanced") != tag_list.end())
+        if (tag_list.contains("advanced"))
         {
           os << " advanced=\"true\"";
           tag_list.erase("advanced");
@@ -273,9 +273,9 @@ namespace OpenMS
           // for files we store the restrictions as supported_formats
           if (!restrictions.empty())
           {
-            if (it->tags.find("input file") != it->tags.end() 
-              || it->tags.find("output file") != it->tags.end()
-              || it->tags.find("output prefix") != it->tags.end())
+            if (it->tags.contains("input file") 
+              || it->tags.contains("output file")
+              || it->tags.contains("output prefix"))
             {
               os << " supported_formats=\"" << writeXMLEscape(restrictions) << "\"";
             }

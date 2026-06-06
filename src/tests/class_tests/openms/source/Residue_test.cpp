@@ -42,7 +42,7 @@ START_SECTION((virtual ~Residue()))
 }
 END_SECTION
 
-ResidueDB* db = ResidueDB::getInstance();
+const ResidueDB* db = ResidueDB::getInstance();
 e_ptr = new Residue(*db->getResidue("Lys"));
 
 EmpiricalFormula h2o("H2O");
@@ -841,7 +841,7 @@ START_SECTION(([EXTRA] std::hash<Residue>))
   TEST_EQUAL(residue_map[r3], 3)
 
   // Test 5: Residues from ResidueDB
-  ResidueDB* rdb = ResidueDB::getInstance();
+  const ResidueDB* rdb = ResidueDB::getInstance();
   const Residue* ala = rdb->getResidue("Ala");
   const Residue* gly = rdb->getResidue("Gly");
   const Residue* ala2 = rdb->getResidue("Alanine"); // Same as Ala

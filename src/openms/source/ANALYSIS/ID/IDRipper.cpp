@@ -39,7 +39,7 @@ namespace OpenMS
     for (const auto& prot_id : prot_ids)
     {
       const String& id_run_id = prot_id.getIdentifier();
-      if (this->index_map.find(id_run_id) != this->index_map.end())
+      if (this->index_map.contains(id_run_id))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IdentificationRun IDs are not unique!", id_run_id);
       }
@@ -397,7 +397,7 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
           {
             const String& file_origin = it->getMetaValue("file_origin");
             // Did we already assign an index to this file_origin?
-            if (file_origin_map.find(file_origin) == file_origin_map.end())
+            if (!file_origin_map.contains(file_origin))
             {
               // If not, assign a new unique index
               size_t cur_size = file_origin_map.size();

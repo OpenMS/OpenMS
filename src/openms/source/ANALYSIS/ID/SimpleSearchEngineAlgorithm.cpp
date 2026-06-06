@@ -630,7 +630,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
     spectra.sortSpectra(true);
 
     startProgress(0, 1, "Filtering spectra...");
@@ -738,7 +738,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         #pragma omp critical (processed_peptides_access)
         {
           // peptide (and all modified variants) already processed so skip it
-          if (processed_petides.find(c) != processed_petides.end())
+          if (processed_petides.contains(c))
           {
             already_processed = true;
           }
@@ -756,13 +756,15 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
         vector<AASequence> all_modified_peptides;
 
-        // this critical section is because ResidueDB is not thread safe and new residues are created based on the PTMs
-        #pragma omp critical (residuedb_access)
-        {
-          AASequence aas = AASequence::fromString(current_peptide);
-          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
-          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, modifications_max_variable_mods_per_peptide_, all_modified_peptides);
-        }
+        // No lock needed here: current_peptide is an unmodified digest peptide, so
+        // AASequence::fromString() only performs lock-free ResidueDB::getResidue(char)
+        // lookups of the immutable standard residues; applyFixed/VariableModifications
+        // read the pre-resolved ResidueModification*->Residue* maps and touch neither
+        // ResidueDB nor ModificationsDB. (The annotation loop above already runs the
+        // same calls without a critical section.)
+        AASequence aas = AASequence::fromString(current_peptide);
+        ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
+        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, modifications_max_variable_mods_per_peptide_, all_modified_peptides);
 
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)
         {

@@ -516,7 +516,7 @@ namespace OpenMS
 
       //search parameters
       String ref = attributeAsString_(attributes, "search_parameters_ref");
-      if (parameters_.find(ref) == parameters_.end())
+      if (!parameters_.contains(ref))
       {
         fatalError(LOAD, String("Invalid search parameters reference '") + ref + "'");
       }

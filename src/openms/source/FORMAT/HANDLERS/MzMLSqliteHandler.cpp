@@ -127,7 +127,7 @@ namespace OpenMS::Internal
         Size id_orig = sqlite3_column_int( stmt, 0 );
 
         // map the sql table id to the index in the "containers" vector
-        if (sql_container_map.find(id_orig) == sql_container_map.end())
+        if (!sql_container_map.contains(id_orig))
         {
           Size tmp = sql_container_map.size();
           sql_container_map[id_orig] = tmp;

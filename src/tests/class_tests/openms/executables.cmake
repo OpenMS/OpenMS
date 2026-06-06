@@ -130,6 +130,7 @@ set(system_executables_list
   File_test
   Network_test
   JavaInfo_test
+  PathUtils_test
   PythonInfo_test
   StopWatch_test
   SysInfo_test
@@ -427,6 +428,7 @@ set(chemistry_executables_list
   EnzymaticDigestion_test
   FineIsotopeDistribution_test
   HydrophobicityProfile_test
+  IsoelectricPoint_test
   IMSAlphabetParser_test
   IMSAlphabetTextParser_test
   IMSAlphabet_test
@@ -499,9 +501,7 @@ set(analysis_executables_list
   FeatureGroupingAlgorithmLabeled_test
   FeatureGroupingAlgorithmQT_test
   FeatureGroupingAlgorithmUnlabeled_test
-  FeatureGroupingAlgorithmWNet_test
   FeatureGroupingAlgorithm_test
-  WNetMatcher_test
   FeatureHandle_test
   FIAMSDataProcessor_test
   FLASHDeconvAlgorithm_test
@@ -592,6 +592,10 @@ set(analysis_executables_list
   XFDRAlgorithm_test
   XQuestScores_test
 )
+
+if(WITH_WNETALIGN)
+  list(APPEND analysis_executables_list FeatureGroupingAlgorithmWNet_test WNetMatcher_test)
+endif()
 
 set(applications_executables_list
   INIUpdater_test

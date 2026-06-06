@@ -922,7 +922,7 @@ namespace OpenMS
               if (auto file_level_it = filename_to_channel_map.find(design_filename); 
                 file_level_it != filename_to_channel_map.end())
               {
-                if (file_level_it->second.find(0) != file_level_it->second.end()) throw Exception::MissingInformation(
+                if (file_level_it->second.contains(0)) throw Exception::MissingInformation(
                   __FILE__, 
                   __LINE__, 
                   OPENMS_PRETTY_FUNCTION, 
@@ -1301,7 +1301,7 @@ namespace OpenMS
       const OpenMS::String & hit_accession = hit.getAccession();
       const OpenMS::String & hit_sequence = hit.getSequence();
 
-      if (prot_quant_.find(hit_accession) != prot_quant_.end())
+      if (prot_quant_.contains(hit_accession))
       {
         if (hit_sequence.empty())
         {

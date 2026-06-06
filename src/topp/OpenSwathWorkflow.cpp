@@ -244,6 +244,9 @@ protected:
 #ifdef WITH_OPENTIMS
     in_formats.push_back("d");
 #endif
+#ifdef WITH_THERMO_RAW
+    in_formats.push_back("raw");
+#endif
     setValidFormats_("in", in_formats);
 
     registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp','oswpq')");

@@ -958,7 +958,7 @@ namespace OpenMS
                 if (dm == 0 && ds == 0) continue;
                 if (auto nkey = neighborKey(mz_bin, scan_id, dm, ds))
                 {
-                  if (grid_.count(*nkey)) ++neighbors;
+                  if (grid_.contains(*nkey)) ++neighbors;
                 }
               }
             }
@@ -1000,7 +1000,7 @@ namespace OpenMS
                 if (dm == 0 && ds == 0) continue;
                 if (auto nkey = neighborKey(mz_bin, scan_id, dm, ds))
                 {
-                  if (grid_.count(*nkey)) ++neighbors;
+                  if (grid_.contains(*nkey)) ++neighbors;
                 }
               }
             }

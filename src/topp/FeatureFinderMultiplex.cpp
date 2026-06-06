@@ -140,7 +140,11 @@ public:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "LC-MS dataset in either centroid or profile mode");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerOutputFile_("out", "<file>", "", "Output file containing the individual peptide features.", false);
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
     registerOutputFile_("out_multiplets", "<file>", "", "Optional output file containing all detected peptide groups (i.e. peptide pairs or triplets or singlets or ..). The m/z-RT positions correspond to the lightest peptide in each group.", false, true);
@@ -253,7 +257,7 @@ public:
     file.getOptions().setMSLevels(levels);
 
     OPENMS_LOG_DEBUG << "Loading input..." << endl;
-    file.loadExperiment(in_, exp, {FileTypes::MZML}, log_type_);
+    file.loadExperiment(in_, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     // Check for unsupported per-peak ion mobility data
     for (const auto& spec : exp)

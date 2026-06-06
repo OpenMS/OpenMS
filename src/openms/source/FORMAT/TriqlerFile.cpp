@@ -321,7 +321,7 @@ void TriqlerFile::assembleRunMap_(
   for (ExperimentalDesign::MSFileSectionEntry const& r : msfile_section)
   {
     std::pair< String, unsigned> tpl = std::make_pair(File::basename(r.path), r.fraction);
-    if (run_map.find(tpl) == run_map.end())
+    if (!run_map.contains(tpl))
     {
       run_map[tpl] = run_counter++;
     }

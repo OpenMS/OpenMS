@@ -73,7 +73,7 @@ namespace OpenMS
       }
     }
 
-    if (chromatograms_native_ids_.find(id) == chromatograms_native_ids_.end())
+    if (!chromatograms_native_ids_.contains(id))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           String("Could not find chromatogram with id '") + id + "'.");
@@ -105,7 +105,7 @@ namespace OpenMS
       }
     }
 
-    if (spectra_native_ids_.find(id) == spectra_native_ids_.end())
+    if (!spectra_native_ids_.contains(id))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           String("Could not find spectrum with id '") + id + "'.");

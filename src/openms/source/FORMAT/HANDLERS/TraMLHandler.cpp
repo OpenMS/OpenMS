@@ -83,7 +83,7 @@ namespace OpenMS::Internal
       }
 
       // skip tags where nothing is to do
-      if (tags_to_ignore.find(tag_) != tags_to_ignore.end())
+      if (tags_to_ignore.contains(tag_))
       {
         return;
       }
@@ -327,7 +327,7 @@ namespace OpenMS::Internal
       }
 
       // skip tags where nothing is to do
-      if (tags_to_ignore.find(tag_) != tags_to_ignore.end())
+      if (tags_to_ignore.contains(tag_))
       {
         return;
       }
@@ -590,7 +590,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       // compound list
       //--------------------------------------------------------------------------------------------
-      ModificationsDB* mod_db = ModificationsDB::getInstance();
+      const ModificationsDB* mod_db = ModificationsDB::getInstance();
       if (exp.getCompounds().size()  + exp.getPeptides().size() > 0)
       {
         os << "  <CompoundList>" << "\n";

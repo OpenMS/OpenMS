@@ -58,25 +58,25 @@ namespace OpenMS
     // @throw Exception::MissingInformation if some of the required info for the entry is missing
     void entryIsWellFormed_(const nlohmann::json::value_type& entry)
     {
-      if (entry.find("name") == entry.cend())
+      if (!entry.contains("name"))
       {
         String msg = "\"name\" entry missing for ribonucleotide";
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                                 OPENMS_PRETTY_FUNCTION, msg);
       }
-      if (entry.find("short_name") == entry.cend())
+      if (!entry.contains("short_name"))
       {
         String msg = "\"short_name\" entry missing for ribonucleotide";
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                                 OPENMS_PRETTY_FUNCTION, msg);
       }
-      if (entry.find("reference_moiety") == entry.cend())
+      if (!entry.contains("reference_moiety"))
       {
         String msg = "\"reference_moiety\" entry missing for ribonucleotide";
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                                 OPENMS_PRETTY_FUNCTION, msg);
       }
-      if (entry.find("formula") == entry.cend())
+      if (!entry.contains("formula"))
       {
         String msg = "\"formula\" entry missing for ribonucleotide";
         throw Exception::MissingInformation(__FILE__, __LINE__,
@@ -165,7 +165,7 @@ namespace OpenMS
                                                 OPENMS_PRETTY_FUNCTION, msg, entry["reference_moiety"].dump());
       }
 
-      if (entry.find("abbrev") != entry.cend())
+      if (entry.contains("abbrev"))
       {
         ribo->setHTMLCode(entry.at("abbrev").get<std::string>()); //This is the single letter unicode representation that only SOME mods have
       }

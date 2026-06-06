@@ -48,9 +48,9 @@ public:
     /** @name Accessors
     */
     //@{
-    /// returns a pointer to the singleton instance of the element db
+    /// returns a pointer to the (immutable) singleton instance of the element db
     /// This is thread safe upon first and subsequent calls.
-    static ElementDB* getInstance();
+    static const ElementDB* getInstance();
 
     /// returns a hashmap that contains names mapped to pointers to the elements
     const std::unordered_map<std::string, const Element*>& getNames() const;
@@ -69,28 +69,6 @@ public:
 
     /// returns a pointer to the element of atomic number; if no element is found 0 is returned
     const Element* getElement(unsigned int atomic_number) const;
-
-    /** Adds or replaces a new element to the database
-     *
-     * Adds a new element (or replaces an existing one if @em replace_existing is true).
-     *
-     * @param[in] name Common name of the element
-     * @param[in] symbol Element symbol (one or two letter)
-     * @param[in] an Atomic number (number of protons)
-     * @param[in] abundance List of abundances for each isotope (e.g. {{12u, 0.9893}, {13u, 0.0107}} for Carbon)
-     * @param[in] mass List of masses for each isotope (e.g. {{12u, 12.0}, {13u, 13.003355}} for Carbon)
-     * @param[in] replace_existing If the element must be replaced (i.e. is not new), either allow that (=true), or throw an exception (=false).
-     *
-     * @throw Exception::IllegalArgument if element already exists in DB, but @p replace_existing is false
-     *
-     * @note Do not use this function inside parallel code as it modifies a singleton that is shared between threads.
-    */
-    void addElement(const std::string& name,
-                    const std::string& symbol,
-                    const unsigned int an,
-                    const std::map<unsigned int, double>& abundance,
-                    const std::map<unsigned int, double>& mass,
-                    bool replace_existing);
     //@}
 
     /** @name Predicates

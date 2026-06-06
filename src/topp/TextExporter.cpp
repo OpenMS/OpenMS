@@ -601,7 +601,7 @@ namespace OpenMS
   {
 public:
     TOPPTextExporter() :
-      TOPPBase("TextExporter", "Exports various XML formats to a text file.")
+      TOPPBase("TextExporter", "Exports various OpenMS XML and parquet formats to a text file.")
     {
     }
 
@@ -610,7 +610,7 @@ protected:
     void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "Input file ");
-      setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzML,xic"));
+      setValidFormats_("in", ListUtils::create<String>("featureXML,featureparquet,consensusXML,consensusparquet,idXML,idparquet,mzML,xic"));
       registerOutputFile_("out", "<file>", "", "Output file.");
       setValidFormats_("out", ListUtils::create<String>("tsv,csv,txt"));
       registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension, ambiguous file extensions are interpreted as tsv", false);
@@ -737,14 +737,14 @@ protected:
 
       StringList meta_keys;
 
-      if (in_type == FileTypes::FEATUREXML)
+      if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::FEATUREPARQUET)
       {
         //-------------------------------------------------------------
         // loading input
         //-------------------------------------------------------------
 
         FeatureMap feature_map;
-        FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML}, log_type_);
+        FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET}, log_type_);
 
         // extract common id and hit meta values
         StringList peptide_id_meta_keys;
@@ -911,7 +911,7 @@ protected:
         }
         outstr.close();
       }
-      else if (in_type == FileTypes::CONSENSUSXML)
+      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET)
       {
         String consensus_centroids = getStringOption_("consensus:centroids");
         String consensus_elements = getStringOption_("consensus:elements");
@@ -923,7 +923,7 @@ protected:
 
         ConsensusMap consensus_map;
 
-        FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML}, log_type_);
+        FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET}, log_type_);
 
         // for optional export of ConsensusFeature meta values, collect all possible meta value keys
         std::set<String> meta_value_keys;
@@ -1446,11 +1446,11 @@ protected:
         }
         return EXECUTION_OK;
       }
-      else if (in_type == FileTypes::IDXML)
+      else if (in_type == FileTypes::IDXML || in_type == FileTypes::IDPARQUET)
       {
         vector<ProteinIdentification> prot_ids;
         PeptideIdentificationList pep_ids;
-        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML}, log_type_);
+        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML, FileTypes::IDPARQUET}, log_type_);
         StringList peptide_id_meta_keys;
         StringList peptide_hit_meta_keys;
         StringList protein_hit_meta_keys;

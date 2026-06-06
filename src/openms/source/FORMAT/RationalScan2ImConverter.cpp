@@ -185,7 +185,7 @@ namespace OpenMS
           frame_to_cal[frame_id] = cal_id;
 
           // Verify calibration ID exists
-          if (calibrations.find(cal_id) == calibrations.end())
+          if (!calibrations.contains(cal_id))
           {
             OPENMS_LOG_WARN << "Frame " << frame_id
                             << " references unknown TimsCalibration Id=" << cal_id
