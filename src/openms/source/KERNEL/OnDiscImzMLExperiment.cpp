@@ -147,13 +147,13 @@ OnDiscImzMLExperiment::OnDiscImzMLExperiment()
 
 OnDiscImzMLExperiment::~OnDiscImzMLExperiment() = default;
 
-OnDiscImzMLExperiment::OnDiscImzMLExperiment(OnDiscImzMLExperiment&& other) noexcept
+OnDiscImzMLExperiment::OnDiscImzMLExperiment(OnDiscImzMLExperiment&& other)
   : pimpl_(std::move(other.pimpl_))
 {
   other.pimpl_ = std::make_unique<Impl>();
 }
 
-OnDiscImzMLExperiment& OnDiscImzMLExperiment::operator=(OnDiscImzMLExperiment&& other) noexcept
+OnDiscImzMLExperiment& OnDiscImzMLExperiment::operator=(OnDiscImzMLExperiment&& other)
 {
   if (this != &other)
   {

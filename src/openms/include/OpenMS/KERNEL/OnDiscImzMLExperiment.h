@@ -63,8 +63,8 @@ namespace OpenMS
     OnDiscImzMLExperiment(const OnDiscImzMLExperiment&)            = delete;
     OnDiscImzMLExperiment& operator=(const OnDiscImzMLExperiment&) = delete;
 
-    OnDiscImzMLExperiment(OnDiscImzMLExperiment&&)            noexcept;
-    OnDiscImzMLExperiment& operator=(OnDiscImzMLExperiment&&) noexcept;
+    OnDiscImzMLExperiment(OnDiscImzMLExperiment&&);
+    OnDiscImzMLExperiment& operator=(OnDiscImzMLExperiment&&);
 
     // ------------------------------------------------------------------
     // Open
