@@ -36,6 +36,60 @@ namespace
       std::cout << "    ... (" << spec.size() << " peaks total)\n";
     }
   }
+
+  void printMetaValueIfPresent(const MSExperiment& exp, const char* key)
+  {
+    if (exp.metaValueExists(key))
+    {
+      std::cout << "  " << key << ": " << exp.getMetaValue(key) << "\n";
+    }
+    else
+    {
+      std::cout << "  " << key << ": (not present)\n";
+    }
+  }
+
+  void printDatasetMetadata(const MSExperiment& exp, const ImzMLMeta& meta, Size index_entries)
+  {
+    std::cout << "--- MSExperiment MetaValues ---\n";
+    printMetaValueIfPresent(exp, "imzml:imaging_mode");
+    printMetaValueIfPresent(exp, "imzml:max_count_x");
+    printMetaValueIfPresent(exp, "imzml:max_count_y");
+    printMetaValueIfPresent(exp, "imzml:max_count_z");
+    printMetaValueIfPresent(exp, "imzml:pixel_size_x");
+    printMetaValueIfPresent(exp, "imzml:pixel_size_y");
+    printMetaValueIfPresent(exp, "imzml:max_dim_x");
+    printMetaValueIfPresent(exp, "imzml:max_dim_y");
+    printMetaValueIfPresent(exp, "imzml:uuid");
+    printMetaValueIfPresent(exp, "imzml:ibd_md5");
+    printMetaValueIfPresent(exp, "imzml:ibd_sha1");
+    printMetaValueIfPresent(exp, "imzml:mz_data_type");
+    printMetaValueIfPresent(exp, "imzml:int_data_type");
+    printMetaValueIfPresent(exp, "imzml:scan_pattern");
+    printMetaValueIfPresent(exp, "imzml:scan_direction");
+    printMetaValueIfPresent(exp, "imzml:line_scan_direction");
+    printMetaValueIfPresent(exp, "imzml:polarity");
+    printMetaValueIfPresent(exp, "imzml:ibd_path");
+
+    std::cout << "--- ImzMLMeta (loadSpectraIndex) ---\n";
+    std::cout << "  imaging_mode: " << meta.imaging_mode << "\n";
+    std::cout << "  grid: " << meta.max_count_x << " x " << meta.max_count_y
+              << " x " << meta.max_count_z << "\n";
+    std::cout << "  pixel_size (um): " << meta.pixel_size_x << " x " << meta.pixel_size_y << "\n";
+    std::cout << "  index entries: " << index_entries << "\n";
+
+    if (!exp.empty() && exp[0].metaValueExists("imzml:x"))
+    {
+      std::cout << "--- spectrum[0] pixel ---\n";
+      std::cout << "  imzml:x/y/z: " << exp[0].getMetaValue("imzml:x") << ", "
+                << exp[0].getMetaValue("imzml:y") << ", "
+                << exp[0].getMetaValue("imzml:z") << "\n";
+      if (!exp[0].empty())
+      {
+        std::cout << "  first peak m/z: " << exp[0][0].getMZ() << "\n";
+      }
+    }
+  }
 } // namespace
 
 int main(int argc, const char** argv)
@@ -66,10 +120,12 @@ int main(int argc, const char** argv)
   MSExperiment exp;
   loader.load(path, exp);
   std::cout << "spectra: " << exp.getNrSpectra() << "\n";
-  if (exp.metaValueExists("imzml:imaging_mode"))
-  {
-    std::cout << "imaging_mode: " << exp.getMetaValue("imzml:imaging_mode") << "\n";
-  }
+
+  ImzMLMeta dataset_meta;
+  std::vector<ImzMLSpectrumIndex> dataset_index;
+  loader.loadSpectraIndex(path, dataset_meta, dataset_index);
+  printDatasetMetadata(exp, dataset_meta, dataset_index.size());
+
   if (exp.getNrSpectra() > 0)
   {
     std::cout << "spectrum[0] peaks:\n";

@@ -262,6 +262,110 @@ START_SECTION(void load Example_Processed imzML)
 END_SECTION
 
 
+START_SECTION(dataset metadata mirrored on MSExperiment after load)
+{
+  auto checkGridMeta_ = [](const MSExperiment& exp)
+  {
+    TEST_EQUAL(static_cast<UInt>(exp.getMetaValue("imzml:max_count_x")), 3)
+    TEST_EQUAL(static_cast<UInt>(exp.getMetaValue("imzml:max_count_y")), 3)
+    TEST_EQUAL(static_cast<UInt>(exp.getMetaValue("imzml:max_count_z")), 1)
+    TEST_REAL_SIMILAR(static_cast<double>(exp.getMetaValue("imzml:pixel_size_x")), 100.0)
+    TEST_REAL_SIMILAR(static_cast<double>(exp.getMetaValue("imzml:pixel_size_y")), 100.0)
+    TEST_REAL_SIMILAR(static_cast<double>(exp.getMetaValue("imzml:max_dim_x")), 300.0)
+    TEST_REAL_SIMILAR(static_cast<double>(exp.getMetaValue("imzml:max_dim_y")), 300.0)
+    TEST_EQUAL(exp.metaValueExists("imzml:ibd_path"), true)
+  };
+
+  auto checkMatchesIndexMeta_ = [](const MSExperiment& exp, const ImzMLMeta& meta)
+  {
+    TEST_EQUAL(String(exp.getMetaValue("imzml:imaging_mode")), meta.imaging_mode)
+    TEST_EQUAL(static_cast<UInt>(exp.getMetaValue("imzml:max_count_x")), meta.max_count_x)
+    TEST_EQUAL(static_cast<UInt>(exp.getMetaValue("imzml:max_count_y")), meta.max_count_y)
+    TEST_EQUAL(static_cast<UInt>(exp.getMetaValue("imzml:max_count_z")), meta.max_count_z)
+    TEST_EQUAL(String(exp.getMetaValue("imzml:uuid")), meta.uuid)
+    if (!meta.ibd_md5.empty())
+    {
+      TEST_EQUAL(String(exp.getMetaValue("imzml:ibd_md5")), meta.ibd_md5)
+    }
+    if (!meta.ibd_sha1.empty())
+    {
+      TEST_EQUAL(String(exp.getMetaValue("imzml:ibd_sha1")), meta.ibd_sha1)
+    }
+    if (!meta.scan_pattern.empty())
+    {
+      TEST_EQUAL(String(exp.getMetaValue("imzml:scan_pattern")), meta.scan_pattern)
+    }
+    if (!meta.scan_direction.empty())
+    {
+      TEST_EQUAL(String(exp.getMetaValue("imzml:scan_direction")), meta.scan_direction)
+    }
+    if (!meta.line_scan_direction.empty())
+    {
+      TEST_EQUAL(String(exp.getMetaValue("imzml:line_scan_direction")), meta.line_scan_direction)
+    }
+    if (!meta.polarity.empty())
+    {
+      TEST_EQUAL(String(exp.getMetaValue("imzml:polarity")), meta.polarity)
+    }
+  };
+
+  // Continuous reference file: shared m/z axis, MD5 checksum, float32 arrays.
+  {
+    MSExperiment exp;
+    ImzMLFile().load(imzml_path, exp);
+
+    TEST_EQUAL(String(exp.getMetaValue("imzml:imaging_mode")), String("continuous"))
+    checkGridMeta_(exp);
+    TEST_EQUAL(String(exp.getMetaValue("imzml:uuid")), String("12345678-1234-1234-1234-123456789012"))
+    TEST_EQUAL(String(exp.getMetaValue("imzml:ibd_md5")), String("d8654952b0bb69e3f1e70c4a5fd3e06d"))
+    TEST_EQUAL(exp.metaValueExists("imzml:ibd_sha1"), false)
+    TEST_EQUAL(String(exp.getMetaValue("imzml:mz_data_type")), String("float32"))
+    TEST_EQUAL(String(exp.getMetaValue("imzml:int_data_type")), String("float32"))
+
+    ImzMLMeta meta;
+    std::vector<ImzMLSpectrumIndex> index;
+    ImzMLFile().loadSpectraIndex(imzml_path, meta, index);
+    checkMatchesIndexMeta_(exp, meta);
+    TEST_EQUAL(index.size(), exp.getNrSpectra())
+
+    TEST_EQUAL(exp[0].metaValueExists("imzml:x"), true)
+    TEST_EQUAL(exp[0].getMetaValue("imzml:x"), 1)
+    TEST_EQUAL(exp[0].getMetaValue("imzml:y"), 1)
+    TEST_EQUAL(exp[0].getMetaValue("imzml:z"), 1)
+    TEST_REAL_SIMILAR(exp[0][0].getMZ(), 100.0)
+  }
+
+  // Processed reference file: per-spectrum m/z, SHA-1, acquisition geometry terms.
+  {
+    MSExperiment exp;
+    ImzMLFile().load(imzml_processed_path, exp);
+
+    TEST_EQUAL(String(exp.getMetaValue("imzml:imaging_mode")), String("processed"))
+    checkGridMeta_(exp);
+    TEST_EQUAL(String(exp.getMetaValue("imzml:uuid")), String("9d501bdc53444916b7e97e795b02c856"))
+    TEST_EQUAL(String(exp.getMetaValue("imzml:ibd_sha1")), String("7e8fdb93053915d3edb51b70aa0619ac209964df"))
+    TEST_EQUAL(exp.metaValueExists("imzml:ibd_md5"), false)
+    TEST_EQUAL(String(exp.getMetaValue("imzml:scan_pattern")), String("top down"))
+    TEST_EQUAL(String(exp.getMetaValue("imzml:scan_direction")), String("horizontal"))
+    TEST_EQUAL(String(exp.getMetaValue("imzml:line_scan_direction")), String("left-right"))
+    TEST_EQUAL(String(exp.getMetaValue("imzml:polarity")), String("negative"))
+    TEST_EQUAL(String(exp.getMetaValue("imzml:mz_data_type")), String("float32"))
+    TEST_EQUAL(String(exp.getMetaValue("imzml:int_data_type")), String("float32"))
+
+    ImzMLMeta meta;
+    std::vector<ImzMLSpectrumIndex> index;
+    ImzMLFile().loadSpectraIndex(imzml_processed_path, meta, index);
+    checkMatchesIndexMeta_(exp, meta);
+    TEST_EQUAL(index.size(), exp.getNrSpectra())
+
+    TEST_EQUAL(exp[0].getMetaValue("imzml:x"), 1)
+    TEST_EQUAL(exp[0].getMetaValue("imzml:y"), 1)
+    TEST_REAL_SIMILAR(exp[0][0].getMZ(), 100.083336)
+  }
+}
+END_SECTION
+
+
 START_SECTION(void load(const String& filename, MSImagingExperiment& exp))
 {
   MSImagingExperiment imaging;

@@ -86,6 +86,93 @@ class TestImzMLFile(unittest.TestCase):
         self.assertEqual(index[0].y, 1)
         self.assertGreater(index[0].mz_length, 0)
 
+    def _assert_grid_metadata_on_experiment(self, exp):
+        self.assertEqual(int(exp.getMetaValue("imzml:max_count_x")), 3)
+        self.assertEqual(int(exp.getMetaValue("imzml:max_count_y")), 3)
+        self.assertEqual(int(exp.getMetaValue("imzml:max_count_z")), 1)
+        self.assertAlmostEqual(float(exp.getMetaValue("imzml:pixel_size_x")), 100.0)
+        self.assertAlmostEqual(float(exp.getMetaValue("imzml:pixel_size_y")), 100.0)
+        self.assertAlmostEqual(float(exp.getMetaValue("imzml:max_dim_x")), 300.0)
+        self.assertAlmostEqual(float(exp.getMetaValue("imzml:max_dim_y")), 300.0)
+        self.assertTrue(exp.metaValueExists("imzml:ibd_path"))
+
+    def _assert_experiment_matches_imzml_meta(self, exp, meta):
+        self.assertEqual(str(exp.getMetaValue("imzml:imaging_mode")), meta.imaging_mode)
+        self.assertEqual(int(exp.getMetaValue("imzml:max_count_x")), meta.max_count_x)
+        self.assertEqual(int(exp.getMetaValue("imzml:max_count_y")), meta.max_count_y)
+        self.assertEqual(int(exp.getMetaValue("imzml:max_count_z")), meta.max_count_z)
+        self.assertEqual(str(exp.getMetaValue("imzml:uuid")), meta.uuid)
+        if meta.ibd_md5:
+            self.assertEqual(str(exp.getMetaValue("imzml:ibd_md5")), meta.ibd_md5)
+        if meta.ibd_sha1:
+            self.assertEqual(str(exp.getMetaValue("imzml:ibd_sha1")), meta.ibd_sha1)
+        if meta.scan_pattern:
+            self.assertEqual(str(exp.getMetaValue("imzml:scan_pattern")), meta.scan_pattern)
+        if meta.scan_direction:
+            self.assertEqual(str(exp.getMetaValue("imzml:scan_direction")), meta.scan_direction)
+        if meta.line_scan_direction:
+            self.assertEqual(
+                str(exp.getMetaValue("imzml:line_scan_direction")), meta.line_scan_direction
+            )
+        if meta.polarity:
+            self.assertEqual(str(exp.getMetaValue("imzml:polarity")), meta.polarity)
+
+    def test_load_dataset_metadata_mirrored_on_experiment(self):
+        """ImzMLMeta fields are mirrored as MetaValues on MSExperiment after load."""
+        exp = pyopenms.MSExperiment()
+        pyopenms.ImzMLFile().load(self.imzml_path, exp)
+
+        self.assertEqual(str(exp.getMetaValue("imzml:imaging_mode")), "continuous")
+        self._assert_grid_metadata_on_experiment(exp)
+        self.assertEqual(
+            str(exp.getMetaValue("imzml:uuid")), "12345678-1234-1234-1234-123456789012"
+        )
+        self.assertEqual(
+            str(exp.getMetaValue("imzml:ibd_md5")), "d8654952b0bb69e3f1e70c4a5fd3e06d"
+        )
+        self.assertFalse(exp.metaValueExists("imzml:ibd_sha1"))
+        self.assertEqual(str(exp.getMetaValue("imzml:mz_data_type")), "float32")
+        self.assertEqual(str(exp.getMetaValue("imzml:int_data_type")), "float32")
+
+        meta, index = pyopenms.ImzMLFile().loadSpectraIndex(self.imzml_path)
+        self._assert_experiment_matches_imzml_meta(exp, meta)
+        self.assertEqual(len(index), exp.getNrSpectra())
+
+        spec = exp.getSpectrum(0)
+        self.assertEqual(int(spec.getMetaValue("imzml:x")), 1)
+        self.assertEqual(int(spec.getMetaValue("imzml:y")), 1)
+        self.assertEqual(int(spec.getMetaValue("imzml:z")), 1)
+        mzs, _ints = spec.get_peaks()
+        self.assertAlmostEqual(float(mzs[0]), 100.0, places=4)
+
+        if not os.path.isfile(self.processed_path):
+            self.skipTest(f"processed imzML test data not found: {self.processed_path}")
+
+        exp_p = pyopenms.MSExperiment()
+        pyopenms.ImzMLFile().load(self.processed_path, exp_p)
+
+        self.assertEqual(str(exp_p.getMetaValue("imzml:imaging_mode")), "processed")
+        self._assert_grid_metadata_on_experiment(exp_p)
+        self.assertEqual(
+            str(exp_p.getMetaValue("imzml:uuid")), "9d501bdc53444916b7e97e795b02c856"
+        )
+        self.assertEqual(
+            str(exp_p.getMetaValue("imzml:ibd_sha1")),
+            "7e8fdb93053915d3edb51b70aa0619ac209964df",
+        )
+        self.assertFalse(exp_p.metaValueExists("imzml:ibd_md5"))
+        self.assertEqual(str(exp_p.getMetaValue("imzml:scan_pattern")), "top down")
+        self.assertEqual(str(exp_p.getMetaValue("imzml:scan_direction")), "horizontal")
+        self.assertEqual(str(exp_p.getMetaValue("imzml:line_scan_direction")), "left-right")
+        self.assertEqual(str(exp_p.getMetaValue("imzml:polarity")), "negative")
+
+        meta_p, index_p = pyopenms.ImzMLFile().loadSpectraIndex(self.processed_path)
+        self._assert_experiment_matches_imzml_meta(exp_p, meta_p)
+        self.assertEqual(len(index_p), exp_p.getNrSpectra())
+
+        mzs_p, _ints_p = exp_p.getSpectrum(0).get_peaks()
+        self.assertAlmostEqual(float(mzs_p[0]), 100.083336, places=4)
+
     def test_on_disc_index_and_meta(self):
         od = pyopenms.OnDiscImzMLExperiment()
         try:
