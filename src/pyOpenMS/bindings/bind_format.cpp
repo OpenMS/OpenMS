@@ -792,7 +792,7 @@ File adapter for imzML 1.1.0 mass spectrometry imaging files (.imzML + companion
 Same usage pattern as MzMLFile: load into MSExperiment, or stream via IMSDataConsumer
 (batched delivery after spectrumList parsing). PeakFileOptions apply during load and store
 (filtering, sort, binary precision on export).
-Use store() to export imzML + UUID-linked companion .ibd (float32 external arrays).
+Use store() to export imzML + UUID-linked companion .ibd (binary precision via PeakFileOptions).
 )doc")
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::ImzMLFile& self) { return OpenMS::ImzMLFile(self); })

@@ -181,8 +181,8 @@ namespace OpenMS
     /**
       @brief Store an experiment as imzML (XML + companion .ibd).
 
-      Writes external float32 binary arrays with a 16-byte UUID header in the
-      @c .ibd file linked to IMS:1000080 in the XML. Continuous mode is selected when
+      Writes external binary arrays (float32 or float64 via @p PeakFileOptions) with a
+      16-byte UUID header in the @c .ibd file linked to IMS:1000080 in the XML. Continuous mode is selected when
       @p imzml:imaging_mode is @c continuous or all spectra share an identical
       m/z axis; otherwise processed mode is used.
 

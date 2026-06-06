@@ -73,7 +73,7 @@ namespace OpenMS
     // -------------------------------------------------------------------------
 
     String scan_pattern;        ///< "top down" | "bottom up" (IMS:1000401/402)
-    String scan_direction;      ///< "flyback" | "meander"    (IMS:1000413/412)
+    String scan_direction;      ///< "flyback" | "meander" | "horizontal" | "vertical"
     String line_scan_direction; ///< "left-right" | "right-left" (IMS:1000491/492)
     String polarity;            ///< "positive" | "negative"  (MS:1000130/129)
   };
