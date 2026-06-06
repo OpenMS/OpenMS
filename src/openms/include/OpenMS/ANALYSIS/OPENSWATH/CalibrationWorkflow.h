@@ -148,7 +148,7 @@ namespace OpenMS
     IrtExperiments prepareIrtExperiments(
       IrtStrategy strategy,
       const OpenSwath::LightTargetedExperiment& full_transition_exp,
-      const std::vector<String>& priority_peptides,
+      const std::vector<std::string>& priority_peptides,
       size_t run_index = 0,
       const IrtExperiments* cached_irts = nullptr
     );
@@ -195,8 +195,8 @@ namespace OpenMS
       const Param& mrm_mapping_param,
       bool pasef = false,
       bool load_into_memory = false,
-      const String& irt_trafo_out = "",
-      const String& irt_mzml_out = "",
+      const std::string& irt_trafo_out = "",
+      const std::string& irt_mzml_out = "",
       Size debug_level = 0
     );
 
@@ -213,8 +213,8 @@ namespace OpenMS
       @throws Exception::ParseError if file format is invalid
     */
     OpenSwath::LightTargetedExperiment loadIrtExperimentFromFile_(
-      const String& irt_file_path,
-      const String& label) const;
+      const std::string& irt_file_path,
+      const std::string& label) const;
 
     /** @brief Perform RT and m/z correction of the input data using RT-normalization peptides.
      *
@@ -253,7 +253,7 @@ namespace OpenMS
       const Param& irt_detection_param,
       const Param& calibration_param,
       const Param& mrm_mapping_param,
-      const String& irt_mzml_out,
+      const std::string& irt_mzml_out,
       Size debug_level,
       bool pasef = false,
       bool load_into_memory = false);
@@ -364,11 +364,11 @@ namespace OpenMS
     //@{
     
     // iRT File Parameters
-    String linear_irt_file_;
-    String nonlinear_irt_file_;
+    std::string linear_irt_file_;
+    std::string nonlinear_irt_file_;
     // Run-specific iRT file lists (positional mapping: nth entry -> nth run)
-    std::vector<String> linear_irt_files_list_;
-    std::vector<String> nonlinear_irt_files_list_;
+    std::vector<std::string> linear_irt_files_list_;
+    std::vector<std::string> nonlinear_irt_files_list_;
     
     // Auto-iRT Sampling Parameters
     bool auto_irt_enabled_;
@@ -381,10 +381,10 @@ namespace OpenMS
     double auto_irt_nonlinear_top_fraction_;
     
     // Linear Calibration Parameters
-    String linear_outlier_detection_;
+    std::string linear_outlier_detection_;
       
     // Nonlinear Calibration Parameters
-    String nonlinear_outlier_detection_;
+    std::string nonlinear_outlier_detection_;
     
     // Window Estimation Parameters
     bool windows_estimate_rt_;
@@ -430,8 +430,8 @@ namespace OpenMS
       const Param& mrm_mapping_param,
       bool pasef,
       bool load_into_memory,
-      const String& irt_trafo_out,
-      const String& irt_mzml_out,
+      const std::string& irt_trafo_out,
+      const std::string& irt_mzml_out,
       Size debug_level);
     
     /**
@@ -465,8 +465,8 @@ namespace OpenMS
       const Param& mrm_mapping_param,
       bool pasef,
       bool load_into_memory,
-      const String& irt_trafo_out,
-      const String& irt_mzml_out,
+      const std::string& irt_trafo_out,
+      const std::string& irt_mzml_out,
       Size debug_level);
       
     /**

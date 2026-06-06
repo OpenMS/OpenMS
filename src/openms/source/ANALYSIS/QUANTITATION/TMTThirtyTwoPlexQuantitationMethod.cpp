@@ -14,7 +14,7 @@
 #include <algorithm>
 
 namespace OpenMS{
-    const String TMTThirtyTwoPlexQuantitationMethod::name_ = "tmt32plex";
+    const std::string TMTThirtyTwoPlexQuantitationMethod::name_ = "tmt32plex";
     /*
         For 32plex experiments, use TMTpro 32plex Label Reagent Matched Set (Cat. No. A40000839) 
         or TMTpro 16plex Deuterated Label Reagent Set (Cat. No. A40000817) and TMTpro 16plex Label Reagent Set (Cat. No. A44520)
@@ -195,7 +195,7 @@ TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod(const TMT
 TMTThirtyTwoPlexQuantitationMethod& TMTThirtyTwoPlexQuantitationMethod::operator=(const TMTThirtyTwoPlexQuantitationMethod& rhs)
 = default;
 
-const String& TMTThirtyTwoPlexQuantitationMethod::getMethodName() const
+const std::string& TMTThirtyTwoPlexQuantitationMethod::getMethodName() const
 {
     return TMTThirtyTwoPlexQuantitationMethod::name_;
 }

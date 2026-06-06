@@ -55,7 +55,7 @@ public:
   static bool exportToParquet(
     const std::vector<ProteinIdentification>& protein_identifications,
     const PeptideIdentificationList& peptide_identifications,
-    const String& dir,
+    const std::string& dir,
     bool export_all_psms = true,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 
@@ -72,7 +72,7 @@ public:
     @return true on success, false on error (errors are logged)
   */
   static bool importFromParquet(
-    const String& dir,
+    const std::string& dir,
     std::vector<ProteinIdentification>& protein_identifications,
     PeptideIdentificationList& peptide_identifications);
 };

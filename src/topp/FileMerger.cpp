@@ -138,25 +138,25 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    StringList valid_in = ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML,fasta");
+    StringList valid_in = ListUtils::create<std::string>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML,fasta");
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", valid_in);
     registerStringOption_("in_type", "<type>", "", "Input file type (default: determined from file extension or content)", false);
     setValidStrings_("in_type", valid_in);
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML,fasta"));
+    setValidFormats_("out", ListUtils::create<std::string>("mzML,featureXML,consensusXML,traML,fasta"));
 
     registerFlag_("annotate_file_origin", "Store the original filename in each feature using meta value \"file_origin\" (for featureXML and consensusXML only).");
     registerStringOption_("append_method", "<choice>", "append_rows", "(ConsensusXML-only) Append quantitative information about features row-wise or column-wise.\n"
     "- 'append_rows' is usually used when the inputs come from the same MS run (e.g. caused by manual splitting or multiple algorithms on the same file)\n"
     "- 'append_cols' when you want to combine consensusXMLs from e.g. different fractions to be summarized in ProteinQuantifier or jointly exported with MzTabExporter."
     , false);
-    setValidStrings_("append_method", ListUtils::create<String>("append_rows,append_cols"));
+    setValidStrings_("append_method", ListUtils::create<std::string>("append_rows,append_cols"));
     
     registerTOPPSubsection_("rt_concat", "Options for concatenating files in the retention time (RT) dimension. The RT ranges of inputs are adjusted so they don't overlap in the merged file (traML input not supported)");
     registerDoubleOption_("rt_concat:gap", "<sec>", 0.0, "The amount of gap (in seconds) to insert between the RT ranges of different input files. RT concatenation is enabled if a value > 0 is set.", false);
-    registerOutputFileList_("rt_concat:trafo_out", "<files>", vector<String>(), "Output of retention time transformations that were applied to the input files to produce non-overlapping RT ranges. If used, one output file per input file is required.", false);
-    setValidFormats_("rt_concat:trafo_out", ListUtils::create<String>("trafoXML"));
+    registerOutputFileList_("rt_concat:trafo_out", "<files>", vector<std::string>(), "Output of retention time transformations that were applied to the input files to produce non-overlapping RT ranges. If used, one output file per input file is required.", false);
+    setValidFormats_("rt_concat:trafo_out", ListUtils::create<std::string>("trafoXML"));
 
     registerTOPPSubsection_("raw", "Options for raw data input/output (primarily for DTA files)");
     registerFlag_("raw:rt_auto", "Assign retention times automatically (integers starting at 1)");
@@ -166,7 +166,7 @@ protected:
   }
 
   template <class MapType>
-  void adjustRetentionTimes_(MapType& map, const String& trafo_out,
+  void adjustRetentionTimes_(MapType& map, const std::string& trafo_out,
                              bool first_file)
   {
     map.updateRanges();
@@ -216,12 +216,12 @@ protected:
     }
 
     // output file names and types
-    String out_file = getStringOption_("out");
+    std::string out_file = getStringOption_("out");
    
     // append method
     bool append_rows = false;
     bool append_cols = false;
-    String append_method = getStringOption_("append_method");
+    std::string append_method = getStringOption_("append_method");
     if (append_method == "append_rows")
     {
       append_rows = true;
@@ -233,7 +233,7 @@ protected:
    
     bool annotate_file_origin =  getFlag_("annotate_file_origin");
     rt_gap_ = getDoubleOption_("rt_concat:gap");
-    vector<String> trafo_out = getStringList_("rt_concat:trafo_out");
+    vector<std::string> trafo_out = getStringList_("rt_concat:trafo_out");
     if (trafo_out.empty())
     {
       // resize now so we don't have to worry about indexing out of bounds:
@@ -429,7 +429,7 @@ protected:
       UInt native_id = 0;
       for (Size i = 0; i < file_list.size(); ++i)
       {
-        String filename = file_list[i];
+        std::string filename = file_list[i];
 
         // load file
         force_type = file_handler.getType(file_list[i]);
@@ -438,7 +438,7 @@ protected:
 
         if (in.empty() && in.getChromatograms().empty())
         {
-          writeLogWarn_(String("Warning: Empty file '") + filename + "'!");
+          writeLogWarn_(StringUtils::toStr("Warning: Empty file '") + filename + "'!");
           continue;
         }
         out.reserve(out.size() + in.size());
@@ -446,7 +446,7 @@ protected:
         // warn if custom RT and more than one scan in input file
         if (rt_custom && in.size() > 1)
         {
-          writeLogWarn_(String("Warning: More than one scan in file '") + filename + "'! All scans will have the same retention time!");
+          writeLogWarn_(StringUtils::toStr("Warning: More than one scan in file '") + filename + "'! All scans will have the same retention time!");
         }
 
         // handle special raw data options:
@@ -468,7 +468,7 @@ protected:
             bool found = boost::regex_search(filename, match, re);
             if (found)
             {
-              rt_final = String(match[1]).toFloat();
+              rt_final =StringUtils::toFloat(StringUtils::toStr(match[1]));
             }
             else
             {
@@ -479,11 +479,11 @@ protected:
           // none of the rt methods were successful
           if (rt_final < 0)
           {
-            writeLogWarn_(String("Warning: No valid retention time for output scan '") + rt_auto + "' from file '" + filename + "'");
+            writeLogWarn_(StringUtils::toStr("Warning: No valid retention time for output scan '") + rt_auto + "' from file '" + filename + "'");
           }
 
           spec.setRT(rt_final);
-          spec.setNativeID("spectrum=" + String(native_id));
+          spec.setNativeID("spectrum=" + StringUtils::toStr(native_id));
           if (ms_level > 0)
           {
             spec.setMSLevel(ms_level);

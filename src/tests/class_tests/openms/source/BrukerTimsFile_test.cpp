@@ -107,7 +107,7 @@ namespace
 
 START_TEST(BrukerTimsFile, "$Id$")
 
-START_SECTION(void load(const String& path, MSExperiment& exp, const Config& config))
+START_SECTION(void load(const std::string& path, MSExperiment& exp, const Config& config))
 {
   // Test: invalid path throws FileNotReadable
   BrukerTimsFile f;
@@ -367,17 +367,17 @@ START_SECTION(DDA native ID format test)
   }
   TEST_NOT_EQUAL(ms2, nullptr);
 
-  const String& id = ms2->getNativeID();
-  TEST_EQUAL(id.hasPrefix("frame="), true);
-  TEST_EQUAL(id.hasSubstring(" scan="), true);
-  TEST_EQUAL(id.hasSubstring(" precursor="), true);
+  const std::string& id = ms2->getNativeID();
+  TEST_EQUAL(StringUtils::hasPrefix(id, "frame="), true);
+  TEST_EQUAL(StringUtils::hasSubstring(id, " scan="), true);
+  TEST_EQUAL(StringUtils::hasSubstring(id, " precursor="), true);
 
   // Precursors.Id must ALSO be stored as a typed MetaValue.
   TEST_EQUAL(ms2->metaValueExists("bruker_precursor_id"), true);
 
   // All DDA MS2 native IDs must be unique inside the run (XSD-level mzML
   // requirement). This is what the "precursor=<P>" disambiguator buys us.
-  std::set<String> ms2_ids;
+  std::set<std::string> ms2_ids;
   Size ms2_count = 0;
   for (const auto& spec : exp)
   {
@@ -664,7 +664,7 @@ START_SECTION(DDA round-trip test: load .d -> write mzML -> reload -> verify)
   // Write to temporary mzML — avoid NEW_TMP_FILE because the test
   // framework validates all registered .mzML files, and the IM data
   // array CV term MS:1003008 fails semantic validation (known issue).
-  String tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_dda_roundtrip.mzML";
+  std::string tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_dda_roundtrip.mzML";
   MzMLFile().store(tmp_mzml, orig);
 
   // Reload from mzML
@@ -1204,7 +1204,7 @@ START_SECTION(DIA round-trip test: load .d -> write mzML -> reload -> verify)
   f.load(OPENTIMS_DIA_TEST_DATA, orig);
 
   // Write to temporary mzML — avoid NEW_TMP_FILE (see DDA round-trip comment)
-  String tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_dia_roundtrip.mzML";
+  std::string tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_dia_roundtrip.mzML";
   MzMLFile().store(tmp_mzml, orig);
 
   // Reload from mzML

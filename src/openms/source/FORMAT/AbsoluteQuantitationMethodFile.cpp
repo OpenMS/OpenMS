@@ -15,11 +15,11 @@
 
 namespace OpenMS
 {
-  void AbsoluteQuantitationMethodFile::load(const String & filename, std::vector<AbsoluteQuantitationMethod> & aqm_list)
+  void AbsoluteQuantitationMethodFile::load(const std::string & filename, std::vector<AbsoluteQuantitationMethod> & aqm_list)
   {
     aqm_list.clear();
     CsvFile::load(filename, ',', false, -1);
-    std::map<String, Size> headers;
+    std::map<std::string, Size> headers;
     StringList sl;
     if (rowCount() >= 2) // no need to read headers if that's the only line inside the file
     {
@@ -67,14 +67,14 @@ namespace OpenMS
 
   void AbsoluteQuantitationMethodFile::parseLine_(
     const StringList & line,
-    const std::map<String, Size> & headers,
+    const std::map<std::string, Size> & headers,
     AbsoluteQuantitationMethod & aqm
   ) const
   {
     StringList tl = line; // trimmed line
-    for (String& s : tl)
+    for (std::string& s : tl)
     {
-      s.trim();
+      StringUtils::trim(s);
     }
     aqm.setComponentName(headers.count("component_name") ? tl[headers.at("component_name")] : "");
     aqm.setFeatureName(headers.count("feature_name") ? tl[headers.at("feature_name")] : "");
@@ -92,28 +92,28 @@ namespace OpenMS
     );
     aqm.setTransformationModel(headers.count("transformation_model") ? tl[headers.at("transformation_model")] : "");
     Param tm_params;
-    for (const std::pair<const String, Size>& h : headers)
+    for (const std::pair<const std::string, Size>& h : headers)
     {
-      const String& header = h.first;
+      const std::string& header = h.first;
       const Size& i = h.second;
       boost::smatch m;
       if (boost::regex_search(header, m, boost::regex("transformation_model_param_(.+)")))
       {
-        setCastValue_(String(m[1]), tl[i], tm_params);
+        setCastValue_(StringUtils::toStr(m[1]), tl[i], tm_params);
       }
     }
     aqm.setTransformationModelParams(tm_params);
   }
 
   void AbsoluteQuantitationMethodFile::store(
-    const String& filename,
+    const std::string& filename,
     const std::vector<AbsoluteQuantitationMethod>& aqm_list
   )
   {
     clear(); // clear the buffer_
-    const String headers = "IS_name,component_name,feature_name,concentration_units,llod,ulod,lloq,uloq,correlation_coefficient,n_points,transformation_model";
+    const std::string headers = "IS_name,component_name,feature_name,concentration_units,llod,ulod,lloq,uloq,correlation_coefficient,n_points,transformation_model";
     StringList split_headers;
-    headers.split(',', split_headers);
+    StringUtils::split(headers, ',', split_headers);
     StringList tm_params_names; // transformation model params
     if (!aqm_list.empty())
     {
@@ -149,12 +149,12 @@ namespace OpenMS
     CsvFile::store(filename);
   }
 
-  void AbsoluteQuantitationMethodFile::setCastValue_(const String& key, const String& value, Param& params) const
+  void AbsoluteQuantitationMethodFile::setCastValue_(const std::string& key, const std::string& value, Param& params) const
   {
-    const std::vector<String> param_doubles {
+    const std::vector<std::string> param_doubles {
       "slope", "intercept", "wavelength", "span", "delta", "x_datum_min", "y_datum_min", "x_datum_max", "y_datum_max"
     };
-    const std::vector<String> param_ints {"num_nodes", "boundary_condition", "num_iterations"};
+    const std::vector<std::string> param_ints {"num_nodes", "boundary_condition", "num_iterations"};
     if (std::find(param_doubles.begin(), param_doubles.end(), key) != param_doubles.end())
     {
       params.setValue(key, value.empty() ? 0 : std::stod(value));

@@ -52,16 +52,16 @@ namespace OpenMS
       ac_mode_->setCurrentIndex(static_cast<int>(temp_.getAcquisitionMode()));
     }
 
-    order_->setText(String(temp_.getOrder()).c_str());
-    res_->setText(String(temp_.getResolution()).c_str());
-    freq_->setText(String(temp_.getADCSamplingFrequency()).c_str());
+    order_->setText(StringUtils::toStr(temp_.getOrder()).c_str());
+    res_->setText(StringUtils::toStr(temp_.getResolution()).c_str());
+    freq_->setText(StringUtils::toStr(temp_.getADCSamplingFrequency()).c_str());
   }
 
   void IonDetectorVisualizer::store()
   {
-    ptr_->setOrder(order_->text().toInt());
-    ptr_->setResolution(res_->text().toDouble());
-    ptr_->setADCSamplingFrequency(freq_->text().toDouble());
+    StringUtils::toInt32(ptr_->setOrder(order_->text()));
+    ptr_->setResolution(res_->text().toDouble();
+    ptr_->setADCSamplingFrequency(freq_->text().toDouble();
     ptr_->setType((IonDetector::Type)type_->currentIndex());
     ptr_->setAcquisitionMode((IonDetector::AcquisitionMode)ac_mode_->currentIndex());
 

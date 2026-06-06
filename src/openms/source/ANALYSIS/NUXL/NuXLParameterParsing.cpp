@@ -62,18 +62,18 @@ NuXLParameterParsing::getAllFeasibleFragmentAdducts(
 {
   PrecursorsToMS2Adducts all_pc_all_feasible_adducts;
 
-  map<String, double> pc2mass;
-  map<String, String> pc2ef;
+  map<std::string, double> pc2mass;
+  map<std::string, std::string> pc2ef;
 
   using PrecursorAdductMassAndMS2Fragments = pair<double, set<double>>;
-  using PrecursorAdductAndXLNucleotide = pair<String, char>;
+  using PrecursorAdductAndXLNucleotide = pair<std::string, char>;
   map<PrecursorAdductMassAndMS2Fragments, vector<PrecursorAdductAndXLNucleotide>> mass_frags2pc_xlnuc;
   
   // for all distinct precursor adduct formulas/masses
   for (auto const & pa : precursor_adducts.formula2mass)
   {
     // get all precursor nucleotide formulas matching current empirical formula/mass
-    const String& ef = pa.first;
+    const std::string& ef = pa.first;
     const double pc_mass = pa.second;
     const auto& ambiguities = precursor_adducts.mod_combinations.at(ef);
 
@@ -84,7 +84,7 @@ NuXLParameterParsing::getAllFeasibleFragmentAdducts(
     } 
 
     // for each ambiguous (at the level of empirical formula) precursor adduct (stored as nucleotide formula e.g.: "AU-H2O")
-    for (const String & pc_adduct : ambiguities)
+    for (const std::string & pc_adduct : ambiguities)
     {
       // calculate feasible fragment adducts and store them for lookup
       const MS2AdductsOfSinglePrecursorAdduct& feasible_adducts = getFeasibleFragmentAdducts(pc_adduct, 
@@ -103,7 +103,7 @@ NuXLParameterParsing::getAllFeasibleFragmentAdducts(
   // print feasible fragment adducts and marker ions
   for (auto const & fa : all_pc_all_feasible_adducts)
   {
-    const String & pc = fa.first;
+    const std::string & pc = fa.first;
     OPENMS_LOG_DEBUG << "Precursor adduct: " << pc << "\t" << pc2ef[pc] << "\t" << pc2mass[pc] << "\n";
 
     // collect set of masses to detect ambiguities
@@ -162,12 +162,12 @@ NuXLParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_a
 {
   NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts;
   std::sort(fragment_adducts.begin(), fragment_adducts.end());
-  for (String t : fragment_adducts)
+  for (std::string t : fragment_adducts)
   {
-    t.removeWhitespaces();
+    StringUtils::removeWhitespaces(t);
 
     EmpiricalFormula formula;
-    String name;
+    std::string name;
 
     // format is: target_nucletide:formula;name
     char target_nucleotide = t[0];
@@ -178,11 +178,11 @@ NuXLParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_a
     }
 
     // remove target nucleotide and : character from t
-    t = t.substr(2);
+    t = StringUtils::substr(t, 2);
 
     // split into formula and name
-    vector<String> fs;
-    t.split(";", fs);
+    vector<std::string> fs;
+    StringUtils::split(t, ";", fs);
     if (fs.size() == 1) // no name provided so we just take the formula as name
     {
       formula = EmpiricalFormula(fs[0]);
@@ -247,8 +247,8 @@ NuXLParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_a
 
 
 MS2AdductsOfSinglePrecursorAdduct
-NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
-                                                  const String &exp_pc_formula,
+NuXLParameterParsing::getFeasibleFragmentAdducts(const std::string &exp_pc_adduct,
+                                                  const std::string &exp_pc_formula,
                                                   const NuXLParameterParsing::NucleotideToFragmentAdductMap &nucleotide_to_fragment_adducts,
                                                   const set<char> &can_xl,
                                                   const bool always_add_default_marker_ions,
@@ -269,7 +269,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
   map<char, Size> exp_pc_nucleotide_count; // all nucleotides in the precursor adduct (e.g., used to determine marker ions)
 
   {
-    for (String::const_iterator exp_pc_it = exp_pc_adduct.begin(); exp_pc_it != exp_pc_adduct.end(); ++exp_pc_it, ++nt_count)
+    for (auto exp_pc_it = exp_pc_adduct.begin(); exp_pc_it != exp_pc_adduct.end(); ++exp_pc_it, ++nt_count)
     {
       // we are finished with nucleotides in string if first loss/gain is encountered
       if (*exp_pc_it == '+' || *exp_pc_it == '-') break;
@@ -313,7 +313,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
   // HERE: at least one cross-linkable nt present in precursor adduct
 
   // extract loss string from precursor adduct (e.g.: "-H2O")
-  // String exp_pc_loss_string(exp_pc_it, exp_pc_adduct.end());
+  // std::string exp_pc_loss_string(exp_pc_it, exp_pc_adduct.end());
 
   OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " is monomer (1 = true, >1 = false): " << nt_count << endl;
 
@@ -331,8 +331,8 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
       // check if nucleotide is cross-linkable and part of the precursor adduct
       if (exp_pc_xl_nts.contains(nucleotide))
       {
-        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
-        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fragment_adducts.size() << endl;
+        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << StringUtils::toStr(nucleotide) << " in precursor RNA." << endl;
+        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << StringUtils::toStr(nucleotide) << " has fragment_adducts: " << fragment_adducts.size() << endl;
 
         // store feasible adducts associated with a cross-link with character nucleotide
         vector<NuXLFragmentAdductDefinition> faa;
@@ -365,13 +365,13 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
       // check if nucleotide is cross-linkable and part of the precursor adduct
       if (exp_pc_xl_nts.contains(nucleotide))
       {
-        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor NA adduct." << endl;
-        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fas.size() << endl;
+        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << StringUtils::toStr(nucleotide) << " in precursor NA adduct." << endl;
+        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << StringUtils::toStr(nucleotide) << " has fragment_adducts: " << fas.size() << endl;
 
         // check chemical feasibility by checking if subtraction of adduct would result in negative elemental composition
         for (auto it = fas.begin(); it != fas.end(); )
         {
-          bool negative_elements = (EmpiricalFormula(exp_pc_formula) - it->formula).toString().hasSubstring("-");
+          bool negative_elements = StringUtils::hasSubstring((EmpiricalFormula(exp_pc_formula) - it->formula).toString(), "-");
 
           if (negative_elements) // fragment adduct can't be subformula of precursor adduct
           {
@@ -404,7 +404,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
     // Note: add the uncharged mass. Protons are added during spectrum generation.
     if (default_marker_ions_RNA) // TODO: check if we can derive this from target nucleotides
     {
-      ret.marker_ions.emplace_back(EmpiricalFormula("C9H13N2O9P1"), String("U"), EmpiricalFormula("C9H13N2O9P1").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C9H13N2O9P1"),StringUtils::toStr("U"), EmpiricalFormula("C9H13N2O9P1").getMonoWeight());
       ret.marker_ions.emplace_back(EmpiricalFormula("C9H14N3O8P"), "C", EmpiricalFormula("C9H14N3O8P").getMonoWeight());
       ret.marker_ions.emplace_back(EmpiricalFormula("C10H14N5O8P"), "G", EmpiricalFormula("C10H14N5O8P").getMonoWeight());
       ret.marker_ions.emplace_back(EmpiricalFormula("C10H14N5O7P"), "A", EmpiricalFormula("C10H14N5O7P").getMonoWeight());
@@ -432,8 +432,8 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
   std::sort(ret.marker_ions.begin(), ret.marker_ions.end(),
     [](NuXLFragmentAdductDefinition const & a, NuXLFragmentAdductDefinition const & b)
     {
-      const String as = a.formula.toString();
-      const String bs = b.formula.toString();
+      const std::string as = a.formula.toString();
+      const std::string bs = b.formula.toString();
       return std::tie(as, a.name) < std::tie(bs, b.name);
     }
   );
@@ -473,17 +473,17 @@ vector<ResidueModification> NuXLParameterParsing::getModifications(StringList mo
   vector<ResidueModification> modifications;
 
   // iterate over modification names and add to vector
-  for (String modification : modNames)
+  for (std::string modification : modNames)
   {
     ResidueModification rm;
-    if (modification.hasSubstring(" (N-term)"))
+    if (StringUtils::hasSubstring(modification, " (N-term)"))
     {
-      modification.substitute(" (N-term)", "");
+      StringUtils::substitute(modification, " (N-term)", "");
       rm = *ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
     }
-    else if (modification.hasSubstring(" (C-term)"))
+    else if (StringUtils::hasSubstring(modification, " (C-term)"))
     {
-      modification.substitute(" (C-term)", "");
+      StringUtils::substitute(modification, " (C-term)", "");
       rm = *ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
     }
     else

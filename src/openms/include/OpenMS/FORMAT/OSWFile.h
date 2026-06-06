@@ -51,7 +51,7 @@ namespace OpenMS
 
     /// opens an OSW file for reading.
     /// @throws Exception::FileNotReadable if @p filename does not exist
-    OSWFile(const String& filename);
+    OSWFile(const std::string& filename);
     OSWFile(const OSWFile& rhs) = default;
     OSWFile& operator=(const OSWFile& rhs) = default;
 
@@ -124,13 +124,13 @@ namespace OpenMS
     std::vector<IPFAlignmentRow> readIPFAlignmentData(double ipf_max_alignment_pep) const;
 
     /// Write peptidoform inference results into SCORE_IPF, copying to @p output_filename first if requested.
-    void writeIPFResults(const String& output_filename, const std::vector<IPFResultRow>& results) const;
+    void writeIPFResults(const std::string& output_filename, const std::vector<IPFResultRow>& results) const;
 
     /// Read compact peptide-, protein-, or gene-level rows for context inference.
     std::vector<LevelContextInputRow> readLevelContextData(InferenceLevel level, InferenceContext context) const;
 
     /// Write context inference results into SCORE_PEPTIDE / SCORE_PROTEIN / SCORE_GENE.
-    void writeLevelContextResults(const String& output_filename,
+    void writeLevelContextResults(const std::string& output_filename,
                                   InferenceLevel level,
                                   InferenceContext context,
                                   const std::vector<LevelContextResultRow>& results) const;
@@ -150,7 +150,7 @@ namespace OpenMS
       The returned names are stripped to stem names when possible, so
       @c sample.mzML.gz becomes @c sample.
     */
-    std::map<Int64, String> readRunBasenames() const;
+    std::map<Int64, std::string> readRunBasenames() const;
 
     /// extract the RUN::ID from the sqMass file
     /// @throws Exception::SqlOperationFailed more than on run exists
@@ -176,7 +176,7 @@ namespace OpenMS
     void readMeta_(OSWData& data);
 
   private:
-    String filename_;       ///< sql file to open/write to
+    std::string filename_;       ///< sql file to open/write to
     SqliteConnector conn_;  ///< SQL connection. Stays open as long as this object lives
     bool has_SCOREMS2_;     ///< database contains pyProphet's score_MS2 table with qvalues
   };

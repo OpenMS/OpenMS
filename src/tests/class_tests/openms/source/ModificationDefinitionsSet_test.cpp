@@ -71,36 +71,36 @@ END_SECTION
 
 START_SECTION((Size getNumberOfModifications() const))
 {
-  ModificationDefinitionsSet mod_set(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
+  ModificationDefinitionsSet mod_set(ListUtils::create<std::string>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<std::string>("Carbamidomethyl (C)"));
   TEST_EQUAL(mod_set.getNumberOfModifications(), 4)
-  ModificationDefinitionsSet mod_set2(ListUtils::create<String>(""), ListUtils::create<String>("Carbamidomethyl (C)"));
+  ModificationDefinitionsSet mod_set2(ListUtils::create<std::string>(""), ListUtils::create<std::string>("Carbamidomethyl (C)"));
   TEST_EQUAL(mod_set2.getNumberOfModifications(), 1)
 
-  ModificationDefinitionsSet mod_set3(ListUtils::create<String>("Phospho (S)"), ListUtils::create<String>(""));
+  ModificationDefinitionsSet mod_set3(ListUtils::create<std::string>("Phospho (S)"), ListUtils::create<std::string>(""));
   TEST_EQUAL(mod_set3.getNumberOfModifications(), 1)
 }
 END_SECTION
 
 START_SECTION((Size getNumberOfFixedModifications() const))
 {
-  ModificationDefinitionsSet mod_set(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
+  ModificationDefinitionsSet mod_set(ListUtils::create<std::string>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<std::string>("Carbamidomethyl (C)"));
   TEST_EQUAL(mod_set.getNumberOfFixedModifications(), 3)
-  ModificationDefinitionsSet mod_set2(ListUtils::create<String>(""), ListUtils::create<String>("Carbamidomethyl (C)"));
+  ModificationDefinitionsSet mod_set2(ListUtils::create<std::string>(""), ListUtils::create<std::string>("Carbamidomethyl (C)"));
   TEST_EQUAL(mod_set2.getNumberOfFixedModifications(), 0)
 
-  ModificationDefinitionsSet mod_set3(ListUtils::create<String>("Phospho (S)"), ListUtils::create<String>(""));
+  ModificationDefinitionsSet mod_set3(ListUtils::create<std::string>("Phospho (S)"), ListUtils::create<std::string>(""));
   TEST_EQUAL(mod_set3.getNumberOfFixedModifications(), 1)
 }
 END_SECTION
 
 START_SECTION((Size getNumberOfVariableModifications() const))
 {
-  ModificationDefinitionsSet mod_set(ListUtils::create<String>("Phospho (S),Phospho (T)"), ListUtils::create<String>("Carbamidomethyl (C),Phospho (Y)"));
+  ModificationDefinitionsSet mod_set(ListUtils::create<std::string>("Phospho (S),Phospho (T)"), ListUtils::create<std::string>("Carbamidomethyl (C),Phospho (Y)"));
   TEST_EQUAL(mod_set.getNumberOfVariableModifications(), 2)
-  ModificationDefinitionsSet mod_set2(ListUtils::create<String>(""), ListUtils::create<String>("Carbamidomethyl (C)"));
+  ModificationDefinitionsSet mod_set2(ListUtils::create<std::string>(""), ListUtils::create<std::string>("Carbamidomethyl (C)"));
   TEST_EQUAL(mod_set2.getNumberOfVariableModifications(), 1)
 
-  ModificationDefinitionsSet mod_set3(ListUtils::create<String>("Phospho (S)"), ListUtils::create<String>(""));
+  ModificationDefinitionsSet mod_set3(ListUtils::create<std::string>("Phospho (S)"), ListUtils::create<std::string>(""));
   TEST_EQUAL(mod_set3.getNumberOfVariableModifications(), 0)
 }
 END_SECTION
@@ -155,9 +155,9 @@ START_SECTION((void setModifications(const std::set<ModificationDefinition>& mod
 }
 END_SECTION
 
-START_SECTION((void setModifications(const String& fixed_modifications, const String& variable_modifications)))
+START_SECTION((void setModifications(const std::string& fixed_modifications, const std::string& variable_modifications)))
 {
-  ModificationDefinitionsSet mod_set1(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
+  ModificationDefinitionsSet mod_set1(ListUtils::create<std::string>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<std::string>("Carbamidomethyl (C)"));
   ModificationDefinitionsSet mod_set2;
   mod_set2.setModifications("Phospho (S),Phospho (T),Phospho (Y)", "Carbamidomethyl (C)");
 
@@ -175,8 +175,8 @@ END_SECTION
 
 START_SECTION((std::set<ModificationDefinition> getModifications() const))
 {
-  ModificationDefinitionsSet mod_set1(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
-  set<String> fixed_mods, var_mods;
+  ModificationDefinitionsSet mod_set1(ListUtils::create<std::string>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<std::string>("Carbamidomethyl (C)"));
+  set<std::string> fixed_mods, var_mods;
   fixed_mods.insert("Phospho (S)");
   fixed_mods.insert("Phospho (T)");
   fixed_mods.insert("Phospho (Y)");
@@ -200,8 +200,8 @@ END_SECTION
 
 START_SECTION(const std::set<ModificationDefinition>& getFixedModifications() const)
 {
-  ModificationDefinitionsSet mod_set1(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
-  set<String> fixed_mods;
+  ModificationDefinitionsSet mod_set1(ListUtils::create<std::string>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<std::string>("Carbamidomethyl (C)"));
+  set<std::string> fixed_mods;
   fixed_mods.insert("Phospho (S)");
   fixed_mods.insert("Phospho (T)");
   fixed_mods.insert("Phospho (Y)");
@@ -218,8 +218,8 @@ END_SECTION
 
 START_SECTION(const std::set<ModificationDefinition>& getVariableModifications() const)
 {
-  ModificationDefinitionsSet mod_set1(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C),Phospho (S)"));
-  set<String> mods;
+  ModificationDefinitionsSet mod_set1(ListUtils::create<std::string>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<std::string>("Carbamidomethyl (C),Phospho (S)"));
+  set<std::string> mods;
   mods.insert("Phospho (S)");
   mods.insert("Carbamidomethyl (C)");
 
@@ -233,10 +233,10 @@ START_SECTION(const std::set<ModificationDefinition>& getVariableModifications()
 }
 END_SECTION
 
-START_SECTION((std::set<String> getModificationNames() const))
+START_SECTION((std::set<std::string> getModificationNames() const))
 {
-  ModificationDefinitionsSet mod_set1(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
-  set<String> mods;
+  ModificationDefinitionsSet mod_set1(ListUtils::create<std::string>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<std::string>("Carbamidomethyl (C)"));
+  set<std::string> mods;
   mods.insert("Phospho (S)");
   mods.insert("Phospho (T)");
   mods.insert("Phospho (Y)");
@@ -248,24 +248,24 @@ END_SECTION
 
 START_SECTION((void getModificationNames(StringList& fixed_modifications, StringList& variable_modifications) const ))
 {
-  StringList fixed_mods = ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)");
-  StringList var_mods = ListUtils::create<String>("Carbamidomethyl (C)");
+  StringList fixed_mods = ListUtils::create<std::string>("Phospho (S),Phospho (T),Phospho (Y)");
+  StringList var_mods = ListUtils::create<std::string>("Carbamidomethyl (C)");
   ModificationDefinitionsSet mod_set(fixed_mods, var_mods);
 
   StringList fixed_mods_out, var_mods_out;
   mod_set.getModificationNames(fixed_mods_out, var_mods_out);
 
-  TEST_STRING_EQUAL(ListUtils::concatenate<String>(fixed_mods, ","), 
+  TEST_STRING_EQUAL(ListUtils::concatenate<std::string>(fixed_mods, ","), 
                     ListUtils::concatenate<String>(fixed_mods_out, ","));
   TEST_STRING_EQUAL(ListUtils::concatenate<String>(var_mods, ","), 
                     ListUtils::concatenate<String>(var_mods_out, ","));
 }
 END_SECTION
 
-START_SECTION((std::set<String> getFixedModificationNames() const))
+START_SECTION((std::set<std::string> getFixedModificationNames() const))
 {
-  ModificationDefinitionsSet mod_set1(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
-  set<String> mods;
+  ModificationDefinitionsSet mod_set1(ListUtils::create<std::string>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<std::string>("Carbamidomethyl (C)"));
+  set<std::string> mods;
   mods.insert("Phospho (S)");
   mods.insert("Phospho (T)");
   mods.insert("Phospho (Y)");
@@ -273,10 +273,10 @@ START_SECTION((std::set<String> getFixedModificationNames() const))
 }
 END_SECTION
 
-START_SECTION((std::set<String> getVariableModificationNames() const))
+START_SECTION((std::set<std::string> getVariableModificationNames() const))
 {
-  ModificationDefinitionsSet mod_set1(ListUtils::create<String>("Phospho (S),Phospho (T)"), ListUtils::create<String>("Phospho (Y),Carbamidomethyl (C)"));
-  set<String> mods;
+  ModificationDefinitionsSet mod_set1(ListUtils::create<std::string>("Phospho (S),Phospho (T)"), ListUtils::create<std::string>("Phospho (Y),Carbamidomethyl (C)"));
+  set<std::string> mods;
   mods.insert("Carbamidomethyl (C)");
   mods.insert("Phospho (Y)");
 
@@ -346,13 +346,13 @@ END_SECTION
 
 START_SECTION((ModificationDefinitionsSet(const StringList &fixed_modifications, const StringList &variable_modifications)))
 {
-  ModificationDefinitionsSet mod_set(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
-  set<String> fixed_mods;
+  ModificationDefinitionsSet mod_set(ListUtils::create<std::string>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<std::string>("Carbamidomethyl (C)"));
+  set<std::string> fixed_mods;
   fixed_mods.insert("Phospho (S)");
   fixed_mods.insert("Phospho (T)");
   fixed_mods.insert("Phospho (Y)");
 
-  set<String> var_mods;
+  set<std::string> var_mods;
   var_mods.insert("Carbamidomethyl (C)");
 
   TEST_EQUAL(mod_set.getFixedModificationNames() == fixed_mods, true)
@@ -363,7 +363,7 @@ END_SECTION
 START_SECTION((void setModifications(const StringList &fixed_modifications, const StringList &variable_modifications)))
 {
   ModificationDefinitionsSet mod_set;
-  mod_set.setModifications(ListUtils::create<String>("Phospho (T)"), ListUtils::create<String>("Phospho (S)"));
+  mod_set.setModifications(ListUtils::create<std::string>("Phospho (T)"), ListUtils::create<std::string>("Phospho (S)"));
   TEST_EQUAL(mod_set.getNumberOfModifications(), 2)
   TEST_EQUAL(mod_set.getNumberOfFixedModifications(), 1)
   TEST_EQUAL(mod_set.getNumberOfVariableModifications(), 1)
@@ -372,7 +372,7 @@ END_SECTION
 
 START_SECTION((bool isCompatible(const AASequence &peptide) const))
 {
-  ModificationDefinitionsSet mod_set(ListUtils::create<String>("Carbamidomethyl (C)"), ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"));
+  ModificationDefinitionsSet mod_set(ListUtils::create<std::string>("Carbamidomethyl (C)"), ListUtils::create<std::string>("Phospho (S),Phospho (T),Phospho (Y)"));
   AASequence pep1 = AASequence::fromString("CCTKPESER");
   AASequence pep2 = AASequence::fromString("C(Carbamidomethyl)CTKPESER");
   AASequence pep3 = AASequence::fromString("C(Carbamidomethyl)C(Carbamidomethyl)TKPESER");
@@ -391,7 +391,7 @@ START_SECTION((bool isCompatible(const AASequence &peptide) const))
 }
 END_SECTION
 
-START_SECTION((void findMatches(multimap<double, ModificationDefinition>& matches, double mass, const String& residue, ResidueModification::TermSpecificity term_spec, bool consider_fixed, bool consider_variable, bool is_delta, double tolerance) const))
+START_SECTION((void findMatches(multimap<double, ModificationDefinition>& matches, double mass, const std::string& residue, ResidueModification::TermSpecificity term_spec, bool consider_fixed, bool consider_variable, bool is_delta, double tolerance) const))
 {
   ModificationDefinitionsSet mod_set;
   mod_set.setModifications("Gln->pyro-Glu (N-term Q)", "Glu->pyro-Glu (N-term E),Oxidation (M)");
@@ -436,9 +436,9 @@ START_SECTION(void inferFromPeptides(const PeptideIdentificationList& peptides))
 
   ModificationDefinitionsSet mod_defs;
   mod_defs.inferFromPeptides(peptides);
-  set<String> mods = mod_defs.getFixedModificationNames();
+  set<std::string> mods = mod_defs.getFixedModificationNames();
   TEST_EQUAL(mods.size(), 1);
-  set<String>::const_iterator it = mods.begin();
+  set<std::string>::const_iterator it = mods.begin();
   TEST_STRING_EQUAL(*it, "Carbamidomethyl (C)");
   mods = mod_defs.getVariableModificationNames();
   TEST_EQUAL(mods.size(), 2);

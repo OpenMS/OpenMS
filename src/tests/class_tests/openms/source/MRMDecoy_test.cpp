@@ -87,7 +87,7 @@ START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > find
 {
   MRMDecoyHelper gen;
 
-  String sequence = "TRESTPEPTIKDE";
+  std::string sequence = "TRESTPEPTIKDE";
   MRMDecoy::IndexType tryptic_results = gen.findFixedResidues_helper(sequence);
   MRMDecoy::IndexType tryptic_expect = {1, 5, 7, 10};
   TEST_TRUE(tryptic_results == tryptic_expect)
@@ -99,7 +99,7 @@ START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > find
 {
   MRMDecoyHelper gen;
 
-  String sequence = "TRESTPEPTIKDE";
+  std::string sequence = "TRESTPEPTIKDE";
   MRMDecoy::IndexType tryptic_results = gen.findFixedAndTermResidues_helper(sequence);
   MRMDecoy::IndexType tryptic_expect = {0, 1, 5, 7, 10, 12};
   TEST_TRUE(tryptic_results == tryptic_expect)
@@ -118,7 +118,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
   modification.mono_mass_delta = 79.966331;
   peptide.mods.push_back(modification);
 
-  OpenMS::String expected_sequence = "TIDEPEPSTTE";
+  std::string expected_sequence = "TIDEPEPSTTE";
   OpenMS::Size expected_location = 7;
 
   OpenMS::TargetedExperiment::Peptide shuffled = gen.shufflePeptide(peptide, 0.7, 43);
@@ -271,7 +271,7 @@ START_SECTION([EXTRA] shuffle_peptide_with_modifications_and2attempts)
   modification.mono_mass_delta = 79.966331;
   peptide.mods.push_back(modification);
 
-  OpenMS::String expected_sequence = "GPPGDSEPGSPPPVPR";
+  std::string expected_sequence = "GPPGDSEPGSPPPVPR";
   OpenMS::Size expected_location_1 = 9;
   OpenMS::Size expected_location_2 = 5;
 
@@ -310,7 +310,7 @@ START_SECTION([EXTRA] shuffle_peptide_with_terminal_modifications)
   modification.mono_mass_delta = 4.008491;
   peptide.mods.push_back(modification);
 
-  OpenMS::String expected_sequence = "TIDEPEPSTTE";
+  std::string expected_sequence = "TIDEPEPSTTE";
 
   OpenMS::TargetedExperiment::Peptide shuffled = gen.shufflePeptide(peptide, 0.7, 43);
 
@@ -327,19 +327,19 @@ START_SECTION([EXTRA] shuffle_peptide_with_KPR)
   MRMDecoy gen;
   OpenMS::TargetedExperiment::Peptide peptide;
   peptide.sequence = "KPRKPRPK";
-  OpenMS::String expected_sequence = "KNRKPRPK";
+  std::string expected_sequence = "KNRKPRPK";
   OpenMS::TargetedExperiment::Peptide shuffled = gen.shufflePeptide(peptide, 0.7, 130, 17);
   TEST_EQUAL(shuffled.sequence, expected_sequence)
 }
 
 END_SECTION
 
-START_SECTION(float AASequenceIdentity(const String& sequence, const String& decoy))
+START_SECTION(float AASequenceIdentity(const std::string& sequence, const std::string& decoy))
 {
   MRMDecoy gen;
 
-  String AASequenceIdentity_target_sequence = "TESTPEPTIDE";
-  String AASequenceIdentity_decoy_sequence = "EDITPEPTSET";
+  std::string AASequenceIdentity_target_sequence = "TESTPEPTIDE";
+  std::string AASequenceIdentity_decoy_sequence = "EDITPEPTSET";
   float AASequenceIdentity_result = gen.AASequenceIdentity(AASequenceIdentity_target_sequence, AASequenceIdentity_decoy_sequence);
   float AASequenceIdentity_expected = static_cast<float>(0.454545);
   TEST_REAL_SIMILAR(AASequenceIdentity_result, AASequenceIdentity_expected)
@@ -349,7 +349,7 @@ END_SECTION
 
 START_SECTION((OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
       OpenMS::TargetedExperiment::Peptide peptide, const bool keepN, const bool keepC, 
-      const String& const_pattern) const))
+      const std::string& const_pattern) const))
 {
   MRMDecoy gen;
 
@@ -362,7 +362,7 @@ START_SECTION((OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
   peptide.mods.push_back(modification);
 
   {
-    OpenMS::String expected_sequence = "DITPEPTSETE";
+    std::string expected_sequence = "DITPEPTSETE";
     OpenMS::Size expected_location = 7;
 
     OpenMS::TargetedExperiment::Peptide pseudoreverse = MRMDecoy::reversePeptide(peptide, false, true);
@@ -377,7 +377,7 @@ START_SECTION((OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
     modification.location = 0;
     peptide.mods.push_back(modification);
 
-    OpenMS::String expected_sequence = "TDITPEPTSEE";
+    std::string expected_sequence = "TDITPEPTSEE";
 
     OpenMS::TargetedExperiment::Peptide pseudoreverse = MRMDecoy::reversePeptide(peptide, true, true);
     TEST_EQUAL(pseudoreverse.sequence, expected_sequence)
@@ -390,8 +390,8 @@ START_SECTION((OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
   }
 
   {
-    String const_pattern = "I";
-    OpenMS::String expected_sequence = "TDTPEPTSIEE"; // "I" stays in place
+    std::string const_pattern = "I";
+    std::string expected_sequence = "TDTPEPTSIEE"; // "I" stays in place
 
     OpenMS::TargetedExperiment::Peptide pseudoreverse = MRMDecoy::reversePeptide(peptide, true, true, const_pattern);
     TEST_EQUAL(pseudoreverse.sequence, expected_sequence)
@@ -418,7 +418,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide pseudoreversePeptide(OpenMS::T
   modification.mono_mass_delta = 79.966331;
   peptide.mods.push_back(modification);
 
-  OpenMS::String expected_sequence = "DITPEPTSETE";
+  std::string expected_sequence = "DITPEPTSETE";
   OpenMS::Size expected_location = 7;
 
   OpenMS::TargetedExperiment::Peptide pseudoreverse = gen.pseudoreversePeptide_helper(peptide);
@@ -448,7 +448,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide reversePeptide(OpenMS::Targete
   modification.mono_mass_delta = 79.966331;
   peptide.mods.push_back(modification);
 
-  OpenMS::String expected_sequence = "EDITPEPTSET";
+  std::string expected_sequence = "EDITPEPTSET";
   OpenMS::Size expected_location = 8;
 
   OpenMS::TargetedExperiment::Peptide reverse = gen.reversePeptide_helper(peptide);
@@ -471,32 +471,32 @@ END_SECTION
 
 START_SECTION((void generateDecoys(const OpenMS::TargetedExperiment& exp,
                         OpenMS::TargetedExperiment& dec,
-                        const String& method,
+                        const std::string& method,
                         const double aim_decoy_fraction,
                         const bool switchKR,
-                        const String& decoy_tag,
+                        const std::string& decoy_tag,
                         const int max_attempts,
                         const double identity_threshold,
                         const double precursor_mz_shift,
                         const double product_mz_shift,
                         const double product_mz_threshold,
-                        const std::vector<String>& fragment_types,
+                        const std::vector<std::string>& fragment_types,
                         const std::vector<size_t>& fragment_charges,
                         const bool enable_specific_losses,
                         const bool enable_unspecific_losses,
                         const int round_decPow = -4) const))
 {
-  String method = "pseudo-reverse";
+  std::string method = "pseudo-reverse";
   double identity_threshold = 0.7;
   Int max_attempts = 5;
   double product_mz_threshold = 0.8;
   double precursor_mz_shift = 0.1;
   double product_mz_shift = 20;
-  String decoy_tag = "DECOY_";
-  std::vector<String> fragment_types;
-  fragment_types.push_back(String("b"));
-  fragment_types.push_back(String("y"));
-  fragment_types.push_back(String("a"));
+  std::string decoy_tag = "DECOY_";
+  std::vector<std::string> fragment_types;
+  fragment_types.push_back(StringUtils::toStr("b"));
+  fragment_types.push_back(StringUtils::toStr("y"));
+  fragment_types.push_back(StringUtils::toStr("a"));
   std::vector<size_t> fragment_charges;
   fragment_charges.push_back(1);
   fragment_charges.push_back(2);
@@ -506,9 +506,9 @@ START_SECTION((void generateDecoys(const OpenMS::TargetedExperiment& exp,
   bool enable_unspecific_losses = false;
   bool enable_specific_losses = true;
 
-  String in = "MRMDecoyGenerator_input.TraML";
-  String out = "MRMDecoyGenerator_output.TraML";
-  String test;
+  std::string in = "MRMDecoyGenerator_input.TraML";
+  std::string out = "MRMDecoyGenerator_output.TraML";
+  std::string test;
   NEW_TMP_FILE(test);
 
   TraMLFile traml;
@@ -649,7 +649,7 @@ START_SECTION([EXTRA] reversePeptideLight_matches_heavy)
     lm.unimod_id = 21;
     light_mods.push_back(lm);
 
-    String const_pattern = "I";
+    std::string const_pattern = "I";
     auto heavy_result = MRMDecoy::reversePeptide(peptide, true, true, const_pattern);
     auto light_result = MRMDecoy::reversePeptideLight(peptide.sequence, light_mods, true, true, const_pattern);
 
@@ -1084,7 +1084,7 @@ START_SECTION([EXTRA] generateDecoysLight_modified_sequence_duplicate_detection)
   
   // Generate decoys using the Light path
   OpenSwath::LightTargetedExperiment decoys;
-  std::vector<String> fragment_types;
+  std::vector<std::string> fragment_types;
   fragment_types.push_back("y");
   fragment_types.push_back("b");
   std::vector<size_t> fragment_charges;
@@ -1225,7 +1225,7 @@ START_SECTION([EXTRA] generateDecoys_modified_sequence_duplicate_detection)
   exp.addTransition(transition2);
 
   // Generate decoys using the Heavy path
-  std::vector<String> fragment_types;
+  std::vector<std::string> fragment_types;
   fragment_types.push_back("y");
   fragment_types.push_back("b");
   std::vector<size_t> fragment_charges;

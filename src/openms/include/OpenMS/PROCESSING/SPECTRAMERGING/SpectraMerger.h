@@ -221,7 +221,7 @@ public:
           // keep the first Precursor
           if (pcs.empty())
           {
-            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Scan #") + String(i) + " does not contain any precursor information! Unable to cluster!");
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Scan #") + StringUtils::toStr(i) + " does not contain any precursor information! Unable to cluster!");
           }
           if (pcs.size() > 1)
           {
@@ -345,7 +345,7 @@ public:
      * @param[in] ms_level target MS level. If it is -1, ms_level will be determined by the '&lt;average_type&gt;ms_level' parameter of the DefaultParamHandler
      */
     template <typename MapType>
-    void average(MapType& exp, const String& average_type, int ms_level = -1)
+    void average(MapType& exp, const std::string& average_type, int ms_level = -1)
     {
       // MS level to be averaged
       if (ms_level < 0)
@@ -624,7 +624,7 @@ protected:
 
         count_peaks_overall += consensus_spec.size();
 
-        String consensus_native_id = consensus_spec.getNativeID();
+        std::string consensus_native_id = consensus_spec.getNativeID();
 
         // block elements
         for (auto sit = it->second.begin(); sit != it->second.end(); ++sit)
@@ -733,7 +733,7 @@ protected:
       char buffer[200];
       std::snprintf(buffer, sizeof(buffer), "%d/%d (%.2f %%) of blocked spectra", (int)count_peaks_aligned,
               (int)count_peaks_overall, float(count_peaks_aligned) / float(count_peaks_overall) * 100.);
-      OPENMS_LOG_INFO << "Number of merged peaks: " << String(buffer) << "\n";
+      OPENMS_LOG_INFO << "Number of merged peaks: " << StringUtils::toStr(buffer) << "\n";
 
       // remove all spectra that were within a cluster
       typename MapType::SpectrumType empty_spec;

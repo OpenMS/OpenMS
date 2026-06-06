@@ -72,8 +72,6 @@ public:
     DataValue(const char*);
     /// specific constructor for std::string values
     DataValue(const std::string&);
-    /// specific constructor for string values
-    DataValue(const String&);
     /// specific constructor for string lists
     DataValue(const StringList&);
     /// specific constructor for integer lists
@@ -296,8 +294,6 @@ public:
     DataValue& operator=(const char*);
     /// specific assignment for std::string values
     DataValue& operator=(const std::string&);
-    /// specific assignment for string values
-    DataValue& operator=(const String&);
     /// specific assignment for string lists
     DataValue& operator=(const StringList&);
     /// specific assignment for integer lists
@@ -337,7 +333,7 @@ public:
       @brief Conversion to String
       @p full_precision Controls number of fractional digits for all double types or lists of double, 3 digits when false, and 15 when true.
     **/
-    String toString(bool full_precision = true) const;
+    std::string toString(bool full_precision = true) const;
 
     //@}
 
@@ -402,7 +398,7 @@ protected:
     {
       SignedSize ssize_;
       double dou_;
-      String* str_;
+      std::string* str_;
       StringList* str_list_;
       IntList* int_list_;
       DoubleList* dou_list_;

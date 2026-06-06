@@ -32,85 +32,85 @@ START_SECTION(~ContactPerson())
 	delete ptr;
 END_SECTION
 
-START_SECTION(const String& getContactInfo() const)
+START_SECTION(const std::string& getContactInfo() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getContactInfo(),"");
 END_SECTION
 
-START_SECTION(void setContactInfo(const String& contact_info))
+START_SECTION(void setContactInfo(const std::string& contact_info))
   ContactPerson tmp;
 	tmp.setContactInfo("bla");
   TEST_EQUAL(tmp.getContactInfo(),"bla");
 END_SECTION
 
-START_SECTION(const String& getEmail() const)
+START_SECTION(const std::string& getEmail() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getEmail(),"");
 END_SECTION
 
-START_SECTION(void setEmail(const String& email))
+START_SECTION(void setEmail(const std::string& email))
   ContactPerson tmp;
 	tmp.setEmail("bla");
   TEST_EQUAL(tmp.getEmail(),"bla");
 END_SECTION
 
-START_SECTION(const String& getURL() const)
+START_SECTION(const std::string& getURL() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getURL(),"");
 END_SECTION
 
-START_SECTION(void setURL(const String& email))
+START_SECTION(void setURL(const std::string& email))
   ContactPerson tmp;
 	tmp.setURL("bla");
   TEST_EQUAL(tmp.getURL(),"bla");
 END_SECTION
 
-START_SECTION(const String& getAddress() const)
+START_SECTION(const std::string& getAddress() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getAddress(),"");
 END_SECTION
 
-START_SECTION(void setAddress(const String& email))
+START_SECTION(void setAddress(const std::string& email))
   ContactPerson tmp;
 	tmp.setAddress("bla");
   TEST_EQUAL(tmp.getAddress(),"bla");
 END_SECTION
 
 
-START_SECTION(const String& getInstitution() const)
+START_SECTION(const std::string& getInstitution() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getInstitution(),"");
 END_SECTION
 
-START_SECTION(void setInstitution(const String& institution))
+START_SECTION(void setInstitution(const std::string& institution))
   ContactPerson tmp;
 	tmp.setInstitution("Uni Tuebingen");
   TEST_EQUAL(tmp.getInstitution(),"Uni Tuebingen");
 END_SECTION
 
-START_SECTION(const String& getFirstName() const)
+START_SECTION(const std::string& getFirstName() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getFirstName(),"");
 END_SECTION
 
-START_SECTION(void setFirstName(const String& name))
+START_SECTION(void setFirstName(const std::string& name))
   ContactPerson tmp;
 	tmp.setFirstName("Meike");
   TEST_EQUAL(tmp.getFirstName(),"Meike");
 END_SECTION
 
-START_SECTION(const String& getLastName() const)
+START_SECTION(const std::string& getLastName() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getLastName(),"");
 END_SECTION
 
-START_SECTION(void setLastName(const String& name))
+START_SECTION(void setLastName(const std::string& name))
   ContactPerson tmp;
 	tmp.setLastName("Meier");
   TEST_EQUAL(tmp.getLastName(),"Meier");
 END_SECTION
 
-START_SECTION(void setName(const String& name))
+START_SECTION(void setName(const std::string& name))
   ContactPerson tmp;
 	tmp.setName("Diddl Maus");
   TEST_EQUAL(tmp.getFirstName(),"Diddl");
@@ -132,10 +132,10 @@ START_SECTION(ContactPerson(const ContactPerson& source))
 	tmp.setContactInfo("doo");
 	tmp.setURL("url");
 	tmp.setAddress("street");
-	tmp.setMetaValue("label",String("label"));
+	tmp.setMetaValue("label",StringUtils::toStr("label"));
 	
 	ContactPerson tmp2(tmp);
-	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+	TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
   TEST_EQUAL(tmp2.getFirstName(),"Meike");
   TEST_EQUAL(tmp2.getLastName(),"Meier");
   TEST_EQUAL(tmp2.getEmail(),"ich@du.de");
@@ -154,12 +154,12 @@ START_SECTION(ContactPerson& operator= (const ContactPerson& source))
 	tmp.setContactInfo("doo");
 	tmp.setURL("url");
 	tmp.setAddress("street");
-	tmp.setMetaValue("label",String("label"));
+	tmp.setMetaValue("label",StringUtils::toStr("label"));
 	
 	//normal assignment
 	ContactPerson tmp2;
 	tmp2 = tmp;
-	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+	TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
   TEST_EQUAL(tmp2.getFirstName(),"Meike");
   TEST_EQUAL(tmp2.getLastName(),"Meier");
   TEST_EQUAL(tmp2.getEmail(),"ich@du.de");
@@ -213,7 +213,7 @@ START_SECTION(bool operator!= (const ContactPerson& rhs) const)
   TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
-	tmp.setMetaValue("label",String("label"));
+	tmp.setMetaValue("label",StringUtils::toStr("label"));
   TEST_EQUAL(tmp==tmp2, false);
 END_SECTION
 
@@ -242,7 +242,7 @@ START_SECTION(bool operator== (const ContactPerson& rhs) const)
   TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
-	tmp.setMetaValue("label",String("label"));
+	tmp.setMetaValue("label",StringUtils::toStr("label"));
   TEST_FALSE(tmp == tmp2);
 END_SECTION
 

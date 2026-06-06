@@ -23,8 +23,8 @@ namespace OpenMS
       // length of the subsequence in the parent; therefore, store "end_pos":
       Size start_pos, end_pos;
 
-      // String instead of char so modified residues can be represented:
-      String left_neighbor, right_neighbor; // neighboring sequence elements
+      // std::string instead of char so modified residues can be represented:
+      std::string left_neighbor, right_neighbor; // neighboring sequence elements
 
       static constexpr Size UNKNOWN_POSITION = Size(-1);
       static constexpr char UNKNOWN_NEIGHBOR = 'X';
@@ -33,8 +33,8 @@ namespace OpenMS
 
       explicit ParentMatch(Size start_pos = UNKNOWN_POSITION,
                                    Size end_pos = UNKNOWN_POSITION,
-                                   String left_neighbor = UNKNOWN_NEIGHBOR,
-                                   String right_neighbor = UNKNOWN_NEIGHBOR):
+                                   std::string left_neighbor = std::string(1, UNKNOWN_NEIGHBOR),
+                                   std::string right_neighbor = std::string(1, UNKNOWN_NEIGHBOR)):
         start_pos(start_pos), end_pos(end_pos), left_neighbor(left_neighbor),
         right_neighbor(right_neighbor)
       {

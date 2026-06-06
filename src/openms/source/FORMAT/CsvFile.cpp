@@ -21,20 +21,20 @@ namespace OpenMS
 
   CsvFile::~CsvFile() = default;
 
-  CsvFile::CsvFile(const String& filename, char is, bool ie, Int first_n) :
+  CsvFile::CsvFile(const std::string& filename, char is, bool ie, Int first_n) :
     TextFile(), itemseperator_(is), itemenclosed_(ie)
   {
     TextFile::load(filename, false, first_n, false, "#");
   }
 
-  void CsvFile::load(const String& filename, char is, bool ie, Int first_n)
+  void CsvFile::load(const std::string& filename, char is, bool ie, Int first_n)
   {
     itemseperator_ = is;
     itemenclosed_ = ie;
     TextFile::load(filename, true, first_n, false, "#");
   }
 
-  void CsvFile::store(const String& filename)
+  void CsvFile::store(const std::string& filename)
   {
     TextFile::store(filename);
   }
@@ -46,11 +46,11 @@ namespace OpenMS
     {
       for (Size i = 0; i < elements.size(); ++i)
       {
-        elements[i].quote('"', String::NONE);
+        StringUtils::quote(elements[i], '"', OpenMS::QuotingMethod::NONE);
       }
     }
-    String line;
-    line.concatenate(elements.begin(), elements.end(), itemseperator_);
+    std::string line;
+    StringUtils::concatenate(line, elements.begin(), elements.end(), std::string(1, itemseperator_));
     addLine(line);
   }
 
@@ -67,7 +67,7 @@ namespace OpenMS
       throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    bool splitted = buffer_[row].split(itemseperator_, list);
+    bool splitted = StringUtils::split(buffer_[row], itemseperator_, list);
     if (!splitted)
     {
       return splitted;
@@ -82,7 +82,7 @@ namespace OpenMS
     return true;
   }
 
-  std::vector<String>::size_type CsvFile::rowCount() const
+  std::vector<std::string>::size_type CsvFile::rowCount() const
   {
     return TextFile::buffer_.size();
   }

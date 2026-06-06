@@ -104,7 +104,7 @@ namespace OpenMS
     /// (@p transition_ids)
     double ConfidenceScoring::scoreAssay_(const TargetedExperiment::Peptide& assay, 
                            double feature_rt, DoubleList& feature_intensities,
-                           const std::set<String>& transition_ids)
+                           const std::set<std::string>& transition_ids)
     {
       // compute RT difference:
       double assay_rt = rt_norm_(getAssayRT_(assay));
@@ -164,14 +164,14 @@ namespace OpenMS
       BimapType intensity_map;
       // for the "true" assay, we need to make sure we compare based on the same
       // transitions, so keep track of them:
-      std::map<double, String> trans_id_map; // Q3 m/z -> transition ID
+      std::map<double, std::string> trans_id_map; // Q3 m/z -> transition ID
       for (vector<Feature>::iterator sub_it = feature.getSubordinates().begin();
            sub_it != feature.getSubordinates().end(); ++sub_it)
       {
         // seems like Boost's Bimap doesn't support "operator[]"...
         intensity_map.left.insert(make_pair(sub_it->getMZ(), 
                                             sub_it->getIntensity()));
-        trans_id_map[sub_it->getMZ()] = sub_it->getMetaValue("native_id");
+        trans_id_map[sub_it->getMZ()] = sub_it->getMetaValue("native_id").toString();
       }
       DoubleList feature_intensities;
       extractIntensities_(intensity_map, n_transitions_, feature_intensities);
@@ -182,7 +182,7 @@ namespace OpenMS
                  << " transitions." << endl;
       }
       // "intensity_map" now only contains the transitions we need later:
-      std::set<String> transition_ids;
+      std::set<std::string> transition_ids;
       for (BimapType::left_map::iterator int_it = intensity_map.left.begin();
            int_it != intensity_map.left.end(); ++int_it)
       {
@@ -192,7 +192,7 @@ namespace OpenMS
       DoubleList scores; // "true" score is in "scores[0]", decoy scores follow
 
       // compare to "true" assay:
-      String true_id = feature.getMetaValue("PeptideRef");
+      std::string true_id = (std::string)(std::string)feature.getMetaValue("PeptideRef");
       OPENMS_LOG_DEBUG << "True assay (ID '" << true_id << "')" << endl;
       if (true_id.empty())
       {

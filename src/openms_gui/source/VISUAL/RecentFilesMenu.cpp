@@ -60,7 +60,7 @@ namespace OpenMS
     unsigned count{ 0 };
     for (Param::ParamIterator it = filenames.begin(); it != filenames.end(); ++it)
     {
-      QString filename = toQString(String(it->value.toString()));
+      QString filename = toQString(StringUtils::toStr(it->value.toString()));
       if (File::exists(fromQString(filename)))
       {
         rfiles.append(filename);
@@ -77,7 +77,7 @@ namespace OpenMS
     int i{ 0 };
     for (const auto& f : recent_files_)
     {
-      p.setValue(String(i), f.toStdString());
+      p.setValue(StringUtils::toStr(i), f.toStdString());
       ++i;
     }
     return p;
@@ -93,10 +93,10 @@ namespace OpenMS
     return recent_files_;
   }
 
-  void RecentFilesMenu::add(const String& filename)
+  void RecentFilesMenu::add(const std::string& filename)
   {
     // find out absolute path
-    String tmp = File::absolutePath(filename);
+    std::string tmp = File::absolutePath(filename);
 
     // remove the new file if already in the recent list and prepend it
     recent_files_.removeAll(toQString(tmp));
@@ -117,7 +117,7 @@ namespace OpenMS
     {
       return;
     }
-    String filename = fromQString(action->text());
+    std::string filename = fromQString(action->text());
     emit recentFileClicked(filename);
   }
 

@@ -21,7 +21,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  OBODataProvider::OBODataProvider(const String& filename, bool cross_links_only)
+  OBODataProvider::OBODataProvider(const std::string& filename, bool cross_links_only)
     : filename_(filename),
       cross_links_only_(cross_links_only)
   {
@@ -30,25 +30,25 @@ namespace OpenMS
   std::vector<std::unique_ptr<ResidueModification>> OBODataProvider::loadModifications()
   {
     ResidueModification mod;
-    multimap<String, ResidueModification> all_mods;
+    multimap<std::string, ResidueModification> all_mods;
 
-    String resolved = File::find(filename_);
+    std::string resolved = File::find(filename_);
     ifstream is(resolved.c_str());
     if (!is)
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, resolved);
     }
-    String line, line_wo_spaces, id;
-    String origin = "";
+    std::string line, line_wo_spaces, id;
+    std::string origin = "";
 
     bool skip_current_term = false;
 
     // Phase 1: parse OBO file
     while (getline(is, line, '\n'))
     {
-      line.trim();
+      StringUtils::trim(line);
       line_wo_spaces = line;
-      line_wo_spaces.removeWhitespaces();
+      StringUtils::removeWhitespaces(line_wo_spaces);
 
       if (line.empty() || line[0] == '!') //skip empty lines and comments
       {
@@ -60,14 +60,14 @@ namespace OpenMS
         if (!id.empty() && !skip_current_term) //store last term
         {
           // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
-          vector<String> origins;
-          origin.split(",", origins);
+          vector<std::string> origins;
+          StringUtils::split(origin, ", ", origins);
 
           std::sort(origins.begin(), origins.end());
-          vector<String>::iterator unique_end = unique(origins.begin(), origins.end());
+          vector<std::string>::iterator unique_end = unique(origins.begin(), origins.end());
           origins.resize(distance(origins.begin(), unique_end));
 
-          for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
+          for (vector<std::string>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
           {
             // we don't allow modifications with ambiguity codes as origin (except "X"):
             if ((orig_it->size() == 1) && (*orig_it != "B") && (*orig_it != "J") && (*orig_it != "Z"))
@@ -78,13 +78,13 @@ namespace OpenMS
           }
 
           // for mono-links from XLMOD.obo / cross-linker terminal specificities:
-          if (origin.hasSubstring("ProteinN-term"))
+          if (StringUtils::hasSubstring(origin, "ProteinN-term"))
           {
             mod.setTermSpecificity(cross_links_only_ ? ResidueModification::N_TERM : ResidueModification::PROTEIN_N_TERM);
             mod.setOrigin('X');
             all_mods.insert(make_pair(id, mod));
           }
-          if (origin.hasSubstring("ProteinC-term"))
+          if (StringUtils::hasSubstring(origin, "ProteinC-term"))
           {
             mod.setTermSpecificity(cross_links_only_ ? ResidueModification::C_TERM : ResidueModification::PROTEIN_C_TERM);
             mod.setOrigin('X');
@@ -105,121 +105,121 @@ namespace OpenMS
       }
 
       //new id line
-      else if (line_wo_spaces.hasPrefix("id:"))
+      else if (StringUtils::hasPrefix(line_wo_spaces, "id:"))
       {
-        id = line.substr(line.find(':') + 1).trim();
+        id = StringUtils::trimmed(StringUtils::substr(line, line.find(':') + 1));
         mod.setId(id);
         mod.setPSIMODAccession(id);
       }
-      else if (line_wo_spaces.hasPrefix("name:"))
+      else if (StringUtils::hasPrefix(line_wo_spaces, "name:"))
       {
-        String name = line.substr(line.find(':') + 1).trim();
+        std::string name = StringUtils::trimmed(StringUtils::substr(line, line.find(':') + 1));
         mod.setFullName(name);
-        if (mod.getId().hasSubstring("XLMOD"))
+        if (StringUtils::hasSubstring(mod.getId(), "XLMOD"))
         {
           mod.setName(name);
           mod.setId(name);
           mod.setFullName(name);
         }
       }
-      else if (line_wo_spaces.hasPrefix("is_a:"))
+      else if (StringUtils::hasPrefix(line_wo_spaces, "is_a:"))
       {
         // TODO
       }
-      else if (line_wo_spaces.hasPrefix("def:"))
+      else if (StringUtils::hasPrefix(line_wo_spaces, "def:"))
       {
-        line.remove('[');
-        line.remove(']');
-        line.remove(',');
-        vector<String> split;
-        line.split(' ', split);
+        StringUtils::remove(line, '[');
+        StringUtils::remove(line, ']');
+        StringUtils::remove(line, ',');
+        vector<std::string> split;
+        StringUtils::split(line, ' ', split);
         for (Size i = 0; i != split.size(); ++i)
         {
-          if (split[i].hasPrefix("UniMod:"))
+          if (StringUtils::hasPrefix(split[i], "UniMod:"))
           {
             // Parse UniMod identifier to int
-            String identifier = split[i].substr(7, split[i].size());
-            mod.setUniModRecordId(identifier.toInt());
+            std::string identifier = split[i].substr(7, split[i].size());
+            mod.setUniModRecordId(StringUtils::toInt32(identifier));
           }
         }
       }
-      else if (line_wo_spaces.hasPrefix("comment:"))
+      else if (StringUtils::hasPrefix(line_wo_spaces, "comment:"))
       {
         // TODO
       }
-      else if (line_wo_spaces.hasPrefix("synonym:"))
+      else if (StringUtils::hasPrefix(line_wo_spaces, "synonym:"))
       {
-        vector<String> val_split;
-        line.split('"', val_split);
+        vector<std::string> val_split;
+        StringUtils::split(line, '"', val_split);
         if (val_split.size() < 3)
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "missing \" characters to enclose argument!");
         }
         mod.addSynonym(val_split[1]);
 
-        if (line_wo_spaces.hasSubstring("PSI-MOD-label"))
+        if (StringUtils::hasSubstring(line_wo_spaces, "PSI-MOD-label"))
         {
           mod.setName(val_split[1]);
         }
       }
-      else if (line_wo_spaces.hasPrefix("property_value:"))
+      else if (StringUtils::hasPrefix(line_wo_spaces, "property_value:"))
       {
-        String val = line_wo_spaces.substr(15, line_wo_spaces.size() - 15);
-        val.trim();
+        std::string val = StringUtils::substr(line_wo_spaces, 15, line_wo_spaces.size() - 15);
+        StringUtils::trim(val);
 
-        if (val.hasSubstring("\"none\""))
+        if (StringUtils::hasSubstring(val, "\"none\""))
         {
           continue;
         }
 
-        vector<String> val_split;
-        val.split('"', val_split);
+        vector<std::string> val_split;
+        StringUtils::split(val, '"', val_split);
         if (val_split.size() != 3)
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "missing \" characters to enclose argument!");
         }
-        if (val.hasPrefix("DiffAvg:"))
+        if (StringUtils::hasPrefix(val, "DiffAvg:"))
         {
-          mod.setDiffAverageMass(val_split[1].toDouble());
+          mod.setDiffAverageMass(StringUtils::toDouble(val_split[1]));
         }
-        else if (val.hasPrefix("DiffFormula:"))
+        else if (StringUtils::hasPrefix(val, "DiffFormula:"))
         {
-          vector<String> tmp_split;
-          line.split('"', tmp_split);
-          tmp_split[1].removeWhitespaces();
+          vector<std::string> tmp_split;
+          StringUtils::split(line, '"', tmp_split);
+          StringUtils::removeWhitespaces(tmp_split[1]);
           mod.setDiffFormula(EmpiricalFormula(tmp_split[1]));
         }
-        else if (val.hasPrefix("DiffMono:"))
+        else if (StringUtils::hasPrefix(val, "DiffMono:"))
         {
-          mod.setDiffMonoMass(val_split[1].toDouble());
+          mod.setDiffMonoMass(StringUtils::toDouble(val_split[1]));
         }
-        else if (val.hasPrefix("Formula:"))
+        else if (StringUtils::hasPrefix(val, "Formula:"))
         {
           mod.setFormula(val_split[1]);
         }
-        else if (val.hasPrefix("MassAvg:"))
+        else if (StringUtils::hasPrefix(val, "MassAvg:"))
         {
-          mod.setAverageMass(val_split[1].toDouble());
+          mod.setAverageMass(StringUtils::toDouble(val_split[1]));
         }
-        else if (val.hasPrefix("MassMono:"))
+        else if (StringUtils::hasPrefix(val, "MassMono:"))
         {
-          mod.setMonoMass(val_split[1].toDouble());
+          mod.setMonoMass(StringUtils::toDouble(val_split[1]));
         }
-        else if (val.hasPrefix("Origin:"))
+        else if (StringUtils::hasPrefix(val, "Origin:"))
         {
           //mod.setOrigin(val_split[1]);
           origin = val_split[1];
         }
-        else if (val.hasPrefix("Source:"))
+        else if (StringUtils::hasPrefix(val, "Source:"))
         {
           mod.setSourceClassification(val_split[1]);
         }
-        else if (val.hasPrefix("TermSpec:"))
+        else if (StringUtils::hasPrefix(val, "TermSpec:"))
         {
           mod.setTermSpecificity(val_split[1]);
         }
         // XLMOD specific fields
-        else if (val.hasPrefix("reactionSites:"))
+        else if (StringUtils::hasPrefix(val, "reactionSites:"))
         {
           if (val_split[1] == "2" && !cross_links_only_)
           {
@@ -230,20 +230,20 @@ namespace OpenMS
             skip_current_term = true; // skip mono-links when loading for CrossLinksDB
           }
         }
-        else if (val.hasPrefix("monoisotopicMass:"))
+        else if (StringUtils::hasPrefix(val, "monoisotopicMass:"))
         {
-          mod.setDiffMonoMass(val_split[1].toDouble());
+          mod.setDiffMonoMass(StringUtils::toDouble(val_split[1]));
         }
-        else if (val.hasPrefix("specificities:"))
+        else if (StringUtils::hasPrefix(val, "specificities:"))
         {
           // TODO cross-linker specificities can be different for both chain sides, right now the union of both sides is used
           // Input parameters of the cross-link search tool make sure, that the chemistry is not violated
           origin = val_split[1];
 
           // remove brackets
-          origin.remove('(');
-          origin.remove(')');
-          origin.substitute("&", ",");
+          StringUtils::remove(origin, '(');
+          StringUtils::remove(origin, ')');
+          StringUtils::substitute(origin, "&", ",");
         }
       }
     }
@@ -251,14 +251,14 @@ namespace OpenMS
     if (!id.empty() && !skip_current_term) //store last term
     {
       // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
-      vector<String> origins;
-      origin.split(",", origins);
+      vector<std::string> origins;
+      StringUtils::split(origin, ", ", origins);
 
       std::sort(origins.begin(), origins.end());
-      vector<String>::iterator unique_end = unique(origins.begin(), origins.end());
+      vector<std::string>::iterator unique_end = unique(origins.begin(), origins.end());
       origins.resize(distance(origins.begin(), unique_end));
 
-      for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
+      for (vector<std::string>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
       {
         // we don't allow modifications with ambiguity codes as origin (except "X"):
         if ((orig_it->size() == 1) && (*orig_it != "B") && (*orig_it != "J") && (*orig_it != "Z"))
@@ -269,13 +269,13 @@ namespace OpenMS
       }
 
       // for mono-links from XLMOD.obo / cross-linker terminal specificities:
-      if (origin.hasSubstring("ProteinN-term"))
+      if (StringUtils::hasSubstring(origin, "ProteinN-term"))
       {
         mod.setTermSpecificity(cross_links_only_ ? ResidueModification::N_TERM : ResidueModification::PROTEIN_N_TERM);
         mod.setOrigin('X');
         all_mods.insert(make_pair(id, mod));
       }
-      if (origin.hasSubstring("ProteinC-term"))
+      if (StringUtils::hasSubstring(origin, "ProteinC-term"))
       {
         mod.setTermSpecificity(cross_links_only_ ? ResidueModification::C_TERM : ResidueModification::PROTEIN_C_TERM);
         mod.setOrigin('X');
@@ -286,7 +286,7 @@ namespace OpenMS
     // Phase 2: build ResidueModification objects from parsed terms
     vector<unique_ptr<ResidueModification>> result;
 
-    for (multimap<String, ResidueModification>::const_iterator it = all_mods.begin(); it != all_mods.end(); ++it)
+    for (multimap<std::string, ResidueModification>::const_iterator it = all_mods.begin(); it != all_mods.end(); ++it)
     {
       // PSI-MOD entries that map to UniMod: return them as-is.
       // ModificationsDB's loadFromProviders_() will detect these and handle alias resolution.

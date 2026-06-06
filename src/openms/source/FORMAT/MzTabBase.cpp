@@ -24,7 +24,7 @@ namespace OpenMS
     if (b) { parameters_.clear(); }
   }
 
-  String MzTabParameterList::toCellString() const
+  std::string MzTabParameterList::toCellString() const
   {
     if (isNull())
     {
@@ -32,7 +32,7 @@ namespace OpenMS
     }
     else
     {
-      String ret;
+      std::string ret;
       for (std::vector<MzTabParameter>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
       {
         if (it != parameters_.begin())
@@ -45,10 +45,10 @@ namespace OpenMS
     }
   }
 
-  void MzTabParameterList::fromCellString(const String& s)
+  void MzTabParameterList::fromCellString(const std::string& s)
   {
-    String lower = s;
-    lower.toLower().trim();
+    std::string lower = s;
+    StringUtils::trim(StringUtils::toLower(lower));
 
     if (lower == "null")
     {
@@ -56,16 +56,16 @@ namespace OpenMS
     }
     else
     {
-      std::vector<String> fields;
-      s.split("|", fields);
+      std::vector<std::string> fields;
+      StringUtils::split(s, "|", fields);
       for (Size i = 0; i != fields.size(); ++i)
       {
         MzTabParameter p;
         lower = fields[i];
-        lower.toLower().trim();
+        StringUtils::trim(StringUtils::toLower(lower));
         if (lower == "null")
         {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("MzTabParameter in MzTabParameterList must not be null '") + s);
+          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("MzTabParameter in MzTabParameterList must not be null '") + s);
         }
         p.fromCellString(fields[i]);
         parameters_.push_back(p);
@@ -106,7 +106,7 @@ namespace OpenMS
     }
   }
 
-  String MzTabStringList::toCellString() const
+  std::string MzTabStringList::toCellString() const
   {
     if (isNull())
     {
@@ -114,7 +114,7 @@ namespace OpenMS
     }
     else
     {
-      String ret;
+      std::string ret;
       for (std::vector<MzTabString>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
       {
         if (it != entries_.begin())
@@ -127,10 +127,10 @@ namespace OpenMS
     }
   }
 
-  void MzTabStringList::fromCellString(const String& s)
+  void MzTabStringList::fromCellString(const std::string& s)
   {
-    String lower = s;
-    lower.toLower().trim();
+    std::string lower = s;
+    StringUtils::trim(StringUtils::toLower(lower));
 
     if (lower == "null")
     {
@@ -138,8 +138,8 @@ namespace OpenMS
     }
     else
     {
-      std::vector<String> fields;
-      s.split(sep_, fields);
+      std::vector<std::string> fields;
+      StringUtils::split(s, sep_, fields);
       for (Size i = 0; i != fields.size(); ++i)
       {
         MzTabString ts;
@@ -187,7 +187,7 @@ namespace OpenMS
     }
   }
 
-  void MzTabSpectraRef::setSpecRef(const String& spec_ref)
+  void MzTabSpectraRef::setSpecRef(const std::string& spec_ref)
   {
     assert(!spec_ref.empty());
     if (!spec_ref.empty())
@@ -200,7 +200,7 @@ namespace OpenMS
     }
   }
 
-  String MzTabSpectraRef::getSpecRef() const
+  std::string MzTabSpectraRef::getSpecRef() const
   {
     assert(!isNull());
     return spec_ref_;
@@ -212,7 +212,7 @@ namespace OpenMS
     return ms_run_;
   }
 
-  void MzTabSpectraRef::setSpecRefFile(const String& spec_ref)
+  void MzTabSpectraRef::setSpecRefFile(const std::string& spec_ref)
   {
     assert(!spec_ref.empty());
     if (!spec_ref.empty())
@@ -221,7 +221,7 @@ namespace OpenMS
     }
   }
 
-  String MzTabSpectraRef::toCellString() const
+  std::string MzTabSpectraRef::toCellString() const
   {
     if (isNull())
     {
@@ -229,29 +229,29 @@ namespace OpenMS
     }
     else
     {
-      return String("ms_run[") + String(ms_run_) + "]:" + spec_ref_;
+      return StringUtils::toStr("ms_run[") + StringUtils::toStr(ms_run_) + "]:" + spec_ref_;
     }
   }
 
-  void MzTabSpectraRef::fromCellString(const String& s)
+  void MzTabSpectraRef::fromCellString(const std::string& s)
   {
-    String lower = s;
-    lower.toLower().trim();
+    std::string lower = s;
+    StringUtils::trim(StringUtils::toLower(lower));
     if (lower == "null")
     {
       setNull(true);
     }
     else
     {
-      std::vector<String> fields;
-      s.split(":", fields);
+      std::vector<std::string> fields;
+      StringUtils::split(s, ":", fields);
       if (fields.size() != 2)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can not convert to MzTabSpectraRef from '") + s + "'");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Can not convert to MzTabSpectraRef from '") + s + "'");
       }
 
       spec_ref_ = fields[1];
-      ms_run_ = (Size)(fields[0].substitute("ms_run[", "").remove(']').toInt());
+      { std::string f0 = fields[0]; StringUtils::remove(f0, ']'); ms_run_ = (Size)(StringUtils::toInt32(f0)); }
     }
   }
   MzTabParameter::MzTabParameter()
@@ -278,51 +278,51 @@ namespace OpenMS
     }
   }
 
-  void MzTabParameter::setCVLabel(const String& CV_label)
+  void MzTabParameter::setCVLabel(const std::string& CV_label)
   {
     CV_label_ = CV_label;
   }
 
-  void MzTabParameter::setAccession(const String& accession)
+  void MzTabParameter::setAccession(const std::string& accession)
   {
     accession_ = accession;
   }
 
-  void MzTabParameter::setName(const String& name)
+  void MzTabParameter::setName(const std::string& name)
   {
     name_ = name;
   }
 
-  void MzTabParameter::setValue(const String& value)
+  void MzTabParameter::setValue(const std::string& value)
   {
     value_ = value;
   }
 
-  String MzTabParameter::getCVLabel() const
+  std::string MzTabParameter::getCVLabel() const
   {
     assert(!isNull());
     return CV_label_;
   }
 
-  String MzTabParameter::getAccession() const
+  std::string MzTabParameter::getAccession() const
   {
     assert(!isNull());
     return accession_;
   }
 
-  String MzTabParameter::getName() const
+  std::string MzTabParameter::getName() const
   {
     assert(!isNull());
     return name_;
   }
 
-  String MzTabParameter::getValue() const
+  std::string MzTabParameter::getValue() const
   {
     assert(!isNull());
     return value_;
   }
 
-  String MzTabParameter::toCellString() const
+  std::string MzTabParameter::toCellString() const
   {
     if (isNull())
     {
@@ -330,24 +330,24 @@ namespace OpenMS
     }
     else
     {
-      String ret = "[";
+      std::string ret = "[";
       ret += CV_label_ + ", ";
       ret += accession_ + ", ";
 
-      if (name_.hasSubstring(", "))
+      if (StringUtils::hasSubstring(name_, ", "))
       {
-        ret += String("\"") + name_ + String("\""); // quote name if it contains a ","
+        ret +="\"" + name_ + "\""; // quote name if it contains a ","
       }
       else
       {
         ret += name_;
       }
 
-      ret += String(", ");
+      ret +=StringUtils::toStr(", ");
 
-      if (value_.hasSubstring(", "))
+      if (StringUtils::hasSubstring(value_, ", "))
       {
-        ret += String("\"") + value_ + String("\""); // quote value if it contains a ","
+        ret +="\"" + value_ + "\""; // quote value if it contains a ","
       }
       else
       {
@@ -359,10 +359,10 @@ namespace OpenMS
     }
   }
 
-  void MzTabParameter::fromCellString(const String& s)
+  void MzTabParameter::fromCellString(const std::string& s)
   {
-    String lower = s;
-    lower.toLower().trim();
+    std::string lower = s;
+    StringUtils::trim(StringUtils::toLower(lower));
     if (lower == "null")
     {
       setNull(true);
@@ -370,9 +370,9 @@ namespace OpenMS
     else
     {
       StringList fields;
-      String field;
+      std::string field;
       bool in_quotes = false;
-      for (String::const_iterator sit = s.begin(); sit != s.end(); ++sit)
+      for (std::string::const_iterator sit = s.begin(); sit != s.end(); ++sit)
       {
         if (*sit == '\"') // start or end of quotes
         {
@@ -386,7 +386,7 @@ namespace OpenMS
           }
           else // split at , if not in quotes
           {
-            fields.push_back(field.trim());
+            fields.push_back(StringUtils::trim(field));
             field.clear();
           }
         }
@@ -401,11 +401,11 @@ namespace OpenMS
         }
       }
 
-      fields.push_back(field.trim());
+      fields.push_back(StringUtils::trim(field));
 
       if (fields.size() != 4)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert String '") + s + "' to MzTabParameter");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Could not convert String '") + s + "' to MzTabParameter");
       }
 
       CV_label_ = fields[0];
@@ -415,15 +415,15 @@ namespace OpenMS
     }
   }
 
-  MzTabString::MzTabString(const String& s)
+  MzTabString::MzTabString(const std::string& s)
   {
     set(s);
   }
 
-  void MzTabString::set(const String& value)
+  void MzTabString::set(const std::string& value)
   {
-    String lower = value;
-    lower.toLower().trim();
+    std::string lower = value;
+    StringUtils::trim(StringUtils::toLower(lower));
     if (lower == "null")
     {
       setNull(true);
@@ -431,11 +431,11 @@ namespace OpenMS
     else
     {
       value_ = value;
-      value_.trim();
+      StringUtils::trim(value_);
     }
   }
 
-  String MzTabString::get() const
+  std::string MzTabString::get() const
   {
     return value_;
   }
@@ -458,7 +458,7 @@ namespace OpenMS
   {
   }
 
-  String MzTabString::toCellString() const
+  std::string MzTabString::toCellString() const
   {
     if (isNull())
     {
@@ -470,7 +470,7 @@ namespace OpenMS
     }
   }
 
-  void MzTabString::fromCellString(const String& s)
+  void MzTabString::fromCellString(const std::string& s)
   {
     set(s);
   }
@@ -508,7 +508,7 @@ namespace OpenMS
       value_ = 0;
   }
 
-  String MzTabBoolean::toCellString() const
+  std::string MzTabBoolean::toCellString() const
   {
     if (isNull())
     {
@@ -527,10 +527,10 @@ namespace OpenMS
     }
   }
 
-  void MzTabBoolean::fromCellString(const String& s)
+  void MzTabBoolean::fromCellString(const std::string& s)
   {
-    String lower = s;
-    lower.toLower().trim();
+    std::string lower = s;
+    StringUtils::trim(StringUtils::toLower(lower));
     if (lower == "null")
     {
       setNull(true);
@@ -547,7 +547,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert String '") + s + "' to MzTabBoolean");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Could not convert String '") + s + "' to MzTabBoolean");
       }
     }
   }
@@ -565,7 +565,7 @@ namespace OpenMS
     }
   }
 
-  String MzTabIntegerList::toCellString() const
+  std::string MzTabIntegerList::toCellString() const
   {
     if (isNull())
     {
@@ -573,7 +573,7 @@ namespace OpenMS
     }
     else
     {
-      String ret;
+      std::string ret;
       for (std::vector<MzTabInteger>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
       {
         if (it != entries_.begin())
@@ -586,18 +586,18 @@ namespace OpenMS
     }
   }
 
-  void MzTabIntegerList::fromCellString(const String& s)
+  void MzTabIntegerList::fromCellString(const std::string& s)
   {
-    String lower = s;
-    lower.toLower().trim();
+    std::string lower = s;
+    StringUtils::trim(StringUtils::toLower(lower));
     if (lower == "null")
     {
       setNull(true);
     }
     else
     {
-      std::vector<String> fields;
-      s.split(",", fields);
+      std::vector<std::string> fields;
+      StringUtils::split(s, ", ", fields);
       for (Size i = 0; i != fields.size(); ++i)
       {
         MzTabInteger ds;
@@ -641,11 +641,11 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Trying to extract MzTab Integer value from non-integer valued cell. Did you check the cell state before querying the value?"));
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Trying to extract MzTab Integer value from non-integer valued cell. Did you check the cell state before querying the value?"));
     }
   }
 
-  String MzTabInteger::toCellString() const
+  std::string MzTabInteger::toCellString() const
   {
     switch (state_)
     {
@@ -660,24 +660,24 @@ namespace OpenMS
 
       case MZTAB_CELLSTATE_DEFAULT:
       default:
-        return String(value_);
+        return StringUtils::toStr(value_);
     }
   }
 
-  void MzTabInteger::fromCellString(const String& s)
+  void MzTabInteger::fromCellString(const std::string& s)
   {
-    String lower = s;
-    lower.toLower().trim();
+    std::string lower = s;
+    StringUtils::trim(StringUtils::toLower(lower));
     if (lower == "null") { setNull(true); }
     else if (lower == "nan") { setNaN(); }
     else if (lower == "inf") { setInf(); }
     else // default case
     {
       // some mzTab files from external sources contain floating point numbers in integer columns
-      auto val = lower.toDouble();
+      auto val = StringUtils::toDouble(lower);
       if (val != (Int)val) // check if the value is actually an integer (e.g. 4.0)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert String '") + s + "' to MzTabInteger");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Could not convert String '") + s + "' to MzTabInteger");
       }
       set((Int)val);
     }
@@ -763,13 +763,13 @@ namespace OpenMS
   {
     if (state_ != MZTAB_CELLSTATE_DEFAULT)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Trying to extract MzTab Double value from non-double valued cell. Did you check the cell state before querying the value?"));
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Trying to extract MzTab Double value from non-double valued cell. Did you check the cell state before querying the value?"));
     }
 
     return value_;
   }
 
-  String MzTabDouble::toCellString() const
+  std::string MzTabDouble::toCellString() const
   {
     switch (state_)
     {
@@ -784,14 +784,14 @@ namespace OpenMS
 
       case MZTAB_CELLSTATE_DEFAULT:
       default:
-        return String(value_);
+        return StringUtils::toStr(value_);
     }
   }
 
-  void MzTabDouble::fromCellString(const String& s)
+  void MzTabDouble::fromCellString(const std::string& s)
   {
-    String lower = s;
-    lower.toLower().trim();
+    std::string lower = s;
+    StringUtils::trim(StringUtils::toLower(lower));
     if (lower == "null")
     {
       setNull(true);
@@ -806,7 +806,7 @@ namespace OpenMS
     }
     else // default case
     {
-      set(lower.toDouble());
+      set(StringUtils::toDouble(lower));
     }
   }
 
@@ -833,7 +833,7 @@ namespace OpenMS
     }
   }
 
-  String MzTabDoubleList::toCellString() const
+  std::string MzTabDoubleList::toCellString() const
   {
     if (isNull())
     {
@@ -841,7 +841,7 @@ namespace OpenMS
     }
     else
     {
-      String ret;
+      std::string ret;
       for (std::vector<MzTabDouble>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
       {
         if (it != entries_.begin())
@@ -854,18 +854,18 @@ namespace OpenMS
     }
   }
 
-  void MzTabDoubleList::fromCellString(const String& s)
+  void MzTabDoubleList::fromCellString(const std::string& s)
   {
-    String lower = s;
-    lower.toLower().trim();
+    std::string lower = s;
+    StringUtils::trim(StringUtils::toLower(lower));
     if (lower == "null")
     {
       setNull(true);
     }
     else
     {
-      std::vector<String> fields;
-      s.split("|", fields);
+      std::vector<std::string> fields;
+      StringUtils::split(s, "|", fields);
       for (Size i = 0; i != fields.size(); ++i)
       {
         MzTabDouble ds;

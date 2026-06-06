@@ -84,8 +84,8 @@ public:
     MRMFeatureOpenMS(MRMFeature& mrmfeature,
                      const std::vector<std::string>& feature_ids,
                      const std::vector<std::string>& precursor_feature_ids,
-                     const std::vector<String>& feature_lookup_ids,
-                     const std::vector<String>& precursor_feature_lookup_ids);
+                     const std::vector<std::string>& feature_lookup_ids,
+                     const std::vector<std::string>& precursor_feature_lookup_ids);
 
     ~MRMFeatureOpenMS() override;
 

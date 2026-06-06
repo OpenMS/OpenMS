@@ -171,7 +171,7 @@ public:
     ExitCodes run(FASTAContainer<TFI_Vector>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
     /// Which string is used to determine if a protein is a decoy or not
-    const String& getDecoyString() const;
+    const std::string& getDecoyString() const;
 
     /// Is the decoy string position a prefix or suffix?
     bool isPrefix() const;
@@ -181,11 +181,11 @@ public:
 
     template<typename T> ExitCodes run_(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
-    String decoy_string_{};
+    std::string decoy_string_{};
     bool prefix_{ false };
     MissingDecoy missing_decoy_action_ = MissingDecoy::IS_ERROR;
-    String enzyme_name_{};
-    String enzyme_specificity_{};
+    std::string enzyme_name_{};
+    std::string enzyme_specificity_{};
 
     bool write_protein_sequence_{ false };
     bool write_protein_description_{ false };

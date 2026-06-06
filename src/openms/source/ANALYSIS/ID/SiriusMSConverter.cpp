@@ -95,8 +95,8 @@ namespace OpenMS
                                   const std::vector<size_t>& ms2_spectra_index,
                                   const SiriusMSFile::AccessionInfo& ainfo,
                                   const StringList& adducts,
-                                  const std::vector<String>& v_description,
-                                  const std::vector<String>& v_sumformula,
+                                  const std::vector<std::string>& v_description,
+                                  const std::vector<std::string>& v_sumformula,
                                   const std::vector<pair<double,double>>& f_isotopes,
                                   int& feature_charge,
                                   uint64_t& feature_id,
@@ -126,7 +126,7 @@ namespace OpenMS
         const MSSpectrum& current_ms2 = spectra[ind];
         const double& current_rt = current_ms2.getRT();
 
-        const String& native_id = current_ms2.getNativeID();
+        const std::string& native_id = current_ms2.getNativeID();
         const int& scan_number = SpectrumLookup::extractScanNumber(native_id, ainfo.native_id_accession);
 
         const std::vector<Precursor> &precursor = current_ms2.getPrecursors();
@@ -228,10 +228,10 @@ namespace OpenMS
           std::string des_wo_space = v_description[k];
           des_wo_space.erase(std::remove_if(des_wo_space.begin(), des_wo_space.end(), ::isspace), des_wo_space.end());
 
-          String query_id = String(file_index) + "_" + String(feature_id) +
-                            String("-" + String(scan_number) + "-") +
-                            String("-" + String(ind) + "--") +
-                            String(des_wo_space);
+          std::string query_id =StringUtils::toStr(file_index) + "_" + StringUtils::toStr(feature_id) +
+                            std::string("-" + StringUtils::toStr(scan_number) + "-") +
+                            std::string("-" + StringUtils::toStr(ind) + "--") +
+                            StringUtils::toStr(des_wo_space);
 
           if (writecompound)
           {
@@ -297,19 +297,19 @@ namespace OpenMS
 
             if (feature_mz != 0 && feature_id != 0)
             {
-              os << "##fmz " << String(feature_mz) << "\n";
-              os << "##fid " << String(feature_id) << "\n";
+              os << "##fmz " << StringUtils::toStr(feature_mz) << "\n";
+              os << "##fid " << StringUtils::toStr(feature_id) << "\n";
               cmpinfo.fmz = feature_mz;
               cmpinfo.fid = feature_id;
             }
-            os << "##des " << String(des_wo_space) << "\n";
+            os << "##des " << StringUtils::toStr(des_wo_space) << "\n";
             os << "##specref_format " << "[MS, " << ainfo.native_id_accession <<", "<< ainfo.native_id_type << "]" << endl;
             os << "##source file " << ainfo.sf_path << ainfo.sf_filename << endl;
             os << "##source format " << "[MS, " << ainfo.sf_accession << ", "<< ainfo.sf_type << ",]" << endl;
-            cmpinfo.des = String(des_wo_space);
-            cmpinfo.specref_format = String("[MS, " + ainfo.native_id_accession + ", " + ainfo.native_id_type + "]");
-            cmpinfo.source_file = String(ainfo.sf_path + ainfo.sf_filename);
-            cmpinfo.source_format = String("[MS, " + ainfo.sf_accession + ", "+ ainfo.sf_type + ",]" );
+            cmpinfo.des =StringUtils::toStr(des_wo_space);
+            cmpinfo.specref_format =StringUtils::toStr("[MS, " + ainfo.native_id_accession + ", " + ainfo.native_id_type + "]");
+            cmpinfo.source_file =StringUtils::toStr(ainfo.sf_path + ainfo.sf_filename);
+            cmpinfo.source_format =StringUtils::toStr("[MS, " + ainfo.sf_accession + ", "+ ainfo.sf_type + ",]" );
 
             // use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
             Size num_isotopes = isotopes.size();
@@ -372,14 +372,14 @@ namespace OpenMS
           os << "##n_id " << native_id << endl;
           // "m_id" annotation for multiple possible identifications (description_filepath_native_id_k)
           // fragment mapping will be done using the m_id
-          String m_id = cmpinfo.des + "_" + ainfo.sf_filename + "_" + native_id + "_" + k;
+          std::string m_id = cmpinfo.des + "_" + ainfo.sf_filename + "_" + native_id + "_" + k;
           os << "##m_id " << m_id << endl;
           os << "##scan " << ind << endl;
           os << "##specref " << "ms_run[1]:" << native_id << endl;
 
           cmpinfo.native_ids.push_back(native_id);
           cmpinfo.m_ids.push_back(m_id);
-          cmpinfo.scan_indices.emplace_back(ind);
+          cmpinfo.scan_indices.emplace_back(StringUtils::toStr(ind));
           cmpinfo.specrefs.emplace_back("ms_run[1]:" + native_id);
 
           // single spectrum peaks
@@ -467,7 +467,7 @@ namespace OpenMS
     // extract accession by name
     ControlledVocabulary cv;
     cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-    auto lambda = [&ainfo, &cv] (const String& child)
+    auto lambda = [&ainfo, &cv] (const std::string& child)
     {
       const ControlledVocabulary::CVTerm& c = cv.getTerm(child);
       if (c.name == ainfo.sf_type)
@@ -479,11 +479,11 @@ namespace OpenMS
     };
     cv.iterateAllChildren("MS:1000560", lambda);
 
-    vector<String> adducts;
-    String description;
-    String sumformula;
-    vector<String> v_description;
-    vector<String> v_sumformula;
+    vector<std::string> adducts;
+    std::string description;
+    std::string sumformula;
+    vector<std::string> v_description;
+    vector<std::string> v_sumformula;
 
     uint64_t feature_id;
     int feature_charge;
@@ -551,23 +551,25 @@ namespace OpenMS
 
           for (unsigned int j = 0; j != feature->getPeptideIdentifications()[0].getHits().size(); ++j)
           {
-           String adduct;
-           description = feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("description");
+           std::string adduct;
+           description = (std::string)feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("description");
            if (description == "[null]")
            {
              description = "[UNKNOWN]";
            }
-           sumformula = feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("chemical_formula");
+           sumformula = (std::string)feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("chemical_formula");
            if (sumformula.empty())
            {
              sumformula = "UNKNOWN";
            }
-           adduct = feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("modifications");
+           adduct = (std::string)feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("modifications");
            if (adduct != "null")
            {
              // change format of adduct information M+H;1+ -> [M+H]1+
-             String adduct_prefix = adduct.prefix(';').trim();
-             String adduct_suffix = adduct.suffix(';').trim();
+             std::string adduct_prefix = StringUtils::prefix(adduct, ';');
+             StringUtils::trim(adduct_prefix);
+             std::string adduct_suffix = StringUtils::suffix(adduct, ';');
+             StringUtils::trim(adduct_suffix);
              adduct = "[" + adduct_prefix + "]" + adduct_suffix;
            }
            else

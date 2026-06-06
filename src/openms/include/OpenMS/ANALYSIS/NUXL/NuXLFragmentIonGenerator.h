@@ -91,8 +91,8 @@ class OPENMS_DLLAPI NuXLFragmentIonGenerator
     @param[in,out] partial_loss_spectrum_annotation     Parallel annotation array.
   */
   static void addShiftedImmoniumIons(
-    const String & unmodified_sequence,
-    const String & fragment_shift_name,
+    const std::string & unmodified_sequence,
+    const std::string & fragment_shift_name,
     const double fragment_shift_mass,
     PeakSpectrum & partial_loss_spectrum,
     PeakSpectrum::IntegerDataArray& partial_loss_spectrum_charge,
@@ -129,9 +129,9 @@ class OPENMS_DLLAPI NuXLFragmentIonGenerator
     @param[in]  patial_loss_template_z3                  Charge-3 template peaks (filtered to charge-3 entries during the shift step).
     @param[out] partial_loss_spectrum                     Receives the composed spectrum (data arrays resized to one each).
   */
-  static void generatePartialLossSpectrum(const String& unmodified_sequence,
+  static void generatePartialLossSpectrum(const std::string& unmodified_sequence,
                                     const double& fixed_and_variable_modified_peptide_weight,
-                                    const String& precursor_rna_adduct,
+                                    const std::string& precursor_rna_adduct,
                                     const double& precursor_rna_mass,
                                     const int& precursor_charge,
                                     const std::vector<NuXLFragmentAdductDefinition>& partial_loss_modification,
@@ -160,7 +160,7 @@ class OPENMS_DLLAPI NuXLFragmentIonGenerator
     @param[in,out] partial_loss_spectrum_annotation           Parallel annotation array.
   */
   static void addPrecursorWithCompleteRNA_(const double fixed_and_variable_modified_peptide_weight,
-                                    const String & precursor_rna_adduct,
+                                    const std::string & precursor_rna_adduct,
                                     const double precursor_rna_mass,
                                     const int charge,
                                     PeakSpectrum & partial_loss_spectrum,
@@ -181,7 +181,7 @@ class OPENMS_DLLAPI NuXLFragmentIonGenerator
     @param[in,out] spectrum_charge     Parallel charge array.
     @param[in,out] spectrum_annotation Parallel annotation array.
   */
-  static void addSpecialLysImmonumIons(const String& unmodified_sequence,
+  static void addSpecialLysImmonumIons(const std::string& unmodified_sequence,
                                     PeakSpectrum &spectrum,
                                     PeakSpectrum::IntegerDataArray &spectrum_charge,
                                     PeakSpectrum::StringDataArray &spectrum_annotation);

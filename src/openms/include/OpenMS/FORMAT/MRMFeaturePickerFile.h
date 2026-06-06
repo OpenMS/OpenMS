@@ -80,7 +80,7 @@ public:
                                             opened.
     */
     void load(
-      const String& filename,
+      const std::string& filename,
       std::vector<MRMFeaturePicker::ComponentParams>& cp_list,
       std::vector<MRMFeaturePicker::ComponentGroupParams>& cgp_list
     );
@@ -106,7 +106,7 @@ protected:
     */
     bool extractParamsFromLine_(
       const StringList& line,
-      const std::map<String, Size>& headers,
+      const std::map<std::string, Size>& headers,
       MRMFeaturePicker::ComponentParams& cp,
       MRMFeaturePicker::ComponentGroupParams& cgp
     ) const;
@@ -134,7 +134,7 @@ protected:
       @param[in]     value  Value to convert.
       @param[in,out] params Parameter container to update.
     */
-    void setCastValue_(const String& key, const String& value, Param& params) const;
+    void setCastValue_(const std::string& key, const std::string& value, Param& params) const;
   };
 }
 

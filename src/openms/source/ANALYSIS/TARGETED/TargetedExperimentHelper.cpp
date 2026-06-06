@@ -15,10 +15,10 @@
 namespace OpenMS::TargetedExperimentHelper
   {
 
-    void setModification(int location, int max_size, const String& modification, OpenMS::AASequence& aas)
+    void setModification(int location, int max_size, const std::string& modification, OpenMS::AASequence& aas)
     {
       OPENMS_PRECONDITION(location >= -1 && location <= max_size, 
-          (String("Location has invalid value") + (String)location).c_str() )
+          (StringUtils::toStr("Location has invalid value") + (String)location).c_str() )
 
       if (location == -1)
       {
@@ -52,7 +52,7 @@ namespace OpenMS::TargetedExperimentHelper
         if (it->unimod_id != -1)
         {
           setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), 
-              "UniMod:" + String(it->unimod_id), aas);
+              "UniMod:" + StringUtils::toStr(it->unimod_id), aas);
           continue;
         }
 
@@ -64,7 +64,7 @@ namespace OpenMS::TargetedExperimentHelper
         // Step 2: If the above step fails, try to find the correct
         // modification by using the mass difference
         const ResidueModification* mod = mod_db->getBestModificationByDiffMonoMass(
-          it->mono_mass_delta, 1.0, peptide.sequence[it->location]);
+          it->mono_mass_delta, 1.0, std::string(1, peptide.sequence[it->location]));
         if (mod != nullptr)
         {
           setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), mod->getId(), aas);

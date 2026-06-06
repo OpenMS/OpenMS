@@ -24,7 +24,7 @@ namespace OpenMS
   {
   }
 
-  void ProtXMLFile::load(const String& filename, ProteinIdentification& protein_ids, PeptideIdentification& peptide_ids)
+  void ProtXMLFile::load(const std::string& filename, ProteinIdentification& protein_ids, PeptideIdentification& peptide_ids)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -42,7 +42,7 @@ namespace OpenMS
     parse_(filename, this);
   }
 
-  void ProtXMLFile::store(const String& /*filename*/, const ProteinIdentification& /*protein_ids*/, const PeptideIdentification& /*peptide_ids*/, const String& /*document_id*/)
+  void ProtXMLFile::store(const std::string& /*filename*/, const ProteinIdentification& /*protein_ids*/, const PeptideIdentification& /*peptide_ids*/, const std::string& /*document_id*/)
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     // resetMembers_();
@@ -59,12 +59,12 @@ namespace OpenMS
 
   void ProtXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
-    String tag = sm_.convert(qname);
+    std::string tag = sm_.convert(qname);
 
     if (tag == "protein_summary_header")
     {
-      String db = attributeAsString_(attributes, "reference_database");
-      String enzyme = attributeAsString_(attributes, "sample_enzyme");
+      std::string db = attributeAsString_(attributes, "reference_database");
+      std::string enzyme = attributeAsString_(attributes, "sample_enzyme");
       ProteinIdentification::SearchParameters sp = prot_id_->getSearchParameters();
       sp.db = db;
       // find a matching enzyme name
@@ -79,9 +79,9 @@ namespace OpenMS
     // <program_details analysis="proteinprophet" time="2009-11-29T18:30:03" ...
     if (tag == "program_details")
     {
-      String analysis = attributeAsString_(attributes, "analysis");
-      String time = attributeAsString_(attributes, "time");
-      String version = attributeAsString_(attributes, "version");
+      std::string analysis = attributeAsString_(attributes, "analysis");
+      std::string time = attributeAsString_(attributes, "time");
+      std::string version = attributeAsString_(attributes, "version");
 
       DateTime date;
       date.set(time);
@@ -93,7 +93,7 @@ namespace OpenMS
       prot_id_->setDateTime(date);
       prot_id_->setSearchEngine(analysis);
       prot_id_->setSearchEngineVersion(version);
-      String id = String(UniqueIdGenerator::getUniqueId()); // was: analysis + "_" + time;
+      std::string id =StringUtils::toStr(UniqueIdGenerator::getUniqueId()); // was: analysis + "_" + time;
       prot_id_->setIdentifier(id);
       pep_id_->setIdentifier(id);
     }
@@ -111,7 +111,7 @@ namespace OpenMS
       // are possible; each <protein> is distinguishable from the other, we
       // nevertheless group them
 
-      String protein_name = attributeAsString_(attributes, "protein_name");
+      std::string protein_name = attributeAsString_(attributes, "protein_name");
       // open new "indistinguishable" group:
       prot_id_->insertIndistinguishableProteins(ProteinGroup());
       registerProtein_(protein_name); // create new protein
@@ -131,7 +131,7 @@ namespace OpenMS
     }
     else if (tag == "indistinguishable_protein")
     {
-      String protein_name = attributeAsString_(attributes, "protein_name");
+      std::string protein_name = attributeAsString_(attributes, "protein_name");
       // current last protein is from the same "indistinguishable" group:
       double score = prot_id_->getHits().back().getScore();
       registerProtein_(protein_name);
@@ -146,7 +146,7 @@ namespace OpenMS
       // We thus treat each instance as a separate peptide
       // todo/improvement: link them by a group in PeptideIdentification?!
       pep_hit_ = new PeptideHit;
-      pep_hit_->setSequence(AASequence::fromString(String(attributeAsString_(attributes, "peptide_sequence"))));
+      pep_hit_->setSequence(AASequence::fromString(StringUtils::toStr(attributeAsString_(attributes, "peptide_sequence"))));
       pep_hit_->setScore(attributeAsDouble_(attributes, "nsp_adjusted_probability"));
 
       Int charge;
@@ -167,8 +167,8 @@ namespace OpenMS
         pe.setProteinAccession(*accession);
         pep_hit_->addPeptideEvidence(pe);
       }
-      pep_hit_->setMetaValue("is_unique", String(attributeAsString_(attributes, "is_nondegenerate_evidence")) == "Y" ? 1 : 0);
-      pep_hit_->setMetaValue("is_contributing", String(attributeAsString_(attributes, "is_contributing_evidence")) == "Y" ? 1 : 0);
+      pep_hit_->setMetaValue("is_unique",StringUtils::toStr(attributeAsString_(attributes, "is_nondegenerate_evidence")) == "Y" ? 1 : 0);
+      pep_hit_->setMetaValue("is_contributing",StringUtils::toStr(attributeAsString_(attributes, "is_contributing_evidence")) == "Y" ? 1 : 0);
     }
     else if (tag == "mod_aminoacid_mass")
     {
@@ -177,14 +177,14 @@ namespace OpenMS
       double mass = attributeAsDouble_(attributes, "mass");
       AASequence temp_aa_sequence(pep_hit_->getSequence());
 
-      String temp_description = "";
-      String origin = temp_aa_sequence[position - 1].getOneLetterCode();
+      std::string temp_description = "";
+      std::string origin = temp_aa_sequence[position - 1].getOneLetterCode();
       matchModification_(mass, origin, temp_description);
       if (!temp_description.empty()) // only if a mod was found
       {
         // e.g. Carboxymethyl (C)
-        vector<String> mod_split;
-        temp_description.split(' ', mod_split);
+        vector<std::string> mod_split;
+        StringUtils::split(temp_description, ' ', mod_split);
         if (mod_split.size() == 2)
         {
           if (mod_split[1] == "(C-term)" || ModificationsDB::getInstance()->getModification(temp_description)->getTermSpecificity() == ResidueModification::C_TERM)
@@ -206,12 +206,12 @@ namespace OpenMS
         }
         else
         {
-          error(LOAD, String("Cannot parse modification '") + temp_description + "@" + position + "'");
+          error(LOAD,StringUtils::toStr("Cannot parse modification '") + temp_description + "@" + position + "'");
         }
       }
       else
       {
-        error(LOAD, String("Cannot find modification '") + String(mass) + " " + String(origin) + "' @" + String(position));
+        error(LOAD,StringUtils::toStr("Cannot find modification '") + StringUtils::toStr(mass) + " " + StringUtils::toStr(origin) + "' @" + StringUtils::toStr(position));
       }
 
       pep_hit_->setSequence(temp_aa_sequence);
@@ -220,7 +220,7 @@ namespace OpenMS
 
   void ProtXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
-    String tag = sm_.convert(qname);
+    std::string tag = sm_.convert(qname);
 
 
     if (tag == "protein_group")
@@ -234,7 +234,7 @@ namespace OpenMS
     }
   }
 
-  void ProtXMLFile::registerProtein_(const String& protein_name)
+  void ProtXMLFile::registerProtein_(const std::string& protein_name)
   {
     ProteinHit hit;
     hit.setAccession(protein_name);
@@ -245,10 +245,10 @@ namespace OpenMS
       protein_name);
   }
 
-  void ProtXMLFile::matchModification_(const double mass, const String& origin, String& modification_description)
+  void ProtXMLFile::matchModification_(const double mass, const std::string& origin, std::string& modification_description)
   {
     double mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
-    vector<String> mods;
+    vector<std::string> mods;
     ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, 0.001, origin);
 
     if (mods.size() == 1)
@@ -259,12 +259,12 @@ namespace OpenMS
     {
       if (!mods.empty())
       {
-        String mod_str = mods[0];
-        for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
+        std::string mod_str = mods[0];
+        for (vector<std::string>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
         {
           mod_str += ", " + *mit;
         }
-        error(LOAD, "Modification '" + String(mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'!");
+        error(LOAD, "Modification '" + StringUtils::toStr(mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'!");
         modification_description = mods[0];
       }
     }

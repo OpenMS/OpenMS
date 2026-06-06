@@ -49,7 +49,7 @@ namespace OpenMS::ims
           return cit;
         }
       }
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name + " was not found in IMSAlphabet!", String(name));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name + " was not found in IMSAlphabet!",StringUtils::toStr(name));
     }
 
     void IMSAlphabet::setElement(const name_type & name, mass_type mass, bool forced)

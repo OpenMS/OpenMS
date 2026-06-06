@@ -31,7 +31,7 @@ bool sortSwathMaps(const OpenSwath::SwathMap& left, const OpenSwath::SwathMap& r
 }
 
 
-void storeSwathFile(String filename, int nr_swathes=32)
+void storeSwathFile(std::string filename, int nr_swathes=32)
 {
   PeakMap exp;
   {
@@ -57,7 +57,7 @@ void storeSwathFile(String filename, int nr_swathes=32)
   MzMLFile().store(filename, exp);
 }
 
-void storeSplitSwathFile(std::vector<String> filenames)
+void storeSplitSwathFile(std::vector<std::string> filenames)
 {
   {
     PeakMap exp;
@@ -103,7 +103,7 @@ START_SECTION(([EXTRA]virtual ~SwathFile()))
 END_SECTION
 
 // fast
-START_SECTION(std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal") )
+START_SECTION(std::vector< OpenSwath::SwathMap > loadMzML(std::string file, std::string tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, std::string readoptions="normal") )
 {
   Size nr_swathes = 6;
   storeSwathFile("swathFile_1.tmp", nr_swathes);
@@ -126,7 +126,7 @@ START_SECTION(std::vector< OpenSwath::SwathMap > loadMzML(String file, String tm
 END_SECTION
 
 // medium (2x slower than normal mzML)
-START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache") )
+START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadMzML(std::string file, std::string tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, std::string readoptions="cache") )
 {
   Size nr_swathes = 2;
   storeSwathFile("swathFile_1.tmp", nr_swathes);
@@ -149,14 +149,14 @@ START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadMzML(String file, St
 END_SECTION
 
 // medium (2x slower than normal mzML)
-START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal"))
+START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, std::string tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, std::string readoptions="normal"))
 {
-  std::vector<String> swath_filenames;
+  std::vector<std::string> swath_filenames;
   Size nr_swathes = 3;
   swath_filenames.push_back("swathFile_2_ms1.tmp");
   for (Size i = 0; i < nr_swathes; i++)
   {
-    swath_filenames.push_back( String("swathFile_2_sw" ) + String(i) + ".tmp");
+    swath_filenames.push_back(StringUtils::toStr("swathFile_2_sw" ) + StringUtils::toStr(i) + ".tmp");
   }
   storeSplitSwathFile(swath_filenames);
   std::shared_ptr<ExperimentalSettings> meta = std::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
@@ -182,14 +182,14 @@ START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list,
 END_SECTION
 
 // slow (7x slower than normal mzML)
-START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache"))
+START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, std::string tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, std::string readoptions="cache"))
 {
-  std::vector<String> swath_filenames;
+  std::vector<std::string> swath_filenames;
   Size nr_swathes = 2;
   swath_filenames.push_back("swathFile_3_ms1.tmp");
   for (Size i = 0; i < nr_swathes; i++)
   {
-    swath_filenames.push_back( String("swathFile_3_sw" ) + String(i) + ".tmp");
+    swath_filenames.push_back(StringUtils::toStr("swathFile_3_sw" ) + StringUtils::toStr(i) + ".tmp");
   }
   storeSplitSwathFile(swath_filenames);
   std::shared_ptr<ExperimentalSettings> meta = std::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
@@ -213,7 +213,7 @@ START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList fil
 }
 END_SECTION
 
-START_SECTION((std::vector< OpenSwath::SwathMap > loadMzXML(String file, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal") ) )
+START_SECTION((std::vector< OpenSwath::SwathMap > loadMzXML(std::string file, std::string tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, std::string readoptions="normal") ) )
 {
   NOT_TESTABLE // mzXML is not supported
 }

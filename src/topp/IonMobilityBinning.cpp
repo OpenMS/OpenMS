@@ -109,10 +109,10 @@ protected:
 
   void writeOutputFiles_(std::vector<PeakMap>& mzML_bins, 
     const Math::BinContainer& im_ranges,
-    const String& out_prefix,
+    const std::string& out_prefix,
     Size n_bins)
   {
-    const Size width = String(n_bins).size();
+    const Size width =StringUtils::toStr(n_bins).size();
     for (Size i = 0; i < n_bins; ++i)
     {
       ostringstream out_name;
@@ -131,8 +131,8 @@ protected:
 
   ExitCodes main_(int, const char **) override
   {
-    String input_file = getStringOption_("in");
-    String out_prefix = getStringOption_("out");
+    std::string input_file = getStringOption_("in");
+    std::string out_prefix = getStringOption_("out");
     int bins = getIntOption_("bins");
     double bin_extension_abs = getDoubleOption_("bin_extension_abs");
     double mz_binning_width = getDoubleOption_("SpectraMerging:mz_binning_width");

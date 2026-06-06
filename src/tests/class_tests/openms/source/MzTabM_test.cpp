@@ -306,8 +306,8 @@ START_SECTION(Fill data structure)
   // p_qunit.fromCellString("[MS, MS:1000042, peak intensity, ]");
   TEST_EQUAL(mtest.small_molecule_quantification_unit.toCellString(), "[MS, MS:1000042, peak intensity, ]")
 
-  vector<String> optional_sml_columns = mztabm.getMSmallMoleculeOptionalColumnNames();
-  vector<String> optional_sme_columns = mztabm.getMSmallMoleculeEvidenceOptionalColumnNames();
+  vector<std::string> optional_sml_columns = mztabm.getMSmallMoleculeOptionalColumnNames();
+  vector<std::string> optional_sme_columns = mztabm.getMSmallMoleculeEvidenceOptionalColumnNames();
 
   TEST_EQUAL(mztabm.getMSmallMoleculeSectionRows().size(),1)
   TEST_EQUAL(mztabm.getMSmallMoleculeFeatureSectionRows().size(), 1)

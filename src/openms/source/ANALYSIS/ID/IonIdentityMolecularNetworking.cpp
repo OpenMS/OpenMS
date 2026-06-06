@@ -60,7 +60,7 @@ namespace OpenMS
     // For each ConsensusFeature: add Constants::UserParam::IIMN_ROW_ID and if Constants::UserParam::IIMN_LINKED_GROUPS is present
     // add a Vertex for the ConsensusFeature and all corresponding Groups to bipartite graph.
     // Check if a Group Vertex has been added already to the graph, since the same Group can occur multiple times.
-    std::unordered_map<String, size_t> already_in_graph; // <group_uid, vertex_index>
+    std::unordered_map<std::string, size_t> already_in_graph; // <group_uid, vertex_index>
     for (size_t i = 0; i < consensus_map.size(); i++)
     {
       consensus_map[i].setMetaValue(Constants::UserParam::IIMN_ROW_ID, i+1);
@@ -105,7 +105,7 @@ namespace OpenMS
     // annotate partners
     for (const auto& i : partner_map)
     {
-      String partners;
+      std::string partners;
       for (const auto& j : i.second)
       {
         if (partners.size() > 0) partners += ";";
@@ -123,7 +123,7 @@ namespace OpenMS
   /**
   @brief Generates a supplementary pairs table required for GNPS IIMN, as defined here: https://ccms-ucsd.github.io/GNPSDocumentation/fbmn-iin/#supplementary-pairs
   */
-  void IonIdentityMolecularNetworking::writeSupplementaryPairTable(const ConsensusMap& consensus_map, const String& output_file)
+  void IonIdentityMolecularNetworking::writeSupplementaryPairTable(const ConsensusMap& consensus_map, const std::string& output_file)
   {
     // exit early if there is no IIMN annotations (first feature has no Constants::UserParam::IIMN_ROW_ID)
     if (!consensus_map[0].metaValueExists(Constants::UserParam::IIMN_ROW_ID)) return;
@@ -136,7 +136,7 @@ namespace OpenMS
       std::stringstream ss(consensus_map[i].getMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS).toChar());
       while(ss.good())
       {
-        String substr;
+        std::string substr;
         getline(ss, substr, ';');
         feature_partners[i].insert(std::stoi(substr)-1);
       }
@@ -158,7 +158,7 @@ namespace OpenMS
 
     // initialize SVOutStream with tab separation
     std::ofstream outstr(output_file.c_str());
-    SVOutStream out(outstr, ",", "_", String::NONE);
+    SVOutStream out(outstr, ",", "_", OpenMS::QuotingMethod::NONE);
     
     // write table header
     out << "ID1" << "ID2" << "EdgeType" << "Score" << "Annotation" << std::endl;
@@ -173,9 +173,9 @@ namespace OpenMS
         out << "MS1 annotation";
         out << num_partners[entry.first] + num_partners[partner_index] - 2; // total number of direct partners from both features minus themselves
         std::stringstream annotation;
-        annotation << consensus_map[entry.first].getMetaValue(Constants::UserParam::IIMN_BEST_ION, String("default")) << " "
-                   << consensus_map[partner_index].getMetaValue(Constants::UserParam::IIMN_BEST_ION, String("default")) << " "
-                   << "dm/z=" << String(std::abs(consensus_map[entry.first].getMZ() - consensus_map[partner_index].getMZ()));
+        annotation << consensus_map[entry.first].getMetaValue(Constants::UserParam::IIMN_BEST_ION,StringUtils::toStr("default")) << " "
+                   << consensus_map[partner_index].getMetaValue(Constants::UserParam::IIMN_BEST_ION,StringUtils::toStr("default")) << " "
+                   << "dm/z=" << StringUtils::toStr(std::abs(consensus_map[entry.first].getMZ() - consensus_map[partner_index].getMZ()));
         out << annotation.str();
         out << std::endl;
         sorted[partner_index].erase(entry.first); // remove other direction to avoid duplicates

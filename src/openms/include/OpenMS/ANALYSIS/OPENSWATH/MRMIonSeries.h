@@ -41,7 +41,7 @@ namespace OpenMS
   class OPENMS_DLLAPI MRMIonSeries
   {
 private:
-    TargetedExperiment::Interpretation annotationToCVTermList_(const String& annotation);
+    TargetedExperiment::Interpretation annotationToCVTermList_(const std::string& annotation);
 
     void annotationToCV_(ReactionMonitoringTransition& tr);
 
@@ -54,18 +54,18 @@ public:
     ~MRMIonSeries();
     //@}
 
-    typedef std::map<String, double> IonSeries; ///< An MRM ion series which maps: "ion_type" -> "fragment m/z"
+    typedef std::map<std::string, double> IonSeries; ///< An MRM ion series which maps: "ion_type" -> "fragment m/z"
 
     /**
       @brief Selects ion from IonSeries according to annotation string
 
       @param[in,out] ionseries the IonSeries from which to choose
       @param[in] ionid the annotation string of the query fragment ion
-      @return std::pair<String, double> the annotation and product m/z of
+      @return std::pair<std::string, double> the annotation and product m/z of
       the queried fragment ion
 
     */
-    std::pair<String, double> getIon(IonSeries& ionseries, const String& ionid);
+    std::pair<std::string, double> getIon(IonSeries& ionseries, const std::string& ionid);
 
     /**
       @brief Selects ion from IonSeries according to product m/z
@@ -73,11 +73,11 @@ public:
       @param[in] ionseries the IonSeries from which to choose
       @param[in] product_mz the product m/z of the queried fragment ion
       @param[in] mz_threshold the m/z threshold for annotation of the fragment ion
-      @return std::pair<String, double> the annotation and product m/z of
+      @return std::pair<std::string, double> the annotation and product m/z of
       the queried fragment ion
 
     */
-    std::pair<String, double> annotateIon(const IonSeries& ionseries, const double product_mz, const double mz_threshold);
+    std::pair<std::string, double> annotateIon(const IonSeries& ionseries, const double product_mz, const double mz_threshold);
 
     /**
       @brief Annotates transition with CV terms
@@ -86,7 +86,7 @@ public:
       @param[in] annotation the fragment ion annotation.
 
     */
-    void annotateTransitionCV(ReactionMonitoringTransition& tr, const String& annotation);
+    void annotateTransitionCV(ReactionMonitoringTransition& tr, const std::string& annotation);
 
     /**
       @brief Annotates transition
@@ -109,7 +109,7 @@ public:
                             const double precursor_mz_threshold,
                             const double product_mz_threshold,
                             const bool enable_reannotation,
-                            const std::vector<String>& fragment_types,
+                            const std::vector<std::string>& fragment_types,
                             const std::vector<size_t>& fragment_charges,
                             const bool enable_specific_losses,
                             const bool enable_unspecific_losses,
@@ -129,7 +129,7 @@ public:
     */
     IonSeries getIonSeries(const AASequence& sequence,
                            size_t precursor_charge,
-                           const std::vector<String>& fragment_types,
+                           const std::vector<std::string>& fragment_types,
                            const std::vector<size_t>& fragment_charges,
                            const bool enable_specific_losses,
                            const bool enable_unspecific_losses,

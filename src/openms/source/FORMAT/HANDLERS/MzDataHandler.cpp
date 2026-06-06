@@ -15,7 +15,7 @@ namespace OpenMS::Internal
 {
 
 
-    MzDataHandler::MzDataHandler(MapType & exp, const String & filename, const String & version, ProgressLogger & logger) :
+    MzDataHandler::MzDataHandler(MapType & exp, const std::string & filename, const std::string & version, ProgressLogger & logger) :
       XMLHandler(filename, version),
       exp_(&exp),
       cexp_(nullptr),
@@ -27,7 +27,7 @@ namespace OpenMS::Internal
       init_();
     }
 
-    MzDataHandler::MzDataHandler(const MapType & exp, const String & filename, const String & version, const ProgressLogger & logger) :
+    MzDataHandler::MzDataHandler(const MapType & exp, const std::string & filename, const std::string & version, const ProgressLogger & logger) :
       XMLHandler(filename, version),
       exp_(nullptr),
       cexp_(&exp),
@@ -43,35 +43,35 @@ namespace OpenMS::Internal
     {
       cv_terms_.resize(19);
       // SampleState
-      String(";Solid;Liquid;Gas;Solution;Emulsion;Suspension").split(';', cv_terms_[0]);
+      StringUtils::split(";Solid;Liquid;Gas;Solution;Emulsion;Suspension", ';', cv_terms_[0]);
       // IonizationMode
-      String(";PositiveIonMode;NegativeIonMode").split(';', cv_terms_[1]);
+      StringUtils::split(";PositiveIonMode;NegativeIonMode", ';', cv_terms_[1]);
       // ResolutionMethod
-      String(";FWHM;TenPercentValley;Baseline").split(';', cv_terms_[2]);
+      StringUtils::split(";FWHM;TenPercentValley;Baseline", ';', cv_terms_[2]);
       // ResolutionType
-      String(";Constant;Proportional").split(';', cv_terms_[3]);
+      StringUtils::split(";Constant;Proportional", ';', cv_terms_[3]);
       // ScanFunction
       // is no longer used cv_terms_[4] is empty now
       // ScanDirection
-      String(";Up;Down").split(';', cv_terms_[5]);
+      StringUtils::split(";Up;Down", ';', cv_terms_[5]);
       // ScanLaw
-      String(";Exponential;Linear;Quadratic").split(';', cv_terms_[6]);
+      StringUtils::split(";Exponential;Linear;Quadratic", ';', cv_terms_[6]);
       // PeakProcessing
-      String(";CentroidMassSpectrum;ContinuumMassSpectrum").split(';', cv_terms_[7]);
+      StringUtils::split(";CentroidMassSpectrum;ContinuumMassSpectrum", ';', cv_terms_[7]);
       // ReflectronState
-      String(";On;Off;None").split(';', cv_terms_[8]);
+      StringUtils::split(";On;Off;None", ';', cv_terms_[8]);
       // AcquisitionMode
-      String(";PulseCounting;ADC;TDC;TransientRecorder").split(';', cv_terms_[9]);
+      StringUtils::split(";PulseCounting;ADC;TDC;TransientRecorder", ';', cv_terms_[9]);
       // IonizationType
-      String(";ESI;EI;CI;FAB;TSP;LD;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';', cv_terms_[10]);
+      StringUtils::split(";ESI;EI;CI;FAB;TSP;LD;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP", ';', cv_terms_[10]);
       // InletType
-      String(";Direct;Batch;Chromatography;ParticleBeam;MembraneSeparator;OpenSplit;JetSeparator;Septum;Reservoir;MovingBelt;MovingWire;FlowInjectionAnalysis;ElectrosprayInlet;ThermosprayInlet;Infusion;ContinuousFlowFastAtomBombardment;InductivelyCoupledPlasma").split(';', cv_terms_[11]);
+      StringUtils::split(";Direct;Batch;Chromatography;ParticleBeam;MembraneSeparator;OpenSplit;JetSeparator;Septum;Reservoir;MovingBelt;MovingWire;FlowInjectionAnalysis;ElectrosprayInlet;ThermosprayInlet;Infusion;ContinuousFlowFastAtomBombardment;InductivelyCoupledPlasma", ';', cv_terms_[11]);
       // TandemScanningMethod
       // is no longer used cv_terms_[12] is empty now
       // DetectorType
-      String(";EM;Photomultiplier;FocalPlaneArray;FaradayCup;ConversionDynodeElectronMultiplier;ConversionDynodePhotomultiplier;Multi-Collector;ChannelElectronMultiplier").split(';', cv_terms_[13]);
+      StringUtils::split(";EM;Photomultiplier;FocalPlaneArray;FaradayCup;ConversionDynodeElectronMultiplier;ConversionDynodePhotomultiplier;Multi-Collector;ChannelElectronMultiplier", ';', cv_terms_[13]);
       // AnalyzerType
-      String(";Quadrupole;PaulIonTrap;RadialEjectionLinearIonTrap;AxialEjectionLinearIonTrap;TOF;Sector;FourierTransform;IonStorage").split(';', cv_terms_[14]);
+      StringUtils::split(";Quadrupole;PaulIonTrap;RadialEjectionLinearIonTrap;AxialEjectionLinearIonTrap;TOF;Sector;FourierTransform;IonStorage", ';', cv_terms_[14]);
       // EnergyUnits
       // is no longer used cv_terms_[15] is empty now
       // ScanMode
@@ -79,7 +79,7 @@ namespace OpenMS::Internal
       // Polarity
       // is no longer used cv_terms_[17] is empty now
       // ActivationMethod
-      String("CID;PSD;PD;SID").split(';', cv_terms_[18]);
+      StringUtils::split("CID;PSD;PD;SID", ';', cv_terms_[18]);
     }
 
     void MzDataHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
@@ -89,13 +89,13 @@ namespace OpenMS::Internal
       {
         return;
       }
-      String transcoded_chars = sm_.convert(chars);
+      std::string transcoded_chars = sm_.convert(chars);
 
       //current tag
-      const String & current_tag = open_tags_.back();
+      const std::string & current_tag = open_tags_.back();
 
       //determine the parent tag
-      String parent_tag;
+      std::string parent_tag;
       if (open_tags_.size() > 1)
         parent_tag = *(open_tags_.end() - 2);
 
@@ -130,7 +130,7 @@ namespace OpenMS::Internal
       }
       else if (current_tag == "comments" && parent_tag == "software")
       {
-        data_processing_->getSoftware().setMetaValue("comment", String(sm_.convert(chars)));
+        data_processing_->getSoftware().setMetaValue("comment",StringUtils::toStr(sm_.convert(chars)));
       }
       else if (current_tag == "comments" && parent_tag == "spectrumDesc")
       {
@@ -171,11 +171,11 @@ namespace OpenMS::Internal
       }
       else
       {
-        String trimmed_transcoded_chars = transcoded_chars;
-        trimmed_transcoded_chars.trim();
+        std::string trimmed_transcoded_chars = transcoded_chars;
+        StringUtils::trim(trimmed_transcoded_chars);
         if (!trimmed_transcoded_chars.empty())
         {
-          warning(LOAD, String("Unhandled character content in tag '") + current_tag + "': " + trimmed_transcoded_chars);
+          warning(LOAD,StringUtils::toStr("Unhandled character content in tag '") + current_tag + "': " + trimmed_transcoded_chars);
         }
       }
     }
@@ -200,12 +200,12 @@ namespace OpenMS::Internal
       static const XMLCh * s_comment = xercesc::XMLString::transcode("comment");
       static const XMLCh * s_accessionnumber = xercesc::XMLString::transcode("accessionNumber");
 
-      String tag = sm_.convert(qname);
+      std::string tag = sm_.convert(qname);
       open_tags_.push_back(tag);
       //std::cout << "Start: '" << tag << "'" << std::endl;
 
       //determine the parent tag
-      String parent_tag;
+      std::string parent_tag;
       if (open_tags_.size() > 1)
       {
         parent_tag = *(open_tags_.end() - 2);
@@ -251,14 +251,14 @@ namespace OpenMS::Internal
       }
       else if (tag == "cvParam")
       {
-        String accession = attributeAsString_(attributes, s_accession);
-        String value = "";
+        std::string accession = attributeAsString_(attributes, s_accession);
+        std::string value = "";
         optionalAttributeAsString_(value, attributes, s_value);
         cvParam_(accession, value);
       }
       else if (tag == "supDataDesc")
       {
-        String comment;
+        std::string comment;
         if (optionalAttributeAsString_(comment, attributes, s_comment))
         {
           meta_id_descs_.back().second.setMetaValue("comment", comment);
@@ -266,8 +266,8 @@ namespace OpenMS::Internal
       }
       else if (tag == "userParam")
       {
-        String name = attributeAsString_(attributes, s_name);
-        String value = "";
+        std::string name = attributeAsString_(attributes, s_name);
+        std::string value = "";
         optionalAttributeAsString_(value, attributes, s_value);
 
         if (parent_tag == "spectrumInstrument")
@@ -325,7 +325,7 @@ namespace OpenMS::Internal
         //create FloatDataArray
         MapType::SpectrumType::FloatDataArray mda;
         //Assign the right MetaInfoDescription ("supDesc" tag)
-        String id = attributeAsString_(attributes, s_id);
+        std::string id = attributeAsString_(attributes, s_id);
         for (Size i = 0; i < meta_id_descs_.size(); ++i)
         {
           if (meta_id_descs_[i].first == id)
@@ -340,7 +340,7 @@ namespace OpenMS::Internal
       else if (tag == "spectrum")
       {
         spec_ = SpectrumType();
-        spec_.setNativeID(String("spectrum=") + attributeAsString_(attributes, s_id));
+        spec_.setNativeID(StringUtils::toStr("spectrum=") + attributeAsString_(attributes, s_id));
         spec_.getDataProcessing().push_back(data_processing_);
       }
       else if (tag == "spectrumList")
@@ -360,7 +360,7 @@ namespace OpenMS::Internal
       }
       else if (tag == "acqSpecification")
       {
-        String tmp_type = attributeAsString_(attributes, s_spectrumtype);
+        std::string tmp_type = attributeAsString_(attributes, s_spectrumtype);
         if (tmp_type == "discrete")
         {
           spec_.setType(SpectrumSettings::SpectrumType::CENTROID);
@@ -372,7 +372,7 @@ namespace OpenMS::Internal
         else
         {
           spec_.setType(SpectrumSettings::SpectrumType::UNKNOWN);
-          warning(LOAD, String("Invalid spectrum type '") + tmp_type + "'.");
+          warning(LOAD,StringUtils::toStr("Invalid spectrum type '") + tmp_type + "'.");
         }
 
         spec_.getAcquisitionInfo().setMethodOfCombination(attributeAsString_(attributes, s_methodofcombination));
@@ -476,7 +476,7 @@ namespace OpenMS::Internal
       {
         //remove whitespaces from binary data
         //this should not be necessary, but line breaks inside the base64 data are unfortunately no exception
-        data_to_decode_[i].removeWhitespaces();
+        StringUtils::removeWhitespaces(data_to_decode_[i]);
 
         if (precisions_[i] == "64")         // precision 64 Bit
         {
@@ -535,12 +535,12 @@ namespace OpenMS::Internal
         const size_t peak_count_int = int_precision_64 ? decoded_double_list_[1].size() : decoded_list_[1].size();
         if (peak_count_mz != peak_count_int)
         {
-          error(LOAD, String("Length of data array for m/z differs from length of intensity data: ") + peak_count_mz + " vs. " + peak_count_int + " . The first array starts with: '" +
+          error(LOAD,StringUtils::toStr("Length of data array for m/z differs from length of intensity data: ") + peak_count_mz + " vs. " + peak_count_int + " . The first array starts with: '" +
                         data_to_decode_[0].substr(0, 10) + " ...'");
         }
         if (peak_count_ != peak_count_mz)
         {
-          warning(LOAD, String("Length of data arrays (m/z and int) differs from value in attribute 'length': ") + peak_count_mz + " vs. " + peak_count_ + ".");
+          warning(LOAD,StringUtils::toStr("Length of data arrays (m/z and int) differs from value in attribute 'length': ") + peak_count_mz + " vs. " + peak_count_ + ".");
           peak_count_ = peak_count_mz;
         }
 
@@ -729,7 +729,7 @@ namespace OpenMS::Internal
            << "\t\t\t<software";
         if (data_processing.getCompletionTime() != DateTime())
         {
-          os << " completionTime=\"" << data_processing.getCompletionTime().get().substitute(' ', 'T') << "\"";
+          { std::string ct = data_processing.getCompletionTime().get(); StringUtils::substitute(ct, ' ', 'T'); os << " completionTime=\"" << ct << "\""; }
         }
         os << ">\n"
            << "\t\t\t\t<name>" << data_processing.getSoftware().getName() << "</name>\n"
@@ -765,18 +765,18 @@ namespace OpenMS::Internal
         bool all_prefixed_numbers = true;
         for (Size s = 0; s < cexp_->size(); s++)
         {
-          String native_id = (*cexp_)[s].getNativeID();
-          if (!native_id.hasPrefix("spectrum="))
+          std::string native_id = (*cexp_)[s].getNativeID();
+          if (!StringUtils::hasPrefix(native_id, "spectrum="))
           {
             all_prefixed_numbers = false;
           }
           else
           {
-            native_id = native_id.substr(9);
+            native_id = StringUtils::substr(native_id, 9);
           }
           try
           {
-            native_id.toInt();
+            StringUtils::toInt32(native_id);
           }
           catch (Exception::ConversionError &)
           {
@@ -805,11 +805,11 @@ namespace OpenMS::Internal
           Size spectrum_id = s + 1;
           if (all_prefixed_numbers)
           {
-            spectrum_id = spec.getNativeID().substr(9).toInt();
+            spectrum_id = StringUtils::toInt32(StringUtils::substr(spec.getNativeID(), 9));
           }
           else if (all_numbers)
           {
-            spectrum_id = spec.getNativeID().toInt();
+            spectrum_id = StringUtils::toInt32(spec.getNativeID());
           }
           os << "\t\t<spectrum id=\"" << spectrum_id << "\">\n"
              << "\t\t\t<spectrumDesc>\n"
@@ -842,12 +842,12 @@ namespace OpenMS::Internal
               {
                 if (!ac.getIdentifier().empty())
                 {
-                  acq_number =  ac.getIdentifier().toInt();
+                  acq_number =  StringUtils::toInt32(ac.getIdentifier());
                 }
               }
               catch (...)
               {
-                warning(STORE, String("Could not convert acquisition identifier '") + ac.getIdentifier() + "' to an integer. Using '0' instead!");
+                warning(STORE,StringUtils::toStr("Could not convert acquisition identifier '") + ac.getIdentifier() + "' to an integer. Using '0' instead!");
                 acq_number = 0;
               }
               os << "\t\t\t\t\t\t<acquisition acqNumber=\"" << acq_number << "\">\n";
@@ -929,17 +929,17 @@ namespace OpenMS::Internal
 
           default:
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>\n";
-            warning(STORE, String("Scan mode '") + InstrumentSettings::NamesOfScanMode[static_cast<size_t>(iset.getScanMode())] + "' not supported by mzData. Using 'MassScan' scan mode!");
+            warning(STORE,StringUtils::toStr("Scan mode '") + InstrumentSettings::NamesOfScanMode[static_cast<size_t>(iset.getScanMode())] + "' not supported by mzData. Using 'MassScan' scan mode!");
           }
 
           //scan polarity
           if (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE)
           {
-            os << String(6, '\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Positive\"/>\n";
+            os << std::string(6, '\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Positive\"/>\n";
           }
           else if (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::NEGATIVE)
           {
-            os << String(6, '\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Negative\"/>\n";
+            os << std::string(6, '\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Negative\"/>\n";
           }
 
           //Retention time already in TimeInSeconds
@@ -1033,7 +1033,7 @@ namespace OpenMS::Internal
               //check if spectrum and meta data array have the same length
               if (mda.size() != spec.size())
               {
-                error(LOAD, String("Length of meta data array (index:'") + i + "' name:'" + mda.getName() + "') differs from spectrum length. meta data array: " + mda.size() + " / spectrum: " + spec.size() + " .");
+                error(LOAD,StringUtils::toStr("Length of meta data array (index:'") + i + "' name:'" + mda.getName() + "') differs from spectrum length. meta data array: " + mda.size() + " / spectrum: " + spec.size() + " .");
               }
               //encode meta data array
               data_to_encode_.clear();
@@ -1071,12 +1071,12 @@ namespace OpenMS::Internal
       logger_.endProgress();
     }
 
-    void MzDataHandler::cvParam_(const String & accession, const String & value)
+    void MzDataHandler::cvParam_(const std::string & accession, const std::string & value)
     {
-      String error = "";
+      std::string error = "";
 
       //determine the parent tag
-      String parent_tag;
+      std::string parent_tag;
       if (open_tags_.size() > 1)
       {
         parent_tag = *(open_tags_.end() - 2);
@@ -1137,7 +1137,7 @@ namespace OpenMS::Internal
             else
             {
               spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
-              warning(LOAD, String("Unknown scan mode '") + value + "'. Assuming full scan");
+              warning(LOAD,StringUtils::toStr("Unknown scan mode '") + value + "'. Assuming full scan");
             }
           }
         }
@@ -1169,7 +1169,7 @@ namespace OpenMS::Internal
           }
           else
           {
-            warning(LOAD, String("Invalid scan polarity (PSI:1000037) detected: \"") + value + "\". Valid are 'Positive' or 'Negative'.");
+            warning(LOAD,StringUtils::toStr("Invalid scan polarity (PSI:1000037) detected: \"") + value + "\". Valid are 'Positive' or 'Negative'.");
           }
         }
         else
@@ -1194,7 +1194,7 @@ namespace OpenMS::Internal
         {
           if (spec_.getPrecursors().back().getCharge() != 0)
           {
-            warning(LOAD, String("Multiple precursor charges detected, expected only one! Ignoring this charge settings! accession=\"") + accession + "\", value=\"" + value + "\"");
+            warning(LOAD,StringUtils::toStr("Multiple precursor charges detected, expected only one! Ignoring this charge settings! accession=\"") + accession + "\", value=\"" + value + "\"");
             spec_.getPrecursors().back().setCharge(0);
           }
           else
@@ -1428,44 +1428,44 @@ namespace OpenMS::Internal
       }
       else
       {
-        warning(LOAD, String("Unexpected cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in tag " + parent_tag);
+        warning(LOAD,StringUtils::toStr("Unexpected cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in tag " + parent_tag);
       }
 
       if (!error.empty())
       {
-        warning(LOAD, String("Invalid cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in " + error);
+        warning(LOAD,StringUtils::toStr("Invalid cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in " + error);
       }
       //std::cout << "End of MzDataHander::cvParam_" << std::endl;
     }
 
-    inline void MzDataHandler::writeCVS_(std::ostream & os, double value, const String & acc, const String & name, UInt indent) const
+    inline void MzDataHandler::writeCVS_(std::ostream & os, double value, const std::string & acc, const std::string & name, UInt indent) const
     {
       if (value != 0.0)
       {
-        os << String(indent, '\t') << R"(<cvParam cvLabel="psi" accession="PSI:)" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
+        os << std::string(indent, '\t') << R"(<cvParam cvLabel="psi" accession="PSI:)" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
       }
     }
 
-    inline void MzDataHandler::writeCVS_(std::ostream & os, const String & value, const String & acc, const String & name, UInt indent) const
+    inline void MzDataHandler::writeCVS_(std::ostream & os, const std::string & value, const std::string & acc, const std::string & name, UInt indent) const
     {
       if (!value.empty())
       {
-        os << String(indent, '\t') << R"(<cvParam cvLabel="psi" accession="PSI:)" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
+        os << std::string(indent, '\t') << R"(<cvParam cvLabel="psi" accession="PSI:)" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
       }
     }
 
-    inline void MzDataHandler::writeCVS_(std::ostream & os, UInt value, UInt map, const String & acc, const String & name, UInt indent)
+    inline void MzDataHandler::writeCVS_(std::ostream & os, UInt value, UInt map, const std::string & acc, const std::string & name, UInt indent)
     {
       //abort when receiving a wrong map index
       if (map >= cv_terms_.size())
       {
-        warning(STORE, String("Cannot find map '") + map + "' needed to write CV term '" + name + "' with accession '" + acc + "'.");
+        warning(STORE,StringUtils::toStr("Cannot find map '") + map + "' needed to write CV term '" + name + "' with accession '" + acc + "'.");
         return;
       }
       //abort when receiving a wrong term index
       if (value >= cv_terms_[map].size())
       {
-        warning(STORE, String("Cannot find value '") + value + "' needed to write CV term '" + name + "' with accession '" + acc + "'.");
+        warning(STORE,StringUtils::toStr("Cannot find value '") + value + "' needed to write CV term '" + name + "' with accession '" + acc + "'.");
         return;
       }
       writeCVS_(os, cv_terms_[map][value], acc, name, indent);
@@ -1473,18 +1473,18 @@ namespace OpenMS::Internal
 
     inline void MzDataHandler::writeUserParam_(std::ostream & os, const MetaInfoInterface & meta, UInt indent)
     {
-      std::vector<String> keys;
+      std::vector<std::string> keys;
       meta.getKeys(keys);
-      for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+      for (std::vector<std::string>::const_iterator it = keys.begin(); it != keys.end(); ++it)
       {
         if ((*it)[0] != '#')             // internally used meta info start with '#'
         {
-          os << String(indent, '\t') << "<userParam name=\"" << *it << "\" value=\"" << meta.getMetaValue(*it) << "\"/>\n";
+          os << std::string(indent, '\t') << "<userParam name=\"" << *it << "\" value=\"" << meta.getMetaValue(*it) << "\"/>\n";
         }
       }
     }
 
-    inline void MzDataHandler::writeBinary_(std::ostream & os, Size size, const String & tag, const String & name, SignedSize id)
+    inline void MzDataHandler::writeBinary_(std::ostream & os, Size size, const std::string & tag, const std::string & name, SignedSize id)
     {
       os << "\t\t\t<" << tag;
       if (tag == "supDataArrayBinary" || tag == "supDataArray")
@@ -1497,7 +1497,7 @@ namespace OpenMS::Internal
         os << "\t\t\t\t<arrayName>" << name << "</arrayName>\n";
       }
 
-      String str;
+      std::string str;
       Base64::encode(data_to_encode_, Base64::BYTEORDER_LITTLEENDIAN, str);
       data_to_encode_.clear();
       os << "\t\t\t\t<data precision=\"32\" endian=\"little\" length=\""

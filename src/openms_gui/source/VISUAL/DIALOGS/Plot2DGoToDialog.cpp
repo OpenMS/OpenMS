@@ -54,10 +54,10 @@ namespace OpenMS
   Plot2DGoToDialog::AreaXYType Plot2DGoToDialog::getRange()
   {
     AreaXYType r{
-      ui_->min_x_->text().toFloat(),
-      ui_->min_y_->text().toFloat(),
-      ui_->max_x_->text().toFloat(),
-      ui_->max_y_->text().toFloat(),
+      ui_->StringUtils::toFloat(min_x_->text()),
+      ui_->StringUtils::toFloat(min_y_->text()),
+      ui_->StringUtils::toFloat(max_x_->text()),
+      ui_->StringUtils::toFloat(max_y_->text()),
     };
     r.ensureMinSpan({1,1});
     return r;
@@ -93,14 +93,14 @@ namespace OpenMS
     }
   }
 
-  String Plot2DGoToDialog::getFeatureNumber() const
+  std::string Plot2DGoToDialog::getFeatureNumber() const
   {
     return fromQString(ui_->feature_number_->text());
   }
 
   bool Plot2DGoToDialog::showRange() const
   {
-    return getFeatureNumber().trim().empty();
+    return StringUtils::trimmed(getFeatureNumber()).empty();
   }
 
 } //namespace OpenMS

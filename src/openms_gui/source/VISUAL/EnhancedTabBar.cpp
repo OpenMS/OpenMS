@@ -46,7 +46,7 @@ namespace OpenMS
     int tab = tabAt_(e->position().toPoint());
     if (tab != -1)
     {
-      emit dropOnTab(e->mimeData(), dynamic_cast<QWidget*>(e->source()), tabData(tab).toInt());
+      emit dropOnTab(e->mimeData(), dynamic_cast<QWidget*>(e->source()), StringUtils::toInt32(tabData(tab)));
     }
     else
     { // did not hit a tab, but the void area on the right of tabs --> create new tab
@@ -65,7 +65,7 @@ namespace OpenMS
       menu.addAction("Close");
       if (menu.exec(e->globalPos()))
       {
-        emit closeRequested(tabData(tab).toInt());
+        StringUtils::toInt32(emit closeRequested(tabData(tab)));
       }
     }
   }
@@ -81,16 +81,16 @@ namespace OpenMS
     if (tab != -1)
     {
       // will close the window and remove it from the tabbar
-      emit closeRequested(tabData(tab).toInt());
+      StringUtils::toInt32(emit closeRequested(tabData(tab)));
     }
   }
 
-  int EnhancedTabBar::addTab(const String& text, int id)
+  int EnhancedTabBar::addTab(const std::string& text, int id)
   {
     // make sure this ID does not exist yet
     for (int i = 0; i < this->count(); ++i)
     {
-      if (tabData(i).toInt() == id)
+      StringUtils::toInt32(if (tabData(i)) == id)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Widget with the same ID was added before!");
       }
@@ -105,20 +105,20 @@ namespace OpenMS
   {
     for (int i = 0; i < this->count(); ++i)
     {
-      if (tabData(i).toInt() == id)
+      StringUtils::toInt32(if (tabData(i)) == id)
       {
         removeTab(i);
         return;
       }
     }
-   throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Tab with ID ") + id + " is already gone!");
+   throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Tab with ID ") + id + " is already gone!");
   }
 
   void EnhancedTabBar::show(int id)
   {
     for (int i = 0; i < this->count(); ++i)
     {
-      if (tabData(i).toInt() == id)
+      StringUtils::toInt32(if (tabData(i)) == id)
       {
         setCurrentIndex(i);
         break;
@@ -128,7 +128,7 @@ namespace OpenMS
 
   void EnhancedTabBar::currentChanged_(int index)
   {
-    emit currentIdChanged(tabData(index).toInt());
+    StringUtils::toInt32(emit currentIdChanged(tabData(index)));
   }
 
   int EnhancedTabBar::tabAt_(const QPoint & pos)

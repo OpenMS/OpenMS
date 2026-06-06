@@ -31,23 +31,23 @@ namespace OpenMS
   struct OPENMS_DLLAPI PEFFModification
   {
     Size position{0};         ///< 1-based position, 0 = unknown position (?)
-    String accession;         ///< "MOD:00046", "UNIMOD:35", or custom
-    String name;              ///< Human-readable name
-    String optional_tag;      ///< Optional tag (last component of annotation tuple)
+    std::string accession;         ///< "MOD:00046", "UNIMOD:35", or custom
+    std::string name;              ///< Human-readable name
+    std::string optional_tag;      ///< Optional tag (last component of annotation tuple)
     UInt annotation_id{std::numeric_limits<UInt>::max()};  ///< Optional annotation identifier (when HasAnnotationIdentifiers=true), max() = not set
 
     enum class Type { PSI_MOD, UNIMOD, GENERIC };
     Type type{Type::GENERIC};
 
     PEFFModification() = default;
-    PEFFModification(Size pos, const String& acc, const String& n, const String& tag = "", UInt aid = std::numeric_limits<UInt>::max())
+    PEFFModification(Size pos, const std::string& acc, const std::string& n, const std::string& tag = "", UInt aid = std::numeric_limits<UInt>::max())
       : position(pos), accession(acc), name(n), optional_tag(tag), annotation_id(aid)
     {
-      if (accession.hasPrefix("MOD:"))
+      if (StringUtils::hasPrefix(accession, "MOD:"))
       {
         type = Type::PSI_MOD;
       }
-      else if (accession.hasPrefix("UNIMOD:"))
+      else if (StringUtils::hasPrefix(accession, "UNIMOD:"))
       {
         type = Type::UNIMOD;
       }
@@ -70,11 +70,11 @@ namespace OpenMS
   {
     Size position{0};         ///< 1-based position
     char variant_aa{'\0'};    ///< Variant amino acid
-    String optional_tag;      ///< Optional tag (last component of annotation tuple)
+    std::string optional_tag;      ///< Optional tag (last component of annotation tuple)
     UInt annotation_id{std::numeric_limits<UInt>::max()};  ///< Optional annotation identifier, max() = not set
 
     PEFFVariantSimple() = default;
-    PEFFVariantSimple(Size pos, char aa, const String& tag = "", UInt aid = std::numeric_limits<UInt>::max())
+    PEFFVariantSimple(Size pos, char aa, const std::string& tag = "", UInt aid = std::numeric_limits<UInt>::max())
       : position(pos), variant_aa(aa), optional_tag(tag), annotation_id(aid) {}
 
     bool operator==(const PEFFVariantSimple& rhs) const
@@ -93,12 +93,12 @@ namespace OpenMS
   {
     Size start_position{0};   ///< 1-based start position
     Size end_position{0};     ///< 1-based end position
-    String replacement;       ///< Replacement sequence (empty = deletion)
-    String optional_tag;      ///< Optional tag (last component of annotation tuple)
+    std::string replacement;       ///< Replacement sequence (empty = deletion)
+    std::string optional_tag;      ///< Optional tag (last component of annotation tuple)
     UInt annotation_id{std::numeric_limits<UInt>::max()};  ///< Optional annotation identifier, max() = not set
 
     PEFFVariantComplex() = default;
-    PEFFVariantComplex(Size start, Size end, const String& repl, const String& tag = "", UInt aid = std::numeric_limits<UInt>::max())
+    PEFFVariantComplex(Size start, Size end, const std::string& repl, const std::string& tag = "", UInt aid = std::numeric_limits<UInt>::max())
       : start_position(start), end_position(end), replacement(repl), optional_tag(tag), annotation_id(aid) {}
 
     bool operator==(const PEFFVariantComplex& rhs) const
@@ -118,13 +118,13 @@ namespace OpenMS
   {
     Size start_position{0};   ///< 1-based start position
     Size end_position{0};     ///< 1-based end position
-    String accession;         ///< PEFF CV accession (e.g., "PEFF:0001021")
-    String name;              ///< Optional name (e.g., "signal peptide")
-    String optional_tag;      ///< Optional tag (last component of annotation tuple)
+    std::string accession;         ///< PEFF CV accession (e.g., "PEFF:0001021")
+    std::string name;              ///< Optional name (e.g., "signal peptide")
+    std::string optional_tag;      ///< Optional tag (last component of annotation tuple)
     UInt annotation_id{std::numeric_limits<UInt>::max()};  ///< Optional annotation identifier, max() = not set
 
     PEFFProcessedRegion() = default;
-    PEFFProcessedRegion(Size start, Size end, const String& acc, const String& n = "", const String& tag = "", UInt aid = std::numeric_limits<UInt>::max())
+    PEFFProcessedRegion(Size start, Size end, const std::string& acc, const std::string& n = "", const std::string& tag = "", UInt aid = std::numeric_limits<UInt>::max())
       : start_position(start), end_position(end), accession(acc), name(n), optional_tag(tag), annotation_id(aid) {}
 
     bool operator==(const PEFFProcessedRegion& rhs) const
@@ -142,13 +142,13 @@ namespace OpenMS
   */
   struct OPENMS_DLLAPI PEFFDisulfideBond
   {
-    String id1;                  ///< First cysteine reference (AnnotationIdentifier of the cysteine residue)
-    String id2;                  ///< Second cysteine reference (AnnotationIdentifier of the cysteine residue)
-    String optional_tag;         ///< Optional tag (e.g., "between chains")
+    std::string id1;                  ///< First cysteine reference (AnnotationIdentifier of the cysteine residue)
+    std::string id2;                  ///< Second cysteine reference (AnnotationIdentifier of the cysteine residue)
+    std::string optional_tag;         ///< Optional tag (e.g., "between chains")
     UInt annotation_id{std::numeric_limits<UInt>::max()};  ///< Optional annotation identifier, max() = not set
 
     PEFFDisulfideBond() = default;
-    PEFFDisulfideBond(const String& i1, const String& i2, const String& tag = "", UInt aid = std::numeric_limits<UInt>::max())
+    PEFFDisulfideBond(const std::string& i1, const std::string& i2, const std::string& tag = "", UInt aid = std::numeric_limits<UInt>::max())
       : id1(i1), id2(i2), optional_tag(tag), annotation_id(aid) {}
 
     bool operator==(const PEFFDisulfideBond& rhs) const
@@ -173,22 +173,22 @@ namespace OpenMS
   struct OPENMS_DLLAPI PEFFEntry
   {
     // Basic fields
-    String prefix;             ///< Database prefix from description line (e.g., "sp" from ">sp:P12345")
-    String identifier;
-    String sequence;
+    std::string prefix;             ///< Database prefix from description line (e.g., "sp" from ">sp:P12345")
+    std::string identifier;
+    std::string sequence;
 
     // Metadata
-    std::vector<String> protein_names;   ///< \\PName - may have multiple names
-    String gene_name;                     ///< \\GName
+    std::vector<std::string> protein_names;   ///< \\PName - may have multiple names
+    std::string gene_name;                     ///< \\GName
     Int ncbi_tax_id{0};                  ///< \\NcbiTaxId or \\OX
-    String taxonomy_name;                 ///< \\TaxName
+    std::string taxonomy_name;                 ///< \\TaxName
     Size sequence_length{0};             ///< \\Length
-    String sequence_version;              ///< \\SV
-    String entry_version;                 ///< \\EV
+    std::string sequence_version;              ///< \\SV
+    std::string entry_version;                 ///< \\EV
     Int protein_existence{0};            ///< \\PE (1-5)
-    String db_unique_id;                  ///< \\DbUniqueId
-    String entry_id;                      ///< \\ID (e.g., NPM_HUMAN)
-    std::vector<String> alt_accessions;   ///< \\AltAC - alternative accessions
+    std::string db_unique_id;                  ///< \\DbUniqueId
+    std::string entry_id;                      ///< \\ID (e.g., NPM_HUMAN)
+    std::vector<std::string> alt_accessions;   ///< \\AltAC - alternative accessions
 
     // Annotations
     std::vector<PEFFModification> modifications;
@@ -196,10 +196,10 @@ namespace OpenMS
     std::vector<PEFFVariantComplex> complex_variants;
     std::vector<PEFFProcessedRegion> processed_regions;
     std::vector<PEFFDisulfideBond> disulfide_bonds;  ///< \\DisulfideBond
-    std::vector<String> proteoforms;     ///< ProForma notation
+    std::vector<std::string> proteoforms;     ///< ProForma notation
 
     // Custom annotations
-    std::map<String, String> custom_annotations;
+    std::map<std::string, std::string> custom_annotations;
 
     PEFFEntry() = default;
 
@@ -278,7 +278,7 @@ namespace OpenMS
       @param region_accession PEFF CV accession for the region type (e.g., "PEFF:0001021" for signal peptide)
       @return Processed AASequence, or empty if region not found
     */
-    AASequence getProcessedSequence(const String& region_accession = "PEFF:0001021") const;
+    AASequence getProcessedSequence(const std::string& region_accession = "PEFF:0001021") const;
 
     /**
       @brief Generate all variant and/or modification peptides by digesting with a given protease.
@@ -348,10 +348,10 @@ namespace OpenMS
       @param base_description Base description to prepend to modification descriptions
       @return Vector of pairs: (description, modified AASequence)
     */
-    static std::vector<std::pair<String, AASequence>> enumeratePEFFModifications_(
+    static std::vector<std::pair<std::string, AASequence>> enumeratePEFFModifications_(
       const AASequence& peptide,
       const std::vector<std::pair<Size, const PEFFModification*>>& peff_mods,
-      const String& base_description);
+      const std::string& base_description);
   };
 
   /**
@@ -359,12 +359,12 @@ namespace OpenMS
   */
   struct OPENMS_DLLAPI PEFFCustomKeyDef
   {
-    String key_name;
-    String description;
-    String concept_curie;
-    String regexp;
-    std::vector<String> field_names;
-    std::vector<String> field_types;
+    std::string key_name;
+    std::string description;
+    std::string concept_curie;
+    std::string regexp;
+    std::vector<std::string> field_names;
+    std::vector<std::string> field_types;
 
     bool operator==(const PEFFCustomKeyDef& rhs) const
     {
@@ -381,28 +381,28 @@ namespace OpenMS
   */
   struct OPENMS_DLLAPI PEFFDatabaseMetadata
   {
-    String version{"1.0"};
-    String db_name;
-    String prefix;
-    String db_description;
+    std::string version{"1.0"};
+    std::string db_name;
+    std::string prefix;
+    std::string db_description;
     bool is_decoy{false};
-    std::vector<String> db_sources;
-    String db_version;
+    std::vector<std::string> db_sources;
+    std::string db_version;
     Size number_of_entries{0};
 
     enum class SequenceType { AA, NA };
     SequenceType sequence_type{SequenceType::AA};
 
-    std::vector<String> general_comments;     ///< Multiple GeneralComment lines allowed
-    String conversion;                         ///< Conversion notes
-    std::map<String, String> specific_keys;    ///< SpecificKey definitions (key -> description)
-    std::map<String, String> specific_values;  ///< SpecificValue definitions (key -> type)
-    std::vector<String> optional_tag_defs;
+    std::vector<std::string> general_comments;     ///< Multiple GeneralComment lines allowed
+    std::string conversion;                         ///< Conversion notes
+    std::map<std::string, std::string> specific_keys;    ///< SpecificKey definitions (key -> description)
+    std::map<std::string, std::string> specific_values;  ///< SpecificValue definitions (key -> type)
+    std::vector<std::string> optional_tag_defs;
     std::vector<PEFFCustomKeyDef> custom_key_defs;  ///< CustomKeyDef definitions
     bool has_annotation_identifiers{false};    ///< Whether entries use annotation identifiers
     bool is_proteoform_db{false};              ///< Whether this is a proteoform database (ProteoformDb)
 
-    std::map<String, String> unrecognized_keys;  ///< Unrecognized header keys (preserved for round-trip)
+    std::map<std::string, std::string> unrecognized_keys;  ///< Unrecognized header keys (preserved for round-trip)
 
     PEFFDatabaseMetadata() = default;
 
@@ -462,7 +462,7 @@ namespace OpenMS
       @exception Exception::FileNotFound is thrown if the file does not exist.
       @exception Exception::ParseError is thrown if the file format is invalid.
     */
-    void load(const String& filename,
+    void load(const std::string& filename,
               std::vector<PEFFEntry>& entries,
               std::vector<PEFFDatabaseMetadata>& headers) const;
 
@@ -475,7 +475,7 @@ namespace OpenMS
 
       @exception Exception::UnableToCreateFile is thrown if the file cannot be created.
     */
-    void store(const String& filename,
+    void store(const std::string& filename,
                const std::vector<PEFFEntry>& entries,
                const PEFFDatabaseMetadata& header) const;
 
@@ -492,7 +492,7 @@ namespace OpenMS
       @exception Exception::UnableToCreateFile is thrown if the file cannot be created.
       @exception Exception::InvalidParameter is thrown if headers is empty.
     */
-    void store(const String& filename,
+    void store(const std::string& filename,
                const std::vector<PEFFEntry>& entries,
                const std::vector<PEFFDatabaseMetadata>& headers) const;
 
@@ -504,7 +504,7 @@ namespace OpenMS
       @exception Exception::FileNotFound is thrown if the file does not exist.
       @exception Exception::FileNotReadable is thrown if the file cannot be read.
     */
-    void readStart(const String& filename);
+    void readStart(const std::string& filename);
 
     /**
       @brief Reads the next PEFF entry from the file.
@@ -534,7 +534,7 @@ namespace OpenMS
 
       @exception Exception::UnableToCreateFile is thrown if the file cannot be created.
     */
-    void writeStart(const String& filename, const PEFFDatabaseMetadata& header);
+    void writeStart(const std::string& filename, const PEFFDatabaseMetadata& header);
 
     /**
       @brief Prepares a PEFF file for streamed writing using writeNext(), with multiple headers.
@@ -548,7 +548,7 @@ namespace OpenMS
       @exception Exception::UnableToCreateFile is thrown if the file cannot be created.
       @exception Exception::InvalidParameter is thrown if headers is empty.
     */
-    void writeStart(const String& filename, const std::vector<PEFFDatabaseMetadata>& headers);
+    void writeStart(const std::string& filename, const std::vector<PEFFDatabaseMetadata>& headers);
 
     /**
       @brief Writes the next PEFF entry to the file.
@@ -566,7 +566,7 @@ namespace OpenMS
       @param filename The file to check
       @return true if the file starts with PEFF headers
     */
-    static bool isPEFFFile(const String& filename);
+    static bool isPEFFFile(const std::string& filename);
 
     /**
       @brief Converts a PEFF entry to ProForma notation.
@@ -574,41 +574,41 @@ namespace OpenMS
       @param entry The PEFF entry to convert
       @return ProForma string representation
     */
-    static String toProForma(const PEFFEntry& entry);
+    static std::string toProForma(const PEFFEntry& entry);
 
   protected:
     /// Parse a header line (# Key=Value or # //)
-    void parseHeaderLine_(const String& line, PEFFDatabaseMetadata& header, bool& new_db);
+    void parseHeaderLine_(const std::string& line, PEFFDatabaseMetadata& header, bool& new_db);
 
     /// Parse annotations from the description line
-    void parseAnnotations_(const String& description, PEFFEntry& entry);
+    void parseAnnotations_(const std::string& description, PEFFEntry& entry);
 
     /// Parse a single modification tuple
-    PEFFModification parseModification_(const String& tuple);
+    PEFFModification parseModification_(const std::string& tuple);
 
     /// Parse a simple variant tuple
-    PEFFVariantSimple parseVariantSimple_(const String& tuple);
+    PEFFVariantSimple parseVariantSimple_(const std::string& tuple);
 
     /// Parse a complex variant tuple
-    PEFFVariantComplex parseVariantComplex_(const String& tuple);
+    PEFFVariantComplex parseVariantComplex_(const std::string& tuple);
 
     /// Parse a processed region tuple
-    PEFFProcessedRegion parseProcessedRegion_(const String& tuple);
+    PEFFProcessedRegion parseProcessedRegion_(const std::string& tuple);
 
     /// Parse a disulfide bond tuple
-    PEFFDisulfideBond parseDisulfideBond_(const String& tuple);
+    PEFFDisulfideBond parseDisulfideBond_(const std::string& tuple);
 
     /// Parse a parenthesized list of values
-    std::vector<String> parseParenList_(const String& value);
+    std::vector<std::string> parseParenList_(const std::string& value);
 
     /// Format the header section for output
-    String formatHeader_(const PEFFDatabaseMetadata& header) const;
+    std::string formatHeader_(const PEFFDatabaseMetadata& header) const;
 
     /// Format the header section for output (multiple database blocks)
-    String formatHeader_(const std::vector<PEFFDatabaseMetadata>& headers) const;
+    std::string formatHeader_(const std::vector<PEFFDatabaseMetadata>& headers) const;
 
     /// Format a single entry for output
-    String formatEntry_(const PEFFEntry& entry) const;
+    std::string formatEntry_(const PEFFEntry& entry) const;
 
 
     /// Read entry data (identifier, description, sequence)

@@ -229,7 +229,7 @@ for a group of matching peptide features
     // MultiplexDeltaMassesGenerator_Label
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MultiplexDeltaMassesGenerator::Label>(m, "MultiplexDeltaMassesGenerator_Label", "OpenMS class MultiplexDeltaMassesGenerator_Label")
-        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, double>())
+        .def(nb::init<std::string, std::string, std::string, double>())
         .def_rw("short_name", &OpenMS::MultiplexDeltaMassesGenerator::Label::short_name)
         .def_rw("long_name", &OpenMS::MultiplexDeltaMassesGenerator::Label::long_name)
         .def_rw("description", &OpenMS::MultiplexDeltaMassesGenerator::Label::description)
@@ -240,8 +240,8 @@ for a group of matching peptide features
     // MultiplexDeltaMasses_DeltaMass
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MultiplexDeltaMasses::DeltaMass>(m, "MultiplexDeltaMasses_DeltaMass", "OpenMS class MultiplexDeltaMasses_DeltaMass")
-        .def(nb::init<double, std::multiset<OpenMS::String>>())
-        .def(nb::init<double, OpenMS::String>())
+        .def(nb::init<double, std::multiset<std::string>>())
+        .def(nb::init<double, std::string>())
         .def_rw("delta_mass", &OpenMS::MultiplexDeltaMasses::DeltaMass::delta_mass)
         .def_rw("label_set", &OpenMS::MultiplexDeltaMasses::DeltaMass::label_set)
         ;

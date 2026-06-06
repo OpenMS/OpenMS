@@ -83,7 +83,7 @@ START_SECTION((static NucleotideToFragmentAdductMap getTargetNucleotideToFragmen
 }
 END_SECTION
 
-START_SECTION((static MS2AdductsOfSinglePrecursorAdduct getFeasibleFragmentAdducts(const String& exp_pc_adduct, const String& exp_pc_formula, const NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts, const std::set<char>& can_xl, const bool always_add_default_marker_ions, const bool default_marker_ions_RNA)))
+START_SECTION((static MS2AdductsOfSinglePrecursorAdduct getFeasibleFragmentAdducts(const std::string& exp_pc_adduct, const std::string& exp_pc_formula, const NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts, const std::set<char>& can_xl, const bool always_add_default_marker_ions, const bool default_marker_ions_RNA)))
 {
   // Create test data
   StringList fragment_adducts;
@@ -164,7 +164,7 @@ START_SECTION((static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(const
   
   StringList modifications; // The precursor adducts are then used to generate all feasible fragment adducts.  
   StringList fragment_adducts; // these are responsible for shifted fragment ions. Their fragment adducts thus determine which shifts will be observed on b-,a-,y-ions
-  String can_cross_link; // nucleotides that can directly cross-link
+  std::string can_cross_link; // nucleotides that can directly cross-link
   // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
   StringList target_nucleotides;
   // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
@@ -472,8 +472,8 @@ START_SECTION((static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(const
 
   while (it_expected != expected_pc2nuc2fragment_adducts.end() && it_actual != all_feasible_fragment_adducts.end())
   {
-    const String& expected_precursor = it_expected->first;
-    const String& actual_precursor = it_actual->first;
+    const std::string& expected_precursor = it_expected->first;
+    const std::string& actual_precursor = it_actual->first;
 
     // Ensure the order of precursors is preserved
     TEST_EQUAL(expected_precursor, actual_precursor)

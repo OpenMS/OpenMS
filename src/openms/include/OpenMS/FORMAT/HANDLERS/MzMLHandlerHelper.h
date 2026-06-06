@@ -30,7 +30,7 @@ namespace OpenMS
     {
 
       /// Also display some warning message when appropriate (see XMLHandler)
-      static void warning(int mode, const String & msg, UInt line = 0, UInt column = 0);
+      static void warning(int mode, const std::string & msg, UInt line = 0, UInt column = 0);
 
     public:
 
@@ -62,13 +62,13 @@ namespace OpenMS
         bool compression; ///< zlib compression
         double unit_multiplier; ///< multiplier for unit (e.g. 60 for minutes)
 
-        String base64; ///< Raw data in base64 encoding
+        std::string base64; ///< Raw data in base64 encoding
         Size size; ///< Raw data length
         std::vector<float> floats_32;
         std::vector<double> floats_64;
         std::vector<Int32> ints_32;
         std::vector<Int64> ints_64;
-        std::vector<String> decoded_char;
+        std::vector<std::string> decoded_char;
 
         MetaInfoDescription meta; ///< Meta data description
 
@@ -101,9 +101,9 @@ namespace OpenMS
       /**
         @brief Returns the appropriate compression term given the PeakFileOptions and the NumpressConfig
       */
-      static String getCompressionTerm_(const PeakFileOptions& opt,
+      static std::string getCompressionTerm_(const PeakFileOptions& opt,
                                         MSNumpressCoder::NumpressConfig np_compression,
-                                        const String& indent = "",
+                                        const std::string& indent = "",
                                         bool use_numpress = false);
 
       /**
@@ -138,7 +138,7 @@ namespace OpenMS
         @param[in] index The index of the identified array
         @param[in] index_name The name of the array to be identified
       */
-      static void computeDataProperties_(const std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, const String& index_name);
+      static void computeDataProperties_(const std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, const std::string& index_name);
 
       /**
         @brief Handle a given CV parameter found in a binaryDataArray tag
@@ -154,10 +154,10 @@ namespace OpenMS
         @param[in] unit_accession The CV unit accession (if a unit tag is present)
       */
       static bool handleBinaryDataArrayCVParam(std::vector<BinaryData>& data_,
-                                               const String& accession,
-                                               const String& value,
-                                               const String& name,
-                                               const String& unit_accession);
+                                               const std::string& accession,
+                                               const std::string& value,
+                                               const std::string& name,
+                                               const std::string& unit_accession);
     };
 
 

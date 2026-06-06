@@ -28,7 +28,7 @@ FeatureMap emptyFmap;
 Feature f;
 
 fmap.getProteinIdentifications().resize(1);
-DigestionEnzymeProtein noenzyme("unknown_enzyme", "", set<String>(), "");
+DigestionEnzymeProtein noenzyme("unknown_enzyme", "", set<std::string>(), "");
 // set no digestion enzyme
 fmap.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme = noenzyme;
 // set empty contaminants database
@@ -197,7 +197,7 @@ END_SECTION
 
 Contaminants temp;
 
-START_SECTION(const String& getName() const override) {TEST_EQUAL(temp.getName(), "Contaminants")} END_SECTION
+START_SECTION(const std::string& getName() const override) {TEST_EQUAL(temp.getName(), "Contaminants")} END_SECTION
 
 
   START_SECTION(Status requirements() const override)

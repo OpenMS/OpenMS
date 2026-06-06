@@ -17,15 +17,15 @@ using namespace std;
 
 namespace OpenMS
 {
-  bool SpectrumNativeIDParser::isNativeID(const String& id)
+  bool SpectrumNativeIDParser::isNativeID(const std::string& id)
   {
-    return id.hasPrefix("scan=") || id.hasPrefix("scanId=") || id.hasPrefix("scanID=")
-        || id.hasPrefix("controllerType=") || id.hasPrefix("function=") || id.hasPrefix("sample=")
-        || id.hasPrefix("index=") || id.hasPrefix("spectrum=") || id.hasPrefix("file=")
-        || id.hasPrefix("frame=");
+    return StringUtils::hasPrefix(id, "scan=") || StringUtils::hasPrefix(id, "scanId=") || StringUtils::hasPrefix(id, "scanID=")
+        || StringUtils::hasPrefix(id, "controllerType=") || StringUtils::hasPrefix(id, "function=") || StringUtils::hasPrefix(id, "sample=")
+        || StringUtils::hasPrefix(id, "index=") || StringUtils::hasPrefix(id, "spectrum=") || StringUtils::hasPrefix(id, "file=")
+        || StringUtils::hasPrefix(id, "frame=");
   }
 
-  std::string SpectrumNativeIDParser::getRegExFromNativeID(const String& id)
+  std::string SpectrumNativeIDParser::getRegExFromNativeID(const std::string& id)
   {
     // "scan=NUMBER" e.g. Bruker/Agilent
     // "controllerType=0 controllerNumber=1 scan=NUMBER" for Thermo
@@ -35,29 +35,29 @@ namespace OpenMS
     //   scanStart=, scanEnd=, merged=) are used by OpenMS DDA/DIA PASEF
     //   and pwiz combined mode; the regex targets the "scan=<int>" token
     //   which remains the most meaningful scan-number proxy.
-    if (id.hasPrefix("scan=")
-     || id.hasPrefix("controllerType=")
-     || id.hasPrefix("function=")
-     || id.hasPrefix("frame=")) return std::string(R"(scan=(?<GROUP>\d+))");
+    if (StringUtils::hasPrefix(id, "scan=")
+     || StringUtils::hasPrefix(id, "controllerType=")
+     || StringUtils::hasPrefix(id, "function=")
+     || StringUtils::hasPrefix(id, "frame=")) return std::string(R"(scan=(?<GROUP>\d+))");
 
     // "index=NUMBER"
-    if (id.hasPrefix("index=")) return std::string(R"(index=(?<GROUP>\d+))");
+    if (StringUtils::hasPrefix(id, "index=")) return std::string(R"(index=(?<GROUP>\d+))");
 
     // "scanId=NUMBER" or "scanID=NUMBER" - MS_Agilent_MassHunter_nativeID_format
-    if (id.hasPrefix("scanId=")) return std::string(R"(scanId=(?<GROUP>\d+))");
-    if (id.hasPrefix("scanID=")) return std::string(R"(scanID=(?<GROUP>\d+))");
+    if (StringUtils::hasPrefix(id, "scanId=")) return std::string(R"(scanId=(?<GROUP>\d+))");
+    if (StringUtils::hasPrefix(id, "scanID=")) return std::string(R"(scanID=(?<GROUP>\d+))");
 
     // "spectrum=NUMBER"
-    if (id.hasPrefix("spectrum=")) return std::string(R"(spectrum=(?<GROUP>\d+))");
+    if (StringUtils::hasPrefix(id, "spectrum=")) return std::string(R"(spectrum=(?<GROUP>\d+))");
 
     // "file=NUMBER" Bruker FID or single peak list
-    if (id.hasPrefix("file=")) return std::string(R"(file=(?<GROUP>\d+))");
+    if (StringUtils::hasPrefix(id, "file=")) return std::string(R"(file=(?<GROUP>\d+))");
 
     // NUMBER
     return std::string(R"((?<GROUP>\d+))");
   }
 
-  Int SpectrumNativeIDParser::extractScanNumber(const String& native_id,
+  Int SpectrumNativeIDParser::extractScanNumber(const std::string& native_id,
                                         const boost::regex& scan_regexp,
                                         bool no_error)
   {
@@ -68,10 +68,10 @@ namespace OpenMS
     if (!matches.empty())
     {
       // always use the last possible matching subgroup
-      String last_value = String(matches.back());
+      std::string last_value =StringUtils::toStr(matches.back());
       try
       {
-        return last_value.toInt();
+        return StringUtils::toInt32(last_value);
       }
       catch (Exception::ConversionError&)
       {
@@ -85,8 +85,8 @@ namespace OpenMS
     return -1;
   }
 
-  Int SpectrumNativeIDParser::extractScanNumber(const String& native_id,
-                                        const String& native_id_type_accession)
+  Int SpectrumNativeIDParser::extractScanNumber(const std::string& native_id,
+                                        const std::string& native_id_type_accession)
   {
     // check accession for data type to extract (e.g. MS:1000768 - Thermo nativeID format - scan=xsd:positiveInteger)
     boost::regex regexp;
@@ -96,9 +96,9 @@ namespace OpenMS
     // output — see BrukerTimsFile::loadDDA_ for the rationale). The regex
     // targets the "scan=<int>" token in all cases; trailing tokens are
     // ignored.
-    std::vector<String> scan = {"MS:1000768","MS:1000769","MS:1000771","MS:1000772","MS:1000776","MS:1002818"};
+    std::vector<std::string> scan = {"MS:1000768","MS:1000769","MS:1000771","MS:1000772","MS:1000776","MS:1002818"};
     // list of CV accession with native id format "file=NUMBER"
-    std::vector<String> file = {"MS:1000773","MS:1000775"};
+    std::vector<std::string> file = {"MS:1000773","MS:1000775"};
     // expected number of subgroups
     vector<int> subgroups = {1};
 
@@ -160,19 +160,19 @@ namespace OpenMS
         try
         {
           // In case of merged spectra the last native id matches the scan number of the merged scan.
-          String value = String(matches[matches.size() - 1]);
+          std::string value =StringUtils::toStr(matches[matches.size() - 1]);
           if (native_id_type_accession == "MS:1000774")
           {
-            return value.toInt() + 1; // if the native ID is index=.., the scan number is usually considered index+1 (especially for pepXML)
+            return StringUtils::toInt32(value) + 1; // if the native ID is index=.., the scan number is usually considered index+1 (especially for pepXML)
           }
           else
           {
-            return value.toInt();
+            return StringUtils::toInt32(value);
           }
         }
         catch (Exception::ConversionError&)
         {
-          OPENMS_LOG_WARN << "Value: '" << String(matches[matches.size() - 1]) << "' could not be converted to int in string. Native ID='" << native_id << "'" << std::endl;
+          OPENMS_LOG_WARN << "Value: '" << StringUtils::toStr(matches[matches.size() - 1]) << "' could not be converted to int in string. Native ID='" << native_id << "'" << std::endl;
           return -1;
         }
       }
@@ -181,12 +181,12 @@ namespace OpenMS
         try
         {
           // In case of merged spectra the last native id matches the scan number of the merged scan.
-          String cycle_str = matches[matches.size() - 2];
-          String experiment_str = matches[matches.size() - 1];
+          std::string cycle_str = matches[matches.size() - 2];
+          std::string experiment_str = matches[matches.size() - 1];
 
-          if (experiment_str.toInt() < 1000) // checks if value of experiment is smaller than 1000 (cycle * 1000 + experiment)
+          if (StringUtils::toInt32(experiment_str) < 1000) // checks if value of experiment is smaller than 1000 (cycle * 1000 + experiment)
           {
-            int value = cycle_str.toInt() * 1000 + experiment_str.toInt();
+            int value = StringUtils::toInt32(cycle_str) * 1000 + StringUtils::toInt32(experiment_str);
             return value;
           }
           else

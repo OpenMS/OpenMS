@@ -38,7 +38,7 @@ START_SECTION(Colorizer(const ConsoleColor color))
   Colorizer test(ConsoleColor::BLUE);
   stringstream s;
   s << "-" << test("test") << "-";
-  TEST_EQUAL(s.str(), String("-") + blueANSI + "test" + resetColorANSI + "-")
+  TEST_EQUAL(s.str(),StringUtils::toStr("-") + blueANSI + "test" + resetColorANSI + "-")
 }
 END_SECTION
 
@@ -53,7 +53,7 @@ START_SECTION(Colorizer& operator()())
   Colorizer test(ConsoleColor::BLUE);
   stringstream s;
   s << "-" << test() << "test-" << test_int;
-  TEST_EQUAL(s.str(), String("-") + blueANSI + "test-" + test_int)
+  TEST_EQUAL(s.str(),StringUtils::toStr("-") + blueANSI + "test-" + test_int)
 }
 END_SECTION
 
@@ -62,7 +62,7 @@ START_SECTION(template<typename T> Colorizer& operator()(T s))
   Colorizer test(ConsoleColor::MAGENTA);
   stringstream s;
   s << "-" << test(test_int) << "test-" << test_int;
-  TEST_EQUAL(s.str(), String("-") + magentaANSI + test_int + resetColorANSI + "test-" + test_int)
+  TEST_EQUAL(s.str(),StringUtils::toStr("-") + magentaANSI + test_int + resetColorANSI + "test-" + test_int)
 }
 END_SECTION
 
@@ -72,14 +72,14 @@ START_SECTION(Colorizer& undo())
   {
     stringstream s;
     s << "-" << test() << "test" << test_int << test.undo() << "nocol";
-    TEST_EQUAL(s.str(), String("-") + cyanANSI + "test" + test_int + resetColorANSI + "nocol")
+    TEST_EQUAL(s.str(),StringUtils::toStr("-") + cyanANSI + "test" + test_int + resetColorANSI + "nocol")
   }
   
   // test double coloring + reset (using any Colorizer)
   Colorizer yellow_test(ConsoleColor::YELLOW);
   stringstream s;
   s << "-" << test() << "test" << yellow_test() << test_int << yellow_test.undo() << "nocol";
-  TEST_EQUAL(s.str(), String("-") + cyanANSI + "test" + yellowANSI + test_int + resetColorANSI + "nocol")
+  TEST_EQUAL(s.str(),StringUtils::toStr("-") + cyanANSI + "test" + yellowANSI + test_int + resetColorANSI + "nocol")
 }
 END_SECTION
 

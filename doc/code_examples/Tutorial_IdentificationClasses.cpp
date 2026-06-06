@@ -37,7 +37,7 @@ int main()
   protein_id.setHits(protein_hits);
 
   DateTime now = DateTime::now();
-  String date_string = now.getDate();
+  std::string date_string = now.getDate();
   protein_id.setDateTime(now);
 
   // Example of possible search parameters

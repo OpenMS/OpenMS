@@ -99,7 +99,7 @@ protected:
     registerInputFile_("dummy", "<ignored>", "", "A fake input file, which is needed for some workflow systems to call this tool", false, true);
   }
 
-  // Param getSubsectionDefaults_(const String& /*section*/) const override
+  // Param getSubsectionDefaults_(const std::string& /*section*/) const override
   //{
   //   return SpectraMerger().getParameters();
   // }

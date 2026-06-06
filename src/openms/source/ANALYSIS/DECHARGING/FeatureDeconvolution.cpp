@@ -40,7 +40,7 @@ namespace OpenMS
   */
   struct FeatureDeconvolution::CmpInfo_
   {
-    String s_comp; ///< formula as String
+    std::string s_comp; ///< formula as String
     Size idx_cp{}; ///< index into compomer vector
     UInt side_cp{}; ///< side of parent compomer (LEFT or RIGHT)
 
@@ -49,7 +49,7 @@ namespace OpenMS
       s_comp() {}
 
     // C'tor
-    CmpInfo_(String& s, Size idx, UInt side) :
+    CmpInfo_(std::string& s, Size idx, UInt side) :
       s_comp(s), idx_cp(idx), side_cp(side) {}
 
     // Copy C'tor
@@ -128,8 +128,8 @@ namespace OpenMS
   {
     map_label_.clear();
     map_label_inverse_.clear();
-    map_label_inverse_[String(param_.getValue("default_map_label").toString())] = 0; // default virtual map (for unlabeled experiments)
-    map_label_[0] = String(param_.getValue("default_map_label").toString());
+    map_label_inverse_[StringUtils::toStr(param_.getValue("default_map_label").toString())] = 0; // default virtual map (for unlabeled experiments)
+    map_label_[0] =StringUtils::toStr(param_.getValue("default_map_label").toString());
 
     if (param_.getValue("q_try") == "feature")
       q_try_ = CHARGEMODE::QFROMFEATURE;
@@ -149,21 +149,22 @@ namespace OpenMS
     for (StringList::iterator it = potential_adducts_s.begin(); it != potential_adducts_s.end(); ++it)
     {
       // skip disabled adducts
-      if (it->trim().hasPrefix("#"))
+      StringUtils::trim(*it);
+      if (StringUtils::hasPrefix(*it, "#"))
         continue;
 
       StringList adduct;
-      it->split(':', adduct);
+      StringUtils::split(*it, ':', adduct);
       if (adduct.size() != 3 && adduct.size() != 4 && adduct.size() != 5)
       {
-        String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have three, four or five entries ('Elements:Charge:Probability' or 'Elements:Charge:Probability:RTShift' or 'Elements:Charge:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
+        std::string error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have three, four or five entries ('Elements:Charge:Probability' or 'Elements:Charge:Probability:RTShift' or 'Elements:Charge:Probability:RTShift:Label'), but " + StringUtils::toStr(adduct.size()) + " entries!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
       // determine probability
-      float prob = adduct[2].toFloat();
+      float prob = StringUtils::toFloat(adduct[2]);
       if (prob > 1.0 || prob <= 0.0)
       {
-        String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
+        std::string error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have a proper probability (" + StringUtils::toStr(prob) + ") in [0,1]!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
 
@@ -172,33 +173,33 @@ namespace OpenMS
       double rt_shift(0);
       if (adduct.size() >= 4)
       {
-        rt_shift = adduct[3].toDouble();
+        rt_shift = StringUtils::toDouble(adduct[3]);
         if (rt_shift != 0)
           had_nonzero_RT = true;
       }
 
       // Label:
-      String label = "";
+      std::string label = "";
       if (adduct.size() >= 5)
       {
-        label = adduct[4].trim();
+        label = StringUtils::trim(adduct[4]);
         map_label_inverse_[label] = map_label_.size(); // add extra virtual map
         map_label_[map_label_inverse_[label]] = label;
       }
 
       // determine charge of adduct (by # of '+' or '-')
       Size charge_s_len = adduct[1].size();
-      Int pos_charge = charge_s_len - adduct[1].remove('+').size();
+      Int pos_charge = charge_s_len - StringUtils::remove(adduct[1], '+').size();
       charge_s_len = adduct[1].size();
-      Int neg_charge = charge_s_len - adduct[1].remove('-').size();
+      Int neg_charge = charge_s_len - StringUtils::remove(adduct[1], '-').size();
       if (pos_charge > 0 && neg_charge > 0)
       {
-        String error = "FeatureDeconvolution::potential_adducts mixes charges for an adduct!";
+        std::string error = "FeatureDeconvolution::potential_adducts mixes charges for an adduct!";
       }
       else if (pos_charge > 0)
       {
         EmpiricalFormula ef(adduct[0]);
-        ef -= EmpiricalFormula("H" + String(pos_charge));
+        ef -= EmpiricalFormula("H" + StringUtils::toStr(pos_charge));
         ef.setCharge(pos_charge); // effectively subtract electron masses
         potential_adducts_.push_back(Adduct((Int)pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
       }
@@ -218,7 +219,7 @@ namespace OpenMS
       else//pos,neg == 0
       { //in principle no change because pos_charge 0 and ef.getMonoWeight() only adds for nonzero charges
         EmpiricalFormula ef(adduct[0]);
-        ef -= EmpiricalFormula("H" + String(pos_charge));
+        ef -= EmpiricalFormula("H" + StringUtils::toStr(pos_charge));
         ef.setCharge(pos_charge); // effectively subtract electron masses
         potential_adducts_.push_back(Adduct((Int)pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
       }
@@ -342,7 +343,7 @@ namespace OpenMS
     //make it proof for charge 1..3 and charge -3..-1
     if ((q_min * q_max) < 0)
     {
-       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Min and max charge switch charge signs! Please use same charge sign."), String(q_min)+" "+String(q_max));
+       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Min and max charge switch charge signs! Please use same charge sign."),StringUtils::toStr(q_min)+" "+StringUtils::toStr(q_max));
     }
 
 
@@ -498,7 +499,7 @@ namespace OpenMS
 
                   if (hc_left < 0 || hc_right < 0)
                   {
-                    throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING!!! implicit number of default adduct is negative!!! left:" + String(hc_left) + " right: " + String(hc_right) + "\n");
+                    throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING!!! implicit number of default adduct is negative!!! left:" + StringUtils::toStr(hc_left) + " right: " + StringUtils::toStr(hc_right) + "\n");
                   }
 
                   // intensity constraint:
@@ -512,13 +513,13 @@ namespace OpenMS
                   // save new adduct candidate
                   if (!cmp_stripped.getComponent()[Compomer::LEFT].empty())
                   {
-                    String tmp = cmp_stripped.getAdductsAsString(Compomer::LEFT);
+                    std::string tmp = cmp_stripped.getAdductsAsString(Compomer::LEFT);
                     CmpInfo_ cmp_left(tmp, feature_relation.size(), Compomer::LEFT);
                     feature_adducts[i_RT].insert(cmp_left);
                   }
                   if (!cmp_stripped.getComponent()[Compomer::RIGHT].empty())
                   {
-                    String tmp = cmp_stripped.getAdductsAsString(Compomer::RIGHT);
+                    std::string tmp = cmp_stripped.getAdductsAsString(Compomer::RIGHT);
                     CmpInfo_ cmp_right(tmp, feature_relation.size(), Compomer::RIGHT);
                     feature_adducts[i_RT_window].insert(cmp_right);
                   }
@@ -625,7 +626,7 @@ namespace OpenMS
       }
 
       // print mass delta of each edge
-      out_massdeltas.addLine(String(feature_relation[i].getMassDiff()) + ", " + String(feature_relation[i].getCharge(0)) + ", " + String(feature_relation[i].isActive() == 0));
+      out_massdeltas.addLine(StringUtils::toStr(feature_relation[i].getMassDiff()) + ", " + StringUtils::toStr(feature_relation[i].getCharge(0)) + ", " + StringUtils::toStr(feature_relation[i].isActive() == 0));
 
     }
 
@@ -642,7 +643,7 @@ namespace OpenMS
 
       if (!feature_relation[i].isActive())
       {
-        out_dead.addLine(String("dead e") + i + " (" + (c.getAdductsAsString(Compomer::LEFT)) + " -> " + (c.getAdductsAsString(Compomer::RIGHT)) + "): "
+        out_dead.addLine(StringUtils::toStr("dead e") + i + " (" + (c.getAdductsAsString(Compomer::LEFT)) + " -> " + (c.getAdductsAsString(Compomer::RIGHT)) + "): "
                          + f_idx_v[0] + " (q_ff:" + fm_out[f_idx_v[0]].getCharge() + " q_de:" + feature_relation[i].getCharge(0) + ")"
                          + f_idx_v[1] + " (q_ff:" + fm_out[f_idx_v[1]].getCharge() + " q_de:" + feature_relation[i].getCharge(1) + ")"
                          + "score: " + feature_relation[i].getEdgeScore()
@@ -680,14 +681,14 @@ namespace OpenMS
       // store score distribution:
       if (!dirty)
       {
-        scores_clean_edge.push_back(String(feature_relation[i].getEdgeScore()));
-        scores_clean_edge_idx.emplace_back(i);
+        scores_clean_edge.push_back(StringUtils::toStr(feature_relation[i].getEdgeScore()));
+        scores_clean_edge_idx.emplace_back(StringUtils::toStr(i));
         ef_clean_edge += ef;
       }
       else
       {
-        scores_dirty_edge.push_back(String(feature_relation[i].getEdgeScore()));
-        scores_dirty_edge_idx.emplace_back(i);
+        scores_dirty_edge.push_back(StringUtils::toStr(feature_relation[i].getEdgeScore()));
+        scores_dirty_edge_idx.emplace_back(StringUtils::toStr(i));
         ef_dirty_edge += ef;
       }
 
@@ -699,7 +700,7 @@ namespace OpenMS
 
 #ifdef DC_DEVEL
     out_dead.store("ILP_dead_edges.txt"); // TODO disable
-    //std::cout << "Edge score distribution (clean):\n" + scores_clean_edge.concatenate(" ") + "\n(dirty)\n" + scores_dirty_edge.concatenate(" ") + "\n\n";
+    //std::cout << "Edge score distribution (clean):\n" + StringUtils::concatenate(scores_clean_edge, " ") + "\n(dirty)\n" + StringUtils::concatenate(scores_dirty_edge, " ") + "\n\n";
     //std::cout << "Edge empirical formula (clean):\n" + ef_clean_edge.toString() + "\n(dirty)\n" + ef_dirty_edge.toString() + "\n\n";
 #endif
 
@@ -739,7 +740,7 @@ namespace OpenMS
       Int new_q0 = feature_relation[i].getCharge(0);
       Int new_q1 = feature_relation[i].getCharge(1);
 
-      scores.push_back(String(feature_relation[i].getEdgeScore()));
+      scores.push_back(StringUtils::toStr(feature_relation[i].getEdgeScore()));
 
       if (feature_relation[i].isActive())
       {
@@ -760,7 +761,7 @@ namespace OpenMS
         if (fm_out[f0_idx].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
           if (ef_l.toString() != fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_l.toString());
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Decharging produced inconsistent adduct annotation! [expected: ") + StringUtils::toStr(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_l.toString());
         }
         else
         {
@@ -773,7 +774,7 @@ namespace OpenMS
         fm_out[f0_idx].setCharge(new_q0);
         labels = c.getLabels(Compomer::LEFT);
         if (labels.size() > 1)
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
         if (!labels.empty())
         {
           fm_out[f0_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
@@ -784,7 +785,7 @@ namespace OpenMS
         if (fm_out[f1_idx].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
           if (ef_r.toString() != fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_r.toString());
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Decharging produced inconsistent adduct annotation! [expected: ") + StringUtils::toStr(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_r.toString());
         }
         else
         {
@@ -797,7 +798,7 @@ namespace OpenMS
         fm_out[f1_idx].setCharge(new_q1);
         labels = c.getLabels(Compomer::RIGHT);
         if (labels.size() > 1)
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
         if (!labels.empty())
         {
           fm_out[f1_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
@@ -825,10 +826,10 @@ namespace OpenMS
         cf.setUniqueId();
         cf.insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
         cf.insert((UInt64) fm_out[f1_idx].getMetaValue("map_idx"), fm_out[f1_idx]);
-        cf.setMetaValue("Local", String(old_q0) + ":" + String(old_q1));
-        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "):"
-                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + ") "
-                        + String("Score: ") + feature_relation[i].getEdgeScore());
+        cf.setMetaValue("Local",StringUtils::toStr(old_q0) + ":" + StringUtils::toStr(old_q1));
+        cf.setMetaValue("CP",StringUtils::toStr(fm_out[f0_idx].getCharge()) + "(" + StringUtils::toStr(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "):"
+                        + StringUtils::toStr(fm_out[f1_idx].getCharge()) + "(" + StringUtils::toStr(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + ") "
+                        + std::string("Score: ") + feature_relation[i].getEdgeScore());
         //cf.computeDechargeConsensus(fm_out);
 #if 1
         // print pairs only
@@ -873,11 +874,11 @@ namespace OpenMS
           }
         }
 
-        scores_e_active_idx.emplace_back(i);
+        scores_e_active_idx.emplace_back(StringUtils::toStr(i));
       }
       else // inactive edges
       {
-        scores_e_inactive_idx.emplace_back(i);
+        scores_e_inactive_idx.emplace_back(StringUtils::toStr(i));
 
         // DEBUG
 #ifdef DC_DEVEL
@@ -885,10 +886,10 @@ namespace OpenMS
         cf.setQuality(0.0);
         cf.insert(0, fm_out[f0_idx].getUniqueId(), fm_out[f0_idx]);
         cf.insert(0, fm_out[f1_idx].getUniqueId(), fm_out[f1_idx]);
-        cf.setMetaValue("Local", String(old_q0) + ":" + String(old_q1));
-        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "):"
-                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + ") "
-                        + String("Score: ") + feature_relation[i].getEdgeScore());
+        cf.setMetaValue("Local",StringUtils::toStr(old_q0) + ":" + StringUtils::toStr(old_q1));
+        cf.setMetaValue("CP",StringUtils::toStr(fm_out[f0_idx].getCharge()) + "(" + StringUtils::toStr(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "):"
+                        + StringUtils::toStr(fm_out[f1_idx].getCharge()) + "(" + StringUtils::toStr(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + ") "
+                        + std::string("Score: ") + feature_relation[i].getEdgeScore());
         cf.setUniqueId();
 
         // print pairs only
@@ -910,11 +911,11 @@ namespace OpenMS
 
     // DEBUG print scores
     TextFile tf;
-    tf.push_back("scr = c(" + scores.concatenate(", ") + ")");
-    tf.push_back("s_ia_idx = c(" + scores_e_inactive_idx.concatenate(", ") + ")+1");
-    tf.push_back("s_a_idx =   c(" +   scores_e_active_idx.concatenate(", ") + ")+1");
-    tf.push_back("s_a_idx_clean = c(" + scores_clean_edge_idx.concatenate(", ") + ")+1");
-    tf.push_back("s_a_idx_dirty = c(" +   scores_dirty_edge_idx.concatenate(", ") + ")+1");
+    tf.push_back("scr = c(" + StringUtils::concatenate(scores, ", ") + ")");
+    tf.push_back("s_ia_idx = c(" + StringUtils::concatenate(scores_e_inactive_idx, ", ") + ")+1");
+    tf.push_back("s_a_idx =   c(" +   StringUtils::concatenate(scores_e_active_idx, ", ") + ")+1");
+    tf.push_back("s_a_idx_clean = c(" + StringUtils::concatenate(scores_clean_edge_idx, ", ") + ")+1");
+    tf.push_back("s_a_idx_dirty = c(" +   StringUtils::concatenate(scores_dirty_edge_idx, ", ") + ")+1");
 
     tf.push_back("plot( density(scr[s_ia_idx]), xlim=range( scr ), main=" ", xlab=" " )");
     tf.push_back("lines(density(scr[s_a_idx_dirty]), col=2)");
@@ -1132,14 +1133,14 @@ namespace OpenMS
             }
             else
             {
-              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureDeconvolution::inferMoreEdges_(): Inferred edges with wrong(switched?) charges! Left neg_charge, left feature charge, right pos_charge, right feature charge", String(new_cmp.getNegativeCharges())+","+String(cp.getCharge(0))+","+String(new_cmp.getPositiveCharges())+","+String(cp.getCharge(1)));
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureDeconvolution::inferMoreEdges_(): Inferred edges with wrong(switched?) charges! Left neg_charge, left feature charge, right pos_charge, right feature charge",StringUtils::toStr(new_cmp.getNegativeCharges())+","+StringUtils::toStr(cp.getCharge(0))+","+StringUtils::toStr(new_cmp.getPositiveCharges())+","+StringUtils::toStr(cp.getCharge(1)));
             }
           }
 
         }
         else // have nonzero modulo.SHOULD NOT HAPPEN FOR DEFAULT CHARGE 1/-1 !!
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureDeconvolution::inferMoreEdges_(): Modulo returns leftover charge!", String(new_cmp.getNegativeCharges()));
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureDeconvolution::inferMoreEdges_(): Modulo returns leftover charge!",StringUtils::toStr(new_cmp.getNegativeCharges()));
         }
 
         ++result_it;
@@ -1198,7 +1199,7 @@ namespace OpenMS
     //Switches of charge signs in one ionization mode should logically not occur. The assumed decharger charge settings should fit to feature charges
     if (feature_charge * putative_charge < 0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("feature charge and putative charge switch charge direction!"), String(feature_charge)+" "+String(putative_charge));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("feature charge and putative charge switch charge direction!"),StringUtils::toStr(feature_charge)+" "+StringUtils::toStr(putative_charge));
     }
 
     // if no charge given or all-charges is selected. Assume no charge detected -> charge 0
@@ -1228,7 +1229,7 @@ namespace OpenMS
       return feature_charge == putative_charge;
     }
 
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q_try_ has unhandled enum value!", String((Int)q_try_));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q_try_ has unhandled enum value!",StringUtils::toStr((Int)q_try_));
   }
 
   void FeatureDeconvolution::checkSolution_(const ConsensusMap& cons_map) const
@@ -1243,7 +1244,7 @@ namespace OpenMS
         continue;
 
       ++ladders_total;
-      IntList charges = cfeature.getMetaValue("distinct_charges");
+      IntList charges = (IntList)cfeature.getMetaValue("distinct_charges");
 
       for (Size i = 0; i < charges.size(); ++i)
       {

@@ -73,10 +73,10 @@ namespace OpenMS
     {
       if (write_log_messages_)
       {
-        String error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your profile data. Try to use a bigger width.";
+        std::string error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your profile data. Try to use a bigger width.";
         if (spectrum.getRT() > 0.0)
         {
-          error_message += String(" The error occurred in the spectrum with retention time ") + spectrum.getRT() + ".";
+          error_message +=StringUtils::toStr(" The error occurred in the spectrum with retention time ") + spectrum.getRT() + ".";
         }
         OPENMS_LOG_WARN << error_message << std::endl;
       }
@@ -122,10 +122,10 @@ namespace OpenMS
     {
       if (write_log_messages_)
       {
-        String error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your chromatogram data. Try to use a bigger width.";
+        std::string error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your chromatogram data. Try to use a bigger width.";
         if (chromatogram.getMZ() > 0.0)
         {
-          error_message += String(" The error occurred in the chromatogram with m/z ratio ") + chromatogram.getMZ() + ".";
+          error_message +=StringUtils::toStr(" The error occurred in the chromatogram with m/z ratio ") + chromatogram.getMZ() + ".";
         }
         OPENMS_LOG_ERROR << error_message << std::endl;
       }
@@ -171,10 +171,10 @@ namespace OpenMS
     {
       if (write_log_messages_)
       {
-        String error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your mobilogram data. Try to use a bigger width.";
+        std::string error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your mobilogram data. Try to use a bigger width.";
         if (mobilogram.getRT() > 0.0)
         {
-          error_message += String(" The error occurred in the mobilogram with RT ") + mobilogram.getRT() + ".";
+          error_message +=StringUtils::toStr(" The error occurred in the mobilogram with RT ") + mobilogram.getRT() + ".";
         }
         OPENMS_LOG_ERROR << error_message << std::endl;
       }

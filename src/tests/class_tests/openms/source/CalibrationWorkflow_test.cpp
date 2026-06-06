@@ -162,7 +162,7 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION((CalibrationWorkflow::CalibrationResult performCalibration(std::vector<OpenSwath::SwathMap>&, OpenSwath::LightTargetedExperiment&, OpenSwath::ChromExtractParams&, OpenSwath::ChromExtractParams&, const CalibrationWorkflow::IrtExperiments&, const Param&, const OpenSwath::ChromExtractParams&, const Param&, const Param&, const Param&, bool, bool, const String&, const String&, Size)))
+START_SECTION((CalibrationWorkflow::CalibrationResult performCalibration(std::vector<OpenSwath::SwathMap>&, OpenSwath::LightTargetedExperiment&, OpenSwath::ChromExtractParams&, OpenSwath::ChromExtractParams&, const CalibrationWorkflow::IrtExperiments&, const Param&, const OpenSwath::ChromExtractParams&, const Param&, const Param&, const Param&, bool, bool, const std::string&, const std::string&, Size)))
 {
   CalibrationWorkflow cw;
 

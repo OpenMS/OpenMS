@@ -342,7 +342,7 @@ START_SECTION((template <bool add_mass_traces, class Container> void set2DData(c
   inputr.push_back(pr3);
 
   // create float data arrays for these two meta values (missing values in data will be set to NaN)
-  exp.set2DData(inputr, ListUtils::create<String>("meta1,meta3"));
+  exp.set2DData(inputr, ListUtils::create<std::string>("meta1,meta3"));
   TEST_EQUAL(exp.getNrSpectra(), 3);
   // retrieve data again and check for changes
   std::vector<Peak2D> outputr;
@@ -1385,7 +1385,7 @@ START_SECTION(void clear(bool clear_meta_data))
   edit.getSample().setName("bla");
   edit.resize(5);
   edit.updateRanges();
-  edit.setMetaValue("label",String("bla"));
+  edit.setMetaValue("label",StringUtils::toStr("bla"));
   vector<MSChromatogram > tmp;
   tmp.resize(5);
   edit.setChromatograms(tmp);
@@ -1658,11 +1658,11 @@ START_SECTION( std::ostream& operator<<(std::ostream& os, const MSExperiment& ch
   std::ostringstream os;
   os << tmp;
 
-  TEST_EQUAL(String(os.str()).hasSubstring("MSEXPERIMENT BEGIN"), true);
-  TEST_EQUAL(String(os.str()).hasSubstring("MSSPECTRUM BEGIN"), true);
-  TEST_EQUAL(String(os.str()).hasSubstring("MSCHROMATOGRAM BEGIN"), true);
-  TEST_EQUAL(String(os.str()).hasSubstring("47.11"), true);
-  TEST_EQUAL(String(os.str()).hasSubstring("10.77"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(os.str()), "MSEXPERIMENT BEGIN"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(os.str()), "MSSPECTRUM BEGIN"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(os.str()), "MSCHROMATOGRAM BEGIN"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(os.str()), "47.11"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(os.str()), "10.77"), true);
 }
 END_SECTION
 

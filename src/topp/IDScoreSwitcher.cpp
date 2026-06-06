@@ -59,7 +59,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", ListUtils::create<String>("idXML,idparquet"));
+    setValidFormats_("in", ListUtils::create<std::string>("idXML,idparquet"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML,idparquet"));
     registerFullParam_(switcher_.getParameters());
@@ -68,7 +68,7 @@ protected:
   ExitCodes main_(int, const char**) override
   {
     switcher_.setParameters(getParam_().copySubset(switcher_.getParameters()));
-    String in = getStringOption_("in"), out = getStringOption_("out");
+    std::string in = getStringOption_("in"), out = getStringOption_("out");
     bool do_proteins_ = getFlag_("proteins"); // from full param of IDScoreSwitcherAlgorithm
 
     vector<ProteinIdentification> proteins;

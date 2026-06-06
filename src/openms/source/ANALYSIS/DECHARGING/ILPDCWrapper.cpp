@@ -94,7 +94,7 @@ namespace OpenMS
 
       if (g2pairs.size() != g2f.size())
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Clique construction failed! Unequal number of groups produced!", String(g2pairs.size()) + "!=" + String(g2f.size()));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Clique construction failed! Unequal number of groups produced!",StringUtils::toStr(g2pairs.size()) + "!=" + StringUtils::toStr(g2f.size()));
       }
 
       std::map<Size, Size> hist_component_sum;
@@ -184,7 +184,7 @@ namespace OpenMS
     return score;
   }
 
-  void ILPDCWrapper::updateFeatureVariant_(FeatureType_& f_set, const String& rota_l, const Size& v) const
+  void ILPDCWrapper::updateFeatureVariant_(FeatureType_& f_set, const std::string& rota_l, const Size& v) const
   {
     f_set[rota_l].insert(v);
   }
@@ -218,9 +218,9 @@ namespace OpenMS
       build.setObjective(index, pairs[i].getEdgeScore());
 
       // create feature variants set
-      String rota_l = String(pairs[i].getElementIndex(0)) + pairs[i].getCompomer().getAdductsAsString(0) + "_" + pairs[i].getCharge(0) + "_m" + pairs[i].getMolMultiplier(0);
+      std::string rota_l =StringUtils::toStr(pairs[i].getElementIndex(0)) + pairs[i].getCompomer().getAdductsAsString(0) + "_" + pairs[i].getCharge(0) + "_m" + pairs[i].getMolMultiplier(0);
       updateFeatureVariant_(features[pairs[i].getElementIndex(0)], rota_l, index);
-      String rota_r = String(pairs[i].getElementIndex(1)) + pairs[i].getCompomer().getAdductsAsString(1) + "_" + pairs[i].getCharge(1) + "_m" + pairs[i].getMolMultiplier(1);
+      std::string rota_r =StringUtils::toStr(pairs[i].getElementIndex(1)) + pairs[i].getCompomer().getAdductsAsString(1) + "_" + pairs[i].getCharge(1) + "_m" + pairs[i].getMolMultiplier(1);
       updateFeatureVariant_(features[pairs[i].getElementIndex(1)], rota_r, index);
     }
 
@@ -251,10 +251,10 @@ namespace OpenMS
         }
         columns_e.push_back((Int) index);
         elements_e.push_back(iti->second.size()); // factor of variant is number of adjacent edges
-        String se = String("cv") + index;
+        std::string se =StringUtils::toStr("cv") + index;
         build.addRow(columns_e, elements_e, se, 0, 10000, LPWrapper::LOWER_BOUND_ONLY);
       }
-      String s = String("c") + count;
+      std::string s =StringUtils::toStr("c") + count;
       // only allow exactly one charge variant
       build.addRow(columns, elements, s, 1, 1, LPWrapper::FIXED);
     }
@@ -398,7 +398,7 @@ namespace OpenMS
 
         if (is_conflicting)
         {
-          String s = String("C") + i + "." + j;
+          std::string s =StringUtils::toStr("C") + i + "." + j;
 
           // Now build rows: two variables, with indices 'columns', factors '1', and 0-1 bounds.
           std::vector<double> element(2, 1.0);
@@ -443,7 +443,7 @@ namespace OpenMS
 
     // variable values
     UInt active_edges = 0;
-    std::unordered_map<String, Size> count_cmp;
+    std::unordered_map<std::string, Size> count_cmp;
 
     for (Int iColumn = 0; iColumn < build.getNumberOfColumns(); ++iColumn)
     {
@@ -453,7 +453,7 @@ namespace OpenMS
         ++active_edges;
         pairs[margin_left + iColumn].setActive(true);
         // for statistical purposes: collect compomer distribution
-        String cmp = pairs[margin_left + iColumn].getCompomer().getAdductsAsString();
+        std::string cmp = pairs[margin_left + iColumn].getCompomer().getAdductsAsString();
         ++count_cmp[cmp];
       }
       else
@@ -465,7 +465,7 @@ namespace OpenMS
     if (verbose_level > 2)
       OPENMS_LOG_INFO << "Active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
 
-    for (std::unordered_map<String, Size>::const_iterator it = count_cmp.begin(); it != count_cmp.end(); ++it)
+    for (std::unordered_map<std::string, Size>::const_iterator it = count_cmp.begin(); it != count_cmp.end(); ++it)
     {
       //std::cout << "Cmp " << it->first << " x " << it->second << "\n";
     }
@@ -479,9 +479,9 @@ namespace OpenMS
   double ILPDCWrapper::getLogScore_(const PairsType::value_type& pair, const FeatureMap& fm) const
   {
     double score;
-    String e;
+    std::string e;
     if (getenv("M") != nullptr)
-      e = String(getenv("M"));
+      e =StringUtils::toStr(getenv("M"));
     if (e.empty())
     {
       //std::cout << "1";

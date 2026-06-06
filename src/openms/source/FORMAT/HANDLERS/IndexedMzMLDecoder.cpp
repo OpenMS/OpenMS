@@ -48,7 +48,7 @@ namespace OpenMS
         std::cerr << "Trying to convert corrupted / unreadable value to std::streampos : " << s << std::endl;
         std::cerr << "This can also happen if the value exceeds 63 bits, please check your input." << std::endl;
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("Could not convert string '") + s + "' to a 64 bit integer.");
+            std::string("Could not convert string '") + s + "' to a 64 bit integer.");
       }
 
       // Check if the value can fit into std::streampos
@@ -58,14 +58,14 @@ namespace OpenMS
           << " only addresses that fit into a " << sizeof(std::streamsize)*8 <<
           " bit integer are supported on your system." << std::endl;
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("Could not convert string '") + s + "' to an integer on your system.");
+            std::string("Could not convert string '") + s + "' to an integer on your system.");
       }
 
       return res;
     }
   }
 
-  int IndexedMzMLDecoder::parseOffsets(const String& filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
+  int IndexedMzMLDecoder::parseOffsets(const std::string& filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
     //-------------------------------------------------------------
     // Open file, jump to end and read last indexoffset bytes into buffer.
@@ -126,7 +126,7 @@ namespace OpenMS
     // Add a sane start element and then give it to a DOM parser
     //-------------------------------------------------------------
     // http://stackoverflow.com/questions/4691039/making-xerces-parse-a-string-insted-of-a-file
-    std::string tmp_fixed_xml = "<indexedmzML>" +  String(buffer) + "\n";
+    std::string tmp_fixed_xml = "<indexedmzML>" +  StringUtils::toStr(buffer) + "\n";
     int res = domParseIndexedEnd_(tmp_fixed_xml, spectra_offsets, chromatograms_offsets);
 
     delete[] buffer;
@@ -134,7 +134,7 @@ namespace OpenMS
     return res;
   }
 
-  std::streampos IndexedMzMLDecoder::findIndexListOffset(const String& filename, int buffersize)
+  std::streampos IndexedMzMLDecoder::findIndexListOffset(const std::string& filename, int buffersize)
   {
     // return value
     std::streampos indexoffset = -1;
@@ -178,7 +178,7 @@ namespace OpenMS
     boost::regex listoffset_rx(R"(<[^>/]*indexListOffset\s*>\s*(\d*))");
     boost::cmatch matches;
     boost::regex_search(buffer.get(), matches, listoffset_rx);
-    String thismatch(matches[1].first, matches[1].second);
+    std::string thismatch(matches[1].first, matches[1].second);
     if (!thismatch.empty())
     {
       try
@@ -299,8 +299,8 @@ namespace OpenMS
             char* x_name = xercesc::XMLString::transcode(currentElement->getAttribute(x_idref_tag));
             char* x_offset = xercesc::XMLString::transcode(currentONode->getTextContent());
 
-            std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos( String(x_offset) );
-            result.emplace_back(String(x_name), thisOffset);
+            std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos(StringUtils::toStr(x_offset) );
+            result.emplace_back(StringUtils::toStr(x_name), thisOffset);
 
             xercesc::XMLString::release(&x_name);
             xercesc::XMLString::release(&x_offset);

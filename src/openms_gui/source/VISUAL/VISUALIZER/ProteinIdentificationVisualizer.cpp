@@ -102,7 +102,7 @@ namespace OpenMS
   {
     if (filter_threshold_->text() != "")
     {
-      pidv_caller_->filterHits_(filter_threshold_->text().toDouble(), temp_.isHigherScoreBetter(), tree_id_);
+      pidv_caller_->filterHits_(filter_threshold_->text().toDouble(, temp_.isHigherScoreBetter(), tree_id_);
     }
     else
     {
@@ -115,7 +115,7 @@ namespace OpenMS
     ptr_->setSearchEngine(fromQString(engine_->text()));
     ptr_->setSearchEngineVersion(fromQString(engine_version_->text()));
     ptr_->setIdentifier(fromQString(identifier_->text()));
-    ptr_->setSignificanceThreshold(identification_threshold_->text().toFloat());
+    StringUtils::toFloat(ptr_->setSignificanceThreshold(identification_threshold_->text()));
     ptr_->setScoreType(fromQString(score_type_->text()));
     ptr_->setHigherScoreBetter(higher_better_->currentIndex());
     //date
@@ -140,9 +140,9 @@ namespace OpenMS
     tmp.db_version = fromQString(db_version_->text());
     tmp.taxonomy = fromQString(taxonomy_->text());
     tmp.charges = fromQString(charges_->text());
-    tmp.missed_cleavages = missed_cleavages_->text().toInt();
-    tmp.fragment_mass_tolerance = peak_tolerance_->text().toFloat();
-    tmp.precursor_mass_tolerance = precursor_tolerance_->text().toFloat();
+    tmp.missed_cleavages = StringUtils::toInt32(missed_cleavages_->text());
+    tmp.fragment_mass_tolerance = StringUtils::toFloat(peak_tolerance_->text());
+    tmp.precursor_mass_tolerance = StringUtils::toFloat(precursor_tolerance_->text());
     tmp.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(fromQString(enzyme_->text())));
     tmp.mass_type = (ProteinIdentification::PeakMassType)(mass_type_->currentIndex());
     ptr_->setSearchParameters(tmp);

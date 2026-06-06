@@ -35,7 +35,7 @@ file.load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"), fasta_db);
 
 
 ProteaseDigestion digestor;
-String enzyme_name = "Trypsin";
+std::string enzyme_name = "Trypsin";
 digestor.setEnzyme(enzyme_name);
 digestor.setMissedCleavages(2);
 
@@ -73,7 +73,7 @@ double cross_link_mass = 150.0;
 double precursor_mass_tolerance = 10;
 bool precursor_mass_tolerance_unit_ppm = true;
 
-std::vector<String> mono_masses;
+std::vector<std::string> mono_masses;
 mono_masses.push_back("50.0");
 DoubleList cross_link_mass_mono_link = ListUtils::create<double>(mono_masses);
 
@@ -121,10 +121,10 @@ std::vector< int > spectrum_precursor_correction_positions;
 std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, spectrum_precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
 std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
 
-START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector< int > precursor_corrections, std::vector< int >& precursor_correction_positions, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, std::vector< double >& spectrum_precursor_vector, std::vector< double >& allowed_error_vector, String cross_link_name))
+START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector< int > precursor_corrections, std::vector< int >& precursor_correction_positions, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, std::vector< double >& spectrum_precursor_vector, std::vector< double >& allowed_error_vector, std::string cross_link_name))
   double precursor_mass = 11814.50296;
   double allowed_error = 0.1;
-  String cross_link_name = "MyLinker";
+  std::string cross_link_name = "MyLinker";
 
   std::vector< OPXLDataStructs::XLPrecursor > filtered_precursors;
 
@@ -370,14 +370,14 @@ START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::PeakA
 
 END_SECTION
 
-START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, std::vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name, bool use_sequence_tags, std::vector<std::string>& tags))
+START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, std::vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, std::string cross_link_name, bool use_sequence_tags, std::vector<std::string>& tags))
 
   IntList precursor_correction_steps;
   precursor_correction_steps.push_back(2);
   precursor_correction_steps.push_back(1);
 
   double precursor_mass = 10668.85060;
-  String cross_link_name = "MyLinker";
+  std::string cross_link_name = "MyLinker";
   precursor_mass_tolerance = 10;
 
   std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps, precursor_mass, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm, peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, cross_link_name);

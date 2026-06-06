@@ -77,14 +77,14 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
-    setValidFormats_("in", ListUtils::create<String>("qcML"));
+    setValidFormats_("in", ListUtils::create<std::string>("qcML"));
     //~ registerFlag_("tables", "Remove all tables. (Of all runs and sets if these are not given with parameter name or run.)");
     registerStringList_("qp_accessions", "<names>", StringList(), "A list of cv accessions that should be removed. If empty, the usual suspects will be removed!", false);
     registerStringOption_("name", "<string>", "", "The name of the target run or set that contains the requested quality parameter.", false);
     registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!", false);
-    setValidFormats_("run", ListUtils::create<String>("mzML"));
+    setValidFormats_("run", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
-    setValidFormats_("out", ListUtils::create<String>("qcML"));
+    setValidFormats_("out", ListUtils::create<std::string>("qcML"));
   }
 
   ExitCodes main_(int, const char**) override
@@ -92,10 +92,10 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in                   = getStringOption_("in");
-    String out                  = getStringOption_("out");
-    String target_run           = getStringOption_("name");
-    String target_file          = getStringOption_("run");
+    std::string in                   = getStringOption_("in");
+    std::string out                  = getStringOption_("out");
+    std::string target_run           = getStringOption_("name");
+    std::string target_file          = getStringOption_("run");
     StringList qp_accs          = getStringList_("qp_accessions");
 
     //-------------------------------------------------------------

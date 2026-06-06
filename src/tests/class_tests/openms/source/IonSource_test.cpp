@@ -84,14 +84,14 @@ START_SECTION((IonSource(const IonSource& source)))
   tmp.setInletType(IonSource::InletType::DIRECT);
   tmp.setIonizationMethod(IonSource::IonizationMethod::ESI);
   tmp.setPolarity(IonSource::Polarity::POSITIVE);
-  tmp.setMetaValue("label",String("label"));
+  tmp.setMetaValue("label",StringUtils::toStr("label"));
   tmp.setOrder(45);
   	
   IonSource tmp2(tmp);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::Polarity::POSITIVE);
   TEST_EQUAL(tmp2.getInletType(),IonSource::InletType::DIRECT);
   TEST_EQUAL(tmp2.getIonizationMethod(),IonSource::IonizationMethod::ESI);
-  TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+  TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getOrder(),45)
 END_SECTION
 
@@ -100,7 +100,7 @@ START_SECTION((IonSource& operator= (const IonSource& source)))
   tmp.setInletType(IonSource::InletType::DIRECT);
   tmp.setIonizationMethod(IonSource::IonizationMethod::ESI);
   tmp.setPolarity(IonSource::Polarity::POSITIVE);
-  tmp.setMetaValue("label",String("label"));
+  tmp.setMetaValue("label",StringUtils::toStr("label"));
   tmp.setOrder(45);
   
   IonSource tmp2;
@@ -108,7 +108,7 @@ START_SECTION((IonSource& operator= (const IonSource& source)))
   TEST_EQUAL(tmp2.getPolarity(),IonSource::Polarity::POSITIVE);
   TEST_EQUAL(tmp2.getInletType(),IonSource::InletType::DIRECT);
   TEST_EQUAL(tmp2.getIonizationMethod(),IonSource::IonizationMethod::ESI);
-  TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+  TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getOrder(),45)
   
   tmp2 = IonSource();
@@ -137,7 +137,7 @@ START_SECTION((bool operator== (const IonSource& rhs) const))
 	TEST_EQUAL(edit==empty,false);
 	
 	edit = empty;
-	edit.setMetaValue("label",String("label"));
+	edit.setMetaValue("label",StringUtils::toStr("label"));
 	TEST_EQUAL(edit==empty,false);
 	
   edit = empty;
@@ -163,7 +163,7 @@ START_SECTION((bool operator!= (const IonSource& rhs) const))
 	TEST_EQUAL(edit!=empty,true);
 
 	edit = empty;
-	edit.setMetaValue("label",String("label"));
+	edit.setMetaValue("label",StringUtils::toStr("label"));
 	TEST_EQUAL(edit!=empty,true);
 	
   edit = empty;
@@ -203,13 +203,13 @@ START_SECTION(([EXTRA] std::hash<IonSource>))
   is1.setIonizationMethod(IonSource::IonizationMethod::ESI);
   is1.setPolarity(IonSource::Polarity::POSITIVE);
   is1.setOrder(45);
-  is1.setMetaValue("label", String("test"));
+  is1.setMetaValue("label",StringUtils::toStr("test"));
 
   is2.setInletType(IonSource::InletType::DIRECT);
   is2.setIonizationMethod(IonSource::IonizationMethod::ESI);
   is2.setPolarity(IonSource::Polarity::POSITIVE);
   is2.setOrder(45);
-  is2.setMetaValue("label", String("test"));
+  is2.setMetaValue("label",StringUtils::toStr("test"));
 
   TEST_EQUAL(is1 == is2, true)
   TEST_EQUAL(std::hash<IonSource>{}(is1), std::hash<IonSource>{}(is2))

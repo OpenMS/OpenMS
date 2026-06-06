@@ -137,7 +137,7 @@ namespace OpenMS
     if (size_proportions_->isChecked() && size_x_ == qApp->focusWidget())
     {
       QString * temp = new QString();
-      temp->setNum((int)Math::round(s.toInt() / size_ratio_));
+      temp->setNum((int)Math::round(StringUtils::toInt32(s) / size_ratio_));
       size_y_->setText(*temp);
     }
   }
@@ -147,7 +147,7 @@ namespace OpenMS
     if (size_proportions_->isChecked() && size_y_ == qApp->focusWidget())
     {
       QString * temp = new QString();
-      temp->setNum((int)Math::round(s.toInt() * size_ratio_));
+      temp->setNum((int)Math::round(StringUtils::toInt32(s) * size_ratio_));
       size_x_->setText(*temp);
     }
   }
@@ -162,8 +162,8 @@ namespace OpenMS
 
   void SaveImageDialog::checkSize()
   {
-    int x = size_x_->text().toInt();
-    int y = size_y_->text().toInt();
+    int x = StringUtils::toInt32(size_x_->text());
+    int y = StringUtils::toInt32(size_y_->text());
     if (x > 0 && y > 0)
     {
       accept();
@@ -172,12 +172,12 @@ namespace OpenMS
 
   int SaveImageDialog::getXSize()
   {
-    return size_x_->text().toInt();
+    return StringUtils::toInt32(size_x_->text());
   }
 
   int SaveImageDialog::getYSize()
   {
-    return size_y_->text().toInt();
+    return StringUtils::toInt32(size_y_->text());
   }
 
   QString SaveImageDialog::getFormat()

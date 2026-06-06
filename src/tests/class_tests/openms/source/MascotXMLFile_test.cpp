@@ -39,7 +39,7 @@ PeptideIdentificationList peptide_identifications;
 PeptideIdentificationList peptide_identifications2;
 DateTime date;
 PeptideHit peptide_hit;
-vector<String> references;
+vector<std::string> references;
 
 date.set("2006-03-09 11:31:52");
 
@@ -50,7 +50,7 @@ START_SECTION((MascotXMLFile()))
   delete ptr;
 END_SECTION
 
-START_SECTION((static void initializeLookup(SpectrumMetaDataLookup& lookup, PeakMap& experiment, const String& scan_regex = "")))
+START_SECTION((static void initializeLookup(SpectrumMetaDataLookup& lookup, PeakMap& experiment, const std::string& scan_regex = "")))
 {
   PeakMap exp;
   exp.getSpectra().resize(1);
@@ -60,7 +60,7 @@ START_SECTION((static void initializeLookup(SpectrumMetaDataLookup& lookup, Peak
 }
 END_SECTION
 
-START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, SpectrumMetaDataLookup& lookup)))
+START_SECTION((void load(const std::string& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, SpectrumMetaDataLookup& lookup)))
 {
   SpectrumMetaDataLookup lookup;
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
@@ -105,19 +105,19 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     TEST_EQUAL(peptide_identifications[0].getHits().size(), 2);
 
     peptide_hit = peptide_identifications[0].getHits()[0];
-    set<String> ref_set = peptide_hit.extractProteinAccessionsSet();
-    vector<String> references(ref_set.begin(), ref_set.end());
+    set<std::string> ref_set = peptide_hit.extractProteinAccessionsSet();
+    vector<std::string> references(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 2);
     TEST_EQUAL(references[0], "AAN17824");
     TEST_EQUAL(references[1], "GN1736");
     peptide_hit = peptide_identifications[0].getHits()[1];
     ref_set = peptide_hit.extractProteinAccessionsSet();
-    references = vector<String>(ref_set.begin(), ref_set.end());
+    references = vector<std::string>(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 1);
     TEST_EQUAL(references[0], "AAN17824");
     peptide_hit = peptide_identifications[1].getHits()[0];
     ref_set = peptide_hit.extractProteinAccessionsSet();
-    references = vector<String>(ref_set.begin(), ref_set.end());
+    references = vector<std::string>(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 1);
     TEST_EQUAL(references[0], "GN1736");
 
@@ -132,7 +132,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK(MOD:00445)"));
     TEST_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), AASequence::fromString("HSK(MOD:00445)LSAK(MOD:00445)"));
 
-    String identifier = protein_identification.getIdentifier();
+    std::string identifier = protein_identification.getIdentifier();
     TEST_EQUAL(!identifier.empty(), true);
     for (Size i = 0; i < peptide_identifications.size(); ++i)
     {
@@ -185,8 +185,8 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     vector<PeptideEvidence> pes = peptide_hit.getPeptideEvidences();
     TEST_EQUAL(pes.size(), 0);
     pes = peptide_identifications[34].getHits()[0].getPeptideEvidences();
-    set<String> accessions = peptide_identifications[34].getHits()[0].extractProteinAccessionsSet();
-    references = vector<String>(accessions.begin(), accessions.end()); // corresponds to <peptide query="35" ...>
+    set<std::string> accessions = peptide_identifications[34].getHits()[0].extractProteinAccessionsSet();
+    references = vector<std::string>(accessions.begin(), accessions.end()); // corresponds to <peptide query="35" ...>
     ABORT_IF(references.size() != 5);
     TEST_EQUAL(references[0], "IPI00022434");
     TEST_EQUAL(references[1], "IPI00384697");
@@ -207,7 +207,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     TEST_EQUAL(peptide_identifications[522].getHits()[0].getSequence(), AASequence::fromString("(Acetyl)GALM(Oxidation)NEIQAAK"));
     TEST_EQUAL(peptide_identifications[67].getHits()[0].getSequence(), AASequence::fromString("SHY(Phospho)GGSR"));
 
-    String identifier = protein_identification.getIdentifier();
+    std::string identifier = protein_identification.getIdentifier();
     TEST_EQUAL(!identifier.empty(), true);
     for (Size i = 0; i < peptide_identifications.size(); ++i)
     {
@@ -220,11 +220,11 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
   {
     std::vector<ProteinIdentification> pids;
     pids.push_back(protein_identification);
-    String filename;
+    std::string filename;
     NEW_TMP_FILE(filename)
     IdXMLFile().store(filename, pids, peptide_identifications);
     FuzzyStringComparator fuzzy;
-    fuzzy.setWhitelist(ListUtils::create<String>("<?xml-stylesheet"));
+    fuzzy.setWhitelist(ListUtils::create<std::string>("<?xml-stylesheet"));
     fuzzy.setAcceptableAbsolute(0.0001);
     bool result = fuzzy.compareFiles(filename, OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_out_3.idXML"));
     TEST_EQUAL(result, true);
@@ -232,8 +232,8 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
 }
 END_SECTION
 
-START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, std::map<String, std::vector<AASequence> >& peptides, SpectrumMetaDataLookup& lookup)))
-  std::map<String, vector<AASequence> > modified_peptides;
+START_SECTION((void load(const std::string& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, std::map<std::string, std::vector<AASequence> >& peptides, SpectrumMetaDataLookup& lookup)))
+  std::map<std::string, vector<AASequence> > modified_peptides;
   AASequence aa_sequence_1;
   AASequence aa_sequence_2;
   AASequence aa_sequence_3;
@@ -275,19 +275,19 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
   TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
 
   peptide_hit = peptide_identifications[0].getHits()[0];  
-  set<String> accessions = peptide_hit.extractProteinAccessionsSet();
-  references = vector<String>(accessions.begin(), accessions.end());
+  set<std::string> accessions = peptide_hit.extractProteinAccessionsSet();
+  references = vector<std::string>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 2)
   TEST_EQUAL(references[0], "AAN17824")
   TEST_EQUAL(references[1], "GN1736")  
   peptide_hit = peptide_identifications[0].getHits()[1];
   accessions = peptide_hit.extractProteinAccessionsSet();
-  references = vector<String>(accessions.begin(), accessions.end());
+  references = vector<std::string>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 1)
   TEST_EQUAL(references[0], "AAN17824")
   peptide_hit = peptide_identifications[1].getHits()[0];
   accessions = peptide_hit.extractProteinAccessionsSet();
-  references = vector<String>(accessions.begin(), accessions.end());
+  references = vector<std::string>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 1)
   TEST_EQUAL(references[0], "GN1736")
 

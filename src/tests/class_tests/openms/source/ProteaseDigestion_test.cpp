@@ -61,7 +61,7 @@ START_SECTION(([EXTRA] ProteaseDigestion& operator=(const ProteaseDigestion& rhs
     TEST_EQUAL(pd.getSpecificity(), pd2.getSpecificity());
 END_SECTION
 
-START_SECTION((void setEnzyme(const String& enzyme_name)))
+START_SECTION((void setEnzyme(const std::string& enzyme_name)))
     ProteaseDigestion pd;
     pd.setEnzyme("Trypsin");
     TEST_EQUAL(pd.getEnzymeName(), "Trypsin");
@@ -303,7 +303,7 @@ START_SECTION((Size digest(const AASequence& protein, std::vector<AASequence>& o
 
 END_SECTION
 
-START_SECTION((bool isValidProduct(const String& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages, bool allow_nterm_protein_cleavage, bool allow_random_asp_pro_cleavage)))
+START_SECTION((bool isValidProduct(const std::string& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages, bool allow_nterm_protein_cleavage, bool allow_random_asp_pro_cleavage)))
     NOT_TESTABLE // tested by overload below
 END_SECTION
 

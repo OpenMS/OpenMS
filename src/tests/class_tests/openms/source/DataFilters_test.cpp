@@ -67,7 +67,7 @@ DataFilters::DataFilter filter_11;
 DataFilters::DataFilter filter_12;
 
 
-START_SECTION(([EXTRA]void DataFilter::fromString(const String& filter)))
+START_SECTION(([EXTRA]void DataFilter::fromString(const std::string& filter)))
 
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString(""), "the value '' was used but is not valid; invalid filter format")
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("not_enough_arguments"), "the value 'not_enough_arguments' was used but is not valid; invalid filter format")
@@ -98,7 +98,7 @@ START_SECTION(([EXTRA]void DataFilter::fromString(const String& filter)))
 END_SECTION
 
 
-START_SECTION(([EXTRA]String DataFilter::toString() const))
+START_SECTION(([EXTRA]std::string DataFilter::toString() const))
 	
 	TEST_STRING_EQUAL(filter_1.toString(), "Intensity <= 201.334000000000003")
 	TEST_STRING_EQUAL(filter_2.toString(), "Intensity >= 1000.0")
@@ -161,7 +161,7 @@ START_SECTION((const DataFilter& operator[](Size index) const ))
 	TEST_EXCEPTION(Exception::IndexOverflow, filters[3])
 	filters.add(filter_1);
 	TEST_EQUAL(filters[0] == filters[3], true)
-	filters.remove(3);
+	StringUtils::remove(filters, 3);
 	
 END_SECTION
 
@@ -177,9 +177,9 @@ START_SECTION((Size size() const))
 	filters.add(filter_8);
 	filters.add(filter_9);
 	TEST_EQUAL(filters.size(), 9)
-	filters.remove(0);
+	StringUtils::remove(filters, 0);
 	TEST_EQUAL(filters.size(), 8)
-	filters.remove(0);
+	StringUtils::remove(filters, 0);
 	TEST_EQUAL(filters.size(), 7)
 
 END_SECTION
@@ -187,10 +187,10 @@ END_SECTION
 
 START_SECTION((void remove(Size index)))
 
-	TEST_EXCEPTION(Exception::IndexOverflow, filters.remove(7))
-	filters.remove(0);
+	TEST_EXCEPTION(Exception::IndexOverflow, StringUtils::remove(filters, 7))
+	StringUtils::remove(filters, 0);
 	TEST_EQUAL(filters[0] == filter_4, true)
-	filters.remove(0);
+	StringUtils::remove(filters, 0);
 	TEST_EQUAL(filters[0] == filter_5, true)
 	
 END_SECTION
@@ -228,25 +228,25 @@ Feature feature_1;
 feature_1.setIntensity(1000.00f);
 feature_1.setCharge(4);
 feature_1.setOverallQuality((QualityType)31.3334);
-feature_1.setMetaValue(String("test_int"), 5);
-feature_1.setMetaValue(String("test_double"), 23.42);
-feature_1.setMetaValue(String("test_string"), String("hello world 1"));
+feature_1.setMetaValue(StringUtils::toStr("test_int"), 5);
+feature_1.setMetaValue(StringUtils::toStr("test_double"), 23.42);
+feature_1.setMetaValue(StringUtils::toStr("test_string"),StringUtils::toStr("hello world 1"));
 
 Feature feature_2;
 feature_2.setIntensity(122.01f);
 feature_2.setCharge(3);
 feature_2.setOverallQuality((QualityType)0.002);
-feature_2.setMetaValue(String("test_int"), 10);
-feature_2.setMetaValue(String("test_double"), 0.042);
-feature_2.setMetaValue(String("test_string"), String("hello world 2"));
+feature_2.setMetaValue(StringUtils::toStr("test_int"), 10);
+feature_2.setMetaValue(StringUtils::toStr("test_double"), 0.042);
+feature_2.setMetaValue(StringUtils::toStr("test_string"),StringUtils::toStr("hello world 2"));
 
 Feature feature_3;
 feature_3.setIntensity(55.0f);
 feature_3.setCharge(4);
 feature_3.setOverallQuality((QualityType) 1.);
-feature_3.setMetaValue(String("test_int"), 0);
-feature_3.setMetaValue(String("test_double"), 100.01);
-feature_3.setMetaValue(String("test_string"), String("hello world 3"));
+feature_3.setMetaValue(StringUtils::toStr("test_int"), 0);
+feature_3.setMetaValue(StringUtils::toStr("test_double"), 100.01);
+feature_3.setMetaValue(StringUtils::toStr("test_string"),StringUtils::toStr("hello world 3"));
 
 ///construct some test consensus features
 ConsensusFeature c_feature_1;
@@ -304,7 +304,7 @@ START_SECTION((template < class PeakType > bool passes(const MSSpectrum &spectru
 	TEST_EQUAL(filters.passes(spec,1), false) // 2008.2
 	TEST_EQUAL(filters.passes(spec,2), false) // 0.001
 	
-	filters.remove(0); // "Intensity >= 1000"
+	StringUtils::remove(filters, 0); // "Intensity >= 1000"
 	TEST_EQUAL(filters.passes(spec,0), false) // 201.334
 	TEST_EQUAL(filters.passes(spec,1), true) // 2008.2
 	TEST_EQUAL(filters.passes(spec,2), false) // 0.001
@@ -350,7 +350,7 @@ START_SECTION((bool passes(const Feature& feature) const))
 	TEST_EQUAL(filters.passes(feature_2), false) // Quality = 0.002; Charge = 3
 	TEST_EQUAL(filters.passes(feature_3), true) // Quality = 1; Charge = 4
 	
-	filters.remove(0); // "Quality <= 1.0"
+	StringUtils::remove(filters, 0); // "Quality <= 1.0"
 	TEST_EQUAL(filters.passes(feature_1), false) // Quality = 31.3334
 	TEST_EQUAL(filters.passes(feature_2), true) // Quality = 0.002
 	TEST_EQUAL(filters.passes(feature_3), true) // Quality = 1
@@ -393,7 +393,7 @@ START_SECTION((bool passes(const ConsensusFeature& consensus_feature) const))
 	TEST_EQUAL(filters.passes(c_feature_2), false) // Quality = 0.002; Charge = 3
 	TEST_EQUAL(filters.passes(c_feature_3), true) // Quality = 1; Charge = 4
 	
-	filters.remove(0); // "Quality <= 1.0"
+	StringUtils::remove(filters, 0); // "Quality <= 1.0"
 	TEST_EQUAL(filters.passes(c_feature_1), false) // Quality = 31.3334
 	TEST_EQUAL(filters.passes(c_feature_2), true) // Quality = 0.002
 	TEST_EQUAL(filters.passes(c_feature_3), true) // Quality = 1
@@ -416,7 +416,7 @@ START_SECTION(([DataFilters::DataFilter] DataFilter()))
 }
 END_SECTION
 
-START_SECTION(([DataFilters::DataFilter] String toString() const ))
+START_SECTION(([DataFilters::DataFilter] std::string toString() const ))
 {
   DataFilters::DataFilter df1;
   df1.field = DataFilters::INTENSITY;
@@ -438,7 +438,7 @@ START_SECTION(([DataFilters::DataFilter] String toString() const ))
 }
 END_SECTION
 
-START_SECTION(([DataFilters::DataFilter] void fromString(const String &filter)))
+START_SECTION(([DataFilters::DataFilter] void fromString(const std::string &filter)))
 {
   DataFilters::DataFilter df1;
   df1.fromString("Intensity <= 25.3");

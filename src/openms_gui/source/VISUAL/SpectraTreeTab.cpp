@@ -26,7 +26,7 @@ namespace OpenMS
     std::vector<int> out;
     for (const auto & i : in)
     {
-      out.push_back(i.toInt());
+      out.push_back(StringUtils::toInt32(i));
     }
     return out;
   }
@@ -70,7 +70,7 @@ namespace OpenMS
   struct IndexExtrator
   {
     explicit IndexExtrator(const QTreeWidgetItem* item)
-      : spectrum_index(item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt()),
+      : StringUtils::toInt32(spectrum_index(item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole))),
         res(item->data(ClmnChrom::TYPE, Qt::UserRole).toList()) // this works, even if the QVariant is invalid (then the list is empty)
     {
     }
@@ -168,7 +168,7 @@ namespace OpenMS
       return false;
     }
     // getting the index works for PEAK and CHROM data
-    int index = item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt();
+    int index = StringUtils::toInt32(item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole));
     if (spectra_treewidget_->headerItem()->text(ClmnChrom::MZ) == ClmnChrom::HEADER_NAMES[ClmnChrom::MZ])
     { // we currently show chromatogram data
       current_type = LayerDataBase::DT_CHROMATOGRAM;
@@ -512,11 +512,11 @@ namespace OpenMS
         QString description;
         if (pc.metaValueExists("peptide_sequence"))
         {
-          description = toQString(String(pc.getMetaValue("peptide_sequence")));
+          description = toQString(StringUtils::toStr(pc.getMetaValue("peptide_sequence")));
         }
         else if (pc.metaValueExists("description"))
         {
-          description = toQString(String(pc.getMetaValue("description")));
+          description = toQString(StringUtils::toStr(pc.getMetaValue("description")));
         }
         toplevel_item->setText(ClmnChrom::DESCRIPTION, description);
         toplevel_item->setData(ClmnChrom::CHARGE, Qt::DisplayRole, pc.getCharge());
@@ -539,7 +539,7 @@ namespace OpenMS
           QString chrom_description = "ion";
           if (pc.metaValueExists("description"))
           {
-            chrom_description = toQString(String(pc.getMetaValue("description")));
+            chrom_description = toQString(StringUtils::toStr(pc.getMetaValue("description")));
           }
 
           sub_item->setText(ClmnChrom::TYPE, "Transition");

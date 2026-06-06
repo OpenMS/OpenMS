@@ -47,7 +47,7 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <typename FeatureMapType>
-    void load(const String& filename, FeatureMapType& feature_map)
+    void load(const std::string& filename, FeatureMapType& feature_map)
     {
       // load input
       TextFile input(filename, false);
@@ -64,28 +64,28 @@ public:
       // process content
       for (; it != input.end(); ++it)
       {
-        String line = *it;
+        std::string line = *it;
 
-        std::vector<String> parts;
-        line.split('\t', parts);
+        std::vector<std::string> parts;
+        StringUtils::split(line, '\t', parts);
 
         if (parts.size() < 5)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed to convert line")  + String((it - input.begin()) + 1) + "not enough columns (expected 5 or more, got " + String(parts.size()) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",StringUtils::toStr("Failed to convert line")  + StringUtils::toStr((it - input.begin()) + 1) + "not enough columns (expected 5 or more, got " + StringUtils::toStr(parts.size()) + ")");
         }
 
         Feature f;
         try
         {
-          f.setMZ(parts[0].toDouble());
-          f.setRT(parts[1].toDouble() * 60.0);
-          f.setMetaValue("s/n", parts[2].toDouble());
-          f.setCharge(parts[3].toInt());
-          f.setIntensity(parts[4].toDouble());
+          f.setMZ(StringUtils::toDouble(parts[0]));
+          f.setRT(StringUtils::toDouble(parts[1]) * 60.0);
+          f.setMetaValue("s/n", StringUtils::toDouble(parts[2]));
+          f.setCharge(StringUtils::toInt32(parts[3]));
+          f.setIntensity(StringUtils::toDouble(parts[4]));
         }
         catch ( Exception::BaseException& )
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed to convert value into a number (line '") + String((it - input.begin()) + 1) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",StringUtils::toStr("Failed to convert value into a number (line '") + StringUtils::toStr((it - input.begin()) + 1) + ")");
         }
         feature_map.push_back(f);
       }
@@ -99,7 +99,7 @@ public:
               @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     template <typename SpectrumType>
-    void store(const String& filename, const SpectrumType& spectrum) const
+    void store(const std::string& filename, const SpectrumType& spectrum) const
     {
       std::cerr << "Store() for SpecArrayFile not implemented. Filename was: " << filename << ", spec of size " << spectrum.size() << "\n";
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);

@@ -50,7 +50,7 @@ namespace OpenMS::Internal
       xercesc::XMLString::release(&item);
     }
 
-    XMLHandler::XMLHandler(const String & filename, const String & version) :
+    XMLHandler::XMLHandler(const std::string & filename, const std::string & version) :
       file_(filename),
       version_(version),
       load_detail_(LD_ALLDATA)
@@ -78,68 +78,68 @@ namespace OpenMS::Internal
       warning(LOAD, sm_.convert(exception.getMessage()), exception.getLineNumber(), exception.getColumnNumber());
     }
 
-    void XMLHandler::fatalError(ActionMode mode, const String & msg, UInt line, UInt column) const
+    void XMLHandler::fatalError(ActionMode mode, const std::string & msg, UInt line, UInt column) const
     {
-      String error_message;
+      std::string error_message;
       if (mode == LOAD)
       {
-        error_message =  String("While loading '") + file_ + "': " + msg;
+        error_message =StringUtils::toStr("While loading '") + file_ + "': " + msg;
 	      // test if file has the wrong extension and is therefore passed to the wrong parser
         // only makes sense if we are loading/parsing a file
 	      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
         FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
         if (ft_name != ft_content)
         {
-          error_message += String("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
+          error_message +=StringUtils::toStr("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
                           + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
                           + "Rename the file to fix this.";
         }
       }
       else if (mode == STORE)
       {
-        error_message =  String("While storing '") + file_ + "': " + msg;
+        error_message =StringUtils::toStr("While storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message += String("( in line ") + line + " column " + column + ")";
+        error_message +=StringUtils::toStr("( in line ") + line + " column " + column + ")";
       }
 
       OPENMS_LOG_FATAL_ERROR << error_message << std::endl;
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message);
     }
 
-    void XMLHandler::error(ActionMode mode, const String & msg, UInt line, UInt column) const
+    void XMLHandler::error(ActionMode mode, const std::string & msg, UInt line, UInt column) const
     {
-      String error_message;
+      std::string error_message;
       if (mode == LOAD)
       {
-        error_message =  String("Non-fatal error while loading '") + file_ + "': " + msg;
+        error_message =StringUtils::toStr("Non-fatal error while loading '") + file_ + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message =  String("Non-fatal error while storing '") + file_ + "': " + msg;
+        error_message =StringUtils::toStr("Non-fatal error while storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message += String("( in line ") + line + " column " + column + ")";
+        error_message +=StringUtils::toStr("( in line ") + line + " column " + column + ")";
       }
       OPENMS_LOG_ERROR << error_message << std::endl;
     }
 
-    void XMLHandler::warning(ActionMode mode, const String & msg, UInt line, UInt column) const
+    void XMLHandler::warning(ActionMode mode, const std::string & msg, UInt line, UInt column) const
     {
-      String error_message;
+      std::string error_message;
       if (mode == LOAD)
       {
-        error_message =  String("While loading '") + file_ + "': " + msg;
+        error_message =StringUtils::toStr("While loading '") + file_ + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message =  String("While storing '") + file_ + "': " + msg;
+        error_message =StringUtils::toStr("While storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message += String("( in line ") + line + " column " + column + ")";
+        error_message +=StringUtils::toStr("( in line ") + line + " column " + column + ")";
       }
 
 // warn only in Debug mode but suppress warnings in release mode (more happy users)
@@ -167,18 +167,18 @@ namespace OpenMS::Internal
     {
     }
 
-    SignedSize XMLHandler::cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error)
+    SignedSize XMLHandler::cvStringToEnum_(const Size section, const std::string & term, const char * message, const SignedSize result_on_error)
     {
       OPENMS_PRECONDITION(section < cv_terms_.size(), "cvStringToEnum_: Index overflow (section number too large)");
 
-      std::vector<String>::const_iterator it = std::find(cv_terms_[section].begin(), cv_terms_[section].end(), term);
+      std::vector<std::string>::const_iterator it = std::find(cv_terms_[section].begin(), cv_terms_[section].end(), term);
       if (it != cv_terms_[section].end())
       {
         return it - cv_terms_[section].begin();
       }
       else
       {
-        warning(LOAD, String("Unexpected CV entry '") + message + "'='" + term + "'");
+        warning(LOAD,StringUtils::toStr("Unexpected CV entry '") + message + "'='" + term + "'");
         return result_on_error;
       }
     }
@@ -198,8 +198,8 @@ namespace OpenMS::Internal
     }
 
 
-    DataValue XMLHandler::cvParamToValue(const ControlledVocabulary& cv, const String& parent_tag, const String& accession, const String& name,
-                                         const String& value, const String& unit_accession) const
+    DataValue XMLHandler::cvParamToValue(const ControlledVocabulary& cv, const std::string& parent_tag, const std::string& accession, const std::string& name,
+                                         const std::string& value, const std::string& unit_accession) const
     {
       // the actual value stored in the CVParam
       // we assume for now that it is a string value, we update the type later on
@@ -213,11 +213,11 @@ namespace OpenMS::Internal
         // check if term name and parsed name match
         if (name != term.name) 
         {
-          warning(LOAD, String("Name of CV term not correct: '") + term.id + " - " + name + "' should be '" + term.name + "'");
+          warning(LOAD,StringUtils::toStr("Name of CV term not correct: '") + term.id + " - " + name + "' should be '" + term.name + "'");
         }
         if (term.obsolete)
         {
-          warning(LOAD, String("Obsolete CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "'.");
+          warning(LOAD,StringUtils::toStr("Obsolete CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "'.");
         }
         // values used in wrong places and wrong value types
         if (!value.empty())
@@ -225,9 +225,9 @@ namespace OpenMS::Internal
           if (term.xref_type == ControlledVocabulary::CVTerm::XRefType::NONE)
           {
             // Quality CV does not state value type :(
-            if (!accession.hasPrefix("PATO:"))
+            if (!StringUtils::hasPrefix(accession, "PATO:"))
             {
-              warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
+              warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
             }
           }
           else
@@ -246,11 +246,11 @@ namespace OpenMS::Internal
               case ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER:
                 try
                 {
-                  cv_value = value.toInt();
+                  cv_value = StringUtils::toInt32(value);
                 }
                 catch (Exception::ConversionError&)
                 {
-                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
+                  warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
                   return DataValue::EMPTY;
                 }
                 break;
@@ -259,11 +259,11 @@ namespace OpenMS::Internal
               case ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL:
                 try
                 {
-                  cv_value = value.toDouble();
+                  cv_value = StringUtils::toDouble(value);
                 }
                 catch (Exception::ConversionError&)
                 {
-                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
+                  warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
                   return DataValue::EMPTY;
                 }
                 break;
@@ -277,7 +277,7 @@ namespace OpenMS::Internal
                 }
                 catch (Exception::ParseError&)
                 {
-                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
+                  warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
                   return DataValue::EMPTY;
                 }
                 break;
@@ -285,18 +285,18 @@ namespace OpenMS::Internal
               case ControlledVocabulary::CVTerm::XRefType::XSD_BOOLEAN:
                 try
                 {
-                  cv_value = String(value).toLower();
+                  cv_value = StringUtils::toLowered(value);
                   cv_value.toBool(); // only works if 'true' or 'false'
                 }
                 catch (Exception::ConversionError&)
                 {
-                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a boolean value (true/false). The value is '" + value + "'.");
+                  warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a boolean value (true/false). The value is '" + value + "'.");
                   return DataValue::EMPTY;
                 }
                 break;
 
               default:
-                warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' has the unknown value type '" +
+                warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' has the unknown value type '" +
                                 ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
                 break;
             }
@@ -307,7 +307,7 @@ namespace OpenMS::Internal
                  !cv.isChildOf(accession, "MS:1000513") // here the value type relates to the binary data array, not the 'value=' attribute!
         )
         {
-          warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
+          warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
           return DataValue::EMPTY;
         }
       }
@@ -316,26 +316,26 @@ namespace OpenMS::Internal
         // in 'sample' several external CVs are used (Brenda, GO, ...). Do not warn then.
         if (parent_tag != "sample")
         {
-          warning(LOAD, String("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,StringUtils::toStr("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
           return DataValue::EMPTY;
         }
       }
 
       if (!unit_accession.empty())
       {
-        if (unit_accession.hasPrefix("UO:"))
+        if (StringUtils::hasPrefix(unit_accession, "UO:"))
         {
-          cv_value.setUnit(unit_accession.suffix(unit_accession.size() - 3).toInt());
+          cv_value.setUnit(StringUtils::toInt32(StringUtils::suffix(unit_accession, unit_accession.size() - 3)));
           cv_value.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
         }
-        else if (unit_accession.hasPrefix("MS:"))
+        else if (StringUtils::hasPrefix(unit_accession, "MS:"))
         {
-          cv_value.setUnit(unit_accession.suffix(unit_accession.size() - 3).toInt());
+          cv_value.setUnit(StringUtils::toInt32(StringUtils::suffix(unit_accession, unit_accession.size() - 3)));
           cv_value.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
         }
         else
         {
-          warning(LOAD, String("Unhandled unit '") + unit_accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,StringUtils::toStr("Unhandled unit '") + unit_accession + "' in tag '" + parent_tag + "'.");
         }
       }
 
@@ -349,7 +349,7 @@ namespace OpenMS::Internal
 
     void XMLHandler::checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids) const
     {
-      std::set<String> s;
+      std::set<std::string> s;
       for (const auto& p : prot_ids)
       {
         if (s.insert(p.getIdentifier()).second == false) // element already existed
@@ -360,13 +360,13 @@ namespace OpenMS::Internal
       }
     }
 
-    void XMLHandler::writeUserParam_(const String& tag_name, std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
+    void XMLHandler::writeUserParam_(const std::string& tag_name, std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
     {
-      std::vector<String> keys;
+      std::vector<std::string> keys;
       meta.getKeys(keys);
 
-      String val;
-      String p_prefix = String(indent, '\t') + "<" + writeXMLEscape(tag_name) + " type=\"";
+      std::string val;
+      std::string p_prefix = std::string(indent, '\t') + "<" + writeXMLEscape(tag_name) + " type=\"";
       for (Size i = 0; i != keys.size(); ++i)
       {
         os << p_prefix;
@@ -381,12 +381,12 @@ namespace OpenMS::Internal
         else if (d.valueType() == DataValue::INT_VALUE)
         {
           os << "int";
-          val = d;
+          val = (std::string)d;
         }
         else if (d.valueType() == DataValue::DOUBLE_VALUE)
         {
           os << "float";
-          val = d;
+          val = (std::string)d;
         }
         else if (d.valueType() == DataValue::INT_LIST)
         {
@@ -405,9 +405,9 @@ namespace OpenMS::Internal
           // we replace them by an escape symbol '\\|'. 
           // This allows distinguishing commas as element separator and normal string character and reconstruct the list.
           StringList sl = d.toStringList();
-          for (String& s : sl)
+          for (std::string& s : sl)
           {
-            if (s.has(',')) s.substitute(",", "\\|");
+            if (StringUtils::has(s, ',')) StringUtils::substitute(s, ",", "\\|");
           }
           val = "[" + writeXMLEscape(ListUtils::concatenate(sl, ",")) + "]";
         }
@@ -530,7 +530,7 @@ namespace OpenMS::Internal
       return true;
     }
 
-    void StringManager::appendASCII(const XMLCh* chars, const XMLSize_t length, String& result)
+    void StringManager::appendASCII(const XMLCh* chars, const XMLSize_t length, std::string& result)
     {
       // XMLCh are characters in UTF16 (usually stored as 16-bit unsigned
       // short but this is not guaranteed).

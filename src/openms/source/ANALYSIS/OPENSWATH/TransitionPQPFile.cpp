@@ -41,7 +41,7 @@ namespace OpenMS
       return num_transitions / default_transitions_per_precursor + 1;
     }
 
-    bool tableHasRows_(sqlite3* db, const String& table_name)
+    bool tableHasRows_(sqlite3* db, const std::string& table_name)
     {
       sqlite3_stmt* stmt = nullptr;
       SqliteConnector::prepareStatement(db, &stmt, "SELECT 1 FROM " + table_name + " LIMIT 1;");
@@ -64,7 +64,7 @@ namespace OpenMS
       {
         sqlite_threads = 1;
       }
-      SqliteConnector::executeStatement(db, String("PRAGMA threads = ") + String(sqlite_threads) + ";");
+      SqliteConnector::executeStatement(db, std::string("PRAGMA threads = ") + StringUtils::toStr(sqlite_threads) + ";");
 #endif
     }
   }
@@ -86,16 +86,16 @@ namespace OpenMS
     std::string traml_id = legacy_traml_id ? "TRAML_ID" : "ID";
 
     // Check for optional columns/tables
-    String select_drift_time = "";
+    std::string select_drift_time = "";
     info.drift_time_exists = SqliteConnector::columnExists(db, "PRECURSOR", "LIBRARY_DRIFT_TIME");
     if (info.drift_time_exists)
     {
       select_drift_time = ", PRECURSOR.LIBRARY_DRIFT_TIME AS drift_time ";
     }
 
-    String select_gene = "";
-    String select_gene_null = "";
-    String join_gene = "";
+    std::string select_gene = "";
+    std::string select_gene_null = "";
+    std::string join_gene = "";
     info.gene_exists = SqliteConnector::tableExists(db, "GENE");
     if (info.gene_exists)
     {
@@ -118,11 +118,11 @@ namespace OpenMS
                   "AS GENE_AGGREGATED ON PEPTIDE.ID = GENE_AGGREGATED.PEPTIDE_ID ";
     }
 
-    String select_annotation = "'' AS Annotation, ";
+    std::string select_annotation = "'' AS Annotation, ";
     bool annotation_exists = SqliteConnector::columnExists(db, "TRANSITION", "ANNOTATION");
     if (annotation_exists) select_annotation = "TRANSITION.ANNOTATION AS Annotation, ";
 
-    String select_adducts = "'' AS Adducts, ";
+    std::string select_adducts = "'' AS Adducts, ";
     bool adducts_exists = SqliteConnector::columnExists(db, "COMPOUND", "ADDUCTS");
     if (adducts_exists) select_adducts = "COMPOUND.ADDUCTS AS Adducts, ";
 
@@ -132,8 +132,8 @@ namespace OpenMS
     info.peptidoforms_exists = SqliteConnector::tableExists(db, "TRANSITION_PEPTIDE_MAPPING") &&
                                tableHasRows_(db, "TRANSITION_PEPTIDE_MAPPING");
 
-    String select_peptidoforms = "NULL AS peptidoforms ";
-    String join_peptidoforms = "";
+    std::string select_peptidoforms = "NULL AS peptidoforms ";
+    std::string join_peptidoforms = "";
     if (info.peptidoforms_exists)
     {
       select_peptidoforms = "PEPTIDE_AGGREGATED.PEPTIDOFORMS AS peptidoforms ";
@@ -291,8 +291,8 @@ namespace OpenMS
       Sql::extractValue<std::string>(&mytransition.group_id, stmt, 6);
       Sql::extractValue<int>((int*)&mytransition.decoy, stmt, 7);
       Sql::extractValue<std::string>(&mytransition.PeptideSequence, stmt, 8);
-      String tmp_field;
-      if (Sql::extractValue<std::string>(&tmp_field, stmt, 9)) tmp_field.split(';', mytransition.ProteinName);
+      std::string tmp_field;
+      if (Sql::extractValue<std::string>(&tmp_field, stmt, 9)) StringUtils::split(tmp_field, ';', mytransition.ProteinName);
       Sql::extractValue<std::string>(&mytransition.Annotation, stmt, 10);
       Sql::extractValue<std::string>(&mytransition.FullPeptideName, stmt, 11);
       Sql::extractValue<std::string>(&mytransition.CompoundName, stmt, 12);
@@ -307,11 +307,11 @@ namespace OpenMS
       Sql::extractValue<double>(&mytransition.fragment_mzdelta, stmt, 21);
       Sql::extractValue<int>(&mytransition.fragment_modification, stmt, 22);
       Sql::extractValue<std::string>(&mytransition.fragment_type, stmt, 23);
-      if (Sql::extractValue<std::string>(&tmp_field, stmt, 24)) tmp_field.split(';', mytransition.uniprot_id);
+      if (Sql::extractValue<std::string>(&tmp_field, stmt, 24)) StringUtils::split(tmp_field, ';', mytransition.uniprot_id);
       Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 25);
       Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 26);
       Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 27);
-      if (Sql::extractValue<std::string>(&tmp_field, stmt, 28)) tmp_field.split('|', mytransition.peptidoforms);
+      if (Sql::extractValue<std::string>(&tmp_field, stmt, 28)) StringUtils::split(tmp_field, '|', mytransition.peptidoforms);
       // optional attributes only present in newer file versions
       int optional_col = 29;
       if (query_info.drift_time_exists)
@@ -397,7 +397,7 @@ namespace OpenMS
       std::string peptide_group_label, fragment_type_str, gene_name;
       int decoy = 0, precursor_charge = 0, fragment_charge = 0, fragment_nr = -1;
       int detecting = 1, identifying = 0, quantifying = 1;
-      String protein_names_str, peptidoforms_str;
+      std::string protein_names_str, peptidoforms_str;
 
       Sql::extractValue<double>(&precursor_mz, stmt, 0);
       Sql::extractValue<double>(&product_mz, stmt, 1);
@@ -408,7 +408,7 @@ namespace OpenMS
       Sql::extractValue<std::string>(&group_id, stmt, 6);
       Sql::extractValue<int>(&decoy, stmt, 7);
       Sql::extractValue<std::string>(&peptide_sequence, stmt, 8);
-      Sql::extractValue<String>(&protein_names_str, stmt, 9);
+      Sql::extractValue<std::string>(&protein_names_str, stmt, 9);
       // Skip Annotation (column 10) - reconstructed from fragment info
       Sql::extractValue<std::string>(&full_peptide_name, stmt, 11);
       Sql::extractValue<std::string>(&compound_name, stmt, 12);
@@ -427,7 +427,7 @@ namespace OpenMS
       Sql::extractValue<int>(&detecting, stmt, 25);
       Sql::extractValue<int>(&identifying, stmt, 26);
       Sql::extractValue<int>(&quantifying, stmt, 27);
-      Sql::extractValue<String>(&peptidoforms_str, stmt, 28);
+      Sql::extractValue<std::string>(&peptidoforms_str, stmt, 28);
       int optional_col = 29;
       if (query_info.drift_time_exists)
       {
@@ -456,8 +456,8 @@ namespace OpenMS
       transition.setFragmentType(fragment_type_str);
       if (!peptidoforms_str.empty())
       {
-        std::vector<String> peptidoforms_tmp;
-        peptidoforms_str.split('|', peptidoforms_tmp);
+        std::vector<std::string> peptidoforms_tmp;
+        StringUtils::split(peptidoforms_str, '|', peptidoforms_tmp);
         transition.peptidoforms.assign(peptidoforms_tmp.begin(), peptidoforms_tmp.end());
       }
 
@@ -475,17 +475,17 @@ namespace OpenMS
         compound.gene_name = gene_name;
 
         bool is_peptide = compound_name.empty();
-        std::vector<String> protein_names;
+        std::vector<std::string> protein_names;
         if (is_peptide)
         {
           compound.sequence = full_peptide_name.empty() ? peptide_sequence : full_peptide_name;
           if (!protein_names_str.empty())
           {
-            protein_names_str.split(';', protein_names);
+            StringUtils::split(protein_names_str, ';', protein_names);
             compound.protein_refs.assign(protein_names.begin(), protein_names.end());
           }
           // Parse modifications from sequence
-          String sequence = full_peptide_name.empty() ? peptide_sequence : full_peptide_name;
+          std::string sequence = full_peptide_name.empty() ? peptide_sequence : full_peptide_name;
           if (!sequence.empty())
           {
             try
@@ -720,8 +720,8 @@ namespace OpenMS
     // IPF: Loop through all transitions and generate peptidoform data structures
     for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
     {
-      std::vector<String> peptidoforms;
-      String(targeted_exp.getTransitions()[i].getMetaValue("Peptidoforms")).split('|', peptidoforms);
+      std::vector<std::string> peptidoforms;
+      StringUtils::split(StringUtils::toStr(targeted_exp.getTransitions()[i].getMetaValue("Peptidoforms")), '|', peptidoforms);
       std::copy( peptidoforms.begin(), peptidoforms.end(),
           std::inserter( peptide_vec, peptide_vec.end() ) );
     }
@@ -823,10 +823,10 @@ namespace OpenMS
         peptide_protein_map.emplace_back(peptide_set_index, protein_map[it]);
       }
 
-      String gene_name = "NA";
+      std::string gene_name = "NA";
       if (peptide.metaValueExists("GeneName"))
       {
-        gene_name = peptide.getMetaValue("GeneName");
+        gene_name = (std::string)peptide.getMetaValue("GeneName");
       }
 
       if (!gene_map.contains(gene_name)) gene_map[gene_name] = (int)gene_map.size();
@@ -859,7 +859,7 @@ namespace OpenMS
       std::string compound_charge = "NULL"; // workaround for compounds with missing charge
       if (compound.hasCharge())
       {
-        compound_charge = String(compound.getChargeState());
+        compound_charge =StringUtils::toStr(compound.getChargeState());
       }
 
       insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
@@ -931,16 +931,16 @@ namespace OpenMS
     std::stringstream insert_compound_sql;
     for (const auto& compound_id : compound_vec)
     {
-      String adducts;
-      String compound_name;
+      std::string adducts;
+      std::string compound_name;
       const auto& compound = targeted_exp.getCompoundByRef(compound_id);
       if (compound.metaValueExists("Adducts"))
       {
-        adducts = compound.getMetaValue("Adducts");
+        adducts = (std::string)compound.getMetaValue("Adducts");
       }
       if (compound.metaValueExists("CompoundName"))
       {
-        compound_name = compound.getMetaValue("CompoundName");
+        compound_name = (std::string)compound.getMetaValue("CompoundName");
       }
       else
       {
@@ -981,7 +981,7 @@ namespace OpenMS
     conn.executeStatement("BEGIN TRANSACTION");
 
     // Execute SQL insert statement
-    String insert_version = "INSERT INTO VERSION (ID) VALUES (3);";
+    std::string insert_version = "INSERT INTO VERSION (ID) VALUES (3);";
     conn.executeStatement(insert_version);
     conn.executeStatement(insert_protein_sql.str());
     conn.executeStatement(insert_peptide_protein_mapping.str());
@@ -1256,11 +1256,11 @@ namespace OpenMS
         std::string transition_charge = "NULL";
         if (tr.fragment_charge != 0)
         {
-          transition_charge = String(static_cast<int>(tr.fragment_charge));
+          transition_charge =StringUtils::toStr(static_cast<int>(tr.fragment_charge));
         }
 
         std::string fragment_type_str = tr.getFragmentType();
-        std::string fragment_type_char = fragment_type_str.empty() ? "" : fragment_type_str.substr(0, 1);
+        std::string fragment_type_char = fragment_type_str.empty() ? "" : StringUtils::substr(fragment_type_str, 0, 1);
 
         // Insert transition data
         insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, " <<
@@ -1346,7 +1346,7 @@ namespace OpenMS
         std::string compound_charge = "NULL";
         if (compound.charge != 0)
         {
-          compound_charge = String(compound.charge);
+          compound_charge =StringUtils::toStr(compound.charge);
         }
 
         insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
@@ -1472,7 +1472,7 @@ namespace OpenMS
     conn.executeStatement("BEGIN TRANSACTION");
 
     // Execute SQL insert statement
-    String insert_version = "INSERT INTO VERSION (ID) VALUES (3);";
+    std::string insert_version = "INSERT INTO VERSION (ID) VALUES (3);";
     conn.executeStatement(insert_version);
     conn.executeStatement(insert_protein_sql.str());
     conn.executeStatement(insert_peptide_protein_mapping.str());

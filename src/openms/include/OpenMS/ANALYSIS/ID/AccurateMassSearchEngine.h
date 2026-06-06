@@ -231,33 +231,33 @@ namespace OpenMS
 
     /// @brief Adduct that produced the match, in AdductInfo notation
     /// (e.g. @c "M+H;1+", @c "M-H2O+H;1+").
-    const String& getFoundAdduct() const;
+    const std::string& getFoundAdduct() const;
 
     /**
       @brief Set the adduct that produced the match.
       @param[in] add Adduct in AdductInfo notation (e.g. @c "M+H;1+").
     */
-    void setFoundAdduct(const String& add);
+    void setFoundAdduct(const std::string& add);
 
     /// @brief Empirical formula of the matched database compound.
-    const String& getFormulaString() const;
+    const std::string& getFormulaString() const;
 
     /**
       @brief Set the empirical formula of the matched database compound.
       @param[in] ep Empirical formula of the matched compound.
     */
-    void setEmpiricalFormula(const String& ep);
+    void setEmpiricalFormula(const std::string& ep);
 
     /// @brief All database identifiers (HMDB-style) that share the
     /// matched compound's formula and mass; can be empty when no
     /// identifier mapping is available.
-    const std::vector<String>& getMatchingHMDBids() const;
+    const std::vector<std::string>& getMatchingHMDBids() const;
 
     /**
       @brief Set the matched database identifiers.
       @param[in] ids Database identifiers (HMDB-style).
     */
-    void setMatchingHMDBids(const std::vector<String>& ids);
+    void setMatchingHMDBids(const std::vector<std::string>& ids);
 
     /// @brief Per-isotopologue intensities of the underlying feature's
     /// mass traces; used as the empirical isotope pattern when computing
@@ -299,9 +299,9 @@ private:
     Size matching_index_;                  ///< index in the engine's internal candidate list
     Size source_feature_index_;            ///< index in the input feature/peak map
 
-    String found_adduct_;                  ///< adduct in AdductInfo notation (e.g. "M+H;1+")
-    String empirical_formula_;             ///< empirical formula of matched compound
-    std::vector<String> matching_hmdb_ids_;///< zero or more DB IDs (multiple isobars share a formula)
+    std::string found_adduct_;                  ///< adduct in AdductInfo notation (e.g. "M+H;1+")
+    std::string empirical_formula_;             ///< empirical formula of matched compound
+    std::vector<std::string> matching_hmdb_ids_;///< zero or more DB IDs (multiple isobars share a formula)
 
     std::vector<double> mass_trace_intensities_; ///< per-isotopologue intensities from the feature
     double isotopes_sim_score_;            ///< observed vs. theoretical isotope-pattern similarity
@@ -360,9 +360,9 @@ public:
       If use_feature_adducts is activated, queryByMZ uses annotated, observed adducts as EmpiricalFormulas, restricting M+X candidates.
 
        */
-    void queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results, const EmpiricalFormula& observed_adduct = EmpiricalFormula()) const;
-    void queryByFeature(const Feature& feature, const Size& feature_index, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
-    void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
+    void queryByMZ(const double& observed_mz, const Int& observed_charge, const std::string& ion_mode, std::vector<AccurateMassSearchResult>& results, const EmpiricalFormula& observed_adduct = EmpiricalFormula()) const;
+    void queryByFeature(const Feature& feature, const Size& feature_index, const std::string& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
+    void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const std::string& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
 
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results
@@ -386,33 +386,33 @@ private:
 
     /// if ion-mode is auto, this will set the internal mode according to input data
     /// @throw InvalidParameter if ion mode cannot be resolved
-    template <typename MAPTYPE> String resolveAutoMode_(const MAPTYPE& map) const
+    template <typename MAPTYPE> std::string resolveAutoMode_(const MAPTYPE& map) const
     {
-      String ion_mode_internal;
-      String ion_mode_detect_msg = "";
+      std::string ion_mode_internal;
+      std::string ion_mode_detect_msg = "";
       if (map.size() > 0)
       {
         if (map[0].metaValueExists("scan_polarity"))
         {
-          StringList pols = ListUtils::create<String>(String(map[0].getMetaValue("scan_polarity")), ';');
+          StringList pols = ListUtils::create<std::string>(StringUtils::toStr(map[0].getMetaValue("scan_polarity")), ';');
           if (pols.size() == 1 && !pols[0].empty())
           {
-            pols[0].toLower();
+            StringUtils::toLower(pols[0]);
             if (pols[0] == "positive" || pols[0] == "negative")
             {
               ion_mode_internal = pols[0];
               OPENMS_LOG_INFO << "Setting auto ion-mode to '" << ion_mode_internal << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
             }
-            else ion_mode_detect_msg = String("Meta value 'scan_polarity' does not contain unknown ion mode") + String(map[0].getMetaValue("scan_polarity"));
+            else ion_mode_detect_msg =StringUtils::toStr("Meta value 'scan_polarity' does not contain unknown ion mode") + StringUtils::toStr(map[0].getMetaValue("scan_polarity"));
           }
           else
           {
-            ion_mode_detect_msg = String("ambiguous ion mode: ") + String(map[0].getMetaValue("scan_polarity"));
+            ion_mode_detect_msg =StringUtils::toStr("ambiguous ion mode: ") + StringUtils::toStr(map[0].getMetaValue("scan_polarity"));
           }
         }
         else
         {
-          ion_mode_detect_msg = String("Meta value 'scan_polarity' not found in (Consensus-)Feature map");
+          ion_mode_detect_msg =StringUtils::toStr("Meta value 'scan_polarity' not found in (Consensus-)Feature map");
         }
       }
       else
@@ -422,7 +422,7 @@ private:
 
       if (!ion_mode_detect_msg.empty())
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Auto ionization mode could not resolve ion mode of data (") + ion_mode_detect_msg + "!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Auto ionization mode could not resolve ion mode of data (") + ion_mode_detect_msg + "!");
       }
 
       return ion_mode_internal;
@@ -430,14 +430,14 @@ private:
 
     void parseMappingFile_(const StringList&);
     void parseStructMappingFile_(const StringList&);
-    void parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result);
+    void parseAdductsFile_(const std::string& filename, std::vector<AdductInfo>& result);
     void searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const;
 
     /// Add search results to a Consensus/Feature
     void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&) const;
 
     /// Extract query results from feature
-    std::vector<AccurateMassSearchResult> extractQueryResults_(const Feature& feature, const Size& feature_index, const String& ion_mode_internal, Size& dummy_count) const;
+    std::vector<AccurateMassSearchResult> extractQueryResults_(const Feature& feature, const Size& feature_index, const std::string& ion_mode_internal, Size& dummy_count) const;
 
     /// Add resulting matches to IdentificationData
     void addMatchesToID_(
@@ -457,19 +457,19 @@ private:
 
     typedef std::vector<std::vector<AccurateMassSearchResult> > QueryResultsTable;
 
-    void exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out, const std::vector<String>& file_locations) const;
+    void exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out, const std::vector<std::string>& file_locations) const;
 
     void exportMzTabM_(const FeatureMap& fmap, MzTabM& mztabm_out) const;
 
     /// private member variables
-    typedef std::vector<std::vector<String> > MassIDMapping;
-    typedef std::map<String, std::vector<String> > HMDBPropsMapping;
+    typedef std::vector<std::vector<std::string> > MassIDMapping;
+    typedef std::map<std::string, std::vector<std::string> > HMDBPropsMapping;
 
     struct MappingEntry_
     {
       double mass;
-      std::vector<String> massIDs;
-      String formula;
+      std::vector<std::string> massIDs;
+      std::string formula;
     };
     std::vector<MappingEntry_> mass_mappings_;
 
@@ -501,12 +501,12 @@ private:
 
     /// parameter stuff
     double mass_error_value_;
-    String mass_error_unit_;
-    String ion_mode_;
+    std::string mass_error_unit_;
+    std::string ion_mode_;
     bool iso_similarity_;
 
-    String pos_adducts_fname_;
-    String neg_adducts_fname_;
+    std::string pos_adducts_fname_;
+    std::string neg_adducts_fname_;
 
     StringList db_mapping_file_;
     StringList db_struct_file_;
@@ -514,9 +514,9 @@ private:
     std::vector<AdductInfo> pos_adducts_;
     std::vector<AdductInfo> neg_adducts_;
 
-    String database_name_;
-    String database_version_;
-    String database_location_;
+    std::string database_name_;
+    std::string database_version_;
+    std::string database_location_;
 
     bool keep_unidentified_masses_;
   };

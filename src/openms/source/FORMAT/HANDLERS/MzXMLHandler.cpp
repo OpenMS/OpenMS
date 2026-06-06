@@ -31,13 +31,13 @@ namespace OpenMS::Internal
 
     //--------------------------------------------------------------------------------
 
-    void writeKeyValue(std::ostream& os, const String& key, const DataValue& value)
+    void writeKeyValue(std::ostream& os, const std::string& key, const DataValue& value)
     {
       os << " " << key << "=\"" << value << "\"";
     }
 
     /// Constructor for a read-only handler
-    MzXMLHandler::MzXMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger) :
+    MzXMLHandler::MzXMLHandler(MapType& exp, const std::string& filename, const std::string& version, ProgressLogger& logger) :
       XMLHandler(filename, version),
       exp_(&exp),
       cexp_(nullptr),
@@ -52,7 +52,7 @@ namespace OpenMS::Internal
     }
 
     /// Constructor for a write-only handler
-    MzXMLHandler::MzXMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger) :
+    MzXMLHandler::MzXMLHandler(const MapType& exp, const std::string& filename, const std::string& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       exp_(nullptr),
       cexp_(&exp),
@@ -119,7 +119,7 @@ namespace OpenMS::Internal
       constexpr XMLCh s_chargedeconvoluted_[] = {'c', 'h', 'a', 'r', 'g', 'e', 'D', 'e', 'c', 'o', 'n', 'v', 'o', 'l', 'u', 't', 'e', 'd', 0};
       OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
-      String tag = sm_.convert(qname);
+      std::string tag = sm_.convert(qname);
       open_tags_.push_back(tag);
       //std::cout << " -- Start -- "<< tag << " -- " << "\n";
 
@@ -148,14 +148,14 @@ namespace OpenMS::Internal
       }
       else if (tag == "software")
       {
-        String& parent_tag = *(open_tags_.end() - 2);
+        std::string& parent_tag = *(open_tags_.end() - 2);
         if (parent_tag == "dataProcessing")
         {
           data_processing_.back()->getSoftware().setVersion(attributeAsString_(attributes, s_version_));
           data_processing_.back()->getSoftware().setName(attributeAsString_(attributes, s_name_));
-          data_processing_.back()->setMetaValue("#type", String(attributeAsString_(attributes, s_type_)));
+          data_processing_.back()->setMetaValue("#type",StringUtils::toStr(attributeAsString_(attributes, s_type_)));
 
-          String time;
+          std::string time;
           optionalAttributeAsString_(time, attributes, s_completiontime_);
           data_processing_.back()->setCompletionTime(asDateTime_(time));
         }
@@ -172,28 +172,28 @@ namespace OpenMS::Internal
         optionalAttributeAsString_(spectrum_data_.back().precision_, attributes, s_precision_);
         if (spectrum_data_.back().precision_ != "32" && spectrum_data_.back().precision_ != "64")
         {
-          error(LOAD, String("Invalid precision '") + spectrum_data_.back().precision_ + "' in element 'peaks'");
+          error(LOAD,StringUtils::toStr("Invalid precision '") + spectrum_data_.back().precision_ + "' in element 'peaks'");
         }
         //byte order
-        String byte_order = "network";
+        std::string byte_order = "network";
         optionalAttributeAsString_(byte_order, attributes, s_byteorder_);
         if (byte_order != "network")
         {
-          error(LOAD, String("Invalid or missing byte order '") + byte_order + "' in element 'peaks'. Must be 'network'!");
+          error(LOAD,StringUtils::toStr("Invalid or missing byte order '") + byte_order + "' in element 'peaks'. Must be 'network'!");
         }
         //pair order
-        String pair_order = "m/z-int";
+        std::string pair_order = "m/z-int";
         optionalAttributeAsString_(pair_order, attributes, s_contentType_);
         if (pair_order != "m/z-int")
         {
-          error(LOAD, String("Invalid or missing pair order '") + pair_order + "' in element 'peaks'. Must be 'm/z-int'!");
+          error(LOAD,StringUtils::toStr("Invalid or missing pair order '") + pair_order + "' in element 'peaks'. Must be 'm/z-int'!");
         }
         //compressionType
         spectrum_data_.back().compressionType_ = "none";
         optionalAttributeAsString_(spectrum_data_.back().compressionType_, attributes, s_compressionType_);
         if (spectrum_data_.back().compressionType_ != "none" && spectrum_data_.back().compressionType_ != "zlib")
         {
-          error(LOAD, String("Invalid compression type ") + spectrum_data_.back().compressionType_ + "in elements 'peaks'. Must be 'none' or 'zlib'! ");
+          error(LOAD,StringUtils::toStr("Invalid compression type ") + spectrum_data_.back().compressionType_ + "in elements 'peaks'. Must be 'none' or 'zlib'! ");
         }
       }
       else if (tag == "precursorMz")
@@ -222,7 +222,7 @@ namespace OpenMS::Internal
           spectrum_data_.back().spectrum.getPrecursors().back().setIsolationWindowLowerOffset(window);
         }
         // parse activation method (CID, ...)
-        String activation;
+        std::string activation;
         if (optionalAttributeAsString_(activation, attributes, s_activationMethod_))
         {
           auto it = std::find(Precursor::NamesOfActivationMethodShort,
@@ -248,33 +248,33 @@ namespace OpenMS::Internal
         UInt ms_level = attributeAsInt_(attributes, s_mslevel_);
         if (ms_level == 0)
         {
-          warning(LOAD, String("Invalid 'msLevel' attribute with value '0' in 'scan' element found. Assuming ms level 1!"));
+          warning(LOAD,StringUtils::toStr("Invalid 'msLevel' attribute with value '0' in 'scan' element found. Assuming ms level 1!"));
           ms_level = 1;
         }
 
         //parse retention time and convert it from xs:duration to seconds
         double retention_time = 0.0;
-        String time_string = "";
+        std::string time_string = "";
         if (optionalAttributeAsString_(time_string, attributes, s_retentiontime_))
         {
-          time_string = time_string.suffix('T');
+          time_string = StringUtils::suffix(time_string, 'T');
           //std::cout << "Initial trim: " << time_string << "\n";
-          if (time_string.has('H'))
+          if (StringUtils::has(time_string, 'H'))
           {
-            retention_time += 3600 * asDouble_(time_string.prefix('H'));
-            time_string = time_string.suffix('H');
+            retention_time += 3600 * asDouble_(StringUtils::prefix(time_string, 'H'));
+            time_string = StringUtils::suffix(time_string, 'H');
             //std::cout << "After H: " << time_string << "\n";
           }
-          if (time_string.has('M'))
+          if (StringUtils::has(time_string, 'M'))
           {
-            retention_time += 60 * asDouble_(time_string.prefix('M'));
-            time_string = time_string.suffix('M');
+            retention_time += 60 * asDouble_(StringUtils::prefix(time_string, 'M'));
+            time_string = StringUtils::suffix(time_string, 'M');
             //std::cout << "After M: " << time_string << "\n";
           }
-          if (time_string.has('S'))
+          if (StringUtils::has(time_string, 'S'))
           {
-            retention_time += asDouble_(time_string.prefix('S'));
-            time_string = time_string.suffix('S');
+            retention_time += asDouble_(StringUtils::prefix(time_string, 'S'));
+            time_string = StringUtils::suffix(time_string, 'S');
             //std::cout << "After S: " << time_string << "\n";
           }
         }
@@ -297,7 +297,7 @@ namespace OpenMS::Internal
 
         spectrum_data_.back().spectrum.setMSLevel(ms_level);
         spectrum_data_.back().spectrum.setRT(retention_time);
-        spectrum_data_.back().spectrum.setNativeID(String("scan=") + attributeAsString_(attributes, s_num_));
+        spectrum_data_.back().spectrum.setNativeID(StringUtils::toStr("scan=") + attributeAsString_(attributes, s_num_));
         //peak count == twice the scan size
         spectrum_data_.back().peak_count_ = attributeAsInt_(attributes, s_peakscount_);
         spectrum_data_.back().spectrum.reserve(spectrum_data_.back().peak_count_ / 2 + 1);
@@ -314,19 +314,19 @@ namespace OpenMS::Internal
           spectrum_data_.back().spectrum.getInstrumentSettings().getScanWindows().push_back(window);
         }
 
-        String polarity = "any";
+        std::string polarity = "any";
         optionalAttributeAsString_(polarity, attributes, s_polarity_);
         spectrum_data_.back().spectrum.getInstrumentSettings().setPolarity((IonSource::Polarity) cvStringToEnum_(0, polarity, "polarity"));
 
         // Filter string (see CV term MS:1000512 in mzML)
-        String filterLine = "";
+        std::string filterLine = "";
         optionalAttributeAsString_(filterLine, attributes, s_filterline_);
         if (!filterLine.empty())
         {
           spectrum_data_.back().spectrum.setMetaValue("filter string", filterLine);
         }
 
-        String type = "";
+        std::string type = "";
         optionalAttributeAsString_(type, attributes, s_scantype_);
         if (type.empty())
         {
@@ -385,7 +385,7 @@ namespace OpenMS::Internal
         else
         {
           spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
-          warning(LOAD, String("Unknown scan mode '") + type + "'. Assuming full scan");
+          warning(LOAD,StringUtils::toStr("Unknown scan mode '") + type + "'. Assuming full scan");
         }
       } // END OF <scan>
       else if (tag == "operator")
@@ -394,7 +394,7 @@ namespace OpenMS::Internal
         exp_->getContacts().back().setFirstName(attributeAsString_(attributes, s_first_));
         exp_->getContacts().back().setLastName(attributeAsString_(attributes, s_last_));
 
-        String tmp = "";
+        std::string tmp = "";
         optionalAttributeAsString_(tmp, attributes, s_email_);
         exp_->getContacts().back().setEmail(tmp);
 
@@ -440,7 +440,7 @@ namespace OpenMS::Internal
       {
         data_processing_.push_back(DataProcessingPtr(new DataProcessing));
 
-        String boolean = "";
+        std::string boolean = "";
         optionalAttributeAsString_(boolean, attributes, s_deisotoped_);
         if (boolean == "true" || boolean == "1")
         {
@@ -470,16 +470,16 @@ namespace OpenMS::Internal
       }
       else if (tag == "nameValue")
       {
-        String name = "";
+        std::string name = "";
         optionalAttributeAsString_(name, attributes, s_name_);
         if (name.empty())
         {
           return;
         }
-        String value = "";
+        std::string value = "";
         optionalAttributeAsString_(value, attributes, s_value_);
 
-        String& parent_tag = *(open_tags_.end() - 2);
+        std::string& parent_tag = *(open_tags_.end() - 2);
 
         if (parent_tag == "msInstrument")
         {
@@ -496,13 +496,13 @@ namespace OpenMS::Internal
       }
       else if (tag == "processingOperation")
       {
-        String name = "";
+        std::string name = "";
         optionalAttributeAsString_(name, attributes, s_name_);
         if (name.empty())
         {
           return;
         }
-        String value = "";
+        std::string value = "";
         optionalAttributeAsString_(value, attributes, s_value_);
 
         data_processing_.back()->setMetaValue(name, value);
@@ -567,7 +567,7 @@ namespace OpenMS::Internal
       }
       else if (open_tags_.back() == "precursorMz")
       {
-        String transcoded_chars = sm_.convert(chars);
+        std::string transcoded_chars = sm_.convert(chars);
         double mz_pos = asDouble_(transcoded_chars);
         //precursor m/z
         spectrum_data_.back().spectrum.getPrecursors().back().setMZ(mz_pos);
@@ -589,8 +589,8 @@ namespace OpenMS::Internal
       }
       else if (open_tags_.back() == "comment")
       {
-        String transcoded_chars = sm_.convert(chars);
-        String parent_tag = *(open_tags_.end() - 2);
+        std::string transcoded_chars = sm_.convert(chars);
+        std::string parent_tag = *(open_tags_.end() - 2);
         //std::cout << "- Comment of parent " << parent_tag << "\n";
 
         if (parent_tag == "msInstrument")
@@ -605,17 +605,17 @@ namespace OpenMS::Internal
         {
           spectrum_data_.back().spectrum.setComment(transcoded_chars);
         }
-        else if (!transcoded_chars.trim().empty())
+        else if (!StringUtils::trim(transcoded_chars).empty())
         {
-          warning(LOAD, String("Unhandled comment '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
+          warning(LOAD,StringUtils::toStr("Unhandled comment '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
         }
       }
       else
       {
-        String transcoded_chars = sm_.convert(chars);
-        if (!transcoded_chars.trim().empty())
+        std::string transcoded_chars = sm_.convert(chars);
+        if (!StringUtils::trim(transcoded_chars).empty())
         {
-          warning(LOAD, String("Unhandled character content '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
+          warning(LOAD,StringUtils::toStr("Unhandled character content '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
         }
       }
     }
@@ -662,7 +662,7 @@ namespace OpenMS::Internal
           const SourceFile& sf = cexp_->getSourceFiles()[i];
           os << "\t\t<parentFile fileName=\"" << sf.getNameOfFile() << "\" fileType=\"";
           //file type is an enum in mzXML => search for 'raw' string
-          if (String(sf.getFileType()).toLower().hasSubstring("raw"))
+          if (StringUtils::hasSubstring(StringUtils::toLowered(StringUtils::toStr(sf.getFileType())), "raw"))
           {
             os << "RAWData";
           }
@@ -692,9 +692,9 @@ namespace OpenMS::Internal
         const Instrument& inst = cexp_->getInstrument();
         // the Instrument Manufacturer is paramount for some downstream tools
         // Since the .getVendor() is usually empty, we infer this via the Acquisition Software, which is unique to Thermo
-        String manufacturer = inst.getVendor();
+        std::string manufacturer = inst.getVendor();
         if (options_.getForceMQCompatability() || 
-            (manufacturer.empty() && String(inst.getSoftware().getName()).toLower().hasSubstring("xcalibur")))
+            (manufacturer.empty() && StringUtils::hasSubstring(StringUtils::toLowered(inst.getSoftware().getName()), "xcalibur")))
         { // MaxQuant's internal parameter defaults require either "Thermo Scientific" (MaxQuant 1.2 - 1.5), or "Thermo Finnigan" (MaxQuant 1.3 - 1.5)
           manufacturer = "Thermo Scientific";
           OPENMS_LOG_INFO << "Detected software '" << inst.getSoftware().getName() << "'. Setting <msManufacturer> as '" << manufacturer << "'." << std::endl;
@@ -810,7 +810,7 @@ namespace OpenMS::Internal
 
           if (data_processing.getCompletionTime() != DateTime())
           {
-            os << "\" completionTime=\"" << data_processing.getCompletionTime().get().substitute(' ', 'T');
+            { std::string ct = data_processing.getCompletionTime().get(); StringUtils::substitute(ct, ' ', 'T'); os << "\" completionTime=\"" << ct; }
           }
           os << "\"/>\n";
           writeUserParam_(os, data_processing, 3, "processingOperation");
@@ -826,18 +826,18 @@ namespace OpenMS::Internal
       bool all_prefixed_numbers = true;
       for (Size s = 0; s < cexp_->size(); s++)
       {
-        String native_id = (*cexp_)[s].getNativeID();
-        if (!native_id.hasPrefix("scan="))
+        std::string native_id = (*cexp_)[s].getNativeID();
+        if (!StringUtils::hasPrefix(native_id, "scan="))
         {
           all_prefixed_numbers = false;
         }
         else
         {
-          native_id = native_id.substr(5);
+          native_id = StringUtils::substr(native_id, 5);
         }
         try
         {
-          native_id.toInt();
+          StringUtils::toInt32(native_id);
         }
         catch (Exception::ConversionError&)
         {
@@ -877,14 +877,14 @@ namespace OpenMS::Internal
         Size spectrum_id = spec_index;
         if (all_prefixed_numbers)
         {
-          spectrum_id = spec.getNativeID().substr(5).toInt();
+          spectrum_id = StringUtils::toInt32(StringUtils::substr(spec.getNativeID(), 5));
         }
         else if (all_numbers)
         {
-          spectrum_id = spec.getNativeID().toInt();
+          spectrum_id = StringUtils::toInt32(spec.getNativeID());
         }
 
-        os << String(ms_level + 1, '\t');
+        os << std::string(ms_level + 1, '\t');
 
         scan_index_positions.emplace_back(spectrum_id, os.tellp()); // remember scan index
         os << "<scan num=\"" << spectrum_id << "\""
@@ -905,7 +905,7 @@ namespace OpenMS::Internal
         }
         os << "\"";
         // scan type
-        String type;
+        std::string type;
         switch (spec.getInstrumentSettings().getScanMode())
         {
         case InstrumentSettings::ScanMode::UNKNOWN:
@@ -926,12 +926,12 @@ namespace OpenMS::Internal
           break;
         default:
           type = "Full";
-          warning(STORE, String("Scan type '") + InstrumentSettings::NamesOfScanMode[static_cast<size_t>(spec.getInstrumentSettings().getScanMode())] + "' not supported by mzXML. Using 'Full' scan mode!");
+          warning(STORE,StringUtils::toStr("Scan type '") + InstrumentSettings::NamesOfScanMode[static_cast<size_t>(spec.getInstrumentSettings().getScanMode())] + "' not supported by mzXML. Using 'Full' scan mode!");
         }
         if (type.empty() && options_.getForceMQCompatability())
         {
           type = "Full";
-          warning(STORE, String("Scan type unknown. Assuming 'Full' scan mode for MQ compatibility!"));
+          warning(STORE,StringUtils::toStr("Scan type unknown. Assuming 'Full' scan mode for MQ compatibility!"));
         }
         if (!type.empty())
         {
@@ -941,7 +941,7 @@ namespace OpenMS::Internal
         if (spec.metaValueExists("filter string"))
         {
           os << " filterLine=\"";
-          os << writeXMLEscape((String)spec.getMetaValue("filter string"));
+          os << writeXMLEscape((std::string)spec.getMetaValue("filter string"));
           os << "\"";
         }
        
@@ -1006,7 +1006,7 @@ namespace OpenMS::Internal
         for (const auto& precursor : spec.getPrecursors())
         {
           // intensity
-          os << String(ms_level + 2, '\t') << "<precursorMz precursorIntensity=\"" << (int)precursor.getIntensity() << "\"";
+          os << std::string(ms_level + 2, '\t') << "<precursorMz precursorIntensity=\"" << (int)precursor.getIntensity() << "\"";
           // charge
           if (precursor.getCharge() != 0)
           {
@@ -1040,7 +1040,7 @@ namespace OpenMS::Internal
         // Note: Some parsers require the following line breaks (MaxQuants
         // mzXML reader will fail otherwise! -- don't ask..) while others cannot
         // deal with them (mostly TPP tools such as SpectraST).
-        String s_peaks;
+        std::string s_peaks;
         if (options_.getForceMQCompatability())
         {
           s_peaks = "<peaks precision=\"32\"\n byteOrder=\"network\"\n contentType=\"m/z-int\"\n compressionType=\"none\"\n compressedLen=\"0\" ";
@@ -1049,11 +1049,11 @@ namespace OpenMS::Internal
         {
           s_peaks = R"(<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" )";
         }
-        if (options_.getForceMQCompatability() && !s_peaks.has('\n'))
+        if (options_.getForceMQCompatability() && !StringUtils::has(s_peaks, '\n'))
         { // internal check against inadvertently removing line breaks above!
           fatalError(STORE, "Internal error: <peaks> tag does not contain newlines as required by MaxQuant. Please report this as a bug.", __LINE__, 0);
         }
-        os << String(ms_level + 2, '\t') << s_peaks;
+        os << std::string(ms_level + 2, '\t') << s_peaks;
         if (!spec.empty())
         {
           // for MaxQuant-compatible mzXML, the data type must be 'float', i.e. precision=32 bit. 64bit will crash MaxQuant!
@@ -1065,7 +1065,7 @@ namespace OpenMS::Internal
             tmp.push_back(p.getIntensity());
           }
 
-          String encoded;
+          std::string encoded;
           Base64::encode(tmp, Base64::BYTEORDER_BIGENDIAN, encoded);
           os << ">" << encoded << "</peaks>\n";
         }
@@ -1077,7 +1077,7 @@ namespace OpenMS::Internal
         writeUserParam_(os, spec, ms_level + 2);
         if (!spec.getComment().empty())
         {
-          os << String(ms_level + 2, '\t') << "<comment>" << spec.getComment() << "</comment>\n";
+          os << std::string(ms_level + 2, '\t') << "<comment>" << spec.getComment() << "</comment>\n";
         }
 
         //check MS level of next scan and close scans (scans can be nested)
@@ -1091,7 +1091,7 @@ namespace OpenMS::Internal
         {
           for (Size i = 0; i <= ms_level - next_ms_level && !open_scans.empty(); ++i)
           {
-            os << String(ms_level - i + 1, '\t') << "</scan>\n";
+            os << std::string(ms_level - i + 1, '\t') << "</scan>\n";
             open_scans.pop();
           }
         }
@@ -1121,7 +1121,7 @@ namespace OpenMS::Internal
       spec_write_counter_ = 1;
     }
 
-    inline bool MzXMLHandler::writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname)
+    inline bool MzXMLHandler::writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const std::string& metakey, const std::string& attname)
     {
       if (meta.metaValueExists(metakey))
       {
@@ -1132,16 +1132,16 @@ namespace OpenMS::Internal
     }
 
 
-    inline void MzXMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent, const String& tag)
+    inline void MzXMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent, const std::string& tag)
     {
-      std::vector<String> keys; // Vector to hold keys to meta info
+      std::vector<std::string> keys; // Vector to hold keys to meta info
       meta.getKeys(keys);
 
-      for (const String& key : keys)
+      for (const std::string& key : keys)
       {
         if (key[0] != '#') // internally used meta info start with '#'
         {
-          os << String(indent, '\t') << "<" << tag << " name=\"" << key << "\" value=\"" << writeXMLEscape(meta.getMetaValue(key)) << "\"/>\n";
+          os << std::string(indent, '\t') << "<" << tag << " name=\"" << key << "\" value=\"" << writeXMLEscape(meta.getMetaValue(key)) << "\"/>\n";
         }
       }
     }
@@ -1158,7 +1158,7 @@ namespace OpenMS::Internal
 
       //remove whitespaces from binary data
       //this should not be necessary, but line breaks inside the base64 data are unfortunately no exception
-      spectrum_data.char_rest_.removeWhitespaces();
+      StringUtils::removeWhitespaces(spectrum_data.char_rest_);
 
       if (spectrum_data.precision_ == "64")
       {
@@ -1273,24 +1273,24 @@ namespace OpenMS::Internal
     {
       cv_terms_.resize(6);
       //Polarity
-      String("any;+;-").split(';', cv_terms_[0]);
+      StringUtils::split("any;+;-", ';', cv_terms_[0]);
       //Scan type
       // is no longer used cv_terms_[1] is empty now
 
       //Ionization method
-      String(";ESI;EI;CI;FAB;;;;;;;;;;;;;APCI;;;NSI;;SELDI;;;MALDI").split(';', cv_terms_[2]);
+      StringUtils::split(";ESI;EI;CI;FAB;;;;;;;;;;;;;APCI;;;NSI;;SELDI;;;MALDI", ';', cv_terms_[2]);
       cv_terms_[2].resize(static_cast<size_t>(IonSource::IonizationMethod::SIZE_OF_IONIZATIONMETHOD));
 
       //Mass analyzer
-      String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;;;;;;FTMS").split(';', cv_terms_[3]);
+      StringUtils::split(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;;;;;;FTMS", ';', cv_terms_[3]);
       cv_terms_[3].resize(static_cast<size_t>(MassAnalyzer::AnalyzerType::SIZE_OF_ANALYZERTYPE));
 
       //Detector
-      String(";EMT;;;Faraday Cup;;;;;Channeltron;Daly;Microchannel plate").split(';', cv_terms_[4]);
+      StringUtils::split(";EMT;;;Faraday Cup;;;;;Channeltron;Daly;Microchannel plate", ';', cv_terms_[4]);
       cv_terms_[4].resize(static_cast<size_t>(IonDetector::Type::SIZE_OF_TYPE));
 
       //Resolution method
-      String(";FWHM;TenPercentValley;Baseline").split(';', cv_terms_[5]);
+      StringUtils::split(";FWHM;TenPercentValley;Baseline", ';', cv_terms_[5]);
       cv_terms_[5].resize(static_cast<size_t>(MassAnalyzer::ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD));
     }
 } //namespace OpenMS //namespace Internal

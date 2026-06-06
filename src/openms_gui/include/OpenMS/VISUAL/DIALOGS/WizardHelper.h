@@ -49,7 +49,7 @@ namespace OpenMS
     /// custom arguments to allow for looping calls
     struct Args
     {
-      std::vector<String> loop_arg; ///< list of arguments to insert; one for every loop
+      std::vector<std::string> loop_arg; ///< list of arguments to insert; one for every loop
       size_t insert_pos;       ///< where to insert in the target argument list (index is 0-based)
     };
 
@@ -62,11 +62,11 @@ namespace OpenMS
     /// All lists in loop[i].loop_arg should have the same size (i.e. same number of loops)
     struct Command
     {
-      String exe;
-      std::vector<String> args;
+      std::string exe;
+      std::vector<std::string> args;
       ArgLoop loop;
 
-      Command(const String& e, const std::vector<String>& a, const ArgLoop& l) :
+      Command(const std::string& e, const std::vector<std::string>& a, const ArgLoop& l) :
           exe(e),
           args(a),
           loop(l) {}
@@ -86,7 +86,7 @@ namespace OpenMS
       }
       /// for a given loop, return the substituted arguments
       /// @p loop_number of 0 is always valid, i.e. no loop args, just use the unmodified args provided
-      std::vector<String> getArgs(const int loop_number) const
+      std::vector<std::string> getArgs(const int loop_number) const
       {
         if (loop_number >= (int)getLoopCount())
         {
@@ -94,12 +94,12 @@ namespace OpenMS
         }
         if (loop.empty()) return args; // no looping available
 
-        std::vector<String> arg_l = args;
+        std::vector<std::string> arg_l = args;
         for (const auto& largs : loop) // replace all args for the current round
         {
           // Substitute %1 placeholder with the loop argument
-          String& target = arg_l[largs.insert_pos];
-          target.substitute("%1", largs.loop_arg[loop_number]);
+          std::string& target = arg_l[largs.insert_pos];
+          StringUtils::substitute(target, "%1", largs.loop_arg[loop_number]);
         }
         return arg_l;
       }

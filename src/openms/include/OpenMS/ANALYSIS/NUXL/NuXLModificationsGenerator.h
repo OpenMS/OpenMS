@@ -54,12 +54,12 @@ namespace OpenMS
         return (lhsLength < rhsLength) ; // compares with the length
       }
     };
-    std::map<String, double> formula2mass; ///< Empirical formula → monoisotopic mass.
+    std::map<std::string, double> formula2mass; ///< Empirical formula → monoisotopic mass.
 
     /// Length-ordered set of nucleotide-composition strings producing the same empirical formula.
-    using NucleotideFormulas = std::set<String, MyStringLengthCompare>;
+    using NucleotideFormulas = std::set<std::string, MyStringLengthCompare>;
     /// Empirical formula → @ref NucleotideFormulas.
-    using MapSumFormulaToNucleotideFormulas = std::map<String, NucleotideFormulas>;
+    using MapSumFormulaToNucleotideFormulas = std::map<std::string, NucleotideFormulas>;
     MapSumFormulaToNucleotideFormulas mod_combinations; ///< Empirical formula → all nucleotide compositions yielding that formula (kept as a set because mutations / losses can make the mapping ambiguous).
   };
 
@@ -136,7 +136,7 @@ namespace OpenMS
                                                                      const std::set<char>& can_xl,
                                                                      const StringList& mappings,
                                                                      const StringList& modifications,
-                                                                     String sequence_restriction = "",
+                                                                     std::string sequence_restriction = "",
                                                                      bool cysteine_adduct = false,
                                                                      Int max_length = 4);
     private:
@@ -148,7 +148,7 @@ namespace OpenMS
         sides first, so the test is permutation-insensitive. Empty @p query short-circuits
         to @c false (treated as always present).
       */
-      static bool notInSeq(const String& res_seq, const String& query);
+      static bool notInSeq(const std::string& res_seq, const std::string& query);
 
       /**
         @brief Recursively expand @p res_seq into every target-substituted variant according to @p map_source2target.
@@ -162,7 +162,7 @@ namespace OpenMS
         nucleotide (i.e. no @em pure source nucleotide is left). @p target_sequences is
         appended to; existing entries are preserved.
       */
-      static void generateTargetSequences(const String& res_seq, Size param_pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
+      static void generateTargetSequences(const std::string& res_seq, Size param_pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
     };
 }
 

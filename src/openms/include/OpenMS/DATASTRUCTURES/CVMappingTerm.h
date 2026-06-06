@@ -41,10 +41,10 @@ public:
     */
     //@{
     /// sets the accession string of the term
-    void setAccession(const String& accession);
+    void setAccession(const std::string& accession);
 
     /// returns the accession string of the term
-    const String& getAccession() const;
+    const std::string& getAccession() const;
 
     /// sets whether the term name should be used, instead of the accession
     void setUseTermName(bool use_term_name);
@@ -59,10 +59,10 @@ public:
     bool getUseTerm() const;
 
     /// sets the name of the term
-    void setTermName(const String& term_name);
+    void setTermName(const std::string& term_name);
 
     /// returns the name of the term
-    const String& getTermName() const;
+    const std::string& getTermName() const;
 
     /// sets whether this term can be repeated
     void setIsRepeatable(bool is_repeatable);
@@ -77,10 +77,10 @@ public:
     bool getAllowChildren() const;
 
     /// sets the cv identifier reference string, e.g. UO for unit obo
-    void setCVIdentifierRef(const String& cv_identifier_ref);
+    void setCVIdentifierRef(const std::string& cv_identifier_ref);
 
     /// returns the cv identifier reference string
-    const String& getCVIdentifierRef() const;
+    const std::string& getCVIdentifierRef() const;
     //@}
 
     /** @name Predicates
@@ -95,19 +95,19 @@ public:
 
 protected:
 
-    String accession_;
+    std::string accession_;
 
     bool use_term_name_;
 
     bool use_term_;
 
-    String term_name_;
+    std::string term_name_;
 
     bool is_repeatable_;
 
     bool allow_children_;
 
-    String cv_identifier_ref_;
+    std::string cv_identifier_ref_;
   };
 
 } // namespace OpenMS

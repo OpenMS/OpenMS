@@ -41,7 +41,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    CsvFile(const String& filename, char is = ',', bool ie = false, Int first_n = -1);
+    CsvFile(const std::string& filename, char is = ',', bool ie = false, Int first_n = -1);
 
     /**
       @brief Loads data from a text file.
@@ -53,14 +53,14 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    void load(const String& filename, char is = ',', bool ie = false, Int first_n = -1);
+    void load(const std::string& filename, char is = ',', bool ie = false, Int first_n = -1);
 
     /**
       @brief Stores the buffer's content into a file.
 
       @param[in] filename The output filename.
     */
-    void store(const String& filename);
+    void store(const std::string& filename);
 
     /**
       @brief Add a row to the buffer.
@@ -93,7 +93,7 @@ public:
 
       @return The number of loaded rows.
     */
-    std::vector<String>::size_type rowCount() const;
+    std::vector<std::string>::size_type rowCount() const;
 
 private:
     char itemseperator_;

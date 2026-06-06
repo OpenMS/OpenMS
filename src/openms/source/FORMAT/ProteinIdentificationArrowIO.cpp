@@ -54,7 +54,7 @@ namespace // anonymous
     std::shared_ptr<arrow::StructBuilder>& struct_b,
     const std::unordered_set<std::string>& excluded_keys)
   {
-    std::vector<String> keys;
+    std::vector<std::string> keys;
     mii.getKeys(keys);
     for (const auto& key : keys)
     {
@@ -84,7 +84,7 @@ namespace // anonymous
   /// @return true on success, false on error
   bool writeArrowTableToParquet_(
     std::shared_ptr<arrow::Table> table,
-    const String& filename,
+    const std::string& filename,
     const std::string& file_type,
     const ParquetWriteConfig& config)
   {
@@ -190,7 +190,7 @@ namespace // anonymous
   // ==================== Import helpers ====================
 
   /// Read a single Parquet file into an Arrow table.
-  std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
+  std::shared_ptr<arrow::Table> readParquetTable_(const std::string& filename)
   {
     auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
     if (!infile_result.ok())
@@ -261,7 +261,7 @@ namespace // anonymous
   }
 
   /// Get string value at a row, returning empty string if null.
-  String getStringValue_(const std::shared_ptr<arrow::Array>& array, int64_t row)
+  std::string getStringValue_(const std::shared_ptr<arrow::Array>& array, int64_t row)
   {
     if (!array || array->IsNull(row)) return "";
     return std::static_pointer_cast<arrow::StringArray>(array)->GetString(row);
@@ -295,9 +295,9 @@ namespace // anonymous
   }
 
   /// Read a list<utf8> column at a given row into a vector of Strings.
-  std::vector<String> readStringList_(const std::shared_ptr<arrow::Array>& array, int64_t row)
+  std::vector<std::string> readStringList_(const std::shared_ptr<arrow::Array>& array, int64_t row)
   {
-    std::vector<String> result;
+    std::vector<std::string> result;
     if (!array || array->IsNull(row)) return result;
     auto list_arr = std::static_pointer_cast<arrow::ListArray>(array);
     auto values = std::static_pointer_cast<arrow::StringArray>(list_arr->value_slice(row));
@@ -396,7 +396,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
 
   for (const auto& prot_id : protein_identifications)
   {
-    const String& run_id = prot_id.getIdentifier();
+    const std::string& run_id = prot_id.getIdentifier();
 
     for (const auto& hit : prot_id.getHits())
     {
@@ -421,7 +421,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
       }
 
       // === sequence (nullable, null if empty) ===
-      const String& seq = hit.getSequence();
+      const std::string& seq = hit.getSequence();
       if (seq.empty())
       {
         (void)sequence_builder.AppendNull();
@@ -434,7 +434,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
       // === description (nullable, null if empty or not set) ===
       if (hit.metaValueExists("Description"))
       {
-        String desc = hit.getDescription();
+        std::string desc = hit.getDescription();
         if (desc.empty())
         {
           (void)description_builder.AppendNull();
@@ -542,7 +542,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
 
 bool ProteinIdentificationArrowIO::exportProteinsToParquet(
   const std::vector<ProteinIdentification>& protein_identifications,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   auto table = exportProteinsToArrow(protein_identifications);
@@ -609,7 +609,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinGroupsT
   // Lambda to append a single ProteinGroup row
   auto append_group = [&](const ProteinIdentification::ProteinGroup& group,
                           const std::string& type_str,
-                          const String& run_id,
+                          const std::string& run_id,
                           int32_t index) -> bool
   {
     // group_type
@@ -700,7 +700,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinGroupsT
   // Iterate over all ProteinIdentifications
   for (const auto& prot_id : protein_identifications)
   {
-    const String& run_id = prot_id.getIdentifier();
+    const std::string& run_id = prot_id.getIdentifier();
 
     // Protein groups with separate 0-based index
     int32_t pg_index = 0;
@@ -763,7 +763,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinGroupsT
 
 bool ProteinIdentificationArrowIO::exportProteinGroupsToParquet(
   const std::vector<ProteinIdentification>& protein_identifications,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   auto table = exportProteinGroupsToArrow(protein_identifications);
@@ -890,7 +890,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
     (void)search_engine_builder.Append(prot_id.getSearchEngine());
 
     // === search_engine_version (nullable, null if empty) ===
-    const String& se_version = prot_id.getSearchEngineVersion();
+    const std::string& se_version = prot_id.getSearchEngineVersion();
     if (se_version.empty())
     {
       (void)search_engine_version_builder.AppendNull();
@@ -901,7 +901,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
     }
 
     // === inference_engine (nullable, null if empty) ===
-    const String inference_engine = prot_id.getInferenceEngine();
+    const std::string inference_engine = prot_id.getInferenceEngine();
     if (inference_engine.empty())
     {
       (void)inference_engine_builder.AppendNull();
@@ -912,7 +912,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
     }
 
     // === inference_engine_version (nullable, null if empty) ===
-    const String inference_engine_version = prot_id.getInferenceEngineVersion();
+    const std::string inference_engine_version = prot_id.getInferenceEngineVersion();
     if (inference_engine_version.empty())
     {
       (void)inference_engine_version_builder.AppendNull();
@@ -925,7 +925,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
     // === date (nullable, null if unset) ===
     {
       const DateTime& dt = prot_id.getDateTime();
-      String date_str = dt.toString("yyyy-MM-ddThh:mm:ss");
+      std::string date_str = dt.toString("yyyy-MM-ddThh:mm:ss");
       if (date_str.empty())
       {
         (void)date_builder.AppendNull();
@@ -1029,7 +1029,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
     (void)fragment_mass_tolerance_ppm_builder.Append(sp.fragment_mass_tolerance_ppm);
 
     // === digestion_enzyme (nullable, null if empty or "unknown_enzyme") ===
-    const String& enzyme_name = sp.digestion_enzyme.getName();
+    const std::string& enzyme_name = sp.digestion_enzyme.getName();
     if (enzyme_name.empty() || enzyme_name == "unknown_enzyme")
     {
       (void)digestion_enzyme_builder.AppendNull();
@@ -1194,7 +1194,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
 
 bool ProteinIdentificationArrowIO::exportSearchParamsToParquet(
   const std::vector<ProteinIdentification>& protein_identifications,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   auto table = exportSearchParamsToArrow(protein_identifications);
@@ -1338,7 +1338,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     sp.taxonomy = getStringValue_(col_taxonomy, row);
     sp.charges = getStringValue_(col_charges, row);
 
-    String mass_type_str = getStringValue_(col_mass_type, row);
+    std::string mass_type_str = getStringValue_(col_mass_type, row);
     sp.mass_type = (mass_type_str == "AVERAGE") ?
       ProteinIdentification::PeakMassType::AVERAGE :
       ProteinIdentification::PeakMassType::MONOISOTOPIC;
@@ -1350,7 +1350,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     sp.missed_cleavages = static_cast<UInt>(getInt32Value_(col_missed_cleavages, row));
 
     // Enzyme
-    String enzyme_name = getStringValue_(col_enzyme, row);
+    std::string enzyme_name = getStringValue_(col_enzyme, row);
     if (!enzyme_name.empty())
     {
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_name))
@@ -1364,7 +1364,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     }
 
     // Enzyme term specificity
-    String spec_str = getStringValue_(col_enzyme_spec, row);
+    std::string spec_str = getStringValue_(col_enzyme_spec, row);
     if (spec_str == "FULL") sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     else if (spec_str == "SEMI") sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_SEMI;
     else if (spec_str == "NONE") sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NONE;
@@ -1386,11 +1386,11 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     prot_id.setSearchParameters(sp);
 
     // Inference engine (must be set after setSearchParameters)
-    String inf_engine = getStringValue_(col_inf_engine, row);
+    std::string inf_engine = getStringValue_(col_inf_engine, row);
     if (!inf_engine.empty())
     {
       prot_id.setInferenceEngine(inf_engine);
-      String inf_version = getStringValue_(col_inf_version, row);
+      std::string inf_version = getStringValue_(col_inf_version, row);
       if (!inf_version.empty())
       {
         prot_id.setInferenceEngineVersion(inf_version);
@@ -1453,7 +1453,7 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
 
   for (int64_t row = 0; row < table->num_rows(); ++row)
   {
-    String run_id = getStringValue_(col_run_id, row);
+    std::string run_id = getStringValue_(col_run_id, row);
 
     // Find or create matching ProteinIdentification
     auto it = run_id_map.find(run_id);
@@ -1521,7 +1521,7 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
         for (int64_t i = 0; i < struct_arr->length(); ++i)
         {
           Size position = static_cast<Size>(pos_arr->Value(i));
-          String mod_id = mod_name_arr->GetString(i);
+          std::string mod_id = mod_name_arr->GetString(i);
           try
           {
             const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_id);
@@ -1653,7 +1653,7 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromArrow(
 
   for (int64_t row = 0; row < table->num_rows(); ++row)
   {
-    String run_id = getStringValue_(col_run_id, row);
+    std::string run_id = getStringValue_(col_run_id, row);
 
     // Find or create matching ProteinIdentification
     auto it = run_id_map.find(run_id);
@@ -1683,7 +1683,7 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromArrow(
     readIntegerDataArrays(col_integer_data, row, group);
 
     // Insert into appropriate vector
-    String group_type = getStringValue_(col_group_type, row);
+    std::string group_type = getStringValue_(col_group_type, row);
     if (group_type == "indistinguishable")
     {
       protein_identifications[prot_id_idx].insertIndistinguishableProteins(std::move(group));
@@ -1699,7 +1699,7 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromArrow(
 
 
 bool ProteinIdentificationArrowIO::importSearchParamsFromParquet(
-  const String& filename,
+  const std::string& filename,
   std::vector<ProteinIdentification>& protein_identifications)
 {
   auto table = readParquetTable_(filename);
@@ -1709,7 +1709,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromParquet(
 
 
 bool ProteinIdentificationArrowIO::importProteinsFromParquet(
-  const String& filename,
+  const std::string& filename,
   std::vector<ProteinIdentification>& protein_identifications)
 {
   auto table = readParquetTable_(filename);
@@ -1719,7 +1719,7 @@ bool ProteinIdentificationArrowIO::importProteinsFromParquet(
 
 
 bool ProteinIdentificationArrowIO::importProteinGroupsFromParquet(
-  const String& filename,
+  const std::string& filename,
   std::vector<ProteinIdentification>& protein_identifications)
 {
   auto table = readParquetTable_(filename);
@@ -1729,9 +1729,9 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromParquet(
 
 
 bool ProteinIdentificationArrowIO::importFromParquet(
-  const String& proteins_filename,
-  const String& protein_groups_filename,
-  const String& search_params_filename,
+  const std::string& proteins_filename,
+  const std::string& protein_groups_filename,
+  const std::string& search_params_filename,
   std::vector<ProteinIdentification>& protein_identifications)
 {
   protein_identifications.clear();
@@ -1763,19 +1763,19 @@ bool ProteinIdentificationArrowIO::importFromParquet(
 
 // ==================== Identifier handling parity with XML lane ====================
 
-std::map<String, String> ProteinIdentificationArrowIO::synthesizeRunIdentifiers(
+std::map<std::string, std::string> ProteinIdentificationArrowIO::synthesizeRunIdentifiers(
   std::vector<ProteinIdentification>& protein_identifications)
 {
-  std::map<String, String> rename;
+  std::map<std::string, std::string> rename;
   for (auto& prot_id : protein_identifications)
   {
     // Mirror IdXMLFile.cpp:530 — `<search_engine>_<date>_<UniqueIdGenerator>`.
-    const String se = prot_id.getSearchEngine().empty() ? String("unknown") : prot_id.getSearchEngine();
-    const String dt = prot_id.getDateTime().isValid()
+    const std::string se = prot_id.getSearchEngine().empty() ? std::string("unknown") : prot_id.getSearchEngine();
+    const std::string dt = prot_id.getDateTime().isValid()
                           ? prot_id.getDateTime().toString()
-                          : String("1900-01-01T00:00:00");
-    const String stored = prot_id.getIdentifier();
-    const String synthesized = se + "_" + dt + "_" + String(UniqueIdGenerator::getUniqueId());
+                          : StringUtils::toStr("1900-01-01T00:00:00");
+    const std::string stored = prot_id.getIdentifier();
+    const std::string synthesized = se + "_" + dt + "_" + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
 
     // Multiple ProtIDs sharing the stored identifier each get their own distinct
     // synthesized identifier; the rename map collapses to the last-seen entry
@@ -1801,7 +1801,7 @@ std::map<String, String> ProteinIdentificationArrowIO::synthesizeRunIdentifiers(
 }
 
 void ProteinIdentificationArrowIO::applyRunIdentifierRename(
-  const std::map<String, String>& rename,
+  const std::map<std::string, std::string>& rename,
   PeptideIdentificationList& pep_ids)
 {
   for (auto& pid : pep_ids)
@@ -1821,7 +1821,7 @@ void ProteinIdentificationArrowIO::checkUniqueIdentifiers(
 {
   // Mirror XMLHandler::checkUniqueIdentifiers_ exactly — identical message text
   // so log-grepping finds both lanes.
-  std::set<String> s;
+  std::set<std::string> s;
   for (const auto& p : protein_identifications)
   {
     if (s.insert(p.getIdentifier()).second == false)

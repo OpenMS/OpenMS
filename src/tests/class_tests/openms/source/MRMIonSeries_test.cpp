@@ -38,12 +38,12 @@ START_SECTION(~MRMIonSeries())
 
 END_SECTION
 
-START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(AASequence sequence, size_t precursor_charge, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses)))
+START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(AASequence sequence, size_t precursor_charge, std::vector<std::string> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses)))
 {
   MRMIonSeries mrmis;
-  std::vector<String> fragment_types;
-  fragment_types.push_back(String("b"));
-  fragment_types.push_back(String("y"));
+  std::vector<std::string> fragment_types;
+  fragment_types.push_back(StringUtils::toStr("b"));
+  fragment_types.push_back(StringUtils::toStr("y"));
 
   std::vector<size_t> fragment_charges;
   fragment_charges.push_back(3);
@@ -51,7 +51,7 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
   fragment_charges.push_back(1);
 
   // Standard peptide
-  MRMIonSeries::IonSeries ionseries1 = mrmis.getIonSeries(AASequence::fromString(String("PEPTIDEK")), 3, fragment_types, fragment_charges, false, false);
+  MRMIonSeries::IonSeries ionseries1 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("PEPTIDEK")), 3, fragment_types, fragment_charges, false, false);
 
   TEST_EQUAL(ionseries1.size(), 42)
   TEST_REAL_SIMILAR(ionseries1["b2^1"], 227.10263491)
@@ -74,7 +74,7 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
   TEST_REAL_SIMILAR(ionseries1["y7^3"], 277.80799942)
 
   // Enable neutral losses
-  MRMIonSeries::IonSeries ionseries2 = mrmis.getIonSeries(AASequence::fromString(String("PEPTIDEK")), 3, fragment_types, fragment_charges, true, true);
+  MRMIonSeries::IonSeries ionseries2 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("PEPTIDEK")), 3, fragment_types, fragment_charges, true, true);
 
   TEST_EQUAL(ionseries2.size(), 99)
   TEST_REAL_SIMILAR(ionseries2["b5^2"], 269.64720959)
@@ -85,7 +85,7 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
   TEST_REAL_SIMILAR(ionseries2["b5-C1O2^2"], 0)
 
 
-  MRMIonSeries::IonSeries ionseries3 = mrmis.getIonSeries(AASequence::fromString(String("ES(Phospho)")), 3, fragment_types, fragment_charges, true, true);
+  MRMIonSeries::IonSeries ionseries3 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("ES(Phospho)")), 3, fragment_types, fragment_charges, true, true);
 
   TEST_EQUAL(ionseries3.size(), 12)
 
@@ -102,7 +102,7 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
   TEST_REAL_SIMILAR(ionseries3["b1^1"], 130.0498)
   TEST_REAL_SIMILAR(ionseries3["b1^3"], 44.0214)
 
-  MRMIonSeries::IonSeries ionseries4 = mrmis.getIonSeries(AASequence::fromString(String("ES")), 3, fragment_types, fragment_charges, true, true);
+  MRMIonSeries::IonSeries ionseries4 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("ES")), 3, fragment_types, fragment_charges, true, true);
 
   TEST_REAL_SIMILAR(ionseries4["y1-H2O1^1"], 88.0393)
   TEST_REAL_SIMILAR(ionseries4["y1^1"], 106.0499)
@@ -117,7 +117,7 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
   TEST_REAL_SIMILAR(ionseries4["b1^1"], 130.0499)
   TEST_REAL_SIMILAR(ionseries4["b1^3"], 44.0215)
 
-  MRMIonSeries::IonSeries ionseries5 = mrmis.getIonSeries(AASequence::fromString(String("ES(Phospho)")), 3, fragment_types, fragment_charges, true, false);
+  MRMIonSeries::IonSeries ionseries5 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("ES(Phospho)")), 3, fragment_types, fragment_charges, true, false);
 
   TEST_EQUAL(ionseries5.size(), 9)
 
@@ -131,7 +131,7 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
   TEST_REAL_SIMILAR(ionseries5["b1^1"], 130.0498)
   TEST_REAL_SIMILAR(ionseries5["b1^3"], 44.0214)
 
-  MRMIonSeries::IonSeries ionseries6 = mrmis.getIonSeries(AASequence::fromString(String("ES(Phospho)")), 3, fragment_types, fragment_charges, false, true);
+  MRMIonSeries::IonSeries ionseries6 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("ES(Phospho)")), 3, fragment_types, fragment_charges, false, true);
 
   TEST_EQUAL(ionseries6.size(), 9)
 
@@ -152,9 +152,9 @@ END_SECTION
 START_SECTION((std::pair<String, double> MRMIonSeries::annotateIon(IonSeries ionseries, double ProductMZ, double mz_threshold)))
 {
   MRMIonSeries mrmis;
-  std::vector<String> fragment_types;
-  fragment_types.push_back(String("b"));
-  fragment_types.push_back(String("y"));
+  std::vector<std::string> fragment_types;
+  fragment_types.push_back(StringUtils::toStr("b"));
+  fragment_types.push_back(StringUtils::toStr("y"));
 
   std::vector<size_t> fragment_charges;
   fragment_charges.push_back(3);
@@ -162,9 +162,9 @@ START_SECTION((std::pair<String, double> MRMIonSeries::annotateIon(IonSeries ion
   fragment_charges.push_back(1);
 
   // Standard peptide
-  MRMIonSeries::IonSeries ionseries1 = mrmis.getIonSeries(AASequence::fromString(String("PEPTIDEK")), 3, fragment_types, fragment_charges, false, false);
+  MRMIonSeries::IonSeries ionseries1 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("PEPTIDEK")), 3, fragment_types, fragment_charges, false, false);
 
-  std::pair<String, double> ion1 = mrmis.annotateIon(ionseries1, 202.44287993, 0.05);
+  std::pair<std::string, double> ion1 = mrmis.annotateIon(ionseries1, 202.44287993, 0.05);
   TEST_EQUAL(ion1.first, "y5^3")
   TEST_REAL_SIMILAR(ion1.second, 202.44287993)
 
@@ -179,12 +179,12 @@ START_SECTION((std::pair<String, double> MRMIonSeries::annotateIon(IonSeries ion
 
 END_SECTION
 
-START_SECTION((std::pair<String, double> MRMIonSeries::getIon(IonSeries ionseries, String ionid)))
+START_SECTION((std::pair<String, double> MRMIonSeries::getIon(IonSeries ionseries, std::string ionid)))
 {
   MRMIonSeries mrmis;
-  std::vector<String> fragment_types;
-  fragment_types.push_back(String("b"));
-  fragment_types.push_back(String("y"));
+  std::vector<std::string> fragment_types;
+  fragment_types.push_back(StringUtils::toStr("b"));
+  fragment_types.push_back(StringUtils::toStr("y"));
 
   std::vector<size_t> fragment_charges;
   fragment_charges.push_back(3);
@@ -192,16 +192,16 @@ START_SECTION((std::pair<String, double> MRMIonSeries::getIon(IonSeries ionserie
   fragment_charges.push_back(1);
 
   // Standard peptide
-  MRMIonSeries::IonSeries ionseries1 = mrmis.getIonSeries(AASequence::fromString(String("PEPTIDEK")), 3, fragment_types, fragment_charges, false, false);
+  MRMIonSeries::IonSeries ionseries1 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("PEPTIDEK")), 3, fragment_types, fragment_charges, false, false);
 
-  std::pair<String, double> ion1 = mrmis.getIon(ionseries1, "y5^3");
+  std::pair<std::string, double> ion1 = mrmis.getIon(ionseries1, "y5^3");
   TEST_EQUAL(ion1.first, "y5^3")
   TEST_REAL_SIMILAR(ion1.second, 202.44287993)
 }
 
 END_SECTION
 
-START_SECTION((void MRMIonSeries::annotateTransitionCV(ReactionMonitoringTransition & tr, String annotation)))
+START_SECTION((void MRMIonSeries::annotateTransitionCV(ReactionMonitoringTransition & tr, std::string annotation)))
 {
   MRMIonSeries mrmis;
   ReactionMonitoringTransition tr, tr2, tr3;
@@ -230,7 +230,7 @@ START_SECTION((void MRMIonSeries::annotateTransitionCV(ReactionMonitoringTransit
 
 END_SECTION
 
-START_SECTION((void MRMIonSeries::annotateTransition(ReactionMonitoringTransition & tr, const TargetedExperiment::Peptide peptide, const double precursor_mz_threshold, const double product_mz_threshold, bool enable_reannotation, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses)))
+START_SECTION((void MRMIonSeries::annotateTransition(ReactionMonitoringTransition & tr, const TargetedExperiment::Peptide peptide, const double precursor_mz_threshold, const double product_mz_threshold, bool enable_reannotation, std::vector<std::string> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses)))
 {
   MRMIonSeries mrmis;
   ReactionMonitoringTransition tr, tr2, tr3;
@@ -238,9 +238,9 @@ START_SECTION((void MRMIonSeries::annotateTransition(ReactionMonitoringTransitio
   peptide.sequence = "PEPTIDEK";
   peptide.setChargeState(3);
 
-  std::vector<String> fragment_types;
-  fragment_types.push_back(String("b"));
-  fragment_types.push_back(String("y"));
+  std::vector<std::string> fragment_types;
+  fragment_types.push_back(StringUtils::toStr("b"));
+  fragment_types.push_back(StringUtils::toStr("y"));
 
   std::vector<size_t> fragment_charges;
   fragment_charges.push_back(3);
@@ -263,7 +263,7 @@ START_SECTION((void MRMIonSeries::annotateTransition(ReactionMonitoringTransitio
   TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].iontype, TargetedExperiment::IonType::YIon);
   TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].ordinal, 5)
   TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001524"), true)
-  TEST_EQUAL((int)tr2.getProduct().getInterpretationList()[0].getCVTerms().at("MS:1001524")[0].getValue().toString().toDouble(), -18)
+  TEST_EQUAL(StringUtils::toDouble((int)tr2.getProduct().getInterpretationList()[0].getCVTerms().at("MS:1001524")[0].getValue().toString()), -18)
 
   tr3.setProductMZ(202.44);
   mrmis.annotateTransition(tr3, peptide, 0.05, 0.05, false, fragment_types, fragment_charges, false, false);

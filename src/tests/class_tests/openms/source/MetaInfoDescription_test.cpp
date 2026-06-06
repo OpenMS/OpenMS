@@ -32,12 +32,12 @@ START_SECTION((~MetaInfoDescription()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((const String& getName() const))
+START_SECTION((const std::string& getName() const))
   MetaInfoDescription tmp;
   TEST_EQUAL(tmp.getName(),"");
 END_SECTION
 
-START_SECTION((void setName(const String& name)))
+START_SECTION((void setName(const std::string& name)))
   MetaInfoDescription tmp;
   tmp.setName("name");
   TEST_EQUAL(tmp.getName(),"name");
@@ -66,25 +66,25 @@ START_SECTION((MetaInfoDescription(const MetaInfoDescription& source)))
   MetaInfoDescription tmp;
   tmp.setName("bla2");
   tmp.getDataProcessing().resize(1);
-  tmp.setMetaValue("label",String("label"));
+  tmp.setMetaValue("label",StringUtils::toStr("label"));
   
   MetaInfoDescription tmp2(tmp);
   TEST_EQUAL(tmp2.getName(),"bla2");
 	TEST_EQUAL(tmp.getDataProcessing().size(),1);
-  TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+  TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
 END_SECTION
 
 START_SECTION((MetaInfoDescription& operator= (const MetaInfoDescription& source)))
   MetaInfoDescription tmp;
   tmp.setName("bla2");
   tmp.getDataProcessing().resize(1);
-  tmp.setMetaValue("label",String("label"));
+  tmp.setMetaValue("label",StringUtils::toStr("label"));
   
   MetaInfoDescription tmp2;
   tmp2 = tmp;
   TEST_EQUAL(tmp2.getName(),"bla2");
 	TEST_EQUAL(tmp.getDataProcessing().size(),1);
-	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+	TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
 	
   tmp2 = MetaInfoDescription();
   TEST_EQUAL(tmp2.getName(),"");
@@ -102,7 +102,7 @@ START_SECTION((bool operator== (const MetaInfoDescription& rhs) const))
 	TEST_EQUAL(edit==empty, false);
 
   edit = empty;
-  edit.setMetaValue("label",String("label"));
+  edit.setMetaValue("label",StringUtils::toStr("label"));
   TEST_EQUAL(edit==empty, false);
 END_SECTION
 

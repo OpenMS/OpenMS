@@ -174,27 +174,27 @@ namespace OpenMS
           @warning Triggers integer division by zero when @ref total is @c 0
                    (the four counters and the formatter share an integer denominator).
         */
-        String unfindable() const
+        std::string unfindable() const
         {
-          return String(unfindable_peptides) + " (" + unfindable_peptides * 100 / total() + "%)";
+          return StringUtils::toStr(unfindable_peptides) + " (" + unfindable_peptides * 100 / total() + "%)";
         }
 
         /// @ref findable_no_neighbors formatted as @c "X (Y%)"; see @ref unfindable for the divide-by-zero caveat.
-        String noNB() const
+        std::string noNB() const
         {
-          return String(findable_no_neighbors) + " (" + findable_no_neighbors * 100 / total() + "%)";
+          return StringUtils::toStr(findable_no_neighbors) + " (" + findable_no_neighbors * 100 / total() + "%)";
         }
 
         /// @ref findable_one_neighbor formatted as @c "X (Y%)"; see @ref unfindable for the divide-by-zero caveat.
-        String oneNB() const
+        std::string oneNB() const
         {
-          return String(findable_one_neighbor) + " (" + findable_one_neighbor * 100 / total() + "%)";
+          return StringUtils::toStr(findable_one_neighbor) + " (" + findable_one_neighbor * 100 / total() + "%)";
         }
 
         /// @ref findable_multiple_neighbors formatted as @c "X (Y%)"; see @ref unfindable for the divide-by-zero caveat.
-        String multiNB() const
+        std::string multiNB() const
         {
-          return String(findable_multiple_neighbors) + " (" + findable_multiple_neighbors * 100 / total() + "%)";
+          return StringUtils::toStr(findable_multiple_neighbors) + " (" + findable_multiple_neighbors * 100 / total() + "%)";
         }
       };
 

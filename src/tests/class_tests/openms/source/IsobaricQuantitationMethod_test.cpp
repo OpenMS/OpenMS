@@ -24,7 +24,7 @@ class TestQuantitationMethod :
 {
 public:
   IsobaricChannelList channel_list;
-  String name;
+  std::string name;
   StringList correction_list;
 
   TestQuantitationMethod()
@@ -39,7 +39,7 @@ public:
 
   ~TestQuantitationMethod() override = default;
 
-  const String& getMethodName() const override
+  const std::string& getMethodName() const override
   {
     return name;
   }
@@ -86,7 +86,7 @@ START_SECTION(~IsobaricQuantitationMethod())
 }
 END_SECTION
 
-START_SECTION((virtual const String& getName() const =0))
+START_SECTION((virtual const std::string& getName() const =0))
 {
   IsobaricQuantitationMethod* quant_method = new TestQuantitationMethod();
   TEST_STRING_EQUAL(quant_method->getName(), "TestQuantitationMethod")
@@ -121,7 +121,7 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const =0 with
 {
   auto* quant_method = new TestQuantitationMethod();
   // missing entry
-  quant_method->correction_list = ListUtils::create<String>("0.0/1.0/5.9/0.2,0.0/2.0/    0.1,0.0/3.0/4.5/0.1,0.1/4.0/3.5/0.1");
+  quant_method->correction_list = ListUtils::create<std::string>("0.0/1.0/5.9/0.2,0.0/2.0/    0.1,0.0/3.0/4.5/0.1,0.1/4.0/3.5/0.1");
   TEST_EXCEPTION(Exception::InvalidValue, quant_method->getIsotopeCorrectionMatrix())
   delete quant_method;
 }
@@ -130,7 +130,7 @@ END_SECTION
 START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const =0))
 {
   auto* quant_method = new TestQuantitationMethod();
-  quant_method->correction_list = ListUtils::create<String>("0.0/1.0/5.9/0.2,0.0/2.0/5.6/0.1,0.0/3.0/4.5/0.1,0.1/4.0/3.5/0.1");
+  quant_method->correction_list = ListUtils::create<std::string>("0.0/1.0/5.9/0.2,0.0/2.0/5.6/0.1,0.0/3.0/4.5/0.1,0.1/4.0/3.5/0.1");
   Matrix<double> m = quant_method->getIsotopeCorrectionMatrix();
 
   ABORT_IF(m.rows() != 4)
@@ -149,7 +149,7 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const =0))
     }
   }
 
-  quant_method->correction_list = ListUtils::create<String>("0.0/1.0/10.9/0.2,0.0/2.0/5.6/0.6,0.0/10.0/4.5/0.1,0.1/4.0/3.5/0.1");
+  quant_method->correction_list = ListUtils::create<std::string>("0.0/1.0/10.9/0.2,0.0/2.0/5.6/0.6,0.0/10.0/4.5/0.1,0.1/4.0/3.5/0.1");
   m = quant_method->getIsotopeCorrectionMatrix();
 
   ABORT_IF(m.rows() != 4)
@@ -179,7 +179,7 @@ START_SECTION((virtual Size getReferenceChannel() const =0))
 }
 END_SECTION
 
-START_SECTION(([IsobaricQuantitationMethod::IsobaricChannelInformation] IsobaricChannelInformation(const Int name, const Int id, const String &description, const Peak2D::CoordinateType &center)))
+START_SECTION(([IsobaricQuantitationMethod::IsobaricChannelInformation] IsobaricChannelInformation(const Int name, const Int id, const std::string &description, const Peak2D::CoordinateType &center)))
 {
   IsobaricQuantitationMethod::IsobaricChannelInformation cI(114, 0, "", 114.1112, {-1, -1, -1, -1});
   TEST_STRING_EQUAL(cI.description, "")

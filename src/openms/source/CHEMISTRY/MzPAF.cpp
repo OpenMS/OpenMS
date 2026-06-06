@@ -54,8 +54,8 @@ namespace OpenMS
     const char* function,
     MzPAFErrorCode error_code,
     size_t error_position,
-    const String& input,
-    const String& message
+    const std::string& input,
+    const std::string& message
   ) noexcept :
     Exception::ParseError(file, line, function, input, message),
     code_(error_code),
@@ -64,31 +64,31 @@ namespace OpenMS
     extractContext_(input, error_position);
   }
 
-  void MzPAFParseError::extractContext_(const String& input, size_t pos)
+  void MzPAFParseError::extractContext_(const std::string& input, size_t pos)
   {
     if (pos > 20)
     {
-      context_before_ = input.substr(pos - 20, 20);
+      context_before_ = StringUtils::substr(input, pos - 20, 20);
     }
     else
     {
-      context_before_ = input.substr(0, pos);
+      context_before_ = StringUtils::substr(input, 0, pos);
     }
 
     if (pos < input.size())
     {
       size_t remaining = input.size() - pos;
-      context_after_ = input.substr(pos, std::min(remaining, size_t(20)));
+      context_after_ = StringUtils::substr(input, pos, std::min(remaining, size_t(20)));
     }
   }
 
-  String MzPAFParseError::getFormattedMessage() const
+  std::string MzPAFParseError::getFormattedMessage() const
   {
     std::ostringstream oss;
     oss << "mzPAF parse error at position " << position_ << ": "
         << mzPAFErrorCodeToString(code_) << "\n";
     oss << "Context: " << context_before_ << ">>>" << context_after_ << "<<<";
-    return String(oss.str());
+    return StringUtils::toStr(oss.str());
   }
 
   //--------------------------------------------------------------------------
@@ -244,18 +244,18 @@ namespace OpenMS
 
         switch (c)
         {
-          case '[': return {TokenType::LBRACKET, input_.substr(start, 1), start};
-          case ']': return {TokenType::RBRACKET, input_.substr(start, 1), start};
-          case '{': return {TokenType::LBRACE, input_.substr(start, 1), start};
-          case '}': return {TokenType::RBRACE, input_.substr(start, 1), start};
-          case '+': return {TokenType::PLUS, input_.substr(start, 1), start};
-          case '-': return {TokenType::MINUS, input_.substr(start, 1), start};
-          case '^': return {TokenType::CARET, input_.substr(start, 1), start};
-          case '/': return {TokenType::SLASH, input_.substr(start, 1), start};
-          case '*': return {TokenType::ASTERISK, input_.substr(start, 1), start};
-          case ':': return {TokenType::COLON, input_.substr(start, 1), start};
-          case ',': return {TokenType::COMMA, input_.substr(start, 1), start};
-          case '@': return {TokenType::AT, input_.substr(start, 1), start};
+          case '[': return {TokenType::LBRACKET, StringUtils::substr(input_, start, 1), start};
+          case ']': return {TokenType::RBRACKET, StringUtils::substr(input_, start, 1), start};
+          case '{': return {TokenType::LBRACE, StringUtils::substr(input_, start, 1), start};
+          case '}': return {TokenType::RBRACE, StringUtils::substr(input_, start, 1), start};
+          case '+': return {TokenType::PLUS, StringUtils::substr(input_, start, 1), start};
+          case '-': return {TokenType::MINUS, StringUtils::substr(input_, start, 1), start};
+          case '^': return {TokenType::CARET, StringUtils::substr(input_, start, 1), start};
+          case '/': return {TokenType::SLASH, StringUtils::substr(input_, start, 1), start};
+          case '*': return {TokenType::ASTERISK, StringUtils::substr(input_, start, 1), start};
+          case ':': return {TokenType::COLON, StringUtils::substr(input_, start, 1), start};
+          case ',': return {TokenType::COMMA, StringUtils::substr(input_, start, 1), start};
+          case '@': return {TokenType::AT, StringUtils::substr(input_, start, 1), start};
           default:
             if (std::isdigit(c))
             {
@@ -265,7 +265,7 @@ namespace OpenMS
             {
               return scanIdentifier_(start);
             }
-            return {TokenType::IDENTIFIER, input_.substr(start, 1), start};
+            return {TokenType::IDENTIFIER, StringUtils::substr(input_, start, 1), start};
         }
       }
 
@@ -306,7 +306,7 @@ namespace OpenMS
             advance_();
           }
         }
-        return {TokenType::NUMBER, input_.substr(start, pos_ - start), start};
+        return {TokenType::NUMBER, StringUtils::substr(input_, start, pos_ - start), start};
       }
 
       Token scanIdentifier_(size_t start)
@@ -315,7 +315,7 @@ namespace OpenMS
         {
           advance_();
         }
-        return {TokenType::IDENTIFIER, input_.substr(start, pos_ - start), start};
+        return {TokenType::IDENTIFIER, StringUtils::substr(input_, start, pos_ - start), start};
       }
 
       std::string_view input_;
@@ -326,7 +326,7 @@ namespace OpenMS
     class Parser
     {
     public:
-      explicit Parser(const String& input) :
+      explicit Parser(const std::string& input) :
         input_(input), tokenizer_(input)
       {
         advance_();
@@ -360,7 +360,7 @@ namespace OpenMS
       {
         try
         {
-          return String(text).toInt();
+          return StringUtils::toInt32(StringUtils::toStr(text));
         }
         catch (const Exception::ConversionError&)
         {
@@ -372,7 +372,7 @@ namespace OpenMS
       {
         try
         {
-          return String(text).toDouble();
+          return StringUtils::toDouble(std::string(text));
         }
         catch (const Exception::ConversionError&)
         {
@@ -380,7 +380,7 @@ namespace OpenMS
         }
       }
 
-      String parseBracketedContent_(TokenType open, TokenType close, const char* open_err, const char* close_err)
+      std::string parseBracketedContent_(TokenType open, TokenType close, const char* open_err, const char* close_err)
       {
         if (current_.type != open)
         {
@@ -388,10 +388,10 @@ namespace OpenMS
         }
         advance_();
 
-        String content;
+        std::string content;
         while (current_.type != close && current_.type != TokenType::END)
         {
-          content += String(current_.text);
+          content +=StringUtils::toStr(current_.text);
           advance_();
         }
 
@@ -457,7 +457,7 @@ namespace OpenMS
 
           if (text.size() > 1 && std::isdigit(text[1]))
           {
-            ann.ordinal = parseInt_(text.substr(1), MzPAFErrorCode::INVALID_NUMBER, "Invalid ordinal number");
+            ann.ordinal = parseInt_(StringUtils::substr(text, 1), MzPAFErrorCode::INVALID_NUMBER, "Invalid ordinal number");
             advance_();
           }
           else
@@ -506,7 +506,7 @@ namespace OpenMS
           int start_pos;
           if (text.size() > 1 && std::isdigit(text[1]))
           {
-            start_pos = parseInt_(text.substr(1), MzPAFErrorCode::INVALID_NUMBER, "Invalid internal fragment start");
+            start_pos = parseInt_(StringUtils::substr(text, 1), MzPAFErrorCode::INVALID_NUMBER, "Invalid internal fragment start");
             advance_();
           }
           else
@@ -548,7 +548,7 @@ namespace OpenMS
         {
           ann.ion_series = MzPAFIonSeries::FORMULA;
           advance_();
-          String formula_str = parseBracketedContent_(TokenType::LBRACE, TokenType::RBRACE,
+          std::string formula_str = parseBracketedContent_(TokenType::LBRACE, TokenType::RBRACE,
                                                       "Expected '{' after 'f'", "Unclosed brace in formula ion");
           try
           {
@@ -577,7 +577,7 @@ namespace OpenMS
       {
         advance_(); // consume LBRACE
 
-        String seq_str;
+        std::string seq_str;
         int brace_depth = 1;
 
         while (brace_depth > 0 && current_.type != TokenType::END)
@@ -594,7 +594,7 @@ namespace OpenMS
               break;
             }
           }
-          seq_str += String(current_.text);
+          seq_str +=StringUtils::toStr(current_.text);
           advance_();
         }
 
@@ -650,7 +650,7 @@ namespace OpenMS
         MzPAFNeutralLoss loss;
         try
         {
-          loss.formula = EmpiricalFormula(String(current_.text));
+          loss.formula = EmpiricalFormula(StringUtils::toStr(current_.text));
         }
         catch (...)
         {
@@ -667,7 +667,7 @@ namespace OpenMS
 
         if (current_.type == TokenType::NUMBER)
         {
-          String num_str(current_.text);
+          std::string num_str(current_.text);
           advance_();
 
           if (current_.type == TokenType::IDENTIFIER &&
@@ -688,7 +688,7 @@ namespace OpenMS
         {
           try
           {
-            ann.adduct = EmpiricalFormula(String(current_.text));
+            ann.adduct = EmpiricalFormula(StringUtils::toStr(current_.text));
           }
           catch (...)
           {
@@ -743,7 +743,7 @@ namespace OpenMS
 
         if (current_.type == TokenType::IDENTIFIER)
         {
-          String suffix(current_.text);
+          std::string suffix(current_.text);
           if (suffix == "ppm")
           {
             delta.unit = MzPAFDeltaUnit::PPM;
@@ -788,7 +788,7 @@ namespace OpenMS
                               code, current_.position, input_, message);
       }
 
-      String input_;
+      std::string input_;
       Tokenizer tokenizer_;
       Token current_;
     };
@@ -799,7 +799,7 @@ namespace OpenMS
   // MzPAF implementation
   //--------------------------------------------------------------------------
 
-  MzPAFAnnotation MzPAF::parse(const String& input)
+  MzPAFAnnotation MzPAF::parse(const std::string& input)
   {
     if (input.empty())
     {
@@ -819,7 +819,7 @@ namespace OpenMS
     return result.annotations[0];
   }
 
-  MzPAFPeakAnnotations MzPAF::parseMultiple(const String& input)
+  MzPAFPeakAnnotations MzPAF::parseMultiple(const std::string& input)
   {
     if (input.empty())
     {
@@ -831,7 +831,7 @@ namespace OpenMS
     return parser.parseAll();
   }
 
-  std::optional<MzPAFAnnotation> MzPAF::tryParse(const String& input)
+  std::optional<MzPAFAnnotation> MzPAF::tryParse(const std::string& input)
   {
     try
     {
@@ -843,7 +843,7 @@ namespace OpenMS
     }
   }
 
-  std::optional<MzPAFPeakAnnotations> MzPAF::tryParseMultiple(const String& input)
+  std::optional<MzPAFPeakAnnotations> MzPAF::tryParseMultiple(const std::string& input)
   {
     try
     {
@@ -859,7 +859,7 @@ namespace OpenMS
   // Writer implementation
   //--------------------------------------------------------------------------
 
-  String MzPAF::toString(const MzPAFAnnotation& ann)
+  std::string MzPAF::toString(const MzPAFAnnotation& ann)
   {
     std::ostringstream oss;
 
@@ -986,10 +986,10 @@ namespace OpenMS
       oss << "*" << ann.confidence.value();
     }
 
-    return String(oss.str());
+    return StringUtils::toStr(oss.str());
   }
 
-  String MzPAF::toString(const MzPAFPeakAnnotations& anns)
+  std::string MzPAF::toString(const MzPAFPeakAnnotations& anns)
   {
     if (anns.empty())
     {
@@ -1006,7 +1006,7 @@ namespace OpenMS
       oss << toString(anns.annotations[i]);
     }
 
-    return String(oss.str());
+    return StringUtils::toStr(oss.str());
   }
 
   //--------------------------------------------------------------------------
@@ -1042,7 +1042,7 @@ namespace OpenMS
            series == MzPAFIonSeries::Y || series == MzPAFIonSeries::Z;
   }
 
-  bool MzPAF::isMzPAFFormat(const String& annotation)
+  bool MzPAF::isMzPAFFormat(const std::string& annotation)
   {
     if (annotation.empty())
     {

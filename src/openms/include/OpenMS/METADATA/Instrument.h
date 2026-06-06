@@ -85,24 +85,24 @@ public:
     bool operator!=(const Instrument & rhs) const;
 
     /// returns the name of the instrument
-    const String & getName() const;
+    const std::string & getName() const;
     /// sets the name of the instrument
-    void setName(const String & name);
+    void setName(const std::string & name);
 
     /// returns the instrument vendor
-    const String & getVendor() const;
+    const std::string & getVendor() const;
     /// sets the instrument vendor
-    void setVendor(const String & vendor);
+    void setVendor(const std::string & vendor);
 
     /// returns the instrument model
-    const String & getModel() const;
+    const std::string & getModel() const;
     /// sets the instrument model
-    void setModel(const String & model);
+    void setModel(const std::string & model);
 
     /// returns a description of customizations
-    const String & getCustomizations() const;
+    const std::string & getCustomizations() const;
     /// sets a description of customizations
-    void setCustomizations(const String & customizations);
+    void setCustomizations(const std::string & customizations);
 
     /// returns a const reference to the ion source list
     const std::vector<IonSource> & getIonSources() const;
@@ -139,10 +139,10 @@ public:
 
 protected:
 
-    String name_;
-    String vendor_;
-    String model_;
-    String customizations_;
+    std::string name_;
+    std::string vendor_;
+    std::string model_;
+    std::string customizations_;
     std::vector<IonSource> ion_sources_;
     std::vector<MassAnalyzer> mass_analyzers_;
     std::vector<IonDetector> ion_detectors_;

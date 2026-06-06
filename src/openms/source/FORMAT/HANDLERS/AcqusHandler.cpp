@@ -18,7 +18,7 @@ using namespace std;
 namespace OpenMS::Internal
 {
 
-  AcqusHandler::AcqusHandler(const String & filename)
+  AcqusHandler::AcqusHandler(const std::string & filename)
   {
     params_.clear();
 
@@ -40,8 +40,8 @@ namespace OpenMS::Internal
     }
 
     //temporary variables
-    String line;
-    std::vector<String> strings(2);
+    std::string line;
+    std::vector<std::string> strings(2);
 
     //read lines
     while (getline(is, line, '\n'))
@@ -50,26 +50,26 @@ namespace OpenMS::Internal
       {
         continue;                    // minimal string = "##x=x"
       }
-      if (line.prefix(2) != String("##"))
+      if (StringUtils::prefix(line, 2) !=StringUtils::toStr("##"))
       {
         continue;
       }
-      if (line.split('=', strings))
+      if (StringUtils::split(line, '=', strings))
       {
         if (strings.size() == 2)
         {
-          params_[strings[0].substr(2)] = strings[1].trim();
+          params_[strings[0].substr(2)] = StringUtils::trim(strings[1]);
         }
       }
     }
 
     // TOF calibration params
-    dw_ = params_[String("$DW")].toDouble();
-    delay_ = (Size)params_[String("$DELAY")].toInt();
-    ml1_ = params_[String("$ML1")].toDouble();
-    ml2_ = params_[String("$ML2")].toDouble();
-    ml3_ = params_[String("$ML3")].toDouble();
-    td_ = (Size) params_[String("$TD")].toInt();
+    dw_ = StringUtils::toDouble(params_[std::string("$DW")]);
+    delay_ = (Size)StringUtils::toInt32(params_[std::string("$DELAY")]);
+    ml1_ = StringUtils::toDouble(params_[std::string("$ML1")]);
+    ml2_ = StringUtils::toDouble(params_[std::string("$ML2")]);
+    ml3_ = StringUtils::toDouble(params_[std::string("$ML3")]);
+    td_ = (Size) StringUtils::toInt32(params_[std::string("$TD")]);
 
     is.close();
   }
@@ -103,15 +103,15 @@ namespace OpenMS::Internal
     return sqrt_mz_ * sqrt_mz_;
   }
 
-  String AcqusHandler::getParam(const String & param)
+  std::string AcqusHandler::getParam(const std::string & param)
   {
-    if (param == String("mzMax"))
+    if (param ==StringUtils::toStr("mzMax"))
     {
-      return String(getPosition(td_ - 1));
+      return StringUtils::toStr(getPosition(td_ - 1));
     }
-    else if (param == String("mzMin"))
+    else if (param ==StringUtils::toStr("mzMin"))
     {
-      return String(getPosition(0));
+      return StringUtils::toStr(getPosition(0));
     }
     return params_[param];
   }

@@ -48,26 +48,26 @@ namespace OpenMS
     options_ = options;
   }
 
-  bool MzMLFile::hasIndex(const String& filename)
+  bool MzMLFile::hasIndex(const std::string& filename)
   {
     const std::streampos NOT_FOUND {-1};
     return NOT_FOUND != IndexedMzMLDecoder().findIndexListOffset(filename);
   }
 
   // reimplemented in order to handle index MzML
-  bool MzMLFile::isValid(const String& filename, std::ostream& os)
+  bool MzMLFile::isValid(const std::string& filename, std::ostream& os)
   {
     //determine if this is indexed mzML or not
     bool indexed = false;
     TextFile file(filename, true, 4);
-    String s;
-    s.concatenate(file.begin(), file.end());
-    if (s.hasSubstring("<indexedmzML"))
+    std::string s;
+    StringUtils::concatenate(s, file.begin(), file.end());
+    if (StringUtils::hasSubstring(s, "<indexedmzML"))
     {
       indexed = true;
     }
     // find the corresponding schema
-    String current_location;
+    std::string current_location;
     if (indexed)
     {
       current_location = File::find(indexed_schema_location_);
@@ -80,7 +80,7 @@ namespace OpenMS
     return XMLValidator().isValid(filename, current_location, os);
   }
 
-  bool MzMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
+  bool MzMLFile::isSemanticallyValid(const std::string& filename, StringList& errors, StringList& warnings)
   {
     // load mapping
     CVMappings mapping;
@@ -93,7 +93,7 @@ namespace OpenMS
     return result;
   }
 
-  void MzMLFile::loadSize(const String& filename, Size& scount, Size& ccount)
+  void MzMLFile::loadSize(const std::string& filename, Size& scount, Size& ccount)
   {
     PeakMap dummy;
     Internal::MzMLHandler handler(dummy, filename, getVersion(), *this);
@@ -111,7 +111,7 @@ namespace OpenMS
     handler.getCounts(scount, ccount);
   }
 
-  void MzMLFile::safeParse_(const String& filename, Internal::XMLHandler* handler)
+  void MzMLFile::safeParse_(const std::string& filename, Internal::XMLHandler* handler)
   {
     try
     {
@@ -119,13 +119,13 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      String expr;
+      std::string expr;
       expr += e.getFile();
       expr += "@";
       expr += e.getLine();
       expr += "-";
       expr += e.getFunction();
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr, String("- due to that error of type ") + e.getName());
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr,StringUtils::toStr("- due to that error of type ") + e.getName());
     }
   }
 
@@ -139,7 +139,7 @@ namespace OpenMS
     map.updateRanges();
   }
 
-  void MzMLFile::load(const String& filename, PeakMap& map)
+  void MzMLFile::load(const std::string& filename, PeakMap& map)
   {
     map.reset();
 
@@ -153,7 +153,7 @@ namespace OpenMS
     map.updateRanges();
   }
 
-  void MzMLFile::store(const String& filename, const PeakMap& map) const
+  void MzMLFile::store(const std::string& filename, const PeakMap& map) const
   {
     Internal::MzMLHandler handler(map, filename, getVersion(), *this);
     handler.setOptions(options_);
@@ -176,7 +176,7 @@ namespace OpenMS
     }
   }
 
-  void MzMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count, bool skip_first_pass)
+  void MzMLFile::transform(const std::string& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count, bool skip_first_pass)
   {
     // First pass through the file -> get the meta-data and hand it to the consumer
     if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
@@ -191,7 +191,7 @@ namespace OpenMS
     }
   }
 
-  void MzMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, PeakMap& map, bool skip_full_count, bool skip_first_pass)
+  void MzMLFile::transform(const std::string& filename_in, Interfaces::IMSDataConsumer* consumer, PeakMap& map, bool skip_full_count, bool skip_first_pass)
   {
     // First pass through the file -> get the meta-data and hand it to the consumer
     if (!skip_first_pass)
@@ -210,7 +210,7 @@ namespace OpenMS
     }
   }
 
-  void MzMLFile::transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count)
+  void MzMLFile::transformFirstPass_(const std::string& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count)
   {
     // Create temporary objects and counters
     PeakFileOptions tmp_options(options_);
@@ -231,7 +231,7 @@ namespace OpenMS
     consumer->setExperimentalSettings(experimental_settings);
   }
 
-  std::map<UInt, MzMLFile::SpecInfo> MzMLFile::getCentroidInfo(const String& filename, const Size first_n_spectra_only)
+  std::map<UInt, MzMLFile::SpecInfo> MzMLFile::getCentroidInfo(const std::string& filename, const Size first_n_spectra_only)
   {
     bool oldoption = options_.getFillData();
     options_.setFillData(true); // we want the data as well (to allow estimation from data if metadata is missing)

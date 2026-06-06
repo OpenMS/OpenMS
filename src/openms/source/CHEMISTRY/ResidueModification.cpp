@@ -113,17 +113,17 @@ namespace OpenMS
 
   ResidueModification::~ResidueModification() = default;
 
-  void ResidueModification::setId(const String& id)
+  void ResidueModification::setId(const std::string& id)
   {
     id_ = id;
   }
 
-  const String& ResidueModification::getId() const
+  const std::string& ResidueModification::getId() const
   {
     return id_;
   }
 
-  void ResidueModification::setFullId(const String& full_id)
+  void ResidueModification::setFullId(const std::string& full_id)
   {
     if (full_id.empty())
     {
@@ -131,14 +131,14 @@ namespace OpenMS
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot create full ID for modification with missing (short) ID.");
       }
-      String specificity;
+      std::string specificity;
       if (term_spec_ != ResidueModification::ANYWHERE)
       {
         specificity = getTermSpecificityName(); // "C-term" or "N-term"
       }
       if (!specificity.empty() && (origin_ != 'X'))
       {
-        specificity += " " + String(origin_);
+        specificity += " " + StringUtils::toStr(origin_);
       }
       else if (specificity.empty())
       {
@@ -152,17 +152,17 @@ namespace OpenMS
     }
   }
 
-  const String& ResidueModification::getFullId() const
+  const std::string& ResidueModification::getFullId() const
   {
     return full_id_;
   }
 
-  void ResidueModification::setPSIMODAccession(const String& id)
+  void ResidueModification::setPSIMODAccession(const std::string& id)
   {
     psi_mod_accession_ = id;
   }
 
-  const String& ResidueModification::getPSIMODAccession() const
+  const std::string& ResidueModification::getPSIMODAccession() const
   {
     return psi_mod_accession_;
   }
@@ -177,28 +177,28 @@ namespace OpenMS
     return unimod_record_id_;
   }
 
-  const String ResidueModification::getUniModAccession() const
+  const std::string ResidueModification::getUniModAccession() const
   {
     if (unimod_record_id_ < 0) return "";
-    return String("UniMod:") + unimod_record_id_; // return copy of temp object
+    return StringUtils::toStr("UniMod:") + unimod_record_id_; // return copy of temp object
   }
 
-  void ResidueModification::setFullName(const String& full_name)
+  void ResidueModification::setFullName(const std::string& full_name)
   {
     full_name_ = full_name;
   }
 
-  const String& ResidueModification::getFullName() const
+  const std::string& ResidueModification::getFullName() const
   {
     return full_name_;
   }
 
-  void ResidueModification::setName(const String& name)
+  void ResidueModification::setName(const std::string& name)
   {
     name_ = name;
   }
 
-  const String& ResidueModification::getName() const
+  const std::string& ResidueModification::getName() const
   {
     return name_;
   }
@@ -207,12 +207,12 @@ namespace OpenMS
   {
     if (term_spec == NUMBER_OF_TERM_SPECIFICITY)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a valid terminal specificity", String(term_spec));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a valid terminal specificity",StringUtils::toStr(term_spec));
     }
     term_spec_ = term_spec;
   }
 
-  void ResidueModification::setTermSpecificity(const String& term_spec)
+  void ResidueModification::setTermSpecificity(const std::string& term_spec)
   {
     if (term_spec == "C-term")
     {
@@ -245,7 +245,7 @@ namespace OpenMS
     return term_spec_;
   }
 
-  String ResidueModification::getTermSpecificityName(TermSpecificity term_spec) const
+  std::string ResidueModification::getTermSpecificityName(TermSpecificity term_spec) const
   {
     if (term_spec == NUMBER_OF_TERM_SPECIFICITY)
     {
@@ -265,7 +265,7 @@ namespace OpenMS
 
     default: break; // shouldn't happen
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No name for this terminal specificity", String(term_spec));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No name for this terminal specificity",StringUtils::toStr(term_spec));
   }
 
   void ResidueModification::setOrigin(char origin)
@@ -280,8 +280,8 @@ namespace OpenMS
     }
     else
     {
-      String msg = "Modification '" + id_ + "': origin must be a letter from A to Y, excluding B and J.";
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg, String(origin));
+      std::string msg = "Modification '" + id_ + "': origin must be a letter from A to Y, excluding B and J.";
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg,StringUtils::toStr(origin));
     }
   }
 
@@ -295,10 +295,10 @@ namespace OpenMS
     classification_ = classification;
   }
 
-  void ResidueModification::setSourceClassification(const String& classification)
+  void ResidueModification::setSourceClassification(const std::string& classification)
   {
-    String c = classification;
-    c.toLower();
+    std::string c = classification;
+    StringUtils::toLower(c);
     if (c == "artifact" || c == "artefact") // unimod uses Artefact (BE) not Artifact (AE)
     {
       classification_ = ARTIFACT;
@@ -386,7 +386,7 @@ namespace OpenMS
     return classification_;
   }
 
-  String ResidueModification::getSourceClassificationName(SourceClassification classification) const
+  std::string ResidueModification::getSourceClassificationName(SourceClassification classification) const
   {
     if (classification == NUMBER_OF_SOURCE_CLASSIFICATIONS)
     {
@@ -471,12 +471,12 @@ namespace OpenMS
     return diff_mono_mass_;
   }
 
-  void ResidueModification::setFormula(const String& formula)
+  void ResidueModification::setFormula(const std::string& formula)
   {
     formula_ = formula;
   }
 
-  const String& ResidueModification::getFormula() const
+  const std::string& ResidueModification::getFormula() const
   {
     return formula_;
   }
@@ -491,17 +491,17 @@ namespace OpenMS
     return diff_formula_;
   }
 
-  void ResidueModification::addSynonym(const String& synonym)
+  void ResidueModification::addSynonym(const std::string& synonym)
   {
     synonyms_.insert(synonym);
   }
 
-  void ResidueModification::setSynonyms(const set<String>& synonyms)
+  void ResidueModification::setSynonyms(const set<std::string>& synonyms)
   {
     synonyms_ = synonyms;
   }
 
-  const set<String>& ResidueModification::getSynonyms() const
+  const set<std::string>& ResidueModification::getSynonyms() const
   {
     return synonyms_;
   }
@@ -546,7 +546,7 @@ namespace OpenMS
     return id_.empty() && !full_id_.empty();
   }
   
-  const ResidueModification* ResidueModification::createUnknownFromMassString(const String& mod,
+  const ResidueModification* ResidueModification::createUnknownFromMassString(const std::string& mod,
                                                                               const double mass,
                                                                               const bool delta_mass,
                                                                               const TermSpecificity specificity,
@@ -564,8 +564,8 @@ namespace OpenMS
     // set when adding a modification using setModification_
     if (specificity == ResidueModification::N_TERM || specificity == ResidueModification::PROTEIN_N_TERM)
     {
-      String residue_name = "[" + mod + "]";
-      String residue_id = ".n" + residue_name;
+      std::string residue_name = "[" + mod + "]";
+      std::string residue_id = ".n" + residue_name;
 
       // Check if it already exists, if not create new modification, transfer
       // ownership to ModDB
@@ -601,8 +601,8 @@ namespace OpenMS
     else
       if (specificity == ResidueModification::C_TERM || specificity == ResidueModification::PROTEIN_C_TERM)
       {
-        String residue_name = "[" + mod + "]";
-        String residue_id = ".c" + residue_name;
+        std::string residue_name = "[" + mod + "]";
+        std::string residue_id = ".c" + residue_name;
 
         // Check if it already exists, if not create new modification, transfer
         // ownership to ModDB
@@ -641,8 +641,8 @@ namespace OpenMS
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot create non-terminal mod without origin AA residue.", "nullptr");
         }
-        String modification_name = "[" + mod + "]";
-        String residue_id = String(residue->getOneLetterCode()) + modification_name; // e.g. N[12345.6]
+        std::string modification_name = "[" + mod + "]";
+        std::string residue_id =StringUtils::toStr(residue->getOneLetterCode()) + modification_name; // e.g. N[12345.6]
 
         if (!mod_db->has(residue_id))
         {
@@ -715,7 +715,7 @@ namespace OpenMS
       }
       if (mod_merged->getOrigin() != mod_new->getOrigin())
       {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Modifications to be merged to not have the same origin: ") + mod_merged->getOrigin() + " != " + mod_new->getOrigin());
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Modifications to be merged to not have the same origin: ") + mod_merged->getOrigin() + " != " + mod_new->getOrigin());
       }
       new_mass += mod_new->getDiffMonoMass();
     }
@@ -723,7 +723,7 @@ namespace OpenMS
     // sanity check: mods and residue need same origin
     if (mod_merged->getTermSpecificity() == ANYWHERE && residue != nullptr && residue->getOneLetterCode()[0] != mod_merged->getOrigin())
     {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Modification and residue do not have the same origin: ") + mod_merged->getOrigin() + " != " + residue->getOneLetterCode());
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Modification and residue do not have the same origin: ") + mod_merged->getOrigin() + " != " + residue->getOneLetterCode());
     }
     // create new residue from it
     const ResidueModification* mod_sum =
@@ -736,9 +736,9 @@ namespace OpenMS
     return mod_sum;
   }
 
-  String ResidueModification::toString() const
+  std::string ResidueModification::toString() const
   {
-    String ret;
+    std::string ret;
 
     if (term_spec_ != ANYWHERE) ret = ".";
     else ret = origin_;
@@ -777,24 +777,24 @@ namespace OpenMS
 
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ResidueModification is in an invalid state. This is a bug. Please report it!", "");
   }
-  String ResidueModification::getDiffMonoMassString(const double diff_mono_mass)
+  std::string ResidueModification::getDiffMonoMassString(const double diff_mono_mass)
   {
-    return String(diff_mono_mass < 0.0 ? "-" : "+") += std::fabs(diff_mono_mass);
+    return StringUtils::toStr(diff_mono_mass < 0.0 ? "-" : "+") += std::fabs(diff_mono_mass);
   }
-  String ResidueModification::getDiffMonoMassWithBracket(const double diff_mono_mass)
+  std::string ResidueModification::getDiffMonoMassWithBracket(const double diff_mono_mass)
   {
-    String ret = '[';
+    std::string ret(1, '[');
     ret += getDiffMonoMassString(diff_mono_mass);
     ret += ']';
     return ret;
   }
-  String ResidueModification::getMonoMassWithBracket(const double mono_mass)
+  std::string ResidueModification::getMonoMassWithBracket(const double mono_mass)
   {
     if (mono_mass < 0.0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modification has negative mono mass. Cannot distinguish between delta masses due to '-'!", String(mono_mass));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modification has negative mono mass. Cannot distinguish between delta masses due to '-'!",StringUtils::toStr(mono_mass));
     }
-    String ret = '[';
+    std::string ret(1, '[');
     ret += mono_mass;
     ret += ']';
     return ret;

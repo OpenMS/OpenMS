@@ -13,7 +13,7 @@
 
 namespace OpenMS
 {
-  const String TMTSixPlexQuantitationMethod::name_ = "tmt6plex";
+  const std::string TMTSixPlexQuantitationMethod::name_ = "tmt6plex";
 
   TMTSixPlexQuantitationMethod::TMTSixPlexQuantitationMethod()
   {
@@ -83,7 +83,7 @@ namespace OpenMS
 
   TMTSixPlexQuantitationMethod& TMTSixPlexQuantitationMethod::operator=(const TMTSixPlexQuantitationMethod& rhs) = default;
 
-  const String& TMTSixPlexQuantitationMethod::getMethodName() const
+  const std::string& TMTSixPlexQuantitationMethod::getMethodName() const
   {
     return TMTSixPlexQuantitationMethod::name_;
   }

@@ -48,9 +48,9 @@ public:
     // getter & setter
     Size getSize() const;
 
-    String getLabel() const;
+    std::string getLabel() const;
 
-    std::vector<String> getLabels() const;
+    std::vector<std::string> getLabels() const;
 
     double getScore() const;
 
@@ -213,7 +213,7 @@ private:
     */
     int isLegalIsotopePattern_(const FeatureHypothesis& feat_hypo) const;
 
-    void loadIsotopeModel_(const String&);
+    void loadIsotopeModel_(const std::string&);
 
     /** @brief Perform mass to charge scoring of two multiple mass traces
      *
@@ -324,7 +324,7 @@ private:
 
     bool report_summed_ints_;
     bool enable_RT_filtering_;
-    String isotope_filtering_model_;
+    std::string isotope_filtering_model_;
     bool use_smoothed_intensities_;
     bool report_smoothed_intensities_;
 

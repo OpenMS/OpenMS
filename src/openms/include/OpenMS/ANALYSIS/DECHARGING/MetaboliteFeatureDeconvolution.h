@@ -126,9 +126,9 @@ protected:
     /// List of adducts used to explain mass differences
     MassExplainer::AdductsType potential_adducts_;
     /// labeling table
-    std::map<Size, String> map_label_;
+    std::map<Size, std::string> map_label_;
     /// labeling table inverse
-    std::map<String, Size> map_label_inverse_;
+    std::map<std::string, Size> map_label_inverse_;
     /// status of intensity filter for edges
     bool enable_intensity_filter_;
     /// status of ionization mode

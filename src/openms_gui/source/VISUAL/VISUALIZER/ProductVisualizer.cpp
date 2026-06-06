@@ -37,16 +37,16 @@ namespace OpenMS
 
   void ProductVisualizer::update_()
   {
-    product_mz_->setText(String(temp_.getMZ()).c_str());
-    product_window_low_->setText(String(temp_.getIsolationWindowLowerOffset()).c_str());
-    product_window_up_->setText(String(temp_.getIsolationWindowUpperOffset()).c_str());
+    product_mz_->setText(StringUtils::toStr(temp_.getMZ()).c_str());
+    product_window_low_->setText(StringUtils::toStr(temp_.getIsolationWindowLowerOffset()).c_str());
+    product_window_up_->setText(StringUtils::toStr(temp_.getIsolationWindowUpperOffset()).c_str());
   }
 
   void ProductVisualizer::store()
   {
-    ptr_->setMZ(product_mz_->text().toFloat());
-    ptr_->setIsolationWindowLowerOffset(product_window_low_->text().toFloat());
-    ptr_->setIsolationWindowUpperOffset(product_window_up_->text().toFloat());
+    StringUtils::toFloat(ptr_->setMZ(product_mz_->text()));
+    StringUtils::toFloat(ptr_->setIsolationWindowLowerOffset(product_window_low_->text()));
+    StringUtils::toFloat(ptr_->setIsolationWindowUpperOffset(product_window_up_->text()));
 
     temp_ = (*ptr_);
   }

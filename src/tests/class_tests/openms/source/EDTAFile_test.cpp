@@ -42,7 +42,7 @@ START_SECTION(virtual ~EDTAFile())
 END_SECTION
 
 
-START_SECTION(void load(const String &filename, ConsensusMap &consensus_map))
+START_SECTION(void load(const std::string &filename, ConsensusMap &consensus_map))
 {
   EDTAFile f;
   ConsensusMap fm;
@@ -53,12 +53,12 @@ START_SECTION(void load(const String &filename, ConsensusMap &consensus_map))
   TEST_EQUAL(fm[0].getMZ(), 405.233)
   TEST_EQUAL(fm[0].getIntensity(), 24543534)
   TEST_EQUAL(fm[0].getCharge(), 2)
-  TEST_EQUAL(String(fm[0].getMetaValue("mymeta")), String("lala"))
+  TEST_EQUAL(StringUtils::toStr(fm[0].getMetaValue("mymeta")),StringUtils::toStr("lala"))
   TEST_EQUAL(fm[1].getRT(), 322)
   TEST_EQUAL(fm[1].getMZ(), 406.207)
   TEST_EQUAL(fm[1].getIntensity(), 4343344)
   TEST_EQUAL(fm[1].getCharge(), 3)
-  TEST_EQUAL(String(fm[1].getMetaValue("mymeta")), String("blubb"))
+  TEST_EQUAL(StringUtils::toStr(fm[1].getMetaValue("mymeta")),StringUtils::toStr("blubb"))
 
   
   f.load(OPENMS_GET_TEST_DATA_PATH("EDTAFile_test_3.edta"), fm);
@@ -71,13 +71,13 @@ START_SECTION(void load(const String &filename, ConsensusMap &consensus_map))
 }
 END_SECTION
 
-START_SECTION((void store(const String& filename, const ConsensusMap& map) const))
+START_SECTION((void store(const std::string& filename, const ConsensusMap& map) const))
 {
   EDTAFile f;
   ConsensusMap cm;
   f.load(OPENMS_GET_TEST_DATA_PATH("EDTAFile_test_4.edta"), cm);
   
-  String outfile;
+  std::string outfile;
   NEW_TMP_FILE(outfile)
   f.store(outfile, cm);
 
@@ -99,14 +99,14 @@ START_SECTION((void store(const String& filename, const ConsensusMap& map) const
 }
 END_SECTION
 
- START_SECTION((void store(const String& filename, const FeatureMap& map) const))
+ START_SECTION((void store(const std::string& filename, const FeatureMap& map) const))
 {
   FeatureMap fm;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("EDTAFile_test_out_1.featureXML"), fm);
 
   EDTAFile f;
 
-  String outfile;
+  std::string outfile;
   NEW_TMP_FILE(outfile)
 
   f.store(outfile, fm);

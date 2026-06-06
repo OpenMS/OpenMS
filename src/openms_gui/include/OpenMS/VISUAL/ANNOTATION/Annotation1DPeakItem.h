@@ -219,7 +219,7 @@ public:
       QString peak_anno = this->getText().trimmed();
 
       // check for newlines in the label and only continue with the first line for charge determination
-      peak_anno.remove('\r');
+      StringUtils::remove(peak_anno, '\r');
       QStringList lines = peak_anno.split('\n', Qt::SkipEmptyParts);
       if (lines.size() > 1)
       {
@@ -236,7 +236,7 @@ public:
       int tmp_charge(0);
       if (match_pos >= 0)
       {
-        tmp_charge = reg_exp.match(peak_anno).captured(1).toInt();
+        tmp_charge = StringUtils::toInt32(reg_exp).captured(1));
         peak_anno = peak_anno.left(match_pos);
       }
       else

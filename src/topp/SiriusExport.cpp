@@ -71,16 +71,16 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file(s)>", StringList(), "MzML Input file(s)");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
 
     registerInputFileList_("in_featureinfo", "<file(s)>", StringList(), "FeatureXML input with feature and adduct information", false);
-    setValidFormats_("in_featureinfo", ListUtils::create<String>("featureXML"));
+    setValidFormats_("in_featureinfo", ListUtils::create<std::string>("featureXML"));
 
     registerOutputFile_("out","<file>", "", "Internal SIRIUS .ms format after OpenMS preprocessing");
-    setValidFormats_("out", ListUtils::create<String>("ms"));
+    setValidFormats_("out", ListUtils::create<std::string>("ms"));
 
     registerOutputFile_("out_compoundinfo","<file>", "", "File (.tsv) with information on processed compounds which are associated with a feature. Required for AssayGeneratorMetaboSirius tool.", false);
-    setValidFormats_("out_compoundinfo", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_compoundinfo", ListUtils::create<std::string>("tsv"));
 
     addEmptyLine_();
 
@@ -94,8 +94,8 @@ protected:
     //-------------------------------------------------------------
     StringList mzML_files = getStringList_("in");
     StringList featureXML_files = getStringList_("in_featureinfo");
-    String out_ms = getStringOption_("out");
-    String out_compoundinfo = getStringOption_("out_compoundinfo");
+    std::string out_ms = getStringOption_("out");
+    std::string out_compoundinfo = getStringOption_("out_compoundinfo");
 
     SiriusExportAlgorithm algorithm;     
     algorithm.setParameters(getParam_().copySubset(SiriusExportAlgorithm().getDefaults()));

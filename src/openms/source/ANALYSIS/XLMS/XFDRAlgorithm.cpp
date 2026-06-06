@@ -46,7 +46,7 @@ using namespace OpenMS;
 
   void XFDRAlgorithm::updateMembers_()
   {
-    decoy_string_ = static_cast<String>(param_.getValue(param_decoy_string_).toString());
+    decoy_string_ = static_cast<std::string>(param_.getValue(param_decoy_string_).toString());
     arg_mindeltas_ = static_cast<double>(param_.getValue(param_mindeltas_));
     arg_minborder_ = static_cast<double>(param_.getValue(param_minborder_));
     arg_maxborder_ = static_cast<double>(param_.getValue(param_maxborder_));
@@ -67,7 +67,7 @@ using namespace OpenMS;
     initDataStructures_(peptide_ids, protein_id);
 
     // Maps the cross link class to the encountered scores
-    std::map<String, std::vector<double>> scores;
+    std::map<std::string, std::vector<double>> scores;
     UInt num_flagged(0);
 
     std::cout << "Collecting scores for each class..." << std::endl;
@@ -101,17 +101,17 @@ using namespace OpenMS;
       }
 
       // Attributes of peptide identification that can be used for filtering
-      const double delta_score = ph.getMetaValue(Constants::UserParam::DELTA_SCORE);
+      const double delta_score = (double)ph.getMetaValue(Constants::UserParam::DELTA_SCORE);
       const double score = ph.getScore();
 
       double error_rel(0);
       if (ph.metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
       {
-        error_rel = ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
+        error_rel = (double)ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
       }
 
       const Size min_ions_matched = getMinIonsMatched_(ph);
-      const String id = ph.getMetaValue("OpenPepXL:id");
+      const std::string id = (std::string)ph.getMetaValue("OpenPepXL:id");
 
       // Only consider IDs which fullfill all filter criteria specified by the user
       if (   (arg_minborder_ <= error_rel)   // minborder fullfilled
@@ -139,13 +139,13 @@ using namespace OpenMS;
 
         ph.setMetaValue("XFDR:used_for_FDR", 1);
 
-        for (const String &cross_link_class : this->cross_link_classes_[id])
+        for (const std::string &cross_link_class : this->cross_link_classes_[id])
         {
           scores[cross_link_class].push_back(score);
         }
       }
     }
-    std::cout << "XFDR has used " + String(num_flagged) + " hits to calculate the FDR" << std::endl;
+    std::cout << "XFDR has used " + StringUtils::toStr(num_flagged) + " hits to calculate the FDR" << std::endl;
 
     // Log number of scores within each class
     std::cout << "Number of Scores for each class:" << std::endl;
@@ -157,7 +157,7 @@ using namespace OpenMS;
 
     // Generate Histograms of the scores for each class
     // Use cumulative histograms to count the number of scores above consecutive thresholds
-    std::map< String, Math::Histogram<> >  cum_histograms;
+    std::map< std::string, Math::Histogram<> >  cum_histograms;
     for (const auto &class_scores: scores)
     {
       std::vector< double > current_scores = class_scores.second;
@@ -182,7 +182,7 @@ using namespace OpenMS;
 
     // Determine whether qTransform should be performed (and consequently the score type)
     // bool arg_no_qvalues = getFlag_(param_no_qvalues_);
-    String score_type = arg_no_qvalues_ ? "FDR" : "q-value";
+    std::string score_type = arg_no_qvalues_ ? "FDR" : "q-value";
 
     if ( ! arg_no_qvalues_)
     {
@@ -225,7 +225,7 @@ using namespace OpenMS;
         for (StringList::const_iterator crosslink_types_it = crosslink_types.begin();
             crosslink_types_it != crosslink_types.end(); ++crosslink_types_it)
         {
-          const String& current_crosslink_type = *crosslink_types_it;
+          const std::string& current_crosslink_type = *crosslink_types_it;
           Size idx = std::floor((score - this->min_score_) / arg_binsize_);
           if (   current_crosslink_type == crosslink_class_fulldecoysinterlinks_
               || current_crosslink_type == crosslink_class_hybriddecoysinterlinks_
@@ -268,13 +268,13 @@ using namespace OpenMS;
 
   void XFDRAlgorithm::initDataStructures_(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id)
   {
-    const String& prot_identifier = protein_id.getIdentifier();
+    const std::string& prot_identifier = protein_id.getIdentifier();
 
     // if the metaValue exists in search_params and the default value for XFDR was not changed, use the one in search_params
     const ProteinIdentification::SearchParameters& search_params = protein_id.getSearchParameters();
     if (search_params.metaValueExists("decoy_string") && decoy_string_ == "DECOY_")
     {
-      decoy_string_ = search_params.getMetaValue("decoy_string");
+      decoy_string_ = (std::string)search_params.getMetaValue("decoy_string");
     }
 
     // Preprocess all peptide identifications and construct derived data structures necessary for XFDR
@@ -320,11 +320,11 @@ using namespace OpenMS;
           {
             alpha_prots.push_back(pev.getProteinAccession());
           }
-          StringList beta_prots = ListUtils::create<String>(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS).toString());
+          StringList beta_prots = ListUtils::create<std::string>(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS).toString());
 
-          for (String& alpha_prot : alpha_prots)
+          for (std::string& alpha_prot : alpha_prots)
           {
-            for (String& beta_prot : beta_prots)
+            for (std::string& beta_prot : beta_prots)
             {
               if (isSameProtein_(alpha_prot, beta_prot, decoy_string_))
               {
@@ -338,7 +338,7 @@ using namespace OpenMS;
           }
         }
 
-        String id = getId_(ph);
+        std::string id = getId_(ph);
         ph.setMetaValue("OpenPepXL:id", id);
         // candidates with the same ID will also have the same types
         if (!this->cross_link_classes_.contains(id))
@@ -393,7 +393,7 @@ using namespace OpenMS;
     }
 
     assert(ph.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE));
-    String current_crosslink_type = ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE);
+    std::string current_crosslink_type = (std::string)(std::string)ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE);
 
     // monolinks
     if ( (!xl_is_decoy) && (current_crosslink_type == "mono-link"
@@ -444,8 +444,8 @@ using namespace OpenMS;
     }
   }
 
-  void XFDRAlgorithm::fdr_xprophet_(std::map< String, Math::Histogram<> > & cum_histograms,
-                    const String  & targetclass, const String & decoyclass, const String & fulldecoyclass,
+  void XFDRAlgorithm::fdr_xprophet_(std::map< std::string, Math::Histogram<> > & cum_histograms,
+                    const std::string  & targetclass, const std::string & decoyclass, const std::string & fulldecoyclass,
                     std::vector< double > & fdr, bool mono) const
   {
     // Determine whether targetclass, decoyclass, and fulldecoyclass are present in the histogram map
@@ -492,7 +492,7 @@ using namespace OpenMS;
     {
       for (PeptideHit& ph : pep_id.getHits())
       {
-        String id = ph.getMetaValue("OpenPepXL:id");
+        std::string id = (std::string)(std::string)ph.getMetaValue("OpenPepXL:id");
         auto uid_it = std::find(this->unique_ids_.begin(), this->unique_ids_.end(), id);
         // if an ID for this candidate already exists, check if the new score is higher than the last
         if (uid_it != this->unique_ids_.end())
@@ -518,19 +518,19 @@ using namespace OpenMS;
     // Printing parameters to log
     //-------------------------------------------------------------
     std::cout << std::endl;
-    std::cout << ((arg_minborder_ != -1) ? "Lower bound for precursor mass error for FDR calculation is " + String(arg_minborder_) + " ppm"
+    std::cout << ((arg_minborder_ != -1) ? "Lower bound for precursor mass error for FDR calculation is " + StringUtils::toStr(arg_minborder_) + " ppm"
                                   : "No lower bound for precursor mass error for FDR calculation") << std::endl;
-    std::cout << ((arg_maxborder_ != -1) ? "Upper bound for precursor mass error for FDR calculation is " + String(arg_maxborder_) + " ppm"
+    std::cout << ((arg_maxborder_ != -1) ? "Upper bound for precursor mass error for FDR calculation is " + StringUtils::toStr(arg_maxborder_) + " ppm"
                                   : "No upper bound for precursor mass error for FDR calculation") << std::endl;
-    std::cout << ((arg_mindeltas_ != 0)  ? "Filtering of hits by a deltascore of " + String(arg_mindeltas_) + " is used."
+    std::cout << ((arg_mindeltas_ != 0)  ? "Filtering of hits by a deltascore of " + StringUtils::toStr(arg_mindeltas_) + " is used."
                                   : "No filtering of hits by deltascore") << std::endl;
-    std::cout << ((arg_minionsmatched_ > 0) ? "Filtering of hits by minimum ions matched: " + String(arg_minionsmatched_) + " is used"
+    std::cout << ((arg_minionsmatched_ > 0) ? "Filtering of hits by minimum ions matched: " + StringUtils::toStr(arg_minionsmatched_) + " is used"
                                      : "No filtering of hits by minimum ions matched.") << std::endl;
-    std::cout << ((arg_minscore_ > 0) ? "Filtering of hits by minimum score of " + String(arg_minscore_) + " is used."
+    std::cout << ((arg_minscore_ > 0) ? "Filtering of hits by minimum score of " + StringUtils::toStr(arg_minscore_) + " is used."
                                : "No filtering of hits by minimum score.") << std::endl;
     std::cout << ((arg_uniquex_) ? "Error model is generated based on unique cross-links."
                           : "Error model is generated based on redundant cross-links.") << std::endl;
-    std::cout << "Bin size for cumulative histograms is " + String(arg_binsize_) << std::endl;
+    std::cout << "Bin size for cumulative histograms is " + StringUtils::toStr(arg_binsize_) << std::endl;
   }
 
   XFDRAlgorithm::ExitCodes XFDRAlgorithm::validateClassArguments() const
@@ -543,7 +543,7 @@ using namespace OpenMS;
     return ExitCodes::EXECUTION_OK;
   }
 
-  String XFDRAlgorithm::getId_(const PeptideHit& ph) const
+  std::string XFDRAlgorithm::getId_(const PeptideHit& ph) const
   {
     if (ph.metaValueExists("OpenPepXL:id"))
     {
@@ -554,51 +554,51 @@ using namespace OpenMS;
     {
       return   ph.getSequence().toUnmodifiedString()
                + "-" + AASequence::fromString(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE)).toUnmodifiedString()
-               + "-a" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1))
-               + "-b" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2));
+               + "-a" + StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1))
+               + "-b" + StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2));
 
     }
     else if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "loop-link")
     {
       return   ph.getSequence().toUnmodifiedString()
-               + "-a" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1))
-               + "-b" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2));
+               + "-a" + StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1))
+               + "-b" + StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2));
 
     }
     else if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_XL_MASS))
     {
       return   ph.getSequence().toUnmodifiedString()
-               + "-" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1))
-               + "-" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS));
+               + "-" + StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1))
+               + "-" + StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS));
     }
     else
     {
       return   ph.getSequence().toUnmodifiedString()
-               + "-" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1));
+               + "-" + StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1));
     }
   }
 
   // Names of the class parameters
-  const String XFDRAlgorithm::param_decoy_string_ = "decoy_string";
-  const String XFDRAlgorithm::param_minborder_ = "minborder";
-  const String XFDRAlgorithm::param_maxborder_ = "maxborder";
-  const String XFDRAlgorithm::param_mindeltas_ = "mindeltas";
-  const String XFDRAlgorithm::param_minionsmatched_ = "minionsmatched";
-  const String XFDRAlgorithm::param_uniquexl_ = "uniquexl";
-  const String XFDRAlgorithm::param_no_qvalues_ = "no_qvalues";
-  const String XFDRAlgorithm::param_minscore_ = "minscore";
-  const String XFDRAlgorithm::param_binsize_ = "binsize";
+  const std::string XFDRAlgorithm::param_decoy_string_ = "decoy_string";
+  const std::string XFDRAlgorithm::param_minborder_ = "minborder";
+  const std::string XFDRAlgorithm::param_maxborder_ = "maxborder";
+  const std::string XFDRAlgorithm::param_mindeltas_ = "mindeltas";
+  const std::string XFDRAlgorithm::param_minionsmatched_ = "minionsmatched";
+  const std::string XFDRAlgorithm::param_uniquexl_ = "uniquexl";
+  const std::string XFDRAlgorithm::param_no_qvalues_ = "no_qvalues";
+  const std::string XFDRAlgorithm::param_minscore_ = "minscore";
+  const std::string XFDRAlgorithm::param_binsize_ = "binsize";
 
   // Names of cross-link classes
-  const String XFDRAlgorithm::crosslink_class_intradecoys_ = "intradecoys";
-  const String XFDRAlgorithm::crosslink_class_fulldecoysintralinks_ = "fulldecoysintralinks";
-  const String XFDRAlgorithm::crosslink_class_interdecoys_ = "interdecoys";
-  const String XFDRAlgorithm::crosslink_class_fulldecoysinterlinks_ = "fulldecoysinterlinks";
-  const String XFDRAlgorithm::crosslink_class_monodecoys_ = "monodecoys";
-  const String XFDRAlgorithm::crosslink_class_intralinks_ = "intralinks";
-  const String XFDRAlgorithm::crosslink_class_interlinks_ = "interlinks";
-  const String XFDRAlgorithm::crosslink_class_monolinks_  = "monolinks";
-  const String XFDRAlgorithm::crosslink_class_decoys_ = "decoys";
-  const String XFDRAlgorithm::crosslink_class_targets_ = "targets";
-  const String XFDRAlgorithm::crosslink_class_hybriddecoysintralinks_ = "hybriddecoysintralinks";
-  const String XFDRAlgorithm::crosslink_class_hybriddecoysinterlinks_ = "hybriddecoysinterlinks";
+  const std::string XFDRAlgorithm::crosslink_class_intradecoys_ = "intradecoys";
+  const std::string XFDRAlgorithm::crosslink_class_fulldecoysintralinks_ = "fulldecoysintralinks";
+  const std::string XFDRAlgorithm::crosslink_class_interdecoys_ = "interdecoys";
+  const std::string XFDRAlgorithm::crosslink_class_fulldecoysinterlinks_ = "fulldecoysinterlinks";
+  const std::string XFDRAlgorithm::crosslink_class_monodecoys_ = "monodecoys";
+  const std::string XFDRAlgorithm::crosslink_class_intralinks_ = "intralinks";
+  const std::string XFDRAlgorithm::crosslink_class_interlinks_ = "interlinks";
+  const std::string XFDRAlgorithm::crosslink_class_monolinks_  = "monolinks";
+  const std::string XFDRAlgorithm::crosslink_class_decoys_ = "decoys";
+  const std::string XFDRAlgorithm::crosslink_class_targets_ = "targets";
+  const std::string XFDRAlgorithm::crosslink_class_hybriddecoysintralinks_ = "hybriddecoysintralinks";
+  const std::string XFDRAlgorithm::crosslink_class_hybriddecoysinterlinks_ = "hybriddecoysinterlinks";

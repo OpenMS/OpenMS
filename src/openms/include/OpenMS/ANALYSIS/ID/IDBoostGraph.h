@@ -76,7 +76,7 @@ namespace OpenMS
     };
 
     /// an (currently unmodified) peptide sequence
-    BOOST_STRONG_TYPEDEF(String, Peptide);
+    BOOST_STRONG_TYPEDEF(std::string, Peptide);
 
     /// in which run a PSM was observed
     BOOST_STRONG_TYPEDEF(Size, RunIndex);
@@ -155,43 +155,43 @@ namespace OpenMS
     ///@brief Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
     /// e.g. for printing to dot format
     class LabelVisitor:
-        public boost::static_visitor<OpenMS::String>
+        public boost::static_visitor<std::string>
     {
     public:
 
-      OpenMS::String operator()(const PeptideHit* pep) const
+      std::string operator()(const PeptideHit* pep) const
       {
         return pep->getSequence().toString() + "_" + pep->getCharge();
       }
 
-      OpenMS::String operator()(const ProteinHit* prot) const
+      std::string operator()(const ProteinHit* prot) const
       {
         return prot->getAccession();
       }
 
-      OpenMS::String operator()(const ProteinGroup& /*protgrp*/) const
+      std::string operator()(const ProteinGroup& /*protgrp*/) const
       {
         return "PG";
       }
 
-      OpenMS::String operator()(const PeptideCluster& /*pc*/) const
+      std::string operator()(const PeptideCluster& /*pc*/) const
       {
         return "PepClust";
       }
 
-      OpenMS::String operator()(const Peptide& peptide) const
+      std::string operator()(const Peptide& peptide) const
       {
         return peptide;
       }
 
-      OpenMS::String operator()(const RunIndex& ri) const
+      std::string operator()(const RunIndex& ri) const
       {
-        return "rep" + String(ri);
+        return "rep" + StringUtils::toStr(ri);
       }
 
-      OpenMS::String operator()(const Charge& chg) const
+      std::string operator()(const Charge& chg) const
       {
-        return "chg" + String(chg);
+        return "chg" + StringUtils::toStr(chg);
       }
 
     };

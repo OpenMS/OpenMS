@@ -72,7 +72,7 @@ protected:
     setValidFormats_("out", { "idXML" });
 
     registerStringList_("mods","<list>", StringList(), "List of manual modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'.", false);
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     setValidStrings_("mods", all_mods);
 
@@ -97,10 +97,10 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
     StringList s_mods = getStringList_("mods");
-    String sets = getStringOption_("presets");
+    std::string sets = getStringOption_("presets");
 
     StringList s_mods_predef;
     if (sets == "N15")
@@ -150,7 +150,7 @@ protected:
         default:
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                         "Modification has invalid term specificity.",
-                                        String(ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY));
+                                        StringUtils::toStr(ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY));
       }
     }
     OPENMS_LOG_INFO << "\n";

@@ -61,7 +61,7 @@ namespace OpenMS
       // new boundaries should be smaller/equal than the original ones from the data
       if (!(swath_maps[i].lower <= swath_prec_lower_[j] && swath_prec_upper_[j] <= swath_maps[i].upper))
       { 
-        String err = "SWATH window #" + String(j+1) + " from swath_windows_file extends beyond the Swath window of the data."
+        std::string err = "SWATH window #" + StringUtils::toStr(j+1) + " from swath_windows_file extends beyond the Swath window of the data."
                      " Did you forget to apply the sort_swath_maps flag? (override with -force)";
         if (force)
         {
@@ -92,15 +92,16 @@ namespace OpenMS
     std::vector<double> & swath_prec_upper_ )
   {
     std::ifstream data(filename.c_str());
-    String line;
-    std::vector<String> headerSubstrings;
+    std::string line;
+    std::vector<std::string> headerSubstrings;
     double lower, upper;
 
     // Check for presence of header
     std::getline(data, line);
     try 
     { // If string can be successfully converted to double (excluding initial spaces) then the first line is not a header
-      StringUtils::split(line.trim().substitute('\t', ' '), ' ', headerSubstrings);
+      StringUtils::trim(line); StringUtils::substitute(line, '\t', ' ');
+      StringUtils::split(line, ' ', headerSubstrings);
       StringUtils::toDouble(headerSubstrings[0]);
       OPENMS_LOG_INFO << "Swath Header not found" << std::endl;
     }

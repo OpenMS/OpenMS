@@ -89,11 +89,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML"));
     registerOutputFile_("out_plot", "<file>", "", "txt file (if gnuplot is available, a corresponding PDF will be created as well.)", false);
-    setValidFormats_("out_plot", ListUtils::create<String>("txt"));
+    setValidFormats_("out_plot", ListUtils::create<std::string>("txt"));
 
     registerFlag_("split_charge", "The search engine scores are split by charge if this flag is set. Thus, for each charge state a new model will be computed.");
     registerFlag_("top_hits_only", "If set only the top hits of every PeptideIdentification will be used");
@@ -105,7 +105,7 @@ protected:
   }
 
   //there is only one parameter at the moment
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+  Param getSubsectionDefaults_(const std::string& /*section*/) const override
   {
     Param p = PosteriorErrorProbabilityModel().getParameters();
     if (p.exists("out_plot"))
@@ -126,8 +126,8 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
-    String inputfile_name = getStringOption_("in");
-    String outputfile_name = getStringOption_("out");
+    std::string inputfile_name = getStringOption_("in");
+    std::string outputfile_name = getStringOption_("out");
     Param fit_algorithm = getParam_().copy("fit_algorithm:", true);
     fit_algorithm.setValue("out_plot", getStringOption_("out_plot")); // re-assemble full param (was moved to top-level)
     bool split_charge = getFlag_("split_charge");
@@ -135,7 +135,7 @@ protected:
     double fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
     bool ignore_bad_data = getFlag_("ignore_bad_data");
     bool prob_correct = getFlag_("prob_correct");
-    String outlier_handling = fit_algorithm.getValue("outlier_handling").toString();
+    std::string outlier_handling = fit_algorithm.getValue("outlier_handling").toString();
 
     //-------------------------------------------------------------
     // reading input
@@ -166,7 +166,7 @@ protected:
     // map identifier "engine,charge" (if split_charge==true) or "engine" 
     // to three extracted score vectors. The main score vector contains the PSM scores.
     // Second and third are optional and contain target and decoy scores.
-    map<String, vector<vector<double> > > all_scores = PosteriorErrorProbabilityModel::extractAndTransformScores(
+    map<std::string, vector<vector<double> > > all_scores = PosteriorErrorProbabilityModel::extractAndTransformScores(
      protein_ids, 
      peptide_ids, 
      split_charge,
@@ -183,20 +183,21 @@ protected:
       }
     }
 
-    String out_plot = String(fit_algorithm.getValue("out_plot").toString()).trim();
+    std::string out_plot = fit_algorithm.getValue("out_plot").toString();
+    StringUtils::trim(out_plot);
 
     for (auto & score : all_scores)
     {
-      vector<String> engine_info;
-      score.first.split(',', engine_info);
-      String engine = engine_info[0];
-      Int charge = (engine_info.size() == 2) ? engine_info[1].toInt() : -1;
+      vector<std::string> engine_info;
+      StringUtils::split(score.first, ',', engine_info);
+      std::string engine = engine_info[0];
+      Int charge = (engine_info.size() == 2) ? StringUtils::toInt32(engine_info[1]) : -1;
 
       if (split_charge)
       {
         // only adapt plot output if plot is requested (this badly violates the output rules and needs to change!)
         // one way to fix this: plot charges into a single file (no renaming of output file needed) - but this requires major code restructuring
-        if (!out_plot.empty()) fit_algorithm.setValue("out_plot", out_plot + "_charge_" + String(charge));
+        if (!out_plot.empty()) fit_algorithm.setValue("out_plot", out_plot + "_charge_" + StringUtils::toStr(charge));
         PEP_model.setParameters(fit_algorithm);
       }
 
@@ -240,7 +241,7 @@ protected:
 
         if (unable_to_fit_data)
         {
-          writeLogWarn_(String("Unable to fit data for search engine: ") + engine);
+          writeLogWarn_(StringUtils::toStr("Unable to fit data for search engine: ") + engine);
           if (!ignore_bad_data)
           {
             return UNEXPECTED_RESULT;
@@ -248,7 +249,7 @@ protected:
         }
         else if (data_might_not_be_well_fit) 
         {
-          writeLogWarn_(String("Data might not be well fitted for search engine: ") + engine);
+          writeLogWarn_(StringUtils::toStr("Data might not be well fitted for search engine: ") + engine);
         }
       }
     }

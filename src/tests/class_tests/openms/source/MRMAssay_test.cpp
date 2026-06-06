@@ -54,7 +54,7 @@ public:
     return nchoosekcombinations_(n, k);
   }
 
-  std::vector<OpenMS::AASequence> addModificationsSequences_test(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<size_t> > mods_combs, OpenMS::String modification)
+  std::vector<OpenMS::AASequence> addModificationsSequences_test(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<size_t> > mods_combs, std::string modification)
   {
     return addModificationsSequences_(sequences, mods_combs, modification);
   }
@@ -295,7 +295,7 @@ START_SECTION(std::vector<std::vector<size_t> > MRMAssay::nchoosekcombinations_(
 
 END_SECTION
 
-START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequences_(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<size_t> > mods_combs, OpenMS::String modification))
+START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequences_(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<size_t> > mods_combs, std::string modification))
 {
   MRMAssay_test mrma;
 
@@ -312,7 +312,7 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
 
   std::vector<std::vector<size_t> > mods_combs_o = mrma.nchoosekcombinations_test(no, 1);
 
-  sequences = mrma.addModificationsSequences_test(sequences, mods_combs_o, String("Oxidation"));
+  sequences = mrma.addModificationsSequences_test(sequences, mods_combs_o,StringUtils::toStr("Oxidation"));
 
   std::vector<size_t> np;
   np.push_back(4);
@@ -321,19 +321,19 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
 
   std::vector<std::vector<size_t> > mods_combs_p = mrma.nchoosekcombinations_test(np, 1);
 
-  sequences = mrma.addModificationsSequences_test(sequences, mods_combs_p, String("Phospho"));
+  sequences = mrma.addModificationsSequences_test(sequences, mods_combs_p,StringUtils::toStr("Phospho"));
 
   TEST_EQUAL(sequences.size(), 10)
-  TEST_EQUAL(sequences[0].toString(), String("P(Oxidation)EPT(Phospho)DIEK"));
-  TEST_EQUAL(sequences[1].toString(), String("P(Oxidation)EPTD(Phospho)IEK"));
-  TEST_EQUAL(sequences[2].toString(), String("P(Oxidation)EPTDIEK(Phospho)"));
-  TEST_EQUAL(sequences[3].toString(), String("PEP(Oxidation)T(Phospho)DIEK"));
-  TEST_EQUAL(sequences[4].toString(), String("PEP(Oxidation)TD(Phospho)IEK"));
-  TEST_EQUAL(sequences[5].toString(), String("PEP(Oxidation)TDIEK(Phospho)"));
-  TEST_EQUAL(sequences[6].toString(), String("PEPT(Phospho)D(Oxidation)IEK"));
-  TEST_EQUAL(sequences[7].toString(), String("PEPTD(Oxidation)IEK(Phospho)"));
-  TEST_EQUAL(sequences[8].toString(), String("PEPT(Phospho)DIEK(Oxidation)"));
-  TEST_EQUAL(sequences[9].toString(), String("PEPTD(Phospho)IEK(Oxidation)"));
+  TEST_EQUAL(sequences[0].toString(),StringUtils::toStr("P(Oxidation)EPT(Phospho)DIEK"));
+  TEST_EQUAL(sequences[1].toString(),StringUtils::toStr("P(Oxidation)EPTD(Phospho)IEK"));
+  TEST_EQUAL(sequences[2].toString(),StringUtils::toStr("P(Oxidation)EPTDIEK(Phospho)"));
+  TEST_EQUAL(sequences[3].toString(),StringUtils::toStr("PEP(Oxidation)T(Phospho)DIEK"));
+  TEST_EQUAL(sequences[4].toString(),StringUtils::toStr("PEP(Oxidation)TD(Phospho)IEK"));
+  TEST_EQUAL(sequences[5].toString(),StringUtils::toStr("PEP(Oxidation)TDIEK(Phospho)"));
+  TEST_EQUAL(sequences[6].toString(),StringUtils::toStr("PEPT(Phospho)D(Oxidation)IEK"));
+  TEST_EQUAL(sequences[7].toString(),StringUtils::toStr("PEPTD(Oxidation)IEK(Phospho)"));
+  TEST_EQUAL(sequences[8].toString(),StringUtils::toStr("PEPT(Phospho)DIEK(Oxidation)"));
+  TEST_EQUAL(sequences[9].toString(),StringUtils::toStr("PEPTD(Phospho)IEK(Oxidation)"));
 
   std::vector<std::string> sequence_list {};
   for (std::vector<OpenMS::AASequence>::const_iterator sq_it = sequences.begin(); sq_it != sequences.end(); ++sq_it)
@@ -396,23 +396,23 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::generateTheoreticalPepti
 
 END_SECTION
 
-START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double precursor_mz_threshold, double product_mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_reannotation, bool enable_specific_losses, bool enable_specific_losses))
+START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double precursor_mz_threshold, double product_mz_threshold, std::vector<std::string> fragment_types, std::vector<size_t> fragment_charges, bool enable_reannotation, bool enable_specific_losses, bool enable_specific_losses))
 {
   TraMLFile traml;
   TargetedExperiment targeted_exp;
-  String in = "MRMAssay_reannotateTransitions_input.TraML";
+  std::string in = "MRMAssay_reannotateTransitions_input.TraML";
   traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
   MRMAssay mrma;
 
   double precursor_mz_threshold1 = 0.05;
   double product_mz_threshold1 = 0.05;
-  std::vector<String> fragment_types1;
-  fragment_types1.push_back(String("y"));
+  std::vector<std::string> fragment_types1;
+  fragment_types1.push_back(StringUtils::toStr("y"));
   std::vector<size_t> fragment_charges1;
   fragment_charges1.push_back(2);
   bool enable_losses1 = false;
 
-  String out1 = "MRMAssay_reannotateTransitions_output_1.TraML";
+  std::string out1 = "MRMAssay_reannotateTransitions_output_1.TraML";
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
@@ -420,7 +420,7 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
       product_mz_threshold1, fragment_types1, fragment_charges1,
       enable_losses1, enable_losses1);
 
-  String test1;
+  std::string test1;
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
@@ -428,21 +428,21 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
 
   double precursor_mz_threshold2 = 0.05;
   double product_mz_threshold2 = 0.05;
-  std::vector<String> fragment_types2;
-  fragment_types2.push_back(String("y"));
-  fragment_types2.push_back(String("b"));
+  std::vector<std::string> fragment_types2;
+  fragment_types2.push_back(StringUtils::toStr("y"));
+  fragment_types2.push_back(StringUtils::toStr("b"));
   std::vector<size_t> fragment_charges2;
   fragment_charges2.push_back(2);
   fragment_charges2.push_back(3);
   bool enable_losses2 = true;
 
-  String out2 = "MRMAssay_reannotateTransitions_output_2.TraML";
+  std::string out2 = "MRMAssay_reannotateTransitions_output_2.TraML";
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
   mrma.reannotateTransitions(targeted_exp2, precursor_mz_threshold2, product_mz_threshold2, fragment_types2, fragment_charges2, enable_losses2, enable_losses2);
 
-  String test2;
+  std::string test2;
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
@@ -489,20 +489,20 @@ START_SECTION(void restrictTransitions(OpenMS::TargetedExperiment& exp, double l
 
   TraMLFile traml;
   TargetedExperiment targeted_exp;
-  String in = "MRMAssay_restrictTransitions_input.TraML";
+  std::string in = "MRMAssay_restrictTransitions_input.TraML";
   traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
   MRMAssay mrma;
 
   double lower_mz_limit = 400;
   double upper_mz_limit = 2000;
 
-  String out1 = "MRMAssay_restrictTransitions_output.TraML";
+  std::string out1 = "MRMAssay_restrictTransitions_output.TraML";
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
   mrma.restrictTransitions(targeted_exp1, lower_mz_limit, upper_mz_limit, swathes);
 
-  String test1;
+  std::string test1;
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
@@ -516,20 +516,20 @@ START_SECTION(void detectingTransitions(OpenMS::TargetedExperiment& exp, int min
 {
   TraMLFile traml;
   TargetedExperiment targeted_exp;
-  String in = "MRMAssay_detectingTransitions_input.TraML";
+  std::string in = "MRMAssay_detectingTransitions_input.TraML";
   traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
   MRMAssay mrma;
 
   int min_transitions = 4;
   int max_transitions = 6;
 
-  String out1 = "MRMAssay_detectingTransitions_output.TraML";
+  std::string out1 = "MRMAssay_detectingTransitions_output.TraML";
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
   mrma.detectingTransitions(targeted_exp1, min_transitions, max_transitions);
 
-  String test1;
+  std::string test1;
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
@@ -543,20 +543,20 @@ START_SECTION(void filterMinMaxTransitionsCompound(OpenMS::TargetedExperiment& e
 {
   TraMLFile traml;
   TargetedExperiment targeted_exp;
-  String in = "MRMAssay_detectingTransistionCompound_input.TraML";
+  std::string in = "MRMAssay_detectingTransistionCompound_input.TraML";
   traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
   MRMAssay mrma;
 
   int min_transitions = 3;
   int max_transitions = 6;
 
-  String out1 = "MRMAssay_detectingTransitionCompound_output.TraML";
+  std::string out1 = "MRMAssay_detectingTransitionCompound_output.TraML";
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
   mrma.filterMinMaxTransitionsCompound(targeted_exp1, min_transitions, max_transitions);
 
-  String test1;
+  std::string test1;
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
@@ -566,7 +566,7 @@ START_SECTION(void filterMinMaxTransitionsCompound(OpenMS::TargetedExperiment& e
 
 END_SECTION
 
-START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow, size_t max_num_alternative_localizations, double shuffle_identity_threshold, int shuffle_max_attempts, int shuffle_seed))
+START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<std::string> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow, size_t max_num_alternative_localizations, double shuffle_identity_threshold, int shuffle_max_attempts, int shuffle_seed))
 {
   std::vector<std::pair<double, double> > swathes;
   swathes.push_back(std::make_pair(400, 425));
@@ -604,12 +604,12 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
 
   TraMLFile traml;
   TargetedExperiment targeted_exp;
-  String in = "MRMAssay_uisTransitions_input_1.TraML";
+  std::string in = "MRMAssay_uisTransitions_input_1.TraML";
   traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
   MRMAssay mrma;
 
-  std::vector<String> fragment_types1;
-  fragment_types1.push_back(String("y"));
+  std::vector<std::string> fragment_types1;
+  fragment_types1.push_back(StringUtils::toStr("y"));
   std::vector<size_t> fragment_charges1;
   fragment_charges1.push_back(2);
   bool enable_specific_losses1 = true;
@@ -617,20 +617,20 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors1 = false;
   double product_mz_threshold1 = 0.05;
 
-  String out1 = "MRMAssay_uisTransitions_output_1.TraML";
+  std::string out1 = "MRMAssay_uisTransitions_output_1.TraML";
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
   mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_specific_losses1, enable_unspecific_losses1, enable_ms2_precursors1, product_mz_threshold1, swathes, -4, 20, 42);
 
-  String test1;
+  std::string test1;
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 #if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
   TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 #endif
-  std::vector<String> fragment_types2;
-  fragment_types2.push_back(String("y"));
+  std::vector<std::string> fragment_types2;
+  fragment_types2.push_back(StringUtils::toStr("y"));
   std::vector<size_t> fragment_charges2;
   fragment_charges2.push_back(2);
   bool enable_specific_losses2 = true;
@@ -638,13 +638,13 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors2 = false;
   double product_mz_threshold2 = 0.05;
 
-  String out2 = "MRMAssay_uisTransitions_output_2.TraML";
+  std::string out2 = "MRMAssay_uisTransitions_output_2.TraML";
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
   mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_specific_losses2, enable_unspecific_losses2, enable_ms2_precursors2, product_mz_threshold2, swathes, -4, 20, 42);
 
-  String test2;
+  std::string test2;
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
@@ -655,7 +655,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
 
 END_SECTION
 
-START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow, size_t max_num_alternative_localizations))
+START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<std::string> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow, size_t max_num_alternative_localizations))
 {
   std::vector<std::pair<double, double> > swathes;
   swathes.push_back(std::make_pair(400, 425));
@@ -693,25 +693,25 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
 
   TraMLFile traml;
   TargetedExperiment targeted_exp;
-  String in = "MRMAssay_uisTransitions_input_3.TraML";
+  std::string in = "MRMAssay_uisTransitions_input_3.TraML";
   traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
   MRMAssay mrma;
 
-  std::vector<String> fragment_types1;
-  fragment_types1.push_back(String("b"));
+  std::vector<std::string> fragment_types1;
+  fragment_types1.push_back(StringUtils::toStr("b"));
   std::vector<size_t> fragment_charges1;
   fragment_charges1.push_back(3);
   bool enable_losses1 = true;
   bool enable_ms2_precursors1 = false;
   double product_mz_threshold1 = 0.05;
 
-  String out1 = "MRMAssay_uisTransitions_output_3.TraML";
+  std::string out1 = "MRMAssay_uisTransitions_output_3.TraML";
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
   mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_losses1, enable_losses1, enable_ms2_precursors1, product_mz_threshold1, swathes, -4, 20, 42);
 
-  String test1;
+  std::string test1;
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 	   
@@ -719,9 +719,9 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1)) 
 #endif
 	
-  std::vector<String> fragment_types2;
-  fragment_types2.push_back(String("y"));
-  fragment_types2.push_back(String("b"));
+  std::vector<std::string> fragment_types2;
+  fragment_types2.push_back(StringUtils::toStr("y"));
+  fragment_types2.push_back(StringUtils::toStr("b"));
   std::vector<size_t> fragment_charges2;
   fragment_charges2.push_back(2);
   fragment_charges2.push_back(3);
@@ -729,13 +729,13 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors2 = false;
   double product_mz_threshold2 = 0.05;
 
-  String out2 = "MRMAssay_uisTransitions_output_4.TraML";
+  std::string out2 = "MRMAssay_uisTransitions_output_4.TraML";
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
   mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_losses2, enable_losses2, enable_ms2_precursors2, product_mz_threshold2, swathes, -4, 20, 42);
 
-  String test2;
+  std::string test2;
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
@@ -743,9 +743,9 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2)) 
 #endif
 	
-  std::vector<String> fragment_types3;
-  fragment_types3.push_back(String("y"));
-  fragment_types3.push_back(String("b"));
+  std::vector<std::string> fragment_types3;
+  fragment_types3.push_back(StringUtils::toStr("y"));
+  fragment_types3.push_back(StringUtils::toStr("b"));
   std::vector<size_t> fragment_charges3;
   fragment_charges3.push_back(2);
   fragment_charges3.push_back(3);
@@ -753,13 +753,13 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors3 = true;
   double product_mz_threshold3 = 0.05;
 
-  String out3 = "MRMAssay_uisTransitions_output_5.TraML";
+  std::string out3 = "MRMAssay_uisTransitions_output_5.TraML";
 
   TargetedExperiment targeted_exp3 = targeted_exp;
 
   mrma.uisTransitions(targeted_exp3, fragment_types3, fragment_charges3, enable_losses3, enable_losses3, enable_ms2_precursors3, product_mz_threshold3, swathes, -4, 20, 42);
 
-  String test3;
+  std::string test3;
   NEW_TMP_FILE(test3);
   traml.store(test3, targeted_exp3);
 
@@ -770,7 +770,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
 
 END_SECTION
 
-START_SECTION(void uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp, const std::vector<String>& fragment_types, const std::vector<size_t>& fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, double mz_threshold, const std::vector<std::pair<double, double> >& swathes, int round_decPow, size_t max_num_alternative_localizations, int shuffle_seed, bool disable_decoy_transitions))
+START_SECTION(void uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp, const std::vector<std::string>& fragment_types, const std::vector<size_t>& fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, double mz_threshold, const std::vector<std::pair<double, double> >& swathes, int round_decPow, size_t max_num_alternative_localizations, int shuffle_seed, bool disable_decoy_transitions))
 {
   // Setup SWATH windows (same as heavy version tests)
   std::vector<std::pair<double, double> > swathes;
@@ -810,7 +810,7 @@ START_SECTION(void uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp, 
   // Load input TraML
   TraMLFile traml;
   TargetedExperiment targeted_exp;
-  String in = "MRMAssay_uisTransitions_input_1.TraML";
+  std::string in = "MRMAssay_uisTransitions_input_1.TraML";
   traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
 
   // Convert to LightTargetedExperiment
@@ -829,8 +829,8 @@ START_SECTION(void uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp, 
 
   MRMAssay mrma;
 
-  std::vector<String> fragment_types;
-  fragment_types.push_back(String("y"));
+  std::vector<std::string> fragment_types;
+  fragment_types.push_back(StringUtils::toStr("y"));
   std::vector<size_t> fragment_charges;
   fragment_charges.push_back(2);
   bool enable_specific_losses = true;
@@ -927,7 +927,7 @@ START_SECTION([EXTRA] uisTransitionsLight vs uisTransitions equivalence test)
   // Load input TraML
   TraMLFile traml;
   TargetedExperiment targeted_exp_heavy;
-  String in = "MRMAssay_uisTransitions_input_1.TraML";
+  std::string in = "MRMAssay_uisTransitions_input_1.TraML";
   traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp_heavy);
 
   size_t initial_transitions = targeted_exp_heavy.getTransitions().size();
@@ -938,8 +938,8 @@ START_SECTION([EXTRA] uisTransitionsLight vs uisTransitions equivalence test)
 
   MRMAssay mrma;
 
-  std::vector<String> fragment_types;
-  fragment_types.push_back(String("y"));
+  std::vector<std::string> fragment_types;
+  fragment_types.push_back(StringUtils::toStr("y"));
   std::vector<size_t> fragment_charges;
   fragment_charges.push_back(2);
   bool enable_specific_losses = true;

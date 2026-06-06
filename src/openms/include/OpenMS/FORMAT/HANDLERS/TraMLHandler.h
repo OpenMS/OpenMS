@@ -43,10 +43,10 @@ public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
-      TraMLHandler(const TargetedExperiment & exp, const String & filename, const String & version, const ProgressLogger & logger);
+      TraMLHandler(const TargetedExperiment & exp, const std::string & filename, const std::string & version, const ProgressLogger & logger);
 
       /// Constructor for a read-only handler
-      TraMLHandler(TargetedExperiment & exp, const String & filename, const String & version, const ProgressLogger & logger);
+      TraMLHandler(TargetedExperiment & exp, const std::string & filename, const std::string & version, const ProgressLogger & logger);
 
       /// Destructor
       ~TraMLHandler() override;
@@ -73,7 +73,7 @@ protected:
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
       ControlledVocabulary cv_;
 
-      String tag_;
+      std::string tag_;
 
       TargetedExperiment* exp_;
 
@@ -114,10 +114,10 @@ protected:
       SourceFile actual_sourcefile_;
 
       /// Handles CV terms
-      void handleCVParam_(const String & parent_parent_tag, const String & parent_tag, const CVTerm & cv_term);
+      void handleCVParam_(const std::string & parent_parent_tag, const std::string & parent_tag, const CVTerm & cv_term);
 
       /// Handles user terms
-      void handleUserParam_(const String & parent_parent_tag, const String & parent_tag, const String & name, const String & type, const String & value);
+      void handleUserParam_(const std::string & parent_parent_tag, const std::string & parent_tag, const std::string & name, const std::string & type, const std::string & value);
 
       /// Writes user terms
       void writeUserParam_(std::ostream & os, const MetaInfoInterface & meta, UInt indent) const;
@@ -127,7 +127,7 @@ protected:
       void writeCVParams_(std::ostream & os, const CVTermList & cv_terms, UInt indent) const;
       void writeCVParams_(std::ostream & os, const CVTermListInterface & cv_terms, UInt indent) const;
 
-      void writeCVList_(std::ostream & os, const std::map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const;
+      void writeCVList_(std::ostream & os, const std::map<std::string, std::vector<CVTerm>> & cv_terms, UInt indent) const;
 
       // subfunctions of write
       void writeTarget_(std::ostream & os, const std::vector<IncludeExcludeTarget>::const_iterator & it) const;
@@ -139,10 +139,10 @@ protected:
       void writeConfiguration_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator & cit) const;
 
       /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
-      ControlledVocabulary::CVTerm getChildWithName_(const String & parent_accession, const String & name) const;
+      ControlledVocabulary::CVTerm getChildWithName_(const std::string & parent_accession, const std::string & name) const;
 
       /// Helper method that writes a source file
-      //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
+      //void writeSourceFile_(std::ostream& os, const std::string& id, const SourceFile& software);
 
     };
   } // namespace Internal

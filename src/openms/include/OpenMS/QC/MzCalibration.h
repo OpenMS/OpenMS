@@ -53,7 +53,7 @@ namespace OpenMS
     Status requirements() const override;
 
     /// Returns the name of the metric.
-    const String& getName() const override;
+    const std::string& getName() const override;
 
   private:
     /// calculate the m/z values and m/z errors and add them to the PeptideIdentification

@@ -21,7 +21,7 @@ namespace OpenMS
   {
   }
   
-  MultiplexDeltaMasses::DeltaMass::DeltaMass(double dm, const String& l) :
+  MultiplexDeltaMasses::DeltaMass::DeltaMass(double dm, const std::string& l) :
     delta_mass(dm), label_set()
   {
     label_set.insert(l);
@@ -44,7 +44,7 @@ namespace OpenMS
     return delta_masses_;
   }
   
-  String MultiplexDeltaMasses::labelSetToString(const MultiplexDeltaMasses::LabelSet& ls)
+  std::string MultiplexDeltaMasses::labelSetToString(const MultiplexDeltaMasses::LabelSet& ls)
   {
     std::stringstream ss;
     
@@ -57,7 +57,7 @@ namespace OpenMS
       ss << (*it);
     }
 
-    return String(ss.str());
+    return StringUtils::toStr(ss.str());
   }
 
   bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2)

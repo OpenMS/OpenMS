@@ -124,7 +124,7 @@ namespace OpenMS
       std::string path = "UNKNOWN_FILE"; ///< file name, mandatory
       unsigned label = 1;  ///< the label (e.g.,: 1 for label-free, 1..8 for TMT8plex)
       unsigned sample = 0;  ///< zero-based index for the sample section contents; allows grouping by sample
-      String sample_name = "0"; ///< sample name for access of the sample row by string, not index
+      std::string sample_name = "0"; ///< sample name for access of the sample row by string, not index
     };
 
     class OPENMS_DLLAPI SampleSection
@@ -134,41 +134,41 @@ namespace OpenMS
       SampleSection() = default;
 
       SampleSection(
-        const std::vector< std::vector < String > >& content,
-        const std::map< String, Size >& sample_to_rowindex,
-        const std::map< String, Size >& columnname_to_columnindex
+        const std::vector< std::vector < std::string > >& content,
+        const std::map< std::string, Size >& sample_to_rowindex,
+        const std::map< std::string, Size >& columnname_to_columnindex
       );
 
       // Get set of all samples that are present in the sample section
-      std::set< String > getSamples() const;
+      std::set< std::string > getSamples() const;
 
       // Add a sample as the last row
-      void addSample(const String& sample, const std::vector<String>& content = {});
+      void addSample(const std::string& sample, const std::vector<std::string>& content = {});
 
       // TODO should it include the Sample ID column or not??
       // Get set of all factors (column names) that were defined for the sample section
-      std::set< String > getFactors() const;
+      std::set< std::string > getFactors() const;
 
       // Checks whether sample section has row for a sample number
-      bool hasSample(const String& sample) const;
+      bool hasSample(const std::string& sample) const;
 
       // Checks whether Sample Section has a specific factor (i.e. column name)
-      bool hasFactor(const String &factor) const;
+      bool hasFactor(const std::string &factor) const;
 
       // Returns value of factor for given sample and factor name
-      String getFactorValue(const String& sample_name, const String &factor) const;
+      std::string getFactorValue(const std::string& sample_name, const std::string &factor) const;
 
       // Returns value of factor for given sample index and factor name
-      String getFactorValue(unsigned sample_idx, const String &factor) const;
+      std::string getFactorValue(unsigned sample_idx, const std::string &factor) const;
 
       // Returns column index of factor
-      Size getFactorColIdx(const String &factor) const;
+      Size getFactorColIdx(const std::string &factor) const;
 
       // Returns the name/ID of the sample. Not necessarily the row index
-      String getSampleName(unsigned sample_row) const;
+      std::string getSampleName(unsigned sample_row) const;
 
       // Returns the row index in the sample section for a sample name/ID
-      unsigned getSampleRow(const String& sample) const;
+      unsigned getSampleRow(const std::string& sample) const;
 
       /// returns the number of entries in content_ member
       Size getContentSize() const;
@@ -177,15 +177,15 @@ namespace OpenMS
 
       // The entries of the Sample Section, filled while parsing
       // the Experimental Design File
-      std::vector< std::vector < String > > content_;
+      std::vector< std::vector < std::string > > content_;
 
       // Maps the Sample Entry name to the row where the sample
       // appears in the Sample section, its sample index
-      std::map< String, Size > sample_to_rowindex_;
+      std::map< std::string, Size > sample_to_rowindex_;
 
       // Maps the column name of the SampleSection to the
       // Index of the column
-      std::map< String, Size > columnname_to_columnindex_;
+      std::map< std::string, Size > columnname_to_columnindex_;
     };
 
     using MSFileSection = std::vector<MSFileSectionEntry>;
@@ -206,23 +206,23 @@ namespace OpenMS
 
     /// returns a map from a sample section row to sample id for clustering
     /// duplicate sample rows (e.g. to find all fractions of the same "sample")
-    std::map<std::vector<String>, std::set<String>> getUniqueSampleRowToSampleMapping() const;
+    std::map<std::vector<std::string>, std::set<std::string>> getUniqueSampleRowToSampleMapping() const;
 
     /// uses getUniqueSampleRowToSampleMapping to get the reversed map
     /// mapping sample ID to a real unique sample
-    std::map<String, unsigned> getSampleToPrefractionationMapping() const;
+    std::map<std::string, unsigned> getSampleToPrefractionationMapping() const;
 
     /// return fraction index to file paths (ordered by fraction_group)
     //TODO this probably needs a basename parameter to be fully compatible with the other mappings!! Implicit full path.
-    std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;
+    std::map<unsigned int, std::vector<std::string> > getFractionToMSFilesMapping() const;
 
     /// return vector of filepath/label combinations that share the same conditions after removing
     /// replicate columns in the sample section (e.g. for merging across replicates)
     //TODO this probably needs a basename parameter to be fully compatible with the other mappings!! Implicit full path.
-    std::vector<std::vector<std::pair<String, unsigned>>> getConditionToPathLabelVector() const;
+    std::vector<std::vector<std::pair<std::string, unsigned>>> getConditionToPathLabelVector() const;
 
     /// return a condition (unique combination of sample section values except replicate) to Sample index mapping
-    std::map<std::vector<String>, std::set<unsigned>> getConditionToSampleMapping() const;
+    std::map<std::vector<std::string>, std::set<unsigned>> getConditionToSampleMapping() const;
 
    /*
     *   The (Path, Label) tuples in the experimental design have to be unique, so we can map them
@@ -231,24 +231,24 @@ namespace OpenMS
 
     /// return <file_path, label> to prefractionation mapping (a prefractionation group is a unique combination of
     /// all columns in the sample section, except for replicates.
-    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToPrefractionationMapping(bool use_basename_only) const;
+    std::map< std::pair< std::string, unsigned >, unsigned> getPathLabelToPrefractionationMapping(bool use_basename_only) const;
 
     /// return <file_path, label> to condition mapping (a condition is a unique combination of all columns in the
     /// sample section, except for replicates.
-    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToConditionMapping(bool use_basename_only) const;
+    std::map< std::pair< std::string, unsigned >, unsigned> getPathLabelToConditionMapping(bool use_basename_only) const;
 
     /// return Sample name to condition mapping (a condition is a unique combination of all columns in the
     /// sample section, except for replicates. Numbering of conditions is alphabetical due to map.
-    std::map<String, unsigned> getSampleToConditionMapping() const;
+    std::map<std::string, unsigned> getSampleToConditionMapping() const;
 
     /// return <file_path, label> to sample index mapping
-    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool use_basename_only) const;
+    std::map< std::pair< std::string, unsigned >, unsigned> getPathLabelToSampleMapping(bool use_basename_only) const;
 
     /// return <file_path, label> to fraction mapping
-    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionMapping(bool use_basename_only) const;
+    std::map< std::pair< std::string, unsigned >, unsigned> getPathLabelToFractionMapping(bool use_basename_only) const;
 
     /// return <file_path, label> to fraction_group mapping
-    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionGroupMapping(bool use_basename_only) const;
+    std::map< std::pair< std::string, unsigned >, unsigned> getPathLabelToFractionGroupMapping(bool use_basename_only) const;
 
     // @return the number of samples measured (= highest sample index)
     unsigned getNumberOfSamples() const;
@@ -276,7 +276,7 @@ namespace OpenMS
     /// filters the MSFileSection to only include a given subset of files whose basenames
     /// are given with @p bns
     /// @return number of files that have been filtered
-    Size filterByBasenames(const std::set<String>& bns);
+    Size filterByBasenames(const std::set<std::string>& bns);
 
     /// @returns whether all fraction groups have the same number of fractions
     bool sameNrOfMSFilesPerFraction() const;
@@ -293,7 +293,7 @@ namespace OpenMS
 
     private:
     // MS filename column, optionally trims to basename
-    std::vector< String > getFileNames_(bool basename) const;
+    std::vector< std::string > getFileNames_(bool basename) const;
 
     // returns label column
     std::vector<unsigned> getLabels_() const;
@@ -302,7 +302,7 @@ namespace OpenMS
     std::vector<unsigned> getFractions_() const;
 
     /// Generic Mapper (Path, Label) -> f(row)
-    std::map< std::pair< String, unsigned >, unsigned> pathLabelMapper_(
+    std::map< std::pair< std::string, unsigned >, unsigned> pathLabelMapper_(
         bool,
         unsigned (*f)(const ExperimentalDesign::MSFileSectionEntry&)) const;
 
@@ -310,7 +310,7 @@ namespace OpenMS
     void sort_();
 
     template<typename T>
-    static void errorIfAlreadyExists(std::set<T> &container, T &item, const String &message);
+    static void errorIfAlreadyExists(std::set<T> &container, T &item, const std::string &message);
 
     // basic consistency checks
     void isValid_();

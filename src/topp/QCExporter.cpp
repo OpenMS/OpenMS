@@ -77,12 +77,12 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
-    setValidFormats_("in", ListUtils::create<String>("qcML"));
+    setValidFormats_("in", ListUtils::create<std::string>("qcML"));
     registerStringList_("names", "<names>", StringList(), "The name of the target runs or sets to be exported from. If empty, from all will be exported.", false);
     registerInputFile_("mapping", "<file>", "", "The mapping of the exported table's headers to the according qp cvs. The first row is considered containing the headers as for the exported the table. The second row is considered the according qp cv accessions of the qp to be exported.", true);
-    setValidFormats_("mapping", ListUtils::create<String>("csv"));
+    setValidFormats_("mapping", ListUtils::create<std::string>("csv"));
     registerOutputFile_("out_csv", "<file>", "", "Output csv formatted quality parameter.");
-    setValidFormats_("out_csv", ListUtils::create<String>("csv"));
+    setValidFormats_("out_csv", ListUtils::create<std::string>("csv"));
   }
 
   ExitCodes main_(int, const char**) override
@@ -90,10 +90,10 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String csv = getStringOption_("out_csv");
+    std::string in = getStringOption_("in");
+    std::string csv = getStringOption_("out_csv");
     StringList names = getStringList_("names");
-    String mappi = getStringOption_("mapping");
+    std::string mappi = getStringOption_("mapping");
 
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
@@ -122,8 +122,8 @@ protected:
         cerr << "Error: You have to give a mapping of your table (first row is the header of table and second row is the according qc). Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
-      //~ std::map<String,String> mapping;
-      //~ std::transform( header.begin(), header.end(), according.begin(), std::inserter(mapping, mapping.end() ), std::make_pair<String,String> );
+      //~ std::map<std::string, std::string> mapping;
+      //~ std::transform( header.begin(), header.end(), according.begin(), std::inserter(mapping, mapping.end() ), std::make_pair<std::string, std::string> );
       //~ Size runset_col;
       for (Size i = 0; i < according.size(); ++i)
       {
@@ -137,7 +137,7 @@ protected:
           }
           catch (...)
           {
-            cerr << "Error: You have to specify a correct cv with accession or name in col " << String(i) << ". Aborting!" << endl;
+            cerr << "Error: You have to specify a correct cv with accession or name in col " << StringUtils::toStr(i) << ". Aborting!" << endl;
             return ILLEGAL_PARAMETERS;
           }
         }
@@ -154,12 +154,12 @@ protected:
 
       if (names.empty())
       {
-        std::vector<String> ns;
+        std::vector<std::string> ns;
         qcmlfile.getRunIDs(ns); //n.b. names are ids
         names = StringList(ns); //TODO also  sets
       }
 
-      String csv_str = ListUtils::concatenate(header, ",");
+      std::string csv_str = ListUtils::concatenate(header, ",");
       csv_str += '\n';
       for (Size i = 0; i < names.size(); ++i)
       {

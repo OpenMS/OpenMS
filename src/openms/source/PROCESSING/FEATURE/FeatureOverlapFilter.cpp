@@ -46,7 +46,7 @@ namespace OpenMS
         // parameter "write_convex_hull"):
         if (sub.getConvexHulls().empty())
         {
-          String error = "convex hulls for mass traces missing";
+          std::string error = "convex hulls for mass traces missing";
           throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, error);
         }
@@ -229,7 +229,7 @@ namespace OpenMS
                 else if (f_has_im && overlap_has_im)
                 {
                   // Both have FAIMS CV - must match
-                  double f_cv = f.getMetaValue(Constants::UserParam::FAIMS_CV);
+                  double f_cv = (double)f.getMetaValue(Constants::UserParam::FAIMS_CV);
                   double overlap_cv = overlap->getMetaValue(Constants::UserParam::FAIMS_CV);
                   if (f_cv != overlap_cv)
                   {
@@ -296,7 +296,7 @@ namespace OpenMS
         std::vector<double> merged_rts;
         if (best_in_cluster.metaValueExists("merged_centroid_rts"))
         {
-          merged_rts = best_in_cluster.getMetaValue("merged_centroid_rts");
+          merged_rts = (DoubleList)best_in_cluster.getMetaValue("merged_centroid_rts");
         }
         else
         {
@@ -309,7 +309,7 @@ namespace OpenMS
         std::vector<double> merged_mzs;
         if (best_in_cluster.metaValueExists("merged_centroid_mzs"))
         {
-          merged_mzs = best_in_cluster.getMetaValue("merged_centroid_mzs");
+          merged_mzs = (DoubleList)best_in_cluster.getMetaValue("merged_centroid_mzs");
         }
         else
         {
@@ -322,7 +322,7 @@ namespace OpenMS
         std::vector<double> merged_ims;
         if (best_in_cluster.metaValueExists("merged_centroid_IMs"))
         {
-          merged_ims = best_in_cluster.getMetaValue("merged_centroid_IMs");
+          merged_ims = (DoubleList)best_in_cluster.getMetaValue("merged_centroid_IMs");
         }
         else if (best_in_cluster.metaValueExists(Constants::UserParam::FAIMS_CV))
         {
@@ -439,8 +439,8 @@ namespace OpenMS
 
         // Only merge if FAIMS CVs are DIFFERENT
         // (same CV features should not be merged - they are different analytes)
-        double best_cv = best_in_cluster.getMetaValue(Constants::UserParam::FAIMS_CV);
-        double f_cv = f.getMetaValue(Constants::UserParam::FAIMS_CV);
+        double best_cv = (double)best_in_cluster.getMetaValue(Constants::UserParam::FAIMS_CV);
+        double f_cv = (double)f.getMetaValue(Constants::UserParam::FAIMS_CV);
 
         if (best_cv == f_cv)
         {
@@ -455,7 +455,7 @@ namespace OpenMS
         std::vector<double> merged_rts;
         if (best_in_cluster.metaValueExists("merged_centroid_rts"))
         {
-          merged_rts = best_in_cluster.getMetaValue("merged_centroid_rts");
+          merged_rts = (DoubleList)best_in_cluster.getMetaValue("merged_centroid_rts");
         }
         else
         {
@@ -468,7 +468,7 @@ namespace OpenMS
         std::vector<double> merged_mzs;
         if (best_in_cluster.metaValueExists("merged_centroid_mzs"))
         {
-          merged_mzs = best_in_cluster.getMetaValue("merged_centroid_mzs");
+          merged_mzs = (DoubleList)best_in_cluster.getMetaValue("merged_centroid_mzs");
         }
         else
         {
@@ -481,7 +481,7 @@ namespace OpenMS
         std::vector<double> merged_ims;
         if (best_in_cluster.metaValueExists("merged_centroid_IMs"))
         {
-          merged_ims = best_in_cluster.getMetaValue("merged_centroid_IMs");
+          merged_ims = (DoubleList)best_in_cluster.getMetaValue("merged_centroid_IMs");
         }
         else
         {

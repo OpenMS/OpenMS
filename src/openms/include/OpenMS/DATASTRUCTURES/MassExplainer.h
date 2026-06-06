@@ -227,7 +227,7 @@ protected:
       @param[in] p Probability of the adduct
       @return Adduct object with the specified properties
     */
-    Adduct createAdduct_(const String& formula, const Int charge, const double p) const;
+    Adduct createAdduct_(const std::string& formula, const Int charge, const double p) const;
 
     /// Vector storing all possible explanations for mass differences
     std::vector<Compomer> explanations_;

@@ -64,12 +64,12 @@ namespace OpenMS
     re_.reset(new boost::regex(enzyme_->getRegEx()));
   }
 
-  String EnzymaticDigestion::getEnzymeName() const
+  std::string EnzymaticDigestion::getEnzymeName() const
   {
     return enzyme_->getName();
   }
 
-  EnzymaticDigestion::Specificity EnzymaticDigestion::getSpecificityByName(const String& name)
+  EnzymaticDigestion::Specificity EnzymaticDigestion::getSpecificityByName(const std::string& name)
   {
     for (Size i = 0; i < SIZE_OF_SPECIFICITY; ++i)
     {
@@ -89,7 +89,7 @@ namespace OpenMS
     specificity_ = spec;
   }
 
-  std::vector<int> EnzymaticDigestion::tokenize_(const String& sequence, int start, int end) const
+  std::vector<int> EnzymaticDigestion::tokenize_(const std::string& sequence, int start, int end) const
   {
     std::vector<int> positions;
     // set proper boundaries
@@ -120,17 +120,17 @@ namespace OpenMS
     // Too few cleavage sites - should be at least sequence start and end
     if (cleavage_positions.size() < 2)
     {
-      String value(cleavage_positions.begin(), cleavage_positions.end());
+      std::string value(cleavage_positions.begin(), cleavage_positions.end());
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        String("Too few cleavage positions - at least sequence start and end positions are required."), value);
+        std::string("Too few cleavage positions - at least sequence start and end positions are required."), value);
     }
 
     // cleavage_positions has to be sorted
     if (! is_sorted(cleavage_positions.begin(), cleavage_positions.end()))
     {
-      String value(cleavage_positions.begin(), cleavage_positions.end());
+      std::string value(cleavage_positions.begin(), cleavage_positions.end());
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        String("Vector of cleavage positions (cleavage_positions) is not sorted, but it should be."));
+        std::string("Vector of cleavage positions (cleavage_positions) is not sorted, but it should be."));
     }
 
     int mc = missed_cleavages_;
@@ -192,23 +192,23 @@ namespace OpenMS
     return wrong;
   }
 
-  Size EnzymaticDigestion::countInternalCleavageSites(const String& sequence) const
+  Size EnzymaticDigestion::countInternalCleavageSites(const std::string& sequence) const
   {
     return tokenize_(sequence).size() - 1;
   }
 
-  bool EnzymaticDigestion::isValidProduct(const String& sequence, int pos, int length, bool ignore_missed_cleavages) const
+  bool EnzymaticDigestion::isValidProduct(const std::string& sequence, int pos, int length, bool ignore_missed_cleavages) const
   {
     return isValidProduct_(sequence, pos, length, ignore_missed_cleavages, false, false);
   }
 
-  bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, const std::function<bool(Int)>& filter) const
+  bool EnzymaticDigestion::filterByMissedCleavages(const std::string& sequence, const std::function<bool(Int)>& filter) const
   {
     const int mc = countInternalCleavageSites(sequence);
     return filter(mc);
   }
 
-  bool EnzymaticDigestion::isValidProduct_(const String& sequence, int pos, int length, bool ignore_missed_cleavages, bool allow_nterm_protein_cleavage, bool allow_random_asp_pro_cleavage) const
+  bool EnzymaticDigestion::isValidProduct_(const std::string& sequence, int pos, int length, bool ignore_missed_cleavages, bool allow_nterm_protein_cleavage, bool allow_random_asp_pro_cleavage) const
   {
     // for XTandem specific rules (see https://github.com/OpenMS/OpenMS/issues/2497)
     // M or MX at the N-terminus might have been cleaved off
@@ -401,7 +401,7 @@ namespace OpenMS
       Size l = fragment_positions[i] - fragment_positions[i - 1];
       if (l >= min_length && l <= max_length)
       {
-        output.push_back(sequence.substr(fragment_positions[i - 1], l));
+        output.push_back(sequence.getString().substr(fragment_positions[i - 1], l));
       }
       else
         ++wrong_size;
@@ -411,7 +411,7 @@ namespace OpenMS
     Size l = sequence.size() - fragment_positions[count - 1];
     if (l >= min_length && l <= max_length)
     {
-      output.push_back(sequence.substr(fragment_positions[count - 1], l));
+      output.push_back(sequence.getString().substr(fragment_positions[count - 1], l));
     }
     else
       ++wrong_size;
@@ -424,7 +424,7 @@ namespace OpenMS
         Size m = fragment_positions[j + i] - fragment_positions[j - 1];
         if (m >= min_length && m <= max_length)
         {
-          output.push_back(sequence.substr(fragment_positions[j - 1], m));
+          output.push_back(sequence.getString().substr(fragment_positions[j - 1], m));
         }
         else
           ++wrong_size;
@@ -434,7 +434,7 @@ namespace OpenMS
       Size n = sequence.size() - fragment_positions[count - i - 1];
       if (n >= min_length && n <= max_length)
       {
-        output.push_back(sequence.substr(fragment_positions[count - i - 1], n));
+        output.push_back(sequence.getString().substr(fragment_positions[count - i - 1], n));
       }
       else
       {
@@ -475,7 +475,7 @@ namespace OpenMS
         const Size right = std::min(i + max_length, sequence.size());
         for (Size j = i + min_length; j <= right; ++j)
         {
-          output.emplace_back(sequence.substr(i, j - i));
+          output.emplace_back(sequence.getString().substr(i, j - i));
         }
       }
       return 0;
@@ -495,7 +495,7 @@ namespace OpenMS
       wrong_size += semiSpecificDigestion_(fragment_positions, semi_pairs, min_length, max_length);
       for (const auto& p : semi_pairs)
       {
-        output.emplace_back(sequence.substr(p.first, p.second - p.first));
+        output.emplace_back(sequence.getString().substr(p.first, p.second - p.first));
       }
     }
 

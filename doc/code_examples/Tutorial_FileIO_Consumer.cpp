@@ -21,7 +21,7 @@ public:
   int nr_spectra {};
 
   // Create new consumer
-  TICWritingConsumer(const String& filename) : MSDataWritingConsumer(filename) 
+  TICWritingConsumer(const std::string& filename) : MSDataWritingConsumer(filename) 
   {}
 
   // Add a data processing step for spectra before they are written to disk

@@ -40,7 +40,7 @@ START_SECTION(virtual ~KroenikFile())
 END_SECTION
 
 
-START_SECTION((template < typename FeatureMapType > void load(const String &filename, FeatureMapType &feature_map)))
+START_SECTION((template < typename FeatureMapType > void load(const std::string &filename, FeatureMapType &feature_map)))
 {
   KroenikFile f;
   FeatureMap fm;
@@ -51,12 +51,12 @@ START_SECTION((template < typename FeatureMapType > void load(const String &file
   TEST_REAL_SIMILAR(fm[0].getMZ(), 1002.11)
   TEST_EQUAL(fm[0].getIntensity(), 999999)
   TEST_EQUAL(fm[0].getCharge(), 1)
-  TEST_EQUAL(String(fm[0].getMetaValue("AveragineModifications")), String("Carbamido"))
+  TEST_EQUAL(StringUtils::toStr(fm[0].getMetaValue("AveragineModifications")),StringUtils::toStr("Carbamido"))
   TEST_EQUAL(fm[1].getRT(),  62.2)
   TEST_REAL_SIMILAR(fm[1].getMZ(), 252.057	)
   TEST_EQUAL(fm[1].getIntensity(), 9999)
   TEST_EQUAL(fm[1].getCharge(), 2)
-  TEST_EQUAL(String(fm[1].getMetaValue("AveragineModifications")), String("Carbamido2"))
+  TEST_EQUAL(StringUtils::toStr(fm[1].getMetaValue("AveragineModifications")),StringUtils::toStr("Carbamido2"))
 
   
 
@@ -66,7 +66,7 @@ START_SECTION((template < typename FeatureMapType > void load(const String &file
 }
 END_SECTION
 
-START_SECTION((template < typename SpectrumType > void store(const String &filename, const SpectrumType &spectrum) const ))
+START_SECTION((template < typename SpectrumType > void store(const std::string &filename, const SpectrumType &spectrum) const ))
 {
   KroenikFile f;
   MSSpectrum spec;

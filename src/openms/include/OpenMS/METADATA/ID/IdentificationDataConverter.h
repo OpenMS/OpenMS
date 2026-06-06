@@ -46,7 +46,7 @@ namespace OpenMS
                                 const std::vector<FASTAFile::FASTAEntry>& fasta,
                                 IdentificationData::MoleculeType type =
                                 IdentificationData::MoleculeType::PROTEIN,
-                                const String& decoy_pattern = "");
+                                const std::string& decoy_pattern = "");
 
     /// Convert parent matches to peptide evidences
     static void exportParentMatches(
@@ -203,7 +203,7 @@ namespace OpenMS
     /// Export an input match (peptide- or oligonucleotide-spectrum match) to mzTab
     template <typename MzTabSectionRow>
     static void exportObservationMatchToMzTab_(
-      const String& sequence,
+      const std::string& sequence,
       const IdentificationData::ObservationMatch& match, double calc_mass,
       std::vector<MzTabSectionRow>& output,
       std::map<IdentificationData::ScoreTypeRef, Size>& score_map,

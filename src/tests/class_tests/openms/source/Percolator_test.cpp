@@ -787,7 +787,7 @@ START_SECTION((static void saveModel(const PercolatorModel& model, const String&
 
   PercolatorModel model = p.train(input);
 
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
   Percolator::saveModel(model, tmp);
 
@@ -822,12 +822,12 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 {
   // Covered by the save-model round-trip section above.
   // Verify negative cases here: missing file and malformed content.
-  String nonexistent;
+  std::string nonexistent;
   NEW_TMP_FILE(nonexistent);
   std::remove(nonexistent.c_str());
   TEST_EXCEPTION(Exception::FileNotFound, Percolator::loadModel(nonexistent))
 
-  auto writeModel = [](const String& path, const std::string& body) {
+  auto writeModel = [](const std::string& path, const std::string& body) {
     std::ofstream os(path.c_str());
     os << body;
   };
@@ -931,7 +931,7 @@ START_SECTION([EXTRA] feature named 'm0' round-trips through save/load)
   PercolatorModel model = p.train(input);
   TEST_EQUAL(model.feature_names[0], "m0")
 
-  String tmp; NEW_TMP_FILE(tmp);
+  std::string tmp; NEW_TMP_FILE(tmp);
   Percolator::saveModel(model, tmp);
 
   PercolatorModel loaded = Percolator::loadModel(tmp);

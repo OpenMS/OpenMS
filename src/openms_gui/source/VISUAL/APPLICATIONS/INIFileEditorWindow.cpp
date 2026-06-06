@@ -58,7 +58,7 @@ namespace OpenMS
     setMinimumSize(600, 600);
   }
 
-  bool INIFileEditorWindow::openFile(const String& filename)
+  bool INIFileEditorWindow::openFile(const std::string& filename)
   {
     if (filename.empty())
     {

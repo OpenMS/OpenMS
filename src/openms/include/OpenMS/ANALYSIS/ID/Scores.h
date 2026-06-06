@@ -68,7 +68,7 @@ namespace OpenMS
       @param[in] type The IDType to compare against.
       @return True if the score name matches the given IDType, false otherwise.
     */
-    static bool isScoreType(const String& score_name, IDType type);
+    static bool isScoreType(const std::string& score_name, IDType type);
 
     /**
       @brief Converts a string representation of an ID score type to an IDType enum.
@@ -82,7 +82,7 @@ namespace OpenMS
       @throws Exception::MissingInformation If the provided score_type string does not match any known
                                             score type.
     */
-    static IDType parseIDType(const String& score_type);
+    static IDType parseIDType(const std::string& score_type);
 
     /**
       @brief Determines whether a higher score is better for the given ID score type.
@@ -97,7 +97,7 @@ namespace OpenMS
 
       @return A vector of all ID score names (e.g., "q-value", "ln(hyperscore)").
     */
-    static std::vector<String> getAllIDScoreNames();
+    static std::vector<std::string> getAllIDScoreNames();
 
     /**
       @brief Gets the set of known names for a specific ID score type.
@@ -105,7 +105,7 @@ namespace OpenMS
       @param[in] type The ID score type.
       @return A set of strings representing known names for this score type.
     */
-    static const std::set<String>& getIDNamesForType(IDType type);
+    static const std::set<std::string>& getIDNamesForType(IDType type);
 
     /**
       @brief Finds the ID score type for a given score name.
@@ -116,7 +116,7 @@ namespace OpenMS
       @param[out] type Output parameter for the found score type.
       @return True if a matching type was found, false otherwise.
     */
-    static bool findIDTypeByName(const String& name, IDType& type);
+    static bool findIDTypeByName(const std::string& name, IDType& type);
 
     /**
       @brief Normalizes a score name by removing the "_score" suffix if present.
@@ -127,7 +127,7 @@ namespace OpenMS
       @param[in] score_name The score name to normalize.
       @return The normalized score name (without "_score" suffix).
     */
-    static String normalizeScoreName(const String& score_name);
+    static std::string normalizeScoreName(const std::string& score_name);
 
     /**
       @brief Checks if a score name is a known score type (after normalization).
@@ -139,13 +139,13 @@ namespace OpenMS
       @param[in] score_name The score name to check.
       @return True if the normalized name matches any known score type.
     */
-    static bool isKnownScoreType(const String& score_name);
+    static bool isKnownScoreType(const std::string& score_name);
 
   private:
     /// Holds the static score type lookup maps (thread-safe via C++11 function-local static)
     struct Maps_
     {
-      std::map<IDType, std::set<String>> type_to_str;
+      std::map<IDType, std::set<std::string>> type_to_str;
       std::map<IDType, bool> type_to_better;
     };
 

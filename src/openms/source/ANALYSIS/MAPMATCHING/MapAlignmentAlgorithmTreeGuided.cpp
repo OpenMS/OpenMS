@@ -112,7 +112,7 @@ namespace OpenMS
     {
       if (!peptide.getHits().empty())
       {
-        const String& sequence = peptide.getHits()[0].getSequence().toString();
+        const std::string& sequence = peptide.getHits()[0].getSequence().toString();
         peptide_rts[sequence].push_back(feature_rt);
         map_range.push_back(feature_rt);
       }

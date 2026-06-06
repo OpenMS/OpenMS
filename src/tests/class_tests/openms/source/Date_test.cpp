@@ -86,7 +86,7 @@ START_SECTION((Date(const Date& date)))
 	TEST_EQUAL(date==date2,true);
 END_SECTION
 
-START_SECTION((void set(const String& date) ))
+START_SECTION((void set(const std::string& date) ))
   Date date;
   //german
   date.set("01.12.1977");
@@ -126,7 +126,7 @@ START_SECTION((void set(const String& date) ))
   TEST_EXCEPTION(Exception::ParseError,date.set("1135-64-3"));
 END_SECTION
 
-START_SECTION((String get() const))
+START_SECTION((std::string get() const))
   Date d;
   TEST_EQUAL(d.get(),"0000-00-00");
   d.set("11.12.1977");

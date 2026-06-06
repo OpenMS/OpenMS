@@ -267,7 +267,7 @@ namespace OpenMS
 
   void LayerStatistics::bringInMetaStats_(const MetaInfoInterface* meta_interface)
   {
-    vector<String> new_meta_keys;
+    vector<std::string> new_meta_keys;
     meta_interface->getKeys(new_meta_keys);
     for (const auto& idx : new_meta_keys)
     {

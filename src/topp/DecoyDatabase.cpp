@@ -82,11 +82,11 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFileList_("in", "<file(s)>", ListUtils::create<String>(""), "Input FASTA file(s), each containing a database. It is recommended to include a contaminant database as well.");
+    registerInputFileList_("in", "<file(s)>", ListUtils::create<std::string>(""), "Input FASTA file(s), each containing a database. It is recommended to include a contaminant database as well.");
     setValidFormats_("in", {"fasta"});
     registerOutputFile_("out", "<file>", "", "Output FASTA file where the decoy database (target + decoy or only decoy, see 'only_decoy') will be written to.");
     setValidFormats_("out", {"fasta"});
-    registerStringOption_("decoy_string", "<string>", "DECOY_", "String that is combined with the accession of the protein identifier to indicate a decoy protein.", false);
+    registerStringOption_("decoy_string", "<string>", "DECOY_", "std::string that is combined with the accession of the protein identifier to indicate a decoy protein.", false);
     registerStringOption_("decoy_string_position", "<choice>", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
     setValidStrings_("decoy_string_position", {"prefix", "suffix"});
     registerFlag_("only_decoy", "Write only decoy proteins to the output database instead of a combined database.", false);
@@ -101,7 +101,7 @@ protected:
     registerIntOption_("shuffle_decoy_ratio", "<int>", 1, "shuffle: target-decoy database size ratio. The resulting size between target and decoy databases is 1 to this integer value.", false, true);
     setMinInt_("shuffle_decoy_ratio", 1);
 
-    registerStringOption_("seed", "<int/'time')>", '1', "Random number seed (use 'time' for system time)", false, true);
+    registerStringOption_("seed", "<int/'time')>", "1", "Random number seed (use 'time' for system time)", false, true);
 
     StringList all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
@@ -128,7 +128,7 @@ protected:
   }
 
 
-  Param getSubsectionDefaults_(const String& /* name */) const override
+  Param getSubsectionDefaults_(const std::string& /* name */) const override
   {
     Param p = MRMDecoy().getDefaults();
     // change the default to also work with other proteases
@@ -136,7 +136,7 @@ protected:
     return p;
   }
 
-  String getDecoyIdentifier_(const String& identifier, const String& decoy_string, const String& suffix_string, const bool as_prefix)
+  std::string getDecoyIdentifier_(const std::string& identifier, const std::string& decoy_string, const std::string& suffix_string, const bool as_prefix)
   {
     if (as_prefix) 
     {
@@ -156,7 +156,7 @@ protected:
     //-------------------------------------------------------------
     enum class SeqType {protein, RNA};
     StringList in = getStringList_("in");
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
 
     bool append = !getFlag_("only_decoy");
     bool shuffle = (getStringOption_("method") == "shuffle");
@@ -169,17 +169,17 @@ protected:
         "Parameter 'shuffle_decoy_ratio' can only be used with method 'shuffle', not with method 'reverse'.");
     }
     
-    String decoy_string = getStringOption_("decoy_string");
+    std::string decoy_string = getStringOption_("decoy_string");
     bool decoy_string_position_prefix =
       (getStringOption_("decoy_string_position") == "prefix");
 
     // check if decoy_string is common decoy string (e.g. decoy, rev, ...)
-    String decoy_string_lower = decoy_string;
-    decoy_string_lower.toLower();
+    std::string decoy_string_lower = decoy_string;
+    StringUtils::toLower(decoy_string_lower);
     bool is_common = false;
     for (const auto& a : DecoyHelper::affixes)
     {
-      if ((decoy_string_lower.hasPrefix(a) && decoy_string_position_prefix) || (decoy_string_lower.hasSuffix(a) && ! decoy_string_position_prefix))
+      if ((StringUtils::hasPrefix(decoy_string_lower, a) && decoy_string_position_prefix) || (StringUtils::hasSuffix(decoy_string_lower, a) && ! decoy_string_position_prefix))
       {
         is_common = true;
       }
@@ -205,7 +205,7 @@ protected:
     bool keepN = decoy_param.getValue("keepPeptideNTerm").toBool();
     bool keepC = decoy_param.getValue("keepPeptideCTerm").toBool();
 
-    String keep_const_pattern = decoy_param.getValue("non_shuffle_pattern").toString();
+    std::string keep_const_pattern = decoy_param.getValue("non_shuffle_pattern").toString();
     Int max_attempts = getIntOption_("shuffle_max_attempts");
     double identity_threshold = getDoubleOption_("shuffle_sequence_identity_threshold");
 
@@ -215,13 +215,13 @@ protected:
     // will ensure that the total number of unique tryptic peptides
     // is identical in both databases.
     ;
-    String seed_option(getStringOption_("seed"));
-    const int seed = (seed_option == "time") ? time(nullptr) : seed_option.toInt();
+    std::string seed_option(getStringOption_("seed"));
+    const int seed = (seed_option == "time") ? time(nullptr) : StringUtils::toInt32(seed_option);
         
     // Configure Enzymatic digestion
     // TODO: allow user-specified regex
     ProteaseDigestion digestion;
-    String enzyme = getStringOption_("enzyme").trim();
+    std::string enzyme = StringUtils::trimmed(getStringOption_("enzyme"));
     if ((input_type == SeqType::protein) && ! enzyme.empty()) { digestion.setEnzyme(enzyme); }
 
     //-------------------------------------------------------------
@@ -250,9 +250,9 @@ protected:
 
 
     // create neighbor peptides for the relevant peptides?
-    String in_relevant_proteins = getStringOption_("NeighborSearch:in_relevant_proteins");
-    String out_relevant = getStringOption_("NeighborSearch:out_relevant");
-    String out_neighbor = getStringOption_("NeighborSearch:out_neighbor");
+    std::string in_relevant_proteins = getStringOption_("NeighborSearch:in_relevant_proteins");
+    std::string out_relevant = getStringOption_("NeighborSearch:out_relevant");
+    std::string out_neighbor = getStringOption_("NeighborSearch:out_neighbor");
     if (in_relevant_proteins.empty() ^ out_relevant.empty())
     {
       OPENMS_LOG_ERROR << "Parameter settings are invalid. Both 'in_relevant_proteins' and 'out_relevant' must be set or unset.\n";
@@ -294,7 +294,7 @@ protected:
       // (it's not identical to the one used for creating decoys, because we need to consider missed cleavages)
       ProteaseDigestion digestion_neighbor;
       digestion_neighbor.setMissedCleavages(missed_cleavages);
-      if (! enzyme.empty()) { digestion_neighbor.setEnzyme(getStringOption_("enzyme").trim()); }
+      if (! enzyme.empty()) { digestion_neighbor.setEnzyme(enzyme); }
       // Load the relevant proteins from 'NeighborSearch:in_relevant_proteins'
       vector<FASTAFile::FASTAEntry> relevant_proteins;
       FASTAFile().load(in_relevant_proteins, relevant_proteins);
@@ -356,7 +356,7 @@ protected:
                       << " - " << stats.multiNB() << " peptides had >=1 neighbors." << endl;
     }
 
-    set<String> identifiers; // spot duplicate identifiers  // std::unordered_set<string> has slightly more RAM, but slightly less CPU
+    set<std::string> identifiers; // spot duplicate identifiers  // std::unordered_set<string> has slightly more RAM, but slightly less CPU
 
     FASTAFile f;
     f.writeStart(out);
@@ -407,7 +407,7 @@ protected:
           // Derive a per-repeat seed so each repeat yields a distinct decoy sequence
           auto repeat_seed = seed + num_repeat;
           // add iteration suffix if shuffle_ratio > 1
-          String suffix_string = shuffle_ratio == 1 ? "" : std::string("_") + std::to_string(num_repeat + 1);
+          std::string suffix_string = shuffle_ratio == 1 ? "" : std::string("_") + std::to_string(num_repeat + 1);
           decoy_entry.identifier = getDecoyIdentifier_(decoy_entry.identifier, decoy_string, suffix_string, decoy_string_position_prefix);
           // new decoy sequence
           if (input_type == SeqType::RNA)
@@ -421,7 +421,7 @@ protected:
             }
             if (three_p) { quick_seq.pop_back(); }
 
-            vector<String> tokenized;
+            vector<std::string> tokenized;
             std::smatch m;
             std::string pattern = R"([^\[]|(\[[^\[\]]*\]))";
             std::regex re(pattern);
@@ -443,7 +443,7 @@ protected:
             }
             if (five_p) // add back 5'
             {
-              tokenized.insert(tokenized.begin(), String("p"));
+              tokenized.insert(tokenized.begin(),StringUtils::toStr("p"));
             }
             if (three_p) // add back 3'
             {
@@ -458,7 +458,7 @@ protected:
             {
               std::vector<AASequence> peptides;
               digestion.digest(AASequence::fromString(decoy_entry.sequence), peptides);
-              String new_sequence = "";
+              std::string new_sequence = "";
               for (auto const& peptide : peptides)
               {
                 p.sequence = peptide.toString();
@@ -480,7 +480,7 @@ protected:
               }
               else // reverse
               {
-                decoy_entry.sequence.reverse();
+                StringUtils::reverse(decoy_entry.sequence);
               }
             }
           } // protein entry

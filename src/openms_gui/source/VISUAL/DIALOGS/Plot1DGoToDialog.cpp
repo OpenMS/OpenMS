@@ -50,8 +50,8 @@ namespace OpenMS
   void Plot1DGoToDialog::fixRange()
   {
     // load from GUI
-    float min_mz = ui_->min_->text().toFloat();
-    float max_mz = ui_->max_->text().toFloat();
+    float min_mz = ui_->StringUtils::toFloat(min_->text());
+    float max_mz = ui_->StringUtils::toFloat(max_->text());
 
     // ensure correct order of min and max
     if (min_mz > max_mz) swap(min_mz, max_mz);
@@ -70,12 +70,12 @@ namespace OpenMS
 
   float Plot1DGoToDialog::getMin() const
   {
-    return ui_->min_->text().toFloat();
+    return ui_->StringUtils::toFloat(min_->text());
   }
 
   float Plot1DGoToDialog::getMax() const
   {
-    return ui_->max_->text().toFloat();
+    return ui_->StringUtils::toFloat(max_->text());
   }
 
 } //namespace OpenMS

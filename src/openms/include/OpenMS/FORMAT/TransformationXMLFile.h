@@ -45,7 +45,7 @@ public:
     @exception Exception::FileNotFound is thrown if the file could not be opened
     @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, TransformationDescription& transformation, bool fit_model=true);
+    void load(const std::string& filename, TransformationDescription& transformation, bool fit_model=true);
 
     /**
     @brief Stores the data in an TransformationXML file
@@ -55,7 +55,7 @@ public:
     @exception Exception::UnableToCreateFile is thrown if the file could not be created
     @exception Exception::IllegalArgument is thrown if unsupported parameter types have been set
     */
-    void store(const String& filename, const TransformationDescription& transformation);
+    void store(const std::string& filename, const TransformationDescription& transformation);
 
 protected:
     // Docu in base class
@@ -68,7 +68,7 @@ protected:
     /// Data vector
     TransformationDescription::DataPoints data_;
     /// Model type
-    String model_type_;
+    std::string model_type_;
     //@}
 
   };

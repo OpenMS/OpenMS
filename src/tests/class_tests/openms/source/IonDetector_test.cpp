@@ -95,11 +95,11 @@ START_SECTION((IonDetector(const IonDetector& source)))
   tmp.setADCSamplingFrequency(47.21);
   tmp.setAcquisitionMode(IonDetector::AcquisitionMode::PULSECOUNTING);
   tmp.setType(IonDetector::Type::ELECTRONMULTIPLIER);
-  tmp.setMetaValue("label",String("label"));
+  tmp.setMetaValue("label",StringUtils::toStr("label"));
   tmp.setOrder(45);
   
   IonDetector tmp2(tmp);	
-  TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+  TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
   TEST_REAL_SIMILAR(tmp2.getResolution(),47.11);
   TEST_REAL_SIMILAR(tmp2.getADCSamplingFrequency(),47.21);
   TEST_EQUAL(tmp2.getAcquisitionMode(),IonDetector::AcquisitionMode::PULSECOUNTING);
@@ -113,12 +113,12 @@ START_SECTION((IonDetector& operator= (const IonDetector& source)))
   tmp.setADCSamplingFrequency(47.21);
   tmp.setAcquisitionMode(IonDetector::AcquisitionMode::PULSECOUNTING);
   tmp.setType(IonDetector::Type::ELECTRONMULTIPLIER);
-  tmp.setMetaValue("label",String("label"));
+  tmp.setMetaValue("label",StringUtils::toStr("label"));
   tmp.setOrder(45);
   
   IonDetector tmp2;
   tmp2 = tmp;	
-  TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+  TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
   TEST_REAL_SIMILAR(tmp2.getResolution(),47.11);
   TEST_REAL_SIMILAR(tmp2.getADCSamplingFrequency(),47.21);
   TEST_EQUAL(tmp2.getAcquisitionMode(),IonDetector::AcquisitionMode::PULSECOUNTING);
@@ -155,7 +155,7 @@ START_SECTION((bool operator== (const IonDetector& rhs) const))
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
-  edit.setMetaValue("label",String("label"));
+  edit.setMetaValue("label",StringUtils::toStr("label"));
 	TEST_EQUAL(edit==empty,false);
 
   edit = empty;
@@ -184,7 +184,7 @@ START_SECTION((bool operator!= (const IonDetector& rhs) const))
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;
-  edit.setMetaValue("label",String("label"));
+  edit.setMetaValue("label",StringUtils::toStr("label"));
 	TEST_EQUAL(edit!=empty,true);
 	
   edit = empty;

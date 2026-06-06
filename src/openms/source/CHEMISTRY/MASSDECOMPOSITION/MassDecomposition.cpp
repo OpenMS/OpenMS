@@ -21,21 +21,21 @@ namespace OpenMS
   {
   }
 
-  MassDecomposition::MassDecomposition(const String& deco) :
+  MassDecomposition::MassDecomposition(const std::string& deco) :
     number_of_max_aa_(0)
   {
-    String tmp = deco;
-    vector<String> split;
+    std::string tmp = deco;
+    vector<std::string> split;
 
     // some more info per line
-    if (deco.has('('))
+    if (StringUtils::has(deco, '('))
     {
       Size pos = tmp.find('(', 0);
-      tmp = tmp.substr(0, pos);
-      tmp.trim();
+      tmp = StringUtils::substr(tmp, 0, pos);
+      StringUtils::trim(tmp);
     }
 
-    tmp.split(' ', split);
+    StringUtils::split(tmp, ' ', split);
     number_of_max_aa_ = 0;
     // only one aa type?
     if (!split.empty())
@@ -43,9 +43,9 @@ namespace OpenMS
       for (Size i = 0; i != split.size(); ++i)
       {
         char aa = split[i][0];
-        String s = split[i];
+        std::string s = split[i];
         s.erase(0, 1);
-        Size n = (Size)s.toInt();
+        Size n = (Size)StringUtils::toInt32(s);
         if (number_of_max_aa_ < n)
         {
           number_of_max_aa_ = n;
@@ -98,37 +98,37 @@ namespace OpenMS
     return decomp_ < rhs.decomp_;
   }
 
-  bool MassDecomposition::operator==(const String& deco) const
+  bool MassDecomposition::operator==(const std::string& deco) const
   {
     MassDecomposition md(deco);
 
     return decomp_ == md.decomp_ && number_of_max_aa_ == md.number_of_max_aa_;
   }
 
-  String MassDecomposition::toString() const
+  std::string MassDecomposition::toString() const
   {
-    String s;
+    std::string s;
     for (map<char, Size>::const_iterator it = decomp_.begin(); it != decomp_.end(); ++it)
     {
-      s += it->first + String(it->second) + String(" ");
+      s += it->first + StringUtils::toStr(it->second) + std::string(" ");
     }
-    return s.trim();
+    return StringUtils::trim(s);
   }
 
-  String MassDecomposition::toExpandedString() const
+  std::string MassDecomposition::toExpandedString() const
   {
-    String s;
+    std::string s;
     for (map<char, Size>::const_iterator it = decomp_.begin(); it != decomp_.end(); ++it)
     {
-      s += String(it->second, it->first);
+      s += std::string(it->second, it->first);
     }
     return s;
   }
 
-  bool MassDecomposition::containsTag(const String& tag) const
+  bool MassDecomposition::containsTag(const std::string& tag) const
   {
     map<char, Size> tmp;
-    for (String::ConstIterator it = tag.begin(); it != tag.end(); ++it)
+    for (std::string::const_iterator it = tag.begin(); it != tag.end(); ++it)
     {
       char aa = *it;
       map<char, Size>::const_iterator it2 = decomp_.find(aa);

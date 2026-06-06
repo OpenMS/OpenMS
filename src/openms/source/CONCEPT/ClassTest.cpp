@@ -99,8 +99,8 @@ namespace OpenMS::Internal::ClassTest
 
         if (TEST::infile.good() && TEST::templatefile.good())
         {
-          String TEST_FILE__template_line;
-          String TEST_FILE__line;
+          std::string TEST_FILE__template_line;
+          std::string TEST_FILE__line;
 
           while (TEST::infile.good() && TEST::templatefile.good())
           {
@@ -108,8 +108,8 @@ namespace OpenMS::Internal::ClassTest
             TEST_FILE__template_line = TEST::line_buffer;
             TEST::infile.getline(TEST::line_buffer, 65535);
             TEST_FILE__line = TEST::line_buffer;
-            TEST_FILE__template_line.trim(); // remove leading and trailing whitespaces (ignore CR/LF line endings on Unix)
-            TEST_FILE__line.trim();          // remove leading and trailing whitespaces (ignore CR/LF line endings on Unix)
+            StringUtils::trim(TEST_FILE__template_line); // remove leading and trailing whitespaces (ignore CR/LF line endings on Unix)
+            StringUtils::trim(TEST_FILE__line);          // remove leading and trailing whitespaces (ignore CR/LF line endings on Unix)
             if (TEST_FILE__template_line != TEST_FILE__line)
             {
               TEST::equal_files = false;
@@ -202,13 +202,13 @@ namespace OpenMS::Internal::ClassTest
       setWhitelist(const char* const /* file */, const int line,
                    const std::string& whitelist_)
       {
-        TEST::whitelist = ListUtils::create<String>(whitelist_);
+        TEST::whitelist = ListUtils::create<std::string>(whitelist_);
 
         if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))
         {
           TEST::initialNewline();
           stdcout << " +  line " << line << ":  WHITELIST(\"" << whitelist_
-                    << "\"):   whitelist is: " << TEST::whitelist << '\n';
+                    << "\"):   whitelist is: " << ListUtils::concatenate(TEST::whitelist, ", ") << '\n';
         }
         return;
       }
@@ -365,7 +365,7 @@ namespace OpenMS::Internal::ClassTest
       createTmpFileName(const std::string& file, int line, const std::string& extension)
       {
         std::filesystem::path fp(file);
-        std::string filename = (String(fp.stem().string())) + '_' + String(line) + ".tmp" + extension;
+        std::string filename = (StringUtils::toStr(fp.stem().string())) + '_' + StringUtils::toStr(line) + ".tmp" + extension;
         TEST::tmp_file_list.push_back(filename);
         TEST::initialNewline();
         stdcout << "    creating new temporary filename '"
@@ -771,7 +771,7 @@ namespace OpenMS::Internal::ClassTest
         }
         if (TEST::test_count == 0)
         {
-          if (OpenMS::String(TEST::test_name).has('~'))
+          if (std::string(TEST::test_name).find('~') != std::string::npos)
             out << "Warning: no subtests performed in '" << TEST::test_name << "' (line " << line << ")!\n";
         }
         stdcout << '\n';

@@ -217,8 +217,8 @@ namespace OpenMS
       auto construct_feature = [checkRtAndMzTol, spectrum_rt, spectrum_mz, &ms2_features, &annotated_spectra, &spectrum](
         const OpenMS::Feature& feature, const double& mz_tol, const double& rt_win)
       {
-        const auto& peptide_ref_s = feature.getMetaValue("PeptideRef");
-        const auto& native_id_s = feature.getMetaValue("native_id");
+        const auto& peptide_ref_s = (std::string)feature.getMetaValue("PeptideRef");
+        const auto& native_id_s = (std::string)feature.getMetaValue("native_id");
         // check for null annotations resulting from unnanotated features
         if (peptide_ref_s != "null")
         {
@@ -301,7 +301,7 @@ namespace OpenMS
                 // For example, M-H;1- will give -H
                 std::string str = hit.getMetaValue("modifications").toString();
                 std::string delimiter = ";";
-                adducts = str.substr(1, str.find(delimiter) - 1);
+                adducts = StringUtils::substr(str, 1, str.find(delimiter) - 1);
               }
               catch (const std::exception& e)
               {
@@ -787,7 +787,7 @@ namespace OpenMS
       {
         features[i].setMetaValue("spectral_library_name", matches[0].spectrum.getName());
         features[i].setMetaValue("spectral_library_score", matches[0].score);
-        const String& comments = matches[0].spectrum.metaValueExists("Comments") ?
+        const std::string& comments = matches[0].spectrum.metaValueExists("Comments") ?
           matches[0].spectrum.getMetaValue("Comments") : "";
         features[i].setMetaValue("spectral_library_comments", comments);
       }
@@ -804,7 +804,7 @@ namespace OpenMS
 
     if (!no_matches_idx.empty())
     {
-      String warn_msg = "No match was found for " + std::to_string(no_matches_idx.size()) + " `Feature`s. Indices: ";
+      std::string warn_msg = "No match was found for " + std::to_string(no_matches_idx.size()) + " `Feature`s. Indices: ";
       for (const Size idx : no_matches_idx)
       {
         warn_msg += std::to_string(idx) + " ";
@@ -871,7 +871,7 @@ namespace OpenMS
     std::map<std::string, OpenMS::TargetedExperiment::Protein> proteins_map;
     for (const auto& ms1_feature : ms1_features)
     {
-      std::string peptide_ref = ms1_feature.getMetaValue("PeptideRef");
+      std::string peptide_ref = (std::string)(std::string)ms1_feature.getMetaValue("PeptideRef");
       OpenMS::TargetedExperiment::Protein protein;
       protein.id = peptide_ref;
       protein.addMetaValues(ms1_feature);
@@ -947,7 +947,7 @@ namespace OpenMS
     try
     {
       // Pass 1: organize into a map by combining features and subordinates with the same `identifier`
-      std::map<OpenMS::String, std::vector<OpenMS::Feature>> fmapmap;
+      std::map<std::string, std::vector<OpenMS::Feature>> fmapmap;
       organizeMapWithSameIdentifier(fmap_input, fmapmap);
 
       // Pass 2: compute the consensus manually
@@ -990,7 +990,7 @@ namespace OpenMS
         std::string id_f;
         try
         {
-          id_f = f_map.first.prefix('_');
+          id_f = StringUtils::prefix(f_map.first, '_');
         }
         catch (const std::exception& e)
         {
@@ -1012,7 +1012,7 @@ namespace OpenMS
     }
   }
 
-  void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSExperiment& experiment) const
+  void TargetedSpectraExtractor::storeSpectraMSP(const std::string& filename, MSExperiment& experiment) const
   {
     if (deisotoping_use_deisotoper_)
     {
@@ -1080,7 +1080,7 @@ namespace OpenMS
     }
   }
 
-  void TargetedSpectraExtractor::organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<OpenMS::String, std::vector<OpenMS::Feature>>& fmapmap) const
+  void TargetedSpectraExtractor::organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<std::string, std::vector<OpenMS::Feature>>& fmapmap) const
   {
     auto construct_feature = [&fmapmap](const OpenMS::Feature& feature)
     {
@@ -1105,7 +1105,7 @@ namespace OpenMS
     }
   }
 
-  void TargetedSpectraExtractor::BinnedSpectrumComparator::init(const std::vector<MSSpectrum>& library, const std::map<String,DataValue>& options)
+  void TargetedSpectraExtractor::BinnedSpectrumComparator::init(const std::vector<MSSpectrum>& library, const std::map<std::string,DataValue>& options)
   {
     if (options.contains("bin_size"))
     {

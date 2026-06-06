@@ -20,7 +20,7 @@ namespace OpenMS::Internal
 {
 
     SemanticValidator::SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv) :
-      XMLHandler("", 0),
+      XMLHandler("", "0"),
       XMLFile(),
       mapping_(mapping),
       cv_(cv),
@@ -44,22 +44,22 @@ namespace OpenMS::Internal
     SemanticValidator::~SemanticValidator()
     = default;
 
-    void SemanticValidator::setTag(const String& tag)
+    void SemanticValidator::setTag(const std::string& tag)
     {
       cv_tag_ = tag;
     }
 
-    void SemanticValidator::setAccessionAttribute(const String& accession)
+    void SemanticValidator::setAccessionAttribute(const std::string& accession)
     {
       accession_att_ = accession;
     }
 
-    void SemanticValidator::setNameAttribute(const String& name)
+    void SemanticValidator::setNameAttribute(const std::string& name)
     {
       name_att_ = name;
     }
 
-    void SemanticValidator::setValueAttribute(const String& value)
+    void SemanticValidator::setValueAttribute(const std::string& value)
     {
       value_att_ = value;
     }
@@ -74,17 +74,17 @@ namespace OpenMS::Internal
       check_units_ = check;
     }
 
-    void SemanticValidator::setUnitAccessionAttribute(const String& accession)
+    void SemanticValidator::setUnitAccessionAttribute(const std::string& accession)
     {
       unit_accession_att_ = accession;
     }
 
-    void SemanticValidator::setUnitNameAttribute(const String& name)
+    void SemanticValidator::setUnitNameAttribute(const std::string& name)
     {
       unit_name_att_ = name;
     }
 
-    bool SemanticValidator::validate(const String& filename, StringList& errors, StringList& warnings)
+    bool SemanticValidator::validate(const std::string& filename, StringList& errors, StringList& warnings)
     {
       //TODO Check if all required CVs are loaded => exception if not
 
@@ -111,8 +111,8 @@ namespace OpenMS::Internal
 
     void SemanticValidator::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
-      String tag = sm_.convert(qname);
-      String path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
+      std::string tag = sm_.convert(qname);
+      std::string path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
       open_tags_.push_back(tag);
 
       if (tag == cv_tag_)
@@ -124,14 +124,14 @@ namespace OpenMS::Internal
         //check if the term is unknown
         if (!cv_.exists(parsed_term.accession))
         {
-          warnings_.push_back(String("Unknown CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
+          warnings_.push_back(StringUtils::toStr("Unknown CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
           return;
         }
 
         //check if the term is obsolete
         if (cv_.getTerm(parsed_term.accession).obsolete)
         {
-          warnings_.push_back(String("Obsolete CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
+          warnings_.push_back(StringUtils::toStr("Obsolete CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
         }
 
         //actual handling of the term
@@ -141,12 +141,12 @@ namespace OpenMS::Internal
 
     void SemanticValidator::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      String tag = sm_.convert(qname);
-      String path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
+      std::string tag = sm_.convert(qname);
+      std::string path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
 
       //look up rules and fulfilled rules/terms
       vector<CVMappingRule>& rules = rules_[path];
-      std::map<String, std::map<String, UInt> >& fulfilled = fulfilled_[path]; //(rule ID => term ID => term count)
+      std::map<std::string, std::map<std::string, UInt> >& fulfilled = fulfilled_[path]; //(rule ID => term ID => term count)
 
       //check how often each term appeared
       for (Size r = 0; r < rules.size(); ++r)
@@ -155,7 +155,7 @@ namespace OpenMS::Internal
         {
           if (!rules[r].getCVTerms()[t].getIsRepeatable() && fulfilled[rules[r].getIdentifier()][rules[r].getCVTerms()[t].getAccession()] > 1)
           {
-            errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' number of term repeats at element '" + getPath_() + "'");
+            errors_.push_back(StringUtils::toStr("Violated mapping rule '") + rules[r].getIdentifier() + "' number of term repeats at element '" + getPath_() + "'");
           }
         }
       }
@@ -179,7 +179,7 @@ namespace OpenMS::Internal
         {
           if (match_count != terms_count)
           {
-            errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', " + String(terms_count) + " term(s) should be present, " + String(match_count) + " found!");
+            errors_.push_back(StringUtils::toStr("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', " + StringUtils::toStr(terms_count) + " term(s) should be present, " + StringUtils::toStr(match_count) + " found!");
           }
         }
         //MUST / OR - at least one terms must be matched
@@ -187,7 +187,7 @@ namespace OpenMS::Internal
         {
           if (match_count == 0)
           {
-            errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', at least one term must be present!");
+            errors_.push_back(StringUtils::toStr("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', at least one term must be present!");
           }
         }
         //MUST / XOR - exactly one term must be matched
@@ -195,7 +195,7 @@ namespace OpenMS::Internal
         {
           if (match_count != 1)
           {
-            errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "' exactly one of the allowed terms must be used!");
+            errors_.push_back(StringUtils::toStr("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "' exactly one of the allowed terms must be used!");
           }
         }
         //MAY(SHOULD) / AND - none or all terms must be matched
@@ -203,7 +203,7 @@ namespace OpenMS::Internal
         {
           if (match_count != 0 && match_count != terms_count)
           {
-            errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', if any, all terms must be given!");
+            errors_.push_back(StringUtils::toStr("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', if any, all terms must be given!");
           }
         }
         //MAY(SHOULD) / XOR - zero or one terms must be matched
@@ -211,7 +211,7 @@ namespace OpenMS::Internal
         {
           if (match_count > 1)
           {
-            errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', if any, only exactly one of the allowed terms can be used!");
+            errors_.push_back(StringUtils::toStr("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', if any, only exactly one of the allowed terms can be used!");
           }
         }
         //MAY(SHOULD) / OR - none to all terms must be matched => always true
@@ -228,11 +228,11 @@ namespace OpenMS::Internal
       //nothing to do here
     }
 
-    String SemanticValidator::getPath_(UInt remove_from_end) const
+    std::string SemanticValidator::getPath_(UInt remove_from_end) const
     {
-      String path;
-      path.concatenate(open_tags_.begin(), open_tags_.end() - remove_from_end, "/");
-      path = String("/") + path;
+      std::string path;
+      StringUtils::concatenate(path, open_tags_.begin(), open_tags_.end() - remove_from_end, "/");
+      path =StringUtils::toStr("/") + path;
       return path;
     }
 
@@ -268,7 +268,7 @@ namespace OpenMS::Internal
     //reimplemented to
     // - ignore values (not known)
     // - allow more names (upper-lower-case + spaces)
-    void SemanticValidator::handleTerm_(const String& path, const CVTerm& parsed_term)
+    void SemanticValidator::handleTerm_(const std::string& path, const CVTerm& parsed_term)
     {
       //check if the term is allowed in this element
       //and if there is a mapping rule for this element
@@ -290,7 +290,7 @@ namespace OpenMS::Internal
           }
 
           UInt& counter = fulfilled_[path][rules[r].getIdentifier()][term.getAccession()];
-          auto searcher = [&allowed, &counter, &parsed_term] (const String& child)
+          auto searcher = [&allowed, &counter, &parsed_term] (const std::string& child)
           {
             if (child == parsed_term.accession)
             {
@@ -327,10 +327,10 @@ namespace OpenMS::Internal
               if (!term.units.contains(parsed_term.unit_accession))
               {
                 // last chance, a child term of the units was used
-                set<String> child_terms;
+                set<std::string> child_terms;
 
                 bool found_unit(false);
-                auto lambda = [&parsed_term, &found_unit] (const String& child)
+                auto lambda = [&parsed_term, &found_unit] (const std::string& child)
                 {
                   if (child == parsed_term.accession)
                   {
@@ -339,7 +339,7 @@ namespace OpenMS::Internal
                   }
                   return false;
                 };
-                for (set<String>::const_iterator it = term.units.begin(); it != term.units.end(); ++it)
+                for (set<std::string>::const_iterator it = term.units.begin(); it != term.units.end(); ++it)
                 {
                   if (cv_.iterateAllChildren(*it, lambda)) break;
                 }
@@ -368,23 +368,23 @@ namespace OpenMS::Internal
 
       if (!rule_found) //No rule found
       {
-        warnings_.push_back(String("No mapping rule found for element '") + getPath_(1) + "'");
+        warnings_.push_back(StringUtils::toStr("No mapping rule found for element '") + getPath_(1) + "'");
       }
       else if (!allowed) //if rule found and not allowed
       {
-        errors_.push_back(String("CV term used in invalid element: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
+        errors_.push_back(StringUtils::toStr("CV term used in invalid element: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
       }
 
       //check if term accession and term name match
       if (cv_.exists(parsed_term.accession))
       {
-        String parsed_name = parsed_term.name;
-        parsed_name.trim();
-        String correct_name = cv_.getTerm(parsed_term.accession).name;
-        correct_name.trim();
+        std::string parsed_name = parsed_term.name;
+        StringUtils::trim(parsed_name);
+        std::string correct_name = cv_.getTerm(parsed_term.accession).name;
+        StringUtils::trim(correct_name);
         if (parsed_name != correct_name)
         {
-          errors_.push_back(String("Name of CV term not correct: '") + parsed_term.accession + " - " + parsed_name + "' should be '" + correct_name + "'");
+          errors_.push_back(StringUtils::toStr("Name of CV term not correct: '") + parsed_term.accession + " - " + parsed_name + "' should be '" + correct_name + "'");
         }
       }
 
@@ -395,13 +395,13 @@ namespace OpenMS::Internal
         // get value, if it exists
         if (parsed_term.has_value && (!parsed_term.value.empty() || type == ControlledVocabulary::CVTerm::XRefType::XSD_STRING))
         {
-          String value = parsed_term.value;
+          std::string value = parsed_term.value;
           if (type == ControlledVocabulary::CVTerm::XRefType::NONE)
           {
             //Quality CV does not state value type :(
-            if (!parsed_term.accession.hasPrefix("PATO:"))
+            if (!StringUtils::hasPrefix(parsed_term.accession, "PATO:"))
             {
-              errors_.push_back(String("Value of CV term not allowed: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(StringUtils::toStr("Value of CV term not allowed: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_STRING)
@@ -412,29 +412,29 @@ namespace OpenMS::Internal
           {
             try
             {
-              parsed_term.value.toInt();
+              StringUtils::toInt32(parsed_term.value);
             }
             catch (Exception::ConversionError& /*e*/)
             {
-              errors_.push_back(String("Value-type of CV term wrong, should be xsd:integer: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:integer: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL)
           {
             try
             {
-              value.toDouble();
+              StringUtils::toDouble(value);
             }
             catch (Exception::ConversionError& /*e*/)
             {
-              errors_.push_back(String("Value-type of CV term wrong, should be xsd:decimal: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:decimal: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER)
           {
             try
             {
-              int int_value = value.toInt();
+              int int_value = StringUtils::toInt32(value);
               if (int_value >= 0)
               {
                 throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "should be negative");
@@ -442,14 +442,14 @@ namespace OpenMS::Internal
             }
             catch (Exception::ConversionError& /*e*/)
             {
-              errors_.push_back(String("Value-type of CV term wrong, should be xsd:negativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:negativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER)
           {
             try
             {
-              int int_value = value.toInt();
+              int int_value = StringUtils::toInt32(value);
               if (int_value <= 0)
               {
                 throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "should be positive");
@@ -457,14 +457,14 @@ namespace OpenMS::Internal
             }
             catch (Exception::ConversionError& /*e*/)
             {
-              errors_.push_back(String("Value-type of CV term wrong, should be xsd:positiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:positiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER)
           {
             try
             {
-              int int_value = value.toInt();
+              int int_value = StringUtils::toInt32(value);
               if (int_value < 0)
               {
                 throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "should not be negative");
@@ -472,14 +472,14 @@ namespace OpenMS::Internal
             }
             catch (Exception::ConversionError& /*e*/)
             {
-              errors_.push_back(String("Value-type of CV term wrong, should be xsd:nonNegativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:nonNegativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER)
           {
             try
             {
-              int int_value = value.toInt();
+              int int_value = StringUtils::toInt32(value);
               if (int_value > 0)
               {
                 throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "should not be positive");
@@ -487,17 +487,17 @@ namespace OpenMS::Internal
             }
             catch (Exception::ConversionError& /*e*/)
             {
-              errors_.push_back(String("Value-type of CV term wrong, should be xsd:nonPositiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:nonPositiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_BOOLEAN)
           {
-            String value_copy = value;
-            value_copy.trim();
-            value_copy.toLower();
+            std::string value_copy = value;
+            StringUtils::trim(value_copy);
+            StringUtils::toLower(value_copy);
             if (value_copy != "1" && value_copy  != "0" && value_copy != "true" && value_copy != "false")
             {
-              errors_.push_back(String("Value-type of CV term wrong, should be xsd:boolean: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:boolean: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_DATE)
@@ -509,29 +509,29 @@ namespace OpenMS::Internal
             }
             catch (Exception::ParseError&)
             {
-              errors_.push_back(String("Value-type of CV term wrong, should be xsd:date: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:date: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_ANYURI)
           { // according to RFC 2396 this is there must be a colon (looked only 2 minutes on it)
-            if (!value.has(':'))
+            if (!StringUtils::has(value, ':'))
             {
-              errors_.push_back(String("Value-type of CV term wrong, should be xsd:anyURI (at least a colon is needed): '") + parsed_term.accession + " - " + parsed_term.name + "' value=" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:anyURI (at least a colon is needed): '") + parsed_term.accession + " - " + parsed_term.name + "' value=" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else
           {
-            errors_.push_back(String("Value-type unknown (type #" + String(static_cast<int>(type)) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+            errors_.push_back(StringUtils::toStr("Value-type unknown (type #" + StringUtils::toStr(static_cast<int>(type)) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
           }
         }
         else if (cv_.getTerm(parsed_term.accession).xref_type != ControlledVocabulary::CVTerm::XRefType::NONE)
         {
-          errors_.push_back(String("Value-type required, but not given (" + ControlledVocabulary::CVTerm::getXRefTypeName(cv_.getTerm(parsed_term.accession).xref_type) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + parsed_term.value + "' at element '" + getPath_(1) + "'");
+          errors_.push_back(StringUtils::toStr("Value-type required, but not given (" + ControlledVocabulary::CVTerm::getXRefTypeName(cv_.getTerm(parsed_term.accession).xref_type) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + parsed_term.value + "' at element '" + getPath_(1) + "'");
         }
       }
     }
 
-    bool SemanticValidator::locateTerm(const String& path, const CVTerm& parsed_term) const
+    bool SemanticValidator::locateTerm(const std::string& path, const CVTerm& parsed_term) const
     {
       //check if the term is allowed in this element
       //and if there is a mapping rule for this element
@@ -546,7 +546,7 @@ namespace OpenMS::Internal
           {
             return true;
           }
-          auto searcher = [&parsed_term] (const String& child) { return child == parsed_term.accession; };
+          auto searcher = [&parsed_term] (const std::string& child) { return child == parsed_term.accession; };
           if (term.getAllowChildren() && cv_.iterateAllChildren(term.getAccession(), searcher))
           {
             return true;

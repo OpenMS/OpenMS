@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <type_traits>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 using XMLCh = char16_t; // Xerces-C++ uses char16_t for UTF-16 strings that we need to output in tests
 
@@ -606,7 +607,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  */
 #define TEST_NOT_EQUAL(a, b) TEST::testNotEqual(__FILE__, __LINE__, (a), (# a), (b), (# b));
 
-/**	@brief String equality macro.
+/**	@brief std::string equality macro.
 
  Both arguments are converted to std::string and tested for equality.  (That
  is, we check whether <code>(std::string(a) == std::string(b))</code> holds.)
@@ -656,7 +657,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  */
 #define TEST_REAL_SIMILAR(a, b) TEST::testRealSimilar(__FILE__, __LINE__, (a), (# a), TEST::isRealType(a), writtenDigits(a), (b), (# b), TEST::isRealType(b), writtenDigits(b));
 
-/**	@brief String similarity macro.
+/**	@brief std::string similarity macro.
 
  Compares the two strings using @em FuzzyStringComparator with the settings of
  #TOLERANCE_ABSOLUTE and #TOLERANCE_RELATIVE.

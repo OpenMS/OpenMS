@@ -51,7 +51,7 @@ namespace OpenMS
     defaults_.setValidStrings("fragment_error_units", {"mmu","Da"});
     defaults_.setValue("charges", "1,2,3", "Charge states to consider, given as a comma separated list of integers (only used for spectra without precursor charge information)");
     defaults_.setValue("taxonomy", "All entries", "Taxonomy specification of the sequences");
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
 
     defaults_.setValue("fixed_modifications", std::vector<std::string>(), "List of fixed modifications, according to UniMod definitions.");
@@ -97,22 +97,22 @@ namespace OpenMS
   {
     // special cases for specificity groups: OpenMS uses e.g. "Deamidated (N)"
     // and "Deamidated (Q)", but Mascot only understands "Deamidated (NQ)"
-    String special_mods = param_.getValue("special_modifications").toString();
-    vector<String> mod_groups = ListUtils::create<String>(special_mods);
+    std::string special_mods = param_.getValue("special_modifications").toString();
+    vector<std::string> mod_groups = ListUtils::create<std::string>(special_mods);
     for (StringList::const_iterator mod_it = mod_groups.begin();
          mod_it != mod_groups.end(); ++mod_it)
     {
-      String mod = mod_it->prefix(' ');
-      String residues = mod_it->suffix('(').prefix(')');
-      for (String::const_iterator res_it = residues.begin();
+      std::string mod = StringUtils::prefix(*mod_it, ' ');
+      std::string residues = StringUtils::prefix(StringUtils::suffix(*mod_it, '('), ')');
+      for (auto res_it = residues.begin();
            res_it != residues.end(); ++res_it)
       {
-        mod_group_map_[mod + " (" + String(*res_it) + ")"] = *mod_it;
+        mod_group_map_[mod + " (" + StringUtils::toStr(*res_it) + ")"] = *mod_it;
       }
     }
   }
 
-  void MascotGenericFile::store(const String& filename, const PeakMap& experiment, bool compact)
+  void MascotGenericFile::store(const std::string& filename, const PeakMap& experiment, bool compact)
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::MGF))
     {
@@ -128,7 +128,7 @@ namespace OpenMS
     os.close();
   }
 
-  void MascotGenericFile::store(ostream& os, const String& filename, const PeakMap& experiment, bool compact)
+  void MascotGenericFile::store(ostream& os, const std::string& filename, const PeakMap& experiment, bool compact)
   {
     // stream formatting may get changed, so back up:
     const ios_base::fmtflags old_flags = os.flags();
@@ -145,7 +145,7 @@ namespace OpenMS
     os.precision(old_precision);
   }
 
-  void MascotGenericFile::writeParameterHeader_(const String& name, ostream& os)
+  void MascotGenericFile::writeParameterHeader_(const std::string& name, ostream& os)
   {
     if (param_.getValue("internal:HTTP_format") == "true")
     {
@@ -157,16 +157,16 @@ namespace OpenMS
     }
   }
 
-  void MascotGenericFile::writeModifications_(const vector<String>& mods,
+  void MascotGenericFile::writeModifications_(const vector<std::string>& mods,
                                               ostream& os, bool variable_mods)
   {
-    String tag = variable_mods ? "IT_MODS" : "MODS";
+    std::string tag = variable_mods ? "IT_MODS" : "MODS";
     // @TODO: remove handling of special cases when a general solution for
     // specificity groups in UniMod is implemented (ticket #387)
-    set<String> filtered_mods;
+    set<std::string> filtered_mods;
     for (StringList::const_iterator it = mods.begin(); it != mods.end(); ++it)
     {
-      map<String, String>::iterator pos = mod_group_map_.find(*it);
+      map<std::string, std::string>::iterator pos = mod_group_map_.find(*it);
       if (pos == mod_group_map_.end())
       {
         filtered_mods.insert(*it);
@@ -176,7 +176,7 @@ namespace OpenMS
         filtered_mods.insert(pos->second);
       }
     }
-    for (set<String>::const_iterator it = filtered_mods.begin();
+    for (set<std::string>::const_iterator it = filtered_mods.begin();
          it != filtered_mods.end(); ++it)
     {
       writeParameterHeader_(tag, os);
@@ -288,7 +288,7 @@ namespace OpenMS
     os << param_.getValue("charges") << "\n";
   }
 
-  void MascotGenericFile::writeSpectrum(ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession)
+  void MascotGenericFile::writeSpectrum(ostream& os, const PeakSpectrum& spec, const std::string& filename, const std::string& native_id_type_accession)
   {
     Precursor precursor;
     if (!spec.getPrecursors().empty())
@@ -301,7 +301,7 @@ namespace OpenMS
     }
     if (spec.size() >= 10000)
     {
-      String msg = "Spectrum to be written as MGF has " + String(spec.size()) +
+      std::string msg = "Spectrum to be written as MGF has " + StringUtils::toStr(spec.size()) +
         " peaks; the upper limit is 10,000. Only centroided data is allowed - this is most likely profile data.";
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
@@ -375,7 +375,7 @@ namespace OpenMS
         bool skip_spectrum_charges(param_.getValue("skip_spectrum_charges").toBool());
         if (!skip_spectrum_charges)
         {
-          String cs = charge < 0 ? "-" : "+";
+          std::string cs = charge < 0 ? "-" : "+";
           os << "CHARGE=" << charge << cs << "\n";
         }
       }
@@ -383,7 +383,7 @@ namespace OpenMS
       // Mascot sequence-query field: emit one SEQ= line per stored sequence.
       if (spec.metaValueExists("SEQ"))
       {
-        for (const String& sequence : spec.getMetaValue("SEQ").toStringList())
+        for (const std::string& sequence : spec.getMetaValue("SEQ").toStringList())
         {
           os << "SEQ=" << sequence << "\n";
         }
@@ -414,18 +414,18 @@ namespace OpenMS
     }
   }
 
-  std::pair<String, String> MascotGenericFile::getHTTPPeakListEnclosure(const String& filename) const
+  std::pair<std::string, std::string> MascotGenericFile::getHTTPPeakListEnclosure(const std::string& filename) const
   {
-    std::pair<String, String> r;
-    r.first = String("--" + (std::string)param_.getValue("internal:boundary") + "\n" + R"(Content-Disposition: form-data; name="FILE"; filename=")" + filename + "\"\n\n");
-    r.second = String("\n\n--" + (std::string)param_.getValue("internal:boundary") + "--\n");
+    std::pair<std::string, std::string> r;
+    r.first =StringUtils::toStr("--" + (std::string)param_.getValue("internal:boundary") + "\n" + R"(Content-Disposition: form-data; name="FILE"; filename=")" + filename + "\"\n\n");
+    r.second =StringUtils::toStr("\n\n--" + (std::string)param_.getValue("internal:boundary") + "--\n");
     return r;
   }
 
-  void MascotGenericFile::writeMSExperiment_(ostream& os, const String& filename, const PeakMap& experiment)
+  void MascotGenericFile::writeMSExperiment_(ostream& os, const std::string& filename, const PeakMap& experiment)
   {
 
-    std::pair<String, String> enc = getHTTPPeakListEnclosure(filename);
+    std::pair<std::string, std::string> enc = getHTTPPeakListEnclosure(filename);
     if (param_.getValue("internal:HTTP_format").toBool())
     {
       os << enc.first;
@@ -433,10 +433,10 @@ namespace OpenMS
 
     static const std::regex non_alnum("[^a-zA-Z0-9]");
     auto fileinfo = to_path(filename);
-    String filtered_filename = std::regex_replace(fileinfo.stem().string(), non_alnum, "");
+    std::string filtered_filename = std::regex_replace(fileinfo.stem().string(), non_alnum, "");
 
 
-    String native_id_type_accession;
+    std::string native_id_type_accession;
     const vector<SourceFile>& sourcefiles = experiment.getSourceFiles();
     if (sourcefiles.empty())
     {

@@ -136,10 +136,10 @@ public:
     */
     //@{
     /// set the identifier of the modification
-    void setId(const String& id);
+    void setId(const std::string& id);
 
     /// returns the identifier of the modification
-    const String& getId() const;
+    const std::string& getId() const;
 
     /**
        @brief Sets the full identifier (Unimod Accession + origin, if available)
@@ -148,7 +148,7 @@ public:
 
        @throw Exception::MissingInformation if both argument @p full_id and member @p id_ are empty.
     */
-    void setFullId(const String& full_id = "");
+    void setFullId(const std::string& full_id = "");
 
     /// returns the full identifier of the mod (Unimod accession + origin, if available)
     /**
@@ -160,7 +160,7 @@ public:
        check for user-defined modifications.
 
     */
-    const String& getFullId() const;
+    const std::string& getFullId() const;
 
     /// sets the unimod record id
     void setUniModRecordId(const Int& id);
@@ -169,25 +169,25 @@ public:
     const Int& getUniModRecordId() const;
 
     /// returns the unimod accession if available
-    const String getUniModAccession() const;
+    const std::string getUniModAccession() const;
 
     /// set the MOD:XXXXX accession of PSI-MOD
-    void setPSIMODAccession(const String& id);
+    void setPSIMODAccession(const std::string& id);
 
     /// returns the PSI-MOD accession if available
-    const String& getPSIMODAccession() const;
+    const std::string& getPSIMODAccession() const;
 
     /// sets the full name of the modification; must NOT contain the origin (or . for terminals!)
-    void setFullName(const String& full_name);
+    void setFullName(const std::string& full_name);
 
     /// returns the full name of the modification
-    const String& getFullName() const;
+    const std::string& getFullName() const;
 
     /// sets the name of modification
-    void setName(const String& name);
+    void setName(const std::string& name);
 
     /// returns the PSI-MS-label if available; e.g. Mascot uses this name
-    const String& getName() const;
+    const std::string& getName() const;
 
     /**
        @brief Sets the term specificity
@@ -203,7 +203,7 @@ public:
 
        @throw Exception::InvalidValue if no valid specificity was given
     */
-    void setTermSpecificity(const String& name);
+    void setTermSpecificity(const std::string& name);
 
     /// returns terminal specificity
     TermSpecificity getTermSpecificity() const;
@@ -214,7 +214,7 @@ public:
        By default, returns the name of the specificity set in member @p term_spec_.
        Alternatively, returns the name corresponding to argument @p term_spec.
     */
-    String getTermSpecificityName(TermSpecificity term_spec = NUMBER_OF_TERM_SPECIFICITY) const;
+    std::string getTermSpecificityName(TermSpecificity term_spec = NUMBER_OF_TERM_SPECIFICITY) const;
 
     /**
        @brief Sets the origin (i.e. modified amino acid)
@@ -230,7 +230,7 @@ public:
     char getOrigin() const;
 
     /// classification as defined by the PSI-MOD
-    void setSourceClassification(const String& classification);
+    void setSourceClassification(const std::string& classification);
 
     /// sets the source classification
     void setSourceClassification(SourceClassification classification);
@@ -239,7 +239,7 @@ public:
     SourceClassification getSourceClassification() const;
 
     /// returns the classification
-    String getSourceClassificationName(SourceClassification classification = NUMBER_OF_SOURCE_CLASSIFICATIONS) const;
+    std::string getSourceClassificationName(SourceClassification classification = NUMBER_OF_SOURCE_CLASSIFICATIONS) const;
 
     /// sets the average mass
     void setAverageMass(double mass);
@@ -266,10 +266,10 @@ public:
     double getDiffMonoMass() const;
 
     /// set the formula (no masses will be changed)
-    void setFormula(const String& composition);
+    void setFormula(const std::string& composition);
 
     /// returns the chemical formula if set
-    const String& getFormula() const;
+    const std::string& getFormula() const;
 
     /// sets diff formula (no masses will be changed)
     void setDiffFormula(const EmpiricalFormula& diff_formula);
@@ -278,13 +278,13 @@ public:
     const EmpiricalFormula& getDiffFormula() const;
 
     /// sets the synonyms of that modification
-    void setSynonyms(const std::set<String>& synonyms);
+    void setSynonyms(const std::set<std::string>& synonyms);
 
     /// adds a synonym to the unique list
-    void addSynonym(const String& synonym);
+    void addSynonym(const std::string& synonym);
 
     /// returns the set of synonyms
-    const std::set<String>& getSynonyms() const;
+    const std::set<std::string>& getSynonyms() const;
 
     /// sets the neutral loss formula
     void setNeutralLossDiffFormulas(const std::vector<EmpiricalFormula>& diff_formulas);
@@ -334,7 +334,7 @@ public:
     /// @param[in] specificity To which site can this mod be applied?
     /// @param[in] residue [only required for ANYWHERE term spec] Residue with further information (e.g. residue weights) for the new mod
     /// @return a new or existing mod; registered to ModDB in both cases, so the pointer is non-owning (FullId is e.g. M[+1234.1] and FullName [+1234.1]. Id and Name are empty as defined for a "user-defined" mod.
-    static const ResidueModification* createUnknownFromMassString(const String& mod,
+    static const ResidueModification* createUnknownFromMassString(const std::string& mod,
                                                                   const double mass,
                                                                   const bool delta_mass,
                                                                   const TermSpecificity specificity,
@@ -368,31 +368,31 @@ public:
     ///  + using the mono_mass, e.g. 'M[56.23]'
     ///
     /// The mono_mass must not be negative (undistinguishable to delta_mono_mass when parsing)
-    String toString() const;
+    std::string toString() const;
 
     /// converts the mass to a string with preceding '+' or '-' sign
     /// e.g. '-19.34' or '+1.003'
-    static String getDiffMonoMassString(const double diff_mono_mass);
+    static std::string getDiffMonoMassString(const double diff_mono_mass);
 
     /// return a string of the form '[+&gt;mass&lt;] (the '+' might be a '-', if mass is negative).
-    static String getDiffMonoMassWithBracket(const double diff_mono_mass);
+    static std::string getDiffMonoMassWithBracket(const double diff_mono_mass);
 
     /// return a string of the form '[&gt;mass&lt;]
-    static String getMonoMassWithBracket(const double mono_mass);
+    static std::string getMonoMassWithBracket(const double mono_mass);
 
 protected:
-    String id_;
+    std::string id_;
 
-    String full_id_;
+    std::string full_id_;
 
-    String psi_mod_accession_;
+    std::string psi_mod_accession_;
 
     // The UniMod record id (an integer)
     Int unimod_record_id_;
 
-    String full_name_;
+    std::string full_name_;
 
-    String name_;
+    std::string name_;
 
     TermSpecificity term_spec_;
 
@@ -408,11 +408,11 @@ protected:
 
     double diff_mono_mass_;
 
-    String formula_;
+    std::string formula_;
 
     EmpiricalFormula diff_formula_;
 
-    std::set<String> synonyms_;
+    std::set<std::string> synonyms_;
 
     std::vector<EmpiricalFormula> neutral_loss_diff_formulas_;
 
@@ -464,7 +464,7 @@ namespace std
       OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod.getFormula()));
       OpenMS::hash_combine(seed, std::hash<OpenMS::EmpiricalFormula>{}(mod.getDiffFormula()));
 
-      // Hash synonyms (set<String>)
+      // Hash synonyms (set<std::string>)
       const auto& synonyms = mod.getSynonyms();
       OpenMS::hash_combine(seed, OpenMS::hash_int(synonyms.size()));
       for (const auto& syn : synonyms)

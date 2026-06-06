@@ -334,22 +334,22 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("featureXML,consensusXML,idXML"));
     registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (e.g. via the ProteinInference tool).\nInformation about indistinguishable proteins will be used for protein quantification.", false);
-    setValidFormats_("protein_groups", ListUtils::create<String>("idXML"));
+    setValidFormats_("protein_groups", ListUtils::create<std::string>("idXML"));
 
     registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
-    setValidFormats_("design", ListUtils::create<String>("tsv"));
+    setValidFormats_("design", ListUtils::create<std::string>("tsv"));
 
     // output
     registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
-    setValidFormats_("out", ListUtils::create<String>("csv"));
+    setValidFormats_("out", ListUtils::create<std::string>("csv"));
 
     registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances", false);
-    setValidFormats_("peptide_out", ListUtils::create<String>("csv"));
+    setValidFormats_("peptide_out", ListUtils::create<std::string>("csv"));
 
     registerOutputFile_("mztab", "<file>", "", "Output file (mzTab)", false);
-    setValidFormats_("mztab", ListUtils::create<String>("mzTab"));
+    setValidFormats_("mztab", ListUtils::create<std::string>("mzTab"));
 
     registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet). Only supported for consensusXML input.", false, false);
 
@@ -359,7 +359,7 @@ protected:
     registerFullParam_(temp);
 
     registerStringOption_("greedy_group_resolution", "<choice>", "false", "Pre-process identifications with greedy resolution of shared peptides based on the protein group probabilities. (Only works with an idXML file given as protein_groups parameter).", false);
-    setValidStrings_("greedy_group_resolution", ListUtils::create<String>("true,false"));
+    setValidStrings_("greedy_group_resolution", ListUtils::create<std::string>("true,false"));
     registerFlag_("ratios", "Add the log2 ratios of the abundance values to the output. Format: log_2(x_0/x_0) <sep> log_2(x_1/x_0) <sep> log_2(x_2/x_0) ...", false);
     registerFlag_("ratiosSILAC", "Add the log2 ratios for a triple SILAC experiment to the output. Only applicable to consensus maps of exactly three sub-maps. Format: log_2(heavy/light) <sep> log_2(heavy/middle) <sep> log_2(middle/light)", false);
     
@@ -369,7 +369,7 @@ protected:
     registerTOPPSubsection_("format", "Output formatting options");
     registerStringOption_("format:separator", "<sep>", "", "Character(s) used to separate fields; by default, the 'tab' character is used", false);
     registerStringOption_("format:quoting", "<method>", "double", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
-    setValidStrings_("format:quoting", ListUtils::create<String>("none,double,escape"));
+    setValidStrings_("format:quoting", ListUtils::create<std::string>("none,double,escape"));
     registerStringOption_("format:replacement", "<x>", "_", "If 'quoting' is 'none', used to replace occurrences of the separator in strings before writing", false);
 
   }
@@ -380,10 +380,10 @@ protected:
     ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
 
     // Extract the Spectra Filepath column from the design
-    map<UInt64, String> design_filenames;
+    map<UInt64, std::string> design_filenames;
     for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
     {
-      const String fn = File::stemName(f.path);      
+      const std::string fn = File::stemName(f.path);      
       design_filenames[f.fraction_group] = fn;
     }
     
@@ -393,7 +393,7 @@ protected:
     {
       for (Size c = 1; c <= ed.getNumberOfLabels(); ++c)
       {
-        out << "abundance|" + filename + "|ch" + String(c);
+        out << "abundance|" + filename + "|ch" + StringUtils::toStr(c);
       }
     }
 
@@ -407,11 +407,11 @@ protected:
         continue; // not quantified
       }
       StringList accessions;
-      for (String acc : q.second.accessions)
+      for (std::string acc : q.second.accessions)
       {
-        accessions.push_back(acc.substitute('/', '_'));
+        accessions.push_back(StringUtils::substitute(acc, '/', '_'));
       }
-      String protein = ListUtils::concatenate(accessions, "/");
+      std::string protein = ListUtils::concatenate(accessions, "/");
 
       if (best_charge_and_fraction)
       {
@@ -438,7 +438,7 @@ protected:
             // fill file + channel/label columns 
             for (auto& file : design_filenames) // note: we need to use the order in the experimental design file
             {
-              String filename = file.second; // get the filename from the design
+              std::string filename = file.second; // get the filename from the design
               for (Size c = 1; c <= ed.getNumberOfLabels(); ++c)
               {
                 bool no_quant = false;
@@ -486,7 +486,7 @@ protected:
 
   /// Write header for protein table based on output format options
   void writeProteinTableHeader_(SVOutStream& out, const ExperimentalDesign& ed,
-                               const map<UInt64, map<UInt64, String>>& design_group_fraction_filename,
+                               const map<UInt64, map<UInt64, std::string>>& design_group_fraction_filename,
                                UInt64 n_files, bool channel_level_output, bool print_ratios, bool print_SILACratios)
   {
     // write header:
@@ -506,7 +506,7 @@ protected:
         {
           for (Size c = 1; c <= ed.getNumberOfLabels(); ++c)
           {
-            out << "abundance|" + filename + "|ch" + String(c);
+            out << "abundance|" + filename + "|ch" + StringUtils::toStr(c);
           }
         }
       }
@@ -524,12 +524,12 @@ protected:
         << std::endl;
       for (Size i = 0; i < ed.getNumberOfSamples(); ++i) // samples are 0-indexed 
       {
-        String sample_condition = "unknown";
+        std::string sample_condition = "unknown";
         if (sample_section.hasFactor("MSstats_Condition"))
         {
           sample_condition = sample_section.getFactorValue(i, "MSstats_Condition");
         }
-        out << "abundance_sample" + String(i+1) + "[" + sample_condition + "]";
+        out << "abundance_sample" + StringUtils::toStr(i+1) + "[" + sample_condition + "]";
       }
 
       // TODO MULTIPLEXING: check if correct
@@ -538,7 +538,7 @@ protected:
       {
         for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
         {
-          out << "ratio_" + String(i+1);
+          out << "ratio_" + StringUtils::toStr(i+1);
         }
       }
       // if ratiosSILAC-flag is set, print SILAC log2-ratios, only if three
@@ -546,7 +546,7 @@ protected:
       {
         for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
         {
-          out << "SILACratio_" + String(i+1);
+          out << "SILACratio_" + StringUtils::toStr(i+1);
         }
       }
     }
@@ -564,11 +564,11 @@ protected:
     ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
     
     // Extract the Spectra Filepath column from the design
-    map<UInt64, map<UInt64, String>> design_group_fraction_filename;
+    map<UInt64, map<UInt64, std::string>> design_group_fraction_filename;
     UInt64 n_files = 0;
     for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
     {
-      const String fn = File::stemName(f.path);
+      const std::string fn = File::stemName(f.path);
       design_group_fraction_filename[f.fraction_group][f.fraction] = fn;
       n_files++;
     }
@@ -578,7 +578,7 @@ protected:
                             channel_level_output, print_ratios, print_SILACratios);
 
     // mapping: accession of leader -> (accessions of grouped proteins, score)
-    map<String, pair<StringList, double> > leader_to_group;
+    map<std::string, pair<StringList, double> > leader_to_group;
     if (!proteins_.getIndistinguishableProteins().empty())
     {
       for (auto group : proteins_.getIndistinguishableProteins()) //OMS_CODING_TEST_EXCLUDE
@@ -587,7 +587,7 @@ protected:
         accessions = group.accessions;
         for (auto & acc : accessions)
         {
-          acc.substitute('/', '_'); // to allow concatenation later
+          StringUtils::substitute(acc, '/', '_'); // to allow concatenation later
         }
         leader_to_group[group.accessions[0]].second = group.probability;
       }
@@ -708,7 +708,7 @@ protected:
   /// Write comment lines before a peptide/protein table.
   void writeComments_(SVOutStream& out, const ExperimentalDesign& ed, const bool proteins = true)
   {
-    String what = (proteins ? "Protein" : "Peptide");
+    std::string what = (proteins ? "Protein" : "Peptide");
     bool old = out.modifyStrings(false);
     bool is_ibaq = algo_params_.getValue("method") == "iBAQ";
     out << "# " + what + " abundances computed from file '" +
@@ -742,10 +742,10 @@ protected:
       }
     }
 
-    String params;
-    for (const String& str : relevant_params)
+    std::string params;
+    for (const std::string& str : relevant_params)
     {
-      String value = algo_params_.getValue(str).toString();
+      std::string value = algo_params_.getValue(str).toString();
       if (value != "false")
       {
         params += str + "=" + value + ", ";
@@ -763,16 +763,16 @@ protected:
 
     if (ed.getNumberOfSamples() > 1 && ed.getNumberOfLabels() == 1)
     {
-      String desc = "# Files/samples associated with abundance values below: ";
+      std::string desc = "# Files/samples associated with abundance values below: ";
 
       const auto& ms_section = ed.getMSFileSection();
 
-      map<String, String> sample_id_to_filename;
+      map<std::string, std::string> sample_id_to_filename;
       for (const auto& e : ms_section)
       {
-        String ed_filename = File::stemName(e.path);
-        String ed_label = e.label;
-        String ed_sample = e.sample;
+        std::string ed_filename = File::stemName(e.path);
+        std::string ed_label = e.label;
+        std::string ed_sample = e.sample;
         sample_id_to_filename[e.sample] = ed_filename; // should be 0,...,n_samples-1
       }
 
@@ -782,7 +782,7 @@ protected:
         {
           desc += ", ";
         }
-        desc += String(i + 1) + ": '" + sample_id_to_filename[String(i)] + "'";
+        desc +=StringUtils::toStr(i + 1) + ": '" + sample_id_to_filename[StringUtils::toStr(i)] + "'";
       }
       out << desc << endl;
     }
@@ -840,7 +840,7 @@ protected:
     OPENMS_LOG_INFO << endl;
   }
 
-  ExperimentalDesign getExperimentalDesignIds_(const String & design_file, const vector<ProteinIdentification> & proteins)
+  ExperimentalDesign getExperimentalDesignIds_(const std::string & design_file, const vector<ProteinIdentification> & proteins)
   {
     if (!design_file.empty()) // load experimental design file
     {
@@ -853,7 +853,7 @@ protected:
     }
   }
 
-  ExperimentalDesign getExperimentalDesignFeatureMap_(const String & design_file, const FeatureMap & fm)
+  ExperimentalDesign getExperimentalDesignFeatureMap_(const std::string & design_file, const FeatureMap & fm)
   {
     if (!design_file.empty()) // experimental design file
     {
@@ -866,7 +866,7 @@ protected:
     }
   }
 
-  ExperimentalDesign getExperimentalDesignConsensusMap_(const String & design_file, const ConsensusMap & cm)
+  ExperimentalDesign getExperimentalDesignConsensusMap_(const std::string & design_file, const ConsensusMap & cm)
   {
     if (!design_file.empty()) // load experimental design file
     {
@@ -881,7 +881,7 @@ protected:
   }
 
   /// Process FeatureXML input and perform quantification
-  ExperimentalDesign processFeatureXMLInput_(const String& in, const String& design_file,
+  ExperimentalDesign processFeatureXMLInput_(const std::string& in, const std::string& design_file,
                                             PeptideAndProteinQuant& quantifier)
   {
     FeatureMap features;
@@ -905,7 +905,7 @@ protected:
   }
 
   /// Process IdXML input and perform quantification
-  ExperimentalDesign processIdXMLInput_(const String& in, const String& design_file,
+  ExperimentalDesign processIdXMLInput_(const std::string& in, const std::string& design_file,
                                        PeptideAndProteinQuant& quantifier)
   {
     spectral_counting_ = true;
@@ -933,8 +933,8 @@ protected:
   }
 
   /// Process ConsensusXML input and perform quantification
-  ExperimentalDesign processConsensusXMLInput_(const String& in, const String& design_file, const String& mztab,
-                                              const String& out_qpx, PeptideAndProteinQuant& quantifier)
+  ExperimentalDesign processConsensusXMLInput_(const std::string& in, const std::string& design_file, const std::string& mztab,
+                                              const std::string& out_qpx, PeptideAndProteinQuant& quantifier)
   {
     ConsensusMap consensus;
     FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
@@ -1040,14 +1040,14 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
-    String peptide_out = getStringOption_("peptide_out");
-    String mztab = getStringOption_("mztab");
-    String design_file = getStringOption_("design");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
+    std::string peptide_out = getStringOption_("peptide_out");
+    std::string mztab = getStringOption_("mztab");
+    std::string design_file = getStringOption_("design");
     bool greedy_group_resolution = getStringOption_("greedy_group_resolution") == "true";
 
-    String out_qpx = getOutputDirOption("out_qpx");
+    std::string out_qpx = getOutputDirOption("out_qpx");
 
     if (out.empty() && peptide_out.empty() && out_qpx.empty())
     {
@@ -1056,7 +1056,7 @@ protected:
                                                  "out/peptide_out/out_qpx");
     }
 
-    String protein_groups = getStringOption_("protein_groups");
+    std::string protein_groups = getStringOption_("protein_groups");
     if (!protein_groups.empty()) // read protein inference data
     {
       vector<ProteinIdentification> proteins;
@@ -1088,7 +1088,7 @@ protected:
     quantifier.setParameters(algo_params_);
 
     // iBAQ works only with feature intensity values in consensusXML or featureXML files
-    if (algo_params_.getValue("method") == "iBAQ" && in.hasSuffix("idXML"))
+    if (algo_params_.getValue("method") == "iBAQ" && StringUtils::hasSuffix(in, "idXML"))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION,
@@ -1134,25 +1134,25 @@ protected:
     }
 
     // output:
-    String separator = getStringOption_("format:separator");
-    String replacement = getStringOption_("format:replacement");
-    String quoting = getStringOption_("format:quoting");
+    std::string separator = getStringOption_("format:separator");
+    std::string replacement = getStringOption_("format:replacement");
+    std::string quoting = getStringOption_("format:quoting");
     if (separator.empty())
     {
       separator = "\t";
     }
-    String::QuotingMethod quoting_method;
+    OpenMS::QuotingMethod quoting_method;
     if (quoting == "none")
     {
-      quoting_method = String::NONE;
+      quoting_method = OpenMS::QuotingMethod::NONE;
     }
     else if (quoting == "double")
     {
-      quoting_method = String::DOUBLE;
+      quoting_method = OpenMS::QuotingMethod::DOUBLE;
     }
     else
     {
-      quoting_method = String::ESCAPE;
+      quoting_method = OpenMS::QuotingMethod::ESCAPE;
     }
     if (!peptide_out.empty())
     {

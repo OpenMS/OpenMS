@@ -43,7 +43,7 @@ namespace OpenMS
       {
         try
         {
-          prec_mz = it->second[0].getValue().toString().toDouble();
+          prec_mz = StringUtils::toDouble(it->second[0].getValue().toString());
           Precursor p = chrom.getPrecursor();
           p.setMZ(prec_mz);
           chrom.setPrecursor(p);
@@ -67,7 +67,7 @@ namespace OpenMS
       auto it = prod_terms.find("MS:1000827");
       if (it != prod_terms.end() && !it->second.empty())
       {
-        prod_mz = it->second[0].getValue().toString().toDouble();
+        prod_mz = StringUtils::toDouble(it->second[0].getValue().toString());
         Product q = chrom.getProduct();
         q.setMZ(prod_mz);
         chrom.setProduct(q);
@@ -85,18 +85,18 @@ namespace OpenMS
     }
 
     // Build a compact canonical nativeID depending on available values
-    String nid_out;
+    std::string nid_out;
     if (prec_mz > 0 && prod_mz > 0)
     {
-      nid_out = String("precursor=") + String(prec_mz) + ",product=" + String(prod_mz);
+      nid_out =StringUtils::toStr("precursor=") + StringUtils::toStr(prec_mz) + ",product=" + StringUtils::toStr(prod_mz);
     }
     else if (prod_mz > 0)
     {
-      nid_out = String("product=") + String(prod_mz);
+      nid_out =StringUtils::toStr("product=") + StringUtils::toStr(prod_mz);
     }
     else if (prec_mz > 0)
     {
-      nid_out = String("precursor=") + String(prec_mz);
+      nid_out =StringUtils::toStr("precursor=") + StringUtils::toStr(prec_mz);
     }
 
     if (!nid_out.empty()) chrom.setNativeID(nid_out);
@@ -130,7 +130,7 @@ namespace OpenMS
         ChromatogramSettings cs = openms_map->getChromatogramMetaInfo(i);
         chrom.setPrecursor(cs.getPrecursor());
         chrom.setProduct(cs.getProduct());
-        String native_id = openms_map->getChromatogramNativeID(i);
+        std::string native_id = openms_map->getChromatogramNativeID(i);
         
         // Normalize chromatogram m/z values using the utility function
         normalizeChromatogramMZ(chrom);
@@ -190,7 +190,7 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "MRMChromHandler: MRMMapping failed: " << e.what()
                        << " - aborting (iRT mapping required)." << std::endl;
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         String("MRMMapping failed during iRT collection: ") + e.what());
+                                         std::string("MRMMapping failed during iRT collection: ") + e.what());
     }
   }
 
@@ -221,7 +221,7 @@ namespace OpenMS
         ChromatogramSettings cs = openms_map->getChromatogramMetaInfo(i);
         chrom.setPrecursor(cs.getPrecursor());
         chrom.setProduct(cs.getProduct());
-        String orig = openms_map->getChromatogramNativeID(i);
+        std::string orig = openms_map->getChromatogramNativeID(i);
         
         // Normalize chromatogram m/z values using the utility function
         normalizeChromatogramMZ(chrom);
@@ -269,7 +269,7 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "MRMChromHandler: MRMMapping failed: " << e.what()
                       << " - aborting (transition-chromatogram experiment mapping)." << std::endl;
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        String("MRMMapping failed during transition-chromatogram experiment mapping collection: ") + e.what());
+                                        std::string("MRMMapping failed during transition-chromatogram experiment mapping collection: ") + e.what());
     }
 
     // Collect mapped chromatograms (those that received a nativeID by the mapper)

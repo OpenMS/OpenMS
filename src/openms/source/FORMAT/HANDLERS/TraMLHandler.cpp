@@ -20,7 +20,7 @@ namespace OpenMS::Internal
 {
 
 
-    TraMLHandler::TraMLHandler(const TargetedExperiment& exp, const String& filename, const String& version, const ProgressLogger& logger) :
+    TraMLHandler::TraMLHandler(const TargetedExperiment& exp, const std::string& filename, const std::string& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
       exp_(nullptr),
@@ -29,7 +29,7 @@ namespace OpenMS::Internal
       cv_.loadFromOBO("PI", File::find("/CV/psi-ms.obo"));
     }
 
-    TraMLHandler::TraMLHandler(TargetedExperiment& exp, const String& filename, const String& version, const ProgressLogger& logger) :
+    TraMLHandler::TraMLHandler(TargetedExperiment& exp, const std::string& filename, const std::string& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
       exp_(&exp),
@@ -55,7 +55,7 @@ namespace OpenMS::Internal
       tag_ = sm_.convert(qname);
       open_tags_.push_back(tag_);
 
-      static std::set<String> tags_to_ignore;
+      static std::set<std::string> tags_to_ignore;
       if (tags_to_ignore.empty())
       {
         tags_to_ignore.insert("TraML"); // base node
@@ -89,12 +89,12 @@ namespace OpenMS::Internal
       }
 
       //determine parent tag
-      String parent_tag;
+      std::string parent_tag;
       if (open_tags_.size() > 1)
       {
         parent_tag = *(open_tags_.end() - 2);
       }
-      String parent_parent_tag;
+      std::string parent_parent_tag;
       if (open_tags_.size() > 2)
       {
         parent_parent_tag = *(open_tags_.end() - 3);
@@ -109,7 +109,7 @@ namespace OpenMS::Internal
         static const XMLCh* s_unit_cvref = xercesc::XMLString::transcode("unitCvRef");
         static const XMLCh* s_unit_ref = xercesc::XMLString::transcode("cvRef");
 
-        String value, cv_ref, unit_accession, unit_name, unit_cv_ref;
+        std::string value, cv_ref, unit_accession, unit_name, unit_cv_ref;
         optionalAttributeAsString_(value, attributes, s_value);
         optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
         optionalAttributeAsString_(unit_name, attributes, s_unit_name);
@@ -124,9 +124,9 @@ namespace OpenMS::Internal
       }
       else if (tag_ == "userParam")
       {
-        String type = "";
+        std::string type = "";
         optionalAttributeAsString_(type, attributes, s_type);
-        String value = "";
+        std::string value = "";
         optionalAttributeAsString_(value, attributes, s_value);
         handleUserParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_name), type, value);
       }
@@ -185,7 +185,7 @@ namespace OpenMS::Internal
       else if (tag_ == "Prediction")
       {
         actual_prediction_.software_ref = attributeAsString_(attributes, "softwareRef");
-        String contact_ref;
+        std::string contact_ref;
         if (optionalAttributeAsString_(contact_ref, attributes, "contactRef"))
         {
           actual_prediction_.contact_ref = contact_ref;
@@ -194,7 +194,7 @@ namespace OpenMS::Internal
       else if (tag_ == "RetentionTime")
       {
         actual_rt_ = TargetedExperiment::RetentionTime();
-        String software_ref;
+        std::string software_ref;
         if (optionalAttributeAsString_(software_ref, attributes, "softwareRef"))
         {
           actual_rt_.software_ref = software_ref;
@@ -203,17 +203,17 @@ namespace OpenMS::Internal
       else if (tag_ == "Transition")
       {
         actual_transition_ = ReactionMonitoringTransition();
-        String id;
+        std::string id;
         if (optionalAttributeAsString_(id, attributes, s_id))
         {
           actual_transition_.setName(id);
         }
-        String peptide_ref;
+        std::string peptide_ref;
         if (optionalAttributeAsString_(peptide_ref, attributes, "peptideRef"))
         {
           actual_transition_.setPeptideRef(peptide_ref);
         }
-        String compound_ref;
+        std::string compound_ref;
         if (optionalAttributeAsString_(compound_ref, attributes, "compoundRef"))
         {
           actual_transition_.setCompoundRef(compound_ref);
@@ -221,7 +221,7 @@ namespace OpenMS::Internal
       }
       else if (tag_ == "Interpretation")
       {
-        String primary;
+        std::string primary;
         if (optionalAttributeAsString_(primary, attributes, "primary"))
         {
           actual_interpretation_.setMetaValue("primary", primary);
@@ -230,7 +230,7 @@ namespace OpenMS::Internal
       else if (tag_ == "Configuration")
       {
         actual_configuration_.instrument_ref = attributeAsString_(attributes, "instrumentRef");
-        String contact_ref;
+        std::string contact_ref;
         if (optionalAttributeAsString_(contact_ref, attributes, "contactRef"))
         {
           actual_configuration_.contact_ref = contact_ref;
@@ -249,17 +249,17 @@ namespace OpenMS::Internal
       else if (tag_ == "Target")
       {
         actual_target_ = IncludeExcludeTarget();
-        String id;
+        std::string id;
         if (optionalAttributeAsString_(id, attributes, s_id))
         {
           actual_target_.setName(id);
         }
-        String peptide_ref;
+        std::string peptide_ref;
         if (optionalAttributeAsString_(peptide_ref, attributes, "peptideRef"))
         {
           actual_target_.setPeptideRef(peptide_ref);
         }
-        String compound_ref;
+        std::string compound_ref;
         if (optionalAttributeAsString_(compound_ref, attributes, "compoundRef"))
         {
           actual_target_.setCompoundRef(compound_ref);
@@ -287,16 +287,16 @@ namespace OpenMS::Internal
       tag_ = sm_.convert(qname);
 
       //determine parent tag
-      String parent_tag;
+      std::string parent_tag;
       if (open_tags_.size() > 1)
         parent_tag = *(open_tags_.end() - 2);
-      String parent_parent_tag;
+      std::string parent_parent_tag;
       if (open_tags_.size() > 2)
         parent_parent_tag = *(open_tags_.end() - 3);
 
       open_tags_.pop_back();
 
-      static std::set<String> tags_to_ignore;
+      static std::set<std::string> tags_to_ignore;
       if (tags_to_ignore.empty())
       {
         tags_to_ignore.insert("TraML"); // base node
@@ -615,7 +615,7 @@ namespace OpenMS::Internal
           writeCVParams_(os,  *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
 
-          for (std::vector<String>::const_iterator rit = it->protein_refs.begin(); rit != it->protein_refs.end(); ++rit)
+          for (std::vector<std::string>::const_iterator rit = it->protein_refs.begin(); rit != it->protein_refs.end(); ++rit)
           {
             os << "      <ProteinRef ref=\"" << writeXMLEscape(*rit) << "\"/>" << "\n";
           }
@@ -640,7 +640,7 @@ namespace OpenMS::Internal
               {
                 // Get the name of the modifications from its unimod identifier (using getId)
                 ResidueModification::TermSpecificity term_spec = ResidueModification::ANYWHERE;
-                String residue = "";
+                std::string residue = "";
                 if (mit->location < 0)
                 {
                   term_spec = ResidueModification::N_TERM;
@@ -655,8 +655,8 @@ namespace OpenMS::Internal
                 {
                   residue = it->sequence[mit->location];
                 }
-                const ResidueModification* rmod = mod_db->getModification("UniMod:" + String(mit->unimod_id), residue, term_spec);
-                const String& modname = rmod->getId();
+                const ResidueModification* rmod = mod_db->getModification("UniMod:" + StringUtils::toStr(mit->unimod_id), residue, term_spec);
+                const std::string& modname = rmod->getId();
                 os << R"(        <cvParam cvRef="UNIMOD" accession="UNIMOD:)" << mit->unimod_id
                   << "\" name=\"" << modname << "\"/>\n";
               }
@@ -1101,40 +1101,40 @@ namespace OpenMS::Internal
       os << "          </Configuration>" << "\n";
     }
 
-    void TraMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const CVTerm& cv_term)
+    void TraMLHandler::handleCVParam_(const std::string& parent_parent_tag, const std::string& parent_tag, const CVTerm& cv_term)
     {
       //Error checks of CV values
-      const String& accession = cv_term.getAccession();
+      const std::string& accession = cv_term.getAccession();
       if (cv_.exists(accession))
       {
         const ControlledVocabulary::CVTerm& term = cv_.getTerm(accession);
         //obsolete CV terms
         if (term.obsolete)
         {
-          warning(LOAD, String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
+          warning(LOAD,StringUtils::toStr("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
         }
         //check if term name and parsed name match
-        String parsed_name = cv_term.getName();
-        parsed_name.trim();
-        String correct_name = term.name;
-        correct_name.trim();
+        std::string parsed_name = cv_term.getName();
+        StringUtils::trim(parsed_name);
+        std::string correct_name = term.name;
+        StringUtils::trim(correct_name);
         if (parsed_name != correct_name)
         {
-          warning(LOAD, String("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
+          warning(LOAD,StringUtils::toStr("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
         }
         if (term.obsolete)
         {
-          warning(LOAD, String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
+          warning(LOAD,StringUtils::toStr("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
           //values used in wrong places and wrong value types
-          String value = cv_term.getValue().toString();
+          std::string value = cv_term.getValue().toString();
           if (!value.empty())
           {
             if (term.xref_type == ControlledVocabulary::CVTerm::XRefType::NONE)
             {
               //Quality CV does not state value type :(
-              if (!accession.hasPrefix("PATO:"))
+              if (!StringUtils::hasPrefix(accession, "PATO:"))
               {
-                warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
+                warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
               }
             }
             else
@@ -1153,11 +1153,11 @@ namespace OpenMS::Internal
               case ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER:
                 try
                 {
-                  value.toInt();
+                  StringUtils::toInt32(value);
                 }
                 catch (Exception::ConversionError&)
                 {
-                  warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
+                  warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
                   return;
                 }
                 break;
@@ -1166,11 +1166,11 @@ namespace OpenMS::Internal
               case ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL:
                 try
                 {
-                  value.toDouble();
+                  StringUtils::toDouble(value);
                 }
                 catch (Exception::ConversionError&)
                 {
-                  warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
+                  warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
                   return;
                 }
                 break;
@@ -1184,13 +1184,13 @@ namespace OpenMS::Internal
                 }
                 catch (Exception::ParseError&)
                 {
-                  warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
+                  warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
                   return;
                 }
                 break;
 
               default:
-                warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' has the unknown value type '" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
+                warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' has the unknown value type '" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
                 break;
               }
             }
@@ -1198,7 +1198,7 @@ namespace OpenMS::Internal
           //no value, although there should be a numerical value
           else if (term.xref_type != ControlledVocabulary::CVTerm::XRefType::NONE && term.xref_type != ControlledVocabulary::CVTerm::XRefType::XSD_STRING)
           {
-            warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
+            warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
             return;
           }
         }
@@ -1254,44 +1254,44 @@ namespace OpenMS::Internal
 
         if (cv_term.getAccession() == "MS:1000895") // local RT
         {
-          actual_rt_.setRT(cv_term.getValue().toString().toDouble());
+          actual_rt_.setRT(StringUtils::toDouble(cv_term.getValue().toString()));
           actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::LOCAL;
         }
         else if (cv_term.getAccession() == "MS:1000896") // normalized RT
         {
-          actual_rt_.setRT(cv_term.getValue().toString().toDouble());
+          actual_rt_.setRT(StringUtils::toDouble(cv_term.getValue().toString()));
           actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::NORMALIZED;
         }
         else if (cv_term.getAccession() == "MS:1000897") // predicted RT
         {
-          actual_rt_.setRT(cv_term.getValue().toString().toDouble());
+          actual_rt_.setRT(StringUtils::toDouble(cv_term.getValue().toString()));
           actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::PREDICTED;
         }
         else if (cv_term.getAccession() == "MS:1000902") // H-PINS
         {
-          if (!cv_term.getValue().toString().empty()) actual_rt_.setRT(cv_term.getValue().toString().toDouble());
+          if (!cv_term.getValue().toString().empty()) actual_rt_.setRT(StringUtils::toDouble(cv_term.getValue().toString()));
           actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::HPINS;
         }
         else if (cv_term.getAccession() == "MS:1002005") // iRT
         {
-          if (!cv_term.getValue().toString().empty()) actual_rt_.setRT(cv_term.getValue().toString().toDouble());
+          if (!cv_term.getValue().toString().empty()) actual_rt_.setRT(StringUtils::toDouble(cv_term.getValue().toString()));
           actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::IRT;
         }
         // else if (cv_term.getAccession() == "MS:1000916") // RT lower offset
         // {
-        //   actual_rt_.retention_time_lower = cv_term.getValue().toString().toDouble();
+        //   actual_rt_.retention_time_lower = StringUtils::toDouble(cv_term.getValue().toString());
         // }
         // else if (cv_term.getAccession() == "MS:1000917") // RT upper offset
         // {
-        //   actual_rt_.retention_time_upper = cv_term.getValue().toString().toDouble();
+        //   actual_rt_.retention_time_upper = StringUtils::toDouble(cv_term.getValue().toString());
         // }
         // else if (cv_term.getAccession() == "MS:1001907") // RT window width
         // {
-        //   actual_rt_.retention_time_width = cv_term.getValue().toString().toDouble();
+        //   actual_rt_.retention_time_width = StringUtils::toDouble(cv_term.getValue().toString());
         // }
         else
         {
-          warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" +
+          warning(LOAD,StringUtils::toStr("The CV term '" + cv_term.getAccession() + "' - '" +
                 cv_term.getName() + "' used in tag '" + parent_tag + "' is currently not supported!"));
           actual_rt_.addCVTerm(cv_term);
         }
@@ -1304,7 +1304,7 @@ namespace OpenMS::Internal
       {
         if (cv_term.getAccession() == "MS:1000041")
         {
-          actual_peptide_.setChargeState(cv_term.getValue().toString().toInt());
+          actual_peptide_.setChargeState(StringUtils::toInt32(cv_term.getValue().toString()));
         }
         else if (cv_term.getAccession() == "MS:1000893")
         {
@@ -1312,7 +1312,7 @@ namespace OpenMS::Internal
         }
         else if (cv_term.getAccession() == "MS:1002476")
         {
-          actual_peptide_.setDriftTime(cv_term.getValue().toString().toDouble());
+          actual_peptide_.setDriftTime(StringUtils::toDouble(cv_term.getValue().toString()));
         }
         else
         {
@@ -1323,10 +1323,10 @@ namespace OpenMS::Internal
       {
         // if we find a CV term that starts with UniMod, chances are we can use
         // the UniMod accession number to identify the modification
-        if (cv_term.getAccession().size() > 7 && cv_term.getAccession().prefix(7).toLower() == String("unimod:"))
+        if (cv_term.getAccession().size() > 7 && StringUtils::toLowered(StringUtils::prefix(cv_term.getAccession(), 7)) == "unimod:")
         {
           // check for Exception::ConversionError ?
-          actual_peptide_.mods.back().unimod_id = cv_term.getAccession().substr(7).toInt();
+          actual_peptide_.mods.back().unimod_id = StringUtils::toInt32(cv_term.getAccession().substr(7));
         }
         else
         {
@@ -1338,7 +1338,7 @@ namespace OpenMS::Internal
       {
         if (cv_term.getAccession() == "MS:1001117")
         {
-          actual_compound_.theoretical_mass = cv_term.getValue().toString().toDouble();
+          actual_compound_.theoretical_mass = StringUtils::toDouble(cv_term.getValue().toString());
         }
         else if (cv_term.getAccession() == "MS:1000866")
         {
@@ -1350,11 +1350,11 @@ namespace OpenMS::Internal
         }
         else if (cv_term.getAccession() == "MS:1000041")
         {
-          actual_compound_.setChargeState(cv_term.getValue().toString().toInt());
+          actual_compound_.setChargeState(StringUtils::toInt32(cv_term.getValue().toString()));
         }
         else if (cv_term.getAccession() == "MS:1002476")
         {
-          actual_peptide_.setDriftTime(cv_term.getValue().toString().toDouble());
+          actual_peptide_.setDriftTime(StringUtils::toDouble(cv_term.getValue().toString()));
         }
         else
         {
@@ -1402,13 +1402,13 @@ namespace OpenMS::Internal
         {
           // name: product ion series ordinal
           // def: "The ordinal of the fragment within a specified ion series. (e.g. 8 for a y8 ion)." [PSI:PI]
-          actual_interpretation_.ordinal = cv_term.getValue().toString().toInt();
+          actual_interpretation_.ordinal = StringUtils::toInt32(cv_term.getValue().toString());
         }
         else if (cv_term.getAccession() == "MS:1000926")
         {
           // name: product interpretation rank
           // def: "The integer rank given an interpretation of an observed product ion. For example, if y8 is selected as the most likely interpretation of a peak, then it is assigned a rank of 1." [PSI:MS]
-          actual_interpretation_.rank = cv_term.getValue().toString().toInt();
+          actual_interpretation_.rank = StringUtils::toInt32(cv_term.getValue().toString());
         }
         else if (cv_term.getAccession() == "MS:1001229")
         {
@@ -1483,7 +1483,7 @@ namespace OpenMS::Internal
           // id: MS:1000827 name: isolation window target m/z
           if (cv_term.getAccession() == "MS:1000827")
           {
-            actual_transition_.setPrecursorMZ(cv_term.getValue().toString().toDouble());
+            actual_transition_.setPrecursorMZ(StringUtils::toDouble(cv_term.getValue().toString()));
           }
           else
           {
@@ -1499,11 +1499,11 @@ namespace OpenMS::Internal
       {
         if (cv_term.getAccession() == "MS:1000041")
         {
-          actual_product_.setChargeState(cv_term.getValue().toString().toDouble());
+          actual_product_.setChargeState(StringUtils::toDouble(cv_term.getValue().toString()));
         }
         else if (cv_term.getAccession() == "MS:1000827")
         {
-          actual_product_.setMZ(cv_term.getValue().toString().toDouble());
+          actual_product_.setMZ(StringUtils::toDouble(cv_term.getValue().toString()));
         }
         else
         {
@@ -1514,11 +1514,11 @@ namespace OpenMS::Internal
       {
         if (cv_term.getAccession() == "MS:1000041")
         {
-          actual_product_.setChargeState(cv_term.getValue().toString().toDouble());
+          actual_product_.setChargeState(StringUtils::toDouble(cv_term.getValue().toString()));
         }
         else if (cv_term.getAccession() == "MS:1000827")
         {
-          actual_product_.setMZ(cv_term.getValue().toString().toDouble());
+          actual_product_.setMZ(StringUtils::toDouble(cv_term.getValue().toString()));
         }
         else
         {
@@ -1547,11 +1547,11 @@ namespace OpenMS::Internal
         }
         else if (cv_term.getAccession() == "MS:1001226")
         {
-          actual_transition_.setLibraryIntensity(cv_term.getValue().toString().toDouble());
+          actual_transition_.setLibraryIntensity(StringUtils::toDouble(cv_term.getValue().toString()));
         }
         else if (cv_term.getAccession() == "MS:1000905")
         {
-          actual_transition_.setLibraryIntensity(cv_term.getValue().toString().toDouble());
+          actual_transition_.setLibraryIntensity(StringUtils::toDouble(cv_term.getValue().toString()));
         }
         else
         {
@@ -1560,13 +1560,13 @@ namespace OpenMS::Internal
       }
       else
       {
-        warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" +
+        warning(LOAD,StringUtils::toStr("The CV term '" + cv_term.getAccession() + "' - '" +
               cv_term.getName() + "' used in tag '" + parent_tag + "' could not be handled, ignoring it!"));
       }
       return;
     }
 
-    void TraMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
+    void TraMLHandler::handleUserParam_(const std::string& parent_parent_tag, const std::string& parent_tag, const std::string& name, const std::string& type, const std::string& value)
     {
       // create a DataValue that contains the data in the right type
       DataValue data_value = fromXSDString(type, value);
@@ -1679,20 +1679,20 @@ namespace OpenMS::Internal
       }
       else
       {
-        warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
+        warning(LOAD,StringUtils::toStr("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
       }
     }
 
     void TraMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
     {
-      std::vector<String> keys;
+      std::vector<std::string> keys;
       meta.getKeys(keys);
 
       for (Size i = 0; i != keys.size(); ++i)
       {
-        os << String(2 * indent, ' ') << "<userParam name=\"" << writeXMLEscape(keys[i]) << "\" type=\"";
+        os << std::string(2 * indent, ' ') << "<userParam name=\"" << writeXMLEscape(keys[i]) << "\" type=\"";
 
-        const DataValue& d = meta.getMetaValue(keys[i]);
+        const DataValue& d = (std::string)meta.getMetaValue(keys[i]);
         //determine type
         if (d.valueType() == DataValue::INT_VALUE)
         {
@@ -1706,7 +1706,7 @@ namespace OpenMS::Internal
         {
           os << "xsd:string";
         }
-        os << "\" value=\"" << writeXMLEscape((String)(d)) << "\"/>" << "\n";
+        os << "\" value=\"" << writeXMLEscape((std::string)(d)) << "\"/>" << "\n";
       }
     }
 
@@ -1720,14 +1720,14 @@ namespace OpenMS::Internal
       writeCVList_(os, cv_terms.getCVTerms(), indent);
     }
 
-    void TraMLHandler::writeCVList_(std::ostream & os, const std::map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const
+    void TraMLHandler::writeCVList_(std::ostream & os, const std::map<std::string, std::vector<CVTerm>> & cv_terms, UInt indent) const
     {
-      for (std::map<String, std::vector<CVTerm> >::const_iterator it = cv_terms.begin();
+      for (std::map<std::string, std::vector<CVTerm> >::const_iterator it = cv_terms.begin();
            it != cv_terms.end(); ++it)
       {
         for (const CVTerm& cit : it->second)
         {
-          os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << cit.getCVIdentifierRef() << "\" accession=\"" << cit.getAccession() << "\" name=\"" << cit.getName() << "\"";
+          os << std::string(2 * indent, ' ') << "<cvParam cvRef=\"" << cit.getCVIdentifierRef() << "\" accession=\"" << cit.getAccession() << "\" name=\"" << cit.getName() << "\"";
           if (cit.hasValue() && !cit.getValue().isEmpty() && !cit.getValue().toString().empty())
           {
             os << " value=\"" << cit.getValue().toString() << "\"";

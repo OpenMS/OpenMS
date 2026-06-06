@@ -56,7 +56,7 @@ namespace OpenMS
                                   registered with the @ref ToolHandler.
                                   Disable for unit tests only.
     */
-    SearchEngineBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
+    SearchEngineBase(const std::string& name, const std::string& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
 
     /// Destructor.
     ~SearchEngineBase() override;
@@ -88,7 +88,7 @@ namespace OpenMS
                                                  @c -force flag is not
                                                  set.
     */
-    String getRawfileName(int ms_level = 2) const;
+    std::string getRawfileName(int ms_level = 2) const;
 
 
     /**
@@ -109,7 +109,7 @@ namespace OpenMS
                                               resolved against the
                                               OpenMS database paths.
     */
-    String getDBFilename(const String& db = "") const;
+    std::string getDBFilename(const std::string& db = "") const;
 
 
     /**

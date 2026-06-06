@@ -51,7 +51,7 @@ namespace OpenMS
       std::for_each(fixed_mods.begin(), fixed_mods.end(), [&seq, &residue_index, r] (ConstRibonucleotidePtr const & f)
         {
           // check if modification and current ribo match
-          const String& code = r.getCode();
+          const std::string& code = r.getCode();
           if (code.size() == 1 && code[0] == f->getOrigin())
           {
             // replace the nucleoside with the modified version (skip 5'/3' modifications)
@@ -132,7 +132,7 @@ namespace OpenMS
       std::for_each(var_mods.begin(), var_mods.end(), [&residue_index, &r, &map_compatibility](ConstRibonucleotidePtr const & v)
       {
         // check if modification and current ribo match
-        const String& code = r.getCode();
+        const std::string& code = r.getCode();
         if (code.size() == 1 && code[0] == v->getOrigin())
         {
           if (v->getTermSpecificity() == Ribonucleotide::ANYWHERE)
@@ -272,7 +272,7 @@ namespace OpenMS
                     [ribo_it, residue_index, &all_modified_seqs, &seq](ConstRibonucleotidePtr const & v)
       {
         // check if modification and current ribo match
-        const String& code = ribo_it->getCode();
+        const std::string& code = ribo_it->getCode();
         if (code.size() == 1 && code[0] == v->getOrigin())
         {
           NASequence new_seq = seq;

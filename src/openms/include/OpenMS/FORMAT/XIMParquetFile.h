@@ -66,9 +66,9 @@ namespace OpenMS
     struct OPENMS_DLLAPI XIMMobilogram
     {
       Int64 run_id{0};
-      String source_file;
+      std::string source_file;
       Int64 ms_level{0};
-      String mobilogram_type;
+      std::string mobilogram_type;
 
       bool has_precursor_id{false};
       Int64 precursor_id{0};
@@ -78,7 +78,7 @@ namespace OpenMS
       Int64 feature_id{0};
       bool has_feature_rt{false};
       double feature_rt{0.0};
-      String modified_sequence;
+      std::string modified_sequence;
       bool has_precursor_charge{false};
       Int64 precursor_charge{0};
       bool has_product_charge{false};
@@ -91,8 +91,8 @@ namespace OpenMS
       Int64 product_decoy{0};
       bool has_transition_ordinal{false};
       Int64 transition_ordinal{0};
-      String transition_type;
-      String annotation;
+      std::string transition_type;
+      std::string annotation;
 
       std::vector<double> mobility;
       std::vector<double> intensity;
@@ -104,7 +104,7 @@ namespace OpenMS
     struct OPENMS_DLLAPI XIMRunInfo
     {
       Int64 run_id{0};
-      String source_file;
+      std::string source_file;
     };
 
     /**
@@ -120,7 +120,7 @@ namespace OpenMS
     {
       bool has_precursor_id{false};
       Int64 precursor_id{0};
-      String modified_sequence;
+      std::string modified_sequence;
       bool has_precursor_charge{false};
       Int64 precursor_charge{0};
       bool has_precursor_decoy{false};
@@ -136,16 +136,16 @@ namespace OpenMS
       Int64 detecting_transition{0};
       bool has_product_decoy{false};
       Int64 product_decoy{0};
-      String transition_type;
-      String annotation;
+      std::string transition_type;
+      std::string annotation;
 
       std::vector<Int64> transition_ids;
       std::vector<Int64> product_charges;
       std::vector<Int64> transition_ordinals;
       std::vector<Int64> detecting_transitions;
       std::vector<Int64> product_decoys;
-      std::vector<String> transition_types;
-      std::vector<String> annotations;
+      std::vector<std::string> transition_types;
+      std::vector<std::string> annotations;
     };
 
     /**
@@ -153,14 +153,14 @@ namespace OpenMS
 
       @param[in] filename Path to an OpenSWATH mobilogram parquet file.
     */
-    explicit XIMParquetFile(const String& filename);
+    explicit XIMParquetFile(const std::string& filename);
 
     /**
       @brief Construct from multiple .xim files.
 
       @param[in] filenames Paths to OpenSWATH mobilogram parquet files.
     */
-    explicit XIMParquetFile(const std::vector<String>& filenames);
+    explicit XIMParquetFile(const std::vector<std::string>& filenames);
     XIMParquetFile(const XIMParquetFile& rhs) = default;
     XIMParquetFile& operator=(const XIMParquetFile& rhs) = default;
 
@@ -171,14 +171,14 @@ namespace OpenMS
 
       @return Primary filename.
     */
-    const String& getFilename() const;
+    const std::string& getFilename() const;
 
     /**
       @brief Return all filenames associated with this instance.
 
       @return All filenames associated with this instance.
     */
-    const std::vector<String>& getFilenames() const;
+    const std::vector<std::string>& getFilenames() const;
 
     /**
       @brief Load all mobilograms from the file(s).
@@ -207,15 +207,15 @@ namespace OpenMS
     void getMobilograms(std::vector<XIMMobilogram>& output,
                           Int64 precursor_id = -1,
                           Int64 transition_id = -1,
-                          const String& modified_sequence = "",
+                          const std::string& modified_sequence = "",
                           Int64 precursor_charge = -1,
                           Int64 product_charge = -1,
                           Int64 ms_level = -1,
                           Int64 run_id = -1,
-                          const String& mobilogram_type = "",
+                          const std::string& mobilogram_type = "",
                           Int64 feature_id = -1,
                           double feature_rt = -1.0,
-                          const String& filter = "") const;
+                          const std::string& filter = "") const;
 
     /**
       @brief Return mobilograms using a typed filter expression.
@@ -259,7 +259,7 @@ namespace OpenMS
       @param[in] nest_transitions Aggregate transition fields per precursor
     */
     void getAnalytes(std::vector<XIMAnalyte>& output,
-                     const std::vector<String>& columns = {},
+                     const std::vector<std::string>& columns = {},
                      bool nest_transitions = true) const;
 
     /**
@@ -267,25 +267,25 @@ namespace OpenMS
 
       @param[out] output Column names.
     */
-    void getColumns(std::vector<String>& output) const;
+    void getColumns(std::vector<std::string>& output) const;
 
   private:
     void getMobilograms_(std::vector<XIMMobilogram>& output,
                            const FilterExpression& extra_filter,
                            Int64 precursor_id,
                            Int64 transition_id,
-                           const String& modified_sequence,
+                           const std::string& modified_sequence,
                            Int64 precursor_charge,
                            Int64 product_charge,
                            Int64 ms_level,
                            Int64 run_id,
-                           const String& mobilogram_type,
+                           const std::string& mobilogram_type,
                            Int64 feature_id,
                            double feature_rt,
-                           const String& filter) const;
+                           const std::string& filter) const;
 
-    String filename_;
-    std::vector<String> filenames_;
+    std::string filename_;
+    std::vector<std::string> filenames_;
   };
 
   /// Convenience alias for the nested XIM mobilogram type.

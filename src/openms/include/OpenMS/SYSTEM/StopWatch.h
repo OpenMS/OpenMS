@@ -178,12 +178,12 @@ public:
       2.10 s (wall), 1.67 s (CPU), 0.12 s (system), 1.54 s (user)
       
     */
-    String toString() const;
+    std::string toString() const;
 
     /**
       custom string formatting of time, using only the minimal number of units required (e.g., does not report hours when seconds suffice).
     */
-    static String toString(const double time_in_seconds);
+    static std::string toString(const double time_in_seconds);
 
 private:
   #ifdef OPENMS_WINDOWSPLATFORM

@@ -15,11 +15,11 @@
 
 namespace OpenMS
 {
-  void MRMFeatureQCFile::load(const String& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) const
+  void MRMFeatureQCFile::load(const std::string& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) const
   {
     CsvFile csv(filename, ',', false, -1);
     StringList sl;
-    std::map<String, Size> headers;
+    std::map<std::string, Size> headers;
     if (csv.rowCount() > 0) // avoid accessing a row in an empty file
     {
       csv.getRow(0, sl);
@@ -50,7 +50,7 @@ namespace OpenMS
 
   void MRMFeatureQCFile::pushValuesFromLine_(
     const StringList& line,
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     std::vector<MRMFeatureQC::ComponentQCs>& c_qcs
   ) const
   {
@@ -63,14 +63,14 @@ namespace OpenMS
     c.intensity_u = getCastValue_(headers, line, "intensity_u", 1e12);
     c.overall_quality_l = getCastValue_(headers, line, "overall_quality_l", 0.0);
     c.overall_quality_u = getCastValue_(headers, line, "overall_quality_u", 1e12);
-    for (const std::pair<const String, Size>& h : headers) // parse the parameters
+    for (const std::pair<const std::string, Size>& h : headers) // parse the parameters
     {
-      const String& header = h.first;
+      const std::string& header = h.first;
       const Size& i = h.second;
       boost::smatch m;
       if (boost::regex_search(header, m, boost::regex("metaValue_(.+)_(l|u)"))) // capture the metavalue name and the boundary and save them to m[1] and m[2]
       {
-        setPairValue_(String(m[1]), line[i], String(m[2]), c.meta_value_qc);
+        setPairValue_(StringUtils::toStr(m[1]), line[i],StringUtils::toStr(m[2]), c.meta_value_qc);
       }
     }
     c_qcs.push_back(c);
@@ -78,7 +78,7 @@ namespace OpenMS
 
   void MRMFeatureQCFile::pushValuesFromLine_(
     const StringList& line,
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     std::vector<MRMFeatureQC::ComponentGroupQCs>& cg_qcs
   ) const
   {
@@ -111,27 +111,27 @@ namespace OpenMS
     cg.ion_ratio_l = getCastValue_(headers, line, "ion_ratio_l", 0.0);
     cg.ion_ratio_u = getCastValue_(headers, line, "ion_ratio_u", 1e12);
     cg.ion_ratio_feature_name = getCastValue_(headers, line, "ion_ratio_feature_name", "");
-    for (const std::pair<const String, Size>& h : headers) // parse the parameters
+    for (const std::pair<const std::string, Size>& h : headers) // parse the parameters
     {
-      const String& header = h.first;
+      const std::string& header = h.first;
       const Size& i = h.second;
       boost::smatch m;
       if (boost::regex_search(header, m, boost::regex("metaValue_(.+)_(l|u)"))) // capture the metavalue name and the boundary and save them to m[1] and m[2]
       {
-        setPairValue_(String(m[1]), line[i], String(m[2]), cg.meta_value_qc);
+        setPairValue_(StringUtils::toStr(m[1]), line[i],StringUtils::toStr(m[2]), cg.meta_value_qc);
       }
     }
     cg_qcs.push_back(cg);
   }
 
   void MRMFeatureQCFile::setPairValue_(
-    const String& key,
-    const String& value,
-    const String& boundary,
-    std::map<String, std::pair<double,double>>& meta_values_qc
+    const std::string& key,
+    const std::string& value,
+    const std::string& boundary,
+    std::map<std::string, std::pair<double,double>>& meta_values_qc
   ) const
   {
-    std::map<String, std::pair<double,double>>::iterator it = meta_values_qc.find(key);
+    std::map<std::string, std::pair<double,double>>::iterator it = meta_values_qc.find(key);
     const double cast_value = value.empty() ? (boundary == "l" ? 0.0 : 1e12) : std::stod(value);
     if (it != meta_values_qc.end())
     {
@@ -147,45 +147,45 @@ namespace OpenMS
   }
 
   Int MRMFeatureQCFile::getCastValue_(
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     const StringList& line,
-    const String& header,
+    const std::string& header,
     const Int default_value
   ) const
   {
-    std::map<String, Size>::const_iterator it = headers.find(header);
+    std::map<std::string, Size>::const_iterator it = headers.find(header);
     return it != headers.end() && !line[it->second].empty()
       ? std::stoi(line[it->second])
       : default_value;
   }
 
   double MRMFeatureQCFile::getCastValue_(
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     const StringList& line,
-    const String& header,
+    const std::string& header,
     const double default_value
   ) const
   {
-    std::map<String, Size>::const_iterator it = headers.find(header);
+    std::map<std::string, Size>::const_iterator it = headers.find(header);
     return it != headers.end() && !line[it->second].empty()
       ? std::stod(line[it->second])
       : default_value;
   }
 
-  String MRMFeatureQCFile::getCastValue_(
-    const std::map<String, Size>& headers,
+  std::string MRMFeatureQCFile::getCastValue_(
+    const std::map<std::string, Size>& headers,
     const StringList& line,
-    const String& header,
-    const String& default_value
+    const std::string& header,
+    const std::string& default_value
   ) const
   {
-    std::map<String, Size>::const_iterator it = headers.find(header);
+    std::map<std::string, Size>::const_iterator it = headers.find(header);
     return it != headers.end() && !line[it->second].empty()
       ? line[it->second]
       : default_value;
   }
 
-  void MRMFeatureQCFile::store(const String & filename, const MRMFeatureQC & mrmfqc, const bool is_component_group)
+  void MRMFeatureQCFile::store(const std::string & filename, const MRMFeatureQC & mrmfqc, const bool is_component_group)
   {
     if (is_component_group) 
     {

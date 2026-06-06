@@ -66,7 +66,7 @@ p5.setIntensity(3.0f);
 p5.setRT(30.0001);
 
 
-START_SECTION((const String& getName() const ))
+START_SECTION((const std::string& getName() const ))
 {
   TEST_STRING_EQUAL(ptr->getName(), "")
   ptr->setName("my_fancy_name");
@@ -75,7 +75,7 @@ START_SECTION((const String& getName() const ))
 }
 END_SECTION
 
-START_SECTION((void setName(const String &name)))
+START_SECTION((void setName(const std::string &name)))
 {
   NOT_TESTABLE // tested above
 }
@@ -211,7 +211,7 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
       //metadataarray values == mz values
       TEST_REAL_SIMILAR(it1->getIntensity(), *it);
       TEST_REAL_SIMILAR(*it2 , it1->getRT());
-      TEST_STRING_EQUAL(*it3 , String::number(it1->getRT(),2));
+      TEST_STRING_EQUAL(*it3 , StringUtils::number(it1->getRT(),2));
       TEST_EQUAL(*it4 , (Int)floor(it1->getRT()));
       ++it1;
       ++it2;
@@ -301,7 +301,7 @@ START_SECTION((void sortByPosition()))
       //metadataarray values == intensity values
       TEST_REAL_SIMILAR(it1->getIntensity(), *rit);
       TEST_REAL_SIMILAR(*it2 , *rit);
-      TEST_STRING_EQUAL(*it3 , String::number(*rit,0));
+      TEST_STRING_EQUAL(*it3 , StringUtils::number(*rit,0));
       TEST_EQUAL(*it4 , (Int)floor(*rit));
       ++it1;
       ++it2;
@@ -906,7 +906,7 @@ START_SECTION((bool operator==(const MSChromatogram &rhs) const ))
   TEST_EQUAL(edit==empty,false);
 
   edit = empty;
-  edit.setMetaValue("label",String("bla"));
+  edit.setMetaValue("label",StringUtils::toStr("bla"));
   TEST_EQUAL(empty==edit, false);
 
   Product prod;
@@ -956,7 +956,7 @@ START_SECTION((bool operator!=(const MSChromatogram &rhs) const ))
   TEST_EQUAL(edit!=empty,true);
 
   edit = empty;
-  edit.setMetaValue("label",String("bla"));
+  edit.setMetaValue("label",StringUtils::toStr("bla"));
   TEST_EQUAL(edit!=empty,true);
 
   Product prod;
@@ -1022,7 +1022,7 @@ START_SECTION(void clear(bool clear_meta_data))
   MSChromatogram edit;
   edit.getInstrumentSettings().getScanWindows().resize(1);
   edit.resize(1);
-  edit.setMetaValue("label",String("bla"));
+  edit.setMetaValue("label",StringUtils::toStr("bla"));
   edit.getProduct().setMZ(5);
   edit.getFloatDataArrays().resize(5);
   edit.getIntegerDataArrays().resize(5);
@@ -1104,8 +1104,8 @@ START_SECTION( std::ostream& operator<<(std::ostream& os, const MSChromatogram& 
   std::ostringstream os;
   os << a;
 
-  TEST_EQUAL(String(os.str()).hasSubstring("MSCHROMATOGRAM BEGIN"), true);
-  TEST_EQUAL(String(os.str()).hasSubstring("47.11"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(os.str(), "MSCHROMATOGRAM BEGIN"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(os.str(), "47.11"), true);
 }
 END_SECTION
 

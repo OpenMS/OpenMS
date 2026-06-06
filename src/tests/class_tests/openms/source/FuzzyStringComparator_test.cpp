@@ -180,11 +180,11 @@ END_SECTION
 
   START_SECTION((void setWhitelist(const StringList &rhs)))
   {
-    fsc.setWhitelist(ListUtils::create<String>("null,eins,zwei,drei"));
+    fsc.setWhitelist(ListUtils::create<std::string>("null,eins,zwei,drei"));
     TEST_STRING_EQUAL(fsc.getWhitelist()[0],"null");
     TEST_STRING_EQUAL(fsc_cref.getWhitelist()[1],"eins");
     TEST_EQUAL(fsc_cref.getWhitelist().size(),4);
-    fsc.setWhitelist(ListUtils::create<String>("zero,one,two,three,four"));
+    fsc.setWhitelist(ListUtils::create<std::string>("zero,one,two,three,four"));
     TEST_STRING_EQUAL(fsc.getWhitelist()[0],"zero");
     TEST_STRING_EQUAL(fsc_cref.getWhitelist()[1],"one");
     TEST_EQUAL(fsc_cref.getWhitelist().size(),5);
@@ -280,8 +280,8 @@ START_SECTION((bool compareStrings(std::string const &lhs, std::string const &rh
 		fsc.setAcceptableAbsolute(0.01);
 		bool result = (fsc.compareStrings("1 \n 		   2	\n 3","1.01 \n \n		\n\n  					  	0002.01000 \n 3")!=0);
 		TEST_EQUAL(result,true);
-		std::vector<OpenMS::String> substrings;
-		result = OpenMS::String(log.str()).split('\n',substrings);
+		std::vector<std::string> substrings;
+		{ std::string log_str = log.str(); result = StringUtils::split(log_str, '\n', substrings); }
 		// STATUS(log.str());
 		TEST_EQUAL(result, false);
 		TEST_EQUAL(substrings.size(), 0);
@@ -296,8 +296,8 @@ START_SECTION((bool compareStrings(std::string const &lhs, std::string const &rh
 		fsc.setAcceptableAbsolute(0.01);
 		bool result = (fsc.compareStrings("1 \n 		   2	\n 3","1.01 \n \n		\n\n  					  	0002.01000 \n 3")!=0);
 		TEST_EQUAL(result,true);
-		std::vector<OpenMS::String> substrings;
-		OpenMS::String(log.str()).split('\n',substrings);
+		std::vector<std::string> substrings;
+		{ std::string log_str = log.str(); StringUtils::split(log_str, '\n', substrings); }
 		// STATUS(log.str());
 		// Magic alert! - You might need to edit these numbers if reportSuccess_() or reportFailure_() changes.
 		TEST_EQUAL(substrings.size(),17);
@@ -312,8 +312,8 @@ START_SECTION((bool compareStrings(std::string const &lhs, std::string const &rh
 		fsc.setAcceptableRelative(1.01);
 		fsc.setAcceptableAbsolute(0.01);
 		fsc.compareStrings("1 \n 		   2	\n 3","1.11 \n \n		\n\n  					  	0004.01000 \n 3");
-		std::vector<OpenMS::String> substrings;
-		OpenMS::String(log.str()).split('\n',substrings);
+		std::vector<std::string> substrings;
+		{ std::string log_str = log.str(); StringUtils::split(log_str, '\n', substrings); }
 		// STATUS(log.str());
 		// Magic alert! - You might need to edit these numbers if reportSuccess_() or reportFailure_() changes.
 		TEST_EQUAL(substrings.size(),36);
@@ -333,8 +333,8 @@ START_SECTION((bool compareStrings(std::string const &lhs, std::string const &rh
 			 "1 \n xx\n 2.008	\n 3",
 			 "1.11 \nU\n		\n\n  q					  	0002.04000 \n 3"
 			);
-		std::vector<OpenMS::String> substrings;
-		OpenMS::String(log.str()).split('\n',substrings);
+		std::vector<std::string> substrings;
+		{ std::string log_str = log.str(); StringUtils::split(log_str, '\n', substrings); }
 		// STATUS(log.str());
 		// Magic alert! - You might need to edit these numbers if reportSuccess_() or reportFailure_() changes.
 		TEST_EQUAL(substrings.size(),246);
@@ -375,8 +375,8 @@ START_SECTION((bool compareStreams(std::istream &input_1, std::istream &input_2)
 		std::istringstream lhs("1 \n xx\n 2.008	\n 3");
 		std::istringstream rhs("1.11 \nU\n		\n\n  q					  	0002.04000 \n 3");
 		fsc.compareStreams(lhs,rhs);
-		std::vector<OpenMS::String> substrings;
-		OpenMS::String(log.str()).split('\n',substrings);
+		std::vector<std::string> substrings;
+		{ std::string log_str = log.str(); StringUtils::split(log_str, '\n', substrings); }
 		// STATUS(log.str());
 		// Magic alert! - You might need to edit these numbers if reportSuccess_() or reportFailure_() changes.
 		TEST_EQUAL(substrings.size(),246);
@@ -414,8 +414,8 @@ START_SECTION((bool compareFiles(const std::string &filename_1, const std::strin
 			file2.close();
 		}
 		fsc.compareFiles(filename1,filename2);
-		std::vector<OpenMS::String> substrings;
-		OpenMS::String(log.str()).split('\n',substrings);
+		std::vector<std::string> substrings;
+		{ std::string log_str = log.str(); StringUtils::split(log_str, '\n', substrings); }
 		// STATUS(log.str());
 		// Magic alert! - You might need to edit these numbers if reportSuccess_() or reportFailure_() changes.
 		TEST_EQUAL(substrings.size(),246);

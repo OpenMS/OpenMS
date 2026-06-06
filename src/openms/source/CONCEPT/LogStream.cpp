@@ -335,12 +335,12 @@ namespace OpenMS
       Size copied_index = 0;
       string result;
 
-      while ((index = prefix.find('%', index)) != String::npos)
+      while ((index = prefix.find('%', index)) != std::string::npos)
       {
         // append any constant parts of the string to the result
         if (copied_index < index)
         {
-          result.append(prefix.substr(copied_index, index - copied_index));
+          result.append(StringUtils::substr(prefix, copied_index, index - copied_index));
           copied_index = (SignedSize)index;
         }
 
@@ -399,7 +399,7 @@ namespace OpenMS
 
       if (copied_index < prefix.size())
       {
-        result.append(prefix.substr(copied_index, prefix.size() - copied_index));
+        result.append(StringUtils::substr(prefix, copied_index, prefix.size() - copied_index));
       }
 
       return result;

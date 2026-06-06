@@ -77,7 +77,7 @@ namespace OpenMS
               MSImagingGeometry; load each section separately).
       @throws Exception::ParseError if @c MaldiFrameInfo is absent or empty.
     */
-    void load(const String& path, MSImagingExperiment& exp);
+    void load(const std::string& path, MSImagingExperiment& exp);
 
     /**
       @brief Loads a MALDI imaging .d folder into @p exp.
@@ -91,7 +91,7 @@ namespace OpenMS
               multiple distinct @c ZIndexPos values.
       @throws Exception::ParseError if @c MaldiFrameInfo is absent or empty.
     */
-    void load(const String& path, MSImagingExperiment& exp, const Config& config);
+    void load(const std::string& path, MSImagingExperiment& exp, const Config& config);
 
     /**
       @brief Cheap, non-throwing probe for MALDI imaging mode.
@@ -104,7 +104,7 @@ namespace OpenMS
       @param[in] path The path to the Bruker .d directory.
       @return true iff @c GlobalMetadata.MaldiApplicationType == "Imaging".
     */
-    static bool isImagingDataset(const String& path);
+    static bool isImagingDataset(const std::string& path);
 
     /**
       @brief Reads @c MaldiFrameInfo and returns rows in @c Frame.Id order.
@@ -118,7 +118,7 @@ namespace OpenMS
       @throws Exception::FileNotReadable if @c analysis.tdf cannot be opened.
       @throws Exception::ParseError if @c MaldiFrameInfo is missing or empty.
     */
-    static std::vector<MaldiPixel> readMaldiFrameInfo(const String& d_folder);
+    static std::vector<MaldiPixel> readMaldiFrameInfo(const std::string& d_folder);
 
     /**
       @brief Reads a single @c GlobalMetadata key.
@@ -128,7 +128,7 @@ namespace OpenMS
               the @c GlobalMetadata table does not exist.
       @throws Exception::FileNotReadable if @c analysis.tdf cannot be opened.
     */
-    static String readGlobalMetadataValue(const String& d_folder, const String& key);
+    static std::string readGlobalMetadataValue(const std::string& d_folder, const std::string& key);
 
   private:
     /// Computes the 2D bounding box of the observed pixel coordinates.
@@ -137,7 +137,7 @@ namespace OpenMS
                                     UInt& width, UInt& height);
 
     /// Resolves @c analysis.tdf inside a .d folder. Throws FileNotReadable if absent.
-    static String resolveTdfPath_(const String& d_folder);
+    static std::string resolveTdfPath_(const std::string& d_folder);
   };
 
 } // namespace OpenMS

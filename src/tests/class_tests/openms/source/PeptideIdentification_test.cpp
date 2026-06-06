@@ -263,12 +263,12 @@ START_SECTION((void testSignificanceThresholdMetaValue()))
 }
 END_SECTION
 
-START_SECTION((String& getScoreType() const))
+START_SECTION((std::string& getScoreType() const))
 	PeptideIdentification hits;
 	TEST_EQUAL(hits.getScoreType(), "")
 END_SECTION
 
-START_SECTION((void setScoreType(const String& type)))
+START_SECTION((void setScoreType(const std::string& type)))
 	PeptideIdentification hits;
 	hits.setScoreType("bla");
 	TEST_EQUAL(hits.getScoreType(), "bla")
@@ -285,12 +285,12 @@ START_SECTION((void setHigherScoreBetter(bool value)))
   TEST_FALSE(hits.isHigherScoreBetter())
 END_SECTION
 
-START_SECTION((const String& getIdentifier() const))
+START_SECTION((const std::string& getIdentifier() const))
   PeptideIdentification hits;
   TEST_EQUAL(hits.getIdentifier(),"")
 END_SECTION
 
-START_SECTION((void setIdentifier(const String& id)))
+START_SECTION((void setIdentifier(const std::string& id)))
   PeptideIdentification hits;
   hits.setIdentifier("bla");
   TEST_EQUAL(hits.getIdentifier(),"bla")
@@ -352,7 +352,7 @@ START_SECTION((void sort()))
 END_SECTION
 
 
-START_SECTION(static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit> & , const std::set<String> & accession))
+START_SECTION(static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit> & , const std::set<std::string> & accession))
 {
   PeptideIdentification id;
   PeptideHit hit;
@@ -379,7 +379,7 @@ START_SECTION(static std::vector<PeptideHit> getReferencingHits(const std::vecto
   hit.addPeptideEvidence(pe);
   id.insertHit(hit);
 
-  set<String> query_accession;
+  set<std::string> query_accession;
   query_accession.insert("TEST_PROTEIN2");
   peptide_hits = PeptideIdentification::getReferencingHits(id.getHits(), query_accession);
   TEST_EQUAL(peptide_hits.size(), 2)
@@ -418,7 +418,7 @@ START_SECTION(static std::vector<PeptideHit> getReferencingHits(const std::vecto
   hit.addPeptideEvidence(pe);
   id.insertHit(hit);
 
-  set<String> query_accession;
+  set<std::string> query_accession;
   query_accession.insert("TEST_PROTEIN2");
   query_accession.insert("TEST_PROTEIN3");
   peptide_hits = PeptideIdentification::getReferencingHits(id.getHits(), query_accession);
@@ -432,7 +432,7 @@ START_SECTION((static std::multimap<String, std::pair<Size, Size>> buildUIDsFrom
 {
   ConsensusMap cmap;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.consensusXML"), cmap);
-  std::multimap<String, std::pair<Size, Size>> map_of_UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
+  std::multimap<std::string, std::pair<Size, Size>> map_of_UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
 
   auto b = map_of_UIDs.begin();
   TEST_EQUAL(b->first,
@@ -454,9 +454,9 @@ START_SECTION((static std::multimap<String, std::pair<Size, Size>> buildUIDsFrom
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.featureXML"), fmap);
   IdentifierMSRunMapper mapping(cmap.getProteinIdentifications());
 
-  String uid_zero = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[0], mapping);
-  String uid_one = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[1], mapping);
-  String uid_two = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[2], mapping);
+  std::string uid_zero = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[0], mapping);
+  std::string uid_one = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[1], mapping);
+  std::string uid_two = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[2], mapping);
 
   TEST_EQUAL(uid_zero,"file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=219")
   TEST_EQUAL(uid_one, "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0016_1.mzML|spectrum=33")
@@ -464,13 +464,13 @@ START_SECTION((static std::multimap<String, std::pair<Size, Size>> buildUIDsFrom
 }
 END_SECTION
 
-START_SECTION((static String buildUIDFromPepID(const PeptideIdentification& pep_id, const IdentifierMSRunMapper& mapping)))
+START_SECTION((static std::string buildUIDFromPepID(const PeptideIdentification& pep_id, const IdentifierMSRunMapper& mapping)))
 {
       NOT_TESTABLE //Tested above
 }
 END_SECTION
 
-START_SECTION((const String& getBaseName() const))
+START_SECTION((const std::string& getBaseName() const))
   PeptideIdentification id;
   TEST_EQUAL(id.getBaseName(), "")
   
@@ -482,7 +482,7 @@ START_SECTION((const String& getBaseName() const))
   TEST_EQUAL(id.getMetaValue(Constants::UserParam::BASE_NAME), "test_base_name")
 END_SECTION
 
-START_SECTION((void setBaseName(const String& base_name)))
+START_SECTION((void setBaseName(const std::string& base_name)))
   PeptideIdentification id;
   
   // Test setting a non-empty base name
@@ -587,7 +587,7 @@ START_SECTION((std::hash<PeptideIdentification>))
 }
 END_SECTION
 
-START_SECTION((USI buildUSI(const String& ms_run_name, const String& dataset_id, bool include_interpretation) const))
+START_SECTION((USI buildUSI(const std::string& ms_run_name, const std::string& dataset_id, bool include_interpretation) const))
 {
   // Test USI generation with scan number in native ID
   PeptideIdentification id1;
@@ -674,20 +674,20 @@ START_SECTION(([EXTRA] buildUSI().toString() convenience pattern))
   id.insertHit(hit);
 
   // Test without interpretation
-  String usi_str1 = id.buildUSI("sample.mzML", "PXD000561", false).toString();
+  std::string usi_str1 = id.buildUSI("sample.mzML", "PXD000561", false).toString();
   TEST_STRING_EQUAL(usi_str1, "mzspec:PXD000561:sample.mzML:scan:12345");
 
   // Test with interpretation
-  String usi_str2 = id.buildUSI("sample.mzML", "PXD000561", true).toString();
+  std::string usi_str2 = id.buildUSI("sample.mzML", "PXD000561", true).toString();
   TEST_STRING_EQUAL(usi_str2, "mzspec:PXD000561:sample.mzML:scan:12345:PEPTIDEK/2");
 
   // Test default dataset_id ("local")
-  String usi_str_local = id.buildUSI("sample.mzML").toString();
+  std::string usi_str_local = id.buildUSI("sample.mzML").toString();
   TEST_STRING_EQUAL(usi_str_local, "mzspec:local:sample.mzML:scan:12345");
 
   // Test empty spectrum reference returns empty string
   PeptideIdentification id2;
-  String usi_str3 = id2.buildUSI("sample.mzML", "PXD000561", false).toString();
+  std::string usi_str3 = id2.buildUSI("sample.mzML", "PXD000561", false).toString();
   TEST_STRING_EQUAL(usi_str3, "");
 }
 END_SECTION
@@ -700,24 +700,24 @@ START_SECTION(([EXTRA] buildUSI with file paths and basenames))
   id1.setSpectrumReference("scan=12345");
 
   // Using full path as MS run (not recommended but should work)
-  String full_path = "/path/to/data/sample.mzML";
+  std::string full_path = "/path/to/data/sample.mzML";
   USI usi1 = id1.buildUSI(full_path, "PXD000561", false);
   TEST_EQUAL(usi1.isValid(), true);
   TEST_STRING_EQUAL(usi1.getMSRun(), full_path);
 
   // Test with basename extracted using USI::extractBasename
-  String extracted_basename = USI::extractBasename(full_path);
+  std::string extracted_basename = USI::extractBasename(full_path);
   USI usi2 = id1.buildUSI(extracted_basename, "PXD000561", false);
   TEST_STRING_EQUAL(usi2.getMSRun(), "sample.mzML");
   TEST_STRING_EQUAL(usi2.toString(), "mzspec:PXD000561:sample.mzML:scan:12345");
 
   // Test with file:// URI (common in consensusXML)
-  String file_uri = "file:///C:/Users/bielow/data/ES-0014b_2.mzML";
+  std::string file_uri = "file:///C:/Users/bielow/data/ES-0014b_2.mzML";
   USI usi3 = id1.buildUSI(USI::extractBasename(file_uri), "PXD000561", false);
   TEST_STRING_EQUAL(usi3.getMSRun(), "ES-0014b_2.mzML");
 
   // Test buildUSI().toString() with extracted basename
-  String usi_str = id1.buildUSI(USI::extractBasename(file_uri), "PXD000561", false).toString();
+  std::string usi_str = id1.buildUSI(USI::extractBasename(file_uri), "PXD000561", false).toString();
   TEST_STRING_EQUAL(usi_str, "mzspec:PXD000561:ES-0014b_2.mzML:scan:12345");
 
   // Test with various native ID formats and basenames
@@ -784,7 +784,7 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
   TEST_STRING_EQUAL(usi4.getCollection(), "local");
 
   // Test buildUSI().toString() with mapping
-  String usi_str = id3.buildUSI(mapping, "PXD000561", false).toString();
+  std::string usi_str = id3.buildUSI(mapping, "PXD000561", false).toString();
   TEST_STRING_EQUAL(usi_str, "mzspec:PXD000561:fileB.mzML:scan:300");
 
   // Test invalid identifier returns invalid USI

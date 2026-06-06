@@ -58,7 +58,7 @@ START_SECTION(AASequence(const AASequence& rhs))
   TEST_EQUAL(seq, seq2)
 END_SECTION
 
-START_SECTION(AASequence fromString(const String& s, bool permissive = true))
+START_SECTION(AASequence fromString(const std::string& s, bool permissive = true))
 {
   AASequence seq = AASequence::fromString("CNARCKNCNCNARCDRE");
   TEST_EQUAL(seq.isModified(), false)
@@ -508,9 +508,9 @@ END_SECTION
 
 START_SECTION(bool has(const Residue& residue) const)
   AASequence seq = AASequence::fromString("DFPIANGER");
-  TEST_EQUAL(seq.has(seq[(Size)0]), true)
+  TEST_EQUAL(StringUtils::has(seq, seq[(Size)0]), true)
   Residue res;
-  TEST_NOT_EQUAL(seq.has(res), true)
+  TEST_NOT_EQUAL(StringUtils::has(seq, res), true)
 END_SECTION
 
 START_SECTION(bool hasSubsequence(const AASequence& peptide) const)
@@ -528,11 +528,11 @@ START_SECTION(bool hasPrefix(const AASequence& peptide) const)
   AASequence seq4 = AASequence::fromString("(TMT6plex)DFP");
   AASequence seq5 = AASequence::fromString("DFPIANGER(Label:18O(2))");
   AASequence seq6 = AASequence::fromString("DFP(Label:18O(2))");
-  TEST_EQUAL(seq1.hasPrefix(seq2), true)
-  TEST_EQUAL(seq1.hasPrefix(seq3), false)
-  TEST_EQUAL(seq1.hasPrefix(seq4), false)
-  TEST_EQUAL(seq1.hasPrefix(seq5), false)
-  TEST_EQUAL(seq1.hasPrefix(seq6), true)
+  TEST_EQUAL(StringUtils::hasPrefix(seq1, seq2), true)
+  TEST_EQUAL(StringUtils::hasPrefix(seq1, seq3), false)
+  TEST_EQUAL(StringUtils::hasPrefix(seq1, seq4), false)
+  TEST_EQUAL(StringUtils::hasPrefix(seq1, seq5), false)
+  TEST_EQUAL(StringUtils::hasPrefix(seq1, seq6), true)
 END_SECTION
 
 START_SECTION(bool hasSuffix(const AASequence& peptide) const)
@@ -542,15 +542,15 @@ START_SECTION(bool hasSuffix(const AASequence& peptide) const)
   AASequence seq4 = AASequence::fromString("GER(Label:18O(2))");
   AASequence seq5 = AASequence::fromString("(TMT6plex)DFPIANGER");
   AASequence seq6 = AASequence::fromString("(TMT6plex)GER");
-  TEST_EQUAL(seq1.hasSuffix(seq2), true)
-  TEST_EQUAL(seq1.hasSuffix(seq3), false)
-  TEST_EQUAL(seq1.hasSuffix(seq4), false)
-  TEST_EQUAL(seq1.hasSuffix(seq5), false)
-  TEST_EQUAL(seq1.hasSuffix(seq6), true)
+  TEST_EQUAL(StringUtils::hasSuffix(seq1, seq2), true)
+  TEST_EQUAL(StringUtils::hasSuffix(seq1, seq3), false)
+  TEST_EQUAL(StringUtils::hasSuffix(seq1, seq4), false)
+  TEST_EQUAL(StringUtils::hasSuffix(seq1, seq5), false)
+  TEST_EQUAL(StringUtils::hasSuffix(seq1, seq6), true)
 END_SECTION
 
 START_SECTION(ConstIterator begin() const)
-  String result[] = { "D", "F", "P", "I", "A", "N", "G", "E", "R" };
+  std::string result[] = { "D", "F", "P", "I", "A", "N", "G", "E", "R" };
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size i = 0;
   for (AASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
@@ -564,7 +564,7 @@ START_SECTION(ConstIterator end() const)
 END_SECTION
 
 START_SECTION(Iterator begin())
-  String result[] = { "D", "F", "P", "I", "A", "N", "G", "E", "R" };
+  std::string result[] = { "D", "F", "P", "I", "A", "N", "G", "E", "R" };
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size i = 0;
   for (AASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
@@ -585,7 +585,7 @@ END_SECTION
 //  // TODO
 //END_SECTION
 
-START_SECTION(String toString() const)
+START_SECTION(std::string toString() const)
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("(MOD:00051)DFPIANGER");
   AASequence seq3 = AASequence::fromString("DFPIAN(Deamidated)GER");
@@ -595,7 +595,7 @@ START_SECTION(String toString() const)
   TEST_STRING_EQUAL(seq3.toString(), "DFPIAN(Deamidated)GER")
 END_SECTION
 
-START_SECTION(String toUnmodifiedString() const)
+START_SECTION(std::string toUnmodifiedString() const)
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("(MOD:00051)DFPIANGER");
   AASequence seq3 = AASequence::fromString("DFPIAN(Deamidated)GER");
@@ -605,7 +605,7 @@ START_SECTION(String toUnmodifiedString() const)
   TEST_STRING_EQUAL(seq3.toUnmodifiedString(), "DFPIANGER")
 END_SECTION
 
-START_SECTION(String toUniModString() const)
+START_SECTION(std::string toUniModString() const)
   AASequence s = AASequence::fromString("PEPC(Carbamidomethyl)PEPM(Oxidation)PEPR");
   TEST_STRING_EQUAL(s.toUniModString(), "PEPC(UniMod:4)PEPM(UniMod:35)PEPR");
   s.setNTerminalModification("Acetyl (N-term)");
@@ -613,10 +613,10 @@ START_SECTION(String toUniModString() const)
   TEST_STRING_EQUAL(s.toUniModString(), ".(UniMod:1)PEPC(UniMod:4)PEPM(UniMod:35)PEPR.(UniMod:2)");
 END_SECTION
 
-START_SECTION(String toBracketString(const std::vector<String> & fixed_modifications = std::vector<String>()) const)
+START_SECTION(std::string toBracketString(const std::vector<std::string> & fixed_modifications = std::vector<std::string>()) const)
   AASequence s = AASequence::fromString("PEPC(Carbamidomethyl)PEPM(Oxidation)PEPR");
   TEST_STRING_EQUAL(s.toBracketString(), "PEPC[160]PEPM[147]PEPR");
-  vector<String> fixed_mods;
+  vector<std::string> fixed_mods;
   fixed_mods.push_back("Carbamidomethyl (C)");
   TEST_STRING_EQUAL(s.toBracketString(true, false, fixed_mods), "PEPCPEPM[147]PEPR");
   TEST_STRING_SIMILAR(s.toBracketString(false, false, fixed_mods), "PEPCPEPM[147.0354000171]PEPR");
@@ -633,7 +633,7 @@ START_SECTION(String toBracketString(const std::vector<String> & fixed_modificat
   TEST_STRING_EQUAL(s.toBracketString(true, true, fixed_mods), "PEPCPEPM[+16]PEPR");
 END_SECTION
 
-START_SECTION(void setModification(Size index, const String &modification))
+START_SECTION(void setModification(Size index, const std::string &modification))
   AASequence seq1 = AASequence::fromString("ACDEFNEK");
   seq1.setModification(5, "Deamidated");
   TEST_STRING_EQUAL(seq1[5].getModificationName(), "Deamidated");
@@ -656,7 +656,7 @@ START_SECTION(void setModification(Size index, const String &modification))
   TEST_STRING_EQUAL(seq1.toString(), "AC[-1.234]DE[-1.234]FN(Deamidated)E[-1.234]K")
 END_SECTION
 
-START_SECTION(void setNTerminalModification(const String &modification))
+START_SECTION(void setNTerminalModification(const std::string &modification))
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("(MOD:00051)DFPIANGER");
   TEST_EQUAL(seq1 == seq2, false)
@@ -692,7 +692,7 @@ START_SECTION(void setNTerminalModification(const String &modification))
 
 END_SECTION
 
-START_SECTION(const String& getNTerminalModificationName() const)
+START_SECTION(const std::string& getNTerminalModificationName() const)
   AASequence seq1 = AASequence::fromString("(MOD:00051)DFPIANGER");
   TEST_EQUAL(seq1.getNTerminalModificationName(), "MOD:00051");
 
@@ -720,7 +720,7 @@ START_SECTION(const ResidueModification* getCTerminalModification() const)
   TEST_EQUAL(seq1.getCTerminalModification(),  0);
 END_SECTION
 
-START_SECTION(void setCTerminalModification(const String& modification))
+START_SECTION(void setCTerminalModification(const std::string& modification))
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("DFPIANGER(Amidated)");
 
@@ -751,7 +751,7 @@ START_SECTION(void setCTerminalModification(const String& modification))
   TEST_TRUE(seq5 == seq6)
 END_SECTION
 
-START_SECTION(const String& getCTerminalModificationName() const)
+START_SECTION(const std::string& getCTerminalModificationName() const)
   AASequence seq1 = AASequence::fromString("DFPIANGER(Amidated)");
   TEST_EQUAL(seq1.getCTerminalModificationName(), "Amidated");
 
@@ -853,7 +853,7 @@ END_SECTION
 
 START_SECTION(void getAAFrequencies(Map<String, Size>& frequency_table) const)
   AASequence a = AASequence::fromString("THREEAAAWITHYYY");
-  std::map<String, Size> table;
+  std::map<std::string, Size> table;
   a.getAAFrequencies(table);
 
   TEST_EQUAL(table["T"]==2, true);
@@ -1124,7 +1124,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     // test that we can re-read the UniModString
     test_other = AASequence::fromString(test_seq.toUniModString());
     TEST_EQUAL(test_other.size(), 3)
-    TEST_EQUAL(test_other.toString().hasPrefix("IDE.[1617.23339"), true) // TEST_STRING_SIMILAR is dangerous, because it skips over '+' etc
+    TEST_EQUAL(StringUtils::hasPrefix(test_other.toString(), "IDE.[1617.23339"), true) // TEST_STRING_SIMILAR is dangerous, because it skips over '+' etc
 
     TEST_STRING_SIMILAR(test_seq.toString(), test_other.toString()) // the peptides should be equal
 
@@ -1132,7 +1132,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     auto bs = test_seq.toBracketString(false, true);
     test_other = AASequence::fromString(bs);
     TEST_EQUAL(test_other.size(), 3)
-    TEST_EQUAL(test_other.toString().hasPrefix("IDE.[+1600.2306539"), true) // TEST_STRING_SIMILAR is dangerous, because it skips over '+' etc
+    TEST_EQUAL(StringUtils::hasPrefix(test_other.toString(), "IDE.[+1600.2306539"), true) // TEST_STRING_SIMILAR is dangerous, because it skips over '+' etc
 
     test_other = AASequence::fromString(test_seq.toBracketString(false, false));
     TEST_EQUAL(test_other.size(), 3)
@@ -1392,7 +1392,7 @@ END_SECTION
 
 START_SECTION([EXTRA] Tag in peptides)
 {
-  String I_weight = String(ResidueDB::getInstance()->getResidue("I")->getMonoWeight(Residue::Internal));
+  std::string I_weight =StringUtils::toStr(ResidueDB::getInstance()->getResidue("I")->getMonoWeight(Residue::Internal));
   AASequence aa1 = AASequence::fromString("DFPIANGER");
   AASequence aa2 = AASequence::fromString("DPFX[" + I_weight + "]ANGER");
   AASequence aa3 = AASequence::fromString("X[" + I_weight + "]DFPANGER");
@@ -1423,7 +1423,7 @@ START_SECTION([EXTRA] testing terminal modifications)
   TEST_EQUAL(aaCtermMod.getCTerminalModificationName(), "Label:18O(2)")
 
   // Carbamylation
-  vector<String> fixed_mods;
+  vector<std::string> fixed_mods;
   TEST_STRING_EQUAL(aaNoMod.toBracketString(true, false, fixed_mods), "DFPIANGER");
   TEST_STRING_EQUAL(aaNoMod.toBracketString(false, false, fixed_mods), "DFPIANGER");
   TEST_STRING_EQUAL(aaNtermMod.toBracketString(true, false, fixed_mods), "n[29]DFPIANGER");
@@ -1557,7 +1557,7 @@ END_SECTION
 
 START_SECTION([EXTRA] multithreaded example)
 {
-  OPENMS_LOG_WARN.remove(std::cout);
+  StringUtils::remove(OPENMS_LOG_WARN, std::cout);
   // All measurements are best of three (wall time, Linux, 8 threads)
   //
   // Serial execution of code:
@@ -1577,7 +1577,7 @@ START_SECTION([EXTRA] multithreaded example)
 #pragma omp parallel for reduction (+: test)
   for (int k = 1; k < nr_iterations + 1; k++)
   {
-    auto aa = AASequence::fromString("TEST[" +  String(0.14*k) + "]PEPTIDE");
+    auto aa = AASequence::fromString("TEST[" +  StringUtils::toStr(0.14*k) + "]PEPTIDE");
     test += aa.size();
   }
   TEST_EQUAL(test, nr_iterations*11)

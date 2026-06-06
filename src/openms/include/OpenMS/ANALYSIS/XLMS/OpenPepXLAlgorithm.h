@@ -148,7 +148,7 @@ private:
     */
     static OPXLDataStructs::PreprocessedPairSpectra preprocessPairs_(const PeakMap& spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm, bool deisotope);
 
-    String decoy_string_;   ///< Cached value of parameter @c "decoy_string"; substring marking decoy entries in the FASTA accessions
+    std::string decoy_string_;   ///< Cached value of parameter @c "decoy_string"; substring marking decoy entries in the FASTA accessions
     bool decoy_prefix_;     ///< Cached value of parameter @c "decoy_prefix"; if true the decoy string is matched as a prefix, otherwise as a suffix
 
     Int min_precursor_charge_;             ///< Cached value of parameter @c "precursor:min_charge"
@@ -166,24 +166,24 @@ private:
     double cross_link_mass_light_;            ///< Cached value of parameter @c "cross_linker:mass_light" — mass added by the light cross-linker
     double cross_link_mass_iso_shift_;        ///< Cached value of parameter @c "cross_linker:mass_iso_shift" — mass difference heavy minus light
     DoubleList cross_link_mass_mono_link_;    ///< Cached value of parameter @c "cross_linker:mass_mono_link" — possible mono-link masses
-    String cross_link_name_;                  ///< Cached value of parameter @c "cross_linker:name" — used to disambiguate mass-equivalent linkers
+    std::string cross_link_name_;                  ///< Cached value of parameter @c "cross_linker:name" — used to disambiguate mass-equivalent linkers
 
     StringList fixedModNames_;                ///< Cached value of parameter @c "modifications:fixed" (UniMod names); duplicates trigger @ref ExitCodes::ILLEGAL_PARAMETERS
     StringList varModNames_;                  ///< Cached value of parameter @c "modifications:variable" (UniMod names); duplicates trigger @ref ExitCodes::ILLEGAL_PARAMETERS
     Size max_variable_mods_per_peptide_;      ///< Cached value of parameter @c "modifications:variable_max_per_peptide"
     Size peptide_min_size_;                   ///< Cached value of parameter @c "peptide:min_size"
     Size missed_cleavages_;                   ///< Cached value of parameter @c "peptide:missed_cleavages"
-    String enzyme_name_;                      ///< Cached value of parameter @c "peptide:enzyme"
+    std::string enzyme_name_;                      ///< Cached value of parameter @c "peptide:enzyme"
 
     Int number_top_hits_;                     ///< Cached value of parameter @c "algorithm:number_top_hits"
-    String deisotope_mode_;                   ///< Cached value of parameter @c "algorithm:deisotope" (@c "true" / @c "false" / @c "auto")
+    std::string deisotope_mode_;                   ///< Cached value of parameter @c "algorithm:deisotope" (@c "true" / @c "false" / @c "auto")
 
-    String add_y_ions_;   ///< Cached value of parameter @c "ions:y_ions"
-    String add_b_ions_;   ///< Cached value of parameter @c "ions:b_ions"
-    String add_x_ions_;   ///< Cached value of parameter @c "ions:x_ions"
-    String add_a_ions_;   ///< Cached value of parameter @c "ions:a_ions"
-    String add_c_ions_;   ///< Cached value of parameter @c "ions:c_ions"
-    String add_z_ions_;   ///< Cached value of parameter @c "ions:z_ions"
-    String add_losses_;   ///< Cached value of parameter @c "ions:neutral_losses"
+    std::string add_y_ions_;   ///< Cached value of parameter @c "ions:y_ions"
+    std::string add_b_ions_;   ///< Cached value of parameter @c "ions:b_ions"
+    std::string add_x_ions_;   ///< Cached value of parameter @c "ions:x_ions"
+    std::string add_a_ions_;   ///< Cached value of parameter @c "ions:a_ions"
+    std::string add_c_ions_;   ///< Cached value of parameter @c "ions:c_ions"
+    std::string add_z_ions_;   ///< Cached value of parameter @c "ions:z_ions"
+    std::string add_losses_;   ///< Cached value of parameter @c "ions:neutral_losses"
   };
 }

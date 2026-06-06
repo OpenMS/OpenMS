@@ -76,7 +76,7 @@ namespace OpenMS
 
       /// get index from identifier
       /// @throws Exception::ElementNotFound if @p identifier is unknown
-      UInt64 at(const String& identifier) const;
+      UInt64 at(const std::string& identifier) const;
 
       /// clear the map
       void clear();
@@ -88,7 +88,7 @@ namespace OpenMS
       Size size() const;
 
     private:
-      std::map<String, UInt64> nativeid_to_index_; //< nativeID to index
+      std::map<std::string, UInt64> nativeid_to_index_; //< nativeID to index
     };
 
     using Status = FlagSet<Requires>;
@@ -97,7 +97,7 @@ namespace OpenMS
     /**
      * @brief Returns the name of the metric
      */
-    virtual const String& getName() const = 0;
+    virtual const std::string& getName() const = 0;
 
     /**
      *@brief Returns the input data requirements of the compute(...) function

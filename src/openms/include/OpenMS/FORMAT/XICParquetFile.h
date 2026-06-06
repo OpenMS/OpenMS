@@ -65,14 +65,14 @@ namespace OpenMS
     struct OPENMS_DLLAPI XICChromatogram
     {
       Int64 run_id{0};
-      String source_file;
+      std::string source_file;
       Int64 ms_level{0};
 
       bool has_precursor_id{false};
       Int64 precursor_id{0};
       bool has_transition_id{false};
       Int64 transition_id{0};
-      String modified_sequence;
+      std::string modified_sequence;
       bool has_precursor_charge{false};
       Int64 precursor_charge{0};
       bool has_product_charge{false};
@@ -85,8 +85,8 @@ namespace OpenMS
       Int64 product_decoy{0};
       bool has_transition_ordinal{false};
       Int64 transition_ordinal{0};
-      String transition_type;
-      String annotation;
+      std::string transition_type;
+      std::string annotation;
 
       std::vector<double> rt;
       std::vector<double> intensity;
@@ -98,7 +98,7 @@ namespace OpenMS
     struct OPENMS_DLLAPI XICRunInfo
     {
       Int64 run_id{0};
-      String source_file;
+      std::string source_file;
     };
 
     /**
@@ -114,7 +114,7 @@ namespace OpenMS
     {
       bool has_precursor_id{false};
       Int64 precursor_id{0};
-      String modified_sequence;
+      std::string modified_sequence;
       bool has_precursor_charge{false};
       Int64 precursor_charge{0};
       bool has_precursor_decoy{false};
@@ -130,16 +130,16 @@ namespace OpenMS
       Int64 detecting_transition{0};
       bool has_product_decoy{false};
       Int64 product_decoy{0};
-      String transition_type;
-      String annotation;
+      std::string transition_type;
+      std::string annotation;
 
       std::vector<Int64> transition_ids;
       std::vector<Int64> product_charges;
       std::vector<Int64> transition_ordinals;
       std::vector<Int64> detecting_transitions;
       std::vector<Int64> product_decoys;
-      std::vector<String> transition_types;
-      std::vector<String> annotations;
+      std::vector<std::string> transition_types;
+      std::vector<std::string> annotations;
     };
 
     /**
@@ -147,14 +147,14 @@ namespace OpenMS
 
       @param[in] filename Path to an OpenSWATH chromatogram parquet file.
     */
-    explicit XICParquetFile(const String& filename);
+    explicit XICParquetFile(const std::string& filename);
 
     /**
       @brief Construct from multiple .xic files.
 
       @param[in] filenames Paths to OpenSWATH chromatogram parquet files.
     */
-    explicit XICParquetFile(const std::vector<String>& filenames);
+    explicit XICParquetFile(const std::vector<std::string>& filenames);
     XICParquetFile(const XICParquetFile& rhs) = default;
     XICParquetFile& operator=(const XICParquetFile& rhs) = default;
 
@@ -165,14 +165,14 @@ namespace OpenMS
 
       @return Primary filename.
     */
-    const String& getFilename() const;
+    const std::string& getFilename() const;
 
     /**
       @brief Return all filenames associated with this instance.
 
       @return All filenames associated with this instance.
     */
-    const std::vector<String>& getFilenames() const;
+    const std::vector<std::string>& getFilenames() const;
 
     /**
       @brief Load all chromatograms from the file(s).
@@ -198,12 +198,12 @@ namespace OpenMS
     void getChromatograms(std::vector<XICChromatogram>& output,
                           Int64 precursor_id = -1,
                           Int64 transition_id = -1,
-                          const String& modified_sequence = "",
+                          const std::string& modified_sequence = "",
                           Int64 precursor_charge = -1,
                           Int64 product_charge = -1,
                           Int64 ms_level = -1,
                           Int64 run_id = -1,
-                          const String& filter = "") const;
+                          const std::string& filter = "") const;
 
     /**
       @brief Return chromatograms using a typed filter expression.
@@ -247,7 +247,7 @@ namespace OpenMS
       @param[in] nest_transitions Aggregate transition fields per precursor
     */
     void getAnalytes(std::vector<XICAnalyte>& output,
-                     const std::vector<String>& columns = {},
+                     const std::vector<std::string>& columns = {},
                      bool nest_transitions = true) const;
 
     /**
@@ -255,22 +255,22 @@ namespace OpenMS
 
       @param[out] output Column names.
     */
-    void getColumns(std::vector<String>& output) const;
+    void getColumns(std::vector<std::string>& output) const;
 
   private:
     void getChromatograms_(std::vector<XICChromatogram>& output,
                            const FilterExpression& extra_filter,
                            Int64 precursor_id,
                            Int64 transition_id,
-                           const String& modified_sequence,
+                           const std::string& modified_sequence,
                            Int64 precursor_charge,
                            Int64 product_charge,
                            Int64 ms_level,
                            Int64 run_id,
-                           const String& filter) const;
+                           const std::string& filter) const;
 
-    String filename_;
-    std::vector<String> filenames_;
+    std::string filename_;
+    std::vector<std::string> filenames_;
   };
 
   /// Convenience alias for the nested XIC chromatogram type.

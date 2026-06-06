@@ -229,21 +229,21 @@ protected:
     //----------------------------------------------------------------
     // load data
     //----------------------------------------------------------------
-    String in = getStringOption_("in");
-    String in_featureXML = getStringOption_("in_featureXML");
-    String out = getStringOption_("out");
-    String format = getStringOption_("out_type");
-    if (format.trim().empty()) // get from filename
+    std::string in = getStringOption_("in");
+    std::string in_featureXML = getStringOption_("in_featureXML");
+    std::string out = getStringOption_("out");
+    std::string format = getStringOption_("out_type");
+    if (StringUtils::trim(format).empty()) // get from filename
     {
       try
       {
-        format = out.suffix('.');
+        format = StringUtils::suffix(out, '.');
       }
       catch (Exception::ElementNotFound& /*e*/)
       {
         format = "nosuffix";
       }
-      if (!ListUtils::contains(out_formats_, format.toLower()))
+      if (!ListUtils::contains(out_formats_, StringUtils::toLower(format)))
       {
         OPENMS_LOG_ERROR << "No explicit image output format was provided via 'out_type', and the suffix ('" << format << "') does not resemble a valid type. Please fix one of them." << std::endl;
         return ILLEGAL_PARAMETERS;
@@ -333,10 +333,10 @@ protected:
     bool use_log = getFlag_("log_intensity");
 
     MultiGradient gradient;
-    String gradient_str = getStringOption_("gradient");
+    std::string gradient_str = getStringOption_("gradient");
     if (!gradient_str.empty())
     {
-      gradient.fromString(String("Linear|") + gradient_str);
+      gradient.fromString(StringUtils::toStr("Linear|") + gradient_str);
     }
     else if (use_log)
     {

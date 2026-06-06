@@ -30,37 +30,37 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  const String & ContactPerson::getFirstName() const
+  const std::string & ContactPerson::getFirstName() const
   {
     return first_name_;
   }
 
-  void ContactPerson::setFirstName(const String & name)
+  void ContactPerson::setFirstName(const std::string & name)
   {
     first_name_ = name;
   }
 
-  const String & ContactPerson::getLastName() const
+  const std::string & ContactPerson::getLastName() const
   {
     return last_name_;
   }
 
-  void ContactPerson::setLastName(const String & name)
+  void ContactPerson::setLastName(const std::string & name)
   {
     last_name_ = name;
   }
 
-  void ContactPerson::setName(const String & name)
+  void ContactPerson::setName(const std::string & name)
   {
-    std::vector<String> tmp;
-    if (name.split(',', tmp))
+    std::vector<std::string> tmp;
+    if (StringUtils::split(name, ', ', tmp))
     {
-      first_name_ = tmp[1].trim();
-      last_name_ = tmp[0].trim();
+      first_name_ = StringUtils::trim(tmp[1]);
+      last_name_ = StringUtils::trim(tmp[0]);
     }
     else
     {
-      if (name.split(' ', tmp))
+      if (StringUtils::split(name, ' ', tmp))
       {
         first_name_ = tmp[0];
         last_name_ = tmp[1];
@@ -72,52 +72,52 @@ namespace OpenMS
     }
   }
 
-  const String & ContactPerson::getEmail() const
+  const std::string & ContactPerson::getEmail() const
   {
     return email_;
   }
 
-  void ContactPerson::setEmail(const String & email)
+  void ContactPerson::setEmail(const std::string & email)
   {
     email_ = email;
   }
 
-  const String & ContactPerson::getInstitution() const
+  const std::string & ContactPerson::getInstitution() const
   {
     return institution_;
   }
 
-  void ContactPerson::setInstitution(const String & institution)
+  void ContactPerson::setInstitution(const std::string & institution)
   {
     institution_ = institution;
   }
 
-  const String & ContactPerson::getContactInfo() const
+  const std::string & ContactPerson::getContactInfo() const
   {
     return contact_info_;
   }
 
-  void ContactPerson::setContactInfo(const String & contact_info)
+  void ContactPerson::setContactInfo(const std::string & contact_info)
   {
     contact_info_ = contact_info;
   }
 
-  const String & ContactPerson::getURL() const
+  const std::string & ContactPerson::getURL() const
   {
     return url_;
   }
 
-  void ContactPerson::setURL(const String & url)
+  void ContactPerson::setURL(const std::string & url)
   {
     url_ = url;
   }
 
-  const String & ContactPerson::getAddress() const
+  const std::string & ContactPerson::getAddress() const
   {
     return address_;
   }
 
-  void ContactPerson::setAddress(const String & address)
+  void ContactPerson::setAddress(const std::string & address)
   {
     address_ = address;
   }

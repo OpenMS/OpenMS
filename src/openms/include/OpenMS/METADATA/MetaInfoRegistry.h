@@ -65,74 +65,74 @@ public:
         Registers a string, stores its description and unit, and returns the corresponding index.
         If the string is already registered, it returns the index of the string.
     */
-    UInt registerName(const String& name, const String& description = "", const String& unit = "");
+    UInt registerName(const std::string& name, const std::string& description = "", const std::string& unit = "");
 
     /**
       @brief Sets the description (String), corresponding to an index
 
       @exception Exception::InvalidValue is thrown for unregistered indices
     */
-    void setDescription(UInt index, const String& description);
+    void setDescription(UInt index, const std::string& description);
 
     /**
       @brief Sets the description (String), corresponding to a name
 
       @exception Exception::InvalidValue is thrown for unregistered names
     */
-    void setDescription(const String& name, const String& description);
+    void setDescription(const std::string& name, const std::string& description);
 
     /**
       @brief Sets the unit (String), corresponding to an index
 
       @exception Exception::InvalidValue is thrown for unregistered indices
     */
-    void setUnit(UInt index, const String& unit);
+    void setUnit(UInt index, const std::string& unit);
 
     /**
       @brief Sets the unit (String), corresponding to a name
 
       @exception Exception::InvalidValue is thrown for unregistered names
     */
-    void setUnit(const String& name, const String& unit);
+    void setUnit(const std::string& name, const std::string& unit);
 
     /**
       Returns the integer index corresponding to a string. If the string is not
       registered, returns UInt(-1) (= UINT_MAX).
     */
-    UInt getIndex(const String& name) const;
+    UInt getIndex(const std::string& name) const;
 
     /**
       @brief Returns the corresponding name to an index
 
       @exception Exception::InvalidValue is thrown for unregistered indices
     */
-    String getName(UInt index) const;
+    std::string getName(UInt index) const;
 
     /**
       @brief returns the description of an index
 
       @exception Exception::InvalidValue is thrown for unregistered indices
     */
-    String getDescription(UInt index) const;
+    std::string getDescription(UInt index) const;
     /**
       @brief returns the description of a name
 
       @exception Exception::InvalidValue is thrown for unregistered names
     */
-    String getDescription(const String& name) const;
+    std::string getDescription(const std::string& name) const;
 
     /**
       @brief returns the unit of an index
 
       @exception Exception::InvalidValue is thrown for unregistered indices
     */
-    String getUnit(UInt index) const;
+    std::string getUnit(UInt index) const;
     /**
       @brief returns the unit of a name
 
       @exception Exception::InvalidValue is thrown for unregistered names
     */
-    String getUnit(const String& name) const;
+    std::string getUnit(const std::string& name) const;
 
 private:
     /// internal counter, that stores the next index to assign

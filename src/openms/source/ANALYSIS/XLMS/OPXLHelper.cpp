@@ -82,7 +82,7 @@ namespace OpenMS
 #pragma omp parallel for
       for (int p1 = first_index; p1 < last_index; ++p1)
       {
-        const String& seq_first = peptides[p1].unmodified_seq;
+        const std::string& seq_first = peptides[p1].unmodified_seq;
         // test if this peptide could have loop-links: one cross-link with both sides attached to the same peptide
         bool first_res = false; // is there a residue the first side of the linker can attach to?
         bool second_res = false; // is there a residue the second side of the linker can attach to?
@@ -230,7 +230,7 @@ namespace OpenMS
 
     bool n_term_linker = false;
     bool c_term_linker = false;
-    for (const String& res : cross_link_residue1)
+    for (const std::string& res : cross_link_residue1)
     {
       if (res == "N-term")
       {
@@ -241,7 +241,7 @@ namespace OpenMS
         c_term_linker = true;
       }
     }
-    for (const String& res : cross_link_residue2)
+    for (const std::string& res : cross_link_residue2)
     {
       if (res == "N-term")
       {
@@ -263,14 +263,14 @@ namespace OpenMS
       for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
         // skip peptides with invalid AAs // TODO is this necessary?
-        if (cit->getString().has('B') || cit->getString().has('O') || cit->getString().has('U') || cit->getString().has('X') || cit->getString().has('Z')) continue;
+        if (StringUtils::has(cit->getString(), 'B') || StringUtils::has(cit->getString(), 'O') || StringUtils::has(cit->getString(), 'U') || StringUtils::has(cit->getString(), 'X') || StringUtils::has(cit->getString(), 'Z')) continue;
 
         OPXLDataStructs::PeptidePosition position = OPXLDataStructs::INTERNAL;
-        if (fasta_db[fasta_index].sequence.hasPrefix(cit->getString()))
+        if (StringUtils::hasPrefix(fasta_db[fasta_index].sequence, cit->getString()))
         {
           position = OPXLDataStructs::N_TERM;
         }
-        else if (fasta_db[fasta_index].sequence.hasSuffix(cit->getString()))
+        else if (StringUtils::hasSuffix(fasta_db[fasta_index].sequence, cit->getString()))
         {
           position = OPXLDataStructs::C_TERM;
         }
@@ -287,14 +287,14 @@ namespace OpenMS
         }
         else
         {
-          for (const String& res : cross_link_residue1)
+          for (const std::string& res : cross_link_residue1)
           {
             if (res.size() == 1 && (cit->getString().find(res) < cit->getString().size()-1))
             {
               skip = false;
             }
           }
-          for (const String& res : cross_link_residue2)
+          for (const std::string& res : cross_link_residue2)
           {
             if (res.size() == 1 && (cit->getString().find(res) < cit->getString().size()-1))
             {
@@ -349,11 +349,11 @@ namespace OpenMS
                                                                                 const DoubleList & cross_link_mass_mono_link,
                                                                                 const std::vector< double >& spectrum_precursor_vector,
                                                                                 const std::vector< double >& allowed_error_vector,
-                                                                                const String& cross_link_name)
+                                                                                const std::string& cross_link_name)
   {
     bool n_term_linker = false;
     bool c_term_linker = false;
-    for (const String& res : cross_link_residue1)
+    for (const std::string& res : cross_link_residue1)
     {
       if (res == "N-term")
       {
@@ -364,7 +364,7 @@ namespace OpenMS
         c_term_linker = true;
       }
     }
-    for (const String& res : cross_link_residue2)
+    for (const std::string& res : cross_link_residue2)
     {
       if (res == "N-term")
       {
@@ -393,8 +393,8 @@ namespace OpenMS
         peptide_second = &(peptide_masses[candidate.beta_index].peptide_seq);
         peptide_pos_second = peptide_masses[candidate.beta_index].position;
       }
-      String seq_first = candidate.alpha_seq;
-      String seq_second;
+      std::string seq_first = candidate.alpha_seq;
+      std::string seq_second;
       if (peptide_second) { seq_second = candidate.beta_seq; }
 
       // mono-links and loop-links with different masses can be generated for the same precursor mass, but only one of them can be valid each time.
@@ -412,7 +412,7 @@ namespace OpenMS
       {
         for (Size x = 0; x < cross_link_residue1.size(); ++x)
         {
-          // if (seq_first.substr(k, 1) == cross_link_residue1[x]) link_pos_first.push_back(k);
+          // if (StringUtils::substr(seq_first, k, 1) == cross_link_residue1[x]) link_pos_first.push_back(k);
           if (string(1, seq_first[k]) == cross_link_residue1[x]) link_pos_first.push_back(k);
         }
       }
@@ -701,7 +701,7 @@ namespace OpenMS
       double precursor_charge = spectrum_light.getPrecursors()[0].getCharge();
       double precursor_mz = spectrum_light.getPrecursors()[0].getMZ();
 
-      String xltype = "cross-link";
+      std::string xltype = "cross-link";
       SignedSize alpha_pos = top_csms_spectrum[i].cross_link.cross_link_position.first;
       SignedSize beta_pos = top_csms_spectrum[i].cross_link.cross_link_position.second;
 
@@ -720,8 +720,8 @@ namespace OpenMS
       ResidueModification::TermSpecificity alpha_term_spec = top_csms_spectrum[i].cross_link.term_spec_alpha;
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::MONO)
       {
-        vector< String > mods;
-        const String residue = seq_alpha[alpha_pos].getOneLetterCode();
+        vector< std::string > mods;
+        const std::string residue = seq_alpha[alpha_pos].getOneLetterCode();
 
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
@@ -739,7 +739,7 @@ namespace OpenMS
         {
           for (Size s = 0; s < mods.size(); ++s)
           {
-            if (mods[s].hasSubstring(top_csms_spectrum[i].cross_link.cross_linker_name))
+            if (StringUtils::hasSubstring(mods[s], top_csms_spectrum[i].cross_link.cross_linker_name))
             {
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
@@ -763,7 +763,7 @@ namespace OpenMS
             Size mod_index = 0;
             for (Size s = 0; s < mods.size(); ++s)
             {
-              if (mods[s].hasSubstring(top_csms_spectrum[i].cross_link.cross_linker_name))
+              if (StringUtils::hasSubstring(mods[s], top_csms_spectrum[i].cross_link.cross_linker_name))
               {
                 mod_index = s;
               }
@@ -796,7 +796,7 @@ namespace OpenMS
         }
         if (!mod_set) // If no equivalent mono-link exists in the UNIMOD or XLMOD databases, use the given name to construct a placeholder
         {
-          String mod_name = String("unknown mono-link " + top_csms_spectrum[i].cross_link.cross_linker_name + " mass " + String(top_csms_spectrum[i].cross_link.cross_linker_mass));
+          std::string mod_name =StringUtils::toStr("unknown mono-link " + top_csms_spectrum[i].cross_link.cross_linker_name + " mass " + StringUtils::toStr(top_csms_spectrum[i].cross_link.cross_linker_mass));
           ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, mod_name);
         }
       }
@@ -806,7 +806,7 @@ namespace OpenMS
       }
       ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS, DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
 
-      String alpha_term = "ANYWHERE";
+      std::string alpha_term = "ANYWHERE";
       if (alpha_term_spec == ResidueModification::N_TERM)
       {
         alpha_term = "N_TERM";
@@ -817,7 +817,7 @@ namespace OpenMS
       }
 
       ResidueModification::TermSpecificity beta_term_spec = top_csms_spectrum[i].cross_link.term_spec_beta;
-      String beta_term = "ANYWHERE";
+      std::string beta_term = "ANYWHERE";
       if (beta_term_spec == ResidueModification::N_TERM)
       {
         beta_term = "N_TERM";
@@ -933,7 +933,7 @@ namespace OpenMS
 
       peptide_id.setRT(spectrum_light.getRT());
       peptide_id.setMZ(precursor_mz);
-      String specIDs;
+      std::string specIDs;
       if (scan_index_heavy != scan_index)
       {
         specIDs = spectra[scan_index].getNativeID() + "," + spectra[scan_index_heavy].getNativeID();
@@ -968,20 +968,20 @@ namespace OpenMS
       // skip non-crosslinked PeptideIdentifications that were parsed and don't have crosslink MetaValues
       if (!ph_alpha.metaValueExists(Constants::UserParam::OPENPEPXL_XL_POS1)) continue;
 
-      String prot1_pos;
+      std::string prot1_pos;
 
       // cross-link position in Protein (alpha)
       const std::vector<PeptideEvidence> pevs = ph_alpha.getPeptideEvidences();
       for (std::vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
       {
         // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
-        Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt() + 1;
-        prot1_pos = prot1_pos + "," + prot_link_pos;
+        Int prot_link_pos = pev->getStart() + (Int)ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1) + 1;
+        prot1_pos = prot1_pos + "," + StringUtils::toStr(prot_link_pos);
       }
       // remove leading "," of first position
       if (!prot1_pos.empty())
       {
-        prot1_pos = prot1_pos.suffix(prot1_pos.size()-1);
+        prot1_pos = StringUtils::suffix(prot1_pos, prot1_pos.size()-1);
       }
       ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1_PROT, prot1_pos);
 
@@ -989,21 +989,21 @@ namespace OpenMS
       if (id.getHits().size() == 2)
       {
         PeptideHit& ph_beta = id.getHits()[1];
-        String prot2_pos;
-        String prot2_accessions;
+        std::string prot2_pos;
+        std::string prot2_accessions;
 
         const std::vector<PeptideEvidence> pevs_beta = ph_beta.getPeptideEvidences();
         for (std::vector<PeptideEvidence>::const_iterator pev = pevs_beta.begin(); pev != pevs_beta.end(); ++pev)
         {
           // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
-          Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt() + 1;
-          prot2_pos = prot2_pos + "," + prot_link_pos;
+          Int prot_link_pos = pev->getStart() + (Int)ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2) + 1;
+          prot2_pos = prot2_pos + "," + StringUtils::toStr(prot_link_pos);
           prot2_accessions = prot2_accessions + "," + pev->getProteinAccession();
         }
         // remove leading "," of first position
         if (!prot2_pos.empty())
         {
-          prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
+          prot2_pos = StringUtils::suffix(prot2_pos, prot2_pos.size()-1);
         }
         ph_beta.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1_PROT, prot1_pos);
         ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2_PROT, prot2_pos);
@@ -1014,17 +1014,17 @@ namespace OpenMS
         // second cross-link position in Protein (loop-links)
         if (ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2) != "-")
         {
-          String prot2_pos;
+          std::string prot2_pos;
           for (std::vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
           {
             // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
-            Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt() + 1;
-            prot2_pos = prot2_pos + "," + prot_link_pos;
+            Int prot_link_pos = pev->getStart() + (Int)ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2) + 1;
+            prot2_pos = prot2_pos + "," + StringUtils::toStr(prot_link_pos);
           }
           // remove leading "," of first position
           if (!prot2_pos.empty())
           {
-            prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
+            prot2_pos = StringUtils::suffix(prot2_pos, prot2_pos.size()-1);
           }
           ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2_PROT, prot2_pos);
         }
@@ -1047,7 +1047,7 @@ namespace OpenMS
       if (id.getHits().size() == 2)
       {
         PeptideHit& ph_beta = id.getHits()[1];
-        String prot2_accessions;
+        std::string prot2_accessions;
 
         const std::vector<PeptideEvidence> pevs_beta = ph_beta.getPeptideEvidences();
         for (std::vector<PeptideEvidence>::const_iterator pev = pevs_beta.begin(); pev != pevs_beta.end(); ++pev)
@@ -1057,7 +1057,7 @@ namespace OpenMS
 
         if (!prot2_accessions.empty())
         {
-          prot2_accessions = prot2_accessions.suffix(prot2_accessions.size()-1);
+          prot2_accessions = StringUtils::suffix(prot2_accessions, prot2_accessions.size()-1);
         }
         ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS, prot2_accessions);
         ph_beta.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS, prot2_accessions);
@@ -1085,8 +1085,8 @@ namespace OpenMS
         ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_BETA, ph_beta.getMetaValue(Constants::UserParam::TARGET_DECOY));
 
         // if at least one of the two accession lists only contains decoys, the cross-link will be treated as a decoy
-        if ( (!String(ph_alpha.getMetaValue(Constants::UserParam::TARGET_DECOY)).hasSubstring("target")) ||
-             (!String(ph_beta.getMetaValue(Constants::UserParam::TARGET_DECOY)).hasSubstring("target")) )
+        if ( (!StringUtils::hasSubstring(StringUtils::toStr(ph_alpha.getMetaValue(Constants::UserParam::TARGET_DECOY)), "target")) ||
+             (!StringUtils::hasSubstring(StringUtils::toStr(ph_beta.getMetaValue(Constants::UserParam::TARGET_DECOY)), "target")) )
         {
           ph_alpha.setMetaValue(Constants::UserParam::TARGET_DECOY, "decoy");
         }
@@ -1107,7 +1107,7 @@ namespace OpenMS
       {
 
         const std::vector<PeptideEvidence>& peptide_evidences = id.getHits()[1].getPeptideEvidences();
-        String pre, post, start, end;
+        std::string pre, post, start, end;
         for (const PeptideEvidence& pe : peptide_evidences)
         {
           if (!pre.empty())
@@ -1136,14 +1136,14 @@ namespace OpenMS
     }
 
     // Collect PeptideHits to the same spectrum under one PeptideIdentification
-    map<String, PeptideIdentification> new_peptide_ids;
+    map<std::string, PeptideIdentification> new_peptide_ids;
     for (PeptideIdentification& id : peptide_ids)
     {
       if (!id.getHits().empty())
       {
         PeptideHit& hit = id.getHits()[0];
         PeptideIdentification new_id;
-        String current_spectrum = id.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
+        std::string current_spectrum = (std::string)id.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
         if (new_peptide_ids.contains(current_spectrum))
         {
           new_id = (*new_peptide_ids.find(current_spectrum)).second;
@@ -1163,7 +1163,7 @@ namespace OpenMS
     }
     std::vector<PeptideIdentification> new_peptide_ids_vector;
     new_peptide_ids_vector.reserve(new_peptide_ids.size());
-    for (pair<String, PeptideIdentification> mit : new_peptide_ids)
+    for (pair<std::string, PeptideIdentification> mit : new_peptide_ids)
     {
       new_peptide_ids_vector.push_back(mit.second);
     }
@@ -1276,7 +1276,7 @@ namespace OpenMS
   {
     std::vector< PeptideIdentification > new_peptide_ids;
     std::vector< PeptideIdentification > current_spectrum_peptide_ids;
-    std::set< String > spectrum_indices;
+    std::set< std::string > spectrum_indices;
 
     for (PeptideIdentification& id : peptide_ids)
     {
@@ -1286,13 +1286,13 @@ namespace OpenMS
       }
     }
 
-    for (const String& index : spectrum_indices)
+    for (const std::string& index : spectrum_indices)
     {
       for (PeptideIdentification& id : peptide_ids)
       {
         if (!id.getHits().empty())
         {
-          if (String(id.getHits()[0].getMetaValue("spectrum_index")) == index)
+          if (StringUtils::toStr(id.getHits()[0].getMetaValue("spectrum_index")) == index)
           {
             current_spectrum_peptide_ids.push_back(id);
           }
@@ -1335,7 +1335,7 @@ namespace OpenMS
                                                                                                 const DoubleList& cross_link_mass_mono_link,
                                                                                                 const StringList& cross_link_residue1,
                                                                                                 const StringList& cross_link_residue2,
-                                                                                                String cross_link_name,
+                                                                                                std::string cross_link_name,
                                                                                                 bool use_sequence_tags,
                                                                                                 const std::vector<std::string>& tags)
   {
@@ -1446,7 +1446,7 @@ namespace OpenMS
       // iterate over copies, so that we can reverse them
       for (std::string tag : tags)
       {
-        if (candidates[i].alpha_seq.hasSubstring(tag) || candidates[i].beta_seq.hasSubstring(tag))
+        if (StringUtils::hasSubstring(candidates[i].alpha_seq, tag) || StringUtils::hasSubstring(candidates[i].beta_seq, tag))
         {
  #pragma omp critical (filtered_candidates_access)
           {
@@ -1457,7 +1457,7 @@ namespace OpenMS
         }
 
         std::reverse(tag.begin(), tag.end());
-        if (candidates[i].alpha_seq.hasSubstring(tag) || candidates[i].beta_seq.hasSubstring(tag))
+        if (StringUtils::hasSubstring(candidates[i].alpha_seq, tag) || StringUtils::hasSubstring(candidates[i].beta_seq, tag))
         {
  #pragma omp critical (filtered_candidates_access)
           {

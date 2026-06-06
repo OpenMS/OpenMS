@@ -95,7 +95,7 @@ namespace OpenMS
    */
   class OPENMS_DLLAPI OpenSwathOSWWriter
   {
-    String output_filename_;
+    std::string output_filename_;
     OpenMS::UInt64 run_id_ = 0;
     bool doWrite_;
     bool enable_uis_scoring_;
@@ -119,7 +119,7 @@ namespace OpenMS
       {
         Int64 int_value;
         double double_value;
-        String text_value;
+        std::string text_value;
 
         Storage();
         ~Storage();
@@ -132,7 +132,6 @@ namespace OpenMS
       ~OSWValue();
       OSWValue(std::nullptr_t);
       OSWValue(const char* value);
-      OSWValue(const String& value);
       OSWValue(const std::string& value);
       OSWValue(Int64 value);
       OSWValue(UInt64 value);
@@ -147,7 +146,7 @@ namespace OpenMS
       static OSWValue null();
 
       /// Returns a TEXT OSW cell without numeric/null parsing.
-      static OSWValue text(const String& value);
+      static OSWValue text(const std::string& value);
 
       /// Returns true if the cell should be inserted as SQL NULL.
       bool isNull() const;
@@ -159,7 +158,7 @@ namespace OpenMS
       double asDouble() const;
 
       /// Returns the text payload. Only valid when type == Type::Text.
-      const String& asText() const;
+      const std::string& asText() const;
 
     private:
       void destroyText_();
@@ -207,7 +206,7 @@ namespace OpenMS
       UInt64 estimateMemoryUsage() const;
     };
 
-    OpenSwathOSWWriter(const String& output_filename,
+    OpenSwathOSWWriter(const std::string& output_filename,
               bool uis_scores = false);
 
     bool isActive() const;
@@ -219,7 +218,7 @@ namespace OpenMS
     void writeHeader();
 
     /// Add a RUN entry to the OSW file. Can be called multiple times to register multiple runs.
-    void addRun(const UInt64 run_id, const String& input_filename);
+    void addRun(const UInt64 run_id, const std::string& input_filename);
 
     /// Set the current run id used when prepareLine generates FEATURE entries.
     void setRunId(const UInt64 run_id);
@@ -235,7 +234,7 @@ namespace OpenMS
      * @returns A string with the queried score
      *
      */
-    String getScore(const Feature& feature, const std::string& score_name) const;
+    std::string getScore(const Feature& feature, const std::string& score_name) const;
 
     /**
      * @brief Prepare concatenated scores for SQLite insertion
@@ -248,7 +247,7 @@ namespace OpenMS
      * @returns A vector of strings with the queried scores
      *
      */
-    std::vector<String> getSeparateScore(const Feature& feature, const std::string& score_name) const;
+    std::vector<std::string> getSeparateScore(const Feature& feature, const std::string& score_name) const;
 
     /**
      * @brief Prepare feature rows for SQLite insertion
@@ -266,7 +265,7 @@ namespace OpenMS
      */
     OSWData prepareRows(const OpenSwath::LightCompound& pep,
         const OpenSwath::LightTransition* transition,
-        const FeatureMap& output, const String& id) const;
+        const FeatureMap& output, const std::string& id) const;
 
     /**
      * @brief Append feature rows for SQLite insertion into an existing buffer
@@ -283,7 +282,7 @@ namespace OpenMS
     void prepareRowsInto(OSWData& rows,
         const OpenSwath::LightCompound& pep,
         const OpenSwath::LightTransition* transition,
-        const FeatureMap& output, const String& id) const;
+        const FeatureMap& output, const std::string& id) const;
 
     /**
      * @brief Prepare a single line (feature) for output
@@ -299,9 +298,9 @@ namespace OpenMS
      * @returns A string to be written using writeLines
      *
      */
-    String prepareLine(const OpenSwath::LightCompound& pep,
+    std::string prepareLine(const OpenSwath::LightCompound& pep,
         const OpenSwath::LightTransition* transition,
-        const FeatureMap& output, const String& id) const;
+        const FeatureMap& output, const std::string& id) const;
 
     /**
      * @brief Write buffered OSW rows to disk
@@ -332,7 +331,7 @@ namespace OpenMS
      * @note Only call inside an OpenMP critical section
      *
      */
-    void writeLines(const std::vector<String>& to_osw_output);
+    void writeLines(const std::vector<std::string>& to_osw_output);
 
   };
 

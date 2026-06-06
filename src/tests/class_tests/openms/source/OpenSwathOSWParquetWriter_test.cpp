@@ -20,7 +20,7 @@ START_TEST(OpenSwathOSWParquetWriter, "$Id$")
 
 OpenSwathOSWParquetWriter writer;
 
-START_SECTION(void write(const String&, const OpenSwath::LightTargetedExperiment&, const FeatureMap&, UInt64, const String&, bool))
+START_SECTION(void write(const std::string&, const OpenSwath::LightTargetedExperiment&, const FeatureMap&, UInt64, const std::string&, bool))
   OpenSwath::LightTargetedExperiment lib;
   OpenSwath::LightCompound c1; c1.id = "P1"; c1.charge = 2; c1.rt = 10.0; lib.compounds.push_back(c1);
   OpenSwath::LightCompound c2; c2.id = "7"; c2.charge = 1; c2.rt = 20.0; lib.compounds.push_back(c2);
@@ -40,15 +40,15 @@ START_SECTION(void write(const String&, const OpenSwath::LightTargetedExperiment
   // even if the test aborts early. Create a subdirectory for the .oswpq
   // content so it is contained inside the TempDir.
   File::TempDir tmp_dir;
-  String base = tmp_dir.getPath() + "/oswpq";
+  std::string base = tmp_dir.getPath() + "/oswpq";
   if (File::exists(base)) File::removeDirRecursively(base);
   File::makeDir(base);
 
   // write library and run
   writer.write(base, lib, fmap, 90, "input.mzML", false);
 
-  const String lib_prec = base + "/library/precursors.parquet";
-  const String run_features = base + "/runs/run_id=90/features.parquet";
+  const std::string lib_prec = base + "/library/precursors.parquet";
+  const std::string run_features = base + "/runs/run_id=90/features.parquet";
   TEST_EQUAL(File::exists(lib_prec), true)
   TEST_EQUAL(File::exists(run_features), true)
 

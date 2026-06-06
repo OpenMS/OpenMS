@@ -82,8 +82,8 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       @param[out] pep_ids    Peptide-spectrum matches (PSMs) produced by the search.
       @return Status code; see @ref ExitCodes.
     */
-    ExitCodes search(const String& in_spectra,
-      const String& in_db,
+    ExitCodes search(const std::string& in_spectra,
+      const std::string& in_db,
       std::vector<ProteinIdentification>& prot_ids,
       PeptideIdentificationList& pep_ids) const;
   protected:
@@ -178,15 +178,15 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       Int peptide_missed_cleavages,
       double precursor_mass_tolerance,
       double fragment_mass_tolerance,
-      const String& precursor_mass_tolerance_unit_ppm,
-      const String& fragment_mass_tolerance_unit_ppm,
+      const std::string& precursor_mass_tolerance_unit_ppm,
+      const std::string& fragment_mass_tolerance_unit_ppm,
       const Int precursor_min_charge,
       const Int precursor_max_charge,
-      const String& enzyme,
-      const String& database_name) const;
+      const std::string& enzyme,
+      const std::string& database_name) const;
 
     double precursor_mass_tolerance_;       ///< Precursor mass tolerance (value); unit in @c precursor_mass_tolerance_unit_
-    String precursor_mass_tolerance_unit_;  ///< "ppm" or "Da"
+    std::string precursor_mass_tolerance_unit_;  ///< "ppm" or "Da"
 
     Size precursor_min_charge_;             ///< Minimum precursor charge considered
     Size precursor_max_charge_;             ///< Maximum precursor charge considered
@@ -195,7 +195,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
 
     double fragment_mass_tolerance_;        ///< Fragment mass tolerance (value); unit in @c fragment_mass_tolerance_unit_
 
-    String fragment_mass_tolerance_unit_;   ///< "ppm" or "Da"
+    std::string fragment_mass_tolerance_unit_;   ///< "ppm" or "Da"
 
     StringList modifications_fixed_;        ///< UniMod names of fixed modifications
 
@@ -203,7 +203,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
 
     Size modifications_max_variable_mods_per_peptide_; ///< Cap on simultaneous variable modifications per peptide
 
-    String enzyme_;                         ///< Enzyme name as recognised by @ref EnzymaticDigestion
+    std::string enzyme_;                         ///< Enzyme name as recognised by @ref EnzymaticDigestion
 
     bool decoys_;                           ///< If true, generate target/decoy results
 
@@ -216,7 +216,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     Size peptide_missed_cleavages_;         ///< Allowed missed cleavages in digestion
     EnzymaticDigestion::Specificity peptide_enzyme_specificity_{EnzymaticDigestion::SPEC_FULL}; ///< full / semi / none
 
-    String peptide_motif_;                  ///< Optional regex motif; only peptides matching are considered
+    std::string peptide_motif_;                  ///< Optional regex motif; only peptides matching are considered
 
     Size report_top_hits_;                  ///< Number of top-scoring PSMs reported per spectrum
 };

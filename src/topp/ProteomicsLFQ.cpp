@@ -157,7 +157,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file list>", StringList(), "Input files");
-    setValidFormats_("in", ListUtils::create<String>("mzML"
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"
 #ifdef WITH_OPENTIMS
       ",d"
 #endif
@@ -166,7 +166,7 @@ protected:
 #endif
     ));
     registerInputFileList_("in_feat", "<files>", StringList(), "Optional input featureXML files containing pre-computed features. Bypasses internal feature finding. Must match the number of '-in' files.", false, false);
-    setValidFormats_("in_feat", ListUtils::create<String>("featureXML"));
+    setValidFormats_("in_feat", ListUtils::create<std::string>("featureXML"));
     registerInputFileList_("ids", "<file list>", StringList(),
       "Identifications filtered at PSM level (e.g., q-value < 0.01)."
       "And annotated with PEP as main score.\n"
@@ -176,25 +176,25 @@ protected:
       "3. IDFilter (pep:score = 0.05)\n"
       "To obtain well calibrated PEPs and an initial reduction of PSMs\n"
       "ID files must be provided in same order as spectra files.");
-    setValidFormats_("ids", ListUtils::create<String>("idXML,mzId,idparquet"));
+    setValidFormats_("ids", ListUtils::create<std::string>("idXML,mzId,idparquet"));
 
     registerInputFile_("design", "<file>", "", "design file", false);
-    setValidFormats_("design", ListUtils::create<String>("tsv"));
+    setValidFormats_("design", ListUtils::create<std::string>("tsv"));
 
     registerInputFile_("fasta", "<file>", "", "fasta file", false);
-    setValidFormats_("fasta", ListUtils::create<String>("fasta"));
+    setValidFormats_("fasta", ListUtils::create<std::string>("fasta"));
 
     registerOutputFile_("out", "<file>", "", "output mzTab file");
-    setValidFormats_("out", ListUtils::create<String>("mzTab"));
+    setValidFormats_("out", ListUtils::create<std::string>("mzTab"));
 
     registerOutputFile_("out_msstats", "<file>", "", "output MSstats input file", false, false);
-    setValidFormats_("out_msstats", ListUtils::create<String>("csv"));
+    setValidFormats_("out_msstats", ListUtils::create<std::string>("csv"));
 
     registerOutputFile_("out_triqler", "<file>", "", "output Triqler input file", false, false);
-    setValidFormats_("out_triqler", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_triqler", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out_cxml", "<file>", "", "output consensusXML file", false, false);
-    setValidFormats_("out_cxml", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("out_cxml", ListUtils::create<std::string>("consensusXML"));
 
     registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet)", false, false);
 
@@ -221,7 +221,7 @@ protected:
       "bayesian     = computes a posterior probability for every protein based on a Bayesian network.\n"
       "               Note: 'bayesian' only uses and reports the best PSM per peptide.",
       false, true);
-    setValidStrings_("protein_inference", ListUtils::create<String>("aggregation,bayesian"));
+    setValidStrings_("protein_inference", ListUtils::create<std::string>("aggregation,bayesian"));
 
     registerStringOption_("protein_quantification", "<option>", "unique_peptides",
       "Quantify proteins based on:\n"
@@ -229,17 +229,17 @@ protected:
       "(according to the set of experimentally identified peptides).\n"
       "strictly_unique_peptides = use peptides mapping to a unique single protein only.\n"
       "shared_peptides = use shared peptides only for its best group (by inference score)", false, true);
-    setValidStrings_("protein_quantification", ListUtils::create<String>("unique_peptides,strictly_unique_peptides,shared_peptides"));
+    setValidStrings_("protein_quantification", ListUtils::create<std::string>("unique_peptides,strictly_unique_peptides,shared_peptides"));
     registerStringOption_("quantification_method", "<option>",
       "feature_intensity",
       "feature_intensity: MS1 signal.\n"
       "spectral_counting: PSM counts.", false, false);
-    setValidStrings_("quantification_method", ListUtils::create<String>("feature_intensity,spectral_counting"));
+    setValidStrings_("quantification_method", ListUtils::create<std::string>("feature_intensity,spectral_counting"));
 
     registerStringOption_("targeted_only", "<option>", "false",
       "true: Only ID based quantification.\n"
       "false: include unidentified features so they can be linked to identified ones (=match between runs).", false, false);
-    setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
+    setValidStrings_("targeted_only", ListUtils::create<std::string>("true,false"));
 
     registerDoubleOption_("feature_with_id_min_score", "<p-value>", 0.0, "The minimum probability (e.g.: 0.25) an identified (=id targeted) feature must have to be kept for alignment and linking (0=no filter).", false, true);
     setMinFloat_("feature_with_id_min_score", 0.0);
@@ -250,14 +250,14 @@ protected:
     setMaxFloat_("feature_without_id_min_score", 1.0);
 
     registerStringOption_("mass_recalibration", "<option>", "false", "Mass recalibration.", false, true);
-    setValidStrings_("mass_recalibration", ListUtils::create<String>("true,false"));
+    setValidStrings_("mass_recalibration", ListUtils::create<std::string>("true,false"));
 
     registerStringOption_("alignment_order", "<option>", "star", "If star, aligns all maps to the reference with most IDs. If tree_guided, aligns maps in tree order (most similar pairs first).", false, true);
     setValidStrings_("alignment_order", ListUtils::create<String>("star,tree_guided"));
 
     registerStringOption_("keep_feature_top_psm_only", "<option>", "true", "If false, also keeps lower ranked PSMs that have the top-scoring"
                                                                      " sequence as a candidate per feature in the same file.", false, true);
-    setValidStrings_("keep_feature_top_psm_only", ListUtils::create<String>("true,false"));
+    setValidStrings_("keep_feature_top_psm_only", ListUtils::create<std::string>("true,false"));
 
     registerTOPPSubsection_("Seeding", "Parameters for seeding of untargeted features");
     registerDoubleOption_("Seeding:intThreshold", "<threshold>", 1e4, "Peak intensity threshold applied in seed detection.", false, true);
@@ -343,7 +343,7 @@ protected:
     registerFullParam_(combined);
   }
 
-  ExitCodes loadAndPreprocess_(const String& mz_file, MSExperiment& ms_out, bool& is_im_peak_data)
+  ExitCodes loadAndPreprocess_(const std::string& mz_file, MSExperiment& ms_out, bool& is_im_peak_data)
   {
 #ifdef WITH_OPENTIMS
     if (FileHandler::getType(mz_file) == FileTypes::BRUKER_TDF)
@@ -401,7 +401,7 @@ protected:
     }
   }
 
-  ExitCodes centroidAndCorrectPrecursors_(const String & mz_file, MSExperiment & ms_centroided)
+  ExitCodes centroidAndCorrectPrecursors_(const std::string & mz_file, MSExperiment & ms_centroided)
   {
     Param pp_param = getParam_().copy("Centroiding:", true);
     writeDebug_("Parameters passed to PeakPickerHiRes algorithm", pp_param, 3);
@@ -455,7 +455,7 @@ protected:
       mzs,
       rts
       );
-    writeLogInfo_("Info: Corrected " + String(corrected_to_highest_intensity_peak.size()) + " precursors.");
+    writeLogInfo_("Info: Corrected " + StringUtils::toStr(corrected_to_highest_intensity_peak.size()) + " precursors.");
     if (!deltaMZs.empty())
     {
       vector<double> deltaMZs_ppm, deltaMZs_ppmabs;
@@ -470,9 +470,9 @@ protected:
       double median_abs = Math::median(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end());
       double MAD_abs = Math::MAD(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end(), median_abs);
       writeLogInfo_("Precursor correction:\n  median        = "
-        + String(median) + " ppm  MAD = " + String(MAD)
-        + "\n  median (abs.) = " + String(median_abs)
-        + " ppm  MAD = " + String(MAD_abs));
+        + StringUtils::toStr(median) + " ppm  MAD = " + StringUtils::toStr(MAD)
+        + "\n  median (abs.) = " + StringUtils::toStr(median_abs)
+        + " ppm  MAD = " + StringUtils::toStr(MAD_abs));
     }
     return EXECUTION_OK;
   }
@@ -489,7 +489,7 @@ protected:
       writeDebug_("Parameters passed to MapAlignmentAlgorithms", mat_param, 3);
 
       Param model_params = MapAlignerBase::getModelDefaults("b_spline");
-      String model_type = model_params.getValue("type").toString();
+      std::string model_type = model_params.getValue("type").toString();
       model_params = model_params.copy(model_type + ":", true);
 
       try
@@ -532,7 +532,7 @@ protected:
       vector<TransformationDescription::TransformationStatistics> alignment_stats;
       for (TransformationDescription & t : transformations)
       {
-        writeDebug_("Using " + String(t.getDataPoints().size()) + " points in fit.", 1);
+        writeDebug_("Using " + StringUtils::toStr(t.getDataPoints().size()) + " points in fit.", 1);
         if (t.getDataPoints().size() > 10)
         {
           t.fitModel(model_type, model_params);
@@ -597,7 +597,7 @@ protected:
         {
           // plot with e.g.:
           // Rscript ../share/OpenMS/SCRIPTS/plot_trafo.R debug_trafo_1.trafoXML debug_trafo_1.pdf
-          FileHandler().storeTransformations("debug_trafo_" + String(i) + ".trafoXML", transformations[i], {FileTypes::TRANSFORMATIONXML});
+          FileHandler().storeTransformations("debug_trafo_" + StringUtils::toStr(i) + ".trafoXML", transformations[i], {FileTypes::TRANSFORMATIONXML});
         }
       }
     }
@@ -620,7 +620,7 @@ protected:
     Param fl_param = getParam_().copy("Linking:", true);
     writeDebug_("Parameters passed to feature grouping algorithm", fl_param, 3);
 
-    writeDebug_("Linking: " + String(feature_maps.size()) + " features.", 1);
+    writeDebug_("Linking: " + StringUtils::toStr(feature_maps.size()) + " features.", 1);
 
     // grouping tolerance = max alignment error + median FWHM
     FeatureGroupingAlgorithmQT linker;
@@ -667,12 +667,12 @@ protected:
 
   /// determine in which runs of the current fraction a peptide was quantified
   /// returns map sequence+charge -> map index in consensus map that have non-zero quant values
-  map<pair<String, UInt>, vector<int> > getPeptideOccurrence_(const ConsensusMap &cons)
+  map<pair<std::string, UInt>, vector<int> > getPeptideOccurrence_(const ConsensusMap &cons)
   {
     map<Size, UInt> num_consfeat_of_size;
     map<Size, UInt> num_consfeat_of_size_with_id;
 
-    map<pair<String, UInt>, vector<int> > seq_charge2map_occurence;
+    map<pair<std::string, UInt>, vector<int> > seq_charge2map_occurence;
     for (const ConsensusFeature& cfeature : cons)
     {
       ++num_consfeat_of_size[cfeature.size()];
@@ -685,7 +685,7 @@ protected:
         const vector<PeptideHit>& phits = pids[0].getHits();
         if (!phits.empty())
         {
-          const String s = phits[0].getSequence().toString();
+          const std::string s = phits[0].getSequence().toString();
           const int z = phits[0].getCharge();
 
           if (seq_charge2map_occurence[make_pair(s,z)].empty())
@@ -705,7 +705,7 @@ protected:
     return seq_charge2map_occurence;
   }
 
-  ExitCodes checkSingleRunPerID_(const vector<ProteinIdentification>& protein_ids, const String& id_file_abs_path)
+  ExitCodes checkSingleRunPerID_(const vector<ProteinIdentification>& protein_ids, const std::string& id_file_abs_path)
   {
     if (protein_ids.size() != 1)
     {
@@ -728,7 +728,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes switchScoreType_(PeptideIdentificationList& peptide_ids, const String& id_file_abs_path)
+  ExitCodes switchScoreType_(PeptideIdentificationList& peptide_ids, const std::string& id_file_abs_path)
   {
     // Check if score types are valid. TODO
     try
@@ -746,18 +746,18 @@ protected:
   }
 
   ExitCodes loadAndCleanupIDFile_(
-    const String& id_file_abs_path,
-    const String& mz_file,
-    const String& in_db,
+    const std::string& id_file_abs_path,
+    const std::string& mz_file,
+    const std::string& in_db,
     const Size& fraction_group,
     const Size& fraction,
     vector<ProteinIdentification>& protein_ids,
     PeptideIdentificationList& peptide_ids,
-    set<String>& fixed_modifications,  // adds to
-    set<String>& variable_modifications) // adds to
+    set<std::string>& fixed_modifications,  // adds to
+    set<std::string>& variable_modifications) // adds to
   {
 
-    const String& mz_file_abs_path = File::absolutePath(mz_file);
+    const std::string& mz_file_abs_path = File::absolutePath(mz_file);
     FileHandler().loadIdentifications(id_file_abs_path, protein_ids, peptide_ids,
         {FileTypes::IDXML, FileTypes::MZIDENTML, FileTypes::IDPARQUET}, log_type_);
 
@@ -805,8 +805,8 @@ protected:
     IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
 
     // add to the (global) set of fixed and variable modifications
-    const vector<String>& var_mods = protein_ids[0].getSearchParameters().variable_modifications;
-    const vector<String>& fixed_mods = protein_ids[0].getSearchParameters().fixed_modifications;
+    const vector<std::string>& var_mods = protein_ids[0].getSearchParameters().variable_modifications;
+    const vector<std::string>& fixed_mods = protein_ids[0].getSearchParameters().fixed_modifications;
     std::copy(var_mods.begin(), var_mods.end(), std::inserter(variable_modifications, variable_modifications.begin()));
     std::copy(fixed_mods.begin(), fixed_mods.end(), std::inserter(fixed_modifications, fixed_modifications.end()));
 
@@ -819,13 +819,13 @@ protected:
       for (PeptideHit & ph : pid.getHits())
       {
         // TODO: we only have super inefficient meta value removal
-        vector<String> keys;
+        vector<std::string> keys;
         ph.getKeys(keys);
         for (const auto& k : keys)
         {
-          if (!(k.hasSubstring("_score")
-            || k.hasSubstring("q-value")
-            || k.hasPrefix("Luciphor_global_flr")
+          if (!(StringUtils::hasSubstring(k, "_score")
+            || StringUtils::hasSubstring(k, "q-value")
+            || StringUtils::hasPrefix(k, "Luciphor_global_flr")
             || k == "target_decoy") // keep target_decoy information for QC
             )
           {
@@ -852,8 +852,8 @@ protected:
     else if (id_msfile_ref.size() == 1)
     {
       // Check if the annotated primary MS run filename matches the mzML filename (comparison by base name)
-      const String& in_bn = File::stemName(mz_file_abs_path);
-      const String& id_primaryMSRun_bn = File::stemName(id_msfile_ref[0]);
+      const std::string& in_bn = File::stemName(mz_file_abs_path);
+      const std::string& id_primaryMSRun_bn = File::stemName(id_msfile_ref[0]);
 
       if (in_bn != id_primaryMSRun_bn)  // mismatch between annotation in ID file and provided mzML file
       {
@@ -874,8 +874,8 @@ protected:
     // update identifiers to make them unique
     // fixes some bugs related to users splitting the original mzML and id files before running the analysis
     // in that case these files might have the same identifier
-    const String old_identifier = protein_ids[0].getIdentifier();
-    const String new_identifier = old_identifier + "_" + String(fraction_group) + "F" + String(fraction);
+    const std::string old_identifier = protein_ids[0].getIdentifier();
+    const std::string new_identifier = old_identifier + "_" + StringUtils::toStr(fraction_group) + "F" + StringUtils::toStr(fraction);
     protein_ids[0].setIdentifier(new_identifier);
     for (PeptideIdentification & p : peptide_ids)
     {
@@ -924,7 +924,7 @@ protected:
     }
 
     // extract meta value keys from the first element (which might be a normal or OffsetPeptide -> extract only the common ones)
-    std::vector<String> keys;
+    std::vector<std::string> keys;
     tmp[0].getKeys(keys);
     if (auto it = std::find(keys.begin(), keys.end(), "OffsetPeptide"); it != keys.end())
     {
@@ -947,13 +947,13 @@ protected:
   }
 
   ExitCodes quantifyFraction_(
-    const pair<UInt, std::vector<String> > & ms_files,
-    const map<String, String>& mzfile2idfile,
-    const String& in_db,
+    const pair<UInt, std::vector<std::string> > & ms_files,
+    const map<std::string, std::string>& mzfile2idfile,
+    const std::string& in_db,
     double median_fwhm,
     ConsensusMap & consensus_fraction,
-    set<String>& fixed_modifications,
-    set<String>& variable_modifications)
+    set<std::string>& fixed_modifications,
+    set<std::string>& variable_modifications)
   {
     vector<TransformationDescription> transformations;
     vector<FeatureMap> feature_maps;
@@ -962,22 +962,22 @@ protected:
     const StringList in_feat_list = getStringList_("in_feat");
     const StringList in_list      = getStringList_("in");
 
-    writeDebug_("Processing fraction number: " + String(fraction) + "\nFiles: ",  1);
-    for (String const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
+    writeDebug_("Processing fraction number: " + StringUtils::toStr(fraction) + "\nFiles: ",  1);
+    for (std::string const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
 
     StringList id_MS_run_ref;
     StringList in_MS_run = ms_files.second;
     const auto& path_label_to_fractiongroup = design_.getPathLabelToFractionGroupMapping(true);
 
-    for (String const & mz_file : ms_files.second)
+    for (std::string const & mz_file : ms_files.second)
     {
       const Size fraction_group = path_label_to_fractiongroup.at({File::basename(mz_file), 1});
       writeDebug_("Processing file: " + mz_file,  1);
 
       vector<ProteinIdentification> protein_ids;
       PeptideIdentificationList peptide_ids;
-      const String& mz_file_abs_path = File::absolutePath(mz_file);
-      const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
+      const std::string& mz_file_abs_path = File::absolutePath(mz_file);
+      const std::string& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
 
       {
         ExitCodes e = loadAndCleanupIDFile_(id_file_abs_path, mz_file, in_db, fraction_group, fraction, protein_ids, peptide_ids, fixed_modifications, variable_modifications);
@@ -1010,7 +1010,7 @@ protected:
 
         if (mass_recalibration && !is_im_peak_data)
         {
-          String debug_output_basename = (debug_level_ > 666) ? id_file_abs_path : "";
+          std::string debug_output_basename = (debug_level_ > 666) ? id_file_abs_path : "";
           DDAWorkflowCommons::recalibrateMS1(ms_centroided, peptide_ids, debug_output_basename);
         }
 
@@ -1040,7 +1040,7 @@ protected:
 
       if (!targeted_only && in_feat_list.empty())
       {
-        String seeding_algorithm = getStringOption_("Seeding:algorithm");
+        std::string seeding_algorithm = getStringOption_("Seeding:algorithm");
 
         // Force biosaur2 for IM_PEAK data (Multiplex cannot handle it)
         if (is_im_peak_data && seeding_algorithm != "biosaur2")
@@ -1103,7 +1103,7 @@ protected:
 
         if (debug_level_ > 666)
         {
-          FileHandler().storeFeatures("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds, {FileTypes::FEATUREXML}, log_type_);
+          FileHandler().storeFeatures("debug_seeds_fraction_" + StringUtils::toStr(ms_files.first) + "_" + StringUtils::toStr(fraction_group) + ".featureXML", seeds, {FileTypes::FEATUREXML}, log_type_);
         }
       }
 
@@ -1150,7 +1150,7 @@ protected:
         }
         fm.setUnassignedPeptideIdentifications(peptide_ids);
 
-        const String expected_identifier = protein_ids[0].getIdentifier();
+        const std::string expected_identifier = protein_ids[0].getIdentifier();
         Size updated_feature_pid_ids = 0;
         for (Feature& feature : fm)
         {
@@ -1267,7 +1267,7 @@ protected:
             vector<SimpleSVM::Prediction> predictions;
             OPENMS_LOG_INFO << "Predicting class probabilities:" << endl;
             svm.predict(predictions);
-            std::map<String, double> feature_weights;
+            std::map<std::string, double> feature_weights;
             svm.getFeatureWeights(feature_weights);
 
             size_t current_row_pred{};
@@ -1304,10 +1304,10 @@ protected:
         }
       } // <--- END OF ELSE BLOCK
 
-      unordered_set<String> keep_meta = {"OffsetPeptide", "IM_median", "IM_min", "IM_max"};
+      unordered_set<std::string> keep_meta = {"OffsetPeptide", "IM_median", "IM_min", "IM_max"};
       for (auto & f : fm)
       {
-        std::vector<String> keys;
+        std::vector<std::string> keys;
         f.getKeys(keys);
         for (const auto& k : keys)
         {
@@ -1323,7 +1323,7 @@ protected:
 
       if (debug_level_ > 666)
       {
-        FileHandler().storeFeatures("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back(), {FileTypes::FEATUREXML}, log_type_);
+        FileHandler().storeFeatures("debug_fraction_" + StringUtils::toStr(ms_files.first) + "_" + StringUtils::toStr(fraction_group) + ".featureXML", feature_maps.back(), {FileTypes::FEATUREXML}, log_type_);
       }
     } // <--- END OF FOR LOOP OVER MS FILES
 
@@ -1349,7 +1349,7 @@ protected:
 
     Size j(0);
     const auto& path_label_to_sampleidx = design_.getPathLabelToSampleMapping(true);
-    for (String const & mz_file : ms_files.second)
+    for (std::string const & mz_file : ms_files.second)
     {
       const Size curr_fraction_group = path_label_to_fractiongroup.at({File::basename(mz_file), 1});
       consensus_fraction.getColumnHeaders()[j].label = "label-free";
@@ -1377,7 +1377,7 @@ protected:
 
 
   ExitCodes inferProteinGroups_(ConsensusMap& consensus,
-    const set<String>& fixed_modifications)
+    const set<std::string>& fixed_modifications)
   {
     // since we don't require an index as input but need to calculate e.g., coverage we reindex here (fast)
 
@@ -1555,25 +1555,25 @@ protected:
 
     // Read tool parameters
     StringList in = getStringList_("in");
-    String out = getStringOption_("out");
-    String out_msstats = getStringOption_("out_msstats");
-    String out_triqler = getStringOption_("out_triqler");
+    std::string out = getStringOption_("out");
+    std::string out_msstats = getStringOption_("out_msstats");
+    std::string out_triqler = getStringOption_("out_triqler");
     StringList in_ids = getStringList_("ids");
-    String design_file = getStringOption_("design");
-    String in_db = getStringOption_("fasta");
+    std::string design_file = getStringOption_("design");
+    std::string in_db = getStringOption_("fasta");
     StringList in_feat = getStringList_("in_feat");
 
     // Validate parameters
     if (!in_feat.empty() && in_feat.size() != in.size())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Number of featureXML files (-in_feat, " + String(in_feat.size()) +
-        ") must match number of mzML files (-in, " + String(in.size()) + ").");
+        "Number of featureXML files (-in_feat, " + StringUtils::toStr(in_feat.size()) +
+        ") must match number of mzML files (-in, " + StringUtils::toStr(in.size()) + ").");
     }
     if (in.size() != in_ids.size())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Number of spectra files (" + String(in.size()) + ") must match number of ID files (" + String(in_ids.size()) + ").");
+        "Number of spectra files (" + StringUtils::toStr(in.size()) + ") must match number of ID files (" + StringUtils::toStr(in_ids.size()) + ").");
     }
     if (getStringOption_("quantification_method") == "spectral_counting")
     {
@@ -1606,9 +1606,9 @@ protected:
       design_table.addLine("Fraction_Group\tFraction\tSpectra_Filepath\tLabel\tSample\tMSstats_Condition\tMSstats_BioReplicate");
 
       Size count{1};
-      for (String & s : in)
+      for (std::string & s : in)
       {
-        design_table.addLine(String(count) + "\t1\t" + s +"\t1\tSample" + String(count) + "\t" + String(count)+ "\t" + String(count));
+        design_table.addLine(StringUtils::toStr(count) + "\t1\t" + s +"\t1\tSample" + StringUtils::toStr(count) + "\t" + StringUtils::toStr(count)+ "\t" + StringUtils::toStr(count));
         ++count;
       }
       design_ = ExperimentalDesignFile::load(design_table, "--no design file--", false);
@@ -1617,17 +1617,17 @@ protected:
     // some sanity checks
     // extract basenames from experimental design and input files
     const auto& pl2fg = design_.getPathLabelToFractionGroupMapping(true);
-    set<String> ed_basenames;
+    set<std::string> ed_basenames;
     for (const auto& p : pl2fg)
     {
-      const String& filename = p.first.first;
+      const std::string& filename = p.first.first;
       ed_basenames.insert(filename);
     }
 
-    set<String> in_basenames;
+    set<std::string> in_basenames;
     for (const auto & f : in)
     {
-      const String& in_bn = File::basename(f);
+      const std::string& in_bn = File::basename(f);
       in_basenames.insert(in_bn);
     }
 
@@ -1653,7 +1653,7 @@ protected:
       OPENMS_LOG_WARN << "WARNING: Different number of fractions for different samples provided. Support maybe limited in ProteomicsLFQ." << std::endl;
     }
 
-    std::map<unsigned int, std::vector<String> > frac2ms = design_.getFractionToMSFilesMapping();
+    std::map<unsigned int, std::vector<std::string> > frac2ms = design_.getFractionToMSFilesMapping();
 
     // experimental design file could contain URLs etc. that we want to overwrite with the actual input files
     for (auto & fraction_ms_files : frac2ms)
@@ -1663,7 +1663,7 @@ protected:
         // if basename in experimental design matches to basename in input file
         // overwrite experimental design to point to existing file (and only if they were different)
         if (auto it = std::find_if(in.begin(), in.end(),
-              [&s] (const String& in_filename) { return File::basename(in_filename) == File::basename(s); }); // basename matches?
+              [&s] (const std::string& in_filename) { return File::basename(in_filename) == File::basename(s); }); // basename matches?
                  it != in.end() && s != *it) // and differ?
         {
           OPENMS_LOG_INFO << "Path of spectra files differ between experimental design (1) and input (2). Using the path of the input file as "
@@ -1676,8 +1676,8 @@ protected:
 
     for (auto & f : frac2ms)
     {
-      writeDebug_("Fraction " + String(f.first) + ":", 10);
-      for (const String & s : f.second)
+      writeDebug_("Fraction " + StringUtils::toStr(f.first) + ":", 10);
+      for (const std::string & s : f.second)
       {
         writeDebug_("MS file: " + s, 10);
       }
@@ -1685,8 +1685,8 @@ protected:
 
     // Map between mzML file and corresponding id file
     // We assume that these are provided in the exact same order.
-    map<String, String> mzfile2idfile = DDAWorkflowCommons::mapMzML2Ids(in, in_ids);
-    map<String, String> idfile2mzfile = DDAWorkflowCommons::mapId2MzMLs(mzfile2idfile);
+    map<std::string, std::string> mzfile2idfile = DDAWorkflowCommons::mapMzML2Ids(in, in_ids);
+    map<std::string, std::string> idfile2mzfile = DDAWorkflowCommons::mapId2MzMLs(mzfile2idfile);
 
     // TODO maybe check if mzMLs in experimental design match to mzMLs passed as in parameter
     //  IF both are present
@@ -1704,7 +1704,7 @@ protected:
     Param com_param = getParam_().copy("algorithm:common:", true);
     writeDebug_("Common parameters passed to both sub-algorithms (mtd and epd)", com_param, 3);
 
-    set<String> fixed_modifications, variable_modifications;
+    set<std::string> fixed_modifications, variable_modifications;
 
     //-------------------------------------------------------------
     // Loading input
@@ -1760,8 +1760,8 @@ protected:
         const Size& fraction = ms_files.first;
 
         // debug output
-        writeDebug_("Processing fraction number: " + String(fraction) + "\nFiles: ",  1);
-        for (String const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
+        writeDebug_("Processing fraction number: " + StringUtils::toStr(fraction) + "\nFiles: ",  1);
+        for (std::string const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
 
         // for sanity checks we collect the primary MS run basenames as well as the ones stored in the ID files (below)
         StringList id_MS_run_ref;
@@ -1769,14 +1769,14 @@ protected:
         const auto& path_label_to_fractiongroup = design_.getPathLabelToFractionGroupMapping(true);
 
         // for each MS file of current fraction (e.g., all MS files that measured the n-th fraction)
-        for (String const & mz_file : ms_files.second)
+        for (std::string const & mz_file : ms_files.second)
         {
           const Size fraction_group = path_label_to_fractiongroup.at({File::basename(mz_file), 1});
           // load and clean identification data associated with MS run
           vector<ProteinIdentification> protein_ids;
           PeptideIdentificationList peptide_ids;
-          const String& mz_file_abs_path = File::absolutePath(mz_file);
-          const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
+          const std::string& mz_file_abs_path = File::absolutePath(mz_file);
+          const std::string& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
 
           {
             ExitCodes e = loadAndCleanupIDFile_(id_file_abs_path, mz_file, in_db, fraction_group, fraction, protein_ids, peptide_ids, fixed_modifications, variable_modifications);
@@ -1799,7 +1799,7 @@ protected:
         ////////////////////////////////////////////////////////////
         // for each MS file (as provided in the experimental design)
         const auto& path_label_to_sampleidx = design_.getPathLabelToSampleMapping(true);
-        for (String const & mz_file : ms_files.second)
+        for (std::string const & mz_file : ms_files.second)
         {
           const Size curr_fraction_group = path_label_to_fractiongroup.at({File::basename(mz_file), 1});
           consensus.getColumnHeaders()[run_index].label = "label-free";
@@ -1893,7 +1893,7 @@ protected:
     consensus.resolveUniqueIdConflicts(); // TODO: find out if this is still needed
 
     {
-      String out_qpx = getOutputDirOption("out_qpx");
+      std::string out_qpx = getOutputDirOption("out_qpx");
       if (!out_qpx.empty())
       {
         OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
@@ -2002,7 +2002,7 @@ protected:
 
     return EXECUTION_OK;
   }
-  String picked_decoy_string_;
+  std::string picked_decoy_string_;
   bool picked_decoy_prefix_ = true;
   ExperimentalDesign design_;
 };

@@ -31,7 +31,7 @@ namespace OpenMS
     loadFromProviders_(providers);
   }
 
-  void ProteaseDB::getAllXTandemNames(vector<String>& all_names) const
+  void ProteaseDB::getAllXTandemNames(vector<std::string>& all_names) const
   {
     all_names.clear();
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
@@ -43,7 +43,7 @@ namespace OpenMS
     }
   }
 
-  void ProteaseDB::getAllCometNames(vector<String>& all_names) const
+  void ProteaseDB::getAllCometNames(vector<std::string>& all_names) const
   {
     all_names.clear();
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
@@ -55,7 +55,7 @@ namespace OpenMS
     }
   }
 
-  void ProteaseDB::getAllOMSSANames(vector<String>& all_names) const
+  void ProteaseDB::getAllOMSSANames(vector<std::string>& all_names) const
   {
     all_names.clear();
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
@@ -67,7 +67,7 @@ namespace OpenMS
     }
   }
 
-  void ProteaseDB::getAllMSGFNames(vector<String>& all_names) const
+  void ProteaseDB::getAllMSGFNames(vector<std::string>& all_names) const
   {
     all_names.clear();
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
@@ -79,7 +79,7 @@ namespace OpenMS
     }
   }
 
-  void ProteaseDB::writeTSV(String const& filename) const
+  void ProteaseDB::writeTSV(std::string const& filename) const
   {
     std::ofstream ofs(filename, std::ofstream::out);
     ofs << "OpenMS_AllowedEnzymes" << "\n";

@@ -187,7 +187,7 @@ namespace OpenMS
       }
       else       // value is numerical, store it in value (as double)
       {
-        filter_.value = value.toDouble();
+        filter_.value = StringUtils::toDouble(value);
         filter_.value_is_numerical = true;
       }
     }
@@ -202,9 +202,9 @@ namespace OpenMS
       filter_.op = DataFilters::EXISTS;
 
     if (field == "Intensity" || field == "Quality")
-      filter_.value = value.toDouble();
+      filter_.value = StringUtils::toDouble(value);
     else if (field == "Charge" || field == "Size")
-      filter_.value = value.toInt();
+      filter_.value = StringUtils::toInt32(value);
 
     accept();
   }

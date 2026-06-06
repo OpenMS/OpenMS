@@ -37,13 +37,13 @@ namespace OpenMS
      * @param[in] filename Relative filename to locate via File::find() (e.g. "CHEMISTRY/Enzymes.xml")
      * @param[in] optional If true, return empty vector when file is not found instead of throwing
      */
-    explicit EnzymeXMLDataProvider(const String& filename, bool optional = false);
+    explicit EnzymeXMLDataProvider(const std::string& filename, bool optional = false);
 
     /// @brief Parses enzyme definitions from the configured XML file.
     std::vector<std::unique_ptr<EnzymeType>> loadEnzymes() override;
 
   private:
-    String filename_;
+    std::string filename_;
     bool optional_;
   };
 

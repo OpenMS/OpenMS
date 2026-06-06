@@ -16,7 +16,7 @@ namespace OpenMS::Internal
 {
 
 
-    ParamXMLHandler::ParamXMLHandler(Param& param, const String& filename, const String& version) :
+    ParamXMLHandler::ParamXMLHandler(Param& param, const std::string& filename, const std::string& version) :
       XMLHandler(filename, version),
       param_(param)
     {
@@ -30,26 +30,26 @@ namespace OpenMS::Internal
       static const XMLCh* s_restrictions = xercesc::XMLString::transcode("restrictions");
       static const XMLCh* s_supported_formats = xercesc::XMLString::transcode("supported_formats");
 
-      String element = sm_.convert(qname);
+      std::string element = sm_.convert(qname);
       if (element == "ITEM")
       {
         //parse value/type
-        String type = attributeAsString_(attributes, "type");
-        String name = path_ + attributeAsString_(attributes, "name");
-        String value = attributeAsString_(attributes, "value");
+        std::string type = attributeAsString_(attributes, "type");
+        std::string name = path_ + attributeAsString_(attributes, "name");
+        std::string value = attributeAsString_(attributes, "value");
 
         //parse description, if present
-        String description;
+        std::string description;
         optionalAttributeAsString_(description, attributes, "description");
-        description.substitute("#br#", "\n");
+        StringUtils::substitute(description, "#br#", "\n");
 
         //tags
-        String tags_string;
+        std::string tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
         std::vector<std::string> tags = ListUtils::create<std::string>(tags_string);
 
         //advanced
-        String advanced_string;
+        std::string advanced_string;
         optionalAttributeAsString_(advanced_string, attributes, "advanced");
         if (advanced_string == "true")
         {
@@ -57,7 +57,7 @@ namespace OpenMS::Internal
         }
 
         //required
-        String required_string;
+        std::string required_string;
         optionalAttributeAsString_(advanced_string, attributes, "required");
         if (advanced_string == "true")
         {
@@ -96,7 +96,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          warning(LOAD, String("Ignoring entry '") + name + "' because of unknown type '" + type + "'");
+          warning(LOAD,StringUtils::toStr("Ignoring entry '") + name + "' because of unknown type '" + type + "'");
         }
 
         //restrictions
@@ -112,22 +112,22 @@ namespace OpenMS::Internal
           Int restrictions_index = attributes.getIndex(s_restrictions);
           if (restrictions_index != -1)
           {
-            String val = sm_.convert(attributes.getValue(restrictions_index));
-            std::vector<String> parts;
+            std::string val = sm_.convert(attributes.getValue(restrictions_index));
+            std::vector<std::string> parts;
             if (type == "int")
             {
-              val.split(':', parts);
+              StringUtils::split(val, ':', parts);
               if (parts.size() != 2)
-                val.split('-', parts); //for downward compatibility
+                StringUtils::split(val, '-', parts); //for downward compatibility
               if (parts.size() == 2)
               {
                 if (!parts[0].empty())
                 {
-                  param_.setMinInt(name, parts[0].toInt());
+                  param_.setMinInt(name, StringUtils::toInt32(parts[0]));
                 }
                 if (!parts[1].empty())
                 {
-                  param_.setMaxInt(name, parts[1].toInt());
+                  param_.setMaxInt(name, StringUtils::toInt32(parts[1]));
                 }
               }
               else
@@ -137,25 +137,25 @@ namespace OpenMS::Internal
             }
             else if (type == "string")
             {
-              val.split(',', parts);
+              StringUtils::split(val, ', ', parts);
               param_.setValidStrings(name, ListUtils::create<std::string>(parts));
             }
             else if (type == "float" || type == "double")
             {
-              val.split(':', parts);
+              StringUtils::split(val, ':', parts);
               if (parts.size() != 2)
               {
-                val.split('-', parts); //for downward compatibility
+                StringUtils::split(val, '-', parts); //for downward compatibility
               }
               if (parts.size() == 2)
               {
                 if (!parts[0].empty())
                 {
-                  param_.setMinFloat(name, parts[0].toDouble());
+                  param_.setMinFloat(name, StringUtils::toDouble(parts[0]));
                 }
                 if (!parts[1].empty())
                 {
-                  param_.setMaxFloat(name, parts[1].toDouble());
+                  param_.setMaxFloat(name, StringUtils::toDouble(parts[1]));
                 }
               }
               else
@@ -173,10 +173,10 @@ namespace OpenMS::Internal
           Int supported_formats_index = attributes.getIndex(s_supported_formats);
           if (supported_formats_index != -1)
           {
-            String val = sm_.convert(attributes.getValue(supported_formats_index));
-            std::vector<String> parts;
+            std::string val = sm_.convert(attributes.getValue(supported_formats_index));
+            std::vector<std::string> parts;
 
-            val.split(',', parts);
+            StringUtils::split(val, ', ', parts);
             param_.setValidStrings(name, ListUtils::create<std::string>(parts));
           }
         }
@@ -185,22 +185,22 @@ namespace OpenMS::Internal
       else if (element == "NODE")
       {
         //parse name
-        String name = attributeAsString_(attributes, "name");
+        std::string name = attributeAsString_(attributes, "name");
         open_tags_.push_back(name);
         path_ += name + ":";
         //parse description
-        String description;
+        std::string description;
         optionalAttributeAsString_(description, attributes, "description");
         if (!description.empty())
         {
-          description.substitute("#br#", "\n");
+          StringUtils::substitute(description, "#br#", "\n");
         }
-        param_.addSection(path_.chop(1), description);
+        param_.addSection(StringUtils::chop(path_, 1), description);
       }
       else if (element == "ITEMLIST")
       {
         //tags
-        String tags_string;
+        std::string tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
         list_.tags = ListUtils::create<std::string>(tags_string);
                 
@@ -223,10 +223,10 @@ namespace OpenMS::Internal
         //parse description, if present
         list_.description = "";
         optionalAttributeAsString_(list_.description, attributes, "description");
-        list_.description.substitute("#br#", "\n");
+        StringUtils::substitute(list_.description, "#br#", "\n");
         
         //advanced
-        String advanced_string;
+        std::string advanced_string;
         optionalAttributeAsString_(advanced_string, attributes, "advanced");
         if (advanced_string == "true")
         {
@@ -234,7 +234,7 @@ namespace OpenMS::Internal
         }
 
         //advanced
-        String required_string;
+        std::string required_string;
         optionalAttributeAsString_(required_string, attributes, "required");
         if (required_string == "true")
         {
@@ -277,7 +277,7 @@ namespace OpenMS::Internal
       else if (element == "PARAMETERS")
       {
         //check file version against schema version
-        String file_version = "";
+        std::string file_version = "";
         optionalAttributeAsString_(file_version, attributes, "version");
 
         // default version is 1.0
@@ -297,27 +297,27 @@ namespace OpenMS::Internal
 
     void ParamXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      String element = sm_.convert(qname);
+      std::string element = sm_.convert(qname);
       if (element == "NODE")
       {
         open_tags_.pop_back();
         //renew path
         path_ = "";
-        for (vector<String>::iterator it = open_tags_.begin(); it != open_tags_.end(); ++it)
+        for (vector<std::string>::iterator it = open_tags_.begin(); it != open_tags_.end(); ++it)
         {
           path_ += *it + ":";
         }
       }
       else if (element == "ITEMLIST")
       {
-        std::vector<String> parts;
+        std::vector<std::string> parts;
 
         if (list_.type == "string")
         {
           param_.setValue(list_.name, list_.stringlist, list_.description, list_.tags);
           if (list_.restrictions_index != -1)
           {
-            list_.restrictions.split(',', parts);
+            StringUtils::split(list_.restrictions, ', ', parts);
             param_.setValidStrings(list_.name, ListUtils::create<std::string>(parts));
           }
         }
@@ -326,20 +326,20 @@ namespace OpenMS::Internal
           param_.setValue(list_.name, list_.intlist, list_.description, list_.tags);
           if (list_.restrictions_index != -1)
           {
-            list_.restrictions.split(':', parts);
+            StringUtils::split(list_.restrictions, ':', parts);
             if (parts.size() != 2)
             {
-              list_.restrictions.split('-', parts); //for downward compatibility
+              StringUtils::split(list_.restrictions, '-', parts); //for downward compatibility
             }
             if (parts.size() == 2)
             {
               if (!parts[0].empty())
               {
-                param_.setMinInt(list_.name, parts[0].toInt());
+                param_.setMinInt(list_.name, StringUtils::toInt32(parts[0]));
               }
               if (!parts[1].empty())
               {
-                param_.setMaxInt(list_.name, parts[1].toInt());
+                param_.setMaxInt(list_.name, StringUtils::toInt32(parts[1]));
               }
             }
             else
@@ -353,20 +353,20 @@ namespace OpenMS::Internal
           param_.setValue(list_.name, list_.doublelist, list_.description, list_.tags);
           if (list_.restrictions_index != -1)
           {
-            list_.restrictions.split(':', parts);
+            StringUtils::split(list_.restrictions, ':', parts);
             if (parts.size() != 2)
             {
-              list_.restrictions.split('-', parts); //for downward compatibility
+              StringUtils::split(list_.restrictions, '-', parts); //for downward compatibility
             }
             if (parts.size() == 2)
             {
               if (!parts[0].empty())
               {
-                param_.setMinFloat(list_.name, parts[0].toDouble());
+                param_.setMinFloat(list_.name, StringUtils::toDouble(parts[0]));
               }
               if (!parts[1].empty())
               {
-                param_.setMaxFloat(list_.name, parts[1].toDouble());
+                param_.setMaxFloat(list_.name, StringUtils::toDouble(parts[1]));
               }
             }
             else
@@ -377,7 +377,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          warning(LOAD, String("Ignoring list entry '") + list_.name + "' because of unknown type '" + list_.type + "'");
+          warning(LOAD,StringUtils::toStr("Ignoring list entry '") + list_.name + "' because of unknown type '" + list_.type + "'");
         }
         list_.stringlist.clear();
         list_.intlist.clear();

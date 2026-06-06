@@ -172,7 +172,7 @@ END_SECTION
 
 START_SECTION((void insert(std::ostream &s)))
 {
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   LogStream l1(new LogStreamBuf());
   ofstream s(filename.c_str(), std::ios::out);
@@ -317,7 +317,7 @@ START_SECTION((void setPrefix(const std::string &prefix)))
 	l1.setPrefix(""); //no prefix
 	l1 << " 10." << endl;
 
-	StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
+	StringList to_validate_list = ListUtils::create<std::string>(StringUtils::toStr(stream_by_logger.str()),'\n');
 	TEST_EQUAL(to_validate_list.size(),10)
 
 	StringList regex_list;
@@ -367,9 +367,9 @@ START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix))
   l1.setPrefix(stream_by_logger, ""); //no prefix
   l1 << " 10." << endl;
 
-	StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
+	StringList to_validate_list = ListUtils::create<std::string>(StringUtils::toStr(stream_by_logger.str()),'\n');
 	TEST_EQUAL(to_validate_list.size(),10)
-	StringList to_validate_list2 = ListUtils::create<String>(String(stream_by_logger_otherprefix.str()),'\n');
+	StringList to_validate_list2 = ListUtils::create<std::string>(StringUtils::toStr(stream_by_logger_otherprefix.str()),'\n');
 	TEST_EQUAL(to_validate_list2.size(),10)
 
 	StringList regex_list;
@@ -383,7 +383,7 @@ START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix))
 	regex_list.push_back("%  9\\.");
 	regex_list.push_back(" 10\\.");
 
-	String other_stream_regex = "BLABLA [ 1][0-9]\\.";
+	std::string other_stream_regex = "BLABLA [ 1][0-9]\\.";
   boost::regex rx2(other_stream_regex);
   // QRegExp rx2(other_stream_regex.c_str());
   // QRegExpValidator v2(rx2, 0);
@@ -425,7 +425,7 @@ END_SECTION
 
 START_SECTION(([EXTRA]Test log caching))
 {
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
@@ -462,7 +462,7 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_FATAL_ERROR))
     getThreadLocalLogFatal().remove(stream_by_logger);
   }
 
-  StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
+  StringList to_validate_list = ListUtils::create<std::string>(StringUtils::toStr(stream_by_logger.str()),'\n');
   TEST_EQUAL(to_validate_list.size(),3)
 
   boost::regex rx(R"(.*LogStream_test\.cpp\(\d+\): \d)");
@@ -478,7 +478,7 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_ERROR))
   // remove cout/cerr streams from the appropriate logger
   // and append trackable ones
   // NOTE: clearCache() outputs cached messages, so call it BEFORE inserting test stream
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
@@ -500,7 +500,7 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_WARN))
   // remove cout/cerr streams from the appropriate logger
   // and append trackable ones
   // NOTE: clearCache() outputs cached messages, so call it BEFORE inserting test stream
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
@@ -522,7 +522,7 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_INFO))
   // remove cout/cerr streams from the appropriate logger
   // and append trackable ones
   // NOTE: clearCache() outputs cached messages, so call it BEFORE inserting test stream
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
@@ -556,7 +556,7 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_DEBUG))
     getThreadLocalLogDebug().remove(stream_by_logger);
   }
 
-  StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
+  StringList to_validate_list = ListUtils::create<std::string>(StringUtils::toStr(stream_by_logger.str()),'\n');
   TEST_EQUAL(to_validate_list.size(), 3)
 
   boost::regex rx(R"(.*LogStream_test\.cpp\(\d+\): \d)");

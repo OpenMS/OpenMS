@@ -24,19 +24,19 @@ namespace OpenMS
     // Extracted from RibonucleotideDB::parseRow_().
     RibonucleotideEntry parseRow_(const std::string& row, Size line_count)
     {
-      vector<String> parts;
-      String(row).split('\t', parts);
+      vector<std::string> parts;
+      StringUtils::split(row, '\t', parts);
       if (parts.size() < 9)
       {
-        String msg = "9 tab-separated fields expected, found " + String(parts.size()) + " in line " + String(line_count);
+        std::string msg = "9 tab-separated fields expected, found " + StringUtils::toStr(parts.size()) + " in line " + StringUtils::toStr(line_count);
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, row, msg);
       }
       RibonucleotideEntry entry;
       auto ribo = std::make_unique<Ribonucleotide>();
       ribo->setName(parts[0]);
-      if (parts[1].hasSuffix("QtRNA")) // use just "Q" instead of "QtRNA"
+      if (StringUtils::hasSuffix(parts[1], "QtRNA")) // use just "Q" instead of "QtRNA"
       {
-        ribo->setCode(parts[1].chop(4));
+        ribo->setCode(StringUtils::chop(parts[1], 4));
       }
       else
       {
@@ -59,7 +59,7 @@ namespace OpenMS
       }
       if (!parts[7].empty() && (parts[7] != "None"))
       {
-        ribo->setMonoMass(parts[7].toDouble());
+        ribo->setMonoMass(StringUtils::toDouble(parts[7]));
         if ((ribo->getMonoMass() == 0.0) && (!ribo->getFormula().isEmpty()))
         {
           ribo->setMonoMass(ribo->getFormula().getMonoWeight());
@@ -67,7 +67,7 @@ namespace OpenMS
       }
       if (!parts[8].empty() && (parts[8] != "None"))
       {
-        ribo->setAvgMass(parts[8].toDouble());
+        ribo->setAvgMass(StringUtils::toDouble(parts[8]));
         if ((ribo->getAvgMass() == 0.0) && (!ribo->getFormula().isEmpty()))
         {
           ribo->setAvgMass(ribo->getFormula().getAverageWeight());
@@ -76,11 +76,11 @@ namespace OpenMS
       // Modomics' "new code" contains information on terminal specificity:
       if ((!parts[2].empty()) && parts[2].back() == 'N') // terminal mod., exception: "GN"
       {
-        if (parts[2].hasSubstring("55") || (parts[2] == "N"))
+        if (StringUtils::hasSubstring(parts[2], "55") || (parts[2] == "N"))
         {
           ribo->setTermSpecificity(Ribonucleotide::FIVE_PRIME);
         }
-        else if (parts[2].hasSubstring("33"))
+        else if (StringUtils::hasSubstring(parts[2], "33"))
         {
           ribo->setTermSpecificity(Ribonucleotide::THREE_PRIME);
         }
@@ -103,10 +103,10 @@ namespace OpenMS
         {
           if (parts.size() < 10)
           {
-            String msg = "10th field expected for ambiguous modification in line " + String(line_count);
+            std::string msg = "10th field expected for ambiguous modification in line " + StringUtils::toStr(line_count);
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, row, msg);
           }
-          String code1 = parts[9].prefix(' '), code2 = parts[9].suffix(' ');
+          std::string code1 = StringUtils::prefix(parts[9], ' '), code2 = StringUtils::suffix(parts[9], ' ');
           entry.alternative_code_1 = code1;
           entry.alternative_code_2 = code2;
         }
@@ -121,16 +121,16 @@ namespace OpenMS
 
   } // anonymous namespace
 
-  RibonucleotideTSVDataProvider::RibonucleotideTSVDataProvider(const String& filename)
+  RibonucleotideTSVDataProvider::RibonucleotideTSVDataProvider(const std::string& filename)
     : filename_(filename)
   {
   }
 
   std::vector<RibonucleotideEntry> RibonucleotideTSVDataProvider::loadRibonucleotides()
   {
-    String full_path = File::find(filename_);
+    std::string full_path = File::find(filename_);
 
-    String header = "name\tshort_name\tnew_nomenclature\toriginating_base\trnamods_abbrev\thtml_abbrev\tformula\tmonoisotopic_mass\taverage_mass";
+    std::string header = "name\tshort_name\tnew_nomenclature\toriginating_base\trnamods_abbrev\thtml_abbrev\tformula\tmonoisotopic_mass\taverage_mass";
 
     // Use std::filesystem::path to support non-ASCII paths on Windows (wide-string open)
     std::ifstream file{std::filesystem::path{std::string(full_path)}};
@@ -140,16 +140,16 @@ namespace OpenMS
     }
 
     Size line_count = 1;
-    String line;
+    std::string line;
     std::getline(file, line);
     while (!line.empty() && line[0] == '#') // skip leading comments
     {
       std::getline(file, line);
       ++line_count;
     }
-    if (!line.hasPrefix(header)) // additional columns are allowed
+    if (!StringUtils::hasPrefix(line, header)) // additional columns are allowed
     {
-      String msg = "expected header line starting with: '" + header + "'";
+      std::string msg = "expected header line starting with: '" + header + "'";
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, msg);
     }
 

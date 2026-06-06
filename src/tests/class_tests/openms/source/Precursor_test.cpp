@@ -203,7 +203,7 @@ START_SECTION((Precursor(const Precursor& source)))
   tmp.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
   tmp.setCharge(2);
   tmp.getPossibleChargeStates().resize(2);
-  tmp.setMetaValue("label",String("label"));
+  tmp.setMetaValue("label",StringUtils::toStr("label"));
   
   Precursor tmp2(tmp);
   TEST_EQUAL(tmp2.getActivationMethods().size(),1);
@@ -216,7 +216,7 @@ START_SECTION((Precursor(const Precursor& source)))
   TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true);
   TEST_EQUAL(tmp2.getCharge(),2);
   TEST_EQUAL(tmp2.getPossibleChargeStates().size(),2);
-  TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+  TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
 }
 END_SECTION
 
@@ -234,7 +234,7 @@ START_SECTION((Precursor(const Precursor&& source)))
   tmp.setDriftTimeUnit(DriftTimeUnit::VSSC);
   tmp.setCharge(8);
   tmp.getPossibleChargeStates().resize(4);
-  tmp.setMetaValue("label",String("label2"));
+  tmp.setMetaValue("label",StringUtils::toStr("label2"));
   TEST_EQUAL(tmp.getActivationMethods().size(),2);
 
   //copy tmp so we can move one of them
@@ -253,7 +253,7 @@ START_SECTION((Precursor(const Precursor&& source)))
   TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::VSSC, true);
   TEST_EQUAL(tmp2.getCharge(),8);
   TEST_EQUAL(tmp2.getPossibleChargeStates().size(),4);
-  TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label2");
+  TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label2");
 }
 END_SECTION
 
@@ -270,7 +270,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
   tmp.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
   tmp.setCharge(9);
   tmp.getPossibleChargeStates().resize(5);
-  tmp.setMetaValue("label",String("label"));
+  tmp.setMetaValue("label",StringUtils::toStr("label"));
   
   //normal assignment
   Precursor tmp2;
@@ -285,7 +285,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
   TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true);
   TEST_EQUAL(tmp2.getCharge(),9);
   TEST_EQUAL(tmp2.getPossibleChargeStates().size(),5);
-  TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+  TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
     
   //assignment of empty object
   tmp2 = Precursor();
@@ -317,7 +317,7 @@ START_SECTION((Precursor& operator= (const Precursor&& source)))
   tmp.setDriftTimeUnit(DriftTimeUnit::VSSC);
   tmp.setCharge(8);
   tmp.getPossibleChargeStates().resize(4);
-  tmp.setMetaValue("label",String("label2"));
+  tmp.setMetaValue("label",StringUtils::toStr("label2"));
 
   //copy tmp so we can move one of them
   Precursor orig = tmp;
@@ -337,7 +337,7 @@ START_SECTION((Precursor& operator= (const Precursor&& source)))
   TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::VSSC, true);
   TEST_EQUAL(tmp2.getCharge(),8);
   TEST_EQUAL(tmp2.getPossibleChargeStates().size(),4);
-  TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label2");
+  TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label2");
 }
 END_SECTION
 
@@ -386,7 +386,7 @@ START_SECTION((bool operator== (const Precursor& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
-	tmp.setMetaValue("label",String("label"));
+	tmp.setMetaValue("label",StringUtils::toStr("label"));
 	TEST_EQUAL(tmp==tmp2, false);
 END_SECTION
 
@@ -435,7 +435,7 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
-	tmp.setMetaValue("label",String("label"));
+	tmp.setMetaValue("label",StringUtils::toStr("label"));
 	TEST_FALSE(tmp == tmp2);
 END_SECTION
 

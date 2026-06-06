@@ -200,8 +200,8 @@ class NuXLAnnotatedHit
   float sequence_score = 0;
 
   float best_localization_score = 0;
-  String localization_scores = 0;
-  String best_localization;
+  std::string localization_scores = "0";
+  std::string best_localization;
   int best_localization_position = -1; // UNKNOWN
   std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
 

@@ -309,12 +309,12 @@ END_SECTION
 const ConsensusMap map_const_1 = []() {
   ConsensusMap map1;
   map1.resize(3);
-  map1.setMetaValue("meta", String("value"));
+  map1.setMetaValue("meta",StringUtils::toStr("value"));
   map1.setIdentifier("lsid");
   map1.getColumnHeaders()[0].filename = "blub";
   map1.getColumnHeaders()[0].size = 47;
   map1.getColumnHeaders()[0].label = "label";
-  map1.getColumnHeaders()[0].setMetaValue("meta", String("meta"));
+  map1.getColumnHeaders()[0].setMetaValue("meta",StringUtils::toStr("meta"));
   map1.getDataProcessing().resize(1);
   map1.setExperimentType("labeled_MS2");
   map1.getProteinIdentifications().resize(1);
@@ -444,12 +444,12 @@ START_SECTION((ColumnHeaders& getColumnHeaders()))
   TEST_EQUAL(cons_map.getColumnHeaders()[0].filename == "blub", true)
 END_SECTION
 
-START_SECTION((const String& getExperimentType() const))
+START_SECTION((const std::string& getExperimentType() const))
   ConsensusMap cons_map;
 	TEST_EQUAL(cons_map.getExperimentType() == "label-free", true)
 END_SECTION
 
-START_SECTION((void setExperimentType(const String& experiment_type)))
+START_SECTION((void setExperimentType(const std::string& experiment_type)))
   ConsensusMap cons_map;
 	cons_map.setExperimentType("labeled_MS2");
   TEST_EQUAL(cons_map.getExperimentType(),"labeled_MS2")
@@ -732,7 +732,7 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
   vector<FeatureMap> fmaps;
 
   // test with non iso analyze data
-  fmaps = cm.split(ConsensusMap::SplitMeta::DISCARD);
+  fmaps = StringUtils::split(cm, ConsensusMap::SplitMeta::DISCARD);
   ABORT_IF(fmaps.size() != 2);
   ABORT_IF(fmaps[0].size() != 2);
   ABORT_IF(fmaps[1].size() != 2);
@@ -775,7 +775,7 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
   TEST_EQUAL(fmaps[1][1].getPeptideIdentifications().empty(), true);
 
   // test different all meta value modes
-  fmaps = cm.split(ConsensusMap::SplitMeta::COPY_FIRST);
+  fmaps = StringUtils::split(cm, ConsensusMap::SplitMeta::COPY_FIRST);
   ABORT_IF(fmaps.size() != 2);
   ABORT_IF(fmaps[0].size() != 2);
   ABORT_IF(fmaps[1].size() != 2);
@@ -783,7 +783,7 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
   TEST_EQUAL(fmaps[0][0].getMetaValue("test"), "some information");
   TEST_EQUAL(fmaps[1][0].metaValueExists("test"), false);
   
-  fmaps = cm.split(ConsensusMap::SplitMeta::COPY_ALL);
+  fmaps = StringUtils::split(cm, ConsensusMap::SplitMeta::COPY_ALL);
   ABORT_IF(fmaps.size() != 2);
   ABORT_IF(fmaps[0].size() != 2);
   ABORT_IF(fmaps[1].size() != 2);

@@ -52,10 +52,10 @@ namespace OpenMS
   ToolsDialog::ToolsDialog(
           QWidget* parent,
           const Param& params,
-          String ini_file,
-          String default_dir,
+          std::string ini_file,
+          std::string default_dir,
           LayerDataBase::DataType layer_type,
-          const String& layer_name,
+          const std::string& layer_name,
           TVToolDiscovery* tool_scanner)
     : QDialog(parent),
       max_threads_(std::max(1, omp_get_max_threads())),
@@ -175,7 +175,7 @@ namespace OpenMS
         for (auto& file_extension : entry.valid_strings)
         {
           // a file extension in valid_strings is of form "*.TYPE" -> convert to substr "TYPE".
-          const String& file_type = file_extension.substr(2, file_extension.size());
+          const std::string& file_type = StringUtils::substr(file_extension, 2, file_extension.size());
           const auto& iter = tool_map_.find(FileTypes::nameToType(file_type));
           // If mapping was found
           if (iter != tool_map_.end())
@@ -191,7 +191,7 @@ namespace OpenMS
 
   void ToolsDialog::setInputOutputCombo_(const Param &p)
   {
-    String str;
+    std::string str;
     QStringList input_list("<select>");
     QStringList output_list("<select>");
     bool outRequired = false;
@@ -257,7 +257,7 @@ namespace OpenMS
       std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
-        list << toQString(String(name));
+        list << toQString(StringUtils::toStr(name));
       }
     }
 
@@ -285,7 +285,7 @@ namespace OpenMS
       arg_param_ = plugin_params_.copy(tool_name + ":");
     }
 
-    tool_desc_->setText(toQString(String(arg_param_.getSectionDescription(tool_name))));
+    tool_desc_->setText(toQString(StringUtils::toStr(arg_param_.getSectionDescription(tool_name))));
     single_tool_param_ = arg_param_.copy(tool_name + ":1:", true);
 
     setInputOutputCombo_(arg_param_);
@@ -340,7 +340,7 @@ namespace OpenMS
       arg_param_.insert(getTool() + ":1:", single_tool_param_);
       if (!File::writable(ini_file_))
       {
-        QMessageBox::critical(this, "Error", (String("Could not write to '") + ini_file_ + "'!").c_str());
+        QMessageBox::critical(this, "Error", (StringUtils::toStr("Could not write to '") + ini_file_ + "'!").c_str());
       }
       ParamXMLFile paramFile;
       paramFile.store(ini_file_, arg_param_);
@@ -377,12 +377,12 @@ namespace OpenMS
     }
     //set tool combo
     Param::ParamIterator iter = arg_param_.begin();
-    String str;
+    std::string str;
     string = iter.getName().substr(0, iter.getName().find(":")).c_str();
     Int pos = tools_combo_->findText(string);
     if (pos == -1)
     {
-      QMessageBox::critical(this, "Error", (String("Cannot apply '") + fromQString(string) + "' tool to this layer type. Aborting!").c_str());
+      QMessageBox::critical(this, "Error", (StringUtils::toStr("Cannot apply '") + fromQString(string) + "' tool to this layer type. Aborting!").c_str());
       arg_param_.clear();
       return;
     }
@@ -455,7 +455,7 @@ namespace OpenMS
     }
   }
 
-  String ToolsDialog::getOutput()
+  std::string ToolsDialog::getOutput()
   {
     if (output_combo_->currentText() == "<select>")
       return "";
@@ -463,17 +463,17 @@ namespace OpenMS
     return fromQString(output_combo_->currentText());
   }
 
-  String ToolsDialog::getInput()
+  std::string ToolsDialog::getInput()
   {
     return fromQString(input_combo_->currentText());
   }
 
-  String ToolsDialog::getTool()
+  std::string ToolsDialog::getTool()
   {
     return fromQString(tools_combo_->currentText());
   }
 
-  String ToolsDialog::getExtension()
+  std::string ToolsDialog::getExtension()
   {
     // no explicit output selected (e.g. tools with optional output such as FileInfo)
     if (output_combo_->currentText() == "<select>")
@@ -483,14 +483,14 @@ namespace OpenMS
 
     // Try to Return the first valid string for the extension on the output parameter
     // If we can't get any valid strings show an error.
-    String extension = FileTypes::typeToName(FileTypes::UNKNOWN);
-    auto validStrings = arg_param_.getValidStrings(getTool() + ":1:" + fromQString(output_combo_->currentText())); 
+    std::string extension = FileTypes::typeToName(FileTypes::UNKNOWN);
+    auto validStrings = arg_param_.getValidStrings(getTool() + ":1:" + fromQString(output_combo_->currentText()));
     // If we have only one valid output type -> use that
     if (validStrings.size() == 1)
     {
       extension = validStrings[0];
       // Remove the leading .*
-      extension = extension.suffix(extension.size() - 2);
+      extension = StringUtils::suffix(extension, extension.size() - 2);
     }
     // Otherwise the type is unknown
     else 

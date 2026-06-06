@@ -116,14 +116,14 @@ START_SECTION(compress64 (const XMLCh* input_it, char* output_it))
 END_SECTION
 
 //Tests Number of Chars not Dividable by 8
-OpenMS::String o5_str;
+std::string o5_str;
 std::string res5_str = "Hello,World!";
 
 //Checks how the Function handles Data thats already stored in Output string
-OpenMS::String o6_str = "Gruess Gott und ";
+std::string o6_str = "Gruess Gott und ";
 std::string res6_str = "Gruess Gott und Hello,World!";
 
-OpenMS::String o7_str;
+std::string o7_str;
 std::string res7_str = "";
 
 

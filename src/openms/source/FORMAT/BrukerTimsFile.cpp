@@ -689,7 +689,7 @@ namespace OpenMS
       const std::vector<float>& mz_lower,
       const std::vector<float>& mz_upper)
   {
-    auto make = [](const std::vector<float>& src, const String& name) {
+    auto make = [](const std::vector<float>& src, const std::string& name) {
       DataArrays::FloatDataArray a;
       a.setName(name);
       a.assign(src.begin(), src.end());
@@ -1438,7 +1438,7 @@ namespace OpenMS
   using Config = BrukerTimsFile::Config;
 
   static std::unique_ptr<TimsDataHandle> openTimsDataHandle(
-    const String& path, const Config& config = Config())
+    const std::string& path, const Config& config = Config())
   {
     std::string path_string = path;
 
@@ -1455,7 +1455,7 @@ namespace OpenMS
     catch (const std::exception& e)
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        path + " (opentims: " + String(e.what()) + ")");
+        path + " (opentims: " + StringUtils::toStr(e.what()) + ")");
     }
     catch (...)
     {
@@ -1503,7 +1503,7 @@ namespace OpenMS
           if (strategy == Strategy::BRUKER_SDK)
           {
             throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              String("Bruker SDK failed: ") + e.what());
+              std::string("Bruker SDK failed: ") + e.what());
           }
           OPENMS_LOG_DEBUG << "Bruker SDK not available (" << e.what()
                           << "), trying rational" << std::endl;
@@ -1549,7 +1549,7 @@ namespace OpenMS
     // TDF peaks are detector-centroided in m/z (peak-list format); label as
     // centroid so downstream tools (e.g. CometAdapter) don't reject as profile.
     spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-    spec.setNativeID("frame=" + String(frame.id));
+    spec.setNativeID("frame=" + StringUtils::toStr(frame.id));
 
     if (frame.num_peaks == 0) return;
 
@@ -1596,7 +1596,7 @@ namespace OpenMS
     spec.setMSLevel(1);
     spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
     spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-    spec.setNativeID("frame=" + String(frame.id));
+    spec.setNativeID("frame=" + StringUtils::toStr(frame.id));
 
     if (frame.num_peaks == 0) return;
 
@@ -1741,7 +1741,7 @@ namespace OpenMS
     spec.setRT(center_frame.time);
     spec.setMSLevel(1);
     spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-    spec.setNativeID("frame=" + String(center_frame.id));
+    spec.setNativeID("frame=" + StringUtils::toStr(center_frame.id));
 
     DataArrays::FloatDataArray im_array;
     IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
@@ -1842,7 +1842,7 @@ namespace OpenMS
   // =====================================================================
   // isDIA_: detect DDA vs DIA by querying for SWATH window tables
   // =====================================================================
-  bool BrukerTimsFile::isDIA_(const String& tdf_path) const
+  bool BrukerTimsFile::isDIA_(const std::string& tdf_path) const
   {
     try
     {
@@ -1860,7 +1860,7 @@ namespace OpenMS
   // =====================================================================
   // loadExperimentalSettings_: populate SourceFile metadata
   // =====================================================================
-  void BrukerTimsFile::loadExperimentalSettings_(const String& path, ExperimentalSettings& settings)
+  void BrukerTimsFile::loadExperimentalSettings_(const std::string& path, ExperimentalSettings& settings)
   {
     SourceFile sf;
     sf.setNameOfFile(File::basename(path));
@@ -1875,16 +1875,16 @@ namespace OpenMS
   // readDIAMetadata: SQL-only boundary and count extraction
   // =====================================================================
   BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata(
-      const String& path, ExperimentalSettings& exp_settings)
+      const std::string& path, ExperimentalSettings& exp_settings)
   {
     return readDIAMetadata(path, exp_settings, Config());
   }
 
   BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata(
-      const String& path, ExperimentalSettings& exp_settings, const Config& config)
+      const std::string& path, ExperimentalSettings& exp_settings, const Config& config)
   {
     auto handle = openTimsDataHandle(path, config);
-    String tdf_path = path + "/analysis.tdf";
+    std::string tdf_path = path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
     if (!isDIA(db))
@@ -1955,16 +1955,16 @@ namespace OpenMS
   // =====================================================================
   // loadDIAStreaming: stream DIA spectra to consumer one-at-a-time
   // =====================================================================
-  void BrukerTimsFile::loadDIAStreaming(const String& path, FullSwathFileConsumer& consumer)
+  void BrukerTimsFile::loadDIAStreaming(const std::string& path, FullSwathFileConsumer& consumer)
   {
     loadDIAStreaming(path, consumer, Config());
   }
 
   void BrukerTimsFile::loadDIAStreaming(
-      const String& path, FullSwathFileConsumer& consumer, const Config& config)
+      const std::string& path, FullSwathFileConsumer& consumer, const Config& config)
   {
     auto handle = openTimsDataHandle(path, config);
-    String tdf_path = handle->get_tims_dir_path() + "/analysis.tdf";
+    std::string tdf_path = handle->get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
     const auto eff = resolveEffectiveConfig(db, config,
@@ -2073,7 +2073,7 @@ namespace OpenMS
           spec.setMSLevel(2);
           spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
           spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-          spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
+          spec.setNativeID("frame=" + StringUtils::toStr(frame.id) + " windowGroup=" + StringUtils::toStr(win->window_group) + " scan=" + StringUtils::toStr(win->scan_begin));
 
           Precursor prec;
           prec.setMZ(win->mz_center);
@@ -2119,17 +2119,17 @@ namespace OpenMS
   // =====================================================================
   // load() overloads
   // =====================================================================
-  void BrukerTimsFile::load(const String& path, MSExperiment& exp)
+  void BrukerTimsFile::load(const std::string& path, MSExperiment& exp)
   {
     load(path, exp, Config());
   }
 
-  void BrukerTimsFile::load(const String& path, MSExperiment& exp, const Config& config)
+  void BrukerTimsFile::load(const std::string& path, MSExperiment& exp, const Config& config)
   {
     exp.clear(true);
     auto handle = openTimsDataHandle(path, config);
 
-    String tdf_path = path + "/analysis.tdf";
+    std::string tdf_path = path + "/analysis.tdf";
 
     // Resolve RT range (if any) to an effective frame_id range; also
     // validates the user-supplied frame_id/rt ranges and emits warnings.
@@ -2167,16 +2167,16 @@ namespace OpenMS
   // =====================================================================
   // transform() overloads
   // =====================================================================
-  void BrukerTimsFile::transform(const String& path, Interfaces::IMSDataConsumer* consumer)
+  void BrukerTimsFile::transform(const std::string& path, Interfaces::IMSDataConsumer* consumer)
   {
     transform(path, consumer, Config());
   }
 
-  void BrukerTimsFile::transform(const String& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
+  void BrukerTimsFile::transform(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
   {
     auto handle = openTimsDataHandle(path, config);
 
-    String tdf_path = path + "/analysis.tdf";
+    std::string tdf_path = path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
     const auto eff = resolveEffectiveConfig(db, config,
@@ -2260,7 +2260,7 @@ namespace OpenMS
   // =====================================================================
   void BrukerTimsFile::loadDDA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
   {
-    String tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
+    std::string tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
     // Collect frame IDs by MS level
@@ -2633,9 +2633,9 @@ namespace OpenMS
         spec.setDriftTime(scalar_im);
         spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
         spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-        spec.setNativeID("frame=" + String(first_entry->frame_id)
-                         + " scan=" + String(first_entry->scan_begin)
-                         + " precursor=" + String(prec_id));
+        spec.setNativeID("frame=" + StringUtils::toStr(first_entry->frame_id)
+                         + " scan=" + StringUtils::toStr(first_entry->scan_begin)
+                         + " precursor=" + StringUtils::toStr(prec_id));
         spec.setMetaValue("bruker_precursor_id", static_cast<int>(prec_id));
 
         spec.reserve(all_mz.size());
@@ -2808,9 +2808,9 @@ namespace OpenMS
       //   - Bruker Precursors.Id is also duplicated as a typed MetaValue
       //     "bruker_precursor_id" for direct programmatic lookup without
       //     parsing the nativeID string.
-      spec.setNativeID("frame=" + String(first_entry->frame_id)
-                       + " scan=" + String(first_entry->scan_begin)
-                       + " precursor=" + String(prec_id));
+      spec.setNativeID("frame=" + StringUtils::toStr(first_entry->frame_id)
+                       + " scan=" + StringUtils::toStr(first_entry->scan_begin)
+                       + " precursor=" + StringUtils::toStr(prec_id));
       spec.setMetaValue("bruker_precursor_id", static_cast<int>(prec_id));
 
       // Copy sorted peak data
@@ -2857,7 +2857,7 @@ namespace OpenMS
   // =====================================================================
   void BrukerTimsFile::loadDIA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
   {
-    String tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
+    std::string tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
     // Collect MS1 frame IDs (MS2 frames are mapped via DiaFrameMsMsInfo below)
@@ -3015,7 +3015,7 @@ namespace OpenMS
             spec.setMSLevel(2);
             spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
             spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-            spec.setNativeID("frame=" + String(center_frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
+            spec.setNativeID("frame=" + StringUtils::toStr(center_frame.id) + " windowGroup=" + StringUtils::toStr(win->window_group) + " scan=" + StringUtils::toStr(win->scan_begin));
 
             Precursor prec;
             prec.setMZ(win->mz_center);
@@ -3134,7 +3134,7 @@ namespace OpenMS
             spec.setMSLevel(2);
             spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
             spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-            spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
+            spec.setNativeID("frame=" + StringUtils::toStr(frame.id) + " windowGroup=" + StringUtils::toStr(win->window_group) + " scan=" + StringUtils::toStr(win->scan_begin));
 
             Precursor prec;
             prec.setMZ(win->mz_center);
@@ -3271,7 +3271,7 @@ namespace OpenMS
       }
 
       FrameCentroider centroider;
-      startProgress(0, frame_ids.size(), String("Loading MS") + String(level) + " frames");
+      startProgress(0, frame_ids.size(),StringUtils::toStr("Loading MS") + StringUtils::toStr(level) + " frames");
       for (size_t i = 0; i < frame_ids.size(); ++i)
       {
         TimsFrame& frame = handle.get_frame(frame_ids[i]);

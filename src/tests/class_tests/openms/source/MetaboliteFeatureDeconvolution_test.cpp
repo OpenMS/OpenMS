@@ -30,11 +30,11 @@ namespace OpenMS
       MassExplainer::AdductsType getPotentialAdducts()
       { return potential_adducts_;}
       /// labeling table
-      std::map<Size, String> getMapLabels()
+      std::map<Size, std::string> getMapLabels()
       { return map_label_;}
 
       /// labeling table inverse
-      std::map<String, Size> getMapLabelInverse()
+      std::map<std::string, Size> getMapLabelInverse()
       { return map_label_inverse_;}
 
 			/// status of intensity filter for edges
@@ -81,8 +81,8 @@ START_SECTION([EXTRA](void updateMembers_()))
 
   {
   MassExplainer::AdductsType adducts = fdt.getPotentialAdducts();
-  std::map<Size, String> map = fdt.getMapLabels();
-  std::map<String, Size> map_i = fdt.getMapLabelInverse();
+  std::map<Size, std::string> map = fdt.getMapLabels();
+  std::map<std::string, Size> map_i = fdt.getMapLabelInverse();
   bool b_filter = fdt.isIntensityFilterEnabled();
   MetaboliteFeatureDeconvolution::CHARGEMODE cm = fdt.getChargeMode();
 
@@ -127,8 +127,8 @@ START_SECTION([EXTRA](void updateMembers_()))
   fdt.setParameters(p);
   {
   MassExplainer::AdductsType adducts = fdt.getPotentialAdducts();
-  std::map<Size, String> map = fdt.getMapLabels();
-  std::map<String, Size> map_i = fdt.getMapLabelInverse();
+  std::map<Size, std::string> map = fdt.getMapLabels();
+  std::map<std::string, Size> map_i = fdt.getMapLabelInverse();
   bool b_filter = fdt.isIntensityFilterEnabled();
   MetaboliteFeatureDeconvolution::CHARGEMODE cm = fdt.getChargeMode();
 
@@ -200,7 +200,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
   fl.load(OPENMS_GET_TEST_DATA_PATH("FeatureDeconvolution_easy_input.featureXML"), fm_in);
   fd.compute(fm_in, fm_out, cm, cm2);
 
-  String out_file;
+  std::string out_file;
   NEW_TMP_FILE(out_file)
   ConsensusXMLFile c1;
   c1.store(out_file,cm);
@@ -231,7 +231,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
   fl_p.load(OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_test.featureXML"), fm_p_in);
   fd.compute(fm_p_in, fm_p_out, cm_p, cm_p2);
 
-  String out_file_p;
+  std::string out_file_p;
   NEW_TMP_FILE(out_file_p)
   ConsensusXMLFile c_p;
   c_p.store(out_file_p,cm_p);
@@ -263,7 +263,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
   fl_n.load(OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_test.featureXML"), fm_n_in);
   fd.compute(fm_n_in, fm_n_out, cm_n, cm_n2);
 
-  String out_file_n;
+  std::string out_file_n;
   NEW_TMP_FILE(out_file_n)
   ConsensusXMLFile c_n;
   c_n.store(out_file_n,cm_n);
@@ -295,7 +295,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
   fl_ppm.load(OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_test_ppm.featureXML"), fm_ppm_in);
   fd.compute(fm_ppm_in, fm_ppm_out, cm_ppm, cm_ppm2);
 
-  String out_file_ppm;
+  std::string out_file_ppm;
   NEW_TMP_FILE(out_file_ppm)
   ConsensusXMLFile f_ppm;
   f_ppm.store(out_file_ppm,cm_ppm);
@@ -553,14 +553,14 @@ START_SECTION(([EXTRA] Multimer annotation strings and trimer detection))
         found_dimer_annotation = true;
         TEST_EQUAL(fm_out[i].metaValueExists("adducts"), true);
         StringList adducts = fm_out[i].getMetaValue("adducts");
-        TEST_EQUAL(adducts[0].hasSubstring("2M"), true);
+        TEST_EQUAL(StringUtils::hasSubstring(, "2M"), true);
       }
       if (mult == 3)
       {
         found_trimer_annotation = true;
         TEST_EQUAL(fm_out[i].metaValueExists("adducts"), true);
         StringList adducts = fm_out[i].getMetaValue("adducts");
-        TEST_EQUAL(adducts[0].hasSubstring("3M"), true);
+        TEST_EQUAL(StringUtils::hasSubstring(, "3M"), true);
       }
     }
   }

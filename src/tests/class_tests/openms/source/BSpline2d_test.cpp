@@ -47,8 +47,8 @@ for (Size i = 0; i != sinus_file.rowCount(); ++i)
   StringList sl;
   if (sinus_file.getRow(i, sl))
   {
-    x.push_back(sl[0].toDouble());
-    y.push_back(sl[1].toDouble());
+    x.push_back(StringUtils::toDouble());
+    y.push_back(StringUtils::toDouble());
   }
 }
 

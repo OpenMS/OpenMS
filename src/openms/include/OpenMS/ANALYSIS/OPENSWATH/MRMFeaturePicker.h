@@ -38,15 +38,15 @@ public:
     /// Structure to contain information about a single component with its parameters
     struct ComponentParams
     {
-      String component_name; ///< The component_name can't be an empty string
-      String component_group_name; ///< The component_group_name can't be an empty string
+      std::string component_name; ///< The component_name can't be an empty string
+      std::string component_group_name; ///< The component_group_name can't be an empty string
       Param params; ///< The parameters pertaining a single component
     };
 
     /// Structure to contain information about a component group with its parameters
     struct ComponentGroupParams
     {
-      String component_group_name; ///< The component_group_name can't be an empty string
+      std::string component_group_name; ///< The component_group_name can't be an empty string
       Param params; ///< The parameters pertaining a component group
     };
   };

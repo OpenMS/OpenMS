@@ -212,14 +212,14 @@ START_SECTION((bool operator!=(const ChromatogramSettings &rhs) const ))
 }
 END_SECTION
 
-START_SECTION((const String& getNativeID() const ))
+START_SECTION((const std::string& getNativeID() const ))
 {
   ChromatogramSettings tmp;
   TEST_STRING_EQUAL(tmp.getNativeID(),"")
 }
 END_SECTION
 
-START_SECTION((void setNativeID(const String &native_id)))
+START_SECTION((void setNativeID(const std::string &native_id)))
 {
   ChromatogramSettings tmp;
   tmp.setNativeID("nid");
@@ -227,14 +227,14 @@ START_SECTION((void setNativeID(const String &native_id)))
 }
 END_SECTION
 
-START_SECTION((const String& getComment() const ))
+START_SECTION((const std::string& getComment() const ))
 {
   ChromatogramSettings tmp;
   TEST_STRING_EQUAL(tmp.getComment(), "")
 }
 END_SECTION
 
-START_SECTION((void setComment(const String &comment)))
+START_SECTION((void setComment(const std::string &comment)))
 {
   ChromatogramSettings tmp;
   tmp.setComment("name");
@@ -418,9 +418,9 @@ START_SECTION([EXTRA](ENUMs))
 {
   // extra stuff tested here:
   TEST_EQUAL(static_cast<size_t>(ChromatogramSettings::ChromatogramType::SIZE_OF_CHROMATOGRAM_TYPE)+1, sizeof( ChromatogramSettings::ChromatogramNames ) / sizeof( char* ))
-  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM)]), String("mass chromatogram"))
-  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::EMISSION_CHROMATOGRAM)]), String("emission chromatogram"))
-  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::SIZE_OF_CHROMATOGRAM_TYPE)]), String("unknown chromatogram")) // should be the last entry
+  TEST_EQUAL(StringUtils::toStr(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM)]),StringUtils::toStr("mass chromatogram"))
+  TEST_EQUAL(StringUtils::toStr(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::EMISSION_CHROMATOGRAM)]),StringUtils::toStr("emission chromatogram"))
+  TEST_EQUAL(StringUtils::toStr(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::SIZE_OF_CHROMATOGRAM_TYPE)]),StringUtils::toStr("unknown chromatogram")) // should be the last entry
 }
 END_SECTION
 

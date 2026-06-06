@@ -56,11 +56,11 @@ public:
     void updateMembers_() override;
 
     /// stores the experiment data in a MascotGenericFile that can be used as input for MASCOT shell execution (optionally a compact format is used: no zero-intensity peaks, limited number of decimal places)
-    void store(const String& filename, const PeakMap& experiment,
+    void store(const std::string& filename, const PeakMap& experiment,
                bool compact = false);
 
     /// store the experiment data in a MascotGenericFile; the output is written to the given stream, the filename will be noted in the file (optionally a compact format is used: no zero-intensity peaks, limited number of decimal places)
-    void store(std::ostream& os, const String& filename,
+    void store(std::ostream& os, const std::string& filename,
                const PeakMap& experiment, bool compact = false);
 
     /**
@@ -71,7 +71,7 @@ public:
       @throw FileNotFound is thrown if the given file could not be found
     */
     template <typename MapType>
-    void load(const String& filename, MapType& exp)
+    void load(const std::string& filename, MapType& exp)
     {
       if (!File::exists(filename))
       {
@@ -110,10 +110,10 @@ public:
       adding the peaks (in whatever format, e.g. mzXML) enclosed in this body.
       The @p filename can later be found in the Mascot response.
     */
-    std::pair<String, String> getHTTPPeakListEnclosure(const String& filename) const;
+    std::pair<std::string, std::string> getHTTPPeakListEnclosure(const std::string& filename) const;
 
     /// writes a spectrum in MGF format to an ostream
-    void writeSpectrum(std::ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession);
+    void writeSpectrum(std::ostream& os, const PeakSpectrum& spec, const std::string& filename, const std::string& native_id_type_accession);
 
 protected:
 
@@ -121,27 +121,27 @@ protected:
     bool store_compact_;
 
     /// mapping of modifications with specificity groups, that have to be treated specially (e.g. "Deamidated (NQ)")
-    std::map<String, String> mod_group_map_;
+    std::map<std::string, std::string> mod_group_map_;
 
     /// writes a parameter header
-    void writeParameterHeader_(const String& name, std::ostream& os);
+    void writeParameterHeader_(const std::string& name, std::ostream& os);
 
     /// write a list of (fixed or variable) modifications
-    void writeModifications_(const std::vector<String>& mods, std::ostream& os,
+    void writeModifications_(const std::vector<std::string>& mods, std::ostream& os,
                              bool variable_mods = false);
 
      /// writes the full header
     void writeHeader_(std::ostream& os);
 
     /// writes the MSExperiment
-    void writeMSExperiment_(std::ostream& os, const String& filename, const PeakMap& experiment);
+    void writeMSExperiment_(std::ostream& os, const std::string& filename, const PeakMap& experiment);
 
     /// reads a spectrum block, the section between 'BEGIN IONS' and 'END IONS' of a MGF file
     template <typename SpectrumType>
     bool getNextSpectrum_(std::ifstream& is, SpectrumType& spectrum, Size& line_number, const Size& spectrum_number)
     {
       spectrum.resize(0);
-      spectrum.setNativeID(String("index=") + (spectrum_number));
+      spectrum.setNativeID(StringUtils::toStr("index=") + (spectrum_number));
 
       if (spectrum.metaValueExists("TITLE"))
       {
@@ -154,13 +154,13 @@ protected:
       }
       typename SpectrumType::PeakType p;
 
-      String line;
+      std::string line;
       // seek to next peak list block
       while (getline(is, line, '\n'))
       {
         ++line_number;
 
-        line.trim(); // remove whitespaces, line-endings etc
+        StringUtils::trim(line); // remove whitespaces, line-endings etc
 
         // found peak list block?
         if (line == "BEGIN IONS")
@@ -168,13 +168,13 @@ protected:
           while (getline(is, line, '\n'))
           {
             ++line_number;
-            line.trim(); // remove whitespaces, line-endings etc
+            StringUtils::trim(line); // remove whitespaces, line-endings etc
 
             if (line.empty()) continue;
 
             if (isdigit(line[0])) // actual data .. this comes first, since its the most common case
             {
-              std::vector<String> split;
+              std::vector<std::string> split;
               do
               {
                 if (line.empty())
@@ -182,27 +182,27 @@ protected:
                   continue;
                 }
 
-                line.simplify(); // merge double spaces (explicitly allowed by MGF), to prevent empty split() chunks and subsequent parse error
-                line.substitute('\t', ' '); // also accept Tab (strictly, only space(s) are allowed)
-                if (line.split(' ', split, false))
+                StringUtils::simplify(line); // merge double spaces (explicitly allowed by MGF), to prevent empty split() chunks and subsequent parse error
+                StringUtils::substitute(line, '\t', ' '); // also accept Tab (strictly, only space(s) are allowed)
+                if (StringUtils::split(line, ' ', split, false))
                 {
                   try
                   {
-                    p.setPosition(split[0].toDouble());
-                    p.setIntensity(split[1].toDouble());
+                    p.setPosition(StringUtils::toDouble(split[0]));
+                    p.setIntensity(StringUtils::toDouble(split[1]));
                   }
                   catch (Exception::ConversionError& /*e*/)
                   {
-                    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The content '" + line + "' at line #" + String(line_number) + " could not be converted to a number! Expected two (m/z int) or three (m/z int charge) numbers separated by whitespace (space or tab).", "");
+                    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The content '" + line + "' at line #" + StringUtils::toStr(line_number) + " could not be converted to a number! Expected two (m/z int) or three (m/z int charge) numbers separated by whitespace (space or tab).", "");
                   }
                   spectrum.push_back(p);
                 }
                 else
                 {
-                  throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The content '" + line + "' at line #" + String(line_number) + " does not contain m/z and intensity values separated by whitespace (space or tab)!", "");
+                  throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The content '" + line + "' at line #" + StringUtils::toStr(line_number) + " does not contain m/z and intensity values separated by whitespace (space or tab)!", "");
                 }
               }
-              while (getline(is, line, '\n') && ++line_number && line.trim() != "END IONS"); // line.trim() is important here!
+              while (getline(is, line, '\n') && ++line_number && StringUtils::trim(line) != "END IONS"); // StringUtils::trim(line) is important here!
 
               if (line == "END IONS")
               {
@@ -213,57 +213,59 @@ protected:
                 throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, R"(Reached end of file. Found "BEGIN IONS" but not the corresponding "END IONS"!)", "");
               }
             }
-            else if (line.hasPrefix("PEPMASS")) // parse precursor position
+            else if (StringUtils::hasPrefix(line, "PEPMASS")) // parse precursor position
             {
-              String tmp = line.substr(8); // copy since we might need the original line for error reporting later
-              tmp.substitute('\t', ' ');
-              std::vector<String> split;
-              tmp.split(' ', split);
+              std::string tmp = StringUtils::substr(line, 8); // copy since we might need the original line for error reporting later
+              StringUtils::substitute(tmp, '\t', ' ');
+              std::vector<std::string> split;
+              StringUtils::split(tmp, ' ', split);
               if (split.size() == 1)
               {
-                spectrum.getPrecursors()[0].setMZ(split[0].trim().toDouble());
+                spectrum.getPrecursors()[0].setMZ(StringUtils::toDouble(StringUtils::trim(split[0])));
               }
               else if (split.size() == 2)
               {
-                spectrum.getPrecursors()[0].setMZ(split[0].trim().toDouble());
-                spectrum.getPrecursors()[0].setIntensity(split[1].trim().toDouble());
+                spectrum.getPrecursors()[0].setMZ(StringUtils::toDouble(StringUtils::trim(split[0])));
+                spectrum.getPrecursors()[0].setIntensity(StringUtils::toDouble(StringUtils::trim(split[1])));
               }
               else
               {
-                throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot parse PEPMASS in '" + line + "' at line #" + String(line_number) + " (expected 1 or 2 entries, but " + String(split.size()) + " were present)!", "");
+                throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot parse PEPMASS in '" + line + "' at line #" + StringUtils::toStr(line_number) + " (expected 1 or 2 entries, but " + StringUtils::toStr(split.size()) + " were present)!", "");
               }
             }
-            else if (line.hasPrefix("CHARGE"))
+            else if (StringUtils::hasPrefix(line, "CHARGE"))
             {
-              String tmp = line.substr(7);
-              tmp.remove('+');
-              spectrum.getPrecursors()[0].setCharge(tmp.toInt());
+              std::string tmp = StringUtils::substr(line, 7);
+              StringUtils::remove(tmp, '+');
+              spectrum.getPrecursors()[0].setCharge(StringUtils::toInt32(tmp));
             }
-            else if (line.hasPrefix("RTINSECONDS"))
+            else if (StringUtils::hasPrefix(line, "RTINSECONDS"))
             {
-              String tmp = line.substr(12);
-              spectrum.setRT(tmp.toDouble());
+              std::string tmp = StringUtils::substr(line, 12);
+              spectrum.setRT(StringUtils::toDouble(tmp));
             }
-            else if (line.hasPrefix("TITLE"))
+            else if (StringUtils::hasPrefix(line, "TITLE"))
             {
               // test if we have a line like "TITLE= Cmpd 1, +MSn(595.3), 10.9 min"
-              if (line.hasSubstring("min"))
+              if (StringUtils::hasSubstring(line, "min"))
               {
                 try
                 {
-                  std::vector<String> split;
-                  line.split(',', split);
+                  std::vector<std::string> split;
+                  StringUtils::split(line, ',', split);
                   if (!split.empty())
                   {
                     for (Size i = 0; i != split.size(); ++i)
                     {
-                      if (split[i].hasSubstring("min"))
+                      if (StringUtils::hasSubstring(split[i], "min"))
                       {
-                        std::vector<String> split2;
-                        split[i].trim().split(' ', split2);
+                        std::vector<std::string> split2;
+                        StringUtils::trim(split[i]);
+                        StringUtils::split(split[i], ' ', split2);
                         if (!split2.empty())
                         {
-                          spectrum.setRT(split2[0].trim().toDouble() * 60.0);
+                          StringUtils::trim(split2[0]);
+                          spectrum.setRT(StringUtils::toDouble(split2[0]) * 60.0);
                         }
                       }
                     }
@@ -272,8 +274,8 @@ protected:
                 catch (Exception::BaseException& /*e*/)
                 {
                   // just do nothing and write the whole title to spec
-                  std::vector<String> split;
-                  if (line.split('=', split))
+                  std::vector<std::string> split;
+                  if (StringUtils::split(line, '=', split))
                   {
                     if (!split[1].empty()) spectrum.setMetaValue("TITLE", split[1]);
                   }
@@ -284,45 +286,45 @@ protected:
                 Size firstEqual = line.find('=', 4);
                 if (firstEqual != std::string::npos)
                 {
-                  if (String(spectrum.getMetaValue("TITLE")).hasSubstring(spectrum.getNativeID()))
+                  if (StringUtils::hasSubstring(StringUtils::toStr(spectrum.getMetaValue("TITLE")), spectrum.getNativeID()))
                   {
-                    spectrum.setMetaValue("TITLE", line.substr(firstEqual + 1));
+                    spectrum.setMetaValue("TITLE", StringUtils::substr(line, firstEqual + 1));
                   }
                   else
                   {
-                    spectrum.setMetaValue("TITLE", line.substr(firstEqual + 1) + "_" + spectrum.getNativeID());
+                    spectrum.setMetaValue("TITLE", StringUtils::substr(line, firstEqual + 1) + "_" + spectrum.getNativeID());
                   }
                 }
               }
             }
-            else if (line.hasPrefix("NAME"))
+            else if (StringUtils::hasPrefix(line, "NAME"))
             {
-              String tmp = line.substr(5);
+              std::string tmp = StringUtils::substr(line, 5);
               spectrum.setMetaValue(Constants::UserParam::MSM_METABOLITE_NAME, tmp);
             }
-            else if (line.hasPrefix("COMPOUND_NAME"))
+            else if (StringUtils::hasPrefix(line, "COMPOUND_NAME"))
             {
-              String tmp = line.substr(14);
+              std::string tmp = StringUtils::substr(line, 14);
               spectrum.setMetaValue(Constants::UserParam::MSM_METABOLITE_NAME, tmp);
             }
-            else if (line.hasPrefix("INCHI="))
+            else if (StringUtils::hasPrefix(line, "INCHI="))
             {
-              String tmp = line.substr(6);
+              std::string tmp = StringUtils::substr(line, 6);
               spectrum.setMetaValue(Constants::UserParam::MSM_INCHI_STRING, tmp);
             }
-            else if (line.hasPrefix("SMILES"))
+            else if (StringUtils::hasPrefix(line, "SMILES"))
             {
-              String tmp = line.substr(7);
+              std::string tmp = StringUtils::substr(line, 7);
               spectrum.setMetaValue(Constants::UserParam::MSM_SMILES_STRING, tmp);
             }
-            else if (line.hasPrefix("IONMODE"))
+            else if (StringUtils::hasPrefix(line, "IONMODE"))
             {
-              String tmp = line.substr(8);
+              std::string tmp = StringUtils::substr(line, 8);
               spectrum.setMetaValue("IONMODE", tmp);
             }
-            else if (line.hasPrefix("MSLEVEL")) 
+            else if (StringUtils::hasPrefix(line, "MSLEVEL")) 
             {
-             String tmp = line.substr(8);
+             std::string tmp = StringUtils::substr(line, 8);
             try 
             {
             int ms_level = std::stoi(tmp); 
@@ -339,49 +341,49 @@ protected:
                 spectrum.setMSLevel(2);
             }
             }               
-            else if (line.hasPrefix("SOURCE_INSTRUMENT"))
+            else if (StringUtils::hasPrefix(line, "SOURCE_INSTRUMENT"))
             {
-              String tmp = line.substr(18);
+              std::string tmp = StringUtils::substr(line, 18);
               spectrum.setMetaValue("SOURCE_INSTRUMENT", tmp);
             }
-            else if (line.hasPrefix("ORGANISM"))
+            else if (StringUtils::hasPrefix(line, "ORGANISM"))
             {
-              String tmp = line.substr(9);
+              std::string tmp = StringUtils::substr(line, 9);
               spectrum.setMetaValue("ORGANISM", tmp);
             }
-            else if (line.hasPrefix("PI"))
+            else if (StringUtils::hasPrefix(line, "PI"))
             {
-              String tmp = line.substr(3);
+              std::string tmp = StringUtils::substr(line, 3);
               spectrum.setMetaValue("PI", tmp);
             }
-            else if (line.hasPrefix("DATACOLLECTOR"))
+            else if (StringUtils::hasPrefix(line, "DATACOLLECTOR"))
             {
-              String tmp = line.substr(14);
+              std::string tmp = StringUtils::substr(line, 14);
               spectrum.setMetaValue("DATACOLLECTOR", tmp);
             }
-            else if (line.hasPrefix("LIBRARYQUALITY"))
+            else if (StringUtils::hasPrefix(line, "LIBRARYQUALITY"))
             {
-              String tmp = line.substr(15);
+              std::string tmp = StringUtils::substr(line, 15);
               spectrum.setMetaValue("LIBRARYQUALITY", tmp);
             }
-            else if (line.hasPrefix("SPECTRUMID"))
+            else if (StringUtils::hasPrefix(line, "SPECTRUMID"))
             {
-              String tmp = line.substr(11);
+              std::string tmp = StringUtils::substr(line, 11);
               spectrum.setMetaValue("GNPS_Spectrum_ID", tmp);
             }
-            else if (line.hasPrefix("SCANS="))
+            else if (StringUtils::hasPrefix(line, "SCANS="))
             {
-              String tmp = line.substr(6);
+              std::string tmp = StringUtils::substr(line, 6);
               spectrum.setMetaValue("Scan_ID", tmp);
             }
-            else if (line.hasPrefix("SEQ="))
+            else if (StringUtils::hasPrefix(line, "SEQ="))
             {
               // Mascot sequence-query field: peptide sequence in one-letter code.
               // Per spec, SEQ may appear multiple times per query (each entry is
               // an independent sequence filter). Always stored as a StringList
               // under the "SEQ" key for a stable interface regardless of how
               // many SEQ lines were present.
-              String sequence = line.substr(4);
+              std::string sequence = StringUtils::substr(line, 4);
               StringList sequences;
               if (spectrum.metaValueExists("SEQ"))
               {

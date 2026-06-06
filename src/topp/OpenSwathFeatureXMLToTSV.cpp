@@ -58,11 +58,11 @@ Furthermore it creates the columns "decoy" and
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-std::map<String, std::vector<const ReactionMonitoringTransition *> > peptide_transition_map;
+std::map<std::string, std::vector<const ReactionMonitoringTransition *> > peptide_transition_map;
 
-void write_out_header(std::ostream &os, FeatureMap &feature_map, /* String main_var_name,  */ std::vector<String> &meta_value_names, bool short_format)
+void write_out_header(std::ostream &os, FeatureMap &feature_map, /* std::string main_var_name,  */ std::vector<std::string> &meta_value_names, bool short_format)
 {
-  std::vector<String> meta_value_names_tmp;
+  std::vector<std::string> meta_value_names_tmp;
 
   os <<  "transition_group_id"  << "\t"
      <<  "run_id"  << "\t"
@@ -109,17 +109,17 @@ void write_out_header(std::ostream &os, FeatureMap &feature_map, /* String main_
 }
 
 void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &transition_exp,
-                     std::vector<String> &meta_value_names, int run_id, bool short_format, String identifier, String filename)
+                     std::vector<std::string> &meta_value_names, int run_id, bool short_format, std::string identifier, std::string filename)
 {
 
-  String peptide_ref = feature_it->getMetaValue("PeptideRef");
-  String precursor_mz = feature_it->getMetaValue("PrecursorMZ");
+  std::string peptide_ref = feature_it->getMetaValue("PeptideRef");
+  std::string precursor_mz = feature_it->getMetaValue("PrecursorMZ");
 
-  String sequence;
-  String full_peptide_name = "NA";
-  String protein_name = "NA";
-  String decoy = "NA";
-  String charge = "NA";
+  std::string sequence;
+  std::string full_peptide_name = "NA";
+  std::string protein_name = "NA";
+  std::string decoy = "NA";
+  std::string charge = "NA";
 
   if (!transition_exp.hasPeptide(peptide_ref))
   {
@@ -143,13 +143,13 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   }
   else if (pep.hasCharge())
   {
-    charge = (String)pep.getChargeState();
+    charge = StringUtils::toStr(pep.getChargeState());
   }
   if (charge == "NA" && !full_peptide_name.empty())
   {
     // deal with FullPeptideNames like PEPTIDE/2
-    std::vector<String> substrings;
-    full_peptide_name.split("/", substrings);
+    std::vector<std::string> substrings;
+    StringUtils::split(full_peptide_name, "/", substrings);
     if (substrings.size() == 2)
     {
       charge = substrings[1];
@@ -208,15 +208,15 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
 
   if (pep.metaValueExists("full_peptide_name"))
   {
-    full_peptide_name = pep.getMetaValue("full_peptide_name");
+    full_peptide_name = pep.getMetaValue("full_peptide_name").toString();
   }
 
   // adjust peptide ref with current file identifier
   peptide_ref += "_" + identifier;
 
-  String line = "";
+  std::string line = "";
   // Start writing out
-  line += peptide_ref + "\t" + (String)run_id + "\t" + (String)filename + "\t" + feature_it->getRT() + "\tf_" + feature_it->getUniqueId() + "\t";
+  line += peptide_ref + "\t" + (std::string)run_id + "\t" + (std::string)filename + "\t" + feature_it->getRT() + "\tf_" + feature_it->getUniqueId() + "\t";
   line += sequence + "\t" + full_peptide_name + "\t";
   line += (String)charge + "\t";
   line += precursor_mz + "\t";
@@ -224,7 +224,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   line += protein_name + "\t";
   line += decoy + "\t";
 
-  String meta_values = "";
+  std::string meta_values = "";
   for (Size i = 0; i < meta_value_names.size(); i++)
   {
     meta_values += feature_it->getMetaValue(meta_value_names[i]).toString() + "\t";
@@ -233,16 +233,16 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   // Write out the individual transition
   if (short_format)
   {
-    String aggr_Peak_Area = "";
-    String aggr_Peak_Apex = "";
-    String aggr_Fragment_Annotation = "";
+    std::string aggr_Peak_Area = "";
+    std::string aggr_Peak_Apex = "";
+    std::string aggr_Fragment_Annotation = "";
     for (Feature& sub : feature_it->getSubordinates())
     {
-      aggr_Peak_Area += String(sub.getIntensity()) + ";";
+      aggr_Peak_Area +=StringUtils::toStr(sub.getIntensity()) + ";";
 
       if (sub.metaValueExists("peak_apex_int"))
       {
-        aggr_Peak_Apex += String((double)sub.getMetaValue("peak_apex_int")) + ";";
+        aggr_Peak_Apex +=StringUtils::toStr((double)sub.getMetaValue("peak_apex_int")) + ";";
       }
       else
       {
@@ -255,9 +255,9 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
     // remove the last semicolon
     if (!feature_it->getSubordinates().empty())
     {
-      aggr_Peak_Area = aggr_Peak_Area.substr(0, aggr_Peak_Area.size() - 1);
-      aggr_Peak_Apex = aggr_Peak_Apex.substr(0, aggr_Peak_Apex.size() - 1);
-      aggr_Fragment_Annotation = aggr_Fragment_Annotation.substr(0, aggr_Fragment_Annotation.size() - 1);
+      aggr_Peak_Area = StringUtils::substr(aggr_Peak_Area, 0, aggr_Peak_Area.size() - 1);
+      aggr_Peak_Apex = StringUtils::substr(aggr_Peak_Apex, 0, aggr_Peak_Apex.size() - 1);
+      aggr_Fragment_Annotation = StringUtils::substr(aggr_Fragment_Annotation, 0, aggr_Fragment_Annotation.size() - 1);
     }
     os << line << meta_values << aggr_Peak_Area << "\t" << aggr_Peak_Apex << "\t" << aggr_Fragment_Annotation << std::endl;
   }
@@ -266,24 +266,24 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
     for (Feature& sub : feature_it->getSubordinates())
     {
       os.precision(writtenDigits(double()));
-      String apex = "NA";
+      std::string apex = "NA";
       if (sub.metaValueExists("peak_apex_int"))
       {
-        apex = String((double)sub.getMetaValue("peak_apex_int"));
+        apex =StringUtils::toStr((double)sub.getMetaValue("peak_apex_int"));
       }
-      os << line << meta_values << String(sub.getIntensity()) << "\t" << apex << "\t" << (String)sub.getMetaValue("native_id") << "\t" << String(sub.getMZ()) << std::endl;
+      os << line << meta_values << StringUtils::toStr(sub.getIntensity()) << "\t" << apex << "\t" << (String)sub.getMetaValue("native_id") << "\t" << StringUtils::toStr(sub.getMZ()) << std::endl;
     }
   }
 }
 
-Feature *find_best_feature(const std::vector<Feature *> &features, String score_)
+Feature *find_best_feature(const std::vector<Feature *> &features, std::string score_)
 {
   double best_score = -std::numeric_limits<double>::max();
   Feature *best_feature = nullptr;
 
   for (Size i = 0; i < features.size(); i++)
   {
-    double  score = features[i]->getMetaValue(score_).toString().toDouble();
+    double  score = StringUtils::toDouble(features[i]->getMetaValue(score_).toString());
     if (score > best_score)
     {
       best_feature = features[i];
@@ -294,16 +294,16 @@ Feature *find_best_feature(const std::vector<Feature *> &features, String score_
 }
 
 void write_out_body_best_score(std::ostream &os, FeatureMap &feature_map,
-                               TargetedExperiment &transition_exp, std::vector<String> &meta_value_names,
-                               int run_id, bool short_format, String best_score, String filename)
+                               TargetedExperiment &transition_exp, std::vector<std::string> &meta_value_names,
+                               int run_id, bool short_format, std::string best_score, std::string filename)
 {
 
   // for each peptide reference search for the best feature
-  typedef std::map<String, std::vector<Feature *> > PeptideFeatureMapType;
+  typedef std::map<std::string, std::vector<Feature *> > PeptideFeatureMapType;
   PeptideFeatureMapType peptide_feature_map;
   for (Feature& feature : feature_map)
   {
-    String peptide_ref = feature.getMetaValue("PeptideRef");
+    std::string peptide_ref = feature.getMetaValue("PeptideRef");
     peptide_feature_map[peptide_ref].push_back(&feature);
   }
 
@@ -344,14 +344,14 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", ListUtils::create<String>("featureXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("featureXML"));
 
     registerInputFile_("tr", "<file>", "", "TraML transition file");
-    setValidFormats_("tr", ListUtils::create<String>("traML"));
+    setValidFormats_("tr", ListUtils::create<std::string>("traML"));
     //registerStringOption_("main_var_name","<varname>","xx_lda_prelim_score","Name of the main variable", false);
 
     registerOutputFile_("out", "<file>", "", "tsv output file (mProphet compatible)");
-    setValidFormats_("out", ListUtils::create<String>("csv"));
+    setValidFormats_("out", ListUtils::create<std::string>("csv"));
 
     registerFlag_("short_format", "Whether to write short (one peptide per line) or long format (one transition per line).");
 
@@ -359,8 +359,8 @@ protected:
   }
 
   void write_out_body(std::ostream &os, FeatureMap &feature_map,
-                      TargetedExperiment &transition_exp, std::vector<String> &meta_value_names,
-                      int run_id, bool short_format, String filename)
+                      TargetedExperiment &transition_exp, std::vector<std::string> &meta_value_names,
+                      int run_id, bool short_format, std::string filename)
   {
 
     Size progress = 0;
@@ -376,10 +376,10 @@ protected:
   ExitCodes main_(int, const char **) override
   {
     StringList file_list = getStringList_("in");
-    String tr_file = getStringOption_("tr");
-    String out = getStringOption_("out");
-    //String main_var_name = getStringOption_("main_var_name");
-    String best_scoring = getStringOption_("best_scoring_peptide");
+    std::string tr_file = getStringOption_("tr");
+    std::string out = getStringOption_("out");
+    //std::string main_var_name = getStringOption_("main_var_name");
+    std::string best_scoring = getStringOption_("best_scoring_peptide");
     bool short_format = getFlag_("short_format");
 
     setLogType(log_type_);
@@ -416,14 +416,14 @@ protected:
     // feature_file.load() resets the locale to the user's (Don't know where, maybe QT or Xerces)
     // Somehow even our variable OpenMS::Internal::OpenMS_locale is overwritten
     // Create copy here and reset it later. TODO this needs to be fixed more thouroughly.
-    String locale_before = String(OpenMS::Internal::OpenMS_locale);
+    std::string locale_before =StringUtils::toStr(OpenMS::Internal::OpenMS_locale);
     FileHandler().loadFeatures(file_list[0], feature_map, {FileTypes::FEATUREXML}, log_type_);
     setlocale(LC_ALL, locale_before.c_str());
     if (feature_map.getIdentifier().empty())
     {
       feature_map.setIdentifier("run0");
     }
-    std::vector<String> meta_value_names;
+    std::vector<std::string> meta_value_names;
 
     if (feature_map.empty() && file_list.size() > 1)
     {
@@ -436,7 +436,7 @@ protected:
     }
 
     write_out_header(os, feature_map, /* main_var_name, */ meta_value_names, short_format);
-    String filename;
+    std::string filename;
     filename = file_list[0];
     if (getFlag_("test"))
     {
@@ -458,7 +458,7 @@ protected:
       FileHandler().loadFeatures(file_list[i], feature_map, {FileTypes::FEATUREXML}, log_type_);
       if (feature_map.getIdentifier().empty())
       {
-        feature_map.setIdentifier("run" + (String)i);
+        feature_map.setIdentifier("run" + StringUtils::toStr(i));
       }
 
       if (feature_map.empty())

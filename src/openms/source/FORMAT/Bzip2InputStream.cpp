@@ -14,7 +14,7 @@ using namespace xercesc;
 
 namespace OpenMS
 {
-  Bzip2InputStream::Bzip2InputStream(const String & file_name) :
+  Bzip2InputStream::Bzip2InputStream(const std::string & file_name) :
     bzip2_(new Bzip2Ifstream(file_name.c_str())), file_current_index_(0)
   {
   }

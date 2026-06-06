@@ -26,13 +26,13 @@ using namespace OpenMS;
 
 namespace
 {
-  void copySharedExportFixture_(const String& filename)
+  void copySharedExportFixture_(const std::string& filename)
   {
     File::remove(filename);
     TEST_EQUAL(File::copy(OPENMS_GET_TEST_DATA_PATH("PyProphet_inference_test.osw"), filename), true)
   }
 
-  std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
+  std::shared_ptr<arrow::Table> readParquetTable_(const std::string& filename)
   {
     auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
     TEST_EQUAL(infile_result.ok(), true)
@@ -60,7 +60,7 @@ namespace
     return table;
   }
 
-  void dropTable_(const String& filename, const String& table_name)
+  void dropTable_(const std::string& filename, const std::string& table_name)
   {
     SqliteConnector conn(filename, SqliteConnector::SqlOpenMode::READWRITE);
     conn.executeStatement("DROP TABLE " + table_name + ";");
@@ -71,7 +71,7 @@ START_TEST(OpenSwathExport, "$Id$")
 
 START_SECTION(OSW-backed OpenSWATH export readers and writers)
 {
-  String tmp_osw;
+  std::string tmp_osw;
   NEW_TMP_FILE(tmp_osw);
   copySharedExportFixture_(tmp_osw);
 
@@ -179,7 +179,7 @@ END_SECTION
 
 START_SECTION(OpenSwathMatrixExporter rejects invalid top_n and malformed matrix shapes)
 {
-  String tmp_osw;
+  std::string tmp_osw;
   NEW_TMP_FILE(tmp_osw);
   copySharedExportFixture_(tmp_osw);
 
@@ -211,7 +211,7 @@ END_SECTION
 
 START_SECTION(OSWFile transition parquet reader validates TRANSITION_PRECURSOR_MAPPING presence)
 {
-  String tmp_osw;
+  std::string tmp_osw;
   NEW_TMP_FILE(tmp_osw);
   copySharedExportFixture_(tmp_osw);
   dropTable_(tmp_osw, "TRANSITION_PRECURSOR_MAPPING");

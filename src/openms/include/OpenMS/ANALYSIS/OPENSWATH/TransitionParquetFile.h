@@ -120,7 +120,7 @@ namespace OpenMS
       @throws Exception::MissingInformation If a required parquet entry (precursors / transitions) cannot be located inside @p oswpq_dir.
       @throws Exception::InvalidValue If a loaded parquet table fails schema validation against the precursor / transition schema, or if any other required row-level field is missing during materialisation.
     */
-    void convertParquetToTargetedExperiment(const String& oswpq_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const;
+    void convertParquetToTargetedExperiment(const std::string& oswpq_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const;
 
     /**
       @brief Write a @ref OpenSwath::LightTargetedExperiment to a @c .oswpq library.
@@ -136,7 +136,7 @@ namespace OpenMS
       @throws Exception::MissingInformation If required per-row data (e.g. a transition lacking a peptide ref) is missing from @p targeted_exp.
       @throws Exception::InvalidValue If row-level invariants are violated (e.g. duplicate precursor ids, schema-incompatible values).
     */
-    void convertLightTargetedExperimentToParquet(const String& oswpq_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const;
+    void convertLightTargetedExperimentToParquet(const std::string& oswpq_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const;
   };
 
 } // namespace OpenMS

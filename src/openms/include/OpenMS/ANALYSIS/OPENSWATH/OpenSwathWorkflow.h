@@ -61,7 +61,7 @@ namespace OpenMS
     /// Whether the extraction window is given in ppm or Da
     bool ppm;
     /// The extraction function in mass space
-    String extraction_function;
+    std::string extraction_function;
     /// The retention time extraction window
     double rt_extraction_window;
     /// Whether to extract some extra in the retention time (can be useful if one wants to look at the chromatogram outside the window)

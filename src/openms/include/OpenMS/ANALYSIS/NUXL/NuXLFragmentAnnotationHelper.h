@@ -33,13 +33,13 @@ class OPENMS_DLLAPI NuXLFragmentAnnotationHelper
   /// Single fragment annotation
   struct OPENMS_DLLAPI FragmentAnnotationDetail_
   {
-    FragmentAnnotationDetail_(String s, int z, double m, double i):
+    FragmentAnnotationDetail_(std::string s, int z, double m, double i):
       shift(s),
       charge(z),
       mz(m),
       intensity(i)
       {}
-    String shift;
+    std::string shift;
     int charge;
     double mz;
     double intensity;
@@ -58,19 +58,19 @@ class OPENMS_DLLAPI NuXLFragmentAnnotationHelper
     }
   };
 
-  static String getAnnotatedImmoniumIon(char c, const String& fragment_shift_name);
+  static std::string getAnnotatedImmoniumIon(char c, const std::string& fragment_shift_name);
 
   /// conversion of NuXL annotations to PeptideHit::PeakAnnotation
   static std::vector<PeptideHit::PeakAnnotation> fragmentAnnotationDetailsToPHFA(
-    const String& ion_type, 
+    const std::string& ion_type, 
     const std::map<Size, std::vector<FragmentAnnotationDetail_> >& ion_annotation_details);
 
   static std::vector<PeptideHit::PeakAnnotation> shiftedToPHFA(
-    const std::map<String, 
-    std::set<std::pair<String, double> > >& shifted_ions);
+    const std::map<std::string, 
+    std::set<std::pair<std::string, double> > >& shifted_ions);
 
 
-  static String shiftedIonsToString(const std::vector<PeptideHit::PeakAnnotation>& as);
+  static std::string shiftedIonsToString(const std::vector<PeptideHit::PeakAnnotation>& as);
 
   static void addShiftedPeakFragmentAnnotation_(const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_b_ions,
                                          const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_y_ions,

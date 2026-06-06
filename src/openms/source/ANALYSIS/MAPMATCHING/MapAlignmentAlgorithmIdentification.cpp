@@ -60,9 +60,9 @@ namespace OpenMS
     use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
     if (min_run_occur_ > runs)
     {
-      String msg = "Warning: Value of parameter 'min_run_occur' (here: " +
-        String(min_run_occur_) + ") is higher than the number of runs incl. "
-        "reference (here: " + String(runs) + "). Using " + String(runs) +
+      std::string msg = "Warning: Value of parameter 'min_run_occur' (here: " +
+        StringUtils::toStr(min_run_occur_) + ") is higher than the number of runs incl. "
+        "reference (here: " + StringUtils::toStr(runs) + "). Using " + StringUtils::toStr(runs) +
         " instead.";
       OPENMS_LOG_WARN << msg << endl;
       min_run_occur_ = runs;
@@ -103,7 +103,7 @@ namespace OpenMS
         const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), pep_it->isHigherScoreBetter());
         if (better_(best_hit->getScore(), min_score_))
         {
-          const String& seq = best_hit->getSequence().toString();
+          const std::string& seq = best_hit->getSequence().toString();
           rt_data[seq].push_back(pep_it->getRT());
         }
       }
@@ -120,7 +120,7 @@ namespace OpenMS
       score_ref = id_data.pickScoreType(id_data.getObservationMatches());
       if (score_ref == id_data.getScoreTypes().end())
       {
-        String msg = "no scores found";
+        std::string msg = "no scores found";
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -132,7 +132,7 @@ namespace OpenMS
       score_ref = id_data.findScoreType(score_type_);
       if (score_ref == id_data.getScoreTypes().end())
       {
-        String msg = "score type '" + score_type_ + "' not found";
+        std::string msg = "score type '" + score_type_ + "' not found";
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -167,7 +167,7 @@ namespace OpenMS
       }
       if (include)
       {
-        String molecule = hit->identified_molecule_var.toString();
+        std::string molecule = hit->identified_molecule_var.toString();
         if (use_adducts_ && hit->adduct_opt)
         {
           molecule += "+[" + (*hit->adduct_opt)->getName() + "]";

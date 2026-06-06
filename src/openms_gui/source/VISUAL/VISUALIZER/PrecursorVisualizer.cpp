@@ -44,12 +44,12 @@ namespace OpenMS
 
   void PrecursorVisualizer::update_()
   {
-    mz_->setText(String(temp_.getMZ()).c_str());
-    int_->setText(String(temp_.getIntensity()).c_str());
-    charge_->setText(String(temp_.getCharge()).c_str());
+    mz_->setText(StringUtils::toStr(temp_.getMZ()).c_str());
+    int_->setText(StringUtils::toStr(temp_.getIntensity()).c_str());
+    charge_->setText(StringUtils::toStr(temp_.getCharge()).c_str());
 
-    window_low_->setText(String(temp_.getIsolationWindowLowerOffset()).c_str());
-    window_up_->setText(String(temp_.getIsolationWindowUpperOffset()).c_str());
+    window_low_->setText(StringUtils::toStr(temp_.getIsolationWindowLowerOffset()).c_str());
+    window_up_->setText(StringUtils::toStr(temp_.getIsolationWindowUpperOffset()).c_str());
 
     //actions
     activation_methods_->clear();
@@ -76,17 +76,17 @@ namespace OpenMS
       activation_methods_->addItem(item);
     }
 
-    activation_energy_->setText(String(temp_.getActivationEnergy()).c_str());
+    activation_energy_->setText(StringUtils::toStr(temp_.getActivationEnergy()).c_str());
   }
 
   void PrecursorVisualizer::store()
   {
-    ptr_->setMZ(mz_->text().toFloat());
-    ptr_->setIntensity(int_->text().toFloat());
-    ptr_->setCharge(charge_->text().toInt());
+    StringUtils::toFloat(ptr_->setMZ(mz_->text()));
+    StringUtils::toFloat(ptr_->setIntensity(int_->text()));
+    StringUtils::toInt32(ptr_->setCharge(charge_->text()));
 
-    ptr_->setIsolationWindowLowerOffset(window_low_->text().toFloat());
-    ptr_->setIsolationWindowUpperOffset(window_up_->text().toFloat());
+    StringUtils::toFloat(ptr_->setIsolationWindowLowerOffset(window_low_->text()));
+    StringUtils::toFloat(ptr_->setIsolationWindowUpperOffset(window_up_->text()));
 
     ptr_->getActivationMethods().clear();
     for (UInt i = 0; i < static_cast<UInt>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
@@ -96,7 +96,7 @@ namespace OpenMS
         ptr_->getActivationMethods().insert(Precursor::ActivationMethod(i));
       }
     }
-    ptr_->setActivationEnergy(activation_energy_->text().toFloat());
+    StringUtils::toFloat(ptr_->setActivationEnergy(activation_energy_->text()));
 
     temp_ = (*ptr_);
   }

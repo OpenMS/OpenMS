@@ -25,16 +25,16 @@ using namespace std;
 namespace OpenMS
 {
 
-  String PepXMLFile::AminoAcidModification::toUnimodLikeString() const
+  std::string PepXMLFile::AminoAcidModification::toUnimodLikeString() const
   {
-    String desc = "";
+    std::string desc = "";
     if (massdiff_ >= 0)
     {
-      desc += "+" + String(massdiff_);
+      desc += "+" + StringUtils::toStr(massdiff_);
     }
     else
     {
-      desc += String(massdiff_);
+      desc +=StringUtils::toStr(massdiff_);
     }
 
     if (!aminoacid_.empty() || !terminus_.empty())
@@ -47,8 +47,8 @@ namespace OpenMS
           desc += "Protein ";
         }
         {
-          String t = terminus_;
-          desc += t.toUpper() + "-term";
+          std::string t = terminus_;
+          desc += StringUtils::toUpper(t) + "-term";
         }
         if (!aminoacid_.empty())
         {
@@ -57,15 +57,15 @@ namespace OpenMS
       }
       if (!aminoacid_.empty())
       {
-        String a = aminoacid_;
-        desc += a.toUpper();
+        std::string a = aminoacid_;
+        desc += StringUtils::toUpper(a);
       }
       desc += ")";
     }
     return desc;
   }
 
-  const String& PepXMLFile::AminoAcidModification::getDescription() const
+  const std::string& PepXMLFile::AminoAcidModification::getDescription() const
   {
     return registered_mod_->getFullId();
   }
@@ -85,12 +85,12 @@ namespace OpenMS
     return massdiff_;
   }
 
-  const String& PepXMLFile::AminoAcidModification::getTerminus() const
+  const std::string& PepXMLFile::AminoAcidModification::getTerminus() const
   {
     return terminus_;
   }
 
-  const String& PepXMLFile::AminoAcidModification::getAminoAcid() const
+  const std::string& PepXMLFile::AminoAcidModification::getAminoAcid() const
   {
     return aminoacid_;
   }
@@ -100,16 +100,16 @@ namespace OpenMS
     return registered_mod_;
   }
 
-  const vector<String>& PepXMLFile::AminoAcidModification::getErrors() const
+  const vector<std::string>& PepXMLFile::AminoAcidModification::getErrors() const
   {
     return errors_;
   }
 
   const ResidueModification*
   PepXMLFile::AminoAcidModification::lookupModInPreferredMods_(const vector<const ResidueModification*>& preferred_mods,
-                                                       const String& aminoacid,
+                                                       const std::string& aminoacid,
                                                        double massdiff,
-                                                       const String& description,
+                                                       const std::string& description,
                                                        const ResidueModification::TermSpecificity term_spec,
                                                        double tolerance)
   {
@@ -135,8 +135,8 @@ namespace OpenMS
   }
 
   PepXMLFile::AminoAcidModification::AminoAcidModification(
-      const String& aminoacid, const String& massdiff, const String& mass,
-      String variable, const String& description, String terminus, const String& protein_terminus,
+      const std::string& aminoacid, const std::string& massdiff, const std::string& mass,
+      std::string variable, const std::string& description, std::string terminus, const std::string& protein_terminus,
       const vector<const ResidueModification*>& preferred_fixed_mods,
       const vector<const ResidueModification*>& preferred_var_mods,
       double tolerance)
@@ -150,12 +150,12 @@ namespace OpenMS
     }
 
     aminoacid_ = aminoacid;
-    massdiff_ = massdiff.toDouble();
-    mass_ = mass.toDouble();
-    is_variable_ = variable.toLower() == "y";
+    massdiff_ = StringUtils::toDouble(massdiff);
+    mass_ = StringUtils::toDouble(mass);
+    is_variable_ = StringUtils::toLower(variable) == "y";
     description_ = description;
     registered_mod_ = nullptr;
-    terminus_ = terminus.toLower();
+    terminus_ = StringUtils::toLower(terminus);
     is_protein_terminus_ = false;
     term_spec_ = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
 
@@ -174,8 +174,8 @@ namespace OpenMS
     // BIG NOTE: According to the pepXML schema specification, protein terminus is either "c" or "n" if set.
     // BUT: Many tools will put "Y" or "N" there in conjunction with the terminus attribute.
     // Unfortunately there is an overlap for the letter "n". We will try to handle both based on upper/lower case:
-    String protein_terminus_lower = protein_terminus;
-    protein_terminus_lower = protein_terminus_lower.toLower();
+    std::string protein_terminus_lower = protein_terminus;
+    protein_terminus_lower = StringUtils::toLower(protein_terminus_lower);
 
     if (protein_terminus_lower == "y")
     {
@@ -295,12 +295,12 @@ namespace OpenMS
         registered_mod_ = mods[0];
         if (mods.size() > 1)
         {
-          String mod_str = mods[0]->getFullId();
+          std::string mod_str = mods[0]->getFullId();
           for (const auto& m : mods)
           {
             mod_str += ", " + m->getFullId();
           }
-          errors_.emplace_back("Modification '" + String(mass_) + "' is not uniquely defined by the given data. Using '" +
+          errors_.emplace_back("Modification '" + StringUtils::toStr(mass_) + "' is not uniquely defined by the given data. Using '" +
                                mods[0]->getFullId() + "' to represent any of '" + mod_str + "'.");
         }
       }
@@ -310,7 +310,7 @@ namespace OpenMS
         // r will be nullptr if not found. The next line handles it.
         const Residue* r = ResidueDB::getInstance()->getResidue(aminoacid_[0]);
         //TODO check if it is better to create from mass or massdiff
-        registered_mod_ = ResidueModification::createUnknownFromMassString(String(massdiff_),
+        registered_mod_ = ResidueModification::createUnknownFromMassString(StringUtils::toStr(massdiff_),
                                                                                  massdiff_,
                                                                                  true,
                                                                                  term_spec_,
@@ -319,7 +319,7 @@ namespace OpenMS
         //Modification unknown, but trying to continue as we want to be able to read the rest despite
         // of the modifications but warning this will fail downstream
         errors_.emplace_back(
-            "Modification '" + String(mass_) + "/delta " + String(massdiff_) +
+            "Modification '" + StringUtils::toStr(mass_) + "/delta " + StringUtils::toStr(massdiff_) +
             "' is unknown. Resuming with '" + registered_mod_->getFullId() +
             "', which could lead to failures using the data downstream.");
       }
@@ -348,7 +348,7 @@ namespace OpenMS
 
   PepXMLFile::~PepXMLFile() = default;
 
-  void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
+  void PepXMLFile::store(const std::string& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const std::string& mz_file, const std::string& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
   {
     ofstream f(filename.c_str());
     if (!f)
@@ -356,7 +356,7 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
-    String search_engine_name;
+    std::string search_engine_name;
     ProteinIdentification::SearchParameters search_params;
     if (!protein_ids.empty())
     {
@@ -381,8 +381,8 @@ namespace OpenMS
     }
 
     f.precision(writtenDigits<double>(0.0));
-    String raw_data;
-    String base_name;
+    std::string raw_data;
+    std::string base_name;
     SpectrumMetaDataLookup lookup;
     lookup.rt_tolerance = rt_tolerance;
 
@@ -407,7 +407,7 @@ namespace OpenMS
     {
       base_name = mz_name;
     }
-    if (base_name.hasSubstring(".")) // spectrum query name is split by dot, otherwise correct charge can not be read.
+    if (StringUtils::hasSubstring(base_name, ".")) // spectrum query name is split by dot, otherwise correct charge can not be read.
     {
       replace(base_name.begin(), base_name.end(), '.', '_');
     }
@@ -415,21 +415,21 @@ namespace OpenMS
     f << R"(<?xml version="1.0" encoding="UTF-8"?>)" << "\n";
     f << R"(<msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">)" << "\n";
     f << "<msms_run_summary base_name=\"" << base_name << R"(" raw_data_type="raw" raw_data=".)" << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
-    String enzyme_name = search_params.digestion_enzyme.getName();
+    std::string enzyme_name = search_params.digestion_enzyme.getName();
     f << "\t<sample_enzyme name=\"";
-    f << enzyme_name.toLower() << "\">" << "\n";
+    f << StringUtils::toLower(enzyme_name) << "\">" << "\n";
     f << "\t\t<specificity cut=\"";
     if (!search_params.digestion_enzyme.getRegEx().empty())
     {
-      vector<String> sub_regex;
-      search_params.digestion_enzyme.getRegEx().split(")",sub_regex);
+      vector<std::string> sub_regex;
+      StringUtils::split(search_params.digestion_enzyme.getRegEx(), ")", sub_regex);
       boost::match_results<std::string::const_iterator> results;
       static const boost::regex e("(.*?)([A-Z]+)(.*?)");
       if (boost::regex_match(sub_regex[0], results, e))
       {
         f << results[2];
       }
-      if (sub_regex[1].hasSubstring("!P"))
+      if (StringUtils::hasSubstring(sub_regex[1], "!P"))
       {
         f << "\" no_cut=\"P";
       }
@@ -462,8 +462,8 @@ namespace OpenMS
 
 
     // register modifications
-    set<String> aa_mods;
-    set<String> n_term_mods, c_term_mods;
+    set<std::string> aa_mods;
+    set<std::string> n_term_mods, c_term_mods;
     for (PeptideIdentificationList::const_iterator it = peptide_ids.begin();
          it != peptide_ids.end(); ++it)
     {
@@ -496,7 +496,7 @@ namespace OpenMS
 
     // write modifications definitions
     // <aminoacid_modification aminoacid="C" massdiff="+58.01" mass="161.014664" variable="Y" binary="N" description="Carboxymethyl (C)"/>
-    for (set<String>::const_iterator it = aa_mods.begin();
+    for (set<std::string>::const_iterator it = aa_mods.begin();
          it != aa_mods.end(); ++it)
     {
       const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::ANYWHERE);
@@ -513,7 +513,7 @@ namespace OpenMS
         << "\n";
     }
 
-    for (set<String>::const_iterator it = n_term_mods.begin(); it != n_term_mods.end(); ++it)
+    for (set<std::string>::const_iterator it = n_term_mods.begin(); it != n_term_mods.end(); ++it)
     {
       const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::N_TERM);
       f << "\t\t"
@@ -523,7 +523,7 @@ namespace OpenMS
         << R"(" protein_terminus=""/>)" << "\n";
     }
 
-    for (set<String>::const_iterator it = c_term_mods.begin(); it != c_term_mods.end(); ++it)
+    for (set<std::string>::const_iterator it = c_term_mods.begin(); it != c_term_mods.end(); ++it)
     {
       const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::C_TERM);
       f << "\t\t"
@@ -562,7 +562,7 @@ namespace OpenMS
         {
           if (pep.metaValueExists("RT_index")) // Setting metaValue "RT_index" in XTandemXMLFile in the case of X! Tandem.
           {
-            scan_index = pep.getMetaValue("RT_index");
+            scan_index = (Int)pep.getMetaValue("RT_index");
           }
           scan_nr = scan_index + 1;
         }
@@ -592,10 +592,10 @@ namespace OpenMS
         //    - swath_assay
         //    - experiment_label
 
-        String spectrum_name = base_name + "." + scan_nr + "." + scan_nr + ".";
+        std::string spectrum_name = base_name + "." + scan_nr + "." + scan_nr + ".";
         if (pep.metaValueExists("pepxml_spectrum_name") && keep_native_name_)
         {
-          spectrum_name = pep.getMetaValue("pepxml_spectrum_name");
+          spectrum_name = (std::string)pep.getMetaValue("pepxml_spectrum_name");
         }
 
         f << "\t<spectrum_query spectrum=\"" << spectrum_name << h.getCharge() << "\""
@@ -641,7 +641,7 @@ namespace OpenMS
           pe = pes[0];
         }
 
-        f << "\t\t<search_hit hit_rank=\"" << String(h.getRank() + 1) << "\" peptide=\"" // rank in pepXML is 1-based, 0-based in OpenMS
+        f << "\t\t<search_hit hit_rank=\"" << StringUtils::toStr(h.getRank() + 1) << "\" peptide=\"" // rank in pepXML is 1-based, 0-based in OpenMS
           << seq.toUnmodifiedString() << "\" peptide_prev_aa=\""
           << pe.getAABefore() << "\" peptide_next_aa=\"" << pe.getAAAfter()
           << "\" protein=\"";
@@ -734,7 +734,7 @@ namespace OpenMS
             f << "\t\t\t<analysis_result analysis=\"" << ar_it.score_type << "\">" << "\n";
 
             // get name of next tag
-            String tagname = "peptideprophet_result";
+            std::string tagname = "peptideprophet_result";
             if (ar_it.score_type == "peptideprophet")
             {
               peptideprophet_written = true; // remember that we have now already written peptide prophet results
@@ -758,7 +758,7 @@ namespace OpenMS
             if (!ar_it.sub_scores.empty())
             {
               f << "\t\t\t\t\t<search_score_summary>" << "\n";
-              for (std::map<String, double>::const_iterator subscore_it = ar_it.sub_scores.begin();
+              for (std::map<std::string, double>::const_iterator subscore_it = ar_it.sub_scores.begin();
                   subscore_it != ar_it.sub_scores.end(); ++subscore_it)
               {
                 f << "\t\t\t\t\t\t<parameter name=\""<< subscore_it->first << "\" value=\"" << subscore_it->second << "\"/>\n";
@@ -967,18 +967,18 @@ namespace OpenMS
     this->parse_unknown_scores_ = parse_unknown_scores;
   }
 
-  void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
+  void PepXMLFile::load(const std::string& filename, vector<ProteinIdentification>&
                         proteins, PeptideIdentificationList& peptides,
-                        const String& experiment_name
+                        const std::string& experiment_name
                         )
   {
     SpectrumMetaDataLookup lookup;
     load(filename, proteins, peptides, experiment_name, lookup);
   }
 
-  void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
+  void PepXMLFile::load(const std::string& filename, vector<ProteinIdentification>&
                         proteins, PeptideIdentificationList& peptides,
-                        const String& experiment_name,
+                        const std::string& experiment_name,
                         const SpectrumMetaDataLookup& lookup)
   {
     // initialize here, since "load" could be called several times:
@@ -1016,13 +1016,13 @@ namespace OpenMS
     // (can't use "sort" and "unique" because no "op<" defined for ProteinHit)
     for (ProteinIdentification& prot_it : proteins)
     {
-      set<String> accessions;
+      set<std::string> accessions;
       // modeled after "remove_if" in STL header "algorithm":
       vector<ProteinHit>::iterator first = prot_it.getHits().begin();
       vector<ProteinHit>::iterator result = first;
       for (; first != prot_it.getHits().end(); ++first)
       {
-        String accession = first->getAccession();
+        std::string accession = first->getAccession();
         bool new_element = accessions.insert(accession).second;
         if (new_element) // don't remove
         {
@@ -1087,19 +1087,19 @@ namespace OpenMS
                                 const XMLCh* const qname,
                                 const xercesc::Attributes& attributes)
   {
-    String element = sm_.convert(qname);
+    std::string element = sm_.convert(qname);
 
     // cout << "Start: " << element << "\n";
 
     if (element == "msms_run_summary") // parent: "msms_pipeline_analysis"
     {
-      String ms_run_path;
+      std::string ms_run_path;
       if (!exp_name_.empty())
       {
-        String base_name = attributeAsString_(attributes, "base_name");
+        std::string base_name = attributeAsString_(attributes, "base_name");
         if (!base_name.empty())
         {
-          wrong_experiment_ = !base_name.hasSuffix(exp_name_);
+          wrong_experiment_ = !StringUtils::hasSuffix(base_name, exp_name_);
           seen_experiment_ = seen_experiment_ || !wrong_experiment_;
           checked_base_name_ = true;
         }
@@ -1110,7 +1110,7 @@ namespace OpenMS
           wrong_experiment_ = false;
           checked_base_name_ = false;
         }
-        String raw_data = attributeAsString_(attributes, "raw_data");
+        std::string raw_data = attributeAsString_(attributes, "raw_data");
         if (!base_name.empty() && !raw_data.empty())
         {
           ms_run_path = base_name + "." + raw_data;
@@ -1147,7 +1147,7 @@ namespace OpenMS
     // now, elements occurring more frequently are generally closer to the top
     else if (element == "search_score") // parent: "search_hit"
     {
-      String name = attributeAsString_(attributes, "name");
+      std::string name = attributeAsString_(attributes, "name");
       double value;
 
       // TODO: deal with different scores
@@ -1279,8 +1279,8 @@ namespace OpenMS
       }
       else if (parse_unknown_scores_)
       {
-        String strvval = attributeAsString_(attributes, "value");
-        if(name.hasSuffix("_ions")) //TODO create a dictionary of which known scores are which type?
+        std::string strvval = attributeAsString_(attributes, "value");
+        if(StringUtils::hasSuffix(name, "_ions")) //TODO create a dictionary of which known scores are which type?
         {
           peptide_hit_.setMetaValue(name, attributeAsInt_(attributes, "value")); // e.g. name: Comet:matched_b1_ions
         }
@@ -1308,7 +1308,7 @@ namespace OpenMS
       int rank = attributeAsInt_(attributes, "hit_rank");
       peptide_hit_.setRank(rank - 1); // rank is 1-based in pepXML and 0-based in OpenMS
       peptide_hit_.setCharge(charge_); // from parent "spectrum_query" tag
-      String prev_aa, next_aa;
+      std::string prev_aa, next_aa;
       if (optionalAttributeAsString_(prev_aa, attributes, "peptide_prev_aa"))
       {
         pe.setAABefore(prev_aa[0]);
@@ -1320,7 +1320,7 @@ namespace OpenMS
       }
       if (search_engine_ == "Comet")
       {
-        String value;
+        std::string value;
         if (optionalAttributeAsString_(value, attributes, "num_matched_ions"))
         {
           peptide_hit_.setMetaValue("MS:1002258", value); // name: Comet:matched ions
@@ -1339,8 +1339,8 @@ namespace OpenMS
       double pepmassdiff = attributeAsDouble_(attributes, "massdiff");
       peptide_hit_.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, std::lrint(pepmassdiff/Constants::C13C12_MASSDIFF_U));
 
-      String protein = attributeAsString_(attributes, "protein");
-      protein.trim();
+      std::string protein = attributeAsString_(attributes, "protein");
+      StringUtils::trim(protein);
       pe.setProteinAccession(protein);
 
       ProteinHit hit;
@@ -1348,7 +1348,7 @@ namespace OpenMS
 
       if (has_decoys_)
       {
-        bool current_prot_is_decoy = protein.hasPrefix(decoy_prefix_);
+        bool current_prot_is_decoy = StringUtils::hasPrefix(protein, decoy_prefix_);
         auto current_type = peptide_hit_.getTargetDecoyType();
         
         if (current_type == PeptideHit::TargetDecoyType::UNKNOWN)
@@ -1385,7 +1385,7 @@ namespace OpenMS
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
       // depending on the numbering scheme used in the pepXML, "search_id_"
       // may appear to be "out of bounds" - see NOTE above:
-      String identifier = current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->getIdentifier();
+      std::string identifier = current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->getIdentifier();
       current_peptide_.setIdentifier(identifier);
 
       // set optional attributes
@@ -1400,7 +1400,7 @@ namespace OpenMS
       }
       else if (scannr_ != 0)
       {
-        current_peptide_.setSpectrumReference( String("scan=") + String(scannr_));
+        current_peptide_.setSpectrumReference(StringUtils::toStr("scan=") + StringUtils::toStr(scannr_));
       }
       //TODO else error?
       
@@ -1454,13 +1454,13 @@ namespace OpenMS
       // If we are within a search_score_summary, add the read in values to the current AnalysisResult
       if (search_score_summary_)
       {
-        String name = attributeAsString_(attributes, "name");
+        std::string name = attributeAsString_(attributes, "name");
         double value = attributeAsDouble_(attributes, "value");
         current_analysis_result_.sub_scores[name] = value;
       }
       else if (search_summary_)
       {
-        String name = attributeAsString_(attributes, "name");
+        std::string name = attributeAsString_(attributes, "name");
         if (name == "fragment_bin_tol")
         {
           double value = attributeAsDouble_(attributes, "value");
@@ -1578,7 +1578,7 @@ namespace OpenMS
           }
           else
           {
-            error(LOAD, String("Cannot find N-terminal modification with mass " + String(mod_nterm_mass) + "."));
+            error(LOAD,StringUtils::toStr("Cannot find N-terminal modification with mass " + StringUtils::toStr(mod_nterm_mass) + "."));
           }
           //TODO we should create and register a mod here
         }
@@ -1631,7 +1631,7 @@ namespace OpenMS
           }
           else
           {
-            error(LOAD, String("Cannot find N-terminal modification with mass " + String(mod_nterm_mass) + "."));
+            error(LOAD,StringUtils::toStr("Cannot find N-terminal modification with mass " + StringUtils::toStr(mod_nterm_mass) + "."));
           }
           //TODO we should create and register a mod here
         }
@@ -1639,7 +1639,7 @@ namespace OpenMS
     }
     else if (element == "alternative_protein") // parent: "search_hit"
     {
-      String protein = attributeAsString_(attributes, "protein");
+      std::string protein = attributeAsString_(attributes, "protein");
       PeptideEvidence pe;
       pe.setProteinAccession(protein);
 
@@ -1648,7 +1648,7 @@ namespace OpenMS
 
       if (has_decoys_)
       {
-        bool current_prot_is_decoy = protein.hasPrefix(decoy_prefix_);
+        bool current_prot_is_decoy = StringUtils::hasPrefix(protein, decoy_prefix_);
         auto current_type = peptide_hit_.getTargetDecoyType();
         
         if (current_type == PeptideHit::TargetDecoyType::UNKNOWN)
@@ -1684,8 +1684,8 @@ namespace OpenMS
       Size modification_position = attributeAsInt_(attributes, "position");
 
       // the modification position is 1-based
-      String origin = String(current_sequence_[modification_position - 1]);
-      String temp_description = "";
+      std::string origin =StringUtils::toStr(current_sequence_[modification_position - 1]);
+      std::string temp_description = "";
 
       //TODO can we infer fixed/variable from the static/variable (diffmass) attributes in pepXML?
       // Only in some cases probably, since it is an optional attribute
@@ -1699,7 +1699,7 @@ namespace OpenMS
       if (!found)
       {
         // try by PSI mod ID if present
-        String psimod_id;
+        std::string psimod_id;
         optionalAttributeAsString_(psimod_id, attributes, "id");
         if (!psimod_id.empty())
         {
@@ -1736,8 +1736,8 @@ namespace OpenMS
           {
             if (mods.size() > 1)
             {
-              warning(LOAD, String("Modification '") + String(modification_mass) + "' of residue " + String(origin) + " at position "
-              + String(modification_position) + " in '" + current_sequence_ + "' not registered in pepXML header nor uniquely defined in DB." +
+              warning(LOAD,StringUtils::toStr("Modification '") + StringUtils::toStr(modification_mass) + "' of residue " + StringUtils::toStr(origin) + " at position "
+              + StringUtils::toStr(modification_position) + " in '" + current_sequence_ + "' not registered in pepXML header nor uniquely defined in DB." +
               " Using " + mods[0]->getFullId());
               current_modifications_.emplace_back(mods[0], modification_position - 1);
             }
@@ -1747,7 +1747,7 @@ namespace OpenMS
             // still nothing found, register as unknown as last resort
             current_modifications_.emplace_back(
                 ResidueModification::createUnknownFromMassString(
-                    String(modification_mass),
+                    StringUtils::toStr(modification_mass),
                     modification_mass,
                     false,
                     ResidueModification::ANYWHERE, // since it is at an amino acid it is probably NOT a terminal mod
@@ -1760,14 +1760,14 @@ namespace OpenMS
     }
     else if (element == "aminoacid_modification" || element == "terminal_modification") // parent: "search_summary"
     {
-      String description;
+      std::string description;
       optionalAttributeAsString_(description, attributes, "description");
-      String massdiff = attributeAsString_(attributes, "massdiff");
-      String mass = attributeAsDouble_(attributes, "mass");
-      String protein_terminus_entry;
-      String aminoacid;
-      String terminus;
-      String is_variable = attributeAsString_(attributes, "variable");
+      std::string massdiff = attributeAsString_(attributes, "massdiff");
+      std::string mass = StringUtils::toStr(attributeAsDouble_(attributes, "mass"));
+      std::string protein_terminus_entry;
+      std::string aminoacid;
+      std::string terminus;
+      std::string is_variable = attributeAsString_(attributes, "variable");
 
       if (element == "aminoacid_modification")
       {
@@ -1780,7 +1780,7 @@ namespace OpenMS
       else //terminal_modification
       {
         // Somehow very small fixed modifications (electron mass?) get annotated by X!Tandem. Don't add them as they interfere with other mods.
-        if (fabs(massdiff.toDouble()) < xtandem_artificial_mod_tol_)
+        if (fabs(StringUtils::toDouble(massdiff)) < xtandem_artificial_mod_tol_)
         {
           return;
         }
@@ -1797,7 +1797,7 @@ namespace OpenMS
         preferred_fixed_modifications_, preferred_variable_modifications_, mod_tol_
       };
 
-      const vector<String>& errs = aa_mod.getErrors();
+      const vector<std::string>& errs = aa_mod.getErrors();
       if (!errs.empty())
       {
         error(LOAD, "Errors during parsing of aminoacid/terminal modification element:");
@@ -1828,7 +1828,7 @@ namespace OpenMS
       optionalAttributeAsString_(current_base_name_, attributes, "base_name");
       if (!checked_base_name_) // work-around for files exported by Mascot
       {
-        if (current_base_name_.hasSuffix(exp_name_))
+        if (StringUtils::hasSuffix(current_base_name_, exp_name_))
         {
           seen_experiment_ = true;
         }
@@ -1845,7 +1845,7 @@ namespace OpenMS
       variable_modifications_.clear();
       params_ = ProteinIdentification::SearchParameters();
       params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
-      String mass_type = attributeAsString_(attributes, "precursor_mass_type");
+      std::string mass_type = attributeAsString_(attributes, "precursor_mass_type");
       if (mass_type == "monoisotopic")
       {
         hydrogen_mass_ = hydrogen_.getMonoWeight();
@@ -1881,9 +1881,9 @@ namespace OpenMS
       //TODO why do we not store versions?
       if (search_engine_ == "X! Tandem")
       {
-        String ver;
+        std::string ver;
         optionalAttributeAsString_(ver, attributes, "search_engine_version");
-        if (ver.hasPrefix("MSFragger"))
+        if (StringUtils::hasPrefix(ver, "MSFragger"))
         {
           search_engine_ = "MSFragger";
         }
@@ -1916,16 +1916,16 @@ namespace OpenMS
 
       if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
 
-      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_.toLower()))
+      if (ProteaseDB::getInstance()->hasEnzyme(StringUtils::toLower(enzyme_)))
       {
         params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
       }
     }
     else if (element == "specificity" && params_.digestion_enzyme.getName() == "unknown_enzyme") // parent: "sample_enzyme"
     { // special case: search parameter that occurs *before* "search_summary"!
-      String cut_before = attributeAsString_(attributes, "cut");
-      String no_cut_after = attributeAsString_(attributes, "no_cut");
-      String sense = attributeAsString_(attributes, "sense");
+      std::string cut_before = attributeAsString_(attributes, "cut");
+      std::string no_cut_after = attributeAsString_(attributes, "no_cut");
+      std::string sense = attributeAsString_(attributes, "sense");
       params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(
           "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense,
           cut_before, no_cut_after, sense));
@@ -1940,7 +1940,7 @@ namespace OpenMS
 
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
-        DigestionEnzymeProtein enzyme_to_set = *(ProteaseDB::getInstance()->getEnzyme(enzyme_.toLower()));
+        DigestionEnzymeProtein enzyme_to_set = *(ProteaseDB::getInstance()->getEnzyme(StringUtils::toLower(enzyme_)));
         if (params_.digestion_enzyme.getName() != "unknown_enzyme" && enzyme_to_set != params_.digestion_enzyme)
         {
           error(LOAD, "More than one enzyme found. This is currently not supported. Proceeding with last encountered only.");
@@ -1973,7 +1973,7 @@ namespace OpenMS
     }
     else if (element == "msms_pipeline_analysis") // root
     {
-      String date = attributeAsString_(attributes, "date");
+      std::string date = attributeAsString_(attributes, "date");
       // fix for corrupted xs:dateTime format:
       if ((date[4] == ':') && (date[7] == ':') && (date[10] == ':'))
       {
@@ -1996,7 +1996,7 @@ namespace OpenMS
       //TODO do we really want to allow another tolerance to the masses in the header?
       if (fabs(modification_mass - m.getMass()) < mod_tol_)
       {
-        if (m.getAminoAcid().hasSubstring(current_sequence_[modification_position]))
+        if (StringUtils::hasSubstring(m.getAminoAcid(), current_sequence_[modification_position]))
         {
           current_modifications_
               .emplace_back(m.getRegisteredMod(), modification_position); // position not needed for terminus
@@ -2012,7 +2012,7 @@ namespace OpenMS
                               const XMLCh* const /*local_name*/,
                               const XMLCh* const qname)
   {
-    String element = sm_.convert(qname);
+    std::string element = sm_.convert(qname);
 
     // cout << "End: " << element << "\n";
 
@@ -2090,7 +2090,7 @@ namespace OpenMS
           }
           else
           {
-            warning(LOAD, "Multiple mods for position " + String(mod.second)
+            warning(LOAD, "Multiple mods for position " + StringUtils::toStr(mod.second)
               + " specified for search_hit with sequence " + current_sequence_ + " proceeding with first.");
           }
         }
@@ -2128,7 +2128,7 @@ namespace OpenMS
             Residue const* r = &temp_aa_sequence[s];
             if (!r->isModified())
             {
-              if (mod.getAminoAcid().hasSubstring(r->getOneLetterCode()))
+              if (StringUtils::hasSubstring(mod.getAminoAcid(), r->getOneLetterCode()))
               {
                 // Note: this calls setModification_ on a new Residue which changes its
                 // weight to the weight of the modification (set above)

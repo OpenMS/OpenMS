@@ -105,7 +105,7 @@ START_SECTION((void clear()))
 }
 END_SECTION
 
-START_SECTION((String get() const))
+START_SECTION((std::string get() const))
 {
   DateTime date_time;
   date_time.set("1999-11-24 14:24:31");
@@ -150,11 +150,11 @@ START_SECTION((void getDate(UInt& month, UInt& day, UInt& year) const))
 }
 END_SECTION
 
-START_SECTION((String getDate() const))
+START_SECTION((std::string getDate() const))
 {
   DateTime date;
   date.set("2006-12-14 21:12:02");
-  TEST_STRING_EQUAL(date.getDate(), String("2006-12-14"))  
+  TEST_STRING_EQUAL(date.getDate(),StringUtils::toStr("2006-12-14"))  
 }
 END_SECTION
 
@@ -174,7 +174,7 @@ START_SECTION((void getTime(UInt& hour, UInt& minute, UInt& second) const))
 }
 END_SECTION
 
-START_SECTION((String getTime() const))
+START_SECTION((std::string getTime() const))
 {
   DateTime date;
   date.set("2006-12-14 11:59:58");
@@ -203,7 +203,7 @@ START_SECTION((void set(UInt month, UInt day, UInt year, UInt hour, UInt minute,
 }
 END_SECTION
 
-START_SECTION((void set(const String &date)))
+START_SECTION((void set(const std::string &date)))
 {
   DateTime date_time;
   date_time.set("1999-11-24 14:24:31");
@@ -259,7 +259,7 @@ START_SECTION((void setDate(UInt month, UInt day, UInt year)))
 }
 END_SECTION
 
-START_SECTION((void setDate(const String &date)))
+START_SECTION((void setDate(const std::string &date)))
 {
   DateTime date;
   UInt month;
@@ -291,7 +291,7 @@ START_SECTION((void setTime(UInt hour, UInt minute, UInt second)))
 }
 END_SECTION
 
-START_SECTION((void setTime(const String &date)))
+START_SECTION((void setTime(const std::string &date)))
 {
   DateTime date;
   UInt hour; 
@@ -315,7 +315,7 @@ START_SECTION(([EXTRA] Three digit year should get leading zero according to Qt 
 
   // this behaviour is not critical and does not work on Qt 4.3 machines
   // so the leading zero is not checked! (who really needs dates before the year 1000 in this library?) 
-  TEST_EQUAL(one_moment_in_time.get().hasSubstring("666-05-04 03:02:01"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(one_moment_in_time.get(), "666-05-04 03:02:01"), true);
 }
 END_SECTION
 

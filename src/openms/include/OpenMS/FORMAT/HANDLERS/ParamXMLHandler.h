@@ -27,7 +27,7 @@ namespace OpenMS
     {
 public:
       /// Default constructor
-      ParamXMLHandler(Param& param, const String& filename, const String& version);
+      ParamXMLHandler(Param& param, const std::string& filename, const std::string& version);
       /// Destructor
       ~ParamXMLHandler() override;
 
@@ -39,23 +39,23 @@ public:
 
 protected:
       /// The current absolute path (concatenation of nodes_ with <i>:</i> in between)
-      String path_;
+      std::string path_;
       /// Reference to the Param object to fill
       Param& param_;
       /// Map of node descriptions (they are set at the end of parsing)
-      std::map<String, String> descriptions_;
+      std::map<std::string, std::string> descriptions_;
 
       ///Temporary data for parsing of item lists
       struct
       {
-        String name;
-        String type;
+        std::string name;
+        std::string type;
         std::vector<std::string> stringlist;
         IntList intlist;
         DoubleList doublelist;
         std::vector<std::string> tags;
-        String description;
-        String restrictions;
+        std::string description;
+        std::string restrictions;
         Int restrictions_index;
       } list_;
 

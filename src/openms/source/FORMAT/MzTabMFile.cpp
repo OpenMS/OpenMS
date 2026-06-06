@@ -22,24 +22,24 @@ namespace OpenMS
 
   void MzTabMFile::generateMzTabMMetaDataSection_(const MzTabMMetaData& md, StringList& sl) const
   {
-    sl.push_back(String("MTD\tmzTab-version\t") + md.mz_tab_version.toCellString()); // mandatory
-    sl.push_back(String("MTD\tmzTab-ID\t") + md.mz_tab_id.toCellString()); // mandatory
+    sl.push_back(StringUtils::toStr("MTD\tmzTab-version\t") + md.mz_tab_version.toCellString()); // mandatory
+    sl.push_back(StringUtils::toStr("MTD\tmzTab-ID\t") + md.mz_tab_id.toCellString()); // mandatory
 
     if (!md.title.isNull())
     {
-      String s = String("MTD\ttitle\t") + md.title.toCellString();
+      std::string s =StringUtils::toStr("MTD\ttitle\t") + md.title.toCellString();
       sl.push_back(s);
     }
 
     if(!md.description.isNull())
     {
-      String s = String("MTD\tdescription\t") + md.description.toCellString();
+      std::string s =StringUtils::toStr("MTD\tdescription\t") + md.description.toCellString();
       sl.push_back(s);
     }
 
     for (const auto& sp : md.sample_processing)
     {
-      String s = "MTD\tsample_processing[" + String(sp.first) + "]\t" + sp.second.toCellString();
+      std::string s = "MTD\tsample_processing[" + StringUtils::toStr(sp.first) + "]\t" + sp.second.toCellString();
       sl.push_back(s);
     }
 
@@ -49,13 +49,13 @@ namespace OpenMS
 
       if (!imd.name.isNull())
       {
-        String s = "MTD\tinstrument[" + String(inst.first) + "]-name\t" +  imd.name.toCellString();
+        std::string s = "MTD\tinstrument[" + StringUtils::toStr(inst.first) + "]-name\t" +  imd.name.toCellString();
         sl.push_back(s);
       }
 
       if (!imd.source.isNull())
       {
-        String s = "MTD\tinstrument[" + String(inst.first) + "]-source\t" + imd.source.toCellString();
+        std::string s = "MTD\tinstrument[" + StringUtils::toStr(inst.first) + "]-source\t" + imd.source.toCellString();
         sl.push_back(s);
       }
 
@@ -63,14 +63,14 @@ namespace OpenMS
       {
         if (!mit.second.isNull())
         {
-          String s = "MTD\tinstrument[" + String(inst.first) + "]-analyzer[" + String(mit.first) + "]\t" + mit.second.toCellString();
+          std::string s = "MTD\tinstrument[" + StringUtils::toStr(inst.first) + "]-analyzer[" + StringUtils::toStr(mit.first) + "]\t" + mit.second.toCellString();
           sl.push_back(s);
         }
       }
 
       if (!imd.detector.isNull())
       {
-        String s = "MTD\tinstrument[" + String(inst.first) + "]-detector\t" + imd.detector.toCellString();
+        std::string s = "MTD\tinstrument[" + StringUtils::toStr(inst.first) + "]-detector\t" + imd.detector.toCellString();
         sl.push_back(s);
       }
     }
@@ -79,19 +79,19 @@ namespace OpenMS
     {
       MzTabSoftwareMetaData msmd = sw.second;
 
-      String s = "MTD\tsoftware[" + String(sw.first) + "]\t" + msmd.software.toCellString(); // mandatory
+      std::string s = "MTD\tsoftware[" + StringUtils::toStr(sw.first) + "]\t" + msmd.software.toCellString(); // mandatory
       sl.push_back(s);
 
       for (const auto& setting : msmd.setting)
       {
-        String s = "MTD\tsoftware[" + String(sw.first) + "]-setting[" + String(setting.first) + String("]\t") + setting.second.toCellString();
+        std::string s = "MTD\tsoftware[" + StringUtils::toStr(sw.first) + "]-setting[" + StringUtils::toStr(setting.first) + std::string("]\t") + setting.second.toCellString();
         sl.push_back(s);
       }
     }
 
     for (auto const& pub : md.publication)
     {
-      String s = "MTD\tpublication[" + String(pub.first) + "]\t" + pub.second.toCellString();
+      std::string s = "MTD\tpublication[" + StringUtils::toStr(pub.first) + "]\t" + pub.second.toCellString();
       sl.push_back(s);
     }
 
@@ -100,36 +100,36 @@ namespace OpenMS
       const MzTabContactMetaData& md = contact.second;
       if (!md.name.isNull())
       {
-        String s = "MTD\tcontact[" + String(contact.first) + "]-name\t" + md.name.toCellString();
+        std::string s = "MTD\tcontact[" + StringUtils::toStr(contact.first) + "]-name\t" + md.name.toCellString();
         sl.push_back(s);
       }
 
       if (!md.affiliation.isNull())
       {
-        String s = "MTD\tcontact[" + String(contact.first) + "]-affiliation\t" + md.affiliation.toCellString();
+        std::string s = "MTD\tcontact[" + StringUtils::toStr(contact.first) + "]-affiliation\t" + md.affiliation.toCellString();
         sl.push_back(s);
       }
 
       if (!md.email.isNull())
       {
-        String s = "MTD\tcontact[" + String(contact.first) + "]-email\t" + md.email.toCellString();
+        std::string s = "MTD\tcontact[" + StringUtils::toStr(contact.first) + "]-email\t" + md.email.toCellString();
         sl.push_back(s);
       }
     }
 
     for (const auto& uri : md.uri)
     {
-      String s = "MTD\turi[" + String(uri.first) + "]\t" + uri.second.toCellString();
+      std::string s = "MTD\turi[" + StringUtils::toStr(uri.first) + "]\t" + uri.second.toCellString();
       sl.push_back(s);
     }
 
     for (const auto& ext_study : md.external_study_uri)
     {
-      String s = "MTD\texternal_study_uri[" + String(ext_study.first) + "]\t" + ext_study.second.toCellString();
+      std::string s = "MTD\texternal_study_uri[" + StringUtils::toStr(ext_study.first) + "]\t" + ext_study.second.toCellString();
       sl.push_back(s);
     }
 
-    String s = String("MTD\tquantification_method\t") + md.quantification_method.toCellString(); // mandatory
+    std::string s =StringUtils::toStr("MTD\tquantification_method\t") + md.quantification_method.toCellString(); // mandatory
     sl.push_back(s);
 
     for (const auto& sample : md.sample)
@@ -138,37 +138,37 @@ namespace OpenMS
 
       if (!msmd.description.isNull())
       {
-        String s = "MTD\tsample[" + String(sample.first) + "]-description\t" + msmd.description.toCellString();
+        std::string s = "MTD\tsample[" + StringUtils::toStr(sample.first) + "]-description\t" + msmd.description.toCellString();
         sl.push_back(s);
       }
 
       for (const auto& species : msmd.species)
       {
-        String s = "MTD\tsample[" + String(sample.first) + "]-species[" + String(species.first) + "]\t" + species.second.toCellString();
+        std::string s = "MTD\tsample[" + StringUtils::toStr(sample.first) + "]-species[" + StringUtils::toStr(species.first) + "]\t" + species.second.toCellString();
         sl.push_back(s);
       }
 
       for (const auto& tissue : msmd.tissue)
       {
-        String s = "MTD\tsample[" + String(sample.first) + "]-tissue[" + String(tissue.first) + "]\t" + tissue.second.toCellString();
+        std::string s = "MTD\tsample[" + StringUtils::toStr(sample.first) + "]-tissue[" + StringUtils::toStr(tissue.first) + "]\t" + tissue.second.toCellString();
         sl.push_back(s);
       }
 
       for (const auto& cell_type : msmd.cell_type)
       {
-        String s = "MTD\tsample[" + String(sample.first) + "]-cell_type[" + String(cell_type.first) + "]\t" + cell_type.second.toCellString();
+        std::string s = "MTD\tsample[" + StringUtils::toStr(sample.first) + "]-cell_type[" + StringUtils::toStr(cell_type.first) + "]\t" + cell_type.second.toCellString();
         sl.push_back(s);
       }
 
       for (auto const& disease : msmd.disease)
       {
-        String s = "MTD\tsample[" + String(sample.first) + "]-disease[" + String(disease.first) + "]\t" + disease.second.toCellString();
+        std::string s = "MTD\tsample[" + StringUtils::toStr(sample.first) + "]-disease[" + StringUtils::toStr(disease.first) + "]\t" + disease.second.toCellString();
         sl.push_back(s);
       }
 
       for (const auto& custom : msmd.custom)
       {
-        String s = "MTD\tsample[" + String(sample.first) + "]-custom[" + String(custom.first) + "]\t" + custom.second.toCellString();
+        std::string s = "MTD\tsample[" + StringUtils::toStr(sample.first) + "]-custom[" + StringUtils::toStr(custom.first) + "]\t" + custom.second.toCellString();
         sl.push_back(s);
       }
     }
@@ -177,42 +177,42 @@ namespace OpenMS
     {
       const MzTabMMSRunMetaData& rmmd = ms_run.second;
 
-      String s = "MTD\tms_run[" + String(ms_run.first) + "]-location\t" + rmmd.location.toCellString(); // mandatory
+      std::string s = "MTD\tms_run[" + StringUtils::toStr(ms_run.first) + "]-location\t" + rmmd.location.toCellString(); // mandatory
       sl.push_back(s);
 
       if (!rmmd.instrument_ref.isNull())
       {
-        String s = "MTD\tms_run[" + String(ms_run.first) + "]-instrument_ref\t" + rmmd.instrument_ref.toCellString();
+        std::string s = "MTD\tms_run[" + StringUtils::toStr(ms_run.first) + "]-instrument_ref\t" + rmmd.instrument_ref.toCellString();
         sl.push_back(s);
       }
 
       if (!rmmd.format.isNull())
       {
-        String s = "MTD\tms_run[" + String(ms_run.first) + "]-format\t" + rmmd.format.toCellString();
+        std::string s = "MTD\tms_run[" + StringUtils::toStr(ms_run.first) + "]-format\t" + rmmd.format.toCellString();
         sl.push_back(s);
       }
 
       for (const auto& fragmentation_method : rmmd.fragmentation_method)
       {
-        String s = "MTD\tms_run[" + String(ms_run.first) + "]-fragmentation_method[" + String(fragmentation_method.first) + "]\t" + fragmentation_method.second.toCellString();
+        std::string s = "MTD\tms_run[" + StringUtils::toStr(ms_run.first) + "]-fragmentation_method[" + StringUtils::toStr(fragmentation_method.first) + "]\t" + fragmentation_method.second.toCellString();
         sl.push_back(s);
       }
 
       for (const auto& scan_polarity : rmmd.scan_polarity)
       {
-        String s = "MTD\tms_run[" + String(ms_run.first) + "]-scan_polarity[" + String(scan_polarity.first) + "]\t" + scan_polarity.second.toCellString(); // mandatory
+        std::string s = "MTD\tms_run[" + StringUtils::toStr(ms_run.first) + "]-scan_polarity[" + StringUtils::toStr(scan_polarity.first) + "]\t" + scan_polarity.second.toCellString(); // mandatory
         sl.push_back(s);
       }
 
       if (!rmmd.hash.isNull())
       {
-        String s = "MTD\tms_run[" + String(ms_run.first) + "]-hash\t" + rmmd.hash.toCellString();
+        std::string s = "MTD\tms_run[" + StringUtils::toStr(ms_run.first) + "]-hash\t" + rmmd.hash.toCellString();
         sl.push_back(s);
       }
 
       if (!rmmd.hash_method.isNull())
       {
-        String s = "MTD\tms_run[" + String(ms_run.first) + "]-hash_method\t" + rmmd.hash_method.toCellString();
+        std::string s = "MTD\tms_run[" + StringUtils::toStr(ms_run.first) + "]-hash_method\t" + rmmd.hash_method.toCellString();
         sl.push_back(s);
       }
     }
@@ -221,28 +221,28 @@ namespace OpenMS
     {
       const MzTabMAssayMetaData& amd = assay.second;
 
-      String name = "MTD\tassay[" + String(assay.first) + "]\t" + amd.name.toCellString(); // mandatory
+      std::string name = "MTD\tassay[" + StringUtils::toStr(assay.first) + "]\t" + amd.name.toCellString(); // mandatory
       sl.push_back(name);
 
       for (const auto& custom : amd.custom)
       {
-        String s = "MTD\tms_run[" + String(assay.first) + "]-custom[" + String(custom.first) + "]\t" + custom.second.toCellString();
+        std::string s = "MTD\tms_run[" + StringUtils::toStr(assay.first) + "]-custom[" + StringUtils::toStr(custom.first) + "]\t" + custom.second.toCellString();
         sl.push_back(s);
       }
 
       if (!amd.external_uri.isNull())
       {
-        String s = "MTD\tassay[" + String(assay.first) + "]-external_uri\t" + amd.external_uri.toCellString();
+        std::string s = "MTD\tassay[" + StringUtils::toStr(assay.first) + "]-external_uri\t" + amd.external_uri.toCellString();
         sl.push_back(s);
       }
 
       if (!amd.sample_ref.isNull())
       {
-        String s = "MTD\tassay[" + String(assay.first) + "]-sample_ref\tsample[" + amd.sample_ref.toCellString() + "]";
+        std::string s = "MTD\tassay[" + StringUtils::toStr(assay.first) + "]-sample_ref\tsample[" + amd.sample_ref.toCellString() + "]";
         sl.push_back(s);
       }
 
-      String ms_run_ref = "MTD\tassay[" + String(assay.first) + "]-ms_run_ref\tms_run[" + amd.ms_run_ref.toCellString() + "]"; // mandatory
+      std::string ms_run_ref = "MTD\tassay[" + StringUtils::toStr(assay.first) + "]-ms_run_ref\tms_run[" + amd.ms_run_ref.toCellString() + "]"; // mandatory
       sl.push_back(ms_run_ref);
     }
 
@@ -250,7 +250,7 @@ namespace OpenMS
     {
       const MzTabMStudyVariableMetaData& svmd = sv.second;
 
-      String name = "MTD\tstudy_variable[" + String(sv.first) + "]\t" + svmd.name.toCellString(); // mandatory
+      std::string name = "MTD\tstudy_variable[" + StringUtils::toStr(sv.first) + "]\t" + svmd.name.toCellString(); // mandatory
       sl.push_back(name);
 
       std::vector<MzTabString> strings;
@@ -260,34 +260,34 @@ namespace OpenMS
         strings.emplace_back(MzTabString("assay[" + std::to_string(ref) + ']'));
       }
       refs_string.set(strings);
-      String refs = "MTD\tstudy_variable[" + String(sv.first) + "]-assay_refs\t" + refs_string.toCellString(); // mandatory
+      std::string refs = "MTD\tstudy_variable[" + StringUtils::toStr(sv.first) + "]-assay_refs\t" + refs_string.toCellString(); // mandatory
       sl.push_back(refs);
 
       if (!svmd.average_function.isNull())
       {
-        String s = "MTD\tstudy_variable[" + String(sv.first) + "]-average_function\t" + svmd.average_function.toCellString();
+        std::string s = "MTD\tstudy_variable[" + StringUtils::toStr(sv.first) + "]-average_function\t" + svmd.average_function.toCellString();
         sl.push_back(s);
       }
 
       if (!svmd.variation_function.isNull())
       {
-        String s = "MTD\tstudy_variable[" + String(sv.first) + "]-variation_function\t" + svmd.variation_function.toCellString();
+        std::string s = "MTD\tstudy_variable[" + StringUtils::toStr(sv.first) + "]-variation_function\t" + svmd.variation_function.toCellString();
         sl.push_back(s);
       }
 
-      String description = "MTD\tstudy_variable[" + String(sv.first) + "]-description\t" + svmd.description.toCellString(); // mandatory
+      std::string description = "MTD\tstudy_variable[" + StringUtils::toStr(sv.first) + "]-description\t" + svmd.description.toCellString(); // mandatory
       sl.push_back(description);
 
       for (const auto& factor : svmd.factors.get())
       {
-        String s = "MTD\tstudy_variable[" + String(sv.first) + "]-factors\t" + factor.toCellString();
+        std::string s = "MTD\tstudy_variable[" + StringUtils::toStr(sv.first) + "]-factors\t" + factor.toCellString();
         sl.push_back(s);
       }
     }
 
     for (const auto& custom : md.custom)
     {
-      String s = "MTD\tcustom[" + String(custom.first) + "]\t" + custom.second.toCellString();
+      std::string s = "MTD\tcustom[" + StringUtils::toStr(custom.first) + "]\t" + custom.second.toCellString();
       sl.push_back(s);
     }
 
@@ -295,16 +295,16 @@ namespace OpenMS
     {
       const MzTabCVMetaData& cvmd = cv.second;
 
-      String label = "MTD\tcv[" + String(cv.first) + "]-label\t" + cvmd.label.toCellString(); // mandatory
+      std::string label = "MTD\tcv[" + StringUtils::toStr(cv.first) + "]-label\t" + cvmd.label.toCellString(); // mandatory
       sl.push_back(label);
 
-      String full_name = "MTD\tcv[" + String(cv.first) + "]-full_name\t" + cvmd.full_name.toCellString();  // mandatory
+      std::string full_name = "MTD\tcv[" + StringUtils::toStr(cv.first) + "]-full_name\t" + cvmd.full_name.toCellString();  // mandatory
       sl.push_back(full_name);
 
-      String version = "MTD\tcv[" + String(cv.first) + "]-version\t" + cvmd.version.toCellString();  // mandatory
+      std::string version = "MTD\tcv[" + StringUtils::toStr(cv.first) + "]-version\t" + cvmd.version.toCellString();  // mandatory
       sl.push_back(version);
 
-      String url = "MTD\tcv[" + String(cv.first) + "]-uri\t" + cvmd.url.toCellString();  // mandatory
+      std::string url = "MTD\tcv[" + StringUtils::toStr(cv.first) + "]-uri\t" + cvmd.url.toCellString();  // mandatory
       sl.push_back(url);
     }
 
@@ -312,57 +312,57 @@ namespace OpenMS
     {
       MzTabMDatabaseMetaData dbmd = db.second;
 
-      String database = "MTD\tdatabase[" + String(db.first) + "]\t" + dbmd.database.toCellString();  // mandatory
+      std::string database = "MTD\tdatabase[" + StringUtils::toStr(db.first) + "]\t" + dbmd.database.toCellString();  // mandatory
       sl.push_back(database);
 
-      String prefix = "MTD\tdatabase[" + String(db.first) + "]-prefix\t" + dbmd.prefix.toCellString();  // mandatory
+      std::string prefix = "MTD\tdatabase[" + StringUtils::toStr(db.first) + "]-prefix\t" + dbmd.prefix.toCellString();  // mandatory
       sl.push_back(prefix);
 
-      String version = "MTD\tdatabase[" + String(db.first) + "]-version\t" + dbmd.version.toCellString();  // mandatory
+      std::string version = "MTD\tdatabase[" + StringUtils::toStr(db.first) + "]-version\t" + dbmd.version.toCellString();  // mandatory
       sl.push_back(version);
 
-      String uri = "MTD\tdatabase[" + String(db.first) + "]-uri\t" + dbmd.uri.toCellString();  // mandatory
+      std::string uri = "MTD\tdatabase[" + StringUtils::toStr(db.first) + "]-uri\t" + dbmd.uri.toCellString();  // mandatory
       sl.push_back(uri);
     }
 
     for (const auto& agent : md.derivatization_agent)
     {
-      String s = "MTD\tderivatization_agent[" + String(agent.first) + "]-uri\t" + agent.second.toCellString();
+      std::string s = "MTD\tderivatization_agent[" + StringUtils::toStr(agent.first) + "]-uri\t" + agent.second.toCellString();
       sl.push_back(s);
     }
 
-    sl.push_back(String("MTD\tsmall_molecule-quantification_unit\t") + md.small_molecule_quantification_unit.toCellString()); // mandatory
+    sl.push_back(StringUtils::toStr("MTD\tsmall_molecule-quantification_unit\t") + md.small_molecule_quantification_unit.toCellString()); // mandatory
 
-    sl.push_back(String("MTD\tsmall_molecule_feature-quantification_unit\t") + md.small_molecule_feature_quantification_unit.toCellString()); // mandatory (feature section)
+    sl.push_back(StringUtils::toStr("MTD\tsmall_molecule_feature-quantification_unit\t") + md.small_molecule_feature_quantification_unit.toCellString()); // mandatory (feature section)
 
-    sl.push_back(String("MTD\tsmall_molecule-identification_reliability\t") + md.small_molecule_identification_reliability.toCellString()); // mandatory
+    sl.push_back(StringUtils::toStr("MTD\tsmall_molecule-identification_reliability\t") + md.small_molecule_identification_reliability.toCellString()); // mandatory
 
     for (const auto& id_conf : md.id_confidence_measure)
     {
-      String s = "MTD\tid_confidence_measure[" + String(id_conf.first) + "]\t" + id_conf.second.toCellString(); // mandatory
+      std::string s = "MTD\tid_confidence_measure[" + StringUtils::toStr(id_conf.first) + "]\t" + id_conf.second.toCellString(); // mandatory
       sl.push_back(s);
     }
 
     for (const auto& csm : md.colunit_small_molecule)
     {
-      String s = "MTD\tcolunit_small_molecule\t" + csm.toCellString();
+      std::string s = "MTD\tcolunit_small_molecule\t" + csm.toCellString();
       sl.push_back(s);
     }
 
     for (const auto& csmf : md.colunit_small_molecule_feature)
     {
-      String s = "MTD\tcolunit_small_molecule\t" + csmf.toCellString();
+      std::string s = "MTD\tcolunit_small_molecule\t" + csmf.toCellString();
       sl.push_back(s);
     }
 
     for (const auto& csme : md.colunit_small_molecule_evidence)
     {
-      String s = "MTD\tcolunit_small_molecule\t" + csme.toCellString();
+      std::string s = "MTD\tcolunit_small_molecule\t" + csme.toCellString();
       sl.push_back(s);
     }
   }
 
-  String MzTabMFile::generateMzTabMSmallMoleculeHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const
+  std::string MzTabMFile::generateMzTabMSmallMoleculeHeader_(const MzTabMMetaData& meta, const std::vector<std::string>& optional_columns, size_t& n_columns) const
   {
     StringList header;
     header.emplace_back("SMH");
@@ -382,17 +382,17 @@ namespace OpenMS
 
     for (const auto& a : meta.assay)
     {
-      header.emplace_back(String("abundance_assay[") + String(a.first) + String("]"));
+      header.emplace_back(StringUtils::toStr("abundance_assay[") + StringUtils::toStr(a.first) + std::string("]"));
     }
 
     for (const auto& a : meta.study_variable)
     {
-      header.emplace_back(String("abundance_study_variable[") + String(a.first) + String("]"));
+      header.emplace_back(StringUtils::toStr("abundance_study_variable[") + StringUtils::toStr(a.first) + std::string("]"));
     }
 
     for (const auto& a : meta.study_variable)
     {
-      header.emplace_back(String("abundance_variation_study_variable[") + String(a.first) + String("]"));
+      header.emplace_back(StringUtils::toStr("abundance_variation_study_variable[") + StringUtils::toStr(a.first) + std::string("]"));
     }
 
     std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
@@ -400,7 +400,7 @@ namespace OpenMS
     return ListUtils::concatenate(header, "\t");
   }
 
-  String MzTabMFile::generateMzTabMSmallMoleculeSectionRow_(const MzTabMSmallMoleculeSectionRow& row, const std::vector<String>& optional_columns, size_t& n_columns) const
+  std::string MzTabMFile::generateMzTabMSmallMoleculeSectionRow_(const MzTabMSmallMoleculeSectionRow& row, const std::vector<std::string>& optional_columns, size_t& n_columns) const
   {
     StringList s;
     s.emplace_back("SML");
@@ -438,7 +438,7 @@ namespace OpenMS
     return ListUtils::concatenate(s, "\t");
   }
 
-  String MzTabMFile::generateMzTabMSmallMoleculeFeatureHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const
+  std::string MzTabMFile::generateMzTabMSmallMoleculeFeatureHeader_(const MzTabMMetaData& meta, const std::vector<std::string>& optional_columns, size_t& n_columns) const
   {
    StringList header;
    header.emplace_back("SFH");
@@ -455,7 +455,7 @@ namespace OpenMS
 
    for (const auto& a : meta.assay)
    {
-     header.emplace_back(String("abundance_assay[") + String(a.first) + String("]"));
+     header.emplace_back(StringUtils::toStr("abundance_assay[") + StringUtils::toStr(a.first) + std::string("]"));
    }
 
    std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
@@ -463,7 +463,7 @@ namespace OpenMS
    return ListUtils::concatenate(header, "\t");
   }
 
-  String MzTabMFile::generateMzTabMSmallMoleculeFeatureSectionRow_(const MzTabMSmallMoleculeFeatureSectionRow& row, const std::vector<String>& optional_columns, size_t& n_columns) const
+  std::string MzTabMFile::generateMzTabMSmallMoleculeFeatureSectionRow_(const MzTabMSmallMoleculeFeatureSectionRow& row, const std::vector<std::string>& optional_columns, size_t& n_columns) const
   {
     StringList s;
     s.emplace_back("SMF");
@@ -488,7 +488,7 @@ namespace OpenMS
     return ListUtils::concatenate(s, "\t");
   }
 
-  String MzTabMFile::generateMzTabMSmallMoleculeEvidenceHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const
+  std::string MzTabMFile::generateMzTabMSmallMoleculeEvidenceHeader_(const MzTabMMetaData& meta, const std::vector<std::string>& optional_columns, size_t& n_columns) const
   {
     StringList header;
     header.emplace_back("SEH");
@@ -511,7 +511,7 @@ namespace OpenMS
 
     for (const auto& id_conf : meta.id_confidence_measure)
     {
-      header.emplace_back(String("id_confidence_measure[") + String(id_conf.first) + String("]"));
+      header.emplace_back(StringUtils::toStr("id_confidence_measure[") + StringUtils::toStr(id_conf.first) + std::string("]"));
     }
 
     header.emplace_back("rank");
@@ -521,7 +521,7 @@ namespace OpenMS
     return ListUtils::concatenate(header, "\t");
   }
 
-  String MzTabMFile::generateMzTabMSmallMoleculeEvidenceSectionRow_(const MzTabMSmallMoleculeEvidenceSectionRow& row, const std::vector<String>& optional_columns, size_t& n_columns) const
+  std::string MzTabMFile::generateMzTabMSmallMoleculeEvidenceSectionRow_(const MzTabMSmallMoleculeEvidenceSectionRow& row, const std::vector<std::string>& optional_columns, size_t& n_columns) const
   {
     StringList s;
     s.emplace_back("SME");
@@ -554,7 +554,7 @@ namespace OpenMS
     return ListUtils::concatenate(s, "\t");
   }
 
-  void MzTabMFile::store(const String& filename, const MzTabM& mztab_m) const
+  void MzTabMFile::store(const std::string& filename, const MzTabM& mztab_m) const
   {
     OPENMS_LOG_INFO << "exporting identification data: \"" << filename << "\" to MzTab-M: " << std::endl;
 

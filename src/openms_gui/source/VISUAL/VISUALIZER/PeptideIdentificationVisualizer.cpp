@@ -64,7 +64,7 @@ namespace OpenMS
   {
     if (filter_threshold_->text() != "")
     {
-      pidv_caller_->filterHits_(filter_threshold_->text().toDouble(), temp_.isHigherScoreBetter(), tree_id_);
+      pidv_caller_->filterHits_(filter_threshold_->text().toDouble(, temp_.isHigherScoreBetter(), tree_id_);
     }
     else
     {
@@ -75,7 +75,7 @@ namespace OpenMS
   void PeptideIdentificationVisualizer::store()
   {
     ptr_->setIdentifier(fromQString(identifier_->text()));
-    ptr_->setSignificanceThreshold(identification_threshold_->text().toFloat());
+    StringUtils::toFloat(ptr_->setSignificanceThreshold(identification_threshold_->text()));
     ptr_->setScoreType(fromQString(score_type_->text()));
     ptr_->setHigherScoreBetter(higher_better_->currentIndex());
 

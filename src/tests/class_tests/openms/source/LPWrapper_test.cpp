@@ -63,17 +63,17 @@ END_SECTION
 START_SECTION((Int addRow(fewer args)))
 {
   lp.addColumn();
-  lp.addRow(indices,values,String("row1"));
+  lp.addRow(indices,values,StringUtils::toStr("row1"));
   TEST_EQUAL(lp.getNumberOfRows(),1);
   TEST_EQUAL(lp.getRowName(0),"row1");
 }
 END_SECTION
 
 
-START_SECTION((Int addColumn(std::vector< Int > column_indices, std::vector< double > column_values, const String &name)))
+START_SECTION((Int addColumn(std::vector< Int > column_indices, std::vector< double > column_values, const std::string &name)))
 {
-  lp.addRow(indices,values,String("row2"));
-  lp.addColumn(indices,values,String("col3"));
+  lp.addRow(indices,values,StringUtils::toStr("row2"));
+  lp.addColumn(indices,values,StringUtils::toStr("col3"));
   TEST_EQUAL(lp.getNumberOfColumns(),3);
   TEST_EQUAL(lp.getColumnName(2),"col3");
 }
@@ -81,52 +81,52 @@ END_SECTION
 
 START_SECTION((Int addRow(all args)))
 {
-  lp.addRow(indices,values,String("row3"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
+  lp.addRow(indices,values,StringUtils::toStr("row3"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfRows(),3);
   TEST_EQUAL(lp.getRowName(2),"row3");
 }
 END_SECTION
 
-START_SECTION((Int addColumn(std::vector< Int > &column_indices, std::vector< double > &column_values, const String &name, double lower_bound, double upper_bound, Type type)))
+START_SECTION((Int addColumn(std::vector< Int > &column_indices, std::vector< double > &column_values, const std::string &name, double lower_bound, double upper_bound, Type type)))
 {
-  lp.addColumn(indices,values,String("col4"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
+  lp.addColumn(indices,values,StringUtils::toStr("col4"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfColumns(),4);
   TEST_EQUAL(lp.getColumnName(3),"col4");
 }
 END_SECTION
 
-START_SECTION((void setColumnName(Int index, const String &name)))
+START_SECTION((void setColumnName(Int index, const std::string &name)))
 {
   lp.setColumnName(0,"col1");
   TEST_EQUAL(lp.getColumnName(0),"col1");  
 }
 END_SECTION
 
-START_SECTION((String getColumnName(Int index)))
+START_SECTION((std::string getColumnName(Int index)))
 {
   TEST_EQUAL(lp.getColumnName(0),"col1"); 
 }
 END_SECTION
 
-START_SECTION((String getRowName(Int index)))
+START_SECTION((std::string getRowName(Int index)))
 {
   TEST_EQUAL(lp.getRowName(0),"row1"); 
 }
 END_SECTION
 
-START_SECTION((Int getRowIndex(const String &name)))
+START_SECTION((Int getRowIndex(const std::string &name)))
 {
   TEST_EQUAL(lp.getRowIndex("row1"),0); 
 }
 END_SECTION
 
-START_SECTION((Int getColumnIndex(const String &name)))
+START_SECTION((Int getColumnIndex(const std::string &name)))
 {
   TEST_EQUAL(lp.getColumnIndex("col1"),0); 
 }
 END_SECTION
 
-START_SECTION((void setRowName(Int index, const String &name)))
+START_SECTION((void setRowName(Int index, const std::string &name)))
 {
   lp.setRowName(0,"new_row1");
   TEST_EQUAL(lp.getRowName(0),"new_row1"); 
@@ -271,7 +271,7 @@ START_SECTION((double getElement(Int row_index, Int column_index)))
 END_SECTION
 
 
-START_SECTION((void readProblem(String filename, String format)))
+START_SECTION((void readProblem(std::string filename, std::string format)))
 {
   if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
     {
@@ -337,10 +337,10 @@ START_SECTION((void readProblem(String filename, String format)))
 }
 END_SECTION
 
-START_SECTION((void writeProblem(const String &filename, const WriteFormat format) const ))
+START_SECTION((void writeProblem(const std::string &filename, const WriteFormat format) const ))
 {
 #ifdef OPENMS_HAS_COINOR
-    String tmp_filename;
+    std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
     lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);
     LPWrapper lp2;
@@ -383,7 +383,7 @@ START_SECTION((void writeProblem(const String &filename, const WriteFormat forma
     TEST_EQUAL(lp2.getElement(2,0),3)
     TEST_EQUAL(lp2.getElement(2,1),2)
 #else
-    String tmp_filename;
+    std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
     lp.writeProblem(tmp_filename, LPWrapper::FORMAT_LP);
     LPWrapper lp2;

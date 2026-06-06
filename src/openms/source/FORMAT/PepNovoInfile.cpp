@@ -49,15 +49,15 @@ namespace OpenMS
     return true;
   }
 
-  String PepNovoInfile::handlePTMs_(const String& modification, const bool variable)
+  std::string PepNovoInfile::handlePTMs_(const std::string& modification, const bool variable)
   {
-    String locations, key, type;
+    std::string locations, key, type;
 
     ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(modification)->getTermSpecificity();
-    String origin = ModificationsDB::getInstance()->getModification(modification)->getOrigin();
+    std::string origin(1, ModificationsDB::getInstance()->getModification(modification)->getOrigin());
     double mass = ModificationsDB::getInstance()->getModification(modification)->getDiffMonoMass();
-    String full_name = ModificationsDB::getInstance()->getModification(modification)->getFullName();
-    String full_id = ModificationsDB::getInstance()->getModification(modification)->getFullId();
+    std::string full_name = ModificationsDB::getInstance()->getModification(modification)->getFullName();
+    std::string full_id = ModificationsDB::getInstance()->getModification(modification)->getFullId();
 
 
     if (variable)
@@ -80,7 +80,7 @@ namespace OpenMS
     case ResidueModification::ANYWHERE: locations = "ALL";
       break;
 
-    default: throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid term specificity", String(ts));
+    default: throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid term specificity",StringUtils::toStr(ts));
     }
 
     if (ts == ResidueModification::C_TERM)
@@ -110,11 +110,11 @@ namespace OpenMS
     {
       key += "+";
     }
-    key += String(int(Math::round(mass)));
+    key +=StringUtils::toStr(int(Math::round(mass)));
 
 
-    String line = "";
-    line += origin.toUpper();
+    std::string line = "";
+    line += StringUtils::toUpper(origin);
     line += "\t";
     line += mass;
     line += "\t";
@@ -131,7 +131,7 @@ namespace OpenMS
     return line;
   }
 
-  void PepNovoInfile::store(const String& filename)
+  void PepNovoInfile::store(const std::string& filename)
   {
     ptm_file_.store(filename);
   }
@@ -145,20 +145,20 @@ namespace OpenMS
     ptm_file_.addLine("#AA\toffset\ttype\tlocations\tsymbol\tPTM\tname");
 
     // fixed modifications
-    std::set<String> fixed_modifications = mods_.getFixedModificationNames();
-    for (std::set<String>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
+    std::set<std::string> fixed_modifications = mods_.getFixedModificationNames();
+    for (std::set<std::string>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
     {
       ptm_file_.addLine(handlePTMs_(*it, false));
     }
     // variable modifications
-    std::set<String> variable_modifications = mods_.getVariableModificationNames();
-    for (std::set<String>::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
+    std::set<std::string> variable_modifications = mods_.getVariableModificationNames();
+    for (std::set<std::string>::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
     {
       ptm_file_.addLine(handlePTMs_(*it, true));
     }
   }
 
-  void PepNovoInfile::getModifications(std::map<String, String>& modification_key_map) const
+  void PepNovoInfile::getModifications(std::map<std::string, std::string>& modification_key_map) const
   {
     modification_key_map = mods_and_keys_;
   }

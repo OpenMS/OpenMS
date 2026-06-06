@@ -69,7 +69,7 @@ namespace OpenMS
 
     QWidget* ParamEditorDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
     {
-      Int type = index.sibling(index.row(), 0).data(Qt::UserRole).toInt();
+      Int type = index.sibling(index.row(), 0).StringUtils::toInt32(data(Qt::UserRole));
 
       // only create editor for first column (value column)
       if (index.column() != 1 || type == ParamEditor::NODE)
@@ -202,13 +202,13 @@ namespace OpenMS
       }
       else  //  for lists
       {
-        String list = fromQString(str.mid(1, str.length() - 2));
-        StringList rlist = ListUtils::create<String>(list);
+        std::string list = fromQString(str.mid(1, str.length() - 2));
+        StringList rlist = ListUtils::create<std::string>(list);
         for (auto& item : rlist)
         {
-          item.trim(); // remove '\n'
+          StringUtils::trim(item); // remove '\n'
         }
-        String restrictions = fromQString(index.sibling(index.row(), 2).data(Qt::UserRole).toString());
+        std::string restrictions = fromQString(index.sibling(index.row(), 2).data(Qt::UserRole).toString());
         if (qobject_cast<ListEditor*>(editor))
         {
           QString type = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
@@ -303,7 +303,7 @@ namespace OpenMS
       {
         QString type = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
         bool restrictions_met = true;
-        String restrictions = fromQString(index.sibling(index.row(), 2).data(Qt::UserRole).toString());
+        std::string restrictions = fromQString(index.sibling(index.row(), 2).data(Qt::UserRole).toString());
         if (type == "int")         //check if valid integer
         {
           bool ok(true);
@@ -314,14 +314,14 @@ namespace OpenMS
             return;
           }
           //restrictions
-          vector<String> parts;
-          if (restrictions.split(' ', parts))
+          vector<std::string> parts;
+          if (StringUtils::split(restrictions, ' ', parts))
           {
-            if (!parts[0].empty() && new_value.toInt() < parts[0].toInt())
+            if (!parts[0].empty() && StringUtils::toInt32(new_value) < StringUtils::toInt32(parts[0]))
             {
               restrictions_met = false;
             }
-            if (!parts[1].empty() && new_value.toInt() > parts[1].toInt())
+            if (!parts[1].empty() && StringUtils::toInt32(new_value) > StringUtils::toInt32(parts[1]))
             {
               restrictions_met = false;
             }
@@ -337,14 +337,14 @@ namespace OpenMS
             return;
           }
           //restrictions
-          vector<String> parts;
-          if (restrictions.split(' ', parts))
+          vector<std::string> parts;
+          if (StringUtils::split(restrictions, ' ', parts))
           {
-            if (!parts[0].empty() && new_value.toDouble() < parts[0].toDouble())
+            if (!parts[0].empty() && StringUtils::toDouble(new_value) < StringUtils::toDouble(parts[0]))
             {
               restrictions_met = false;
             }
-            if (!parts[1].empty() && new_value.toDouble() > parts[1].toDouble())
+            if (!parts[1].empty() && StringUtils::toDouble(new_value) > StringUtils::toDouble(parts[1]))
             {
               restrictions_met = false;
             }
@@ -489,11 +489,11 @@ namespace OpenMS
         {
           item = new QTreeWidgetItem(parent);
           //name
-          item->setText(0, toQString(String(par.name)));
+          item->setText(0, toQString(StringUtils::toStr(par.name)));
           item->setForeground(0, Qt::darkGray);  // color of nodes with children
 
           //description
-          item->setData(1, Qt::UserRole, toQString(String(par.description)));
+          item->setData(1, Qt::UserRole, toQString(StringUtils::toStr(par.description)));
           //role
           item->setData(0, Qt::UserRole, NODE);
           //flags
@@ -546,7 +546,7 @@ namespace OpenMS
         item->setData(0, Qt::UserRole, NORMAL_ITEM);
       }
       // name
-      item->setText(0, toQString(String(it->name)));
+      item->setText(0, toQString(StringUtils::toStr(it->name)));
       // value
       if (it->value.valueType() == ParamValue::STRING_LIST)
       {
@@ -562,7 +562,7 @@ namespace OpenMS
       }
       else
       {
-        item->setText(1, toQString(String(it->value.toString())));
+        item->setText(1, toQString(StringUtils::toStr(it->value.toString())));
       }
       // type
       switch (it->value.valueType())
@@ -626,14 +626,14 @@ namespace OpenMS
       case ParamValue::INT_VALUE:
       case ParamValue::INT_LIST:
       {
-        String drest = "", irest = "";
+        std::string drest = "", irest = "";
         bool min_set = (it->min_int != -numeric_limits<Int>::max());
         bool max_set = (it->max_int != numeric_limits<Int>::max());
         if (max_set || min_set)
         {
           if (min_set)
           {
-            drest += String("min: ") + it->min_int;
+            drest +=StringUtils::toStr("min: ") + it->min_int;
             irest += it->min_int;
           }
           irest += " ";
@@ -641,7 +641,7 @@ namespace OpenMS
           {
             if (min_set && max_set)
               drest += " ";
-            drest += String("max: ") + it->max_int;
+            drest +=StringUtils::toStr("max: ") + it->max_int;
             irest += it->max_int;
           }
           item->setText(3, toQString(drest));
@@ -653,14 +653,14 @@ namespace OpenMS
       case ParamValue::DOUBLE_VALUE:
       case ParamValue::DOUBLE_LIST:
       {
-        String drest = "", irest = "";
+        std::string drest = "", irest = "";
         bool min_set = (it->min_float != -numeric_limits<double>::max());
         bool max_set = (it->max_float != numeric_limits<double>::max());
         if (max_set || min_set)
         {
           if (min_set)
           {
-            drest += String("min: ") + it->min_float;
+            drest +=StringUtils::toStr("min: ") + it->min_float;
             irest += it->min_float;
           }
           irest += " ";
@@ -668,7 +668,7 @@ namespace OpenMS
           {
             if (min_set && max_set)
               drest += " ";
-            drest += String("max: ") + it->max_float;
+            drest +=StringUtils::toStr("max: ") + it->max_float;
             irest += it->max_float;
           }
           item->setText(3, toQString(drest));
@@ -680,13 +680,13 @@ namespace OpenMS
       case ParamValue::STRING_VALUE:
       case ParamValue::STRING_LIST:
       {
-        String irest = ListUtils::concatenate(it->valid_strings, ",");
+        std::string irest = ListUtils::concatenate(it->valid_strings, ",");
         if (!irest.empty())
         {
-          String r_text = irest;
+          std::string r_text = irest;
           if (r_text.size() > 255) // truncate restriction text, as some QT versions (4.6 & 4.7) will crash if text is too long
           {
-            r_text = irest.prefix(251) + "...";
+            r_text = StringUtils::prefix(irest, 251) + "...";
           }
           item->setText(3, toQString(r_text));
         }
@@ -699,7 +699,7 @@ namespace OpenMS
       }
 
       //description
-      item->setData(1, Qt::UserRole, toQString(String(it->description)));
+      item->setData(1, Qt::UserRole, toQString(StringUtils::toStr(it->description)));
       //flags
       if (param_ != nullptr)
       {
@@ -737,7 +737,7 @@ namespace OpenMS
 
       for (Int i = 0; i < parent->childCount(); ++i)
       {
-        map<String, String> section_descriptions;
+        map<std::string, std::string> section_descriptions;
         storeRecursive_(parent->child(i), "", section_descriptions);        //whole tree recursively
       }
 
@@ -752,7 +752,7 @@ namespace OpenMS
     tree_->clear();
   }
 
-  void ParamEditor::storeRecursive_(QTreeWidgetItem * child, String path, map<String, String> & section_descriptions)
+  void ParamEditor::storeRecursive_(QTreeWidgetItem * child, std::string path, map<std::string, std::string> & section_descriptions)
   {
     /**
 
@@ -769,10 +769,10 @@ namespace OpenMS
     }
     else
     {
-      path += String(":") + String(child->text(0).toStdString());
+      path +=StringUtils::toStr(":") + StringUtils::toStr(child->text(0).toStdString());
     }
 
-    String description = fromQString(child->data(1, Qt::UserRole).toString());
+    std::string description = fromQString(child->data(1, Qt::UserRole).toString());
 
     if (child->text(2) == "")  // node
     {
@@ -794,25 +794,25 @@ namespace OpenMS
 
       if (child->text(2) == "float")
       {
-        param_->setValue(path, child->text(1).toDouble(), description, tag_list);
-        String restrictions = fromQString(child->data(2, Qt::UserRole).toString());
-        vector<String> parts;
-        if (restrictions.split(' ', parts))
+        param_->setValue(path, child->text(1).toDouble(, description, tag_list);
+        std::string restrictions = fromQString(child->data(2, Qt::UserRole).toString());
+        vector<std::string> parts;
+        if (StringUtils::split(restrictions, ' ', parts))
         {
           if (!parts[0].empty())
           {
-            param_->setMinFloat(path, parts[0].toDouble());
+            param_->setMinFloat(path, StringUtils::toDouble(parts[0]));
           }
           if (!parts[1].empty())
           {
-            param_->setMaxFloat(path, parts[1].toDouble());
+            param_->setMaxFloat(path, StringUtils::toDouble(parts[1]));
           }
         }
       }
       else if (std::unordered_set<QString> {"string", "input file", "output file", "output dir"}.count(child->text(2)))
       {
         param_->setValue(path, child->text(1).toStdString(), description, tag_list);
-        String restrictions = fromQString(child->data(2, Qt::UserRole).toString());
+        std::string restrictions = fromQString(child->data(2, Qt::UserRole).toString());
         if (!restrictions.empty())
         {
           std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
@@ -821,28 +821,28 @@ namespace OpenMS
       }
       else if (child->text(2) == "int")
       {
-        param_->setValue(path, child->text(1).toInt(), description, tag_list);
-        String restrictions = fromQString(child->data(2, Qt::UserRole).toString());
-        vector<String> parts;
-        if (restrictions.split(' ', parts))
+        StringUtils::toInt32(param_->setValue(path, child->text(1)), description, tag_list);
+        std::string restrictions = fromQString(child->data(2, Qt::UserRole).toString());
+        vector<std::string> parts;
+        if (StringUtils::split(restrictions, ' ', parts))
         {
           if (!parts[0].empty())
           {
-            param_->setMinInt(path, parts[0].toInt());
+            param_->setMinInt(path, StringUtils::toInt32(parts[0]));
           }
           if (!parts[1].empty())
           {
-            param_->setMaxInt(path, parts[1].toInt());
+            param_->setMaxInt(path, StringUtils::toInt32(parts[1]));
           }
         }
       }
-      String list;
+      std::string list;
       list = fromQString(child->text(1).mid(1, child->text(1).length() - 2));
       std::vector<std::string> rlist = ListUtils::create<std::string>(list);
       if (child->text(2) == "string list")
       {
         param_->setValue(path, rlist, description, tag_list);
-        String restrictions = fromQString(child->data(2, Qt::UserRole).toString());
+        std::string restrictions = fromQString(child->data(2, Qt::UserRole).toString());
         if (!restrictions.empty())
         {
           vector<std::string> parts = ListUtils::create<std::string>(restrictions);
@@ -852,7 +852,7 @@ namespace OpenMS
       else if (child->text(2) == "input file list")
       {
         param_->setValue(path, rlist, description, tag_list);
-        String restrictions = fromQString(child->data(2, Qt::UserRole).toString());
+        std::string restrictions = fromQString(child->data(2, Qt::UserRole).toString());
         if (!restrictions.empty())
         {
           std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
@@ -862,7 +862,7 @@ namespace OpenMS
       else if (child->text(2) == "output file list")
       {
         param_->setValue(path, rlist, description, tag_list);
-        String restrictions = fromQString(child->data(2, Qt::UserRole).toString());
+        std::string restrictions = fromQString(child->data(2, Qt::UserRole).toString());
         if (!restrictions.empty())
         {
           std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
@@ -872,42 +872,42 @@ namespace OpenMS
       else if (child->text(2) == "double list")
       {
         param_->setValue(path, ListUtils::create<double>(ListUtils::toStringList<std::string>(rlist)), description, tag_list);
-        String restrictions = fromQString(child->data(2, Qt::UserRole).toString());
-        vector<String> parts;
-        if (restrictions.split(' ', parts))
+        std::string restrictions = fromQString(child->data(2, Qt::UserRole).toString());
+        vector<std::string> parts;
+        if (StringUtils::split(restrictions, ' ', parts))
         {
           if (!parts[0].empty())
           {
-            param_->setMinFloat(path, parts[0].toFloat());
+            param_->setMinFloat(path, StringUtils::toFloat(parts[0]));
           }
           if (!parts[1].empty())
           {
-            param_->setMaxFloat(path, parts[1].toFloat());
+            param_->setMaxFloat(path, StringUtils::toFloat(parts[1]));
           }
         }
       }
       else if (child->text(2) == "int list")
       {
         param_->setValue(path, ListUtils::create<Int>(ListUtils::toStringList<std::string>(rlist)), description, tag_list);
-        String restrictions = fromQString(child->data(2, Qt::UserRole).toString());
-        vector<String> parts;
-        if (restrictions.split(' ', parts))
+        std::string restrictions = fromQString(child->data(2, Qt::UserRole).toString());
+        vector<std::string> parts;
+        if (StringUtils::split(restrictions, ' ', parts))
         {
           if (!parts[0].empty())
           {
-            param_->setMinInt(path, parts[0].toInt());
+            param_->setMinInt(path, StringUtils::toInt32(parts[0]));
           }
           if (!parts[1].empty())
           {
-            param_->setMaxInt(path, parts[1].toInt());
+            param_->setMaxInt(path, StringUtils::toInt32(parts[1]));
           }
         }
       }
 
       // set description node description if the prefix matches
-      for (map<String, String>::const_iterator it = section_descriptions.begin(); it != section_descriptions.end(); ++it)
+      for (map<std::string, std::string>::const_iterator it = section_descriptions.begin(); it != section_descriptions.end(); ++it)
       {
-        if (path.hasPrefix(it->first))
+        if (StringUtils::hasPrefix(path, it->first))
         {
           param_->setSectionDescription(it->first, it->second);
         }
@@ -948,7 +948,7 @@ namespace OpenMS
       QTreeWidgetItem * current = stack.top();
       stack.pop();
 
-      Int type = current->data(0, Qt::UserRole).toInt();
+      Int type = StringUtils::toInt32(current->data(0, Qt::UserRole));
       if (type != NODE)     //ITEM
       {
         if (advanced_mode_ && type == ADVANCED_ITEM)       //advanced mode

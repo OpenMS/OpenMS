@@ -228,7 +228,7 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const 
 }
 END_SECTION
 
-START_SECTION(const String& getName() const)
+START_SECTION(const std::string& getName() const)
 {
   TEST_EQUAL(cal.getName(), "MzCalibration");
 }

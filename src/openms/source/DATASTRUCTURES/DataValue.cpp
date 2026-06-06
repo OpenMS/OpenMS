@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
@@ -116,19 +117,13 @@ namespace OpenMS
   DataValue::DataValue(const char* p) :
     value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
-    data_.str_ = new String(p);
+    data_.str_ = new std::string(p);
   }
 
-  DataValue::DataValue(const string& p) :
+  DataValue::DataValue(const std::string& p) :
     value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
-    data_.str_ = new String(p);
-  }
-
-  DataValue::DataValue(const String& p) :
-    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
-  {
-    data_.str_ = new String(p);
+    data_.str_ = new std::string(p);
   }
 
   DataValue::DataValue(const StringList& p) :
@@ -167,7 +162,7 @@ namespace OpenMS
     break;
     case ParamValue::STRING_VALUE:
         value_type_ = STRING_VALUE;
-        data_.str_ = new String(p.toChar());
+        data_.str_ = new std::string(p.toChar());
     break;
     case ParamValue::INT_LIST:
         value_type_ = INT_LIST;
@@ -195,7 +190,7 @@ namespace OpenMS
   {
     if (value_type_ == STRING_VALUE)
     {
-      data_.str_ = new String(*(p.data_.str_));
+      data_.str_ = new std::string(*(p.data_.str_));
     }
     else if (value_type_ == STRING_LIST)
     {
@@ -269,7 +264,7 @@ namespace OpenMS
     }
     else if (p.value_type_ == STRING_VALUE)
     {
-      data_.str_ = new String(*(p.data_.str_));
+      data_.str_ = new std::string(*(p.data_.str_));
     }
     else if (p.value_type_ == INT_LIST)
     {
@@ -325,7 +320,7 @@ namespace OpenMS
   DataValue& DataValue::operator=(const char* arg)
   {
     clear_();
-    data_.str_ = new String(arg);
+    data_.str_ = new std::string(arg);
     value_type_ = STRING_VALUE;
     return *this;
   }
@@ -333,15 +328,7 @@ namespace OpenMS
   DataValue& DataValue::operator=(const std::string& arg)
   {
     clear_();
-    data_.str_ = new String(arg);
-    value_type_ = STRING_VALUE;
-    return *this;
-  }
-
-  DataValue& DataValue::operator=(const String& arg)
-  {
-    clear_();
-    data_.str_ = new String(arg);
+    data_.str_ = new std::string(arg);
     value_type_ = STRING_VALUE;
     return *this;
   }
@@ -523,7 +510,7 @@ namespace OpenMS
     if (data_.ssize_ < 0.0)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-        "Could not convert negative integer DataValue with value '" + String(data_.ssize_) + "' to unsigned short int");
+        "Could not convert negative integer DataValue with value '" + StringUtils::toStr(data_.ssize_) + "' to unsigned short int");
     }
     return data_.ssize_;
   }
@@ -548,7 +535,7 @@ namespace OpenMS
     if (data_.ssize_ < 0.0)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-        "Could not convert negative integer DataValue with value '" + String(data_.ssize_) + "' to unsigned int");
+        "Could not convert negative integer DataValue with value '" + StringUtils::toStr(data_.ssize_) + "' to unsigned int");
     }
     return data_.ssize_;
   }
@@ -573,7 +560,7 @@ namespace OpenMS
     if (data_.ssize_ < 0.0)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-        "Could not convert negative integer DataValue with value '" + String(data_.ssize_) + "' to unsigned long int");
+        "Could not convert negative integer DataValue with value '" + StringUtils::toStr(data_.ssize_) + "' to unsigned long int");
     }
     return data_.ssize_;
   }
@@ -598,7 +585,7 @@ namespace OpenMS
     if (data_.ssize_ < 0.0)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-        "Could not convert negative integer DataValue with value '" + String(data_.ssize_) + "' to unsigned long long");
+        "Could not convert negative integer DataValue with value '" + StringUtils::toStr(data_.ssize_) + "' to unsigned long long");
     }
     return data_.ssize_;
   }
@@ -621,10 +608,10 @@ namespace OpenMS
         return ParamValue(this->toDoubleList());
       case STRING_LIST:
         {
-          // DataValue uses OpenMS::String while ParamValue uses std:string.
+          // DataValue uses std::string while ParamValue uses std:string.
           // Therefore the StringList isn't castable.
           vector<std::string> v;
-          for (const String& s : this->toStringList())
+          for (const std::string& s : this->toStringList())
           {
             v.push_back(s);
           }
@@ -709,7 +696,7 @@ namespace OpenMS
   }
 
   // Convert DataValues to String
-  String DataValue::toString(bool full_precision) const
+  std::string DataValue::toString(bool full_precision) const
   {
     std::stringstream ss;
     switch (value_type_)
@@ -734,9 +721,9 @@ namespace OpenMS
         break;
 
       case DataValue::INT_VALUE: 
-        return String(data_.ssize_);
+        return StringUtils::toStr(data_.ssize_);
       case DataValue::DOUBLE_VALUE: 
-        return String(data_.dou_, full_precision);
+        return StringUtils::toStr(data_.dou_, full_precision);
 
       default:
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
@@ -755,7 +742,7 @@ namespace OpenMS
     else if (*(data_.str_) != "true" &&  *(data_.str_) != "false")
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-        String("Could not convert non-string DataValue of type '") + NamesOfDataType[value_type_] + 
+        std::string("Could not convert non-string DataValue of type '") + NamesOfDataType[value_type_] + 
         "' and value '" + *(data_.str_) + "' to bool. Valid stings are 'true' and 'false'.");
     }
 
@@ -863,9 +850,9 @@ namespace OpenMS
 
     case DataValue::DOUBLE_LIST: os << *(p.data_.dou_list_); break;
 
-    case DataValue::INT_VALUE: os << String(p.data_.ssize_); break; // using our String conversion (faster than os)
+    case DataValue::INT_VALUE: os << StringUtils::toStr(p.data_.ssize_); break;
 
-    case DataValue::DOUBLE_VALUE: os << String(p.data_.dou_); break; // using our String conversion (faster than os)
+    case DataValue::DOUBLE_VALUE: os << StringUtils::toStr(p.data_.dou_); break;
 
     case DataValue::EMPTY_VALUE: break;
 

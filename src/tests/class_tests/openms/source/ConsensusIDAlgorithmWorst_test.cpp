@@ -100,7 +100,7 @@ START_SECTION(void apply(PeptideIdentificationList& ids))
   consensus.setParameters(param);
   // apply:
   PeptideIdentificationList f = ids;
-  map<String,String> empty;
+  map<std::string, std::string> empty;
   consensus.apply(f, empty);
 
   TEST_EQUAL(f.size(), 1);

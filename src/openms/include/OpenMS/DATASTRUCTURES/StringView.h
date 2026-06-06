@@ -84,11 +84,11 @@ namespace OpenMS
       return size_;
     }
 
-    /// create String object from view
-    inline String getString() const
+    /// create std::string object from view
+    inline std::string getString() const
     {
-      if (!size_) return String();
-      return String(begin_, begin_ + size_);
+      if (!size_) return std::string();
+      return std::string(begin_, begin_ + size_);
     }
 
     private:

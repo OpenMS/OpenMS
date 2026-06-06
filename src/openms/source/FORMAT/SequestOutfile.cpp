@@ -21,7 +21,7 @@ namespace OpenMS
 
 #if 0 // useful for debugging
   template <typename ContainerType>
-  void printContainer(std::ostream& os, ContainerType rhs, const String& separator = " ", const String& suffix = "\n", const String& prefix = "\n")
+  void printContainer(std::ostream& os, ContainerType rhs, const std::string& separator = " ", const std::string& suffix = "\n", const std::string& prefix = "\n")
   {
     os << prefix;
     for (typename ContainerType::const_iterator cit = rhs.begin();; )
@@ -58,12 +58,12 @@ namespace OpenMS
     return true;
   }
 
-  void SequestOutfile::load(const String& result_filename,
+  void SequestOutfile::load(const std::string& result_filename,
                             PeptideIdentificationList& peptide_identifications,
                             ProteinIdentification& protein_identification,
                             const double p_value_threshold,
                             vector<double>& pvalues,
-                            const String& database,
+                            const std::string& database,
                             const bool ignore_proteins_per_peptide
                             )
   {
@@ -81,18 +81,12 @@ namespace OpenMS
       pvalues.push_back(0.0); // to make sure pvalues.end() is never reached
     }
     // generally used variables
-    String
-      line,
-      buffer,
-      sequest,
-      sequest_version,
-      database_type,
-      identifier;
+    std::string line, buffer, sequest, sequest_version, database_type, identifier;
 
-    vector<String> substrings;
+    vector<std::string> substrings;
 
     // map the protein hits according to their accession number in the result file
-    map<String, Size> ac_position_map;
+    map<std::string, Size> ac_position_map;
 
     // get the protein hits that have already been found in another out-file
     vector<ProteinHit> protein_hits = protein_identification.getHits();
@@ -103,7 +97,7 @@ namespace OpenMS
       ac_position_map.insert(make_pair(phit_i.getAccession(), ac_position_map.size()));
     }
 
-    String accession, accession_type, score_type;
+    std::string accession, accession_type, score_type;
 
     DateTime datetime;
     double precursor_mz_value(0.0);
@@ -130,7 +124,7 @@ namespace OpenMS
       peptide_column(-1),
       score_column(-1);
 
-    String::size_type
+    std::string::size_type
       start(0),
       end(0);
 
@@ -174,9 +168,9 @@ namespace OpenMS
         line.resize(line.length() - 1);
       }
 
-      line.trim();
+      StringUtils::trim(line);
       ++line_number;
-      if (line.hasPrefix("---"))
+      if (StringUtils::hasPrefix(line, "---"))
       {
         break;
       }
@@ -187,7 +181,7 @@ namespace OpenMS
     peptide_identification.setIdentifier(identifier);
     peptide_identification.setSignificanceThreshold(p_value_threshold);
 
-    vector<String> databases;
+    vector<std::string> databases;
     databases.push_back(database);
 
     score_type = (sf_column == -1) ? "SEQUEST prelim." : "SEQUEST";
@@ -216,7 +210,7 @@ namespace OpenMS
       {
         line.resize(line.length() - 1);
       }
-      line.trim();
+      StringUtils::trim(line);
       if (line.empty())
       {
         continue; // skip empty lines
@@ -236,10 +230,10 @@ namespace OpenMS
       }
 
       // check whether there are multiple proteins that belong to this peptide
-      if (substrings[reference_column].find_last_of('+') != String::npos)
+      if (substrings[reference_column].find_last_of('+') != std::string::npos)
       {
         // save the number of multiple proteins
-        proteins_per_peptide = substrings[reference_column].substr(substrings[reference_column].find_last_of('+')).toInt();
+        proteins_per_peptide = StringUtils::toInt32(substrings[reference_column].substr(substrings[reference_column].find_last_of('+')));
         // and remove this number from the String
         substrings[reference_column].resize(substrings[reference_column].find_last_of('+'));
       }
@@ -251,7 +245,7 @@ namespace OpenMS
       // get the peptide information and insert it
       if (p_value != pvalues.end() && (*p_value) <= p_value_threshold)
       {
-        peptide_hit.setScore(String(substrings[score_column].c_str()).toDouble());
+        peptide_hit.setScore(StringUtils::toDouble(substrings[score_column]));
 
         {
           if (rank_sp_column != (-1))
@@ -264,23 +258,23 @@ namespace OpenMS
           }
           if (mh_column != (-1))
           {
-            peptide_hit.setMetaValue("MH", String(substrings[mh_column].c_str()).toDouble());
+            peptide_hit.setMetaValue("MH",StringUtils::toDouble(substrings[mh_column]));
           }
           if (delta_cn_column != (-1))
           {
-            peptide_hit.setMetaValue("DeltCn", String(substrings[delta_cn_column].c_str()).toDouble());
+            peptide_hit.setMetaValue("DeltCn",StringUtils::toDouble(substrings[delta_cn_column]));
           }
           if (xcorr_column != (-1))
           {
-            peptide_hit.setMetaValue("XCorr", String(substrings[xcorr_column].c_str()).toDouble());
+            peptide_hit.setMetaValue("XCorr",StringUtils::toDouble(substrings[xcorr_column]));
           }
           if (sp_column != (-1))
           {
-            peptide_hit.setMetaValue("Sp", String(substrings[sp_column].c_str()).toDouble());
+            peptide_hit.setMetaValue("Sp",StringUtils::toDouble(substrings[sp_column]));
           }
           if (sf_column != (-1))
           {
-            peptide_hit.setMetaValue("Sf", String(substrings[sf_column].c_str()).toDouble());
+            peptide_hit.setMetaValue("Sf",StringUtils::toDouble(substrings[sf_column]));
           }
           if (ions_column != (-1))
           {
@@ -290,7 +284,7 @@ namespace OpenMS
 
         peptide_hit.setCharge(charge);
 
-        String sequence_with_mods = substrings[peptide_column];
+        std::string sequence_with_mods = substrings[peptide_column];
         start = sequence_with_mods.find('.') + 1;
         end = sequence_with_mods.find_last_of('.');
 
@@ -305,9 +299,9 @@ namespace OpenMS
         }
 
         //remove modifications (small characters and everything that's not in the alphabet)
-        String sequence;
+        std::string sequence;
         sequence_with_mods = substrings[peptide_column].substr(start, end - start);
-        for (String::ConstIterator c_i = sequence_with_mods.begin(); c_i != sequence_with_mods.end(); ++c_i)
+        for (std::string::const_iterator c_i = sequence_with_mods.begin(); c_i != sequence_with_mods.end(); ++c_i)
         {
           if ((bool) isalpha(*c_i) && (bool) isupper(*c_i))
           {
@@ -316,7 +310,7 @@ namespace OpenMS
         }
         peptide_hit.setSequence(AASequence::fromString(sequence));
 
-        peptide_hit.setRank(substrings[rank_sp_column].substr(0, substrings[rank_sp_column].find('/')).toInt());
+        peptide_hit.setRank(StringUtils::toInt32(substrings[rank_sp_column].substr(0, substrings[rank_sp_column].find('/'))));
 
         // get the protein information
         getACAndACType(substrings[reference_column], accession, accession_type);
@@ -342,9 +336,9 @@ namespace OpenMS
               line.resize(line.length() - 1);
             }
 
-            line.trim();
+            StringUtils::trim(line);
             // all these lines look like '0  accession', e.g. '0  gi|1584947|prf||2123446B gamma sar'
-            /*if (!line.hasPrefix("0  ")) // if the line doesn't look like that
+            /*if (!StringUtils::hasPrefix(line, "0  ")) // if the line doesn't look like that
              {
              stringstream error_message;
              error_message << "Line " << line_number << " doesn't look like a line with additional found proteins! (Should look like this: 0  gi|1584947|prf||2123446B gamma sar)";
@@ -407,23 +401,23 @@ namespace OpenMS
   // get the columns from a line
   bool
   SequestOutfile::getColumns(
-    const String& line,
-    vector<String>& substrings,
+    const std::string& line,
+    vector<std::string>& substrings,
     Size number_of_columns,
     Size reference_column)
   {
-    String buffer;
+    std::string buffer;
 
     if (line.empty())
     {
       return false;
     }
-    line.split(' ', substrings);
+    StringUtils::split(line, ' ', substrings);
 
     // remove any empty strings
     substrings.erase(remove(substrings.begin(), substrings.end(), ""), substrings.end());
 
-    for (vector<String>::iterator s_i = substrings.begin(); s_i != substrings.end(); )
+    for (vector<std::string>::iterator s_i = substrings.begin(); s_i != substrings.end(); )
     {
       // if there are three columns, the middle one being a '/', they are merged
       if (s_i + 1 != substrings.end())
@@ -476,7 +470,7 @@ namespace OpenMS
     }
 
     // if there are more columns than should be, there were spaces in the protein column
-    for (vector<String>::iterator s_i = substrings.begin() + reference_column; substrings.size() > number_of_columns; )
+    for (vector<std::string>::iterator s_i = substrings.begin() + reference_column; substrings.size() > number_of_columns; )
     {
       s_i->append(" ");
       s_i->append(*(s_i + 1));
@@ -489,11 +483,11 @@ namespace OpenMS
   // retrieve the sequences
   void
   SequestOutfile::getSequences(
-    const String& database_filename,
-    const map<String, Size>& ac_position_map,
-    vector<String>& sequences,
-    vector<pair<String, Size> >& found,
-    map<String, Size>& not_found)
+    const std::string& database_filename,
+    const map<std::string, Size>& ac_position_map,
+    vector<std::string>& sequences,
+    vector<pair<std::string, Size> >& found,
+    map<std::string, Size>& not_found)
   {
     ifstream database_file(database_filename.c_str());
     if (!database_file)
@@ -512,9 +506,9 @@ namespace OpenMS
       }
     }
 
-    String line, accession, accession_type, sequence;
+    std::string line, accession, accession_type, sequence;
     not_found = ac_position_map;
-    map<String, Size>::iterator nf_i = not_found.end();
+    map<std::string, Size>::iterator nf_i = not_found.end();
     while (getline(database_file, line) && !not_found.empty())
     {
       if (!line.empty() && (line[line.length() - 1] < 33))
@@ -522,17 +516,17 @@ namespace OpenMS
         line.resize(line.length() - 1);
       }
 
-      line.trim();
+      StringUtils::trim(line);
 
       // empty and comment lines are skipped
-      if (line.empty() || line.hasPrefix(";"))
+      if (line.empty() || StringUtils::hasPrefix(line, ";"))
       {
         continue;
       }
       // the sequence belonging to the predecessing protein ('>') is stored, so
       // when a new protein ('>') is found, save the sequence of the old
       // protein
-      if (line.hasPrefix(">"))
+      if (StringUtils::hasPrefix(line, ">"))
       {
         getACAndACType(line, accession, accession_type);
         if (nf_i != not_found.end())
@@ -560,14 +554,14 @@ namespace OpenMS
     database_file.clear();
   }
 
-  void SequestOutfile::getACAndACType(String line, String& accession, String& accession_type)
+  void SequestOutfile::getACAndACType(std::string line, std::string& accession, std::string& accession_type)
   {
-    String swissprot_prefixes = "JLOPQUX";
+    std::string swissprot_prefixes = "JLOPQUX";
     /// @todo replace this by general FastA implementation? (Martin)
     accession.clear();
     accession_type.clear();
     // if it's a FASTA line
-    if (line.hasPrefix(">"))
+    if (StringUtils::hasPrefix(line, ">"))
     {
       line.erase(0, 1);
     }
@@ -575,24 +569,24 @@ namespace OpenMS
     {
       line.resize(line.length() - 1);
     }
-    line.trim();
+    StringUtils::trim(line);
 
     // if it's a swissprot accession
-    if (line.hasPrefix("tr") || line.hasPrefix("sp"))
+    if (StringUtils::hasPrefix(line, "tr") || StringUtils::hasPrefix(line, "sp"))
     {
-      accession = line.substr(3, line.find('|', 3) - 3);
+      accession = StringUtils::substr(line, 3, line.find('|', 3) - 3);
       accession_type = "SwissProt";
     }
-    else if (line.hasPrefix("gi"))
+    else if (StringUtils::hasPrefix(line, "gi"))
     {
-      String::size_type snd(line.find('|', 3));
-      String::size_type third(0);
-      if (snd != String::npos)
+      std::string::size_type snd(line.find('|', 3));
+      std::string::size_type third(0);
+      if (snd != std::string::npos)
       {
         third = line.find('|', ++snd) + 1;
 
-        accession = line.substr(third, line.find('|', third) - third);
-        accession_type = line.substr(snd, third - 1 - snd);
+        accession = StringUtils::substr(line, third, line.find('|', third) - third);
+        accession_type = StringUtils::substr(line, snd, third - 1 - snd);
       }
       if (accession_type == "gb")
       {
@@ -619,34 +613,34 @@ namespace OpenMS
         accession_type = accession;
         snd = line.find('|', third);
         third = line.find('|', ++snd);
-        if (third != String::npos)
+        if (third != std::string::npos)
         {
-          accession = line.substr(snd, third - snd);
+          accession = StringUtils::substr(line, snd, third - snd);
         }
         else
         {
           third = line.find(' ', snd);
-          if (third != String::npos)
+          if (third != std::string::npos)
           {
-            accession = line.substr(snd, third - snd);
+            accession = StringUtils::substr(line, snd, third - snd);
           }
           else
           {
-            accession = line.substr(snd);
+            accession = StringUtils::substr(line, snd);
           }
         }
       }
       else
       {
-        String::size_type pos1(line.find('(', 0));
-        String::size_type pos2(0);
-        if (pos1 != String::npos)
+        std::string::size_type pos1(line.find('(', 0));
+        std::string::size_type pos2(0);
+        if (pos1 != std::string::npos)
         {
           pos2 = line.find(')', ++pos1);
-          if (pos2 != String::npos)
+          if (pos2 != std::string::npos)
           {
-            accession = line.substr(pos1, pos2 - pos1);
-            if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+            accession = StringUtils::substr(line, pos1, pos2 - pos1);
+            if ((accession.size() == 6) && (StringUtils::toStr(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
             {
               accession_type = "SwissProt";
             }
@@ -659,37 +653,37 @@ namespace OpenMS
         if (accession.empty())
         {
           accession_type = "gi";
-          if (snd != String::npos)
+          if (snd != std::string::npos)
           {
-            accession = line.substr(3, snd - 4);
+            accession = StringUtils::substr(line, 3, snd - 4);
           }
           else
           {
             snd = line.find(' ', 3);
-            if (snd != String::npos)
+            if (snd != std::string::npos)
             {
-              accession = line.substr(3, snd - 3);
+              accession = StringUtils::substr(line, 3, snd - 3);
             }
             else
             {
-              accession = line.substr(3);
+              accession = StringUtils::substr(line, 3);
             }
           }
         }
       }
     }
-    else if (line.hasPrefix("ref"))
+    else if (StringUtils::hasPrefix(line, "ref"))
     {
-      accession = line.substr(4, line.find('|', 4) - 4);
+      accession = StringUtils::substr(line, 4, line.find('|', 4) - 4);
       accession_type = "NCBI";
     }
-    else if (line.hasPrefix("gnl"))
+    else if (StringUtils::hasPrefix(line, "gnl"))
     {
       line.erase(0, 3);
-      accession_type = line.substr(0, line.find('|', 0));
-      accession = line.substr(accession_type.length() + 1);
+      accession_type = StringUtils::substr(line, 0, line.find('|', 0));
+      accession = StringUtils::substr(line, accession_type.length() + 1);
     }
-    else if (line.hasPrefix("lcl"))
+    else if (StringUtils::hasPrefix(line, "lcl"))
     {
       line.erase(0, 4);
       accession_type = "lcl";
@@ -697,15 +691,15 @@ namespace OpenMS
     }
     else
     {
-      String::size_type pos1(line.find('(', 0));
-      String::size_type pos2(0);
-      if (pos1 != String::npos)
+      std::string::size_type pos1(line.find('(', 0));
+      std::string::size_type pos2(0);
+      if (pos1 != std::string::npos)
       {
         pos2 = line.find(')', ++pos1);
-        if (pos2 != String::npos)
+        if (pos2 != std::string::npos)
         {
-          accession = line.substr(pos1, pos2 - pos1);
-          if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+          accession = StringUtils::substr(line, pos1, pos2 - pos1);
+          if ((accession.size() == 6) && (StringUtils::toStr(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
           {
             accession_type = "SwissProt";
           }
@@ -718,23 +712,23 @@ namespace OpenMS
       if (accession.empty())
       {
         pos1 = line.find('|');
-        accession = line.substr(0, pos1);
-        if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+        accession = StringUtils::substr(line, 0, pos1);
+        if ((accession.size() == 6) && (StringUtils::toStr(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
         {
           accession_type = "SwissProt";
         }
         else
         {
           pos1 = line.find(' ');
-          accession = line.substr(0, pos1);
-          if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+          accession = StringUtils::substr(line, 0, pos1);
+          if ((accession.size() == 6) && (StringUtils::toStr(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
           {
             accession_type = "SwissProt";
           }
           else
           {
-            accession = line.substr(0, 6);
-            if (String(swissprot_prefixes).find(accession[0], 0) != String::npos)
+            accession = StringUtils::substr(line, 0, 6);
+            if (StringUtils::toStr(swissprot_prefixes).find(accession[0], 0) != std::string::npos)
             {
               accession_type = "SwissProt";
             }
@@ -748,22 +742,22 @@ namespace OpenMS
     }
     if (accession.empty())
     {
-      accession = line.trim();
+      accession = StringUtils::trim(line);
       accession_type = "unknown";
     }
   }
 
   void SequestOutfile::readOutHeader(
-    const String& result_filename,
+    const std::string& result_filename,
     DateTime& datetime,
     double& precursor_mz_value,
     Int& charge,
     Size& precursor_mass_type,
     Size& ion_mass_type,
     Size& displayed_peptides,
-    String& sequest,
-    String& sequest_version,
-    String& database_type,
+    std::string& sequest,
+    std::string& sequest_version,
+    std::string& database_type,
     Int& number_column,
     Int& rank_sp_column,
     Int& id_column,
@@ -801,8 +795,8 @@ namespace OpenMS
       }
     }
 
-    String line, buffer;
-    vector<String> substrings;
+    std::string line, buffer;
+    vector<std::string> substrings;
 
     // get the date and time
     DateTime datetime_empty;
@@ -815,10 +809,10 @@ namespace OpenMS
       {
         line.resize(line.length() - 1);
       }
-      line.trim();
-      line.split(',', substrings);
+      StringUtils::trim(line);
+      StringUtils::split(line, ',', substrings);
 
-      if (line.hasSuffix(".out")) // next line is the sequest version
+      if (StringUtils::hasSuffix(line, ".out")) // next line is the sequest version
       {
         // \\bude\langwisc\temp\Inspect_Sequest.mzXML.13.1.d.out
         // TurboSEQUEST v.27 (rev. 12), (c) 1998-2005
@@ -832,56 +826,56 @@ namespace OpenMS
         {
           line.resize(line.length() - 1);
         }
-        line.trim();
+        StringUtils::trim(line);
 
-        if (line.hasSubstring(","))
+        if (StringUtils::hasSubstring(line, ","))
         {
-          line = line.substr(0, line.find(',', 0));
+          line = StringUtils::substr(line, 0, line.find(',', 0));
         }
         buffer = line;
-        buffer.toUpper();
-        if (!buffer.hasSubstring("SEQUEST"))
+        StringUtils::toUpper(buffer);
+        if (!StringUtils::hasSubstring(buffer, "SEQUEST"))
         {
           result_file.close();
           result_file.clear();
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No Sequest version found!", result_filename);
         }
         // the search engine
-        String::size_type pos(0), pos1(0);
+        std::string::size_type pos(0), pos1(0);
         pos1 = buffer.find("SEQUEST", 0) + strlen("SEQUEST");
         pos = line.find(' ', 0);
-        if (pos == String::npos || pos >= pos1)
+        if (pos == std::string::npos || pos >= pos1)
         {
-          sequest = line.substr(0, pos1);
+          sequest = StringUtils::substr(line, 0, pos1);
           pos = 0;
         }
         else
-          sequest = line.substr(pos, pos1 - pos);
+          sequest = StringUtils::substr(line, pos, pos1 - pos);
         // the version
         pos = line.find(' ', pos1);
-        if (pos != String::npos)
+        if (pos != std::string::npos)
         {
           pos1 = line.find(',', ++pos);
-          if (pos1 == String::npos)
+          if (pos1 == std::string::npos)
           {
-              sequest_version = line.substr(pos);
+              sequest_version = StringUtils::substr(line, pos);
           }
           else
           {
-            sequest_version = line.substr(pos, pos1 - pos);
+            sequest_version = StringUtils::substr(line, pos, pos1 - pos);
           }
         } // else no version was found
       }
-      else if (line.hasPrefix("(M+H)+ mass = "))
+      else if (StringUtils::hasPrefix(line, "(M+H)+ mass = "))
       {
         line.erase(0, strlen("(M+H)+ mass = "));
-        line.split(' ', substrings);
-        precursor_mz_value = substrings[0].toFloat();
-        charge = substrings[3].substr(1, 2).toInt();
+        StringUtils::split(line, ' ', substrings);
+        precursor_mz_value = StringUtils::toFloat(substrings[0]);
+        charge = StringUtils::toInt32(substrings[3].substr(1, 2));
         line = *(--substrings.end());
-        line.split('/', substrings);
-        substrings[0].toUpper();
-        substrings[1].toUpper();
+        StringUtils::split(line, '/', substrings);
+        StringUtils::toUpper(substrings[0]);
+        StringUtils::toUpper(substrings[1]);
         precursor_mass_type = (substrings[0] == "MONO") ? 1 : 0;
         ion_mass_type = (substrings[1] == "MONO") ? 1 : 0;
       }
@@ -889,10 +883,10 @@ namespace OpenMS
       {
         datetime.setDate(substrings[0]);
         buffer = substrings[1];
-        buffer.trim();
-        buffer.split(' ', substrings);
+        StringUtils::trim(buffer);
+        StringUtils::split(buffer, ' ', substrings);
         // 12:00 = 12:00 PM; 24:00 = 12:00 AM
-        Int hour = substrings[0].substr(0, 2).toInt();
+        Int hour = StringUtils::toInt32(substrings[0].substr(0, 2));
         if ((hour == 12) && (substrings[1] == "AM"))
         {
           substrings[0].replace(0, 2, "00");
@@ -900,25 +894,25 @@ namespace OpenMS
         else if ((hour != 12) && (substrings[1] == "PM"))
         {
           hour += 12;
-          substrings[0].replace(0, 2, String(hour));
+          substrings[0].replace(0, 2,StringUtils::toStr(hour));
         }
         substrings[0].append(":00");
         datetime.setTime(substrings[0]);
       }
-      else if (line.hasPrefix("# bases"))
+      else if (StringUtils::hasPrefix(line, "# bases"))
       {
           database_type = "bases";
       }
-      else if (line.hasPrefix("# amino acids"))
+      else if (StringUtils::hasPrefix(line, "# amino acids"))
       {
         database_type = "amino acids";
       }
-      else if (line.hasPrefix("display top") && substrings[0].hasPrefix("display top")) // get the number of peptides displayed
+      else if (StringUtils::hasPrefix(line, "display top") && StringUtils::hasPrefix(substrings[0], "display top")) // get the number of peptides displayed
       {
         displayed_peptides = strlen("display top ");
-        displayed_peptides = substrings[0].substr(displayed_peptides, substrings[0].find('/', displayed_peptides) - displayed_peptides).toInt();
+        displayed_peptides = StringUtils::toInt32(substrings[0].substr(displayed_peptides, substrings[0].find('/', displayed_peptides) - displayed_peptides));
       }
-      else if (line.hasPrefix("#"))
+      else if (StringUtils::hasPrefix(line, "#"))
       {
         break; // the header is read
       }
@@ -955,7 +949,7 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No charge found!", result_filename);
     }
 
-    if (!line.hasPrefix("#")) // check whether the header line was found
+    if (!StringUtils::hasPrefix(line, "#")) // check whether the header line was found
     {
       result_file.close();
       result_file.clear();
@@ -977,12 +971,12 @@ namespace OpenMS
     peptide_column = -1;
 
     // get the single columns
-    line.split(' ', substrings);
+    StringUtils::split(line, ' ', substrings);
 
     // remove the empty strings
-    for (vector<String>::iterator i = substrings.begin(); i != substrings.end(); )
+    for (vector<std::string>::iterator i = substrings.begin(); i != substrings.end(); )
     {
-      i->trim();
+      StringUtils::trim(*i);
       if (i->empty())
       {
           i = substrings.erase(i);
@@ -995,7 +989,7 @@ namespace OpenMS
     number_of_columns = substrings.size();
 
     // get the numbers of the columns
-    for (vector<String>::const_iterator iter = substrings.begin(); iter != substrings.end(); ++iter)
+    for (vector<std::string>::const_iterator iter = substrings.begin(); iter != substrings.end(); ++iter)
     {
       if (!iter->compare("#"))
       {
@@ -1127,9 +1121,9 @@ namespace OpenMS
 //          while ( getline(out_file, line) ) // skip all lines until the one with '---'
 //          {
 //              if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
-//              line.trim();
+//              StringUtils::trim(line);
 //              ++line_number;
-//              if ( line.hasPrefix("---") ) break;
+//              if ( StringUtils::hasPrefix(line, "---") ) break;
 //          }
 //
 //          // needed: XCorr, peptide length, delta Cn, rankSp, delta Mass
@@ -1138,7 +1132,7 @@ namespace OpenMS
 //              if ( !getline(out_file, line) ) break; // if fewer peptides were found than may be displayed, break
 //              ++line_number;
 //              if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
-//              line.trim();
+//              StringUtils::trim(line);
 //              if ( line.empty() ) continue;
 //
 //              getColumns(line, substrings, number_of_columns, reference_column);
@@ -1157,7 +1151,7 @@ namespace OpenMS
 //              delta_mass = precursor_mz_value - substrings[mh_column].toFloat();
 //              buffer = substrings[peptide_column].substr(2, substrings[peptide_column].length() - 4);
 //              // remove all ptms
-//              for ( String::ConstIterator c_i = buffer.begin(); c_i != buffer.end(); ++c_i )
+//              for ( std::string::const_iterator c_i = buffer.begin(); c_i != buffer.end(); ++c_i )
 //              {
 //                  if ( (bool) isalpha(*c_i) && (bool) isupper(*c_i) ) sequence.append(1, *c_i);
 //              }
@@ -1171,7 +1165,7 @@ namespace OpenMS
 //              current_discriminant_scores.push_back(discriminant_score);
 //
 //              // if there are multiple proteins that belong to this peptide, skip these lines
-//              if ( substrings[reference_column].find_last_of('+') != String::npos )
+//              if ( substrings[reference_column].find_last_of('+') != std::string::npos )
 //              {
 //                  proteins_per_peptide = substrings[reference_column].substr(substrings[reference_column].find_last_of('+')).toInt();
 //                  for ( Size prot = 0; prot < proteins_per_peptide; ++prot ) getline(out_file, line);

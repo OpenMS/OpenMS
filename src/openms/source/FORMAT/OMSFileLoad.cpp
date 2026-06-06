@@ -26,7 +26,7 @@ using ID = OpenMS::IdentificationData;
 namespace OpenMS::Internal
 {
   // initialize lookup table:
-  map<String, String> OMSFileLoad::export_order_by_ = {
+  map<std::string, std::string> OMSFileLoad::export_order_by_ = {
     {"version", ""},
     {"ID_IdentifiedCompound", "molecule_id"},
     {"ID_ParentMatch", "molecule_id, parent_id, start_pos, end_pos"},
@@ -40,7 +40,7 @@ namespace OpenMS::Internal
   };
 
 
-  OMSFileLoad::OMSFileLoad(const String& filename, LogType log_type):
+  OMSFileLoad::OMSFileLoad(const std::string& filename, LogType log_type):
     db_(make_unique<SQLite::Database>(filename))
   {
     setLogType(log_type);
@@ -76,7 +76,7 @@ namespace OpenMS::Internal
   //   // this assumes that the "CVTerm" table exists!
   //   SQLite::Statement query(db_);
   //
-  //   String sql_select = "SELECT * FROM CVTerm WHERE id = " + String(id);
+  //   std::string sql_select = "SELECT * FROM CVTerm WHERE id = " + StringUtils::toStr(id);
   //   if (!query.exec(sql_select) || !query.executeStep())
   //   {
   //     raiseDBError_(model.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -93,7 +93,7 @@ namespace OpenMS::Internal
     if (!db_->tableExists("ID_ScoreType")) return;
     if (!db_->tableExists("CVTerm")) // every score type is a CV term
     {
-      String msg = "required database table 'CVTerm' not found";
+      std::string msg = "required database table 'CVTerm' not found";
       throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -123,8 +123,8 @@ namespace OpenMS::Internal
     {
       ID::InputFile input(query.getColumn("name").getString(),
                           query.getColumn("experimental_design_id").getString());
-      String primary_files = query.getColumn("primary_files").getString();
-      vector<String> pf_list = ListUtils::create<String>(primary_files);
+      std::string primary_files = query.getColumn("primary_files").getString();
+      vector<std::string> pf_list = ListUtils::create<std::string>(primary_files);
       input.primary_files.insert(pf_list.begin(), pf_list.end());
       ID::InputFileRef ref = id_data.registerInputFile(input);
       input_file_refs_[query.getColumn("id").getInt64()] = ref;
@@ -172,24 +172,24 @@ namespace OpenMS::Internal
     DataValue::DataType type = DataValue::EMPTY_VALUE;
     int type_index = query.getColumn("data_type_id").getInt();
     if (type_index > 0) type = DataValue::DataType(type_index - 1);
-    String value = query.getColumn("value").getString();
+    std::string value = query.getColumn("value").getString();
     switch (type)
     {
     case DataValue::STRING_VALUE:
       return DataValue(value);
     case DataValue::INT_VALUE:
-      return DataValue(value.toInt());
+      return DataValue(StringUtils::toInt32(value));
     case DataValue::DOUBLE_VALUE:
-      return DataValue(value.toDouble());
-    // converting lists to String adds square brackets - remove them:
+      return DataValue(StringUtils::toDouble(value));
+    // converting lists to std::string adds square brackets - remove them:
     case DataValue::STRING_LIST:
-      value = value.substr(1, value.size() - 2);
-      return DataValue(ListUtils::create<String>(value));
+      value = StringUtils::substr(value, 1, value.size() - 2);
+      return DataValue(ListUtils::create<std::string>(value));
     case DataValue::INT_LIST:
-      value = value.substr(1, value.size() - 2);
+      value = StringUtils::substr(value, 1, value.size() - 2);
       return DataValue(ListUtils::create<int>(value));
     case DataValue::DOUBLE_LIST:
-      value = value.substr(1, value.size() - 2);
+      value = StringUtils::substr(value, 1, value.size() - 2);
       return DataValue(ListUtils::create<double>(value));
     default: // DataValue::EMPTY_VALUE (avoid warning about missing return)
       return DataValue();
@@ -198,12 +198,12 @@ namespace OpenMS::Internal
 
 
   bool OMSFileLoad::prepareQueryMetaInfo_(SQLite::Statement& query,
-                                          const String& parent_table)
+                                          const std::string& parent_table)
   {
-    String table_name = parent_table + "_MetaInfo";
+    std::string table_name = parent_table + "_MetaInfo";
     if (!db_->tableExists(table_name)) return false;
 
-    String sql_select =
+    std::string sql_select =
     "SELECT * FROM " + table_name + " AS MI " \
     "WHERE MI.parent_id = :id";
 
@@ -220,13 +220,13 @@ namespace OpenMS::Internal
 
 
   bool OMSFileLoad::prepareQueryAppliedProcessingStep_(SQLite::Statement& query,
-                                                       const String& parent_table)
+                                                       const std::string& parent_table)
   {
-    String table_name = parent_table + "_AppliedProcessingStep";
+    std::string table_name = parent_table + "_AppliedProcessingStep";
     if (!db_->tableExists(table_name)) return false;
 
     //
-    String sql_select = "SELECT * FROM " + table_name +
+    std::string sql_select = "SELECT * FROM " + table_name +
       " WHERE parent_id = :id ORDER BY processing_step_order ASC";
     query = SQLite::Statement(*db_, sql_select);
     return true;
@@ -293,11 +293,11 @@ namespace OpenMS::Internal
       vector<Int> charges =
         ListUtils::create<Int>(query.getColumn("charges").getString());
       param.charges.insert(charges.begin(), charges.end());
-      vector<String> fixed_mods =
-        ListUtils::create<String>(query.getColumn("fixed_mods").getString());
+      vector<std::string> fixed_mods =
+        ListUtils::create<std::string>(query.getColumn("fixed_mods").getString());
       param.fixed_mods.insert(fixed_mods.begin(), fixed_mods.end());
-      vector<String> variable_mods =
-        ListUtils::create<String>(query.getColumn("variable_mods").getString());
+      vector<std::string> variable_mods =
+        ListUtils::create<std::string>(query.getColumn("variable_mods").getString());
       param.variable_mods.insert(variable_mods.begin(), variable_mods.end());
       param.precursor_mass_tolerance =
         query.getColumn("precursor_mass_tolerance").getDouble();
@@ -307,7 +307,7 @@ namespace OpenMS::Internal
         query.getColumn("precursor_tolerance_ppm").getInt();
       param.fragment_tolerance_ppm =
         query.getColumn("fragment_tolerance_ppm").getInt();
-      String enzyme = query.getColumn("digestion_enzyme").getString();
+      std::string enzyme = query.getColumn("digestion_enzyme").getString();
       if (!enzyme.empty())
       {
         if (param.molecule_type == ID::MoleculeType::PROTEIN)
@@ -321,7 +321,7 @@ namespace OpenMS::Internal
       }
       if (version_number_ > 1)
       {
-        String spec = query.getColumn("enzyme_term_specificity").getString();
+        std::string spec = query.getColumn("enzyme_term_specificity").getString();
         param.enzyme_term_specificity = EnzymaticDigestion::getSpecificityByName(spec);
       }
       param.missed_cleavages = query.getColumn("missed_cleavages").getUInt();
@@ -355,7 +355,7 @@ namespace OpenMS::Internal
       Key id = query.getColumn("id").getInt64();
       Key software_id = query.getColumn("software_id").getInt64();
       ID::ProcessingStep step(processing_software_refs_[software_id]);
-      String date_time = query.getColumn("date_time").getString();
+      std::string date_time = query.getColumn("date_time").getString();
       if (!date_time.empty()) step.date_time.set(date_time);
       if (have_input_files)
       {
@@ -432,7 +432,7 @@ namespace OpenMS::Internal
 
     while (query.executeStep())
     {
-      String accession = query.getColumn("accession").getString();
+      std::string accession = query.getColumn("accession").getString();
       ID::ParentSequence parent(accession);
       int molecule_type_index = query.getColumn("molecule_type_id").getInt() - 1;
       parent.molecule_type = ID::MoleculeType(molecule_type_index);
@@ -460,7 +460,7 @@ namespace OpenMS::Internal
     if (!db_->tableExists("ID_ParentGroupSet")) return;
 
     // "grouping_order" column was removed in schema version 3:
-    String order_by = version_number_ > 2 ? "id" : "grouping_order";
+    std::string order_by = version_number_ > 2 ? "id" : "grouping_order";
 
     SQLite::Statement query(*db_, "SELECT * FROM ID_ParentGroupSet ORDER BY " + order_by + " ASC");
     // @TODO: can we combine handling of meta info and applied processing steps?
@@ -613,7 +613,7 @@ namespace OpenMS::Internal
     while (query.executeStep())
     {
       Key id = query.getColumn("id").getInt64();
-      String sequence = query.getColumn("identifier").getString();
+      std::string sequence = query.getColumn("identifier").getString();
       ID::IdentifiedPeptide peptide(AASequence::fromString(sequence));
       if (have_meta_info)
       {
@@ -637,7 +637,7 @@ namespace OpenMS::Internal
     while (query.executeStep())
     {
       Key id = query.getColumn("id").getInt64();
-      String sequence = query.getColumn("identifier").getString();
+      std::string sequence = query.getColumn("identifier").getString();
       ID::IdentifiedOligo oligo(NASequence::fromString(sequence));
       if (have_meta_info)
       {
@@ -786,7 +786,7 @@ namespace OpenMS::Internal
   }
 
   template <class MapType>
-  String OMSFileLoad::loadMapMetaDataTemplate_(MapType& features)
+  std::string OMSFileLoad::loadMapMetaDataTemplate_(MapType& features)
   {
     if (!db_->tableExists("FEAT_MapMetaData")) return "";
 
@@ -796,8 +796,8 @@ namespace OpenMS::Internal
     features.setUniqueId(id);
     features.setIdentifier(query.getColumn("identifier").getString());
     features.setLoadedFilePath(query.getColumn("file_path").getString());
-    String file_type = query.getColumn("file_type").getString();
-    features.setLoadedFilePath(FileTypes::nameToType(file_type));
+    std::string file_type = query.getColumn("file_type").getString();
+    features.setLoadedFileType(file_type);
     SQLite::Statement query_meta(*db_, "");
     if (prepareQueryMetaInfo_(query_meta, "FEAT_MapMetaData"))
     {
@@ -808,8 +808,8 @@ namespace OpenMS::Internal
   }
 
   // template specializations:
-  template String OMSFileLoad::loadMapMetaDataTemplate_<FeatureMap>(FeatureMap&);
-  template String OMSFileLoad::loadMapMetaDataTemplate_<ConsensusMap>(ConsensusMap&);
+  template std::string OMSFileLoad::loadMapMetaDataTemplate_<FeatureMap>(FeatureMap&);
+  template std::string OMSFileLoad::loadMapMetaDataTemplate_<ConsensusMap>(ConsensusMap&);
 
 
   void OMSFileLoad::loadMapMetaData_(FeatureMap& features)
@@ -819,7 +819,7 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadMapMetaData_(ConsensusMap& consensus)
   {
-    String experiment_type = loadMapMetaDataTemplate_(consensus);
+    std::string experiment_type = loadMapMetaDataTemplate_(consensus);
     consensus.setExperimentType(experiment_type);
   }
 
@@ -829,7 +829,7 @@ namespace OpenMS::Internal
     if (!db_->tableExists("FEAT_DataProcessing")) return;
 
     // "position" column was removed in schema version 3:
-    String order_by = version_number_ > 2 ? "id" : "position";
+    std::string order_by = version_number_ > 2 ? "id" : "position";
     SQLite::Statement query(*db_, "SELECT * FROM FEAT_DataProcessing ORDER BY " + order_by + " ASC");
 
     SQLite::Statement subquery_info(*db_, "");
@@ -841,9 +841,9 @@ namespace OpenMS::Internal
       Software sw(query.getColumn("software_name").getString(),
                   query.getColumn("software_version").getString());
       proc.setSoftware(sw);
-      vector<String> actions =
-        ListUtils::create<String>(query.getColumn("processing_actions").getString());
-      for (const String& action : actions)
+      vector<std::string> actions =
+        ListUtils::create<std::string>(query.getColumn("processing_actions").getString());
+      for (const std::string& action : actions)
       {
         auto pos = find(begin(DataProcessing::NamesOfProcessingAction),
                           end(DataProcessing::NamesOfProcessingAction), action);
@@ -953,7 +953,7 @@ namespace OpenMS::Internal
     }
     // subordinates:
     string from = (version_number_ < 5) ? "FEAT_Feature" : "FEAT_BaseFeature JOIN FEAT_Feature ON id = feature_id";
-    SQLite::Statement query_sub(*db_, "SELECT * FROM " + from + " WHERE subordinate_of = " + String(id) + " ORDER BY id ASC");
+    SQLite::Statement query_sub(*db_, "SELECT * FROM " + from + " WHERE subordinate_of = " + StringUtils::toStr(id) + " ORDER BY id ASC");
     while (query_sub.executeStep())
     {
       Feature sub = loadFeatureAndSubordinates_(query_sub, query_meta,
@@ -1043,7 +1043,7 @@ namespace OpenMS::Internal
             ratio.ratio_value_ = query_ratio.getColumn("ratio_value").getDouble();
             ratio.denominator_ref_ = query_ratio.getColumn("denominator_ref").getString();
             ratio.numerator_ref_ = query_ratio.getColumn("numerator_ref").getString();
-            ratio.description_ = ListUtils::create<String>(query_ratio.getColumn("description").getString());
+            ratio.description_ = ListUtils::create<std::string>(query_ratio.getColumn("description").getString());
           }
           query_ratio.reset(); // get ready for new executeStep()
         }
@@ -1100,11 +1100,11 @@ namespace OpenMS::Internal
 
 
   // file-local helper (was private method, moved here to avoid nlohmann include in header)
-  static nlohmann::json exportTableToJSON_(SQLite::Database& db, const String& table, const String& order_by)
+  static nlohmann::json exportTableToJSON_(SQLite::Database& db, const std::string& table, const std::string& order_by)
   {
     using json = nlohmann::json;
     // code based on: https://stackoverflow.com/a/18067555
-    String sql = "SELECT * FROM " + table;
+    std::string sql = "SELECT * FROM " + table;
     if (!order_by.empty())
     {
       sql += " ORDER BY " + order_by;
@@ -1150,14 +1150,14 @@ namespace OpenMS::Internal
     SQLite::Statement query(*db_, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
     while (query.executeStep())
     {
-      String table = query.getColumn("name").getString();
-      String order_by = "id"; // row order for most tables
+      std::string table = query.getColumn("name").getString();
+      std::string order_by = "id"; // row order for most tables
       // special cases regarding ordering, e.g. tables without "id" column:
-      if (table.hasSuffix("_MetaInfo"))
+      if (StringUtils::hasSuffix(table, "_MetaInfo"))
       {
         order_by = "parent_id, name";
       }
-      else if (table.hasSuffix("_AppliedProcessingStep"))
+      else if (StringUtils::hasSuffix(table, "_AppliedProcessingStep"))
       {
         order_by = "parent_id, processing_step_order, score_type_id";
       }

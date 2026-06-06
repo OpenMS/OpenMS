@@ -37,17 +37,17 @@ START_SECTION((~ControlledVocabulary()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(const String& name() const)
+START_SECTION(const std::string& name() const)
 	TEST_EQUAL(ControlledVocabulary().name(),"")
 END_SECTION
 
 ControlledVocabulary cv;
-START_SECTION(void loadFromOBO(const String &name, const String &filename))
+START_SECTION(void loadFromOBO(const std::string &name, const std::string &filename))
 	cv.loadFromOBO("bla",OPENMS_GET_TEST_DATA_PATH("ControlledVocabulary.obo"));
 	TEST_EQUAL(cv.name(),"bla")
 END_SECTION
 
-START_SECTION(bool exists(const String& id) const)
+START_SECTION(bool exists(const std::string& id) const)
 	TEST_EQUAL(cv.exists("OpenMS:1"),true)
 	TEST_EQUAL(cv.exists("OpenMS:2"),true)
 	TEST_EQUAL(cv.exists("OpenMS:3"),true)
@@ -57,7 +57,7 @@ START_SECTION(bool exists(const String& id) const)
 	TEST_EQUAL(cv.exists("OpenMS:7"),false)
 END_SECTION
 
-START_SECTION(const CVTerm& getTerm(const String& id) const)
+START_SECTION(const CVTerm& getTerm(const std::string& id) const)
 	const ControlledVocabulary::CVTerm* term=nullptr;
 	//Auto
 	term = &(cv.getTerm("OpenMS:1"));
@@ -123,7 +123,7 @@ START_SECTION(const CVTerm& getTerm(const String& id) const)
 	TEST_EXCEPTION(Exception::InvalidValue, cv.getTerm("OpenMS:7"))
 END_SECTION
 
-START_SECTION(bool isChildOf(const String& child, const String& parent) const)
+START_SECTION(bool isChildOf(const std::string& child, const std::string& parent) const)
 	TEST_EQUAL(cv.isChildOf("OpenMS:6","OpenMS:2"),true)
 	TEST_EQUAL(cv.isChildOf("OpenMS:5","OpenMS:2"),true)
 	TEST_EQUAL(cv.isChildOf("OpenMS:2","OpenMS:1"),true)
@@ -149,8 +149,8 @@ START_SECTION((const Map<String, CVTerm>& getTerms() const))
 
 END_SECTION
 
-START_SECTION((void getAllChildTerms(std::set<String>& terms, const String& parent) const))
-	set<String> terms;
+START_SECTION((void getAllChildTerms(std::set<std::string>& terms, const std::string& parent) const))
+	set<std::string> terms;
 	cv.getAllChildTerms(terms, "OpenMS:2");
 	TEST_EQUAL(terms.size(), 2)
 	TEST_EQUAL(terms.find("OpenMS:2") == terms.end(), true)
@@ -158,7 +158,7 @@ START_SECTION((void getAllChildTerms(std::set<String>& terms, const String& pare
 END_SECTION
 
 START_SECTION((void addAllChildTerms(std::set<String>& terms, const String& parent) const))
-	set<String> terms;
+	set<std::string> terms;
 	cv.addAllChildTerms(terms, "OpenMS:2");
 	// unlike getAllChildTerms, the parent term itself is included
 	TEST_EQUAL(terms.size(), 3)
@@ -173,7 +173,7 @@ START_SECTION((void addAllChildTerms(std::set<String>& terms, const String& pare
 	TEST_EQUAL(terms.find("OpenMS:4") == terms.end(), false)
 
 	// an unknown parent must throw without leaving the output set partially modified
-	set<String> untouched;
+	set<std::string> untouched;
 	untouched.insert("sentinel");
 	TEST_EXCEPTION(Exception::InvalidValue, cv.addAllChildTerms(untouched, "OpenMS:7"))
 	TEST_EQUAL(untouched.size(), 1)
@@ -193,7 +193,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] CVTerm()))
 END_SECTION
 
 
-START_SECTION(([ControlledVocabulary::CVTerm] static String getXRefTypeName(XRefType type)))
+START_SECTION(([ControlledVocabulary::CVTerm] static std::string getXRefTypeName(XRefType type)))
 {
   TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_STRING), "xsd:string")
   TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER), "xsd:integer")
@@ -219,20 +219,20 @@ START_SECTION(([ControlledVocabulary::CVTerm] bool ControlledVocabulary::CVTerm:
 }
 END_SECTION
 
-START_SECTION(([ControlledVocabulary::CVTerm] String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const String& value) const))
+START_SECTION(([ControlledVocabulary::CVTerm] std::string ControlledVocabulary::CVTerm::toXMLString(const std::string& ref, const std::string& value) const))
 {
   ControlledVocabulary cv;
   cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-  String ref = R"(<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="12.5"/>)";
-  TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS", String("12.5")),ref)
+  std::string ref = R"(<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="12.5"/>)";
+  TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS",StringUtils::toStr("12.5")),ref)
 }
 END_SECTION
 
-START_SECTION(([ControlledVocabulary::CVTerm] String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const OpenMS::DataValue& value) const))
+START_SECTION(([ControlledVocabulary::CVTerm] std::string ControlledVocabulary::CVTerm::toXMLString(const std::string& ref, const OpenMS::DataValue& value) const))
 {
   ControlledVocabulary cv;
   cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-  String ref = R"(<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="12.5"/>)";
+  std::string ref = R"(<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="12.5"/>)";
   OpenMS::DataValue val = 12.5;
   TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS",val),ref)
 }
@@ -248,10 +248,10 @@ START_SECTION(([ControlledVocabulary::CVTerm] CVTerm(const CVTerm &rhs)))
   a.children.insert("test_children");
   a.obsolete = true;
   a.description = "test_description";
-  a.synonyms = ListUtils::create<String>("test,synonyms");
-  a.unparsed = ListUtils::create<String>("test,unparsed");
+  a.synonyms = ListUtils::create<std::string>("test,synonyms");
+  a.unparsed = ListUtils::create<std::string>("test,unparsed");
   a.xref_type = ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL;
-  a.xref_binary = ListUtils::create<String>("test,xref_binary");
+  a.xref_binary = ListUtils::create<std::string>("test,xref_binary");
   a.units.insert("units");
 
   ControlledVocabulary::CVTerm b(a);
@@ -280,10 +280,10 @@ START_SECTION(([ControlledVocabulary::CVTerm] CVTerm& operator=(const CVTerm &rh
   a.children.insert("test_children");
   a.obsolete = true;
   a.description = "test_description";
-  a.synonyms = ListUtils::create<String>("test,synonyms");
-  a.unparsed = ListUtils::create<String>("test,unparsed");
+  a.synonyms = ListUtils::create<std::string>("test,synonyms");
+  a.unparsed = ListUtils::create<std::string>("test,unparsed");
   a.xref_type = ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL;
-  a.xref_binary = ListUtils::create<String>("test,xref_binary");
+  a.xref_binary = ListUtils::create<std::string>("test,xref_binary");
   a.units.insert("units");
 
   b = a;

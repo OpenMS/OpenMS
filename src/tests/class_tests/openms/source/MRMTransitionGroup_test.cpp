@@ -86,7 +86,7 @@ START_SECTION (Size size() const)
 }
 END_SECTION
 
-START_SECTION (  const String & getTransitionGroupID() const)
+START_SECTION (  const std::string & getTransitionGroupID() const)
 {
   MRMTransitionGroupType mrmtrgroup;
   mrmtrgroup.setTransitionGroupID("some_id");
@@ -94,7 +94,7 @@ START_SECTION (  const String & getTransitionGroupID() const)
 }
 END_SECTION
 
-START_SECTION (  void setTransitionGroupID(const String & tr_gr_id))
+START_SECTION (  void setTransitionGroupID(const std::string & tr_gr_id))
 {
   // tested above
   NOT_TESTABLE
@@ -110,14 +110,14 @@ START_SECTION ( std::vector<TransitionType>& getTransitionsMuteable())
 }
 END_SECTION
 
-START_SECTION ( void addTransition(const TransitionType &transition, String key))
+START_SECTION ( void addTransition(const TransitionType &transition, std::string key))
 {
   // tested above
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION ( const TransitionType& getTransition(String key))
+START_SECTION ( const TransitionType& getTransition(std::string key))
 {
   MRMTransitionGroupType mrmtrgroup;
   trans1.setLibraryIntensity(42);
@@ -138,7 +138,7 @@ START_SECTION (  const std::vector<TransitionType>& getTransitions() const )
 }
 END_SECTION
 
-START_SECTION (  bool hasTransition(String key))
+START_SECTION (  bool hasTransition(std::string key))
 {
   MRMTransitionGroupType mrmtrgroup;
   mrmtrgroup.addTransition(trans1, "dummy1");
@@ -165,14 +165,14 @@ START_SECTION (  std::vector<SpectrumType>& getChromatograms())
 }
 END_SECTION
 
-START_SECTION (  void addChromatogram(SpectrumType &chromatogram, String key)) 
+START_SECTION (  void addChromatogram(SpectrumType &chromatogram, std::string key)) 
 {
   // tested above
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION (  SpectrumType& getChromatogram(String key))
+START_SECTION (  SpectrumType& getChromatogram(std::string key))
 {
   MRMTransitionGroupType mrmtrgroup;
   chrom1.setMetaValue("some_value", 1);
@@ -181,7 +181,7 @@ START_SECTION (  SpectrumType& getChromatogram(String key))
 }
 END_SECTION
 
-START_SECTION (  bool hasChromatogram(String key))
+START_SECTION (  bool hasChromatogram(std::string key))
 {
   MRMTransitionGroupType mrmtrgroup;
   mrmtrgroup.addChromatogram(chrom1, "dummy1");
@@ -190,14 +190,14 @@ START_SECTION (  bool hasChromatogram(String key))
 }
 END_SECTION
 
-START_SECTION (  void addPrecusorChromatogram(SpectrumType &chromatogram, String key)) 
+START_SECTION (  void addPrecusorChromatogram(SpectrumType &chromatogram, std::string key)) 
 {
   // tested below
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION (  SpectrumType& getPrecursorChromatogram(String key))
+START_SECTION (  SpectrumType& getPrecursorChromatogram(std::string key))
 {
   MRMTransitionGroupType mrmtrgroup;
   chrom1.setMetaValue("some_value", 1);
@@ -213,7 +213,7 @@ START_SECTION (  SpectrumType& getPrecursorChromatogram(String key))
 }
 END_SECTION
 
-START_SECTION (  bool hasPrecursorChromatogram(String key))
+START_SECTION (  bool hasPrecursorChromatogram(std::string key))
 {
   MRMTransitionGroupType mrmtrgroup;
   mrmtrgroup.addPrecursorChromatogram(chrom1, "dummy1");

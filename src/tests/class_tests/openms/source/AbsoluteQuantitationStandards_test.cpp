@@ -29,9 +29,9 @@ vector<AbsoluteQuantitationStandards::runConcentration> runs;
 AbsoluteQuantitationStandards::runConcentration run;
 for (Size i = 0; i < 10; ++i)
 {
-  run.sample_name = i < 5 ? String("sample1") : String("sample2");
-  run.component_name = String("component") + i;
-  run.IS_component_name = String("IS_component") + i;
+  run.sample_name = i < 5 ? std::string("sample1") : std::string("sample2");
+  run.component_name =StringUtils::toStr("component") + i;
+  run.IS_component_name =StringUtils::toStr("IS_component") + i;
   run.actual_concentration = i;
   run.IS_actual_concentration = i * 1.1;
   run.concentration_units = "uM";
@@ -60,9 +60,9 @@ fm.setPrimaryMSRunPath({"sample1.mzML"});
 for (Size i = 0; i < 5; ++i)
 {
   Feature f;
-  f.setMetaValue("native_id", String("component") + i);
+  f.setMetaValue("native_id",StringUtils::toStr("component") + i);
   subordinates.push_back(f);
-  f.setMetaValue("native_id", String("IS_component") + i);
+  f.setMetaValue("native_id",StringUtils::toStr("IS_component") + i);
   subordinates.push_back(f);
 }
 feature.setSubordinates(subordinates);
@@ -73,9 +73,9 @@ fmaps.push_back(fm);
 
 fm.setPrimaryMSRunPath({"sample2.txt"});
 Feature f;
-f.setMetaValue("native_id", String("component10"));
+f.setMetaValue("native_id",StringUtils::toStr("component10"));
 subordinates.push_back(f);
-f.setMetaValue("native_id", String("component0"));
+f.setMetaValue("native_id",StringUtils::toStr("component0"));
 subordinates.push_back(f);
 feature.setSubordinates(subordinates);
 fm.push_back(feature);
@@ -98,19 +98,19 @@ END_SECTION
 START_SECTION(void mapComponentsToConcentrations(
   const std::vector<runConcentration>& run_concentrations,
   const std::vector<FeatureMap>& feature_maps,
-  std::map<String, std::vector<featureConcentration>>& components_to_concentrations
+  std::map<std::string, std::vector<featureConcentration>>& components_to_concentrations
 ) const)
 {
   AbsoluteQuantitationStandards aqs;
-  std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> m;
+  std::map<std::string, std::vector<AbsoluteQuantitationStandards::featureConcentration>> m;
   aqs.mapComponentsToConcentrations(runs, fmaps, m);
   TEST_EQUAL(m.size(), 6)
   std::vector<AbsoluteQuantitationStandards::featureConcentration> fc;
   for (Size i = 0; i < 5; ++i)
   {
-    fc = m.at(String("component") + i);
-    TEST_EQUAL(fc[0].feature.getMetaValue("native_id"), String("component") + i)
-    TEST_EQUAL(fc[0].IS_feature.getMetaValue("native_id"), String("IS_component") + i)
+    fc = m.at(StringUtils::toStr("component") + i);
+    TEST_EQUAL(fc[0].feature.getMetaValue("native_id"),StringUtils::toStr("component") + i)
+    TEST_EQUAL(fc[0].IS_feature.getMetaValue("native_id"),StringUtils::toStr("IS_component") + i)
   }
   fc = m.at("component10");
   TEST_EQUAL(fc.size(), 1)
@@ -126,7 +126,7 @@ END_SECTION
 START_SECTION(void getComponentFeatureConcentrations(
   const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
   const std::vector<FeatureMap>& feature_maps,
-  const String& component_name,
+  const std::string& component_name,
   std::vector<AbsoluteQuantitationStandards::featureConcentration>& feature_concentrations
 ) const)
 {

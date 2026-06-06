@@ -32,12 +32,12 @@ START_SECTION(~Acquisition())
 	delete ptr;
 END_SECTION
 
-START_SECTION(const String& getIdentifier() const)
+START_SECTION(const std::string& getIdentifier() const)
   Acquisition tmp;
   TEST_EQUAL(tmp.getIdentifier(), "");
 END_SECTION
 
-START_SECTION(void setIdentifier(const String& identifier))
+START_SECTION(void setIdentifier(const std::string& identifier))
 	Acquisition tmp;
 	tmp.setIdentifier("5");
   TEST_EQUAL(tmp.getIdentifier(), "5");
@@ -46,10 +46,10 @@ END_SECTION
 START_SECTION(Acquisition(const Acquisition& source))
 	Acquisition tmp;
 	tmp.setIdentifier("5");
-	tmp.setMetaValue("label",String("label"));
+	tmp.setMetaValue("label",StringUtils::toStr("label"));
 	Acquisition tmp2(tmp);
 	TEST_EQUAL(tmp2.getIdentifier(), "5");
-	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+	TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
 END_SECTION
 
 START_SECTION(Acquisition(Acquisition&&) = default)
@@ -72,10 +72,10 @@ START_SECTION(Acquisition& operator= (const Acquisition& source))
 	Acquisition tmp,tmp2,tmp3;
 	// assignment of a modified object
 	tmp2.setIdentifier("5");
-	tmp2.setMetaValue("label",String("label"));
+	tmp2.setMetaValue("label",StringUtils::toStr("label"));
 	tmp = tmp2;
 	TEST_EQUAL(tmp.getIdentifier(), "5");
-	TEST_EQUAL((String)(tmp.getMetaValue("label")), String("label"));
+	TEST_EQUAL(std::string(tmp.getMetaValue("label")),StringUtils::toStr("label"));
 	
 	// assignment of a default-constructed object
 	tmp = tmp3;
@@ -92,7 +92,7 @@ START_SECTION(bool operator== (const Acquisition& rhs) const)
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
-	tmp.setMetaValue("label",String("label"));
+	tmp.setMetaValue("label",StringUtils::toStr("label"));
 	TEST_EQUAL(tmp==tmp2, false);
 END_SECTION
 
@@ -105,7 +105,7 @@ START_SECTION(bool operator!= (const Acquisition& rhs) const)
 	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;
-	tmp.setMetaValue("label",String("label"));
+	tmp.setMetaValue("label",StringUtils::toStr("label"));
 	TEST_FALSE(tmp == tmp2);
 END_SECTION
 

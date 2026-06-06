@@ -45,15 +45,15 @@ namespace OpenMS
 
       // Locate decimal point
       auto dot_pos = result.find('.');
-      std::string integer_part = result.substr(0, dot_pos);
+      std::string integer_part = StringUtils::substr(result, 0, dot_pos);
       std::string fractional_part;
       if (dot_pos != std::string::npos)
-        fractional_part = result.substr(dot_pos);
+        fractional_part = StringUtils::substr(result, dot_pos);
 
       // Handle negative sign
       bool negative = (!integer_part.empty() && integer_part[0] == '-');
       if (negative)
-        integer_part = integer_part.substr(1);
+        integer_part = StringUtils::substr(integer_part, 1);
 
       // Insert comma group separators every 3 digits (C locale convention)
       int len = static_cast<int>(integer_part.size());
@@ -63,11 +63,11 @@ namespace OpenMS
         int first_group = len % 3;
         if (first_group == 0)
           first_group = 3;
-        formatted = integer_part.substr(0, first_group);
+        formatted = StringUtils::substr(integer_part, 0, first_group);
         for (int i = first_group; i < len; i += 3)
         {
           formatted += ',';
-          formatted += integer_part.substr(i, 3);
+          formatted += StringUtils::substr(integer_part, i, 3);
         }
         integer_part = formatted;
       }
@@ -76,12 +76,12 @@ namespace OpenMS
     }
   }
 
-  String DimBase::formattedValue(const ValueType value) const
+  std::string DimBase::formattedValue(const ValueType value) const
   {
-    return String(this->getDimNameShort()) + ": " + String(formatWithGroupSeparators(value, valuePrecision()));
+    return StringUtils::toStr(this->getDimNameShort()) + ": " + std::string(formatWithGroupSeparators(value, valuePrecision()));
   }
 
-  String DimBase::formattedValue(const ValueType value, const String& prefix) const
+  std::string DimBase::formattedValue(const ValueType value, const std::string& prefix) const
   {
     return prefix + formattedValue(value);
   }

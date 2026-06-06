@@ -38,14 +38,14 @@ namespace OpenMS
     // build index_ map that maps the identifiers in prot_ids to indices 0,1,...
     for (const auto& prot_id : prot_ids)
     {
-      const String& id_run_id = prot_id.getIdentifier();
+      const std::string& id_run_id = prot_id.getIdentifier();
       if (this->index_map.contains(id_run_id))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IdentificationRun IDs are not unique!", id_run_id);
       }
       UInt idx = this->index_map.size();
       this->index_map[id_run_id] = idx;
-      const DataValue& mv_spectra_data = prot_id.getMetaValue("spectra_data");
+      const DataValue& mv_spectra_data = (std::string)prot_id.getMetaValue("spectra_data");
       spectra_data.push_back(mv_spectra_data.isEmpty() ? StringList() : mv_spectra_data.toStringList());
     }
   }
@@ -57,7 +57,7 @@ namespace OpenMS
   }
 
   // Identify the output file name features associated via spectra_data or file_origin
-  IDRipper::RipFileIdentifier::RipFileIdentifier(const IDRipper::IdentificationRuns& id_runs, const PeptideIdentification& pep_id, const map<String, UInt>& file_origin_map, const IDRipper::OriginAnnotationFormat origin_annotation_fmt, bool split_ident_runs)
+  IDRipper::RipFileIdentifier::RipFileIdentifier(const IDRipper::IdentificationRuns& id_runs, const PeptideIdentification& pep_id, const map<std::string, UInt>& file_origin_map, const IDRipper::OriginAnnotationFormat origin_annotation_fmt, bool split_ident_runs)
   {
       try
       {
@@ -66,7 +66,7 @@ namespace OpenMS
 
           // Numerical identifier of the PeptideIdentification origin
           this->file_origin_idx = (origin_annotation_fmt == MAP_INDEX || origin_annotation_fmt == ID_MERGE_INDEX)
-              ? pep_id.getMetaValue(names_of_OriginAnnotationFormat[origin_annotation_fmt]).toString().toInt()
+              ? StringUtils::toInt32(pep_id.getMetaValue(names_of_OriginAnnotationFormat[origin_annotation_fmt]).toString())
               : file_origin_map.at(pep_id.getMetaValue("file_origin").toString());
 
           // Store the origin full name
@@ -98,12 +98,12 @@ namespace OpenMS
     return file_origin_idx;
   }
 
-  const String & IDRipper::RipFileIdentifier::getOriginFullname() const
+  const std::string & IDRipper::RipFileIdentifier::getOriginFullname() const
   {
     return origin_fullname;
   }
 
-  const String & IDRipper::RipFileIdentifier::getOutputBasename() const
+  const std::string & IDRipper::RipFileIdentifier::getOutputBasename() const
   {
     return out_basename;
   }
@@ -118,7 +118,7 @@ namespace OpenMS
     return pep_idents;
   }
 
-  bool IDRipper::registerBasename_(map<String, pair<UInt, UInt> >& basename_to_numeric, const IDRipper::RipFileIdentifier& rfi)
+  bool IDRipper::registerBasename_(map<std::string, pair<UInt, UInt> >& basename_to_numeric, const IDRipper::RipFileIdentifier& rfi)
   {
       auto it = basename_to_numeric.find(rfi.out_basename);
       auto p  = make_pair(rfi.ident_run_idx, rfi.file_origin_idx);
@@ -141,7 +141,7 @@ namespace OpenMS
           bool split_ident_runs)
   {
     // Detect file format w.r.t. origin annotation
-    map<String, UInt> file_origin_map;
+    map<std::string, UInt> file_origin_map;
     IDRipper::OriginAnnotationFormat origin_annotation_fmt = detectOriginAnnotationFormat_(file_origin_map, peptides);
 
     if (origin_annotation_fmt == UNKNOWN_OAF)
@@ -156,7 +156,7 @@ namespace OpenMS
     const IdentificationRuns id_runs = IdentificationRuns(proteins);
 
     // Collect a unique set of representative protein hits. One per accession. Looks at all runs and removes the file origin
-    unordered_map<String, const ProteinHit*> acc2protein_hits;
+    unordered_map<std::string, const ProteinHit*> acc2protein_hits;
     for (ProteinIdentification& prot : proteins)
     {
       prot.removeMetaValue(names_of_OriginAnnotationFormat[origin_annotation_fmt]);
@@ -169,10 +169,10 @@ namespace OpenMS
 
     size_t protein_identifier_not_found{};
 
-    map<String, pair<UInt, UInt> > basename_to_numeric;
+    map<std::string, pair<UInt, UInt> > basename_to_numeric;
 
     // map run identifier to protein accessions that were already added
-    map<IDRipper::RipFileIdentifier, unordered_map<String, unordered_set<String>>, RipFileIdentifierIdxComparator> ripped_prot_map;
+    map<IDRipper::RipFileIdentifier, unordered_map<std::string, unordered_set<std::string>>, RipFileIdentifierIdxComparator> ripped_prot_map;
 
     //store protein and peptides identifications for each file origin
     for (PeptideIdentification& pep : peptides)
@@ -198,7 +198,7 @@ namespace OpenMS
         continue;
       }
       // collect all protein accessions that are stored in the peptide hits
-      set<String> protein_accessions = getProteinAccessions_(peptide_hits);
+      set<std::string> protein_accessions = getProteinAccessions_(peptide_hits);
       if (protein_accessions.empty())
       {
         OPENMS_LOG_WARN << "Peptide hits with empty protein accession." << std::endl;
@@ -224,7 +224,7 @@ namespace OpenMS
       }
 
       const ProteinIdentification& merged_protein_id_run = proteins[prot_ident_index]; // protein identification run in the merged file
-      const String& merged_prot_identifier = merged_protein_id_run.getIdentifier();        // protein identification run identifier in merged file
+      const std::string& merged_prot_identifier = merged_protein_id_run.getIdentifier();        // protein identification run identifier in merged file
     
       if (RipFileMap::iterator it = ripped.find(rfi); it == ripped.end())
       { // file identifier does not exist yet. We need to create it.
@@ -240,7 +240,7 @@ namespace OpenMS
         p.setHits(proteins_of_accessions); // TODO: what about protein groups?
         for (const ProteinHit& prot : proteins_of_accessions)
         { // register protein so we don't add it twice          
-          const String& acc = prot.getAccession();
+          const std::string& acc = prot.getAccession();
           ripped_prot_map[rfi][merged_prot_identifier].insert(acc);
         }
 
@@ -263,13 +263,13 @@ namespace OpenMS
 
         for (auto& ripped_protein_id_run : ripped_protein_id_runs)
         { // for all protein identification runs associated with the current file identifier...
-          const String& ripped_prot_identifier = ripped_protein_id_run.getIdentifier();
+          const std::string& ripped_prot_identifier = ripped_protein_id_run.getIdentifier();
           if (merged_prot_identifier == ripped_prot_identifier)
           { // protein identification run already exists in ripped map. just add protein hits if not already present            
             for (const ProteinHit& prot : proteins_of_accessions)
             {               
               // check if protein has already been added              
-              const String& acc = prot.getAccession();
+              const std::string& acc = prot.getAccession();
               auto& acc_set = ripped_prot_map[rfi][merged_prot_identifier];
               if (auto ri = acc_set.find(acc); ri == acc_set.end())
               { // only add protein once to the run identifier
@@ -294,7 +294,7 @@ namespace OpenMS
           for (const ProteinHit& prot : proteins_of_accessions)
           {              
             // check if protein has already been added
-            const String& acc = prot.getAccession();
+            const std::string& acc = prot.getAccession();
              auto& acc_set = ripped_prot_map[rfi][merged_prot_identifier];
             if (auto ri = acc_set.find(acc); ri == acc_set.end())
             { // only add protein once to the run identifier
@@ -370,7 +370,7 @@ bool IDRipper::setOriginAnnotationMode_(short& mode, short const new_value)
   return true;
 }
 
-IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<String, UInt>& file_origin_map, const PeptideIdentificationList& peptide_idents)
+IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<std::string, UInt>& file_origin_map, const PeptideIdentificationList& peptide_idents)
   {
     // In case we observe 'file_origin' meta values, we assign an index to every unique meta value
     file_origin_map.clear();
@@ -395,7 +395,7 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
 
           if (i == 0) // names_of_OriginAnnotationFormat[0] == "file_origin"
           {
-            const String& file_origin = it->getMetaValue("file_origin");
+            const std::string& file_origin = it->getMetaValue("file_origin");
             // Did we already assign an index to this file_origin?
             if (!file_origin_map.contains(file_origin))
             {
@@ -421,9 +421,9 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
     }
   }
 
-  void IDRipper::getProteinHits_(vector<ProteinHit>& result, const unordered_map<String, const ProteinHit*>& acc2protein_hits, const set<String>& protein_accessions)
+  void IDRipper::getProteinHits_(vector<ProteinHit>& result, const unordered_map<std::string, const ProteinHit*>& acc2protein_hits, const set<std::string>& protein_accessions)
   {
-    for (const String& s : protein_accessions)
+    for (const std::string& s : protein_accessions)
     {
       if (auto it = acc2protein_hits.find(s); it != acc2protein_hits.end())
       {
@@ -433,12 +433,12 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
     }
   }
 
-  std::set<String> IDRipper::getProteinAccessions_(const vector<PeptideHit>& peptide_hits)
+  std::set<std::string> IDRipper::getProteinAccessions_(const vector<PeptideHit>& peptide_hits)
   {
-    std::set<String> accession_set;
+    std::set<std::string> accession_set;
     for (const PeptideHit& it : peptide_hits)
     {
-      std::set<String> protein_accessions = it.extractProteinAccessionsSet();
+      std::set<std::string> protein_accessions = it.extractProteinAccessionsSet();
       accession_set.insert(make_move_iterator(protein_accessions.begin()), make_move_iterator(protein_accessions.end()));
     }
     return accession_set;
@@ -446,7 +446,7 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
 
   int IDRipper::getProteinIdentification_(const PeptideIdentification& pep_ident, const IdentificationRuns& id_runs)
   {
-    const String& identifier = pep_ident.getIdentifier();
+    const std::string& identifier = pep_ident.getIdentifier();
     if (auto it = id_runs.index_map.find(identifier); it != id_runs.index_map.end())
     {
       return it->second;

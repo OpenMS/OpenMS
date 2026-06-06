@@ -37,7 +37,7 @@ namespace OpenMS
   void RibonucleotideDB::loadFromProviders_(std::vector<std::unique_ptr<RibonucleotideDataProvider>>& providers)
   {
     // Collect deferred ambiguity entries (need all ribonucleotides loaded first)
-    std::vector<std::tuple<std::string, String, String>> deferred_ambiguities;
+    std::vector<std::tuple<std::string, std::string, std::string>> deferred_ambiguities;
 
     for (auto& provider : providers)
     {
@@ -84,7 +84,7 @@ namespace OpenMS
 
   RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::getRibonucleotidePrefix(const std::string& seq) const
   {
-    std::string prefix = seq.substr(0, max_code_length_);
+    std::string prefix = StringUtils::substr(seq, 0, max_code_length_);
     while (!prefix.empty())
     {
       auto pos = code_map_.find(prefix);
@@ -92,7 +92,7 @@ namespace OpenMS
       {
         return ribonucleotides_[pos->second].get();
       }
-      prefix = prefix.substr(0, prefix.size() - 1);
+      prefix = StringUtils::substr(prefix, 0, prefix.size() - 1);
     }
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, seq);
   }

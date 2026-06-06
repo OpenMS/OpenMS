@@ -50,9 +50,9 @@ namespace OpenMS
     qobject_cast<QWidget*>(this->parent())->show();
   }
 
-  void LogWindow::appendNewHeader(const LogWindow::LogState state, const String& heading, const String& body)
+  void LogWindow::appendNewHeader(const LogWindow::LogState state, const std::string& heading, const std::string& body)
   {
-    String state_string;
+    std::string state_string;
     switch (state)
     {
       case NOTICE: state_string = "NOTICE"; break;

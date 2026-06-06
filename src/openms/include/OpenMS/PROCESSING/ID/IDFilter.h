@@ -119,16 +119,16 @@ namespace OpenMS
     struct HasMetaValue {
       typedef HitType argument_type; // for use as a predicate
 
-      String key;
+      std::string key;
       DataValue value;
 
-      HasMetaValue(const String& key_, const DataValue& value_) : key(key_), value(value_)
+      HasMetaValue(const std::string& key_, const DataValue& value_) : key(key_), value(value_)
       {
       }
 
       bool operator()(const HitType& hit) const
       {
-        DataValue found = hit.getMetaValue(key);
+        DataValue found = (std::string)hit.getMetaValue(key);
         if (found.isEmpty())
           return false; // meta value "key" not set
         if (value.isEmpty())
@@ -142,16 +142,16 @@ namespace OpenMS
     struct HasMaxMetaValue {
       typedef HitType argument_type; // for use as a predicate
 
-      String key;
+      std::string key;
       double value;
 
-      HasMaxMetaValue(const String& key_, const double& value_) : key(key_), value(value_)
+      HasMaxMetaValue(const std::string& key_, const double& value_) : key(key_), value(value_)
       {
       }
 
       bool operator()(const HitType& hit) const
       {
-        DataValue found = hit.getMetaValue(key);
+        DataValue found = (std::string)hit.getMetaValue(key);
         if (found.isEmpty())
           return false; // meta value "key" not set
         return double(found) <= value;
@@ -170,7 +170,7 @@ namespace OpenMS
         {
           typedef HitType argument_type; // for use as a predicate
 
-          String key;
+          std::string key;
           double value;
 
           /**
@@ -179,7 +179,7 @@ namespace OpenMS
            * @param[in] key_ The key of the meta value to check.
            * @param[in] value_ The minimum value threshold.
            */
-          HasMinMetaValue(const String& key_, const double& value_) : 
+          HasMinMetaValue(const std::string& key_, const double& value_) : 
             key(key_), 
             value(value_)
           {
@@ -193,7 +193,7 @@ namespace OpenMS
            */
           bool operator()(const HitType& hit) const
           {
-            DataValue found = hit.getMetaValue(key);
+            DataValue found = (std::string)hit.getMetaValue(key);
             if (found.isEmpty())
             {
               return false; // meta value "key" not set
@@ -294,21 +294,21 @@ namespace OpenMS
 
     /// Convenience alias for HasMatchingAccessionImpl with std::unordered_set (O(1) lookup)
     template<class HitType>
-    using HasMatchingAccessionUnordered = HasMatchingAccessionImpl<HitType, std::unordered_set<String>>;
+    using HasMatchingAccessionUnordered = HasMatchingAccessionImpl<HitType, std::unordered_set<std::string>>;
 
     /// Convenience alias for HasMatchingAccessionImpl with std::set (O(log n) lookup)
     template<class HitType>
-    using HasMatchingAccession = HasMatchingAccessionImpl<HitType, std::set<String>>;
+    using HasMatchingAccession = HasMatchingAccessionImpl<HitType, std::set<std::string>>;
 
     /**
-       @brief Builds a map index of data that have a String index to find matches and return the objects
+       @brief Builds a map index of data that have a std::string index to find matches and return the objects
 
        @note Currently implemented for Fasta Entries and Peptide Evidences
     */
     template<class HitType, class Entry>
     struct GetMatchingItems {
       typedef HitType argument_type;            // for use as a predicate
-      typedef std::map<String, Entry*> ItemMap; // Store pointers to avoid copying data
+      typedef std::map<std::string, Entry*> ItemMap; // Store pointers to avoid copying data
       ItemMap items;
 
       GetMatchingItems(std::vector<Entry>& records)
@@ -323,7 +323,7 @@ namespace OpenMS
       {
       }
 
-      const String& getKey(const FASTAFile::FASTAEntry& entry) const
+      const std::string& getKey(const FASTAFile::FASTAEntry& entry) const
       {
         return entry.identifier;
       }
@@ -333,7 +333,7 @@ namespace OpenMS
         return items.contains(getHitKey(hit));
       }
 
-      const String& getHitKey(const PeptideEvidence& p) const
+      const std::string& getHitKey(const PeptideEvidence& p) const
       {
         return p.getProteinAccession();
       }
@@ -635,14 +635,14 @@ namespace OpenMS
     }
 
     /// @overload
-    static void removeHitsMatchingProteins(PeptideIdentificationList& ids, const std::set<String>& accessions)
+    static void removeHitsMatchingProteins(PeptideIdentificationList& ids, const std::set<std::string>& accessions)
     {
       std::vector<PeptideIdentification>& vec = ids.getData();
       removeHitsMatchingProteins(vec, accessions);
     }
 
     /// @overload
-    static void keepHitsMatchingProteins(PeptideIdentificationList& ids, const std::set<String>& accessions)
+    static void keepHitsMatchingProteins(PeptideIdentificationList& ids, const std::set<std::string>& accessions)
     {
       std::vector<PeptideIdentification>& vec = ids.getData();
       keepHitsMatchingProteins(vec, accessions);
@@ -727,14 +727,14 @@ namespace OpenMS
        @param[out] sequences Output
        @param[in] ignore_mods Extract sequences without modifications?
     */
-    static void extractPeptideSequences(const PeptideIdentificationList& peptides, std::set<String>& sequences, bool ignore_mods = false);
+    static void extractPeptideSequences(const PeptideIdentificationList& peptides, std::set<std::string>& sequences, bool ignore_mods = false);
 
     /**
      * @brief Extracts all proteins not matched by PSMs in features
      * @param[in] cmap the Input ConsensusMap
      * @return extracted ProteinHits for every IDRun
      */
-    static std::map<String, std::vector<ProteinHit>> extractUnassignedProteins(ConsensusMap& cmap);
+    static std::map<std::string, std::vector<ProteinHit>> extractUnassignedProteins(ConsensusMap& cmap);
 
     /**
        @brief remove peptide evidences based on a filter
@@ -895,7 +895,7 @@ namespace OpenMS
           auto result = switcher.findScoreType<IdentificationType>(id, score_type);
           if (!result.score_name.empty())
           {
-            String metaval = result.score_name;
+            std::string metaval = result.score_name;
             if (switcher.isScoreTypeHigherBetter(score_type))
             {
               struct HasMinMetaValue<typename IdentificationType::HitType> score_filter(metaval, threshold_score);
@@ -910,7 +910,7 @@ namespace OpenMS
           }
         }
       }
-      if (!at_least_one_found) OPENMS_LOG_WARN << String("Warning: No hit with the given score_type found. All hits removed.") << std::endl;
+      if (!at_least_one_found) OPENMS_LOG_WARN << std::string("Warning: No hit with the given score_type found. All hits removed.") << std::endl;
     }
 
     /**
@@ -1034,7 +1034,7 @@ namespace OpenMS
        @note The ranks of the hits may be invalidated.
     */
     template<class IdentificationType>
-    static void removeHitsMatchingProteins(std::vector<IdentificationType>& ids, const std::set<String> accessions)
+    static void removeHitsMatchingProteins(std::vector<IdentificationType>& ids, const std::set<std::string> accessions)
     {
       HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
       for (auto& id_it : ids)
@@ -1051,7 +1051,7 @@ namespace OpenMS
        @note The ranks of the hits may be invalidated.
     */
     template<IsPeptideOrProteinIdentification IdentificationType>
-    static void keepHitsMatchingProteins(IdentificationType& id, const std::set<String>& accessions)
+    static void keepHitsMatchingProteins(IdentificationType& id, const std::set<std::string>& accessions)
     {
       HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
       keepMatchingItems(id.getHits(), acc_filter);      
@@ -1065,7 +1065,7 @@ namespace OpenMS
        @note The ranks of the hits may be invalidated.
     */
     template<class IdentificationType>
-    static void keepHitsMatchingProteins(std::vector<IdentificationType>& ids, const std::set<String>& accessions)
+    static void keepHitsMatchingProteins(std::vector<IdentificationType>& ids, const std::set<std::string>& accessions)
     {
       for (auto& id_it : ids) keepHitsMatchingProteins(id_it, accessions);
     }
@@ -1144,15 +1144,15 @@ namespace OpenMS
 
        @note The ranks of the hits may be invalidated.
     */
-    static void filterPeptidesByRTPredictPValue(PeptideIdentificationList& peptides, const String& metavalue_key, double threshold = 0.05);
+    static void filterPeptidesByRTPredictPValue(PeptideIdentificationList& peptides, const std::string& metavalue_key, double threshold = 0.05);
 
     /// Removes all peptide hits that have at least one of the given modifications
-    static void removePeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const std::set<String>& modifications);
+    static void removePeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const std::set<std::string>& modifications);
 
-    static void removePeptidesWithMatchingRegEx(PeptideIdentificationList& peptides, const String& regex);
+    static void removePeptidesWithMatchingRegEx(PeptideIdentificationList& peptides, const std::string& regex);
 
     /// Keeps only peptide hits that have at least one of the given modifications
-    static void keepPeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const std::set<String>& modifications);
+    static void keepPeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const std::set<std::string>& modifications);
 
     /**
        @brief Removes all peptide hits with a sequence that matches one in @p bad_peptides.
@@ -1361,7 +1361,7 @@ namespace OpenMS
       {
         PeptideHit& hit = *pepIt;
 
-        String lookup_seq;
+        std::string lookup_seq;
         if (ignore_mods)
         {
           lookup_seq = hit.getSequence().toUnmodifiedString();
@@ -1408,7 +1408,7 @@ namespace OpenMS
       AnnotatedMSRun& experiment,
       const std::vector<FASTAFile::FASTAEntry>& proteins)
     {
-      std::set<String> accessions;
+      std::set<std::string> accessions;
       for (auto it = proteins.begin(); it != proteins.end(); ++it)
       {
         accessions.insert(it->identifier);

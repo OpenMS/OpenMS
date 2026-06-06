@@ -138,7 +138,7 @@ namespace OpenMS
   }
 
   void SwathMapMassCorrection::correctIM(
-    const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
+    const std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
     const OpenSwath::LightTargetedExperiment& targeted_exp,
     const std::vector< OpenSwath::SwathMap > & swath_maps,
     const bool pasef,
@@ -171,7 +171,7 @@ namespace OpenMS
       os_im.precision(writtenDigits(double()));
     }
 
-    std::vector<String> trgr_ids;
+    std::vector<std::string> trgr_ids;
     std::map<std::string, double> pep_im_map;
     trgr_ids.reserve(transition_group_map.size());
     for (const auto& trgroup_it : transition_group_map)
@@ -395,7 +395,7 @@ namespace OpenMS
 
     if (exp_im.empty())
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (0 points)."));
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression",StringUtils::toStr("Could not fit a linear model to the data (0 points)."));
     }
 
     // linear correction is default (none returns in the beginning of the function)
@@ -414,7 +414,7 @@ namespace OpenMS
     im_trafo.setDataPoints(data_im);
     Param model_params;
     model_params.setValue("symmetric_regression", "false");
-    String model_type = "linear";
+    std::string model_type = "linear";
     im_trafo.fitModel(model_type, model_params);
 
     // Estimate MS2 ion mobility window
@@ -444,7 +444,7 @@ namespace OpenMS
   }
 
   void SwathMapMassCorrection::correctMZ(
-    const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
+    const std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
     const OpenSwath::LightTargetedExperiment& targeted_exp,
     std::vector< OpenSwath::SwathMap > & swath_maps,
     const bool pasef)

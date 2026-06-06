@@ -36,9 +36,9 @@ START_SECTION((PTMXMLFile()))
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION((void load(const String& filename, std::map< String, std::pair< String, String > >& ptm_informations)))
+START_SECTION((void load(const std::string& filename, std::map<std::string, std::pair<std::string, std::string> >& ptm_informations)))
 
-	map< String, pair< String, String > > ptm_informations;
+	map<std::string, pair<std::string, std::string> > ptm_informations;
 	xml_file.load(OPENMS_GET_TEST_DATA_PATH("PTMs.xml"), ptm_informations);
 	
 	TEST_EQUAL(ptm_informations["TEST"].first, "N2O2-CH3")
@@ -46,11 +46,11 @@ START_SECTION((void load(const String& filename, std::map< String, std::pair< St
 END_SECTION
 
 
-START_SECTION((void store(String filename, std::map< String, std::pair< String, String > > &ptm_informations) const))
+START_SECTION((void store(std::string filename, std::map<std::string, std::pair<std::string, std::string> > &ptm_informations) const))
 
-	map< String, pair< String, String > > ptm_informations;
+	map<std::string, pair<std::string, std::string> > ptm_informations;
 	xml_file.load(OPENMS_GET_TEST_DATA_PATH("PTMs.xml"), ptm_informations);
-	String temp_filename;
+	std::string temp_filename;
 	NEW_TMP_FILE(temp_filename)
 	xml_file.store(temp_filename, ptm_informations);
 	ptm_informations.clear();

@@ -211,7 +211,7 @@ namespace OpenMS
       }
       else if (*it == ',')
       {
-        tmp_pos = QString(string(tmp, it).c_str()).toDouble();
+        tmp_pos = QString(string(tmp, StringUtils::toDouble(it).c_str()));
         tmp = it + 1;
       }
     }

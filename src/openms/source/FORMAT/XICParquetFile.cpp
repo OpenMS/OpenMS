@@ -36,7 +36,7 @@ namespace OpenMS
   namespace
   {
     /// Read a single parquet file into an Arrow table.
-    std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
+    std::shared_ptr<arrow::Table> readParquetTable_(const std::string& filename)
     {
       auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
       if (!infile_result.ok())
@@ -73,7 +73,7 @@ namespace OpenMS
     }
 
     /// Read the parquet schema from a single file.
-    std::shared_ptr<arrow::Schema> readParquetSchema_(const String& filename)
+    std::shared_ptr<arrow::Schema> readParquetSchema_(const std::string& filename)
     {
       auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
       if (!infile_result.ok())
@@ -102,7 +102,7 @@ namespace OpenMS
     }
 
     /// Read parquet schema from all files and ensure they are compatible.
-    std::shared_ptr<arrow::Schema> readParquetSchemaAllFiles_(const std::vector<String>& filenames)
+    std::shared_ptr<arrow::Schema> readParquetSchemaAllFiles_(const std::vector<std::string>& filenames)
     {
       if (filenames.empty())
       {
@@ -124,8 +124,8 @@ namespace OpenMS
     }
 
     /// Read selected columns from a parquet file into an Arrow table.
-    std::shared_ptr<arrow::Table> readParquetTableColumns_(const String& filename,
-                                                           const std::vector<String>& columns)
+    std::shared_ptr<arrow::Table> readParquetTableColumns_(const std::string& filename,
+                                                           const std::vector<std::string>& columns)
     {
       auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
       if (!infile_result.ok())
@@ -218,7 +218,7 @@ namespace OpenMS
     }
 
     /// Read and concatenate multiple parquet files.
-    std::shared_ptr<arrow::Table> readParquetTable_(const std::vector<String>& filenames)
+    std::shared_ptr<arrow::Table> readParquetTable_(const std::vector<std::string>& filenames)
     {
       std::vector<std::shared_ptr<arrow::Table>> tables;
       tables.reserve(filenames.size());
@@ -230,8 +230,8 @@ namespace OpenMS
     }
 
     /// Read and concatenate selected columns from multiple parquet files.
-    std::shared_ptr<arrow::Table> readParquetTableColumns_(const std::vector<String>& filenames,
-                                                           const std::vector<String>& columns)
+    std::shared_ptr<arrow::Table> readParquetTableColumns_(const std::vector<std::string>& filenames,
+                                                           const std::vector<std::string>& columns)
     {
       std::vector<std::shared_ptr<arrow::Table>> tables;
       tables.reserve(filenames.size());
@@ -287,8 +287,8 @@ namespace OpenMS
       return true;
     }
 
-    /// Read optional String value at row; returns false if null or absent.
-    bool getOptionalString_(const std::shared_ptr<arrow::Array>& array, int64_t row, String& value)
+    /// Read optional std::string value at row; returns false if null or absent.
+    bool getOptionalString_(const std::shared_ptr<arrow::Array>& array, int64_t row, std::string& value)
     {
       if (!array || array->IsNull(row))
       {
@@ -299,16 +299,16 @@ namespace OpenMS
       return true;
     }
 
-    /// Read a binary cell as a String view.
-    String getBinaryView_(const std::shared_ptr<arrow::Array>& array, int64_t row)
+    /// Read a binary cell as a std::string view.
+    std::string getBinaryView_(const std::shared_ptr<arrow::Array>& array, int64_t row)
     {
       auto typed = std::static_pointer_cast<arrow::BinaryArray>(array);
       const auto view = typed->GetView(row);
-      return String(view.data(), static_cast<Int>(view.size()));
+      return std::string(view.data(), view.size());
     }
 
     /// Decode RT/intensity arrays stored as compressed binary blobs.
-    void decodeBinary_(const String& data, Int64 compression, std::vector<double>& output)
+    void decodeBinary_(const std::string& data, Int64 compression, std::vector<double>& output)
     {
       output.clear();
       if (data.empty())
@@ -316,7 +316,7 @@ namespace OpenMS
         return;
       }
 
-      auto decodeNumpress = [&](MSNumpressCoder::NumpressCompression type, const String& input)
+      auto decodeNumpress = [&](MSNumpressCoder::NumpressCompression type, const std::string& input)
       {
         MSNumpressCoder::NumpressConfig config;
         config.np_compression = type;
@@ -330,7 +330,7 @@ namespace OpenMS
           if (data.size() % sizeof(double) != 0)
           {
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Invalid RT/intensity data size (not divisible by 8)", String(data.size()));
+                                          "Invalid RT/intensity data size (not divisible by 8)",StringUtils::toStr(data.size()));
           }
           const size_t count = data.size() / sizeof(double);
           output.resize(count);
@@ -339,12 +339,12 @@ namespace OpenMS
         }
         case 1: // zlib only
         {
-          String decoded;
+          std::string decoded;
           ZlibCompression::uncompressString(data, decoded);
           if (decoded.size() % sizeof(double) != 0)
           {
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Invalid decompressed RT/intensity data size", String(decoded.size()));
+                                          "Invalid decompressed RT/intensity data size",StringUtils::toStr(decoded.size()));
           }
           const size_t count = decoded.size() / sizeof(double);
           output.resize(count);
@@ -368,35 +368,35 @@ namespace OpenMS
         }
         case 5: // np-linear + zlib
         {
-          String decoded;
+          std::string decoded;
           ZlibCompression::uncompressString(data, decoded);
           decodeNumpress(MSNumpressCoder::LINEAR, decoded);
           break;
         }
         case 6: // np-slof + zlib
         {
-          String decoded;
+          std::string decoded;
           ZlibCompression::uncompressString(data, decoded);
           decodeNumpress(MSNumpressCoder::SLOF, decoded);
           break;
         }
         case 7: // np-pic + zlib
         {
-          String decoded;
+          std::string decoded;
           ZlibCompression::uncompressString(data, decoded);
           decodeNumpress(MSNumpressCoder::PIC, decoded);
           break;
         }
         default:
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Unsupported compression type", String(compression));
+                                        "Unsupported compression type",StringUtils::toStr(compression));
       }
     }
 
     /// Uppercase helper for column normalization.
-    String upper_(const String& input)
+    std::string upper_(const std::string& input)
     {
-      String out = input;
+      std::string out = input;
       for (Size i = 0; i < out.size(); ++i)
       {
         out[i] = static_cast<char>(std::toupper(out[i]));
@@ -405,10 +405,10 @@ namespace OpenMS
     }
 
     /// Tokenize a filter string into operators/identifiers/values.
-    std::vector<String> tokenize_(const String& expr)
+    std::vector<std::string> tokenize_(const std::string& expr)
     {
-      std::vector<String> tokens;
-      String current;
+      std::vector<std::string> tokens;
+      std::string current;
       bool in_string = false;
       char quote_char = '\0';
 
@@ -460,7 +460,7 @@ namespace OpenMS
             tokens.push_back(current);
             current.clear();
           }
-          tokens.emplace_back(c);
+          tokens.emplace_back(StringUtils::toStr(c));
           continue;
         }
 
@@ -471,7 +471,7 @@ namespace OpenMS
             tokens.push_back(current);
             current.clear();
           }
-          String op;
+          std::string op;
           op += c;
           if (i + 1 < expr.size())
           {
@@ -493,7 +493,7 @@ namespace OpenMS
             tokens.push_back(current);
             current.clear();
           }
-          String op;
+          std::string op;
           op += c;
           if (i + 1 < expr.size())
           {
@@ -526,8 +526,8 @@ namespace OpenMS
     }
 
     /// Parse filter text into a structured expression.
-    FilterExpression parseFilter_(const String& filter,
-                                  const std::unordered_map<String, ColumnType>& column_types)
+    FilterExpression parseFilter_(const std::string& filter,
+                                  const std::unordered_map<std::string, ColumnType>& column_types)
     {
       FilterExpression expr;
       if (filter.empty())
@@ -539,13 +539,13 @@ namespace OpenMS
       Size i = 0;
       while (i < tokens.size())
       {
-        String column = upper_(tokens[i++]);
+        std::string column = upper_(tokens[i++]);
         if (i >= tokens.size())
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "Missing filter operator for column", column);
         }
-        String op = upper_(tokens[i++]);
+        std::string op = upper_(tokens[i++]);
         if (op == "==")
         {
           op = "=";
@@ -593,7 +593,7 @@ namespace OpenMS
         expr.conditions.push_back(cond);
         if (i < tokens.size())
         {
-          String connector = upper_(tokens[i]);
+          std::string connector = upper_(tokens[i]);
           bool consumed_connector = false;
           if (connector == "AND" || connector == "&&" || connector == "&")
           {
@@ -620,7 +620,7 @@ namespace OpenMS
 
     FilterExpression buildFilterFromArgs_(Int64 precursor_id,
                                           Int64 transition_id,
-                                          const String& modified_sequence,
+                                          const std::string& modified_sequence,
                                           Int64 precursor_charge,
                                           Int64 product_charge,
                                           Int64 ms_level,
@@ -638,9 +638,9 @@ namespace OpenMS
     }
 
     /// Map upper-case column names to their schema names.
-    std::unordered_map<String, String> buildSchemaNameMap_(const std::shared_ptr<arrow::Schema>& schema)
+    std::unordered_map<std::string, std::string> buildSchemaNameMap_(const std::shared_ptr<arrow::Schema>& schema)
     {
-      std::unordered_map<String, String> name_map;
+      std::unordered_map<std::string, std::string> name_map;
       if (!schema)
       {
         return name_map;
@@ -648,13 +648,13 @@ namespace OpenMS
       name_map.reserve(schema->num_fields());
       for (const auto& field : schema->fields())
       {
-        name_map[upper_(String(field->name()))] = String(field->name());
+        name_map[upper_(StringUtils::toStr(field->name()))] =StringUtils::toStr(field->name());
       }
       return name_map;
     }
 
     /// Join columns for diagnostics/log output.
-    String joinColumns_(const std::vector<String>& columns)
+    std::string joinColumns_(const std::vector<std::string>& columns)
     {
       std::ostringstream oss;
       for (Size i = 0; i < columns.size(); ++i)
@@ -662,13 +662,13 @@ namespace OpenMS
         if (i > 0) oss << ", ";
         oss << columns[i];
       }
-      return String(oss.str());
+      return StringUtils::toStr(oss.str());
     }
 
     /// Normalize column names to schema and drop unsupported columns.
     void normalizeAndPruneColumns_(FilterExpression& expr,
                                    const std::shared_ptr<arrow::Schema>& schema,
-                                   std::vector<String>& dropped_columns)
+                                   std::vector<std::string>& dropped_columns)
     {
       dropped_columns.clear();
       if (expr.conditions.empty())
@@ -679,17 +679,17 @@ namespace OpenMS
       auto name_map = buildSchemaNameMap_(schema);
       // Unsupported columns that cannot be filtered on.
       // RT and INTENSITY are stored as binary blobs in parquet, so we cannot filter on them here. Filtering on these can only be done after decoding.
-      const std::unordered_set<String> unsupported = {"RT", "INTENSITY"};
+      const std::unordered_set<std::string> unsupported = {"RT", "INTENSITY"};
 
       std::vector<Condition> kept;
       kept.reserve(expr.conditions.size());
-      std::vector<String> new_connectors;
+      std::vector<std::string> new_connectors;
       new_connectors.reserve(expr.connectors.size());
 
       for (Size i = 0; i < expr.conditions.size(); ++i)
       {
         Condition cond = expr.conditions[i];
-        const String original = cond.column;
+        const std::string original = cond.column;
         auto it = name_map.find(upper_(cond.column));
         if (it != name_map.end())
         {
@@ -738,7 +738,7 @@ namespace OpenMS
     }
 
     /// Append a string part to a composite key.
-    void appendKeyPart_(std::ostringstream& oss, const String& value)
+    void appendKeyPart_(std::ostringstream& oss, const std::string& value)
     {
       oss << value << '|';
     }
@@ -755,7 +755,7 @@ namespace OpenMS
           arrow::Int64Builder builder;
           for (const auto& value : cond.values)
           {
-            auto status = builder.Append(value.toInt64());
+            auto status = builder.Append(StringUtils::toInt64(value));
             if (!status.ok())
             {
               throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -804,7 +804,7 @@ namespace OpenMS
       arrow::compute::Expression literal;
       if (cond.type == ColumnType::INT)
       {
-        literal = arrow::compute::literal(static_cast<int64_t>(cond.values.front().toInt64()));
+        literal = arrow::compute::literal(static_cast<int64_t>(StringUtils::toInt64(cond.values.front())));
       }
       else
       {
@@ -896,11 +896,11 @@ namespace OpenMS
           return true;
         default:
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Unsupported integer column type", String(array->type()->ToString()));
+                                        "Unsupported integer column type",StringUtils::toStr(array->type()->ToString()));
       }
     }
 
-    bool getStringValueFromArray_(const std::shared_ptr<arrow::Array>& array, int64_t row, String& value)
+    bool getStringValueFromArray_(const std::shared_ptr<arrow::Array>& array, int64_t row, std::string& value)
     {
       if (!array || array->IsNull(row))
       {
@@ -917,7 +917,7 @@ namespace OpenMS
           return true;
         default:
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Unsupported string column type", String(array->type()->ToString()));
+                                        "Unsupported string column type",StringUtils::toStr(array->type()->ToString()));
       }
     }
 
@@ -962,7 +962,7 @@ namespace OpenMS
       }
       else
       {
-        String lhs;
+        std::string lhs;
         if (!getStringValueFromArray_(array, row, lhs))
         {
           return false;
@@ -981,7 +981,7 @@ namespace OpenMS
         {
           return false;
         }
-        const String& rhs = cond.cond.values.front();
+        const std::string& rhs = cond.cond.values.front();
         if (cond.cond.op == "=") return lhs == rhs;
         if (cond.cond.op == "!=") return lhs != rhs;
         if (cond.cond.op == "<") return lhs < rhs;
@@ -995,7 +995,7 @@ namespace OpenMS
     }
 
     bool evaluateFilterExpression_(const std::vector<ManualCondition>& conditions,
-                                   const std::vector<String>& connectors,
+                                   const std::vector<std::string>& connectors,
                                    const std::shared_ptr<arrow::RecordBatch>& batch,
                                    int64_t row)
     {
@@ -1007,7 +1007,7 @@ namespace OpenMS
       bool result = evaluateCondition_(conditions.front(), batch, row);
       for (Size i = 1; i < conditions.size(); ++i)
       {
-        const String connector = (i - 1 < connectors.size()) ? connectors[i - 1] : "AND";
+        const std::string connector = (i - 1 < connectors.size()) ? connectors[i - 1] : "AND";
         const bool next = evaluateCondition_(conditions[i], batch, row);
         if (connector == "OR")
         {
@@ -1023,7 +1023,7 @@ namespace OpenMS
 
     std::shared_ptr<arrow::Table> applyManualFilter_(const std::shared_ptr<arrow::Table>& table,
                                                      const FilterExpression& parsed,
-                                                     const String& filter)
+                                                     const std::string& filter)
     {
       std::vector<ManualCondition> conditions;
       conditions.reserve(parsed.conditions.size());
@@ -1046,7 +1046,7 @@ namespace OpenMS
           {
             try
             {
-              manual.int_values.push_back(value.toInt64());
+              manual.int_values.push_back(StringUtils::toInt64(value));
             }
             catch (const std::exception&)
             {
@@ -1119,9 +1119,9 @@ namespace OpenMS
 
 #ifdef WITH_ARROW_DATASET
     /// Read parquet files via Arrow Dataset with predicate pushdown.
-    std::shared_ptr<arrow::Table> readParquetTableDataset_(const std::vector<String>& filenames,
+    std::shared_ptr<arrow::Table> readParquetTableDataset_(const std::vector<std::string>& filenames,
                                                            const FilterExpression& parsed,
-                                                           const String& filter_context)
+                                                           const std::string& filter_context)
     {
       (void)filter_context;
       // Arrow Dataset enables predicate pushdown across multiple parquet files.
@@ -1155,7 +1155,7 @@ namespace OpenMS
       if (!parsed.conditions.empty())
       {
         FilterExpression pruned = parsed;
-        std::vector<String> dropped;
+        std::vector<std::string> dropped;
         normalizeAndPruneColumns_(pruned, dataset->schema(), dropped);
         if (!dropped.empty())
         {
@@ -1202,7 +1202,7 @@ namespace OpenMS
     /// Read parquet files via Arrow Dataset with predicate pushdown.
     std::shared_ptr<arrow::Table> applyArrowFilter_(const std::shared_ptr<arrow::Table>& table,
                                                     const FilterExpression& parsed,
-                                                    const String& filter_context)
+                                                    const std::string& filter_context)
     {
       if (parsed.conditions.empty())
       {
@@ -1210,7 +1210,7 @@ namespace OpenMS
       }
 
       FilterExpression pruned = parsed;
-      std::vector<String> dropped;
+      std::vector<std::string> dropped;
       normalizeAndPruneColumns_(pruned, table->schema(), dropped);
       if (!dropped.empty())
       {
@@ -1290,7 +1290,7 @@ namespace OpenMS
     }
   } // namespace
 
-  XICParquetFile::XICParquetFile(const String& filename)
+  XICParquetFile::XICParquetFile(const std::string& filename)
     : filename_(filename)
   {
     if (!File::exists(filename_))
@@ -1300,7 +1300,7 @@ namespace OpenMS
     filenames_.push_back(filename_);
   }
 
-  XICParquetFile::XICParquetFile(const std::vector<String>& filenames)
+  XICParquetFile::XICParquetFile(const std::vector<std::string>& filenames)
     : filenames_(filenames)
   {
     if (filenames_.empty())
@@ -1318,12 +1318,12 @@ namespace OpenMS
     filename_ = filenames_.front();
   }
 
-  const String& XICParquetFile::getFilename() const
+  const std::string& XICParquetFile::getFilename() const
   {
     return filename_;
   }
 
-  const std::vector<String>& XICParquetFile::getFilenames() const
+  const std::vector<std::string>& XICParquetFile::getFilenames() const
   {
     return filenames_;
   }
@@ -1337,18 +1337,18 @@ namespace OpenMS
                                          const FilterExpression& extra_filter,
                                          Int64 precursor_id,
                                          Int64 transition_id,
-                                         const String& modified_sequence,
+                                         const std::string& modified_sequence,
                                          Int64 precursor_charge,
                                          Int64 product_charge,
                                          Int64 ms_level,
                                          Int64 run_id,
-                                         const String& filter) const
+                                         const std::string& filter) const
   {
     output.clear();
 
     std::shared_ptr<arrow::Table> table;
 
-    std::unordered_map<String, ColumnType> column_types = {
+    std::unordered_map<std::string, ColumnType> column_types = {
       {"RUN_ID", ColumnType::INT},
       {"MS_LEVEL", ColumnType::INT},
       {"PRECURSOR_ID", ColumnType::INT},
@@ -1378,7 +1378,7 @@ namespace OpenMS
     FilterExpression combined_filter = ParquetFilter::merge(args_filter, string_filter, "AND");
     combined_filter = ParquetFilter::merge(combined_filter, extra_filter, "AND");
 
-    const String filter_context = filter.empty() ? String("<typed/args filter>") : filter;
+    const std::string filter_context = filter.empty() ? std::string("<typed/args filter>") : filter;
 
     bool used_dataset = false;
 #ifdef WITH_ARROW_DATASET
@@ -1445,7 +1445,7 @@ namespace OpenMS
       if (!getOptionalInt_(run_id_col, row, chrom.run_id))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "NULL value in required RUN_ID column", String(row));
+                                      "NULL value in required RUN_ID column",StringUtils::toStr(row));
       }
       chrom.has_precursor_id = getOptionalInt_(precursor_id_col, row, chrom.precursor_id);
       chrom.has_transition_id = getOptionalInt_(transition_id_col, row, chrom.transition_id);
@@ -1480,15 +1480,15 @@ namespace OpenMS
       getOptionalInt_(rt_compression_col, row, rt_compression);
       getOptionalInt_(intensity_compression_col, row, intensity_compression);
 
-      const String rt_data = getBinaryView_(rt_data_col, row);
-      const String intensity_data = getBinaryView_(intensity_data_col, row);
+      const std::string rt_data = getBinaryView_(rt_data_col, row);
+      const std::string intensity_data = getBinaryView_(intensity_data_col, row);
 
       decodeBinary_(rt_data, rt_compression, chrom.rt);
       decodeBinary_(intensity_data, intensity_compression, chrom.intensity);
       if (chrom.rt.size() != chrom.intensity.size())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "RT and intensity array size mismatch", String(row));
+                                      "RT and intensity array size mismatch",StringUtils::toStr(row));
       }
 
       output.push_back(std::move(chrom));
@@ -1499,7 +1499,7 @@ namespace OpenMS
   {
     output.clear();
 
-    const std::vector<String> columns = {"RUN_ID", "SOURCE_FILE"};
+    const std::vector<std::string> columns = {"RUN_ID", "SOURCE_FILE"};
     auto table = readParquetTableColumns_(filenames_, columns);
 
     auto run_id_col = getColumn_(table, "RUN_ID");
@@ -1515,7 +1515,7 @@ namespace OpenMS
       if (!getOptionalInt_(run_id_col, row, info.run_id))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "NULL value in required RUN_ID column", String(row));
+                                      "NULL value in required RUN_ID column",StringUtils::toStr(row));
       }
       getOptionalString_(source_file_col, row, info.source_file);
 
@@ -1532,12 +1532,12 @@ namespace OpenMS
   void XICParquetFile::getChromatograms(std::vector<XICChromatogram>& output,
                                         Int64 precursor_id,
                                         Int64 transition_id,
-                                        const String& modified_sequence,
+                                        const std::string& modified_sequence,
                                         Int64 precursor_charge,
                                         Int64 product_charge,
                                         Int64 ms_level,
                                         Int64 run_id,
-                                        const String& filter) const
+                                        const std::string& filter) const
   {
     FilterExpression empty_filter;
     getChromatograms_(output, empty_filter, precursor_id, transition_id, modified_sequence,
@@ -1557,12 +1557,12 @@ namespace OpenMS
   }
 
   void XICParquetFile::getAnalytes(std::vector<XICAnalyte>& output,
-                                   const std::vector<String>& columns,
+                                   const std::vector<std::string>& columns,
                                    bool nest_transitions) const
   {
     output.clear();
 
-    const std::vector<String> default_columns = {
+    const std::vector<std::string> default_columns = {
       "PRECURSOR_ID",
       "MODIFIED_SEQUENCE",
       "PRECURSOR_CHARGE",
@@ -1575,17 +1575,17 @@ namespace OpenMS
       "TRANSITION_TYPE",
       "ANNOTATION"
     };
-    const std::vector<String>& requested_columns = columns.empty() ? default_columns : columns;
+    const std::vector<std::string>& requested_columns = columns.empty() ? default_columns : columns;
 
   std::shared_ptr<arrow::Schema> schema = readParquetSchemaAllFiles_(filenames_);
-    std::unordered_set<String> schema_columns;
+    std::unordered_set<std::string> schema_columns;
     schema_columns.reserve(schema->num_fields());
     for (const auto& field : schema->fields())
     {
-      schema_columns.insert(upper_(String(field->name())));
+      schema_columns.insert(upper_(StringUtils::toStr(field->name())));
     }
 
-    std::unordered_set<String> allowed_columns = {
+    std::unordered_set<std::string> allowed_columns = {
       "PRECURSOR_ID",
       "MODIFIED_SEQUENCE",
       "PRECURSOR_CHARGE",
@@ -1599,11 +1599,11 @@ namespace OpenMS
       "ANNOTATION"
     };
 
-    std::vector<String> normalized_columns;
+    std::vector<std::string> normalized_columns;
     normalized_columns.reserve(requested_columns.size());
     for (const auto& name : requested_columns)
     {
-      const String upper_name = upper_(name);
+      const std::string upper_name = upper_(name);
       if (!allowed_columns.contains(upper_name))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -1617,14 +1617,14 @@ namespace OpenMS
       normalized_columns.push_back(upper_name);
     }
 
-    std::unordered_set<String> requested_set;
+    std::unordered_set<std::string> requested_set;
     requested_set.reserve(normalized_columns.size());
     for (const auto& name : normalized_columns)
     {
       requested_set.insert(name);
     }
 
-    auto want = [&](const String& name) -> bool
+    auto want = [&](const std::string& name) -> bool
     {
       return requested_set.contains(name);
     };
@@ -1806,8 +1806,8 @@ namespace OpenMS
       bool has_detecting_transition = false;
       Int64 product_decoy = 0;
       bool has_product_decoy = false;
-      String transition_type;
-      String annotation;
+      std::string transition_type;
+      std::string annotation;
 
       if (want("TRANSITION_ID"))
       {
@@ -1903,7 +1903,7 @@ namespace OpenMS
     }
   }
 
-  void XICParquetFile::getColumns(std::vector<String>& output) const
+  void XICParquetFile::getColumns(std::vector<std::string>& output) const
   {
     output.clear();
     std::shared_ptr<arrow::Schema> schema = readParquetSchemaAllFiles_(filenames_);

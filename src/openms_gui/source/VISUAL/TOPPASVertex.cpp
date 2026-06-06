@@ -79,7 +79,7 @@ namespace OpenMS
   QStringList TOPPASVertex::TOPPASFilenames::getSuffixCounts() const
   {
     // display file type(s)
-    std::map<String, Size> suffices;
+    std::map<std::string, Size> suffices;
     try 
     {
       for (const auto& fn : filenames_)
@@ -96,7 +96,7 @@ namespace OpenMS
     for (const auto& [suffix, count] : suffices)
     {
       if (suffices.size() > 1)
-        text_l.push_back(toQString(String("." + suffix + "(" + String(count) + ")")));
+        text_l.push_back(toQString(StringUtils::toStr("." + suffix + "(" + StringUtils::toStr(count) + ")")));
       else
         text_l.push_back("." + toQString(suffix));
     }
@@ -237,7 +237,7 @@ namespace OpenMS
     return true;
   }
 
-  bool TOPPASVertex::buildRoundPackages(RoundPackages& pkg, String& error_msg) // check all incoming edges for this node and construct the package
+  bool TOPPASVertex::buildRoundPackages(RoundPackages& pkg, std::string& error_msg) // check all incoming edges for this node and construct the package
   {
     if (inEdgesBegin() == inEdgesEnd())
     {
@@ -265,7 +265,7 @@ namespace OpenMS
 
       if (round_common != tv->round_total_)
       {
-        error_msg = String("Number of rounds for incoming edges of node #") + this->getTopoNr() + " are not equal. No idea on how to combine them! Did you want to recycle its input?\n";
+        error_msg =StringUtils::toStr("Number of rounds for incoming edges of node #") + this->getTopoNr() + " are not equal. No idea on how to combine them! Did you want to recycle its input?\n";
         std::cerr << error_msg;
         return false;
       }
@@ -274,7 +274,7 @@ namespace OpenMS
     // -- we demand at least one node with no recycling to allow to determine number of rounds
     if (no_recycle_count == 0)
     {
-      error_msg = String("Number of rounds of node #") + this->getTopoNr() + " cannot be determined since all input nodes have recycling enabled. Disable for at least one input!\n";
+      error_msg =StringUtils::toStr("Number of rounds of node #") + this->getTopoNr() + " cannot be determined since all input nodes have recycling enabled. Disable for at least one input!\n";
       std::cerr << error_msg;
       return false;
     }
@@ -289,7 +289,7 @@ namespace OpenMS
       }
       if (round_common % tv->round_total_ != 0) // modulo should be 0, if not ...
       {
-        error_msg = String(tv->round_total_) + " rounds for incoming edges of node #" + this->getTopoNr() + " are recycled to meet a total of " + round_common + " rounds. But modulo is not 0. No idea on how to combine them! Adapt the number of input files?\n";
+        error_msg =StringUtils::toStr(tv->round_total_) + " rounds for incoming edges of node #" + this->getTopoNr() + " are recycled to meet a total of " + round_common + " rounds. But modulo is not 0. No idea on how to combine them! Adapt the number of input files?\n";
         std::cerr << error_msg;
         return false;
       }
@@ -346,7 +346,7 @@ namespace OpenMS
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_index, rp.size());  // index could be larger (its a map, but nevertheless)
     }
-    //String s = String(rp[param_index].filenames.join("\" \""));
+    //std::string s =StringUtils::toStr(rp[param_index].filenames.join("\" \""));
     return rp[param_index].filenames.get();
   }
 
@@ -554,10 +554,10 @@ namespace OpenMS
     topo_nr_ = nr;
   }
 
-  String TOPPASVertex::get3CharsNumber_(UInt number) const
+  std::string TOPPASVertex::get3CharsNumber_(UInt number) const
   {
-    String num_str(number);
-    num_str.fillLeft('0', 3);
+    std::string num_str(number);
+    StringUtils::fillLeft(num_str, '0', 3);
     return num_str;
   }
 

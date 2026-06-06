@@ -248,7 +248,7 @@ namespace OpenMS
       double mz_extraction_window,
       bool ppm,
       double im_extraction_window,
-      const String& filter)
+      const std::string& filter)
   {
     Size input_size = input->getNrSpectra();
     if (input_size < 1)
@@ -259,7 +259,7 @@ namespace OpenMS
     if (output.size() != extraction_coordinates.size())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Output and extraction coordinates need to have the same size: "+ String(output.size()) + " != " + String(extraction_coordinates.size()) );
+        "Output and extraction coordinates need to have the same size: "+ StringUtils::toStr(output.size()) + " != " + StringUtils::toStr(extraction_coordinates.size()) );
     }
 
     int used_filter = getFilterNr_(filter);
@@ -352,7 +352,7 @@ namespace OpenMS
     endProgress();
   }
 
-  int ChromatogramExtractorAlgorithm::getFilterNr_(const String& filter)
+  int ChromatogramExtractorAlgorithm::getFilterNr_(const std::string& filter)
   {
     if (filter == "tophat")
     {

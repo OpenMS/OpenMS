@@ -15,7 +15,7 @@ using namespace xercesc;
 
 namespace OpenMS
 {
-  GzipInputStream::GzipInputStream(const String & file_name) :
+  GzipInputStream::GzipInputStream(const std::string & file_name) :
     gzip_(new GzipIfstream(file_name.c_str())), file_current_index_(0)
   {
   }

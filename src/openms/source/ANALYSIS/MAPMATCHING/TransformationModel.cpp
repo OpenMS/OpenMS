@@ -36,11 +36,11 @@ namespace OpenMS
     y_datum_max_ = params_.exists("y_datum_max") ? (double)params_.getValue("y_datum_max") : 1e15;
 
     // TrafoXML's prior to OpenMS 3.0 have x/y_weight = "" if unweighted
-    x_weight_ = params_.exists("x_weight") && (params_.getValue("x_weight") != "") ? String(params_.getValue("x_weight").toString()) : "x";
-    y_weight_ = params_.exists("y_weight") && (params_.getValue("y_weight") != "") ? String(params_.getValue("y_weight").toString()) : "y";
+    x_weight_ = params_.exists("x_weight") && (params_.getValue("x_weight") != "") ? StringUtils::toStr(params_.getValue("x_weight").toString()) : "x";
+    y_weight_ = params_.exists("y_weight") && (params_.getValue("y_weight") != "") ? StringUtils::toStr(params_.getValue("y_weight").toString()) : "y";
 
-    std::vector<String> valid_x_weights = getValidXWeights();
-    std::vector<String> valid_y_weights = getValidYWeights();
+    std::vector<std::string> valid_x_weights = getValidXWeights();
+    std::vector<std::string> valid_y_weights = getValidYWeights();
     if (x_weight_ != "x" && !checkValidWeight(x_weight_, valid_x_weights))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value '" + x_weight_ + "' is not a valid weight parameter for x values.");
@@ -122,7 +122,7 @@ namespace OpenMS
     }  
   }
 
-  bool TransformationModel::checkValidWeight(const String& weight, const std::vector<String>& valid_weights) const
+  bool TransformationModel::checkValidWeight(const std::string& weight, const std::vector<std::string>& valid_weights) const
   {    
     bool valid = false;
     if (std::find(valid_weights.begin(), valid_weights.end(), weight) != valid_weights.end())
@@ -154,19 +154,19 @@ namespace OpenMS
     return datum_checked;
   }
   
-  std::vector<String> TransformationModel::getValidXWeights() const
+  std::vector<std::string> TransformationModel::getValidXWeights() const
   {
-    std::vector<String> valid_weights{"1/x","1/x2","ln(x)","x"}; // == 1 disables weights
+    std::vector<std::string> valid_weights{"1/x","1/x2","ln(x)","x"}; // == 1 disables weights
     return valid_weights;
   }
   
-  std::vector<String> TransformationModel::getValidYWeights() const
+  std::vector<std::string> TransformationModel::getValidYWeights() const
   {
-    std::vector<String> valid_weights{"1/y","1/y2","ln(y)","y"}; // == 1 disables weights
+    std::vector<std::string> valid_weights{"1/y","1/y2","ln(y)","y"}; // == 1 disables weights
     return valid_weights;
   }
 
-  double TransformationModel::weightDatum(const double& datum, const String& weight) const
+  double TransformationModel::weightDatum(const double& datum, const std::string& weight) const
   { 
     double datum_weighted = 0;   
     if (weight == "ln(x)")
@@ -206,7 +206,7 @@ namespace OpenMS
     return datum_weighted;
   } 
 
-  double TransformationModel::unWeightDatum(const double& datum, const String& weight) const
+  double TransformationModel::unWeightDatum(const double& datum, const std::string& weight) const
   { 
     double datum_weighted = 0;   
     if (weight == "ln(x)")

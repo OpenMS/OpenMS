@@ -62,7 +62,7 @@ START_SECTION((double evaluate(double value) const))
     StringList sl;
     if (data_points.getRow(i, sl))
     {
-      base_data.push_back(make_pair(sl[0].toDouble(), sl[1].toDouble()));
+      base_data.push_back(make_pair(StringUtils::toDouble(), StringUtils::toDouble()));
     }
   }
 
@@ -95,10 +95,10 @@ START_SECTION((double evaluate(double value) const))
     StringList sl;
     if (gsl_results.getRow(i, sl))
     {
-      gsl_target_points.push_back(sl[0].toDouble());
-      gsl_linear.push_back(sl[1].toDouble());
-      gsl_akima.push_back(sl[2].toDouble());
-      gsl_cspline.push_back(sl[3].toDouble());
+      gsl_target_points.push_back(StringUtils::toDouble());
+      gsl_linear.push_back(StringUtils::toDouble());
+      gsl_akima.push_back(StringUtils::toDouble());
+      gsl_cspline.push_back(StringUtils::toDouble());
     }
   }
 

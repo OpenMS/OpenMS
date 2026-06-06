@@ -130,7 +130,7 @@ namespace OpenMS
     {
       return;
     }
-    ws_->setCurrentIndex(list[0]->text(1).toInt());
+    StringUtils::toInt32(ws_->setCurrentIndex(list[0]->text(1)));
   }
 
   void MetaDataBrowser::saveAll_()
@@ -534,7 +534,7 @@ namespace OpenMS
     visualizer->load(meta);
 
     QStringList labels;
-    String name = String("MetaInfoDescription ") + meta.getName();
+    std::string name =StringUtils::toStr("MetaInfoDescription ") + meta.getName();
     labels << name.c_str() << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
@@ -581,7 +581,7 @@ namespace OpenMS
     PeptideHitVisualizer * visualizer = new PeptideHitVisualizer(isEditable(), this);
     visualizer->load(meta);
 
-    String name = String("Pep ") + meta.getSequence().toString() + " (" + meta.getScore() + ')';
+    std::string name =StringUtils::toStr("Pep ") + meta.getSequence().toString() + " (" + meta.getScore() + ')';
     QString qs_name(name.c_str());
 
     QStringList labels;
@@ -683,7 +683,7 @@ namespace OpenMS
     ProteinHitVisualizer * visualizer = new ProteinHitVisualizer(isEditable(), this);
     visualizer->load(meta);
 
-    String name = String("Prot ") + meta.getAccession() + " (" + meta.getScore() + ')';
+    std::string name =StringUtils::toStr("Prot ") + meta.getAccession() + " (" + meta.getScore() + ')';
     QString qs_name(name.c_str());
 
     QStringList labels;
@@ -735,7 +735,7 @@ namespace OpenMS
     visualizer->load(meta);
 
     QStringList labels;
-    labels << (String("Sample ") + meta.getName()).c_str() << QString::number(ws_->addWidget(visualizer));
+    labels << (StringUtils::toStr("Sample ") + meta.getName()).c_str() << QString::number(ws_->addWidget(visualizer));
     QTreeWidgetItem * item;
     if (parent == nullptr)
     {
@@ -876,7 +876,7 @@ namespace OpenMS
     {
       QTreeWidgetItem * child = item->child(i);
 
-      if ((higher_better && child->text(2).toFloat() <= threshold) || (!higher_better && child->text(2).toFloat() >= threshold))
+      StringUtils::toFloat(if ((higher_better && child->text(2)) <= threshold) || (!higher_better && StringUtils::toFloat(child->text(2)) >= threshold))
       {
         child->setHidden(true);
       }

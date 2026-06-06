@@ -31,7 +31,7 @@ namespace OpenMS
   {
     template class WizardGUILock<FLASHDeconvTabWidget>;
 
-    String getFLASHDeconvExe()
+    std::string getFLASHDeconvExe()
     {
       return File::findSiblingTOPPExecutable("FLASHDeconv");
     }
@@ -47,8 +47,8 @@ namespace OpenMS
     FLASHDeconvTabWidget::FLASHDeconvTabWidget(QWidget* parent) :
         QTabWidget(parent),
         ui(new Ui::FLASHDeconvTabWidget),
-        ep_([&](const String& out) { writeLog_(toQString(out)); },
-            [&](const String& out) { writeLog_(toQString(out)); })
+        ep_([&](const std::string& out) { writeLog_(toQString(out)); },
+            [&](const std::string& out) { writeLog_(toQString(out)); })
     {
       ui->setupUi(this);
 
@@ -71,7 +71,7 @@ namespace OpenMS
       delete ui;
     }
 
-    String infileToFDoutput(const String& infile)
+    std::string infileToFDoutput(const std::string& infile)
     {
       return FileHandler::swapExtension(File::basename(infile), FileTypes::TSV);
     }
@@ -93,7 +93,7 @@ namespace OpenMS
       updateOutputParamFromWidgets_();
       Param fd_param;
       fd_param.insert("FLASHDeconv:1:", flashdeconv_param_);
-      String tmp_ini = File::getTemporaryFile();
+      std::string tmp_ini = File::getTemporaryFile();
       StringList in_mzMLs = getMzMLInputFiles();
       writeLog_(QString("Starting FLASHDeconv with %1 mzML file(s)").arg(in_mzMLs.size()), Qt::darkGreen, true);
 
@@ -115,7 +115,7 @@ namespace OpenMS
                          getFLASHDeconvExe(),
                          {"-ini", tmp_ini,
                           "-in", mzML,
-                          "-out", String(getCurrentOutDir_().toStdString()) + "/" + infileToFDoutput(mzML)},
+                          "-out",StringUtils::toStr(getCurrentOutDir_().toStdString()) + "/" + infileToFDoutput(mzML)},
                          "",
                          true);
         if (r != ExternalProcess::RETURNSTATE::SUCCESS)
@@ -135,8 +135,8 @@ namespace OpenMS
       Param tmp_param = flashdeconv_param_;
 
       // show the parameters to the user
-      String executable = File::getExecutablePath() + "INIFileEditor";
-      String tmp_file = File::getTemporaryFile();
+      std::string executable = File::getExecutablePath() + "INIFileEditor";
+      std::string tmp_file = File::getTemporaryFile();
       ParamXMLFile().store(tmp_file, tmp_param);
       QProcess qp;
       qp.start(toQString(executable), QStringList() << toQString(tmp_file));
@@ -225,7 +225,7 @@ namespace OpenMS
           }
 
           // if requested, set file path accordingly
-          String out_path = filepath_without_ext;
+          std::string out_path = filepath_without_ext;
           if (tag == "out_mzml")
           {
             out_path += "_deconv.mzML";
@@ -240,8 +240,8 @@ namespace OpenMS
           }
           else if (tag == "ida_log")
           {
-            String dir_path_only = File::path(fromQString(input_file_name));
-            String file_name_only = File::stemName(fromQString(input_file_name));
+            std::string dir_path_only = File::path(fromQString(input_file_name));
+            std::string file_name_only = File::stemName(fromQString(input_file_name));
             out_path = dir_path_only + '/' + "IDALog_" + file_name_only + ".log";
           }
           else if (tag == "out_spec1")
@@ -294,7 +294,7 @@ namespace OpenMS
     void FLASHDeconvTabWidget::setWidgetsfromFDDefaultParam_()
     {
       // create a default INI of FLASHDeconv
-      String tmp_file = File::getTemporaryFile();
+      std::string tmp_file = File::getTemporaryFile();
       if (ep_.run(this, getFLASHDeconvExe(), {"-write_ini", tmp_file}, "", true) != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         exit(1);
@@ -303,11 +303,11 @@ namespace OpenMS
       flashdeconv_param_ = flashdeconv_param_.copy("FLASHDeconv:1:", true);
 
       // parameters to show in default mode : flashdeconv_param_wizard_
-      flashdeconv_param_.remove("log");
-      flashdeconv_param_.remove("no_progress");
-      flashdeconv_param_.remove("debug");
-      flashdeconv_param_.remove("in");
-      flashdeconv_param_.remove("out");
+      StringUtils::remove(flashdeconv_param_, "log");
+      StringUtils::remove(flashdeconv_param_, "no_progress");
+      StringUtils::remove(flashdeconv_param_, "debug");
+      StringUtils::remove(flashdeconv_param_, "in");
+      StringUtils::remove(flashdeconv_param_, "out");
 
       // parameters for different output format
       StringList out_params = {"out_spec1","out_spec2","out_spec3","out_spec4", "out_annotated_mzml", "out_mzml",
@@ -318,11 +318,11 @@ namespace OpenMS
 
       // remove output format params from global parameter set
       for (const auto& name : out_params)
-        flashdeconv_param_.remove(name);
+        StringUtils::remove(flashdeconv_param_, name);
 
       // add ida_log parameter to flashdeconv_param_outputs_ (rename ida_log to get it out of "FD:" prefix)
       flashdeconv_param_outputs_.setValue("ida_log", "", flashdeconv_param_.getDescription("FD:ida_log"), flashdeconv_param_.getTags("FD:ida_log"));
-      flashdeconv_param_.remove("FD:ida_log");
+      StringUtils::remove(flashdeconv_param_, "FD:ida_log");
 
       ui->list_editor->load(flashdeconv_param_);
     }
@@ -348,7 +348,7 @@ namespace OpenMS
       ui->log_text->setTextColor(tc); // restore old color
     }
 
-    void FLASHDeconvTabWidget::writeLog_(const String& text, const QColor& color, bool new_section)
+    void FLASHDeconvTabWidget::writeLog_(const std::string& text, const QColor& color, bool new_section)
     {
       writeLog_(toQString(text), color, new_section);
     }

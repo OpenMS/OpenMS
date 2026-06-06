@@ -224,7 +224,7 @@ namespace OpenMS::Math
 
       if (!pass)
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (") + points.size() + " points).");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression",StringUtils::toStr("Could not fit a linear model to the data (") + points.size() + " points).");
       }
 
       if (compute_goodness && points.size() > 2)

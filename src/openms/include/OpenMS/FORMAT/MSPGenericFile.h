@@ -46,7 +46,7 @@ public:
     MSPGenericFile();
 
     /// Constructor with filename and output library
-    MSPGenericFile(const String& filename, MSExperiment& library);
+    MSPGenericFile(const std::string& filename, MSExperiment& library);
 
     /// Destructor
     ~MSPGenericFile() override = default;
@@ -65,7 +65,7 @@ public:
 
       @throw FileNotFound If the file could not be found
     */
-    void load(const String& filename, MSExperiment& library);
+    void load(const std::string& filename, MSExperiment& library);
 
     /**
       @brief Save data and metadata into a file.
@@ -75,7 +75,7 @@ public:
 
       @throw FileNotWritable If the file is not writable
     */
-    void store(const String& filename, const MSExperiment& library) const;
+    void store(const std::string& filename, const MSExperiment& library) const;
   
   private:
     /// Overrides `DefaultParamHandler`'s method
@@ -101,7 +101,7 @@ public:
     );
 
     /// To keep track of which spectra have already been loaded and avoid duplicates
-    std::set<String> loaded_spectra_names_;
+    std::set<std::string> loaded_spectra_names_;
 
     /*
       The synonyms of a spectrum are collected into this variable and,
@@ -109,10 +109,10 @@ public:
       and the result is saved as a "Synon" metaValue.
       The synonyms are separated by `synonyms_separator_`.
     */
-    std::vector<String> synonyms_;
+    std::vector<std::string> synonyms_;
 
     /// The separator to be used in "Synon" metaValue
-    String synonyms_separator_;
+    std::string synonyms_separator_;
   };
 
   class MSPGenericFile_friend

@@ -36,49 +36,49 @@ namespace OpenMS
      * @param[in] filename The output file
      * @param[in] id_data The IdentificationData object
      */
-    void store(const String& filename, const IdentificationData& id_data);
+    void store(const std::string& filename, const IdentificationData& id_data);
 
     /** @brief Write out a feature map to SQL-based OMS file
      *
      * @param[in] filename The output file
      * @param[in] features The feature map
      */
-    void store(const String& filename, const FeatureMap& features);
+    void store(const std::string& filename, const FeatureMap& features);
 
     /** @brief Write out a consensus map to SQL-based OMS file
      *
      * @param[in] filename The output file
      * @param[in] consensus The consensus map
      */
-    void store(const String& filename, const ConsensusMap& consensus);
+    void store(const std::string& filename, const ConsensusMap& consensus);
 
     /** @brief Read in an OMS file and construct an IdentificationData object
      *
      * @param[out] filename The input file
      * @param[in] id_data The IdentificationData object
      */
-    void load(const String& filename, IdentificationData& id_data);
+    void load(const std::string& filename, IdentificationData& id_data);
 
     /** @brief Read in an OMS file and construct a feature map
      *
      * @param[out] filename The input file
      * @param[in] features The feature map
      */
-    void load(const String& filename, FeatureMap& features);
+    void load(const std::string& filename, FeatureMap& features);
 
     /** @brief Read in an OMS file and construct a consensus map
      *
      * @param[out] filename The input file
      * @param[in] consensus The consensus map
      */
-    void load(const String& filename, ConsensusMap& consensus);
+    void load(const std::string& filename, ConsensusMap& consensus);
 
     /** @brief Read in an OMS file and write out the contents in JSON format
      *
      * @param[in] filename_in The input file (OMS)
      * @param[out] filename_out The output file (JSON)
      */
-    void exportToJSON(const String& filename_in, const String& filename_out);
+    void exportToJSON(const std::string& filename_in, const std::string& filename_out);
 
   protected:
     LogType log_type_;

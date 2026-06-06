@@ -24,7 +24,7 @@ START_TEST(AbsoluteQuantitationStandardsFile, "$Id$")
 AbsoluteQuantitationStandardsFile* ptr = 0;
 AbsoluteQuantitationStandardsFile* null_ptr = 0;
 
-const String csv_path = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationStandardsFile.csv");
+const std::string csv_path = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationStandardsFile.csv");
 
 START_SECTION(AbsoluteQuantitationStandardsFile())
 {
@@ -42,7 +42,7 @@ END_SECTION
 ptr = new AbsoluteQuantitationStandardsFile();
 
 START_SECTION(void load(
-  const String& filename,
+  const std::string& filename,
   std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations
 ) const)
 {

@@ -101,34 +101,34 @@ public:
     const ModificationDefinitionsSet& getModifications() const;
 
     /// sets the output filename
-    void setOutputFilename(const String& output);
+    void setOutputFilename(const std::string& output);
 
     /// returns the output filename
-    const String& getOutputFilename() const;
+    const std::string& getOutputFilename() const;
 
     /// sets the input filename
-    void setInputFilename(const String& input_file);
+    void setInputFilename(const std::string& input_file);
 
     /// returns the input filename
-    const String& getInputFilename() const;
+    const std::string& getInputFilename() const;
 
     /// set the filename of the taxonomy file
-    void setTaxonomyFilename(const String& filename);
+    void setTaxonomyFilename(const std::string& filename);
 
     /// returns the filename of the taxonomy file
-    const String& getTaxonomyFilename() const;
+    const std::string& getTaxonomyFilename() const;
 
     /// sets the default parameters file
-    void setDefaultParametersFilename(const String& filename);
+    void setDefaultParametersFilename(const std::string& filename);
 
     /// returns the default parameters file
-    const String& getDefaultParametersFilename() const;
+    const std::string& getDefaultParametersFilename() const;
 
     /// sets the taxon used in the taxonomy file
-    void setTaxon(const String& taxon);
+    void setTaxon(const std::string& taxon);
 
     /// returns the taxon used in the taxonomy file
-    const String& getTaxon() const;
+    const std::string& getTaxon() const;
 
     /// sets the max precursor charge
     void setMaxPrecursorCharge(Int max_charge);
@@ -143,10 +143,10 @@ public:
     UInt getNumberOfMissedCleavages() const;
 
     /// sets the output result type ("all", "valid" or "stochastic")
-    void setOutputResults(const String& result);
+    void setOutputResults(const std::string& result);
 
     /// returns the output result type ("all", "valid" or "stochastic")
-    String getOutputResults() const;
+    std::string getOutputResults() const;
 
     /// sets the max valid E-value allowed in the list
     void setMaxValidEValue(double value);
@@ -167,10 +167,10 @@ public:
     void setNoiseSuppression(const bool noise_suppression);
 
     /// set the cleavage site with a X! Tandem conform regex
-    void setCleavageSite(const String& cleavage_site);
+    void setCleavageSite(const std::string& cleavage_site);
     
     /// returns the cleavage site regex
-    const String& getCleavageSite() const;
+    const std::string& getCleavageSite() const;
 
     /** 
       @brief Writes the X! Tandem input file to the given filename
@@ -183,7 +183,7 @@ public:
       @param[in] force_default_mods Force writing of mods covered by special parameters
       @throw UnableToCreateFile is thrown if the given file could not be created
     */
-    void write(const String& filename, bool ignore_member_parameters = false,
+    void write(const std::string& filename, bool ignore_member_parameters = false,
                bool force_default_mods = false);
 
 protected:
@@ -194,11 +194,11 @@ protected:
 
     void writeTo_(std::ostream& os, bool ignore_member_parameters);
 
-    void writeNote_(std::ostream& os, const String& label, const String& value);
+    void writeNote_(std::ostream& os, const std::string& label, const std::string& value);
 
-    void writeNote_(std::ostream& os, const String& label, const char* value);
+    void writeNote_(std::ostream& os, const std::string& label, const char* value);
 
-    void writeNote_(std::ostream& os, const String& label, bool value);
+    void writeNote_(std::ostream& os, const std::string& label, bool value);
 
     /**
       @brief Converts the given set of Modifications into a format compatible to X!Tandem.
@@ -213,7 +213,7 @@ protected:
 
       @return An X! Tandem compatible string representation.
     */
-    String convertModificationSet_(const std::set<ModificationDefinition>& mods, std::map<String, double>& affected_origins) const;
+    std::string convertModificationSet_(const std::set<ModificationDefinition>& mods, std::map<std::string, double>& affected_origins) const;
 
     double fragment_mass_tolerance_;
 
@@ -241,15 +241,15 @@ protected:
 
     ModificationDefinitionsSet modifications_;
 
-    String input_filename_;
+    std::string input_filename_;
 
-    String output_filename_;
+    std::string output_filename_;
 
-    String taxonomy_file_;
+    std::string taxonomy_file_;
 
-    String taxon_;
+    std::string taxon_;
 
-    String cleavage_site_;
+    std::string cleavage_site_;
 
     /// semi cleavage
     bool semi_cleavage_;
@@ -259,10 +259,10 @@ protected:
     // scoring
     UInt number_of_missed_cleavages_;
 
-    String default_parameters_file_;
+    std::string default_parameters_file_;
 
     // output parameters
-    String output_results_;
+    std::string output_results_;
 
     double max_valid_evalue_;
 

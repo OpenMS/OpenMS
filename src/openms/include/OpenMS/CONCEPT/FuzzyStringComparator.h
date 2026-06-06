@@ -316,8 +316,8 @@ protected:
     /// Wrapper for the prefix information computed for the failure report
     struct PrefixInfo_
     {
-      OpenMS::String prefix;
-      OpenMS::String prefix_whitespaces;
+      std::string prefix;
+      std::string prefix_whitespaces;
       int line_column;
 
       PrefixInfo_(const InputLine & input_line, const int tab_width_, const int first_column_);
@@ -341,7 +341,7 @@ protected:
     /// Whitelist
     StringList whitelist_;
     /// Occurrences of whitelist entries
-    std::map<String, UInt> whitelist_cases_;
+    std::map<std::string, UInt> whitelist_cases_;
 
     /// Alternative Whitelist
     std::vector< std::pair<std::string, std::string> > matched_whitelist_; 

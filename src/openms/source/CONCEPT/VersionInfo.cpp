@@ -51,7 +51,7 @@ namespace OpenMS
     return !(*this < rhs || *this == rhs);
   }
 
-  VersionInfo::VersionDetails VersionInfo::VersionDetails::create(const String & version) //static
+  VersionInfo::VersionDetails VersionInfo::VersionDetails::create(const std::string & version) //static
   {
     VersionInfo::VersionDetails result;
 
@@ -64,7 +64,7 @@ namespace OpenMS
 
     try
     {
-      result.version_major = String(version.substr(0, first_dot)).toInt();
+      result.version_major =StringUtils::toInt32(StringUtils::substr(version, 0, first_dot));
     }
     catch (Exception::ConversionError & /*e*/)
     {
@@ -75,7 +75,7 @@ namespace OpenMS
     size_t second_dot = version.find('.', first_dot + 1);
     try
     {
-      result.version_minor = String(version.substr(first_dot + 1, second_dot - (first_dot + 1))).toInt();
+      result.version_minor =StringUtils::toInt32(StringUtils::substr(version, first_dot + 1, second_dot - (first_dot + 1)));
     }
     catch (Exception::ConversionError & /*e*/)
     {
@@ -92,7 +92,7 @@ namespace OpenMS
     size_t pre_release_dash = version.find('-', second_dot + 1);
     try
     {
-      result.version_patch = String(version.substr(second_dot + 1, pre_release_dash - (second_dot + 1))).toInt();
+      result.version_patch =StringUtils::toInt32(StringUtils::substr(version, second_dot + 1, pre_release_dash - (second_dot + 1)));
     }
     catch (Exception::ConversionError & /*e*/)
     {
@@ -104,31 +104,31 @@ namespace OpenMS
       return result;
     }
 
-    result.pre_release_identifier = String(version.substr(pre_release_dash + 1, version.size() - (pre_release_dash + 1)));
+    result.pre_release_identifier =StringUtils::toStr(StringUtils::substr(version, pre_release_dash + 1, version.size() - (pre_release_dash + 1)));
 
     return result;
   }
 
-  String VersionInfo::getTime()
+  std::string VersionInfo::getTime()
   {
     static bool is_initialized = false;
-    static String result;
+    static std::string result;
     if (!is_initialized)
     {
-      result = String(__DATE__) + ", " + __TIME__;
+      result =StringUtils::toStr(__DATE__) + ", " + __TIME__;
       is_initialized = true;
     }
     return result;
   }
 
-  String VersionInfo::getVersion()
+  std::string VersionInfo::getVersion()
   {
     static bool is_initialized = false;
-    static String result;
+    static std::string result;
     if (!is_initialized)
     {
       result = OPENMS_PACKAGE_VERSION;
-      result.trim();
+      StringUtils::trim(result);
       is_initialized = true;
     }
     return result;
@@ -146,14 +146,14 @@ namespace OpenMS
     return result;
   }
 
-  String VersionInfo::getRevision()
+  std::string VersionInfo::getRevision()
   {
-    return String(OPENMS_GIT_SHA1);
+    return StringUtils::toStr(OPENMS_GIT_SHA1);
   }
 
-  String VersionInfo::getBranch()
+  std::string VersionInfo::getBranch()
   {
-    return String(OPENMS_GIT_BRANCH);
+    return StringUtils::toStr(OPENMS_GIT_BRANCH);
   }
 
 }

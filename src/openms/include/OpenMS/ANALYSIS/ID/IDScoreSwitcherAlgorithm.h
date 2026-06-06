@@ -62,7 +62,7 @@ namespace OpenMS
       @param[in] type The ScoreType to compare against.
       @return True if the score name matches the given ScoreType, false otherwise.
     */
-    bool isScoreType(const String& score_name, const ScoreType& type) const
+    bool isScoreType(const std::string& score_name, const ScoreType& type) const
     {
       return Scores::isScoreType(score_name, type);
     }
@@ -79,7 +79,7 @@ namespace OpenMS
       @throws Exception::MissingInformation If the provided score_type string does not match any known
                                             score type.
     */
-    static ScoreType toScoreTypeEnum(const String& score_type)
+    static ScoreType toScoreTypeEnum(const std::string& score_type)
     {
       return Scores::parseIDType(score_type);
     }
@@ -100,7 +100,7 @@ namespace OpenMS
 
       @return A vector of all score names that are used in OpenMS (e.g., "q-value", "ln(hyperscore)").
     */
-    std::vector<String> getScoreNames();
+    std::vector<std::string> getScoreNames();
 
     /**
       @brief Structure to hold score detection results for any ScoreType.      
@@ -108,7 +108,7 @@ namespace OpenMS
     struct ScoreSearchResult
     {
       bool is_main_score_type = false;  ///< True if the main score is already of the requested score type
-      String score_name;                ///< Name of score to use (main score name if is_main_score_type=true, meta value name if found in meta values, empty if not found anywhere)
+      std::string score_name;                ///< Name of score to use (main score name if is_main_score_type=true, meta value name if found in meta values, empty if not found anywhere)
     };
 
     /**
@@ -132,7 +132,7 @@ namespace OpenMS
       ScoreSearchResult result;
       
       // First check if main score is already of the requested score type using existing infrastructure
-      const String& main_score_type = id.getScoreType();
+      const std::string& main_score_type = id.getScoreType();
       result.is_main_score_type = isScoreType(main_score_type, score_type);
       
       if (result.is_main_score_type)
@@ -144,10 +144,10 @@ namespace OpenMS
       {
         // Main score is not of the requested type, look for it in meta values
         const auto& first_hit = id.getHits()[0];
-        const std::set<String>& score_types = Scores::getIDNamesForType(score_type);
+        const std::set<std::string>& score_types = Scores::getIDNamesForType(score_type);
 
         // Search for scores of the requested type in meta values using the existing score type collection
-        for (const String& score_name : score_types)
+        for (const std::string& score_name : score_types)
         {
           if (first_hit.metaValueExists(score_name))
           {
@@ -155,7 +155,7 @@ namespace OpenMS
             break;
           }
           // Also check for "_score" suffix variant
-          String score_name_with_suffix = score_name + "_score";
+          std::string score_name_with_suffix = score_name + "_score";
           if (first_hit.metaValueExists(score_name_with_suffix))
           {
             result.score_name = score_name_with_suffix;
@@ -202,7 +202,7 @@ namespace OpenMS
                                               OPENMS_PRETTY_FUNCTION, msg.str());
         }
 
-        const String& old_score_meta = (old_score_.empty() ? id.getScoreType() :
+        const std::string& old_score_meta = (old_score_.empty() ? id.getScoreType() :
                                  old_score_);
         const DataValue& dv = hit_it->getMetaValue(old_score_meta);
         if (!dv.isEmpty()) // meta value for old score already exists
@@ -272,16 +272,16 @@ namespace OpenMS
       // Otherwise we need a score name to switch to
       if (sr.score_name.empty())
       {
-        String msg = "First encountered ID does not have the requested score type.";
+        std::string msg = "First encountered ID does not have the requested score type.";
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
 
-      String t = sr.score_name;
+      std::string t = sr.score_name;
 
-      if (t.hasSuffix("_score"))
+      if (StringUtils::hasSuffix(t, "_score"))
       {
-        new_score_type_ = t.chop(6);
+        new_score_type_ = StringUtils::chop(t, 6);
       }
       else
       {
@@ -330,7 +330,7 @@ namespace OpenMS
     */
     void switchToGeneralScoreType(ConsensusMap& cmap, ScoreType type, Size& counter, bool unassigned_peptides_too = true)
     {
-      String new_type = "";
+      std::string new_type = "";
       for (const auto& f : cmap)
       {
         const auto& ids = f.getPeptideIdentifications();
@@ -351,14 +351,14 @@ namespace OpenMS
 
       if (new_type.empty())
       {
-        String msg = "First encountered ID does not have the requested score type.";
+        std::string msg = "First encountered ID does not have the requested score type.";
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
 
-      if (new_type.hasSuffix("_score"))
+      if (StringUtils::hasSuffix(new_type, "_score"))
       {
-        new_score_type_ = new_type.chop(6);
+        new_score_type_ = StringUtils::chop(new_type, 6);
       }
       else
       {
@@ -391,7 +391,7 @@ namespace OpenMS
   */
   void determineScoreNameOrientationAndType(
     const PeptideIdentificationList& pep_ids, 
-    String& name, 
+    std::string& name, 
     bool& higher_better,
     ScoreType& score_type)
   {
@@ -425,7 +425,7 @@ namespace OpenMS
    @param[in] include_unassigned If true, unassigned peptide identifications are considered if no assigned ones are found. Default is true.
   */
   void determineScoreNameOrientationAndType(const ConsensusMap& cmap, 
-    String& name,
+    std::string& name,
     bool& higher_better,
     ScoreType& score_type,
     bool include_unassigned = true)
@@ -540,13 +540,13 @@ namespace OpenMS
   struct IDSwitchResult
   {
     // the score name, orientation and type used before the switch
-    String original_score_name; /// The name of the original score used before the switch.
+    std::string original_score_name; /// The name of the original score used before the switch.
     bool original_score_higher_better = true; /// whether a higher original score is better
     IDScoreSwitcherAlgorithm::ScoreType original_score_type = IDScoreSwitcherAlgorithm::ScoreType::RAW; /// the type of the original score
     // the score name, orientation and type used after the switch
     bool requested_score_higher_better = original_score_higher_better; /// whether a higher requested score is better
     IDScoreSwitcherAlgorithm::ScoreType requested_score_type = original_score_type; /// the type of the requested score
-    String requested_score_name; // the search engine score name (e.g. "X!Tandem_score" or score category (e.g. "PEP")
+    std::string requested_score_name; // the search engine score name (e.g. "X!Tandem_score" or score category (e.g. "PEP")
     // wheter the main score was switched
     bool score_switched = false; /// flag indicating whether the main score was switched
   };
@@ -564,7 +564,7 @@ namespace OpenMS
    *
    * @return An IDSwitchResult structure containing information about the score switch operation, including the original and requested score names, types, and whether a switch was performed.
    */
-  static IDSwitchResult switchToScoreType(ConsensusMap& cmap, String requested_score_type_as_string, bool include_unassigned = true)
+  static IDSwitchResult switchToScoreType(ConsensusMap& cmap, std::string requested_score_type_as_string, bool include_unassigned = true)
   {
     IDSwitchResult result;
     // fill in the original score name, orientation and type
@@ -629,7 +629,7 @@ namespace OpenMS
    * @return IDSwitchResult A struct containing details about the original and requested score types,
    *                        whether a switch was performed, and the number of IDs updated.
    */
-  static IDSwitchResult switchToScoreType(PeptideIdentificationList& pep_ids, String requested_score_type_as_string)
+  static IDSwitchResult switchToScoreType(PeptideIdentificationList& pep_ids, std::string requested_score_type_as_string)
   {
     IDSwitchResult result;
     // fill in the original score name, orientation and type
@@ -744,7 +744,7 @@ namespace OpenMS
     const double tolerance_ = 1e-6;
 
     /// will be set according to the algorithm parameters
-    String new_score_, new_score_type_, old_score_;
+    std::string new_score_, new_score_type_, old_score_;
 
     /// will be set according to the algorithm parameters
     bool higher_better_; // for the new scores, are higher ones better?

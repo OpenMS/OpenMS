@@ -112,7 +112,7 @@ namespace OpenMS
       {
         if (it_elements->getIntensity() == 0)
         {
-          String ch_index = consensus_map_out.getColumnHeaders()[it_elements->getMapIndex()].getMetaValue("channel_name");
+          std::string ch_index = (std::string)(std::string)consensus_map_out.getColumnHeaders()[it_elements->getMapIndex()].getMetaValue("channel_name");
           ++stats_.empty_channels[ch_index];
         }
       }
@@ -125,15 +125,17 @@ namespace OpenMS
     for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin(); cl_it != quant_method_->getChannelInformation().end();
          ++cl_it) // use the same iteration method for printing stats as in IsobaricChannelExtractor which have the same order, so user can make 1:1 comparison
     {
-      std::map<String, Size>::const_iterator it_m = stats_.empty_channels.find(cl_it->name);
+      std::map<std::string, Size>::const_iterator it_m = stats_.empty_channels.find(cl_it->name);
       if (it_m == stats_.empty_channels.end())
       { // should not happen
         OPENMS_LOG_WARN << "Warning: no stats for channel '" << cl_it->name << "'" << std::endl;
         continue;
       }
-      OPENMS_LOG_INFO << "  ch " << String(cl_it->name).fillRight(' ', 4) << ": " << (consensus_map_out.size() - it_m->second) << " / " << consensus_map_out.size() << " ("
+      std::string ch_name_padded = cl_it->name;
+      StringUtils::fillRight(ch_name_padded, ' ', 4);
+      OPENMS_LOG_INFO << "  ch " << ch_name_padded << ": " << (consensus_map_out.size() - it_m->second) << " / " << consensus_map_out.size() << " ("
                       << ((consensus_map_out.size() - it_m->second) * 100 / consensus_map_out.size()) << "%)\n";
-      consensus_map_out.setMetaValue(String("isoquant:quantifyable_ch") + it_m->first, (consensus_map_out.size() - it_m->second));
+      consensus_map_out.setMetaValue(StringUtils::toStr("isoquant:quantifyable_ch") + it_m->first, (consensus_map_out.size() - it_m->second));
     }
   }
 

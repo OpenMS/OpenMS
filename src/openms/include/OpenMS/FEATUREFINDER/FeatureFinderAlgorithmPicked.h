@@ -41,7 +41,7 @@ namespace OpenMS
     {
 public:
       NoSuccessor(const char * file, int line, const char * function, const IndexPair & index) :
-        BaseException(file, line, function, "NoSuccessor", String("there is no successor/predecessor for the given Index: ") + String(index.first) + "/" + String(index.second)),
+        BaseException(file, line, function, "NoSuccessor",StringUtils::toStr("there is no successor/predecessor for the given Index: ") + StringUtils::toStr(index.first) + "/" + StringUtils::toStr(index.second)),
         index_(index)
       {
         Exception::GlobalExceptionHandler::setMessage(what());
@@ -148,9 +148,9 @@ protected:
     /// debug flag
     bool debug_;
     /// Array of abort reasons
-    std::map<String, UInt> aborts_;
+    std::map<std::string, UInt> aborts_;
     /// Array of abort reasons
-    std::map<Seed, String> abort_reasons_;
+    std::map<Seed, std::string> abort_reasons_;
     /// User-specified seed list
     FeatureMap seeds_;
 
@@ -171,7 +171,7 @@ protected:
     double min_rt_span_; ///< Minimum RT range that has to be left after the fit
     double max_rt_span_; ///< Maximum RT range the model is allowed to span
     double max_feature_intersection_; ///< Maximum allowed feature intersection (if larger, that one of the feature is removed)
-    String reported_mz_; ///< The mass type that is reported for features. 'maximum' returns the m/z value of the highest mass trace. 'average' returns the intensity-weighted average m/z value of all contained peaks. 'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.
+    std::string reported_mz_; ///< The mass type that is reported for features. 'maximum' returns the m/z value of the highest mass trace. 'average' returns the intensity-weighted average m/z value of all contained peaks. 'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.
     //@}
 
     /// @name Members for intensity significance estimation
@@ -191,7 +191,7 @@ protected:
     void updateMembers_() override;
 
     /// Writes the abort reason to the log file and counts occurrences for each reason
-    void abort_(const Seed& seed, const String& reason);
+    void abort_(const Seed& seed, const std::string& reason);
 
     /**
      * Calculates the intersection between features.
@@ -327,7 +327,7 @@ protected:
     bool checkFeatureQuality_(const std::shared_ptr<TraceFitter>& fitter,
                               MassTraces& feature_traces,
                               const double& seed_mz, const double& min_feature_score,
-                              String& error_msg, double& fit_score, double& correlation, double& final_score);
+                              std::string& error_msg, double& fit_score, double& correlation, double& final_score);
 
     /**
       @brief Creates several files containing plots and viewable data of the fitted mass trace
@@ -345,8 +345,8 @@ protected:
     void writeFeatureDebugInfo_(const std::shared_ptr<TraceFitter>& fitter,
                                 const MassTraces& traces,
                                 const MassTraces& new_traces,
-                                bool feature_ok, const String& error_msg, const double final_score, const Int plot_nr, const PeakType& peak,
-                                const String& path  = "debug/features/");
+                                bool feature_ok, const std::string& error_msg, const double final_score, const Int plot_nr, const PeakType& peak,
+                                const std::string& path  = "debug/features/");
 
     //@}
 private:

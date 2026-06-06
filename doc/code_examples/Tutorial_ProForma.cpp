@@ -194,7 +194,7 @@ int main()
   cout << "=== JSON Serialization ===" << endl;
 
   pf = ProForma::parse("[Acetyl]-PEM[UNIMOD:35]TIDE");
-  String json_str = ProForma::toJSON(pf);
+  std::string json_str = ProForma::toJSON(pf);
   cout << "JSON length: " << json_str.size() << " bytes" << endl;
 
   // Roundtrip: deserialize and compare

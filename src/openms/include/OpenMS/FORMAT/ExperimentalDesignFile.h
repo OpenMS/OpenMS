@@ -29,27 +29,27 @@ namespace OpenMS
     public:
 
     /// Loads an experimental design from a tabular separated file
-    static ExperimentalDesign load(const String& tsv_file, bool require_spectra_files);
+    static ExperimentalDesign load(const std::string& tsv_file, bool require_spectra_files);
 
     /// Loads an experimental design from an already loaded or generated, tabular file
-    static ExperimentalDesign load(const TextFile& text_file, const bool require_spectra_file, String filename);
+    static ExperimentalDesign load(const TextFile& text_file, const bool require_spectra_file, std::string filename);
 
     private:
     static bool isOneTableFile_(const TextFile& text_file);
-    static ExperimentalDesign parseOneTableFile_(const TextFile& text_file, const String& tsv_file, bool require_spectra_file);
-    static ExperimentalDesign parseTwoTableFile_(const TextFile& text_file, const String& tsv_file, bool require_spectra_file);
+    static ExperimentalDesign parseOneTableFile_(const TextFile& text_file, const std::string& tsv_file, bool require_spectra_file);
+    static ExperimentalDesign parseTwoTableFile_(const TextFile& text_file, const std::string& tsv_file, bool require_spectra_file);
     /// Reads header line of File and Sample section, checks for the existence of required headers
     /// and maps the column name to its position
     static void parseHeader_(
       const StringList &header,
-      const String &filename,
-      std::map <String, Size> &column_map,
-      const std::set <String> &required,
-      const std::set <String> &optional,
+      const std::string &filename,
+      std::map <std::string, Size> &column_map,
+      const std::set <std::string> &required,
+      const std::set <std::string> &optional,
       bool allow_other_header);
 
     /// Throws @class ParseError with @p filename and @p message if @p test is false.
-    static void parseErrorIf_(const bool test, const String &filename, const String &message);
+    static void parseErrorIf_(const bool test, const std::string &filename, const std::string &message);
   };
 }
 

@@ -95,7 +95,7 @@ namespace OpenMS
   /// iterate over all items in CONTAINER and
   /// use LAMBDA function to extract the charge from each item
   template <class CONTAINER, typename LAMBDA>
-  void printChargeDistribution(const CONTAINER& data, LAMBDA lam, ostream& os, ostream& os_tsv, const String& header = "Charge")
+  void printChargeDistribution(const CONTAINER& data, LAMBDA lam, ostream& os, ostream& os_tsv, const std::string& header = "Charge")
   {
     std::map<Int, UInt> charges;
     Int q;
@@ -122,7 +122,7 @@ namespace OpenMS
   //helper struct for identification data
   struct IdData
   {
-    String identifier;
+    std::string identifier;
     vector<ProteinIdentification> proteins;
     PeptideIdentificationList peptides;
   };
@@ -184,8 +184,8 @@ protected:
     else
     {
       os << "Ranges:" << '\n'
-        << "  retention time: " << String::number(map.getMinRT(), 2) << " .. " << String::number(map.getMaxRT(), 2) << " sec ("
-        << String::number((map.getMaxRT() - map.getMinRT()) / 60, 1) << " min)\n";
+        << "  retention time: " << StringUtils::number(map.getMinRT(), 2) << " .. " << StringUtils::number(map.getMaxRT(), 2) << " sec ("
+        << StringUtils::number((map.getMaxRT() - map.getMinRT()) / 60, 1) << " min)\n";
     }
 
     if (map.RangeMZ::isEmpty())
@@ -194,7 +194,7 @@ protected:
     }
     else
     {
-      os << "  mass-to-charge: " << String::number(map.getMinMZ(), 2) << " .. " << String::number(map.getMaxMZ(), 2) << '\n';
+      os << "  mass-to-charge: " << StringUtils::number(map.getMinMZ(), 2) << " .. " << StringUtils::number(map.getMaxMZ(), 2) << '\n';
     }
     
 
@@ -206,7 +206,7 @@ protected:
       }
       else
       {
-        os << "  ion mobility: " << String::number(map.getMinMobility(), 2) << " .. " << String::number(map.getMaxMobility(), 2) << '\n';
+        os << "  ion mobility: " << StringUtils::number(map.getMinMobility(), 2) << " .. " << StringUtils::number(map.getMaxMobility(), 2) << '\n';
       }
     }
 
@@ -216,7 +216,7 @@ protected:
     }
     else
     {
-      os << "  intensity: " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << "\n\n";
+      os << "  intensity: " << StringUtils::number(map.getMinIntensity(), 2) << " .. " << StringUtils::number(map.getMaxIntensity(), 2) << "\n\n";
     }
   }
 
@@ -231,9 +231,9 @@ protected:
     }
     else
     {
-      os << "  retention time: " << String::number(exp.combinedRanges().getMinRT(), 2) << " .. "
-         << String::number(exp.combinedRanges().getMaxRT(), 2) << " sec ("
-         << String::number((exp.combinedRanges().getMaxRT() - exp.combinedRanges().getMinRT()) / 60, 1) << " min)\n";
+      os << "  retention time: " << StringUtils::number(exp.combinedRanges().getMinRT(), 2) << " .. "
+         << StringUtils::number(exp.combinedRanges().getMaxRT(), 2) << " sec ("
+         << StringUtils::number((exp.combinedRanges().getMaxRT() - exp.combinedRanges().getMinRT()) / 60, 1) << " min)\n";
     }
     
     // Display m/z range
@@ -243,8 +243,8 @@ protected:
     }
     else
     {
-      os << "  mass-to-charge: " << String::number(exp.combinedRanges().getMinMZ(), 2) << " .. "
-         << String::number(exp.combinedRanges().getMaxMZ(), 2) << '\n';
+      os << "  mass-to-charge: " << StringUtils::number(exp.combinedRanges().getMinMZ(), 2) << " .. "
+         << StringUtils::number(exp.combinedRanges().getMaxMZ(), 2) << '\n';
     }
     
     // Display mobility range if present
@@ -254,8 +254,8 @@ protected:
     }
     else
     {
-      os << "  ion mobility: " << String::number(exp.combinedRanges().getMinMobility(), 2) << " .. "
-         << String::number(exp.combinedRanges().getMaxMobility(), 2) << '\n';
+      os << "  ion mobility: " << StringUtils::number(exp.combinedRanges().getMinMobility(), 2) << " .. "
+         << StringUtils::number(exp.combinedRanges().getMaxMobility(), 2) << '\n';
     }
 
     // Display intensity range
@@ -265,8 +265,8 @@ protected:
     }
     else
     {
-      os << "  intensity: " << String::number(exp.combinedRanges().getMinIntensity(), 2) << " .. "
-         << String::number(exp.combinedRanges().getMaxIntensity(), 2) << "\n\n";
+      os << "  intensity: " << StringUtils::number(exp.combinedRanges().getMinIntensity(), 2) << " .. "
+         << StringUtils::number(exp.combinedRanges().getMaxIntensity(), 2) << "\n\n";
     }
     
     // 2. Display Spectrum Ranges (overall)
@@ -280,9 +280,9 @@ protected:
     }
     else
     {
-      os << "  retention time: " << String::number(spec_ranges.getMinRT(), 2) << " .. "
-         << String::number(spec_ranges.getMaxRT(), 2) << " sec ("
-         << String::number((spec_ranges.getMaxRT() - spec_ranges.getMinRT()) / 60, 1) << " min)\n";
+      os << "  retention time: " << StringUtils::number(spec_ranges.getMinRT(), 2) << " .. "
+         << StringUtils::number(spec_ranges.getMaxRT(), 2) << " sec ("
+         << StringUtils::number((spec_ranges.getMaxRT() - spec_ranges.getMinRT()) / 60, 1) << " min)\n";
     }
     
     // Display m/z range
@@ -292,8 +292,8 @@ protected:
     }
     else
     {
-      os << "  mass-to-charge: " << String::number(spec_ranges.getMinMZ(), 2) << " .. "
-         << String::number(spec_ranges.getMaxMZ(), 2) << '\n';
+      os << "  mass-to-charge: " << StringUtils::number(spec_ranges.getMinMZ(), 2) << " .. "
+         << StringUtils::number(spec_ranges.getMaxMZ(), 2) << '\n';
     }
     
     // Display mobility range if present
@@ -303,8 +303,8 @@ protected:
     }
     else
     {
-      os << "  ion mobility: " << String::number(spec_ranges.getMinMobility(), 2) << " .. "
-         << String::number(spec_ranges.getMaxMobility(), 2) << '\n';
+      os << "  ion mobility: " << StringUtils::number(spec_ranges.getMinMobility(), 2) << " .. "
+         << StringUtils::number(spec_ranges.getMaxMobility(), 2) << '\n';
     }
 
     // Display intensity range
@@ -314,8 +314,8 @@ protected:
     }
     else
     {
-      os << "  intensity: " << String::number(spec_ranges.getMinIntensity(), 2) << " .. "
-         << String::number(spec_ranges.getMaxIntensity(), 2) << "\n\n";
+      os << "  intensity: " << StringUtils::number(spec_ranges.getMinIntensity(), 2) << " .. "
+         << StringUtils::number(spec_ranges.getMaxIntensity(), 2) << "\n\n";
     }
     
     // 3. Display Spectrum Ranges per MS Level
@@ -332,9 +332,9 @@ protected:
       }
       else
       {
-        os << "  retention time: " << String::number(level_ranges.getMinRT(), 2) << " .. "
-           << String::number(level_ranges.getMaxRT(), 2) << " sec ("
-           << String::number((level_ranges.getMaxRT() - level_ranges.getMinRT()) / 60, 1) << " min)\n";
+        os << "  retention time: " << StringUtils::number(level_ranges.getMinRT(), 2) << " .. "
+           << StringUtils::number(level_ranges.getMaxRT(), 2) << " sec ("
+           << StringUtils::number((level_ranges.getMaxRT() - level_ranges.getMinRT()) / 60, 1) << " min)\n";
       }
       
       // Display m/z range for this MS level
@@ -344,8 +344,8 @@ protected:
       }
       else
       {
-        os << "  mass-to-charge: " << String::number(level_ranges.getMinMZ(), 2) << " .. "
-           << String::number(level_ranges.getMaxMZ(), 2) << '\n';
+        os << "  mass-to-charge: " << StringUtils::number(level_ranges.getMinMZ(), 2) << " .. "
+           << StringUtils::number(level_ranges.getMaxMZ(), 2) << '\n';
       }
       
       // Display mobility range for this MS level if present
@@ -355,8 +355,8 @@ protected:
       }
       else
       {
-        os << "  ion mobility: " << String::number(level_ranges.getMinMobility(), 2) << " .. "
-           << String::number(level_ranges.getMaxMobility(), 2) << '\n';
+        os << "  ion mobility: " << StringUtils::number(level_ranges.getMinMobility(), 2) << " .. "
+           << StringUtils::number(level_ranges.getMaxMobility(), 2) << '\n';
       }
 
       // Display intensity range for this MS level
@@ -366,8 +366,8 @@ protected:
       }
       else
       {
-        os << "  intensity: " << String::number(level_ranges.getMinIntensity(), 2) << " .. "
-           << String::number(level_ranges.getMaxIntensity(), 2) << "\n\n";
+        os << "  intensity: " << StringUtils::number(level_ranges.getMinIntensity(), 2) << " .. "
+           << StringUtils::number(level_ranges.getMaxIntensity(), 2) << "\n\n";
       }
     }
     
@@ -381,9 +381,9 @@ protected:
     }
     else
     {
-      os << "  retention time: " << String::number(chrom_ranges.getMinRT(), 2) << " .. "
-         << String::number(chrom_ranges.getMaxRT(), 2) << " sec ("
-         << String::number((chrom_ranges.getMaxRT() - chrom_ranges.getMinRT()) / 60, 1) << " min)\n";
+      os << "  retention time: " << StringUtils::number(chrom_ranges.getMinRT(), 2) << " .. "
+         << StringUtils::number(chrom_ranges.getMaxRT(), 2) << " sec ("
+         << StringUtils::number((chrom_ranges.getMaxRT() - chrom_ranges.getMinRT()) / 60, 1) << " min)\n";
     }
     
     // Display m/z range for chromatograms
@@ -393,8 +393,8 @@ protected:
     }
     else
     {
-      os << "  mass-to-charge: " << String::number(chrom_ranges.getMinMZ(), 2) << " .. "
-         << String::number(chrom_ranges.getMaxMZ(), 2) << '\n';
+      os << "  mass-to-charge: " << StringUtils::number(chrom_ranges.getMinMZ(), 2) << " .. "
+         << StringUtils::number(chrom_ranges.getMaxMZ(), 2) << '\n';
     }
 
     // Display intensity range for chromatograms
@@ -404,8 +404,8 @@ protected:
     }
     else
     {
-      os << "  intensity: " << String::number(chrom_ranges.getMinIntensity(), 2) << " .. "
-         << String::number(chrom_ranges.getMaxIntensity(), 2) << "\n\n";
+      os << "  intensity: " << StringUtils::number(chrom_ranges.getMinIntensity(), 2) << " .. "
+         << StringUtils::number(chrom_ranges.getMaxIntensity(), 2) << "\n\n";
     }
   }
 
@@ -414,8 +414,8 @@ protected:
   {
     if (!map.RangeRT::isEmpty())
     {
-      os << "general: ranges: retention time: min" << '\t' << String::number(map.getMinRT(), 2) << '\n'
-         << "general: ranges: retention time: max" << '\t' << String::number(map.getMaxRT(), 2) << '\n';
+      os << "general: ranges: retention time: min" << '\t' << StringUtils::number(map.getMinRT(), 2) << '\n'
+         << "general: ranges: retention time: max" << '\t' << StringUtils::number(map.getMaxRT(), 2) << '\n';
     }
     else
     {
@@ -425,8 +425,8 @@ protected:
     
     if (!map.RangeMZ::isEmpty())
     {
-      os << "general: ranges: mass-to-charge: min" << '\t' << String::number(map.getMinMZ(), 2) << '\n'
-         << "general: ranges: mass-to-charge: max" << '\t' << String::number(map.getMaxMZ(), 2) << '\n';
+      os << "general: ranges: mass-to-charge: min" << '\t' << StringUtils::number(map.getMinMZ(), 2) << '\n'
+         << "general: ranges: mass-to-charge: max" << '\t' << StringUtils::number(map.getMaxMZ(), 2) << '\n';
     }
     else
     {
@@ -438,17 +438,17 @@ protected:
     {
       if (!map.RangeMobility::isEmpty())
       {
-        os << "general: ranges: ion-mobility: min" << '\t' << String::number(map.getMinMobility(), 2) << '\n'
-           << "general: ranges: ion-mobility: max" << '\t' << String::number(map.getMaxMobility(), 2) << '\n';
+        os << "general: ranges: ion-mobility: min" << '\t' << StringUtils::number(map.getMinMobility(), 2) << '\n'
+           << "general: ranges: ion-mobility: max" << '\t' << StringUtils::number(map.getMaxMobility(), 2) << '\n';
       }
     }
 
     if (!map.RangeIntensity::isEmpty())
     {
       os << "general: ranges: intensity: min"
-         << '\t' << String::number(map.getMinIntensity(), 2) << '\n'
+         << '\t' << StringUtils::number(map.getMinIntensity(), 2) << '\n'
          << "general: ranges: intensity: max"
-         << '\t' << String::number(map.getMaxIntensity(), 2) << '\n';
+         << '\t' << StringUtils::number(map.getMaxIntensity(), 2) << '\n';
     }
     else
     {
@@ -463,8 +463,8 @@ protected:
     // 1. Combined Ranges
     if (!exp.combinedRanges().RangeRT::isEmpty())
     {
-      os << "general: combined ranges: retention time: min" << '\t' << String::number(exp.combinedRanges().getMinRT(), 2) << '\n'
-         << "general: combined ranges: retention time: max" << '\t' << String::number(exp.combinedRanges().getMaxRT(), 2) << '\n';
+      os << "general: combined ranges: retention time: min" << '\t' << StringUtils::number(exp.combinedRanges().getMinRT(), 2) << '\n'
+         << "general: combined ranges: retention time: max" << '\t' << StringUtils::number(exp.combinedRanges().getMaxRT(), 2) << '\n';
     }
     else
     {
@@ -474,8 +474,8 @@ protected:
     
     if (!exp.combinedRanges().RangeMZ::isEmpty())
     {
-      os << "general: combined ranges: mass-to-charge: min" << '\t' << String::number(exp.combinedRanges().getMinMZ(), 2) << '\n'
-         << "general: combined ranges: mass-to-charge: max" << '\t' << String::number(exp.combinedRanges().getMaxMZ(), 2) << '\n';
+      os << "general: combined ranges: mass-to-charge: min" << '\t' << StringUtils::number(exp.combinedRanges().getMinMZ(), 2) << '\n'
+         << "general: combined ranges: mass-to-charge: max" << '\t' << StringUtils::number(exp.combinedRanges().getMaxMZ(), 2) << '\n';
     }
     else
     {
@@ -485,14 +485,14 @@ protected:
     
     if (!exp.combinedRanges().RangeMobility::isEmpty())
     {
-      os << "general: combined ranges: ion-mobility: min" << '\t' << String::number(exp.combinedRanges().getMinMobility(), 2) << '\n'
-         << "general: combined ranges: ion-mobility: max" << '\t' << String::number(exp.combinedRanges().getMaxMobility(), 2) << '\n';
+      os << "general: combined ranges: ion-mobility: min" << '\t' << StringUtils::number(exp.combinedRanges().getMinMobility(), 2) << '\n'
+         << "general: combined ranges: ion-mobility: max" << '\t' << StringUtils::number(exp.combinedRanges().getMaxMobility(), 2) << '\n';
     }
     
     if (!exp.combinedRanges().RangeIntensity::isEmpty())
     {
-      os << "general: combined ranges: intensity: min" << '\t' << String::number(exp.combinedRanges().getMinIntensity(), 2) << '\n'
-         << "general: combined ranges: intensity: max" << '\t' << String::number(exp.combinedRanges().getMaxIntensity(), 2) << '\n';
+      os << "general: combined ranges: intensity: min" << '\t' << StringUtils::number(exp.combinedRanges().getMinIntensity(), 2) << '\n'
+         << "general: combined ranges: intensity: max" << '\t' << StringUtils::number(exp.combinedRanges().getMaxIntensity(), 2) << '\n';
     }
     else
     {
@@ -504,8 +504,8 @@ protected:
     const auto& spec_ranges = exp.spectrumRanges();
     if (!spec_ranges.RangeRT::isEmpty())
     {
-      os << "general: spectrum ranges: retention time: min" << '\t' << String::number(spec_ranges.getMinRT(), 2) << '\n'
-         << "general: spectrum ranges: retention time: max" << '\t' << String::number(spec_ranges.getMaxRT(), 2) << '\n';
+      os << "general: spectrum ranges: retention time: min" << '\t' << StringUtils::number(spec_ranges.getMinRT(), 2) << '\n'
+         << "general: spectrum ranges: retention time: max" << '\t' << StringUtils::number(spec_ranges.getMaxRT(), 2) << '\n';
     }
     else
     {
@@ -516,8 +516,8 @@ protected:
     // Similar code for m/z, mobility, intensity for spectrum ranges
     if (!spec_ranges.RangeMZ::isEmpty())
     {
-      os << "general: spectrum ranges: mass-to-charge: min" << '\t' << String::number(spec_ranges.getMinMZ(), 2) << '\n'
-         << "general: spectrum ranges: mass-to-charge: max" << '\t' << String::number(spec_ranges.getMaxMZ(), 2) << '\n';
+      os << "general: spectrum ranges: mass-to-charge: min" << '\t' << StringUtils::number(spec_ranges.getMinMZ(), 2) << '\n'
+         << "general: spectrum ranges: mass-to-charge: max" << '\t' << StringUtils::number(spec_ranges.getMaxMZ(), 2) << '\n';
     }
     else
     {
@@ -527,14 +527,14 @@ protected:
     
     if (!spec_ranges.RangeMobility::isEmpty())
     {
-      os << "general: spectrum ranges: ion-mobility: min" << '\t' << String::number(spec_ranges.getMinMobility(), 2) << '\n'
-         << "general: spectrum ranges: ion-mobility: max" << '\t' << String::number(spec_ranges.getMaxMobility(), 2) << '\n';
+      os << "general: spectrum ranges: ion-mobility: min" << '\t' << StringUtils::number(spec_ranges.getMinMobility(), 2) << '\n'
+         << "general: spectrum ranges: ion-mobility: max" << '\t' << StringUtils::number(spec_ranges.getMaxMobility(), 2) << '\n';
     }
     
     if (!spec_ranges.RangeIntensity::isEmpty())
     {
-      os << "general: spectrum ranges: intensity: min" << '\t' << String::number(spec_ranges.getMinIntensity(), 2) << '\n'
-         << "general: spectrum ranges: intensity: max" << '\t' << String::number(spec_ranges.getMaxIntensity(), 2) << '\n';
+      os << "general: spectrum ranges: intensity: min" << '\t' << StringUtils::number(spec_ranges.getMinIntensity(), 2) << '\n'
+         << "general: spectrum ranges: intensity: max" << '\t' << StringUtils::number(spec_ranges.getMaxIntensity(), 2) << '\n';
     }
     else
     {
@@ -549,8 +549,8 @@ protected:
       const auto& level_ranges = exp.spectrumRanges().byMSLevel(ms_level);
       if (!level_ranges.RangeRT::isEmpty())
       {
-        os << "general: MS" << ms_level << " ranges: retention time: min" << '\t' << String::number(level_ranges.getMinRT(), 2) << '\n'
-           << "general: MS" << ms_level << " ranges: retention time: max" << '\t' << String::number(level_ranges.getMaxRT(), 2) << '\n';
+        os << "general: MS" << ms_level << " ranges: retention time: min" << '\t' << StringUtils::number(level_ranges.getMinRT(), 2) << '\n'
+           << "general: MS" << ms_level << " ranges: retention time: max" << '\t' << StringUtils::number(level_ranges.getMaxRT(), 2) << '\n';
       }
       else
       {
@@ -561,8 +561,8 @@ protected:
       // Similar code for other dimensions
       if (!level_ranges.RangeMZ::isEmpty())
       {
-        os << "general: MS" << ms_level << " ranges: mass-to-charge: min" << '\t' << String::number(level_ranges.getMinMZ(), 2) << '\n'
-           << "general: MS" << ms_level << " ranges: mass-to-charge: max" << '\t' << String::number(level_ranges.getMaxMZ(), 2) << '\n';
+        os << "general: MS" << ms_level << " ranges: mass-to-charge: min" << '\t' << StringUtils::number(level_ranges.getMinMZ(), 2) << '\n'
+           << "general: MS" << ms_level << " ranges: mass-to-charge: max" << '\t' << StringUtils::number(level_ranges.getMaxMZ(), 2) << '\n';
       }
       else
       {
@@ -572,14 +572,14 @@ protected:
       
       if (!level_ranges.RangeMobility::isEmpty())
       {
-        os << "general: MS" << ms_level << " ranges: ion-mobility: min" << '\t' << String::number(level_ranges.getMinMobility(), 2) << '\n'
-           << "general: MS" << ms_level << " ranges: ion-mobility: max" << '\t' << String::number(level_ranges.getMaxMobility(), 2) << '\n';
+        os << "general: MS" << ms_level << " ranges: ion-mobility: min" << '\t' << StringUtils::number(level_ranges.getMinMobility(), 2) << '\n'
+           << "general: MS" << ms_level << " ranges: ion-mobility: max" << '\t' << StringUtils::number(level_ranges.getMaxMobility(), 2) << '\n';
       }
       
       if (!level_ranges.RangeIntensity::isEmpty())
       {
-        os << "general: MS" << ms_level << " ranges: intensity: min" << '\t' << String::number(level_ranges.getMinIntensity(), 2) << '\n'
-           << "general: MS" << ms_level << " ranges: intensity: max" << '\t' << String::number(level_ranges.getMaxIntensity(), 2) << '\n';
+        os << "general: MS" << ms_level << " ranges: intensity: min" << '\t' << StringUtils::number(level_ranges.getMinIntensity(), 2) << '\n'
+           << "general: MS" << ms_level << " ranges: intensity: max" << '\t' << StringUtils::number(level_ranges.getMaxIntensity(), 2) << '\n';
       }
       else
       {
@@ -592,8 +592,8 @@ protected:
     const auto& chrom_ranges = exp.chromatogramRanges();
     if (!chrom_ranges.RangeRT::isEmpty())
     {
-      os << "general: chromatogram ranges: retention time: min" << '\t' << String::number(chrom_ranges.getMinRT(), 2) << '\n'
-         << "general: chromatogram ranges: retention time: max" << '\t' << String::number(chrom_ranges.getMaxRT(), 2) << '\n';
+      os << "general: chromatogram ranges: retention time: min" << '\t' << StringUtils::number(chrom_ranges.getMinRT(), 2) << '\n'
+         << "general: chromatogram ranges: retention time: max" << '\t' << StringUtils::number(chrom_ranges.getMaxRT(), 2) << '\n';
     }
     else
     {
@@ -604,8 +604,8 @@ protected:
     // Similar code for m/z and intensity for chromatogram ranges
     if (!chrom_ranges.RangeMZ::isEmpty())
     {
-      os << "general: chromatogram ranges: mass-to-charge: min" << '\t' << String::number(chrom_ranges.getMinMZ(), 2) << '\n'
-         << "general: chromatogram ranges: mass-to-charge: max" << '\t' << String::number(chrom_ranges.getMaxMZ(), 2) << '\n';
+      os << "general: chromatogram ranges: mass-to-charge: min" << '\t' << StringUtils::number(chrom_ranges.getMinMZ(), 2) << '\n'
+         << "general: chromatogram ranges: mass-to-charge: max" << '\t' << StringUtils::number(chrom_ranges.getMaxMZ(), 2) << '\n';
     }
     else
     {
@@ -615,8 +615,8 @@ protected:
     
     if (!chrom_ranges.RangeIntensity::isEmpty())
     {
-      os << "general: chromatogram ranges: intensity: min" << '\t' << String::number(chrom_ranges.getMinIntensity(), 2) << '\n'
-         << "general: chromatogram ranges: intensity: max" << '\t' << String::number(chrom_ranges.getMaxIntensity(), 2) << '\n';
+      os << "general: chromatogram ranges: intensity: min" << '\t' << StringUtils::number(chrom_ranges.getMinIntensity(), 2) << '\n'
+         << "general: chromatogram ranges: intensity: max" << '\t' << StringUtils::number(chrom_ranges.getMaxIntensity(), 2) << '\n';
     }
     else
     {
@@ -626,7 +626,7 @@ protected:
   }
 
   template <class T>
-  void writeSummaryStatisticsMachineReadable_(const Math::SummaryStatistics<T> &stats, ostream &os, String title)
+  void writeSummaryStatisticsMachineReadable_(const Math::SummaryStatistics<T> &stats, ostream &os, std::string title)
   {
     os << "statistics: " << title << ": num. of values" << '\t' << stats.count    << '\n'
        << "statistics: " << title << ": mean"           << '\t' << stats.mean     << '\n'
@@ -645,7 +645,7 @@ protected:
     //-------------------------------------------------------------
 
     // File names
-    String in = getStringOption_("in");
+    std::string in = getStringOption_("in");
 
     // File type
     FileHandler fh;
@@ -654,7 +654,7 @@ protected:
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = FileHandler::getType(in);
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(StringUtils::toStr("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)
@@ -715,7 +715,7 @@ protected:
           // validate against the schema matching the file's declared version (1.1.0/1.2.0/1.3.0),
           // not always the latest, so older valid mzIdentML files are not flagged as invalid
           MzIdentMLFile mzid_file;
-          String used_version;
+          std::string used_version;
           // detect first so the reported version matches what we actually validate against
           used_version = mzid_file.detectVersion(in);
           os << " against XML schema version " << used_version << '\n';
@@ -843,7 +843,7 @@ protected:
     //-------------------------------------------------------------
     // Content statistics
     //-------------------------------------------------------------
-    std::map<String, int> meta_names;
+    std::map<std::string, int> meta_names;
 
     if (in_type == FileTypes::FASTA)
     {
@@ -1103,7 +1103,7 @@ protected:
       map<Size, UInt> num_consfeat_of_size_with_id;
       Size assigned_ids = 0;
 
-      map<pair<String, UInt>, vector<int> > seq_charge2map_occurence;
+      map<pair<std::string, UInt>, vector<int> > seq_charge2map_occurence;
       for (const ConsensusFeature& cm : cons)
       {
         ++num_consfeat_of_size[cm.size()];
@@ -1117,7 +1117,7 @@ protected:
           const vector<PeptideHit>& phits = pids[0].getHits();
           if (!phits.empty())
           {
-            const String s = phits[0].getSequence().toString();
+            const std::string s = phits[0].getSequence().toString();
             const int z = phits[0].getCharge();
 
             if (seq_charge2map_occurence[make_pair(s,z)].empty())
@@ -1245,11 +1245,11 @@ protected:
       Size peptide_hit_count(0);
       UInt runs_count(0);
       Size protein_hit_count(0);
-      set<String> peptides;
-      set<String> peptides_ignore_mods;
-      set<String> proteins;
+      set<std::string> peptides;
+      set<std::string> peptides_ignore_mods;
+      set<std::string> proteins;
       Size modified_peptide_count(0);
-      std::map<String, int> mod_counts;
+      std::map<std::string, int> mod_counts;
       vector<uint16_t> peptide_length;
 
       // reading input
@@ -1311,7 +1311,7 @@ protected:
           }
         }
       }
-      set<pair<String, String>> search_engines;
+      set<pair<std::string, std::string>> search_engines;
       for (Size i = 0; i < id_data.proteins.size(); ++i)
       {
         ++runs_count;
@@ -1347,11 +1347,11 @@ protected:
       os << "  peptide sequences:  " << peptides_ignore_mods.size() << '\n';
       os << "  PSMs / spectrum (ignoring unidentified spectra):    " << average_peptide_hits / std::max(1, (Int)spectrum_count) << '\n';
       os << "  peptide hits:               " << peptide_hit_count << " (avg. length: " << Math::round(Math::mean(peptide_length.begin(), peptide_length.end())) << ")\n";
-      os << "  modified top-hits:          " << modified_peptide_count << "/" << spectrum_count << (spectrum_count > 0 ? String(" (") + Math::round(modified_peptide_count * 1000.0 / spectrum_count) / 10 + "%)" : "") << '\n';
+      os << "  modified top-hits:          " << modified_peptide_count << "/" << spectrum_count << (spectrum_count > 0 ? std::string(" (") + Math::round(modified_peptide_count * 1000.0 / spectrum_count) / 10 + "%)" : "") << '\n';
       os << "  non-redundant peptide hits: " << peptides.size() << '\n';
       os << "  (only hits that differ in sequence and/or modifications)"
          << '\n';
-      for (std::map<String, int>::const_iterator it = mod_counts.begin(); it != mod_counts.end(); ++it)
+      for (std::map<std::string, int>::const_iterator it = mod_counts.begin(); it != mod_counts.end(); ++it)
       {
         if (it != mod_counts.begin())
         {
@@ -1554,7 +1554,7 @@ protected:
       {
         // nice formatting:
         Size max_length = 0;
-        for (std::map<String, int>::const_iterator it = meta_names.begin(); it != meta_names.end(); ++it)
+        for (std::map<std::string, int>::const_iterator it = meta_names.begin(); it != meta_names.end(); ++it)
         {
           if (it->first.size() > max_length)
           {
@@ -1563,9 +1563,9 @@ protected:
         }
         os << "Meta data array:"
            << '\n';
-        for (std::map<String, int>::const_iterator it = meta_names.begin(); it != meta_names.end(); ++it)
+        for (std::map<std::string, int>::const_iterator it = meta_names.begin(); it != meta_names.end(); ++it)
         {
-          String padding(max_length - it->first.size(), ' ');
+          std::string padding(max_length - it->first.size(), ' ');
           os << "  " << it->first << ": " << padding << it->second << " spectra"
              << '\n';
         }
@@ -1579,7 +1579,7 @@ protected:
         StringList cvs_sl;
         for (double cv : cvs)
         {
-          cvs_sl.push_back(String(cv));
+          cvs_sl.push_back(StringUtils::toStr(cv));
         }
         os << cvs_sl << "\n\n";
       }
@@ -1606,7 +1606,7 @@ protected:
            << '\n';
         for (std::map<ChromatogramSettings::ChromatogramType, Size>::const_iterator it = chrom_types.begin(); it != chrom_types.end(); ++it)
         {
-          os << String("  ") + ChromatogramSettings::ChromatogramNames[static_cast<size_t>(it->first)] + ":                         "
+          os << std::string("  ") + ChromatogramSettings::ChromatogramNames[static_cast<size_t>(it->first)] + ":                         "
              << it->second << '\n';
         }
         if (getFlag_("d") && chrom_types.contains(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM))
@@ -1710,10 +1710,10 @@ protected:
                << '\n';
           }
           //duplicate meta data array names
-          std::map<String, int> names;
+          std::map<std::string, int> names;
           for (Size m = 0; m < exp[s].getFloatDataArrays().size(); ++m)
           {
-            String name = exp[s].getFloatDataArrays()[m].getName();
+            std::string name = exp[s].getFloatDataArrays()[m].getName();
             if (names.contains(name))
             {
               os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")"
@@ -1726,7 +1726,7 @@ protected:
           }
           for (Size m = 0; m < exp[s].getIntegerDataArrays().size(); ++m)
           {
-            String name = exp[s].getIntegerDataArrays()[m].getName();
+            std::string name = exp[s].getIntegerDataArrays()[m].getName();
             if (names.contains(name))
             {
               os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")"
@@ -1739,7 +1739,7 @@ protected:
           }
           for (Size m = 0; m < exp[s].getStringDataArrays().size(); ++m)
           {
-            String name = exp[s].getStringDataArrays()[m].getName();
+            std::string name = exp[s].getStringDataArrays()[m].getName();
             if (names.contains(name))
             {
               os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")"
@@ -2226,9 +2226,9 @@ protected:
            << Math::SummaryStatistics<vector<double>>(intensities) << '\n';
 
         //Statistics for meta information
-        for (std::map<String, int>::const_iterator it = meta_names.begin(); it != meta_names.end(); ++it)
+        for (std::map<std::string, int>::const_iterator it = meta_names.begin(); it != meta_names.end(); ++it)
         {
-          String name = it->first;
+          std::string name = it->first;
           vector<double> m_values;
           for (PeakMap::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
           {
@@ -2267,8 +2267,8 @@ protected:
 
   ExitCodes main_(int, const char **) override
   {
-    String out = getStringOption_("out");
-    String out_tsv = getStringOption_("out_tsv");
+    std::string out = getStringOption_("out");
+    std::string out_tsv = getStringOption_("out_tsv");
 
     ofstream os;
     ofstream os_tsv;

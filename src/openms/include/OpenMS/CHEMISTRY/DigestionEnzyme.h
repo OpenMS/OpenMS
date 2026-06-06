@@ -39,18 +39,18 @@ namespace OpenMS
     DigestionEnzyme(DigestionEnzyme&&) = default;
 
     /// Detailed constructor
-    explicit DigestionEnzyme(const String& name,
-                             const String& cleavage_regex,
-                             const std::set<String>& synonyms = std::set<String>(),
-                             String regex_description = "");
+    explicit DigestionEnzyme(const std::string& name,
+                             const std::string& cleavage_regex,
+                             const std::set<std::string>& synonyms = std::set<std::string>(),
+                             std::string regex_description = "");
 
     /// Detailed constructor 2
-    explicit DigestionEnzyme(const String& name,
-                             String cut_before,
-                             const String& nocut_after = "",
-                             String sense = "C",
-                             const std::set<String>& synonyms = std::set<String>(),
-                             String regex_description = "");
+    explicit DigestionEnzyme(const std::string& name,
+                             std::string cut_before,
+                             const std::string& nocut_after = "",
+                             std::string sense = "C",
+                             const std::set<std::string>& synonyms = std::set<std::string>(),
+                             std::string regex_description = "");
 
     /// Destructor
     virtual ~DigestionEnzyme();
@@ -70,31 +70,31 @@ namespace OpenMS
     */
     //@{
     /// sets the name of the enzyme
-    void setName(const String& name);
+    void setName(const std::string& name);
 
     /// returns the name of the enzyme
-    const String& getName() const;
+    const std::string& getName() const;
 
     /// sets the synonyms
-    void setSynonyms(const std::set<String>& synonyms);
+    void setSynonyms(const std::set<std::string>& synonyms);
 
     /// adds a synonym
-    void addSynonym(const String& synonym);
+    void addSynonym(const std::string& synonym);
 
     /// returns the synonyms
-    const std::set<String>& getSynonyms() const;
+    const std::set<std::string>& getSynonyms() const;
 
     /// sets the cleavage regex
-    void setRegEx(const String& cleavage_regex);
+    void setRegEx(const std::string& cleavage_regex);
 
     /// returns the cleavage regex
-    const String& getRegEx() const;
+    const std::string& getRegEx() const;
 
     /// sets the regex description
-    void setRegExDescription(const String& value);
+    void setRegExDescription(const std::string& value);
 
     /// returns the regex description
-    const String& getRegExDescription() const;
+    const std::string& getRegExDescription() const;
     //@}
 
     /** @name Predicates
@@ -107,10 +107,10 @@ namespace OpenMS
     bool operator!=(const DigestionEnzyme& enzyme) const;
 
     /// equality operator for regex
-    bool operator==(const String& cleavage_regex) const;
+    bool operator==(const std::string& cleavage_regex) const;
 
     /// equality operator for regex
-    bool operator!=(const String& cleavage_regex) const;
+    bool operator!=(const std::string& cleavage_regex) const;
 
     /// order operator
     bool operator<(const DigestionEnzyme& enzyme) const;
@@ -121,7 +121,7 @@ namespace OpenMS
 
        Returns whether the key was recognized and the value set successfully.
     */
-    virtual bool setValueFromFile(const String& key, const String& value);
+    virtual bool setValueFromFile(const std::string& key, const std::string& value);
 
     /// ostream iterator to write the enzyme to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const DigestionEnzyme& enzyme);
@@ -132,13 +132,13 @@ namespace OpenMS
     DigestionEnzyme();
 
     // basic
-    String name_;
+    std::string name_;
 
-    String cleavage_regex_;
+    std::string cleavage_regex_;
 
-    std::set<String> synonyms_;
+    std::set<std::string> synonyms_;
 
-    String regex_description_;
+    std::string regex_description_;
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const DigestionEnzyme& enzyme);

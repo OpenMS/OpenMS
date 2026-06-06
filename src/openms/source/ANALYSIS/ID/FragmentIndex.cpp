@@ -479,7 +479,7 @@ namespace OpenMS
     const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const
   {
     const string& protein_seq = fasta_entries[peptide.protein_idx].sequence;
-    AASequence seq = AASequence::fromString(protein_seq.substr(peptide.sequence_.first, peptide.sequence_.second));
+    AASequence seq = AASequence::fromString(StringUtils::substr(protein_seq, peptide.sequence_.first, peptide.sequence_.second));
 
     const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
     if (!has_modifications) return seq;
@@ -618,7 +618,7 @@ namespace OpenMS
       ? mother_start + mother_length - realized_length
       : mother_start;
 
-    AASequence seq = AASequence::fromString(protein_seq.substr(realized_start, realized_length));
+    AASequence seq = AASequence::fromString(StringUtils::substr(protein_seq, realized_start, realized_length));
 
     const bool has_mods = !(modifications_fixed_.empty() && modifications_variable_.empty());
     if (!has_mods && subset_bitmask == 0) return seq;
@@ -913,7 +913,7 @@ namespace OpenMS
         {
           // skip peptides containing unknown or ambiguous AA codes (X, B, Z)
           {
-            const auto sub = protein.sequence.substr(digested_peptide.first, digested_peptide.second);
+            const auto sub = StringUtils::substr(protein.sequence, digested_peptide.first, digested_peptide.second);
             if (sub.find_first_of("XBZ") != string::npos)
             {
               #pragma omp atomic
@@ -2132,7 +2132,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("fragment:min_ion_index", 2, "Ions with index less than or equal to this value are not added to the fragment index (use 0 to include all ions; 2 skips b1/b2/y1/y2). Low-index ions are often noisy and unreliable.");
     defaults_.setMinInt("fragment:min_ion_index", 0);
 
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
     defaults_.setValidStrings("modifications:fixed", ListUtils::create<std::string>(all_mods));
@@ -2140,7 +2140,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
 
-    vector<String> all_enzymes;
+    vector<std::string> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     defaults_.setValue("enzyme", "Trypsin", "Enzyme for digestion");
     defaults_.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));

@@ -52,9 +52,9 @@ public:
     bool operator!=(const MetaInfoDescription & rhs) const;
 
     /// returns the name of the peak annotations
-    const String & getName() const;
+    const std::string & getName() const;
     /// sets the name of the peak annotations
-    void setName(const String & name);
+    void setName(const std::string & name);
 
     /// returns a const reference to the description of the applied processing
     const std::vector<ConstDataProcessingPtr> & getDataProcessing() const;
@@ -64,7 +64,7 @@ public:
     void setDataProcessing(const std::vector<DataProcessingPtr> & data_processing);
 
 protected:
-    String name_;
+    std::string name_;
     std::vector<DataProcessingPtr> data_processing_;
   };
 } // namespace OpenMS

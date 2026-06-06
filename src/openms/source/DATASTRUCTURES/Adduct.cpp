@@ -41,7 +41,7 @@ namespace OpenMS
   {
   }
 
-  Adduct::Adduct(Int charge, Int amount, double singleMass, const String& formula, double log_prob, double rt_shift, const String& label) :
+  Adduct::Adduct(Int charge, Int amount, double singleMass, const std::string& formula, double log_prob, double rt_shift, const std::string& label) :
     charge_(charge),
     amount_(amount),
     singleMass_(singleMass),
@@ -128,12 +128,12 @@ namespace OpenMS
     log_prob_ = log_prob;
   }
 
-  const String& Adduct::getFormula() const
+  const std::string& Adduct::getFormula() const
   {
     return formula_;
   }
 
-  void Adduct::setFormula(const String& formula)
+  void Adduct::setFormula(const std::string& formula)
   {
     formula_ = checkFormula_(formula);
   }
@@ -143,35 +143,35 @@ namespace OpenMS
     return rt_shift_;
   }
 
-  const String& Adduct::getLabel() const
+  const std::string& Adduct::getLabel() const
   {
     return label_;
   }
   
-  String Adduct::toAdductString(const String& ion_string, const Int& charge)
+  std::string Adduct::toAdductString(const std::string& ion_string, const Int& charge)
   {
     return toAdductString(ion_string, charge, 1);
   }
 
-  String Adduct::toAdductString(const String& ion_string, const Int& charge, Int mol_multiplier)
+  std::string Adduct::toAdductString(const std::string& ion_string, const Int& charge, Int mol_multiplier)
   {
     EmpiricalFormula ef(ion_string);
-    String charge_sign = charge >= 0 ? "+" : "-";
-    String s("[");
+    std::string charge_sign = charge >= 0 ? "+" : "-";
+    std::string s("[");
 
     if (mol_multiplier > 1)
     {
-      s += String(mol_multiplier);
+      s +=StringUtils::toStr(mol_multiplier);
     }
     s += "M";
 
     // elements sorted canonically (by string)
-    std::map<String, String> sorted_elem_map;
+    std::map<std::string, std::string> sorted_elem_map;
     for (const auto& element_count : ef)
     {
-      String e_symbol(element_count.first->getSymbol());
-      String tmp = element_count.second > 0 ? "+" : "-";
-      tmp += std::abs(element_count.second) > 1 ? String(std::abs(element_count.second)) : "";
+      std::string e_symbol(element_count.first->getSymbol());
+      std::string tmp = element_count.second > 0 ? "+" : "-";
+      tmp += std::abs(element_count.second) > 1 ? StringUtils::toStr(std::abs(element_count.second)) : "";
       tmp += e_symbol;
       sorted_elem_map[e_symbol] = std::move(tmp);
     }
@@ -179,14 +179,14 @@ namespace OpenMS
     {
       s += sorted_e_cnt.second;
     }
-    s += String("]");
-    s += std::abs(charge) > 1 ? String(std::abs(charge)) : "";
+    s +=StringUtils::toStr("]");
+    s += std::abs(charge) > 1 ? StringUtils::toStr(std::abs(charge)) : "";
     s += charge_sign;
 
     return s;
   }
 
-  String Adduct::checkFormula_(const String& formula)
+  std::string Adduct::checkFormula_(const std::string& formula)
   {
     EmpiricalFormula ef(formula);
     if (ef.getCharge() != 0)

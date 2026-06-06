@@ -360,7 +360,7 @@ namespace OpenMS
     {
       if (replace_in[i] == to_replace)
       {
-        replace_in = replace_in.substr(0, i) + replace_with + replace_in.substr(i + 1);
+        replace_in = StringUtils::substr(replace_in, 0, i) + replace_with + StringUtils::substr(replace_in, i + 1);
         i += replace_with.size();
       }
     }

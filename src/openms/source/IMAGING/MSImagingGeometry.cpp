@@ -29,7 +29,7 @@ namespace OpenMS
     return height_;
   }
 
-  void MSImagingGeometry::setPixelSize(double x, double y, const String& unit)
+  void MSImagingGeometry::setPixelSize(double x, double y, const std::string& unit)
   {
     pixel_size_x_ = x;
     pixel_size_y_ = y;
@@ -46,7 +46,7 @@ namespace OpenMS
     return pixel_size_y_;
   }
 
-  const String& MSImagingGeometry::getPixelSizeUnit() const
+  const std::string& MSImagingGeometry::getPixelSizeUnit() const
   {
     return pixel_size_unit_;
   }
@@ -57,7 +57,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Pixel coordinate outside configured geometry bounds",
-                                    String(x) + "," + String(y));
+                                    StringUtils::toStr(x) + "," + StringUtils::toStr(y));
     }
 
     const UInt64 key = packKey_(x, y);
@@ -65,7 +65,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Duplicate pixel coordinate",
-                                    String(x) + "," + String(y));
+                                    StringUtils::toStr(x) + "," + StringUtils::toStr(y));
     }
 
     lookup_.emplace(key, pixels_.size());
@@ -83,7 +83,7 @@ namespace OpenMS
     if (it == lookup_.end())
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       String(x) + "," + String(y));
+                                       StringUtils::toStr(x) + "," + StringUtils::toStr(y));
     }
     return pixels_[it->second].spectrum_index;
   }

@@ -31,27 +31,27 @@ namespace OpenMS
   */
   struct IdCSV
   {
-    String accession; // Protein AC
-    String peptide; // Peptide sequence
-    String modif; // Peptide modification string
+    std::string accession; // Protein AC
+    std::string peptide; // Peptide sequence
+    std::string modif; // Peptide modification string
     Int charge{0}; // Charge state
     double theo_mass{-1.}; // Theoretical peptide mass
     double exp_mass{-1.}; // Experimentally observed mass
     double parent_intens{-1.}; // Parent intensity
     double retention_time{-1.}; // Retention time
-    String spectrum; // Spectrum identifier
-    String search_engine; // Protein search engine and score
+    std::string spectrum; // Spectrum identifier
+    std::string search_engine; // Protein search engine and score
 
     void toStringList(StringList& target_list) const
     {
       target_list.push_back(accession);
       target_list.push_back(peptide);
       target_list.push_back(modif);
-      target_list.push_back(charge);
-      target_list.push_back(theo_mass);
-      target_list.push_back(exp_mass);
-      target_list.push_back(parent_intens);
-      target_list.push_back(retention_time);
+      target_list.push_back(StringUtils::toStr(charge));
+      target_list.push_back(StringUtils::toStr(theo_mass));
+      target_list.push_back(StringUtils::toStr(exp_mass));
+      target_list.push_back(StringUtils::toStr(parent_intens));
+      target_list.push_back(StringUtils::toStr(retention_time));
       target_list.push_back(spectrum);
       target_list.push_back(search_engine);
     }
@@ -128,22 +128,22 @@ namespace OpenMS
          it != quantMethod.getChannelInformation().end();
          ++it)
     {
-      header.push_back("X" + String(int(it->center)) +  "_mass");
+      header.push_back("X" + StringUtils::toStr(int(it->center)) +  "_mass");
     }
 
     for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator it = quantMethod.getChannelInformation().begin();
          it != quantMethod.getChannelInformation().end();
          ++it)
     {
-      header.push_back("X" + String(int(it->center)) +  "_ions");
+      header.push_back("X" + StringUtils::toStr(int(it->center)) +  "_ions");
     }
 
     return header;
   }
 
-  String IBSpectraFile::getModifString_(const AASequence& sequence)
+  std::string IBSpectraFile::getModifString_(const AASequence& sequence)
   {
-    String modif = sequence.getNTerminalModificationName();
+    std::string modif = sequence.getNTerminalModificationName();
     for (AASequence::ConstIterator aa_it = sequence.begin();
          aa_it != sequence.end(); ++aa_it)
     {
@@ -157,7 +157,7 @@ namespace OpenMS
     return modif;
   }
 
-  void IBSpectraFile::store(const String& filename, const ConsensusMap& cm)
+  void IBSpectraFile::store(const std::string& filename, const ConsensusMap& cm)
   {
     // typdefs for shorter code
     typedef std::vector<ProteinHit>::iterator ProtHitIt;
@@ -204,13 +204,13 @@ namespace OpenMS
       {
         // protein name:
         const PeptideHit& peptide_hit = cFeature.getPeptideIdentifications()[0].getHits()[0];
-        std::set<String> protein_accessions = peptide_hit.extractProteinAccessionsSet();
+        std::set<std::string> protein_accessions = peptide_hit.extractProteinAccessionsSet();
         if (protein_accessions.size() != 1)
         {
           if (!allow_non_unique) continue; // we only want unique peptides
         }
 
-        for (std::set<String>::const_iterator prot_ac = protein_accessions.begin(); prot_ac != protein_accessions.end(); ++prot_ac)
+        for (std::set<std::string>::const_iterator prot_ac = protein_accessions.begin(); prot_ac != protein_accessions.end(); ++prot_ac)
         {
           IdCSV entry;
           entry.charge = cFeature.getPeptideIdentifications()[0].getHits()[0].getCharge();
@@ -270,13 +270,13 @@ namespace OpenMS
              it != quantMethod->getChannelInformation().end();
              ++it)
         {
-          currentLine.push_back(String(it->center));
+          currentLine.push_back(StringUtils::toStr(it->center));
         }
         for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator it = quantMethod->getChannelInformation().begin();
              it != quantMethod->getChannelInformation().end();
              ++it)
         {
-          currentLine.push_back(String(intensityMap[int(it->center)]));
+          currentLine.push_back(StringUtils::toStr(intensityMap[int(it->center)]));
         }
 
         textFile.addLine(ListUtils::concatenate(currentLine, "\t"));

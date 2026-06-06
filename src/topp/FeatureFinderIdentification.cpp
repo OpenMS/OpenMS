@@ -203,7 +203,7 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     String candidates_out = getStringOption_("candidates_out");
     String candidates_in = getStringOption_("candidates_in");
     String id = getStringOption_("id");

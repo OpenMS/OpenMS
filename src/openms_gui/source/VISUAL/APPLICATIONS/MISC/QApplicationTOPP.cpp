@@ -57,7 +57,7 @@ namespace OpenMS
     }
 
     // customize look and feel via Qt style sheets
-    String filename = File::find("GUISTYLE/qtStyleSheet.qss");
+    std::string filename = File::find("GUISTYLE/qtStyleSheet.qss");
     QFile fh(toQString(filename));
     fh.open(QFile::ReadOnly);
     QString style_string = QLatin1String(fh.readAll());
@@ -81,7 +81,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      String msg = String("Caught exception: '") + e.getName() + "' with message '" + e.what() + "'";
+      std::string msg =StringUtils::toStr("Caught exception: '") + e.getName() + "' with message '" + e.what() + "'";
       OPENMS_LOG_ERROR << msg << "\n";
       QMessageBox::warning(nullptr, QString("Unexpected error occurred"), toQString(msg));
       return false;

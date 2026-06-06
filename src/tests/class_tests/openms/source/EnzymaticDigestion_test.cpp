@@ -66,7 +66,7 @@ START_SECTION((Size getMissedCleavages() const))
     TEST_EQUAL(EnzymaticDigestion().getMissedCleavages(), 0)
 END_SECTION
 
-START_SECTION((String getEnzymeName() const))
+START_SECTION((std::string getEnzymeName() const))
     TEST_EQUAL(EnzymaticDigestion().getEnzymeName(), "Trypsin")
 END_SECTION
 
@@ -95,7 +95,7 @@ START_SECTION((void setSpecificity(Specificity spec)))
     NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION((static Specificity getSpecificityByName(const String& name)))
+START_SECTION((static Specificity getSpecificityByName(const std::string& name)))
     TEST_EQUAL(EnzymaticDigestion::getSpecificityByName(EnzymaticDigestion::NamesOfSpecificity[2]), EnzymaticDigestion::SPEC_FULL);
     TEST_EQUAL(EnzymaticDigestion::getSpecificityByName(EnzymaticDigestion::NamesOfSpecificity[1]), EnzymaticDigestion::SPEC_SEMI);
     TEST_EQUAL(EnzymaticDigestion::getSpecificityByName(EnzymaticDigestion::NamesOfSpecificity[0]), EnzymaticDigestion::SPEC_NONE);
@@ -378,13 +378,13 @@ START_SECTION((Size semiSpecificDigestion_(const std::vector<int>& cleavage_posi
 }
 END_SECTION
 
-START_SECTION((bool isValidProduct(const String& sequence, int pos, int length, bool ignore_missed_cleavages)))
+START_SECTION((bool isValidProduct(const std::string& sequence, int pos, int length, bool ignore_missed_cleavages)))
 {
     EnzymaticDigestion ed;
     ed.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
     ed.setSpecificity(EnzymaticDigestion::SPEC_FULL); // require both sides
 
-    String prot = "ABCDEFGKABCRAAAKAARPBBBB";
+    std::string prot = "ABCDEFGKABCRAAAKAARPBBBB";
     TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false); // invalid position
     TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false); // invalid length
     TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false); // invalid size
@@ -576,7 +576,7 @@ START_SECTION([EXTRA] Size countMissedCleavages_(const std::vector<int>& cleavag
   TEST_EQUAL(ed.isValidProduct("KKKK", 0, 4, false), true);  // has 3 MC's, should be valid
 END_SECTION
 
-START_SECTION(Size countInternalCleavageSites(const String& sequence) )
+START_SECTION(Size countInternalCleavageSites(const std::string& sequence) )
   EnzymaticDigestion ed;
   ed.setMissedCleavages(0); // setting max missed cleavages should not have any impact
   TEST_EQUAL(ed.countInternalCleavageSites("PEEKEEKEEPKEEPK"), 3); // has 3 internal cleavage sites

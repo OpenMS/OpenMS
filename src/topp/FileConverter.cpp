@@ -117,19 +117,19 @@ consensusparquet (OpenMS internal consensus map parquet bundle)
 */
 
 
-String extractCachedMetaFilename(const String& in)
+std::string extractCachedMetaFilename(const std::string& in)
 {
   // Special handling of cached mzML as input types:
   // we expect two paired input files which we should read into exp
-  std::vector<String> split_out;
-  in.split(".cachedMzML", split_out);
+  std::vector<std::string> split_out;
+  StringUtils::split(in, ".cachedMzML", split_out);
   if (split_out.size() != 2)
   {
     OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in
       << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
     return "";
   }
-  String in_meta = split_out[0] + ".mzML";
+  std::string in_meta = split_out[0] + ".mzML";
   return in_meta;
 }
 
@@ -150,7 +150,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, false); // optional and not advanced (for workflow engines to show this param)
-    vector<String> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "ms2", "fid",
+    vector<std::string> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "ms2", "fid",
 #ifdef WITH_OPENTIMS
     "d",
 #endif
@@ -159,8 +159,8 @@ protected:
     setValidStrings_("in_type", input_formats);
 
     registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false, true);
-    String method("none,ensure,reassign");
-    setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
+    std::string method("none,ensure,reassign");
+    setValidStrings_("UID_postprocessing", ListUtils::create<std::string>(method));
 
     vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "edta", "mzData", "dta2d", "csv", "sqMass", "xic", "oms"};
     registerOutputFile_("out", "<file>", "", "Output file");
@@ -174,7 +174,7 @@ protected:
     registerFlag_("convert_to_chromatograms", "[mzML output only] Assumes that the provided spectra represent data in SRM mode or targeted MS1 mode and converts them to chromatogram data.", true);
 
     registerStringOption_("write_scan_index", "<toggle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
-    setValidStrings_("write_scan_index", ListUtils::create<String>("true,false"));
+    setValidStrings_("write_scan_index", ListUtils::create<std::string>("true,false"));
     registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size using linear compression for m/z domain and slof for intensity and float data arrays (attention: may cause small loss of precision; only for mzML data).", true);
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
@@ -373,7 +373,7 @@ protected:
     c.calibration_tolerance = getDoubleOption_("bruker:calibration_tolerance");
     c.calibrate = (getStringOption_("bruker:calibrate") == "true");
     c.load_ms1 = (getStringOption_("bruker:load_ms1") == "true");
-    String mode = getStringOption_("bruker:export_mode");
+    std::string mode = getStringOption_("bruker:export_mode");
     if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
     else if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;
     else c.export_mode = BrukerTimsFile::Config::AUTO;
@@ -389,7 +389,7 @@ protected:
 
     // Hill-based centroiding params.
     using CA = BrukerTimsFile::Config::CentroidAlgo;
-    auto parse_algo = [](const String& s) {
+    auto parse_algo = [](const std::string& s) {
       if (s == "greedy2d")   return CA::GREEDY2D;
       if (s == "hillbased")  return CA::HILL_BASED;
       return CA::OFF;
@@ -415,7 +415,7 @@ protected:
     //-------------------------------------------------------------
 
     //input file names
-    String in = getStringOption_("in");
+    std::string in = getStringOption_("in");
     bool write_scan_index = getStringOption_("write_scan_index") == "true" ? true : false;
     bool force_MaxQuant_compatibility = getFlag_("force_MaxQuant_compatibility");
     bool force_TPP_compatibility = getFlag_("force_TPP_compatibility");
@@ -442,7 +442,7 @@ protected:
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(StringUtils::toStr("Input file type: ") + FileTypes::typeToName(in_type), 2);
       if (in_type == FileTypes::UNKNOWN)
       {
         writeLogError_("Error: Could not determine input file type!");
@@ -451,7 +451,7 @@ protected:
     }
 
     // output file names and types
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(out, getStringOption_("out_type"));
     if (out_type == FileTypes::UNKNOWN)
     {
@@ -462,9 +462,9 @@ protected:
     bool TIC_DTA2D = getFlag_("TIC_DTA2D");
     bool process_lowmemory = getFlag_("process_lowmemory");
 
-    writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 1);
+    writeDebug_(StringUtils::toStr("Output file type: ") + FileTypes::typeToName(out_type), 1);
 
-    String uid_postprocessing = getStringOption_("UID_postprocessing");
+    std::string uid_postprocessing = getStringOption_("UID_postprocessing");
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
@@ -476,7 +476,7 @@ protected:
     FeatureMap fm;
     ConsensusMap cm;
 
-    writeDebug_(String("Loading input file"), 1);
+    writeDebug_(StringUtils::toStr("Loading input file"), 1);
 
     if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET)
     {
@@ -496,7 +496,7 @@ protected:
     }
     else if (in_type == FileTypes::RAW)
     {
-      String raw_reader = getStringOption_("RawToMzML:reader");
+      std::string raw_reader = getStringOption_("RawToMzML:reader");
 #ifdef WITH_THERMO_RAW
       if (raw_reader == "inprocess")
       {
@@ -521,8 +521,8 @@ protected:
       bool no_zlib_compression = getFlag_("RawToMzML:no_zlib_compression");
       bool include_noise = getFlag_("RawToMzML:include_noise");
       writeLogInfo_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
-      String net_executable = getStringOption_("RawToMzML:NET_executable");
-      std::vector<String> arguments;
+      std::string net_executable = getStringOption_("RawToMzML:NET_executable");
+      std::vector<std::string> arguments;
 #ifdef OPENMS_WINDOWSPLATFORM
       if (net_executable.empty())
       { // default on Windows: if NO mono executable is set use the "native" .NET one
@@ -592,7 +592,7 @@ protected:
     else if (in_type == FileTypes::CACHEDMZML)
     {
       // Determine location of meta information (empty mzML)
-      String in_meta = extractCachedMetaFilename(in);
+      std::string in_meta = extractCachedMetaFilename(in);
       if (in_meta.empty())
       {
         return ILLEGAL_PARAMETERS;
@@ -671,7 +671,7 @@ protected:
       else if (in_type == FileTypes::MZML && out_type == FileTypes::CACHEDMZML)
       {
         // Determine output path for meta information (empty mzML)
-        String out_meta = extractCachedMetaFilename(out);
+        std::string out_meta = extractCachedMetaFilename(out);
         if (out_meta.empty())
         {
           return ILLEGAL_PARAMETERS;
@@ -710,7 +710,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    writeDebug_(String("Writing output file"), 1);
+    writeDebug_(StringUtils::toStr("Writing output file"), 1);
 
     if (out_type == FileTypes::MZML)
     {
@@ -925,7 +925,7 @@ protected:
     else if (out_type == FileTypes::CACHEDMZML)
     {
       // Determine output path for meta information (empty mzML)
-      String out_meta = extractCachedMetaFilename(out);
+      std::string out_meta = extractCachedMetaFilename(out);
       if (out_meta.empty())
       {
         return ILLEGAL_PARAMETERS;
@@ -957,7 +957,7 @@ protected:
       {
         // A transition library is required: XICs without precursor/transition
         // metadata are not meaningful.
-        String tr_file = getStringOption_("OpenSwathWorkflow:tr");
+        std::string tr_file = getStringOption_("OpenSwathWorkflow:tr");
         if (tr_file.empty())
         {
           writeLogError_("Error: Converting sqMass to CHROMPARQUET (.xic) requires a transition library "
@@ -969,13 +969,13 @@ protected:
         // fall back to extension/content detection.
         FileHandler fh_local;
         FileTypes::Type tr_type = FileTypes::UNKNOWN;
-        const String tr_type_hint = getStringOption_("OpenSwathWorkflow:tr_type");
+        const std::string tr_type_hint = getStringOption_("OpenSwathWorkflow:tr_type");
         if (!tr_type_hint.empty())
         {
           tr_type = FileTypes::nameToType(tr_type_hint);
           if (tr_type == FileTypes::UNKNOWN)
           {
-            writeLogError_(String("Error: Unsupported value for -OpenSwathWorkflow:tr_type: '") + tr_type_hint + "'.");
+            writeLogError_(StringUtils::toStr("Error: Unsupported value for -OpenSwathWorkflow:tr_type: '") + tr_type_hint + "'.");
             return ILLEGAL_PARAMETERS;
           }
         }
@@ -994,9 +994,9 @@ protected:
             pqp_reader.setLogType(log_type_);
             pqp_reader.convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp, legacy);
           }
-          else if (tr_file.hasSuffix(".oswpq") || tr_file.hasSuffix(".oswpq.zip"))
+          else if (StringUtils::hasSuffix(tr_file, ".oswpq") || StringUtils::hasSuffix(tr_file, ".oswpq.zip"))
           {
-            writeLogError_(String("Error: .oswpq libraries are not supported by this build of FileConverter. "
+            writeLogError_(std::string("Error: .oswpq libraries are not supported by this build of FileConverter. "
                                   "Cannot convert without transition metadata (file: '") + tr_file + "').");
             return ILLEGAL_PARAMETERS;
           }
@@ -1016,14 +1016,14 @@ protected:
           }
           else
           {
-            writeLogError_(String("Error: Unrecognized transition library type for '") + tr_file +
+            writeLogError_(StringUtils::toStr("Error: Unrecognized transition library type for '") + tr_file +
                            "'. Cannot convert sqMass to CHROMPARQUET without valid transition metadata.");
             return ILLEGAL_PARAMETERS;
           }
         }
         catch (const Exception::BaseException& e)
         {
-          writeLogError_(String("Error: Failed to load transition library '") + tr_file + "': " + e.what());
+          writeLogError_(StringUtils::toStr("Error: Failed to load transition library '") + tr_file + "': " + e.what());
           return ILLEGAL_PARAMETERS;
         }
 

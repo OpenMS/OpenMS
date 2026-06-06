@@ -132,34 +132,34 @@ protected:
       double precursor = -1; ///< Precursor m/z
       double product = -1; ///< Product m/z (fragment ion m/z)
       double rt_calibrated = -1; ///< Normalized RT
-      String transition_name = ""; ///< Unique transition name
+      std::string transition_name = ""; ///< Unique transition name
       double CE = -1; ///< Collision Energy
       double library_intensity = -1; ///< Library intensity of fragment ion (relative)
-      String group_id = ""; ///< Transition group identifier (grouping transitions of the same analyte)
+      std::string group_id = ""; ///< Transition group identifier (grouping transitions of the same analyte)
       bool decoy = false; ///< Whether the transition is a decoy transition
-      String PeptideSequence; ///< Peptide sequence (only AA sequence)
-      std::vector<String> ProteinName; ///< List of protein identifiers
-      String GeneName; ///< Gene identifier
-      String Annotation; ///< Fragment ion annotation
-      String FullPeptideName; ///< Full peptide sequence with UniMod modifications
-      String CompoundName; ///< Compound name (for metabolomics)
-      String SMILES; ///< SMILES identifier (for metabolomics)
-      String SumFormula; ///< Molecular formula (for metabolomics)
-      String Adducts; ///< Adducts (for metabolomics)
-      String precursor_charge; ///< Precursor charge state
-      String peptide_group_label; ///< Peptide group identifier (grouping isotopically labelled peptides)
-      String label_type; ///< Type of label that was used (e.g. "heavy" or "light")
-      String fragment_charge = "NA"; ///< Fragment ion charge state
+      std::string PeptideSequence; ///< Peptide sequence (only AA sequence)
+      std::vector<std::string> ProteinName; ///< List of protein identifiers
+      std::string GeneName; ///< Gene identifier
+      std::string Annotation; ///< Fragment ion annotation
+      std::string FullPeptideName; ///< Full peptide sequence with UniMod modifications
+      std::string CompoundName; ///< Compound name (for metabolomics)
+      std::string SMILES; ///< SMILES identifier (for metabolomics)
+      std::string SumFormula; ///< Molecular formula (for metabolomics)
+      std::string Adducts; ///< Adducts (for metabolomics)
+      std::string precursor_charge; ///< Precursor charge state
+      std::string peptide_group_label; ///< Peptide group identifier (grouping isotopically labelled peptides)
+      std::string label_type; ///< Type of label that was used (e.g. "heavy" or "light")
+      std::string fragment_charge = "NA"; ///< Fragment ion charge state
       int fragment_nr = -1; ///< Fragment number (e.g. "7" for a y7 ion)
       double fragment_mzdelta = -1; ///< Fragment m/z delta to theoretical ion
       double drift_time = -1; ///< Ion mobility drift time
       int fragment_modification = 0; ///< Fragment modification
-      String fragment_type; ///< Fragment type (e.g. "y" for a y7 ion)
-      std::vector<String> uniprot_id; ///< List of UniProt identifiers of associated proteins
+      std::string fragment_type; ///< Fragment type (e.g. "y" for a y7 ion)
+      std::vector<std::string> uniprot_id; ///< List of UniProt identifiers of associated proteins
       bool detecting_transition = true; ///< Whether to use transition to detect peak group,
       bool identifying_transition = false; ///< Whether to use transition for peptidoform inference using IPF
       bool quantifying_transition = true; ///< Whether to use transition to quantify peak group
-      std::vector<String> peptidoforms; ///< List of peptidoforms
+      std::vector<std::string> peptidoforms; ///< List of peptidoforms
 
       /// Whether the transition represents a peptide (by convention, if the
       /// (metabolic) compound name field is empty, it is a peptide.)
@@ -196,7 +196,7 @@ protected:
 private:
 
     // Members
-    String retentionTimeInterpretation_;
+    std::string retentionTimeInterpretation_;
     bool override_group_label_check_;
     bool force_invalid_mods_;
 
@@ -233,10 +233,10 @@ private:
     void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
 
     /// Extract retention time from a SpectraST comment string
-    void spectrastRTExtract(const String& str_inp, double & value, bool & spectrast_legacy);
+    void spectrastRTExtract(const std::string& str_inp, double & value, bool & spectrast_legacy);
 
     /// Extract annotation from a SpectraST comment string
-    bool spectrastAnnotationExtract(const String& str_inp, TSVTransition & mytransition);
+    bool spectrastAnnotationExtract(const std::string& str_inp, TSVTransition & mytransition);
 
     /** @brief Cleanup of the read fields (removing quotes etc.)
     */
@@ -282,7 +282,7 @@ private:
                            OpenMS::ReactionMonitoringTransition& rm_trans);
 
     /// Populate a new TargetedExperiment::Protein object from a row in the csv
-    void createProtein_(String protein_name, const String& uniprot_id,
+    void createProtein_(std::string protein_name, const std::string& uniprot_id,
                         OpenMS::TargetedExperiment::Protein& protein);
 
     /// Helper function to assign retention times to compounds and peptides

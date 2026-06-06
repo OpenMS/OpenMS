@@ -178,7 +178,7 @@ namespace OpenMS
       pep_id.setIdentifier("Unknown");
 
       // create a dummy ProteinIdentification for all ID-less PeakAnnotations
-      if (prot_ids.empty() || prot_ids.back().getIdentifier() != String("Unknown"))
+      if (prot_ids.empty() || prot_ids.back().getIdentifier() !=StringUtils::toStr("Unknown"))
       {
         ProteinIdentification prot_id;
         prot_id.setIdentifier("Unknown");
@@ -255,7 +255,7 @@ namespace OpenMS
 
         if (fabs(tmp_a.mz - pa->getPeakPosition().getMZ()) < 1e-6)
         {
-          if (fromQString(pa->getText()).hasPrefix(tmp_a.annotation))
+          if (StringUtils::hasPrefix(fromQString(pa->getText()), tmp_a.annotation))
           {
             to_remove.push_back(tmp_a);
           }

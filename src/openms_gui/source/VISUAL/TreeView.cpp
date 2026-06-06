@@ -68,7 +68,7 @@ namespace OpenMS
       if (hset.contains(header->text(i)))
       {
         setColumnHidden(i, true);
-        hset.remove(header->text(i));
+        StringUtils::remove(hset, header->text(i));
       }
     }
     if (!hset.empty())
@@ -100,7 +100,7 @@ namespace OpenMS
     const auto& header = this->headerItem();
     if (header->columnCount() <= header_column)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header index " + String(header_column) + " is too large. There are only " + String(header->columnCount()) + " columns!");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header index " + StringUtils::toStr(header_column) + " is too large. There are only " + StringUtils::toStr(header->columnCount()) + " columns!");
     }
     return header->text(header_column);
   }

@@ -41,7 +41,7 @@ namespace OpenMS
 
    @ingroup Datastructures
   */
-  typedef std::vector<String> StringList;
+  typedef std::vector<std::string> StringList;
 
   /**
     @brief Collection of utility functions for management of vectors.
@@ -83,32 +83,32 @@ private:
 public:
     /**
       @brief Returns a list that is created by splitting the given comma-separated string.
-      @note If converted to vector<String> the strings are not trimmed.
-      @note The values get converted by boost::lexical_cast so a valid conversion from String to T needs to be available.
+      @note If converted to vector<std::string> the strings are not trimmed.
+      @note The values get converted by boost::lexical_cast so a valid conversion from std::string to T needs to be available.
 
       @param[in] str The string that should be split and converted to a list.
       @param[in] splitter The separator to look for in @p str
       @return A vector containing the elements of the string converted into type T.
     */
     template <typename T>
-    static std::vector<T> create(const String& str, const char splitter = ',')
+    static std::vector<T> create(const std::string& str, const char splitter = ',')
     {
       // temporary storage for the individual elements of the string
-      std::vector<String> temp_string_vec;
-      str.split(splitter, temp_string_vec);
+      std::vector<std::string> temp_string_vec;
+      StringUtils::split(str, splitter, temp_string_vec);
       return create<T>(temp_string_vec);
     }
 
     /**
       @brief Converts a vector of strings to a vector of the target type T.
       @note The strings are trimmed before conversion.
-      @note The values get converted by boost::lexical_cast so a valid conversion from String to T needs to be available.
+      @note The values get converted by boost::lexical_cast so a valid conversion from std::string to T needs to be available.
 
       @param[in] s The vector of strings that should be converted.
       @return A vector containing the elements of input vector converted into type T.
     */
     template <typename T>
-    static std::vector<T> create(const std::vector<String>& s);
+    static std::vector<T> create(const std::vector<std::string>& s);
 
 
     /**
@@ -118,7 +118,7 @@ public:
   @return A vector containing the elements of input vector converted into Strings.
 */
     template <typename T>
-    static std::vector<String> toStringList(const std::vector<T>& s)
+    static std::vector<std::string> toStringList(const std::vector<T>& s)
     {
       StringList out;
       out.reserve(s.size());
@@ -159,19 +159,19 @@ public:
     /**
     @brief Checks whether the String @p elem is contained in the given container (potentially case insensitive)
 
-    @param[in] container The container of String to check.
+    @param[in] container The container of std::string to check.
     @param[in] elem The element to check whether it is in the container or not.
     @param[in] case_sensitive Do the comparison case sensitive or insensitive
 
     @return True if @p elem is contained in @p container, false otherwise.
     */
-    static bool contains(const std::vector<String>& container, String elem, const CASE case_sensitive)
+    static bool contains(const std::vector<std::string>& container, std::string elem, const CASE case_sensitive)
     {
       if (case_sensitive == CASE::SENSITIVE) return contains(container, elem);
       // case insensitive ...
-      elem.toLower();
-      return find_if(container.begin(), container.end(), [&elem](String ce) {
-        return elem == ce.toLower();
+      StringUtils::toLower(elem);
+      return find_if(container.begin(), container.end(), [&elem](std::string ce) {
+        return elem == StringUtils::toLower(ce);
       }) != container.end();
     }
 
@@ -182,7 +182,7 @@ public:
       @param[in] glue The string to add in between elements.
     */
     template <typename T>
-    static String concatenate(const std::vector<T>& container, const String& glue = "")
+    static std::string concatenate(const std::vector<T>& container, const std::string& glue = "")
     {
       return concatenate< std::vector<T> >(container, glue);
     }
@@ -194,19 +194,19 @@ public:
       @param[in] glue The string to add in between elements.
     */
     template <typename T>
-    static String concatenate(const T& container, const String& glue = "")
+    static std::string concatenate(const T& container, const std::string& glue = "")
     {
       // handle empty containers
       if (container.empty()) return "";
 
       typename T::const_iterator it = container.begin();
-      String ret = String(*it);
+      std::string ret =StringUtils::toStr(*it);
       // we have handled the first element
       ++it;
       // add the rest
       for (; it != container.end(); ++it)
       {
-        ret += (glue + String(*it));
+        ret += (glue + StringUtils::toStr(*it));
       }
 
       return ret;
@@ -230,53 +230,53 @@ public:
   namespace detail
   {
     template <typename T>
-    T convert(const String& s);
+    T convert(const std::string& s);
   
     template<>
-    inline Int32 convert(const String& s)
+    inline Int32 convert(const std::string& s)
     {
-      return s.toInt32();
+      return StringUtils::toInt32(s);
     }
     template<>
-    inline double convert(const String& s)
+    inline double convert(const std::string& s)
     {
-      return s.toDouble();
+      return StringUtils::toDouble(s);
     }
     template<>
-    inline float convert(const String& s)
+    inline float convert(const std::string& s)
     {
-      return s.toFloat();
+      return StringUtils::toFloat(s);
     }
     template<>
-    inline std::string convert(const String& s)
+    inline std::string convert(const std::string& s)
     {
         return static_cast<std::string>(s);
     }
   }
 
   template <typename T>
-  inline std::vector<T> ListUtils::create(const std::vector<String>& s)
+  inline std::vector<T> ListUtils::create(const std::vector<std::string>& s)
   {
     std::vector<T> c;
     c.reserve(s.size());
-    for (std::vector<String>::const_iterator it = s.begin(); it != s.end(); ++it)
+    for (std::vector<std::string>::const_iterator it = s.begin(); it != s.end(); ++it)
     {
       try
       {
-        c.push_back(detail::convert<T>(String(*it).trim())); // succeeds only if the whole output can be explained, i.e. "1.3 3" will fail (which is good)
+        c.push_back(detail::convert<T>(StringUtils::trimmed(*it))); // succeeds only if the whole output can be explained, i.e. "1.3 3" will fail (which is good)
       }
       catch (...)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + *it + "'");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Could not convert string '") + *it + "'");
       }
     }
 
     return c;
   }
 
-  /// create specialization for String since we do not need to cast here
+  /// create specialization for std::string since we do not need to cast here
   template <>
-  inline std::vector<String> ListUtils::create(const std::vector<String>& s)
+  inline std::vector<std::string> ListUtils::create(const std::vector<std::string>& s)
   {
     return s;
   }

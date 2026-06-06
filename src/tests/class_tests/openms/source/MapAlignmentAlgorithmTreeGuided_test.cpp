@@ -134,7 +134,7 @@ START_SECTION((void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_m
   // peptide IDs are NOT considered in this mode.
   auto median_feature_rt_per_seq = [](const FeatureMap& fm)
   {
-    std::map<String, std::vector<double>> rts;
+    std::map<std::string, std::vector<double>> rts;
     for (const auto& feat : fm)
     {
       String best_seq;

@@ -113,7 +113,7 @@ namespace OpenMS
       // we expect all unqualified urls to be file urls
       try
       {
-        String local_url = File::findDoc(fromQString(target));
+        std::string local_url = File::findDoc(fromQString(target));
         url_target = QUrl::fromLocalFile(toQString(local_url));
       }
       catch (Exception::FileNotFound&)

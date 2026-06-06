@@ -55,12 +55,12 @@ public:
   class AccessionInfo
   {
   public:
-    String sf_path; ///< sourcefile path for mztab-m
-    String sf_type; ///< sourcefile type for mztab-m
-    String sf_filename; ///< sourcefile name for mztab-m
-    String sf_accession; ///< sourcefile accessions for mztab-m
-    String native_id_accession; ///< nativeID accession for mztab-m
-    String native_id_type; ///< nativeID type for mztab-m
+    std::string sf_path; ///< sourcefile path for mztab-m
+    std::string sf_type; ///< sourcefile type for mztab-m
+    std::string sf_filename; ///< sourcefile name for mztab-m
+    std::string sf_accession; ///< sourcefile accessions for mztab-m
+    std::string native_id_accession; ///< nativeID accession for mztab-m
+    std::string native_id_type; ///< nativeID type for mztab-m
   };
 
   /**
@@ -74,25 +74,25 @@ public:
   class CompoundInfo
   {
   public:
-    String cmp; ///< query_id used compound in .ms file
+    std::string cmp; ///< query_id used compound in .ms file
     double pmass; ///< parent/precursor mass of the compound
     double pint_mono; ///< parent/precursor intensity of the compound
     double rt; ///< retention time of the compound
     double fmz; ///< annotated mass of a feature (if available)
-    String fid; ///< annotated feature_id (if available)
-    String formula; ///< sumformula of the compound
+    std::string fid; ///< annotated feature_id (if available)
+    std::string formula; ///< sumformula of the compound
     int charge; ///< precursor/feature charge
-    String ionization; ///< adduct information
-    String des; ///< description/name of the compound
-    String specref_format; ///< spectra ref format for mztab-m
-    String source_file; ///< sourcefile for mztab-m
-    String source_format; ///< format of the sourcefile for mztab-m
-    std::vector<String> native_ids; ///< native ids of the associated spectra
-    String native_ids_id; ///< concatenated list of the associated spectra
-    std::vector<String> m_ids; ///< native ids and identifier for multiple possible identification via AMS ("|" separator)
-    String m_ids_id; ///< concatenated list of native ids and identifier for multiple possible identification via AMS ("|" separator) used for mapping of compounds and the annotated spectrum.
-    std::vector<String> scan_indices; ///< index of the associated spectra
-    std::vector<String> specrefs; ///< spectra reference for mztab-m
+    std::string ionization; ///< adduct information
+    std::string des; ///< description/name of the compound
+    std::string specref_format; ///< spectra ref format for mztab-m
+    std::string source_file; ///< sourcefile for mztab-m
+    std::string source_format; ///< format of the sourcefile for mztab-m
+    std::vector<std::string> native_ids; ///< native ids of the associated spectra
+    std::string native_ids_id; ///< concatenated list of the associated spectra
+    std::vector<std::string> m_ids; ///< native ids and identifier for multiple possible identification via AMS ("|" separator)
+    std::string m_ids_id; ///< concatenated list of native ids and identifier for multiple possible identification via AMS ("|" separator) used for mapping of compounds and the annotated spectrum.
+    std::vector<std::string> scan_indices; ///< index of the associated spectra
+    std::vector<std::string> specrefs; ///< spectra reference for mztab-m
     int file_index; ///< source file index >
   };
 
@@ -183,8 +183,8 @@ public:
                              const std::vector<size_t>& ms2_spectra_index,
                              const SiriusMSFile::AccessionInfo& ainfo,
                              const StringList& adducts,
-                             const std::vector<String>& v_description,
-                             const std::vector<String>& v_sumformula,
+                             const std::vector<std::string>& v_description,
+                             const std::vector<std::string>& v_sumformula,
                              const std::vector<std::pair<double,double>>& f_isotopes,
                              int& feature_charge,
                              uint64_t& feature_id,

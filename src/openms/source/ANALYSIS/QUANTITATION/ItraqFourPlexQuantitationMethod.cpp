@@ -13,7 +13,7 @@
 
 namespace OpenMS
 {
-  const String ItraqFourPlexQuantitationMethod::name_ = "itraq4plex";
+  const std::string ItraqFourPlexQuantitationMethod::name_ = "itraq4plex";
 
   ItraqFourPlexQuantitationMethod::ItraqFourPlexQuantitationMethod()
   {
@@ -89,7 +89,7 @@ namespace OpenMS
     return *this;
   }
 
-  const String& ItraqFourPlexQuantitationMethod::getMethodName() const
+  const std::string& ItraqFourPlexQuantitationMethod::getMethodName() const
   {
     return ItraqFourPlexQuantitationMethod::name_;
   }

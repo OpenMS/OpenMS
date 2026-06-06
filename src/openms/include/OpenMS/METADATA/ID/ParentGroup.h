@@ -42,11 +42,11 @@ namespace OpenMS
     */
     struct ParentGroupSet: public ScoredProcessingResult
     {
-      String label; // @TODO: use "label" as a uniqueness constraint?
+      std::string label; // @TODO: use "label" as a uniqueness constraint?
       ParentGroups groups;
 
       explicit ParentGroupSet(
-        const String& label = "",
+        const std::string& label = "",
         const ParentGroups& groups = ParentGroups()):
         label(label), groups(groups)
       {

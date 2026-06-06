@@ -35,7 +35,7 @@ namespace OpenMS
 
   using namespace ms; // numpress namespace
 
-  void MSNumpressCoder::encodeNP(const std::vector<double> & in, String & result,
+  void MSNumpressCoder::encodeNP(const std::vector<double> & in, std::string & result,
       bool zlib_compression, const NumpressConfig & config)
   {
     result.clear();
@@ -46,22 +46,22 @@ namespace OpenMS
     }
 
     // Encode in base64 and compress
-    std::vector<String> tmp;
+    std::vector<std::string> tmp;
     tmp.push_back(result);
     Base64::encodeStrings(tmp, result, zlib_compression, false);
   }
 
-  void MSNumpressCoder::encodeNP(const std::vector<float> & in, String & result,
+  void MSNumpressCoder::encodeNP(const std::vector<float> & in, std::string & result,
       bool zlib_compression, const NumpressConfig & config)
   {
     std::vector<double> dvector(in.begin(), in.end());
     encodeNP(dvector, result, zlib_compression, config);
   }
 
-  void MSNumpressCoder::decodeNP(const String & in, std::vector<double> & out,
+  void MSNumpressCoder::decodeNP(const std::string & in, std::vector<double> & out,
       bool zlib_compression, const NumpressConfig & config)
   {
-    String tmpstring;
+    std::string tmpstring;
     Base64::decodeSingleString(in, tmpstring, zlib_compression);
 
     // Create a temporary string (*not* null-terminated) to hold the data
@@ -74,7 +74,7 @@ namespace OpenMS
     // decodeNP_internal_(reinterpret_cast<const unsigned char*>(base64_uncompressed.constData()), base64_uncompressed.size(), out, config);
   }
 
-  void MSNumpressCoder::encodeNPRaw(const std::vector<double>& in, String& result, const NumpressConfig & config)
+  void MSNumpressCoder::encodeNPRaw(const std::vector<double>& in, std::string& result, const NumpressConfig & config)
   {
     if (in.empty())
     {
@@ -261,10 +261,10 @@ namespace OpenMS
       }
       else
       {
-        result = String(std::string(reinterpret_cast<const char*>(&numpressed[0]), byteCount));
+        result =StringUtils::toStr(std::string(reinterpret_cast<const char*>(&numpressed[0]), byteCount));
         // Other solution:
         // http://stackoverflow.com/questions/2840835/way-to-get-unsigned-char-into-a-stdstring-without-reinterpret-cast
-        // result = String( std::string(&numpressed[0], &numpressed[0] + byteCount) );
+        // result =StringUtils::toStr( std::string(&numpressed[0], &numpressed[0] + byteCount) );
       }
     }
     catch (int e)

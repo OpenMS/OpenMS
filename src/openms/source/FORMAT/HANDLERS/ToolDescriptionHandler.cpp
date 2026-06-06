@@ -13,7 +13,7 @@ using namespace std;
 namespace OpenMS::Internal
 {
 
-    ToolDescriptionHandler::ToolDescriptionHandler(const String & filename, const String & version) :
+    ToolDescriptionHandler::ToolDescriptionHandler(const std::string & filename, const std::string & version) :
       ParamXMLHandler(p_, filename, version),
       p_(),
       tde_(),
@@ -41,7 +41,7 @@ namespace OpenMS::Internal
 
       if (tag_ == "tool")
       {
-        String status = attributeAsString_(attributes, "status");
+        std::string status = attributeAsString_(attributes, "status");
         if (status == "external")
         {
           td_.is_internal = false;
@@ -59,7 +59,7 @@ namespace OpenMS::Internal
       if (tag_ == "mapping")
       {
         Int id = attributeAsInt_(attributes, "id");
-        String command = attributeAsString_(attributes, "cl");
+        std::string command = attributeAsString_(attributes, "cl");
         tde_.tr_table.mapping[id] = command;
         return;
       }
@@ -173,7 +173,7 @@ namespace OpenMS::Internal
 
     void ToolDescriptionHandler::endElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname)
     {
-      String endtag_ = sm_.convert(qname);
+      std::string endtag_ = sm_.convert(qname);
       if (in_ini_section_ && endtag_ != "ini_param")
       {
         ParamXMLHandler::endElement(uri, local_name, qname);

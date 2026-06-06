@@ -89,18 +89,18 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input qcml file", false);
-    setValidFormats_("in", ListUtils::create<String>("qcML"));
+    setValidFormats_("in", ListUtils::create<std::string>("qcML"));
     registerStringOption_("qp_att_acc", "<string>", "", "Defines the qp cv accession of the qp to which the table/image is attached.", false);
     registerStringOption_("cv_acc", "<string>", "", "Defines the cv accession of the attachment.");
     registerInputFile_("run", "<file>", "", "The file that defined the run under which the qp for the attachment is aggregated as mzML file. The file is only used to extract the run name from the file name.", false);
-    setValidFormats_("run", ListUtils::create<String>("mzML"));
-    registerStringOption_("name", "<String>", "", "If no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given.", false);
+    setValidFormats_("run", ListUtils::create<std::string>("mzML"));
+    registerStringOption_("name", "<std::string>", "", "If no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given.", false);
     registerInputFile_("plot", "<file>", "", "If a plot image is to be attached to a qp, this has to be specified here.", false);
-    setValidFormats_("plot", ListUtils::create<String>("PNG"));
+    setValidFormats_("plot", ListUtils::create<std::string>("PNG"));
     registerInputFile_("table", "<file>", "", "If a table is to be attached to a qp, this has to be specified here.", false);
-    setValidFormats_("table", ListUtils::create<String>("csv"));
+    setValidFormats_("table", ListUtils::create<std::string>("csv"));
     registerOutputFile_("out", "<file>", "", "Output extended qcML file");
-    setValidFormats_("out", ListUtils::create<String>("qcML"));
+    setValidFormats_("out", ListUtils::create<std::string>("qcML"));
   }
 
   ExitCodes main_(int, const char**) override
@@ -108,14 +108,14 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in                   = getStringOption_("in");
-    String out                 = getStringOption_("out");
-    String target_qp       = getStringOption_("qp_att_acc");
-    String target_acc      = getStringOption_("cv_acc");
-    String target_run      = getStringOption_("name");
-    String target_file       = getStringOption_("run");
-    String plot_file          = getStringOption_("plot");
-    String tab                 = getStringOption_("table");
+    std::string in                   = getStringOption_("in");
+    std::string out                 = getStringOption_("out");
+    std::string target_qp       = getStringOption_("qp_att_acc");
+    std::string target_acc      = getStringOption_("cv_acc");
+    std::string target_run      = getStringOption_("name");
+    std::string target_file       = getStringOption_("run");
+    std::string plot_file          = getStringOption_("plot");
+    std::string tab                 = getStringOption_("table");
 
     //-------------------------------------------------------------
     // fetch vocabularies
@@ -143,7 +143,7 @@ protected:
     if (target_run.empty())
     {
       //~ check if only one run in file
-      std::vector<String> nas;
+      std::vector<std::string> nas;
       qcmlfile.getRunNames(nas);
       if (nas.size() == 1)
       {
@@ -156,21 +156,21 @@ protected:
       }
     }
 
-    String plot_b64;
+    std::string plot_b64;
     {
       std::ifstream f(std::string(plot_file), std::ios::binary);
       if (f.is_open())
       {
         std::ostringstream oss;
         oss << f.rdbuf();
-        std::vector<String> raw_vec = {String(oss.str())};
+        std::vector<std::string> raw_vec = {StringUtils::toStr(oss.str())};
         Base64::encodeStrings(raw_vec, plot_b64, false, false);
       }
     }
 
     QcMLFile::Attachment at;
     at.cvAcc = target_acc;
-    at.id = String(UniqueIdGenerator::getUniqueId());
+    at.id =StringUtils::toStr(UniqueIdGenerator::getUniqueId());
     at.cvRef = "QC"; //TODO assign right cv reference
 
     if (!plot_b64.empty() || !tab.empty())
@@ -218,7 +218,7 @@ protected:
           for (UInt i = 1; i < csv_file.rowCount(); ++i)
           {
             StringList li;
-            std::vector<String> v;
+            std::vector<std::string> v;
             csv_file.getRow(i, li);
             //TODO throw error if li.size() != at.colTypes.size()
             for (Size i = 0; i < li.size(); ++i)
@@ -235,7 +235,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
-      std::vector<String> ids;
+      std::vector<std::string> ids;
       qcmlfile.existsRunQualityParameter(target_run, target_qp, ids);
       if (!ids.empty())
       {

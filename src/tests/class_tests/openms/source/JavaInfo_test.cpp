@@ -23,7 +23,7 @@ START_TEST(TextFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-START_SECTION((static bool canRun(const String &file)))
+START_SECTION((static bool canRun(const std::string &file)))
   // test for missing java executable
   TEST_EQUAL(JavaInfo::canRun(""), false)
 END_SECTION

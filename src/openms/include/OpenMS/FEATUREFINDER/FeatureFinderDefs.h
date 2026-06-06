@@ -36,7 +36,7 @@ namespace OpenMS
     {
 public:
       NoSuccessor(const char * file, int line, const char * function, const IndexPair & index) :
-        BaseException(file, line, function, "NoSuccessor", String("there is no successor/predecessor for the given Index: ") + String(index.first) + "/" + String(index.second)),
+        BaseException(file, line, function, "NoSuccessor",StringUtils::toStr("there is no successor/predecessor for the given Index: ") + StringUtils::toStr(index.first) + "/" + StringUtils::toStr(index.second)),
         index_(index)
       {
         Exception::GlobalExceptionHandler::setMessage(what());

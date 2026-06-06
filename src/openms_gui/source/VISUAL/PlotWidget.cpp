@@ -138,7 +138,7 @@ namespace OpenMS
     }
   }
 
-  void PlotWidget::showMetaDistribution(const String& name, const Histogram<>& dist)
+  void PlotWidget::showMetaDistribution(const std::string& name, const Histogram<>& dist)
   {
     HistogramDialog dw(dist);
     dw.setLegend(name);
@@ -265,7 +265,7 @@ namespace OpenMS
       const LayerDataBase& layer = canvas()->getLayer(l);
       if (layer.modified)
       {
-        QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", toQString(String("Do you want to save your changes to layer '") + layer.getName() +  "'?"), QMessageBox::Ok | QMessageBox::Discard);
+        QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", toQString(StringUtils::toStr("Do you want to save your changes to layer '") + layer.getName() +  "'?"), QMessageBox::Ok | QMessageBox::Discard);
         if (result == QMessageBox::Ok)
         {
           canvas()->activateLayer(l);

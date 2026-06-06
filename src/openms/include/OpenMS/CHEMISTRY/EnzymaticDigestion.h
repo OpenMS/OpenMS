@@ -76,7 +76,7 @@ namespace OpenMS
     void setMissedCleavages(Size missed_cleavages);
 
     /// Returns the enzyme for the digestion
-    String getEnzymeName() const;
+    std::string getEnzymeName() const;
 
     /// Sets the enzyme for the digestion
     virtual void setEnzyme(const DigestionEnzyme* enzyme);
@@ -89,7 +89,7 @@ namespace OpenMS
 
     /// convert spec string name to enum
     /// returns SPEC_UNKNOWN if @p name is not valid
-    static Specificity getSpecificityByName(const String& name);
+    static Specificity getSpecificityByName(const std::string& name);
 
     /**
        @brief Performs the enzymatic digestion of an unmodified sequence.
@@ -130,14 +130,14 @@ namespace OpenMS
     @param[in] ignore_missed_cleavages Do not compare MC's of potential peptide to the maximum allowed MC's
     @return True if peptide has correct n/c terminals (according to enzyme, specificity and missed cleavages)
     */
-    bool isValidProduct(const String& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages = true) const;
+    bool isValidProduct(const std::string& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages = true) const;
 
     /**
        @brief Counts the number of internal cleavage sites (missed cleavages) in a protein sequence.
        @param[in] sequence Sequence
        @return Number of internal cleavage sites (= missed cleavages in the sequence)
     */
-    Size countInternalCleavageSites(const String& sequence) const;
+    Size countInternalCleavageSites(const std::string& sequence) const;
 
     /**
        @brief Filter based on the number of missed cleavages.
@@ -146,7 +146,7 @@ namespace OpenMS
        @param[in] filter A predicate that takes as parameter the number of missed cleavages in the sequence and returns true if the sequence should be filtered out.
        @return Whether the sequence should be filtered out.
      */
-    bool filterByMissedCleavages(const String& sequence, const std::function<bool(const Int)>& filter) const;
+    bool filterByMissedCleavages(const std::string& sequence, const std::function<bool(const Int)>& filter) const;
 
 
   protected:
@@ -156,7 +156,7 @@ namespace OpenMS
              Do not duplicate the code, just for the sake of semantics (unless we can come up with a clean separation)
              Note: the overhead of allow_nterm_protein_cleavage and allow_random_asp_pro_cleavage is marginal; the main runtime is spend during tokenize_()
     */
-    bool isValidProduct_(const String& sequence,
+    bool isValidProduct_(const std::string& sequence,
                          int pos,
                          int length,
                          bool ignore_missed_cleavages,
@@ -177,7 +177,7 @@ namespace OpenMS
       @param[in] end Past-the-end index into @p sequence
       @return Cleavage positions (this includes @p start, but not @p end)
      */
-    std::vector<int> tokenize_(const String& sequence, int start = 0, int end = -1) const;
+    std::vector<int> tokenize_(const std::string& sequence, int start = 0, int end = -1) const;
 
     /**
       @brief Generates semi-specific digestion products

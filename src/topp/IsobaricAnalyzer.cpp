@@ -141,8 +141,8 @@ class TOPPIsobaricAnalyzer :
   public TOPPBase
 {
 private:
-  std::map<String, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
-  std::map<String, String> quant_method_names_;
+  std::map<std::string, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
+  std::map<std::string, std::string> quant_method_names_;
 
   void addMethod_(std::unique_ptr<IsobaricQuantitationMethod> ptr, std::string name)
   {
@@ -191,11 +191,11 @@ protected:
     registerSubsection_("quantification", "Parameters for the peptide quantification.");
     for (const auto& qm : quant_methods_)
     {
-      registerSubsection_(qm.second->getMethodName(), String("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
+      registerSubsection_(qm.second->getMethodName(),StringUtils::toStr("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
     }
   }
 
-  Param getSubsectionDefaults_(const String& section) const override
+  Param getSubsectionDefaults_(const std::string& section) const override
   {
     ItraqFourPlexQuantitationMethod temp_quant;
     if (section == "extraction")
@@ -224,8 +224,8 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
 
     //-------------------------------------------------------------
     // loading input

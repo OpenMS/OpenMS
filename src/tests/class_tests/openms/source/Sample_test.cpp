@@ -39,22 +39,22 @@ START_SECTION((~Sample()))
 	delete dv_ptr;
 END_SECTION
 
-START_SECTION((const String& getName() const))
+START_SECTION((const std::string& getName() const))
 	Sample s;
 	TEST_EQUAL(s.getName(),"")
 END_SECTION
 
-START_SECTION((const String& getOrganism() const))
+START_SECTION((const std::string& getOrganism() const))
 	Sample s;
 	TEST_EQUAL(s.getOrganism(),"")
 END_SECTION
 
-START_SECTION((const String& getNumber() const))
+START_SECTION((const std::string& getNumber() const))
 	Sample s;
 	TEST_EQUAL(s.getNumber(),"")
 END_SECTION
 
-START_SECTION((const String& getComment() const))
+START_SECTION((const std::string& getComment() const))
 	Sample s;
 	TEST_EQUAL(s.getComment(),"")
 END_SECTION
@@ -79,25 +79,25 @@ START_SECTION((double getConcentration() const ))
 	TEST_REAL_SIMILAR(s.getConcentration(),0.0)
 END_SECTION
 
-START_SECTION((void setName(const String& name)))
+START_SECTION((void setName(const std::string& name)))
 	Sample s;
 	s.setName("TTEST");
 	TEST_EQUAL(s.getName(),"TTEST")
 END_SECTION
 
-START_SECTION((void setOrganism(const String& organism)))
+START_SECTION((void setOrganism(const std::string& organism)))
 	Sample s;
 	s.setOrganism("TTEST");
 	TEST_EQUAL(s.getOrganism(),"TTEST")
 END_SECTION
 
-START_SECTION((void setNumber(const String& number)))
+START_SECTION((void setNumber(const std::string& number)))
 	Sample s;
 	s.setNumber("Sample4711");
 	TEST_EQUAL(s.getNumber(),"Sample4711")
 END_SECTION
 
-START_SECTION((void setComment(const String& comment)))
+START_SECTION((void setComment(const std::string& comment)))
 	Sample s;
 	s.setComment("Sample Description");
 	TEST_EQUAL(s.getComment(),"Sample Description")
@@ -168,7 +168,7 @@ START_SECTION((Sample(const Sample& source)))
 	s.setConcentration(4711.4);
 
 	//meta info
-	s.setMetaValue("label",String("horse"));
+	s.setMetaValue("label",StringUtils::toStr("horse"));
 
 	//subsamples
 	Sample ss;
@@ -212,7 +212,7 @@ START_SECTION((Sample& operator= (const Sample& source)))
 	s.setConcentration(4711.4);
 
 	//meta
-	s.setMetaValue("label",String("horse"));
+	s.setMetaValue("label",StringUtils::toStr("horse"));
 
 	//subsamples
 	Sample ss;

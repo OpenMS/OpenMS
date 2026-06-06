@@ -27,7 +27,7 @@ namespace
   constexpr const char* kProteinGroups = "protein_groups.parquet";
   constexpr const char* kSearchParams = "search_params.parquet";
 
-  bool ensureDirectory_(const String& dir)
+  bool ensureDirectory_(const std::string& dir)
   {
     if (File::exists(dir))
     {
@@ -50,7 +50,7 @@ namespace
 bool PSMArrowIO::exportToParquet(
   const std::vector<ProteinIdentification>& protein_identifications,
   const PeptideIdentificationList& peptide_identifications,
-  const String& dir,
+  const std::string& dir,
   bool export_all_psms,
   const ParquetWriteConfig& config)
 {
@@ -97,7 +97,7 @@ bool PSMArrowIO::exportToParquet(
 }
 
 bool PSMArrowIO::importFromParquet(
-  const String& dir,
+  const std::string& dir,
   std::vector<ProteinIdentification>& protein_identifications,
   PeptideIdentificationList& peptide_identifications)
 {

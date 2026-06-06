@@ -87,7 +87,7 @@ public:
         Int ssl,
         MRMFeatureSelector::VariableType vt,
         double ot,
-        std::map<String, MRMFeatureSelector::LambdaScore>& sw
+        std::map<std::string, MRMFeatureSelector::LambdaScore>& sw
       ) :
         nn_threshold(nn),
         locality_weight(lw),
@@ -105,7 +105,7 @@ public:
       Int    segment_step_length     = 4; ///< Number of components or component groups to shift the `segment_window_length` at each loop
       MRMFeatureSelector::VariableType variable_type = MRMFeatureSelector::VariableType::CONTINUOUS; ///< INTEGER or CONTINUOUS
       double optimal_threshold       = 0.5; ///< Value above which the transition group or transition is considered optimal (0 < x < 1)
-      std::map<String, MRMFeatureSelector::LambdaScore> score_weights; ///< Weights for the scores
+      std::map<std::string, MRMFeatureSelector::LambdaScore> score_weights; ///< Weights for the scores
     };
 
     /**
@@ -119,9 +119,9 @@ public:
       @param[in] parameters Parameters
     */
     virtual void optimize(
-      const std::vector<std::pair<double, String>>& time_to_name,
-      const std::map<String, std::vector<Feature>>& feature_name_map,
-      std::vector<String>& result,
+      const std::vector<std::pair<double, std::string>>& time_to_name,
+      const std::map<std::string, std::vector<Feature>>& feature_name_map,
+      std::vector<std::string>& result,
       const SelectorParameters& parameters
     ) const = 0;
 
@@ -155,7 +155,7 @@ protected:
     */
     Int addVariable_(
       LPWrapper& problem,
-      const String& name,
+      const std::string& name,
       const bool bounded,
       const double obj,
       const VariableType variableType
@@ -171,7 +171,7 @@ protected:
 
       @return Computed score
     */
-    double computeScore_(const Feature& feature, const std::map<String, LambdaScore>& score_weights) const;
+    double computeScore_(const Feature& feature, const std::map<std::string, LambdaScore>& score_weights) const;
 
     /**
       Add constraint to the LP problem instantiated in `optimize()`
@@ -188,7 +188,7 @@ protected:
       LPWrapper& problem,
       const std::vector<Int>& indices,
       const std::vector<double>& values,
-      const String& name,
+      const std::string& name,
       const double lb,
       const double ub,
       const LPWrapper::Type param
@@ -207,8 +207,8 @@ private:
     */
     void constructTargTransList_(
       const FeatureMap& features,
-      std::vector<std::pair<double, String>>& time_to_name,
-      std::map<String, std::vector<Feature>>& feature_name_map,
+      std::vector<std::pair<double, std::string>>& time_to_name,
+      std::map<std::string, std::vector<Feature>>& feature_name_map,
       const bool select_transition_group
     ) const;
 
@@ -232,7 +232,7 @@ private:
     double weightScore_(const double score, const LambdaScore lambda_score) const;
 
     /// Removes spaces from the given string, not-in-place.
-    String removeSpaces_(String str) const;
+    std::string removeSpaces_(std::string str) const;
   };
 
   /**
@@ -268,9 +268,9 @@ public:
       @param[in]  parameters        Algorithm parameters (@c nn_threshold, @c locality_weight, @c variable_type, @c score_weights, @c optimal_threshold, ...).
     */
     void optimize(
-      const std::vector<std::pair<double, String>>& time_to_name,
-      const std::map<String, std::vector<Feature>>& feature_name_map,
-      std::vector<String>& result,
+      const std::vector<std::pair<double, std::string>>& time_to_name,
+      const std::map<std::string, std::vector<Feature>>& feature_name_map,
+      std::vector<std::string>& result,
       const SelectorParameters& parameters
     ) const override;
   };
@@ -307,9 +307,9 @@ public:
       @param[in]  parameters        Algorithm parameters (@c variable_type, @c score_weights, @c optimal_threshold; @c nn_threshold and @c locality_weight are not consulted).
     */
     void optimize(
-      const std::vector<std::pair<double, String>>& time_to_name,
-      const std::map<String, std::vector<Feature>>& feature_name_map,
-      std::vector<String>& result,
+      const std::vector<std::pair<double, std::string>>& time_to_name,
+      const std::map<std::string, std::vector<Feature>>& feature_name_map,
+      std::vector<std::string>& result,
       const SelectorParameters& parameters
     ) const override;
   };
@@ -322,8 +322,8 @@ public:
 
     void constructTargTransList_(
       const FeatureMap& features,
-      std::vector<std::pair<double, String>>& time_to_name,
-      std::map<String, std::vector<Feature>>& feature_name_map,
+      std::vector<std::pair<double, std::string>>& time_to_name,
+      std::map<std::string, std::vector<Feature>>& feature_name_map,
       const bool select_transition_group
     ) const
     {
@@ -335,12 +335,12 @@ public:
       return selector_.weightScore_(score, lambda_score);
     }
 
-    double computeScore_(const Feature& feature, const std::map<String, LambdaScore>& score_weights) const
+    double computeScore_(const Feature& feature, const std::map<std::string, LambdaScore>& score_weights) const
     {
       return selector_.computeScore_(feature, score_weights);
     }
 
-    String removeSpaces_(String str) const
+    std::string removeSpaces_(std::string str) const
     {
       return selector_.removeSpaces_(str);
     }

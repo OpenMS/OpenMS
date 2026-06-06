@@ -506,7 +506,7 @@ namespace OpenMS
 
       @return Reference to the score type, if found; otherwise @p getScoreTypes().end()
     */
-    ScoreTypeRef findScoreType(const String& score_name) const;
+    ScoreTypeRef findScoreType(const std::string& score_name) const;
 
     /// Calculate sequence coverages of parent sequences
     void calculateCoverages(bool check_molecule_length = false);
@@ -603,19 +603,19 @@ namespace OpenMS
     }
 
     /// Set a meta value on a stored observation match (e.g. PSM)
-    void setMetaValue(const ObservationMatchRef ref, const String& key, const DataValue& value);
+    void setMetaValue(const ObservationMatchRef ref, const std::string& key, const DataValue& value);
 
     /// Set a meta value on a stored observation
-    void setMetaValue(const ObservationRef ref, const String& key, const DataValue& value);
+    void setMetaValue(const ObservationRef ref, const std::string& key, const DataValue& value);
 
     /// Set a meta value on a stored identified molecule (variant)
-    void setMetaValue(const IdentifiedMolecule& var, const String& key, const DataValue& value);
+    void setMetaValue(const IdentifiedMolecule& var, const std::string& key, const DataValue& value);
 
     // @TODO: add overloads for other data types derived from MetaInfoInterface
 
     /// Remove a meta value (if it exists) from a stored observation match (e.g. PSM)
     /// @todo: return whether value existed? (requires changes in MetaInfo[Interface])
-    void removeMetaValue(const ObservationMatchRef ref, const String& key);
+    void removeMetaValue(const ObservationMatchRef ref, const std::string& key);
 
   protected:
 

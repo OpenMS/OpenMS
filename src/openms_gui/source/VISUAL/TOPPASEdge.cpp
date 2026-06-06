@@ -67,9 +67,9 @@ namespace OpenMS
     setFlag(QGraphicsItem::ItemIsSelectable, true);
   }
 
-  String TOPPASEdge::toString()
+  std::string TOPPASEdge::toString()
   {
-    String s = String("Edge: ") + fromQString(getSourceOutParamName()) + " target-in: " + fromQString(getTargetInParamName()) + "\n";
+    std::string s =StringUtils::toStr("Edge: ") + fromQString(getSourceOutParamName()) + " target-in: " + fromQString(getTargetInParamName()) + "\n";
     return s;
   }
   TOPPASEdge& TOPPASEdge::operator=(const TOPPASEdge& rhs)
@@ -369,13 +369,13 @@ namespace OpenMS
       bool found_match = false;
       for (StringList::iterator s_it = source_param_types.begin(); s_it != source_param_types.end(); ++s_it)
       {
-        String ext_1 = *s_it;
-        ext_1.toLower();
+        std::string ext_1 = *s_it;
+        StringUtils::toLower(ext_1);
         found_match = false;
         for (StringList::iterator t_it = target_param_types.begin(); t_it != target_param_types.end(); ++t_it)
         {
-          String ext_2 = *t_it;
-          ext_2.toLower();
+          std::string ext_2 = *t_it;
+          StringUtils::toLower(ext_2);
           if (ext_1 == ext_2)
           {
             found_match = true;
@@ -430,16 +430,16 @@ namespace OpenMS
     for (const QString& q_file_name : file_names)
     {
       bool type_mismatch = true;
-      const String file_name = fromQString(q_file_name);
-      String::SizeType extension_start_index = file_name.rfind(".");
+      const std::string file_name = fromQString(q_file_name);
+      size_t extension_start_index = file_name.rfind(".");
       if (extension_start_index != String::npos)
       {
-        String extension = file_name.substr(extension_start_index + 1);
-        extension.toLower();
+        std::string extension = StringUtils::substr(file_name, extension_start_index + 1);
+        StringUtils::toLower(extension);
         for (StringList::iterator it = target_param_types.begin(); it != target_param_types.end(); ++it)
         {
-          String other_ext = *it;
-          other_ext.toLower();
+          std::string other_ext = *it;
+          StringUtils::toLower(other_ext);
           if (extension == other_ext || extension == "gz" || extension == "bz2")
           {
             type_mismatch = false;

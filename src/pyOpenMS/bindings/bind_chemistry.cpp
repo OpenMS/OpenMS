@@ -96,12 +96,12 @@ instance primarily contains a sequence of residues.
         .def("toString", [](const OpenMS::AASequence& self) { return self.toString(); }, "Returns the peptide as string with modifications embedded in brackets")
         .def("toUnmodifiedString", [](const OpenMS::AASequence& self) { return self.toUnmodifiedString(); }, "Returns the peptide as string without any modifications")
         .def("toUniModString", [](const OpenMS::AASequence& self) { return self.toUniModString(); }, "Returns the peptide as string with UniMod-style modifications embedded in brackets")
-        .def("setModification", [](OpenMS::AASequence& self, size_t index, const OpenMS::String& modification) { return self.setModification(index, modification); }, "index"_a, "modification"_a, "Sets the modification of the residue at position index. If an empty string is passed replaces the residue with its unmodified version")
+        .def("setModification", [](OpenMS::AASequence& self, size_t index, const std::string& modification) { return self.setModification(index, modification); }, "index"_a, "modification"_a, "Sets the modification of the residue at position index. If an empty string is passed replaces the residue with its unmodified version")
         .def("setModification", [](OpenMS::AASequence& self, size_t index, OpenMS::Residue * modification) { return self.setModification(index, modification); }, "index"_a, "modification"_a, "Sets the modification of the residue at position index. If an empty string is passed replaces the residue with its unmodified version")
         .def("setModification", [](OpenMS::AASequence& self, size_t index, OpenMS::ResidueModification * modification) { return self.setModification(index, modification); }, "index"_a, "modification"_a, "Sets the modification of the residue at position index. If an empty string is passed replaces the residue with its unmodified version")
         .def("setModification", [](OpenMS::AASequence& self, size_t index, const OpenMS::ResidueModification& modification) { return self.setModification(index, modification); }, "index"_a, "modification"_a, "Sets the modification of the residue at position index. If an empty string is passed replaces the residue with its unmodified version")
         .def("setModificationByDiffMonoMass", [](OpenMS::AASequence& self, size_t index, double diffMonoMass) { return self.setModificationByDiffMonoMass(index, diffMonoMass); }, "index"_a, "diffMonoMass"_a, "Modifies the residue at index in the sequence and potentially in the ResidueDB")
-        .def("setNTerminalModification", [](OpenMS::AASequence& self, const OpenMS::String& modification) { return self.setNTerminalModification(modification); }, "modification"_a, "Sets the N-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
+        .def("setNTerminalModification", [](OpenMS::AASequence& self, const std::string& modification) { return self.setNTerminalModification(modification); }, "modification"_a, "Sets the N-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
         .def("setNTerminalModification", [](OpenMS::AASequence& self, OpenMS::ResidueModification * modification) { return self.setNTerminalModification(modification); }, "modification"_a, "Sets the N-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
         .def("setNTerminalModification", [](OpenMS::AASequence& self, const OpenMS::ResidueModification& mod) { return self.setNTerminalModification(mod); }, "mod"_a, "Sets the N-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
         .def("setNTerminalModificationByDiffMonoMass", [](OpenMS::AASequence& self, double diffMonoMass, bool protein_term) { return self.setNTerminalModificationByDiffMonoMass(diffMonoMass, protein_term); }, "diffMonoMass"_a, "protein_term"_a, 
@@ -110,7 +110,7 @@ Sets the N-terminal modification by the monoisotopic mass difference it introduc
 )doc")
         .def("getNTerminalModificationName", [](const OpenMS::AASequence& self) { return self.getNTerminalModificationName(); }, "Returns the name (ID) of the N-terminal modification, or an empty string if none is set")
         .def("getNTerminalModification", [](const OpenMS::AASequence& self) { return self.getNTerminalModification(); }, nb::rv_policy::reference_internal, "Returns a copy of the name N-terminal modification object, or None")
-        .def("setCTerminalModification", [](OpenMS::AASequence& self, const OpenMS::String& modification) { return self.setCTerminalModification(modification); }, "modification"_a, "Sets the C-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
+        .def("setCTerminalModification", [](OpenMS::AASequence& self, const std::string& modification) { return self.setCTerminalModification(modification); }, "modification"_a, "Sets the C-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
         .def("setCTerminalModification", [](OpenMS::AASequence& self, OpenMS::ResidueModification * modification) { return self.setCTerminalModification(modification); }, "modification"_a, "Sets the C-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
         .def("setCTerminalModification", [](OpenMS::AASequence& self, const OpenMS::ResidueModification& mod) { return self.setCTerminalModification(mod); }, "mod"_a, "Sets the C-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)")
         .def("setCTerminalModificationByDiffMonoMass", [](OpenMS::AASequence& self, double diffMonoMass, bool protein_term) { return self.setCTerminalModificationByDiffMonoMass(diffMonoMass, protein_term); }, "diffMonoMass"_a, "protein_term"_a, 
@@ -125,10 +125,10 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         .def("getPrefix", [](const OpenMS::AASequence& self, size_t index) { return self.getPrefix(index); }, "index"_a, "Returns a peptide sequence of the first index residues")
         .def("getSuffix", [](const OpenMS::AASequence& self, size_t index) { return self.getSuffix(index); }, "index"_a, "Returns a peptide sequence of the last index residues")
         .def("getSubsequence", [](const OpenMS::AASequence& self, size_t index, unsigned int number) { return self.getSubsequence(index, number); }, "index"_a, "number"_a, "Returns a peptide sequence of number residues, beginning at position index")
-        .def("has", [](const OpenMS::AASequence& self, const OpenMS::Residue& residue) { return self.has(residue); }, "residue"_a, "Returns true if the peptide contains the given residue")
+        .def("has", [](const OpenMS::AASequence& self, const OpenMS::Residue& residue) { return StringUtils::has(self, residue); }, "residue"_a, "Returns true if the peptide contains the given residue")
         .def("hasSubsequence", [](const OpenMS::AASequence& self, const OpenMS::AASequence& peptide) { return self.hasSubsequence(peptide); }, "peptide"_a, "Returns true if the peptide contains the given peptide")
-        .def("hasPrefix", [](const OpenMS::AASequence& self, const OpenMS::AASequence& peptide) { return self.hasPrefix(peptide); }, "peptide"_a, "Returns true if the peptide has the given prefix")
-        .def("hasSuffix", [](const OpenMS::AASequence& self, const OpenMS::AASequence& peptide) { return self.hasSuffix(peptide); }, "peptide"_a, "Returns true if the peptide has the given suffix")
+        .def("hasPrefix", [](const OpenMS::AASequence& self, const OpenMS::AASequence& peptide) { return StringUtils::hasPrefix(self, peptide); }, "peptide"_a, "Returns true if the peptide has the given prefix")
+        .def("hasSuffix", [](const OpenMS::AASequence& self, const OpenMS::AASequence& peptide) { return StringUtils::hasSuffix(self, peptide); }, "peptide"_a, "Returns true if the peptide has the given suffix")
         .def("hasNTerminalModification", [](const OpenMS::AASequence& self) { return self.hasNTerminalModification(); }, "Predicate which is true if the peptide is N-term modified")
         .def("hasCTerminalModification", [](const OpenMS::AASequence& self) { return self.hasCTerminalModification(); }, "Predicate which is true if the peptide is C-term modified")
         .def("isModified", [](const OpenMS::AASequence& self) { return self.isModified(); }, "Returns true if any of the residues or termini are modified")
@@ -147,13 +147,13 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         .def("__copy__", [](const OpenMS::AASequence& self) { return OpenMS::AASequence(self); })
         .def("__deepcopy__", [](const OpenMS::AASequence& self, nb::dict) { return OpenMS::AASequence(self); }, "memo"_a)
         .def("__init__", [](OpenMS::AASequence* self, const std::string& s) {
-            new (self) OpenMS::AASequence(OpenMS::String(s));
+            new (self) OpenMS::AASequence(std::string(s));
         }, "sequence"_a, "Create AASequence from string (e.g., 'PEPTIDE')")
-        .def(nb::init<OpenMS::String>())
-        .def(nb::init<OpenMS::String, bool>())
+        .def(nb::init<std::string>())
+        .def(nb::init<std::string, bool>())
 
         .def_static("fromString", [](const std::string& s) {
-            return OpenMS::AASequence::fromString(OpenMS::String(s));
+            return OpenMS::AASequence::fromString(std::string(s));
         }, "s"_a, "Create AASequence from string (deprecated - use AASequence(s) constructor)")
 
         .def("getMZ", [](const OpenMS::AASequence& self, int charge) {
@@ -178,7 +178,7 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         }, "type"_a, "charge"_a, "Returns the average weight of the peptide with specified residue type and charge")
 
         .def_static("fromStringPermissive", [](const std::string& s, bool permissive) {
-            return OpenMS::AASequence::fromString(OpenMS::String(s), permissive);
+            return OpenMS::AASequence::fromString(std::string(s), permissive);
         }, "s"_a, "permissive"_a, "Create AASequence from string with permissive mode")
 
         .def("getFormula", [](const OpenMS::AASequence& self) {
@@ -189,10 +189,10 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         }, "type"_a, "charge"_a, "Returns the empirical formula of the peptide with specified residue type and charge")
 
         .def("toBracketString", &OpenMS::AASequence::toBracketString,
-            "integer_mass"_a = true, "mass_delta"_a = false, "fixed_modifications"_a = std::vector<OpenMS::String>(),
+            "integer_mass"_a = true, "mass_delta"_a = false, "fixed_modifications"_a = std::vector<std::string>(),
             "Returns the bracket string representation of the peptide")
         .def("getAAFrequencies", [](const OpenMS::AASequence& self) {
-            std::map<OpenMS::String, OpenMS::Size> freq;
+            std::map<std::string, OpenMS::Size> freq;
             self.getAAFrequencies(freq);
             return freq;
         }, "Returns the amino acid frequencies of the peptide")
@@ -294,12 +294,12 @@ searches
         .def("__deepcopy__", [](const OpenMS::DecoyGenerator& self, nb::dict) { return OpenMS::DecoyGenerator(self); }, "memo"_a)
         .def("setSeed", [](OpenMS::DecoyGenerator& self, size_t seed) { return self.setSeed(seed); }, "seed"_a)
         .def("reverseProtein", [](const OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein) { return self.reverseProtein(protein); }, "protein"_a, "Reverses the protein sequence")
-        .def("reversePeptides", [](const OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein, const OpenMS::String& protease) { return self.reversePeptides(protein, protease); }, "protein"_a, "protease"_a, "Reverses the protein's peptide sequences between enzymatic cutting positions")
-        .def("shuffle", [](OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein, const OpenMS::String& protease, int decoy_factor) { return self.shuffle(protein, protease, decoy_factor); }, "protein"_a, "protease"_a, "decoy_factor"_a = 1, 
+        .def("reversePeptides", [](const OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein, const std::string& protease) { return self.reversePeptides(protein, protease); }, "protein"_a, "protease"_a, "Reverses the protein's peptide sequences between enzymatic cutting positions")
+        .def("shuffle", [](OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein, const std::string& protease, int decoy_factor) { return self.shuffle(protein, protease, decoy_factor); }, "protein"_a, "protease"_a, "decoy_factor"_a = 1, 
             R"doc(
 Generate decoy protein sequences using shuffle algorithm. Digests protein using specified protease and shuffles each peptide. For top-down proteomics use "no cleavage". decoy_factor is the number of complete decoy proteins to generate. Returns vector of AASequence
 )doc")
-        .def("shufflePeptides", [](OpenMS::DecoyGenerator& self, const OpenMS::AASequence& aas, const OpenMS::String& protease, int max_attempts) { return self.shufflePeptides(aas, protease, max_attempts); }, "aas"_a, "protease"_a, "max_attempts"_a = 100, "Shuffle the protein's peptide sequences between enzymatic cutting positions. Each peptide is shuffled `max_attempts` times to minimize sequence identity")
+        .def("shufflePeptides", [](OpenMS::DecoyGenerator& self, const OpenMS::AASequence& aas, const std::string& protease, int max_attempts) { return self.shufflePeptides(aas, protease, max_attempts); }, "aas"_a, "protease"_a, "max_attempts"_a = 100, "Shuffle the protein's peptide sequences between enzymatic cutting positions. Each peptide is shuffled `max_attempts` times to minimize sequence identity")
         ;
 
     // -----------------------------------------------------------------------
@@ -309,23 +309,23 @@ Generate decoy protein sequences using shuffle algorithm. Digests protein using 
         .def(nb::init<const OpenMS::DigestionEnzyme &>())
         .def("__copy__", [](const OpenMS::DigestionEnzyme& self) { return OpenMS::DigestionEnzyme(self); })
         .def("__deepcopy__", [](const OpenMS::DigestionEnzyme& self, nb::dict) { return OpenMS::DigestionEnzyme(self); }, "memo"_a)
-        .def(nb::init<OpenMS::String, OpenMS::String, std::set<OpenMS::String>, OpenMS::String>())
-        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::String, std::set<OpenMS::String>, OpenMS::String>())
-        .def("setName", [](OpenMS::DigestionEnzyme& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of the enzyme")
+        .def(nb::init<std::string, std::string, std::set<std::string>, std::string>())
+        .def(nb::init<std::string, std::string, std::string, std::string, std::set<std::string>, std::string>())
+        .def("setName", [](OpenMS::DigestionEnzyme& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name of the enzyme")
         .def("getName", [](const OpenMS::DigestionEnzyme& self) { return self.getName(); }, "Returns the name of the enzyme")
-        .def("setSynonyms", [](OpenMS::DigestionEnzyme& self, const std::set<OpenMS::String>& synonyms) { return self.setSynonyms(synonyms); }, "synonyms"_a, "Sets the synonyms")
-        .def("addSynonym", [](OpenMS::DigestionEnzyme& self, const OpenMS::String& synonym) { return self.addSynonym(synonym); }, "synonym"_a, "Adds a synonym")
-        .def("getSynonyms", [](const OpenMS::DigestionEnzyme& self) -> const std::set<OpenMS::String> & { return self.getSynonyms(); }, nb::rv_policy::reference_internal, "Returns the synonyms")
-        .def("setRegEx", [](OpenMS::DigestionEnzyme& self, const OpenMS::String& cleavage_regex) { return self.setRegEx(cleavage_regex); }, "cleavage_regex"_a, "Sets the cleavage regex")
+        .def("setSynonyms", [](OpenMS::DigestionEnzyme& self, const std::set<std::string>& synonyms) { return self.setSynonyms(synonyms); }, "synonyms"_a, "Sets the synonyms")
+        .def("addSynonym", [](OpenMS::DigestionEnzyme& self, const std::string& synonym) { return self.addSynonym(synonym); }, "synonym"_a, "Adds a synonym")
+        .def("getSynonyms", [](const OpenMS::DigestionEnzyme& self) -> const std::set<std::string> & { return self.getSynonyms(); }, nb::rv_policy::reference_internal, "Returns the synonyms")
+        .def("setRegEx", [](OpenMS::DigestionEnzyme& self, const std::string& cleavage_regex) { return self.setRegEx(cleavage_regex); }, "cleavage_regex"_a, "Sets the cleavage regex")
         .def("getRegEx", [](const OpenMS::DigestionEnzyme& self) { return self.getRegEx(); }, "Returns the cleavage regex")
-        .def("setRegExDescription", [](OpenMS::DigestionEnzyme& self, const OpenMS::String& value) { return self.setRegExDescription(value); }, "value"_a, "Sets the regex description")
+        .def("setRegExDescription", [](OpenMS::DigestionEnzyme& self, const std::string& value) { return self.setRegExDescription(value); }, "value"_a, "Sets the regex description")
         .def("getRegExDescription", [](const OpenMS::DigestionEnzyme& self) { return self.getRegExDescription(); }, "Returns the regex description")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def(nb::self < nb::self)
-        .def("setValueFromFile", [](OpenMS::DigestionEnzyme& self, const OpenMS::String& key, const OpenMS::String& value) { return self.setValueFromFile(key, value); }, "key"_a, "value"_a, "Sets the value of a member variable based on an entry from an input file")
+        .def("setValueFromFile", [](OpenMS::DigestionEnzyme& self, const std::string& key, const std::string& value) { return self.setValueFromFile(key, value); }, "key"_a, "value"_a, "Sets the value of a member variable based on an entry from an input file")
         .def("__hash__", [](const OpenMS::DigestionEnzyme& self) { return std::hash<OpenMS::DigestionEnzyme>{}(self); })
         ;
 
@@ -343,14 +343,14 @@ Representation of a digestion enzyme for proteins (protease)
         .def(nb::init<const OpenMS::DigestionEnzymeProtein &>())
         .def("__copy__", [](const OpenMS::DigestionEnzymeProtein& self) { return OpenMS::DigestionEnzymeProtein(self); })
         .def("__deepcopy__", [](const OpenMS::DigestionEnzymeProtein& self, nb::dict) { return OpenMS::DigestionEnzymeProtein(self); }, "memo"_a)
-        .def(nb::init<OpenMS::String, OpenMS::String, std::set<OpenMS::String>, OpenMS::String, OpenMS::EmpiricalFormula, OpenMS::EmpiricalFormula, OpenMS::String, OpenMS::String, int, int, int>())
+        .def(nb::init<std::string, std::string, std::set<std::string>, std::string, OpenMS::EmpiricalFormula, OpenMS::EmpiricalFormula, std::string, std::string, int, int, int>())
         .def("setNTermGain", [](OpenMS::DigestionEnzymeProtein& self, const OpenMS::EmpiricalFormula& value) { return self.setNTermGain(value); }, "value"_a, "Sets the N-term gain")
         .def("getNTermGain", [](const OpenMS::DigestionEnzymeProtein& self) { return self.getNTermGain(); }, "Returns the N-term gain")
         .def("setCTermGain", [](OpenMS::DigestionEnzymeProtein& self, const OpenMS::EmpiricalFormula& value) { return self.setCTermGain(value); }, "value"_a, "Sets the C-term gain")
         .def("getCTermGain", [](const OpenMS::DigestionEnzymeProtein& self) { return self.getCTermGain(); }, "Returns the C-term gain")
-        .def("setPSIID", [](OpenMS::DigestionEnzymeProtein& self, const OpenMS::String& value) { return self.setPSIID(value); }, "value"_a, "Sets the PSI ID")
+        .def("setPSIID", [](OpenMS::DigestionEnzymeProtein& self, const std::string& value) { return self.setPSIID(value); }, "value"_a, "Sets the PSI ID")
         .def("getPSIID", [](const OpenMS::DigestionEnzymeProtein& self) { return self.getPSIID(); }, "Returns the PSI ID")
-        .def("setXTandemID", [](OpenMS::DigestionEnzymeProtein& self, const OpenMS::String& value) { return self.setXTandemID(value); }, "value"_a, "Sets the X! Tandem enzyme ID")
+        .def("setXTandemID", [](OpenMS::DigestionEnzymeProtein& self, const std::string& value) { return self.setXTandemID(value); }, "value"_a, "Sets the X! Tandem enzyme ID")
         .def("getXTandemID", [](const OpenMS::DigestionEnzymeProtein& self) { return self.getXTandemID(); }, "Returns the X! Tandem enzyme ID")
         .def("setCometID", [](OpenMS::DigestionEnzymeProtein& self, int value) { return self.setCometID(value); }, "value"_a, "Sets the Comet enzyme ID")
         .def("getCometID", [](const OpenMS::DigestionEnzymeProtein& self) { return self.getCometID(); }, "Returns the Comet enzyme ID")
@@ -363,15 +363,15 @@ Representation of a digestion enzyme for proteins (protease)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def(nb::self < nb::self)
-        .def("setValueFromFile", [](OpenMS::DigestionEnzymeProtein& self, const OpenMS::String& key, const OpenMS::String& value) { return self.setValueFromFile(key, value); }, "key"_a, "value"_a, "Sets the value of a member variable based on an entry from an input file")
-        .def("setName", [](OpenMS::DigestionEnzymeProtein& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of the enzyme")
+        .def("setValueFromFile", [](OpenMS::DigestionEnzymeProtein& self, const std::string& key, const std::string& value) { return self.setValueFromFile(key, value); }, "key"_a, "value"_a, "Sets the value of a member variable based on an entry from an input file")
+        .def("setName", [](OpenMS::DigestionEnzymeProtein& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name of the enzyme")
         .def("getName", [](const OpenMS::DigestionEnzymeProtein& self) { return self.getName(); }, "Returns the name of the enzyme")
-        .def("setSynonyms", [](OpenMS::DigestionEnzymeProtein& self, const std::set<OpenMS::String>& synonyms) { return self.setSynonyms(synonyms); }, "synonyms"_a, "Sets the synonyms")
-        .def("addSynonym", [](OpenMS::DigestionEnzymeProtein& self, const OpenMS::String& synonym) { return self.addSynonym(synonym); }, "synonym"_a, "Adds a synonym")
-        .def("getSynonyms", [](const OpenMS::DigestionEnzymeProtein& self) -> const std::set<OpenMS::String> & { return self.getSynonyms(); }, nb::rv_policy::reference_internal, "Returns the synonyms")
-        .def("setRegEx", [](OpenMS::DigestionEnzymeProtein& self, const OpenMS::String& cleavage_regex) { return self.setRegEx(cleavage_regex); }, "cleavage_regex"_a, "Sets the cleavage regex")
+        .def("setSynonyms", [](OpenMS::DigestionEnzymeProtein& self, const std::set<std::string>& synonyms) { return self.setSynonyms(synonyms); }, "synonyms"_a, "Sets the synonyms")
+        .def("addSynonym", [](OpenMS::DigestionEnzymeProtein& self, const std::string& synonym) { return self.addSynonym(synonym); }, "synonym"_a, "Adds a synonym")
+        .def("getSynonyms", [](const OpenMS::DigestionEnzymeProtein& self) -> const std::set<std::string> & { return self.getSynonyms(); }, nb::rv_policy::reference_internal, "Returns the synonyms")
+        .def("setRegEx", [](OpenMS::DigestionEnzymeProtein& self, const std::string& cleavage_regex) { return self.setRegEx(cleavage_regex); }, "cleavage_regex"_a, "Sets the cleavage regex")
         .def("getRegEx", [](const OpenMS::DigestionEnzymeProtein& self) { return self.getRegEx(); }, "Returns the cleavage regex")
-        .def("setRegExDescription", [](OpenMS::DigestionEnzymeProtein& self, const OpenMS::String& value) { return self.setRegExDescription(value); }, "value"_a, "Sets the regex description")
+        .def("setRegExDescription", [](OpenMS::DigestionEnzymeProtein& self, const std::string& value) { return self.setRegExDescription(value); }, "value"_a, "Sets the regex description")
         .def("getRegExDescription", [](const OpenMS::DigestionEnzymeProtein& self) { return self.getRegExDescription(); }, "Returns the regex description")
         ;
 
@@ -396,7 +396,7 @@ A typical example is 3'-phosphate, resulting from cleavage of the phosphate back
         .def(nb::init<const OpenMS::DigestionEnzymeRNA &>())
         .def("__copy__", [](const OpenMS::DigestionEnzymeRNA& self) { return OpenMS::DigestionEnzymeRNA(self); })
         .def("__deepcopy__", [](const OpenMS::DigestionEnzymeRNA& self, nb::dict) { return OpenMS::DigestionEnzymeRNA(self); }, "memo"_a)
-        .def("setCutsAfterRegEx", [](OpenMS::DigestionEnzymeRNA& self, const OpenMS::String& value) { return self.setCutsAfterRegEx(value); }, "value"_a, 
+        .def("setCutsAfterRegEx", [](OpenMS::DigestionEnzymeRNA& self, const std::string& value) { return self.setCutsAfterRegEx(value); }, "value"_a, 
             R"doc(
 Sets the "cuts after ..." regular expression
 )doc")
@@ -404,7 +404,7 @@ Sets the "cuts after ..." regular expression
             R"doc(
 Returns the "cuts after ..." regular expression
 )doc")
-        .def("setCutsBeforeRegEx", [](OpenMS::DigestionEnzymeRNA& self, const OpenMS::String& value) { return self.setCutsBeforeRegEx(value); }, "value"_a, 
+        .def("setCutsBeforeRegEx", [](OpenMS::DigestionEnzymeRNA& self, const std::string& value) { return self.setCutsBeforeRegEx(value); }, "value"_a, 
             R"doc(
 Sets the "cuts before ..." regular expression
 )doc")
@@ -412,19 +412,19 @@ Sets the "cuts before ..." regular expression
             R"doc(
 Returns the "cuts before ..." regular expression
 )doc")
-        .def("setThreePrimeGain", [](OpenMS::DigestionEnzymeRNA& self, const OpenMS::String& value) { return self.setThreePrimeGain(value); }, "value"_a, "Sets the 3' gain")
+        .def("setThreePrimeGain", [](OpenMS::DigestionEnzymeRNA& self, const std::string& value) { return self.setThreePrimeGain(value); }, "value"_a, "Sets the 3' gain")
         .def("getThreePrimeGain", [](const OpenMS::DigestionEnzymeRNA& self) { return self.getThreePrimeGain(); }, "Returns the 3' gain")
-        .def("setFivePrimeGain", [](OpenMS::DigestionEnzymeRNA& self, const OpenMS::String& value) { return self.setFivePrimeGain(value); }, "value"_a, "Sets the 5' gain")
+        .def("setFivePrimeGain", [](OpenMS::DigestionEnzymeRNA& self, const std::string& value) { return self.setFivePrimeGain(value); }, "value"_a, "Sets the 5' gain")
         .def("getFivePrimeGain", [](const OpenMS::DigestionEnzymeRNA& self) { return self.getFivePrimeGain(); }, "Returns the 5' gain")
-        .def("setValueFromFile", [](OpenMS::DigestionEnzymeRNA& self, const OpenMS::String& key, const OpenMS::String& value) { return self.setValueFromFile(key, value); }, "key"_a, "value"_a, "Sets the value of a member variable based on an entry from an input file")
-        .def("setName", [](OpenMS::DigestionEnzymeRNA& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of the enzyme")
+        .def("setValueFromFile", [](OpenMS::DigestionEnzymeRNA& self, const std::string& key, const std::string& value) { return self.setValueFromFile(key, value); }, "key"_a, "value"_a, "Sets the value of a member variable based on an entry from an input file")
+        .def("setName", [](OpenMS::DigestionEnzymeRNA& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name of the enzyme")
         .def("getName", [](const OpenMS::DigestionEnzymeRNA& self) { return self.getName(); }, "Returns the name of the enzyme")
-        .def("setSynonyms", [](OpenMS::DigestionEnzymeRNA& self, const std::set<OpenMS::String>& synonyms) { return self.setSynonyms(synonyms); }, "synonyms"_a, "Sets the synonyms")
-        .def("addSynonym", [](OpenMS::DigestionEnzymeRNA& self, const OpenMS::String& synonym) { return self.addSynonym(synonym); }, "synonym"_a, "Adds a synonym")
-        .def("getSynonyms", [](const OpenMS::DigestionEnzymeRNA& self) -> const std::set<OpenMS::String> & { return self.getSynonyms(); }, nb::rv_policy::reference_internal, "Returns the synonyms")
-        .def("setRegEx", [](OpenMS::DigestionEnzymeRNA& self, const OpenMS::String& cleavage_regex) { return self.setRegEx(cleavage_regex); }, "cleavage_regex"_a, "Sets the cleavage regex")
+        .def("setSynonyms", [](OpenMS::DigestionEnzymeRNA& self, const std::set<std::string>& synonyms) { return self.setSynonyms(synonyms); }, "synonyms"_a, "Sets the synonyms")
+        .def("addSynonym", [](OpenMS::DigestionEnzymeRNA& self, const std::string& synonym) { return self.addSynonym(synonym); }, "synonym"_a, "Adds a synonym")
+        .def("getSynonyms", [](const OpenMS::DigestionEnzymeRNA& self) -> const std::set<std::string> & { return self.getSynonyms(); }, nb::rv_policy::reference_internal, "Returns the synonyms")
+        .def("setRegEx", [](OpenMS::DigestionEnzymeRNA& self, const std::string& cleavage_regex) { return self.setRegEx(cleavage_regex); }, "cleavage_regex"_a, "Sets the cleavage regex")
         .def("getRegEx", [](const OpenMS::DigestionEnzymeRNA& self) { return self.getRegEx(); }, "Returns the cleavage regex")
-        .def("setRegExDescription", [](OpenMS::DigestionEnzymeRNA& self, const OpenMS::String& value) { return self.setRegExDescription(value); }, "value"_a, "Sets the regex description")
+        .def("setRegExDescription", [](OpenMS::DigestionEnzymeRNA& self, const std::string& value) { return self.setRegExDescription(value); }, "value"_a, "Sets the regex description")
         .def("getRegExDescription", [](const OpenMS::DigestionEnzymeRNA& self) { return self.getRegExDescription(); }, "Returns the regex description")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
@@ -485,7 +485,7 @@ The elements are initialized with data from IUPAC tables.
         .def(nb::init<const OpenMS::EmpiricalFormula &>())
         .def("__copy__", [](const OpenMS::EmpiricalFormula& self) { return OpenMS::EmpiricalFormula(self); })
         .def("__deepcopy__", [](const OpenMS::EmpiricalFormula& self, nb::dict) { return OpenMS::EmpiricalFormula(self); }, "memo"_a)
-        .def(nb::init<OpenMS::String>())
+        .def(nb::init<std::string>())
         .def("getMonoWeight", [](const OpenMS::EmpiricalFormula& self) { return self.getMonoWeight(); }, "Returns the mono isotopic weight of the formula (includes proton charges)")
         .def("getAverageWeight", [](const OpenMS::EmpiricalFormula& self) { return self.getAverageWeight(); }, "Returns the average weight of the formula (includes proton charges)")
         .def("getLightestIsotopeWeight", [](const OpenMS::EmpiricalFormula& self) { return self.getLightestIsotopeWeight(); }, "Returns the sum of the lightest isotope weight of all elements in the formula (includes proton charges)")
@@ -555,8 +555,8 @@ Thus no random selection of just n specific missed cleavage sites is performed.
         .def("setEnzyme", [](OpenMS::EnzymaticDigestion& self, OpenMS::DigestionEnzyme * enzyme) { return self.setEnzyme(enzyme); }, "enzyme"_a, "Sets the enzyme for the digestion")
         .def("getSpecificity", [](const OpenMS::EnzymaticDigestion& self) { return self.getSpecificity(); }, "Returns the specificity for the digestion")
         .def("setSpecificity", [](OpenMS::EnzymaticDigestion& self, OpenMS::EnzymaticDigestion::Specificity spec) { return self.setSpecificity(spec); }, "spec"_a, "Sets the specificity for the digestion (default is SPEC_FULL)")
-        .def_static("getSpecificityByName", [](const OpenMS::String& name) { return OpenMS::EnzymaticDigestion::getSpecificityByName(name); }, "name"_a, "Returns the specificity by name. Returns SPEC_UNKNOWN if name is not valid")
-        .def("isValidProduct", [](const OpenMS::EnzymaticDigestion& self, const OpenMS::String& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages) { return self.isValidProduct(protein, pep_pos, pep_length, ignore_missed_cleavages); }, "protein"_a, "pep_pos"_a, "pep_length"_a, "ignore_missed_cleavages"_a = true, 
+        .def_static("getSpecificityByName", [](const std::string& name) { return OpenMS::EnzymaticDigestion::getSpecificityByName(name); }, "name"_a, "Returns the specificity by name. Returns SPEC_UNKNOWN if name is not valid")
+        .def("isValidProduct", [](const OpenMS::EnzymaticDigestion& self, const std::string& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages) { return self.isValidProduct(protein, pep_pos, pep_length, ignore_missed_cleavages); }, "protein"_a, "pep_pos"_a, "pep_length"_a, "ignore_missed_cleavages"_a = true, 
             R"doc(
 Performs the enzymatic digestion of an unmodified sequence\n
 By returning only references into the original string this is very fast
@@ -566,7 +566,7 @@ By returning only references into the original string this is very fast
 :param max_length: Maximal length of reported products (0 = no restriction)
 :return: Number of discarded digestion products (which are not matching length restrictions)
 )doc")
-        .def("countInternalCleavageSites", [](const OpenMS::EnzymaticDigestion& self, const OpenMS::String& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
+        .def("countInternalCleavageSites", [](const OpenMS::EnzymaticDigestion& self, const std::string& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
         .def("digestUnmodified", [](const OpenMS::EnzymaticDigestion& self, const std::string& sequence_str, size_t min_length, size_t max_length) {
             OpenMS::StringView sequence(sequence_str);
             std::vector<OpenMS::StringView> output;
@@ -633,13 +633,13 @@ if the threshold is absolute or relative.
         .def(nb::init<const OpenMS::ims::IMSElement &>())
         .def("__copy__", [](const OpenMS::ims::IMSElement& self) { return OpenMS::ims::IMSElement(self); })
         .def("__deepcopy__", [](const OpenMS::ims::IMSElement& self, nb::dict) { return OpenMS::ims::IMSElement(self); }, "memo"_a)
-        .def(nb::init<OpenMS::String, OpenMS::ims::IMSIsotopeDistribution>())
-        .def(nb::init<OpenMS::String, double>())
-        .def(nb::init<OpenMS::String, unsigned int>())
+        .def(nb::init<std::string, OpenMS::ims::IMSIsotopeDistribution>())
+        .def(nb::init<std::string, double>())
+        .def(nb::init<std::string, unsigned int>())
         .def("getName", [](const OpenMS::ims::IMSElement& self) { return self.getName(); }, "Gets element's name")
-        .def("setName", [](OpenMS::ims::IMSElement& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets element's name")
+        .def("setName", [](OpenMS::ims::IMSElement& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets element's name")
         .def("getSequence", [](const OpenMS::ims::IMSElement& self) { return self.getSequence(); }, "Gets element's sequence")
-        .def("setSequence", [](OpenMS::ims::IMSElement& self, const OpenMS::String& sequence) { return self.setSequence(sequence); }, "sequence"_a, "Sets element's sequence")
+        .def("setSequence", [](OpenMS::ims::IMSElement& self, const std::string& sequence) { return self.setSequence(sequence); }, "sequence"_a, "Sets element's sequence")
         .def("getNominalMass", [](const OpenMS::ims::IMSElement& self) { return self.getNominalMass(); }, "Gets element's nominal mass")
         .def("getMass", [](const OpenMS::ims::IMSElement& self, size_t index) { return self.getMass(index); }, "index"_a = 0, "Gets mass of element's isotope 'index'")
         .def("getAverageMass", [](const OpenMS::ims::IMSElement& self) { return self.getAverageMass(); }, "Gets element's average mass")
@@ -837,11 +837,11 @@ up to a specific mass.
         .def(nb::init<const OpenMS::MassDecomposition &>())
         .def("__copy__", [](const OpenMS::MassDecomposition& self) { return OpenMS::MassDecomposition(self); })
         .def("__deepcopy__", [](const OpenMS::MassDecomposition& self, nb::dict) { return OpenMS::MassDecomposition(self); }, "memo"_a)
-        .def(nb::init<OpenMS::String>())
+        .def(nb::init<std::string>())
         .def("toString", [](const OpenMS::MassDecomposition& self) { return self.toString(); }, "Returns the decomposition as a string")
         .def("toExpandedString", [](const OpenMS::MassDecomposition& self) { return self.toExpandedString(); }, "Returns the decomposition as a string; instead of frequencies the amino acids are repeated")
         .def("getNumberOfMaxAA", [](const OpenMS::MassDecomposition& self) { return self.getNumberOfMaxAA(); }, "Returns the max frequency of this composition")
-        .def("containsTag", [](const OpenMS::MassDecomposition& self, const OpenMS::String& tag) { return self.containsTag(tag); }, "tag"_a, "Returns true if tag is contained in the mass decomposition")
+        .def("containsTag", [](const OpenMS::MassDecomposition& self, const std::string& tag) { return self.containsTag(tag); }, "tag"_a, "Returns true if tag is contained in the mass decomposition")
         .def("compatible", [](const OpenMS::MassDecomposition& self, const OpenMS::MassDecomposition& deco) { return self.compatible(deco); }, "deco"_a, "Returns true if the mass decomposition if contained in this instance")
         ;
 
@@ -875,14 +875,14 @@ up to a specific mass.
         .def(nb::init<const OpenMS::ModificationDefinition &>())
         .def("__copy__", [](const OpenMS::ModificationDefinition& self) { return OpenMS::ModificationDefinition(self); })
         .def("__deepcopy__", [](const OpenMS::ModificationDefinition& self, nb::dict) { return OpenMS::ModificationDefinition(self); }, "memo"_a)
-        .def(nb::init<OpenMS::String, bool, unsigned int>())
+        .def(nb::init<std::string, bool, unsigned int>())
         .def(nb::init<OpenMS::ResidueModification, bool, unsigned int>())
         .def("setFixedModification", [](OpenMS::ModificationDefinition& self, bool fixed) { return self.setFixedModification(fixed); }, "fixed"_a, "Sets whether this modification definition is fixed or variable (modification must occur vs. can occur)")
         .def("isFixedModification", [](const OpenMS::ModificationDefinition& self) { return self.isFixedModification(); }, "Returns if the modification if fixed true, else false")
         .def("setMaxOccurrences", [](OpenMS::ModificationDefinition& self, unsigned int num) { return self.setMaxOccurrences(num); }, "num"_a, "Sets the maximal number of occurrences per peptide (unbounded if 0)")
         .def("getMaxOccurrences", [](const OpenMS::ModificationDefinition& self) { return self.getMaxOccurrences(); }, "Returns the maximal number of occurrences per peptide")
         .def("getModificationName", [](const OpenMS::ModificationDefinition& self) { return self.getModificationName(); }, "Returns the name of the modification")
-        .def("setModification", [](OpenMS::ModificationDefinition& self, const OpenMS::String& modification) { return self.setModification(modification); }, "modification"_a, "Sets the modification, allowed are unique names provided by ModificationsDB")
+        .def("setModification", [](OpenMS::ModificationDefinition& self, const std::string& modification) { return self.setModification(modification); }, "modification"_a, "Sets the modification, allowed are unique names provided by ModificationsDB")
         .def("getModification", [](const OpenMS::ModificationDefinition& self) -> const OpenMS::ResidueModification & { return self.getModification(); }, nb::rv_policy::reference_internal)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
@@ -904,7 +904,7 @@ e.g. used as input parameters in search engines.
         .def(nb::init<const OpenMS::ModificationDefinitionsSet &>())
         .def("__copy__", [](const OpenMS::ModificationDefinitionsSet& self) { return OpenMS::ModificationDefinitionsSet(self); })
         .def("__deepcopy__", [](const OpenMS::ModificationDefinitionsSet& self, nb::dict) { return OpenMS::ModificationDefinitionsSet(self); }, "memo"_a)
-        .def(nb::init<std::vector<OpenMS::String>, std::vector<OpenMS::String>>())
+        .def(nb::init<std::vector<std::string>, std::vector<std::string>>())
         .def("setMaxModifications", [](OpenMS::ModificationDefinitionsSet& self, size_t max_mod) { return self.setMaxModifications(max_mod); }, "max_mod"_a, "Sets the maximal number of modifications allowed per peptide")
         .def("getMaxModifications", [](const OpenMS::ModificationDefinitionsSet& self) { return self.getMaxModifications(); }, "Return the maximal number of modifications allowed per peptide")
         .def("getNumberOfModifications", [](const OpenMS::ModificationDefinitionsSet& self) { return self.getNumberOfModifications(); }, "Returns the number of modifications stored in this set")
@@ -912,13 +912,13 @@ e.g. used as input parameters in search engines.
         .def("getNumberOfVariableModifications", [](const OpenMS::ModificationDefinitionsSet& self) { return self.getNumberOfVariableModifications(); }, "Returns the number of variable modifications stored in this set")
         .def("addModification", [](OpenMS::ModificationDefinitionsSet& self, const OpenMS::ModificationDefinition& mod_def) { return self.addModification(mod_def); }, "mod_def"_a, "Adds a modification definition to the set")
         .def("setModifications", [](OpenMS::ModificationDefinitionsSet& self, const std::set<OpenMS::ModificationDefinition>& mod_defs) { return self.setModifications(mod_defs); }, "mod_defs"_a, "Sets the modification definitions")
-        .def("setModifications", [](OpenMS::ModificationDefinitionsSet& self, const OpenMS::String& fixed_modifications, const OpenMS::String& variable_modifications) { return self.setModifications(fixed_modifications, variable_modifications); }, "fixed_modifications"_a, "variable_modifications"_a)
-        .def("setModifications", [](OpenMS::ModificationDefinitionsSet& self, const std::vector<OpenMS::String>& fixed_modifications, const std::vector<OpenMS::String>& variable_modifications) { return self.setModifications(fixed_modifications, variable_modifications); }, "fixed_modifications"_a, "variable_modifications"_a)
+        .def("setModifications", [](OpenMS::ModificationDefinitionsSet& self, const std::string& fixed_modifications, const std::string& variable_modifications) { return self.setModifications(fixed_modifications, variable_modifications); }, "fixed_modifications"_a, "variable_modifications"_a)
+        .def("setModifications", [](OpenMS::ModificationDefinitionsSet& self, const std::vector<std::string>& fixed_modifications, const std::vector<std::string>& variable_modifications) { return self.setModifications(fixed_modifications, variable_modifications); }, "fixed_modifications"_a, "variable_modifications"_a)
         .def("getModifications", [](const OpenMS::ModificationDefinitionsSet& self) { return self.getModifications(); }, "Returns the stored modification definitions")
         .def("getFixedModifications", [](const OpenMS::ModificationDefinitionsSet& self) -> const std::set<OpenMS::ModificationDefinition> & { return self.getFixedModifications(); }, nb::rv_policy::reference_internal, "Returns the stored fixed modification definitions")
         .def("getVariableModifications", [](const OpenMS::ModificationDefinitionsSet& self) -> const std::set<OpenMS::ModificationDefinition> & { return self.getVariableModifications(); }, nb::rv_policy::reference_internal, "Returns the stored variable modification definitions")
         .def("getModificationNames", [](const OpenMS::ModificationDefinitionsSet& self) { return self.getModificationNames(); }, "Returns only the names of the modifications stored in the set")
-        .def("getFixedAndVariableModificationNames", [](const OpenMS::ModificationDefinitionsSet& self) { std::vector<OpenMS::String> fixed_modifications, variable_modifications; self.getModificationNames(fixed_modifications, variable_modifications); return nb::make_tuple(fixed_modifications, variable_modifications); }, "Returns a tuple of (fixed_modification_names, variable_modification_names)")
+        .def("getFixedAndVariableModificationNames", [](const OpenMS::ModificationDefinitionsSet& self) { std::vector<std::string> fixed_modifications, variable_modifications; self.getModificationNames(fixed_modifications, variable_modifications); return nb::make_tuple(fixed_modifications, variable_modifications); }, "Returns a tuple of (fixed_modification_names, variable_modification_names)")
         .def("getFixedModificationNames", [](const OpenMS::ModificationDefinitionsSet& self) { return self.getFixedModificationNames(); }, "Returns only the names of the fixed modifications")
         .def("getVariableModificationNames", [](const OpenMS::ModificationDefinitionsSet& self) { return self.getVariableModificationNames(); }, "Returns only the names of the variable modifications")
         .def("isCompatible", [](const OpenMS::ModificationDefinitionsSet& self, const OpenMS::AASequence& peptide) { return self.isCompatible(peptide); }, "peptide"_a, "Returns true if the peptide is compatible with the definitions, e.g. does not contain other modifications")
@@ -934,10 +934,10 @@ Database of modifications (amino acid modifications). This is a singleton class.
 The modifications are read from the unimod.xml file on construction.
 )doc")
         .def_static("isInstantiated", []() { return OpenMS::ModificationsDB::isInstantiated(); }, "Check whether ModificationsDB was instantiated before")
-        .def("has", [](const OpenMS::ModificationsDB& self, const OpenMS::String& modification) { return self.has(modification); }, "modification"_a, "Returns True if the modification exists")
-        .def("findModificationIndex", [](const OpenMS::ModificationsDB& self, const OpenMS::String& mod_name) { return self.findModificationIndex(mod_name); }, "mod_name"_a, "Returns the index of the modification in the mods_ vector; a unique name must be given")
+        .def("has", [](const OpenMS::ModificationsDB& self, const std::string& modification) { return StringUtils::has(self, modification); }, "modification"_a, "Returns True if the modification exists")
+        .def("findModificationIndex", [](const OpenMS::ModificationsDB& self, const std::string& mod_name) { return self.findModificationIndex(mod_name); }, "mod_name"_a, "Returns the index of the modification in the mods_ vector; a unique name must be given")
 
-        .def("searchModifications", [](const OpenMS::ModificationsDB& self, const OpenMS::String& mod_name, const OpenMS::String& residue, nb::object term_spec_obj) {
+        .def("searchModifications", [](const OpenMS::ModificationsDB& self, const std::string& mod_name, const std::string& residue, nb::object term_spec_obj) {
             int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
             std::set<const OpenMS::ResidueModification*> mods;
             self.searchModifications(mods, mod_name, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
@@ -954,12 +954,12 @@ The modifications are read from the unimod.xml file on construction.
         .def("getModification", [](const OpenMS::ModificationsDB& self, OpenMS::Size index) {
             return self.getModification(index);
         }, "index"_a, nb::rv_policy::reference, "Returns the modification with the given index")
-        .def("getModification", [](const OpenMS::ModificationsDB& self, const OpenMS::String& mod_name, const OpenMS::String& residue, nb::object term_spec_obj) {
+        .def("getModification", [](const OpenMS::ModificationsDB& self, const std::string& mod_name, const std::string& residue, nb::object term_spec_obj) {
             int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
             return self.getModification(mod_name, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
         }, "mod_name"_a, "residue"_a = "", "term_spec"_a = nb::int_(static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)), nb::rv_policy::reference, "Returns the modification with the given name, residue, and term specificity")
         .def("getAllSearchModifications", [](const OpenMS::ModificationsDB& self) {
-            std::vector<OpenMS::String> mods;
+            std::vector<std::string> mods;
             self.getAllSearchModifications(mods);
             return mods;
         }, "Returns all modifications that can be used for identification searches")
@@ -969,7 +969,7 @@ The modifications are read from the unimod.xml file on construction.
         }, "mass"_a, "max_error"_a, "residue"_a = "", "term_spec"_a = nb::int_(static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)), nb::rv_policy::reference, "Returns the best modification by diff mono mass")
         .def("searchModificationsByDiffMonoMass", [](const OpenMS::ModificationsDB& self, double mass, double max_error, const OpenMS::String& residue, nb::object term_spec_obj) {
             int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
-            std::vector<OpenMS::String> mods;
+            std::vector<std::string> mods;
             self.searchModificationsByDiffMonoMass(mods, mass, max_error, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
             return mods;
         }, "mass"_a, "max_error"_a, "residue"_a = "", "term_spec"_a = nb::int_(static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)), "Search modifications by difference in mono mass (returns list of modification names)")
@@ -994,7 +994,7 @@ The cross-linker modifications are read from an OBO file.
             return OpenMS::CrossLinksDB::getInstance() != nullptr;
         }, "Check whether CrossLinksDB was instantiated")
         .def("getAllSearchModifications", [](const OpenMS::CrossLinksDB& self) {
-            std::vector<OpenMS::String> mods;
+            std::vector<std::string> mods;
             self.getAllSearchModifications(mods);
             return mods;
         }, "Returns all cross-link modifications that can be used for identification searches")
@@ -1008,7 +1008,7 @@ The cross-linker modifications are read from an OBO file.
         .def(nb::init<const OpenMS::ModifiedPeptideGenerator &>())
         .def("__copy__", [](const OpenMS::ModifiedPeptideGenerator& self) { return OpenMS::ModifiedPeptideGenerator(self); })
         .def("__deepcopy__", [](const OpenMS::ModifiedPeptideGenerator& self, nb::dict) { return OpenMS::ModifiedPeptideGenerator(self); }, "memo"_a)
-        .def_static("getModifications", [](const std::vector<OpenMS::String>& modNames) { return OpenMS::ModifiedPeptideGenerator::getModifications(modNames); }, "modNames"_a)
+        .def_static("getModifications", [](const std::vector<std::string>& modNames) { return OpenMS::ModifiedPeptideGenerator::getModifications(modNames); }, "modNames"_a)
         .def_static("applyFixedModifications", [](const OpenMS::ModifiedPeptideGenerator::MapToResidueType& fixed_mods, OpenMS::AASequence& peptide) { return OpenMS::ModifiedPeptideGenerator::applyFixedModifications(fixed_mods, peptide); }, "fixed_mods"_a, "peptide"_a)
         .def_static("applyVariableModifications", [](const OpenMS::ModifiedPeptideGenerator::MapToResidueType& var_mods, const OpenMS::AASequence& peptide, size_t max_variable_mods_per_peptide, bool keep_original) { std::vector<OpenMS::AASequence> all_modified_peptides; OpenMS::ModifiedPeptideGenerator::applyVariableModifications(var_mods, peptide, max_variable_mods_per_peptide, all_modified_peptides, keep_original); return all_modified_peptides; }, "var_mods"_a, "peptide"_a, "max_variable_mods_per_peptide"_a, "keep_original"_a)
         ;
@@ -1154,15 +1154,15 @@ Examples:
     // MzPAF (static utility class)
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MzPAF>(m, "MzPAF", "Parser and writer for mzPAF (Peak Annotation Format) notation")
-        .def_static("parse", [](const OpenMS::String& input) { return OpenMS::MzPAF::parse(input); }, "input"_a, "Parse an mzPAF string into a single annotation")
-        .def_static("parseMultiple", [](const OpenMS::String& input) { return OpenMS::MzPAF::parseMultiple(input); }, "input"_a, "Parse an mzPAF string with potentially multiple annotations")
-        .def_static("tryParse", [](const OpenMS::String& input) { return OpenMS::MzPAF::tryParse(input); }, "input"_a, "Try to parse an mzPAF string (returns None on failure)")
-        .def_static("tryParseMultiple", [](const OpenMS::String& input) { return OpenMS::MzPAF::tryParseMultiple(input); }, "input"_a, "Try to parse multiple annotations (returns None on failure)")
+        .def_static("parse", [](const std::string& input) { return OpenMS::MzPAF::parse(input); }, "input"_a, "Parse an mzPAF string into a single annotation")
+        .def_static("parseMultiple", [](const std::string& input) { return OpenMS::MzPAF::parseMultiple(input); }, "input"_a, "Parse an mzPAF string with potentially multiple annotations")
+        .def_static("tryParse", [](const std::string& input) { return OpenMS::MzPAF::tryParse(input); }, "input"_a, "Try to parse an mzPAF string (returns None on failure)")
+        .def_static("tryParseMultiple", [](const std::string& input) { return OpenMS::MzPAF::tryParseMultiple(input); }, "input"_a, "Try to parse multiple annotations (returns None on failure)")
         .def_static("toString", [](const OpenMS::MzPAFAnnotation& ann) { return OpenMS::MzPAF::toString(ann); }, "ann"_a, "Convert an annotation to mzPAF string")
         .def_static("toStringMultiple", [](const OpenMS::MzPAFPeakAnnotations& anns) { return OpenMS::MzPAF::toString(anns); }, "anns"_a, "Convert multiple annotations to mzPAF string")
         .def_static("toPeakAnnotation", [](const OpenMS::MzPAFAnnotation& mzpaf, double mz, double intensity) { return OpenMS::MzPAF::toPeakAnnotation(mzpaf, mz, intensity); }, "mzpaf"_a, "mz"_a, "intensity"_a, "Create a PeakAnnotation from mzPAF data")
         .def_static("fromPeakAnnotation", [](const OpenMS::PeptideHit::PeakAnnotation& peak_annotation) { return OpenMS::MzPAF::fromPeakAnnotation(peak_annotation); }, "peak_annotation"_a, "Parse mzPAF annotations from a PeakAnnotation")
-        .def_static("isMzPAFFormat", [](const OpenMS::String& annotation) { return OpenMS::MzPAF::isMzPAFFormat(annotation); }, "annotation"_a, "Check if a string appears to be in mzPAF format")
+        .def_static("isMzPAFFormat", [](const std::string& annotation) { return OpenMS::MzPAF::isMzPAFFormat(annotation); }, "annotation"_a, "Check if a string appears to be in mzPAF format")
         .def_static("isStandardFragmentIon", [](OpenMS::MzPAFIonSeries series) { return OpenMS::MzPAF::isStandardFragmentIon(series); }, "series"_a, "Check if ion series is a standard fragment ion (a, b, c, x, y, z)")
         .def_static("ionSeriesToChar", [](OpenMS::MzPAFIonSeries series) { return OpenMS::MzPAF::ionSeriesToChar(series); }, "series"_a, "Get the ion series character for an annotation")
         .def_static("charToIonSeries", [](char c) -> std::optional<OpenMS::MzPAFIonSeries> {
@@ -1255,12 +1255,12 @@ pf = ProForma.parse("EM[UNIMOD:35]K")
 s = ProForma.toString(pf, ProForma.WriteMode.LOSSLESS)
 # s is "EM[UNIMOD:35]K"
 )doc")
-        .def_static("parse", [](const OpenMS::String& input) { return OpenMS::ProForma::parse(input); }, "input"_a, "Parse a ProForma string into a Peptidoform AST")
-        .def_static("parseIon", [](const OpenMS::String& input) { return OpenMS::ProForma::parseIon(input); }, "input"_a, "Parse a ProForma string into a PeptidoformIon AST (with charge state)")
+        .def_static("parse", [](const std::string& input) { return OpenMS::ProForma::parse(input); }, "input"_a, "Parse a ProForma string into a Peptidoform AST")
+        .def_static("parseIon", [](const std::string& input) { return OpenMS::ProForma::parseIon(input); }, "input"_a, "Parse a ProForma string into a PeptidoformIon AST (with charge state)")
         .def_static("toString", [](const OpenMS::ProForma::Peptidoform& pf, OpenMS::ProForma::WriteMode mode) { return OpenMS::ProForma::toString(pf, mode); }, "pf"_a, "mode"_a, "Convert a Peptidoform AST back to ProForma string notation with specified mode")
         .def_static("toString", [](const OpenMS::ProForma::PeptidoformIon& pfi, OpenMS::ProForma::WriteMode mode) { return OpenMS::ProForma::toString(pfi, mode); }, "pfi"_a, "mode"_a, "Convert a Peptidoform AST back to ProForma string notation with specified mode")
-        .def_static("peptidoformFromJSON", [](const OpenMS::String& json_str) { return OpenMS::ProForma::peptidoformFromJSON(json_str); }, "json_str"_a, "Construct Peptidoform from JSON string")
-        .def_static("peptidoformIonFromJSON", [](const OpenMS::String& json_str) { return OpenMS::ProForma::peptidoformIonFromJSON(json_str); }, "json_str"_a, "Construct PeptidoformIon from JSON string")
+        .def_static("peptidoformFromJSON", [](const std::string& json_str) { return OpenMS::ProForma::peptidoformFromJSON(json_str); }, "json_str"_a, "Construct Peptidoform from JSON string")
+        .def_static("peptidoformIonFromJSON", [](const std::string& json_str) { return OpenMS::ProForma::peptidoformIonFromJSON(json_str); }, "json_str"_a, "Construct PeptidoformIon from JSON string")
         .def_static("resolveModifications", [](OpenMS::ProForma::Peptidoform& pf) { return OpenMS::ProForma::resolveModifications(pf); }, "pf"_a, "Resolve all modifications in a Peptidoform using ModificationsDB")
         .def_static("toAASequence", [](const OpenMS::ProForma::Peptidoform& pf, OpenMS::ProForma::ConversionPolicy policy) { return OpenMS::ProForma::toAASequence(pf, policy); }, "pf"_a, "policy"_a, "Convert a Peptidoform to an OpenMS AASequence")
         .def_static("fromAASequence", [](const OpenMS::AASequence& seq) { return OpenMS::ProForma::fromAASequence(seq); }, "seq"_a, "Create a Peptidoform from an OpenMS AASequence")
@@ -1278,11 +1278,11 @@ s = ProForma.toString(pf, ProForma.WriteMode.LOSSLESS)
         .def_static("canGenerateSpectrum", [](const OpenMS::ProForma::PeptidoformIon& pfi) { return OpenMS::ProForma::canGenerateSpectrum(pfi); }, "pfi"_a, "Check if a theoretical spectrum can be generated for a Peptidoform")
         .def_static("getSpectrumGenerationIssues", [](const OpenMS::ProForma::Peptidoform& pf) { return OpenMS::ProForma::getSpectrumGenerationIssues(pf); }, "pf"_a, "Get issues preventing spectrum generation for a Peptidoform")
         .def_static("getSpectrumGenerationIssues", [](const OpenMS::ProForma::PeptidoformIon& pfi) { return OpenMS::ProForma::getSpectrumGenerationIssues(pfi); }, "pfi"_a, "Get issues preventing spectrum generation for a Peptidoform")
-        .def_static("generateSpectrum", [](const OpenMS::ProForma::Peptidoform& pf, int min_charge, int max_charge, const OpenMS::String& ion_types, bool add_losses, bool add_metainfo) { return OpenMS::ProForma::generateSpectrum(pf, min_charge, max_charge, ion_types, add_losses, add_metainfo); }, "pf"_a, "min_charge"_a, "max_charge"_a, "ion_types"_a, "add_losses"_a, "add_metainfo"_a, 
+        .def_static("generateSpectrum", [](const OpenMS::ProForma::Peptidoform& pf, int min_charge, int max_charge, const std::string& ion_types, bool add_losses, bool add_metainfo) { return OpenMS::ProForma::generateSpectrum(pf, min_charge, max_charge, ion_types, add_losses, add_metainfo); }, "pf"_a, "min_charge"_a, "max_charge"_a, "ion_types"_a, "add_losses"_a, "add_metainfo"_a, 
             R"doc(
 Generate theoretical MS/MS spectrum for a Peptidoform. ion_types uses chars a,b,c,x,y,z for ion series, M for precursor, I for immonium (e.g. "by" or "abyM")
 )doc")
-        .def_static("generateSpectrum", [](const OpenMS::ProForma::PeptidoformIon& pfi, int min_charge, int max_charge, const OpenMS::String& ion_types, bool add_losses, bool add_metainfo) { return OpenMS::ProForma::generateSpectrum(pfi, min_charge, max_charge, ion_types, add_losses, add_metainfo); }, "pfi"_a, "min_charge"_a, "max_charge"_a, "ion_types"_a, "add_losses"_a, "add_metainfo"_a, 
+        .def_static("generateSpectrum", [](const OpenMS::ProForma::PeptidoformIon& pfi, int min_charge, int max_charge, const std::string& ion_types, bool add_losses, bool add_metainfo) { return OpenMS::ProForma::generateSpectrum(pfi, min_charge, max_charge, ion_types, add_losses, add_metainfo); }, "pfi"_a, "min_charge"_a, "max_charge"_a, "ion_types"_a, "add_losses"_a, "add_metainfo"_a, 
             R"doc(
 Generate theoretical MS/MS spectrum for a Peptidoform. ion_types uses chars a,b,c,x,y,z for ion series, M for precursor, I for immonium (e.g. "by" or "abyM")
 )doc")
@@ -1341,37 +1341,37 @@ Generate theoretical MS/MS spectrum for a Peptidoform. ion_types uses chars a,b,
 Database of enzymes that digest proteins (proteases). This is a singleton class.
 The enzymes are read from share/CHEMISTRY/Enzymes.xml.
 )doc")
-        .def("getAllXTandemNames", [](const OpenMS::ProteaseDB& self) { std::vector<OpenMS::String> all_names; self.getAllXTandemNames(all_names); return all_names; }, "Returns all the enzyme names available for XTandem")
-        .def("getAllCometNames", [](const OpenMS::ProteaseDB& self) { std::vector<OpenMS::String> all_names; self.getAllCometNames(all_names); return all_names; }, "Returns all the enzyme names available for Comet")
-        .def("getAllOMSSANames", [](const OpenMS::ProteaseDB& self) { std::vector<OpenMS::String> all_names; self.getAllOMSSANames(all_names); return all_names; }, "Returns all the enzyme names available for OMSSA")
-        .def("getAllMSGFNames", [](const OpenMS::ProteaseDB& self) { std::vector<OpenMS::String> all_names; self.getAllMSGFNames(all_names); return all_names; }, "Returns all the enzyme names available for MSGFPlus")
+        .def("getAllXTandemNames", [](const OpenMS::ProteaseDB& self) { std::vector<std::string> all_names; self.getAllXTandemNames(all_names); return all_names; }, "Returns all the enzyme names available for XTandem")
+        .def("getAllCometNames", [](const OpenMS::ProteaseDB& self) { std::vector<std::string> all_names; self.getAllCometNames(all_names); return all_names; }, "Returns all the enzyme names available for Comet")
+        .def("getAllOMSSANames", [](const OpenMS::ProteaseDB& self) { std::vector<std::string> all_names; self.getAllOMSSANames(all_names); return all_names; }, "Returns all the enzyme names available for OMSSA")
+        .def("getAllMSGFNames", [](const OpenMS::ProteaseDB& self) { std::vector<std::string> all_names; self.getAllMSGFNames(all_names); return all_names; }, "Returns all the enzyme names available for MSGFPlus")
 
         .def_static("getInstance", []() -> const OpenMS::ProteaseDB* { return OpenMS::ProteaseDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
 
         .def("getAllNames", [](const OpenMS::ProteaseDB& self, nb::list output) {
-            std::vector<OpenMS::String> all_names;
+            std::vector<std::string> all_names;
             self.getAllNames(all_names);
             for (const auto& name : all_names) {
                 output.append(nb::str(name.c_str()));
             }
         }, "output"_a, "Returns all enzyme names (appends to output list)")
         .def("getAllNames", [](const OpenMS::ProteaseDB& self) {
-            std::vector<OpenMS::String> all_names;
+            std::vector<std::string> all_names;
             self.getAllNames(all_names);
             return all_names;
         }, "Returns all enzyme names")
 
-        .def("getEnzyme", [](const OpenMS::ProteaseDB& self, const OpenMS::String& name) -> const OpenMS::DigestionEnzymeProtein* {
+        .def("getEnzyme", [](const OpenMS::ProteaseDB& self, const std::string& name) -> const OpenMS::DigestionEnzymeProtein* {
             return self.getEnzyme(name);
         }, "name"_a, nb::rv_policy::reference, "Returns the enzyme with the given name (supports synonym names)")
 
-        .def("hasEnzyme", [](const OpenMS::ProteaseDB& self, const OpenMS::String& name) {
+        .def("hasEnzyme", [](const OpenMS::ProteaseDB& self, const std::string& name) {
             return self.hasEnzyme(name);
         }, "name"_a, "Check if an enzyme with the given name exists")
-        .def("getEnzymeByRegEx", [](const OpenMS::ProteaseDB& self, const OpenMS::String& cleavage_regex) -> const OpenMS::DigestionEnzymeProtein* {
+        .def("getEnzymeByRegEx", [](const OpenMS::ProteaseDB& self, const std::string& cleavage_regex) -> const OpenMS::DigestionEnzymeProtein* {
             return self.getEnzymeByRegEx(cleavage_regex);
         }, "cleavage_regex"_a, nb::rv_policy::reference, "Returns the enzyme with the given cleavage regex")
-        .def("hasRegEx", [](const OpenMS::ProteaseDB& self, const OpenMS::String& cleavage_regex) {
+        .def("hasRegEx", [](const OpenMS::ProteaseDB& self, const std::string& cleavage_regex) {
             return self.hasRegEx(cleavage_regex);
         }, "cleavage_regex"_a, "Check if an enzyme with the given regex exists")
         ;
@@ -1401,7 +1401,7 @@ urlretrieve ("http://www.uniprot.org/uniprot/P02769.fasta", "bsa.fasta")
 dig = ProteaseDigestion()
 dig.setEnzyme('Lys-C')
 bsa_string = "".join([l.strip() for l in open("bsa.fasta").readlines()[1:]])
-bsa_oms_string = String(bsa_string) # convert python string to OpenMS::String for further processing
+bsa_oms_string =StringUtils::toStr(bsa_string) # convert python string to std::string for further processing
 #
 minlen = 6
 maxlen = 30
@@ -1432,15 +1432,15 @@ print(len(result_digest_unmodified)) # 42 peptides
         .def(nb::init<const OpenMS::ProteaseDigestion &>())
         .def("__copy__", [](const OpenMS::ProteaseDigestion& self) { return OpenMS::ProteaseDigestion(self); })
         .def("__deepcopy__", [](const OpenMS::ProteaseDigestion& self, nb::dict) { return OpenMS::ProteaseDigestion(self); }, "memo"_a)
-        .def("setEnzyme", [](OpenMS::ProteaseDigestion& self, const OpenMS::String& name) { return self.setEnzyme(name); }, "name"_a, "Sets the enzyme for the digestion (by name)")
+        .def("setEnzyme", [](OpenMS::ProteaseDigestion& self, const std::string& name) { return self.setEnzyme(name); }, "name"_a, "Sets the enzyme for the digestion (by name)")
         .def("peptideCount", [](OpenMS::ProteaseDigestion& self, const OpenMS::AASequence& protein) { return self.peptideCount(protein); }, "protein"_a, "Returns the number of peptides a digestion of protein would yield under the current enzyme and missed cleavage settings")
         .def("getMissedCleavages", [](const OpenMS::ProteaseDigestion& self) { return self.getMissedCleavages(); }, "Returns the max. number of allowed missed cleavages for the digestion")
         .def("setMissedCleavages", [](OpenMS::ProteaseDigestion& self, size_t missed_cleavages) { return self.setMissedCleavages(missed_cleavages); }, "missed_cleavages"_a, "Sets the max. number of allowed missed cleavages for the digestion (default is 0). This setting is ignored when log model is used")
         .def("getEnzymeName", [](const OpenMS::ProteaseDigestion& self) { return self.getEnzymeName(); }, "Returns the enzyme for the digestion")
         .def("getSpecificity", [](const OpenMS::ProteaseDigestion& self) { return self.getSpecificity(); }, "Returns the specificity for the digestion")
         .def("setSpecificity", [](OpenMS::ProteaseDigestion& self, OpenMS::EnzymaticDigestion::Specificity spec) { return self.setSpecificity(spec); }, "spec"_a, "Sets the specificity for the digestion (default is SPEC_FULL)")
-        .def_static("getSpecificityByName", [](const OpenMS::String& name) { return OpenMS::ProteaseDigestion::getSpecificityByName(name); }, "name"_a, "Returns the specificity by name. Returns SPEC_UNKNOWN if name is not valid")
-        .def("countInternalCleavageSites", [](const OpenMS::ProteaseDigestion& self, const OpenMS::String& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
+        .def_static("getSpecificityByName", [](const std::string& name) { return OpenMS::ProteaseDigestion::getSpecificityByName(name); }, "name"_a, "Returns the specificity by name. Returns SPEC_UNKNOWN if name is not valid")
+        .def("countInternalCleavageSites", [](const OpenMS::ProteaseDigestion& self, const std::string& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
 
         .def("digest", [](OpenMS::ProteaseDigestion& self, const OpenMS::AASequence& protein, nb::list output, size_t min_length, size_t max_length) {
             // Backward-compatible: appends results to the provided Python list (with length filters)
@@ -1472,9 +1472,9 @@ print(len(result_digest_unmodified)) # 42 peptides
         .def("isValidProduct", nb::overload_cast<const OpenMS::AASequence&, int, int, bool, bool, bool>(&OpenMS::ProteaseDigestion::isValidProduct, nb::const_),
             "protein"_a, "pep_pos"_a, "pep_length"_a, "ignore_missed_cleavages"_a = true, "allow_nterm_protein_cleavage"_a = false, "allow_random_asp_pro_cleavage"_a = false,
             "Check if peptide is a valid digestion product of protein (AASequence version)")
-        .def("isValidProduct", nb::overload_cast<const OpenMS::String&, int, int, bool, bool, bool>(&OpenMS::ProteaseDigestion::isValidProduct, nb::const_),
+        .def("isValidProduct", nb::overload_cast<const std::string&, int, int, bool, bool, bool>(&OpenMS::ProteaseDigestion::isValidProduct, nb::const_),
             "protein"_a, "pep_pos"_a, "pep_length"_a, "ignore_missed_cleavages"_a = true, "allow_nterm_protein_cleavage"_a = false, "allow_random_asp_pro_cleavage"_a = false,
-            "Check if peptide is a valid digestion product of protein (String version)")
+            "Check if peptide is a valid digestion product of protein (std::string version)")
         .def("digestUnmodified", [](const OpenMS::ProteaseDigestion& self, const std::string& sequence_str, size_t min_length, size_t max_length) {
             OpenMS::StringView sequence(sequence_str);
             std::vector<OpenMS::StringView> output;
@@ -1495,20 +1495,20 @@ Database of enzymes that digest RNA (RNases). This is a singleton class.
 The enzymes are read from share/CHEMISTRY/Enzymes_RNA.xml.
 )doc")
 
-        .def("hasEnzyme", [](const OpenMS::RNaseDB& self, const OpenMS::String& name) {
+        .def("hasEnzyme", [](const OpenMS::RNaseDB& self, const std::string& name) {
             return self.hasEnzyme(name);
         }, "name"_a, "Check if an enzyme with the given name exists")
 
-        .def("getEnzyme", [](const OpenMS::RNaseDB& self, const OpenMS::String& name) -> const OpenMS::DigestionEnzymeRNA* {
+        .def("getEnzyme", [](const OpenMS::RNaseDB& self, const std::string& name) -> const OpenMS::DigestionEnzymeRNA* {
             return self.getEnzyme(name);
         }, "name"_a, nb::rv_policy::reference, "Get the enzyme with the given name")
 
-        .def("getEnzymeByRegEx", [](const OpenMS::RNaseDB& self, const OpenMS::String& cleavage_regex) -> const OpenMS::DigestionEnzymeRNA* {
+        .def("getEnzymeByRegEx", [](const OpenMS::RNaseDB& self, const std::string& cleavage_regex) -> const OpenMS::DigestionEnzymeRNA* {
             return self.getEnzymeByRegEx(cleavage_regex);
         }, "cleavage_regex"_a, nb::rv_policy::reference, "Get the enzyme with the given cleavage regex")
 
         .def("getAllNames", [](const OpenMS::RNaseDB& self) {
-            std::vector<OpenMS::String> names;
+            std::vector<std::string> names;
             self.getAllNames(names);
             nb::list result;
             for (const auto& n : names) result.append(nb::str(n.c_str()));
@@ -1541,14 +1541,14 @@ print (fragment)
         .def("__copy__", [](const OpenMS::RNaseDigestion& self) { return OpenMS::RNaseDigestion(self); })
         .def("__deepcopy__", [](const OpenMS::RNaseDigestion& self, nb::dict) { return OpenMS::RNaseDigestion(self); }, "memo"_a)
         .def("setEnzyme", [](OpenMS::RNaseDigestion& self, OpenMS::DigestionEnzyme * enzyme) { return self.setEnzyme(enzyme); }, "enzyme"_a, "Sets the enzyme for the digestion (by name)")
-        .def("setEnzyme", [](OpenMS::RNaseDigestion& self, const OpenMS::String& name) { return self.setEnzyme(name); }, "name"_a, "Sets the enzyme for the digestion (by name)")
+        .def("setEnzyme", [](OpenMS::RNaseDigestion& self, const std::string& name) { return self.setEnzyme(name); }, "name"_a, "Sets the enzyme for the digestion (by name)")
         .def("getMissedCleavages", [](const OpenMS::RNaseDigestion& self) { return self.getMissedCleavages(); }, "Returns the max. number of allowed missed cleavages for the digestion")
         .def("setMissedCleavages", [](OpenMS::RNaseDigestion& self, size_t missed_cleavages) { return self.setMissedCleavages(missed_cleavages); }, "missed_cleavages"_a, "Sets the max. number of allowed missed cleavages for the digestion (default is 0). This setting is ignored when log model is used")
         .def("getEnzymeName", [](const OpenMS::RNaseDigestion& self) { return self.getEnzymeName(); }, "Returns the enzyme for the digestion")
         .def("getSpecificity", [](const OpenMS::RNaseDigestion& self) { return self.getSpecificity(); }, "Returns the specificity for the digestion")
         .def("setSpecificity", [](OpenMS::RNaseDigestion& self, OpenMS::EnzymaticDigestion::Specificity spec) { return self.setSpecificity(spec); }, "spec"_a, "Sets the specificity for the digestion (default is SPEC_FULL)")
-        .def_static("getSpecificityByName", [](const OpenMS::String& name) { return OpenMS::RNaseDigestion::getSpecificityByName(name); }, "name"_a, "Returns the specificity by name. Returns SPEC_UNKNOWN if name is not valid")
-        .def("isValidProduct", [](const OpenMS::RNaseDigestion& self, const OpenMS::String& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages) { return self.isValidProduct(protein, pep_pos, pep_length, ignore_missed_cleavages); }, "protein"_a, "pep_pos"_a, "pep_length"_a, "ignore_missed_cleavages"_a, 
+        .def_static("getSpecificityByName", [](const std::string& name) { return OpenMS::RNaseDigestion::getSpecificityByName(name); }, "name"_a, "Returns the specificity by name. Returns SPEC_UNKNOWN if name is not valid")
+        .def("isValidProduct", [](const OpenMS::RNaseDigestion& self, const std::string& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages) { return self.isValidProduct(protein, pep_pos, pep_length, ignore_missed_cleavages); }, "protein"_a, "pep_pos"_a, "pep_length"_a, "ignore_missed_cleavages"_a, 
             R"doc(
 Performs the enzymatic digestion of an unmodified sequence\n
 By returning only references into the original string this is very fast
@@ -1558,7 +1558,7 @@ By returning only references into the original string this is very fast
 :param max_length: Maximal length of reported products (0 = no restriction)
 :return: Number of discarded digestion products (which are not matching length restrictions)
 )doc")
-        .def("countInternalCleavageSites", [](const OpenMS::RNaseDigestion& self, const OpenMS::String& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
+        .def("countInternalCleavageSites", [](const OpenMS::RNaseDigestion& self, const std::string& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
         .def("digest", [](const OpenMS::RNaseDigestion& self, const OpenMS::NASequence& rna, OpenMS::Size min_length, OpenMS::Size max_length) {
             std::vector<OpenMS::NASequence> output;
             self.digest(rna, output, min_length, max_length);
@@ -1595,7 +1595,7 @@ non-integer weights with an error allowed
         .def(nb::init<const OpenMS::Residue &>())
         .def("__copy__", [](const OpenMS::Residue& self) { return OpenMS::Residue(self); })
         .def("__deepcopy__", [](const OpenMS::Residue& self, nb::dict) { return OpenMS::Residue(self); }, "memo"_a)
-        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::EmpiricalFormula, double, double, double, double, double, double, std::set<OpenMS::String>>())
+        .def(nb::init<std::string, std::string, std::string, OpenMS::EmpiricalFormula, double, double, double, double, double, double, std::set<std::string>>())
         .def_static("getInternalToFull", []() { return OpenMS::Residue::getInternalToFull(); })
         .def_static("getInternalToNTerm", []() { return OpenMS::Residue::getInternalToNTerm(); })
         .def_static("getInternalToCTerm", []() { return OpenMS::Residue::getInternalToCTerm(); })
@@ -1606,14 +1606,14 @@ non-integer weights with an error allowed
         .def_static("getInternalToYIon", []() { return OpenMS::Residue::getInternalToYIon(); })
         .def_static("getInternalToZIon", []() { return OpenMS::Residue::getInternalToZIon(); })
         .def_static("getResidueTypeName", [](OpenMS::Residue::ResidueType res_type) { return OpenMS::Residue::getResidueTypeName(res_type); }, "res_type"_a, "Returns the ion name given as a residue type")
-        .def("setName", [](OpenMS::Residue& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of the residue")
+        .def("setName", [](OpenMS::Residue& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name of the residue")
         .def("getName", [](const OpenMS::Residue& self) { return self.getName(); }, "Returns the name of the residue")
-        .def("setSynonyms", [](OpenMS::Residue& self, const std::set<OpenMS::String>& synonyms) { return self.setSynonyms(synonyms); }, "synonyms"_a, "Sets the synonyms")
-        .def("addSynonym", [](OpenMS::Residue& self, const OpenMS::String& synonym) { return self.addSynonym(synonym); }, "synonym"_a, "Adds a synonym")
-        .def("getSynonyms", [](const OpenMS::Residue& self) -> const std::set<OpenMS::String> & { return self.getSynonyms(); }, nb::rv_policy::reference_internal, "Returns the sysnonyms")
-        .def("setThreeLetterCode", [](OpenMS::Residue& self, const OpenMS::String& three_letter_code) { return self.setThreeLetterCode(three_letter_code); }, "three_letter_code"_a, "Sets the name of the residue as three letter code")
+        .def("setSynonyms", [](OpenMS::Residue& self, const std::set<std::string>& synonyms) { return self.setSynonyms(synonyms); }, "synonyms"_a, "Sets the synonyms")
+        .def("addSynonym", [](OpenMS::Residue& self, const std::string& synonym) { return self.addSynonym(synonym); }, "synonym"_a, "Adds a synonym")
+        .def("getSynonyms", [](const OpenMS::Residue& self) -> const std::set<std::string> & { return self.getSynonyms(); }, nb::rv_policy::reference_internal, "Returns the sysnonyms")
+        .def("setThreeLetterCode", [](OpenMS::Residue& self, const std::string& three_letter_code) { return self.setThreeLetterCode(three_letter_code); }, "three_letter_code"_a, "Sets the name of the residue as three letter code")
         .def("getThreeLetterCode", [](const OpenMS::Residue& self) { return self.getThreeLetterCode(); }, "Returns the name of the residue as three letter code")
-        .def("setOneLetterCode", [](OpenMS::Residue& self, const OpenMS::String& one_letter_code) { return self.setOneLetterCode(one_letter_code); }, "one_letter_code"_a, "Sets the name as one letter code")
+        .def("setOneLetterCode", [](OpenMS::Residue& self, const std::string& one_letter_code) { return self.setOneLetterCode(one_letter_code); }, "one_letter_code"_a, "Sets the name as one letter code")
         .def("getOneLetterCode", [](const OpenMS::Residue& self) { return self.getOneLetterCode(); }, "Returns the name as one letter code")
         .def("addLossFormula", [](OpenMS::Residue& self, const OpenMS::EmpiricalFormula& p0) { return self.addLossFormula(p0); }, "Adds a neutral loss formula")
         .def("setLossFormulas", [](OpenMS::Residue& self, const std::vector<OpenMS::EmpiricalFormula>& p0) { return self.setLossFormulas(p0); }, "Sets the neutral loss formulas")
@@ -1621,12 +1621,12 @@ non-integer weights with an error allowed
         .def("setNTermLossFormulas", [](OpenMS::Residue& self, const std::vector<OpenMS::EmpiricalFormula>& p0) { return self.setNTermLossFormulas(p0); }, "Sets the N-terminal losses")
         .def("getLossFormulas", [](const OpenMS::Residue& self) -> const std::vector<OpenMS::EmpiricalFormula> & { return self.getLossFormulas(); }, nb::rv_policy::reference_internal, "Returns the neutral loss formulas")
         .def("getNTermLossFormulas", [](const OpenMS::Residue& self) -> const std::vector<OpenMS::EmpiricalFormula> & { return self.getNTermLossFormulas(); }, nb::rv_policy::reference_internal, "Returns N-terminal loss formulas")
-        .def("setLossNames", [](OpenMS::Residue& self, const std::vector<OpenMS::String>& name) { return self.setLossNames(name); }, "name"_a, "Sets the neutral loss molecule name")
-        .def("setNTermLossNames", [](OpenMS::Residue& self, const std::vector<OpenMS::String>& name) { return self.setNTermLossNames(name); }, "name"_a, "Sets the N-terminal loss names")
-        .def("addLossName", [](OpenMS::Residue& self, const OpenMS::String& name) { return self.addLossName(name); }, "name"_a, "Adds neutral loss molecule name")
-        .def("addNTermLossName", [](OpenMS::Residue& self, const OpenMS::String& name) { return self.addNTermLossName(name); }, "name"_a, "Adds a N-terminal loss name")
-        .def("getLossNames", [](const OpenMS::Residue& self) -> const std::vector<OpenMS::String> & { return self.getLossNames(); }, nb::rv_policy::reference_internal, "Gets neutral loss name (if there is one, else returns an empty string)")
-        .def("getNTermLossNames", [](const OpenMS::Residue& self) -> const std::vector<OpenMS::String> & { return self.getNTermLossNames(); }, nb::rv_policy::reference_internal, "Returns the N-terminal loss names")
+        .def("setLossNames", [](OpenMS::Residue& self, const std::vector<std::string>& name) { return self.setLossNames(name); }, "name"_a, "Sets the neutral loss molecule name")
+        .def("setNTermLossNames", [](OpenMS::Residue& self, const std::vector<std::string>& name) { return self.setNTermLossNames(name); }, "name"_a, "Sets the N-terminal loss names")
+        .def("addLossName", [](OpenMS::Residue& self, const std::string& name) { return self.addLossName(name); }, "name"_a, "Adds neutral loss molecule name")
+        .def("addNTermLossName", [](OpenMS::Residue& self, const std::string& name) { return self.addNTermLossName(name); }, "name"_a, "Adds a N-terminal loss name")
+        .def("getLossNames", [](const OpenMS::Residue& self) -> const std::vector<std::string> & { return self.getLossNames(); }, nb::rv_policy::reference_internal, "Gets neutral loss name (if there is one, else returns an empty string)")
+        .def("getNTermLossNames", [](const OpenMS::Residue& self) -> const std::vector<std::string> & { return self.getNTermLossNames(); }, nb::rv_policy::reference_internal, "Returns the N-terminal loss names")
         .def("setFormula", [](OpenMS::Residue& self, const OpenMS::EmpiricalFormula& formula) { return self.setFormula(formula); }, "formula"_a, "Sets empirical formula of the residue (must be full, with N and C-terminus)")
         .def("getFormula", [](const OpenMS::Residue& self, OpenMS::Residue::ResidueType res_type) { return self.getFormula(res_type); }, "res_type"_a)
         .def("setAverageWeight", [](OpenMS::Residue& self, double weight) { return self.setAverageWeight(weight); }, "weight"_a, "Sets average weight of the residue (must be full, with N and C-terminus)")
@@ -1634,7 +1634,7 @@ non-integer weights with an error allowed
         .def("setMonoWeight", [](OpenMS::Residue& self, double weight) { return self.setMonoWeight(weight); }, "weight"_a, "Sets monoisotopic weight of the residue (must be full, with N and C-terminus)")
         .def("getMonoWeight", [](const OpenMS::Residue& self, OpenMS::Residue::ResidueType res_type) { return self.getMonoWeight(res_type); }, "res_type"_a)
         .def("getModification", [](const OpenMS::Residue& self) { return self.getModification(); }, nb::rv_policy::reference_internal)
-        .def("setModification", [](OpenMS::Residue& self, const OpenMS::String& name) { return self.setModification(name); }, "name"_a, "Sets the modification by name; the mod should be present in ModificationsDB")
+        .def("setModification", [](OpenMS::Residue& self, const std::string& name) { return self.setModification(name); }, "name"_a, "Sets the modification by name; the mod should be present in ModificationsDB")
         .def("setModification", [](OpenMS::Residue& self, OpenMS::ResidueModification * mod) { return self.setModification(mod); }, "mod"_a, "Sets the modification by name; the mod should be present in ModificationsDB")
         .def("setModification", [](OpenMS::Residue& self, const OpenMS::ResidueModification& mod) { return self.setModification(mod); }, "mod"_a, "Sets the modification by name; the mod should be present in ModificationsDB")
         .def("setModificationByDiffMonoMass", [](OpenMS::Residue& self, double diffMonoMass) { return self.setModificationByDiffMonoMass(diffMonoMass); }, "diffMonoMass"_a, 
@@ -1644,9 +1644,9 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .def("getModificationName", [](const OpenMS::Residue& self) { return self.getModificationName(); }, "Returns the name of the modification to the modification")
         .def("setLowMassIons", [](OpenMS::Residue& self, const std::vector<OpenMS::EmpiricalFormula>& low_mass_ions) { return self.setLowMassIons(low_mass_ions); }, "low_mass_ions"_a, "Sets the low mass marker ions as a vector of formulas")
         .def("getLowMassIons", [](const OpenMS::Residue& self) -> const std::vector<OpenMS::EmpiricalFormula> & { return self.getLowMassIons(); }, nb::rv_policy::reference_internal, "Returns a vector of formulas with the low mass markers of the residue")
-        .def("setResidueSets", [](OpenMS::Residue& self, const std::set<OpenMS::String>& residues_sets) { return self.setResidueSets(residues_sets); }, "residues_sets"_a, "Sets the residue sets the amino acid is contained in")
-        .def("addResidueSet", [](OpenMS::Residue& self, const OpenMS::String& residue_sets) { return self.addResidueSet(residue_sets); }, "residue_sets"_a, "Adds a residue set to the residue sets")
-        .def("getResidueSets", [](const OpenMS::Residue& self) -> const std::set<OpenMS::String> & { return self.getResidueSets(); }, nb::rv_policy::reference_internal, "Returns the residue sets this residue is contained in")
+        .def("setResidueSets", [](OpenMS::Residue& self, const std::set<std::string>& residues_sets) { return self.setResidueSets(residues_sets); }, "residues_sets"_a, "Sets the residue sets the amino acid is contained in")
+        .def("addResidueSet", [](OpenMS::Residue& self, const std::string& residue_sets) { return self.addResidueSet(residue_sets); }, "residue_sets"_a, "Adds a residue set to the residue sets")
+        .def("getResidueSets", [](const OpenMS::Residue& self) -> const std::set<std::string> & { return self.getResidueSets(); }, nb::rv_policy::reference_internal, "Returns the residue sets this residue is contained in")
         .def("getPka", [](const OpenMS::Residue& self) { return self.getPka(); }, "Returns the pka of the residue")
         .def("getPkb", [](const OpenMS::Residue& self) { return self.getPkb(); }, "Returns the pkb of the residue")
         .def("getPkc", [](const OpenMS::Residue& self) { return self.getPkc(); }, "Returns the pkc of the residue if it exists otherwise -1")
@@ -1668,7 +1668,7 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("isModified", [](const OpenMS::Residue& self) { return self.isModified(); }, "True if the residue is a modified one")
-        .def("isInResidueSet", [](OpenMS::Residue& self, const OpenMS::String& residue_set) { return self.isInResidueSet(residue_set); }, "residue_set"_a, "True if the residue is contained in the set")
+        .def("isInResidueSet", [](OpenMS::Residue& self, const std::string& residue_set) { return self.isInResidueSet(residue_set); }, "residue_set"_a, "True if the residue is contained in the set")
         .def_static("residueTypeToIonLetter", [](const OpenMS::Residue::ResidueType& res_type) { return OpenMS::Residue::residueTypeToIonLetter(res_type); }, "res_type"_a, "Helper for mapping residue types to letters for Text annotations and labels")
         .def("toString", [](const OpenMS::Residue& self) { return self.toString(); }, "Returns the residue as string (one letter code with optional modification)")
         .def("__hash__", [](const OpenMS::Residue& self) { return std::hash<OpenMS::Residue>{}(self); })
@@ -1753,14 +1753,14 @@ Modified residues get created and added if getModifiedResidue is called.
 )doc")
         .def("getNumberOfResidues", [](const OpenMS::ResidueDB& self) { return self.getNumberOfResidues(); }, "Returns the number of residues stored")
         .def("getNumberOfModifiedResidues", [](const OpenMS::ResidueDB& self) { return self.getNumberOfModifiedResidues(); }, "Returns the number of modified residues stored")
-        .def("getResidue", [](const OpenMS::ResidueDB& self, const OpenMS::String& name) { return self.getResidue(name); }, "name"_a, nb::rv_policy::reference, "Returns a pointer to the residue with name, 3 letter code or 1 letter code name")
+        .def("getResidue", [](const OpenMS::ResidueDB& self, const std::string& name) { return self.getResidue(name); }, "name"_a, nb::rv_policy::reference, "Returns a pointer to the residue with name, 3 letter code or 1 letter code name")
         .def("getResidue", [](const OpenMS::ResidueDB& self, const unsigned char& one_letter_code) { return self.getResidue(one_letter_code); }, "one_letter_code"_a, nb::rv_policy::reference, "Returns a pointer to the residue with name, 3 letter code or 1 letter code name")
         .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, const OpenMS::String& name) { return self.getModifiedResidue(name); }, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a modification name")
         .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue, const OpenMS::String& name) { return self.getModifiedResidue(residue, name); }, "residue"_a, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
         .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue, OpenMS::ResidueModification * mod) { return self.getModifiedResidue(residue, mod); }, "residue"_a, "mod"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
         .def("getResidues", [](const OpenMS::ResidueDB& self, const OpenMS::String& residue_set) { return self.getResidues(residue_set); }, "residue_set"_a = "All", nb::rv_policy::reference, "Returns a set of all residues stored in this residue db")
         .def("getResidueSets", [](const OpenMS::ResidueDB& self) { return self.getResidueSets(); }, "Returns all residue sets that are registered which this instance")
-        .def("hasResidue", [](const OpenMS::ResidueDB& self, const OpenMS::String& name) { return self.hasResidue(name); }, "name"_a, "Returns True if the db contains a residue with the given name")
+        .def("hasResidue", [](const OpenMS::ResidueDB& self, const std::string& name) { return self.hasResidue(name); }, "name"_a, "Returns True if the db contains a residue with the given name")
         .def("hasResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue) { return self.hasResidue(residue); }, "residue"_a, "Returns True if the db contains a residue with the given name")
         .def_static("getInstance", []() -> const OpenMS::ResidueDB* { return OpenMS::ResidueDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
         ;
@@ -1773,26 +1773,26 @@ Modified residues get created and added if getModifiedResidue is called.
         .def(nb::init<const OpenMS::ResidueModification &>())
         .def("__copy__", [](const OpenMS::ResidueModification& self) { return OpenMS::ResidueModification(self); })
         .def("__deepcopy__", [](const OpenMS::ResidueModification& self, nb::dict) { return OpenMS::ResidueModification(self); }, "memo"_a)
-        .def("setId", [](OpenMS::ResidueModification& self, const OpenMS::String& id) { return self.setId(id); }, "id"_a, "Sets the identifier of the modification")
+        .def("setId", [](OpenMS::ResidueModification& self, const std::string& id) { return self.setId(id); }, "id"_a, "Sets the identifier of the modification")
         .def("getId", [](const OpenMS::ResidueModification& self) { return self.getId(); }, "Returns the identifier of the modification")
-        .def("setFullId", [](OpenMS::ResidueModification& self, const OpenMS::String& full_id) { return self.setFullId(full_id); }, "full_id"_a = "", "Sets the full identifier (Unimod Accession + origin, if available)")
+        .def("setFullId", [](OpenMS::ResidueModification& self, const std::string& full_id) { return self.setFullId(full_id); }, "full_id"_a = "", "Sets the full identifier (Unimod Accession + origin, if available)")
         .def("getFullId", [](const OpenMS::ResidueModification& self) { return self.getFullId(); })
         .def("setUniModRecordId", [](OpenMS::ResidueModification& self, const int& id) { return self.setUniModRecordId(id); }, "id"_a, "Sets the unimod record id")
         .def("getUniModRecordId", [](const OpenMS::ResidueModification& self) { return self.getUniModRecordId(); }, "Gets the unimod record id")
         .def("getUniModAccession", [](const OpenMS::ResidueModification& self) { return self.getUniModAccession(); }, "Returns the unimod accession if available")
-        .def("setPSIMODAccession", [](OpenMS::ResidueModification& self, const OpenMS::String& id) { return self.setPSIMODAccession(id); }, "id"_a, "Sets the MOD-XXXXX accession of PSI-MOD")
+        .def("setPSIMODAccession", [](OpenMS::ResidueModification& self, const std::string& id) { return self.setPSIMODAccession(id); }, "id"_a, "Sets the MOD-XXXXX accession of PSI-MOD")
         .def("getPSIMODAccession", [](const OpenMS::ResidueModification& self) { return self.getPSIMODAccession(); }, "Returns the PSI-MOD accession if available")
-        .def("setFullName", [](OpenMS::ResidueModification& self, const OpenMS::String& full_name) { return self.setFullName(full_name); }, "full_name"_a, "Sets the full name of the modification; must NOT contain the origin (or . for terminals!)")
+        .def("setFullName", [](OpenMS::ResidueModification& self, const std::string& full_name) { return self.setFullName(full_name); }, "full_name"_a, "Sets the full name of the modification; must NOT contain the origin (or . for terminals!)")
         .def("getFullName", [](const OpenMS::ResidueModification& self) { return self.getFullName(); }, "Returns the full name of the modification")
-        .def("setName", [](OpenMS::ResidueModification& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of modification")
+        .def("setName", [](OpenMS::ResidueModification& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name of modification")
         .def("getName", [](const OpenMS::ResidueModification& self) { return self.getName(); }, "Returns the PSI-MS-label if available; e.g. Mascot uses this name")
         .def("setTermSpecificity", [](OpenMS::ResidueModification& self, OpenMS::ResidueModification::TermSpecificity term_spec) { return self.setTermSpecificity(term_spec); }, "term_spec"_a, "Sets the term specificity")
-        .def("setTermSpecificity", [](OpenMS::ResidueModification& self, const OpenMS::String& name) { return self.setTermSpecificity(name); }, "name"_a, "Sets the term specificity")
+        .def("setTermSpecificity", [](OpenMS::ResidueModification& self, const std::string& name) { return self.setTermSpecificity(name); }, "name"_a, "Sets the term specificity")
         .def("getTermSpecificity", [](const OpenMS::ResidueModification& self) { return self.getTermSpecificity(); }, "Returns terminal specificity")
         .def("getTermSpecificityName", [](const OpenMS::ResidueModification& self, OpenMS::ResidueModification::TermSpecificity term_spec) { return self.getTermSpecificityName(term_spec); }, "term_spec"_a, "Returns the name of the terminal specificity")
         .def("setOrigin", [](OpenMS::ResidueModification& self, char origin) { return self.setOrigin(origin); }, "origin"_a, "Sets the origin (i.e. modified amino acid)")
         .def("getOrigin", [](const OpenMS::ResidueModification& self) { return self.getOrigin(); }, "Returns the origin (i.e. modified amino acid)")
-        .def("setSourceClassification", [](OpenMS::ResidueModification& self, const OpenMS::String& classification) { return self.setSourceClassification(classification); }, "classification"_a, "Classification as defined by the PSI-MOD")
+        .def("setSourceClassification", [](OpenMS::ResidueModification& self, const std::string& classification) { return self.setSourceClassification(classification); }, "classification"_a, "Classification as defined by the PSI-MOD")
         .def("setSourceClassification", [](OpenMS::ResidueModification& self, OpenMS::ResidueModification::SourceClassification classification) { return self.setSourceClassification(classification); }, "classification"_a, "Classification as defined by the PSI-MOD")
         .def("getSourceClassification", [](const OpenMS::ResidueModification& self) { return self.getSourceClassification(); }, "Returns the source classification, if none was set, it is unspecific")
         .def("getSourceClassificationName", [](const OpenMS::ResidueModification& self, OpenMS::ResidueModification::SourceClassification classification) { return self.getSourceClassificationName(classification); }, "classification"_a, "Returns the classification")
@@ -1804,13 +1804,13 @@ Modified residues get created and added if getModifiedResidue is called.
         .def("getDiffAverageMass", [](const OpenMS::ResidueModification& self) { return self.getDiffAverageMass(); }, "Returns the difference average mass, or 0.0 if not set")
         .def("setDiffMonoMass", [](OpenMS::ResidueModification& self, double mass) { return self.setDiffMonoMass(mass); }, "mass"_a, "Sets the difference monoisotopic mass")
         .def("getDiffMonoMass", [](const OpenMS::ResidueModification& self) { return self.getDiffMonoMass(); }, "Returns the diff monoisotopic mass, or 0.0 if not set")
-        .def("setFormula", [](OpenMS::ResidueModification& self, const OpenMS::String& composition) { return self.setFormula(composition); }, "composition"_a, "Sets the formula (no masses will be changed)")
+        .def("setFormula", [](OpenMS::ResidueModification& self, const std::string& composition) { return self.setFormula(composition); }, "composition"_a, "Sets the formula (no masses will be changed)")
         .def("getFormula", [](const OpenMS::ResidueModification& self) { return self.getFormula(); }, "Returns the chemical formula if set")
         .def("setDiffFormula", [](OpenMS::ResidueModification& self, const OpenMS::EmpiricalFormula& diff_formula) { return self.setDiffFormula(diff_formula); }, "diff_formula"_a, "Sets diff formula (no masses will be changed)")
         .def("getDiffFormula", [](const OpenMS::ResidueModification& self) -> const OpenMS::EmpiricalFormula& { return self.getDiffFormula(); }, nb::rv_policy::reference_internal, "Returns the diff formula if one was set")
-        .def("setSynonyms", [](OpenMS::ResidueModification& self, const std::set<OpenMS::String>& synonyms) { return self.setSynonyms(synonyms); }, "synonyms"_a, "Sets the synonyms of that modification")
-        .def("addSynonym", [](OpenMS::ResidueModification& self, const OpenMS::String& synonym) { return self.addSynonym(synonym); }, "synonym"_a, "Adds a synonym to the unique list")
-        .def("getSynonyms", [](const OpenMS::ResidueModification& self) -> const std::set<OpenMS::String> & { return self.getSynonyms(); }, nb::rv_policy::reference_internal, "Returns the set of synonyms")
+        .def("setSynonyms", [](OpenMS::ResidueModification& self, const std::set<std::string>& synonyms) { return self.setSynonyms(synonyms); }, "synonyms"_a, "Sets the synonyms of that modification")
+        .def("addSynonym", [](OpenMS::ResidueModification& self, const std::string& synonym) { return self.addSynonym(synonym); }, "synonym"_a, "Adds a synonym to the unique list")
+        .def("getSynonyms", [](const OpenMS::ResidueModification& self) -> const std::set<std::string> & { return self.getSynonyms(); }, nb::rv_policy::reference_internal, "Returns the set of synonyms")
         .def("setNeutralLossDiffFormulas", [](OpenMS::ResidueModification& self, const std::vector<OpenMS::EmpiricalFormula>& diff_formulas) { return self.setNeutralLossDiffFormulas(diff_formulas); }, "diff_formulas"_a, "Sets the neutral loss formula")
         .def("getNeutralLossDiffFormulas", [](const OpenMS::ResidueModification& self) -> const std::vector<OpenMS::EmpiricalFormula> & { return self.getNeutralLossDiffFormulas(); }, nb::rv_policy::reference_internal, "Returns the neutral loss diff formula (if available)")
         .def("setNeutralLossMonoMasses", [](OpenMS::ResidueModification& self, std::vector<double> mono_masses) { return self.setNeutralLossMonoMasses(mono_masses); }, "mono_masses"_a, "Sets the neutral loss mono weight")
@@ -1867,14 +1867,14 @@ Modified residues get created and added if getModifiedResidue is called.
     auto ribonucleotide_class = nb::class_<OpenMS::Ribonucleotide>(m, "Ribonucleotide", "Ribonucleotide")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Ribonucleotide &>())
-        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::EmpiricalFormula, char, double, double, OpenMS::Ribonucleotide::TermSpecificityNuc, OpenMS::EmpiricalFormula>())
+        .def(nb::init<std::string, std::string, std::string, std::string, OpenMS::EmpiricalFormula, char, double, double, OpenMS::Ribonucleotide::TermSpecificityNuc, OpenMS::EmpiricalFormula>())
         .def("__copy__", [](const OpenMS::Ribonucleotide& self) { return OpenMS::Ribonucleotide(self); })
         .def("__deepcopy__", [](const OpenMS::Ribonucleotide& self, nb::dict) { return OpenMS::Ribonucleotide(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def("getCode", [](const OpenMS::Ribonucleotide& self) { return self.getCode(); }, "Returns the short name")
-        .def("setCode", [](OpenMS::Ribonucleotide& self, const OpenMS::String& code) { return self.setCode(code); }, "code"_a, "Sets the short name")
+        .def("setCode", [](OpenMS::Ribonucleotide& self, const std::string& code) { return self.setCode(code); }, "code"_a, "Sets the short name")
         .def("getName", [](const OpenMS::Ribonucleotide& self) { return self.getName(); }, "Returns the name of the ribonucleotide")
-        .def("setName", [](OpenMS::Ribonucleotide& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of the ribonucleotide")
+        .def("setName", [](OpenMS::Ribonucleotide& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name of the ribonucleotide")
         .def("getFormula", [](const OpenMS::Ribonucleotide& self) { return self.getFormula(); }, "Returns the empirical formula of the residue")
         .def("setFormula", [](OpenMS::Ribonucleotide& self, const OpenMS::EmpiricalFormula& formula) { return self.setFormula(formula); }, "formula"_a, "Sets empirical formula of the ribonucleotide (must be full, with N and C-terminus)")
         .def("getMonoMass", [](const OpenMS::Ribonucleotide& self) { return self.getMonoMass(); }, "Returns monoisotopic mass of the ribonucleotide")
@@ -1882,7 +1882,7 @@ Modified residues get created and added if getModifiedResidue is called.
         .def("getAvgMass", [](const OpenMS::Ribonucleotide& self) { return self.getAvgMass(); }, "Returns average mass of the ribonucleotide")
         .def("setAvgMass", [](OpenMS::Ribonucleotide& self, double avg_mass) { return self.setAvgMass(avg_mass); }, "avg_mass"_a, "Sets average mass of the ribonucleotide")
         .def("getNewCode", [](const OpenMS::Ribonucleotide& self) { return self.getNewCode(); }, "Returns the new code")
-        .def("setNewCode", [](OpenMS::Ribonucleotide& self, const OpenMS::String& new_code) { return self.setNewCode(new_code); }, "new_code"_a, "Sets the new code")
+        .def("setNewCode", [](OpenMS::Ribonucleotide& self, const std::string& new_code) { return self.setNewCode(new_code); }, "new_code"_a, "Sets the new code")
         .def("getOrigin", [](const OpenMS::Ribonucleotide& self) { return self.getOrigin(); }, 
             R"doc(
 Returns the code of the unmodified base (e.g., "A", "C", ...)
@@ -1892,7 +1892,7 @@ Returns the code of the unmodified base (e.g., "A", "C", ...)
 Sets the code of the unmodified base (e.g., "A", "C", ...)
 )doc")
         .def("getHTMLCode", [](const OpenMS::Ribonucleotide& self) { return self.getHTMLCode(); }, "Returns the HTML (RNAMods) code")
-        .def("setHTMLCode", [](OpenMS::Ribonucleotide& self, const OpenMS::String& html_code) { return self.setHTMLCode(html_code); }, "html_code"_a, "Sets the HTML (RNAMods) code")
+        .def("setHTMLCode", [](OpenMS::Ribonucleotide& self, const std::string& html_code) { return self.setHTMLCode(html_code); }, "html_code"_a, "Sets the HTML (RNAMods) code")
         .def("getTermSpecificity", [](const OpenMS::Ribonucleotide& self) { return self.getTermSpecificity(); }, "Returns the terminal specificity")
         .def("setTermSpecificity", [](OpenMS::Ribonucleotide& self, OpenMS::Ribonucleotide::TermSpecificityNuc term_spec) { return self.setTermSpecificity(term_spec); }, "term_spec"_a, "Sets the terminal specificity")
         .def("getBaselossFormula", [](const OpenMS::Ribonucleotide& self) { return self.getBaselossFormula(); }, "Returns sum formula after loss of the nucleobase")
@@ -1919,11 +1919,11 @@ The ribonucleotides are read from data/CHEMISTRY/Modomics.tsv and Custom_RNA_mod
 
         .def_static("getInstance", []() -> const OpenMS::RibonucleotideDB* { return OpenMS::RibonucleotideDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
 
-        .def("getRibonucleotide", [](OpenMS::RibonucleotideDB& self, const OpenMS::String& code) -> const OpenMS::Ribonucleotide* {
+        .def("getRibonucleotide", [](OpenMS::RibonucleotideDB& self, const std::string& code) -> const OpenMS::Ribonucleotide* {
             return self.getRibonucleotide(code);
         }, "code"_a, nb::rv_policy::reference, "Returns the ribonucleotide with the given code")
 
-        .def("getRibonucleotidePrefix", [](OpenMS::RibonucleotideDB& self, const OpenMS::String& seq) -> const OpenMS::Ribonucleotide* {
+        .def("getRibonucleotidePrefix", [](OpenMS::RibonucleotideDB& self, const std::string& seq) -> const OpenMS::Ribonucleotide* {
             return self.getRibonucleotidePrefix(seq);
         }, "seq"_a, nb::rv_policy::reference, "Returns the ribonucleotide matching the longest prefix")
         .def("getRibonucleotideAlternatives", [](OpenMS::RibonucleotideDB& self, const std::string& code) {
@@ -1979,7 +1979,7 @@ Also `max_tag_length` should be >= `min_tag_length`
 )doc")
         .def("__copy__", [](const OpenMS::Tagger& self) { return OpenMS::Tagger(self); })
         .def("__deepcopy__", [](const OpenMS::Tagger& self, nb::dict) { return OpenMS::Tagger(self); }, "memo"_a)
-        .def(nb::init<size_t, double, size_t, size_t, size_t, std::vector<OpenMS::String>, std::vector<OpenMS::String>, bool>())
+        .def(nb::init<size_t, double, size_t, size_t, size_t, std::vector<std::string>, std::vector<std::string>, bool>())
         .def("getTag", [](const OpenMS::Tagger& self, const std::vector<double>& mzs) { std::vector<std::string> tags; self.getTag(mzs, tags); return tags; }, "mzs"_a)
         .def("getTag", [](const OpenMS::Tagger& self, const OpenMS::MSSpectrum& spec) { std::vector<std::string> tags; self.getTag(spec, tags); return tags; }, "spec"_a)
         .def("setMaxCharge", [](OpenMS::Tagger& self, size_t max_charge) { return self.setMaxCharge(max_charge); }, "max_charge"_a, 
@@ -2118,12 +2118,12 @@ the fixed and variable modifications given to the constructor
     // -----------------------------------------------------------------------
     // __static_* module-level wrappers for ProForma
     // -----------------------------------------------------------------------
-    m.def("__static_ProForma_parse", [](const OpenMS::String& input) -> OpenMS::ProForma::Peptidoform { return OpenMS::ProForma::parse(input); }, "input"_a);
-    m.def("__static_ProForma_parseIon", [](const OpenMS::String& input) -> OpenMS::ProForma::PeptidoformIon { return OpenMS::ProForma::parseIon(input); }, "input"_a);
-    m.def("__static_ProForma_toString", [](const OpenMS::ProForma::Peptidoform& pf, OpenMS::ProForma::WriteMode mode) -> OpenMS::String { return OpenMS::ProForma::toString(pf, mode); }, "pf"_a, "mode"_a);
-    m.def("__static_ProForma_toStringIon", [](const OpenMS::ProForma::PeptidoformIon& pfi, OpenMS::ProForma::WriteMode mode) -> OpenMS::String { return OpenMS::ProForma::toString(pfi, mode); }, "pfi"_a, "mode"_a);
-    m.def("__static_ProForma_peptidoformFromJSON", [](const OpenMS::String& json_str) -> OpenMS::ProForma::Peptidoform { return OpenMS::ProForma::peptidoformFromJSON(json_str); }, "json_str"_a);
-    m.def("__static_ProForma_peptidoformIonFromJSON", [](const OpenMS::String& json_str) -> OpenMS::ProForma::PeptidoformIon { return OpenMS::ProForma::peptidoformIonFromJSON(json_str); }, "json_str"_a);
+    m.def("__static_ProForma_parse", [](const std::string& input) -> OpenMS::ProForma::Peptidoform { return OpenMS::ProForma::parse(input); }, "input"_a);
+    m.def("__static_ProForma_parseIon", [](const std::string& input) -> OpenMS::ProForma::PeptidoformIon { return OpenMS::ProForma::parseIon(input); }, "input"_a);
+    m.def("__static_ProForma_toString", [](const OpenMS::ProForma::Peptidoform& pf, OpenMS::ProForma::WriteMode mode) -> std::string { return OpenMS::ProForma::toString(pf, mode); }, "pf"_a, "mode"_a);
+    m.def("__static_ProForma_toStringIon", [](const OpenMS::ProForma::PeptidoformIon& pfi, OpenMS::ProForma::WriteMode mode) -> std::string { return OpenMS::ProForma::toString(pfi, mode); }, "pfi"_a, "mode"_a);
+    m.def("__static_ProForma_peptidoformFromJSON", [](const std::string& json_str) -> OpenMS::ProForma::Peptidoform { return OpenMS::ProForma::peptidoformFromJSON(json_str); }, "json_str"_a);
+    m.def("__static_ProForma_peptidoformIonFromJSON", [](const std::string& json_str) -> OpenMS::ProForma::PeptidoformIon { return OpenMS::ProForma::peptidoformIonFromJSON(json_str); }, "json_str"_a);
     m.def("__static_ProForma_resolveModifications", [](OpenMS::ProForma::Peptidoform& pf) -> void { OpenMS::ProForma::resolveModifications(pf); }, "pf"_a);
     m.def("__static_ProForma_toAASequence", [](const OpenMS::ProForma::Peptidoform& pf, OpenMS::ProForma::ConversionPolicy policy) -> OpenMS::AASequence { return OpenMS::ProForma::toAASequence(pf, policy); }, "pf"_a, "policy"_a);
     m.def("__static_ProForma_fromAASequence", [](const OpenMS::AASequence& seq) -> OpenMS::ProForma::Peptidoform { return OpenMS::ProForma::fromAASequence(seq); }, "seq"_a);
@@ -2136,30 +2136,30 @@ the fixed and variable modifications given to the constructor
     m.def("__static_ProForma_getMZCharge", [](const OpenMS::ProForma::Peptidoform& pf, int charge) -> double { return OpenMS::ProForma::getMZ(pf, charge); }, "pf"_a, "charge"_a);
     m.def("__static_ProForma_canGenerateSpectrum", [](const OpenMS::ProForma::Peptidoform& pf) -> bool { return OpenMS::ProForma::canGenerateSpectrum(pf); }, "pf"_a);
     m.def("__static_ProForma_getSpectrumGenerationIssues", [](const OpenMS::ProForma::Peptidoform& pf) -> std::vector<OpenMS::ProForma::ConversionIssue> { return OpenMS::ProForma::getSpectrumGenerationIssues(pf); }, "pf"_a);
-    m.def("__static_ProForma_generateSpectrum", [](const OpenMS::ProForma::Peptidoform& pf, int min_charge, int max_charge, const OpenMS::String& ion_types, bool add_losses, bool add_metainfo) -> OpenMS::MSSpectrum { return OpenMS::ProForma::generateSpectrum(pf, min_charge, max_charge, ion_types, add_losses, add_metainfo); }, "pf"_a, "min_charge"_a, "max_charge"_a, "ion_types"_a, "add_losses"_a, "add_metainfo"_a);
-    m.def("__static_ProForma_peptidoformToJSON", [](const OpenMS::ProForma::Peptidoform& pf) -> OpenMS::String { return OpenMS::ProForma::toJSON(pf); }, "pf"_a);
-    m.def("__static_ProForma_peptidoformIonToJSON", [](const OpenMS::ProForma::PeptidoformIon& pfi) -> OpenMS::String { return OpenMS::ProForma::toJSON(pfi); }, "pfi"_a);
-    m.def("__static_ProForma_toJSON", [](const OpenMS::ProForma::Peptidoform& pf) -> OpenMS::String { return OpenMS::ProForma::toJSON(pf); }, "pf"_a);
+    m.def("__static_ProForma_generateSpectrum", [](const OpenMS::ProForma::Peptidoform& pf, int min_charge, int max_charge, const std::string& ion_types, bool add_losses, bool add_metainfo) -> OpenMS::MSSpectrum { return OpenMS::ProForma::generateSpectrum(pf, min_charge, max_charge, ion_types, add_losses, add_metainfo); }, "pf"_a, "min_charge"_a, "max_charge"_a, "ion_types"_a, "add_losses"_a, "add_metainfo"_a);
+    m.def("__static_ProForma_peptidoformToJSON", [](const OpenMS::ProForma::Peptidoform& pf) -> std::string { return OpenMS::ProForma::toJSON(pf); }, "pf"_a);
+    m.def("__static_ProForma_peptidoformIonToJSON", [](const OpenMS::ProForma::PeptidoformIon& pfi) -> std::string { return OpenMS::ProForma::toJSON(pfi); }, "pfi"_a);
+    m.def("__static_ProForma_toJSON", [](const OpenMS::ProForma::Peptidoform& pf) -> std::string { return OpenMS::ProForma::toJSON(pf); }, "pf"_a);
 
     // -----------------------------------------------------------------------
     // __static_* module-level wrappers for MzPAF
     // -----------------------------------------------------------------------
-    m.def("__static_MzPAF_parse", [](const OpenMS::String& annotation) -> OpenMS::MzPAFAnnotation { return OpenMS::MzPAF::parse(annotation); }, "annotation"_a);
-    m.def("__static_MzPAF_parseMultiple", [](const OpenMS::String& annotation) -> OpenMS::MzPAFPeakAnnotations { return OpenMS::MzPAF::parseMultiple(annotation); }, "annotation"_a);
-    m.def("__static_MzPAF_tryParse", [](const OpenMS::String& annotation) -> std::optional<OpenMS::MzPAFAnnotation> { return OpenMS::MzPAF::tryParse(annotation); }, "annotation"_a);
-    m.def("__static_MzPAF_tryParseMultiple", [](const OpenMS::String& annotation) -> std::optional<OpenMS::MzPAFPeakAnnotations> { return OpenMS::MzPAF::tryParseMultiple(annotation); }, "annotation"_a);
-    m.def("__static_MzPAF_toString", [](const OpenMS::MzPAFAnnotation& annotation) -> OpenMS::String { return OpenMS::MzPAF::toString(annotation); }, "annotation"_a);
-    m.def("__static_MzPAF_toStringMultiple", [](const OpenMS::MzPAFPeakAnnotations& annotations) -> OpenMS::String { return OpenMS::MzPAF::toString(annotations); }, "annotations"_a);
+    m.def("__static_MzPAF_parse", [](const std::string& annotation) -> OpenMS::MzPAFAnnotation { return OpenMS::MzPAF::parse(annotation); }, "annotation"_a);
+    m.def("__static_MzPAF_parseMultiple", [](const std::string& annotation) -> OpenMS::MzPAFPeakAnnotations { return OpenMS::MzPAF::parseMultiple(annotation); }, "annotation"_a);
+    m.def("__static_MzPAF_tryParse", [](const std::string& annotation) -> std::optional<OpenMS::MzPAFAnnotation> { return OpenMS::MzPAF::tryParse(annotation); }, "annotation"_a);
+    m.def("__static_MzPAF_tryParseMultiple", [](const std::string& annotation) -> std::optional<OpenMS::MzPAFPeakAnnotations> { return OpenMS::MzPAF::tryParseMultiple(annotation); }, "annotation"_a);
+    m.def("__static_MzPAF_toString", [](const OpenMS::MzPAFAnnotation& annotation) -> std::string { return OpenMS::MzPAF::toString(annotation); }, "annotation"_a);
+    m.def("__static_MzPAF_toStringMultiple", [](const OpenMS::MzPAFPeakAnnotations& annotations) -> std::string { return OpenMS::MzPAF::toString(annotations); }, "annotations"_a);
     m.def("__static_MzPAF_toPeakAnnotation", [](const OpenMS::MzPAFAnnotation& annotation, double mz, double intensity) -> OpenMS::PeptideHit::PeakAnnotation { return OpenMS::MzPAF::toPeakAnnotation(annotation, mz, intensity); }, "annotation"_a, "mz"_a, "intensity"_a);
     m.def("__static_MzPAF_fromPeakAnnotation", [](const OpenMS::PeptideHit::PeakAnnotation& pa) -> OpenMS::MzPAFPeakAnnotations { return OpenMS::MzPAF::fromPeakAnnotation(pa); }, "pa"_a);
-    m.def("__static_MzPAF_isMzPAFFormat", [](const OpenMS::String& annotation) -> bool { return OpenMS::MzPAF::isMzPAFFormat(annotation); }, "annotation"_a);
+    m.def("__static_MzPAF_isMzPAFFormat", [](const std::string& annotation) -> bool { return OpenMS::MzPAF::isMzPAFFormat(annotation); }, "annotation"_a);
 
     // -----------------------------------------------------------------------
     // AdductInfo (AMSE_AdductInfo)
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::AdductInfo>(m, "AMSE_AdductInfo",
         "Representation of an adduct for metabolite identification")
-        .def(nb::init<const OpenMS::String&, const OpenMS::EmpiricalFormula&, int, OpenMS::UInt>(),
+        .def(nb::init<const std::string&, const OpenMS::EmpiricalFormula&, int, OpenMS::UInt>(),
             "name"_a, "adduct"_a, "charge"_a, "mol_multiplier"_a = 1)
         .def("getNeutralMass", &OpenMS::AdductInfo::getNeutralMass, "observed_mz"_a,
             "Returns the neutral mass of the small molecule without adduct")
@@ -2177,6 +2177,6 @@ the fixed and variable modifications given to the constructor
             "Parse an adduct string containing a formula and charge")
         .def("__eq__", &OpenMS::AdductInfo::operator==)
         ;
-    m.def("__static_AdductInfo_parseAdductString", [](const OpenMS::String& adduct) -> OpenMS::AdductInfo { return OpenMS::AdductInfo::parseAdductString(adduct); }, "adduct"_a);
+    m.def("__static_AdductInfo_parseAdductString", [](const std::string& adduct) -> OpenMS::AdductInfo { return OpenMS::AdductInfo::parseAdductString(adduct); }, "adduct"_a);
 
 }

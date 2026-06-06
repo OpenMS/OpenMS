@@ -92,28 +92,28 @@ START_SECTION(static void writeHeader(std::ostream& os, bool report_decoy = fals
   {
     ostringstream oss;
     FLASHDeconvFeatureFile::writeHeader(oss, false);
-    String header = oss.str();
+    std::string header = oss.str();
 
-    TEST_EQUAL(header.hasSubstring("FeatureIndex"), true)
-    TEST_EQUAL(header.hasSubstring("FileName"), true)
-    TEST_EQUAL(header.hasSubstring("MSLevel"), true)
-    TEST_EQUAL(header.hasSubstring("MonoisotopicMass"), true)
-    TEST_EQUAL(header.hasSubstring("AverageMass"), true)
-    TEST_EQUAL(header.hasSubstring("SumIntensity"), true)
-    TEST_EQUAL(header.hasSubstring("PerChargeIntensity"), true)
-    TEST_EQUAL(header.hasSubstring("PerIsotopeIntensity"), true)
-    TEST_EQUAL(header.hasSubstring("IsDecoy"), false)  // Should NOT contain IsDecoy
-    TEST_EQUAL(header.hasSubstring("\n"), true)  // Should end with newline
+    TEST_EQUAL(StringUtils::hasSubstring(header, "FeatureIndex"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "FileName"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "MSLevel"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "MonoisotopicMass"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "AverageMass"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "SumIntensity"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PerChargeIntensity"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PerIsotopeIntensity"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "IsDecoy"), false)  // Should NOT contain IsDecoy
+    TEST_EQUAL(StringUtils::hasSubstring(header, "\n"), true)  // Should end with newline
   }
 
   // Test header with decoy reporting
   {
     ostringstream oss;
     FLASHDeconvFeatureFile::writeHeader(oss, true);
-    String header = oss.str();
+    std::string header = oss.str();
 
-    TEST_EQUAL(header.hasSubstring("IsDecoy"), true)  // Should contain IsDecoy
-    TEST_EQUAL(header.hasSubstring("FeatureIndex"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "IsDecoy"), true)  // Should contain IsDecoy
+    TEST_EQUAL(StringUtils::hasSubstring(header, "FeatureIndex"), true)
   }
 }
 END_SECTION
@@ -128,31 +128,31 @@ START_SECTION(static void writeTopFDFeatureHeader(std::ostream& os, uint ms_leve
   {
     ostringstream oss;
     FLASHDeconvFeatureFile::writeTopFDFeatureHeader(oss, 1);
-    String header = oss.str();
+    std::string header = oss.str();
 
-    TEST_EQUAL(header.hasSubstring("File_name"), true)
-    TEST_EQUAL(header.hasSubstring("Feature_ID"), true)
-    TEST_EQUAL(header.hasSubstring("Mass"), true)
-    TEST_EQUAL(header.hasSubstring("Intensity"), true)
-    TEST_EQUAL(header.hasSubstring("Min_time"), true)
-    TEST_EQUAL(header.hasSubstring("Max_time"), true)
-    TEST_EQUAL(header.hasSubstring("Apex_time"), true)
-    TEST_EQUAL(header.hasSubstring("EC_score"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "File_name"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "Feature_ID"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "Mass"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "Intensity"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "Min_time"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "Max_time"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "Apex_time"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "EC_score"), true)
     // MS1 header should NOT contain Spectrum_ID
-    TEST_EQUAL(header.hasSubstring("Spectrum_ID"), false)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "Spectrum_ID"), false)
   }
 
   // Test MS2 header
   {
     ostringstream oss;
     FLASHDeconvFeatureFile::writeTopFDFeatureHeader(oss, 2);
-    String header = oss.str();
+    std::string header = oss.str();
 
-    TEST_EQUAL(header.hasSubstring("File_name"), true)
-    TEST_EQUAL(header.hasSubstring("Spectrum_ID"), true)  // MS2 has Spectrum_ID
-    TEST_EQUAL(header.hasSubstring("Precursor_charge"), true)
-    TEST_EQUAL(header.hasSubstring("Precursor_intensity"), true)
-    TEST_EQUAL(header.hasSubstring("Fraction_feature_ID"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "File_name"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "Spectrum_ID"), true)  // MS2 has Spectrum_ID
+    TEST_EQUAL(StringUtils::hasSubstring(header, "Precursor_charge"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "Precursor_intensity"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "Fraction_feature_ID"), true)
   }
 }
 END_SECTION
@@ -161,7 +161,7 @@ END_SECTION
 // Test writeFeatures with synthesized data
 /////////////////////////////////////////////////////////////
 
-START_SECTION(static void writeFeatures(const std::vector<FLASHHelperClasses::MassFeature>& mass_features, const String& file_name, std::ostream& os, bool report_decoy = false))
+START_SECTION(static void writeFeatures(const std::vector<FLASHHelperClasses::MassFeature>& mass_features, const std::string& file_name, std::ostream& os, bool report_decoy = false))
 {
   // Test with empty features vector
   {
@@ -179,12 +179,12 @@ START_SECTION(static void writeFeatures(const std::vector<FLASHHelperClasses::Ma
     features.push_back(createTestMassFeature(2, 15000.0));
 
     FLASHDeconvFeatureFile::writeFeatures(features, "test_input.mzML", oss, false);
-    String output = oss.str();
+    std::string output = oss.str();
 
     // Check that output contains expected data
-    TEST_EQUAL(output.hasSubstring("test_input.mzML"), true)
-    TEST_EQUAL(output.hasSubstring("1\t"), true)  // Feature index 1
-    TEST_EQUAL(output.hasSubstring("2\t"), true)  // Feature index 2
+    TEST_EQUAL(StringUtils::hasSubstring(output, "test_input.mzML"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "1\t"), true)  // Feature index 1
+    TEST_EQUAL(StringUtils::hasSubstring(output, "2\t"), true)  // Feature index 2
 
     // Should contain two lines (one per feature)
     Size line_count = std::count(output.begin(), output.end(), '\n');
@@ -200,10 +200,10 @@ START_SECTION(static void writeFeatures(const std::vector<FLASHHelperClasses::Ma
     features.push_back(mf);
 
     FLASHDeconvFeatureFile::writeFeatures(features, "test.mzML", oss, true);
-    String output = oss.str();
+    std::string output = oss.str();
 
     // Should contain decoy indicator (1 for is_decoy=true)
-    TEST_EQUAL(output.hasSubstring("\t1\t"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "\t1\t"), true)
   }
 }
 END_SECTION
@@ -212,7 +212,7 @@ END_SECTION
 // Test writeTopFDFeatures
 /////////////////////////////////////////////////////////////
 
-START_SECTION(static void writeTopFDFeatures(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features, const std::map<int, double>& scan_rt_map, const String& file_name, std::ostream& os, uint ms_level))
+START_SECTION(static void writeTopFDFeatures(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features, const std::map<int, double>& scan_rt_map, const std::string& file_name, std::ostream& os, uint ms_level))
 {
   // Test with empty inputs
   {
@@ -240,10 +240,10 @@ START_SECTION(static void writeTopFDFeatures(std::vector<DeconvolvedSpectrum>& d
     scan_rt_map[100] = 6000.0;  // 100 minutes in seconds
 
     FLASHDeconvFeatureFile::writeTopFDFeatures(spectra, features, scan_rt_map, "test_input.mzML", oss, 1);
-    String output = oss.str();
+    std::string output = oss.str();
 
     // Check output contains expected data for MS1
-    TEST_EQUAL(output.hasSubstring("test_input.mzML"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "test_input.mzML"), true)
     // Should have feature entries
     TEST_EQUAL(output.empty(), false)
   }

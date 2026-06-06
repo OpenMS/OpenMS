@@ -17,7 +17,7 @@ namespace OpenMS
 {
 
   XTandemXMLFile::XTandemXMLFile() :
-    XMLHandler("", 1.1),
+    XMLHandler("", "1.1"),
     XMLFile()
   {
     // see X! Tandem parameters "protein, quick pyrolidone" and "protein, quick acetyl":
@@ -26,7 +26,7 @@ namespace OpenMS
 
   XTandemXMLFile::~XTandemXMLFile() = default;
 
-  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& peptide_ids, ModificationDefinitionsSet& mod_def_set)
+  void XTandemXMLFile::load(const std::string& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& peptide_ids, ModificationDefinitionsSet& mod_def_set)
   {
     // File name for error message in XMLHandler
     file_ = filename;
@@ -45,9 +45,9 @@ namespace OpenMS
     parse_(filename, this);
 
     DateTime now = DateTime::now();
-    String date_string = now.getDate();
-    String identifier("XTandem_" + date_string);
-    //vector<String> accessions;
+    std::string date_string = now.getDate();
+    std::string identifier("XTandem_" + date_string);
+    //vector<std::string> accessions;
 
     // convert mapping id -> peptide_hits into peptide hits list
     peptide_ids.clear();
@@ -85,23 +85,23 @@ namespace OpenMS
 
   void XTandemXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
-    tag_ = String(sm_.convert(qname));
+    tag_ =StringUtils::toStr(sm_.convert(qname));
 
     if (tag_ == "domain")
     {
-      String id_string = attributeAsString_(attributes, "id");
-      UInt id = id_string.prefix('.').toInt();
+      std::string id_string = attributeAsString_(attributes, "id");
+      UInt id = StringUtils::toInt32(StringUtils::prefix(id_string, '.'));
       current_id_ = id;
 
       PeptideEvidence pe;
       // get amino acid before
-      String pre = attributeAsString_(attributes, "pre");
+      std::string pre = attributeAsString_(attributes, "pre");
       if (!pre.empty())
       {
         pe.setAABefore(pre[pre.size()-1]);
       }
       // get amino acid after
-      String post = attributeAsString_(attributes, "post");
+      std::string post = attributeAsString_(attributes, "post");
       if (!post.empty())
       {
         pe.setAAAfter(post[0]);
@@ -114,7 +114,7 @@ namespace OpenMS
         
       pe.setProteinAccession(current_protein_);
  
-      String seq = attributeAsString_(attributes, "seq");
+      std::string seq = attributeAsString_(attributes, "seq");
       // is this the same peptide as before, just in a different protein (scores will be the same)?
       if ((!peptide_hits_.contains(id)) || (seq != previous_seq_))
       {
@@ -135,10 +135,10 @@ namespace OpenMS
         hit.setScore(hyperscore);
 
         // try to get a, b, c, x, y, z score (optional)
-        String ions = "abcxyz";
-        String ion_score = " _score";
-        String ion_count = " _ions";
-        for (String::iterator it = ions.begin(); it != ions.end(); ++it)
+        std::string ions = "abcxyz";
+        std::string ion_score = " _score";
+        std::string ion_count = " _ions";
+        for (auto it = ions.begin(); it != ions.end(); ++it)
         {
           ion_score[0] = *it;
           double score;
@@ -166,7 +166,7 @@ namespace OpenMS
     {
       if (group_type_stack_.empty())
       {
-        error(LOAD, String("Found an 'aa' element outside of a 'group'! Please check your input file."));
+        error(LOAD,StringUtils::toStr("Found an 'aa' element outside of a 'group'! Please check your input file."));
       }
       auto& current_group_type_ = group_type_stack_.top();
       // TODO support "aa" entries in the parameter groups (e.g. to read user-specified amino acids)
@@ -174,7 +174,7 @@ namespace OpenMS
       if (current_group_type_ == GroupType::MODEL)
       {
         // e.g. <aa type="S" at="2" modified="42.0106" />
-        String aa = attributeAsString_(attributes, "type");
+        std::string aa = attributeAsString_(attributes, "type");
         Int mod_pos = attributeAsInt_(attributes, "at");
         double mass_shift = attributeAsDouble_(attributes, "modified");
 
@@ -237,7 +237,7 @@ namespace OpenMS
 
         if (res_mod == nullptr)
         {
-          error(LOAD, String("No modification found which fits residue '") + aa + "' with mass '" + String(mass_shift) + "'!");
+          error(LOAD,StringUtils::toStr("No modification found which fits residue '") + aa + "' with mass '" + StringUtils::toStr(mass_shift) + "'!");
         }
         else
         {
@@ -261,14 +261,14 @@ namespace OpenMS
 
     if (tag_ == "group")
     {
-      String type = attributeAsString_(attributes, "type");
+      std::string type = attributeAsString_(attributes, "type");
       if (type == "model")
       {
         group_type_stack_.push(GroupType::MODEL);
         Int index = attributes.getIndex(sm_.convert("z").c_str());
         if (index >= 0)
         {
-          current_charge_ = String(sm_.convert(attributes.getValue(index))).toInt();
+          current_charge_ = StringUtils::toInt32(StringUtils::toStr(sm_.convert(attributes.getValue(index))));
         }
         previous_seq_ = "";
       }
@@ -284,7 +284,7 @@ namespace OpenMS
 
     if (tag_ == "note")
     {
-      String label;
+      std::string label;
       optionalAttributeAsString_(label, attributes, "label");
 
       if (label == "description") // in '<"protein" ...>'
@@ -328,7 +328,7 @@ namespace OpenMS
 
   void XTandemXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
-    tag_ = String(sm_.convert(qname));
+    tag_ =StringUtils::toStr(sm_.convert(qname));
     if (tag_ == "group")
     {
       group_type_stack_.pop();
@@ -341,7 +341,7 @@ namespace OpenMS
     {
       if (is_protein_note_)
       {
-        current_protein_ = String(sm_.convert(chars)).trim();
+        current_protein_ =StringUtils::trimmed(StringUtils::toStr(sm_.convert(chars)));
         if (!skip_protein_acc_update_)
         {
           protein_hits_.back().setAccession(current_protein_);
@@ -349,7 +349,7 @@ namespace OpenMS
       }
       else if (is_spectrum_note_)
       {
-        spectrum_ids_[current_id_] = String(sm_.convert(chars)).trim();
+        spectrum_ids_[current_id_] =StringUtils::trimmed(StringUtils::toStr(sm_.convert(chars)));
       }
       is_protein_note_ = false;
       is_spectrum_note_ = false;

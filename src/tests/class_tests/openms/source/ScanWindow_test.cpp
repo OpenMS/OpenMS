@@ -41,25 +41,25 @@ START_SECTION((ScanWindow(const ScanWindow& source)))
   ScanWindow tmp;
   tmp.begin = 1.0;
   tmp.end = 2.0;
-  tmp.setMetaValue("label",String("label"));
+  tmp.setMetaValue("label",StringUtils::toStr("label"));
   
   ScanWindow tmp2(tmp);
   TEST_REAL_SIMILAR(tmp2.begin, 1.0)
   TEST_REAL_SIMILAR(tmp2.end, 2.0)
-	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
+	TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");  
 END_SECTION
 
 START_SECTION((ScanWindow& operator= (const ScanWindow& source)))
   ScanWindow tmp;
   tmp.begin = 1.0;
   tmp.end = 2.0;
-  tmp.setMetaValue("label",String("label"));
+  tmp.setMetaValue("label",StringUtils::toStr("label"));
   
   ScanWindow tmp2;
   tmp2 = tmp;
   TEST_REAL_SIMILAR(tmp2.begin, 1.0)
   TEST_REAL_SIMILAR(tmp2.end, 2.0)
-	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
+	TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");  
 END_SECTION
 
 START_SECTION((bool operator==(const ScanWindow &source) const ))
@@ -75,7 +75,7 @@ START_SECTION((bool operator==(const ScanWindow &source) const ))
   TEST_EQUAL(edit==empty,false);
   
 	edit = empty;
-	edit.setMetaValue("label",String("label"));
+	edit.setMetaValue("label",StringUtils::toStr("label"));
 	TEST_EQUAL(edit==empty,false);
 END_SECTION
 
@@ -92,7 +92,7 @@ START_SECTION((bool operator!=(const ScanWindow &source) const ))
   TEST_EQUAL(edit!=empty,true);
   
 	edit = empty;
-	edit.setMetaValue("label",String("label"));
+	edit.setMetaValue("label",StringUtils::toStr("label"));
 	TEST_EQUAL(edit!=empty,true);
 END_SECTION
 

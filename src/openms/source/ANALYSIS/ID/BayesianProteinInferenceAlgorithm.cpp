@@ -58,8 +58,8 @@ namespace OpenMS
         if (debug_lvl_ > 1)
         {
           // we do not need information about file and line so use LOG_INFO instead
-          OPENMS_LOG_INFO << "Running cc " << String(idx) << "...\n";
-          OPENMS_LOG_INFO << "CC " << String(idx) << " has " << String(nrEdges) << " edges.\n";
+          OPENMS_LOG_INFO << "Running cc " << StringUtils::toStr(idx) << "...\n";
+          OPENMS_LOG_INFO << "CC " << StringUtils::toStr(idx) << " has " << StringUtils::toStr(nrEdges) << " edges.\n";
         }
 
         bool graph_mp_ownership_acquired = false;
@@ -260,7 +260,7 @@ namespace OpenMS
           if (debug_lvl_ > 1)
           {
             // we do not need information about file and line so use LOG_INFO instead
-            OPENMS_LOG_INFO << "Finished cc " << String(idx) << "after " << String(nrMessagesNeeded) << " messages\n";
+            OPENMS_LOG_INFO << "Finished cc " << StringUtils::toStr(idx) << "after " << StringUtils::toStr(nrMessagesNeeded) << " messages\n";
           }
 
           //TODO we could write out/save the posteriors here,
@@ -288,8 +288,8 @@ namespace OpenMS
                 param_.getValue("model_parameters:pep_emission").toString() + "_b" + 
                 param_.getValue("model_parameters:pep_spurious_emission").toString() + "_g" +
                 param_.getValue("model_parameters:prot_prior").toString() + "_c" +
-                param_.getValue("model_parameters:pep_prior").toString() + "_p" + String(pnorm) + "_"
-                + String(idx) + ".dot"
+                param_.getValue("model_parameters:pep_prior").toString() + "_p" + StringUtils::toStr(pnorm) + "_"
+                + StringUtils::toStr(idx) + ".dot"
                 , std::ofstream::out);
             IDBoostGraph::printGraph(ofs, fg);
             //TODO print graph with peptide probabilities to see which evidences cause problems with which params
@@ -693,12 +693,12 @@ namespace OpenMS
     // emergency posteriors?
     //TODO test performance of getting the probability cutoff every time vs capture free lambda
     double probability_cutoff = param_.getValue("psm_probability_cutoff");
-    checkConvertAndFilterPepHits_ = [probability_cutoff](PeptideIdentification &pep_id/*, const String& run_id*/)
+    checkConvertAndFilterPepHits_ = [probability_cutoff](PeptideIdentification &pep_id/*, const std::string& run_id*/)
     {
       //if (pep_id.getIdentifier() == run_id)
       //{
-      String score_l = pep_id.getScoreType();
-      score_l = score_l.toLower();
+      std::string score_l = pep_id.getScoreType();
+      score_l = StringUtils::toLower(score_l);
       if (score_l == "pep" || score_l == "posterior error probability" || score_l == "ms:1001493")
       {
         for (auto &pep_hit : pep_id.getHits())
@@ -822,7 +822,7 @@ namespace OpenMS
     // NOTE: this would in theory not be necessary if we calculate the FDR based on
     // the graph only (because then only the used proteins are in the graph).
     // But FDR on the ProteinID data structure should be faster.
-    std::map<String, vector<ProteinHit>> unassigned{};
+    std::map<std::string, vector<ProteinHit>> unassigned{};
     if (!use_unannotated_ids)
     {
       unassigned = IDFilter::extractUnassignedProteins(cmap);

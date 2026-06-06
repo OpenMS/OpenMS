@@ -98,7 +98,7 @@ public:
             other.overall_quality_l,
             other.overall_quality_u
           );
-        auto compare_maps = [](std::pair<String, std::pair<double, double>> lhs, std::pair<String, std::pair<double, double>> rhs) {return (lhs.first == rhs.first && lhs.second.first == rhs.second.first && lhs.second.second == rhs.second.second); };
+        auto compare_maps = [](std::pair<std::string, std::pair<double, double>> lhs, std::pair<std::string, std::pair<double, double>> rhs) {return (lhs.first == rhs.first && lhs.second.first == rhs.second.first && lhs.second.second == rhs.second.second); };
         bool meta_values_eq = std::equal(meta_value_qc.begin(), meta_value_qc.end(), other.meta_value_qc.begin(), compare_maps);
         return members_eq && meta_values_eq;
       }
@@ -108,7 +108,7 @@ public:
       }
 
       /// name of the component
-      String component_name;
+      std::string component_name;
 
       // Feature members
       /// retention time lower bound
@@ -125,7 +125,7 @@ public:
       double overall_quality_u { 1e12 };
 
       /// Feature MetaValues
-      std::map<String,std::pair<double,double>> meta_value_qc;
+      std::map<std::string,std::pair<double,double>> meta_value_qc;
 
     };
 
@@ -190,7 +190,7 @@ public:
             other.ion_ratio_u,
             other.ion_ratio_feature_name
           );
-        auto compare_maps = [](std::pair<String, std::pair<double, double>> lhs, std::pair<String, std::pair<double, double>> rhs) {return (lhs.first == rhs.first && lhs.second.first == rhs.second.first && lhs.second.second == rhs.second.second); };
+        auto compare_maps = [](std::pair<std::string, std::pair<double, double>> lhs, std::pair<std::string, std::pair<double, double>> rhs) {return (lhs.first == rhs.first && lhs.second.first == rhs.second.first && lhs.second.second == rhs.second.second); };
         bool meta_values_eq = std::equal(meta_value_qc.begin(), meta_value_qc.end(), other.meta_value_qc.begin(), compare_maps);
         return members_eq && meta_values_eq;
       }
@@ -199,7 +199,7 @@ public:
         return !(*this == other);
       }
       /// name of the component group
-      String component_group_name;
+      std::string component_group_name;
 
       /// retention time lower bound
       double retention_time_l { 0.0 };
@@ -231,12 +231,12 @@ public:
       Int n_transitions_u { 100 };
 
       // Ion Ratio QCs
-      String ion_ratio_pair_name_1;
-      String ion_ratio_pair_name_2;
+      std::string ion_ratio_pair_name_1;
+      std::string ion_ratio_pair_name_2;
       double ion_ratio_l { 0.0 };
       double ion_ratio_u { 1e12 };
-      String ion_ratio_feature_name;
-      std::map<String,std::pair<double,double>> meta_value_qc;
+      std::string ion_ratio_feature_name;
+      std::map<std::string,std::pair<double,double>> meta_value_qc;
 
     };
 
@@ -251,9 +251,9 @@ public:
     {
 
       /// name of the component
-      String component_group_name;
+      std::string component_group_name;
       /// name of the component to calculate the resolution or retention time
-      String resolution_pair_name;
+      std::string resolution_pair_name;
       /// resolution lower bound
       double resolution_l;
       /// resolution upper bound

@@ -68,7 +68,7 @@ START_SECTION((void load(const std::string &fname)))
 {
   TEST_EXCEPTION(Exception::IOException ,parser->load(""))
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
 
   // just create the file

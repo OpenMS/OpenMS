@@ -113,7 +113,7 @@ START_SECTION((bool remove(double position)))
 	mg.insert(25,Qt::green);
 	mg.insert(50,Qt::red);
 	mg.insert(75,Qt::blue);
-	mg.remove(50);
+	StringUtils::remove(mg, 50);
 	TEST_EQUAL(mg.size(),4);
 	TEST_EQUAL(mg.position(0),0);
 	TEST_EQUAL(mg.position(1),25);
@@ -123,7 +123,7 @@ START_SECTION((bool remove(double position)))
 	TEST_EQUAL(mg.color(1)==Qt::green,true);
 	TEST_EQUAL(mg.color(2)==Qt::blue,true);
 	TEST_EQUAL(mg.color(3)==Qt::black,true);
-	mg.remove(25);
+	StringUtils::remove(mg, 25);
 	TEST_EQUAL(mg.size(),3);
 	TEST_EQUAL(mg.position(0),0);
 	TEST_EQUAL(mg.position(1),75);
@@ -131,7 +131,7 @@ START_SECTION((bool remove(double position)))
 	TEST_EQUAL(mg.color(0)==Qt::white,true);
 	TEST_EQUAL(mg.color(1)==Qt::blue,true);
 	TEST_EQUAL(mg.color(2)==Qt::black,true);
-	mg.remove(75);
+	StringUtils::remove(mg, 75);
 	TEST_EQUAL(mg.size(),2);
 	TEST_EQUAL(mg.position(0),0);
 	TEST_EQUAL(mg.position(1),100);

@@ -27,7 +27,7 @@ namespace OpenMS
   This class generates the same peak types as TheoreticalSpectrumGeneratorXLMS
   and the interface is very similar, but it is simpler and faster.
   SimplePeak only contains an mz value and a charge. No intensity values
-  or String annotations or other additional DataArrays are generated.
+  or std::string annotations or other additional DataArrays are generated.
 
   @htmlinclude OpenMS_SimpleTSGXLMS.parameters
 
@@ -269,7 +269,7 @@ namespace OpenMS
       double pre_int_NH3_;
       bool add_k_linked_ions_;
 
-      std::map< String, LossIndex > loss_db_;
+      std::map< std::string, LossIndex > loss_db_;
       double loss_H2O_ = 0;
       double loss_NH3_ = 0;
   };
