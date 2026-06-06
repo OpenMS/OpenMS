@@ -309,12 +309,21 @@ END_SECTION
 START_SECTION((void loadExperiment(const std::string& filename, PeakMap& exp) imzML))
   FileHandler fh_imz;
   PeakMap exp_imz;
-  fh_imz.loadExperiment(OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML"), exp_imz);
+  const String imzml_path = OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML");
+  fh_imz.loadExperiment(imzml_path, exp_imz);
   TEST_EQUAL(exp_imz.getNrSpectra() > 0, true)
   if (exp_imz.getNrSpectra() > 0)
   {
     TEST_EQUAL(exp_imz[0].size() > 0, true)
   }
+
+  PeakMap exp_imz_hash;
+  fh_imz.loadExperiment(imzml_path, exp_imz_hash, {}, ProgressLogger::NONE, true, true);
+  TEST_NOT_EQUAL(exp_imz_hash.getSourceFiles().empty(), true)
+  TEST_NOT_EQUAL(exp_imz_hash.getSourceFiles()[0].getChecksum().empty(), true)
+  TEST_EQUAL(exp_imz_hash.getSourceFiles()[0].getChecksumType(), SourceFile::ChecksumType::SHA1)
+  TEST_NOT_EQUAL(exp_imz_hash.getSourceFiles()[0].getChecksum(), FileHandler::computeFileHash(imzml_path))
+  TEST_STRING_EQUAL(exp_imz_hash.getSourceFiles()[0].getChecksum(), "10abcfdbd4a29975fc7cf850885faa5d65183266")
 END_SECTION
 
 START_SECTION((void storeExperiment(const std::string &filename, const MSExperiment<>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))

@@ -157,6 +157,59 @@ namespace OpenMS
         std::memcpy(digest, h, sizeof(h));
       }
     };
+
+    String sha1ToHexString_(const uint32_t digest[5])
+    {
+      std::ostringstream result;
+      for (int i = 0; i < 5; ++i)
+      {
+        result << std::hex << std::setfill('0') << std::setw(8) << digest[i];
+      }
+      return result.str();
+    }
+
+    bool appendFileToSha1_(SHA1& sha, const String& filename)
+    {
+      std::ifstream file{std::filesystem::path{std::string(filename)}, std::ios::binary};
+      if (!file.is_open())
+      {
+        return false;
+      }
+      char buffer[8192];
+      while (file.read(buffer, sizeof(buffer)) || file.gcount() > 0)
+      {
+        sha.update(buffer, static_cast<std::size_t>(file.gcount()));
+      }
+      return true;
+    }
+
+    String inferImzMLIbdPath_(const String& imzml_path)
+    {
+      String p = imzml_path;
+      String lower = p;
+      lower.toLower();
+      if (lower.hasSuffix(".imzml"))
+      {
+        return p.substr(0, p.size() - 6) + ".ibd";
+      }
+      return p + ".ibd";
+    }
+
+    String computeImzMLDatasetHash_(const String& imzml_path)
+    {
+      SHA1 sha;
+      if (!appendFileToSha1_(sha, imzml_path))
+      {
+        return "";
+      }
+      if (!appendFileToSha1_(sha, inferImzMLIbdPath_(imzml_path)))
+      {
+        return "";
+      }
+      uint32_t digest[5];
+      sha.finalize(digest);
+      return sha1ToHexString_(digest);
+    }
   } // anonymous namespace
 
   std::string allowedToString_(vector<FileTypes::Type> types)
@@ -796,26 +849,14 @@ namespace OpenMS
 
   std::string FileHandler::computeFileHash(const std::string& filename)
   {
-    std::ifstream file{std::filesystem::path{std::string(filename)}, std::ios::binary};
-    if (!file.is_open())
+    SHA1 sha;
+    if (!appendFileToSha1_(sha, filename))
     {
       return "";
     }
-    SHA1 sha;
-    char buffer[8192];
-    while (file.read(buffer, sizeof(buffer)) || file.gcount() > 0)
-    {
-      sha.update(buffer, static_cast<std::size_t>(file.gcount()));
-    }
     uint32_t digest[5];
     sha.finalize(digest);
-
-    std::ostringstream result;
-    for (int i = 0; i < 5; ++i)
-    {
-      result << std::hex << std::setfill('0') << std::setw(8) << digest[i];
-    }
-    return result.str();
+    return sha1ToHexString_(digest);
   }
 
   void FileHandler::loadSpectrum(const std::string& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types)
@@ -1084,7 +1125,14 @@ namespace OpenMS
 
       if (compute_hash && type != FileTypes::BRUKER_TDF)
       {
-        src_file.setChecksum(computeFileHash(filename), SourceFile::ChecksumType::SHA1);
+        if (type == FileTypes::IMZML)
+        {
+          src_file.setChecksum(computeImzMLDatasetHash_(filename), SourceFile::ChecksumType::SHA1);
+        }
+        else
+        {
+          src_file.setChecksum(computeFileHash(filename), SourceFile::ChecksumType::SHA1);
+        }
       }
 
       exp.getSourceFiles().clear();
