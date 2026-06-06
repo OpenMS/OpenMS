@@ -1543,7 +1543,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000037"; ///< cv accession
         qp.id = base_name + "_misscleave"; ///< Identifier
-        qp.value = missedcleavages;
+        qp.value = StringUtils::toStr(missedcleavages);
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1560,7 +1560,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000032"; ///< cv accession
         qp.id = base_name + "_totprot"; ///< Identifier
-        qp.value = protein_hit_count;
+        qp.value = StringUtils::toStr(protein_hit_count);
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1859,7 +1859,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000058"; ///< cv accession
         qp.id = base_name + "_idfeature_count"; ///< Identifier
-        qp.value = ided;
+        qp.value = StringUtils::toStr(ided);
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);

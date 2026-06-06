@@ -119,6 +119,17 @@ public:
     /**
       @brief conversion operator to string
 
+      @warning This cast is STRICT: it only succeeds for a STRING_VALUE and throws
+      Exception::ConversionError for any other type (Int, Double, StringList, Empty).
+      This differs from the removed @c String(const DataValue&) constructor, which was
+      LENIENT (it stringified numbers, lists and EMPTY without throwing). Code that used
+      to write @c String s = dv; (or @c String s = obj.getMetaValue(k);) must NOT be
+      ported to @c std::string s = dv; / @c (std::string)dv — that reintroduces the strict
+      cast and will throw at runtime as soon as the value is not a plain string.
+      To reproduce the old lenient behaviour use @c StringUtils::toStr(dv) (see StringUtils.h),
+      which never throws and is a no-op for genuine strings. See the "Class B" note in
+      StringUtils.h::toStr(const DataValue&).
+
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
     operator std::string() const;

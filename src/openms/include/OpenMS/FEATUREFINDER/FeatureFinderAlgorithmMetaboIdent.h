@@ -210,8 +210,8 @@ protected:
   {
     bool operator()(const Feature& f1, const Feature& f2)
     {
-      const std::string& ref1 = (std::string)f1.getMetaValue("PeptideRef");
-      const std::string& ref2 = (std::string)f2.getMetaValue("PeptideRef");
+      const std::string ref1 = StringUtils::toStr(f1.getMetaValue("PeptideRef"));
+      const std::string ref2 = StringUtils::toStr(f2.getMetaValue("PeptideRef"));
       if (ref1 == ref2)
       {
         return f1.getRT() < f2.getRT();

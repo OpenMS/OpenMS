@@ -4878,7 +4878,7 @@ static void scoreXLIons_(
               for (Size ix : result_indices)
               {
                 auto f = kdtree.feature(ix);
-                const std::string other_native_id = f->getMetaValue("native_id");
+                const std::string other_native_id = StringUtils::toStr(f->getMetaValue("native_id"));
 
                 // skip self-comparison and already identified spectra
                 if (this_native_id == other_native_id || skip_peptide_spectrum.contains(other_native_id)) continue;

@@ -301,10 +301,30 @@ namespace OpenMS
     inline std::string toStr(const char* s)
     { return std::string(s); }
 
-    /// DataValue to string (non-inline; defined in StringUtils.cpp)
+    /**
+      @brief DataValue to string — the LENIENT stringification (non-inline; defined in StringUtils.cpp).
+
+      "Class B" gotcha of the OpenMS::String -> std::string migration (PR 9450):
+      this is the drop-in replacement for the removed lenient @c String(const DataValue&)
+      constructor. It calls @c DataValue::toString() and therefore NEVER throws: numbers
+      become their decimal text, lists are joined, EMPTY becomes "", and a genuine STRING
+      is returned verbatim (a true no-op).
+
+      Prefer this over the bare cast whenever you stringify a DataValue or a getMetaValue()
+      result, because @c DataValue::operator std::string() is STRICT and throws
+      Exception::ConversionError for non-string values:
+      @code
+        // WRONG: throws at runtime if "foo" is ever Int/Double/List/Empty
+        std::string s = mi.getMetaValue("foo");
+        std::string s = (std::string)dv;
+        // RIGHT: lenient, matches the pre-migration String(DataValue) behaviour
+        std::string s = StringUtils::toStr(mi.getMetaValue("foo"));
+        std::string s = StringUtils::toStr(dv);
+      @endcode
+    */
     OPENMS_DLLAPI std::string toStr(const DataValue& d, bool full_precision = true);
 
-    /// ParamValue to string (non-inline; defined in StringUtils.cpp)
+    /// ParamValue to string — lenient, like toStr(const DataValue&) (non-inline; defined in StringUtils.cpp)
     OPENMS_DLLAPI std::string toStr(const ParamValue& p, bool full_precision = true);
 
 

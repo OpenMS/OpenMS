@@ -244,18 +244,18 @@ namespace OpenMS
 
         switch (c)
         {
-          case '[': return {TokenType::LBRACKET, StringUtils::substr(input_, start, 1), start};
-          case ']': return {TokenType::RBRACKET, StringUtils::substr(input_, start, 1), start};
-          case '{': return {TokenType::LBRACE, StringUtils::substr(input_, start, 1), start};
-          case '}': return {TokenType::RBRACE, StringUtils::substr(input_, start, 1), start};
-          case '+': return {TokenType::PLUS, StringUtils::substr(input_, start, 1), start};
-          case '-': return {TokenType::MINUS, StringUtils::substr(input_, start, 1), start};
-          case '^': return {TokenType::CARET, StringUtils::substr(input_, start, 1), start};
-          case '/': return {TokenType::SLASH, StringUtils::substr(input_, start, 1), start};
-          case '*': return {TokenType::ASTERISK, StringUtils::substr(input_, start, 1), start};
-          case ':': return {TokenType::COLON, StringUtils::substr(input_, start, 1), start};
-          case ',': return {TokenType::COMMA, StringUtils::substr(input_, start, 1), start};
-          case '@': return {TokenType::AT, StringUtils::substr(input_, start, 1), start};
+          case '[': return {TokenType::LBRACKET, input_.substr(start, 1), start};
+          case ']': return {TokenType::RBRACKET, input_.substr(start, 1), start};
+          case '{': return {TokenType::LBRACE, input_.substr(start, 1), start};
+          case '}': return {TokenType::RBRACE, input_.substr(start, 1), start};
+          case '+': return {TokenType::PLUS, input_.substr(start, 1), start};
+          case '-': return {TokenType::MINUS, input_.substr(start, 1), start};
+          case '^': return {TokenType::CARET, input_.substr(start, 1), start};
+          case '/': return {TokenType::SLASH, input_.substr(start, 1), start};
+          case '*': return {TokenType::ASTERISK, input_.substr(start, 1), start};
+          case ':': return {TokenType::COLON, input_.substr(start, 1), start};
+          case ',': return {TokenType::COMMA, input_.substr(start, 1), start};
+          case '@': return {TokenType::AT, input_.substr(start, 1), start};
           default:
             if (std::isdigit(c))
             {
@@ -265,7 +265,7 @@ namespace OpenMS
             {
               return scanIdentifier_(start);
             }
-            return {TokenType::IDENTIFIER, StringUtils::substr(input_, start, 1), start};
+            return {TokenType::IDENTIFIER, input_.substr(start, 1), start};
         }
       }
 
@@ -306,7 +306,7 @@ namespace OpenMS
             advance_();
           }
         }
-        return {TokenType::NUMBER, StringUtils::substr(input_, start, pos_ - start), start};
+        return {TokenType::NUMBER, input_.substr(start, pos_ - start), start};
       }
 
       Token scanIdentifier_(size_t start)
@@ -315,7 +315,7 @@ namespace OpenMS
         {
           advance_();
         }
-        return {TokenType::IDENTIFIER, StringUtils::substr(input_, start, pos_ - start), start};
+        return {TokenType::IDENTIFIER, input_.substr(start, pos_ - start), start};
       }
 
       std::string_view input_;

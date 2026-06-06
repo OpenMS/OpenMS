@@ -117,7 +117,7 @@ private:
     /// name of ini-file
     QString filename_;
     /// Mapping of file extension to layer type to determine the type of a tool
-    std::map<std::string, LayerDataBase::DataType> tool_map_;
+    std::map<FileTypes::Type, LayerDataBase::DataType> tool_map_;
     /// Pointer to the tool scanner for access to the plugins and to rerun the plugins detection
     TVToolDiscovery * tool_scanner_;
     /// The layer type of the current layer to determine all usable plugins

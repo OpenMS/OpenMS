@@ -840,7 +840,7 @@ namespace OpenMS
          ++it)
     {
       // features from same assay (same "PeptideRef") appear consecutively:
-      std::string ref = it->getMetaValue("PeptideRef");
+      std::string ref = StringUtils::toStr(it->getMetaValue("PeptideRef"));
       if (ref != previous_ref) // new assay
       {
         previous_ref = ref;

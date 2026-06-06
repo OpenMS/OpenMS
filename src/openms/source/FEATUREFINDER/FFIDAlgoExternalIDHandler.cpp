@@ -537,7 +537,7 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample_(const std::multimap<double, s
     {
       // features from same assay (same "PeptideRef") appear consecutively;
       // if this is a new assay, finalize the previous one:
-      std::string peptide_ref = it->getMetaValue("PeptideRef");
+      std::string peptide_ref = StringUtils::toStr(it->getMetaValue("PeptideRef"));
       // remove region number, if present:
       Size pos_slash = peptide_ref.rfind('/');
       Size pos_colon = peptide_ref.find(':', pos_slash + 2);

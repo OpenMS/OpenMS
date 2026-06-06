@@ -300,7 +300,7 @@ namespace OpenMS
               os << "##fmz " << StringUtils::toStr(feature_mz) << "\n";
               os << "##fid " << StringUtils::toStr(feature_id) << "\n";
               cmpinfo.fmz = feature_mz;
-              cmpinfo.fid = feature_id;
+              cmpinfo.fid = StringUtils::toStr(feature_id);
             }
             os << "##des " << StringUtils::toStr(des_wo_space) << "\n";
             os << "##specref_format " << "[MS, " << ainfo.native_id_accession <<", "<< ainfo.native_id_type << "]" << endl;

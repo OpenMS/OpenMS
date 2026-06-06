@@ -1316,7 +1316,7 @@ namespace OpenMS
 
             double mz = rt_pep.second->getMZ();
             double rt = rt_pep.second->getRT();
-            std::string uid = rt_pep.second->getMetaValue("SeedFeatureID");
+            std::string uid = StringUtils::toStr(rt_pep.second->getMetaValue("SeedFeatureID"));
 
             // UID should be enough, but let's add the seed count to be sure.
             std::string peptide_id = peptide.sequence + "[" + uid + "][" + StringUtils::toStr(seedcount) + "]/" + StringUtils::toStr(charge);

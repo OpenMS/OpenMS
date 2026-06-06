@@ -3047,7 +3047,7 @@ Returns the comment (default "")
         R"doc(
 Range container for a single MS level holding m/z, intensity, RT, and mobility ranges.
 
-Returned by :meth:`SpectrumRangeManager.byMSLevel` to provide per-MS-level range queries.
+Returned by ``SpectrumRangeManager.byMSLevel`` to provide per-MS-level range queries.
 )doc")
         .def("getMinRT", [](const OpenMS::SpectrumRangeManager::BaseType& self) { return self.getMinRT(); }, "Get the minimum RT value")
         .def("getMaxRT", [](const OpenMS::SpectrumRangeManager::BaseType& self) { return self.getMaxRT(); }, "Get the maximum RT value")

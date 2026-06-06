@@ -827,7 +827,7 @@ namespace OpenMS
     {
       if (last_meta_->metaValueExists("EnzymeTermSpecificity"))
       {
-        std::string spec = last_meta_->getMetaValue("EnzymeTermSpecificity");
+        std::string spec = StringUtils::toStr(last_meta_->getMetaValue("EnzymeTermSpecificity"));
         if (spec != "unknown")
         {
           param_.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(EnzymaticDigestion::getSpecificityByName(spec));

@@ -112,7 +112,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
                      std::vector<std::string> &meta_value_names, int run_id, bool short_format, std::string identifier, std::string filename)
 {
 
-  std::string peptide_ref = feature_it->getMetaValue("PeptideRef");
+  std::string peptide_ref = StringUtils::toStr(feature_it->getMetaValue("PeptideRef"));
   std::string precursor_mz = StringUtils::toStr(feature_it->getMetaValue("PrecursorMZ"));
 
   std::string sequence;
@@ -249,7 +249,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
         aggr_Peak_Apex += "NA;";
       }
 
-      aggr_Fragment_Annotation += (std::string)sub.getMetaValue("native_id") + ";";
+      aggr_Fragment_Annotation += StringUtils::toStr(sub.getMetaValue("native_id")) + ";";
     }
 
     // remove the last semicolon
@@ -271,7 +271,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
       {
         apex =StringUtils::toStr((double)sub.getMetaValue("peak_apex_int"));
       }
-      os << line << meta_values << StringUtils::toStr(sub.getIntensity()) << "\t" << apex << "\t" << (std::string)sub.getMetaValue("native_id") << "\t" << StringUtils::toStr(sub.getMZ()) << std::endl;
+      os << line << meta_values << StringUtils::toStr(sub.getIntensity()) << "\t" << apex << "\t" << StringUtils::toStr(sub.getMetaValue("native_id")) << "\t" << StringUtils::toStr(sub.getMZ()) << std::endl;
     }
   }
 }
@@ -303,7 +303,7 @@ void write_out_body_best_score(std::ostream &os, FeatureMap &feature_map,
   PeptideFeatureMapType peptide_feature_map;
   for (Feature& feature : feature_map)
   {
-    std::string peptide_ref = feature.getMetaValue("PeptideRef");
+    std::string peptide_ref = StringUtils::toStr(feature.getMetaValue("PeptideRef"));
     peptide_feature_map[peptide_ref].push_back(&feature);
   }
 

@@ -361,7 +361,7 @@ START_SECTION((void writeProblem(const std::string &filename, const WriteFormat 
     TEST_EQUAL(lp2.getElement(2,0),3)
     TEST_EQUAL(lp2.getElement(2,1),2)
 #elif defined(OPENMS_HAS_HIGHS)
-    String tmp_filename;
+    std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
     tmp_filename += ".mps"; // HiGHS uses extension to determine format
     lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);

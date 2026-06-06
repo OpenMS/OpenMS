@@ -118,7 +118,7 @@ namespace OpenMS
           auto key = make_pair(r.fraction_group, r.label);
           auto it = fractiongroup_label_to_sample_mapping.emplace(key, fractiongroup_label_to_sample_mapping.size());
           r.sample = it.first->second;
-          r.sample_name = r.sample;
+          r.sample_name = StringUtils::toStr(r.sample);
         } else {
           r.sample_name = StringUtils::toStr(f.second.getMetaValue("sample_name"));
           [[maybe_unused]] const auto& [it, inserted] = samplename_to_sample_mapping.emplace(r.sample_name,samplename_to_sample_mapping.size());
