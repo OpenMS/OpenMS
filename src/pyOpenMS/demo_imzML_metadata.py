@@ -112,7 +112,7 @@ def print_dataset_metadata(label: str, imzml_path: str) -> None:
     print(f"  imaging_mode         {meta.imaging_mode}")
     print(f"  max_count_x/y/z      {meta.max_count_x} / {meta.max_count_y} / {meta.max_count_z}")
     print(f"  pixel_size_x/y (um)  {meta.pixel_size_x} / {meta.pixel_size_y}")
-    print(f"  max_dim_x/y (mm)     {meta.max_dim_x} / {meta.max_dim_y}")
+    print(f"  max_dim_x/y (um)     {meta.max_dim_x} / {meta.max_dim_y}")
     print(f"  uuid                 {_present(meta.uuid)}")
     print(f"  ibd_md5              {_present(meta.ibd_md5)}")
     print(f"  ibd_sha1             {_present(meta.ibd_sha1)}")
