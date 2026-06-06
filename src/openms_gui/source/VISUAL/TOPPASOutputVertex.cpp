@@ -61,7 +61,7 @@ namespace OpenMS
   std::string TOPPASOutputVertex::getFullOutputDirectory() const
   {
     TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-    auto dir = StringUtils::substitute(fromQString(ts->getOutDir()), "\\", "/").ensureLastChar('/') + getOutputDir();
+    auto dir = StringUtils::ensureLastChar(StringUtils::substituted(fromQString(ts->getOutDir()), "\\", "/"), '/') + getOutputDir();
     std::string clean_dir = fromQString(QDir::cleanPath(toQString(dir)));
     return StringUtils::ensureLastChar(StringUtils::substitute(clean_dir, "\\", "/"), '/');
   }

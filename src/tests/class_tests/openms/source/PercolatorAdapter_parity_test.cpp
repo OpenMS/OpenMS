@@ -46,7 +46,7 @@ namespace
 /// Composite key for 1:1 cross-run matching of adapter output hits.
 std::string rowKey(const PeptideIdentification& pid, const PeptideHit& hit)
 {
-  String sr = StringUtils::toStr(pid.getSpectrumReference());
+  std::string sr = StringUtils::toStr(pid.getSpectrumReference());
   if (sr.empty() && pid.metaValueExists("spectrum_id"))
   {
     sr = pid.getMetaValue("spectrum_id").toString();
@@ -159,8 +159,8 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
   }
   else
   {
-    const String percolator_bin = StringUtils::toStr(perc);
-    const String adapter_bin    = StringUtils::toStr(adap);
+    const std::string percolator_bin = StringUtils::toStr(perc);
+    const std::string adapter_bin    = StringUtils::toStr(adap);
     const std::string in_idxml =
       OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/CometAdapter_4_out.idXML");
 
@@ -201,7 +201,7 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
     TEST_EQUAL(sub_keys == inp_keys, true)
 
     // Same surviving hit set (symmetric difference = empty).
-    std::set<String> only_sub, only_inp;
+    std::set<std::string> only_sub, only_inp;
     for (const auto& kv : sub) if (!inp.count(kv.first)) only_sub.insert(kv.first);
     for (const auto& kv : inp) if (!sub.count(kv.first)) only_inp.insert(kv.first);
     TEST_EQUAL(only_sub.size(), 0)
@@ -265,7 +265,7 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
     // Accepted-target set equality at q in {0.01, 0.05, 0.10}.
     for (double thr : {0.01, 0.05, 0.10})
     {
-      std::set<String> acc_sub, acc_inp;
+      std::set<std::string> acc_sub, acc_inp;
       for (const auto& kv : inp)
       {
         if (kv.second.is_decoy) continue;

@@ -195,9 +195,9 @@ protected:
     }
 
     // Check for optional IM columns in header
-    bool has_im_columns = StringUtils::toStr(line).hasSubstring("IonMobility");
+    bool has_im_columns = StringUtils::hasSubstring(StringUtils::toStr(line), "IonMobility");
     // Check for optional Adduct column in header
-    bool has_adduct_column = StringUtils::toStr(line).hasSubstring("Adduct");
+    bool has_adduct_column = StringUtils::hasSubstring(StringUtils::toStr(line), "Adduct");
 
     Size line_count = 1;
     set<std::string> names;
@@ -237,7 +237,7 @@ protected:
       }
 
       // Parse optional Adduct column
-      String adduct;
+      std::string adduct;
       Size adduct_col = has_im_columns ? 8 : 7; // Adduct column position depends on IM column presence
       if (has_adduct_column && parts.size() > adduct_col)
       {

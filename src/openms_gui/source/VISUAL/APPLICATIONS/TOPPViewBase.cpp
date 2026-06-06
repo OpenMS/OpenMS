@@ -492,7 +492,7 @@ namespace OpenMS
     // Execute dialog and update parameter object with user modified values
     if (dlg.exec())
     {
-      StringUtils::remove(param_, user_section);
+      param_.remove(user_section);
       param_.insert(user_section, dlg.getParam());
       savePreferences();
     }
@@ -585,7 +585,7 @@ namespace OpenMS
         {
           std::string msg =StringUtils::toStr(diff) + " peptide identification(s) without"
                                       " sequence and/or retention time information were removed.\n" +
-                       peptides_with_rt.size() + " peptide identification(s) remaining.";
+                       StringUtils::toStr(peptides_with_rt.size()) + " peptide identification(s) remaining.";
           log_->appendNewHeader(LogWindow::LogState::WARNING, "While loading file:", msg);
         }
         if (peptides_with_rt.empty())
@@ -2173,7 +2173,7 @@ namespace OpenMS
       std::string unit = "ms";
       if (exp_sptr->getMSExperiment().metaValueExists("ion_mobility_unit"))
       {
-        unit = exp_sptr->getMSExperiment().getMetaValue("ion_mobility_unit");
+        unit = StringUtils::toStr(exp_sptr->getMSExperiment().getMetaValue("ion_mobility_unit"));
       }
       std::string label = "Ion Mobility [" + unit + "]";
 
@@ -2212,7 +2212,7 @@ namespace OpenMS
 
   Param TOPPViewBase::getCanvasParameters(UInt dim) const
   {
-    Param out = param_.copy(StringUtils::toStr(user_section + "") + dim + "d:", true);
+    Param out = param_.copy(StringUtils::toStr(user_section + "") + StringUtils::toStr(dim) + "d:", true);
     out.setValue("default_path", param_.getValue(user_section + "default_path").toString());
     return out;
   }

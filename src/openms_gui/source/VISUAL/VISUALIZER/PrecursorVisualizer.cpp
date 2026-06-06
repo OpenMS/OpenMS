@@ -81,12 +81,12 @@ namespace OpenMS
 
   void PrecursorVisualizer::store()
   {
-    StringUtils::toFloat(ptr_->setMZ(mz_->text()));
-    StringUtils::toFloat(ptr_->setIntensity(int_->text()));
-    StringUtils::toInt32(ptr_->setCharge(charge_->text()));
+    ptr_->setMZ(mz_->text().toFloat());
+    ptr_->setIntensity(int_->text().toFloat());
+    ptr_->setCharge(charge_->text().toInt());
 
-    StringUtils::toFloat(ptr_->setIsolationWindowLowerOffset(window_low_->text()));
-    StringUtils::toFloat(ptr_->setIsolationWindowUpperOffset(window_up_->text()));
+    ptr_->setIsolationWindowLowerOffset(window_low_->text().toFloat());
+    ptr_->setIsolationWindowUpperOffset(window_up_->text().toFloat());
 
     ptr_->getActivationMethods().clear();
     for (UInt i = 0; i < static_cast<UInt>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
@@ -96,7 +96,7 @@ namespace OpenMS
         ptr_->getActivationMethods().insert(Precursor::ActivationMethod(i));
       }
     }
-    StringUtils::toFloat(ptr_->setActivationEnergy(activation_energy_->text()));
+    ptr_->setActivationEnergy(activation_energy_->text().toFloat());
 
     temp_ = (*ptr_);
   }

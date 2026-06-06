@@ -227,7 +227,7 @@ START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelTo
     {
       // extract fraction group from file name
       int file(1); 
-      if (i.StringUtils::hasSubstring(first.first, "TR2")) { file = 2; }
+      if (StringUtils::hasSubstring(i.first.first, "TR2")) { file = 2; }
       TEST_EQUAL(i.second, file); 
     }
   }

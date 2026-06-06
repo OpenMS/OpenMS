@@ -161,9 +161,9 @@ namespace OpenMS
             // compare the absolute error absolute error
             if (abs(current_id_mz_error) < min_id_mz_error)
             {
-              description = (std::string)mhit.getMetaValue("description");
-              sumformula = (std::string)mhit.getMetaValue("chemical_formula");
-              adduct = (std::string)mhit.getMetaValue("modifications");
+              description = StringUtils::toStr(mhit.getMetaValue("description"));
+              sumformula = StringUtils::toStr(mhit.getMetaValue("chemical_formula"));
+              adduct = StringUtils::toStr(mhit.getMetaValue("modifications"));
 
               // change format of description [name] to name
               description.erase(remove_if(begin(description), end(description), [](char c) { return c == '[' || c == ']'; }), end(description));
@@ -470,8 +470,8 @@ namespace OpenMS
         double precursor_int = csp.compound_info.pint_mono;
 
         // use annotated metadata
-        sumformula = (std::string)transition_spectrum.getMetaValue("annotated_sumformula");
-        adduct = (std::string)transition_spectrum.getMetaValue("annotated_adduct");
+        sumformula = StringUtils::toStr(transition_spectrum.getMetaValue("annotated_sumformula"));
+        adduct = StringUtils::toStr(transition_spectrum.getMetaValue("annotated_adduct"));
         int decoy = (int)transition_spectrum.getMetaValue("decoy");
 
         // transition calculations

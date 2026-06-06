@@ -1175,7 +1175,7 @@ namespace OpenMS::Internal
           std::string pepseq;
           if (prec.metaValueExists("peptide_sequence"))
           {
-            pepseq = (std::string)prec.getMetaValue("peptide_sequence");
+            pepseq = StringUtils::toStr(prec.getMetaValue("peptide_sequence"));
             insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, " <<
                 "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, " <<
                 "ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 
@@ -1386,7 +1386,7 @@ namespace OpenMS::Internal
         std::string pepseq;
         if (prec.metaValueExists("peptide_sequence"))
         {
-          pepseq = (std::string)prec.getMetaValue("peptide_sequence");
+          pepseq = StringUtils::toStr(prec.getMetaValue("peptide_sequence"));
           insert_precursor_sql << "INSERT INTO PRECURSOR (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, " <<
             "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, " << 
             "ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 

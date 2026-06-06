@@ -615,7 +615,7 @@ protected:
       else
       {
         pair<StringList, double>& group = leader_to_group[q.first];
-        out << ListUtils::concatenate(group.first, '/') << group.first.size()
+        out << ListUtils::concatenate(group.first, "/") << group.first.size()
             << group.second;
       }
       Size n_peptide = q.second.peptide_abundances.size();
@@ -771,9 +771,9 @@ protected:
       for (const auto& e : ms_section)
       {
         std::string ed_filename = File::stemName(e.path);
-        std::string ed_label = e.label;
-        std::string ed_sample = e.sample;
-        sample_id_to_filename[e.sample] = ed_filename; // should be 0,...,n_samples-1
+        std::string ed_label = StringUtils::toStr(e.label);
+        std::string ed_sample = StringUtils::toStr(e.sample);
+        sample_id_to_filename[StringUtils::toStr(e.sample)] = ed_filename; // should be 0,...,n_samples-1
       }
 
       for (Size i = 0; i < ed.getNumberOfSamples(); ++i)

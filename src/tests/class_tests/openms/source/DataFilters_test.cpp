@@ -161,7 +161,7 @@ START_SECTION((const DataFilter& operator[](Size index) const ))
 	TEST_EXCEPTION(Exception::IndexOverflow, filters[3])
 	filters.add(filter_1);
 	TEST_EQUAL(filters[0] == filters[3], true)
-	StringUtils::remove(filters, 3);
+	filters.remove(3);
 	
 END_SECTION
 
@@ -177,9 +177,9 @@ START_SECTION((Size size() const))
 	filters.add(filter_8);
 	filters.add(filter_9);
 	TEST_EQUAL(filters.size(), 9)
-	StringUtils::remove(filters, 0);
+	filters.remove(0);
 	TEST_EQUAL(filters.size(), 8)
-	StringUtils::remove(filters, 0);
+	filters.remove(0);
 	TEST_EQUAL(filters.size(), 7)
 
 END_SECTION
@@ -187,10 +187,10 @@ END_SECTION
 
 START_SECTION((void remove(Size index)))
 
-	TEST_EXCEPTION(Exception::IndexOverflow, StringUtils::remove(filters, 7))
-	StringUtils::remove(filters, 0);
+	TEST_EXCEPTION(Exception::IndexOverflow, filters.remove(7))
+	filters.remove(0);
 	TEST_EQUAL(filters[0] == filter_4, true)
-	StringUtils::remove(filters, 0);
+	filters.remove(0);
 	TEST_EQUAL(filters[0] == filter_5, true)
 	
 END_SECTION
@@ -304,7 +304,7 @@ START_SECTION((template < class PeakType > bool passes(const MSSpectrum &spectru
 	TEST_EQUAL(filters.passes(spec,1), false) // 2008.2
 	TEST_EQUAL(filters.passes(spec,2), false) // 0.001
 	
-	StringUtils::remove(filters, 0); // "Intensity >= 1000"
+	filters.remove(0); // "Intensity >= 1000"
 	TEST_EQUAL(filters.passes(spec,0), false) // 201.334
 	TEST_EQUAL(filters.passes(spec,1), true) // 2008.2
 	TEST_EQUAL(filters.passes(spec,2), false) // 0.001
@@ -350,7 +350,7 @@ START_SECTION((bool passes(const Feature& feature) const))
 	TEST_EQUAL(filters.passes(feature_2), false) // Quality = 0.002; Charge = 3
 	TEST_EQUAL(filters.passes(feature_3), true) // Quality = 1; Charge = 4
 	
-	StringUtils::remove(filters, 0); // "Quality <= 1.0"
+	filters.remove(0); // "Quality <= 1.0"
 	TEST_EQUAL(filters.passes(feature_1), false) // Quality = 31.3334
 	TEST_EQUAL(filters.passes(feature_2), true) // Quality = 0.002
 	TEST_EQUAL(filters.passes(feature_3), true) // Quality = 1
@@ -393,7 +393,7 @@ START_SECTION((bool passes(const ConsensusFeature& consensus_feature) const))
 	TEST_EQUAL(filters.passes(c_feature_2), false) // Quality = 0.002; Charge = 3
 	TEST_EQUAL(filters.passes(c_feature_3), true) // Quality = 1; Charge = 4
 	
-	StringUtils::remove(filters, 0); // "Quality <= 1.0"
+	filters.remove(0); // "Quality <= 1.0"
 	TEST_EQUAL(filters.passes(c_feature_1), false) // Quality = 31.3334
 	TEST_EQUAL(filters.passes(c_feature_2), true) // Quality = 0.002
 	TEST_EQUAL(filters.passes(c_feature_3), true) // Quality = 1

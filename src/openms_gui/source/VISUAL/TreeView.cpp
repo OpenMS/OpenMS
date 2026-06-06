@@ -68,7 +68,7 @@ namespace OpenMS
       if (hset.contains(header->text(i)))
       {
         setColumnHidden(i, true);
-        StringUtils::remove(hset, header->text(i));
+        hset.remove(header->text(i));
       }
     }
     if (!hset.empty())

@@ -74,7 +74,7 @@ namespace OpenMS
         }
       }
       vector<std::string> split;
-      StringUtils::split(line, ', ', split);
+      StringUtils::split(line, ',', split);
       if (split.size() != 14 && split.size() != 14 + offset)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "number of columns should be 14 in line " + StringUtils::toStr(line_number));

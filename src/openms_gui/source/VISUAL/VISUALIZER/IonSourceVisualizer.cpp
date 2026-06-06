@@ -59,7 +59,7 @@ namespace OpenMS
 
   void IonSourceVisualizer::store()
   {
-    StringUtils::toInt32(ptr_->setOrder(order_->text()));
+    ptr_->setOrder(order_->text().toInt());
     ptr_->setInletType((IonSource::InletType)inlet_type_->currentIndex());
     ptr_->setIonizationMethod((IonSource::IonizationMethod)ionization_method_->currentIndex());
     ptr_->setPolarity((IonSource::Polarity)polarity_->currentIndex());

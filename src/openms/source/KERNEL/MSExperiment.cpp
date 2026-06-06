@@ -958,7 +958,7 @@ namespace OpenMS
       const auto precursor = iterator->getPrecursors()[0];
       if (precursor.metaValueExists("spectrum_ref"))
       {
-        std::string ref = (std::string)(std::string)precursor.getMetaValue("spectrum_ref");
+        std::string ref = StringUtils::toStr(precursor.getMetaValue("spectrum_ref"));
         auto tmp_spec_iter = iterator; // such that we can reiterate later
         do
         {
@@ -1034,7 +1034,7 @@ namespace OpenMS
 
         // check if it has the parent a precursor
         const auto precursor = it->getPrecursors()[0];
-        std::string ref = (std::string)(std::string)precursor.getMetaValue("spectrum_ref", "");  
+        std::string ref = StringUtils::toStr(precursor.getMetaValue("spectrum_ref", ""));  
         if (!ref.empty() && ref == parent_native_id)
         {
           return it;

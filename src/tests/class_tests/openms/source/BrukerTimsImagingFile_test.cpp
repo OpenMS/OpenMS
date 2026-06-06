@@ -27,15 +27,15 @@ namespace
   // Each row in @p xyz_rows is (frame, x, y, z); pass z<0 to omit the
   // ZIndexPos column from the schema entirely.
   std::string createFakeD(const std::string& parent,
-                     const String& name,
-                     const String& maldi_application_type,
+                     const std::string& name,
+                     const std::string& maldi_application_type,
                      const std::vector<std::tuple<int,int,int,int>>& xyz_rows,
                      bool with_z_column = false,
-                     const String& spot_size_um = "")
+                     const std::string& spot_size_um = "")
   {
-    const String d_path = parent + "/" + name + ".d";
+    const std::string d_path = parent + "/" + name + ".d";
     std::filesystem::create_directories(d_path.c_str());
-    const String tdf_path = d_path + "/analysis.tdf";
+    const std::string tdf_path = d_path + "/analysis.tdf";
 
     SqliteConnector conn(tdf_path, SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
 
@@ -65,7 +65,7 @@ namespace
       const int x     = std::get<1>(r);
       const int y     = std::get<2>(r);
       const int z     = std::get<3>(r);
-      String sql = "INSERT INTO MaldiFrameInfo VALUES (" + StringUtils::toStr(frame) + ", "
+      std::string sql = "INSERT INTO MaldiFrameInfo VALUES (" + StringUtils::toStr(frame) + ", "
                    + StringUtils::toStr(x) + ", " + StringUtils::toStr(y);
       if (with_z_column) { sql += ", " + StringUtils::toStr(z); }
       sql += ");";

@@ -104,8 +104,8 @@ protected:
     bool do_sort = getFlag_("sort");
 
     // This is for debugging the parsing of whitelist_ from cmdline or ini file.  Converting StringList back to std::string is intentional.
-    writeDebug_(StringUtils::toStr("whitelist: ") + StringUtils::toStr(whitelist) + " (size: " + whitelist.size() + ")", 1);
-    writeDebug_(StringUtils::toStr("matched_whitelist: ") + StringUtils::toStr(raw_matched_whitelist) + " (size: " + raw_matched_whitelist.size() + ")", 1);
+    writeDebug_(StringUtils::toStr("whitelist: ") + ListUtils::concatenate(whitelist, ", ") + " (size: " + whitelist.size() + ")", 1);
+    writeDebug_(StringUtils::toStr("matched_whitelist: ") + ListUtils::concatenate(raw_matched_whitelist, ", ") + " (size: " + raw_matched_whitelist.size() + ")", 1);
 
     OpenMS::FuzzyStringComparator fsc;
 

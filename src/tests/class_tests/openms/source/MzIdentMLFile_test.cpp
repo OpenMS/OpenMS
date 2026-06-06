@@ -524,7 +524,7 @@ START_SECTION(([EXTRA] mzIdentML 1.3 crosslinking scores_and_thresholds))
   TEST_EQUAL(total_hits > 0, true)
 
   // store/load roundtrip: the writer must default to mzIdentML 1.3.0 and the reader must read it back without loss
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
 
@@ -597,7 +597,7 @@ START_SECTION(([EXTRA] mzIdentML 1.3 multiple spectra per identification))
   TEST_EQUAL(!peptide_ids.empty(), true)
 
   // multiple SpectrumIdentificationLists yield several distinct spectrum references
-  set<String> refs;
+  set<std::string> refs;
   for (const PeptideIdentification& pid : peptide_ids)
   {
     refs.insert(pid.getSpectrumReference());

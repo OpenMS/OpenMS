@@ -161,11 +161,11 @@ namespace OpenMS
               vector<std::string> parts;
               if (StringUtils::split(restrictions_, ' ', parts))
               {
-                if (!parts[0].empty() && StringUtils::toInt32(new_value) < StringUtils::toInt32(parts[0]))
+                if (!parts[0].empty() && new_value.toInt() < StringUtils::toInt32(parts[0]))
                 {
                   restrictions_met = false;
                 }
-                if (!parts[1].empty() && StringUtils::toInt32(new_value) > StringUtils::toInt32(parts[1]))
+                if (!parts[1].empty() && new_value.toInt() > StringUtils::toInt32(parts[1]))
                 {
                   restrictions_met = false;
                 }
@@ -191,11 +191,11 @@ namespace OpenMS
               vector<std::string> parts;
               if (StringUtils::split(restrictions_, ' ', parts))
               {
-                if (!parts[0].empty() && StringUtils::toDouble(new_value) < StringUtils::toDouble(parts[0]))
+                if (!parts[0].empty() && new_value.toDouble() < StringUtils::toDouble(parts[0]))
                 {
                   restrictions_met = false;
                 }
-                if (!parts[1].empty() && StringUtils::toDouble(new_value) > StringUtils::toDouble(parts[1]))
+                if (!parts[1].empty() && new_value.toDouble() > StringUtils::toDouble(parts[1]))
                 {
                   restrictions_met = false;
                 }

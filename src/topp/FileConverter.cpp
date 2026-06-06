@@ -162,7 +162,7 @@ protected:
     std::string method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<std::string>(method));
 
-    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "edta", "mzData", "dta2d", "csv", "sqMass", "xic", "oms"};
+    vector<std::string> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "edta", "mzData", "dta2d", "csv", "sqMass", "xic", "oms"};
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, false); // optional and not advanced (for workflow engines to show this param)
@@ -349,7 +349,7 @@ protected:
       "Reader for Thermo .raw files. 'external' uses ThermoRawFileParser (external .NET process, mzML output only); "
       "'inprocess' uses the built-in ThermoRawFile (in-process, supports any output format; requires WITH_THERMO_RAW build).",
       false, true);
-    std::vector<String> raw_reader_modes = {"external"};
+    std::vector<std::string> raw_reader_modes = {"external"};
 #ifdef WITH_THERMO_RAW
     raw_reader_modes.push_back("inprocess");
 #endif

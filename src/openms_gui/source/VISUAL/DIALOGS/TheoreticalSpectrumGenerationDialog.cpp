@@ -232,7 +232,7 @@ namespace OpenMS
 
     Param p = this->getParam_();
     Int charge = p.getValue("charge");
-    StringUtils::remove(p, "charge"); // "charge" isn't a parameter of TheoreticalSpectrumGenerator
+    p.remove("charge"); // "charge" isn't a parameter of TheoreticalSpectrumGenerator
 
     p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
 

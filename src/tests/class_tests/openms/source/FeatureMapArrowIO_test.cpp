@@ -1130,7 +1130,7 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap-level MetaValue r
   f.setUniqueId(101);
   fm.push_back(f);
 
-  String tmp_dir;
+  std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
 

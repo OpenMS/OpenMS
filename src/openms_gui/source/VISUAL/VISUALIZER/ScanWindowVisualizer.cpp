@@ -39,8 +39,8 @@ namespace OpenMS
 
   void ScanWindowVisualizer::store()
   {
-    ptr_->begin = StringUtils::toDouble(begin_->text());
-    ptr_->end = StringUtils::toDouble(end_->text());
+    ptr_->begin = begin_->text().toDouble();
+    ptr_->end = end_->text().toDouble();
 
     temp_ = (*ptr_);
   }

@@ -352,7 +352,7 @@ namespace OpenMS
       }
       if (StringUtils::hasPrefix(line, "PepNovo"))
       {
-        StringUtils::split(line, ', ', substrings);
+        StringUtils::split(line, ',', substrings);
         if (substrings.size() == 2) //previous version of PepNovo
         {
           protein_identification.setSearchEngine(StringUtils::trim(substrings[0]));

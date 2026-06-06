@@ -53,7 +53,7 @@ int main()
 
   // verify an infix of a protein is a digestion product:
   std::string peptide = "FFFRAAA";
-  cout << "Is '" << peptide.prefix(4) << "' a valid digestion product of '" << peptide << "'? " 
+  cout << "Is '" << StringUtils::prefix(peptide, 4) << "' a valid digestion product of '" << peptide << "'? " 
        << std::boolalpha << protease.isValidProduct(peptide, 0, 4); // yes it is!
 
 }

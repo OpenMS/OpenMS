@@ -14,6 +14,7 @@
 // Includes in ClassTest.cpp are ok...
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h> // for StringUtils::toStr in TEST_EQUAL
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/CONCEPT/MacrosTest.h>
 #include <OpenMS/OpenMSConfig.h>
@@ -279,7 +280,18 @@ namespace OpenMS
       {
         ++test_count;
         test_line = line;
-        this_test = bool(expression_1 == T1(expression_2)) ;
+        // For std::string targets, stringify the comparison value rather than
+        // constructing std::string(expression_2): the old OpenMS::String had
+        // numeric/char converting constructors (e.g. String(114) == "114") that
+        // std::string lacks. StringUtils::toStr reproduces that behavior.
+        if constexpr (std::is_same_v<T1, std::string>)
+        {
+          this_test = bool(expression_1 == StringUtils::toStr(expression_2));
+        }
+        else
+        {
+          this_test = bool(expression_1 == T1(expression_2));
+        }
         test &= this_test;
         {
           initialNewline();

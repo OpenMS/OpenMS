@@ -344,7 +344,7 @@ protected:
     // would silently re-sort runs alphabetically by identifier and break tools
     // like IDRipper that rely on stable run ordering.
     vector<std::string> proteins_order;
-    std::unordered_map<String, ProteinIdentification> proteins_by_id;
+    std::unordered_map<std::string, ProteinIdentification> proteins_by_id;
     vector<PeptideIdentificationList> peptides_by_file;
     StringList add_to_ids; // IDs from the "add_to" file (if any)
 
@@ -393,8 +393,8 @@ protected:
     else // add only new IDs to an existing file
     {
       // copy over data from reference file ("add_to") in insertion order
-      vector<String> selected_proteins_order;
-      std::unordered_map<String, ProteinIdentification> selected_proteins;
+      vector<std::string> selected_proteins_order;
+      std::unordered_map<std::string, ProteinIdentification> selected_proteins;
       for (auto ids_it = add_to_ids.begin();
             ids_it != add_to_ids.end(); ++ids_it)
       {

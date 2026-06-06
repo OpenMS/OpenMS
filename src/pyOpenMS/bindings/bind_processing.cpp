@@ -49,7 +49,7 @@ NB_MODULE(_pyopenms_processing, m) {
         .def("size", [](const OpenMS::DataFilters& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::DataFilters& self, size_t i) { if (i >= self.size()) throw nb::index_error(); return self[i]; })
         .def("add", [](OpenMS::DataFilters& self, const OpenMS::DataFilters::DataFilter& filter) { return self.add(filter); }, "filter"_a)
-        .def("remove", [](OpenMS::DataFilters& self, size_t index) { return StringUtils::remove(self, index); }, "index"_a)
+        .def("remove", [](OpenMS::DataFilters& self, size_t index) { return self.remove(index); }, "index"_a)
         .def("replace", [](OpenMS::DataFilters& self, size_t index, const OpenMS::DataFilters::DataFilter& filter) { return self.replace(index, filter); }, "index"_a, "filter"_a)
         .def("clear", [](OpenMS::DataFilters& self) { return self.clear(); })
         .def("setActive", [](OpenMS::DataFilters& self, bool is_active) { return self.setActive(is_active); }, "is_active"_a)

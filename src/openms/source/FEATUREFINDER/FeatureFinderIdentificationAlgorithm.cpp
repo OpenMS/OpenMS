@@ -1668,11 +1668,11 @@ namespace OpenMS
       // annotate subordinates with theoretical isotope intensities:
       for (Feature& sub : feat.getSubordinates())
       {
-        std::string native_id = (std::string)(std::string)sub.getMetaValue("native_id");
+        std::string native_id = StringUtils::toStr(sub.getMetaValue("native_id"));
         sub.setMetaValue("isotope_probability", isotope_probs_[native_id]);
       }
 
-      peptide_ref = (std::string)feat.getMetaValue("PeptideRef");
+      peptide_ref = StringUtils::toStr(feat.getMetaValue("PeptideRef"));
 
       // Annotate feature with ion mobility statistics (if available)
       // This provides QC metrics for IM-enabled experiments:

@@ -114,7 +114,7 @@ StringList numericFeatures(const StringList& feature_set)
 /// uniquely identifies a row in the .pin for the TOPP test data.
 std::string rowKey(const PeptideIdentification& pid, const PeptideHit& hit)
 {
-  String sr = StringUtils::toStr(pid.getSpectrumReference());
+  std::string sr = StringUtils::toStr(pid.getSpectrumReference());
   if (sr.empty() && pid.metaValueExists("spectrum_id"))
   {
     sr = pid.getMetaValue("spectrum_id").toString();
@@ -349,7 +349,7 @@ SubprocessOut runSubprocess(const std::string& bin,
   auto parse = [&s](const std::string& path)
   {
     std::ifstream f(path.c_str());
-    String line;
+    std::string line;
     bool header_seen = false;
     bool has_filename_col = false;  // true when pout has PSMId filename score ...
     while (std::getline(f, line))
@@ -362,7 +362,7 @@ SubprocessOut runSubprocess(const std::string& bin,
         // or
         //   PSMId  filename  score  q-value  (filename column was in input PIN)
         std::istringstream hs(line);
-        String col1, col2;
+        std::string col1, col2;
         hs >> col1 >> col2;
         has_filename_col = (col2 == "filename" || col2 == "spectrafile");
         continue;
@@ -370,11 +370,11 @@ SubprocessOut runSubprocess(const std::string& bin,
       if (line.empty()) continue;
       // Fields: PSMId  [filename]  score  q-value  posterior_error_prob  peptide  protein...
       std::istringstream ls(line);
-      String psm_id;
+      std::string psm_id;
       double score = 0, qval = 0, pep = 0;
-      String peptide;
+      std::string peptide;
       ls >> psm_id;
-      if (has_filename_col) { String skip_fn; ls >> skip_fn; }
+      if (has_filename_col) { std::string skip_fn; ls >> skip_fn; }
       ls >> score >> qval >> pep >> peptide;
       if (!ls) continue;
       PercolatorTriplet t;
@@ -529,13 +529,13 @@ START_SECTION([EXTRA] PIN file content equals stamped meta values)
 
   size_t compared_rows = 0;
   size_t diffs = 0;
-  String first_mismatch;
+  std::string first_mismatch;
   size_t row_idx = 0;
   for (auto it = txt.begin() + 1;
        it != txt.end() && row_idx < expected_rows.size();
        ++it, ++row_idx)
   {
-    StringList cols = ListUtils::create<String>(*it, '\t');
+    StringList cols = ListUtils::create<std::string>(*it, '\t');
     if (cols.size() < last_compared)
     {
       diffs++;
@@ -1029,7 +1029,7 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
     TEST_TRUE(n_lines >= 2)
 
     StringList header = ListUtils::create<std::string>(*pin.begin(), '\t');
-    std::map<String, size_t> col_index;
+    std::map<std::string, size_t> col_index;
     for (size_t c = 0; c < header.size(); ++c) col_index[header[c]] = c;
 
     StringList numeric = numericFeatures(feature_set);
@@ -1037,12 +1037,12 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
     // inputs have ~4 hits sharing the same file+scan SpecId), so subprocess
     // output map would collapse siblings. Use SpecId|Peptide to disambiguate;
     // runSubprocess() uses the same composite key on the .pout side.
-    std::vector<String> pin_keys;
+    std::vector<std::string> pin_keys;
     RescoreInput ri;
     ri.feature_names = numeric;
     for (auto it = pin.begin() + 1; it != pin.end(); ++it)
     {
-      StringList cols = ListUtils::create<String>(*it, '\t');
+      StringList cols = ListUtils::create<std::string>(*it, '\t');
       // Tolerate Proteins column with embedded tabs by checking up to the
       // last numeric-feature column.
       bool ok = true;
@@ -1061,7 +1061,7 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
       ri.calc_masses.push_back(StringUtils::toDouble(cols[col_index["CalcMass"]]));
       std::vector<double> feats;
       feats.reserve(numeric.size());
-      for (const auto& f : numeric) feats.push_back(cols[col_index[f]].toDouble());
+      for (const auto& f : numeric) feats.push_back(StringUtils::toDouble(cols[col_index[f]]));
       ri.features.push_back(std::move(feats));
     }
     TEST_TRUE(ri.features.size() >= 20)
@@ -1119,7 +1119,7 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
 
     for (double thr : {0.01, 0.05, 0.10})
     {
-      std::set<String> a_in, a_sub;
+      std::set<std::string> a_in, a_sub;
       for (size_t i = 0; i < out.scores.size(); ++i)
       {
         if (ri.is_decoy[i]) continue;

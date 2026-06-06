@@ -247,7 +247,7 @@ protected:
     vector<string> bpi_remove = {"use_ids_outside_features", "annotate_group_probabilities", "user_defined_priors", "update_PSM_probabilities"};
     for (const auto& r : bpi_remove)
     {
-      StringUtils::remove(bayes_defaults, r);
+      bayes_defaults.remove(r);
     }
 
     // Why do we only have a const iterator?????

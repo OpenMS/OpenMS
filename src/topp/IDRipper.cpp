@@ -141,8 +141,8 @@ protected:
       std::string out_fname;
       if (numeric_filenames)
       {
-        String s_ident_run_idx = split_ident_runs ? '_' + StringUtils::toStr(rfi.ident_run_idx) : "";
-        String s_file_origin_idx = '_' + StringUtils::toStr(rfi.file_origin_idx);
+        std::string s_ident_run_idx = split_ident_runs ? '_' + StringUtils::toStr(rfi.ident_run_idx) : "";
+        std::string s_file_origin_idx = '_' + StringUtils::toStr(rfi.file_origin_idx);
         out_fname = to_path(file_name).stem().string() + s_ident_run_idx + s_file_origin_idx + out_ext;
       }
       else

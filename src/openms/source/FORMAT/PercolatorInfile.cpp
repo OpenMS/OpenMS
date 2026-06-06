@@ -417,7 +417,7 @@ namespace OpenMS
 
       const std::string scan_identifier = getScanIdentifier(pep_id, pid_index_1based);
       std::string file_identifier = pep_id.getMetaValue("file_origin", std::string());
-      file_identifier += (std::string)pep_id.getMetaValue("id_merge_index", std::string());
+      file_identifier += StringUtils::toStr(pep_id.getMetaValue("id_merge_index", std::string()));
 
       const Int scan_number = SpectrumLookup::extractScanNumber(
         scan_identifier, scan_regex, /*no_error=*/true);

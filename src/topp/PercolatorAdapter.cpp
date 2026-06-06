@@ -277,7 +277,7 @@ protected:
         for (ProteinHit& protein : prot_id_run.getHits())
         {
           std::string protein_accession = protein.getAccession();
-          map<String, PercolatorProteinResult>::iterator pr =
+          map<std::string, PercolatorProteinResult>::iterator pr =
             protein_map->find(protein_accession);
           if (pr != protein_map->end())
           {
@@ -387,11 +387,11 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", !is_required);
     setValidFormats_("in", ListUtils::create<std::string>("mzid,idXML,idparquet"));
     registerInputFileList_("in_decoy", "<files>", StringList(), "Input decoy file(s) in case of separate searches", !is_required);
-    setValidFormats_("in_decoy", ListUtils::create<String>("mzid,idXML,idparquet"));
+    setValidFormats_("in_decoy", ListUtils::create<std::string>("mzid,idXML,idparquet"));
     registerInputFile_("in_osw", "<file>", "", "Input file in OSW format", !is_required);
     setValidFormats_("in_osw", ListUtils::create<std::string>("OSW"));
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML,mzid,osw,idparquet"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML,mzid,osw,idparquet"));
     registerOutputFile_("out_pin", "<file>", "", "Write pin file (e.g., for debugging)", !is_required, is_advanced_option);
     setValidFormats_("out_pin", ListUtils::create<std::string>("tsv"), !force_openms_format);
 
@@ -405,10 +405,10 @@ protected:
     setValidFormats_("out_pout_decoy_proteins", ListUtils::create<std::string>("tab"), !force_openms_format);
 
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
-    setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw,idparquet"));
-    String enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin,trypsinp";
+    setValidStrings_("out_type", ListUtils::create<std::string>("mzid,idXML,osw,idparquet"));
+    std::string enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin,trypsinp";
     registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: "+enzs , !is_required);
-    setValidStrings_("enzyme", ListUtils::create<String>(enzs));
+    setValidStrings_("enzyme", ListUtils::create<std::string>(enzs));
     registerStringOption_("use_subprocess", "<choice>", "false",
         "Run the external 'percolator' binary instead of the in-process OpenMS::Percolator library. "
         "The in-process backend covers the idXML/mzid + PSM-level FDR path; "

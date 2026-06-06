@@ -130,7 +130,7 @@ namespace OpenMS
     {
       return;
     }
-    StringUtils::toInt32(ws_->setCurrentIndex(list[0]->text(1)));
+    ws_->setCurrentIndex(list[0]->text(1).toInt());
   }
 
   void MetaDataBrowser::saveAll_()
@@ -876,7 +876,7 @@ namespace OpenMS
     {
       QTreeWidgetItem * child = item->child(i);
 
-      StringUtils::toFloat(if ((higher_better && child->text(2)) <= threshold) || (!higher_better && StringUtils::toFloat(child->text(2)) >= threshold))
+      if ((higher_better && child->text(2).toFloat() <= threshold) || (!higher_better && child->text(2).toFloat() >= threshold))
       {
         child->setHidden(true);
       }

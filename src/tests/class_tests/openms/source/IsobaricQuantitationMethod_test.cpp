@@ -181,7 +181,7 @@ END_SECTION
 
 START_SECTION(([IsobaricQuantitationMethod::IsobaricChannelInformation] IsobaricChannelInformation(const Int name, const Int id, const std::string &description, const Peak2D::CoordinateType &center)))
 {
-  IsobaricQuantitationMethod::IsobaricChannelInformation cI(114, 0, "", 114.1112, {-1, -1, -1, -1});
+  IsobaricQuantitationMethod::IsobaricChannelInformation cI(StringUtils::toStr(114), 0, "", 114.1112, {-1, -1, -1, -1});
   TEST_STRING_EQUAL(cI.description, "")
   TEST_EQUAL(cI.name, 114)
   TEST_EQUAL(cI.id, 0)

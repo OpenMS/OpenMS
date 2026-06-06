@@ -245,7 +245,7 @@ namespace OpenMS
     auto find_index = [](QComboBox* combo, int edge_index) -> int {
       for (int i = 1; i < combo->count(); ++i)
       {
-        StringUtils::toInt32(if (combo->itemData(i)) == edge_index) return i;
+        if (combo->itemData(i).toInt() == edge_index) return i;
       }
       // no mapping found
       if (combo->count() == 2) // only 1 parameter (+ <select>)
@@ -283,11 +283,11 @@ namespace OpenMS
 
     if (source_tool)
     {
-      StringUtils::toInt32(edge_->setSourceOutParam(ui_->source_combo->currentData()));
+      edge_->setSourceOutParam(ui_->source_combo->currentData().toInt());
     }
     if (target_tool)
     {
-      StringUtils::toInt32(edge_->setTargetInParam(ui_->target_combo->currentData()));
+      edge_->setTargetInParam(ui_->target_combo->currentData().toInt());
     }
     edge_->updateColor();
 

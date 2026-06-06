@@ -139,7 +139,7 @@ namespace OpenMS
       } 
       else 
       { // use native id for mapping
-        DataValue native_id = (std::string)peptide_ids[i].getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
+        DataValue native_id = StringUtils::toStr(peptide_ids[i].getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE));
         try
         { // spectrum can be retrieved
           Size spectrum_idx = lookup.findByNativeID(native_id);
@@ -386,7 +386,7 @@ namespace OpenMS
 
         boost::regex scanregex{""};
         std::string cf_scan_id_key_name = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? "id_scan_id" : "scan_id";
-        std::string cf_scan_id = (std::string)(std::string)cf.getMetaValue(cf_scan_id_key_name, "");
+        std::string cf_scan_id = StringUtils::toStr(cf.getMetaValue(cf_scan_id_key_name, ""));
         if (!cf_scan_id.empty()) 
         {
           // This assumes all scan_ids are of the same structure
@@ -1107,7 +1107,7 @@ namespace OpenMS
     {
       if (proc_it.getSoftware().getName() == "FeatureFinder")
       {
-        std::string reported_mz = (std::string)(std::string)proc_it.getMetaValue("parameter: algorithm:feature:reported_mz");
+        std::string reported_mz = StringUtils::toStr(proc_it.getMetaValue("parameter: algorithm:feature:reported_mz"));
         if (reported_mz.empty())
           continue; // parameter info not available
         if (!before.empty() && (reported_mz != before))

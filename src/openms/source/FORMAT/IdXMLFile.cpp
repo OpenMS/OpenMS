@@ -1061,7 +1061,7 @@ namespace OpenMS
     StringList fields;
     for (const auto& pa : as)
     {
-      StringUtils::split_quoted(pa, ", ", fields);
+      StringUtils::split_quoted(pa, ",", fields);
       if (fields.size() != 4)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

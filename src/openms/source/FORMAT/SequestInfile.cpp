@@ -718,7 +718,7 @@ namespace OpenMS
         name = residues = mass = type = "";
 
         // get the single parts of the modification string
-        StringUtils::split(mod_i, ', ', mod_parts);
+        StringUtils::split(mod_i, ',', mod_parts);
         mass_or_composition_or_name = -1;
 
         // check whether the first part is a mass, composition or name

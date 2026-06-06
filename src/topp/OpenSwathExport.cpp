@@ -150,13 +150,13 @@ protected:
     {
       return requested_out_dir;
     }
-    const String input_dir = File::path(input_file);
+    const std::string input_dir = File::path(input_file);
     return input_dir.empty() ? "." : input_dir;
   }
 
   static std::string makeBasePath_(const std::string& input_file, const std::string& out_dir)
   {
-    const String dir = makeOutputDir_(input_file, out_dir);
+    const std::string dir = makeOutputDir_(input_file, out_dir);
     return dir + "/" + File::stemName(input_file);
   }
 
@@ -289,7 +289,7 @@ protected:
   ExitCodes main_(int, const char**) override
   {
     const std::string input_file = getStringOption_("in");
-    if (input_file.hasSuffix(".oswpq") || input_file.hasSuffix(".oswpq.zip"))
+    if (StringUtils::hasSuffix(input_file, ".oswpq") || StringUtils::hasSuffix(input_file, ".oswpq.zip"))
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "OpenSwathExport currently supports OSW input only. .oswpq support is reserved for future work.");

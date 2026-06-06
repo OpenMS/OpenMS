@@ -209,7 +209,7 @@ void FLASHDeconvAlgorithm::mergeSpectra_(MSExperiment& map, uint ms_level)
       {
         auto native_id_str = mspec.getNativeID();
         std::vector<std::string> native_ids;
-        StringUtils::split(native_id_str, ", ", native_ids);
+        StringUtils::split(native_id_str, ",", native_ids);
 
         for (auto& native_id : native_ids)
         {
@@ -235,7 +235,7 @@ int FLASHDeconvAlgorithm::getScanNumber(const MSExperiment& map, Size index)
 {
   auto native_id_str = map[index].getNativeID();
   std::vector<std::string> native_ids;
-  StringUtils::split(native_id_str, ", ", native_ids);
+  StringUtils::split(native_id_str, ",", native_ids);
   std::string type_accession = "MS:1000768";
 
   if (!map.getSourceFiles().empty())

@@ -87,7 +87,7 @@ namespace OpenMS
     bool parse_headers(param_.getValue("parse_headers").toBool());
     bool parse_peakinfo(param_.getValue("parse_peakinfo").toBool());
     bool parse_firstpeakinfo_only(param_.getValue("parse_firstpeakinfo_only").toBool());
-    std::string instrument((std::string)param_.getValue("instrument"));
+    std::string instrument(StringUtils::toStr(param_.getValue("instrument")));
     bool inst_type_correct(true);
     [[maybe_unused]] bool spectrast_format(false); // TODO: implement usage
     Size spectrum_number = 0;
@@ -180,7 +180,7 @@ namespace OpenMS
             for (Size i = 1; i <= (UInt)StringUtils::toInt32(mod_split[0]); ++i)
             {
               vector<std::string> single_mod;
-              StringUtils::split(mod_split[i], ', ', single_mod);
+              StringUtils::split(mod_split[i], ',', single_mod);
 
               std::string mod_name = single_mod[2];
               if (modname_to_unimod.contains(mod_name))
@@ -290,7 +290,7 @@ namespace OpenMS
               {
                 if (StringUtils::has(annot, ' ')) annot = StringUtils::prefix(annot, ' '); // in case of different format "b8/-0.07,y9-46/-0.01 2/2 32.4" we only need the first part
                 StringList splitstr;
-                StringUtils::split(annot, ', ', splitstr);
+                StringUtils::split(annot, ',', splitstr);
                 for (auto& str : splitstr)
                 {
                   std::string splitstrprefix = StringUtils::prefix(str, '/');

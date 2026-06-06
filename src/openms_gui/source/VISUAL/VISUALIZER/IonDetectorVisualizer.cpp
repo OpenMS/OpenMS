@@ -59,9 +59,9 @@ namespace OpenMS
 
   void IonDetectorVisualizer::store()
   {
-    StringUtils::toInt32(ptr_->setOrder(order_->text()));
-    ptr_->setResolution(res_->text().toDouble();
-    ptr_->setADCSamplingFrequency(freq_->text().toDouble();
+    ptr_->setOrder(order_->text().toInt());
+    ptr_->setResolution(res_->text().toDouble());
+    ptr_->setADCSamplingFrequency(freq_->text().toDouble());
     ptr_->setType((IonDetector::Type)type_->currentIndex());
     ptr_->setAcquisitionMode((IonDetector::AcquisitionMode)ac_mode_->currentIndex());
 

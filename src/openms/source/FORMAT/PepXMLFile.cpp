@@ -595,7 +595,7 @@ namespace OpenMS
         std::string spectrum_name = base_name + "." + scan_nr + "." + scan_nr + ".";
         if (pep.metaValueExists("pepxml_spectrum_name") && keep_native_name_)
         {
-          spectrum_name = (std::string)pep.getMetaValue("pepxml_spectrum_name");
+          spectrum_name = StringUtils::toStr(pep.getMetaValue("pepxml_spectrum_name"));
         }
 
         f << "\t<spectrum_query spectrum=\"" << spectrum_name << h.getCharge() << "\""

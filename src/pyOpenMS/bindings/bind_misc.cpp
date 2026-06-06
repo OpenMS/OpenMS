@@ -2505,7 +2505,7 @@ print(entry.identifier)
         .def("__eq__", &OpenMS::FASTAFile::FASTAEntry::operator==)
         .def("__repr__", [](const OpenMS::FASTAFile::FASTAEntry& self) {
             std::ostringstream oss;
-            oss << "FASTAEntry(identifier='" << self.identifier << "', description='" << self.StringUtils::substr(description, 0, 50) << (self.description.size() > 50 ? "..." : "") << "')";
+            oss << "FASTAEntry(identifier='" << self.identifier << "', description='" << self.description.substr(0, 50) << (self.description.size() > 50 ? "..." : "") << "')";
             return oss.str();
         })
         ;

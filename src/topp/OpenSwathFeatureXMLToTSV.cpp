@@ -216,11 +216,11 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
 
   std::string line = "";
   // Start writing out
-  line += peptide_ref + "\t" + (std::string)run_id + "\t" + (std::string)filename + "\t" + feature_it->getRT() + "\tf_" + feature_it->getUniqueId() + "\t";
+  line += peptide_ref + "\t" + StringUtils::toStr(run_id) + "\t" + (std::string)filename + "\t" + feature_it->getRT() + "\tf_" + feature_it->getUniqueId() + "\t";
   line += sequence + "\t" + full_peptide_name + "\t";
-  line += (String)charge + "\t";
+  line += charge + "\t";
   line += precursor_mz + "\t";
-  line += (String)feature_it->getIntensity() + "\t";
+  line += StringUtils::toStr(feature_it->getIntensity()) + "\t";
   line += protein_name + "\t";
   line += decoy + "\t";
 
@@ -249,7 +249,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
         aggr_Peak_Apex += "NA;";
       }
 
-      aggr_Fragment_Annotation += (String)sub.getMetaValue("native_id") + ";";
+      aggr_Fragment_Annotation += (std::string)sub.getMetaValue("native_id") + ";";
     }
 
     // remove the last semicolon
@@ -271,7 +271,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
       {
         apex =StringUtils::toStr((double)sub.getMetaValue("peak_apex_int"));
       }
-      os << line << meta_values << StringUtils::toStr(sub.getIntensity()) << "\t" << apex << "\t" << (String)sub.getMetaValue("native_id") << "\t" << StringUtils::toStr(sub.getMZ()) << std::endl;
+      os << line << meta_values << StringUtils::toStr(sub.getIntensity()) << "\t" << apex << "\t" << (std::string)sub.getMetaValue("native_id") << "\t" << StringUtils::toStr(sub.getMZ()) << std::endl;
     }
   }
 }

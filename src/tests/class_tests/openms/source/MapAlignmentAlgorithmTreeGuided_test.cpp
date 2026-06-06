@@ -137,7 +137,7 @@ START_SECTION((void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_m
     std::map<std::string, std::vector<double>> rts;
     for (const auto& feat : fm)
     {
-      String best_seq;
+      std::string best_seq;
       double best_distance = std::numeric_limits<double>::max();
       bool any_hit = false;
       for (const auto& pid : feat.getPeptideIdentifications())
@@ -155,7 +155,7 @@ START_SECTION((void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_m
       }
       if (any_hit) rts[best_seq].push_back(feat.getRT());
     }
-    std::map<String, double> medians;
+    std::map<std::string, double> medians;
     for (auto& kv : rts)
     {
       std::sort(kv.second.begin(), kv.second.end());

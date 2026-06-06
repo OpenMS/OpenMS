@@ -54,10 +54,10 @@ namespace OpenMS
   Plot2DGoToDialog::AreaXYType Plot2DGoToDialog::getRange()
   {
     AreaXYType r{
-      ui_->StringUtils::toFloat(min_x_->text()),
-      ui_->StringUtils::toFloat(min_y_->text()),
-      ui_->StringUtils::toFloat(max_x_->text()),
-      ui_->StringUtils::toFloat(max_y_->text()),
+      ui_->min_x_->text().toFloat(),
+      ui_->min_y_->text().toFloat(),
+      ui_->max_x_->text().toFloat(),
+      ui_->max_y_->text().toFloat(),
     };
     r.ensureMinSpan({1,1});
     return r;

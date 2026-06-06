@@ -92,7 +92,7 @@ START_SECTION(OSW-backed OpenSWATH export readers and writers)
   TEST_EQUAL(matrix.identifier_rows.empty(), false)
   TEST_EQUAL(matrix.sample_column_names.empty(), false)
 
-  String results_tsv;
+  std::string results_tsv;
   NEW_TMP_FILE(results_tsv);
   OpenSwathResultsExporter::write(results_tsv, result_rows, {});
   TEST_EQUAL(File::exists(results_tsv), true)
@@ -105,7 +105,7 @@ START_SECTION(OSW-backed OpenSWATH export readers and writers)
     TEST_EQUAL(header.find("m_score_gene_global") != std::string::npos, true)
   }
 
-  String empty_results_tsv;
+  std::string empty_results_tsv;
   NEW_TMP_FILE(empty_results_tsv);
   OpenSwathResultsExporter::write(empty_results_tsv, empty_result_rows, {});
   TEST_EQUAL(File::exists(empty_results_tsv), true)
@@ -119,7 +119,7 @@ START_SECTION(OSW-backed OpenSWATH export readers and writers)
     TEST_EQUAL(static_cast<bool>(std::getline(is, first_data_line)), false)
   }
 
-  String matrix_tsv;
+  std::string matrix_tsv;
   NEW_TMP_FILE(matrix_tsv);
   OpenSwathMatrixExporter::writeMatrix(matrix_tsv, matrix, matrix_config);
   TEST_EQUAL(File::exists(matrix_tsv), true)
@@ -144,7 +144,7 @@ START_SECTION(OSW-backed OpenSWATH export readers and writers)
   TEST_EQUAL(transition_table.rows.empty(), false)
   TEST_EQUAL(transition_table.feature_transition_column_names.empty(), false)
 
-  String feature_parquet;
+  std::string feature_parquet;
   NEW_TMP_FILE(feature_parquet);
   feature_parquet += ".parquet";
   OpenSwathParquetExporter::writeFeatureScores(feature_parquet, feature_table);
@@ -160,7 +160,7 @@ START_SECTION(OSW-backed OpenSWATH export readers and writers)
     TEST_NOT_EQUAL(feature_arrow->GetColumnByName("PROTEIN_ID"), nullptr)
   }
 
-  String transition_parquet;
+  std::string transition_parquet;
   NEW_TMP_FILE(transition_parquet);
   transition_parquet += ".parquet";
   OpenSwathParquetExporter::writeTransitionScores(transition_parquet, transition_table);

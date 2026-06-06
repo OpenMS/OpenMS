@@ -201,7 +201,7 @@ namespace OpenMS
       // Cut off "ToolName:1:"
       str = iter.getName().substr(iter.getName().rfind("1:") + 2, iter.getName().size());
       // Only add items and no nodes
-      if (!str.empty() && str.find(":") == String::npos)
+      if (!str.empty() && str.find(":") == std::string::npos)
       {
         // Only add to input list if item has "input file" tag.
         if (iter->tags.find("input file") != iter->tags.end())

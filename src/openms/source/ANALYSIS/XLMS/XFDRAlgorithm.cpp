@@ -111,7 +111,7 @@ using namespace OpenMS;
       }
 
       const Size min_ions_matched = getMinIonsMatched_(ph);
-      const std::string id = (std::string)ph.getMetaValue("OpenPepXL:id");
+      const std::string id = StringUtils::toStr(ph.getMetaValue("OpenPepXL:id"));
 
       // Only consider IDs which fullfill all filter criteria specified by the user
       if (   (arg_minborder_ <= error_rel)   // minborder fullfilled
@@ -274,7 +274,7 @@ using namespace OpenMS;
     const ProteinIdentification::SearchParameters& search_params = protein_id.getSearchParameters();
     if (search_params.metaValueExists("decoy_string") && decoy_string_ == "DECOY_")
     {
-      decoy_string_ = (std::string)search_params.getMetaValue("decoy_string");
+      decoy_string_ = StringUtils::toStr(search_params.getMetaValue("decoy_string"));
     }
 
     // Preprocess all peptide identifications and construct derived data structures necessary for XFDR
@@ -393,7 +393,7 @@ using namespace OpenMS;
     }
 
     assert(ph.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE));
-    std::string current_crosslink_type = (std::string)(std::string)ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE);
+    std::string current_crosslink_type = StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE));
 
     // monolinks
     if ( (!xl_is_decoy) && (current_crosslink_type == "mono-link"
@@ -492,7 +492,7 @@ using namespace OpenMS;
     {
       for (PeptideHit& ph : pep_id.getHits())
       {
-        std::string id = (std::string)(std::string)ph.getMetaValue("OpenPepXL:id");
+        std::string id = StringUtils::toStr(ph.getMetaValue("OpenPepXL:id"));
         auto uid_it = std::find(this->unique_ids_.begin(), this->unique_ids_.end(), id);
         // if an ID for this candidate already exists, check if the new score is higher than the last
         if (uid_it != this->unique_ids_.end())

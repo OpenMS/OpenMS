@@ -168,7 +168,7 @@ START_SECTION(void load(const std::string& filename, MSExperiment& experiment) c
                          "CCS: 123.45\n"
                          "Num Peaks: 1\n"
                          "100:100\n";
-    String ccs_path;
+    std::string ccs_path;
     NEW_TMP_FILE(ccs_path)
     {
       ofstream ofs(ccs_path.c_str());
@@ -188,7 +188,7 @@ START_SECTION(void load(const std::string& filename, MSExperiment& experiment) c
                          "CCS: not_a_number\n"
                          "Num Peaks: 1\n"
                          "100:100\n";
-    String ccs_path;
+    std::string ccs_path;
     NEW_TMP_FILE(ccs_path)
     {
       ofstream ofs(ccs_path.c_str());

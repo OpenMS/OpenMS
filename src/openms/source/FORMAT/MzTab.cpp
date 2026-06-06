@@ -219,7 +219,7 @@ namespace OpenMS
 
       if (!StringUtils::hasSubstring(ss, "[")) // no parameters
       {
-        StringUtils::split(ss, ", ", fields);
+        StringUtils::split(ss, ",", fields);
         for (Size i = 0; i != fields.size(); ++i)
         {
           MzTabModification ms;
@@ -266,7 +266,7 @@ namespace OpenMS
         }
 
         // now the split at comma is save
-        StringUtils::split(ss, ", ", fields);
+        StringUtils::split(ss, ",", fields);
 
         for (Size i = 0; i != fields.size(); ++i)
         {
@@ -1107,7 +1107,7 @@ namespace OpenMS
           std::string ref = "";
           if (pep.metaValueExists("spectrum_reference"))
           {
-            ref = (std::string)pep.getMetaValue("spectrum_reference");
+            ref = StringUtils::toStr(pep.getMetaValue("spectrum_reference"));
           }
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                               "PSM " + ref + " does not map to an MS file registered in the quantitative metadata. "
@@ -1413,7 +1413,7 @@ namespace OpenMS
         if (StringUtils::hasPrefix(mvkey, "SE:"))
         {
           std::string se_name = StringUtils::substr(mvkey, 3);
-          std::string se_ver = (std::string)(std::string)sp2.getMetaValue(mvkey);
+          std::string se_ver = StringUtils::toStr(sp2.getMetaValue(mvkey));
           run_to_search_engines[run_index].emplace_back(se_name, se_ver);
           // TODO conserve score_type of underlying search engines (currently always "")
           // TODO for now we only save the MAIN search engine in the SE_to_runs, to only have

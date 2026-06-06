@@ -625,9 +625,12 @@ namespace OpenMS
 
   DataValue::operator std::string() const
   {
+    // Strict: only STRING_VALUE converts implicitly to std::string (contract
+    // asserted by DataValue_test). For non-string values use StringUtils::toStr
+    // (= the old String(const DataValue&) lenient stringification) explicitly.
     if (value_type_ != STRING_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Could not convert non-string DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to string");
     }
     return *(data_.str_);

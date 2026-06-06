@@ -553,14 +553,14 @@ START_SECTION(([EXTRA] Multimer annotation strings and trimer detection))
         found_dimer_annotation = true;
         TEST_EQUAL(fm_out[i].metaValueExists("adducts"), true);
         StringList adducts = fm_out[i].getMetaValue("adducts");
-        TEST_EQUAL(StringUtils::hasSubstring(, "2M"), true);
+        TEST_EQUAL(StringUtils::hasSubstring(adducts[0], "2M"), true);
       }
       if (mult == 3)
       {
         found_trimer_annotation = true;
         TEST_EQUAL(fm_out[i].metaValueExists("adducts"), true);
         StringList adducts = fm_out[i].getMetaValue("adducts");
-        TEST_EQUAL(StringUtils::hasSubstring(, "3M"), true);
+        TEST_EQUAL(StringUtils::hasSubstring(adducts[0], "3M"), true);
       }
     }
   }

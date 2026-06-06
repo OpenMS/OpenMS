@@ -704,7 +704,7 @@ namespace OpenMS
         if (!hit.metaValueExists("PTM"))
           continue;
 
-        std::string ptm_name = (std::string)(std::string)hit.getMetaValue("PTM");
+        std::string ptm_name = StringUtils::toStr(hit.getMetaValue("PTM"));
         if (ptm_name.empty())
         {
           continue;

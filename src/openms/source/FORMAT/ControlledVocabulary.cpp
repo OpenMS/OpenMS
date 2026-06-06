@@ -110,7 +110,7 @@ namespace OpenMS
     std::string s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + Internal::XMLHandler::writeXMLEscape(name);
     if (!value.empty())
     {
-      s += "\" value=\"" + Internal::XMLHandler::writeXMLEscape(value);
+      s += "\" value=\"" + Internal::XMLHandler::writeXMLEscape(StringUtils::toStr(value));
     }
     s +=  "\"/>";
     return s;
@@ -122,7 +122,7 @@ namespace OpenMS
     std::string s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + Internal::XMLHandler::writeXMLEscape(name);
     if (!value.isEmpty())
     {
-      s += "\" value=\"" + Internal::XMLHandler::writeXMLEscape(value);
+      s += "\" value=\"" + Internal::XMLHandler::writeXMLEscape(StringUtils::toStr(value));
     }
     if (value.hasUnit())
     {
@@ -245,7 +245,7 @@ namespace OpenMS
         {
           if (StringUtils::has(line, '!'))
           {
-            std::string parent_id = StringUtils::prefix(StringUtils::trimmed(StringUtils::substr(line, line.find(':') + 1)), '!');
+            std::string parent_id = StringUtils::trimmed(StringUtils::prefix(StringUtils::substr(line, line.find(':') + 1), '!'));
             term.parents.insert(parent_id);
 
             //check if the parent term name is correct
@@ -264,7 +264,7 @@ namespace OpenMS
           if (StringUtils::has(line, '!'))
           {
             // e.g. relationship: DRV BTO:0000142 ! brain
-            std::string parent_id = StringUtils::prefix(StringUtils::substr(line, line.find("DRV") + 4), ':') + ":" + StringUtils::prefix(StringUtils::trimmed(StringUtils::suffix(line, ':')), '!');
+            std::string parent_id = StringUtils::prefix(StringUtils::substr(line, line.find("DRV") + 4), ':') + ":" + StringUtils::trimmed(StringUtils::prefix(StringUtils::suffix(line, ':'), '!'));
             term.parents.insert(parent_id);
 
             //check if the parent term name is correct
@@ -282,7 +282,7 @@ namespace OpenMS
         {
           if (StringUtils::has(line, '!'))
           {
-            std::string parent_id = StringUtils::prefix(StringUtils::substr(line, line.find("part_of") + 8), ':') + ":" + StringUtils::prefix(StringUtils::trimmed(StringUtils::suffix(line, ':')), '!');
+            std::string parent_id = StringUtils::prefix(StringUtils::substr(line, line.find("part_of") + 8), ':') + ":" + StringUtils::trimmed(StringUtils::prefix(StringUtils::suffix(line, ':'), '!'));
             term.parents.insert(parent_id);
 
             //check if the parent term name is correct
@@ -301,7 +301,7 @@ namespace OpenMS
         {
           if (StringUtils::has(line, '!'))
           {
-            std::string unit_id = StringUtils::prefix(StringUtils::substr(line, line.find("has_units") + 10), ':') + ":" + StringUtils::prefix(StringUtils::trimmed(StringUtils::suffix(line, ':')), '!');
+            std::string unit_id = StringUtils::prefix(StringUtils::substr(line, line.find("has_units") + 10), ':') + ":" + StringUtils::trimmed(StringUtils::prefix(StringUtils::suffix(line, ':'), '!'));
             term.units.insert(unit_id);
 
             //check if the parent term name is correct

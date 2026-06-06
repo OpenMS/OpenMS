@@ -46,7 +46,7 @@ namespace OpenMS
     int tab = tabAt_(e->position().toPoint());
     if (tab != -1)
     {
-      emit dropOnTab(e->mimeData(), dynamic_cast<QWidget*>(e->source()), StringUtils::toInt32(tabData(tab)));
+      emit dropOnTab(e->mimeData(), dynamic_cast<QWidget*>(e->source()), tabData(tab).toInt());
     }
     else
     { // did not hit a tab, but the void area on the right of tabs --> create new tab
@@ -65,7 +65,7 @@ namespace OpenMS
       menu.addAction("Close");
       if (menu.exec(e->globalPos()))
       {
-        StringUtils::toInt32(emit closeRequested(tabData(tab)));
+        emit closeRequested(tabData(tab).toInt());
       }
     }
   }
@@ -81,7 +81,7 @@ namespace OpenMS
     if (tab != -1)
     {
       // will close the window and remove it from the tabbar
-      StringUtils::toInt32(emit closeRequested(tabData(tab)));
+      emit closeRequested(tabData(tab).toInt());
     }
   }
 
@@ -90,7 +90,7 @@ namespace OpenMS
     // make sure this ID does not exist yet
     for (int i = 0; i < this->count(); ++i)
     {
-      StringUtils::toInt32(if (tabData(i)) == id)
+      if (tabData(i).toInt() == id)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Widget with the same ID was added before!");
       }
@@ -105,7 +105,7 @@ namespace OpenMS
   {
     for (int i = 0; i < this->count(); ++i)
     {
-      StringUtils::toInt32(if (tabData(i)) == id)
+      if (tabData(i).toInt() == id)
       {
         removeTab(i);
         return;
@@ -118,7 +118,7 @@ namespace OpenMS
   {
     for (int i = 0; i < this->count(); ++i)
     {
-      StringUtils::toInt32(if (tabData(i)) == id)
+      if (tabData(i).toInt() == id)
       {
         setCurrentIndex(i);
         break;
@@ -128,7 +128,7 @@ namespace OpenMS
 
   void EnhancedTabBar::currentChanged_(int index)
   {
-    StringUtils::toInt32(emit currentIdChanged(tabData(index)));
+    emit currentIdChanged(tabData(index).toInt());
   }
 
   int EnhancedTabBar::tabAt_(const QPoint & pos)

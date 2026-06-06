@@ -187,7 +187,7 @@ namespace OpenMS
           const AASequence sequence = AASequence::fromString(sequence_string);
 
           double peptide_weight = sequence.getMonoWeight();
-          std::string rna_name = (std::string)(std::string)ph.getMetaValue("NuXL:NA");
+          std::string rna_name = StringUtils::toStr(ph.getMetaValue("NuXL:NA"));
           double rna_weight = (double)ph.getMetaValue("NuXL:NA_MASS_z0");
           int isotope_error = (int)ph.getMetaValue("isotope_error");
           // crosslink weight for different charge states
@@ -253,8 +253,8 @@ namespace OpenMS
               ph.metaValueExists("NuXL:best_localization"))
           {
             row.best_localization_score = (double)ph.getMetaValue("NuXL:best_localization_score");
-            row.localization_scores = (std::string)ph.getMetaValue("NuXL:localization_scores");
-            row.best_localization = (std::string)ph.getMetaValue("NuXL:best_localization");;
+            row.localization_scores = StringUtils::toStr(ph.getMetaValue("NuXL:localization_scores"));
+            row.best_localization = StringUtils::toStr(ph.getMetaValue("NuXL:best_localization"));;
           }
 
           ph.setMetaValue("NuXL:Da difference", (double)absolute_difference);
@@ -393,8 +393,8 @@ Output format:
 
       const PeptideHit& ph = hits[0]; // only consider top hit
       const int best_localization = (int)ph.getMetaValue("NuXL:best_localization_position");        
-      const std::string& NA = (std::string)ph.getMetaValue("NuXL:NA"); // adduct
-      const std::string& NT = (std::string)ph.getMetaValue("NuXL:NT"); // XLed nucleotide
+      const std::string& NA = StringUtils::toStr(ph.getMetaValue("NuXL:NA")); // adduct
+      const std::string& NT = StringUtils::toStr(ph.getMetaValue("NuXL:NT")); // XLed nucleotide
       const int charge = ph.getCharge();
       const AASequence& peptide_sequence = ph.getSequence();
       

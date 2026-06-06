@@ -163,7 +163,7 @@ START_SECTION(OSWFile writers)
   NEW_TMP_FILE(tmp_osw);
   copySharedInferenceFixture_(tmp_osw);
 
-  String out_osw;
+  std::string out_osw;
   NEW_TMP_FILE(out_osw);
   File::remove(out_osw);
 

@@ -609,10 +609,10 @@ START_SECTION(static std::vector<CometModification> mergeModifications(const std
     TEST_EQUAL(result[0].nc_term, 0)
 
     // Second entry: merged peptide N-term + amino acids
-    TEST_EQUAL(result[1].StringUtils::hasSubstring(residues, "n"), true)
-    TEST_EQUAL(result[1].StringUtils::hasSubstring(residues, "K"), true)
-    TEST_EQUAL(result[1].StringUtils::hasSubstring(residues, "R"), true)
-    TEST_EQUAL(result[1].StringUtils::hasSubstring(residues, "S"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(result[1].residues, "n"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(result[1].residues, "K"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(result[1].residues, "R"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(result[1].residues, "S"), true)
     TEST_EQUAL(result[1].term_distance, -1)
     TEST_EQUAL(result[1].nc_term, 0)
   }

@@ -88,7 +88,7 @@ namespace OpenMS
 
   void MassAnalyzerVisualizer::store()
   {
-    StringUtils::toInt32(ptr_->setOrder(order_->text()));
+    ptr_->setOrder(order_->text().toInt());
     ptr_->setType((MassAnalyzer::AnalyzerType)type_->currentIndex());
     ptr_->setResolutionMethod((MassAnalyzer::ResolutionMethod)res_method_->currentIndex());
     ptr_->setResolutionType((MassAnalyzer::ResolutionType)res_type_->currentIndex());
@@ -96,14 +96,14 @@ namespace OpenMS
     ptr_->setScanLaw((MassAnalyzer::ScanLaw)scan_law_->currentIndex());
     ptr_->setReflectronState((MassAnalyzer::ReflectronState)reflectron_state_->currentIndex());
 
-    ptr_->setResolution(res_->text().toDouble();
-    ptr_->setAccuracy(acc_->text().toDouble();
-    ptr_->setScanRate(scan_rate_->text().toDouble();
-    ptr_->setScanTime(scan_time_->text().toDouble();
-    ptr_->setTOFTotalPathLength(TOF_->text().toDouble();
-    ptr_->setIsolationWidth(iso_->text().toDouble();
-    StringUtils::toInt32(ptr_->setFinalMSExponent(final_MS_->text()));
-    ptr_->setMagneticFieldStrength(magnetic_fs_->text().toDouble();
+    ptr_->setResolution(res_->text().toDouble());
+    ptr_->setAccuracy(acc_->text().toDouble());
+    ptr_->setScanRate(scan_rate_->text().toDouble());
+    ptr_->setScanTime(scan_time_->text().toDouble());
+    ptr_->setTOFTotalPathLength(TOF_->text().toDouble());
+    ptr_->setIsolationWidth(iso_->text().toDouble());
+    ptr_->setFinalMSExponent(final_MS_->text().toInt());
+    ptr_->setMagneticFieldStrength(magnetic_fs_->text().toDouble());
 
     temp_ = (*ptr_);
   }

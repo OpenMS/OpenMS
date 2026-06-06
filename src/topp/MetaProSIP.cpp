@@ -1337,7 +1337,7 @@ protected:
           binned[bin] = log1p(iit->abundance);
         }
         binned_peptide_ria.push_back(binned);
-        cluster_labels.push_back((std::string)(cit - sip_clusters.begin()));
+        cluster_labels.push_back(StringUtils::toStr(cit - sip_clusters.begin()));
       }
     }
   }
@@ -3244,7 +3244,7 @@ protected:
       tmp_pepid.sort();
 
       SIPPeptide sip_peptide;
-      sip_peptide.feature_type = feature_it->getMetaValue("feature_type"); // used to annotate feature type in reporting
+      sip_peptide.feature_type = StringUtils::toStr(feature_it->getMetaValue("feature_type")); // used to annotate feature type in reporting
 
       // retrieve identification information
       const PeptideHit& feature_hit = tmp_pepid.getHits()[0];

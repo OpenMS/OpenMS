@@ -16,7 +16,7 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  auto file_mzML = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_GaussFilter.mzML");
+  auto file_mzML = OPENMS_DOC_PATH + StringUtils::toStr("/code_examples/data/Tutorial_GaussFilter.mzML");
   
   MSExperiment spectra;
 

@@ -303,11 +303,11 @@ namespace OpenMS
       flashdeconv_param_ = flashdeconv_param_.copy("FLASHDeconv:1:", true);
 
       // parameters to show in default mode : flashdeconv_param_wizard_
-      StringUtils::remove(flashdeconv_param_, "log");
-      StringUtils::remove(flashdeconv_param_, "no_progress");
-      StringUtils::remove(flashdeconv_param_, "debug");
-      StringUtils::remove(flashdeconv_param_, "in");
-      StringUtils::remove(flashdeconv_param_, "out");
+      flashdeconv_param_.remove("log");
+      flashdeconv_param_.remove("no_progress");
+      flashdeconv_param_.remove("debug");
+      flashdeconv_param_.remove("in");
+      flashdeconv_param_.remove("out");
 
       // parameters for different output format
       StringList out_params = {"out_spec1","out_spec2","out_spec3","out_spec4", "out_annotated_mzml", "out_mzml",
@@ -318,11 +318,11 @@ namespace OpenMS
 
       // remove output format params from global parameter set
       for (const auto& name : out_params)
-        StringUtils::remove(flashdeconv_param_, name);
+        flashdeconv_param_.remove(name);
 
       // add ida_log parameter to flashdeconv_param_outputs_ (rename ida_log to get it out of "FD:" prefix)
       flashdeconv_param_outputs_.setValue("ida_log", "", flashdeconv_param_.getDescription("FD:ida_log"), flashdeconv_param_.getTags("FD:ida_log"));
-      StringUtils::remove(flashdeconv_param_, "FD:ida_log");
+      flashdeconv_param_.remove("FD:ida_log");
 
       ui->list_editor->load(flashdeconv_param_);
     }

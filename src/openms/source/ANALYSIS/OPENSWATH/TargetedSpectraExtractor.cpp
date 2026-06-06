@@ -217,8 +217,8 @@ namespace OpenMS
       auto construct_feature = [checkRtAndMzTol, spectrum_rt, spectrum_mz, &ms2_features, &annotated_spectra, &spectrum](
         const OpenMS::Feature& feature, const double& mz_tol, const double& rt_win)
       {
-        const auto& peptide_ref_s = (std::string)feature.getMetaValue("PeptideRef");
-        const auto& native_id_s = (std::string)feature.getMetaValue("native_id");
+        const auto& peptide_ref_s = StringUtils::toStr(feature.getMetaValue("PeptideRef"));
+        const auto& native_id_s = StringUtils::toStr(feature.getMetaValue("native_id"));
         // check for null annotations resulting from unnanotated features
         if (peptide_ref_s != "null")
         {
@@ -871,7 +871,7 @@ namespace OpenMS
     std::map<std::string, OpenMS::TargetedExperiment::Protein> proteins_map;
     for (const auto& ms1_feature : ms1_features)
     {
-      std::string peptide_ref = (std::string)(std::string)ms1_feature.getMetaValue("PeptideRef");
+      std::string peptide_ref = StringUtils::toStr(ms1_feature.getMetaValue("PeptideRef"));
       OpenMS::TargetedExperiment::Protein protein;
       protein.id = peptide_ref;
       protein.addMetaValues(ms1_feature);

@@ -420,7 +420,7 @@ namespace OpenMS::Internal
         {
           std::string temp_string = (StringUtils::trim(character_buffer_));
           vector<std::string> tmp_mods;
-          StringUtils::split(temp_string, ', ', tmp_mods);
+          StringUtils::split(temp_string, ',', tmp_mods);
           
           for (vector<std::string>::const_iterator it = tmp_mods.begin(); it != tmp_mods.end(); ++it)
           {
@@ -444,7 +444,7 @@ namespace OpenMS::Internal
         {
           std::string temp_string = (StringUtils::trim(character_buffer_));
           vector<std::string> tmp_mods;
-          StringUtils::split(temp_string, ', ', tmp_mods);
+          StringUtils::split(temp_string, ',', tmp_mods);
           
           for (vector<std::string>::const_iterator it = tmp_mods.begin(); it != tmp_mods.end(); ++it)
           {

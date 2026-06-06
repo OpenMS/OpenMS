@@ -509,7 +509,7 @@ struct NuXLRTPrediction
       x["mass"].push_back(f.getCharge() * f.getMZ()); // approx mass
 
       // nucleotide histogram      
-      auto nas = (std::string)ph.getMetaValue("NuXL:NA",StringUtils::toStr(""));
+      auto nas = StringUtils::toStr(ph.getMetaValue("NuXL:NA",StringUtils::toStr("")));
       auto encoded_nas = encodeNAHist_(nas);
       for (const auto& c : nucleotides)
       {
@@ -594,7 +594,7 @@ struct NuXLRTPrediction
         x["mass"].push_back(ph.getCharge() * pid.getMZ()); // approx mass
 
         // nucleotide histogram      
-        auto nas = (std::string)ph.getMetaValue("NuXL:NA",StringUtils::toStr(""));
+        auto nas = StringUtils::toStr(ph.getMetaValue("NuXL:NA",StringUtils::toStr("")));
         auto encoded_nas = encodeNAHist_(nas);
         for (const auto& c : nucleotides)
         {
@@ -4759,7 +4759,7 @@ static void scoreXLIons_(
 
         // add RT prediction as extra feature for percolator      
         auto search_parameters = prot_ids[0].getSearchParameters();
-        std::string new_features = (std::string)search_parameters.getMetaValue("extra_features") + std::string(", RT_error,RT_predict");
+        std::string new_features = StringUtils::toStr(search_parameters.getMetaValue("extra_features")) + std::string(", RT_error,RT_predict");
         search_parameters.setMetaValue("extra_features", new_features);
         prot_ids[0].setSearchParameters(search_parameters);
       }
@@ -4823,7 +4823,7 @@ static void scoreXLIons_(
         {
           for (const auto& pi : perc_pep_ids)
           {
-            skip_peptide_spectrum.insert((std::string)pi.getMetaValue("spectrum_reference")); // get native id
+            skip_peptide_spectrum.insert(StringUtils::toStr(pi.getMetaValue("spectrum_reference"))); // get native id
           }
         }
 
@@ -4865,7 +4865,7 @@ static void scoreXLIons_(
           // filter all coeluting MS2 with high spectral similarity to identified one
           for (const auto& pi : perc_pep_ids)
           {
-            std::string this_native_id = (std::string)pi.getMetaValue("spectrum_reference");
+            std::string this_native_id = StringUtils::toStr(pi.getMetaValue("spectrum_reference"));
 
             std::vector<Size> result_indices;
 
@@ -6328,7 +6328,7 @@ static void scoreXLIons_(
 
         // add RT prediction as extra feature for percolator      
         auto search_parameters = protein_ids[0].getSearchParameters();
-        std::string new_features = (std::string)search_parameters.getMetaValue("extra_features") + std::string(", RT_error,RT_predict");
+        std::string new_features = StringUtils::toStr(search_parameters.getMetaValue("extra_features")) + std::string(", RT_error,RT_predict");
         search_parameters.setMetaValue("extra_features", new_features);
         protein_ids[0].setSearchParameters(search_parameters);
       }
@@ -6367,7 +6367,7 @@ static void scoreXLIons_(
       { // use output_folder
         std::string id_xml_out = extra_output_directory;
         StringUtils::ensureLastChar(id_xml_out, '/');
-        id_xml_out += StringUtils::substitute(File::basename(out_idxml), ".idXML", "_");
+        id_xml_out += StringUtils::substituted(File::basename(out_idxml), ".idXML", "_");
 
         fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
           peptide_ids,
@@ -6479,7 +6479,7 @@ static void scoreXLIons_(
           { // use output_folder
             std::string id_xml_out = extra_output_directory;
             StringUtils::ensureLastChar(id_xml_out, '/');
-            id_xml_out += StringUtils::substitute(File::basename(out_idxml), ".idXML", "_perc_");
+            id_xml_out += StringUtils::substituted(File::basename(out_idxml), ".idXML", "_perc_");
 
             fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
               peptide_ids,

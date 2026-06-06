@@ -27,7 +27,7 @@ namespace OpenMS
   ///   String(42) / String(3.14) →  StringUtils::toStr(42) / toStr(3.14)
   ///   String::random(n)         →  StringUtils::random(n)
   ///   String::number(d, n)      →  StringUtils::number(d, n)
-  ///   String::EMPTY             →  ""  or  std::string{}
+  ///   std::string()             →  ""  or  std::string{}
   ///   String::ESCAPE            →  OpenMS::QuotingMethod::ESCAPE
   ///   String::NONE              →  OpenMS::QuotingMethod::NONE
   ///   String::DOUBLE            →  OpenMS::QuotingMethod::DOUBLE

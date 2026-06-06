@@ -941,7 +941,7 @@ namespace OpenMS::Internal
         if (spec.metaValueExists("filter string"))
         {
           os << " filterLine=\"";
-          os << writeXMLEscape((std::string)spec.getMetaValue("filter string"));
+          os << writeXMLEscape(StringUtils::toStr(spec.getMetaValue("filter string")));
           os << "\"";
         }
        

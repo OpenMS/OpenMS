@@ -168,7 +168,7 @@ protected:
   std::string makeModString_(const std::string& mod_name)
   {
     const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_name);
-    const std::string& residue = mod->getOrigin();
+    const std::string residue = StringUtils::toStr(mod->getOrigin());
     return StringUtils::toStr(residue +  " " + mod->getDiffMonoMass());    
   }
  
@@ -182,22 +182,22 @@ protected:
     config_map["INPUT_DATA"].push_back(id);
     
     std::string type = FileTypes::typeToName(fh.getTypeByFileName(id));
-    config_map["INPUT_TYPE"].push_back(0);
+    config_map["INPUT_TYPE"].push_back(StringUtils::toStr(0));
     
-    config_map["ALGORITHM"].push_back(ListUtils::getIndex<std::string>(fragment_methods_, getStringOption_("fragment_method")));
-    config_map["MS2_TOL"].push_back(getDoubleOption_("fragment_mass_tolerance"));
-    config_map["MS2_TOL_UNITS"].push_back(ListUtils::getIndex<std::string>(fragment_error_units_, getStringOption_("fragment_error_units")));
-    config_map["MIN_MZ"].push_back(getDoubleOption_("min_mz"));
+    config_map["ALGORITHM"].push_back(StringUtils::toStr(ListUtils::getIndex<std::string>(fragment_methods_, getStringOption_("fragment_method"))));
+    config_map["MS2_TOL"].push_back(StringUtils::toStr(getDoubleOption_("fragment_mass_tolerance")));
+    config_map["MS2_TOL_UNITS"].push_back(StringUtils::toStr(ListUtils::getIndex<std::string>(fragment_error_units_, getStringOption_("fragment_error_units"))));
+    config_map["MIN_MZ"].push_back(StringUtils::toStr(getDoubleOption_("min_mz")));
     config_map["OUTPUT_FILE"].push_back(out);
-    config_map["DECOY_MASS"].push_back(getDoubleOption_("decoy_mass"));
-    config_map["MAX_CHARGE_STATE"].push_back(getIntOption_("max_charge_state"));
-    config_map["MAX_PEP_LEN"].push_back(getIntOption_("max_peptide_length"));
-    config_map["MAX_NUM_PERM"].push_back(getIntOption_("max_num_perm"));
-    config_map["SELECTION_METHOD"].push_back(ListUtils::getIndex<std::string>(score_selection_method_, selection_method));    
-    config_map["MODELING_SCORE_THRESHOLD"].push_back(getDoubleOption_("modeling_score_threshold"));
-    config_map["SCORING_THRESHOLD"].push_back(getDoubleOption_("scoring_threshold"));
-    config_map["MIN_NUM_PSMS_MODEL"].push_back(getIntOption_("min_num_psms_model"));
-    config_map["NUM_THREADS"].push_back(getIntOption_("num_threads"));
+    config_map["DECOY_MASS"].push_back(StringUtils::toStr(getDoubleOption_("decoy_mass")));
+    config_map["MAX_CHARGE_STATE"].push_back(StringUtils::toStr(getIntOption_("max_charge_state")));
+    config_map["MAX_PEP_LEN"].push_back(StringUtils::toStr(getIntOption_("max_peptide_length")));
+    config_map["MAX_NUM_PERM"].push_back(StringUtils::toStr(getIntOption_("max_num_perm")));
+    config_map["SELECTION_METHOD"].push_back(StringUtils::toStr(ListUtils::getIndex<std::string>(score_selection_method_, selection_method)));    
+    config_map["MODELING_SCORE_THRESHOLD"].push_back(StringUtils::toStr(getDoubleOption_("modeling_score_threshold")));
+    config_map["SCORING_THRESHOLD"].push_back(StringUtils::toStr(getDoubleOption_("scoring_threshold")));
+    config_map["MIN_NUM_PSMS_MODEL"].push_back(StringUtils::toStr(getIntOption_("min_num_psms_model")));
+    config_map["NUM_THREADS"].push_back(StringUtils::toStr(getIntOption_("num_threads")));
     config_map["RUN_MODE"].push_back(getStringOption_("run_mode"));
     
     for (vector<std::string>::const_iterator it = target_mods.begin(); it != target_mods.end(); ++it)
@@ -292,9 +292,9 @@ protected:
           StringUtils::remove(AAs, ')');
           StringUtils::remove(AAs, '(');
           // because origin can be e.g. (STY)
-          for (String::iterator aa = AAs.begin(); aa != AAs.end(); ++aa)
+          for (std::string::iterator aa = AAs.begin(); aa != AAs.end(); ++aa)
           {
-            modifications[*aa] = mod;
+            modifications[StringUtils::toStr(*aa)] = mod;
           }
         }          
       }
@@ -319,7 +319,7 @@ protected:
       if (!tsvfile.getRow(row_count, elements))
       {
         writeLogError_("Error: could not split row " + StringUtils::toStr(row_count) + " of file '" + l_out + "'");
-        return PARSE_ERROR;
+        return StringUtils::toStr((int)PARSE_ERROR);
       }
       
       spec_id = elements[0];

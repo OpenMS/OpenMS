@@ -253,7 +253,7 @@ protected:
     setValidStrings_("mass_recalibration", ListUtils::create<std::string>("true,false"));
 
     registerStringOption_("alignment_order", "<option>", "star", "If star, aligns all maps to the reference with most IDs. If tree_guided, aligns maps in tree order (most similar pairs first).", false, true);
-    setValidStrings_("alignment_order", ListUtils::create<String>("star,tree_guided"));
+    setValidStrings_("alignment_order", ListUtils::create<std::string>("star,tree_guided"));
 
     registerStringOption_("keep_feature_top_psm_only", "<option>", "true", "If false, also keeps lower ranked PSMs that have the top-scoring"
                                                                      " sequence as a candidate per feature in the same file.", false, true);
@@ -1611,7 +1611,7 @@ protected:
         design_table.addLine(StringUtils::toStr(count) + "\t1\t" + s +"\t1\tSample" + StringUtils::toStr(count) + "\t" + StringUtils::toStr(count)+ "\t" + StringUtils::toStr(count));
         ++count;
       }
-      design_ = ExperimentalDesignFile::load(design_table, "--no design file--", false);
+      design_ = ExperimentalDesignFile::load(design_table, false, "--no design file--");
     }
 
     // some sanity checks

@@ -67,7 +67,7 @@ namespace OpenMS
     bool extractMetaDouble_(const Feature& feature, const std::string& key, double& value)
     {
       if (!feature.metaValueExists(key)) return false;
-      const DataValue& meta = (std::string)feature.getMetaValue(key);
+      const DataValue& meta = StringUtils::toStr(feature.getMetaValue(key));
       if (meta.isEmpty()) return false;
       try
       {
@@ -105,7 +105,7 @@ namespace OpenMS
     bool extractMetaDouble_(const BaseFeature& feature, const std::string& key, double& value)
     {
       if (!feature.metaValueExists(key)) return false;
-      const DataValue& meta = (std::string)feature.getMetaValue(key);
+      const DataValue& meta = StringUtils::toStr(feature.getMetaValue(key));
       if (meta.isEmpty()) return false;
       try
       {
@@ -606,7 +606,7 @@ namespace OpenMS
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             "Feature missing PeptideRef meta value");
       }
-      const std::string peptide_ref = (std::string)(std::string)feature.getMetaValue("PeptideRef");
+      const std::string peptide_ref = StringUtils::toStr(feature.getMetaValue("PeptideRef"));
       auto precursor_it = compound_to_precursor.find(peptide_ref);
       if (precursor_it == compound_to_precursor.end())
       {
@@ -724,7 +724,7 @@ namespace OpenMS
           {
             continue;
           }
-          const std::string native_id = (std::string)(std::string)sub_it.getMetaValue("native_id");
+          const std::string native_id = StringUtils::toStr(sub_it.getMetaValue("native_id"));
           int64_t transition_id_value = 0;
           // Prefer explicit name lookup in the library mapping. Only use the
           // numeric fallback when the native_id is numeric and the id falls

@@ -356,7 +356,7 @@ namespace OpenMS
     for (TextFile::ConstIterator it = infile.begin(); it != infile.end(); ++it)
     {
       vector<std::string> split;
-      StringUtils::split(*it, ', ', split);
+      StringUtils::split(*it, ',', split);
 
       if (!it->empty() && (*it)[0] != '#')
       {

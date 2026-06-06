@@ -95,7 +95,7 @@ namespace OpenMS
       value +=StringUtils::toStr(tics[i].retention_times[0], false) + ", " + StringUtils::toStr((UInt64)tics[i].intensities[0]);
       for (Size j = 1; j < tics[i].intensities.size(); ++j)
       {
-        value += ", " + std::string(tics[i].retention_times[j], false) + ", " + StringUtils::toStr((UInt64)tics[i].intensities[j]);
+        value += ", " + StringUtils::toStr(tics[i].retention_times[j], false) + ", " + StringUtils::toStr((UInt64)tics[i].intensities[j]);
       }
       value += "]";
       tic.setValue(value);

@@ -61,7 +61,7 @@ protected:
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<std::string>("idXML,idparquet"));
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML,idparquet"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML,idparquet"));
     registerFullParam_(switcher_.getParameters());
   }
 

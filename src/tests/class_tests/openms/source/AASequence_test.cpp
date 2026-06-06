@@ -508,9 +508,9 @@ END_SECTION
 
 START_SECTION(bool has(const Residue& residue) const)
   AASequence seq = AASequence::fromString("DFPIANGER");
-  TEST_EQUAL(StringUtils::has(seq, seq[(Size)0]), true)
+  TEST_EQUAL(seq.has(seq[(Size)0]), true)
   Residue res;
-  TEST_NOT_EQUAL(StringUtils::has(seq, res), true)
+  TEST_NOT_EQUAL(seq.has(res), true)
 END_SECTION
 
 START_SECTION(bool hasSubsequence(const AASequence& peptide) const)
@@ -528,11 +528,11 @@ START_SECTION(bool hasPrefix(const AASequence& peptide) const)
   AASequence seq4 = AASequence::fromString("(TMT6plex)DFP");
   AASequence seq5 = AASequence::fromString("DFPIANGER(Label:18O(2))");
   AASequence seq6 = AASequence::fromString("DFP(Label:18O(2))");
-  TEST_EQUAL(StringUtils::hasPrefix(seq1, seq2), true)
-  TEST_EQUAL(StringUtils::hasPrefix(seq1, seq3), false)
-  TEST_EQUAL(StringUtils::hasPrefix(seq1, seq4), false)
-  TEST_EQUAL(StringUtils::hasPrefix(seq1, seq5), false)
-  TEST_EQUAL(StringUtils::hasPrefix(seq1, seq6), true)
+  TEST_EQUAL(seq1.hasPrefix(seq2), true)
+  TEST_EQUAL(seq1.hasPrefix(seq3), false)
+  TEST_EQUAL(seq1.hasPrefix(seq4), false)
+  TEST_EQUAL(seq1.hasPrefix(seq5), false)
+  TEST_EQUAL(seq1.hasPrefix(seq6), true)
 END_SECTION
 
 START_SECTION(bool hasSuffix(const AASequence& peptide) const)
@@ -542,11 +542,11 @@ START_SECTION(bool hasSuffix(const AASequence& peptide) const)
   AASequence seq4 = AASequence::fromString("GER(Label:18O(2))");
   AASequence seq5 = AASequence::fromString("(TMT6plex)DFPIANGER");
   AASequence seq6 = AASequence::fromString("(TMT6plex)GER");
-  TEST_EQUAL(StringUtils::hasSuffix(seq1, seq2), true)
-  TEST_EQUAL(StringUtils::hasSuffix(seq1, seq3), false)
-  TEST_EQUAL(StringUtils::hasSuffix(seq1, seq4), false)
-  TEST_EQUAL(StringUtils::hasSuffix(seq1, seq5), false)
-  TEST_EQUAL(StringUtils::hasSuffix(seq1, seq6), true)
+  TEST_EQUAL(seq1.hasSuffix(seq2), true)
+  TEST_EQUAL(seq1.hasSuffix(seq3), false)
+  TEST_EQUAL(seq1.hasSuffix(seq4), false)
+  TEST_EQUAL(seq1.hasSuffix(seq5), false)
+  TEST_EQUAL(seq1.hasSuffix(seq6), true)
 END_SECTION
 
 START_SECTION(ConstIterator begin() const)
@@ -1557,7 +1557,7 @@ END_SECTION
 
 START_SECTION([EXTRA] multithreaded example)
 {
-  StringUtils::remove(OPENMS_LOG_WARN, std::cout);
+  OPENMS_LOG_WARN.remove(std::cout);
   // All measurements are best of three (wall time, Linux, 8 threads)
   //
   // Serial execution of code:

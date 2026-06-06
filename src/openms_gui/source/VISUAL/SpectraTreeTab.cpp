@@ -26,7 +26,7 @@ namespace OpenMS
     std::vector<int> out;
     for (const auto & i : in)
     {
-      out.push_back(StringUtils::toInt32(i));
+      out.push_back(i.toInt());
     }
     return out;
   }
@@ -70,7 +70,7 @@ namespace OpenMS
   struct IndexExtrator
   {
     explicit IndexExtrator(const QTreeWidgetItem* item)
-      : StringUtils::toInt32(spectrum_index(item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole))),
+      : spectrum_index(item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt()),
         res(item->data(ClmnChrom::TYPE, Qt::UserRole).toList()) // this works, even if the QVariant is invalid (then the list is empty)
     {
     }
@@ -168,7 +168,7 @@ namespace OpenMS
       return false;
     }
     // getting the index works for PEAK and CHROM data
-    int index = StringUtils::toInt32(item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole));
+    int index = item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt();
     if (spectra_treewidget_->headerItem()->text(ClmnChrom::MZ) == ClmnChrom::HEADER_NAMES[ClmnChrom::MZ])
     { // we currently show chromatogram data
       current_type = LayerDataBase::DT_CHROMATOGRAM;

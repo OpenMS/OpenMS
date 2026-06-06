@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/FORMAT/FileTypes.h>
+
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 

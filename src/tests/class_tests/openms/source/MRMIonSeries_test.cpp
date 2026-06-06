@@ -168,11 +168,11 @@ START_SECTION((std::pair<String, double> MRMIonSeries::annotateIon(IonSeries ion
   TEST_EQUAL(ion1.first, "y5^3")
   TEST_REAL_SIMILAR(ion1.second, 202.44287993)
 
-  std::pair<String, double> ion2 = mrmis.annotateIon(ionseries1, 202.44287993, 0);
+  std::pair<std::string, double> ion2 = mrmis.annotateIon(ionseries1, 202.44287993, 0);
   TEST_EQUAL(ion2.first, "unannotated")
   TEST_REAL_SIMILAR(ion2.second, -1)
 
-  std::pair<String, double> ion3 = mrmis.annotateIon(ionseries1, 202.4, 0.05);
+  std::pair<std::string, double> ion3 = mrmis.annotateIon(ionseries1, 202.4, 0.05);
   TEST_EQUAL(ion3.first, "y5^3")
   TEST_REAL_SIMILAR(ion3.second, 202.44287993)
 }
@@ -263,7 +263,7 @@ START_SECTION((void MRMIonSeries::annotateTransition(ReactionMonitoringTransitio
   TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].iontype, TargetedExperiment::IonType::YIon);
   TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].ordinal, 5)
   TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001524"), true)
-  TEST_EQUAL(StringUtils::toDouble((int)tr2.getProduct().getInterpretationList()[0].getCVTerms().at("MS:1001524")[0].getValue().toString()), -18)
+  TEST_EQUAL(StringUtils::toInt32(tr2.getProduct().getInterpretationList()[0].getCVTerms().at("MS:1001524")[0].getValue().toString()), -18)
 
   tr3.setProductMZ(202.44);
   mrmis.annotateTransition(tr3, peptide, 0.05, 0.05, false, fragment_types, fragment_charges, false, false);

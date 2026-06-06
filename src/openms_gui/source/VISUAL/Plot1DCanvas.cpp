@@ -357,7 +357,7 @@ namespace OpenMS
         Annotation1DDistanceItem * distance_item = dynamic_cast<Annotation1DDistanceItem *>(item);
         if (distance_item)
         {
-          emit sendStatusMessage(StringUtils::toStr("Measured: d") + getNonGravityDim().getDimNameShort() +  "= " + distance_item->getDistance(), 0);
+          emit sendStatusMessage(StringUtils::toStr("Measured: d") + StringUtils::toStr(getNonGravityDim().getDimNameShort()) +  "= " + StringUtils::toStr(distance_item->getDistance()), 0);
         }
       }
       else
@@ -968,7 +968,7 @@ namespace OpenMS
         addUserPeakAnnotation_(near_peak);
       })->setEnabled(near_peak.isValid());
       
-      context_menu->addAction(toQString((StringUtils::toStr("Add peak annotation ") + StringUtils::toStr(getNonGravityDim().getDimNameShort()))), [&]() {
+      context_menu->addAction(toQString((StringUtils::toStr("Add peak annotation ") + StringUtils::toStr(StringUtils::toStr(getNonGravityDim().getDimNameShort())))), [&]() {
         const auto xy_point = getCurrentLayer().peakIndexToXY(near_peak, unit_mapper_);
         QString label = toQString(getNonGravityDim().formattedValue(gr_.swap().gravityValue(xy_point)));
         addPeakAnnotation(near_peak, label, toQString(StringUtils::toStr(getCurrentLayer().param.getValue("peak_color").toString())));

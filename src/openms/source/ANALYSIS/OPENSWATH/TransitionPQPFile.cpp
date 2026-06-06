@@ -826,7 +826,7 @@ namespace OpenMS
       std::string gene_name = "NA";
       if (peptide.metaValueExists("GeneName"))
       {
-        gene_name = (std::string)peptide.getMetaValue("GeneName");
+        gene_name = StringUtils::toStr(peptide.getMetaValue("GeneName"));
       }
 
       if (!gene_map.contains(gene_name)) gene_map[gene_name] = (int)gene_map.size();
@@ -936,11 +936,11 @@ namespace OpenMS
       const auto& compound = targeted_exp.getCompoundByRef(compound_id);
       if (compound.metaValueExists("Adducts"))
       {
-        adducts = (std::string)compound.getMetaValue("Adducts");
+        adducts = StringUtils::toStr(compound.getMetaValue("Adducts"));
       }
       if (compound.metaValueExists("CompoundName"))
       {
-        compound_name = (std::string)compound.getMetaValue("CompoundName");
+        compound_name = StringUtils::toStr(compound.getMetaValue("CompoundName"));
       }
       else
       {

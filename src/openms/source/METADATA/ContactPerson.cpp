@@ -53,7 +53,7 @@ namespace OpenMS
   void ContactPerson::setName(const std::string & name)
   {
     std::vector<std::string> tmp;
-    if (StringUtils::split(name, ', ', tmp))
+    if (StringUtils::split(name, ',', tmp))
     {
       first_name_ = StringUtils::trim(tmp[1]);
       last_name_ = StringUtils::trim(tmp[0]);

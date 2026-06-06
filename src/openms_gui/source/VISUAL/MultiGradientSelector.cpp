@@ -145,7 +145,7 @@ namespace OpenMS
         Int pos = Int(100 * (e->position().toPoint().x() - margin_) / float(gradient_area_width_));
         if (pos != selected_ && !gradient_.exists(pos))        // lever has been moved AND no other lever at the new position?
         {
-          StringUtils::remove(gradient_, selected_);
+          gradient_.remove(selected_);
           gradient_.insert(pos, selected_color_);
           selected_ = pos;
           repaint();
@@ -185,7 +185,7 @@ namespace OpenMS
   {
     if (e->key() == Qt::Key_Delete && selected_ > 0 && selected_ < 100)     // don't remove first or last lever)
     {
-      StringUtils::remove(gradient_, selected_);
+      gradient_.remove(selected_);
       selected_ = -1;
       selected_color_ = Qt::white;
       repaint();

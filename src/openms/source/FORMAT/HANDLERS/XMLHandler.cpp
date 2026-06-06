@@ -381,12 +381,12 @@ namespace OpenMS::Internal
         else if (d.valueType() == DataValue::INT_VALUE)
         {
           os << "int";
-          val = (std::string)d;
+          val = StringUtils::toStr(d);
         }
         else if (d.valueType() == DataValue::DOUBLE_VALUE)
         {
           os << "float";
-          val = (std::string)d;
+          val = StringUtils::toStr(d);
         }
         else if (d.valueType() == DataValue::INT_LIST)
         {

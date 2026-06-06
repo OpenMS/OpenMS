@@ -192,7 +192,7 @@ namespace OpenMS
       DoubleList scores; // "true" score is in "scores[0]", decoy scores follow
 
       // compare to "true" assay:
-      std::string true_id = (std::string)(std::string)feature.getMetaValue("PeptideRef");
+      std::string true_id = StringUtils::toStr(feature.getMetaValue("PeptideRef"));
       OPENMS_LOG_DEBUG << "True assay (ID '" << true_id << "')" << endl;
       if (true_id.empty())
       {

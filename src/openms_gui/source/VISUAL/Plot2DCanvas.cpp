@@ -1037,7 +1037,7 @@ namespace OpenMS
       {
         if (result->text().left(3) == "RT:")
         {
-          StringUtils::toInt32(showMetaData(true, result->data()));
+          showMetaData(true, result->data().toInt());
         }
       }
     }
@@ -1072,7 +1072,7 @@ namespace OpenMS
       {
         if (result->text().left(3) == "RT:")
         {
-          StringUtils::toInt32(showMetaData(true, result->data()));
+          showMetaData(true, result->data().toInt());
         }
       }
     }
@@ -1163,20 +1163,20 @@ namespace OpenMS
             std::vector<int> chrom_indices;
             for (const auto& var : result->data().toList())
             {
-              chrom_indices.push_back(StringUtils::toInt32(var));
-              cout << "chrom_indices: " << StringUtils::toInt32(var) << std::endl;
+              chrom_indices.push_back(var.toInt());
+              cout << "chrom_indices: " << var.toInt() << std::endl;
             }
             emit showChromatogramsAsNew1D(chrom_indices);
           }
           else   // Show single chromatogram
           {
             //cout << "Chromatogram result " << StringUtils::toInt32(result->data()) << endl;
-            StringUtils::toInt32(emit showSpectrumAsNew1D(result->data()));
+            emit showSpectrumAsNew1D(result->data().toInt());
           }
         }
         else if (result->parent() == msn_chromatogram_meta)
         {
-          StringUtils::toInt32(showMetaData(true, result->data()));
+          showMetaData(true, result->data().toInt());
         }
       }
     }

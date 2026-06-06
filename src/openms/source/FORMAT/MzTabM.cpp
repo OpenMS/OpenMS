@@ -400,7 +400,7 @@ namespace OpenMS
       {
         if (software.metaValueExists("parameter: algorithm:mtd:quant_method"))
         {
-          std::string quant_method = (std::string)(std::string)software.getMetaValue("parameter: algorithm:mtd:quant_method");
+          std::string quant_method = StringUtils::toStr(software.getMetaValue("parameter: algorithm:mtd:quant_method"));
           if (quant_method == "area")
           {
             ControlledVocabulary::CVTerm cvterm;

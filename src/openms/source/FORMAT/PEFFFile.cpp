@@ -364,7 +364,7 @@ namespace OpenMS
     {
       std::vector<std::string> items;
       std::vector<std::string> parts;
-      StringUtils::split(value, ', ', parts);
+      StringUtils::split(value, ',', parts);
       for (std::string& p : parts)
       {
         StringUtils::trim(p);
@@ -2260,7 +2260,7 @@ namespace OpenMS
             std::vector<std::string> pos_tokens;
             if (pos_field.contains(','))
             {
-              StringUtils::split(pos_field, ', ', pos_tokens);
+              StringUtils::split(pos_field, ',', pos_tokens);
             }
             else
             {
@@ -2313,7 +2313,7 @@ namespace OpenMS
 	            if (pos_field.contains(','))
             {
               std::vector<std::string> positions;
-              StringUtils::split(pos_field, ', ', positions);
+              StringUtils::split(pos_field, ',', positions);
               for (const std::string& pos_str : positions)
               {
                 if (!(pos_str == "?" || pos_str.empty()) && (!isUnsignedInteger_(pos_str) || pos_str == "0"))
@@ -2713,7 +2713,7 @@ namespace OpenMS
       {
         // Take first position; caller will handle expansion
         std::vector<std::string> positions;
-        StringUtils::split(pos_field, ', ', positions);
+        StringUtils::split(pos_field, ',', positions);
         if (!positions.empty() && !positions[0].empty())
         {
           mod.position = StringUtils::toInt32(positions[0]);

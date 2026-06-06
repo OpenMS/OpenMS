@@ -70,7 +70,7 @@ protected:
     registerInputFile_("in", "<file>", "", "Input file", true);
     setValidFormats_("in", ListUtils::create<std::string>("featureXML,featureparquet"));
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    setValidFormats_("out", ListUtils::create<String>("consensusXML,consensusparquet"));
+    setValidFormats_("out", ListUtils::create<std::string>("consensusXML,consensusparquet"));
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 

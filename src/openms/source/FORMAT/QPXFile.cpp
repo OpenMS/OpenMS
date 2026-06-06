@@ -602,7 +602,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
         {
           // Skip keys that have dedicated columns
           if (key == "spectrum_reference" || key == "ion_mobility" || key == "IM") continue;
-          const DataValue& val = (std::string)pep_id.getMetaValue(key);
+          const DataValue& val = StringUtils::toStr(pep_id.getMetaValue(key));
           (void)smv_struct_b->Append();
           (void)smv_name_b->Append(key);
           (void)smv_value_b->Append(val.toString());

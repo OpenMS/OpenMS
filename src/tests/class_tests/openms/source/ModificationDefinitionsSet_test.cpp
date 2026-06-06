@@ -256,9 +256,9 @@ START_SECTION((void getModificationNames(StringList& fixed_modifications, String
   mod_set.getModificationNames(fixed_mods_out, var_mods_out);
 
   TEST_STRING_EQUAL(ListUtils::concatenate<std::string>(fixed_mods, ","), 
-                    ListUtils::concatenate<String>(fixed_mods_out, ","));
-  TEST_STRING_EQUAL(ListUtils::concatenate<String>(var_mods, ","), 
-                    ListUtils::concatenate<String>(var_mods_out, ","));
+                    ListUtils::concatenate<std::string>(fixed_mods_out, ","));
+  TEST_STRING_EQUAL(ListUtils::concatenate<std::string>(var_mods, ","), 
+                    ListUtils::concatenate<std::string>(var_mods_out, ","));
 }
 END_SECTION
 

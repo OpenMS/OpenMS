@@ -14,7 +14,7 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  auto file_dta = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_SavitzkyGolayFilter.dta");
+  auto file_dta = OPENMS_DOC_PATH + StringUtils::toStr("/code_examples/data/Tutorial_SavitzkyGolayFilter.dta");
   
   // A DTA file always has exactly one Spectrum, so we get that
   MSSpectrum spectrum;

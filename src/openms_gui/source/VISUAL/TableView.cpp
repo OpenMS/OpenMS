@@ -185,7 +185,7 @@ namespace OpenMS
       if (hset.contains(ti->text()))
       {
         setColumnHidden(i, true);
-        StringUtils::remove(hset, ti->text());
+        hset.remove(ti->text());
       }
     }
     if (!hset.empty())

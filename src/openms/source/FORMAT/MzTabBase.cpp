@@ -597,7 +597,7 @@ namespace OpenMS
     else
     {
       std::vector<std::string> fields;
-      StringUtils::split(s, ", ", fields);
+      StringUtils::split(s, ",", fields);
       for (Size i = 0; i != fields.size(); ++i)
       {
         MzTabInteger ds;

@@ -112,7 +112,7 @@ namespace OpenMS
       {
         if (it_elements->getIntensity() == 0)
         {
-          std::string ch_index = (std::string)(std::string)consensus_map_out.getColumnHeaders()[it_elements->getMapIndex()].getMetaValue("channel_name");
+          std::string ch_index = StringUtils::toStr(consensus_map_out.getColumnHeaders()[it_elements->getMapIndex()].getMetaValue("channel_name"));
           ++stats_.empty_channels[ch_index];
         }
       }

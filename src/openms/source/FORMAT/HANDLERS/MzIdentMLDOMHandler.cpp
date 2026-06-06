@@ -1271,7 +1271,7 @@ namespace OpenMS::Internal
                   if (XMLString::equals(databasename_param->getTagName(), CONST_XMLCH("cvParam")))
                   {
                     CVTerm param = parseCvParam_(databasename_param);
-                    dbname = (std::string)param.getValue();
+                    dbname = StringUtils::toStr(param.getValue());
                   }
                   else if (XMLString::equals(databasename_param->getTagName(), CONST_XMLCH("userParam")))
                   {

@@ -207,7 +207,7 @@ public:
         }
         for (Size j = 0; j <= s2.size(); ++j)
         {
-          if (StringUtils::has(matrix, i) && StringUtils::has(matrix[i], j))
+          if (matrix.has(i) && matrix[i].has(j))
           {
             if (traceback[i][j].first == i - 1 && traceback[i][j].second == j - 1)
             {

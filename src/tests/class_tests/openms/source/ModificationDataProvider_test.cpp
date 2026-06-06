@@ -135,10 +135,10 @@ START_SECTION([EXTRA] ModificationsDB with InMemoryDataProvider)
   ModificationsDB db(std::move(providers));
 
   TEST_EQUAL(db.getNumberOfModifications(), 1)
-  TEST_EQUAL(StringUtils::has(db, "Phospho (S)"), true)
-  TEST_EQUAL(StringUtils::has(db, "Phospho"), true)
-  TEST_EQUAL(StringUtils::has(db, "Phosphorylation"), true)
-  TEST_EQUAL(StringUtils::has(db, "Nonexistent"), false)
+  TEST_EQUAL(db.has("Phospho (S)"), true)
+  TEST_EQUAL(db.has("Phospho"), true)
+  TEST_EQUAL(db.has("Phosphorylation"), true)
+  TEST_EQUAL(db.has("Nonexistent"), false)
   TEST_REAL_SIMILAR(db.getModification(0)->getDiffMonoMass(), 79.966)
 }
 END_SECTION

@@ -597,8 +597,8 @@ protected:
 #endif
 
     std::string output_file = getStringOption_("out");
-    String output_folder = File::path(output_file);
-    String fasta_file = getStringOption_("database");
+    std::string output_folder = File::path(output_file);
+    std::string fasta_file = getStringOption_("database");
     int batch = getIntOption_("batch_size");
     int threads = getIntOption_("threads");
     std::string decoy_prefix = getStringOption_("decoy_prefix");

@@ -72,7 +72,7 @@ namespace OpenMS
     if (!w->canvas()->addChromLayer(ml.full_chrom_exp_sptr, ml.ondisc_sptr, ml.annot_sptr,
                                     chrom_index, ml.filename, 
                                     File::stemName(ml.filename),
-                                    std::string("[") + transition_id + "]"))
+                                    StringUtils::toStr("[") + StringUtils::toStr(transition_id) + "]"))
     {
       return false;
     }

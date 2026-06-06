@@ -85,7 +85,7 @@ namespace OpenMS::Internal
         });
         context_menu.addAction("Delete", [&]() 
         {
-          StringUtils::remove(filters_, ui_->filter->row(item));
+          filters_.remove(ui_->filter->row(item));
           set(filters_);
         });
       }

@@ -120,7 +120,7 @@ namespace OpenMS
           r.sample = it.first->second;
           r.sample_name = r.sample;
         } else {
-          r.sample_name = (std::string)(std::string)f.second.getMetaValue("sample_name");
+          r.sample_name = StringUtils::toStr(f.second.getMetaValue("sample_name"));
           [[maybe_unused]] const auto& [it, inserted] = samplename_to_sample_mapping.emplace(r.sample_name,samplename_to_sample_mapping.size());
           r.sample = it->second;
         }

@@ -412,7 +412,7 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample_(const std::multimap<double, s
     Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
     for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
     {
-      std::string feature_class = (std::string)(std::string)features[feat_index].getMetaValue("feature_class");
+      std::string feature_class = StringUtils::toStr(features[feat_index].getMetaValue("feature_class"));
       int label = -1;
       if (feature_class == "positive")
       {
@@ -495,7 +495,7 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample_(const std::multimap<double, s
 
   void FFIDAlgoExternalIDHandler::finalizeAssayFeatures_(Feature& best_feature, double best_quality, double quality_cutoff)
   {
-    const std::string& feature_class = (std::string)best_feature.getMetaValue("feature_class");
+    const std::string& feature_class = StringUtils::toStr(best_feature.getMetaValue("feature_class"));
     if (feature_class == "positive") // true positive prediction
     {
       svm_probs_internal_[best_quality].first++;

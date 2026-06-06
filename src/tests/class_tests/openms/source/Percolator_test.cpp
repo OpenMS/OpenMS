@@ -834,7 +834,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Unsupported format_version
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 99\n"
       "normalizer: stdv\n"
@@ -847,7 +847,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Missing 'bias' header
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "normalizer: stdv\n"
@@ -859,7 +859,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Unknown header key (typoed 'normalize:' instead of 'normalizer:')
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "normalize: stdv\n"
@@ -873,7 +873,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Invalid normalizer value
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "normalizer: bogus\n"
@@ -886,7 +886,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Duplicate header key
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "format_version: 1\n"
@@ -900,7 +900,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Declared n_features does not match actual feature row count
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "normalizer: stdv\n"

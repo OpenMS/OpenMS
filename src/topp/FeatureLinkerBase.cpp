@@ -68,9 +68,9 @@ protected:
   void registerOptionsAndFlags_() override   // only for "unlabeled" algorithms!
   {
     registerInputFileList_("in", "<files>", ListUtils::create<std::string>(""), "input files separated by blanks", true);
-    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,featureparquet,consensusparquet"));
+    setValidFormats_("in", ListUtils::create<std::string>("featureXML,consensusXML,featureparquet,consensusparquet"));
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    setValidFormats_("out", ListUtils::create<String>("consensusXML,consensusparquet"));
+    setValidFormats_("out", ListUtils::create<std::string>("consensusXML,consensusparquet"));
     registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
     setValidFormats_("design", ListUtils::create<std::string>("tsv"));
     addEmptyLine_();

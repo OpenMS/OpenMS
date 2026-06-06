@@ -61,7 +61,7 @@ namespace OpenMS
         {
           // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
           vector<std::string> origins;
-          StringUtils::split(origin, ", ", origins);
+          StringUtils::split(origin, ",", origins);
 
           std::sort(origins.begin(), origins.end());
           vector<std::string>::iterator unique_end = unique(origins.begin(), origins.end());
@@ -252,7 +252,7 @@ namespace OpenMS
     {
       // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
       vector<std::string> origins;
-      StringUtils::split(origin, ", ", origins);
+      StringUtils::split(origin, ",", origins);
 
       std::sort(origins.begin(), origins.end());
       vector<std::string>::iterator unique_end = unique(origins.begin(), origins.end());

@@ -232,7 +232,7 @@ namespace OpenMS::Internal
     {
       query.bind(":name", info_key);
 
-      const DataValue& value = (std::string)info.getMetaValue(info_key);
+      const DataValue& value = StringUtils::toStr(info.getMetaValue(info_key));
       if (value.isEmpty()) // use NULL as the type for empty values
       {
         query.bind(":data_type_id");

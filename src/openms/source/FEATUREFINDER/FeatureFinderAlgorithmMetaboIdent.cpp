@@ -463,7 +463,7 @@ namespace OpenMS
           {
             // update annotations:
             // @TODO: also adjust "formula" and "expected_rt"?
-            std::string label = (std::string)(std::string)cluster_representative.getMetaValue("label");            
+            std::string label = StringUtils::toStr(cluster_representative.getMetaValue("label"));            
             label += "/" + StringUtils::toStr(overlap.getMetaValue("label"));
             cluster_representative.setMetaValue("label", label);
             StringList alt_refs;
@@ -774,7 +774,7 @@ namespace OpenMS
     for (Feature& feat : features)
     {
       feat.setMZ(feat.getMetaValue("PrecursorMZ"));
-      std::string ref = (std::string)(std::string)feat.getMetaValue("PeptideRef");
+      std::string ref = StringUtils::toStr(feat.getMetaValue("PeptideRef"));
       const TargetedExperiment::Compound& compound =
         library_.getCompoundByRef(ref);
       feat.setCharge(compound.getChargeState());
@@ -796,7 +796,7 @@ namespace OpenMS
       // annotate subordinates with theoretical isotope intensities:
       for (Feature& sub : feat.getSubordinates())
       {
-        std::string native_id = (std::string)(std::string)sub.getMetaValue("native_id");
+        std::string native_id = StringUtils::toStr(sub.getMetaValue("native_id"));
         sub.setMetaValue("isotope_probability", isotope_probs_[native_id]);
         sub.removeMetaValue("FeatureLevel"); // value "MS2" is misleading
       }
@@ -953,7 +953,7 @@ namespace OpenMS
       TransformationDescription::DataPoint point;
       point.first = (double)f.getMetaValue("expected_rt");
       point.second = f.getRT();
-      point.note = (std::string)f.getMetaValue("PeptideRef");
+      point.note = StringUtils::toStr(f.getMetaValue("PeptideRef"));
       points.push_back(point);
     }
     trafo_.setDataPoints(points);

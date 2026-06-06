@@ -556,7 +556,7 @@ namespace OpenMS
 
   std::string TOPPASVertex::get3CharsNumber_(UInt number) const
   {
-    std::string num_str(number);
+    std::string num_str = StringUtils::toStr(number);
     StringUtils::fillLeft(num_str, '0', 3);
     return num_str;
   }

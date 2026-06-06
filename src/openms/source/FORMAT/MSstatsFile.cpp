@@ -629,7 +629,7 @@ void MSstatsFile::storeISO(const std::string& filename,
       std::string nativeID = "NONATIVEID";
       if (pep_id.metaValueExists("spectrum_reference"))
       {
-        nativeID = (std::string)pep_id.getMetaValue("spectrum_reference");
+        nativeID = StringUtils::toStr(pep_id.getMetaValue("spectrum_reference"));
       }
 
       for (const PeptideHit & pep_hit : pep_id.getHits())

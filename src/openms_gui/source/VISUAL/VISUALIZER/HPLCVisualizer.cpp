@@ -51,9 +51,9 @@ namespace OpenMS
   {
     ptr_->setInstrument(fromQString(hplcinstrument_->text()));
     ptr_->setColumn(fromQString(hplccolumn_->text()));
-    StringUtils::toInt32(ptr_->setTemperature(hplctemperature_->text()));
-    StringUtils::toInt32(ptr_->setPressure(hplcpressure_->text()));
-    StringUtils::toInt32(ptr_->setFlux(hplcflux_->text()));
+    ptr_->setTemperature(hplctemperature_->text().toInt());
+    ptr_->setPressure(hplcpressure_->text().toInt());
+    ptr_->setFlux(hplcflux_->text().toInt());
     ptr_->setComment(fromQString(hplccomment_->toPlainText()));
     temp_ = (*ptr_);
   }

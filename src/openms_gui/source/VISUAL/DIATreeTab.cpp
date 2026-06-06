@@ -37,8 +37,8 @@ namespace OpenMS
 
     while (current != nullptr)
     {
-      OSWHierarchy::Level level = StringUtils::toInt32(OSWHierarchy::Level(current->data(Clmn::INDEX, Qt::UserRole)));
-      int index = StringUtils::toInt32(current->data(Clmn::INDEX, Qt::DisplayRole));
+      OSWHierarchy::Level level = OSWHierarchy::Level(current->data(Clmn::INDEX, Qt::UserRole).toInt());
+      int index = current->data(Clmn::INDEX, Qt::DisplayRole).toInt();
 
       if (trace.lowest == OSWHierarchy::Level::SIZE_OF_VALUES)
       { // set to level of first current

@@ -496,7 +496,7 @@ namespace OpenMS
     mytransition.Annotation = str_inp;
 
     std::vector<std::string> all_fragment_annotations;
-    StringUtils::split(str_inp, ", ", all_fragment_annotations);
+    StringUtils::split(str_inp, ",", all_fragment_annotations);
 
     if (!all_fragment_annotations[0].contains("[") && // non-unique peak annotation
         !all_fragment_annotations[0].contains("]") && // non-unique peak annotation
@@ -1589,11 +1589,11 @@ namespace OpenMS
       mytransition.SMILES = compound.smiles_string;
       if (compound.metaValueExists("CompoundName"))
       {
-        mytransition.CompoundName = (std::string)compound.getMetaValue("CompoundName");
+        mytransition.CompoundName = StringUtils::toStr(compound.getMetaValue("CompoundName"));
       }
       if (compound.metaValueExists("Adducts"))
       {
-        mytransition.Adducts = (std::string)compound.getMetaValue("Adducts");
+        mytransition.Adducts = StringUtils::toStr(compound.getMetaValue("Adducts"));
       }
     }
     else

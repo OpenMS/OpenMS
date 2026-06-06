@@ -206,7 +206,7 @@ protected:
     for (const auto& run_count : per_run_targets_at_1pct)
     {
       const auto name_it = run_basenames.find(run_count.first);
-      const String run_label = (name_it != run_basenames.end()) ? name_it->second : StringUtils::toStr("RUN_ID ") + StringUtils::toStr(run_count.first);
+      const std::string run_label = (name_it != run_basenames.end()) ? name_it->second : StringUtils::toStr("RUN_ID ") + StringUtils::toStr(run_count.first);
       OPENMS_LOG_INFO << run_label << ": " << run_count.second << " " << targetLabelPlural_(level) << std::endl;
     }
   }
@@ -225,7 +225,7 @@ protected:
       {"protein", InferenceLevel::Protein},
       {"gene", InferenceLevel::Gene}
     }};
-    const std::array<std::pair<String, InferenceContext>, 3> contexts =
+    const std::array<std::pair<std::string, InferenceContext>, 3> contexts =
     {{
       {"global", InferenceContext::Global},
       {"experiment_wide", InferenceContext::ExperimentWide},

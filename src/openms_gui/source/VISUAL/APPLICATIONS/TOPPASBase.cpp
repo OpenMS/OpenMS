@@ -278,7 +278,7 @@ namespace OpenMS
     savePreferences();
     // delete temporary files (TODO: make this a user dialog and ask - for later resume)
     // safety measure: only delete if subdirectory of Temp path; we do not want to delete / or c:
-    if (StringUtils::substitute(StringUtils::toStr(tmp_path_), "\\", "/").hasPrefix(StringUtils::substitute(File::getT).substitute("\\", "/") + "/"))
+    if (StringUtils::hasPrefix(StringUtils::substituted(StringUtils::toStr(tmp_path_), "\\", "/"), StringUtils::substituted(File::getTempDirectory(), "\\", "/") + "/"))
     {
       File::removeDirRecursively(tmp_path_);
     }
@@ -326,7 +326,7 @@ namespace OpenMS
     // any tool without a category gets into "unassigned" bin
     for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
-      if (it->StringUtils::trim(second).empty())
+      if (StringUtils::trim(it->second.category).empty())
         it->second.category = "Unassigned";
     }
 

@@ -522,7 +522,7 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   // Both lanes synthesize fresh identifiers on load (IdXMLFile.cpp:530 parity);
   // identifier SUFFIXES differ between lanes by design, but each lane is internally
   // consistent (no dangling pep_id->prot_id references) and the set sizes match.
-  std::set<String> run_ids_ref, run_ids_in;
+  std::set<std::string> run_ids_ref, run_ids_in;
   for (const auto& p : cmap_ref.getProteinIdentifications()) run_ids_ref.insert(p.getIdentifier());
   for (const auto& p : cmap_in.getProteinIdentifications()) run_ids_in.insert(p.getIdentifier());
   TEST_EQUAL(run_ids_in.size(), run_ids_ref.size());
@@ -563,7 +563,7 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
 
   // ProteinHit accession set must round-trip exactly.
   auto accessions = [](const ProteinIdentification& p) {
-    std::set<String> acc;
+    std::set<std::string> acc;
     for (const auto& h : p.getHits()) acc.insert(h.getAccession());
     return acc;
   };
@@ -573,9 +573,9 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   // Compare as a set of (probability, sorted-accession-list) tuples so group
   // ordering doesn't matter.
   auto group_signature = [](const std::vector<ProteinIdentification::ProteinGroup>& gs) {
-    std::set<std::pair<double, std::vector<String>>> sig;
+    std::set<std::pair<double, std::vector<std::string>>> sig;
     for (const auto& g : gs) {
-      std::vector<String> accs(g.accessions.begin(), g.accessions.end());
+      std::vector<std::string> accs(g.accessions.begin(), g.accessions.end());
       std::sort(accs.begin(), accs.end());
       sig.emplace(g.probability, std::move(accs));
     }
@@ -612,7 +612,7 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   // identifier is omitted because both lanes synthesize independently on load
   // (IdXMLFile.cpp:530 parity); each lane is internally consistent (dangling
   // checks above prove that) but the UniqueIdGenerator suffixes differ.
-  using PSMSig = std::tuple<int, double, double, String, int, double>;
+  using PSMSig = std::tuple<int, double, double, std::string, int, double>;
   auto psm_sigs = [](const auto& pids) {
     std::vector<PSMSig> sigs;
     for (const auto& pid : pids) {

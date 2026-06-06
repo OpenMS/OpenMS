@@ -1105,13 +1105,13 @@ namespace OpenMS::Internal
         if (cv_.exists(keys[i]))
         {
           ControlledVocabulary::CVTerm a = cv_.getTerm(keys[i]);
-          s +=std::string(indent, '\t') + a.toXMLString("PSI-MS", (std::string)(meta.getMetaValue(keys[i]))) + "\n";
+          s +=std::string(indent, '\t') + a.toXMLString("PSI-MS", StringUtils::toStr((meta.getMetaValue(keys[i])))) + "\n";
         }
         else
         {
           s +=std::string(indent, '\t') + "<userParam name=\"" + keys[i] + "\" unitName=\"";
 
-          const DataValue& d = (std::string)meta.getMetaValue(keys[i]);
+          const DataValue& d = StringUtils::toStr(meta.getMetaValue(keys[i]));
           //determine type
           if (d.valueType() == DataValue::INT_VALUE)
           {

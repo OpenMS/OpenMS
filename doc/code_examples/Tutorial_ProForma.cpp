@@ -199,8 +199,8 @@ int main()
 
   // Roundtrip: deserialize and compare
   Peptidoform restored = ProForma::peptidoformFromJSON(json_str);
-  String original = ProForma::toString(pf, WriteMode::LOSSLESS);
-  String roundtrip = ProForma::toString(restored, WriteMode::LOSSLESS);
+  std::string original = ProForma::toString(pf, WriteMode::LOSSLESS);
+  std::string roundtrip = ProForma::toString(restored, WriteMode::LOSSLESS);
   cout << "Roundtrip OK: " << (original == roundtrip ? "yes" : "no") << endl;
   cout << endl;
 

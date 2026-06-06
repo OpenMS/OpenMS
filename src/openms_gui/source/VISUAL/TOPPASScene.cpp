@@ -657,7 +657,7 @@ namespace OpenMS
     // store all vertices (together with all parameters)
     for (TOPPASVertex * tv : vertices_)
     {
-      std::string id(tv->getTopoNr() - 1);
+      std::string id = StringUtils::toStr(tv->getTopoNr() - 1);
 
       // vertex subclasses
       if (auto* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv); iflv)

@@ -128,7 +128,7 @@ namespace OpenMS
 
       bool operator()(const HitType& hit) const
       {
-        DataValue found = (std::string)hit.getMetaValue(key);
+        DataValue found = StringUtils::toStr(hit.getMetaValue(key));
         if (found.isEmpty())
           return false; // meta value "key" not set
         if (value.isEmpty())
@@ -151,7 +151,7 @@ namespace OpenMS
 
       bool operator()(const HitType& hit) const
       {
-        DataValue found = (std::string)hit.getMetaValue(key);
+        DataValue found = StringUtils::toStr(hit.getMetaValue(key));
         if (found.isEmpty())
           return false; // meta value "key" not set
         return double(found) <= value;
@@ -193,7 +193,7 @@ namespace OpenMS
            */
           bool operator()(const HitType& hit) const
           {
-            DataValue found = (std::string)hit.getMetaValue(key);
+            DataValue found = StringUtils::toStr(hit.getMetaValue(key));
             if (found.isEmpty())
             {
               return false; // meta value "key" not set

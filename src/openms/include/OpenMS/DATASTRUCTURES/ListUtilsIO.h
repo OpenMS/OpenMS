@@ -61,7 +61,7 @@ namespace OpenMS
     {
       for (auto it = v.begin(); it < v.end() - 1; ++it)
       { // convert to std::string manually, since this is much faster than ostreams build-in conversion; 
-        os << std::string(*it, false) << ", ";
+        os << StringUtils::toStr(*it, false) << ", ";
       }
       os << StringUtils::toStr(v.back(), false);
     }

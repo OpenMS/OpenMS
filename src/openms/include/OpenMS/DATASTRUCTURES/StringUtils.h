@@ -33,6 +33,7 @@
 namespace OpenMS
 {
   class DataValue; // forward — DataValue.h includes String.h, so we cannot include it here
+  class ParamValue; // forward — same reason
 
   // -------------------------------------------------------------------------
   // QuotingMethod — formerly String::QuotingMethod
@@ -302,6 +303,9 @@ namespace OpenMS
 
     /// DataValue to string (non-inline; defined in StringUtils.cpp)
     OPENMS_DLLAPI std::string toStr(const DataValue& d, bool full_precision = true);
+
+    /// ParamValue to string (non-inline; defined in StringUtils.cpp)
+    OPENMS_DLLAPI std::string toStr(const ParamValue& p, bool full_precision = true);
 
 
     // -----------------------------------------------------------------------
@@ -633,6 +637,9 @@ namespace OpenMS
       s.swap(result);
       return s;
     }
+    /// substitute on a copy (for chained/rvalue expressions)
+    inline std::string substituted(std::string s, char from, char to) { return std::move(substitute(s, from, to)); }
+    inline std::string substituted(std::string s, const std::string& from, const std::string& to) { return std::move(substitute(s, from, to)); }
 
     inline std::string& remove(std::string& s, char what)
     {
@@ -640,11 +647,17 @@ namespace OpenMS
       return s;
     }
 
+    // rvalue-ref overloads so chained/temporary strings can be padded in place
+    inline std::string fillLeft(std::string&& s, char c, UInt size) { fillLeft(s, c, size); return std::move(s); }
+    inline std::string fillRight(std::string&& s, char c, UInt size) { fillRight(s, c, size); return std::move(s); }
+
     inline std::string& ensureLastChar(std::string& s, char end)
     {
       if (s.empty() || s.back() != end) s.push_back(end);
       return s;
     }
+    /// rvalue-ref overload (defined after the lvalue version it delegates to)
+    inline std::string ensureLastChar(std::string&& s, char end) { ensureLastChar(s, end); return std::move(s); }
 
     inline std::string& removeWhitespaces(std::string& s)
     {

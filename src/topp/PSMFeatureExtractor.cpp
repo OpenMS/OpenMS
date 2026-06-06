@@ -84,10 +84,10 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
     setValidFormats_("in", ListUtils::create<std::string>("idXML,mzid,idparquet"));
     registerOutputFile_("out", "<file>", "", "Output file in idXML, mzid or idparquet format", true);
-    setValidFormats_("out", ListUtils::create<String>("idXML,mzid,idparquet"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML,mzid,idparquet"));
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
-    setValidStrings_("out_type", ListUtils::create<String>("idXML,mzid,idparquet"));
-    registerStringList_("extra", "<MetaData parameter>", vector<String>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
+    setValidStrings_("out_type", ListUtils::create<std::string>("idXML,mzid,idparquet"));
+    registerStringList_("extra", "<MetaData parameter>", vector<std::string>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
     registerFlag_("multiple_search_engines", "Combine PSMs from different search engines by merging on scan level.");
     registerFlag_("skip_db_check", "Manual override to skip the check if same settings for multiple search engines were applied. Only valid together with -multiple_search_engines flag.", true);
     registerFlag_("concat", "Naive merging of PSMs from different search engines: concatenate multiple search results instead of merging on scan level. Only valid together with -multiple_search_engines flag.", true);

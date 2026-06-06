@@ -44,9 +44,9 @@ namespace OpenMS
 
   void ProductVisualizer::store()
   {
-    StringUtils::toFloat(ptr_->setMZ(product_mz_->text()));
-    StringUtils::toFloat(ptr_->setIsolationWindowLowerOffset(product_window_low_->text()));
-    StringUtils::toFloat(ptr_->setIsolationWindowUpperOffset(product_window_up_->text()));
+    ptr_->setMZ(product_mz_->text().toFloat());
+    ptr_->setIsolationWindowLowerOffset(product_window_low_->text().toFloat());
+    ptr_->setIsolationWindowUpperOffset(product_window_up_->text().toFloat());
 
     temp_ = (*ptr_);
   }

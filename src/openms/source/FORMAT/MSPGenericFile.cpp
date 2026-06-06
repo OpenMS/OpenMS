@@ -235,7 +235,7 @@ namespace OpenMS
         spectrum.getKeys(keys);
         for (const auto& key : keys)
         {
-          const auto& value = (std::string)spectrum.getMetaValue(key);
+          const auto& value = StringUtils::toStr(spectrum.getMetaValue(key));
           if (std::find(ignore_metadata.begin(), ignore_metadata.end(), key) == ignore_metadata.end())
           {
             output_file << key << ": " << value << '\n';
@@ -292,7 +292,7 @@ namespace OpenMS
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "The current spectrum misses the Num Peaks information.");
       }
-      std::string num_peaks = (std::string)spectrum.getMetaValue("Num Peaks");
+      std::string num_peaks = StringUtils::toStr(spectrum.getMetaValue("Num Peaks"));
       if (spectrum.size() != std::stoul(num_peaks) )
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

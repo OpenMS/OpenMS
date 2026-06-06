@@ -11,6 +11,7 @@
 // DataValue can now be included here; it depends on String.h which includes StringUtils.h,
 // but since this is a .cpp there is no circularity at compile time.
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/ParamValue.h>
 #include <OpenMS/SYSTEM/SIMDe.h>
 
 namespace OpenMS
@@ -125,6 +126,11 @@ namespace OpenMS
     std::string toStr(const DataValue& d, bool full_precision)
     {
       return d.toString(full_precision);
+    }
+
+    std::string toStr(const ParamValue& p, bool full_precision)
+    {
+      return p.toString(full_precision);
     }
   } // namespace StringUtils
 

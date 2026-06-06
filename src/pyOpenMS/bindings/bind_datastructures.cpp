@@ -1358,7 +1358,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def("__str__", [](const OpenMS::StringView& self) { return self.getString(); })
         .def(nb::self == nb::self)
         .def(nb::self < nb::self)
-        .def("substr", [](const OpenMS::StringView& self, size_t start, size_t length) { return StringUtils::substr(self, start, length); }, "start"_a, "length"_a, "Returns a substring view")
+        .def("substr", [](const OpenMS::StringView& self, size_t start, size_t length) { return self.substr(start, length); }, "start"_a, "length"_a, "Returns a substring view")
         ;
 
     // -----------------------------------------------------------------------

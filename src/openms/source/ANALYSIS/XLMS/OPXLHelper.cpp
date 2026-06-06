@@ -1143,7 +1143,7 @@ namespace OpenMS
       {
         PeptideHit& hit = id.getHits()[0];
         PeptideIdentification new_id;
-        std::string current_spectrum = (std::string)id.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
+        std::string current_spectrum = StringUtils::toStr(id.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE));
         if (new_peptide_ids.contains(current_spectrum))
         {
           new_id = (*new_peptide_ids.find(current_spectrum)).second;

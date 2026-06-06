@@ -211,7 +211,7 @@ namespace OpenMS::Math
           formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + StringUtils::toStr(negative_prior_) + ")"; //StringUtils::toStr(correctly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + StringUtils::toStr(negative_prior_) + ")";
           formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
           // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-          file.addLine("plot '" + (std::string)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+          file.addLine("plot '" + StringUtils::toStr(param_.getValue("out_plot")) + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
         }
         //update maximum likelihood
         maxlike = new_maxlike;
@@ -230,9 +230,9 @@ namespace OpenMS::Math
         std::string formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + StringUtils::toStr(negative_prior_) + ")"; // StringUtils::toStr(correctly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + StringUtils::toStr(negative_prior_) + ")";
         std::string formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
         // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-        file.addLine("plot '" + (std::string)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
-        file.store((std::string)param_.getValue("out_plot"));
-        tryGnuplot((std::string)param_.getValue("out_plot"));
+        file.addLine("plot '" + StringUtils::toStr(param_.getValue("out_plot")) + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+        file.store(StringUtils::toStr(param_.getValue("out_plot")));
+        tryGnuplot(StringUtils::toStr(param_.getValue("out_plot")));
       }
       return good_fit;
     }
@@ -392,7 +392,7 @@ namespace OpenMS::Math
           formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + StringUtils::toStr(negative_prior_) + ")"; //StringUtils::toStr(correctly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + StringUtils::toStr(negative_prior_) + ")";
           formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
           // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-          file.addLine("plot '" + (std::string)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+          file.addLine("plot '" + StringUtils::toStr(param_.getValue("out_plot")) + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
         }
         //update maximum likelihood
         maxlike = new_maxlike;
@@ -418,9 +418,9 @@ namespace OpenMS::Math
         std::string formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + StringUtils::toStr(negative_prior_) + ")"; // StringUtils::toStr(correctly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + StringUtils::toStr(negative_prior_) + ")";
         std::string formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
         // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-        file.addLine("plot '" + (std::string)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
-        file.store((std::string)param_.getValue("out_plot"));
-        tryGnuplot((std::string)param_.getValue("out_plot"));
+        file.addLine("plot '" + StringUtils::toStr(param_.getValue("out_plot")) + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+        file.store(StringUtils::toStr(param_.getValue("out_plot")));
+        tryGnuplot(StringUtils::toStr(param_.getValue("out_plot")));
       }
       return good_fit;
     }
@@ -641,7 +641,7 @@ namespace OpenMS::Math
         dp.setY(dp.getY() / (x_scores.size()  * dividing_score));
         data_points << (StringUtils::toStr(dp.getX()) + "\t" + dp.getY());
       }
-      data_points.store((std::string)param_.getValue("out_plot") + "_scores.txt");
+      data_points.store(StringUtils::toStr(param_.getValue("out_plot")) + "_scores.txt");
 
       TextFile file;
       file << "set terminal pdf color solid linewidth 2.0 rounded";
@@ -652,11 +652,11 @@ namespace OpenMS::Math
       //TODO: file<<"set title ";
       file << "set key off";
       // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-      file <<  "set output '" + (std::string)param_.getValue("out_plot") + ".pdf'";
+      file <<  "set output '" + StringUtils::toStr(param_.getValue("out_plot")) + ".pdf'";
       std::string formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "* " + StringUtils::toStr(negative_prior_); //StringUtils::toStr(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + StringUtils::toStr(negative_prior_);
       std::string formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + StringUtils::toStr(negative_prior_) + ")"; //StringUtils::toStr(correctly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + StringUtils::toStr(negative_prior_) + ")";
       // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-      file << ("plot '" + (std::string)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2);
+      file << ("plot '" + StringUtils::toStr(param_.getValue("out_plot")) + "_scores.txt' with boxes, " + formula1 + " , " + formula2);
       return file;
     }
 
@@ -771,7 +771,7 @@ namespace OpenMS::Math
         temp_ += (dpx)[2];
         data_points << temp_;
       }
-      data_points.store((std::string)param_.getValue("out_plot") + "_target_decoy_scores.txt");
+      data_points.store(StringUtils::toStr(param_.getValue("out_plot")) + "_target_decoy_scores.txt");
       TextFile file;
       file << "set terminal pdf color solid linewidth 2.0 rounded";
       //file<<"set style empty solid 0.5 border -1";
@@ -781,14 +781,14 @@ namespace OpenMS::Math
       //TODO: file<<"set title ";
       file << "set key off";
       // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-      file << "set output '" + (std::string)param_.getValue("out_plot") + "_target_decoy.pdf'";
+      file << "set output '" + StringUtils::toStr(param_.getValue("out_plot")) + "_target_decoy.pdf'";
       std::string formula1, formula2;
       formula1 = getGumbelGnuplotFormula(getIncorrectlyAssignedFitResult()) + "* " + StringUtils::toStr(getNegativePrior()); //StringUtils::toStr(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + StringUtils::toStr(negative_prior_);
       formula2 = getGaussGnuplotFormula(getCorrectlyAssignedFitResult()) + "* (1 - " + StringUtils::toStr(getNegativePrior()) + ")"; //StringUtils::toStr(correctly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + StringUtils::toStr(negative_prior_) + ")";
       // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-      file << ("plot '" + (std::string)param_.getValue("out_plot") + "_target_decoy_scores.txt'   using 1:3  with boxes fill solid 0.8 noborder, \"" + (std::string)param_.getValue("out_plot") + "_target_decoy_scores.txt\"  using 1:2  with boxes, " + formula1 + " , " + formula2);
-      file.store((std::string)param_.getValue("out_plot") + "_target_decoy");
-      tryGnuplot((std::string)param_.getValue("out_plot") + "_target_decoy");
+      file << ("plot '" + StringUtils::toStr(param_.getValue("out_plot")) + "_target_decoy_scores.txt'   using 1:3  with boxes fill solid 0.8 noborder, \"" + StringUtils::toStr(param_.getValue("out_plot")) + "_target_decoy_scores.txt\"  using 1:2  with boxes, " + formula1 + " , " + formula2);
+      file.store(StringUtils::toStr(param_.getValue("out_plot")) + "_target_decoy");
+      tryGnuplot(StringUtils::toStr(param_.getValue("out_plot")) + "_target_decoy");
     }
 
     void PosteriorErrorProbabilityModel::tryGnuplot(const std::string& gp_file)
@@ -891,7 +891,7 @@ namespace OpenMS::Math
             }
         }
         std::cout << actual_score_type << std::endl;
-        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected score type for search engine not found", "None of the expected score types " + ListUtils::concatenate(requested_score_types, std::string(1, ',')) + " for search engine found");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected score type for search engine not found", "None of the expected score types " + ListUtils::concatenate(requested_score_types, ",") + " for search engine found");
         return 0.;
     }
 
@@ -998,7 +998,7 @@ namespace OpenMS::Math
             std::string search_engine = prot.getSearchEngine();
             if (StringUtils::hasPrefix(search_engine, "OpenMS/ConsensusID"))
             {
-              search_engine = (std::string)(std::string)prot.getMetaValue("ConsensusIDBaseSearch");
+              search_engine = StringUtils::toStr(prot.getMetaValue("ConsensusIDBaseSearch"));
               search_engine = StringUtils::prefix(search_engine, ':');
             }
             StringUtils::toUpper(search_engine);

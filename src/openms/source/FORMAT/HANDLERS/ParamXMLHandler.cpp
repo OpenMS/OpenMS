@@ -137,7 +137,7 @@ namespace OpenMS::Internal
             }
             else if (type == "string")
             {
-              StringUtils::split(val, ', ', parts);
+              StringUtils::split(val, ',', parts);
               param_.setValidStrings(name, ListUtils::create<std::string>(parts));
             }
             else if (type == "float" || type == "double")
@@ -176,7 +176,7 @@ namespace OpenMS::Internal
             std::string val = sm_.convert(attributes.getValue(supported_formats_index));
             std::vector<std::string> parts;
 
-            StringUtils::split(val, ', ', parts);
+            StringUtils::split(val, ',', parts);
             param_.setValidStrings(name, ListUtils::create<std::string>(parts));
           }
         }
@@ -317,7 +317,7 @@ namespace OpenMS::Internal
           param_.setValue(list_.name, list_.stringlist, list_.description, list_.tags);
           if (list_.restrictions_index != -1)
           {
-            StringUtils::split(list_.restrictions, ', ', parts);
+            StringUtils::split(list_.restrictions, ',', parts);
             param_.setValidStrings(list_.name, ListUtils::create<std::string>(parts));
           }
         }

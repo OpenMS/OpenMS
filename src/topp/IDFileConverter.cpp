@@ -214,8 +214,8 @@ protected:
     setValidFormats_("in", ListUtils::create<std::string>("oms,idXML,mzid,idparquet,fasta,pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,xquest.xml"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    String formats("oms,idXML,mzid,idparquet,pepXML,fasta,xquest.xml,mzML");
-    setValidFormats_("out", ListUtils::create<String>(formats));
+    std::string formats("oms,idXML,mzid,idparquet,pepXML,fasta,xquest.xml,mzML");
+    setValidFormats_("out", ListUtils::create<std::string>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", ListUtils::create<std::string>(formats));
 
@@ -272,9 +272,9 @@ protected:
     logger.startProgress(0, 1, "Loading...");
 
     std::string in_for_type = in;
-    while (in_for_type.hasSuffix("/") || in_for_type.hasSuffix("\\"))
+    while (StringUtils::hasSuffix(in_for_type, "/") || StringUtils::hasSuffix(in_for_type, "\\"))
     {
-      in_for_type = in_for_type.prefix(in_for_type.size() - 1);
+      in_for_type = StringUtils::prefix(in_for_type, in_for_type.size() - 1);
     }
     if (File::isDirectory(in) && !FileTypes::isDirectoryType(FileHandler::getTypeByFileName(in_for_type)))
     {
@@ -330,9 +330,9 @@ protected:
 
         try
         {
-          sequest_outfile.load((String) (in_directory + *in_files_it), peptide_ids_seq, protein_id_seq, 1.0, pvalues_seq, "Sequest", ignore_proteins_per_peptide);
+          sequest_outfile.load((std::string) (in_directory + *in_files_it), peptide_ids_seq, protein_id_seq, 1.0, pvalues_seq, "Sequest", ignore_proteins_per_peptide);
 
-          StringUtils::split(FIXME_OBJ, '.', in_file_vec);
+          StringUtils::split(*in_files_it, '.', in_file_vec);
 
           for (Size j = 0; j < peptide_ids_seq.size(); ++j)
           {
@@ -566,7 +566,7 @@ protected:
         tf.load(in, true, -1, true);
         for (TextFile::Iterator it = tf.begin(); it != tf.end(); ++it)
         {
-          StringUtils::trim(FIXME_OBJ);
+          StringUtils::trim(*it);
           // skip empty and comment lines
           if (it->empty() || StringUtils::hasPrefix(*it, "#")) continue;
 

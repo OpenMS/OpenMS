@@ -204,9 +204,9 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
     std::string out = getStringOption_("out");
-    String candidates_out = getStringOption_("candidates_out");
-    String candidates_in = getStringOption_("candidates_in");
-    String id = getStringOption_("id");
+    std::string candidates_out = getStringOption_("candidates_out");
+    std::string candidates_in = getStringOption_("candidates_in");
+    std::string id = getStringOption_("id");
 
     FeatureFinderIdentificationAlgorithm ffid_algo;
     ffid_algo.getProgressLogger().setLogType(log_type_);
@@ -228,10 +228,10 @@ protected:
 
     if (candidates_in.empty())
     {
-      String in = getStringOption_("in");
-      String id_ext = getStringOption_("id_ext");
-      String lib_out = getStringOption_("lib_out");
-      String chrom_out = getStringOption_("chrom_out");
+      std::string in = getStringOption_("in");
+      std::string id_ext = getStringOption_("id_ext");
+      std::string lib_out = getStringOption_("lib_out");
+      std::string chrom_out = getStringOption_("chrom_out");
 
       //-------------------------------------------------------------
       // load input

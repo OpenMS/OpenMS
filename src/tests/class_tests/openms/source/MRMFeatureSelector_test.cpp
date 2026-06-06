@@ -109,7 +109,7 @@ START_SECTION(constructTargTransList_())
 
   sort(time_to_name.begin(), time_to_name.end());
 
-  pair<double, String> *p = nullptr;
+  pair<double, std::string> *p = nullptr;
 
   p = &time_to_name.front();
   TEST_REAL_SIMILAR(p->first, 0)

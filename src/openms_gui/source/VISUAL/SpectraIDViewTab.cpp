@@ -411,7 +411,7 @@ namespace OpenMS
       emit spectrumDeselected(int(layer_1d->getCurrentIndex()));
     }
 
-    int current_spectrum_index = table_widget_->StringUtils::toInt32(item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole));
+    int current_spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     const auto& annotated_exp = *layer_->getPeakData();
     const auto& exp = annotated_exp.getMSExperiment();
     const auto& spec2 = exp[current_spectrum_index];
@@ -444,8 +444,8 @@ namespace OpenMS
       {
         return;
       }
-      int current_identification_index = StringUtils::toInt32(item_pepid->data(Qt::DisplayRole));
-      int current_peptide_hit_index = table_widget_->StringUtils::toInt32(item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole));
+      int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
+      int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
       emit spectrumSelected(current_spectrum_index, current_identification_index, current_peptide_hit_index);
     }
 
@@ -460,7 +460,7 @@ namespace OpenMS
       if (item_pepid)// might be null for MS1 spectra
       {
         // int current_identification_index = StringUtils::toInt32(item_pepid->data(Qt::DisplayRole));
-        int current_peptide_hit_index = table_widget_->StringUtils::toInt32(item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole));
+        int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
         const PeptideIdentification& peptide_id = annotated_exp.getPeptideIdentifications()[current_spectrum_index];
         const vector<PeptideHit>& phits = peptide_id.getHits();
@@ -594,9 +594,9 @@ namespace OpenMS
       // only when checked, otherwise only highlights
     {
       int row = selected_spec_row_idx;
-      //int spectrum_index = table_widget_->StringUtils::toInt32(item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole));
-      int num_id = table_widget_->StringUtils::toInt32(item(row, Clmn::ID_NR)->data(Qt::DisplayRole));
-      int num_ph = table_widget_->StringUtils::toInt32(item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole));      
+      //int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
+      int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
+      int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();      
       const PeptideIdentification& pep_id = layer_->getPeakData()->getPeptideIdentifications()[num_id];
       const vector<PeptideHit>& hits = pep_id.getHits();
       if (!hits.empty()) accs = hits[num_ph].extractProteinAccessionsSet();
@@ -806,7 +806,7 @@ namespace OpenMS
           std::string seq = ph.getSequence().toString();
           if (seq.empty())
           {
-            seq = ph.getMetaValue("label");
+            seq = StringUtils::toStr(ph.getMetaValue("label"));
           }
           table_widget_->setAtBottomRow(toQString(seq), Clmn::SEQUENCE, bg_color);
 
@@ -818,8 +818,8 @@ namespace OpenMS
         for (const PeptideEvidence& ev : pevids)
         {
           protein_accessions.push_back(ev.getProteinAccession());
-          protein_starts.push_back(ev.getStart() + 1);
-          protein_ends.push_back(ev.getEnd() + 1);
+          protein_starts.push_back(StringUtils::toStr(ev.getStart() + 1));
+          protein_ends.push_back(StringUtils::toStr(ev.getEnd() + 1));
         }
         std::string accessions = ListUtils::concatenate(vector<std::string>(protein_accessions.begin(), protein_accessions.end()), ", ");
         std::string starts = ListUtils::concatenate(vector<std::string>(protein_starts.begin(), protein_starts.end()), ", ");
@@ -883,7 +883,7 @@ namespace OpenMS
             }
             for (const auto& ck : common_keys)
             {
-              const DataValue& dv = ph.getMetaValue(ck);
+              const DataValue& dv = StringUtils::toStr(ph.getMetaValue(ck));
               if (dv.valueType() == DataValue::DOUBLE_VALUE)
               {
                 table_widget_->setAtBottomRow(double(dv), current_col, bg_color);
@@ -972,7 +972,7 @@ namespace OpenMS
     for (int r = 0; r < table_widget_->rowCount(); ++r)
     {
       // get spectrum index of current table line
-      int spectrum_index = table_widget_->StringUtils::toInt32(item(r, Clmn::SPEC_INDEX)->data(Qt::DisplayRole));
+      int spectrum_index = table_widget_->item(r, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
 
       // skip this row, if this spectrum was already processed
       if (added_spectra.find(spectrum_index) != added_spectra.end())
@@ -1004,9 +1004,9 @@ namespace OpenMS
     // extract position of the correct Spectrum, PeptideIdentification and PeptideHit from the table
     int row = item->row();
     std::string selected = item->checkState() == Qt::Checked ? "true" : "false";
-    // int spectrum_index = table_widget_->StringUtils::toInt32(item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole));
-    int num_id = table_widget_->StringUtils::toInt32(item(row, Clmn::ID_NR)->data(Qt::DisplayRole));
-    int num_ph = table_widget_->StringUtils::toInt32(item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole));
+    // int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
+    int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
+    int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
     // maintain sortability of our checkbox column
     TableView::updateCheckBoxItem(item);

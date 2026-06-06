@@ -209,12 +209,12 @@ namespace OpenMS
       {
         if (pep.metaValueExists("identifier") && pep.metaValueExists("chemical_formula"))
         {
-          std::string name = pep.getMetaValue("identifier");
+          std::string name = StringUtils::toStr(pep.getMetaValue("identifier"));
           if (name.length() > 20)
           {
             name = StringUtils::substr(name, 0, 17) + "...";
           }
-          std::string cf = pep.getMetaValue("chemical_formula");
+          std::string cf = StringUtils::toStr(pep.getMetaValue("chemical_formula"));
           if (cf.empty())
           {
             continue; // skip unannotated "null" peaks
@@ -244,7 +244,7 @@ namespace OpenMS
       {
         if (++i == cols.size())
         { // at this point, this is the 4th entry.. which we don't show any more...
-          text +=StringUtils::toStr("<b><span style=\"color:") + fromQString(cols[i].name()) + "\">..." + Size(distance(formula_to_names.begin(), formula_to_names.end()) - 4 + 1) + " more</span></b><br>";
+          text += StringUtils::toStr("<b><span style=\"color:") + fromQString(cols[i].name()) + "\">..." + StringUtils::toStr(Size(distance(formula_to_names.begin(), formula_to_names.end())) - 4 + 1) + " more</span></b><br>";
           break;
         }
         text +=StringUtils::toStr("<b><span style=\"color:") + fromQString(cols[i].name()) + "\">" + ith->first + "</span></b><br>\n";
@@ -275,7 +275,7 @@ namespace OpenMS
         if (ith->second.size() > 3)
         {
           Size s = ith->second.size();
-          ith->second[3] =StringUtils::toStr("...") + (s-3) + " more";
+          ith->second[3] = StringUtils::toStr("...") + StringUtils::toStr(s-3) + " more";
           ith->second.resize(4);
         }
         text += " - " + ListUtils::concatenate(ith->second, "<br> - ") + "<br>\n";
@@ -455,7 +455,7 @@ namespace OpenMS
             std::string seq = ph.getSequence().toString();
             if (seq.empty())
             {
-              seq = ph.getMetaValue("label"); // e.g. for RNA sequences
+              seq = StringUtils::toStr(ph.getMetaValue("label")); // e.g. for RNA sequences
             }
             widget_1D->canvas()->setTextBox(toQString(seq));
           }
@@ -533,8 +533,8 @@ namespace OpenMS
 
     for (Size i = 0; i < frag_annotations.size(); ++i)
     {
-      bool has_alpha = frag_annotations[i].StringUtils::hasSubstring(annotation,StringUtils::toStr("alpha|"));
-      bool has_beta = frag_annotations[i].StringUtils::hasSubstring(annotation,StringUtils::toStr("beta|"));
+      bool has_alpha = StringUtils::hasSubstring(frag_annotations[i].annotation, StringUtils::toStr("alpha|"));
+      bool has_beta = StringUtils::hasSubstring(frag_annotations[i].annotation, StringUtils::toStr("beta|"));
       // if it has both, it is a complex fragment and more difficult to parse
       // those are ignored for the coverage indicator for now
       if ( has_alpha != has_beta )
@@ -566,7 +566,7 @@ namespace OpenMS
           pos = StringUtils::toInt32(pos_string)-1;
         }
 
-        std::string frag_type = dol_split[1][0];
+        std::string frag_type = StringUtils::toStr(dol_split[1][0]);
         //bool left = (frag_type == "a" || frag_type == "b" || frag_type == "c");
         int direction;
         if (frag_type == "a" || frag_type == "b" || frag_type == "c")
@@ -1171,7 +1171,7 @@ namespace OpenMS
     { // no sequence information stored? use label
       if (hit.metaValueExists("label"))
       {
-        seq = hit.getMetaValue("label");
+        seq = StringUtils::toStr(hit.getMetaValue("label"));
       }
     }
 

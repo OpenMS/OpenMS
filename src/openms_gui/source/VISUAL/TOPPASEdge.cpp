@@ -432,7 +432,7 @@ namespace OpenMS
       bool type_mismatch = true;
       const std::string file_name = fromQString(q_file_name);
       size_t extension_start_index = file_name.rfind(".");
-      if (extension_start_index != String::npos)
+      if (extension_start_index != std::string::npos)
       {
         std::string extension = StringUtils::substr(file_name, extension_start_index + 1);
         StringUtils::toLower(extension);

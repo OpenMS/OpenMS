@@ -46,7 +46,7 @@ namespace OpenMS
 
     std::string toString() const
     {
-      return (prefix + (counter != -1 ? std::string("_") + StringUtils::fillLeft(StringUtils::toStr(counter), '0', 3) : std::string()) + "." + suffix);
+      return (prefix + (counter != -1 ? StringUtils::toStr("_") + StringUtils::fillLeft(StringUtils::toStr(counter), '0', 3) : std::string()) + "." + suffix);
     }
   };
 
@@ -234,7 +234,7 @@ namespace OpenMS
     // remove entries explained by edges
     for (const std::string &name : hidden_entries)
     {
-      StringUtils::remove(edit_param, name);
+      edit_param.remove(name);
     }
 
     // edit_param no longer contains tool description, take it from the node tooltip
@@ -993,7 +993,7 @@ namespace OpenMS
                      + QDir::separator()
                      + toQString(getOutputDir()) // includes TopoNr
                      + QDir::separator()
-                     + toQString(out_params[param_index].StringUtils::remove(param_name, ':')).left(50) // max 50 chars per subdir
+                     + toQString(StringUtils::remove(out_params[param_index].param_name, ':')).left(50) // max 50 chars per subdir
                      + QDir::separator();
 
       VertexRoundPackage vrp;
@@ -1289,7 +1289,7 @@ namespace OpenMS
     Param save_param;
     save_param.setValue(name_ + ":1:toppas_dummy", "blub");
     save_param.insert(name_ + ":1:", param);
-    StringUtils::remove(save_param, name_ + ":1:toppas_dummy");
+    save_param.remove(name_ + ":1:toppas_dummy");
     save_param.setSectionDescription(name_ + ":1", "Instance '1' section for '" + name_ + "'");
     ParamXMLFile paramFile;
     paramFile.store(fromQString(ini_file), save_param);

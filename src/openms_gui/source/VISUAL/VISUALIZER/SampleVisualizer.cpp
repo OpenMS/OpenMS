@@ -70,9 +70,9 @@ namespace OpenMS
     ptr_->setOrganism(fromQString(sampleorganism_->text()));
     ptr_->setComment(fromQString(samplecomment_->toPlainText()));
     ptr_->setState((Sample::SampleState)samplestate_->currentIndex());
-    StringUtils::toFloat(ptr_->setMass(samplemass_->text()));
-    StringUtils::toFloat(ptr_->setVolume(samplevolume_->text()));
-    StringUtils::toFloat(ptr_->setConcentration(sampleconcentration_->text()));
+    ptr_->setMass(samplemass_->text().toFloat());
+    ptr_->setVolume(samplevolume_->text().toFloat());
+    ptr_->setConcentration(sampleconcentration_->text().toFloat());
 
     temp_ = (*ptr_);
   }

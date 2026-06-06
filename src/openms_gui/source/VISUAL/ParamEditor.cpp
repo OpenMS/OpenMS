@@ -69,7 +69,7 @@ namespace OpenMS
 
     QWidget* ParamEditorDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
     {
-      Int type = index.sibling(index.row(), 0).StringUtils::toInt32(data(Qt::UserRole));
+      Int type = index.sibling(index.row(), 0).data(Qt::UserRole).toInt();
 
       // only create editor for first column (value column)
       if (index.column() != 1 || type == ParamEditor::NODE)
@@ -317,11 +317,11 @@ namespace OpenMS
           vector<std::string> parts;
           if (StringUtils::split(restrictions, ' ', parts))
           {
-            if (!parts[0].empty() && StringUtils::toInt32(new_value) < StringUtils::toInt32(parts[0]))
+            if (!parts[0].empty() && new_value.toInt() < StringUtils::toInt32(parts[0]))
             {
               restrictions_met = false;
             }
-            if (!parts[1].empty() && StringUtils::toInt32(new_value) > StringUtils::toInt32(parts[1]))
+            if (!parts[1].empty() && new_value.toInt() > StringUtils::toInt32(parts[1]))
             {
               restrictions_met = false;
             }
@@ -340,11 +340,11 @@ namespace OpenMS
           vector<std::string> parts;
           if (StringUtils::split(restrictions, ' ', parts))
           {
-            if (!parts[0].empty() && StringUtils::toDouble(new_value) < StringUtils::toDouble(parts[0]))
+            if (!parts[0].empty() && new_value.toDouble() < StringUtils::toDouble(parts[0]))
             {
               restrictions_met = false;
             }
-            if (!parts[1].empty() && StringUtils::toDouble(new_value) > StringUtils::toDouble(parts[1]))
+            if (!parts[1].empty() && new_value.toDouble() > StringUtils::toDouble(parts[1]))
             {
               restrictions_met = false;
             }
@@ -794,7 +794,7 @@ namespace OpenMS
 
       if (child->text(2) == "float")
       {
-        param_->setValue(path, child->text(1).toDouble(, description, tag_list);
+        param_->setValue(path, child->text(1).toDouble(), description, tag_list);
         std::string restrictions = fromQString(child->data(2, Qt::UserRole).toString());
         vector<std::string> parts;
         if (StringUtils::split(restrictions, ' ', parts))
@@ -821,7 +821,7 @@ namespace OpenMS
       }
       else if (child->text(2) == "int")
       {
-        StringUtils::toInt32(param_->setValue(path, child->text(1)), description, tag_list);
+        param_->setValue(path, child->text(1).toInt(), description, tag_list);
         std::string restrictions = fromQString(child->data(2, Qt::UserRole).toString());
         vector<std::string> parts;
         if (StringUtils::split(restrictions, ' ', parts))
@@ -948,7 +948,7 @@ namespace OpenMS
       QTreeWidgetItem * current = stack.top();
       stack.pop();
 
-      Int type = StringUtils::toInt32(current->data(0, Qt::UserRole));
+      Int type = current->data(0, Qt::UserRole).toInt();
       if (type != NODE)     //ITEM
       {
         if (advanced_mode_ && type == ADVANCED_ITEM)       //advanced mode

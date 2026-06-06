@@ -90,7 +90,7 @@ protected:
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");
     setValidFormats_("in", ListUtils::create<std::string>("featureXML,consensusXML,featureparquet,consensusparquet"));
     registerOutputFile_("out", "<file>", "", "Output file (data with one peptide identification per feature)");
-    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML,featureparquet,consensusparquet"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML,consensusXML,featureparquet,consensusparquet"));
     registerStringOption_("resolve_method", "<resolve_method>", "best_score",
       "Method used to select the final peptide identification from (potentially multiple) identifications of a feature.\n"
       "'best_score': Keep the single best-scoring identification per feature (default).\n"

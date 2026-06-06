@@ -96,7 +96,7 @@ namespace OpenMS
         std::string sequence;
         if (show_labels)
         {
-          sequence = id.getMetaValue("label");
+          sequence = StringUtils::toStr(id.getMetaValue("label"));
         }
         else
         {
@@ -104,7 +104,7 @@ namespace OpenMS
         }
         if (sequence.empty() && !id.getHits().empty())
         {
-          sequence = id.getHits()[0].getMetaValue("label");
+          sequence = StringUtils::toStr(id.getHits()[0].getMetaValue("label"));
         }
         if (id.getHits().size() > 1)
           sequence += "...";

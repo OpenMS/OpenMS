@@ -195,8 +195,8 @@ namespace OpenMS
       }
       for (const auto& p : to_remove) 
       {
-        StringUtils::remove(tmp_param, p);
-        if (tmp_param.exists(p + "_type")) StringUtils::remove(tmp_param, p + "_type"); // for good measure of related input/output parameters
+        tmp_param.remove(p);
+        if (tmp_param.exists(p + "_type")) tmp_param.remove(p + "_type"); // for good measure of related input/output parameters
       }
       // show the parameters to the user
       std::string executable = File::getExecutablePath() + "INIFileEditor";
