@@ -187,7 +187,10 @@ namespace OpenMS
       m/z axis; otherwise processed mode is used.
 
       Each spectrum must carry @p imzml:x and @p imzml:y MetaValues (1-based imzML
-      pixel coordinates). @p PeakFileOptions filtering is not yet applied on write.
+      pixel coordinates). Dataset imaging metadata (@p imzml:scan_pattern,
+      @p imzml:polarity, grid dimensions, etc.) and per-spectrum RT/MS level are
+      written when present. @p PeakFileOptions control binary precision and
+      optional spectrum/peak filtering during export.
 
       @param[in] filename Path to the output @c .imzML file.
       @param[in] exp      Experiment with spectra and optional imzML MetaValues.

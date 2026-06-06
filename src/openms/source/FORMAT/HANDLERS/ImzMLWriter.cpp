@@ -10,8 +10,12 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/METADATA/Instrument.h>
 
 #include <algorithm>
 #include <cmath>
@@ -174,11 +178,179 @@ namespace
     {
       meta.pixel_size_y = static_cast<double>(exp.getMetaValue("imzml:pixel_size_y"));
     }
+    if (exp.metaValueExists("imzml:max_dim_x"))
+    {
+      meta.max_dim_x = static_cast<double>(exp.getMetaValue("imzml:max_dim_x"));
+    }
+    if (exp.metaValueExists("imzml:max_dim_y"))
+    {
+      meta.max_dim_y = static_cast<double>(exp.getMetaValue("imzml:max_dim_y"));
+    }
     if (exp.metaValueExists("imzml:uuid"))
     {
       meta.uuid = exp.getMetaValue("imzml:uuid").toString();
     }
+    if (exp.metaValueExists("imzml:scan_pattern"))
+    {
+      meta.scan_pattern = exp.getMetaValue("imzml:scan_pattern").toString();
+    }
+    if (exp.metaValueExists("imzml:scan_direction"))
+    {
+      meta.scan_direction = exp.getMetaValue("imzml:scan_direction").toString();
+    }
+    if (exp.metaValueExists("imzml:line_scan_direction"))
+    {
+      meta.line_scan_direction = exp.getMetaValue("imzml:line_scan_direction").toString();
+    }
+    if (exp.metaValueExists("imzml:polarity"))
+    {
+      meta.polarity = exp.getMetaValue("imzml:polarity").toString();
+    }
     return meta;
+  }
+
+  String instrumentModelForExport_(const MSExperiment& exp)
+  {
+    const Instrument& inst = exp.getInstrument();
+    if (!inst.getModel().empty())
+    {
+      return inst.getModel();
+    }
+    if (!inst.getName().empty())
+    {
+      return inst.getName();
+    }
+    return "OpenMS export";
+  }
+
+  void applyStoreOptions_(MSExperiment& exp, const PeakFileOptions& options)
+  {
+    if (options.hasMSLevels())
+    {
+      exp.getSpectra().erase(
+        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+                       [&options](const MSSpectrum& s) { return !options.containsMSLevel(s.getMSLevel()); }),
+        exp.getSpectra().end());
+    }
+
+    if (options.hasRTRange())
+    {
+      const auto& rt_range = options.getRTRange();
+      exp.getSpectra().erase(
+        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+                       [&rt_range](const MSSpectrum& s) { return !rt_range.encloses(DPosition<1>(s.getRT())); }),
+        exp.getSpectra().end());
+    }
+
+    if (options.hasPrecursorMZRange())
+    {
+      const auto& prec_range = options.getPrecursorMZRange();
+      exp.getSpectra().erase(
+        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+                       [&prec_range](const MSSpectrum& s)
+                       {
+                         if (s.getMSLevel() <= 1) { return false; }
+                         if (s.getPrecursors().empty()) { return false; }
+                         return !prec_range.encloses(DPosition<1>(s.getPrecursors()[0].getMZ()));
+                       }),
+        exp.getSpectra().end());
+    }
+
+    if (options.hasMZRange() || options.hasIntensityRange())
+    {
+      const bool filter_mz = options.hasMZRange();
+      const bool filter_int = options.hasIntensityRange();
+      const auto& mz_range = options.getMZRange();
+      const auto& int_range = options.getIntensityRange();
+
+      std::vector<Size> kept;
+      for (auto& spectrum : exp.getSpectra())
+      {
+        if (options.getSortSpectraByMZ() && !spectrum.empty() && !spectrum.isSorted())
+        {
+          spectrum.sortByPosition();
+        }
+
+        kept.clear();
+        kept.reserve(spectrum.size());
+        for (Size i = 0; i < spectrum.size(); ++i)
+        {
+          const Peak1D& p = spectrum[i];
+          if (filter_mz && !mz_range.encloses(DPosition<1>(p.getMZ()))) { continue; }
+          if (filter_int && !int_range.encloses(DPosition<1>(p.getIntensity()))) { continue; }
+          kept.push_back(i);
+        }
+        if (kept.size() != spectrum.size())
+        {
+          spectrum.select(kept);
+        }
+      }
+    }
+    else if (options.getSortSpectraByMZ())
+    {
+      for (auto& spectrum : exp.getSpectra())
+      {
+        if (!spectrum.empty() && !spectrum.isSorted())
+        {
+          spectrum.sortByPosition();
+        }
+      }
+    }
+
+    if (options.getMetadataOnly())
+    {
+      for (auto& spectrum : exp.getSpectra())
+      {
+        spectrum.clear(false);
+      }
+    }
+
+    exp.updateRanges();
+  }
+
+  uint64_t elementByteSize_(const bool use_32_bit)
+  {
+    return use_32_bit ? 4ULL : 8ULL;
+  }
+
+  void writeMzArray_(FILE* ibd,
+                     const std::vector<double>& mz,
+                     const bool mz_32_bit,
+                     const String& ibd_path)
+  {
+    if (mz_32_bit)
+    {
+      ImzMLBinaryIO::writeMzAsFloat32(ibd, mz, ibd_path);
+    }
+    else
+    {
+      ImzMLBinaryIO::writeMzAsFloat64(ibd, mz, ibd_path);
+    }
+  }
+
+  void writeIntArray_(FILE* ibd,
+                      const std::vector<float>& intensities,
+                      const bool int_32_bit,
+                      const String& ibd_path)
+  {
+    if (int_32_bit)
+    {
+      ImzMLBinaryIO::writeFloat32Array(ibd, intensities.data(), intensities.size(), ibd_path);
+    }
+    else
+    {
+      std::vector<double> tmp(intensities.size());
+      for (Size i = 0; i < intensities.size(); ++i)
+      {
+        tmp[i] = static_cast<double>(intensities[i]);
+      }
+      ImzMLBinaryIO::writeFloat64Array(ibd, tmp.data(), tmp.size(), ibd_path);
+    }
+  }
+
+  uint32_t sha1LeftRotate_(uint32_t value, uint32_t bits)
+  {
+    return (value << bits) | (value >> (32 - bits));
   }
 
   bool uuidStringToBytes_(const String& uuid, unsigned char out[16])
@@ -525,6 +697,113 @@ namespace
     return md5DigestToHex_(a0, b0, c0, d0);
   }
 
+  String sha1DigestToHex_(const uint32_t digest[5])
+  {
+    std::ostringstream oss;
+    oss << std::hex << std::setfill('0');
+    for (int i = 0; i < 5; ++i)
+    {
+      oss << std::setw(8) << digest[i];
+    }
+    return oss.str();
+  }
+
+  String sha1Hex_(const String& file_path)
+  {
+    std::ifstream in(file_path.c_str(), std::ios::binary);
+    if (!in)
+    {
+      return "";
+    }
+
+    uint32_t h[5] = {0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0};
+    uint64_t total_bytes = 0;
+    uint8_t block[64] {};
+    size_t block_len = 0;
+    char read_buf[64 * 1024];
+
+    auto processBlock = [&](const uint8_t chunk[64]) {
+      uint32_t w[80];
+      for (int i = 0; i < 16; ++i)
+      {
+        w[i] = (uint32_t(chunk[i * 4]) << 24) | (uint32_t(chunk[i * 4 + 1]) << 16)
+               | (uint32_t(chunk[i * 4 + 2]) << 8) | uint32_t(chunk[i * 4 + 3]);
+      }
+      for (int i = 16; i < 80; ++i)
+      {
+        w[i] = sha1LeftRotate_(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
+      }
+
+      uint32_t a = h[0], b = h[1], c = h[2], d = h[3], e = h[4];
+      for (int i = 0; i < 80; ++i)
+      {
+        uint32_t f = 0;
+        uint32_t k = 0;
+        if (i < 20)      { f = (b & c) | (~b & d);           k = 0x5A827999; }
+        else if (i < 40) { f = b ^ c ^ d;                    k = 0x6ED9EBA1; }
+        else if (i < 60) { f = (b & c) | (b & d) | (c & d); k = 0x8F1BBCDC; }
+        else              { f = b ^ c ^ d;                    k = 0xCA62C1D6; }
+        const uint32_t temp = sha1LeftRotate_(a, 5) + f + e + k + w[i];
+        e = d;
+        d = c;
+        c = sha1LeftRotate_(b, 30);
+        b = a;
+        a = temp;
+      }
+      h[0] += a;
+      h[1] += b;
+      h[2] += c;
+      h[3] += d;
+      h[4] += e;
+    };
+
+    auto consumeBytes = [&](const uint8_t* data, size_t len) {
+      size_t idx = 0;
+      while (idx < len)
+      {
+        const size_t take = std::min(len - idx, 64 - block_len);
+        std::memcpy(block + block_len, data + idx, take);
+        block_len += take;
+        idx += take;
+        if (block_len == 64)
+        {
+          processBlock(block);
+          block_len = 0;
+        }
+      }
+    };
+
+    while (in.read(read_buf, sizeof(read_buf)) || in.gcount() > 0)
+    {
+      const size_t chunk = static_cast<size_t>(in.gcount());
+      total_bytes += chunk;
+      consumeBytes(reinterpret_cast<const uint8_t*>(read_buf), chunk);
+    }
+
+    const uint64_t orig_bits = total_bytes * 8;
+    block[block_len++] = 0x80;
+    if (block_len > 56)
+    {
+      while (block_len < 64)
+      {
+        block[block_len++] = 0;
+      }
+      processBlock(block);
+      block_len = 0;
+    }
+    while (block_len < 56)
+    {
+      block[block_len++] = 0;
+    }
+    for (int i = 7; i >= 0; --i)
+    {
+      block[block_len++] = static_cast<uint8_t>((orig_bits >> (8 * i)) & 0xff);
+    }
+    processBlock(block);
+
+    return sha1DigestToHex_(h);
+  }
+
   void writeCvParam_(std::ostream& os,
                      const String& cv_ref,
                      const String& accession,
@@ -542,6 +821,60 @@ namespace
       os << " " << unit_attrs;
     }
     os << "/>";
+  }
+
+  void writeImsGeometryCvParams_(std::ostream& os, const ImzMLMeta& meta)
+  {
+    if (meta.scan_pattern == "top down")
+    {
+      os << "\t\t\t";
+      writeCvParam_(os, "IMS", "IMS:1000401", "top down");
+      os << "\n";
+    }
+    else if (meta.scan_pattern == "bottom up")
+    {
+      os << "\t\t\t";
+      writeCvParam_(os, "IMS", "IMS:1000402", "bottom up");
+      os << "\n";
+    }
+
+    if (meta.scan_direction == "flyback")
+    {
+      os << "\t\t\t";
+      writeCvParam_(os, "IMS", "IMS:1000413", "flyback");
+      os << "\n";
+    }
+    else if (meta.scan_direction == "meander")
+    {
+      os << "\t\t\t";
+      writeCvParam_(os, "IMS", "IMS:1000412", "meander");
+      os << "\n";
+    }
+    else if (meta.scan_direction == "horizontal")
+    {
+      os << "\t\t\t";
+      writeCvParam_(os, "IMS", "IMS:1000480", "horizontal");
+      os << "\n";
+    }
+    else if (meta.scan_direction == "vertical")
+    {
+      os << "\t\t\t";
+      writeCvParam_(os, "IMS", "IMS:1000481", "vertical");
+      os << "\n";
+    }
+
+    if (meta.line_scan_direction == "left-right")
+    {
+      os << "\t\t\t";
+      writeCvParam_(os, "IMS", "IMS:1000491", "left-right");
+      os << "\n";
+    }
+    else if (meta.line_scan_direction == "right-left")
+    {
+      os << "\t\t\t";
+      writeCvParam_(os, "IMS", "IMS:1000492", "right-left");
+      os << "\n";
+    }
   }
 
   void writeExternalBinaryArray_(std::ostream& os,
@@ -570,7 +903,11 @@ namespace
                       const ImzMLMeta& meta,
                       const std::vector<SpectrumWritePlan>& plans,
                       const String& ibd_md5,
-                      bool continuous)
+                      const String& ibd_sha1,
+                      const String& instrument_model,
+                      const bool continuous,
+                      const bool mz_32_bit,
+                      const bool int_32_bit)
   {
     std::ofstream os(imzml_path.c_str(), std::ios::binary);
     if (!os)
@@ -581,6 +918,10 @@ namespace
     const String uuid = meta.uuid;
     const String mode_acc = continuous ? "IMS:1000030" : "IMS:1000031";
     const String mode_name = continuous ? "continuous" : "processed";
+    const String mz_precision_acc = mz_32_bit ? "MS:1000521" : "MS:1000523";
+    const String mz_precision_name = mz_32_bit ? "32-bit float" : "64-bit float";
+    const String int_precision_acc = int_32_bit ? "MS:1000521" : "MS:1000523";
+    const String int_precision_name = int_32_bit ? "32-bit float" : "64-bit float";
 
     os << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
     os << "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" version=\"1.1.0\">\n";
@@ -594,6 +935,12 @@ namespace
     os << "\t\t\t";
     writeCvParam_(os, "IMS", "IMS:1000080", "universally unique identifier", uuid);
     os << "\n";
+    if (!ibd_sha1.empty())
+    {
+      os << "\t\t\t";
+      writeCvParam_(os, "IMS", "IMS:1000091", "ibd SHA-1", ibd_sha1);
+      os << "\n";
+    }
     if (!ibd_md5.empty())
     {
       os << "\t\t\t";
@@ -603,6 +950,18 @@ namespace
     os << "\t\t\t";
     writeCvParam_(os, "IMS", mode_acc, mode_name);
     os << "\n";
+    if (meta.polarity == "positive")
+    {
+      os << "\t\t\t";
+      writeCvParam_(os, "MS", "MS:1000130", "positive scan");
+      os << "\n";
+    }
+    else if (meta.polarity == "negative")
+    {
+      os << "\t\t\t";
+      writeCvParam_(os, "MS", "MS:1000129", "negative scan");
+      os << "\n";
+    }
     os << "\t\t\t";
     writeCvParam_(os, "MS", "MS:1000294", "mass spectrum");
     os << "\n";
@@ -613,7 +972,7 @@ namespace
     os << "\t\t\t";
     writeCvParam_(os, "MS", "MS:1000514", "m/z array");
     os << "\n\t\t\t";
-    writeCvParam_(os, "MS", "MS:1000521", "32-bit float");
+    writeCvParam_(os, "MS", mz_precision_acc, mz_precision_name);
     os << "\n\t\t\t";
     writeCvParam_(os, "IMS", "IMS:1000101", "external data", "true");
     os << "\n";
@@ -622,7 +981,7 @@ namespace
     os << "\t\t\t";
     writeCvParam_(os, "MS", "MS:1000515", "intensity array");
     os << "\n\t\t\t";
-    writeCvParam_(os, "MS", "MS:1000521", "32-bit float");
+    writeCvParam_(os, "MS", int_precision_acc, int_precision_name);
     os << "\n\t\t\t";
     writeCvParam_(os, "IMS", "IMS:1000101", "external data", "true");
     os << "\n";
@@ -677,12 +1036,13 @@ namespace
                     "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
       os << "\n";
     }
+    writeImsGeometryCvParams_(os, meta);
     os << "\t\t</scanSettings>\n";
     os << "\t</scanSettingsList>\n";
     os << "\t<instrumentConfigurationList count=\"1\">\n";
     os << "\t\t<instrumentConfiguration id=\"IC1\">\n";
     os << "\t\t\t";
-    writeCvParam_(os, "MS", "MS:1000031", "instrument model", "OpenMS export");
+    writeCvParam_(os, "MS", "MS:1000031", "instrument model", instrument_model);
     os << "\n";
     os << "\t\t</instrumentConfiguration>\n";
     os << "\t</instrumentConfigurationList>\n";
@@ -714,12 +1074,21 @@ namespace
       {
         os << "\t\t\t\t<referenceableParamGroupRef ref=\"mzArray\"/>\n";
       }
+      if (spec.getMSLevel() != 0)
+      {
+        os << "\t\t\t\t";
+        writeCvParam_(os, "MS", "MS:1000511", "ms level", String(spec.getMSLevel()));
+        os << "\n";
+      }
       os << "\t\t\t\t<scanList count=\"1\">\n";
       os << "\t\t\t\t\t";
       writeCvParam_(os, "MS", "MS:1000795", "no combination");
       os << "\n";
       os << "\t\t\t\t\t<scan instrumentConfigurationRef=\"IC1\">\n";
       os << "\t\t\t\t\t\t";
+      writeCvParam_(os, "MS", "MS:1000016", "scan start time", String(spec.getRT()),
+                    "unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"");
+      os << "\n\t\t\t\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000050", "position x", String(plan.pixel.x));
       os << "\n\t\t\t\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000051", "position y", String(plan.pixel.y));
@@ -744,34 +1113,45 @@ namespace
 
 void ImzMLWriter::store(const String& imzml_path,
                           const MSExperiment& exp,
-                          const PeakFileOptions& /*options*/,
+                          const PeakFileOptions& options,
                           ProgressLogger& logger)
 {
-  if (exp.empty())
+  MSExperiment work = exp;
+  applyStoreOptions_(work, options);
+
+  if (work.empty())
   {
     throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Cannot store empty MSExperiment as imzML");
+                                        "Cannot store empty MSExperiment as imzML (all spectra removed by PeakFileOptions filters?)");
   }
 
-  validatePixelMetadataForStore_(exp);
+  validatePixelMetadataForStore_(work);
 
-  ImzMLMeta meta = extractMeta_(exp);
-  const bool continuous = isContinuousMode_(exp, meta);
+  ImzMLMeta meta = extractMeta_(work);
+  const bool continuous = isContinuousMode_(work, meta);
   meta.imaging_mode = continuous ? "continuous" : "processed";
 
-  std::vector<SpectrumWritePlan> plans(exp.size());
-  for (Size i = 0; i < exp.size(); ++i)
+  const bool mz_32_bit = options.getMz32Bit();
+  const bool int_32_bit = options.getIntensity32Bit();
+  meta.mz_data_type = mz_32_bit ? "float32" : "float64";
+  meta.int_data_type = int_32_bit ? "float32" : "float64";
+  const uint64_t mz_elem_bytes = elementByteSize_(mz_32_bit);
+  const uint64_t int_elem_bytes = elementByteSize_(int_32_bit);
+
+  std::vector<SpectrumWritePlan> plans(work.size());
+  for (Size i = 0; i < work.size(); ++i)
   {
-    plans[i].pixel = readPixelCoord_(exp[i]);
-    plans[i].int_count = exp[i].size();
-    plans[i].int_encoded = plans[i].int_count * 4;
-    plans[i].mz_count = exp[i].size();
-    plans[i].mz_encoded = plans[i].mz_count * 4;
+    plans[i].pixel = readPixelCoord_(work[i]);
+    plans[i].int_count = work[i].size();
+    plans[i].int_encoded = plans[i].int_count * int_elem_bytes;
+    plans[i].mz_count = work[i].size();
+    plans[i].mz_encoded = plans[i].mz_count * mz_elem_bytes;
   }
   updateGridFromPixels_(meta, plans);
 
   const String ibd_path = inferIbdPath_(imzml_path);
-  logger.startProgress(0, exp.size() + 2, "storing imzML file");
+  const String instrument_model = instrumentModelForExport_(work);
+  logger.startProgress(0, work.size() + 2, "storing imzML file");
 
   {
     UniqueFile_ ibd(fopen(ibd_path.c_str(), "wb"));
@@ -787,20 +1167,20 @@ void ImzMLWriter::store(const String& imzml_path,
     if (continuous)
     {
       Size ref = 0;
-      for (Size i = 0; i < exp.size(); ++i)
+      for (Size i = 0; i < work.size(); ++i)
       {
-        if (!exp[i].empty())
+        if (!work[i].empty())
         {
           ref = i;
           break;
         }
       }
-      const std::vector<double> shared_mz = mzAsDouble_(exp[ref]);
-      const uint64_t mz_bytes = shared_mz.size() * 4;
+      const std::vector<double> shared_mz = mzAsDouble_(work[ref]);
+      const uint64_t mz_bytes = shared_mz.size() * mz_elem_bytes;
 
-      ImzMLBinaryIO::writeMzAsFloat32(ibd.get(), shared_mz, ibd_path);
+      writeMzArray_(ibd.get(), shared_mz, mz_32_bit, ibd_path);
       uint64_t current = IBD_UUID_HEADER_BYTES + mz_bytes;
-      for (Size i = 0; i < exp.size(); ++i)
+      for (Size i = 0; i < work.size(); ++i)
       {
         logger.setProgress(static_cast<Size>(i + 1));
         plans[i].share_mz = true;
@@ -808,32 +1188,32 @@ void ImzMLWriter::store(const String& imzml_path,
         plans[i].mz_count = shared_mz.size();
         plans[i].mz_encoded = mz_bytes;
         plans[i].int_offset = current;
-        plans[i].int_count = exp[i].size();
-        plans[i].int_encoded = plans[i].int_count * 4;
+        plans[i].int_count = work[i].size();
+        plans[i].int_encoded = plans[i].int_count * int_elem_bytes;
 
-        const std::vector<float> intensities = intensitiesAsFloat_(exp[i]);
-        ImzMLBinaryIO::writeFloat32Array(ibd.get(), intensities.data(), intensities.size(), ibd_path);
+        const std::vector<float> intensities = intensitiesAsFloat_(work[i]);
+        writeIntArray_(ibd.get(), intensities, int_32_bit, ibd_path);
         current += plans[i].int_encoded;
       }
     }
     else
     {
       uint64_t offset = IBD_UUID_HEADER_BYTES;
-      for (Size i = 0; i < exp.size(); ++i)
+      for (Size i = 0; i < work.size(); ++i)
       {
         logger.setProgress(i + 1);
         plans[i].mz_offset = offset;
-        plans[i].mz_count = exp[i].size();
-        plans[i].mz_encoded = plans[i].mz_count * 4;
+        plans[i].mz_count = work[i].size();
+        plans[i].mz_encoded = plans[i].mz_count * mz_elem_bytes;
         offset += plans[i].mz_encoded;
         plans[i].int_offset = offset;
-        plans[i].int_count = exp[i].size();
-        plans[i].int_encoded = plans[i].int_count * 4;
+        plans[i].int_count = work[i].size();
+        plans[i].int_encoded = plans[i].int_count * int_elem_bytes;
         offset += plans[i].int_encoded;
 
-        ImzMLBinaryIO::writeMzAsFloat32(ibd.get(), mzAsDouble_(exp[i]), ibd_path);
-        const std::vector<float> intensities = intensitiesAsFloat_(exp[i]);
-        ImzMLBinaryIO::writeFloat32Array(ibd.get(), intensities.data(), intensities.size(), ibd_path);
+        writeMzArray_(ibd.get(), mzAsDouble_(work[i]), mz_32_bit, ibd_path);
+        const std::vector<float> intensities = intensitiesAsFloat_(work[i]);
+        writeIntArray_(ibd.get(), intensities, int_32_bit, ibd_path);
       }
     }
 
@@ -844,10 +1224,12 @@ void ImzMLWriter::store(const String& imzml_path,
     }
   }
 
-  logger.setProgress(exp.size() + 1);
+  logger.setProgress(work.size() + 1);
 
   const String ibd_md5 = md5Hex_(ibd_path);
-  writeImzMLXml_(imzml_path, exp, meta, plans, ibd_md5, continuous);
+  const String ibd_sha1 = sha1Hex_(ibd_path);
+  writeImzMLXml_(imzml_path, work, meta, plans, ibd_md5, ibd_sha1, instrument_model, continuous,
+                 mz_32_bit, int_32_bit);
   logger.endProgress();
 }
 

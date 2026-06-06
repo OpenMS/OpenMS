@@ -222,6 +222,94 @@ class TestImzMLFile(unittest.TestCase):
         with self.assertRaises(Exception):
             pyopenms.ImzMLFile.buildImagingGeometry(exp, geom)
 
+    def test_store_applies_mz_range_filter(self):
+        import tempfile
+
+        exp = pyopenms.MSExperiment()
+        pyopenms.ImzMLFile().load(self.imzml_path, exp)
+        full_peaks = exp.getSpectrum(0).size()
+        lo = exp.getSpectrum(0)[0].getMZ()
+        hi = exp.getSpectrum(0)[full_peaks - 1].getMZ()
+        mid = (lo + hi) / 2.0
+
+        f = pyopenms.ImzMLFile()
+        opts = pyopenms.PeakFileOptions()
+        opts.setMZRange(pyopenms.DRange1(lo, mid))
+        f.setOptions(opts)
+
+        with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
+            out_path = tmp.name
+        try:
+            f.store(out_path, exp)
+            reloaded = pyopenms.MSExperiment()
+            pyopenms.ImzMLFile().load(out_path, reloaded)
+            self.assertLess(reloaded.getSpectrum(0).size(), full_peaks)
+            self.assertLessEqual(reloaded.getSpectrum(0)[reloaded.getSpectrum(0).size() - 1].getMZ(), mid)
+        finally:
+            os.remove(out_path)
+            ibd_path = out_path[:-6] + ".ibd" if out_path.lower().endswith(".imzml") else out_path + ".ibd"
+            if os.path.isfile(ibd_path):
+                os.remove(ibd_path)
+
+    def test_store_binary_precision_options(self):
+        import tempfile
+
+        exp = pyopenms.MSExperiment()
+        pyopenms.ImzMLFile().load(self.imzml_path, exp)
+
+        f = pyopenms.ImzMLFile()
+        opts = pyopenms.PeakFileOptions()
+        opts.setMz32Bit(False)
+        opts.setIntensity32Bit(False)
+        f.setOptions(opts)
+
+        with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
+            out_path = tmp.name
+        try:
+            f.store(out_path, exp)
+            _meta, index = pyopenms.ImzMLFile().loadSpectraIndex(out_path)
+            self.assertEqual(index[0].mz_type, pyopenms.ImzMLDataType.FLOAT64)
+            self.assertEqual(index[0].int_type, pyopenms.ImzMLDataType.FLOAT64)
+        finally:
+            os.remove(out_path)
+            ibd_path = out_path[:-6] + ".ibd" if out_path.lower().endswith(".imzml") else out_path + ".ibd"
+            if os.path.isfile(ibd_path):
+                os.remove(ibd_path)
+
+    def test_store_metadata_round_trip(self):
+        import tempfile
+
+        exp = pyopenms.MSExperiment()
+        pyopenms.ImzMLFile().load(self.imzml_path, exp)
+        exp.setMetaValue("imzml:scan_pattern", "top down")
+        exp.setMetaValue("imzml:polarity", "positive")
+        inst = exp.getInstrument()
+        inst.setModel("Test MSI Instrument")
+        exp.setInstrument(inst)
+        if exp.getNrSpectra() > 0:
+            spec = exp.getSpectrum(0)
+            spec.setRT(12.34)
+            spec.setMSLevel(1)
+
+        with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
+            out_path = tmp.name
+        try:
+            pyopenms.ImzMLFile().store(out_path, exp)
+            reloaded = pyopenms.MSExperiment()
+            pyopenms.ImzMLFile().load(out_path, reloaded)
+            self.assertEqual(str(reloaded.getMetaValue("imzml:scan_pattern")), "top down")
+            self.assertEqual(str(reloaded.getMetaValue("imzml:polarity")), "positive")
+            self.assertTrue(reloaded.metaValueExists("imzml:ibd_sha1"))
+            self.assertTrue(str(reloaded.getMetaValue("imzml:ibd_sha1")))
+            if reloaded.getNrSpectra() > 0:
+                self.assertAlmostEqual(reloaded.getSpectrum(0).getRT(), 12.34, places=4)
+                self.assertEqual(reloaded.getSpectrum(0).getMSLevel(), 1)
+        finally:
+            os.remove(out_path)
+            ibd_path = out_path[:-6] + ".ibd" if out_path.lower().endswith(".imzml") else out_path + ".ibd"
+            if os.path.isfile(ibd_path):
+                os.remove(ibd_path)
+
 
 if __name__ == "__main__":
     unittest.main()

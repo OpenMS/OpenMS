@@ -35,12 +35,15 @@ namespace Internal
       spectrum (required for export); dataset metadata is taken from experiment
       MetaValues when present.
 
-      Export writes float32 external arrays with a 16-byte UUID header in the
-      @c .ibd file. @p PeakFileOptions filtering is not yet applied on write.
+      Export writes external binary arrays with a 16-byte UUID header in the
+      @c .ibd file. Binary precision follows @p PeakFileOptions (@p getMz32Bit,
+      @p getIntensity32Bit). @p PeakFileOptions spectrum/peak filters (MS level,
+      RT, precursor m/z, m/z and intensity ranges, metadata-only, sort-by-m/z)
+      are applied to a temporary copy before export.
 
       @param[in] imzml_path Path to the output @c .imzML file.
       @param[in] exp        Experiment to store (must contain at least one spectrum).
-      @param[in] options    Peak file options (reserved for future filtering).
+      @param[in] options    Peak file options (filtering, sort, binary precision).
       @param[in] logger     Progress logger for status output.
 
       @throws Exception::MissingInformation if @p exp has no spectra or lacks imzml:x/y on any spectrum.

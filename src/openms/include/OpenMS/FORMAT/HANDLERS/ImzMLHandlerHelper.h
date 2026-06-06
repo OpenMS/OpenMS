@@ -164,6 +164,25 @@ namespace OpenMS
     static void writeMzAsFloat32(FILE* ibd,
                                  const std::vector<double>& mz,
                                  const String& ibd_path);
+
+    /**
+      @brief Write a float64 array to the companion .ibd file (little-endian).
+
+      @throws Exception::ParseError if write fails.
+    */
+    static void writeFloat64Array(FILE* ibd,
+                                  const double* data,
+                                  uint64_t count,
+                                  const String& ibd_path);
+
+    /**
+      @brief Write m/z values as float64 to the companion .ibd file.
+
+      @throws Exception::ParseError if write fails.
+    */
+    static void writeMzAsFloat64(FILE* ibd,
+                                 const std::vector<double>& mz,
+                                 const String& ibd_path);
   };
 
 } // namespace OpenMS

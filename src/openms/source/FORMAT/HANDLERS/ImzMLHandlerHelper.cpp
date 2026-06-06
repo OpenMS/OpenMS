@@ -293,4 +293,41 @@ void ImzMLBinaryIO::writeMzAsFloat32(FILE* ibd,
   writeFloat32Array(ibd, tmp.data(), tmp.size(), ibd_path);
 }
 
+void ImzMLBinaryIO::writeFloat64Array(FILE* ibd,
+                                      const double* data,
+                                      const uint64_t count,
+                                      const String& ibd_path)
+{
+  if (!ibd || count == 0)
+  {
+    return;
+  }
+  validateCount_(count, ibd_path, "float64 array write");
+#if OPENMS_IS_BIG_ENDIAN
+  std::vector<double> le_data(static_cast<size_t>(count));
+  std::memcpy(le_data.data(), data, static_cast<size_t>(count) * sizeof(double));
+  decodeLittleEndian_(le_data.data(), static_cast<Size>(count));
+  if (fwrite(le_data.data(), 8, static_cast<size_t>(count), ibd) != static_cast<size_t>(count))
+  {
+    throwReadError_(ibd_path, "failed to write float64 array to .ibd");
+  }
+#else
+  if (fwrite(data, 8, static_cast<size_t>(count), ibd) != static_cast<size_t>(count))
+  {
+    throwReadError_(ibd_path, "failed to write float64 array to .ibd");
+  }
+#endif
+}
+
+void ImzMLBinaryIO::writeMzAsFloat64(FILE* ibd,
+                                     const std::vector<double>& mz,
+                                     const String& ibd_path)
+{
+  if (mz.empty())
+  {
+    return;
+  }
+  writeFloat64Array(ibd, mz.data(), mz.size(), ibd_path);
+}
+
 } // namespace OpenMS

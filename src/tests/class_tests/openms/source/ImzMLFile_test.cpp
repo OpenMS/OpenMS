@@ -17,6 +17,9 @@
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
+#include <OpenMS/METADATA/Instrument.h>
+#include <OpenMS/DATASTRUCTURES/DRange.h>
 
 #include <fstream>
 #include <cstdio>
@@ -463,6 +466,104 @@ START_SECTION(OnDiscImzMLExperiment rejects duplicate pixel coordinates)
     ibd_path = tmp_imzml.substr(0, tmp_imzml.size() - 6) + ".ibd";
   }
   remove(ibd_path.c_str());
+}
+END_SECTION
+
+
+START_SECTION(void store applies PeakFileOptions m/z range filter)
+{
+  MSExperiment original;
+  ImzMLFile f;
+  f.load(imzml_path, original);
+  TEST_EQUAL(original.getNrSpectra() > 0, true)
+  if (original.getNrSpectra() > 0 && !original[0].empty())
+  {
+    const Size full_peaks = original[0].size();
+    const double lo_mz = original[0][0].getMZ();
+    const double hi_mz = original[0][full_peaks - 1].getMZ();
+    const double mid_mz = (lo_mz + hi_mz) / 2.0;
+
+    PeakFileOptions opts;
+    opts.setMZRange(DRange<1>(lo_mz, mid_mz));
+    f.setOptions(opts);
+
+    String tmp_imzml;
+    NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+    f.store(tmp_imzml, original);
+
+    MSExperiment filtered;
+    ImzMLFile f2;
+    f2.load(tmp_imzml, filtered);
+    TEST_EQUAL(filtered.getNrSpectra(), original.getNrSpectra())
+    TEST_EQUAL(filtered[0].size() < full_peaks, true)
+    TEST_EQUAL(filtered[0][0].getMZ() >= lo_mz, true)
+    TEST_EQUAL(filtered[0].back().getMZ() <= mid_mz, true)
+  }
+}
+END_SECTION
+
+
+START_SECTION(void store honors PeakFileOptions binary precision)
+{
+  MSExperiment original;
+  ImzMLFile f;
+  f.load(imzml_path, original);
+
+  PeakFileOptions opts;
+  opts.setMz32Bit(false);
+  opts.setIntensity32Bit(false);
+  f.setOptions(opts);
+
+  String tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+
+  ImzMLMeta meta;
+  std::vector<ImzMLSpectrumIndex> index;
+  ImzMLFile().loadSpectraIndex(tmp_imzml, meta, index);
+  TEST_EQUAL(index.empty(), false)
+  TEST_EQUAL(index[0].mz_type, ImzMLSpectrumIndex::DataType::FLOAT64)
+  TEST_EQUAL(index[0].int_type, ImzMLSpectrumIndex::DataType::FLOAT64)
+}
+END_SECTION
+
+
+START_SECTION(void store metadata round-trip)
+{
+  MSExperiment original;
+  ImzMLFile f;
+  f.load(imzml_path, original);
+
+  original.setMetaValue("imzml:scan_pattern", "top down");
+  original.setMetaValue("imzml:scan_direction", "flyback");
+  original.setMetaValue("imzml:line_scan_direction", "left-right");
+  original.setMetaValue("imzml:polarity", "positive");
+  Instrument inst = original.getInstrument();
+  inst.setModel("Test MSI Instrument");
+  original.setInstrument(inst);
+  if (!original.empty())
+  {
+    original[0].setRT(12.34);
+    original[0].setMSLevel(1);
+  }
+
+  String tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+
+  MSExperiment reloaded;
+  f.load(tmp_imzml, reloaded);
+  TEST_EQUAL(String(reloaded.getMetaValue("imzml:scan_pattern")), String("top down"))
+  TEST_EQUAL(String(reloaded.getMetaValue("imzml:scan_direction")), String("flyback"))
+  TEST_EQUAL(String(reloaded.getMetaValue("imzml:line_scan_direction")), String("left-right"))
+  TEST_EQUAL(String(reloaded.getMetaValue("imzml:polarity")), String("positive"))
+  TEST_EQUAL(reloaded.metaValueExists("imzml:ibd_sha1"), true)
+  TEST_NOT_EQUAL(String(reloaded.getMetaValue("imzml:ibd_sha1")).empty(), true)
+  if (!reloaded.empty())
+  {
+    TEST_REAL_SIMILAR(reloaded[0].getRT(), 12.34)
+    TEST_EQUAL(reloaded[0].getMSLevel(), 1)
+  }
 }
 END_SECTION
 
