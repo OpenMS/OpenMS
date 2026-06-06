@@ -59,6 +59,10 @@ class TestImzMLAllModes(unittest.TestCase):
             pyopenms.FileHandler.getType(self.continuous_path),
             pyopenms.FileType.IMZML,
         )
+        self.assertEqual(
+            pyopenms.FileHandler.getTypeByContent(self.continuous_path),
+            pyopenms.FileType.IMZML,
+        )
         exp = pyopenms.MSExperiment()
         pyopenms.FileHandler().loadExperiment(self.continuous_path, exp)
         self.assertEqual(exp.getNrSpectra(), self.CONTINUOUS_SPECTRA)
@@ -89,7 +93,19 @@ class TestImzMLAllModes(unittest.TestCase):
         self.assertEqual(consumer.count, self.CONTINUOUS_SPECTRA)
         self.assertGreater(consumer.first_size, 0)
 
-    def test_mode4_on_disc_random_access(self):
+    def test_mode4_load_spectra_index(self):
+        meta, index = pyopenms.ImzMLFile().loadSpectraIndex(self.continuous_path)
+
+        self.assertEqual(len(index), self.CONTINUOUS_SPECTRA)
+        self.assertEqual(meta.imaging_mode, "continuous")
+        self.assertEqual(meta.max_count_x, self.GRID)
+        self.assertEqual(meta.max_count_y, self.GRID)
+        if index:
+            self.assertEqual(index[0].x, 1)
+            self.assertEqual(index[0].y, 1)
+            self.assertGreater(index[0].mz_length, 0)
+
+    def test_mode5_on_disc_random_access(self):
         od = pyopenms.OnDiscImzMLExperiment()
         try:
             od.open(self.continuous_path)
@@ -98,6 +114,7 @@ class TestImzMLAllModes(unittest.TestCase):
             self.assertEqual(od.getNrSpectra(), self.CONTINUOUS_SPECTRA)
             self.assertEqual(od.gridWidth(), self.GRID)
             self.assertEqual(od.gridHeight(), self.GRID)
+            self.assertEqual(od.getImzMLMeta().imaging_mode, "continuous")
 
             by_index = od.getSpectrum(0)
             self.assertGreater(by_index.size(), 0)
@@ -107,7 +124,7 @@ class TestImzMLAllModes(unittest.TestCase):
         finally:
             od.close()
 
-    def test_mode5_imaging_experiment_ram_lookup(self):
+    def test_mode6_imaging_experiment_ram_lookup(self):
         imaging = pyopenms.MSImagingExperiment()
         pyopenms.ImzMLFile().load(self.continuous_path, imaging)
 
@@ -120,7 +137,7 @@ class TestImzMLAllModes(unittest.TestCase):
         self.assertGreater(imaging.getSpectrum(0, 0).size(), 0)
         self.assertGreater(imaging.getSpectrum(2, 2).size(), 0)
 
-    def test_mode6_build_imaging_geometry(self):
+    def test_mode7_build_imaging_geometry(self):
         exp = pyopenms.MSExperiment()
         pyopenms.ImzMLFile().load(self.continuous_path, exp)
 
@@ -171,6 +188,7 @@ class TestImzMLAllModes(unittest.TestCase):
         od = pyopenms.OnDiscImzMLExperiment()
         try:
             od.open(self.processed_path)
+            self.assertEqual(od.getImzMLMeta().imaging_mode, "processed")
             self.assertGreater(od.getSpectrum(0).size(), 0)
         finally:
             od.close()

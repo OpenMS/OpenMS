@@ -42,8 +42,8 @@ namespace OpenMS
     uint32_t max_count_z  {1};  ///< Max depth slice  (usually 1 for 2-D datasets)
     double   pixel_size_x {0};  ///< Physical pixel width  in µm (IMS:1000046)
     double   pixel_size_y {0};  ///< Physical pixel height in µm (IMS:1000047)
-    double   max_dim_x    {0};  ///< Physical x extent in mm (IMS:1000044)
-    double   max_dim_y    {0};  ///< Physical y extent in mm (IMS:1000045)
+    double   max_dim_x    {0};  ///< Physical x extent in µm (IMS:1000044)
+    double   max_dim_y    {0};  ///< Physical y extent in µm (IMS:1000045)
 
     // -------------------------------------------------------------------------
     // Imaging mode

@@ -663,6 +663,8 @@ START_SECTION(void store metadata round-trip)
   TEST_EQUAL(String(reloaded.getMetaValue("imzml:polarity")), String("positive"))
   TEST_EQUAL(reloaded.metaValueExists("imzml:ibd_sha1"), true)
   TEST_NOT_EQUAL(String(reloaded.getMetaValue("imzml:ibd_sha1")).empty(), true)
+  TEST_REAL_SIMILAR(static_cast<double>(reloaded.getMetaValue("imzml:max_dim_x")), 300.0)
+  TEST_REAL_SIMILAR(static_cast<double>(reloaded.getMetaValue("imzml:max_dim_y")), 300.0)
   if (!reloaded.empty())
   {
     TEST_REAL_SIMILAR(reloaded[0].getRT(), 12.34)

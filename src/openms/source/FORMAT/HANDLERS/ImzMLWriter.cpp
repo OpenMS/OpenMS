@@ -441,11 +441,11 @@ namespace
     }
     if (meta.pixel_size_x > 0 && meta.max_count_x > 0)
     {
-      meta.max_dim_x = meta.pixel_size_x * meta.max_count_x / 1000.0;
+      meta.max_dim_x = meta.pixel_size_x * meta.max_count_x;
     }
     if (meta.pixel_size_y > 0 && meta.max_count_y > 0)
     {
-      meta.max_dim_y = meta.pixel_size_y * meta.max_count_y / 1000.0;
+      meta.max_dim_y = meta.pixel_size_y * meta.max_count_y;
     }
   }
 

@@ -388,6 +388,8 @@ class TestImzMLFile(unittest.TestCase):
             self.assertEqual(str(reloaded.getMetaValue("imzml:polarity")), "positive")
             self.assertTrue(reloaded.metaValueExists("imzml:ibd_sha1"))
             self.assertTrue(str(reloaded.getMetaValue("imzml:ibd_sha1")))
+            self.assertAlmostEqual(float(reloaded.getMetaValue("imzml:max_dim_x")), 300.0)
+            self.assertAlmostEqual(float(reloaded.getMetaValue("imzml:max_dim_y")), 300.0)
             if reloaded.getNrSpectra() > 0:
                 self.assertAlmostEqual(reloaded.getSpectrum(0).getRT(), 12.34, places=4)
                 self.assertEqual(reloaded.getSpectrum(0).getMSLevel(), 1)
