@@ -1186,7 +1186,7 @@ namespace OpenMS
     StringList localization_mods;
     if (prot_ids[run_index]->getSearchParameters().metaValueExists(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM))
     {
-      localization_mods = (StringList)prot_ids[run_index]->getSearchParameters().getMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM);
+      localization_mods = prot_ids[run_index]->getSearchParameters().getMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM).toStringList();
     }
 
     size_t msfile_index(0);
@@ -1633,7 +1633,7 @@ namespace OpenMS
 
     if (leader_protein.metaValueExists("GO"))
     {
-      StringList sl = (StringList)leader_protein.getMetaValue("GO");
+      StringList sl = leader_protein.getMetaValue("GO").toStringList();
       std::string s{};
       StringUtils::concatenate(s, sl.begin(), sl.end(), ",");
       protein_row.go_terms.fromCellString(s);
@@ -1664,7 +1664,7 @@ namespace OpenMS
 
     if (leader_protein.metaValueExists("num_psms_ms_run"))
     {
-      const IntList& il = (IntList)leader_protein.getMetaValue("num_psms_ms_run");
+      const IntList& il = leader_protein.getMetaValue("num_psms_ms_run").toIntList();
       for (Size ili = 0; ili != il.size(); ++ili)
       {
         protein_row.num_psms_ms_run[ili+1] = MzTabInteger(il[ili]);
@@ -1673,7 +1673,7 @@ namespace OpenMS
 
     if (leader_protein.metaValueExists("num_peptides_distinct_ms_run"))
     {
-      const IntList& il = (IntList)leader_protein.getMetaValue("num_peptides_distinct_ms_run");
+      const IntList& il = leader_protein.getMetaValue("num_peptides_distinct_ms_run").toIntList();
       for (Size ili = 0; ili != il.size(); ++ili)
       {
         protein_row.num_peptides_distinct_ms_run[ili+1] = MzTabInteger(il[ili]);
@@ -1682,7 +1682,7 @@ namespace OpenMS
 
     if (leader_protein.metaValueExists("num_peptides_unique_ms_run"))
     {
-      const IntList& il = (IntList)leader_protein.getMetaValue("num_peptides_unique_ms_run");
+      const IntList& il = leader_protein.getMetaValue("num_peptides_unique_ms_run").toIntList();
       for (Size ili = 0; ili != il.size(); ++ili)
       {
         protein_row.num_peptides_unique_ms_run[ili+1] = MzTabInteger(il[ili]);

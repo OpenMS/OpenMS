@@ -434,7 +434,7 @@ namespace OpenMS
     std::string meta_name = raw ? "spectra_data_raw" : "spectra_data";
     if (metaValueExists(meta_name))
     {
-      output = (StringList)getMetaValue(meta_name);
+      output = getMetaValue(meta_name).toStringList();
     }
   }
 

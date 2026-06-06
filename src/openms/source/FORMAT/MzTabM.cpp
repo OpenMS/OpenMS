@@ -541,7 +541,7 @@ namespace OpenMS
         smf.sme_id_refs.setNull(true);
         if (f.metaValueExists("adducts"))
         {
-          StringList adducts = (StringList)f.getMetaValue("adducts");
+          StringList adducts = f.getMetaValue("adducts").toStringList();
           smf.adduct = MzTabString(ListUtils::concatenate(adducts, "|"));
         }
         else

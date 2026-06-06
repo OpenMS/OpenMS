@@ -296,7 +296,7 @@ namespace OpenMS
         std::vector<double> merged_rts;
         if (best_in_cluster.metaValueExists("merged_centroid_rts"))
         {
-          merged_rts = (DoubleList)best_in_cluster.getMetaValue("merged_centroid_rts");
+          merged_rts = best_in_cluster.getMetaValue("merged_centroid_rts").toDoubleList();
         }
         else
         {
@@ -309,7 +309,7 @@ namespace OpenMS
         std::vector<double> merged_mzs;
         if (best_in_cluster.metaValueExists("merged_centroid_mzs"))
         {
-          merged_mzs = (DoubleList)best_in_cluster.getMetaValue("merged_centroid_mzs");
+          merged_mzs = best_in_cluster.getMetaValue("merged_centroid_mzs").toDoubleList();
         }
         else
         {
@@ -322,7 +322,7 @@ namespace OpenMS
         std::vector<double> merged_ims;
         if (best_in_cluster.metaValueExists("merged_centroid_IMs"))
         {
-          merged_ims = (DoubleList)best_in_cluster.getMetaValue("merged_centroid_IMs");
+          merged_ims = best_in_cluster.getMetaValue("merged_centroid_IMs").toDoubleList();
         }
         else if (best_in_cluster.metaValueExists(Constants::UserParam::FAIMS_CV))
         {
@@ -455,7 +455,7 @@ namespace OpenMS
         std::vector<double> merged_rts;
         if (best_in_cluster.metaValueExists("merged_centroid_rts"))
         {
-          merged_rts = (DoubleList)best_in_cluster.getMetaValue("merged_centroid_rts");
+          merged_rts = best_in_cluster.getMetaValue("merged_centroid_rts").toDoubleList();
         }
         else
         {
@@ -468,7 +468,7 @@ namespace OpenMS
         std::vector<double> merged_mzs;
         if (best_in_cluster.metaValueExists("merged_centroid_mzs"))
         {
-          merged_mzs = (DoubleList)best_in_cluster.getMetaValue("merged_centroid_mzs");
+          merged_mzs = best_in_cluster.getMetaValue("merged_centroid_mzs").toDoubleList();
         }
         else
         {
@@ -481,7 +481,7 @@ namespace OpenMS
         std::vector<double> merged_ims;
         if (best_in_cluster.metaValueExists("merged_centroid_IMs"))
         {
-          merged_ims = (DoubleList)best_in_cluster.getMetaValue("merged_centroid_IMs");
+          merged_ims = best_in_cluster.getMetaValue("merged_centroid_IMs").toDoubleList();
         }
         else
         {

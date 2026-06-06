@@ -1106,7 +1106,7 @@ namespace OpenMS
           // for a lookup to attach the converted IDs back to the specific feature.
           if (StringUtils::hasPrefix(key, "IDConverter_trace_"))
           {
-            IntList indexes = (IntList)hit.getMetaValue(key);
+            IntList indexes = hit.getMetaValue(key).toIntList();
             hit.removeMetaValue(key);
             Feature* feat_ptr = &features.at(indexes[0]);
             for (Size k = 1; k < indexes.size(); ++k)

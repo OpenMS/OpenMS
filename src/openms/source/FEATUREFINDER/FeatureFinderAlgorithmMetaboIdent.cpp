@@ -469,7 +469,7 @@ namespace OpenMS
             StringList alt_refs;
             if (cluster_representative.metaValueExists("alt_PeptideRef"))
             {
-              alt_refs = (StringList)cluster_representative.getMetaValue("alt_PeptideRef");
+              alt_refs = cluster_representative.getMetaValue("alt_PeptideRef").toStringList();
             }
             alt_refs.push_back(overlap.getMetaValue("PeptideRef"));
             cluster_representative.setMetaValue("alt_PeptideRef", alt_refs);
@@ -480,7 +480,7 @@ namespace OpenMS
         std::string ref =StringUtils::toStr(overlap.getMetaValue("PeptideRef")) + " (RT " +
           StringUtils::toStr(float(overlap.getRT())) + ")";
 
-        StringList overlap_refs = cluster_representative.metaValueExists("overlap_removed") ? (StringList)cluster_representative.getMetaValue("overlap_removed") : StringList{};
+        StringList overlap_refs = cluster_representative.metaValueExists("overlap_removed") ? cluster_representative.getMetaValue("overlap_removed").toStringList() : StringList{};
         overlap_refs.push_back(std::move(ref));
         cluster_representative.setMetaValue("overlap_removed", std::move(overlap_refs)); // TODO: implement setMetaValue that takes DataValue as r-value reference &&
 

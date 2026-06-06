@@ -1244,7 +1244,7 @@ namespace OpenMS
         continue;
 
       ++ladders_total;
-      IntList charges = (IntList)cfeature.getMetaValue("distinct_charges");
+      IntList charges = cfeature.getMetaValue("distinct_charges").toIntList();
 
       for (Size i = 0; i < charges.size(); ++i)
       {

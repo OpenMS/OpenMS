@@ -730,8 +730,8 @@ namespace OpenMS::Internal
           peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, DataValue(positions.second - 1));
 
           std::string term_spec_alpha("ANYWHERE"), term_spec_beta("ANYWHERE");
-          StringList aarequired1 = (StringList)search_params.getMetaValue("cross_link:residue1");
-          StringList aarequired2 = (StringList)search_params.getMetaValue("cross_link:residue2");
+          StringList aarequired1 = search_params.getMetaValue("cross_link:residue1").toStringList();
+          StringList aarequired2 = search_params.getMetaValue("cross_link:residue2").toStringList();
 
           // StringListUtils::searchSuffix checks for char converted to string
           if (positions.first == 1 && StringListUtils::searchSuffix(aarequired1, std::string(1, seq1[0])) == aarequired1.end())

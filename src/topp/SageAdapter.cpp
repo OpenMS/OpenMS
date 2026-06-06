@@ -579,7 +579,7 @@ protected:
     // inputs to temp mzML via FileHandler (ThermoRawFile) before passing
     // to Sage. Track the temp basename → original path mapping so we can
     // restore the original .raw path in the output run metadata.
-    std::map<String, String> sage_tmp_basename_to_original;
+    std::map<std::string, std::string> sage_tmp_basename_to_original;
     for (auto& f : input_files)
     {
       if (FileHandler::getType(f) == FileTypes::RAW)

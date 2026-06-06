@@ -472,7 +472,7 @@ namespace OpenMS
       {
           if (feature.metaValueExists("masstrace_intensity"))
           {
-            mti = (DoubleList)feature.getMetaValue("masstrace_intensity");
+            mti = feature.getMetaValue("masstrace_intensity").toDoubleList();
           }
         results_part[hit_idx].setMasstraceIntensities(mti);
       }
@@ -1493,7 +1493,7 @@ namespace OpenMS
     std::vector<double> observed_iso_dist;
     if (num_traces > 0)
     {
-      observed_iso_dist = (DoubleList)feat.getMetaValue("masstrace_intensity");
+      observed_iso_dist = feat.getMetaValue("masstrace_intensity").toDoubleList();
     }
 
     return computeCosineSim_(theoretical_iso_dist, observed_iso_dist);
