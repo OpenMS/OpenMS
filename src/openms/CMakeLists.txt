@@ -106,6 +106,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   nlohmann_json::nlohmann_json
   IsoSpec
   eol-bspline
+  ONNXRuntime::ONNXRuntime
   )
 
 # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
@@ -245,6 +246,8 @@ install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE
 install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_CMAKE_DIR}/Modules cmake)
 file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
 
-#------------------------------------------------------------------------------
-# register relevant paths for the doxygen doc generation
-openms_doc_path("${PROJECT_SOURCE_DIR}/include")
+# 1. Add the new native ONNX inference source files to the OpenMS library
+target_sources(OpenMS PRIVATE
+    "${PROJECT_SOURCE_DIR}/source/ML/PeptDeepRTInference.cpp"
+    "${PROJECT_SOURCE_DIR}/source/ML/PeptDeepMS2Inference.cpp"
+)

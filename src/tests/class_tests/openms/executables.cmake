@@ -69,6 +69,7 @@ set(datastructures_executables_list
   OPXLDataStructs_test
   Param_test
   ParamValue_test
+  PeptDeepInference_test
   QTCluster_test
   RangeManager_test
   StringListUtils_test
@@ -611,7 +612,7 @@ set(transformations_executables_list
   EmgFitter1D_test
   EmgModel_test
   ExtendedIsotopeFitter1D_test
-  ExtendedIsotopeModel_test  
+  ExtendedIsotopeModel_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
   FeatureFinderIdentificationAlgorithm_test
