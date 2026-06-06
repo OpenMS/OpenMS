@@ -340,7 +340,7 @@ START_SECTION(static bool findExecutable(std::string& exe_filename))
 #ifdef OPENMS_WINDOWSPLATFORM
   std::string find = "cmd";
   TEST_EQUAL(File::findExecutable(find), true)
-  TEST_EQUAL(StringUtils::suffix(find, 7).toUpper(), "CMD.EXE") // should be C:\Windows\System32\cmd.exe or similar
+  TEST_EQUAL(StringUtils::toUppered(StringUtils::suffix(find, 7)), "CMD.EXE") // should be C:\Windows\System32\cmd.exe or similar
 #else
   std::string find = "echo";
   TEST_EQUAL(File::findExecutable(find), true)
