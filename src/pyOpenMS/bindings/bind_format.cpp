@@ -823,7 +823,10 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
         .def("loadSpectraIndex", [](OpenMS::ImzMLFile& self, const OpenMS::String& filename) {
             OpenMS::ImzMLMeta meta;
             std::vector<OpenMS::ImzMLSpectrumIndex> index;
-            self.loadSpectraIndex(filename, meta, index);
+            {
+              nb::gil_scoped_release release;
+              self.loadSpectraIndex(filename, meta, index);
+            }
             nb::list py_index;
             for (const auto& entry : index)
             {
@@ -833,7 +836,11 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
         }, "filename"_a, "Parse imzML XML and return (ImzMLMeta, list[ImzMLSpectrumIndex]) without loading peaks")
         .def("isValid", [](OpenMS::ImzMLFile& self, const OpenMS::String& filename) {
             std::ostringstream os;
-            const bool ok = self.isValid(filename, os);
+            bool ok = false;
+            {
+              nb::gil_scoped_release release;
+              ok = self.isValid(filename, os);
+            }
             return nb::make_tuple(ok, os.str());
         }, "filename"_a, "Validate against mzML schema; returns (is_valid, error_text)")
         ;
