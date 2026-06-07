@@ -210,40 +210,33 @@ protected:
     // Align a single map to the reference, falling back to the identity
     // transformation when the alignment fails so that one un-alignable file
     // (e.g. a blank/near-empty LC-MS run) no longer aborts the whole tool
-    // (fixes #7010). align() can throw three exceptions that all derive
-    // directly from Exception::BaseException and are therefore siblings -
-    // catching one does not catch the others, so each is handled explicitly:
+    // (fixes #7010). Depending on how degenerate the input is, align() can fail
+    // with several different OpenMS exceptions, e.g.:
     //  - IllegalArgument: empty map / no data points for the linear model
     //  - InvalidValue:    superimposer cannot estimate an initial transformation
     //  - UnableToFit:     degenerate linear fit
+    //  - DivisionByZero:  superimposer estimates a zero slope, then inverts it
+    // These all derive from Exception::BaseException, so we catch that common
+    // base rather than an explicit list of subtypes: any exception escaping this
+    // OpenMP parallel region would call std::terminate and abort the whole tool -
+    // precisely the failure mode #7010 is about - so the catch must be exhaustive.
     auto alignOrIdentity = [&](auto& map, TransformationDescription& trafo, int i)
     {
-      auto fallbackToIdentity = [&](const Exception::BaseException& e)
+      try
       {
-        // reference_index is set to in_files.size() (an invalid index) when -reference:file is
-        // used, so fall back to the user-specified reference filename in that case.
+        algorithm.align(map, trafo);
+      }
+      catch (const Exception::BaseException& e)
+      {
+        // reference_index is set to in_files.size() (an invalid index) when
+        // -reference:file is used, so fall back to the user-specified reference
+        // filename in that case.
         const String ref_name = (reference_index < in_files.size()) ? in_files[reference_index] : reference_file;
         OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << ref_name
                          << " failed. No transformation will be applied (RT not changed for this file)." << endl;
         writeLogError_("Alignment failed (" + String(e.getName()) + "): " + String(e.what()) +
                        ". Using identity transformation for this file.");
         trafo.fitModel("identity");
-      };
-      try
-      {
-        algorithm.align(map, trafo);
-      }
-      catch (Exception::IllegalArgument& e)
-      {
-        fallbackToIdentity(e);
-      }
-      catch (Exception::InvalidValue& e)
-      {
-        fallbackToIdentity(e);
-      }
-      catch (Exception::UnableToFit& e)
-      {
-        fallbackToIdentity(e);
       }
     };
 
