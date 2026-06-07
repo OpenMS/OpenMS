@@ -233,6 +233,8 @@ MSSpectrum OnDiscImzMLExperiment::getSpectrum(std::size_t i) const
 
 MSSpectrum OnDiscImzMLExperiment::getSpectrumAtCoord(uint32_t x, uint32_t y, uint32_t z) const
 {
+  if (!pimpl_->ibd_)
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pimpl_->ibd_path_);
   if (!pimpl_->coord_map_built_) pimpl_->buildCoordMap();
 
   const Impl::PixelKey key {x, y, z};
