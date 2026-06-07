@@ -256,7 +256,11 @@ void ImzMLBinaryIO::writeFloat32Array(FILE* ibd,
                                       const uint64_t count,
                                       const String& ibd_path)
 {
-  if (!ibd || count == 0)
+  if (!ibd)
+  {
+    throwReadError_(ibd_path, "invalid .ibd handle (null FILE*) in float32 writer");
+  }
+  if (count == 0)
   {
     return;
   }
@@ -298,7 +302,11 @@ void ImzMLBinaryIO::writeFloat64Array(FILE* ibd,
                                       const uint64_t count,
                                       const String& ibd_path)
 {
-  if (!ibd || count == 0)
+  if (!ibd)
+  {
+    throwReadError_(ibd_path, "invalid .ibd handle (null FILE*) in float64 writer");
+  }
+  if (count == 0)
   {
     return;
   }
