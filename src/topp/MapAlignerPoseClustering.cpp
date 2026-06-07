@@ -206,6 +206,44 @@ protected:
 
     plog.startProgress(0, in_files.size(), "Aligning input maps");
     Size progress(0); // thread-safe progress
+
+    // Align a single map to the reference, falling back to the identity
+    // transformation when the alignment fails so that one un-alignable file
+    // (e.g. a blank/near-empty LC-MS run) no longer aborts the whole tool
+    // (fixes #7010). align() can throw three exceptions that all derive
+    // directly from Exception::BaseException and are therefore siblings -
+    // catching one does not catch the others, so each is handled explicitly:
+    //  - IllegalArgument: empty map / no data points for the linear model
+    //  - InvalidValue:    superimposer cannot estimate an initial transformation
+    //  - UnableToFit:     degenerate linear fit
+    auto alignOrIdentity = [&](auto& map, TransformationDescription& trafo, int i)
+    {
+      auto fallbackToIdentity = [&](const Exception::BaseException& e)
+      {
+        OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << in_files[reference_index]
+                         << " failed. No transformation will be applied (RT not changed for this file)." << endl;
+        writeLogError_("Alignment failed (" + String(e.getName()) + "): " + String(e.what()) +
+                       ". Using identity transformation for this file.");
+        trafo.fitModel("identity");
+      };
+      try
+      {
+        algorithm.align(map, trafo);
+      }
+      catch (Exception::IllegalArgument& e)
+      {
+        fallbackToIdentity(e);
+      }
+      catch (Exception::InvalidValue& e)
+      {
+        fallbackToIdentity(e);
+      }
+      catch (Exception::UnableToFit& e)
+      {
+        fallbackToIdentity(e);
+      }
+    };
+
     // TODO: it should all work on featureXML files, since we might need them for output anyway. Converting to consensusXML is just wasting memory!
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
@@ -220,23 +258,13 @@ protected:
         FileHandler f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
         f_fxml_tmp.getFeatOptions() = f_fxml.getFeatOptions();
         f_fxml_tmp.loadFeatures(in_files[i], map);
-        if (i == static_cast<int>(reference_index)) 
+        if (i == static_cast<int>(reference_index))
         {
           trafo.fitModel("identity");
         }
-        else 
+        else
         {
-          try
-          {
-            algorithm.align(map, trafo);
-          }
-          catch (Exception::IllegalArgument& e)
-          {
-            OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << in_files[reference_index]
-                             << " failed. No transformation will be applied (RT not changed for this file)." << endl;
-            writeLogError_("Illegal argument (" + String(e.getName()) + "): " + String(e.what()) + ".");
-            trafo.fitModel("identity");
-          }
+          alignOrIdentity(map, trafo, i);
         }
 
         if (!out_files.empty())
@@ -257,7 +285,7 @@ protected:
         }
         else
         {
-          algorithm.align(map, trafo);
+          alignOrIdentity(map, trafo, i);
         }
         if (!out_files.empty())
         {
