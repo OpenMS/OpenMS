@@ -294,12 +294,12 @@ void ImzMLFile::loadImpl_(const String& filename,
   catch (const xercesc::XMLException& e)
   {
     throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
-      String("XML error: ") + xercesc::XMLString::transcode(e.getMessage()));
+      String("XML error: ") + Internal::StringManager::convert(e.getMessage()));
   }
   catch (const xercesc::SAXException& e)
   {
     throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
-      String("SAX error: ") + xercesc::XMLString::transcode(e.getMessage()));
+      String("SAX error: ") + Internal::StringManager::convert(e.getMessage()));
   }
   catch (const Exception::BaseException&)
   {
