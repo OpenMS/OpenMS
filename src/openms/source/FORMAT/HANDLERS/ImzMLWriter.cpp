@@ -366,7 +366,7 @@ namespace
       const String byte_str = hex.substr(static_cast<Size>(i * 2), 2);
       char* end = nullptr;
       const unsigned long value = std::strtoul(byte_str.c_str(), &end, 16);
-      if (end == byte_str.c_str() || value > 255)
+      if (end != byte_str.c_str() + byte_str.size() || value > 255)
       {
         return false;
       }
