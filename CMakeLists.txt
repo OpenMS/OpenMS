@@ -631,6 +631,3 @@ endif()
 message(STATUS "")
 message(STATUS "-----------------------------------------------------------------")
 message(STATUS "")
-
-add_executable(RunPeptDeep "src/CustomTools/RunPeptDeep.cpp")
-target_link_libraries(RunPeptDeep PUBLIC OpenMS)
