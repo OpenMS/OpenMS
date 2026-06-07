@@ -10,7 +10,6 @@
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLWriter.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
@@ -94,31 +93,6 @@ namespace
       exp.setMetaValue("imzml:polarity", meta.polarity);
     }
   }
-
-  /// Restores global WARN/ERROR log levels and stderr sinks on scope exit.
-  struct GlobalLogSilencer
-  {
-    std::string warn_level_;
-    std::string err_level_;
-
-    GlobalLogSilencer()
-    {
-      warn_level_ = getGlobalLogWarn().getLevel();
-      getGlobalLogWarn().setLevel("FATAL");
-      getGlobalLogWarn().removeAllStreams();
-      err_level_ = getGlobalLogError().getLevel();
-      getGlobalLogError().setLevel("FATAL");
-      getGlobalLogError().removeAllStreams();
-    }
-
-    ~GlobalLogSilencer()
-    {
-      getGlobalLogWarn().setLevel(warn_level_);
-      getGlobalLogWarn().insert(std::cerr);
-      getGlobalLogError().setLevel(err_level_);
-      getGlobalLogError().insert(std::cerr);
-    }
-  };
 
   /// Balance Xerces Initialize()/Terminate() for each load invocation.
   struct XercesPlatformGuard
@@ -271,8 +245,6 @@ void ImzMLFile::loadImpl_(const String& filename,
                           bool index_only)
 {
   XercesPlatformGuard xerces_guard;
-
-  const GlobalLogSilencer log_silencer;
 
   PeakMap& peak_map = static_cast<PeakMap&>(meta_exp);
   ProgressLogger logger;
