@@ -69,7 +69,6 @@ set(datastructures_executables_list
   OPXLDataStructs_test
   Param_test
   ParamValue_test
-  PeptDeepInference_test
   QTCluster_test
   RangeManager_test
   StringListUtils_test
@@ -77,6 +76,10 @@ set(datastructures_executables_list
   String_test
   #ToolDescription_test
 )
+
+if(WITH_ONNX)
+  list(APPEND datastructures_executables_list PeptDeepInference_test)
+endif()
 
 set(metadata_executables_list
   AcquisitionInfo_test

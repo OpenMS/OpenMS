@@ -106,8 +106,13 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   nlohmann_json::nlohmann_json
   IsoSpec
   eol-bspline
-  ONNXRuntime::ONNXRuntime
   )
+
+option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
+
+if(WITH_ONNX)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ONNXRuntime::ONNXRuntime)
+endif()
 
 # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
 list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
@@ -246,8 +251,10 @@ install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE
 install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_CMAKE_DIR}/Modules cmake)
 file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
 
-# 1. Add the new native ONNX inference source files to the OpenMS library
-target_sources(OpenMS PRIVATE
-    "${PROJECT_SOURCE_DIR}/source/ML/PeptDeepRTInference.cpp"
-    "${PROJECT_SOURCE_DIR}/source/ML/PeptDeepMS2Inference.cpp"
-)
+if(WITH_ONNX)
+    # 1. Add the new native ONNX inference source files to the OpenMS library
+    target_sources(OpenMS PRIVATE
+        "${PROJECT_SOURCE_DIR}/source/ML/PeptDeepRTInference.cpp"
+        "${PROJECT_SOURCE_DIR}/source/ML/PeptDeepMS2Inference.cpp"
+    )
+endif()
