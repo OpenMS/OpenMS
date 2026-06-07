@@ -247,7 +247,7 @@ TOPP tools:
         this filtering was silent and hardcoded; a warning is now emitted reporting how many hits were dropped (#9068)
     MapAlignerIdentification, MapAlignerPoseClustering, MapAlignerTreeGuided:
       - Added optional spectra file transformation (-in_spectra_files, -out_spectra_files) to transform mzML files along with alignment (#8536)
-      - Fix: MapAlignerPoseClustering no longer aborts the whole run when a single input file cannot be aligned to the reference (e.g. a blank/near-empty LC-MS run). Both the mzML and featureXML branches now catch any alignment failure (Exception::BaseException, covering IllegalArgument, InvalidValue, UnableToFit, DivisionByZero, ...) and fall back to the identity transformation for that file, so the remaining files are still processed (fixes #7010)
+      - Fix: MapAlignerPoseClustering no longer aborts the whole run when a single input file cannot be aligned to the reference (e.g. a blank/near-empty LC-MS run). Both the mzML and featureXML branches now catch any alignment failure (Exception::BaseException, covering IllegalArgument, InvalidValue, UnableToFit, DivisionByZero, ...) and fall back to the identity transformation for that file, so the remaining files are still processed (fixes #7010). Per-file I/O errors (unreadable input, unwritable output) inside the OpenMP loop are now also caught and propagated as a clean error exit instead of crashing the process via std::terminate at the parallel-region boundary
     FileInfo:
       - Now prints both assigned and unassigned peptide identification counts for FeatureXML and ConsensusXML files (#8395)
       - Added sequence length stats and nucleic acid support for FASTA files (#8643)

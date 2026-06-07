@@ -15,6 +15,8 @@
 #include <omp.h>
 #endif
 
+#include <exception>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -240,11 +242,12 @@ protected:
       }
     };
 
+    // Process one input file: load it, align it to the reference (or fall back to
+    // the identity transformation, see alignOrIdentity), then transform and store
+    // the requested outputs. Pulled out of the loop so the parallel region can wrap
+    // the whole per-file body in a single try/catch (see below).
     // TODO: it should all work on featureXML files, since we might need them for output anyway. Converting to consensusXML is just wasting memory!
-#ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic, 1)
-#endif
-    for (int i = 0; i < static_cast<int>(in_files.size()); ++i)
+    auto processFile = [&](int i)
     {
       TransformationDescription trafo;
       if (in_type == FileTypes::FEATUREXML)
@@ -299,6 +302,33 @@ protected:
       {
         FileHandler().storeTransformations(out_trafos[i], trafo, {FileTypes::TRANSFORMATIONXML});
       }
+    };
+
+    // Unlike alignment failures (handled inside alignOrIdentity by falling back to
+    // identity), I/O failures (unreadable input, unwritable output) are real errors
+    // that must abort the run with a proper exit code. But an exception escaping an
+    // OpenMP parallel region calls std::terminate, so capture the first one here and
+    // rethrow it after the region, where TOPPBase's handler turns it into a clean
+    // error exit instead of aborting the whole tool mid-loop.
+    std::exception_ptr first_error = nullptr;
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic, 1)
+#endif
+    for (int i = 0; i < static_cast<int>(in_files.size()); ++i)
+    {
+      try
+      {
+        processFile(i);
+      }
+      catch (...)
+      {
+#ifdef _OPENMP
+#pragma omp critical (MAPose_Error)
+#endif
+        {
+          if (!first_error) { first_error = std::current_exception(); }
+        }
+      }
 
 #ifdef _OPENMP
 #pragma omp critical (MAPose_Progress)
@@ -309,6 +339,13 @@ protected:
     }
 
     plog.endProgress();
+
+    // Re-throw the first per-file error (if any) now that we are outside the
+    // parallel region, so it propagates to TOPPBase's exception handler.
+    if (first_error)
+    {
+      std::rethrow_exception(first_error);
+    }
     
     // Transform optional spectra files
     // Note: MapAlignerPoseClustering does not support store_original_rt flag
