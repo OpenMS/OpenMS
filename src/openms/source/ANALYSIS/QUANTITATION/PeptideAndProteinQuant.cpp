@@ -15,7 +15,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <string_view>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
@@ -1310,8 +1310,8 @@ namespace OpenMS
         }
         else
         {
-          std::vector<StringView> peptides {};
-          digest.digestUnmodified(StringView(hit_sequence), peptides);
+          std::vector<std::string_view> peptides {};
+          digest.digestUnmodified(hit_sequence, peptides);
           for (auto& total_abundance : prot_quant_[hit_accession].total_abundances)
           {
             total_abundance.second /= double(peptides.size());

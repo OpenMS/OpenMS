@@ -9,7 +9,6 @@
 #include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
 
 using namespace std;
 
@@ -204,7 +203,7 @@ namespace OpenMS
     std::unordered_map<std::string, std::pair<double, double>> picked_scores;
     for (const auto& grp : grps)
     {
-      StringView tgt_accession(grp.accessions);
+      std::string tgt_accession(grp.accessions);
       bool target = getTDLabel_(hit);
       if (!target)
       {
@@ -217,7 +216,7 @@ namespace OpenMS
           tgt_accession = StringUtils::substr(tgt_accession, 0,tgt_accession.size()-decoy_string.size());
         }
       }
-      auto[it, inserted] = picked_scores.try_emplace(tgt_accession.getString(), hit.getScore(), target);
+      auto[it, inserted] = picked_scores.try_emplace(tgt_accession, hit.getScore(), target);
       if (!inserted)
       {
         if ((id.isHigherScoreBetter() && (hit.getScore() > it->second.first)) ||

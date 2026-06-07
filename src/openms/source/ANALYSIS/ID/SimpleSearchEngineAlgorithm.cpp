@@ -21,7 +21,7 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <string_view>
 #include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
@@ -336,7 +336,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           ph.setMetaValue("isotope_error", ah.isotope_error);
 
           // get unmodified string
-          AASequence aas = AASequence::fromString(ah.sequence.getString());
+          AASequence aas = AASequence::fromString(std::string(ah.sequence));
 
           // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
           vector<AASequence> all_modified_peptides;
@@ -701,7 +701,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
-    set<StringView> processed_petides;
+    set<std::string_view> processed_petides;
 
     Size count_proteins(0), count_peptides(0);
 
@@ -717,12 +717,12 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         setProgress(count_proteins);
       }
 
-      vector<StringView> current_digest;
+      vector<std::string_view> current_digest;
       digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, peptide_min_size_, peptide_max_size_);
 
       for (auto const & c : current_digest)
       { 
-        const std::string current_peptide = c.getString();
+        const std::string current_peptide = std::string(c);
         if (current_peptide.find_first_of("XBZ") != std::string::npos)
         {
           continue;

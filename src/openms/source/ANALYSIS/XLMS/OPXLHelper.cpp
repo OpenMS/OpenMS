@@ -14,7 +14,7 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <string_view>
 
 #include <utility>
 
@@ -225,7 +225,7 @@ namespace OpenMS
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
     Size max_variable_mods_per_peptide)
   {
-    multimap<StringView, AASequence> processed_peptides;
+    multimap<std::string_view, AASequence> processed_peptides;
     vector<OPXLDataStructs::AASeqWithMass> peptide_masses;
 
     bool n_term_linker = false;
@@ -257,20 +257,20 @@ namespace OpenMS
     for (SignedSize fasta_index = 0; fasta_index < static_cast<SignedSize>(fasta_db.size()); ++fasta_index)
     {
       // store vector of substrings pointing in fasta database (bounded by pairs of begin, end iterators)
-      vector<StringView> current_digest;
+      vector<std::string_view> current_digest;
       digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
 
-      for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
+      for (vector<std::string_view>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
         // skip peptides with invalid AAs // TODO is this necessary?
-        if (StringUtils::has(cit->getString(), 'B') || StringUtils::has(cit->getString(), 'O') || StringUtils::has(cit->getString(), 'U') || StringUtils::has(cit->getString(), 'X') || StringUtils::has(cit->getString(), 'Z')) continue;
+        if (StringUtils::has(std::string(*cit), 'B') || StringUtils::has(std::string(*cit), 'O') || StringUtils::has(std::string(*cit), 'U') || StringUtils::has(std::string(*cit), 'X') || StringUtils::has(std::string(*cit), 'Z')) continue;
 
         OPXLDataStructs::PeptidePosition position = OPXLDataStructs::INTERNAL;
-        if (StringUtils::hasPrefix(fasta_db[fasta_index].sequence, cit->getString()))
+        if (StringUtils::hasPrefix(fasta_db[fasta_index].sequence, std::string(*cit)))
         {
           position = OPXLDataStructs::N_TERM;
         }
-        else if (StringUtils::hasSuffix(fasta_db[fasta_index].sequence, cit->getString()))
+        else if (StringUtils::hasSuffix(fasta_db[fasta_index].sequence, std::string(*cit)))
         {
           position = OPXLDataStructs::C_TERM;
         }
@@ -289,14 +289,14 @@ namespace OpenMS
         {
           for (const std::string& res : cross_link_residue1)
           {
-            if (res.size() == 1 && (cit->getString().find(res) < cit->getString().size()-1))
+            if (res.size() == 1 && (std::string(*cit).find(res) < std::string(*cit).size()-1))
             {
               skip = false;
             }
           }
           for (const std::string& res : cross_link_residue2)
           {
-            if (res.size() == 1 && (cit->getString().find(res) < cit->getString().size()-1))
+            if (res.size() == 1 && (std::string(*cit).find(res) < std::string(*cit).size()-1))
             {
               skip = false;
             }
@@ -317,7 +317,7 @@ namespace OpenMS
         vector<AASequence> all_modified_peptides;
 
         // generate all modified variants of a peptide
-        AASequence aas = AASequence::fromString(cit->getString());
+        AASequence aas = AASequence::fromString(std::string(*cit));
         ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
         ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
 
@@ -328,9 +328,9 @@ namespace OpenMS
           pep_mass.peptide_mass = candidate.getMonoWeight();
           pep_mass.peptide_seq = candidate;
           pep_mass.position = position;
-          pep_mass.unmodified_seq = cit->getString();
+          pep_mass.unmodified_seq = std::string(*cit);
 
-          processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
+          processed_peptides.insert(pair<std::string_view, AASequence>(*cit, candidate));
           peptide_masses.push_back(pep_mass);
         }
       }

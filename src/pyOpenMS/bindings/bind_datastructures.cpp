@@ -26,7 +26,6 @@
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
@@ -1342,23 +1341,6 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
             "seed"_a, "Set the random generator seed")
         .def_static("getSeed", []() { return OpenMS::UniqueIdGenerator::getSeed(); },
             "Get the current seed value")
-        ;
-
-    // -----------------------------------------------------------------------
-    // StringView
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::StringView>(m, "StringView",
-        "Lightweight non-owning view on a string")
-        .def(nb::init<>())
-        .def("__copy__", [](const OpenMS::StringView& self) { return OpenMS::StringView(self); })
-        .def("__deepcopy__", [](const OpenMS::StringView& self, nb::dict) { return OpenMS::StringView(self); }, "memo"_a)
-        .def("size", [](const OpenMS::StringView& self) { return self.size(); })
-        .def("getString", [](const OpenMS::StringView& self) { return self.getString(); })
-        .def("__len__", [](const OpenMS::StringView& self) { return self.size(); })
-        .def("__str__", [](const OpenMS::StringView& self) { return self.getString(); })
-        .def(nb::self == nb::self)
-        .def(nb::self < nb::self)
-        .def("substr", [](const OpenMS::StringView& self, size_t start, size_t length) { return self.substr(start, length); }, "start"_a, "length"_a, "Returns a substring view")
         ;
 
     // -----------------------------------------------------------------------

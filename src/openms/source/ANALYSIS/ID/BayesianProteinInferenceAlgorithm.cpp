@@ -17,7 +17,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <string_view>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
@@ -982,7 +982,7 @@ namespace OpenMS
     ed.setEnzyme(&enzyme);
     ed.setMissedCleavages(missed_cleavages);
 
-    std::vector<StringView> tempDigests{};
+    std::vector<std::string_view> tempDigests{};
     // if not annotated, assign max nr of digests
     for (auto& protein : proteinIDs[0].getHits())
     {

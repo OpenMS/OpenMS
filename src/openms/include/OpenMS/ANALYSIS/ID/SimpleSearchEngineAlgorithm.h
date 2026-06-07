@@ -12,7 +12,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <string_view>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
@@ -99,7 +99,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     */
     struct AnnotatedHit_
     {
-      StringView sequence; ///< unmodified peptide sequence (view into the digested protein)
+      std::string_view sequence; ///< unmodified peptide sequence (view into the digested protein)
       SignedSize peptide_mod_index; ///< enumeration index of the modification variant (for re-materialisation)
       // Layout: doubles first, then floats, then int, then uint16_t — minimizes padding
       double score = 0; ///< main score (higher is better)
@@ -115,6 +115,12 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       {
         if (a.score != b.score) return a.score > b.score;
         if (b.peptide_mod_index != a.peptide_mod_index) return a.peptide_mod_index < b.peptide_mod_index;
+        // Preserve the historical shortlex order (shorter sequence first, then lexicographic)
+        // that OpenMS::StringView::operator< provided before its removal. PeptideIdentification::sort()
+        // is a stable_sort by score only, so this tie-break order survives into the idXML output;
+        // do NOT simplify to a plain 'a.sequence < b.sequence' (that would be lexicographic and reorder
+        // equal-score hits of differing length). See StringView removal.
+        if (a.sequence.size() != b.sequence.size()) return a.sequence.size() < b.sequence.size();
         return a.sequence < b.sequence;
       }
     };

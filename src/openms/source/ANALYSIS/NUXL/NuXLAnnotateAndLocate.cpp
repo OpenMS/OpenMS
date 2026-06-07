@@ -337,7 +337,7 @@ namespace OpenMS
       for (auto & a : annotated_hits[scan_index])
       {
         // get unmodified string
-        const std::string unmodified_sequence = a.sequence.getString();
+        const std::string unmodified_sequence = std::string(a.sequence);
 
         // initialize result fields
         a.best_localization = unmodified_sequence;

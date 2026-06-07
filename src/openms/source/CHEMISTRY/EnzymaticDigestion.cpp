@@ -9,7 +9,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <string_view>
 #include <OpenMS/SYSTEM/File.h>
 #include <boost/regex.hpp>
 
@@ -315,7 +315,7 @@ namespace OpenMS
     return count;
   }
 
-  Size EnzymaticDigestion::digestAfterTokenize_(const std::vector<int>& fragment_positions, const StringView& sequence, std::vector<std::pair<Size, Size>>& output, Size min_length,
+  Size EnzymaticDigestion::digestAfterTokenize_(const std::vector<int>& fragment_positions, const std::string_view& sequence, std::vector<std::pair<Size, Size>>& output, Size min_length,
                                                 Size max_length) const
   {
     Size count = fragment_positions.size();
@@ -380,7 +380,7 @@ namespace OpenMS
     return wrong_size;
   }
 
-  Size EnzymaticDigestion::digestAfterTokenize_(const std::vector<int>& fragment_positions, const StringView& sequence, std::vector<StringView>& output, Size min_length, Size max_length) const
+  Size EnzymaticDigestion::digestAfterTokenize_(const std::vector<int>& fragment_positions, const std::string_view& sequence, std::vector<std::string_view>& output, Size min_length, Size max_length) const
   {
     Size count = fragment_positions.size();
     Size wrong_size(0);
@@ -444,7 +444,7 @@ namespace OpenMS
     return wrong_size;
   }
 
-  Size EnzymaticDigestion::digestUnmodified(const StringView& sequence, std::vector<StringView>& output, Size min_length, Size max_length) const
+  Size EnzymaticDigestion::digestUnmodified(const std::string_view& sequence, std::vector<std::string_view>& output, Size min_length, Size max_length) const
   {
     // initialization
     output.clear();
@@ -482,12 +482,12 @@ namespace OpenMS
     }
 
     // naive cleavage sites — fully-specific products + missed cleavages
-    std::vector<int> fragment_positions = tokenize_(sequence.getString());
+    std::vector<int> fragment_positions = tokenize_(std::string(sequence));
     Size wrong_size = digestAfterTokenize_(fragment_positions, sequence, output, min_length, max_length);
 
     // Semi-specific: in addition to the fully-specific products above, generate variants
     // where one terminus is a non-cleavage site. semiSpecificDigestion_() returns pair<Size,Size>
-    // as (start, end) which we convert to substr(start, length) for StringView sub-views.
+    // as (start, end) which we convert to substr(start, length) for std::string_view sub-views.
     if (specificity_ == SPEC_SEMI)
     {
       fragment_positions.push_back(static_cast<int>(sequence.size()));
@@ -502,7 +502,7 @@ namespace OpenMS
     return wrong_size;
   }
 
-  Size EnzymaticDigestion::digestUnmodified(const StringView& sequence, std::vector<std::pair<Size, Size>>& output, Size min_length, Size max_length) const
+  Size EnzymaticDigestion::digestUnmodified(const std::string_view& sequence, std::vector<std::pair<Size, Size>>& output, Size min_length, Size max_length) const
   {
     // initialization
     output.clear();
@@ -542,7 +542,7 @@ namespace OpenMS
     }
 
     // naive cleavage sites — fully-specific products + missed cleavages
-    std::vector<int> fragment_positions = tokenize_(sequence.getString());
+    std::vector<int> fragment_positions = tokenize_(std::string(sequence));
     Size wrong_size = digestAfterTokenize_(fragment_positions, sequence, output, min_length, max_length);
 
     // Semi-specific: in addition to the fully-specific products above, generate variants

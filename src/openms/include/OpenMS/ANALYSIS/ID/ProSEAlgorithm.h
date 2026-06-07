@@ -15,7 +15,6 @@
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -343,7 +342,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     {
       AASequence sequence;
       /*
-      StringView sequence;
+      std::string_view sequence;
       SignedSize peptide_mod_index; ///< enumeration index of the non-RNA peptide modification
       */
       // Layout: doubles first, then floats, then int, then uint16_t — minimizes padding (40 bytes excluding AASequence)

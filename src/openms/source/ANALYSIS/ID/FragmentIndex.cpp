@@ -24,7 +24,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -907,7 +906,7 @@ namespace OpenMS
 #endif
         digested_peptides.clear();
         const FASTAFile::FASTAEntry& protein = fasta_entries[protein_idx];
-        digestor.digestUnmodified(StringView(protein.sequence), digested_peptides, peptide_min_length_, peptide_max_length_);
+        digestor.digestUnmodified(protein.sequence, digested_peptides, peptide_min_length_, peptide_max_length_);
 
         for (const pair<size_t, size_t>& digested_peptide : digested_peptides)
         {

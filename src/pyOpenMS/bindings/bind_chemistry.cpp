@@ -15,7 +15,7 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/IsoelectricPoint.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <string_view>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
@@ -568,13 +568,13 @@ By returning only references into the original string this is very fast
 )doc")
         .def("countInternalCleavageSites", [](const OpenMS::EnzymaticDigestion& self, const std::string& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
         .def("digestUnmodified", [](const OpenMS::EnzymaticDigestion& self, const std::string& sequence_str, size_t min_length, size_t max_length) {
-            OpenMS::StringView sequence(sequence_str);
-            std::vector<OpenMS::StringView> output;
+            std::string_view sequence(sequence_str);
+            std::vector<std::string_view> output;
             OpenMS::Size discarded = self.digestUnmodified(sequence, output, min_length, max_length);
-            // Convert StringViews to strings for Python
+            // Convert string_views to strings for Python
             std::vector<std::string> result;
             result.reserve(output.size());
-            for (const auto& sv : output) result.push_back(std::string(sv.getString()));
+            for (const auto& sv : output) result.push_back(std::string(sv));
             return nb::make_tuple(result, discarded);
         }, "sequence"_a, "min_length"_a = 1, "max_length"_a = 0, "Digest unmodified sequence, returns (products, num_discarded)")
         ;
@@ -1424,8 +1424,8 @@ dig.digest(bsa_aaseq, result_semispecific)
 #
 # Using digestUnmodified without the need for AASequence from the EnzymaticDigestion base class
 result_digest_unmodified = []
-dig.digestUnmodified(StringView(bsa_oms_string), result_digest_unmodified, minlen, maxlen)
-print(result_digest_unmodified[4].getString()) # LVNELTEFAK
+dig.digestUnmodified(bsa_oms_string, result_digest_unmodified, minlen, maxlen)
+print(result_digest_unmodified[4]) # LVNELTEFAK
 print(len(result_digest_unmodified)) # 42 peptides
 )doc")
         .def(nb::init<>())
@@ -1476,12 +1476,12 @@ print(len(result_digest_unmodified)) # 42 peptides
             "protein"_a, "pep_pos"_a, "pep_length"_a, "ignore_missed_cleavages"_a = true, "allow_nterm_protein_cleavage"_a = false, "allow_random_asp_pro_cleavage"_a = false,
             "Check if peptide is a valid digestion product of protein (std::string version)")
         .def("digestUnmodified", [](const OpenMS::ProteaseDigestion& self, const std::string& sequence_str, size_t min_length, size_t max_length) {
-            OpenMS::StringView sequence(sequence_str);
-            std::vector<OpenMS::StringView> output;
+            std::string_view sequence(sequence_str);
+            std::vector<std::string_view> output;
             OpenMS::Size discarded = self.digestUnmodified(sequence, output, min_length, max_length);
             std::vector<std::string> result;
             result.reserve(output.size());
-            for (const auto& sv : output) result.push_back(std::string(sv.getString()));
+            for (const auto& sv : output) result.push_back(std::string(sv));
             return nb::make_tuple(result, discarded);
         }, "sequence"_a, "min_length"_a = 1, "max_length"_a = 0, "Digest unmodified sequence, returns (products, num_discarded)")
         ;
@@ -1565,12 +1565,12 @@ By returning only references into the original string this is very fast
             return output;
         }, "rna"_a, "min_length"_a = 0, "max_length"_a = 0, "Digest an RNA sequence and return the fragments")
         .def("digestUnmodified", [](const OpenMS::RNaseDigestion& self, const std::string& sequence_str, size_t min_length, size_t max_length) {
-            OpenMS::StringView sequence(sequence_str);
-            std::vector<OpenMS::StringView> output;
+            std::string_view sequence(sequence_str);
+            std::vector<std::string_view> output;
             OpenMS::Size discarded = self.digestUnmodified(sequence, output, min_length, max_length);
             std::vector<std::string> result;
             result.reserve(output.size());
-            for (const auto& sv : output) result.push_back(std::string(sv.getString()));
+            for (const auto& sv : output) result.push_back(std::string(sv));
             return nb::make_tuple(result, discarded);
         }, "sequence"_a, "min_length"_a = 1, "max_length"_a = 0, "Digest unmodified sequence, returns (products, num_discarded)")
         ;

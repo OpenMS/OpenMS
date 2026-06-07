@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <string_view>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -3330,7 +3331,7 @@ static void scoreXLIons_(
         NuXLAnnotatedHit& ah = annotated_hits[scan_index][i];
 
         // reconstruct fixed and variable modified peptide sequence (without NA)
-        const std::string& unmodified_sequence = ah.sequence.getString();
+        const std::string& unmodified_sequence = std::string(ah.sequence);
         AASequence aas = AASequence::fromString(unmodified_sequence);
         vector<AASequence> all_modified_peptides;
         ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
@@ -3531,7 +3532,7 @@ static void scoreXLIons_(
       ph.setCharge(charge);
 
       // get unmodified string
-      const std::string & s = ah.sequence.getString();
+      const std::string & s = std::string(ah.sequence);
 
       OPENMS_POSTCONDITION(!s.empty(), "Error: empty sequence in annotated hits.");
       AASequence aas = AASequence::fromString(s);
@@ -3938,7 +3939,7 @@ static void scoreXLIons_(
   // calculate PSMs using total loss scoring (no NA-shifted fragments) - used in fast scoring
   static void addPSMsTotalLossScoring_(
     const PeakSpectrum& exp_spectrum,
-    const StringView sequence,
+    const std::string_view sequence,
     const Size & mod_pep_idx,
     const Size & na_mod_idx,
     const double & current_peptide_mass,
@@ -4010,7 +4011,7 @@ static void scoreXLIons_(
     NuXLAnnotatedHit ah;
     ah.mass_error_p = mass_error_score;
 
-    ah.sequence = sequence; // copy StringView
+    ah.sequence = sequence; // copy view
     ah.peptide_mod_index = mod_pep_idx;
     ah.total_loss_score = total_loss_score;
 
@@ -5345,7 +5346,7 @@ static void scoreXLIons_(
     progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
-    set<StringView> processed_petides;
+    set<std::string_view> processed_petides;
 
     // set minimum size of peptide after digestion
     Size min_peptide_length = (Size)getIntOption_("peptide:min_size");
@@ -5369,7 +5370,7 @@ static void scoreXLIons_(
         progresslogger.setProgress((SignedSize)count_proteins);
       }
 
-      vector<StringView> current_digest;
+      vector<std::string_view> current_digest;
 
       auto const & current_fasta_entry = fasta_db[fasta_index];
 
@@ -5419,7 +5420,7 @@ static void scoreXLIons_(
           ++count_target_peptides;
         }
 
-        const std::string unmodified_sequence = cit->getString();
+        const std::string unmodified_sequence = std::string(*cit);
 
          // only process peptides without ambiguous amino acids (placeholder / any amino acid)
         if (unmodified_sequence.find_first_of("XBZ") != std::string::npos) continue;
@@ -5564,7 +5565,7 @@ static void scoreXLIons_(
                     NuXLAnnotatedHit ah;
                     ah.NA_adduct_amb_index = NA_adduct_amb_index; // store index the entry in the set of ambiguous precursor adducts
                     ah.mass_error_p = mass_error_score;
-                    ah.sequence = *cit; // copy StringView
+                    ah.sequence = *cit; // copy view
                     ah.peptide_mod_index = mod_pep_idx;
                     ah.MIC = tlss_MIC;
                     ah.err = tlss_err;
@@ -5797,7 +5798,7 @@ static void scoreXLIons_(
                       ah.NA_adduct_amb_index = NA_adduct_amb_index; // store index the entry in the set of ambiguous precursor adducts
                       ah.mass_error_p = mass_error_score;
 
-                      ah.sequence = *cit; // copy StringView
+                      ah.sequence = *cit; // copy view
                       ah.peptide_mod_index = mod_pep_idx;
   /*
   /////////////////////////////////////////////////////////////////////////////// test recalculate hyperscore on merged XL/non-XL ladders
