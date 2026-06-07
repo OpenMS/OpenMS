@@ -93,6 +93,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   nlohmann_json::nlohmann_json
   IsoSpec
   eol-bspline
+  OpenMS_Percolator
   )
 
 option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
