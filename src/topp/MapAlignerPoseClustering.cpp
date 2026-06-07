@@ -220,7 +220,10 @@ protected:
     {
       auto fallbackToIdentity = [&](const Exception::BaseException& e)
       {
-        OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << in_files[reference_index]
+        // reference_index is set to in_files.size() (an invalid index) when -reference:file is
+        // used, so fall back to the user-specified reference filename in that case.
+        const String ref_name = (reference_index < in_files.size()) ? in_files[reference_index] : reference_file;
+        OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << ref_name
                          << " failed. No transformation will be applied (RT not changed for this file)." << endl;
         writeLogError_("Alignment failed (" + String(e.getName()) + "): " + String(e.what()) +
                        ". Using identity transformation for this file.");
