@@ -478,7 +478,7 @@ namespace
       const MSSpectrum& s = exp[i];
       if (s.empty())
       {
-        continue;
+        return false;
       }
       if (s.size() != reference.size())
       {
@@ -502,7 +502,7 @@ namespace
       if (!spectraShareMz_(exp))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                           "continuous imzML requires all non-empty spectra to share the same m/z axis and array length");
+                                           "continuous imzML requires all spectra to share the same m/z axis and array length");
       }
       return true;
     }
