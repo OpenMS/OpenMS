@@ -88,7 +88,7 @@ namespace
 
   /// imzML .ibd arrays are little-endian (imzML 1.1.0); byte-swap on big-endian hosts.
   template<typename T>
-  void decodeLittleEndian_(T* data, const Size count)
+  void decodeLittleEndian_([[maybe_unused]] T* data, [[maybe_unused]] const Size count)
   {
 #if OPENMS_IS_BIG_ENDIAN
     if constexpr (sizeof(T) == 4)
