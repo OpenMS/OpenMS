@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <limits>
 
@@ -51,12 +52,21 @@ namespace
 
   void seekIbd_(FILE* ibd, const uint64_t offset, const String& ibd_path, const char* context)
   {
+#ifdef WIN32
+    if (offset > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))
+    {
+      throwReadError_(ibd_path,
+                      String(context) + ": byte offset " + offset + " exceeds platform seek limit");
+    }
+    if (_fseeki64(ibd, static_cast<int64_t>(offset), SEEK_SET) != 0)
+#else
     if (offset > static_cast<uint64_t>(std::numeric_limits<off_t>::max()))
     {
       throwReadError_(ibd_path,
                       String(context) + ": byte offset " + offset + " exceeds platform seek limit");
     }
     if (fseeko(ibd, static_cast<off_t>(offset), SEEK_SET) != 0)
+#endif
     {
       throwReadError_(ibd_path, String(context) + ": failed to seek in .ibd");
     }
