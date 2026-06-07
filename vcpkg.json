@@ -1,58 +1,102 @@
 {
   "name": "openms",
-  
   "version-string": "3.6.0",
   "dependencies": [
-    "boost-core",
-    "boost-math",
-    "boost-functional",
-    "boost-graph",
-    "boost-variant",
-    "boost-heap",
-    "boost-random",
-    "boost-unordered",
-    "boost-smart-ptr",
-    "boost-numeric-conversion",
-    "boost-regex",
-    "boost-multi-index",
-    "boost-iterator",
-    "boost-iostreams",
+    {
+      "name": "arrow",
+      "default-features": false,
+      "features": [
+        "compute",
+        "dataset",
+        "filesystem",
+        "json",
+        "parquet"
+      ]
+    },
+    "boost-accumulators",
+    "boost-algorithm",
+    "boost-array",
+    "boost-asio",
+    "boost-assign",
     "boost-bimap",
-    "boost-interprocess",
+    "boost-bind",
+    "boost-config",
+    "boost-container",
+    "boost-container-hash",
+    "boost-date-time",
     "boost-dynamic-bitset",
     "boost-foreach",
-    "boost-algorithm",
-    "boost-container",
+    "boost-function",
+    "boost-graph",
+    "boost-headers",
+    "boost-heap",
+    "boost-interprocess",
+    "boost-iostreams",
+    "boost-iterator",
     "boost-lexical-cast",
-    "boost-assign",
+    "boost-math",
+    "boost-multi-index",
+    "boost-numeric-conversion",
+    "boost-process",
+    "boost-random",
     "boost-range",
+    "boost-regex",
     "boost-serialization",
-    "boost-type-traits",
+    "boost-smart-ptr",
     "boost-sort",
     "boost-spirit",
-    "boost-date-time",
-    "boost-accumulators",
-    "boost-typeof",
-    "boost-process",
-    "xerces-c",
-    "libsvm",
-    "zlib",
-    "curl",
+    "boost-type-traits",
+    "boost-unordered",
+    "boost-variant",
+    "bzip2",
+    "coin-or-cbc",
     "coin-or-cgl",
     "coin-or-clp",
-    "coin-or-cbc",
+    "coin-or-osi",
     "coinutils",
-    "eigen3",
-    "bzip2",
-    "arrow",
-    "libzip",
-    "sqlite3",
-    "sqlitecpp",
-    "libxml2",
-    "nlohmann-json",
-    "glpk",
     "curl",
-    "simde",
-    "hdf5"
-  ]
+    "eigen3",
+    "libsvm",
+    "libxml2",
+    "libzip",
+    "xerces-c",
+    "zlib"
+  ],
+  "features": {
+    
+    "gui": {
+      "_comment":"TODO: need testing with vcpkg qt",
+      "description": "Qt dependencies for builds configured with -DWITH_GUI=ON.",
+      "dependencies": [
+        "qtbase",
+        "qtsvg"
+      ]
+    },
+    "hdf5": {
+      "description": "HDF5 C and C++ libraries for builds configured with -DWITH_HDF5=ON.",
+      "dependencies": [
+        {
+          "name": "hdf5",
+          "features": [
+            "cpp"
+          ]
+        }
+      ]
+    },
+    "lp-glpk": {
+      "description": "GLPK solver dependency for builds configured with -DLP_SOLVER=GLPK.",
+      "dependencies": [
+        {
+          "name": "glpk",
+          "default-features": false
+        }
+      ]
+    },
+    "lp-highs": {
+      "description": "HiGHS solver dependency for builds configured with -DLP_SOLVER=HIGHS.",
+      "dependencies": [
+        "highs"
+      ]
+    }
+  }
 }
