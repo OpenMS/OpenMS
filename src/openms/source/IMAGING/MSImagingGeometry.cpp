@@ -61,7 +61,7 @@ namespace OpenMS
     }
 
     const UInt64 key = packKey_(x, y);
-    if (lookup_.find(key) != lookup_.end())
+    if (lookup_.contains(key))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Duplicate pixel coordinate",
@@ -74,7 +74,7 @@ namespace OpenMS
 
   bool MSImagingGeometry::hasPixel(UInt x, UInt y) const
   {
-    return lookup_.find(packKey_(x, y)) != lookup_.end();
+    return lookup_.contains(packKey_(x, y));
   }
 
   Size MSImagingGeometry::getSpectrumIndex(UInt x, UInt y) const

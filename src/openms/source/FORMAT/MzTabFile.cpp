@@ -3318,7 +3318,7 @@ namespace OpenMS
         tmp_out.addLine("\n");
         ++line;
       }
-      else if (comment_rows.find(line) != comment_rows.end()) // check if current line was originally a comment line
+      else if (comment_rows.contains(line)) // check if current line was originally a comment line
       {
         tmp_out.addLine(comment_rows[line]);
         ++line;

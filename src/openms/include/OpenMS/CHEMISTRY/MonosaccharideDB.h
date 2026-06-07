@@ -55,8 +55,9 @@ namespace OpenMS
     //@{
 
     /// Returns a pointer to the singleton instance of the monosaccharide database
-    /// This is thread-safe upon first and subsequent calls (Meyers' singleton)
-    static MonosaccharideDB* getInstance();
+    /// This is thread-safe upon first and subsequent calls (Meyers' singleton).
+    /// The database is immutable after construction, so a const pointer is returned.
+    static const MonosaccharideDB* getInstance();
 
     /// Check if a symbol (or synonym) is a known monosaccharide
     bool hasSymbol(const String& symbol) const;

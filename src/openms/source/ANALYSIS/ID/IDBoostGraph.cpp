@@ -1095,7 +1095,7 @@ namespace OpenMS
             auto& ev = peptidePtr->getPeptideEvidences();
             for (const auto& e : ev)
             {
-              if (accs_to_remove.find(e.getProteinAccession()) == accs_to_remove.end())
+              if (!accs_to_remove.contains(e.getProteinAccession()))
               {
                 newev.emplace_back(e);
               }

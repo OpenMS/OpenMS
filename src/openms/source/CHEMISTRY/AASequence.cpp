@@ -27,7 +27,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  const ResidueModification* proteinTerminalResidueHelper( ModificationsDB* mod_db,
+  const ResidueModification* proteinTerminalResidueHelper( const ModificationsDB* mod_db,
       const char term,
       const std::string& str,
       const std::string& mod,
@@ -58,7 +58,7 @@ namespace OpenMS
     return m;
   }
 
-  const ResidueModification* terminalResidueHelper( ModificationsDB* mod_db,
+  const ResidueModification* terminalResidueHelper( const ModificationsDB* mod_db,
       const char term,
       bool protein_term,
       const std::string& str,
@@ -957,7 +957,7 @@ namespace OpenMS
     String::ConstIterator mod_start = str_it;
     String::ConstIterator mod_end = ++mod_start;
     Size open_brackets = 1;
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     while (mod_end != str.end())
     {
@@ -1080,7 +1080,7 @@ namespace OpenMS
       tolerance = std::pow(10.0, -int(n_decimals));
     }
     bool delta_mass = (mod[0] == '+') || (mod[0] == '-');
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     const Residue* residue = nullptr;
     const ResidueModification* residue_mod = nullptr;
@@ -1328,7 +1328,7 @@ namespace OpenMS
     // track if last char denoted a terminus
     bool dot_terminal(false), dot_notation(false);
 
-    static ResidueDB* rdb = ResidueDB::getInstance();
+    static const ResidueDB* rdb = ResidueDB::getInstance();
 
     for (String::ConstIterator str_it = peptide.begin();
          str_it != peptide.end(); ++str_it)
@@ -1466,7 +1466,7 @@ namespace OpenMS
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, peptide_.size());
     }
 
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     bool multimatch = false;
     // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
     String diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
@@ -1566,7 +1566,7 @@ namespace OpenMS
 
   void AASequence::setCTerminalModification(const ResidueModification& mod)
   {
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     //TODO think again. Most functions here or in ModificationsDB only check for fullID
     c_term_mod_ = mod_db->searchModification(mod);
     if (c_term_mod_ == nullptr)
@@ -1577,7 +1577,7 @@ namespace OpenMS
 
   void AASequence::setNTerminalModification(const ResidueModification& mod)
   {
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     //TODO think again. Most functions here or in ModificationsDB only check for fullID
     n_term_mod_ = mod_db->searchModification(mod);
     if (n_term_mod_ == nullptr)
@@ -1603,7 +1603,7 @@ namespace OpenMS
     // For backwards compatibility we look for the general terminus first
     ResidueModification::TermSpecificity term = protein_term ? ResidueModification::PROTEIN_C_TERM : ResidueModification::C_TERM;
     double tol = 0.002;
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     bool multimatch = false;
     // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
     String diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
@@ -1633,7 +1633,7 @@ namespace OpenMS
     // For backwards compatibility we look for the general terminus first
     ResidueModification::TermSpecificity term = protein_term ? ResidueModification::PROTEIN_N_TERM : ResidueModification::N_TERM;
     double tol = 0.002;
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     bool multimatch = false;
     // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
     String diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);

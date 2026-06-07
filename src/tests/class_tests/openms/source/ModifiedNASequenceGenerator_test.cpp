@@ -23,7 +23,7 @@ START_TEST(ModifiedNASequenceGenerator, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-RibonucleotideDB* db = RibonucleotideDB::getInstance();
+const RibonucleotideDB* db = RibonucleotideDB::getInstance();
 
 START_SECTION((static void applyFixedModifications(const std::set<ModifiedNASequenceGenerator::ConstRibonucleotidePtr>& fixed_mods, NASequence& sequence)))
 {

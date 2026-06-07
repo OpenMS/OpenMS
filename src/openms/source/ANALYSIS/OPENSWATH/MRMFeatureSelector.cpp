@@ -84,7 +84,7 @@ namespace OpenMS
       for (const Feature& feature : feature_name_map.at(elem.second))
       {
         const String name1 = elem.second + "_" + String(feature.getUniqueId());
-        if (variables.count(name1) == 0)
+        if (!variables.contains(name1))
         {
           const double score = computeScore_(feature, parameters.score_weights);
           const Int col_idx = addVariable_(problem, name1, true, score, parameters.variable_type);
@@ -135,7 +135,7 @@ namespace OpenMS
       {
         const String name1 = time_to_name[cnt1].second + "_" + String(feature_row1[i].getUniqueId());
 
-        if (variables.count(name1) == 0)
+        if (!variables.contains(name1))
         {
           constraints.push_back(addVariable_(problem, name1, true, 0, parameters.variable_type));
           variables.insert(name1);
@@ -171,7 +171,7 @@ namespace OpenMS
           for (Size j = 0; j < feature_row2.size(); ++j)
           {
             const String name2 = time_to_name[cnt2].second + "_" + String(feature_row2[j].getUniqueId());
-            if (variables.count(name2) == 0)
+            if (!variables.contains(name2))
             {
               addVariable_(problem, name2, true, 0, parameters.variable_type);
               variables.insert(name2);
@@ -232,12 +232,12 @@ namespace OpenMS
     {
       const String component_group_name = removeSpaces_(feature.getMetaValue("PeptideRef").toString());
       const double assay_retention_time = feature.getMetaValue("assay_rt");
-      if (names.count(component_group_name) == 0)
+      if (!names.contains(component_group_name))
       {
         time_to_name.emplace_back(assay_retention_time, component_group_name);
         names.insert(component_group_name);
       }
-      if (feature_name_map.count(component_group_name) == 0)
+      if (!feature_name_map.contains(component_group_name))
       {
         feature_name_map[component_group_name] = std::vector<Feature>();
       }
@@ -249,12 +249,12 @@ namespace OpenMS
       for (const Feature& subordinate : feature.getSubordinates())
       {
         const String component_name = removeSpaces_(subordinate.getMetaValue("native_id").toString());
-        if (names.count(component_name))
+        if (names.contains(component_name))
         {
           time_to_name.emplace_back(assay_retention_time, component_name);
           names.insert(component_name);
         }
-        if (feature_name_map.count(component_name) == 0)
+        if (!feature_name_map.contains(component_name))
         {
           feature_name_map[component_name] = std::vector<Feature>();
         }
@@ -313,7 +313,7 @@ namespace OpenMS
           ? removeSpaces_(feature.getMetaValue("PeptideRef").toString()) + "_" + String(feature.getUniqueId())
           : removeSpaces_(subordinate.getMetaValue("native_id").toString()) + "_" + String(feature.getUniqueId());
 
-        if (result_names_set.count(feature_name))
+        if (result_names_set.contains(feature_name))
         {
           subordinates_filtered.push_back(subordinate);
         }

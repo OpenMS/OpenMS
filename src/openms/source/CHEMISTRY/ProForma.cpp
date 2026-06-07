@@ -1618,7 +1618,7 @@ namespace
     char residue = '\0',
     ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY)
   {
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     return std::visit([&](auto&& arg) -> const ResidueModification* {
       using T = std::decay_t<decltype(arg)>;
@@ -1705,7 +1705,7 @@ namespace
         const auto& label = mod.alternatives[0].second.value();
         if (label.type == Label::Type::CROSSLINK)
         {
-          if (counted_crosslinks.count(label.identifier) > 0) return;
+          if (counted_crosslinks.contains(label.identifier)) return;
           counted_crosslinks.insert(label.identifier);
         }
       }
@@ -2445,14 +2445,14 @@ MSSpectrum ProForma::generateSpectrum(
 
   TheoreticalSpectrumGenerator generator;
   Param param = generator.getParameters();
-  param.setValue("add_a_ions", ion_types.find('a') != std::string::npos ? "true" : "false");
-  param.setValue("add_b_ions", ion_types.find('b') != std::string::npos ? "true" : "false");
-  param.setValue("add_c_ions", ion_types.find('c') != std::string::npos ? "true" : "false");
-  param.setValue("add_x_ions", ion_types.find('x') != std::string::npos ? "true" : "false");
-  param.setValue("add_y_ions", ion_types.find('y') != std::string::npos ? "true" : "false");
-  param.setValue("add_z_ions", ion_types.find('z') != std::string::npos ? "true" : "false");
-  param.setValue("add_precursor_peaks", ion_types.find('M') != std::string::npos ? "true" : "false");
-  param.setValue("add_abundant_immonium_ions", ion_types.find('I') != std::string::npos ? "true" : "false");
+  param.setValue("add_a_ions", ion_types.contains('a') ? "true" : "false");
+  param.setValue("add_b_ions", ion_types.contains('b') ? "true" : "false");
+  param.setValue("add_c_ions", ion_types.contains('c') ? "true" : "false");
+  param.setValue("add_x_ions", ion_types.contains('x') ? "true" : "false");
+  param.setValue("add_y_ions", ion_types.contains('y') ? "true" : "false");
+  param.setValue("add_z_ions", ion_types.contains('z') ? "true" : "false");
+  param.setValue("add_precursor_peaks", ion_types.contains('M') ? "true" : "false");
+  param.setValue("add_abundant_immonium_ions", ion_types.contains('I') ? "true" : "false");
   param.setValue("add_losses", add_losses ? "true" : "false");
   param.setValue("add_metainfo", add_metainfo ? "true" : "false");
   generator.setParameters(param);
@@ -2501,13 +2501,13 @@ MSSpectrum ProForma::generateSpectrum(
 
   TheoreticalSpectrumGeneratorXLMS generator;
   Param param = generator.getParameters();
-  param.setValue("add_a_ions", ion_types.find('a') != std::string::npos ? "true" : "false");
-  param.setValue("add_b_ions", ion_types.find('b') != std::string::npos ? "true" : "false");
-  param.setValue("add_c_ions", ion_types.find('c') != std::string::npos ? "true" : "false");
-  param.setValue("add_x_ions", ion_types.find('x') != std::string::npos ? "true" : "false");
-  param.setValue("add_y_ions", ion_types.find('y') != std::string::npos ? "true" : "false");
-  param.setValue("add_z_ions", ion_types.find('z') != std::string::npos ? "true" : "false");
-  param.setValue("add_precursor_peaks", ion_types.find('M') != std::string::npos ? "true" : "false");
+  param.setValue("add_a_ions", ion_types.contains('a') ? "true" : "false");
+  param.setValue("add_b_ions", ion_types.contains('b') ? "true" : "false");
+  param.setValue("add_c_ions", ion_types.contains('c') ? "true" : "false");
+  param.setValue("add_x_ions", ion_types.contains('x') ? "true" : "false");
+  param.setValue("add_y_ions", ion_types.contains('y') ? "true" : "false");
+  param.setValue("add_z_ions", ion_types.contains('z') ? "true" : "false");
+  param.setValue("add_precursor_peaks", ion_types.contains('M') ? "true" : "false");
   param.setValue("add_losses", add_losses ? "true" : "false");
   param.setValue("add_metainfo", add_metainfo ? "true" : "false");
   generator.setParameters(param);

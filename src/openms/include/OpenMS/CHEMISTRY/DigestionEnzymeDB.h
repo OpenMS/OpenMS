@@ -40,7 +40,8 @@ namespace OpenMS
     //@}
 
     /// this member function serves as a replacement of the constructor
-    static InstanceType* getInstance()
+    /// The database is immutable after construction, so a const pointer is returned.
+    static const InstanceType* getInstance()
     {
       static InstanceType* db_ = nullptr;
       if (db_ == nullptr)
@@ -109,19 +110,19 @@ namespace OpenMS
     /// returns true if the db contains a enzyme with the given name (supports synonym names)
     bool hasEnzyme(const String& name) const
     {
-      return (enzyme_names_.find(name) != enzyme_names_.end());
+      return (enzyme_names_.contains(name));
     }
 
     /// returns true if the db contains a enzyme with the given regex
     bool hasRegEx(const String& cleavage_regex) const
     {
-      return (enzyme_regex_.find(cleavage_regex) != enzyme_regex_.end());
+      return (enzyme_regex_.contains(cleavage_regex));
     }
 
     /// returns true if the db contains the enzyme of the given pointer
     bool hasEnzyme(const DigestionEnzymeType* enzyme) const
     {
-      return (const_enzymes_.find(enzyme) != const_enzymes_.end() );
+      return (const_enzymes_.contains(enzyme) );
     }
     //@}
 

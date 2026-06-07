@@ -72,7 +72,7 @@ namespace OpenMS
 
     for (const auto & pi : xl_pi)
     {
-      if (native_id_to_id_index.find(pi.getMetaValue("spectrum_reference")) == native_id_to_id_index.end())
+      if (!native_id_to_id_index.contains(pi.getMetaValue("spectrum_reference")))
       {
         peptide_ids.push_back(pi);
       }

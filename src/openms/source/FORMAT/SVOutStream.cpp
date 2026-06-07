@@ -59,7 +59,7 @@ namespace OpenMS
 
   SVOutStream& SVOutStream::operator<<(String str)
   {
-    if (str.find('\n') != String::npos)
+    if (str.contains('\n'))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "argument must not contain newline characters");
     }

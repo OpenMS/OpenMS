@@ -788,7 +788,7 @@ namespace OpenMS::Internal
         String source_file_ref;
         if (optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
         {
-          if (source_files_.find(source_file_ref) != source_files_.end())
+          if (source_files_.contains(source_file_ref))
           {
             spec_.setSourceFile(source_files_[source_file_ref]);
           }
@@ -3497,7 +3497,7 @@ namespace OpenMS::Internal
 
       for (std::vector<String>::iterator key = keys.begin(); key != keys.end(); ++key)
       {
-        if (exclude.count(*key)) continue; // skip excluded entries
+        if (exclude.contains(*key)) continue; // skip excluded entries
 
         // special treatment of GO and BTO terms
         // <cvParam cvRef="BTO" accession="BTO:0000199" name="cardiac muscle"/>
@@ -4139,63 +4139,63 @@ namespace OpenMS::Internal
       {
         ++file_content[exp[i].getInstrumentSettings().getScanMode()];
       }
-      if (file_content.find(InstrumentSettings::ScanMode::MASSSPECTRUM) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::MASSSPECTRUM))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::MS1SPECTRUM) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::MS1SPECTRUM))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000579\" name=\"MS1 spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::MSNSPECTRUM) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::MSNSPECTRUM))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::SIM) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::SIM))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000582\" name=\"SIM spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::SRM) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::SRM))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000583\" name=\"SRM spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::CRM) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::CRM))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000581\" name=\"CRM spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::PRECURSOR) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::PRECURSOR))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000341\" name=\"precursor ion spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::CNG) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::CNG))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000325\" name=\"constant neutral gain spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::CNL) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::CNL))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000326\" name=\"constant neutral loss spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::EMR) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::EMR))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000804\" name=\"electromagnetic radiation spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::EMISSION) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::EMISSION))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000805\" name=\"emission spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::ABSORPTION) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::ABSORPTION))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000806\" name=\"absorption spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::EMC) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::EMC))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"enhanced multiply charged spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::TDF) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::TDF))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000790\" name=\"time-delayed fragmentation spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::UNKNOWN) != file_content.end() || file_content.empty())
+      if (file_content.contains(InstrumentSettings::ScanMode::UNKNOWN) || file_content.empty())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
       }

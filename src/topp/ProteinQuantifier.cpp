@@ -442,12 +442,12 @@ protected:
               for (Size c = 1; c <= ed.getNumberOfLabels(); ++c)
               {
                 bool no_quant = false;
-                if (filename_to_chargemap.find(filename) != filename_to_chargemap.end())
+                if (filename_to_chargemap.contains(filename))
                 {
-                  if (const auto& charge_map = filename_to_chargemap.at(filename); charge_map.find(charge) != charge_map.end())
+                  if (const auto& charge_map = filename_to_chargemap.at(filename); charge_map.contains(charge))
                   {
                     const auto& channel_to_abundance = charge_map.at(charge);
-                    if (channel_to_abundance.find(c) != channel_to_abundance.end())
+                    if (channel_to_abundance.contains(c))
                     {
                       out << channel_to_abundance.at(c);
                     }

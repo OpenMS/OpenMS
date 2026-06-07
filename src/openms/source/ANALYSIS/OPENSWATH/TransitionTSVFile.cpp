@@ -290,7 +290,7 @@ namespace OpenMS
           !extractName<double>(mytransition.rt_calibrated, "RetentionTime", tmp_line, header_dict) &&
           !extractName<double>(mytransition.rt_calibrated, "Tr_recalibrated", tmp_line, header_dict))
       {
-        if (header_dict.find("SpectraSTRetentionTime") != header_dict.end())
+        if (header_dict.contains("SpectraSTRetentionTime"))
         {
           spectrastRTExtract(tmp_line[header_dict["SpectraSTRetentionTime"]], mytransition.rt_calibrated, spectrast_legacy);
         }
@@ -384,7 +384,7 @@ namespace OpenMS
       !extractName<bool>(mytransition.decoy, "Decoy", tmp_line, header_dict) &&
       !extractName<bool>(mytransition.decoy, "IsDecoy", tmp_line, header_dict));
 
-      if (header_dict.find("SpectraSTAnnotation") != header_dict.end())
+      if (header_dict.contains("SpectraSTAnnotation"))
       {
         skip_transition = spectrastAnnotationExtract(tmp_line[header_dict["SpectraSTAnnotation"]], mytransition);
       }
@@ -498,20 +498,20 @@ namespace OpenMS
     std::vector<String> all_fragment_annotations;
     str_inp.split(",", all_fragment_annotations);
 
-    if (all_fragment_annotations[0].find("[") == std::string::npos && // non-unique peak annotation
-        all_fragment_annotations[0].find("]") == std::string::npos && // non-unique peak annotation
-        all_fragment_annotations[0].find("I") == std::string::npos && // immonium ion
-        all_fragment_annotations[0].find("p") == std::string::npos && // precursor ion
-        all_fragment_annotations[0].find("i") == std::string::npos && // isotope ion
-        all_fragment_annotations[0].find("m") == std::string::npos &&
-        all_fragment_annotations[0].find("?") == std::string::npos
+    if (!all_fragment_annotations[0].contains("[") && // non-unique peak annotation
+        !all_fragment_annotations[0].contains("]") && // non-unique peak annotation
+        !all_fragment_annotations[0].contains("I") && // immonium ion
+        !all_fragment_annotations[0].contains("p") && // precursor ion
+        !all_fragment_annotations[0].contains("i") && // isotope ion
+        !all_fragment_annotations[0].contains("m") &&
+        !all_fragment_annotations[0].contains("?")
         )
     {
       std::vector<String> best_fragment_annotation_with_deviation;
       all_fragment_annotations[0].split("/", best_fragment_annotation_with_deviation);
       String best_fragment_annotation = best_fragment_annotation_with_deviation[0];
 
-      if (best_fragment_annotation.find("^") != std::string::npos)
+      if (best_fragment_annotation.contains("^"))
       {
         std::vector<String> best_fragment_annotation_charge;
         best_fragment_annotation.split("^", best_fragment_annotation_charge);
@@ -523,7 +523,7 @@ namespace OpenMS
         mytransition.fragment_charge = 1; // assume 1 (most frequent charge state)
       }
 
-      if (best_fragment_annotation.find("-") != std::string::npos)
+      if (best_fragment_annotation.contains("-"))
       {
         std::vector<String> best_fragment_annotation_modification;
         best_fragment_annotation.split("-", best_fragment_annotation_modification);
@@ -532,7 +532,7 @@ namespace OpenMS
         mytransition.fragment_modification = -1 * String(best_fragment_annotation_modification[1]).toInt();
 
       }
-      else if (best_fragment_annotation.find("+") != std::string::npos)
+      else if (best_fragment_annotation.contains("+"))
       {
         std::vector<String> best_fragment_annotation_modification;
         best_fragment_annotation.split("+", best_fragment_annotation_modification);
@@ -597,8 +597,8 @@ namespace OpenMS
       exp.addTransition(rm_trans);
 
       // check whether we need a new peptide
-      if (peptide_map.find(tr_it->group_id) == peptide_map.end() &&
-          compound_map.find(tr_it->group_id) == compound_map.end() )
+      if (!peptide_map.contains(tr_it->group_id) &&
+          !compound_map.contains(tr_it->group_id) )
       {
         // should we make a peptide or a compound ?
         if (tr_it->isPeptide())
@@ -620,7 +620,7 @@ namespace OpenMS
       // check whether we need new proteins
       for (size_t i = 0; i < tr_it->ProteinName.size(); ++i)
       {
-        if (tr_it->isPeptide() && protein_map.find(tr_it->ProteinName[i]) == protein_map.end())
+        if (tr_it->isPeptide() && !protein_map.contains(tr_it->ProteinName[i]))
         {
           OpenMS::TargetedExperiment::Protein protein;
           String protein_name = tr_it->ProteinName[i];
@@ -754,7 +754,7 @@ namespace OpenMS
           !extractName<double>(mytransition.rt_calibrated, "RetentionTime", tmp_line, header_dict) &&
           !extractName<double>(mytransition.rt_calibrated, "Tr_recalibrated", tmp_line, header_dict))
       {
-        if (header_dict.find("SpectraSTRetentionTime") != header_dict.end())
+        if (header_dict.contains("SpectraSTRetentionTime"))
         {
           spectrastRTExtract(tmp_line[header_dict["SpectraSTRetentionTime"]], mytransition.rt_calibrated, spectrast_legacy);
         }
@@ -844,7 +844,7 @@ namespace OpenMS
            !extractName<bool>(mytransition.decoy, "Decoy", tmp_line, header_dict) &&
            !extractName<bool>(mytransition.decoy, "IsDecoy", tmp_line, header_dict));
 
-      if (header_dict.find("SpectraSTAnnotation") != header_dict.end())
+      if (header_dict.contains("SpectraSTAnnotation"))
       {
         skip_transition = spectrastAnnotationExtract(tmp_line[header_dict["SpectraSTAnnotation"]], mytransition);
       }
@@ -943,7 +943,7 @@ namespace OpenMS
       exp.transitions.push_back(std::move(transition));
 
       // --- Create compound if needed ---
-      if (compound_map.find(mytransition.group_id) == compound_map.end())
+      if (!compound_map.contains(mytransition.group_id))
       {
         OpenSwath::LightCompound compound;
         compound.id = mytransition.group_id;
@@ -1013,7 +1013,7 @@ namespace OpenMS
       // --- Create proteins if needed ---
       for (Size i = 0; i < mytransition.ProteinName.size(); ++i)
       {
-        if (mytransition.isPeptide() && protein_map.find(mytransition.ProteinName[i]) == protein_map.end())
+        if (mytransition.isPeptide() && !protein_map.contains(mytransition.ProteinName[i]))
         {
           OpenSwath::LightProtein protein;
           protein.id = mytransition.ProteinName[i];

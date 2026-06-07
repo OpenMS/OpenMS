@@ -133,7 +133,7 @@ namespace OpenMS
       template < typename Edge, typename Graph >
       void examine_edge(Edge e, const Graph & tg)
       {
-        if (m.find(e.m_target) == m.end())
+        if (!m.contains(e.m_target))
         {
           next_v = boost::add_vertex(tg[e.m_target], gs.back());
           m[e.m_target] = next_v;

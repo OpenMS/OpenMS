@@ -271,7 +271,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     {
       for (const auto& acc : ig.accessions)
       {
-        if (pg_qvalue_lookup.find(acc) == pg_qvalue_lookup.end())
+        if (!pg_qvalue_lookup.contains(acc))
         {
           pg_qvalue_lookup[acc] = ig.probability;
         }
@@ -358,7 +358,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
             {
               acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
             }
-            if (mod_map.find(name) == mod_map.end())
+            if (!mod_map.contains(name))
             {
               mod_map[name] = {acc_str, {}};
             }
@@ -376,7 +376,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
           {
             acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
           }
-          if (mod_map.find(name) == mod_map.end())
+          if (!mod_map.contains(name))
           {
             mod_map[name] = {acc_str, {}};
           }
@@ -477,7 +477,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
       best_hit->getKeys(keys);
       for (const auto& key : keys)
       {
-        if (excluded_hit_mvs.count(key)) continue;
+        if (excluded_hit_mvs.contains(key)) continue;
         const DataValue& val = best_hit->getMetaValue(key);
         if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
             && Scores::isKnownScoreType(key))

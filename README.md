@@ -48,7 +48,7 @@ Table of Contents
 
 Features
 --------
-- Core C++ library under three-clause BSD licence using modern C++20
+- Core C++ library under three-clause BSD licence using modern C++23
 - Python bindings to the C++ API through pyOpenMS
 - Major community file formats supported (mzML, mzXML, mzIdentXML, pepXML, mzTab, etc.)
 - Over 150+ individual analysis tools (TOPP Tools), covering most MS and LC-MS data processing and mining tasks

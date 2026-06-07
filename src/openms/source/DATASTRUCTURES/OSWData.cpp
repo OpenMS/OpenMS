@@ -58,7 +58,7 @@ namespace OpenMS
         // probably a precursor native ID, e.g. 5543_precursor_i0 .. currently not handled.
         continue;
       }
-      if (transitions_.find(nid) == transitions_.end())
+      if (!transitions_.contains(nid))
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition with nativeID " + (String(nid)) + " not found in OSW data. Make sure the OSW data was loaded!");
       }
@@ -84,7 +84,7 @@ namespace OpenMS
       {
         for (const auto& tr : f.getTransitionIDs())
         {
-          if (transitions_.find(tr) == transitions_.end())
+          if (!transitions_.contains(tr))
           {
             throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition with ID " + String(tr) + " was referenced in Protein/Precursor/Feature but is not known!");
           }

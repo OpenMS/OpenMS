@@ -81,7 +81,7 @@ namespace OpenMS
 
   bool IdentifierMSRunMapper::hasIdentifier(const String& identifier) const
   {
-    return identifier_to_msrunpath_.find(identifier) != identifier_to_msrunpath_.end();
+    return identifier_to_msrunpath_.contains(identifier);
   }
 
   const String& IdentifierMSRunMapper::getIdentifier(const StringList& ms_run_paths) const
@@ -127,7 +127,7 @@ namespace OpenMS
 
   bool IdentifierMSRunMapper::hasRunPath(const StringList& ms_run_paths) const
   {
-    return runpath_to_identifier_.find(ms_run_paths) != runpath_to_identifier_.end();
+    return runpath_to_identifier_.contains(ms_run_paths);
   }
 
   bool IdentifierMSRunMapper::tryGetIdentifier(const StringList& ms_run_paths, String& identifier) const

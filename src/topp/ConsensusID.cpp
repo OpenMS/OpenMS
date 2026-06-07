@@ -443,23 +443,23 @@ protected:
       std::copy(sp.variable_modifications.begin(), sp.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
     }
 
-    if (specs.find(EnzymaticDigestion::SPEC_NONE) != specs.end())
+    if (specs.contains(EnzymaticDigestion::SPEC_NONE))
     {
       new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NONE;
     }
-    else if (specs.find(EnzymaticDigestion::SPEC_SEMI) != specs.end())
+    else if (specs.contains(EnzymaticDigestion::SPEC_SEMI))
     {
       new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_SEMI;
     }
-    else if (specs.find(EnzymaticDigestion::SPEC_NONTERM) != specs.end())
+    else if (specs.contains(EnzymaticDigestion::SPEC_NONTERM))
     {
       new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NONTERM;
     }
-    else if (specs.find(EnzymaticDigestion::SPEC_NOCTERM) != specs.end())
+    else if (specs.contains(EnzymaticDigestion::SPEC_NOCTERM))
     {
       new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NOCTERM;
     }
-    else if (specs.find(EnzymaticDigestion::SPEC_FULL) != specs.end())
+    else if (specs.contains(EnzymaticDigestion::SPEC_FULL))
     {
       new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     }

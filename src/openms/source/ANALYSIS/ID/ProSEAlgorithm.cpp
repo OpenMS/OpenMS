@@ -1571,7 +1571,7 @@ namespace OpenMS
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
     spectra.sortSpectra(true);
 
     // load FASTA
@@ -1736,7 +1736,7 @@ namespace OpenMS
         options.clearMSLevels();
         options.addMSLevel(2);
         f.getOptions() = options;
-        f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF});
+        f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         all_spectra[i].sortSpectra(true);
         preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
       }
@@ -2031,7 +2031,7 @@ namespace OpenMS
           options.clearMSLevels();
           options.addMSLevel(2);
           f.getOptions() = options;
-          f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+          f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         }
         spectra.sortSpectra(true);
 

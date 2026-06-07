@@ -741,7 +741,7 @@ namespace OpenMS
     {
       for (Size i = 0; i < r.getMatchingHMDBids().size(); ++i)
       {
-        if (!hmdb_properties_mapping_.count(r.getMatchingHMDBids()[i]))
+        if (!hmdb_properties_mapping_.contains(r.getMatchingHMDBids()[i]))
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + r.getMatchingHMDBids()[i] + "' not found in struct file!");
         }
@@ -818,7 +818,7 @@ namespace OpenMS
       StringList names;
       for (Size i = 0; i < result.getMatchingHMDBids().size(); ++i)
       { // mapping ok?
-        if (!hmdb_properties_mapping_.count(result.getMatchingHMDBids()[i]))
+        if (!hmdb_properties_mapping_.contains(result.getMatchingHMDBids()[i]))
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + result.getMatchingHMDBids()[i] + "' not found in struct file!");
         }
@@ -1383,7 +1383,7 @@ namespace OpenMS
         {
           String hmdb_id_key(parts[0]);
 
-          if (hmdb_properties_mapping_.count(hmdb_id_key))
+          if (hmdb_properties_mapping_.contains(hmdb_id_key))
           {
             throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("File '") + filename + "' in line '" + line + "' cannot be parsed. The ID entry was already used (see above)!");
           }

@@ -671,7 +671,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       const ConsensusFeature& elem = (*this)[i];
       for (ConsensusFeature::HandleSetType::const_iterator it = elem.begin(); it != elem.end(); ++it)
       {
-        if (column_description_.find(it->getMapIndex()) == column_description_.end())
+        if (!column_description_.contains(it->getMapIndex()))
         {
           ++stats_wrongMID;
           ++wrong_ID_count[it->getMapIndex()];

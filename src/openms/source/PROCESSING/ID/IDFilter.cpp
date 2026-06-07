@@ -150,7 +150,7 @@ namespace OpenMS
         if (seq[i].isModified())
         {
           String mod_name = seq[i].getModification()->getFullId();
-          if (mods_.count(mod_name) > 0)
+          if (mods_.contains(mod_name))
             return true;
         }
       }
@@ -159,13 +159,13 @@ namespace OpenMS
       if (seq.hasNTerminalModification())
       {
         String mod_name = seq.getNTerminalModification()->getFullId();
-        if (mods_.count(mod_name) > 0)
+        if (mods_.contains(mod_name))
           return true;
       }
       if (seq.hasCTerminalModification())
       {
         String mod_name = seq.getCTerminalModification()->getFullId();
-        if (mods_.count(mod_name) > 0)
+        if (mods_.contains(mod_name))
           return true;
       }
 
@@ -187,7 +187,7 @@ namespace OpenMS
     bool operator()(const PeptideHit& hit) const
     {
       const String& query = (ignore_mods_ ? hit.getSequence().toUnmodifiedString() : hit.getSequence().toString());
-      return (sequences_.count(query) > 0);
+      return (sequences_.contains(query));
     }
   };
 
@@ -385,7 +385,7 @@ namespace OpenMS
       ProteinIdentification::ProteinGroup filtered;
       for (const String& acc : group.accessions)
       {
-        if (valid_accessions.find(acc) != valid_accessions.end())
+        if (valid_accessions.contains(acc))
         {
           filtered.accessions.push_back(acc);
         }

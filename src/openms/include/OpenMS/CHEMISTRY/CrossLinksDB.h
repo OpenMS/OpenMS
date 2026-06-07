@@ -67,7 +67,7 @@ namespace OpenMS
       The returned pointer is owned by the database and must @em not be
       deleted by the caller.
     */
-    inline static CrossLinksDB* getInstance()
+    inline static const CrossLinksDB* getInstance()
     {
       static CrossLinksDB* db_ = new CrossLinksDB;
       return db_;

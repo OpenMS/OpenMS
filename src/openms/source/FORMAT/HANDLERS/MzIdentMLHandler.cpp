@@ -250,7 +250,7 @@ namespace OpenMS::Internal
         to_ignore.insert("peptideSequence");
       }
 
-      if (to_ignore.find(tag_) != to_ignore.end())
+      if (to_ignore.contains(tag_))
       {
         return;
       }
@@ -423,7 +423,7 @@ namespace OpenMS::Internal
       tag_ = sm_.convert(qname);
       open_tags_.pop_back();
 
-      if (to_ignore.find(tag_) != to_ignore.end())
+      if (to_ignore.contains(tag_))
       {
         return;
       }
@@ -719,7 +719,7 @@ namespace OpenMS::Internal
           sdat_id = "SDAT_" + String(UniqueIdGenerator::getUniqueId());
 
           FileTypes::Type type = FileHandler::getTypeByFileName(sdat_file);
-          if (formats_map.find(type) == formats_map.end()) type = FileTypes::MZML; // default
+          if (!formats_map.contains(type)) type = FileTypes::MZML; // default
 
           //xml
           spectra_data += String("\t\t<SpectraData location=\"") + sdat_file + String("\" id=\"") + sdat_id + String("\">");
@@ -869,7 +869,7 @@ namespace OpenMS::Internal
 
         if (is_ppxl)
         {
-          if (ppxl_specref_2_element.find(sid)==ppxl_specref_2_element.end())
+          if (!ppxl_specref_2_element.contains(sid))
           {
             ppxl_specref_2_element[sid] = sidres;
           }
@@ -1553,12 +1553,12 @@ namespace OpenMS::Internal
         // Otherwise fall through to the dedicated alias branches below (e.g. Mascot/OMSSA), which would
         // otherwise be unreachable for score types that happen to be valid (non-score) PSI-MS term names.
         if (const auto* term = cv_.checkAndGetTermByName(st);
-            term != nullptr && peptide_result_details_.find(term->id) != peptide_result_details_.end())
+            term != nullptr && peptide_result_details_.contains(term->id))
         {
           (sii_tmp += "\t\t\t\t\t") += term->toXMLString(cv_ns, sc);
           copy_hit.removeMetaValue(term->id);
         }
-        else if (cv_.exists(st) && peptide_result_details_.find(st) != peptide_result_details_.end())
+        else if (cv_.exists(st) && peptide_result_details_.contains(st))
         {
           const auto& term = cv_.getTerm(st);
           (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
@@ -1842,7 +1842,7 @@ namespace OpenMS::Internal
           int i = hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1).toString().toInt();
           if (alpha_peptide)
           {
-            CrossLinksDB* xl_db = CrossLinksDB::getInstance();
+            const CrossLinksDB* xl_db = CrossLinksDB::getInstance();
             std::vector<String> mods;
             if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) && hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) == "N_TERM")
             {
@@ -2198,12 +2198,12 @@ namespace OpenMS::Internal
       // Only consume the score type here if it maps to a PSM-level search-engine statistic (MS:1001143 subtree);
       // otherwise fall through to the dedicated alias branches below.
       if (const auto* term = cv_.checkAndGetTermByName(st);
-          term != nullptr && peptide_result_details_.find(term->id) != peptide_result_details_.end())
+          term != nullptr && peptide_result_details_.contains(term->id))
       {
         (sii_tmp += "\t\t\t\t\t") += term->toXMLString(cv_ns, sc);
         copy_hit.removeMetaValue(term->id);
       }
-      else if (cv_.exists(st) && peptide_result_details_.find(st) != peptide_result_details_.end())
+      else if (cv_.exists(st) && peptide_result_details_.contains(st))
       {
         const auto& term = cv_.getTerm(st);
         (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);

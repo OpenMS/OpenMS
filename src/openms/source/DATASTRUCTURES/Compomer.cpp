@@ -82,7 +82,7 @@ namespace OpenMS
     //  std::cerr << "Compomer::add() was given adduct with negative charge! Are you sure this is what you want?!\n";
     //}
 
-    if (cmp_[side].count(a.getFormula()) == 0)
+    if (!cmp_[side].contains(a.getFormula()))
     {
       cmp_[side][a.getFormula()] = a;
     }
@@ -231,7 +231,7 @@ namespace OpenMS
     {
       return false;
     }
-    if (cmp_[side].count(a.getFormula()) == 0)
+    if (!cmp_[side].contains(a.getFormula()))
     {
       return false;
     }
@@ -252,7 +252,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::removeAdduct() does not support this value for 'side'!", String(side));
     }
     Compomer tmp(*this);
-    if (tmp.cmp_[side].count(a.getFormula()) > 0)
+    if (tmp.cmp_[side].contains(a.getFormula()))
     {
       { // how many instances does this side contain?
         Int amount = tmp.cmp_[side][a.getFormula()].getAmount();

@@ -269,7 +269,7 @@ namespace OpenMS::Internal::PASEFHillCentroider
           for (int tidx : it->second)
           {
             if (tidx < 0 || static_cast<Size>(tidx) >= tails.size()) continue;
-            if (claimed_tail_idx.count(tidx)) continue;
+            if (claimed_tail_idx.contains(tidx)) continue;
             const auto& t = tails[static_cast<Size>(tidx)];
             const double dppm = std::abs(mz_cur - t.mz) / mz_cur * 1e6;
             if (dppm > mz_tol_ppm) continue;

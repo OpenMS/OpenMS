@@ -233,7 +233,7 @@ namespace OpenMS
         // find splines for the mass traces of the lightest and other peptide
         size_t idx_1 = isotope;
         size_t idx_2 = peptide * isotopes_per_peptide_max_ + isotope;
-        if ((spline_chromatograms.find(idx_1) == spline_chromatograms.end()) || (spline_chromatograms.find(idx_2) == spline_chromatograms.end()))
+        if ((!spline_chromatograms.contains(idx_1)) || (!spline_chromatograms.contains(idx_2)))
         {
            continue;
         }

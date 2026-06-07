@@ -45,7 +45,7 @@ namespace OpenMS
       tags.insert(t[i]);
     }
     //check name
-    if (name.find(':') != std::string::npos)
+    if (name.contains(':'))
     {
       OPENMS_LOG_ERROR << "Error ParamEntry name must not contain ':' characters!" << std::endl;
     }
@@ -185,7 +185,7 @@ namespace OpenMS
     entries(),
     nodes()
   {
-      if (name.find(':') != std::string::npos)
+      if (name.contains(':'))
       {
         OPENMS_LOG_WARN << "Error ParamNode name must not contain ':' characters!\n";
       }
@@ -245,7 +245,7 @@ namespace OpenMS
   Param::ParamNode* Param::ParamNode::findParentOf(const std::string& local_name)
   {
     //cout << "findParentOf nodename: " << this->name << " - nodes: " << this->nodes.size() << " - find: "<< name << '\n';
-    if (local_name.find(':') != std::string::npos) //several subnodes to browse through
+    if (local_name.contains(':')) //several subnodes to browse through
     {
         size_t pos = local_name.find(':');
         std::string prefix = local_name.substr(0, pos);
@@ -305,7 +305,7 @@ namespace OpenMS
     std::string prefix2 = prefix + node.name;
 
     ParamNode* insert_node = this;
-    while (prefix2.find(':') != std::string::npos)
+    while (prefix2.contains(':'))
     {
       size_t pos = prefix2.find(':');
       std::string local_name = prefix2.substr(0, pos);
@@ -368,7 +368,7 @@ namespace OpenMS
     //std::cerr << " - inserting: " << prefix2 << '\n';
 
     ParamNode* insert_node = this;
-    while (prefix2.find(':') != std::string::npos)
+    while (prefix2.contains(':'))
     {
       size_t pos = prefix2.find(':');
       std::string local_name = prefix2.substr(0, pos);
@@ -479,7 +479,7 @@ namespace OpenMS
     //check for commas
     for (size_t i = 0; i < strings.size(); ++i)
     {
-      if (strings[i].find(',') != std::string::npos)
+      if (strings[i].contains(','))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Comma characters in Param string restrictions are not allowed!");
       }
@@ -944,7 +944,7 @@ namespace OpenMS
       }
 
       //with multiple argument
-      if (options_with_multiple_argument.find(arg) != options_with_multiple_argument.end())
+      if (options_with_multiple_argument.contains(arg))
       {
         //next argument is an option
         if (arg1_is_option)
@@ -971,12 +971,12 @@ namespace OpenMS
         }
       }
       //without argument
-      else if (options_without_argument.find(arg) != options_without_argument.end())
+      else if (options_without_argument.contains(arg))
       {
         root_.insert(ParamEntry("", "true", ""), options_without_argument.find(arg)->second);
       }
       //with one argument
-      else if (options_with_one_argument.find(arg) != options_with_one_argument.end())
+      else if (options_with_one_argument.contains(arg))
       {
         //next argument is not an option
         if (!arg1_is_option)
@@ -1620,7 +1620,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
 
   void Param::addTag(const std::string& key, const std::string& tag)
   {
-    if (tag.find(',') != std::string::npos)
+    if (tag.contains(','))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Param tags may not contain comma characters", tag);
     }
@@ -1632,7 +1632,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     ParamEntry& entry = getEntry_(key);
     for (size_t i = 0; i != tags.size(); ++i)
     {
-      if (tags[i].find(',') != std::string::npos)
+      if (tags[i].contains(','))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Param tags may not contain comma characters", tags[i]);
       }

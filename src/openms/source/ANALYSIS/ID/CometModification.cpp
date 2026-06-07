@@ -104,7 +104,7 @@ namespace OpenMS
     // Add residues from other (avoiding duplicates)
     for (char c : other.residues)
     {
-      if (residues.find(c) == String::npos)
+      if (!residues.contains(c))
       {
         residues += c;
       }

@@ -21,7 +21,7 @@ namespace OpenMS
 
   std::pair<String, double> MRMIonSeries::getIon(IonSeries& ionseries, const String& ionid)
   {
-    if (ionseries.find(ionid) != ionseries.end())
+    if (ionseries.contains(ionid))
     {
       return make_pair(ionid, ionseries[ionid]);
     }
@@ -153,7 +153,7 @@ namespace OpenMS
     {
       return interpretation;
     }
-    else if (best_annotation[0].find("-") != std::string::npos)
+    else if (best_annotation[0].contains("-"))
     {
       std::vector<String> best_annotation_loss;
       best_annotation[0].split("-", best_annotation_loss);
@@ -173,7 +173,7 @@ namespace OpenMS
         fragment_loss = -1 * nl_formula.getMonoWeight();
       }
     }
-    else if (best_annotation[0].find("+") != std::string::npos)
+    else if (best_annotation[0].contains("+"))
     {
       std::vector<String> best_annotation_gain;
       best_annotation[0].split("+", best_annotation_gain);
@@ -249,7 +249,7 @@ namespace OpenMS
     tr.getMetaValue("annotation").toString().split("/", best_annotation);
 
     String annotation;
-    if (best_annotation[0].find("^") != std::string::npos)
+    if (best_annotation[0].contains("^"))
     {
       std::vector<String> best_annotation_charge;
       best_annotation[0].split("^", best_annotation_charge);

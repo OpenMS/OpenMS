@@ -88,9 +88,9 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");
-    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,featureparquet,consensusparquet"));
     registerOutputFile_("out", "<file>", "", "Output file (data with one peptide identification per feature)");
-    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML,featureparquet,consensusparquet"));
     registerStringOption_("resolve_method", "<resolve_method>", "best_score",
       "Method used to select the final peptide identification from (potentially multiple) identifications of a feature.\n"
       "'best_score': Keep the single best-scoring identification per feature (default).\n"
@@ -111,10 +111,10 @@ protected:
     
     FileTypes::Type in_type = FileHandler::getType(in);
     
-    if (in_type == FileTypes::FEATUREXML) // featureXML
+    if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::FEATUREPARQUET) // featureXML / featureparquet
     {
       FeatureMap features;
-      FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
+      FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
       
       if (resolve_method == "rank_aggregation")
       {
@@ -131,12 +131,12 @@ protected:
       }
       
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::FILTERING));
-      FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
+      FileHandler().storeFeatures(out, features, {in_type == FileTypes::FEATUREPARQUET ? FileTypes::FEATUREPARQUET : FileTypes::FEATUREXML});
     }
-    else // consensusXML
+    else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET) // consensusXML / consensusparquet
     {
       ConsensusMap consensus;
-      FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
+      FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
       
       if (resolve_method == "rank_aggregation")
       {
@@ -153,7 +153,7 @@ protected:
       }
       
       addDataProcessing_(consensus, getProcessingInfo_(DataProcessing::FILTERING));
-      FileHandler().storeConsensusFeatures(out, consensus, {FileTypes::CONSENSUSXML});
+      FileHandler().storeConsensusFeatures(out, consensus, {in_type == FileTypes::CONSENSUSPARQUET ? FileTypes::CONSENSUSPARQUET : FileTypes::CONSENSUSXML});
     }
     return EXECUTION_OK;
   }

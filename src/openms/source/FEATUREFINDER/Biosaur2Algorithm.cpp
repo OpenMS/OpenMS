@@ -1539,9 +1539,9 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
     const int fi = use_im_current ? im_bin_per_peak[static_cast<Size>(idx)] : 0;
 
     // Collect candidate previous-scan peaks from neighboring m/z bins.
-    bool flag1 = prev_fast_dict.find(fm) != prev_fast_dict.end();
-    bool flag2 = prev_fast_dict.find(fm - 1) != prev_fast_dict.end();
-    bool flag3 = prev_fast_dict.find(fm + 1) != prev_fast_dict.end();
+    bool flag1 = prev_fast_dict.contains(fm);
+    bool flag2 = prev_fast_dict.contains(fm - 1);
+    bool flag3 = prev_fast_dict.contains(fm + 1);
 
     Size assigned_hill = numeric_limits<Size>::max();
 
@@ -1614,7 +1614,7 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
           {
             continue;
           }
-          if (banned_prev_idx_set.find(idx_prev) != banned_prev_idx_set.end())
+          if (banned_prev_idx_set.contains(idx_prev))
           {
             continue;
           }
@@ -2165,10 +2165,10 @@ map<int, pair<double, double>> Biosaur2Algorithm::performInitialIsotopeCalibrati
     {
       isotope_calib_map[ic] = calibrateMass_(isotope_errors[ic]);
     }
-    else if (ic > 1 && isotope_calib_map.find(ic - 1) != isotope_calib_map.end())
+    else if (ic > 1 && isotope_calib_map.contains(ic - 1))
     {
       auto prev = isotope_calib_map[ic - 1];
-      auto prev2 = isotope_calib_map.find(ic - 2) != isotope_calib_map.end() ?
+      auto prev2 = isotope_calib_map.contains(ic - 2) ?
                    isotope_calib_map[ic - 2] : make_pair(0.0, itol_ppm);
 
       double shift_delta = prev.first - prev2.first;
@@ -2738,7 +2738,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::selectNonOverlappin
     const double mono_mz_center = mono_hill.mz_weighted_mean;
 
     // Skip patterns whose monoisotopic hill is already used.
-    if (occupied_hills.find(mono_hill.hill_idx) != occupied_hills.end())
+    if (occupied_hills.contains(mono_hill.hill_idx))
     {
       continue;
     }
@@ -2746,7 +2746,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::selectNonOverlappin
     bool iso_conflict = false;
     for (const auto& iso : pc.isotopes)
     {
-      if (occupied_hills.find(iso.hill_idx) != occupied_hills.end())
+      if (occupied_hills.contains(iso.hill_idx))
       {
         iso_conflict = true;
         break;
@@ -2760,7 +2760,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::selectNonOverlappin
       vector<IsotopeCandidate> tmp_iso;
       for (const auto& iso : pc.isotopes)
       {
-        if (occupied_hills.find(iso.hill_idx) == occupied_hills.end())
+        if (!occupied_hills.contains(iso.hill_idx))
         {
           tmp_iso.push_back(iso);
         }

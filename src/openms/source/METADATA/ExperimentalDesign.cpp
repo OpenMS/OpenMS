@@ -624,7 +624,7 @@ namespace OpenMS
     template<typename T>
     void ExperimentalDesign::errorIfAlreadyExists(std::set<T> &container, T &item, const String &message)
     {
-      if (container.find(item) != container.end())
+      if (container.contains(item))
       {
        throw Exception::MissingInformation(
        __FILE__,
@@ -755,7 +755,7 @@ namespace OpenMS
       msfile_section_.erase(std::remove_if(msfile_section_.begin(), msfile_section_.end(),
       [&bns](MSFileSectionEntry& e)
       {
-        return bns.find(File::basename(e.path)) == bns.end();
+        return !bns.contains(File::basename(e.path));
       }), msfile_section_.end());
 
       const Size diff = before - msfile_section_.size();
@@ -852,12 +852,12 @@ namespace OpenMS
 
     bool ExperimentalDesign::SampleSection::hasSample(const String& sample) const
     {
-      return sample_to_rowindex_.find(sample) != sample_to_rowindex_.end();
+      return sample_to_rowindex_.contains(sample);
     }
 
     bool ExperimentalDesign::SampleSection::hasFactor(const String &factor) const
     {
-      return columnname_to_columnindex_.find(factor) != columnname_to_columnindex_.end();
+      return columnname_to_columnindex_.contains(factor);
     }
 
     String ExperimentalDesign::SampleSection::getFactorValue(unsigned sample_idx, const String &factor) const

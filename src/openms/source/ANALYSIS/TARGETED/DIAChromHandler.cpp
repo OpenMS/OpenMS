@@ -86,7 +86,7 @@ std::vector<MSChromatogram> DIAChromHandler::collectIrtChromatogramsForIrt(
         std::set<std::string> matching_proteins;
         for (Size i = 0; i < irt_transitions.compounds.size(); i++)
         {
-          if (matching_compounds.find(irt_transitions.compounds[i].id) != matching_compounds.end())
+          if (matching_compounds.contains(irt_transitions.compounds[i].id))
           {
             transition_exp_used.compounds.push_back( irt_transitions.compounds[i] );
             for (Size j = 0; j < irt_transitions.compounds[i].protein_refs.size(); j++)
@@ -97,7 +97,7 @@ std::vector<MSChromatogram> DIAChromHandler::collectIrtChromatogramsForIrt(
         }
         for (Size i = 0; i < irt_transitions.proteins.size(); i++)
         {
-          if (matching_proteins.find(irt_transitions.proteins[i].id) != matching_proteins.end())
+          if (matching_proteins.contains(irt_transitions.proteins[i].id))
           {
             transition_exp_used.proteins.push_back( irt_transitions.proteins[i] );
           }

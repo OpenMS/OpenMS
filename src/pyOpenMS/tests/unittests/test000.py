@@ -312,43 +312,34 @@ def testElement():
     """
     @tests: Element
      Element.__init__
-     Element.setAtomicNumber
      Element.getAtomicNumber
-     Element.setAverageWeight
      Element.getAverageWeight
-     Element.setMonoWeight
      Element.getMonoWeight
-     Element.setIsotopeDistribution
      Element.getIsotopeDistribution
-     Element.setName
      Element.getName
-     Element.setSymbol
      Element.getSymbol
     """
-    ins = pyopenms.Element()
-
-    ins.setAtomicNumber(6)
-    ins.getAtomicNumber()
-    ins.setAverageWeight(12.011)
-    ins.getAverageWeight()
-    ins.setMonoWeight(12)
-    ins.getMonoWeight()
+    # Element is read-only: build it via the full constructor (no setters exposed)
     iso = pyopenms.IsotopeDistribution()
-    ins.setIsotopeDistribution(iso)
-    ins.getIsotopeDistribution()
-    ins.setName("Carbon")
-    ins.getName()
-    ins.setSymbol("C")
-    ins.getSymbol()
+    ins = pyopenms.Element("Carbon", "C", 6, 12.011, 12.0, iso)
 
-    e = pyopenms.Element()
-    e.setSymbol("blah")
-    e.setSymbol("blah")
-    e.setSymbol(u"blah")
-    e.setSymbol(str("blah"))
+    assert ins.getAtomicNumber() == 6
+    assert ins.getAverageWeight() == 12.011
+    assert ins.getMonoWeight() == 12.0
+    ins.getIsotopeDistribution()
+    assert ins.getName() == "Carbon"
+    assert ins.getSymbol() == "C"
+
+    # no mutators are exposed (the database elements are immutable)
+    assert not hasattr(ins, "setName")
+    assert not hasattr(ins, "setSymbol")
+    assert not hasattr(ins, "setIsotopeDistribution")
+
+    # the constructor accepts str and OpenMS String for name/symbol
     oms_string = s("blu")
-    e.setSymbol(oms_string)
-    assert oms_string
+    e = pyopenms.Element(oms_string, s("Bl"), 998, 1.0, 1.0, iso)
+    assert e.getName() == "blu"
+    assert e.getSymbol() == "Bl"
     assert oms_string.toString() == "blu"
 
     evil = u"blü"
@@ -6492,11 +6483,11 @@ def testProteaseDB():
 
 @report
 def testElementDB():
-    edb = pyopenms.ElementDB()
+    edb = pyopenms.ElementDB.getInstance()
     del edb
 
-    # create a second instance of ElementDB without anything bad happening
-    edb = pyopenms.ElementDB()
+    # the singleton always hands back the same immutable instance
+    edb = pyopenms.ElementDB.getInstance()
 
     assert edb.hasElement(16)
     edb.hasElement("O")
@@ -6512,28 +6503,12 @@ def testElementDB():
     assert e2.getName() == "Oxygen"
     assert e2.getSymbol() == "O"
     assert e2.getIsotopeDistribution()
-
-    # assume we discovered a new element
-    e2 = edb.addElement(b"NewElement", b"NE", 300, {400 : 1.0}, {400 : 400.1}, False)
-    e2 = edb.getElement("NE")
-    assert e2.getName() == "NewElement"
-
-    # changing existing elements in tests might have side effects so we define a new element
-    # add first new element
-    e2 = edb.addElement(b"Kryptonite", b"@", 500, {999 : 0.7, 1000 : 0.3}, {999 : 999.01, 1000 : 1000.01}, False)
-    e2 = edb.getElement("@")
-    assert e2.getName() == "Kryptonite"
-    assert e2.getIsotopeDistribution()
-    assert len(e2.getIsotopeDistribution().getContainer()) == 2
-    assert abs(e2.getIsotopeDistribution().getContainer()[1].getIntensity() - 0.3) < 1e-5
-    # replace element
-    e2 = edb.addElement(b"Kryptonite", b"@", 500, {9999 : 1.0}, {9999 : 9999.1}, True)
-    e2 = edb.getElement("@")
-    assert e2.getName() == "Kryptonite"
-    assert e2.getIsotopeDistribution()
-    assert len(e2.getIsotopeDistribution().getContainer()) == 1
-    assert abs(e2.getIsotopeDistribution().getContainer()[0].getIntensity() - 1.0) < 1e-5
     # assert e == e2
+
+    # the database is immutable from Python: elements expose no setters
+    o = edb.getElement("O")
+    assert not hasattr(o, "setName")
+    assert not hasattr(o, "setIsotopeDistribution")
 
     #  not yet implemented
     #

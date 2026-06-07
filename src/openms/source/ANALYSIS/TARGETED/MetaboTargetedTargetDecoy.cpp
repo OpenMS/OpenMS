@@ -117,7 +117,7 @@ namespace OpenMS
         auto found = match_compound_refs_decoy_mz.find(tr.getCompoundRef());
 
         // Check if the compound reference is found and if the product m/z matches any in the set.
-        if (found != match_compound_refs_decoy_mz.end() && found->second.count(tr.getProductMZ()) > 0) {
+        if (found != match_compound_refs_decoy_mz.end() && found->second.contains(tr.getProductMZ())) {
             // Create a new transition object based on the current transition.
             ReactionMonitoringTransition new_tr = tr;
 
@@ -181,7 +181,7 @@ namespace OpenMS
       if (it_target != t_exp.getCompounds().end())
       {
         compounds.emplace_back(*it_target);
-        if (TransitionsMap.find(it_target->id) != TransitionsMap.end())
+        if (TransitionsMap.contains(it_target->id))
         {
           transitions.insert(transitions.end(),
                                TransitionsMap[it_target->id].begin(),
@@ -191,7 +191,7 @@ namespace OpenMS
       if (it_decoy != t_exp.getCompounds().end())
       {
         compounds.emplace_back(*it_decoy);
-        if (TransitionsMap.find(it_decoy->id) != TransitionsMap.end())
+        if (TransitionsMap.contains(it_decoy->id))
         {
           transitions.insert(transitions.end(),
                                TransitionsMap[it_decoy->id].begin(),
@@ -210,7 +210,7 @@ namespace OpenMS
         potential_decoy_compound.id = it.decoy_compound_ref;
         potential_decoy_compound.setMetaValue("decoy", DataValue(1));
 
-        if (TransitionsMap.find(it_target->id) != TransitionsMap.end())
+        if (TransitionsMap.contains(it_target->id))
         {
           potential_decoy_transitions = TransitionsMap[it_target->id];
           for (size_t i = 0; i < potential_decoy_transitions.size(); ++i)

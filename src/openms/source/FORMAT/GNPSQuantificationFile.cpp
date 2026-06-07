@@ -67,7 +67,7 @@ namespace OpenMS
         for (const auto& fh: cf.getFeatures()) index_to_feature[fh.getMapIndex()] = fh;
         for (size_t i = 0; i < consensus_map.getColumnHeaders().size(); i++)
         {
-            if (index_to_feature.count(i))
+            if (index_to_feature.contains(i))
             {
             out << index_to_feature[i].getRT() << index_to_feature[i].getMZ() << index_to_feature[i].getIntensity() << index_to_feature[i].getCharge() << index_to_feature[i].getWidth();
             }

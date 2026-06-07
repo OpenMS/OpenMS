@@ -118,7 +118,7 @@ protected:
       for (vector<NASequence>::const_iterator frag_it = fragments.begin();
            frag_it != fragments.end(); ++frag_it)
       {
-        if (!unique || !unique_fragments.count(*frag_it))
+        if (!unique || !unique_fragments.contains(*frag_it))
         {
           String id = entry.identifier + "_" + String(counter);
           String desc;

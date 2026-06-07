@@ -303,7 +303,7 @@ namespace OpenMS
         String spectrum_reference = getScanMergeKey_(pit, new_peptide_ids.begin());
         //merge in unified map
         // insert newly identified spectra (PeptideIdentifications) or ..
-        if (unified.find(spectrum_reference) == unified.end())
+        if (!unified.contains(spectrum_reference))
         {
           unified[spectrum_reference] = ins;
           ++nc;

@@ -354,6 +354,16 @@ namespace OpenMS
     {
       OPENMS_LOG_INFO << "Ion mobility data detected. Using IM window: " << im_window_ << endl;
     }
+    else if (has_IM && im_window_ <= 0.0)
+    {
+      OPENMS_LOG_WARN << "Warning: Ion mobility data detected, but 'extract:im_window' is "
+                      << im_window_ << " (<= 0). The ion mobility dimension will be ignored: peaks "
+                      << "across the whole mobility range are summed within each m/z window, which "
+                      << "merges mobility-separated co-eluting analytes (e.g. on Bruker .d frames) "
+                      << "and can distort extraction/quantification. Set 'extract:im_window' > 0 and "
+                      << "provide IonMobility values for your targets to extract within the "
+                      << "analyte's mobility band." << endl;
+    }
 
     OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
     ChromatogramExtractor extractor;
@@ -907,7 +917,7 @@ namespace OpenMS
            library_.getCompounds().begin(); it != library_.getCompounds().end();
          ++it)
     {
-      if (!found_refs.count(it->id))
+      if (!found_refs.contains(it->id))
       {
         PeptideIdentification peptide;
         peptide.setIdentifier("id");
