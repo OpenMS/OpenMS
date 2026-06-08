@@ -1668,10 +1668,17 @@ namespace OpenMS
       default: return;
     }
 
+    // Sort channels by m/z so tmt_spec indices stay in sync with channel metadata.
+    // getChannelInformation() does NOT guarantee m/z order (e.g. TMT32 interleaves N/C/ND/CD).
+    const auto channels_sorted = [&]()
+    {
+      auto ch = method->getChannelInformation();
+      std::sort(ch.begin(), ch.end(), [](const auto& a, const auto& b) { return a.center < b.center; });
+      return ch;
+    }();
     MSSpectrum tmt_spec;
-    for (const auto& ch : method->getChannelInformation())
+    for (const auto& ch : channels_sorted)
       tmt_spec.emplace_back(ch.center, 1.0f);
-    tmt_spec.sortByPosition();
 
     // Profile vs. centroid handling
     const bool is_profile = (spec.getType(true) == SpectrumSettings::SpectrumType::PROFILE);
@@ -1680,37 +1687,46 @@ namespace OpenMS
     if (is_profile)
     {
       PeakPickerHiRes picker;
-      Param p;
-      p.setValue("signal_to_noise", 0.0);
-      picker.setParameters(p);
+      Param picker_params;
+      picker_params.setValue("signal_to_noise", 0.0);
+      picker.setParameters(picker_params);
       picker.pick(spec, picked, boundaries);
     }
     const MSSpectrum& centroid_spec = is_profile ? picked : spec;
     if (centroid_spec.empty()) { update_(OPENMS_PRETTY_FUNCTION); return; }
 
-    // Align TMT channels to centroid peaks within 30 ppm
+    // Tolerance = min(30 ppm, half the minimum ppm spacing between adjacent channels).
+    // This guarantees non-overlapping tolerance windows so no experimental peak can
+    // be within tolerance of two different TMT channels simultaneously.
+    double min_spacing_ppm = std::numeric_limits<double>::max();
+    for (Size i = 1; i < channels_sorted.size(); ++i)
+      min_spacing_ppm = std::min(min_spacing_ppm,
+        Math::getPPMAbs(channels_sorted[i].center, channels_sorted[i - 1].center));
+    const double tol_ppm = std::min(30.0, min_spacing_ppm / 2.0);
+
     SpectrumAlignment aligner;
     {
-      Param p;
-      p.setValue("tolerance", 30.0);
-      p.setValue("is_relative_tolerance", "true");
-      aligner.setParameters(p);
+      Param aligner_params;
+      aligner_params.setValue("tolerance", tol_ppm);
+      aligner_params.setValue("is_relative_tolerance", "true");
+      aligner.setParameters(aligner_params);
     }
     std::vector<std::pair<Size, Size>> tmt_to_centroid; // (tmt_channel_idx, centroid_peak_idx)
     aligner.getSpectrumAlignment(tmt_to_centroid, tmt_spec, centroid_spec);
     if (tmt_to_centroid.empty()) { update_(OPENMS_PRETTY_FUNCTION); return; }
 
-    // For profile: align picked centroids to raw spectrum to find best annotation anchor
-    std::unordered_map<Size, Size> centroid_to_raw_idx;
+    // For profile: align picked centroids to raw spectrum to find best annotation anchor peak
+    std::map<Size, Size> centroid_to_raw_idx;
     if (is_profile)
     {
-      Param p;
-      p.setValue("tolerance", 5.0);
-      p.setValue("is_relative_tolerance", "true");
-      aligner.setParameters(p);
+      Param aligner_params;
+      aligner_params.setValue("tolerance", 5.0);
+      aligner_params.setValue("is_relative_tolerance", "true");
+      aligner.setParameters(aligner_params);
       std::vector<std::pair<Size, Size>> c2r;
       aligner.getSpectrumAlignment(c2r, centroid_spec, spec);
-      for (const auto& [ci, ri] : c2r) centroid_to_raw_idx[ci] = ri;
+      for (const auto& [ci, ri] : c2r)
+        centroid_to_raw_idx[ci] = ri;
     }
 
     // Initialize per-peak color vector with default layer color
@@ -1720,24 +1736,22 @@ namespace OpenMS
     auto& layer = *peak_layer;
     layer.peak_colors_1d.assign(spec.size(), default_color);
 
-    const auto& channels = method->getChannelInformation();
-
     for (const auto& [tmt_idx, cen_idx] : tmt_to_centroid)
     {
-      const double obs_mz  = centroid_spec[cen_idx].getMZ();
-      const double theo_mz = channels[tmt_idx].center;
+      const double obs_mz = centroid_spec[cen_idx].getMZ();
+      const double theo_mz = channels_sorted[tmt_idx].center;
       const double delta_ppm = Math::getPPM(obs_mz, theo_mz);
 
       Peak1D anchor;
       if (is_profile)
       {
         // Color the entire peak envelope using PeakPickerHiRes boundaries
-        const auto& b = boundaries[cen_idx];
+        const auto& boundary = boundaries[cen_idx];
         for (Size si = 0; si < spec.size(); ++si)
-          if (spec[si].getMZ() >= b.mz_min && spec[si].getMZ() <= b.mz_max)
+          if (spec[si].getMZ() >= boundary.mz_min && spec[si].getMZ() <= boundary.mz_max)
             layer.peak_colors_1d[si] = tmt_color;
         // Anchor label at closest raw peak to centroid
-        auto it = centroid_to_raw_idx.find(cen_idx);
+        const auto it = centroid_to_raw_idx.find(cen_idx);
         anchor = (it != centroid_to_raw_idx.end()) ? spec[it->second] : centroid_spec[cen_idx];
       }
       else
@@ -1747,7 +1761,7 @@ namespace OpenMS
       }
 
       const QString sign = delta_ppm >= 0 ? "+" : "";
-      const QString text = QString::fromStdString(channels[tmt_idx].name)
+      const QString text = toQString(channels_sorted[tmt_idx].name)
                          + "\n" + sign + QString::number(delta_ppm, 'f', 1) + " ppm";
 
       auto* item = new Annotation1DPeakItem<Peak1D>(anchor, text, ann_color);
