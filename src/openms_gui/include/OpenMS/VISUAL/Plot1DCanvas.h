@@ -259,7 +259,7 @@ namespace OpenMS
     /// @param[in] p A X-Y data point
     /// @return Either the X or Y component, depending on gravity
     template<UInt D>
-    int gravityValue(const DPosition<D>& p) const
+    auto gravityValue(const DPosition<D>& p) const
     {
       return p[(int)gravity_axis_];
     }
