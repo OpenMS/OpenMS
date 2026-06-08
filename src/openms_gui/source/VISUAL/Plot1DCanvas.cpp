@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
@@ -1729,13 +1730,45 @@ namespace OpenMS
         centroid_to_raw_idx[ci] = ri;
     }
 
-    // Initialize per-peak color vector with default layer color
+    // Color scheme:
+    //   found channel  – peak colored orange-red; vertical line solid green
+    //   missing channel – vertical line dashed grey
     const QColor default_color(toQString(String(getCurrentLayer().param.getValue("peak_color").toString())));
-    const QColor tmt_color(255, 80, 0);  // vibrant orange-red
+    const QColor peak_matched_color(255, 80, 0);    // vibrant orange-red for matched peaks
     const QColor ann_color(Qt::darkRed);
+    const QColor line_found_color(0, 160, 0);        // green: theoretical mass was matched
+    const QColor line_missing_color(160, 160, 160);  // grey:  theoretical mass was not found
     auto& layer = *peak_layer;
     layer.peak_colors_1d.assign(spec.size(), default_color);
 
+    // Which TMT channels were matched?
+    std::vector<bool> tmt_matched(channels_sorted.size(), false);
+    for (const auto& [tmt_idx, cen_idx] : tmt_to_centroid)
+      tmt_matched[tmt_idx] = true;
+
+    // Pass 1: vertical reference lines for ALL theoretical channels (drawn first = below labels).
+    //   Found  → solid green line, no text (Annotation1DPeakItem already labels it).
+    //   Missing → dashed grey line with the channel name as label.
+    for (Size i = 0; i < channels_sorted.size(); ++i)
+    {
+      const auto& ch = channels_sorted[i];
+      const PointXYType theo_pos(ch.center, 0.0);
+      Annotation1DVerticalLineItem* vline;
+      if (tmt_matched[i])
+      {
+        vline = new Annotation1DVerticalLineItem(theo_pos, line_found_color);
+      }
+      else
+      {
+        vline = new Annotation1DVerticalLineItem(theo_pos, 0.0f, 255, /*dashed=*/true, line_missing_color,
+                                                 toQString(ch.name));
+      }
+      vline->setSelected(false);
+      getCurrentLayer().getCurrentAnnotations().push_front(vline);
+      tmt_annotation_items_.push_back(vline);
+    }
+
+    // Pass 2: peak annotations for matched channels (push_front → rendered on top of lines).
     for (const auto& [tmt_idx, cen_idx] : tmt_to_centroid)
     {
       const double obs_mz = centroid_spec[cen_idx].getMZ();
@@ -1749,14 +1782,14 @@ namespace OpenMS
         const auto& boundary = boundaries[cen_idx];
         for (Size si = 0; si < spec.size(); ++si)
           if (spec[si].getMZ() >= boundary.mz_min && spec[si].getMZ() <= boundary.mz_max)
-            layer.peak_colors_1d[si] = tmt_color;
+            layer.peak_colors_1d[si] = peak_matched_color;
         // Anchor label at closest raw peak to centroid
         const auto it = centroid_to_raw_idx.find(cen_idx);
         anchor = (it != centroid_to_raw_idx.end()) ? spec[it->second] : centroid_spec[cen_idx];
       }
       else
       {
-        layer.peak_colors_1d[cen_idx] = tmt_color;
+        layer.peak_colors_1d[cen_idx] = peak_matched_color;
         anchor = centroid_spec[cen_idx];
       }
 
