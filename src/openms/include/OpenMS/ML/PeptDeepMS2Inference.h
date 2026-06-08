@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <onnxruntime_cxx_api.h>
 #include <OpenMS/config.h>
+
 
 namespace OpenMS {
 
@@ -19,6 +19,9 @@ public:
     /// @throws Exception::BaseException if the model file cannot be found or loaded by the runtime.
     PeptDeepMS2Inference(const std::string& model_path);
 
+    /// @brief Destructor
+    ~PeptDeepMS2Inference();
+
     /// @brief Predicts MS2 fragment intensities for a single peptide sequence.
     /// @param peptide_sequence The raw uppercase peptide string (e.g., "PEPTIDEK").
     /// @param charge The precursor charge state.
@@ -32,9 +35,9 @@ public:
                                   int64_t instrument_index = 0);
 
 private:
-    Ort::SessionOptions session_options_;
-    std::unique_ptr<Ort::Session> session_;
-    Ort::MemoryInfo memory_info_ = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
+    // Pimpl idiom: hide all ONNX internal objects
+    struct Impl;
+    std::unique_ptr<Impl> pimpl_;
 };
 
 } // namespace OpenMS

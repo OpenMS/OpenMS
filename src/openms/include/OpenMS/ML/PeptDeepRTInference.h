@@ -4,8 +4,6 @@
 #include <vector>
 #include <memory>
 
-// Include the ONNX Runtime C++ API
-#include <onnxruntime_cxx_api.h>
 
 namespace OpenMS
 {
@@ -31,12 +29,8 @@ namespace OpenMS
         std::vector<float> predictRT(const std::vector<std::string>& peptides);
 
     private:
-        // ONNX Runtime components required to keep the model loaded in memory
-        Ort::SessionOptions session_options_;
-        std::unique_ptr<Ort::Session> session_;
-        Ort::AllocatorWithDefaultOptions allocator_;
-
-        // Helper function to convert text peptides into integer tensors for PeptDeep
-        std::vector<int64_t> tokenizePeptides(const std::vector<std::string>& peptides, size_t& max_length);
+        // Pimpl idiom: hide all ONNX internal objects and helper functions
+        struct Impl;
+        std::unique_ptr<Impl> pimpl_;
     };
 } // namespace OpenMS

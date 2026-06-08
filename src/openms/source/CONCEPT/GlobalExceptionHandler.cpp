@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
-
+#include <new>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
