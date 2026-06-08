@@ -206,6 +206,8 @@ protected:
                         false);
     setValidStrings_("variable_modifications", all_mods);
 
+    registerFlag_("allow_dense_centroided_peaks", "Pass '-allowDenseCentroidedPeaks 1' to MS-GF+ to also search spectra whose median distance of consecutive peaks is below ~50 ppm. The MS-GF+ default treats such (centroided) spectra as profile spectra and skips them.", false);
+
     registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
 
     registerInputFile_("conf", "<file>", "", "Optional MSGF+ configuration file (passed as -conf <file> to MSGF+). See documentation for examples. Parameters of the adapter take precedence. Use conf file only for settings not available here (for example, any fixed/var modifications, in the conf file will be ignored, since they are provided via -mod flag)", false, false);
@@ -598,6 +600,12 @@ protected:
       "-tasks", String(getIntOption_("tasks")),
       "-thread", String(getIntOption_("threads"))
     };
+    if (getFlag_("allow_dense_centroided_peaks"))
+    {
+      // pass flag and value as separate tokens (each vector element becomes one argv entry)
+      process_params.push_back("-allowDenseCentroidedPeaks");
+      process_params.push_back("1");
+    }
     String conf = getStringOption_("conf");
     if (!conf.empty())
     {
