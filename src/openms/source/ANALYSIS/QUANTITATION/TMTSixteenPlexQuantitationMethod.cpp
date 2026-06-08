@@ -17,7 +17,7 @@
 
 namespace OpenMS
 {
-const String TMTSixteenPlexQuantitationMethod::name_ = "tmt16plex";
+
 const std::vector<std::string> TMTSixteenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131N","131C","132N","132C","133N","133C","134N"};
 
 TMTSixteenPlexQuantitationMethod::TMTSixteenPlexQuantitationMethod()
@@ -136,7 +136,8 @@ TMTSixteenPlexQuantitationMethod& TMTSixteenPlexQuantitationMethod::operator=(co
 
 const String& TMTSixteenPlexQuantitationMethod::getMethodName() const
 {
-    return TMTSixteenPlexQuantitationMethod::name_;
+    static const String name(IsobaricQuantitationMethod::methodTypeName(METHOD_TYPE));
+    return name;
 }
 
 const IsobaricQuantitationMethod::IsobaricChannelList& TMTSixteenPlexQuantitationMethod::getChannelInformation() const

@@ -40,6 +40,8 @@ public:
 
     const String& getMethodName() const override;
 
+    MethodType getMethodType() const override { return METHOD_TYPE; }
+
     const IsobaricChannelList& getChannelInformation() const override;
 
     Size getNumberOfChannels() const override;
@@ -50,12 +52,11 @@ public:
 
     /// @}
 
+    static constexpr MethodType METHOD_TYPE = MethodType::ITRAQ_8PLEX;
+
   private:
     /// the actual information on the different itraq8plex channels.
     IsobaricChannelList channels_;
-
-    /// The name of the quantitation method.
-    static const String name_;
 
     /// The reference channel for this experiment.
     Size reference_channel_;

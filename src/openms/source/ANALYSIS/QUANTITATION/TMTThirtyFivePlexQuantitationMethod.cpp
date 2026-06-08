@@ -14,7 +14,6 @@
 #include <algorithm>
 
 namespace OpenMS{
-    const String TMTThirtyFivePlexQuantitationMethod::name_ = "tmt35plex";
     /*
         For 35plex experiments use TMTpro 16plex Deuterated Label Reagent Set (Cat. No. A40000817), 
         TMTpro-135CD Label Reagent (Cat. No. A40000818), and TMTpro 18plex Label Reagent Set (Cat. No. A52045).
@@ -205,7 +204,8 @@ TMTThirtyFivePlexQuantitationMethod& TMTThirtyFivePlexQuantitationMethod::operat
 
 const String& TMTThirtyFivePlexQuantitationMethod::getMethodName() const
 {
-    return TMTThirtyFivePlexQuantitationMethod::name_;
+    static const String name(IsobaricQuantitationMethod::methodTypeName(METHOD_TYPE));
+    return name;
 }
 
 const IsobaricQuantitationMethod::IsobaricChannelList& TMTThirtyFivePlexQuantitationMethod::getChannelInformation() const

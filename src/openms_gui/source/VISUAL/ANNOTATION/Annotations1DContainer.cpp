@@ -110,6 +110,19 @@ namespace OpenMS
     }
   }
 
+  void Annotations1DContainer::removeItems(const std::vector<Annotation1DItem*>& items)
+  {
+    for (auto it = begin(); it != end(); )
+    {
+      if (std::find(items.begin(), items.end(), *it) != items.end())
+      {
+        delete *it;
+        it = erase(it);
+      }
+      else { ++it; }
+    }
+  }
+
   std::vector<Annotation1DItem*> Annotations1DContainer::getSelectedItems()
   {
     // initialize with maximal possible size

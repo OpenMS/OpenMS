@@ -76,6 +76,9 @@ public:
     /// Removes the selected items
     void removeSelectedItems();
 
+    /// Removes and deletes the given items. Items not present in this container are silently ignored.
+    void removeItems(const std::vector<Annotation1DItem*>& items);
+
     /// Returns the selected items
     std::vector<Annotation1DItem*> getSelectedItems();
 

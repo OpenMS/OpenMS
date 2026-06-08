@@ -11,8 +11,39 @@
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <algorithm>
+
 namespace OpenMS
 {
+  // Must match MethodType enum order exactly
+  const std::array<std::string_view, static_cast<int>(IsobaricQuantitationMethod::MethodType::SIZE_OF_METHODTYPE)>
+  IsobaricQuantitationMethod::METHOD_TYPE_NAMES = {
+    "unknown",
+    "tmt6plex",
+    "tmt10plex",
+    "tmt11plex",
+    "tmt16plex",
+    "tmt18plex",
+    "tmt32plex",
+    "tmt35plex",
+    "itraq4plex",
+    "itraq8plex"
+  };
+
+  std::string_view IsobaricQuantitationMethod::methodTypeName(MethodType mt)
+  {
+    return METHOD_TYPE_NAMES[static_cast<int>(mt)];
+  }
+
+  IsobaricQuantitationMethod::MethodType IsobaricQuantitationMethod::methodTypeFromName(std::string_view name)
+  {
+    for (int i = 0; i < static_cast<int>(MethodType::SIZE_OF_METHODTYPE); ++i)
+    {
+      if (METHOD_TYPE_NAMES[i] == name) return static_cast<MethodType>(i);
+    }
+    return MethodType::UNKNOWN;
+  }
+
   IsobaricQuantitationMethod::~IsobaricQuantitationMethod() = default;
 
   IsobaricQuantitationMethod::IsobaricQuantitationMethod() :

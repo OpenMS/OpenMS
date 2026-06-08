@@ -26,6 +26,15 @@
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
@@ -183,6 +192,10 @@ namespace OpenMS
 
   void Plot1DCanvas::activateLayer(Size layer_index)
   {
+    // reset TMT state on layer switch; items are owned by the (previous) layer's container
+    tmt_annotation_items_.clear();
+    tmt_method_type_ = IsobaricQuantitationMethod::MethodType::UNKNOWN;
+
     layers_.setCurrentLayer(layer_index);
 
     // no peak is selected
@@ -554,6 +567,10 @@ namespace OpenMS
 
   void Plot1DCanvas::removeLayer(Size layer_index)
   {
+    // reset TMT state; items owned by the layer container being removed
+    tmt_annotation_items_.clear();
+    tmt_method_type_ = IsobaricQuantitationMethod::MethodType::UNKNOWN;
+
     // remove settings
     layers_.removeLayer(layer_index);
     draw_modes_.erase(draw_modes_.begin() + layer_index);
@@ -1040,6 +1057,30 @@ namespace OpenMS
         setDrawInterestingMZs(!draw_interesting_MZs_);
       });
 
+      {
+        using MT = IsobaricQuantitationMethod::MethodType;
+        QMenu* tmt_menu = new QMenu("TMT m/z reference");
+        if (tmt_method_type_ != MT::UNKNOWN)
+          tmt_menu->addAction(
+            QString("Disable (current: %1)").arg(toQString(String(IsobaricQuantitationMethod::methodTypeName(tmt_method_type_)))),
+            [&]() { setTMTAnnotationMethod(MT::UNKNOWN); });
+        static const std::vector<std::pair<MT, QString>> kTMTMethods = {
+          {MT::TMT_6PLEX,  "TMT 6-plex"},
+          {MT::TMT_10PLEX, "TMT 10-plex"},
+          {MT::TMT_11PLEX, "TMT 11-plex"},
+          {MT::TMT_16PLEX, "TMT 16-plex (TMTpro)"},
+          {MT::TMT_18PLEX, "TMT 18-plex"},
+          {MT::TMT_32PLEX, "TMT 32-plex"},
+          {MT::TMT_35PLEX, "TMT 35-plex"},
+        };
+        for (const auto& [mt, label] : kTMTMethods)
+        {
+          auto* act = tmt_menu->addAction(label, [this, mt]() { setTMTAnnotationMethod(mt); });
+          if (tmt_method_type_ == mt) { act->setCheckable(true); act->setChecked(true); }
+        }
+        settings_menu->addMenu(tmt_menu);
+      }
+
       settings_menu->addSeparator();
 
       settings_menu->addAction("Preferences", [&]() {
@@ -1520,12 +1561,14 @@ namespace OpenMS
   {
     // clear selected peak, so we do not accidentally access an invalid index next time when moving the mouse
     selected_peak_.clear();
-    
+
     if (getCurrentLayer().hasIndex(index))
     {
       getCurrentLayer().setCurrentIndex(index);
       recalculateRanges_(); // adapt overall_range_(1d)_
       changeVisibleArea_(visible_area_, repaint, false); // updates y-axis based on new spectrum
+      if (tmt_method_type_ != IsobaricQuantitationMethod::MethodType::UNKNOWN)
+        updateTMTAnnotations_();
     }
   }
 
@@ -1575,6 +1618,145 @@ namespace OpenMS
   bool Plot1DCanvas::isDrawInterestingMZs() const
   {
     return draw_interesting_MZs_;
+  }
+
+  IsobaricQuantitationMethod::MethodType Plot1DCanvas::getTMTAnnotationMethod() const
+  {
+    return tmt_method_type_;
+  }
+
+  void Plot1DCanvas::setTMTAnnotationMethod(IsobaricQuantitationMethod::MethodType method)
+  {
+    if (tmt_method_type_ == method) return;
+    tmt_method_type_ = method;
+    updateTMTAnnotations_();
+  }
+
+  void Plot1DCanvas::removeTMTAnnotations_()
+  {
+    if (tmt_annotation_items_.empty()) return;
+    if (layers_.empty()) { tmt_annotation_items_.clear(); return; }
+    getCurrentLayer().getCurrentAnnotations().removeItems(tmt_annotation_items_);
+    tmt_annotation_items_.clear();
+    getCurrentLayer().peak_colors_1d.clear();
+  }
+
+  void Plot1DCanvas::updateTMTAnnotations_()
+  {
+    removeTMTAnnotations_();
+
+    using MT = IsobaricQuantitationMethod::MethodType;
+    if (tmt_method_type_ == MT::UNKNOWN) { update_(OPENMS_PRETTY_FUNCTION); return; }
+    if (layers_.empty()) return;
+
+    auto* peak_layer = dynamic_cast<LayerData1DPeak*>(&getCurrentLayer());
+    if (!peak_layer) return;
+    const MSSpectrum& spec = peak_layer->getCurrentSpectrum();
+    if (spec.empty()) return;
+
+    // Build theoretical TMT spectrum from channel masses
+    std::unique_ptr<IsobaricQuantitationMethod> method;
+    switch (tmt_method_type_)
+    {
+      case MT::TMT_6PLEX:  method = std::make_unique<TMTSixPlexQuantitationMethod>();       break;
+      case MT::TMT_10PLEX: method = std::make_unique<TMTTenPlexQuantitationMethod>();        break;
+      case MT::TMT_11PLEX: method = std::make_unique<TMTElevenPlexQuantitationMethod>();     break;
+      case MT::TMT_16PLEX: method = std::make_unique<TMTSixteenPlexQuantitationMethod>();    break;
+      case MT::TMT_18PLEX: method = std::make_unique<TMTEighteenPlexQuantitationMethod>();   break;
+      case MT::TMT_32PLEX: method = std::make_unique<TMTThirtyTwoPlexQuantitationMethod>();  break;
+      case MT::TMT_35PLEX: method = std::make_unique<TMTThirtyFivePlexQuantitationMethod>(); break;
+      default: return;
+    }
+
+    MSSpectrum tmt_spec;
+    for (const auto& ch : method->getChannelInformation())
+      tmt_spec.emplace_back(ch.center, 1.0f);
+    tmt_spec.sortByPosition();
+
+    // Profile vs. centroid handling
+    const bool is_profile = (spec.getType(true) == SpectrumSettings::SpectrumType::PROFILE);
+    MSSpectrum picked;
+    std::vector<PeakPickerHiRes::PeakBoundary> boundaries;
+    if (is_profile)
+    {
+      PeakPickerHiRes picker;
+      Param p;
+      p.setValue("signal_to_noise", 0.0);
+      picker.setParameters(p);
+      picker.pick(spec, picked, boundaries);
+    }
+    const MSSpectrum& centroid_spec = is_profile ? picked : spec;
+    if (centroid_spec.empty()) { update_(OPENMS_PRETTY_FUNCTION); return; }
+
+    // Align TMT channels to centroid peaks within 30 ppm
+    SpectrumAlignment aligner;
+    {
+      Param p;
+      p.setValue("tolerance", 30.0);
+      p.setValue("is_relative_tolerance", "true");
+      aligner.setParameters(p);
+    }
+    std::vector<std::pair<Size, Size>> tmt_to_centroid; // (tmt_channel_idx, centroid_peak_idx)
+    aligner.getSpectrumAlignment(tmt_to_centroid, tmt_spec, centroid_spec);
+    if (tmt_to_centroid.empty()) { update_(OPENMS_PRETTY_FUNCTION); return; }
+
+    // For profile: align picked centroids to raw spectrum to find best annotation anchor
+    std::unordered_map<Size, Size> centroid_to_raw_idx;
+    if (is_profile)
+    {
+      Param p;
+      p.setValue("tolerance", 5.0);
+      p.setValue("is_relative_tolerance", "true");
+      aligner.setParameters(p);
+      std::vector<std::pair<Size, Size>> c2r;
+      aligner.getSpectrumAlignment(c2r, centroid_spec, spec);
+      for (const auto& [ci, ri] : c2r) centroid_to_raw_idx[ci] = ri;
+    }
+
+    // Initialize per-peak color vector with default layer color
+    const QColor default_color(toQString(String(getCurrentLayer().param.getValue("peak_color").toString())));
+    const QColor tmt_color(255, 80, 0);  // vibrant orange-red
+    const QColor ann_color(Qt::darkRed);
+    auto& layer = *peak_layer;
+    layer.peak_colors_1d.assign(spec.size(), default_color);
+
+    const auto& channels = method->getChannelInformation();
+
+    for (const auto& [tmt_idx, cen_idx] : tmt_to_centroid)
+    {
+      const double obs_mz  = centroid_spec[cen_idx].getMZ();
+      const double theo_mz = channels[tmt_idx].center;
+      const double delta_ppm = Math::getPPM(obs_mz, theo_mz);
+
+      Peak1D anchor;
+      if (is_profile)
+      {
+        // Color the entire peak envelope using PeakPickerHiRes boundaries
+        const auto& b = boundaries[cen_idx];
+        for (Size si = 0; si < spec.size(); ++si)
+          if (spec[si].getMZ() >= b.mz_min && spec[si].getMZ() <= b.mz_max)
+            layer.peak_colors_1d[si] = tmt_color;
+        // Anchor label at closest raw peak to centroid
+        auto it = centroid_to_raw_idx.find(cen_idx);
+        anchor = (it != centroid_to_raw_idx.end()) ? spec[it->second] : centroid_spec[cen_idx];
+      }
+      else
+      {
+        layer.peak_colors_1d[cen_idx] = tmt_color;
+        anchor = centroid_spec[cen_idx];
+      }
+
+      const QString sign = delta_ppm >= 0 ? "+" : "";
+      const QString text = QString::fromStdString(channels[tmt_idx].name)
+                         + "\n" + sign + QString::number(delta_ppm, 'f', 1) + " ppm";
+
+      auto* item = new Annotation1DPeakItem<Peak1D>(anchor, text, ann_color);
+      item->setSelected(false);
+      getCurrentLayer().getCurrentAnnotations().push_front(item);
+      tmt_annotation_items_.push_back(item);
+    }
+
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
 } //Namespace

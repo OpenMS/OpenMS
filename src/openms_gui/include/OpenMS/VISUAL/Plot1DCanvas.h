@@ -12,6 +12,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // OpenMS
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/VISUAL/LayerData1DBase.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/PlotCanvas.h>
@@ -491,6 +492,12 @@ public:
     /// Return true if interesting m/s are annotated
     bool isDrawInterestingMZs() const;
 
+    /// Enable TMT reporter-ion annotation overlay for the given method (MethodType::UNKNOWN = disabled).
+    void setTMTAnnotationMethod(IsobaricQuantitationMethod::MethodType method);
+
+    /// Returns the currently active TMT annotation method (UNKNOWN = disabled).
+    IsobaricQuantitationMethod::MethodType getTMTAnnotationMethod() const;
+
     // Show/hide ion ladder on top right corner (Identification view)
     void setIonLadderVisible(bool show);
 
@@ -692,6 +699,11 @@ protected:
     // docu in base class
     void paintGridLines_(QPainter& painter) override;
 
+    /// (Re-)compute TMT reporter-ion annotations for the current spectrum.
+    void updateTMTAnnotations_();
+    /// Remove all annotation items previously added by TMT mode.
+    void removeTMTAnnotations_();
+
     /// Find peak next to the given position
     PeakIndex findPeakAtPosition_(QPoint);
 
@@ -743,6 +755,10 @@ protected:
     bool ion_ladder_visible_ = true;
     /// annotate interesting peaks with m/z's
     bool draw_interesting_MZs_ = false;
+    /// Active TMT annotation method; UNKNOWN = disabled
+    IsobaricQuantitationMethod::MethodType tmt_method_type_ {IsobaricQuantitationMethod::MethodType::UNKNOWN};
+    /// Raw pointers to Annotation1DItems added by TMT mode (ownership stays in Annotations1DContainer)
+    std::vector<Annotation1DItem*> tmt_annotation_items_;
     /// The text box in the upper left corner with the current data coordinates of the cursor
     QTextDocument text_box_content_;
     /// handles pulling/pushing of points to the edges of the widget

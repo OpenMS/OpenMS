@@ -14,6 +14,8 @@
 
 #include <OpenMS/KERNEL/Peak2D.h>
 
+#include <array>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -31,6 +33,31 @@ namespace OpenMS
     public DefaultParamHandler
   {
 public:
+
+    /// Identifies a concrete isobaric quantitation method. UNKNOWN is used as a sentinel (disabled/none).
+    enum class MethodType
+    {
+      UNKNOWN = 0,
+      TMT_6PLEX,
+      TMT_10PLEX,
+      TMT_11PLEX,
+      TMT_16PLEX,
+      TMT_18PLEX,
+      TMT_32PLEX,
+      TMT_35PLEX,
+      ITRAQ_4PLEX,
+      ITRAQ_8PLEX,
+      SIZE_OF_METHODTYPE ///< keep last
+    };
+
+    /// String identifiers for each MethodType, indexed by static_cast<int>(MethodType).
+    static const std::array<std::string_view, static_cast<int>(MethodType::SIZE_OF_METHODTYPE)> METHOD_TYPE_NAMES;
+
+    /// Returns the string identifier for a given MethodType.
+    static std::string_view methodTypeName(MethodType mt);
+
+    /// Returns the MethodType corresponding to @p name, or MethodType::UNKNOWN if not found.
+    static MethodType methodTypeFromName(std::string_view name);
 
     /**
       @brief Summary of an isobaric quantitation channel.
@@ -77,6 +104,9 @@ public:
       @return The unique name or identifier of the quantitation method.
     */
     virtual const String& getMethodName() const = 0;
+
+    /// Returns the MethodType enum value of this quantitation method.
+    virtual MethodType getMethodType() const = 0;
 
     /**
       @brief Returns information on the different channels used by the quantitation method.

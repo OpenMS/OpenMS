@@ -13,7 +13,6 @@
 
 namespace OpenMS
 {
-  const String ItraqFourPlexQuantitationMethod::name_ = "itraq4plex";
 
   ItraqFourPlexQuantitationMethod::ItraqFourPlexQuantitationMethod()
   {
@@ -91,7 +90,8 @@ namespace OpenMS
 
   const String& ItraqFourPlexQuantitationMethod::getMethodName() const
   {
-    return ItraqFourPlexQuantitationMethod::name_;
+    static const String name(IsobaricQuantitationMethod::methodTypeName(METHOD_TYPE));
+    return name;
   }
 
   const IsobaricQuantitationMethod::IsobaricChannelList& ItraqFourPlexQuantitationMethod::getChannelInformation() const
