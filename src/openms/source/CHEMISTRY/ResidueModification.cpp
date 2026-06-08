@@ -552,7 +552,7 @@ namespace OpenMS
                                                                               const TermSpecificity specificity,
                                                                               const Residue* residue)
   {
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     // -----------------------------------
     // Dealing with an unknown modification

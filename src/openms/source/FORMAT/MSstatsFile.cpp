@@ -121,7 +121,7 @@ void MSstatsFile::constructFile_(const String& retention_time_summarization_meth
       set<MSstatsFile::Intensity> intensities{};
       for (const auto &p : line.second)
       {
-        if (retention_times.find(get<1>(p)) != retention_times.end())
+        if (retention_times.contains(get<1>(p)))
         {
           OPENMS_LOG_WARN << "Peptide ion appears multiple times at the same retention time."
                              " This is not expected."
@@ -183,7 +183,8 @@ void MSstatsFile::storeLFQ(const String& filename,
                                    const bool is_isotope_label_type,
                                    const String& bioreplicate,
                                    const String& condition,
-                                   const String& retention_time_summarization_method)
+                                   const String& retention_time_summarization_method,
+                                   const bool remove_shared_peptides)
 {
   // Experimental Design file
   const ExperimentalDesign::SampleSection& sampleSection = design.getSampleSection();
@@ -346,6 +347,7 @@ void MSstatsFile::storeLFQ(const String& filename,
   // To aggregate/uniquify on peptide sequence-level and save if a peptide is quantifyable
   std::set<String> peptideseq_quantifyable; //set for deterministic ordering
 
+  Size n_shared_peptides_dropped = 0;
 
   // Stores all the lines that will be present in the final MSstats output
   // Several things needs to be considered:
@@ -380,14 +382,12 @@ void MSstatsFile::storeLFQ(const String& filename,
         // we check if the map is already set at this sequence since
         // it cannot happen that two peptides with the same sequence map to different proteins unless something is wrong.
         // Also, I think MSstats cannot handle different associations to proteins across conditions.
-        if (isQuantifyable_(accs, accession_to_group))
+        if (remove_shared_peptides && !isQuantifyable_(accs, accession_to_group))
         {
-          peptideseq_quantifyable.emplace(sequence);
-        }
-        else
-        {
+          ++n_shared_peptides_dropped;
           continue; // we don't need the rest of the loop
         }
+        peptideseq_quantifyable.emplace(sequence);
 
         // Variables of the peptide hit
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
@@ -444,6 +444,14 @@ void MSstatsFile::storeLFQ(const String& filename,
     }
   }
 
+  if (n_shared_peptides_dropped > 0)
+  {
+    OPENMS_LOG_WARN << "WARNING: " << n_shared_peptides_dropped
+                    << " peptide hit(s) were dropped because they map to proteins in different"
+                    << " indistinguishable protein groups (shared peptides)."
+                    << " Use -remove_shared_peptides false to keep them." << endl;
+  }
+
   // Print the run mapping between MSstats and OpenMS
   for (const auto& run_mapping : msstats_run_to_openms_fractiongroup)
   {
@@ -468,7 +476,8 @@ void MSstatsFile::storeISO(const String& filename,
                                    const String& bioreplicate,
                                    const String& condition,
                                    const String& mixture,
-                                   const String& retention_time_summarization_method)
+                                   const String& retention_time_summarization_method,
+                                   const bool remove_shared_peptides)
 {
   // Experimental Design file
   const ExperimentalDesign::SampleSection& sampleSection = design.getSampleSection();
@@ -603,6 +612,8 @@ void MSstatsFile::storeISO(const String& filename,
 
   std::set<String> peptideseq_quantifyable; //set for deterministic ordering
 
+  Size n_shared_peptides_dropped = 0;
+
   // Stores all the lines that will be present in the final MSstats output,
   // We need to map peptide sequences to full features, because then we can ignore peptides
   // that are mapped to multiple proteins. We also need to map to the
@@ -641,14 +652,12 @@ void MSstatsFile::storeISO(const String& filename,
         // When using extractProteinAccessionSet, we do not really need to loop over Evidences
         // anymore since MSStats does not care about anything else but the Protein accessions
 
-        if (isQuantifyable_(accs, accession_to_group))
+        if (remove_shared_peptides && !isQuantifyable_(accs, accession_to_group))
         {
-          peptideseq_quantifyable.emplace(sequence);
-        }
-        else
-        {
+          ++n_shared_peptides_dropped;
           continue; // we don't need the rest of the loop
         }
+        peptideseq_quantifyable.emplace(sequence);
 
         String accession = ListUtils::concatenate(accs,accdelim_);
         if (accession.empty()) accession = na_string_; //shouldn't really matter since we skip unquantifiable peptides
@@ -698,6 +707,14 @@ void MSstatsFile::storeISO(const String& filename,
   }
 
   // Print the run mapping between MSstats and OpenMS
+  if (n_shared_peptides_dropped > 0)
+  {
+    OPENMS_LOG_WARN << "WARNING: " << n_shared_peptides_dropped
+                    << " peptide hit(s) were dropped because they map to proteins in different"
+                    << " indistinguishable protein groups (shared peptides)."
+                    << " Use -remove_shared_peptides false to keep them." << endl;
+  }
+
   for (const auto& run_mapping : msstats_run_to_openms_fractiongroup)
   {
     cout << "MSstats run " << String(run_mapping.first)
@@ -734,7 +751,7 @@ void MSstatsFile::assembleRunMap_(
   for (ExperimentalDesign::MSFileSectionEntry const& r : msfile_section)
   {
     std::pair< String, unsigned> tpl = std::make_pair(File::basename(r.path), r.fraction);
-    if (run_map.find(tpl) == run_map.end())
+    if (!run_map.contains(tpl))
     {
       run_map[tpl] = run_counter++;
     }

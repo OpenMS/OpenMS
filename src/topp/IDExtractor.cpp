@@ -137,7 +137,7 @@ protected:
         {
           chosen_ids.push_back(it->second.getHits()[0].getSequence().toString());
           chosen_identifications.push_back(it->second);
-          if (identifiers.find(it->second.getIdentifier()) == identifiers.end())
+          if (!identifiers.contains(it->second.getIdentifier()))
           {
             temp_identifications.clear();
           }
@@ -169,7 +169,7 @@ protected:
         {
           chosen_ids.push_back(identifications[indices[index]].getHits()[0].getSequence().toString());
           chosen_identifications.push_back(identifications[indices[index]]);
-          if (identifiers.find(identifications[indices[index]].getIdentifier()) == identifiers.end())
+          if (!identifiers.contains(identifications[indices[index]].getIdentifier()))
           {
             temp_identifications.clear();
           }
@@ -195,7 +195,7 @@ protected:
     {
       temp_protein_hits = protein_identifications[i].getHits();
       chosen_protein_hits.clear();
-      if (identifiers.find(protein_identifications[i].getIdentifier()) != identifiers.end())
+      if (identifiers.contains(protein_identifications[i].getIdentifier()))
       {
         temp_identifications = identifiers[protein_identifications[i].getIdentifier()];
         for (Size j = 0; j < temp_protein_hits.size(); ++j)

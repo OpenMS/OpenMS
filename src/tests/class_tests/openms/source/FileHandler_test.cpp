@@ -15,12 +15,21 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <filesystem>
 #include <fstream>
+#include <map>
+#include <set>
 
 START_TEST(FileHandler, "$Id$")
 
@@ -309,6 +318,397 @@ TEST_EQUAL(fh.getTypeByContent(filename), FileTypes::MZML)
 TEST_EXCEPTION(Exception::InvalidFileType, fh.storeExperiment(filename, exp, {FileTypes::SIZE_OF_TYPE}))
 
 //other types cannot be tested, because the NEW_TMP_FILE template does not support file extensions...
+END_SECTION
+
+START_SECTION(([EXTRA] storeIdentifications_loadIdentifications_idparquet_round_trip))
+{
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+
+  ProteinIdentification prot;
+  prot.setIdentifier("run_1");
+  prot.setScoreType("score");
+  prot.setHigherScoreBetter(true);
+  prot_ids.push_back(prot);
+
+  PeptideIdentification pid;
+  pid.setIdentifier("run_1");
+  pid.setScoreType("score");
+  pid.setHigherScoreBetter(true);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  hit.setCharge(2);
+  hit.setScore(0.5);
+  pid.getHits().push_back(hit);
+  pep_ids.push_back(pid);
+
+  String dir;
+  NEW_TMP_FILE(dir)
+  dir += ".idparquet";
+
+  FileHandler().storeIdentifications(dir, prot_ids, pep_ids, {FileTypes::IDPARQUET});
+
+  std::vector<ProteinIdentification> prot_ids_in;
+  PeptideIdentificationList pep_ids_in;
+  FileHandler().loadIdentifications(dir, prot_ids_in, pep_ids_in, {FileTypes::IDPARQUET});
+
+  TEST_EQUAL(prot_ids_in.size(), 1);
+  TEST_EQUAL(pep_ids_in.size(), 1);
+
+  // Verify key fields actually round-trip rather than just counting containers.
+  // Identifier is synthesized on load per IdXMLFile.cpp:530 parity; stored "run_1"
+  // becomes `<search_engine>_<date>_<UniqueIdGenerator>`. Pep_ids re-stamp in lock-step.
+  TEST_NOT_EQUAL(prot_ids_in[0].getIdentifier(), "");
+  TEST_NOT_EQUAL(prot_ids_in[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(prot_ids_in[0].getScoreType(), "score");
+  TEST_EQUAL(prot_ids_in[0].isHigherScoreBetter(), true);
+
+  TEST_STRING_EQUAL(pep_ids_in[0].getIdentifier(), prot_ids_in[0].getIdentifier());
+  TEST_STRING_EQUAL(pep_ids_in[0].getScoreType(), "score");
+  TEST_EQUAL(pep_ids_in[0].isHigherScoreBetter(), true);
+  TEST_EQUAL(pep_ids_in[0].getHits().size(), 1);
+  const PeptideHit& h = pep_ids_in[0].getHits()[0];
+  TEST_STRING_EQUAL(h.getSequence().toString(), "PEPTIDE");
+  TEST_EQUAL(h.getCharge(), 2);
+  TEST_REAL_SIMILAR(h.getScore(), 0.5);
+
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
+{
+  FeatureMap fm;
+  Feature f;
+  f.setUniqueId(42);
+  f.setRT(123.4);
+  f.setMZ(567.89);
+  f.setIntensity(1000.0f);
+  f.setCharge(2);
+  f.setOverallQuality(0.9f);
+
+  // Minimal ID sidecar: ProteinIdentification on the map, PeptideIdentification
+  // on the feature, linked via shared identifier.
+  ProteinIdentification prot;
+  prot.setIdentifier("run_1");
+  prot.setScoreType("score");
+  prot.setHigherScoreBetter(true);
+  fm.getProteinIdentifications().push_back(prot);
+
+  PeptideIdentification pid;
+  pid.setIdentifier("run_1");
+  pid.setScoreType("score");
+  pid.setHigherScoreBetter(true);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  hit.setCharge(2);
+  hit.setScore(0.8);
+  pid.getHits().push_back(hit);
+  f.getPeptideIdentifications().push_back(pid);
+
+  fm.push_back(f);
+
+  String dir;
+  NEW_TMP_FILE(dir)
+  dir += ".featureparquet";
+
+  FileHandler().storeFeatures(dir, fm, {FileTypes::FEATUREPARQUET});
+
+  FeatureMap fm_in;
+  FileHandler().loadFeatures(dir, fm_in, {FileTypes::FEATUREPARQUET});
+
+  TEST_EQUAL(fm_in.size(), 1);
+  TEST_EQUAL(fm_in[0].getUniqueId(), 42);
+  TEST_REAL_SIMILAR(fm_in[0].getRT(), 123.4);
+  TEST_REAL_SIMILAR(fm_in[0].getMZ(), 567.89);
+  TEST_REAL_SIMILAR(fm_in[0].getIntensity(), 1000.0f);
+  TEST_EQUAL(fm_in[0].getCharge(), 2);
+  TEST_REAL_SIMILAR(fm_in[0].getOverallQuality(), 0.9f);
+
+  // ID sidecar round-trip — identifier is synthesized on load (IdXMLFile.cpp:530
+  // parity); pep_ids re-stamp in lock-step.
+  TEST_EQUAL(fm_in.getProteinIdentifications().size(), 1);
+  TEST_NOT_EQUAL(fm_in.getProteinIdentifications()[0].getIdentifier(), "");
+  TEST_NOT_EQUAL(fm_in.getProteinIdentifications()[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(fm_in.getProteinIdentifications()[0].getScoreType(), "score");
+  TEST_EQUAL(fm_in.getProteinIdentifications()[0].isHigherScoreBetter(), true);
+  TEST_EQUAL(fm_in[0].getPeptideIdentifications().size(), 1);
+  TEST_STRING_EQUAL(fm_in[0].getPeptideIdentifications()[0].getIdentifier(),
+                    fm_in.getProteinIdentifications()[0].getIdentifier());
+  TEST_EQUAL(fm_in[0].getPeptideIdentifications()[0].getHits().size(), 1);
+  const PeptideHit& h_in = fm_in[0].getPeptideIdentifications()[0].getHits()[0];
+  TEST_STRING_EQUAL(h_in.getSequence().toString(), "PEPTIDE");
+  TEST_EQUAL(h_in.getCharge(), 2);
+  TEST_REAL_SIMILAR(h_in.getScore(), 0.8);
+
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
+{
+  // Round-trip a real ProteomicsLFQ consensusXML through .consensusparquet
+  // (load -> store as parquet bundle -> load back) and verify the bits that
+  // matter for downstream consumers: map references (column headers <->
+  // FeatureHandle.map_index), run references (PeptideIdentification.identifier
+  // -> ProteinIdentification.identifier), id_merge_index linking PSMs to their
+  // original input file via spectra_data, inference info (indistinguishable
+  // proteins), and per-PSM hit content.
+  ConsensusMap cmap_ref;
+  FileHandler().loadConsensusFeatures(
+    OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"),
+    cmap_ref, {FileTypes::CONSENSUSXML});
+
+  // Sanity-anchor the reference: stable counts for this test fixture.
+  TEST_EQUAL(cmap_ref.size(), 39);
+  TEST_EQUAL(cmap_ref.getColumnHeaders().size(), 5);
+  TEST_EQUAL(cmap_ref.getProteinIdentifications().size(), 1);
+  TEST_EQUAL(cmap_ref.getUnassignedPeptideIdentifications().size(), 65);
+  TEST_EQUAL(cmap_ref.getProteinIdentifications()[0].getHits().size(), 25);
+  TEST_EQUAL(cmap_ref.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 18);
+  // ConsensusXMLHandler rebuilds the run identifier as "<engine>_<date>_<hash>"
+  // on load — the file-level XML id="PI_0" is only an internal cross-reference.
+  TEST_EQUAL(cmap_ref.getProteinIdentifications()[0].getIdentifier().hasPrefix("OMSSA_"), true);
+
+  String dir;
+  NEW_TMP_FILE(dir)
+  dir += ".consensusparquet";
+
+  FileHandler().storeConsensusFeatures(dir, cmap_ref, {FileTypes::CONSENSUSPARQUET});
+
+  ConsensusMap cmap_in;
+  FileHandler().loadConsensusFeatures(dir, cmap_in, {FileTypes::CONSENSUSPARQUET});
+
+  // ---- Top-level container counts ----
+  TEST_EQUAL(cmap_in.size(), cmap_ref.size());
+  TEST_EQUAL(cmap_in.getColumnHeaders().size(), cmap_ref.getColumnHeaders().size());
+  TEST_EQUAL(cmap_in.getProteinIdentifications().size(), cmap_ref.getProteinIdentifications().size());
+  TEST_EQUAL(cmap_in.getUnassignedPeptideIdentifications().size(), cmap_ref.getUnassignedPeptideIdentifications().size());
+
+  // ---- ColumnHeaders (map references): filename, label, unique_id per map ----
+  for (const auto& [map_idx, header_ref] : cmap_ref.getColumnHeaders())
+  {
+    auto it = cmap_in.getColumnHeaders().find(map_idx);
+    TEST_EQUAL(it != cmap_in.getColumnHeaders().end(), true);
+    if (it == cmap_in.getColumnHeaders().end()) continue;
+    TEST_STRING_EQUAL(it->second.filename, header_ref.filename);
+    TEST_STRING_EQUAL(it->second.label, header_ref.label);
+    TEST_EQUAL(it->second.unique_id, header_ref.unique_id);
+  }
+
+  // ---- FeatureHandle.map_index distribution ----
+  // Build per-map_index handle multisets keyed on (uid,map_idx) so any
+  // permutation of features still compares equal.
+  auto handle_keys = [](const ConsensusMap& m) {
+    std::multiset<std::pair<UInt64, UInt64>> keys;
+    for (const auto& cf : m)
+      for (const auto& fh : cf.getFeatures())
+        keys.emplace(fh.getUniqueId(), fh.getMapIndex());
+    return keys;
+  };
+  TEST_EQUAL(handle_keys(cmap_in) == handle_keys(cmap_ref), true);
+
+  // Per-map_index handle counts must match (covers the 5-map distribution).
+  auto handles_per_map = [](const ConsensusMap& m) {
+    std::map<UInt64, Size> counts;
+    for (const auto& cf : m)
+      for (const auto& fh : cf.getFeatures())
+        ++counts[fh.getMapIndex()];
+    return counts;
+  };
+  TEST_EQUAL(handles_per_map(cmap_in) == handles_per_map(cmap_ref), true);
+
+  // ---- Run references: every PeptideIdentification points to a known run ----
+  // Both lanes synthesize fresh identifiers on load (IdXMLFile.cpp:530 parity);
+  // identifier SUFFIXES differ between lanes by design, but each lane is internally
+  // consistent (no dangling pep_id->prot_id references) and the set sizes match.
+  std::set<String> run_ids_ref, run_ids_in;
+  for (const auto& p : cmap_ref.getProteinIdentifications()) run_ids_ref.insert(p.getIdentifier());
+  for (const auto& p : cmap_in.getProteinIdentifications()) run_ids_in.insert(p.getIdentifier());
+  TEST_EQUAL(run_ids_in.size(), run_ids_ref.size());
+
+  Size dangling_ref = 0, dangling_in = 0;
+  for (const auto& cf : cmap_ref)
+    for (const auto& pid : cf.getPeptideIdentifications())
+      if (!run_ids_ref.count(pid.getIdentifier())) ++dangling_ref;
+  for (const auto& pid : cmap_ref.getUnassignedPeptideIdentifications())
+    if (!run_ids_ref.count(pid.getIdentifier())) ++dangling_ref;
+  for (const auto& cf : cmap_in)
+    for (const auto& pid : cf.getPeptideIdentifications())
+      if (!run_ids_in.count(pid.getIdentifier())) ++dangling_in;
+  for (const auto& pid : cmap_in.getUnassignedPeptideIdentifications())
+    if (!run_ids_in.count(pid.getIdentifier())) ++dangling_in;
+  TEST_EQUAL(dangling_ref, 0);
+  TEST_EQUAL(dangling_in, 0);
+
+  // ---- ProteinIdentification (run-level) round-trip ----
+  const auto& prot_ref = cmap_ref.getProteinIdentifications()[0];
+  const auto& prot_in  = cmap_in.getProteinIdentifications()[0];
+  // Identifier prefix (search_engine_date) must match; the UniqueIdGenerator
+  // suffix differs between lanes by design.
+  TEST_EQUAL(prot_in.getIdentifier().hasPrefix("OMSSA_"), true);
+  TEST_EQUAL(prot_ref.getIdentifier().hasPrefix("OMSSA_"), true);
+  TEST_STRING_EQUAL(prot_in.getSearchEngine(), prot_ref.getSearchEngine());
+  TEST_STRING_EQUAL(prot_in.getSearchEngineVersion(), prot_ref.getSearchEngineVersion());
+  TEST_STRING_EQUAL(prot_in.getScoreType(), prot_ref.getScoreType());
+  TEST_EQUAL(prot_in.isHigherScoreBetter(), prot_ref.isHigherScoreBetter());
+  TEST_EQUAL(prot_in.getHits().size(), prot_ref.getHits().size());
+
+  // spectra_data (the per-merge-index file list)
+  StringList spectra_ref, spectra_in;
+  prot_ref.getPrimaryMSRunPath(spectra_ref);
+  prot_in.getPrimaryMSRunPath(spectra_in);
+  TEST_EQUAL(spectra_in == spectra_ref, true);
+  TEST_EQUAL(spectra_ref.size(), 5);
+
+  // ProteinHit accession set must round-trip exactly.
+  auto accessions = [](const ProteinIdentification& p) {
+    std::set<String> acc;
+    for (const auto& h : p.getHits()) acc.insert(h.getAccession());
+    return acc;
+  };
+  TEST_EQUAL(accessions(prot_in) == accessions(prot_ref), true);
+
+  // ---- Inference info: IndistinguishableProteins groups ----
+  // Compare as a set of (probability, sorted-accession-list) tuples so group
+  // ordering doesn't matter.
+  auto group_signature = [](const std::vector<ProteinIdentification::ProteinGroup>& gs) {
+    std::set<std::pair<double, std::vector<String>>> sig;
+    for (const auto& g : gs) {
+      std::vector<String> accs(g.accessions.begin(), g.accessions.end());
+      std::sort(accs.begin(), accs.end());
+      sig.emplace(g.probability, std::move(accs));
+    }
+    return sig;
+  };
+  TEST_EQUAL(group_signature(prot_in.getIndistinguishableProteins())
+             == group_signature(prot_ref.getIndistinguishableProteins()), true);
+  TEST_EQUAL(group_signature(prot_in.getProteinGroups())
+             == group_signature(prot_ref.getProteinGroups()), true);
+
+  // ---- id_merge_index distribution (PSM -> original-run linkage) ----
+  auto merge_index_hist = [](const ConsensusMap& m) {
+    std::map<int, Size> hist;
+    auto count = [&](const PeptideIdentification& pid) {
+      if (pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+        ++hist[(int)pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)];
+      else
+        ++hist[-1];
+    };
+    for (const auto& cf : m)
+      for (const auto& pid : cf.getPeptideIdentifications()) count(pid);
+    for (const auto& pid : m.getUnassignedPeptideIdentifications()) count(pid);
+    return hist;
+  };
+  auto hist_ref = merge_index_hist(cmap_ref);
+  auto hist_in  = merge_index_hist(cmap_in);
+  TEST_EQUAL(hist_in == hist_ref, true);
+  TEST_EQUAL(hist_ref.count(-1), 0); // every PSM in this fixture must have id_merge_index
+  TEST_EQUAL(hist_ref.size(), 5);    // values 0..4 (one per spectra_data entry)
+
+  // ---- PSM hit content fidelity (sequence/charge/score) ----
+  // Build (id_merge_index, RT, MZ, sequence, charge, score) tuples for unassigned
+  // PSMs (best hit only). RT/MZ make the tuple stable across order. The pid
+  // identifier is omitted because both lanes synthesize independently on load
+  // (IdXMLFile.cpp:530 parity); each lane is internally consistent (dangling
+  // checks above prove that) but the UniqueIdGenerator suffixes differ.
+  using PSMSig = std::tuple<int, double, double, String, int, double>;
+  auto psm_sigs = [](const auto& pids) {
+    std::vector<PSMSig> sigs;
+    for (const auto& pid : pids) {
+      if (pid.getHits().empty()) continue;
+      const auto& h = pid.getHits()[0];
+      int mi = pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)
+               ? (int)pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX) : -1;
+      sigs.emplace_back(mi, pid.getRT(), pid.getMZ(),
+                        h.getSequence().toString(), h.getCharge(), h.getScore());
+    }
+    std::sort(sigs.begin(), sigs.end());
+    return sigs;
+  };
+  TEST_EQUAL(psm_sigs(cmap_in.getUnassignedPeptideIdentifications())
+             == psm_sigs(cmap_ref.getUnassignedPeptideIdentifications()), true);
+
+  // Same comparison for feature-attached PSMs, flattened across all features.
+  auto attached_sigs = [&](const ConsensusMap& m) {
+    std::vector<PeptideIdentification> all;
+    for (const auto& cf : m)
+      for (const auto& pid : cf.getPeptideIdentifications()) all.push_back(pid);
+    return psm_sigs(all);
+  };
+  TEST_EQUAL(attached_sigs(cmap_in) == attached_sigs(cmap_ref), true);
+
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] storeConsensusFeatures_loadConsensusFeatures_consensusparquet_round_trip))
+{
+  ConsensusMap cmap;
+  ConsensusFeature cf;
+  cf.setUniqueId(7);
+  cf.setRT(50.0);
+  cf.setMZ(300.5);
+  cf.setIntensity(2000.0f);
+  cf.setCharge(3);
+  cf.setQuality(0.8f);
+
+  // Minimal ID sidecar: ProteinIdentification on the map, PeptideIdentification
+  // on the consensus feature, linked via shared identifier.
+  ProteinIdentification prot;
+  prot.setIdentifier("run_1");
+  prot.setScoreType("score");
+  prot.setHigherScoreBetter(true);
+  cmap.getProteinIdentifications().push_back(prot);
+
+  PeptideIdentification pid;
+  pid.setIdentifier("run_1");
+  pid.setScoreType("score");
+  pid.setHigherScoreBetter(true);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  hit.setCharge(3);
+  hit.setScore(0.7);
+  pid.getHits().push_back(hit);
+  cf.getPeptideIdentifications().push_back(pid);
+
+  cmap.push_back(cf);
+
+  String dir;
+  NEW_TMP_FILE(dir)
+  dir += ".consensusparquet";
+
+  FileHandler().storeConsensusFeatures(dir, cmap, {FileTypes::CONSENSUSPARQUET});
+
+  ConsensusMap cmap_in;
+  FileHandler().loadConsensusFeatures(dir, cmap_in, {FileTypes::CONSENSUSPARQUET});
+
+  TEST_EQUAL(cmap_in.size(), 1);
+  TEST_EQUAL(cmap_in[0].getUniqueId(), 7);
+  TEST_REAL_SIMILAR(cmap_in[0].getRT(), 50.0);
+  TEST_REAL_SIMILAR(cmap_in[0].getMZ(), 300.5);
+  TEST_REAL_SIMILAR(cmap_in[0].getIntensity(), 2000.0f);
+  TEST_EQUAL(cmap_in[0].getCharge(), 3);
+  TEST_REAL_SIMILAR(cmap_in[0].getQuality(), 0.8f);
+
+  // ID sidecar round-trip — identifier is synthesized on load (IdXMLFile.cpp:530
+  // parity); pep_ids re-stamp in lock-step.
+  TEST_EQUAL(cmap_in.getProteinIdentifications().size(), 1);
+  TEST_NOT_EQUAL(cmap_in.getProteinIdentifications()[0].getIdentifier(), "");
+  TEST_NOT_EQUAL(cmap_in.getProteinIdentifications()[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(cmap_in.getProteinIdentifications()[0].getScoreType(), "score");
+  TEST_EQUAL(cmap_in.getProteinIdentifications()[0].isHigherScoreBetter(), true);
+  TEST_EQUAL(cmap_in[0].getPeptideIdentifications().size(), 1);
+  TEST_STRING_EQUAL(cmap_in[0].getPeptideIdentifications()[0].getIdentifier(),
+                    cmap_in.getProteinIdentifications()[0].getIdentifier());
+  TEST_EQUAL(cmap_in[0].getPeptideIdentifications()[0].getHits().size(), 1);
+  const PeptideHit& h_in = cmap_in[0].getPeptideIdentifications()[0].getHits()[0];
+  TEST_STRING_EQUAL(h_in.getSequence().toString(), "PEPTIDE");
+  TEST_EQUAL(h_in.getCharge(), 3);
+  TEST_REAL_SIMILAR(h_in.getScore(), 0.7);
+
+  File::removeDirRecursively(dir);
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

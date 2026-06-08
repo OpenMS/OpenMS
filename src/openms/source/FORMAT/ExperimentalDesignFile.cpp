@@ -114,7 +114,7 @@ namespace OpenMS
         const String &h = header[i];
 
         // A header is unexpected if it is neither required nor optional and we do not allow other headers
-        const bool header_unexpected = (required.find(h) == required.end()) && (optional.find(h) == optional.end());
+        const bool header_unexpected = (!required.contains(h)) && (!optional.contains(h));
         parseErrorIf_(!allow_other_header && header_unexpected, filename, "Header not allowed in this section of the Experimental Design: " + h);
         column_map[h] = i;
       }
@@ -192,8 +192,8 @@ namespace OpenMS
             {"Fraction_Group", "Fraction", "Spectra_Filepath"},
             {"Label", "Sample"}, true
           );
-          has_label = fs_column_header_to_index.find("Label") != fs_column_header_to_index.end();
-          has_sample = fs_column_header_to_index.find("Sample") != fs_column_header_to_index.end();
+          has_label = fs_column_header_to_index.contains("Label");
+          has_sample = fs_column_header_to_index.contains("Sample");
 
           if (!has_label) // add label column to end of header
           {
@@ -358,8 +358,8 @@ namespace OpenMS
             {"Fraction_Group", "Fraction", "Spectra_Filepath"},
             {"Label", "Sample"}, false
           );
-          has_label = fs_column_header_to_index.find("Label") != fs_column_header_to_index.end();
-          has_sample = fs_column_header_to_index.find("Sample") != fs_column_header_to_index.end();
+          has_label = fs_column_header_to_index.contains("Label");
+          has_sample = fs_column_header_to_index.contains("Sample");
           
           n_col = fs_column_header_to_index.size();
         }
@@ -422,7 +422,7 @@ namespace OpenMS
         {
           // Parse Error if sample appears multiple times
           const String& sample = cells[sample_columnname_to_columnindex_["Sample"]];
-          parseErrorIf_(sample_sample_to_rowindex_.find(sample) != sample_sample_to_rowindex_.end(),
+          parseErrorIf_(sample_sample_to_rowindex_.contains(sample),
                         tsv_file,
                         "Sample: " + String(sample) + " appears multiple times in the sample table");
           sample_sample_to_rowindex_[sample] = line_number++;

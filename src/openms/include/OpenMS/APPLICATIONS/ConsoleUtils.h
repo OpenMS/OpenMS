@@ -16,62 +16,82 @@ namespace OpenMS
 {
 
   /**
-  * 
-  * Determines the width of the console automatically.
-  * 
-  * To manually force a certain width set the environment variable 'COLUMNS' to a desired value.
-  * 
+    @brief Singleton helper for terminal-width-aware string wrapping in TOPP-tool console output.
+
+    Detects the current console width on construction (so it reflects the terminal the program
+    was launched in) and exposes helpers that wrap long strings to that width with hanging
+    indentation — the typical pattern used by TOPP tools to format `--help` output, parameter
+    descriptions, and CLI error messages.
+
+    The detected width can be overridden at run time by setting the @c COLUMNS environment
+    variable before launching the program. If the width cannot be determined (e.g. when stdout
+    is not a terminal), it falls back to @c std::numeric_limits<int>::max(), which effectively
+    disables wrapping.
+
+    Construction is private; access via getInstance(). The class is non-copyable and the cached
+    console width is read once per process — long-running tools that resize their terminal
+    mid-run will continue to use the original width.
+
+    @ingroup System
   */
   class OPENMS_DLLAPI ConsoleUtils
   {
   private:
-    /// C'tor (private) -- use ConsoleUtils::getInstance()
+    /// Private ctor — caches the console width once; use @ref getInstance to access
     ConsoleUtils();
 
   public:
-    /// Copy C'tor (deleted)
+    /// Copy constructor deleted (singleton)
     ConsoleUtils(const ConsoleUtils&) = delete;
 
-    /// Assignment operator (deleted)
+    /// Assignment operator deleted (singleton)
     void operator=(ConsoleUtils const&) = delete;
 
-    /// returns the singleton -- the only instanciation of this class
+    /// Return the singleton instance (constructed on first call; thread-safe per Meyers-singleton rules)
     static const ConsoleUtils& getInstance();
 
-    /// Make a string console-friendly
-    /// by breaking it into multiple lines according to the console width.
-    /// The 'indentation' gives the number of spaces which is prepended beginning at the second (!)
-    /// line, so one gets a left aligned block which has some space to the left.
-    /// An indentation of 0 results in the native console's default behaviour: just break at the end of
-    /// its width and start a new line.
-    /// @p max_lines gives the upper limit of lines returned after breaking is finished.
-    /// Excess lines are removed and replaced by '...', BUT the last line will be preserved.
-    /// 
-    /// @param[in] input String to be split
-    /// @param[in] indentation Number of spaces to use for lines 2 until last line (should not exceed the console width)
-    /// @param[in] max_lines Limit of output lines (all others are removed)
-    /// @param[in] first_line_prefill Assume this many chars were already written in the current line of the console (should not exceed the console width)
+    /**
+      @brief Wrap @p input to the current console width and return one element per output line.
+
+      Behaviour:
+        - Lines 2..N are prefixed by @p indentation spaces, giving a left-aligned hanging
+          block; lines wider than the console get broken at the console width.
+        - @p indentation == 0 falls back to the native console behaviour (raw line break
+          at the right edge with no prefix on the next line).
+        - If the wrapped output would exceed @p max_lines, excess lines are dropped and a
+          @c "..." marker is inserted; the **final line is always preserved** so the tail of
+          the message stays visible.
+        - @p first_line_prefill lets the caller advertise how many characters are already
+          present on the current console line (e.g. when this string is being appended after
+          a label), so the first wrap point is calculated correctly.
+
+      @param[in] input              String to wrap.
+      @param[in] indentation        Spaces to prepend to lines 2..N (must not exceed console width).
+      @param[in] max_lines          Maximum output lines; excess lines collapse into "..." with the last line kept.
+      @param[in] first_line_prefill Number of characters already written on the current line (must not exceed console width).
+      @return One element per wrapped output line.
+    */
     static StringList breakStringList(const String& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0);
 
-    /// same as breakStringList(), but concatenates the result using '\n' for convenience
+    /// Convenience wrapper around @ref breakStringList that joins the result with @c "\\n"
     static String breakString(const String& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0);
 
-    /// width of the console (or INTMAX on internal error)
+    /// Cached console width (or @c std::numeric_limits<int>::max() when detection failed and wrapping is effectively disabled)
     int getConsoleWidth() const
     {
       return console_width_;
     }
 
-    friend struct ConsoleWidthTest; ///< allows us to set console_width to a fixed value for testing
+    friend struct ConsoleWidthTest; ///< Test hook: lets unit tests pin @c console_width_ to a deterministic value
 
   private:
-    /// width of console we are currently in (if not determinable, set to INTMAX, i.e. not breaks)
+    /// Cached console width; @c numeric_limits<int>::max() means "could not detect → no wrapping"
     int console_width_ = std::numeric_limits<int>::max();
 
-    /// read console settings for output shaping
+    /// Probe the host environment / terminal to determine the console width (also honours the @c COLUMNS env var)
     int readConsoleSize_();
 
-    /// returns a console friendly version of input
+    /// Non-static implementation used by the public static wrappers; receives the cached @c console_width_
     StringList breakString_(const String& input, const Size indentation, const Size max_lines, Size first_line_prefill) const;
   };
 

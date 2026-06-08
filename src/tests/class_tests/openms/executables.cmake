@@ -129,6 +129,7 @@ set(system_executables_list
   File_test
   Network_test
   JavaInfo_test
+  PathUtils_test
   PythonInfo_test
   StopWatch_test
   SysInfo_test
@@ -171,6 +172,9 @@ set(kernel_executables_list
 set(format_executables_list
   AbsoluteQuantitationStandardsFile_test
   Base64_test
+  BrukerTimsFile_test
+  BrukerTimsImagingFile_test
+  PASEFHillCentroider_test
   MSNumpressCoder_test
   Bzip2Ifstream_test
   Bzip2InputStream_test
@@ -233,6 +237,7 @@ set(format_executables_list
   OMSSACSVFile_test
   OMSSAXMLFile_test
   OSWFile_test
+  OSWFileInference_test
   PTMXMLFile_test
   ParamCTDFile_test
   ParamJSONFile_test
@@ -244,6 +249,9 @@ set(format_executables_list
   PepNovoOutfile_test
   PepXMLFileMascot_test
   PepXMLFile_test
+  Percolator_test
+  Percolator_subprocess_parity_test
+  PercolatorAdapter_parity_test
   PercolatorInfile_test
   PercolatorOutfile_test
   ProtXMLFile_test
@@ -254,6 +262,7 @@ set(format_executables_list
   SpecArrayFile_test
   SqMassFile_test
   MRMFile_test
+  ThermoRawFile_test
   SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
@@ -274,6 +283,7 @@ set(format_executables_list
   ZlibCompression_test
   Libzip_test
   ZipArchiveFile_test
+  ZipIfstream_test
   ZipRandomAccessFile_test
   # DATAACCESS
   MSDataCachedConsumer_test
@@ -290,17 +300,16 @@ if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
 endif()
 
-if(WITH_PARQUET)
-  list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test QPXFile_test
-    MSChromatogramParquetConsumer_test
-    MobilogramParquetConsumer_test
-    XICParquetFile_test
-    XIMParquetFile_test
-    OpenSwathOSWParquetRoundTrip_test
-    ProteinIdentificationArrowIO_test
-    FeatureMapArrowIO_test
-    ConsensusMapArrowIO_test)
-endif()
+list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test QPXFile_test
+  MSChromatogramParquetConsumer_test
+  MobilogramParquetConsumer_test
+  XICParquetFile_test
+  XIMParquetFile_test
+  ProteinIdentificationArrowIO_test
+  FeatureMapArrowIO_test
+  ConsensusMapArrowIO_test
+  PSMArrowIO_test
+  ArrowSchemaRegistry_test)
 
 set(math_executables_list
   BasicStatistics_test
@@ -316,6 +325,7 @@ set(math_executables_list
   CrossValidation_test
   Histogram_test
   KernelDensityEstimation_test
+  LevelContextInference_test
   LinearInterpolation_test
   LinearRegression_test
   MathFunctions_test
@@ -346,11 +356,11 @@ set(filtering_executables_list
   GaussFilterAlgorithm_test
   IDFilter_test
   InternalCalibration_test
-  LinearResampler_test
   LinearResamplerAlign_test
   LowessSmoothing_test
   MassTraceDetection_test
   MorphologicalFilter_test
+  ModifiedSincSmoother_test
   MultiplexClustering_test
   MultiplexDeltaMasses_test
   MultiplexDeltaMassesGenerator_test
@@ -416,6 +426,8 @@ set(chemistry_executables_list
   EmpiricalFormula_test
   EnzymaticDigestion_test
   FineIsotopeDistribution_test
+  HydrophobicityProfile_test
+  IsoelectricPoint_test
   IMSAlphabetParser_test
   IMSAlphabetTextParser_test
   IMSAlphabet_test
@@ -516,6 +528,8 @@ set(analysis_executables_list
   TMTElevenPlexQuantitationMethod_test
   TMTSixteenPlexQuantitationMethod_test
   TMTEighteenPlexQuantitationMethod_test
+  TMTThirtyTwoPlexQuantitationMethod_test
+  TMTThirtyFivePlexQuantitationMethod_test
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test
@@ -549,6 +563,7 @@ set(analysis_executables_list
   PeptideProteinResolution_test
   PeakGroup_test
   PScore_test
+  FragmentIndex_test
   HyperScore_test
   MorpheusScore_test
   OpenPepXLAlgorithm_test
@@ -561,7 +576,7 @@ set(analysis_executables_list
   ReactionMonitoringTransition_test
   NuXLModificationsGenerator_test
   NuXLParameterParsing_test
-  PeptideSearchEngineFIAlgorithm_test
+  ProSEAlgorithm_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
   SpectralDeconvolution_test
@@ -576,6 +591,10 @@ set(analysis_executables_list
   XFDRAlgorithm_test
   XQuestScores_test
 )
+
+if(WITH_WNETALIGN)
+  list(APPEND analysis_executables_list FeatureGroupingAlgorithmWNet_test WNetMatcher_test)
+endif()
 
 set(applications_executables_list
   INIUpdater_test
@@ -633,6 +652,12 @@ set(ionmobility_executables_list
   IMTypes_test
 )
 
+set(imaging_executables_list
+  IonImage_test
+  MSImagingGeometry_test
+  MSImagingExperiment_test
+)
+
 if(NOT DISABLE_OPENSWATH)
   set(swath_executables_list
     MRMAssay_test
@@ -667,6 +692,8 @@ if(NOT DISABLE_OPENSWATH)
     MRMFeatureFinderScoring_test
     MRMFeatureFilter_test
     MRMFeatureQC_test
+    OpenSwathExport_test
+    PeptidoformInference_test
     SpectrumHelpers_test
     StatsHelpers_test
     SwathQC_test
@@ -676,10 +703,11 @@ if(NOT DISABLE_OPENSWATH)
   )
 endif(NOT DISABLE_OPENSWATH)
 
-if(NOT DISABLE_OPENSWATH AND WITH_PARQUET)
+if(NOT DISABLE_OPENSWATH)
   list(APPEND swath_executables_list TransitionParquetFile_test)
   list(APPEND swath_executables_list OpenSwathOSWParquetReader_test)
   list(APPEND swath_executables_list OpenSwathOSWParquetWriter_test)
+  list(APPEND format_executables_list OpenSwathOSWParquetRoundTrip_test)
 endif()
 
 set(Boost_dependent_tests
@@ -722,6 +750,7 @@ set(TEST_executables
     ${applications_executables_list}
     ${transformations_executables_list}
     ${ionmobility_executables_list}
+    ${imaging_executables_list}
     ${swath_executables_list}
     ${qc_executables_list}
 )

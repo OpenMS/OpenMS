@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -220,11 +221,11 @@ struct NuXLLinearRescore
               predictors[f].push_back(value);
             }
             // only add label for training data (rank = 0 and previously selected for training)
-            if (psm_rank == 0 && top_indices.count(index) != 0)
+            if (psm_rank == 0 && top_indices.contains(index))
             {
               labels[current_row] = 1.0;
             }
-            else if (psm_rank == 0 && bottom_indices.count(index) != 0)
+            else if (psm_rank == 0 && bottom_indices.contains(index))
             {
               labels[current_row] = 0.0;
             }
@@ -359,7 +360,7 @@ struct NuXLLinearRescore
                predictors[f].push_back(value);
              }
              // only add label for training data (rank = 0 and previously selected for training)
-             if (psm_rank == 0 && training_indices.count(index) > 0)
+             if (psm_rank == 0 && training_indices.contains(index))
              {
                labels[current_row] = is_target;
              }
@@ -3553,7 +3554,7 @@ static void scoreXLIons_(
       { 
         const Residue& r = fixed_and_variable_modified_peptide[i];
         if (!r.isModified()) continue;
-        if (variable_modifications.val.find(r.getModification()) != variable_modifications.val.end())
+        if (variable_modifications.val.contains(r.getModification()))
         {
           ++n_var_mods;
         }
@@ -3564,9 +3565,9 @@ static void scoreXLIons_(
       auto c_term_mod = fixed_and_variable_modified_peptide.getCTerminalModification();
 
       if (n_term_mod != nullptr &&
-        variable_modifications.val.find(n_term_mod) != variable_modifications.val.end()) ++n_var_mods;
+        variable_modifications.val.contains(n_term_mod)) ++n_var_mods;
       if (c_term_mod != nullptr &&
-        variable_modifications.val.find(c_term_mod) != variable_modifications.val.end()) ++n_var_mods;
+        variable_modifications.val.contains(c_term_mod)) ++n_var_mods;
 
       ph.setMetaValue(String("variable_modifications"), n_var_mods);
       ph.setMetaValue(String("n_theoretical_peaks"), ah.n_theoretical_peaks);
@@ -3816,7 +3817,7 @@ static void scoreXLIons_(
       for (auto & ph : pid.getHits())
       {
         const String& unmodified_sequence = ph.getSequence().toUnmodifiedString();
-        if (sequence_is_topPSM.find(unmodified_sequence) != sequence_is_topPSM.end())
+        if (sequence_is_topPSM.contains(unmodified_sequence))
         {  
           ph.setMetaValue("CountSequenceIsTop", sequence_is_topPSM[unmodified_sequence]);
           ph.setMetaValue("CountSequenceCharges", sequence_charges[unmodified_sequence].size());
@@ -4545,9 +4546,9 @@ static void scoreXLIons_(
 
   std::tuple<IMFormat, DriftTimeUnit> getMS2IMType(const MSExperiment& spectra)
   {
-    IMFormat IM_format = IMTypes::determineIMFormat(spectra);  
+    IMFormat IM_format = IMTypes::determineIMFormat(spectra, 2);
     DriftTimeUnit IM_unit = DriftTimeUnit::NONE;
-    if (IM_format == IMFormat::MULTIPLE_SPECTRA)
+    if (IM_format == IMFormat::IM_SPECTRUM)
     {
       OPENMS_LOG_INFO << "Ion Mobility annotated at the spectrum level." << std::endl;
 
@@ -4568,13 +4569,9 @@ static void scoreXLIons_(
     {
       OPENMS_LOG_INFO << "No Ion Mobility annotated at the spectrum level." << std::endl;
     }
-    else if (IM_format == IMFormat::CONCATENATED)
+    else if (IM_format == IMFormat::IM_PEAK)
     {
-      OPENMS_LOG_INFO << "Concatenated Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
-    }
-    else if (IM_format == IMFormat::MIXED)
-    {
-      OPENMS_LOG_INFO << "Mixed Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
+      OPENMS_LOG_INFO << "Per-peak Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
     }
     return make_tuple(IM_format, IM_unit);
   }
@@ -4582,16 +4579,26 @@ static void scoreXLIons_(
   void convertVSSCToCCS(MSExperiment& spectra)
   { // confirmed values with alpha and MaxQuant
     OPENMS_LOG_INFO << "Converting 1/k0 to CCS values." << std::endl;
-    constexpr double bruker_CCS_coef = 1059.62245; // constant coefficient for Bruker in the Mason-Schamp equation
-    constexpr double IM_N2_gas_mass = 28.0; // like in alpha code
     for (auto& s : spectra)
     {
+      // spectra without convertible IM (no precursor / no IM / missing charge) get their IM cleared,
+      // so downstream code (e.g. fillSpectrumID_) never mixes raw 1/K0 with CCS values.
+      if (s.getPrecursors().empty())
+      {
+        s.setDriftTime(0.0);
+        s.setDriftTimeUnit(DriftTimeUnit::NONE);
+        continue;
+      }
       const double IM = s.getDriftTime();
       const double mz = s.getPrecursors()[0].getMZ();
-      const double charge = s.getPrecursors()[0].getCharge();
-      const double mass = mz * charge;
-      const double reduced_mass = mass * IM_N2_gas_mass / (mass + IM_N2_gas_mass);
-      const double CCS = IM * charge * bruker_CCS_coef / std::sqrt(reduced_mass); // Mason-Schamp equation
+      const int charge = s.getPrecursors()[0].getCharge();
+      if (IM <= 0.0 || mz <= 0.0 || charge == 0)
+      {
+        s.setDriftTime(0.0);
+        s.setDriftTimeUnit(DriftTimeUnit::NONE);
+        continue;
+      }
+      const double CCS = IMTypes::oneOverK0ToCCS(IM, mz, charge); // Mason-Schamp equation
       s.setDriftTime(CCS);
       s.setDriftTimeUnit(DriftTimeUnit::CCS);
     }
@@ -4619,7 +4626,7 @@ static void scoreXLIons_(
         vector<size_t> idx_to_keep; // inverse
         for (size_t i = 0; i != s.size(); ++i)
         { // add indices we don't want to remove
-          if (idx_to_remove.find(i) == idx_to_remove.end()) idx_to_keep.push_back(i);
+          if (!idx_to_remove.contains(i)) idx_to_keep.push_back(i);
         }
         filtered_peaks_count += idx_to_remove.size();
         s.select(idx_to_keep);
@@ -4726,6 +4733,7 @@ static void scoreXLIons_(
       p.setValue("peptide:missed_cleavages", 2);
       p.setValue("precursor:isotopes", IntList{0, 1});
       p.setValue("decoys", generate_decoys ? "true" : "false");
+      p.setValue("FDR:PSM", 0.0); // disable built-in FDR — OpenNuXL handles FDR filtering separately
       p.setValue("enzyme", getStringOption_("peptide:enzyme"));
       p.setValue("annotate:PSM", 
         vector<string>{
@@ -4873,7 +4881,7 @@ static void scoreXLIons_(
                 const String other_native_id = f->getMetaValue("native_id");
 
                 // skip self-comparison and already identified spectra
-                if (this_native_id == other_native_id || skip_peptide_spectrum.count(other_native_id) > 0) continue;
+                if (this_native_id == other_native_id || skip_peptide_spectrum.contains(other_native_id)) continue;
 
                 const MSSpectrum& this_spec = spectra[lookup.findByNativeID(this_native_id)];
                 const MSSpectrum& other_spec = spectra[lookup.findByNativeID(other_native_id)];
@@ -5379,7 +5387,7 @@ static void scoreXLIons_(
 #endif
         {
           // skip peptide (and all modified variants) if already processed
-          if (processed_petides.find(*cit) != processed_petides.end())
+          if (processed_petides.contains(*cit))
           {
             already_processed = true;
           }
@@ -5684,7 +5692,7 @@ static void scoreXLIons_(
                       const PeakSpectrum & exp_spectrum = spectra[scan_index];
                       //////////////////////////////////////////
                       //               ID-Filter
-                      if (skip_peptide_spectrum.find(exp_spectrum.getNativeID()) != skip_peptide_spectrum.end()) { continue; }
+                      if (skip_peptide_spectrum.contains(exp_spectrum.getNativeID())) { continue; }
 
 #pragma omp atomic
                       ++nr_candidates[scan_index]; // count candidate for spectrum
@@ -5892,7 +5900,7 @@ static void scoreXLIons_(
                 const String& precursor_na_adduct = *mod_combinations_it->second.begin(); // For fast scoring it should be sufficient to only consider any of the adducts for this mass and formula (e.g., C-H3N vs U-H2O)
                 MSSpectrum& exp_spectrum = spectra[scan_index];
 
-                if (precursor_na_adduct != "none" && skip_peptide_spectrum.find(exp_spectrum.getNativeID()) != skip_peptide_spectrum.end()) continue;
+                if (precursor_na_adduct != "none" && skip_peptide_spectrum.contains(exp_spectrum.getNativeID())) continue;
 
 #pragma omp atomic       
                 ++nr_candidates[scan_index];

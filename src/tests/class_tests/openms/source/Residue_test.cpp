@@ -42,7 +42,7 @@ START_SECTION((virtual ~Residue()))
 }
 END_SECTION
 
-ResidueDB* db = ResidueDB::getInstance();
+const ResidueDB* db = ResidueDB::getInstance();
 e_ptr = new Residue(*db->getResidue("Lys"));
 
 EmpiricalFormula h2o("H2O");
@@ -748,6 +748,24 @@ START_SECTION((static String getResidueTypeName(const ResidueType res_type)))
 }
 END_SECTION
 
+START_SECTION((double getHydrophobicity(const HydrophobicityScaleMethod scale) const))
+{
+  Residue res;
+  res.setOneLetterCode("A");
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE),1.800);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG),0.620);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::HOPP_WOODS),-0.5);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::BULL_BREESE),0.610);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::BLACK_MOULD),0.616);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::GUY),0.1);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG_CONSENSUS),0.25);
+  res.setOneLetterCode("X");
+  TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE));
+  res.setOneLetterCode("");
+  TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE));
+}
+END_SECTION
+
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////
@@ -823,7 +841,7 @@ START_SECTION(([EXTRA] std::hash<Residue>))
   TEST_EQUAL(residue_map[r3], 3)
 
   // Test 5: Residues from ResidueDB
-  ResidueDB* rdb = ResidueDB::getInstance();
+  const ResidueDB* rdb = ResidueDB::getInstance();
   const Residue* ala = rdb->getResidue("Ala");
   const Residue* gly = rdb->getResidue("Gly");
   const Residue* ala2 = rdb->getResidue("Alanine"); // Same as Ala

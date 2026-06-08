@@ -10,61 +10,27 @@
 #include <OpenMS/OPENSWATHALGO/Macros.h>
 #include <cmath>
 #include <algorithm>
-#include <unordered_map>
+#include <cstdint>
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
 namespace OpenSwath::Scoring
 {
-    namespace detail
-    {
-      // Internal helper to avoid deprecation warnings between our own functions
-      static void normalize_sum_impl(double* x, unsigned int n)
-      {
-        Eigen::Map<Eigen::VectorXd> v(x, n);
-        double s = v.sum();
-        if (s != 0.0) { v /= s; }
-      }
-    }
-
-    void normalize_sum(double x[], unsigned int n)
-    {
-      detail::normalize_sum_impl(x, n);
-    }
-
     void normalize_sum(std::vector<double>& x)
     {
-      detail::normalize_sum_impl(x.data(), static_cast<unsigned int>(x.size()));
-    }
-
-    double NormalizedManhattanDist(double x[], double y[], int n)
-    {
-      OPENSWATH_PRECONDITION(n > 0, "Need at least one element");
-
-      detail::normalize_sum_impl(x, n);
-      detail::normalize_sum_impl(y, n);
-      Eigen::Map<Eigen::VectorXd> vx(x, n);
-      Eigen::Map<Eigen::VectorXd> vy(y, n);
-      return (vx - vy).cwiseAbs().sum() / n;
+      Eigen::Map<Eigen::VectorXd> v(x.data(), x.size());
+      double s = v.sum();
+      if (s != 0.0) { v /= s; }
     }
 
     double NormalizedManhattanDist(std::vector<double>& x, std::vector<double>& y)
     {
       OPENSWATH_PRECONDITION(x.size() == y.size() && !x.empty(), "Both vectors need to have the same non-zero length");
-      detail::normalize_sum_impl(x.data(), static_cast<unsigned int>(x.size()));
-      detail::normalize_sum_impl(y.data(), static_cast<unsigned int>(y.size()));
+      normalize_sum(x);
+      normalize_sum(y);
       Eigen::Map<Eigen::VectorXd> vx(x.data(), x.size());
       Eigen::Map<Eigen::VectorXd> vy(y.data(), y.size());
       return (vx - vy).cwiseAbs().sum() / x.size();
-    }
-
-    double RootMeanSquareDeviation(double x[], double y[], int n)
-    {
-      OPENSWATH_PRECONDITION(n > 0, "Need at least one element");
-
-      Eigen::Map<const Eigen::VectorXd> vx(x, n);
-      Eigen::Map<const Eigen::VectorXd> vy(y, n);
-      return std::sqrt((vx - vy).squaredNorm() / n);
     }
 
     double RootMeanSquareDeviation(const std::vector<double>& x, const std::vector<double>& y)
@@ -73,26 +39,6 @@ namespace OpenSwath::Scoring
       Eigen::Map<const Eigen::VectorXd> vx(x.data(), x.size());
       Eigen::Map<const Eigen::VectorXd> vy(y.data(), y.size());
       return std::sqrt((vx - vy).squaredNorm() / x.size());
-    }
-
-    double SpectralAngle(double x[], double y[], int n)
-    {
-      OPENSWATH_PRECONDITION(n > 0, "Need at least one element");
-
-      Eigen::Map<const Eigen::VectorXd> vx(x, n);
-      Eigen::Map<const Eigen::VectorXd> vy(y, n);
-      double x_len = vx.norm();
-      double y_len = vy.norm();
-
-      // normalise, avoiding a divide by zero. See unit tests for what happens
-      // when one of the vectors has a length of zero.
-      double denominator = x_len * y_len;
-      double theta = (denominator == 0) ? 0.0 : vx.dot(vy) / denominator;
-
-      // clip to range [-1, 1] to save acos blowing up
-      theta = std::max(-1.0, std::min(1.0, theta));
-
-      return std::acos(theta);
     }
 
     double SpectralAngle(const std::vector<double>& x, const std::vector<double>& y)
@@ -199,67 +145,6 @@ namespace OpenSwath::Scoring
       return result;
     }
 
-    XCorrArrayType calcxcorr_legacy_mquest_(std::vector<double>& data1,
-                                            std::vector<double>& data2, bool normalize)
-    {
-      OPENSWATH_PRECONDITION(!data1.empty() && data1.size() == data2.size(), "Both data vectors need to have the same length");
-      int datasize = static_cast<int>(data1.size());
-      int maxdelay = datasize;
-      int lag = 1;
-
-      Eigen::Map<Eigen::VectorXd> map1(data1.data(), datasize);
-      Eigen::Map<Eigen::VectorXd> map2(data2.data(), datasize);
-
-      double mean1 = map1.mean();
-      double mean2 = map2.mean();
-      double denominator = 1.0;
-
-      if (normalize)
-      {
-        double sqsum1 = (map1.array() - mean1).square().sum();
-        double sqsum2 = (map2.array() - mean2).square().sum();
-        denominator = std::sqrt(sqsum1 * sqsum2);
-      }
-
-      denominator = (denominator > 0) ? (1.0 / denominator) : 0.0;
-
-      XCorrArrayType result;
-      result.data.reserve( (size_t)std::ceil((2*maxdelay + 1.0) / lag));
-
-      for (int delay = -maxdelay; delay <= maxdelay; delay += lag)
-      {
-        double sxy = 0.0;
-        int start = std::max(0, -delay);
-        int end = std::min(datasize, datasize - delay);
-        int len = end - start;
-
-        if (len > 0)
-        {
-          Eigen::Map<Eigen::VectorXd> sub1(data1.data() + start, len);
-          Eigen::Map<Eigen::VectorXd> sub2(data2.data() + start + delay, len);
-
-          if (normalize)
-          {
-            sxy = (sub1.array() - mean1).matrix().dot((sub2.array() - mean2).matrix());
-          }
-          else
-          {
-            sxy = sub1.dot(sub2);
-          }
-        }
-
-        if (denominator > 0)
-        {
-          result.data.emplace_back(delay, sxy * denominator);
-        }
-        else
-        {
-          result.data.emplace_back(delay, 0);
-        }
-      }
-      return result;
-    }
-
     unsigned int computeAndAppendRank(const std::vector<double>& v_temp, std::vector<unsigned int>& ranks_out)
     {
       std::vector<unsigned int> ranks{};
@@ -298,22 +183,41 @@ namespace OpenSwath::Scoring
     {
       OPENSWATH_PRECONDITION(ranked_data1.size() != 0 && ranked_data1.size() == ranked_data2.size(), "Both data vectors need to have the same length");
 
-      unsigned int inputVectorlength = ranked_data1.size();
-      unsigned int firstNumStates = max_rank1 + 1;
-      unsigned int secondNumStates = max_rank2 + 1;
-      std::vector<double> firstStateCounts(firstNumStates,0);
-      std::vector<double> secondStateCounts(secondNumStates,0);
-      std::unordered_map<pos2D, double, pair_hash> jointStateCounts{};
+      const unsigned int inputVectorlength = ranked_data1.size();
+      const unsigned int firstNumStates = max_rank1 + 1;
+      const unsigned int secondNumStates = max_rank2 + 1;
+      std::vector<unsigned int> firstStateCounts(firstNumStates, 0);
+      std::vector<unsigned int> secondStateCounts(secondNumStates, 0);
+      std::vector<std::uint64_t> jointStates;
+      jointStates.reserve(inputVectorlength);
 
-      for (unsigned int i = 0; i < inputVectorlength; i++) {
-        firstStateCounts[ranked_data1[i]] += 1;
-        secondStateCounts[ranked_data2[i]] += 1;
-        jointStateCounts[std::make_pair(ranked_data1[i], ranked_data2[i])] += 1;
+      for (unsigned int i = 0; i < inputVectorlength; i++)
+      {
+        const unsigned int first_rank = ranked_data1[i];
+        const unsigned int second_rank = ranked_data2[i];
+        ++firstStateCounts[first_rank];
+        ++secondStateCounts[second_rank];
+        jointStates.push_back(static_cast<std::uint64_t>(first_rank) * secondNumStates + second_rank);
       }
 
+      std::sort(jointStates.begin(), jointStates.end());
+
       double mutualInformation = 0.0;
-      for (const auto &[pos, jointStateCount_val]: jointStateCounts) {
-        mutualInformation += jointStateCount_val * log(jointStateCount_val / firstStateCounts[pos.first] / secondStateCounts[pos.second]);
+      for (std::size_t i = 0; i < jointStates.size();)
+      {
+        const std::uint64_t joint_state = jointStates[i];
+        std::size_t j = i + 1;
+        while (j < jointStates.size() && jointStates[j] == joint_state)
+        {
+          ++j;
+        }
+
+        const double jointStateCount_val = static_cast<double>(j - i);
+        const unsigned int first_rank = static_cast<unsigned int>(joint_state / secondNumStates);
+        const unsigned int second_rank = static_cast<unsigned int>(joint_state % secondNumStates);
+        mutualInformation += jointStateCount_val *
+          log(jointStateCount_val / firstStateCounts[first_rank] / secondStateCounts[second_rank]);
+        i = j;
       }
 
       mutualInformation /= inputVectorlength;

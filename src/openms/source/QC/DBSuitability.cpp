@@ -225,7 +225,7 @@ namespace OpenMS
     const set<String>& accessions = hit.extractProteinAccessionsSet();
     for (const String& acc : accessions)
     {
-      if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos && !boost::regex_search(String(acc).toLower(), decoy_pattern_))
+      if (!acc.contains(Constants::UserParam::CONCAT_PEPTIDE) && !boost::regex_search(String(acc).toLower(), decoy_pattern_))
       {
         return false;
       }
@@ -610,7 +610,7 @@ namespace OpenMS
         const set<String> accessions = hit.extractProteinAccessionsSet();
         for (const String& acc : accessions)
         {
-          if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) != String::npos)// skip novo accessions
+          if (acc.contains(Constants::UserParam::CONCAT_PEPTIDE))// skip novo accessions
           {
             continue;
           }
@@ -679,7 +679,7 @@ namespace OpenMS
       top_hit.getKeys(meta_keys);
       for (const String& key : meta_keys)
       {
-        if (key.find(score_name) != String::npos)
+        if (key.contains(score_name))
         {
           score = top_hit.getMetaValue(key);
           score_found = true;

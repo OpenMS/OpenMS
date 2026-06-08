@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
@@ -422,10 +423,17 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", { "mzML" } );
+    setValidFormats_("in", { "mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
 
-    registerOutputFile_("out", "<file>", "", "Single output file containing all search results.", true, false);
-    setValidFormats_("out", { "idXML" } );
+    registerOutputFile_("out", "<file>", "", "Output file (.idXML) or directory bundle (.idparquet) containing all search results.", true, false);
+    setValidFormats_("out", { "idXML", "idparquet" } );
 
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
     setValidFormats_("database", { "FASTA" } );
@@ -565,6 +573,29 @@ protected:
     // run sage
     //-------------------------------------------------------------
     StringList input_files = getStringList_("in");
+
+#ifdef WITH_THERMO_RAW
+    // Sage does not natively read Thermo .raw files. Pre-convert any .raw
+    // inputs to temp mzML via FileHandler (ThermoRawFile) before passing
+    // to Sage. Track the temp basename → original path mapping so we can
+    // restore the original .raw path in the output run metadata.
+    std::map<String, String> sage_tmp_basename_to_original;
+    for (auto& f : input_files)
+    {
+      if (FileHandler::getType(f) == FileTypes::RAW)
+      {
+        OPENMS_LOG_INFO << "Converting Thermo .raw to temp mzML for Sage: " << f << std::endl;
+        MSExperiment exp_raw;
+        FileHandler fh_raw;
+        fh_raw.loadExperiment(f, exp_raw, {FileTypes::RAW}, log_type_);
+        auto tmp_mzml = File::getTemporaryFile() + ".mzML";
+        MzMLFile().store(tmp_mzml, exp_raw);
+        sage_tmp_basename_to_original[File::basename(tmp_mzml)] = f;
+        f = tmp_mzml;
+      }
+    }
+#endif
+
     String output_file = getStringOption_("out");
     String output_folder = File::path(output_file);
     String fasta_file = getStringOption_("database");
@@ -693,14 +724,19 @@ protected:
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
     IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
     
-    if (filenames.empty()) filenames = getStringList_("in");
+    // Fallback uses input_files (not getStringList_("in")) so that for Thermo
+    // .raw inputs the fallback gives the temp mzML paths Sage actually saw —
+    // post-processing (native-ID repair, FAIMS) needs those basenames to match
+    // file2specnr2nativeid keys built below from input_files. Equivalent to
+    // getStringList_("in") for mzML/.d inputs where no pre-conversion happened.
+    if (filenames.empty()) filenames = input_files;
 
     // TODO: allow optional split and create multiple idXMLs one per input file
     vector<ProteinIdentification> protein_identifications(1, ProteinIdentification());
 
-    writeDebug_("write idXMLFile", 1);    
-    
-    protein_identifications[0].setPrimaryMSRunPath(filenames);  
+    writeDebug_("write idXMLFile", 1);
+
+    protein_identifications[0].setPrimaryMSRunPath(filenames);
     protein_identifications[0].setDateTime(DateTime::now());
     protein_identifications[0].setSearchEngine("Sage");
     protein_identifications[0].setSearchEngineVersion(sage_version);
@@ -747,37 +783,45 @@ protected:
     // if "reindex" parameter is set to true: will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
-    map<String,unordered_map<int,String>> file2specnr2nativeid;
-    for (const auto& mzml : input_files)
-    {
-      // TODO stream mzml?
-      MzMLFile m;
-      MSExperiment exp;
-      auto opts = m.getOptions();
-      opts.setMSLevels({2,3});
-      opts.setFillData(false);
-      //opts.setMetadataOnly(true);
-      m.setOptions(opts);
-      m.load(mzml, exp);
-      String nIDType = "";
-      if (!exp.getSourceFiles().empty())
-      {
-        // TODO we could also guess the regex from the first nativeID if it is not stored here
-        //  but I refuse to link to Boost::regex just for this
-        //  Someone has to rework the API first!
-        nIDType = exp.getSourceFiles()[0].getNativeIDTypeAccession();
-      }
+    // Check if any input is a Bruker .d folder (not mzML) — skip mzML-specific post-processing
+    bool has_non_mzml_input = std::any_of(input_files.begin(), input_files.end(),
+      [](const String& f) { return !f.hasSuffix(".mzML"); });
 
-      for (const auto& spec : exp)
+    // Build native ID lookup from mzML files (not applicable for .d input)
+    map<String,unordered_map<int,String>> file2specnr2nativeid;
+    if (!has_non_mzml_input)
+    {
+      for (const auto& mzml : input_files)
       {
-        const String& nID = spec.getNativeID();
-        int nr = SpectrumLookup::extractScanNumber(nID, nIDType);
-        if (nr >= 0)
+        // TODO stream mzml?
+        MzMLFile m;
+        MSExperiment exp;
+        auto opts = m.getOptions();
+        opts.setMSLevels({2,3});
+        opts.setFillData(false);
+        //opts.setMetadataOnly(true);
+        m.setOptions(opts);
+        m.load(mzml, exp);
+        String nIDType = "";
+        if (!exp.getSourceFiles().empty())
         {
-          auto [it, inserted] = file2specnr2nativeid.emplace(File::basename(mzml), unordered_map<int,String>({{nr,nID}}));
-          if (!inserted)
+          // TODO we could also guess the regex from the first nativeID if it is not stored here
+          //  but I refuse to link to Boost::regex just for this
+          //  Someone has to rework the API first!
+          nIDType = exp.getSourceFiles()[0].getNativeIDTypeAccession();
+        }
+
+        for (const auto& spec : exp)
+        {
+          const String& nID = spec.getNativeID();
+          int nr = SpectrumLookup::extractScanNumber(nID, nIDType);
+          if (nr >= 0)
           {
-            it->second.emplace(nr,nID);
+            auto [it, inserted] = file2specnr2nativeid.emplace(File::basename(mzml), unordered_map<int,String>({{nr,nID}}));
+            if (!inserted)
+            {
+              it->second.emplace(nr,nID);
+            }
           }
         }
       }
@@ -814,68 +858,90 @@ protected:
       }
     }
 
-    // Annotate FAIMS compensation voltage if present in any input file
-    // Pre-group peptide indices by file for efficient lookup (avoids O(files * peptides))
-    std::map<Size, std::vector<Size>> file_to_peptide_indices;
-    for (Size i = 0; i < peptide_identifications.size(); ++i)
+    // Annotate FAIMS compensation voltage if present in any mzML input file
+    if (!has_non_mzml_input)
     {
-      const auto& pep = peptide_identifications[i];
-      if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+      // Pre-group peptide indices by file for efficient lookup (avoids O(files * peptides))
+      std::map<Size, std::vector<Size>> file_to_peptide_indices;
+      for (Size i = 0; i < peptide_identifications.size(); ++i)
       {
-        file_to_peptide_indices[pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)].push_back(i);
-      }
-    }
-
-    for (const auto& mzml : input_files)
-    {
-      // Find file index for this mzML
-      Size file_idx = 0;
-      for (const auto& [idx, fname] : idxToFile)
-      {
-        if (File::basename(fname) == File::basename(mzml))
+        const auto& pep = peptide_identifications[i];
+        if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
         {
-          file_idx = idx;
-          break;
+          file_to_peptide_indices[pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)].push_back(i);
         }
       }
 
-      // Skip if no peptides for this file
-      auto it = file_to_peptide_indices.find(file_idx);
-      if (it == file_to_peptide_indices.end() || it->second.empty())
+      for (const auto& mzml : input_files)
       {
-        continue;
-      }
-
-      // Load mzML metadata (no peak data needed)
-      MzMLFile m;
-      MSExperiment exp_full;
-      auto opts = m.getOptions();
-      opts.setFillData(false);
-      m.setOptions(opts);
-      m.load(mzml, exp_full);
-
-      // Collect peptide IDs for this file
-      PeptideIdentificationList file_peptides;
-      file_peptides.reserve(it->second.size());
-      for (Size idx : it->second)
-      {
-        file_peptides.push_back(peptide_identifications[idx]);
-      }
-
-      // Annotate FAIMS and copy back
-      SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(file_peptides, exp_full);
-      for (Size i = 0; i < file_peptides.size(); ++i)
-      {
-        if (file_peptides[i].metaValueExists(Constants::UserParam::FAIMS_CV))
+        // Find file index for this mzML
+        Size file_idx = 0;
+        for (const auto& [idx, fname] : idxToFile)
         {
-          peptide_identifications[it->second[i]].setMetaValue(
-            Constants::UserParam::FAIMS_CV,
-            file_peptides[i].getMetaValue(Constants::UserParam::FAIMS_CV));
+          if (File::basename(fname) == File::basename(mzml))
+          {
+            file_idx = idx;
+            break;
+          }
+        }
+
+        // Skip if no peptides for this file
+        auto it = file_to_peptide_indices.find(file_idx);
+        if (it == file_to_peptide_indices.end() || it->second.empty())
+        {
+          continue;
+        }
+
+        // Load mzML metadata (no peak data needed)
+        MzMLFile m;
+        MSExperiment exp_full;
+        auto opts = m.getOptions();
+        opts.setFillData(false);
+        m.setOptions(opts);
+        m.load(mzml, exp_full);
+
+        // Collect peptide IDs for this file
+        PeptideIdentificationList file_peptides;
+        file_peptides.reserve(it->second.size());
+        for (Size idx : it->second)
+        {
+          file_peptides.push_back(peptide_identifications[idx]);
+        }
+
+        // Annotate FAIMS and copy back
+        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(file_peptides, exp_full);
+        for (Size i = 0; i < file_peptides.size(); ++i)
+        {
+          if (file_peptides[i].metaValueExists(Constants::UserParam::FAIMS_CV))
+          {
+            peptide_identifications[it->second[i]].setMetaValue(
+              Constants::UserParam::FAIMS_CV,
+              file_peptides[i].getMetaValue(Constants::UserParam::FAIMS_CV));
+          }
         }
       }
     }
 
-    IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
+#ifdef WITH_THERMO_RAW
+    // After all mzML-based post-processing (native-ID repair, FAIMS annotation)
+    // is done — those steps need temp mzML basenames to match file2specnr2nativeid
+    // / input_files — restore original .raw paths in PrimaryMSRunPath for the
+    // output metadata.
+    if (!sage_tmp_basename_to_original.empty())
+    {
+      StringList run_paths;
+      protein_identifications[0].getPrimaryMSRunPath(run_paths);
+      for (auto& fn : run_paths)
+      {
+        auto it = sage_tmp_basename_to_original.find(File::basename(fn));
+        if (it != sage_tmp_basename_to_original.end()) fn = it->second;
+      }
+      protein_identifications[0].setPrimaryMSRunPath(run_paths);
+    }
+#endif
+
+    FileHandler().storeIdentifications(output_file, protein_identifications, peptide_identifications,
+      {FileTypes::IDXML, FileTypes::IDPARQUET});
     return EXECUTION_OK;
   }
 };

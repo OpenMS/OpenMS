@@ -30,6 +30,12 @@ namespace OpenMS
 
     For details of the format, see http://www.matrixscience.com/help/data_file_help.html#GEN.
 
+    In addition to the core MGF fields (TITLE, PEPMASS, CHARGE, RTINSECONDS, SCANS, MSLEVEL)
+    and the GNPS/metabolomics extensions (NAME, COMPOUND_NAME, INCHI, SMILES, IONMODE, ...),
+    this reader/writer also supports the sequence-query field SEQ. SEQ lines are exposed on
+    the MSSpectrum via the "SEQ" meta value as a StringList (always, even for a single SEQ)
+    and written back out as one SEQ= line per entry.
+
     @htmlinclude OpenMS_MascotGenericFile.parameters
 
     @ingroup FileIO
@@ -140,6 +146,11 @@ protected:
       if (spectrum.metaValueExists("TITLE"))
       {
         spectrum.removeMetaValue("TITLE");
+      }
+      if (spectrum.metaValueExists("SEQ"))
+      {
+        // SEQ is a per-query field; do not let it bleed across spectra
+        spectrum.removeMetaValue("SEQ");
       }
       typename SpectrumType::PeakType p;
 
@@ -362,6 +373,22 @@ protected:
             {
               String tmp = line.substr(6);
               spectrum.setMetaValue("Scan_ID", tmp);
+            }
+            else if (line.hasPrefix("SEQ="))
+            {
+              // Mascot sequence-query field: peptide sequence in one-letter code.
+              // Per spec, SEQ may appear multiple times per query (each entry is
+              // an independent sequence filter). Always stored as a StringList
+              // under the "SEQ" key for a stable interface regardless of how
+              // many SEQ lines were present.
+              String sequence = line.substr(4);
+              StringList sequences;
+              if (spectrum.metaValueExists("SEQ"))
+              {
+                sequences = spectrum.getMetaValue("SEQ").toStringList();
+              }
+              sequences.push_back(sequence);
+              spectrum.setMetaValue("SEQ", sequences);
             }
           }
         }

@@ -497,7 +497,7 @@ namespace OpenMS
       // generate hits in different ID runs for different processing steps:
       for (const ID::AppliedProcessingStep& applied : parent.steps_and_scores)
       {
-        if (applied.scores.empty() && !steps.count(applied.processing_step_opt))
+        if (applied.scores.empty() && !steps.contains(applied.processing_step_opt))
         {
           continue; // no scores and no associated peptides -> skip
         }
@@ -818,7 +818,7 @@ namespace OpenMS
         ID::ProcessingSoftwareRef sw_ref =
           (*applied.processing_step_opt)->software_ref;
         // mention each search engine only once:
-        if (!sw_refs.count(sw_ref))
+        if (!sw_refs.contains(sw_ref))
         {
           MzTabParameter param;
           param.setName(sw_ref->getName());
@@ -837,7 +837,7 @@ namespace OpenMS
       for (const pair<ID::ScoreTypeRef, double>& score_pair :
              applied.getScoresInOrder())
       {
-        if (!score_map.count(score_pair.first)) // new score type
+        if (!score_map.contains(score_pair.first)) // new score type
         {
           score_map.insert(make_pair(score_pair.first, score_map.size() + 1));
         }

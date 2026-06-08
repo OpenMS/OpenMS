@@ -15,6 +15,8 @@
 #include <OpenMS/ANALYSIS/ID/MorpheusScore.h>
 #include <OpenMS/ANALYSIS/ID/PScore.h>
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
+#include <OpenMS/ANALYSIS/ID/Percolator.h>
+#include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
@@ -481,8 +483,8 @@ Constructors
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::FIAMSScheduler>(m, "FIAMSScheduler", "Scheduler for FIA-MS data processing")
         .def(nb::init<>())
-        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, bool>())
         .def(nb::init<const OpenMS::FIAMSScheduler &>())
+        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, bool>())
         .def("__copy__", [](const OpenMS::FIAMSScheduler& self) { return OpenMS::FIAMSScheduler(self); })
         .def("__deepcopy__", [](const OpenMS::FIAMSScheduler& self, nb::dict) { return OpenMS::FIAMSScheduler(self); }, "memo"_a)
         .def("run", [](OpenMS::FIAMSScheduler& self) { return self.run(); }, "Run the FIA-MS data analysis for the batch defined in the @filename_")
@@ -1771,8 +1773,6 @@ Estimate the retention time span of a targeted experiment by returning the min/m
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::OpenSwathOSWWriter>(m, "OpenSwathOSWWriter", "Class to write out an OpenSwath OSW SQLite output (PyProphet input)")
         .def(nb::init<OpenMS::String, bool>())
-        .def("__copy__", [](const OpenMS::OpenSwathOSWWriter& self) { return OpenMS::OpenSwathOSWWriter(self); })
-        .def("__deepcopy__", [](const OpenMS::OpenSwathOSWWriter& self, nb::dict) { return OpenMS::OpenSwathOSWWriter(self); }, "memo"_a)
         .def("isActive", [](const OpenMS::OpenSwathOSWWriter& self) { return self.isActive(); })
         .def("writeHeader", [](OpenMS::OpenSwathOSWWriter& self) { return self.writeHeader(); }, "Initializes file by generating SQLite tables")
         .def("addRun", [](OpenMS::OpenSwathOSWWriter& self, size_t run_id, const OpenMS::String& input_filename) { return self.addRun(run_id, input_filename); }, "run_id"_a, "input_filename"_a, 
@@ -2144,6 +2144,122 @@ and peptides), switching from one to the other in each step
 :return: Returns a Connected Component as set of group and peptide indices
 )doc")
         ;
+
+    // -----------------------------------------------------------------------
+    // RescoreInput / RescoreOutput (Percolator PODs)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::RescoreInput>(m, "RescoreInput",
+        "Input to domain-agnostic Percolator.rescore(). Row ordering is preserved in the output.")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::RescoreInput &>())
+        .def("__copy__",     [](const OpenMS::RescoreInput& self) { return OpenMS::RescoreInput(self); })
+        .def("__deepcopy__", [](const OpenMS::RescoreInput& self, nb::dict) { return OpenMS::RescoreInput(self); }, "memo"_a)
+        .def_rw("features",       &OpenMS::RescoreInput::features,
+                "[n_rows][n_features] scalar features per row. Rows must have the same length.")
+        .def_rw("is_decoy",       &OpenMS::RescoreInput::is_decoy,
+                "Target (False) or decoy (True) label per row.")
+        .def_rw("cv_group_keys",  &OpenMS::RescoreInput::cv_group_keys,
+                "Per-row integer key to keep related rows in the same CV fold. Leave empty for no grouping.")
+        .def_rw("feature_names",  &OpenMS::RescoreInput::feature_names,
+                "Names aligned 1:1 with feature columns; used for logging only.")
+
+        .def("set_features_np",
+             [](OpenMS::RescoreInput& self,
+                nb::ndarray<const double, nb::ndim<2>, nb::c_contig> arr) {
+               const size_t n_rows  = arr.shape(0);
+               const size_t n_feats = arr.shape(1);
+               self.features.assign(n_rows, std::vector<double>(n_feats));
+               const double* src = arr.data();
+               for (size_t i = 0; i < n_rows; ++i) {
+                 std::memcpy(self.features[i].data(),
+                             src + i * n_feats,
+                             n_feats * sizeof(double));
+               }
+             },
+             "features_2d"_a,
+             "Set the feature matrix from a contiguous 2D numpy array of shape (n_rows, n_features). "
+             "Much faster than assigning a Python list-of-lists for large inputs (single bulk memcpy "
+             "per row instead of per-element conversion).")
+
+        .def("set_is_decoy_np",
+             [](OpenMS::RescoreInput& self,
+                nb::ndarray<const uint8_t, nb::ndim<1>, nb::c_contig> arr) {
+               const size_t n = arr.shape(0);
+               self.is_decoy.resize(n);
+               const uint8_t* src = arr.data();
+               for (size_t i = 0; i < n; ++i) self.is_decoy[i] = (src[i] != 0);
+             },
+             "flags_1d"_a,
+             "Set the target/decoy labels from a 1D numpy uint8 array (non-zero = decoy).")
+        ;
+
+    nb::class_<OpenMS::RescoreOutput>(m, "RescoreOutput",
+        "Output from Percolator.rescore(). Aligned 1:1 with RescoreInput.features.")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::RescoreOutput &>())
+        .def("__copy__",     [](const OpenMS::RescoreOutput& self) { return OpenMS::RescoreOutput(self); })
+        .def("__deepcopy__", [](const OpenMS::RescoreOutput& self, nb::dict) { return OpenMS::RescoreOutput(self); }, "memo"_a)
+        .def_rw("scores",   &OpenMS::RescoreOutput::scores,   "SVM discriminant score per row")
+        .def_rw("q_values", &OpenMS::RescoreOutput::q_values, "q-value per row")
+        .def_rw("peps",     &OpenMS::RescoreOutput::peps,     "posterior error probability per row")
+
+        .def("scores_np",
+             [](nb::object self_obj) -> nb::object {
+               auto& self = nb::cast<OpenMS::RescoreOutput&>(self_obj);
+               double* p = self.scores.empty() ? nullptr : self.scores.data();
+               size_t shape[] = { self.scores.size() };
+               return nb::ndarray<nb::numpy, double>(p, 1, shape, self_obj).cast();
+             },
+             "Numpy array view over the internal scores vector (zero copy). "
+             "Invalidated if the RescoreOutput is destroyed or its scores are reassigned.")
+        .def("q_values_np",
+             [](nb::object self_obj) -> nb::object {
+               auto& self = nb::cast<OpenMS::RescoreOutput&>(self_obj);
+               double* p = self.q_values.empty() ? nullptr : self.q_values.data();
+               size_t shape[] = { self.q_values.size() };
+               return nb::ndarray<nb::numpy, double>(p, 1, shape, self_obj).cast();
+             },
+             "Numpy array view over the internal q_values vector (zero copy).")
+        .def("peps_np",
+             [](nb::object self_obj) -> nb::object {
+               auto& self = nb::cast<OpenMS::RescoreOutput&>(self_obj);
+               double* p = self.peps.empty() ? nullptr : self.peps.data();
+               size_t shape[] = { self.peps.size() };
+               return nb::ndarray<nb::numpy, double>(p, 1, shape, self_obj).cast();
+             },
+             "Numpy array view over the internal peps vector (zero copy).")
+        ;
+
+    // -----------------------------------------------------------------------
+    // Percolator (in-process semi-supervised PSM rescoring)
+    // -----------------------------------------------------------------------
+    auto percolator_class = nb::class_<OpenMS::Percolator>(m, "Percolator",
+        R"doc(
+In-process Percolator: semi-supervised target/decoy rescoring with q-values + PEPs.
+
+Two entry points:
+
+- rescore(peptide_ids, feature_names=[]): PSM-specific sugar that stamps
+  percolator_score / _q_value / _pep as meta values on each PeptideHit.
+
+- rescore(rescore_input): domain-agnostic. Accepts any (feature matrix,
+  target/decoy labels, optional CV grouping keys) triple. Returns a
+  RescoreOutput with per-row scores, q-values, PEPs.
+
+Instances are NOT concurrent-safe; construct one per worker.
+)doc")
+        .def(nb::init<>())
+        .def("rescore",
+             nb::overload_cast<std::vector<OpenMS::PeptideIdentification>&, const OpenMS::StringList&>
+               (&OpenMS::Percolator::rescore),
+             "peptide_ids"_a, "feature_names"_a = OpenMS::StringList{},
+             "Rescore PSMs in place; appends percolator_* meta values.")
+        .def("rescore",
+             nb::overload_cast<const OpenMS::RescoreInput&>(&OpenMS::Percolator::rescore),
+             "input"_a,
+             "Domain-agnostic rescoring on a feature matrix.")
+        ;
+    def_DefaultParamHandler<OpenMS::Percolator>(percolator_class);
 
     // -----------------------------------------------------------------------
     // PercolatorFeatureSetHelper
@@ -2537,6 +2653,10 @@ params.select_transition_group = False
         .def("setSMILESString", [](OpenMS::SpectralMatch& self, const OpenMS::String& p0) { return self.setSMILESString(p0); })
         .def("getPrecursorAdduct", [](const OpenMS::SpectralMatch& self) { return self.getPrecursorAdduct(); })
         .def("setPrecursorAdduct", [](OpenMS::SpectralMatch& self, const OpenMS::String& p0) { return self.setPrecursorAdduct(p0); })
+        .def("getObservedCCS", [](const OpenMS::SpectralMatch& self) { return self.getObservedCCS(); })
+        .def("setObservedCCS", [](OpenMS::SpectralMatch& self, const double& p0) { return self.setObservedCCS(p0); })
+        .def("getFoundCCS", [](const OpenMS::SpectralMatch& self) { return self.getFoundCCS(); })
+        .def("setFoundCCS", [](OpenMS::SpectralMatch& self, const double& p0) { return self.setFoundCCS(p0); })
         ;
 
     // -----------------------------------------------------------------------

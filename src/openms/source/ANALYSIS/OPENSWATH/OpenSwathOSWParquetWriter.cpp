@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -27,13 +28,11 @@
 
 #include <filesystem>
 
-#ifdef WITH_PARQUET
 #ifdef signals
 #undef signals
 #endif
 #include <arrow/api.h>
 #include <parquet/file_reader.h>
-#endif
 
 namespace OpenMS
 {
@@ -41,7 +40,6 @@ namespace OpenMS
   {
     using OpenMS::Size;
 
-#ifdef WITH_PARQUET
     void appendOptionalFloat_(arrow::DoubleBuilder& builder, bool has_value, double value, const char* column)
     {
       if (!has_value || !std::isfinite(value))
@@ -300,7 +298,6 @@ namespace OpenMS
       }
     }
 
-#endif // WITH_PARQUET
   } // namespace
 
   void OpenSwathOSWParquetWriter::write(const String& output_path,
@@ -310,10 +307,6 @@ namespace OpenMS
                                         const String& input_filename,
                                         bool enable_uis_scoring) const
   {
-#ifndef WITH_PARQUET
-    throw Exception::MissingFeature(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "OpenMS was built without Parquet support");
-#else
     const UInt64 run_id_clean = Internal::SqliteHelper::clearSignBit(run_id);
     const bool output_is_dir = File::isDirectory(output_path);
     std::unique_ptr<File::TempDir> temp_dir;
@@ -419,7 +412,7 @@ namespace OpenMS
     int64_t next_precursor_id = 1;
     for (const auto& compound : assay_library.compounds)
     {
-      if (compound_to_precursor.find(compound.id) != compound_to_precursor.end())
+      if (compound_to_precursor.contains(compound.id))
       {
         continue;
       }
@@ -441,7 +434,7 @@ namespace OpenMS
         // If numeric id collides with an already-used id, reject the numeric
         // value and fall back to auto-assigning. This prevents accidental
         // collisions between user-provided numeric ids and our auto ids.
-        if (used_precursor_ids.find(precursor_id) != used_precursor_ids.end() || precursor_id <= 0)
+        if (used_precursor_ids.contains(precursor_id) || precursor_id <= 0)
         {
           precursor_id = next_precursor_id++;
         }
@@ -1062,74 +1055,10 @@ namespace OpenMS
     }
 
     std::vector<std::future<void>> write_tasks;
+    try
     {
-      auto features_schema = arrow::schema({
-        arrow::field("feature_id", arrow::int64()),
-        arrow::field("run_id", arrow::int64()),
-        arrow::field("precursor_id", arrow::int64()),
-        arrow::field("exp_rt", arrow::float64()),
-        arrow::field("exp_im", arrow::float64()),
-        arrow::field("norm_rt", arrow::float64()),
-        arrow::field("delta_rt", arrow::float64()),
-        arrow::field("left_width", arrow::float64()),
-        arrow::field("right_width", arrow::float64()),
-        arrow::field("exp_im_leftwidth", arrow::float64()),
-        arrow::field("exp_im_rightwidth", arrow::float64()),
-        arrow::field("ms1_area_intensity", arrow::float64()),
-        arrow::field("ms1_apex_intensity", arrow::float64()),
-        arrow::field("ms1_exp_im", arrow::float64()),
-        arrow::field("ms1_delta_im", arrow::float64()),
-        arrow::field("var_ms1_massdev_score", arrow::float64()),
-        arrow::field("var_ms1_im_ms1_delta_score", arrow::float64()),
-        arrow::field("var_ms1_mi_score", arrow::float64()),
-        arrow::field("var_ms1_mi_contrast_score", arrow::float64()),
-        arrow::field("var_ms1_mi_combined_score", arrow::float64()),
-        arrow::field("var_ms1_isotope_correlation_score", arrow::float64()),
-        arrow::field("var_ms1_isotope_overlap_score", arrow::float64()),
-        arrow::field("var_ms1_xcorr_coelution", arrow::float64()),
-        arrow::field("var_ms1_xcorr_coelution_contrast", arrow::float64()),
-        arrow::field("var_ms1_xcorr_coelution_combined", arrow::float64()),
-        arrow::field("var_ms1_xcorr_shape", arrow::float64()),
-        arrow::field("var_ms1_xcorr_shape_contrast", arrow::float64()),
-        arrow::field("var_ms1_xcorr_shape_combined", arrow::float64()),
-        arrow::field("ms2_area_intensity", arrow::float64()),
-        arrow::field("ms2_total_area_intensity", arrow::float64()),
-        arrow::field("ms2_apex_intensity", arrow::float64()),
-        arrow::field("ms2_exp_im", arrow::float64()),
-        arrow::field("ms2_exp_im_leftwidth", arrow::float64()),
-        arrow::field("ms2_exp_im_rightwidth", arrow::float64()),
-        arrow::field("ms2_delta_im", arrow::float64()),
-        arrow::field("ms2_total_mi", arrow::float64()),
-        arrow::field("var_ms2_bseries_score", arrow::float64()),
-        arrow::field("var_ms2_dotprod_score", arrow::float64()),
-        arrow::field("var_ms2_intensity_score", arrow::float64()),
-        arrow::field("var_ms2_isotope_correlation_score", arrow::float64()),
-        arrow::field("var_ms2_isotope_overlap_score", arrow::float64()),
-        arrow::field("var_ms2_library_corr", arrow::float64()),
-        arrow::field("var_ms2_library_dotprod", arrow::float64()),
-        arrow::field("var_ms2_library_manhattan", arrow::float64()),
-        arrow::field("var_ms2_library_rmsd", arrow::float64()),
-        arrow::field("var_ms2_library_rootmeansquare", arrow::float64()),
-        arrow::field("var_ms2_library_sangle", arrow::float64()),
-        arrow::field("var_ms2_log_sn_score", arrow::float64()),
-        arrow::field("var_ms2_manhattan_score", arrow::float64()),
-        arrow::field("var_ms2_massdev_score", arrow::float64()),
-        arrow::field("var_ms2_massdev_score_weighted", arrow::float64()),
-        arrow::field("var_ms2_mi_score", arrow::float64()),
-        arrow::field("var_ms2_mi_weighted_score", arrow::float64()),
-        arrow::field("var_ms2_mi_ratio_score", arrow::float64()),
-        arrow::field("var_ms2_norm_rt_score", arrow::float64()),
-        arrow::field("var_ms2_xcorr_coelution", arrow::float64()),
-        arrow::field("var_ms2_xcorr_coelution_weighted", arrow::float64()),
-        arrow::field("var_ms2_xcorr_shape", arrow::float64()),
-        arrow::field("var_ms2_xcorr_shape_weighted", arrow::float64()),
-        arrow::field("var_ms2_yseries_score", arrow::float64()),
-        arrow::field("var_ms2_elution_model_fit_score", arrow::float64()),
-        arrow::field("var_ms2_im_xcorr_shape", arrow::float64()),
-        arrow::field("var_ms2_im_xcorr_coelution", arrow::float64()),
-        arrow::field("var_ms2_im_delta_score", arrow::float64()),
-        arrow::field("var_ms2_im_log_intensity", arrow::float64())
-      });
+    {
+      auto features_schema = OSWFeatureSchema::schema();
       auto features_table = arrow::Table::Make(features_schema, {
         ParquetFile::finishArray(feature_id_builder, "feature_id"),
         ParquetFile::finishArray(feature_run_id_builder, "run_id"),
@@ -1197,58 +1126,20 @@ namespace OpenMS
         ParquetFile::finishArray(var_ms2_im_delta_builder, "var_ms2_im_delta_score"),
         ParquetFile::finishArray(var_ms2_im_log_intensity_builder, "var_ms2_im_log_intensity")
       });
+      // Validate features table against registry schema
+      auto feat_validation = ArrowSchemaValidation::validate(features_table, OSWFeatureSchema::schema());
+      if (!feat_validation.valid)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Features table schema validation failed: " + feat_validation.toString(), "");
+      }
       write_tasks.emplace_back(std::async(std::launch::async, [features_table, run_path]() {
         ParquetFile::writeTable(features_table, run_path + "/features.parquet");
       }));
     }
 
     {
-      auto ft_schema = arrow::schema({
-        arrow::field("feature_id", arrow::int64()),
-        arrow::field("run_id", arrow::int64()),
-        arrow::field("transition_id", arrow::int64()),
-        arrow::field("area_intensity", arrow::float64()),
-        arrow::field("total_area_intensity", arrow::float64()),
-        arrow::field("apex_intensity", arrow::float64()),
-        arrow::field("apex_rt", arrow::float64()),
-        arrow::field("rt_fwhm", arrow::float64()),
-        arrow::field("masserror_ppm", arrow::float64()),
-        arrow::field("total_mi", arrow::float64()),
-        arrow::field("var_intensity_score", arrow::float64()),
-        arrow::field("var_intensity_ratio_score", arrow::float64()),
-        arrow::field("var_log_intensity", arrow::float64()),
-        arrow::field("var_xcorr_coelution", arrow::float64()),
-        arrow::field("var_xcorr_shape", arrow::float64()),
-        arrow::field("var_log_sn_score", arrow::float64()),
-        arrow::field("var_massdev_score", arrow::float64()),
-        arrow::field("var_mi_score", arrow::float64()),
-        arrow::field("var_mi_ratio_score", arrow::float64()),
-        arrow::field("var_isotope_correlation_score", arrow::float64()),
-        arrow::field("var_isotope_overlap_score", arrow::float64()),
-        arrow::field("exp_im", arrow::float64()),
-        arrow::field("exp_im_leftwidth", arrow::float64()),
-        arrow::field("exp_im_rightwidth", arrow::float64()),
-        arrow::field("delta_im", arrow::float64()),
-        arrow::field("var_im_delta_score", arrow::float64()),
-        arrow::field("var_im_log_intensity", arrow::float64()),
-        arrow::field("var_im_xcorr_coelution_contrast", arrow::float64()),
-        arrow::field("var_im_xcorr_shape_contrast", arrow::float64()),
-        arrow::field("var_im_xcorr_coelution_combined", arrow::float64()),
-        arrow::field("var_im_xcorr_shape_combined", arrow::float64()),
-        arrow::field("start_position_at_5", arrow::float64()),
-        arrow::field("end_position_at_5", arrow::float64()),
-        arrow::field("start_position_at_10", arrow::float64()),
-        arrow::field("end_position_at_10", arrow::float64()),
-        arrow::field("start_position_at_50", arrow::float64()),
-        arrow::field("end_position_at_50", arrow::float64()),
-        arrow::field("total_width", arrow::float64()),
-        arrow::field("tailing_factor", arrow::float64()),
-        arrow::field("asymmetry_factor", arrow::float64()),
-        arrow::field("slope_of_baseline", arrow::float64()),
-        arrow::field("baseline_delta_2_height", arrow::float64()),
-        arrow::field("points_across_baseline", arrow::float64()),
-        arrow::field("points_across_half_height", arrow::float64())
-      });
+      auto ft_schema = OSWFeatureTransitionSchema::schema();
       auto ft_table = arrow::Table::Make(ft_schema, {
         ParquetFile::finishArray(ft_feature_id_builder, "feature_id"),
         ParquetFile::finishArray(ft_run_id_builder, "run_id"),
@@ -1295,6 +1186,13 @@ namespace OpenMS
         ParquetFile::finishArray(ft_points_across_baseline_builder, "points_across_baseline"),
         ParquetFile::finishArray(ft_points_across_half_height_builder, "points_across_half_height")
       });
+      // Validate feature_transition table against registry schema
+      auto ft_validation = ArrowSchemaValidation::validate(ft_table, OSWFeatureTransitionSchema::schema());
+      if (!ft_validation.valid)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Feature transition table schema validation failed: " + ft_validation.toString(), "");
+      }
       write_tasks.emplace_back(std::async(std::launch::async, [ft_table, run_path]() {
         ParquetFile::writeTable(ft_table, run_path + "/feature_transition.parquet");
       }));
@@ -1304,13 +1202,7 @@ namespace OpenMS
     // expect a consistent per-run layout; writing an empty table when no
     // precursor rows are present prevents downstream breakage.
     {
-      auto fp_schema = arrow::schema({
-        arrow::field("feature_id", arrow::int64()),
-        arrow::field("run_id", arrow::int64()),
-        arrow::field("precursor_isotope", arrow::int32()),
-        arrow::field("precursor_area_intensity", arrow::float64()),
-        arrow::field("precursor_apex_intensity", arrow::float64())
-      });
+      auto fp_schema = OSWFeaturePrecursorSchema::schema();
       auto fp_table = arrow::Table::Make(fp_schema, {
         ParquetFile::finishArray(fp_feature_id_builder, "feature_id"),
         ParquetFile::finishArray(fp_run_id_builder, "run_id"),
@@ -1318,18 +1210,23 @@ namespace OpenMS
         ParquetFile::finishArray(fp_area_builder, "precursor_area_intensity"),
         ParquetFile::finishArray(fp_apex_builder, "precursor_apex_intensity")
       });
+      // Validate feature_precursor table against registry schema
+      auto fp_validation = ArrowSchemaValidation::validate(fp_table, OSWFeaturePrecursorSchema::schema());
+      if (!fp_validation.valid)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Feature precursor table schema validation failed: " + fp_validation.toString(), "");
+      }
       write_tasks.emplace_back(std::async(std::launch::async, [fp_table, run_path]() {
         ParquetFile::writeTable(fp_table, run_path + "/feature_precursor.parquet");
       }));
     }
 
-    try
-    {
       waitForWriteTasks_(write_tasks);
     }
     catch (...)
     {
-      // If any asynchronous write failed, remove the partially-created run
+      // If any validation or asynchronous write failed, remove the partially-created run
       // directory to avoid leaving a stale run_id=<id> that blocks retries.
       if (File::exists(run_path))
       {
@@ -1348,14 +1245,18 @@ namespace OpenMS
         ParquetFile::appendOrThrow(run_id_builder.Append(run_id_clean), "run_id");
         ParquetFile::appendOrThrow(filename_builder.Append(std::string(input_filename)), "filename");
 
-        auto runs_schema = arrow::schema({
-          arrow::field("run_id", arrow::int64()),
-          arrow::field("filename", arrow::utf8())
-        });
+        auto runs_schema = OSWRunSchema::schema();
         auto runs_table = arrow::Table::Make(runs_schema, {
           ParquetFile::finishArray(run_id_builder, "run_id"),
           ParquetFile::finishArray(filename_builder, "filename")
         });
+        // Validate runs table against registry schema
+        auto runs_validation = ArrowSchemaValidation::validate(runs_table, OSWRunSchema::schema());
+        if (!runs_validation.valid)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Runs table schema validation failed: " + runs_validation.toString(), "");
+        }
         const String runs_parquet = runs_dir + "/runs.parquet";
         if (File::exists(runs_parquet))
         {
@@ -1426,7 +1327,6 @@ namespace OpenMS
       }
       ZipArchiveFile::writeSidecarIndex(output_zip_abs);
     }
-#endif
   }
 
 void OpenSwathOSWParquetWriter::setPreserveExisting(bool preserve)

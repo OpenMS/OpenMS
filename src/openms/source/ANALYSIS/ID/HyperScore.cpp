@@ -127,30 +127,27 @@ namespace OpenMS
       return 0.0;
     }
 
-    int y_ion_count = 0;
-    int b_ion_count = 0;
+    int prefix_ion_count = 0;  // N-terminal: a, b, c
+    int suffix_ion_count = 0;  // C-terminal: x, y, z (incl. z., z')
     double dot_product = 0.0;
     double abs_error = 0.0;
-    if (fragment_mass_tolerance_unit_ppm) 
+
+    if (fragment_mass_tolerance_unit_ppm)
     {
       MatchedIterator<PeakSpectrum, PpmTrait, true> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
       for (; it != it.end(); ++it)
       {
-        const double exp_mz{it.ref().getMZ()};
-        const double theo_mz{(*it).getMZ()};
-        const double exp_int{it.ref().getIntensity()};
-        const double theo_int{(*it).getIntensity()};
-        abs_error += Math::getPPMAbs(theo_mz, exp_mz);
-        dot_product += theo_int * exp_int; /* * mass_error */;
-        // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
-        auto i = it.refIdx();
-        if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))
+        abs_error += Math::getPPMAbs((*it).getMZ(), it.ref().getMZ());
+        dot_product += (*it).getIntensity() * it.ref().getIntensity();
+        const String& name = (*ion_names)[it.refIdx()];
+        const char c = name[0];
+        if (c == 'a' || c == 'b' || c == 'c') ++prefix_ion_count;
+        else if (c == 'x' || c == 'y' || c == 'z') ++suffix_ion_count;
+        else if (auto p = name.find('$'); p != String::npos && p + 1 < name.size())
         {
-          ++y_ion_count;
-        }
-        else if ((*ion_names)[i][0] == 'b' || (*ion_names)[i].hasSubstring("$b"))
-        {
-          ++b_ion_count;
+          const char d = name[p + 1];
+          if (d == 'a' || d == 'b' || d == 'c') ++prefix_ion_count;
+          else if (d == 'x' || d == 'y' || d == 'z') ++suffix_ion_count;
         }
       }
     }
@@ -160,30 +157,26 @@ namespace OpenMS
       for (; it != it.end(); ++it)
       {
         abs_error += abs((*it).getMZ() - it.ref().getMZ());
-        dot_product += (*it).getIntensity() * it.ref().getIntensity(); /* * mass_error */;
-        // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
-        auto i = it.refIdx();
-        if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))
+        dot_product += (*it).getIntensity() * it.ref().getIntensity();
+        const String& name = (*ion_names)[it.refIdx()];
+        const char c = name[0];
+        if (c == 'a' || c == 'b' || c == 'c') ++prefix_ion_count;
+        else if (c == 'x' || c == 'y' || c == 'z') ++suffix_ion_count;
+        else if (auto p = name.find('$'); p != String::npos && p + 1 < name.size())
         {
-          ++y_ion_count;
-        }
-        else if ((*ion_names)[i][0] == 'b' || (*ion_names)[i].hasSubstring("$b"))
-        {
-          ++b_ion_count;
+          const char d = name[p + 1];
+          if (d == 'a' || d == 'b' || d == 'c') ++prefix_ion_count;
+          else if (d == 'x' || d == 'y' || d == 'z') ++suffix_ion_count;
         }
       }
     }
-    // inefficient: calculates logs repeatedly
-    //const double yFact = logfactorial_(y_ion_count);
-    //const double bFact = logfactorial_(b_ion_count);
-    //const double hyperScore = log1p(dot_product) + yFact + bFact;
 
-    const int i_min = std::min(y_ion_count, b_ion_count);
-    const int i_max = std::max(y_ion_count, b_ion_count);
+    const int i_min = std::min(suffix_ion_count, prefix_ion_count);
+    const int i_max = std::max(suffix_ion_count, prefix_ion_count);
     const double hyperScore = log1p(dot_product) + 2*logfactorial_(i_min) + logfactorial_(i_max, i_min + 1);
-    d.matched_b_ions = b_ion_count;
-    d.matched_y_ions = y_ion_count;
-    d.mean_error = (b_ion_count + y_ion_count) > 0 ? abs_error / (double)(b_ion_count + y_ion_count) : 0.0;
+    d.matched_prefix_ions = prefix_ion_count;
+    d.matched_suffix_ions = suffix_ion_count;
+    d.mean_error = (prefix_ion_count + suffix_ion_count) > 0 ? abs_error / (double)(prefix_ion_count + suffix_ion_count) : 0.0;
     return hyperScore;
   }
 

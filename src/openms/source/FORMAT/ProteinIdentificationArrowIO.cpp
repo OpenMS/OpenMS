@@ -8,13 +8,15 @@
 
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 
-#ifdef WITH_PARQUET
-
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -56,7 +58,7 @@ namespace // anonymous
     mii.getKeys(keys);
     for (const auto& key : keys)
     {
-      if (excluded_keys.count(key)) continue;
+      if (excluded_keys.contains(key)) continue;
       const DataValue& val = mii.getMetaValue(key);
       (void)struct_b->Append();
       (void)name_b->Append(key);
@@ -307,80 +309,6 @@ namespace // anonymous
     return result;
   }
 
-  /// Read metavalues from a list<struct{name,value,value_type}> column at a given row.
-  /// Sets them on the target MetaInfoInterface, excluding specified keys.
-  void readMetaValues_(
-    const std::shared_ptr<arrow::Array>& array,
-    int64_t row,
-    MetaInfoInterface& target,
-    const std::unordered_set<std::string>& excluded_keys = {})
-  {
-    if (!array || array->IsNull(row)) return;
-    auto list_arr = std::static_pointer_cast<arrow::ListArray>(array);
-    auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->value_slice(row));
-    if (!struct_arr || struct_arr->length() == 0) return;
-
-    auto name_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(0));
-    auto value_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(1));
-    auto type_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(2));
-
-    for (int64_t i = 0; i < struct_arr->length(); ++i)
-    {
-      std::string name = name_arr->GetString(i);
-      if (excluded_keys.count(name)) continue;
-
-      std::string value_str = value_arr->GetString(i);
-      std::string type_str = type_arr->GetString(i);
-
-      if (type_str == "int")
-      {
-        try { target.setMetaValue(name, static_cast<int>(std::stol(value_str))); }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "double" || type_str == "float")
-      {
-        try { target.setMetaValue(name, std::stod(value_str)); }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "int_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(name, DataValue(ListUtils::create<Int>(s)));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "double_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(name, DataValue(ListUtils::create<double>(s)));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "string_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          auto sl = ListUtils::create<String>(s);
-          for (auto& e : sl) { e = e.trim(); }
-          target.setMetaValue(name, DataValue(sl));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else
-      {
-        target.setMetaValue(name, value_str);
-      }
-    }
-  }
-
   /// Build a map from run_identifier to index in the protein_identifications vector.
   std::unordered_map<std::string, size_t> buildRunIdMap_(
     const std::vector<ProteinIdentification>& protein_identifications)
@@ -589,19 +517,8 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
   status = metavalues_builder.Finish(&arr_metavalues);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: metavalues_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Build schema (10 columns)
-  auto schema = arrow::schema({
-    arrow::field("accession", arrow::utf8(), /*nullable=*/false),
-    arrow::field("score", arrow::float64(), /*nullable=*/false),
-    arrow::field("rank", arrow::int32(), /*nullable=*/true),
-    arrow::field("coverage", arrow::float64(), /*nullable=*/true),
-    arrow::field("sequence", arrow::utf8(), /*nullable=*/true),
-    arrow::field("description", arrow::utf8(), /*nullable=*/true),
-    arrow::field("is_decoy", arrow::boolean(), /*nullable=*/true),
-    arrow::field("run_identifier", arrow::utf8(), /*nullable=*/false),
-    arrow::field("modifications", arrow::list(mod_struct_type), /*nullable=*/true),
-    arrow::field("metavalues", metavalues_builder.type(), /*nullable=*/false),
-  });
+  // Build table using registry schema
+  auto schema = ProteinSchema::schema();
 
   auto table = arrow::Table::Make(schema, {
     arr_accession, arr_score,
@@ -610,6 +527,14 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
     arr_run_id,
     arr_modifications, arr_metavalues
   });
+
+  // Validate table against registry schema
+  auto validation = ArrowSchemaValidation::validate(table, ProteinSchema::schema());
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << "\n";
+    return nullptr;
+  }
 
   return table;
 }
@@ -815,23 +740,22 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinGroupsT
   status = integer_data_builder.Finish(&arr_integer_data);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: integer_data_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Build schema (8 columns)
-  auto schema = arrow::schema({
-    arrow::field("group_type", arrow::utf8(), /*nullable=*/false),
-    arrow::field("probability", arrow::float64(), /*nullable=*/false),
-    arrow::field("accessions", arrow::list(arrow::utf8()), /*nullable=*/false),
-    arrow::field("run_identifier", arrow::utf8(), /*nullable=*/false),
-    arrow::field("group_index", arrow::int32(), /*nullable=*/false),
-    arrow::field("float_data", arrow::list(fd_struct_type), /*nullable=*/true),
-    arrow::field("string_data", arrow::list(sd_struct_type), /*nullable=*/true),
-    arrow::field("integer_data", arrow::list(id_struct_type), /*nullable=*/true),
-  });
+  // Build table using registry schema
+  auto schema = ProteinGroupSchema::schema();
 
   auto table = arrow::Table::Make(schema, {
     arr_group_type, arr_probability, arr_accessions,
     arr_run_id, arr_group_index,
     arr_float_data, arr_string_data, arr_integer_data
   });
+
+  // Validate table against registry schema
+  auto validation = ArrowSchemaValidation::validate(table, ProteinGroupSchema::schema());
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << "\n";
+    return nullptr;
+  }
 
   return table;
 }
@@ -1237,35 +1161,8 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
   status = sp_metavalues_builder.Finish(&arr_sp_metavalues);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: sp_metavalues_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Build schema (26 columns)
-  auto schema = arrow::schema({
-    arrow::field("run_identifier", arrow::utf8(), /*nullable=*/false),
-    arrow::field("search_engine", arrow::utf8(), /*nullable=*/false),
-    arrow::field("search_engine_version", arrow::utf8(), /*nullable=*/true),
-    arrow::field("inference_engine", arrow::utf8(), /*nullable=*/true),
-    arrow::field("inference_engine_version", arrow::utf8(), /*nullable=*/true),
-    arrow::field("date", arrow::timestamp(arrow::TimeUnit::SECOND), /*nullable=*/true),
-    arrow::field("score_type", arrow::utf8(), /*nullable=*/false),
-    arrow::field("higher_score_better", arrow::boolean(), /*nullable=*/false),
-    arrow::field("significance_threshold", arrow::float64(), /*nullable=*/true),
-    arrow::field("db", arrow::utf8(), /*nullable=*/true),
-    arrow::field("db_version", arrow::utf8(), /*nullable=*/true),
-    arrow::field("taxonomy", arrow::utf8(), /*nullable=*/true),
-    arrow::field("charges", arrow::utf8(), /*nullable=*/true),
-    arrow::field("mass_type", arrow::utf8(), /*nullable=*/false),
-    arrow::field("precursor_mass_tolerance", arrow::float64(), /*nullable=*/false),
-    arrow::field("precursor_mass_tolerance_ppm", arrow::boolean(), /*nullable=*/false),
-    arrow::field("fragment_mass_tolerance", arrow::float64(), /*nullable=*/false),
-    arrow::field("fragment_mass_tolerance_ppm", arrow::boolean(), /*nullable=*/false),
-    arrow::field("digestion_enzyme", arrow::utf8(), /*nullable=*/true),
-    arrow::field("enzyme_term_specificity", arrow::utf8(), /*nullable=*/true),
-    arrow::field("missed_cleavages", arrow::int32(), /*nullable=*/false),
-    arrow::field("fixed_modifications", arrow::list(arrow::utf8()), /*nullable=*/false),
-    arrow::field("variable_modifications", arrow::list(arrow::utf8()), /*nullable=*/false),
-    arrow::field("primary_ms_run_paths", arrow::list(arrow::utf8()), /*nullable=*/false),
-    arrow::field("metavalues", metavalues_builder.type(), /*nullable=*/false),
-    arrow::field("sp_metavalues", sp_metavalues_builder.type(), /*nullable=*/false),
-  });
+  // Build table using registry schema
+  auto schema = SearchParamsSchema::schema();
 
   auto table = arrow::Table::Make(schema, {
     arr_run_id, arr_search_engine, arr_se_version,
@@ -1282,6 +1179,14 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
     arr_ms_run_paths, arr_metavalues,
     arr_sp_metavalues
   });
+
+  // Validate table against registry schema
+  auto validation = ArrowSchemaValidation::validate(table, SearchParamsSchema::schema());
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << "\n";
+    return nullptr;
+  }
 
   return table;
 }
@@ -1310,33 +1215,41 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
 {
   if (!table || table->num_rows() == 0) return true;
 
+  // Validate table schema against registry (subset mode — file may have extra columns)
+  auto validation = ArrowSchemaValidation::validate(table, SearchParamsSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << "\n";
+    return false;
+  }
+
   // Get all columns
-  auto col_run_id = getColumn_(table, "run_identifier");
-  auto col_search_engine = getColumn_(table, "search_engine");
-  auto col_se_version = getColumn_(table, "search_engine_version", false);
-  auto col_inf_engine = getColumn_(table, "inference_engine", false);
-  auto col_inf_version = getColumn_(table, "inference_engine_version", false);
-  auto col_date = getColumn_(table, "date", false);
-  auto col_score_type = getColumn_(table, "score_type");
-  auto col_higher_better = getColumn_(table, "higher_score_better");
-  auto col_sig_threshold = getColumn_(table, "significance_threshold", false);
-  auto col_db = getColumn_(table, "db", false);
-  auto col_db_version = getColumn_(table, "db_version", false);
-  auto col_taxonomy = getColumn_(table, "taxonomy", false);
-  auto col_charges = getColumn_(table, "charges", false);
-  auto col_mass_type = getColumn_(table, "mass_type");
-  auto col_precursor_tol = getColumn_(table, "precursor_mass_tolerance");
-  auto col_precursor_ppm = getColumn_(table, "precursor_mass_tolerance_ppm");
-  auto col_fragment_tol = getColumn_(table, "fragment_mass_tolerance");
-  auto col_fragment_ppm = getColumn_(table, "fragment_mass_tolerance_ppm");
-  auto col_enzyme = getColumn_(table, "digestion_enzyme", false);
-  auto col_enzyme_spec = getColumn_(table, "enzyme_term_specificity", false);
-  auto col_missed_cleavages = getColumn_(table, "missed_cleavages");
-  auto col_fixed_mods = getColumn_(table, "fixed_modifications", false);
-  auto col_var_mods = getColumn_(table, "variable_modifications", false);
-  auto col_ms_run_paths = getColumn_(table, "primary_ms_run_paths", false);
-  auto col_metavalues = getColumn_(table, "metavalues", false);
-  auto col_sp_metavalues = getColumn_(table, "sp_metavalues", false);
+  auto col_run_id = getColumn_(table, SearchParamsSchema::RUN_IDENTIFIER);
+  auto col_search_engine = getColumn_(table, SearchParamsSchema::SEARCH_ENGINE);
+  auto col_se_version = getColumn_(table, SearchParamsSchema::SEARCH_ENGINE_VERSION, false);
+  auto col_inf_engine = getColumn_(table, SearchParamsSchema::INFERENCE_ENGINE, false);
+  auto col_inf_version = getColumn_(table, SearchParamsSchema::INFERENCE_ENGINE_VERSION, false);
+  auto col_date = getColumn_(table, SearchParamsSchema::DATE, false);
+  auto col_score_type = getColumn_(table, SearchParamsSchema::SCORE_TYPE);
+  auto col_higher_better = getColumn_(table, SearchParamsSchema::HIGHER_SCORE_BETTER);
+  auto col_sig_threshold = getColumn_(table, SearchParamsSchema::SIGNIFICANCE_THRESHOLD, false);
+  auto col_db = getColumn_(table, SearchParamsSchema::DB, false);
+  auto col_db_version = getColumn_(table, SearchParamsSchema::DB_VERSION, false);
+  auto col_taxonomy = getColumn_(table, SearchParamsSchema::TAXONOMY, false);
+  auto col_charges = getColumn_(table, SearchParamsSchema::CHARGES, false);
+  auto col_mass_type = getColumn_(table, SearchParamsSchema::MASS_TYPE);
+  auto col_precursor_tol = getColumn_(table, SearchParamsSchema::PRECURSOR_MASS_TOLERANCE);
+  auto col_precursor_ppm = getColumn_(table, SearchParamsSchema::PRECURSOR_MASS_TOLERANCE_PPM);
+  auto col_fragment_tol = getColumn_(table, SearchParamsSchema::FRAGMENT_MASS_TOLERANCE);
+  auto col_fragment_ppm = getColumn_(table, SearchParamsSchema::FRAGMENT_MASS_TOLERANCE_PPM);
+  auto col_enzyme = getColumn_(table, SearchParamsSchema::DIGESTION_ENZYME, false);
+  auto col_enzyme_spec = getColumn_(table, SearchParamsSchema::ENZYME_TERM_SPECIFICITY, false);
+  auto col_missed_cleavages = getColumn_(table, SearchParamsSchema::MISSED_CLEAVAGES);
+  auto col_fixed_mods = getColumn_(table, SearchParamsSchema::FIXED_MODIFICATIONS, false);
+  auto col_var_mods = getColumn_(table, SearchParamsSchema::VARIABLE_MODIFICATIONS, false);
+  auto col_ms_run_paths = getColumn_(table, SearchParamsSchema::PRIMARY_MS_RUN_PATHS, false);
+  auto col_metavalues = getColumn_(table, SearchParamsSchema::METAVALUES, false);
+  auto col_sp_metavalues = getColumn_(table, SearchParamsSchema::SP_METAVALUES, false);
 
   if (!col_run_id || !col_search_engine || !col_score_type || !col_higher_better ||
       !col_mass_type || !col_precursor_tol || !col_precursor_ppm ||
@@ -1358,11 +1271,33 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     prot_id.setHigherScoreBetter(getBoolValue_(col_higher_better, row));
     prot_id.setSignificanceThreshold(getDoubleValue_(col_sig_threshold, row));
 
-    // Date (timestamp seconds since epoch)
+    // Date (timestamp; normalize to seconds based on the column's actual time unit).
+    // The schema declares timestamp(SECOND), but Parquet may persist/restore the column
+    // as nanoseconds, so we have to inspect the runtime unit rather than assume seconds.
     if (!isNull_(col_date, row))
     {
       auto ts_arr = std::static_pointer_cast<arrow::TimestampArray>(col_date);
-      int64_t epoch_secs = ts_arr->Value(row);
+      auto ts_type = std::static_pointer_cast<arrow::TimestampType>(ts_arr->type());
+      int64_t raw = ts_arr->Value(row);
+      // Floor-style division so a small negative sub-second value (e.g. raw = -500
+      // ms) maps to -1 second instead of 0; with C++'s truncating integer division
+      // it would otherwise pass the epoch_secs >= 0 check below and silently render
+      // as 1970-01-01.  Quotient/remainder form avoids UB at INT64_MIN that the
+      // simpler `-((-r + d - 1) / d)` formulation would hit by negating r.
+      auto floor_div = [](int64_t r, int64_t d) -> int64_t {
+        int64_t q = r / d;
+        int64_t rem = r % d;
+        if (rem != 0 && ((rem < 0) != (d < 0))) { --q; }
+        return q;
+      };
+      int64_t epoch_secs = raw;
+      switch (ts_type->unit())
+      {
+        case arrow::TimeUnit::SECOND: epoch_secs = raw; break;
+        case arrow::TimeUnit::MILLI:  epoch_secs = floor_div(raw, 1000LL); break;
+        case arrow::TimeUnit::MICRO:  epoch_secs = floor_div(raw, 1000000LL); break;
+        case arrow::TimeUnit::NANO:   epoch_secs = floor_div(raw, 1000000000LL); break;
+      }
       if (epoch_secs >= 0) // negative epochs are invalid on Windows
       {
         time_t t = static_cast<time_t>(epoch_secs);
@@ -1386,10 +1321,12 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
       }
     }
 
-    // Primary MS run paths
-    auto ms_run_paths = readStringList_(col_ms_run_paths, row);
-    if (!ms_run_paths.empty())
+    // Primary MS run paths — only call when the column is present.
+    // Missing column → no spectra_data UserParam (preserves round-trip semantics).
+    // Present-but-empty column → empty spectra_data UserParam (matches idXML behaviour).
+    if (col_ms_run_paths)
     {
+      auto ms_run_paths = readStringList_(col_ms_run_paths, row);
       StringList sl(ms_run_paths.begin(), ms_run_paths.end());
       prot_id.setPrimaryMSRunPath(sl);
     }
@@ -1444,7 +1381,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     sp.variable_modifications.assign(var_mods.begin(), var_mods.end());
 
     // SearchParameters metavalues (restore before setSearchParameters)
-    readMetaValues_(col_sp_metavalues, row, sp);
+    ArrowIOHelpers::readMetaValues(col_sp_metavalues, row, sp);
 
     prot_id.setSearchParameters(sp);
 
@@ -1465,7 +1402,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
       "InferenceEngine", "InferenceEngineVersion",
       "spectra_data", "spectra_data_raw"
     };
-    readMetaValues_(col_metavalues, row, prot_id, excluded_prot_id_mvs);
+    ArrowIOHelpers::readMetaValues(col_metavalues, row, prot_id, excluded_prot_id_mvs);
 
     protein_identifications.push_back(std::move(prot_id));
   }
@@ -1480,17 +1417,25 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
 {
   if (!table || table->num_rows() == 0) return true;
 
+  // Validate table schema against registry (subset mode — file may have extra columns)
+  auto validation = ArrowSchemaValidation::validate(table, ProteinSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << "\n";
+    return false;
+  }
+
   // Get all columns
-  auto col_accession = getColumn_(table, "accession");
-  auto col_score = getColumn_(table, "score");
-  auto col_rank = getColumn_(table, "rank", false);
-  auto col_coverage = getColumn_(table, "coverage", false);
-  auto col_sequence = getColumn_(table, "sequence", false);
-  auto col_description = getColumn_(table, "description", false);
-  auto col_is_decoy = getColumn_(table, "is_decoy", false);
-  auto col_run_id = getColumn_(table, "run_identifier");
-  auto col_modifications = getColumn_(table, "modifications", false);
-  auto col_metavalues = getColumn_(table, "metavalues", false);
+  auto col_accession = getColumn_(table, ProteinSchema::ACCESSION);
+  auto col_score = getColumn_(table, ProteinSchema::SCORE);
+  auto col_rank = getColumn_(table, ProteinSchema::RANK, false);
+  auto col_coverage = getColumn_(table, ProteinSchema::COVERAGE, false);
+  auto col_sequence = getColumn_(table, ProteinSchema::SEQUENCE, false);
+  auto col_description = getColumn_(table, ProteinSchema::DESCRIPTION, false);
+  auto col_is_decoy = getColumn_(table, ProteinSchema::IS_DECOY, false);
+  auto col_run_id = getColumn_(table, ProteinSchema::RUN_IDENTIFIER);
+  auto col_modifications = getColumn_(table, ProteinSchema::MODIFICATIONS, false);
+  auto col_metavalues = getColumn_(table, ProteinSchema::METAVALUES, false);
 
   if (!col_accession || !col_score || !col_run_id)
   {
@@ -1592,7 +1537,7 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
     }
 
     // MetaValues
-    readMetaValues_(col_metavalues, row, hit, excluded_hit_mvs);
+    ArrowIOHelpers::readMetaValues(col_metavalues, row, hit, excluded_hit_mvs);
 
     protein_identifications[prot_id_idx].insertHit(std::move(hit));
   }
@@ -1607,15 +1552,23 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromArrow(
 {
   if (!table || table->num_rows() == 0) return true;
 
+  // Validate table schema against registry (subset mode — file may have extra columns)
+  auto validation = ArrowSchemaValidation::validate(table, ProteinGroupSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << "\n";
+    return false;
+  }
+
   // Get all columns
-  auto col_group_type = getColumn_(table, "group_type");
-  auto col_probability = getColumn_(table, "probability");
-  auto col_accessions = getColumn_(table, "accessions");
-  auto col_run_id = getColumn_(table, "run_identifier");
-  auto col_group_index = getColumn_(table, "group_index", false); // informational, not needed for reconstruction
-  auto col_float_data = getColumn_(table, "float_data", false);
-  auto col_string_data = getColumn_(table, "string_data", false);
-  auto col_integer_data = getColumn_(table, "integer_data", false);
+  auto col_group_type = getColumn_(table, ProteinGroupSchema::GROUP_TYPE);
+  auto col_probability = getColumn_(table, ProteinGroupSchema::PROBABILITY);
+  auto col_accessions = getColumn_(table, ProteinGroupSchema::ACCESSIONS);
+  auto col_run_id = getColumn_(table, ProteinGroupSchema::RUN_IDENTIFIER);
+  auto col_group_index = getColumn_(table, ProteinGroupSchema::GROUP_INDEX, false); // informational, not needed for reconstruction
+  auto col_float_data = getColumn_(table, ProteinGroupSchema::FLOAT_DATA, false);
+  auto col_string_data = getColumn_(table, ProteinGroupSchema::STRING_DATA, false);
+  auto col_integer_data = getColumn_(table, ProteinGroupSchema::INTEGER_DATA, false);
 
   if (!col_group_type || !col_probability || !col_accessions || !col_run_id)
   {
@@ -1808,6 +1761,78 @@ bool ProteinIdentificationArrowIO::importFromParquet(
 }
 
 
-} // namespace OpenMS
+// ==================== Identifier handling parity with XML lane ====================
 
-#endif // WITH_PARQUET
+std::map<String, String> ProteinIdentificationArrowIO::synthesizeRunIdentifiers(
+  std::vector<ProteinIdentification>& protein_identifications)
+{
+  std::map<String, String> rename;
+  for (auto& prot_id : protein_identifications)
+  {
+    // Mirror IdXMLFile.cpp:530 — `<search_engine>_<date>_<UniqueIdGenerator>`.
+    const String se = prot_id.getSearchEngine().empty() ? String("unknown") : prot_id.getSearchEngine();
+    const String dt = prot_id.getDateTime().isValid()
+                          ? prot_id.getDateTime().toString()
+                          : String("1900-01-01T00:00:00");
+    const String stored = prot_id.getIdentifier();
+    const String synthesized = se + "_" + dt + "_" + String(UniqueIdGenerator::getUniqueId());
+
+    // Multiple ProtIDs sharing the stored identifier each get their own distinct
+    // synthesized identifier; the rename map collapses to the last-seen entry
+    // (matches XML-lane behavior should pre-fix files reach the loader). One
+    // ProtID ends up orphaned of its pep_ids; warn once per collision so the
+    // upstream data corruption is visible.
+    auto existing = rename.find(stored);
+    if (existing != rename.end())
+    {
+      OPENMS_LOG_WARN << "ProteinIdentificationArrowIO: multiple ProtIDs share stored identifier '"
+                      << stored << "'; pep_id assignment ambiguity resolved by load order — "
+                      << "regenerate input from a fixed-code build to eliminate." << std::endl;
+      existing->second = synthesized;
+    }
+    else
+    {
+      rename[stored] = synthesized;
+    }
+
+    prot_id.setIdentifier(synthesized);
+  }
+  return rename;
+}
+
+void ProteinIdentificationArrowIO::applyRunIdentifierRename(
+  const std::map<String, String>& rename,
+  PeptideIdentificationList& pep_ids)
+{
+  for (auto& pid : pep_ids)
+  {
+    auto it = rename.find(pid.getIdentifier());
+    if (it != rename.end())
+    {
+      pid.setIdentifier(it->second);
+    }
+    // Orphan pep_ids (no matching ProtID identifier) keep their stored identifier —
+    // same as the XML lane, where they organically surface upstream-corruption signals.
+  }
+}
+
+void ProteinIdentificationArrowIO::checkUniqueIdentifiers(
+  const std::vector<ProteinIdentification>& protein_identifications)
+{
+  // Mirror XMLHandler::checkUniqueIdentifiers_ exactly — identical message text
+  // so log-grepping finds both lanes.
+  std::set<String> s;
+  for (const auto& p : protein_identifications)
+  {
+    if (s.insert(p.getIdentifier()).second == false)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "ProteinIdentification run identifiers are not unique. This can lead to "
+        "loss of unique PeptideIdentification assignment. Duplicated Protein-ID is:",
+        p.getIdentifier());
+    }
+  }
+}
+
+
+} // namespace OpenMS

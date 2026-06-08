@@ -306,7 +306,7 @@ namespace OpenMS
 
         bool already_processed = false;
 
-        if (processed_peptides.find(*cit) != processed_peptides.end())
+        if (processed_peptides.contains(*cit))
         {
           // peptide (and all modified variants) already processed so skip it
           already_processed = true;
@@ -964,6 +964,10 @@ namespace OpenMS
       if (id.getHits().empty()) continue;
 
       PeptideHit& ph_alpha = id.getHits()[0];
+
+      // skip non-crosslinked PeptideIdentifications that were parsed and don't have crosslink MetaValues
+      if (!ph_alpha.metaValueExists(Constants::UserParam::OPENPEPXL_XL_POS1)) continue;
+
       String prot1_pos;
 
       // cross-link position in Protein (alpha)
@@ -1140,7 +1144,7 @@ namespace OpenMS
         PeptideHit& hit = id.getHits()[0];
         PeptideIdentification new_id;
         String current_spectrum = id.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
-        if (new_peptide_ids.find(current_spectrum) != new_peptide_ids.end())
+        if (new_peptide_ids.contains(current_spectrum))
         {
           new_id = (*new_peptide_ids.find(current_spectrum)).second;
         }

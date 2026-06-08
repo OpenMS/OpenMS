@@ -197,7 +197,7 @@ namespace Math {
       return ranks;
     }
 
-    // Concrete forwarders for Cython (avoid C++ templates on the Python side)
+    // Concrete forwarders for Python bindings (avoid C++ templates on the Python side)
     static std::vector<double> rankdata_double(const std::vector<double>& a,
                                                Method m = Method::Average,
                                                NaNPolicy p = NaNPolicy::Propagate)

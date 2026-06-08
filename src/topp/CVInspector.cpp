@@ -367,7 +367,7 @@ protected:
         if (tit->getAllowChildren())
         {
           // check whether we want to ignore this term
-          if (!(tit->getAccession().has(':') && ignore_cv_list.find(tit->getAccession().prefix(':')) != ignore_cv_list.end()))
+          if (!(tit->getAccession().has(':') && ignore_cv_list.contains(tit->getAccession().prefix(':'))))
           {
             cv.getAllChildTerms(allowed_terms, tit->getAccession());
           }
@@ -390,7 +390,7 @@ protected:
     set<String> unused_terms;
     for (const auto& [acc, _] : terms)
     {
-      if (used_terms.find(acc) == used_terms.end())
+      if (!used_terms.contains(acc))
       {
         unused_terms.insert(acc);
       }

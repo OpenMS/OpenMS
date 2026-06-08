@@ -30,6 +30,7 @@
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 
 #include <algorithm>
+#include <iterator>
 #include <memory>
 
 using namespace OpenMS;
@@ -330,6 +331,12 @@ private:
       
       while (last_spec != exp.end() && last_spec->getMSLevel() != min_ms_level) ++last_spec;
       // 'last_spec' now points to the start of a block, but we want it to point to the end of the previous block
+      if (last_spec == exp.begin())
+      { // edge case: no valid block found
+        OPENMS_LOG_WARN << "RTBlockMode: could not find a valid block boundary. Result is empty.\n";
+        exp.clear(true);
+        return;
+      }
       --last_spec;
     }
     else if (rt_block_mode == RTBlockMode::FULL_CYCLE_SHRINK)
@@ -342,6 +349,12 @@ private:
              last_spec != exp.begin() && last_spec->getMSLevel() != min_ms_level)
         --last_spec;
       // 'last_spec' now points to the start of the invalid block, but we want it to point to the end of the previous block
+      if (last_spec == exp.begin())
+      { // edge case: cannot go back further
+        OPENMS_LOG_WARN << "RTBlockMode: there is no full block in the range [" << rt_l << ", " << rt_u << "]. Result is empty. Please extend RT range or use another block strategy.\n";
+        exp.clear(true);
+        return;
+      }
       --last_spec;
       // in some cases, there was no full block inside [rt_l, rt_u]
       if (first_spec >= last_spec)
@@ -359,13 +372,13 @@ private:
 
     // RT filtering uses a half-open interval [min, max), we thus need to move last_spec a tad to the right
     double rt_u_new = last_spec->getRT();
-    if (last_spec == --exp.end())
+    if (std::next(last_spec) == exp.end())
     {// last_spec was the last spectrum in exp; we need to extend the upper RT boundary a bit to include it
       rt_u_new += 1.0;
     }
     else
     {
-      rt_u_new = (rt_u_new + (last_spec + 1)->getRT()) / 2; // take midpoint to next spectrum
+      rt_u_new = (rt_u_new + std::next(last_spec)->getRT()) / 2; // take midpoint to next spectrum
     }
 
     // reload with data and corrected rt range
@@ -381,6 +394,10 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
+    // FileFilter only processes mzML/featureXML/consensusXML; the input dispatch in main_()
+    // has no branch for vendor formats (Bruker .d / Thermo .raw) and they are not IM-aware
+    // pass-throughs (its m/z/intensity and S/N filters mutate peaks without updating the
+    // parallel ion-mobility array). Use FileConverter to convert vendor data to mzML first.
     std::vector<String> formats = ListUtils::create<String>("mzML,featureXML,consensusXML");
 
     registerInputFile_("in", "<file>", "", "Input file");
@@ -1438,7 +1455,7 @@ protected:
       for (const FeatureHandle& fh : cm)
       {
         UInt64 map_index = fh.getMapIndex();
-        if (map_ids.empty() || map_ids.find(map_index) != map_ids.end())
+        if (map_ids.empty() || map_ids.contains(map_index))
         {
           Peak2D p;
           p.setMZ(fh.getMZ());
@@ -1489,14 +1506,14 @@ protected:
       if (is_blacklist)
       {
         // blacklist: add all spectra not contained in list
-        if (list_idx.find(i) == list_idx.end())
+        if (!list_idx.contains(i))
         {
           exp2.addSpectrum(exp[i]);
         }
       }
       else   // whitelist: add all non MS2 spectra, and MS2 only if in list
       {
-        if (exp[i].getMSLevel() != 2 || list_idx.find(i) != list_idx.end())
+        if (exp[i].getMSLevel() != 2 || list_idx.contains(i))
         {
           exp2.addSpectrum(exp[i]);
         }
@@ -1577,14 +1594,14 @@ protected:
       if (is_blacklist)
       {
         // blacklist: add all spectra not contained in list
-        if (list_idx.find(i) == list_idx.end())
+        if (!list_idx.contains(i))
         {
           exp2.addSpectrum(exp[i]);
         }
       }
       else   // whitelist: add all non-MS2 spectra + matched MS2 spectra
       {
-        if (exp[i].getMSLevel() != 2 || list_idx.find(i) != list_idx.end())
+        if (exp[i].getMSLevel() != 2 || list_idx.contains(i))
         {
           exp2.addSpectrum(exp[i]);
         }

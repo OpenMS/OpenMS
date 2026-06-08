@@ -76,6 +76,18 @@ START_SECTION(const String& imFormatToString(const IMFormat value))
 
 END_SECTION
 
+START_SECTION(IMPeakType string conversions)
+{
+  TEST_EQUAL(toIMPeakType("im_profile"), IMPeakType::IM_PROFILE)
+  TEST_EQUAL(toIMPeakType("im_centroided"), IMPeakType::IM_CENTROIDED)
+  TEST_EQUAL(toIMPeakType("unknown"), IMPeakType::UNKNOWN)
+  TEST_EQUAL(imPeakTypeToString(IMPeakType::IM_PROFILE), "im_profile")
+  TEST_EQUAL(imPeakTypeToString(IMPeakType::IM_CENTROIDED), "im_centroided")
+  TEST_EQUAL(imPeakTypeToString(IMPeakType::UNKNOWN), "unknown")
+  TEST_EXCEPTION(Exception::InvalidValue, toIMPeakType("garbage"))
+}
+END_SECTION
+
 
 // single IM value for whole spec
 const MSSpectrum IMwithDrift = [&]() { 
@@ -93,47 +105,68 @@ const MSSpectrum IMwithFDA = [&]() {
   return single[0];
 }();
 
-START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp))
+START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp, int ms_level))
 
-  TEST_EQUAL(IMTypes::determineIMFormat(MSExperiment()) == IMFormat::NONE, true)
+  // empty experiment
+  TEST_EQUAL(IMTypes::determineIMFormat(MSExperiment(), 1) == IMFormat::NONE, true)
 
   {
     MSExperiment exp;
+    exp.addSpectrum(MSSpectrum()); // default MS level = 1
     exp.addSpectrum(MSSpectrum());
-    exp.addSpectrum(MSSpectrum());
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::NONE, true)
-  }
-  
-  {
-    MSExperiment exp;
-    exp.addSpectrum(MSSpectrum());
-    exp.addSpectrum(IMwithDrift);
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MULTIPLE_SPECTRA, true)
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 1) == IMFormat::NONE, true)
   }
 
   {
+    auto ms1_drift = IMwithDrift;
+    ms1_drift.setMSLevel(1);
     MSExperiment exp;
     exp.addSpectrum(MSSpectrum());
-    exp.addSpectrum(IMwithFDA);
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::CONCATENATED, true)
+    exp.addSpectrum(ms1_drift);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 1) == IMFormat::IM_SPECTRUM, true)
   }
 
   {
+    auto ms1_peak = IMwithFDA;
+    ms1_peak.setMSLevel(1);
     MSExperiment exp;
-    exp.addSpectrum(IMwithDrift);
-    exp.addSpectrum(IMwithFDA);
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MIXED, true)
+    exp.addSpectrum(MSSpectrum());
+    exp.addSpectrum(ms1_peak);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 1) == IMFormat::IM_PEAK, true)
   }
 
   {
-    // set both ... is valid (typically concatenated + some average value)
-    auto IMwithFDA2 = IMwithFDA;
-    IMwithFDA2.setDriftTime(123.4);
+    // MS1 = IM_PEAK, MS2 = IM_SPECTRUM — per-level queries work independently
+    auto ms1_peak = IMwithFDA;
+    ms1_peak.setMSLevel(1);
+    auto ms2_drift = IMwithDrift;
+    ms2_drift.setMSLevel(2);
     MSExperiment exp;
-    exp.addSpectrum(IMwithDrift);
-    exp.addSpectrum(IMwithFDA);
-    exp.addSpectrum(IMwithFDA2);
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MIXED, true)
+    exp.addSpectrum(ms1_peak);
+    exp.addSpectrum(ms2_drift);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 1) == IMFormat::IM_PEAK, true)
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 2) == IMFormat::IM_SPECTRUM, true)
+  }
+
+  {
+    // no spectra of requested level
+    MSExperiment exp;
+    auto ms1 = IMwithDrift;
+    ms1.setMSLevel(1);
+    exp.addSpectrum(ms1);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 2) == IMFormat::NONE, true)
+  }
+
+  {
+    // mixed formats within same MS level throws
+    auto ms1_drift = IMwithDrift;
+    ms1_drift.setMSLevel(1);
+    auto ms1_peak = IMwithFDA;
+    ms1_peak.setMSLevel(1);
+    MSExperiment exp;
+    exp.addSpectrum(ms1_drift);
+    exp.addSpectrum(ms1_peak);
+    TEST_EXCEPTION(Exception::InvalidValue, IMTypes::determineIMFormat(exp, 1))
   }
 
 END_SECTION
@@ -142,15 +175,66 @@ START_SECTION(static IMFormat determineIMFormat(const MSSpectrum& spec))
    TEST_EQUAL(IMTypes::determineIMFormat(MSSpectrum()) == IMFormat::NONE, true)
    
    // single IM value for whole spec
-   TEST_EQUAL(IMTypes::determineIMFormat(IMwithDrift) == IMFormat::MULTIPLE_SPECTRA, true)
+   TEST_EQUAL(IMTypes::determineIMFormat(IMwithDrift) == IMFormat::IM_SPECTRUM, true)
 
    // convert to IM-Frame with float meta-data array
-   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA) == IMFormat::CONCATENATED, true)
+   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA) == IMFormat::IM_PEAK, true)
 
    // set both ... is valid (typically concatenated + some average value)
    auto IMwithFDA2 = IMwithFDA;
    IMwithFDA2.setDriftTime(123.4);
-   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA2) == IMFormat::CONCATENATED, true)
+   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA2) == IMFormat::IM_PEAK, true)
+END_SECTION
+
+START_SECTION(determineIMFormat returns IM_PEAK for centroided IM data)
+{
+  MSSpectrum s;
+  MSSpectrum::FloatDataArray fda;
+  fda.setName("Ion Mobility");
+  s.getFloatDataArrays().push_back(fda);
+  s.setIMPeakType(IMPeakType::IM_CENTROIDED);
+  TEST_EQUAL(IMTypes::determineIMFormat(s), IMFormat::IM_PEAK)
+}
+END_SECTION
+
+START_SECTION(static double oneOverK0ToCCS(double one_over_k0, double mz, int charge, double buffer_gas_mass))
+{
+  // Reserpine [M+H]+ (m/z 609.28, z=1): 1/K0 ~1.196 should give a CCS near the
+  // published N2 value of ~245 Angstrom^2.
+  TOLERANCE_ABSOLUTE(0.01)
+  double ccs = IMTypes::oneOverK0ToCCS(1.196, 609.28, 1);
+  TEST_REAL_SIMILAR(ccs, 244.9402)
+
+  // charge sign must not matter (|z| is used)
+  TEST_REAL_SIMILAR(IMTypes::oneOverK0ToCCS(0.9, 300.0, -1), IMTypes::oneOverK0ToCCS(0.9, 300.0, 1))
+
+  // larger 1/K0 -> larger CCS (monotonic)
+  TEST_EQUAL(IMTypes::oneOverK0ToCCS(1.2, 300.0, 1) > IMTypes::oneOverK0ToCCS(0.9, 300.0, 1), true)
+
+  // invalid inputs throw
+  TEST_EXCEPTION(Exception::InvalidValue, IMTypes::oneOverK0ToCCS(0.0, 300.0, 1))
+  TEST_EXCEPTION(Exception::InvalidValue, IMTypes::oneOverK0ToCCS(-1.0, 300.0, 1))
+  TEST_EXCEPTION(Exception::InvalidValue, IMTypes::oneOverK0ToCCS(0.9, 0.0, 1))
+  TEST_EXCEPTION(Exception::InvalidValue, IMTypes::oneOverK0ToCCS(0.9, 300.0, 0))
+}
+END_SECTION
+
+START_SECTION(static double ccsToOneOverK0(double ccs, double mz, int charge, double buffer_gas_mass))
+{
+  // round-trip: 1/K0 -> CCS -> 1/K0 must recover the original value
+  double one_over_k0 = 0.95;
+  double ccs = IMTypes::oneOverK0ToCCS(one_over_k0, 412.5, 1);
+  TEST_REAL_SIMILAR(IMTypes::ccsToOneOverK0(ccs, 412.5, 1), one_over_k0)
+
+  // round-trip for a multiply charged ion
+  double ok0_2 = 0.62;
+  double ccs2 = IMTypes::oneOverK0ToCCS(ok0_2, 524.3, 2);
+  TEST_REAL_SIMILAR(IMTypes::ccsToOneOverK0(ccs2, 524.3, 2), ok0_2)
+
+  // invalid inputs throw
+  TEST_EXCEPTION(Exception::InvalidValue, IMTypes::ccsToOneOverK0(0.0, 300.0, 1))
+  TEST_EXCEPTION(Exception::InvalidValue, IMTypes::ccsToOneOverK0(200.0, 300.0, 0))
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

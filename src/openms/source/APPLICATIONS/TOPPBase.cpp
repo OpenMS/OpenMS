@@ -79,6 +79,10 @@ namespace OpenMS
                                        )
   {
 #ifdef _OPENMP
+    if (num_threads <= 0)
+    {
+      num_threads = omp_get_num_procs();
+    }
     omp_set_num_threads(num_threads);
 #endif
   }
@@ -112,7 +116,7 @@ namespace OpenMS
     if (toolhandler_test_)
     {
       // check if tool is in official tools list
-      if (official_ && tool_name_ != "GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
+      if (official_ && !ToolHandler::getTOPPToolList().count(tool_name_))
       {
         throw Exception::InvalidValue(__FILE__,
                                       __LINE__,
@@ -151,7 +155,7 @@ namespace OpenMS
     registerStringOption_("log", "<file>", "", "Name of log file (created only when specified)", false, true);
     registerIntOption_("instance", "<n>", 1, "Instance number for the TOPP INI file", false, true);
     registerIntOption_("debug", "<n>", 0, "Sets the debug level", false, true);
-    registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
+    registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores)", false);
     registerStringOption_("write_ini", "<file>", "", "Writes the default configuration file", false);
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
     registerStringOption_("write_nested_cwl", "<out_dir>", "", "Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>", false, true);
@@ -954,7 +958,7 @@ namespace OpenMS
     {
       String full_name = it.getName();
       String subsection = getSubsection_(full_name);
-      if (!subsection.empty() && (subsections_TOPP_.count(subsection) == 0))
+      if (!subsection.empty() && (!subsections_TOPP_.contains(subsection)))
       {
         subsections_TOPP_[subsection] = param.getSectionDescription(subsection);
       }
@@ -1883,10 +1887,10 @@ namespace OpenMS
     {
       // subsections (do not check content, but warn if not registered)
       String subsection = getSubsection_(it.getName());
-      if (!subsection.empty() && subsections_TOPP_.count(subsection) == 0) // not found in TOPP subsections
+      if (!subsection.empty() && !subsections_TOPP_.contains(subsection)) // not found in TOPP subsections
       {
         // for multi-level subsections, check only the first level:
-        if (subsections_.count(subsection.substr(0, subsection.find(':'))) == 0) // not found in normal subsections
+        if (!subsections_.contains(subsection.substr(0, subsection.find(':')))) // not found in normal subsections
         {
           if (!(location == "common::" && subsection == tool_name_))
           {
@@ -2394,7 +2398,7 @@ namespace OpenMS
     }
     StringList type_list = ToolHandler::getTypes(tool_name_);
     if (type_list.empty())
-      type_list.push_back(""); // no type for most tools (except GenericWrapper)
+      type_list.push_back(""); // no type for most tools
 
     for (Size i = 0; i < type_list.size(); ++i)
     {
@@ -2453,17 +2457,6 @@ namespace OpenMS
     // .. they are empty/default at this point
     // We now fetch the (so-far unknown) subsection parameters (since they can be addressed on command line as well)
 
-    // special case of GenericWrapper: since we need the subSectionDefaults before pushing the cmd arguments in there
-    //                                 but the 'type' is empty currently,
-    //                                 we extract and set it beforehand
-    StringList sl_args = StringList(argv, argv + argc);
-    StringList::iterator it_type = std::find(sl_args.begin(), sl_args.end(), "-type");
-    if (it_type != sl_args.end())
-    { // found it
-      ++it_type; // advance to next argument -- this should be the value of -type
-      if (it_type != sl_args.end()) param_.setValue("type", *it_type);
-    }
-
     // prepare map of parameters:
     typedef map<String, vector<ParameterInformation>::const_iterator> ParamMap;
     ParamMap param_map;
@@ -2483,7 +2476,7 @@ namespace OpenMS
       }
     }
     catch (BaseException& e)
-    { // this only happens for GenericWrapper, if 'type' is not given or invalid (then we do not have subsection params) -- enough to issue a warning
+    { // this only happens if 'type' is not given or invalid (then we do not have subsection params) -- enough to issue a warning
       writeLogWarn_(String("Warning: Unable to fetch subsection parameters! Addressing subsection parameters will not work for this tool (did you forget to specify '-type'?)."));
       writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ")!", 1);
     }

@@ -612,7 +612,7 @@ namespace OpenMS
     {
       MzTabModificationMetaData mod;
       MzTabParameter mp;
-      ModificationsDB* mod_db = ModificationsDB::getInstance();
+      const ModificationsDB* mod_db = ModificationsDB::getInstance();
       String unimod_accession;
       try
       {

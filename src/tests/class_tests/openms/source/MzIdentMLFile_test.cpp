@@ -12,6 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -496,6 +497,112 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   TEST_EQUAL(peptide_ids2[2].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE), "-")
   TEST_EQUAL(peptide_ids2[2].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1), 12)
   TEST_EQUAL(peptide_ids2[2].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2), "-")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 crosslinking scores_and_thresholds))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  String input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_crosslinking.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+
+  // every parsed identification carries a spectrum reference; collect hits across all ids
+  // (a SpectrumIdentificationResult may legitimately yield an id without hits, so guard the hit access)
+  Size total_hits = 0;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    TEST_EQUAL(pid.getSpectrumReference().empty(), false)
+    total_hits += pid.getHits().size();
+    if (!pid.getHits().empty())
+    {
+      TEST_EQUAL(pid.getHits()[0].getSequence().empty(), false)
+    }
+  }
+  TEST_EQUAL(total_hits > 0, true)
+
+  // store/load roundtrip: the writer must default to mzIdentML 1.3.0 and the reader must read it back without loss
+  String filename;
+  NEW_TMP_FILE(filename)
+  MzIdentMLFile().store(filename, protein_ids, peptide_ids);
+
+  // the default writer path emits version 1.3.0
+  TextFile written(filename);
+  bool has_version_130 = false;
+  for (TextFile::ConstIterator it = written.begin(); it != written.end(); ++it)
+  {
+    if (it->hasSubstring("version=\"1.3.0\"")) { has_version_130 = true; break; }
+  }
+  TEST_EQUAL(has_version_130, true)
+
+  vector<ProteinIdentification> protein_ids2;
+  PeptideIdentificationList peptide_ids2;
+  MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
+  TEST_EQUAL(!peptide_ids2.empty(), true)
+  TEST_EQUAL(!protein_ids2.empty(), true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 noncovalent association))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  String input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_noncov_assoc.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+
+  // parsed hits must have valid sequences (modification/cvParam fallbacks resolved correctly)
+  Size total_hits = 0;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    total_hits += pid.getHits().size();
+    if (!pid.getHits().empty())
+    {
+      TEST_EQUAL(pid.getHits()[0].getSequence().empty(), false)
+    }
+  }
+  TEST_EQUAL(total_hits > 0, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 EDC crosslinking))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  String input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_xlink_edc.mzid");
+  // EDC files mix crosslinked and standalone (non-XL) peptides; both must parse without throwing
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+
+  Size total_hits = 0;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    total_hits += pid.getHits().size();
+  }
+  TEST_EQUAL(total_hits > 0, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 multiple spectra per identification))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  String input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_multi_spectra.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+
+  // multiple SpectrumIdentificationLists yield several distinct spectrum references
+  set<String> refs;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    refs.insert(pid.getSpectrumReference());
+  }
+  TEST_EQUAL(refs.size() > 1, true)
 }
 END_SECTION
 

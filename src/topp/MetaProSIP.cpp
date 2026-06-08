@@ -37,11 +37,7 @@
 
 #include <boost/math/distributions/normal.hpp>
 
-#include <QtCore/QStringList>
-#include <QtCore/QFile>
-#include <QtCore/QDir>
-#include <QtCore/QFileInfo>
-#include <QtCore/QProcess>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
 
 #include <algorithm>
 #include <iostream>
@@ -309,7 +305,7 @@ public:
       y.push_back(it->second);
     }
 
-    if (rate2score.find(100.0) == rate2score.end() && x[x.size() - 1] < 100.0)
+    if (!rate2score.contains(100.0) && x[x.size() - 1] < 100.0)
     {
       x.push_back(100.0);
       y.push_back(0);
@@ -373,7 +369,7 @@ public:
       // build histogram of rates
       for (vector<SIPIncorporation>::const_iterator iit = cit->incorporations.begin(); iit != cit->incorporations.end(); ++iit)
       {
-        if (hist.find(iit->rate) == hist.end())
+        if (!hist.contains(iit->rate))
         {
           hist[iit->rate] = 1.0;
         }
@@ -456,10 +452,47 @@ public:
 
 };
 
+/// Run an R script and return the exit status. Optionally capture merged output.
+static ExternalProcess::RETURNSTATE runRScript(
+    const String& r_executable,
+    const String& script_path,
+    const String& tmp_path,
+    Size debug_level,
+    String* captured_output = nullptr)
+{
+  std::vector<String> args = {"--vanilla"};
+  if (debug_level < 1)
+  {
+    args.emplace_back("--quiet");
+  }
+  args.emplace_back("--slave");
+  args.emplace_back("--file=" + script_path);
+
+  String merged_output;
+  auto capture = [&merged_output](const String& s) { merged_output += s; };
+
+  ExternalProcess proc(capture, capture); // merge stdout+stderr into same buffer
+  String error_msg;
+  std::map<String, String> env = {{"R_LIBS", tmp_path}};
+
+  auto state = proc.run(r_executable, args, "", false, error_msg, ExternalProcess::IO_MODE::READ_ONLY, env);
+
+  // Surface startup diagnostics from ExternalProcess alongside captured output
+  if (!error_msg.empty())
+  {
+    merged_output += error_msg;
+  }
+  if (captured_output)
+  {
+    *captured_output = merged_output;
+  }
+  return state;
+}
+
 class MetaProSIPReporting
 {
 public:
-  static void plotHeatMap(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<vector<double> >& binned_ria, vector<String> class_labels, Size debug_level = 0, const QString& executable = QString("R"))
+  static void plotHeatMap(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<vector<double> >& binned_ria, vector<String> class_labels, Size debug_level = 0, const String& executable = "R")
   {
     String filename = String("heatmap") + file_suffix + "." + file_extension;
     String script_filename = String("heatmap") + file_suffix + String(".R");
@@ -530,39 +563,23 @@ public:
     current_script.addLine("tmp<-dev.off()");
     current_script.store(tmp_path + "/" + script_filename);
 
-    QProcess p;
-    QStringList env = QProcess::systemEnvironment();
-    env << QString("R_LIBS=") + QString::fromStdString(tmp_path);
-    p.setEnvironment(env);
-
-    QStringList qparam;
-    qparam << "--vanilla";
-    if (debug_level < 1)
-    {
-      qparam << "--quiet";
-    }
-    qparam << "--slave" << "--file=" + QString::fromStdString(tmp_path + "/" + script_filename);
-    p.start(executable, qparam);
-    p.waitForFinished(-1);
-    int status = p.exitCode();
-
-    // cleanup
-    if (status != 0)
+    auto state = runRScript(executable, tmp_path + "/" + script_filename, tmp_path, debug_level);
+    if (state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
       std::cerr << "Error: Process returned with non 0 status." << std::endl;
     }
     else
     {
-      QFile(QString::fromStdString(tmp_path + "/" + filename)).copy(QString::fromStdString(output_dir + "/heatmap" + file_suffix + "." + file_extension));
+      File::copy(tmp_path + "/" + filename, output_dir + "/heatmap" + file_suffix + "." + file_extension);
       if (debug_level < 1)
       {
-        QFile(QString::fromStdString(tmp_path + "/" + script_filename)).remove();
-        QFile(QString::fromStdString(tmp_path + "/" + filename)).remove();
+        File::remove(tmp_path + "/" + script_filename);
+        File::remove(tmp_path + "/" + filename);
       }
     }
   }
 
-  static void plotFilteredSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0, const QString& executable = QString("R"))
+  static void plotFilteredSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0, const String& executable = "R")
   {
     String filename = String("spectrum_plot") + file_suffix + "." + file_extension;
     String script_filename = String("spectrum_plot") + file_suffix + String(".R");
@@ -613,28 +630,18 @@ public:
       current_script.addLine("tmp<-dev.off()");
       current_script.store(tmp_path + "/" + script_filename);
 
-      QProcess p;
-      QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + QString::fromStdString(tmp_path);
-      p.setEnvironment(env);
-
-      QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString::fromStdString(tmp_path + "/" + script_filename);
-      p.start(executable, qparam);
-      p.waitForFinished(-1);
-      int status = p.exitCode();
-
-      if (status != 0)
+      auto state = runRScript(executable, tmp_path + "/" + script_filename, tmp_path, 0);
+      if (state != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         std::cerr << "Error: Process returned with non 0 status." << std::endl;
       }
       else
       {
-        QFile(QString::fromStdString(tmp_path + "/" + filename)).copy(QString::fromStdString(output_dir + "/spectrum" + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension));
+        File::copy(tmp_path + "/" + filename, output_dir + "/spectrum" + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension);
         if (debug_level < 1)
         {
-          QFile(QString::fromStdString(tmp_path + "/" + script_filename)).remove();
-          QFile(QString::fromStdString(tmp_path + "/" + filename)).remove();
+          File::remove(tmp_path + "/" + script_filename);
+          File::remove(tmp_path + "/" + filename);
         }
       }
     }
@@ -761,7 +768,7 @@ public:
     current_script.store(qc_output_directory + "/index" + file_suffix + ".html");
   }
 
-  static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0, const QString& executable = QString("R"))
+  static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0, const String& executable = "R")
   {
     String score_filename = String("score_plot") + file_suffix + file_extension;
     String script_filename = String("score_plot") + file_suffix + String(".R");
@@ -834,28 +841,18 @@ public:
       current_script.addLine("tmp<-dev.off()");
       current_script.store(tmp_path + "/" + script_filename);
 
-      QProcess p;
-      QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + QString::fromStdString(tmp_path);
-      p.setEnvironment(env);
-
-      QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString::fromStdString(tmp_path + "/" + script_filename);
-      p.start(executable, qparam);
-      p.waitForFinished(-1);
-      int status = p.exitCode();
-
-      if (status != 0)
+      auto state = runRScript(executable, tmp_path + "/" + script_filename, tmp_path, 0);
+      if (state != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         std::cerr << "Error: Process returned with non 0 status." << std::endl;
       }
       else
       {
-        QFile(QString::fromStdString(tmp_path + "/" + score_filename)).copy(QString::fromStdString(output_dir + "/scores" + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension));
+        File::copy(tmp_path + "/" + score_filename, output_dir + "/scores" + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension);
         if (debug_level < 1)
         {
-          QFile(QString::fromStdString(tmp_path + "/" + script_filename)).remove();
-          QFile(QString::fromStdString(tmp_path + "/" + score_filename)).remove();
+          File::remove(tmp_path + "/" + script_filename);
+          File::remove(tmp_path + "/" + score_filename);
         }
       }
     }
@@ -869,7 +866,7 @@ public:
                                   Size n_heatmap_bins,
                                   double score_plot_y_axis_min,
                                   bool report_natural_peptides,
-                                  const QString& executable = QString("R"))
+                                  const String& executable = "R")
   {
     vector<SIPPeptide> sip_peptides;
     for (vector<vector<SIPPeptide> >::const_iterator cit = sip_peptide_cluster.begin(); cit != sip_peptide_cluster.end(); ++cit)
@@ -1020,7 +1017,7 @@ public:
 
         String protein_accession = prot_it->first;
         String protein_description = "none";
-        if (proteinid_to_description.find(protein_accession.trim().toUpper()) != proteinid_to_description.end())
+        if (proteinid_to_description.contains(protein_accession.trim().toUpper()))
         {
           protein_description = proteinid_to_description.at(protein_accession.trim().toUpper());
         }
@@ -1149,7 +1146,7 @@ public:
             String protein_accession = v_it->accessions[ac];
             accessions_string += protein_accession;
 
-            if (proteinid_to_description.find(protein_accession.trim().toUpper()) != proteinid_to_description.end())
+            if (proteinid_to_description.contains(protein_accession.trim().toUpper()))
             {
               if (description_string == "none")
               {
@@ -1267,7 +1264,7 @@ public:
         current_accession.trim().toUpper();
         accession_string += current_accession;
 
-        if (proteinid_to_description.find(current_accession) != proteinid_to_description.end())
+        if (proteinid_to_description.contains(current_accession))
         {
           if (protein_descriptions == "none")
           {
@@ -1435,7 +1432,6 @@ public:
   {
     IsotopePatterns ret;
     const Element* e1 = ElementDB::getInstance()->getElement("Carbon");
-    Element* e2 = const_cast<Element*>(e1);
 
     EmpiricalFormula peptide_ef = peptide.getFormula();
     Size MAXISOTOPES = static_cast<Size>(peptide_ef.getNumberOf(e1));
@@ -1457,8 +1453,9 @@ public:
         isotopes.clear();
         isotopes.insert(12, 1.0 - a);
         isotopes.insert(13, a);
-        e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_carbon + additional_isotopes));
+        CoarseIsotopePatternGenerator gen(max_labeling_carbon + additional_isotopes);
+        gen.setIsotopeOverride(e1, isotopes);
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(gen);
         dist.set(CoarseIsotopePatternGenerator().convolve(dist.getContainer(), modification_dist.getContainer())); // convolve with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
@@ -1481,8 +1478,9 @@ public:
         isotopes.clear();
         isotopes.insert(12, 1.0 - a);
         isotopes.insert(13, a);
-        e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(MAXISOTOPES + additional_isotopes));
+        CoarseIsotopePatternGenerator gen(MAXISOTOPES + additional_isotopes);
+        gen.setIsotopeOverride(e1, isotopes);
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(gen);
 
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
@@ -1495,12 +1493,6 @@ public:
       }
     }
 
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.clear();
-    isotopes.insert(12, 0.9893f);
-    isotopes.insert(13, 0.0107f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 
@@ -1555,7 +1547,6 @@ public:
     IsotopePatterns ret;
 
     const Element* e1 = ElementDB::getInstance()->getElement("Nitrogen");
-    Element* e2 = const_cast<Element*>(e1);
 
     EmpiricalFormula peptide_ef = peptide.getFormula();
     UInt MAXISOTOPES = static_cast<UInt>(peptide_ef.getNumberOf(e1));
@@ -1576,8 +1567,9 @@ public:
         isotopes.clear();
         isotopes.insert(14, 1.0 - a);
         isotopes.insert(15, a);
-        e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_nitrogens + additional_isotopes));
+        CoarseIsotopePatternGenerator gen(max_labeling_nitrogens + additional_isotopes);
+        gen.setIsotopeOverride(e1, isotopes);
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(gen);
         dist.set(CoarseIsotopePatternGenerator().convolve(dist.getContainer(), modification_dist.getContainer())); // calculate convolution with isotope distribution of modification(s)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
@@ -1599,8 +1591,9 @@ public:
         isotopes.clear();
         isotopes.insert(14, 1.0 - a);
         isotopes.insert(15, a);
-        e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(MAXISOTOPES + additional_isotopes));
+        CoarseIsotopePatternGenerator gen(MAXISOTOPES + additional_isotopes);
+        gen.setIsotopeOverride(e1, isotopes);
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(gen);
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1610,12 +1603,6 @@ public:
         ret.push_back(make_pair(abundance, intensities));
       }
     }
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.clear();
-    isotopes.insert(14, 0.99632f);
-    isotopes.insert(15, 0.368f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 
@@ -1624,7 +1611,6 @@ public:
     IsotopePatterns ret;
 
     const Element* e1 = ElementDB::getInstance()->getElement("Hydrogen");
-    Element* e2 = const_cast<Element*>(e1);
 
     EmpiricalFormula peptide_ef = peptide.getFormula();
     Size MAXISOTOPES = static_cast<Size>(peptide_ef.getNumberOf(e1));
@@ -1645,9 +1631,10 @@ public:
         isotopes.clear();
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, a);
-        e2->setIsotopeDistribution(isotopes);
+        CoarseIsotopePatternGenerator gen(max_labeling_element + additional_isotopes);
+        gen.setIsotopeOverride(e1, isotopes);
 
-        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_element + additional_isotopes));
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(gen);
         dist.set(CoarseIsotopePatternGenerator().convolve(dist.getContainer(), modification_dist.getContainer())); // convole with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
@@ -1669,8 +1656,9 @@ public:
         isotopes.clear();
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, a);
-        e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(MAXISOTOPES + additional_isotopes));
+        CoarseIsotopePatternGenerator gen(MAXISOTOPES + additional_isotopes);
+        gen.setIsotopeOverride(e1, isotopes);
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(gen);
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1681,12 +1669,6 @@ public:
       }
     }
 
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.clear();
-    isotopes.insert(1, 0.999885f);
-    isotopes.insert(2, 0.000115f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 
@@ -1695,7 +1677,6 @@ public:
     IsotopePatterns ret;
 
     const Element* e1 = ElementDB::getInstance()->getElement("Oxygen");
-    Element* e2 = const_cast<Element*>(e1);
 
     EmpiricalFormula peptide_ef = peptide.getFormula();
     Size MAXISOTOPES = static_cast<Size>(peptide_ef.getNumberOf(e1));
@@ -1715,9 +1696,10 @@ public:
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, 0.0); // 17O is neglectable (=0.038%)
         isotopes.insert(3, a);
-        e2->setIsotopeDistribution(isotopes);
+        CoarseIsotopePatternGenerator gen(max_labeling_element * 2 + additional_isotopes); // 2 * isotopic traces
+        gen.setIsotopeOverride(e1, isotopes);
 
-        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_element * 2 + additional_isotopes)); // 2 * isotopic traces
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(gen);
         dist.set(CoarseIsotopePatternGenerator().convolve(dist.getContainer(), modification_dist.getContainer())); // convole with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
@@ -1740,8 +1722,9 @@ public:
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, 0.0); // 17O is neglectable (=0.038%)
         isotopes.insert(3, a);
-        e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(MAXISOTOPES * 2 + additional_isotopes)); // 2 * isotopic traces
+        CoarseIsotopePatternGenerator gen(MAXISOTOPES * 2 + additional_isotopes); // 2 * isotopic traces
+        gen.setIsotopeOverride(e1, isotopes);
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(gen);
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1752,13 +1735,6 @@ public:
       }
     }
 
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.clear();
-    isotopes.insert(1, 0.99757f);
-    isotopes.insert(2, 0.00038f);
-    isotopes.insert(3, 0.00205f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 
@@ -1766,7 +1742,6 @@ public:
   {
     IsotopePatterns ret;
     const Element* e1 = ElementDB::getInstance()->getElement("Nitrogen");
-    Element* e2 = const_cast<Element*>(e1);
 
     // calculate number of expected labeling elements using averagine model
     Size element_count = static_cast<Size>(mass * 0.0122177302837372);
@@ -1780,8 +1755,8 @@ public:
       isotopes.clear();
       isotopes.insert(14, 1.0 - a);
       isotopes.insert(15, a);
-      e2->setIsotopeDistribution(isotopes);
       CoarseIsotopePatternGenerator solver(element_count);
+      solver.setIsotopeOverride(e1, isotopes);
       auto dist = solver.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
@@ -1792,12 +1767,6 @@ public:
       ret.push_back(make_pair(abundance, intensities));
     }
 
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.clear();
-    isotopes.insert(14, 0.99632f);
-    isotopes.insert(15, 0.368f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 
@@ -1805,7 +1774,6 @@ public:
   {
     IsotopePatterns ret;
     const Element* e1 = ElementDB::getInstance()->getElement("Carbon");
-    Element* e2 = const_cast<Element*>(e1);
     Size element_count = static_cast<Size>(mass * 0.0444398894906044);
 
     // calculate isotope distribution for a given peptide and varying incoperation rates
@@ -1817,8 +1785,8 @@ public:
       isotopes.clear();
       isotopes.insert(12, 1.0 - a);
       isotopes.insert(13, a);
-      e2->setIsotopeDistribution(isotopes);
       CoarseIsotopePatternGenerator solver(element_count);
+      solver.setIsotopeOverride(e1, isotopes);
       auto dist = solver.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
@@ -1829,11 +1797,6 @@ public:
       ret.push_back(make_pair(abundance, intensities));
     }
 
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.insert(12, 0.9893f);
-    isotopes.insert(13, 0.010f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 
@@ -1842,7 +1805,6 @@ public:
     IsotopePatterns ret;
 
     const Element* e1 = ElementDB::getInstance()->getElement("Hydrogen");
-    Element* e2 = const_cast<Element*>(e1);
     Size element_count = static_cast<Size>(mass * 0.06981572169);
 
     // calculate isotope distribution for a given peptide and varying incoperation rates
@@ -1854,8 +1816,8 @@ public:
       isotopes.clear();
       isotopes.insert(1, 1.0 - a);
       isotopes.insert(2, a);
-      e2->setIsotopeDistribution(isotopes);
       CoarseIsotopePatternGenerator solver(element_count);
+      solver.setIsotopeOverride(e1, isotopes);
       auto dist = solver.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
@@ -1866,12 +1828,6 @@ public:
       ret.push_back(make_pair(abundance, intensities));
     }
 
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.clear();
-    isotopes.insert(1, 0.999885f);
-    isotopes.insert(2, 0.000115f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 
@@ -1880,7 +1836,6 @@ public:
     IsotopePatterns ret;
 
     const Element* e1 = ElementDB::getInstance()->getElement("Oxygen");
-    Element* e2 = const_cast<Element*>(e1);
     Size element_count = static_cast<Size>(mass * 0.01329399039);
 
     // calculate isotope distribution for a given peptide and varying incoperation rates
@@ -1893,8 +1848,8 @@ public:
       isotopes.insert(1, 1.0 - a);
       isotopes.insert(2, 0);
       isotopes.insert(3, a);
-      e2->setIsotopeDistribution(isotopes);
       CoarseIsotopePatternGenerator solver(element_count * 2); // spaces are 2 Da between 18O and 16O but we observe isotopic peaks at every (approx.) nominal mass
+      solver.setIsotopeOverride(e1, isotopes);
       auto dist = solver.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
@@ -1905,13 +1860,6 @@ public:
       ret.push_back(make_pair(abundance, intensities));
     }
 
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.clear();
-    isotopes.insert(1, 0.99757f);
-    isotopes.insert(2, 0.00038f);
-    isotopes.insert(3, 0.00205f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 };
@@ -1951,7 +1899,7 @@ public:
       for (; it != peak_map.areaEndConst(); ++it)
       {
         double rt = it.getRT();
-        if (xic.find(rt) != xic.end())
+        if (xic.contains(rt))
         {
           xic[rt] += it->getIntensity();
         }
@@ -2035,7 +1983,7 @@ class RIntegration
 {
 public:
   // Perform a simple check if R and all R dependencies are there
-  static bool checkRDependencies(const String& tmp_path, StringList package_names, const QString& executable = QString("R"))
+  static bool checkRDependencies(const String& tmp_path, StringList package_names, const String& executable = "R")
   {
     String random_name = String::random(8);
     String script_filename = tmp_path + String("/") + random_name + String(".R");
@@ -2047,18 +1995,8 @@ public:
 
     OPENMS_LOG_INFO << "Checking R...";
     {
-      QProcess p;
-      p.setProcessChannelMode(QProcess::MergedChannels);
-      QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + QString::fromStdString(tmp_path);
-      p.setEnvironment(env);
-
-      QStringList checkRinPathQParam;
-      checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString::fromStdString(script_filename);
-      p.start(executable, checkRinPathQParam);
-      p.waitForFinished(-1);
-
-      if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
+      auto state = runRScript(executable, script_filename, tmp_path, 0);
+      if (state != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         OPENMS_LOG_INFO << " failed" << std::endl;
         OPENMS_LOG_ERROR << "Can't execute R. Do you have R installed? Check if the path to R is in your system path variable." << std::endl;
@@ -2091,27 +2029,17 @@ public:
 
     current_script.store(script_filename);
 
-    QProcess p;
-    p.setProcessChannelMode(QProcess::MergedChannels);
-    QStringList env = QProcess::systemEnvironment();
-    env << QString("R_LIBS=") + QString::fromStdString(tmp_path);
-    p.setEnvironment(env);
+    String captured_output;
+    auto state = runRScript(executable, script_filename, tmp_path, 0, &captured_output);
 
-    QStringList qparam;
-    qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString::fromStdString(script_filename);
-    p.start(executable, qparam);
-    p.waitForFinished(-1);
-    int status = p.exitCode();
-
-    if (status != 0)
+    if (state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
       OPENMS_LOG_ERROR << "\nProblem finding all R dependencies. Check if R and following libraries are installed:" << std::endl;
       for (TextFile::ConstIterator line_it = current_script.begin(); line_it != current_script.end(); ++line_it)
       {
         OPENMS_LOG_ERROR << *line_it  << std::endl;
       }
-      QString s = p.readAllStandardOutput();
-      OPENMS_LOG_ERROR << s.toStdString() << std::endl;
+      OPENMS_LOG_ERROR << captured_output << std::endl;
       return false;
     }
     OPENMS_LOG_INFO << " success" << std::endl;
@@ -3052,15 +2980,14 @@ protected:
     // Do we want to create a qc report?
     if (!qc_output_directory.empty())
     {
-      QString executable = QString::fromStdString(getStringOption_("r_executable"));
+      String executable = getStringOption_("r_executable");
       // convert path to absolute path
-      QDir qc_dir(QString::fromStdString(qc_output_directory));
-      qc_output_directory = qc_dir.absolutePath().toStdString();
+      qc_output_directory = File::absolutePath(qc_output_directory);
 
       // trying to create qc_output_directory if not present
-      if (!qc_dir.exists())
+      if (!File::exists(qc_output_directory))
       {
-        qc_dir.mkpath(QString::fromStdString(qc_output_directory));
+        File::makeDir(qc_output_directory);
       }
       // check if R and dependencies are installed
       StringList package_names;
@@ -3268,7 +3195,7 @@ protected:
     vector<MapRateToScoreType> normalized_weight_maps;
     vector<MapRateToScoreType> correlation_maps;
 
-    String file_suffix = "_" + String(QFileInfo(QString::fromStdString(in_mzml)).baseName().toStdString()) + "_" + String::random(4);
+    String file_suffix = "_" + File::stemName(in_mzml) + "_" + String::random(4);
 
     vector<SIPPeptide> sip_peptides;
 
@@ -3725,7 +3652,7 @@ protected:
     // quality report
     if (!qc_output_directory.empty())
     {
-      QString executable = QString::fromStdString(getStringOption_("r_executable"));
+      String executable = getStringOption_("r_executable");
       // TODO plot merged is now passed as false
       MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides, executable);
     }

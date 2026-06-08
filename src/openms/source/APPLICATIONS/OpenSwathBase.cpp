@@ -46,9 +46,9 @@ namespace OpenMS
           for (const auto& arr : spectrum->getDataArrays())
           {
             // Check for CCS CV term (MS:1002954) or square angstrom unit (UO:0000324)
-            if (arr->description.find("MS:1002954") != std::string::npos ||
-                arr->description.find("UO:0000324") != std::string::npos ||
-                arr->description.find("collision cross section") != std::string::npos)
+            if (arr->description.contains("MS:1002954") ||
+                arr->description.contains("UO:0000324") ||
+                arr->description.contains("collision cross section"))
             {
               OPENMS_LOG_WARN << "Warning: Ion mobility data appears to be in CCS (Collisional Cross Section) format. "
                               << "OpenSwath expects ion mobility in 1/K0 (inverse reduced ion mobility) units. "
@@ -129,10 +129,44 @@ namespace OpenMS
             swath_map_sources.push_back(f);
           }
         }
+#ifdef WITH_OPENTIMS
+        else if (in_file_type == FileTypes::BRUKER_TDF)
+        {
+          auto maps = swath_file.loadBrukerTdf(f, tmp, exp_meta, readoptions);
+          for (auto & m : maps)
+          {
+            swath_maps.push_back(m);
+            swath_map_sources.push_back(f);
+          }
+        }
+#endif
+#ifdef WITH_THERMO_RAW
+        else if (in_file_type == FileTypes::RAW)
+        {
+          // Load .raw fully via ThermoRawFile (in-process), then build SwathMaps
+          // directly from the in-memory MSExperiment — no temp mzML round-trip.
+          auto exp_raw = std::make_shared<PeakMap>();
+          FileHandler().loadExperiment(f, *exp_raw, {FileTypes::RAW});
+          auto maps = swath_file.loadFromMSExperiment(exp_raw, tmp, exp_meta, readoptions);
+          for (auto & m : maps)
+          {
+            swath_maps.push_back(m);
+            swath_map_sources.push_back(f);
+          }
+        }
+#endif
         else
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                           "Input file needs to have ending mzML or mzXML");
+                                           "Input file needs to have a supported extension "
+                                           "(mzML, mzXML, sqMass"
+#ifdef WITH_OPENTIMS
+                                           ", .d (Bruker TDF)"
+#endif
+#ifdef WITH_THERMO_RAW
+                                           ", raw (Thermo)"
+#endif
+                                           ")");
         }
       }
     }
@@ -159,10 +193,38 @@ namespace OpenMS
         swath_map_sources.clear();
         for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
       }
+#ifdef WITH_OPENTIMS
+      else if (in_file_type == FileTypes::BRUKER_TDF)
+      {
+        swath_maps = swath_file.loadBrukerTdf(file_list[0], tmp, exp_meta, readoptions);
+        swath_map_sources.clear();
+        for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
+      }
+#endif
+#ifdef WITH_THERMO_RAW
+      else if (in_file_type == FileTypes::RAW)
+      {
+        // Load .raw fully via ThermoRawFile (in-process), then build SwathMaps
+        // directly from the in-memory MSExperiment — no temp mzML round-trip.
+        auto exp_raw = std::make_shared<PeakMap>();
+        FileHandler().loadExperiment(file_list[0], *exp_raw, {FileTypes::RAW});
+        swath_maps = swath_file.loadFromMSExperiment(exp_raw, tmp, exp_meta, readoptions);
+        swath_map_sources.clear();
+        for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
+      }
+#endif
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Input file needs to have ending mzML or mzXML");
+                                         "Input file needs to have a supported extension "
+                                         "(mzML, mzXML, sqMass"
+#ifdef WITH_OPENTIMS
+                                         ", .d (Bruker TDF)"
+#endif
+#ifdef WITH_THERMO_RAW
+                                         ", raw (Thermo)"
+#endif
+                                         ")");
       }
     }
   }
@@ -297,15 +359,10 @@ namespace OpenMS
       }
       else if (out_chrom_type == FileTypes::CHROMPARQUET)
       {
-#ifndef WITH_PARQUET
-        (void)source_file; // to suppress unused variable warning
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#else
         auto * chromConsumer = new MSChromatogramParquetConsumer(out_chrom, run_id, source_file, transition_exp);
         Size expected_chromatograms = transition_exp.transitions.size();
         chromConsumer->setExpectedSize(0, expected_chromatograms);
         *chromatogramConsumer = chromConsumer;
-#endif
       }
       else
       {
@@ -353,15 +410,10 @@ namespace OpenMS
       const FileTypes::Type out_mob_type = FileHandler::getType(out_mobilogram);
       if (out_mob_type == FileTypes::MOBILPARQUET)
       {
-#ifndef WITH_PARQUET
-        (void)source_file;
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#else
         mobilogramConsumer = std::make_unique<MobilogramParquetConsumer>(out_mobilogram, run_id, source_file, transition_exp);
         // estimate expected mobilograms from transitions
         Size expected = transition_exp.transitions.size();
         mobilogramConsumer->setExpectedSize(expected);
-#endif
       }
       else
       {
@@ -407,13 +459,9 @@ namespace OpenMS
     }
     else if (tr_type == FileTypes::OSWPQ)
     {
-#ifdef WITH_PARQUET
       progresslogger.startProgress(0, 1, "Load Parquet library");
       TransitionParquetFile().convertParquetToTargetedExperiment(tr_file, transition_exp);
       progresslogger.endProgress();
-#else
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
     }
     else
     {

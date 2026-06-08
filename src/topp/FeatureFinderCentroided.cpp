@@ -15,6 +15,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
@@ -138,7 +139,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
     registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
@@ -182,12 +187,26 @@ protected:
     f.getOptions() = options;
 
     PeakMap exp;
-    f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
+    f.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
     exp.updateRanges();
 
     if (exp.getSpectra().empty())
     {
       throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
+    }
+
+    // Check for unsupported per-peak ion mobility data
+    for (const auto& spec : exp)
+    {
+      IMFormat im_format = IMTypes::determineIMFormat(spec);
+      if (im_format == IMFormat::IM_PEAK)
+      {
+        OPENMS_LOG_ERROR << "Error: Input contains per-peak ion mobility data (IM_PEAK, "
+                         << imPeakTypeToString(spec.getIMPeakType())
+                         << ") which is not supported by FeatureFinderCentroided. "
+                         << "Preprocess with IonMobilityBinning or PeakPickerIM first." << std::endl;
+        return INCOMPATIBLE_INPUT_DATA;
+      }
     }
 
     // determine type of spectral data (profile or centroided)
@@ -268,7 +287,7 @@ protected:
       FeatureMap features_cv;
 
       // Apply the feature finder
-      ff.run(faims_group, features_cv, feafi_param, seeds_cv);
+      ff.run(std::move(faims_group), features_cv, feafi_param, seeds_cv);
 
       // Annotate features with FAIMS CV (if FAIMS data) and add to results
       for (auto& feat : features_cv)

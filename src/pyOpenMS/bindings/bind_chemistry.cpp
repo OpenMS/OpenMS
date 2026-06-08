@@ -14,6 +14,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/IsoelectricPoint.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
@@ -91,8 +92,6 @@ Representation of a peptide/protein sequence
 This class represents amino acid sequences in OpenMS. An AASequence
 instance primarily contains a sequence of residues.
 )doc")
-        .def(nb::init<OpenMS::String>())
-        .def(nb::init<OpenMS::String, bool>())
         .def("empty", [](const OpenMS::AASequence& self) { return self.empty(); }, "Check if sequence is empty")
         .def("toString", [](const OpenMS::AASequence& self) { return self.toString(); }, "Returns the peptide as string with modifications embedded in brackets")
         .def("toUnmodifiedString", [](const OpenMS::AASequence& self) { return self.toUnmodifiedString(); }, "Returns the peptide as string without any modifications")
@@ -150,6 +149,8 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         .def("__init__", [](OpenMS::AASequence* self, const std::string& s) {
             new (self) OpenMS::AASequence(OpenMS::String(s));
         }, "sequence"_a, "Create AASequence from string (e.g., 'PEPTIDE')")
+        .def(nb::init<OpenMS::String>())
+        .def(nb::init<OpenMS::String, bool>())
 
         .def_static("fromString", [](const std::string& s) {
             return OpenMS::AASequence::fromString(OpenMS::String(s));
@@ -205,7 +206,7 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
             oss << ")";
             return oss.str();
         })
-        .def("__str__", [](const OpenMS::AASequence& self) { return nb::cast(self).attr("__repr__")(); })
+        .def("__str__", [](const OpenMS::AASequence& self) { return std::string(self.toString()); })
         ;
 
     // -----------------------------------------------------------------------
@@ -214,7 +215,7 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
     nb::class_<OpenMS::CoarseIsotopePatternGenerator>(m, "CoarseIsotopePatternGenerator", "OpenMS class CoarseIsotopePatternGenerator")
         .def(nb::init<size_t, bool>())
         .def("setMaxIsotope", [](OpenMS::CoarseIsotopePatternGenerator& self, const size_t& max_isotope) { return self.setMaxIsotope(max_isotope); }, "max_isotope"_a, "Sets the maximal isotope with 'max_isotope'")
-        .def("setRoundMasses", [](OpenMS::CoarseIsotopePatternGenerator& self, bool round_masses) { return self.setRoundMasses(round_masses); }, "round_masses"_a, "Sets the round_masses_ flag to round masses to integer values (true) or return accurate masses (false)")
+        .def("setRoundMasses", [](OpenMS::CoarseIsotopePatternGenerator& self, bool round_masses) { return self.setRoundMasses(round_masses); }, "round_masses"_a, "Sets the round_masses flag to round masses to integer values (true) or return accurate masses (false)")
         .def("getMaxIsotope", [](const OpenMS::CoarseIsotopePatternGenerator& self) { return self.getMaxIsotope(); }, "Returns the currently set maximum isotope")
         .def("getRoundMasses", [](const OpenMS::CoarseIsotopePatternGenerator& self) { return self.getRoundMasses(); }, "Returns the current value of the flag to round masses to integer values (true) or return accurate masses (false)")
         .def("run", [](const OpenMS::CoarseIsotopePatternGenerator& self, const OpenMS::EmpiricalFormula& ef) { return self.run(ef); }, "ef"_a)
@@ -433,23 +434,17 @@ Returns the "cuts before ..." regular expression
     // -----------------------------------------------------------------------
     // Element
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Element>(m, "Element", "Representation of an element")
+    nb::class_<OpenMS::Element>(m, "Element", "Representation of an element (read-only; construct via the full constructor)")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Element &>())
         .def("__copy__", [](const OpenMS::Element& self) { return OpenMS::Element(self); })
         .def("__deepcopy__", [](const OpenMS::Element& self, nb::dict) { return OpenMS::Element(self); }, "memo"_a)
         .def(nb::init<OpenMS::String, OpenMS::String, unsigned int, double, double, OpenMS::IsotopeDistribution>())
-        .def("setAtomicNumber", [](OpenMS::Element& self, unsigned int atomic_number) { return self.setAtomicNumber(atomic_number); }, "atomic_number"_a, "Sets unique atomic number")
         .def("getAtomicNumber", [](const OpenMS::Element& self) { return self.getAtomicNumber(); }, "Returns the unique atomic number")
-        .def("setAverageWeight", [](OpenMS::Element& self, double weight) { return self.setAverageWeight(weight); }, "weight"_a, "Sets the average weight of the element")
         .def("getAverageWeight", [](const OpenMS::Element& self) { return self.getAverageWeight(); }, "Returns the average weight of the element")
-        .def("setMonoWeight", [](OpenMS::Element& self, double weight) { return self.setMonoWeight(weight); }, "weight"_a, "Sets the mono isotopic weight of the element")
         .def("getMonoWeight", [](const OpenMS::Element& self) { return self.getMonoWeight(); }, "Returns the mono isotopic weight of the element")
-        .def("setIsotopeDistribution", [](OpenMS::Element& self, const OpenMS::IsotopeDistribution& isotopes) { return self.setIsotopeDistribution(isotopes); }, "isotopes"_a, "Sets the isotope distribution of the element")
         .def("getIsotopeDistribution", [](const OpenMS::Element& self) -> const OpenMS::IsotopeDistribution & { return self.getIsotopeDistribution(); }, nb::rv_policy::reference_internal, "Returns the isotope distribution of the element")
-        .def("setName", [](OpenMS::Element& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of the element")
         .def("getName", [](const OpenMS::Element& self) { return self.getName(); }, "Returns the name of the element")
-        .def("setSymbol", [](OpenMS::Element& self, const OpenMS::String& symbol) { return self.setSymbol(symbol); }, "symbol"_a, "Sets symbol of the element")
         .def("getSymbol", [](const OpenMS::Element& self) { return self.getSymbol(); }, "Returns symbol of the element")
         .def("__hash__", [](const OpenMS::Element& self) { return std::hash<OpenMS::Element>{}(self); })
         ;
@@ -465,11 +460,11 @@ The elements are initialized with data from IUPAC tables.
 
         .def("getElement", [](const OpenMS::ElementDB& self, const std::string& name) -> const OpenMS::Element* {
             return self.getElement(name);
-        }, "name"_a, nb::rv_policy::reference, "Get element by name or symbol")
+        }, "name"_a, nb::rv_policy::reference, "Get element by name or symbol (read-only reference into the immutable database)")
 
         .def("getElement", [](const OpenMS::ElementDB& self, unsigned int atomic_number) -> const OpenMS::Element* {
             return self.getElement(atomic_number);
-        }, "atomic_number"_a, nb::rv_policy::reference, "Get element by atomic number")
+        }, "atomic_number"_a, nb::rv_policy::reference, "Get element by atomic number (read-only reference into the immutable database)")
 
         .def("hasElement", [](const OpenMS::ElementDB& self, const std::string& name) {
             return self.hasElement(name);
@@ -479,13 +474,7 @@ The elements are initialized with data from IUPAC tables.
             return self.hasElement(atomic_number);
         }, "atomic_number"_a, "Check if element exists by atomic number")
 
-        .def("addElement", [](OpenMS::ElementDB& self, const std::string& name, const std::string& symbol,
-                unsigned int an, const std::map<unsigned int, double>& abundance,
-                const std::map<unsigned int, double>& mass, bool replace_existing) {
-            self.addElement(name, symbol, an, abundance, mass, replace_existing);
-        }, "name"_a, "symbol"_a, "atomic_number"_a, "abundance"_a, "mass"_a, "replace_existing"_a,
-        "Add a new element to the database")
-        .def_static("getInstance", []() -> OpenMS::ElementDB* { return OpenMS::ElementDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::ElementDB* { return OpenMS::ElementDB::getInstance(); }, nb::rv_policy::reference, "Returns the (immutable) singleton instance")
         ;
 
     // -----------------------------------------------------------------------
@@ -499,6 +488,7 @@ The elements are initialized with data from IUPAC tables.
         .def(nb::init<OpenMS::String>())
         .def("getMonoWeight", [](const OpenMS::EmpiricalFormula& self) { return self.getMonoWeight(); }, "Returns the mono isotopic weight of the formula (includes proton charges)")
         .def("getAverageWeight", [](const OpenMS::EmpiricalFormula& self) { return self.getAverageWeight(); }, "Returns the average weight of the formula (includes proton charges)")
+        .def("getLightestIsotopeWeight", [](const OpenMS::EmpiricalFormula& self) { return self.getLightestIsotopeWeight(); }, "Returns the sum of the lightest isotope weight of all elements in the formula (includes proton charges)")
         .def("calculateTheoreticalIsotopesNumber", [](const OpenMS::EmpiricalFormula& self) { return self.calculateTheoreticalIsotopesNumber(); })
         .def("estimateFromWeightAndComp", [](OpenMS::EmpiricalFormula& self, double average_weight, double C, double H, double N, double O, double S, double P) { return self.estimateFromWeightAndComp(average_weight, C, H, N, O, S, P); }, "average_weight"_a, "C"_a, "H"_a, "N"_a, "O"_a, "S"_a, "P"_a, "Fills this EmpiricalFormula with an approximate elemental composition for a given average weight and approximate elemental stoichiometry")
         .def("estimateFromWeightAndCompAndS", [](OpenMS::EmpiricalFormula& self, double average_weight, unsigned int S, double C, double H, double N, double O, double P) { return self.estimateFromWeightAndCompAndS(average_weight, S, C, H, N, O, P); }, "average_weight"_a, "S"_a, "C"_a, "H"_a, "N"_a, "O"_a, "P"_a, "Fills this EmpiricalFormula with an approximate elemental composition for a given average weight, exact number of sulfurs, and approximate elemental stoichiometry")
@@ -512,6 +502,7 @@ The elements are initialized with data from IUPAC tables.
         .def("isEmpty", [](const OpenMS::EmpiricalFormula& self) { return self.isEmpty(); }, "Returns true if the formula does not contain a element")
         .def("isCharged", [](const OpenMS::EmpiricalFormula& self) { return self.isCharged(); }, "Returns true if charge is not equal to zero")
         .def("hasElement", [](const OpenMS::EmpiricalFormula& self, OpenMS::Element * element) { return self.hasElement(element); }, "element"_a, "Returns true if the formula contains the element")
+        .def("getNumberOf", [](const OpenMS::EmpiricalFormula& self, OpenMS::Element * element) { return self.getNumberOf(element); }, "element"_a, "Returns the number of atoms of the given element (can be negative)")
         .def("contains", [](const OpenMS::EmpiricalFormula& self, const OpenMS::EmpiricalFormula& ef) { return self.contains(ef); }, "ef"_a, "Returns true if all elements from `ef` ( empirical formula ) are LESS abundant (negative allowed) than the corresponding elements of this EmpiricalFormula")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
@@ -972,20 +963,20 @@ The modifications are read from the unimod.xml file on construction.
             self.getAllSearchModifications(mods);
             return mods;
         }, "Returns all modifications that can be used for identification searches")
-        .def("getBestModificationByDiffMonoMass", [](OpenMS::ModificationsDB& self, double mass, double max_error, const OpenMS::String& residue, nb::object term_spec_obj) {
+        .def("getBestModificationByDiffMonoMass", [](const OpenMS::ModificationsDB& self, double mass, double max_error, const OpenMS::String& residue, nb::object term_spec_obj) {
             int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
             return self.getBestModificationByDiffMonoMass(mass, max_error, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
         }, "mass"_a, "max_error"_a, "residue"_a = "", "term_spec"_a = nb::int_(static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)), nb::rv_policy::reference, "Returns the best modification by diff mono mass")
-        .def("searchModificationsByDiffMonoMass", [](OpenMS::ModificationsDB& self, double mass, double max_error, const OpenMS::String& residue, nb::object term_spec_obj) {
+        .def("searchModificationsByDiffMonoMass", [](const OpenMS::ModificationsDB& self, double mass, double max_error, const OpenMS::String& residue, nb::object term_spec_obj) {
             int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
             std::vector<OpenMS::String> mods;
             self.searchModificationsByDiffMonoMass(mods, mass, max_error, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
             return mods;
         }, "mass"_a, "max_error"_a, "residue"_a = "", "term_spec"_a = nb::int_(static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)), "Search modifications by difference in mono mass (returns list of modification names)")
-        .def("addModification", [](OpenMS::ModificationsDB& self, const OpenMS::ResidueModification& new_mod) {
+        .def("addModification", [](const OpenMS::ModificationsDB& self, const OpenMS::ResidueModification& new_mod) {
             return self.addModification(new_mod);
-        }, "new_mod"_a, nb::rv_policy::reference, "Add a new modification to the database (makes a copy)")
-        .def_static("getInstance", []() -> OpenMS::ModificationsDB* { return OpenMS::ModificationsDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        }, "new_mod"_a, nb::rv_policy::reference, "Intern a modification into the database if not already present (idempotent); returns the canonical pointer")
+        .def_static("getInstance", []() -> const OpenMS::ModificationsDB* { return OpenMS::ModificationsDB::getInstance(); }, nb::rv_policy::reference, "Returns the (immutable) singleton instance")
         ;
 
     // -----------------------------------------------------------------------
@@ -996,7 +987,7 @@ The modifications are read from the unimod.xml file on construction.
 Database of cross-linker modifications. This is a singleton class that inherits from ModificationsDB.
 The cross-linker modifications are read from an OBO file.
 )doc")
-        .def_static("getInstance", []() -> OpenMS::CrossLinksDB* { return OpenMS::CrossLinksDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::CrossLinksDB* { return OpenMS::CrossLinksDB::getInstance(); }, nb::rv_policy::reference, "Returns the (immutable) singleton instance")
         .def_static("isInstantiated", []() {
             // Access getInstance and check — CrossLinksDB doesn't override isInstantiated,
             // but we need to ensure the DB is loaded
@@ -1355,7 +1346,7 @@ The enzymes are read from share/CHEMISTRY/Enzymes.xml.
         .def("getAllOMSSANames", [](const OpenMS::ProteaseDB& self) { std::vector<OpenMS::String> all_names; self.getAllOMSSANames(all_names); return all_names; }, "Returns all the enzyme names available for OMSSA")
         .def("getAllMSGFNames", [](const OpenMS::ProteaseDB& self) { std::vector<OpenMS::String> all_names; self.getAllMSGFNames(all_names); return all_names; }, "Returns all the enzyme names available for MSGFPlus")
 
-        .def_static("getInstance", []() -> OpenMS::ProteaseDB* { return OpenMS::ProteaseDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::ProteaseDB* { return OpenMS::ProteaseDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
 
         .def("getAllNames", [](const OpenMS::ProteaseDB& self, nb::list output) {
             std::vector<OpenMS::String> all_names;
@@ -1523,7 +1514,7 @@ The enzymes are read from share/CHEMISTRY/Enzymes_RNA.xml.
             for (const auto& n : names) result.append(nb::str(n.c_str()));
             return result;
         }, "Get all enzyme names")
-        .def_static("getInstance", []() -> OpenMS::RNaseDB* { return OpenMS::RNaseDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::RNaseDB* { return OpenMS::RNaseDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
         ;
 
     // -----------------------------------------------------------------------
@@ -1671,6 +1662,7 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .def("setBackboneBasicityRight", [](OpenMS::Residue& self, double gb_bb_r) { return self.setBackboneBasicityRight(gb_bb_r); }, "gb_bb_r"_a, "Sets the C-terminal direction backbone basicity")
         .def("hasNeutralLoss", [](const OpenMS::Residue& self) { return self.hasNeutralLoss(); }, "True if the residue has neutral loss")
         .def("hasNTermNeutralLosses", [](const OpenMS::Residue& self) { return self.hasNTermNeutralLosses(); }, "True if N-terminal neutral losses are set")
+        .def("getHydrophobicity", [](const OpenMS::Residue& self, OpenMS::HydrophobicityScaleMethod scale) { return self.getHydrophobicity(scale); }, "scale"_a, "Returns the hydrophobicity value of the residue for the given scale (throws for non-standard residues)")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def(nb::self == nb::self)
@@ -1714,6 +1706,42 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .value("SizeOfResidueType", OpenMS::Residue::ResidueType::SizeOfResidueType)
         .export_values();
 
+    // HydrophobicityScaleMethod enum (namespace-scoped, used by Residue::getHydrophobicity)
+    nb::enum_<OpenMS::HydrophobicityScaleMethod>(m, "HydrophobicityScaleMethod", nb::is_arithmetic())
+        .value("KYTE_DOOLITTLE", OpenMS::HydrophobicityScaleMethod::KYTE_DOOLITTLE)
+        .value("EISENBERG", OpenMS::HydrophobicityScaleMethod::EISENBERG)
+        .value("HOPP_WOODS", OpenMS::HydrophobicityScaleMethod::HOPP_WOODS)
+        .value("BULL_BREESE", OpenMS::HydrophobicityScaleMethod::BULL_BREESE)
+        .value("BLACK_MOULD", OpenMS::HydrophobicityScaleMethod::BLACK_MOULD)
+        .value("GUY", OpenMS::HydrophobicityScaleMethod::GUY)
+        .value("EISENBERG_CONSENSUS", OpenMS::HydrophobicityScaleMethod::EISENBERG_CONSENSUS)
+        .export_values();
+
+    // ProteomicsPkaScale enum (namespace-scoped, used by IsoelectricPoint)
+    nb::enum_<OpenMS::ProteomicsPkaScale>(m, "ProteomicsPkaScale", nb::is_arithmetic())
+        .value("LEHNINGER", OpenMS::ProteomicsPkaScale::LEHNINGER)
+        .value("EMBOSS", OpenMS::ProteomicsPkaScale::EMBOSS)
+        .value("SILLERO", OpenMS::ProteomicsPkaScale::SILLERO)
+        .value("BJELLQVIST", OpenMS::ProteomicsPkaScale::BJELLQVIST)
+        .export_values();
+
+    // IsoelectricPoint
+    auto isoelectricpoint_class = nb::class_<OpenMS::IsoelectricPoint>(m, "IsoelectricPoint",
+        "Utility class for computing isoelectric point (pI) and net charge of peptides")
+        .def_static("computeCharge",
+            [](const OpenMS::AASequence& seq, double pH, OpenMS::ProteomicsPkaScale scale) {
+                return OpenMS::IsoelectricPoint::computeCharge(seq, pH, scale);
+            },
+            "seq"_a, "pH"_a, "scale"_a = OpenMS::ProteomicsPkaScale::LEHNINGER,
+            "Computes the net charge of an amino acid sequence at a given pH")
+        .def_static("computePI",
+            [](const OpenMS::AASequence& seq, OpenMS::ProteomicsPkaScale scale, double tolerance) {
+                return OpenMS::IsoelectricPoint::computePI(seq, scale, tolerance);
+            },
+            "seq"_a, "scale"_a = OpenMS::ProteomicsPkaScale::LEHNINGER, "tolerance"_a = 1e-4,
+            "Computes the isoelectric point (pI) of an amino acid sequence via bisection")
+        ;
+
     // -----------------------------------------------------------------------
     // ResidueDB
     // -----------------------------------------------------------------------
@@ -1727,14 +1755,14 @@ Modified residues get created and added if getModifiedResidue is called.
         .def("getNumberOfModifiedResidues", [](const OpenMS::ResidueDB& self) { return self.getNumberOfModifiedResidues(); }, "Returns the number of modified residues stored")
         .def("getResidue", [](const OpenMS::ResidueDB& self, const OpenMS::String& name) { return self.getResidue(name); }, "name"_a, nb::rv_policy::reference, "Returns a pointer to the residue with name, 3 letter code or 1 letter code name")
         .def("getResidue", [](const OpenMS::ResidueDB& self, const unsigned char& one_letter_code) { return self.getResidue(one_letter_code); }, "one_letter_code"_a, nb::rv_policy::reference, "Returns a pointer to the residue with name, 3 letter code or 1 letter code name")
-        .def("getModifiedResidue", [](OpenMS::ResidueDB& self, const OpenMS::String& name) { return self.getModifiedResidue(name); }, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a modification name")
-        .def("getModifiedResidue", [](OpenMS::ResidueDB& self, OpenMS::Residue * residue, const OpenMS::String& name) { return self.getModifiedResidue(residue, name); }, "residue"_a, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
-        .def("getModifiedResidue", [](OpenMS::ResidueDB& self, OpenMS::Residue * residue, OpenMS::ResidueModification * mod) { return self.getModifiedResidue(residue, mod); }, "residue"_a, "mod"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
+        .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, const OpenMS::String& name) { return self.getModifiedResidue(name); }, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a modification name")
+        .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue, const OpenMS::String& name) { return self.getModifiedResidue(residue, name); }, "residue"_a, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
+        .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue, OpenMS::ResidueModification * mod) { return self.getModifiedResidue(residue, mod); }, "residue"_a, "mod"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
         .def("getResidues", [](const OpenMS::ResidueDB& self, const OpenMS::String& residue_set) { return self.getResidues(residue_set); }, "residue_set"_a = "All", nb::rv_policy::reference, "Returns a set of all residues stored in this residue db")
         .def("getResidueSets", [](const OpenMS::ResidueDB& self) { return self.getResidueSets(); }, "Returns all residue sets that are registered which this instance")
         .def("hasResidue", [](const OpenMS::ResidueDB& self, const OpenMS::String& name) { return self.hasResidue(name); }, "name"_a, "Returns True if the db contains a residue with the given name")
         .def("hasResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue) { return self.hasResidue(residue); }, "residue"_a, "Returns True if the db contains a residue with the given name")
-        .def_static("getInstance", []() -> OpenMS::ResidueDB* { return OpenMS::ResidueDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::ResidueDB* { return OpenMS::ResidueDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
         ;
 
     // -----------------------------------------------------------------------
@@ -1838,8 +1866,8 @@ Modified residues get created and added if getModifiedResidue is called.
     // -----------------------------------------------------------------------
     auto ribonucleotide_class = nb::class_<OpenMS::Ribonucleotide>(m, "Ribonucleotide", "Ribonucleotide")
         .def(nb::init<>())
-        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::EmpiricalFormula, char, double, double, OpenMS::Ribonucleotide::TermSpecificityNuc, OpenMS::EmpiricalFormula>())
         .def(nb::init<const OpenMS::Ribonucleotide &>())
+        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::EmpiricalFormula, char, double, double, OpenMS::Ribonucleotide::TermSpecificityNuc, OpenMS::EmpiricalFormula>())
         .def("__copy__", [](const OpenMS::Ribonucleotide& self) { return OpenMS::Ribonucleotide(self); })
         .def("__deepcopy__", [](const OpenMS::Ribonucleotide& self, nb::dict) { return OpenMS::Ribonucleotide(self); }, "memo"_a)
         .def(nb::self == nb::self)
@@ -1889,7 +1917,7 @@ Database of ribonucleotides (modified and unmodified). This is a singleton class
 The ribonucleotides are read from data/CHEMISTRY/Modomics.tsv and Custom_RNA_modifications.tsv.
 )doc")
 
-        .def_static("getInstance", []() -> OpenMS::RibonucleotideDB* { return OpenMS::RibonucleotideDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::RibonucleotideDB* { return OpenMS::RibonucleotideDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
 
         .def("getRibonucleotide", [](OpenMS::RibonucleotideDB& self, const OpenMS::String& code) -> const OpenMS::Ribonucleotide* {
             return self.getRibonucleotide(code);

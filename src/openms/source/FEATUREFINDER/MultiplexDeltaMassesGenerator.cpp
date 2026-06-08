@@ -113,10 +113,10 @@ namespace OpenMS
     bool no_label = (samples_labels_.size() == 1) && 
       (samples_labels_[0].size() == 1) && 
       samples_labels_[0][0] == "no_label";
-    bool labelling_SILAC = ((labels_.find("Arg") != std::string::npos) || (labels_.find("Lys") != std::string::npos));
-    bool labelling_Leu = (labels_.find("Leu") != std::string::npos);
-    bool labelling_Dimethyl = (labels_.find("Dimethyl") != std::string::npos);
-    bool labelling_ICPL = (labels_.find("ICPL") != std::string::npos);
+    bool labelling_SILAC = ((labels_.contains("Arg")) || (labels_.contains("Lys")));
+    bool labelling_Leu = (labels_.contains("Leu"));
+    bool labelling_Dimethyl = (labels_.contains("Dimethyl"));
+    bool labelling_ICPL = (labels_.contains("ICPL"));
 
     bool labelling_numeric = false;
     if (!(no_label || labelling_SILAC || labelling_Leu || labelling_Dimethyl || labelling_ICPL))
@@ -171,7 +171,7 @@ namespace OpenMS
       {
         for (std::vector<String>::size_type j = 0; j < samples_labels_[i].size(); ++j)
         {
-          if (all_labels.find(samples_labels_[i][j]) == std::string::npos)
+          if (!all_labels.contains(samples_labels_[i][j]))
           {
             std::stringstream stream;
             stream << "The label " << samples_labels_[i][j] << " is unknown.";
@@ -205,11 +205,11 @@ namespace OpenMS
 
               for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
               {
-                bool Arg6There = (samples_labels_[i][j].find("Arg6") != std::string::npos); // Is Arg6 in the SILAC label?
-                bool Arg10There = (samples_labels_[i][j].find("Arg10") != std::string::npos);
-                bool Lys4There = (samples_labels_[i][j].find("Lys4") != std::string::npos);
-                bool Lys6There = (samples_labels_[i][j].find("Lys6") != std::string::npos);
-                bool Lys8There = (samples_labels_[i][j].find("Lys8") != std::string::npos);
+                bool Arg6There = (samples_labels_[i][j].contains("Arg6")); // Is Arg6 in the SILAC label?
+                bool Arg10There = (samples_labels_[i][j].contains("Arg10"));
+                bool Lys4There = (samples_labels_[i][j].contains("Lys4"));
+                bool Lys6There = (samples_labels_[i][j].contains("Lys6"));
+                bool Lys8There = (samples_labels_[i][j].contains("Lys8"));
 
                 // construct label set
                 for (unsigned k = 1; k < Arg6There * (ArgPerPeptide + 1); ++k)

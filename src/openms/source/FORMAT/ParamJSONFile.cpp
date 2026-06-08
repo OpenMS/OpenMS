@@ -97,10 +97,10 @@ namespace OpenMS
             {
               value = node.get<bool>() ? "true" : "false";
             }
-            else if (entry.tags.count("input file"))
+            else if (entry.tags.contains("input file"))
             {
               // If this is an input file and 'is_executable' is set. this can be of 'class: File' or 'type: string'
-              if (entry.tags.count("is_executable"))
+              if (entry.tags.contains("is_executable"))
               {
                 if (node.is_object())
                 {
@@ -132,7 +132,7 @@ namespace OpenMS
           }
           else if (entry.value.valueType() == ParamValue::ValueType::STRING_LIST)
           {
-            if (entry.tags.count("input file"))
+            if (entry.tags.contains("input file"))
             {
               value = node["path"].get<std::vector<std::string>>();
             }
@@ -265,7 +265,7 @@ namespace OpenMS
             {
                 node = param_it->value.toBool();
             } else {
-                if (tags.count("file") > 0 && tags.count("output") == 0) {
+                if (tags.contains("file") && !tags.contains("output")) {
                     node["class"] = "File";
                     node["path"] = param_it->value.toString();
                 } else {
@@ -280,7 +280,7 @@ namespace OpenMS
             node = param_it->value.toDoubleVector();
             break;
           case ParamValue::STRING_LIST:
-            if (tags.count("file") > 0 && tags.count("output") == 0) {
+            if (tags.contains("file") && !tags.contains("output")) {
                 node["class"] = "File";
                 node["path"] = param_it->value.toStringVector();
             } else {
@@ -321,6 +321,8 @@ namespace OpenMS
 
     os << jsonDoc.dump(2);
 #else
+    (void)os_ptr;
+    (void)param;
     throw std::runtime_error{"TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature."};
 #endif
   }

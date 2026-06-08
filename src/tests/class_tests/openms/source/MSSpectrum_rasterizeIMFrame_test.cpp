@@ -19,7 +19,7 @@
 using namespace OpenMS;
 using namespace std;
 
-/// Creates a test spectrum with IM data in CONCATENATED format (timsTOF-style)
+/// Creates a test spectrum with IM data in IM_PEAK format (timsTOF-style)
 MSSpectrum createTestIMFrame()
 {
   MSSpectrum spec;

@@ -165,6 +165,18 @@ namespace OpenMS::Internal
         }
       }
 
+      // Now that binary data arrays have been decoded and materialized into
+      // each spectrum's float data arrays, we can reliably check containsIMData().
+      // Default any IM spectrum with UNKNOWN peak type to IM_PROFILE.
+      for (Size i = 0; i < spectrum_data_.size(); i++)
+      {
+        auto& spec = spectrum_data_[i].spectrum;
+        if (spec.containsIMData() && spec.getIMPeakType() == IMPeakType::UNKNOWN)
+        {
+          spec.setIMPeakType(IMPeakType::IM_PROFILE);
+        }
+      }
+
       // Append all spectra to experiment / consumer
       for (Size i = 0; i < spectrum_data_.size(); i++)
       {
@@ -776,7 +788,7 @@ namespace OpenMS::Internal
         String source_file_ref;
         if (optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
         {
-          if (source_files_.find(source_file_ref) != source_files_.end())
+          if (source_files_.contains(source_file_ref))
           {
             spec_.setSourceFile(source_files_[source_file_ref]);
           }
@@ -1517,7 +1529,7 @@ namespace OpenMS::Internal
         }
         else if (accession == "MS:1003441") //ion mobility centroid frame
         {
-          spec_.setIMFormat(IMFormat::CENTROIDED);
+          spec_.setIMPeakType(IMPeakType::IM_CENTROIDED);
         }
         // spectrum attribute
         else if (accession == "MS:1000511") //ms level
@@ -3485,7 +3497,7 @@ namespace OpenMS::Internal
 
       for (std::vector<String>::iterator key = keys.begin(); key != keys.end(); ++key)
       {
-        if (exclude.count(*key)) continue; // skip excluded entries
+        if (exclude.contains(*key)) continue; // skip excluded entries
 
         // special treatment of GO and BTO terms
         // <cvParam cvRef="BTO" accession="BTO:0000199" name="cardiac muscle"/>
@@ -4090,7 +4102,7 @@ namespace OpenMS::Internal
 
       MzMLHandlerHelper::writeFooter_(os, options_, spectra_offsets_, chromatograms_offsets_);
 
-      OPENMS_LOG_INFO << stored_spectra << " spectra and " << stored_chromatograms << " chromatograms stored.\n";
+      OPENMS_LOG_DEBUG << stored_spectra << " spectra and " << stored_chromatograms << " chromatograms stored.\n";
 
       logger_.endProgress(os.tellp());
     }
@@ -4127,63 +4139,63 @@ namespace OpenMS::Internal
       {
         ++file_content[exp[i].getInstrumentSettings().getScanMode()];
       }
-      if (file_content.find(InstrumentSettings::ScanMode::MASSSPECTRUM) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::MASSSPECTRUM))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::MS1SPECTRUM) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::MS1SPECTRUM))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000579\" name=\"MS1 spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::MSNSPECTRUM) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::MSNSPECTRUM))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::SIM) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::SIM))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000582\" name=\"SIM spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::SRM) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::SRM))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000583\" name=\"SRM spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::CRM) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::CRM))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000581\" name=\"CRM spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::PRECURSOR) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::PRECURSOR))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000341\" name=\"precursor ion spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::CNG) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::CNG))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000325\" name=\"constant neutral gain spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::CNL) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::CNL))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000326\" name=\"constant neutral loss spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::EMR) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::EMR))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000804\" name=\"electromagnetic radiation spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::EMISSION) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::EMISSION))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000805\" name=\"emission spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::ABSORPTION) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::ABSORPTION))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000806\" name=\"absorption spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::EMC) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::EMC))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"enhanced multiply charged spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::TDF) != file_content.end())
+      if (file_content.contains(InstrumentSettings::ScanMode::TDF))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000790\" name=\"time-delayed fragmentation spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ScanMode::UNKNOWN) != file_content.end() || file_content.empty())
+      if (file_content.contains(InstrumentSettings::ScanMode::UNKNOWN) || file_content.empty())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
       }
@@ -5092,7 +5104,7 @@ namespace OpenMS::Internal
       }
 
       //ion mobility frame representation
-      if (spec.getIMFormat() == IMFormat::CENTROIDED)
+      if (spec.getIMPeakType() == IMPeakType::IM_CENTROIDED)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003441\" name=\"ion mobility centroid frame\" />\n";
       }

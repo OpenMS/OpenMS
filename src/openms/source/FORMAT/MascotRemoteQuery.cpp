@@ -64,7 +64,7 @@ namespace OpenMS
 
     // Mascot export options
     defaults_.setValue("export_params", "_ignoreionsscorebelow=0&_sigthreshold=0.99&_showsubsets=1&show_same_sets=1&report=0&percolate=0&query_master=0", "Adjustable export parameters (passed to Mascot's 'export_dat_2.pl' script). Generally only parameters that control which hits to export are safe to adjust/add. Many settings that govern what types of information to include are required by OpenMS and cannot be changed. Note that setting 'query_master' to 1 may lead to incorrect protein references for peptides.", {"advanced"});
-    defaults_.setValue("skip_export", "false", "For use with an external Mascot Percolator (via GenericWrapper): Run the Mascot search, but do not export the results. The output file produced by MascotAdapterOnline will contain only the Mascot search number.", {"advanced"});
+    defaults_.setValue("skip_export", "false", "For use with an external Mascot Percolator: Run the Mascot search, but do not export the results. The output file produced by MascotAdapterOnline will contain only the Mascot search number.", {"advanced"});
     defaults_.setValidStrings("skip_export", {"true","false"});
     defaults_.setValue("batch_size", 50000, "Number of spectra processed in one batch by Mascot (default 50000)", {"advanced"});
     defaults_.setMinInt("batch_size", 0);
@@ -266,15 +266,15 @@ namespace OpenMS
 
     if (hasError()) return;
 
-    if (response.find("Logged in successfu") != string::npos)
+    if (response.contains("Logged in successfu"))
     {
       OPENMS_LOG_INFO << "Login successful!" << std::endl;
     }
-    else if (response.find("Error: You have entered an invalid password") != string::npos)
+    else if (response.contains("Error: You have entered an invalid password"))
     {
       error_message_ = "Error: You have entered an invalid password";
     }
-    else if (response.find("is not a valid user") != string::npos)
+    else if (response.contains("is not a valid user"))
     {
       error_message_ = "Error: Username is not valid";
     }
@@ -311,7 +311,7 @@ namespace OpenMS
     if (hasError()) return;
 
     // Check for "Click here to see Search Report"
-    if (response.find("Click here to see Search Report") == string::npos)
+    if (!response.contains("Click here to see Search Report"))
     {
       // Check for Mascot error codes
       regex mascot_error_regex(R"(\[M[0-9]{5}\])");
@@ -363,7 +363,7 @@ namespace OpenMS
     if (hasError()) return;
 
     // Check if this is a decoy response
-    if (xml_response.find("<decoy>") != string::npos)
+    if (xml_response.contains("<decoy>"))
     {
       mascot_decoy_xml_ = std::move(xml_response);
       return;
@@ -393,8 +393,8 @@ namespace OpenMS
     if (hasError()) return {};
 
     // Handle Mascot 2.4 continuation links (these are in-body HTML, NOT HTTP redirects)
-    while (response.find("Finished after") != string::npos &&
-           response.find("<a id=\"continuation-link\"") != string::npos)
+    while (response.contains("Finished after") &&
+           response.contains("<a id=\"continuation-link\""))
     {
       regex rx(R"xx(<a id="continuation-link" href="(.*?)")xx");
       smatch match;

@@ -17,6 +17,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -58,10 +60,14 @@ using namespace std;
 
 The input MSn spectra have to be in centroid mode for the tool to work properly. Use e.g. @ref TOPP_PeakPickerHiRes to perform centroiding of profile data, if necessary.
 
-This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, and 18-plex as labeling methods.
+This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, 18-plex, 32-plex, and 35-plex as labeling methods.
+Note: TMT 32-plex and 35-plex default to an identity correction matrix (no isotope correction) until lot-specific values are provided via the correction_matrix parameter.
 It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
 in which each consensus feature represents one relevant MSn scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
-The MS level for quantification is chosen automatically, i.e. if MS3 is present, MS2 will be ignored.
+The MS level for quantification is chosen automatically, i.e. the highest MS level present is used (if MS3 is present, e.g. for SPS-MS3, MS2 will be ignored).
+The @p select_activation filter is only applied within that quantification level. If MS3 scans are present but none of them match @p select_activation
+(e.g. setting CID while the MS3 reporter scans are HCD/"beam-type CID"), the tool fails with an error instead of silently quantifying the MS2 scans.
+Set @p select_activation to "auto" (HCD/HCID) or "any" (disable filtering) if in doubt.
 For intensity, the closest non-zero m/z signal to the theoretical position is taken as reporter ion abundance.
 The position (RT, m/z) of the consensus centroid is the precursor position in MS1 (from the MS2 spectrum);
 the consensus sub-elements correspond to the theoretical channel m/z (with m/z values of 113-121 Th for iTRAQ and 126-131 Th for TMT, respectively).
@@ -156,6 +162,8 @@ public:
     addMethod_(make_unique<TMTElevenPlexQuantitationMethod>(), "TMT 11-plex");
     addMethod_(make_unique<TMTSixteenPlexQuantitationMethod>(), "TMT 16-plex");
     addMethod_(make_unique<TMTEighteenPlexQuantitationMethod>(), "TMT 18-plex");
+    addMethod_(make_unique<TMTThirtyTwoPlexQuantitationMethod>(), "TMT 32-plex");
+    addMethod_(make_unique<TMTThirtyFivePlexQuantitationMethod>(), "TMT 35-plex");
   }
 
 protected:
@@ -171,7 +179,11 @@ protected:
     setValidStrings_("type", valid_types);
 
     registerInputFile_("in", "<file>", "", "input raw/picked data file ");
-    setValidFormats_("in", {"mzML"});
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerOutputFile_("out", "<file>", "", "output consensusXML file with quantitative information");
     setValidFormats_("out", {"consensusXML"});
 
@@ -220,7 +232,7 @@ protected:
     //-------------------------------------------------------------
 
     PeakMap exp;
-    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     //-------------------------------------------------------------
     // init quant method

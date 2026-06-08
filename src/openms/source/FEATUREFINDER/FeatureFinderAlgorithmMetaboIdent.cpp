@@ -14,8 +14,10 @@
 #include <OpenMS/FEATUREFINDER/TraceFitter.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 
+#include <OpenMS/CHEMISTRY/AdductInfo.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
@@ -58,7 +60,7 @@ namespace OpenMS
     defaults_.setValue(
       "extract:rt_window",
       0.0,
-      "RT window size (in sec.) for chromatogram extraction. If set, this parameter takes precedence over 'extract:rt_quantile'.",
+      "RT window size (in sec.) for chromatogram extraction. If 0, this parameter is computed as 'detect:peak_width' * 4.",
       vector<string>{"advanced"});
     defaults_.setMinFloat("extract:rt_window", 0.0);
 
@@ -81,7 +83,7 @@ namespace OpenMS
 
     defaults_.setSectionDescription("extract", "Parameters for ion chromatogram extraction");
 
-    defaults_.setValue("detect:peak_width", 60.0, "Expected elution peak width in seconds, for smoothing (Gauss filter). Also determines the RT extration window, unless set explicitly via 'extract:rt_window'.");
+    defaults_.setValue("detect:peak_width", 60.0, "Expected elution peak width in seconds, for smoothing (Gauss filter). Also determines the RT extraction window, unless set explicitly via 'extract:rt_window'.");
     defaults_.setMinFloat("detect:peak_width", 0.0);
     defaults_.setValue(
       "detect:min_peak_width", 
@@ -280,7 +282,7 @@ namespace OpenMS
     for (const auto& c : metaboIdentTable)
     {
       addTargetToLibrary_(c.getName(), c.getFormula(), c.getMass(), c.getCharges(), c.getRTs(), c.getRTRanges(),
-                      c.getIsotopeDistribution(), c.getIonMobilities());
+                      c.getIsotopeDistribution(), c.getIonMobilities(), c.getAdduct());
     }
 
     // initialize algorithm classes needed later:
@@ -334,11 +336,33 @@ namespace OpenMS
     // run feature detection
     //-------------------------------------------------------------
     // Check if data has ion mobility information
-    IMFormat im_format = IMTypes::determineIMFormat(ms_data_);
-    bool has_IM = (im_format == IMFormat::CONCATENATED || im_format == IMFormat::MULTIPLE_SPECTRA);
+    IMFormat im_format = IMTypes::determineIMFormat(ms_data_, 1);
+    bool has_IM = (im_format == IMFormat::IM_PEAK || im_format == IMFormat::IM_SPECTRUM);
+    if (has_IM)
+    {
+      for (const auto& spec : ms_data_)
+      {
+        IMPeakType pt = spec.getIMPeakType();
+        if (pt != IMPeakType::UNKNOWN)
+        {
+          OPENMS_LOG_INFO << "IM peak type: " << imPeakTypeToString(pt) << endl;
+          break;
+        }
+      }
+    }
     if (has_IM && im_window_ > 0.0)
     {
       OPENMS_LOG_INFO << "Ion mobility data detected. Using IM window: " << im_window_ << endl;
+    }
+    else if (has_IM && im_window_ <= 0.0)
+    {
+      OPENMS_LOG_WARN << "Warning: Ion mobility data detected, but 'extract:im_window' is "
+                      << im_window_ << " (<= 0). The ion mobility dimension will be ignored: peaks "
+                      << "across the whole mobility range are summed within each m/z window, which "
+                      << "merges mobility-separated co-eluting analytes (e.g. on Bruker .d frames) "
+                      << "and can distort extraction/quantification. Set 'extract:im_window' > 0 and "
+                      << "provide IonMobility values for your targets to extract within the "
+                      << "analyte's mobility band." << endl;
     }
 
     OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
@@ -346,7 +370,13 @@ namespace OpenMS
     // extractor.setLogType(ProgressLogger::NONE);
     vector<OpenSwath::ChromatogramPtr> chrom_temp;
     vector<ChromatogramExtractor::ExtractionCoordinates> coords;
-    extractor.prepare_coordinates(chrom_temp, coords, library_,
+    // ChromatogramExtractor::prepare_coordinates / return_chromatogram now
+    // take OpenSwath::LightTargetedExperiment (issue #7284 cleanup). The NaN
+    // window relies on rt_start/rt_end now carried on LightCompound, populated
+    // by convertTargetedExp from library_.peptides[*].rts.
+    OpenSwath::LightTargetedExperiment light_library;
+    OpenSwathDataAccessHelper::convertTargetedExp(library_, light_library);
+    extractor.prepare_coordinates(chrom_temp, coords, light_library,
                                   numeric_limits<double>::quiet_NaN(), false);
 
     std::shared_ptr<PeakMap> shared = std::make_shared<PeakMap>(ms_data_);
@@ -363,7 +393,7 @@ namespace OpenMS
       extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
                                      mz_window_ppm_, "tophat");
     }
-    extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
+    extractor.return_chromatogram(chrom_temp, coords, light_library, (*shared)[0],
                                   chrom_data_.getChromatograms(), false);
 
     OPENMS_LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
@@ -504,7 +534,8 @@ namespace OpenMS
                            const vector<double>& rts,
                            vector<double> rt_ranges,
                            const vector<double>& iso_distrib,
-                           const vector<double>& ion_mobilities)
+                           const vector<double>& ion_mobilities,
+                           const String& adduct)
   {
     if ((mass <= 0) && formula.empty())
     {
@@ -614,15 +645,52 @@ namespace OpenMS
       }
       target.setChargeState(*z_it);
       double mz = 0.0;
-      if (!mass_given) // calculate m/z from formula
+
+      // Determine which adduct to use for m/z calculation
+      String adduct_str = adduct;
+      if (adduct_str.empty())
       {
-        emp_formula.setCharge(*z_it);
-        // "EmpiricalFormula::getMonoWeight()" already includes charges:
-        mz = abs(emp_formula.getMonoWeight() / *z_it);
+        // Default: [M+H]+ for positive charge, [M-H]- for negative charge (backward compatible)
+        if (*z_it > 0)
+        {
+          if (*z_it == 1) adduct_str = "M+H;1+";
+          else adduct_str = "M+" + String(*z_it) + "H;" + String(*z_it) + "+";
+        }
+        else
+        {
+          if (*z_it == -1) adduct_str = "M-H;1-";
+          else adduct_str = "M-" + String(abs(*z_it)) + "H;" + String(abs(*z_it)) + "-";
+        }
       }
-      else
+
+      try
       {
-        mz = calculateMZ_(mass, *z_it);
+        AdductInfo adduct_info = AdductInfo::parseAdductString(adduct_str);
+        if (!mass_given) // calculate m/z from formula
+        {
+          // emp_formula has charge 0, so getMonoWeight() returns the neutral monoisotopic mass
+          mz = adduct_info.getMZ(emp_formula.getMonoWeight());
+        }
+        else
+        {
+          mz = adduct_info.getMZ(mass);
+        }
+        target.setMetaValue("adduct", adduct_str);
+      }
+      catch (Exception::BaseException& e)
+      {
+        OPENMS_LOG_ERROR << "Error: Could not parse adduct string '" << adduct_str
+                         << "' for target '" << name << "': " << e.what()
+                         << " - falling back to default calculation." << endl;
+        if (!mass_given)
+        {
+          emp_formula.setCharge(*z_it);
+          mz = abs(emp_formula.getMonoWeight() / *z_it);
+        }
+        else
+        {
+          mz = calculateMZ_(mass, *z_it);
+        }
       }
 
       for (Size i = 0; i < rts.size(); ++i)
@@ -714,6 +782,10 @@ namespace OpenMS
       feat.getPeptideIdentifications().clear();
       feat.setMetaValue("label", compound.getMetaValue("name"));
       feat.setMetaValue("sum_formula", compound.molecular_formula);
+      if (compound.metaValueExists("adduct"))
+      {
+        feat.setMetaValue("adduct", compound.getMetaValue("adduct"));
+      }
       feat.setMetaValue("expected_rt",
                             compound.getMetaValue("expected_rt"));
       // Add IM annotations if available
@@ -845,7 +917,7 @@ namespace OpenMS
            library_.getCompounds().begin(); it != library_.getCompounds().end();
          ++it)
     {
-      if (!found_refs.count(it->id))
+      if (!found_refs.contains(it->id))
       {
         PeptideIdentification peptide;
         peptide.setIdentifier("id");

@@ -38,6 +38,7 @@
 
 #include <list>
 #include <map>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -111,6 +112,9 @@ protected:
 
       /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
       ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
+
+      /// Precompute the CV child-term sets used per PSM (constant across a file); shared by both constructors.
+      void initScoreTermCaches_();
 
       /**@name Helper functions to build the internal id structures from the DOM tree */
       //@{
@@ -261,6 +265,10 @@ private:
       std::map<String, double> xl_mass_map_; ///< mapping Peptide id -> cross-link mass
       std::map<String, String> xl_mod_map_; ///< mapping peptide id -> cross-linking reagent name
 
+      /// cached CV child term sets (computed once, reused per PSM)
+      std::set<String> q_score_child_terms_;
+      std::set<String> e_score_child_terms_;
+      std::set<String> specific_score_child_terms_;
     };
   } // namespace Internal
 } // namespace OpenMS

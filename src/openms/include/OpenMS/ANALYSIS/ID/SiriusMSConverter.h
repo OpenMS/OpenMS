@@ -16,11 +16,42 @@
 namespace OpenMS
 {
 
+  /**
+    @brief Writes a SIRIUS @c .ms file from an MSExperiment, optionally enriched with feature/adduct/formula annotations.
+
+    Used by @ref TOPP_SiriusExport to translate centroided MS2 data (and, optionally, feature
+    annotations from @ref FeatureFindingMetabo, @ref TOPP_MetaboliteAdductDecharger, and/or
+    @ref TOPP_AccurateMassSearch) into the @c .ms compound format consumed by SIRIUS.
+
+    The writer chooses one of three layouts based on the input @c FeatureMapping::FeatureToMs2Indices —
+      - @b feature-driven (@c assignedMS2 non-empty): one compound block per feature, carrying
+        its associated MS2 spectra plus adduct / formula / description metadata if those are
+        present on the feature.
+      - @b unassigned-MS2 (only when @c unassignedMS2 is non-empty and @p feature_only is @c false):
+        an additional compound block per unassigned MS2 spectrum with @c UNKNOWN description /
+        sumformula / adducts.
+      - @b no-feature-information (both maps empty): every MS2 spectrum in @p spectra is
+        emitted as its own UNKNOWN compound. This is the mzML-only fallback.
+    The first two layouts can both fire in the same call (feature-driven followed by
+    unassigned-MS2). For each compound emitted, a matching @ref CompoundInfo entry is
+    appended to @p v_cmpinfo for downstream mzTab-M export.
+
+    Constraints enforced during @ref store —
+      - Spectra must be centroided. If the first spectrum is @c SpectrumSettings::PROFILE,
+        @c OpenMS::Exception::IllegalArgument is thrown.
+      - The input mzML must carry @c SourceFile annotation; an empty @ref MSExperiment::getSourceFiles
+        also throws @c OpenMS::Exception::IllegalArgument.
+      - SIRIUS supports only singly charged precursors: features (and spectra) with
+        @c |charge| > 1 are dropped and counted; a per-call summary is written via
+        @c OPENMS_LOG_WARN at the end of @ref store.
+
+    @ingroup Analysis_ID
+  */
   class OPENMS_DLLAPI SiriusMSFile
   {
 public:
 
-  ///< class to store information about accessions
+  /// Source-file accession metadata of the input mzML, captured for the mzTab-M @c MS_RUN section.
   class AccessionInfo
   {
   public:
@@ -32,8 +63,14 @@ public:
     String native_id_type; ///< nativeID type for mztab-m
   };
 
-  ///< class to store the compound information
-  ///< needed for the mapping of compound and fragment annotated spectrum
+  /**
+    @brief Per-compound metadata accumulated while writing the @c .ms file.
+
+    One entry is appended for every compound block emitted by @ref store. The same data is
+    later serialised via @ref saveFeatureCompoundInfoAsTSV and used by downstream tools to
+    map SIRIUS results back to their originating spectra / features and to populate the
+    mzTab-M @c SmallMolecule / @c SmallMoleculeFeature sections.
+  */
   class CompoundInfo
   {
   public:
@@ -60,26 +97,36 @@ public:
   };
 
   /**
-    @brief Internal structure used in @ref TOPP_SiriusExport that is used
-    for the conversion of a MzMlFile to an internal format.
+    @brief Write one mzML/featureXML pair to a SIRIUS @c .ms output stream.
 
-    @ingroup Analysis_ID
+    Selects the @c .ms layout (feature-driven, unassigned-MS2, or no-feature-information)
+    according to the contents of @p feature_mapping; see the class documentation for the
+    branching rules. For every compound block emitted, a @ref CompoundInfo record is
+    appended to @p v_cmpinfo for downstream mzTab-M export. When adduct information is
+    missing for a spectrum no adduct line is written — SIRIUS will then assume defaults.
 
-    Write content of one mzML/featureXML(optional) file pair to SIRIUS .ms file ofstream.
-    Comments (see CompoundInfo) are written to SIRIUS .ms file and additionally stored in CompoundInfo struct.
-    If adduct information for a spectrum is missing, no adduct information is added. 
-    In this case, SIRIUS assumes default adducts for the respective spectrum.
+    The accession-CV term for the @c sourcefile is resolved by loading the PSI-MS OBO
+    (@c CV/psi-ms.obo via @c File::find) and locating the term whose name matches the
+    @c SourceFile type. The output stream @p os is written to but not closed; ownership
+    remains with the caller.
 
-    @param[in] spectra: Peakmap from input mzML.
-    @param[in] os: Write output for .ms file to ofstream.
-    @param[in] feature_mapping: Adducts and features (index).
-    @param[in] feature_only: Only use features.
-    @param[in] isotope_pattern_iterations: At which depth to stop isotope_pattern extraction (if possible).
-    @param[in] no_masstrace_info_isotope_pattern: bool if isotope pattern should be extracted (if not in feature)
-    @param[in] v_cmpinfo: Vector of CompoundInfo.
-    @param[in] file_index: file index (to differentiate entries derived from different mzML files and resolve ambiguities)
-    */
+    @param[in]     spectra                          Peakmap from the input mzML. The first spectrum must be centroided.
+    @param[in]     os                               Open output stream the @c .ms text is written to.
+    @param[in]     feature_mapping                  Result of @ref FeatureMapping::assignMS2IndexToFeature; selects the output layout.
+    @param[in]     feature_only                     If @c true, MS2 spectra that are not associated with any feature are dropped instead of being emitted as additional UNKNOWN compounds.
+    @param[in]     isotope_pattern_iterations       Upper bound on the number of isotope-trace peaks searched per precursor when no feature mass-traces are available.
+    @param[in]     no_masstrace_info_isotope_pattern If @c true, fall back to spectrum-based isotope-pattern extraction when feature mass-traces are absent.
+    @param[in,out] v_cmpinfo                        Receives one @ref CompoundInfo per emitted compound (appended; existing entries preserved).
+    @param[in]     file_index                       Numeric identifier mixed into compound IDs to disambiguate entries from different mzML files.
 
+    @throws OpenMS::Exception::IllegalArgument if @p spectra contains profile data (centroiding is required).
+    @throws OpenMS::Exception::IllegalArgument if @p spectra carries no @c SourceFile annotation.
+
+    @note SIRIUS supports only singly charged precursors: features (and spectra) with
+          @c |charge| @c > @c 1 are skipped. A summary of the skipped/assumed counts is
+          emitted via @c OPENMS_LOG_WARN at the end of the call (even when all counts are
+          zero).
+  */
     static void store(const MSExperiment& spectra,
                       std::ofstream& os,
                       const FeatureMapping::FeatureToMs2Indices& feature_mapping,
@@ -89,10 +136,18 @@ public:
                       std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
                       const size_t& file_index);
     /**
-    @brief Store CompoundInfo objects in tsv file format
+      @brief Serialise the @ref CompoundInfo records collected during @ref store as a TSV file.
 
-    @param[in] v_cmpinfo: Vector with CompoundInfo objects
-    @param[in] filename: Filename for tsv file
+      The file is written with a fixed 16-column header line in the order:
+      @c cmp, @c file_index, @c pmass, @c pint_mono, @c rt, @c fmz, @c fid, @c formula,
+      @c charge, @c ionization, @c des, @c specref_format, @c source_file, @c source_format,
+      @c native_ids_id, @c m_ids_id. The columns @c native_ids and @c m_ids (the raw vector
+      versions) are not written — only their already-concatenated @c _id forms.
+
+      @param[in] v_cmpinfo Compound records to write (typically the vector populated by @ref store).
+      @param[in] filename  Destination path of the TSV file.
+
+      @throws std::runtime_error if @p filename cannot be opened for writing.
     */
     static void saveFeatureCompoundInfoAsTSV(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
                                       const std::string& filename);
@@ -144,12 +199,15 @@ public:
                              std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
                              const size_t& file_index);
     /**
-    @brief Find highest intensity peak near target mz to test if within a margin of error
+      @brief Return the index of the most-intense peak of @p spectrum whose m/z lies within a tolerance window around @p test_mz.
 
-    @param[in] test_mz: Mass-to-charge to test
-    @param[in] spectrum: Spectrum to test
-    @param[in] tolerance: Tolerance window (e.g. 10)
-    @param[in] ppm: Unit of tolerance window either ppm or Da
+      @param[in] test_mz   Target m/z; the search window is built around this value.
+      @param[in] spectrum  Spectrum to scan.
+      @param[in] tolerance Half-width of the tolerance window (in Da or ppm, depending on @p ppm).
+      @param[in] ppm       If @c true, @p tolerance is interpreted as ppm; otherwise as Da.
+
+      @return Index of the most-intense peak inside the window, or @c -1 if the window
+              contains no peak.
     */
     static Int getHighestIntensityPeakInMZRange_(double test_mz,
                                                  const MSSpectrum& spectrum,
@@ -157,13 +215,20 @@ public:
                                                  bool ppm);
 
     /**
-    @brief Extract precursor isotope pattern if no feature information is available
-    based on C12C13 distance.
+      @brief Walk an isotope ladder from the precursor m/z, picking the most-intense peak at each C12-C13 step.
 
-    @param[in] precursor_mz: Precursor mass-to-charge
-    @param[in] precursor_spectrum: Precursor spectrum
-    @param[in] iterations: Number of isotopes, which are tried to be extracted
-    @param[in] charge: Charge of the precursor
+      Used by @ref store when no per-feature mass-trace information is available. The
+      monoisotopic peak is located inside a fixed 10 ppm window around @p precursor_mz;
+      subsequent traces are located at @c precursor_mz @c + @c k @c * @c C13C12_MASSDIFF_U / |charge|
+      inside a 1 ppm window, stopping when @p iterations reaches zero or when no peak is
+      found at the current step.
+
+      @param[in]     precursor_mz       Precursor m/z to start the ladder from.
+      @param[in]     precursor_spectrum Spectrum to search.
+      @param[in,out] iterations         Maximum number of isotope-trace steps; decremented per successful step.
+      @param[in]     charge             Precursor charge (used to scale the C12-C13 distance; @c 0 disables scaling).
+
+      @return Sequence of picked isotope peaks, starting with the monoisotopic peak (empty if not even that is found).
     */
     static std::vector<Peak1D> extractPrecursorIsotopePattern_(const double& precursor_mz,
                                                                const MSSpectrum& precursor_spectrum,

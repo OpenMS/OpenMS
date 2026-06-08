@@ -41,18 +41,6 @@ START_SECTION((ToolDescription(const String &p_name, const String &p_category, c
 }
 END_SECTION
 
-START_SECTION((void addExternalType(const String &type, const ToolExternalDetails &details)))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION((void append(const ToolDescription &other)))
-{
-  // TODO
-}
-END_SECTION
-
 START_SECTION((ToolDescription& operator=(const ToolDescription &rhs)))
 {
   // TODO

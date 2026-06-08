@@ -10,8 +10,6 @@
 
 #include <OpenMS/config.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -45,17 +43,30 @@ class OPENMS_DLLAPI QPXFile
 {
 public:
   /**
-    @brief Export PSM data to Apache Arrow Table
-
-    Exports peptide spectrum matches following the QPX PSM schema. Each
-    PeptideHit becomes one row with identification, score, and metadata.
-
-    @param[in] protein_identifications Vector of protein identifications
-    @param[in] peptide_identifications List of peptide identifications
-    @param[in] export_all_psms If true, export all hits per spectrum (default: false, only best hit)
-    @return Shared pointer to Arrow Table, or nullptr on error
-  */
+     * @brief Export PSMs to Arrow table using PSMSchema for lossless round-trips.
+     *
+     * Produces a table with PSMSchema columns (score, score_type, rank, etc.)
+     * suitable for FeatureMapArrowIO and ConsensusMapArrowIO round-trips.
+     * For QPX exchange format output, use exportPSMsToQPXArrow() instead.
+     */
   static std::shared_ptr<arrow::Table> exportToArrow(
+    const std::vector<ProteinIdentification>& protein_identifications,
+    const PeptideIdentificationList& peptide_identifications,
+    bool export_all_psms = false);
+
+  /**
+     * @brief Export PSMs to QPX Parquet eXchange format Arrow table (QPXPSMSchema).
+     *
+     * Unlike exportToArrow() which produces a PSMSchema table for lossless
+     * round-trips, this method produces a QPXPSMSchema table optimized for
+     * cross-tool exchange (quantms format).
+     *
+     * @param protein_identifications  Protein identifications (for file name lookup)
+     * @param peptide_identifications  Peptide identifications to export
+     * @param export_all_psms  If true, export all PSM hits; if false, only best hit per spectrum
+     * @return Arrow table with QPXPSMSchema columns, or nullptr on failure
+     */
+  static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(
     const std::vector<ProteinIdentification>& protein_identifications,
     const PeptideIdentificationList& peptide_identifications,
     bool export_all_psms = false);
@@ -76,8 +87,43 @@ public:
     const String& filename,
     bool export_all_psms = false,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
+
+  /**
+    @brief Write a pre-built QPX PSM Arrow table to a Parquet file
+
+    The table is expected to follow QPXPSMSchema (e.g., from exportPSMsToQPXArrow).
+    Attaches QPX file metadata (qpx_version, file_type="psm", UUID, creation_date)
+    before writing. Use this overload when the caller already has the table built
+    (e.g., for merged output) to avoid rebuilding it.
+
+    @param[in] table QPX PSM Arrow table (must not be null)
+    @param[in] filename Output file path
+    @param[in] config Parquet writing options
+    @return true on success, false on error
+  */
+  static bool exportToParquet(
+    const std::shared_ptr<arrow::Table>& table,
+    const String& filename,
+    const ParquetWriteConfig& config = ParquetWriteConfig{});
+
+  /**
+    @brief Import PSMs from a PSMSchema Arrow table.
+
+    Reads `PSMSchema`-conformant rows and appends `PeptideIdentification`s
+    to @p peptide_identifications. Each row's `run_identifier` column links
+    PSMs back to the matching `ProteinIdentification` already present in
+    @p protein_identifications by run identifier. If no match exists, a
+    new `ProteinIdentification` shell is appended.
+
+    @param[in]    table                     PSMSchema Arrow table (must not be null)
+    @param[in,out] protein_identifications  Existing protein identifications (used for higher_score_better lookup; new shells appended for unknown run_identifiers)
+    @param[in,out] peptide_identifications  Peptide identifications appended to (caller may pass an empty or pre-populated list)
+    @return true on success, false on schema mismatch or unrecoverable error (errors are logged)
+  */
+  static bool importFromArrow(
+    const std::shared_ptr<arrow::Table>& table,
+    std::vector<ProteinIdentification>& protein_identifications,
+    PeptideIdentificationList& peptide_identifications);
 };
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

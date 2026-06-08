@@ -152,7 +152,7 @@ namespace OpenMS
         NuXLReportRow row;
 
         // case 1: no peptide identification: store rt, mz, charge and marker ion intensities
-        if (map_spectra_to_id.find(scan_index) == map_spectra_to_id.end())
+        if (!map_spectra_to_id.contains(scan_index))
         {
           row.no_id = true;
           row.rt = rt;
@@ -604,7 +604,7 @@ Output format:
     // one row per unlocalized peptide    
     for (const auto& [peptide, unlocalizedXLs] : region_loc.peptide2unlocalizedXL)
     {
-      if (remaining_peptides.find(peptide) == remaining_peptides.end()) continue;
+      if (!remaining_peptides.contains(peptide)) continue;
 
       // protein, AA, position
       String l = accession + "\t-\t-\t";
@@ -744,7 +744,7 @@ Output format:
       for (auto& ph_evidence : ph_evidences)
       {
         const String& acc = ph_evidence.getProteinAccession();
-        bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
+        bool is_target = acc2protein_targets.contains(acc);
         if (!is_target) continue; // skip decoys            
         peptide2proteins[peptide_sequence].insert(acc);
         protein2peptides[acc].insert(peptide_sequence);
@@ -894,7 +894,7 @@ Output format:
       else if (auto it = accessionToIndistinguishableGroup.find(accession);
         it != accessionToIndistinguishableGroup.end())
       { // ind. protein group
-        if (printed_ind_group.count(accession) == 0)
+        if (!printed_ind_group.contains(accession))
         {
           const ProteinIdentification::ProteinGroup* pg = it->second;
           String a = ListUtils::concatenate(pg->accessions, ",");

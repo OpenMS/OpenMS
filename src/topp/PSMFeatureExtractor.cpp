@@ -82,11 +82,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
-    setValidFormats_("in", ListUtils::create<String>("idXML,mzid"));
-    registerOutputFile_("out", "<file>", "", "Output file in mzid or idXML format", true);
-    setValidFormats_("out", ListUtils::create<String>("idXML,mzid"));    
+    setValidFormats_("in", ListUtils::create<String>("idXML,mzid,idparquet"));
+    registerOutputFile_("out", "<file>", "", "Output file in idXML, mzid or idparquet format", true);
+    setValidFormats_("out", ListUtils::create<String>("idXML,mzid,idparquet"));
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
-    setValidStrings_("out_type", ListUtils::create<String>("idXML,mzid"));
+    setValidStrings_("out_type", ListUtils::create<String>("idXML,mzid,idparquet"));
     registerStringList_("extra", "<MetaData parameter>", vector<String>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
     registerFlag_("multiple_search_engines", "Combine PSMs from different search engines by merging on scan level.");
     registerFlag_("skip_db_check", "Manual override to skip the check if same settings for multiple search engines were applied. Only valid together with -multiple_search_engines flag.", true);
@@ -132,9 +132,9 @@ protected:
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(in);
       OPENMS_LOG_INFO << "Loading input file: " << in << endl;
-      if (in_type == FileTypes::IDXML || in_type == FileTypes::MZIDENTML)
+      if (in_type == FileTypes::IDXML || in_type == FileTypes::MZIDENTML || in_type == FileTypes::IDPARQUET)
       {
-        FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
+        FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML, FileTypes::IDPARQUET});
       }
       if (in_type == FileTypes::MZIDENTML)
       {
@@ -288,7 +288,7 @@ protected:
     OPENMS_LOG_INFO << "writing output file: " << out << endl;
     
 
-    FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::MZIDENTML, FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {out_type});
 
 
     writeLogInfo_("PSMFeatureExtractor finished successfully!");

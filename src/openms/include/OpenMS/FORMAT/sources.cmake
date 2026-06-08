@@ -42,6 +42,8 @@ GNPSMGFFile.h
 GNPSQuantificationFile.h
 GzipIfstream.h
 GzipInputStream.h
+ZipIfstream.h
+ZipInputStream.h
 IBSpectraFile.h
 IdXMLFile.h
 IndentedStream.h
@@ -119,18 +121,27 @@ if (WITH_HDF5)
   list(APPEND sources_list_h HDF5Connector.h)
 endif()
 
-if (WITH_PARQUET)
-  list(APPEND sources_list_h ZipArchiveFile.h)
-  list(APPEND sources_list_h MSExperimentArrowExport.h)
-  list(APPEND sources_list_h ConsensusMapArrowExport.h)
-  list(APPEND sources_list_h ParquetFile.h)
-  list(APPEND sources_list_h ParquetFilter.h)
-  list(APPEND sources_list_h XICParquetFile.h)
-  list(APPEND sources_list_h XIMParquetFile.h)
-  list(APPEND sources_list_h QPXFile.h)
-  list(APPEND sources_list_h ProteinIdentificationArrowIO.h)
-  list(APPEND sources_list_h FeatureMapArrowIO.h)
-  list(APPEND sources_list_h ConsensusMapArrowIO.h)
+list(APPEND sources_list_h ZipArchiveFile.h)
+list(APPEND sources_list_h MSExperimentArrowExport.h)
+list(APPEND sources_list_h ConsensusMapArrowExport.h)
+list(APPEND sources_list_h ParquetFile.h)
+list(APPEND sources_list_h ParquetFilter.h)
+list(APPEND sources_list_h XICParquetFile.h)
+list(APPEND sources_list_h XIMParquetFile.h)
+list(APPEND sources_list_h QPXFile.h)
+list(APPEND sources_list_h ProteinGroupArrowExport.h)
+list(APPEND sources_list_h ProteinIdentificationArrowIO.h)
+list(APPEND sources_list_h FeatureMapArrowIO.h)
+list(APPEND sources_list_h ConsensusMapArrowIO.h)
+list(APPEND sources_list_h PSMArrowIO.h)
+
+if (WITH_OPENTIMS)
+  list(APPEND sources_list_h BrukerTimsFile.h)
+  list(APPEND sources_list_h RationalScan2ImConverter.h)
+endif()
+
+if (WITH_THERMO_RAW)
+  list(APPEND sources_list_h ThermoRawFile.h)
 endif()
 
 ### add path to the filenames

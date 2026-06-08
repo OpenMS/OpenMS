@@ -729,7 +729,7 @@ namespace OpenMS
     // try to add the data
     if (caption == "")
     {
-      caption = FileHandler::stripExtension(File::basename(abs_filename));
+      caption = File::stemName(abs_filename);
     }
     else
     {
@@ -1840,15 +1840,15 @@ namespace OpenMS
         auto l = getCurrentLayer();
         if (l)
         {
-          auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name + "_in");
-          if (annotator.get() == nullptr)
-          { // no suitable annotator? open new layer/window
-            addDataFile(topp_.file_name + "_out", true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
+          auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name_out);
+          // we have an annotator ... let's annotate the current layer
+          if (annotator != nullptr)
+          {
+            annotator->annotateWithFilename(*l, *log_, topp_.file_name_out); // ID tabs are automatically enabled
           }
-          else
-          { // we have an annotator ... let's annotate the current layer
-            annotator->annotateWithFilename(*l, *log_, topp_.out + "_out"); // ID tabs are automatically enabled
-          }
+          
+          // we add a new layer in any case (e.g. useful for mzML layer + idXML output)
+          addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
         }
       }
     }
@@ -2032,7 +2032,7 @@ namespace OpenMS
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     
     ExperimentSharedPtrType exp = std::make_shared<AnnotatedMSRun>();
-    exp.get()->getMSExperiment() = std::move(IMDataConverter::reshapeIMFrameToMany(spec));
+    exp.get()->getMSExperiment() = IMDataConverter::reshapeIMFrameToMany(spec);
     // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
     // for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
 

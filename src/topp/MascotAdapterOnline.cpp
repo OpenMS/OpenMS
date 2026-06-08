@@ -263,7 +263,7 @@ protected:
     // overwrite default search title with filename
     if (mascot_param.getValue("search_title") == "OpenMS_search")
     {
-      mascot_param.setValue("search_title", FileHandler::stripExtension(File::basename(in)));
+      mascot_param.setValue("search_title", File::stemName(in));
     }
 
     mascot_param.setValue("internal:HTTP_format", "true");

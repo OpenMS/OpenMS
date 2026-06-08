@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/FORMAT/ZipRandomAccessFile.h>
@@ -22,9 +23,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <fstream>
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
-#endif
 
 #include <unordered_map>
 #include <unordered_set>
@@ -36,7 +35,6 @@
 namespace
 {
   using OpenMS::Size;
-#ifdef WITH_PARQUET
 
   std::string joinProteinAccessions_(const std::vector<std::string>& accessions)
   {
@@ -197,7 +195,6 @@ namespace
       OPENMS_LOG_DEBUG << "Could not parse modifications from sequence: " << sequence << '\n';
     }
   }
-#endif // WITH_PARQUET
 } // namespace
 
 namespace OpenMS
@@ -205,7 +202,6 @@ namespace OpenMS
   void TransitionParquetFile::convertParquetToTargetedExperiment(
     const String& oswpq_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const
   {
-#ifdef WITH_PARQUET
     // Reset the output container to avoid appending to a caller-owned
     // object that may contain stale data from previous calls. The caller
     // expects this function to populate `targeted_exp` from the parquet
@@ -237,16 +233,30 @@ namespace OpenMS
     auto precursors_table = open_table_from_entry("library/precursors.parquet");
     auto transitions_table = open_table_from_entry("library/transitions.parquet");
 
-    auto precursor_id_col = ParquetFile::getColumn(precursors_table, "precursor_id");
-    auto precursor_mz_col = ParquetFile::getColumn(precursors_table, "precursor_mz");
-    auto charge_col = ParquetFile::getColumn(precursors_table, "charge");
-    auto library_rt_col = ParquetFile::getColumn(precursors_table, "library_rt");
-    auto drift_time_col = ParquetFile::getOptionalColumn(precursors_table, "library_drift_time");
-    auto traml_id_col = ParquetFile::getOptionalColumn(precursors_table, "traml_id");
-    auto decoy_col = ParquetFile::getOptionalColumn(precursors_table, "decoy");
-    auto modified_sequence_col = ParquetFile::getOptionalColumn(precursors_table, "modified_sequence");
-    auto unmodified_sequence_col = ParquetFile::getOptionalColumn(precursors_table, "unmodified_sequence");
-    auto protein_accessions_col = ParquetFile::getOptionalColumn(precursors_table, "protein_accessions");
+    // Validate loaded tables against registry schemas (subset mode — file may have extra columns)
+    auto prec_validation = ArrowSchemaValidation::validate(precursors_table, OSWPrecursorSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+    if (!prec_validation.valid)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Precursors table schema validation failed: " + prec_validation.toString(), "");
+    }
+    auto trans_validation = ArrowSchemaValidation::validate(transitions_table, OSWTransitionSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+    if (!trans_validation.valid)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Transitions table schema validation failed: " + trans_validation.toString(), "");
+    }
+
+    auto precursor_id_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::PRECURSOR_ID);
+    auto precursor_mz_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::PRECURSOR_MZ);
+    auto charge_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::CHARGE);
+    auto library_rt_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::LIBRARY_RT);
+    auto drift_time_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::LIBRARY_DRIFT_TIME);
+    auto traml_id_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::TRAML_ID);
+    auto decoy_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::DECOY);
+    auto modified_sequence_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::MODIFIED_SEQUENCE);
+    auto unmodified_sequence_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::UNMODIFIED_SEQUENCE);
+    auto protein_accessions_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::PROTEIN_ACCESSIONS);
 
     std::unordered_map<int64_t, PrecursorInfo> precursor_map;
     precursor_map.reserve(precursors_table->num_rows());
@@ -298,7 +308,7 @@ namespace OpenMS
 
       for (const auto& accession : info.protein_accessions)
       {
-        if (protein_map.find(accession) == protein_map.end())
+        if (!protein_map.contains(accession))
         {
           OpenSwath::LightProtein protein;
           protein.id = accession;
@@ -309,19 +319,19 @@ namespace OpenMS
       }
     }
 
-    auto transition_id_col = ParquetFile::getColumn(transitions_table, "transition_id");
-    auto transition_traml_id_col = ParquetFile::getOptionalColumn(transitions_table, "traml_id");
-    auto transition_precursor_id_col = ParquetFile::getColumn(transitions_table, "precursor_id");
-    auto product_mz_col = ParquetFile::getColumn(transitions_table, "product_mz");
-    auto fragment_charge_col = ParquetFile::getColumn(transitions_table, "charge");
-    auto fragment_type_col = ParquetFile::getColumn(transitions_table, "type");
-    auto fragment_annotation_col = ParquetFile::getOptionalColumn(transitions_table, "annotation");
-    auto fragment_ordinal_col = ParquetFile::getColumn(transitions_table, "ordinal");
-    auto detecting_col = ParquetFile::getColumn(transitions_table, "detecting");
-    auto identifying_col = ParquetFile::getColumn(transitions_table, "identifying");
-    auto quantifying_col = ParquetFile::getColumn(transitions_table, "quantifying");
-    auto transition_intensity_col = ParquetFile::getColumn(transitions_table, "library_intensity");
-    auto transition_decoy_col = ParquetFile::getColumn(transitions_table, "decoy");
+    auto transition_id_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::TRANSITION_ID);
+    auto transition_traml_id_col = ParquetFile::getOptionalColumn(transitions_table, OSWTransitionSchema::TRAML_ID);
+    auto transition_precursor_id_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::PRECURSOR_ID);
+    auto product_mz_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::PRODUCT_MZ);
+    auto fragment_charge_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::CHARGE);
+    auto fragment_type_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::TYPE);
+    auto fragment_annotation_col = ParquetFile::getOptionalColumn(transitions_table, OSWTransitionSchema::ANNOTATION);
+    auto fragment_ordinal_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::ORDINAL);
+    auto detecting_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::DETECTING);
+    auto identifying_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::IDENTIFYING);
+    auto quantifying_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::QUANTIFYING);
+    auto transition_intensity_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::LIBRARY_INTENSITY);
+    auto transition_decoy_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::DECOY);
 
     std::unordered_set<std::string> used_transition_names;
     used_transition_names.reserve(transitions_table->num_rows());
@@ -377,17 +387,11 @@ namespace OpenMS
 
       targeted_exp.transitions.push_back(std::move(transition));
     }
-#else
-    (void)oswpq_dir;
-    (void)targeted_exp;
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
   }
 
   void TransitionParquetFile::convertLightTargetedExperimentToParquet(
     const String& oswpq_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const
   {
-#ifdef WITH_PARQUET
     const bool output_is_dir = File::isDirectory(oswpq_path);
     std::unique_ptr<File::TempDir> temp_dir;
     String base_dir = oswpq_path;
@@ -425,7 +429,7 @@ namespace OpenMS
     std::unordered_set<int64_t> used_precursor_ids;
     for (const auto& compound : targeted_exp.compounds)
     {
-      if (compound_to_precursor.find(compound.id) != compound_to_precursor.end())
+      if (compound_to_precursor.contains(compound.id))
       {
         continue;
       }
@@ -444,7 +448,7 @@ namespace OpenMS
 
       if (parsed_numeric)
       {
-        if (precursor_id <= 0 || used_precursor_ids.find(precursor_id) != used_precursor_ids.end())
+        if (precursor_id <= 0 || used_precursor_ids.contains(precursor_id))
         {
           precursor_id = next_precursor_id++;
         }
@@ -468,7 +472,7 @@ namespace OpenMS
     std::unordered_map<std::string, double> precursor_mz;
     for (const auto& transition : targeted_exp.transitions)
     {
-      if (precursor_mz.find(transition.peptide_ref) == precursor_mz.end())
+      if (!precursor_mz.contains(transition.peptide_ref))
       {
         precursor_mz[transition.peptide_ref] = transition.precursor_mz;
       }
@@ -553,18 +557,7 @@ namespace OpenMS
       }
     }
 
-    auto precursor_schema = arrow::schema({
-      arrow::field("precursor_id", arrow::int64()),
-      arrow::field("precursor_mz", arrow::float64()),
-      arrow::field("charge", arrow::int32()),
-      arrow::field("library_rt", arrow::float64()),
-      arrow::field("library_drift_time", arrow::float64()),
-      arrow::field("decoy", arrow::boolean()),
-      arrow::field("traml_id", arrow::utf8()),
-      arrow::field("modified_sequence", arrow::utf8()),
-      arrow::field("unmodified_sequence", arrow::utf8()),
-      arrow::field("protein_accessions", arrow::utf8())
-    });
+    auto precursor_schema = OSWPrecursorSchema::schema();
 
     auto precursors_table = arrow::Table::Make(
       precursor_schema,
@@ -578,6 +571,14 @@ namespace OpenMS
        ParquetFile::finishArray(modified_sequence_builder, "modified_sequence"),
        ParquetFile::finishArray(unmodified_sequence_builder, "unmodified_sequence"),
        ParquetFile::finishArray(protein_accessions_builder, "protein_accessions")});
+
+    // Validate precursors table against registry schema
+    auto prec_validation = ArrowSchemaValidation::validate(precursors_table, OSWPrecursorSchema::schema());
+    if (!prec_validation.valid)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Precursors table schema validation failed: " + prec_validation.toString(), "");
+    }
 
     ParquetFile::writeTable(precursors_table, library_dir + "/precursors.parquet");
 
@@ -652,21 +653,7 @@ namespace OpenMS
       }
     }
 
-    auto transition_schema = arrow::schema({
-      arrow::field("transition_id", arrow::int64()),
-      arrow::field("precursor_id", arrow::int64()),
-      arrow::field("traml_id", arrow::utf8()),
-      arrow::field("product_mz", arrow::float64()),
-      arrow::field("charge", arrow::int32()),
-      arrow::field("type", arrow::utf8()),
-      arrow::field("annotation", arrow::utf8()),
-      arrow::field("ordinal", arrow::int32()),
-      arrow::field("detecting", arrow::boolean()),
-      arrow::field("identifying", arrow::boolean()),
-      arrow::field("quantifying", arrow::boolean()),
-      arrow::field("library_intensity", arrow::float64()),
-      arrow::field("decoy", arrow::boolean())
-    });
+    auto transition_schema = OSWTransitionSchema::schema();
 
     auto transitions_table = arrow::Table::Make(
       transition_schema,
@@ -683,6 +670,14 @@ namespace OpenMS
        ParquetFile::finishArray(quantifying_builder, "quantifying"),
        ParquetFile::finishArray(transition_intensity_builder, "library_intensity"),
        ParquetFile::finishArray(transition_decoy_builder, "decoy")});
+
+    // Validate transitions table against registry schema
+    auto trans_validation = ArrowSchemaValidation::validate(transitions_table, OSWTransitionSchema::schema());
+    if (!trans_validation.valid)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Transitions table schema validation failed: " + trans_validation.toString(), "");
+    }
 
     ParquetFile::writeTable(transitions_table, library_dir + "/transitions.parquet");
 
@@ -723,10 +718,5 @@ namespace OpenMS
       std::filesystem::rename(std::filesystem::u8path(std::string(staging_zip)),
                               std::filesystem::u8path(std::string(output_zip_abs)));
     }
-#else
-    (void)oswpq_path;
-    (void)targeted_exp;
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
   }
 } // namespace OpenMS

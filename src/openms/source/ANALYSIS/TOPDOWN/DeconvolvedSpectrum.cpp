@@ -123,7 +123,7 @@ namespace OpenMS
     {
       for (const auto& p : spec_)
       {
-        if (deconvolved_mzs.find(p.getMZ()) != deconvolved_mzs.end()) // if p is deconvolved
+        if (deconvolved_mzs.contains(p.getMZ())) // if p is deconvolved
         {
           continue;
         }

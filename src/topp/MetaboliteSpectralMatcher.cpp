@@ -76,7 +76,14 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input spectra.");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerInputFile_("database", "<file>", "", "Default spectral database.", true);
     setValidFormats_("database", {"mzML", "msp", "mgf"});
     registerOutputFile_("out", "<file>", "", "mzTab file");
@@ -121,7 +128,7 @@ protected:
     mz_file.getOptions().setMSLevels(ms_level);
 
     PeakMap ms_peakmap;
-    mz_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML}, log_type_);
+    mz_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
 
     if (ms_peakmap.empty())
     {

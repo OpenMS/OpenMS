@@ -12,6 +12,8 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <fstream>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -158,6 +160,45 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   TEST_EQUAL(s3[14].getIntensity(), 20)
   TEST_EQUAL(s3[15].getPos(), 111)
   TEST_EQUAL(s3[15].getIntensity(), 44)
+
+  // CCS metadata: a plain numeric value (Angstrom^2, as written by MS-DIAL/MoNA) is stored as a typed double under MSM_CCS
+  {
+    MSExperiment ccs_exp;
+    String ccs_content = "Name: ccs_test\n"
+                         "CCS: 123.45\n"
+                         "Num Peaks: 1\n"
+                         "100:100\n";
+    String ccs_path;
+    NEW_TMP_FILE(ccs_path)
+    {
+      ofstream ofs(ccs_path.c_str());
+      ofs << ccs_content;
+    }
+    msp.load(ccs_path, ccs_exp);
+    TEST_EQUAL(ccs_exp.getSpectra().size(), 1)
+    TEST_EQUAL(ccs_exp.getSpectra()[0].metaValueExists(Constants::UserParam::MSM_CCS), true)
+    TEST_EQUAL(ccs_exp.getSpectra()[0].getMetaValue(Constants::UserParam::MSM_CCS).valueType(), DataValue::DOUBLE_VALUE)
+    TEST_REAL_SIMILAR((double)ccs_exp.getSpectra()[0].getMetaValue(Constants::UserParam::MSM_CCS), 123.45)
+  }
+
+  // CCS metadata: a non-numeric value is kept verbatim as a string meta value (no data loss, not fatal)
+  {
+    MSExperiment ccs_exp;
+    String ccs_content = "Name: ccs_text\n"
+                         "CCS: not_a_number\n"
+                         "Num Peaks: 1\n"
+                         "100:100\n";
+    String ccs_path;
+    NEW_TMP_FILE(ccs_path)
+    {
+      ofstream ofs(ccs_path.c_str());
+      ofs << ccs_content;
+    }
+    msp.load(ccs_path, ccs_exp);
+    TEST_EQUAL(ccs_exp.getSpectra().size(), 1)
+    TEST_EQUAL(ccs_exp.getSpectra()[0].metaValueExists(Constants::UserParam::MSM_CCS), true)
+    TEST_EQUAL(ccs_exp.getSpectra()[0].getMetaValue(Constants::UserParam::MSM_CCS).toString(), "not_a_number")
+  }
 }
 END_SECTION
 

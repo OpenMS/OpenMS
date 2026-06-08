@@ -734,24 +734,28 @@ namespace OpenMS
         IMFormat format = IMTypes::determineIMFormat(spectrum);
         switch (format)
         {
-            case IMFormat::NONE:
-                return false; // no IM data - skip silently
-            case IMFormat::CENTROIDED:
-                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "Ion mobility data is already centroided. PeakPickerIM expects raw (concatenated) IM data. "
-                    "Re-picking already centroided data is not supported.",
-                    String(NamesOfIMFormat[(size_t)format]));
-            case IMFormat::UNKNOWN:
-                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "IMFormat set to UNKNOWN after determineIMFormat. This should never happen.",
-                    String(NamesOfIMFormat[(size_t)format]));
-            case IMFormat::CONCATENATED:
-                OPENMS_LOG_DEBUG << "Processing concatenated IM data.\n";
-                return true; // continue processing
-            default:
-                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "Unhandled IMFormat after determineIMFormat. This should never happen.",
-                    String(NamesOfIMFormat[(size_t)format]));
+          case IMFormat::NONE:
+            return false;
+          case IMFormat::IM_PEAK:
+          {
+            // Check IM peak type -- reject already-centroided data
+            IMPeakType peak_type = spectrum.getIMPeakType();
+            if (peak_type == IMPeakType::IM_CENTROIDED)
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "Ion mobility data is already centroided. PeakPickerIM expects raw (profile) IM data. "
+                "Re-picking already centroided data is not supported.",
+                imPeakTypeToString(peak_type));
+            }
+            OPENMS_LOG_DEBUG << "Processing IM_PEAK data (profile).\n";
+            return true;
+          }
+          case IMFormat::UNKNOWN:
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "IMFormat is UNKNOWN. Call IMTypes::determineIMFormat() first.", "");
+          default:
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Unsupported IMFormat for picking.", imFormatToString(format));
         }
       }
     }
@@ -765,7 +769,7 @@ namespace OpenMS
       }
       
       
-      // Spectrum is in CONCATENATED IM format. Now sort by m/z to prepare for m/z peak picking
+      // Spectrum is in IM_PEAK IM format. Now sort by m/z to prepare for m/z peak picking
       spectrum.sortByPosition();
 
       // ************************************************* PART I *****************************************************
@@ -968,7 +972,8 @@ namespace OpenMS
       centroided_frame.setName(spectrum.getName());
       centroided_frame.setRT(spectrum.getRT());
       removeAllFloatDataArraysExcept(centroided_frame, Constants::UserParam::ION_MOBILITY_CENTROID);
-      centroided_frame.setIMFormat(IMFormat::CENTROIDED);
+      centroided_frame.setIMFormat(IMFormat::IM_PEAK);
+      centroided_frame.setIMPeakType(IMPeakType::IM_CENTROIDED);
       spectrum = std::move(centroided_frame);
       
 #ifdef DEBUG_PICKER
@@ -1218,7 +1223,8 @@ namespace OpenMS
       spectrum.updateRanges();
       // ensure the output IM array is updated
       spectrum.getFloatDataArrays()[im_data_index].setName(Constants::UserParam::ION_MOBILITY_CENTROID);
-      spectrum.setIMFormat(IMFormat::CENTROIDED);
+      spectrum.setIMFormat(IMFormat::IM_PEAK);
+      spectrum.setIMPeakType(IMPeakType::IM_CENTROIDED);
       removeAllFloatDataArraysExcept(spectrum, Constants::UserParam::ION_MOBILITY_CENTROID);
     } // End of pickIMCluster function
 
@@ -1313,7 +1319,8 @@ namespace OpenMS
       input.updateRanges();
       // ensure the output im name is updated
       input.getFloatDataArrays()[im_data_index].setName(Constants::UserParam::ION_MOBILITY_CENTROID);
-      input.setIMFormat(IMFormat::CENTROIDED);
+      input.setIMFormat(IMFormat::IM_PEAK);
+      input.setIMPeakType(IMPeakType::IM_CENTROIDED);
       removeAllFloatDataArraysExcept(input, Constants::UserParam::ION_MOBILITY_CENTROID);
     }
 

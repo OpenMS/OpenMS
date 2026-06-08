@@ -20,6 +20,7 @@
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ML/SVM/SimpleSVM.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
@@ -156,6 +157,9 @@ namespace OpenMS
 
     defaults_.setValue("add_mass_offset_peptides", 0.0, "If for every peptide (or seed) also an offset peptide is extracted (true). Can be used to downstream to determine MBR false transfer rates. (0.0 = disabled)");
     defaults_.setMinFloat("add_mass_offset_peptides", 0.0);
+
+    defaults_.setValue("seed_apex_rt_tolerance", 5.0, "Maximum allowed RT deviation (in seconds) between a seed's apex and the detected feature's apex. Seed-derived features whose detected apex deviates more than this value from the original seed apex are removed during filtering. Useful to discard unreliable seed extractions where the picked peak is far from the seed location. (0 = disabled)", {"advanced"});
+    defaults_.setMinFloat("seed_apex_rt_tolerance", 0.0);
 
     // available scores: initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score
     // exclude some redundant/uninformative scores:
@@ -692,11 +696,20 @@ namespace OpenMS
 
     // Check IM format
     double IM_window = param_.getValue("extract:IM_window");
-    IMFormat im_format = IMTypes::determineIMFormat(ms_data_);
+    IMFormat im_format = IMTypes::determineIMFormat(ms_data_, 1);
     bool has_IM = false;
-    if (im_format == IMFormat::CONCATENATED)
+    if (im_format == IMFormat::IM_PEAK)
     {
       has_IM = true;
+      for (const auto& spec : ms_data_)
+      {
+        IMPeakType pt = spec.getIMPeakType();
+        if (pt != IMPeakType::UNKNOWN)
+        {
+          OPENMS_LOG_INFO << "IM peak type: " << imPeakTypeToString(pt) << endl;
+          break;
+        }
+      }
       // Check IM unit and warn if CCS data with small window
       if (IM_window > 0.0)
       {
@@ -828,8 +841,14 @@ namespace OpenMS
       {
         vector<OpenSwath::ChromatogramPtr> chrom_temp;
         vector<ChromatogramExtractor::ExtractionCoordinates> coords;
-        // take entries in library_ and put to chrom_temp and coords
-        extractor.prepare_coordinates(chrom_temp, coords, library_,
+        // ChromatogramExtractor::prepare_coordinates / return_chromatogram now
+        // take OpenSwath::LightTargetedExperiment (issue #7284 cleanup). The
+        // NaN window relies on rt_start/rt_end now carried on LightCompound,
+        // populated by convertTargetedExp from library_.peptides[*].rts.
+        OpenSwath::LightTargetedExperiment light_library;
+        OpenSwathDataAccessHelper::convertTargetedExp(library_, light_library);
+        // take entries in light_library and put to chrom_temp and coords
+        extractor.prepare_coordinates(chrom_temp, coords, light_library,
                                       numeric_limits<double>::quiet_NaN(), false);
 
         if (has_IM && IM_window > 0.0)
@@ -843,7 +862,7 @@ namespace OpenMS
                                         mz_window_ppm_, "tophat");
         }
 
-        extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
+        extractor.return_chromatogram(chrom_temp, coords, light_library, (*shared)[0],
                                       chrom_data_.getChromatograms(), false);
       }
 
@@ -934,7 +953,10 @@ namespace OpenMS
     // store feature candidates before filtering
     if (!candidates_out_.empty())
     {
-      FileHandler().storeFeatures(candidates_out_, features);
+      FileTypes::Type candidates_out_type = FileHandler::getType(candidates_out_);
+      if (candidates_out_type != FileTypes::FEATUREPARQUET)
+        candidates_out_type = FileTypes::FEATUREXML;
+      FileHandler().storeFeatures(candidates_out_, features, {candidates_out_type});
     }
 
     // Use ExternalIDHandler for feature filtering
@@ -1412,7 +1434,7 @@ namespace OpenMS
           RTMap &external_ids = ref_rt_map[peptide_id].second;
           for (RTRegion& reg : rt_regions)
           {
-            if (reg.ids.count(charge))
+            if (reg.ids.contains(charge))
             {
               OPENMS_LOG_DEBUG_NOFILE << "Charge " << charge << ", Region# " << counter + 1 << " (RT: "
                                << float(reg.start) << "-" << float(reg.end)
@@ -1615,7 +1637,7 @@ namespace OpenMS
     for (RTMap::const_iterator rt_it = rt_internal.begin();
          rt_it != rt_internal.end(); ++rt_it)
     {
-      if (!assigned_ids.count(rt_it->second))
+      if (!assigned_ids.contains(rt_it->second))
       {
         const PeptideIdentification& pep_id = *(rt_it->second);
         features.getUnassignedPeptideIdentifications().push_back(pep_id);
@@ -1658,7 +1680,7 @@ namespace OpenMS
       // - IM_min/max: spread of IM distribution (large spread may indicate issues)
       // Note: Uses full peptide ref (with region number) as this is the key in im_stats_
       String full_peptide_ref = peptide_ref; // keep full ref with region number
-      if (im_stats_.count(full_peptide_ref))
+      if (im_stats_.contains(full_peptide_ref))
       {
         const IMStats& stats = im_stats_.at(full_peptide_ref);
         feat.setMetaValue("IM_median", stats.median);
@@ -1952,6 +1974,8 @@ namespace OpenMS
     }
 
     add_mass_offset_peptides_ = double(param_.getValue("add_mass_offset_peptides"));
+
+    seed_apex_rt_tolerance_ = double(param_.getValue("seed_apex_rt_tolerance"));
   }
 
   
@@ -1961,7 +1985,7 @@ namespace OpenMS
     {
       return;
     }
-    
+
     // For non-classified features, we still use the original filtering
     if (!classified)
     {
@@ -1971,6 +1995,52 @@ namespace OpenMS
     }
     // Note: The classified case is now handled by ExternalIDHandler::filterClassifiedFeatures
     // in the postProcess_ method
+
+    // Filter seed-derived features whose detected apex RT deviates too far from
+    // the original seed apex RT. Such features are typically picked from the wrong
+    // region of the chromatogram and are unreliable. Disabled when tolerance <= 0.
+    const double rt_tol = seed_apex_rt_tolerance_;
+    if (rt_tol <= 0.0)
+    {
+      return;
+    }
+    const Size before_seed_rt_filter = features.size();
+    features.erase(std::remove_if(features.begin(), features.end(),
+      [rt_tol](const Feature& f)
+      {
+        const double feature_rt = f.getRT();
+        for (const PeptideIdentification& pid : f.getPeptideIdentifications())
+        {
+          // Skip offset-peptide pseudo IDs (added by addOffsetPeptides_): they reuse the
+          // same XXX pseudo-hit marker as seeds but serve as intentional mass-shifted decoys
+          // for downstream MBR false-transfer rate estimation. Filtering them by seed apex
+          // RT would bias that estimate.
+          if (pid.metaValueExists("OffsetPeptide"))
+          {
+            continue;
+          }
+          for (const PeptideHit& hit : pid.getHits())
+          {
+            if (isSeedPseudoHit_(hit))
+            {
+              // seed apex RT was stored on the PeptideIdentification in addSeeds_()
+              if (std::fabs(pid.getRT() - feature_rt) > rt_tol)
+              {
+                return true; // detected apex too far from seed apex -> remove
+              }
+              break; // seed pseudo hit found in this pid; no need to check further hits
+            }
+          }
+        }
+        return false;
+      }), features.end());
+    const Size removed_seed_rt = before_seed_rt_filter - features.size();
+    if (removed_seed_rt > 0)
+    {
+      OPENMS_LOG_INFO << "Removed " << removed_seed_rt
+                      << " seed-derived feature(s) with detected apex RT deviating more than "
+                      << rt_tol << " s from the seed apex." << endl;
+    }
   }
 
 }

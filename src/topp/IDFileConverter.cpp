@@ -211,10 +211,10 @@ protected:
                        "- a single file in fasta format (can only be used to generate a theoretical mzML),\n"
                        "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("oms,idXML,mzid,fasta,pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,xquest.xml"));
+    setValidFormats_("in", ListUtils::create<String>("oms,idXML,mzid,idparquet,fasta,pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,xquest.xml"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    String formats("oms,idXML,mzid,pepXML,fasta,xquest.xml,mzML");
+    String formats("oms,idXML,mzid,idparquet,pepXML,fasta,xquest.xml,mzML");
     setValidFormats_("out", ListUtils::create<String>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
@@ -271,7 +271,12 @@ protected:
     logger.setLogType(ProgressLogger::CMD);
     logger.startProgress(0, 1, "Loading...");
 
-    if (File::isDirectory(in))
+    String in_for_type = in;
+    while (in_for_type.hasSuffix("/") || in_for_type.hasSuffix("\\"))
+    {
+      in_for_type = in_for_type.prefix(in_for_type.size() - 1);
+    }
+    if (File::isDirectory(in) && !FileTypes::isDirectoryType(FileHandler::getTypeByFileName(in_for_type)))
     {
       const String in_directory = File::absolutePath(in).ensureLastChar('/');
       const bool ignore_proteins_per_peptide = getFlag_("ignore_proteins_per_peptide");
@@ -451,6 +456,12 @@ protected:
             add_ionmatches_(peptide_identifications, mz_file, add_ions);
           }
         }
+      }
+      break;
+
+      case FileTypes::IDPARQUET:
+      {
+        FileHandler().loadIdentifications(in, protein_identifications, peptide_identifications, {FileTypes::IDPARQUET});
       }
       break;
 
@@ -706,6 +717,10 @@ protected:
     case FileTypes::MZIDENTML:
       FileHandler().storeIdentifications(out, protein_identifications,
                             peptide_identifications, {FileTypes::MZIDENTML});
+      break;
+
+    case FileTypes::IDPARQUET:
+      FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDPARQUET});
       break;
 
     case FileTypes::XQUESTXML:

@@ -118,7 +118,7 @@ namespace OpenMS
       ++utotal;
 
       // peptide is not in contaminant database
-      if (!digested_db_.count(key))
+      if (!digested_db_.contains(key))
       {
         fu_hit.setMetaValue("is_contaminant", 0);
         continue;
@@ -159,7 +159,7 @@ namespace OpenMS
     ++total;
     sum_total += intensity;
     // peptide is not in contaminant database
-    if (!digested_db_.count(key))
+    if (!digested_db_.contains(key))
     {
       pep_hit.setMetaValue("is_contaminant", 0);
       return;

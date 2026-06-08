@@ -120,7 +120,7 @@ namespace OpenMS
         // for the "true" assay, we need to choose the same transitions as for the
         // feature:
         if (!transition_ids.empty() && 
-            (transition_ids.count(transition.getNativeID()) == 0)) continue;
+            (!transition_ids.contains(transition.getNativeID()))) continue;
         // seems like Boost's Bimap doesn't support "operator[]"...
         intensity_map.left.insert(make_pair(transition.getProductMZ(), 
                                             transition.getLibraryIntensity()));
@@ -142,10 +142,8 @@ namespace OpenMS
       }
 
       // compute intensity distance:
-      OpenSwath::Scoring::normalize_sum(&feature_intensities[0],
-                                        boost::numeric_cast<int>(feature_intensities.size()));
-      OpenSwath::Scoring::normalize_sum(&assay_intensities[0],
-                                        boost::numeric_cast<int>(assay_intensities.size()));
+      OpenSwath::Scoring::normalize_sum(feature_intensities);
+      OpenSwath::Scoring::normalize_sum(assay_intensities);
       double dist_int = manhattanDist_(feature_intensities, 
                                            assay_intensities);
 

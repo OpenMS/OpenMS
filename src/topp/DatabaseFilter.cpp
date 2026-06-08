@@ -88,7 +88,7 @@ protected:
     for (const auto& entry : db)
     {
       const String& fasta_accession = entry.identifier;
-      const bool found = id_accessions.find(fasta_accession) != id_accessions.end();
+      const bool found = id_accessions.contains(fasta_accession);
       if ((found && whitelist) || (! found && ! whitelist)) // either found in the whitelist or not found in the blacklist
       {
         db_new.push_back(entry);

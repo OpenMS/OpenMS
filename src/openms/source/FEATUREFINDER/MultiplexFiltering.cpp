@@ -324,7 +324,7 @@ namespace OpenMS
     for (const auto &it : satellites)
     {
       size_t idx_masstrace = it.first;    // mass trace index i.e. the index within the peptide multiplet pattern
-      if (rt_boundaries.find(idx_masstrace) == rt_boundaries.end())
+      if (!rt_boundaries.contains(idx_masstrace))
       {
         // That's the first satellite within this mass trace.
         rt_boundaries[idx_masstrace] = std::make_pair((it.second).getRTidx(), (it.second).getRTidx());

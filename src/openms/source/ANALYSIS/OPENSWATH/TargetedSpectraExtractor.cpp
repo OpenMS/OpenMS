@@ -1107,15 +1107,15 @@ namespace OpenMS
 
   void TargetedSpectraExtractor::BinnedSpectrumComparator::init(const std::vector<MSSpectrum>& library, const std::map<String,DataValue>& options)
   {
-    if (options.count("bin_size"))
+    if (options.contains("bin_size"))
     {
       bin_size_ = options.at("bin_size");
     }
-    if (options.count("peak_spread"))
+    if (options.contains("peak_spread"))
     {
       peak_spread_ = options.at("peak_spread");
     }
-    if (options.count("bin_offset"))
+    if (options.contains("bin_offset"))
     {
       bin_offset_ = options.at("bin_offset");
     }

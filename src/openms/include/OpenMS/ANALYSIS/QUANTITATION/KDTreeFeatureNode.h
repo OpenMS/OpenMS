@@ -19,31 +19,45 @@ namespace OpenMS
 
 class KDTreeFeatureMaps;
 
-/// A node of the kD-tree with pointer to corresponding data and index
+/**
+  @brief Lightweight kd-tree entry: a back-pointer to a @ref KDTreeFeatureMaps and the index of one feature in it.
+
+  Used as the value type of the 2D kd-tree maintained by @ref KDTreeFeatureMaps. The node itself
+  carries no feature data; instead, operator[]() forwards coordinate lookups (RT for axis 0, m/z
+  for axis 1) to the parent @ref KDTreeFeatureMaps using the stored index. This keeps the kd-tree
+  payload small and avoids duplicating per-feature attributes.
+
+  Copy and assignment intentionally only copy the back-pointer; the wrapped data object is shared.
+*/
 class OPENMS_DLLAPI KDTreeFeatureNode
 {
 
 public:
 
-  /// Constructor
+  /**
+    @brief Create a node referencing one feature inside @p data.
+
+    @param[in] data Back-pointer to the @ref KDTreeFeatureMaps holding the feature; must outlive this node.
+    @param[in] idx  Global index of the referenced feature inside @p data.
+  */
   KDTreeFeatureNode(KDTreeFeatureMaps* data, Size idx);
 
-  /// Copy constructor - copy the pointer, use same data object
+  /// Copy constructor - copies the back-pointer; the wrapped data object is shared
   KDTreeFeatureNode(const KDTreeFeatureNode& rhs);
 
-  /// Assignment operator - copy the pointer, use same data object
+  /// Assignment operator - copies the back-pointer; the wrapped data object is shared
   KDTreeFeatureNode& operator=(KDTreeFeatureNode const& rhs);
 
-  /// Destructor
+  /// Destructor (does not delete the wrapped data)
   virtual ~KDTreeFeatureNode();
 
-  /// libkdtree++ needs this typedef
+  /// libkdtree++ requires this typedef on the value type
   typedef double value_type;
 
-  /// Needed for 2D range queries using libkdtree++. [0] returns RT, [1] m/z.
+  /// 2D coordinate accessor used by libkdtree++: @c [0] returns RT, @c [1] returns m/z (both forwarded to the parent @ref KDTreeFeatureMaps)
   value_type operator[](Size i) const;
 
-  /// Return index of corresponding feature in data_
+  /// Global index of the referenced feature inside the parent @ref KDTreeFeatureMaps
   Size getIndex() const;
 
 protected:

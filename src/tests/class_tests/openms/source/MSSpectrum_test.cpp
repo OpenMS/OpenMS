@@ -1394,9 +1394,28 @@ END_SECTION
 
 START_SECTION(void setIMFormat(IMFormat imf))
 {
-  // test invalid format validation
   MSSpectrum spec;
-  TEST_EXCEPTION(Exception::InvalidValue, spec.setIMFormat(IMFormat::MIXED)); // this should trigger the validation check because a single spectrum can't be mixed
+  spec.setIMFormat(IMFormat::IM_PEAK);
+  TEST_EQUAL(spec.getIMFormat() == IMFormat::IM_PEAK, true)
+  spec.setIMFormat(IMFormat::NONE);
+  TEST_EQUAL(spec.getIMFormat() == IMFormat::NONE, true)
+}
+END_SECTION
+
+START_SECTION(IMPeakType getIMPeakType() const)
+{
+  MSSpectrum s;
+  TEST_EQUAL(s.getIMPeakType(), IMPeakType::UNKNOWN)
+}
+END_SECTION
+
+START_SECTION(void setIMPeakType(IMPeakType))
+{
+  MSSpectrum s;
+  s.setIMPeakType(IMPeakType::IM_CENTROIDED);
+  TEST_EQUAL(s.getIMPeakType(), IMPeakType::IM_CENTROIDED)
+  s.setIMPeakType(IMPeakType::IM_PROFILE);
+  TEST_EQUAL(s.getIMPeakType(), IMPeakType::IM_PROFILE)
 }
 END_SECTION
 

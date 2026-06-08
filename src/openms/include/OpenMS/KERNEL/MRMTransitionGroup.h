@@ -143,7 +143,7 @@ public:
 
     inline bool hasTransition(const String& key) const
     {
-      return transition_map_.find(key) != transition_map_.end();
+      return transition_map_.contains(key);
     }
 
     inline const TransitionType& getTransition(const String& key)
@@ -187,7 +187,7 @@ public:
 
     inline bool hasChromatogram(const String& key) const
     {
-      return chromatogram_map_.find(key) != chromatogram_map_.end();
+      return chromatogram_map_.contains(key);
     }
 
     inline ChromatogramType& getChromatogram(const String& key)
@@ -241,7 +241,7 @@ public:
 
     inline bool hasPrecursorChromatogram(const String& key) const
     {
-      return precursor_chromatogram_map_.find(key) != precursor_chromatogram_map_.end();
+      return precursor_chromatogram_map_.contains(key);
     }
 
     inline ChromatogramType & getPrecursorChromatogram(const String& key)

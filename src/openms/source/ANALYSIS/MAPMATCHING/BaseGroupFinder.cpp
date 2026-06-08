@@ -26,7 +26,7 @@ namespace OpenMS
       const ConsensusMap& map = maps[i];
       for (ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().begin(); it != map.getColumnHeaders().end(); ++it)
       {
-        if (used_ids.find(it->first) != used_ids.end())
+        if (used_ids.contains(it->first))
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "file ids have to be unique");
         }

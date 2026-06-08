@@ -134,7 +134,14 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: spectra");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
 
     registerInputFile_("database", "<file>", "", "Input file: sequence database. Required unless 'digest' is set.", false);
     setValidFormats_("database", ListUtils::create<String>("fasta"));
@@ -984,7 +991,7 @@ protected:
     options.clearMSLevels();
     options.addMSLevel(2);
     f.setOptions(options);
-    f.loadExperiment(in_mzml, spectra, {FileTypes::MZML}, log_type_);
+    f.loadExperiment(in_mzml, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
     spectra.sortSpectra(true);
 
     // input file meta data:
@@ -1168,7 +1175,7 @@ protected:
     Param param = spectrum_generator.getParameters();
     vector<String> temp = getStringList_("fragment:ions");
     set<String> selected_ions(temp.begin(), temp.end());
-    if (resolve_ambiguous_mods_ && !selected_ions.count("a-B"))
+    if (resolve_ambiguous_mods_ && !selected_ions.contains("a-B"))
     {
       OPENMS_LOG_WARN << "Warning: option 'modifications:resolve_ambiguities' requires a-B ions in parameter 'fragment:ions' - disabling the option." << endl;
       resolve_ambiguous_mods_ = false;
@@ -1176,7 +1183,7 @@ protected:
     for (const auto& code : fragment_ion_codes_)
     {
       String param_name = "add_" + code + "_ions";
-      if (selected_ions.count(code))
+      if (selected_ions.contains(code))
       {
         param.setValue(param_name, "true");
       }

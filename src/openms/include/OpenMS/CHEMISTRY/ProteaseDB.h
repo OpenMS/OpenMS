@@ -55,6 +55,6 @@ namespace OpenMS
     void getAllMSGFNames(std::vector<String>& all_names) const;
 
     /// writes the full names to a TSV file
-    void writeTSV(const String& filename);
+    void writeTSV(const String& filename) const;
   };
 }

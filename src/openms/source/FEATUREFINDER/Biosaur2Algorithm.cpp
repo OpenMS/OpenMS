@@ -223,104 +223,120 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS1 spectra found in input experiment!", "");
   }
 
-  // Build FAIMS-aware processing groups (one per CV or a single non-FAIMS group).
-  std::vector<std::pair<double, MSExperiment>> groups =
-    IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
-
-  const Size n_groups = groups.size();
-  vector<vector<Hill>> hills_per_group(n_groups);
-  vector<vector<PeptideFeature>> features_per_group(n_groups);
-  vector<FeatureMap> fmap_per_group(n_groups);
-
   const double original_paseftol = paseftol_;
 
-  // Check IM unit and warn if CCS data with small tolerance (single-threaded, before parallel loop)
-  for (const auto& group_pair : groups)
+  // Check IM unit and warn if CCS data with small tolerance
+  for (const auto& spec : ms_data_)
   {
-    const MSExperiment& group_exp = group_pair.second;
-    for (const auto& spec : group_exp)
+    if (spec.containsIMData())
     {
-      if (spec.containsIMData())
+      const auto [im_data_index, im_unit] = spec.getIMData();
+      if (im_unit == DriftTimeUnit::CCS && original_paseftol < 1.0)
       {
-        const auto [im_data_index, im_unit] = spec.getIMData();
-        if (im_unit == DriftTimeUnit::CCS && original_paseftol < 1.0)
-        {
-          OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but "
-                          << "paseftol = " << original_paseftol
-                          << " appears to be set for 1/K0 data. "
-                          << "For CCS data, consider using larger values (e.g., 5-20)." << '\n';
-        }
-        goto done_ccs_check; // Found IM data, no need to check further
+        OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but "
+                        << "paseftol = " << original_paseftol
+                        << " appears to be set for 1/K0 data. "
+                        << "For CCS data, consider using larger values (e.g., 5-20)." << '\n';
       }
+      break;
     }
   }
-  done_ccs_check:
 
-  // Parallelize processing across FAIMS groups. Each group is handled
-  // independently using its own local hills/features containers.
-  #pragma omp parallel for schedule(dynamic)
-  for (int i = 0; i < static_cast<int>(n_groups); ++i)
+  // Log IM peak type if IM data is present.
+  for (const auto& spec : ms_data_)
   {
-    auto& group_pair = groups[static_cast<Size>(i)];
-    double cv = group_pair.first;
-    MSExperiment& group_exp = group_pair.second;
-
-    vector<Hill> local_hills;
-    vector<PeptideFeature> local_features;
-
-    processFAIMSGroup_(cv, group_exp, original_paseftol, local_hills, local_features);
-
-    FeatureMap local_map;
-    if (!local_hills.empty() && !local_features.empty())
+    if (IMTypes::determineIMFormat(spec) != IMFormat::NONE)
     {
-      local_map = convertToFeatureMap_(local_features, local_hills);
+      for (const auto& s : ms_data_)
+      {
+        IMPeakType pt = s.getIMPeakType();
+        if (pt != IMPeakType::UNKNOWN)
+        {
+          OPENMS_LOG_INFO << "IM peak type: " << imPeakTypeToString(pt) << endl;
+          break;
+        }
+      }
+      break;
+    }
+  }
+
+  // Check for FAIMS compensation voltages to decide processing strategy.
+  // Non-FAIMS path processes ms_data_ in-place (no move/copy), so it remains
+  // available to the caller after run() completes.
+  std::set<double> faims_cvs = FAIMSHelper::getCompensationVoltages(ms_data_);
+
+  if (faims_cvs.empty())
+  {
+    // Non-FAIMS: process ms_data_ directly without moving it
+    OPENMS_LOG_INFO << "Not FAIMS compensation voltages found in the data. Processing in-place." << endl;
+
+    processFAIMSGroup_(std::numeric_limits<double>::quiet_NaN(), ms_data_, original_paseftol, hills, peptide_features);
+
+    if (!hills.empty() && !peptide_features.empty())
+    {
+      feature_map = convertToFeatureMap_(peptide_features, hills);
+    }
+  }
+  else
+  {
+    // FAIMS: split by CV (moves ms_data_), process groups in parallel, merge
+    std::vector<std::pair<double, MSExperiment>> groups =
+      IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
+
+    const Size n_groups = groups.size();
+    vector<vector<Hill>> hills_per_group(n_groups);
+    vector<vector<PeptideFeature>> features_per_group(n_groups);
+    vector<FeatureMap> fmap_per_group(n_groups);
+
+    #pragma omp parallel for schedule(dynamic)
+    for (int i = 0; i < static_cast<int>(n_groups); ++i)
+    {
+      auto& group_pair = groups[static_cast<Size>(i)];
+      double cv = group_pair.first;
+      MSExperiment& group_exp = group_pair.second;
+
+      vector<Hill> local_hills;
+      vector<PeptideFeature> local_features;
+
+      processFAIMSGroup_(cv, group_exp, original_paseftol, local_hills, local_features);
+
+      FeatureMap local_map;
+      if (!local_hills.empty() && !local_features.empty())
+      {
+        local_map = convertToFeatureMap_(local_features, local_hills);
+      }
+
+      hills_per_group[static_cast<Size>(i)] = std::move(local_hills);
+      features_per_group[static_cast<Size>(i)] = std::move(local_features);
+      fmap_per_group[static_cast<Size>(i)] = std::move(local_map);
     }
 
-    hills_per_group[static_cast<Size>(i)] = std::move(local_hills);
-    features_per_group[static_cast<Size>(i)] = std::move(local_features);
-    fmap_per_group[static_cast<Size>(i)] = std::move(local_map);
+    for (Size i = 0; i < n_groups; ++i)
+    {
+      hills.insert(hills.end(), hills_per_group[i].begin(), hills_per_group[i].end());
+      peptide_features.insert(peptide_features.end(), features_per_group[i].begin(), features_per_group[i].end());
+      FeatureMap& gm = fmap_per_group[i];
+      if (!gm.empty())
+      {
+        feature_map.insert(feature_map.end(), gm.begin(), gm.end());
+      }
+    }
+
+    // Optionally merge features representing the same analyte at different FAIMS CV values
+    if (faims_merge_features_)
+    {
+      Size before_merge = feature_map.size();
+      FeatureOverlapFilter::mergeFAIMSFeatures(feature_map, 5.0, 0.05);
+      if (feature_map.size() < before_merge)
+      {
+        OPENMS_LOG_INFO << "FAIMS feature merge: " << before_merge << " -> " << feature_map.size()
+                        << " features (merged " << (before_merge - feature_map.size()) << ")" << endl;
+      }
+    }
   }
 
   // Restore original paseftol_ value for subsequent calls.
   paseftol_ = original_paseftol;
-
-  vector<Hill> all_hills;
-  vector<PeptideFeature> all_features;
-  FeatureMap combined_feature_map;
-
-  for (Size i = 0; i < n_groups; ++i)
-  {
-    all_hills.insert(all_hills.end(),
-                     hills_per_group[i].begin(), hills_per_group[i].end());
-    all_features.insert(all_features.end(),
-                        features_per_group[i].begin(), features_per_group[i].end());
-
-    FeatureMap& gm = fmap_per_group[i];
-    if (!gm.empty())
-    {
-      combined_feature_map.insert(combined_feature_map.end(), gm.begin(), gm.end());
-    }
-  }
-
-  // Check if we have FAIMS data (multiple CV groups)
-  const bool has_faims = n_groups > 1 || !std::isnan(groups[0].first);
-  
-  // Optionally merge features representing the same analyte at different FAIMS CV values
-  if (has_faims && faims_merge_features_)
-  {
-    Size before_merge = combined_feature_map.size();
-    FeatureOverlapFilter::mergeFAIMSFeatures(combined_feature_map, 5.0, 0.05);
-    if (combined_feature_map.size() < before_merge)
-    {
-      OPENMS_LOG_INFO << "FAIMS feature merge: " << before_merge << " -> " << combined_feature_map.size()
-                      << " features (merged " << (before_merge - combined_feature_map.size()) << ")" << endl;
-    }
-  }
-
-  hills = std::move(all_hills);
-  peptide_features = std::move(all_features);
-
-  feature_map = std::move(combined_feature_map);
   feature_map.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   feature_map.ensureUniqueId();
   feature_map.getProteinIdentifications().resize(1);
@@ -886,7 +902,7 @@ void Biosaur2Algorithm::centroidPASEFData_(MSExperiment& exp, double mz_step, do
     // Determine ion-mobility format and use the concatenated IM array if available,
     // mirroring the logic in processFAIMSGroup_ and IMTypes::determineIMFormat().
     const IMFormat im_format = IMTypes::determineIMFormat(spectrum);
-    if (im_format != IMFormat::CONCATENATED)
+    if (im_format != IMFormat::IM_PEAK)
     {
       // Either no IM data or only per-spectrum drift time; leave spectrum unchanged.
       return;
@@ -1182,15 +1198,51 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
     mz_step = htol_ * 1e-6 * max_mz_value;
   }
 
+  // Only skip centroiding if ALL spectra with IM data are already centroided.
+  // UNKNOWN and IM_PROFILE are treated as raw data needing centroiding.
+  bool im_already_centroided = true; // assume true, falsify if any is not centroided
+  bool found_im_spectrum = false;
+  for (const auto& spec : group_exp)
+  {
+    if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
+    {
+      found_im_spectrum = true;
+      if (spec.getIMPeakType() != IMPeakType::IM_CENTROIDED)
+      {
+        im_already_centroided = false;
+        break;
+      }
+    }
+  }
+  if (!found_im_spectrum)
+  {
+    im_already_centroided = false;
+  }
+
+  if (im_already_centroided)
+  {
+    OPENMS_LOG_INFO << "IM data is already centroided (IMPeakType::IM_CENTROIDED). "
+                    << "Skipping internal PASEF/TIMS centroiding for group (FAIMS CV="
+                    << faims_cv << ")." << endl;
+  }
+
   // Decide whether to use IM-based centroiding and gating for this group.
   const bool use_im_group = (any_im_array && !any_missing_im && original_paseftol > 0.0);
-  if (use_im_group && mz_step > 0.0)
+  if (use_im_group && mz_step > 0.0 && !im_already_centroided)
   {
     OPENMS_LOG_INFO << "Applying PASEF/TIMS centroiding for group (FAIMS CV="
                     << faims_cv << ") with paseftol=" << original_paseftol << endl;
     StopWatch stage_timer;
     stage_timer.start();
     centroidPASEFData_(group_exp, mz_step, original_paseftol);
+    // Mark spectra as IM-centroided so the skip logic is self-consistent
+    for (auto& spec : group_exp)
+    {
+      if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
+      {
+        spec.setIMPeakType(IMPeakType::IM_CENTROIDED);
+      }
+    }
     stage_timer.stop();
     OPENMS_LOG_INFO << "PASEF centroiding for group (FAIMS CV=" << faims_cv
                     << ") took " << stage_timer.toString() << endl;
@@ -1342,7 +1394,7 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
   // Use the standardized IM format/helper logic: only build per-peak IM bins
   // when we have concatenated ion-mobility data.
   const IMFormat im_format = IMTypes::determineIMFormat(spectrum);
-  const bool use_im_current = use_im_global && (im_format == IMFormat::CONCATENATED);
+  const bool use_im_current = use_im_global && (im_format == IMFormat::IM_PEAK);
 
   const MSSpectrum::FloatDataArray* im_array_ptr = nullptr;
   if (use_im_current)
@@ -1433,7 +1485,7 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
 
     double ion_mobility = -1.0;
     const IMFormat im_format_local = IMTypes::determineIMFormat(spectrum);
-    if (im_format_local == IMFormat::CONCATENATED)
+    if (im_format_local == IMFormat::IM_PEAK)
     {
       auto [im_index_local, im_unit_local] = spectrum.getIMData(); // may throw
       const auto& fda_local = spectrum.getFloatDataArrays();
@@ -1487,9 +1539,9 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
     const int fi = use_im_current ? im_bin_per_peak[static_cast<Size>(idx)] : 0;
 
     // Collect candidate previous-scan peaks from neighboring m/z bins.
-    bool flag1 = prev_fast_dict.find(fm) != prev_fast_dict.end();
-    bool flag2 = prev_fast_dict.find(fm - 1) != prev_fast_dict.end();
-    bool flag3 = prev_fast_dict.find(fm + 1) != prev_fast_dict.end();
+    bool flag1 = prev_fast_dict.contains(fm);
+    bool flag2 = prev_fast_dict.contains(fm - 1);
+    bool flag3 = prev_fast_dict.contains(fm + 1);
 
     Size assigned_hill = numeric_limits<Size>::max();
 
@@ -1562,7 +1614,7 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
           {
             continue;
           }
-          if (banned_prev_idx_set.find(idx_prev) != banned_prev_idx_set.end())
+          if (banned_prev_idx_set.contains(idx_prev))
           {
             continue;
           }
@@ -2113,10 +2165,10 @@ map<int, pair<double, double>> Biosaur2Algorithm::performInitialIsotopeCalibrati
     {
       isotope_calib_map[ic] = calibrateMass_(isotope_errors[ic]);
     }
-    else if (ic > 1 && isotope_calib_map.find(ic - 1) != isotope_calib_map.end())
+    else if (ic > 1 && isotope_calib_map.contains(ic - 1))
     {
       auto prev = isotope_calib_map[ic - 1];
-      auto prev2 = isotope_calib_map.find(ic - 2) != isotope_calib_map.end() ?
+      auto prev2 = isotope_calib_map.contains(ic - 2) ?
                    isotope_calib_map[ic - 2] : make_pair(0.0, itol_ppm);
 
       double shift_delta = prev.first - prev2.first;
@@ -2686,7 +2738,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::selectNonOverlappin
     const double mono_mz_center = mono_hill.mz_weighted_mean;
 
     // Skip patterns whose monoisotopic hill is already used.
-    if (occupied_hills.find(mono_hill.hill_idx) != occupied_hills.end())
+    if (occupied_hills.contains(mono_hill.hill_idx))
     {
       continue;
     }
@@ -2694,7 +2746,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::selectNonOverlappin
     bool iso_conflict = false;
     for (const auto& iso : pc.isotopes)
     {
-      if (occupied_hills.find(iso.hill_idx) != occupied_hills.end())
+      if (occupied_hills.contains(iso.hill_idx))
       {
         iso_conflict = true;
         break;
@@ -2708,7 +2760,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::selectNonOverlappin
       vector<IsotopeCandidate> tmp_iso;
       for (const auto& iso : pc.isotopes)
       {
-        if (occupied_hills.find(iso.hill_idx) == occupied_hills.end())
+        if (!occupied_hills.contains(iso.hill_idx))
         {
           tmp_iso.push_back(iso);
         }

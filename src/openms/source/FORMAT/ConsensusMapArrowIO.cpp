@@ -8,11 +8,11 @@
 
 #include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -52,7 +52,7 @@ namespace // anonymous
     mii.getKeys(keys);
     for (const auto& key : keys)
     {
-      if (excluded_keys.count(key)) continue;
+      if (excluded_keys.contains(key)) continue;
       const DataValue& val = mii.getMetaValue(key);
       (void)struct_b->Append();
       (void)name_b->Append(key);
@@ -809,153 +809,6 @@ namespace // anonymous
     return *combined;
   }
 
-  /// Fetch a named column from a table, combining chunks if needed.
-  std::shared_ptr<arrow::Array> getColumn_(
-    const std::shared_ptr<arrow::Table>& table,
-    const std::string& name,
-    bool required = true)
-  {
-    auto column = table->GetColumnByName(name);
-    if (!column)
-    {
-      if (required)
-      {
-        OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Missing required column '" << name << "'" << std::endl;
-      }
-      return nullptr;
-    }
-    if (column->num_chunks() == 0)
-    {
-      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Column '" << name << "' has no chunks" << std::endl;
-      return nullptr;
-    }
-    if (column->num_chunks() == 1)
-    {
-      return column->chunk(0);
-    }
-    auto combined = arrow::Concatenate(column->chunks(), arrow::default_memory_pool());
-    if (!combined.ok())
-    {
-      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to combine chunks for column '" << name << "'" << std::endl;
-      return nullptr;
-    }
-    return *combined;
-  }
-
-  String getStringValue_(const std::shared_ptr<arrow::Array>& array, int64_t row)
-  {
-    if (!array || array->IsNull(row)) return "";
-    return std::static_pointer_cast<arrow::StringArray>(array)->GetString(row);
-  }
-
-  double getDoubleValue_(const std::shared_ptr<arrow::Array>& array, int64_t row, double default_val = 0.0)
-  {
-    if (!array || array->IsNull(row)) return default_val;
-    return std::static_pointer_cast<arrow::DoubleArray>(array)->Value(row);
-  }
-
-  float getFloatValue_(const std::shared_ptr<arrow::Array>& array, int64_t row, float default_val = 0.0f)
-  {
-    if (!array || array->IsNull(row)) return default_val;
-    return std::static_pointer_cast<arrow::FloatArray>(array)->Value(row);
-  }
-
-  int64_t getInt64Value_(const std::shared_ptr<arrow::Array>& array, int64_t row, int64_t default_val = 0)
-  {
-    if (!array || array->IsNull(row)) return default_val;
-    return std::static_pointer_cast<arrow::Int64Array>(array)->Value(row);
-  }
-
-  int32_t getInt32Value_(const std::shared_ptr<arrow::Array>& array, int64_t row, int32_t default_val = 0)
-  {
-    if (!array || array->IsNull(row)) return default_val;
-    return std::static_pointer_cast<arrow::Int32Array>(array)->Value(row);
-  }
-
-  bool getBoolValue_(const std::shared_ptr<arrow::Array>& array, int64_t row, bool default_val = false)
-  {
-    if (!array || array->IsNull(row)) return default_val;
-    return std::static_pointer_cast<arrow::BooleanArray>(array)->Value(row);
-  }
-
-  bool isNull_(const std::shared_ptr<arrow::Array>& array, int64_t row)
-  {
-    return !array || array->IsNull(row);
-  }
-
-  /// Read metavalues from a list<struct{name,value,value_type}> column at a given row.
-  void readMetaValues_(
-    const std::shared_ptr<arrow::Array>& array,
-    int64_t row,
-    MetaInfoInterface& target,
-    const std::unordered_set<std::string>& excluded_keys = {})
-  {
-    if (!array || array->IsNull(row)) return;
-    auto list_arr = std::static_pointer_cast<arrow::ListArray>(array);
-    auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->value_slice(row));
-    if (!struct_arr || struct_arr->length() == 0) return;
-
-    auto name_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(0));
-    auto value_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(1));
-    auto type_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(2));
-
-    for (int64_t i = 0; i < struct_arr->length(); ++i)
-    {
-      std::string name = name_arr->GetString(i);
-      if (excluded_keys.count(name)) continue;
-
-      std::string value_str = value_arr->GetString(i);
-      std::string type_str = type_arr->GetString(i);
-
-      if (type_str == "int")
-      {
-        try { target.setMetaValue(name, static_cast<int>(std::stol(value_str))); }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "double" || type_str == "float")
-      {
-        try { target.setMetaValue(name, std::stod(value_str)); }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "int_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(name, DataValue(ListUtils::create<Int>(s)));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "double_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(name, DataValue(ListUtils::create<double>(s)));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "string_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          auto sl = ListUtils::create<String>(s);
-          for (auto& e : sl) { e = e.trim(); }
-          target.setMetaValue(name, DataValue(sl));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else
-      {
-        target.setMetaValue(name, value_str);
-      }
-    }
-  }
-
   /// Read FeatureHandles from a list<struct{...}> column at a given row into a ConsensusFeature.
   void readHandles_(
     const std::shared_ptr<arrow::Array>& array,
@@ -1127,23 +980,24 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportFeaturesToArrow(
 
   #undef FINISH_OR_RETURN
 
-  auto schema = arrow::schema({
-    arrow::field("unique_id", arrow::int64()),
-    arrow::field("rt", arrow::float64()),
-    arrow::field("mz", arrow::float64()),
-    arrow::field("intensity", arrow::float32()),
-    arrow::field("charge", arrow::int32()),
-    arrow::field("quality", arrow::float32()),
-    arrow::field("width", arrow::float32()),
-    arrow::field("handles", arrow::list(handle_struct_type)),
-    arrow::field("metavalues", arrow::list(mv_struct_type))
-  });
+  // Build schema from registry
+  auto schema = ConsensusFeatureSchema::schema();
 
-  return arrow::Table::Make(schema, {
+  auto table = arrow::Table::Make(schema, {
     arr_unique_id, arr_rt, arr_mz, arr_intensity,
     arr_charge, arr_quality, arr_width,
     arr_handles, arr_metavalues
   });
+
+  // Validate table against registry schema
+  auto validation = ArrowSchemaValidation::validate(table, ConsensusFeatureSchema::schema());
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << "\n";
+    return nullptr;
+  }
+
+  return table;
 }
 
 std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportPSMsToArrow(
@@ -1228,6 +1082,10 @@ bool ConsensusMapArrowIO::exportToParquet(
   const String& directory,
   const ParquetWriteConfig& config)
 {
+  // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
+  // so we never leave a partial .consensusparquet behind. Throws Exception::InvalidValue.
+  ProteinIdentificationArrowIO::checkUniqueIdentifiers(cmap.getProteinIdentifications());
+
   // 1. Create output directory
   try
   {
@@ -1322,15 +1180,23 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
     return true;
   }
 
-  auto col_unique_id = getColumn_(tbl, "unique_id");
-  auto col_rt = getColumn_(tbl, "rt");
-  auto col_mz = getColumn_(tbl, "mz");
-  auto col_intensity = getColumn_(tbl, "intensity");
-  auto col_charge = getColumn_(tbl, "charge");
-  auto col_quality = getColumn_(tbl, "quality");
-  auto col_width = getColumn_(tbl, "width", /*required=*/false);
-  auto col_handles = getColumn_(tbl, "handles", /*required=*/false);
-  auto col_metavalues = getColumn_(tbl, "metavalues", /*required=*/false);
+  // Validate table schema against registry (subset mode — file may have extra columns)
+  auto validation = ArrowSchemaValidation::validate(tbl, ConsensusFeatureSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << "\n";
+    return false;
+  }
+
+  auto col_unique_id = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::UNIQUE_ID);
+  auto col_rt = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::RT);
+  auto col_mz = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::MZ);
+  auto col_intensity = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::INTENSITY);
+  auto col_charge = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::CHARGE);
+  auto col_quality = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::QUALITY);
+  auto col_width = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::WIDTH, /*required=*/false);
+  auto col_handles = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::HANDLES, /*required=*/false);
+  auto col_metavalues = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::METAVALUES, /*required=*/false);
 
   if (!col_unique_id || !col_rt || !col_mz || !col_intensity || !col_charge || !col_quality)
   {
@@ -1341,17 +1207,17 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
   for (int64_t i = 0; i < num_rows; ++i)
   {
     ConsensusFeature cf;
-    cf.setUniqueId(static_cast<UInt64>(getInt64Value_(col_unique_id, i, 0)));
-    cf.setRT(getDoubleValue_(col_rt, i));
-    cf.setMZ(getDoubleValue_(col_mz, i));
-    cf.setIntensity(getFloatValue_(col_intensity, i));
-    cf.setCharge(static_cast<Int>(getInt32Value_(col_charge, i)));
-    cf.setQuality(getFloatValue_(col_quality, i));
+    cf.setUniqueId(static_cast<UInt64>(ArrowIOHelpers::getInt64Value(col_unique_id, i, 0)));
+    cf.setRT(ArrowIOHelpers::getDoubleValue(col_rt, i));
+    cf.setMZ(ArrowIOHelpers::getDoubleValue(col_mz, i));
+    cf.setIntensity(ArrowIOHelpers::getFloatValue(col_intensity, i));
+    cf.setCharge(static_cast<Int>(ArrowIOHelpers::getInt32Value(col_charge, i)));
+    cf.setQuality(ArrowIOHelpers::getFloatValue(col_quality, i));
 
     // Width: null means unset (default 0.0), so we only call setWidth for non-null values.
-    if (col_width && !isNull_(col_width, i))
+    if (col_width && !ArrowIOHelpers::isNull(col_width, i))
     {
-      cf.setWidth(getFloatValue_(col_width, i));
+      cf.setWidth(ArrowIOHelpers::getFloatValue(col_width, i));
     }
 
     if (col_handles)
@@ -1361,7 +1227,7 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
 
     if (col_metavalues)
     {
-      readMetaValues_(col_metavalues, i, cf);
+      ArrowIOHelpers::readMetaValues(col_metavalues, i, cf);
     }
 
     cmap.push_back(std::move(cf));
@@ -1383,250 +1249,100 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
     return false;
   }
   const auto& tbl = *combined_result;
-  int64_t num_rows = tbl->num_rows();
 
-  // Build consensus feature lookup: unique_id -> ConsensusFeature*
+  // Read consensus_feature_unique_id and PEPTIDE_IDENTIFICATION_INDEX side-by-side
+  // so we can route each constructed PeptideIdentification to the right ConsensusFeature.
+  auto col_feature_id = ArrowIOHelpers::getColumn(tbl, "consensus_feature_unique_id");
+  auto col_p_id = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX);
+  if (!col_feature_id || !col_p_id)
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Missing required columns for PSM import" << std::endl;
+    return false;
+  }
+  if (col_feature_id->type_id() != arrow::Type::INT64 ||
+      col_p_id->type_id() != arrow::Type::INT32)
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Invalid column types for PSM import "
+                     << "(expected consensus_feature_unique_id=int64 and "
+                     << PSMSchema::PEPTIDE_IDENTIFICATION_INDEX << "=int32)" << std::endl;
+    return false;
+  }
+
+  // Build (p_id -> feature_unique_id-or-null) map by capturing the first row each p_id appears.
+  // Do not assume rows of the same p_id are contiguous.
+  std::unordered_map<int32_t, std::pair<bool, int64_t>> p_id_to_feature; // bool: is_null
+  for (int64_t row = 0; row < tbl->num_rows(); ++row)
+  {
+    int32_t p_id = ArrowIOHelpers::getInt32Value(col_p_id, row, -1);
+    bool is_null = ArrowIOHelpers::isNull(col_feature_id, row);
+    int64_t fid = is_null ? 0 : ArrowIOHelpers::getInt64Value(col_feature_id, row, 0);
+    auto [it, inserted] = p_id_to_feature.try_emplace(p_id, std::make_pair(is_null, fid));
+    if (!inserted)
+    {
+      const auto& [prev_null, prev_fid] = it->second;
+      if (prev_null != is_null || (!is_null && prev_fid != fid))
+      {
+        OPENMS_LOG_ERROR << "ConsensusMapArrowIO: inconsistent consensus_feature_unique_id "
+                         << "mappings for p_id " << p_id << " (first: "
+                         << (prev_null ? "null" : std::to_string(prev_fid))
+                         << ", later: " << (is_null ? "null" : std::to_string(fid))
+                         << ")" << std::endl;
+        return false;
+      }
+    }
+  }
+
+  // Delegate PSM construction to QPXFile::importFromArrow.
+  std::vector<ProteinIdentification> prot_ids = cmap.getProteinIdentifications();
+  PeptideIdentificationList pep_ids;
+  if (!QPXFile::importFromArrow(tbl, prot_ids, pep_ids)) { return false; }
+  cmap.setProteinIdentifications(prot_ids);
+
+  // Walk each constructed PeptideIdentification and route to features by feature_id.
   std::unordered_map<int64_t, ConsensusFeature*> feature_lookup;
   for (auto& cf : cmap)
   {
     feature_lookup[static_cast<int64_t>(cf.getUniqueId())] = &cf;
   }
 
-  // Read columns
-  auto col_feature_id = getColumn_(tbl, "consensus_feature_unique_id");
-  auto col_p_id = getColumn_(tbl, "peptide_identification_index");
-  auto col_peptidoform = getColumn_(tbl, "peptidoform", /*required=*/false);
-  auto col_sequence = getColumn_(tbl, "sequence", /*required=*/false);
-  auto col_charge = getColumn_(tbl, "precursor_charge");
-  auto col_score = getColumn_(tbl, "score");
-  auto col_score_type = getColumn_(tbl, "score_type");
-  auto col_rank = getColumn_(tbl, "rank", /*required=*/false);
-  auto col_rt = getColumn_(tbl, "rt", /*required=*/false);
-  auto col_mz = getColumn_(tbl, "observed_mz", /*required=*/false);
-  auto col_spec_ref = getColumn_(tbl, "spectrum_reference", /*required=*/false);
-  auto col_run_id = getColumn_(tbl, "run_identifier", /*required=*/false);
-  auto col_is_decoy = getColumn_(tbl, "is_decoy", /*required=*/false);
-  auto col_protein_accs = getColumn_(tbl, "protein_accessions", /*required=*/false);
-  auto col_additional_scores = getColumn_(tbl, "additional_scores", /*required=*/false);
-  auto col_psm_metavalues = getColumn_(tbl, "psm_metavalues", /*required=*/false);
-  auto col_spectrum_metavalues = getColumn_(tbl, "spectrum_metavalues", /*required=*/false);
-  auto col_predicted_rt = getColumn_(tbl, "predicted_rt", /*required=*/false);
-  auto col_ion_mobility = getColumn_(tbl, "ion_mobility", /*required=*/false);
-  auto col_hsb = getColumn_(tbl, "higher_score_better", /*required=*/false);
-  auto col_scan = getColumn_(tbl, "scan", /*required=*/false);
-  auto col_ref_file = getColumn_(tbl, "reference_file_name", /*required=*/false);
-
-  if (!col_feature_id || !col_p_id || !col_charge || !col_score || !col_score_type)
+  // Re-derive the p_id sequence in first-seen order (independent of adjacency).
+  std::vector<int32_t> p_id_order;
+  std::unordered_set<int32_t> seen;
+  seen.reserve(static_cast<size_t>(tbl->num_rows()));
+  for (int64_t row = 0; row < tbl->num_rows(); ++row)
   {
-    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Missing required columns for PSM import" << std::endl;
+    int32_t p_id = ArrowIOHelpers::getInt32Value(col_p_id, row, -1);
+    if (seen.insert(p_id).second) { p_id_order.push_back(p_id); }
+  }
+  if (p_id_order.size() != pep_ids.size())
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: PSM count mismatch after import "
+                     << "(rows=" << p_id_order.size() << ", pep_ids=" << pep_ids.size() << ")" << std::endl;
     return false;
   }
 
-  // Build a lookup for higher_score_better from ProteinIdentifications
-  std::unordered_map<std::string, bool> higher_score_better_lookup;
-  for (const auto& prot_id : cmap.getProteinIdentifications())
+  for (size_t i = 0; i < pep_ids.size(); ++i)
   {
-    higher_score_better_lookup[prot_id.getIdentifier()] = prot_id.isHigherScoreBetter();
-  }
+    auto fit = p_id_to_feature.find(p_id_order[i]);
+    bool is_null = (fit == p_id_to_feature.end()) ? true : fit->second.first;
+    int64_t fid = (fit == p_id_to_feature.end()) ? 0 : fit->second.second;
 
-  struct PepIdGroup
-  {
-    int64_t feature_id;
-    bool feature_id_is_null;
-    PeptideIdentification pep_id;
-  };
-
-  std::vector<PepIdGroup> groups;
-  int32_t current_p_id = -1;
-
-  for (int64_t row = 0; row < num_rows; ++row)
-  {
-    int32_t p_id = getInt32Value_(col_p_id, row, -1);
-
-    if (groups.empty() || p_id != current_p_id)
+    if (is_null)
     {
-      PepIdGroup group;
-      group.feature_id_is_null = isNull_(col_feature_id, row);
-      group.feature_id = group.feature_id_is_null ? 0 : getInt64Value_(col_feature_id, row, 0);
-
-      PeptideIdentification& pid = group.pep_id;
-      pid.setScoreType(getStringValue_(col_score_type, row));
-      // Run identifier (links to ProteinIdentification)
-      if (col_run_id && !isNull_(col_run_id, row))
-      {
-        pid.setIdentifier(getStringValue_(col_run_id, row));
-      }
-
-      // higher_score_better: prefer per-PSM column, fall back to ProteinIdentification lookup
-      if (col_hsb && !isNull_(col_hsb, row))
-      {
-        pid.setHigherScoreBetter(getBoolValue_(col_hsb, row, true));
-      }
-      else if (col_run_id && !isNull_(col_run_id, row))
-      {
-        auto hsb_it = higher_score_better_lookup.find(pid.getIdentifier());
-        if (hsb_it != higher_score_better_lookup.end())
-        {
-          pid.setHigherScoreBetter(hsb_it->second);
-        }
-        else
-        {
-          pid.setHigherScoreBetter(true);
-        }
-      }
-      else
-      {
-        pid.setHigherScoreBetter(true);
-      }
-
-      if (col_rt && !isNull_(col_rt, row))
-      {
-        pid.setRT(getDoubleValue_(col_rt, row));
-      }
-
-      if (col_mz && !isNull_(col_mz, row))
-      {
-        pid.setMZ(getDoubleValue_(col_mz, row));
-      }
-
-      if (col_spec_ref && !isNull_(col_spec_ref, row))
-      {
-        pid.setSpectrumReference(getStringValue_(col_spec_ref, row));
-      }
-
-      if (col_spectrum_metavalues)
-      {
-        readMetaValues_(col_spectrum_metavalues, row, pid);
-      }
-
-      groups.push_back(std::move(group));
-      current_p_id = p_id;
-    }
-
-    // Add a PeptideHit to the current group
-    PeptideHit hit;
-
-    if (col_peptidoform && !isNull_(col_peptidoform, row))
-    {
-      String peptidoform_str = getStringValue_(col_peptidoform, row);
-      if (!peptidoform_str.empty())
-      {
-        try
-        {
-          auto pf = ProForma::parse(peptidoform_str);
-          hit.setSequence(ProForma::toAASequence(pf, ProForma::ConversionPolicy::BEST_EFFORT));
-        }
-        catch (...)
-        {
-          if (col_sequence && !isNull_(col_sequence, row))
-          {
-            hit.setSequence(AASequence::fromString(getStringValue_(col_sequence, row)));
-          }
-        }
-      }
-    }
-    else if (col_sequence && !isNull_(col_sequence, row))
-    {
-      hit.setSequence(AASequence::fromString(getStringValue_(col_sequence, row)));
-    }
-
-    hit.setCharge(static_cast<Int>(getInt32Value_(col_charge, row, 0)));
-    hit.setScore(getDoubleValue_(col_score, row, 0.0));
-
-    if (col_rank && !isNull_(col_rank, row))
-    {
-      hit.setRank(static_cast<UInt>(getInt32Value_(col_rank, row, 0)));
-    }
-
-    if (col_is_decoy && !isNull_(col_is_decoy, row))
-    {
-      bool is_decoy = getBoolValue_(col_is_decoy, row, false);
-      hit.setMetaValue("target_decoy", is_decoy ? "decoy" : "target");
-    }
-
-    if (col_protein_accs && !isNull_(col_protein_accs, row))
-    {
-      auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_protein_accs);
-      auto values = std::static_pointer_cast<arrow::StringArray>(list_arr->values());
-      int64_t start = list_arr->value_offset(row);
-      int64_t end = start + list_arr->value_length(row);
-      for (int64_t k = start; k < end; ++k)
-      {
-        PeptideEvidence ev;
-        ev.setProteinAccession(values->GetString(k));
-        hit.addPeptideEvidence(ev);
-      }
-    }
-
-    if (col_additional_scores && !isNull_(col_additional_scores, row))
-    {
-      auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_additional_scores);
-      auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->values());
-      auto names_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("score_name"));
-      auto values_arr = std::static_pointer_cast<arrow::DoubleArray>(struct_arr->GetFieldByName("score_value"));
-
-      int64_t start = list_arr->value_offset(row);
-      int64_t end = start + list_arr->value_length(row);
-      for (int64_t k = start; k < end; ++k)
-      {
-        String name = names_arr->GetString(k);
-        double value = values_arr->Value(k);
-        hit.setMetaValue(name, value);
-      }
-    }
-
-    if (col_predicted_rt && !isNull_(col_predicted_rt, row))
-    {
-      hit.setMetaValue("predicted_RT", getDoubleValue_(col_predicted_rt, row));
-    }
-
-    if (col_ion_mobility && !isNull_(col_ion_mobility, row))
-    {
-      hit.setMetaValue("ion_mobility", getDoubleValue_(col_ion_mobility, row));
-    }
-
-    // scan -> PeptideHit metavalue
-    if (col_scan && !isNull_(col_scan, row))
-    {
-      hit.setMetaValue("scan", static_cast<int>(getInt32Value_(col_scan, row)));
-    }
-
-    // reference_file_name -> PeptideHit metavalue
-    if (col_ref_file && !isNull_(col_ref_file, row))
-    {
-      hit.setMetaValue("reference_file_name", getStringValue_(col_ref_file, row));
-    }
-
-    if (col_psm_metavalues)
-    {
-      static const std::unordered_set<std::string> psm_excluded_mvs =
-        {"target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
-         "scan", "reference_file_name"};
-      readMetaValues_(col_psm_metavalues, row, hit, psm_excluded_mvs);
-    }
-
-    groups.back().pep_id.getHits().push_back(std::move(hit));
-  }
-
-  // Assign PeptideIdentifications to consensus features or as unassigned
-  for (auto& group : groups)
-  {
-    if (group.feature_id_is_null)
-    {
-      cmap.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
+      cmap.getUnassignedPeptideIdentifications().push_back(std::move(pep_ids[i]));
     }
     else
     {
-      auto it = feature_lookup.find(group.feature_id);
+      auto it = feature_lookup.find(fid);
       if (it != feature_lookup.end())
       {
-        it->second->getPeptideIdentifications().push_back(std::move(group.pep_id));
+        it->second->getPeptideIdentifications().push_back(std::move(pep_ids[i]));
       }
       else
       {
         OPENMS_LOG_WARN << "ConsensusMapArrowIO: Could not find consensus feature with id "
-                        << group.feature_id << " for PSM. Adding as unassigned." << std::endl;
-        cmap.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
+                        << fid << " for PSM. Adding as unassigned." << std::endl;
+        cmap.getUnassignedPeptideIdentifications().push_back(std::move(pep_ids[i]));
       }
     }
   }
@@ -1705,9 +1421,24 @@ bool ConsensusMapArrowIO::importFromParquet(
     return false;
   }
 
+  // 4. Synthesize fresh ProtID identifiers + apply rename to every pep_id collection
+  //    we own (per-consensus-feature + unassigned). Mirrors IdXMLFile.cpp:530 — the
+  //    stored identifier becomes informational; the in-memory identifier downstream
+  //    sees is freshly synthesized with a UniqueIdGenerator suffix.
+  {
+    auto& prot_ids = cmap.getProteinIdentifications();
+    auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(prot_ids);
+
+    for (auto& cf : cmap)
+    {
+      ProteinIdentificationArrowIO::applyRunIdentifierRename(
+          rename, cf.getPeptideIdentifications());
+    }
+    ProteinIdentificationArrowIO::applyRunIdentifierRename(
+        rename, cmap.getUnassignedPeptideIdentifications());
+  }
+
   return true;
 }
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

@@ -236,12 +236,12 @@ namespace OpenMS
         if (ms1_im_)
         {
           std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, im_range);
-          sp_ms1 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : *new(OpenSwath::SpectrumPtr);
+          sp_ms1 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : OpenSwath::SpectrumPtr();
         }
         else
         {
           std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, im_range);
-          sp_ms2 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : *new(OpenSwath::SpectrumPtr);
+          sp_ms2 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : OpenSwath::SpectrumPtr();
         }
       }
 
@@ -263,7 +263,7 @@ namespace OpenMS
         }
 
         // Check that the spectrum really has a drift time array
-        if (sp_ms2->getDriftTimeArray() == nullptr)
+        if (!sp_ms2 || sp_ms2->getDriftTimeArray() == nullptr)
         {
           OPENMS_LOG_DEBUG << "Did not find a drift time array for peptide " << pepref << " at RT " << bestRT  << '\n';
           for (const auto& m : used_maps)
@@ -350,7 +350,7 @@ namespace OpenMS
         im_range.minSpanIfSingular(im_extraction_win);
 
         // Check that the spectrum really has a drift time array
-        if (sp_ms1->getDriftTimeArray() == nullptr)
+        if (!sp_ms1 || sp_ms1->getDriftTimeArray() == nullptr)
         {
           OPENMS_LOG_DEBUG << "Did not find a drift time array for peptide " << pepref << " at RT " << bestRT  << '\n';
           for (const auto& m : used_maps)
@@ -537,7 +537,11 @@ namespace OpenMS
       // Get the spectrum for this RT and extract raw data points for all the
       // calibrating transitions (fragment m/z values) from the spectrum
       std::vector<OpenSwath::SpectrumPtr> spArr = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, im_range);
-      OpenSwath::SpectrumPtr sp = (!spArr.empty()) ? spArr[0] : *new(OpenSwath::SpectrumPtr);
+      if (spArr.empty())
+      {
+        continue;
+      }
+      OpenSwath::SpectrumPtr sp = spArr[0];
       for (const auto& tr : transition_group->getTransitions())
       {
         double mz, intensity, im;

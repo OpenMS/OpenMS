@@ -142,14 +142,26 @@ NB_MODULE(_pyopenms_kernel, m) {
     // -----------------------------------------------------------------------
     nb::enum_<OpenMS::IMFormat>(m, "IMFormat", "Ion mobility data format in an experiment")
         .value("NONE", OpenMS::IMFormat::NONE)
-        .value("CONCATENATED", OpenMS::IMFormat::CONCATENATED)
-        .value("MULTIPLE_SPECTRA", OpenMS::IMFormat::MULTIPLE_SPECTRA)
-        .value("MIXED", OpenMS::IMFormat::MIXED)
-        .value("CENTROIDED", OpenMS::IMFormat::CENTROIDED)
+        .value("IM_PEAK", OpenMS::IMFormat::IM_PEAK)
+        .value("IM_SPECTRUM", OpenMS::IMFormat::IM_SPECTRUM)
         .value("UNKNOWN", OpenMS::IMFormat::UNKNOWN)
         .value("SIZE_OF_IMFORMAT", OpenMS::IMFormat::SIZE_OF_IMFORMAT)
 
         .export_values();
+
+    // IMPeakType enum
+    // -----------------------------------------------------------------------
+    // IMPeakType
+    // -----------------------------------------------------------------------
+    nb::enum_<OpenMS::IMPeakType>(m, "IMPeakType",
+        "Processing state of ion mobility data (profile vs centroided in IM dimension)")
+        .value("IM_PROFILE", OpenMS::IMPeakType::IM_PROFILE,
+               "Raw/unprocessed IM data (e.g. full TIMS frame)")
+        .value("IM_CENTROIDED", OpenMS::IMPeakType::IM_CENTROIDED,
+               "IM data after centroiding in the IM dimension")
+        .value("UNKNOWN", OpenMS::IMPeakType::UNKNOWN,
+               "IM peak type not yet determined")
+        .value("SIZE_OF_IMPEAKTYPE", OpenMS::IMPeakType::SIZE_OF_IMPEAKTYPE);
 
     // -----------------------------------------------------------------------
     // AnnotationStatistics
@@ -2457,8 +2469,8 @@ print(f"Accession: {protein_hit.getAccession()}")
 print(f"Score: {protein_hit.getScore()}, Coverage: {protein_hit.getCoverage()}%")
 )doc")
         .def(nb::init<>())
-        .def(nb::init<double, unsigned int, OpenMS::String, OpenMS::String>())
         .def(nb::init<const OpenMS::ProteinHit &>())
+        .def(nb::init<double, unsigned int, OpenMS::String, OpenMS::String>())
         .def("__copy__", [](const OpenMS::ProteinHit& self) { return OpenMS::ProteinHit(self); })
         .def("__deepcopy__", [](const OpenMS::ProteinHit& self, nb::dict) { return OpenMS::ProteinHit(self); }, "memo"_a)
         .def(nb::self == nb::self)
@@ -2981,8 +2993,8 @@ Returns the comment (default "")
     // Software
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Software, OpenMS::CVTermList>(m, "Software", "Description of the software used for processing")
-        .def(nb::init<OpenMS::String, OpenMS::String>())
         .def(nb::init<const OpenMS::Software &>())
+        .def(nb::init<OpenMS::String, OpenMS::String>())
         .def("__copy__", [](const OpenMS::Software& self) { return OpenMS::Software(self); })
         .def("__deepcopy__", [](const OpenMS::Software& self, nb::dict) { return OpenMS::Software(self); }, "memo"_a)
         .def(nb::self == nb::self)

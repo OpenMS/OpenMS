@@ -42,6 +42,17 @@ namespace OpenMS
       /// @return True on success, false otherwise. If false is returned, then @p mem_virtual is set to 0.
       static bool getProcessPeakMemoryConsumption(size_t& mem_virtual);
 
+      /**
+        @brief Get currently available physical system memory in KiloBytes (KB).
+
+        On Linux this prefers MemAvailable from /proc/meminfo so file-system
+        cache that can be reclaimed by the kernel is counted as available.
+
+        @param[out] mem_available Available physical system memory
+        @return True on success, false otherwise. If false is returned, then @p mem_available is set to 0.
+      */
+      static bool getFreeSystemMemory(size_t& mem_available);
+
       /// `@brief` Get the current process ID
       ///
       /// `@return` The process ID of the current process
@@ -89,4 +100,3 @@ namespace OpenMS
       };
   };
 }
-

@@ -120,7 +120,11 @@ protected:
   {
     // input files
     registerInputFile_("in", "<file>", "", "Input file containing the spectra.", true, false);
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
 
     registerInputFile_("consensus", "<file>", "", "Input file containing the linked mass peaks.", true, false);
     setValidFormats_("consensus", ListUtils::create<String>("consensusXML"));
@@ -173,7 +177,7 @@ protected:
     options.addMSLevel(1);
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_mzml, unprocessed_spectra, {FileTypes::MZML}, log_type_);
+    f.loadExperiment(in_mzml, unprocessed_spectra, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     // load linked features
     ConsensusMap cfeatures;

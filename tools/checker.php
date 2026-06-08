@@ -93,7 +93,6 @@ $GLOBALS["all_tests"] = array(
   "coding"               => "check if coding convention is followed",
   "defaults"             => "check if DefautParamHandler classes all have a linked parameters section",
   "license"              => "check if the license header is correctly included in the file",
-  "inactive-maintainers" => "checks if the found maintainers are listed in the ACTIVE_MAINTAINERS list",
 );
 
 $options = array(
@@ -328,23 +327,6 @@ if ($ctestReporting)
       $abort = true;
     }
   }
-}
-
-# read active maintainers file
-$activemaintainers = array();
-if (!file_exists("$src_path/tools/ACTIVE_MAINTAINERS"))
-{
-  print "Error: Missing $src_path/tools/ACTIVE_MAINTAINERS file!\n";
-  $abort = true;
-}
-else
-{
-  exec("cat $src_path/tools/ACTIVE_MAINTAINERS", $activemaintainers);
-}
-
-if ($abort)
-{
-  exit;
 }
 
 ########################### MAINTAINERS ################################
@@ -588,38 +570,6 @@ foreach ($files_todo as $f)
       }
     }
   }
-  ########################### (in)active maintainer #####################################
-  if (in_array("inactive-maintainers", $tests))
-  {
-    if (endsWith($f, ".h"))
-    {
-      # check if the maintainer is set
-      if (isset($file_maintainers[$f]) && $file_maintainers[$f] != '')
-      {
-        $all_active = true;
-        $maintainers = explode(',', $file_maintainers[$f]);
-        foreach ($maintainers as $m)
-        {
-          $realMaintainer = trim($m);
-          if (!in_array($realMaintainer, $activemaintainers))
-          {
-            reportTestResult("Inactive maintainer ($realMaintainer) given in '$f'.", $user, "active_maintainer", $f, false);
-            realOutput("Inactive maintainer ($realMaintainer) given in '$f'.", $user, $f);
-            $all_active = false;
-          }
-        }
-        if ($all_active)
-        {
-          reportTestResult("All maintainers given in '$f' are active maintainers.", $user, "active_maintainer", $f, true);
-        }
-      }
-      else
-      {
-        reportTestResult("No maintainer given in '$f'.", $user, "active_maintainer", $f, false);
-      }
-    }
-  }
-
 
   ########################### missing tests  #####################################
   if (in_array("missing_tests", $tests))

@@ -109,7 +109,7 @@ namespace OpenMS
     }
     std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> components_to_concentrations;
     mapComponentsToConcentrations(filtered_rc, feature_maps, components_to_concentrations);
-    if (components_to_concentrations.count(component_name))
+    if (components_to_concentrations.contains(component_name))
     {
       feature_concentrations = components_to_concentrations.at(component_name);
     }

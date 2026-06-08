@@ -110,41 +110,38 @@ public:
 
     void setSeeds(const FeatureMap& seeds);
 
-    void setData(const MSExperiment& map, FeatureMap& features);
+private:
+    void setData_(MSExperiment&& map, FeatureMap& features);
 
+public:
     /**
-      @brief Main method of the FeatureFinderAlgorithmPicked.
+      @brief Main method of the FeatureFinderAlgorithmPicked (explicit move overload).
 
-      @note The input map has to be sorted by RT and m/z. If this is not the case, the algorithm will sort the input data internally.
-
-      @note The algorithm will not work on profile data and throw an exception.
-
-      @note: The algorithm will not work on data with negative m/z values and throw an exception.
-
-      @note: the input data will be copied internally (leading to a memory overhead).
+      @note The input data is moved internally (no copying overhead).
 
       @param[in] input_map The input map of centroided spectra with MS level 1.
       @param[out] features The output feature map.
       @param[in] param The parameters for the algorithm.
       @param[in] seeds The seeds that should be used for the feature finding. Provide an empty feature map if you want the algorithm to find seeds.
-
     */
-    void run(PeakMap& input_map, 
-      FeatureMap& features, 
-      const Param& param, 
+    void run(PeakMap&& input_map,
+      FeatureMap& features,
+      const Param& param,
       const FeatureMap& seeds);
 
-    virtual Param getDefaultParameters() const
+    Param getDefaultParameters() const
     {
       return defaults_;
     }
-protected:
-    void run();
 
-    /// editable copy of the map
+protected:
+    void run_();
+
+    /// the editable map (moved from input)
     MapType map_;
 
-    FeatureMap* features_;
+    /// pointer to the output feature map
+    FeatureMap* features_{nullptr};
 
     /// Output stream for log/debug info
     mutable std::ofstream log_;
@@ -159,8 +156,8 @@ protected:
 
     /// @name Members for parameters often needed in methods
     //@{
-    double pattern_tolerance_; ///< Stores mass_trace:mz_tolerance
-    double trace_tolerance_; ///< Stores isotopic_pattern:mz_tolerance
+    double pattern_tolerance_; ///< Stores isotopic_pattern:mz_tolerance
+    double trace_tolerance_; ///< Stores mass_trace:mz_tolerance
     UInt min_spectra_; ///< Number of spectra that have to show the same mass (for finding a mass trace)
     UInt max_missing_trace_peaks_; ///< Stores mass_trace:max_missing
     double slope_bound_; ///< Max slope of mass trace intensities
@@ -361,4 +358,3 @@ private:
   };
 
 } // namespace OpenMS
-
