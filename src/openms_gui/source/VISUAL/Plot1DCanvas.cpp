@@ -203,6 +203,8 @@ namespace OpenMS
   {
     auto corrected = correctGravityAxisOfVisibleArea_(new_area);
     PlotCanvas::changeVisibleArea_(visible_area_.cloneWith(corrected), repaint, add_to_stack);
+    // re-stagger the TMT reference labels so neighbours stay non-overlapping at the new zoom level (no-op if TMT is off)
+    layoutTMTLabels_();
   }
 
   void Plot1DCanvas::changeVisibleArea_(const AreaXYType& new_area, bool repaint, bool add_to_stack)
@@ -1791,7 +1793,45 @@ namespace OpenMS
       tmt_annotation_items_.push_back(item);
     }
 
+    layoutTMTLabels_();
     update_(OPENMS_PRETTY_FUNCTION);
+  }
+
+  void Plot1DCanvas::layoutTMTLabels_()
+  {
+    if (tmt_annotation_items_.empty()) return;
+
+    // Collect the labeled vertical-line items with their horizontal text extent (in pixels at the current zoom).
+    // Only Annotation1DVerticalLineItem with non-empty text carry a label (matched channels are labeled by their peak item).
+    struct LabelBox { Annotation1DVerticalLineItem* item; int x_left; int x_right; };
+    std::vector<LabelBox> labels;
+    int row_height = 0;
+    for (auto* anno : tmt_annotation_items_)
+    {
+      auto* vline = dynamic_cast<Annotation1DVerticalLineItem*>(anno);
+      if (vline == nullptr || vline->getText().isEmpty()) continue;
+      QPoint px;
+      dataToWidget(vline->getPosition(), px, false);
+      const QRectF tr = vline->getTextRect();
+      const int x_left = px.x() + 5; // +5 mirrors the text inset used in Annotation1DVerticalLineItem::draw()
+      labels.push_back({vline, x_left, x_left + (int)tr.width()});
+      row_height = std::max(row_height, (int)tr.height());
+    }
+    if (labels.empty()) return;
+
+    // Greedy left-to-right lane assignment: place each label in the topmost row whose previous label ends before this
+    // one starts; otherwise push it down by one text-line. Rows are only added when labels actually overlap (zoomed out),
+    // and collapse back to a single row when there is enough horizontal room (zoomed in).
+    std::sort(labels.begin(), labels.end(), [](const LabelBox& a, const LabelBox& b) { return a.x_left < b.x_left; });
+    std::vector<int> row_right_edge; // right-most occupied pixel per row
+    for (const auto& l : labels)
+    {
+      Size row = 0;
+      while (row < row_right_edge.size() && l.x_left <= row_right_edge[row]) { ++row; }
+      if (row == row_right_edge.size()) { row_right_edge.push_back(0); }
+      row_right_edge[row] = l.x_right;
+      l.item->setTextOffset(static_cast<int>(row) * row_height);
+    }
   }
 
 } //Namespace

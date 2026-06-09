@@ -703,6 +703,9 @@ protected:
     void updateTMTAnnotations_();
     /// Remove all annotation items previously added by TMT mode.
     void removeTMTAnnotations_();
+    /// Vertically stagger the TMT vertical-line labels so neighbouring ones do not overlap horizontally at the
+    /// current zoom level (labels that would overlap are pushed down by whole text-line heights). Cheap; call on zoom.
+    void layoutTMTLabels_();
 
     /// Find peak next to the given position
     PeakIndex findPeakAtPosition_(QPoint);
