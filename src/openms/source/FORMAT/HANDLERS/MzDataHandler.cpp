@@ -130,7 +130,7 @@ namespace OpenMS::Internal
       }
       else if (current_tag == "comments" && parent_tag == "software")
       {
-        data_processing_->getSoftware().setMetaValue("comment",StringUtils::toStr(sm_.convert(chars)));
+        data_processing_->getSoftware().setMetaValue("comment",std::string(sm_.convert(chars)));
       }
       else if (current_tag == "comments" && parent_tag == "spectrumDesc")
       {
@@ -175,7 +175,7 @@ namespace OpenMS::Internal
         StringUtils::trim(trimmed_transcoded_chars);
         if (!trimmed_transcoded_chars.empty())
         {
-          warning(LOAD,StringUtils::toStr("Unhandled character content in tag '") + current_tag + "': " + trimmed_transcoded_chars);
+          warning(LOAD,std::string("Unhandled character content in tag '") + current_tag + "': " + trimmed_transcoded_chars);
         }
       }
     }
@@ -340,7 +340,7 @@ namespace OpenMS::Internal
       else if (tag == "spectrum")
       {
         spec_ = SpectrumType();
-        spec_.setNativeID(StringUtils::toStr("spectrum=") + attributeAsString_(attributes, s_id));
+        spec_.setNativeID(std::string("spectrum=") + attributeAsString_(attributes, s_id));
         spec_.getDataProcessing().push_back(data_processing_);
       }
       else if (tag == "spectrumList")
@@ -372,7 +372,7 @@ namespace OpenMS::Internal
         else
         {
           spec_.setType(SpectrumSettings::SpectrumType::UNKNOWN);
-          warning(LOAD,StringUtils::toStr("Invalid spectrum type '") + tmp_type + "'.");
+          warning(LOAD,std::string("Invalid spectrum type '") + tmp_type + "'.");
         }
 
         spec_.getAcquisitionInfo().setMethodOfCombination(attributeAsString_(attributes, s_methodofcombination));
@@ -535,12 +535,12 @@ namespace OpenMS::Internal
         const size_t peak_count_int = int_precision_64 ? decoded_double_list_[1].size() : decoded_list_[1].size();
         if (peak_count_mz != peak_count_int)
         {
-          error(LOAD,StringUtils::toStr("Length of data array for m/z differs from length of intensity data: ") + peak_count_mz + " vs. " + peak_count_int + " . The first array starts with: '" +
+          error(LOAD,std::string("Length of data array for m/z differs from length of intensity data: ") + peak_count_mz + " vs. " + peak_count_int + " . The first array starts with: '" +
                         data_to_decode_[0].substr(0, 10) + " ...'");
         }
         if (peak_count_ != peak_count_mz)
         {
-          warning(LOAD,StringUtils::toStr("Length of data arrays (m/z and int) differs from value in attribute 'length': ") + peak_count_mz + " vs. " + peak_count_ + ".");
+          warning(LOAD,std::string("Length of data arrays (m/z and int) differs from value in attribute 'length': ") + peak_count_mz + " vs. " + peak_count_ + ".");
           peak_count_ = peak_count_mz;
         }
 
@@ -847,7 +847,7 @@ namespace OpenMS::Internal
               }
               catch (...)
               {
-                warning(STORE,StringUtils::toStr("Could not convert acquisition identifier '") + ac.getIdentifier() + "' to an integer. Using '0' instead!");
+                warning(STORE,std::string("Could not convert acquisition identifier '") + ac.getIdentifier() + "' to an integer. Using '0' instead!");
                 acq_number = 0;
               }
               os << "\t\t\t\t\t\t<acquisition acqNumber=\"" << acq_number << "\">\n";
@@ -929,7 +929,7 @@ namespace OpenMS::Internal
 
           default:
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>\n";
-            warning(STORE,StringUtils::toStr("Scan mode '") + InstrumentSettings::NamesOfScanMode[static_cast<size_t>(iset.getScanMode())] + "' not supported by mzData. Using 'MassScan' scan mode!");
+            warning(STORE,std::string("Scan mode '") + InstrumentSettings::NamesOfScanMode[static_cast<size_t>(iset.getScanMode())] + "' not supported by mzData. Using 'MassScan' scan mode!");
           }
 
           //scan polarity
@@ -1033,7 +1033,7 @@ namespace OpenMS::Internal
               //check if spectrum and meta data array have the same length
               if (mda.size() != spec.size())
               {
-                error(LOAD,StringUtils::toStr("Length of meta data array (index:'") + i + "' name:'" + mda.getName() + "') differs from spectrum length. meta data array: " + mda.size() + " / spectrum: " + spec.size() + " .");
+                error(LOAD,std::string("Length of meta data array (index:'") + i + "' name:'" + mda.getName() + "') differs from spectrum length. meta data array: " + mda.size() + " / spectrum: " + spec.size() + " .");
               }
               //encode meta data array
               data_to_encode_.clear();
@@ -1137,7 +1137,7 @@ namespace OpenMS::Internal
             else
             {
               spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
-              warning(LOAD,StringUtils::toStr("Unknown scan mode '") + value + "'. Assuming full scan");
+              warning(LOAD,std::string("Unknown scan mode '") + value + "'. Assuming full scan");
             }
           }
         }
@@ -1169,7 +1169,7 @@ namespace OpenMS::Internal
           }
           else
           {
-            warning(LOAD,StringUtils::toStr("Invalid scan polarity (PSI:1000037) detected: \"") + value + "\". Valid are 'Positive' or 'Negative'.");
+            warning(LOAD,std::string("Invalid scan polarity (PSI:1000037) detected: \"") + value + "\". Valid are 'Positive' or 'Negative'.");
           }
         }
         else
@@ -1194,7 +1194,7 @@ namespace OpenMS::Internal
         {
           if (spec_.getPrecursors().back().getCharge() != 0)
           {
-            warning(LOAD,StringUtils::toStr("Multiple precursor charges detected, expected only one! Ignoring this charge settings! accession=\"") + accession + "\", value=\"" + value + "\"");
+            warning(LOAD,std::string("Multiple precursor charges detected, expected only one! Ignoring this charge settings! accession=\"") + accession + "\", value=\"" + value + "\"");
             spec_.getPrecursors().back().setCharge(0);
           }
           else
@@ -1428,12 +1428,12 @@ namespace OpenMS::Internal
       }
       else
       {
-        warning(LOAD,StringUtils::toStr("Unexpected cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in tag " + parent_tag);
+        warning(LOAD,std::string("Unexpected cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in tag " + parent_tag);
       }
 
       if (!error.empty())
       {
-        warning(LOAD,StringUtils::toStr("Invalid cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in " + error);
+        warning(LOAD,std::string("Invalid cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in " + error);
       }
       //std::cout << "End of MzDataHander::cvParam_" << std::endl;
     }
@@ -1459,13 +1459,13 @@ namespace OpenMS::Internal
       //abort when receiving a wrong map index
       if (map >= cv_terms_.size())
       {
-        warning(STORE,StringUtils::toStr("Cannot find map '") + map + "' needed to write CV term '" + name + "' with accession '" + acc + "'.");
+        warning(STORE,std::string("Cannot find map '") + map + "' needed to write CV term '" + name + "' with accession '" + acc + "'.");
         return;
       }
       //abort when receiving a wrong term index
       if (value >= cv_terms_[map].size())
       {
-        warning(STORE,StringUtils::toStr("Cannot find value '") + value + "' needed to write CV term '" + name + "' with accession '" + acc + "'.");
+        warning(STORE,std::string("Cannot find value '") + value + "' needed to write CV term '" + name + "' with accession '" + acc + "'.");
         return;
       }
       writeCVS_(os, cv_terms_[map][value], acc, name, indent);

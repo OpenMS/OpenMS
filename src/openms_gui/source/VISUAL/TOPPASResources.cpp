@@ -48,7 +48,7 @@ namespace OpenMS
     for (Param::ParamIterator it = load_param.begin(); it != load_param.end(); ++it)
     {
       StringList substrings;
-      StringUtils::split(StringUtils::toStr(it.getName()), ':', substrings);
+      StringUtils::split(std::string(it.getName()), ':', substrings);
       if (substrings.size() != 2 ||
           substrings.back() != "url_list" ||
           (it->value).valueType() != ParamValue::STRING_LIST)
@@ -85,7 +85,7 @@ namespace OpenMS
       std::vector<std::string> url_list;
       for (const TOPPASResource &res : resource_list)
       {
-        url_list.push_back(StringUtils::toStr(res.getURL().toString().toStdString()));
+        url_list.push_back(res.getURL().toString().toStdString());
       }
       save_param.setValue(key + ":url_list", url_list);
     }

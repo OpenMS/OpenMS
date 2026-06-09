@@ -76,7 +76,7 @@ const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const std::string& i
 
 // create a PeptideIdentifiaction with a PeptideHit (sequence, charge), rt and mz
 // default values for sequence PEPTIDE
-const PeptideIdentification createPeptideIdentification(const std::string& id, const std::string& sequence =StringUtils::toStr("PEPTIDE"), Int charge = 3, double mz = 266)
+const PeptideIdentification createPeptideIdentification(const std::string& id, const std::string& sequence =std::string("PEPTIDE"), Int charge = 3, double mz = 266)
 {
   PeptideHit peptide_hit;
   peptide_hit.setSequence(AASequence::fromString(sequence));

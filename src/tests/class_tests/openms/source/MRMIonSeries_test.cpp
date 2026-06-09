@@ -42,8 +42,8 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
 {
   MRMIonSeries mrmis;
   std::vector<std::string> fragment_types;
-  fragment_types.push_back(StringUtils::toStr("b"));
-  fragment_types.push_back(StringUtils::toStr("y"));
+  fragment_types.push_back(std::string("b"));
+  fragment_types.push_back(std::string("y"));
 
   std::vector<size_t> fragment_charges;
   fragment_charges.push_back(3);
@@ -51,7 +51,7 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
   fragment_charges.push_back(1);
 
   // Standard peptide
-  MRMIonSeries::IonSeries ionseries1 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("PEPTIDEK")), 3, fragment_types, fragment_charges, false, false);
+  MRMIonSeries::IonSeries ionseries1 = mrmis.getIonSeries(AASequence::fromString(std::string("PEPTIDEK")), 3, fragment_types, fragment_charges, false, false);
 
   TEST_EQUAL(ionseries1.size(), 42)
   TEST_REAL_SIMILAR(ionseries1["b2^1"], 227.10263491)
@@ -74,7 +74,7 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
   TEST_REAL_SIMILAR(ionseries1["y7^3"], 277.80799942)
 
   // Enable neutral losses
-  MRMIonSeries::IonSeries ionseries2 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("PEPTIDEK")), 3, fragment_types, fragment_charges, true, true);
+  MRMIonSeries::IonSeries ionseries2 = mrmis.getIonSeries(AASequence::fromString(std::string("PEPTIDEK")), 3, fragment_types, fragment_charges, true, true);
 
   TEST_EQUAL(ionseries2.size(), 99)
   TEST_REAL_SIMILAR(ionseries2["b5^2"], 269.64720959)
@@ -85,7 +85,7 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
   TEST_REAL_SIMILAR(ionseries2["b5-C1O2^2"], 0)
 
 
-  MRMIonSeries::IonSeries ionseries3 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("ES(Phospho)")), 3, fragment_types, fragment_charges, true, true);
+  MRMIonSeries::IonSeries ionseries3 = mrmis.getIonSeries(AASequence::fromString(std::string("ES(Phospho)")), 3, fragment_types, fragment_charges, true, true);
 
   TEST_EQUAL(ionseries3.size(), 12)
 
@@ -102,7 +102,7 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
   TEST_REAL_SIMILAR(ionseries3["b1^1"], 130.0498)
   TEST_REAL_SIMILAR(ionseries3["b1^3"], 44.0214)
 
-  MRMIonSeries::IonSeries ionseries4 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("ES")), 3, fragment_types, fragment_charges, true, true);
+  MRMIonSeries::IonSeries ionseries4 = mrmis.getIonSeries(AASequence::fromString(std::string("ES")), 3, fragment_types, fragment_charges, true, true);
 
   TEST_REAL_SIMILAR(ionseries4["y1-H2O1^1"], 88.0393)
   TEST_REAL_SIMILAR(ionseries4["y1^1"], 106.0499)
@@ -117,7 +117,7 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
   TEST_REAL_SIMILAR(ionseries4["b1^1"], 130.0499)
   TEST_REAL_SIMILAR(ionseries4["b1^3"], 44.0215)
 
-  MRMIonSeries::IonSeries ionseries5 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("ES(Phospho)")), 3, fragment_types, fragment_charges, true, false);
+  MRMIonSeries::IonSeries ionseries5 = mrmis.getIonSeries(AASequence::fromString(std::string("ES(Phospho)")), 3, fragment_types, fragment_charges, true, false);
 
   TEST_EQUAL(ionseries5.size(), 9)
 
@@ -131,7 +131,7 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
   TEST_REAL_SIMILAR(ionseries5["b1^1"], 130.0498)
   TEST_REAL_SIMILAR(ionseries5["b1^3"], 44.0214)
 
-  MRMIonSeries::IonSeries ionseries6 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("ES(Phospho)")), 3, fragment_types, fragment_charges, false, true);
+  MRMIonSeries::IonSeries ionseries6 = mrmis.getIonSeries(AASequence::fromString(std::string("ES(Phospho)")), 3, fragment_types, fragment_charges, false, true);
 
   TEST_EQUAL(ionseries6.size(), 9)
 
@@ -153,8 +153,8 @@ START_SECTION((std::pair<String, double> MRMIonSeries::annotateIon(IonSeries ion
 {
   MRMIonSeries mrmis;
   std::vector<std::string> fragment_types;
-  fragment_types.push_back(StringUtils::toStr("b"));
-  fragment_types.push_back(StringUtils::toStr("y"));
+  fragment_types.push_back(std::string("b"));
+  fragment_types.push_back(std::string("y"));
 
   std::vector<size_t> fragment_charges;
   fragment_charges.push_back(3);
@@ -162,7 +162,7 @@ START_SECTION((std::pair<String, double> MRMIonSeries::annotateIon(IonSeries ion
   fragment_charges.push_back(1);
 
   // Standard peptide
-  MRMIonSeries::IonSeries ionseries1 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("PEPTIDEK")), 3, fragment_types, fragment_charges, false, false);
+  MRMIonSeries::IonSeries ionseries1 = mrmis.getIonSeries(AASequence::fromString(std::string("PEPTIDEK")), 3, fragment_types, fragment_charges, false, false);
 
   std::pair<std::string, double> ion1 = mrmis.annotateIon(ionseries1, 202.44287993, 0.05);
   TEST_EQUAL(ion1.first, "y5^3")
@@ -183,8 +183,8 @@ START_SECTION((std::pair<String, double> MRMIonSeries::getIon(IonSeries ionserie
 {
   MRMIonSeries mrmis;
   std::vector<std::string> fragment_types;
-  fragment_types.push_back(StringUtils::toStr("b"));
-  fragment_types.push_back(StringUtils::toStr("y"));
+  fragment_types.push_back(std::string("b"));
+  fragment_types.push_back(std::string("y"));
 
   std::vector<size_t> fragment_charges;
   fragment_charges.push_back(3);
@@ -192,7 +192,7 @@ START_SECTION((std::pair<String, double> MRMIonSeries::getIon(IonSeries ionserie
   fragment_charges.push_back(1);
 
   // Standard peptide
-  MRMIonSeries::IonSeries ionseries1 = mrmis.getIonSeries(AASequence::fromString(StringUtils::toStr("PEPTIDEK")), 3, fragment_types, fragment_charges, false, false);
+  MRMIonSeries::IonSeries ionseries1 = mrmis.getIonSeries(AASequence::fromString(std::string("PEPTIDEK")), 3, fragment_types, fragment_charges, false, false);
 
   std::pair<std::string, double> ion1 = mrmis.getIon(ionseries1, "y5^3");
   TEST_EQUAL(ion1.first, "y5^3")
@@ -239,8 +239,8 @@ START_SECTION((void MRMIonSeries::annotateTransition(ReactionMonitoringTransitio
   peptide.setChargeState(3);
 
   std::vector<std::string> fragment_types;
-  fragment_types.push_back(StringUtils::toStr("b"));
-  fragment_types.push_back(StringUtils::toStr("y"));
+  fragment_types.push_back(std::string("b"));
+  fragment_types.push_back(std::string("y"));
 
   std::vector<size_t> fragment_charges;
   fragment_charges.push_back(3);

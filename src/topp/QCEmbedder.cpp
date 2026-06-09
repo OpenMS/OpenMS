@@ -163,7 +163,7 @@ protected:
       {
         std::ostringstream oss;
         oss << f.rdbuf();
-        std::vector<std::string> raw_vec = {StringUtils::toStr(oss.str())};
+        std::vector<std::string> raw_vec = {std::string(oss.str())};
         Base64::encodeStrings(raw_vec, plot_b64, false, false);
       }
     }

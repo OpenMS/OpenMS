@@ -542,7 +542,7 @@ protected:
         }
         catch (Exception::ConversionError&)
         {
-          error(LOAD,StringUtils::toStr("Int conversion error of \"") + in + "\"");
+          error(LOAD,std::string("Int conversion error of \"") + in + "\"");
         }
         return res;
       }
@@ -568,7 +568,7 @@ protected:
         }
         catch (Exception::ConversionError& )
         {
-          error(LOAD,StringUtils::toStr("UInt conversion error of \"") + in + "\"");
+          error(LOAD,std::string("UInt conversion error of \"") + in + "\"");
         }
         return res;
       }
@@ -583,7 +583,7 @@ protected:
         }
         catch (Exception::ConversionError& )
         {
-          error(LOAD,StringUtils::toStr("Double conversion error of \"") + in + "\"");
+          error(LOAD,std::string("Double conversion error of \"") + in + "\"");
         }
         return res;
       }
@@ -598,7 +598,7 @@ protected:
         }
         catch (Exception::ConversionError& )
         {
-          error(LOAD,StringUtils::toStr("Float conversion error of \"") + in + "\"");
+          error(LOAD,std::string("Float conversion error of \"") + in + "\"");
         }
         return res;
       }
@@ -622,7 +622,7 @@ protected:
         }
         else
         {
-          error(LOAD,StringUtils::toStr("Boolean conversion error of \"") + in + "\"");
+          error(LOAD,std::string("Boolean conversion error of \"") + in + "\"");
         }
         return false;
       }
@@ -642,7 +642,7 @@ protected:
           }
           catch (Exception::ParseError& /*err*/ )
           {
-            error(LOAD,StringUtils::toStr("DateTime conversion error of \"") + date_string + "\"");
+            error(LOAD,std::string("DateTime conversion error of \"") + date_string + "\"");
           }
         }
         return date_time;
@@ -657,7 +657,7 @@ protected:
       inline std::string attributeAsString_(const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
-        if (val == nullptr) fatalError(LOAD,StringUtils::toStr("Required attribute '") + name + "' not present!");
+        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
         return sm_.convert(val);
       }
 
@@ -665,7 +665,7 @@ protected:
       inline Int attributeAsInt_(const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
-        if (val == nullptr) fatalError(LOAD,StringUtils::toStr("Required attribute '") + name + "' not present!");
+        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
         return xercesc::XMLString::parseInt(val);
       }
 
@@ -673,7 +673,7 @@ protected:
       inline double attributeAsDouble_(const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convertPtr(name).get());
-        if (val == nullptr) fatalError(LOAD,StringUtils::toStr("Required attribute '") + name + "' not present!");
+        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + name + "' not present!");
         return StringUtils::toDouble(sm_.convert(val));
       }
 
@@ -823,7 +823,7 @@ protected:
       inline std::string attributeAsString_(const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
-        if (val == nullptr) fatalError(LOAD,StringUtils::toStr("Required attribute '") + sm_.convert(name) + "' not present!");
+        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
         return sm_.convert(val);
       }
 
@@ -831,7 +831,7 @@ protected:
       inline Int attributeAsInt_(const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
-        if (val == nullptr) fatalError(LOAD,StringUtils::toStr("Required attribute '") + sm_.convert(name) + "' not present!");
+        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
         return xercesc::XMLString::parseInt(val);
       }
 
@@ -839,7 +839,7 @@ protected:
       inline double attributeAsDouble_(const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
-        if (val == nullptr) fatalError(LOAD,StringUtils::toStr("Required attribute '") + sm_.convert(name) + "' not present!");
+        if (val == nullptr) fatalError(LOAD,std::string("Required attribute '") + sm_.convert(name) + "' not present!");
         return StringUtils::toDouble(sm_.convert(val));
       }
 
@@ -979,7 +979,7 @@ private:
       {
         if (!(StringUtils::hasPrefix(str, '[') && StringUtils::hasSuffix(str, ']')))
         {
-          fatalError(LOAD,StringUtils::toStr("List argument is not a string representation of a list!"));
+          fatalError(LOAD,std::string("List argument is not a string representation of a list!"));
         }
         return str;
       }

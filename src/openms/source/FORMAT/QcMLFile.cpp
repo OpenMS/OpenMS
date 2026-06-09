@@ -1667,7 +1667,7 @@ namespace OpenMS
   //      at.colTypes.push_back("S/N");
         for (UInt w = 0; w < var_mods.size(); ++w)
         {
-          { std::string vmod = StringUtils::toStr(var_mods[w]); StringUtils::substitute(vmod, ' ', '_'); at.colTypes.push_back(vmod); }
+          { std::string vmod = std::string(var_mods[w]); StringUtils::substitute(vmod, ' ', '_'); at.colTypes.push_back(vmod); }
         }
 
         std::vector<double> deltas;
@@ -1985,7 +1985,7 @@ namespace OpenMS
     }
     catch (Exception::FileNotFound &)
     {
-      warning(STORE,StringUtils::toStr("No qcml stylesheet found, result will not be viewable in a browser!"));
+      warning(STORE,std::string("No qcml stylesheet found, result will not be viewable in a browser!"));
     }
 
 
@@ -2027,7 +2027,7 @@ namespace OpenMS
     {
       for (std::set<std::string>::const_iterator it = keys.begin(); it != keys.end(); ++it)
       {
-        os << "\t<runQuality ID=\"" << StringUtils::toStr(*it) << "\">\n";
+        os << "\t<runQuality ID=\"" << std::string(*it) << "\">\n";
         std::map<std::string, std::vector<QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(*it);
         if (qpsit != runQualityQPs_.end())
         {
@@ -2063,7 +2063,7 @@ namespace OpenMS
     {
       for (std::set<std::string>::const_iterator it = keys.begin(); it != keys.end(); ++it)
       {
-        os << "\t<setQuality ID=\"" << StringUtils::toStr(*it) << "\">\n";
+        os << "\t<setQuality ID=\"" << std::string(*it) << "\">\n";
         //~ TODO warn if key has no entries in members_
 
         //document set members

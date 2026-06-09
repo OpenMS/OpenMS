@@ -105,7 +105,7 @@ protected:
     setValidStrings_("out_type", formats);
 
     registerStringOption_("method", "<type>", "shuffle", "Decoy generation method", false);
-    setValidStrings_("method", ListUtils::create<std::string>(StringUtils::toStr("shuffle,pseudo-reverse,reverse,shift")));
+    setValidStrings_("method", ListUtils::create<std::string>(std::string("shuffle,pseudo-reverse,reverse,shift")));
 
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);
 
@@ -124,7 +124,7 @@ protected:
     registerFlag_("enable_detection_specific_losses", "set this flag if specific neutral losses for detection fragment ions should be allowed", true);
     registerFlag_("enable_detection_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for detection fragment ions should be allowed", true);
     registerStringOption_("switchKR", "<true/false>", "true", "Whether to switch terminal K and R (to achieve different precursor mass)", false);
-    setValidStrings_("switchKR", ListUtils::create<std::string>(StringUtils::toStr("true,false")));
+    setValidStrings_("switchKR", ListUtils::create<std::string>(std::string("true,false")));
 
     registerFlag_("separate", "set this flag if decoys should not be appended to targets.", true);
   }
@@ -140,7 +140,7 @@ protected:
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(StringUtils::toStr("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)

@@ -46,7 +46,7 @@ namespace OpenMS
 
     std::string toString() const
     {
-      return (prefix + (counter != -1 ? StringUtils::toStr("_") + StringUtils::fillLeft(StringUtils::toStr(counter), '0', 3) : std::string()) + "." + suffix);
+      return (prefix + (counter != -1 ? std::string("_") + StringUtils::fillLeft(StringUtils::toStr(counter), '0', 3) : std::string()) + "." + suffix);
     }
   };
 
@@ -115,7 +115,7 @@ namespace OpenMS
     {
       if (!File::exists(fromQString(old_ini_file)))
       {
-        std::string msg =StringUtils::toStr("Could not open old INI file '") + fromQString(old_ini_file) + "'! File does not exist!";
+        std::string msg =std::string("Could not open old INI file '") + fromQString(old_ini_file) + "'! File does not exist!";
         if (getScene_() && getScene_()->isGUIMode())
         {
           QMessageBox::critical(nullptr, "Error", msg.c_str());
@@ -135,7 +135,7 @@ namespace OpenMS
     p.start(program, arguments);
     if (!p.waitForFinished(-1) || p.exitStatus() != 0 || p.exitCode() != 0)
     {
-      std::string msg =StringUtils::toStr("Error! Call to '") + fromQString(program) + "' '" + fromQString(arguments.join("' '")) +
+      std::string msg =std::string("Error! Call to '") + fromQString(program) + "' '" + fromQString(arguments.join("' '")) +
           " returned with exit code (" + StringUtils::toStr(p.exitCode()) + "), exit status (" + StringUtils::toStr(p.exitStatus()) + ")." +
           "\noutput:\n" + fromQString(QString(p.readAll())) +
           "\n";
@@ -152,7 +152,7 @@ namespace OpenMS
     }
     if (!File::exists(fromQString(ini_file)))
     { // it would be weird to get here, since the TOPP tool ran successfully above, so INI file should exist, but nevertheless:
-      std::string msg =StringUtils::toStr("Could not open '") + fromQString(ini_file) + "'! It does not exist!";
+      std::string msg =std::string("Could not open '") + fromQString(ini_file) + "'! It does not exist!";
       if (getScene_() && getScene_()->isGUIMode())
       {
         QMessageBox::critical(nullptr, "Error", msg.c_str());
@@ -182,7 +182,7 @@ namespace OpenMS
       QFile q_old_ini(old_ini_file);
       changed = q_ini.size() != q_old_ini.size();
     }
-    setToolTip(toQString(StringUtils::toStr(param_.getSectionDescription(name_))));
+    setToolTip(toQString(std::string(param_.getSectionDescription(name_))));
 
     return changed;
   }
@@ -517,7 +517,7 @@ namespace OpenMS
 
     for (int round = 0; round < round_total_; ++round)
     {
-      debugOut_(StringUtils::toStr("Enqueueing process nr ") + round + "/" + round_total_);
+      debugOut_(std::string("Enqueueing process nr ") + round + "/" + round_total_);
       QStringList args = shared_args;
 
       // we might need to modify input/output file parameters before storing to INI
@@ -646,7 +646,7 @@ namespace OpenMS
       connect(p, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(executionFinished(int, QProcess::ExitStatus)));
 
       // enqueue process
-      std::string msg_enqueue =StringUtils::toStr("\nEnqueue: \"") + File::getExecutablePath() + name_ + "\" \"" + fromQString(args.join("\" \"")) + "\"\n";
+      std::string msg_enqueue =std::string("\nEnqueue: \"") + File::getExecutablePath() + name_ + "\" \"" + fromQString(args.join("\" \"")) + "\"\n";
       if (round == 0)
       {
         // active if TOPPAS is run with --debug; will print to console
@@ -726,7 +726,7 @@ namespace OpenMS
           for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
           {
             TOPPASVertex* tv = (*it)->getTargetVertex();
-            debugOut_(StringUtils::toStr("Starting child ") + tv->getTopoNr());
+            debugOut_(std::string("Starting child ") + tv->getTopoNr());
             tv->run();
           }
           debugOut_("All children started!");

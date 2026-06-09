@@ -135,7 +135,7 @@ namespace OpenMS
       StringUtils::fillRight(ch_name_padded, ' ', 4);
       OPENMS_LOG_INFO << "  ch " << ch_name_padded << ": " << (consensus_map_out.size() - it_m->second) << " / " << consensus_map_out.size() << " ("
                       << ((consensus_map_out.size() - it_m->second) * 100 / consensus_map_out.size()) << "%)\n";
-      consensus_map_out.setMetaValue(StringUtils::toStr("isoquant:quantifyable_ch") + it_m->first, (consensus_map_out.size() - it_m->second));
+      consensus_map_out.setMetaValue(std::string("isoquant:quantifyable_ch") + it_m->first, (consensus_map_out.size() - it_m->second));
     }
   }
 

@@ -27,7 +27,7 @@ namespace OpenMS
     }
     else
     {
-      return make_pair(StringUtils::toStr("unannotated"), -1);
+      return make_pair(std::string("unannotated"), -1);
     }
   }
 
@@ -296,7 +296,7 @@ namespace OpenMS
 
     double prec_pos = sequence.getMZ(precursor_charge);
     bool unannotated = false;
-    std::pair<std::string, double> target_ion = std::make_pair(StringUtils::toStr("unannotated"), -1);
+    std::pair<std::string, double> target_ion = std::make_pair(std::string("unannotated"), -1);
     double pos = -1;
     std::string ionstring;
 

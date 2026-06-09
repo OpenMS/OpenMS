@@ -147,7 +147,7 @@ namespace OpenMS
        << nc_term << " "
        << (required ? 1 : 0) << " "
        << "0.0";  // neutral loss — not currently supported
-    return StringUtils::toStr(os.str());
+    return os.str();
   }
 
   std::vector<CometModification> CometModification::mergeModifications(const std::vector<CometModification>& mods)

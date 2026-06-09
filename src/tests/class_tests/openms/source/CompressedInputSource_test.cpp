@@ -30,7 +30,7 @@ START_SECTION(CompressedInputSource(const std::string& file_path, const char * h
   header[0] = 'B';
   header[1] = 'Z';
   header[2] = '\0';
-  std::string bz =StringUtils::toStr(header);
+  std::string bz =std::string(header);
   ptr = new CompressedInputSource(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"), bz);
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
@@ -44,7 +44,7 @@ START_SECTION(CompressedInputSource(const XMLCh *const file_path, const char *he
   header[0] = 'B';
   header[1] = 'Z';
   header[2] = '\0';
-  std::string bz =StringUtils::toStr(header);
+  std::string bz =std::string(header);
   std::string filename(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
   ptr = new CompressedInputSource(Internal::StringManager().convert(filename.c_str()).c_str(), bz);
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -57,7 +57,7 @@ START_SECTION(virtual xercesc::BinInputStream* makeStream() const)
   header[0] = 'B';
   header[1] = 'Z';
   header[2] = '\0';
-  std::string bz =StringUtils::toStr(header);
+  std::string bz =std::string(header);
   CompressedInputSource source(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist"), bz);
   TEST_EXCEPTION(Exception::FileNotFound,source.makeStream())
 END_SECTION

@@ -124,14 +124,14 @@ namespace OpenMS::Internal
         //check if the term is unknown
         if (!cv_.exists(parsed_term.accession))
         {
-          warnings_.push_back(StringUtils::toStr("Unknown CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
+          warnings_.push_back(std::string("Unknown CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
           return;
         }
 
         //check if the term is obsolete
         if (cv_.getTerm(parsed_term.accession).obsolete)
         {
-          warnings_.push_back(StringUtils::toStr("Obsolete CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
+          warnings_.push_back(std::string("Obsolete CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
         }
 
         //actual handling of the term
@@ -155,7 +155,7 @@ namespace OpenMS::Internal
         {
           if (!rules[r].getCVTerms()[t].getIsRepeatable() && fulfilled[rules[r].getIdentifier()][rules[r].getCVTerms()[t].getAccession()] > 1)
           {
-            errors_.push_back(StringUtils::toStr("Violated mapping rule '") + rules[r].getIdentifier() + "' number of term repeats at element '" + getPath_() + "'");
+            errors_.push_back(std::string("Violated mapping rule '") + rules[r].getIdentifier() + "' number of term repeats at element '" + getPath_() + "'");
           }
         }
       }
@@ -179,7 +179,7 @@ namespace OpenMS::Internal
         {
           if (match_count != terms_count)
           {
-            errors_.push_back(StringUtils::toStr("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', " + StringUtils::toStr(terms_count) + " term(s) should be present, " + StringUtils::toStr(match_count) + " found!");
+            errors_.push_back(std::string("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', " + StringUtils::toStr(terms_count) + " term(s) should be present, " + StringUtils::toStr(match_count) + " found!");
           }
         }
         //MUST / OR - at least one terms must be matched
@@ -187,7 +187,7 @@ namespace OpenMS::Internal
         {
           if (match_count == 0)
           {
-            errors_.push_back(StringUtils::toStr("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', at least one term must be present!");
+            errors_.push_back(std::string("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', at least one term must be present!");
           }
         }
         //MUST / XOR - exactly one term must be matched
@@ -195,7 +195,7 @@ namespace OpenMS::Internal
         {
           if (match_count != 1)
           {
-            errors_.push_back(StringUtils::toStr("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "' exactly one of the allowed terms must be used!");
+            errors_.push_back(std::string("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "' exactly one of the allowed terms must be used!");
           }
         }
         //MAY(SHOULD) / AND - none or all terms must be matched
@@ -203,7 +203,7 @@ namespace OpenMS::Internal
         {
           if (match_count != 0 && match_count != terms_count)
           {
-            errors_.push_back(StringUtils::toStr("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', if any, all terms must be given!");
+            errors_.push_back(std::string("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', if any, all terms must be given!");
           }
         }
         //MAY(SHOULD) / XOR - zero or one terms must be matched
@@ -211,7 +211,7 @@ namespace OpenMS::Internal
         {
           if (match_count > 1)
           {
-            errors_.push_back(StringUtils::toStr("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', if any, only exactly one of the allowed terms can be used!");
+            errors_.push_back(std::string("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', if any, only exactly one of the allowed terms can be used!");
           }
         }
         //MAY(SHOULD) / OR - none to all terms must be matched => always true
@@ -232,7 +232,7 @@ namespace OpenMS::Internal
     {
       std::string path;
       StringUtils::concatenate(path, open_tags_.begin(), open_tags_.end() - remove_from_end, "/");
-      path =StringUtils::toStr("/") + path;
+      path =std::string("/") + path;
       return path;
     }
 
@@ -368,11 +368,11 @@ namespace OpenMS::Internal
 
       if (!rule_found) //No rule found
       {
-        warnings_.push_back(StringUtils::toStr("No mapping rule found for element '") + getPath_(1) + "'");
+        warnings_.push_back(std::string("No mapping rule found for element '") + getPath_(1) + "'");
       }
       else if (!allowed) //if rule found and not allowed
       {
-        errors_.push_back(StringUtils::toStr("CV term used in invalid element: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
+        errors_.push_back(std::string("CV term used in invalid element: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
       }
 
       //check if term accession and term name match
@@ -384,7 +384,7 @@ namespace OpenMS::Internal
         StringUtils::trim(correct_name);
         if (parsed_name != correct_name)
         {
-          errors_.push_back(StringUtils::toStr("Name of CV term not correct: '") + parsed_term.accession + " - " + parsed_name + "' should be '" + correct_name + "'");
+          errors_.push_back(std::string("Name of CV term not correct: '") + parsed_term.accession + " - " + parsed_name + "' should be '" + correct_name + "'");
         }
       }
 
@@ -401,7 +401,7 @@ namespace OpenMS::Internal
             //Quality CV does not state value type :(
             if (!StringUtils::hasPrefix(parsed_term.accession, "PATO:"))
             {
-              errors_.push_back(StringUtils::toStr("Value of CV term not allowed: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(std::string("Value of CV term not allowed: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_STRING)
@@ -416,7 +416,7 @@ namespace OpenMS::Internal
             }
             catch (Exception::ConversionError& /*e*/)
             {
-              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:integer: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(std::string("Value-type of CV term wrong, should be xsd:integer: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL)
@@ -427,7 +427,7 @@ namespace OpenMS::Internal
             }
             catch (Exception::ConversionError& /*e*/)
             {
-              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:decimal: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(std::string("Value-type of CV term wrong, should be xsd:decimal: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER)
@@ -442,7 +442,7 @@ namespace OpenMS::Internal
             }
             catch (Exception::ConversionError& /*e*/)
             {
-              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:negativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(std::string("Value-type of CV term wrong, should be xsd:negativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER)
@@ -457,7 +457,7 @@ namespace OpenMS::Internal
             }
             catch (Exception::ConversionError& /*e*/)
             {
-              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:positiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(std::string("Value-type of CV term wrong, should be xsd:positiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER)
@@ -472,7 +472,7 @@ namespace OpenMS::Internal
             }
             catch (Exception::ConversionError& /*e*/)
             {
-              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:nonNegativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(std::string("Value-type of CV term wrong, should be xsd:nonNegativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER)
@@ -487,7 +487,7 @@ namespace OpenMS::Internal
             }
             catch (Exception::ConversionError& /*e*/)
             {
-              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:nonPositiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(std::string("Value-type of CV term wrong, should be xsd:nonPositiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_BOOLEAN)
@@ -497,7 +497,7 @@ namespace OpenMS::Internal
             StringUtils::toLower(value_copy);
             if (value_copy != "1" && value_copy  != "0" && value_copy != "true" && value_copy != "false")
             {
-              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:boolean: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(std::string("Value-type of CV term wrong, should be xsd:boolean: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_DATE)
@@ -509,24 +509,24 @@ namespace OpenMS::Internal
             }
             catch (Exception::ParseError&)
             {
-              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:date: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(std::string("Value-type of CV term wrong, should be xsd:date: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_ANYURI)
           { // according to RFC 2396 this is there must be a colon (looked only 2 minutes on it)
             if (!StringUtils::has(value, ':'))
             {
-              errors_.push_back(StringUtils::toStr("Value-type of CV term wrong, should be xsd:anyURI (at least a colon is needed): '") + parsed_term.accession + " - " + parsed_term.name + "' value=" + value + "' at element '" + getPath_(1) + "'");
+              errors_.push_back(std::string("Value-type of CV term wrong, should be xsd:anyURI (at least a colon is needed): '") + parsed_term.accession + " - " + parsed_term.name + "' value=" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else
           {
-            errors_.push_back(StringUtils::toStr("Value-type unknown (type #" + StringUtils::toStr(static_cast<int>(type)) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+            errors_.push_back(std::string("Value-type unknown (type #" + StringUtils::toStr(static_cast<int>(type)) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
           }
         }
         else if (cv_.getTerm(parsed_term.accession).xref_type != ControlledVocabulary::CVTerm::XRefType::NONE)
         {
-          errors_.push_back(StringUtils::toStr("Value-type required, but not given (" + ControlledVocabulary::CVTerm::getXRefTypeName(cv_.getTerm(parsed_term.accession).xref_type) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + parsed_term.value + "' at element '" + getPath_(1) + "'");
+          errors_.push_back(std::string("Value-type required, but not given (" + ControlledVocabulary::CVTerm::getXRefTypeName(cv_.getTerm(parsed_term.accession).xref_type) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + parsed_term.value + "' at element '" + getPath_(1) + "'");
         }
       }
     }

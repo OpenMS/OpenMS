@@ -88,7 +88,7 @@ START_SECTION((InstrumentSettings(const InstrumentSettings& source)))
   tmp.setScanMode(InstrumentSettings::ScanMode::SIM);
   tmp.getScanWindows().resize(1);
   tmp.setPolarity(IonSource::Polarity::NEGATIVE);
-  tmp.setMetaValue("label",StringUtils::toStr("label"));
+  tmp.setMetaValue("label",std::string("label"));
 	tmp.setZoomScan(true);
 
   InstrumentSettings tmp2(tmp);
@@ -104,7 +104,7 @@ START_SECTION((InstrumentSettings& operator= (const InstrumentSettings& source))
   tmp.setScanMode(InstrumentSettings::ScanMode::SIM);
   tmp.getScanWindows().resize(1);
   tmp.setPolarity(IonSource::Polarity::NEGATIVE);
-  tmp.setMetaValue("label",StringUtils::toStr("label"));
+  tmp.setMetaValue("label",std::string("label"));
 	tmp.setZoomScan(true);
 
   InstrumentSettings tmp2;
@@ -140,7 +140,7 @@ START_SECTION((bool operator== (const InstrumentSettings& rhs) const))
 	TEST_EQUAL(edit==empty,false);
 	
 	edit = empty;
-	edit.setMetaValue("label",StringUtils::toStr("label"));
+	edit.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(edit==empty,false);
 
 	edit = empty;
@@ -165,7 +165,7 @@ START_SECTION((bool operator!= (const InstrumentSettings& rhs) const))
 	TEST_EQUAL(edit!=empty,true);
 
 	edit = empty;
-	edit.setMetaValue("label",StringUtils::toStr("label"));
+	edit.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(edit!=empty,true);
 
 	edit = empty;

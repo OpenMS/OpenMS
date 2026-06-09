@@ -110,7 +110,7 @@ namespace OpenMS
     {
       for (Size i = 0; i != ma.second.size(); ++i)
       {
-        sl << StringUtils::toStr(ma.first + "_" + ma.second[i].first);
+        sl << std::string(ma.first + "_" + ma.second[i].first);
       }
     }
     sl << "abs prec. error Da" 
@@ -319,7 +319,7 @@ namespace OpenMS
       auto& hits = pep.getHits();
       if (hits.empty()) continue;
       const PeptideHit& ph = hits[0]; // only consider top hit
-      const std::string NA = ph.getMetaValue("NuXL:NA",StringUtils::toStr("none"));
+      const std::string NA = ph.getMetaValue("NuXL:NA",std::string("none"));
       adduct2count[NA] += 1;
     }
     return adduct2count;
@@ -772,7 +772,7 @@ Output format:
     // write to file
     cout << "Writing " << report.size() << " proteins to tsv file... " << endl;
 
-    tsv_file.addLine(StringUtils::toStr("accession\tAA\tpos.\tstart\tend\t") + 
+    tsv_file.addLine(std::string("accession\tAA\tpos.\tstart\tend\t") + 
                      "adducts (loc. + unique)\tNT (loc. + unique)\tcharges (loc. + unique)\t" + 
                      "CSMs (loc. + unique)\tCSMs (loc. + shared)\tprecursors (loc. + unique)\tprecursors (loc. + shared)\t" +
                      "adducts (\\wo loc. + unique)\tcharges (\\wo loc. + unique)\t" + 

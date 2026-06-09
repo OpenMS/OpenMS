@@ -97,7 +97,7 @@ public:
           if (!first_spec)
           {
             spec.setMSLevel(2);
-            spec.setNativeID(StringUtils::toStr("index=") + (spectrum_number++));
+            spec.setNativeID(std::string("index=") + (spectrum_number++));
             exp.addSpectrum(spec);
           }
           else
@@ -159,7 +159,7 @@ public:
       if (!first_spec)
       {
         spec.setMSLevel(2);
-        spec.setNativeID(StringUtils::toStr("index=") + (spectrum_number++));
+        spec.setNativeID(std::string("index=") + (spectrum_number++));
         exp.addSpectrum(spec);
       }
       exp.updateRanges();

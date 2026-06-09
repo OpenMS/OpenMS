@@ -48,11 +48,11 @@ namespace OpenMS
     adduct_suffix.resize(adduct_suffix.size()-1);
     if (sign == "+")
     {
-      adduct_charge =StringUtils::toInt32(StringUtils::toStr(adduct_suffix));
+      adduct_charge =StringUtils::toInt32(std::string(adduct_suffix));
     }
     else
     {
-      adduct_charge =StringUtils::toInt32(StringUtils::toStr(sign + adduct_suffix));
+      adduct_charge =StringUtils::toInt32(std::string(sign + adduct_suffix));
     }
     return adduct_charge;
   }
@@ -184,7 +184,7 @@ namespace OpenMS
         else
         {
           // count UNKNOWN via transition group counter
-          v_description.push_back(StringUtils::toStr(description + "_" + transition_group_counter));
+          v_description.push_back(std::string(description + "_" + transition_group_counter));
           v_sumformula.push_back(sumformula);
           v_adduct.push_back(adduct);
         }
@@ -544,7 +544,7 @@ namespace OpenMS
 
         if (description == "UNKNOWN")
         {
-          description =StringUtils::toStr(description + "_" + entry_counter);
+          description =std::string(description + "_" + entry_counter);
         }
         // compoundID has to be unique over all the files
         // feature_rt if the same ID was detected twice at different retention times in the same file
@@ -555,7 +555,7 @@ namespace OpenMS
         }
         else if (decoy == 1)
         {
-          description =StringUtils::toStr(description + "_decoy");
+          description =std::string(description + "_decoy");
           cmp.id =StringUtils::toStr(entry_counter) + "_" + description + "_" + identifier_suffix;
           cmp.setMetaValue("CompoundName", description);
         }

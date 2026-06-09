@@ -174,7 +174,7 @@ namespace OpenMS
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK)
     {
-      error_message_ =StringUtils::toStr("Mascot HTTP GET failed: ") + curl_easy_strerror(res);
+      error_message_ =std::string("Mascot HTTP GET failed: ") + curl_easy_strerror(res);
       return {};
     }
 
@@ -182,7 +182,7 @@ namespace OpenMS
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
     if (http_code >= 400)
     {
-      error_message_ =StringUtils::toStr("Mascot server returned HTTP error ") + StringUtils::toStr(http_code) + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
+      error_message_ =std::string("Mascot server returned HTTP error ") + StringUtils::toStr(http_code) + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
       return {};
     }
 
@@ -217,7 +217,7 @@ namespace OpenMS
 
     if (res != CURLE_OK)
     {
-      error_message_ =StringUtils::toStr("Mascot HTTP POST failed: ") + curl_easy_strerror(res);
+      error_message_ =std::string("Mascot HTTP POST failed: ") + curl_easy_strerror(res);
       return {};
     }
 
@@ -225,7 +225,7 @@ namespace OpenMS
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
     if (http_code >= 400)
     {
-      error_message_ =StringUtils::toStr("Mascot server returned HTTP error ") + StringUtils::toStr(http_code) + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
+      error_message_ =std::string("Mascot server returned HTTP error ") + StringUtils::toStr(http_code) + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
       return {};
     }
 

@@ -231,10 +231,10 @@ private:
     {
       logFatal(
               "No output file specified. You must at least specify one output with -"
-              + StringUtils::toStr(TOPPXFDR::param_out_idXML_)
-              + " or -" + StringUtils::toStr(TOPPXFDR::param_out_mzid_)
-              + " or -" + StringUtils::toStr(TOPPXFDR::param_out_xquest_)
-              + " or -" + StringUtils::toStr(TOPPXFDR::param_out_xquest_)
+              + std::string(TOPPXFDR::param_out_idXML_)
+              + " or -" + std::string(TOPPXFDR::param_out_mzid_)
+              + " or -" + std::string(TOPPXFDR::param_out_xquest_)
+              + " or -" + std::string(TOPPXFDR::param_out_xquest_)
       );
       return ILLEGAL_PARAMETERS;
     }

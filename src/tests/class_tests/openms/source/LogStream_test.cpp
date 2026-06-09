@@ -317,7 +317,7 @@ START_SECTION((void setPrefix(const std::string &prefix)))
 	l1.setPrefix(""); //no prefix
 	l1 << " 10." << endl;
 
-	StringList to_validate_list = ListUtils::create<std::string>(StringUtils::toStr(stream_by_logger.str()),'\n');
+	StringList to_validate_list = ListUtils::create<std::string>(stream_by_logger.str(),'\n');
 	TEST_EQUAL(to_validate_list.size(),10)
 
 	StringList regex_list;
@@ -367,9 +367,9 @@ START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix))
   l1.setPrefix(stream_by_logger, ""); //no prefix
   l1 << " 10." << endl;
 
-	StringList to_validate_list = ListUtils::create<std::string>(StringUtils::toStr(stream_by_logger.str()),'\n');
+	StringList to_validate_list = ListUtils::create<std::string>(stream_by_logger.str(),'\n');
 	TEST_EQUAL(to_validate_list.size(),10)
-	StringList to_validate_list2 = ListUtils::create<std::string>(StringUtils::toStr(stream_by_logger_otherprefix.str()),'\n');
+	StringList to_validate_list2 = ListUtils::create<std::string>(stream_by_logger_otherprefix.str(),'\n');
 	TEST_EQUAL(to_validate_list2.size(),10)
 
 	StringList regex_list;
@@ -462,7 +462,7 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_FATAL_ERROR))
     getThreadLocalLogFatal().remove(stream_by_logger);
   }
 
-  StringList to_validate_list = ListUtils::create<std::string>(StringUtils::toStr(stream_by_logger.str()),'\n');
+  StringList to_validate_list = ListUtils::create<std::string>(stream_by_logger.str(),'\n');
   TEST_EQUAL(to_validate_list.size(),3)
 
   boost::regex rx(R"(.*LogStream_test\.cpp\(\d+\): \d)");
@@ -556,7 +556,7 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_DEBUG))
     getThreadLocalLogDebug().remove(stream_by_logger);
   }
 
-  StringList to_validate_list = ListUtils::create<std::string>(StringUtils::toStr(stream_by_logger.str()),'\n');
+  StringList to_validate_list = ListUtils::create<std::string>(stream_by_logger.str(),'\n');
   TEST_EQUAL(to_validate_list.size(), 3)
 
   boost::regex rx(R"(.*LogStream_test\.cpp\(\d+\): \d)");

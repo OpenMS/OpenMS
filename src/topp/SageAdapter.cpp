@@ -212,7 +212,7 @@ protected:
      origin += res->getOneLetterCode();
    }
 
-    return StringUtils::toStr("\"") + origin + "\": " + StringUtils::toStr(mod->getDiffMonoMass());
+    return std::string("\"") + origin + "\": " + StringUtils::toStr(mod->getDiffMonoMass());
   }
 
   // formats all mod entries into a single multi-line json string

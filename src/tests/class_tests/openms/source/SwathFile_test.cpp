@@ -156,7 +156,7 @@ START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list,
   swath_filenames.push_back("swathFile_2_ms1.tmp");
   for (Size i = 0; i < nr_swathes; i++)
   {
-    swath_filenames.push_back(StringUtils::toStr("swathFile_2_sw" ) + StringUtils::toStr(i) + ".tmp");
+    swath_filenames.push_back(std::string("swathFile_2_sw" ) + StringUtils::toStr(i) + ".tmp");
   }
   storeSplitSwathFile(swath_filenames);
   std::shared_ptr<ExperimentalSettings> meta = std::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
@@ -189,7 +189,7 @@ START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList fil
   swath_filenames.push_back("swathFile_3_ms1.tmp");
   for (Size i = 0; i < nr_swathes; i++)
   {
-    swath_filenames.push_back(StringUtils::toStr("swathFile_3_sw" ) + StringUtils::toStr(i) + ".tmp");
+    swath_filenames.push_back(std::string("swathFile_3_sw" ) + StringUtils::toStr(i) + ".tmp");
   }
   storeSplitSwathFile(swath_filenames);
   std::shared_ptr<ExperimentalSettings> meta = std::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());

@@ -291,7 +291,7 @@ namespace OpenMS
     OpenSwath::LightCompound compound;
     // Preserve source traml_id when available to maintain round-trip identity
     // fidelity. If traml_id is empty, fall back to the numeric precursor id.
-    const std::string compound_id = info.traml_id.empty() ? precursor_id_str : StringUtils::toStr(info.traml_id);
+    const std::string compound_id = info.traml_id.empty() ? precursor_id_str : std::string(info.traml_id);
     compound.id = compound_id;
       compound.drift_time = info.drift_time;
       compound.rt = info.library_rt;
@@ -349,7 +349,7 @@ namespace OpenMS
 
       const int64_t transition_id = ParquetFile::getInt64(transition_id_col, row, 0, false);
       const std::string traml_id = ParquetFile::getString(transition_traml_id_col, row);
-      std::string transition_name = traml_id.empty() ? StringUtils::toStr(transition_id) : StringUtils::toStr(traml_id);
+      std::string transition_name = traml_id.empty() ? StringUtils::toStr(transition_id) : std::string(traml_id);
       if (!used_transition_names.insert(transition_name).second)
       {
         if (!warned_duplicate_transition)
@@ -371,7 +371,7 @@ namespace OpenMS
       OpenSwath::LightTransition transition;
       transition.transition_name = transition_name;
       // Use precursor traml_id as peptide_ref when present to preserve source IDs
-      const std::string peptide_ref = precursor_it->second.traml_id.empty() ? StringUtils::toStr(precursor_id) : StringUtils::toStr(precursor_it->second.traml_id);
+      const std::string peptide_ref = precursor_it->second.traml_id.empty() ? StringUtils::toStr(precursor_id) : std::string(precursor_it->second.traml_id);
       transition.peptide_ref = peptide_ref;
       transition.library_intensity = ParquetFile::getDouble(transition_intensity_col, row, 0.0, true);
       transition.precursor_mz = precursor_it->second.precursor_mz;
@@ -522,7 +522,7 @@ namespace OpenMS
       if (mz_it == precursor_mz.end())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "No precursor_mz found for compound '" + StringUtils::toStr(compound.id) + "'");
+                                            "No precursor_mz found for compound '" + std::string(compound.id) + "'");
       }
       ParquetFile::appendOrThrow(precursor_mz_builder.Append(mz_it->second), "precursor_mz");
       ParquetFile::appendOrThrow(precursor_charge_builder.Append(compound.charge), "charge");
@@ -603,7 +603,7 @@ namespace OpenMS
       if (precursor_it == compound_to_precursor.end())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Transition references unknown peptide_ref '" + StringUtils::toStr(transition.peptide_ref) + "'");
+                                            "Transition references unknown peptide_ref '" + std::string(transition.peptide_ref) + "'");
       }
       const int64_t precursor_ref = precursor_it->second;
       ParquetFile::appendOrThrow(transition_id_builder.Append(transition_id++), "transition_id");
@@ -706,7 +706,7 @@ namespace OpenMS
         const auto full = it->path();
         std::string rel = std::filesystem::relative(full, dirpath).generic_string();
         // Ensure forward slashes (zip expects '/'). generic_string() already uses '/'.
-        ZipArchiveFile::addOrReplaceFromFile(staging_zip,StringUtils::toStr(rel),StringUtils::toStr(full.string()));
+        ZipArchiveFile::addOrReplaceFromFile(staging_zip,std::string(rel),std::string(full.string()));
       }
       // After adding/replacing files in the staging archive, write a sidecar index
       // and then atomically move the staging archive into place.

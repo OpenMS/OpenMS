@@ -91,7 +91,7 @@ namespace OpenMS
     if (!success)
     {
       std::cerr << "Could not retrieve input files from upstream nodes...\n";
-      emit mergeFailed(toQString((StringUtils::toStr("Merger #") + this->getTopoNr() + " failed. " + error_msg)));
+      emit mergeFailed(toQString((std::string("Merger #") + this->getTopoNr() + " failed. " + error_msg)));
       return;
     }
 
@@ -125,7 +125,7 @@ namespace OpenMS
     for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
     {
       TOPPASVertex* tv = (*it)->getTargetVertex();
-      debugOut_(StringUtils::toStr("Starting child ") + tv->getTopoNr());
+      debugOut_(std::string("Starting child ") + tv->getTopoNr());
       tv->run();
     }
 

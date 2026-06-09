@@ -91,7 +91,7 @@ START_SECTION(DataProcessing& operator= (const DataProcessing& source))
   tmp.setCompletionTime(time);
   tmp.getProcessingActions().insert(DataProcessing::DEISOTOPING);
   tmp.getSoftware().setName("name");
-  tmp.setMetaValue("label",StringUtils::toStr("label"));
+  tmp.setMetaValue("label",std::string("label"));
 
   DataProcessing tmp2;
   tmp2 = tmp;
@@ -106,7 +106,7 @@ START_SECTION(DataProcessing(const DataProcessing& source))
   tmp.setCompletionTime(time);
   tmp.getProcessingActions().insert(DataProcessing::DEISOTOPING);
   tmp.getSoftware().setName("name");
-  tmp.setMetaValue("label",StringUtils::toStr("label"));
+  tmp.setMetaValue("label",std::string("label"));
   
   DataProcessing tmp2(tmp);
   tmp2 = tmp;
@@ -133,7 +133,7 @@ START_SECTION(bool operator== (const DataProcessing& rhs) const)
   TEST_EQUAL(edit==empty, false);
   
   edit = empty;
-  edit.setMetaValue("label",StringUtils::toStr("label"));
+  edit.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(edit==empty, false);
 END_SECTION
 
@@ -154,7 +154,7 @@ START_SECTION(bool operator!= (const DataProcessing& rhs) const)
   TEST_FALSE(edit == empty);
   
   edit = empty;
-  edit.setMetaValue("label",StringUtils::toStr("label"));
+  edit.setMetaValue("label",std::string("label"));
 	TEST_FALSE(edit == empty);
 END_SECTION
 

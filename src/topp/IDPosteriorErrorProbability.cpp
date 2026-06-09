@@ -241,7 +241,7 @@ protected:
 
         if (unable_to_fit_data)
         {
-          writeLogWarn_(StringUtils::toStr("Unable to fit data for search engine: ") + engine);
+          writeLogWarn_(std::string("Unable to fit data for search engine: ") + engine);
           if (!ignore_bad_data)
           {
             return UNEXPECTED_RESULT;
@@ -249,7 +249,7 @@ protected:
         }
         else if (data_might_not_be_well_fit) 
         {
-          writeLogWarn_(StringUtils::toStr("Data might not be well fitted for search engine: ") + engine);
+          writeLogWarn_(std::string("Data might not be well fitted for search engine: ") + engine);
         }
       }
     }

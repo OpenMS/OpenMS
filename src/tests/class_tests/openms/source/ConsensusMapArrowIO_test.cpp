@@ -101,7 +101,7 @@ START_SECTION(exportFeaturesToArrow - single feature with handles and metavalues
   // Add metavalues
   cf.setMetaValue("my_int", 42);
   cf.setMetaValue("my_float", 3.14);
-  cf.setMetaValue("my_string",StringUtils::toStr("hello"));
+  cf.setMetaValue("my_string",std::string("hello"));
 
   cmap.push_back(cf);
 
@@ -272,7 +272,7 @@ START_SECTION(importFeaturesFromArrow - feature round-trip with handles and meta
   cf1.setUniqueId(1001);
   cf1.setMetaValue("my_int", 42);
   cf1.setMetaValue("my_float", 3.14);
-  cf1.setMetaValue("my_string",StringUtils::toStr("hello"));
+  cf1.setMetaValue("my_string",std::string("hello"));
   cf1.setMetaValue("test_int_list", DataValue(IntList{1, 2, 3}));
   cf1.setMetaValue("test_double_list", DataValue(DoubleList{1.5, 2.5}));
   cf1.setMetaValue("test_string_list", DataValue(StringList{"a", "b", "c"}));
@@ -772,7 +772,7 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
   cmap.setUniqueId(77777);
 
   // --- Set ConsensusMap-level MetaValues ---
-  cmap.setMetaValue("analysis_type",StringUtils::toStr("differential"));
+  cmap.setMetaValue("analysis_type",std::string("differential"));
   cmap.setMetaValue("num_runs", 5);
   cmap.setMetaValue("threshold", 0.01);
 
@@ -783,7 +783,7 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
   ch0.size = 500;
   ch0.unique_id = 1111;
   ch0.setMetaValue("injection_order", 1);
-  ch0.setMetaValue("sample_group",StringUtils::toStr("control"));
+  ch0.setMetaValue("sample_group",std::string("control"));
   cmap.getColumnHeaders()[0] = ch0;
 
   ConsensusMap::ColumnHeader ch1;
@@ -792,7 +792,7 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
   ch1.size = 600;
   ch1.unique_id = 2222;
   ch1.setMetaValue("injection_order", 2);
-  ch1.setMetaValue("sample_group",StringUtils::toStr("treatment"));
+  ch1.setMetaValue("sample_group",std::string("treatment"));
   cmap.getColumnHeaders()[1] = ch1;
 
   ConsensusMap::ColumnHeader ch2;
@@ -812,7 +812,7 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
   dp1.setCompletionTime(DateTime::fromString("2025-06-15T14:30:00", "yyyy-MM-ddThh:mm:ss"));
   dp1.getProcessingActions().insert(DataProcessing::PEAK_PICKING);
   dp1.getProcessingActions().insert(DataProcessing::FILTERING);
-  dp1.setMetaValue("parameter_file",StringUtils::toStr("params.ini"));
+  dp1.setMetaValue("parameter_file",std::string("params.ini"));
   dp1.setMetaValue("num_threads", 8);
 
   DataProcessing dp2;

@@ -91,14 +91,14 @@ namespace OpenMS
         // add | as separator (except for last one)
         if (i < pos_param_pairs_.size() - 1)
         {
-          pos_param_string +=StringUtils::toStr("|");
+          pos_param_string +=std::string("|");
         }
       }
 
       // quick sanity check
       if (mod_identifier_.isNull())
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Modification or Substitution identifier MUST NOT be null or empty in MzTabModification"));
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Modification or Substitution identifier MUST NOT be null or empty in MzTabModification"));
       }
 
       std::string res;
@@ -139,7 +139,7 @@ namespace OpenMS
 
         if (fields.size() != 2)
         {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Can't convert to MzTabModification from '") + s);
+          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Can't convert to MzTabModification from '") + s);
         }
         mod_identifier_.fromCellString(StringUtils::trim(fields[1]));
 
@@ -298,7 +298,7 @@ namespace OpenMS
 
   MzTabMetaData::MzTabMetaData()
   {
-    mz_tab_version.fromCellString(StringUtils::toStr("1.0.0"));
+    mz_tab_version.fromCellString(std::string("1.0.0"));
   }
 
   // static method remapping the target/decoy column from an opt_ to a standardized column
@@ -729,7 +729,7 @@ namespace OpenMS
     {
       // prepend file:// if not there yet
       std::string m = spectra_data[0];
-      if (!StringUtils::hasPrefix(m, "file://")) {m =StringUtils::toStr("file://") + m; }
+      if (!StringUtils::hasPrefix(m, "file://")) {m =std::string("file://") + m; }
       ms_run.location = MzTabString(m);
     }
     else
@@ -809,7 +809,7 @@ namespace OpenMS
     row.opt_.push_back(opt_global_modified_sequence);
 
     // create and fill opt_ columns for feature (peptide) user values
-    addMetaInfoToOptionalColumns(feature_user_value_keys, row.opt_,StringUtils::toStr("global"), f);
+    addMetaInfoToOptionalColumns(feature_user_value_keys, row.opt_,std::string("global"), f);
 
     const PeptideIdentificationList& pep_ids = f.getPeptideIdentifications();
     if (pep_ids.empty())
@@ -868,7 +868,7 @@ namespace OpenMS
     }
 
     // create and fill opt_ columns for psm (PeptideHit) user values
-    addMetaInfoToOptionalColumns(peptide_hit_user_value_keys, row.opt_,StringUtils::toStr("global"), best_ph);
+    addMetaInfoToOptionalColumns(peptide_hit_user_value_keys, row.opt_,std::string("global"), best_ph);
 
     // remap the target/decoy column
     remapTargetDecoyPSMAndPeptideSection_(row.opt_);
@@ -1030,7 +1030,7 @@ namespace OpenMS
         {
           MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
 
-          if (opt_entry.first ==StringUtils::toStr("opt_global_") + mztabstyle_key)
+          if (opt_entry.first ==std::string("opt_global_") + mztabstyle_key)
           {
             opt_entry.second = MzTabString(best_id.getMetaValue(id_keys[k]).toString());
           }
@@ -1062,7 +1062,7 @@ namespace OpenMS
         {
           MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
 
-          if (opt_entry.first ==StringUtils::toStr("opt_global_") + mztabstyle_key)
+          if (opt_entry.first ==std::string("opt_global_") + mztabstyle_key)
           {
             opt_entry.second = MzTabString(best_ph.getMetaValue(ph_keys[k]).toString());
           }
@@ -1175,7 +1175,7 @@ namespace OpenMS
     // remove key that only exists for backwards compatibility (will likely be deprecated in the future)
     pid_key_set.erase(Constants::UserParam::SIGNIFICANCE_THRESHOLD);    
     
-    addMetaInfoToOptionalColumns(pid_key_set, row.opt_,StringUtils::toStr("global"), pid);
+    addMetaInfoToOptionalColumns(pid_key_set, row.opt_,std::string("global"), pid);
 
     // link to spectrum in MS run
     std::string spectrum_nativeID = pid.getSpectrumReference();
@@ -1271,7 +1271,7 @@ namespace OpenMS
     current_ph.getKeys(ph_keys);
 
     set<std::string> ph_key_set(ph_keys.begin(), ph_keys.end());
-    addMetaInfoToOptionalColumns(ph_key_set, row.opt_,StringUtils::toStr("global"), current_ph);
+    addMetaInfoToOptionalColumns(ph_key_set, row.opt_,std::string("global"), current_ph);
 
     // TODO Think about if the uniqueness can be determined by # of peptide evidences
     //  b/c this would only differ when evidences come from different DBs
@@ -1495,7 +1495,7 @@ namespace OpenMS
  // std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
 
     // create and fill opt_ columns for protein hit user values
-    addMetaInfoToOptionalColumns(protein_hit_user_value_keys, protein_row.opt_,StringUtils::toStr("global"), hit);
+    addMetaInfoToOptionalColumns(protein_hit_user_value_keys, protein_row.opt_,std::string("global"), hit);
 
     // optional column for protein groups
     MzTabOptionalColumnEntry opt_column_entry;
@@ -1766,7 +1766,7 @@ Not sure how to handle these:
     {
       MzTabMSRunMetaData ms_run;
       std::string m = r2f.second;
-      if (!StringUtils::hasPrefix(m, "file://")) m =StringUtils::toStr("file://") + m;
+      if (!StringUtils::hasPrefix(m, "file://")) m =std::string("file://") + m;
       ms_run.location = MzTabString(m);
       meta_data.ms_run[r2f.first] = ms_run;
     }
@@ -2080,9 +2080,9 @@ Not sure how to handle these:
     for (const auto& k : peptide_hit_user_value_keys_) psm_optional_column_names_.emplace_back("opt_global_" + k);
     
     // rename some of them to be compatible with PRIDE
-    std::replace(prt_optional_column_names_.begin(), prt_optional_column_names_.end(),StringUtils::toStr("opt_global_target_decoy"),StringUtils::toStr("opt_global_cv_PRIDE:0000303_decoy_hit")); // for PRIDE
+    std::replace(prt_optional_column_names_.begin(), prt_optional_column_names_.end(),std::string("opt_global_target_decoy"),std::string("opt_global_cv_PRIDE:0000303_decoy_hit")); // for PRIDE
     prt_optional_column_names_.emplace_back("opt_global_result_type");
-    std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(),StringUtils::toStr("opt_global_target_decoy"),StringUtils::toStr("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
+    std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(),std::string("opt_global_target_decoy"),std::string("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
     psm_optional_column_names_.emplace_back("opt_global_cv_MS:1000889_peptidoform_sequence");
  
     ///////////////////////////////////////////////////////////////////////
@@ -2148,7 +2148,7 @@ Not sure how to handle these:
       mztab_run_metadata.id_format = msrun_spectrum_identifier_type;
 
       // prepend file:// if not there yet
-      if (!StringUtils::hasPrefix(m, "file://")) {m =StringUtils::toStr("file://") + m; }
+      if (!StringUtils::hasPrefix(m, "file://")) {m =std::string("file://") + m; }
 
       mztab_run_metadata.location = MzTabString(m);
 
@@ -2711,7 +2711,7 @@ state0:
 
     // PSM optional columns: also from meta values in consensus features
     for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) psm_optional_column_names_.emplace_back("opt_global_" + k);
-    std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(),StringUtils::toStr("opt_global_target_decoy"),StringUtils::toStr("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
+    std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(),std::string("opt_global_target_decoy"),std::string("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
     psm_optional_column_names_.emplace_back("opt_global_cv_MS:1000889_peptidoform_sequence");
 
     ///////////////////////////////////////////////////////////////////////
@@ -2794,7 +2794,7 @@ state0:
 
     // PRT optional columns
     for (const auto& k : protein_hit_user_value_keys_) prt_optional_column_names_.emplace_back("opt_global_" + k);
-    std::replace(prt_optional_column_names_.begin(), prt_optional_column_names_.end(),StringUtils::toStr("opt_global_target_decoy"),StringUtils::toStr("opt_global_cv_PRIDE:0000303_decoy_hit")); // for PRIDE
+    std::replace(prt_optional_column_names_.begin(), prt_optional_column_names_.end(),std::string("opt_global_target_decoy"),std::string("opt_global_cv_PRIDE:0000303_decoy_hit")); // for PRIDE
     prt_optional_column_names_.emplace_back("opt_global_result_type");
 
     // determine number of samples
@@ -2855,7 +2855,7 @@ state0:
       mztab_run_metadata.id_format = msrun_spectrum_identifier_type;
 
       // prepend file:// if not there yet
-      if (!StringUtils::hasPrefix(m, "file://")) {m =StringUtils::toStr("file://") + m; }
+      if (!StringUtils::hasPrefix(m, "file://")) {m =std::string("file://") + m; }
 
       mztab_run_metadata.location = MzTabString(m);
 

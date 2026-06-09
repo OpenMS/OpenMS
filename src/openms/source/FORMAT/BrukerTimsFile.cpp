@@ -1455,7 +1455,7 @@ namespace OpenMS
     catch (const std::exception& e)
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        path + " (opentims: " + StringUtils::toStr(e.what()) + ")");
+        path + " (opentims: " + std::string(e.what()) + ")");
     }
     catch (...)
     {
@@ -3271,7 +3271,7 @@ namespace OpenMS
       }
 
       FrameCentroider centroider;
-      startProgress(0, frame_ids.size(),StringUtils::toStr("Loading MS") + StringUtils::toStr(level) + " frames");
+      startProgress(0, frame_ids.size(),std::string("Loading MS") + StringUtils::toStr(level) + " frames");
       for (size_t i = 0; i < frame_ids.size(); ++i)
       {
         TimsFrame& frame = handle.get_frame(frame_ids[i]);

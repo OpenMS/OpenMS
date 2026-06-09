@@ -724,8 +724,8 @@ protected:
         DataValue v_user;
         switch (v_data.valueType())
         {
-          case DataValue::STRING_VALUE : v_user =StringUtils::toStr(meta_info[2]); break;
-          case DataValue::INT_VALUE : v_user =StringUtils::toInt32(StringUtils::toStr(meta_info[2])); break;
+          case DataValue::STRING_VALUE : v_user =std::string(meta_info[2]); break;
+          case DataValue::INT_VALUE : v_user =StringUtils::toInt32(std::string(meta_info[2])); break;
           case DataValue::DOUBLE_VALUE : v_user = StringUtils::toDouble(meta_info[2]); break;
           case DataValue::STRING_LIST : v_user = (StringList)ListUtils::create<std::string>(meta_info[2]); break;
           case DataValue::INT_LIST : v_user = ListUtils::create<Int>(meta_info[2]); break;

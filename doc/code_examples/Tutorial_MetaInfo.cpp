@@ -14,7 +14,7 @@ Int main()
   MetaInfoInterface info;
 
   // insert meta data
-  info.setMetaValue("color", StringUtils::toStr("#ff0000"));
+  info.setMetaValue("color", std::string("#ff0000"));
   info.setMetaValue("id", 112131415);
 
   // access id by index

@@ -494,8 +494,8 @@ class MetaProSIPReporting
 public:
   static void plotHeatMap(const std::string& output_dir, const std::string& tmp_path, const std::string& file_suffix, const std::string& file_extension, const vector<vector<double> >& binned_ria, vector<std::string> class_labels, Size debug_level = 0, const std::string& executable = "R")
   {
-    std::string filename =StringUtils::toStr("heatmap") + file_suffix + "." + file_extension;
-    std::string script_filename =StringUtils::toStr("heatmap") + file_suffix + std::string(".R");
+    std::string filename =std::string("heatmap") + file_suffix + "." + file_extension;
+    std::string script_filename =std::string("heatmap") + file_suffix + std::string(".R");
 
     TextFile current_script;
     StringList ria_list, col_labels;
@@ -552,7 +552,7 @@ public:
     {
       std::string row_labels_string;
       StringUtils::concatenate(row_labels_string, row_labels.begin(), row_labels.end(), "\",\"");
-      labRowString =StringUtils::toStr("c(\"") + row_labels_string + "\")";
+      labRowString =std::string("c(\"") + row_labels_string + "\")";
     }
 
     std::string col_labels_string;
@@ -581,8 +581,8 @@ public:
 
   static void plotFilteredSpectra(const std::string& output_dir, const std::string& tmp_path, const std::string& file_suffix, const std::string& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0, const std::string& executable = "R")
   {
-    std::string filename =StringUtils::toStr("spectrum_plot") + file_suffix + "." + file_extension;
-    std::string script_filename =StringUtils::toStr("spectrum_plot") + file_suffix + std::string(".R");
+    std::string filename =std::string("spectrum_plot") + file_suffix + "." + file_extension;
+    std::string script_filename =std::string("spectrum_plot") + file_suffix + std::string(".R");
 
     for (Size i = 0; i != sip_peptides.size(); ++i)
     {
@@ -655,78 +655,78 @@ public:
     current_script.addLine("<!DOCTYPE html>\n<html>\n<body>\n");
 
     // peptide heat map plot
-    current_script.addLine(StringUtils::toStr("<h1>") + "peptide heat map</h1>");
-    std::string peptide_heatmap_plot_filename =StringUtils::toStr("heatmap_peptide") + file_suffix + std::string(".") + file_extension;
+    current_script.addLine(std::string("<h1>") + "peptide heat map</h1>");
+    std::string peptide_heatmap_plot_filename =std::string("heatmap_peptide") + file_suffix + std::string(".") + file_extension;
     current_script.addLine("<p> <img src=\"" + peptide_heatmap_plot_filename + R"(" alt="graphic"></p>)");
 
     for (Size i = 0; i != sip_peptides.size(); ++i)
     {
       // heading
-      current_script.addLine(StringUtils::toStr("<h1>") + "RT: " + StringUtils::toStr(sip_peptides[i].feature_rt) + "</h1>");
+      current_script.addLine(std::string("<h1>") + "RT: " + StringUtils::toStr(sip_peptides[i].feature_rt) + "</h1>");
 
       current_script.addLine("<table border=\"1\">");
       // sequence table row
       current_script.addLine("<tr>");
       current_script.addLine("<td>sequence</td>");
-      current_script.addLine(StringUtils::toStr("<td>") + sip_peptides[i].sequence.toString() + "</td>");
+      current_script.addLine(std::string("<td>") + sip_peptides[i].sequence.toString() + "</td>");
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>rt (min.)</td>");
-      current_script.addLine(StringUtils::toStr("<td>" + StringUtils::number(sip_peptides[i].feature_rt / 60.0, 2) + "</td>"));
+      current_script.addLine(std::string("<td>" + StringUtils::number(sip_peptides[i].feature_rt / 60.0, 2) + "</td>"));
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>rt (sec.)</td>");
-      current_script.addLine(StringUtils::toStr("<td>" + StringUtils::number(sip_peptides[i].feature_rt, 2) + "</td>"));
+      current_script.addLine(std::string("<td>" + StringUtils::number(sip_peptides[i].feature_rt, 2) + "</td>"));
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>mz</td>");
-      current_script.addLine(StringUtils::toStr("<td>" + StringUtils::number(sip_peptides[i].feature_mz, 4) + "</td>"));
+      current_script.addLine(std::string("<td>" + StringUtils::number(sip_peptides[i].feature_mz, 4) + "</td>"));
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>theo. mz</td>");
-      current_script.addLine(StringUtils::toStr("<td>" + StringUtils::number(sip_peptides[i].mz_theo, 4) + "</td>"));
+      current_script.addLine(std::string("<td>" + StringUtils::number(sip_peptides[i].mz_theo, 4) + "</td>"));
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>charge</td>");
-      current_script.addLine(StringUtils::toStr("<td>" + StringUtils::toStr(sip_peptides[i].charge) + "</td>"));
+      current_script.addLine(std::string("<td>" + StringUtils::toStr(sip_peptides[i].charge) + "</td>"));
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>feature type</td>");
-      current_script.addLine(StringUtils::toStr("<td>" + StringUtils::toStr(sip_peptides[i].feature_type) + "</td>"));
+      current_script.addLine(std::string("<td>" + std::string(sip_peptides[i].feature_type) + "</td>"));
       current_script.addLine("</tr>");
 
       if (!sip_peptides[i].accessions.empty())
       {
-        current_script.addLine(StringUtils::toStr("<tr>"));
+        current_script.addLine(std::string("<tr>"));
         current_script.addLine("<td>accessions</td>");
-        current_script.addLine(StringUtils::toStr("<td>" + *sip_peptides[i].accessions.begin() + "</td>"));
-        current_script.addLine(StringUtils::toStr("</tr>"));
+        current_script.addLine(std::string("<td>" + *sip_peptides[i].accessions.begin() + "</td>"));
+        current_script.addLine(std::string("</tr>"));
 
-        current_script.addLine(StringUtils::toStr("<tr>"));
+        current_script.addLine(std::string("<tr>"));
         current_script.addLine("<td>unique</td>");
-        current_script.addLine(StringUtils::toStr("<td>" + StringUtils::toStr(sip_peptides[i].unique) + "</td>"));
-        current_script.addLine(StringUtils::toStr("</tr>"));
+        current_script.addLine(std::string("<td>" + StringUtils::toStr(sip_peptides[i].unique) + "</td>"));
+        current_script.addLine(std::string("</tr>"));
       }
 
-      current_script.addLine(StringUtils::toStr("<tr>"));
+      current_script.addLine(std::string("<tr>"));
       current_script.addLine("<td>search score</td>");
-      current_script.addLine(StringUtils::toStr("<td>") + StringUtils::toStr(sip_peptides[i].score) + "</td>");
+      current_script.addLine(std::string("<td>") + StringUtils::toStr(sip_peptides[i].score) + "</td>");
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>global labeling ratio</td>");
-      current_script.addLine(StringUtils::toStr("<td>") + StringUtils::number(sip_peptides[i].global_LR, 2) + "</td>");
+      current_script.addLine(std::string("<td>") + StringUtils::number(sip_peptides[i].global_LR, 2) + "</td>");
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>R squared</td>");
-      current_script.addLine(StringUtils::toStr("<td>") + StringUtils::number(sip_peptides[i].RR, 2) + "</td>");
+      current_script.addLine(std::string("<td>") + StringUtils::number(sip_peptides[i].RR, 2) + "</td>");
       current_script.addLine("</tr>");
 
       current_script.addLine("</table>");
@@ -737,9 +737,9 @@ public:
       current_script.addLine("<tr>");
       for (Size k = 0; k != sip_peptides[i].incorporations.size(); ++k)
       {
-        current_script.addLine(StringUtils::toStr("<td>RIA") + StringUtils::toStr(k + 1) + "</td>");
-        current_script.addLine(StringUtils::toStr("<td>CORR.") + StringUtils::toStr(k + 1) + "</td>");
-        current_script.addLine(StringUtils::toStr("<td>INT") + StringUtils::toStr(k + 1) + "</td>");
+        current_script.addLine(std::string("<td>RIA") + StringUtils::toStr(k + 1) + "</td>");
+        current_script.addLine(std::string("<td>CORR.") + StringUtils::toStr(k + 1) + "</td>");
+        current_script.addLine(std::string("<td>INT") + StringUtils::toStr(k + 1) + "</td>");
       }
       current_script.addLine("</tr>");
 
@@ -748,20 +748,20 @@ public:
       for (Size k = 0; k != sip_peptides[i].incorporations.size(); ++k)
       {
         SIPIncorporation p = sip_peptides[i].incorporations[k];
-        current_script.addLine(StringUtils::toStr("<td>") + StringUtils::number(p.rate, 2) + "</td>");
-        current_script.addLine(StringUtils::toStr("<td>") + StringUtils::number(p.correlation, 2) + "</td>");
-        current_script.addLine(StringUtils::toStr("<td>") + StringUtils::number(p.abundance, 0) + "</td>");
+        current_script.addLine(std::string("<td>") + StringUtils::number(p.rate, 2) + "</td>");
+        current_script.addLine(std::string("<td>") + StringUtils::number(p.correlation, 2) + "</td>");
+        current_script.addLine(std::string("<td>") + StringUtils::number(p.abundance, 0) + "</td>");
       }
       current_script.addLine("</tr>");
 
       current_script.addLine("</table>");
 
       // spectrum plot
-      std::string spectrum_filename =StringUtils::toStr("spectrum") + file_suffix + "_rt_" + StringUtils::toStr(sip_peptides[i].feature_rt) + "." + file_extension;
+      std::string spectrum_filename =std::string("spectrum") + file_suffix + "_rt_" + StringUtils::toStr(sip_peptides[i].feature_rt) + "." + file_extension;
       current_script.addLine("<p> <img src=\"" + spectrum_filename + R"(" alt="graphic"></p>)");
 
       // score plot
-      std::string score_filename =StringUtils::toStr("scores") + file_suffix + "_rt_" + StringUtils::toStr(sip_peptides[i].feature_rt) + "." + file_extension;
+      std::string score_filename =std::string("scores") + file_suffix + "_rt_" + StringUtils::toStr(sip_peptides[i].feature_rt) + "." + file_extension;
       current_script.addLine("<p> <img src=\"" + score_filename + R"(" alt="graphic"></p>)");
     }
     current_script.addLine("\n</body>\n</html>");
@@ -770,8 +770,8 @@ public:
 
   static void plotScoresAndWeights(const std::string& output_dir, const std::string& tmp_path, const std::string& file_suffix, const std::string& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0, const std::string& executable = "R")
   {
-    std::string score_filename =StringUtils::toStr("score_plot") + file_suffix + file_extension;
-    std::string script_filename =StringUtils::toStr("score_plot") + file_suffix + std::string(".R");
+    std::string score_filename =std::string("score_plot") + file_suffix + file_extension;
+    std::string script_filename =std::string("score_plot") + file_suffix + std::string(".R");
 
     for (Size i = 0; i != sip_peptides.size(); ++i)
     {
@@ -1250,8 +1250,8 @@ public:
       }
       else
       {
-        std::string qr_spectrum_filename =StringUtils::toStr("file://") + qc_output_directory + "/" + std::string("spectrum") + file_suffix + "_rt_" + StringUtils::toStr(current_SIPpeptide.feature_rt) + "." + file_extension;
-        std::string qr_scores_filename =StringUtils::toStr("file://") + qc_output_directory + "/" + std::string("scores") + file_suffix + "_rt_" + StringUtils::toStr(current_SIPpeptide.feature_rt) + "." + file_extension;
+        std::string qr_spectrum_filename =std::string("file://") + qc_output_directory + "/" + std::string("spectrum") + file_suffix + "_rt_" + StringUtils::toStr(current_SIPpeptide.feature_rt) + "." + file_extension;
+        std::string qr_scores_filename =std::string("file://") + qc_output_directory + "/" + std::string("scores") + file_suffix + "_rt_" + StringUtils::toStr(current_SIPpeptide.feature_rt) + "." + file_extension;
         out_csv_stream << qr_spectrum_filename << qr_scores_filename << in_mzML;
       }
 
@@ -3268,7 +3268,7 @@ protected:
       else if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
       {
         feature_hit_aaseq = AASequence();
-        feature_hit_seq =StringUtils::toStr("");
+        feature_hit_seq =std::string("");
         feature_hit_theoretical_mz = feature_hit_center_mz;
       }
 

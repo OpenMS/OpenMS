@@ -14,7 +14,7 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  auto file_mzXML = OPENMS_DOC_PATH + StringUtils::toStr("/code_examples/data/Tutorial_FileIO.mzXML");
+  auto file_mzXML = OPENMS_DOC_PATH + std::string("/code_examples/data/Tutorial_FileIO.mzXML");
 
   // temporary data storage
   PeakMap map;

@@ -66,13 +66,13 @@ namespace OpenMS
       {
         if (map_multiple_assays_)
         {
-          OPENMS_LOG_DEBUG << "Chromatogram " + StringUtils::toStr(chromatogram.getNativeID()) +
+          OPENMS_LOG_DEBUG << "Chromatogram " + std::string(chromatogram.getNativeID()) +
             " has no precursor or product m/z recorded, mapping may not work." << std::endl;
         }
         else
         {
           OPENMS_LOG_DEBUG << "Skip mapping for chromatogram " +
-            StringUtils::toStr(chromatogram.getNativeID()) + " since no precursor or product m/z was recorded." << std::endl;
+            std::string(chromatogram.getNativeID()) + " since no precursor or product m/z was recorded." << std::endl;
           continue;
         }
       }
@@ -136,7 +136,7 @@ namespace OpenMS
         if (mapped_chroms.size() > 1)
         {
           ++multi_mapped;
-          OPENMS_LOG_DEBUG << "Chromatogram " + StringUtils::toStr(chromatogram.getNativeID()) <<
+          OPENMS_LOG_DEBUG << "Chromatogram " + std::string(chromatogram.getNativeID()) <<
             " with " + StringUtils::toStr(chromatogram.getPrecursor().getMZ()) <<
             " -> " + StringUtils::toStr(chromatogram.getProduct().getMZ()) <<
             " maps to multiple assays!" << std::endl;
@@ -147,7 +147,7 @@ namespace OpenMS
         if (mapped_chroms.size() == 1) output.addChromatogram(mapped_chroms[0]);
         else
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Chromatogram " + StringUtils::toStr(chromatogram.getNativeID()) + \
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Chromatogram " + std::string(chromatogram.getNativeID()) + \
            " with " + StringUtils::toStr(chromatogram.getPrecursor().getMZ()) + \
             " -> " + StringUtils::toStr(chromatogram.getProduct().getMZ()) + \
               " maps to multiple assays! Either decrease your mapping tolerance or set map_multiple_assays to true.");

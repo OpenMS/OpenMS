@@ -88,7 +88,7 @@ namespace OpenMS
     else
     {
       throw Exception::MissingInformation(__FILE__, __LINE__,
-                                          OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Unknown score type '") + score_type_in + "'.");
+                                          OPENMS_PRETTY_FUNCTION,std::string("Unknown score type '") + score_type_in + "'.");
     }
   }
 

@@ -53,12 +53,12 @@ START_SECTION(void load(const std::string &filename, ConsensusMap &consensus_map
   TEST_EQUAL(fm[0].getMZ(), 405.233)
   TEST_EQUAL(fm[0].getIntensity(), 24543534)
   TEST_EQUAL(fm[0].getCharge(), 2)
-  TEST_EQUAL(StringUtils::toStr(fm[0].getMetaValue("mymeta")),StringUtils::toStr("lala"))
+  TEST_EQUAL(StringUtils::toStr(fm[0].getMetaValue("mymeta")),std::string("lala"))
   TEST_EQUAL(fm[1].getRT(), 322)
   TEST_EQUAL(fm[1].getMZ(), 406.207)
   TEST_EQUAL(fm[1].getIntensity(), 4343344)
   TEST_EQUAL(fm[1].getCharge(), 3)
-  TEST_EQUAL(StringUtils::toStr(fm[1].getMetaValue("mymeta")),StringUtils::toStr("blubb"))
+  TEST_EQUAL(StringUtils::toStr(fm[1].getMetaValue("mymeta")),std::string("blubb"))
 
   
   f.load(OPENMS_GET_TEST_DATA_PATH("EDTAFile_test_3.edta"), fm);

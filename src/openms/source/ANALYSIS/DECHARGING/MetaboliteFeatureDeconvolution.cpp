@@ -333,7 +333,7 @@ namespace OpenMS
     if (fm_out[f_idx].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
     {
       if (ef_.toString() != fm_out[f_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Decharging produced inconsistent adduct annotation! [expected: ") + StringUtils::toStr(fm_out[f_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_.toString());
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Decharging produced inconsistent adduct annotation! [expected: ") + StringUtils::toStr(fm_out[f_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_.toString());
     }
     else // set DC_CHARGE_ADDUCTS meta value and set it to the formula from EmpiricalFormula, also set the adduct string in "adducts" meta value
     {
@@ -352,7 +352,7 @@ namespace OpenMS
     fm_out[f_idx].setCharge(new_q);
     labels = c.getLabels(comp_side);
     if (labels.size() > 1)
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
     if (!labels.empty())
     {
       fm_out[f_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
@@ -402,7 +402,7 @@ namespace OpenMS
     //make it proof for charge 1..3 and charge -3..-1
     if ((q_min * q_max) < 0)
     {
-       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Min and max charge switch charge signs! Please use same charge sign."),StringUtils::toStr(q_min)+" "+StringUtils::toStr(q_max));
+       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Min and max charge switch charge signs! Please use same charge sign."),StringUtils::toStr(q_min)+" "+StringUtils::toStr(q_max));
     }
 
     int small, large;
@@ -1291,7 +1291,7 @@ namespace OpenMS
     bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
     if (!is_neg && (feature_charge * putative_charge < 0))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("feature charge and putative positive mode charge switch charge direction!"),StringUtils::toStr(feature_charge)+" "+StringUtils::toStr(putative_charge));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("feature charge and putative positive mode charge switch charge direction!"),StringUtils::toStr(feature_charge)+" "+StringUtils::toStr(putative_charge));
     }
 
     //From here, we checked whether we are fine with charge signs, so for now simply look only at absolute charges.

@@ -182,7 +182,7 @@ START_SECTION(Instrument(const Instrument& source))
   tmp.setModel("Model");
   tmp.setName("Name");
   tmp.setVendor("Vendor");
-  tmp.setMetaValue("label",StringUtils::toStr("label"));
+  tmp.setMetaValue("label",std::string("label"));
   tmp.getSoftware().setName("sn");
 	tmp.setIonOptics(Instrument::IonOpticsType::REFLECTRON);
   
@@ -208,7 +208,7 @@ START_SECTION(Instrument& operator= (const Instrument& source))
   tmp.setModel("Model");
   tmp.setName("Name");
   tmp.setVendor("Vendor");
-  tmp.setMetaValue("label",StringUtils::toStr("label"));
+  tmp.setMetaValue("label",std::string("label"));
   tmp.getSoftware().setName("sn");
 	tmp.setIonOptics(Instrument::IonOpticsType::REFLECTRON);
 		
@@ -274,7 +274,7 @@ START_SECTION(bool operator== (const Instrument& rhs) const)
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
-  edit.setMetaValue("label",StringUtils::toStr("label"));
+  edit.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(edit==empty,false);
 END_SECTION
 
@@ -315,7 +315,7 @@ START_SECTION(bool operator!= (const Instrument& rhs) const)
   TEST_EQUAL(edit!=empty,true)
   
   edit = empty;
-  edit.setMetaValue("label",StringUtils::toStr("label"));
+  edit.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(edit!=empty,true);
 END_SECTION
 

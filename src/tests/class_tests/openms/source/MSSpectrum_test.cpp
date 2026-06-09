@@ -536,7 +536,7 @@ START_SECTION((bool operator== (const MSSpectrum& rhs) const))
   TEST_FALSE(edit == empty);
 
   edit = empty;
-  edit.setMetaValue("label",StringUtils::toStr("bla"));
+  edit.setMetaValue("label",std::string("bla"));
   TEST_FALSE(empty == edit);
 
   edit = empty;
@@ -596,7 +596,7 @@ START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
   TEST_TRUE(edit != empty);
 
   edit = empty;
-  edit.setMetaValue("label",StringUtils::toStr("bla"));
+  edit.setMetaValue("label",std::string("bla"));
   TEST_TRUE(edit != empty);
 
   edit = empty;
@@ -1424,7 +1424,7 @@ START_SECTION(void clear(bool clear_meta_data))
   MSSpectrum edit;
   edit.getInstrumentSettings().getScanWindows().resize(1);
   edit.resize(1);
-  edit.setMetaValue("label",StringUtils::toStr("bla"));
+  edit.setMetaValue("label",std::string("bla"));
   edit.setRT(5);
   edit.setDriftTime(6);
   edit.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);

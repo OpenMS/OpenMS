@@ -191,7 +191,7 @@ namespace OpenMS
     catch (const openms::thermo_bridge::bridge_error& e)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        path, StringUtils::toStr("Thermo bridge error: ") + e.what());
+        path, std::string("Thermo bridge error: ") + e.what());
     }
   }
 

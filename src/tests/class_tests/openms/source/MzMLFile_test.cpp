@@ -90,9 +90,9 @@ public:
   
   //spectrum 1 - 3 float arrays of size 50,100,200
   spec = template_spec; ++spectrum_number; array_number = 1;
-  spec.setNativeID(StringUtils::toStr("index=") + spectrum_number);
+  spec.setNativeID(std::string("index=") + spectrum_number);
   spec.setRT(1.0 * spectrum_number);
-  spec.setName(StringUtils::toStr("spectum number=") + spectrum_number);
+  spec.setName(std::string("spectum number=") + spectrum_number);
   Size array_size=50;
   for (Size i=0; i<3; ++i)
   {
@@ -101,7 +101,7 @@ public:
     {
       spec.getFloatDataArrays()[i].push_back(100*(i+1) + j);
     }
-    spec.getFloatDataArrays()[i].setName(StringUtils::toStr("array number=") + array_number);
+    spec.getFloatDataArrays()[i].setName(std::string("array number=") + array_number);
     array_size *=2;
     array_number +=1;
   }
@@ -109,9 +109,9 @@ public:
   
   //spectrum 2 - 3 string arrays of size 50,100,200
   spec = template_spec; ++spectrum_number; array_number = 1;
-  spec.setNativeID(StringUtils::toStr("index=") + spectrum_number);
+  spec.setNativeID(std::string("index=") + spectrum_number);
   spec.setRT(1.0 * spectrum_number);
-  spec.setName(StringUtils::toStr("spectum number=") + spectrum_number);
+  spec.setName(std::string("spectum number=") + spectrum_number);
   array_size=50;
   for (Size i=0; i<3; ++i)
   {
@@ -120,7 +120,7 @@ public:
     {
       spec.getStringDataArrays()[i].push_back(StringUtils::toStr(100*(i+1) + j));
     }
-    spec.getStringDataArrays()[i].setName(StringUtils::toStr("array number=") + array_number);
+    spec.getStringDataArrays()[i].setName(std::string("array number=") + array_number);
     array_size *=2;
     array_number +=1;
   }
@@ -128,9 +128,9 @@ public:
   
   //spectrum 3 - 3 integer arrays of size 50,100,200
   spec = template_spec; ++spectrum_number; array_number = 1;
-  spec.setNativeID(StringUtils::toStr("index=") + spectrum_number);
+  spec.setNativeID(std::string("index=") + spectrum_number);
   spec.setRT(1.0 * spectrum_number);
-  spec.setName(StringUtils::toStr("spectum number=") + spectrum_number);
+  spec.setName(std::string("spectum number=") + spectrum_number);
   array_size=50;
   for (Size i=0; i<3; ++i)
   {
@@ -139,7 +139,7 @@ public:
     {
       spec.getIntegerDataArrays()[i].push_back(100*(i+1) + j);
     }
-    spec.getIntegerDataArrays()[i].setName(StringUtils::toStr("array number=") + array_number);
+    spec.getIntegerDataArrays()[i].setName(std::string("array number=") + array_number);
     array_size *=2;
     array_number +=1;
   }
@@ -148,9 +148,9 @@ public:
   
   //spectrum 4 - 2 float arrays of size 50,100 + 1 string arrays of size 200 + 3 integer arrays of size 50,100,200
   spec = template_spec; ++spectrum_number; array_number = 1;
-  spec.setNativeID(StringUtils::toStr("index=") + spectrum_number);
+  spec.setNativeID(std::string("index=") + spectrum_number);
   spec.setRT(1.0 * spectrum_number);
-  spec.setName(StringUtils::toStr("spectum number=") + spectrum_number);
+  spec.setName(std::string("spectum number=") + spectrum_number);
   array_size=50;
   for (Size i=0; i<2; ++i)
   {
@@ -159,7 +159,7 @@ public:
     {
       spec.getFloatDataArrays()[i].push_back(100*(i+1) + j);
     }
-    spec.getFloatDataArrays()[i].setName(StringUtils::toStr("array number=") + array_number);
+    spec.getFloatDataArrays()[i].setName(std::string("array number=") + array_number);
     array_size *=2;
     array_number +=1;
   }
@@ -171,7 +171,7 @@ public:
     {
       spec.getStringDataArrays()[i].push_back(StringUtils::toStr(100*(i+1) + j));
     }
-    spec.getStringDataArrays()[i].setName(StringUtils::toStr("array number=") + array_number);
+    spec.getStringDataArrays()[i].setName(std::string("array number=") + array_number);
     array_size *=2;
     array_number +=1;
   }
@@ -183,7 +183,7 @@ public:
     {
       spec.getIntegerDataArrays()[i].push_back(100*(i+1) + j);
     }
-    spec.getIntegerDataArrays()[i].setName(StringUtils::toStr("array number=") + array_number);
+    spec.getIntegerDataArrays()[i].setName(std::string("array number=") + array_number);
     array_size *=2;
     array_number +=1;
   }
@@ -1079,8 +1079,8 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     TEST_EQUAL(StringUtils::substr(out, 0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
     TEST_EQUAL(StringUtils::substr(out, 38070 - 99, 38070 - 1), "</indexList>\n<indexListOffset>37622</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
 
-    TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(out), "<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
-    TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(out), "<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(std::string(out), "<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(std::string(out), "<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
   }
 
   //test with empty map

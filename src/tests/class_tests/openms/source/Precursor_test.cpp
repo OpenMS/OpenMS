@@ -203,7 +203,7 @@ START_SECTION((Precursor(const Precursor& source)))
   tmp.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
   tmp.setCharge(2);
   tmp.getPossibleChargeStates().resize(2);
-  tmp.setMetaValue("label",StringUtils::toStr("label"));
+  tmp.setMetaValue("label",std::string("label"));
   
   Precursor tmp2(tmp);
   TEST_EQUAL(tmp2.getActivationMethods().size(),1);
@@ -234,7 +234,7 @@ START_SECTION((Precursor(const Precursor&& source)))
   tmp.setDriftTimeUnit(DriftTimeUnit::VSSC);
   tmp.setCharge(8);
   tmp.getPossibleChargeStates().resize(4);
-  tmp.setMetaValue("label",StringUtils::toStr("label2"));
+  tmp.setMetaValue("label",std::string("label2"));
   TEST_EQUAL(tmp.getActivationMethods().size(),2);
 
   //copy tmp so we can move one of them
@@ -270,7 +270,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
   tmp.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
   tmp.setCharge(9);
   tmp.getPossibleChargeStates().resize(5);
-  tmp.setMetaValue("label",StringUtils::toStr("label"));
+  tmp.setMetaValue("label",std::string("label"));
   
   //normal assignment
   Precursor tmp2;
@@ -317,7 +317,7 @@ START_SECTION((Precursor& operator= (const Precursor&& source)))
   tmp.setDriftTimeUnit(DriftTimeUnit::VSSC);
   tmp.setCharge(8);
   tmp.getPossibleChargeStates().resize(4);
-  tmp.setMetaValue("label",StringUtils::toStr("label2"));
+  tmp.setMetaValue("label",std::string("label2"));
 
   //copy tmp so we can move one of them
   Precursor orig = tmp;
@@ -386,7 +386,7 @@ START_SECTION((bool operator== (const Precursor& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(tmp==tmp2, false);
 END_SECTION
 
@@ -435,7 +435,7 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
 	TEST_FALSE(tmp == tmp2);
 END_SECTION
 

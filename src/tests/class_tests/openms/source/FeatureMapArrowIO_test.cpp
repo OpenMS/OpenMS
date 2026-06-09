@@ -76,7 +76,7 @@ START_SECTION(exportFeaturesToArrow - single feature with convex hulls and metav
   // Add metavalues
   f.setMetaValue("my_int", 42);
   f.setMetaValue("my_float", 3.14);
-  f.setMetaValue("my_string",StringUtils::toStr("hello"));
+  f.setMetaValue("my_string",std::string("hello"));
 
   fm.push_back(f);
 
@@ -247,7 +247,7 @@ START_SECTION(importFeaturesFromArrow - round-trip with subordinates and hulls a
   // Metavalues (note: setWidth also adds FWHM metavalue)
   f1.setMetaValue("my_int", 42);
   f1.setMetaValue("my_float", 3.14);
-  f1.setMetaValue("my_string",StringUtils::toStr("hello"));
+  f1.setMetaValue("my_string",std::string("hello"));
   f1.setMetaValue("test_int_list", DataValue(IntList{1, 2, 3}));
   f1.setMetaValue("test_double_list", DataValue(DoubleList{1.5, 2.5}));
   f1.setMetaValue("test_string_list", DataValue(StringList{"a", "b", "c"}));
@@ -765,7 +765,7 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap metadata round-tr
   dp1.setCompletionTime(DateTime::fromString("2025-06-15T14:30:00", "yyyy-MM-ddThh:mm:ss"));
   dp1.getProcessingActions().insert(DataProcessing::PEAK_PICKING);
   dp1.getProcessingActions().insert(DataProcessing::FILTERING);
-  dp1.setMetaValue("parameter_file",StringUtils::toStr("params.ini"));
+  dp1.setMetaValue("parameter_file",std::string("params.ini"));
   dp1.setMetaValue("num_threads", 8);
 
   DataProcessing dp2;
@@ -1112,7 +1112,7 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap-level MetaValue r
   // Plus a few scalar / typed meta-values to exercise the typed deserializer.
   fm.setMetaValue("custom_int", 1234);
   fm.setMetaValue("custom_double", 2.71828);
-  fm.setMetaValue("custom_string", StringUtils::toStr("free-form text"));
+  fm.setMetaValue("custom_string", std::string("free-form text"));
   fm.setMetaValue("custom_int_list", DataValue(IntList{10, 20, 30}));
   fm.setMetaValue("custom_double_list", DataValue(DoubleList{1.5, 2.5}));
 

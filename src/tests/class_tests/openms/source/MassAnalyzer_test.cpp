@@ -216,7 +216,7 @@ START_SECTION((MassAnalyzer(const MassAnalyzer& source)))
   tmp.setScanRate(47.15);
   tmp.setScanTime(47.16);
   tmp.setTOFTotalPathLength(47.17);
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
   tmp.setOrder(45);
 	
 	MassAnalyzer tmp2(tmp);
@@ -255,7 +255,7 @@ START_SECTION((MassAnalyzer& operator= (const MassAnalyzer& source)))
   tmp.setScanRate(47.15);
   tmp.setScanTime(47.16);
   tmp.setTOFTotalPathLength(47.17);
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
   tmp.setOrder(45);
 	
 	MassAnalyzer tmp2;

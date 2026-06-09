@@ -640,7 +640,7 @@ namespace OpenMS
           if (pos2 != std::string::npos)
           {
             accession = StringUtils::substr(line, pos1, pos2 - pos1);
-            if ((accession.size() == 6) && (StringUtils::toStr(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
+            if ((accession.size() == 6) && (std::string(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
             {
               accession_type = "SwissProt";
             }
@@ -699,7 +699,7 @@ namespace OpenMS
         if (pos2 != std::string::npos)
         {
           accession = StringUtils::substr(line, pos1, pos2 - pos1);
-          if ((accession.size() == 6) && (StringUtils::toStr(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
+          if ((accession.size() == 6) && (std::string(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
           {
             accession_type = "SwissProt";
           }
@@ -713,7 +713,7 @@ namespace OpenMS
       {
         pos1 = line.find('|');
         accession = StringUtils::substr(line, 0, pos1);
-        if ((accession.size() == 6) && (StringUtils::toStr(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
+        if ((accession.size() == 6) && (std::string(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
         {
           accession_type = "SwissProt";
         }
@@ -721,14 +721,14 @@ namespace OpenMS
         {
           pos1 = line.find(' ');
           accession = StringUtils::substr(line, 0, pos1);
-          if ((accession.size() == 6) && (StringUtils::toStr(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
+          if ((accession.size() == 6) && (std::string(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
           {
             accession_type = "SwissProt";
           }
           else
           {
             accession = StringUtils::substr(line, 0, 6);
-            if (StringUtils::toStr(swissprot_prefixes).find(accession[0], 0) != std::string::npos)
+            if (std::string(swissprot_prefixes).find(accession[0], 0) != std::string::npos)
             {
               accession_type = "SwissProt";
             }

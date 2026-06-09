@@ -206,7 +206,7 @@ protected:
     for (const auto& run_count : per_run_targets_at_1pct)
     {
       const auto name_it = run_basenames.find(run_count.first);
-      const std::string run_label = (name_it != run_basenames.end()) ? name_it->second : StringUtils::toStr("RUN_ID ") + StringUtils::toStr(run_count.first);
+      const std::string run_label = (name_it != run_basenames.end()) ? name_it->second : std::string("RUN_ID ") + StringUtils::toStr(run_count.first);
       OPENMS_LOG_INFO << run_label << ": " << run_count.second << " " << targetLabelPlural_(level) << std::endl;
     }
   }

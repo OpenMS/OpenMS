@@ -1390,7 +1390,7 @@ namespace OpenMS
 
         // Parse the header line (line starts with # or is just #)
         bool is_db_separator = false;
-        parseHeaderLine_(StringUtils::toStr(line), current_header, is_db_separator);
+        parseHeaderLine_(std::string(line), current_header, is_db_separator);
 
         if (is_db_separator)
         {
@@ -1531,7 +1531,7 @@ namespace OpenMS
     }
 
     // Parse annotations from description
-    parseAnnotations_(StringUtils::toStr(description_), entry);
+    parseAnnotations_(std::string(description_), entry);
 
     return true;
   }

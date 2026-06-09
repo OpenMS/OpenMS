@@ -165,8 +165,8 @@ namespace OpenMS
                          getOSWExe(),
                          {"-ini", tmp_ini,
                           "-in", mzML,
-                          "-out_osw",StringUtils::toStr(getCurrentOutDir_().toStdString()) + "/" + infileToOSW(mzML),
-                          "-out_chrom",StringUtils::toStr(getCurrentOutDir_().toStdString()) + "/" + infileToChrom(mzML)},
+                          "-out_osw",std::string(getCurrentOutDir_().toStdString()) + "/" + infileToOSW(mzML),
+                          "-out_chrom",std::string(getCurrentOutDir_().toStdString()) + "/" + infileToChrom(mzML)},
                          "",
                          true);
         if (r != ExternalProcess::RETURNSTATE::SUCCESS) break;
@@ -396,7 +396,7 @@ namespace OpenMS
       {
         if (file.second == false)
         {
-          QMessageBox::warning(this, "Error", toQString(StringUtils::toStr("Required input file '" + file.first + "' not found. Please run OpenSwathWorkflow first to create it")));
+          QMessageBox::warning(this, "Error", toQString(std::string("Required input file '" + file.first + "' not found. Please run OpenSwathWorkflow first to create it")));
           return;
         }
         osws_orig.push_back(file.first);
@@ -407,7 +407,7 @@ namespace OpenMS
       QString library = ui->input_tr->getFilename();
       if (library.isEmpty())
       {
-        QMessageBox::warning(this, "Error", toQString(StringUtils::toStr("The assay library is not specified. Please go to the 'database' tab and specify it.")));
+        QMessageBox::warning(this, "Error", toQString(std::string("The assay library is not specified. Please go to the 'database' tab and specify it.")));
         return;
       }
       std::string library_str(library.toStdString());
@@ -418,7 +418,7 @@ namespace OpenMS
 #endif
       if (!findPythonScript_(ui->py_selector->getLastPython(), pp)) // searches Script in Python installation
       {
-        QMessageBox::warning(this, "Error", toQString(StringUtils::toStr("Could not find 'pyprophet' in the python installation '" + ui->py_selector->getLastPython() + "'. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details.")));
+        QMessageBox::warning(this, "Error", toQString(std::string("Could not find 'pyprophet' in the python installation '" + ui->py_selector->getLastPython() + "'. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details.")));
         return;
       }
       // list of calls to make: exe, args, [optional] list of args to append one-by-one in a loop
@@ -447,7 +447,7 @@ namespace OpenMS
       std::string feature_alignment_py = "feature_alignment.py";
       if (!findPythonScript_(ui->py_selector->getLastPython(), feature_alignment_py)) // searches Script in Python installation
       {
-        QMessageBox::warning(this, "Error", toQString(StringUtils::toStr("Could not find 'feature_alignment.py' from the msproteomicstool package in the python installation '" + ui->py_selector->getLastPython() + "'. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details.")));
+        QMessageBox::warning(this, "Error", toQString(std::string("Could not find 'feature_alignment.py' from the msproteomicstool package in the python installation '" + ui->py_selector->getLastPython() + "'. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details.")));
         return;
       }
       { std::vector<std::string> tric_args = {feature_alignment_py, "--in"};
@@ -479,7 +479,7 @@ namespace OpenMS
           auto returnstate = ep_.run(this, call.exe, call.getArgs(i_loop), fromQString(getCurrentOutDir_()), true);
           if (returnstate != ExternalProcess::RETURNSTATE::SUCCESS)
           {
-            QMessageBox::warning(this, "Error", toQString(StringUtils::toStr("Running pyprophet/TRIC failed at step " + StringUtils::toStr(step) + "/" + StringUtils::toStr(calls.size()) + ". Please see log for details")));
+            QMessageBox::warning(this, "Error", toQString(std::string("Running pyprophet/TRIC failed at step " + StringUtils::toStr(step) + "/" + StringUtils::toStr(calls.size()) + ". Please see log for details")));
             return;
           }
           if (progress.wasCanceled())
@@ -536,7 +536,7 @@ namespace OpenMS
         return;
       }
 
-      if (QMessageBox::question(this, "Confirm", toQString(StringUtils::toStr("Confirm opening ") + selected_rows + " raw files in TOPPView"), 
+      if (QMessageBox::question(this, "Confirm", toQString(std::string("Confirm opening ") + selected_rows + " raw files in TOPPView"), 
                                 QMessageBox::StandardButton::Ok, QMessageBox::StandardButton::Cancel) 
                              == QMessageBox::StandardButton::Ok)
       {
@@ -548,7 +548,7 @@ namespace OpenMS
         qp->start(toQString(tv), args);
         if (!qp->waitForStarted(2000))
         {
-          QMessageBox::warning(this, "Error", toQString(StringUtils::toStr("Could not open TOPPView executable from '" + tv + "'")));
+          QMessageBox::warning(this, "Error", toQString(std::string("Could not open TOPPView executable from '" + tv + "'")));
           return;
         }
         // TOPPView is running now ... detached

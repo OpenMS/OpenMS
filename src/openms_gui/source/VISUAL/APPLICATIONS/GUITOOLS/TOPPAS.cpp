@@ -125,7 +125,7 @@ int main(int argc, const char** argv)
     // if TOPPAS is packed as Mac OS X bundle it will get a -psn_.. parameter by default from the OS
     // if this is the only unknown option it will be ignored .. maybe this should be solved directly
     // in Param.h
-    if (!(StringUtils::hasSubstring(StringUtils::toStr(param.getValue("unknown").toString()), "-psn") && !StringUtils::hasSubstring(StringUtils::toStr(param.getValue("unknown").toString()), ", ")))
+    if (!(StringUtils::hasSubstring(std::string(param.getValue("unknown").toString()), "-psn") && !StringUtils::hasSubstring(std::string(param.getValue("unknown").toString()), ", ")))
     {
       OPENMS_LOG_ERROR << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
       print_usage(getGlobalLogError());

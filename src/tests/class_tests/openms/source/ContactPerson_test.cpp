@@ -132,7 +132,7 @@ START_SECTION(ContactPerson(const ContactPerson& source))
 	tmp.setContactInfo("doo");
 	tmp.setURL("url");
 	tmp.setAddress("street");
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
 	
 	ContactPerson tmp2(tmp);
 	TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
@@ -154,7 +154,7 @@ START_SECTION(ContactPerson& operator= (const ContactPerson& source))
 	tmp.setContactInfo("doo");
 	tmp.setURL("url");
 	tmp.setAddress("street");
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
 	
 	//normal assignment
 	ContactPerson tmp2;
@@ -213,7 +213,7 @@ START_SECTION(bool operator!= (const ContactPerson& rhs) const)
   TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
   TEST_EQUAL(tmp==tmp2, false);
 END_SECTION
 
@@ -242,7 +242,7 @@ START_SECTION(bool operator== (const ContactPerson& rhs) const)
   TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
   TEST_FALSE(tmp == tmp2);
 END_SECTION
 

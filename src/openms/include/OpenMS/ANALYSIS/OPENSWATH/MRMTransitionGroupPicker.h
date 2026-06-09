@@ -1344,7 +1344,7 @@ protected:
       if (min_index_shape == max_index_coel)
       {
         OPENMS_LOG_DEBUG << " Element " << min_index_shape << " is a candidate for removal ... " << std::endl;
-        outlier =StringUtils::toStr(picked_chroms[min_index_shape].getNativeID());
+        outlier =std::string(picked_chroms[min_index_shape].getNativeID());
       }
       else
       {

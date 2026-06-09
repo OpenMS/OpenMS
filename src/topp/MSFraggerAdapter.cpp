@@ -556,7 +556,7 @@ protected:
 
 
       // Write all the parameters into the file
-      os << "database_name = " << StringUtils::toStr(database)
+      os << "database_name = " << std::string(database)
                                << "\nnum_threads = " << this->getIntOption_("threads")
                                << "\n\nprecursor_mass_lower = " << (-arg_precursor_mass_tolerance_lower)
                                << "\nprecursor_mass_upper = " << arg_precursor_mass_tolerance_upper
@@ -686,7 +686,7 @@ protected:
       i = 0;
       for (auto const & m : varmods_combined)
       {
-        const std::string varmod = "variable_mod_0" + StringUtils::toStr(i+1) + " = " + StringUtils::toStr(m.first) + " " + StringUtils::toStr(m.second);
+        const std::string varmod = "variable_mod_0" + StringUtils::toStr(i+1) + " = " + StringUtils::toStr(m.first) + " " + std::string(m.second);
         os << "\n" << varmod;
         writeLogInfo_(varmod);
         i++;

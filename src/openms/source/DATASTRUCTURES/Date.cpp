@@ -139,7 +139,7 @@ namespace OpenMS
     {
       char buf[16];
       snprintf(buf, sizeof(buf), "%04d-%02d-%02d", fields_.year, fields_.month, fields_.day);
-      return StringUtils::toStr(buf);
+      return std::string(buf);
     }
     return "0000-00-00";
   }

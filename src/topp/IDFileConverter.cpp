@@ -304,7 +304,7 @@ protected:
           }
           catch (Exception::ConversionError& e)
           {
-            writeLogWarn_(StringUtils::toStr("Error: Cannot read scan number as integer. '") + e.what());
+            writeLogWarn_(std::string("Error: Cannot read scan number as integer. '") + e.what());
           }
         }
       }
@@ -313,7 +313,7 @@ protected:
       StringList in_files;
       if (!File::fileList(in_directory, "*.out", in_files))
       {
-        writeLogError_(StringUtils::toStr("Error: No .out files found in '") + in_directory + "'. Aborting!");
+        writeLogError_(std::string("Error: No .out files found in '") + in_directory + "'. Aborting!");
       }
 
       // Now get to work ...
@@ -326,7 +326,7 @@ protected:
 
         SequestOutfile sequest_outfile;
 
-        writeDebug_(StringUtils::toStr("Reading file ") + *in_files_it, 3);
+        writeDebug_(std::string("Reading file ") + *in_files_it, 3);
 
         try
         {
@@ -349,18 +349,18 @@ protected:
               }
               catch (Exception::ConversionError& e)
               {
-                writeLogError_(StringUtils::toStr("Error: Cannot read scan number as integer. '") + e.what());
+                writeLogError_(std::string("Error: Cannot read scan number as integer. '") + e.what());
               }
               catch (exception& e)
               {
-                writeLogError_(StringUtils::toStr("Error: Cannot read scan number as integer. '") + e.what());
+                writeLogError_(std::string("Error: Cannot read scan number as integer. '") + e.what());
               }
               //double real_mz = ( peptide_ids_seq[j].getMZ() - hydrogen_mass )/ (double)peptide_ids_seq[j].getHits()[0].getCharge(); // ???? semantics of mz
               const double real_mz = peptide_ids_seq[j].getMZ() / (double) peptide_ids_seq[j].getHits()[0].getCharge();
               peptide_ids_seq[j].setMZ(real_mz);
             }
 
-            writeDebug_(StringUtils::toStr("scan: ") + StringUtils::toStr(scan_number) + std::string("  RT: ") + StringUtils::toStr(peptide_ids_seq[j].getRT()) + "  MZ: " + StringUtils::toStr(peptide_ids_seq[j].getMZ()) + "  Ident: " + peptide_ids_seq[j].getIdentifier(), 4);
+            writeDebug_(std::string("scan: ") + StringUtils::toStr(scan_number) + std::string("  RT: ") + StringUtils::toStr(peptide_ids_seq[j].getRT()) + "  MZ: " + StringUtils::toStr(peptide_ids_seq[j].getMZ()) + "  Ident: " + peptide_ids_seq[j].getIdentifier(), 4);
 
             peptide_identifications.push_back(peptide_ids_seq[j]);
           }
@@ -376,7 +376,7 @@ protected:
         }
         catch (...)
         {
-          writeLogError_(StringUtils::toStr("Error reading file: ") + *in_files_it);
+          writeLogError_(std::string("Error reading file: ") + *in_files_it);
           throw;
         }
       }

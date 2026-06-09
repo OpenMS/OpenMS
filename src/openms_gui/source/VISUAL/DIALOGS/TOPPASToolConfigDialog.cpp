@@ -117,7 +117,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      QMessageBox::critical(this, "Error", (StringUtils::toStr("Error loading INI file: ") + e.what()).c_str());
+      QMessageBox::critical(this, "Error", (std::string("Error loading INI file: ") + e.what()).c_str());
       arg_param_.clear();
       return;
     }
@@ -179,13 +179,13 @@ namespace OpenMS
 
       if (QProcess::execute(executable, args) != 0)
       {
-        QMessageBox::critical(nullptr, "Error", (StringUtils::toStr("Could not execute '\"")  + fromQString(executable) + "\" \"" + fromQString(args.join("\" \"")) + "\"'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+        QMessageBox::critical(nullptr, "Error", (std::string("Could not execute '\"")  + fromQString(executable) + "\" \"" + fromQString(args.join("\" \"")) + "\"'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
         return;
       }
     }
     catch (Exception::BaseException& e)
     {
-      QMessageBox::critical(this, "Error", (StringUtils::toStr("Error storing INI file: ") + e.what()).c_str());
+      QMessageBox::critical(this, "Error", (std::string("Error storing INI file: ") + e.what()).c_str());
       return;
     }
   }

@@ -179,7 +179,7 @@ namespace OpenMS
     {
       s += sorted_e_cnt.second;
     }
-    s +=StringUtils::toStr("]");
+    s +=std::string("]");
     s += std::abs(charge) > 1 ? StringUtils::toStr(std::abs(charge)) : "";
     s += charge_sign;
 

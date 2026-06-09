@@ -36,11 +36,11 @@ START_SECTION((TextFile(const std::string& filename, bool trim_lines = false, In
   // just some basic stuff, since the C'Tor calls load() directly
   TextFile file(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
   TextFile::ConstIterator file_it = file.begin();
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "first_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "first_line", true)
   file_it += 3;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "middle_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "middle_line", true)
   file_it += 7;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "last_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "last_line", true)
   TEST_EQUAL((file.end() - file.begin()), 11)
 
   TextFile file2(OPENMS_GET_TEST_DATA_PATH("TextFile_test_empty_infile.txt"));
@@ -60,77 +60,77 @@ START_SECTION((void load(const std::string& filename, bool trim_lines = false, I
   file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
   TEST_EQUAL((file.end() - file.begin()), 11)
   TextFile::ConstIterator file_it = file.begin();
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "first_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "first_line", true)
   file_it += 3;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "middle_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "middle_line", true)
   file_it += 7;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "last_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "last_line", true)
 
   //trimmed
   file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true);
   TEST_EQUAL((file.end() - file.begin()), 11)
   file_it = file.begin();
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "first_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "first_line", true)
   file_it += 3;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "middle_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "middle_line", true)
   file_it += 2;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "space_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "space_line", true)
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "tab_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "tab_line", true)
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "back_space_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "back_space_line", true)
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "back_tab_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "back_tab_line", true)
   file_it += 2;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "last_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "last_line", true)
 
   //only first few
   file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true,1);
   TEST_EQUAL((file.end() - file.begin()), 1)
   file_it = file.begin();
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "first_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "first_line", true)
 
   file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true,3);
   TEST_EQUAL((file.end() - file.begin()), 3)
   file_it = file.begin();
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "first_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "first_line", true)
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)).empty(), true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)).empty(), true)
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)).empty(), true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)).empty(), true)
 
   file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true,4);
   TEST_EQUAL((file.end() - file.begin()), 4)
   file_it = file.begin();
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "first_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "first_line", true)
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)).empty(), true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)).empty(), true)
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)).empty(), true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)).empty(), true)
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "middle_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "middle_line", true)
 
   file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true, -1, true);
   TEST_EQUAL((file.end() - file.begin()), 7)
   file_it = file.begin();
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "first_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "first_line", true)
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "middle_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "middle_line", true)
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "space_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "space_line", true)
   file_it += 4;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "last_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "last_line", true)
 
   file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true, 4, true);
   TEST_EQUAL((file.end() - file.begin()), 4)
   file_it = file.begin();
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "first_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "first_line", true)
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "middle_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "middle_line", true)
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "space_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "space_line", true)
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "tab_line", true)
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "tab_line", true)
 END_SECTION
 
 START_SECTION((void store(const std::string& filename) ))
@@ -148,11 +148,11 @@ START_SECTION((void store(const std::string& filename) ))
 
   // validate loaded content
   TextFile::ConstIterator file_it = file.begin();
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "line1",true);
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "line1",true);
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "line2",true);
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "line2",true);
   ++file_it;
-  TEST_EQUAL(StringUtils::trimmed(StringUtils::toStr(*file_it)) == "line3",true);
+  TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "line3",true);
 END_SECTION
 
 

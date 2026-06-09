@@ -1773,7 +1773,7 @@ std::map<std::string, std::string> ProteinIdentificationArrowIO::synthesizeRunId
     const std::string se = prot_id.getSearchEngine().empty() ? std::string("unknown") : prot_id.getSearchEngine();
     const std::string dt = prot_id.getDateTime().isValid()
                           ? prot_id.getDateTime().toString()
-                          : StringUtils::toStr("1900-01-01T00:00:00");
+                          : std::string("1900-01-01T00:00:00");
     const std::string stored = prot_id.getIdentifier();
     const std::string synthesized = se + "_" + dt + "_" + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
 

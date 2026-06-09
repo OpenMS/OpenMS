@@ -67,14 +67,14 @@ namespace OpenMS::Internal
         //check if the term is unknown
         if (!cv_.exists(parsed_term.accession))
         {
-          warnings_.push_back(StringUtils::toStr("Unknown CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
+          warnings_.push_back(std::string("Unknown CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
           return;
         }
 
         //check if the term is obsolete
         if (cv_.getTerm(parsed_term.accession).obsolete)
         {
-          warnings_.push_back(StringUtils::toStr("Obsolete CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
+          warnings_.push_back(std::string("Obsolete CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
         }
 
         //actual handling of the term
@@ -101,7 +101,7 @@ namespace OpenMS::Internal
       {
         StringUtils::concatenate(path, open_tags_.begin(), open_tags_.end() - remove_from_end, "/");
       }
-      path =StringUtils::toStr("/") + path;
+      path =std::string("/") + path;
       return path;
     }
 
@@ -137,7 +137,7 @@ namespace OpenMS::Internal
         {
           if (!ListUtils::contains(cv_.getTerm(binary_data_array_).xref_binary, binary_data_type_))
           {
-            errors_.push_back(StringUtils::toStr("Binary data array of type '") + binary_data_array_ + " ! " + cv_.getTerm(binary_data_array_).name + "' cannot have the value type '" + binary_data_type_ + " ! " + cv_.getTerm(binary_data_type_).name + "'.");
+            errors_.push_back(std::string("Binary data array of type '") + binary_data_array_ + " ! " + cv_.getTerm(binary_data_array_).name + "' cannot have the value type '" + binary_data_type_ + " ! " + cv_.getTerm(binary_data_type_).name + "'.");
           }
         }
       }

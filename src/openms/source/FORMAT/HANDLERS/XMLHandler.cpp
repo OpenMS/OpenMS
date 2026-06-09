@@ -83,25 +83,25 @@ namespace OpenMS::Internal
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =StringUtils::toStr("While loading '") + file_ + "': " + msg;
+        error_message =std::string("While loading '") + file_ + "': " + msg;
 	      // test if file has the wrong extension and is therefore passed to the wrong parser
         // only makes sense if we are loading/parsing a file
 	      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
         FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
         if (ft_name != ft_content)
         {
-          error_message +=StringUtils::toStr("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
+          error_message +=std::string("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
                           + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
                           + "Rename the file to fix this.";
         }
       }
       else if (mode == STORE)
       {
-        error_message =StringUtils::toStr("While storing '") + file_ + "': " + msg;
+        error_message =std::string("While storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message +=StringUtils::toStr("( in line ") + line + " column " + column + ")";
+        error_message +=std::string("( in line ") + line + " column " + column + ")";
       }
 
       OPENMS_LOG_FATAL_ERROR << error_message << std::endl;
@@ -113,15 +113,15 @@ namespace OpenMS::Internal
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =StringUtils::toStr("Non-fatal error while loading '") + file_ + "': " + msg;
+        error_message =std::string("Non-fatal error while loading '") + file_ + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message =StringUtils::toStr("Non-fatal error while storing '") + file_ + "': " + msg;
+        error_message =std::string("Non-fatal error while storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message +=StringUtils::toStr("( in line ") + line + " column " + column + ")";
+        error_message +=std::string("( in line ") + line + " column " + column + ")";
       }
       OPENMS_LOG_ERROR << error_message << std::endl;
     }
@@ -131,15 +131,15 @@ namespace OpenMS::Internal
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =StringUtils::toStr("While loading '") + file_ + "': " + msg;
+        error_message =std::string("While loading '") + file_ + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message =StringUtils::toStr("While storing '") + file_ + "': " + msg;
+        error_message =std::string("While storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message +=StringUtils::toStr("( in line ") + line + " column " + column + ")";
+        error_message +=std::string("( in line ") + line + " column " + column + ")";
       }
 
 // warn only in Debug mode but suppress warnings in release mode (more happy users)
@@ -178,7 +178,7 @@ namespace OpenMS::Internal
       }
       else
       {
-        warning(LOAD,StringUtils::toStr("Unexpected CV entry '") + message + "'='" + term + "'");
+        warning(LOAD,std::string("Unexpected CV entry '") + message + "'='" + term + "'");
         return result_on_error;
       }
     }
@@ -213,11 +213,11 @@ namespace OpenMS::Internal
         // check if term name and parsed name match
         if (name != term.name) 
         {
-          warning(LOAD,StringUtils::toStr("Name of CV term not correct: '") + term.id + " - " + name + "' should be '" + term.name + "'");
+          warning(LOAD,std::string("Name of CV term not correct: '") + term.id + " - " + name + "' should be '" + term.name + "'");
         }
         if (term.obsolete)
         {
-          warning(LOAD,StringUtils::toStr("Obsolete CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Obsolete CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "'.");
         }
         // values used in wrong places and wrong value types
         if (!value.empty())
@@ -227,7 +227,7 @@ namespace OpenMS::Internal
             // Quality CV does not state value type :(
             if (!StringUtils::hasPrefix(accession, "PATO:"))
             {
-              warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
+              warning(LOAD,std::string("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
             }
           }
           else
@@ -250,7 +250,7 @@ namespace OpenMS::Internal
                 }
                 catch (Exception::ConversionError&)
                 {
-                  warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
+                  warning(LOAD,std::string("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
                   return DataValue::EMPTY;
                 }
                 break;
@@ -263,7 +263,7 @@ namespace OpenMS::Internal
                 }
                 catch (Exception::ConversionError&)
                 {
-                  warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
+                  warning(LOAD,std::string("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
                   return DataValue::EMPTY;
                 }
                 break;
@@ -277,7 +277,7 @@ namespace OpenMS::Internal
                 }
                 catch (Exception::ParseError&)
                 {
-                  warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
+                  warning(LOAD,std::string("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
                   return DataValue::EMPTY;
                 }
                 break;
@@ -290,13 +290,13 @@ namespace OpenMS::Internal
                 }
                 catch (Exception::ConversionError&)
                 {
-                  warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a boolean value (true/false). The value is '" + value + "'.");
+                  warning(LOAD,std::string("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a boolean value (true/false). The value is '" + value + "'.");
                   return DataValue::EMPTY;
                 }
                 break;
 
               default:
-                warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' has the unknown value type '" +
+                warning(LOAD,std::string("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' has the unknown value type '" +
                                 ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
                 break;
             }
@@ -307,7 +307,7 @@ namespace OpenMS::Internal
                  !cv.isChildOf(accession, "MS:1000513") // here the value type relates to the binary data array, not the 'value=' attribute!
         )
         {
-          warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
+          warning(LOAD,std::string("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
           return DataValue::EMPTY;
         }
       }
@@ -316,7 +316,7 @@ namespace OpenMS::Internal
         // in 'sample' several external CVs are used (Brenda, GO, ...). Do not warn then.
         if (parent_tag != "sample")
         {
-          warning(LOAD,StringUtils::toStr("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
           return DataValue::EMPTY;
         }
       }
@@ -335,7 +335,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          warning(LOAD,StringUtils::toStr("Unhandled unit '") + unit_accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled unit '") + unit_accession + "' in tag '" + parent_tag + "'.");
         }
       }
 

@@ -583,7 +583,7 @@ namespace OpenMS
 
         if (it_last_MS2 == ms_exp_data.end())
         { // this only happens if an MS3 spec does not have a preceding MS2
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("No MS2 precursor information given for MS3 scan native ID ") + it->getNativeID() + " with RT " + StringUtils::toStr(it->getRT()));
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("No MS2 precursor information given for MS3 scan native ID ") + it->getNativeID() + " with RT " + StringUtils::toStr(it->getRT()));
         }
       }
       else
@@ -594,7 +594,7 @@ namespace OpenMS
       // check if MS1 precursor info is available
       if (it_last_MS2->getPrecursors().empty())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + StringUtils::toStr(it->getRT()));
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + StringUtils::toStr(it->getRT()));
       }
 
       // store RT of MS2 scan and MZ of MS1 precursor ion as centroid of ConsensusFeature
@@ -672,7 +672,7 @@ namespace OpenMS
       // check featureHandles are not empty
       if (overall_intensity <= 0)
       {
-        cf.setMetaValue("all_empty",StringUtils::toStr("true"));
+        cf.setMetaValue("all_empty",std::string("true"));
       }
       // add purity information if we could compute it
       if (precursor_purity > 0.0)

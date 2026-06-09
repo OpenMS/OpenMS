@@ -30,8 +30,8 @@ AbsoluteQuantitationStandards::runConcentration run;
 for (Size i = 0; i < 10; ++i)
 {
   run.sample_name = i < 5 ? std::string("sample1") : std::string("sample2");
-  run.component_name =StringUtils::toStr("component") + i;
-  run.IS_component_name =StringUtils::toStr("IS_component") + i;
+  run.component_name =std::string("component") + i;
+  run.IS_component_name =std::string("IS_component") + i;
   run.actual_concentration = i;
   run.IS_actual_concentration = i * 1.1;
   run.concentration_units = "uM";
@@ -60,9 +60,9 @@ fm.setPrimaryMSRunPath({"sample1.mzML"});
 for (Size i = 0; i < 5; ++i)
 {
   Feature f;
-  f.setMetaValue("native_id",StringUtils::toStr("component") + i);
+  f.setMetaValue("native_id",std::string("component") + i);
   subordinates.push_back(f);
-  f.setMetaValue("native_id",StringUtils::toStr("IS_component") + i);
+  f.setMetaValue("native_id",std::string("IS_component") + i);
   subordinates.push_back(f);
 }
 feature.setSubordinates(subordinates);
@@ -73,9 +73,9 @@ fmaps.push_back(fm);
 
 fm.setPrimaryMSRunPath({"sample2.txt"});
 Feature f;
-f.setMetaValue("native_id",StringUtils::toStr("component10"));
+f.setMetaValue("native_id",std::string("component10"));
 subordinates.push_back(f);
-f.setMetaValue("native_id",StringUtils::toStr("component0"));
+f.setMetaValue("native_id",std::string("component0"));
 subordinates.push_back(f);
 feature.setSubordinates(subordinates);
 fm.push_back(feature);
@@ -108,9 +108,9 @@ START_SECTION(void mapComponentsToConcentrations(
   std::vector<AbsoluteQuantitationStandards::featureConcentration> fc;
   for (Size i = 0; i < 5; ++i)
   {
-    fc = m.at(StringUtils::toStr("component") + i);
-    TEST_EQUAL(fc[0].feature.getMetaValue("native_id"),StringUtils::toStr("component") + i)
-    TEST_EQUAL(fc[0].IS_feature.getMetaValue("native_id"),StringUtils::toStr("IS_component") + i)
+    fc = m.at(std::string("component") + i);
+    TEST_EQUAL(fc[0].feature.getMetaValue("native_id"),std::string("component") + i)
+    TEST_EQUAL(fc[0].IS_feature.getMetaValue("native_id"),std::string("IS_component") + i)
   }
   fc = m.at("component10");
   TEST_EQUAL(fc.size(), 1)

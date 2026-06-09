@@ -63,16 +63,16 @@ fia_processor.setParameters(p);
 
 MSExperiment exp;
 MzMLFile mzml;
-mzml.load(StringUtils::toStr(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + ".mzML", exp);
+mzml.load(std::string(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + ".mzML", exp);
 
 MSExperiment exp_merged;
 MzMLFile mzml_merged;
-mzml.load(StringUtils::toStr(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + "_merged.mzML", exp_merged);
+mzml.load(std::string(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + "_merged.mzML", exp_merged);
 MSSpectrum spec_merged = exp_merged.getSpectra()[0];
 
 MSExperiment exp_picked;
 MzMLFile mzml_picked;
-mzml.load(StringUtils::toStr(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + "_picked.mzML", exp_picked);
+mzml.load(std::string(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + "_picked.mzML", exp_picked);
 MSSpectrum spec_picked = exp_picked.getSpectra()[0];
 
 PeakMap input;

@@ -267,7 +267,7 @@ namespace OpenMS
     if (mod == nullptr) mod = searchModificationsFast(mod_name, multiple_matches, residue, term_spec);
     if (mod == nullptr)
     {
-      std::string message =StringUtils::toStr("Retrieving the modification failed. It is not available for the residue '") + residue 
+      std::string message =std::string("Retrieving the modification failed. It is not available for the residue '") + residue 
         + "' and term specificity '" + ResidueModification().getTermSpecificityName(term_spec) + "'. ";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message, mod_name);
     }

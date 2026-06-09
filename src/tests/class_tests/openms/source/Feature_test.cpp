@@ -339,11 +339,11 @@ END_SECTION
 START_SECTION(([EXTRA]meta info with copy constructor))
 {
   Feature p;
-  p.setMetaValue(2,StringUtils::toStr("bla"));
+  p.setMetaValue(2,std::string("bla"));
   Feature p2(p);
   TEST_EQUAL(p.getMetaValue(2), "bla")
   TEST_EQUAL(p2.getMetaValue(2), "bla")
-  p.setMetaValue(2,StringUtils::toStr("bluff"));
+  p.setMetaValue(2,std::string("bluff"));
   TEST_EQUAL(p.getMetaValue(2), "bluff")
   TEST_EQUAL(p2.getMetaValue(2), "bla")
 }
@@ -352,11 +352,11 @@ END_SECTION
 START_SECTION(([EXTRA]meta info with assignment))
 {
   Feature p;
-  p.setMetaValue(2,StringUtils::toStr("bla"));
+  p.setMetaValue(2,std::string("bla"));
   Feature p2 = p;
   TEST_EQUAL(p.getMetaValue(2), "bla")
   TEST_EQUAL(p2.getMetaValue(2), "bla")
-  p.setMetaValue(2,StringUtils::toStr("bluff"));
+  p.setMetaValue(2,std::string("bluff"));
   TEST_EQUAL(p.getMetaValue(2), "bluff")
   TEST_EQUAL(p2.getMetaValue(2), "bla")
 }

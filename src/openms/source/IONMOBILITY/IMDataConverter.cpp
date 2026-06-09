@@ -167,7 +167,7 @@ namespace OpenMS
     const auto range_IM = RangeMobility(in.spectrumRanges());
     if (range_IM.getSpan() / number_of_bins < bin_extension_abs * 2)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Bin size (") + StringUtils::toStr(range_IM.getSpan() / number_of_bins) + ") is smaller than the overlap.",StringUtils::toStr(bin_extension_abs*2));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Bin size (") + StringUtils::toStr(range_IM.getSpan() / number_of_bins) + ") is smaller than the overlap.",StringUtils::toStr(bin_extension_abs*2));
     }
 
     // compute the bins
@@ -181,7 +181,7 @@ namespace OpenMS
     const auto ms_levels = in.getMSLevels();
     p.setValue("block_method:ms_levels", IntList(ms_levels.begin(), ms_levels.end())); // merge all MS levels
     p.setValue("mz_binning_width", mz_binning_width);
-    p.setValue("mz_binning_width_unit",StringUtils::toStr(MZ_UNIT_NAMES[(int)mz_binning_width_unit]));
+    p.setValue("mz_binning_width_unit",std::string(MZ_UNIT_NAMES[(int)mz_binning_width_unit]));
     p.setValue("block_method:rt_block_size", INT_MAX);
     p.setValue("block_method:rt_max_length", 10e10);
 

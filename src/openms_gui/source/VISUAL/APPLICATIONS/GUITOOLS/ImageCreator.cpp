@@ -336,7 +336,7 @@ protected:
     std::string gradient_str = getStringOption_("gradient");
     if (!gradient_str.empty())
     {
-      gradient.fromString(StringUtils::toStr("Linear|") + gradient_str);
+      gradient.fromString(std::string("Linear|") + gradient_str);
     }
     else if (use_log)
     {

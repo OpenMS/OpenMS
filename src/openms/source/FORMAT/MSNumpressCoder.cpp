@@ -261,7 +261,7 @@ namespace OpenMS
       }
       else
       {
-        result =StringUtils::toStr(std::string(reinterpret_cast<const char*>(&numpressed[0]), byteCount));
+        result =std::string(std::string(reinterpret_cast<const char*>(&numpressed[0]), byteCount));
         // Other solution:
         // http://stackoverflow.com/questions/2840835/way-to-get-unsigned-char-into-a-stdstring-without-reinterpret-cast
         // result =StringUtils::toStr( std::string(&numpressed[0], &numpressed[0] + byteCount) );

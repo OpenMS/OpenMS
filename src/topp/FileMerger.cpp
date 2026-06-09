@@ -438,7 +438,7 @@ protected:
 
         if (in.empty() && in.getChromatograms().empty())
         {
-          writeLogWarn_(StringUtils::toStr("Warning: Empty file '") + filename + "'!");
+          writeLogWarn_(std::string("Warning: Empty file '") + filename + "'!");
           continue;
         }
         out.reserve(out.size() + in.size());
@@ -446,7 +446,7 @@ protected:
         // warn if custom RT and more than one scan in input file
         if (rt_custom && in.size() > 1)
         {
-          writeLogWarn_(StringUtils::toStr("Warning: More than one scan in file '") + filename + "'! All scans will have the same retention time!");
+          writeLogWarn_(std::string("Warning: More than one scan in file '") + filename + "'! All scans will have the same retention time!");
         }
 
         // handle special raw data options:
@@ -468,7 +468,7 @@ protected:
             bool found = boost::regex_search(filename, match, re);
             if (found)
             {
-              rt_final =StringUtils::toFloat(StringUtils::toStr(match[1]));
+              rt_final =StringUtils::toFloat(std::string(match[1]));
             }
             else
             {
@@ -479,7 +479,7 @@ protected:
           // none of the rt methods were successful
           if (rt_final < 0)
           {
-            writeLogWarn_(StringUtils::toStr("Warning: No valid retention time for output scan '") + rt_auto + "' from file '" + filename + "'");
+            writeLogWarn_(std::string("Warning: No valid retention time for output scan '") + rt_auto + "' from file '" + filename + "'");
           }
 
           spec.setRT(rt_final);

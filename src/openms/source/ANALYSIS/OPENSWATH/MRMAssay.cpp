@@ -1616,7 +1616,7 @@ namespace OpenMS
         else if (mod.location >= 0 && mod.location < static_cast<int>(aas.size()))
         {
           // Residue modification
-          std::string residue =StringUtils::toStr(aas[mod.location].getOneLetterCode());
+          std::string residue =std::string(aas[mod.location].getOneLetterCode());
           const ResidueModification* res_mod = mod_db->getModification(mod_name, residue, ResidueModification::ANYWHERE);
           if (res_mod)
           {

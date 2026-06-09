@@ -80,14 +80,14 @@ namespace OpenMS
   boost::sregex_token_iterator it1(s.begin(), s.end(), rx_first_number, 1);
   if (it1 != end)
   {
-    pair.first = StringUtils::toInt32(StringUtils::toStr(*it1++));
+    pair.first = StringUtils::toInt32(std::string(*it1++));
   }
 
   boost::regex  rx_second_number(R"(^.*?\[\d+\].*?\[(\d+)\].*$)");
   boost::sregex_token_iterator it2(s.begin(), s.end(), rx_second_number, 1);
   if (it2 != end)
   {
-    pair.second = StringUtils::toInt32(StringUtils::toStr(*it2++));
+    pair.second = StringUtils::toInt32(std::string(*it2++));
   }
 
   return pair;
@@ -245,7 +245,7 @@ namespace OpenMS
 
     if (cells.size() < 3)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Error parsing MzTab line: "  + StringUtils::toStr(s) +  ". Did you forget to use tabulator as separator?");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Error parsing MzTab line: "  + std::string(s) +  ". Did you forget to use tabulator as separator?");
     }
 
     // parse metadata section
@@ -1556,23 +1556,23 @@ namespace OpenMS
 
   void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& md, StringList& sl) const
   {
-  sl.push_back(StringUtils::toStr("MTD\tmzTab-version\t") + md.mz_tab_version.toCellString());
-  sl.push_back(StringUtils::toStr("MTD\tmzTab-mode\t") + md.mz_tab_mode.toCellString());
-  sl.push_back(StringUtils::toStr("MTD\tmzTab-type\t") + md.mz_tab_type.toCellString());
+  sl.push_back(std::string("MTD\tmzTab-version\t") + md.mz_tab_version.toCellString());
+  sl.push_back(std::string("MTD\tmzTab-mode\t") + md.mz_tab_mode.toCellString());
+  sl.push_back(std::string("MTD\tmzTab-type\t") + md.mz_tab_type.toCellString());
 
   if (!md.title.isNull())
   {
-    std::string s =StringUtils::toStr("MTD\ttitle\t") + md.title.toCellString();
+    std::string s =std::string("MTD\ttitle\t") + md.title.toCellString();
     sl.push_back(s);
   }
 
   if (!md.mz_tab_id.isNull())
   {
-    std::string s =StringUtils::toStr("MTD\tmzTab-ID\t") + md.mz_tab_id.toCellString();
+    std::string s =std::string("MTD\tmzTab-ID\t") + md.mz_tab_id.toCellString();
     sl.push_back(s);
   }
 
-  sl.push_back(StringUtils::toStr("MTD\tdescription\t") + md.description.toCellString());
+  sl.push_back(std::string("MTD\tdescription\t") + md.description.toCellString());
 
   for (map<Size, MzTabParameterList>::const_iterator it = md.sample_processing.begin(); it != md.sample_processing.end(); ++it)
   {
@@ -1980,28 +1980,28 @@ namespace OpenMS
   // colunit-protein
   for (Size i = 0; i != md.colunit_protein.size(); ++i)
   {
-    std::string s =StringUtils::toStr("MTD\tcolunit-protein") + md.colunit_protein[i];
+    std::string s =std::string("MTD\tcolunit-protein") + md.colunit_protein[i];
     sl.push_back(s);
   }
 
   // colunit-peptide
   for (Size i = 0; i != md.colunit_peptide.size(); ++i)
   {
-    std::string s =StringUtils::toStr("MTD\tcolunit-peptide") + md.colunit_peptide[i];
+    std::string s =std::string("MTD\tcolunit-peptide") + md.colunit_peptide[i];
     sl.push_back(s);
   }
 
   // colunit-PSM
   for (Size i = 0; i != md.colunit_psm.size(); ++i)
   {
-    std::string s =StringUtils::toStr("MTD\tcolunit-PSM") + md.colunit_psm[i];
+    std::string s =std::string("MTD\tcolunit-PSM") + md.colunit_psm[i];
     sl.push_back(s);
   }
 
   // colunit-small_molecule
   for (Size i = 0; i != md.colunit_small_molecule.size(); ++i)
   {
-    std::string s =StringUtils::toStr("MTD\tcolunit-small_molecule") + md.colunit_small_molecule[i];
+    std::string s =std::string("MTD\tcolunit-small_molecule") + md.colunit_small_molecule[i];
     sl.push_back(s);
   }
   }
@@ -2027,7 +2027,7 @@ namespace OpenMS
 
     for (Size i = 0; i != n_best_search_engine_scores; ++i)
     {
-      header.push_back(StringUtils::toStr("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back(std::string("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
     }
 
     if (n_search_engine_scores != 0)
@@ -2037,7 +2037,7 @@ namespace OpenMS
       {
         for (std::map<Size, std::map<Size, MzTabDouble> >::const_iterator search_it = reference_row.search_engine_score_ms_run.begin(); search_it != reference_row.search_engine_score_ms_run.end(); ++search_it)
         {
-          header.push_back(StringUtils::toStr("search_engine_score[" + StringUtils::toStr(search_it->first) + "]_ms_run[") + StringUtils::toStr(i + 1) + "]");
+          header.push_back(std::string("search_engine_score[" + StringUtils::toStr(search_it->first) + "]_ms_run[") + StringUtils::toStr(i + 1) + "]");
         }
       }
     }
@@ -2049,17 +2049,17 @@ namespace OpenMS
 
     for (std::map<Size, MzTabInteger>::const_iterator it = reference_row.num_psms_ms_run.begin(); it != reference_row.num_psms_ms_run.end(); ++it)
     {
-      header.push_back(StringUtils::toStr("num_psms_ms_run[") + StringUtils::toStr(it->first) + "]");
+      header.push_back(std::string("num_psms_ms_run[") + StringUtils::toStr(it->first) + "]");
     }
 
     for (std::map<Size, MzTabInteger>::const_iterator it = reference_row.num_peptides_distinct_ms_run.begin(); it != reference_row.num_peptides_distinct_ms_run.end(); ++it)
     {
-      header.push_back(StringUtils::toStr("num_peptides_distinct_ms_run[") + StringUtils::toStr(it->first) + "]");
+      header.push_back(std::string("num_peptides_distinct_ms_run[") + StringUtils::toStr(it->first) + "]");
     }
 
     for (std::map<Size, MzTabInteger>::const_iterator it = reference_row.num_peptides_unique_ms_run.begin(); it != reference_row.num_peptides_unique_ms_run.end(); ++it)
     {
-      header.push_back(StringUtils::toStr("num_peptides_unique_ms_run[") + StringUtils::toStr(it->first) + "]");
+      header.push_back(std::string("num_peptides_unique_ms_run[") + StringUtils::toStr(it->first) + "]");
     }
 
     header.push_back("ambiguity_members");
@@ -2079,14 +2079,14 @@ namespace OpenMS
 
     for (const auto& a : meta.assay)
     {
-      header.push_back(StringUtils::toStr("protein_abundance_assay[") + StringUtils::toStr(a.first) + "]");
+      header.push_back(std::string("protein_abundance_assay[") + StringUtils::toStr(a.first) + "]");
     }
 
     for (const auto& s : meta.study_variable)
     {
-      header.push_back(StringUtils::toStr("protein_abundance_study_variable[") + StringUtils::toStr(s.first) + "]");
-      header.push_back(StringUtils::toStr("protein_abundance_stdev_study_variable[") + StringUtils::toStr(s.first) + "]");
-      header.push_back(StringUtils::toStr("protein_abundance_std_error_study_variable[") + StringUtils::toStr(s.first) + "]");
+      header.push_back(std::string("protein_abundance_study_variable[") + StringUtils::toStr(s.first) + "]");
+      header.push_back(std::string("protein_abundance_stdev_study_variable[") + StringUtils::toStr(s.first) + "]");
+      header.push_back(std::string("protein_abundance_std_error_study_variable[") + StringUtils::toStr(s.first) + "]");
     }
 
     std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
@@ -2224,14 +2224,14 @@ namespace OpenMS
 
     for (Size i = 0; i != n_best_search_engine_scores; ++i)
     {
-      header.push_back(StringUtils::toStr("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back(std::string("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
     }
 
     for (Size i = 0; i != search_ms_runs; ++i)
     {
       for (Size j = 0; j != n_search_engine_scores; ++j)
       {
-        header.push_back(StringUtils::toStr("search_engine_score[" + StringUtils::toStr(j + 1) + "]_ms_run[") + StringUtils::toStr(i + 1) + "]");
+        header.push_back(std::string("search_engine_score[" + StringUtils::toStr(j + 1) + "]_ms_run[") + StringUtils::toStr(i + 1) + "]");
       }
     }
 
@@ -2255,14 +2255,14 @@ namespace OpenMS
 
     for (Size i = 0; i != assays; ++i)
     {
-      header.push_back(StringUtils::toStr("peptide_abundance_assay[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back(std::string("peptide_abundance_assay[") + StringUtils::toStr(i + 1) + "]");
     }
 
     for (Size i = 0; i != study_variables; ++i)
     {
-      header.push_back(StringUtils::toStr("peptide_abundance_study_variable[") + StringUtils::toStr(i + 1) + "]");
-      header.push_back(StringUtils::toStr("peptide_abundance_stdev_study_variable[") + StringUtils::toStr(i + 1) + "]");
-      header.push_back(StringUtils::toStr("peptide_abundance_std_error_study_variable[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back(std::string("peptide_abundance_study_variable[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back(std::string("peptide_abundance_stdev_study_variable[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back(std::string("peptide_abundance_std_error_study_variable[") + StringUtils::toStr(i + 1) + "]");
     }
 
     std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
@@ -2465,14 +2465,14 @@ namespace OpenMS
 
     for (Size i = 0; i != n_best_search_engine_scores; ++i)
     {
-      header.push_back(StringUtils::toStr("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back(std::string("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
     }
 
     for (Size i = 0; i != ms_runs; ++i)
     {
       for (Size j = 0; j != n_search_engine_scores; ++j)
       {
-        header.push_back(StringUtils::toStr("search_engine_score[" + StringUtils::toStr(j + 1) + "]_ms_run[") + StringUtils::toStr(i + 1) + "]");
+        header.push_back(std::string("search_engine_score[" + StringUtils::toStr(j + 1) + "]_ms_run[") + StringUtils::toStr(i + 1) + "]");
       }
     }
 
@@ -2480,14 +2480,14 @@ namespace OpenMS
 
     for (Size i = 0; i != assays; ++i)
     {
-      header.push_back(StringUtils::toStr("smallmolecule_abundance_assay[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back(std::string("smallmolecule_abundance_assay[") + StringUtils::toStr(i + 1) + "]");
     }
 
     for (Size i = 0; i != study_variables; ++i)
     {
-      header.push_back(StringUtils::toStr("smallmolecule_abundance_study_variable[") + StringUtils::toStr(i + 1) + "]");
-      header.push_back(StringUtils::toStr("smallmolecule_abundance_stdev_study_variable[") + StringUtils::toStr(i + 1) + "]");
-      header.push_back(StringUtils::toStr("smallmolecule_abundance_std_error_study_variable[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back(std::string("smallmolecule_abundance_study_variable[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back(std::string("smallmolecule_abundance_stdev_study_variable[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back(std::string("smallmolecule_abundance_std_error_study_variable[") + StringUtils::toStr(i + 1) + "]");
     }
 
     // copy optional column names to header
@@ -2581,14 +2581,14 @@ namespace OpenMS
 
     for (Size i = 0; i != n_best_search_engine_scores; ++i)
     {
-      header.push_back(StringUtils::toStr("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back(std::string("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
     }
 
     for (Size i = 0; i != search_ms_runs; ++i)
     {
       for (Size j = 0; j != n_search_engine_scores; ++j)
       {
-        header.push_back(StringUtils::toStr("search_engine_score[" + StringUtils::toStr(j + 1) + "]_ms_run[") + StringUtils::toStr(i + 1) + "]");
+        header.push_back(std::string("search_engine_score[" + StringUtils::toStr(j + 1) + "]_ms_run[") + StringUtils::toStr(i + 1) + "]");
       }
     }
 
@@ -2599,17 +2599,17 @@ namespace OpenMS
 
     for (Size i = 0; i != search_ms_runs; ++i)
     {
-      header.push_back(StringUtils::toStr("num_osms_ms_run[")  + StringUtils::toStr(i) +  "]");
+      header.push_back(std::string("num_osms_ms_run[")  + StringUtils::toStr(i) +  "]");
     }
 
     for (Size i = 0; i != search_ms_runs; ++i)
     {
-      header.push_back(StringUtils::toStr("num_oligos_distinct_ms_run[")  + StringUtils::toStr(i) +  "]");
+      header.push_back(std::string("num_oligos_distinct_ms_run[")  + StringUtils::toStr(i) +  "]");
     }
 
     for (Size i = 0; i != search_ms_runs; ++i)
     {
-      header.push_back(StringUtils::toStr("num_oligos_unique_ms_run[")  + StringUtils::toStr(i) +  "]");
+      header.push_back(std::string("num_oligos_unique_ms_run[")  + StringUtils::toStr(i) +  "]");
     }
 
     header.push_back("ambiguity_members");
@@ -2711,14 +2711,14 @@ namespace OpenMS
 
     for (Size i = 0; i != n_best_search_engine_scores; ++i)
     {
-      header.push_back(StringUtils::toStr("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back(std::string("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
     }
 
     for (Size i = 0; i != search_ms_runs; ++i)
     {
       for (Size j = 0; j != n_search_engine_scores; ++j)
       {
-        header.push_back(StringUtils::toStr("search_engine_score[" + StringUtils::toStr(j + 1) + "]_ms_run[") + StringUtils::toStr(i + 1) + "]");
+        header.push_back(std::string("search_engine_score[" + StringUtils::toStr(j + 1) + "]_ms_run[") + StringUtils::toStr(i + 1) + "]");
       }
     }
 

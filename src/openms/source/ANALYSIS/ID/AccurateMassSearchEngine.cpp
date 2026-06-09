@@ -332,7 +332,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Ion mode cannot be set to '") + ion_mode + "'. Must be 'positive' or 'negative'!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Ion mode cannot be set to '") + ion_mode + "'. Must be 'positive' or 'negative'!");
     }
 
     // If a specific adduct is provided, narrow the range to just that adduct.
@@ -743,13 +743,13 @@ namespace OpenMS
       {
         if (!hmdb_properties_mapping_.contains(r.getMatchingHMDBids()[i]))
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("DB entry '") + r.getMatchingHMDBids()[i] + "' not found in struct file!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("DB entry '") + r.getMatchingHMDBids()[i] + "' not found in struct file!");
         }
         // get name from index 0 (2nd column in structMapping file)
         HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(r.getMatchingHMDBids()[i]);
         if  (entry == hmdb_properties_mapping_.end())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("DB entry '") + r.getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("DB entry '") + r.getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
         }
 
         double mass_error_Da = r.getObservedMZ() - r.getCalculatedMZ();
@@ -820,13 +820,13 @@ namespace OpenMS
       { // mapping ok?
         if (!hmdb_properties_mapping_.contains(result.getMatchingHMDBids()[i]))
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("DB entry '") + result.getMatchingHMDBids()[i] + "' not found in struct file!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("DB entry '") + result.getMatchingHMDBids()[i] + "' not found in struct file!");
         }
         // get name from index 0 (2nd column in structMapping file)
         HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(result.getMatchingHMDBids()[i]);
         if  (entry == hmdb_properties_mapping_.end())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("DB entry '") + result.getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("DB entry '") + result.getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
         }
         names.push_back(entry->second[0]);
       }
@@ -1173,7 +1173,7 @@ namespace OpenMS
               std::string mt_int_str = ListUtils::concatenate(mt_int_strlist, ",");
 
               MzTabOptionalColumnEntry col_mt;
-              col_mt.first =StringUtils::toStr("opt_global_MTint");
+              col_mt.first =std::string("opt_global_MTint");
               col_mt.second = MzTabString(mt_int_str);
               optionals.push_back(col_mt);
           }
@@ -1289,7 +1289,7 @@ namespace OpenMS
           }
           else
           {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Mapping file (") + filename + "') must contain \"database_name\t{NAME}\" as first line.!", line);
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Mapping file (") + filename + "') must contain \"database_name\t{NAME}\" as first line.!", line);
           }
         }
         else if (line_count == 2)
@@ -1303,7 +1303,7 @@ namespace OpenMS
           }
           else
           {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Mapping file (") + filename + "') must contain \"database_version\t{VERSION}\" as second line.!", line);
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Mapping file (") + filename + "') must contain \"database_version\t{VERSION}\" as second line.!", line);
           }
         }
 
@@ -1342,7 +1342,7 @@ namespace OpenMS
 
         if (entry.massIDs.empty())
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("File '") + filename + "' in line " + line_count + " as '" + line + "' cannot be parsed. Found " + word_count + " entries, expected at least three!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("File '") + filename + "' in line " + line_count + " as '" + line + "' cannot be parsed. Found " + word_count + " entries, expected at least three!");
         }
         mass_mappings_.push_back(entry);
       }
@@ -1385,13 +1385,13 @@ namespace OpenMS
 
           if (hmdb_properties_mapping_.contains(hmdb_id_key))
           {
-            throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("File '") + filename + "' in line '" + line + "' cannot be parsed. The ID entry was already used (see above)!");
+            throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("File '") + filename + "' in line '" + line + "' cannot be parsed. The ID entry was already used (see above)!");
           }
           std::copy(parts.begin() + 1, parts.end(), std::back_inserter(hmdb_properties_mapping_[hmdb_id_key]));
         }
         else
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("File '") + filename + "' in line '" + line + "' cannot be parsed. Expected four entries separated by tab. Found " + parts.size() + " entries!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("File '") + filename + "' in line '" + line + "' cannot be parsed. Expected four entries separated by tab. Found " + parts.size() + " entries!");
         }
       }
     }

@@ -1400,7 +1400,7 @@ namespace OpenMS
       }
       else if (scannr_ != 0)
       {
-        current_peptide_.setSpectrumReference(StringUtils::toStr("scan=") + StringUtils::toStr(scannr_));
+        current_peptide_.setSpectrumReference(std::string("scan=") + StringUtils::toStr(scannr_));
       }
       //TODO else error?
       
@@ -1578,7 +1578,7 @@ namespace OpenMS
           }
           else
           {
-            error(LOAD,StringUtils::toStr("Cannot find N-terminal modification with mass " + StringUtils::toStr(mod_nterm_mass) + "."));
+            error(LOAD,std::string("Cannot find N-terminal modification with mass " + StringUtils::toStr(mod_nterm_mass) + "."));
           }
           //TODO we should create and register a mod here
         }
@@ -1631,7 +1631,7 @@ namespace OpenMS
           }
           else
           {
-            error(LOAD,StringUtils::toStr("Cannot find N-terminal modification with mass " + StringUtils::toStr(mod_nterm_mass) + "."));
+            error(LOAD,std::string("Cannot find N-terminal modification with mass " + StringUtils::toStr(mod_nterm_mass) + "."));
           }
           //TODO we should create and register a mod here
         }
@@ -1736,7 +1736,7 @@ namespace OpenMS
           {
             if (mods.size() > 1)
             {
-              warning(LOAD,StringUtils::toStr("Modification '") + StringUtils::toStr(modification_mass) + "' of residue " + StringUtils::toStr(origin) + " at position "
+              warning(LOAD,std::string("Modification '") + StringUtils::toStr(modification_mass) + "' of residue " + std::string(origin) + " at position "
               + StringUtils::toStr(modification_position) + " in '" + current_sequence_ + "' not registered in pepXML header nor uniquely defined in DB." +
               " Using " + mods[0]->getFullId());
               current_modifications_.emplace_back(mods[0], modification_position - 1);

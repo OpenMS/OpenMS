@@ -267,7 +267,7 @@ namespace OpenMS
       map<pair<std::string, unsigned>, unsigned> ret;
       for (MSFileSectionEntry const& r : msfile_section_)
       {
-        const std::string path =StringUtils::toStr(r.path);
+        const std::string path =std::string(r.path);
         const pair<std::string, unsigned> tpl = make_pair((basename ? File::basename(path) : path), r.label);
         const unsigned mapped_value = f(r);
         const auto [it, inserted] = ret.emplace(tpl, mapped_value);
@@ -332,7 +332,7 @@ namespace OpenMS
         {
           for (auto &sample : condition.second)
           {
-            res.emplace(StringUtils::toStr(sample), s);
+            res.emplace(std::string(sample), s);
           }
           ++s;
         }
@@ -615,7 +615,7 @@ namespace OpenMS
       std::vector<std::string> filenames;
       for (const MSFileSectionEntry& row : msfile_section_)
       {
-        const std::string path =StringUtils::toStr(row.path);
+        const std::string path =std::string(row.path);
         filenames.push_back(basename ? File::basename(path) : path);
       }
       return filenames;
@@ -664,7 +664,7 @@ namespace OpenMS
         errorIfAlreadyExists(
           path_label_set,
           path_label,
-          "(Path, Label) combination (" + StringUtils::toStr(get<0>(path_label)) + "," + StringUtils::toStr(get<1>(path_label)) + ") can only appear once");
+          "(Path, Label) combination (" + std::string(get<0>(path_label)) + "," + StringUtils::toStr(get<1>(path_label)) + ") can only appear once");
 
         // FRACTIONGROUP_LABEL TUPLE
         std::tuple<unsigned, unsigned> fractiongroup_label = std::make_tuple(row.fraction_group, row.label);

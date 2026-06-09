@@ -104,7 +104,7 @@ namespace OpenMS
       return result;
     }
 
-    result.pre_release_identifier =StringUtils::toStr(StringUtils::substr(version, pre_release_dash + 1, version.size() - (pre_release_dash + 1)));
+    result.pre_release_identifier =std::string(StringUtils::substr(version, pre_release_dash + 1, version.size() - (pre_release_dash + 1)));
 
     return result;
   }
@@ -115,7 +115,7 @@ namespace OpenMS
     static std::string result;
     if (!is_initialized)
     {
-      result =StringUtils::toStr(__DATE__) + ", " + __TIME__;
+      result =std::string(__DATE__) + ", " + __TIME__;
       is_initialized = true;
     }
     return result;
@@ -148,12 +148,12 @@ namespace OpenMS
 
   std::string VersionInfo::getRevision()
   {
-    return StringUtils::toStr(OPENMS_GIT_SHA1);
+    return std::string(OPENMS_GIT_SHA1);
   }
 
   std::string VersionInfo::getBranch()
   {
-    return StringUtils::toStr(OPENMS_GIT_BRANCH);
+    return std::string(OPENMS_GIT_BRANCH);
   }
 
 }

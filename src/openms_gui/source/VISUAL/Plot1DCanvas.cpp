@@ -357,7 +357,7 @@ namespace OpenMS
         Annotation1DDistanceItem * distance_item = dynamic_cast<Annotation1DDistanceItem *>(item);
         if (distance_item)
         {
-          emit sendStatusMessage(StringUtils::toStr("Measured: d") + StringUtils::toStr(getNonGravityDim().getDimNameShort()) +  "= " + StringUtils::toStr(distance_item->getDistance()), 0);
+          emit sendStatusMessage(std::string("Measured: d") + std::string(getNonGravityDim().getDimNameShort()) +  "= " + StringUtils::toStr(distance_item->getDistance()), 0);
         }
       }
       else
@@ -620,7 +620,7 @@ namespace OpenMS
 
     // clear
     painter->fillRect(0, 0, this->width(), this->height(),
-                      QColor(toQString(StringUtils::toStr(param_.getValue("background_color").toString()))));
+                      QColor(toQString(std::string(param_.getValue("background_color").toString()))));
 
     // we are done if no layer is present
     if (getLayerCount() == 0)
@@ -719,7 +719,7 @@ namespace OpenMS
     if (!peak.isValid()) return;
     const auto sel_xy = getLayer(layer_index).peakIndexToXY(peak, unit_mapper_);
 
-    painter.setPen(QPen(QColor(toQString(StringUtils::toStr(param_.getValue("highlighted_peak_color").toString()))), 2));
+    painter.setPen(QPen(QColor(toQString(std::string(param_.getValue("highlighted_peak_color").toString()))), 2));
 
     recalculatePercentageFactor_(layer_index);
 
@@ -736,7 +736,7 @@ namespace OpenMS
     if (draw_elongation)
     {
       QPoint top_end = (getLayer(layer_index).flipped) ? gr_.gravitateMax(begin, canvasPixelArea()) : gr_.gravitateMin(begin, canvasPixelArea());
-      Painter1DBase::drawDashedLine(begin, top_end, &painter, toQString(StringUtils::toStr(param_.getValue("highlighted_peak_color").toString())));
+      Painter1DBase::drawDashedLine(begin, top_end, &painter, toQString(std::string(param_.getValue("highlighted_peak_color").toString())));
     }
   }
 
@@ -906,11 +906,11 @@ namespace OpenMS
     ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
     ColorSelector* selected_color = dlg.findChild<ColorSelector*>("selected_color");
 
-    peak_color->setColor(QColor(toQString(StringUtils::toStr(layer.param.getValue("peak_color").toString()))));
-    icon_color->setColor(QColor(toQString(StringUtils::toStr(layer.param.getValue("icon_color").toString()))));
-    annotation_color->setColor(QColor(toQString(StringUtils::toStr(layer.param.getValue("annotation_color").toString()))));
-    bg_color->setColor(QColor(toQString(StringUtils::toStr(param_.getValue("background_color").toString()))));
-    selected_color->setColor(QColor(toQString(StringUtils::toStr(param_.getValue("highlighted_peak_color").toString()))));
+    peak_color->setColor(QColor(toQString(std::string(layer.param.getValue("peak_color").toString()))));
+    icon_color->setColor(QColor(toQString(std::string(layer.param.getValue("icon_color").toString()))));
+    annotation_color->setColor(QColor(toQString(std::string(layer.param.getValue("annotation_color").toString()))));
+    bg_color->setColor(QColor(toQString(std::string(param_.getValue("background_color").toString()))));
+    selected_color->setColor(QColor(toQString(std::string(param_.getValue("highlighted_peak_color").toString()))));
 
     if (dlg.exec())
     {
@@ -950,7 +950,7 @@ namespace OpenMS
     else // !annot_item
     {
       //Display name and warn if current layer invisible
-      std::string layer_name =StringUtils::toStr("Layer: ") + getCurrentLayer().getName();
+      std::string layer_name =std::string("Layer: ") + getCurrentLayer().getName();
       if (!getCurrentLayer().visible)
       {
         layer_name += " (invisible)";
@@ -968,10 +968,10 @@ namespace OpenMS
         addUserPeakAnnotation_(near_peak);
       })->setEnabled(near_peak.isValid());
       
-      context_menu->addAction(toQString((StringUtils::toStr("Add peak annotation ") + StringUtils::toStr(StringUtils::toStr(getNonGravityDim().getDimNameShort())))), [&]() {
+      context_menu->addAction(toQString((std::string("Add peak annotation ") + std::string(std::string(getNonGravityDim().getDimNameShort())))), [&]() {
         const auto xy_point = getCurrentLayer().peakIndexToXY(near_peak, unit_mapper_);
         QString label = toQString(getNonGravityDim().formattedValue(gr_.swap().gravityValue(xy_point)));
-        addPeakAnnotation(near_peak, label, toQString(StringUtils::toStr(getCurrentLayer().param.getValue("peak_color").toString())));
+        addPeakAnnotation(near_peak, label, toQString(std::string(getCurrentLayer().param.getValue("peak_color").toString())));
       })->setEnabled(near_peak.isValid());
       
       context_menu->addSeparator();
@@ -1130,7 +1130,7 @@ namespace OpenMS
     QString text = QInputDialog::getText(this, "Add peak annotation", "Enter text:", QLineEdit::Normal, "", &ok);
     if (ok && !text.isEmpty())
     {
-      addPeakAnnotation(near_peak, text, QColor(toQString(StringUtils::toStr(getCurrentLayer().param.getValue("peak_color").toString()))));
+      addPeakAnnotation(near_peak, text, QColor(toQString(std::string(getCurrentLayer().param.getValue("peak_color").toString()))));
     }
   }
 

@@ -906,7 +906,7 @@ START_SECTION((bool operator==(const MSChromatogram &rhs) const ))
   TEST_EQUAL(edit==empty,false);
 
   edit = empty;
-  edit.setMetaValue("label",StringUtils::toStr("bla"));
+  edit.setMetaValue("label",std::string("bla"));
   TEST_EQUAL(empty==edit, false);
 
   Product prod;
@@ -956,7 +956,7 @@ START_SECTION((bool operator!=(const MSChromatogram &rhs) const ))
   TEST_EQUAL(edit!=empty,true);
 
   edit = empty;
-  edit.setMetaValue("label",StringUtils::toStr("bla"));
+  edit.setMetaValue("label",std::string("bla"));
   TEST_EQUAL(edit!=empty,true);
 
   Product prod;
@@ -1022,7 +1022,7 @@ START_SECTION(void clear(bool clear_meta_data))
   MSChromatogram edit;
   edit.getInstrumentSettings().getScanWindows().resize(1);
   edit.resize(1);
-  edit.setMetaValue("label",StringUtils::toStr("bla"));
+  edit.setMetaValue("label",std::string("bla"));
   edit.getProduct().setMZ(5);
   edit.getFloatDataArrays().resize(5);
   edit.getIntegerDataArrays().resize(5);

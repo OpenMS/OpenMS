@@ -223,7 +223,7 @@ namespace OpenMS
         std::string adduct = sl[columnname_to_columnindex.at("adduct")];
         adduct.erase(std::remove_if(adduct.begin(), adduct.end(), ::isspace), adduct.end());
         rank_filename.emplace(StringUtils::toInt32(sl[columnname_to_columnindex.at("formulaRank")]),
-                              StringUtils::toStr(sl[columnname_to_columnindex.at("molecularFormula")] + "_" + adduct + ".tsv"));
+                              std::string(sl[columnname_to_columnindex.at("molecularFormula")] + "_" + adduct + ".tsv"));
       }
     }
     fcandidates.close();

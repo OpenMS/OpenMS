@@ -48,7 +48,7 @@ namespace OpenMS
   void CVMappingFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
 
-    tag_ =StringUtils::toStr(sm_.convert(qname));
+    tag_ =std::string(sm_.convert(qname));
 
     if (tag_ == "CvReference")
     {
@@ -95,7 +95,7 @@ namespace OpenMS
             }
             else
             {
-              fatalError(LOAD,StringUtils::toStr("Cannot parse namespaces of path: '") + element_path + "'");
+              fatalError(LOAD,std::string("Cannot parse namespaces of path: '") + element_path + "'");
             }
           }
         }
@@ -199,7 +199,7 @@ namespace OpenMS
 
   void CVMappingFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
-    tag_ =StringUtils::toStr(sm_.convert(qname));
+    tag_ =std::string(sm_.convert(qname));
 
     if (tag_ == "CvMappingRule")
     {

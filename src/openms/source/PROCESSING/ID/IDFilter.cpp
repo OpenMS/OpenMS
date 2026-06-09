@@ -688,7 +688,7 @@ namespace OpenMS
       {
         if (p.getScoreType() != score_type)
         {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("PSM score types must be identical to allow proper filtering."));
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("PSM score types must be identical to allow proper filtering."));
         }
       }
     }

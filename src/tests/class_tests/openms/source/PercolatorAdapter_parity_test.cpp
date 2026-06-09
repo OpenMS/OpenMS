@@ -46,7 +46,7 @@ namespace
 /// Composite key for 1:1 cross-run matching of adapter output hits.
 std::string rowKey(const PeptideIdentification& pid, const PeptideHit& hit)
 {
-  std::string sr = StringUtils::toStr(pid.getSpectrumReference());
+  std::string sr = std::string(pid.getSpectrumReference());
   if (sr.empty() && pid.metaValueExists("spectrum_id"))
   {
     sr = pid.getMetaValue("spectrum_id").toString();
@@ -159,8 +159,8 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
   }
   else
   {
-    const std::string percolator_bin = StringUtils::toStr(perc);
-    const std::string adapter_bin    = StringUtils::toStr(adap);
+    const std::string percolator_bin = std::string(perc);
+    const std::string adapter_bin    = std::string(adap);
     const std::string in_idxml =
       OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/CometAdapter_4_out.idXML");
 
@@ -196,7 +196,7 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
       msg << "} vs inp={ ";
       for (const auto& k : inp_keys) msg << k << " ";
       msg << "}";
-      TEST_EQUAL(StringUtils::toStr(msg.str()), StringUtils::toStr("meta keys match"))
+      TEST_EQUAL(msg.str(), std::string("meta keys match"))
     }
     TEST_EQUAL(sub_keys == inp_keys, true)
 
@@ -248,7 +248,7 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
             << " q_sub=" << m.q_sub << " q_inp=" << m.q_inp
             << " p_sub=" << m.p_sub << " p_inp=" << m.p_inp << "] ";
       }
-      TEST_EQUAL(StringUtils::toStr(msg.str()), StringUtils::toStr("r ok"))
+      TEST_EQUAL(msg.str(), std::string("r ok"))
     }
     TEST_TRUE(r >= 0.99)  // TODO(percolator-3.08): tighten to 0.999 after upgrade
     // max_dpep tolerance 0.25 at adapter layer: SVM scores match (r=1.0),
@@ -276,9 +276,9 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
       }
       if (acc_sub != acc_inp)
       {
-        TEST_EQUAL(StringUtils::toStr("q=") + StringUtils::toStr(thr) + " accepted-set mismatch: sub="
+        TEST_EQUAL(std::string("q=") + StringUtils::toStr(thr) + " accepted-set mismatch: sub="
                    + StringUtils::toStr(acc_sub.size()) + " inp=" + StringUtils::toStr(acc_inp.size()),
-                   StringUtils::toStr("sets match"))
+                   std::string("sets match"))
       }
       TEST_EQUAL(acc_sub == acc_inp, true)
     }

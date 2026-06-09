@@ -182,7 +182,7 @@ namespace OpenMS
                                     "Unknown DateTime format string", format);
     }
 
-    return StringUtils::toStr(buf);
+    return std::string(buf);
   }
 
   void DateTime::set(const std::string& date)

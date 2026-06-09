@@ -297,7 +297,7 @@ namespace OpenMS
     {
       after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
     }
-    std::string s =StringUtils::toStr("Memory usage (") + event + "): ";
+    std::string s =std::string("Memory usage (") + event + "): ";
     s += diff_str_(mem_before, mem_after) + " (working set delta)";
     if (mem_after_peak > 0)
     { // only if supported
@@ -326,7 +326,7 @@ namespace OpenMS
     std::string s;
     if (mem_after < mem_before)
     {
-      s +=StringUtils::toStr("-");
+      s +=std::string("-");
     }
     s =StringUtils::toStr(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
     return s;

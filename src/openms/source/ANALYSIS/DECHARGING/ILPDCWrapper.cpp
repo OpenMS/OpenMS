@@ -251,10 +251,10 @@ namespace OpenMS
         }
         columns_e.push_back((Int) index);
         elements_e.push_back(iti->second.size()); // factor of variant is number of adjacent edges
-        std::string se =StringUtils::toStr("cv") + index;
+        std::string se =std::string("cv") + index;
         build.addRow(columns_e, elements_e, se, 0, 10000, LPWrapper::LOWER_BOUND_ONLY);
       }
-      std::string s =StringUtils::toStr("c") + count;
+      std::string s =std::string("c") + count;
       // only allow exactly one charge variant
       build.addRow(columns, elements, s, 1, 1, LPWrapper::FIXED);
     }
@@ -398,7 +398,7 @@ namespace OpenMS
 
         if (is_conflicting)
         {
-          std::string s =StringUtils::toStr("C") + i + "." + j;
+          std::string s =std::string("C") + i + "." + j;
 
           // Now build rows: two variables, with indices 'columns', factors '1', and 0-1 bounds.
           std::vector<double> element(2, 1.0);
@@ -481,7 +481,7 @@ namespace OpenMS
     double score;
     std::string e;
     if (getenv("M") != nullptr)
-      e =StringUtils::toStr(getenv("M"));
+      e =std::string(getenv("M"));
     if (e.empty())
     {
       //std::cout << "1";

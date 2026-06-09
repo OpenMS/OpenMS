@@ -112,7 +112,7 @@ namespace OpenMS::Internal
       const ProteinIdentification& current_prot_id = feature_map.getProteinIdentifications()[i];
       os << "\t<IdentificationRun ";
       os << "id=\"PI_" << i << "\" ";
-      identifier_id_[current_prot_id.getIdentifier()] =StringUtils::toStr("PI_") + i;
+      identifier_id_[current_prot_id.getIdentifier()] =std::string("PI_") + i;
       os << "date=\"" << current_prot_id.getDateTime().getDate() << "T" << current_prot_id.getDateTime().getTime() << "\" ";
       os << "search_engine=\"" << writeXMLEscape(current_prot_id.getSearchEngine()) << "\" ";
       os << "search_engine_version=\"" << writeXMLEscape(current_prot_id.getSearchEngineVersion()) << "\">\n";
@@ -340,7 +340,7 @@ namespace OpenMS::Internal
     {
       if (last_meta_ == nullptr)
       {
-        fatalError(LOAD,StringUtils::toStr("Unexpected UserParam in tag '") + parent_tag + "'");
+        fatalError(LOAD,std::string("Unexpected UserParam in tag '") + parent_tag + "'");
       }
 
       std::string name = attributeAsString_(attributes, s_name);
@@ -372,7 +372,7 @@ namespace OpenMS::Internal
       }
       else
       {
-        fatalError(LOAD,StringUtils::toStr("Invalid UserParam type '") + type + "'");
+        fatalError(LOAD,std::string("Invalid UserParam type '") + type + "'");
       }
     }
     else if (tag == "featureMap")
@@ -386,7 +386,7 @@ namespace OpenMS::Internal
       }
       if (StringUtils::toDouble(file_version) > StringUtils::toDouble(version_))
       {
-        warning(LOAD,StringUtils::toStr("The XML file (") + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
+        warning(LOAD,std::string("The XML file (") + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
       }
       //handle document id
       std::string document_id;
@@ -549,7 +549,7 @@ namespace OpenMS::Internal
       std::string id = attributeAsString_(attributes, "identification_run_ref");
       if (!id_identifier_.contains(id))
       {
-        warning(LOAD,StringUtils::toStr("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
+        warning(LOAD,std::string("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
       }
       pep_id_.setIdentifier(id_identifier_[id]);
 
@@ -596,7 +596,7 @@ namespace OpenMS::Internal
 
       pep_hit_.setCharge(attributeAsInt_(attributes, "charge"));
       pep_hit_.setScore(attributeAsDouble_(attributes, "score"));
-      pep_hit_.setSequence(AASequence::fromString(StringUtils::toStr(attributeAsString_(attributes, "sequence"))));
+      pep_hit_.setSequence(AASequence::fromString(std::string(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
       const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
@@ -621,7 +621,7 @@ namespace OpenMS::Internal
           }
           else
           {
-            fatalError(LOAD,StringUtils::toStr("Invalid protein reference '") + *it + "'");
+            fatalError(LOAD,std::string("Invalid protein reference '") + *it + "'");
           }
         }
       }
@@ -767,7 +767,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "model")
     {
-      warning(LOAD,StringUtils::toStr("The featureXML file contains a 'model' description, but the internal datastructure has no model support since OpenMS 1.12. Model will be ignored!"));
+      warning(LOAD,std::string("The featureXML file contains a 'model' description, but the internal datastructure has no model support since OpenMS 1.12. Model will be ignored!"));
     }
     else if (tag == "hullpoint" || tag == "pt")
     {
@@ -955,7 +955,7 @@ namespace OpenMS::Internal
 
     if (!identifier_id_.contains(id.getIdentifier()))
     {
-      warning(STORE,StringUtils::toStr("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier() + "' while writing '" + filename + "'!");
+      warning(STORE,std::string("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier() + "' while writing '" + filename + "'!");
       return;
     }
     os << indent << "<" << tag_name << " ";

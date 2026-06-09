@@ -84,7 +84,7 @@ namespace OpenMS
   void XMLValidator::warning(const SAXParseException & exception)
   {
     char * message = XMLString::transcode(exception.getMessage());
-    std::string error_message =StringUtils::toStr("Validation warning in file '") + filename_ + "' line " + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
+    std::string error_message =std::string("Validation warning in file '") + filename_ + "' line " + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
     (*os_) << error_message << endl;
     valid_ = false;
     XMLString::release(&message);
@@ -93,7 +93,7 @@ namespace OpenMS
   void XMLValidator::error(const SAXParseException & exception)
   {
     char * message = XMLString::transcode(exception.getMessage());
-    std::string error_message =StringUtils::toStr("Validation error in file '") + filename_ + "' line " + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
+    std::string error_message =std::string("Validation error in file '") + filename_ + "' line " + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
     (*os_) << error_message << endl;
     valid_ = false;
     XMLString::release(&message);
@@ -102,7 +102,7 @@ namespace OpenMS
   void XMLValidator::fatalError(const SAXParseException & exception)
   {
     char * message = XMLString::transcode(exception.getMessage());
-    std::string error_message =StringUtils::toStr("Validation error in file '") + filename_ + "' line " + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
+    std::string error_message =std::string("Validation error in file '") + filename_ + "' line " + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
     (*os_) << error_message << endl;
     valid_ = false;
     XMLString::release(&message);

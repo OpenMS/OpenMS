@@ -1714,7 +1714,7 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << rtm.first << endl;
         }
 
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RT internal and external are both empty for peptide '" + StringUtils::toStr(peptide_ref) + "' stored as '" + StringUtils::toStr(feat.getMetaValue("PeptideRef")) + "'.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RT internal and external are both empty for peptide '" + std::string(peptide_ref) + "' stored as '" + StringUtils::toStr(feat.getMetaValue("PeptideRef")) + "'.");
       }
 
       if (!rt_internal.empty()) // validate based on internal IDs

@@ -506,7 +506,7 @@ namespace OpenMS::Internal
         PeptideHit peptide_hit_beta;
         vector<PeptideHit> peptide_hits;
 
-        std::string seq1 =StringUtils::toStr(this->attributeAsString_(attributes, "seq1"));
+        std::string seq1 =std::string(this->attributeAsString_(attributes, "seq1"));
         if (!this->is_openpepxl_)
         {
           seq1 = StringUtils::substitute(seq1, "X", "M(Oxidation)");
@@ -697,7 +697,7 @@ namespace OpenMS::Internal
 
           peptide_hit_beta.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, DataValue(this->attributeAsDouble_(attributes, "error_rel")));
 
-          std::string seq2 =StringUtils::toStr(this->attributeAsString_(attributes, "seq2"));
+          std::string seq2 =std::string(this->attributeAsString_(attributes, "seq2"));
           if (!this->is_openpepxl_)
           {
             seq2 = StringUtils::substitute(seq2, "X", "M(Oxidation)");
@@ -1064,7 +1064,7 @@ namespace OpenMS::Internal
           int alpha_pos = Int(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)) + 1;
           int beta_pos = 0;
 
-          std::string topology =StringUtils::toStr("a") + alpha_pos;
+          std::string topology =std::string("a") + alpha_pos;
           std::string id("");
           std::string seq_beta("");
 
@@ -1074,7 +1074,7 @@ namespace OpenMS::Internal
             beta_pos = Int(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)) + 1;
             AASequence beta_aaseq = AASequence::fromString(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE));
             structure += "-" + beta_aaseq.toUnmodifiedString();
-            topology +=StringUtils::toStr("-b") + beta_pos;
+            topology +=std::string("-b") + beta_pos;
             weight += beta_aaseq.getMonoWeight() + double(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS));
             id = structure + "-" + topology;
             seq_beta = StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE));
@@ -1083,7 +1083,7 @@ namespace OpenMS::Internal
           {
             xltype = "intralink";
             beta_pos = Int(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)) + 1;
-            topology +=StringUtils::toStr("-b") + beta_pos;
+            topology +=std::string("-b") + beta_pos;
             std::string letter_second = StringUtils::substr(structure, beta_pos-1, 1);
             id = structure + std::string("-") + letter_first + alpha_pos + std::string("-") + letter_second + beta_pos;
             weight += cross_link_mass_light;

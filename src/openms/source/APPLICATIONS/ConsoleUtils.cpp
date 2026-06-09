@@ -53,7 +53,7 @@ namespace OpenMS
       char* p_env = getenv("COLUMNS");
       if (p_env)
       {
-        console_width_ =StringUtils::toInt32(StringUtils::toStr(p_env));
+        console_width_ =StringUtils::toInt32(std::string(p_env));
       }
       else
       {

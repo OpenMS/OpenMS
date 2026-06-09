@@ -91,7 +91,7 @@ namespace OpenMS
 
     if (headers.size() <= 2)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",StringUtils::toStr("Failed parsing in line 1: not enough columns! Expected at least 3 columns!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("Failed parsing in line 1: not enough columns! Expected at least 3 columns!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
     }
     else if (headers.size() == 3)
     {
@@ -136,7 +136,7 @@ namespace OpenMS
 
     if (offset == 0 && (input_type == TYPE_OLD_CHARGE || input_type == TYPE_CONSENSUS))
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",StringUtils::toStr("Failed parsing in line 1: No HEADER provided. This is only allowed for three columns. You have more!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("Failed parsing in line 1: No HEADER provided. This is only allowed for three columns. You have more!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
     }
 
     SignedSize input_size = input.end() - input.begin();
@@ -198,7 +198,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException&)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",StringUtils::toStr("Failed parsing in line ") + StringUtils::toStr((input_it - input.begin()) + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + StringUtils::toStr((input_it - input.begin()) + 1) + ")\n");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("Failed parsing in line ") + StringUtils::toStr((input_it - input.begin()) + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + StringUtils::toStr((input_it - input.begin()) + 1) + ")\n");
       }
 
       // Check all features in one line
@@ -228,7 +228,7 @@ namespace OpenMS
         }
         catch (Exception::BaseException&)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",StringUtils::toStr("Failed parsing in line ") + StringUtils::toStr((input_it - input.begin()) + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j * 4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + StringUtils::toStr((input_it - input.begin()) + 1) + ")\n");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("Failed parsing in line ") + StringUtils::toStr((input_it - input.begin()) + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j * 4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + StringUtils::toStr((input_it - input.begin()) + 1) + ")\n");
         }
       }
 
@@ -263,7 +263,7 @@ namespace OpenMS
     // (in this case the 'input_features' includes the centroid, which we do not count)
     for (Size i = 0; i < maps; ++i)
     {
-      fd.label =StringUtils::toStr("EDTA_Map ") + StringUtils::toStr(i);
+      fd.label =std::string("EDTA_Map ") + StringUtils::toStr(i);
       consensus_map.getColumnHeaders()[i] = fd;
     }
 
@@ -302,7 +302,7 @@ namespace OpenMS
       const ConsensusFeature::HandleSetType& handle = f.getFeatures();
       for (ConsensusFeature::HandleSetType::const_iterator it = handle.begin(); it != handle.end(); ++it)
       {
-        entry +=StringUtils::toStr("\t") + it->getRT() + "\t" + it->getMZ() + "\t" + it->getIntensity() + "\t" + it->getCharge();
+        entry +=std::string("\t") + it->getRT() + "\t" + it->getMZ() + "\t" + it->getIntensity() + "\t" + it->getCharge();
       }
       // missing sub-features
       for (Size j = handle.size(); j < max_sub; ++j)

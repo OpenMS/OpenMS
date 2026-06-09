@@ -305,11 +305,11 @@ START_SECTION(void getSequences(const std::string& database_filename, const map<
 	TEST_EQUAL(not_found.size(), 2)
 	ABORT_IF( found.size() != 2 || not_found.size() != 2 )
 
-	TEST_EQUAL(StringUtils::toStr("P68509"), found[0].first)
+	TEST_EQUAL(std::string("P68509"), found[0].first)
 	TEST_EQUAL(ac_position_map["P68509"], found[0].second)
 	TEST_EQUAL(sequences[ac_position_map["P68509"]], found_sequences[0])
 
-	TEST_EQUAL(StringUtils::toStr("Q9CQV8"), found[1].first)
+	TEST_EQUAL(std::string("Q9CQV8"), found[1].first)
 	TEST_EQUAL(ac_position_map["Q9CQV8"], found[1].second)
 	TEST_EQUAL(sequences[ac_position_map["Q9CQV8"]], found_sequences[1])
 
@@ -320,11 +320,11 @@ START_SECTION(void getSequences(const std::string& database_filename, const map<
 	TEST_EQUAL(not_found.size(), 0)
 	ABORT_IF(found.size() != 4 || !not_found.empty())
 
-	TEST_EQUAL(StringUtils::toStr("P02666"), found[2].first)
+	TEST_EQUAL(std::string("P02666"), found[2].first)
 	TEST_EQUAL(ac_position_map["P02666"], found[2].second)
 	TEST_EQUAL(sequences[ac_position_map["P02666"]], found_sequences[2])
 
-	TEST_EQUAL(StringUtils::toStr("Q5EEQ7"), found[3].first)
+	TEST_EQUAL(std::string("Q5EEQ7"), found[3].first)
 	TEST_EQUAL(ac_position_map["Q5EEQ7"], found[3].second)
 	TEST_EQUAL(sequences[ac_position_map["Q5EEQ7"]], found_sequences[3])
 

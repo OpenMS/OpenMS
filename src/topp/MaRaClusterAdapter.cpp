@@ -271,7 +271,7 @@ protected:
     const StringList in_list = getStringList_("in");
 
     const std::string maracluster_executable(getStringOption_("maracluster_executable"));
-    writeDebug_(StringUtils::toStr("Path to the maracluster executable: ") + maracluster_executable, 2);
+    writeDebug_(std::string("Path to the maracluster executable: ") + maracluster_executable, 2);
 
     std::string maracluster_output_directory = getStringOption_("output_directory");   
     const std::string consensus_out(getStringOption_("consensus_out"));

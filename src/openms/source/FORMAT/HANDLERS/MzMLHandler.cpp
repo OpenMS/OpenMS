@@ -291,7 +291,7 @@ namespace OpenMS::Internal
         //if defaultArrayLength > 0 : warn that no m/z or int arrays is present
         if (default_arr_length != 0)
         {
-          warning(LOAD,StringUtils::toStr("The m/z or intensity array of spectrum '") + spectrum.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
+          warning(LOAD,std::string("The m/z or intensity array of spectrum '") + spectrum.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
         }
         return;
       }
@@ -312,23 +312,23 @@ namespace OpenMS::Internal
       // Check if int-size and mz-size are equal
       if (mz_size != int_size)
       {
-        fatalError(LOAD,StringUtils::toStr("The length of m/z and integer values of spectrum '") + spectrum.getNativeID() + "' differ (mz-size: " + mz_size + ", int-size: " + int_size + "! Not reading spectrum!");
+        fatalError(LOAD,std::string("The length of m/z and integer values of spectrum '") + spectrum.getNativeID() + "' differ (mz-size: " + mz_size + ", int-size: " + int_size + "! Not reading spectrum!");
       }
       bool repair_array_length = false;
       if (default_arr_length != mz_size)
       {
-        warning(LOAD,StringUtils::toStr("The m/z array of spectrum '") + spectrum.getNativeID() + "' has the size " + mz_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
+        warning(LOAD,std::string("The m/z array of spectrum '") + spectrum.getNativeID() + "' has the size " + mz_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
         repair_array_length = true;
       }
       if (default_arr_length != int_size)
       {
-        warning(LOAD,StringUtils::toStr("The intensity array of spectrum '") + spectrum.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
+        warning(LOAD,std::string("The intensity array of spectrum '") + spectrum.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
         repair_array_length = true;
       }
       if (repair_array_length)
       {
         default_arr_length = int_size;
-        warning(LOAD,StringUtils::toStr("Fixing faulty defaultArrayLength to ") + default_arr_length + ".");
+        warning(LOAD,std::string("Fixing faulty defaultArrayLength to ") + default_arr_length + ".");
       }
 
       // Copy meta data from m/z and intensity binary
@@ -548,7 +548,7 @@ namespace OpenMS::Internal
         //if defaultArrayLength > 0 : warn that no time or int arrays is present
         if (default_arr_length != 0)
         {
-          warning(LOAD,StringUtils::toStr("The time or intensity array of chromatogram '") +
+          warning(LOAD,std::string("The time or intensity array of chromatogram '") +
               inp_chromatogram.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
         }
         return;
@@ -560,24 +560,24 @@ namespace OpenMS::Internal
       // Check if int-size and rt-size are equal
       if (rt_size != int_size)
       {
-        fatalError(LOAD,StringUtils::toStr("The length of RT and intensity values of chromatogram '") + inp_chromatogram.getNativeID() + "' differ (rt-size: " + rt_size + ", int-size: " + int_size + "! Not reading chromatogram!");
+        fatalError(LOAD,std::string("The length of RT and intensity values of chromatogram '") + inp_chromatogram.getNativeID() + "' differ (rt-size: " + rt_size + ", int-size: " + int_size + "! Not reading chromatogram!");
       }
       bool repair_array_length = false;
       if (default_arr_length != rt_size)
       {
-        warning(LOAD,StringUtils::toStr("The base64-decoded rt array of chromatogram '") + inp_chromatogram.getNativeID() + "' has the size " + rt_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
+        warning(LOAD,std::string("The base64-decoded rt array of chromatogram '") + inp_chromatogram.getNativeID() + "' has the size " + rt_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
         repair_array_length = true;
       }
       if (default_arr_length != int_size)
       {
-        warning(LOAD,StringUtils::toStr("The base64-decoded intensity array of chromatogram '") + inp_chromatogram.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
+        warning(LOAD,std::string("The base64-decoded intensity array of chromatogram '") + inp_chromatogram.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
         repair_array_length = true;
       }
       // repair size of array, accessing memory that is beyond int_size will lead to segfaults later
       if (repair_array_length)
       {
         default_arr_length = int_size; // set to length of actual data (int_size and rt_size are equal, s.a.)
-        warning(LOAD,StringUtils::toStr("Fixing faulty defaultArrayLength to ") + default_arr_length + ".");
+        warning(LOAD,std::string("Fixing faulty defaultArrayLength to ") + default_arr_length + ".");
       }
 
       // Create meta data arrays and reserve enough space for the content
@@ -717,7 +717,7 @@ namespace OpenMS::Internal
         StringUtils::trim(transcoded_chars2);
         if (transcoded_chars2 != "")
         {
-          warning(LOAD,StringUtils::toStr("Unhandled character content in tag '") + current_tag + "': " +
+          warning(LOAD,std::string("Unhandled character content in tag '") + current_tag + "': " +
               transcoded_chars2);
         }
         */
@@ -996,7 +996,7 @@ namespace OpenMS::Internal
         {
           std::string normal_path = path_to_file;
           StringUtils::substitute(normal_path, std::string("file://"), std::string("")); // remove URI prefix
-          path_to_file =StringUtils::toStr("file://") + File::absolutePath(normal_path); // on linux this e.g. file:///home... on win: file://C:/...
+          path_to_file =std::string("file://") + File::absolutePath(normal_path); // on linux this e.g. file:///home... on win: file://C:/...
         }
 
         // absolute path to the root: remove additional / otherwise we will get file://// on concatenation
@@ -1065,13 +1065,13 @@ namespace OpenMS::Internal
 
         if (current_version == VersionInfo::VersionDetails::EMPTY)
         {
-          warning(LOAD,StringUtils::toStr("Invalid mzML version string '") + file_version + "'. Assuming mzML version " + version_ + "!");
+          warning(LOAD,std::string("Invalid mzML version string '") + file_version + "'. Assuming mzML version " + version_ + "!");
         }
         else
         {
           if (current_version < mzML_min_version)
           {
-            fatalError(LOAD,StringUtils::toStr("Only mzML 1.1.0 or higher is supported! This file has version '") + file_version + "'.");
+            fatalError(LOAD,std::string("Only mzML 1.1.0 or higher is supported! This file has version '") + file_version + "'.");
           }
           else if (current_version > VersionInfo::VersionDetails::create(version_))
           {
@@ -1435,7 +1435,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
         }
       }
       //------------------------- binaryDataArray ----------------------------
@@ -1451,7 +1451,7 @@ namespace OpenMS::Internal
         {
           if (!cv_.isChildOf(accession, "MS:1000513")) //other array names as string
           {
-            warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+            warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
           }
         }
       }
@@ -1627,7 +1627,7 @@ namespace OpenMS::Internal
           spec_.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
         }
         else
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       //------------------------- scanWindow ----------------------------
       else if (parent_tag == "scanWindow")
@@ -1641,7 +1641,7 @@ namespace OpenMS::Internal
           spec_.getInstrumentSettings().getScanWindows().back().end = StringUtils::toDouble(value);
         }
         else
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       //------------------------- referenceableParamGroup ----------------------------
       else if (parent_tag == "referenceableParamGroup")
@@ -1768,7 +1768,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
         }
       }
       //------------------------- activation ----------------------------
@@ -1780,7 +1780,7 @@ namespace OpenMS::Internal
           if (accession == "MS:1000245") //charge stripping
           {
             //No member => meta data
-            spec_.getPrecursors().back().setMetaValue("charge stripping",StringUtils::toStr("true"));
+            spec_.getPrecursors().back().setMetaValue("charge stripping",std::string("true"));
           }
           else if (accession == "MS:1000045") //collision energy (ev)
           {
@@ -1895,14 +1895,14 @@ namespace OpenMS::Internal
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::LIFT);
           }          
           else
-            warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+            warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
         }
         else
         {
           if (accession == "MS:1000245") //charge stripping
           {
             //No member => meta data
-            chromatogram_.getPrecursor().setMetaValue("charge stripping",StringUtils::toStr("true"));
+            chromatogram_.getPrecursor().setMetaValue("charge stripping",std::string("true"));
           }
           else if (accession == "MS:1000045") //collision energy (ev)
           {
@@ -2016,7 +2016,7 @@ namespace OpenMS::Internal
           }          
           else
           {
-            warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+            warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
           }
         }
       }
@@ -2073,7 +2073,7 @@ namespace OpenMS::Internal
             }
           }
           else
-            warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+            warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
         }
         else if (parent_parent_tag == "product")
         {
@@ -2119,7 +2119,7 @@ namespace OpenMS::Internal
             }
           }
           else
-            warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+            warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
         }
       }
       //------------------------- scanList ----------------------------
@@ -2131,7 +2131,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
         }
       }
       //------------------------- scan ----------------------------
@@ -2258,28 +2258,28 @@ namespace OpenMS::Internal
         else if (accession == "MS:1000092") //decreasing m/z scan
         {
           //No member => meta data
-          spec_.setMetaValue("scan direction",StringUtils::toStr("decreasing"));
+          spec_.setMetaValue("scan direction",std::string("decreasing"));
         }
         else if (accession == "MS:1000093") //increasing m/z scan
         {
           //No member => meta data
-          spec_.setMetaValue("scan direction",StringUtils::toStr("increasing"));
+          spec_.setMetaValue("scan direction",std::string("increasing"));
         }
         //scan law
         else if (accession == "MS:1000094") //scan law: exponential
         {
           //No member => meta data
-          spec_.setMetaValue("scan law",StringUtils::toStr("exponential"));
+          spec_.setMetaValue("scan law",std::string("exponential"));
         }
         else if (accession == "MS:1000095") //scan law: linear
         {
           //No member => meta data
-          spec_.setMetaValue("scan law",StringUtils::toStr("linear"));
+          spec_.setMetaValue("scan law",std::string("linear"));
         }
         else if (accession == "MS:1000096") //scan law: quadratic
         {
           //No member => meta data
-          spec_.setMetaValue("scan law",StringUtils::toStr("quadratic"));
+          spec_.setMetaValue("scan law",std::string("quadratic"));
         }
         else if (accession == "MS:1000497") // zoom scan
         {
@@ -2315,7 +2315,7 @@ namespace OpenMS::Internal
           exp_->getContacts().back().setInstitution(value);
         }
         else
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       //------------------------- sourceFile ----------------------------
       else if (parent_tag == "sourceFile")
@@ -2338,7 +2338,7 @@ namespace OpenMS::Internal
           source_files_[current_id_].setNativeIDTypeAccession(cv_.getTerm(accession).id);
         }
         else
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       //------------------------- sample ----------------------------
       else if (parent_tag == "sample")
@@ -2391,20 +2391,20 @@ namespace OpenMS::Internal
         else if (StringUtils::hasPrefix(accession, "PATO:")) //quality of an object
         {
           //No member => meta data
-          samples_[current_id_].setMetaValue(StringUtils::toStr(name), termValue);
+          samples_[current_id_].setMetaValue(std::string(name), termValue);
         }
         else if (StringUtils::hasPrefix(accession, "GO:")) //cellular_component
         {
           //No member => meta data
-          samples_[current_id_].setMetaValue("GO cellular component",StringUtils::toStr(name));
+          samples_[current_id_].setMetaValue("GO cellular component",std::string(name));
         }
         else if (StringUtils::hasPrefix(accession, "BTO:")) //brenda source tissue ontology
         {
           //No member => meta data
-          samples_[current_id_].setMetaValue("brenda source tissue",StringUtils::toStr(name));
+          samples_[current_id_].setMetaValue("brenda source tissue",std::string(name));
         }
         else
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       //------------------------- instrumentConfiguration ----------------------------
       else if (parent_tag == "instrumentConfiguration")
@@ -2487,7 +2487,7 @@ namespace OpenMS::Internal
         else if (accession == "MS:1000216") //field-free region
         {
           //No member => metadata
-          instruments_[current_id_].setMetaValue("field-free region",StringUtils::toStr("true"));
+          instruments_[current_id_].setMetaValue("field-free region",std::string("true"));
         }
         else if (accession == "MS:1000308") //electric field strength
         {
@@ -2497,10 +2497,10 @@ namespace OpenMS::Internal
         else if (accession == "MS:1000319") //space charge effect
         {
           //No member => metadata
-          instruments_[current_id_].setMetaValue("space charge effect",StringUtils::toStr("true"));
+          instruments_[current_id_].setMetaValue("space charge effect",std::string("true"));
         }
         else
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       else if (parent_tag == "source")
       {
@@ -2878,7 +2878,7 @@ namespace OpenMS::Internal
           instruments_[current_id_].getIonSources().back().setMetaValue("matrix application type", " precoated plate");
         }
         else
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       else if (parent_tag == "analyzer")
       {
@@ -2965,7 +2965,7 @@ namespace OpenMS::Internal
           instruments_[current_id_].getMassAnalyzers().back().setReflectronState(MassAnalyzer::ReflectronState::ON);
         }
         else
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       else if (parent_tag == "detector")
       {
@@ -3081,7 +3081,7 @@ namespace OpenMS::Internal
           instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::AcquisitionMode::TRANSIENTRECORDER);
         }
         else
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       else if (parent_tag == "processingMethod")
       {
@@ -3177,7 +3177,7 @@ namespace OpenMS::Internal
           processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::FILTERING);
         }
         else
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       else if (parent_tag == "fileContent")
       {
@@ -3192,7 +3192,7 @@ namespace OpenMS::Internal
           //exp_->setMetaValue(name, termValue);
         }
         else
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       else if (parent_tag == "software")
       {
@@ -3209,7 +3209,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
         }
         //~ software_[current_id_].addCVTerm(   CVTerm (accession, value, const std::string &cv_identifier_ref, const std::string &value, const Unit &unit)   ); TODO somthing like that
       }
@@ -3260,14 +3260,14 @@ namespace OpenMS::Internal
           chromatogram_.setName(value);
         }
         else
-          warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       else if (parent_tag == "target")
       {
         //allowed but, not needed
       }
       else
-        warning(LOAD,StringUtils::toStr("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+        warning(LOAD,std::string("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
     }
 
     void MzMLHandler::handleUserParam_(const std::string& parent_parent_tag,
@@ -3294,7 +3294,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          warning(LOAD,StringUtils::toStr("Unhandled unit '") + unit_accession + "' in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Unhandled unit '") + unit_accession + "' in tag '" + parent_tag + "'.");
         }
       }
 
@@ -3423,7 +3423,7 @@ namespace OpenMS::Internal
       }
       else
       {
-        warning(LOAD,StringUtils::toStr("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
+        warning(LOAD,std::string("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
       }
     }
 
@@ -3466,7 +3466,7 @@ namespace OpenMS::Internal
           // correct ontology in our cv_ object.
           char s[8];
           snprintf(s, sizeof(s), "%07d", metaValue.getUnit()); // all CV use 7 digit identifiers padded with zeros
-          std::string unitstring =StringUtils::toStr(s);
+          std::string unitstring =std::string(s);
           if (metaValue.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY)
           {
             unitstring = "UO:" + unitstring;
@@ -3477,7 +3477,7 @@ namespace OpenMS::Internal
           }
           else
           {
-            warning(LOAD,StringUtils::toStr("Unhandled unit ontology '") );
+            warning(LOAD,std::string("Unhandled unit ontology '") );
           }
 
           ControlledVocabulary::CVTerm unit = cv_.getTerm(unitstring);
@@ -3559,7 +3559,7 @@ namespace OpenMS::Internal
               // correct ontology in our cv_ object.
               char s[8];
               snprintf(s, sizeof(s), "%07d", d.getUnit()); // all CV use 7 digit identifiers padded with zeros
-              std::string unitstring =StringUtils::toStr(s);
+              std::string unitstring =std::string(s);
               if (d.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY)
               {
                 unitstring = "UO:" + unitstring;
@@ -3570,7 +3570,7 @@ namespace OpenMS::Internal
               }
               else
               {
-                warning(LOAD,StringUtils::toStr("Unhandled unit ontology '") );
+                warning(LOAD,std::string("Unhandled unit ontology '") );
               }
 
               ControlledVocabulary::CVTerm unit = cv_.getTerm(unitstring);
@@ -3884,7 +3884,7 @@ namespace OpenMS::Internal
           {
             default:
               // assume milliseconds, but warn
-              warning(STORE,StringUtils::toStr("Precursor drift time unit not set, assume milliseconds"));
+              warning(STORE,std::string("Precursor drift time unit not set, assume milliseconds"));
               [[fallthrough]];
             case DriftTimeUnit::MILLISECOND:
               os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime()
@@ -4067,7 +4067,7 @@ namespace OpenMS::Internal
         // issue warning if something is wrong
         if (renew_native_ids)
         {
-          warning(STORE,StringUtils::toStr("Invalid native IDs detected. Using spectrum identifier nativeID format (spectrum=xsd:nonNegativeInteger) for all spectra."));
+          warning(STORE,std::string("Invalid native IDs detected. Using spectrum identifier nativeID format (spectrum=xsd:nonNegativeInteger) for all spectra."));
         }
 
         // write actual data
@@ -4222,7 +4222,7 @@ namespace OpenMS::Internal
         //write source file of run
         for (Size i = 0; i < exp.getSourceFiles().size(); ++i)
         {
-          writeSourceFile_(os,StringUtils::toStr("sf_ru_") + StringUtils::toStr(i), exp.getSourceFiles()[i], validator);
+          writeSourceFile_(os,std::string("sf_ru_") + StringUtils::toStr(i), exp.getSourceFiles()[i], validator);
         }
 
         // write source files of spectra
@@ -4233,7 +4233,7 @@ namespace OpenMS::Internal
           {
             if (exp[i].getSourceFile() != sf_default)
             {
-              writeSourceFile_(os,StringUtils::toStr("sf_sp_") + i, exp[i].getSourceFile(), validator);
+              writeSourceFile_(os,std::string("sf_sp_") + i, exp[i].getSourceFile(), validator);
             }
           }
         }
@@ -4385,7 +4385,7 @@ namespace OpenMS::Internal
       {
         for (Size s2 = 0; s2 != dps[s1].size(); ++s2)
         {
-          writeSoftware_(os,StringUtils::toStr("so_dp_sp_") + s1 + "_pm_" + s2, dps[s1][s2]->getSoftware(), validator);
+          writeSoftware_(os,std::string("so_dp_sp_") + s1 + "_pm_" + s2, dps[s1][s2]->getSoftware(), validator);
         }
       }
 
@@ -4396,7 +4396,7 @@ namespace OpenMS::Internal
         {
           for (Size i = 0; i < exp[s].getFloatDataArrays()[m].getDataProcessing().size(); ++i)
           {
-            writeSoftware_(os,StringUtils::toStr("so_dp_sp_") + s + "_bi_" + m + "_pm_" + i,
+            writeSoftware_(os,std::string("so_dp_sp_") + s + "_bi_" + m + "_pm_" + i,
                 exp[s].getFloatDataArrays()[m].getDataProcessing()[i]->getSoftware(), validator);
           }
         }
@@ -4999,7 +4999,7 @@ namespace OpenMS::Internal
 
       for (Size s = 0; s < dps.size(); ++s)
       {
-        writeDataProcessing_(os,StringUtils::toStr("dp_sp_") + s, dps[s], validator);
+        writeDataProcessing_(os,std::string("dp_sp_") + s, dps[s], validator);
       }
 
       //for each binary data array
@@ -5012,7 +5012,7 @@ namespace OpenMS::Internal
           // to the first entry (which is a dummy if none exists; see above)
           if (!exp[s].getFloatDataArrays()[m].getDataProcessing().empty())
           {
-            writeDataProcessing_(os,StringUtils::toStr("dp_sp_") + s + "_bi_" + m,
+            writeDataProcessing_(os,std::string("dp_sp_") + s + "_bi_" + m,
               exp[s].getFloatDataArrays()[m].getDataProcessing(), validator);
           }
         }
@@ -5058,7 +5058,7 @@ namespace OpenMS::Internal
       std::string native_id = spec.getNativeID();
       if (renew_native_ids)
       {
-        native_id =StringUtils::toStr("spectrum=") + s;
+        native_id =std::string("spectrum=") + s;
       }
 
       Int64 offset = os.tellp();
@@ -5246,7 +5246,7 @@ namespace OpenMS::Internal
             else
             {
               // assume milliseconds, but warn
-              warning(STORE,StringUtils::toStr("Spectrum drift time unit not set, assume milliseconds"));
+              warning(STORE,std::string("Spectrum drift time unit not set, assume milliseconds"));
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime()
                  << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
             }
@@ -5361,7 +5361,7 @@ namespace OpenMS::Internal
           std::string data_processing_ref_string ;
           if (!array.getDataProcessing().empty())
           {
-            data_processing_ref_string =StringUtils::toStr("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
+            data_processing_ref_string =std::string("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
           }
           os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000522\" name=\"64-bit integer\" />\n";
@@ -5391,7 +5391,7 @@ namespace OpenMS::Internal
           std::string data_processing_ref_string ;
           if (!array.getDataProcessing().empty())
           {
-            data_processing_ref_string =StringUtils::toStr("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
+            data_processing_ref_string =std::string("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
           }
           os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001479\" name=\"null-terminated ASCII string\" />\n";
@@ -5584,7 +5584,7 @@ namespace OpenMS::Internal
       std::string data_processing_ref_string ;
       if (!array.getDataProcessing().empty())
       {
-        data_processing_ref_string =StringUtils::toStr("dataProcessingRef=\"dp_sp_") + spec_chrom_idx + "_bi_" + array_idx + "\"";
+        data_processing_ref_string =std::string("dataProcessingRef=\"dp_sp_") + spec_chrom_idx + "_bi_" + array_idx + "\"";
       }
 
       // Try numpress encoding (if it is enabled) and fall back to regular encoding if it fails
@@ -5733,7 +5733,7 @@ namespace OpenMS::Internal
         std::string data_processing_ref_string ;
         if (!array.getDataProcessing().empty())
         {
-          data_processing_ref_string =StringUtils::toStr("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";
+          data_processing_ref_string =std::string("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";
         }
         os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000522\" name=\"64-bit integer\" />\n";
@@ -5765,7 +5765,7 @@ namespace OpenMS::Internal
         std::string data_processing_ref_string ;
         if (!array.getDataProcessing().empty())
         {
-          data_processing_ref_string =StringUtils::toStr("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";
+          data_processing_ref_string =std::string("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";
         }
         os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001479\" name=\"null-terminated ASCII string\" />\n";

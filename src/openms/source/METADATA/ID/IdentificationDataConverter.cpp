@@ -245,7 +245,7 @@ namespace OpenMS
       {
         if (pep.hasRT() && pep.hasMZ())
         {
-          data_id =StringUtils::toStr("RT=") + StringUtils::toStr(float(pep.getRT())) + "_MZ=" +
+          data_id =std::string("RT=") + StringUtils::toStr(float(pep.getRT())) + "_MZ=" +
             StringUtils::toStr(float(pep.getMZ()));
         }
         else

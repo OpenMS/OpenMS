@@ -282,7 +282,7 @@ namespace OpenMS
   NASequence NASequence::fromString(const char* s)
   {
     NASequence nas;
-    parseString_(StringUtils::toStr(s), nas);
+    parseString_(std::string(s), nas);
     return nas;
   }
 

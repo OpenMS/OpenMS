@@ -497,7 +497,7 @@ namespace OpenMS::Internal
           }
           if (mods.empty())
           {
-            std::string message =StringUtils::toStr("Modification '") + accession + "' is unknown.";
+            std::string message =std::string("Modification '") + accession + "' is unknown.";
             throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
           }
         }
@@ -539,7 +539,7 @@ namespace OpenMS::Internal
       +Inputs
       -AnalysisData collected in sidlist --> unclosed element string
       ---------------------------------------------------------------------*/
-      inputs_element +=StringUtils::toStr("\t<Inputs>\n");
+      inputs_element +=std::string("\t<Inputs>\n");
       std::string spectra_data, search_database;
 
       /*
@@ -551,7 +551,7 @@ namespace OpenMS::Internal
       {
         //~ collect analysissoftware in this loop - does not go into inputelement
         std::string sof_id;
-        std::string sof_name =StringUtils::toStr(it->getSearchEngine());
+        std::string sof_name =std::string(it->getSearchEngine());
         std::map<std::string, std::string>::iterator soit = sof_ids.find(sof_name);
         std::string osecv;
         if (sof_name == "OMSSA")
@@ -595,9 +595,9 @@ namespace OpenMS::Internal
         {
           sof_id = "SOF_" + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
           //~ TODO consider not only searchengine but also version!
-          std::string sost =StringUtils::toStr("\t<AnalysisSoftware version=\"") + StringUtils::toStr(it->getSearchEngineVersion()) + "\" name=\"" + sof_name +  "\" id=\"" + sof_id + "\">\n" + std::string("\t\t<SoftwareName>\n");
+          std::string sost =std::string("\t<AnalysisSoftware version=\"") + std::string(it->getSearchEngineVersion()) + "\" name=\"" + sof_name +  "\" id=\"" + sof_id + "\">\n" + std::string("\t\t<SoftwareName>\n");
           sost += "\t\t\t" + cv_.getTermByName(osecv).toXMLString(cv_ns);
-          sost +=StringUtils::toStr("\n\t\t</SoftwareName>\n\t</AnalysisSoftware>\n");
+          sost +=std::string("\n\t\t</SoftwareName>\n\t</AnalysisSoftware>\n");
           sof_set.insert(sost);
           sof_ids.insert(make_pair(sof_name, sof_id));
         }
@@ -634,7 +634,7 @@ namespace OpenMS::Internal
         std::string sip_id = "SIP_" + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
         sil_2_sip_.insert(make_pair(sil_id, sip_id));
 
-        std::string sip = "\t<SpectrumIdentificationProtocol id=\"" + StringUtils::toStr(sip_id) + "\" analysisSoftware_ref=\"" + StringUtils::toStr(sof_id) + "\">\n";
+        std::string sip = "\t<SpectrumIdentificationProtocol id=\"" + std::string(sip_id) + "\" analysisSoftware_ref=\"" + std::string(sof_id) + "\">\n";
         sip += "\t\t<SearchType>\n\t\t\t" + cv_.getTermByName("ms-ms search").toXMLString(cv_ns) + "\n\t\t</SearchType>\n";
         sip += "\t\t<AdditionalSearchParams>\n";
         if (is_ppxl)
@@ -669,7 +669,7 @@ namespace OpenMS::Internal
         }
         writeEnzyme_(sip, search_params.digestion_enzyme, search_params.missed_cleavages, 2);
         // TODO MassTable section
-        sip +=StringUtils::toStr("\t\t<FragmentTolerance>\n");
+        sip +=std::string("\t\t<FragmentTolerance>\n");
         std::string unit_str = R"(unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221")";
         if (search_params.fragment_mass_tolerance_ppm)
         {
@@ -677,8 +677,8 @@ namespace OpenMS::Internal
         }
         sip +=std::string(3, '\t') + R"(<cvParam accession="MS:1001412" name="search tolerance plus value" )" + unit_str + R"( cvRef="PSI-MS" value=")" + StringUtils::toStr(search_params.fragment_mass_tolerance) + "\"/>\n";
         sip +=std::string(3, '\t') + R"(<cvParam accession="MS:1001413" name="search tolerance minus value" )" + unit_str + R"( cvRef="PSI-MS" value=")" + StringUtils::toStr(search_params.fragment_mass_tolerance) + "\"/>\n";
-        sip +=StringUtils::toStr("\t\t</FragmentTolerance>\n");
-        sip +=StringUtils::toStr("\t\t<ParentTolerance>\n");
+        sip +=std::string("\t\t</FragmentTolerance>\n");
+        sip +=std::string("\t\t<ParentTolerance>\n");
         unit_str = R"(unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221")";
         if (search_params.precursor_mass_tolerance_ppm)
         {
@@ -686,10 +686,10 @@ namespace OpenMS::Internal
         }
         sip +=std::string(3, '\t') + R"(<cvParam accession="MS:1001412" name="search tolerance plus value" )" + unit_str + R"( cvRef="PSI-MS" value=")" + StringUtils::toStr(search_params.precursor_mass_tolerance) + "\"/>\n";
         sip +=std::string(3, '\t') + R"(<cvParam accession="MS:1001413" name="search tolerance minus value" )" + unit_str + R"( cvRef="PSI-MS" value=")" + StringUtils::toStr(search_params.precursor_mass_tolerance) + "\"/>\n";
-        sip +=StringUtils::toStr("\t\t</ParentTolerance>\n");
-        sip +=StringUtils::toStr("\t\t<Threshold>\n\t\t\t") + thcv + "\n";
-        sip +=StringUtils::toStr("\t\t</Threshold>\n");
-        sip +=StringUtils::toStr("\t</SpectrumIdentificationProtocol>\n");
+        sip +=std::string("\t\t</ParentTolerance>\n");
+        sip +=std::string("\t\t<Threshold>\n\t\t\t") + thcv + "\n";
+        sip +=std::string("\t\t</Threshold>\n");
+        sip +=std::string("\t</SpectrumIdentificationProtocol>\n");
         sip_set.insert(sip);
         
         // empty date would lead to XML schema validation error:
@@ -698,7 +698,7 @@ namespace OpenMS::Internal
         { 
           date_time = DateTime::now(); 
         }
-        sil_2_date.insert(make_pair(sil_id,StringUtils::toStr(date_time.getDate() + "T" + date_time.getTime())));
+        sil_2_date.insert(make_pair(sil_id,std::string(date_time.getDate() + "T" + date_time.getTime())));
 
         //~ collect SpectraData element for each ProteinIdentification
         std::string sdat_id;
@@ -707,7 +707,7 @@ namespace OpenMS::Internal
 
         if (sdat_file.empty())
         {
-          sdat_file =StringUtils::toStr("UNKNOWN");
+          sdat_file =std::string("UNKNOWN");
         }
         else
         {
@@ -722,12 +722,12 @@ namespace OpenMS::Internal
           if (!formats_map.contains(type)) type = FileTypes::MZML; // default
 
           //xml
-          spectra_data +=StringUtils::toStr("\t\t<SpectraData location=\"") + sdat_file + "\" id=\"" + sdat_id + "\">";
-          spectra_data +=StringUtils::toStr("\n\t\t\t<FileFormat>\n");
+          spectra_data +=std::string("\t\t<SpectraData location=\"") + sdat_file + "\" id=\"" + sdat_id + "\">";
+          spectra_data +=std::string("\n\t\t\t<FileFormat>\n");
           spectra_data +=std::string(4, '\t') + cv_.getTermByName(formats_map[type].first).toXMLString(cv_ns);
-          spectra_data +=StringUtils::toStr("\n\t\t\t</FileFormat>\n\t\t\t<SpectrumIDFormat>\n");
+          spectra_data +=std::string("\n\t\t\t</FileFormat>\n\t\t\t<SpectrumIDFormat>\n");
           spectra_data +=std::string(4, '\t') + cv_.getTermByName(formats_map[type].second).toXMLString(cv_ns);
-          spectra_data +=StringUtils::toStr("\n\t\t\t</SpectrumIDFormat>\n\t\t</SpectraData>\n");
+          spectra_data +=std::string("\n\t\t\t</SpectrumIDFormat>\n\t\t</SpectraData>\n");
 
           sdat_ids.insert(make_pair(sdat_file, sdat_id));
           ph_2_sdat_.insert(make_pair(it->getIdentifier(), sdat_id));
@@ -746,16 +746,16 @@ namespace OpenMS::Internal
         {
           sdb_id = "SDB_"+ StringUtils::toStr(UniqueIdGenerator::getUniqueId());
 
-          search_database +=StringUtils::toStr("\t\t<SearchDatabase ");
-          search_database +=StringUtils::toStr("location=\"") + sdb_file + "\" ";
-          if (!StringUtils::toStr(search_params.db_version).empty())
+          search_database +=std::string("\t\t<SearchDatabase ");
+          search_database +=std::string("location=\"") + sdb_file + "\" ";
+          if (!std::string(search_params.db_version).empty())
           {
-            search_database +=StringUtils::toStr("version=\"") + StringUtils::toStr(search_params.db_version) + "\" ";
+            search_database +=std::string("version=\"") + std::string(search_params.db_version) + "\" ";
           }
-          search_database +=StringUtils::toStr("id=\"") + sdb_id + "\">\n\t\t\t<FileFormat>\n";
+          search_database +=std::string("id=\"") + sdb_id + "\">\n\t\t\t<FileFormat>\n";
           //TODO Searchdb file format type cvParam handling
           search_database +=std::string(4, '\t') + cv_.getTermByName("FASTA format").toXMLString(cv_ns);
-          search_database +=StringUtils::toStr("\n\t\t\t</FileFormat>\n\t\t\t<DatabaseName>\n\t\t\t\t<userParam name=\"") + sdb_file + "\"/>\n\t\t\t</DatabaseName>\n";
+          search_database +=std::string("\n\t\t\t</FileFormat>\n\t\t\t<DatabaseName>\n\t\t\t\t<userParam name=\"") + sdb_file + "\"/>\n\t\t\t</DatabaseName>\n";
           // "MS:1001029" was removed from the "search_params" copy!
           if (it->getSearchParameters().metaValueExists("MS:1001029"))
           {
@@ -775,7 +775,7 @@ namespace OpenMS::Internal
         for (std::vector<ProteinHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
           std::string enid;
-          std::map<std::string, std::string>::iterator enit = sen_ids.find(StringUtils::toStr(jt->getAccession()));
+          std::map<std::string, std::string>::iterator enit = sen_ids.find(std::string(jt->getAccession()));
           if (enit == sen_ids.end())
           {
             std::string entry;
@@ -784,12 +784,12 @@ namespace OpenMS::Internal
 
             entry += "\t<DBSequence accession=\"" + enst + "\" ";
             entry += "searchDatabase_ref=\"" + sdb_id + "\" ";
-            std::string s =StringUtils::toStr(jt->getSequence());
+            std::string s =std::string(jt->getSequence());
             if (!s.empty())
             {
               entry += "length=\"" + StringUtils::toStr(jt->getSequence().length()) + "\" ";
             }
-            entry +=StringUtils::toStr("id=\"") + StringUtils::toStr(enid) + "\">\n";
+            entry +=std::string("id=\"") + std::string(enid) + "\">\n";
             if (!s.empty())
             {
               entry += "\t<Seq>" + s + "</Seq>\n";
@@ -842,7 +842,7 @@ namespace OpenMS::Internal
               ert = "nan";
               OPENMS_LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right.\n";
             }
-            sid =StringUtils::toStr("MZ:") + emz + std::string("@RT:") + ert;
+            sid =std::string("MZ:") + emz + std::string("@RT:") + ert;
           }
         }
         if (is_ppxl && it->metaValueExists(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF))
@@ -862,7 +862,7 @@ namespace OpenMS::Internal
           OPENMS_LOG_WARN << "Falling back to referencing first spectrum file given because file or identifier could not be mapped.\n";
         }
 
-        sidres +=StringUtils::toStr("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"")
+        sidres +=std::string("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"")
         //multi identification runs lookup from file_origin here
                 + sdr + "\" spectrumID=\""
                 + sid + "\" id=\"" + sir + "\">\n";
@@ -1029,7 +1029,7 @@ namespace OpenMS::Internal
       os << "<AnalysisCollection>\n";
       for (std::map<std::string, std::string>::const_iterator pp2sil_it = pp_identifier_2_sil_.begin(); pp2sil_it != pp_identifier_2_sil_.end(); ++pp2sil_it)
       {
-          std::string entry =StringUtils::toStr("\t<SpectrumIdentification id=\"SI_") + pp2sil_it->first + "\" spectrumIdentificationProtocol_ref=\""
+          std::string entry =std::string("\t<SpectrumIdentification id=\"SI_") + pp2sil_it->first + "\" spectrumIdentificationProtocol_ref=\""
                            + sil_2_sip_[pp2sil_it->second] + "\" spectrumIdentificationList_ref=\"" + pp2sil_it->second
                            + "\" activityDate=\"" + sil_2_date[pp2sil_it->second]
                            + "\">\n"
@@ -1196,7 +1196,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          std::string message =StringUtils::toStr("Registered ") + (fixed ? "fixed" : "variable") + " modification '" + *it + "' is unknown and will be ignored.";
+          std::string message =std::string("Registered ") + (fixed ? "fixed" : "variable") + " modification '" + *it + "' is unknown and will be ignored.";
           throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
         }
       }
@@ -1217,7 +1217,7 @@ namespace OpenMS::Internal
         boost::smatch str_matches;
         if (boost::regex_match(pep.annotation, str_matches, frag_regex_tweak))
         {
-          StringUtils::split(StringUtils::toStr(str_matches[1]), "|", extra);
+          StringUtils::split(std::string(str_matches[1]), "|", extra);
           iontype = std::string(str_matches[2]);
           ionseries_index = std::string(str_matches[3]);
           loss = std::string(str_matches[4]);
@@ -1254,7 +1254,7 @@ namespace OpenMS::Internal
         if (is_ppxl)
         {
           std::string ab = ListUtils::contains<std::string>(extra ,std::string("alpha")) ? std::string("alpha"):std::string("beta");
-          std::string cx = ListUtils::contains<std::string>(extra ,StringUtils::toStr("ci")) ? StringUtils::toStr("ci"):StringUtils::toStr("xi");
+          std::string cx = ListUtils::contains<std::string>(extra ,std::string("ci")) ? std::string("ci"):std::string("xi");
           lt_vec[3].push_back(ab);
           lt_vec[4].push_back(cx);
         }
@@ -1345,7 +1345,7 @@ namespace OpenMS::Internal
           std::string p;
           //~ TODO simplify mod cv param write
           // write peptide id with conversion to universal, "human-readable" bracket string notation
-          p +=StringUtils::toStr("\t<Peptide id=\"") + pepid + "\" name=\"" +
+          p +=std::string("\t<Peptide id=\"") + pepid + "\" name=\"" +
                 hit.getSequence().toBracketString(false) + "\">\n\t\t<PeptideSequence>" + hit.getSequence().toUnmodifiedString() + std::string("</PeptideSequence>\n");
           if (hit.getSequence().isModified())
           {
@@ -1436,7 +1436,7 @@ namespace OpenMS::Internal
             std::string idec;
             if (hit.metaValueExists(Constants::UserParam::TARGET_DECOY))
             {
-              idec =StringUtils::toStr(boost::lexical_cast<std::string>(StringUtils::hasSubstring(hit.getMetaValue(Constants::UserParam::TARGET_DECOY).toString(), "decoy")));
+              idec =std::string(boost::lexical_cast<std::string>(StringUtils::hasSubstring(hit.getMetaValue(Constants::UserParam::TARGET_DECOY).toString(), "decoy")));
             }
 
             std::string e;
@@ -1477,7 +1477,7 @@ namespace OpenMS::Internal
             }
             if (!idec.empty())
             {
-              e += " isDecoy=\"" + StringUtils::toStr(idec)+ "\"";
+              e += " isDecoy=\"" + std::string(idec)+ "\"";
             }
             e += "/>\n";
             sen_set.insert(e);
@@ -1525,7 +1525,7 @@ namespace OpenMS::Internal
         std::string emz = StringUtils::toStr(it->getMZ());
         std::string sii = "SII_" + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
         std::string sii_tmp;
-        sii_tmp +=StringUtils::toStr("\t\t\t\t<SpectrumIdentificationItem passThreshold=\"")
+        sii_tmp +=std::string("\t\t\t\t<SpectrumIdentificationItem passThreshold=\"")
                 + pte + "\" rank=\"" + r + "\" peptide_ref=\""
                 + pepid + "\" calculatedMassToCharge=\"" + cmz
                 + "\" experimentalMassToCharge=\"" + emz
@@ -1538,7 +1538,7 @@ namespace OpenMS::Internal
         }
         for (std::vector<std::string>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
         {
-          sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  StringUtils::toStr(*pevref) + "\"/>\n";
+          sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  std::string(*pevref) + "\"/>\n";
         }
 
         if (! hit.getPeakAnnotations().empty())
@@ -1724,7 +1724,7 @@ namespace OpenMS::Internal
         std::string p;
         //~ TODO simplify mod cv param write
         // write peptide id with conversion to universal, "human-readable" bracket string notation
-        p +=StringUtils::toStr("\t<Peptide id=\"") + pepid + "\" name=\"" +
+        p +=std::string("\t<Peptide id=\"") + pepid + "\" name=\"" +
               peptide_sequence.toBracketString(false) + "\">\n\t\t<PeptideSequence>" + peptide_sequence.toUnmodifiedString() + std::string("</PeptideSequence>\n");
 
         const ResidueModification* n_term_mod = peptide_sequence.getNTerminalModification();
@@ -1829,7 +1829,7 @@ namespace OpenMS::Internal
           else if (alpha_peptide && hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_MOD) && (static_cast<Size>(StringUtils::toInt32(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1).toString())) == i) && (hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE).toString() == "mono-link") )
           {
             p += "\t\t<Modification location=\"" + StringUtils::toStr(i + 1);
-            p += "\" residues=\"" + StringUtils::toStr(peptide_sequence[i].getOneLetterCode());
+            p += "\" residues=\"" + std::string(peptide_sequence[i].getOneLetterCode());
             p += "\">\n\t\t\t<cvParam accession=\"XLMOD:XXXXX";
             p += "\" name=\"" +  hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD).toString();
             p += R"(" cvRef="XLMOD"/>)";
@@ -1862,7 +1862,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              xl_db->searchModificationsByDiffMonoMass(mods, double(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS)), 0.0001,StringUtils::toStr(hit.getSequence()[i].getOneLetterCode()), ResidueModification::ANYWHERE);
+              xl_db->searchModificationsByDiffMonoMass(mods, double(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS)), 0.0001,std::string(hit.getSequence()[i].getOneLetterCode()), ResidueModification::ANYWHERE);
               if (!mods.empty())
               {
                 p += "\t\t<Modification location=\"" + StringUtils::toStr(i + 1);
@@ -1908,20 +1908,20 @@ namespace OpenMS::Internal
             }
             if ( acc.empty() && (!mods.empty()) ) // If ambiguity can not be resolved by xl_mod, just take one with the same mass diff from the database
             {
-              const ResidueModification* mod = xl_db->getModification(StringUtils::toStr(peptide_sequence[i].getOneLetterCode()), mods[0], ResidueModification::ANYWHERE);
+              const ResidueModification* mod = xl_db->getModification(std::string(peptide_sequence[i].getOneLetterCode()), mods[0], ResidueModification::ANYWHERE);
               acc = mod->getPSIMODAccession();
               name = mod->getId();
             }
             if (!acc.empty())
             {
-              p += "\" residues=\"" + StringUtils::toStr(peptide_sequence[i].getOneLetterCode());
+              p += "\" residues=\"" + std::string(peptide_sequence[i].getOneLetterCode());
               p += "\" monoisotopicMassDelta=\"" + hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS).toString() + "\">\n";
               p += "\t\t\t<cvParam accession=\"" + acc + R"(" cvRef="XLMOD" name=")" + name + "\"/>\n";
             }
             else // if there is no matching modification in the database, write out a placeholder
             {
               p += "\t\t<Modification location=\"" + StringUtils::toStr(i + 1);
-              p += "\" residues=\"" + StringUtils::toStr(peptide_sequence[i].getOneLetterCode());
+              p += "\" residues=\"" + std::string(peptide_sequence[i].getOneLetterCode());
               p += "\" monoisotopicMassDelta=\"" + hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS).toString() + "\">\n";
               p += "\t\t\t<cvParam accession=\"XLMOD:XXXXX\" cvRef=\"XLMOD\" name=\"" + hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD).toString() + "\"/>\n";
             }
@@ -1941,16 +1941,16 @@ namespace OpenMS::Internal
             {
               p += "\t\t<Modification location=\"" + StringUtils::toStr(i + 1);
             }
-            p += "\" residues=\"" + StringUtils::toStr(peptide_sequence[i].getOneLetterCode());
+            p += "\" residues=\"" + std::string(peptide_sequence[i].getOneLetterCode());
             p += "\" monoisotopicMassDelta=\"0\">\n";
           }
           if (alpha_peptide)
           {
-            p += "\t\t\t" + cv_.getTerm(StringUtils::toStr("MS:1002509")).toXMLString(cv_ns, DataValue(ppxl_linkid));
+            p += "\t\t\t" + cv_.getTerm(std::string("MS:1002509")).toXMLString(cv_ns, DataValue(ppxl_linkid));
           }
           else
           {
-            p += "\t\t\t" + cv_.getTerm(StringUtils::toStr("MS:1002510")).toXMLString(cv_ns, DataValue(ppxl_linkid));
+            p += "\t\t\t" + cv_.getTerm(std::string("MS:1002510")).toXMLString(cv_ns, DataValue(ppxl_linkid));
           }
           p += "\n\t\t</Modification>\n";
         }
@@ -1958,7 +1958,7 @@ namespace OpenMS::Internal
         {
           int i = StringUtils::toInt32(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2).toString());
           p += "\t\t<Modification location=\"" + StringUtils::toStr(i + 1);
-          p += "\" residues=\"" + StringUtils::toStr(peptide_sequence[i].getOneLetterCode());
+          p += "\" residues=\"" + std::string(peptide_sequence[i].getOneLetterCode());
           p += "\" monoisotopicMassDelta=\"0";
           // ppxl crosslink loop xl_pos2 is always the acceptor ("MS:1002510")
           p += "\">\n\t\t\t" + cv_.getTerm("MS:1002510").toXMLString(cv_ns, DataValue(ppxl_linkid));
@@ -1999,7 +1999,7 @@ namespace OpenMS::Internal
             std::string idec;
             if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_TARGET_DECOY_ALPHA))
             {
-              idec =StringUtils::toStr(boost::lexical_cast<std::string>(StringUtils::hasSubstring(hit.getMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_ALPHA).toString(), "decoy")));
+              idec =std::string(boost::lexical_cast<std::string>(StringUtils::hasSubstring(hit.getMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_ALPHA).toString(), "decoy")));
             }
 
             std::string e;
@@ -2040,7 +2040,7 @@ namespace OpenMS::Internal
             }
             if (!idec.empty())
             {
-              e += " isDecoy=\"" + StringUtils::toStr(idec)+ "\"";
+              e += " isDecoy=\"" + std::string(idec)+ "\"";
             }
             e += "/>\n";
             sen_set.insert(e);
@@ -2072,7 +2072,7 @@ namespace OpenMS::Internal
             std::string idec;
             if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_TARGET_DECOY_BETA))
             {
-              idec =StringUtils::toStr(boost::lexical_cast<std::string>(StringUtils::hasSubstring(hit.getMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_BETA).toString(), "decoy")));
+              idec =std::string(boost::lexical_cast<std::string>(StringUtils::hasSubstring(hit.getMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_BETA).toString(), "decoy")));
             }
 
             std::string e;
@@ -2105,7 +2105,7 @@ namespace OpenMS::Internal
             }
             if (!idec.empty())
             {
-              e += " isDecoy=\"" + StringUtils::toStr(idec)+ "\"";
+              e += " isDecoy=\"" + std::string(idec)+ "\"";
             }
             e += "/>\n";
             sen_set.insert(e);
@@ -2170,7 +2170,7 @@ namespace OpenMS::Internal
       std::string emz = StringUtils::toStr(it->getMZ());
       std::string sii = "SII_" + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
       std::string sii_tmp;
-      sii_tmp +=StringUtils::toStr("\t\t\t\t<SpectrumIdentificationItem passThreshold=\"")
+      sii_tmp +=std::string("\t\t\t\t<SpectrumIdentificationItem passThreshold=\"")
               + pte + "\" rank=\"" + r + "\" peptide_ref=\""
               + pepid + "\" calculatedMassToCharge=\"" + cmz
               + "\" experimentalMassToCharge=\"" + emz
@@ -2183,7 +2183,7 @@ namespace OpenMS::Internal
       }
       for (std::vector<std::string>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
       {
-        sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  StringUtils::toStr(*pevref) + "\"/>\n";
+        sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  std::string(*pevref) + "\"/>\n";
       }
 
       if (! hit.getPeakAnnotations().empty() && alpha_peptide)
@@ -2280,10 +2280,10 @@ namespace OpenMS::Internal
       if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT) && hit.metaValueExists(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ))
       {
         // ppxl : TODO remove if existing <Fragmentation/>block
-        { std::string from = std::string("experimentalMassToCharge=\"") + StringUtils::toStr(emz);
+        { std::string from = std::string("experimentalMassToCharge=\"") + std::string(emz);
           std::string to = "experimentalMassToCharge=\"" + StringUtils::toStr(hit.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ));
           StringUtils::substitute(sii_tmp, from, to); } // mz
-        sii_tmp = StringUtils::substitute(sii_tmp, sii,StringUtils::toStr("SII_") + StringUtils::toStr(UniqueIdGenerator::getUniqueId())); // uid
+        sii_tmp = StringUtils::substitute(sii_tmp, sii,std::string("SII_") + StringUtils::toStr(UniqueIdGenerator::getUniqueId())); // uid
         sii_tmp = StringUtils::substitute(sii_tmp, "value=\"" + ert, "value=\"" + StringUtils::toStr(hit.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT)));
 
         ProteinIdentification::SearchParameters search_params = cpro_id_->front().getSearchParameters();
@@ -2291,7 +2291,7 @@ namespace OpenMS::Internal
         double iso_shift = StringUtils::toDouble(StringUtils::toStr(search_params.getMetaValue("cross_link:mass_isoshift", "0")));
         double cmz_heavy = StringUtils::toDouble(cmz) + (iso_shift / hit.getCharge());
 
-        { std::string from2 = std::string("calculatedMassToCharge=\"") + StringUtils::toStr(cmz);
+        { std::string from2 = std::string("calculatedMassToCharge=\"") + std::string(cmz);
           std::string to2 = "calculatedMassToCharge=\"" + StringUtils::toStr(cmz_heavy);
           StringUtils::substitute(sii_tmp, from2, to2); }
 

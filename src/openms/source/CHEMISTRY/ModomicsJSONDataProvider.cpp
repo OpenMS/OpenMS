@@ -251,7 +251,7 @@ namespace OpenMS
     {
       OPENMS_LOG_ERROR << "Error: Failed to parse Modomics JSON. Reason:\n" << e.what() << endl;
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                   full_path,StringUtils::toStr("JSON parse error: ") + e.what());
+                                   full_path,std::string("JSON parse error: ") + e.what());
     }
 
     std::vector<RibonucleotideEntry> result;

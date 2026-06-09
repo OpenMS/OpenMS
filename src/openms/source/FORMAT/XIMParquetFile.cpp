@@ -312,7 +312,7 @@ namespace OpenMS
           return true;
         default:
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "Unsupported floating-point column type",StringUtils::toStr(array->type()->ToString()));
+                                       "Unsupported floating-point column type",std::string(array->type()->ToString()));
       }
     }
 
@@ -369,7 +369,7 @@ namespace OpenMS
         }
         default:
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Unsupported binary column type",StringUtils::toStr(array->type()->ToString()));
+                                        "Unsupported binary column type",std::string(array->type()->ToString()));
       }
     }
 
@@ -735,7 +735,7 @@ namespace OpenMS
       name_map.reserve(schema->num_fields());
       for (const auto& field : schema->fields())
       {
-        name_map[upper_(StringUtils::toStr(field->name()))] =StringUtils::toStr(field->name());
+        name_map[upper_(std::string(field->name()))] =std::string(field->name());
       }
       return name_map;
     }
@@ -749,7 +749,7 @@ namespace OpenMS
         if (i > 0) oss << ", ";
         oss << columns[i];
       }
-      return StringUtils::toStr(oss.str());
+      return oss.str();
     }
 
     /// Normalize column names to schema and drop unsupported columns.
@@ -984,7 +984,7 @@ namespace OpenMS
           return true;
         default:
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Unsupported integer column type",StringUtils::toStr(array->type()->ToString()));
+                                        "Unsupported integer column type",std::string(array->type()->ToString()));
       }
     }
 
@@ -1005,7 +1005,7 @@ namespace OpenMS
           return true;
         default:
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Unsupported string column type",StringUtils::toStr(array->type()->ToString()));
+                                        "Unsupported string column type",std::string(array->type()->ToString()));
       }
     }
 
@@ -1693,7 +1693,7 @@ namespace OpenMS
     schema_columns.reserve(schema->num_fields());
     for (const auto& field : schema->fields())
     {
-      schema_columns.insert(upper_(StringUtils::toStr(field->name())));
+      schema_columns.insert(upper_(std::string(field->name())));
     }
 
     std::unordered_set<std::string> allowed_columns = {

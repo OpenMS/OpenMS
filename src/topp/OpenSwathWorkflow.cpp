@@ -595,7 +595,7 @@ protected:
     if (tr_type == FileTypes::UNKNOWN)
     {
       tr_type = FileHandler::getType(tr_file);
-      writeDebug_(StringUtils::toStr("Input file type (-tr): ") + FileTypes::typeToName(tr_type), 2);
+      writeDebug_(std::string("Input file type (-tr): ") + FileTypes::typeToName(tr_type), 2);
     }
 
     if (tr_type == FileTypes::UNKNOWN)
@@ -609,7 +609,7 @@ protected:
     if (out_features_type == FileTypes::UNKNOWN)
     {
       out_features_type = FileHandler::getType(out_features);
-      writeDebug_(StringUtils::toStr("Input file type (-out): ") + FileTypes::typeToName(out_features_type), 2);
+      writeDebug_(std::string("Input file type (-out): ") + FileTypes::typeToName(out_features_type), 2);
     }
 
     if (out_features_type == FileTypes::UNKNOWN)
@@ -939,7 +939,7 @@ protected:
       {
         if (out_features_type == FileTypes::OSW)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Conversion from TraML to OSW is not supported."));
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Conversion from TraML to OSW is not supported."));
         }
       }
     }
@@ -1288,7 +1288,7 @@ protected:
         priority_pep_strings.reserve(priority_peptides.size());
         for (const auto& pep : priority_peptides)
         {
-          priority_pep_strings.push_back(StringUtils::toStr(pep));
+          priority_pep_strings.push_back(std::string(pep));
         }
         
         CalibrationWorkflow::IrtExperiments irt_experiments = calibration_wf.prepareIrtExperiments(
@@ -1434,7 +1434,7 @@ protected:
         if (it->is_directory()) continue;
         const auto full = it->path();
         std::string rel = std::filesystem::relative(full, dirpath).generic_string();
-        ZipArchiveFile::addOrReplaceFromFile(out_features,StringUtils::toStr(rel),StringUtils::toStr(full.string()));
+        ZipArchiveFile::addOrReplaceFromFile(out_features,std::string(rel),std::string(full.string()));
       }
       // Write the embedded sidecar index that enables random-access reads
       // directly from the archive without extracting (RAF pattern).

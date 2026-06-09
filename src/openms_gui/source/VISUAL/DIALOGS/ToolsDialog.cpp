@@ -257,7 +257,7 @@ namespace OpenMS
       std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
-        list << toQString(StringUtils::toStr(name));
+        list << toQString(std::string(name));
       }
     }
 
@@ -285,7 +285,7 @@ namespace OpenMS
       arg_param_ = plugin_params_.copy(tool_name + ":");
     }
 
-    tool_desc_->setText(toQString(StringUtils::toStr(arg_param_.getSectionDescription(tool_name))));
+    tool_desc_->setText(toQString(std::string(arg_param_.getSectionDescription(tool_name))));
     single_tool_param_ = arg_param_.copy(tool_name + ":1:", true);
 
     setInputOutputCombo_(arg_param_);
@@ -340,7 +340,7 @@ namespace OpenMS
       arg_param_.insert(getTool() + ":1:", single_tool_param_);
       if (!File::writable(ini_file_))
       {
-        QMessageBox::critical(this, "Error", (StringUtils::toStr("Could not write to '") + ini_file_ + "'!").c_str());
+        QMessageBox::critical(this, "Error", (std::string("Could not write to '") + ini_file_ + "'!").c_str());
       }
       ParamXMLFile paramFile;
       paramFile.store(ini_file_, arg_param_);
@@ -382,7 +382,7 @@ namespace OpenMS
     Int pos = tools_combo_->findText(string);
     if (pos == -1)
     {
-      QMessageBox::critical(this, "Error", (StringUtils::toStr("Cannot apply '") + fromQString(string) + "' tool to this layer type. Aborting!").c_str());
+      QMessageBox::critical(this, "Error", (std::string("Cannot apply '") + fromQString(string) + "' tool to this layer type. Aborting!").c_str());
       arg_param_.clear();
       return;
     }

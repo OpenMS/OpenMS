@@ -376,11 +376,11 @@ START_SECTION((SEQ sequence query field - single and multiple))
     MascotGenericFile mgf_file;
     stringstream ss;
     mgf_file.store(ss, "test", exp);
-    TEST_TRUE(StringUtils::hasSubstring(StringUtils::toStr(ss.str()), "SEQ=PEPTIDER"))
+    TEST_TRUE(StringUtils::hasSubstring(ss.str(), "SEQ=PEPTIDER"))
 
     stringstream compact_ss;
     mgf_file.store(compact_ss, "test", exp, true);
-    TEST_TRUE(StringUtils::hasSubstring(StringUtils::toStr(compact_ss.str()), "SEQ=PEPTIDER"))
+    TEST_TRUE(StringUtils::hasSubstring(compact_ss.str(), "SEQ=PEPTIDER"))
   }
 
   // SEQ must not bleed across spectra during sequential load.

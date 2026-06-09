@@ -114,7 +114,7 @@ StringList numericFeatures(const StringList& feature_set)
 /// uniquely identifies a row in the .pin for the TOPP test data.
 std::string rowKey(const PeptideIdentification& pid, const PeptideHit& hit)
 {
-  std::string sr = StringUtils::toStr(pid.getSpectrumReference());
+  std::string sr = std::string(pid.getSpectrumReference());
   if (sr.empty() && pid.metaValueExists("spectrum_id"))
   {
     sr = pid.getMetaValue("spectrum_id").toString();
@@ -200,7 +200,7 @@ std::string percolatorBinary()
 {
   const char* env = std::getenv("PERCOLATOR_BINARY");
   if (!env || !*env) return std::string();
-  return StringUtils::toStr(env);
+  return std::string(env);
 }
 
 /// Generate a realistic-scale synthetic dataset: 2000 PSMs with a mildly
@@ -843,16 +843,16 @@ START_SECTION([EXTRA] parameter matrix: each flag flows through to the SVM)
       // Fail with the case name in the message so regressions are bisectable.
       if (r < tc.min_r)
       {
-        TEST_EQUAL(StringUtils::toStr("case ") + tc.name + " r=" + StringUtils::toStr(r)
+        TEST_EQUAL(std::string("case ") + tc.name + " r=" + StringUtils::toStr(r)
                    + " < min_r=" + StringUtils::toStr(tc.min_r),
-                   StringUtils::toStr("case ok"))
+                   std::string("case ok"))
       }
       TEST_TRUE(r >= tc.min_r)
       if (tgt_q01_in != tgt_q01_sub)
       {
-        TEST_EQUAL(StringUtils::toStr("case ") + tc.name + " target@q01 mismatch: in="
+        TEST_EQUAL(std::string("case ") + tc.name + " target@q01 mismatch: in="
                    + StringUtils::toStr(tgt_q01_in) + " sub=" + StringUtils::toStr(tgt_q01_sub),
-                   StringUtils::toStr("case ok"))
+                   std::string("case ok"))
       }
       TEST_EQUAL(tgt_q01_in, tgt_q01_sub)
     }
@@ -961,11 +961,11 @@ START_SECTION([EXTRA] SVM weights match average of per-fold subprocess weights)
     }
     if (max_abs > 1e-3)
     {
-      TEST_EQUAL(StringUtils::toStr("feature ") + ri.feature_names[arg_max]
+      TEST_EQUAL(std::string("feature ") + ri.feature_names[arg_max]
                  + " |dw| = " + StringUtils::toStr(max_abs)
                  + " in=" + StringUtils::toStr(in_weights.front()[arg_max])
                  + " sub_avg=" + StringUtils::toStr(sub_avg[arg_max]),
-                 StringUtils::toStr("weights match"))
+                 std::string("weights match"))
     }
     TEST_TRUE(max_abs <= 1e-3)
   }
@@ -1130,9 +1130,9 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
       }
       if (a_in != a_sub)
       {
-        TEST_EQUAL(StringUtils::toStr("q=") + StringUtils::toStr(thr) + " accepted-set mismatch: in="
+        TEST_EQUAL(std::string("q=") + StringUtils::toStr(thr) + " accepted-set mismatch: in="
                    + StringUtils::toStr(a_in.size()) + " sub=" + StringUtils::toStr(a_sub.size()),
-                   StringUtils::toStr("sets match"))
+                   std::string("sets match"))
       }
       TEST_EQUAL(a_in == a_sub, true)
     }

@@ -81,7 +81,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      std::string msg =StringUtils::toStr("Caught exception: '") + e.getName() + "' with message '" + e.what() + "'";
+      std::string msg =std::string("Caught exception: '") + e.getName() + "' with message '" + e.what() + "'";
       OPENMS_LOG_ERROR << msg << "\n";
       QMessageBox::warning(nullptr, QString("Unexpected error occurred"), toQString(msg));
       return false;

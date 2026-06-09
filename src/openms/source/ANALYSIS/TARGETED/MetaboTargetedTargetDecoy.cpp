@@ -206,7 +206,7 @@ namespace OpenMS
         std::vector<ReactionMonitoringTransition> potential_decoy_transitions;
 
         std::string current_compound_name = StringUtils::toStr(potential_decoy_compound.getMetaValue("CompoundName"));
-        potential_decoy_compound.setMetaValue("CompoundName",StringUtils::toStr(current_compound_name + "_decoy"));
+        potential_decoy_compound.setMetaValue("CompoundName",std::string(current_compound_name + "_decoy"));
         potential_decoy_compound.id = it.decoy_compound_ref;
         potential_decoy_compound.setMetaValue("decoy", DataValue(1));
 

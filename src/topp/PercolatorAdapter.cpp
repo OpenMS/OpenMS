@@ -1193,7 +1193,7 @@ protected:
         }
         arguments.push_back("-f"); arguments.push_back(fasta_file);
 
-        arguments.push_back("-z"); arguments.push_back(StringUtils::toStr(enz_str));
+        arguments.push_back("-z"); arguments.push_back(std::string(enz_str));
 
         std::string decoy_pattern = getStringOption_("decoy_pattern");
         if (decoy_pattern != "random") { arguments.push_back("-P"); arguments.push_back(decoy_pattern); }

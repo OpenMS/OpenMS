@@ -1687,7 +1687,7 @@ namespace OpenMS
         "INNER JOIN RUN ON RUN.ID = FEATURE.RUN_ID "
         "LEFT JOIN FEATURE_MS2 ON FEATURE_MS2.FEATURE_ID = FEATURE.ID "
         + std::string(has_feature_ms1 ? "LEFT JOIN FEATURE_MS1 ON FEATURE_MS1.FEATURE_ID = FEATURE.ID " : "")
-        + StringUtils::toStr(has_score_ms1 ? "LEFT JOIN SCORE_MS1 ON SCORE_MS1.FEATURE_ID = FEATURE.ID " : "")
+        + std::string(has_score_ms1 ? "LEFT JOIN SCORE_MS1 ON SCORE_MS1.FEATURE_ID = FEATURE.ID " : "")
         + "LEFT JOIN SCORE_MS2 ON SCORE_MS2.FEATURE_ID = FEATURE.ID ";
 
       std::vector<OpenSwathExportRow> rows;
@@ -2273,11 +2273,11 @@ namespace OpenMS
 
       const std::string query =
         "SELECT "
-        + StringUtils::toStr(has_protein_tables ? "PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID" : "NULL") + ", "
+        + std::string(has_protein_tables ? "PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID" : "NULL") + ", "
         "PEPTIDE.ID, "
-        + StringUtils::toStr(has_score_ipf ? "SCORE_IPF_BEST.PEPTIDE_ID" : "NULL") + ", "
+        + std::string(has_score_ipf ? "SCORE_IPF_BEST.PEPTIDE_ID" : "NULL") + ", "
         "PRECURSOR.ID, "
-        + StringUtils::toStr(has_protein_tables ? "PROTEIN.PROTEIN_ACCESSION" : "NULL") + ", "
+        + std::string(has_protein_tables ? "PROTEIN.PROTEIN_ACCESSION" : "NULL") + ", "
         "PEPTIDE.UNMODIFIED_SEQUENCE, "
         "PEPTIDE.MODIFIED_SEQUENCE, "
         "PRECURSOR.TRAML_ID, "
@@ -2286,24 +2286,24 @@ namespace OpenMS
         "PRECURSOR.CHARGE, "
         "PRECURSOR.LIBRARY_INTENSITY, "
         "PRECURSOR.LIBRARY_RT, "
-        + StringUtils::toStr(has_library_drift_time ? "PRECURSOR.LIBRARY_DRIFT_TIME" : "NULL") + ", "
-        + StringUtils::toStr(has_gene_tables ? "PEPTIDE_GENE_MAPPING.GENE_ID" : "NULL") + ", "
-        + StringUtils::toStr(has_gene_tables ? geneNameSelect_(conn) : "NULL") + ", "
-        + StringUtils::toStr(has_gene_tables ? geneDecoySelect_(conn) : "NULL") + ", "
-        + StringUtils::toStr(has_protein_tables ? "PROTEIN.DECOY" : "NULL") + ", "
+        + std::string(has_library_drift_time ? "PRECURSOR.LIBRARY_DRIFT_TIME" : "NULL") + ", "
+        + std::string(has_gene_tables ? "PEPTIDE_GENE_MAPPING.GENE_ID" : "NULL") + ", "
+        + std::string(has_gene_tables ? geneNameSelect_(conn) : "NULL") + ", "
+        + std::string(has_gene_tables ? geneDecoySelect_(conn) : "NULL") + ", "
+        + std::string(has_protein_tables ? "PROTEIN.DECOY" : "NULL") + ", "
         "PEPTIDE.DECOY, "
         "PRECURSOR.DECOY, "
         "FEATURE.RUN_ID, "
         "RUN.FILENAME, "
         "FEATURE.ID, "
         "FEATURE.EXP_RT, "
-        + StringUtils::toStr(has_feature_im ? "FEATURE.EXP_IM" : "NULL") + ", "
+        + std::string(has_feature_im ? "FEATURE.EXP_IM" : "NULL") + ", "
         "FEATURE.NORM_RT, "
         "FEATURE.DELTA_RT, "
         "FEATURE.LEFT_WIDTH, "
         "FEATURE.RIGHT_WIDTH, "
-        + StringUtils::toStr(has_feature_im_boundaries ? "FEATURE.EXP_IM_LEFTWIDTH" : "NULL") + ", "
-        + StringUtils::toStr(has_feature_im_boundaries ? "FEATURE.EXP_IM_RIGHTWIDTH" : "NULL") + ", "
+        + std::string(has_feature_im_boundaries ? "FEATURE.EXP_IM_LEFTWIDTH" : "NULL") + ", "
+        + std::string(has_feature_im_boundaries ? "FEATURE.EXP_IM_RIGHTWIDTH" : "NULL") + ", "
         + std::string(dynamic_feature_select.empty() ? "" : dynamic_feature_select + ", ")
         + std::string(has_score_ms1 ? "SCORE_MS1.SCORE, SCORE_MS1.RANK, SCORE_MS1.PVALUE, SCORE_MS1.QVALUE, SCORE_MS1.PEP" : "NULL, NULL, NULL, NULL, NULL") + ", "
         + std::string(has_score_ms2 ? "SCORE_MS2.SCORE, SCORE_MS2.RANK, SCORE_MS2.PVALUE, SCORE_MS2.QVALUE, SCORE_MS2.PEP" : "NULL, NULL, NULL, NULL, NULL") + ", "
@@ -2328,11 +2328,11 @@ namespace OpenMS
         + std::string(has_gene_tables ? "LEFT JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID "
                                    "LEFT JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID " : "")
         + "INNER JOIN FEATURE ON FEATURE.PRECURSOR_ID = PRECURSOR.ID "
-        + StringUtils::toStr(has_feature_ms1 ? "LEFT JOIN FEATURE_MS1 ON FEATURE.ID = FEATURE_MS1.FEATURE_ID " : "")
+        + std::string(has_feature_ms1 ? "LEFT JOIN FEATURE_MS1 ON FEATURE.ID = FEATURE_MS1.FEATURE_ID " : "")
         + "INNER JOIN FEATURE_MS2 ON FEATURE.ID = FEATURE_MS2.FEATURE_ID "
         + "INNER JOIN RUN ON FEATURE.RUN_ID = RUN.ID "
-        + StringUtils::toStr(has_score_ms1 ? "LEFT JOIN SCORE_MS1 ON FEATURE.ID = SCORE_MS1.FEATURE_ID " : "")
-        + StringUtils::toStr(has_score_ms2 ? "LEFT JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID " : "")
+        + std::string(has_score_ms1 ? "LEFT JOIN SCORE_MS1 ON FEATURE.ID = SCORE_MS1.FEATURE_ID " : "")
+        + std::string(has_score_ms2 ? "LEFT JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID " : "")
         + score_ipf_join
         + score_peptide_joins
         + score_protein_joins

@@ -178,7 +178,7 @@ namespace OpenMS
       pep_id.setIdentifier("Unknown");
 
       // create a dummy ProteinIdentification for all ID-less PeakAnnotations
-      if (prot_ids.empty() || prot_ids.back().getIdentifier() !=StringUtils::toStr("Unknown"))
+      if (prot_ids.empty() || prot_ids.back().getIdentifier() !=std::string("Unknown"))
       {
         ProteinIdentification prot_id;
         prot_id.setIdentifier("Unknown");

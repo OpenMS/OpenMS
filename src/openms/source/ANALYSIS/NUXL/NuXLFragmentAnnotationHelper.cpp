@@ -23,7 +23,7 @@ namespace OpenMS
 {
   std::string NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon(char c, const std::string& fragment_shift_name)
   {
-    return StringUtils::toStr("i") + c + "+" + fragment_shift_name + "+";
+    return std::string("i") + c + "+" + fragment_shift_name + "+";
   }
 
   std::vector<PeptideHit::PeakAnnotation> NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA(
@@ -82,7 +82,7 @@ namespace OpenMS
     std::string fas;
     for (const auto & a : sorted)
     {
-      fas +=StringUtils::toStr("(") + StringUtils::number(a.mz, 3) + "," 
+      fas +=std::string("(") + StringUtils::number(a.mz, 3) + "," 
         + StringUtils::number(100.0 * a.intensity, 1) + ",\"" 
         + a.annotation + "\")";    
       if (&a != &sorted.back()) { fas += "|"; }     

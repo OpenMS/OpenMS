@@ -154,7 +154,7 @@ protected:
       }
     }
 
-    writeDebug_(StringUtils::toStr("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
+    writeDebug_(std::string("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
 
     // set up helper object for looking up spectrum meta data:
     SpectrumMetaDataLookup lookup;
@@ -167,7 +167,7 @@ protected:
     // for debugging errors relating to unexpected response files
     if (this->debug_level_ >= 100)
     {
-      writeDebug_(StringUtils::toStr("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
+      writeDebug_(std::string("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
     }
     else
     {

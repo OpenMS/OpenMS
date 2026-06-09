@@ -152,7 +152,7 @@ public:
           [&name](const IntegerDataArray& da) { return da.getName() == name; } );
         if (it == integer_data_arrays_.end())
         {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("IntegerDataArray: ") + name);
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("IntegerDataArray: ") + name);
         }
         return *it;
       }
@@ -164,7 +164,7 @@ public:
           [&name](const StringDataArray& da) { return da.getName() == name; } );
         if (it == string_data_arrays_.end())
         {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("StringDataArray: ") + name);
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("StringDataArray: ") + name);
         }
         return *it;
       }
@@ -176,7 +176,7 @@ public:
           [&name](const FloatDataArray& da) { return da.getName() == name; } );
         if (it == float_data_arrays_.end())
         {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("FloatDataArray: ") + name);
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("FloatDataArray: ") + name);
         }
         return *it;
       }
@@ -188,7 +188,7 @@ public:
           [&name](const IntegerDataArray& da) { return da.getName() == name; } );
         if (it == integer_data_arrays_.end())
         {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("IntegerDataArray: ") + name);
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("IntegerDataArray: ") + name);
         }
         return *it;
       }
@@ -200,7 +200,7 @@ public:
           [&name](const StringDataArray& da) { return da.getName() == name; } );
         if (it == string_data_arrays_.end())
         {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("StringDataArray: ") + name);
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("StringDataArray: ") + name);
         }
         return *it;
       }
@@ -212,7 +212,7 @@ public:
           [&name](const FloatDataArray& da) { return da.getName() == name; } );
         if (it == float_data_arrays_.end())
         {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("FloatDataArray: ") + name);
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("FloatDataArray: ") + name);
         }
         return *it;
       }

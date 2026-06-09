@@ -214,7 +214,7 @@ START_SECTION([EXTRA] static bool isValid(const std::string& filename))
   NEW_TMP_FILE(filename);
   std::string document_id;
   f.load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids2, peptide_ids2, document_id);
-  protein_ids2[0].setMetaValue("stringvalue",StringUtils::toStr("bla"));
+  protein_ids2[0].setMetaValue("stringvalue",std::string("bla"));
   protein_ids2[0].setMetaValue("intvalue",4711);
   protein_ids2[0].setMetaValue("floatvalue",5.3);
   f.store(filename, protein_ids2, peptide_ids2);

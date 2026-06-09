@@ -168,7 +168,7 @@ START_SECTION((Sample(const Sample& source)))
 	s.setConcentration(4711.4);
 
 	//meta info
-	s.setMetaValue("label",StringUtils::toStr("horse"));
+	s.setMetaValue("label",std::string("horse"));
 
 	//subsamples
 	Sample ss;
@@ -212,7 +212,7 @@ START_SECTION((Sample& operator= (const Sample& source)))
 	s.setConcentration(4711.4);
 
 	//meta
-	s.setMetaValue("label",StringUtils::toStr("horse"));
+	s.setMetaValue("label",std::string("horse"));
 
 	//subsamples
 	Sample ss;

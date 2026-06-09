@@ -309,12 +309,12 @@ END_SECTION
 const ConsensusMap map_const_1 = []() {
   ConsensusMap map1;
   map1.resize(3);
-  map1.setMetaValue("meta",StringUtils::toStr("value"));
+  map1.setMetaValue("meta",std::string("value"));
   map1.setIdentifier("lsid");
   map1.getColumnHeaders()[0].filename = "blub";
   map1.getColumnHeaders()[0].size = 47;
   map1.getColumnHeaders()[0].label = "label";
-  map1.getColumnHeaders()[0].setMetaValue("meta",StringUtils::toStr("meta"));
+  map1.getColumnHeaders()[0].setMetaValue("meta",std::string("meta"));
   map1.getDataProcessing().resize(1);
   map1.setExperimentType("labeled_MS2");
   map1.getProteinIdentifications().resize(1);

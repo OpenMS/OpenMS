@@ -78,7 +78,7 @@ namespace OpenMS
 
     std::map<char, double> aa_to_weight;
 
-    set<const Residue *> residues = ResidueDB::getInstance()->getResidues(StringUtils::toStr(param_.getValue("residue_set").toString()));
+    set<const Residue *> residues = ResidueDB::getInstance()->getResidues(std::string(param_.getValue("residue_set").toString()));
 
     for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
     {

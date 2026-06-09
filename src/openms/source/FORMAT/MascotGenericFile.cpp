@@ -417,8 +417,8 @@ namespace OpenMS
   std::pair<std::string, std::string> MascotGenericFile::getHTTPPeakListEnclosure(const std::string& filename) const
   {
     std::pair<std::string, std::string> r;
-    r.first =StringUtils::toStr("--" + StringUtils::toStr(param_.getValue("internal:boundary")) + "\n" + R"(Content-Disposition: form-data; name="FILE"; filename=")" + filename + "\"\n\n");
-    r.second =StringUtils::toStr("\n\n--" + StringUtils::toStr(param_.getValue("internal:boundary")) + "--\n");
+    r.first =std::string("--" + StringUtils::toStr(param_.getValue("internal:boundary")) + "\n" + R"(Content-Disposition: form-data; name="FILE"; filename=")" + filename + "\"\n\n");
+    r.second =std::string("\n\n--" + StringUtils::toStr(param_.getValue("internal:boundary")) + "--\n");
     return r;
   }
 

@@ -140,7 +140,7 @@ namespace OpenMS
   {
     std::stringstream ss;
     ss << *this;
-    return StringUtils::toStr(ss.str());
+    return ss.str();
   }
 
   std::string AASequence::toUnmodifiedString() const
@@ -241,7 +241,7 @@ namespace OpenMS
         std::string sign = (mass_delta && nominal_mass > 0) ? "+" : ""; // the '-' will be printed automatically by conversion to string
         if (integer_mass)
         {
-          bs +=StringUtils::toStr("n[") + sign + static_cast<int>(std::round(nominal_mass)) + "]";
+          bs +=std::string("n[") + sign + static_cast<int>(std::round(nominal_mass)) + "]";
         }
         else
         {
@@ -314,7 +314,7 @@ namespace OpenMS
         std::string sign = (mass_delta && nominal_mass > 0) ? "+" : "";
         if (integer_mass)
         {
-          bs +=StringUtils::toStr("c[") + sign + static_cast<int>(std::round(nominal_mass)) + "]";
+          bs +=std::string("c[") + sign + static_cast<int>(std::round(nominal_mass)) + "]";
         }
         else
         {
@@ -1700,7 +1700,7 @@ namespace OpenMS
   AASequence AASequence::fromString(const char* s, bool permissive)
   {
     AASequence aas;
-    parseString_(StringUtils::toStr(s), aas, permissive);
+    parseString_(std::string(s), aas, permissive);
     return aas;
   }
 

@@ -128,8 +128,8 @@ namespace OpenMS
   {
     map_label_.clear();
     map_label_inverse_.clear();
-    map_label_inverse_[StringUtils::toStr(param_.getValue("default_map_label").toString())] = 0; // default virtual map (for unlabeled experiments)
-    map_label_[0] =StringUtils::toStr(param_.getValue("default_map_label").toString());
+    map_label_inverse_[std::string(param_.getValue("default_map_label").toString())] = 0; // default virtual map (for unlabeled experiments)
+    map_label_[0] =std::string(param_.getValue("default_map_label").toString());
 
     if (param_.getValue("q_try") == "feature")
       q_try_ = CHARGEMODE::QFROMFEATURE;
@@ -343,7 +343,7 @@ namespace OpenMS
     //make it proof for charge 1..3 and charge -3..-1
     if ((q_min * q_max) < 0)
     {
-       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Min and max charge switch charge signs! Please use same charge sign."),StringUtils::toStr(q_min)+" "+StringUtils::toStr(q_max));
+       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Min and max charge switch charge signs! Please use same charge sign."),StringUtils::toStr(q_min)+" "+StringUtils::toStr(q_max));
     }
 
 
@@ -643,7 +643,7 @@ namespace OpenMS
 
       if (!feature_relation[i].isActive())
       {
-        out_dead.addLine(StringUtils::toStr("dead e") + i + " (" + (c.getAdductsAsString(Compomer::LEFT)) + " -> " + (c.getAdductsAsString(Compomer::RIGHT)) + "): "
+        out_dead.addLine(std::string("dead e") + i + " (" + (c.getAdductsAsString(Compomer::LEFT)) + " -> " + (c.getAdductsAsString(Compomer::RIGHT)) + "): "
                          + f_idx_v[0] + " (q_ff:" + fm_out[f_idx_v[0]].getCharge() + " q_de:" + feature_relation[i].getCharge(0) + ")"
                          + f_idx_v[1] + " (q_ff:" + fm_out[f_idx_v[1]].getCharge() + " q_de:" + feature_relation[i].getCharge(1) + ")"
                          + "score: " + feature_relation[i].getEdgeScore()
@@ -761,7 +761,7 @@ namespace OpenMS
         if (fm_out[f0_idx].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
           if (ef_l.toString() != fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Decharging produced inconsistent adduct annotation! [expected: ") + StringUtils::toStr(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_l.toString());
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Decharging produced inconsistent adduct annotation! [expected: ") + StringUtils::toStr(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_l.toString());
         }
         else
         {
@@ -774,7 +774,7 @@ namespace OpenMS
         fm_out[f0_idx].setCharge(new_q0);
         labels = c.getLabels(Compomer::LEFT);
         if (labels.size() > 1)
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
         if (!labels.empty())
         {
           fm_out[f0_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
@@ -785,7 +785,7 @@ namespace OpenMS
         if (fm_out[f1_idx].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
           if (ef_r.toString() != fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Decharging produced inconsistent adduct annotation! [expected: ") + StringUtils::toStr(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_r.toString());
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Decharging produced inconsistent adduct annotation! [expected: ") + StringUtils::toStr(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_r.toString());
         }
         else
         {
@@ -798,7 +798,7 @@ namespace OpenMS
         fm_out[f1_idx].setCharge(new_q1);
         labels = c.getLabels(Compomer::RIGHT);
         if (labels.size() > 1)
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
         if (!labels.empty())
         {
           fm_out[f1_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
@@ -1199,7 +1199,7 @@ namespace OpenMS
     //Switches of charge signs in one ionization mode should logically not occur. The assumed decharger charge settings should fit to feature charges
     if (feature_charge * putative_charge < 0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("feature charge and putative charge switch charge direction!"),StringUtils::toStr(feature_charge)+" "+StringUtils::toStr(putative_charge));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("feature charge and putative charge switch charge direction!"),StringUtils::toStr(feature_charge)+" "+StringUtils::toStr(putative_charge));
     }
 
     // if no charge given or all-charges is selected. Assume no charge detected -> charge 0

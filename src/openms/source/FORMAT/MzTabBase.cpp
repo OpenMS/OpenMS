@@ -65,7 +65,7 @@ namespace OpenMS
         StringUtils::trim(StringUtils::toLower(lower));
         if (lower == "null")
         {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("MzTabParameter in MzTabParameterList must not be null '") + s);
+          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("MzTabParameter in MzTabParameterList must not be null '") + s);
         }
         p.fromCellString(fields[i]);
         parameters_.push_back(p);
@@ -229,7 +229,7 @@ namespace OpenMS
     }
     else
     {
-      return StringUtils::toStr("ms_run[") + StringUtils::toStr(ms_run_) + "]:" + spec_ref_;
+      return std::string("ms_run[") + StringUtils::toStr(ms_run_) + "]:" + spec_ref_;
     }
   }
 
@@ -247,7 +247,7 @@ namespace OpenMS
       StringUtils::split(s, ":", fields);
       if (fields.size() != 2)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Can not convert to MzTabSpectraRef from '") + s + "'");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Can not convert to MzTabSpectraRef from '") + s + "'");
       }
 
       spec_ref_ = fields[1];
@@ -343,7 +343,7 @@ namespace OpenMS
         ret += name_;
       }
 
-      ret +=StringUtils::toStr(", ");
+      ret +=std::string(", ");
 
       if (StringUtils::hasSubstring(value_, ", "))
       {
@@ -405,7 +405,7 @@ namespace OpenMS
 
       if (fields.size() != 4)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Could not convert String '") + s + "' to MzTabParameter");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Could not convert String '") + s + "' to MzTabParameter");
       }
 
       CV_label_ = fields[0];
@@ -547,7 +547,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Could not convert String '") + s + "' to MzTabBoolean");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Could not convert String '") + s + "' to MzTabBoolean");
       }
     }
   }
@@ -641,7 +641,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Trying to extract MzTab Integer value from non-integer valued cell. Did you check the cell state before querying the value?"));
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Trying to extract MzTab Integer value from non-integer valued cell. Did you check the cell state before querying the value?"));
     }
   }
 
@@ -677,7 +677,7 @@ namespace OpenMS
       auto val = StringUtils::toDouble(lower);
       if (val != (Int)val) // check if the value is actually an integer (e.g. 4.0)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Could not convert String '") + s + "' to MzTabInteger");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Could not convert String '") + s + "' to MzTabInteger");
       }
       set((Int)val);
     }
@@ -763,7 +763,7 @@ namespace OpenMS
   {
     if (state_ != MZTAB_CELLSTATE_DEFAULT)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Trying to extract MzTab Double value from non-double valued cell. Did you check the cell state before querying the value?"));
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Trying to extract MzTab Double value from non-double valued cell. Did you check the cell state before querying the value?"));
     }
 
     return value_;

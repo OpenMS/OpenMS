@@ -57,7 +57,7 @@ namespace OpenMS
       ss << (*it);
     }
 
-    return StringUtils::toStr(ss.str());
+    return ss.str();
   }
 
   bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2)

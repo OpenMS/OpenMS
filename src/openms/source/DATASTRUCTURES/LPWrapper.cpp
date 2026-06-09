@@ -257,7 +257,7 @@ namespace OpenMS
   {
     if (row_index >= getNumberOfRows() || column_index >= getNumberOfColumns())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid index given",StringUtils::toStr("invalid column_index or row_index"));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid index given",std::string("invalid column_index or row_index"));
     }
 #ifdef OPENMS_HAS_COINOR
     model_->setElement(row_index, column_index, value);
@@ -303,7 +303,7 @@ namespace OpenMS
   {
     if (row_index >= getNumberOfRows() || column_index >= getNumberOfColumns())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid index given",StringUtils::toStr("invalid column_index or row_index"));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid index given",std::string("invalid column_index or row_index"));
     }
 #ifdef OPENMS_HAS_COINOR
     return model_->getElement(row_index, column_index);

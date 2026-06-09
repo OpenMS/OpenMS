@@ -67,7 +67,7 @@ namespace OpenMS
     connect(ui_->merge_combo_, SIGNAL(activated(int)), ui_->merge_, SLOT(click()));
 
     //set title
-    setWindowTitle(toQString((StringUtils::toStr("Open data options for ") + data_name)));
+    setWindowTitle(toQString((std::string("Open data options for ") + data_name)));
   }
 
   TOPPViewOpenDialog::~TOPPViewOpenDialog()

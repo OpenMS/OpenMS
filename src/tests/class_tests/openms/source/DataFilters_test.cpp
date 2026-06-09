@@ -228,25 +228,25 @@ Feature feature_1;
 feature_1.setIntensity(1000.00f);
 feature_1.setCharge(4);
 feature_1.setOverallQuality((QualityType)31.3334);
-feature_1.setMetaValue(StringUtils::toStr("test_int"), 5);
-feature_1.setMetaValue(StringUtils::toStr("test_double"), 23.42);
-feature_1.setMetaValue(StringUtils::toStr("test_string"),StringUtils::toStr("hello world 1"));
+feature_1.setMetaValue(std::string("test_int"), 5);
+feature_1.setMetaValue(std::string("test_double"), 23.42);
+feature_1.setMetaValue(std::string("test_string"),std::string("hello world 1"));
 
 Feature feature_2;
 feature_2.setIntensity(122.01f);
 feature_2.setCharge(3);
 feature_2.setOverallQuality((QualityType)0.002);
-feature_2.setMetaValue(StringUtils::toStr("test_int"), 10);
-feature_2.setMetaValue(StringUtils::toStr("test_double"), 0.042);
-feature_2.setMetaValue(StringUtils::toStr("test_string"),StringUtils::toStr("hello world 2"));
+feature_2.setMetaValue(std::string("test_int"), 10);
+feature_2.setMetaValue(std::string("test_double"), 0.042);
+feature_2.setMetaValue(std::string("test_string"),std::string("hello world 2"));
 
 Feature feature_3;
 feature_3.setIntensity(55.0f);
 feature_3.setCharge(4);
 feature_3.setOverallQuality((QualityType) 1.);
-feature_3.setMetaValue(StringUtils::toStr("test_int"), 0);
-feature_3.setMetaValue(StringUtils::toStr("test_double"), 100.01);
-feature_3.setMetaValue(StringUtils::toStr("test_string"),StringUtils::toStr("hello world 3"));
+feature_3.setMetaValue(std::string("test_int"), 0);
+feature_3.setMetaValue(std::string("test_double"), 100.01);
+feature_3.setMetaValue(std::string("test_string"),std::string("hello world 3"));
 
 ///construct some test consensus features
 ConsensusFeature c_feature_1;

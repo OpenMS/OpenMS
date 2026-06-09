@@ -171,7 +171,7 @@ END_SECTION
 
 START_SECTION((FeatureMap(const FeatureMap &source)))
   FeatureMap map1;
-  map1.setMetaValue("meta",StringUtils::toStr("value"));
+  map1.setMetaValue("meta",std::string("value"));
   map1.push_back(feature1);
   map1.push_back(feature2);
   map1.push_back(feature3);
@@ -194,7 +194,7 @@ END_SECTION
 
 START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
 	FeatureMap map1;
-    map1.setMetaValue("meta",StringUtils::toStr("value"));
+    map1.setMetaValue("meta",std::string("value"));
 	map1.push_back(feature1);
 	map1.push_back(feature2);
 	map1.push_back(feature3);

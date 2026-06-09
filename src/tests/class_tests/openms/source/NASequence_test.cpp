@@ -349,7 +349,7 @@ END_SECTION
 
 START_SECTION((static NASequence fromString(const std::string& s)))
 {
-  NASequence seq = NASequence::fromString(StringUtils::toStr("CUA"));
+  NASequence seq = NASequence::fromString(std::string("CUA"));
   TEST_STRING_EQUAL(seq.toString(), "CUA");
 }
 END_SECTION

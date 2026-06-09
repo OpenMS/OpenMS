@@ -25,7 +25,7 @@ std::vector<FASTAFile::FASTAEntry> toFASTAVec(const std::vector<std::string>& sl
   std::vector<FASTAFile::FASTAEntry> proteins;
   for (size_t i = 0; i < sl_prot.size(); ++i)
   {
-    std::string id = i < identifier.size() ? StringUtils::toStr(identifier[i]) : StringUtils::toStr(i); // use identifier if given; or create automatically
+    std::string id = i < identifier.size() ? std::string(identifier[i]) : StringUtils::toStr(i); // use identifier if given; or create automatically
     proteins.push_back(FASTAFile::FASTAEntry(id, "", sl_prot[i]));
   }
   return proteins;

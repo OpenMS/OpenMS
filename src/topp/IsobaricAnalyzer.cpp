@@ -191,7 +191,7 @@ protected:
     registerSubsection_("quantification", "Parameters for the peptide quantification.");
     for (const auto& qm : quant_methods_)
     {
-      registerSubsection_(qm.second->getMethodName(),StringUtils::toStr("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
+      registerSubsection_(qm.second->getMethodName(),std::string("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
     }
   }
 

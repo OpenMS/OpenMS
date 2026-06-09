@@ -796,7 +796,7 @@ namespace OpenMS
         }
         if (!mod_set) // If no equivalent mono-link exists in the UNIMOD or XLMOD databases, use the given name to construct a placeholder
         {
-          std::string mod_name =StringUtils::toStr("unknown mono-link " + top_csms_spectrum[i].cross_link.cross_linker_name + " mass " + StringUtils::toStr(top_csms_spectrum[i].cross_link.cross_linker_mass));
+          std::string mod_name =std::string("unknown mono-link " + top_csms_spectrum[i].cross_link.cross_linker_name + " mass " + StringUtils::toStr(top_csms_spectrum[i].cross_link.cross_linker_mass));
           ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, mod_name);
         }
       }

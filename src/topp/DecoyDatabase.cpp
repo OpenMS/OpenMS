@@ -443,7 +443,7 @@ protected:
             }
             if (five_p) // add back 5'
             {
-              tokenized.insert(tokenized.begin(),StringUtils::toStr("p"));
+              tokenized.insert(tokenized.begin(),std::string("p"));
             }
             if (three_p) // add back 3'
             {

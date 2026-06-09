@@ -403,16 +403,16 @@ private:
               ion_mode_internal = pols[0];
               OPENMS_LOG_INFO << "Setting auto ion-mode to '" << ion_mode_internal << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
             }
-            else ion_mode_detect_msg =StringUtils::toStr("Meta value 'scan_polarity' does not contain unknown ion mode") + StringUtils::toStr(map[0].getMetaValue("scan_polarity"));
+            else ion_mode_detect_msg =std::string("Meta value 'scan_polarity' does not contain unknown ion mode") + StringUtils::toStr(map[0].getMetaValue("scan_polarity"));
           }
           else
           {
-            ion_mode_detect_msg =StringUtils::toStr("ambiguous ion mode: ") + StringUtils::toStr(map[0].getMetaValue("scan_polarity"));
+            ion_mode_detect_msg =std::string("ambiguous ion mode: ") + StringUtils::toStr(map[0].getMetaValue("scan_polarity"));
           }
         }
         else
         {
-          ion_mode_detect_msg =StringUtils::toStr("Meta value 'scan_polarity' not found in (Consensus-)Feature map");
+          ion_mode_detect_msg =std::string("Meta value 'scan_polarity' not found in (Consensus-)Feature map");
         }
       }
       else
@@ -422,7 +422,7 @@ private:
 
       if (!ion_mode_detect_msg.empty())
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Auto ionization mode could not resolve ion mode of data (") + ion_mode_detect_msg + "!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Auto ionization mode could not resolve ion mode of data (") + ion_mode_detect_msg + "!");
       }
 
       return ion_mode_internal;

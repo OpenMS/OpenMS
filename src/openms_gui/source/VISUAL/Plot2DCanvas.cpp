@@ -439,7 +439,7 @@ namespace OpenMS
     {
       QPainter painter;
       painter.begin(this);
-      painter.fillRect(0, 0, this->width(), this->height(), QColor(toQString(StringUtils::toStr(param_.getValue("background_color").toString()))));
+      painter.fillRect(0, 0, this->width(), this->height(), QColor(toQString(std::string(param_.getValue("background_color").toString()))));
       painter.end();
       e->accept();
       return;
@@ -474,7 +474,7 @@ namespace OpenMS
       // recalculate snap factor
       recalculateSnapFactor_();
 
-      buffer_.fill(QColor(toQString(StringUtils::toStr(param_.getValue("background_color").toString()))).rgb());
+      buffer_.fill(QColor(toQString(std::string(param_.getValue("background_color").toString()))).rgb());
       painter.begin(&buffer_);
       QElapsedTimer layer_timer;
 
@@ -855,7 +855,7 @@ namespace OpenMS
     QAction* result = nullptr;
 
     //Display name and warn if current layer invisible
-    std::string layer_name =StringUtils::toStr("Layer: ") + layer.getName();
+    std::string layer_name =std::string("Layer: ") + layer.getName();
     if (!layer.visible)
     {
       layer_name += " (invisible)";
@@ -1275,9 +1275,9 @@ namespace OpenMS
     QComboBox * feature_icon = dlg.findChild<QComboBox *>("feature_icon");
     QSpinBox * feature_icon_size = dlg.findChild<QSpinBox *>("feature_icon_size");
 
-    bg_color->setColor(QColor(toQString(StringUtils::toStr(param_.getValue("background_color").toString()))));
+    bg_color->setColor(QColor(toQString(std::string(param_.getValue("background_color").toString()))));
     gradient->gradient().fromString(layer.param.getValue("dot:gradient"));
-    feature_icon->setCurrentIndex(feature_icon->findText(toQString(StringUtils::toStr(layer.param.getValue("dot:feature_icon").toString()))));
+    feature_icon->setCurrentIndex(feature_icon->findText(toQString(std::string(layer.param.getValue("dot:feature_icon").toString()))));
     feature_icon_size->setValue((int)layer.param.getValue("dot:feature_icon_size"));
 
     if (dlg.exec())

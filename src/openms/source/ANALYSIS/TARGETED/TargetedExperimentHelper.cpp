@@ -18,7 +18,7 @@ namespace OpenMS::TargetedExperimentHelper
     void setModification(int location, int max_size, const std::string& modification, OpenMS::AASequence& aas)
     {
       OPENMS_PRECONDITION(location >= -1 && location <= max_size, 
-          (StringUtils::toStr("Location has invalid value") + (String)location).c_str() )
+          (std::string("Location has invalid value") + (String)location).c_str() )
 
       if (location == -1)
       {

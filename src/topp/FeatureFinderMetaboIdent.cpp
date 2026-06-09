@@ -187,7 +187,7 @@ protected:
     }
     string line;
     getline(source, line);
-    if (!StringUtils::hasPrefix(StringUtils::toStr(line), header))
+    if (!StringUtils::hasPrefix(std::string(line), header))
     {
       std::string msg = "expected header line starting with: '" + header + "'";
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -195,9 +195,9 @@ protected:
     }
 
     // Check for optional IM columns in header
-    bool has_im_columns = StringUtils::hasSubstring(StringUtils::toStr(line), "IonMobility");
+    bool has_im_columns = StringUtils::hasSubstring(std::string(line), "IonMobility");
     // Check for optional Adduct column in header
-    bool has_adduct_column = StringUtils::hasSubstring(StringUtils::toStr(line), "Adduct");
+    bool has_adduct_column = StringUtils::hasSubstring(std::string(line), "Adduct");
 
     Size line_count = 1;
     set<std::string> names;

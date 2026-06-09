@@ -168,8 +168,8 @@ START_SECTION((void setPeptideEvidences(const vector<PeptideEvidence> & peptide_
      pes[1].setProteinAccession("ACD392");
      hit.setPeptideEvidences(pes);
     TEST_EQUAL(hit.getPeptideEvidences().size(), 2)
-    TEST_EQUAL(hit.getPeptideEvidences()[0].getProteinAccession() ==StringUtils::toStr("ACC392"), true)
-    TEST_EQUAL(hit.getPeptideEvidences()[1].getProteinAccession() ==StringUtils::toStr("ACD392"), true)
+    TEST_EQUAL(hit.getPeptideEvidences()[0].getProteinAccession() ==std::string("ACC392"), true)
+    TEST_EQUAL(hit.getPeptideEvidences()[1].getProteinAccession() ==std::string("ACD392"), true)
 END_SECTION
 
 

@@ -48,7 +48,7 @@ void NuXLFragmentIonGenerator::addSpecialLysImmonumIons(
       {  
         spectrum.emplace_back(immonium_ion2_mz, 1.0f);
         spectrum_charge.emplace_back(1);
-        spectrum_annotation.emplace_back(StringUtils::toStr("iK(C5H10N1)"));
+        spectrum_annotation.emplace_back(std::string("iK(C5H10N1)"));
       }
 
       // usually only observed without shift (A. Stuetzer)
@@ -58,7 +58,7 @@ void NuXLFragmentIonGenerator::addSpecialLysImmonumIons(
       {
         spectrum.emplace_back(immonium_ion3_mz, 1.0f);
         spectrum_charge.emplace_back(1);
-        spectrum_annotation.emplace_back(StringUtils::toStr("iK(C6H13N2O)"));
+        spectrum_annotation.emplace_back(std::string("iK(C6H13N2O)"));
       }
 
     }
@@ -141,13 +141,13 @@ void NuXLFragmentIonGenerator::addShiftedImmoniumIons(const std::string &unmodif
     const double immonium_ion2_mz = EmpiricalFormula("C5H10N1").getMonoWeight()  + fragment_shift_mass; 
     partial_loss_spectrum.emplace_back(immonium_ion2_mz, 1.0f);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(StringUtils::toStr("iK(C5H10N1)" + fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(std::string("iK(C5H10N1)" + fragment_shift_name));
 
     // usually only observed without shift (A. Stuetzer)
     const double immonium_ion3_mz = EmpiricalFormula("C6H13N2O").getMonoWeight()  + fragment_shift_mass; 
     partial_loss_spectrum.emplace_back(immonium_ion3_mz, 1.0f);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(StringUtils::toStr("iK(C6H13N2O)" + fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(std::string("iK(C6H13N2O)" + fragment_shift_name));
   }
 
   if (StringUtils::hasSubstring(unmodified_sequence, "M"))
@@ -324,12 +324,12 @@ void NuXLFragmentIonGenerator::addPrecursorWithCompleteRNA_(
     partial_loss_spectrum_charge.push_back(charge);
     if (charge > 1)
     {
-      partial_loss_spectrum_annotation.push_back(StringUtils::toStr("[M+") 
+      partial_loss_spectrum_annotation.push_back(std::string("[M+") 
         + StringUtils::toStr(charge) + "H+" + precursor_rna_adduct + "]");
     } 
     else
     {
-      partial_loss_spectrum_annotation.push_back(StringUtils::toStr("[M+H+") 
+      partial_loss_spectrum_annotation.push_back(std::string("[M+H+") 
         + precursor_rna_adduct + "]");
     }  
   }

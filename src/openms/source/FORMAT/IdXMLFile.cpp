@@ -396,7 +396,7 @@ namespace OpenMS
     {
       if (find(done_identifiers.begin(), done_identifiers.end(), peptide_ids[i].getIdentifier()) == done_identifiers.end())
       {
-        warning(STORE,StringUtils::toStr("Omitting peptide identification because of missing ProteinIdentification with identifier '") + peptide_ids[i].getIdentifier() + "' while writing '" + filename + "'!");
+        warning(STORE,std::string("Omitting peptide identification because of missing ProteinIdentification with identifier '") + peptide_ids[i].getIdentifier() + "' while writing '" + filename + "'!");
       }
     }
     // write footer
@@ -518,7 +518,7 @@ namespace OpenMS
       std::string ref = attributeAsString_(attributes, "search_parameters_ref");
       if (!parameters_.contains(ref))
       {
-        fatalError(LOAD,StringUtils::toStr("Invalid search parameters reference '") + ref + "'");
+        fatalError(LOAD,std::string("Invalid search parameters reference '") + ref + "'");
       }
       prot_id_.setSearchParameters(parameters_[ref]);
 
@@ -628,7 +628,7 @@ namespace OpenMS
 
       pep_hit_.setCharge(attributeAsInt_(attributes, "charge"));
       pep_hit_.setScore(attributeAsDouble_(attributes, "score"));
-      pep_hit_.setSequence(AASequence::fromString(StringUtils::toStr(attributeAsString_(attributes, "sequence"))));
+      pep_hit_.setSequence(AASequence::fromString(std::string(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
       const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
@@ -654,7 +654,7 @@ namespace OpenMS
           }
           else
           {
-            fatalError(LOAD,StringUtils::toStr("Invalid protein reference '") + *it + "'");
+            fatalError(LOAD,std::string("Invalid protein reference '") + *it + "'");
           }
         }
       }
@@ -808,7 +808,7 @@ namespace OpenMS
       }
       else
       {
-        fatalError(LOAD,StringUtils::toStr("Invalid UserParam type '") + type + "' of parameter '" + name + "'");
+        fatalError(LOAD,std::string("Invalid UserParam type '") + type + "' of parameter '" + name + "'");
       }
     }
   }
@@ -905,7 +905,7 @@ namespace OpenMS
       std::string name = group_name + "_" + StringUtils::toStr(g);
       if (meta.metaValueExists(name))
       {
-        warning(mode,StringUtils::toStr("Metavalue '") + name + "' already exists. Overwriting...");
+        warning(mode,std::string("Metavalue '") + name + "' already exists. Overwriting...");
       }
       std::string accessions;
       for (StringList::const_iterator acc_it = groups[g].accessions.begin();
@@ -922,7 +922,7 @@ namespace OpenMS
         }
         else
         {
-          fatalError(mode,StringUtils::toStr("Invalid protein reference '") + *acc_it + "'");
+          fatalError(mode,std::string("Invalid protein reference '") + *acc_it + "'");
         }
       }
       std::string value =StringUtils::toStr(groups[g].probability) + "," + accessions;
@@ -944,7 +944,7 @@ namespace OpenMS
       StringUtils::split(StringUtils::toStr(last_meta_->getMetaValue(current_meta)), ',', values);
       if (values.size() < 2)
       {
-        fatalError(LOAD,StringUtils::toStr("Invalid UserParam for ProteinGroups (not enough values)'"));
+        fatalError(LOAD,std::string("Invalid UserParam for ProteinGroups (not enough values)'"));
       }
       g.probability = StringUtils::toDouble(values[0]);
       for (Size i_ind = 1; i_ind < values.size(); ++i_ind)

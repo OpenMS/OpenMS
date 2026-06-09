@@ -35,7 +35,7 @@ namespace OpenMS
   {
     if (const auto& it = nativeid_to_index_.find(identifier); it == nativeid_to_index_.end())
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("No spectrum with identifier '") + identifier + "' in MSExperiment!");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("No spectrum with identifier '") + identifier + "' in MSExperiment!");
     }
     else
     {

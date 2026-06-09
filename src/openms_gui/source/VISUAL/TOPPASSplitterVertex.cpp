@@ -75,7 +75,7 @@ namespace OpenMS
     for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
     {
       TOPPASVertex* tv = (*it)->getTargetVertex();
-      debugOut_(StringUtils::toStr("Starting child ") + tv->getTopoNr());
+      debugOut_(std::string("Starting child ") + tv->getTopoNr());
       tv->run();
     }
   }

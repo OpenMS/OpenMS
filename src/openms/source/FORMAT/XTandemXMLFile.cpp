@@ -85,7 +85,7 @@ namespace OpenMS
 
   void XTandemXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
-    tag_ =StringUtils::toStr(sm_.convert(qname));
+    tag_ =std::string(sm_.convert(qname));
 
     if (tag_ == "domain")
     {
@@ -166,7 +166,7 @@ namespace OpenMS
     {
       if (group_type_stack_.empty())
       {
-        error(LOAD,StringUtils::toStr("Found an 'aa' element outside of a 'group'! Please check your input file."));
+        error(LOAD,std::string("Found an 'aa' element outside of a 'group'! Please check your input file."));
       }
       auto& current_group_type_ = group_type_stack_.top();
       // TODO support "aa" entries in the parameter groups (e.g. to read user-specified amino acids)
@@ -237,7 +237,7 @@ namespace OpenMS
 
         if (res_mod == nullptr)
         {
-          error(LOAD,StringUtils::toStr("No modification found which fits residue '") + aa + "' with mass '" + StringUtils::toStr(mass_shift) + "'!");
+          error(LOAD,std::string("No modification found which fits residue '") + aa + "' with mass '" + StringUtils::toStr(mass_shift) + "'!");
         }
         else
         {
@@ -268,7 +268,7 @@ namespace OpenMS
         Int index = attributes.getIndex(sm_.convert("z").c_str());
         if (index >= 0)
         {
-          current_charge_ = StringUtils::toInt32(StringUtils::toStr(sm_.convert(attributes.getValue(index))));
+          current_charge_ = StringUtils::toInt32(std::string(sm_.convert(attributes.getValue(index))));
         }
         previous_seq_ = "";
       }
@@ -328,7 +328,7 @@ namespace OpenMS
 
   void XTandemXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
-    tag_ =StringUtils::toStr(sm_.convert(qname));
+    tag_ =std::string(sm_.convert(qname));
     if (tag_ == "group")
     {
       group_type_stack_.pop();
@@ -341,7 +341,7 @@ namespace OpenMS
     {
       if (is_protein_note_)
       {
-        current_protein_ =StringUtils::trimmed(StringUtils::toStr(sm_.convert(chars)));
+        current_protein_ =StringUtils::trimmed(std::string(sm_.convert(chars)));
         if (!skip_protein_acc_update_)
         {
           protein_hits_.back().setAccession(current_protein_);
@@ -349,7 +349,7 @@ namespace OpenMS
       }
       else if (is_spectrum_note_)
       {
-        spectrum_ids_[current_id_] =StringUtils::trimmed(StringUtils::toStr(sm_.convert(chars)));
+        spectrum_ids_[current_id_] =StringUtils::trimmed(std::string(sm_.convert(chars)));
       }
       is_protein_note_ = false;
       is_spectrum_note_ = false;

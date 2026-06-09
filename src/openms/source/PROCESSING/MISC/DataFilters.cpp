@@ -125,7 +125,7 @@ namespace OpenMS
     {
       field = QUALITY;
     }
-    else if (StringUtils::hasPrefix(tmp,StringUtils::toStr("meta::")))
+    else if (StringUtils::hasPrefix(tmp,std::string("meta::")))
     {
       meta = true;
       field = META_DATA;

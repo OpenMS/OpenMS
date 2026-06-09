@@ -249,7 +249,7 @@ namespace OpenMS
           //ss << "test test";
           my_log << " ---------------------------------- " << std::endl; // this will cause a flush... removing this line might cause loss(!) of log content!
           my_log.flush(); // bug! this sometimes does not cause the content to be flushed to the stringstream; the cache seems to be inactive as well. also std::endl does not help
-          emit messageReady(toQString(StringUtils::toStr(ss.str())));
+          emit messageReady(toQString(ss.str()));
           //std::cerr << ss.str();
         }
         remove_edge = true;
@@ -641,7 +641,7 @@ namespace OpenMS
     save_param.setValue("info:version", VersionInfo::getVersion());
     save_param.setValue("info:num_vertices", vertices_.size());
     save_param.setValue("info:num_edges", edges_.size());
-    save_param.setValue("info:description",StringUtils::toStr("<![CDATA[") + fromQString(this->description_text_) + std::string("]]>"));
+    save_param.setValue("info:description",std::string("<![CDATA[") + fromQString(this->description_text_) + std::string("]]>"));
 
     // lambda function to store common parameters of all vertices
     auto save_common_params =
@@ -851,7 +851,7 @@ namespace OpenMS
     }
     if (load_param.exists("info:description"))
     {
-      std::string text =StringUtils::toStr(load_param.getValue("info:description").toString());
+      std::string text =std::string(load_param.getValue("info:description").toString());
       StringUtils::substitute(text, "<![CDATA[", "");
       StringUtils::substitute(text, "]]>", "");
       description_text_ = toQString(StringUtils::trim(text));
@@ -866,7 +866,7 @@ namespace OpenMS
     for (Param::ParamIterator it = vertices_param.begin(); it != vertices_param.end(); ++it)
     {
       StringList substrings;
-      StringUtils::split(StringUtils::toStr(it.getName()), ':', substrings);
+      StringUtils::split(std::string(it.getName()), ':', substrings);
       if (substrings.back() == "toppas_type") // next node (all nodes have a "toppas_type")
       {
         current_vertex = nullptr;
@@ -897,7 +897,7 @@ namespace OpenMS
           // custom output folder
           if (vertices_param.exists(current_id + ":output_folder_name"))
           {
-            oflv->setOutputFolderName(toQString(StringUtils::toStr(vertices_param.getValue(current_id + ":output_folder_name").toString())));
+            oflv->setOutputFolderName(toQString(std::string(vertices_param.getValue(current_id + ":output_folder_name").toString())));
           }
           
           connectOutputVertexSignals(oflv); // todo
@@ -910,7 +910,7 @@ namespace OpenMS
           // custom output folder
           if (vertices_param.exists(current_id + ":output_folder_name"))
           {
-            ofv->setOutputFolderName(toQString(StringUtils::toStr(vertices_param.getValue(current_id + ":output_folder_name").toString())));
+            ofv->setOutputFolderName(toQString(std::string(vertices_param.getValue(current_id + ":output_folder_name").toString())));
           }
 
           connectOutputVertexSignals(ofv);
@@ -1062,7 +1062,7 @@ namespace OpenMS
               }
             }
             if (src_index == -1)
-              logTOPPOutput(toQString(StringUtils::toStr("Could not find output parameter called '" + source_out_param + "'. Check edge!")));
+              logTOPPOutput(toQString(std::string("Could not find output parameter called '" + source_out_param + "'. Check edge!")));
           }
 
           tv_src = qobject_cast<TOPPASToolVertex*>(tv_2);
@@ -1079,7 +1079,7 @@ namespace OpenMS
               }
             }
             if (tgt_index == -1)
-              logTOPPOutput(toQString(StringUtils::toStr("Could not find input parameter called '" + target_in_param + "'. Check edge!")));
+              logTOPPOutput(toQString(std::string("Could not find input parameter called '" + target_in_param + "'. Check edge!")));
           }
 
           edge->setSourceOutParam(src_index);
@@ -1089,7 +1089,7 @@ namespace OpenMS
     }
     if (pre_1_9_toppas) // just indices stored - no way we can check
     {
-      logTOPPOutput(toQString(StringUtils::toStr("Your TOPPAS file was build with an old version of TOPPAS and is susceptible to errors when used with new versions of OpenMS. Check every edge for correct input/output parameter names and store the workflow using the current version of TOPPAS (e.g using the \"Save as ...\" functionality) to make the workflow more robust to changes in future versions of TOPP tools!")));
+      logTOPPOutput(toQString(std::string("Your TOPPAS file was build with an old version of TOPPAS and is susceptible to errors when used with new versions of OpenMS. Check every edge for correct input/output parameter names and store the workflow using the current version of TOPPAS (e.g using the \"Save as ...\" functionality) to make the workflow more robust to changes in future versions of TOPP tools!")));
     }
 
 /*

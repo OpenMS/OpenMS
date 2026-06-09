@@ -154,7 +154,7 @@ START_SECTION((std::string getDate() const))
 {
   DateTime date;
   date.set("2006-12-14 21:12:02");
-  TEST_STRING_EQUAL(date.getDate(),StringUtils::toStr("2006-12-14"))  
+  TEST_STRING_EQUAL(date.getDate(),std::string("2006-12-14"))  
 }
 END_SECTION
 

@@ -96,7 +96,7 @@ namespace OpenMS
     for (const auto& [suffix, count] : suffices)
     {
       if (suffices.size() > 1)
-        text_l.push_back(toQString(StringUtils::toStr("." + suffix + "(" + StringUtils::toStr(count) + ")")));
+        text_l.push_back(toQString(std::string("." + suffix + "(" + StringUtils::toStr(count) + ")")));
       else
         text_l.push_back("." + toQString(suffix));
     }
@@ -265,7 +265,7 @@ namespace OpenMS
 
       if (round_common != tv->round_total_)
       {
-        error_msg =StringUtils::toStr("Number of rounds for incoming edges of node #") + this->getTopoNr() + " are not equal. No idea on how to combine them! Did you want to recycle its input?\n";
+        error_msg =std::string("Number of rounds for incoming edges of node #") + this->getTopoNr() + " are not equal. No idea on how to combine them! Did you want to recycle its input?\n";
         std::cerr << error_msg;
         return false;
       }
@@ -274,7 +274,7 @@ namespace OpenMS
     // -- we demand at least one node with no recycling to allow to determine number of rounds
     if (no_recycle_count == 0)
     {
-      error_msg =StringUtils::toStr("Number of rounds of node #") + this->getTopoNr() + " cannot be determined since all input nodes have recycling enabled. Disable for at least one input!\n";
+      error_msg =std::string("Number of rounds of node #") + this->getTopoNr() + " cannot be determined since all input nodes have recycling enabled. Disable for at least one input!\n";
       std::cerr << error_msg;
       return false;
     }

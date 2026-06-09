@@ -73,7 +73,7 @@ START_SECTION((Product(const Product& source)))
 	tmp.setMZ(47.11);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
 	
 	Product tmp2(tmp);
 	TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
@@ -87,7 +87,7 @@ START_SECTION((Product& operator= (const Product& source)))
 	tmp.setMZ(47.11);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
 	
 	//normal assignment
 	Product tmp2;
@@ -122,7 +122,7 @@ START_SECTION((bool operator== (const Product& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(tmp==tmp2, false);
 END_SECTION
 
@@ -143,7 +143,7 @@ START_SECTION((bool operator!= (const Product& rhs) const))
 	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
 	TEST_FALSE(tmp == tmp2);
 END_SECTION
 

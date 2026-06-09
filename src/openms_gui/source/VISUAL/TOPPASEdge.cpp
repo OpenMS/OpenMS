@@ -69,7 +69,7 @@ namespace OpenMS
 
   std::string TOPPASEdge::toString()
   {
-    std::string s =StringUtils::toStr("Edge: ") + fromQString(getSourceOutParamName()) + " target-in: " + fromQString(getTargetInParamName()) + "\n";
+    std::string s =std::string("Edge: ") + fromQString(getSourceOutParamName()) + " target-in: " + fromQString(getTargetInParamName()) + "\n";
     return s;
   }
   TOPPASEdge& TOPPASEdge::operator=(const TOPPASEdge& rhs)

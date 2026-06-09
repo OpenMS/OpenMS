@@ -424,7 +424,7 @@ namespace OpenMS
           const std::string& sample = cells[sample_columnname_to_columnindex_["Sample"]];
           parseErrorIf_(sample_sample_to_rowindex_.contains(sample),
                         tsv_file,
-                        "Sample: " + StringUtils::toStr(sample) + " appears multiple times in the sample table");
+                        "Sample: " + std::string(sample) + " appears multiple times in the sample table");
           sample_sample_to_rowindex_[sample] = line_number++;
           sample_content_.push_back(cells);
         }

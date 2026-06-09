@@ -82,11 +82,11 @@ namespace OpenMS
       boost::smatch m;
       if (boost::regex_search(header, m, boost::regex("TransitionGroupPicker:(?!PeakPickerChromatogram:)(.+)")))
       {
-        setCastValue_(StringUtils::toStr(m[1]), line[i], cgp.params);
+        setCastValue_(std::string(m[1]), line[i], cgp.params);
       }
       else if (boost::regex_search(header, m, boost::regex("TransitionGroupPicker:PeakPickerChromatogram:(.+)")))
       {
-        setCastValue_(StringUtils::toStr(m[1]), line[i], cp.params);
+        setCastValue_(std::string(m[1]), line[i], cp.params);
       }
     }
     return true;

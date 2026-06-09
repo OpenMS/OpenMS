@@ -1111,7 +1111,7 @@ namespace OpenMS::Internal
         //obsolete CV terms
         if (term.obsolete)
         {
-          warning(LOAD,StringUtils::toStr("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
         }
         //check if term name and parsed name match
         std::string parsed_name = cv_term.getName();
@@ -1120,11 +1120,11 @@ namespace OpenMS::Internal
         StringUtils::trim(correct_name);
         if (parsed_name != correct_name)
         {
-          warning(LOAD,StringUtils::toStr("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
+          warning(LOAD,std::string("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
         }
         if (term.obsolete)
         {
-          warning(LOAD,StringUtils::toStr("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
+          warning(LOAD,std::string("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
           //values used in wrong places and wrong value types
           std::string value = cv_term.getValue().toString();
           if (!value.empty())
@@ -1134,7 +1134,7 @@ namespace OpenMS::Internal
               //Quality CV does not state value type :(
               if (!StringUtils::hasPrefix(accession, "PATO:"))
               {
-                warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
+                warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
               }
             }
             else
@@ -1157,7 +1157,7 @@ namespace OpenMS::Internal
                 }
                 catch (Exception::ConversionError&)
                 {
-                  warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
+                  warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
                   return;
                 }
                 break;
@@ -1170,7 +1170,7 @@ namespace OpenMS::Internal
                 }
                 catch (Exception::ConversionError&)
                 {
-                  warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
+                  warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
                   return;
                 }
                 break;
@@ -1184,13 +1184,13 @@ namespace OpenMS::Internal
                 }
                 catch (Exception::ParseError&)
                 {
-                  warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
+                  warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
                   return;
                 }
                 break;
 
               default:
-                warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' has the unknown value type '" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
+                warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' has the unknown value type '" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
                 break;
               }
             }
@@ -1198,7 +1198,7 @@ namespace OpenMS::Internal
           //no value, although there should be a numerical value
           else if (term.xref_type != ControlledVocabulary::CVTerm::XRefType::NONE && term.xref_type != ControlledVocabulary::CVTerm::XRefType::XSD_STRING)
           {
-            warning(LOAD,StringUtils::toStr("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
+            warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
             return;
           }
         }
@@ -1291,7 +1291,7 @@ namespace OpenMS::Internal
         // }
         else
         {
-          warning(LOAD,StringUtils::toStr("The CV term '" + cv_term.getAccession() + "' - '" +
+          warning(LOAD,std::string("The CV term '" + cv_term.getAccession() + "' - '" +
                 cv_term.getName() + "' used in tag '" + parent_tag + "' is currently not supported!"));
           actual_rt_.addCVTerm(cv_term);
         }
@@ -1560,7 +1560,7 @@ namespace OpenMS::Internal
       }
       else
       {
-        warning(LOAD,StringUtils::toStr("The CV term '" + cv_term.getAccession() + "' - '" +
+        warning(LOAD,std::string("The CV term '" + cv_term.getAccession() + "' - '" +
               cv_term.getName() + "' used in tag '" + parent_tag + "' could not be handled, ignoring it!"));
       }
       return;
@@ -1679,7 +1679,7 @@ namespace OpenMS::Internal
       }
       else
       {
-        warning(LOAD,StringUtils::toStr("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
+        warning(LOAD,std::string("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
       }
     }
 

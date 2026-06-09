@@ -221,7 +221,7 @@ public:
           // keep the first Precursor
           if (pcs.empty())
           {
-            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Scan #") + StringUtils::toStr(i) + " does not contain any precursor information! Unable to cluster!");
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Scan #") + StringUtils::toStr(i) + " does not contain any precursor information! Unable to cluster!");
           }
           if (pcs.size() > 1)
           {
@@ -733,7 +733,7 @@ protected:
       char buffer[200];
       std::snprintf(buffer, sizeof(buffer), "%d/%d (%.2f %%) of blocked spectra", (int)count_peaks_aligned,
               (int)count_peaks_overall, float(count_peaks_aligned) / float(count_peaks_overall) * 100.);
-      OPENMS_LOG_INFO << "Number of merged peaks: " << StringUtils::toStr(buffer) << "\n";
+      OPENMS_LOG_INFO << "Number of merged peaks: " << std::string(buffer) << "\n";
 
       // remove all spectra that were within a cluster
       typename MapType::SpectrumType empty_spec;

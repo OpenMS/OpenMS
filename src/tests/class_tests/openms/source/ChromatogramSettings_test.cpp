@@ -418,9 +418,9 @@ START_SECTION([EXTRA](ENUMs))
 {
   // extra stuff tested here:
   TEST_EQUAL(static_cast<size_t>(ChromatogramSettings::ChromatogramType::SIZE_OF_CHROMATOGRAM_TYPE)+1, sizeof( ChromatogramSettings::ChromatogramNames ) / sizeof( char* ))
-  TEST_EQUAL(StringUtils::toStr(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM)]),StringUtils::toStr("mass chromatogram"))
-  TEST_EQUAL(StringUtils::toStr(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::EMISSION_CHROMATOGRAM)]),StringUtils::toStr("emission chromatogram"))
-  TEST_EQUAL(StringUtils::toStr(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::SIZE_OF_CHROMATOGRAM_TYPE)]),StringUtils::toStr("unknown chromatogram")) // should be the last entry
+  TEST_EQUAL(std::string(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM)]),std::string("mass chromatogram"))
+  TEST_EQUAL(std::string(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::EMISSION_CHROMATOGRAM)]),std::string("emission chromatogram"))
+  TEST_EQUAL(std::string(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::SIZE_OF_CHROMATOGRAM_TYPE)]),std::string("unknown chromatogram")) // should be the last entry
 }
 END_SECTION
 

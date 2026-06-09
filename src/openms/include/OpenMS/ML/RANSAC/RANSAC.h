@@ -42,7 +42,7 @@ namespace OpenMS
       {
         if (relative_d)
         {
-          if (d >= 100) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("RANSAC: Relative 'd' >= 100% given. Use a lower value; the more outliers you expect, the lower it should be."));
+          if (d >= 100) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("RANSAC: Relative 'd' >= 100% given. Use a lower value; the more outliers you expect, the lower it should be."));
         }
       }
 
@@ -131,7 +131,7 @@ public:
         // translate relative percentages into actual numbers
         if (relative_d)
         {
-          if (d >= 100) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("RANSAC: Relative 'd' >= 100% given. Use a lower value; the more outliers you expect, the lower it should be."));
+          if (d >= 100) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("RANSAC: Relative 'd' >= 100% given. Use a lower value; the more outliers you expect, the lower it should be."));
           d = pairs.size() * d / 100;
         }
 

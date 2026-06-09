@@ -88,7 +88,7 @@ public:
       CVTerm& operator=(const CVTerm& rhs);
 
       /// get mzidentml formatted string. i.e. a cvparam xml element, ref should be the name of the ControlledVocabulary (i.e. cv.name()) containing the CVTerm (e.g. PSI-MS for the psi-ms.obo - gets loaded in all cases like that??), value can be empty if not available
-      std::string toXMLString(const std::string& ref, const std::string& value =StringUtils::toStr("")) const;
+      std::string toXMLString(const std::string& ref, const std::string& value =std::string("")) const;
 
       /// get mzidentml formatted string. i.e. a cvparam xml element, ref should be the name of the ControlledVocabulary (i.e. cv.name()) containing the CVTerm (e.g. PSI-MS for the psi-ms.obo - gets loaded in all cases like that??), value can be empty if not available
       std::string toXMLString(const std::string& ref, const DataValue& value) const;

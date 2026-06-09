@@ -327,7 +327,7 @@ private:
           const OpenMS::TargetedExperiment::Compound* comp = &transition_exp.getCompounds()[comp_idx];
           if (comp->id == compref)
           {
-            prec.setMetaValue("peptide_sequence",StringUtils::toStr(comp->id) );
+            prec.setMetaValue("peptide_sequence",std::string(comp->id) );
             break;
           }
         }

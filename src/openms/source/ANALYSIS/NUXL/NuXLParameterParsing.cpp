@@ -404,7 +404,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const std::string &exp_pc_adduc
     // Note: add the uncharged mass. Protons are added during spectrum generation.
     if (default_marker_ions_RNA) // TODO: check if we can derive this from target nucleotides
     {
-      ret.marker_ions.emplace_back(EmpiricalFormula("C9H13N2O9P1"),StringUtils::toStr("U"), EmpiricalFormula("C9H13N2O9P1").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C9H13N2O9P1"),std::string("U"), EmpiricalFormula("C9H13N2O9P1").getMonoWeight());
       ret.marker_ions.emplace_back(EmpiricalFormula("C9H14N3O8P"), "C", EmpiricalFormula("C9H14N3O8P").getMonoWeight());
       ret.marker_ions.emplace_back(EmpiricalFormula("C10H14N5O8P"), "G", EmpiricalFormula("C10H14N5O8P").getMonoWeight());
       ret.marker_ions.emplace_back(EmpiricalFormula("C10H14N5O7P"), "A", EmpiricalFormula("C10H14N5O7P").getMonoWeight());

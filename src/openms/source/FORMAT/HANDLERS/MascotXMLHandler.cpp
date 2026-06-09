@@ -32,7 +32,7 @@ namespace OpenMS::Internal
       static const XMLCh* s_queries_query_number = xercesc::XMLString::transcode("number");
       static const XMLCh* s_peptide_query = xercesc::XMLString::transcode("query");
 
-      tag_ =StringUtils::toStr(sm_.convert(qname));
+      tag_ =std::string(sm_.convert(qname));
       // cerr << "open: " << tag_ << endl;
 
       tags_open_.push_back(tag_);
@@ -66,12 +66,12 @@ namespace OpenMS::Internal
 
     void MascotXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      tag_ =StringUtils::trimmed(StringUtils::toStr(sm_.convert(qname)));
+      tag_ =StringUtils::trimmed(std::string(sm_.convert(qname)));
       // cerr << "close: " << tag_ << endl;
 
       if (tags_open_.empty())
       {
-        fatalError(LOAD,StringUtils::toStr("Closing tag ") + tag_ + " not matched by opening tag", __LINE__);
+        fatalError(LOAD,std::string("Closing tag ") + tag_ + " not matched by opening tag", __LINE__);
       }
 
       tags_open_.pop_back();
@@ -178,7 +178,7 @@ namespace OpenMS::Internal
             StringUtils::split(*it, ' ', mod_split);
             if (mod_split.size() < 2 || mod_split.size() > 3)
             {
-              error(LOAD,StringUtils::toStr("Cannot parse fixed modification '") + *it + "'");
+              error(LOAD,std::string("Cannot parse fixed modification '") + *it + "'");
             }
             else
             {
@@ -275,7 +275,7 @@ namespace OpenMS::Internal
               }
               else
               {
-                error(LOAD,StringUtils::toStr("Cannot parse variable modification '") + temp_modification  + "'");
+                error(LOAD,std::string("Cannot parse variable modification '") + temp_modification  + "'");
               }
             }
           }
@@ -294,7 +294,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              error(LOAD,StringUtils::toStr("Cannot parse variable N-term modification '") + temp_modification  + "'");
+              error(LOAD,std::string("Cannot parse variable N-term modification '") + temp_modification  + "'");
             }
           }
           temp_string = parts[2]; // C-term
@@ -311,7 +311,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              error(LOAD,StringUtils::toStr("Cannot parse variable C-term modification '") + temp_modification  + "'");
+              error(LOAD,std::string("Cannot parse variable C-term modification '") + temp_modification  + "'");
             }
           }
 
@@ -505,13 +505,13 @@ namespace OpenMS::Internal
           }
           else
           {
-            warning(LOAD,StringUtils::toStr("Modification removed as fixed modification: '") + StringUtils::trim(character_buffer_) + std::string("'"));
+            warning(LOAD,std::string("Modification removed as fixed modification: '") + StringUtils::trim(character_buffer_) + std::string("'"));
           }
         }
       }
       else if (tag_ == "warning")
       {
-        warning(LOAD,StringUtils::toStr("Warnings were present: '") + character_buffer_ + std::string("'"));
+        warning(LOAD,std::string("Warnings were present: '") + character_buffer_ + std::string("'"));
         
         // check if fixed modification can only be used as variable modification
         if (StringUtils::hasSubstring(StringUtils::trimmed(character_buffer_), "can only be used as a variable modification"))
@@ -609,7 +609,7 @@ namespace OpenMS::Internal
       {
         return;
       }
-      character_buffer_ +=StringUtils::toStr(sm_.convert(chars));
+      character_buffer_ +=std::string(sm_.convert(chars));
     }
     
     vector<std::string> MascotXMLHandler::splitModificationBySpecifiedAA(const std::string& mod)

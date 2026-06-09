@@ -46,7 +46,7 @@ END_SECTION
 START_SECTION(Acquisition(const Acquisition& source))
 	Acquisition tmp;
 	tmp.setIdentifier("5");
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
 	Acquisition tmp2(tmp);
 	TEST_EQUAL(tmp2.getIdentifier(), "5");
 	TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
@@ -72,10 +72,10 @@ START_SECTION(Acquisition& operator= (const Acquisition& source))
 	Acquisition tmp,tmp2,tmp3;
 	// assignment of a modified object
 	tmp2.setIdentifier("5");
-	tmp2.setMetaValue("label",StringUtils::toStr("label"));
+	tmp2.setMetaValue("label",std::string("label"));
 	tmp = tmp2;
 	TEST_EQUAL(tmp.getIdentifier(), "5");
-	TEST_EQUAL(std::string(tmp.getMetaValue("label")),StringUtils::toStr("label"));
+	TEST_EQUAL(std::string(tmp.getMetaValue("label")),std::string("label"));
 	
 	// assignment of a default-constructed object
 	tmp = tmp3;
@@ -92,7 +92,7 @@ START_SECTION(bool operator== (const Acquisition& rhs) const)
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(tmp==tmp2, false);
 END_SECTION
 
@@ -105,7 +105,7 @@ START_SECTION(bool operator!= (const Acquisition& rhs) const)
 	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;
-	tmp.setMetaValue("label",StringUtils::toStr("label"));
+	tmp.setMetaValue("label",std::string("label"));
 	TEST_FALSE(tmp == tmp2);
 END_SECTION
 

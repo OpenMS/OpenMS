@@ -180,7 +180,7 @@ namespace OpenMS
   const std::string ResidueModification::getUniModAccession() const
   {
     if (unimod_record_id_ < 0) return "";
-    return StringUtils::toStr("UniMod:") + unimod_record_id_; // return copy of temp object
+    return std::string("UniMod:") + unimod_record_id_; // return copy of temp object
   }
 
   void ResidueModification::setFullName(const std::string& full_name)
@@ -642,7 +642,7 @@ namespace OpenMS
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot create non-terminal mod without origin AA residue.", "nullptr");
         }
         std::string modification_name = "[" + mod + "]";
-        std::string residue_id =StringUtils::toStr(residue->getOneLetterCode()) + modification_name; // e.g. N[12345.6]
+        std::string residue_id =std::string(residue->getOneLetterCode()) + modification_name; // e.g. N[12345.6]
 
         if (!mod_db->has(residue_id))
         {
@@ -715,7 +715,7 @@ namespace OpenMS
       }
       if (mod_merged->getOrigin() != mod_new->getOrigin())
       {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Modifications to be merged to not have the same origin: ") + mod_merged->getOrigin() + " != " + mod_new->getOrigin());
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Modifications to be merged to not have the same origin: ") + mod_merged->getOrigin() + " != " + mod_new->getOrigin());
       }
       new_mass += mod_new->getDiffMonoMass();
     }
@@ -723,7 +723,7 @@ namespace OpenMS
     // sanity check: mods and residue need same origin
     if (mod_merged->getTermSpecificity() == ANYWHERE && residue != nullptr && residue->getOneLetterCode()[0] != mod_merged->getOrigin())
     {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Modification and residue do not have the same origin: ") + mod_merged->getOrigin() + " != " + residue->getOneLetterCode());
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Modification and residue do not have the same origin: ") + mod_merged->getOrigin() + " != " + residue->getOneLetterCode());
     }
     // create new residue from it
     const ResidueModification* mod_sum =
@@ -779,7 +779,7 @@ namespace OpenMS
   }
   std::string ResidueModification::getDiffMonoMassString(const double diff_mono_mass)
   {
-    return StringUtils::toStr(diff_mono_mass < 0.0 ? "-" : "+") + StringUtils::toStr(std::fabs(diff_mono_mass));
+    return std::string(diff_mono_mass < 0.0 ? "-" : "+") + StringUtils::toStr(std::fabs(diff_mono_mass));
   }
   std::string ResidueModification::getDiffMonoMassWithBracket(const double diff_mono_mass)
   {

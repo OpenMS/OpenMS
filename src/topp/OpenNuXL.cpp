@@ -510,7 +510,7 @@ struct NuXLRTPrediction
       x["mass"].push_back(f.getCharge() * f.getMZ()); // approx mass
 
       // nucleotide histogram      
-      auto nas = StringUtils::toStr(ph.getMetaValue("NuXL:NA",StringUtils::toStr("")));
+      auto nas = StringUtils::toStr(ph.getMetaValue("NuXL:NA",std::string("")));
       auto encoded_nas = encodeNAHist_(nas);
       for (const auto& c : nucleotides)
       {
@@ -595,7 +595,7 @@ struct NuXLRTPrediction
         x["mass"].push_back(ph.getCharge() * pid.getMZ()); // approx mass
 
         // nucleotide histogram      
-        auto nas = StringUtils::toStr(ph.getMetaValue("NuXL:NA",StringUtils::toStr("")));
+        auto nas = StringUtils::toStr(ph.getMetaValue("NuXL:NA",std::string("")));
         auto encoded_nas = encodeNAHist_(nas);
         for (const auto& c : nucleotides)
         {
@@ -1046,7 +1046,7 @@ protected:
     for (const auto& d : data_dependent_features)  { feature_set_ << d; }
 
     // one-hot encoding of cross-linked nucleotide
-    for (const auto& c : can_xl_) { feature_set_ << StringUtils::toStr("NuXL:XL_" + StringUtils::toStr(c)); }
+    for (const auto& c : can_xl_) { feature_set_ << std::string("NuXL:XL_" + StringUtils::toStr(c)); }
   }
 
   // bad score or less then two peaks matching and less than 1% explained signal
@@ -3545,7 +3545,7 @@ static void scoreXLIons_(
       // reannotate much more memory heavy AASequence object
       AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index];           
       ph.setScore(ah.score);
-      ph.setMetaValue(StringUtils::toStr("NuXL:score"), ah.score); // important for Percolator feature set because the PeptideHit score might be overwritten by a q-value
+      ph.setMetaValue(std::string("NuXL:score"), ah.score); // important for Percolator feature set because the PeptideHit score might be overwritten by a q-value
 
       // - # of variable mods 
       // - Phosphopeptide
@@ -3570,8 +3570,8 @@ static void scoreXLIons_(
       if (c_term_mod != nullptr &&
         variable_modifications.val.contains(c_term_mod)) ++n_var_mods;
 
-      ph.setMetaValue(StringUtils::toStr("variable_modifications"), n_var_mods);
-      ph.setMetaValue(StringUtils::toStr("n_theoretical_peaks"), ah.n_theoretical_peaks);
+      ph.setMetaValue(std::string("variable_modifications"), n_var_mods);
+      ph.setMetaValue(std::string("n_theoretical_peaks"), ah.n_theoretical_peaks);
 
       // determine empirical formula of NA modification from index in map
       auto mod_combinations_it = mm.mod_combinations.cbegin();
@@ -3581,35 +3581,35 @@ static void scoreXLIons_(
       auto NA_adduct_it = mod_combinations_it->second.cbegin(); // set of all NA adducts for current sum formula (e.g, U-H2O and C-NH3 have same elemental composition)
       std::advance(NA_adduct_it, ah.NA_adduct_amb_index);
 
-      ph.setMetaValue(StringUtils::toStr("NuXL:mass_error_p"), ah.mass_error_p);
-      ph.setMetaValue(StringUtils::toStr("NuXL:total_loss_score"), ah.total_loss_score);
-      ph.setMetaValue(StringUtils::toStr("NuXL:immonium_score"), ah.immonium_score);
-      ph.setMetaValue(StringUtils::toStr("NuXL:precursor_score"), ah.precursor_score);
-      ph.setMetaValue(StringUtils::toStr("NuXL:marker_ions_score"), ah.marker_ions_score);
-      ph.setMetaValue(StringUtils::toStr("NuXL:partial_loss_score"), ah.partial_loss_score);
+      ph.setMetaValue(std::string("NuXL:mass_error_p"), ah.mass_error_p);
+      ph.setMetaValue(std::string("NuXL:total_loss_score"), ah.total_loss_score);
+      ph.setMetaValue(std::string("NuXL:immonium_score"), ah.immonium_score);
+      ph.setMetaValue(std::string("NuXL:precursor_score"), ah.precursor_score);
+      ph.setMetaValue(std::string("NuXL:marker_ions_score"), ah.marker_ions_score);
+      ph.setMetaValue(std::string("NuXL:partial_loss_score"), ah.partial_loss_score);
 
       // total loss and partial loss (pl) related subscores (matched ion current, avg. fragment error, morpheus score)
-      ph.setMetaValue(StringUtils::toStr("NuXL:MIC"), ah.MIC);
-      ph.setMetaValue(StringUtils::toStr("NuXL:err"), ah.err);
-      ph.setMetaValue(StringUtils::toStr("NuXL:Morph"), ah.Morph);
-      ph.setMetaValue(StringUtils::toStr("NuXL:modds"), ah.modds);
-      ph.setMetaValue(StringUtils::toStr("NuXL:pl_MIC"), ah.pl_MIC);
-      ph.setMetaValue(StringUtils::toStr("NuXL:pl_err"), ah.pl_err);
-      ph.setMetaValue(StringUtils::toStr("NuXL:pl_Morph"), ah.pl_Morph);
-      ph.setMetaValue(StringUtils::toStr("NuXL:pl_modds"), ah.pl_modds);
-      ph.setMetaValue(StringUtils::toStr("NuXL:pl_pc_MIC"), ah.pl_pc_MIC);
-      ph.setMetaValue(StringUtils::toStr("NuXL:pl_im_MIC"), ah.pl_im_MIC);
-      ph.setMetaValue(StringUtils::toStr("NuXL:total_Morph"), ah.Morph + ah.pl_Morph);
-      ph.setMetaValue(StringUtils::toStr("NuXL:total_HS"), ah.total_loss_score + ah.partial_loss_score);
+      ph.setMetaValue(std::string("NuXL:MIC"), ah.MIC);
+      ph.setMetaValue(std::string("NuXL:err"), ah.err);
+      ph.setMetaValue(std::string("NuXL:Morph"), ah.Morph);
+      ph.setMetaValue(std::string("NuXL:modds"), ah.modds);
+      ph.setMetaValue(std::string("NuXL:pl_MIC"), ah.pl_MIC);
+      ph.setMetaValue(std::string("NuXL:pl_err"), ah.pl_err);
+      ph.setMetaValue(std::string("NuXL:pl_Morph"), ah.pl_Morph);
+      ph.setMetaValue(std::string("NuXL:pl_modds"), ah.pl_modds);
+      ph.setMetaValue(std::string("NuXL:pl_pc_MIC"), ah.pl_pc_MIC);
+      ph.setMetaValue(std::string("NuXL:pl_im_MIC"), ah.pl_im_MIC);
+      ph.setMetaValue(std::string("NuXL:total_Morph"), ah.Morph + ah.pl_Morph);
+      ph.setMetaValue(std::string("NuXL:total_HS"), ah.total_loss_score + ah.partial_loss_score);
 
-      ph.setMetaValue(StringUtils::toStr("NuXL:tag_XLed"), ah.tag_XLed);
-      ph.setMetaValue(StringUtils::toStr("NuXL:tag_unshifted"), ah.tag_unshifted);
-      ph.setMetaValue(StringUtils::toStr("NuXL:tag_shifted"), ah.tag_shifted);
+      ph.setMetaValue(std::string("NuXL:tag_XLed"), ah.tag_XLed);
+      ph.setMetaValue(std::string("NuXL:tag_unshifted"), ah.tag_unshifted);
+      ph.setMetaValue(std::string("NuXL:tag_shifted"), ah.tag_shifted);
       
-      ph.setMetaValue(StringUtils::toStr("NuXL:total_MIC"), ah.total_MIC);  // fraction of matched ion current from total + partial losses
+      ph.setMetaValue(std::string("NuXL:total_MIC"), ah.total_MIC);  // fraction of matched ion current from total + partial losses
 
       const std::string NA = *NA_adduct_it;
-      ph.setMetaValue(StringUtils::toStr("NuXL:NA"), NA); // the nucleotide formula e.g., U-H2O
+      ph.setMetaValue(std::string("NuXL:NA"), NA); // the nucleotide formula e.g., U-H2O
 
       double na_mass_z0 = EmpiricalFormula(mod_combinations_it->first).getMonoWeight(); // NA uncharged mass via empirical formula
       // length of oligo
@@ -3618,16 +3618,16 @@ static void scoreXLIons_(
       {
         if (na_mass_z0 > 0)
         {
-          ph.setMetaValue(StringUtils::toStr("NuXL:NA_length"), NA.size());
+          ph.setMetaValue(std::string("NuXL:NA_length"), NA.size());
         }
         else
         {
-          ph.setMetaValue(StringUtils::toStr("NuXL:NA_length"), 0);
+          ph.setMetaValue(std::string("NuXL:NA_length"), 0);
         }
       }
       else
       {
-        ph.setMetaValue(StringUtils::toStr("NuXL:NA_length"), NA_length);
+        ph.setMetaValue(std::string("NuXL:NA_length"), NA_length);
       }
 
       ph.setMetaValue("NuXL:NT",StringUtils::toStr(ah.cross_linked_nucleotide));  // the cross-linked nucleotide
@@ -3652,11 +3652,11 @@ static void scoreXLIons_(
       {
         if (c == ah.cross_linked_nucleotide)
         { 
-          ph.setMetaValue(StringUtils::toStr("NuXL:XL_" + StringUtils::toStr(c)), 1);
+          ph.setMetaValue(std::string("NuXL:XL_" + StringUtils::toStr(c)), 1);
         }
         else
         {
-          ph.setMetaValue(StringUtils::toStr("NuXL:XL_" + StringUtils::toStr(c)), 0);
+          ph.setMetaValue(std::string("NuXL:XL_" + StringUtils::toStr(c)), 0);
         }
       }
 
@@ -3694,9 +3694,9 @@ static void scoreXLIons_(
 
       ph.setPeakAnnotations(ah.fragment_annotations);
       ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));
-      ph.setMetaValue(StringUtils::toStr("NuXL:ladder_score"), ah.ladder_score);
-      ph.setMetaValue(StringUtils::toStr("NuXL:sequence_score"), ah.sequence_score);
-      ph.setMetaValue(StringUtils::toStr("CalcMass"), + (fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge) + na_mass_z0)/charge); // overwrites CalcMass in PercolatorAdapter
+      ph.setMetaValue(std::string("NuXL:ladder_score"), ah.ladder_score);
+      ph.setMetaValue(std::string("NuXL:sequence_score"), ah.sequence_score);
+      ph.setMetaValue(std::string("CalcMass"), + (fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge) + na_mass_z0)/charge); // overwrites CalcMass in PercolatorAdapter
       // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
       ph.setSequence(fixed_and_variable_modified_peptide);
 
@@ -3851,7 +3851,7 @@ static void scoreXLIons_(
         for (auto& s : identified_adducts)
         {
           size_t one_hot = (adduct == s) ? 1 : 0;
-          ph.setMetaValue(StringUtils::toStr("NuXL:MS1Adduct_") + s, one_hot);
+          ph.setMetaValue(std::string("NuXL:MS1Adduct_") + s, one_hot);
         }
       }
     } 
@@ -4797,7 +4797,7 @@ static void scoreXLIons_(
             process_params.push_back("-enzyme"); process_params.push_back("lys-c");
           }
 
-          TOPPBase::ExitCodes exit_code = runExternalProcess_(StringUtils::toStr("PercolatorAdapter"), process_params);
+          TOPPBase::ExitCodes exit_code = runExternalProcess_(std::string("PercolatorAdapter"), process_params);
 
           if (exit_code != EXECUTION_OK) 
           { 
@@ -6419,7 +6419,7 @@ static void scoreXLIons_(
         }
 
         OPENMS_LOG_INFO << "Running percolator." << endl;
-        TOPPBase::ExitCodes exit_code = runExternalProcess_(StringUtils::toStr("PercolatorAdapter"), process_params);
+        TOPPBase::ExitCodes exit_code = runExternalProcess_(std::string("PercolatorAdapter"), process_params);
         OPENMS_LOG_INFO << "done." << endl;
 
         if (exit_code != EXECUTION_OK) 

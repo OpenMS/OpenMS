@@ -126,7 +126,7 @@ namespace OpenMS
     // Add a sane start element and then give it to a DOM parser
     //-------------------------------------------------------------
     // http://stackoverflow.com/questions/4691039/making-xerces-parse-a-string-insted-of-a-file
-    std::string tmp_fixed_xml = "<indexedmzML>" +  StringUtils::toStr(buffer) + "\n";
+    std::string tmp_fixed_xml = "<indexedmzML>" +  std::string(buffer) + "\n";
     int res = domParseIndexedEnd_(tmp_fixed_xml, spectra_offsets, chromatograms_offsets);
 
     delete[] buffer;
@@ -299,8 +299,8 @@ namespace OpenMS
             char* x_name = xercesc::XMLString::transcode(currentElement->getAttribute(x_idref_tag));
             char* x_offset = xercesc::XMLString::transcode(currentONode->getTextContent());
 
-            std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos(StringUtils::toStr(x_offset) );
-            result.emplace_back(StringUtils::toStr(x_name), thisOffset);
+            std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos(std::string(x_offset) );
+            result.emplace_back(std::string(x_name), thisOffset);
 
             xercesc::XMLString::release(&x_name);
             xercesc::XMLString::release(&x_offset);

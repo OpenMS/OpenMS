@@ -229,17 +229,17 @@ namespace OpenMS
                       {
                         {"accession", "MS:1000747"},
                         {"name", "completion time"},
-                        {"value",StringUtils::toStr(exp.getDateTime().getDate() + "T" + exp.getDateTime().getTime()).c_str()}
+                        {"value",std::string(exp.getDateTime().getDate() + "T" + exp.getDateTime().getTime()).c_str()}
                       },
                       {
                         {"accession", "MS:1000569"},
                         {"name", "SHA-1"},
-                        {"value",StringUtils::toStr(FileHandler::computeFileHash(input_file)).c_str()}
+                        {"value",std::string(FileHandler::computeFileHash(input_file)).c_str()}
                       },
                       {
                         {"accession", "MS:1000031"},
                         {"name", "instrument model"},
-                        {"value",StringUtils::toStr(exp.getInstrument().getName()).c_str()}
+                        {"value",std::string(exp.getInstrument().getName()).c_str()}
                       }
                     }
                   }

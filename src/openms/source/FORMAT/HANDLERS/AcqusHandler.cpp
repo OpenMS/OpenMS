@@ -50,7 +50,7 @@ namespace OpenMS::Internal
       {
         continue;                    // minimal string = "##x=x"
       }
-      if (StringUtils::prefix(line, 2) !=StringUtils::toStr("##"))
+      if (StringUtils::prefix(line, 2) !=std::string("##"))
       {
         continue;
       }
@@ -105,11 +105,11 @@ namespace OpenMS::Internal
 
   std::string AcqusHandler::getParam(const std::string & param)
   {
-    if (param ==StringUtils::toStr("mzMax"))
+    if (param ==std::string("mzMax"))
     {
       return StringUtils::toStr(getPosition(td_ - 1));
     }
-    else if (param ==StringUtils::toStr("mzMin"))
+    else if (param ==std::string("mzMin"))
     {
       return StringUtils::toStr(getPosition(0));
     }

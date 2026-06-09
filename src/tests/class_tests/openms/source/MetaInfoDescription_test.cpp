@@ -66,7 +66,7 @@ START_SECTION((MetaInfoDescription(const MetaInfoDescription& source)))
   MetaInfoDescription tmp;
   tmp.setName("bla2");
   tmp.getDataProcessing().resize(1);
-  tmp.setMetaValue("label",StringUtils::toStr("label"));
+  tmp.setMetaValue("label",std::string("label"));
   
   MetaInfoDescription tmp2(tmp);
   TEST_EQUAL(tmp2.getName(),"bla2");
@@ -78,7 +78,7 @@ START_SECTION((MetaInfoDescription& operator= (const MetaInfoDescription& source
   MetaInfoDescription tmp;
   tmp.setName("bla2");
   tmp.getDataProcessing().resize(1);
-  tmp.setMetaValue("label",StringUtils::toStr("label"));
+  tmp.setMetaValue("label",std::string("label"));
   
   MetaInfoDescription tmp2;
   tmp2 = tmp;
@@ -102,7 +102,7 @@ START_SECTION((bool operator== (const MetaInfoDescription& rhs) const))
 	TEST_EQUAL(edit==empty, false);
 
   edit = empty;
-  edit.setMetaValue("label",StringUtils::toStr("label"));
+  edit.setMetaValue("label",std::string("label"));
   TEST_EQUAL(edit==empty, false);
 END_SECTION
 

@@ -228,7 +228,7 @@ namespace OpenMS
         if (v > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Unsigned integer value too large to fit into int64_t",StringUtils::toStr(std::to_string(v)));
+                                        "Unsigned integer value too large to fit into int64_t",std::string(std::to_string(v)));
         }
         return static_cast<int64_t>(v);
       }

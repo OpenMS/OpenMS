@@ -125,7 +125,7 @@ class TOPPOpenSwathMzMLFileCacher
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(StringUtils::toStr("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)

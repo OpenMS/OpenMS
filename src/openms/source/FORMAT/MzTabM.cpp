@@ -16,7 +16,7 @@ namespace OpenMS
 
   MzTabMMetaData::MzTabMMetaData()
   {
-    mz_tab_version.fromCellString(StringUtils::toStr("2.0.0-M"));
+    mz_tab_version.fromCellString(std::string("2.0.0-M"));
   }
 
   const MzTabMMetaData& MzTabM::getMetaData() const
@@ -261,7 +261,7 @@ namespace OpenMS
     for (const auto& input_file : input_files) // should only be one in featureXML
     {
       input_file_name = input_file.name;
-      input_file_name =StringUtils::toStr(std::regex_replace(input_file_name, reg_backslash, "/"));
+      input_file_name =std::string(std::regex_replace(input_file_name, reg_backslash, "/"));
       if (!StringUtils::hasPrefix(input_file_name, "file://")) input_file_name = "file://" + input_file_name;
       meta_ms_run.location.set(input_file_name);
     }
@@ -381,7 +381,7 @@ namespace OpenMS
         std::vector<std::string> db_loc = ListUtils::create<std::string>(db.getMetaValue("database_location"), '|');
         for (auto& loc : db_loc)
         {
-          loc =StringUtils::toStr(std::regex_replace(loc, reg_backslash, "/"));
+          loc =std::string(std::regex_replace(loc, reg_backslash, "/"));
           if (!StringUtils::hasPrefix(loc, "file://")) loc = "file://" + loc;
         }
         std::string db_location_uri = ListUtils::concatenate(db_loc, "|");
@@ -557,7 +557,7 @@ namespace OpenMS
         smf.rt_end.setNull(true);
         smf.small_molecule_feature_abundance_assay[1] = MzTabDouble(f.getIntensity()); // only one map in featureXML
 
-        addMetaInfoToOptionalColumns(feature_user_value_keys, smf.opt_,StringUtils::toStr("global"), f);
+        addMetaInfoToOptionalColumns(feature_user_value_keys, smf.opt_,std::string("global"), f);
 
         smfs.emplace_back(smf);
         ++feature_section_entry_counter;
@@ -610,8 +610,8 @@ namespace OpenMS
           }
           sme.rank = MzTabInteger(1); // defaults to 1 if no rank system is used
 
-          addMetaInfoToOptionalColumns(observationmatch_user_value_keys, sme.opt_,StringUtils::toStr("global"), *ref);
-          addMetaInfoToOptionalColumns(compound_user_value_keys, sme.opt_,StringUtils::toStr("global"), *compound_ref);
+          addMetaInfoToOptionalColumns(observationmatch_user_value_keys, sme.opt_,std::string("global"), *ref);
+          addMetaInfoToOptionalColumns(compound_user_value_keys, sme.opt_,std::string("global"), *compound_ref);
 
           evidence_id_ref_per_adduct[adduct].emplace_back(evidence_section_entry_counter);
           evidence_section_entry_counter += 1;
@@ -647,7 +647,7 @@ namespace OpenMS
           smf.rt_end.setNull(true);
           smf.small_molecule_feature_abundance_assay[1] = MzTabDouble(f.getIntensity()); // only one map in featureXML
 
-          addMetaInfoToOptionalColumns(feature_user_value_keys, smf.opt_,StringUtils::toStr("global"), f);
+          addMetaInfoToOptionalColumns(feature_user_value_keys, smf.opt_,std::string("global"), f);
 
           smfs.emplace_back(smf);
           ++feature_section_entry_counter;

@@ -137,7 +137,7 @@ namespace OpenMS
       std::string mod_string;
       if (mod_mass >= 0)
       {
-        mod_string =StringUtils::toStr("+") + StringUtils::toStr(mod_mass); // prepend a "+"
+        mod_string =std::string("+") + StringUtils::toStr(mod_mass); // prepend a "+"
       }
       else
       {

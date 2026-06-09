@@ -51,7 +51,7 @@ namespace OpenMS
     }
 
     std::vector<std::string> split;
-    StringUtils::split(StringUtils::toStr(param.begin().getName()), ':', split);
+    StringUtils::split(std::string(param.begin().getName()), ':', split);
     if (split[0] != "Enzymes")
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, split[0], "name 'Enzymes' expected");
@@ -77,7 +77,7 @@ namespace OpenMS
       std::string previous_enzyme = split[1];
       for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
       {
-        StringUtils::split(StringUtils::toStr(it.getName()), ':', split);
+        StringUtils::split(std::string(it.getName()), ':', split);
         if (split[0] != "Enzymes")
         {
           break;
@@ -88,7 +88,7 @@ namespace OpenMS
           previous_enzyme = split[1];
           values.clear();
         }
-        values[it.getName()] =StringUtils::toStr(it->value.toString());
+        values[it.getName()] =std::string(it->value.toString());
       }
       build_enzyme(values); // add last enzyme
     }

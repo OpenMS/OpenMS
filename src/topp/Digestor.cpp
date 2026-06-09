@@ -134,7 +134,7 @@ protected:
     if (out_type == FileTypes::UNKNOWN)
     {
       out_type = fh.getTypeByFileName(outputfile_name);
-      writeDebug_(StringUtils::toStr("Output file type: ") + FileTypes::typeToName(out_type), 2);
+      writeDebug_(std::string("Output file type: ") + FileTypes::typeToName(out_type), 2);
     }
 
     if (out_type == FileTypes::UNKNOWN)

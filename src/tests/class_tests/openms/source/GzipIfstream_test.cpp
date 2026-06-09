@@ -41,7 +41,7 @@ START_SECTION(GzipIfstream(const char * filename))
 	buffer[29] = '\0';
 	size_t len = 29;
 	TEST_EQUAL(29, gzip.read(buffer, len))
-	TEST_EQUAL(StringUtils::toStr(buffer),StringUtils::toStr("Was decompression successful?"))
+	TEST_EQUAL(std::string(buffer),std::string("Was decompression successful?"))
 
 END_SECTION
 
@@ -57,7 +57,7 @@ START_SECTION(void open(const char *filename))
 	buffer[29] = '\0';
 	size_t len = 29;
 	TEST_EQUAL(29, gzip.read(buffer, len))
-	TEST_EQUAL(StringUtils::toStr(buffer),StringUtils::toStr("Was decompression successful?"))
+	TEST_EQUAL(std::string(buffer),std::string("Was decompression successful?"))
 	
 END_SECTION
 
@@ -112,7 +112,7 @@ START_SECTION(size_t read(char *s, size_t n))
 					TEST_EQUAL(gzip2.streamEnd(),true)				
 					buffer[29]= '\0';				
 //	TEST_EQUAL(gzip2.isCorrupted(),false)
-	TEST_EQUAL(StringUtils::toStr(buffer),StringUtils::toStr("Was decompression successful?"))
+	TEST_EQUAL(std::string(buffer),std::string("Was decompression successful?"))
 END_SECTION
 
 START_SECTION(void close())

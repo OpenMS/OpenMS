@@ -99,7 +99,7 @@ namespace OpenMS
       boost::smatch m;
       if (boost::regex_search(header, m, boost::regex("transformation_model_param_(.+)")))
       {
-        setCastValue_(StringUtils::toStr(m[1]), tl[i], tm_params);
+        setCastValue_(std::string(m[1]), tl[i], tm_params);
       }
     }
     aqm.setTransformationModelParams(tm_params);

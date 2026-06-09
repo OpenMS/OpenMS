@@ -345,8 +345,8 @@ END_SECTION
 START_SECTION(std::string toString() const)
   EmpiricalFormula ef("C2H5");
   std::string str = ef.toString();
-  TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(str), "H5"), true)
-  TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(str), "C2"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(std::string(str), "H5"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(std::string(str), "C2"), true)
 END_SECTION
 
 START_SECTION((std::map<std::string, int> toMap() const))
@@ -360,8 +360,8 @@ START_SECTION([EXTRA](friend std::ostream& operator<<(std::ostream&, const Empir
   stringstream ss;
   EmpiricalFormula ef("C2H5");
   ss << ef;
-  TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(ss.str()), "H5"), true);
-  TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(ss.str()), "C2"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(ss.str(), "H5"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(ss.str(), "C2"), true);
 END_SECTION
 
 START_SECTION(bool operator!=(const EmpiricalFormula& rhs) const)

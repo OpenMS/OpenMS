@@ -118,14 +118,14 @@ namespace OpenMS
         // OPENMS_LOG_DEBUG << "\n\nName: " << m[1] << "\n";
         spectrum.clear(true);
         synonyms_.clear();
-        spectrum.setName(StringUtils::toStr(m[1]));
+        spectrum.setName(std::string(m[1]));
         spectrum.setMetaValue(Constants::UserParam::MSM_METABOLITE_NAME, spectrum.getName());
         spectrum.setMetaValue("is_valid", 1);
       }
       // Number of Peaks
       else if (boost::regex_search(line, m, re_num_peaks))
       {
-        spectrum.setMetaValue("Num Peaks",StringUtils::toStr(m[1]));
+        spectrum.setMetaValue("Num Peaks",std::string(m[1]));
       }
       // Retention Time
       else if (boost::regex_search(line, m, re_retention_time))
@@ -145,25 +145,25 @@ namespace OpenMS
       else if (boost::regex_search(line, m, re_cas_nist))
       {
         // OPENMS_LOG_DEBUG << "CAS#: " << m[1] << "; NIST#: " << m[2] << "\n";
-        spectrum.setMetaValue(StringUtils::toStr("CAS#"),StringUtils::toStr(m[1]));
-        spectrum.setMetaValue(StringUtils::toStr("NIST#"),StringUtils::toStr(m[2]));
+        spectrum.setMetaValue(std::string("CAS#"),std::string(m[1]));
+        spectrum.setMetaValue(std::string("NIST#"),std::string(m[2]));
       }
       // Meta values for MetaboliteSpectralMatcher
       else if (boost::regex_search(line, m, re_inchi))
       {
-        spectrum.setMetaValue(Constants::UserParam::MSM_INCHI_STRING,StringUtils::toStr(m[1]));
+        spectrum.setMetaValue(Constants::UserParam::MSM_INCHI_STRING,std::string(m[1]));
       }
       else if (boost::regex_search(line, m, re_smiles))
       {
-        spectrum.setMetaValue(Constants::UserParam::MSM_SMILES_STRING,StringUtils::toStr(m[1]));
+        spectrum.setMetaValue(Constants::UserParam::MSM_SMILES_STRING,std::string(m[1]));
       }
       else if (boost::regex_search(line, m, re_sum_formula))
       {
-        spectrum.setMetaValue(Constants::UserParam::MSM_SUM_FORMULA,StringUtils::toStr(m[1]));
+        spectrum.setMetaValue(Constants::UserParam::MSM_SUM_FORMULA,std::string(m[1]));
       }
       else if (boost::regex_search(line, m, re_precursor_type))
       {
-        spectrum.setMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT, StringUtils::toStr(m[1]));
+        spectrum.setMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT, std::string(m[1]));
       }
       // Collision cross section (CCS). Real MSP libraries (e.g. MS-DIAL, MoNA) store this as a
       // plain number in Angstrom^2; parse it as a typed double so it round-trips cleanly through
@@ -186,7 +186,7 @@ namespace OpenMS
       else if (boost::regex_search(line, m, re_metadatum))
       {
         // OPENMS_LOG_DEBUG << m[1] << m[2] << "\n";
-        spectrum.setMetaValue(StringUtils::toStr(m[1]),StringUtils::toStr(m[2]));
+        spectrum.setMetaValue(std::string(m[1]),std::string(m[2]));
       }
     }
     // To make sure a spectrum is added even if no empty line is present before EOF

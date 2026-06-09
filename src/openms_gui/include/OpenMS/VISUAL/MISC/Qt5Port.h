@@ -42,6 +42,6 @@ inline std::vector<std::string> fromQStringList(const QStringList& rhs)
 inline QString toQString(const std::string& s) { return QString::fromStdString(s); }
 
 /// Construct std::string from QString (replaces StringUtils::toStr(const QString&))
-inline std::string fromQString(const QString& s) { return StringUtils::toStr(s.toStdString()); }
+inline std::string fromQString(const QString& s) { return s.toStdString(); }
 
 } // namespace OpenMS

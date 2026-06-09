@@ -312,7 +312,7 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
 
   std::vector<std::vector<size_t> > mods_combs_o = mrma.nchoosekcombinations_test(no, 1);
 
-  sequences = mrma.addModificationsSequences_test(sequences, mods_combs_o,StringUtils::toStr("Oxidation"));
+  sequences = mrma.addModificationsSequences_test(sequences, mods_combs_o,std::string("Oxidation"));
 
   std::vector<size_t> np;
   np.push_back(4);
@@ -321,19 +321,19 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
 
   std::vector<std::vector<size_t> > mods_combs_p = mrma.nchoosekcombinations_test(np, 1);
 
-  sequences = mrma.addModificationsSequences_test(sequences, mods_combs_p,StringUtils::toStr("Phospho"));
+  sequences = mrma.addModificationsSequences_test(sequences, mods_combs_p,std::string("Phospho"));
 
   TEST_EQUAL(sequences.size(), 10)
-  TEST_EQUAL(sequences[0].toString(),StringUtils::toStr("P(Oxidation)EPT(Phospho)DIEK"));
-  TEST_EQUAL(sequences[1].toString(),StringUtils::toStr("P(Oxidation)EPTD(Phospho)IEK"));
-  TEST_EQUAL(sequences[2].toString(),StringUtils::toStr("P(Oxidation)EPTDIEK(Phospho)"));
-  TEST_EQUAL(sequences[3].toString(),StringUtils::toStr("PEP(Oxidation)T(Phospho)DIEK"));
-  TEST_EQUAL(sequences[4].toString(),StringUtils::toStr("PEP(Oxidation)TD(Phospho)IEK"));
-  TEST_EQUAL(sequences[5].toString(),StringUtils::toStr("PEP(Oxidation)TDIEK(Phospho)"));
-  TEST_EQUAL(sequences[6].toString(),StringUtils::toStr("PEPT(Phospho)D(Oxidation)IEK"));
-  TEST_EQUAL(sequences[7].toString(),StringUtils::toStr("PEPTD(Oxidation)IEK(Phospho)"));
-  TEST_EQUAL(sequences[8].toString(),StringUtils::toStr("PEPT(Phospho)DIEK(Oxidation)"));
-  TEST_EQUAL(sequences[9].toString(),StringUtils::toStr("PEPTD(Phospho)IEK(Oxidation)"));
+  TEST_EQUAL(sequences[0].toString(),std::string("P(Oxidation)EPT(Phospho)DIEK"));
+  TEST_EQUAL(sequences[1].toString(),std::string("P(Oxidation)EPTD(Phospho)IEK"));
+  TEST_EQUAL(sequences[2].toString(),std::string("P(Oxidation)EPTDIEK(Phospho)"));
+  TEST_EQUAL(sequences[3].toString(),std::string("PEP(Oxidation)T(Phospho)DIEK"));
+  TEST_EQUAL(sequences[4].toString(),std::string("PEP(Oxidation)TD(Phospho)IEK"));
+  TEST_EQUAL(sequences[5].toString(),std::string("PEP(Oxidation)TDIEK(Phospho)"));
+  TEST_EQUAL(sequences[6].toString(),std::string("PEPT(Phospho)D(Oxidation)IEK"));
+  TEST_EQUAL(sequences[7].toString(),std::string("PEPTD(Oxidation)IEK(Phospho)"));
+  TEST_EQUAL(sequences[8].toString(),std::string("PEPT(Phospho)DIEK(Oxidation)"));
+  TEST_EQUAL(sequences[9].toString(),std::string("PEPTD(Phospho)IEK(Oxidation)"));
 
   std::vector<std::string> sequence_list {};
   for (std::vector<OpenMS::AASequence>::const_iterator sq_it = sequences.begin(); sq_it != sequences.end(); ++sq_it)
@@ -407,7 +407,7 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
   double precursor_mz_threshold1 = 0.05;
   double product_mz_threshold1 = 0.05;
   std::vector<std::string> fragment_types1;
-  fragment_types1.push_back(StringUtils::toStr("y"));
+  fragment_types1.push_back(std::string("y"));
   std::vector<size_t> fragment_charges1;
   fragment_charges1.push_back(2);
   bool enable_losses1 = false;
@@ -429,8 +429,8 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
   double precursor_mz_threshold2 = 0.05;
   double product_mz_threshold2 = 0.05;
   std::vector<std::string> fragment_types2;
-  fragment_types2.push_back(StringUtils::toStr("y"));
-  fragment_types2.push_back(StringUtils::toStr("b"));
+  fragment_types2.push_back(std::string("y"));
+  fragment_types2.push_back(std::string("b"));
   std::vector<size_t> fragment_charges2;
   fragment_charges2.push_back(2);
   fragment_charges2.push_back(3);
@@ -609,7 +609,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<s
   MRMAssay mrma;
 
   std::vector<std::string> fragment_types1;
-  fragment_types1.push_back(StringUtils::toStr("y"));
+  fragment_types1.push_back(std::string("y"));
   std::vector<size_t> fragment_charges1;
   fragment_charges1.push_back(2);
   bool enable_specific_losses1 = true;
@@ -630,7 +630,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<s
   TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 #endif
   std::vector<std::string> fragment_types2;
-  fragment_types2.push_back(StringUtils::toStr("y"));
+  fragment_types2.push_back(std::string("y"));
   std::vector<size_t> fragment_charges2;
   fragment_charges2.push_back(2);
   bool enable_specific_losses2 = true;
@@ -698,7 +698,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<s
   MRMAssay mrma;
 
   std::vector<std::string> fragment_types1;
-  fragment_types1.push_back(StringUtils::toStr("b"));
+  fragment_types1.push_back(std::string("b"));
   std::vector<size_t> fragment_charges1;
   fragment_charges1.push_back(3);
   bool enable_losses1 = true;
@@ -720,8 +720,8 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<s
 #endif
 	
   std::vector<std::string> fragment_types2;
-  fragment_types2.push_back(StringUtils::toStr("y"));
-  fragment_types2.push_back(StringUtils::toStr("b"));
+  fragment_types2.push_back(std::string("y"));
+  fragment_types2.push_back(std::string("b"));
   std::vector<size_t> fragment_charges2;
   fragment_charges2.push_back(2);
   fragment_charges2.push_back(3);
@@ -744,8 +744,8 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<s
 #endif
 	
   std::vector<std::string> fragment_types3;
-  fragment_types3.push_back(StringUtils::toStr("y"));
-  fragment_types3.push_back(StringUtils::toStr("b"));
+  fragment_types3.push_back(std::string("y"));
+  fragment_types3.push_back(std::string("b"));
   std::vector<size_t> fragment_charges3;
   fragment_charges3.push_back(2);
   fragment_charges3.push_back(3);
@@ -830,7 +830,7 @@ START_SECTION(void uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp, 
   MRMAssay mrma;
 
   std::vector<std::string> fragment_types;
-  fragment_types.push_back(StringUtils::toStr("y"));
+  fragment_types.push_back(std::string("y"));
   std::vector<size_t> fragment_charges;
   fragment_charges.push_back(2);
   bool enable_specific_losses = true;
@@ -939,7 +939,7 @@ START_SECTION([EXTRA] uisTransitionsLight vs uisTransitions equivalence test)
   MRMAssay mrma;
 
   std::vector<std::string> fragment_types;
-  fragment_types.push_back(StringUtils::toStr("y"));
+  fragment_types.push_back(std::string("y"));
   std::vector<size_t> fragment_charges;
   fragment_charges.push_back(2);
   bool enable_specific_losses = true;

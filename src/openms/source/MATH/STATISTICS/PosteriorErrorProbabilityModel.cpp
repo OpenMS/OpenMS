@@ -99,7 +99,7 @@ namespace OpenMS::Math
       {
         // create output directory (if not already present)
         namespace fs = std::filesystem;
-        auto plot_path = to_path(StringUtils::toStr(param_.getValue("out_plot").toString()));
+        auto plot_path = to_path(std::string(param_.getValue("out_plot").toString()));
         auto parent_dir = plot_path.parent_path();
         if (parent_dir.empty())
         {
@@ -291,7 +291,7 @@ namespace OpenMS::Math
       {
         // create output directory (if not already present)
         namespace fs = std::filesystem;
-        auto plot_path = to_path(StringUtils::toStr(param_.getValue("out_plot").toString()));
+        auto plot_path = to_path(std::string(param_.getValue("out_plot").toString()));
         auto parent_dir = plot_path.parent_path();
         if (parent_dir.empty())
         {
@@ -794,7 +794,7 @@ namespace OpenMS::Math
     void PosteriorErrorProbabilityModel::tryGnuplot(const std::string& gp_file)
     {
       OPENMS_LOG_INFO << "Attempting to call 'gnuplot' ...";
-      std::string cmd =StringUtils::toStr("gnuplot \"") + gp_file + "\"";
+      std::string cmd =std::string("gnuplot \"") + gp_file + "\"";
       if (system(cmd.c_str()))  // 0 is success!
       {
         OPENMS_LOG_WARN << "Calling 'gnuplot' on '" << gp_file << "' failed. Please create plots manually." << std::endl;

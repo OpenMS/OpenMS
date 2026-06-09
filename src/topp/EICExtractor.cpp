@@ -331,7 +331,7 @@ public:
 
           out_debug.addChromatogram(toChromatogram(tics_pp));
           // get rid of "native-id" missing warning
-          for (Size id = 0; id < out_debug.size(); ++id) out_debug[id].setNativeID(StringUtils::toStr("spectrum=") + id);
+          for (Size id = 0; id < out_debug.size(); ++id) out_debug[id].setNativeID(std::string("spectrum=") + id);
 
           mzml_file.storeExperiment(out_TIC_debug, out_debug,{FileTypes::MZML});
           OPENMS_LOG_DEBUG << "Storing debug AUTO-RT: " << out_TIC_debug << std::endl;

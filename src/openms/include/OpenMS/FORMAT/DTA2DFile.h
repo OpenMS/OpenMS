@@ -217,7 +217,7 @@ public:
           setProgress(0);
           spec.clear(true);
           spec.setRT(rt);
-          spec.setNativeID(StringUtils::toStr("index=") + native_id);
+          spec.setNativeID(std::string("index=") + native_id);
           ++native_id;
         }
 

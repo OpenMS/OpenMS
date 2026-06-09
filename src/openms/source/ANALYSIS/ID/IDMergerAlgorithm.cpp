@@ -147,7 +147,7 @@ namespace OpenMS
     time(&rawtime);
     const auto timeinfo = localtime(&rawtime);
     strftime(buffer.data(), sizeof(buffer), "%d-%m-%Y %H-%M-%S", timeinfo);
-    return id_ + StringUtils::toStr(buffer.data());
+    return id_ + std::string(buffer.data());
   }
 
 

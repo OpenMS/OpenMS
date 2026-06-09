@@ -36,8 +36,8 @@ namespace OpenMS
     y_datum_max_ = params_.exists("y_datum_max") ? (double)params_.getValue("y_datum_max") : 1e15;
 
     // TrafoXML's prior to OpenMS 3.0 have x/y_weight = "" if unweighted
-    x_weight_ = params_.exists("x_weight") && (params_.getValue("x_weight") != "") ? StringUtils::toStr(params_.getValue("x_weight").toString()) : "x";
-    y_weight_ = params_.exists("y_weight") && (params_.getValue("y_weight") != "") ? StringUtils::toStr(params_.getValue("y_weight").toString()) : "y";
+    x_weight_ = params_.exists("x_weight") && (params_.getValue("x_weight") != "") ? std::string(params_.getValue("x_weight").toString()) : "x";
+    y_weight_ = params_.exists("y_weight") && (params_.getValue("y_weight") != "") ? std::string(params_.getValue("y_weight").toString()) : "y";
 
     std::vector<std::string> valid_x_weights = getValidXWeights();
     std::vector<std::string> valid_y_weights = getValidYWeights();

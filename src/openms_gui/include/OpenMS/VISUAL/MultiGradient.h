@@ -110,7 +110,7 @@ public:
     inline Int precalculatedColorIndex( double position ) const
     {
       OPENMS_PRECONDITION(pre_.size() != 0, "MultiGradient::precalculatedColorIndex(double): Precalculation mode not activated!");
-      OPENMS_PRECONDITION(position >= pre_min_, (StringUtils::toStr("MultiGradient::precalculatedColorIndex(double): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_ + pre_size_) + ")!").c_str());
+      OPENMS_PRECONDITION(position >= pre_min_, (std::string("MultiGradient::precalculatedColorIndex(double): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_ + pre_size_) + ")!").c_str());
 
       Int index = (Int)((position - pre_min_) / pre_size_ * pre_steps_);
 
@@ -122,7 +122,7 @@ public:
     {
       OPENMS_PRECONDITION(pre_.size() != 0, "MultiGradient::precalculatedColorByIndex(Int): Precalculation mode not activated!");
       OPENMS_PRECONDITION( index >= 0, "MultiGradient::precalculatedColorByIndex(Int): negative indexes not allowed");
-      OPENMS_PRECONDITION( index < (Int)pre_.size(), (StringUtils::toStr("MultiGradient::indexedColor(Int): index ") + index + " out of specified range (0-" + pre_.size() + ")!").c_str());
+      OPENMS_PRECONDITION( index < (Int)pre_.size(), (std::string("MultiGradient::indexedColor(Int): index ") + index + " out of specified range (0-" + pre_.size() + ")!").c_str());
 
       return pre_[index];
     }

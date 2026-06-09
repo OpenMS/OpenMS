@@ -1385,7 +1385,7 @@ START_SECTION(void clear(bool clear_meta_data))
   edit.getSample().setName("bla");
   edit.resize(5);
   edit.updateRanges();
-  edit.setMetaValue("label",StringUtils::toStr("bla"));
+  edit.setMetaValue("label",std::string("bla"));
   vector<MSChromatogram > tmp;
   tmp.resize(5);
   edit.setChromatograms(tmp);
@@ -1658,11 +1658,11 @@ START_SECTION( std::ostream& operator<<(std::ostream& os, const MSExperiment& ch
   std::ostringstream os;
   os << tmp;
 
-  TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(os.str()), "MSEXPERIMENT BEGIN"), true);
-  TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(os.str()), "MSSPECTRUM BEGIN"), true);
-  TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(os.str()), "MSCHROMATOGRAM BEGIN"), true);
-  TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(os.str()), "47.11"), true);
-  TEST_EQUAL(StringUtils::hasSubstring(StringUtils::toStr(os.str()), "10.77"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(os.str(), "MSEXPERIMENT BEGIN"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(os.str(), "MSSPECTRUM BEGIN"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(os.str(), "MSCHROMATOGRAM BEGIN"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(os.str(), "47.11"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(os.str(), "10.77"), true);
 }
 END_SECTION
 

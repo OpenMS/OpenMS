@@ -31,7 +31,7 @@ namespace OpenMS::Internal
     void UnimodXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
 
-      tag_ =StringUtils::toStr(sm_.convert(qname));
+      tag_ =std::string(sm_.convert(qname));
 
       // new modification?
       if (tag_ == "umod:mod" || tag_ == "mod")
@@ -91,7 +91,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          warning(LOAD,StringUtils::toStr("Don't know allowed position called: '") + pos  + "' - setting to anywhere");
+          warning(LOAD,std::string("Don't know allowed position called: '") + pos  + "' - setting to anywhere");
         }
 
         was_valid_peptide_modification_ = true;
@@ -142,7 +142,7 @@ namespace OpenMS::Internal
         std::string formula;
         if (!isotope.empty())
         {
-          formula = '(' + isotope + ')' + tmp_symbol + StringUtils::toStr(num);
+          formula = '(' + isotope + ')' + tmp_symbol + std::string(num);
         }
         else
         {
@@ -154,7 +154,7 @@ namespace OpenMS::Internal
 
     void UnimodXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      tag_ =StringUtils::toStr(sm_.convert(qname));
+      tag_ =std::string(sm_.convert(qname));
 
       // write the modifications to vector
       if (tag_ == "umod:mod" || tag_ == "mod")

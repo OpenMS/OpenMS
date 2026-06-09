@@ -68,8 +68,8 @@ START_SECTION((virtual void run(const ConsensusMap& map_model, const ConsensusMa
   input[1].push_back(ConsensusFeature(feat4));
 
   Param parameters;
-  parameters.setValue(StringUtils::toStr("scaling_bucket_size"), 0.01);
-  parameters.setValue(StringUtils::toStr("shift_bucket_size"), 0.1);
+  parameters.setValue(std::string("scaling_bucket_size"), 0.01);
+  parameters.setValue(std::string("shift_bucket_size"), 0.1);
 
   // If hashing goes wrong, get debug output with the following:
   //  parameters.setValue(StringUtils::toStr("dump_buckets"),"pcast_buckets");
@@ -120,8 +120,8 @@ START_SECTION((virtual void run(const std::vector<Peak2D> & map_model, const std
   map_scene.push_back(p4);
 
   Param parameters;
-  parameters.setValue(StringUtils::toStr("scaling_bucket_size"), 0.01);
-  parameters.setValue(StringUtils::toStr("shift_bucket_size"), 0.1);
+  parameters.setValue(std::string("scaling_bucket_size"), 0.01);
+  parameters.setValue(std::string("shift_bucket_size"), 0.1);
 
   // If hashing goes wrong, get debug output with the following:
   //  parameters.setValue(StringUtils::toStr("dump_buckets"),"pcast_buckets");
@@ -174,8 +174,8 @@ START_SECTION(([EXTRA]virtual void run(const std::vector<Peak2D> & map_model, co
 
 
   Param parameters;
-  parameters.setValue(StringUtils::toStr("scaling_bucket_size"), 0.01);
-  parameters.setValue(StringUtils::toStr("shift_bucket_size"), 0.1);
+  parameters.setValue(std::string("scaling_bucket_size"), 0.01);
+  parameters.setValue(std::string("shift_bucket_size"), 0.1);
 
   // If hashing goes wrong, get debug output with the following:
   //  parameters.setValue(StringUtils::toStr("dump_buckets"),"pcast_buckets");
@@ -233,9 +233,9 @@ START_SECTION(([EXTRA]virtual void run(const std::vector<Peak2D> & map_model, co
   // using 2 points
   {
     Param parameters;
-    parameters.setValue(StringUtils::toStr("scaling_bucket_size"), 0.01);
-    parameters.setValue(StringUtils::toStr("shift_bucket_size"), 0.1);
-    parameters.setValue(StringUtils::toStr("num_used_points"), 2); // only use first two points -> same results as before expected
+    parameters.setValue(std::string("scaling_bucket_size"), 0.01);
+    parameters.setValue(std::string("shift_bucket_size"), 0.1);
+    parameters.setValue(std::string("num_used_points"), 2); // only use first two points -> same results as before expected
 
     TransformationDescription transformation;
     PoseClusteringAffineSuperimposer pcat;
@@ -253,9 +253,9 @@ START_SECTION(([EXTRA]virtual void run(const std::vector<Peak2D> & map_model, co
   // using 3 points
   {
     Param parameters;
-    parameters.setValue(StringUtils::toStr("scaling_bucket_size"), 0.01);
-    parameters.setValue(StringUtils::toStr("shift_bucket_size"), 0.1);
-    parameters.setValue(StringUtils::toStr("num_used_points"), 3); // only use first three points -> different results as before expected
+    parameters.setValue(std::string("scaling_bucket_size"), 0.01);
+    parameters.setValue(std::string("shift_bucket_size"), 0.1);
+    parameters.setValue(std::string("num_used_points"), 3); // only use first three points -> different results as before expected
 
     TransformationDescription transformation;
     PoseClusteringAffineSuperimposer pcat;
@@ -273,11 +273,11 @@ START_SECTION(([EXTRA]virtual void run(const std::vector<Peak2D> & map_model, co
   // what happens if we set the wrong parameters?
   {
     Param parameters;
-    parameters.setValue(StringUtils::toStr("scaling_bucket_size"), 0.01);
-    parameters.setValue(StringUtils::toStr("shift_bucket_size"), 0.1);
-    parameters.setValue(StringUtils::toStr("num_used_points"), 3); // only use first three points -> different results as before expected
-    parameters.setValue(StringUtils::toStr("max_shift"), 0.2);
-    parameters.setValue(StringUtils::toStr("max_scaling"), 1.001);
+    parameters.setValue(std::string("scaling_bucket_size"), 0.01);
+    parameters.setValue(std::string("shift_bucket_size"), 0.1);
+    parameters.setValue(std::string("num_used_points"), 3); // only use first three points -> different results as before expected
+    parameters.setValue(std::string("max_shift"), 0.2);
+    parameters.setValue(std::string("max_scaling"), 1.001);
 
     TransformationDescription transformation;
     PoseClusteringAffineSuperimposer pcat;

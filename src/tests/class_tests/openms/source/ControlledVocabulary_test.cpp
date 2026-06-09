@@ -224,7 +224,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] std::string ControlledVocabulary::
   ControlledVocabulary cv;
   cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
   std::string ref = R"(<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="12.5"/>)";
-  TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS",StringUtils::toStr("12.5")),ref)
+  TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS",std::string("12.5")),ref)
 }
 END_SECTION
 

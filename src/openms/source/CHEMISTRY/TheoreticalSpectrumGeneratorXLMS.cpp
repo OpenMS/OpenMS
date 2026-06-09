@@ -493,7 +493,7 @@ namespace OpenMS
         addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
         if (add_losses_ && forward_losses.size() >= i)
         {
-          std::string ion_name = "[" + ion_type + "$" + StringUtils::toStr(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]";
+          std::string ion_name = "[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]";
           addXLinkIonLosses_(spectrum, charges, ion_names, mono_weight, intensity, charge, ion_name, forward_losses[i-1]);
         }
 
@@ -533,7 +533,7 @@ namespace OpenMS
         addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
         if (add_losses_ && backward_losses.size() >= i+2)
         {
-          std::string ion_name = "[" + ion_type + "$" + StringUtils::toStr(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]";
+          std::string ion_name = "[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]";
           addXLinkIonLosses_(spectrum, charges, ion_names, mono_weight, intensity, charge, ion_name, backward_losses[i+1]);
         }
 
@@ -559,7 +559,7 @@ namespace OpenMS
     spectrum.push_back(p);
     if (add_metainfo_)
     {
-      ion_names.emplace_back("[" + ion_type + "$" + StringUtils::toStr(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]");
+      ion_names.emplace_back("[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]");
     }
     if (add_charges_)
     {
@@ -581,7 +581,7 @@ namespace OpenMS
         if (add_metainfo_)
         {
           // remove final bracket, insert loss name and add the bracket again
-          ion_names.emplace_back("[" + ion_type + "$" + StringUtils::toStr(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "-H2O1]");
+          ion_names.emplace_back("[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "-H2O1]");
         }
         if (add_charges_)
         {
@@ -600,7 +600,7 @@ namespace OpenMS
         if (add_metainfo_)
         {
           // remove final bracket, insert loss name and add the bracket again
-          ion_names.emplace_back("[" + ion_type + "$" + StringUtils::toStr(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "-H3N1]");
+          ion_names.emplace_back("[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "-H3N1]");
         }
         if (add_charges_)
         {
@@ -1041,7 +1041,7 @@ namespace OpenMS
         addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
         if (add_losses_ && forward_losses.size() >= i)
         {
-          std::string ion_name = "[" + ion_type + "$" + StringUtils::toStr(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]";
+          std::string ion_name = "[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]";
           LossIndex losses = losses_peptide2;
           losses.has_H2O_loss = losses_peptide2.has_H2O_loss || forward_losses[i-1].has_H2O_loss;
           losses.has_NH3_loss = losses_peptide2.has_NH3_loss || forward_losses[i-1].has_NH3_loss;
@@ -1084,7 +1084,7 @@ namespace OpenMS
         addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
         if (add_losses_ && backward_losses.size() >= i+2)
         {
-          std::string ion_name = "[" + ion_type + "$" + StringUtils::toStr(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]";
+          std::string ion_name = "[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]";
           LossIndex losses = losses_peptide2;
           losses.has_H2O_loss = losses_peptide2.has_H2O_loss || backward_losses[i+1].has_H2O_loss;
           losses.has_NH3_loss = losses_peptide2.has_NH3_loss || backward_losses[i+1].has_NH3_loss;

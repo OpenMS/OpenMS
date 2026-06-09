@@ -96,7 +96,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          warning(LOAD,StringUtils::toStr("Ignoring entry '") + name + "' because of unknown type '" + type + "'");
+          warning(LOAD,std::string("Ignoring entry '") + name + "' because of unknown type '" + type + "'");
         }
 
         //restrictions
@@ -377,7 +377,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          warning(LOAD,StringUtils::toStr("Ignoring list entry '") + list_.name + "' because of unknown type '" + list_.type + "'");
+          warning(LOAD,std::string("Ignoring list entry '") + list_.name + "' because of unknown type '" + list_.type + "'");
         }
         list_.stringlist.clear();
         list_.intlist.clear();

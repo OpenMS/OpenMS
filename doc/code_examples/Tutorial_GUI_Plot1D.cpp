@@ -20,7 +20,7 @@ using namespace std;
 
 Int main(int argc, const char** argv)
 {
-  std::string tutorial_data_path(OPENMS_DOC_PATH + StringUtils::toStr("/code_examples/data/Tutorial_Spectrum1D.dta"));
+  std::string tutorial_data_path(OPENMS_DOC_PATH + std::string("/code_examples/data/Tutorial_Spectrum1D.dta"));
 
   QApplication app(argc, const_cast<char**>(argv));
 

@@ -68,7 +68,7 @@ namespace OpenMS
         {
           continue;
         }
-        std::string label = row.run_name.empty() ? (StringUtils::toStr("RUN_ID_") + StringUtils::toStr(row.run_id)) : row.run_name;
+        std::string label = row.run_name.empty() ? (std::string("RUN_ID_") + StringUtils::toStr(row.run_id)) : row.run_name;
         if (used.contains(label))
         {
           label += "_RUN" + StringUtils::toStr(row.run_id);

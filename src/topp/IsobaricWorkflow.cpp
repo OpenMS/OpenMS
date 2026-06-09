@@ -233,7 +233,7 @@ protected:
     registerSubsection_("quantification", "Parameters for the peptide quantification.");
     for (const auto& qm : quant_methods_)
     {
-      registerSubsection_(qm.second->getMethodName(),StringUtils::toStr("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
+      registerSubsection_(qm.second->getMethodName(),std::string("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
     }
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
     pq_defaults.setValue("top:include_all", "true");
@@ -459,7 +459,7 @@ protected:
     time(&rawtime);
     const auto timeinfo = localtime(&rawtime);
     strftime(buffer.data(), sizeof(buffer), "%d-%m-%Y %H-%M-%S", timeinfo);
-    return s + StringUtils::toStr(buffer.data());
+    return s + std::string(buffer.data());
   }
 
   ExitCodes main_(int, const char**) override

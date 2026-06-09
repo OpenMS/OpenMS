@@ -165,7 +165,7 @@ namespace OpenMS
     action->setData("http://www.OpenMS.de");
     action = help->addAction("TOPPAS tutorial", this, &TOPPASBase::showURL);
     action->setShortcut(Qt::Key_F1);
-    action->setData(toQString(StringUtils::toStr("html/TOPPAS_tutorial.html")));
+    action->setData(toQString(std::string("html/TOPPAS_tutorial.html")));
 
     help->addSeparator();
     help->addAction("&About", this, SLOT(showAboutDialog()));
@@ -278,7 +278,7 @@ namespace OpenMS
     savePreferences();
     // delete temporary files (TODO: make this a user dialog and ask - for later resume)
     // safety measure: only delete if subdirectory of Temp path; we do not want to delete / or c:
-    if (StringUtils::hasPrefix(StringUtils::substituted(StringUtils::toStr(tmp_path_), "\\", "/"), StringUtils::substituted(File::getTempDirectory(), "\\", "/") + "/"))
+    if (StringUtils::hasPrefix(StringUtils::substituted(std::string(tmp_path_), "\\", "/"), StringUtils::substituted(File::getTempDirectory(), "\\", "/") + "/"))
     {
       File::removeDirRecursively(tmp_path_);
     }
@@ -333,7 +333,7 @@ namespace OpenMS
     QSet<QString> category_set;
     for (ToolListType::const_iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
-      category_set << toQString(StringUtils::toStr(it->second.category));
+      category_set << toQString(std::string(it->second.category));
     }
 
     QStringList category_list = category_set.values();
@@ -369,7 +369,7 @@ namespace OpenMS
   {
     for (StringList::const_iterator it = list.begin(); it != list.end(); ++it)
     {
-      splash_screen->showMessage(toQString((StringUtils::toStr("Loading file: ") + *it)));
+      splash_screen->showMessage(toQString((std::string("Loading file: ") + *it)));
       splash_screen->repaint();
       QApplication::processEvents();
       addTOPPASFile(*it);

@@ -22,18 +22,18 @@ namespace OpenMS
 
   void MzTabMFile::generateMzTabMMetaDataSection_(const MzTabMMetaData& md, StringList& sl) const
   {
-    sl.push_back(StringUtils::toStr("MTD\tmzTab-version\t") + md.mz_tab_version.toCellString()); // mandatory
-    sl.push_back(StringUtils::toStr("MTD\tmzTab-ID\t") + md.mz_tab_id.toCellString()); // mandatory
+    sl.push_back(std::string("MTD\tmzTab-version\t") + md.mz_tab_version.toCellString()); // mandatory
+    sl.push_back(std::string("MTD\tmzTab-ID\t") + md.mz_tab_id.toCellString()); // mandatory
 
     if (!md.title.isNull())
     {
-      std::string s =StringUtils::toStr("MTD\ttitle\t") + md.title.toCellString();
+      std::string s =std::string("MTD\ttitle\t") + md.title.toCellString();
       sl.push_back(s);
     }
 
     if(!md.description.isNull())
     {
-      std::string s =StringUtils::toStr("MTD\tdescription\t") + md.description.toCellString();
+      std::string s =std::string("MTD\tdescription\t") + md.description.toCellString();
       sl.push_back(s);
     }
 
@@ -129,7 +129,7 @@ namespace OpenMS
       sl.push_back(s);
     }
 
-    std::string s =StringUtils::toStr("MTD\tquantification_method\t") + md.quantification_method.toCellString(); // mandatory
+    std::string s =std::string("MTD\tquantification_method\t") + md.quantification_method.toCellString(); // mandatory
     sl.push_back(s);
 
     for (const auto& sample : md.sample)
@@ -331,11 +331,11 @@ namespace OpenMS
       sl.push_back(s);
     }
 
-    sl.push_back(StringUtils::toStr("MTD\tsmall_molecule-quantification_unit\t") + md.small_molecule_quantification_unit.toCellString()); // mandatory
+    sl.push_back(std::string("MTD\tsmall_molecule-quantification_unit\t") + md.small_molecule_quantification_unit.toCellString()); // mandatory
 
-    sl.push_back(StringUtils::toStr("MTD\tsmall_molecule_feature-quantification_unit\t") + md.small_molecule_feature_quantification_unit.toCellString()); // mandatory (feature section)
+    sl.push_back(std::string("MTD\tsmall_molecule_feature-quantification_unit\t") + md.small_molecule_feature_quantification_unit.toCellString()); // mandatory (feature section)
 
-    sl.push_back(StringUtils::toStr("MTD\tsmall_molecule-identification_reliability\t") + md.small_molecule_identification_reliability.toCellString()); // mandatory
+    sl.push_back(std::string("MTD\tsmall_molecule-identification_reliability\t") + md.small_molecule_identification_reliability.toCellString()); // mandatory
 
     for (const auto& id_conf : md.id_confidence_measure)
     {
@@ -382,17 +382,17 @@ namespace OpenMS
 
     for (const auto& a : meta.assay)
     {
-      header.emplace_back(StringUtils::toStr("abundance_assay[") + StringUtils::toStr(a.first) + std::string("]"));
+      header.emplace_back(std::string("abundance_assay[") + StringUtils::toStr(a.first) + std::string("]"));
     }
 
     for (const auto& a : meta.study_variable)
     {
-      header.emplace_back(StringUtils::toStr("abundance_study_variable[") + StringUtils::toStr(a.first) + std::string("]"));
+      header.emplace_back(std::string("abundance_study_variable[") + StringUtils::toStr(a.first) + std::string("]"));
     }
 
     for (const auto& a : meta.study_variable)
     {
-      header.emplace_back(StringUtils::toStr("abundance_variation_study_variable[") + StringUtils::toStr(a.first) + std::string("]"));
+      header.emplace_back(std::string("abundance_variation_study_variable[") + StringUtils::toStr(a.first) + std::string("]"));
     }
 
     std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
@@ -455,7 +455,7 @@ namespace OpenMS
 
    for (const auto& a : meta.assay)
    {
-     header.emplace_back(StringUtils::toStr("abundance_assay[") + StringUtils::toStr(a.first) + std::string("]"));
+     header.emplace_back(std::string("abundance_assay[") + StringUtils::toStr(a.first) + std::string("]"));
    }
 
    std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
@@ -511,7 +511,7 @@ namespace OpenMS
 
     for (const auto& id_conf : meta.id_confidence_measure)
     {
-      header.emplace_back(StringUtils::toStr("id_confidence_measure[") + StringUtils::toStr(id_conf.first) + std::string("]"));
+      header.emplace_back(std::string("id_confidence_measure[") + StringUtils::toStr(id_conf.first) + std::string("]"));
     }
 
     header.emplace_back("rank");

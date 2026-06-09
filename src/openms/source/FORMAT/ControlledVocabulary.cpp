@@ -110,7 +110,7 @@ namespace OpenMS
     std::string s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + Internal::XMLHandler::writeXMLEscape(name);
     if (!value.empty())
     {
-      s += "\" value=\"" + Internal::XMLHandler::writeXMLEscape(StringUtils::toStr(value));
+      s += "\" value=\"" + Internal::XMLHandler::writeXMLEscape(std::string(value));
     }
     s +=  "\"/>";
     return s;
@@ -556,7 +556,7 @@ namespace OpenMS
     {
       if (!desc.empty())
       {
-        it = namesToIds_.find(StringUtils::toStr(name + desc));
+        it = namesToIds_.find(std::string(name + desc));
         if (it == namesToIds_.end())
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV name!", name);

@@ -146,7 +146,7 @@ namespace OpenMS
       // We thus treat each instance as a separate peptide
       // todo/improvement: link them by a group in PeptideIdentification?!
       pep_hit_ = new PeptideHit;
-      pep_hit_->setSequence(AASequence::fromString(StringUtils::toStr(attributeAsString_(attributes, "peptide_sequence"))));
+      pep_hit_->setSequence(AASequence::fromString(std::string(attributeAsString_(attributes, "peptide_sequence"))));
       pep_hit_->setScore(attributeAsDouble_(attributes, "nsp_adjusted_probability"));
 
       Int charge;
@@ -167,8 +167,8 @@ namespace OpenMS
         pe.setProteinAccession(*accession);
         pep_hit_->addPeptideEvidence(pe);
       }
-      pep_hit_->setMetaValue("is_unique",StringUtils::toStr(attributeAsString_(attributes, "is_nondegenerate_evidence")) == "Y" ? 1 : 0);
-      pep_hit_->setMetaValue("is_contributing",StringUtils::toStr(attributeAsString_(attributes, "is_contributing_evidence")) == "Y" ? 1 : 0);
+      pep_hit_->setMetaValue("is_unique",std::string(attributeAsString_(attributes, "is_nondegenerate_evidence")) == "Y" ? 1 : 0);
+      pep_hit_->setMetaValue("is_contributing",std::string(attributeAsString_(attributes, "is_contributing_evidence")) == "Y" ? 1 : 0);
     }
     else if (tag == "mod_aminoacid_mass")
     {
@@ -206,12 +206,12 @@ namespace OpenMS
         }
         else
         {
-          error(LOAD,StringUtils::toStr("Cannot parse modification '") + temp_description + "@" + position + "'");
+          error(LOAD,std::string("Cannot parse modification '") + temp_description + "@" + position + "'");
         }
       }
       else
       {
-        error(LOAD,StringUtils::toStr("Cannot find modification '") + StringUtils::toStr(mass) + " " + StringUtils::toStr(origin) + "' @" + StringUtils::toStr(position));
+        error(LOAD,std::string("Cannot find modification '") + StringUtils::toStr(mass) + " " + std::string(origin) + "' @" + StringUtils::toStr(position));
       }
 
       pep_hit_->setSequence(temp_aa_sequence);

@@ -587,7 +587,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_protein_map.contains(prot_it->id))
       {
-        OPENMS_LOG_ERROR << "Found duplicate protein id (must be unique): " + StringUtils::toStr(prot_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate protein id (must be unique): " + std::string(prot_it->id) << std::endl;
         return true;
       }
       unique_protein_map[prot_it->id] = 0;
@@ -600,7 +600,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_peptide_map.contains(pep_it->id))
       {
-        OPENMS_LOG_ERROR << "Found duplicate peptide id (must be unique): " + StringUtils::toStr(pep_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate peptide id (must be unique): " + std::string(pep_it->id) << std::endl;
         return true;
       }
       unique_peptide_map[pep_it->id] = 0;
@@ -613,7 +613,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_compounds_map.contains(comp_it->id))
       {
-        OPENMS_LOG_ERROR << "Found duplicate compound id (must be unique): " + StringUtils::toStr(comp_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate compound id (must be unique): " + std::string(comp_it->id) << std::endl;
         return true;
       }
       unique_compounds_map[comp_it->id] = 0;
@@ -626,7 +626,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_transition_map.contains(tr_it->getNativeID()))
       {
-        OPENMS_LOG_ERROR << "Found duplicate transition id (must be unique): " + StringUtils::toStr(tr_it->getNativeID()) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate transition id (must be unique): " + std::string(tr_it->getNativeID()) << std::endl;
         return true;
       }
       unique_transition_map[tr_it->getNativeID()] = 0;

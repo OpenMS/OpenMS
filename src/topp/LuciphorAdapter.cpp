@@ -169,7 +169,7 @@ protected:
   {
     const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_name);
     const std::string residue = StringUtils::toStr(mod->getOrigin());
-    return StringUtils::toStr(residue +  " " + mod->getDiffMonoMass());    
+    return std::string(residue +  " " + mod->getDiffMonoMass());    
   }
  
   ExitCodes parseParameters_(map<std::string, vector<std::string> >& config_map, const std::string& id, const std::string& in,

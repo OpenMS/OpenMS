@@ -244,10 +244,10 @@ namespace OpenMS
       {
         if (++i == cols.size())
         { // at this point, this is the 4th entry.. which we don't show any more...
-          text += StringUtils::toStr("<b><span style=\"color:") + fromQString(cols[i].name()) + "\">..." + StringUtils::toStr(Size(distance(formula_to_names.begin(), formula_to_names.end())) - 4 + 1) + " more</span></b><br>";
+          text += std::string("<b><span style=\"color:") + fromQString(cols[i].name()) + "\">..." + StringUtils::toStr(Size(distance(formula_to_names.begin(), formula_to_names.end())) - 4 + 1) + " more</span></b><br>";
           break;
         }
-        text +=StringUtils::toStr("<b><span style=\"color:") + fromQString(cols[i].name()) + "\">" + ith->first + "</span></b><br>\n";
+        text +=std::string("<b><span style=\"color:") + fromQString(cols[i].name()) + "\">" + ith->first + "</span></b><br>\n";
         // carets for isotope profile
         EmpiricalFormula ef(ith->first);
         IsotopeDistribution id = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(3)); // three isotopes at most
@@ -262,7 +262,7 @@ namespace OpenMS
         auto ditem = new Annotation1DCaret<Peak1D>(points,
                                                    QString(),
                                                    cols[i],
-                                                   toQString(StringUtils::toStr(getCurrentLayer().param.getValue("peak_color").toString())));
+                                                   toQString(std::string(getCurrentLayer().param.getValue("peak_color").toString())));
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
         getCurrentLayer().getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
@@ -275,7 +275,7 @@ namespace OpenMS
         if (ith->second.size() > 3)
         {
           Size s = ith->second.size();
-          ith->second[3] = StringUtils::toStr("...") + StringUtils::toStr(s-3) + " more";
+          ith->second[3] = std::string("...") + StringUtils::toStr(s-3) + " more";
           ith->second.resize(4);
         }
         text += " - " + ListUtils::concatenate(ith->second, "<br> - ") + "<br>\n";
@@ -533,8 +533,8 @@ namespace OpenMS
 
     for (Size i = 0; i < frag_annotations.size(); ++i)
     {
-      bool has_alpha = StringUtils::hasSubstring(frag_annotations[i].annotation, StringUtils::toStr("alpha|"));
-      bool has_beta = StringUtils::hasSubstring(frag_annotations[i].annotation, StringUtils::toStr("beta|"));
+      bool has_alpha = StringUtils::hasSubstring(frag_annotations[i].annotation, std::string("alpha|"));
+      bool has_beta = StringUtils::hasSubstring(frag_annotations[i].annotation, std::string("beta|"));
       // if it has both, it is a complex fragment and more difficult to parse
       // those are ignored for the coverage indicator for now
       if ( has_alpha != has_beta )
@@ -618,7 +618,7 @@ namespace OpenMS
           }
           else if (alpha_direction[pos] != direction && alpha_direction[pos] != 2) // assigned arrow has different direction, make bidirectional arrow
           {
-            alpha_strings[pos] =StringUtils::toStr("<font color=\"blue\">&#8651;</font>");
+            alpha_strings[pos] =std::string("<font color=\"blue\">&#8651;</font>");
             alpha_direction[pos] = 2;
           } // otherwise an arrow with the correct direction is already assigned
         }
@@ -631,7 +631,7 @@ namespace OpenMS
           }
           else if (beta_direction[pos] != direction && beta_direction[pos] != 2) // assigned arrow has different direction, make bidirectional arrow
           {
-            beta_strings[pos] =StringUtils::toStr("<font color=\"blue\">&#8651;</font>");
+            beta_strings[pos] =std::string("<font color=\"blue\">&#8651;</font>");
             beta_direction[pos] = 2;
           } // otherwise an arrow with the correct direction is already assigned
         }

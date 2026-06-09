@@ -30,7 +30,7 @@ namespace OpenMS::Internal
     std::string msg = context + ": " + error;
     if (!query.empty())
     {
-      msg +=StringUtils::toStr("\nQuery was: ") + query;
+      msg +=std::string("\nQuery was: ") + query;
     }
     throw Exception::FailedAPICall(__FILE__, line, function, msg);
   }

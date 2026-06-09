@@ -372,7 +372,7 @@ namespace OpenMS
     {
       ss << i << ".  " << einfo_i->first << std::string(max_name_length + 5 - einfo_i->first.length(), ' ') << einfo_i->second[0] << "     " << einfo_i->second[1] << std::string(max_cut_before_length + 5 - einfo_i->second[1].length(), ' ') << einfo_i->second[2] << "\n";
     }
-    return StringUtils::toStr(ss.str());
+    return ss.str();
   }
 
   void

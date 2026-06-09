@@ -208,7 +208,7 @@ public:
     }
     catch (Exception::IllegalArgument & e)
     {
-      writeLogError_(StringUtils::toStr("Error: ") + e.what());
+      writeLogError_(std::string("Error: ") + e.what());
       return INCOMPATIBLE_INPUT_DATA;
     }
 

@@ -494,9 +494,9 @@ START_SECTION((void generateDecoys(const OpenMS::TargetedExperiment& exp,
   double product_mz_shift = 20;
   std::string decoy_tag = "DECOY_";
   std::vector<std::string> fragment_types;
-  fragment_types.push_back(StringUtils::toStr("b"));
-  fragment_types.push_back(StringUtils::toStr("y"));
-  fragment_types.push_back(StringUtils::toStr("a"));
+  fragment_types.push_back(std::string("b"));
+  fragment_types.push_back(std::string("y"));
+  fragment_types.push_back(std::string("a"));
   std::vector<size_t> fragment_charges;
   fragment_charges.push_back(1);
   fragment_charges.push_back(2);

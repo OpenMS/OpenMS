@@ -160,7 +160,7 @@ namespace OpenMS
         read_out = [&](const boost::system::error_code& ec, std::size_t n) {
           if (!ec && n > 0)
           {
-            callbackStdOut_(StringUtils::toStr(std::string(buf_out.data(), n)));
+            callbackStdOut_(std::string(std::string(buf_out.data(), n)));
           }
           if (!ec)
           {
@@ -171,7 +171,7 @@ namespace OpenMS
         read_err = [&](const boost::system::error_code& ec, std::size_t n) {
           if (!ec && n > 0)
           {
-            callbackStdErr_(StringUtils::toStr(std::string(buf_err.data(), n)));
+            callbackStdErr_(std::string(std::string(buf_err.data(), n)));
           }
           if (!ec)
           {

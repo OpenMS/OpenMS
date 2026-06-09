@@ -90,7 +90,7 @@ namespace OpenMS
           break;
 
         default:         // no other value types are supported!
-          fatalError(STORE,StringUtils::toStr("Unsupported parameter type of parameter '") + it->name + "'");
+          fatalError(STORE,std::string("Unsupported parameter type of parameter '") + it->name + "'");
           break;
         }
       }
@@ -134,7 +134,7 @@ namespace OpenMS
       double file_version = attributeAsDouble_(attributes, "version");
       if (file_version > StringUtils::toDouble(version_))
       {
-        warning(LOAD,StringUtils::toStr("The XML file (") + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
+        warning(LOAD,std::string("The XML file (") + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
       }
     }
     else if (element == "Transformation")
@@ -154,11 +154,11 @@ namespace OpenMS
       }
       else if (type == "string")
       {
-        params_.setValue(attributeAsString_(attributes, "name"),StringUtils::toStr(attributeAsString_(attributes, "value")));
+        params_.setValue(attributeAsString_(attributes, "name"),std::string(attributeAsString_(attributes, "value")));
       }
       else
       {
-        error(LOAD,StringUtils::toStr("Unsupported parameter type: '") + type + "'");
+        error(LOAD,std::string("Unsupported parameter type: '") + type + "'");
       }
 
     }
@@ -176,7 +176,7 @@ namespace OpenMS
     }
     else
     {
-      warning(LOAD,StringUtils::toStr("Unknown element: '") + element + "'");
+      warning(LOAD,std::string("Unknown element: '") + element + "'");
     }
   }
 

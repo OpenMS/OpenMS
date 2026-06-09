@@ -193,7 +193,7 @@ namespace OpenMS
                   + delim + condition_
                   + delim + bioreplicate_
                   + delim + run_
-                  + (this->has_fraction_ ? delim + StringUtils::toStr(fraction_) : "");
+                  + (this->has_fraction_ ? delim + std::string(fraction_) : "");
         }
 
         friend bool operator<(const MSstatsLine_ &l,
@@ -260,7 +260,7 @@ namespace OpenMS
                   + delim + run_
                   + delim + mixture_
                   + delim + techrepmixture_
-                  + delim + StringUtils::toStr(fraction_);
+                  + delim + std::string(fraction_);
         }
 
         friend bool operator<(const MSstatsTMTLine_ &l,

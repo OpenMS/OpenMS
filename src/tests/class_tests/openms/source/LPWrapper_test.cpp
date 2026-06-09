@@ -63,7 +63,7 @@ END_SECTION
 START_SECTION((Int addRow(fewer args)))
 {
   lp.addColumn();
-  lp.addRow(indices,values,StringUtils::toStr("row1"));
+  lp.addRow(indices,values,std::string("row1"));
   TEST_EQUAL(lp.getNumberOfRows(),1);
   TEST_EQUAL(lp.getRowName(0),"row1");
 }
@@ -72,8 +72,8 @@ END_SECTION
 
 START_SECTION((Int addColumn(std::vector< Int > column_indices, std::vector< double > column_values, const std::string &name)))
 {
-  lp.addRow(indices,values,StringUtils::toStr("row2"));
-  lp.addColumn(indices,values,StringUtils::toStr("col3"));
+  lp.addRow(indices,values,std::string("row2"));
+  lp.addColumn(indices,values,std::string("col3"));
   TEST_EQUAL(lp.getNumberOfColumns(),3);
   TEST_EQUAL(lp.getColumnName(2),"col3");
 }
@@ -81,7 +81,7 @@ END_SECTION
 
 START_SECTION((Int addRow(all args)))
 {
-  lp.addRow(indices,values,StringUtils::toStr("row3"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
+  lp.addRow(indices,values,std::string("row3"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfRows(),3);
   TEST_EQUAL(lp.getRowName(2),"row3");
 }
@@ -89,7 +89,7 @@ END_SECTION
 
 START_SECTION((Int addColumn(std::vector< Int > &column_indices, std::vector< double > &column_values, const std::string &name, double lower_bound, double upper_bound, Type type)))
 {
-  lp.addColumn(indices,values,StringUtils::toStr("col4"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
+  lp.addColumn(indices,values,std::string("col4"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfColumns(),4);
   TEST_EQUAL(lp.getColumnName(3),"col4");
 }

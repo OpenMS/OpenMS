@@ -123,11 +123,11 @@ namespace OpenMS::Internal
 
       if (!rule_found) //No rule found
       {
-        warnings_.push_back(StringUtils::toStr("No mapping rule found for element '") + getPath_(1) + "'");
+        warnings_.push_back(std::string("No mapping rule found for element '") + getPath_(1) + "'");
       }
       else if (!allowed) //if rule found and not allowed
       {
-        errors_.push_back(StringUtils::toStr("CV term used in invalid element: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
+        errors_.push_back(std::string("CV term used in invalid element: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
       }
 
       //check if term accession and term name match
@@ -148,7 +148,7 @@ namespace OpenMS::Internal
 
         if (parsed_name != correct_name)
         {
-          errors_.push_back(StringUtils::toStr("Name of CV term not correct: '") + parsed_term.accession + " - " + parsed_name + "' should be '" + correct_name + "'");
+          errors_.push_back(std::string("Name of CV term not correct: '") + parsed_term.accession + " - " + parsed_name + "' should be '" + correct_name + "'");
         }
       }
     }

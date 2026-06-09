@@ -228,7 +228,7 @@ void ZipArchiveFile::addOrReplaceFromFile(const std::string& archive_path, const
       zip_source_free(src);
       zip_close(za);
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "zip_replace failed: " + StringUtils::toStr(zip_strerror(za)), "");
+                                    "zip_replace failed: " + std::string(zip_strerror(za)), "");
     }
   }
   else
@@ -238,7 +238,7 @@ void ZipArchiveFile::addOrReplaceFromFile(const std::string& archive_path, const
       zip_source_free(src);
       zip_close(za);
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "zip_file_add failed: " + StringUtils::toStr(zip_strerror(za)), "");
+                                    "zip_file_add failed: " + std::string(zip_strerror(za)), "");
     }
   }
 
@@ -373,7 +373,7 @@ void ZipArchiveFile::writeSidecarIndex(const std::string& archive_path)
       zip_source_free(src);
       zip_close(za2);
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "zip_replace failed for sidecar: " + StringUtils::toStr(zip_strerror(za2)), "");
+                                    "zip_replace failed for sidecar: " + std::string(zip_strerror(za2)), "");
     }
   }
   else
@@ -383,7 +383,7 @@ void ZipArchiveFile::writeSidecarIndex(const std::string& archive_path)
       zip_source_free(src);
       zip_close(za2);
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "zip_file_add failed for sidecar: " + StringUtils::toStr(zip_strerror(za2)), "");
+                                    "zip_file_add failed for sidecar: " + std::string(zip_strerror(za2)), "");
     }
   }
 
@@ -418,7 +418,7 @@ std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_pa
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, entry_path.string());
     }
-    return StringUtils::toStr(entry_path.string());
+    return std::string(entry_path.string());
   }
 
   if (!File::readable(archive_path))
@@ -478,7 +478,7 @@ std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_pa
     std::filesystem::create_directories(outpath);
     zip_fclose(zf);
     zip_close(za);
-    return StringUtils::toStr(outpath.string());
+    return std::string(outpath.string());
   }
 
   if (outpath.has_parent_path()) std::filesystem::create_directories(outpath.parent_path());
@@ -516,7 +516,7 @@ std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_pa
   zip_fclose(zf);
   zip_close(za);
 
-  return StringUtils::toStr(outpath.string());
+  return std::string(outpath.string());
 #else
   (void)archive_path;
   (void)entry_name;

@@ -91,11 +91,11 @@ private:
       }
       catch (const xercesc::XMLException& toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",StringUtils::toStr("XMLException: ") + StringManager().convert(toCatch.getMessage()));
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("XMLException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const xercesc::SAXException& toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",StringUtils::toStr("SAXException: ") + StringManager().convert(toCatch.getMessage()));
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("SAXException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const XMLHandler::EndParsingSoftly& /*toCatch*/)
       {
@@ -130,7 +130,7 @@ private:
       catch (const xercesc::XMLException & toCatch)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "",StringUtils::toStr("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
+            "",std::string("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
 
@@ -141,7 +141,7 @@ private:
         char tmp_bz[3];
         file.read(tmp_bz, 2);
         tmp_bz[2] = '\0';
-        bz =StringUtils::toStr(tmp_bz);
+        bz =std::string(tmp_bz);
       }
 
       unique_ptr<xercesc::InputSource> source;
@@ -187,7 +187,7 @@ private:
       catch (const xercesc::XMLException & toCatch)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "",StringUtils::toStr("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
+            "",std::string("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
       // TODO: handle non-plain text

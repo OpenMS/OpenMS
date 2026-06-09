@@ -718,7 +718,7 @@ namespace OpenMS
       }
       clusters[tree[cluster_step].left_child] += " )";
 
-      clusters[tree[cluster_step].right_child] =StringUtils::toStr("");
+      clusters[tree[cluster_step].right_child] =std::string("");
     }
 
     Size first_filled(0);
@@ -738,14 +738,14 @@ namespace OpenMS
         if (include_distance)
         {
           clusters[first_filled] += ":";
-          clusters[first_filled] +=StringUtils::toStr("1");
+          clusters[first_filled] +=std::string("1");
         }
         clusters[first_filled] += " , ";
         clusters[first_filled] += clusters[i];
         if (include_distance)
         {
           clusters[first_filled] += ":";
-          clusters[first_filled] +=StringUtils::toStr("1");
+          clusters[first_filled] +=std::string("1");
         }
         clusters[first_filled] += " )";
       }

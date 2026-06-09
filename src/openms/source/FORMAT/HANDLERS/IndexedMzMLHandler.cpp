@@ -255,7 +255,7 @@ namespace OpenMS::Internal
     if (!spectra_native_ids_.contains(id))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          StringUtils::toStr( "Could not find spectrum id " + StringUtils::toStr(id) ));
+          std::string( "Could not find spectrum id " + std::string(id) ));
     }
     getMSSpectrumById(spectra_native_ids_[id], s);
   }

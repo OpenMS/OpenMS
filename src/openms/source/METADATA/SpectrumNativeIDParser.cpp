@@ -68,7 +68,7 @@ namespace OpenMS
     if (!matches.empty())
     {
       // always use the last possible matching subgroup
-      std::string last_value =StringUtils::toStr(matches.back());
+      std::string last_value =std::string(matches.back());
       try
       {
         return StringUtils::toInt32(last_value);
@@ -160,7 +160,7 @@ namespace OpenMS
         try
         {
           // In case of merged spectra the last native id matches the scan number of the merged scan.
-          std::string value =StringUtils::toStr(matches[matches.size() - 1]);
+          std::string value =std::string(matches[matches.size() - 1]);
           if (native_id_type_accession == "MS:1000774")
           {
             return StringUtils::toInt32(value) + 1; // if the native ID is index=.., the scan number is usually considered index+1 (especially for pepXML)
@@ -172,7 +172,7 @@ namespace OpenMS
         }
         catch (Exception::ConversionError&)
         {
-          OPENMS_LOG_WARN << "Value: '" << StringUtils::toStr(matches[matches.size() - 1]) << "' could not be converted to int in string. Native ID='" << native_id << "'" << std::endl;
+          OPENMS_LOG_WARN << "Value: '" << std::string(matches[matches.size() - 1]) << "' could not be converted to int in string. Native ID='" << native_id << "'" << std::endl;
           return -1;
         }
       }

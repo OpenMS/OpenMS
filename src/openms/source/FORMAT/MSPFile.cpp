@@ -314,7 +314,7 @@ namespace OpenMS
             spec.push_back(peak);
           }
           hitToAnnotate.setPeakAnnotations(annots);
-          spec.setNativeID(StringUtils::toStr("index=") + spectrum_number);
+          spec.setNativeID(std::string("index=") + spectrum_number);
           exp.addSpectrum(spec);
           // clear spectrum
           spec.clear(true);

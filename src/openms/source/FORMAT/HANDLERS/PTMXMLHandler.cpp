@@ -39,7 +39,7 @@ namespace OpenMS::Internal
 
     void PTMXMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & /*attributes*/)
     {
-      tag_ =StringUtils::trimmed(StringUtils::toStr(sm_.convert(qname)));
+      tag_ =StringUtils::trimmed(std::string(sm_.convert(qname)));
       open_tag_ = true;
     }
 
@@ -56,15 +56,15 @@ namespace OpenMS::Internal
       {
         if (tag_ == "name")
         {
-          name_ =StringUtils::trimmed(StringUtils::toStr(sm_.convert(chars)));
+          name_ =StringUtils::trimmed(std::string(sm_.convert(chars)));
         }
         else if (tag_ == "composition")
         {
-          composition_ =StringUtils::trimmed(StringUtils::toStr(sm_.convert(chars)));
+          composition_ =StringUtils::trimmed(std::string(sm_.convert(chars)));
         }
         else if (tag_ == "possible_amino_acids")
         {
-          ptm_informations_[name_] = make_pair(composition_,StringUtils::trimmed(StringUtils::toStr(sm_.convert(chars))));
+          ptm_informations_[name_] = make_pair(composition_,StringUtils::trimmed(std::string(sm_.convert(chars))));
         }
       }
     }

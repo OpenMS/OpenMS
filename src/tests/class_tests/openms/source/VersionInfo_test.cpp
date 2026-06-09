@@ -34,7 +34,7 @@ END_SECTION
 
 START_SECTION(static std::string getVersion() )
 {
-  TEST_STRING_EQUAL(VersionInfo::getVersion(),StringUtils::trimmed(StringUtils::toStr(OPENMS_PACKAGE_VERSION)));
+  TEST_STRING_EQUAL(VersionInfo::getVersion(),StringUtils::trimmed(std::string(OPENMS_PACKAGE_VERSION)));
 }
 END_SECTION
 

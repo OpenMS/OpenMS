@@ -334,7 +334,7 @@ namespace detail
     writeNTermMods_(os, peptidoform.n_term_mods, mode);
     writeSequence_(os, peptidoform.sequence, mode);
     writeCTermMods_(os, peptidoform.c_term_mods, mode);
-    return StringUtils::toStr(os.str());
+    return os.str();
   }
 
   std::string ProFormaWriter::toString(const PeptidoformIon& ion, WriteMode mode)
@@ -350,7 +350,7 @@ namespace detail
       if (ion.is_chimeric && chain.charge.has_value()) writeChargeState_(os, chain.charge.value());
     }
     if (ion.charge.has_value()) writeChargeState_(os, ion.charge.value());
-    return StringUtils::toStr(os.str());
+    return os.str();
   }
 
   void ProFormaWriter::writeGlobalMods_(std::ostream& os, const std::vector<GlobalModEntry>& mods, WriteMode mode)
@@ -685,7 +685,7 @@ std::string ProForma::ParseError::getFormattedMessage() const
     if (!expected_.empty()) oss << "\nExpected: " << expected_;
     if (!found_.empty()) oss << "\nFound: " << found_;
   }
-  return StringUtils::toStr(oss.str());
+  return oss.str();
 }
 
 void ProForma::ParseError::setExpectedFound(const std::string& expected, const std::string& found)
@@ -701,7 +701,7 @@ void ProForma::ParseError::setExpectedFound(const std::string& expected, const s
 std::string ProForma::toJSON(const Peptidoform& pf)
 {
   nlohmann::json j = pf;
-  return StringUtils::toStr(j.dump());
+  return j.dump();
 }
 
 ProForma::Peptidoform ProForma::peptidoformFromJSON(const std::string& json_str)
@@ -713,18 +713,18 @@ ProForma::Peptidoform ProForma::peptidoformFromJSON(const std::string& json_str)
   }
   catch (const nlohmann::json::exception& e)
   {
-    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str,StringUtils::toStr("JSON parsing failed: ") + e.what());
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str,std::string("JSON parsing failed: ") + e.what());
   }
   catch (const std::exception& e)
   {
-    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str,StringUtils::toStr("JSON deserialization failed: ") + e.what());
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str,std::string("JSON deserialization failed: ") + e.what());
   }
 }
 
 std::string ProForma::toJSON(const PeptidoformIon& pfi)
 {
   nlohmann::json j = pfi;
-  return StringUtils::toStr(j.dump());
+  return j.dump();
 }
 
 ProForma::PeptidoformIon ProForma::peptidoformIonFromJSON(const std::string& json_str)
@@ -736,11 +736,11 @@ ProForma::PeptidoformIon ProForma::peptidoformIonFromJSON(const std::string& jso
   }
   catch (const nlohmann::json::exception& e)
   {
-    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str,StringUtils::toStr("JSON parsing failed: ") + e.what());
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str,std::string("JSON parsing failed: ") + e.what());
   }
   catch (const std::exception& e)
   {
-    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str,StringUtils::toStr("JSON deserialization failed: ") + e.what());
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str,std::string("JSON deserialization failed: ") + e.what());
   }
 }
 
@@ -912,7 +912,7 @@ namespace detail
       if (!combined_name.empty()) combined_name += " / ";
       combined_name += name;
     }
-    if (!combined_name.empty()) pf.name =StringUtils::toStr(combined_name);
+    if (!combined_name.empty()) pf.name =std::string(combined_name);
     while (check_(TokenType::LANGLE)) { auto mods = parseGlobalMods_(); for (auto& m : mods) pf.global_mods.push_back(std::move(m)); }
     pf.unlocalised_mods = parseUnlocalisedMods_();
     pf.labile_mods = parseLabileModifications_();
@@ -1280,7 +1280,7 @@ namespace detail
       else break;
     }
     if (name.empty()) error_(ErrorCode::UNEXPECTED_CHARACTER, "Expected modification name");
-    nm.name =StringUtils::toStr(name);
+    nm.name =std::string(name);
     return nm;
   }
 
@@ -1318,7 +1318,7 @@ namespace detail
       if (accession.empty()) error_(ErrorCode::INVALID_CV_ACCESSION, "Expected accession");
       cv.accession = accession;
     }
-    else { Token num = expect_(TokenType::NUMBER, "accession number"); cv.accession =StringUtils::toStr(num.text); }
+    else { Token num = expect_(TokenType::NUMBER, "accession number"); cv.accession =std::string(num.text); }
     return cv;
   }
 
@@ -1399,7 +1399,7 @@ namespace detail
         try { count = std::stoi(std::string(num.text)); }
         catch (const std::exception&) { errorAt_(ErrorCode::INVALID_MASS_VALUE, num.position, "Invalid monosaccharide count"); }
       }
-      gc.components.emplace_back(StringUtils::toStr(mono_name), count);
+      gc.components.emplace_back(std::string(mono_name), count);
     }
     if (gc.components.empty()) error_(ErrorCode::UNKNOWN_MONOSACCHARIDE, "Empty glycan composition");
     return gc;
@@ -1465,7 +1465,7 @@ namespace detail
     if (check_(TokenType::IDENTIFIER)) { Token id = advance_(); label_str = std::string(id.text); if (check_(TokenType::NUMBER)) { Token num = advance_(); label_str += std::string(num.text); } }
     else if (check_(TokenType::NUMBER)) { Token num = advance_(); label_str = std::string(num.text); }
     else error_(ErrorCode::UNEXPECTED_CHARACTER, "Expected label identifier");
-    label.identifier =StringUtils::toStr(label_str);
+    label.identifier =std::string(label_str);
     if (label.identifier == "BRANCH") label.type = Label::Type::BRANCH;
     else if (StringUtils::hasPrefix(label.identifier, "XL")) label.type = Label::Type::CROSSLINK;
     else label.type = Label::Type::AMBIGUOUS;
@@ -1524,7 +1524,7 @@ namespace detail
       advance_();
     }
     if (formula.empty()) error_(ErrorCode::UNEXPECTED_CHARACTER, "Expected adduct formula");
-    adduct.formula =StringUtils::toStr(formula);
+    adduct.formula =std::string(formula);
     expect_(TokenType::COLON, "':'");
     expect_(TokenType::IDENTIFIER, "'z'");
     int sign = 1;

@@ -43,9 +43,9 @@ namespace OpenMS
                         const std::map<std::string, int>& header_dict)
   {
     auto tmp = header_dict.find( header_name );
-    if (tmp != header_dict.end() && !StringUtils::toStr(tmp_line[ tmp->second ]).empty())
+    if (tmp != header_dict.end() && !std::string(tmp_line[ tmp->second ]).empty())
     {
-      value =StringUtils::toInt32(StringUtils::toStr(tmp_line[ tmp->second ]));
+      value =StringUtils::toInt32(std::string(tmp_line[ tmp->second ]));
       return true;
     }
     return false;
@@ -57,7 +57,7 @@ namespace OpenMS
                         const std::map<std::string, int>& header_dict)
   {
     auto tmp = header_dict.find(header_name);
-    if (tmp != header_dict.end() && !StringUtils::toStr(tmp_line[ tmp->second ]).empty())
+    if (tmp != header_dict.end() && !std::string(tmp_line[ tmp->second ]).empty())
     {
       value =StringUtils::toDouble(tmp_line[ tmp->second ]);
       return true;
@@ -71,7 +71,7 @@ namespace OpenMS
                         const std::map<std::string, int>& header_dict)
   {
     auto tmp = header_dict.find( header_name );
-    if (tmp != header_dict.end() && !StringUtils::toStr(tmp_line[ tmp->second ]).empty())
+    if (tmp != header_dict.end() && !std::string(tmp_line[ tmp->second ]).empty())
     {
       std::string str_value = tmp_line[ tmp->second ];
       if (str_value == "1" || StringUtils::toUpper(str_value) == "TRUE") value = true;
@@ -394,7 +394,7 @@ namespace OpenMS
       if (filetype == FileTypes::MRM)
       {
         std::vector<std::string> substrings;
-        StringUtils::split(StringUtils::toStr(tmp_line[header_dict["SpectraSTFullPeptideName"]]), "/", substrings);
+        StringUtils::split(std::string(tmp_line[header_dict["SpectraSTFullPeptideName"]]), "/", substrings);
         AASequence peptide = AASequence::fromString(substrings[0]);
 
         mytransition.FullPeptideName = peptide.toString();
@@ -403,7 +403,7 @@ namespace OpenMS
 
         mytransition.transition_name =StringUtils::toStr(cnt);
 
-        mytransition.group_id = mytransition.FullPeptideName + std::string("_") + StringUtils::toStr(mytransition.precursor_charge);
+        mytransition.group_id = mytransition.FullPeptideName + std::string("_") + std::string(mytransition.precursor_charge);
       }
       // Generate transition_group_id and transition_name if not defined
       else
@@ -421,7 +421,7 @@ namespace OpenMS
             !extractName(mytransition.group_id, "TransitionGroupId", tmp_line, header_dict) &&
             !extractName(mytransition.group_id, "TransitionGroupName", tmp_line, header_dict))
         {
-          mytransition.group_id = AASequence::fromString(mytransition.FullPeptideName).toString() + std::string("_") + StringUtils::toStr(mytransition.precursor_charge);
+          mytransition.group_id = AASequence::fromString(mytransition.FullPeptideName).toString() + std::string("_") + std::string(mytransition.precursor_charge);
         }
       }
 
@@ -515,7 +515,7 @@ namespace OpenMS
       {
         std::vector<std::string> best_fragment_annotation_charge;
         StringUtils::split(best_fragment_annotation, "^", best_fragment_annotation_charge);
-        mytransition.fragment_charge =StringUtils::toStr(best_fragment_annotation_charge[1]);
+        mytransition.fragment_charge =std::string(best_fragment_annotation_charge[1]);
         best_fragment_annotation = best_fragment_annotation_charge[0];
       }
       else
@@ -529,7 +529,7 @@ namespace OpenMS
         StringUtils::split(best_fragment_annotation, "-", best_fragment_annotation_modification);
         mytransition.fragment_type = best_fragment_annotation_modification[0].substr(0, 1);
         mytransition.fragment_nr =StringUtils::toInt32(best_fragment_annotation_modification[0].substr(1));
-        mytransition.fragment_modification = -1 * StringUtils::toInt32(StringUtils::toStr(best_fragment_annotation_modification[1]));
+        mytransition.fragment_modification = -1 * StringUtils::toInt32(std::string(best_fragment_annotation_modification[1]));
 
       }
       else if (best_fragment_annotation.contains("+"))
@@ -538,7 +538,7 @@ namespace OpenMS
         StringUtils::split(best_fragment_annotation, "+", best_fragment_annotation_modification);
         mytransition.fragment_type = best_fragment_annotation_modification[0].substr(0, 1);
         mytransition.fragment_nr =StringUtils::toInt32(best_fragment_annotation_modification[0].substr(1));
-        mytransition.fragment_modification =StringUtils::toInt32(StringUtils::toStr(best_fragment_annotation_modification[1]));
+        mytransition.fragment_modification =StringUtils::toInt32(std::string(best_fragment_annotation_modification[1]));
       }
       else
       {
@@ -853,7 +853,7 @@ namespace OpenMS
       if (filetype == FileTypes::MRM)
       {
         std::vector<std::string> substrings;
-        StringUtils::split(StringUtils::toStr(tmp_line[header_dict["SpectraSTFullPeptideName"]]), "/", substrings);
+        StringUtils::split(std::string(tmp_line[header_dict["SpectraSTFullPeptideName"]]), "/", substrings);
         AASequence peptide = AASequence::fromString(substrings[0]);
 
         mytransition.FullPeptideName = peptide.toString();
@@ -862,7 +862,7 @@ namespace OpenMS
 
         mytransition.transition_name =StringUtils::toStr(cnt);
 
-        mytransition.group_id = mytransition.FullPeptideName + std::string("_") + StringUtils::toStr(mytransition.precursor_charge);
+        mytransition.group_id = mytransition.FullPeptideName + std::string("_") + std::string(mytransition.precursor_charge);
       }
       else
       {
@@ -877,7 +877,7 @@ namespace OpenMS
             !extractName(mytransition.group_id, "TransitionGroupId", tmp_line, header_dict) &&
             !extractName(mytransition.group_id, "TransitionGroupName", tmp_line, header_dict))
         {
-          mytransition.group_id = AASequence::fromString(mytransition.FullPeptideName).toString() + std::string("_") + StringUtils::toStr(mytransition.precursor_charge);
+          mytransition.group_id = AASequence::fromString(mytransition.FullPeptideName).toString() + std::string("_") + std::string(mytransition.precursor_charge);
         }
       }
 
@@ -1437,7 +1437,7 @@ namespace OpenMS
     peptide.mods = mods;
 
     OPENMS_POSTCONDITION(aa_sequence.toUnmodifiedString() == peptide.sequence,
-                         (StringUtils::toStr("Internal error: the sequences of the naked and modified peptide sequence are unequal(")
+                         (std::string("Internal error: the sequences of the naked and modified peptide sequence are unequal(")
                           + aa_sequence.toUnmodifiedString() + " != " + peptide.sequence).c_str())
   }
 
@@ -1977,7 +1977,7 @@ namespace OpenMS
         + protein_names_str                     + "\t"
         + uniprot_ids_str                       + "\t"
         + gene_name                             + "\t"
-        + StringUtils::toStr(tr.getFragmentType())          + "\t"
+        + std::string(tr.getFragmentType())          + "\t"
         + StringUtils::toStr(tr.fragment_nr)                + "\t"
         + annotation                            + "\t"
         + StringUtils::toStr(-1.0)                          + "\t"  // CE not stored in Light

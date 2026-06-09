@@ -115,7 +115,7 @@ namespace OpenMS
                          getFLASHDeconvExe(),
                          {"-ini", tmp_ini,
                           "-in", mzML,
-                          "-out",StringUtils::toStr(getCurrentOutDir_().toStdString()) + "/" + infileToFDoutput(mzML)},
+                          "-out",std::string(getCurrentOutDir_().toStdString()) + "/" + infileToFDoutput(mzML)},
                          "",
                          true);
         if (r != ExternalProcess::RETURNSTATE::SUCCESS)

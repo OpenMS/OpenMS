@@ -359,7 +359,7 @@ namespace OpenMS::Internal
           rootElem->setAttribute(CONST_XMLCH("xsi:schemaLocation"),
                                  CONST_XMLCH("http://psidev.info/psi/pi/mzIdentML/1.1 ../../schema/mzIdentML1.1.0.xsd"));
           rootElem->setAttribute(CONST_XMLCH("creationDate"),
-                                 StringManager::convertPtr(StringUtils::toStr(DateTime::now().getDate() + "T" + DateTime::now().getTime())).get());
+                                 StringManager::convertPtr(std::string(DateTime::now().getDate() + "T" + DateTime::now().getTime())).get());
 
           // * cvList *
           DOMElement* cvl_p = xmlDoc->createElement(CONST_XMLCH("cvList")); // TODO add generically
@@ -403,7 +403,7 @@ namespace OpenMS::Internal
               list<std::string> pepevs;
               for (vector<OpenMS::PeptideEvidence>::const_iterator pev = ph->getPeptideEvidences().begin(); pev != ph->getPeptideEvidences().end(); ++pev)
               {
-                std::string pepevref =StringUtils::toStr("OpenMS") + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
+                std::string pepevref =std::string("OpenMS") + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
                 pv_db_map_.insert(make_pair(pepevref, pev->getProteinAccession()));
                 pepevs.push_back(pepevref);
                 bool idec = StringUtils::hasSubstring(StringUtils::toStr(ph->getMetaValue(Constants::UserParam::TARGET_DECOY)), "decoy");
@@ -412,7 +412,7 @@ namespace OpenMS::Internal
               }
               hit_pev_.push_back(pepevs);
 
-              std::string pepref =StringUtils::toStr("OpenMS") + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
+              std::string pepref =std::string("OpenMS") + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
               if (pepset.contains(ph->getSequence()))
               {
                 pepset.insert(ph->getSequence());
@@ -2856,7 +2856,7 @@ namespace OpenMS::Internal
     void MzIdentMLDOMHandler::buildAnalysisSoftwareList_(DOMElement* analysisSoftwareElements)
     {
       DOMElement* current_as = analysisSoftwareElements->getOwnerDocument()->createElement(CONST_XMLCH("AnalysisSoftware"));
-      current_as->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr((StringUtils::toStr("OpenMS") + UniqueIdGenerator::getUniqueId())).get());
+      current_as->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr((std::string("OpenMS") + UniqueIdGenerator::getUniqueId())).get());
       current_as->setAttribute(CONST_XMLCH("version"), CONST_XMLCH("search_engine_version_"));
       current_as->setAttribute(CONST_XMLCH("name"), CONST_XMLCH("search_engine_"));
       analysisSoftwareElements->appendChild(current_as);

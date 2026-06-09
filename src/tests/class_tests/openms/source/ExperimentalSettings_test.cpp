@@ -199,7 +199,7 @@ START_SECTION((ExperimentalSettings(const ExperimentalSettings& source)))
   tmp.getSourceFiles().resize(1);
   tmp.getContacts().resize(1);
 
-  tmp.setMetaValue("label",StringUtils::toStr("label"));
+  tmp.setMetaValue("label",std::string("label"));
   
   ExperimentalSettings tmp2(tmp);
   TEST_EQUAL(tmp2.getComment(),"bla");
@@ -233,7 +233,7 @@ START_SECTION((ExperimentalSettings& operator= (const ExperimentalSettings& sour
   tmp.getSourceFiles().resize(1);
   tmp.getContacts().resize(1);
 
-  tmp.setMetaValue("label",StringUtils::toStr("label"));
+  tmp.setMetaValue("label",std::string("label"));
   
   ExperimentalSettings tmp2;
   tmp2 = tmp;
@@ -303,7 +303,7 @@ START_SECTION((bool operator== (const ExperimentalSettings& rhs) const))
   TEST_EQUAL(edit==empty, false);
 
 	edit = empty;
-	edit.setMetaValue("label",StringUtils::toStr("label"));
+	edit.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(edit==empty,false);
 END_SECTION
 
@@ -347,7 +347,7 @@ START_SECTION((bool operator!= (const ExperimentalSettings& rhs) const))
   TEST_EQUAL(edit!=empty,true);
 
 	edit = empty;
-	edit.setMetaValue("label",StringUtils::toStr("label"));
+	edit.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(edit!=empty,true);
 END_SECTION
 

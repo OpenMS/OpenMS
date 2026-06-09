@@ -650,7 +650,7 @@ namespace OpenMS
     std::string all_maps; // for output later
     for (ColumnHeaders::const_iterator it = column_description_.begin(); it != column_description_.end(); ++it)
     {
-      std::string s =StringUtils::toStr("  file: ") + it->second.filename + " label: " + it->second.label;
+      std::string s =std::string("  file: ") + it->second.filename + " label: " + it->second.label;
       maps.insert(s);
       all_maps += s;
     }

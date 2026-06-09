@@ -245,7 +245,7 @@ START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) c
 	Param p;
 	p.setValue("stringlist", std::vector<std::string>{"a","bb","ccc"}, "StringList Description");
 	p.setValue("intlist", ListUtils::create<Int>("1,22,333"));
-	p.setValue("item",StringUtils::toStr("bla"));
+	p.setValue("item",std::string("bla"));
 	p.setValue("stringlist2", std::vector<std::string>());
 	p.setValue("intlist2", ListUtils::create<Int>(""));
 	p.setValue("item1", 7);
@@ -278,7 +278,7 @@ START_SECTION([EXTRA] loading and storing of lists)
 	Param p;
 	p.setValue("stringlist", std::vector<std::string>{"a","bb","ccc"});
 	p.setValue("intlist", ListUtils::create<Int>("1,22,333"));
-	p.setValue("item",StringUtils::toStr("bla"));
+	p.setValue("item",std::string("bla"));
 	p.setValue("stringlist2", std::vector<std::string>());
 	p.setValue("intlist2", ListUtils::create<Int>(""));
 	p.setValue("item1", 7);
@@ -353,17 +353,17 @@ START_SECTION(([EXTRA] Escaping of characters))
 	Param p;
   ParamXMLFile paramFile;
 
-	p.setValue("string",StringUtils::toStr("bla"),"string");
-	p.setValue("string_with_ampersand",StringUtils::toStr("bla2&blubb"), "string with ampersand");
-	p.setValue("string_with_ampersand_in_descr",StringUtils::toStr("blaxx"), "std::string with & in description");
-	p.setValue("string_with_single_quote",StringUtils::toStr("bla'xxx"), "std::string with single quotes");
-	p.setValue("string_with_single_quote_in_descr",StringUtils::toStr("blaxxx"), "std::string with ' quote in description");
-	p.setValue("string_with_double_quote",StringUtils::toStr("bla\"xxx"), "std::string with double quote");
-	p.setValue("string_with_double_quote_in_descr",StringUtils::toStr("bla\"xxx"), "std::string with \" description");
-	p.setValue("string_with_greater_sign",StringUtils::toStr("bla>xxx"), "std::string with greater sign");
-	p.setValue("string_with_greater_sign_in_descr",StringUtils::toStr("bla greater xxx"), "std::string with >");
-	p.setValue("string_with_less_sign",StringUtils::toStr("bla<xxx"), "std::string with less sign");
-	p.setValue("string_with_less_sign_in_descr",StringUtils::toStr("bla less sign_xxx"), "std::string with less sign <");
+	p.setValue("string",std::string("bla"),"string");
+	p.setValue("string_with_ampersand",std::string("bla2&blubb"), "string with ampersand");
+	p.setValue("string_with_ampersand_in_descr",std::string("blaxx"), "std::string with & in description");
+	p.setValue("string_with_single_quote",std::string("bla'xxx"), "std::string with single quotes");
+	p.setValue("string_with_single_quote_in_descr",std::string("blaxxx"), "std::string with ' quote in description");
+	p.setValue("string_with_double_quote",std::string("bla\"xxx"), "std::string with double quote");
+	p.setValue("string_with_double_quote_in_descr",std::string("bla\"xxx"), "std::string with \" description");
+	p.setValue("string_with_greater_sign",std::string("bla>xxx"), "std::string with greater sign");
+	p.setValue("string_with_greater_sign_in_descr",std::string("bla greater xxx"), "std::string with >");
+	p.setValue("string_with_less_sign",std::string("bla<xxx"), "std::string with less sign");
+	p.setValue("string_with_less_sign_in_descr",std::string("bla less sign_xxx"), "std::string with less sign <");
 
 
 	std::string filename;
@@ -375,15 +375,15 @@ START_SECTION(([EXTRA] Escaping of characters))
 
 	TEST_STRING_EQUAL(p2.getDescription("string"), "string")
 
-  TEST_STRING_EQUAL(p.getValue("string_with_ampersand"),StringUtils::toStr("bla2&blubb"))
+  TEST_STRING_EQUAL(p.getValue("string_with_ampersand"),std::string("bla2&blubb"))
   TEST_STRING_EQUAL(p.getDescription("string_with_ampersand_in_descr"), "std::string with & in description")
-  TEST_STRING_EQUAL(p.getValue("string_with_single_quote"),StringUtils::toStr("bla'xxx"))
+  TEST_STRING_EQUAL(p.getValue("string_with_single_quote"),std::string("bla'xxx"))
   TEST_STRING_EQUAL(p.getDescription("string_with_single_quote_in_descr"), "std::string with ' quote in description")
-  TEST_STRING_EQUAL(p.getValue("string_with_double_quote"),StringUtils::toStr("bla\"xxx"))
+  TEST_STRING_EQUAL(p.getValue("string_with_double_quote"),std::string("bla\"xxx"))
   TEST_STRING_EQUAL(p.getDescription("string_with_double_quote_in_descr"), "std::string with \" description")
-  TEST_STRING_EQUAL(p.getValue("string_with_greater_sign"),StringUtils::toStr("bla>xxx"))
+  TEST_STRING_EQUAL(p.getValue("string_with_greater_sign"),std::string("bla>xxx"))
   TEST_STRING_EQUAL(p.getDescription("string_with_greater_sign_in_descr"), "std::string with >")
-  TEST_STRING_EQUAL(p.getValue("string_with_less_sign"),StringUtils::toStr("bla<xxx"))
+  TEST_STRING_EQUAL(p.getValue("string_with_less_sign"),std::string("bla<xxx"))
   TEST_STRING_EQUAL(p.getDescription("string_with_less_sign_in_descr"), "std::string with less sign <")
 END_SECTION
 

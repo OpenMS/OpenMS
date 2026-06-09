@@ -57,7 +57,7 @@ namespace OpenMS
     catch (const json::parse_error& e)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        full_path,StringUtils::toStr("JSON parse error: ") + e.what());
+        full_path,std::string("JSON parse error: ") + e.what());
     }
 
     // Check for required structure

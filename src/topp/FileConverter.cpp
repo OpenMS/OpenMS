@@ -442,7 +442,7 @@ protected:
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(StringUtils::toStr("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
       if (in_type == FileTypes::UNKNOWN)
       {
         writeLogError_("Error: Could not determine input file type!");
@@ -462,7 +462,7 @@ protected:
     bool TIC_DTA2D = getFlag_("TIC_DTA2D");
     bool process_lowmemory = getFlag_("process_lowmemory");
 
-    writeDebug_(StringUtils::toStr("Output file type: ") + FileTypes::typeToName(out_type), 1);
+    writeDebug_(std::string("Output file type: ") + FileTypes::typeToName(out_type), 1);
 
     std::string uid_postprocessing = getStringOption_("UID_postprocessing");
     //-------------------------------------------------------------
@@ -476,7 +476,7 @@ protected:
     FeatureMap fm;
     ConsensusMap cm;
 
-    writeDebug_(StringUtils::toStr("Loading input file"), 1);
+    writeDebug_(std::string("Loading input file"), 1);
 
     if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET)
     {
@@ -710,7 +710,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    writeDebug_(StringUtils::toStr("Writing output file"), 1);
+    writeDebug_(std::string("Writing output file"), 1);
 
     if (out_type == FileTypes::MZML)
     {
@@ -975,7 +975,7 @@ protected:
           tr_type = FileTypes::nameToType(tr_type_hint);
           if (tr_type == FileTypes::UNKNOWN)
           {
-            writeLogError_(StringUtils::toStr("Error: Unsupported value for -OpenSwathWorkflow:tr_type: '") + tr_type_hint + "'.");
+            writeLogError_(std::string("Error: Unsupported value for -OpenSwathWorkflow:tr_type: '") + tr_type_hint + "'.");
             return ILLEGAL_PARAMETERS;
           }
         }
@@ -1016,14 +1016,14 @@ protected:
           }
           else
           {
-            writeLogError_(StringUtils::toStr("Error: Unrecognized transition library type for '") + tr_file +
+            writeLogError_(std::string("Error: Unrecognized transition library type for '") + tr_file +
                            "'. Cannot convert sqMass to CHROMPARQUET without valid transition metadata.");
             return ILLEGAL_PARAMETERS;
           }
         }
         catch (const Exception::BaseException& e)
         {
-          writeLogError_(StringUtils::toStr("Error: Failed to load transition library '") + tr_file + "': " + e.what());
+          writeLogError_(std::string("Error: Failed to load transition library '") + tr_file + "': " + e.what());
           return ILLEGAL_PARAMETERS;
         }
 

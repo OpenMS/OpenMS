@@ -489,11 +489,11 @@ namespace OpenMS
         {
           item = new QTreeWidgetItem(parent);
           //name
-          item->setText(0, toQString(StringUtils::toStr(par.name)));
+          item->setText(0, toQString(std::string(par.name)));
           item->setForeground(0, Qt::darkGray);  // color of nodes with children
 
           //description
-          item->setData(1, Qt::UserRole, toQString(StringUtils::toStr(par.description)));
+          item->setData(1, Qt::UserRole, toQString(std::string(par.description)));
           //role
           item->setData(0, Qt::UserRole, NODE);
           //flags
@@ -546,7 +546,7 @@ namespace OpenMS
         item->setData(0, Qt::UserRole, NORMAL_ITEM);
       }
       // name
-      item->setText(0, toQString(StringUtils::toStr(it->name)));
+      item->setText(0, toQString(std::string(it->name)));
       // value
       if (it->value.valueType() == ParamValue::STRING_LIST)
       {
@@ -562,7 +562,7 @@ namespace OpenMS
       }
       else
       {
-        item->setText(1, toQString(StringUtils::toStr(it->value.toString())));
+        item->setText(1, toQString(std::string(it->value.toString())));
       }
       // type
       switch (it->value.valueType())
@@ -633,7 +633,7 @@ namespace OpenMS
         {
           if (min_set)
           {
-            drest +=StringUtils::toStr("min: ") + it->min_int;
+            drest +=std::string("min: ") + it->min_int;
             irest += it->min_int;
           }
           irest += " ";
@@ -641,7 +641,7 @@ namespace OpenMS
           {
             if (min_set && max_set)
               drest += " ";
-            drest +=StringUtils::toStr("max: ") + it->max_int;
+            drest +=std::string("max: ") + it->max_int;
             irest += it->max_int;
           }
           item->setText(3, toQString(drest));
@@ -660,7 +660,7 @@ namespace OpenMS
         {
           if (min_set)
           {
-            drest +=StringUtils::toStr("min: ") + it->min_float;
+            drest +=std::string("min: ") + it->min_float;
             irest += it->min_float;
           }
           irest += " ";
@@ -668,7 +668,7 @@ namespace OpenMS
           {
             if (min_set && max_set)
               drest += " ";
-            drest +=StringUtils::toStr("max: ") + it->max_float;
+            drest +=std::string("max: ") + it->max_float;
             irest += it->max_float;
           }
           item->setText(3, toQString(drest));
@@ -699,7 +699,7 @@ namespace OpenMS
       }
 
       //description
-      item->setData(1, Qt::UserRole, toQString(StringUtils::toStr(it->description)));
+      item->setData(1, Qt::UserRole, toQString(std::string(it->description)));
       //flags
       if (param_ != nullptr)
       {
@@ -769,7 +769,7 @@ namespace OpenMS
     }
     else
     {
-      path +=StringUtils::toStr(":") + StringUtils::toStr(child->text(0).toStdString());
+      path +=std::string(":") + child->text(0).toStdString();
     }
 
     std::string description = fromQString(child->data(1, Qt::UserRole).toString());

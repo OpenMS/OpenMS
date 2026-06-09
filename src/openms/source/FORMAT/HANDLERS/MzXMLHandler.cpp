@@ -153,7 +153,7 @@ namespace OpenMS::Internal
         {
           data_processing_.back()->getSoftware().setVersion(attributeAsString_(attributes, s_version_));
           data_processing_.back()->getSoftware().setName(attributeAsString_(attributes, s_name_));
-          data_processing_.back()->setMetaValue("#type",StringUtils::toStr(attributeAsString_(attributes, s_type_)));
+          data_processing_.back()->setMetaValue("#type",std::string(attributeAsString_(attributes, s_type_)));
 
           std::string time;
           optionalAttributeAsString_(time, attributes, s_completiontime_);
@@ -172,28 +172,28 @@ namespace OpenMS::Internal
         optionalAttributeAsString_(spectrum_data_.back().precision_, attributes, s_precision_);
         if (spectrum_data_.back().precision_ != "32" && spectrum_data_.back().precision_ != "64")
         {
-          error(LOAD,StringUtils::toStr("Invalid precision '") + spectrum_data_.back().precision_ + "' in element 'peaks'");
+          error(LOAD,std::string("Invalid precision '") + spectrum_data_.back().precision_ + "' in element 'peaks'");
         }
         //byte order
         std::string byte_order = "network";
         optionalAttributeAsString_(byte_order, attributes, s_byteorder_);
         if (byte_order != "network")
         {
-          error(LOAD,StringUtils::toStr("Invalid or missing byte order '") + byte_order + "' in element 'peaks'. Must be 'network'!");
+          error(LOAD,std::string("Invalid or missing byte order '") + byte_order + "' in element 'peaks'. Must be 'network'!");
         }
         //pair order
         std::string pair_order = "m/z-int";
         optionalAttributeAsString_(pair_order, attributes, s_contentType_);
         if (pair_order != "m/z-int")
         {
-          error(LOAD,StringUtils::toStr("Invalid or missing pair order '") + pair_order + "' in element 'peaks'. Must be 'm/z-int'!");
+          error(LOAD,std::string("Invalid or missing pair order '") + pair_order + "' in element 'peaks'. Must be 'm/z-int'!");
         }
         //compressionType
         spectrum_data_.back().compressionType_ = "none";
         optionalAttributeAsString_(spectrum_data_.back().compressionType_, attributes, s_compressionType_);
         if (spectrum_data_.back().compressionType_ != "none" && spectrum_data_.back().compressionType_ != "zlib")
         {
-          error(LOAD,StringUtils::toStr("Invalid compression type ") + spectrum_data_.back().compressionType_ + "in elements 'peaks'. Must be 'none' or 'zlib'! ");
+          error(LOAD,std::string("Invalid compression type ") + spectrum_data_.back().compressionType_ + "in elements 'peaks'. Must be 'none' or 'zlib'! ");
         }
       }
       else if (tag == "precursorMz")
@@ -248,7 +248,7 @@ namespace OpenMS::Internal
         UInt ms_level = attributeAsInt_(attributes, s_mslevel_);
         if (ms_level == 0)
         {
-          warning(LOAD,StringUtils::toStr("Invalid 'msLevel' attribute with value '0' in 'scan' element found. Assuming ms level 1!"));
+          warning(LOAD,std::string("Invalid 'msLevel' attribute with value '0' in 'scan' element found. Assuming ms level 1!"));
           ms_level = 1;
         }
 
@@ -297,7 +297,7 @@ namespace OpenMS::Internal
 
         spectrum_data_.back().spectrum.setMSLevel(ms_level);
         spectrum_data_.back().spectrum.setRT(retention_time);
-        spectrum_data_.back().spectrum.setNativeID(StringUtils::toStr("scan=") + attributeAsString_(attributes, s_num_));
+        spectrum_data_.back().spectrum.setNativeID(std::string("scan=") + attributeAsString_(attributes, s_num_));
         //peak count == twice the scan size
         spectrum_data_.back().peak_count_ = attributeAsInt_(attributes, s_peakscount_);
         spectrum_data_.back().spectrum.reserve(spectrum_data_.back().peak_count_ / 2 + 1);
@@ -385,7 +385,7 @@ namespace OpenMS::Internal
         else
         {
           spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
-          warning(LOAD,StringUtils::toStr("Unknown scan mode '") + type + "'. Assuming full scan");
+          warning(LOAD,std::string("Unknown scan mode '") + type + "'. Assuming full scan");
         }
       } // END OF <scan>
       else if (tag == "operator")
@@ -607,7 +607,7 @@ namespace OpenMS::Internal
         }
         else if (!StringUtils::trim(transcoded_chars).empty())
         {
-          warning(LOAD,StringUtils::toStr("Unhandled comment '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
+          warning(LOAD,std::string("Unhandled comment '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
         }
       }
       else
@@ -615,7 +615,7 @@ namespace OpenMS::Internal
         std::string transcoded_chars = sm_.convert(chars);
         if (!StringUtils::trim(transcoded_chars).empty())
         {
-          warning(LOAD,StringUtils::toStr("Unhandled character content '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
+          warning(LOAD,std::string("Unhandled character content '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
         }
       }
     }
@@ -662,7 +662,7 @@ namespace OpenMS::Internal
           const SourceFile& sf = cexp_->getSourceFiles()[i];
           os << "\t\t<parentFile fileName=\"" << sf.getNameOfFile() << "\" fileType=\"";
           //file type is an enum in mzXML => search for 'raw' string
-          if (StringUtils::hasSubstring(StringUtils::toLowered(StringUtils::toStr(sf.getFileType())), "raw"))
+          if (StringUtils::hasSubstring(StringUtils::toLowered(std::string(sf.getFileType())), "raw"))
           {
             os << "RAWData";
           }
@@ -926,12 +926,12 @@ namespace OpenMS::Internal
           break;
         default:
           type = "Full";
-          warning(STORE,StringUtils::toStr("Scan type '") + InstrumentSettings::NamesOfScanMode[static_cast<size_t>(spec.getInstrumentSettings().getScanMode())] + "' not supported by mzXML. Using 'Full' scan mode!");
+          warning(STORE,std::string("Scan type '") + InstrumentSettings::NamesOfScanMode[static_cast<size_t>(spec.getInstrumentSettings().getScanMode())] + "' not supported by mzXML. Using 'Full' scan mode!");
         }
         if (type.empty() && options_.getForceMQCompatability())
         {
           type = "Full";
-          warning(STORE,StringUtils::toStr("Scan type unknown. Assuming 'Full' scan mode for MQ compatibility!"));
+          warning(STORE,std::string("Scan type unknown. Assuming 'Full' scan mode for MQ compatibility!"));
         }
         if (!type.empty())
         {

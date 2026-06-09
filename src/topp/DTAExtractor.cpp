@@ -129,7 +129,7 @@ protected:
     }
     catch (Exception::ConversionError& /*e*/)
     {
-      writeLogError_(StringUtils::toStr("Invalid boundary '") + tmp + "' given. Aborting!");
+      writeLogError_(std::string("Invalid boundary '") + tmp + "' given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }

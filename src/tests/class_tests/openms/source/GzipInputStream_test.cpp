@@ -55,7 +55,7 @@ START_SECTION(virtual XMLSize_t readBytes(XMLByte *const to_fill, const XMLSize_
 	TEST_EQUAL(gzip.readBytes(xml_buffer,(XMLSize_t)10),10)
 	TEST_EQUAL(gzip.readBytes(&xml_buffer[10],(XMLSize_t)10),10)
 	TEST_EQUAL(gzip.readBytes(&xml_buffer[20],(XMLSize_t)9),9)
-	TEST_EQUAL(StringUtils::toStr(buffer),StringUtils::toStr("Was decompression successful?"))
+	TEST_EQUAL(std::string(buffer),std::string("Was decompression successful?"))
 	TEST_EQUAL(gzip.getIsOpen(),true)
 	TEST_EQUAL(gzip.readBytes(&xml_buffer[30],(XMLSize_t)10),1)
 	TEST_EQUAL(gzip.getIsOpen(),false)

@@ -65,7 +65,7 @@ namespace OpenMS
     #ifdef __unix__
     if (getenv("XDG_CONFIG_HOME"))
     {
-      config_path =StringUtils::toStr(getenv("XDG_CONFIG_HOME")) + "/OpenMS";
+      config_path =std::string(getenv("XDG_CONFIG_HOME")) + "/OpenMS";
     }
     else
     {
@@ -74,7 +74,7 @@ namespace OpenMS
     #else
     config_path =  File::getOpenMSHomePath() + "/.OpenMS";
     #endif
-    tool_version_string =StringUtils::toStr("OpenMS") + "_" + "Default_" + platform + "_" + architecture + "_" + tool_name + "_" + version;
+    tool_version_string =std::string("OpenMS") + "_" + "Default_" + platform + "_" + architecture + "_" + tool_name + "_" + version;
 
     std::string version_file_name = config_path + "/" + tool_name + ".ver";
 

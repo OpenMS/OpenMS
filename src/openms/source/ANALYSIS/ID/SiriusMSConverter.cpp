@@ -231,7 +231,7 @@ namespace OpenMS
           std::string query_id =StringUtils::toStr(file_index) + "_" + StringUtils::toStr(feature_id) +
                             std::string("-" + StringUtils::toStr(scan_number) + "-") +
                             std::string("-" + StringUtils::toStr(ind) + "--") +
-                            StringUtils::toStr(des_wo_space);
+                            std::string(des_wo_space);
 
           if (writecompound)
           {
@@ -302,14 +302,14 @@ namespace OpenMS
               cmpinfo.fmz = feature_mz;
               cmpinfo.fid = StringUtils::toStr(feature_id);
             }
-            os << "##des " << StringUtils::toStr(des_wo_space) << "\n";
+            os << "##des " << std::string(des_wo_space) << "\n";
             os << "##specref_format " << "[MS, " << ainfo.native_id_accession <<", "<< ainfo.native_id_type << "]" << endl;
             os << "##source file " << ainfo.sf_path << ainfo.sf_filename << endl;
             os << "##source format " << "[MS, " << ainfo.sf_accession << ", "<< ainfo.sf_type << ",]" << endl;
-            cmpinfo.des =StringUtils::toStr(des_wo_space);
-            cmpinfo.specref_format =StringUtils::toStr("[MS, " + ainfo.native_id_accession + ", " + ainfo.native_id_type + "]");
-            cmpinfo.source_file =StringUtils::toStr(ainfo.sf_path + ainfo.sf_filename);
-            cmpinfo.source_format =StringUtils::toStr("[MS, " + ainfo.sf_accession + ", "+ ainfo.sf_type + ",]" );
+            cmpinfo.des =std::string(des_wo_space);
+            cmpinfo.specref_format =std::string("[MS, " + ainfo.native_id_accession + ", " + ainfo.native_id_type + "]");
+            cmpinfo.source_file =std::string(ainfo.sf_path + ainfo.sf_filename);
+            cmpinfo.source_format =std::string("[MS, " + ainfo.sf_accession + ", "+ ainfo.sf_type + ",]" );
 
             // use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
             Size num_isotopes = isotopes.size();

@@ -224,7 +224,7 @@ START_SECTION(void load(const std::string& oswpq_dir))
   TEST_EQUAL(tresult.product_charge.size(), 2)
   TEST_EQUAL(tresult.product_charge[0], 1)
   TEST_EQUAL(tresult.precursor_charge[0], 2)
-  TEST_EQUAL(tresult.group_id[0],StringUtils::toStr("1_1_1_1"))
+  TEST_EQUAL(tresult.group_id[0],std::string("1_1_1_1"))
 
   // Test fetchUnscoredData on the synthetic temp .oswpq we just created
   auto uresult = reader.fetchUnscoredData(base_dir);

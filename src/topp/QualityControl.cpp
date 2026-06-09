@@ -178,7 +178,7 @@ protected:
         OPENMS_LOG_INFO << "Labeled data detected!" << std::endl;
         if (number_exps != 1) // no features given, but >1 trafos...
         {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("More than one mzML or TrafoXML were given, but this is not supported in 'labeled' mode."));
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("More than one mzML or TrafoXML were given, but this is not supported in 'labeled' mode."));
         }
         // number_exps can remain 1, since we only need to annotate the first FMap with metavalues (the others only have exact copies)
         // ...

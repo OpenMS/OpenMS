@@ -413,7 +413,7 @@ protected:
     setValidStrings_("out_type", formats);
 
     registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract [s]", false);
-    registerStringOption_("rt_block_mode", "<mode>", RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS],StringUtils::toStr("RT filtering mode: '") + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS] + "' uses RT range as given in '-rt'; '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_EXTEND] + "' extends RT range to keep complete spectrum blocks intact, '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_SHRINK] + "' only keeps complete blocks within the given RT range", false);
+    registerStringOption_("rt_block_mode", "<mode>", RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS],std::string("RT filtering mode: '") + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS] + "' uses RT range as given in '-rt'; '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_EXTEND] + "' extends RT range to keep complete spectrum blocks intact, '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_SHRINK] + "' only keeps complete blocks within the given RT range", false);
     setValidStrings_("rt_block_mode", StringList(RT_BLOCK_MODE_NAMES.begin(), RT_BLOCK_MODE_NAMES.end()));
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);
     registerStringOption_("int", "[min]:[max]", ":", "Intensity range to extract", false);
@@ -573,11 +573,11 @@ protected:
     DataValue v_user;
     if (v_data.valueType() == DataValue::STRING_VALUE)
     {
-      v_user =StringUtils::toStr(meta_info[2]);
+      v_user =std::string(meta_info[2]);
     }
     else if (v_data.valueType() == DataValue::INT_VALUE)
     {
-      v_user =StringUtils::toInt32(StringUtils::toStr(meta_info[2]));
+      v_user =StringUtils::toInt32(std::string(meta_info[2]));
     }
     else if (v_data.valueType() == DataValue::DOUBLE_VALUE)
     {
@@ -634,7 +634,7 @@ protected:
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = FileTypes::nameToType(getStringOption_("in_type"));
-      writeDebug_(StringUtils::toStr("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     //output file name and type
@@ -646,13 +646,13 @@ protected:
     if (out_type == FileTypes::UNKNOWN)
     {
       out_type = FileTypes::nameToType(getStringOption_("out_type"));
-      writeDebug_(StringUtils::toStr("Output file type: ") + FileTypes::typeToName(out_type), 2);
+      writeDebug_(std::string("Output file type: ") + FileTypes::typeToName(out_type), 2);
     }
     //use in_type as out_type, if out_type cannot be determined by file or out_type flag
     if (out_type == FileTypes::UNKNOWN)
     {
       out_type = in_type;
-      writeDebug_(StringUtils::toStr("Output file type: ") + FileTypes::typeToName(out_type), 2);
+      writeDebug_(std::string("Output file type: ") + FileTypes::typeToName(out_type), 2);
     }
 
     bool no_chromatograms(getFlag_("peak_options:no_chromatograms"));
@@ -746,7 +746,7 @@ protected:
     }
     catch (Exception::ConversionError& ce)
     {
-      writeLogError_(StringUtils::toStr("Error: Invalid boundary given: ") + ce.what() + ". Aborting!");
+      writeLogError_(std::string("Error: Invalid boundary given: ") + ce.what() + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -981,24 +981,24 @@ protected:
       //remove based on collision energy
       if (remove_collision_l != -1 * numeric_limits<double>::max() || remove_collision_u != numeric_limits<double>::max())
       {
-        writeDebug_(StringUtils::toStr("Removing collision energy scans in the range: ") + remove_collision_l + ":" + remove_collision_u, 3);
+        writeDebug_(std::string("Removing collision energy scans in the range: ") + remove_collision_l + ":" + remove_collision_u, 3);
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<PeakMap::SpectrumType>(remove_collision_l, remove_collision_u)), exp.end());
       }
       if (select_collision_l != -1 * numeric_limits<double>::max() || select_collision_u != numeric_limits<double>::max())
       {
-        writeDebug_(StringUtils::toStr("Selecting collision energy scans in the range: ") + select_collision_l + ":" + select_collision_u, 3);
+        writeDebug_(std::string("Selecting collision energy scans in the range: ") + select_collision_l + ":" + select_collision_u, 3);
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<PeakMap::SpectrumType>(select_collision_l, select_collision_u, true)), exp.end());
       }
 
       //remove based on isolation window size
       if (remove_isolation_width_l != -1 * numeric_limits<double>::max() || remove_isolation_width_u != numeric_limits<double>::max())
       {
-        writeDebug_(StringUtils::toStr("Removing isolation windows with width in the range: ") + remove_isolation_width_l + ":" + remove_isolation_width_u, 3);
+        writeDebug_(std::string("Removing isolation windows with width in the range: ") + remove_isolation_width_l + ":" + remove_isolation_width_u, 3);
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<PeakMap::SpectrumType>(remove_isolation_width_l, remove_isolation_width_u)), exp.end());
       }
       if (select_isolation_width_l != -1 * numeric_limits<double>::max() || select_isolation_width_u != numeric_limits<double>::max())
       {
-        writeDebug_(StringUtils::toStr("Selecting isolation windows with width in the range: ") + select_isolation_width_l + ":" + select_isolation_width_u, 3);
+        writeDebug_(std::string("Selecting isolation windows with width in the range: ") + select_isolation_width_l + ":" + select_isolation_width_u, 3);
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<PeakMap::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
       }
 

@@ -52,7 +52,7 @@ END_SECTION
 
 START_SECTION((const DataValue& getMetaValue(UInt index, const DataValue& default_value = DataValue::EMPTY) const))
 {
-	mi.setMetaValue(1024,StringUtils::toStr("testtesttest"));
+	mi.setMetaValue(1024,std::string("testtesttest"));
 	TEST_STRING_EQUAL(mi.getMetaValue(1024), "testtesttest");
 	TEST_EQUAL(mi.getMetaValue(1025) == DataValue::EMPTY, true);
 	TEST_EQUAL(mi.getMetaValue(1025, 10) == DataValue(10), true);
@@ -61,7 +61,7 @@ END_SECTION
 
 START_SECTION((const DataValue& getMetaValue(const std::string& name, const DataValue& default_value = DataValue::EMPTY) const))
 {
-	mi.setMetaValue("testname",StringUtils::toStr("testtesttest2"));
+	mi.setMetaValue("testname",std::string("testtesttest2"));
 	TEST_STRING_EQUAL(mi.getMetaValue("testname"), "testtesttest2");
 	TEST_EQUAL(mi.getMetaValue("notdefined") == DataValue::EMPTY, true);
 	TEST_EQUAL(mi.getMetaValue("notdefined", 10) == DataValue(10), true);
@@ -74,7 +74,7 @@ mi.setMetaValue(2, 4712.12f);
 START_SECTION((bool isMetaEmpty() const))
 	MetaInfoInterface tmp;
 	TEST_EQUAL(tmp.isMetaEmpty(),true)
-	tmp.setMetaValue(1024,StringUtils::toStr("testtesttest"));
+	tmp.setMetaValue(1024,std::string("testtesttest"));
 	TEST_EQUAL(tmp.isMetaEmpty(),false)
 END_SECTION
 
@@ -224,8 +224,8 @@ END_SECTION
 
 START_SECTION((void getKeys(std::vector< UInt > &keys) const))
 	MetaInfoInterface mi;
-	mi.setMetaValue("label",StringUtils::toStr("tag"));
-	mi.setMetaValue("icon",StringUtils::toStr("kreis"));
+	mi.setMetaValue("label",std::string("tag"));
+	mi.setMetaValue("icon",std::string("kreis"));
 	vector<UInt> vec;
 	mi.getKeys(vec);
 	TEST_EQUAL(vec.size(),2)
@@ -273,7 +273,7 @@ END_SECTION
 START_SECTION((void clearMetaInfo()))
 	MetaInfoInterface i;
 	TEST_EQUAL(i.isMetaEmpty(),true)
-	i.setMetaValue("label",StringUtils::toStr("test"));
+	i.setMetaValue("label",std::string("test"));
 	TEST_EQUAL(i.isMetaEmpty(),false)
 	i.clearMetaInfo();
 	TEST_EQUAL(i.isMetaEmpty(),true)
@@ -283,10 +283,10 @@ START_SECTION((bool operator== (const MetaInfoInterface& rhs) const))
 	MetaInfoInterface i,i2;
 	TEST_EQUAL(i==i2,true)
 	TEST_EQUAL(i2==i,true)
-	i.setMetaValue("label",StringUtils::toStr("test"));
+	i.setMetaValue("label",std::string("test"));
 	TEST_EQUAL(i==i2,false)
 	TEST_EQUAL(i2==i,false)
-	i2.setMetaValue("label",StringUtils::toStr("test"));
+	i2.setMetaValue("label",std::string("test"));
 	TEST_EQUAL(i==i2,true)
 	TEST_EQUAL(i2==i,true)
 END_SECTION
@@ -295,10 +295,10 @@ START_SECTION((bool operator!= (const MetaInfoInterface& rhs) const))
 	MetaInfoInterface i,i2;
 	TEST_EQUAL(i!=i2,false)
 	TEST_EQUAL(i2!=i,false)
-	i.setMetaValue("label",StringUtils::toStr("test"));
+	i.setMetaValue("label",std::string("test"));
 	TEST_EQUAL(i!=i2,true)
 	TEST_EQUAL(i2!=i,true)
-	i2.setMetaValue("label",StringUtils::toStr("test"));
+	i2.setMetaValue("label",std::string("test"));
 	TEST_EQUAL(i!=i2,false)
 	TEST_EQUAL(i2!=i,false)
 END_SECTION
@@ -306,7 +306,7 @@ END_SECTION
 START_SECTION((void removeMetaValue(UInt index)))
 	MetaInfoInterface i,i2;
 
-	i.setMetaValue(1,StringUtils::toStr("bla"));
+	i.setMetaValue(1,std::string("bla"));
 	TEST_EQUAL(i==i2,false)
 	i.removeMetaValue(1);
 	TEST_EQUAL(i==i2,true)
@@ -318,7 +318,7 @@ END_SECTION
 START_SECTION((void removeMetaValue(const std::string& name)))
 	MetaInfoInterface i,i2;
 
-	i.setMetaValue("label",StringUtils::toStr("bla"));
+	i.setMetaValue("label",std::string("bla"));
 	TEST_EQUAL(i==i2,false)
 	i.removeMetaValue("label");
 	TEST_EQUAL(i==i2,true)
@@ -330,15 +330,15 @@ END_SECTION
 START_SECTION((void addMetaValues(const MetaInfoInterface& from)))
   MetaInfoInterface m_new, m_base;
 
-  m_base.setMetaValue("label",StringUtils::toStr("old"));
+  m_base.setMetaValue("label",std::string("old"));
   m_base.setMetaValue("exists_no_overwrite", 5.2);
   
-  m_new.setMetaValue("label",StringUtils::toStr("new")); // will be overwritten
+  m_new.setMetaValue("label",std::string("new")); // will be overwritten
   m_new.setMetaValue("icon", 4.3);            // will be added
   
   m_base.addMetaValues(m_new);
 
-  TEST_EQUAL(m_base.getMetaValue("label"),StringUtils::toStr("new"));
+  TEST_EQUAL(m_base.getMetaValue("label"),std::string("new"));
   TEST_EQUAL(m_base.getMetaValue("icon"), 4.3);
   TEST_EQUAL(m_base.getMetaValue("exists_no_overwrite"), 5.2);
 

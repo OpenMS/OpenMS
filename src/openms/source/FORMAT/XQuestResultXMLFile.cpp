@@ -115,11 +115,11 @@ namespace OpenMS
       {
         // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
         spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << R"(" type="light">)" << '\n';
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_light],StringUtils::toStr(""), test_mode);
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_light],std::string(""), test_mode);
         spec_xml_file << "</spectrum>\n";
 
         spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << R"(" type="heavy">)" << '\n';
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_heavy],StringUtils::toStr(""), test_mode);
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_heavy],std::string(""), test_mode);
         spec_xml_file << "</spectrum>\n";
 
         // the preprocessed pair spectra are sorted by another index
@@ -181,11 +181,11 @@ namespace OpenMS
 
       // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
       spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << R"(" type="light">)" << '\n';
-      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]],StringUtils::toStr(""), test_mode);
+      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]],std::string(""), test_mode);
       spec_xml_file << "</spectrum>\n";
 
       spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << R"(" type="heavy">)" << '\n';
-      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]],StringUtils::toStr(""), test_mode);
+      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]],std::string(""), test_mode);
       spec_xml_file << "</spectrum>\n";
 
       std::string spectrum_common_name = spectrum_name + std::string("_common.txt");

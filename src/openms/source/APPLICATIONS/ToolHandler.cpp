@@ -287,7 +287,7 @@ namespace OpenMS
     // additional environment
     if (getenv("OPENMS_TTD_INTERNAL_PATH") != nullptr)
     {
-      paths.push_back(StringUtils::toStr(getenv("OPENMS_TTD_INTERNAL_PATH")));
+      paths.push_back(std::string(getenv("OPENMS_TTD_INTERNAL_PATH")));
     }
 
     StringList all_files;

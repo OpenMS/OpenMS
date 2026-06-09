@@ -726,7 +726,7 @@ protected:
       }
       // input file type
       FileTypes::Type in_type = FileHandler::getType(in);
-      writeDebug_(StringUtils::toStr("Input file type: ") +
+      writeDebug_(std::string("Input file type: ") +
                   FileTypes::typeToName(in_type), 2);
 
       if (in_type == FileTypes::UNKNOWN)

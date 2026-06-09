@@ -150,7 +150,7 @@ namespace OpenMS
         }
         else
         {
-          error(LOAD,StringUtils::toStr("Cannot parse modification '") + it->first + "@" + it->second + "'");
+          error(LOAD,std::string("Cannot parse modification '") + it->first + "@" + it->second + "'");
         }
       }
 
@@ -190,7 +190,7 @@ namespace OpenMS
         }
         else
         {
-          error(LOAD,StringUtils::toStr("Cannot parse fixed modification '") + it + "'");
+          error(LOAD,std::string("Cannot parse fixed modification '") + it + "'");
         }
       }
 

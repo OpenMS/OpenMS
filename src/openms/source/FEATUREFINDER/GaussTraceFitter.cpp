@@ -124,7 +124,7 @@ namespace OpenMS
     std::stringstream s;
     s << StringUtils::toStr(function_name)  << "(x)= " << baseline << " + ";
     s << (trace.theoretical_int *  height_) << " * exp(-0.5*(x-" << (rt_shift + x0_) << ")**2/(" << sigma_ << ")**2)";
-    return StringUtils::toStr(s.str());
+    return s.str();
   }
 
   void GaussTraceFitter::getOptimizedParameters_(const std::vector<double>& x_init)

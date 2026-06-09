@@ -88,7 +88,7 @@ namespace OpenMS
     oss << "mzPAF parse error at position " << position_ << ": "
         << mzPAFErrorCodeToString(code_) << "\n";
     oss << "Context: " << context_before_ << ">>>" << context_after_ << "<<<";
-    return StringUtils::toStr(oss.str());
+    return oss.str();
   }
 
   //--------------------------------------------------------------------------
@@ -360,7 +360,7 @@ namespace OpenMS
       {
         try
         {
-          return StringUtils::toInt32(StringUtils::toStr(text));
+          return StringUtils::toInt32(std::string(text));
         }
         catch (const Exception::ConversionError&)
         {
@@ -391,7 +391,7 @@ namespace OpenMS
         std::string content;
         while (current_.type != close && current_.type != TokenType::END)
         {
-          content +=StringUtils::toStr(current_.text);
+          content +=std::string(current_.text);
           advance_();
         }
 
@@ -594,7 +594,7 @@ namespace OpenMS
               break;
             }
           }
-          seq_str +=StringUtils::toStr(current_.text);
+          seq_str +=std::string(current_.text);
           advance_();
         }
 
@@ -650,7 +650,7 @@ namespace OpenMS
         MzPAFNeutralLoss loss;
         try
         {
-          loss.formula = EmpiricalFormula(StringUtils::toStr(current_.text));
+          loss.formula = EmpiricalFormula(std::string(current_.text));
         }
         catch (...)
         {
@@ -688,7 +688,7 @@ namespace OpenMS
         {
           try
           {
-            ann.adduct = EmpiricalFormula(StringUtils::toStr(current_.text));
+            ann.adduct = EmpiricalFormula(std::string(current_.text));
           }
           catch (...)
           {
@@ -986,7 +986,7 @@ namespace OpenMS
       oss << "*" << ann.confidence.value();
     }
 
-    return StringUtils::toStr(oss.str());
+    return oss.str();
   }
 
   std::string MzPAF::toString(const MzPAFPeakAnnotations& anns)
@@ -1006,7 +1006,7 @@ namespace OpenMS
       oss << toString(anns.annotations[i]);
     }
 
-    return StringUtils::toStr(oss.str());
+    return oss.str();
   }
 
   //--------------------------------------------------------------------------

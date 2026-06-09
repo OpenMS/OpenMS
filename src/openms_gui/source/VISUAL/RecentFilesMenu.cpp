@@ -60,7 +60,7 @@ namespace OpenMS
     unsigned count{ 0 };
     for (Param::ParamIterator it = filenames.begin(); it != filenames.end(); ++it)
     {
-      QString filename = toQString(StringUtils::toStr(it->value.toString()));
+      QString filename = toQString(std::string(it->value.toString()));
       if (File::exists(fromQString(filename)))
       {
         rfiles.append(filename);

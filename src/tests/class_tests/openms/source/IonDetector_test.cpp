@@ -95,7 +95,7 @@ START_SECTION((IonDetector(const IonDetector& source)))
   tmp.setADCSamplingFrequency(47.21);
   tmp.setAcquisitionMode(IonDetector::AcquisitionMode::PULSECOUNTING);
   tmp.setType(IonDetector::Type::ELECTRONMULTIPLIER);
-  tmp.setMetaValue("label",StringUtils::toStr("label"));
+  tmp.setMetaValue("label",std::string("label"));
   tmp.setOrder(45);
   
   IonDetector tmp2(tmp);	
@@ -113,7 +113,7 @@ START_SECTION((IonDetector& operator= (const IonDetector& source)))
   tmp.setADCSamplingFrequency(47.21);
   tmp.setAcquisitionMode(IonDetector::AcquisitionMode::PULSECOUNTING);
   tmp.setType(IonDetector::Type::ELECTRONMULTIPLIER);
-  tmp.setMetaValue("label",StringUtils::toStr("label"));
+  tmp.setMetaValue("label",std::string("label"));
   tmp.setOrder(45);
   
   IonDetector tmp2;
@@ -155,7 +155,7 @@ START_SECTION((bool operator== (const IonDetector& rhs) const))
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
-  edit.setMetaValue("label",StringUtils::toStr("label"));
+  edit.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(edit==empty,false);
 
   edit = empty;
@@ -184,7 +184,7 @@ START_SECTION((bool operator!= (const IonDetector& rhs) const))
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;
-  edit.setMetaValue("label",StringUtils::toStr("label"));
+  edit.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(edit!=empty,true);
 	
   edit = empty;

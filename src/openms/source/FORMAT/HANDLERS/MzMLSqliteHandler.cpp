@@ -626,7 +626,7 @@ namespace OpenMS::Internal
 
       if (!indices.empty())
       {
-        select_sql +=StringUtils::toStr("WHERE CHROMATOGRAM.ID IN (") + integerConcatenateHelper(indices) + ")";
+        select_sql +=std::string("WHERE CHROMATOGRAM.ID IN (") + integerConcatenateHelper(indices) + ")";
       }
       select_sql += ";";
 
@@ -747,7 +747,7 @@ namespace OpenMS::Internal
 
       if (!indices.empty())
       {
-        select_sql +=StringUtils::toStr("WHERE SPECTRUM.ID IN (") + integerConcatenateHelper(indices) + ")";
+        select_sql +=std::string("WHERE SPECTRUM.ID IN (") + integerConcatenateHelper(indices) + ")";
       }
       select_sql += ";";
 
@@ -913,7 +913,7 @@ namespace OpenMS::Internal
           meta.addChromatogram(c);
         }
         std::string prepare_statement = "INSERT INTO RUN_EXTRA (RUN_ID, DATA) VALUES ";
-        prepare_statement +=StringUtils::toStr("(") + run_id_ + ", ?)";
+        prepare_statement +=std::string("(") + run_id_ + ", ?)";
         std::vector<std::string> data;
 
         std::string output;
@@ -1220,11 +1220,11 @@ namespace OpenMS::Internal
           data.push_back(encoded_strings_mz[k]);
           if (use_lossy_compression_)
           {
-            prepare_statement +=StringUtils::toStr("(") + spec_id_ + ", 0, 5, ?" + sql_it++ + " ),";
+            prepare_statement +=std::string("(") + spec_id_ + ", 0, 5, ?" + sql_it++ + " ),";
           }
           else
           {
-            prepare_statement +=StringUtils::toStr("(") + spec_id_ + ", 0, 1, ?" + sql_it++ + " ),";
+            prepare_statement +=std::string("(") + spec_id_ + ", 0, 1, ?" + sql_it++ + " ),";
           }
         }
 
@@ -1233,11 +1233,11 @@ namespace OpenMS::Internal
           data.push_back(encoded_strings_int[k]);
           if (use_lossy_compression_)
           {
-            prepare_statement +=StringUtils::toStr("(") + spec_id_ + ", 1, 6, ?" + sql_it++ + " ),";
+            prepare_statement +=std::string("(") + spec_id_ + ", 1, 6, ?" + sql_it++ + " ),";
           }
           else
           {
-            prepare_statement +=StringUtils::toStr("(") + spec_id_ + ", 1, 1, ?" + sql_it++ + " ),";
+            prepare_statement +=std::string("(") + spec_id_ + ", 1, 1, ?" + sql_it++ + " ),";
           }
         }
         spec_id_++;
@@ -1421,11 +1421,11 @@ namespace OpenMS::Internal
           data.push_back(encoded_strings_rt[k]);
           if (use_lossy_compression_)
           {
-            prepare_statement +=StringUtils::toStr("(") + chrom_id_ + ", 2, 5, ?" + sql_it++ + " ),";
+            prepare_statement +=std::string("(") + chrom_id_ + ", 2, 5, ?" + sql_it++ + " ),";
           }
           else
           {
-            prepare_statement +=StringUtils::toStr("(") + chrom_id_ + ", 2, 1, ?" + sql_it++ + " ),";
+            prepare_statement +=std::string("(") + chrom_id_ + ", 2, 1, ?" + sql_it++ + " ),";
           }
         }
 
@@ -1434,11 +1434,11 @@ namespace OpenMS::Internal
           data.push_back(encoded_strings_int[k]);
           if (use_lossy_compression_)
           {
-            prepare_statement +=StringUtils::toStr("(") + chrom_id_ + ", 1, 6, ?" + sql_it++ + " ),";
+            prepare_statement +=std::string("(") + chrom_id_ + ", 1, 6, ?" + sql_it++ + " ),";
           }
           else
           {
-            prepare_statement +=StringUtils::toStr("(") + chrom_id_ + ", 1, 1, ?" + sql_it++ + " ),";
+            prepare_statement +=std::string("(") + chrom_id_ + ", 1, 1, ?" + sql_it++ + " ),";
           }
         }
         chrom_id_++;

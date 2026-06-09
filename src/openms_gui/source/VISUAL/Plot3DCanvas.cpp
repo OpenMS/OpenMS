@@ -185,7 +185,7 @@ namespace OpenMS
     MultiGradientSelector * gradient = dlg.findChild<MultiGradientSelector *>("gradient");
     QSpinBox * width  = dlg.findChild<QSpinBox *>("width");
 
-    bg_color->setColor(QColor(toQString(StringUtils::toStr(param_.getValue("background_color").toString()))));
+    bg_color->setColor(QColor(toQString(std::string(param_.getValue("background_color").toString()))));
     shade->setCurrentIndex(layer.param.getValue("dot:shade_mode"));
     gradient->gradient().fromString(layer.param.getValue("dot:gradient"));
     width->setValue(UInt(layer.param.getValue("dot:line_width")));
@@ -221,7 +221,7 @@ namespace OpenMS
     QAction * result = nullptr;
 
     //Display name and warn if current layer invisible
-    std::string layer_name =StringUtils::toStr("Layer: ") + getCurrentLayer().getName();
+    std::string layer_name =std::string("Layer: ") + getCurrentLayer().getName();
     if (!getCurrentLayer().visible)
     {
       layer_name += " (invisible)";

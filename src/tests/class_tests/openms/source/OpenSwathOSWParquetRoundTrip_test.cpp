@@ -45,7 +45,7 @@ START_SECTION(void round-trip write/read .oswpq archive using RAF path)
 
   OpenSwathOSWParquetWriter writer;
   FeatureMap empty_map;
-  writer.write(out_archive, light_exp, empty_map, 1,StringUtils::toStr("test_input"), false);
+  writer.write(out_archive, light_exp, empty_map, 1,std::string("test_input"), false);
 
   // Archive and embedded sidecar should exist (sidecar is written inside the zip)
   TEST_EQUAL(File::exists(out_archive), true)

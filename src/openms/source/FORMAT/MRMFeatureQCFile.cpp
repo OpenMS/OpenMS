@@ -70,7 +70,7 @@ namespace OpenMS
       boost::smatch m;
       if (boost::regex_search(header, m, boost::regex("metaValue_(.+)_(l|u)"))) // capture the metavalue name and the boundary and save them to m[1] and m[2]
       {
-        setPairValue_(StringUtils::toStr(m[1]), line[i],StringUtils::toStr(m[2]), c.meta_value_qc);
+        setPairValue_(std::string(m[1]), line[i],std::string(m[2]), c.meta_value_qc);
       }
     }
     c_qcs.push_back(c);
@@ -118,7 +118,7 @@ namespace OpenMS
       boost::smatch m;
       if (boost::regex_search(header, m, boost::regex("metaValue_(.+)_(l|u)"))) // capture the metavalue name and the boundary and save them to m[1] and m[2]
       {
-        setPairValue_(StringUtils::toStr(m[1]), line[i],StringUtils::toStr(m[2]), cg.meta_value_qc);
+        setPairValue_(std::string(m[1]), line[i],std::string(m[2]), cg.meta_value_qc);
       }
     }
     cg_qcs.push_back(cg);

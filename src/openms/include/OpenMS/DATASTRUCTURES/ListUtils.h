@@ -267,7 +267,7 @@ public:
       }
       catch (...)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr("Could not convert string '") + *it + "'");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Could not convert string '") + *it + "'");
       }
     }
 

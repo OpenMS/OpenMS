@@ -95,7 +95,7 @@ void OpenSwathOSWParquetReader::load(const std::string& oswpq_dir)
   for (int64_t r = 0; r < num_runs; ++r)
   {
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
-  const std::string features_entry =StringUtils::toStr("runs/run_id=") + StringUtils::toStr(run_id) + "/features.parquet";
+  const std::string features_entry =std::string("runs/run_id=") + StringUtils::toStr(run_id) + "/features.parquet";
   auto features_table = open_table_from_entry(features_entry);
     auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
     auto feature_run_id_col = ParquetFile::getColumn(features_table, "run_id");
@@ -202,7 +202,7 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
   for (int64_t r = 0; r < num_runs; ++r)
   {
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
-  const std::string features_entry =StringUtils::toStr("runs/run_id=") + StringUtils::toStr(run_id) + "/features.parquet";
+  const std::string features_entry =std::string("runs/run_id=") + StringUtils::toStr(run_id) + "/features.parquet";
   auto features_table = open_table_from_entry(features_entry);
     const auto& schema = features_table->schema();
     for (const auto& f : schema->fields())
@@ -242,7 +242,7 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
   for (int64_t r = 0; r < num_runs; ++r)
   {
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
-    const std::string features_entry =StringUtils::toStr("runs/run_id=") + StringUtils::toStr(run_id) + "/features.parquet";
+    const std::string features_entry =std::string("runs/run_id=") + StringUtils::toStr(run_id) + "/features.parquet";
     auto features_table = open_table_from_entry(features_entry);
 
     auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
@@ -461,7 +461,7 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
   for (int64_t r = 0; r < num_runs; ++r)
   {
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
-    const std::string ft_entry =StringUtils::toStr("runs/run_id=") + StringUtils::toStr(run_id) + "/feature_transition.parquet";
+    const std::string ft_entry =std::string("runs/run_id=") + StringUtils::toStr(run_id) + "/feature_transition.parquet";
     auto ft_table = open_table_from_entry(ft_entry);
     const auto& schema = ft_table->schema();
     for (const auto& f : schema->fields())
@@ -484,8 +484,8 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
   for (int64_t r = 0; r < num_runs; ++r)
   {
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
-    const std::string ft_entry2 =StringUtils::toStr("runs/run_id=") + StringUtils::toStr(run_id) + "/feature_transition.parquet";
-    const std::string features_entry2 =StringUtils::toStr("runs/run_id=") + StringUtils::toStr(run_id) + "/features.parquet";
+    const std::string ft_entry2 =std::string("runs/run_id=") + StringUtils::toStr(run_id) + "/feature_transition.parquet";
+    const std::string features_entry2 =std::string("runs/run_id=") + StringUtils::toStr(run_id) + "/features.parquet";
 
     // Build mapping feature_id -> (precursor_id, exp_rt) from features.parquet
     // Fail fast if the features.parquet file is missing to avoid silently
@@ -739,7 +739,7 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
   for (int64_t r = 0; r < num_runs; ++r)
   {
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
-    const std::string features_entry =StringUtils::toStr("runs/run_id=") + StringUtils::toStr(run_id) + "/features.parquet";
+    const std::string features_entry =std::string("runs/run_id=") + StringUtils::toStr(run_id) + "/features.parquet";
     auto features_table = open_table_from_entry(features_entry);
     const auto& schema = features_table->schema();
     for (const auto &f : schema->fields())
@@ -773,7 +773,7 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
   for (int64_t r = 0; r < num_runs; ++r)
   {
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
-    const std::string features_entry =StringUtils::toStr("runs/run_id=") + StringUtils::toStr(run_id) + "/features.parquet";
+    const std::string features_entry =std::string("runs/run_id=") + StringUtils::toStr(run_id) + "/features.parquet";
     auto features_table = open_table_from_entry(features_entry);
 
     auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");

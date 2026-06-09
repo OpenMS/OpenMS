@@ -89,12 +89,12 @@ namespace OpenMS
 
   void OMSSAXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& /*attributes*/)
   {
-    tag_ = StringUtils::trimmed(StringUtils::toStr(sm_.convert(qname)));
+    tag_ = StringUtils::trimmed(std::string(sm_.convert(qname)));
   }
 
   void OMSSAXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
-    tag_ = StringUtils::trimmed(StringUtils::toStr(sm_.convert(qname)));
+    tag_ = StringUtils::trimmed(std::string(sm_.convert(qname)));
 
     // protein hits (MSPepHits) are handled in ::characters(...)
 
@@ -131,7 +131,7 @@ namespace OpenMS
       {
         if (mods_map_[StringUtils::toInt32(actual_mod_type_)].size() > 1)
         {
-          warning(LOAD,StringUtils::toStr("Cannot determine exact type of modification of position ") + actual_mod_site_ + " in sequence " + actual_peptide_hit_.getSequence().toString() + " using modification " + actual_mod_type_ + " - using first possibility!");
+          warning(LOAD,std::string("Cannot determine exact type of modification of position ") + actual_mod_site_ + " in sequence " + actual_peptide_hit_.getSequence().toString() + " using modification " + actual_mod_type_ + " - using first possibility!");
         }
         AASequence pep = actual_peptide_hit_.getSequence();
         auto mod = *(mods_map_[StringUtils::toInt32(actual_mod_type_)].begin());
@@ -151,7 +151,7 @@ namespace OpenMS
       }
       else
       {
-        warning(LOAD,StringUtils::toStr("Cannot find PSI-MOD mapping for mod - ignoring '") + actual_mod_type_ + "'");
+        warning(LOAD,std::string("Cannot find PSI-MOD mapping for mod - ignoring '") + actual_mod_type_ + "'");
       }
     }
 
@@ -162,7 +162,7 @@ namespace OpenMS
   {
     if (tag_.empty()) return;
 
-    std::string value = StringUtils::trimmed(StringUtils::toStr(sm_.convert(chars)));
+    std::string value = StringUtils::trimmed(std::string(sm_.convert(chars)));
     // MSPepHit section
     // <MSPepHit_start>0</MSPepHit_start>
     // <MSPepHit_stop>8</MSPepHit_stop>
@@ -363,7 +363,7 @@ namespace OpenMS
         Int omssa_mod_num = StringUtils::toInt32(StringUtils::trimmed(split[0]));
         if (split.size() < 2)
         {
-          fatalError(LOAD,StringUtils::toStr("Invalid mapping file line: '") + *it + "'");
+          fatalError(LOAD,std::string("Invalid mapping file line: '") + *it + "'");
         }
         vector<const ResidueModification*> mods;
         for (Size i = 2; i != split.size(); ++i)

@@ -90,7 +90,7 @@ namespace OpenMS
 
   SVOutStream& SVOutStream::operator<<(const char* c_str)
   {
-    return operator<<(StringUtils::toStr(c_str));
+    return operator<<(std::string(c_str));
   }
 
   SVOutStream& SVOutStream::operator<<(const char c)

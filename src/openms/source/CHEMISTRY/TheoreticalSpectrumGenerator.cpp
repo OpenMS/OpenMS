@@ -415,7 +415,7 @@ namespace OpenMS
       dist = f.getIsotopeDistribution(FineIsotopePatternGenerator(max_isotope_probability_));
     }
 
-    const std::string ion_name =StringUtils::toStr(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(ion.size());
+    const std::string ion_name =std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(ion.size());
 
     for (const auto& it : dist)
     {

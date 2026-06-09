@@ -287,7 +287,7 @@ namespace OpenMS::Internal
     {
       if (last_meta_ == nullptr)
       {
-        fatalError(LOAD,StringUtils::toStr("Unexpected UserParam in tag '") + parent_tag + "'");
+        fatalError(LOAD,std::string("Unexpected UserParam in tag '") + parent_tag + "'");
       }
 
       std::string name = attributeAsString_(attributes, "name");
@@ -319,7 +319,7 @@ namespace OpenMS::Internal
       }
       else
       {
-        fatalError(LOAD,StringUtils::toStr("Invalid UserParam type '") + type + "'");
+        fatalError(LOAD,std::string("Invalid UserParam type '") + type + "'");
       }
     }
     else if (tag == "IdentificationRun")
@@ -441,7 +441,7 @@ namespace OpenMS::Internal
       std::string id = attributeAsString_(attributes, "identification_run_ref");
       if (!id_identifier_.contains(id))
       {
-        warning(LOAD,StringUtils::toStr("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
+        warning(LOAD,std::string("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
       }
       pep_id_.setIdentifier(id_identifier_[id]);
 
@@ -480,7 +480,7 @@ namespace OpenMS::Internal
       peptide_evidences_ = vector<PeptideEvidence>();
       pep_hit_.setCharge(attributeAsInt_(attributes, "charge"));
       pep_hit_.setScore(attributeAsDouble_(attributes, "score"));
-      pep_hit_.setSequence(AASequence::fromString(StringUtils::toStr(attributeAsString_(attributes, "sequence"))));
+      pep_hit_.setSequence(AASequence::fromString(std::string(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
       const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
@@ -506,7 +506,7 @@ namespace OpenMS::Internal
           }
           else
           {
-            fatalError(LOAD,StringUtils::toStr("Invalid protein reference '") + *it + "'");
+            fatalError(LOAD,std::string("Invalid protein reference '") + *it + "'");
           }
         }
       }
@@ -659,7 +659,7 @@ namespace OpenMS::Internal
       const ProteinIdentification& current_prot_id = consensus_map.getProteinIdentifications()[i];
       os << "\t<IdentificationRun ";
       os << "id=\"PI_" << i << "\" ";
-      identifier_id_[current_prot_id.getIdentifier()] =StringUtils::toStr("PI_") + i;
+      identifier_id_[current_prot_id.getIdentifier()] =std::string("PI_") + i;
       os << "date=\"" << current_prot_id.getDateTime().getDate() << "T" << current_prot_id.getDateTime().getTime() << "\" ";
       os << "search_engine=\"" << writeXMLEscape(current_prot_id.getSearchEngine()) << "\" ";
       os << "search_engine_version=\"" << writeXMLEscape(current_prot_id.getSearchEngineVersion()) << "\">\n";
@@ -832,7 +832,7 @@ namespace OpenMS::Internal
 
     if (!identifier_id_.contains(id.getIdentifier()))
     {
-      warning(STORE,StringUtils::toStr("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier()
+      warning(STORE,std::string("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier()
               + "' while writing '" + filename + "'!");
       return;
     }
@@ -919,7 +919,7 @@ namespace OpenMS::Internal
       std::string name = group_name + "_" + StringUtils::toStr(g);
       if (meta.metaValueExists(name))
       {
-        warning(mode,StringUtils::toStr("Metavalue '") + name + "' already exists. Overwriting...");
+        warning(mode,std::string("Metavalue '") + name + "' already exists. Overwriting...");
       }
       std::string accessions;
       for (StringList::const_iterator acc_it = groups[g].accessions.begin();
@@ -934,7 +934,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          fatalError(mode,StringUtils::toStr("Invalid protein reference '") + *acc_it + "'");
+          fatalError(mode,std::string("Invalid protein reference '") + *acc_it + "'");
         }
       }
       std::string value =StringUtils::toStr(groups[g].probability) + "," + accessions;
@@ -956,7 +956,7 @@ namespace OpenMS::Internal
       StringUtils::split(StringUtils::toStr(last_meta_->getMetaValue(current_meta)), ',', values);
       if (values.size() < 2)
       {
-        fatalError(LOAD,StringUtils::toStr("Invalid UserParam for ProteinGroups (not enough values)'"));
+        fatalError(LOAD,std::string("Invalid UserParam for ProteinGroups (not enough values)'"));
       }
       g.probability = StringUtils::toDouble(values[0]);
       for (Size i_ind = 1; i_ind < values.size(); ++i_ind)

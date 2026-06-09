@@ -209,7 +209,7 @@ namespace OpenMS
       UInt charge = charge_low;
       for (Size i = 3; i < 3 + charge_count; ++i)
       {
-        s.getFloatDataArrays()[i].setName(StringUtils::toStr("pattern_score_") + charge);
+        s.getFloatDataArrays()[i].setName(std::string("pattern_score_") + charge);
         s.getFloatDataArrays()[i].assign(scan_size, 0.0);
         ++charge;
       }
@@ -217,7 +217,7 @@ namespace OpenMS
       charge = charge_low;
       for (Size i = 3 + charge_count; i < 3 + 2 * charge_count; ++i)
       {
-        s.getFloatDataArrays()[i].setName(StringUtils::toStr("overall_score_") + charge);
+        s.getFloatDataArrays()[i].setName(std::string("overall_score_") + charge);
         s.getFloatDataArrays()[i].assign(scan_size, 0.0);
         ++charge;
       }
@@ -447,7 +447,7 @@ namespace OpenMS
       //-----------------------------------------------------------
       // Step 3.1: Precalculate IsotopePattern score
       //-----------------------------------------------------------
-      startProgress(0, map_.size(),StringUtils::toStr("Calculating isotope pattern scores for charge ") + StringUtils::toStr(c));
+      startProgress(0, map_.size(),std::string("Calculating isotope pattern scores for charge ") + StringUtils::toStr(c));
       for (Size s = 0; s < map_.size(); ++s)
       {
         setProgress(s);
@@ -491,7 +491,7 @@ namespace OpenMS
       // Find seeds for this charge
       //-----------------------------------------------------------
       Size end_of_iteration = map_.size() - std::min((Size)min_spectra_, map_.size());
-      startProgress(min_spectra_, end_of_iteration,StringUtils::toStr("Finding seeds for charge ") + StringUtils::toStr(c));
+      startProgress(min_spectra_, end_of_iteration,std::string("Finding seeds for charge ") + StringUtils::toStr(c));
 
       double min_seed_score = param_.getValue("seed:min_score");
       //do nothing for the first few and last few spectra as the scans required to search for traces are missing
@@ -567,7 +567,7 @@ namespace OpenMS
           tmp.setMetaValue("trace_score", meta[0][peak]);
           seed_map.push_back(tmp);
         }
-        FileHandler().storeFeatures(StringUtils::toStr("debug/seeds_") + StringUtils::toStr(c) + ".featureXML", seed_map);
+        FileHandler().storeFeatures(std::string("debug/seeds_") + StringUtils::toStr(c) + ".featureXML", seed_map);
       }
 
       endProgress();
@@ -590,7 +590,7 @@ namespace OpenMS
       typedef std::map<Size, Feature> FeatureMapType;
       FeatureMapType tmp_feature_map;
       int gl_progress = 0;
-      startProgress(0, seeds.size(),StringUtils::toStr("Extending seeds for charge ") + StringUtils::toStr(c));
+      startProgress(0, seeds.size(),std::string("Extending seeds for charge ") + StringUtils::toStr(c));
 
 #pragma omp parallel for
       for (SignedSize i = 0; i < (SignedSize)seeds.size(); ++i)
@@ -1559,7 +1559,7 @@ namespace OpenMS
         double average_delta = std::accumulate(deltas.end() - delta_count, deltas.end(), 0.0) / (double)delta_count;
         if (average_delta > current_slope_bound)
         {
-          abort_reason =StringUtils::toStr("Average delta above threshold: ") + average_delta + "/" + current_slope_bound;
+          abort_reason =std::string("Average delta above threshold: ") + average_delta + "/" + current_slope_bound;
 
           //remove last peaks as we extended too far
           Size remove = std::min((Size)(trace.peaks.size() - peaks_before_extension), delta_count - 1);
@@ -1821,8 +1821,8 @@ namespace OpenMS
     }
 
     //return final score
-    OPENMS_POSTCONDITION(best_int_score >= 0.0, (StringUtils::toStr("Internal error: Isotope score (") + best_int_score + ") should be >=0.0").c_str())
-    OPENMS_POSTCONDITION(best_int_score <= 1.0, (StringUtils::toStr("Internal error: Isotope score (") + best_int_score + ") should be <=1.0").c_str())
+    OPENMS_POSTCONDITION(best_int_score >= 0.0, (std::string("Internal error: Isotope score (") + best_int_score + ") should be >=0.0").c_str())
+    OPENMS_POSTCONDITION(best_int_score <= 1.0, (std::string("Internal error: Isotope score (") + best_int_score + ") should be <=1.0").c_str())
     return best_int_score;
   }
 
@@ -1889,8 +1889,8 @@ namespace OpenMS
                    + intensityScore_(rl, mh, intensity) * (d3 / d_sum)
                    + intensityScore_(rh, mh, intensity) * (d4 / d_sum);
 
-    OPENMS_POSTCONDITION(final >= 0.0, (StringUtils::toStr("Internal error: Intensity score (") + final + ") should be >=0.0").c_str())
-    OPENMS_POSTCONDITION(final <= 1.0001, (StringUtils::toStr("Internal error: Intensity score (") + final + ") should be <=1.0").c_str())
+    OPENMS_POSTCONDITION(final >= 0.0, (std::string("Internal error: Intensity score (") + final + ") should be >=0.0").c_str())
+    OPENMS_POSTCONDITION(final <= 1.0001, (std::string("Internal error: Intensity score (") + final + ") should be <=1.0").c_str())
     return final;
   }
 
@@ -2139,7 +2139,7 @@ namespace OpenMS
     {
       TextFile tf;
       //gnuplot script
-      script =StringUtils::toStr("plot \"") + path + plot_nr + ".dta\" title 'before fit (RT: " +  StringUtils::number(fitter->getCenter(), 2) + " m/z: " +  StringUtils::number(peak.getMZ(), 4) + ")' with points 1";
+      script =std::string("plot \"") + path + plot_nr + ".dta\" title 'before fit (RT: " +  StringUtils::number(fitter->getCenter(), 2) + " m/z: " +  StringUtils::number(peak.getMZ(), 4) + ")' with points 1";
       //feature before fit
       for (Size k = 0; k < traces.size(); ++k)
       {

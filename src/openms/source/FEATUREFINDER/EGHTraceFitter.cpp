@@ -284,7 +284,7 @@ namespace OpenMS
       "/" <<
       " ( " << 2 * sigma_ * sigma_ << " + " << tau_ << " * (x - " << (rt_shift + apex_rt_) << " )))";
     s << " : 0)";
-    return StringUtils::toStr(s.str());
+    return s.str();
   }
 
   std::pair<double, double> EGHTraceFitter::getAlphaBoundaries_(const double alpha) const

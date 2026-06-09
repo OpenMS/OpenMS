@@ -173,8 +173,8 @@ namespace OpenMS
         out << "MS1 annotation";
         out << num_partners[entry.first] + num_partners[partner_index] - 2; // total number of direct partners from both features minus themselves
         std::stringstream annotation;
-        annotation << consensus_map[entry.first].getMetaValue(Constants::UserParam::IIMN_BEST_ION,StringUtils::toStr("default")) << " "
-                   << consensus_map[partner_index].getMetaValue(Constants::UserParam::IIMN_BEST_ION,StringUtils::toStr("default")) << " "
+        annotation << consensus_map[entry.first].getMetaValue(Constants::UserParam::IIMN_BEST_ION,std::string("default")) << " "
+                   << consensus_map[partner_index].getMetaValue(Constants::UserParam::IIMN_BEST_ION,std::string("default")) << " "
                    << "dm/z=" << StringUtils::toStr(std::abs(consensus_map[entry.first].getMZ() - consensus_map[partner_index].getMZ()));
         out << annotation.str();
         out << std::endl;

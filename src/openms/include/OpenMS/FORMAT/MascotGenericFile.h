@@ -141,7 +141,7 @@ protected:
     bool getNextSpectrum_(std::ifstream& is, SpectrumType& spectrum, Size& line_number, const Size& spectrum_number)
     {
       spectrum.resize(0);
-      spectrum.setNativeID(StringUtils::toStr("index=") + (spectrum_number));
+      spectrum.setNativeID(std::string("index=") + (spectrum_number));
 
       if (spectrum.metaValueExists("TITLE"))
       {

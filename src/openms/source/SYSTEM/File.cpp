@@ -114,7 +114,7 @@ namespace OpenMS
         if (len != -1)
 #endif
         {
-          rpath = File::path(StringUtils::toStr(path));
+          rpath = File::path(std::string(path));
           if (File::exists(rpath)) // check if directory exists
           {
             // ensure path ends with a "/", such that we can just write path + "ToolX", and to not worry about if its empty or a path.
@@ -525,9 +525,9 @@ namespace OpenMS
   std::string File::findDoc(const std::string& filename)
   {
     StringList search_dirs;
-    search_dirs.push_back(StringUtils::toStr(OPENMS_BINARY_PATH) + "/../../doc/");
+    search_dirs.push_back(std::string(OPENMS_BINARY_PATH) + "/../../doc/");
     // source path is host/openms so doc is ../doc
-    search_dirs.push_back(StringUtils::toStr(OPENMS_SOURCE_PATH) + "/../../doc/");
+    search_dirs.push_back(std::string(OPENMS_SOURCE_PATH) + "/../../doc/");
     search_dirs.push_back(getOpenMSDataPath() + "/../../doc/");
     search_dirs.push_back(OPENMS_DOC_PATH);
     search_dirs.push_back(OPENMS_INSTALL_DOC_PATH);
@@ -572,7 +572,7 @@ namespace OpenMS
 #endif
       if (hbuf[0] != '\0')
       {
-        hostname_str =StringUtils::toStr(hbuf) + "_";
+        hostname_str =std::string(hbuf) + "_";
       }
     }
     auto d = now.getDate(); StringUtils::remove(d, '-');
@@ -716,7 +716,7 @@ namespace OpenMS
 #else
       const char* home = getenv("HOME");
 #endif
-      dir = home ? StringUtils::toStr(home) : std::string(".");
+      dir = home ? std::string(home) : std::string(".");
       StringUtils::substitute(dir, '\\', '/');
     }
     StringUtils::ensureLastChar(dir, '/');
@@ -756,7 +756,7 @@ namespace OpenMS
 #else
       const char* home = getenv("HOME");
 #endif
-      home_path = home ? StringUtils::toStr(home) : std::string(".");
+      home_path = home ? std::string(home) : std::string(".");
       StringUtils::substitute(home_path, '\\', '/');
     }
     return home_path;
@@ -770,7 +770,7 @@ namespace OpenMS
     #ifdef __unix__
       if (getenv("XDG_CONFIG_HOME"))
       {
-        filename =StringUtils::toStr(getenv("XDG_CONFIG_HOME")) + "/OpenMS/OpenMS.ini";
+        filename =std::string(getenv("XDG_CONFIG_HOME")) + "/OpenMS/OpenMS.ini";
       }
       else
       {

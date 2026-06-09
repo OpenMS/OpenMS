@@ -421,7 +421,7 @@ namespace OpenMS
       bool parsed_numeric = false;
       try
       {
-        precursor_id =StringUtils::toInt64(StringUtils::toStr(compound.id));
+        precursor_id =StringUtils::toInt64(std::string(compound.id));
         parsed_numeric = true;
       }
       catch (Exception::ConversionError&)
@@ -1323,7 +1323,7 @@ namespace OpenMS
         if (it->is_directory()) continue;
         const auto full = it->path();
         std::string rel = std::filesystem::relative(full, dirpath).generic_string();
-        ZipArchiveFile::addOrReplaceFromFile(output_path,StringUtils::toStr(rel),StringUtils::toStr(full.string()));
+        ZipArchiveFile::addOrReplaceFromFile(output_path,std::string(rel),std::string(full.string()));
       }
       ZipArchiveFile::writeSidecarIndex(output_zip_abs);
     }

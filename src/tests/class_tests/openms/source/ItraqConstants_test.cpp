@@ -145,7 +145,7 @@ START_SECTION((static void updateChannelMap(const StringList& active_channels, C
 
   ItraqConstants::updateChannelMap(active_channels, map);
 
-  TEST_EQUAL(map[114].description,StringUtils::toStr("myReference"))
+  TEST_EQUAL(map[114].description,std::string("myReference"))
 	TEST_EQUAL(map[114].active, true);
 
   // TMT
@@ -156,17 +156,17 @@ START_SECTION((static void updateChannelMap(const StringList& active_channels, C
 
   ItraqConstants::updateChannelMap(activeTmtChannels, tmtMap);
 
-  TEST_EQUAL(tmtMap[126].description,StringUtils::toStr("myReference"))
+  TEST_EQUAL(tmtMap[126].description,std::string("myReference"))
   TEST_EQUAL(tmtMap[126].active, true);
-  TEST_EQUAL(tmtMap[127].description,StringUtils::toStr(""))
+  TEST_EQUAL(tmtMap[127].description,std::string(""))
   TEST_EQUAL(tmtMap[127].active, false);
-  TEST_EQUAL(tmtMap[128].description,StringUtils::toStr(""))
+  TEST_EQUAL(tmtMap[128].description,std::string(""))
   TEST_EQUAL(tmtMap[128].active, false);
-  TEST_EQUAL(tmtMap[129].description,StringUtils::toStr("treated"))
+  TEST_EQUAL(tmtMap[129].description,std::string("treated"))
   TEST_EQUAL(tmtMap[129].active, true);
-  TEST_EQUAL(tmtMap[130].description,StringUtils::toStr(""))
+  TEST_EQUAL(tmtMap[130].description,std::string(""))
   TEST_EQUAL(tmtMap[130].active, false);
-  TEST_EQUAL(tmtMap[131].description,StringUtils::toStr("control"))
+  TEST_EQUAL(tmtMap[131].description,std::string("control"))
   TEST_EQUAL(tmtMap[131].active, true);
 }
 END_SECTION

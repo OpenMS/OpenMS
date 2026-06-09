@@ -72,7 +72,7 @@ namespace OpenMS
     if (!w->canvas()->addChromLayer(ml.full_chrom_exp_sptr, ml.ondisc_sptr, ml.annot_sptr,
                                     chrom_index, ml.filename, 
                                     File::stemName(ml.filename),
-                                    StringUtils::toStr("[") + StringUtils::toStr(transition_id) + "]"))
+                                    std::string("[") + StringUtils::toStr(transition_id) + "]"))
     {
       return false;
     }
@@ -113,7 +113,7 @@ namespace OpenMS
     {
       auto width = feature.getRTRightWidth() - feature.getRTLeftWidth();
       auto center = feature.getRTLeftWidth() + width / 2;
-      std::string ann =StringUtils::toStr("RT:\n ") + StringUtils::toStr(feature.getRTExperimental(), false) + "\ndRT:\n " + StringUtils::toStr(feature.getRTDelta(), false) + "\nQ:\n " + StringUtils::toStr(feature.getQValue(), false);
+      std::string ann =std::string("RT:\n ") + StringUtils::toStr(feature.getRTExperimental(), false) + "\ndRT:\n " + StringUtils::toStr(feature.getRTDelta(), false) + "\nQ:\n " + StringUtils::toStr(feature.getQValue(), false);
       QColor col = GUIHelpers::ColorBrewer::Distinct().values[(best_feature == &feature) 
                           ? GUIHelpers::ColorBrewer::Distinct::LightGreen
                           : GUIHelpers::ColorBrewer::Distinct::LightGrey];

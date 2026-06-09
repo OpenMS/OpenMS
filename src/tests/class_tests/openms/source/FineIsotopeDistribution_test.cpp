@@ -371,7 +371,7 @@ START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
   for (Size k = 0; k < 100; k++)
   {
     // human insulin
-    EmpiricalFormula ef (StringUtils::toStr("C") + (520 + k) +
+    EmpiricalFormula ef (std::string("C") + (520 + k) +
                          std::string("H") + (817 + k) + 
                          std::string("N") + (139 + k) +
                          std::string("O") + (147 + k) +
@@ -393,7 +393,7 @@ START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
   for (Size k = 0; k < 100; k++)
   {
     // human insulin
-    EmpiricalFormula ef (StringUtils::toStr("C") + (520 + k) +
+    EmpiricalFormula ef (std::string("C") + (520 + k) +
                          std::string("H") + (817 + k) + 
                          std::string("N") + (139 + k) +
                          std::string("O") + (147 + k) +

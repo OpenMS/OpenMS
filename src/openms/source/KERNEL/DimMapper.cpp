@@ -78,7 +78,7 @@ namespace OpenMS
 
   std::string DimBase::formattedValue(const ValueType value) const
   {
-    return StringUtils::toStr(this->getDimNameShort()) + ": " + std::string(formatWithGroupSeparators(value, valuePrecision()));
+    return std::string(this->getDimNameShort()) + ": " + std::string(formatWithGroupSeparators(value, valuePrecision()));
   }
 
   std::string DimBase::formattedValue(const ValueType value, const std::string& prefix) const

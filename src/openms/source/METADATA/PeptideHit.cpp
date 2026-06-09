@@ -450,7 +450,7 @@ namespace OpenMS
     std::string val;
     for (auto& a : annotations)
     {
-      { std::string ann = StringUtils::toStr(a.annotation); StringUtils::quote(ann);
+      { std::string ann = std::string(a.annotation); StringUtils::quote(ann);
         annotation_string += StringUtils::toStr(a.mz) + "," + StringUtils::toStr(a.intensity) + "," + StringUtils::toStr(a.charge) + "," + ann; }
       if (&a != &annotations.back()) { annotation_string += "|"; }
     }

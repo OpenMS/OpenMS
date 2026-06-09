@@ -598,7 +598,7 @@ void MSstatsFile::storeISO(const std::string& filename,
 
   // The output file of the MSstatsConverter
   TextFile csv_out;
-  csv_out.addLine(StringUtils::toStr(rt_summarization_manual ? "RetentionTime,": "") +
+  csv_out.addLine(std::string(rt_summarization_manual ? "RetentionTime,": "") +
     "ProteinName,PeptideSequence,Charge,Channel,Condition,BioReplicate,Run,Mixture,TechRepMixture,Fraction,Intensity,Reference");
 
   // We quantify indistinguishable groups with one (corner case) or multiple proteins.
@@ -677,7 +677,7 @@ void MSstatsFile::storeISO(const std::string& filename,
 
           // Resolve techrepmixture, run
           const unsigned openms_fractiongroup = path_label_to_fractiongroup[tpl1];
-          std::string techrepmixture =StringUtils::toStr(sampleSection.getFactorValue(sample, mixture)) + "_" + StringUtils::toStr(openms_fractiongroup);
+          std::string techrepmixture =std::string(sampleSection.getFactorValue(sample, mixture)) + "_" + StringUtils::toStr(openms_fractiongroup);
           std::string run = techrepmixture + "_" + StringUtils::toStr(fraction);
 
           // Assemble MSstats line
@@ -688,9 +688,9 @@ void MSstatsFile::storeISO(const std::string& filename,
               StringUtils::toStr(channel),
               sampleSection.getFactorValue(sample, condition),
               sampleSection.getFactorValue(sample, bioreplicate),
-              StringUtils::toStr(run),
+              std::string(run),
               sampleSection.getFactorValue(sample, mixture),
-              StringUtils::toStr(techrepmixture),
+              std::string(techrepmixture),
               StringUtils::toStr(fraction)
           );
 

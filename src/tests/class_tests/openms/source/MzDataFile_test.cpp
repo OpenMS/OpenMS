@@ -658,9 +658,9 @@ START_SECTION((template <typename MapType> void store(const std::string &filenam
   f.store(tmp_filename, e1);
   f.load(tmp_filename, e2);
   TEST_EQUAL(e2.getIdentifier(), "lsid");
-  e2[0].getDataProcessing()[0]->getSoftware().setMetaValue("comment",StringUtils::toStr("SoftwareComment"));
-  e2[1].getDataProcessing()[0]->getSoftware().setMetaValue("comment",StringUtils::toStr("SoftwareComment"));
-  e2[2].getDataProcessing()[0]->getSoftware().setMetaValue("comment",StringUtils::toStr("SoftwareComment"));
+  e2[0].getDataProcessing()[0]->getSoftware().setMetaValue("comment",std::string("SoftwareComment"));
+  e2[1].getDataProcessing()[0]->getSoftware().setMetaValue("comment",std::string("SoftwareComment"));
+  e2[2].getDataProcessing()[0]->getSoftware().setMetaValue("comment",std::string("SoftwareComment"));
   TEST_TRUE(e1 == e2);
 }
 END_SECTION

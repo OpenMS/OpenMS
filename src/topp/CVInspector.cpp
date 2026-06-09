@@ -80,7 +80,7 @@ protected:
       std::string description = child_term.description;
       if (!child_term.synonyms.empty())
       {
-        description +=StringUtils::toStr(" -- Synonyms: '") + ListUtils::concatenate(child_term.synonyms, ", ") + "'";
+        description +=std::string(" -- Synonyms: '") + ListUtils::concatenate(child_term.synonyms, ", ") + "'";
       }
       subterm_line += "- <span title=\"" + description + "\">" + child_term.id + " ! " + child_term.name + "</span>";
       StringList tags;
@@ -99,7 +99,7 @@ protected:
         {
           units.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
         }
-        tags.push_back(StringUtils::toStr("units=") + ListUtils::concatenate(units, ","));
+        tags.push_back(std::string("units=") + ListUtils::concatenate(units, ","));
       }
       if (!child_term.xref_binary.empty())
       {
@@ -108,11 +108,11 @@ protected:
         {
           types.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
         }
-        tags.push_back(StringUtils::toStr("binary-array-types=") + ListUtils::concatenate(types, ","));
+        tags.push_back(std::string("binary-array-types=") + ListUtils::concatenate(types, ","));
       }
       if (!tags.empty())
       {
-        subterm_line +=StringUtils::toStr("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
+        subterm_line +=std::string("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
       }
       file.addLine(subterm_line + "<BR>");
       writeTermTree_(child_term.id, cv, file, indent + 1);
@@ -178,8 +178,8 @@ protected:
       std::string collapse_all = "    <a href=\"javascript:toggleDiv('div0','false')";
       for (Int i = 1; i < term_count; ++i)
       {
-        expand_all +=StringUtils::toStr(";toggleDiv('div") + i + "','true')";
-        collapse_all +=StringUtils::toStr(";toggleDiv('div") + i + "','false')";
+        expand_all +=std::string(";toggleDiv('div") + i + "','true')";
+        collapse_all +=std::string(";toggleDiv('div") + i + "','false')";
       }
       file.addLine(expand_all + "\">Expand all</a><BR>");
       file.addLine(collapse_all + "\">Collapse all</a>");
@@ -189,8 +189,8 @@ protected:
       {
         //create rule line
         file.addLine("      <TR><TD colspan=\"2\"><HR></TD></TR>");
-        file.addLine(StringUtils::toStr("      <TR><TD>Identifier:</TD><TD><B>") + it->getIdentifier() + "</B></TD></TR>");
-        file.addLine(StringUtils::toStr("      <TR><TD>Element:</TD><TD><B>") + it->getElementPath() + "</B></TD></TR>");
+        file.addLine(std::string("      <TR><TD>Identifier:</TD><TD><B>") + it->getIdentifier() + "</B></TD></TR>");
+        file.addLine(std::string("      <TR><TD>Element:</TD><TD><B>") + it->getElementPath() + "</B></TD></TR>");
         if (it->getRequirementLevel() == CVMappingRule::MUST)
         {
           file.addLine("      <TR><TD>Requirement level:</TD><TD><FONT color=\"red\">MUST</FONT></TD></TR>");
@@ -220,15 +220,15 @@ protected:
         for (vector<CVMappingTerm>::const_iterator tit = it->getCVTerms().begin(); tit != it->getCVTerms().end(); ++tit)
         {
           //create term line
-          std::string term_line =StringUtils::toStr("      <TR><TD valign=\"top\">Term:</TD><TD>");
+          std::string term_line =std::string("      <TR><TD valign=\"top\">Term:</TD><TD>");
           if (tit->getAllowChildren())
           {
             ++term_count;
-            term_line +=StringUtils::toStr("<a href=\"javascript:toggleDiv('div") + term_count + "','')\" style=\"text-decoration:none\" >+</a> ";
+            term_line +=std::string("<a href=\"javascript:toggleDiv('div") + term_count + "','')\" style=\"text-decoration:none\" >+</a> ";
           }
           else
           {
-            term_line +=StringUtils::toStr("&nbsp;&nbsp;");
+            term_line +=std::string("&nbsp;&nbsp;");
           }
           //add Term accession, name and description (as popup)
           if (cv.exists(tit->getAccession()))
@@ -238,7 +238,7 @@ protected:
             std::string description = child_term.description;
             if (!child_term.synonyms.empty())
             {
-              description +=StringUtils::toStr(" -- Synonyms: '") + ListUtils::concatenate(child_term.synonyms, ", ") + "'";
+              description +=std::string(" -- Synonyms: '") + ListUtils::concatenate(child_term.synonyms, ", ") + "'";
             }
             term_line += "<span title=\"" + description + "\">";
           }
@@ -281,7 +281,7 @@ protected:
               {
                 units.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
               }
-              tags.push_back(StringUtils::toStr("units=") + ListUtils::concatenate(units, ","));
+              tags.push_back(std::string("units=") + ListUtils::concatenate(units, ","));
             }
             if (!term.xref_binary.empty())
             {
@@ -290,19 +290,19 @@ protected:
               {
                 types.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
               }
-              tags.push_back(StringUtils::toStr("binary-array-types=") + ListUtils::concatenate(types, ","));
+              tags.push_back(std::string("binary-array-types=") + ListUtils::concatenate(types, ","));
             }
           }
           if (!tags.empty())
           {
-            term_line +=StringUtils::toStr("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
+            term_line +=std::string("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
           }
           file.addLine(term_line);
 
           // check whether we need the whole tree, or just the term itself
           if (tit->getAllowChildren())
           {
-            file.addLine(StringUtils::toStr("        <div id=\"div") + term_count + R"(" style="display: none">)");
+            file.addLine(std::string("        <div id=\"div") + term_count + R"(" style="display: none">)");
             if (cv.exists(tit->getAccession()))
             {
               writeTermTree_(tit->getAccession(), cv, file, 1);
@@ -313,7 +313,7 @@ protected:
               for (set<std::string>::const_iterator atit=allowed_terms.begin(); atit!=allowed_terms.end(); ++atit)
               {
                   const ControlledVocabulary::CVTerm& child_term = cv.getTerm(*atit);
-                  std::string parser_string =StringUtils::toStr("os << \"&lt;cvParam cvRef=\\\"MS\\\" accession=\\\"") + child_term.id + "\\\" name=\\\"" + child_term.name + "\\\"";
+                  std::string parser_string =std::string("os << \"&lt;cvParam cvRef=\\\"MS\\\" accession=\\\"") + child_term.id + "\\\" name=\\\"" + child_term.name + "\\\"";
                   for (Size i=0; i<child_term.unparsed.size(); ++i)
                   {
                       //TODO this does not work anymore. The type is now stored as a member
