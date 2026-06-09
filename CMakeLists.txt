@@ -99,20 +99,28 @@ endif()
 
 if (ENABLE_OPENTIMS_TESTS AND WITH_OPENTIMS)
   include(FetchContent)
-  set(OPENTIMS_TESTDATA_URL "https://github.com/OpenMS/timsrust_cpp_bridge/releases/download/test-data-v1")
+  # Mirror of the timsrust_cpp_bridge "test-data-v1" release, hosted on the OpenMS
+  # infra fileserver. NOTE: this host currently answers only on bare-IP plain HTTP
+  # (no DNS name / HTTPS yet) and port 80 is reachable only from whitelisted
+  # CI/build networks at the perimeter firewall. URL_HASH pins each file's
+  # integrity so the weaker transport cannot corrupt a download silently.
+  set(OPENTIMS_TESTDATA_URL "http://193.196.20.95/openms/testfiles")
   FetchContent_Declare(
     opentims_testdata_dda
     URL "${OPENTIMS_TESTDATA_URL}/DDA_HeLa_50ng_5_6min.d.zip"
+    URL_HASH SHA256=659d691e48d621edcd1fecb8448de5731147c009bda42ba6e7e5ed53e46dc15c
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   )
   FetchContent_Declare(
     opentims_testdata_dia
     URL "${OPENTIMS_TESTDATA_URL}/DIA_HeLa_50ng_5_6min.d.zip"
+    URL_HASH SHA256=bacf98b472ed3a3cfef2c2595a726fc6c06f059a41c17d9035b2b864932b6f5d
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   )
   FetchContent_Declare(
     opentims_testdata_fasta
     URL "${OPENTIMS_TESTDATA_URL}/human_sp.fasta"
+    URL_HASH SHA256=b205ed9970fee62413e2f192c6fb82daab86e4a5897ef521f907ecbfcd7b3e63
     DOWNLOAD_NO_EXTRACT TRUE
   )
   FetchContent_MakeAvailable(opentims_testdata_dda opentims_testdata_dia opentims_testdata_fasta)
@@ -123,15 +131,16 @@ endif()
 
 if (ENABLE_THERMO_RAW_TESTS AND WITH_THERMO_RAW)
   include(FetchContent)
-  # Angiotensin_AllScans.raw from PNNL-Comp-Mass-Spec/Thermo-Raw-File-Reader
-  # (BSD-2-Clause, (c) 2018 Battelle Memorial Institute). Pinned to a specific
-  # commit for reproducibility. Contains 87 MS1 (FTMS Full ms) plus hundreds of
-  # MS2 scans with HCD and supplemental-activation (ETD+HCD, ETD+CID) filters
-  # at precursor m/z 432.9 — exercises the full activation-method switch in
-  # ThermoRawFile.cpp and MS1+MSn round-trip via mzML.
+  # Angiotensin_AllScans.raw originally from PNNL-Comp-Mass-Spec/Thermo-Raw-File-Reader
+  # (BSD-2-Clause, (c) 2018 Battelle Memorial Institute), commit 1d8ff309. Contains
+  # 87 MS1 (FTMS Full ms) plus hundreds of MS2 scans with HCD and supplemental-
+  # activation (ETD+HCD, ETD+CID) filters at precursor m/z 432.9 — exercises the
+  # full activation-method switch in ThermoRawFile.cpp and MS1+MSn round-trip via
+  # mzML. Served from the OpenMS infra mirror (see OPENTIMS_TESTDATA_URL note above
+  # re: bare-IP plain HTTP); URL_HASH below pins integrity/reproducibility.
   FetchContent_Declare(
     thermo_raw_testdata
-    URL "https://raw.githubusercontent.com/PNNL-Comp-Mass-Spec/Thermo-Raw-File-Reader/1d8ff309f94704b850642374496c7ac28c491204/UnitTests/Docs/Angiotensin_AllScans.raw"
+    URL "http://193.196.20.95/openms/testfiles/Angiotensin_AllScans.raw"
     URL_HASH SHA256=3a0236f719e7c91e3c958f57f4e66ae422803ec3e6a997b9af4d2af395332b9f
     DOWNLOAD_NO_EXTRACT TRUE
   )
