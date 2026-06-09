@@ -117,8 +117,7 @@ struct HeaderInfo
     header_description = "-- empty --";
     TextFile tf;
     tf.load(filename);
-    std::string content;
-    StringUtils::concatenate(content, tf.begin(), tf.end(), ";");
+    std::string content = StringUtils::concatenate(tf, ";");
 
     std::string search = "$$ Sample Description:";
     Size pos = content.find(search);

@@ -257,8 +257,7 @@ namespace OpenMS
       sl.push_back(s);
     }
 
-    std::string out;
-    StringUtils::concatenate(out, sl.begin(), sl.end(), "");
+    std::string out = StringUtils::concatenate(sl, "");
     in_strings.push_back(out);
 
     if (!test_mode)

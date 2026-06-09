@@ -49,8 +49,7 @@ namespace OpenMS
         StringUtils::quote(elements[i], '"', OpenMS::QuotingMethod::NONE);
       }
     }
-    std::string line;
-    StringUtils::concatenate(line, elements.begin(), elements.end(), std::string(1, itemseperator_));
+    std::string line = StringUtils::concatenate(elements, std::string(1, itemseperator_));
     addLine(line);
   }
 

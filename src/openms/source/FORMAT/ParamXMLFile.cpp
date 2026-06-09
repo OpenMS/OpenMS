@@ -263,7 +263,7 @@ namespace OpenMS
             case ParamValue::STRING_LIST:
               if (!it->valid_strings.empty())
               {
-                StringUtils::concatenate(restrictions, it->valid_strings.begin(), it->valid_strings.end(), ",");
+                restrictions = StringUtils::concatenate(it->valid_strings, ",");
               }
               break;
 

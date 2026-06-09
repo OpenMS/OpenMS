@@ -238,8 +238,7 @@ void writeParameters(const std::string& class_name, const Param& param, bool tab
       //restrictions
       if (!it->valid_strings.empty())
       {
-        std::string valid_strings;
-        StringUtils::concatenate(valid_strings, it->valid_strings.begin(), it->valid_strings.end(), ", ");
+        std::string valid_strings = StringUtils::concatenate(it->valid_strings, ", ");
         restrictions += valid_strings;
       }
     }
@@ -278,7 +277,7 @@ void writeParameters(const std::string& class_name, const Param& param, bool tab
     }
     if (parts.size() != 0)
     {
-      StringUtils::concatenate(name, parts.begin(), parts.end(), ":");
+      name = StringUtils::concatenate(parts, ":");
     }
 
     //replace # and @ in values

@@ -60,8 +60,7 @@ namespace OpenMS
     //determine if this is indexed mzML or not
     bool indexed = false;
     TextFile file(filename, true, 4);
-    std::string s;
-    StringUtils::concatenate(s, file.begin(), file.end());
+    std::string s = StringUtils::concatenate(file);
     if (StringUtils::hasSubstring(s, "<indexedmzML"))
     {
       indexed = true;

@@ -771,15 +771,15 @@ END_SECTION
 START_SECTION((StringUtils::concatenate))
   vector<std::string> parts;
   StringUtils::split(std::string("1;2;3;4;5"), ';', parts);
-  std::string joined = StringUtils::concatenate(parts.begin(), parts.end(), "g");
+  std::string joined = StringUtils::concatenate(parts, "g");
   TEST_EQUAL(joined, "1g2g3g4g5")
 
   StringUtils::split(std::string("1;2;3;4;5"), ';', parts);
-  joined = StringUtils::concatenate(parts.begin(), parts.end());
+  joined = StringUtils::concatenate(parts);
   TEST_EQUAL(joined, "12345")
 
   StringUtils::split(std::string(""), ';', parts);
-  joined = StringUtils::concatenate(parts.begin(), parts.end());
+  joined = StringUtils::concatenate(parts);
   TEST_EQUAL(joined, "")
 END_SECTION
 

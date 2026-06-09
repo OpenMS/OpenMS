@@ -526,8 +526,7 @@ public:
 
     // plot heatmap
     current_script.addLine("library(gplots)");
-    std::string ria_list_string;
-    StringUtils::concatenate(ria_list_string, ria_list.begin(), ria_list.end(), ",");
+    std::string ria_list_string = StringUtils::concatenate(ria_list, ",");
     current_script.addLine("mdat <- matrix(c(" + ria_list_string + "), ncol=" + StringUtils::toStr(binned_ria[0].size()) + ", byrow=TRUE)");
 
     if (file_extension == "png")
@@ -550,13 +549,11 @@ public:
     }
     else
     {
-      std::string row_labels_string;
-      StringUtils::concatenate(row_labels_string, row_labels.begin(), row_labels.end(), "\",\"");
+      std::string row_labels_string = StringUtils::concatenate(row_labels, "\",\"");
       labRowString =std::string("c(\"") + row_labels_string + "\")";
     }
 
-    std::string col_labels_string;
-    StringUtils::concatenate(col_labels_string, col_labels.begin(), col_labels.end(), "\",\"");
+    std::string col_labels_string = StringUtils::concatenate(col_labels, "\",\"");
 
     current_script.addLine(R"(heatmap.2(mdat, dendrogram="none", col=colorRampPalette(c("black","red")), Rowv=FALSE, Colv=FALSE, key=FALSE, labRow=)" + labRowString + ",labCol=c(\"" + col_labels_string + R"("),trace="none", density.info="none"))");
 
@@ -597,11 +594,9 @@ public:
         intensity_list.push_back(StringUtils::toStr(peak.getIntensity()));
       }
 
-      std::string mz_list_string;
-      StringUtils::concatenate(mz_list_string, mz_list.begin(), mz_list.end(), ",");
+      std::string mz_list_string = StringUtils::concatenate(mz_list, ",");
 
-      std::string intensity_list_string;
-      StringUtils::concatenate(intensity_list_string, intensity_list.begin(), intensity_list.end(), ",");
+      std::string intensity_list_string = StringUtils::concatenate(intensity_list, ",");
 
       current_script.addLine("mz<-c(" + mz_list_string + ")");
       current_script.addLine("int<-c(" + intensity_list_string + ")");
@@ -793,17 +788,13 @@ public:
         corr_list.push_back(StringUtils::toStr(mit->second));
       }
 
-      std::string rate_dec_list_string;
-      StringUtils::concatenate(rate_dec_list_string, rate_dec_list.begin(), rate_dec_list.end(), ",");
+      std::string rate_dec_list_string = StringUtils::concatenate(rate_dec_list, ",");
 
-      std::string weights_list_string;
-      StringUtils::concatenate(weights_list_string, weights_list.begin(), weights_list.end(), ",");
+      std::string weights_list_string = StringUtils::concatenate(weights_list, ",");
 
-      std::string rate_corr_list_string;
-      StringUtils::concatenate(rate_corr_list_string, rate_corr_list.begin(), rate_corr_list.end(), ",");
+      std::string rate_corr_list_string = StringUtils::concatenate(rate_corr_list, ",");
 
-      std::string corr_list_string;
-      StringUtils::concatenate(corr_list_string, corr_list.begin(), corr_list.end(), ",");
+      std::string corr_list_string = StringUtils::concatenate(corr_list, ",");
 
       current_script.addLine("rate_dec<-c(" + rate_dec_list_string + ")");
       current_script.addLine("dec<-c(" + weights_list_string + ")");

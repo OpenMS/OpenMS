@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstring>
 #include <limits>
+#include <ranges>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -932,6 +933,23 @@ namespace OpenMS
       std::string result;
       concatenate(result, first, last, glue);
       return result;
+    }
+
+    /**
+      @brief Join the string elements of a @p container with @p glue between them and return the result.
+
+      Convenience overload of concatenate(first, last, glue) for any container exposing
+      begin()/end() (e.g. std::vector<std::string>, std::set<std::string>), so callers can write
+      @code std::string s = StringUtils::concatenate(container, ", "); @endcode
+      instead of the iterator form
+      @code std::string s; s = StringUtils::concatenate(container, ", "); @endcode
+
+      Constraining @p Container to a range keeps this from competing with the iterator overloads.
+    */
+    template <std::ranges::range Container>
+    inline std::string concatenate(const Container& container, const std::string& glue = "")
+    {
+      return concatenate(container.begin(), container.end(), glue);
     }
 
   } // namespace StringUtils

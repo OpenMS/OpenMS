@@ -55,8 +55,7 @@ namespace OpenMS
     // namespace ('.../mzIdentML/x.y'). We prefer the explicit version attribute and fall back to
     // the namespace; if neither maps to a bundled schema we keep the adapter default (1.3.0).
     TextFile file(filename, true, 15);
-    std::string header;
-    StringUtils::concatenate(header, file.begin(), file.end(), " ");
+    std::string header = StringUtils::concatenate(file, " ");
 
     // candidate versions we ship schemas for, newest first
     static const std::vector<std::string> known_versions = {"1.3.0", "1.2.0", "1.1.0", "1.0.0"};

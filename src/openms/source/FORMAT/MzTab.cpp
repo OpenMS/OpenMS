@@ -1635,7 +1635,7 @@ namespace OpenMS
     {
       StringList sl = leader_protein.getMetaValue("GO").toStringList();
       std::string s{};
-      StringUtils::concatenate(s, sl.begin(), sl.end(), ",");
+      s = StringUtils::concatenate(sl, ",");
       protein_row.go_terms.fromCellString(s);
     }
 

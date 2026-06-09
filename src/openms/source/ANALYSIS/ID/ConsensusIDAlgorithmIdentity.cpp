@@ -44,8 +44,7 @@ namespace OpenMS
 
     if (score_types.size() > 1)
     {
-      std::string types;
-      StringUtils::concatenate(types, score_types.begin(), score_types.end(), "'/'");
+      std::string types = StringUtils::concatenate(score_types, "'/'");
       OPENMS_LOG_WARN << "Warning: Different score types for peptide hits found ('"
                << types << "'). If the scores are not comparable, "
                << "results will be meaningless." << endl;

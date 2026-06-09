@@ -422,8 +422,7 @@ namespace OpenMS
           modifications.push_back(modification);
         }
 
-        std::string mods;
-        StringUtils::concatenate(mods, modifications.begin(), modifications.end(), "/");
+        std::string mods = StringUtils::concatenate(modifications, "/");
         if (!mods.empty())
         {
           out << " Mods=" << StringUtils::toStr(num_mods)  << "/" << mods;

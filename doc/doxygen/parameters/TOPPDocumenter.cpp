@@ -179,7 +179,7 @@ void convertINI2HTML(const Param& p, ostream& os)
         // TODO: If param name is *modification* just add a link to
         //  a page with all modifications otherwise you get a HUGE list.
         //  Also think about a different separator, in case the restrictions have commas.
-        StringUtils::concatenate(restrictions, it->valid_strings.begin(), it->valid_strings.end(), ", ");
+        restrictions = StringUtils::concatenate(it->valid_strings, ", ");
       }
       else if (value_type == ParamValue::STRING_VALUE)
       {
