@@ -205,10 +205,28 @@ class TestCompoundsFromDF(unittest.TestCase):
             pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
         self.assertIn('Charge', str(ctx.exception))
 
+    def test_non_integral_charge_string_raises(self):
+        # A non-integral charge token must be rejected, not truncated to 1.
+        df = _base_df(Charge=['1.9'])
+        with self.assertRaises(ValueError) as ctx:
+            pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
+        self.assertIn('Charge', str(ctx.exception))
+
     def test_nan_in_optional_fields(self):
         # Keep a valid SumFormula so the m/z can still be derived (Mass NaN -> 0.0).
         df = _base_df(Mass=[np.nan],
                       RetentionTimeRange=[np.nan], IsoDistribution=[np.nan])
+        compounds = pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
+        self.assertEqual(compounds[0].getFormula(), 'C6H12O6')
+        self.assertAlmostEqual(compounds[0].getMass(), 0.0)
+        self.assertEqual(list(compounds[0].getRTRanges()), [0.0])
+        self.assertEqual(list(compounds[0].getIsotopeDistribution()), [0.0])
+
+    def test_pd_na_in_optional_fields(self):
+        # pandas.NA (nullable dtypes) must behave like np.nan: "not provided".
+        # SumFormula stays valid so the fail-fast m/z check still passes.
+        df = _base_df(Mass=[pd.NA],
+                      RetentionTimeRange=[pd.NA], IsoDistribution=[pd.NA])
         compounds = pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
         self.assertEqual(compounds[0].getFormula(), 'C6H12O6')
         self.assertAlmostEqual(compounds[0].getMass(), 0.0)

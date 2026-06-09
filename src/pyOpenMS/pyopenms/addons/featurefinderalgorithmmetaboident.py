@@ -66,31 +66,39 @@ def _normalize_columns(df):
     return df.rename(columns=rename)
 
 
-def _to_list(value, dtype, np):
+def _to_list(value, dtype, np, pd):
     """Convert a scalar / list / numpy array / comma-separated string to ``list[dtype]``.
 
-    Empty strings, ``None`` and NaN scalars yield an empty list. Integer parsing
-    accepts float-like tokens (``"1.0"`` -> ``1``) so spreadsheet exports work.
+    Empty strings and missing scalars (``None``, NaN, ``pandas.NA``) yield an
+    empty list. Integer parsing accepts float-like tokens whose value is integral
+    (``"1.0"`` -> ``1``) so spreadsheet exports work, but rejects non-integral
+    tokens (``"1.9"``).
     """
-    if value is None:
-        return []
-    # Scalar NaN (float or numpy float) -> treat as "not provided".
-    if isinstance(value, float) and np.isnan(value):
-        return []
+    # Containers first: pd.isna() returns an array (ambiguous truth) for these.
+    if isinstance(value, (list, tuple, np.ndarray)):
+        return [_coerce(x, dtype) for x in value]
     if isinstance(value, str):
         stripped = value.strip()
         if not stripped:
             return []
         return [_coerce(tok.strip(), dtype) for tok in stripped.split(",") if tok.strip()]
-    if isinstance(value, (list, tuple, np.ndarray)):
-        return [_coerce(x, dtype) for x in value]
+    # Scalars: None / NaN / pandas.NA all mean "not provided".
+    if value is None or pd.isna(value):
+        return []
     return [_coerce(value, dtype)]
 
 
 def _coerce(x, dtype):
-    """Coerce a single token to ``dtype`` (int parsing tolerates float-like tokens)."""
+    """Coerce a single token to ``dtype``.
+
+    Integer parsing accepts float-like tokens with an integral value
+    (``"1.0"`` -> ``1``) but raises ``ValueError`` for non-integral tokens.
+    """
     if dtype is int:
-        return int(float(x))
+        val = float(x)
+        if not val.is_integer():
+            raise ValueError(f"expected an integer, got {x!r}")
+        return int(val)
     return dtype(x)
 
 
@@ -200,7 +208,7 @@ def compounds_from_df(df):
         mass = 0.0 if pd.isna(mass) else float(mass)
 
         try:
-            charges = _to_list(row["Charge"], int, np)
+            charges = _to_list(row["Charge"], int, np, pd)
         except (ValueError, TypeError) as e:
             raise ValueError(f"Row {idx} ('{name}'): could not parse Charge "
                              f"value {row['Charge']!r}: {e}") from e
@@ -208,17 +216,17 @@ def compounds_from_df(df):
             raise ValueError(f"Row {idx} ('{name}'): Charge cannot be empty")
 
         try:
-            rts = _to_list(row["RetentionTime"], float, np)
+            rts = _to_list(row["RetentionTime"], float, np, pd)
         except (ValueError, TypeError) as e:
             raise ValueError(f"Row {idx} ('{name}'): could not parse RetentionTime "
                              f"value {row['RetentionTime']!r}: {e}") from e
         if not rts:
             raise ValueError(f"Row {idx} ('{name}'): RetentionTime cannot be empty")
 
-        rt_ranges = _to_list(row["RetentionTimeRange"], float, np) or [0.0]
-        iso_dist = _to_list(row["IsoDistribution"], float, np) or [0.0]
+        rt_ranges = _to_list(row["RetentionTimeRange"], float, np, pd) or [0.0]
+        iso_dist = _to_list(row["IsoDistribution"], float, np, pd) or [0.0]
 
-        ion_mobilities = _to_list(row["IonMobility"], float, np) if has_im else []
+        ion_mobilities = _to_list(row["IonMobility"], float, np, pd) if has_im else []
 
         adduct = ""
         if has_adduct:
