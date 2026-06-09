@@ -28,28 +28,31 @@ set(CPACK_DEBIAN_ARCHIVE_TYPE "gnutar")
 # Don't add RPATH
 SET(CMAKE_SKIP_INSTALL_RPATH TRUE)
 
-## Try autogeneration of dependencies:
-## This may result in non-standard package names in the dependencies (e.g. when using Qt from a Thirdparty repo)
-## It also will add system dependencies like a minimum glibc or gomp version (not necessarily bad)
-##set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+## Autogenerate runtime dependencies from the actually-linked shared libraries via dpkg-shlibdeps,
+## instead of hand-maintaining the list below (more maintainable; self-corrects across distros, e.g. the
+## libqt6*t64 / libzip4t64 time64 renames). This requires building against *system* (apt) libraries so the
+## generated package names are valid on the target distro; if Qt/etc. come from a thirdparty repo the names
+## may be wrong (this is why it was disabled previously). It also adds system deps like a minimum glibc/gomp
+## version (not necessarily bad).
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
 ## Debug for now. Not much output.
 set(CPACK_DEBIAN_PACKAGE_DEBUG ON)
 
 ## TODO also install headers? make a dev package configuration?
-set(CPACK_COMPONENTS_ALL applications doc library share Dependencies ${THIRDPARTY_COMPONENT_GROUP})
+set(CPACK_COMPONENTS_ALL applications doc library share ${THIRDPARTY_COMPONENT_GROUP})
 
 ## TODO we only need to put dependencies on shared libs. But this depends on what is found and what is statically linked on build machine.
 ## We should probably use a full system-shared-libs-only machine for building. Then the deps should look similar to below.
 #set(CPACK_DEBIAN_PACKAGE_DEPENDS "libxerces-c-dev (>= 3.1.1), libeigen3-dev, libboost-dev (>= 1.54.0), libboost-iostreams-dev (>= 1.54.0), libboost-date-time-dev (>= 1.54.0), libboost-math-dev (>= 1.54.0), libsvm-dev (>= 3.12), libglpk-dev (>= 4.52.1), zlib1g-dev (>= 1.2.7), libbz2-dev (>= 1.0.6), libqt4-dev (>= 4.8.2), libqt4-opengl-dev (>= 4.8.2), libqtwebkit-dev (>= 2.2.1), coinor-libcoinutils-dev (>= 2.6.4)")
 
-## Autogeneration with SHLIBDEPS will add to this variable. For now we include most things statically and require the standard Qt package and libc6 only.
-## (only available in Ubuntu >=17.10). For older Ubuntu, dependencies can be installed from a thirdparty repo.
-## External libraries from Debian repositories should be listed here to avoid file conflicts
-## Note: SQLiteCpp is statically linked, but SQLite3 is dynamically linked at runtime
-set(CPACK_DEBIAN_PACKAGE_DEPENDS 
-  "libqt6svg6 (>= 6.2.2), libc6 (>= 2.28), libqt6widgets6t64 (>= 6.2.2) | libqt6widgets6 (>= 6.2.2), libqt6gui6t64 (>= 6.2.2) | libqt6gui6 (>= 6.2.2), libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2), libyaml-cpp0.7 | libyaml-cpp0.8, libsqlite3-0 (>= 3.35.0), libzip5"
-)
+## Runtime dependencies are now generated automatically by dpkg-shlibdeps (see CPACK_DEBIAN_PACKAGE_SHLIBDEPS above);
+## anything set here would be *merged* with the auto-detected list. Kept (commented) for reference / as a fallback
+## if a runtime-loaded library is ever missed by shlibdeps.
+## Note: SQLiteCpp is statically linked, but SQLite3 is dynamically linked at runtime.
+#set(CPACK_DEBIAN_PACKAGE_DEPENDS
+#  "libqt6svg6 (>= 6.2.2), libc6 (>= 2.28), libqt6widgets6t64 (>= 6.2.2) | libqt6widgets6 (>= 6.2.2), libqt6gui6t64 (>= 6.2.2) | libqt6gui6 (>= 6.2.2), libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2), libyaml-cpp0.7 | libyaml-cpp0.8, libsqlite3-0 (>= 3.35.0), libzip4t64 | libzip4"
+#)
 
 SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 SET(CPACK_DEBIAN_PACKAGE_SECTION "science")
