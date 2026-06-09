@@ -52,7 +52,7 @@ else()
     else()
         set(JSON_BuildTests OFF CACHE INTERNAL "")
         add_subdirectory(nlohmann_json)
-        set(JSON_USE_IMPLICIT_CONVERSIONS=0)
+        target_compile_definitions(nlohmann_json INTERFACE JSON_USE_IMPLICIT_CONVERSIONS=0)
     endif()
 endif()
 
