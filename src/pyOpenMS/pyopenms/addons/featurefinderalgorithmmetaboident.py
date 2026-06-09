@@ -134,8 +134,10 @@ def compounds_from_df(df):
     ------
     ValueError
         If required columns are missing, two columns map to the same field,
-        compound names are empty or duplicated, or ``Charge``/``RetentionTime``
-        are empty for any compound.
+        or a compound violates the contract: empty/duplicate name; empty
+        ``Charge``/``RetentionTime``; a zero charge; neither ``Mass`` > 0 nor a
+        ``SumFormula``; or a ``RetentionTimeRange``/``IonMobility`` whose length
+        is neither 1 nor the number of retention times.
     ImportError
         If pandas or numpy are not installed.
 
@@ -223,6 +225,23 @@ def compounds_from_df(df):
             a = row["Adduct"]
             adduct = "" if pd.isna(a) else str(a).strip()
 
+        # Fail fast on the FeatureFinderMetaboIdentCompound contract instead of
+        # letting run() silently drop the target later (it only logs an error).
+        if mass <= 0.0 and not formula:
+            raise ValueError(f"Row {idx} ('{name}'): either Mass > 0 or a non-empty "
+                             f"SumFormula is required to derive the m/z")
+        if any(c == 0 for c in charges):
+            raise ValueError(f"Row {idx} ('{name}'): Charge entries must be non-zero")
+        n_rt = len(rts)
+        if len(rt_ranges) not in (1, n_rt):
+            raise ValueError(f"Row {idx} ('{name}'): RetentionTimeRange has "
+                             f"{len(rt_ranges)} value(s); expected 1 or {n_rt} "
+                             f"(one per RetentionTime)")
+        if ion_mobilities and len(ion_mobilities) not in (1, n_rt):
+            raise ValueError(f"Row {idx} ('{name}'): IonMobility has "
+                             f"{len(ion_mobilities)} value(s); expected 1 or {n_rt} "
+                             f"(one per RetentionTime)")
+
         compounds.append(
             FeatureFinderMetaboIdentCompound(
                 name, formula, mass, charges, rts, rt_ranges, iso_dist,
@@ -231,6 +250,63 @@ def compounds_from_df(df):
         )
 
     return compounds
+
+
+@addon("FeatureFinderAlgorithmMetaboIdent", "compounds_to_df")
+@staticmethod
+def compounds_to_df(compounds):
+    """
+    Convert a list of ``FeatureFinderMetaboIdentCompound`` objects to a DataFrame.
+
+    Inverse of :meth:`compounds_from_df`: the returned DataFrame uses the
+    canonical column names and can be fed straight back into
+    :meth:`compounds_from_df`. The multi-value fields (``Charge``,
+    ``RetentionTime``, ``RetentionTimeRange``, ``IsoDistribution``,
+    ``IonMobility``) are returned as Python lists; ``Adduct`` is a string.
+
+    Parameters
+    ----------
+    compounds : iterable of FeatureFinderMetaboIdentCompound
+
+    Returns
+    -------
+    pandas.DataFrame
+        One row per compound, columns in canonical order.
+
+    Raises
+    ------
+    ImportError
+        If pandas is not installed.
+
+    Examples
+    --------
+    >>> df2 = FeatureFinderAlgorithmMetaboIdent.compounds_to_df(compounds)
+    >>> # round-trips back through compounds_from_df:
+    >>> compounds2 = FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df2)
+    """
+    try:
+        import pandas as pd
+    except ImportError as e:
+        raise ImportError(
+            "pandas is required for compounds_to_df. Install with: pip install pandas"
+        ) from e
+
+    columns = ["CompoundName", "SumFormula", "Mass", "Charge", "RetentionTime",
+               "RetentionTimeRange", "IsoDistribution", "IonMobility", "Adduct"]
+    rows = []
+    for c in compounds:
+        rows.append({
+            "CompoundName": str(c.getName()),
+            "SumFormula": str(c.getFormula()),
+            "Mass": c.getMass(),
+            "Charge": list(c.getCharges()),
+            "RetentionTime": list(c.getRTs()),
+            "RetentionTimeRange": list(c.getRTRanges()),
+            "IsoDistribution": list(c.getIsotopeDistribution()),
+            "IonMobility": list(c.getIonMobilities()),
+            "Adduct": str(c.getAdduct()),
+        })
+    return pd.DataFrame(rows, columns=columns)
 
 
 @addon("FeatureFinderAlgorithmMetaboIdent")

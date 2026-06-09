@@ -206,13 +206,55 @@ class TestCompoundsFromDF(unittest.TestCase):
         self.assertIn('Charge', str(ctx.exception))
 
     def test_nan_in_optional_fields(self):
-        df = _base_df(SumFormula=[np.nan], Mass=[np.nan],
+        # Keep a valid SumFormula so the m/z can still be derived (Mass NaN -> 0.0).
+        df = _base_df(Mass=[np.nan],
                       RetentionTimeRange=[np.nan], IsoDistribution=[np.nan])
         compounds = pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
-        self.assertEqual(compounds[0].getFormula(), '')
+        self.assertEqual(compounds[0].getFormula(), 'C6H12O6')
         self.assertAlmostEqual(compounds[0].getMass(), 0.0)
         self.assertEqual(list(compounds[0].getRTRanges()), [0.0])
         self.assertEqual(list(compounds[0].getIsotopeDistribution()), [0.0])
+
+    def test_formula_nan_with_mass_ok(self):
+        # No formula but a positive mass is still valid (m/z derives from mass).
+        df = _base_df(SumFormula=[np.nan], Mass=[180.063])
+        compounds = pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
+        self.assertEqual(compounds[0].getFormula(), '')
+        self.assertAlmostEqual(compounds[0].getMass(), 180.063)
+
+    def test_no_mass_no_formula_raises(self):
+        df = _base_df(SumFormula=[''], Mass=[0.0])
+        with self.assertRaises(ValueError) as ctx:
+            pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
+        self.assertIn('Mass', str(ctx.exception))
+
+    def test_zero_charge_raises(self):
+        df = _base_df(Charge=[0])
+        with self.assertRaises(ValueError) as ctx:
+            pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
+        self.assertIn('non-zero', str(ctx.exception))
+
+    def test_rt_range_length_mismatch_raises(self):
+        # 2 RT ranges for 3 RTs is neither 1 nor len(rts) -> error.
+        df = _base_df(RetentionTime=[[100.0, 200.0, 300.0]],
+                      RetentionTimeRange=[[5.0, 10.0]])
+        with self.assertRaises(ValueError) as ctx:
+            pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
+        self.assertIn('RetentionTimeRange', str(ctx.exception))
+
+    def test_ion_mobility_length_mismatch_raises(self):
+        df = _base_df(RetentionTime=[[100.0, 200.0, 300.0]],
+                      IonMobility=[[0.8, 0.9]])
+        with self.assertRaises(ValueError) as ctx:
+            pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
+        self.assertIn('IonMobility', str(ctx.exception))
+
+    def test_rt_range_broadcast_ok(self):
+        # A single RT range broadcasts to all RTs.
+        df = _base_df(RetentionTime=[[100.0, 200.0, 300.0]],
+                      RetentionTimeRange=[5.0])
+        compounds = pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
+        self.assertEqual(list(compounds[0].getRTRanges()), [5.0])
 
     def test_numpy_arrays_in_multivalue_fields(self):
         df = _base_df(
@@ -232,6 +274,54 @@ class TestCompoundsFromDF(unittest.TestCase):
             'RetentionTime', 'RetentionTimeRange', 'IsoDistribution')})
         compounds = pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
         self.assertEqual(len(compounds), 0)
+
+
+class TestCompoundsToDF(unittest.TestCase):
+    """Test cases for FeatureFinderAlgorithmMetaboIdent.compounds_to_df()."""
+
+    def test_columns_and_values(self):
+        df = _base_df(IonMobility=[0.95], Adduct=['[M-H]-'])
+        compounds = pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
+        out = pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_to_df(compounds)
+        self.assertEqual(list(out.columns), [
+            'CompoundName', 'SumFormula', 'Mass', 'Charge', 'RetentionTime',
+            'RetentionTimeRange', 'IsoDistribution', 'IonMobility', 'Adduct'])
+        self.assertEqual(out.iloc[0]['CompoundName'], 'glucose')
+        self.assertEqual(out.iloc[0]['Charge'], [-1])
+        self.assertEqual(out.iloc[0]['IonMobility'], [0.95])
+        self.assertEqual(out.iloc[0]['Adduct'], '[M-H]-')
+
+    def test_empty_list(self):
+        out = pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_to_df([])
+        self.assertEqual(len(out), 0)
+        self.assertIn('IonMobility', out.columns)
+
+    def test_round_trip(self):
+        df = pd.DataFrame({
+            'CompoundName': ['glucose', 'fructose'],
+            'SumFormula': ['C6H12O6', ''],
+            'Mass': [0.0, 180.063],
+            'Charge': [[-1], [1, 2]],
+            'RetentionTime': [[123.4], [200.0, 250.0]],
+            'RetentionTimeRange': [[0.0], [5.0]],
+            'IsoDistribution': [[0.0], [0.0]],
+            'IonMobility': [[], [0.9]],
+            'Adduct': ['[M-H]-', ''],
+        })
+        c1 = pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
+        df2 = pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_to_df(c1)
+        c2 = pyopenms.FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df2)
+
+        self.assertEqual(len(c1), len(c2))
+        for a, b in zip(c1, c2):
+            self.assertEqual(a.getName(), b.getName())
+            self.assertEqual(a.getFormula(), b.getFormula())
+            self.assertAlmostEqual(a.getMass(), b.getMass())
+            self.assertEqual(list(a.getCharges()), list(b.getCharges()))
+            self.assertEqual(list(a.getRTs()), list(b.getRTs()))
+            self.assertEqual(list(a.getRTRanges()), list(b.getRTRanges()))
+            self.assertEqual(list(a.getIonMobilities()), list(b.getIonMobilities()))
+            self.assertEqual(a.getAdduct(), b.getAdduct())
 
 
 class TestRunFromDF(unittest.TestCase):
