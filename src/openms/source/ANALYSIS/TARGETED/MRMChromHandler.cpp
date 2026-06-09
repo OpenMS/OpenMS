@@ -88,15 +88,15 @@ namespace OpenMS
     std::string nid_out;
     if (prec_mz > 0 && prod_mz > 0)
     {
-      nid_out =std::string("precursor=") + StringUtils::toStr(prec_mz) + ",product=" + StringUtils::toStr(prod_mz);
+      nid_out ="precursor=" + StringUtils::toStr(prec_mz) + ",product=" + StringUtils::toStr(prod_mz);
     }
     else if (prod_mz > 0)
     {
-      nid_out =std::string("product=") + StringUtils::toStr(prod_mz);
+      nid_out ="product=" + StringUtils::toStr(prod_mz);
     }
     else if (prec_mz > 0)
     {
-      nid_out =std::string("precursor=") + StringUtils::toStr(prec_mz);
+      nid_out ="precursor=" + StringUtils::toStr(prec_mz);
     }
 
     if (!nid_out.empty()) chrom.setNativeID(nid_out);

@@ -360,7 +360,7 @@ protected:
               peptide_ids_seq[j].setMZ(real_mz);
             }
 
-            writeDebug_(std::string("scan: ") + StringUtils::toStr(scan_number) + std::string("  RT: ") + StringUtils::toStr(peptide_ids_seq[j].getRT()) + "  MZ: " + StringUtils::toStr(peptide_ids_seq[j].getMZ()) + "  Ident: " + peptide_ids_seq[j].getIdentifier(), 4);
+            writeDebug_("scan: " + StringUtils::toStr(scan_number) + std::string("  RT: ") + StringUtils::toStr(peptide_ids_seq[j].getRT()) + "  MZ: " + StringUtils::toStr(peptide_ids_seq[j].getMZ()) + "  Ident: " + peptide_ids_seq[j].getIdentifier(), 4);
 
             peptide_identifications.push_back(peptide_ids_seq[j]);
           }

@@ -167,7 +167,7 @@ namespace OpenMS
     const auto range_IM = RangeMobility(in.spectrumRanges());
     if (range_IM.getSpan() / number_of_bins < bin_extension_abs * 2)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Bin size (") + StringUtils::toStr(range_IM.getSpan() / number_of_bins) + ") is smaller than the overlap.",StringUtils::toStr(bin_extension_abs*2));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,"Bin size (" + StringUtils::toStr(range_IM.getSpan() / number_of_bins) + ") is smaller than the overlap.",StringUtils::toStr(bin_extension_abs*2));
     }
 
     // compute the bins

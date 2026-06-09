@@ -1162,7 +1162,7 @@ namespace OpenMS
       scoreSpectraAgainstIndex_(spectra, chunk_fi, chunk_db, spectrum_generator,
                                 effective_fragment_tol, fragment_mass_tolerance_unit_ppm,
                                 open_search_mode, annotated_hits,
-                                std::string("Scoring chunk ") + StringUtils::toStr(chunk_idx) + "...");
+                                "Scoring chunk " + StringUtils::toStr(chunk_idx) + "...");
 
       // Prune to top-N per spectrum after each chunk to bound memory growth.
       // Without this, K chunks × T candidates per spectrum could accumulate
@@ -1880,7 +1880,7 @@ namespace OpenMS
                                     spectrum_generator, per_file_cal[i].effective_fragment_tol,
                                     fragment_mass_tolerance_unit_ppm, open_search_mode,
                                     per_file_hits[i],
-                                    std::string("  file ") + StringUtils::toStr(i + 1) + " chunk " + StringUtils::toStr(chunk_idx));
+                                    "  file " + StringUtils::toStr(i + 1) + " chunk " + StringUtils::toStr(chunk_idx));
         }
         // Restore base FI params for next chunk (in case calibration modified them).
         if (calibration_enabled_ && !open_search_mode)

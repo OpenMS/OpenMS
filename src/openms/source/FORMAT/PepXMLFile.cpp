@@ -1400,7 +1400,7 @@ namespace OpenMS
       }
       else if (scannr_ != 0)
       {
-        current_peptide_.setSpectrumReference(std::string("scan=") + StringUtils::toStr(scannr_));
+        current_peptide_.setSpectrumReference("scan=" + StringUtils::toStr(scannr_));
       }
       //TODO else error?
       
@@ -1736,7 +1736,7 @@ namespace OpenMS
           {
             if (mods.size() > 1)
             {
-              warning(LOAD,std::string("Modification '") + StringUtils::toStr(modification_mass) + "' of residue " + std::string(origin) + " at position "
+              warning(LOAD,"Modification '" + StringUtils::toStr(modification_mass) + "' of residue " + std::string(origin) + " at position "
               + StringUtils::toStr(modification_position) + " in '" + current_sequence_ + "' not registered in pepXML header nor uniquely defined in DB." +
               " Using " + mods[0]->getFullId());
               current_modifications_.emplace_back(mods[0], modification_position - 1);

@@ -761,7 +761,7 @@ namespace OpenMS
         if (fm_out[f0_idx].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
           if (ef_l.toString() != fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Decharging produced inconsistent adduct annotation! [expected: ") + StringUtils::toStr(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_l.toString());
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,"Decharging produced inconsistent adduct annotation! [expected: " + StringUtils::toStr(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_l.toString());
         }
         else
         {
@@ -785,7 +785,7 @@ namespace OpenMS
         if (fm_out[f1_idx].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
           if (ef_r.toString() != fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Decharging produced inconsistent adduct annotation! [expected: ") + StringUtils::toStr(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_r.toString());
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,"Decharging produced inconsistent adduct annotation! [expected: " + StringUtils::toStr(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_r.toString());
         }
         else
         {

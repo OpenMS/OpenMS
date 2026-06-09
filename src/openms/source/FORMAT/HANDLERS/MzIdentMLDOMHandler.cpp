@@ -403,7 +403,7 @@ namespace OpenMS::Internal
               list<std::string> pepevs;
               for (vector<OpenMS::PeptideEvidence>::const_iterator pev = ph->getPeptideEvidences().begin(); pev != ph->getPeptideEvidences().end(); ++pev)
               {
-                std::string pepevref =std::string("OpenMS") + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
+                std::string pepevref ="OpenMS" + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
                 pv_db_map_.insert(make_pair(pepevref, pev->getProteinAccession()));
                 pepevs.push_back(pepevref);
                 bool idec = StringUtils::hasSubstring(StringUtils::toStr(ph->getMetaValue(Constants::UserParam::TARGET_DECOY)), "decoy");
@@ -412,7 +412,7 @@ namespace OpenMS::Internal
               }
               hit_pev_.push_back(pepevs);
 
-              std::string pepref =std::string("OpenMS") + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
+              std::string pepref ="OpenMS" + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
               if (pepset.contains(ph->getSequence()))
               {
                 pepset.insert(ph->getSequence());

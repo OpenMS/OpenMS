@@ -154,7 +154,7 @@ namespace OpenMS
 
           //TODO if ratios have high variance emit a warning!
 
-          protein_ident.getHits()[i].setMetaValue(std::string("ratio_") + StringUtils::toStr(it_file->first), protein_ratio);
+          protein_ident.getHits()[i].setMetaValue("ratio_" + StringUtils::toStr(it_file->first), protein_ratio);
         }
 
       } // ! map loop

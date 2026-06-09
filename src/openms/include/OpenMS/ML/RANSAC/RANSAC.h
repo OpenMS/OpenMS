@@ -140,7 +140,7 @@ public:
         if (pairs.size() <= n)
         {
           throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        std::string("RANSAC: Number of total data points (") + StringUtils::toStr(pairs.size()) + ") must be larger than number of initial points (n=" + StringUtils::toStr(n) + ").");
+                                        "RANSAC: Number of total data points (" + StringUtils::toStr(pairs.size()) + ") must be larger than number of initial points (n=" + StringUtils::toStr(n) + ").");
         }
 
         TModelType model;

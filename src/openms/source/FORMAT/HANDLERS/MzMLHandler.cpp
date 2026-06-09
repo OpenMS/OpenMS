@@ -4222,7 +4222,7 @@ namespace OpenMS::Internal
         //write source file of run
         for (Size i = 0; i < exp.getSourceFiles().size(); ++i)
         {
-          writeSourceFile_(os,std::string("sf_ru_") + StringUtils::toStr(i), exp.getSourceFiles()[i], validator);
+          writeSourceFile_(os,"sf_ru_" + StringUtils::toStr(i), exp.getSourceFiles()[i], validator);
         }
 
         // write source files of spectra

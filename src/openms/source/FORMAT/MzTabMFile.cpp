@@ -382,17 +382,17 @@ namespace OpenMS
 
     for (const auto& a : meta.assay)
     {
-      header.emplace_back(std::string("abundance_assay[") + StringUtils::toStr(a.first) + std::string("]"));
+      header.emplace_back("abundance_assay[" + StringUtils::toStr(a.first) + std::string("]"));
     }
 
     for (const auto& a : meta.study_variable)
     {
-      header.emplace_back(std::string("abundance_study_variable[") + StringUtils::toStr(a.first) + std::string("]"));
+      header.emplace_back("abundance_study_variable[" + StringUtils::toStr(a.first) + std::string("]"));
     }
 
     for (const auto& a : meta.study_variable)
     {
-      header.emplace_back(std::string("abundance_variation_study_variable[") + StringUtils::toStr(a.first) + std::string("]"));
+      header.emplace_back("abundance_variation_study_variable[" + StringUtils::toStr(a.first) + std::string("]"));
     }
 
     std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
@@ -455,7 +455,7 @@ namespace OpenMS
 
    for (const auto& a : meta.assay)
    {
-     header.emplace_back(std::string("abundance_assay[") + StringUtils::toStr(a.first) + std::string("]"));
+     header.emplace_back("abundance_assay[" + StringUtils::toStr(a.first) + std::string("]"));
    }
 
    std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
@@ -511,7 +511,7 @@ namespace OpenMS
 
     for (const auto& id_conf : meta.id_confidence_measure)
     {
-      header.emplace_back(std::string("id_confidence_measure[") + StringUtils::toStr(id_conf.first) + std::string("]"));
+      header.emplace_back("id_confidence_measure[" + StringUtils::toStr(id_conf.first) + std::string("]"));
     }
 
     header.emplace_back("rank");

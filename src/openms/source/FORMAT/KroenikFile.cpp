@@ -47,7 +47,7 @@ namespace OpenMS
       if (parts.size() != 14)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
-                                    std::string("Failed parsing in line ")
+                                    "Failed parsing in line "
                                     + StringUtils::toStr((it - input.begin()) + 1)
                                     + ": missing 14 tab-separated entries (got "
                                     + StringUtils::toStr(parts.size())

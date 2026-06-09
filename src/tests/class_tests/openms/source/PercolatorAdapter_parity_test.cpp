@@ -276,7 +276,7 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
       }
       if (acc_sub != acc_inp)
       {
-        TEST_EQUAL(std::string("q=") + StringUtils::toStr(thr) + " accepted-set mismatch: sub="
+        TEST_EQUAL("q=" + StringUtils::toStr(thr) + " accepted-set mismatch: sub="
                    + StringUtils::toStr(acc_sub.size()) + " inp=" + StringUtils::toStr(acc_inp.size()),
                    std::string("sets match"))
       }

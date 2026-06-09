@@ -185,7 +185,7 @@ namespace OpenMS
 
     // assign instance number
     *const_cast<int*>(&instance_number_) = getParamAsInt_("instance", 1);
-    writeDebug_(std::string("Instance: ") + StringUtils::toStr(instance_number_), 1);
+    writeDebug_("Instance: " + StringUtils::toStr(instance_number_), 1);
 
     // assign ini location
     *const_cast<std::string*>(&ini_location_) = this->getToolPrefix();
@@ -193,7 +193,7 @@ namespace OpenMS
 
     // set debug level
     debug_level_ = getParamAsInt_("debug", 0);
-    writeDebug_(std::string("Debug level: ") + StringUtils::toStr(debug_level_), 1);
+    writeDebug_("Debug level: " + StringUtils::toStr(debug_level_), 1);
 
     // print command line to console
     StringList args;
@@ -455,7 +455,7 @@ namespace OpenMS
       // debug level
       //-------------------------------------------------------------
       debug_level_ = getParamAsInt_("debug", 0);
-      writeDebug_(std::string("Debug level (after ini file): ") + StringUtils::toStr(debug_level_), 1);
+      writeDebug_("Debug level (after ini file): " + StringUtils::toStr(debug_level_), 1);
       if (debug_level_ > 0) getGlobalLogDebug().insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
 
       //-------------------------------------------------------------
@@ -2234,7 +2234,7 @@ namespace OpenMS
 
     // Descriptions
     tmp.setSectionDescription(tool_name_, tool_description_);
-    tmp.setSectionDescription(tool_name_ + ":" + StringUtils::toStr(instance_number_),std::string("Instance '") + StringUtils::toStr(instance_number_) + "' section for '" + tool_name_ + "'");
+    tmp.setSectionDescription(tool_name_ + ":" + StringUtils::toStr(instance_number_),"Instance '" + StringUtils::toStr(instance_number_) + "' section for '" + tool_name_ + "'");
 
     // add type (as default type is "", but .ini file should have it)
     if (param_cmdline_.exists("type"))

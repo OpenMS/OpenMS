@@ -1458,7 +1458,7 @@ namespace OpenMS
     for (Size i = 0; i < headers_.size(); ++i)
     {
       const auto& h = headers_[i];
-      std::string db_label = h.db_name.empty() ? std::string("database block ") + StringUtils::toStr(i + 1) : h.db_name;
+      std::string db_label = h.db_name.empty() ? "database block " + StringUtils::toStr(i + 1) : h.db_name;
 
       // Fix #16: Database blocks must start with DbName
       if (h.db_name.empty())

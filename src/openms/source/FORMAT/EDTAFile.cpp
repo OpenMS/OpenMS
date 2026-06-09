@@ -168,7 +168,7 @@ namespace OpenMS
       if (parts.size() < 3)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
-                                    std::string("Failed parsing in line ")
+                                    "Failed parsing in line "
                                     + StringUtils::toStr((input_it - input.begin()) + 1)
                                     + ": At least three columns are needed! (got  "
                                     + StringUtils::toStr(parts.size())
@@ -198,7 +198,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException&)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("Failed parsing in line ") + StringUtils::toStr((input_it - input.begin()) + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + StringUtils::toStr((input_it - input.begin()) + 1) + ")\n");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "","Failed parsing in line " + StringUtils::toStr((input_it - input.begin()) + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + StringUtils::toStr((input_it - input.begin()) + 1) + ")\n");
       }
 
       // Check all features in one line
@@ -228,7 +228,7 @@ namespace OpenMS
         }
         catch (Exception::BaseException&)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("Failed parsing in line ") + StringUtils::toStr((input_it - input.begin()) + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j * 4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + StringUtils::toStr((input_it - input.begin()) + 1) + ")\n");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "","Failed parsing in line " + StringUtils::toStr((input_it - input.begin()) + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j * 4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + StringUtils::toStr((input_it - input.begin()) + 1) + ")\n");
         }
       }
 
@@ -263,7 +263,7 @@ namespace OpenMS
     // (in this case the 'input_features' includes the centroid, which we do not count)
     for (Size i = 0; i < maps; ++i)
     {
-      fd.label =std::string("EDTA_Map ") + StringUtils::toStr(i);
+      fd.label ="EDTA_Map " + StringUtils::toStr(i);
       consensus_map.getColumnHeaders()[i] = fd;
     }
 

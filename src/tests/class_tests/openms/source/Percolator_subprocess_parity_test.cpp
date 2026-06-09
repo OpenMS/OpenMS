@@ -1130,7 +1130,7 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
       }
       if (a_in != a_sub)
       {
-        TEST_EQUAL(std::string("q=") + StringUtils::toStr(thr) + " accepted-set mismatch: in="
+        TEST_EQUAL("q=" + StringUtils::toStr(thr) + " accepted-set mismatch: in="
                    + StringUtils::toStr(a_in.size()) + " sub=" + StringUtils::toStr(a_sub.size()),
                    std::string("sets match"))
       }

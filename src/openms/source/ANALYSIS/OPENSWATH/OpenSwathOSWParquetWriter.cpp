@@ -371,7 +371,7 @@ namespace OpenMS
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Existing library at '" + library_dir + "' appears incompatible with provided assay_library. Please rebuild the library or use a different output path.",
-                                      std::string("existing_precursors=") + StringUtils::toStr(existing_precursors) + ", expected_precursors=" + StringUtils::toStr(expected_precursors));
+                                      "existing_precursors=" + StringUtils::toStr(existing_precursors) + ", expected_precursors=" + StringUtils::toStr(expected_precursors));
       }
     }
     if (!library_ready)

@@ -3271,7 +3271,7 @@ namespace OpenMS
       }
 
       FrameCentroider centroider;
-      startProgress(0, frame_ids.size(),std::string("Loading MS") + StringUtils::toStr(level) + " frames");
+      startProgress(0, frame_ids.size(),"Loading MS" + StringUtils::toStr(level) + " frames");
       for (size_t i = 0; i < frame_ids.size(); ++i)
       {
         TimsFrame& frame = handle.get_frame(frame_ids[i]);

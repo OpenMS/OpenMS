@@ -221,7 +221,7 @@ public:
           // keep the first Precursor
           if (pcs.empty())
           {
-            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Scan #") + StringUtils::toStr(i) + " does not contain any precursor information! Unable to cluster!");
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,"Scan #" + StringUtils::toStr(i) + " does not contain any precursor information! Unable to cluster!");
           }
           if (pcs.size() > 1)
           {

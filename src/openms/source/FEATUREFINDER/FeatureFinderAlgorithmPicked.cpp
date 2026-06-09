@@ -447,7 +447,7 @@ namespace OpenMS
       //-----------------------------------------------------------
       // Step 3.1: Precalculate IsotopePattern score
       //-----------------------------------------------------------
-      startProgress(0, map_.size(),std::string("Calculating isotope pattern scores for charge ") + StringUtils::toStr(c));
+      startProgress(0, map_.size(),"Calculating isotope pattern scores for charge " + StringUtils::toStr(c));
       for (Size s = 0; s < map_.size(); ++s)
       {
         setProgress(s);
@@ -491,7 +491,7 @@ namespace OpenMS
       // Find seeds for this charge
       //-----------------------------------------------------------
       Size end_of_iteration = map_.size() - std::min((Size)min_spectra_, map_.size());
-      startProgress(min_spectra_, end_of_iteration,std::string("Finding seeds for charge ") + StringUtils::toStr(c));
+      startProgress(min_spectra_, end_of_iteration,"Finding seeds for charge " + StringUtils::toStr(c));
 
       double min_seed_score = param_.getValue("seed:min_score");
       //do nothing for the first few and last few spectra as the scans required to search for traces are missing
@@ -567,7 +567,7 @@ namespace OpenMS
           tmp.setMetaValue("trace_score", meta[0][peak]);
           seed_map.push_back(tmp);
         }
-        FileHandler().storeFeatures(std::string("debug/seeds_") + StringUtils::toStr(c) + ".featureXML", seed_map);
+        FileHandler().storeFeatures("debug/seeds_" + StringUtils::toStr(c) + ".featureXML", seed_map);
       }
 
       endProgress();
@@ -590,7 +590,7 @@ namespace OpenMS
       typedef std::map<Size, Feature> FeatureMapType;
       FeatureMapType tmp_feature_map;
       int gl_progress = 0;
-      startProgress(0, seeds.size(),std::string("Extending seeds for charge ") + StringUtils::toStr(c));
+      startProgress(0, seeds.size(),"Extending seeds for charge " + StringUtils::toStr(c));
 
 #pragma omp parallel for
       for (SignedSize i = 0; i < (SignedSize)seeds.size(); ++i)

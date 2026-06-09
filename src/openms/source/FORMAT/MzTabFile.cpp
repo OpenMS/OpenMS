@@ -2027,7 +2027,7 @@ namespace OpenMS
 
     for (Size i = 0; i != n_best_search_engine_scores; ++i)
     {
-      header.push_back(std::string("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back("best_search_engine_score[" + StringUtils::toStr(i + 1) + "]");
     }
 
     if (n_search_engine_scores != 0)
@@ -2049,17 +2049,17 @@ namespace OpenMS
 
     for (std::map<Size, MzTabInteger>::const_iterator it = reference_row.num_psms_ms_run.begin(); it != reference_row.num_psms_ms_run.end(); ++it)
     {
-      header.push_back(std::string("num_psms_ms_run[") + StringUtils::toStr(it->first) + "]");
+      header.push_back("num_psms_ms_run[" + StringUtils::toStr(it->first) + "]");
     }
 
     for (std::map<Size, MzTabInteger>::const_iterator it = reference_row.num_peptides_distinct_ms_run.begin(); it != reference_row.num_peptides_distinct_ms_run.end(); ++it)
     {
-      header.push_back(std::string("num_peptides_distinct_ms_run[") + StringUtils::toStr(it->first) + "]");
+      header.push_back("num_peptides_distinct_ms_run[" + StringUtils::toStr(it->first) + "]");
     }
 
     for (std::map<Size, MzTabInteger>::const_iterator it = reference_row.num_peptides_unique_ms_run.begin(); it != reference_row.num_peptides_unique_ms_run.end(); ++it)
     {
-      header.push_back(std::string("num_peptides_unique_ms_run[") + StringUtils::toStr(it->first) + "]");
+      header.push_back("num_peptides_unique_ms_run[" + StringUtils::toStr(it->first) + "]");
     }
 
     header.push_back("ambiguity_members");
@@ -2079,14 +2079,14 @@ namespace OpenMS
 
     for (const auto& a : meta.assay)
     {
-      header.push_back(std::string("protein_abundance_assay[") + StringUtils::toStr(a.first) + "]");
+      header.push_back("protein_abundance_assay[" + StringUtils::toStr(a.first) + "]");
     }
 
     for (const auto& s : meta.study_variable)
     {
-      header.push_back(std::string("protein_abundance_study_variable[") + StringUtils::toStr(s.first) + "]");
-      header.push_back(std::string("protein_abundance_stdev_study_variable[") + StringUtils::toStr(s.first) + "]");
-      header.push_back(std::string("protein_abundance_std_error_study_variable[") + StringUtils::toStr(s.first) + "]");
+      header.push_back("protein_abundance_study_variable[" + StringUtils::toStr(s.first) + "]");
+      header.push_back("protein_abundance_stdev_study_variable[" + StringUtils::toStr(s.first) + "]");
+      header.push_back("protein_abundance_std_error_study_variable[" + StringUtils::toStr(s.first) + "]");
     }
 
     std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
@@ -2224,7 +2224,7 @@ namespace OpenMS
 
     for (Size i = 0; i != n_best_search_engine_scores; ++i)
     {
-      header.push_back(std::string("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back("best_search_engine_score[" + StringUtils::toStr(i + 1) + "]");
     }
 
     for (Size i = 0; i != search_ms_runs; ++i)
@@ -2255,14 +2255,14 @@ namespace OpenMS
 
     for (Size i = 0; i != assays; ++i)
     {
-      header.push_back(std::string("peptide_abundance_assay[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back("peptide_abundance_assay[" + StringUtils::toStr(i + 1) + "]");
     }
 
     for (Size i = 0; i != study_variables; ++i)
     {
-      header.push_back(std::string("peptide_abundance_study_variable[") + StringUtils::toStr(i + 1) + "]");
-      header.push_back(std::string("peptide_abundance_stdev_study_variable[") + StringUtils::toStr(i + 1) + "]");
-      header.push_back(std::string("peptide_abundance_std_error_study_variable[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back("peptide_abundance_study_variable[" + StringUtils::toStr(i + 1) + "]");
+      header.push_back("peptide_abundance_stdev_study_variable[" + StringUtils::toStr(i + 1) + "]");
+      header.push_back("peptide_abundance_std_error_study_variable[" + StringUtils::toStr(i + 1) + "]");
     }
 
     std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
@@ -2465,7 +2465,7 @@ namespace OpenMS
 
     for (Size i = 0; i != n_best_search_engine_scores; ++i)
     {
-      header.push_back(std::string("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back("best_search_engine_score[" + StringUtils::toStr(i + 1) + "]");
     }
 
     for (Size i = 0; i != ms_runs; ++i)
@@ -2480,14 +2480,14 @@ namespace OpenMS
 
     for (Size i = 0; i != assays; ++i)
     {
-      header.push_back(std::string("smallmolecule_abundance_assay[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back("smallmolecule_abundance_assay[" + StringUtils::toStr(i + 1) + "]");
     }
 
     for (Size i = 0; i != study_variables; ++i)
     {
-      header.push_back(std::string("smallmolecule_abundance_study_variable[") + StringUtils::toStr(i + 1) + "]");
-      header.push_back(std::string("smallmolecule_abundance_stdev_study_variable[") + StringUtils::toStr(i + 1) + "]");
-      header.push_back(std::string("smallmolecule_abundance_std_error_study_variable[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back("smallmolecule_abundance_study_variable[" + StringUtils::toStr(i + 1) + "]");
+      header.push_back("smallmolecule_abundance_stdev_study_variable[" + StringUtils::toStr(i + 1) + "]");
+      header.push_back("smallmolecule_abundance_std_error_study_variable[" + StringUtils::toStr(i + 1) + "]");
     }
 
     // copy optional column names to header
@@ -2581,7 +2581,7 @@ namespace OpenMS
 
     for (Size i = 0; i != n_best_search_engine_scores; ++i)
     {
-      header.push_back(std::string("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back("best_search_engine_score[" + StringUtils::toStr(i + 1) + "]");
     }
 
     for (Size i = 0; i != search_ms_runs; ++i)
@@ -2599,17 +2599,17 @@ namespace OpenMS
 
     for (Size i = 0; i != search_ms_runs; ++i)
     {
-      header.push_back(std::string("num_osms_ms_run[")  + StringUtils::toStr(i) +  "]");
+      header.push_back("num_osms_ms_run["  + StringUtils::toStr(i) +  "]");
     }
 
     for (Size i = 0; i != search_ms_runs; ++i)
     {
-      header.push_back(std::string("num_oligos_distinct_ms_run[")  + StringUtils::toStr(i) +  "]");
+      header.push_back("num_oligos_distinct_ms_run["  + StringUtils::toStr(i) +  "]");
     }
 
     for (Size i = 0; i != search_ms_runs; ++i)
     {
-      header.push_back(std::string("num_oligos_unique_ms_run[")  + StringUtils::toStr(i) +  "]");
+      header.push_back("num_oligos_unique_ms_run["  + StringUtils::toStr(i) +  "]");
     }
 
     header.push_back("ambiguity_members");
@@ -2711,7 +2711,7 @@ namespace OpenMS
 
     for (Size i = 0; i != n_best_search_engine_scores; ++i)
     {
-      header.push_back(std::string("best_search_engine_score[") + StringUtils::toStr(i + 1) + "]");
+      header.push_back("best_search_engine_score[" + StringUtils::toStr(i + 1) + "]");
     }
 
     for (Size i = 0; i != search_ms_runs; ++i)

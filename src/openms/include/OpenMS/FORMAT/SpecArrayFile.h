@@ -71,7 +71,7 @@ public:
 
         if (parts.size() < 5)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("Failed to convert line")  + StringUtils::toStr((it - input.begin()) + 1) + "not enough columns (expected 5 or more, got " + StringUtils::toStr(parts.size()) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "","Failed to convert line"  + StringUtils::toStr((it - input.begin()) + 1) + "not enough columns (expected 5 or more, got " + StringUtils::toStr(parts.size()) + ")");
         }
 
         Feature f;
@@ -85,7 +85,7 @@ public:
         }
         catch ( Exception::BaseException& )
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("Failed to convert value into a number (line '") + StringUtils::toStr((it - input.begin()) + 1) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "","Failed to convert value into a number (line '" + StringUtils::toStr((it - input.begin()) + 1) + ")");
         }
         feature_map.push_back(f);
       }

@@ -155,7 +155,7 @@ protected:
         // determine if design defines more than one fraction
         frac2files = ed.getFractionToMSFilesMapping();
 
-        writeDebug_(std::string("Grouping ") + StringUtils::toStr(ed.getNumberOfFractions()) + " fractions.", 3);
+        writeDebug_("Grouping " + StringUtils::toStr(ed.getNumberOfFractions()) + " fractions.", 3);
 
         // check if all fractions have the same number of MS runs associated
         if (!ed.sameNrOfMSFilesPerFraction())
@@ -168,7 +168,7 @@ protected:
       {
         for (Size i = 0; i != ins.size(); ++i)
         {
-          frac2files[1].emplace_back(std::string("file") + StringUtils::toStr(i)); // associate each run with fraction 1
+          frac2files[1].emplace_back("file" + StringUtils::toStr(i)); // associate each run with fraction 1
         }
       }
 
@@ -262,7 +262,7 @@ protected:
       }
       else // group multiple fractions
       {
-        writeDebug_(std::string("Stored in ") + StringUtils::toStr(maps.size()) + " maps.", 3);
+        writeDebug_("Stored in " + StringUtils::toStr(maps.size()) + " maps.", 3);
         for (Size i = 1; i <= frac2files.size(); ++i)
         {
           vector<FeatureMap> fraction_maps;

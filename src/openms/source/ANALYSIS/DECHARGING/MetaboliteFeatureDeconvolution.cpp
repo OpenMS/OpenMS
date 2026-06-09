@@ -333,7 +333,7 @@ namespace OpenMS
     if (fm_out[f_idx].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
     {
       if (ef_.toString() != fm_out[f_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Decharging produced inconsistent adduct annotation! [expected: ") + StringUtils::toStr(fm_out[f_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_.toString());
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,"Decharging produced inconsistent adduct annotation! [expected: " + StringUtils::toStr(fm_out[f_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_.toString());
     }
     else // set DC_CHARGE_ADDUCTS meta value and set it to the formula from EmpiricalFormula, also set the adduct string in "adducts" meta value
     {

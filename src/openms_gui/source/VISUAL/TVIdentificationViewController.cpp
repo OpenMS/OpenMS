@@ -275,7 +275,7 @@ namespace OpenMS
         if (ith->second.size() > 3)
         {
           Size s = ith->second.size();
-          ith->second[3] = std::string("...") + StringUtils::toStr(s-3) + " more";
+          ith->second[3] = "..." + StringUtils::toStr(s-3) + " more";
           ith->second.resize(4);
         }
         text += " - " + ListUtils::concatenate(ith->second, "<br> - ") + "<br>\n";

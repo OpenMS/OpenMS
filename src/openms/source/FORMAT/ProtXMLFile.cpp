@@ -211,7 +211,7 @@ namespace OpenMS
       }
       else
       {
-        error(LOAD,std::string("Cannot find modification '") + StringUtils::toStr(mass) + " " + std::string(origin) + "' @" + StringUtils::toStr(position));
+        error(LOAD,"Cannot find modification '" + StringUtils::toStr(mass) + " " + std::string(origin) + "' @" + StringUtils::toStr(position));
       }
 
       pep_hit_->setSequence(temp_aa_sequence);

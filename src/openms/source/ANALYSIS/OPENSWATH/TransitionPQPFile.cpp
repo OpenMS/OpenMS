@@ -64,7 +64,7 @@ namespace OpenMS
       {
         sqlite_threads = 1;
       }
-      SqliteConnector::executeStatement(db, std::string("PRAGMA threads = ") + StringUtils::toStr(sqlite_threads) + ";");
+      SqliteConnector::executeStatement(db, "PRAGMA threads = " + StringUtils::toStr(sqlite_threads) + ";");
 #endif
     }
   }

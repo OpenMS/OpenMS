@@ -229,7 +229,7 @@ namespace OpenMS
     }
     else
     {
-      return std::string("ms_run[") + StringUtils::toStr(ms_run_) + "]:" + spec_ref_;
+      return "ms_run[" + StringUtils::toStr(ms_run_) + "]:" + spec_ref_;
     }
   }
 

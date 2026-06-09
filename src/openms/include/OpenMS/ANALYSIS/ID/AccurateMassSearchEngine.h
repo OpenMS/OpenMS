@@ -403,11 +403,11 @@ private:
               ion_mode_internal = pols[0];
               OPENMS_LOG_INFO << "Setting auto ion-mode to '" << ion_mode_internal << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
             }
-            else ion_mode_detect_msg =std::string("Meta value 'scan_polarity' does not contain unknown ion mode") + StringUtils::toStr(map[0].getMetaValue("scan_polarity"));
+            else ion_mode_detect_msg ="Meta value 'scan_polarity' does not contain unknown ion mode" + StringUtils::toStr(map[0].getMetaValue("scan_polarity"));
           }
           else
           {
-            ion_mode_detect_msg =std::string("ambiguous ion mode: ") + StringUtils::toStr(map[0].getMetaValue("scan_polarity"));
+            ion_mode_detect_msg ="ambiguous ion mode: " + StringUtils::toStr(map[0].getMetaValue("scan_polarity"));
           }
         }
         else

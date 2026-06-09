@@ -324,7 +324,7 @@ void NuXLFragmentIonGenerator::addPrecursorWithCompleteRNA_(
     partial_loss_spectrum_charge.push_back(charge);
     if (charge > 1)
     {
-      partial_loss_spectrum_annotation.push_back(std::string("[M+") 
+      partial_loss_spectrum_annotation.push_back("[M+" 
         + StringUtils::toStr(charge) + "H+" + precursor_rna_adduct + "]");
     } 
     else

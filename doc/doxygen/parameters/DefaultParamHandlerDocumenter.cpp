@@ -197,7 +197,7 @@ void writeParameters(const std::string& class_name, const Param& param, bool tab
       bool first = true;
       if (it->min_int != -(numeric_limits<Int>::max)())
       {
-        restrictions += std::string("min: ") + StringUtils::toStr(it->min_int);
+        restrictions += "min: " + StringUtils::toStr(it->min_int);
         first = false;
       }
       if (it->max_int != (numeric_limits<Int>::max)())
@@ -206,7 +206,7 @@ void writeParameters(const std::string& class_name, const Param& param, bool tab
         {
           restrictions += ' ';
         }
-        restrictions += std::string("max: ") + StringUtils::toStr(it->max_int);
+        restrictions += "max: " + StringUtils::toStr(it->max_int);
       }
     }
     else if (it->value.valueType() == ParamValue::DOUBLE_VALUE || it->value.valueType() == ParamValue::DOUBLE_LIST)
@@ -219,14 +219,14 @@ void writeParameters(const std::string& class_name, const Param& param, bool tab
       bool first = true;
       if (it->min_float != -(numeric_limits<double>::max)())
       {
-        restrictions += std::string("min: ") + StringUtils::toStr(it->min_float);
+        restrictions += "min: " + StringUtils::toStr(it->min_float);
         first = false;
       }
       if (it->max_float != (numeric_limits<double>::max)())
       {
         if (!first)
           restrictions += ' ';
-        restrictions += std::string("max: ") + StringUtils::toStr(it->max_float);
+        restrictions += "max: " + StringUtils::toStr(it->max_float);
       }
     }
     else if (it->value.valueType() == ParamValue::STRING_VALUE || it->value.valueType() == ParamValue::STRING_LIST)

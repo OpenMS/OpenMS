@@ -711,7 +711,7 @@ public:
 
       current_script.addLine(std::string("<tr>"));
       current_script.addLine("<td>search score</td>");
-      current_script.addLine(std::string("<td>") + StringUtils::toStr(sip_peptides[i].score) + "</td>");
+      current_script.addLine("<td>" + StringUtils::toStr(sip_peptides[i].score) + "</td>");
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
@@ -732,9 +732,9 @@ public:
       current_script.addLine("<tr>");
       for (Size k = 0; k != sip_peptides[i].incorporations.size(); ++k)
       {
-        current_script.addLine(std::string("<td>RIA") + StringUtils::toStr(k + 1) + "</td>");
-        current_script.addLine(std::string("<td>CORR.") + StringUtils::toStr(k + 1) + "</td>");
-        current_script.addLine(std::string("<td>INT") + StringUtils::toStr(k + 1) + "</td>");
+        current_script.addLine("<td>RIA" + StringUtils::toStr(k + 1) + "</td>");
+        current_script.addLine("<td>CORR." + StringUtils::toStr(k + 1) + "</td>");
+        current_script.addLine("<td>INT" + StringUtils::toStr(k + 1) + "</td>");
       }
       current_script.addLine("</tr>");
 
@@ -943,7 +943,7 @@ public:
       Size group_number_RIA = lround(Math::median(group_number_RIAs.begin(), group_number_RIAs.end(), false)); // median number of RIAs
       // Group header
       // Distinct peptides := different (on sequence level) unique and non-unique peptides
-      out_csv_stream << std::string("Group ") + StringUtils::toStr(pep_clust_i + 1) << "# Distinct Peptides" << "# Unambiguous Proteins" << "Median Global LR";
+      out_csv_stream << "Group " + StringUtils::toStr(pep_clust_i + 1) << "# Distinct Peptides" << "# Unambiguous Proteins" << "Median Global LR";
       for (Size i = 0; i != group_number_RIA; ++i)
       {
         out_csv_stream << "median RIA " + StringUtils::toStr(i + 1);

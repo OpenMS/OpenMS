@@ -2283,7 +2283,7 @@ namespace OpenMS::Internal
         { std::string from = std::string("experimentalMassToCharge=\"") + std::string(emz);
           std::string to = "experimentalMassToCharge=\"" + StringUtils::toStr(hit.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ));
           StringUtils::substitute(sii_tmp, from, to); } // mz
-        sii_tmp = StringUtils::substitute(sii_tmp, sii,std::string("SII_") + StringUtils::toStr(UniqueIdGenerator::getUniqueId())); // uid
+        sii_tmp = StringUtils::substitute(sii_tmp, sii,"SII_" + StringUtils::toStr(UniqueIdGenerator::getUniqueId())); // uid
         sii_tmp = StringUtils::substitute(sii_tmp, "value=\"" + ert, "value=\"" + StringUtils::toStr(hit.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT)));
 
         ProteinIdentification::SearchParameters search_params = cpro_id_->front().getSearchParameters();

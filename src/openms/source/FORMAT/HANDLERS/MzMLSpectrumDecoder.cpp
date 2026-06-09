@@ -555,7 +555,7 @@ namespace OpenMS
     }
 
     OPENMS_PRECONDITION(xercesc::XMLString::equals(elementRoot->getTagName(), CONST_XMLCH("spectrum")) || xercesc::XMLString::equals(elementRoot->getTagName(), CONST_XMLCH("chromatogram")),
-          (std::string("The input needs to contain a <spectrum> or <chromatogram> tag as root element. Got instead '") +
+          ("The input needs to contain a <spectrum> or <chromatogram> tag as root element. Got instead '" +
           StringUtils::toStr(Internal::unique_xerces_ptr(xercesc::XMLString::transcode(elementRoot->getTagName())).get()) + std::string("'.")).c_str())
 
     // defaultArrayLength is a required attribute for the spectrum and the

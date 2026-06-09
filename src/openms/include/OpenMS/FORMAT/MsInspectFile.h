@@ -77,7 +77,7 @@ public:
 
         if (parts.size() < 18)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("Failed to convert line ")  + StringUtils::toStr((it - input.begin()) + 1) + ". Not enough columns (expected 18 or more, got " + StringUtils::toStr(parts.size()) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "","Failed to convert line "  + StringUtils::toStr((it - input.begin()) + 1) + ". Not enough columns (expected 18 or more, got " + StringUtils::toStr(parts.size()) + ")");
         }
 
         //create feature
@@ -121,7 +121,7 @@ public:
         }
         catch ( Exception::BaseException& )
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("Failed to convert value in column ") + StringUtils::toStr(column_to_convert + 1) + " into a number (line '" + StringUtils::toStr((it - input.begin()) + 1) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "","Failed to convert value in column " + StringUtils::toStr(column_to_convert + 1) + " into a number (line '" + StringUtils::toStr((it - input.begin()) + 1) + ")");
         }
         f.setMetaValue("description", parts[17]);
         feature_map.push_back(f);

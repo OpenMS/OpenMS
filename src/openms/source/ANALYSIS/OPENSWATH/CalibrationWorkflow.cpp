@@ -610,7 +610,7 @@ namespace OpenMS
     if (pairs_corrected.size() < 2)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        std::string("Less than 2 iRT normalization peptides after outlier removal (have ") +
+        "Less than 2 iRT normalization peptides after outlier removal (have " +
         StringUtils::toStr(pairs_corrected.size()) + " from " + StringUtils::toStr(pairs.size()) + " initial matches, " +
         StringUtils::toStr(chromatograms.size()) + " chromatograms extracted). "
         "Not enough for an RT correction.");
