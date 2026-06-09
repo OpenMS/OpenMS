@@ -699,7 +699,7 @@ namespace OpenMS
         // Step 3.3.4:
         // Check if feature is ok
         //------------------------------------------------------------------
-        std::string error_msg = "";
+        std::string error_msg;
 
         double fit_score = 0.0;
         double correlation = 0.0;
@@ -1509,7 +1509,7 @@ namespace OpenMS
 
     UInt missing_peaks = 0;
     Size peaks_before_extension = trace.peaks.size();
-    std::string abort_reason = "";
+    std::string abort_reason;
 
     while ((!increase_rt && spectrum_index >= 0) || (increase_rt && spectrum_index < (SignedSize)map_.size()))
     {

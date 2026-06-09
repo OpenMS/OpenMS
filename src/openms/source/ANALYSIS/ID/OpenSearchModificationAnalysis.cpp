@@ -297,7 +297,7 @@ namespace OpenMS
           continue;
           
         double delta_mass = (double)hit.getMetaValue("DeltaMass");
-        std::string ptm = "";
+        std::string ptm;
 
         // Check if too close to zero
         if (std::abs(delta_mass) < DELTA_MASS_ZERO_THRESHOLD_)

@@ -254,7 +254,7 @@ namespace OpenMS::Internal
 
         //parse retention time and convert it from xs:duration to seconds
         double retention_time = 0.0;
-        std::string time_string = "";
+        std::string time_string;
         if (optionalAttributeAsString_(time_string, attributes, s_retentiontime_))
         {
           time_string = StringUtils::suffix(time_string, 'T');
@@ -319,14 +319,14 @@ namespace OpenMS::Internal
         spectrum_data_.back().spectrum.getInstrumentSettings().setPolarity((IonSource::Polarity) cvStringToEnum_(0, polarity, "polarity"));
 
         // Filter string (see CV term MS:1000512 in mzML)
-        std::string filterLine = "";
+        std::string filterLine;
         optionalAttributeAsString_(filterLine, attributes, s_filterline_);
         if (!filterLine.empty())
         {
           spectrum_data_.back().spectrum.setMetaValue("filter string", filterLine);
         }
 
-        std::string type = "";
+        std::string type;
         optionalAttributeAsString_(type, attributes, s_scantype_);
         if (type.empty())
         {
@@ -394,7 +394,7 @@ namespace OpenMS::Internal
         exp_->getContacts().back().setFirstName(attributeAsString_(attributes, s_first_));
         exp_->getContacts().back().setLastName(attributeAsString_(attributes, s_last_));
 
-        std::string tmp = "";
+        std::string tmp;
         optionalAttributeAsString_(tmp, attributes, s_email_);
         exp_->getContacts().back().setEmail(tmp);
 
@@ -440,7 +440,7 @@ namespace OpenMS::Internal
       {
         data_processing_.push_back(DataProcessingPtr(new DataProcessing));
 
-        std::string boolean = "";
+        std::string boolean;
         optionalAttributeAsString_(boolean, attributes, s_deisotoped_);
         if (boolean == "true" || boolean == "1")
         {
@@ -470,13 +470,13 @@ namespace OpenMS::Internal
       }
       else if (tag == "nameValue")
       {
-        std::string name = "";
+        std::string name;
         optionalAttributeAsString_(name, attributes, s_name_);
         if (name.empty())
         {
           return;
         }
-        std::string value = "";
+        std::string value;
         optionalAttributeAsString_(value, attributes, s_value_);
 
         std::string& parent_tag = *(open_tags_.end() - 2);
@@ -496,13 +496,13 @@ namespace OpenMS::Internal
       }
       else if (tag == "processingOperation")
       {
-        std::string name = "";
+        std::string name;
         optionalAttributeAsString_(name, attributes, s_name_);
         if (name.empty())
         {
           return;
         }
-        std::string value = "";
+        std::string value;
         optionalAttributeAsString_(value, attributes, s_value_);
 
         data_processing_.back()->setMetaValue(name, value);

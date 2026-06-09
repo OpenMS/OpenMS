@@ -39,7 +39,7 @@ namespace OpenMS
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, resolved);
     }
     std::string line, line_wo_spaces, id;
-    std::string origin = "";
+    std::string origin;
 
     bool skip_current_term = false;
 

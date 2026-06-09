@@ -3252,7 +3252,7 @@ protected:
       const double feature_hit_center_mz = feature_it->getMZ();
       const Int feature_hit_charge = feature_hit.getCharge();
 
-      std::string feature_hit_seq = "";
+      std::string feature_hit_seq;
       double feature_hit_theoretical_mz = 0;
       AASequence feature_hit_aaseq;
       // set theoretical mz of peptide hit to:

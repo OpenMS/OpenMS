@@ -131,7 +131,7 @@ namespace OpenMS
   // first native id in the spectrum.ms
   std::string SiriusFragmentAnnotation::extractFeatureIDFromSiriusMS_(const std::string& path_to_sirius_workspace)
   {
-    std::string fid = "";
+    std::string fid;
     const std::string sirius_spectrum_ms = path_to_sirius_workspace + "/spectrum.ms";
     ifstream spectrum_ms_file(sirius_spectrum_ms);
     if (spectrum_ms_file)
@@ -288,7 +288,7 @@ namespace OpenMS
         result.resize(std::min(max_rank, max_found_rank));
       }
 
-      std::string suffix = "";
+      std::string suffix;
       for (unsigned int i = 1; i <= result.size(); ++i)
       {
         MSSpectrum& msspectrum_to_fill = result[i-1];

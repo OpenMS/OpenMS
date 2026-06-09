@@ -378,7 +378,7 @@ namespace OpenMS::Internal
     else if (tag == "featureMap")
     {
       //check file version against schema version
-      std::string file_version = "";
+      std::string file_version;
       optionalAttributeAsString_(file_version, attributes, s_version);
       if (file_version.empty())
       {
@@ -535,7 +535,7 @@ namespace OpenMS::Internal
       }
 
       //sequence
-      std::string tmp = "";
+      std::string tmp;
       optionalAttributeAsString_(tmp, attributes, "sequence");
       prot_hit_.setSequence(tmp);
 
@@ -627,7 +627,7 @@ namespace OpenMS::Internal
       }
 
       //aa_before
-      std::string tmp = "";
+      std::string tmp;
       optionalAttributeAsString_(tmp, attributes, "aa_before");
       if (!tmp.empty())
       {

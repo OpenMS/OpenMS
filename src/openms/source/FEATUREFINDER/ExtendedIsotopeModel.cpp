@@ -76,7 +76,7 @@ namespace OpenMS
     Int H_num = Int(0.5 + mass * averagine_[H]);
     Int S_num = Int(0.5 + mass * averagine_[S]);
 
-    std::string form("");
+    std::string form;
     if (C_num)
     {
       form.append("C").append(StringUtils::toStr(C_num));

@@ -418,7 +418,7 @@ namespace OpenMS
 
         // check if the version of the parameters file matches the version of this tool
         // the parameters and values are all ok, but there might be more valid values now or new parameters which are currently not visible in the outdated INI
-        std::string file_version = "";
+        std::string file_version;
         if (param_inifile_.exists(tool_name_ + ":version"))
         {
           file_version = param_inifile_.getValue(tool_name_ + ":version").toString();
@@ -629,7 +629,7 @@ namespace OpenMS
     //offset of the descriptions
     UInt offset = 6 + max_size;
     //keep track of the current subsection we are in, to display the subsection help when a new section starts
-    std::string current_TOPP_subsection("");
+    std::string current_TOPP_subsection;
 
     // PRINT parameters && description, restrictions and default
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
@@ -723,7 +723,7 @@ namespace OpenMS
             StringUtils::quote(str, '\'');
           }
 
-          std::string add = "";
+          std::string add;
           if (it->type == ParameterInformation::INPUT_FILE
             || it->type == ParameterInformation::OUTPUT_FILE
             || it->type == ParameterInformation::OUTPUT_PREFIX
@@ -903,7 +903,7 @@ namespace OpenMS
 
   std::string TOPPBase::getParamArgument_(const Param::ParamEntry& entry) const
   {
-    std::string argument = "";
+    std::string argument;
     switch (entry.value.valueType())
     {
     case ParamValue::STRING_VALUE:

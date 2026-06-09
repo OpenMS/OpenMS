@@ -40,7 +40,7 @@ namespace OpenMS
       return;
     }
     RoundPackages pkg;
-    std::string error_msg("");
+    std::string error_msg;
     bool success = buildRoundPackages(pkg, error_msg);
     if (!success)
     {

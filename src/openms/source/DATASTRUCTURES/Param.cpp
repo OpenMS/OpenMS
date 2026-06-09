@@ -1293,7 +1293,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Adding to current set.\n";
             Param::ParamEntry local_entry = p_outdated.getEntry(it.getName());
-            std::string prefix = "";
+            std::string prefix;
             if (it.getName().find(':') != std::string::npos)
             {
               prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
@@ -1381,7 +1381,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     // augment
     for (Param::ParamIterator it = toMerge.begin(); it != toMerge.end(); ++it)
     {
-      std::string prefix = "";
+      std::string prefix;
       if (it.getName().find(':') != std::string::npos)
         prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
 

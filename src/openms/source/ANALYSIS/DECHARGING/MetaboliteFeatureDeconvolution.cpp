@@ -196,7 +196,7 @@ namespace OpenMS
       }
 
       // Label:
-      std::string label = "";
+      std::string label;
       if (adduct.size() >= 5)
       {
         label = StringUtils::trim(adduct[4]);

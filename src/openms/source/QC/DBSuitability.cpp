@@ -541,7 +541,7 @@ namespace OpenMS
       digestion.setEnzyme("Trypsin");
       std::vector<AASequence> peptides;
       digestion.digest(AASequence::fromString(entry.sequence), peptides);
-      std::string new_sequence = "";
+      std::string new_sequence;
       for (auto const& peptide : peptides)
       {
         OpenMS::TargetedExperiment::Peptide p;

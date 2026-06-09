@@ -177,7 +177,7 @@ namespace OpenMS
       double mass = attributeAsDouble_(attributes, "mass");
       AASequence temp_aa_sequence(pep_hit_->getSequence());
 
-      std::string temp_description = "";
+      std::string temp_description;
       std::string origin = temp_aa_sequence[position - 1].getOneLetterCode();
       matchModification_(mass, origin, temp_description);
       if (!temp_description.empty()) // only if a mod was found

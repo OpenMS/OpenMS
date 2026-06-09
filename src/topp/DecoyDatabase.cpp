@@ -458,7 +458,7 @@ protected:
             {
               std::vector<AASequence> peptides;
               digestion.digest(AASequence::fromString(decoy_entry.sequence), peptides);
-              std::string new_sequence = "";
+              std::string new_sequence;
               for (auto const& peptide : peptides)
               {
                 p.sequence = peptide.toString();

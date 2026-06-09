@@ -330,7 +330,7 @@ namespace OpenMS
     */
     void switchToGeneralScoreType(ConsensusMap& cmap, ScoreType type, Size& counter, bool unassigned_peptides_too = true)
     {
-      std::string new_type = "";
+      std::string new_type;
       for (const auto& f : cmap)
       {
         const auto& ids = f.getPeptideIdentifications();

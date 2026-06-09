@@ -429,7 +429,7 @@ namespace OpenMS
     if (tag == "IdXML")
     {
       //check file version against schema version
-      std::string file_version = "";
+      std::string file_version;
       prot_id_in_run_ = false;
 
       optionalAttributeAsString_(file_version, attributes, "version");
@@ -443,7 +443,7 @@ namespace OpenMS
       }
 
       //document id
-      std::string document_id = "";
+      std::string document_id;
       optionalAttributeAsString_(document_id, attributes, "id");
       (*document_id_) = document_id;
     }

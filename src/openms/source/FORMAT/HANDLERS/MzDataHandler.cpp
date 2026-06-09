@@ -252,7 +252,7 @@ namespace OpenMS::Internal
       else if (tag == "cvParam")
       {
         std::string accession = attributeAsString_(attributes, s_accession);
-        std::string value = "";
+        std::string value;
         optionalAttributeAsString_(value, attributes, s_value);
         cvParam_(accession, value);
       }
@@ -267,7 +267,7 @@ namespace OpenMS::Internal
       else if (tag == "userParam")
       {
         std::string name = attributeAsString_(attributes, s_name);
-        std::string value = "";
+        std::string value;
         optionalAttributeAsString_(value, attributes, s_value);
 
         if (parent_tag == "spectrumInstrument")
@@ -1073,7 +1073,7 @@ namespace OpenMS::Internal
 
     void MzDataHandler::cvParam_(const std::string & accession, const std::string & value)
     {
-      std::string error = "";
+      std::string error;
 
       //determine the parent tag
       std::string parent_tag;

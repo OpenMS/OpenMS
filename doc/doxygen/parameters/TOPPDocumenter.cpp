@@ -126,7 +126,7 @@ void convertINI2HTML(const Param& p, ostream& os)
     os << "<span class=\"item_tags\">" << (list) << "</span>";
 
     //restrictions
-    std::string restrictions = "";
+    std::string restrictions;
     switch (value_type)
     {
     case ParamValue::INT_VALUE:

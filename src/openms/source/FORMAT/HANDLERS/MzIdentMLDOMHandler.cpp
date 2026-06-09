@@ -713,7 +713,7 @@ namespace OpenMS::Internal
           // Found element node: re-cast as element
           DOMElement* element_dbs = dynamic_cast<xercesc::DOMElement*>(current_dbs);
           std::string id = StringManager::convert(element_dbs->getAttribute(CONST_XMLCH("id")));
-          std::string seq = "";
+          std::string seq;
           std::string dbref = StringManager::convert(element_dbs->getAttribute(CONST_XMLCH("searchDatabase_ref")));
           std::string acc = StringManager::convert(element_dbs->getAttribute(CONST_XMLCH("accession")));
           CVTermList cvs;
@@ -863,8 +863,8 @@ namespace OpenMS::Internal
           std::string spectrumIdentificationList_ref = StringManager::convert(element_si->getAttribute(CONST_XMLCH("spectrumIdentificationList_ref")));
           std::string spectrumIdentification_date = StringManager::convert(element_si->getAttribute(CONST_XMLCH("activityDate")));
 
-          std::string searchDatabase_ref = "";
-          std::string spectra_data_ref = "";
+          std::string searchDatabase_ref;
+          std::string spectra_data_ref;
           DOMElement* child = element_si->getFirstElementChild();
           while (child)
           {
@@ -1573,7 +1573,7 @@ namespace OpenMS::Internal
               vector<std::string> chains;
               vector<std::string> categories;
               std::string frag_type;
-              std::string loss = "";
+              std::string loss;
 
               StringUtils::split(StringManager::convert(ion_type_element ->getAttribute(CONST_XMLCH("index"))), " ", indices);
 

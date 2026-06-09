@@ -93,7 +93,7 @@ namespace OpenMS
     // see http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe/1024937#1024937 for more OS' (if needed)
     // Use immediately evaluated lambda to protect static variable from concurrent access.
     static const std::string spath = [&]() -> std::string {
-        std::string rpath = "";
+        std::string rpath;
 
         char path[1024]; // maximum path length
 

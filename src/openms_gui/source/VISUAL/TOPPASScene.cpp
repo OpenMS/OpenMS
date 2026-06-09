@@ -817,7 +817,7 @@ namespace OpenMS
 #ifdef OPENMS_WINDOWSPLATFORM
         std::string extra_quotes = "\""; // note: double quoting required for Windows, as outer quotes are required by cmd.exe (arghh)...
 #else
-        std::string extra_quotes = "";
+        std::string extra_quotes;
 #endif
 
         std::string cmd = extra_quotes + "\"" + File::findSiblingTOPPExecutable("INIUpdater") + "\" -in \"" + file + "\" -i " + extra_quotes;

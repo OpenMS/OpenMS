@@ -132,10 +132,10 @@ protected:
       double precursor = -1; ///< Precursor m/z
       double product = -1; ///< Product m/z (fragment ion m/z)
       double rt_calibrated = -1; ///< Normalized RT
-      std::string transition_name = ""; ///< Unique transition name
+      std::string transition_name; ///< Unique transition name
       double CE = -1; ///< Collision Energy
       double library_intensity = -1; ///< Library intensity of fragment ion (relative)
-      std::string group_id = ""; ///< Transition group identifier (grouping transitions of the same analyte)
+      std::string group_id; ///< Transition group identifier (grouping transitions of the same analyte)
       bool decoy = false; ///< Whether the transition is a decoy transition
       std::string PeptideSequence; ///< Peptide sequence (only AA sequence)
       std::vector<std::string> ProteinName; ///< List of protein identifiers

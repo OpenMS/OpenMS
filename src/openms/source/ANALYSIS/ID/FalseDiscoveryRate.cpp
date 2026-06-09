@@ -1122,7 +1122,7 @@ namespace OpenMS
     //  Then pass the bool to the applyBasic calls.
     //bool best_per_pep = param_.getValue("pepFDR").toBool();
 
-    std::string identifier = "";
+    std::string identifier;
     bool higher_score_better = true;
     if (treat_runs_separately)
     {

@@ -86,16 +86,16 @@ namespace OpenMS
     std::string traml_id = legacy_traml_id ? "TRAML_ID" : "ID";
 
     // Check for optional columns/tables
-    std::string select_drift_time = "";
+    std::string select_drift_time;
     info.drift_time_exists = SqliteConnector::columnExists(db, "PRECURSOR", "LIBRARY_DRIFT_TIME");
     if (info.drift_time_exists)
     {
       select_drift_time = ", PRECURSOR.LIBRARY_DRIFT_TIME AS drift_time ";
     }
 
-    std::string select_gene = "";
-    std::string select_gene_null = "";
-    std::string join_gene = "";
+    std::string select_gene;
+    std::string select_gene_null;
+    std::string join_gene;
     info.gene_exists = SqliteConnector::tableExists(db, "GENE");
     if (info.gene_exists)
     {
@@ -133,7 +133,7 @@ namespace OpenMS
                                tableHasRows_(db, "TRANSITION_PEPTIDE_MAPPING");
 
     std::string select_peptidoforms = "NULL AS peptidoforms ";
-    std::string join_peptidoforms = "";
+    std::string join_peptidoforms;
     if (info.peptidoforms_exists)
     {
       select_peptidoforms = "PEPTIDE_AGGREGATED.PEPTIDOFORMS AS peptidoforms ";

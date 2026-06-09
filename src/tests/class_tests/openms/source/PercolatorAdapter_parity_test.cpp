@@ -60,7 +60,7 @@ struct OutputTriplet
   double qval  = 0.0;
   double pep   = 0.0;
   bool   is_decoy = false;
-  std::string key_for_score = "";  ///< meta key actually found on the hit
+  std::string key_for_score;  ///< meta key actually found on the hit
 };
 
 /// Extract the Percolator triplet from a hit, probing both meta-key schemes.

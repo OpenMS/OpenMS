@@ -124,7 +124,7 @@ std::string o6_str = "Gruess Gott und ";
 std::string res6_str = "Gruess Gott und Hello,World!";
 
 std::string o7_str;
-std::string res7_str = "";
+std::string res7_str;
 
 
 START_SECTION(appendASCII(const XMLCh * chars, const XMLSize_t length, String & result))

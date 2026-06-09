@@ -1235,7 +1235,7 @@ START_SECTION(ProForma::ParseError - position clamping for noexcept safety)
 
   // Test 3: Empty input with position 0
   {
-    std::string input = "";
+    std::string input;
     size_t position = 0;
 
     ProForma::ParseError err(

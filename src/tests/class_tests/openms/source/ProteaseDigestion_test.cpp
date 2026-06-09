@@ -235,7 +235,7 @@ START_SECTION((Size digest(const AASequence& protein, std::vector<AASequence>& o
     pd.setSpecificity(pd.SPEC_SEMI);
 
     // Lambda to allow searching 'out' with std::find_if()
-    std::string ref = "";
+    std::string ref;
     auto compare_aa = [&ref](const AASequence& seq) -> bool
     {
         return seq.toUnmodifiedString() == ref;

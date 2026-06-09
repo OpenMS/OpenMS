@@ -110,7 +110,7 @@ namespace OpenMS
     }
     else if (element == "mod_aminoacid_mass")
     {
-      std::string temp_description = "";
+      std::string temp_description;
       UInt modification_position = attributeAsInt_(attributes, "position");
       double modification_mass = attributeAsDouble_(attributes, "mass");
 

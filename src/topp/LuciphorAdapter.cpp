@@ -311,7 +311,7 @@ protected:
     }
 
     CsvFile tsvfile(l_out, '\t');
-    std::string spec_id = "";
+    std::string spec_id;
         
     for (Size row_count = 1; row_count < tsvfile.rowCount(); ++row_count) // skip header line
     {
@@ -427,7 +427,7 @@ protected:
   
   std::string getSelectionMethod_(const PeptideIdentification& pep_id, std::string search_engine)
   {
-    std::string selection_method = "";
+    std::string selection_method;
     if (pep_id.getScoreType() == "Posterior Error Probability" || pep_id.getScoreType() == "pep" || search_engine == "Percolator")
     {
       selection_method = score_selection_method_[0];

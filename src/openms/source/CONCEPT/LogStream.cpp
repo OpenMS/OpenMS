@@ -166,7 +166,7 @@ namespace OpenMS
 
     std::string LogStreamBuf::addToCache_(std::string const & line)
     {
-      std::string extra_message = "";
+      std::string extra_message;
       if (log_cache_.size() > 1) // check if we need to remove one of the entries
       {
         // get smallest key

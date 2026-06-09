@@ -216,7 +216,7 @@ namespace OpenMS
         // for boolean Flags they are implicitly given
         if (!stringParamIsFlag)
         {
-          std::string restrictions = "";
+          std::string restrictions;
           switch (value_type)
           {
             case ParamValue::INT_VALUE:

@@ -960,8 +960,8 @@ namespace OpenMS::Internal
                "\" charges=\"" << searched_charges << "\" run_path=\"" << ms_runs_string <<
                R"(" nocutatxlink="1">)" << std::endl;
 
-      std::string current_spectrum_light("");
-      std::string current_spectrum_heavy("");
+      std::string current_spectrum_light;
+      std::string current_spectrum_heavy;
 
       for (const auto& current_pep_id : *cpep_id_)
       {
@@ -1065,8 +1065,8 @@ namespace OpenMS::Internal
           int beta_pos = 0;
 
           std::string topology =std::string("a") + alpha_pos;
-          std::string id("");
-          std::string seq_beta("");
+          std::string id;
+          std::string seq_beta;
 
           if (xltype_OPXL == "cross-link")
           {
@@ -1121,7 +1121,7 @@ namespace OpenMS::Internal
             }
           }
 
-          std::string prot_beta = "";
+          std::string prot_beta;
           if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS) && ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS) != "-")
           {
             prot_beta = StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS));

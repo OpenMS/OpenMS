@@ -214,7 +214,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   // adjust peptide ref with current file identifier
   peptide_ref += "_" + identifier;
 
-  std::string line = "";
+  std::string line;
   // Start writing out
   line += peptide_ref + "\t" + StringUtils::toStr(run_id) + "\t" + (std::string)filename + "\t" + feature_it->getRT() + "\tf_" + feature_it->getUniqueId() + "\t";
   line += sequence + "\t" + full_peptide_name + "\t";
@@ -224,7 +224,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   line += protein_name + "\t";
   line += decoy + "\t";
 
-  std::string meta_values = "";
+  std::string meta_values;
   for (Size i = 0; i < meta_value_names.size(); i++)
   {
     meta_values += feature_it->getMetaValue(meta_value_names[i]).toString() + "\t";
@@ -233,9 +233,9 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   // Write out the individual transition
   if (short_format)
   {
-    std::string aggr_Peak_Area = "";
-    std::string aggr_Peak_Apex = "";
-    std::string aggr_Fragment_Annotation = "";
+    std::string aggr_Peak_Area;
+    std::string aggr_Peak_Apex;
+    std::string aggr_Fragment_Annotation;
     for (Feature& sub : feature_it->getSubordinates())
     {
       aggr_Peak_Area +=StringUtils::toStr(sub.getIntensity()) + ";";

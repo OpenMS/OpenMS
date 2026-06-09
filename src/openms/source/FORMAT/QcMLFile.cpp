@@ -154,7 +154,7 @@ namespace OpenMS
 
   std::string QcMLFile::Attachment::toCSVString(const std::string& separator) const
   {
-    std::string s = "";
+    std::string s;
     if ((!colTypes.empty()) && (!tableRows.empty()))
     {
       std::string replacement = "_";
@@ -667,7 +667,7 @@ namespace OpenMS
 
   std::string QcMLFile::exportQPs(const std::string& filename, const StringList& qpnames) const
   {
-    std::string ret = "";
+    std::string ret;
     for (StringList::const_iterator qit = qpnames.begin(); qit != qpnames.end(); ++qit)
     {
       ret += exportQP(filename, *qit);
@@ -678,7 +678,7 @@ namespace OpenMS
 
   std::string QcMLFile::map2csv(const std::map<std::string, std::map<std::string, std::string> >& cvs_table, const std::string& separator) const
   {
-    std::string ret = "";
+    std::string ret;
     std::vector<std::string> cols;
     if (!cvs_table.empty())
     {
@@ -1973,8 +1973,8 @@ namespace OpenMS
     //~ setProgress(++progress_);
 
     //~ file should either contain the complete stylesheet injection (including the stylesheet file preamble, the DOCTYPE definition and the stylesheet itself) or be empty
-    std::string xslt = "";
-    std::string xslt_ref = "";
+    std::string xslt;
+    std::string xslt_ref;
     try
     {
       std::string xslt_file = File::find("XSL/QcML_report_sheet.xsl"); //TODO make this user defined pt.1

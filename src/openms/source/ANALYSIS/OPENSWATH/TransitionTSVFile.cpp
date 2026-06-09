@@ -624,7 +624,7 @@ namespace OpenMS
         {
           OpenMS::TargetedExperiment::Protein protein;
           std::string protein_name = tr_it->ProteinName[i];
-          std::string uniprot_id = "";
+          std::string uniprot_id;
           if (tr_it->uniprot_id.size() == tr_it->ProteinName.size())
           {
             uniprot_id = tr_it->uniprot_id[i];

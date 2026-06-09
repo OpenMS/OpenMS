@@ -372,7 +372,7 @@ namespace OpenMS::Internal
           current_id_hit_.setCalculatedMassToCharge(double_value);
         }
 
-        std::string string_value("");
+        std::string string_value;
         if (optionalAttributeAsString_(string_value, attributes, "name"))
         {
           current_id_hit_.setName(string_value);
@@ -1869,8 +1869,8 @@ namespace OpenMS::Internal
               }
             }
 
-            std::string acc = "";
-            std::string name = "";
+            std::string acc;
+            std::string name;
             for (Size s = 0; s < mods.size(); ++s)
             {
               if (StringUtils::hasSubstring(mods[s], hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD).toString()))

@@ -612,7 +612,7 @@ namespace OpenMS
           }
           OPENMS_LOG_DEBUG << endl;
           
-          std::string metabolite_name = "";
+          std::string metabolite_name;
           if (spec_db[search_idx].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME)) {
             metabolite_name = spec_db[search_idx]
                                 .getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME)
@@ -653,8 +653,8 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << " scored with " << hyperscore << endl;
           if (hyperscore > 0)
           {
-            std::string massbank_id = "";
-            std::string metabolite_name = "";
+            std::string massbank_id;
+            std::string metabolite_name;
             
             if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID")) {
               massbank_id = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();

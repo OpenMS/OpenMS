@@ -259,7 +259,7 @@ void writeParameters(const std::string& class_name, const Param& param, bool tab
     std::string name = it.getName();
     vector<std::string> parts;
     StringUtils::split(name, ':', parts);
-    std::string prefix = "";
+    std::string prefix;
     for (Size i = 0; i + 1 < parts.size(); ++i)
     {
       if (i == 0)

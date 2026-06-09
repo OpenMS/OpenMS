@@ -1637,7 +1637,7 @@ namespace OpenMS
 
       OpenSearchModificationAnalysis mod_analyzer;
 
-      std::string output_file = "";
+      std::string output_file;
       if (!output_base_name.empty())
       {
         output_file = output_base_name + "_ModificationAnalysis.idXML";
@@ -2133,7 +2133,7 @@ namespace OpenMS
                       << in_spectra_files.size() << " input file(s)." << std::endl;
 
       OpenSearchModificationAnalysis mod_analyzer;
-      std::string agg_output_file = "";
+      std::string agg_output_file;
       if (!aggregate_base_name.empty())
       {
         agg_output_file = aggregate_base_name + "_ModificationAnalysis.idXML";

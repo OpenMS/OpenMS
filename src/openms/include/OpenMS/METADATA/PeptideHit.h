@@ -85,7 +85,7 @@ public:
    */
   struct OPENMS_DLLAPI PeakAnnotation
   {
-    std::string annotation = "";  // e.g. [alpha|ci$y3-H2O-NH3]
+    std::string annotation;  // e.g. [alpha|ci$y3-H2O-NH3]
     int charge = 0;
     double mz = -1.;
     double intensity = 0.;

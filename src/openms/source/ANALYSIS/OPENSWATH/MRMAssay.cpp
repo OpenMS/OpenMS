@@ -134,7 +134,7 @@ namespace OpenMS
     };
     size_t aa_size = 17;
 
-    std::string peptide_sequence = "";
+    std::string peptide_sequence;
 
     for (size_t i = 0; i < sequence_size; ++i)
     {

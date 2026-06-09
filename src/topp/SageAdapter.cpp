@@ -390,7 +390,7 @@ protected:
       
       temp_split.insert(temp_split.begin()+1, ":["); 
       temp_split.insert(temp_split.end(), "]"); 
-      std::string temp_split_Str = ""; 
+      std::string temp_split_Str; 
 
       for (auto& y : temp_split)
       {
@@ -802,7 +802,7 @@ protected:
         //opts.setMetadataOnly(true);
         m.setOptions(opts);
         m.load(mzml, exp);
-        std::string nIDType = "";
+        std::string nIDType;
         if (!exp.getSourceFiles().empty())
         {
           // TODO we could also guess the regex from the first nativeID if it is not stored here

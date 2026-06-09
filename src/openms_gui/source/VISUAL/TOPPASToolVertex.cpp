@@ -476,7 +476,7 @@ namespace OpenMS
     // do not write the ini yet - we might need to alter it
 
     RoundPackages pkg;
-    std::string error_msg("");
+    std::string error_msg;
     bool success = buildRoundPackages(pkg, error_msg);
     if (!success)
     {

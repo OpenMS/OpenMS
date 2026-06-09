@@ -56,10 +56,10 @@ namespace OpenMS::Internal::ClassTest
       std::ifstream infile;
       std::ifstream templatefile;
       std::string add_message;
-      std::string exception_message = "";
-      std::string exception_name = "";
+      std::string exception_message;
+      std::string exception_name;
       std::string fuzzy_message;
-      std::string test_name = "";
+      std::string test_name;
       std::vector<std::string> tmp_file_list;
       std::vector<UInt> failed_lines_list;
       StringList whitelist;

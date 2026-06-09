@@ -1104,7 +1104,7 @@ namespace OpenMS
         auto sit = row.search_engine_score_ms_run[1].find(msfile_index);
         if (sit == row.search_engine_score_ms_run[1].end())
         {
-          std::string ref = "";
+          std::string ref;
           if (pep.metaValueExists("spectrum_reference"))
           {
             ref = StringUtils::toStr(pep.getMetaValue("spectrum_reference"));

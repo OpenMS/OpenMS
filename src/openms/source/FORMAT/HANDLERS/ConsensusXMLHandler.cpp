@@ -248,7 +248,7 @@ namespace OpenMS::Internal
       progress_ = 0;
       setProgress(++progress_);
       //check file version against schema version
-      std::string file_version = "";
+      std::string file_version;
       optionalAttributeAsString_(file_version, attributes, "version");
       if (file_version.empty())
       {
@@ -427,7 +427,7 @@ namespace OpenMS::Internal
       }
 
       //sequence
-      std::string tmp = "";
+      std::string tmp;
       optionalAttributeAsString_(tmp, attributes, "sequence");
       prot_hit_.setSequence(tmp);
 

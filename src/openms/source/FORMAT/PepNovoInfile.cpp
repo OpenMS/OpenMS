@@ -113,7 +113,7 @@ namespace OpenMS
     key +=StringUtils::toStr(int(Math::round(mass)));
 
 
-    std::string line = "";
+    std::string line;
     line += StringUtils::toUpper(origin);
     line += "\t";
     line += mass;

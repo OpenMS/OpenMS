@@ -2066,7 +2066,7 @@ namespace OpenMS
 
     // Collect all MS2 spectra with the same precursor as the current spectrum
     // (they are in the same SWATH window)
-    std::string caption_add = "";
+    std::string caption_add;
 
     double lower = pc.getMZ() - pc.getIsolationWindowLowerOffset();
     double upper = pc.getMZ() + pc.getIsolationWindowUpperOffset();

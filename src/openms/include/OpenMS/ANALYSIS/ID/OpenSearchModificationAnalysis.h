@@ -60,7 +60,7 @@ namespace OpenMS
       int unique_peptides = 0;            ///< Number of unique peptide sequences
       int num_charge_states = 0;          ///< Number of different charge states observed
       double percentage = 0.0;            ///< Percentage of total PSMs
-      std::string mapped_modification = "";    ///< Name of mapped modification (if any)
+      std::string mapped_modification;    ///< Name of mapped modification (if any)
       bool is_known_modification = false; ///< Whether this maps to a known modification
     };
 

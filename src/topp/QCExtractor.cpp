@@ -127,7 +127,7 @@ protected:
       }
     }
 
-    std::string csv_str = "";
+    std::string csv_str;
     if (target_qp == "set id")
     {
       if (qcmlfile.existsSet(target_run,true))

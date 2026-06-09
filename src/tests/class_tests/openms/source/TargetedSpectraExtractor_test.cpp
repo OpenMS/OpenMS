@@ -40,7 +40,7 @@ namespace std
   std::ostream& operator<<(ostream& os, const std::vector<std::string> string_list)
   {
     os << "[";
-    std::string separator = "";
+    std::string separator;
     for (const auto& string_item : string_list)
     {
       os << separator << string_item;

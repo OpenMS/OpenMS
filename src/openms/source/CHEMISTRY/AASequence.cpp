@@ -1501,7 +1501,7 @@ namespace OpenMS
       return;
     }
 
-    std::string residue = "";
+    std::string residue;
     if (modification.size() > 3 && StringUtils::hasSuffix(modification, ")"))
     {
       char last_char_no_parentheses = modification[modification.length()-2];
@@ -1537,7 +1537,7 @@ namespace OpenMS
       return;
     }
 
-    std::string residue = "";
+    std::string residue;
     if (modification.size() > 3 && StringUtils::hasSuffix(modification, ")"))
     {
       char last_char_no_parentheses = modification[modification.length()-2];
@@ -1609,7 +1609,7 @@ namespace OpenMS
     std::string diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
     // TODO make a distinction in the FullID about protein vs peptide term??
     const ResidueModification* n_term_mod_ = mod_db->searchModificationsFast(".c"+diffMonoMassStr, multimatch);
-    std::string residue = "";
+    std::string residue;
     if (n_term_mod_ == nullptr)
     {
         n_term_mod_ = ModificationsDB::getInstance()
@@ -1639,7 +1639,7 @@ namespace OpenMS
     std::string diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
     // TODO make a distinction in the FullID about protein vs peptide term??
     const ResidueModification* n_term_mod_ = mod_db->searchModificationsFast(".n"+diffMonoMassStr, multimatch);
-    std::string residue = "";
+    std::string residue;
     if (n_term_mod_ == nullptr)
     {
         n_term_mod_ = ModificationsDB::getInstance()

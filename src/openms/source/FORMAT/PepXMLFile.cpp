@@ -27,7 +27,7 @@ namespace OpenMS
 
   std::string PepXMLFile::AminoAcidModification::toUnimodLikeString() const
   {
-    std::string desc = "";
+    std::string desc;
     if (massdiff_ >= 0)
     {
       desc += "+" + StringUtils::toStr(massdiff_);
@@ -1685,7 +1685,7 @@ namespace OpenMS
 
       // the modification position is 1-based
       std::string origin =StringUtils::toStr(current_sequence_[modification_position - 1]);
-      std::string temp_description = "";
+      std::string temp_description;
 
       //TODO can we infer fixed/variable from the static/variable (diffmass) attributes in pepXML?
       // Only in some cases probably, since it is an optional attribute

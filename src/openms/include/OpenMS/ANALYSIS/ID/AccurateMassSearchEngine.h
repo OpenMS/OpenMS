@@ -389,7 +389,7 @@ private:
     template <typename MAPTYPE> std::string resolveAutoMode_(const MAPTYPE& map) const
     {
       std::string ion_mode_internal;
-      std::string ion_mode_detect_msg = "";
+      std::string ion_mode_detect_msg;
       if (map.size() > 0)
       {
         if (map[0].metaValueExists("scan_polarity"))

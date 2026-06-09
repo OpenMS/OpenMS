@@ -308,7 +308,7 @@ START_SECTION([EXTRA] digestUnmodified honors SPEC_NONE / SPEC_SEMI (pair output
   TEST_EQUAL(out_pairs.size(), 0)
 
   // Empty sequence: defensive check.
-  std::string empty_s = "";
+  std::string empty_s;
   ed_none.digestUnmodified(empty_s, out_pairs, 1, 10);
   TEST_EQUAL(out_pairs.size(), 0)
 

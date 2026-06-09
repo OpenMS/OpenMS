@@ -124,9 +124,9 @@ namespace OpenMS::Internal
       }
       else if (tag_ == "userParam")
       {
-        std::string type = "";
+        std::string type;
         optionalAttributeAsString_(type, attributes, s_type);
-        std::string value = "";
+        std::string value;
         optionalAttributeAsString_(value, attributes, s_value);
         handleUserParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_name), type, value);
       }
@@ -640,7 +640,7 @@ namespace OpenMS::Internal
               {
                 // Get the name of the modifications from its unimod identifier (using getId)
                 ResidueModification::TermSpecificity term_spec = ResidueModification::ANYWHERE;
-                std::string residue = "";
+                std::string residue;
                 if (mit->location < 0)
                 {
                   term_spec = ResidueModification::N_TERM;
