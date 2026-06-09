@@ -287,7 +287,25 @@ estimated for arbitrary m/z using a spline interpolation.
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>(m, "FeatureFinderMetaboIdentCompound",
         R"doc(
-Represents a compound in the assay library for FeatureFinderAlgorithmMetaboIdent.
+Represents one target compound in the assay library for FeatureFinderAlgorithmMetaboIdent.
+
+Constructor:
+    FeatureFinderMetaboIdentCompound(name, formula, mass, charges, rts, rt_ranges,
+                                     iso_distrib, ion_mobilities=[], adduct="")
+
+Arguments:
+    name           Unique target name.
+    formula        Sum formula (e.g. 'C6H12O6'); may be empty if mass > 0.
+    mass           Neutral mass; <= 0 means "derive from formula".
+    charges        Charge states (list[int]); each non-zero entry yields one transition.
+    rts            Expected retention times in seconds (list[float], one entry per target).
+    rt_ranges      RT tolerance per RT; one value is broadcast, [] uses the algorithm default.
+    iso_distrib    Pre-computed isotope intensities; [] or [0] computes them from the formula.
+    ion_mobilities Optional ion-mobility values; one value or one per RT, [] disables IM filtering.
+    adduct         Optional adduct string (e.g. '[M+H]+', '[M+Na]+', '[M-H]-'); empty infers
+                   [M+H]+/[M-H]- from charge polarity.
+
+For a pandas-based interface see FeatureFinderAlgorithmMetaboIdent.compounds_from_df().
 )doc")
         .def(nb::init<const OpenMS::String&, const OpenMS::String&, double, const std::vector<int>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const OpenMS::String&>(),
             "name"_a, "formula"_a, "mass"_a, "charges"_a, "rts"_a, "rt_ranges"_a, "iso_distrib"_a, "ion_mobilities"_a = std::vector<double>(), "adduct"_a = OpenMS::String(""))

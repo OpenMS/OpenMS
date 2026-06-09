@@ -662,12 +662,20 @@ ff = FeatureFinderAlgorithmMetaboIdent()
 ff.setMSData(exp)
 fm = FeatureMap() # detected features will be stored here
 library = []
-# fill library with compounds: FeatureFinderMetaboIdentCompound(name, formula, mass, [charges] [RTs_in_sec], [RT_ranges], [isotope distributions])
+# fill library with compounds: FeatureFinderMetaboIdentCompound(name, formula, mass, [charges], [RTs_in_sec], [RT_ranges], [isotope_distributions], [ion_mobilities], adduct)
 # e.g. FeatureFinderMetaboIdentCompound('glucose','C6H12O6', 0.0, [-1], [123.4], [0.0], [0.0])
 params = ff.getParameters() # optional!
 params[param_name] = new_value # e.g. params[b'extract:n_isotopes'] = 3
 ff.setParameters(params)
 ff.run(library, fm, path_to_file)
+
+# Alternatively (requires pandas), build the library from a DataFrame whose
+# columns mirror the FeatureFinderMetaboIdent TSV, including the optional
+# IonMobility and Adduct columns:
+#   ff.run_from_df(df, fm, path_to_file)
+# or build the compound list explicitly and inspect/round-trip it:
+#   compounds = FeatureFinderAlgorithmMetaboIdent.compounds_from_df(df)
+#   df2 = FeatureFinderAlgorithmMetaboIdent.compounds_to_df(compounds)
 )doc")
         .def(nb::init<>())
         .def("getMSData", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> OpenMS::MSExperiment & { return self.getMSData(); }, nb::rv_policy::reference_internal, "Returns spectra")
