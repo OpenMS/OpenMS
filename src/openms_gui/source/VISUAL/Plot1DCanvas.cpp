@@ -1058,6 +1058,7 @@ namespace OpenMS
         setDrawInterestingMZs(!draw_interesting_MZs_);
       });
 
+      settings_menu->addSeparator();
       {
         using MT = IsobaricQuantitationMethod::MethodType;
         QMenu* tmt_menu = new QMenu("TMT m/z reference");
@@ -1069,7 +1070,7 @@ namespace OpenMS
           {MT::TMT_6PLEX,  "TMT 6-plex"},
           {MT::TMT_10PLEX, "TMT 10-plex"},
           {MT::TMT_11PLEX, "TMT 11-plex"},
-          {MT::TMT_16PLEX, "TMT 16-plex (TMTpro)"},
+          {MT::TMT_16PLEX, "TMT 16-plex"},
           {MT::TMT_18PLEX, "TMT 18-plex"},
           {MT::TMT_32PLEX, "TMT 32-plex"},
           {MT::TMT_35PLEX, "TMT 35-plex"},
@@ -1079,11 +1080,11 @@ namespace OpenMS
           auto* act = tmt_menu->addAction(label, [this, mt]() { setTMTAnnotationMethod(mt); });
           if (tmt_method_type_ == mt) { act->setCheckable(true); act->setChecked(true); }
         }
-        settings_menu->addMenu(tmt_menu);
+        context_menu->addMenu(tmt_menu);
       }
-
+      
       settings_menu->addSeparator();
-
+      
       settings_menu->addAction("Preferences", [&]() {
         showCurrentLayerPreferences();
       });
