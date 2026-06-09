@@ -757,8 +757,12 @@ protected:
     bool draw_interesting_MZs_ = false;
     /// Active TMT annotation method; UNKNOWN = disabled
     IsobaricQuantitationMethod::MethodType tmt_method_type_ {IsobaricQuantitationMethod::MethodType::UNKNOWN};
-    /// Raw pointers to Annotation1DItems added by TMT mode (ownership stays in Annotations1DContainer)
+    /// Raw pointers to Annotation1DItems added by TMT mode (ownership stays in the per-spectrum Annotations1DContainer).
+    /// These stay valid across spectrum navigation because Annotations1DContainer has a move c'tor (no cloning on reallocation).
     std::vector<Annotation1DItem*> tmt_annotation_items_;
+    /// Spectrum index (within the current layer) that tmt_annotation_items_ were added to; needed to remove them
+    /// from the correct per-spectrum container (the shown spectrum may have changed since they were added).
+    Size tmt_annotation_spectrum_idx_ = 0;
     /// The text box in the upper left corner with the current data coordinates of the cursor
     QTextDocument text_box_content_;
     /// handles pulling/pushing of points to the edges of the widget

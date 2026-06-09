@@ -10,6 +10,9 @@
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 
+#include <algorithm> // std::find
+#include <utility>   // std::move
+
 
 namespace OpenMS
 {
@@ -38,6 +41,25 @@ namespace OpenMS
       {
         push_back(ptr_item->clone());
       }
+    }
+    return *this;
+  }
+
+  Annotations1DContainer::Annotations1DContainer(Annotations1DContainer && rhs) noexcept
+    : Base(std::move(rhs)),                  // steal the item pointers; rhs becomes empty (its d'tor frees nothing)
+      pen_(std::move(rhs.pen_)),
+      selected_pen_(std::move(rhs.selected_pen_))
+  {
+  }
+
+  Annotations1DContainer& Annotations1DContainer::operator=(Annotations1DContainer && rhs) noexcept
+  {
+    if (this != &rhs)
+    {
+      deleteAllItems_();               // free our own items first ...
+      Base::operator=(std::move(rhs)); // ... then steal rhs's items (rhs becomes empty)
+      pen_ = std::move(rhs.pen_);
+      selected_pen_ = std::move(rhs.selected_pen_);
     }
     return *this;
   }

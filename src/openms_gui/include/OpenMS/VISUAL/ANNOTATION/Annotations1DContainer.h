@@ -37,6 +37,14 @@ public:
     /// Assignment operator
     Annotations1DContainer & operator=(const Annotations1DContainer & rhs);
 
+    /// Move constructor. Steals the items from @p rhs (no cloning). Declared @c noexcept so that std::vector
+    /// reallocation MOVES the containers instead of copy-constructing them; a copy would clone every item
+    /// (new pointers) and delete the originals, invalidating any external pointers into the container.
+    Annotations1DContainer(Annotations1DContainer && rhs) noexcept;
+
+    /// Move assignment operator. Steals the items from @p rhs (no cloning).
+    Annotations1DContainer & operator=(Annotations1DContainer && rhs) noexcept;
+
     /// Destructor
     virtual ~Annotations1DContainer();
 

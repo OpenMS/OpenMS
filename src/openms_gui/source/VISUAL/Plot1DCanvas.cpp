@@ -1626,9 +1626,15 @@ namespace OpenMS
   {
     if (tmt_annotation_items_.empty()) return;
     if (layers_.empty()) { tmt_annotation_items_.clear(); return; }
-    getCurrentLayer().getCurrentAnnotations().removeItems(tmt_annotation_items_);
+    auto& layer = getCurrentLayer();
+    // Remove from the spectrum the items were added to (not necessarily the currently shown one, e.g. after
+    // the user navigated away). The pointers stay valid across navigation thanks to Annotations1DContainer's move c'tor.
+    if (layer.hasIndex(tmt_annotation_spectrum_idx_))
+    {
+      layer.getAnnotations(tmt_annotation_spectrum_idx_).removeItems(tmt_annotation_items_);
+    }
     tmt_annotation_items_.clear();
-    getCurrentLayer().peak_colors_1d.clear();
+    layer.peak_colors_1d.clear();
   }
 
   void Plot1DCanvas::updateTMTAnnotations_()
@@ -1718,6 +1724,9 @@ namespace OpenMS
     const QColor line_found_color(0, 160, 0);        // green: theoretical mass was matched
     const QColor line_missing_color(160, 160, 160);  // grey:  theoretical mass was not found
     auto& layer = *peak_layer;
+    // add to the current spectrum's container and remember that spectrum index for later cleanup
+    tmt_annotation_spectrum_idx_ = layer.getCurrentIndex();
+    auto& tmt_target_annotations = layer.getAnnotations(tmt_annotation_spectrum_idx_);
     layer.peak_colors_1d.assign(spec.size(), default_color);
 
     // Which TMT channels were matched?
@@ -1743,7 +1752,7 @@ namespace OpenMS
                                                  toQString(ch.name));
       }
       vline->setSelected(false);
-      getCurrentLayer().getCurrentAnnotations().push_front(vline);
+      tmt_target_annotations.push_front(vline);
       tmt_annotation_items_.push_back(vline);
     }
 
@@ -1778,7 +1787,7 @@ namespace OpenMS
 
       auto* item = new Annotation1DPeakItem<Peak1D>(anchor, text, ann_color);
       item->setSelected(false);
-      getCurrentLayer().getCurrentAnnotations().push_front(item);
+      tmt_target_annotations.push_front(item);
       tmt_annotation_items_.push_back(item);
     }
 
