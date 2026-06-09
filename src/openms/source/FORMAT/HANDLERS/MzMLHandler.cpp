@@ -2882,7 +2882,7 @@ namespace OpenMS::Internal
       else if (parent_tag == "analyzer")
       {
         //mass analyzer type
-        if (accession == "MS:1000079") //fourier transform ion cyclotron resonance mass spectrometer
+        if (accession == "MS:1000079") //fourier transform ion cyclotron resonance
         {
           instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::FOURIERTRANSFORM);
         }
@@ -4777,7 +4777,7 @@ namespace OpenMS::Internal
 
           if (ma.getType() == MassAnalyzer::AnalyzerType::FOURIERTRANSFORM)
           {
-            os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000079\" name=\"fourier transform ion cyclotron resonance mass spectrometer\" />\n";
+            os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000079\" name=\"fourier transform ion cyclotron resonance\" />\n";
           }
           else if (ma.getType() == MassAnalyzer::AnalyzerType::SECTOR)
           {

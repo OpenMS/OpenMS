@@ -48,7 +48,7 @@
 					<cvParam cvRef="MS" accession="MS:1000022" name="TOF Total Path Length" value="0" unitAccession="UO:0000008" unitName="meter" unitCvRef="UO" />
 					<cvParam cvRef="MS" accession="MS:1000024" name="final MS exponent" value="0" />
 					<cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="0" unitAccession="UO:0000228" unitName="tesla" unitCvRef="UO" />
-					<cvParam cvRef="MS" accession="MS:1000079" name="fourier transform ion cyclotron resonance mass spectrometer" />
+					<cvParam cvRef="MS" accession="MS:1000079" name="fourier transform ion cyclotron resonance" />
 				</analyzer>
 				<detector order="3">
 					<cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="0" />
@@ -265,13 +265,13 @@
 </mzML>
   <indexList count="2">
     <index name="spectrum">
-      <offset idRef="controllerType=0 controllerNumber=1 scan=1">10581</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=2">332162</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=1">10563</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=2">332144</offset>
     </index>
     <index name="chromatogram">
-      <offset idRef="TIC">651965</offset>
+      <offset idRef="TIC">651947</offset>
     </index>
   </indexList>
-  <indexListOffset>655460</indexListOffset>
+  <indexListOffset>655445</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
