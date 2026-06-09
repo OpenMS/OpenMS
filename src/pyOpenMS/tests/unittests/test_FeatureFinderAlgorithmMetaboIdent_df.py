@@ -83,7 +83,7 @@ class TestCompoundsFromDF(unittest.TestCase):
             CompoundName=['compound1'],
             Charge=['-1, 1, 2'],
             RetentionTime=['100.0, 200.0, 300.0'],
-            RetentionTimeRange=['5.0, 10.0'],
+            RetentionTimeRange=['5.0, 10.0, 15.0'],
             IsoDistribution=['0.5, 0.3, 0.2'],
         )
 
@@ -91,7 +91,7 @@ class TestCompoundsFromDF(unittest.TestCase):
 
         self.assertEqual(list(compounds[0].getCharges()), [-1, 1, 2])
         self.assertEqual(list(compounds[0].getRTs()), [100.0, 200.0, 300.0])
-        self.assertEqual(list(compounds[0].getRTRanges()), [5.0, 10.0])
+        self.assertEqual(list(compounds[0].getRTRanges()), [5.0, 10.0, 15.0])
 
     def test_ion_mobility_column(self):
         """Optional IonMobility column is exposed on the compound."""
