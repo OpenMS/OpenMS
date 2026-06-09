@@ -311,7 +311,7 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  std::string binary_directory = StringUtils::ensureLastChar(std::string(argv[1]), '/');
+  std::string binary_directory = StringUtils::ensureLastChar(argv[1], '/');
 
   if (!File::exists(binary_directory))
   {
