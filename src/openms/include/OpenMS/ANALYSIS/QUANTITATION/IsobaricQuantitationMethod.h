@@ -51,13 +51,15 @@ public:
       SIZE_OF_METHODTYPE ///< keep last
     };
 
-    /// String identifiers for each MethodType, indexed by static_cast<int>(MethodType).
-    static const std::array<std::string_view, static_cast<int>(MethodType::SIZE_OF_METHODTYPE)> METHOD_TYPE_NAMES;
-
-    /// Returns the string identifier for a given MethodType.
+    /// Returns the canonical string identifier for a given MethodType (e.g. "tmt6plex"); "unknown" for MethodType::UNKNOWN.
+    /// @throws Exception::IllegalArgument for an out-of-range value (MethodType::SIZE_OF_METHODTYPE or beyond).
     static std::string_view methodTypeName(MethodType mt);
 
-    /// Returns the MethodType corresponding to @p name, or MethodType::UNKNOWN if not found.
+    /// Returns a human-readable display name for a given MethodType (e.g. "TMT 6-plex"); "none" for MethodType::UNKNOWN.
+    /// @throws Exception::IllegalArgument for an out-of-range value (MethodType::SIZE_OF_METHODTYPE or beyond).
+    static std::string_view methodDisplayName(MethodType mt);
+
+    /// Returns the MethodType corresponding to @p name (canonical identifier as returned by methodTypeName()), or MethodType::UNKNOWN if not found.
     static MethodType methodTypeFromName(std::string_view name);
 
     /**
@@ -100,8 +102,8 @@ public:
       }
     };
 
-    /// @brief c'tor setting the name for the underlying param handler
-    IsobaricQuantitationMethod();
+    /// @brief Default c'tor is deleted: a concrete method must be constructed with its MethodType (see the protected c'tor).
+    IsobaricQuantitationMethod() = delete;
 
     /// @brief d'tor
     ~IsobaricQuantitationMethod() override;
@@ -109,14 +111,14 @@ public:
     typedef std::vector<IsobaricChannelInformation> IsobaricChannelList;
 
     /**
-      @brief Returns a unique name for the quantitation method.
+      @brief Returns a unique name for the quantitation method (its canonical identifier, e.g. "tmt6plex").
 
       @return The unique name or identifier of the quantitation method.
     */
-    virtual const String& getMethodName() const = 0;
+    const String& getMethodName() const;
 
     /// Returns the MethodType enum value of this quantitation method.
-    virtual MethodType getMethodType() const = 0;
+    MethodType getMethodType() const { return iso_method_; }
 
     /**
       @brief Returns information on the different channels used by the quantitation method.
@@ -143,6 +145,9 @@ public:
     virtual Size getReferenceChannel() const = 0;
 
 protected:
+    /// @brief c'tor for derived classes: sets the underlying param-handler name and records the concrete @p method_type.
+    explicit IsobaricQuantitationMethod(MethodType method_type);
+
     /**
       @brief Helper function to convert a string list containing an isotope correction matrix into a Matrix<double>.
 
@@ -150,6 +155,10 @@ protected:
       @return An isotope correction matrix as Matrix<double>.
     */
     Matrix<double> stringListToIsotopeCorrectionMatrix_(const std::vector<String>& stringlist) const;
+
+private:
+    /// The concrete isobaric method this instance represents; set by the c'tor and returned by getMethodType()/getMethodName().
+    MethodType iso_method_;
   };
 } // namespace
 

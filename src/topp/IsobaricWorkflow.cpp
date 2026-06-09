@@ -8,15 +8,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-// the available quantitation methods
+// the available quantitation methods (instantiated via IsobaricQuantitationMethod::create())
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
@@ -83,7 +76,7 @@ using namespace std;
 
   The input MSn spectra have to be in centroid mode for the tool to work properly. Use e.g. @ref TOPP_PeakPickerHiRes to perform centroiding of profile data, if necessary.
 
-  This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, and 18-plex and higher labeling methods.
+  This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, 18-plex, 32-plex, and 35-plex labeling methods.
   It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
   in which each consensus feature represents one identified PSM together with its reporter ions.
   The MS level for quantification is chosen automatically per PSM: if MS3 is present, the MS3 product spectrum of the identifying MS2 scan is used (SPS-MS3), otherwise the MS2 scan itself.
@@ -166,13 +159,12 @@ public:
   TOPPIsobaricWorkflow() :
     TOPPBase("IsobaricWorkflow", "Calculates isobaric quantitative values for peptides")
   {
-    addMethod_(make_unique<ItraqFourPlexQuantitationMethod>(), "iTRAQ 4-plex");
-    addMethod_(make_unique<ItraqEightPlexQuantitationMethod>(), "iTRAQ 8-plex");
-    addMethod_(make_unique<TMTSixPlexQuantitationMethod>(), "TMT 6-plex");
-    addMethod_(make_unique<TMTTenPlexQuantitationMethod>(), "TMT 10-plex");
-    addMethod_(make_unique<TMTElevenPlexQuantitationMethod>(), "TMT 11-plex");
-    addMethod_(make_unique<TMTSixteenPlexQuantitationMethod>(), "TMT 16-plex");
-    addMethod_(make_unique<TMTEighteenPlexQuantitationMethod>(), "TMT 18-plex");
+    using MT = IsobaricQuantitationMethod::MethodType;
+    for (int i = static_cast<int>(MT::UNKNOWN) + 1; i < static_cast<int>(MT::SIZE_OF_METHODTYPE); ++i)
+    {
+      const MT mt = static_cast<MT>(i);
+      addMethod_(IsobaricQuantitationMethod::create(mt), std::string(IsobaricQuantitationMethod::methodDisplayName(mt)));
+    }
   }
 
 protected:
@@ -270,14 +262,15 @@ protected:
 
   Param getSubsectionDefaults_(const String& section) const override
   {
-    ItraqFourPlexQuantitationMethod temp_quant;
+    // any concrete method works to obtain the extractor/quantifier defaults; pick an arbitrary one
+    auto temp_quant = IsobaricQuantitationMethod::create(IsobaricQuantitationMethod::MethodType::ITRAQ_4PLEX);
     if (section == "extraction")
     {
-      return IsobaricChannelExtractor(&temp_quant).getParameters();
+      return IsobaricChannelExtractor(temp_quant.get()).getParameters();
     }
     else if (section == "quantification")
     {
-      return IsobaricQuantifier(&temp_quant).getParameters();
+      return IsobaricQuantifier(temp_quant.get()).getParameters();
     }
     else
     {

@@ -22,65 +22,124 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <algorithm>
+#include <iterator> // std::size
 
 namespace OpenMS
 {
-  // Must match MethodType enum order exactly
-  const std::array<std::string_view, static_cast<int>(IsobaricQuantitationMethod::MethodType::SIZE_OF_METHODTYPE)>
-  IsobaricQuantitationMethod::METHOD_TYPE_NAMES = {
-    "unknown",
-    "tmt6plex",
-    "tmt10plex",
-    "tmt11plex",
-    "tmt16plex",
-    "tmt18plex",
-    "tmt32plex",
-    "tmt35plex",
-    "itraq4plex",
-    "itraq8plex"
-  };
+  namespace
+  {
+    // Thunk that instantiates a concrete method as a base-class pointer (stored as a function pointer in the registry).
+    template <typename MethodT>
+    std::unique_ptr<IsobaricQuantitationMethod> makeIsobaricMethod()
+    {
+      return std::make_unique<MethodT>();
+    }
+
+    using MT = IsobaricQuantitationMethod::MethodType;
+
+    /// One row of the central isobaric-method registry.
+    struct MethodRegistryEntry
+    {
+      MT type;                        ///< enum value; the registry is ordered by (and indexed with) it
+      std::string_view name;          ///< canonical identifier (matches getMethodName()), e.g. "tmt6plex"
+      std::string_view display_name;  ///< human-readable name, e.g. "TMT 6-plex"
+      std::unique_ptr<IsobaricQuantitationMethod> (*factory)(); ///< nullptr for UNKNOWN (no instance)
+    };
+
+    // Single source of truth for every isobaric quantitation method (canonical name, display name, factory).
+    // To add a method: add a MethodType enum value AND one row here -- the static_asserts below make this mandatory.
+    constexpr MethodRegistryEntry METHOD_REGISTRY[] = {
+      {MT::UNKNOWN,     "unknown",    "none",                 nullptr},
+      {MT::TMT_6PLEX,   "tmt6plex",   "TMT 6-plex",           &makeIsobaricMethod<TMTSixPlexQuantitationMethod>},
+      {MT::TMT_10PLEX,  "tmt10plex",  "TMT 10-plex",          &makeIsobaricMethod<TMTTenPlexQuantitationMethod>},
+      {MT::TMT_11PLEX,  "tmt11plex",  "TMT 11-plex",          &makeIsobaricMethod<TMTElevenPlexQuantitationMethod>},
+      {MT::TMT_16PLEX,  "tmt16plex",  "TMT 16-plex (TMTpro)", &makeIsobaricMethod<TMTSixteenPlexQuantitationMethod>},
+      {MT::TMT_18PLEX,  "tmt18plex",  "TMT 18-plex",          &makeIsobaricMethod<TMTEighteenPlexQuantitationMethod>},
+      {MT::TMT_32PLEX,  "tmt32plex",  "TMT 32-plex",          &makeIsobaricMethod<TMTThirtyTwoPlexQuantitationMethod>},
+      {MT::TMT_35PLEX,  "tmt35plex",  "TMT 35-plex",          &makeIsobaricMethod<TMTThirtyFivePlexQuantitationMethod>},
+      {MT::ITRAQ_4PLEX, "itraq4plex", "iTRAQ 4-plex",         &makeIsobaricMethod<ItraqFourPlexQuantitationMethod>},
+      {MT::ITRAQ_8PLEX, "itraq8plex", "iTRAQ 8-plex",         &makeIsobaricMethod<ItraqEightPlexQuantitationMethod>},
+    };
+
+    // Enforce on every compiler that the registry stays in lockstep with the enum:
+    // exactly one row per MethodType, in enum order (so we can index the registry by static_cast<size_t>(MethodType)).
+    static_assert(std::size(METHOD_REGISTRY) == static_cast<size_t>(MT::SIZE_OF_METHODTYPE),
+                  "METHOD_REGISTRY must contain exactly one row per MethodType. "
+                  "Did you add a MethodType without registering it here?");
+
+    constexpr bool methodRegistryIsOrdered()
+    {
+      for (size_t i = 0; i < std::size(METHOD_REGISTRY); ++i)
+      {
+        if (static_cast<size_t>(METHOD_REGISTRY[i].type) != i) { return false; }
+      }
+      return true;
+    }
+    static_assert(methodRegistryIsOrdered(),
+                  "METHOD_REGISTRY rows must be in MethodType order (row i must have type i).");
+
+    // Returns the registry row for @p mt. UNKNOWN is a valid in-range value (row 0); a value outside the
+    // enum range (SIZE_OF_METHODTYPE or beyond) is rejected as a programming error.
+    const MethodRegistryEntry& registryEntry(MT mt)
+    {
+      const auto idx = static_cast<size_t>(mt);
+      if (idx >= std::size(METHOD_REGISTRY))
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Invalid IsobaricQuantitationMethod::MethodType value " + String(static_cast<int>(mt)) + ".");
+      }
+      return METHOD_REGISTRY[idx];
+    }
+  } // anonymous namespace
 
   std::string_view IsobaricQuantitationMethod::methodTypeName(MethodType mt)
   {
-    return METHOD_TYPE_NAMES[static_cast<int>(mt)];
+    return registryEntry(mt).name;
+  }
+
+  std::string_view IsobaricQuantitationMethod::methodDisplayName(MethodType mt)
+  {
+    return registryEntry(mt).display_name;
   }
 
   IsobaricQuantitationMethod::MethodType IsobaricQuantitationMethod::methodTypeFromName(std::string_view name)
   {
-    for (int i = 0; i < static_cast<int>(MethodType::SIZE_OF_METHODTYPE); ++i)
+    for (const auto& entry : METHOD_REGISTRY)
     {
-      if (METHOD_TYPE_NAMES[i] == name) return static_cast<MethodType>(i);
+      if (entry.name == name) { return entry.type; }
     }
     return MethodType::UNKNOWN;
   }
 
   std::unique_ptr<IsobaricQuantitationMethod> IsobaricQuantitationMethod::create(MethodType mt)
   {
-    switch (mt)
-    {
-      case MethodType::UNKNOWN:     return nullptr; // disabled/none sentinel
-      case MethodType::TMT_6PLEX:   return std::make_unique<TMTSixPlexQuantitationMethod>();
-      case MethodType::TMT_10PLEX:  return std::make_unique<TMTTenPlexQuantitationMethod>();
-      case MethodType::TMT_11PLEX:  return std::make_unique<TMTElevenPlexQuantitationMethod>();
-      case MethodType::TMT_16PLEX:  return std::make_unique<TMTSixteenPlexQuantitationMethod>();
-      case MethodType::TMT_18PLEX:  return std::make_unique<TMTEighteenPlexQuantitationMethod>();
-      case MethodType::TMT_32PLEX:  return std::make_unique<TMTThirtyTwoPlexQuantitationMethod>();
-      case MethodType::TMT_35PLEX:  return std::make_unique<TMTThirtyFivePlexQuantitationMethod>();
-      case MethodType::ITRAQ_4PLEX: return std::make_unique<ItraqFourPlexQuantitationMethod>();
-      case MethodType::ITRAQ_8PLEX: return std::make_unique<ItraqEightPlexQuantitationMethod>();
-      case MethodType::SIZE_OF_METHODTYPE:
-        break; // not a real method; fall through to throw
-    }
-    // SIZE_OF_METHODTYPE or any value outside the enum range is a programming error
-    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "No isobaric quantitation method exists for MethodType value " + String(static_cast<int>(mt)) + ".");
+    // registryEntry() throws Exception::IllegalArgument for out-of-range / SIZE_OF_METHODTYPE
+    const auto factory = registryEntry(mt).factory;
+    return factory ? factory() : nullptr; // UNKNOWN has no factory -> disabled/none sentinel
   }
 
   IsobaricQuantitationMethod::~IsobaricQuantitationMethod() = default;
 
-  IsobaricQuantitationMethod::IsobaricQuantitationMethod() :
-    DefaultParamHandler("IsobaricQuantitationMethod")
+  IsobaricQuantitationMethod::IsobaricQuantitationMethod(MethodType method_type) :
+    DefaultParamHandler("IsobaricQuantitationMethod"),
+    iso_method_(method_type)
   {
+  }
+
+  const String& IsobaricQuantitationMethod::getMethodName() const
+  {
+    // one persistent String per method type (its canonical name), created once on first use,
+    // so we can hand out a reference (methodTypeName() only yields a string_view)
+    static const std::array<String, static_cast<size_t>(MethodType::SIZE_OF_METHODTYPE)> names = []
+    {
+      std::array<String, static_cast<size_t>(MethodType::SIZE_OF_METHODTYPE)> n;
+      for (size_t i = 0; i < n.size(); ++i)
+      {
+        n[i] = String(methodTypeName(static_cast<MethodType>(i)));
+      }
+      return n;
+    }();
+    return names[static_cast<size_t>(iso_method_)];
   }
 
   Matrix<double> IsobaricQuantitationMethod::stringListToIsotopeCorrectionMatrix_(const StringList& stringlist) const

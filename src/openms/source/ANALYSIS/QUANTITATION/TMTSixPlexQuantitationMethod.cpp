@@ -14,7 +14,8 @@
 namespace OpenMS
 {
 
-  TMTSixPlexQuantitationMethod::TMTSixPlexQuantitationMethod()
+  TMTSixPlexQuantitationMethod::TMTSixPlexQuantitationMethod() :
+    IsobaricQuantitationMethod(MethodType::TMT_6PLEX)
   {
     setName("TMTSixPlexQuantitationMethod");
 
@@ -81,12 +82,6 @@ namespace OpenMS
   }
 
   TMTSixPlexQuantitationMethod& TMTSixPlexQuantitationMethod::operator=(const TMTSixPlexQuantitationMethod& rhs) = default;
-
-  const String& TMTSixPlexQuantitationMethod::getMethodName() const
-  {
-    static const String name(IsobaricQuantitationMethod::methodTypeName(METHOD_TYPE));
-    return name;
-  }
 
   const IsobaricQuantitationMethod::IsobaricChannelList& TMTSixPlexQuantitationMethod::getChannelInformation() const
   {

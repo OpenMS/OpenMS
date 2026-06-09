@@ -18,7 +18,8 @@ namespace OpenMS
 
 const std::vector<std::string> TMTElevenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131N","131C"};
 
-TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod()
+TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod() :
+    IsobaricQuantitationMethod(MethodType::TMT_11PLEX)
 {
     setName("TMTElevenPlexQuantitationMethod");
 
@@ -137,12 +138,6 @@ TMTElevenPlexQuantitationMethod& TMTElevenPlexQuantitationMethod::operator=(cons
     reference_channel_ = rhs.reference_channel_;
 
     return *this;
-}
-
-const String& TMTElevenPlexQuantitationMethod::getMethodName() const
-{
-    static const String name(IsobaricQuantitationMethod::methodTypeName(METHOD_TYPE));
-    return name;
 }
 
 const IsobaricQuantitationMethod::IsobaricChannelList& TMTElevenPlexQuantitationMethod::getChannelInformation() const

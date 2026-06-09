@@ -36,10 +36,6 @@ public:
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
 
-    const String& getMethodName() const override;
-
-    MethodType getMethodType() const override { return METHOD_TYPE; }
-
     const IsobaricChannelList& getChannelInformation() const override;
 
     Size getNumberOfChannels() const override;
@@ -49,8 +45,6 @@ public:
     Size getReferenceChannel() const override;
 
     /// @}
-
-    static constexpr MethodType METHOD_TYPE = MethodType::ITRAQ_4PLEX;
 
 private:
     /// the actual information on the different itraq4plex channels.

@@ -31,15 +31,11 @@ namespace OpenMS{
 
             /// @brief Methods to implement from IsobaricQuantitationMethod
             /// @{
-            const String& getMethodName() const override;
-            MethodType getMethodType() const override { return METHOD_TYPE; }
             const IsobaricChannelList& getChannelInformation() const override;
             Size getNumberOfChannels() const override;
             Matrix<double> getIsotopeCorrectionMatrix() const override;
             Size getReferenceChannel() const override;
             /// @}
-
-            static constexpr MethodType METHOD_TYPE = MethodType::TMT_35PLEX;
 
         private:
             /// The actual information on the different TMT 35plex channels.

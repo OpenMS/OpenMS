@@ -15,7 +15,8 @@
 namespace OpenMS
 {
 
-  ItraqEightPlexQuantitationMethod::ItraqEightPlexQuantitationMethod()
+  ItraqEightPlexQuantitationMethod::ItraqEightPlexQuantitationMethod() :
+    IsobaricQuantitationMethod(MethodType::ITRAQ_8PLEX)
   {
     setName("ItraqFourPlexQuantitationMethod");
 
@@ -119,12 +120,6 @@ namespace OpenMS
     {
       reference_channel_ = ref_ch - 113;
     }
-  }
-
-  const String& ItraqEightPlexQuantitationMethod::getMethodName() const
-  {
-    static const String name(IsobaricQuantitationMethod::methodTypeName(METHOD_TYPE));
-    return name;
   }
 
   const IsobaricQuantitationMethod::IsobaricChannelList& ItraqEightPlexQuantitationMethod::getChannelInformation() const

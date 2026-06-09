@@ -24,30 +24,20 @@ class TestQuantitationMethod :
 {
 public:
   IsobaricChannelList channel_list;
-  String name;
   StringList correction_list;
 
-  TestQuantitationMethod()
+  // a generic test stub; not a real method, so it reports MethodType::UNKNOWN to the base c'tor
+  TestQuantitationMethod() :
+    IsobaricQuantitationMethod(MethodType::UNKNOWN)
   {
     setName("TestQuantitationMethod");
     channel_list.push_back(IsobaricChannelInformation("114", 0, "", 114.1112, {-1, -1, 1, 2}));
     channel_list.push_back(IsobaricChannelInformation("115", 1, "", 115.1082, {-1, 0, 2, 3}));
     channel_list.push_back(IsobaricChannelInformation("116", 2, "", 116.1116, {0, 1, 3, -1}));
     channel_list.push_back(IsobaricChannelInformation("117", 3, "", 117.1149, {1, 2, -1, -1}));
-    name = "TestQuantitationMethod";
   }
 
   ~TestQuantitationMethod() override = default;
-
-  const String& getMethodName() const override
-  {
-    return name;
-  }
-
-  MethodType getMethodType() const override
-  {
-    return MethodType::UNKNOWN;
-  }
 
   const IsobaricChannelList& getChannelInformation() const override
   {
@@ -78,7 +68,7 @@ START_TEST(IsobaricQuantitationMethod, "$Id$")
 
 IsobaricQuantitationMethod* ptr = nullptr;
 IsobaricQuantitationMethod* null_ptr = nullptr;
-START_SECTION(IsobaricQuantitationMethod())
+START_SECTION(IsobaricQuantitationMethod(MethodType method_type))
 {
 	ptr = new TestQuantitationMethod();
 	TEST_NOT_EQUAL(ptr, null_ptr)
@@ -221,6 +211,55 @@ START_SECTION((static std::unique_ptr<IsobaricQuantitationMethod> create(MethodT
   // The terminator and any out-of-range value are programming errors and must throw.
   TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::create(MT::SIZE_OF_METHODTYPE))
   TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::create(static_cast<MT>(static_cast<int>(MT::SIZE_OF_METHODTYPE) + 1)))
+}
+END_SECTION
+
+START_SECTION((const String& getMethodName() const))
+{
+  using MT = IsobaricQuantitationMethod::MethodType;
+  auto m = IsobaricQuantitationMethod::create(MT::TMT_6PLEX);
+  TEST_STRING_EQUAL(m->getMethodName(), "tmt6plex")
+}
+END_SECTION
+
+START_SECTION((MethodType getMethodType() const))
+{
+  using MT = IsobaricQuantitationMethod::MethodType;
+  auto m = IsobaricQuantitationMethod::create(MT::ITRAQ_4PLEX);
+  TEST_EQUAL(m->getMethodType() == MT::ITRAQ_4PLEX, true)
+}
+END_SECTION
+
+START_SECTION((static std::string_view methodTypeName(MethodType mt)))
+{
+  using MT = IsobaricQuantitationMethod::MethodType;
+  TEST_STRING_EQUAL(String(IsobaricQuantitationMethod::methodTypeName(MT::UNKNOWN)), "unknown")
+  TEST_STRING_EQUAL(String(IsobaricQuantitationMethod::methodTypeName(MT::TMT_6PLEX)), "tmt6plex")
+  TEST_STRING_EQUAL(String(IsobaricQuantitationMethod::methodTypeName(MT::ITRAQ_8PLEX)), "itraq8plex")
+  // out-of-range values (the SIZE_OF_METHODTYPE terminator and beyond) are programming errors and must throw
+  TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodTypeName(MT::SIZE_OF_METHODTYPE))
+  TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodTypeName(static_cast<MT>(static_cast<int>(MT::SIZE_OF_METHODTYPE) + 1)))
+}
+END_SECTION
+
+START_SECTION((static std::string_view methodDisplayName(MethodType mt)))
+{
+  using MT = IsobaricQuantitationMethod::MethodType;
+  TEST_STRING_EQUAL(String(IsobaricQuantitationMethod::methodDisplayName(MT::UNKNOWN)), "none")
+  TEST_STRING_EQUAL(String(IsobaricQuantitationMethod::methodDisplayName(MT::TMT_6PLEX)), "TMT 6-plex")
+  // out-of-range values (the SIZE_OF_METHODTYPE terminator and beyond) are programming errors and must throw
+  TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodDisplayName(MT::SIZE_OF_METHODTYPE))
+  TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodDisplayName(static_cast<MT>(static_cast<int>(MT::SIZE_OF_METHODTYPE) + 1)))
+}
+END_SECTION
+
+START_SECTION((static MethodType methodTypeFromName(std::string_view name)))
+{
+  using MT = IsobaricQuantitationMethod::MethodType;
+  TEST_EQUAL(IsobaricQuantitationMethod::methodTypeFromName("tmt6plex") == MT::TMT_6PLEX, true)
+  TEST_EQUAL(IsobaricQuantitationMethod::methodTypeFromName("itraq4plex") == MT::ITRAQ_4PLEX, true)
+  // an unrecognized name returns the UNKNOWN sentinel (string lookup; does not throw)
+  TEST_EQUAL(IsobaricQuantitationMethod::methodTypeFromName("not_a_method") == MT::UNKNOWN, true)
 }
 END_SECTION
 

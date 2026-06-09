@@ -1058,13 +1058,13 @@ namespace OpenMS
         QMenu* iso_menu = new QMenu("Isobaric m/z reference (TMT/iTRAQ)");
         if (tmt_method_type_ != MT::UNKNOWN)
           iso_menu->addAction(
-            QString("Disable (current: %1)").arg(toQString(String(IsobaricQuantitationMethod::methodTypeName(tmt_method_type_)))),
+            QString("Disable (current: %1)").arg(toQString(String(IsobaricQuantitationMethod::methodDisplayName(tmt_method_type_)))),
             [&]() { setTMTAnnotationMethod(MT::UNKNOWN); });
         // one entry per concrete method, skipping the UNKNOWN sentinel and the SIZE_OF_METHODTYPE terminator
         for (int i = static_cast<int>(MT::UNKNOWN) + 1; i < static_cast<int>(MT::SIZE_OF_METHODTYPE); ++i)
         {
           const MT mt = static_cast<MT>(i);
-          auto* act = iso_menu->addAction(toQString(String(IsobaricQuantitationMethod::methodTypeName(mt))),
+          auto* act = iso_menu->addAction(toQString(String(IsobaricQuantitationMethod::methodDisplayName(mt))),
                                           [this, mt]() { setTMTAnnotationMethod(mt); });
           if (tmt_method_type_ == mt) { act->setCheckable(true); act->setChecked(true); }
         }

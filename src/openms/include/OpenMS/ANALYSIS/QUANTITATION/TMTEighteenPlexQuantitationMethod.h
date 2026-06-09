@@ -38,10 +38,6 @@ public:
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
 
-    const String& getMethodName() const override;
-
-    MethodType getMethodType() const override { return METHOD_TYPE; }
-
     const IsobaricChannelList& getChannelInformation() const override;
 
     Size getNumberOfChannels() const override;
@@ -51,8 +47,6 @@ public:
     Size getReferenceChannel() const override;
 
     /// @}
-
-    static constexpr MethodType METHOD_TYPE = MethodType::TMT_18PLEX;
 
   private:
     /// the actual information on the different tmt18plex channels.

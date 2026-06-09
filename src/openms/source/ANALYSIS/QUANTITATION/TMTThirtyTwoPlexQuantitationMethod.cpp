@@ -78,7 +78,9 @@ namespace OpenMS{
         134.157491, 135.154526
     };
 
-    TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod(){
+    TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod() :
+        IsobaricQuantitationMethod(MethodType::TMT_32PLEX)
+    {
         setName("TMTThirtyTwoPlexQuantitationMethod");
 
         // Reporter ion masses from Thermo TMTpro documentation:
@@ -193,12 +195,6 @@ TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod(const TMT
 
 TMTThirtyTwoPlexQuantitationMethod& TMTThirtyTwoPlexQuantitationMethod::operator=(const TMTThirtyTwoPlexQuantitationMethod& rhs)
 = default;
-
-const String& TMTThirtyTwoPlexQuantitationMethod::getMethodName() const
-{
-    static const String name(IsobaricQuantitationMethod::methodTypeName(METHOD_TYPE));
-    return name;
-}
 
 const IsobaricQuantitationMethod::IsobaricChannelList& TMTThirtyTwoPlexQuantitationMethod::getChannelInformation() const
 {
