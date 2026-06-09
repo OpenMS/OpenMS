@@ -16,7 +16,7 @@
 namespace OpenMS{
     const String TMTThirtyTwoPlexQuantitationMethod::name_ = "tmt32plex";
     /*
-        For 32plex experiments, use TMTpro 32plex Label Reagent Matched Set (Cat. No. A40000839) 
+        For 32plex experiments, use TMTpro 32plex Label Reagent Matched Set (Cat. No. A40000839)
         or TMTpro 16plex Deuterated Label Reagent Set (Cat. No. A40000817) and TMTpro 16plex Label Reagent Set (Cat. No. A44520)
     */
     const std::vector<std::string> TMTThirtyTwoPlexQuantitationMethod::channel_names_ = {"126",
@@ -33,9 +33,10 @@ namespace OpenMS{
     // Channel adjacency topology: maps each channel to its neighbors in mass space
     // for isotope correction. Each row has 14 entries matching the 14-column correction
     // matrix format. Values are channel indices (-1 = no neighbor at that offset).
-    // With the default all-NA correction_matrix, no correction is applied regardless
-    // of these values. Users supplying calibrated correction percentages need this
-    // topology to route corrections to the correct target channels.
+    // This topology routes each channel's isotope-impurity shares to the correct target
+    // channels. The shipped defaults (correction_matrix for the non-deuterated channels and
+    // correction_matrix_deuterated for the deuterated channels) hold the CoA-derived percentages;
+    // supplying all-NA matrices falls back to the identity (no correction).
     static const std::array<std::array<int, 14>, 32> interaction_vector = {{
                                         {{ -1, -1, -1, -1, -1, -1, -1,  1,  2,  3,  4,  6,  5,  7 }},
                                         {{ -1, -1, -1, -1, -1, -1,  0, -1,  4,  6, -1, -1,  8, 10 }},
@@ -135,16 +136,51 @@ namespace OpenMS{
         defaults_.setValue("reference_channel", "126","The reference channel (126, 127N, 127C, 127D, 128N, 128C, 128ND, 128CD, 129N, 129C, 129ND, 129CD, 130N, 130C, 130ND, 130CD, 131N, 131C, 131ND, 131CD, 132N, 132C, 132ND, 132CD, 133N, 133C, 133ND, 133CD, 134N, 134ND, 134CD, 135ND).");
         defaults_.setValidStrings("reference_channel", TMTThirtyTwoPlexQuantitationMethod::channel_names_);
 
-        // Identity matrix (no isotope correction). Calibrated correction values are
-        // not yet available for TMT 32-plex. The correction_matrix parameter is ignored;
-        // getIsotopeCorrectionMatrix() always returns an identity matrix regardless of user input.
-        //
-        // Each row has 14 NA entries → all off-diagonal contributions are 0, diagonal is 1.0.
-        const std::string identity_row = "NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA";
-        defaults_.setValue("correction_matrix",
-                           std::vector<std::string>(32, identity_row),
-                           "Ignored for TMT 32-plex (identity matrix is always used). "
-                           "Isotope correction is not yet supported for this method.");
+        // The 32-plex correction is supplied as two parameters that mirror the two Thermo Certificate-of-Analysis
+        // sheets: the 16 non-deuterated channels (8 columns, identical to the TMT 16-plex matrix) and the 16
+        // deuterated channels (14 columns, which additionally carry the six 2H offsets). getIsotopeCorrectionMatrix()
+        // merges them into the full 32x32 matrix.
+        defaults_.setValue("correction_matrix", std::vector<std::string>{
+                                            "NA/NA / NA/NA / 0.31/9.09 / 0.02/0.32",   //126
+                                            "NA/NA / NA/0.78 / NA/9.41 / NA/0.33",      //127N
+                                            "NA/NA / 0.93/NA / 0.35/8.63 / 0.01/0.27",  //127C
+                                            "NA/0.00 / 0.82/0.65 / NA/8.13 / NA/0.26",  //128N
+                                            "0.00/NA / 1.47/NA / 0.34/6.91 / 0.00/0.15",//128C
+                                            "0.00/0.00 / 1.46/1.28 / NA/6.86 / NA/0.15",//129N
+                                            "0.13/NA / 2.59/NA / 0.32/6.07 / 0.1/0.09", //129C
+                                            "0.13/0.00 / 2.41/0.27 / NA/5.58 / NA/0.10",//130N
+                                            "0.04/NA / 3.10/NA / 0.42/4.82 / 0.02/0.06",//130C
+                                            "0.03/0.00 / 2.78/0.63 / NA/4.57 / NA/0.12",//131N
+                                            "0.08/NA / 3.90/NA / 0.47/3.57 / 0.00/0.04",//131C
+                                            "0.15/0.01 / 3.58/0.72 / NA/1.80 / NA/0.00",//132N
+                                            "0.11/NA / 4.55/NA / 0.43/1.86 / 0.00/0.00",//132C
+                                            "0.07/0.01 / 3.14/0.73 / NA/3.40 / NA/0.03",//133N
+                                            "0.22/NA / 4.96/NA / 0.34/1.03 / 0.00/NA",  //133C
+                                            "0.30/0.03 / 5.49/0.62 / NA/1.14 / NA/NA"   //134N
+                                            },
+                                    "Correction matrix for the non-deuterated TMTpro channels in percent, taken from the Thermo TMTpro datasheet (identical to the TMT 16-/18-plex correction matrix). Replace these with the values from your reagent lot's Certificate of Analysis for accurate quantitation;"
+                                    "Please provide 16 entries (rows), one per non-deuterated channel (126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N, 131C, 132N, 132C, 133N, 133C, 134N), separated by comma, where each entry contains 8 values in the following format: <-2C13>/<-N15-C13>/<-C13>/<-N15>/<+N15>/<+C13>/<+N15+C13>/<+2C13> e.g. one row may look like this: 'NA/0.00  /  0.82/0.65  /  NA/8.13  /  NA/0.26'. You may use whitespaces at your leisure to ease reading.");
+
+        defaults_.setValue("correction_matrix_deuterated", std::vector<std::string>{
+                                            "NA/NA/NA/NA/0.82/NA/NA/0.30/8.71/0.33/0.00/0.00/0.26/0.00",       //127D
+                                            "NA/NA/0.00/NA/1.13/NA/0.59/NA/8.61/0.24/NA/NA/0.28/0.00",         //128ND
+                                            "0.00/NA/NA/NA/1.47/0.70/NA/0.30/7.55/0.27/0.00/0.00/0.21/0.00",   //128CD
+                                            "0.00/NA/0.00/0.00/1.97/0.91/0.61/NA/7.58/0.35/NA/NA/0.19/0.00",   //129ND
+                                            "0.00/0.00/NA/NA/1.39/1.37/NA/0.31/6.02/0.50/0.00/0.00/0.08/0.00", //129CD
+                                            "0.00/0.08/0.00/0.00/1.77/1.50/0.59/NA/6.10/0.54/NA/NA/0.09/0.00", //130ND
+                                            "0.00/0.10/NA/NA/1.44/2.18/NA/0.33/5.49/0.40/0.00/0.00/0.06/0.00", //130CD
+                                            "0.01/0.19/0.00/0.00/1.47/2.23/0.61/NA/5.48/0.41/NA/NA/0.05/0.00", //131ND
+                                            "0.02/0.02/NA/NA/2.52/2.61/NA/0.98/4.14/1.15/0.01/0.00/0.02/0.01", //131CD
+                                            "0.02/0.02/0.00/0.00/3.52/1.70/0.60/NA/4.19/0.85/NA/NA/0.01/0.00", //132ND
+                                            "0.00/0.03/NA/NA/1.00/3.35/NA/1.00/3.07/0.94/0.00/0.00/0.00/0.00", //132CD
+                                            "0.00/0.01/0.00/0.00/0.89/2.48/0.63/NA/3.14/0.51/NA/NA/0.00/0.00", //133ND
+                                            "0.01/0.01/NA/NA/1.86/3.73/NA/0.31/1.63/0.79/0.00/0.00/0.00/0.00", //133CD
+                                            "0.02/0.10/0.00/0.00/1.66/3.76/0.22/NA/1.73/0.31/NA/NA/0.00/0.00", //134ND
+                                            "0.03/0.23/NA/NA/1.53/4.94/NA/0.31/0.95/0.31/0.00/0.00/NA/0.00",   //134CD
+                                            "0.04/0.23/0.00/0.00/1.54/4.85/0.21/NA/1.03/0.32/NA/NA/NA/0.00"    //135ND
+                                            },
+                                    "Correction matrix for the deuterated TMTpro channels in percent, derived from the Thermo TMTpro deuterated reagent set Certificate of Analysis (product A40000817). Replace these with the values from your reagent lot's Certificate of Analysis for accurate quantitation;"
+                                    "Please provide 16 entries (rows), one per deuterated channel (127D, 128ND, 128CD, 129ND, 129CD, 130ND, 130CD, 131ND, 131CD, 132ND, 132CD, 133ND, 133CD, 134ND, 134CD, 135ND), separated by comma, where each entry contains 14 values in the following format: <-C13-H2>/<-2C13>/<-N15-H2>/<-C13-N15>/<-H2>/<-C13>/<-N15>/<+N15>/<+C13>/<+H2>/<+N15+C13>/<+N15+H2>/<+2C13>/<+C13+H2> e.g. one row may look like this: 'NA/NA/NA/NA   /0.82/NA/NA   /0.30/8.71/0.33   /0.00/0.00/0.26/0.00'. You may use whitespaces at your leisure to ease reading.");
         defaultsToParam_();
     }
 
@@ -212,11 +248,9 @@ Size TMTThirtyTwoPlexQuantitationMethod::getNumberOfChannels() const
 
 Matrix<double> TMTThirtyTwoPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
 {
-    // Always return identity matrix — isotope correction is not yet validated for TMT 32-plex.
-    // User-supplied correction_matrix parameter is ignored.
-    const std::string identity_row = "NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA";
-    StringList iso_correction(32, identity_row);
-    return stringListToIsotopeCorrectionMatrix_(iso_correction);
+    StringList non_deuterated = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
+    StringList deuterated = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix_deuterated"));
+    return stringListToIsotopeCorrectionMatrixSplit_(non_deuterated, deuterated);
 }
 
 Size TMTThirtyTwoPlexQuantitationMethod::getReferenceChannel() const

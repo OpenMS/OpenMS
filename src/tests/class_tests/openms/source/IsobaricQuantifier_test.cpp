@@ -93,22 +93,28 @@ START_SECTION((void quantify(const ConsensusMap &consensus_map_in, ConsensusMap 
 }
 END_SECTION
 
-// TMT 32-plex: verify that the identity matrix is always used (user-supplied correction_matrix is ignored)
-// and that quantify() preserves intensities when isotope correction is disabled.
-START_SECTION(([EXTRA] TMT 32plex identity matrix enforced in quantify))
+// TMT 32-plex: verify that the Thermo CoA-derived correction matrix is exposed and that
+// user-supplied correction_matrix values are honored, and that quantify() preserves
+// intensities when isotope correction is disabled.
+START_SECTION(([EXTRA] TMT 32plex isotope correction matrix in quantify))
 {
   TMTThirtyTwoPlexQuantitationMethod tmt32;
 
-  // Verify getIsotopeCorrectionMatrix() returns identity even after setting non-identity values
+  // Verify getIsotopeCorrectionMatrix() reflects the correction_matrix parameter
   {
+    // the default is the Thermo CoA matrix: channel "126" diagonal is 0.9026 (not identity)
+    Matrix<double> def = tmt32.getIsotopeCorrectionMatrix();
+    TEST_REAL_SIMILAR(def(0, 0), 0.9026)
+
     Param p = tmt32.getParameters();
-    // Try to set a non-identity correction matrix (with some non-zero off-diagonal values)
-    std::vector<std::string> fake_correction(32, "1.0/0.5/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA");
-    p.setValue("correction_matrix", fake_correction);
+    // a user-supplied all-NA correction matrix must be honored and yield the identity
+    // (16 non-deuterated rows with 8 columns + 16 deuterated rows with 14 columns)
+    p.setValue("correction_matrix", std::vector<std::string>(16, "NA/NA/NA/NA/NA/NA/NA/NA"));
+    p.setValue("correction_matrix_deuterated", std::vector<std::string>(16, "NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA"));
     tmt32.setParameters(p);
 
     Matrix<double> m = tmt32.getIsotopeCorrectionMatrix();
-    // Must still be identity
+    // all-NA correction => identity
     for (Size r = 0; r < m.rows(); ++r)
     {
       for (Size c = 0; c < m.cols(); ++c)
@@ -159,7 +165,7 @@ START_SECTION(([EXTRA] TMT 32plex identity matrix enforced in quantify))
     cf.setIntensity(total_intensity);
     cm_in.push_back(cf);
 
-    // Run quantify with isotope_correction disabled (identity matrix would throw in corrector)
+    // Run quantify with isotope_correction disabled, so the correction matrix is not applied
     IsobaricQuantifier iq(&tmt32_q);
     Param p;
     p.setValue("isotope_correction", "false");
