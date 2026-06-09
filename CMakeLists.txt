@@ -100,11 +100,11 @@ endif()
 if (ENABLE_OPENTIMS_TESTS AND WITH_OPENTIMS)
   include(FetchContent)
   # Mirror of the timsrust_cpp_bridge "test-data-v1" release, hosted on the OpenMS
-  # infra fileserver. NOTE: this host currently answers only on bare-IP plain HTTP
-  # (no DNS name / HTTPS yet) and port 80 is reachable only from whitelisted
+  # infra fileserver (archive.openms.de). NOTE: this host currently answers only on
+  # plain HTTP (no HTTPS listener yet) and port 80 is reachable only from whitelisted
   # CI/build networks at the perimeter firewall. URL_HASH pins each file's
   # integrity so the weaker transport cannot corrupt a download silently.
-  set(OPENTIMS_TESTDATA_URL "http://193.196.20.95/openms/testfiles")
+  set(OPENTIMS_TESTDATA_URL "http://archive.openms.de/openms/testfiles")
   FetchContent_Declare(
     opentims_testdata_dda
     URL "${OPENTIMS_TESTDATA_URL}/DDA_HeLa_50ng_5_6min.d.zip"
@@ -137,10 +137,10 @@ if (ENABLE_THERMO_RAW_TESTS AND WITH_THERMO_RAW)
   # activation (ETD+HCD, ETD+CID) filters at precursor m/z 432.9 — exercises the
   # full activation-method switch in ThermoRawFile.cpp and MS1+MSn round-trip via
   # mzML. Served from the OpenMS infra mirror (see OPENTIMS_TESTDATA_URL note above
-  # re: bare-IP plain HTTP); URL_HASH below pins integrity/reproducibility.
+  # re: plain HTTP); URL_HASH below pins integrity/reproducibility.
   FetchContent_Declare(
     thermo_raw_testdata
-    URL "http://193.196.20.95/openms/testfiles/Angiotensin_AllScans.raw"
+    URL "http://archive.openms.de/openms/testfiles/Angiotensin_AllScans.raw"
     URL_HASH SHA256=3a0236f719e7c91e3c958f57f4e66ae422803ec3e6a997b9af4d2af395332b9f
     DOWNLOAD_NO_EXTRACT TRUE
   )
