@@ -44,6 +44,11 @@ public:
     return name;
   }
 
+  MethodType getMethodType() const override
+  {
+    return MethodType::UNKNOWN;
+  }
+
   const IsobaricChannelList& getChannelInformation() const override
   {
     return channel_list;
@@ -192,6 +197,30 @@ START_SECTION(([IsobaricQuantitationMethod::IsobaricChannelInformation] Isobaric
   TEST_EQUAL(cI.affected_channels[2], -1)
   TEST_EQUAL(cI.affected_channels[3], -1)
 
+}
+END_SECTION
+
+START_SECTION((static std::unique_ptr<IsobaricQuantitationMethod> create(MethodType mt)))
+{
+  using MT = IsobaricQuantitationMethod::MethodType;
+
+  // UNKNOWN is the disabled/none sentinel and yields a null pointer (no exception).
+  TEST_EQUAL(IsobaricQuantitationMethod::create(MT::UNKNOWN) == nullptr, true)
+
+  // Every concrete method must be instantiable and report back the MethodType it was created from.
+  for (int i = static_cast<int>(MT::UNKNOWN) + 1; i < static_cast<int>(MT::SIZE_OF_METHODTYPE); ++i)
+  {
+    const MT mt = static_cast<MT>(i);
+    auto method = IsobaricQuantitationMethod::create(mt);
+    TEST_EQUAL(method != nullptr, true)
+    ABORT_IF(method == nullptr)
+    TEST_EQUAL(static_cast<int>(method->getMethodType()), i)
+    TEST_STRING_EQUAL(method->getMethodName(), String(IsobaricQuantitationMethod::methodTypeName(mt)))
+  }
+
+  // The terminator and any out-of-range value are programming errors and must throw.
+  TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::create(MT::SIZE_OF_METHODTYPE))
+  TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::create(static_cast<MT>(static_cast<int>(MT::SIZE_OF_METHODTYPE) + 1)))
 }
 END_SECTION
 

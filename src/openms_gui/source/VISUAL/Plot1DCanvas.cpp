@@ -26,13 +26,7 @@
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
@@ -1061,26 +1055,20 @@ namespace OpenMS
       settings_menu->addSeparator();
       {
         using MT = IsobaricQuantitationMethod::MethodType;
-        QMenu* tmt_menu = new QMenu("TMT m/z reference");
+        QMenu* iso_menu = new QMenu("Isobaric m/z reference (TMT/iTRAQ)");
         if (tmt_method_type_ != MT::UNKNOWN)
-          tmt_menu->addAction(
+          iso_menu->addAction(
             QString("Disable (current: %1)").arg(toQString(String(IsobaricQuantitationMethod::methodTypeName(tmt_method_type_)))),
             [&]() { setTMTAnnotationMethod(MT::UNKNOWN); });
-        static const std::vector<std::pair<MT, QString>> kTMTMethods = {
-          {MT::TMT_6PLEX,  "TMT 6-plex"},
-          {MT::TMT_10PLEX, "TMT 10-plex"},
-          {MT::TMT_11PLEX, "TMT 11-plex"},
-          {MT::TMT_16PLEX, "TMT 16-plex"},
-          {MT::TMT_18PLEX, "TMT 18-plex"},
-          {MT::TMT_32PLEX, "TMT 32-plex"},
-          {MT::TMT_35PLEX, "TMT 35-plex"},
-        };
-        for (const auto& [mt, label] : kTMTMethods)
+        // one entry per concrete method, skipping the UNKNOWN sentinel and the SIZE_OF_METHODTYPE terminator
+        for (int i = static_cast<int>(MT::UNKNOWN) + 1; i < static_cast<int>(MT::SIZE_OF_METHODTYPE); ++i)
         {
-          auto* act = tmt_menu->addAction(label, [this, mt]() { setTMTAnnotationMethod(mt); });
+          const MT mt = static_cast<MT>(i);
+          auto* act = iso_menu->addAction(toQString(String(IsobaricQuantitationMethod::methodTypeName(mt))),
+                                          [this, mt]() { setTMTAnnotationMethod(mt); });
           if (tmt_method_type_ == mt) { act->setCheckable(true); act->setChecked(true); }
         }
-        context_menu->addMenu(tmt_menu);
+        context_menu->addMenu(iso_menu);
       }
       
       settings_menu->addSeparator();
@@ -1656,19 +1644,9 @@ namespace OpenMS
     const MSSpectrum& spec = peak_layer->getCurrentSpectrum();
     if (spec.empty()) return;
 
-    // Build theoretical TMT spectrum from channel masses
-    std::unique_ptr<IsobaricQuantitationMethod> method;
-    switch (tmt_method_type_)
-    {
-      case MT::TMT_6PLEX:  method = std::make_unique<TMTSixPlexQuantitationMethod>();       break;
-      case MT::TMT_10PLEX: method = std::make_unique<TMTTenPlexQuantitationMethod>();        break;
-      case MT::TMT_11PLEX: method = std::make_unique<TMTElevenPlexQuantitationMethod>();     break;
-      case MT::TMT_16PLEX: method = std::make_unique<TMTSixteenPlexQuantitationMethod>();    break;
-      case MT::TMT_18PLEX: method = std::make_unique<TMTEighteenPlexQuantitationMethod>();   break;
-      case MT::TMT_32PLEX: method = std::make_unique<TMTThirtyTwoPlexQuantitationMethod>();  break;
-      case MT::TMT_35PLEX: method = std::make_unique<TMTThirtyFivePlexQuantitationMethod>(); break;
-      default: return;
-    }
+    // Build theoretical isobaric reporter-ion spectrum from channel masses
+    std::unique_ptr<IsobaricQuantitationMethod> method = IsobaricQuantitationMethod::create(tmt_method_type_);
+    if (!method) return;
 
     // Sort channels by m/z so tmt_spec indices stay in sync with channel metadata.
     // getChannelInformation() does NOT guarantee m/z order (e.g. TMT32 interleaves N/C/ND/CD).

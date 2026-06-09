@@ -8,6 +8,16 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
+#include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.h>
+
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -42,6 +52,28 @@ namespace OpenMS
       if (METHOD_TYPE_NAMES[i] == name) return static_cast<MethodType>(i);
     }
     return MethodType::UNKNOWN;
+  }
+
+  std::unique_ptr<IsobaricQuantitationMethod> IsobaricQuantitationMethod::create(MethodType mt)
+  {
+    switch (mt)
+    {
+      case MethodType::UNKNOWN:     return nullptr; // disabled/none sentinel
+      case MethodType::TMT_6PLEX:   return std::make_unique<TMTSixPlexQuantitationMethod>();
+      case MethodType::TMT_10PLEX:  return std::make_unique<TMTTenPlexQuantitationMethod>();
+      case MethodType::TMT_11PLEX:  return std::make_unique<TMTElevenPlexQuantitationMethod>();
+      case MethodType::TMT_16PLEX:  return std::make_unique<TMTSixteenPlexQuantitationMethod>();
+      case MethodType::TMT_18PLEX:  return std::make_unique<TMTEighteenPlexQuantitationMethod>();
+      case MethodType::TMT_32PLEX:  return std::make_unique<TMTThirtyTwoPlexQuantitationMethod>();
+      case MethodType::TMT_35PLEX:  return std::make_unique<TMTThirtyFivePlexQuantitationMethod>();
+      case MethodType::ITRAQ_4PLEX: return std::make_unique<ItraqFourPlexQuantitationMethod>();
+      case MethodType::ITRAQ_8PLEX: return std::make_unique<ItraqEightPlexQuantitationMethod>();
+      case MethodType::SIZE_OF_METHODTYPE:
+        break; // not a real method; fall through to throw
+    }
+    // SIZE_OF_METHODTYPE or any value outside the enum range is a programming error
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "No isobaric quantitation method exists for MethodType value " + String(static_cast<int>(mt)) + ".");
   }
 
   IsobaricQuantitationMethod::~IsobaricQuantitationMethod() = default;

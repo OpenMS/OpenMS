@@ -15,6 +15,7 @@
 #include <OpenMS/KERNEL/Peak2D.h>
 
 #include <array>
+#include <memory>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -58,6 +59,15 @@ public:
 
     /// Returns the MethodType corresponding to @p name, or MethodType::UNKNOWN if not found.
     static MethodType methodTypeFromName(std::string_view name);
+
+    /**
+      @brief Factory: creates a new instance of the concrete quantitation method identified by @p mt.
+
+      @param mt The quantitation method to instantiate.
+      @return An owning pointer to the newly created method, or @c nullptr if @p mt is MethodType::UNKNOWN (the disabled/none sentinel).
+      @throws Exception::IllegalArgument if @p mt is not a concrete method, i.e. MethodType::SIZE_OF_METHODTYPE or any value outside the enum range.
+    */
+    static std::unique_ptr<IsobaricQuantitationMethod> create(MethodType mt);
 
     /**
       @brief Summary of an isobaric quantitation channel.
