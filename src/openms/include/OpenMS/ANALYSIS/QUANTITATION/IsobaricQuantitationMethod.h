@@ -115,7 +115,7 @@ public:
 
       @return The unique name or identifier of the quantitation method.
     */
-    const String& getMethodName() const;
+    const std::string& getMethodName() const;
 
     /// Returns the MethodType enum value of this quantitation method.
     MethodType getMethodType() const { return iso_method_; }
@@ -154,7 +154,7 @@ protected:
       @param[in] stringlist The StringList to convert.
       @return An isotope correction matrix as Matrix<double>.
     */
-    Matrix<double> stringListToIsotopeCorrectionMatrix_(const std::vector<String>& stringlist) const;
+    Matrix<double> stringListToIsotopeCorrectionMatrix_(const std::vector<std::string>& stringlist) const;
 
 private:
     /// The concrete isobaric method this instance represents; set by the c'tor and returned by getMethodType()/getMethodName().

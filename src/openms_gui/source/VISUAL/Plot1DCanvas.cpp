@@ -188,7 +188,7 @@ namespace OpenMS
   void Plot1DCanvas::activateLayer(Size layer_index)
   {
     // reset TMT state on layer switch; items are owned by the (previous) layer's container
-    tmt_annotation_items_.clear();
+    removeTMTAnnotations_();
     tmt_method_type_ = IsobaricQuantitationMethod::MethodType::UNKNOWN;
 
     layers_.setCurrentLayer(layer_index);
@@ -565,7 +565,7 @@ namespace OpenMS
   void Plot1DCanvas::removeLayer(Size layer_index)
   {
     // reset TMT state; items owned by the layer container being removed
-    tmt_annotation_items_.clear();
+    removeTMTAnnotations_();
     tmt_method_type_ = IsobaricQuantitationMethod::MethodType::UNKNOWN;
 
     // remove settings
@@ -1000,6 +1000,28 @@ namespace OpenMS
         showMetaData(true);
       });
 
+      context_menu->addSeparator();
+      {
+        using MT = IsobaricQuantitationMethod::MethodType;
+        QMenu* iso_menu = new QMenu("Isobaric m/z reference (TMT/iTRAQ)");
+        if (tmt_method_type_ != MT::UNKNOWN)
+        {
+          iso_menu->addAction(
+            QString("Disable (current: %1)").arg(toQString(std::string(IsobaricQuantitationMethod::methodDisplayName(tmt_method_type_)))),
+            [&]() { setTMTAnnotationMethod(MT::UNKNOWN); });
+        }
+        // one entry per concrete method, skipping the UNKNOWN sentinel and the SIZE_OF_METHODTYPE terminator
+        for (int i = static_cast<int>(MT::UNKNOWN) + 1; i < static_cast<int>(MT::SIZE_OF_METHODTYPE); ++i)
+        {
+          const MT mt = static_cast<MT>(i);
+          auto* act = iso_menu->addAction(toQString(std::string(IsobaricQuantitationMethod::methodDisplayName(mt))),
+                                          [this, mt]() { setTMTAnnotationMethod(mt); });
+          if (tmt_method_type_ == mt) { act->setCheckable(true); act->setChecked(true); }
+        }
+        context_menu->addMenu(iso_menu);
+      }
+      context_menu->addSeparator();
+
       QMenu* save_menu = new QMenu("Save");
       
       save_menu->addAction("Layer", [&]() {
@@ -1054,25 +1076,6 @@ namespace OpenMS
         setDrawInterestingMZs(!draw_interesting_MZs_);
       });
 
-      settings_menu->addSeparator();
-      {
-        using MT = IsobaricQuantitationMethod::MethodType;
-        QMenu* iso_menu = new QMenu("Isobaric m/z reference (TMT/iTRAQ)");
-        if (tmt_method_type_ != MT::UNKNOWN)
-          iso_menu->addAction(
-            QString("Disable (current: %1)").arg(toQString(String(IsobaricQuantitationMethod::methodDisplayName(tmt_method_type_)))),
-            [&]() { setTMTAnnotationMethod(MT::UNKNOWN); });
-        // one entry per concrete method, skipping the UNKNOWN sentinel and the SIZE_OF_METHODTYPE terminator
-        for (int i = static_cast<int>(MT::UNKNOWN) + 1; i < static_cast<int>(MT::SIZE_OF_METHODTYPE); ++i)
-        {
-          const MT mt = static_cast<MT>(i);
-          auto* act = iso_menu->addAction(toQString(String(IsobaricQuantitationMethod::methodDisplayName(mt))),
-                                          [this, mt]() { setTMTAnnotationMethod(mt); });
-          if (tmt_method_type_ == mt) { act->setCheckable(true); act->setChecked(true); }
-        }
-        context_menu->addMenu(iso_menu);
-      }
-      
       settings_menu->addSeparator();
       
       settings_menu->addAction("Preferences", [&]() {
@@ -1701,7 +1704,6 @@ namespace OpenMS
     }
     std::vector<std::pair<Size, Size>> tmt_to_centroid; // (tmt_channel_idx, centroid_peak_idx)
     aligner.getSpectrumAlignment(tmt_to_centroid, tmt_spec, centroid_spec);
-    if (tmt_to_centroid.empty()) { update_(OPENMS_PRETTY_FUNCTION); return; }
 
     // For profile: align picked centroids to raw spectrum to find best annotation anchor peak
     std::map<Size, Size> centroid_to_raw_idx;
@@ -1720,7 +1722,7 @@ namespace OpenMS
     // Color scheme:
     //   found channel  – peak colored orange-red; vertical line solid green
     //   missing channel – vertical line dashed grey
-    const QColor default_color(toQString(String(getCurrentLayer().param.getValue("peak_color").toString())));
+    const QColor default_color(toQString(getCurrentLayer().param.getValue("peak_color").toString()));
     const QColor peak_matched_color(255, 80, 0);    // vibrant orange-red for matched peaks
     const QColor ann_color(Qt::darkRed);
     const QColor line_found_color(0, 160, 0);        // green: theoretical mass was matched

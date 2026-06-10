@@ -205,7 +205,7 @@ START_SECTION((static std::unique_ptr<IsobaricQuantitationMethod> create(MethodT
     TEST_EQUAL(method != nullptr, true)
     ABORT_IF(method == nullptr)
     TEST_EQUAL(static_cast<int>(method->getMethodType()), i)
-    TEST_STRING_EQUAL(method->getMethodName(), String(IsobaricQuantitationMethod::methodTypeName(mt)))
+    TEST_STRING_EQUAL(method->getMethodName(), std::string(IsobaricQuantitationMethod::methodTypeName(mt)))
   }
 
   // The terminator and any out-of-range value are programming errors and must throw.
@@ -214,7 +214,7 @@ START_SECTION((static std::unique_ptr<IsobaricQuantitationMethod> create(MethodT
 }
 END_SECTION
 
-START_SECTION((const String& getMethodName() const))
+START_SECTION((const std::string& getMethodName() const))
 {
   using MT = IsobaricQuantitationMethod::MethodType;
   auto m = IsobaricQuantitationMethod::create(MT::TMT_6PLEX);
@@ -233,9 +233,9 @@ END_SECTION
 START_SECTION((static std::string_view methodTypeName(MethodType mt)))
 {
   using MT = IsobaricQuantitationMethod::MethodType;
-  TEST_STRING_EQUAL(String(IsobaricQuantitationMethod::methodTypeName(MT::UNKNOWN)), "unknown")
-  TEST_STRING_EQUAL(String(IsobaricQuantitationMethod::methodTypeName(MT::TMT_6PLEX)), "tmt6plex")
-  TEST_STRING_EQUAL(String(IsobaricQuantitationMethod::methodTypeName(MT::ITRAQ_8PLEX)), "itraq8plex")
+  TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodTypeName(MT::UNKNOWN)), "unknown")
+  TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodTypeName(MT::TMT_6PLEX)), "tmt6plex")
+  TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodTypeName(MT::ITRAQ_8PLEX)), "itraq8plex")
   // out-of-range values (the SIZE_OF_METHODTYPE terminator and beyond) are programming errors and must throw
   TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodTypeName(MT::SIZE_OF_METHODTYPE))
   TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodTypeName(static_cast<MT>(static_cast<int>(MT::SIZE_OF_METHODTYPE) + 1)))
@@ -245,8 +245,8 @@ END_SECTION
 START_SECTION((static std::string_view methodDisplayName(MethodType mt)))
 {
   using MT = IsobaricQuantitationMethod::MethodType;
-  TEST_STRING_EQUAL(String(IsobaricQuantitationMethod::methodDisplayName(MT::UNKNOWN)), "none")
-  TEST_STRING_EQUAL(String(IsobaricQuantitationMethod::methodDisplayName(MT::TMT_6PLEX)), "TMT 6-plex")
+  TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodDisplayName(MT::UNKNOWN)), "none")
+  TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodDisplayName(MT::TMT_6PLEX)), "TMT 6-plex")
   // out-of-range values (the SIZE_OF_METHODTYPE terminator and beyond) are programming errors and must throw
   TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodDisplayName(MT::SIZE_OF_METHODTYPE))
   TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodDisplayName(static_cast<MT>(static_cast<int>(MT::SIZE_OF_METHODTYPE) + 1)))

@@ -86,7 +86,7 @@ namespace OpenMS
       if (idx >= std::size(METHOD_REGISTRY))
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Invalid IsobaricQuantitationMethod::MethodType value " + String(static_cast<int>(mt)) + ".");
+          "Invalid IsobaricQuantitationMethod::MethodType value " + StringUtils::toStr(static_cast<int>(mt)) + ".");
       }
       return METHOD_REGISTRY[idx];
     }
@@ -124,18 +124,23 @@ namespace OpenMS
     DefaultParamHandler("IsobaricQuantitationMethod"),
     iso_method_(method_type)
   {
+    if (method_type < MethodType::UNKNOWN || method_type >= MethodType::SIZE_OF_METHODTYPE)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "IsobaricQuantitationMethod::MethodType value " + StringUtils::toStr(static_cast<int>(method_type)) + " is not supported.");
+    }
   }
 
-  const String& IsobaricQuantitationMethod::getMethodName() const
+  const std::string& IsobaricQuantitationMethod::getMethodName() const
   {
-    // one persistent String per method type (its canonical name), created once on first use,
+    // one persistent std::string per method type (its canonical name), created once on first use,
     // so we can hand out a reference (methodTypeName() only yields a string_view)
-    static const std::array<String, static_cast<size_t>(MethodType::SIZE_OF_METHODTYPE)> names = []
+    static const std::array<std::string, static_cast<size_t>(MethodType::SIZE_OF_METHODTYPE)> names = []
     {
-      std::array<String, static_cast<size_t>(MethodType::SIZE_OF_METHODTYPE)> n;
+      std::array<std::string, static_cast<size_t>(MethodType::SIZE_OF_METHODTYPE)> n;
       for (size_t i = 0; i < n.size(); ++i)
       {
-        n[i] = String(methodTypeName(static_cast<MethodType>(i)));
+        n[i] = std::string(methodTypeName(static_cast<MethodType>(i)));
       }
       return n;
     }();

@@ -11,6 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <list>
+#include <vector>
 
 #include <QtGui/QPen>
 
