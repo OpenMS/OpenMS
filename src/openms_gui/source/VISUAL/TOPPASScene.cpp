@@ -19,6 +19,7 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASVertexNameDialog.h>
 
+#include <OpenMS/APPLICATIONS/TOPPASWorkflow.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -636,84 +637,65 @@ namespace OpenMS
 
   bool TOPPASScene::store(const std::string& file)
   {
-    Param save_param;
+    // build a Qt-free document model and let it handle the serialization
+    TOPPASWorkflow wf;
+    wf.description = fromQString(this->description_text_);
 
-    save_param.setValue("info:version", VersionInfo::getVersion());
-    save_param.setValue("info:num_vertices", vertices_.size());
-    save_param.setValue("info:num_edges", edges_.size());
-    save_param.setValue("info:description",std::string("<![CDATA[") + fromQString(this->description_text_) + std::string("]]>"));
-
-    // lambda function to store common parameters of all vertices
-    auto save_common_params =
-      [&save_param](const TOPPASVertex* tv, const std::string& id, const std::string& type)
-      {
-        save_param.setValue("vertices:" + id + ":toppas_type", type);
-        save_param.setValue("vertices:" + id + ":x_pos", tv->x());
-        save_param.setValue("vertices:" + id + ":y_pos", tv->y());
-        save_param.setValue("vertices:" + id + ":recycle_output", tv->isRecyclingEnabled() ? "true" : "false");
-    };
-      
-
-    // store all vertices (together with all parameters)
-    for (TOPPASVertex * tv : vertices_)
+    // all vertices (together with all parameters); node id is the topological index
+    for (TOPPASVertex* tv : vertices_)
     {
-      std::string id = StringUtils::toStr(tv->getTopoNr() - 1);
+      TOPPASWorkflow::Node n;
+      n.id = StringUtils::toStr(tv->getTopoNr() - 1);
+      n.x_pos = tv->x();
+      n.y_pos = tv->y();
+      n.recycle_output = tv->isRecyclingEnabled();
 
       // vertex subclasses
       if (auto* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv); iflv)
       {
-        // store file names relative to toppas file
+        n.type = TOPPASWorkflow::NodeType::INPUT_FILE_LIST;
+        // store file names relative to the toppas file
         QDir save_dir(toQString(File::path(file)));
         const QStringList& files_qt = iflv->getFileNames();
-        std::vector<std::string> files;
-        for (const QString &file_qt : files_qt)
+        for (const QString& file_qt : files_qt)
         {
-          files.push_back(save_dir.relativeFilePath(file_qt).toStdString());
+          n.file_names.push_back(save_dir.relativeFilePath(file_qt).toStdString());
         }
-        save_common_params(iflv, id, "input file list");
-        save_param.setValue("vertices:" + id + ":file_names", files);
-        continue;
       }
-      
-      if (auto* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv); oflv)
+      else if (auto* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv); oflv)
       {
-        save_common_params(oflv, id, "output file list");
-        save_param.setValue("vertices:" + id + ":output_folder_name", oflv->getOutputFolderName().toStdString());
-        continue;
+        n.type = TOPPASWorkflow::NodeType::OUTPUT_FILE_LIST;
+        n.output_folder_name = oflv->getOutputFolderName().toStdString();
       }
-      
-      if (auto* ofv = qobject_cast<TOPPASOutputFolderVertex*>(tv); ofv)
+      else if (auto* ofv = qobject_cast<TOPPASOutputFolderVertex*>(tv); ofv)
       {
-        save_common_params(ofv, id, "output folder");
-        save_param.setValue("vertices:" + id + ":output_folder_name", ofv->getOutputFolderName().toStdString());
-        continue;
+        n.type = TOPPASWorkflow::NodeType::OUTPUT_FOLDER;
+        n.output_folder_name = ofv->getOutputFolderName().toStdString();
       }
-
-      if (auto* ttv = qobject_cast<TOPPASToolVertex*>(tv); ttv)
+      else if (auto* ttv = qobject_cast<TOPPASToolVertex*>(tv); ttv)
       {
-        save_common_params(ttv, id, "tool");
-        save_param.setValue("vertices:" + id + ":tool_name", ttv->getName());
-        save_param.setValue("vertices:" + id + ":tool_type", ttv->getType());
-        save_param.insert("vertices:" + id + ":parameters:", ttv->getParam());
-        continue;
+        n.type = TOPPASWorkflow::NodeType::TOOL;
+        n.tool_name = ttv->getName();
+        n.tool_type = ttv->getType();
+        n.parameters = ttv->getParam();
       }
-
-      if (auto* mv = qobject_cast<TOPPASMergerVertex*>(tv); mv)
+      else if (auto* mv = qobject_cast<TOPPASMergerVertex*>(tv); mv)
       {
-        save_common_params(mv, id, "merger");
-        save_param.setValue("vertices:" + id + ":round_based", mv->roundBasedMode() ? "true" : "false");
-        continue;
+        n.type = TOPPASWorkflow::NodeType::MERGER;
+        n.round_based = mv->roundBasedMode();
       }
-
-      if (auto* sv = qobject_cast<TOPPASSplitterVertex*>(tv); sv)
+      else if (auto* sv = qobject_cast<TOPPASSplitterVertex*>(tv); sv)
       {
-        save_common_params(sv, id, "splitter");
-        continue;
+        n.type = TOPPASWorkflow::NodeType::SPLITTER;
       }
+      else
+      {
+        continue; // unknown vertex type (should not happen)
+      }
+      wf.nodes.push_back(n);
     }
 
-    // store all edges
-    int counter = 0;
+    // all edges; resolve the parameter indices to their names via the live tool vertices
     for (TOPPASEdge* te : edges_)
     {
       if (!((te->getEdgeStatus() == TOPPASEdge::ES_VALID) || (te->getEdgeStatus() == TOPPASEdge::ES_NOT_READY_YET)))
@@ -726,41 +708,35 @@ namespace OpenMS
         continue;
       }
 
-      save_param.setValue("edges:" + StringUtils::toStr(counter) + ":source/target:",StringUtils::toStr(te->getSourceVertex()->getTopoNr() - 1) + "/" + StringUtils::toStr(te->getTargetVertex()->getTopoNr() - 1));
-      //save_param.setValue("edges:"+StringUtils::toStr(counter)+":source_out_param:", te->getSourceOutParam()));
-      //save_param.setValue("edges:"+StringUtils::toStr(counter)+":target_in_param:", te->getTargetInParam()));
-      std::string v = "__no_name__";
+      TOPPASWorkflow::Edge e;
+      e.source_id = StringUtils::toStr(te->getSourceVertex()->getTopoNr() - 1);
+      e.target_id = StringUtils::toStr(te->getTargetVertex()->getTopoNr() - 1);
+
+      e.source_out_param = TOPPASWorkflow::NO_NAME;
       if (te->getSourceOutParam() >= 0)
       {
-        TOPPASToolVertex* tv_src = qobject_cast<TOPPASToolVertex*>(te->getSourceVertex());
-        if (tv_src)
+        if (auto* tv_src = qobject_cast<TOPPASToolVertex*>(te->getSourceVertex()); tv_src)
         {
           QVector<TOPPASToolVertex::IOInfo> files = tv_src->getOutputParameters();
-          //std::cout << "#p: " << files.size() << " . " << te->getSourceOutParam() << "\n";
-          v = files[te->getSourceOutParam()].param_name;
+          e.source_out_param = files[te->getSourceOutParam()].param_name;
         }
       }
-      save_param.setValue("edges:" + StringUtils::toStr(counter) + ":source_out_param:", v);
 
-      v = "__no_name__";
+      e.target_in_param = TOPPASWorkflow::NO_NAME;
       if (te->getTargetInParam() >= 0)
       {
-        TOPPASToolVertex* tv_src = qobject_cast<TOPPASToolVertex*>(te->getTargetVertex());
-        if (tv_src)
+        if (auto* tv_tgt = qobject_cast<TOPPASToolVertex*>(te->getTargetVertex()); tv_tgt)
         {
-          QVector<TOPPASToolVertex::IOInfo> files = tv_src->getInputParameters();
-          //std::cout << "#p: " << files.size() << " . " << te->getTargetInParam() << "\n";
-          v = files[te->getTargetInParam()].param_name;
+          QVector<TOPPASToolVertex::IOInfo> files = tv_tgt->getInputParameters();
+          e.target_in_param = files[te->getTargetInParam()].param_name;
         }
       }
-      save_param.setValue("edges:" + StringUtils::toStr(counter) + ":target_in_param:", v);
 
-      ++counter;
+      wf.edges.push_back(e);
     }
 
     // save file
-    ParamXMLFile paramFile;
-    paramFile.store(file, save_param);
+    wf.store(file);
     setChanged(false);
     file_name_ = file;
 
@@ -841,250 +817,172 @@ namespace OpenMS
     }
 
 
-    Param vertices_param = load_param.copy("vertices:", true);
-    Param edges_param = load_param.copy("edges:", true);
+    // parse the (possibly INIUpdater-updated) document into a Qt-free workflow model
+    TOPPASWorkflow wf;
+    wf.fromParam(load_param);
 
-    bool pre_1_9_toppas = true;
-    if (load_param.exists("info:version"))
-    {
-      pre_1_9_toppas = false; // using param names instead of indices for connecting edges
-    }
+    // edges store parameter *names* since TOPPAS 1.9; older files store raw indices
+    const bool pre_1_9_toppas = !load_param.exists("info:version");
+
     if (load_param.exists("info:description"))
     {
-      std::string text =std::string(load_param.getValue("info:description").toString());
-      StringUtils::substitute(text, "<![CDATA[", "");
-      StringUtils::substitute(text, "]]>", "");
-      description_text_ = toQString(StringUtils::trim(text));
+      description_text_ = toQString(wf.description);
     }
 
-    std::string current_type, current_id;
-    TOPPASVertex* current_vertex = nullptr;
-    QVector<TOPPASVertex*> vertex_vector;
-    vertex_vector.resize((Size)(int)load_param.getValue("info:num_vertices"));
-
-    // load all vertices
-    for (Param::ParamIterator it = vertices_param.begin(); it != vertices_param.end(); ++it)
+    // create the vertices, mapping each stored node id to the created vertex
+    std::map<std::string, TOPPASVertex*> id_to_vertex;
+    for (const TOPPASWorkflow::Node& n : wf.nodes)
     {
-      StringList substrings;
-      StringUtils::split(std::string(it.getName()), ':', substrings);
-      if (substrings.back() == "toppas_type") // next node (all nodes have a "toppas_type")
+      TOPPASVertex* current_vertex = nullptr;
+      switch (n.type)
       {
-        current_vertex = nullptr;
-        current_type = (it->value).toString();
-        current_id = substrings[0];
-        Int index = StringUtils::toInt32(current_id);
-
-        if (current_type == "input file list")
+        case TOPPASWorkflow::NodeType::INPUT_FILE_LIST:
         {
-          StringList file_names = ListUtils::toStringList<std::string>(vertices_param.getValue(current_id + ":file_names"));
           QStringList file_names_qt;
-
-          for (StringList::const_iterator str_it = file_names.begin(); str_it != file_names.end(); ++str_it)
+          for (const std::string& fn : n.file_names)
           {
-            QString f = toQString(*str_it);
-            if (QDir::isRelativePath(f)) // prepend path of toppas file to relative path of the input files
+            QString f = toQString(fn);
+            if (QDir::isRelativePath(f)) // prepend path of toppas file to relative input file paths
             {
               f = toQString(File::path(file)) + "/" + f;
             }
             file_names_qt.push_back(QDir::cleanPath(f));
           }
-          TOPPASInputFileListVertex* iflv = new TOPPASInputFileListVertex(file_names_qt);
-          current_vertex = iflv;
+          current_vertex = new TOPPASInputFileListVertex(file_names_qt);
+          break;
         }
-        else if (current_type == "output file list")
+        case TOPPASWorkflow::NodeType::OUTPUT_FILE_LIST:
         {
-          TOPPASOutputFileListVertex* oflv = new TOPPASOutputFileListVertex();
-          // custom output folder
-          if (vertices_param.exists(current_id + ":output_folder_name"))
+          auto* oflv = new TOPPASOutputFileListVertex();
+          if (!n.output_folder_name.empty())
           {
-            oflv->setOutputFolderName(toQString(std::string(vertices_param.getValue(current_id + ":output_folder_name").toString())));
+            oflv->setOutputFolderName(toQString(n.output_folder_name));
           }
-          
-          connectOutputVertexSignals(oflv); // todo
-
+          connectOutputVertexSignals(oflv);
           current_vertex = oflv;
+          break;
         }
-        else if (current_type == "output folder")
+        case TOPPASWorkflow::NodeType::OUTPUT_FOLDER:
         {
           auto* ofv = new TOPPASOutputFolderVertex();
-          // custom output folder
-          if (vertices_param.exists(current_id + ":output_folder_name"))
+          if (!n.output_folder_name.empty())
           {
-            ofv->setOutputFolderName(toQString(std::string(vertices_param.getValue(current_id + ":output_folder_name").toString())));
+            ofv->setOutputFolderName(toQString(n.output_folder_name));
           }
-
           connectOutputVertexSignals(ofv);
-
           current_vertex = ofv;
+          break;
         }
-        else if (current_type == "tool")
+        case TOPPASWorkflow::NodeType::TOOL:
         {
-          std::string tool_name = vertices_param.getValue(current_id + ":tool_name").toString();
-          std::string tool_type = vertices_param.getValue(current_id + ":tool_type").toString();
-          Param param_param = vertices_param.copy(current_id + ":parameters:", true);
-          TOPPASToolVertex* tv = new TOPPASToolVertex(tool_name, tool_type);
-          tv->setParam(param_param);
-
+          auto* tv = new TOPPASToolVertex(n.tool_name, n.tool_type);
+          tv->setParam(n.parameters);
           connectToolVertexSignals(tv);
-
           current_vertex = tv;
+          break;
         }
-        else if (current_type == "merger")
+        case TOPPASWorkflow::NodeType::MERGER:
         {
-          std::string rb = "true";
-          if (vertices_param.exists(current_id + ":round_based"))
-          {
-            rb = vertices_param.getValue(current_id + ":round_based").toString();
-          }
-          TOPPASMergerVertex* mv = new TOPPASMergerVertex(rb == "true");
-
+          auto* mv = new TOPPASMergerVertex(n.round_based);
           connectMergerVertexSignals(mv);
-
           current_vertex = mv;
+          break;
         }
-        else if (current_type == "splitter")
+        case TOPPASWorkflow::NodeType::SPLITTER:
         {
-          TOPPASSplitterVertex* sv = new TOPPASSplitterVertex();
-
-          current_vertex = sv;
+          current_vertex = new TOPPASSplitterVertex();
+          break;
         }
-        else
-        {
-          std::cerr << "Unknown vertex type '" << current_type << "'" << std::endl;
-        }
-
-        if (current_vertex)
-        {
-          float x = vertices_param.getValue(current_id + ":x_pos");
-          float y = vertices_param.getValue(current_id + ":y_pos");
-
-          current_vertex->setPos(QPointF(x, y));
-
-          // vertex parameters:
-          if (vertices_param.exists(current_id + ":recycle_output")) // only since TOPPAS 1.9, so does not need to exist
-          {
-            std::string recycle = vertices_param.getValue(current_id + ":recycle_output").toString();
-            current_vertex->setRecycling(recycle == "true" ? true : false);
-          }
-
-          addVertex(current_vertex);
-
-          connectVertexSignals(current_vertex);
-
-          // temporarily block signals in order that the first topo sort does not set the changed flag
-          current_vertex->blockSignals(true);
-
-          if (index >= vertex_vector.size())
-          {
-            std::cerr << "Unexpected vertex ID!" << std::endl;
-          }
-          else
-          {
-            if (vertex_vector[index] != 0)
-            {
-              std::cerr << "Vertex occupied!" << std::endl;
-            }
-            else
-            {
-              vertex_vector[index] = current_vertex;
-            }
-          }
-        }
-        else
-        {
-          std::cerr << "Current vertex not available." << std::endl;
-        }
+        default:
+          std::cerr << "Unknown vertex type '" << TOPPASWorkflow::typeToString(n.type) << "'" << std::endl;
+          continue;
       }
-    }
 
-    // load all edges
-    for (Param::ParamIterator it = edges_param.begin(); it != edges_param.end(); ++it)
-    {
-      const std::string& edge = (it->value).toString();
-      StringList edge_substrings;
-      StringUtils::split(edge, '/', edge_substrings);
-      if (edge_substrings.size() != 2)
-      {
-        std::cerr << "Invalid edge format" << std::endl;
-        break;
-      }
-      Int index_1 = StringUtils::toInt32(edge_substrings[0]);
-      Int index_2 = StringUtils::toInt32(edge_substrings[1]);
+      current_vertex->setPos(QPointF(n.x_pos, n.y_pos));
+      current_vertex->setRecycling(n.recycle_output);
 
-      if (index_1 >= vertex_vector.size() || index_2 >= vertex_vector.size())
+      addVertex(current_vertex);
+      connectVertexSignals(current_vertex);
+      // temporarily block signals so the first topo sort does not set the changed flag
+      current_vertex->blockSignals(true);
+
+      if (id_to_vertex.count(n.id))
       {
-        std::cerr << "Invalid vertex index" << std::endl;
+        std::cerr << "Vertex occupied!" << std::endl;
       }
       else
       {
-        TOPPASVertex* tv_1 = vertex_vector[index_1];
-        TOPPASVertex* tv_2 = vertex_vector[index_2];
-        
-        // future TOPPAS files may contain new nodes, which may leave `vertex_vector[i]` empty
-        if (tv_1 == nullptr || tv_2 == nullptr)
+        id_to_vertex[n.id] = current_vertex;
+      }
+    }
+
+    // create the edges
+    for (const TOPPASWorkflow::Edge& te : wf.edges)
+    {
+      auto src_it = id_to_vertex.find(te.source_id);
+      auto tgt_it = id_to_vertex.find(te.target_id);
+      // future TOPPAS files may reference new node types that we skipped above
+      if (src_it == id_to_vertex.end() || tgt_it == id_to_vertex.end())
+      {
+        std::cerr << "Invalid edge" << std::endl;
+        continue;
+      }
+      TOPPASVertex* tv_1 = src_it->second;
+      TOPPASVertex* tv_2 = tgt_it->second;
+
+      TOPPASEdge* edge = new TOPPASEdge();
+      edge->setSourceVertex(tv_1);
+      edge->setTargetVertex(tv_2);
+      tv_1->addOutEdge(edge);
+      tv_2->addInEdge(edge);
+
+      connectEdgeSignals(edge);
+
+      addEdge(edge);
+
+      if (pre_1_9_toppas) // just indices stored - no way we can check
+      {
+        edge->setSourceOutParam(StringUtils::toInt32(te.source_out_param));
+        edge->setTargetInParam(StringUtils::toInt32(te.target_in_param));
+      }
+      else
+      {
+        Int src_index = -1;
+        Int tgt_index = -1;
+        if (auto* tv_src = qobject_cast<TOPPASToolVertex*>(tv_1); tv_src && te.source_out_param != TOPPASWorkflow::NO_NAME)
         {
-          std::cerr << "Invalid edge" << std::endl;
-          continue;
-        }
-
-        TOPPASEdge* edge = new TOPPASEdge();
-        edge->setSourceVertex(tv_1);
-        edge->setTargetVertex(tv_2);
-        tv_1->addOutEdge(edge);
-        tv_2->addInEdge(edge);
-
-        connectEdgeSignals(edge);
-
-        addEdge(edge);
-
-        std::string source_out_param = (++it)->value.toString();
-        std::string target_in_param = (++it)->value.toString();
-        if (pre_1_9_toppas) // just indices stored - no way we can check
-        {
-          edge->setSourceOutParam(StringUtils::toInt32(source_out_param));
-          edge->setTargetInParam(StringUtils::toInt32(target_in_param));
-        }
-        else
-        {
-          Int src_index = -1;
-          Int tgt_index = -1;
-          TOPPASToolVertex* tv_src = qobject_cast<TOPPASToolVertex*>(tv_1);
-          if (source_out_param != "__no_name__" && tv_src)
+          QVector<TOPPASToolVertex::IOInfo> files = tv_src->getOutputParameters();
+          // search for the name
+          for (int i = 0; i < files.size(); ++i)
           {
-            QVector<TOPPASToolVertex::IOInfo> files = tv_src->getOutputParameters();
-            // search for the name
-            for (int i = 0; i < files.size(); ++i)
+            if (files[i].param_name == te.source_out_param)
             {
-              if (files[i].param_name == source_out_param)
-              {
-                src_index = i;
-                break;
-              }
+              src_index = i;
+              break;
             }
-            if (src_index == -1)
-              logTOPPOutput(toQString(std::string("Could not find output parameter called '" + source_out_param + "'. Check edge!")));
           }
-
-          tv_src = qobject_cast<TOPPASToolVertex*>(tv_2);
-          if (target_in_param != "__no_name__" && tv_src)
-          {
-            QVector<TOPPASToolVertex::IOInfo> files = tv_src->getInputParameters();
-            // search for the name
-            for (int i = 0; i < files.size(); ++i)
-            {
-              if (files[i].param_name == target_in_param)
-              {
-                tgt_index = i;
-                break;
-              }
-            }
-            if (tgt_index == -1)
-              logTOPPOutput(toQString(std::string("Could not find input parameter called '" + target_in_param + "'. Check edge!")));
-          }
-
-          edge->setSourceOutParam(src_index);
-          edge->setTargetInParam(tgt_index);
+          if (src_index == -1)
+            logTOPPOutput(toQString(std::string("Could not find output parameter called '" + te.source_out_param + "'. Check edge!")));
         }
+
+        if (auto* tv_tgt = qobject_cast<TOPPASToolVertex*>(tv_2); tv_tgt && te.target_in_param != TOPPASWorkflow::NO_NAME)
+        {
+          QVector<TOPPASToolVertex::IOInfo> files = tv_tgt->getInputParameters();
+          // search for the name
+          for (int i = 0; i < files.size(); ++i)
+          {
+            if (files[i].param_name == te.target_in_param)
+            {
+              tgt_index = i;
+              break;
+            }
+          }
+          if (tgt_index == -1)
+            logTOPPOutput(toQString(std::string("Could not find input parameter called '" + te.target_in_param + "'. Check edge!")));
+        }
+
+        edge->setSourceOutParam(src_index);
+        edge->setTargetInParam(tgt_index);
       }
     }
     if (pre_1_9_toppas) // just indices stored - no way we can check

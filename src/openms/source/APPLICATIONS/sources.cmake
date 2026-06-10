@@ -9,6 +9,7 @@ ParameterInformation.cpp
 OpenSwathBase.cpp
 SearchEngineBase.cpp
 ToolHandler.cpp
+TOPPASWorkflow.cpp
 TOPPBase.cpp
 )
 
