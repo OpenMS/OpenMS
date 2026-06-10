@@ -11,7 +11,7 @@
 
 /////////////////////////////////////////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
 using namespace OpenMS;

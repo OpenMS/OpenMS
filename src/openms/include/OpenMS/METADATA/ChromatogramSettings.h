@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/InstrumentSettings.h>
 #include <OpenMS/METADATA/AcquisitionInfo.h>
 #include <OpenMS/METADATA/SourceFile.h>

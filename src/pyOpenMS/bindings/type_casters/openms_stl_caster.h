@@ -17,7 +17,7 @@
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/set.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/METADATA/CVTerm.h>
 

@@ -13,7 +13,7 @@
 #include <OpenMS/ML/RANSAC/RANSACModel.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/ML/RANSAC/RANSACModelLinear.h>
 #include <OpenMS/MATH/MathFunctions.h>
 

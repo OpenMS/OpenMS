@@ -12,7 +12,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 #include <OpenMS/CONCEPT/Types.h> // for "UInt"
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h> // for "StringList"
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>

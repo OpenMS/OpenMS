@@ -14,7 +14,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceConfig.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceData.h>
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 

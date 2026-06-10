@@ -16,7 +16,7 @@
 #include <unordered_map>
 
 #include <OpenMS/METADATA/ProteinHit.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 ///////////////////////////
 

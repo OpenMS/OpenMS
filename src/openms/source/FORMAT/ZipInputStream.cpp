@@ -8,7 +8,7 @@
 
 #include <OpenMS/FORMAT/ZipInputStream.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ZipIfstream.h>
 
 using namespace xercesc;

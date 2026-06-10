@@ -17,7 +17,7 @@ class QPaintEvent;
 
 // OpenMS
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/VISUAL/AxisPainter.h>
 

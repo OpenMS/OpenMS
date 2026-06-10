@@ -6,7 +6,7 @@
 // $Authors: Nora Wild $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/OpenMSConfig.h>
 
 #include <vector>

@@ -15,7 +15,7 @@
 #include <QtWidgets/qlabel.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <array>

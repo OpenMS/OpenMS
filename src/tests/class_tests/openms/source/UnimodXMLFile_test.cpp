@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/UnimodXMLFile.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 

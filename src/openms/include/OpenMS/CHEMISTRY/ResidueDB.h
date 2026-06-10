@@ -9,7 +9,7 @@
 #pragma once
 
 #include <unordered_map>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/Macros.h> // for OPENMS_PRECONDITION
 
 #include <map>

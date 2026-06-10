@@ -11,7 +11,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #ifdef OPENMS_HAS_SYS_TIME_H
 #include <sys/time.h>

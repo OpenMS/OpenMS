@@ -13,7 +13,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>    // brings in StringUtils + using String = std::string
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>    // brings in StringUtils + using String = std::string
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 #include <algorithm>

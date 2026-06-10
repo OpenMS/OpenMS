@@ -11,7 +11,7 @@
 
 /////////////////////////////////////////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/PythonInfo.h>
 #include <OpenMS/SYSTEM/File.h>
             

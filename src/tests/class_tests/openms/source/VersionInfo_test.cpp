@@ -13,7 +13,7 @@
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/openms_package_version.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 
 /////////////////////////////////////////////////////////////

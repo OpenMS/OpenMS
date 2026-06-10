@@ -13,7 +13,7 @@
 #include <OpenMS/KERNEL/FeatureHandle.h>
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/OpenMSConfig.h>
 
 #include <set>

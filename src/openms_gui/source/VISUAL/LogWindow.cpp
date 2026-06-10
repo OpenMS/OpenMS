@@ -9,7 +9,7 @@
 #include <OpenMS/VISUAL/LogWindow.h>
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QContextMenuEvent>

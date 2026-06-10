@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceData.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/config.h>
 
 #include <vector>

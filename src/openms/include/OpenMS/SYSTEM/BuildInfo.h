@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/build_config.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <cstddef>
 #include <string>

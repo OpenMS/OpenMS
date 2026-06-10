@@ -9,7 +9,7 @@
 
 #include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <map>
 #include <set>

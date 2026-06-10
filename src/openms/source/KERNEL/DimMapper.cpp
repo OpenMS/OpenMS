@@ -8,7 +8,7 @@
 
 #include <OpenMS/KERNEL/DimMapper.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <charconv>
 #include <cmath>

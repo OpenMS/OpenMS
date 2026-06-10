@@ -12,7 +12,7 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/CompressedInputSource.h>
 #include <OpenMS/FORMAT/GzipInputStream.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 using namespace OpenMS;
 
