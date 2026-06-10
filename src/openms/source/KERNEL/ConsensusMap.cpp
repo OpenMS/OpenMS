@@ -9,6 +9,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
+
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -19,6 +20,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <algorithm> // for std::ranges::stable_sort
+#include <functional> // for std::greater
 #include <map>
 
 namespace OpenMS
@@ -308,49 +311,52 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::stable_sort(begin(), end(), [](auto &left, auto &right) {ConsensusFeature::IntensityLess cmp; return cmp(right, left);});
+      std::ranges::stable_sort(begin(), end(), std::greater{}, &ConsensusFeature::getIntensity);
     }
     else
     {
-      std::stable_sort(begin(), end(), ConsensusFeature::IntensityLess());
+      std::ranges::stable_sort(begin(), end(), {}, &ConsensusFeature::getIntensity);
     }
   }
 
   void ConsensusMap::sortByRT()
   {
-    std::stable_sort(begin(), end(), ConsensusFeature::RTLess());
+    std::ranges::stable_sort(begin(), end(), {}, &ConsensusFeature::getRT);
   }
 
   void ConsensusMap::sortByMZ()
   {
-    std::stable_sort(begin(), end(), ConsensusFeature::MZLess());
+    std::ranges::stable_sort(begin(), end(), {}, &ConsensusFeature::getMZ);
   }
 
   void ConsensusMap::sortByPosition()
   {
-    std::stable_sort(begin(), end(), ConsensusFeature::PositionLess());
+    // PositionLess compares the full 2D position lexicographically; keep the comparator (no scalar projection)
+    std::ranges::stable_sort(begin(), end(), ConsensusFeature::PositionLess());
   }
 
   void ConsensusMap::sortByQuality(bool reverse)
   {
     if (reverse)
     {
-      std::stable_sort(begin(), end(), [](auto &left, auto &right) {ConsensusFeature::QualityLess cmp; return cmp(right, left);});
+      std::ranges::stable_sort(begin(), end(), std::greater{}, &ConsensusFeature::getQuality);
     }
     else
     {
-      std::stable_sort(begin(), end(), ConsensusFeature::QualityLess());
+      std::ranges::stable_sort(begin(), end(), {}, &ConsensusFeature::getQuality);
     }
   }
 
   void ConsensusMap::sortBySize()
   {
-    std::stable_sort(begin(), end(), [](auto &left, auto &right) {ConsensusFeature::SizeLess cmp; return cmp(right, left);});
+    // descending by size
+    std::ranges::stable_sort(begin(), end(), std::greater{}, &ConsensusFeature::size);
   }
 
   void ConsensusMap::sortByMaps()
   {
-    std::stable_sort(begin(), end(), ConsensusFeature::MapsLess());
+    // MapsLess does a lexicographical compare over the contained handles; keep the comparator
+    std::ranges::stable_sort(begin(), end(), ConsensusFeature::MapsLess());
   }
 
   void ConsensusMap::sortPeptideIdentificationsByMapIndex()

@@ -10,12 +10,16 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <OpenMS/SYSTEM/File.h>
+
+#include <algorithm> // for std::ranges::sort
+#include <functional> // for std::greater
 
 namespace OpenMS
 {
@@ -218,27 +222,28 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::sort(this->begin(), this->end(), [](auto &left, auto &right) {Feature::IntensityLess cmp; return cmp(right, left);});
+      std::ranges::sort(this->begin(), this->end(), std::greater{}, &Feature::getIntensity);
     }
     else
     {
-      std::sort(this->begin(), this->end(), Feature::IntensityLess());
+      std::ranges::sort(this->begin(), this->end(), {}, &Feature::getIntensity);
     }
   }
 
   void FeatureMap::sortByPosition()
   {
-    std::sort(this->begin(), this->end(), Feature::PositionLess());
+    // PositionLess compares the full 2D position lexicographically; keep the comparator (no scalar projection)
+    std::ranges::sort(this->begin(), this->end(), Feature::PositionLess());
   }
 
   void FeatureMap::sortByRT()
   {
-    std::sort(this->begin(), this->end(), Feature::RTLess());
+    std::ranges::sort(this->begin(), this->end(), {}, &Feature::getRT);
   }
 
   void FeatureMap::sortByMZ()
   {
-    std::sort(this->begin(), this->end(), Feature::MZLess());
+    std::ranges::sort(this->begin(), this->end(), {}, &Feature::getMZ);
   }
 
   void FeatureMap::sortByOverallQuality(bool reverse)

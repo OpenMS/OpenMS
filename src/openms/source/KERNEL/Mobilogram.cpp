@@ -14,6 +14,8 @@
 #include <OpenMS/KERNEL/Mobilogram.h>
 
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <algorithm> // for std::ranges::{lower_bound, upper_bound, stable_sort, is_sorted, max_element}
+#include <functional> // for std::greater
 #include <numeric>
 
 namespace OpenMS
@@ -99,27 +101,21 @@ namespace OpenMS
   }
   void Mobilogram::sortByIntensity(bool reverse)
   {
-    if (reverse && std::is_sorted(cbegin(), cend(), [](auto& left, auto& right) {
-          PeakType::IntensityLess cmp;
-          return cmp(right, left);
-        }))
+    if (reverse && std::ranges::is_sorted(cbegin(), cend(), std::greater{}, &PeakType::getIntensity))
     {
       return;
     }
-    else if (!reverse && std::is_sorted(cbegin(), cend(), PeakType::IntensityLess()))
+    else if (!reverse && std::ranges::is_sorted(cbegin(), cend(), {}, &PeakType::getIntensity))
     {
       return;
     }
     if (reverse)
     {
-      std::stable_sort(begin(), end(), [](auto& left, auto& right) {
-        PeakType::IntensityLess cmp;
-        return cmp(right, left);
-      });
+      std::ranges::stable_sort(begin(), end(), std::greater{}, &PeakType::getIntensity);
     }
     else
     {
-      std::stable_sort(begin(), end(), PeakType::IntensityLess());
+      std::ranges::stable_sort(begin(), end(), {}, &PeakType::getIntensity);
     }
   }
 
@@ -129,12 +125,12 @@ namespace OpenMS
     {
       return;
     }
-    std::stable_sort(begin(), end(), PeakType::PositionLess());
+    std::ranges::stable_sort(begin(), end(), {}, &PeakType::getMobility);
   }
 
   bool Mobilogram::isSorted() const
   {
-    return std::is_sorted(begin(), end(), PeakType::PositionLess());
+    return std::ranges::is_sorted(begin(), end(), {}, &PeakType::getMobility);
   }
 
   Size Mobilogram::findNearest(CoordinateType mb) const
@@ -259,7 +255,7 @@ namespace OpenMS
       return -1;
     }
 
-    auto max_intensity_it = std::max_element(left, right, MobilityPeak1D::IntensityLess());
+    auto max_intensity_it = std::ranges::max_element(left, right, {}, &MobilityPeak1D::getIntensity);
 
     // find peak (index) with highest intensity to expected position
     return max_intensity_it - this->begin();
@@ -267,58 +263,42 @@ namespace OpenMS
 
   Mobilogram::Iterator Mobilogram::MBBegin(CoordinateType mb)
   {
-    PeakType p;
-    p.setPosition(mb);
-    return lower_bound(begin(), end(), p, PeakType::PositionLess());
+    return std::ranges::lower_bound(begin(), end(), mb, {}, &PeakType::getMobility);
   }
 
   Mobilogram::Iterator Mobilogram::MBBegin(Iterator begin, CoordinateType mb, Iterator end)
   {
-    PeakType p;
-    p.setPosition(mb);
-    return lower_bound(begin, end, p, PeakType::PositionLess());
+    return std::ranges::lower_bound(begin, end, mb, {}, &PeakType::getMobility);
   }
 
   Mobilogram::Iterator Mobilogram::MBEnd(CoordinateType mb)
   {
-    PeakType p;
-    p.setPosition(mb);
-    return upper_bound(begin(), end(), p, PeakType::PositionLess());
+    return std::ranges::upper_bound(begin(), end(), mb, {}, &PeakType::getMobility);
   }
 
   Mobilogram::Iterator Mobilogram::MBEnd(Iterator begin, CoordinateType mb, Iterator end)
   {
-    PeakType p;
-    p.setPosition(mb);
-    return upper_bound(begin, end, p, PeakType::PositionLess());
+    return std::ranges::upper_bound(begin, end, mb, {}, &PeakType::getMobility);
   }
 
   Mobilogram::ConstIterator Mobilogram::MBBegin(CoordinateType mb) const
   {
-    PeakType p;
-    p.setPosition(mb);
-    return lower_bound(cbegin(), cend(), p, PeakType::PositionLess());
+    return std::ranges::lower_bound(cbegin(), cend(), mb, {}, &PeakType::getMobility);
   }
 
   Mobilogram::ConstIterator Mobilogram::MBBegin(ConstIterator begin, CoordinateType mb, ConstIterator end) const
   {
-    PeakType p;
-    p.setPosition(mb);
-    return lower_bound(begin, end, p, PeakType::PositionLess());
+    return std::ranges::lower_bound(begin, end, mb, {}, &PeakType::getMobility);
   }
 
   Mobilogram::ConstIterator Mobilogram::MBEnd(CoordinateType mb) const
   {
-    PeakType p;
-    p.setPosition(mb);
-    return upper_bound(cbegin(), cend(), p, PeakType::PositionLess());
+    return std::ranges::upper_bound(cbegin(), cend(), mb, {}, &PeakType::getMobility);
   }
 
   Mobilogram::ConstIterator Mobilogram::MBEnd(ConstIterator begin, CoordinateType mb, ConstIterator end) const
   {
-    PeakType p;
-    p.setPosition(mb);
-    return upper_bound(begin, end, p, PeakType::PositionLess());
+    return std::ranges::upper_bound(begin, end, mb, {}, &PeakType::getMobility);
   }
 
   Mobilogram::Iterator Mobilogram::PosBegin(CoordinateType mz)

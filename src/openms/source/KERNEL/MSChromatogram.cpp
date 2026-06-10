@@ -11,6 +11,9 @@
 
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
+#include <algorithm> // for std::ranges::{lower_bound, upper_bound, sort, is_sorted}
+#include <functional> // for std::greater
+
 using namespace OpenMS;
 
 std::ostream& OpenMS::operator<<(std::ostream& os, const MSChromatogram& chrom)
@@ -115,11 +118,11 @@ void MSChromatogram::sortByIntensity(bool reverse) {
   {
     if (reverse)
     {
-      std::sort(ContainerType::begin(), ContainerType::end(), [](auto &left, auto &right) {PeakType::IntensityLess cmp; return cmp(right, left);});
+      std::ranges::sort(ContainerType::begin(), ContainerType::end(), std::greater{}, &PeakType::getIntensity);
     }
     else
     {
-      std::sort(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess());
+      std::ranges::sort(ContainerType::begin(), ContainerType::end(), {}, &PeakType::getIntensity);
     }
   }
   else
@@ -134,11 +137,11 @@ void MSChromatogram::sortByIntensity(bool reverse) {
 
     if (reverse)
     {
-      std::sort(sorted_indices.begin(), sorted_indices.end(),  [](auto& left, auto& right){return left > right;});
+      std::ranges::sort(sorted_indices, std::greater{});
     }
     else
     {
-      std::sort(sorted_indices.begin(), sorted_indices.end());
+      std::ranges::sort(sorted_indices);
     }
 
     //apply sorting to ContainerType and to meta data arrays
@@ -185,7 +188,7 @@ void MSChromatogram::sortByPosition()
 {
   if (float_data_arrays_.empty())
   {
-    std::sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
+    std::ranges::sort(ContainerType::begin(), ContainerType::end(), {}, &PeakType::getRT);
   }
   else
   {
@@ -196,7 +199,7 @@ void MSChromatogram::sortByPosition()
     {
       sorted_indices.emplace_back(ContainerType::operator[](i).getPosition(), i);
     }
-    std::sort(sorted_indices.begin(), sorted_indices.end());
+    std::ranges::sort(sorted_indices);
 
     //apply sorting to ContainerType and to metadataarrays
     ContainerType tmp;
@@ -283,64 +286,48 @@ Size MSChromatogram::findNearest(MSChromatogram::CoordinateType rt) const
 
 MSChromatogram::Iterator MSChromatogram::RTBegin(MSChromatogram::CoordinateType rt)
 {
-  PeakType p;
-  p.setPosition(rt);
-  return lower_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
+  return std::ranges::lower_bound(ContainerType::begin(), ContainerType::end(), rt, {}, &PeakType::getRT);
 }
 
 MSChromatogram::Iterator
 MSChromatogram::RTBegin(MSChromatogram::Iterator begin, MSChromatogram::CoordinateType rt, MSChromatogram::Iterator end)
 {
-  PeakType p;
-  p.setPosition(rt);
-  return lower_bound(begin, end, p, PeakType::PositionLess());
+  return std::ranges::lower_bound(begin, end, rt, {}, &PeakType::getRT);
 }
 
 MSChromatogram::Iterator MSChromatogram::RTEnd(MSChromatogram::CoordinateType rt)
 {
-  PeakType p;
-  p.setPosition(rt);
-  return upper_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
+  return std::ranges::upper_bound(ContainerType::begin(), ContainerType::end(), rt, {}, &PeakType::getRT);
 }
 
 MSChromatogram::Iterator
 MSChromatogram::RTEnd(MSChromatogram::Iterator begin, MSChromatogram::CoordinateType rt, MSChromatogram::Iterator end)
 {
-  PeakType p;
-  p.setPosition(rt);
-  return upper_bound(begin, end, p, PeakType::PositionLess());
+  return std::ranges::upper_bound(begin, end, rt, {}, &PeakType::getRT);
 }
 
 MSChromatogram::ConstIterator MSChromatogram::RTBegin(MSChromatogram::CoordinateType rt) const
 {
-  PeakType p;
-  p.setPosition(rt);
-  return lower_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
+  return std::ranges::lower_bound(ContainerType::begin(), ContainerType::end(), rt, {}, &PeakType::getRT);
 }
 
 MSChromatogram::ConstIterator
 MSChromatogram::RTBegin(MSChromatogram::ConstIterator begin, MSChromatogram::CoordinateType rt,
                         MSChromatogram::ConstIterator end) const
 {
-  PeakType p;
-  p.setPosition(rt);
-  return lower_bound(begin, end, p, PeakType::PositionLess());
+  return std::ranges::lower_bound(begin, end, rt, {}, &PeakType::getRT);
 }
 
 MSChromatogram::ConstIterator MSChromatogram::RTEnd(MSChromatogram::CoordinateType rt) const
 {
-  PeakType p;
-  p.setPosition(rt);
-  return upper_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
+  return std::ranges::upper_bound(ContainerType::begin(), ContainerType::end(), rt, {}, &PeakType::getRT);
 }
 
 MSChromatogram::ConstIterator
 MSChromatogram::RTEnd(MSChromatogram::ConstIterator begin, MSChromatogram::CoordinateType rt,
                       MSChromatogram::ConstIterator end) const
 {
-  PeakType p;
-  p.setPosition(rt);
-  return upper_bound(begin, end, p, PeakType::PositionLess());
+  return std::ranges::upper_bound(begin, end, rt, {}, &PeakType::getRT);
 }
 
 MSChromatogram::Iterator MSChromatogram::PosBegin(MSChromatogram::CoordinateType rt)

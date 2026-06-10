@@ -79,7 +79,7 @@ namespace OpenMS
   void Element::setIsotopeDistribution(const IsotopeDistribution & distribution)
   {
     //force sortedness by mz. A lot of code relies on this.
-    assert(std::is_sorted(distribution.begin(), distribution.end(), Peak1D::MZLess()));
+    assert(std::ranges::is_sorted(distribution.begin(), distribution.end(), {}, &Peak1D::getMZ));
     isotopes_ = distribution;
   }
 

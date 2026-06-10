@@ -24,6 +24,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm> // for std::ranges::lower_bound
+
 #include <boost/math/special_functions/fpclassify.hpp> // isnan
 
 #ifdef _OPENMP
@@ -522,9 +524,8 @@ namespace OpenMS
             else if (user_seeds && overall_score >= user_seed_score)
             {
               //only consider seeds, if they are near a user-specified seed
-              Feature tmp;
-              tmp.setMZ(map_[s][p].getMZ() - user_mz_tol);
-              for (FeatureMap::const_iterator it = std::lower_bound(seeds_.begin(), seeds_.end(), tmp, Feature::MZLess()); it < seeds_.end(); ++it)
+              const double user_mz_low = map_[s][p].getMZ() - user_mz_tol;
+              for (FeatureMap::const_iterator it = std::ranges::lower_bound(seeds_.begin(), seeds_.end(), user_mz_low, {}, &Feature::getMZ); it < seeds_.end(); ++it)
               {
                 if (it->getMZ() > map_[s][p].getMZ() + user_mz_tol)
                 {
@@ -1915,7 +1916,7 @@ namespace OpenMS
     // interpolate score value according to quantiles(20)
     const std::vector<double>& quantiles20 = intensity_thresholds_[rt_bin][mz_bin];
     // get iterator pointing to quantile that is >= intensity
-    std::vector<double>::const_iterator it = std::lower_bound(quantiles20.begin(), quantiles20.end(), intensity);
+    std::vector<double>::const_iterator it = std::ranges::lower_bound(quantiles20, intensity);
     // bigger than the biggest value => return 1.0
     if (it == quantiles20.end())
     {

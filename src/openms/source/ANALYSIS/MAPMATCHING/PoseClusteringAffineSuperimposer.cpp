@@ -7,10 +7,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
+
 #include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/ML/INTERPOLATION/LinearInterpolation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <algorithm> // for std::ranges::{nth_element, sort, min_element, max_element}
 
 #include <boost/math/special_functions/fpclassify.hpp> // isnan
 
@@ -790,22 +793,22 @@ namespace OpenMS
       //  -> linear in complexity, should be faster than sorting and then taking cutoff
       if (model_map.size() > num_used_points)
       {
-        std::nth_element(model_map.rbegin(), model_map.rbegin() + (model_map.size() - num_used_points),
-            model_map.rend(), Peak2D::IntensityLess());
+        std::ranges::nth_element(model_map.rbegin(), model_map.rbegin() + (model_map.size() - num_used_points),
+            model_map.rend(), {}, &Peak2D::getIntensity);
         model_map.resize(num_used_points);
       }
       setProgress(++actual_progress);
       if (scene_map.size() > num_used_points)
       {
-        std::nth_element(scene_map.rbegin(), scene_map.rbegin() + (scene_map.size() - num_used_points),
-            scene_map.rend(), Peak2D::IntensityLess());
+        std::ranges::nth_element(scene_map.rbegin(), scene_map.rbegin() + (scene_map.size() - num_used_points),
+            scene_map.rend(), {}, &Peak2D::getIntensity);
         scene_map.resize(num_used_points);
       }
       setProgress(++actual_progress);
     }
     // sort by ascending m/z
-    std::sort(model_map.begin(), model_map.end(), Peak2D::MZLess());
-    std::sort(scene_map.begin(), scene_map.end(), Peak2D::MZLess());
+    std::ranges::sort(model_map.begin(), model_map.end(), {}, &Peak2D::getMZ);
+    std::ranges::sort(scene_map.begin(), scene_map.end(), {}, &Peak2D::getMZ);
     setProgress((actual_progress = 10));
 
     //**************************************************************************
@@ -815,10 +818,10 @@ namespace OpenMS
     // possible improvement: use the truncated map from above which should be
     // more reliable (one outlier of low intensity could derail the estimate
     // below)
-    const double model_minrt = std::min_element(map_model.begin(), map_model.end(), Peak2D::RTLess())->getRT();
-    const double scene_minrt = std::min_element(map_scene.begin(), map_scene.end(), Peak2D::RTLess())->getRT();
-    const double model_maxrt = std::max_element(map_model.begin(), map_model.end(), Peak2D::RTLess())->getRT();
-    const double scene_maxrt = std::max_element(map_scene.begin(), map_scene.end(), Peak2D::RTLess())->getRT();
+    const double model_minrt = std::ranges::min_element(map_model.begin(), map_model.end(), {}, &Peak2D::getRT)->getRT();
+    const double scene_minrt = std::ranges::min_element(map_scene.begin(), map_scene.end(), {}, &Peak2D::getRT)->getRT();
+    const double model_maxrt = std::ranges::max_element(map_model.begin(), map_model.end(), {}, &Peak2D::getRT)->getRT();
+    const double scene_maxrt = std::ranges::max_element(map_scene.begin(), map_scene.end(), {}, &Peak2D::getRT)->getRT();
     const double rt_low =  (model_minrt + scene_minrt) / 2.;
     const double rt_high = (model_maxrt + scene_maxrt) / 2.;
 

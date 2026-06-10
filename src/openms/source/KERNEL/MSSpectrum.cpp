@@ -16,6 +16,9 @@
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 
+#include <algorithm> // for std::ranges::{lower_bound, upper_bound, stable_sort, is_sorted, max_element}
+#include <functional> // for std::greater
+
 namespace OpenMS
 {
   MSSpectrum &MSSpectrum::select(const std::vector<Size> &indices)
@@ -191,24 +194,18 @@ namespace OpenMS
   MSSpectrum::ConstIterator
   MSSpectrum::MZEnd(MSSpectrum::ConstIterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::ConstIterator end) const
   {
-    PeakType p;
-    p.setPosition(mz);
-    return upper_bound(begin, end, p, PeakType::PositionLess());
+    return std::ranges::upper_bound(begin, end, mz, {}, &PeakType::getMZ);
   }
 
   MSSpectrum::ConstIterator MSSpectrum::MZEnd(MSSpectrum::CoordinateType mz) const
   {
-    PeakType p;
-    p.setPosition(mz);
-    return upper_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
+    return std::ranges::upper_bound(ContainerType::begin(), ContainerType::end(), mz, {}, &PeakType::getMZ);
   }
 
   MSSpectrum::ConstIterator MSSpectrum::MZBegin(MSSpectrum::ConstIterator begin, MSSpectrum::CoordinateType mz,
                                                 MSSpectrum::ConstIterator end) const
   {
-    PeakType p;
-    p.setPosition(mz);
-    return lower_bound(begin, end, p, PeakType::PositionLess());
+    return std::ranges::lower_bound(begin, end, mz, {}, &PeakType::getMZ);
   }
 
   Int MSSpectrum::findNearest(MSSpectrum::CoordinateType mz, MSSpectrum::CoordinateType tolerance_left,
@@ -336,7 +333,7 @@ namespace OpenMS
       return -1;
     }
 
-    auto max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
+    auto max_intensity_it = std::ranges::max_element(left, right, {}, &Peak1D::getIntensity);
 
     // find peak (index) with highest intensity to expected position
     return (max_intensity_it - this->begin());
@@ -366,7 +363,7 @@ namespace OpenMS
     }
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
-      std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
+      std::ranges::stable_sort(ContainerType::begin(), ContainerType::end(), {}, &PeakType::getMZ);
     }
     else
     {
@@ -410,7 +407,7 @@ namespace OpenMS
     }
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
-      std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
+      std::ranges::stable_sort(ContainerType::begin(), ContainerType::end(), {}, &PeakType::getMZ);
       return;
     }
 
@@ -422,11 +419,11 @@ namespace OpenMS
 
   void MSSpectrum::sortByIntensity(bool reverse)
   {
-    if (reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), [](auto &left, auto &right) {PeakType::IntensityLess cmp; return cmp(right, left);}))
+    if (reverse && std::ranges::is_sorted(ContainerType::begin(), ContainerType::end(), std::greater{}, &PeakType::getIntensity))
     {
       return;
     }
-    else if (!reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess()))
+    else if (!reverse && std::ranges::is_sorted(ContainerType::begin(), ContainerType::end(), {}, &PeakType::getIntensity))
     {
       return;
     }
@@ -434,11 +431,11 @@ namespace OpenMS
     {
       if (reverse)
       {
-        std::stable_sort(ContainerType::begin(), ContainerType::end(), [](auto &left, auto &right) {PeakType::IntensityLess cmp; return cmp(right, left);});
+        std::ranges::stable_sort(ContainerType::begin(), ContainerType::end(), std::greater{}, &PeakType::getIntensity);
       }
       else
       {
-        std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess());
+        std::ranges::stable_sort(ContainerType::begin(), ContainerType::end(), {}, &PeakType::getIntensity);
       }
       return;
     }
@@ -461,7 +458,7 @@ namespace OpenMS
 
   bool MSSpectrum::isSorted() const
   {
-    return std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
+    return std::ranges::is_sorted(ContainerType::begin(), ContainerType::end(), {}, &PeakType::getMZ);
   }
 
   bool MSSpectrum::isSortedByIM() const
@@ -678,39 +675,29 @@ namespace OpenMS
 
   MSSpectrum::Iterator MSSpectrum::MZBegin(MSSpectrum::CoordinateType mz)
   {
-    PeakType p;
-    p.setPosition(mz);
-    return lower_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
+    return std::ranges::lower_bound(ContainerType::begin(), ContainerType::end(), mz, {}, &PeakType::getMZ);
   }
 
   MSSpectrum::Iterator
   MSSpectrum::MZBegin(MSSpectrum::Iterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::Iterator end)
   {
-    PeakType p;
-    p.setPosition(mz);
-    return lower_bound(begin, end, p, PeakType::PositionLess());
+    return std::ranges::lower_bound(begin, end, mz, {}, &PeakType::getMZ);
   }
 
   MSSpectrum::Iterator MSSpectrum::MZEnd(MSSpectrum::CoordinateType mz)
   {
-    PeakType p;
-    p.setPosition(mz);
-    return upper_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
+    return std::ranges::upper_bound(ContainerType::begin(), ContainerType::end(), mz, {}, &PeakType::getMZ);
   }
 
   MSSpectrum::Iterator
   MSSpectrum::MZEnd(MSSpectrum::Iterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::Iterator end)
   {
-    PeakType p;
-    p.setPosition(mz);
-    return upper_bound(begin, end, p, PeakType::PositionLess());
+    return std::ranges::upper_bound(begin, end, mz, {}, &PeakType::getMZ);
   }
 
   MSSpectrum::ConstIterator MSSpectrum::MZBegin(MSSpectrum::CoordinateType mz) const
   {
-    PeakType p;
-    p.setPosition(mz);
-    return lower_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
+    return std::ranges::lower_bound(ContainerType::begin(), ContainerType::end(), mz, {}, &PeakType::getMZ);
   }
 
   MSSpectrum::Iterator MSSpectrum::PosBegin(MSSpectrum::CoordinateType mz)

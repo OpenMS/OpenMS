@@ -8,6 +8,8 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
+#include <algorithm> // for std::ranges::sort
+
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <ostream> // for ostream& operator<<(ostream& os, const TargetedExperiment::SummaryStatistics& s);
@@ -565,12 +567,12 @@ namespace OpenMS
 
   void TargetedExperiment::sortTransitionsByProductMZ()
   {
-    std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::ProductMZLess());
+    std::ranges::sort(transitions_.begin(), transitions_.end(), {}, &ReactionMonitoringTransition::getProductMZ);
   }
 
   void TargetedExperiment::sortTransitionsByName()
   {
-    std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::NameLess());
+    std::ranges::sort(transitions_.begin(), transitions_.end(), {}, &ReactionMonitoringTransition::getName);
   }
 
   bool TargetedExperiment::containsInvalidReferences() const

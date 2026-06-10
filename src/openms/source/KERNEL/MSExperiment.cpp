@@ -597,9 +597,7 @@ namespace OpenMS
   */
   MSExperiment::ConstIterator MSExperiment::RTBegin(CoordinateType rt) const
   {
-    SpectrumType s;
-    s.setRT(rt);
-    return lower_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::RTLess());
+    return std::ranges::lower_bound(spectra_, rt, {}, &SpectrumType::getRT);
   }
 
   /**
@@ -611,9 +609,7 @@ namespace OpenMS
   */
   MSExperiment::ConstIterator MSExperiment::RTEnd(CoordinateType rt) const
   {
-    SpectrumType s;
-    s.setRT(rt);
-    return upper_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::RTLess());
+    return std::ranges::upper_bound(spectra_, rt, {}, &SpectrumType::getRT);
   }
 
   /**
@@ -623,9 +619,7 @@ namespace OpenMS
   */
   MSExperiment::Iterator MSExperiment::RTBegin(CoordinateType rt)
   {
-    SpectrumType s;
-    s.setRT(rt);
-    return lower_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::RTLess());
+    return std::ranges::lower_bound(spectra_, rt, {}, &SpectrumType::getRT);
   }
 
   /**
@@ -635,23 +629,17 @@ namespace OpenMS
   */
   MSExperiment::Iterator MSExperiment::RTEnd(CoordinateType rt)
   {
-    SpectrumType s;
-    s.setRT(rt);
-    return upper_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::RTLess());
+    return std::ranges::upper_bound(spectra_, rt, {}, &SpectrumType::getRT);
   }
 
   MSExperiment::ConstIterator MSExperiment::IMBegin(CoordinateType im) const
   {
-    SpectrumType s;
-    s.setDriftTime(im);
-    return lower_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::IMLess());
+    return std::ranges::lower_bound(spectra_, im, {}, &SpectrumType::getDriftTime);
   }
 
   MSExperiment::ConstIterator MSExperiment::IMEnd(CoordinateType im) const
   {
-    SpectrumType s;
-    s.setDriftTime(im);
-    return upper_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::IMLess());
+    return std::ranges::upper_bound(spectra_, im, {}, &SpectrumType::getDriftTime);
   }
 
   //@}
@@ -791,7 +779,7 @@ namespace OpenMS
   */
   void MSExperiment::sortSpectra(bool sort_mz)
   {
-    std::sort(spectra_.begin(), spectra_.end(), SpectrumType::RTLess());
+    std::ranges::sort(spectra_.begin(), spectra_.end(), {}, &SpectrumType::getRT);
 
     if (sort_mz)
     {
@@ -811,7 +799,7 @@ namespace OpenMS
   void MSExperiment::sortChromatograms(bool sort_rt)
   {
     // sort the chromatograms according to their product m/z
-    std::sort(chromatograms_.begin(), chromatograms_.end(), ChromatogramType::MZLess());
+    std::ranges::sort(chromatograms_.begin(), chromatograms_.end(), {}, &ChromatogramType::getMZ);
 
     if (sort_rt)
     {
