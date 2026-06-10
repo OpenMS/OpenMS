@@ -75,10 +75,10 @@ public:
       const OpenMS::Feature& f,
       const OpenMS::ConsensusMap& cmap,
       const OpenMS::Size c_feature_number,
-      const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
+      const std::multimap<std::string, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
       const OpenMS::ProteinIdentification::Mapping& mp_f,
       const OpenMS::MSExperiment& exp,
-      const std::map<OpenMS::String,OpenMS::String>& prot_mapper);
+      const std::map<std::string,std::string>& prot_mapper);
   };
 
   /**
@@ -86,7 +86,7 @@ public:
 
   If no such substring exists, an empty string is returned.
 */
-static OpenMS::String extractGeneName(const OpenMS::String& prot_description);
+static std::string extractGeneName(const std::string& prot_description);
 
   /**
   @brief Returns a unique ID (number) for each distinct protein accession, or creates a new ID by augmenting the given database.
@@ -101,8 +101,8 @@ static OpenMS::String extractGeneName(const OpenMS::String& prot_description);
    @return The ID for the @p protein_accession
 
  */
- static OpenMS::Size proteinGroupID_(std::map<OpenMS::String, OpenMS::Size>& database,
-                                     const OpenMS::String& protein_accession);
+ static OpenMS::Size proteinGroupID_(std::map<std::string, OpenMS::Size>& database,
+                                     const std::string& protein_accession);
 
   /**
     @brief Creates map that has the information which FeatureUID is mapped to which ConsensusFeature in ConsensusMap
@@ -132,7 +132,7 @@ static OpenMS::String extractGeneName(const OpenMS::String& prot_description);
   static bool hasValidPepID_(
     const OpenMS::Feature& f,
     const OpenMS::Size c_feature_number,
-    const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
+    const std::multimap<std::string, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
     const OpenMS::ProteinIdentification::Mapping& mp_f);
 
   /**

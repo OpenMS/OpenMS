@@ -93,10 +93,10 @@ namespace OpenMS
         painter->drawLine(pos.x() - 1.0, pos.y(), pos.x() + 1.0, pos.y());
 
         // draw sequence
-        String sequence;
+        std::string sequence;
         if (show_labels)
         {
-          sequence = id.getMetaValue("label");
+          sequence = StringUtils::toStr(id.getMetaValue("label"));
         }
         else
         {
@@ -104,7 +104,7 @@ namespace OpenMS
         }
         if (sequence.empty() && !id.getHits().empty())
         {
-          sequence = id.getHits()[0].getMetaValue("label");
+          sequence = StringUtils::toStr(id.getHits()[0].getMetaValue("label"));
         }
         if (id.getHits().size() > 1)
           sequence += "...";
@@ -574,7 +574,7 @@ namespace OpenMS
         QColor color;
         if (f.metaValueExists(5))
         {
-          color = QColor(toQString(String(f.getMetaValue(5))));
+          color = QColor(toQString(StringUtils::toStr(f.getMetaValue(5))));
         }
         else
         {
@@ -603,7 +603,7 @@ namespace OpenMS
           else if (layer_->label == LayerDataBase::L_META_LABEL)
           {
             painter->setPen(Qt::darkBlue);
-            painter->drawText(pos.x() + 10, pos.y() + 10, toQString(String(f.getMetaValue(3))));
+            painter->drawText(pos.x() + 10, pos.y() + 10, toQString(StringUtils::toStr(f.getMetaValue(3))));
           }
         }
       }
@@ -668,7 +668,7 @@ namespace OpenMS
         QColor color;
         if (cf.metaValueExists(5))
         {
-          color = toQString(String(cf.getMetaValue(5)));
+          color = toQString(StringUtils::toStr(cf.getMetaValue(5)));
         }
         else
         {

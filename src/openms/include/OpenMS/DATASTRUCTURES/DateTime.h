@@ -69,7 +69,7 @@ public:
 
         @exception Exception::ParseError
     */
-    void setDate(const String& date);
+    void setDate(const std::string& date);
 
     /**
         @brief sets time from a string
@@ -78,7 +78,7 @@ public:
 
         @exception Exception::ParseError
     */
-    void setTime(const String& date);
+    void setTime(const std::string& date);
 
     /**
         @brief sets data from three integers
@@ -126,7 +126,7 @@ public:
 
         The format of the string is yyyy-MM-dd
     */
-    String getDate() const;
+    std::string getDate() const;
 
     /**
         @brief Fills the arguments with the time
@@ -143,7 +143,7 @@ public:
 
         The format of the string is hh:mm:ss
     */
-    String getTime() const;
+    std::string getTime() const;
 
     /// Returns the current date and time
     static DateTime now();
@@ -163,7 +163,7 @@ public:
     /* @brief Returns a string representation of the DateTime object.
        @param[in] format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
 	  */
-	  String toString(const std::string& format = "yyyy-MM-ddThh:mm:ss") const;
+	  std::string toString(const std::string& format = "yyyy-MM-ddThh:mm:ss") const;
 
     /* @brief Creates a DateTime object from string representation.
        @param[in] format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
@@ -175,7 +175,7 @@ public:
 
           The format of the string will be yyyy-MM-dd hh:mm:ss
       */
-      String get() const;
+      std::string get() const;
 
       /**
         @brief Sets date and time
@@ -190,7 +190,7 @@ public:
 
         @exception Exception::ParseError
       */
-      void set(const String& date);
+      void set(const std::string& date);
 
     private:
       struct Fields {

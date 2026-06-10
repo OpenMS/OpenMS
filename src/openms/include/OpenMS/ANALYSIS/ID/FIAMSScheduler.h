@@ -70,9 +70,9 @@ public:
                           flag; if @c true, cached intermediate results are reused.
     */
     FIAMSScheduler(
-      String filename,
-      String base_dir = "/",
-      String output_dir = "/",
+      std::string filename,
+      std::string base_dir = "/",
+      std::string output_dir = "/",
       bool load_cached_ = true
     );
 
@@ -98,13 +98,13 @@ public:
     void run();
 
     /// Return the parsed batch as a vector of header-keyed @c std::map rows.
-    const std::vector<std::map<String, String>>& getSamples();
+    const std::vector<std::map<std::string, std::string>>& getSamples();
 
     /// Return the base directory passed to the constructor.
-    const String& getBaseDir();
+    const std::string& getBaseDir();
 
     /// Return the output directory passed to the constructor.
-    const String& getOutputDir();
+    const std::string& getOutputDir();
 
 private:
     /**
@@ -115,10 +115,10 @@ private:
     */
     void loadSamples_();
 
-    String filename_;                                       ///< CSV file describing the batch.
-    String base_dir_;                                       ///< Base directory for per-sample input paths (must end with a path separator).
-    String output_dir_;                                     ///< Base directory under which per-sample outputs are written (must end with a path separator).
+    std::string filename_;                                       ///< CSV file describing the batch.
+    std::string base_dir_;                                       ///< Base directory for per-sample input paths (must end with a path separator).
+    std::string output_dir_;                                     ///< Base directory under which per-sample outputs are written (must end with a path separator).
     bool load_cached_;                                      ///< Forwarded to @ref FIAMSDataProcessor::run; reuse cached results when @c true.
-    std::vector<std::map<String, String>> samples_;         ///< Parsed CSV rows; populated by @ref loadSamples_.
+    std::vector<std::map<std::string, std::string>> samples_;         ///< Parsed CSV rows; populated by @ref loadSamples_.
   };
 } // namespace OpenMS

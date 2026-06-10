@@ -60,16 +60,16 @@ public:
     */
     //@{
     /// sets the identifier of the rule
-    void setIdentifier(const String& identifier);
+    void setIdentifier(const std::string& identifier);
 
     /// returns the identifier of the rule
-    const String& getIdentifier() const;
+    const std::string& getIdentifier() const;
 
     /// sets the path of the element, where this rule is allowed
-    void setElementPath(const String& element_path);
+    void setElementPath(const std::string& element_path);
 
     /// returns the path of the element, where this rule is allowed
-    const String& getElementPath() const;
+    const std::string& getElementPath() const;
 
     /// sets the requirement level of this rule
     void setRequirementLevel(RequirementLevel level);
@@ -84,10 +84,10 @@ public:
     CombinationsLogic getCombinationsLogic() const;
 
     /// sets the scope path of the rule
-    void setScopePath(const String& path);
+    void setScopePath(const std::string& path);
 
     /// returns the scope path of the rule
-    const String& getScopePath() const;
+    const std::string& getScopePath() const;
 
     /// sets the terms which are allowed
     void setCVTerms(const std::vector<CVMappingTerm>& cv_terms);
@@ -111,13 +111,13 @@ public:
 
 protected:
 
-    String identifier_;
+    std::string identifier_;
 
-    String element_path_;
+    std::string element_path_;
 
     RequirementLevel requirement_level_;
 
-    String scope_path_;
+    std::string scope_path_;
 
     CombinationsLogic combinations_logic_;
 

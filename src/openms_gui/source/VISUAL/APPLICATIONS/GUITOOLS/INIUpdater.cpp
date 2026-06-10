@@ -75,29 +75,29 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "INI/TOPPAS files that need updating.");
-    setValidFormats_("in", ListUtils::create<String>("ini,toppas"));
+    setValidFormats_("in", ListUtils::create<std::string>("ini,toppas"));
 
     registerFlag_("i", "in-place: Override given INI/TOPPAS files with new content (not compatible with -out)");
 
     registerOutputFileList_("out", "<files>", StringList(), "Optional list of output files (not compatible with -i).", false, false);
-    setValidFormats_("out", ListUtils::create<String>("ini,toppas"));
+    setValidFormats_("out", ListUtils::create<std::string>("ini,toppas"));
   }
 
-  void updateTOPPAS(const String& infile, const String& outfile)
+  void updateTOPPAS(const std::string& infile, const std::string& outfile)
   {
     Int this_instance = getIntOption_("instance");
     INIUpdater updater;
-    String tmp_ini_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_INIUpdater.ini";
+    std::string tmp_ini_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_INIUpdater.ini";
     tmp_files_.push_back(tmp_ini_file);
 
-    String path = File::getExecutablePath();
+    std::string path = File::getExecutablePath();
 
     ParamXMLFile paramFile;
     Param p;
     paramFile.load(infile, p);
 
     // get version of TOPPAS file
-    String version = "Unknown";
+    std::string version = "Unknown";
     if (!p.exists("info:version"))
     {
       writeLogWarn_("No OpenMS version information found in file " + infile + "! Assuming OpenMS 1.8 and below.");
@@ -112,15 +112,15 @@ protected:
     Int vertices = p.getValue("info:num_vertices");
 
     // update sections
-    writeDebug_("#Vertices: " + String(vertices), 1);
+    writeDebug_("#Vertices: " + StringUtils::toStr(vertices), 1);
     bool update_success = true;
     for (Int v = 0; v < vertices; ++v)
     {
-      String sec_inst = "vertices:" + String(v) + ":";
+      std::string sec_inst = "vertices:" + StringUtils::toStr(v) + ":";
       // check for default instance
       if (!p.exists(sec_inst + "toppas_type"))
       {
-        writeLogWarn_("Update for file " + infile + " failed because the vertex #" + String(v) + " does not have a 'toppas_type' node. Check INI file for corruption!");
+        writeLogWarn_("Update for file " + infile + " failed because the vertex #" + StringUtils::toStr(v) + " does not have a 'toppas_type' node. Check INI file for corruption!");
         update_success = false;
         break;
       }
@@ -132,19 +132,19 @@ protected:
 
       if (!p.exists(sec_inst + "tool_name"))
       {
-        writeLogWarn_("Update for file " + infile + " failed because the vertex #" + String(v) + " does not have a 'tool_name' node. Check INI file for corruption!");
+        writeLogWarn_("Update for file " + infile + " failed because the vertex #" + StringUtils::toStr(v) + " does not have a 'tool_name' node. Check INI file for corruption!");
         update_success = false;
         break;
       }
 
-      String old_name = p.getValue(sec_inst + "tool_name").toString();
-      String new_tool;
-      String ttype;
+      std::string old_name = p.getValue(sec_inst + "tool_name").toString();
+      std::string new_tool;
+      std::string ttype;
       // find mapping to new tool (might be the same name)
       if (p.exists(sec_inst + "tool_type")) ttype = p.getValue(sec_inst + "tool_type").toString();
       if (!updater.getNewToolName(old_name, ttype, new_tool))
       {
-        String type_text = ((ttype.empty()) ? "" : " with type '" + ttype + "' ");
+        std::string type_text = ((ttype.empty()) ? "" : " with type '" + ttype + "' ");
         writeLogWarn_("Update for file " + infile + " failed because the tool '" + old_name + "'" + type_text + "is unknown. TOPPAS file seems to be corrupted!");
         update_success = false;
         break;
@@ -161,7 +161,7 @@ protected:
       arguments << "-write_ini";
       arguments << toQString(tmp_ini_file);
       arguments << "-instance";
-      arguments << toQString(String(this_instance));
+      arguments << toQString(StringUtils::toStr(this_instance));
       pr.start(toQString(path + "/" + new_tool), arguments);
       if (!pr.waitForFinished(-1))
       {
@@ -195,7 +195,7 @@ protected:
     const char** argv = &c;
 
     QApplication app(argc, const_cast<char**>(argv), false);
-    String tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
+    std::string tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
     QDir d;
     d.mkpath(toQString(tmp_dir));
     {
@@ -211,7 +211,7 @@ protected:
     if (outfile.empty()) // create a backup
     {
       QFileInfo fi(toQString(infile));
-      String new_name = fromQString(fi.path()) + "/" + fromQString(fi.completeBaseName()) + "_v" + version + ".toppas";
+      std::string new_name = fromQString(fi.path()) + "/" + fromQString(fi.completeBaseName()) + "_v" + version + ".toppas";
       if (!QFile::rename(toQString(infile), toQString(new_name)))
       {
         OPENMS_LOG_ERROR << "Could not create backup '" << new_name << "' from '" << infile << "'. Aborting update to prevent data loss." << std::endl;
@@ -227,14 +227,14 @@ protected:
     }
   }
 
-  void updateINI(const String& infile, const String& outfile)
+  void updateINI(const std::string& infile, const std::string& outfile)
   {
     Int this_instance = getIntOption_("instance");
     INIUpdater updater;
-    String tmp_ini_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_INIUpdater.ini";
+    std::string tmp_ini_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_INIUpdater.ini";
     tmp_files_.push_back(tmp_ini_file);
 
-    String path = File::getExecutablePath();
+    std::string path = File::getExecutablePath();
 
     Param p;
     ParamXMLFile paramFile;
@@ -250,7 +250,7 @@ protected:
     }
 
     // get version of first section
-    String version_old = "Unknown";
+    std::string version_old = "Unknown";
     if (!p.exists(sections[0] + ":version"))
     {
       writeLogWarn_("No OpenMS version information found in file " + infile + "! Cannot update!");
@@ -269,7 +269,7 @@ protected:
     bool update_success = true;
     for (Size s = 0; s < sections.size(); ++s)
     {
-      String sec_inst = sections[s] + ":" + String(this_instance) + ":";
+      std::string sec_inst = sections[s] + ":" + StringUtils::toStr(this_instance) + ":";
       // check for default instance
       if (!p.exists(sec_inst + "debug"))
       {
@@ -277,13 +277,13 @@ protected:
         update_success = false;
         break;
       }
-      String new_tool;
-      String ttype;
+      std::string new_tool;
+      std::string ttype;
       // find mapping to new tool (might be the same name)
       if (p.exists(sec_inst + "type")) ttype = p.getValue(sec_inst + "type").toString();
       if (!updater.getNewToolName(sections[s], ttype, new_tool))
       {
-        String type_text = ((ttype.empty()) ? "" : " with type '" + ttype + "' ");
+        std::string type_text = ((ttype.empty()) ? "" : " with type '" + ttype + "' ");
         writeLogWarn_("Update for file '" + infile + "' failed because the tool '" + sections[s] + "'" + type_text + "is unknown. TOPPAS file seems to be corrupted!");
         update_success = false;
         break;
@@ -294,7 +294,7 @@ protected:
       arguments << "-write_ini";
       arguments << toQString(tmp_ini_file);
       arguments << "-instance";
-      arguments << toQString(String(this_instance));
+      arguments << toQString(StringUtils::toStr(this_instance));
       pr.start(toQString(path + "/" + new_tool), arguments);
       if (!pr.waitForFinished(-1))
       {
@@ -324,7 +324,7 @@ protected:
     if (outfile.empty()) // create a backup
     {
       QFileInfo fi(toQString(infile));
-      String backup_filename = fromQString(fi.path()) + "/" + fromQString(fi.completeBaseName()) + "_v" + version_old + ".ini";
+      std::string backup_filename = fromQString(fi.path()) + "/" + fromQString(fi.completeBaseName()) + "_v" + version_old + ".ini";
       if (!QFile::rename(toQString(infile), toQString(backup_filename)))
       {
         OPENMS_LOG_ERROR << "Could not create backup '" << backup_filename << "' from '" << infile << "'. Aborting update to prevent data loss." << std::endl;

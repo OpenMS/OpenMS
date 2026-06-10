@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/FORMAT/FileTypes.h>
+
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
@@ -59,18 +61,18 @@ public:
       @param[in] layer_name The name of the selected layer
       @param[in] tool_scanner Pointer to the tool scanner for access to the plugins and to rerun the plugins detection
     */
-    ToolsDialog(QWidget * parent, const Param& params, String ini_file, String default_dir, LayerDataBase::DataType layer_type, const String& layer_name, TVToolDiscovery* tool_scanner);
+    ToolsDialog(QWidget * parent, const Param& params, std::string ini_file, std::string default_dir, LayerDataBase::DataType layer_type, const std::string& layer_name, TVToolDiscovery* tool_scanner);
     ///Destructor
     ~ToolsDialog() override;
 
     /// to get the parameter name for output. Empty if no output was selected.
-    String getOutput();
+    std::string getOutput();
     /// to get the parameter name for input
-    String getInput();
+    std::string getInput();
     /// to get the currently selected tool-name
-    String getTool();
+    std::string getTool();
     /// get the default extension for the output file
-    String getExtension();
+    std::string getExtension();
 
 
 private:
@@ -109,13 +111,13 @@ private:
     /// ok-button connected with slot ok_()
     QPushButton * ok_button_;
     /// Location of the temporary INI file this dialog works on
-    String ini_file_;
+    std::string ini_file_;
     /// default-dir of ini-file to open
-    String default_dir_;
+    std::string default_dir_;
     /// name of ini-file
     QString filename_;
     /// Mapping of file extension to layer type to determine the type of a tool
-    std::map<String, LayerDataBase::DataType> tool_map_;
+    std::map<FileTypes::Type, LayerDataBase::DataType> tool_map_;
     /// Pointer to the tool scanner for access to the plugins and to rerun the plugins detection
     TVToolDiscovery * tool_scanner_;
     /// The layer type of the current layer to determine all usable plugins

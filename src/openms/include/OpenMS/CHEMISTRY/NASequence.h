@@ -480,7 +480,7 @@ namespace OpenMS
 
        @throws Exception::ParseError if an invalid string representation of a nucleic acid sequence is passed
     */
-    static NASequence fromString(const String& s);
+    static NASequence fromString(const std::string& s);
 
     /** @name Stream operators
         writes a NASequence to an output stream
@@ -500,7 +500,7 @@ namespace OpenMS
 
   private:
     // TODO: query RNA / DNA depending on type
-    static void parseString_(const String& s, NASequence& nas);
+    static void parseString_(const std::string& s, NASequence& nas);
 
     /**
        @brief Parses modifications in square brackets
@@ -512,7 +512,7 @@ namespace OpenMS
        @return Position at which to continue parsing
     */
     // TODO: query RNA / DNA depending on type
-    static String::ConstIterator parseMod_(const String::ConstIterator str_it, const String& str, NASequence& nas);
+    static std::string::const_iterator parseMod_(const std::string::const_iterator str_it, const std::string& str, NASequence& nas);
 
     std::vector<const Ribonucleotide*> seq_;
 
@@ -555,7 +555,7 @@ namespace std
       for (const auto& ribo : seq)
       {
         // Hash the code (stable identifier)
-        const OpenMS::String& code = ribo.getCode();
+        const std::string& code = ribo.getCode();
         OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(code));
       }
 

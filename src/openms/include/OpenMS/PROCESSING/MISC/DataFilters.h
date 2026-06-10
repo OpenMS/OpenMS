@@ -54,11 +54,11 @@ public:
     {
       DataFilter(){};
       /// ctor for common case of numerical filter
-      DataFilter(const FilterType type, const FilterOperation op, const double val, const String& meta_name = "")
+      DataFilter(const FilterType type, const FilterOperation op, const double val, const std::string& meta_name = "")
         : field(type), op(op), value(val), value_string(), meta_name(meta_name), value_is_numerical(true)
       {};
       /// ctor for common case of string filter
-      DataFilter(const FilterType type, const FilterOperation op, const String& val, const String& meta_name = "")
+      DataFilter(const FilterType type, const FilterOperation op, const std::string& val, const std::string& meta_name = "")
         : field(type), op(op), value(0.0), value_string(val), meta_name(meta_name), value_is_numerical(false)
       {};
       /// Field to filter
@@ -67,15 +67,15 @@ public:
       FilterOperation op{ DataFilters::GREATER_EQUAL} ;
       /// Value for comparison
       double value{ 0.0 };
-      /// String value for comparison (for meta data)
-      String value_string;
+      /// std::string value for comparison (for meta data)
+      std::string value_string;
       /// Name of the considered meta information (key)
-      String meta_name;
+      std::string meta_name;
       /// use @p value or @p value_string ?
       bool value_is_numerical{ false };
 
       /// Returns a string representation of the filter
-      String toString() const;
+      std::string toString() const;
 
       /**
           @brief Parses @p filter and sets the filter properties accordingly
@@ -84,7 +84,7 @@ public:
 
           @exception Exception::InvalidValue is thrown when the filter is not formatted properly
       */
-      void fromString(const String & filter);
+      void fromString(const std::string & filter);
 
       ///Equality operator
       bool operator==(const DataFilter & rhs) const;

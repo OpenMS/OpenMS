@@ -14,10 +14,10 @@ using namespace std;
 namespace OpenMS
 {
 
-  SVOutStream::SVOutStream(const String& file_out,
-                           const String& sep,
-                           const String& replacement,
-                           String::QuotingMethod quoting)
+  SVOutStream::SVOutStream(const std::string& file_out,
+                           const std::string& sep,
+                           const std::string& replacement,
+                           OpenMS::QuotingMethod quoting)
     :
     ostream(nullptr), ofs_(nullptr), sep_(sep), replacement_(replacement), nan_("nan"),
     inf_("inf"), quoting_(quoting), modify_strings_(true), newline_(true)
@@ -37,9 +37,9 @@ namespace OpenMS
     precision(std::numeric_limits<double>::digits10);
   }
 
-  SVOutStream::SVOutStream(ostream& out, const String& sep,
-                           const String& replacement,
-                           String::QuotingMethod quoting) :
+  SVOutStream::SVOutStream(ostream& out, const std::string& sep,
+                           const std::string& replacement,
+                           OpenMS::QuotingMethod quoting) :
     ostream(out.rdbuf()), ofs_(nullptr), sep_(sep), replacement_(replacement), nan_("nan"),
     inf_("inf"), quoting_(quoting), modify_strings_(true), newline_(true)
   {
@@ -57,7 +57,7 @@ namespace OpenMS
     }
   }
 
-  SVOutStream& SVOutStream::operator<<(String str)
+  SVOutStream& SVOutStream::operator<<(std::string str)
   {
     if (str.contains('\n'))
     {
@@ -77,31 +77,27 @@ namespace OpenMS
     {
       (ostream&) *this << str;
     }
-    else if (quoting_ != String::NONE)
+    else if (quoting_ != OpenMS::QuotingMethod::NONE)
     {
-      (ostream&) *this << str.quote('"', quoting_);
+      (ostream&) *this << StringUtils::quote(str, '"', quoting_);
     }
     else
     {
-      (ostream&) *this << str.substitute(sep_, replacement_);
+      (ostream&) *this << StringUtils::substitute(str, sep_, replacement_);
     }
     return *this;
   }
 
   SVOutStream& SVOutStream::operator<<(const char* c_str)
   {
-    return operator<<(String(c_str));
+    return operator<<(std::string(c_str));
   }
 
   SVOutStream& SVOutStream::operator<<(const char c)
   {
-    return operator<<(String(c));
+    return operator<<(StringUtils::toStr(c));
   }
 
-  SVOutStream& SVOutStream::operator<<(const std::string& str)
-  {
-    return operator<<((String&)str);
-  }
 
   SVOutStream& SVOutStream::operator<<(ostream& (*fp)(ostream&))
   {
@@ -126,7 +122,7 @@ namespace OpenMS
     return *this;
   }
 
-  SVOutStream& SVOutStream::write(const String& str)
+  SVOutStream& SVOutStream::write(const std::string& str)
   {
     ostream::write(str.c_str(), str.size());
     return *this;

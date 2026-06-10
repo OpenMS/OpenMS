@@ -93,14 +93,14 @@ namespace OpenMS
     }
   }
 
-  String Plot2DGoToDialog::getFeatureNumber() const
+  std::string Plot2DGoToDialog::getFeatureNumber() const
   {
     return fromQString(ui_->feature_number_->text());
   }
 
   bool Plot2DGoToDialog::showRange() const
   {
-    return getFeatureNumber().trim().empty();
+    return StringUtils::trimmed(getFeatureNumber()).empty();
   }
 
 } //namespace OpenMS

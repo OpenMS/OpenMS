@@ -54,7 +54,7 @@ namespace OpenMS
 
       @return Indicates whether parsing was successful (if it is false, the file most likely was not an mzML or not indexed).
     */
-    bool load(const String& filename, OnDiscPeakMap& exp);
+    bool load(const std::string& filename, OnDiscPeakMap& exp);
 
     /**
       @brief Store a file from an on-disc data-structure
@@ -62,7 +62,7 @@ namespace OpenMS
       @param[out] filename Filename determines where the file will be stored 
       @param[out] exp MS data to be stored
     */
-    void store(const String& filename, OnDiscPeakMap& exp);
+    void store(const std::string& filename, OnDiscPeakMap& exp);
 
     /**
       @brief Store a file from an in-memory data-structure
@@ -70,7 +70,7 @@ namespace OpenMS
       @param[in] filename Filename determines where the file will be stored 
       @param[out] exp MS data to be stored
     */
-    void store(const String& filename, PeakMap& exp);
+    void store(const std::string& filename, PeakMap& exp);
 
 private:
 

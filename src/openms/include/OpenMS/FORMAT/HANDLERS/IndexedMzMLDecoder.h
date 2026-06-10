@@ -51,7 +51,7 @@ namespace OpenMS
       @return 0 in case of success and -1 otherwise (failure, no offset was found)
 
     */
-    int parseOffsets(const String& filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets);
+    int parseOffsets(const std::string& filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets);
 
     /**
       @brief Tries to extract the indexList offset from an indexedmzML.
@@ -78,7 +78,7 @@ namespace OpenMS
       @throw FileNotFound is thrown if file cannot be found
       @throw ParseError if offset cannot be parsed
     */
-    std::streampos findIndexListOffset(const String& filename, int buffersize = 1023);
+    std::streampos findIndexListOffset(const std::string& filename, int buffersize = 1023);
 
   protected:
 
@@ -113,7 +113,7 @@ namespace OpenMS
 
       @endcode
       
-      @param[in] in String containing the XML with a indexedmzML parent and an indexList child tag
+      @param[in] in std::string containing the XML with a indexedmzML parent and an indexList child tag
       @param[out] spectra_offsets Output vector containing the positions of all spectra in the file
       @param[out] chromatograms_offsets Output vector containing the positions of all chromatograms in the file
     */

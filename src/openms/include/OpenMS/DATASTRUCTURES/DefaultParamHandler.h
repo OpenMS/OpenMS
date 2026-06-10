@@ -66,7 +66,7 @@ namespace OpenMS
   {
   public:
     /// Constructor with name that is displayed in error messages
-    DefaultParamHandler(const String& name);
+    DefaultParamHandler(const std::string& name);
 
     /// Copy constructor
     DefaultParamHandler(const DefaultParamHandler& rhs);
@@ -98,13 +98,13 @@ namespace OpenMS
     const Param& getDefaults() const;
 
     /// Non-mutable access to the name
-    const String& getName() const;
+    const std::string& getName() const;
 
     /// Mutable access to the name
-    void setName(const String& name);
+    void setName(const std::string& name);
 
     /// Non-mutable access to the registered subsections
-    const std::vector<String>& getSubsections() const;
+    const std::vector<std::string>& getSubsections() const;
 
     /**
      * @brief Writes all parameters to meta values
@@ -116,7 +116,7 @@ namespace OpenMS
      * @param[in] key_prefix  Will be added in front of the parameter name for the meta value key.
      *                    If the prefix isn't empty and doesn't end with a colon one will be added.
      */
-    static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& key_prefix = "");
+    static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const std::string& key_prefix = "");
 
   protected:
     /**
@@ -150,10 +150,10 @@ namespace OpenMS
 
         @note Do not add a ':' character at the end of subsections.
     */
-    std::vector<String> subsections_;
+    std::vector<std::string> subsections_;
 
     /// Name that is displayed in error messages during the parameter checking
-    String error_name_;
+    std::string error_name_;
 
     /**
         @brief If this member is set to false no checking if parameters in done;

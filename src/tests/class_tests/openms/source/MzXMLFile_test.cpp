@@ -98,7 +98,7 @@ START_SECTION(PeakFileOptions& getOptions())
 }
 END_SECTION
 
-START_SECTION((template<typename MapType> void load(const String& filename, MapType& map) ))
+START_SECTION((template<typename MapType> void load(const std::string& filename, MapType& map) ))
 {
   TOLERANCE_ABSOLUTE(0.01)
 
@@ -566,7 +566,7 @@ START_SECTION(([EXTRA] load/store for nested scans))
 }
 END_SECTION
 
-START_SECTION((template<typename MapType> void store(const String& filename, const MapType& map) const ))
+START_SECTION((template<typename MapType> void store(const std::string& filename, const MapType& map) const ))
 {
   std::string tmp_filename;
   PeakMap e1, e2;
@@ -582,7 +582,7 @@ START_SECTION((template<typename MapType> void store(const String& filename, con
 }
 END_SECTION
 
-START_SECTION([EXTRA] static bool isValid(const String& filename))
+START_SECTION([EXTRA] static bool isValid(const std::string& filename))
 {
   std::string tmp_filename;
   MzXMLFile f;
@@ -598,12 +598,12 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 }
 END_SECTION
 
-START_SECTION(void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false))
+START_SECTION(void transform(const std::string& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false))
 {
   // Create the consumer, set output file name, transform
   TICConsumer consumer;
   MzXMLFile f;
-  String in = OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML");
+  std::string in = OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML");
 
   PeakFileOptions opt = f.getOptions();
   opt.setFillData(true); // whether to actually load any data
@@ -619,13 +619,13 @@ START_SECTION(void transform(const String& filename_in, Interfaces::IMSDataConsu
 }
 END_SECTION
 
-START_SECTION(void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, MapType& map, bool skip_full_count = false) )
+START_SECTION(void transform(const std::string& filename_in, Interfaces::IMSDataConsumer * consumer, MapType& map, bool skip_full_count = false) )
 {
   // Create the consumer, set output file name, transform
   TICConsumer consumer;
   MzXMLFile f;
   PeakMap map;
-  String in = OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML");
+  std::string in = OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML");
 
   PeakFileOptions opt = f.getOptions();
   opt.setFillData(true); // whether to actually load any data

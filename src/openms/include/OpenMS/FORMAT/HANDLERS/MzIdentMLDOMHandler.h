@@ -74,10 +74,10 @@ public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler for internal identification structures
-      MzIdentMLDOMHandler(const std::vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const String& version, const ProgressLogger& logger);
+      MzIdentMLDOMHandler(const std::vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger);
 
       /// Constructor for a read-only handler for internal identification structures
-      MzIdentMLDOMHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const String& version, const ProgressLogger& logger);
+      MzIdentMLDOMHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger);
 
       /// Destructor
       virtual ~MzIdentMLDOMHandler();
@@ -108,10 +108,10 @@ protected:
       const PeptideIdentificationList* cpep_id_ = nullptr;
 
       ///Internal version keeping
-      const String schema_version_;
+      const std::string schema_version_;
 
       /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
-      ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
+      ControlledVocabulary::CVTerm getChildWithName_(const std::string& parent_accession, const std::string& name) const;
 
       /// Precompute the CV child-term sets used per PSM (constant across a file); shared by both constructors.
       void initScoreTermCaches_();
@@ -120,9 +120,9 @@ protected:
       //@{
 
       /// First: CVparams, Second: userParams (independent of each other)
-      std::pair<CVTermList, std::map<String, DataValue> > parseParamGroup_(xercesc::DOMNodeList* paramGroup);
+      std::pair<CVTermList, std::map<std::string, DataValue> > parseParamGroup_(xercesc::DOMNodeList* paramGroup);
       CVTerm parseCvParam_(xercesc::DOMElement* param);
-      std::pair<String, DataValue> parseUserParam_(xercesc::DOMElement* param);
+      std::pair<std::string, DataValue> parseUserParam_(xercesc::DOMElement* param);
       void parseAnalysisSoftwareList_(xercesc::DOMNodeList* analysisSoftwareElements);
       void parseDBSequenceElements_(xercesc::DOMNodeList* dbSequenceElements);
       void parsePeptideElements_(xercesc::DOMNodeList* peptideElements);
@@ -133,12 +133,12 @@ protected:
       void parseSpectrumIdentificationProtocolElements_(xercesc::DOMNodeList* spectrumIdentificationProtocolElements);
       void parseInputElements_(xercesc::DOMNodeList* inputElements);
       void parseSpectrumIdentificationListElements_(xercesc::DOMNodeList* spectrumIdentificationListElements);
-      void parseSpectrumIdentificationItemSetXLMS(std::set<String>::const_iterator set_it, std::multimap<String, int> xl_val_map, xercesc::DOMElement* element_res, const String& spectrumID);
-      void parseSpectrumIdentificationItemElement_(xercesc::DOMElement* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, String& spectrumIdentificationList_ref);
+      void parseSpectrumIdentificationItemSetXLMS(std::set<std::string>::const_iterator set_it, std::multimap<std::string, int> xl_val_map, xercesc::DOMElement* element_res, const std::string& spectrumID);
+      void parseSpectrumIdentificationItemElement_(xercesc::DOMElement* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, std::string& spectrumIdentificationList_ref);
       void parseProteinDetectionHypothesisElement_(xercesc::DOMElement* proteinDetectionHypothesisElement, ProteinIdentification& protein_identification);
       void parseProteinAmbiguityGroupElement_(xercesc::DOMElement* proteinAmbiguityGroupElement, ProteinIdentification& protein_identification);
       void parseProteinDetectionListElements_(xercesc::DOMNodeList* proteinDetectionListElements);
-      static ProteinIdentification::SearchParameters findSearchParameters_(std::pair<CVTermList, std::map<String, DataValue> > as_params);
+      static ProteinIdentification::SearchParameters findSearchParameters_(std::pair<CVTermList, std::map<std::string, DataValue> > as_params);
       //@}
 
       /**@name Helper functions to build a DOM tree from the internal id structures*/
@@ -148,7 +148,7 @@ protected:
       void buildAnalysisCollection_(xercesc::DOMElement* analysisCollectionElements);
       void buildAnalysisProtocolCollection_(xercesc::DOMElement* protocolElements);
       void buildInputDataCollection_(xercesc::DOMElement* inputElements);
-      void buildEnclosedCV_(xercesc::DOMElement* parentElement, const String& encel, const String& acc, const String& name, const String& cvref);
+      void buildEnclosedCV_(xercesc::DOMElement* parentElement, const std::string& encel, const std::string& acc, const std::string& name, const std::string& cvref);
       void buildAnalysisDataCollection_(xercesc::DOMElement* analysisElements);
       //@}
 
@@ -161,8 +161,8 @@ private:
       ///Struct to hold the used analysis software for that file
       struct AnalysisSoftware
       {
-        String name;
-        String version;
+        std::string name;
+        std::string version;
       };
       ///Struct to hold the PeptideEvidence information
       struct PeptideEvidence
@@ -176,25 +176,25 @@ private:
       ///Struct to hold the information from the DBSequence xml tag
       struct DBSequence
       {
-        String sequence;
-        String database_ref;
-        String accession;
+        std::string sequence;
+        std::string database_ref;
+        std::string accession;
         CVTermList cvs;
       };
       ///Struct to hold the information from the SpectrumIdentification xml tag
       struct SpectrumIdentification
       {
-        String spectra_data_ref;
-        String search_database_ref;
-        String spectrum_identification_protocol_ref;
-        String spectrum_identification_list_ref;
+        std::string spectra_data_ref;
+        std::string search_database_ref;
+        std::string spectrum_identification_protocol_ref;
+        std::string spectrum_identification_list_ref;
       };
       ///Struct to hold the information from the ModificationParam xml tag
       struct ModificationParam
       {
-        String fixed_mod;
+        std::string fixed_mod;
         long double mass_delta;
-        String residues;
+        std::string residues;
         CVTermList modification_param_cvs;
         CVTermList specificities;
       };
@@ -202,22 +202,22 @@ private:
       struct SpectrumIdentificationProtocol
       {
         CVTerm searchtype;
-        String enzyme;
+        std::string enzyme;
         CVTermList parameter_cvs;
-        std::map<String, DataValue> parameter_ups;
+        std::map<std::string, DataValue> parameter_ups;
 //        std::vector<ModificationParam> modification_parameter;
         CVTermList modification_parameter;
         long double precursor_tolerance;
         long double fragment_tolerance;
         CVTermList threshold_cvs;
-        std::map<String, DataValue> threshold_ups;
+        std::map<std::string, DataValue> threshold_ups;
       };
       ///Struct to hold the information from the DatabaseInput xml tag
       struct DatabaseInput
       {
-        String name;
-        String location;
-        String version;
+        std::string name;
+        std::string location;
+        std::string version;
         DateTime date;
       };
 
@@ -230,45 +230,45 @@ private:
       std::unique_ptr<XMLHandler> xml_handler_ = nullptr;
 
       //from AnalysisSoftware
-      String search_engine_;
-      String search_engine_version_;
+      std::string search_engine_;
+      std::string search_engine_version_;
       //mapping from AnalysisSoftware
-      std::map<String, AnalysisSoftware> as_map_; ///< mapping AnalysisSoftware id -> AnalysisSoftware
+      std::map<std::string, AnalysisSoftware> as_map_; ///< mapping AnalysisSoftware id -> AnalysisSoftware
 
       //mapping from DataCollection Inputs
-      std::map<String, String> sr_map_; ///< mapping sourcefile id -> sourcefile location
-      std::map<String, String> sd_map_; ///< mapping spectradata id -> spectradata location
-      std::map<String, DatabaseInput> db_map_; ///< mapping database id -> DatabaseInput
+      std::map<std::string, std::string> sr_map_; ///< mapping sourcefile id -> sourcefile location
+      std::map<std::string, std::string> sd_map_; ///< mapping spectradata id -> spectradata location
+      std::map<std::string, DatabaseInput> db_map_; ///< mapping database id -> DatabaseInput
 
       //mapping from SpectrumIdentification - SpectrumIdentification will be the new IdentificationRuns
-      std::map<String, SpectrumIdentification> si_map_; ///< mapping SpectrumIdentification id -> SpectrumIdentification (id refs)
-      std::map<String, size_t> si_pro_map_; ///< mapping SpectrumIdentificationList id -> index to ProteinIdentification in pro_id_
+      std::map<std::string, SpectrumIdentification> si_map_; ///< mapping SpectrumIdentification id -> SpectrumIdentification (id refs)
+      std::map<std::string, size_t> si_pro_map_; ///< mapping SpectrumIdentificationList id -> index to ProteinIdentification in pro_id_
 
       //mapping from SpectrumIdentificationProtocol
-      std::map<String, SpectrumIdentificationProtocol> sp_map_; ///< mapping SpectrumIdentificationProtocol id -> SpectrumIdentificationProtocol
+      std::map<std::string, SpectrumIdentificationProtocol> sp_map_; ///< mapping SpectrumIdentificationProtocol id -> SpectrumIdentificationProtocol
 
       //mapping from SequenceCollection
-      std::map<String, AASequence> pep_map_; ///< mapping Peptide id -> Sequence
-      std::map<String, PeptideEvidence> pe_ev_map_; ///< mapping PeptideEvidence id -> PeptideEvidence
-      std::map<String, String> pv_db_map_; ///< mapping PeptideEvidence id -> DBSequence id
-      std::multimap<String, String> p_pv_map_; ///< mapping Peptide id -> PeptideEvidence id, multiple PeptideEvidences can have equivalent Peptides.
-      std::map<String, DBSequence> db_sq_map_; ///< mapping DBSequence id -> Sequence
+      std::map<std::string, AASequence> pep_map_; ///< mapping Peptide id -> Sequence
+      std::map<std::string, PeptideEvidence> pe_ev_map_; ///< mapping PeptideEvidence id -> PeptideEvidence
+      std::map<std::string, std::string> pv_db_map_; ///< mapping PeptideEvidence id -> DBSequence id
+      std::multimap<std::string, std::string> p_pv_map_; ///< mapping Peptide id -> PeptideEvidence id, multiple PeptideEvidences can have equivalent Peptides.
+      std::map<std::string, DBSequence> db_sq_map_; ///< mapping DBSequence id -> Sequence
 
-      std::list<std::list<String> > hit_pev_; ///< writing help only
+      std::list<std::list<std::string> > hit_pev_; ///< writing help only
 
       bool xl_ms_search_; ///< is true when reading a file containing Cross-Linking MS search results
-      std::map<String, String> xl_id_donor_map_; ///< mapping Peptide id -> crosslink donor value
-      //std::map<String, String> xl_id_acceptor_map_; ///< mapping Peptide id -> crosslink acceptor value
-      std::map<String, String> xl_id_acceptor_map_; ///< mapping  peptide id of acceptor peptide -> crosslink acceptor value
-      std::map<String, SignedSize> xl_donor_pos_map_; ///< mapping donor value -> cross-link modification location
-      std::map<String, SignedSize> xl_acceptor_pos_map_; ///< mapping acceptor value -> cross-link modification location
-      std::map<String, double> xl_mass_map_; ///< mapping Peptide id -> cross-link mass
-      std::map<String, String> xl_mod_map_; ///< mapping peptide id -> cross-linking reagent name
+      std::map<std::string, std::string> xl_id_donor_map_; ///< mapping Peptide id -> crosslink donor value
+      //std::map<std::string, std::string> xl_id_acceptor_map_; ///< mapping Peptide id -> crosslink acceptor value
+      std::map<std::string, std::string> xl_id_acceptor_map_; ///< mapping  peptide id of acceptor peptide -> crosslink acceptor value
+      std::map<std::string, SignedSize> xl_donor_pos_map_; ///< mapping donor value -> cross-link modification location
+      std::map<std::string, SignedSize> xl_acceptor_pos_map_; ///< mapping acceptor value -> cross-link modification location
+      std::map<std::string, double> xl_mass_map_; ///< mapping Peptide id -> cross-link mass
+      std::map<std::string, std::string> xl_mod_map_; ///< mapping peptide id -> cross-linking reagent name
 
       /// cached CV child term sets (computed once, reused per PSM)
-      std::set<String> q_score_child_terms_;
-      std::set<String> e_score_child_terms_;
-      std::set<String> specific_score_child_terms_;
+      std::set<std::string> q_score_child_terms_;
+      std::set<std::string> e_score_child_terms_;
+      std::set<std::string> specific_score_child_terms_;
     };
   } // namespace Internal
 } // namespace OpenMS

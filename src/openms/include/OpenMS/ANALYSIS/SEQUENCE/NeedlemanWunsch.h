@@ -77,7 +77,7 @@ namespace OpenMS
       @param[in] seq2 Second amino-acid sequence.
       @return Score of the best global alignment.
     */
-    int align(const String& seq1, const String& seq2);
+    int align(const std::string& seq1, const std::string& seq2);
 
     /**
       @brief Select the scoring matrix used by @ref align.

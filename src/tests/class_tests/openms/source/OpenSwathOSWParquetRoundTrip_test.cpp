@@ -30,7 +30,7 @@ START_TEST(OpenSwathOSWParquetRoundTrip, "$Id$")
 START_SECTION(void round-trip write/read .oswpq archive using RAF path)
 {
   // Build a reference LightTargetedExperiment from a TraML file
-  const String input_file = OPENMS_GET_TEST_DATA_PATH("MRMAssay_detectingTransistionCompound_input.TraML");
+  const std::string input_file = OPENMS_GET_TEST_DATA_PATH("MRMAssay_detectingTransistionCompound_input.TraML");
   TraMLFile traml;
   TargetedExperiment targeted_exp;
   traml.load(input_file, targeted_exp);
@@ -41,11 +41,11 @@ START_SECTION(void round-trip write/read .oswpq archive using RAF path)
 
   // Write to a single .oswpq archive (do NOT create a directory) to exercise archive writer path
   File::TempDir tmp_dir;
-  const String out_archive = tmp_dir.getPath() + "/roundtrip.oswpq";
+  const std::string out_archive = tmp_dir.getPath() + "/roundtrip.oswpq";
 
   OpenSwathOSWParquetWriter writer;
   FeatureMap empty_map;
-  writer.write(out_archive, light_exp, empty_map, 1, String("test_input"), false);
+  writer.write(out_archive, light_exp, empty_map, 1,std::string("test_input"), false);
 
   // Archive and embedded sidecar should exist (sidecar is written inside the zip)
   TEST_EQUAL(File::exists(out_archive), true)

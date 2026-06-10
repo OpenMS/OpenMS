@@ -124,7 +124,7 @@ namespace OpenMS
     void computeSiteDeterminingIons_(const std::vector<PeakSpectrum>& th_spectra, const ProbablePhosphoSites& candidates, std::vector<PeakSpectrum>& site_determining_ions) const;
 
     /// return all phospho sites
-    std::vector<Size> getSites_(const String& unmodified_sequence) const;
+    std::vector<Size> getSites_(const std::string& unmodified_sequence) const;
 
     /// calculate all n_phosphorylation_events sized sets of phospho sites (all versions of the peptides with exactly n_phosphorylation_events)
     std::vector<std::vector<Size>> computePermutations_(const std::vector<Size>& sites, Int n_phosphorylation_events) const;
@@ -148,10 +148,10 @@ namespace OpenMS
     double computeCumulativeScore_(Size N, Size n, double p) const;
     
     /// Computes number of phospho events in a sequence
-    Size numberOfPhosphoEvents_(const String& sequence) const;
+    Size numberOfPhosphoEvents_(const std::string& sequence) const;
     
     /// Create variant of the peptide with all phosphorylations removed
-    AASequence removePhosphositesFromSequence_(const String& sequence) const;
+    AASequence removePhosphositesFromSequence_(const std::string& sequence) const;
     
     /// Create theoretical spectra with all combinations with the number of phosphorylation events
     std::vector<PeakSpectrum> createTheoreticalSpectra_(const std::vector<std::vector<Size>>& permutations, const AASequence& seq_without_phospho) const;

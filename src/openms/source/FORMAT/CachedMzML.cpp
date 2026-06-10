@@ -22,7 +22,7 @@ namespace OpenMS
 
   CachedmzML::CachedmzML() = default;
 
-  CachedmzML::CachedmzML(const String& filename)
+  CachedmzML::CachedmzML(const std::string& filename)
   {
     load_(filename);
   }
@@ -41,7 +41,7 @@ namespace OpenMS
   {
   }
 
-  void CachedmzML::load_(const String& filename)
+  void CachedmzML::load_(const std::string& filename)
   {
     filename_cached_ = filename + ".cached";
     filename_ = filename;
@@ -103,13 +103,13 @@ namespace OpenMS
     return meta_ms_experiment_.getChromatograms().size();
   }
 
-  void CachedmzML::store(const String& filename, const PeakMap& map)
+  void CachedmzML::store(const std::string& filename, const PeakMap& map)
   {
     Internal::CachedMzMLHandler().writeMemdump(map, filename + ".cached");
     Internal::CachedMzMLHandler().writeMetadata_x(map, filename, true);
   }
 
-  void CachedmzML::load(const String& filename, CachedmzML& map)
+  void CachedmzML::load(const std::string& filename, CachedmzML& map)
   {
     map.load_(filename);
   }

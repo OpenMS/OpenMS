@@ -111,13 +111,13 @@ namespace OpenMS
     }
 
     IndexUnderflow::IndexUnderflow(const char* file, int line, const char* function, SignedSize index, Size size) noexcept :
-      BaseException(file, line, function, "IndexUnderflow", "the given index was too small: " + String(index) + " (size = " + String(size) + ")")
+      BaseException(file, line, function, "IndexUnderflow", "the given index was too small: " + StringUtils::toStr(index) + " (size = " + StringUtils::toStr(size) + ")")
     {
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     IndexOverflow::IndexOverflow(const char* file, int line, const char* function, SignedSize index, Size size) noexcept :
-      BaseException(file, line, function, "IndexOverflow", "the given index was too large: " + String(index) + " (size = " + String(size) + ")")
+      BaseException(file, line, function, "IndexOverflow", "the given index was too large: " + StringUtils::toStr(index) + " (size = " + StringUtils::toStr(size) + ")")
     {
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
@@ -134,25 +134,25 @@ namespace OpenMS
     }
 
     OutOfMemory::OutOfMemory(const char* file, int line, const char* function, Size size) noexcept :
-      BaseException(file, line, function, "OutOfMemory", "unable to allocate enough memory (size = " + String(size) + " bytes) ")
+      BaseException(file, line, function, "OutOfMemory", "unable to allocate enough memory (size = " + StringUtils::toStr(size) + " bytes) ")
     {
       GlobalExceptionHandler::getInstance().setMessage(static_cast<std::runtime_error>(*this).what());
     }
 
     SizeUnderflow::SizeUnderflow(const char* file, int line, const char* function, Size size) noexcept :
-      BaseException(file, line, function, "SizeUnderflow", "the given size was too small: " + String(size))
+      BaseException(file, line, function, "SizeUnderflow", "the given size was too small: " + StringUtils::toStr(size))
     {
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     InvalidSize::InvalidSize(const char* file, int line, const char* function, Size size, const std::string& message) noexcept :
-      BaseException(file, line, function, "InvalidSize", "the given size was not expected: " + String(size) + " (" + message + ")")
+      BaseException(file, line, function, "InvalidSize", "the given size was not expected: " + StringUtils::toStr(size) + " (" + message + ")")
     {
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     IllegalPosition::IllegalPosition(const char* file, int line, const char* function, float x, float y, float z) noexcept :
-      BaseException(file, line, function, "IllegalPosition:", "(" + String(x) + "," + String(y) + "," + String(z) + ")")
+      BaseException(file, line, function, "IllegalPosition:", "(" + StringUtils::toStr(x) + "," + StringUtils::toStr(y) + "," + StringUtils::toStr(z) + ")")
     {
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
@@ -190,8 +190,8 @@ namespace OpenMS
 
     FileNameTooLong::FileNameTooLong(const char* file, int line, const char* function, const std::string& filename, int max_length) noexcept :
       BaseException(file, line, function, "FileNameTooLong", 
-        "the file '" + filename + "' is too long (" + String(filename.size()) + " chars) "
-         + "and exceeds the allowed limit of " + String(max_length) + "; "
+        "the file '" + filename + "' is too long (" + StringUtils::toStr(filename.size()) + " chars) "
+         + "and exceeds the allowed limit of " + StringUtils::toStr(max_length) + "; "
          + "use shorter filenames and/or fewer subdirectories.")      
     {
       GlobalExceptionHandler::getInstance().setMessage(what());

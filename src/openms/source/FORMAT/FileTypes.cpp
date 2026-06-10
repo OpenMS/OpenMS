@@ -24,10 +24,10 @@ namespace OpenMS
   struct TypeNameBinding
   {
     FileTypes::Type type;
-    String name;
-    String description;
+    std::string name;
+    std::string description;
     std::vector<FileTypes::FileProperties> features;
-    TypeNameBinding(FileTypes::Type ptype, String pname, String pdescription, std::vector<FileTypes::FileProperties> pfeatures)
+    TypeNameBinding(FileTypes::Type ptype, std::string pname, std::string pdescription, std::vector<FileTypes::FileProperties> pfeatures)
       : type(ptype), name(std::move(pname)), description(std::move(pdescription)), features(pfeatures)
     {
       // Check that there are no double-spaces in the description, since Qt will replace "  " with " " in filters supplied to QFileDialog::getSaveFileName.
@@ -131,12 +131,12 @@ namespace OpenMS
     return false;
   }
 
-  String FileTypeList::toFileDialogFilter(const FilterLayout style, bool add_all_filter) const
+  std::string FileTypeList::toFileDialogFilter(const FilterLayout style, bool add_all_filter) const
   {
     return ListUtils::concatenate(asFilterElements_(style, add_all_filter).items, ";;");
   }
 
-  FileTypes::Type FileTypeList::fromFileDialogFilter(const String& filter, const FileTypes::Type fallback) const
+  FileTypes::Type FileTypeList::fromFileDialogFilter(const std::string& filter, const FileTypes::Type fallback) const
   {
     auto candidates = asFilterElements_(FilterLayout::BOTH, true); // may add more filters than needed, but that's fine
 
@@ -200,7 +200,7 @@ namespace OpenMS
     return result;
   }
 
-  String FileTypes::typeToName(FileTypes::Type type)
+  std::string FileTypes::typeToName(FileTypes::Type type)
   {
     for (const auto& t_info : type_with_annotation__)
     {
@@ -209,22 +209,23 @@ namespace OpenMS
         return t_info.name;
       }
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid type: Type has no name!", String(type));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid type: Type has no name!",StringUtils::toStr(type));
   }
 
-  String FileTypes::typeToDescription(Type type)
+  std::string FileTypes::typeToDescription(Type type)
   {
     for (const auto& t_info : type_with_annotation__)
     {
       if (t_info.type == type) return t_info.description;
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid type: Type has no description!", String(type));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid type: Type has no description!",StringUtils::toStr(type));
   }
 
 
-  FileTypes::Type FileTypes::nameToType(const String& name)
+  FileTypes::Type FileTypes::nameToType(const std::string& name)
   {
-    String name_upper = String(name).toUpper();
+    std::string name_upper = name;
+    StringUtils::toUpper(name_upper);
 
     // Special case for multiple extensions for PARQUET
     if (name_upper == "PQT")
@@ -234,10 +235,9 @@ namespace OpenMS
 
     for (const auto& t_info : type_with_annotation__)
     {
-      if (String(t_info.name).toUpper() == name_upper)
-      {
-        return t_info.type;
-      }
+      std::string t_upper = t_info.name;
+      StringUtils::toUpper(t_upper);
+      if (t_upper == name_upper) return t_info.type;
     }
 
     return FileTypes::UNKNOWN;
@@ -253,7 +253,7 @@ namespace OpenMS
   }
 
 
-  String FileTypes::typeToMZML(FileTypes::Type type)
+  std::string FileTypes::typeToMZML(FileTypes::Type type)
   {
     switch (type)
     {

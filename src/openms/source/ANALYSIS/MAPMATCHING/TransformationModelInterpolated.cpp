@@ -234,7 +234,7 @@ private:
 
 
     // choose the actual interpolation type
-    const String interpolation_type = params_.getValue("interpolation_type").toString();
+    const std::string interpolation_type = params_.getValue("interpolation_type").toString();
     if (interpolation_type == "linear")
     {
       interp_ = new LinearInterpolator();
@@ -257,7 +257,7 @@ private:
     interp_->init(x_, y_);
 
     // linear model for extrapolation:
-    const String extrapolation_type = params_.getValue("extrapolation_type").toString();
+    const std::string extrapolation_type = params_.getValue("extrapolation_type").toString();
     if (extrapolation_type == "global-linear")
     {
       std::vector<TransformationModel::DataPoint> bloated_data{};
@@ -312,7 +312,7 @@ private:
     preprocessDataPoints_(data);
 
     // choose the actual interpolation type
-    const String interpolation_type = params_.getValue("interpolation_type").toString();
+    const std::string interpolation_type = params_.getValue("interpolation_type").toString();
     if (interpolation_type == "linear")
     {
       interp_ = new LinearInterpolator();
@@ -335,7 +335,7 @@ private:
     interp_->init(x_, y_);
 
     // linear model for extrapolation:
-    const String extrapolation_type = params_.getValue("extrapolation_type").toString();
+    const std::string extrapolation_type = params_.getValue("extrapolation_type").toString();
     if (extrapolation_type == "global-linear")
     {
       lm_front_ = new TransformationModelLinear(data, Param());

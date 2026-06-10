@@ -20,7 +20,7 @@ using namespace std;
 
 START_TEST(ThermoRawFile, "$Id$")
 
-START_SECTION(void load(const String& path, MSExperiment& exp))
+START_SECTION(void load(const std::string& path, MSExperiment& exp))
 {
   ThermoRawFile file;
   MSExperiment exp;
@@ -68,7 +68,7 @@ START_SECTION(round-trip load raw -> mzML -> reload MSExperiment)
   }
   TEST_EQUAL(found_positive, true)
 
-  String tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_thermo_roundtrip.mzML";
+  std::string tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_thermo_roundtrip.mzML";
   MzMLFile().store(tmp_mzml, original);
 
   MSExperiment reloaded;

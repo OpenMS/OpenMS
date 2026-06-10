@@ -28,12 +28,12 @@ namespace OpenMS
     /**
       @param filename Path to a Modomics JSON file (resolved via File::find)
     */
-    explicit ModomicsJSONDataProvider(const String& filename);
+    explicit ModomicsJSONDataProvider(const std::string& filename);
 
     std::vector<RibonucleotideEntry> loadRibonucleotides() override;
 
   private:
-    String filename_;
+    std::string filename_;
   };
 
 } // namespace OpenMS

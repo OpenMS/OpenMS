@@ -33,7 +33,7 @@ public:
       return new CMDProgressLoggerImpl();
     }
 
-    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const override
+    void startProgress(const SignedSize begin, const SignedSize end, const std::string& label, const int current_recursion_depth) const override
     {
       begin_ = begin;
       current_ = begin_;
@@ -72,7 +72,7 @@ public:
     void endProgress(const int current_recursion_depth, UInt64 bytes_processed) const override
     {
       stop_watch_.stop();
-      String IO_stats;
+      std::string IO_stats;
       if (bytes_processed)
       {
         IO_stats = " @ " + bytesToHumanReadable(bytes_processed / stop_watch_.getClockTime()) + "/s";
@@ -97,7 +97,7 @@ public:
       return new NoProgressLoggerImpl();
     }
 
-    void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const String& /* label */, const int /* current_recursion_depth */) const override
+    void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const std::string& /* label */, const int /* current_recursion_depth */) const override
     {
     }
 
@@ -230,7 +230,7 @@ public:
     return type_;
   }
 
-  void ProgressLogger::startProgress(SignedSize begin, SignedSize end, const String& label) const
+  void ProgressLogger::startProgress(SignedSize begin, SignedSize end, const std::string& label) const
   {
     OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
     last_invoke_ = time(nullptr);

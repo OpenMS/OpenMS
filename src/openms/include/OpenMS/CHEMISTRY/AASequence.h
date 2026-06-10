@@ -372,10 +372,10 @@ protected:
         @note For unknown modifications, the function will attempt to use the
         exact same format used in the input
     */
-    String toString() const;
+    std::string toString() const;
 
     /// returns the peptide as string without any modifications or (e.g., "PEPTIDER")
-    String toUnmodifiedString() const;
+    std::string toUnmodifiedString() const;
 
     /**
         @brief returns the peptide as string with UniMod-style modifications embedded in brackets
@@ -385,7 +385,7 @@ protected:
 
         i.e.: .[43]PEPC(UniMod:4)PEPM[147]PEPR.[16]
     */
-    String toUniModString() const;
+    std::string toUniModString() const;
 
     /**
         @brief create a TPP compatible string of the modified sequence using bracket notation.
@@ -405,13 +405,13 @@ protected:
 
         @note Using integer masses may mean that there could be multiple modifications mapping to the same mass
     */
-    String toBracketString(bool integer_mass = true,
+    std::string toBracketString(bool integer_mass = true,
                            bool mass_delta = false,
-                           const std::vector<String> & fixed_modifications = std::vector<String>()) const;
+                           const std::vector<std::string> & fixed_modifications = std::vector<std::string>()) const;
 
     /// set the modification of the residue at position index.
     /// if an empty string is passed replaces the residue with its unmodified version
-    void setModification(Size index, const String& modification);
+    void setModification(Size index, const std::string& modification);
 
     /// sets the modification of AA at @p index by providing an already, potentially modified residue
     void setModification(Size index, const Residue* modification);
@@ -428,7 +428,7 @@ protected:
 
     /// sets the N-terminal modification (by lookup in the mod names of the ModificationsDB)
     /// throws if nothing is found (since the name is not enough information to create a new mod)
-    void setNTerminalModification(const String& modification);
+    void setNTerminalModification(const std::string& modification);
 
     /// sets the N-terminal modification
     void setNTerminalModification(const ResidueModification* modification);
@@ -440,14 +440,14 @@ protected:
     void setNTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term);
 
     /// returns the name (ID) of the N-terminal modification, or an empty string if none is set
-    const String& getNTerminalModificationName() const;
+    const std::string& getNTerminalModificationName() const;
 
     /// returns a pointer to the N-terminal modification, or zero if none is set
     const ResidueModification* getNTerminalModification() const;
 
     /// sets the C-terminal modification (by lookup in the mod names of the ModificationsDB)
     /// throws if nothing is found (since the name is not enough information to create a new mod)
-    void setCTerminalModification(const String& modification);
+    void setCTerminalModification(const std::string& modification);
 
     /// sets the C-terminal modification (must be present in the database)
     void setCTerminalModification(const ResidueModification* modification);
@@ -459,7 +459,7 @@ protected:
     void setCTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term);
 
     /// returns the name (ID) of the C-terminal modification, or an empty string if none is set
-    const String& getCTerminalModificationName() const;
+    const std::string& getCTerminalModificationName() const;
 
     /// returns a pointer to the C-terminal modification, or zero if none is set
     const ResidueModification* getCTerminalModification() const;
@@ -514,7 +514,7 @@ protected:
     AASequence getSubsequence(Size index, UInt number) const;
 
     /// compute frequency table of amino acids
-    void getAAFrequencies(std::map<String, Size>& frequency_table) const;
+    void getAAFrequencies(std::map<std::string, Size>& frequency_table) const;
 
     //@}
 
@@ -585,7 +585,7 @@ protected:
 
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
-    static AASequence fromString(const String& s,
+    static AASequence fromString(const std::string& s,
                                  bool permissive = true);
 
     /**
@@ -600,17 +600,17 @@ protected:
                                  bool permissive = true);
 
     /// @brief constructor from String
-    /// @param[in] s A String representing the amino acid sequence
-    explicit AASequence(const String& s);
+    /// @param[in] s A std::string representing the amino acid sequence
+    explicit AASequence(const std::string& s);
 
     /// @brief constructor from C string
     /// @param[in] s A C-style string representing the amino acid sequence
     explicit AASequence(const char* s);
 
     /// @brief constructor from String
-    /// @param[in] s A String representing the amino acid sequence
+    /// @param[in] s A std::string representing the amino acid sequence
     /// @param[in] permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
-    explicit AASequence(const String& s, bool permissive);
+    explicit AASequence(const std::string& s, bool permissive);
 
     /// @brief constructor from C string
     /// @param[in] s A C-style string representing the amino acid sequence
@@ -638,8 +638,8 @@ protected:
 
       @return Position at which to continue parsing
     */
-    static String::ConstIterator parseModRoundBrackets_(const String::ConstIterator str_it,
-                                                        const String& str,
+    static std::string::const_iterator parseModRoundBrackets_(const std::string::const_iterator str_it,
+                                                        const std::string& str,
                                                         AASequence& aas,
                                                         const ResidueModification::TermSpecificity& specificity);
 
@@ -656,12 +656,12 @@ protected:
 
       @return Position at which to continue parsing
     */
-    static String::ConstIterator parseModSquareBrackets_(const String::ConstIterator str_it,
-                                                         const String& str,
-                                                         AASequence& aas,
-                                                         const ResidueModification::TermSpecificity& specificity);
+    static std::string::const_iterator parseModSquareBrackets_(const std::string::const_iterator str_it,
+                                                               const std::string& str,
+                                                               AASequence& aas,
+                                                               const ResidueModification::TermSpecificity& specificity);
 
-    static void parseString_(const String& peptide, AASequence& aas,
+    static void parseString_(const std::string& peptide, AASequence& aas,
                              bool permissive = true);
   };
 
@@ -700,7 +700,7 @@ namespace std
       for (const auto& residue : seq)
       {
         // Hash one-letter code (single character, fast)
-        const OpenMS::String& olc = residue.getOneLetterCode();
+        const std::string& olc = residue.getOneLetterCode();
         if (!olc.empty())
         {
           OpenMS::hash_combine(seed, OpenMS::hash_char(olc[0]));
@@ -711,7 +711,7 @@ namespace std
         if (mod != nullptr)
         {
           // Use full ID for portability (e.g., "Oxidation (M)")
-          // String inherits from std::string, no copy needed
+          // std::string inherits from std::string, no copy needed
           OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod->getFullId()));
         }
       }

@@ -44,40 +44,40 @@ public:
             @param[out] filename the name of the file in which the infile is stored into
             @throw Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename);
+    void store(const std::string & filename);
 
     /// returns the enzyme list as a string
-    const String getEnzymeInfoAsString() const;
+    const std::string getEnzymeInfoAsString() const;
 
     /// returns the used database
-    const String & getDatabase() const;
+    const std::string & getDatabase() const;
     /// sets the used database
-    void setDatabase(const String & database);
+    void setDatabase(const std::string & database);
 
     /// returns whether neutral losses are considered for the a-, b- and y-ions
-    const String & getNeutralLossesForIons() const;
+    const std::string & getNeutralLossesForIons() const;
     /// sets whether neutral losses are considered for the a-, b- and y-ions
-    void setNeutralLossesForIons(const String & neutral_losses_for_ions);
+    void setNeutralLossesForIons(const std::string & neutral_losses_for_ions);
 
     /// returns the weights for the a-, b-, c-, d-, v-, w-, x-, y- and z-ion series
-    const String & getIonSeriesWeights() const;
+    const std::string & getIonSeriesWeights() const;
     /// sets the weights for the a-, b-, c-, d-, v-, w-, x-, y- and z-ion series
-    void setIonSeriesWeights(const String & ion_series_weights);
+    void setIonSeriesWeights(const std::string & ion_series_weights);
 
     /// returns the partial sequences (space delimited) that have to occur in the theoretical spectra
-    const String & getPartialSequence() const;
+    const std::string & getPartialSequence() const;
     /// sets the partial sequences (space delimited) that have to occur in the theoretical spectra
-    void setPartialSequence(const String & partial_sequence);
+    void setPartialSequence(const std::string & partial_sequence);
 
     /// returns the sequences (space delimited) that have to occur, or be absent (preceded by a tilde) in the header of a protein to be considered
-    const String & getSequenceHeaderFilter() const;
+    const std::string & getSequenceHeaderFilter() const;
     /// sets the sequences (space delimited) that have to occur, or be absent (preceded by a tilde) in the header of a protein to be considered
-    void setSequenceHeaderFilter(const String & sequence_header_filter);
+    void setSequenceHeaderFilter(const std::string & sequence_header_filter);
 
     /// returns the protein mass filter (either min and max mass, or mass and tolerance value in percent)
-    const String & getProteinMassFilter() const;
+    const std::string & getProteinMassFilter() const;
     /// sets the protein mass filter (either min and max mass, or mass and tolerance value in percent)
-    void setProteinMassFilter(const String & protein_mass_filter);
+    void setProteinMassFilter(const std::string & protein_mass_filter);
 
 
     /// returns the peak mass tolerance
@@ -113,9 +113,9 @@ public:
     /// returns the enzyme used for cleavage (by means of the number from a list of enzymes)
     Size getEnzymeNumber() const;
     /// returns the enzyme used for cleavage
-    String getEnzymeName() const;
+    std::string getEnzymeName() const;
     /// sets the enzyme used for cleavage (by means of the number from a list of enzymes)
-    Size setEnzyme(const String& enzyme_name);
+    Size setEnzyme(const std::string& enzyme_name);
 
     /// returns the maximum number of amino acids containing the same modification in a peptide
     Size getMaxAAPerModPerPeptide() const;
@@ -196,10 +196,10 @@ public:
     /// adds an enzyme to the list and sets is as used
     /// the vector consists of four strings:
     /// name, cut direction: 0 (N to C) / 1, cuts after (list of aa), doesn't cut before (list of aa)
-    void addEnzymeInfo(std::vector<String> & enzyme_info);
+    void addEnzymeInfo(std::vector<std::string> & enzyme_info);
 
     /// return the modifications (the modification names map to the affected residues, the mass change and the type)
-    const std::map<String, std::vector<String> > & getModifications() const;
+    const std::map<std::string, std::vector<std::string> > & getModifications() const;
 
     /** retrieves the name, mass change, affected residues, type and position for all modifications from a string
 
@@ -212,23 +212,23 @@ public:
             @throw Exception::ParseError is thrown if the given file could not be parsed
 
     */
-    void handlePTMs(const String & modification_line, const String & modifications_filename, const bool monoisotopic);
+    void handlePTMs(const std::string & modification_line, const std::string & modifications_filename, const bool monoisotopic);
 
 protected:
     /// returns the enzyme list
-    const std::map<String, std::vector<String> > & getEnzymeInfo_() const;
+    const std::map<std::string, std::vector<std::string> > & getEnzymeInfo_() const;
 
     /// returns some standard enzymes (used to initialize the enzyme list)
     void setStandardEnzymeInfo_();
 
-    std::map<String, std::vector<String> > enzyme_info_;            ///< an endline-delimited list of enzymes; each with cutting direction 0 (N to C) /1; cuts after (list of aa); doesn't cut before (list of aa); the attributes are tab-delimited
-    String database_;         ///< database used
-    String snd_database_;         ///< second database used
-    String neutral_losses_for_ions_;         ///< whether neutral losses are considered for the a-; b- and y-ions (e.g. 011 for b- and y-ions)
-    String ion_series_weights_;        ///< weights for the a-; b-; c-; d-; v-; w-; x-; y- and z-ion series; space delimited
-    String partial_sequence_;         ///< space-delimited list of sequence parts that have to occur in the theoretical spectra
-    String sequence_header_filter_;        ///< space-delimited list of sequences that have to occur or be absent (preceded by a tilde) in a protein header; to be considered
-    String protein_mass_filter_;
+    std::map<std::string, std::vector<std::string> > enzyme_info_;            ///< an endline-delimited list of enzymes; each with cutting direction 0 (N to C) /1; cuts after (list of aa); doesn't cut before (list of aa); the attributes are tab-delimited
+    std::string database_;         ///< database used
+    std::string snd_database_;         ///< second database used
+    std::string neutral_losses_for_ions_;         ///< whether neutral losses are considered for the a-; b- and y-ions (e.g. 011 for b- and y-ions)
+    std::string ion_series_weights_;        ///< weights for the a-; b-; c-; d-; v-; w-; x-; y- and z-ion series; space delimited
+    std::string partial_sequence_;         ///< space-delimited list of sequence parts that have to occur in the theoretical spectra
+    std::string sequence_header_filter_;        ///< space-delimited list of sequences that have to occur or be absent (preceded by a tilde) in a protein header; to be considered
+    std::string protein_mass_filter_;
 
     float precursor_mass_tolerance_;        ///< tolerance for matching a theoretical to an experimental peptide
     float peak_mass_tolerance_;        ///< tolerance for matching a theoretical to an experimental peak
@@ -264,7 +264,7 @@ protected:
     bool normalize_xcorr_;        ///< whether to display normalized xcorr values
     bool residues_in_upper_case_;        ///< whether residues are in upper case
 
-    std::map<String, std::vector<String> > PTMname_residues_mass_type_;           ///< the modification names map to the affected residues, the mass change and the type
+    std::map<std::string, std::vector<std::string> > PTMname_residues_mass_type_;           ///< the modification names map to the affected residues, the mass change and the type
   };
 
 } // namespace OpenMS

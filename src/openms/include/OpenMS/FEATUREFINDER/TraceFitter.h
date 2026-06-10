@@ -207,7 +207,7 @@ protected:
                                (typically @c 0 for the first trace and incremented for subsequent traces).
       @return Gnuplot expression as a @c String.
     */
-    virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift) = 0;
+    virtual std::string getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift) = 0;
 
 protected:
     /// Helper bundle passed to functors so they can read both the traces and the weighting flag.

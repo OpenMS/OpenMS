@@ -206,7 +206,7 @@ START_SECTION(void setCoefficients(double intercept, double slope, double power)
   NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(String toString() const)
+START_SECTION(std::string toString() const)
   NOT_TESTABLE // tested above
 END_SECTION
 

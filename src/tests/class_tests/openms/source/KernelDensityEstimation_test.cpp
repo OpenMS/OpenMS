@@ -431,7 +431,7 @@ START_SECTION("kde reference (statsmodels) regression")
     while (std::getline(ss, item, ','))
     {
       if (!item.empty() && item.front() == '"' && item.back() == '"')
-        item = item.substr(1, item.size()-2);
+        item = StringUtils::substr(item, 1, item.size()-2);
       parts.push_back(item);
     }
     

@@ -143,7 +143,7 @@ namespace OpenMS
 
   void Plot2DCanvas::intensityModeChange_()
   {
-    String gradient_str;
+    std::string gradient_str;
     if (intensity_mode_ == IM_LOG)
     {
       gradient_str = MultiGradient::getDefaultGradientLogarithmicIntensityMode().toString();
@@ -439,7 +439,7 @@ namespace OpenMS
     {
       QPainter painter;
       painter.begin(this);
-      painter.fillRect(0, 0, this->width(), this->height(), QColor(toQString(String(param_.getValue("background_color").toString()))));
+      painter.fillRect(0, 0, this->width(), this->height(), QColor(toQString(std::string(param_.getValue("background_color").toString()))));
       painter.end();
       e->accept();
       return;
@@ -474,7 +474,7 @@ namespace OpenMS
       // recalculate snap factor
       recalculateSnapFactor_();
 
-      buffer_.fill(QColor(toQString(String(param_.getValue("background_color").toString()))).rgb());
+      buffer_.fill(QColor(toQString(std::string(param_.getValue("background_color").toString()))).rgb());
       painter.begin(&buffer_);
       QElapsedTimer layer_timer;
 
@@ -688,7 +688,7 @@ namespace OpenMS
       //show meta data in status bar (if available)
       if (selected_peak_.isValid())
       {
-        String status;
+        std::string status;
         auto* lf = dynamic_cast<LayerDataFeature*>(&getCurrentLayer());
         auto* lc = dynamic_cast<LayerDataConsensus*>(&getCurrentLayer());
         if (lf || lc)
@@ -703,7 +703,7 @@ namespace OpenMS
           {
             f = &selected_peak_.getFeature(*lc->getConsensusMap());
           }
-          std::vector<String> keys;
+          std::vector<std::string> keys;
           f->getKeys(keys);
           for (Size m = 0; m < keys.size(); ++m)
           {
@@ -718,7 +718,7 @@ namespace OpenMS
             }
             else
             {
-              status += (String)dv;
+              status += (std::string)dv;
             }
           }
         }
@@ -855,7 +855,7 @@ namespace OpenMS
     QAction* result = nullptr;
 
     //Display name and warn if current layer invisible
-    String layer_name = String("Layer: ") + layer.getName();
+    std::string layer_name =std::string("Layer: ") + layer.getName();
     if (!layer.visible)
     {
       layer_name += " (invisible)";
@@ -988,7 +988,7 @@ namespace OpenMS
         if (it_closest_MS->containsIMData())
         {
           context_menu->addAction(
-            ("Switch to ion mobility view (MSLevel: " + String(it_closest_MS->getMSLevel()) + ";RT: " + String(it_closest_MS->getRT(), false) + ")")
+            ("Switch to ion mobility view (MSLevel: " + StringUtils::toStr(it_closest_MS->getMSLevel()) + ";RT: " + StringUtils::toStr(it_closest_MS->getRT(), false) + ")")
               .c_str(),
             [it_closest_MS, this]() { emit showCurrentPeaksAsIonMobility(*it_closest_MS); });
         }
@@ -1126,10 +1126,10 @@ namespace OpenMS
         for (auto mit = map_precursor_to_chrom_idx.cbegin(); mit != map_precursor_to_chrom_idx.cend(); ++mit)
         {
           // Show the peptide sequence if available, otherwise show the m/z and charge only
-          QString precursor_string = QString("Precursor m/z: (")  + toQString(String(mit->first.getCharge())) + ") " + QString::number(mit->first.getMZ());
+          QString precursor_string = QString("Precursor m/z: (")  + toQString(StringUtils::toStr(mit->first.getCharge())) + ") " + QString::number(mit->first.getMZ());
           if (mit->first.metaValueExists("peptide_sequence"))
           {
-            precursor_string = QString::number(mit->first.getMZ()) + " : " + toQString(String(mit->first.getMetaValue("peptide_sequence"))) + " (" + QString::number(mit->first.getCharge()) + "+)";
+            precursor_string = QString::number(mit->first.getMZ()) + " : " + toQString(StringUtils::toStr(mit->first.getMetaValue("peptide_sequence"))) + " (" + QString::number(mit->first.getCharge()) + "+)";
           }
           QMenu * msn_precursor = msn_chromatogram->addMenu(precursor_string);  // new entry for every precursor
 
@@ -1170,7 +1170,7 @@ namespace OpenMS
           }
           else   // Show single chromatogram
           {
-            //cout << "Chromatogram result " << result->data().toInt() << endl;
+            //cout << "Chromatogram result " << StringUtils::toInt32(result->data()) << endl;
             emit showSpectrumAsNew1D(result->data().toInt());
           }
         }
@@ -1275,9 +1275,9 @@ namespace OpenMS
     QComboBox * feature_icon = dlg.findChild<QComboBox *>("feature_icon");
     QSpinBox * feature_icon_size = dlg.findChild<QSpinBox *>("feature_icon_size");
 
-    bg_color->setColor(QColor(toQString(String(param_.getValue("background_color").toString()))));
+    bg_color->setColor(QColor(toQString(std::string(param_.getValue("background_color").toString()))));
     gradient->gradient().fromString(layer.param.getValue("dot:gradient"));
-    feature_icon->setCurrentIndex(feature_icon->findText(toQString(String(layer.param.getValue("dot:feature_icon").toString()))));
+    feature_icon->setCurrentIndex(feature_icon->findText(toQString(std::string(layer.param.getValue("dot:feature_icon").toString()))));
     feature_icon_size->setValue((int)layer.param.getValue("dot:feature_icon_size"));
 
     if (dlg.exec())
@@ -1342,30 +1342,30 @@ namespace OpenMS
     // note that Qt::KeypadModifier is also a modifier which gets activated when any keypad key is pressed
     if (e->modifiers() == (Qt::ControlModifier | Qt::AltModifier))
     {
-      String status_changed;
+      std::string status_changed;
       // +Home (MacOSX small keyboard: Fn+ArrowLeft) => increase point size
       if ((e->key() == Qt::Key_Home) && (pen_size_max_ < PEN_SIZE_MAX_LIMIT))
       {
         ++pen_size_max_;
-        status_changed = "Max. dot size increased to '" + String(pen_size_max_) + "'";
+        status_changed = "Max. dot size increased to '" + StringUtils::toStr(pen_size_max_) + "'";
       }
       // +End (MacOSX small keyboard: Fn+ArrowRight) => decrease point size
       else if ((e->key() == Qt::Key_End) && (pen_size_max_ > PEN_SIZE_MIN_LIMIT))
       {
         --pen_size_max_;
-        status_changed = "Max. dot size decreased to '" + String(pen_size_max_) + "'";
+        status_changed = "Max. dot size decreased to '" + StringUtils::toStr(pen_size_max_) + "'";
       }
       // +PageUp => increase min. coverage threshold
       else if (e->key() == Qt::Key_PageUp && canvas_coverage_min_ < CANVAS_COVERAGE_MIN_LIMITHIGH)
       {
         canvas_coverage_min_ += 0.05; // 5% steps
-        status_changed = "Min. coverage threshold increased to '" + String(canvas_coverage_min_) + "'";
+        status_changed = "Min. coverage threshold increased to '" + StringUtils::toStr(canvas_coverage_min_) + "'";
       }
       // +PageDown => decrease min. coverage threshold
       else if (e->key() == Qt::Key_PageDown && canvas_coverage_min_ > CANVAS_COVERAGE_MIN_LIMITLOW)
       {
         canvas_coverage_min_ -= 0.05; // 5% steps
-        status_changed = "Min. coverage threshold decreased to '" + String(canvas_coverage_min_) + "'";
+        status_changed = "Min. coverage threshold decreased to '" + StringUtils::toStr(canvas_coverage_min_) + "'";
       }
       if (!status_changed.empty())
       {

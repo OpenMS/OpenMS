@@ -19,7 +19,6 @@
 
 namespace OpenMS
 {
-  class String;
 /**
 
   @todo write a proper GUI base class for the scheduler below (Chris)
@@ -85,7 +84,7 @@ class TestTOPPView: public QObject
 
       Waits until the scheduled event queue is emtpy.
     */
-    void waitForModalWidget(const int max_wait, const String& line);
+    void waitForModalWidget(const int max_wait, const std::string& line);
 
     /// event queue for modal/popup dialogs
     QQueue<ScheduleInfo> modal_key_sequence_;

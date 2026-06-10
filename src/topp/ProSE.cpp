@@ -98,20 +98,20 @@ class ProSE :
       });
 
       registerInputFile_("database", "<file>", "", "Input protein sequence database in FASTA format.");
-      setValidFormats_("database", ListUtils::create<String>("fasta"));
+      setValidFormats_("database", ListUtils::create<std::string>("fasta"));
 
       registerOutputFileList_("out_idxml", "<files>", StringList(), "Output idXML identification file(s). Must have the same number of entries as -in.", false);
-      setValidFormats_("out_idxml", ListUtils::create<String>("idXML"));
+      setValidFormats_("out_idxml", ListUtils::create<std::string>("idXML"));
 
       registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input <basename>.psm.parquet and <basename>.pg.parquet, plus merged quantms.psm.parquet and quantms.pg.parquet.", false, true);
 
       registerOutputDir_("out_parquet", "<dir>", "", "Output directory for OpenMS internal format Parquet files. Writes per-input <basename>.psm/proteins/pg/search_params.parquet, plus merged openms.* files.", false, true);
 
       registerOutputFile_("out_merged", "<file>", "", "Optional merged output file containing all PSMs pooled across input files with cross-file protein inference (BasicProteinInferenceAlgorithm) and optional picked-protein FDR (FDR:protein). Per-file outputs (-out_idxml / -out_qpx / -out_parquet) retain run-level information. Only useful with multiple -in files.", false);
-      setValidFormats_("out_merged", ListUtils::create<String>("idXML"));
+      setValidFormats_("out_merged", ListUtils::create<std::string>("idXML"));
 
       registerOutputFileList_("out_pin", "<files>", StringList(), "Output Percolator input (.pin/.tsv) file(s) for external rescoring. Must have the same number of entries as -in. Written independently of -percolator_executable (i.e. you can produce .pin files without running Percolator).", false, true);
-      setValidFormats_("out_pin", ListUtils::create<String>("tsv"));
+      setValidFormats_("out_pin", ListUtils::create<std::string>("tsv"));
 
       registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input file's basename and an additional aggregate table is written across all input files. Has no effect in closed-search mode.", false, true);
 
@@ -121,7 +121,7 @@ class ProSE :
 #else
         "",
 #endif
-        "Path to the Percolator executable. If set, per-file PSMs are rescored with Percolator (via PercolatorAdapter) before output. Leave empty to skip rescoring.", false, true, ListUtils::create<String>("skipexists"));
+        "Path to the Percolator executable. If set, per-file PSMs are rescored with Percolator (via PercolatorAdapter) before output. Leave empty to skip rescoring.", false, true, ListUtils::create<std::string>("skipexists"));
 
       // put search algorithm parameters at Search: subtree of parameters
       Param search_algo_params_with_subsection;
@@ -132,14 +132,14 @@ class ProSE :
     ExitCodes main_(int, const char**) override
     {
       const StringList in_list = getStringList_("in");
-      const String database = getStringOption_("database");
+      const std::string database = getStringOption_("database");
       const StringList out_idxml_list = getStringList_("out_idxml");
       const StringList out_pin_list = getStringList_("out_pin");
-      const String out_merged = getStringOption_("out_merged");
-      const String out_qpx_dir = getOutputDirOption("out_qpx");
-      const String out_parquet_dir = getOutputDirOption("out_parquet");
+      const std::string out_merged = getStringOption_("out_merged");
+      const std::string out_qpx_dir = getOutputDirOption("out_qpx");
+      const std::string out_parquet_dir = getOutputDirOption("out_parquet");
       // getOutputDirOption auto-creates the directory if it doesn't exist (and returns "" if unset).
-      const String out_mod_analysis_dir = getOutputDirOption("out_mod_analysis_dir");
+      const std::string out_mod_analysis_dir = getOutputDirOption("out_mod_analysis_dir");
 
       if (in_list.empty())
       {
@@ -190,7 +190,7 @@ class ProSE :
       progresslogger.setLogType(log_type_);
 
       Param search_params = getParam_().copy("Search:", true);
-      const String percolator_executable = getStringOption_("percolator_executable");
+      const std::string percolator_executable = getStringOption_("percolator_executable");
       const double user_protein_fdr = static_cast<double>(search_params.getValue("FDR:protein"));
       const double user_psm_fdr = static_cast<double>(search_params.getValue("FDR:PSM"));
 
@@ -213,7 +213,7 @@ class ProSE :
       // the user actionable feedback if -out_mod_analysis_dir is set in closed-search.
       const double precursor_tol_lower = static_cast<double>(search_params.getValue("precursor:mass_tolerance_lower"));
       const double precursor_tol_upper = static_cast<double>(search_params.getValue("precursor:mass_tolerance_upper"));
-      const String precursor_tol_unit = search_params.getValue("precursor:mass_tolerance_unit").toString();
+      const std::string precursor_tol_unit = search_params.getValue("precursor:mass_tolerance_unit").toString();
       const bool open_search_mode = FragmentIndex::isOpenSearchMode(precursor_tol_lower,
                                                                     precursor_tol_upper,
                                                                     precursor_tol_unit == "ppm");
@@ -231,17 +231,17 @@ class ProSE :
       // appends suffixes like _ModificationAnalysis_DeltaMassStats.tsv.
       // Use a long, unlikely-to-collide aggregate stem so an input named "aggregate.mzML" (or "aggregate.d")
       // doesn't silently overwrite the aggregate output (or vice versa).
-      static const String AGGREGATE_STEM = "_aggregate_across_files";
-      std::vector<String> mod_analysis_base_names;
-      String aggregate_base_name;
+      static const std::string AGGREGATE_STEM = "_aggregate_across_files";
+      std::vector<std::string> mod_analysis_base_names;
+      std::string aggregate_base_name;
       if (!out_mod_analysis_dir.empty() && open_search_mode)
       {
         // Detect collisions: two inputs with the same File::stemName, OR an input whose
         // stem matches the aggregate stem. We refuse to run rather than silently overwrite.
-        std::map<String, Size> stem_to_first_index;
+        std::map<std::string, Size> stem_to_first_index;
         for (Size i = 0; i < in_list.size(); ++i)
         {
-          const String stem = File::stemName(in_list[i]);
+          const std::string stem = File::stemName(in_list[i]);
           if (stem == AGGREGATE_STEM)
           {
             OPENMS_LOG_ERROR << "Input file '" << in_list[i] << "' has basename '" << stem
@@ -261,7 +261,7 @@ class ProSE :
         }
 
         mod_analysis_base_names.reserve(in_list.size());
-        for (const String& in_file : in_list)
+        for (const std::string& in_file : in_list)
         {
           mod_analysis_base_names.push_back(out_mod_analysis_dir + "/" + File::stemName(in_file));
         }
@@ -314,7 +314,7 @@ class ProSE :
           // dev build the OpenMS bin/ directory is typically not on PATH, so invoking
           // "PercolatorAdapter" by name silently falls back to HyperScore. findSibling
           // looks relative to the current (ProSE) executable.
-          String perc_adapter;
+          std::string perc_adapter;
           try
           {
             perc_adapter = File::findSiblingTOPPExecutable("PercolatorAdapter");
@@ -337,12 +337,12 @@ class ProSE :
           }
 
           // Write intermediate idXML for PercolatorAdapter input
-          String tmp_in = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_in.idXML";
-          String tmp_out = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_out.idXML";
-          String tmp_weights = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc.weights";
+          std::string tmp_in = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_in.idXML";
+          std::string tmp_out = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_out.idXML";
+          std::string tmp_weights = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc.weights";
           FileHandler().storeIdentifications(tmp_in, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
 
-          std::vector<String> perc_params = {
+          std::vector<std::string> perc_params = {
             "-in", tmp_in,
             "-out", tmp_out,
             "-percolator_executable", percolator_executable,
@@ -431,7 +431,7 @@ class ProSE :
       Size failed_count = 0;
       for (Size i = 0; i < in_list.size(); ++i)
       {
-        const String& in_file = in_list[i];
+        const std::string& in_file = in_list[i];
         ProSEAlgorithm::SearchResult& result = mfres.per_file[i];
 
         if (result.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK)
@@ -442,7 +442,7 @@ class ProSE :
           continue;
         }
 
-        const String basename = File::stemName(in_file);
+        const std::string basename = File::stemName(in_file);
 
         // In test mode, replace the absolute MS run path with file://<basename> for reproducible diffs.
         if (getFlag_("test") && !result.protein_ids.empty())
@@ -484,13 +484,13 @@ class ProSE :
             else
             {
               const auto& sp = result.protein_ids.front().getSearchParameters();
-              const String enz_str = sp.digestion_enzyme.getName();
+              const std::string enz_str = sp.digestion_enzyme.getName();
               const auto colon = sp.charges.find(':');
-              const int min_charge = (colon != String::npos)
-                                       ? String(sp.charges.substr(0, colon)).toInt()
-                                       : String(sp.charges).toInt();
-              const int max_charge = (colon != String::npos)
-                                       ? String(sp.charges.substr(colon + 1)).toInt()
+              const int min_charge = (colon != std::string::npos)
+                                       ? StringUtils::toInt32(sp.charges.substr(0, colon))
+                                       : StringUtils::toInt32(sp.charges);
+              const int max_charge = (colon != std::string::npos)
+                                       ? StringUtils::toInt32(sp.charges.substr(colon + 1))
                                        : min_charge;
 
               // Standard columns (SpecId/Label/ScanNr + mass/charge/enzyme features)
@@ -499,7 +499,7 @@ class ProSE :
               StringList feature_set = PercolatorInfile::getStandardFeatureSet(min_charge, max_charge);
               if (sp.metaValueExists("extra_features"))
               {
-                StringList extra = ListUtils::create<String>(sp.getMetaValue("extra_features").toString());
+                StringList extra = ListUtils::create<std::string>(sp.getMetaValue("extra_features").toString());
                 feature_set.insert(feature_set.end(), extra.begin(), extra.end());
               }
               if (std::find(feature_set.begin(), feature_set.end(), "score") == feature_set.end())
@@ -524,7 +524,7 @@ class ProSE :
         if (!out_qpx_dir.empty())
         {
           // PSM — build table once, write to file, accumulate same table for merge.
-          const String qpx_psm_file = out_qpx_dir + "/" + basename + ".psm.parquet";
+          const std::string qpx_psm_file = out_qpx_dir + "/" + basename + ".psm.parquet";
           auto qpx_psm_table = QPXFile::exportPSMsToQPXArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
           if (qpx_psm_table)
           {
@@ -541,7 +541,7 @@ class ProSE :
           }
 
           // Protein groups — independent of PSM result.
-          const String qpx_pg_file = out_qpx_dir + "/" + basename + ".pg.parquet";
+          const std::string qpx_pg_file = out_qpx_dir + "/" + basename + ".pg.parquet";
           auto qpx_pg_table = ProteinGroupArrowExport::exportToArrow(result.protein_ids, result.peptide_ids);
           if (qpx_pg_table)
           {
@@ -562,7 +562,7 @@ class ProSE :
         if (!out_parquet_dir.empty())
         {
           // PSM (internal PSMSchema) — build once, write, accumulate for merge.
-          const String oms_psm_file = out_parquet_dir + "/" + basename + ".psm.parquet";
+          const std::string oms_psm_file = out_parquet_dir + "/" + basename + ".psm.parquet";
           auto oms_psm_table = QPXFile::exportToArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
           if (oms_psm_table)
           {
@@ -579,7 +579,7 @@ class ProSE :
           }
 
           // Proteins
-          const String oms_prot_file = out_parquet_dir + "/" + basename + ".proteins.parquet";
+          const std::string oms_prot_file = out_parquet_dir + "/" + basename + ".proteins.parquet";
           auto prot_table = ProteinIdentificationArrowIO::exportProteinsToArrow(result.protein_ids);
           if (prot_table)
           {
@@ -596,7 +596,7 @@ class ProSE :
           }
 
           // Protein groups
-          const String oms_pg_file = out_parquet_dir + "/" + basename + ".pg.parquet";
+          const std::string oms_pg_file = out_parquet_dir + "/" + basename + ".pg.parquet";
           auto pg_table = ProteinIdentificationArrowIO::exportProteinGroupsToArrow(result.protein_ids);
           if (pg_table)
           {
@@ -613,7 +613,7 @@ class ProSE :
           }
 
           // Search params
-          const String oms_sp_file = out_parquet_dir + "/" + basename + ".search_params.parquet";
+          const std::string oms_sp_file = out_parquet_dir + "/" + basename + ".search_params.parquet";
           auto sp_table = ProteinIdentificationArrowIO::exportSearchParamsToArrow(result.protein_ids);
           if (sp_table)
           {
@@ -660,7 +660,7 @@ class ProSE :
       {
         try
         {
-          const String decoy_prefix = search_params.getValue("decoy_prefix").toString();
+          const std::string decoy_prefix = search_params.getValue("decoy_prefix").toString();
 
           // Merge per-file results via IDMergerAlgorithm (accession dedup + identifier remap)
           IDMergerAlgorithm merger;

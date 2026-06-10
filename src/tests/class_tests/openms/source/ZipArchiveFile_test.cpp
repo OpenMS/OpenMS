@@ -16,15 +16,15 @@ using namespace OpenMS;
 
 START_TEST(ZipArchiveFile, "$Id$")
 
-START_SECTION(void addOrReplaceFromFile(const String&, const String&, const String&))
+START_SECTION(void addOrReplaceFromFile(const std::string&, const std::string&, const std::string&))
 {
   // prepare temporary workspace
   File::TempDir tmp;
-  const String base = tmp.getPath() + "/workspace";
+  const std::string base = tmp.getPath() + "/workspace";
   File::makeDir(base);
   File::makeDir(base + "/library");
 
-  const String file1 = base + "/library/precursors.parquet";
+  const std::string file1 = base + "/library/precursors.parquet";
   // write initial content
   {
     std::ofstream ofs(file1.c_str(), std::ios::binary);
@@ -32,7 +32,7 @@ START_SECTION(void addOrReplaceFromFile(const String&, const String&, const Stri
     ofs << "version1";
   }
 
-  const String archive = tmp.getPath() + "/test.oswpq";
+  const std::string archive = tmp.getPath() + "/test.oswpq";
 
   // add file into archive
   ZipArchiveFile::addOrReplaceFromFile(archive, "library/precursors.parquet", file1);
@@ -46,8 +46,8 @@ START_SECTION(void addOrReplaceFromFile(const String&, const String&, const Stri
 
   // extract and verify content
   std::unique_ptr<File::TempDir> unpack_tmp;
-  const String unpack_dir = ZipArchiveFile::unzipDirectory(archive, unpack_tmp);
-  const String extracted = unpack_dir + "/library/precursors.parquet";
+  const std::string unpack_dir = ZipArchiveFile::unzipDirectory(archive, unpack_tmp);
+  const std::string extracted = unpack_dir + "/library/precursors.parquet";
   TEST_EQUAL(File::exists(extracted), true)
   {
     std::ifstream ifs(extracted.c_str(), std::ios::binary);
@@ -69,8 +69,8 @@ START_SECTION(void addOrReplaceFromFile(const String&, const String&, const Stri
 
   // extract to new temp dir and verify replaced content
   std::unique_ptr<File::TempDir> unpack_tmp2;
-  const String unpack_dir2 = ZipArchiveFile::unzipDirectory(archive, unpack_tmp2);
-  const String extracted2 = unpack_dir2 + "/library/precursors.parquet";
+  const std::string unpack_dir2 = ZipArchiveFile::unzipDirectory(archive, unpack_tmp2);
+  const std::string extracted2 = unpack_dir2 + "/library/precursors.parquet";
   TEST_EQUAL(File::exists(extracted2), true)
   {
     std::ifstream ifs(extracted2.c_str(), std::ios::binary);

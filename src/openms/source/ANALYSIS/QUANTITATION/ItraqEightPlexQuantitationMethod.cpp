@@ -14,7 +14,7 @@
 
 namespace OpenMS
 {
-  const String ItraqEightPlexQuantitationMethod::name_ = "itraq8plex";
+  const std::string ItraqEightPlexQuantitationMethod::name_ = "itraq8plex";
 
   ItraqEightPlexQuantitationMethod::ItraqEightPlexQuantitationMethod()
   {
@@ -122,7 +122,7 @@ namespace OpenMS
     }
   }
 
-  const String& ItraqEightPlexQuantitationMethod::getMethodName() const
+  const std::string& ItraqEightPlexQuantitationMethod::getMethodName() const
   {
     return ItraqEightPlexQuantitationMethod::name_;
   }

@@ -42,13 +42,13 @@ public:
       @exception Exception::FileNotFound is thrown if the file cannot be found
       @exception Exception::ParseError is thrown if the parser could not be initialized
     */
-    bool isValid(const String& filename, const String& schema, std::ostream& os = std::cerr);
+    bool isValid(const std::string& filename, const std::string& schema, std::ostream& os = std::cerr);
 
 protected:
     /// Flag if the validated file is valid
     bool valid_;
     /// File name of validated file (for error messages)
-    String filename_;
+    std::string filename_;
     //output stream reference (for error messages)
     std::ostream* os_;
 

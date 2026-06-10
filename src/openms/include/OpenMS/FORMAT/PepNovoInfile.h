@@ -47,7 +47,7 @@ public:
         @param[out] filename the file which the input file is stored into
         @throw Exception::UnableToCreateFile is thrown if the given file could not be created
     */
-    void store(const String & filename);
+    void store(const std::string & filename);
 
     /** @brief generates the PepNovo Infile for given fixed and variable modifications			 *
      *
@@ -62,11 +62,11 @@ public:
      *  in the PepNovo Infile (origin+rounded monoisotopic mass of modification ).
      *  (e.g. modification_key_map["K+16"]=="Oxidation (K)" )
      */
-    void getModifications(std::map<String, String> & modification_key_map) const;
+    void getModifications(std::map<std::string, std::string> & modification_key_map) const;
 
 private:
     ModificationDefinitionsSet mods_;
-    std::map<String, String> mods_and_keys_;
+    std::map<std::string, std::string> mods_and_keys_;
     TextFile ptm_file_;
 
 
@@ -75,7 +75,7 @@ private:
         @param[in] modification the modification
         @param[in] variable should be set to true if it variable
    */
-    String handlePTMs_(const String & modification, const bool variable);
+    std::string handlePTMs_(const std::string & modification, const bool variable);
   };
 
 } // namespace OpenMS

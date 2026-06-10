@@ -38,7 +38,6 @@ Param.cpp
 ParamValue.cpp
 QTCluster.cpp
 String.cpp
-StringView.cpp
 StringListUtils.cpp
 StringUtils.cpp
 StringUtilsSimple.cpp

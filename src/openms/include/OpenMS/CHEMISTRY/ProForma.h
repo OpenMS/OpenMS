@@ -34,12 +34,12 @@ namespace OpenMS
 
     Usage example:
     @code
-    String input = "EM[UNIMOD:35]K";
+    std::string input = "EM[UNIMOD:35]K";
     ProForma::Peptidoform pf = ProForma::parse(input);
     // pf now contains the parsed AST
 
     // Convert back to string
-    String output = ProForma::toString(pf);
+    std::string output = ProForma::toString(pf);
 
     // Convert to AASequence
     AASequence seq = ProForma::toAASequence(pf);
@@ -155,7 +155,7 @@ namespace OpenMS
     struct OPENMS_DLLAPI ConversionIssue
     {
       ConversionIssueType type;   ///< The type of issue
-      String description;         ///< Human-readable description
+      std::string description;         ///< Human-readable description
       size_t position;            ///< Position in sequence (SIZE_MAX if not position-specific)
     };
 
@@ -169,7 +169,7 @@ namespace OpenMS
     struct OPENMS_DLLAPI CvAccession
     {
       CvDatabase database;  ///< The source database (UNIMOD, MOD, RESID, XLMOD, or GNO)
-      String accession;     ///< The accession identifier (e.g., "35" for UNIMOD:35, full string for GNO)
+      std::string accession;     ///< The accession identifier (e.g., "35" for UNIMOD:35, full string for GNO)
     };
 
 
@@ -183,7 +183,7 @@ namespace OpenMS
     struct OPENMS_DLLAPI NamedMod
     {
       std::optional<CvDatabase> cv_hint;  ///< Optional CV prefix hint (U, M, R, X, G)
-      String name;                        ///< The modification name (e.g., "Oxidation", "Phospho")
+      std::string name;                        ///< The modification name (e.g., "Oxidation", "Phospho")
     };
 
 
@@ -210,7 +210,7 @@ namespace OpenMS
 
       Source source = Source::NONE;  ///< Optional source hint prefix
       double mass;                   ///< The mass delta value in Daltons
-      String original_text;          ///< Original text for lossless roundtrip (e.g., "+15.99" vs "+15.9900")
+      std::string original_text;          ///< Original text for lossless roundtrip (e.g., "+15.99" vs "+15.9900")
     };
 
 
@@ -222,7 +222,7 @@ namespace OpenMS
     */
     struct OPENMS_DLLAPI FormulaTag
     {
-      String formula_string;        ///< The chemical formula string (e.g., "C12H20O2")
+      std::string formula_string;        ///< The chemical formula string (e.g., "C12H20O2")
       std::optional<int> charge;    ///< Optional charge from :z+N suffix
     };
 
@@ -239,7 +239,7 @@ namespace OpenMS
     struct OPENMS_DLLAPI GlycanComposition
     {
       /// A monosaccharide component: either a name (String) or a custom formula (FormulaTag)
-      using Monosaccharide = std::variant<String, FormulaTag>;
+      using Monosaccharide = std::variant<std::string, FormulaTag>;
 
       std::vector<std::pair<Monosaccharide, int>> components;  ///< List of (monosaccharide, count) pairs
     };
@@ -253,7 +253,7 @@ namespace OpenMS
     */
     struct OPENMS_DLLAPI InfoTag
     {
-      String text;  ///< The info text content
+      std::string text;  ///< The info text content
     };
 
 
@@ -316,7 +316,7 @@ namespace OpenMS
       };
 
       Type type;                        ///< The label type
-      String identifier;                ///< The label identifier (e.g., `XL1`, `BRANCH`, `g1`)
+      std::string identifier;                ///< The label identifier (e.g., `XL1`, `BRANCH`, `g1`)
       std::optional<double> score;      ///< Optional localization score for ambiguous labels (e.g., 0.90)
     };
 
@@ -440,7 +440,7 @@ namespace OpenMS
     struct OPENMS_DLLAPI GlobalModification
     {
       Modification modification;        ///< The modification to apply
-      std::vector<String> locations;    ///< Target locations ("K", "N-term", "C-term:K", etc.)
+      std::vector<std::string> locations;    ///< Target locations ("K", "N-term", "C-term:K", etc.)
     };
 
 
@@ -454,7 +454,7 @@ namespace OpenMS
     */
     struct OPENMS_DLLAPI IsotopeReplacement
     {
-      String isotope;  ///< The isotope specification (e.g., "13C", "15N", "D")
+      std::string isotope;  ///< The isotope specification (e.g., "13C", "15N", "D")
     };
 
 
@@ -481,7 +481,7 @@ namespace OpenMS
     */
     struct OPENMS_DLLAPI AdductIon
     {
-      String formula;                   ///< The adduct formula (e.g., "Na", "H", "K")
+      std::string formula;                   ///< The adduct formula (e.g., "Na", "H", "K")
       int charge;                       ///< The charge contribution of this adduct
       std::optional<int> occurrence;    ///< Optional occurrence count from ^N suffix
     };
@@ -514,7 +514,7 @@ namespace OpenMS
     */
     struct OPENMS_DLLAPI Peptidoform
     {
-      std::optional<String> name;                       ///< Optional name from (>name) v2.1 extension
+      std::optional<std::string> name;                       ///< Optional name from (>name) v2.1 extension
       std::vector<GlobalModEntry> global_mods;          ///< Global modifications: `<13C>`, `<[TMT6plex]@K>`
       std::vector<UnlocalisedMod> unlocalised_mods;     ///< Unlocalised modifications: [Phospho]?
       std::vector<LabileModification> labile_mods;      ///< Labile modifications: {Glycan:Hex}
@@ -535,7 +535,7 @@ namespace OpenMS
     */
     struct OPENMS_DLLAPI PeptidoformIon
     {
-      std::optional<String> name;           ///< Optional name from (>>name) v2.1 extension
+      std::optional<std::string> name;           ///< Optional name from (>>name) v2.1 extension
       std::vector<Peptidoform> chains;      ///< One or more peptide chains (separated by // or + in ProForma)
       std::optional<ChargeState> charge;    ///< Optional charge state specification
       bool is_chimeric = false;             ///< True if chains are chimeric (+ separator), false if cross-linked (//)
@@ -552,7 +552,7 @@ namespace OpenMS
     */
     struct OPENMS_DLLAPI CrossLinkGroup
     {
-      String label;                                     ///< The cross-link label (e.g., `XL1`)
+      std::string label;                                     ///< The cross-link label (e.g., `XL1`)
       std::vector<std::pair<size_t, size_t>> sites;     ///< (chain_index, site_index) pairs
     };
 
@@ -607,8 +607,8 @@ namespace OpenMS
         const char* function,
         ErrorCode error_code,
         size_t error_position,
-        const String& input,
-        const String& message
+        const std::string& input,
+        const std::string& message
       ) noexcept;
 
       /// Get the error code for programmatic handling
@@ -624,25 +624,25 @@ namespace OpenMS
       }
 
       /// Get context before error (~20 chars)
-      const String& getContextBefore() const noexcept
+      const std::string& getContextBefore() const noexcept
       {
         return context_before_;
       }
 
       /// Get context after error (~20 chars)
-      const String& getContextAfter() const noexcept
+      const std::string& getContextAfter() const noexcept
       {
         return context_after_;
       }
 
       /// Get what was expected (if set)
-      const String& getExpected() const noexcept
+      const std::string& getExpected() const noexcept
       {
         return expected_;
       }
 
       /// Get what was found (if set)
-      const String& getFound() const noexcept
+      const std::string& getFound() const noexcept
       {
         return found_;
       }
@@ -657,7 +657,7 @@ namespace OpenMS
 
         @return Formatted error message.
       */
-      String getFormattedMessage() const;
+      std::string getFormattedMessage() const;
 
       /**
         @brief Set expected/found information for more detailed error messages.
@@ -665,15 +665,15 @@ namespace OpenMS
         @param[in] expected Description of what was expected at the error position.
         @param[in] found Description of what was actually found.
       */
-      void setExpectedFound(const String& expected, const String& found);
+      void setExpectedFound(const std::string& expected, const std::string& found);
 
     private:
       ErrorCode code_;              ///< Machine-readable error code
       size_t position_;             ///< Position in input where error occurred
-      String context_before_;       ///< Text before the error position
-      String context_after_;        ///< Text after the error position
-      String expected_;             ///< What was expected (optional)
-      String found_;                ///< What was found (optional)
+      std::string context_before_;       ///< Text before the error position
+      std::string context_after_;        ///< Text after the error position
+      std::string expected_;             ///< What was expected (optional)
+      std::string found_;                ///< What was found (optional)
 
       /**
         @brief Extract context snippets from input around the error position.
@@ -685,7 +685,7 @@ namespace OpenMS
         @param[in] input The complete input string.
         @param[in] pos The error position in the input (clamped to input.size()).
       */
-      void extractContext_(const String& input, size_t pos);
+      void extractContext_(const std::string& input, size_t pos);
     };
 
 
@@ -705,7 +705,7 @@ namespace OpenMS
 
       @note For peptidoforms with charge state (e.g., "PEPTIDE/2"), use parseIon()
     */
-    static Peptidoform parse(const String& input);
+    static Peptidoform parse(const std::string& input);
 
     /**
       @brief Parse a ProForma string into a PeptidoformIon AST
@@ -719,7 +719,7 @@ namespace OpenMS
       @return The parsed PeptidoformIon AST
       @throws ParseError if the input is invalid
     */
-    static PeptidoformIon parseIon(const String& input);
+    static PeptidoformIon parseIon(const std::string& input);
 
 
     //==========================================================================
@@ -733,7 +733,7 @@ namespace OpenMS
       @param[in] mode Write mode: LOSSLESS preserves original formatting, CANONICAL produces normalized output
       @return The ProForma string representation
     */
-    static String toString(const Peptidoform& pf,
+    static std::string toString(const Peptidoform& pf,
                            WriteMode mode = WriteMode::LOSSLESS);
 
     /**
@@ -743,7 +743,7 @@ namespace OpenMS
       @param[in] mode Write mode: LOSSLESS preserves original formatting, CANONICAL produces normalized output
       @return The ProForma string representation
     */
-    static String toString(const PeptidoformIon& pfi,
+    static std::string toString(const PeptidoformIon& pfi,
                            WriteMode mode = WriteMode::LOSSLESS);
 
 
@@ -760,7 +760,7 @@ namespace OpenMS
       @param[in] pf The Peptidoform to serialize
       @return JSON string representation of the Peptidoform
     */
-    static String toJSON(const Peptidoform& pf);
+    static std::string toJSON(const Peptidoform& pf);
 
     /**
       @brief Construct a Peptidoform from JSON string
@@ -771,7 +771,7 @@ namespace OpenMS
       @return The deserialized Peptidoform
       @throws Exception::ParseError if the JSON is malformed or missing required fields
     */
-    static Peptidoform peptidoformFromJSON(const String& json_str);
+    static Peptidoform peptidoformFromJSON(const std::string& json_str);
 
     /**
       @brief Convert a PeptidoformIon to JSON string representation
@@ -782,7 +782,7 @@ namespace OpenMS
       @param[in] pfi The PeptidoformIon to serialize
       @return JSON string representation of the PeptidoformIon
     */
-    static String toJSON(const PeptidoformIon& pfi);
+    static std::string toJSON(const PeptidoformIon& pfi);
 
     /**
       @brief Construct a PeptidoformIon from JSON string
@@ -793,7 +793,7 @@ namespace OpenMS
       @return The deserialized PeptidoformIon
       @throws Exception::ParseError if the JSON is malformed or missing required fields
     */
-    static PeptidoformIon peptidoformIonFromJSON(const String& json_str);
+    static PeptidoformIon peptidoformIonFromJSON(const std::string& json_str);
 
 
     //==========================================================================
@@ -1094,7 +1094,7 @@ namespace OpenMS
       @param[in] pf The Peptidoform to fragment
       @param[in] min_charge Minimum fragment ion charge state
       @param[in] max_charge Maximum fragment ion charge state
-      @param[in] ion_types String specifying which ion types to generate:
+      @param[in] ion_types std::string specifying which ion types to generate:
                            'a','b','c','x','y','z' for ion series,
                            'M' for precursor peaks, 'I' for immonium ions.
                            Example: "by" for b/y ions, "byM" for b/y + precursor
@@ -1121,7 +1121,7 @@ namespace OpenMS
       @param[in] pfi The PeptidoformIon to fragment
       @param[in] min_charge Minimum fragment ion charge state
       @param[in] max_charge Maximum fragment ion charge state
-      @param[in] ion_types String specifying which ion types to generate:
+      @param[in] ion_types std::string specifying which ion types to generate:
                            'a','b','c','x','y','z' for ion series,
                            'M' for precursor peaks, 'I' for immonium ions.
                            Example: "by" for b/y ions, "abyM" for a/b/y + precursor

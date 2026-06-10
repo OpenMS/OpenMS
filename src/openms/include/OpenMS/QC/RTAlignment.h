@@ -53,13 +53,13 @@ namespace OpenMS
     void compute(PeptideIdentificationList& ids, const TransformationDescription& trafo) const;
 
     /// returns the name of the metric
-    const String& getName() const override;
+    const std::string& getName() const override;
 
     /// define the required input file: featureXML before map alignment (=POSTFDRFEAT), trafoXML after map alignment (=TRAFOALIGN)
     Status requirements() const override;
 
   private:
     /// name of the metric
-    const String name_ = "RTAlignment";
+    const std::string name_ = "RTAlignment";
   };
 } // namespace OpenMS

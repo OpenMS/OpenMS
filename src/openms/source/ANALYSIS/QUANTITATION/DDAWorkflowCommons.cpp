@@ -27,9 +27,9 @@
 using namespace std;
 namespace OpenMS
 {
-    std::map<String, String> DDAWorkflowCommons::mapId2MzMLs(const std::map<String, String>& m2i)
+    std::map<std::string, std::string> DDAWorkflowCommons::mapId2MzMLs(const std::map<std::string, std::string>& m2i)
     {
-        std::map<String, String> idfile2mzfile;
+        std::map<std::string, std::string> idfile2mzfile;
         for (const auto& m : m2i)
         {
             idfile2mzfile[m.second] = m.first;
@@ -38,7 +38,7 @@ namespace OpenMS
     }
 
 
-    std::map<String, String> DDAWorkflowCommons::mapMzML2Ids(StringList & in, StringList & in_ids)
+    std::map<std::string, std::string> DDAWorkflowCommons::mapMzML2Ids(StringList & in, StringList & in_ids)
     {
         // validate file lists (use only basename and ignore extension)
         auto validation_result = File::validateMatchingFileNames(in, in_ids, true, true);
@@ -93,11 +93,11 @@ namespace OpenMS
             break;      
         }
 
-        map<String, String> mzfile2idfile;
+        map<std::string, std::string> mzfile2idfile;
         for (Size i = 0; i != in.size(); ++i)
         {
-            const String& in_abs_path = File::absolutePath(in[i]);
-            const String& id_abs_path = File::absolutePath(in_ids[i]);
+            const std::string& in_abs_path = File::absolutePath(in[i]);
+            const std::string& id_abs_path = File::absolutePath(in_ids[i]);
             mzfile2idfile[in_abs_path] = id_abs_path;      
             OPENMS_LOG_DEBUG << "Spectra: " << in[i] << "\t Ids: " << in_ids[i] << std::endl;
         }
@@ -133,7 +133,7 @@ namespace OpenMS
 
     void DDAWorkflowCommons::recalibrateMS1(MSExperiment & ms_centroided,
         PeptideIdentificationList& peptide_ids,
-        const String & id_file_abs_path )
+        const std::string & id_file_abs_path )
     {
         InternalCalibration ic;
         // ic.setLogType(log_type_);
@@ -157,10 +157,10 @@ namespace OpenMS
 
         IntList ms_level = {1};
         double rt_chunk = 300.0; // 5 minutes
-        String qc_residual_path, qc_residual_png_path;
+        std::string qc_residual_path, qc_residual_png_path;
         if (!id_file_abs_path.empty())
         {
-            const String & id_basename = File::basename(id_file_abs_path);
+            const std::string & id_basename = File::basename(id_file_abs_path);
             qc_residual_path = id_basename + "qc_residuals.tsv";
             qc_residual_png_path = id_basename + "qc_residuals.png";
         } 
@@ -208,7 +208,7 @@ namespace OpenMS
         FeatureFinderMultiplexAlgorithm algorithm;
         Param p = algorithm.getParameters();
         p.setValue("algorithm:labels", ""); // unlabeled only
-        p.setValue("algorithm:charge", String(charge_min) + ":" + String(charge_max));
+        p.setValue("algorithm:charge",StringUtils::toStr(charge_min) + ":" + StringUtils::toStr(charge_max));
         p.setValue("algorithm:rt_typical", median_fwhm * 3.0);
         p.setValue("algorithm:rt_band", 3.0); // max 3 seconds shifts between isotopic traces (not sure if needed)
         p.setValue("algorithm:rt_min", median_fwhm * 0.5);
@@ -218,6 +218,6 @@ namespace OpenMS
         const bool progress(true);
         algorithm.run(e, progress);
         seeds = algorithm.getFeatureMap(); 
-        OPENMS_LOG_INFO << "Using " << String(seeds.size()) << " seeds from untargeted feature extraction." << std::endl;
+        OPENMS_LOG_INFO << "Using " << StringUtils::toStr(seeds.size()) << " seeds from untargeted feature extraction." << std::endl;
     }
 }

@@ -26,7 +26,7 @@ namespace OpenMS
     {
 public:
       /// Constructor for loading
-      PTMXMLHandler(std::map<String, std::pair<String, String> > & ptm_informations, const String & filename);
+      PTMXMLHandler(std::map<std::string, std::pair<std::string, std::string> > & ptm_informations, const std::string & filename);
 
       /// Destructor
       ~PTMXMLHandler() override;
@@ -44,8 +44,8 @@ public:
       void characters(const XMLCh * const chars, const XMLSize_t /*length*/) override;
 
 protected:
-      std::map<String, std::pair<String, String> > & ptm_informations_;
-      String name_, tag_, composition_;
+      std::map<std::string, std::pair<std::string, std::string> > & ptm_informations_;
+      std::string name_, tag_, composition_;
       bool open_tag_;
     };
 

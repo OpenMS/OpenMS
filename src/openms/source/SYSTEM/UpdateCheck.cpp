@@ -32,17 +32,17 @@ namespace fs = std::filesystem;
 
 namespace OpenMS
 {
-  void UpdateCheck::run(const String& tool_name, const String& version, int debug_level)
+  void UpdateCheck::run(const std::string& tool_name, const std::string& version, int debug_level)
   {
-    String architecture = (sizeof(void*) == 4) ? "32" : "64";
+    std::string architecture = (sizeof(void*) == 4) ? "32" : "64";
 
     // if the revision info is meaningful, show it as well
-    String revision("UNKNOWN");
+    std::string revision("UNKNOWN");
     if (!VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported")
     {
       revision = VersionInfo::getRevision();
     }
-    String platform;
+    std::string platform;
 
 #ifdef OPENMS_WINDOWSPLATFORM
     platform = "Win";
@@ -59,13 +59,13 @@ namespace OpenMS
     // write to tmp + userid folder
 
     // e.g.: OpenMS_Default_Win_64_FeatureFinderCentroided_2.0.0
-    String tool_version_string;
-    String config_path;
+    std::string tool_version_string;
+    std::string config_path;
     //Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems
     #ifdef __unix__
     if (getenv("XDG_CONFIG_HOME"))
     {
-      config_path = String(getenv("XDG_CONFIG_HOME")) + "/OpenMS";
+      config_path =std::string(getenv("XDG_CONFIG_HOME")) + "/OpenMS";
     }
     else
     {
@@ -74,9 +74,9 @@ namespace OpenMS
     #else
     config_path =  File::getOpenMSHomePath() + "/.OpenMS";
     #endif
-    tool_version_string = String("OpenMS") + "_" + "Default_" + platform + "_" + architecture + "_" + tool_name + "_" + version;
+    tool_version_string =std::string("OpenMS") + "_" + "Default_" + platform + "_" + architecture + "_" + tool_name + "_" + version;
 
-    String version_file_name = config_path + "/" + tool_name + ".ver";
+    std::string version_file_name = config_path + "/" + tool_name + ".ver";
 
     // create version file if it doesn't exist yet
     bool first_run(false);
@@ -145,7 +145,7 @@ namespace OpenMS
             OPENMS_LOG_INFO << "Connecting to REST server successful. " << endl;
           }
 
-          String response = query.getResponse();
+          std::string response = query.getResponse();
           VersionInfo::VersionDetails server_version = VersionInfo::VersionDetails::create(response);
           if (server_version != VersionInfo::VersionDetails::EMPTY)
           {

@@ -96,7 +96,7 @@ namespace OpenMS
 
     if(!param_.getValue("disable_correction").toBool())
     {
-      pair<String, Param> search_info = extractSearchAdapterInfoFromMetaValues_(search_params);
+      pair<std::string, Param> search_info = extractSearchAdapterInfoFromMetaValues_(search_params);
       
       // calculate correction of suitability with extrapolation
       UInt number_of_runs = param_.getValue("number_of_subsampled_runs");
@@ -222,10 +222,10 @@ namespace OpenMS
 
   bool DBSuitability::isNovoHit_(const PeptideHit& hit) const
   {
-    const set<String>& accessions = hit.extractProteinAccessionsSet();
-    for (const String& acc : accessions)
+    const set<std::string>& accessions = hit.extractProteinAccessionsSet();
+    for (const std::string& acc : accessions)
     {
-      if (!acc.contains(Constants::UserParam::CONCAT_PEPTIDE) && !boost::regex_search(String(acc).toLower(), decoy_pattern_))
+      if (!acc.contains(Constants::UserParam::CONCAT_PEPTIDE) && !boost::regex_search(StringUtils::toLowered(std::string(acc)), decoy_pattern_))
       {
         return false;
       }
@@ -246,20 +246,20 @@ namespace OpenMS
     return true;
   }
 
-  pair<String, Param> DBSuitability::extractSearchAdapterInfoFromMetaValues_(const ProteinIdentification::SearchParameters& search_params) const
+  pair<std::string, Param> DBSuitability::extractSearchAdapterInfoFromMetaValues_(const ProteinIdentification::SearchParameters& search_params) const
   {
     Param p;
     // list of all allowed adapters
-    vector<String> working_adapters{ "CometAdapter", "MSGFPlusAdapter", "MSFraggerAdapter" };
+    vector<std::string> working_adapters{ "CometAdapter", "MSGFPlusAdapter", "MSFraggerAdapter" };
 
-    vector<String> keys;
+    vector<std::string> keys;
     search_params.getKeys(keys);
 
     // find adapter name
-    String adapter;
-    for (const String& key : keys)
+    std::string adapter;
+    for (const std::string& key : keys)
     {
-      for (const String& a : working_adapters)
+      for (const std::string& a : working_adapters)
       {
         // look for adapter name as a prefix of a search parameter
         if (key.compare(0, a.size() + 1, a + ":") == 0)
@@ -277,7 +277,7 @@ namespace OpenMS
 
     if (adapter.empty()) // non of the allowed adapter names where found in the meta values
     {
-      String message;
+      std::string message;
       message = "No parameters found for any of the allowed adapters in the given meta values. Allowed are:\n";
       message += ListUtils::concatenate(working_adapters, ", ");
       message = "\n";
@@ -285,7 +285,7 @@ namespace OpenMS
     }
 
     // extract parameters
-    for (const String& key : keys)
+    for (const std::string& key : keys)
     {
       if (key.compare(0, adapter.size(), adapter) != 0) continue; // does adapter appear in meta value key?
       p.setValue(key, search_params.getMetaValue(key));
@@ -296,13 +296,13 @@ namespace OpenMS
     return make_pair(adapter, p);
   }
 
-  void DBSuitability::writeIniFile_(const Param& parameters, const String& filename) const
+  void DBSuitability::writeIniFile_(const Param& parameters, const std::string& filename) const
   {
     ParamXMLFile param_file;
     param_file.store(filename, parameters);
   }
 
-  PeptideIdentificationList DBSuitability::runIdentificationSearch_(const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const
+  PeptideIdentificationList DBSuitability::runIdentificationSearch_(const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, const std::string& adapter_name, Param& parameters) const
   {
     if (adapter_name.empty())
     {
@@ -312,9 +312,9 @@ namespace OpenMS
     // temporary folder for search in- und output files
     bool keep_files = param_.getValue("keep_search_files").toBool();
     File::TempDir tmp_dir(keep_files);
-    String mzml_path = tmp_dir.getPath() + "spectra.mzML";
-    String db_path = tmp_dir.getPath() + "database.FASTA";
-    String out_path = tmp_dir.getPath() + "out.idXML";
+    std::string mzml_path = tmp_dir.getPath() + "spectra.mzML";
+    std::string db_path = tmp_dir.getPath() + "database.FASTA";
+    std::string out_path = tmp_dir.getPath() + "out.idXML";
 
     // override the in- and output files in the parameters
     if (!parameters.exists(adapter_name + ":1:in") || !parameters.exists(adapter_name + ":1:database") || !parameters.exists(adapter_name + ":1:out"))
@@ -331,14 +331,14 @@ namespace OpenMS
     FASTAFile database;
     database.store(db_path, fasta_data);
 
-    String ini_path = tmp_dir.getPath() + "parameters.INI";
+    std::string ini_path = tmp_dir.getPath() + "parameters.INI";
     writeIniFile_(parameters, ini_path);
 
     // run identification search
-    String proc_stdout;
-    String proc_stderr;
-    auto lam_out = [&](const String& out) { proc_stdout += out; };
-    auto lam_err = [&](const String& out) { proc_stderr += out; };
+    std::string proc_stdout;
+    std::string proc_stderr;
+    auto lam_out = [&](const std::string& out) { proc_stdout += out; };
+    auto lam_err = [&](const std::string& out) { proc_stderr += out; };
 
     ExternalProcess ep(lam_out, lam_err);
     OPENMS_LOG_DEBUG << "Running " << adapter_name << "..." << endl << endl;
@@ -348,7 +348,7 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "An error occurred while running " << adapter_name << "." << endl;
       OPENMS_LOG_ERROR << "Standard output: " << proc_stdout << endl;
       OPENMS_LOG_ERROR << "Standard error: " << proc_stderr << endl;
-      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + String(static_cast<Int>(rt)));
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + StringUtils::toStr(static_cast<Int>(rt)));
     }
     // search was successful
 
@@ -368,7 +368,7 @@ namespace OpenMS
     if (indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK)
     {
       OPENMS_LOG_ERROR << "An error occurred while trying to index the search results." << endl;
-      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + String(static_cast<Int>(indexer_exit)));
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + StringUtils::toStr(static_cast<Int>(indexer_exit)));
     }
 
     if (keep_files)
@@ -476,7 +476,7 @@ namespace OpenMS
         if (!checkScoreBetterThanThreshold_(hits[i], score_cut_off, hsb)) break;
 
         // check if target, also check for "target+decoy" value
-        String td_info(hits[i].getMetaValue("target_decoy"));
+        std::string td_info(hits[i].getMetaValue("target_decoy"));
         if (td_info.find("target") != 0)
         {
           continue;
@@ -541,7 +541,7 @@ namespace OpenMS
       digestion.setEnzyme("Trypsin");
       std::vector<AASequence> peptides;
       digestion.digest(AASequence::fromString(entry.sequence), peptides);
-      String new_sequence = "";
+      std::string new_sequence;
       for (auto const& peptide : peptides)
       {
         OpenMS::TargetedExperiment::Peptide p;
@@ -587,7 +587,7 @@ namespace OpenMS
 
   UInt DBSuitability::numberOfUniqueProteins_(const PeptideIdentificationList& peps, UInt number_of_hits) const
   {
-    set<String> proteins;
+    set<std::string> proteins;
 
     for (const auto& pep : peps)
     {
@@ -607,14 +607,14 @@ namespace OpenMS
         if (hit.isDecoy()) continue;// skip if the hit is a decoy hit
 
         // insert protein accessions
-        const set<String> accessions = hit.extractProteinAccessionsSet();
-        for (const String& acc : accessions)
+        const set<std::string> accessions = hit.extractProteinAccessionsSet();
+        for (const std::string& acc : accessions)
         {
           if (acc.contains(Constants::UserParam::CONCAT_PEPTIDE))// skip novo accessions
           {
             continue;
           }
-          if (boost::regex_search(String(acc).toLower(), decoy_pattern_))// skip decoy accessions (this can happen if the hit is 'target+decoy'.)
+          if (boost::regex_search(StringUtils::toLowered(std::string(acc)), decoy_pattern_))// skip decoy accessions (this can happen if the hit is 'target+decoy'.)
           {
             continue;
           }
@@ -648,7 +648,7 @@ namespace OpenMS
     return novo_hits_to_data.at(novo_data[ceil(novo_data.size() / 2)]);
   }
 
-  double DBSuitability::getScoreMatchingFDR_(const PeptideIdentificationList& pep_ids, double FDR, const String& score_name, bool higher_score_better) const
+  double DBSuitability::getScoreMatchingFDR_(const PeptideIdentificationList& pep_ids, double FDR, const std::string& score_name, bool higher_score_better) const
   {
     double worst_score = DBL_MAX;
     if (!higher_score_better)
@@ -675,9 +675,9 @@ namespace OpenMS
       double score;
       bool score_found = false;
 
-      vector<String> meta_keys;
+      vector<std::string> meta_keys;
       top_hit.getKeys(meta_keys);
-      for (const String& key : meta_keys)
+      for (const std::string& key : meta_keys)
       {
         if (key.contains(score_name))
         {

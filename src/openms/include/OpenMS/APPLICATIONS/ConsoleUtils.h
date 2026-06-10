@@ -71,10 +71,10 @@ namespace OpenMS
       @param[in] first_line_prefill Number of characters already written on the current line (must not exceed console width).
       @return One element per wrapped output line.
     */
-    static StringList breakStringList(const String& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0);
+    static StringList breakStringList(const std::string& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0);
 
     /// Convenience wrapper around @ref breakStringList that joins the result with @c "\\n"
-    static String breakString(const String& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0);
+    static std::string breakString(const std::string& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0);
 
     /// Cached console width (or @c std::numeric_limits<int>::max() when detection failed and wrapping is effectively disabled)
     int getConsoleWidth() const
@@ -92,7 +92,7 @@ namespace OpenMS
     int readConsoleSize_();
 
     /// Non-static implementation used by the public static wrappers; receives the cached @c console_width_
-    StringList breakString_(const String& input, const Size indentation, const Size max_lines, Size first_line_prefill) const;
+    StringList breakString_(const std::string& input, const Size indentation, const Size max_lines, Size first_line_prefill) const;
   };
 
 } // namespace OpenMS

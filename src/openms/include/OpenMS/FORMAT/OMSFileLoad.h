@@ -44,7 +44,7 @@ namespace OpenMS
 
         @throw Exception::FailedAPICall Database cannot be opened
       */
-      OMSFileLoad(const String& filename, LogType log_type);
+      OMSFileLoad(const std::string& filename, LogType log_type);
 
       /*!
         @brief Destructor
@@ -111,7 +111,7 @@ namespace OpenMS
       void loadObservationMatches_(IdentificationData& id_data);
 
       /// Helper function for loading meta data on feature/consensus maps from the database
-      template <class MapType> String loadMapMetaDataTemplate_(MapType& features);
+      template <class MapType> std::string loadMapMetaDataTemplate_(MapType& features);
 
       /// Load feature map meta data from the database
       void loadMapMetaData_(FeatureMap& features);
@@ -147,7 +147,7 @@ namespace OpenMS
                                       SQLite::Statement& query_match);
 
       /// Prepare SQL query for loading meta values associated with a particular class (stored in @p parent_table)
-      bool prepareQueryMetaInfo_(SQLite::Statement& query, const String& parent_table);
+      bool prepareQueryMetaInfo_(SQLite::Statement& query, const std::string& parent_table);
 
       /// Store results from an SQL query on meta values in a MetaInfoInterface(-derived) object
       void handleQueryMetaInfo_(SQLite::Statement& query, MetaInfoInterface& info,
@@ -155,7 +155,7 @@ namespace OpenMS
 
       /// Prepare SQL query for loading processing metadata associated with a particular class (stored in @p parent_table)
       bool prepareQueryAppliedProcessingStep_(SQLite::Statement& query,
-                                              const String& parent_table);
+                                              const std::string& parent_table);
 
       /// Store results from an SQL query on processing metadata in a ScoredProcessingResult(-derived) object
       void handleQueryAppliedProcessingStep_(
@@ -178,7 +178,7 @@ namespace OpenMS
 
       int version_number_; ///< schema version number
 
-      String subquery_score_; ///< query for score types used in JSON export
+      std::string subquery_score_; ///< query for score types used in JSON export
 
       // mappings between database keys and loaded data:
       std::unordered_map<Key, IdentificationData::ScoreTypeRef> score_type_refs_;
@@ -193,7 +193,7 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::AdductRef> adduct_refs_;
 
       // mapping: table name -> ordering critera (for JSON export)
-      static std::map<String, String> export_order_by_;
+      static std::map<std::string, std::string> export_order_by_;
     };
   }
 }

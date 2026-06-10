@@ -54,13 +54,13 @@ namespace OpenMS
     ExternalProcess();
 
     /// set the callback functions to process stdout and stderr output when the external process generates it
-    ExternalProcess(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr);
+    ExternalProcess(std::function<void(const std::string&)> callbackStdOut, std::function<void(const std::string&)> callbackStdErr);
 
     /// D'tor
     ~ExternalProcess();
 
     /// re-wire the callbacks used during run()
-    void setCallbacks(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr);
+    void setCallbacks(std::function<void(const std::string&)> callbackStdOut, std::function<void(const std::string&)> callbackStdErr);
 
     /**
       @brief Runs a program and calls the callback functions from time to time if output from the external program is available.
@@ -75,21 +75,21 @@ namespace OpenMS
       @param[in] idle_callback Optional callback invoked during the poll loop (e.g., to pump a GUI event loop)
       @return Did the external program succeed (SUCCESS) or did something go wrong?
     */
-    RETURNSTATE run(const String& exe, const std::vector<String>& args, const String& working_dir, const bool verbose, String& error_msg,
+    RETURNSTATE run(const std::string& exe, const std::vector<std::string>& args, const std::string& working_dir, const bool verbose, std::string& error_msg,
                     IO_MODE io_mode = IO_MODE::READ_WRITE,
-                    const std::map<String, String>& env = {},
+                    const std::map<std::string, std::string>& env = {},
                     std::function<void()> idle_callback = nullptr);
 
     /**
       @brief Same as other overload, just without a returned error message
      */
-    RETURNSTATE run(const String& exe, const std::vector<String>& args, const String& working_dir, const bool verbose,
+    RETURNSTATE run(const std::string& exe, const std::vector<std::string>& args, const std::string& working_dir, const bool verbose,
                     IO_MODE io_mode = IO_MODE::READ_WRITE,
-                    const std::map<String, String>& env = {},
+                    const std::map<std::string, std::string>& env = {},
                     std::function<void()> idle_callback = nullptr);
 
   private:
-    std::function<void(const String&)> callbackStdOut_;
-    std::function<void(const String&)> callbackStdErr_;
+    std::function<void(const std::string&)> callbackStdOut_;
+    std::function<void(const std::string&)> callbackStdErr_;
   };
 } // ns OpenMS

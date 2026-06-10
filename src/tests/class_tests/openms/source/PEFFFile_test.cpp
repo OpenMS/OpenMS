@@ -41,7 +41,7 @@ START_SECTION((~PEFFFile()))
   delete ptr;
 END_SECTION
 
-START_SECTION((void load(const String& filename, std::vector<PEFFEntry>& entries, std::vector<PEFFDatabaseMetadata>& headers) const))
+START_SECTION((void load(const std::string& filename, std::vector<PEFFEntry>& entries, std::vector<PEFFDatabaseMetadata>& headers) const))
 {
   vector<PEFFEntry> entries;
   vector<PEFFDatabaseMetadata> headers;
@@ -123,11 +123,11 @@ START_SECTION((void load(const String& filename, std::vector<PEFFEntry>& entries
 }
 END_SECTION
 
-START_SECTION((void store(const String& filename, const std::vector<PEFFEntry>& entries, const PEFFDatabaseMetadata& header) const))
+START_SECTION((void store(const std::string& filename, const std::vector<PEFFEntry>& entries, const PEFFDatabaseMetadata& header) const))
 {
   vector<PEFFEntry> entries, entries2;
   vector<PEFFDatabaseMetadata> headers, headers2;
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   PEFFFile file;
 
@@ -156,7 +156,7 @@ START_SECTION((void store(const String& filename, const std::vector<PEFFEntry>& 
 }
 END_SECTION
 
-START_SECTION((void readStart(const String& filename)))
+START_SECTION((void readStart(const std::string& filename)))
 {
   PEFFFile file;
   TEST_EXCEPTION(Exception::FileNotFound, file.readStart("nonexistent.peff"))
@@ -211,11 +211,11 @@ START_SECTION((bool atEnd() const))
 }
 END_SECTION
 
-START_SECTION((void writeStart(const String& filename, const PEFFDatabaseMetadata& header)))
+START_SECTION((void writeStart(const std::string& filename, const PEFFDatabaseMetadata& header)))
 {
   PEFFFile file;
   PEFFDatabaseMetadata header;
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
 
   file.writeStart(tmp_filename, header);
@@ -232,7 +232,7 @@ START_SECTION((void writeNext(const PEFFEntry& entry)))
   PEFFFile file;
   PEFFDatabaseMetadata header;
   header.db_name = "WriteTest";
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
 
   PEFFEntry entry;
@@ -262,7 +262,7 @@ START_SECTION((void writeEnd()))
 }
 END_SECTION
 
-START_SECTION((static bool isPEFFFile(const String& filename)))
+START_SECTION((static bool isPEFFFile(const std::string& filename)))
 {
   TEST_EQUAL(PEFFFile::isPEFFFile(OPENMS_GET_TEST_DATA_PATH("PEFFFile_test.peff")), true)
   TEST_EQUAL(PEFFFile::isPEFFFile(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta")), false)
@@ -270,12 +270,12 @@ START_SECTION((static bool isPEFFFile(const String& filename)))
 }
 END_SECTION
 
-START_SECTION((static String toProForma(const PEFFEntry& entry)))
+START_SECTION((static std::string toProForma(const PEFFEntry& entry)))
 {
   // Test 1: No modifications
   PEFFEntry entry;
   entry.sequence = "PEPTIDE";
-  String proforma = PEFFFile::toProForma(entry);
+  std::string proforma = PEFFFile::toProForma(entry);
   TEST_EQUAL(proforma, "PEPTIDE")
 
   // Test 2: Single modification at position 3
@@ -415,7 +415,7 @@ START_SECTION([PEFFEntry] getVariantSequences)
 }
 END_SECTION
 
-START_SECTION([PEFFEntry] AASequence getProcessedSequence(const String& region_type) const)
+START_SECTION([PEFFEntry] AASequence getProcessedSequence(const std::string& region_type) const)
 {
   PEFFEntry entry;
   entry.sequence = "SIGNALPEPTIDERESTOFPROTEIN";
@@ -438,7 +438,7 @@ START_SECTION([PEFFModification] PEFFModification())
 }
 END_SECTION
 
-START_SECTION([PEFFModification] PEFFModification(Size pos, const String& acc, const String& n, const String& tag))
+START_SECTION([PEFFModification] PEFFModification(Size pos, const std::string& acc, const std::string& n, const std::string& tag))
 {
   PEFFModification mod(10, "UNIMOD:35", "Oxidation", "experimental");
   TEST_EQUAL(mod.position, 10)
@@ -546,7 +546,7 @@ START_SECTION(test_annotation_identifiers_roundtrip)
 {
   vector<PEFFEntry> entries, entries2;
   vector<PEFFDatabaseMetadata> headers, headers2;
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   PEFFFile file;
 
@@ -698,7 +698,7 @@ START_SECTION(test_uniprot_roundtrip)
   // Test that UniProt-style PEFF can be loaded and stored without data loss
   vector<PEFFEntry> entries, entries2;
   vector<PEFFDatabaseMetadata> headers, headers2;
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   PEFFFile file;
 
@@ -729,7 +729,7 @@ START_SECTION(test_custom_key_def_parsing_and_roundtrip)
 {
   vector<PEFFEntry> entries, entries2;
   vector<PEFFDatabaseMetadata> headers, headers2;
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   PEFFFile file;
 
@@ -787,7 +787,7 @@ START_SECTION(test_custom_key_def_usage_roundtrip)
 {
   vector<PEFFEntry> entries, entries2;
   vector<PEFFDatabaseMetadata> headers, headers2;
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   PEFFFile file;
 
@@ -870,7 +870,7 @@ START_SECTION(test_p53_uniprot)
   // Check first variant - stop codon at position 2
   TEST_EQUAL(entries[0].simple_variants[0].position, 2)
   TEST_EQUAL(entries[0].simple_variants[0].variant_aa, '*')
-  TEST_EQUAL(entries[0].simple_variants[0].optional_tag.hasSubstring("ExAC"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(entries[0].simple_variants[0].optional_tag, "ExAC"), true)
 
   // Check sequence length matches annotation
   TEST_EQUAL(entries[0].sequence.size(), 393)
@@ -985,7 +985,7 @@ START_SECTION([PEFFEntry] digestWithVariants_combinatorics)
 
   for (size_t i = 0; i < sequences.size(); ++i)
   {
-    String seq_str = sequences[i].toString();
+    std::string seq_str = sequences[i].toString();
     if (seq_str == "AEPTIDER")
     {
       found_ref = true;
@@ -1043,7 +1043,7 @@ START_SECTION([PEFFEntry] digestWithVariants_modifications)
 
   for (size_t i = 0; i < mod_seq.size(); ++i)
   {
-    String seq_str = mod_seq[i].toString();
+    std::string seq_str = mod_seq[i].toString();
     if (seq_str == "AMEPTIDER" && mod_desc[i].empty())
     {
       found_unmodified = true;
@@ -1148,11 +1148,11 @@ START_SECTION([PEFFEntry] generatePeptides_basic)
   bool found_variant = false;
   for (size_t i = 0; i < descriptions.size(); ++i)
   {
-    if (descriptions[i].empty() || descriptions[i].find("M4L") == String::npos)
+    if (descriptions[i].empty() || descriptions[i].find("M4L") == std::string::npos)
     {
       found_ref = true;
     }
-    if (descriptions[i].find("M4L") != String::npos)
+    if (descriptions[i].find("M4L") != std::string::npos)
     {
       found_variant = true;
     }
@@ -1186,8 +1186,8 @@ START_SECTION([PEFFEntry] generatePeptides_with_fixed_mods)
   // All peptides containing C should have Carbamidomethyl
   for (size_t i = 0; i < sequences.size(); ++i)
   {
-    String seq_str = sequences[i].toUnmodifiedString();
-    if (seq_str.find('C') != String::npos)
+    std::string seq_str = sequences[i].toUnmodifiedString();
+    if (seq_str.find('C') != std::string::npos)
     {
       // The peptide has C, so it should be modified
       TEST_EQUAL(sequences[i].isModified(), true)
@@ -1222,9 +1222,9 @@ START_SECTION([PEFFEntry] generatePeptides_with_variable_mods)
   bool found_oxidized = false;
   for (size_t i = 0; i < sequences.size(); ++i)
   {
-    String seq_str = sequences[i].toString();
+    std::string seq_str = sequences[i].toString();
     // Oxidized methionine shows as M(Oxidation) or similar
-    if (seq_str.find("Oxidation") != String::npos || sequences[i].isModified())
+    if (seq_str.find("Oxidation") != std::string::npos || sequences[i].isModified())
     {
       found_oxidized = true;
       break;
@@ -1304,7 +1304,7 @@ START_SECTION([PEFFEntry] generatePeptides_no_reference_with_peff_mods)
 
   // The peptide PEPTIDER should only appear with modifications, not unmodified
   AASequence ref_peptide = AASequence::fromString("PEPTIDER");
-  String ref_peptide_str = ref_peptide.toString();
+  std::string ref_peptide_str = ref_peptide.toString();
 
   bool found_unmodified_reference = false;
   for (size_t i = 0; i < sequences.size(); ++i)
@@ -1374,7 +1374,7 @@ START_SECTION(test_modification_type_roundtrip)
   }
 
   // Roundtrip test: store and reload, check types preserved
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   file.store(tmp_filename, entries, headers[0]);
 
@@ -1405,7 +1405,7 @@ START_SECTION(test_modification_optional_tag_roundtrip)
   TEST_EQUAL(entries[0].modifications.size(), 1)
   TEST_EQUAL(entries[0].modifications[0].optional_tag, "invitro")
 
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   file.store(tmp_filename, entries, headers[0]);
   file.load(tmp_filename, entries2, headers2);
@@ -1447,7 +1447,7 @@ START_SECTION(test_proteoform_db_header)
   entry.sequence = "PEPTIDE";
   entry.sequence_length = 7;
 
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   PEFFFile file;
   vector<PEFFEntry> entries = {entry};
@@ -1481,7 +1481,7 @@ START_SECTION(test_altac_parenthesized_list)
   header.db_sources.push_back("test");
   header.number_of_entries = 1;
 
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   PEFFFile file;
   vector<PEFFEntry> entries = {entry};
@@ -1518,7 +1518,7 @@ START_SECTION(test_disulfide_bond_annotation_id)
   header.number_of_entries = 1;
   header.has_annotation_identifiers = true;
 
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   PEFFFile file;
   vector<PEFFEntry> entries = {entry};
@@ -1571,7 +1571,7 @@ START_SECTION(test_multi_database_store_roundtrip)
   vector<PEFFEntry> entries = {e1, e2};
   vector<PEFFDatabaseMetadata> headers = {db1, db2};
 
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   PEFFFile file;
   file.store(tmp_filename, entries, headers);

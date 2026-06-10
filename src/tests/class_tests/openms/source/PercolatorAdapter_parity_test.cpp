@@ -44,14 +44,14 @@ namespace
 {
 
 /// Composite key for 1:1 cross-run matching of adapter output hits.
-String rowKey(const PeptideIdentification& pid, const PeptideHit& hit)
+std::string rowKey(const PeptideIdentification& pid, const PeptideHit& hit)
 {
-  String sr = String(pid.getSpectrumReference());
+  std::string sr = std::string(pid.getSpectrumReference());
   if (sr.empty() && pid.metaValueExists("spectrum_id"))
   {
     sr = pid.getMetaValue("spectrum_id").toString();
   }
-  return sr + "|" + hit.getSequence().toString() + "|" + String(hit.getCharge());
+  return sr + "|" + hit.getSequence().toString() + "|" + StringUtils::toStr(hit.getCharge());
 }
 
 struct OutputTriplet
@@ -60,7 +60,7 @@ struct OutputTriplet
   double qval  = 0.0;
   double pep   = 0.0;
   bool   is_decoy = false;
-  String key_for_score = "";  ///< meta key actually found on the hit
+  std::string key_for_score;  ///< meta key actually found on the hit
 };
 
 /// Extract the Percolator triplet from a hit, probing both meta-key schemes.
@@ -93,15 +93,15 @@ OutputTriplet extractTriplet(const PeptideIdentification& pid, const PeptideHit&
 /// Invoke PercolatorAdapter on @p in_idxml, writing @p out_idxml.
 /// Passes extra_args verbatim (e.g. "-testFDR 0.5 -trainFDR 0.5") so the
 /// caller can match the FDR settings used by the TOPP_PercolatorAdapter_1 test.
-int runAdapter(const String& adapter_bin,
-               const String& percolator_bin,
+int runAdapter(const std::string& adapter_bin,
+               const std::string& percolator_bin,
                bool use_subprocess,
-               const String& in_idxml,
-               const String& out_idxml,
+               const std::string& in_idxml,
+               const std::string& out_idxml,
                const std::string& extra_args = "")
 {
-  const String stdout_log = File::getTemporaryFile();
-  const String stderr_log = File::getTemporaryFile();
+  const std::string stdout_log = File::getTemporaryFile();
+  const std::string stderr_log = File::getTemporaryFile();
 
   std::ostringstream cmd;
   cmd << "\"" << adapter_bin << "\""
@@ -127,12 +127,12 @@ int runAdapter(const String& adapter_bin,
 }
 
 /// Build a map[rowKey -> triplet] from an adapter output idXML.
-std::map<String, OutputTriplet> loadTripletsByRowKey(const String& idxml)
+std::map<std::string, OutputTriplet> loadTripletsByRowKey(const std::string& idxml)
 {
   vector<ProteinIdentification> prs;
   PeptideIdentificationList pids;
   IdXMLFile().load(idxml, prs, pids);
-  std::map<String, OutputTriplet> out;
+  std::map<std::string, OutputTriplet> out;
   for (const auto& pid : pids)
   {
     for (const auto& hit : pid.getHits())
@@ -159,13 +159,13 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
   }
   else
   {
-    const String percolator_bin = String(perc);
-    const String adapter_bin    = String(adap);
-    const String in_idxml =
+    const std::string percolator_bin = std::string(perc);
+    const std::string adapter_bin    = std::string(adap);
+    const std::string in_idxml =
       OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/CometAdapter_4_out.idXML");
 
-    const String out_sub = File::getTemporaryFile() + ".idxml";
-    const String out_inp = File::getTemporaryFile() + ".idxml";
+    const std::string out_sub = File::getTemporaryFile() + ".idxml";
+    const std::string out_inp = File::getTemporaryFile() + ".idxml";
 
     TEST_EQUAL(runAdapter(adapter_bin, percolator_bin, /*use_subprocess=*/true,
                           in_idxml, out_sub,
@@ -183,7 +183,7 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
     // Prelude: both paths must stamp the same meta-key scheme. If one stamps
     // MS:1001492 and the other stamps percolator_score, comparison would
     // silently read zeros and pass spuriously.
-    std::set<String> sub_keys, inp_keys;
+    std::set<std::string> sub_keys, inp_keys;
     for (const auto& kv : sub) if (!kv.second.key_for_score.empty())
       sub_keys.insert(kv.second.key_for_score);
     for (const auto& kv : inp) if (!kv.second.key_for_score.empty())
@@ -196,12 +196,12 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
       msg << "} vs inp={ ";
       for (const auto& k : inp_keys) msg << k << " ";
       msg << "}";
-      TEST_EQUAL(String(msg.str()), String("meta keys match"))
+      TEST_EQUAL(msg.str(), std::string("meta keys match"))
     }
     TEST_EQUAL(sub_keys == inp_keys, true)
 
     // Same surviving hit set (symmetric difference = empty).
-    std::set<String> only_sub, only_inp;
+    std::set<std::string> only_sub, only_inp;
     for (const auto& kv : sub) if (!inp.count(kv.first)) only_sub.insert(kv.first);
     for (const auto& kv : inp) if (!sub.count(kv.first)) only_inp.insert(kv.first);
     TEST_EQUAL(only_sub.size(), 0)
@@ -211,7 +211,7 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
     double sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
     double max_dpep = 0;
     size_t matches = 0;
-    struct Mismatch { String key; double s_sub, s_inp, q_sub, q_inp, p_sub, p_inp; };
+    struct Mismatch { std::string key; double s_sub, s_inp, q_sub, q_inp, p_sub, p_inp; };
     std::vector<Mismatch> mismatches;
 
     for (const auto& kv : inp)
@@ -248,7 +248,7 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
             << " q_sub=" << m.q_sub << " q_inp=" << m.q_inp
             << " p_sub=" << m.p_sub << " p_inp=" << m.p_inp << "] ";
       }
-      TEST_EQUAL(String(msg.str()), String("r ok"))
+      TEST_EQUAL(msg.str(), std::string("r ok"))
     }
     TEST_TRUE(r >= 0.99)  // TODO(percolator-3.08): tighten to 0.999 after upgrade
     // max_dpep tolerance 0.25 at adapter layer: SVM scores match (r=1.0),
@@ -265,7 +265,7 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
     // Accepted-target set equality at q in {0.01, 0.05, 0.10}.
     for (double thr : {0.01, 0.05, 0.10})
     {
-      std::set<String> acc_sub, acc_inp;
+      std::set<std::string> acc_sub, acc_inp;
       for (const auto& kv : inp)
       {
         if (kv.second.is_decoy) continue;
@@ -276,9 +276,9 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
       }
       if (acc_sub != acc_inp)
       {
-        TEST_EQUAL(String("q=") + String(thr) + " accepted-set mismatch: sub="
-                   + String(acc_sub.size()) + " inp=" + String(acc_inp.size()),
-                   String("sets match"))
+        TEST_EQUAL("q=" + StringUtils::toStr(thr) + " accepted-set mismatch: sub="
+                   + StringUtils::toStr(acc_sub.size()) + " inp=" + StringUtils::toStr(acc_inp.size()),
+                   std::string("sets match"))
       }
       TEST_EQUAL(acc_sub == acc_inp, true)
     }

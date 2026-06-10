@@ -17,9 +17,9 @@
 namespace OpenMS
 {
   // Static member definitions
-  const String USI::USI_PREFIX = "mzspec:";
-  const String USI::CV_ACCESSION = "MS:1003063";
-  const String USI::CV_NAME = "universal spectrum identifier";
+  const std::string USI::USI_PREFIX = "mzspec:";
+  const std::string USI::CV_ACCESSION = "MS:1003063";
+  const std::string USI::CV_NAME = "universal spectrum identifier";
 
   USI::USI() :
     collection_(),
@@ -30,11 +30,11 @@ namespace OpenMS
   {
   }
 
-  USI::USI(const String& collection,
-           const String& ms_run,
+  USI::USI(const std::string& collection,
+           const std::string& ms_run,
            IndexType index_type,
-           const String& index,
-           const String& interpretation) :
+           const std::string& index,
+           const std::string& interpretation) :
     collection_(collection),
     ms_run_(ms_run),
     index_type_(index_type),
@@ -43,7 +43,7 @@ namespace OpenMS
   {
   }
 
-  USI::USI(const String& usi_string) :
+  USI::USI(const std::string& usi_string) :
     collection_(),
     ms_run_(),
     index_type_(IndexType::SCAN),
@@ -89,15 +89,15 @@ namespace OpenMS
     return !collection_.empty() && !ms_run_.empty() && !index_.empty();
   }
 
-  bool USI::isValidUSI(const String& usi_string)
+  bool USI::isValidUSI(const std::string& usi_string)
   {
     return tryParse(usi_string).has_value();
   }
 
-  std::optional<USI> USI::tryParse(const String& usi_string)
+  std::optional<USI> USI::tryParse(const std::string& usi_string)
   {
     // Quick prefix check
-    if (!usi_string.hasPrefix("mzspec:"))
+    if (!StringUtils::hasPrefix(usi_string, "mzspec:"))
     {
       return std::nullopt;
     }
@@ -110,22 +110,22 @@ namespace OpenMS
     return std::nullopt;
   }
 
-  const String& USI::getCollection() const
+  const std::string& USI::getCollection() const
   {
     return collection_;
   }
 
-  void USI::setCollection(const String& collection)
+  void USI::setCollection(const std::string& collection)
   {
     collection_ = collection;
   }
 
-  const String& USI::getMSRun() const
+  const std::string& USI::getMSRun() const
   {
     return ms_run_;
   }
 
-  void USI::setMSRun(const String& ms_run)
+  void USI::setMSRun(const std::string& ms_run)
   {
     ms_run_ = ms_run;
   }
@@ -140,22 +140,22 @@ namespace OpenMS
     index_type_ = index_type;
   }
 
-  const String& USI::getIndex() const
+  const std::string& USI::getIndex() const
   {
     return index_;
   }
 
-  void USI::setIndex(const String& index)
+  void USI::setIndex(const std::string& index)
   {
     index_ = index;
   }
 
-  const String& USI::getInterpretation() const
+  const std::string& USI::getInterpretation() const
   {
     return interpretation_;
   }
 
-  void USI::setInterpretation(const String& interpretation)
+  void USI::setInterpretation(const std::string& interpretation)
   {
     interpretation_ = interpretation;
   }
@@ -165,7 +165,7 @@ namespace OpenMS
     return !interpretation_.empty();
   }
 
-  String USI::toString() const
+  std::string USI::toString() const
   {
     if (!isValid())
     {
@@ -184,7 +184,7 @@ namespace OpenMS
     return oss.str();
   }
 
-  bool USI::fromString(const String& usi_string)
+  bool USI::fromString(const std::string& usi_string)
   {
     // Reset current values
     collection_.clear();
@@ -194,15 +194,15 @@ namespace OpenMS
     interpretation_.clear();
 
     // Check prefix
-    if (!usi_string.hasPrefix(USI_PREFIX))
+    if (!StringUtils::hasPrefix(usi_string, USI_PREFIX))
     {
       return false;
     }
 
     // Remove prefix and split by colon
-    String remainder = usi_string.substr(USI_PREFIX.size());
-    std::vector<String> parts;
-    remainder.split(':', parts);
+    std::string remainder = StringUtils::substr(usi_string, USI_PREFIX.size());
+    std::vector<std::string> parts;
+    StringUtils::split(remainder, ':', parts);
 
     // Minimum required: collection, ms_run, index_type, index (4 parts)
     if (parts.size() < 4)
@@ -243,24 +243,24 @@ namespace OpenMS
     return isValid();
   }
 
-  USI USI::createFromScanNumber(const String& dataset_id,
-                                const String& filename,
+  USI USI::createFromScanNumber(const std::string& dataset_id,
+                                const std::string& filename,
                                 int scan_number,
-                                const String& interpretation)
+                                const std::string& interpretation)
   {
-    return USI(dataset_id, filename, IndexType::SCAN, String(scan_number), interpretation);
+    return USI(dataset_id, filename, IndexType::SCAN,StringUtils::toStr(scan_number), interpretation);
   }
 
-  USI USI::createFromNativeID(const String& dataset_id,
-                              const String& filename,
-                              const String& native_id)
+  USI USI::createFromNativeID(const std::string& dataset_id,
+                              const std::string& filename,
+                              const std::string& native_id)
   {
     // Try to extract scan number from native ID
     auto scan_num = extractScanNumberFromNativeID(native_id);
     
     if (scan_num.has_value())
     {
-      return USI(dataset_id, filename, IndexType::SCAN, String(scan_num.value()));
+      return USI(dataset_id, filename, IndexType::SCAN,StringUtils::toStr(scan_num.value()));
     }
     else
     {
@@ -269,7 +269,7 @@ namespace OpenMS
     }
   }
 
-  std::optional<int> USI::extractScanNumberFromNativeID(const String& native_id)
+  std::optional<int> USI::extractScanNumberFromNativeID(const std::string& native_id)
   {
     // Use SpectrumNativeIDParser for comprehensive native ID parsing
     // It handles various vendor formats: Thermo, Waters, Bruker, Agilent, etc.
@@ -290,7 +290,7 @@ namespace OpenMS
     // Try to parse the entire string as a number (simple case like "12345")
     try
     {
-      return native_id.toInt();
+      return StringUtils::toInt32(native_id);
     }
     catch (const Exception::ConversionError&)
     {
@@ -298,7 +298,7 @@ namespace OpenMS
     }
   }
 
-  String USI::indexTypeToString(IndexType index_type)
+  std::string USI::indexTypeToString(IndexType index_type)
   {
     switch (index_type)
     {
@@ -313,10 +313,10 @@ namespace OpenMS
     }
   }
 
-  USI::IndexType USI::indexTypeFromString(const String& type_string)
+  USI::IndexType USI::indexTypeFromString(const std::string& type_string)
   {
-    String lower = type_string;
-    lower.toLower();
+    std::string lower = type_string;
+    StringUtils::toLower(lower);
 
     if (lower == "scan")
     {
@@ -337,23 +337,23 @@ namespace OpenMS
     }
   }
 
-  String USI::extractBasename(const String& filepath)
+  std::string USI::extractBasename(const std::string& filepath)
   {
     if (filepath.empty())
     {
       return "";
     }
 
-    String path = filepath;
+    std::string path = filepath;
 
     // Handle file:// URIs
-    if (path.hasPrefix("file://"))
+    if (StringUtils::hasPrefix(path, "file://"))
     {
-      path = path.substr(7);  // Remove "file://"
+      path = StringUtils::substr(path, 7);  // Remove "file://"
       // Handle Windows paths like file:///C:/path
       if (path.size() > 2 && path[0] == '/' && path[2] == ':')
       {
-        path = path.substr(1);  // Remove leading slash for Windows paths
+        path = StringUtils::substr(path, 1);  // Remove leading slash for Windows paths
       }
     }
 
@@ -361,25 +361,25 @@ namespace OpenMS
     size_t last_sep = path.rfind('/');
     size_t last_win_sep = path.rfind('\\');
     
-    if (last_win_sep != String::npos && (last_sep == String::npos || last_win_sep > last_sep))
+    if (last_win_sep != std::string::npos && (last_sep == std::string::npos || last_win_sep > last_sep))
     {
       last_sep = last_win_sep;
     }
 
-    if (last_sep != String::npos)
+    if (last_sep != std::string::npos)
     {
-      return path.substr(last_sep + 1);
+      return StringUtils::substr(path, last_sep + 1);
     }
 
     return path;
   }
 
-  const String& USI::getCVAccession()
+  const std::string& USI::getCVAccession()
   {
     return CV_ACCESSION;
   }
 
-  const String& USI::getCVName()
+  const std::string& USI::getCVName()
   {
     return CV_NAME;
   }

@@ -19,18 +19,18 @@ namespace OpenMS
     /**
     @brief Generates a meta value table required for GNPS FBMN, as defined here: https://ccms-ucsd.github.io/GNPSDocumentation/metadata/
     */
-    void GNPSMetaValueFile::store(const ConsensusMap& consensus_map, const String& output_file)
+    void GNPSMetaValueFile::store(const ConsensusMap& consensus_map, const std::string& output_file)
     {   
         StringList mzML_file_paths;
         consensus_map.getPrimaryMSRunPath(mzML_file_paths);
         std::ofstream outstr(output_file.c_str());
-        SVOutStream out(outstr, "\t", "_", String::NONE);
+        SVOutStream out(outstr, "\t", "_", OpenMS::QuotingMethod::NONE);
 
         out << "" << "filename" << "ATTRIBUTE_MAPID" << std::endl;
         Size i = 0;
         for (const auto& path: mzML_file_paths)
         {
-            out << String(i) << path.substr(path.find_last_of("/\\")+1) << "MAP"+String(i) << std::endl;
+            out << StringUtils::toStr(i) << StringUtils::substr(path, path.find_last_of("/\\")+1) << "MAP"+StringUtils::toStr(i) << std::endl;
             i++;
         }
     }

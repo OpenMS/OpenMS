@@ -70,7 +70,7 @@ public:
   FASTAContainer() = delete;
 
   /// C'tor with FASTA filename
-  FASTAContainer(const String& FASTA_file)
+  FASTAContainer(const std::string& FASTA_file)
     : f_(),
     offsets_(),
     data_fg_(),
@@ -320,7 +320,7 @@ public:
   struct Result
   {
     bool success; ///< did more than 40% of proteins have the *same* prefix or suffix
-    String name; ///< on success, what was the decoy string?
+    std::string name; ///< on success, what was the decoy string?
     bool is_prefix; ///< on success, was it a prefix or suffix
 
     bool operator==(const Result& rhs) const
@@ -467,10 +467,10 @@ public:
       boost::smatch sm;
       for (SignedSize i = 0; i < prot_count; ++i)
       {
-        String seq = proteins.chunkAt(i).identifier;
+        std::string seq = proteins.chunkAt(i).identifier;
 
-        String seq_lower = seq;
-        seq_lower.toLower();
+        std::string seq_lower = seq;
+        StringUtils::toLower(seq_lower);
 
         // search for prefix
         bool found_prefix = boost::regex_search(seq_lower, sm, pattern_prefix);

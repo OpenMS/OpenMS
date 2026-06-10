@@ -79,7 +79,7 @@ public:
     // a transition group holds the chromatographic data and peaks across
     // multiple chromatograms from the same compound
     typedef MRMTransitionGroup< MSChromatogram, TransitionType> MRMTransitionGroupType;
-    typedef std::map<String, MRMTransitionGroupType> TransitionGroupMapType;
+    typedef std::map<std::string, MRMTransitionGroupType> TransitionGroupMapType;
 
     //@}
 
@@ -218,8 +218,8 @@ private:
       std::vector<double> normalized_library_intensity;
       std::vector<std::string> transition_native_ids;
       std::vector<std::string> precursor_ids;
-      std::vector<String> transition_native_ids_openms;
-      std::vector<String> precursor_ids_openms;
+      std::vector<std::string> transition_native_ids_openms;
+      std::vector<std::string> precursor_ids_openms;
     };
 
     /**
@@ -409,14 +409,14 @@ private:
     bool strict_;
     bool use_ms1_ion_mobility_;
     bool apply_im_peak_picking_;
-    String scoring_model_;
-    String enzyme_;
+    std::string scoring_model_;
+    std::string enzyme_;
 
     // scoring parameters
     double rt_normalization_factor_;
     int add_up_spectra_;
-    String spectrum_addition_method_ ;
-    String spectrum_merge_method_type_;
+    std::string spectrum_addition_method_ ;
+    std::string spectrum_merge_method_type_;
     double spacing_for_spectra_resampling_;
     double merge_spectra_by_peak_width_fraction_;
     double uis_threshold_sn_;
@@ -428,7 +428,7 @@ private:
 
     double im_extra_drift_;
 
-    std::unordered_map<OpenMS::String, const PeptideType*> PeptideRefMap_;
+    std::unordered_map<std::string, const PeptideType*> PeptideRefMap_;
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;
     OpenMS::EmgScoring emgscoring_;

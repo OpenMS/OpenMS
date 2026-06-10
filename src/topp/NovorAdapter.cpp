@@ -96,52 +96,52 @@ protected:
   void registerOptionsAndFlags_() override
   {
     // thirdparty executable 
-    registerInputFile_("executable", "<jar>", "novor.jar", "novor.jar", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("executable", "<jar>", "novor.jar", "novor.jar", false, false, ListUtils::create<std::string>("skipexists"));
     // input, output and parameter file 
     registerInputFile_("in", "<file>", "", "MzML Input file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("out", "<file>", "", "Novor idXML output");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML"));
     // enzyme
     registerStringOption_("enzyme", "<choice>", "Trypsin", "Digestion enzyme - currently only Trypsin is supported ", false);
-    setValidStrings_("enzyme", ListUtils::create<String>("Trypsin"));
+    setValidStrings_("enzyme", ListUtils::create<std::string>("Trypsin"));
     // instrument
     registerStringOption_("fragmentation", "<choice>", "CID", "Fragmentation method", false);
-    setValidStrings_("fragmentation", ListUtils::create<String>("CID,HCD"));
+    setValidStrings_("fragmentation", ListUtils::create<std::string>("CID,HCD"));
     registerStringOption_("massAnalyzer", "<choice>" , "Trap", "MassAnalyzer e.g. (Oritrap CID-Trap, CID-FT, HCD-FT; QTof CID-TOF)", false);
-    setValidStrings_("massAnalyzer", ListUtils::create<String>("Trap,TOF,FT"));
+    setValidStrings_("massAnalyzer", ListUtils::create<std::string>("Trap,TOF,FT"));
     // mass error tolerance
     registerDoubleOption_("fragment_mass_tolerance", "<double>", 0.5, "Fragmentation error tolerance  (Da)", false);
     registerDoubleOption_("precursor_mass_tolerance", "<double>" , 15.0, "Precursor error tolerance  (ppm or Da)", false);
     registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
-    setValidStrings_("precursor_error_units", ListUtils::create<String>("ppm,Da"));
+    setValidStrings_("precursor_error_units", ListUtils::create<std::string>("ppm,Da"));
     // post-translational-modification
-    registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications", false);
-    setValidStrings_("variable_modifications", ListUtils::create<String>("Acetyl (K),Acetyl (N-term),Amidated (C-term),Ammonia-loss (N-term C),Biotin (K),Biotin (N-term),Carbamidomethyl (C),Carbamyl (K),Carbamyl (N-term),Carboxymethyl (C),Deamidated (NQ),Dehydrated (N-term C),Dioxidation (M),Methyl (C-term),Methyl (DE),Oxidation (M),Oxidation (HW),Phospho (ST),Phospho (Y),Pyro-carbamidomethyl (N-term C),Pyro-Glu (E),Pyro-Glu (Q),Sodium (C-term),Sodium (DE),Sulfo (STY),Trimethyl (RK)"));
-    registerStringList_("fixed_modifications", "<mods>", vector<String>(), "Fixed modifications", false);
-    setValidStrings_("fixed_modifications", ListUtils::create<String>("Acetyl (K),Acetyl (N-term),Amidated (C-term),Ammonia-loss (N-term C),Biotin (K),Biotin (N-term),Carbamidomethyl (C),Carbamyl (K),Carbamyl (N-term),Carboxymethyl (C),Deamidated (NQ),Dehydrated (N-term C),Dioxidation (M),Methyl (C-term),Methyl (DE),Oxidation (M),Oxidation (HW),Phospho (ST),Phospho (Y),Pyro-carbamidomethyl (N-term C),Pyro-Glu (E),Pyro-Glu (Q),Sodium (C-term),Sodium (DE),Sulfo (STY),Trimethyl (RK)"));
+    registerStringList_("variable_modifications", "<mods>", vector<std::string>(), "Variable modifications", false);
+    setValidStrings_("variable_modifications", ListUtils::create<std::string>("Acetyl (K),Acetyl (N-term),Amidated (C-term),Ammonia-loss (N-term C),Biotin (K),Biotin (N-term),Carbamidomethyl (C),Carbamyl (K),Carbamyl (N-term),Carboxymethyl (C),Deamidated (NQ),Dehydrated (N-term C),Dioxidation (M),Methyl (C-term),Methyl (DE),Oxidation (M),Oxidation (HW),Phospho (ST),Phospho (Y),Pyro-carbamidomethyl (N-term C),Pyro-Glu (E),Pyro-Glu (Q),Sodium (C-term),Sodium (DE),Sulfo (STY),Trimethyl (RK)"));
+    registerStringList_("fixed_modifications", "<mods>", vector<std::string>(), "Fixed modifications", false);
+    setValidStrings_("fixed_modifications", ListUtils::create<std::string>("Acetyl (K),Acetyl (N-term),Amidated (C-term),Ammonia-loss (N-term C),Biotin (K),Biotin (N-term),Carbamidomethyl (C),Carbamyl (K),Carbamyl (N-term),Carboxymethyl (C),Deamidated (NQ),Dehydrated (N-term C),Dioxidation (M),Methyl (C-term),Methyl (DE),Oxidation (M),Oxidation (HW),Phospho (ST),Phospho (Y),Pyro-carbamidomethyl (N-term C),Pyro-Glu (E),Pyro-Glu (Q),Sodium (C-term),Sodium (DE),Sulfo (STY),Trimethyl (RK)"));
    // forbidden residues
-   registerStringList_("forbiddenResidues", "<mods>", vector<String>(), "Forbidden Resiudes", false);
-   setValidStrings_("forbiddenResidues", ListUtils::create<String>("I,U"));
+   registerStringList_("forbiddenResidues", "<mods>", vector<std::string>(), "Forbidden Resiudes", false);
+   setValidStrings_("forbiddenResidues", ListUtils::create<std::string>("I,U"));
  
    // parameter novorFile will not be wrapped here
    registerInputFile_("novorFile", "<file>", "", "File to introduce customized algorithm parameters for advanced users (otional .novor file)", false);
-   setValidFormats_("novorFile", ListUtils::create<String>("novor"));
+   setValidFormats_("novorFile", ListUtils::create<std::string>("novor"));
    
-   registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
+   registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<std::string>("skipexists"));
    registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
 
   }
 
   void createParamFile_(ofstream& os)
   {
-    vector<String> variable_mods = getStringList_("variable_modifications");
-    vector<String> fixed_mods = getStringList_("fixed_modifications");
-    vector<String> forbidden_residues = getStringList_("forbiddenResidues");
+    vector<std::string> variable_mods = getStringList_("variable_modifications");
+    vector<std::string> fixed_mods = getStringList_("fixed_modifications");
+    vector<std::string> forbidden_residues = getStringList_("forbiddenResidues");
   
-    String variable_mod = ListUtils::concatenate(variable_mods, ',');
-    String fixed_mod = ListUtils::concatenate(fixed_mods, ',');
-    String forbidden_res = ListUtils::concatenate(forbidden_residues, ',');
+    std::string variable_mod = ListUtils::concatenate(variable_mods, ",");
+    std::string fixed_mod = ListUtils::concatenate(fixed_mods, ",");
+    std::string forbidden_res = ListUtils::concatenate(forbidden_residues, ",");
 
     os << "enzyme = " << getStringOption_("enzyme") << "\n"
        << "fragmentation = " << getStringOption_("fragmentation") << "\n"
@@ -153,7 +153,7 @@ protected:
        << "forbiddenResidues = " << forbidden_res << "\n";
   
     // novorFile for custom alogrithm parameters of nova
-    String cparamfile = getStringOption_("novorFile");
+    std::string cparamfile = getStringOption_("novorFile");
     ifstream cpfile(cparamfile);
     if (cpfile)
     {
@@ -168,16 +168,16 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
 
     //-------------------------------------------------------------
     // determine the executable
     //-------------------------------------------------------------
-    const String java_executable = getStringOption_("java_executable");
-    String java_memory = "-Xmx" + String(getIntOption_("java_memory")) + "m";
+    const std::string java_executable = getStringOption_("java_executable");
+    std::string java_memory = "-Xmx" + StringUtils::toStr(getIntOption_("java_memory")) + "m";
 
-    String executable = getStringOption_("executable");
+    std::string executable = getStringOption_("executable");
 
     if (executable.empty())
     {
@@ -203,7 +203,7 @@ protected:
     }
 
     writeLogInfo_("Executable is: " + executable);
-    const String path_to_executable = File::path(executable);
+    const std::string path_to_executable = File::path(executable);
     
     //-------------------------------------------------------------
     // reading input
@@ -213,13 +213,13 @@ protected:
     File::TempDir tmp_dir(debug_level_ >= 2);
 
     // parameter file
-    String tmp_param = tmp_dir.getPath() + "param.txt";    
+    std::string tmp_param = tmp_dir.getPath() + "param.txt";    
     ofstream os(tmp_param.c_str());
     createParamFile_(os);
 
     // convert mzML to mgf format
     Size count_written{ 0 };
-    String tmp_mgf = tmp_dir.getPath() + "tmp_mgf.mgf";
+    std::string tmp_mgf = tmp_dir.getPath() + "tmp_mgf.mgf";
     {
       std::ofstream ofs(tmp_mgf, std::ofstream::out);
       MascotGenericFile mgf;
@@ -256,9 +256,9 @@ protected:
     // process
     //-------------------------------------------------------------
 
-    String tmp_out = tmp_dir.getPath() + "tmp_out_novor.csv";
+    std::string tmp_out = tmp_dir.getPath() + "tmp_out_novor.csv";
 
-    std::vector<String> process_params = {java_memory, "-jar", executable, "-f", "-o", tmp_out, "-p", tmp_param, tmp_mgf};
+    std::vector<std::string> process_params = {java_memory, "-jar", executable, "-f", "-o", tmp_out, "-p", tmp_param, tmp_mgf};
 
     // print novor command line
     TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, process_params, path_to_executable);
@@ -298,26 +298,26 @@ protected:
       if (sl.empty() || sl[0][0] == '#') { continue; }
         
       PeptideIdentification pi;
-      pi.setSpectrumReference( exp[mapping.findByScanNumber(sl[1].toInt())].getNativeID());
+      pi.setSpectrumReference( exp[mapping.findByScanNumber(StringUtils::toInt32(sl[1]))].getNativeID());
       pi.setScoreType("novorscore");
       pi.setHigherScoreBetter(true);
-      pi.setRT(sl[2].toDouble());
-      pi.setMZ(sl[3].toDouble());
+      pi.setRT(StringUtils::toDouble(sl[2]));
+      pi.setMZ(StringUtils::toDouble(sl[3]));
 
       PeptideHit ph;
-      ph.setCharge(sl[4].toInt());
-      ph.setScore(sl[8].toDouble());
+      ph.setCharge(StringUtils::toInt32(sl[4]));
+      ph.setScore(StringUtils::toDouble(sl[8]));
 
       // replace PTM name (see http://wiki.rapidnovor.com/wiki/Built-in_PTMs)
-      String sequence = sl[9];
-      sequence.substitute("(Cam)", "(Carbamidomethyl)");
-      sequence.substitute("(O)","(Oxidation)");
-      sequence.substitute("(PyroCam)", "(Pyro-carbamidomethyl)");
+      std::string sequence = sl[9];
+      StringUtils::substitute(sequence, "(Cam)", "(Carbamidomethyl)");
+      StringUtils::substitute(sequence, "(O)","(Oxidation)");
+      StringUtils::substitute(sequence, "(PyroCam)", "(Pyro-carbamidomethyl)");
         
       ph.setSequence(AASequence::fromString(sequence));      
-      ph.setMetaValue("pepMass(denovo)", sl[5].toDouble());
-      ph.setMetaValue("err(data-denovo)", sl[6].toDouble());
-      ph.setMetaValue("ppm(1e6*err/(mz*z))", sl[7].toDouble());
+      ph.setMetaValue("pepMass(denovo)", StringUtils::toDouble(sl[5]));
+      ph.setMetaValue("err(data-denovo)", StringUtils::toDouble(sl[6]));
+      ph.setMetaValue("ppm(1e6*err/(mz*z))", StringUtils::toDouble(sl[7]));
       ph.setMetaValue("aaScore", sl[10]);
 
       pi.getHits().push_back(std::move(ph));   
@@ -330,7 +330,7 @@ protected:
     vector<ProteinIdentification> protein_ids;
     StringList versionrow;
     csv.getRow(2, versionrow);
-    String version = versionrow[0].substr(versionrow[0].find("v."));
+    std::string version = versionrow[0].substr(versionrow[0].find("v."));
       
     protein_ids = vector<ProteinIdentification>(1);
     protein_ids[0].setDateTime(DateTime::now());

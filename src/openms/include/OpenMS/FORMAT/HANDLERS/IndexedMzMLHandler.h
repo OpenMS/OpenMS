@@ -53,7 +53,7 @@ namespace Internal
   class OPENMS_DLLAPI IndexedMzMLHandler
   {
     /// Name of the file
-    String filename_;
+    std::string filename_;
     /// Binary offsets to all spectra
     std::vector< std::streampos > spectra_offsets_;
     /// Mapping of spectra native ids to offsets
@@ -99,7 +99,7 @@ namespace Internal
 
       Tries to parse the file, success can be checked with getParsingSuccess()
     */
-    explicit IndexedMzMLHandler(const String& filename);
+    explicit IndexedMzMLHandler(const std::string& filename);
 
     /// Copy constructor
     IndexedMzMLHandler(const IndexedMzMLHandler& source);
@@ -112,7 +112,7 @@ namespace Internal
 
       Tries to parse the file, success can be checked with getParsingSuccess()
     */
-    void openFile(const String& filename);
+    void openFile(const std::string& filename);
 
     /**
       @brief Returns whether parsing was successful

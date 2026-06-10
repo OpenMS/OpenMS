@@ -13,7 +13,6 @@
 
 namespace OpenMS
 {
-  class String;
 
   /**
       @brief Version information class.
@@ -50,7 +49,7 @@ public:
       Int version_major = 0;             ///< Major number ahead of the first @c '.'.
       Int version_minor = 0;             ///< Minor number between the first and (optional) second @c '.'.
       Int version_patch = 0;             ///< Patch number after the second @c '.'; left at @c 0 when the version string had only two components.
-      String pre_release_identifier;     ///< Pre-release suffix after a trailing @c '-' (everything to the end of the string); empty when no @c '-' is present.
+      std::string pre_release_identifier;     ///< Pre-release suffix after a trailing @c '-' (everything to the end of the string); empty when no @c '-' is present.
 
       /// Default-construct to @c 0.0.0 with an empty pre-release identifier (equivalent to @ref EMPTY).
       VersionDetails() = default;
@@ -80,7 +79,7 @@ public:
         @param[in] version Version string in @c "X.Y[.Z[-PRE]]" form.
         @return Parsed struct on success, @ref EMPTY on any of the failure paths above.
       */
-      static VersionDetails create(const String & version);
+      static VersionDetails create(const std::string & version);
 
       /**
         @brief Compare two versions lexicographically by (major, minor, patch).
@@ -121,10 +120,10 @@ public:
     };
 
     /// Return the build time of OpenMS
-    static String getTime();
+    static std::string getTime();
 
     /// Return the version number of OpenMS
-    static String getVersion();
+    static std::string getVersion();
 
     /// Return the version number of OpenMS
     static VersionDetails getVersionStruct();
@@ -140,7 +139,7 @@ public:
       @internal The current git version is queried by the build system regularly and
       the result is written as a header file which is included by VersionInfo.cpp.
     */
-    static String getRevision();
+    static std::string getRevision();
 
     /**
       @brief Return the branch name from revision control system, e.g. git.
@@ -153,7 +152,7 @@ public:
       @internal The current git branch is queried by the build system regularly and
       the result is written as a header file which is included by VersionInfo.cpp.
     */
-    static String getBranch();
+    static std::string getBranch();
 
   };
 

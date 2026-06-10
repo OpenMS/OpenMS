@@ -65,7 +65,7 @@ START_SECTION(([EXTRA] export_then_import_round_trip))
   PeptideIdentificationList pep_ids;
   buildMinimalIds(prot_ids, pep_ids);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".idparquet";
 
@@ -88,7 +88,7 @@ START_SECTION(([EXTRA] export_then_import_round_trip))
   TEST_NOT_EQUAL(prot_ids_in[0].getIdentifier(), "run_1");
   TEST_STRING_EQUAL(pep_ids_in[0].getIdentifier(), prot_ids_in[0].getIdentifier());
   TEST_STRING_EQUAL(prot_ids_in[0].getSearchParameters().digestion_enzyme.getName(), "Trypsin");
-  TEST_STRING_EQUAL(String(prot_ids_in[0].getSearchParameters().getMetaValue("extra_features")),
+  TEST_STRING_EQUAL(StringUtils::toStr(prot_ids_in[0].getSearchParameters().getMetaValue("extra_features")),
                     "COMET:deltaCn,MS:1002049");
 
   // Primary MS run path round-trips (spectra_data UserParam).
@@ -121,7 +121,7 @@ START_SECTION(([EXTRA] import_missing_subfile_returns_false))
   PeptideIdentificationList pep_ids;
   buildMinimalIds(prot_ids, pep_ids);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".idparquet";
   TEST_TRUE(PSMArrowIO::exportToParquet(prot_ids, pep_ids, dir));
@@ -143,7 +143,7 @@ START_SECTION(([EXTRA] export_target_is_regular_file_returns_false))
   PeptideIdentificationList pep_ids;
   buildMinimalIds(prot_ids, pep_ids);
 
-  String path;
+  std::string path;
   NEW_TMP_FILE(path)
   path += ".idparquet";
   // Create a regular file at the target path.
@@ -162,7 +162,7 @@ START_SECTION(([EXTRA] empty_psms_round_trips))
   buildMinimalIds(prot_ids, pep_ids);
   pep_ids.clear();
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".idparquet";
 
@@ -205,7 +205,7 @@ START_SECTION(([EXTRA] decoy_round_trips))
   pid.getHits().push_back(hit);
   pep_ids.push_back(pid);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".idparquet";
 
@@ -217,7 +217,7 @@ START_SECTION(([EXTRA] decoy_round_trips))
 
   TEST_EQUAL(pep_ids_in.size(), 1);
   TEST_EQUAL(pep_ids_in[0].getHits().size(), 1);
-  TEST_STRING_EQUAL(String(pep_ids_in[0].getHits()[0].getMetaValue("target_decoy")), "decoy");
+  TEST_STRING_EQUAL(StringUtils::toStr(pep_ids_in[0].getHits()[0].getMetaValue("target_decoy")), "decoy");
 
   File::removeDirRecursively(dir);
 }
@@ -249,13 +249,13 @@ START_SECTION(([EXTRA] multi_rank_round_trips))
     hit.setScore(1.0 / rank);
     hit.setRank(static_cast<UInt>(rank));
     PeptideEvidence ev;
-    ev.setProteinAccession("sp|P" + String(rank) + "|RANK");
+    ev.setProteinAccession("sp|P" + StringUtils::toStr(rank) + "|RANK");
     hit.addPeptideEvidence(ev);
     pid.getHits().push_back(hit);
   }
   pep_ids.push_back(pid);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".idparquet";
 

@@ -22,7 +22,7 @@ using namespace OpenMS;
 // Functions to create input data
 
 // create a MSSpectrum with Precursor, MSLevel and RT
-const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, Precursor::ActivationMethod precursor_method = Precursor::ActivationMethod::CID)
+const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const std::string& id, Precursor::ActivationMethod precursor_method = Precursor::ActivationMethod::CID)
 {
   Precursor precursor;
   std::set<Precursor::ActivationMethod> am;
@@ -40,7 +40,7 @@ const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, Pr
 
 // create a PeptideIdentifiaction with a PeptideHit (sequence, charge), rt and mz
 // default values for sequence PEPTIDE
-const PeptideIdentification createPeptideIdentification(const String& id, const String& sequence = String("PEPTIDE"), Int charge = 3, double mz = 266)
+const PeptideIdentification createPeptideIdentification(const std::string& id, const std::string& sequence =std::string("PEPTIDE"), Int charge = 3, double mz = 266)
 {
   PeptideHit peptide_hit;
   peptide_hit.setSequence(AASequence::fromString(sequence));
@@ -75,7 +75,7 @@ END_SECTION
 FragmentMassError frag_ma_err;
 
 // tests compute function with fmap
-START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std::map<String, UInt64>& map_to_spectrum, const ToleranceUnit tolerance_unit = ToleranceUnit::AUTO,
+START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std::map<std::string, UInt64>& map_to_spectrum, const ToleranceUnit tolerance_unit = ToleranceUnit::AUTO,
                            const double tolerance = 20))
 {
   //--------------------------------------------------------------------
@@ -391,7 +391,7 @@ START_SECTION(void compute(PeptideIdentificationList& pep_ids, const ProteinIden
 }
 END_SECTION
 
-START_SECTION(const String& getName() const override) {TEST_EQUAL(frag_ma_err.getName(), "FragmentMassError")} END_SECTION
+START_SECTION(const std::string& getName() const override) {TEST_EQUAL(frag_ma_err.getName(), "FragmentMassError")} END_SECTION
 
 
   START_SECTION(QCBase::Status requirements() const override)

@@ -53,22 +53,22 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  void CVMappingRule::setIdentifier(const String& identifier)
+  void CVMappingRule::setIdentifier(const std::string& identifier)
   {
     identifier_ = identifier;
   }
 
-  const String& CVMappingRule::getIdentifier() const
+  const std::string& CVMappingRule::getIdentifier() const
   {
     return identifier_;
   }
 
-  void CVMappingRule::setElementPath(const String& element_path)
+  void CVMappingRule::setElementPath(const std::string& element_path)
   {
     element_path_ = element_path;
   }
 
-  const String& CVMappingRule::getElementPath() const
+  const std::string& CVMappingRule::getElementPath() const
   {
     return element_path_;
   }
@@ -93,12 +93,12 @@ namespace OpenMS
     return combinations_logic_;
   }
 
-  void CVMappingRule::setScopePath(const String& path)
+  void CVMappingRule::setScopePath(const std::string& path)
   {
     scope_path_ = path;
   }
 
-  const String& CVMappingRule::getScopePath() const
+  const std::string& CVMappingRule::getScopePath() const
   {
     return scope_path_;
   }

@@ -107,10 +107,10 @@ public:
   MSGFPlusAdapter() :
     SearchEngineBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+.", true),
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
-    fragment_methods_(ListUtils::create<String>("from_spectrum,CID,ETD,HCD")),
-    instruments_(ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive")),
-    protocols_(ListUtils::create<String>("automatic,phospho,iTRAQ,iTRAQ_phospho,TMT,none")),
-    tryptic_(ListUtils::create<String>("non,semi,fully"))
+    fragment_methods_(ListUtils::create<std::string>("from_spectrum,CID,ETD,HCD")),
+    instruments_(ListUtils::create<std::string>("low_res,high_res,TOF,Q_Exactive")),
+    protocols_(ListUtils::create<std::string>("automatic,phospho,iTRAQ,iTRAQ_phospho,TMT,none")),
+    tryptic_(ListUtils::create<std::string>("non,semi,fully"))
   {
     ProteaseDB::getInstance()->getAllMSGFNames(enzymes_);
     std::sort(enzymes_.begin(),enzymes_.end());
@@ -121,13 +121,13 @@ protected:
   struct SequenceParts
   {
     char aa_before, aa_after; // may be '\0' if not given
-    String peptide;
+    std::string peptide;
 
     SequenceParts(): aa_before(0), aa_after(0) {}
   };
 
   // lists of allowed parameter values:
-  vector<String> fragment_methods_, instruments_, enzymes_, protocols_, tryptic_;
+  vector<std::string> fragment_methods_, instruments_, enzymes_, protocols_, tryptic_;
 
   // primary MS run referenced in the mzML file
   StringList primary_ms_run_path_;
@@ -139,14 +139,14 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output file (.idXML) or directory bundle (.idparquet) containing the search results.", false);
     setValidFormats_("out", {"idXML", "idparquet"});
     registerOutputFile_("mzid_out", "<file>", "", "Alternative output file (MS-GF+ parameter '-o')\nEither 'out' or 'mzid_out' are required. They can be used together.", false);
-    setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
+    setValidFormats_("mzid_out", ListUtils::create<std::string>("mzid"));
     registerInputFile_("executable", "<file>", "MSGFPlus.jar", "The MSGFPlus Java archive file. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
-    registerInputFile_("database", "<file>", "", "Protein sequence database (FASTA file; MS-GF+ parameter '-d'). Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'.", true, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("database", ListUtils::create<String>("FASTA"));
+    registerInputFile_("database", "<file>", "", "Protein sequence database (FASTA file; MS-GF+ parameter '-d'). Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'.", true, false, ListUtils::create<std::string>("skipexists"));
+    setValidFormats_("database", ListUtils::create<std::string>("FASTA"));
 
     registerDoubleOption_("precursor_mass_tolerance", "<value>", 10, "Precursor monoisotopic mass tolerance (MS-GF+ parameter '-t')", false);
     registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance (MS-GF+ parameter '-t')", false);
-    setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
+    setValidStrings_("precursor_error_units", ListUtils::create<std::string>("Da,ppm"));
 
     registerStringOption_("isotope_error_range", "<range>", "0,1", "Range of allowed isotope peak errors (MS-GF+ parameter '-ti'). Takes into account the error introduced by choosing a non-monoisotopic peak for fragmentation. Combined with 'precursor_mass_tolerance'/'precursor_error_units', this determines the actual precursor mass tolerance. E.g. for experimental mass 'exp' and calculated mass 'calc', '-precursor_mass_tolerance 20 -precursor_error_units ppm -isotope_error_range -1,2' tests '|exp - calc - n * 1.00335 Da| < 20 ppm' for n = -1, 0, 1, 2.", false);
 
@@ -182,7 +182,7 @@ protected:
     setMinInt_("min_peaks", 10); 
 
     registerStringOption_("add_features", "<true/false>", "true", "Output additional features (MS-GF+ parameter '-addFeatures'). This is required by Percolator and hence by default enabled.", false, false);
-    setValidStrings_("add_features", ListUtils::create<String>("true,false"));
+    setValidStrings_("add_features", ListUtils::create<std::string>("true,false"));
     
     registerIntOption_("max_mods", "<num>", 2, "Maximum number of modifications per peptide. If this value is large, the search may take very long.", false);
     setMinInt_("max_mods", 0);
@@ -198,7 +198,7 @@ protected:
                                              "   One task per thread will use the most memory, but will usually finish the fastest.\n"
                                              "   2-3 tasks per thread will use comparably less memory, but may cause the search to take 1.5 to 2 times as long.", false);
 
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     registerStringList_("fixed_modifications", "<mods>", {"Carbamidomethyl (C)"}, "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
@@ -225,7 +225,7 @@ protected:
   // Method to cut the amino acids before/after the peptide (splice sites) off the sequence.
   // The sequences in the TSV file have the format 'K.XXXR.X' (where XXXR is the actual peptide sequence).
   // This method returns the sequence split into its three parts (e.g. "K", "XXXR", "X").
-  struct SequenceParts splitSequence_(const String& sequence)
+  struct SequenceParts splitSequence_(const std::string& sequence)
   {
     struct SequenceParts parts;
     size_t len = sequence.size(), start = 0, count = string::npos;
@@ -242,36 +242,36 @@ protected:
         parts.aa_after = sequence[len - 1];
       }
     }
-    parts.peptide = sequence.substr(start, count);
+    parts.peptide = StringUtils::substr(sequence, start, count);
     return parts;
   }
 
-  String modifyNTermAASpecificSequence_(const String& seq)
+  std::string modifyNTermAASpecificSequence_(const std::string& seq)
   {
-    String swap;
+    std::string swap;
     string modifiedSequence = seq;
-    vector<pair<String, char> > massShiftList;
+    vector<pair<std::string, char> > massShiftList;
 
     massShiftList.push_back(make_pair("-18.011", 'E'));
     massShiftList.push_back(make_pair("-17.027", 'Q'));
 
-    for (vector<pair<String, char> >::const_iterator it = massShiftList.begin(); it != massShiftList.end(); ++it)
+    for (vector<pair<std::string, char> >::const_iterator it = massShiftList.begin(); it != massShiftList.end(); ++it)
     {
       string modMassShift = it->first;
       size_t found = modifiedSequence.find(modMassShift);
 
       if (found != string::npos)
       {
-        String tmp = modifiedSequence.substr(0, found + modMassShift.length() + 1);
+        std::string tmp = StringUtils::substr(modifiedSequence, 0, found + modMassShift.length() + 1);
         size_t foundAA = tmp.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
         if ((foundAA > found) && (tmp[foundAA] == it->second)) // no AA at the begin
         {
           if (found > 0)
           {
-            swap = modifiedSequence.substr(0, found);
+            swap = StringUtils::substr(modifiedSequence, 0, found);
           }
-          return swap += *tmp.rbegin() + modMassShift + modifiedSequence.substr(found + modMassShift.length() + 1);
+          return swap += *tmp.rbegin() + modMassShift + StringUtils::substr(modifiedSequence, found + modMassShift.length() + 1);
         }
       }
     }
@@ -281,9 +281,9 @@ protected:
   // Method to replace the mass representation of modifications.
   // Modifications in the TSV file have the format 'M+15.999'
   // After using this method the sequence should look like this: 'M[+15.999]'
-  String modifySequence_(const String& seq)
+  std::string modifySequence_(const std::string& seq)
   {
-    String modifiedSequence = seq;
+    std::string modifiedSequence = seq;
     size_t found1 = modifiedSequence.find_first_of("+-");
     while (found1 != string::npos)
     {
@@ -306,9 +306,9 @@ protected:
   // Parse mzML and create RTMapping
   // get RT: it doesn't exist in output from MS-GF+
   // get m/z: it is rounded after converting to TSV
-  void generateInputfileMapping_(map<String, vector<float> >& rt_mapping)
+  void generateInputfileMapping_(map<std::string, vector<float> >& rt_mapping)
   {
-    String exp_name = getStringOption_("in");
+    std::string exp_name = getStringOption_("in");
 
     if (!exp_name.empty())
     {
@@ -327,7 +327,7 @@ protected:
 
       for (MSSpectrum& ms : exp)
       {
-        String id = ms.getNativeID(); // expected format: "... scan=#"
+        std::string id = ms.getNativeID(); // expected format: "... scan=#"
         if (!id.empty())
         {
           rt_mapping[id].push_back(ms.getRT());
@@ -337,7 +337,7 @@ protected:
     }
   }
 
-  String makeModString_(const String& mod_name, bool fixed=true)
+  std::string makeModString_(const std::string& mod_name, bool fixed=true)
   {
     const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_name);
     char residue = mod->getOrigin();
@@ -345,7 +345,7 @@ protected:
     {
       residue = '*'; // terminal mod. without residue specificity
     }
-    String position = mod->getTermSpecificityName();
+    std::string position = mod->getTermSpecificityName();
     if (position == "Protein N-term")
     {
       position = "Prot-N-term";
@@ -358,10 +358,10 @@ protected:
     {
       position = "any";
     }
-    return String(mod->getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod->getId() + "    # " + mod_name;
+    return StringUtils::toStr(mod->getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod->getId() + "    # " + mod_name;
   }
 
-  void writeModificationsFile_(const String& out_path, const vector<String>& fixed_mods, const vector<String>& variable_mods, Size max_mods)
+  void writeModificationsFile_(const std::string& out_path, const vector<std::string>& fixed_mods, const vector<std::string>& variable_mods, Size max_mods)
   {
     ofstream output(out_path.c_str());
     if (!output)
@@ -377,7 +377,7 @@ protected:
     }
     else
     {
-      for (vector<String>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
+      for (vector<std::string>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
       {
         output << makeModString_(*it) << "\n";
       }
@@ -389,18 +389,18 @@ protected:
     }
     else
     {
-      for (vector<String>::const_iterator it = variable_mods.begin(); it != variable_mods.end(); ++it)
+      for (vector<std::string>::const_iterator it = variable_mods.begin(); it != variable_mods.end(); ++it)
       {
         output << makeModString_(*it, false) << "\n";
       }
     }
   }
 
-  String describeHit_(const PeptideHit& hit)
+  std::string describeHit_(const PeptideHit& hit)
   {
     return "peptide hit with sequence '" + hit.getSequence().toString() +
-      "', charge " + String(hit.getCharge()) + ", score " +
-      String(hit.getScore());
+      "', charge " + StringUtils::toStr(hit.getCharge()) + ", score " +
+      StringUtils::toStr(hit.getScore());
   }
 
   // Set the MS-GF+ e-value (MS:1002052) as new peptide identification score.
@@ -411,7 +411,7 @@ protected:
       // MS:1002052 == MS-GF spectral E-value
       if (!hit.metaValueExists("MS:1002052"))
       {
-        String msg = "Meta value 'MS:1002052' not found for " + describeHit_(hit);
+        std::string msg = "Meta value 'MS:1002052' not found for " + describeHit_(hit);
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
       }
 
@@ -421,10 +421,10 @@ protected:
     id.setHigherScoreBetter(false);
   }
 
-  bool createLockedDBIndex(const String& db_name, const String& java_executable, const String& java_memory, const String& executable)
+  bool createLockedDBIndex(const std::string& db_name, const std::string& java_executable, const std::string& java_memory, const std::string& executable)
   {
-    const String db_indexfile = FileHandler::stripExtension(db_name) + ".canno";
-    const String lockfile_path = db_name + ".lock";
+    const std::string db_indexfile = FileHandler::stripExtension(db_name) + ".canno";
+    const std::string lockfile_path = db_name + ".lock";
     OPENMS_LOG_DEBUG << "Checking for db index, using a lock file ..." << std::endl;
 
     // Create the lock file if it doesn't exist (needed by boost::interprocess::file_lock)
@@ -433,7 +433,7 @@ protected:
       if (!touch.is_open())
       {
         // Cannot create lock file - check if index already exists
-        String msg = "The lock file could not be created, for lack of permissions in the parent directory.";
+        std::string msg = "The lock file could not be created, for lack of permissions in the parent directory.";
         if (!File::exists(db_indexfile))
         {
           OPENMS_LOG_ERROR << msg << " Checking index anyway: No database index found! Please make the directory writable or pre-create an DB index." << std::endl;
@@ -457,11 +457,11 @@ protected:
       if (!File::exists(db_indexfile))
       {
         OPENMS_LOG_INFO << "\nNo database index found! Creating index while holding a lock ..." << std::endl;
-        std::vector<String> process_params = {java_memory, "-cp", executable, "edu.ucsd.msjava.msdbsearch.BuildSA", "-d", db_name, "-tda", "0"};
+        std::vector<std::string> process_params = {java_memory, "-cp", executable, "edu.ucsd.msjava.msdbsearch.BuildSA", "-d", db_name, "-tda", "0"};
 
         // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
         // If no output file is produced, we can print the stderr below.
-        String proc_stdout, proc_stderr;
+        std::string proc_stdout, proc_stderr;
 
         TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, process_params, proc_stdout, proc_stderr);
         if (exit_code != EXECUTION_OK)
@@ -502,16 +502,16 @@ protected:
     // parse parameters
     //-------------------------------------------------------------
 
-    String in = getRawfileName();
-    String out = getStringOption_("out");
-    String mzid_out = getStringOption_("mzid_out");
+    std::string in = getRawfileName();
+    std::string out = getStringOption_("out");
+    std::string mzid_out = getStringOption_("mzid_out");
     if (mzid_out.empty() && out.empty())
     {
       writeLogError_("Error:  no output file given (parameter 'out' or 'mzid_out')");
       return ILLEGAL_PARAMETERS;
     }
 
-    const String java_executable = getStringOption_("java_executable");
+    const std::string java_executable = getStringOption_("java_executable");
     if (!getFlag_("force"))
     {
       if (!JavaInfo::canRun(java_executable))
@@ -525,18 +525,18 @@ protected:
       writeLogWarn_("The installation of Java was not checked.");
     }
     
-    const String java_memory = "-Xmx" + String(getIntOption_("java_memory")) + "m";
-    const String executable = getStringOption_("executable");
+    const std::string java_memory = "-Xmx" + StringUtils::toStr(getIntOption_("java_memory")) + "m";
+    const std::string executable = getStringOption_("executable");
 
-    const String db_name = getDBFilename();
+    const std::string db_name = getDBFilename();
     if (!createLockedDBIndex(db_name, java_executable, java_memory, executable))
     {
       OPENMS_LOG_ERROR << "Could not create/verify database index. Aborting ..." << std::endl;
       return ExitCodes::INTERNAL_ERROR;
     }
 
-    vector<String> fixed_mods = getStringList_("fixed_modifications");
-    vector<String> variable_mods = getStringList_("variable_modifications");
+    vector<std::string> fixed_mods = getStringList_("fixed_modifications");
+    vector<std::string> variable_mods = getStringList_("variable_modifications");
     bool no_mods = fixed_mods.empty() && variable_mods.empty();
     Int max_mods = getIntOption_("max_mods");
     if ((max_mods == 0) && !no_mods)
@@ -546,7 +546,7 @@ protected:
 
     // create temporary directory (and modifications file, if necessary):
     File::TempDir tmp_dir(debug_level_ >= 2);
-    String mzid_temp, mod_file;
+    std::string mzid_temp, mod_file;
     // always create a temporary mzid file first, even if mzid output is requested via "mzid_out"
     // (reason: TOPPAS may pass a filename with wrong extension to "mzid_out", which would cause an error in MzIDToTSVConverter below,
     // so we make sure that we have a properly named mzid file for the converter; see https://github.com/OpenMS/OpenMS/issues/1251)
@@ -558,47 +558,47 @@ protected:
     }
 
     // parameters also used by OpenMS (see idXML creation below):
-    String enzyme = getStringOption_("enzyme");
+    std::string enzyme = getStringOption_("enzyme");
     double precursor_mass_tol = getDoubleOption_("precursor_mass_tolerance");
-    String precursor_error_units = getStringOption_("precursor_error_units");
+    std::string precursor_error_units = getStringOption_("precursor_error_units");
     Int min_precursor_charge = getIntOption_("min_precursor_charge");
     Int max_precursor_charge = getIntOption_("max_precursor_charge");
     // parameters only needed for MS-GF+:
     // no need to handle "not found" case - would have given error during parameter parsing:
-    Int fragment_method_code = ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method"));
-    Int instrument_code = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
+    Int fragment_method_code = ListUtils::getIndex<std::string>(fragment_methods_, getStringOption_("fragment_method"));
+    Int instrument_code = ListUtils::getIndex<std::string>(instruments_, getStringOption_("instrument"));
     Int enzyme_code = ProteaseDB::getInstance()->getEnzyme(enzyme)->getMSGFID();
-    Int protocol_code = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
+    Int protocol_code = ListUtils::getIndex<std::string>(protocols_, getStringOption_("protocol"));
     // protocol code = 0 corresponds to "automatic" (MS-GF+ docu 2017) and "none" (MS-GF+ docu 2013). We keep 0 = "none" for backward compatibility.
     if (protocol_code == 5)
     {
         protocol_code = 0;
     }
-    Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
+    Int tryptic_code = ListUtils::getIndex<std::string>(tryptic_, getStringOption_("tryptic"));
 
-    std::vector<String> process_params = { // the actual process is Java, not MS-GF+!
+    std::vector<std::string> process_params = { // the actual process is Java, not MS-GF+!
       java_memory,
       "-jar", executable,
       "-s", in,
       "-o", mzid_temp,
       "-d", db_name,
-      "-t", String(precursor_mass_tol) + precursor_error_units,
+      "-t",StringUtils::toStr(precursor_mass_tol) + precursor_error_units,
       "-ti", getStringOption_("isotope_error_range"),
-      "-m", String(fragment_method_code),
-      "-inst", String(instrument_code),
-      "-e", String(enzyme_code),
-      "-protocol", String(protocol_code),
-      "-ntt", String(tryptic_code),
-      "-minLength", String(getIntOption_("min_peptide_length")),
-      "-maxLength", String(getIntOption_("max_peptide_length")),
-      "-minNumPeaks", String(getIntOption_("min_peaks")),
-      "-minCharge", String(min_precursor_charge),
-      "-maxCharge", String(max_precursor_charge),
-      "-maxMissedCleavages", String(getIntOption_("max_missed_cleavages")),
-      "-n", String(getIntOption_("matches_per_spec")),
-      "-addFeatures", String(int((getParam_().getValue("add_features") == "true"))),
-      "-tasks", String(getIntOption_("tasks")),
-      "-thread", String(getIntOption_("threads"))
+      "-m",StringUtils::toStr(fragment_method_code),
+      "-inst",StringUtils::toStr(instrument_code),
+      "-e",StringUtils::toStr(enzyme_code),
+      "-protocol",StringUtils::toStr(protocol_code),
+      "-ntt",StringUtils::toStr(tryptic_code),
+      "-minLength",StringUtils::toStr(getIntOption_("min_peptide_length")),
+      "-maxLength",StringUtils::toStr(getIntOption_("max_peptide_length")),
+      "-minNumPeaks",StringUtils::toStr(getIntOption_("min_peaks")),
+      "-minCharge",StringUtils::toStr(min_precursor_charge),
+      "-maxCharge",StringUtils::toStr(max_precursor_charge),
+      "-maxMissedCleavages",StringUtils::toStr(getIntOption_("max_missed_cleavages")),
+      "-n",StringUtils::toStr(getIntOption_("matches_per_spec")),
+      "-addFeatures",StringUtils::toStr(int((getParam_().getValue("add_features") == "true"))),
+      "-tasks",StringUtils::toStr(getIntOption_("tasks")),
+      "-thread",StringUtils::toStr(getIntOption_("threads"))
     };
     if (getFlag_("allow_dense_centroided_peaks"))
     {
@@ -606,7 +606,7 @@ protected:
       process_params.push_back("-allowDenseCentroidedPeaks");
       process_params.push_back("1");
     }
-    String conf = getStringOption_("conf");
+    std::string conf = getStringOption_("conf");
     if (!conf.empty())
     {
       process_params.push_back("-conf"); process_params.push_back(conf);
@@ -626,7 +626,7 @@ protected:
     writeLogInfo_("Running MSGFPlus search...");
     // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
     // If no output file is produced, we can print the stderr below.
-    String proc_stdout, proc_stderr;
+    std::string proc_stdout, proc_stderr;
 
     TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, process_params, proc_stdout, proc_stderr);
     if (exit_code != EXECUTION_OK)
@@ -655,13 +655,13 @@ protected:
       if (getFlag_("legacy_conversion"))
       {
         // run TSV converter
-        String tsv_out = tmp_dir.getPath() + "msgfplus_converted.tsv";
+        std::string tsv_out = tmp_dir.getPath() + "msgfplus_converted.tsv";
         int java_permgen = getIntOption_("java_permgen");
         process_params.clear();
         process_params.push_back(java_memory);
         if (java_permgen > 0)
         {
-          process_params.push_back("-XX:MaxPermSize=" + String(java_permgen) + "m");
+          process_params.push_back("-XX:MaxPermSize=" + StringUtils::toStr(java_permgen) + "m");
         }
         process_params.insert(process_params.end(), {"-cp", executable, "edu.ucsd.msjava.ui.MzIDToTsv",
                        "-i", mzid_temp,
@@ -677,13 +677,13 @@ protected:
         }
 
         // initialize map
-        map<String, vector<float> > rt_mapping;
+        map<std::string, vector<float> > rt_mapping;
         generateInputfileMapping_(rt_mapping);
 
         // handle the search parameters
         ProteinIdentification::SearchParameters search_parameters;
         search_parameters.db = db_name;
-        search_parameters.charges = "+" + String(min_precursor_charge) + "-+" + String(max_precursor_charge);
+        search_parameters.charges = "+" + StringUtils::toStr(min_precursor_charge) + "-+" + StringUtils::toStr(max_precursor_charge);
         search_parameters.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
         search_parameters.fixed_modifications = fixed_mods;
         search_parameters.variable_modifications = variable_mods;
@@ -703,8 +703,8 @@ protected:
         protein_id.setPrimaryMSRunPath(primary_ms_run_path_);
 
         DateTime now = DateTime::now();
-        String date_string = now.getDate();
-        String identifier = "MS-GF+_" + date_string;
+        std::string date_string = now.getDate();
+        std::string identifier = "MS-GF+_" + date_string;
 
         protein_id.setIdentifier(identifier);
         protein_id.setDateTime(now);
@@ -715,7 +715,7 @@ protected:
     
         // store all peptide identifications in a map, the key is the scan number
         map<int, PeptideIdentification> peptide_identifications;
-        set<String> prot_accessions;
+        set<std::string> prot_accessions;
     
         // iterate over the rows of the TSV file
         // columns: #SpecFile, SpecID, ScanNum, FragMethod, Precursor, IsotopeError, PrecursorError(ppm), Charge, Peptide, Protein, DeNovoScore, MSGFScore, SpecEValue, EValue, QValue, PepQValue
@@ -723,28 +723,28 @@ protected:
         CsvFile tsvfile(tsv_out, '\t');
         for (Size row_count = 1; row_count < tsvfile.rowCount(); ++row_count) // skip header line
         {
-          vector<String> elements;
+          vector<std::string> elements;
           if (!tsvfile.getRow(row_count, elements))
           {
-            writeLogError_("Error: could not split row " + String(row_count) + " of file '" + tsv_out + "'");
+            writeLogError_("Error: could not split row " + StringUtils::toStr(row_count) + " of file '" + tsv_out + "'");
             return PARSE_ERROR;
           }
 
           int scan_number = 0;
           if ((elements[2].empty()) || (elements[2] == "-1"))
           {
-            scan_number = elements[1].suffix('=').toInt();
+            scan_number = StringUtils::toInt32(elements[1]);
           }
           else
           {
-            scan_number = elements[2].toInt();
+            scan_number = StringUtils::toInt32(elements[2]);
           }
 
           struct SequenceParts parts = splitSequence_(elements[8]);
-          parts.peptide.substitute(',', '.'); // decimal separator should be dot, not comma
+          StringUtils::substitute(parts.peptide, ',', '.'); // decimal separator should be dot, not comma
           AASequence seq = AASequence::fromString(modifySequence_(modifyNTermAASpecificSequence_(parts.peptide)));
 
-          String accession = elements[9];
+          std::string accession = elements[9];
           // @BUG If there's a space before the protein accession in the FASTA file (e.g. "> accession ..."),
           // the "Protein" field in the TSV file will be empty, leading to an empty accession and no protein
           // reference in the idXML output file! (The mzIdentML output is not affected by this.)
@@ -795,7 +795,7 @@ protected:
           }
           else // new PeptideIdentification
           {
-            String spec_id = elements[1];
+            std::string spec_id = elements[1];
             pep_ident.setRT(rt_mapping[spec_id][0]);
             pep_ident.setMZ(rt_mapping[spec_id][1]);
             pep_ident.setMetaValue("ScanNumber", scan_number);
@@ -805,9 +805,9 @@ protected:
           }
           if (!hit_exists) // add new PeptideHit
           {
-            double score = elements[12].toDouble();
+            double score = StringUtils::toDouble(elements[12]);
             UInt rank = 0; // set to 0 at the moment
-            Int charge = elements[7].toInt();
+            Int charge = StringUtils::toInt32(elements[7]);
             PeptideHit hit(score, rank, charge, std::move(seq));
             hit.addPeptideEvidence(evidence);
             pep_ident.insertHit(hit);
@@ -815,7 +815,7 @@ protected:
         }
 
         vector<ProteinHit> prot_hits;
-        for (set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++it)
+        for (set<std::string>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++it)
         {
           if (it->empty())
           {

@@ -47,7 +47,7 @@ public:
               @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <typename FeatureMapType>
-    void load(const String& filename, FeatureMapType& feature_map)
+    void load(const std::string& filename, FeatureMapType& feature_map)
     {
       // load input
       TextFile input(filename);
@@ -59,7 +59,7 @@ public:
       bool first_line = true;
       for (TextFile::ConstIterator it = input.begin(); it != input.end(); ++it)
       {
-        String line = *it;
+        std::string line = *it;
 
         //ignore comment lines
         if (line.empty() || line[0] == '#') continue;
@@ -72,12 +72,12 @@ public:
         }
 
         //split lines: scan\ttime\tmz\taccurateMZ\tmass\tintensity\tcharge\tchargeStates\tkl\tbackground\tmedian\tpeaks\tscanFirst\tscanLast\tscanCount\ttotalIntensity\tsumSquaresDist\tdescription
-        std::vector<String> parts;
-        line.split('\t', parts);
+        std::vector<std::string> parts;
+        StringUtils::split(line, '\t', parts);
 
         if (parts.size() < 18)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed to convert line ")  + String((it - input.begin()) + 1) + ". Not enough columns (expected 18 or more, got " + String(parts.size()) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "","Failed to convert line "  + StringUtils::toStr((it - input.begin()) + 1) + ". Not enough columns (expected 18 or more, got " + StringUtils::toStr(parts.size()) + ")");
         }
 
         //create feature
@@ -86,42 +86,42 @@ public:
         try
         {
           column_to_convert = 1;
-          f.setRT(parts[1].toDouble());
+          f.setRT(StringUtils::toDouble(parts[1]));
           column_to_convert = 2;
-          f.setMZ(parts[2].toDouble());
+          f.setMZ(StringUtils::toDouble(parts[2]));
           column_to_convert = 5;
-          f.setIntensity(parts[5].toDouble());
+          f.setIntensity(StringUtils::toDouble(parts[5]));
           column_to_convert = 6;
-          f.setCharge(parts[6].toInt());
+          f.setCharge(StringUtils::toInt32(parts[6]));
           column_to_convert = 8;
-          f.setOverallQuality(parts[8].toDouble());
+          f.setOverallQuality(StringUtils::toDouble(parts[8]));
 
           column_to_convert = 3;
           f.setMetaValue("accurateMZ", parts[3]);
           column_to_convert = 4;
-          f.setMetaValue("mass", parts[4].toDouble());
+          f.setMetaValue("mass", StringUtils::toDouble(parts[4]));
           column_to_convert = 7;
-          f.setMetaValue("chargeStates", parts[7].toInt());
+          f.setMetaValue("chargeStates", StringUtils::toInt32(parts[7]));
           column_to_convert = 9;
-          f.setMetaValue("background", parts[9].toDouble());
+          f.setMetaValue("background", StringUtils::toDouble(parts[9]));
           column_to_convert = 10;
-          f.setMetaValue("median", parts[10].toDouble());
+          f.setMetaValue("median", StringUtils::toDouble(parts[10]));
           column_to_convert = 11;
-          f.setMetaValue("peaks", parts[11].toInt());
+          f.setMetaValue("peaks", StringUtils::toInt32(parts[11]));
           column_to_convert = 12;
-          f.setMetaValue("scanFirst", parts[12].toInt());
+          f.setMetaValue("scanFirst", StringUtils::toInt32(parts[12]));
           column_to_convert = 13;
-          f.setMetaValue("scanLast", parts[13].toInt());
+          f.setMetaValue("scanLast", StringUtils::toInt32(parts[13]));
           column_to_convert = 14;
-          f.setMetaValue("scanCount", parts[14].toInt());
+          f.setMetaValue("scanCount", StringUtils::toInt32(parts[14]));
           column_to_convert = 15;
-          f.setMetaValue("totalIntensity", parts[15].toDouble());
+          f.setMetaValue("totalIntensity", StringUtils::toDouble(parts[15]));
           column_to_convert = 16;
-          f.setMetaValue("sumSquaresDist", parts[16].toDouble());
+          f.setMetaValue("sumSquaresDist", StringUtils::toDouble(parts[16]));
         }
         catch ( Exception::BaseException& )
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed to convert value in column ") + String(column_to_convert + 1) + " into a number (line '" + String((it - input.begin()) + 1) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "","Failed to convert value in column " + StringUtils::toStr(column_to_convert + 1) + " into a number (line '" + StringUtils::toStr((it - input.begin()) + 1) + ")");
         }
         f.setMetaValue("description", parts[17]);
         feature_map.push_back(f);
@@ -137,7 +137,7 @@ public:
               @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     template <typename SpectrumType>
-    void store(const String& filename, const SpectrumType& spectrum) const
+    void store(const std::string& filename, const SpectrumType& spectrum) const
     {
       std::cerr << "Store() for MsInspectFile not implemented. Filename was: " << filename << ", spec of size " << spectrum.size() << "\n";
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);

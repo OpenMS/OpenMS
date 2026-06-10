@@ -33,7 +33,7 @@ public:
 
         @param[in] filename to fid File.
       */
-      explicit FidHandler(const String & filename);
+      explicit FidHandler(const std::string & filename);
 
       /// Destructor
       ~FidHandler() override;

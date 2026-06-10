@@ -29,8 +29,8 @@ namespace OpenMS
   struct OPENMS_DLLAPI RibonucleotideEntry
   {
     std::unique_ptr<Ribonucleotide> ribo;
-    String alternative_code_1; ///< code of first alternative (empty if unambiguous)
-    String alternative_code_2; ///< code of second alternative (empty if unambiguous)
+    std::string alternative_code_1; ///< code of first alternative (empty if unambiguous)
+    std::string alternative_code_2; ///< code of second alternative (empty if unambiguous)
 
     RibonucleotideEntry() = default;
     ~RibonucleotideEntry() = default;

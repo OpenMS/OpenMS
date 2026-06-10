@@ -69,7 +69,7 @@ public:
     */
     //@{
     /// returns true if a CV reference is given
-    bool hasCVReference(const String& identifier);
+    bool hasCVReference(const std::string& identifier);
 
     /// equality operator
     bool operator==(const CVMappings& rhs) const;
@@ -82,7 +82,7 @@ protected:
 
     std::vector<CVMappingRule> mapping_rules_;
 
-    std::map<String, CVReference> cv_references_;
+    std::map<std::string, CVReference> cv_references_;
 
     std::vector<CVReference> cv_references_vector_;
   };

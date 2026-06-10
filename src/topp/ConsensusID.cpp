@@ -117,15 +117,15 @@ public:
 
 protected:
 
-  String algorithm_; // algorithm for consensus calculation (input parameter)
+  std::string algorithm_; // algorithm for consensus calculation (input parameter)
   bool keep_old_scores_;
 
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file(s)>", {}, "input file");
-    setValidFormats_("in", ListUtils::create<String>("idXML,featureXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("idXML,featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML,featureXML,consensusXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML,featureXML,consensusXML"));
 
     addEmptyLine_();
     registerDoubleOption_("rt_delta", "<value>", 0.1, "[idXML input only] Maximum allowed retention time deviation between identifications belonging to the same spectrum.", false);
@@ -150,7 +150,7 @@ protected:
                           "* worst: For each peptide ID, use the worst score of any search engine as the consensus score. Requires the same score type in all ID runs.\n"
                           "* average:  For each peptide ID, use the average score of all search engines as the consensus. Requires the same score type in all ID runs.\n"
                           "* ranks: Calculates a consensus score based on the ranks of peptide IDs in the results of different search engines. The final score is in the range (0, 1], with 1 being the best score. No requirements about score types.", false);
-    setValidStrings_("algorithm", ListUtils::create<String>("PEPMatrix,PEPIons,best,worst,average,ranks"));
+    setValidStrings_("algorithm", ListUtils::create<std::string>("PEPMatrix,PEPIons,best,worst,average,ranks"));
 
     // subsections appear in alphabetical (?) order, independent of the order
     // in which they were registered:
@@ -160,7 +160,7 @@ protected:
   }
 
 
-  Param getSubsectionDefaults_(const String& section) const override
+  Param getSubsectionDefaults_(const std::string& section) const override
   {
     Param algo_params;
     if (section == "PEPMatrix")
@@ -180,14 +180,14 @@ protected:
   void setProteinIdentifications_(vector<ProteinIdentification>& prot_ids)
   {
     // modification params are necessary for further analysis tools (e.g. LuciPHOr2)
-    set<String> fixed_mods_set;
-    set<String> var_mods_set;
+    set<std::string> fixed_mods_set;
+    set<std::string> var_mods_set;
     StringList merged_spectra_data;
-    String engine = prot_ids[0].getSearchEngine();
-    String version = prot_ids[0].getSearchEngineVersion();
+    std::string engine = prot_ids[0].getSearchEngine();
+    std::string version = prot_ids[0].getSearchEngineVersion();
 
     // merge proteins
-    unordered_set<String> seen_proteins;
+    unordered_set<std::string> seen_proteins;
     vector<ProteinHit> merged_proteins;
     for (Size i = 0; i < prot_ids.size(); ++i)
     {
@@ -211,8 +211,8 @@ protected:
       std::copy(spectra_data.begin(), spectra_data.end(), std::inserter(merged_spectra_data, merged_spectra_data.end()));
     }
     ProteinIdentification::SearchParameters search_params;
-    std::vector<String> fixed_mods(fixed_mods_set.begin(), fixed_mods_set.end());
-    std::vector<String> var_mods(var_mods_set.begin(), var_mods_set.end());
+    std::vector<std::string> fixed_mods(fixed_mods_set.begin(), fixed_mods_set.end());
+    std::vector<std::string> var_mods(var_mods_set.begin(), var_mods_set.end());
     search_params.fixed_modifications    = fixed_mods;
     search_params.variable_modifications = var_mods;
 
@@ -233,7 +233,7 @@ protected:
     // overwrite the search engine (in contrast to PercolatorAdapter)
     if (algorithm_ == "best" || algorithm_ == "worst" || algorithm_ == "average")
     {
-      prot_ids[0].setMetaValue("ConsensusIDBaseSearch", engine + String(":") + version);
+      prot_ids[0].setMetaValue("ConsensusIDBaseSearch", engine + std::string(":") + version);
     }
 
     // make file name entries unique
@@ -243,9 +243,9 @@ protected:
     prot_ids[0].setPrimaryMSRunPath(merged_spectra_data);
   }
 
-  tuple<String, String, ProteinIdentification::SearchParameters> getOriginalSearchEngineSettings_(const ProteinIdentification& prot)
+  tuple<std::string, std::string, ProteinIdentification::SearchParameters> getOriginalSearchEngineSettings_(const ProteinIdentification& prot)
   {
-    String engine = prot.getSearchEngine();
+    std::string engine = prot.getSearchEngine();
     const ProteinIdentification::SearchParameters& old_sp = prot.getSearchParameters();
     if (engine != "Percolator")
     {
@@ -253,78 +253,76 @@ protected:
     }
     else
     {
-      String original_SE = "Unknown";
-      String original_SE_ver = "0.0";
-      vector<String> mvkeys;
+      std::string original_SE = "Unknown";
+      std::string original_SE_ver = "0.0";
+      vector<std::string> mvkeys;
 
       old_sp.getKeys(mvkeys);
-      for (const String & mvkey : mvkeys)
+      for (const std::string & mvkey : mvkeys)
       {
-        if (mvkey.hasPrefix("SE:"))
+        if (StringUtils::hasPrefix(mvkey, "SE:"))
         {
-          original_SE = mvkey.substr(3);
-          original_SE_ver = old_sp.getMetaValue(mvkey);
+          original_SE = StringUtils::substr(mvkey, 3);
+          original_SE_ver = old_sp.getMetaValue(mvkey).toString();
           break; // multiSE percolator before consensusID not allowed; we take first only
         }
       }
 
       ProteinIdentification::SearchParameters sp{};
-      for (const String & mvkey : mvkeys)
+      for (const std::string & mvkey : mvkeys)
       {
-        if (mvkey.hasPrefix(original_SE))
+        if (StringUtils::hasPrefix(mvkey, original_SE))
         {
-          if (mvkey.hasSuffix("db"))
+          if (StringUtils::hasSuffix(mvkey, "db"))
           {
-            sp.db = old_sp.getMetaValue(mvkey);
+            sp.db = old_sp.getMetaValue(mvkey).toString();
           }
-          else if (mvkey.hasSuffix("db_version"))
+          else if (StringUtils::hasSuffix(mvkey, "db_version"))
           {
-            sp.db_version = old_sp.getMetaValue(mvkey);
+            sp.db_version = old_sp.getMetaValue(mvkey).toString();
           }
-          else if (mvkey.hasSuffix("taxonomy"))
+          else if (StringUtils::hasSuffix(mvkey, "taxonomy"))
           {
-            sp.taxonomy = old_sp.getMetaValue(mvkey);
+            sp.taxonomy = old_sp.getMetaValue(mvkey).toString();
           }
-          else if (mvkey.hasSuffix("charges"))
+          else if (StringUtils::hasSuffix(mvkey, "charges"))
           {
-            sp.charges = old_sp.getMetaValue(mvkey);;
+            sp.charges = old_sp.getMetaValue(mvkey).toString();
           }
-          else if (mvkey.hasSuffix("fixed_modifications"))
+          else if (StringUtils::hasSuffix(mvkey, "fixed_modifications"))
           {
-            const String& s = old_sp.getMetaValue(mvkey);
-            s.split(',', sp.fixed_modifications);
+            StringUtils::split(old_sp.getMetaValue(mvkey).toString(), ',', sp.fixed_modifications);
           }
-          else if (mvkey.hasSuffix("variable_modifications"))
+          else if (StringUtils::hasSuffix(mvkey, "variable_modifications"))
           {
-            const String& s = old_sp.getMetaValue(mvkey);
-            s.split(',', sp.variable_modifications);
+            StringUtils::split(old_sp.getMetaValue(mvkey).toString(), ',', sp.variable_modifications);
           }
-          else if (mvkey.hasSuffix("missed_cleavages"))
+          else if (StringUtils::hasSuffix(mvkey, "missed_cleavages"))
           {
             sp.missed_cleavages = (UInt) old_sp.getMetaValue(mvkey);
           }
-          else if (mvkey.hasSuffix("fragment_mass_tolerance"))
+          else if (StringUtils::hasSuffix(mvkey, "fragment_mass_tolerance"))
           {
             sp.fragment_mass_tolerance = (double) old_sp.getMetaValue(mvkey);
           }
-          else if (mvkey.hasSuffix("fragment_mass_tolerance_ppm"))
+          else if (StringUtils::hasSuffix(mvkey, "fragment_mass_tolerance_ppm"))
           {
             sp.fragment_mass_tolerance_ppm = old_sp.getMetaValue(mvkey).toBool();
           }
-          else if (mvkey.hasSuffix("precursor_mass_tolerance"))
+          else if (StringUtils::hasSuffix(mvkey, "precursor_mass_tolerance"))
           {
             sp.precursor_mass_tolerance = (double) old_sp.getMetaValue(mvkey);
           }
-          else if (mvkey.hasSuffix("precursor_mass_tolerance_ppm"))
+          else if (StringUtils::hasSuffix(mvkey, "precursor_mass_tolerance_ppm"))
           {
             sp.precursor_mass_tolerance_ppm = old_sp.getMetaValue(mvkey).toBool();
           }
-          else if (mvkey.hasSuffix("digestion_enzyme"))
+          else if (StringUtils::hasSuffix(mvkey, "digestion_enzyme"))
           {
             Protease p = *(ProteaseDB::getInstance()->getEnzyme(old_sp.getMetaValue(mvkey)));
             sp.digestion_enzyme = p;
           }
-          else if (mvkey.hasSuffix("enzyme_term_specificity"))
+          else if (StringUtils::hasSuffix(mvkey, "enzyme_term_specificity"))
           {
             sp.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>((int) old_sp.getMetaValue(mvkey));
           }
@@ -335,12 +333,12 @@ protected:
   }
 
   void setProteinIdentificationSettings_(ProteinIdentification& prot_id,
-      vector<tuple<String, String, ProteinIdentification::SearchParameters>>& se_ver_settings,
-      vector<tuple<String, String, vector<pair<String, String>>>>& rescore_ver_settings)
+      vector<tuple<std::string, std::string, ProteinIdentification::SearchParameters>>& se_ver_settings,
+      vector<tuple<std::string, std::string, vector<pair<std::string, std::string>>>>& rescore_ver_settings)
   {
     // modification params are necessary for further analysis tools (e.g. LuciPHOr2)
-    set<String> fixed_mods_set;
-    set<String> var_mods_set;
+    set<std::string> fixed_mods_set;
+    set<std::string> var_mods_set;
     set<EnzymaticDigestion::Specificity> specs;
     double prec_tol_ppm = 0.;
     double prec_tol_da = 0.;
@@ -350,8 +348,8 @@ protected:
     int max_chg = -10000;
     Size mc = 0;
     // we sort them to pick the same entries, no matter the order of the inputs
-    set<String, std::greater<String>> enzymes;
-    set<String, std::greater<String>> dbs;
+    set<std::string, std::greater<std::string>> enzymes;
+    set<std::string, std::greater<std::string>> dbs;
 
     // use the first settings as basis (i.e. copy over db and enzyme and tolerance)
     // we assume that they are the same or similar
@@ -362,8 +360,8 @@ protected:
     // and the tool will fail in the next step (beginning of algorithm)
     // TODO maybe also consolidate/merge those settings. But they are currently only used for reporting.
     const auto& final_rescore_ver_setting = rescore_ver_settings[0];
-    const String& final_rescore_algo = get<0>(final_rescore_ver_setting);
-    const String& final_rescore_algo_version = get<1>(final_rescore_ver_setting);
+    const std::string& final_rescore_algo = get<0>(final_rescore_ver_setting);
+    const std::string& final_rescore_algo_version = get<1>(final_rescore_ver_setting);
 
     for (const auto& rescore_ver_setting : rescore_ver_settings)
     {
@@ -389,7 +387,7 @@ protected:
            get<1>(se_ver_setting) == get<1>(se_ver_settings[0]));
 
       const ProteinIdentification::SearchParameters& sp = get<2>(se_ver_setting);
-      const String& SE = get<0>(se_ver_setting);
+      const std::string& SE = get<0>(se_ver_setting);
       new_sp.setMetaValue("SE:" + SE, get<1>(se_ver_setting));
       new_sp.setMetaValue(SE+":db",sp.db);
       new_sp.setMetaValue(SE+":db_version",sp.db_version);
@@ -464,23 +462,23 @@ protected:
       new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     }
 
-    std::vector<String> fixed_mods(fixed_mods_set.begin(), fixed_mods_set.end());
-    std::vector<String> var_mods(var_mods_set.begin(), var_mods_set.end());
+    std::vector<std::string> fixed_mods(fixed_mods_set.begin(), fixed_mods_set.end());
+    std::vector<std::string> var_mods(var_mods_set.begin(), var_mods_set.end());
     new_sp.fixed_modifications    = fixed_mods;
     new_sp.variable_modifications = var_mods;
 
-    String final_enz;
+    std::string final_enz;
     for (const auto& enz : enzymes)
     {
       if (enz != "unknown_enzyme")
       {
         // Although the set should be sorted to start with the longest
         // versions, this extends "" to Trypsin and e.g. Trypsin to Trypsin/P
-        if (enz.hasSubstring(final_enz))
+        if (StringUtils::hasSubstring(enz, final_enz))
         {
           final_enz = enz;
         }
-        else if (!final_enz.hasSubstring(enz))
+        else if (!StringUtils::hasSubstring(final_enz, enz))
         {
           OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with incompatible enzymes."
           " OpenMS officially supports only one enzyme per search. Using " + final_enz + " to (incompletely)"
@@ -490,14 +488,14 @@ protected:
     }
     new_sp.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(final_enz);
 
-    String final_db = *dbs.begin();
-    String final_db_bn = final_db;
-    final_db_bn.substitute("\\","/");
+    std::string final_db = *dbs.begin();
+    std::string final_db_bn = final_db;
+    StringUtils::substitute(final_db_bn, "\\","/");
     final_db_bn = File::basename(final_db_bn);
     // we need to copy to substitute anyway
     for (auto db : dbs) // OMS_CODING_TEST_EXCLUDE
     {
-      db.substitute("\\","/");
+      StringUtils::substitute(db, "\\","/");
       if (File::basename(db) != final_db_bn)
       {
         OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with different databases."
@@ -506,7 +504,7 @@ protected:
       }
     }
 
-    new_sp.charges = String(min_chg) + "-" + String(max_chg);
+    new_sp.charges =StringUtils::toStr(min_chg) + "-" + StringUtils::toStr(max_chg);
     if (prec_tol_da > 0 && prec_tol_ppm > 0)
     {
       OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with incompatible "
@@ -549,7 +547,7 @@ protected:
     // or maybe put it in a DataProcessing step
     if (allsamese)
     {
-      prot_id.setMetaValue("ConsensusIDBaseSearch", get<0>(se_ver_settings[0]) + String(":") + get<1>(se_ver_settings[0]));
+      prot_id.setMetaValue("ConsensusIDBaseSearch", get<0>(se_ver_settings[0]) + std::string(":") + get<1>(se_ver_settings[0]));
     }
   }
 
@@ -566,8 +564,8 @@ protected:
     // different ID runs with the max. number of times we see the same ID run
     // in the annotations of a feature.
 
-    map<String, String> runid_to_se;
-    map<String, Size> id_mapping; // mapping: run ID -> index
+    map<std::string, std::string> runid_to_se;
+    map<std::string, Size> id_mapping; // mapping: run ID -> index
     Size number_of_runs = input_map.getProteinIdentifications().size();
     for (Size i = 0; i < number_of_runs; ++i)
     {
@@ -605,7 +603,7 @@ protected:
   {
     StringList in = getStringList_("in");
     FileTypes::Type in_type = FileHandler::getType(in[0]);
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     double rt_delta = getDoubleOption_("rt_delta");
     double mz_delta = getDoubleOption_("mz_delta");
     keep_old_scores_ = getFlag_("filter:keep_old_scores");
@@ -657,14 +655,14 @@ protected:
       PeptideIdentificationList pep_ids;
       if (getFlag_("per_spectrum"))
       {
-        map<String, unordered_map<String, PeptideIdentificationList>> grouping_per_file;
-        map<String, unordered_set<String>> seen_proteins_per_file;
-        map<String, Size> runid_to_old_run_idx;
-        map<String, String> runid_to_old_se;
+        map<std::string, unordered_map<std::string, PeptideIdentificationList>> grouping_per_file;
+        map<std::string, unordered_set<std::string>> seen_proteins_per_file;
+        map<std::string, Size> runid_to_old_run_idx;
+        map<std::string, std::string> runid_to_old_se;
         // the values (new_run_idx) in mzml_to_new_run_idx correspond to the indices in mzml_to_sesettings
-        map<String, Size> mzml_to_new_run_idx;
-        vector<vector<tuple<String, String, ProteinIdentification::SearchParameters>>> mzml_to_sesettings;
-        vector<vector<tuple<String, String, vector<pair<String,String>>>>> mzml_to_rescoresettings;
+        map<std::string, Size> mzml_to_new_run_idx;
+        vector<vector<tuple<std::string, std::string, ProteinIdentification::SearchParameters>>> mzml_to_sesettings;
+        vector<vector<tuple<std::string, std::string, vector<pair<std::string, std::string>>>>> mzml_to_rescoresettings;
 
         for (const auto& infile : in)
         {
@@ -693,27 +691,27 @@ protected:
               throw Exception::InvalidValue(
                   __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                   "Currently only ID runs on exactly one mzML file are supported. "
-                  "Run " + prot.getIdentifier() + " contains no 'file_origin' UserParam (report issue) or has multiple entries in it (avoid merging).", String(original_files.size()));
+                  "Run " + prot.getIdentifier() + " contains no 'file_origin' UserParam (report issue) or has multiple entries in it (avoid merging).",StringUtils::toStr(original_files.size()));
             }
-            String original_file = original_files[0];
-            auto iter_inserted = seen_proteins_per_file.emplace(original_file, unordered_set<String>{});
+            std::string original_file = original_files[0];
+            auto iter_inserted = seen_proteins_per_file.emplace(original_file, unordered_set<std::string>{});
             const auto se_ver_settings = getOriginalSearchEngineSettings_(prot);
-            tuple<String, String, vector<pair<String,String>>> rescore_ver_settings{"","",vector<pair<String,String>>()};
+            tuple<std::string, std::string, vector<pair<std::string, std::string>>> rescore_ver_settings{"","",vector<pair<std::string, std::string>>()};
             //TODO find a way to get/check IDPEP params.
             if (prot.getSearchEngine() == "Percolator")
             {
               get<0>(rescore_ver_settings) = prot.getSearchEngine();
               get<1>(rescore_ver_settings) = prot.getSearchEngineVersion();
               const auto& sp = prot.getSearchParameters();
-              vector<String> mvkeys;
+              vector<std::string> mvkeys;
               sp.getKeys(mvkeys);
-              for (const String & mvkey : mvkeys)
+              for (const std::string & mvkey : mvkeys)
               {
-                if (mvkey.hasPrefix("Percolator:"))
+                if (StringUtils::hasPrefix(mvkey, "Percolator:"))
                 {
                   // we do not cut the tool (here Percolator) prefix since we will use it as is
                   // in the new params
-                  get<2>(rescore_ver_settings).emplace_back(mvkey, sp.getMetaValue(mvkey));
+                  get<2>(rescore_ver_settings).emplace_back(mvkey, StringUtils::toStr(sp.getMetaValue(mvkey)));
                 }
               }
             }
@@ -721,9 +719,9 @@ protected:
             if (iter_inserted.second)
             {
               mzml_to_new_run_idx[original_file] = prot_ids.size();
-              mzml_to_sesettings.emplace_back(vector<tuple<String, String, ProteinIdentification::SearchParameters>>{});
+              mzml_to_sesettings.emplace_back(vector<tuple<std::string, std::string, ProteinIdentification::SearchParameters>>{});
               mzml_to_sesettings.back().emplace_back(se_ver_settings);
-              mzml_to_rescoresettings.emplace_back(vector<tuple<String, String, vector<pair<String,String>>>>{});
+              mzml_to_rescoresettings.emplace_back(vector<tuple<std::string, std::string, vector<pair<std::string, std::string>>>>{});
               mzml_to_rescoresettings.back().emplace_back(rescore_ver_settings);
               prot_ids.emplace_back(ProteinIdentification());
               prot_ids.back().setIdentifier("ConsensusID for " + original_file);
@@ -753,11 +751,11 @@ protected:
               std::replace( f.begin(), f.end(), '\\', '/');
               f = File::stemName(f); // some SE adapters write full paths, some may use raw
             }
-            String original_file = original_files[0];
-            auto iter_inserted = grouping_per_file.emplace(original_file, unordered_map<String,PeptideIdentificationList>{});
+            std::string original_file = original_files[0];
+            auto iter_inserted = grouping_per_file.emplace(original_file, unordered_map<std::string,PeptideIdentificationList>{});
             if (pep_id.metaValueExists("spectrum_reference"))
             {
-              String nativeID = pep_id.getSpectrumReference();
+              std::string nativeID = pep_id.getSpectrumReference();
               auto nativeid_iter_inserted = iter_inserted.first->second.emplace(nativeID, PeptideIdentificationList{});
               nativeid_iter_inserted.first->second.emplace_back(std::move(pep_id));
             }
@@ -781,7 +779,7 @@ protected:
             double mz = peps[0].getMZ();
             double rt = peps[0].getRT();
             // has to have a ref, save it, since apply might modify everything
-            String ref = peps[0].getSpectrumReference();
+            std::string ref = peps[0].getSpectrumReference();
             consensus->apply(peps, runid_to_old_se, mzml_to_sesettings[new_run_id].size());
             for (auto& p : peps)
             {
@@ -817,8 +815,8 @@ protected:
         // features from different maps), so we bring the data into a format
         // suitable for a feature grouping algorithm:
         vector<FeatureMap> maps(prot_ids.size());
-        map<String, String> runid_to_se;
-        map<String, Size> id_mapping; // mapping: run ID -> index (of feature map)
+        map<std::string, std::string> runid_to_se;
+        map<std::string, Size> id_mapping; // mapping: run ID -> index (of feature map)
         for (Size i = 0; i < prot_ids.size(); ++i)
         {
           id_mapping[prot_ids[i].getIdentifier()] = i;
@@ -830,7 +828,7 @@ protected:
 
         for (PeptideIdentification& pep : pep_ids)
         {
-          String run_id = pep.getIdentifier();
+          std::string run_id = pep.getIdentifier();
           if (!pep.hasRT() || !pep.hasMZ())
           {
             OPENMS_LOG_FATAL_ERROR << "Peptide ID without RT and/or m/z information found in identification run '" + run_id + "'.\nMake sure that this information is included for all IDs when generating/converting search results. Aborting!" << endl;

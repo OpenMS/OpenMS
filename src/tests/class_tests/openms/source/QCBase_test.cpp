@@ -72,7 +72,7 @@ START_TEST(SpectraMap, "$Id$")
     TEST_EQUAL(spec_map.empty(),true);
   END_SECTION
   
-  START_SECTION(QCBase::SpectraMap::at(const String& identifier))
+  START_SECTION(QCBase::SpectraMap::at(const std::string& identifier))
     NOT_TESTABLE;
   END_SECTION
   

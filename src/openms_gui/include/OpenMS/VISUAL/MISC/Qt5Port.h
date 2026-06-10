@@ -27,9 +27,9 @@ QSet<T> toQSet(const C<T> &container)
 }
 
 /// Convert QStringList to StringList (replaces StringListUtils::fromQStringList)
-inline std::vector<String> fromQStringList(const QStringList& rhs)
+inline std::vector<std::string> fromQStringList(const QStringList& rhs)
 {
-  std::vector<String> sl;
+  std::vector<std::string> sl;
   sl.reserve(rhs.size());
   for (const auto& item : rhs)
   {
@@ -38,10 +38,10 @@ inline std::vector<String> fromQStringList(const QStringList& rhs)
   return sl;
 }
 
-/// Convert OpenMS::String to QString (replaces String::toQString())
-inline QString toQString(const String& s) { return QString::fromStdString(s); }
+/// Convert std::string to QString (replaces String::toQString())
+inline QString toQString(const std::string& s) { return QString::fromStdString(s); }
 
-/// Construct OpenMS::String from QString (replaces String(const QString&))
-inline String fromQString(const QString& s) { return String(s.toStdString()); }
+/// Construct std::string from QString (replaces StringUtils::toStr(const QString&))
+inline std::string fromQString(const QString& s) { return s.toStdString(); }
 
 } // namespace OpenMS

@@ -170,42 +170,42 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  void ReactionMonitoringTransition::setName(const String & name)
+  void ReactionMonitoringTransition::setName(const std::string & name)
   {
     name_ = name;
   }
 
-  const String & ReactionMonitoringTransition::getName() const
+  const std::string & ReactionMonitoringTransition::getName() const
   {
     return name_;
   }
 
-  void ReactionMonitoringTransition::setNativeID(const String & name)
+  void ReactionMonitoringTransition::setNativeID(const std::string & name)
   {
     name_ = name;
   }
 
-  const String & ReactionMonitoringTransition::getNativeID() const
+  const std::string & ReactionMonitoringTransition::getNativeID() const
   {
     return name_;
   }
 
-  void ReactionMonitoringTransition::setPeptideRef(const String & peptide_ref)
+  void ReactionMonitoringTransition::setPeptideRef(const std::string & peptide_ref)
   {
     peptide_ref_ = peptide_ref;
   }
 
-  const String & ReactionMonitoringTransition::getPeptideRef() const
+  const std::string & ReactionMonitoringTransition::getPeptideRef() const
   {
     return peptide_ref_;
   }
 
-  void ReactionMonitoringTransition::setCompoundRef(const String & compound_ref)
+  void ReactionMonitoringTransition::setCompoundRef(const std::string & compound_ref)
   {
     compound_ref_ = compound_ref;
   }
 
-  const String & ReactionMonitoringTransition::getCompoundRef() const
+  const std::string & ReactionMonitoringTransition::getCompoundRef() const
   {
     return compound_ref_;
   }

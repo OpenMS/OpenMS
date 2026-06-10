@@ -34,7 +34,7 @@ public:
       /// Default constructor
       Unit() = default;
 
-      Unit(const String& p_accession, const String& p_name, const String& p_cv_ref) :
+      Unit(const std::string& p_accession, const std::string& p_name, const std::string& p_cv_ref) :
         accession(p_accession),
         name(p_name),
         cv_ref(p_cv_ref)
@@ -70,16 +70,16 @@ public:
         return !(*this == rhs);
       }
 
-      String accession;
-      String name;
-      String cv_ref;
+      std::string accession;
+      std::string name;
+      std::string cv_ref;
     };
 
     /// Default constructor
     CVTerm() = default;
 
     /// Detailed constructor
-    CVTerm(const String& accession, const String& name = "", const String& cv_identifier_ref = "", const String& value = "", const Unit& unit = Unit());
+    CVTerm(const std::string& accession, const std::string& name = "", const std::string& cv_identifier_ref = "", const std::string& value = "", const Unit& unit = Unit());
 
     /// Copy constructor
     CVTerm(const CVTerm&) = default;
@@ -100,22 +100,22 @@ public:
     */
     //@{
     /// sets the accession string of the term
-    void setAccession(const String& accession);
+    void setAccession(const std::string& accession);
 
     /// returns the accession string of the term
-    const String& getAccession() const;
+    const std::string& getAccession() const;
 
     /// sets the name of the term
-    void setName(const String& name);
+    void setName(const std::string& name);
 
     /// returns the name of the term
-    const String& getName() const;
+    const std::string& getName() const;
 
     /// sets the cv identifier reference string, e.g. UO for unit obo
-    void setCVIdentifierRef(const String& cv_identifier_ref);
+    void setCVIdentifierRef(const std::string& cv_identifier_ref);
 
     /// returns the cv identifier reference string
-    const String& getCVIdentifierRef() const;
+    const std::string& getCVIdentifierRef() const;
 
     /// set the value of the term
     void setValue(const DataValue& value);
@@ -148,11 +148,11 @@ public:
 
 protected:
 
-    String accession_;
+    std::string accession_;
 
-    String name_;
+    std::string name_;
 
-    String cv_identifier_ref_;
+    std::string cv_identifier_ref_;
 
     Unit unit_;
 

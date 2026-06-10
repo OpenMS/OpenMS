@@ -22,7 +22,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  ShapeIcon PainterBase::toShapeIcon(const String& icon)
+  ShapeIcon PainterBase::toShapeIcon(const std::string& icon)
   {
     if (icon == "diamond") return ShapeIcon::DIAMOND;
     if (icon == "square")  return ShapeIcon::SQUARE;

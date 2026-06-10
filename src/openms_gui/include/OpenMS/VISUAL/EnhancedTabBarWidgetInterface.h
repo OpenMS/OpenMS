@@ -65,7 +65,7 @@ namespace OpenMS
 
     /// adds itself to this tabbar and upon destruction removes itself again.
     /// Make sure the tabbar still exists when you call this function and this object is destroyed
-    void addToTabBar(EnhancedTabBar* const parent, const String& caption, const bool make_active_tab = true);
+    void addToTabBar(EnhancedTabBar* const parent, const std::string& caption, const bool make_active_tab = true);
 
     /// get the EnhancedTabBar unique window id
     Int getWindowId() const;

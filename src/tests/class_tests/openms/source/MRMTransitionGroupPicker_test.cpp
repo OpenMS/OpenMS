@@ -291,7 +291,7 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 59989.8287208466);
 
     // Also check the MS1
-    std::vector<String> result;
+    std::vector<std::string> result;
     mrmfeature.getPrecursorFeatureIDs(result);
     TEST_EQUAL(result.size(), 1);
     TEST_EQUAL(result[0], "Precursor_i0");

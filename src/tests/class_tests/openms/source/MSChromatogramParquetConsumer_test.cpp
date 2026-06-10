@@ -39,9 +39,9 @@ START_SECTION(MSChromatogramParquetConsumer_basic)
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MSChromatogramParquetConsumer_1_output.chrom.mzML"), exp);
   TEST_EQUAL(exp.getChromatograms().empty(), false)
 
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
-  String out = tmp + ".xic";
+  std::string out = tmp + ".xic";
   {
     MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
     for (auto& chrom : exp.getChromatograms())
@@ -69,9 +69,9 @@ START_SECTION(MSChromatogramParquetConsumer_empty_chromatograms)
   OpenSwath::LightTargetedExperiment light_exp;
   OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
 
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
-  String out = tmp + ".xic";
+  std::string out = tmp + ".xic";
   {
     MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
     // Do not consume any chromatograms
@@ -92,7 +92,7 @@ START_SECTION(MSChromatogramParquetConsumer_destructor_no_throw)
   OpenSwath::LightTargetedExperiment light_exp;
   OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
 
-  String out = File::getTempDirectory() + "/openms_missing_dir/xic_out.xic";
+  std::string out = File::getTempDirectory() + "/openms_missing_dir/xic_out.xic";
   bool caught = false;
   try
   {

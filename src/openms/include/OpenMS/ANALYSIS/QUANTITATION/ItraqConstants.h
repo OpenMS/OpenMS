@@ -35,7 +35,7 @@ public:
     /// stores information on an iTRAQ channel
     struct ChannelInfo
     {
-      String description;       ///< description given by experimentalist (e.g. lung tissue)
+      std::string description;       ///< description given by experimentalist (e.g. lung tissue)
       Int name;       ///< 114-117 or 113 to 121
       Int id;           ///< 0-4 or 0-8
       Peak2D::CoordinateType center;       ///< expected centroid of peak in MZ

@@ -38,7 +38,7 @@ START_SECTION(void load(std::vector<XIMMobilogram>& output) const)
 }
 END_SECTION
 
-START_SECTION(void getMobilograms(std::vector<XIMMobilogram>&, Int64, Int64, const String&, Int64, Int64, Int64, Int64, const String&, Int64, double, const String&) const)
+START_SECTION(void getMobilograms(std::vector<XIMMobilogram>&, Int64, Int64, const std::string&, Int64, Int64, Int64, Int64, const std::string&, Int64, double, const std::string&) const)
 {
   XIMParquetFile xim(OPENMS_GET_TEST_DATA_PATH("XIMParquetFile_23_input.xim"));
 
@@ -75,12 +75,12 @@ END_SECTION
 
 START_SECTION(void getMobilograms_multi_file)
 {
-  const String file = OPENMS_GET_TEST_DATA_PATH("XIMParquetFile_23_input.xim");
+  const std::string file = OPENMS_GET_TEST_DATA_PATH("XIMParquetFile_23_input.xim");
   XIMParquetFile xim_single(file);
   std::vector<XIMMobilogram> mobilograms_single;
   xim_single.getMobilograms(mobilograms_single);
 
-  std::vector<String> files;
+  std::vector<std::string> files;
   files.push_back(file);
   files.push_back(file);
 
@@ -107,10 +107,10 @@ START_SECTION(void load_invalid_path)
 }
 END_SECTION
 
-START_SECTION(void getColumns(std::vector<String>&) const)
+START_SECTION(void getColumns(std::vector<std::string>&) const)
 {
   XIMParquetFile xim(OPENMS_GET_TEST_DATA_PATH("XIMParquetFile_23_input.xim"));
-  std::vector<String> columns;
+  std::vector<std::string> columns;
   xim.getColumns(columns);
 
   TEST_EQUAL(columns.empty(), false)
@@ -130,7 +130,7 @@ START_SECTION(void getColumns(std::vector<String>&) const)
 }
 END_SECTION
 
-START_SECTION(void getAnalytes(std::vector<XIMAnalyte>&, const std::vector<String>&, bool) const)
+START_SECTION(void getAnalytes(std::vector<XIMAnalyte>&, const std::vector<std::string>&, bool) const)
 {
   XIMParquetFile xim(OPENMS_GET_TEST_DATA_PATH("XIMParquetFile_23_input.xim"));
 

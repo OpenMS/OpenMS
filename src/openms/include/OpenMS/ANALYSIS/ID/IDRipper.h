@@ -32,14 +32,14 @@ public:
     /// Possible input file encodings for the origin as used by different versions of IDMerger
     enum OriginAnnotationFormat { FILE_ORIGIN = 0, MAP_INDEX = 1, ID_MERGE_INDEX = 2, UNKNOWN_OAF = 3, SIZE_OF_ORIGIN_ANNOTATION_FORMAT = 4 };
 
-    /// String representations for the OriginAnnotationFormat enum
+    /// std::string representations for the OriginAnnotationFormat enum
     static const std::array<std::string, SIZE_OF_ORIGIN_ANNOTATION_FORMAT> names_of_OriginAnnotationFormat;
 
     /// Represents a set of IdentificationRuns
     struct OPENMS_DLLAPI IdentificationRuns
     {
         /// Maps a unique index to every IdentificationRun string representation (getIdentifier()).
-        std::map<String, UInt> index_map;
+        std::map<std::string, UInt> index_map;
         /// Maps the list of spectra data elements to every IdentificationRun index.
         std::vector<StringList> spectra_data;
 
@@ -55,14 +55,14 @@ public:
         /// The numerical index of the source file_origin / spectra_data element
         UInt file_origin_idx{};
         /// The output basename derived from the file_origin / spectra_data element
-        String out_basename;
+        std::string out_basename;
         /// The full length origin read from the file_origin / spectra_data element
-        String origin_fullname;
+        std::string origin_fullname;
 
         /// Constructs a new RipFileIdentifier object
         RipFileIdentifier(const IDRipper::IdentificationRuns& id_runs, 
           const PeptideIdentification& pep_id, 
-          const std::map<String, UInt>& file_origin_map, 
+          const std::map<std::string, UInt>& file_origin_map, 
           const IDRipper::OriginAnnotationFormat origin_annotation_fmt, 
           bool split_ident_runs);
 
@@ -73,10 +73,10 @@ public:
         UInt getFileOriginIdx() const;
 
         /// Get origin full name
-        const String & getOriginFullname() const;
+        const std::string & getOriginFullname() const;
 
         /// Get output base name
-        const String & getOutputBasename() const;
+        const std::string & getOutputBasename() const;
     };
 
     /// Provides a 'less' operation for RipFileIdentifiers that ignores the out_basename and origin_fullname members
@@ -161,15 +161,15 @@ private:
     IDRipper & operator=(const IDRipper & rhs);
 
     /// helper function, detects file origin annotation standard from collections of protein and peptide hits
-    OriginAnnotationFormat detectOriginAnnotationFormat_(std::map<String, UInt> & file_origin_map, const PeptideIdentificationList & peptide_idents);
+    OriginAnnotationFormat detectOriginAnnotationFormat_(std::map<std::string, UInt> & file_origin_map, const PeptideIdentificationList & peptide_idents);
     /// helper function, extracts all protein hits that match the protein accession
-    void getProteinHits_(std::vector<ProteinHit> & result, const std::unordered_map<String, const ProteinHit*> & acc2protein_hits, const std::set<String> & protein_accessions);
+    void getProteinHits_(std::vector<ProteinHit> & result, const std::unordered_map<std::string, const ProteinHit*> & acc2protein_hits, const std::set<std::string> & protein_accessions);
     /// helper function, returns the string representation of the peptide hit accession
-    std::set<String> getProteinAccessions_(const std::vector<PeptideHit> & peptide_hits);
+    std::set<std::string> getProteinAccessions_(const std::vector<PeptideHit> & peptide_hits);
     /// helper function, returns the index of the protein identification for the given peptide identification based on the same identifier using id_runs as lookup
     int getProteinIdentification_(const PeptideIdentification& pep_ident, const IdentificationRuns& id_runs);
     /// helper function, register a potential output file basename to detect duplicate output basenames
-    bool registerBasename_(std::map<String, std::pair<UInt, UInt> >& basename_to_numeric, const IDRipper::RipFileIdentifier& rfi);
+    bool registerBasename_(std::map<std::string, std::pair<UInt, UInt> >& basename_to_numeric, const IDRipper::RipFileIdentifier& rfi);
     /// helper function, sets the value of mode to new_value and returns true if the old value was identical or unset (-1)
     bool setOriginAnnotationMode_(short& mode, short const new_value);
   };

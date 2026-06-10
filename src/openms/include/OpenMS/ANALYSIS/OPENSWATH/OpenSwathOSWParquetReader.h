@@ -41,7 +41,7 @@ namespace OpenMS
       int precursor_charge = 0;
       bool decoy = false;
       int64_t transition_count = 0;
-      String group_id;
+      std::string group_id;
     };
 
     /// Result container for fetchPeakGroupFeatures
@@ -56,15 +56,15 @@ namespace OpenMS
       std::vector<int> precursor_charge;
       std::vector<bool> decoy;
       std::vector<int64_t> transition_count;
-      std::vector<String> group_id;
+      std::vector<std::string> group_id;
 
       // Discovered MS2 score columns and their column vectors (each vector length N)
       // ms2_columns[i] corresponds to ms2_values[i]
-      std::vector<String> ms2_columns;
+      std::vector<std::string> ms2_columns;
       std::vector<std::vector<double>> ms2_values;
 
       // Discovered MS1 score columns and their column vectors (only present if requested)
-      std::vector<String> ms1_columns;
+      std::vector<std::string> ms1_columns;
       std::vector<std::vector<double>> ms1_values;
     };
 
@@ -92,11 +92,11 @@ namespace OpenMS
       std::vector<double> total_mi;
 
       // Discovered transition-level var_ columns and their column vectors
-      std::vector<String> transition_var_columns;
+      std::vector<std::string> transition_var_columns;
       std::vector<std::vector<double>> transition_var_values;
 
       // Group id (run_feature_precursor_transition style)
-      std::vector<String> group_id;
+      std::vector<std::string> group_id;
     };
 
   /// @brief Result container for an unscored table
@@ -111,7 +111,7 @@ namespace OpenMS
       std::vector<int64_t> transition_group_id; 
       std::vector<bool> decoy;
       std::vector<int64_t> run_id;
-      std::vector<String> filename;
+      std::vector<std::string> filename;
       std::vector<double> RT;
       std::vector<double> assay_rt;   // FEATURE.EXP_RT - FEATURE.DELTA_RT
       std::vector<double> delta_rt;   // FEATURE.DELTA_RT
@@ -135,9 +135,9 @@ namespace OpenMS
       std::vector<double> IM_rightWidth;
 
       // Discovered score columns (var_ms1_ and var_ms2_) and their values
-      std::vector<String> ms2_columns;
+      std::vector<std::string> ms2_columns;
       std::vector<std::vector<double>> ms2_values;
-      std::vector<String> ms1_columns;
+      std::vector<std::string> ms1_columns;
       std::vector<std::vector<double>> ms1_values;
     };
 
@@ -155,17 +155,17 @@ namespace OpenMS
       @param[in] oswpq_dir  Path to the unzipped OSW Parquet directory or a
                            .oswpq archive (zip) that will be read.
     */
-    OpenSwathOSWParquetReader(const String& oswpq_dir);
+    OpenSwathOSWParquetReader(const std::string& oswpq_dir);
 
     /**
       @brief Load and extract rows from an OSW Parquet directory or .oswpq archive
 
       @param[in] oswpq_dir  Path to the unzipped directory or .oswpq archive
     */
-    void load(const String& oswpq_dir);
+    void load(const std::string& oswpq_dir);
 
     /// Return the originally provided oswpq path (may be empty)
-    const String& oswpqPath() const { return oswpq_dir_; }
+    const std::string& oswpqPath() const { return oswpq_dir_; }
 
     /// Return extracted rows
     const std::vector<Row>& rows() const { return rows_; }
@@ -188,7 +188,7 @@ namespace OpenMS
       @return PeakGroupFeatureScoresResult populated with discovered columns
               and core feature fields.
     */
-    PeakGroupFeatureScoresResult fetchPeakGroupFeatures(const String& oswpq_dir, const String& level = "ms2", const String& main_score = "") const;
+    PeakGroupFeatureScoresResult fetchPeakGroupFeatures(const std::string& oswpq_dir, const std::string& level = "ms2", const std::string& main_score = "") const;
 
     /**
       @brief Extract transition-level feature rows across all runs (SOA)
@@ -217,7 +217,7 @@ namespace OpenMS
                            a .oswpq archive (zip) that will be read.
       @return TransitionFeaturesResult populated with transition-level columns
     */
-    TransitionFeaturesResult fetchTransitionFeatures(const String& oswpq_dir) const;
+    TransitionFeaturesResult fetchTransitionFeatures(const std::string& oswpq_dir) const;
 
     /**
       @brief Read an "unscored" table and return a column-oriented result.
@@ -249,12 +249,12 @@ namespace OpenMS
                            .oswpq archive (zip) that will be read.
       @return UnscoredResult containing the assembled column vectors.
     */
-    UnscoredResult fetchUnscoredData(const String& oswpq_dir) const;
+    UnscoredResult fetchUnscoredData(const std::string& oswpq_dir) const;
 
   private:
     std::vector<Row> rows_;
     // store last-loaded path so Python-side code can call fetch methods without re-supplying the path
-    String oswpq_dir_;
+    std::string oswpq_dir_;
   };
 
 } // namespace OpenMS

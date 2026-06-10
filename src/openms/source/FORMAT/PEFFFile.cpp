@@ -32,12 +32,12 @@ namespace OpenMS
 
     /// Extract optional annotation ID prefix from a field (format: "id:value" or just "value")
     /// Returns pair of (annotation_id, remaining_value). annotation_id is ANNOT_ID_NOT_SET if not present.
-    std::pair<UInt, String> extractAnnotationId(const String& field)
+    std::pair<UInt, std::string> extractAnnotationId(const std::string& field)
     {
       size_t colon_pos = field.find(':');
-      if (colon_pos != String::npos)
+      if (colon_pos != std::string::npos)
       {
-        String id_str = field.substr(0, colon_pos);
+        std::string id_str = StringUtils::substr(field, 0, colon_pos);
         // Check if the prefix is a non-negative integer (annotation ID)
         bool is_numeric = !id_str.empty();
         for (size_t i = 0; i < id_str.size() && is_numeric; ++i)
@@ -46,7 +46,7 @@ namespace OpenMS
         }
         if (is_numeric)
         {
-          return {static_cast<UInt>(id_str.toInt()), field.substr(colon_pos + 1)};
+          return {static_cast<UInt>(StringUtils::toInt32(id_str)), StringUtils::substr(field, colon_pos + 1)};
         }
       }
       return {ANNOT_ID_NOT_SET, field};
@@ -55,10 +55,10 @@ namespace OpenMS
     /// Split a string by pipe character, respecting backslash escapes.
     /// Handles \| (escaped pipe), \\ (escaped backslash).
     /// Unescapes the result strings.
-    std::vector<String> splitByPipeEscapeAware(const String& str)
+    std::vector<std::string> splitByPipeEscapeAware(const std::string& str)
     {
-      std::vector<String> result;
-      String current;
+      std::vector<std::string> result;
+      std::string current;
       for (size_t i = 0; i < str.size(); ++i)
       {
         if (str[i] == '\\' && i + 1 < str.size())
@@ -86,9 +86,9 @@ namespace OpenMS
     }
     /// Escape PEFF reserved characters: \, |, (, )
     /// This is the inverse of the unescape done in splitByPipeEscapeAware.
-    String escape_peff(const String& str)
+    std::string escape_peff(const std::string& str)
     {
-      String result;
+      std::string result;
       result.reserve(str.size());
       for (size_t i = 0; i < str.size(); ++i)
       {
@@ -102,7 +102,7 @@ namespace OpenMS
       return result;
     }
 
-    bool isXsdInteger_(const String& s)
+    bool isXsdInteger_(const std::string& s)
     {
       if (s.empty()) return false;
       size_t i = 0;
@@ -118,7 +118,7 @@ namespace OpenMS
       return true;
     }
 
-    bool isUnsignedInteger_(const String& s)
+    bool isUnsignedInteger_(const std::string& s)
     {
       if (s.empty()) return false;
       for (Size i = 0; i < s.size(); ++i)
@@ -128,7 +128,7 @@ namespace OpenMS
       return true;
     }
 
-    bool isXsdDecimal_(const String& s)
+    bool isXsdDecimal_(const std::string& s)
     {
       if (s.empty()) return false;
       size_t i = 0;
@@ -158,14 +158,14 @@ namespace OpenMS
       return saw_digit;
     }
 
-    bool isXsdBoolean_(const String& s)
+    bool isXsdBoolean_(const std::string& s)
     {
-      String lower(s);
-      lower.toLower();
+      std::string lower(s);
+      StringUtils::toLower(lower);
       return lower == "true" || lower == "false" || lower == "1" || lower == "0";
     }
 
-    bool isXsdDate_(const String& s)
+    bool isXsdDate_(const std::string& s)
     {
       // xsd:date is ISO 8601-ish. We accept YYYY-MM-DD with optional timezone.
       // We deliberately do not validate month/day ranges here.
@@ -200,7 +200,7 @@ namespace OpenMS
       return true;
     }
 
-    bool isXsdTime_(const String& s)
+    bool isXsdTime_(const std::string& s)
     {
       // xsd:time is ISO 8601-ish. We accept hh:mm:ss(.fff)? with optional timezone.
       // We deliberately do not validate hour/min/sec ranges here.
@@ -244,11 +244,11 @@ namespace OpenMS
       return true;
     }
 
-    bool validateCustomKeyFieldType_(const String& field_type, const String& value)
+    bool validateCustomKeyFieldType_(const std::string& field_type, const std::string& value)
     {
-      String type(field_type);
-      type.trim();
-      const String type_lower = type.toLower();
+      std::string type(field_type);
+      StringUtils::trim(type);
+      const std::string type_lower = StringUtils::toLower(type);
 
       if (type_lower.empty()) return true;
       if (type_lower == "string") return true;
@@ -258,18 +258,18 @@ namespace OpenMS
       if (type_lower == "date") return isXsdDate_(value);
       if (type_lower == "time") return isXsdTime_(value);
 
-      if (type_lower.hasPrefix("enumeration(") && type.hasSuffix(")"))
+      if (StringUtils::hasPrefix(type_lower, "enumeration(") && StringUtils::hasSuffix(type, ")"))
       {
         const size_t lparen = type.find('(');
         const size_t rparen = type.rfind(')');
-        if (lparen == String::npos || rparen == String::npos || rparen <= lparen + 1) return false;
+        if (lparen == std::string::npos || rparen == std::string::npos || rparen <= lparen + 1) return false;
 
-        const String inside = type.substr(lparen + 1, rparen - lparen - 1);
-        std::vector<String> options;
-        inside.split('|', options);
-        for (String opt : options)
+        const std::string inside = StringUtils::substr(type, lparen + 1, rparen - lparen - 1);
+        std::vector<std::string> options;
+        StringUtils::split(inside, '|', options);
+        for (std::string opt : options)
         {
-          opt.trim();
+          StringUtils::trim(opt);
           if (opt == value) return true;
         }
         return false;
@@ -281,10 +281,10 @@ namespace OpenMS
 
     /// Split a CustomKeyDef "(defKey=value|...)" string into defKey=value segments.
     /// Respects quoted values and nested parentheses (e.g., enumeration(...) in FieldTypes).
-    std::vector<String> splitCustomKeyDefSegments_(const String& str)
+    std::vector<std::string> splitCustomKeyDefSegments_(const std::string& str)
     {
-      std::vector<String> result;
-      String current;
+      std::vector<std::string> result;
+      std::string current;
       bool in_quotes = false;
       int paren_depth = 0;
 
@@ -334,14 +334,14 @@ namespace OpenMS
     }
 
     /// Unquote a CustomKeyDef string value like "text", unescaping \" inside.
-    String unquoteCustomKeyDefValue_(const String& value)
+    std::string unquoteCustomKeyDefValue_(const std::string& value)
     {
-      String trimmed(value);
-      trimmed.trim();
+      std::string trimmed(value);
+      StringUtils::trim(trimmed);
       if (trimmed.size() >= 2 && trimmed[0] == '"' && trimmed[trimmed.size() - 1] == '"')
       {
-        String inner = trimmed.substr(1, trimmed.size() - 2);
-        String result;
+        std::string inner = StringUtils::substr(trimmed, 1, trimmed.size() - 2);
+        std::string result;
         result.reserve(inner.size());
         for (size_t i = 0; i < inner.size(); ++i)
         {
@@ -360,14 +360,14 @@ namespace OpenMS
       return trimmed;
     }
 
-    std::vector<String> splitCommaSeparatedList_(const String& value)
+    std::vector<std::string> splitCommaSeparatedList_(const std::string& value)
     {
-      std::vector<String> items;
-      std::vector<String> parts;
-      value.split(',', parts);
-      for (String& p : parts)
+      std::vector<std::string> items;
+      std::vector<std::string> parts;
+      StringUtils::split(value, ',', parts);
+      for (std::string& p : parts)
       {
-        p.trim();
+        StringUtils::trim(p);
         if (!p.empty())
         {
           items.push_back(p);
@@ -376,36 +376,36 @@ namespace OpenMS
       return items;
     }
 
-    PEFFCustomKeyDef parseCustomKeyDef_(const String& value)
+    PEFFCustomKeyDef parseCustomKeyDef_(const std::string& value)
     {
       PEFFCustomKeyDef ckd;
-      String trimmed(value);
-      trimmed.trim();
+      std::string trimmed(value);
+      StringUtils::trim(trimmed);
 
       // Spec format: CustomKeyDef=(defKey=value|defKey=value|...)
       if (trimmed.size() >= 2 && trimmed[0] == '(' && trimmed[trimmed.size() - 1] == ')')
       {
-        String inner = trimmed.substr(1, trimmed.size() - 2);
-        std::vector<String> segments = splitCustomKeyDefSegments_(inner);
-        for (String& segment : segments)
+        std::string inner = StringUtils::substr(trimmed, 1, trimmed.size() - 2);
+        std::vector<std::string> segments = splitCustomKeyDefSegments_(inner);
+        for (std::string& segment : segments)
         {
-          segment.trim();
+          StringUtils::trim(segment);
           if (segment.empty())
           {
             continue;
           }
 
           size_t eq_pos = segment.find('=');
-          if (eq_pos == String::npos)
+          if (eq_pos == std::string::npos)
           {
             OPENMS_LOG_WARN << "PEFF: CustomKeyDef segment is missing '=': '" << segment << "'.\n";
             continue;
           }
 
-          String def_key = segment.substr(0, eq_pos);
-          def_key.trim();
-          String def_value = segment.substr(eq_pos + 1);
-          def_value.trim();
+          std::string def_key = StringUtils::substr(segment, 0, eq_pos);
+          StringUtils::trim(def_key);
+          std::string def_value = StringUtils::substr(segment, eq_pos + 1);
+          StringUtils::trim(def_value);
 
           if (def_key == "KeyName")
           {
@@ -441,10 +441,10 @@ namespace OpenMS
       {
         // Legacy/simple format (historical): CustomKeyDef=KeyName:description
         size_t colon_pos = trimmed.find(':');
-        if (colon_pos != String::npos)
+        if (colon_pos != std::string::npos)
         {
-          ckd.key_name = trimmed.substr(0, colon_pos);
-          ckd.description = trimmed.substr(colon_pos + 1);
+          ckd.key_name = StringUtils::substr(trimmed, 0, colon_pos);
+          ckd.description = StringUtils::substr(trimmed, colon_pos + 1);
         }
         else
         {
@@ -459,9 +459,9 @@ namespace OpenMS
       return ckd;
     }
 
-    String escapeCustomKeyDefQuotedValue_(const String& value)
+    std::string escapeCustomKeyDefQuotedValue_(const std::string& value)
     {
-      String result;
+      std::string result;
       result.reserve(value.size());
       for (size_t i = 0; i < value.size(); ++i)
       {
@@ -478,7 +478,7 @@ namespace OpenMS
   FASTAFile::FASTAEntry PEFFEntry::toFASTAEntry() const
   {
     // Build description with protein names
-    String desc;
+    std::string desc;
     if (!protein_names.empty())
     {
       desc = protein_names[0];
@@ -529,7 +529,7 @@ namespace OpenMS
       {
         // Try to find the modification - accession first, then name
         const ResidueModification* res_mod = nullptr;
-        String residue = seq[idx].getOneLetterCode();
+        std::string residue = seq[idx].getOneLetterCode();
 
         // Try accession first (UNIMOD:xx, MOD:xxxxx, etc.)
         if (!mod.accession.empty())
@@ -587,11 +587,11 @@ namespace OpenMS
       }
 
       // Create a copy of the sequence with the variant
-      String variant_seq = sequence;
+      std::string variant_seq = sequence;
       variant_seq[var.position - 1] = var.variant_aa; // Convert 1-based to 0-based
 
       // Create description
-      String desc = String(sequence[var.position - 1]) + String(var.position) + String(var.variant_aa);
+      std::string desc =StringUtils::toStr(sequence[var.position - 1]) + StringUtils::toStr(var.position) + StringUtils::toStr(var.variant_aa);
       if (!var.optional_tag.empty())
       {
         desc += " (" + var.optional_tag + ")";
@@ -620,12 +620,12 @@ namespace OpenMS
         }
 
         // Replace region [start, end] with replacement sequence
-        String variant_seq = sequence.substr(0, var.start_position - 1)
+        std::string variant_seq = StringUtils::substr(sequence, 0, var.start_position - 1)
                            + var.replacement
-                           + sequence.substr(var.end_position);
+                           + StringUtils::substr(sequence, var.end_position);
 
         // Create description
-        String desc = String(var.start_position) + "-" + String(var.end_position) + ">" + var.replacement;
+        std::string desc =StringUtils::toStr(var.start_position) + "-" + StringUtils::toStr(var.end_position) + ">" + var.replacement;
         if (!var.optional_tag.empty())
         {
           desc += " (" + var.optional_tag + ")";
@@ -644,7 +644,7 @@ namespace OpenMS
     }
   }
 
-  AASequence PEFFEntry::getProcessedSequence(const String& region_accession) const
+  AASequence PEFFEntry::getProcessedSequence(const std::string& region_accession) const
   {
     // Find the first processed region of the given accession
     for (const auto& region : processed_regions)
@@ -656,7 +656,7 @@ namespace OpenMS
         {
           if (region.end_position < sequence.size())
           {
-            String mature_seq = sequence.substr(region.end_position);
+            std::string mature_seq = StringUtils::substr(sequence, region.end_position);
             return AASequence::fromString(mature_seq);
           }
         }
@@ -664,7 +664,7 @@ namespace OpenMS
         else if (region.start_position > 0 && region.end_position >= region.start_position &&
                  region.end_position <= sequence.size())
         {
-          String region_seq = sequence.substr(region.start_position - 1, region.end_position - region.start_position + 1);
+          std::string region_seq = StringUtils::substr(sequence, region.start_position - 1, region.end_position - region.start_position + 1);
           return AASequence::fromString(region_seq);
         }
       }
@@ -744,7 +744,7 @@ namespace OpenMS
       }
 
       // Extract reference peptide sequence
-      String ref_peptide = sequence.substr(start, end - start);
+      std::string ref_peptide = StringUtils::substr(sequence, start, end - start);
 
       // Total number of combinatorial elements
       size_t num_variants = local_variants.size();
@@ -797,8 +797,8 @@ namespace OpenMS
         // Start from 1 to skip the all-reference combination (already added above if include_reference)
         for (size_t combo = 1; combo < num_combinations; ++combo)
         {
-          String variant_peptide = ref_peptide;
-          String description;
+          std::string variant_peptide = ref_peptide;
+          std::string description;
 
           // Apply variants (bits 0 to num_variants-1), skip if multiple at same position
           std::set<size_t> modified_positions;
@@ -823,7 +823,7 @@ namespace OpenMS
               {
                 description += ";";
               }
-              description += String(ref_peptide[local_pos]) + String(var->position) + String(var->variant_aa);
+              description +=StringUtils::toStr(ref_peptide[local_pos]) + StringUtils::toStr(var->position) + StringUtils::toStr(var->variant_aa);
               if (!var->optional_tag.empty())
               {
                 description += "(" + var->optional_tag + ")";
@@ -867,11 +867,11 @@ namespace OpenMS
               }
               if (!mod->accession.empty())
               {
-                description += mod->accession + "@" + String(mod->position);
+                description += mod->accession + "@" + StringUtils::toStr(mod->position);
               }
               else if (!mod->name.empty())
               {
-                description += mod->name + "@" + String(mod->position);
+                description += mod->name + "@" + StringUtils::toStr(mod->position);
               }
 
               // Try to apply the modification
@@ -879,7 +879,7 @@ namespace OpenMS
               {
                 // Try accession first (UNIMOD:xx, MOD:xxxxx, etc.)
                 const ResidueModification* res_mod = nullptr;
-                String residue = pep_seq[local_pos].getOneLetterCode();
+                std::string residue = pep_seq[local_pos].getOneLetterCode();
 
                 if (!mod->accession.empty())
                 {
@@ -932,12 +932,12 @@ namespace OpenMS
     }
   }
 
-  std::vector<std::pair<String, AASequence>> PEFFEntry::enumeratePEFFModifications_(
+  std::vector<std::pair<std::string, AASequence>> PEFFEntry::enumeratePEFFModifications_(
     const AASequence& peptide,
     const std::vector<std::pair<Size, const PEFFModification*>>& peff_mods,
-    const String& base_description)
+    const std::string& base_description)
   {
-    std::vector<std::pair<String, AASequence>> result;
+    std::vector<std::pair<std::string, AASequence>> result;
 
     if (peff_mods.empty())
     {
@@ -959,7 +959,7 @@ namespace OpenMS
     for (size_t combo = 0; combo < num_combinations; ++combo)
     {
       AASequence mod_peptide = peptide;
-      String description = base_description;
+      std::string description = base_description;
       bool mod_failed = false;
 
       for (size_t i = 0; i < num_mods && !mod_failed; ++i)
@@ -975,18 +975,18 @@ namespace OpenMS
           }
           if (!mod->accession.empty())
           {
-            description += mod->accession + "@" + String(local_pos + 1);  // 1-based for display
+            description += mod->accession + "@" + StringUtils::toStr(local_pos + 1);  // 1-based for display
           }
           else if (!mod->name.empty())
           {
-            description += mod->name + "@" + String(local_pos + 1);
+            description += mod->name + "@" + StringUtils::toStr(local_pos + 1);
           }
 
           // Apply modification
           try
           {
             const ResidueModification* res_mod = nullptr;
-            String residue = mod_peptide[local_pos].getOneLetterCode();
+            std::string residue = mod_peptide[local_pos].getOneLetterCode();
 
             if (!mod->accession.empty())
             {
@@ -1130,7 +1130,7 @@ namespace OpenMS
         }
       }
 
-      String ref_peptide_str = sequence.substr(start, end - start);
+      std::string ref_peptide_str = StringUtils::substr(sequence, start, end - start);
 
       // Step 3: Generate all variant combinations (2^k for k variants)
       size_t num_variant_combos = 1ULL << local_variants.size();
@@ -1143,8 +1143,8 @@ namespace OpenMS
           continue;
         }
 
-        String variant_peptide_str = ref_peptide_str;
-        String variant_desc;
+        std::string variant_peptide_str = ref_peptide_str;
+        std::string variant_desc;
 
         // Apply selected variants (skip if multiple variants at same position)
         std::set<size_t> modified_positions;
@@ -1165,7 +1165,7 @@ namespace OpenMS
             modified_positions.insert(local_pos);
 
             if (!variant_desc.empty()) variant_desc += ";";
-            variant_desc += String(ref_peptide_str[local_pos]) + String(var->position) + String(var->variant_aa);
+            variant_desc +=StringUtils::toStr(ref_peptide_str[local_pos]) + StringUtils::toStr(var->position) + StringUtils::toStr(var->variant_aa);
             if (!var->optional_tag.empty())
             {
               variant_desc += "(" + var->optional_tag + ")";
@@ -1207,10 +1207,10 @@ namespace OpenMS
         // which would be the unmodified reference peptide that should be excluded.
         if (var_combo == 0 && !include_reference && !local_mods.empty())
         {
-          String variant_peptide_string = variant_peptide.toString();
+          std::string variant_peptide_string = variant_peptide.toString();
           peff_mod_peptides.erase(
             std::remove_if(peff_mod_peptides.begin(), peff_mod_peptides.end(),
-              [&](const std::pair<String, AASequence>& p) {
+              [&](const std::pair<std::string, AASequence>& p) {
                 // Remove entries where no PEFF mods were applied (base peptide)
                 return p.second.toString() == variant_peptide_string;
               }),
@@ -1247,7 +1247,7 @@ namespace OpenMS
 
             for (auto& var_mod_pep : var_mod_peptides)
             {
-              String full_desc = peff_desc;
+              std::string full_desc = peff_desc;
               // If additional mods were applied, note it in description
               if (var_mod_pep.isModified() && var_mod_pep.toString() != peff_peptide.toString())
               {
@@ -1263,7 +1263,7 @@ namespace OpenMS
     }
   }
 
-  void PEFFFile::load(const String& filename,
+  void PEFFFile::load(const std::string& filename,
                       std::vector<PEFFEntry>& entries,
                       std::vector<PEFFDatabaseMetadata>& headers) const
   {
@@ -1283,7 +1283,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void PEFFFile::store(const String& filename,
+  void PEFFFile::store(const std::string& filename,
                        const std::vector<PEFFEntry>& entries,
                        const PEFFDatabaseMetadata& header) const
   {
@@ -1299,7 +1299,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void PEFFFile::store(const String& filename,
+  void PEFFFile::store(const std::string& filename,
                        const std::vector<PEFFEntry>& entries,
                        const std::vector<PEFFDatabaseMetadata>& headers) const
   {
@@ -1321,7 +1321,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void PEFFFile::readStart(const String& filename)
+  void PEFFFile::readStart(const std::string& filename)
   {
     if (!File::exists(filename))
     {
@@ -1362,8 +1362,8 @@ namespace OpenMS
     PEFFDatabaseMetadata current_header;
     bool has_header = false;
     // File-level data from the file description block (no DbName)
-    String file_version;
-    std::vector<String> file_comments;
+    std::string file_version;
+    std::vector<std::string> file_comments;
 
     while (in_header && sb->sgetc() != std::streambuf::traits_type::eof())
     {
@@ -1390,7 +1390,7 @@ namespace OpenMS
 
         // Parse the header line (line starts with # or is just #)
         bool is_db_separator = false;
-        parseHeaderLine_(String(line), current_header, is_db_separator);
+        parseHeaderLine_(std::string(line), current_header, is_db_separator);
 
         if (is_db_separator)
         {
@@ -1458,7 +1458,7 @@ namespace OpenMS
     for (Size i = 0; i < headers_.size(); ++i)
     {
       const auto& h = headers_[i];
-      String db_label = h.db_name.empty() ? String("database block ") + String(i + 1) : h.db_name;
+      std::string db_label = h.db_name.empty() ? "database block " + StringUtils::toStr(i + 1) : h.db_name;
 
       // Fix #16: Database blocks must start with DbName
       if (h.db_name.empty())
@@ -1512,7 +1512,7 @@ namespace OpenMS
       else
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "", "Only " + String(entries_read_) + " entries could be read. Parsing next record failed.");
+                                    "", "Only " + StringUtils::toStr(entries_read_) + " entries could be read. Parsing next record failed.");
       }
     }
     ++entries_read_;
@@ -1527,11 +1527,11 @@ namespace OpenMS
     size_t colon_pos = id_.find(':');
     if (colon_pos != std::string::npos)
     {
-      entry.prefix = id_.substr(0, colon_pos);
+      entry.prefix = StringUtils::substr(id_, 0, colon_pos);
     }
 
     // Parse annotations from description
-    parseAnnotations_(String(description_), entry);
+    parseAnnotations_(std::string(description_), entry);
 
     return true;
   }
@@ -1656,7 +1656,7 @@ namespace OpenMS
     return const_cast<std::fstream&>(infile_).peek() == std::streambuf::traits_type::eof();
   }
 
-  void PEFFFile::writeStart(const String& filename, const PEFFDatabaseMetadata& header)
+  void PEFFFile::writeStart(const std::string& filename, const PEFFDatabaseMetadata& header)
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::PEFF))
     {
@@ -1676,7 +1676,7 @@ namespace OpenMS
     outfile_ << formatHeader_(header);
   }
 
-  void PEFFFile::writeStart(const String& filename, const std::vector<PEFFDatabaseMetadata>& headers)
+  void PEFFFile::writeStart(const std::string& filename, const std::vector<PEFFDatabaseMetadata>& headers)
   {
     if (headers.empty())
     {
@@ -1712,7 +1712,7 @@ namespace OpenMS
     outfile_.close();
   }
 
-  bool PEFFFile::isPEFFFile(const String& filename)
+  bool PEFFFile::isPEFFFile(const std::string& filename)
   {
     if (!File::exists(filename) || !File::readable(filename))
     {
@@ -1744,7 +1744,7 @@ namespace OpenMS
         }
         // Check if remaining content starts with "PEFF " followed by version number
         if (content_start + 5 < line.size() &&
-            line.substr(content_start, 5) == "PEFF ")
+            StringUtils::substr(line, content_start, 5) == "PEFF ")
         {
           // Check for version number pattern after "PEFF "
           size_t version_start = content_start + 5;
@@ -1771,7 +1771,7 @@ namespace OpenMS
     return false;
   }
 
-  String PEFFFile::toProForma(const PEFFEntry& entry)
+  std::string PEFFFile::toProForma(const PEFFEntry& entry)
   {
     // If no modifications, return plain sequence
     if (entry.modifications.empty())
@@ -1797,7 +1797,7 @@ namespace OpenMS
     }
 
     // Helper to format a single modification in ProForma notation
-    auto formatMod = [](const PEFFModification& mod) -> String
+    auto formatMod = [](const PEFFModification& mod) -> std::string
     {
       // Prefer accession if available (UNIMOD: or MOD:)
       if (!mod.accession.empty())
@@ -1812,7 +1812,7 @@ namespace OpenMS
       return "";
     };
 
-    String result;
+    std::string result;
 
     // Add unlocalised modifications as prefix: <?[mod]>
     // In ProForma, unlocalised mods are written as: <?[mod1][mod2]>SEQUENCE
@@ -1848,13 +1848,13 @@ namespace OpenMS
     return result;
   }
 
-  void PEFFFile::parseHeaderLine_(const String& line, PEFFDatabaseMetadata& header, bool& new_db)
+  void PEFFFile::parseHeaderLine_(const std::string& line, PEFFDatabaseMetadata& header, bool& new_db)
   {
     new_db = false;
 
     // Line includes the leading # character
-    String trimmed(line);
-    trimmed.trim();
+    std::string trimmed(line);
+    StringUtils::trim(trimmed);
 
     // Check for database separator (# // or #//, but not bare # which is just a blank comment)
     if (trimmed == "# //" || trimmed == "#//")
@@ -1870,19 +1870,19 @@ namespace OpenMS
     }
 
     // Skip the # and any leading whitespace
-    if (!trimmed.hasPrefix("#"))
+    if (!StringUtils::hasPrefix(trimmed, "#"))
     {
       return;
     }
-    String content = trimmed.substr(1);
-    content.trim();
+    std::string content = StringUtils::substr(trimmed, 1);
+    StringUtils::trim(content);
 
     // Check for PEFF version line
-    if (content.hasPrefix("PEFF"))
+    if (StringUtils::hasPrefix(content, "PEFF"))
     {
       // Extract version (e.g., "PEFF 1.0" or "PEFF1.0")
-      String version_str = content.substr(4);
-      version_str.trim();
+      std::string version_str = StringUtils::substr(content, 4);
+      StringUtils::trim(version_str);
       if (!version_str.empty())
       {
         header.version = version_str;
@@ -1892,15 +1892,15 @@ namespace OpenMS
 
     // Parse Key=Value format
     size_t eq_pos = content.find('=');
-    if (eq_pos == String::npos)
+    if (eq_pos == std::string::npos)
     {
       return;
     }
 
-    String key = content.substr(0, eq_pos);
-    key.trim();
-    String value = content.substr(eq_pos + 1);
-    value.trim();
+    std::string key = StringUtils::substr(content, 0, eq_pos);
+    StringUtils::trim(key);
+    std::string value = StringUtils::substr(content, eq_pos + 1);
+    StringUtils::trim(value);
 
     if (key == "DbName")
     {
@@ -1916,7 +1916,7 @@ namespace OpenMS
     }
     else if (key == "Decoy")
     {
-      header.is_decoy = (value.toLower() == "true" || value == "1");
+      header.is_decoy = (StringUtils::toLower(value) == "true" || value == "1");
     }
     else if (key == "DbSource")
     {
@@ -1928,7 +1928,7 @@ namespace OpenMS
     }
     else if (key == "NumberOfEntries")
     {
-      header.number_of_entries = value.toInt();
+      header.number_of_entries = StringUtils::toInt32(value);
     }
     else if (key == "SequenceType")
     {
@@ -1954,10 +1954,10 @@ namespace OpenMS
     {
       // Format: SpecificKey=KeyName:description
       size_t colon_pos = value.find(':');
-      if (colon_pos != String::npos)
+      if (colon_pos != std::string::npos)
       {
-        String sk_key = value.substr(0, colon_pos);
-        String sk_desc = value.substr(colon_pos + 1);
+        std::string sk_key = StringUtils::substr(value, 0, colon_pos);
+        std::string sk_desc = StringUtils::substr(value, colon_pos + 1);
         header.specific_keys[sk_key] = sk_desc;
       }
     }
@@ -1965,10 +1965,10 @@ namespace OpenMS
     {
       // Format: SpecificValue=KeyName:(type_definition)
       size_t colon_pos = value.find(':');
-      if (colon_pos != String::npos)
+      if (colon_pos != std::string::npos)
       {
-        String sv_key = value.substr(0, colon_pos);
-        String sv_type = value.substr(colon_pos + 1);
+        std::string sv_key = StringUtils::substr(value, 0, colon_pos);
+        std::string sv_type = StringUtils::substr(value, colon_pos + 1);
         header.specific_values[sv_key] = sv_type;
       }
     }
@@ -1982,11 +1982,11 @@ namespace OpenMS
     }
     else if (key == "HasAnnotationIdentifiers")
     {
-      header.has_annotation_identifiers = (value.toLower() == "true" || value == "1");
+      header.has_annotation_identifiers = (StringUtils::toLower(value) == "true" || value == "1");
     }
     else if (key == "ProteoformDb" || key == "ProteoformDB" || key == "IsProteoformDB")
     {
-      header.is_proteoform_db = (value.toLower() == "true" || value == "1");
+      header.is_proteoform_db = (StringUtils::toLower(value) == "true" || value == "1");
     }
     else
     {
@@ -1995,7 +1995,7 @@ namespace OpenMS
     }
   }
 
-  void PEFFFile::parseAnnotations_(const String& description, PEFFEntry& entry)
+  void PEFFFile::parseAnnotations_(const std::string& description, PEFFEntry& entry)
   {
     if (description.empty())
     {
@@ -2038,26 +2038,26 @@ namespace OpenMS
           return i;
         }
       }
-      return String::npos;
+      return std::string::npos;
     };
 
-    pos = String::npos;
+    pos = std::string::npos;
     pos = find_next_key_sep(0);
-    if (pos == String::npos)
+    if (pos == std::string::npos)
     {
       // No annotations, entire description could be protein name
       if (!description.empty())
       {
-        String trimmed_desc(description);
-        trimmed_desc.trim();
+        std::string trimmed_desc(description);
+        StringUtils::trim(trimmed_desc);
         entry.protein_names.push_back(trimmed_desc);
       }
       return;
     }
 
     // Handle text before first annotation (if any)
-    String before_annotations = description.substr(0, pos);
-    before_annotations.trim();
+    std::string before_annotations = StringUtils::substr(description, 0, pos);
+    StringUtils::trim(before_annotations);
     if (!before_annotations.empty())
     {
       entry.protein_names.push_back(before_annotations);
@@ -2101,7 +2101,7 @@ namespace OpenMS
     };
 
     // Parse each annotation
-    std::set<String> seen_keys; // Fix #7: track seen keys for duplicate detection
+    std::set<std::string> seen_keys; // Fix #7: track seen keys for duplicate detection
     prev = pos;
     while (prev < description.size())
     {
@@ -2109,15 +2109,15 @@ namespace OpenMS
       prev++;
 
       // Find the next annotation backslash (key separator) or end
-      pos = String::npos;
+      pos = std::string::npos;
       pos = find_next_key_sep(prev);
-      if (pos == String::npos)
+      if (pos == std::string::npos)
       {
         pos = description.size();
       }
 
-      String annotation = description.substr(prev, pos - prev);
-      annotation.trim();
+      std::string annotation = StringUtils::substr(description, prev, pos - prev);
+      StringUtils::trim(annotation);
       prev = pos;
 
       if (annotation.empty())
@@ -2127,13 +2127,13 @@ namespace OpenMS
 
       // Parse Key=Value or Key=(Value) format
       size_t eq_pos = annotation.find('=');
-      if (eq_pos == String::npos)
+      if (eq_pos == std::string::npos)
       {
         continue;
       }
 
-      String key = annotation.substr(0, eq_pos);
-      String value = annotation.substr(eq_pos + 1);
+      std::string key = StringUtils::substr(annotation, 0, eq_pos);
+      std::string value = StringUtils::substr(annotation, eq_pos + 1);
 
       // Fix #7: Detect duplicate keys (spec section 3.3.3: same key MUST NOT appear twice)
       if (seen_keys.contains(key))
@@ -2145,14 +2145,14 @@ namespace OpenMS
       if (key == "PName")
       {
         // Protein names can be multiple: (Name1)(Name2)
-        std::vector<String> names = parseParenList_(value);
+        std::vector<std::string> names = parseParenList_(value);
         if (names.empty() && !value.empty())
         {
           entry.protein_names.push_back(value);
         }
         else
         {
-          for (const String& name : names)
+          for (const std::string& name : names)
           {
             entry.protein_names.push_back(name);
           }
@@ -2164,7 +2164,7 @@ namespace OpenMS
       }
       else if (key == "NcbiTaxId")
       {
-        entry.ncbi_tax_id = value.toInt();
+        entry.ncbi_tax_id = StringUtils::toInt32(value);
       }
       else if (key == "TaxName")
       {
@@ -2172,7 +2172,7 @@ namespace OpenMS
       }
       else if (key == "Length")
       {
-        entry.sequence_length = value.toInt();
+        entry.sequence_length = StringUtils::toInt32(value);
       }
       else if (key == "SV")
       {
@@ -2184,7 +2184,7 @@ namespace OpenMS
       }
       else if (key == "PE")
       {
-        entry.protein_existence = value.toInt();
+        entry.protein_existence = StringUtils::toInt32(value);
       }
       else if (key == "DbUniqueId")
       {
@@ -2197,13 +2197,13 @@ namespace OpenMS
       else if (key == "OX")
       {
         // OX is a shorthand for NcbiTaxId
-        entry.ncbi_tax_id = value.toInt();
+        entry.ncbi_tax_id = StringUtils::toInt32(value);
       }
       else if (key == "AltAC")
       {
         // May be parenthesized list: (AC1)(AC2) or single value
-        std::vector<String> acs = parseParenList_(value);
-        for (const String& ac : acs)
+        std::vector<std::string> acs = parseParenList_(value);
+        for (const std::string& ac : acs)
         {
           entry.alt_accessions.push_back(ac);
         }
@@ -2216,11 +2216,11 @@ namespace OpenMS
                           << entry.identifier << "').\n";
         }
 
-        std::vector<String> mods = parseParenList_(value);
-        for (const String& mod_str : mods)
+        std::vector<std::string> mods = parseParenList_(value);
+        for (const std::string& mod_str : mods)
         {
           // Basic structural checks per spec sections 3.3.10-3.3.12.
-          const std::vector<String> parts_check = splitByPipeEscapeAware(mod_str);
+          const std::vector<std::string> parts_check = splitByPipeEscapeAware(mod_str);
           if (parts_check.size() < 3)
           {
             OPENMS_LOG_WARN << "PEFF: " << key << " tuple must have at least 3 fields (position|accession|name) in entry '"
@@ -2239,12 +2239,12 @@ namespace OpenMS
 
           if (parts_check.size() >= 2 && !parts_check[1].empty())
           {
-            if (key == "ModResPsi" && !parts_check[1].hasPrefix("MOD:"))
+            if (key == "ModResPsi" && !StringUtils::hasPrefix(parts_check[1], "MOD:"))
             {
               OPENMS_LOG_WARN << "PEFF: " << key << " accession should start with 'MOD:' in entry '"
                               << entry.identifier << "'.\n";
             }
-            else if (key == "ModResUnimod" && !parts_check[1].hasPrefix("UNIMOD:"))
+            else if (key == "ModResUnimod" && !StringUtils::hasPrefix(parts_check[1], "UNIMOD:"))
             {
               OPENMS_LOG_WARN << "PEFF: " << key << " accession should start with 'UNIMOD:' in entry '"
                               << entry.identifier << "'.\n";
@@ -2257,17 +2257,17 @@ namespace OpenMS
             auto [annot_id, pos_field] = extractAnnotationId(parts_check[0]);
             (void)annot_id;
 
-            std::vector<String> pos_tokens;
+            std::vector<std::string> pos_tokens;
             if (pos_field.contains(','))
             {
-              pos_field.split(',', pos_tokens);
+              StringUtils::split(pos_field, ',', pos_tokens);
             }
             else
             {
               pos_tokens.push_back(pos_field);
             }
 
-            for (const String& tok : pos_tokens)
+            for (const std::string& tok : pos_tokens)
             {
               if (tok == "?" || tok.empty())
               {
@@ -2279,7 +2279,7 @@ namespace OpenMS
                                 << entry.identifier << "'.\n";
                 continue;
               }
-              const Size p = static_cast<Size>(tok.toInt());
+              const Size p = static_cast<Size>(StringUtils::toInt32(tok));
               if (seq_len > 0 && p > seq_len)
               {
                 OPENMS_LOG_WARN << "PEFF: " << key << " position " << p << " exceeds sequence length "
@@ -2312,9 +2312,9 @@ namespace OpenMS
 	            auto [annot_id, pos_field] = extractAnnotationId(parts_check[0]);
 	            if (pos_field.contains(','))
             {
-              std::vector<String> positions;
-              pos_field.split(',', positions);
-              for (const String& pos_str : positions)
+              std::vector<std::string> positions;
+              StringUtils::split(pos_field, ',', positions);
+              for (const std::string& pos_str : positions)
               {
                 if (!(pos_str == "?" || pos_str.empty()) && (!isUnsignedInteger_(pos_str) || pos_str == "0"))
                 {
@@ -2329,7 +2329,7 @@ namespace OpenMS
                 }
                 else
                 {
-                  expanded_mod.position = pos_str.toInt();
+                  expanded_mod.position = StringUtils::toInt32(pos_str);
                 }
                 if (expanded_mod.position > 0 && seq_len > 0 && expanded_mod.position > seq_len)
                 {
@@ -2353,10 +2353,10 @@ namespace OpenMS
       }
       else if (key == "VariantSimple")
       {
-        std::vector<String> variants = parseParenList_(value);
-        for (const String& var : variants)
+        std::vector<std::string> variants = parseParenList_(value);
+        for (const std::string& var : variants)
         {
-          const std::vector<String> parts_check = splitByPipeEscapeAware(var);
+          const std::vector<std::string> parts_check = splitByPipeEscapeAware(var);
           if (parts_check.size() >= 2 && parts_check[1].size() != 1)
           {
             OPENMS_LOG_WARN << "PEFF: VariantSimple newAminoAcid must be exactly 1 character in entry '"
@@ -2398,10 +2398,10 @@ namespace OpenMS
       }
       else if (key == "VariantComplex")
       {
-        std::vector<String> variants = parseParenList_(value);
-        for (const String& var : variants)
+        std::vector<std::string> variants = parseParenList_(value);
+        for (const std::string& var : variants)
         {
-          const std::vector<String> parts_check = splitByPipeEscapeAware(var);
+          const std::vector<std::string> parts_check = splitByPipeEscapeAware(var);
           if (parts_check.size() < 3)
           {
             OPENMS_LOG_WARN << "PEFF: VariantComplex tuple must have at least 3 fields (start|end|newSequence) in entry '"
@@ -2466,10 +2466,10 @@ namespace OpenMS
       }
       else if (key == "Processed")
       {
-        std::vector<String> regions = parseParenList_(value);
-        for (const String& reg : regions)
+        std::vector<std::string> regions = parseParenList_(value);
+        for (const std::string& reg : regions)
         {
-          const std::vector<String> parts_check = splitByPipeEscapeAware(reg);
+          const std::vector<std::string> parts_check = splitByPipeEscapeAware(reg);
           if (parts_check.size() >= 2)
           {
             auto [annot_id, start_field] = extractAnnotationId(parts_check[0]);
@@ -2514,7 +2514,7 @@ namespace OpenMS
             OPENMS_LOG_WARN << "PEFF: Processed positions exceed sequence length " << seq_len
                             << " in entry '" << entry.identifier << "'.\n";
           }
-          if (!parsed.accession.empty() && !parsed.accession.hasPrefix("PEFF:"))
+          if (!parsed.accession.empty() && !StringUtils::hasPrefix(parsed.accession, "PEFF:"))
           {
             OPENMS_LOG_WARN << "PEFF: Processed accession should start with 'PEFF:' in entry '"
                             << entry.identifier << "'.\n";
@@ -2524,16 +2524,16 @@ namespace OpenMS
       }
       else if (key == "DisulfideBond")
       {
-        std::vector<String> bonds = parseParenList_(value);
-        for (const String& bond : bonds)
+        std::vector<std::string> bonds = parseParenList_(value);
+        for (const std::string& bond : bonds)
         {
           entry.disulfide_bonds.push_back(parseDisulfideBond_(bond));
         }
       }
       else if (key == "Proteoform")
       {
-        std::vector<String> pforms = parseParenList_(value);
-        for (const String& pf : pforms)
+        std::vector<std::string> pforms = parseParenList_(value);
+        for (const std::string& pf : pforms)
         {
           entry.proteoforms.push_back(pf);
         }
@@ -2585,8 +2585,8 @@ namespace OpenMS
               }
             }
 
-            const std::vector<String> items = parseParenList_(value);
-            for (const String& item : items)
+            const std::vector<std::string> items = parseParenList_(value);
+            for (const std::string& item : items)
             {
               if (has_regex && regex_valid && !std::regex_match(item.c_str(), re))
               {
@@ -2594,7 +2594,7 @@ namespace OpenMS
                                 << entry.identifier << "'.\n";
               }
 
-              const std::vector<String> components = splitByPipeEscapeAware(item);
+              const std::vector<std::string> components = splitByPipeEscapeAware(item);
               if (expected_fields > 0)
               {
                 const bool ok_count = (components.size() == expected_fields) ||
@@ -2625,9 +2625,9 @@ namespace OpenMS
     }
   }
 
-  std::vector<String> PEFFFile::parseParenList_(const String& value)
+  std::vector<std::string> PEFFFile::parseParenList_(const std::string& value)
   {
-    std::vector<String> result;
+    std::vector<std::string> result;
 
     if (value.empty())
     {
@@ -2670,7 +2670,7 @@ namespace OpenMS
 
         if (end > start)
         {
-          result.push_back(value.substr(start, end - start));
+          result.push_back(StringUtils::substr(value, start, end - start));
         }
         pos = end + 1;
       }
@@ -2689,14 +2689,14 @@ namespace OpenMS
     return result;
   }
 
-  PEFFModification PEFFFile::parseModification_(const String& tuple)
+  PEFFModification PEFFFile::parseModification_(const std::string& tuple)
   {
     // Format: pos|accession|name|OptionalTag  (OptionalTag optional)
     // With annotation IDs: annotationID:pos|accession|name|OptionalTag
     // Position can be ? for unknown position
     PEFFModification mod;
 
-    std::vector<String> parts = splitByPipeEscapeAware(tuple);
+    std::vector<std::string> parts = splitByPipeEscapeAware(tuple);
 
     if (parts.size() >= 2)
     {
@@ -2712,27 +2712,27 @@ namespace OpenMS
       else if (pos_field.contains(','))
       {
         // Take first position; caller will handle expansion
-        std::vector<String> positions;
-        pos_field.split(',', positions);
+        std::vector<std::string> positions;
+        StringUtils::split(pos_field, ',', positions);
         if (!positions.empty() && !positions[0].empty())
         {
-          mod.position = positions[0].toInt();
+          mod.position = StringUtils::toInt32(positions[0]);
         }
       }
       else
       {
-        mod.position = pos_field.toInt();
+        mod.position = StringUtils::toInt32(pos_field);
       }
 
       // Accession
       mod.accession = parts[1];
 
       // Determine type from accession
-      if (mod.accession.hasPrefix("MOD:"))
+      if (StringUtils::hasPrefix(mod.accession, "MOD:"))
       {
         mod.type = PEFFModification::Type::PSI_MOD;
       }
-      else if (mod.accession.hasPrefix("UNIMOD:"))
+      else if (StringUtils::hasPrefix(mod.accession, "UNIMOD:"))
       {
         mod.type = PEFFModification::Type::UNIMOD;
       }
@@ -2762,19 +2762,19 @@ namespace OpenMS
     return mod;
   }
 
-  PEFFVariantSimple PEFFFile::parseVariantSimple_(const String& tuple)
+  PEFFVariantSimple PEFFFile::parseVariantSimple_(const std::string& tuple)
   {
     // Format: pos|aa|OptionalTag (OptionalTag optional)
     // With annotation IDs: annotationID:pos|aa|OptionalTag
     PEFFVariantSimple var;
 
-    std::vector<String> parts = splitByPipeEscapeAware(tuple);
+    std::vector<std::string> parts = splitByPipeEscapeAware(tuple);
 
     if (parts.size() >= 2)
     {
       auto [annotation_id, pos_field] = extractAnnotationId(parts[0]);
       var.annotation_id = annotation_id;
-      var.position = pos_field.toInt();
+      var.position = StringUtils::toInt32(pos_field);
       var.variant_aa = parts[1].empty() ? '\0' : parts[1][0];
 
       if (parts.size() >= 3)
@@ -2786,20 +2786,20 @@ namespace OpenMS
     return var;
   }
 
-  PEFFVariantComplex PEFFFile::parseVariantComplex_(const String& tuple)
+  PEFFVariantComplex PEFFFile::parseVariantComplex_(const std::string& tuple)
   {
     // Format: start|end|replacement|OptionalTag (OptionalTag optional)
     // With annotation IDs: annotationID:start|end|replacement|OptionalTag
     PEFFVariantComplex var;
 
-    std::vector<String> parts = splitByPipeEscapeAware(tuple);
+    std::vector<std::string> parts = splitByPipeEscapeAware(tuple);
 
     if (parts.size() >= 3)
     {
       auto [annotation_id, start_field] = extractAnnotationId(parts[0]);
       var.annotation_id = annotation_id;
-      var.start_position = start_field.toInt();
-      var.end_position = parts[1].toInt();
+      var.start_position = StringUtils::toInt32(start_field);
+      var.end_position = StringUtils::toInt32(parts[1]);
       var.replacement = parts[2];
 
       if (parts.size() >= 4)
@@ -2811,20 +2811,20 @@ namespace OpenMS
     return var;
   }
 
-  PEFFProcessedRegion PEFFFile::parseProcessedRegion_(const String& tuple)
+  PEFFProcessedRegion PEFFFile::parseProcessedRegion_(const std::string& tuple)
   {
     // Format: start|end|accession|name|OptionalTag (name and OptionalTag optional)
     // With annotation IDs: annotationID:start|end|accession|name|OptionalTag
     PEFFProcessedRegion reg;
 
-    std::vector<String> parts = splitByPipeEscapeAware(tuple);
+    std::vector<std::string> parts = splitByPipeEscapeAware(tuple);
 
     if (parts.size() >= 3)
     {
       auto [annotation_id, start_field] = extractAnnotationId(parts[0]);
       reg.annotation_id = annotation_id;
-      reg.start_position = start_field.toInt();
-      reg.end_position = parts[1].toInt();
+      reg.start_position = StringUtils::toInt32(start_field);
+      reg.end_position = StringUtils::toInt32(parts[1]);
       reg.accession = parts[2];
 
       if (parts.size() >= 4)
@@ -2841,7 +2841,7 @@ namespace OpenMS
     return reg;
   }
 
-  PEFFDisulfideBond PEFFFile::parseDisulfideBond_(const String& tuple)
+  PEFFDisulfideBond PEFFFile::parseDisulfideBond_(const std::string& tuple)
   {
     // Format: id1,id2|description  (description is optional)
     // With annotation IDs: annotationID:id1,id2|description
@@ -2850,11 +2850,11 @@ namespace OpenMS
 
     // Split by | first to separate IDs from description
     size_t pipe_pos = tuple.find('|');
-    String ids_part = (pipe_pos != String::npos) ? tuple.substr(0, pipe_pos) : tuple;
+    std::string ids_part = (pipe_pos != std::string::npos) ? StringUtils::substr(tuple, 0, pipe_pos) : tuple;
 
-    if (pipe_pos != String::npos)
+    if (pipe_pos != std::string::npos)
     {
-      bond.optional_tag = tuple.substr(pipe_pos + 1);
+      bond.optional_tag = StringUtils::substr(tuple, pipe_pos + 1);
     }
 
     // Extract annotation ID prefix from the IDs portion
@@ -2864,10 +2864,10 @@ namespace OpenMS
 
     // Split the IDs by comma
     size_t comma_pos = remaining.find(',');
-    if (comma_pos != String::npos)
+    if (comma_pos != std::string::npos)
     {
-      bond.id1 = remaining.substr(0, comma_pos);
-      bond.id2 = remaining.substr(comma_pos + 1);
+      bond.id1 = StringUtils::substr(remaining, 0, comma_pos);
+      bond.id2 = StringUtils::substr(remaining, comma_pos + 1);
     }
 
     return bond;
@@ -2917,7 +2917,7 @@ namespace OpenMS
 
       out << "# Decoy=" << (header.is_decoy ? "true" : "false") << "\n";
 
-      for (const String& source : header.db_sources)
+      for (const std::string& source : header.db_sources)
       {
         out << "# DbSource=" << source << "\n";
       }
@@ -2949,7 +2949,7 @@ namespace OpenMS
         out << "# SpecificValue=" << key << ":" << type_def << "\n";
       }
 
-      for (const String& tag_def : header.optional_tag_defs)
+      for (const std::string& tag_def : header.optional_tag_defs)
       {
         out << "# OptionalTagDef=" << tag_def << "\n";
       }
@@ -3017,12 +3017,12 @@ namespace OpenMS
     }
   } // anonymous namespace
 
-  String PEFFFile::formatHeader_(const PEFFDatabaseMetadata& header) const
+  std::string PEFFFile::formatHeader_(const PEFFDatabaseMetadata& header) const
   {
     std::ostringstream out;
 
     // File Description Block
-    String version = header.version;
+    std::string version = header.version;
     if (version.empty())
     {
       OPENMS_LOG_WARN << "PEFF: Missing PEFF version on write; defaulting to 1.0.\n";
@@ -3030,7 +3030,7 @@ namespace OpenMS
     }
     out << "# PEFF " << version << "\n";
 
-    for (const String& comment : header.general_comments)
+    for (const std::string& comment : header.general_comments)
     {
       if (!comment.empty())
       {
@@ -3045,7 +3045,7 @@ namespace OpenMS
     return out.str();
   }
 
-  String PEFFFile::formatHeader_(const std::vector<PEFFDatabaseMetadata>& headers) const
+  std::string PEFFFile::formatHeader_(const std::vector<PEFFDatabaseMetadata>& headers) const
   {
     std::ostringstream out;
     if (headers.empty())
@@ -3054,7 +3054,7 @@ namespace OpenMS
                                         "PEFF: formatHeader() requires at least one database header");
     }
 
-    String version;
+    std::string version;
     for (const auto& h : headers)
     {
       if (!h.version.empty())
@@ -3079,11 +3079,11 @@ namespace OpenMS
     }
 
     // Merge GeneralComment lines (file description block only).
-    std::set<String> seen_comments;
-    std::vector<String> comments;
+    std::set<std::string> seen_comments;
+    std::vector<std::string> comments;
     for (const auto& h : headers)
     {
-      for (const String& c : h.general_comments)
+      for (const std::string& c : h.general_comments)
       {
         if (c.empty()) continue;
         if (seen_comments.insert(c).second)
@@ -3094,7 +3094,7 @@ namespace OpenMS
     }
 
     out << "# PEFF " << version << "\n";
-    for (const String& comment : comments)
+    for (const std::string& comment : comments)
     {
       out << "# GeneralComment=" << comment << "\n";
     }
@@ -3108,7 +3108,7 @@ namespace OpenMS
     return out.str();
   }
 
-  String PEFFFile::formatEntry_(const PEFFEntry& entry) const
+  std::string PEFFFile::formatEntry_(const PEFFEntry& entry) const
   {
     std::ostringstream out;
 
@@ -3128,7 +3128,7 @@ namespace OpenMS
       }
       else
       {
-        for (const String& name : entry.protein_names)
+        for (const std::string& name : entry.protein_names)
         {
           desc << "(" << escape_peff(name) << ")";
         }
@@ -3193,7 +3193,7 @@ namespace OpenMS
     if (!entry.alt_accessions.empty())
     {
       desc << " \\AltAC=";
-      for (const String& alt_ac : entry.alt_accessions)
+      for (const std::string& alt_ac : entry.alt_accessions)
       {
         desc << "(" << escape_peff(alt_ac) << ")";
       }
@@ -3203,7 +3203,7 @@ namespace OpenMS
     if (!entry.modifications.empty())
     {
       // Helper lambda to write a list of modifications
-      auto writeMods = [&desc](const std::vector<const PEFFModification*>& mods, const String& key)
+      auto writeMods = [&desc](const std::vector<const PEFFModification*>& mods, const std::string& key)
       {
         if (mods.empty()) return;
         desc << " \\" << key << "=";
@@ -3340,7 +3340,7 @@ namespace OpenMS
     if (!entry.proteoforms.empty())
     {
       desc << " \\Proteoform=";
-      for (const String& pf : entry.proteoforms)
+      for (const std::string& pf : entry.proteoforms)
       {
         desc << "(" << escape_peff(pf) << ")";
       }
@@ -3357,7 +3357,7 @@ namespace OpenMS
     out << desc.str() << "\n";
 
     // Write sequence (80 characters per line)
-    const String& seq = entry.sequence;
+    const std::string& seq = entry.sequence;
     Size chunks = seq.size() / 80;
     Size chunk_pos = 0;
 

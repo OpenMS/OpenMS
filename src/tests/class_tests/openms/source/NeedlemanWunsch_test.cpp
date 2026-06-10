@@ -26,10 +26,10 @@ START_SECTION(~NeedlemanWunsch())
 }
 END_SECTION
 
-String seq1 = "IGGATLIGQLAIQQAHVHL";
-String seq2 = "IGGATLIGALDQVVAQQAHVHL";
+std::string seq1 = "IGGATLIGQLAIQQAHVHL";
+std::string seq2 = "IGGATLIGALDQVVAQQAHVHL";
 
-START_SECTION(double align(const String& seq1, const String& seq2))
+START_SECTION(double align(const std::string& seq1, const std::string& seq2))
 {
   NeedlemanWunsch alignment = NeedlemanWunsch(NeedlemanWunsch::ScoringMatrix::identity, 5);
   TEST_EQUAL(alignment.align(seq1, seq2), 1);

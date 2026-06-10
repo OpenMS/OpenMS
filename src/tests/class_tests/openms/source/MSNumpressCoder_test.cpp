@@ -132,7 +132,7 @@ END_SECTION
 START_SECTION(( void encodeNP(const std::vector<double> & in, String & result, bool zlib_compression, const NumpressConfig & config)))
 {
   std::vector< double > in = setup_test_vec1();
-  String out;
+  std::string out;
   MSNumpressCoder::NumpressConfig config;
   config.np_compression = MSNumpressCoder::PIC;
 
@@ -150,9 +150,9 @@ START_SECTION(( void encodeNP(const std::vector<float> & in, String & result, bo
 }
 END_SECTION
 
-START_SECTION(( void decodeNP(const String & in, std::vector<double> & out, bool zlib_compression, const NumpressConfig & config) ))
+START_SECTION(( void decodeNP(const std::string & in, std::vector<double> & out, bool zlib_compression, const NumpressConfig & config) ))
 {
-  String in = "ZGaMXCFQkQ==";
+  std::string in = "ZGaMXCFQkQ==";
 
   MSNumpressCoder::NumpressConfig config;
   config.np_compression = MSNumpressCoder::PIC;
@@ -189,7 +189,7 @@ END_SECTION
 START_SECTION([EXTRA] encodeNP_LINEAR)
 {
   std::vector< double > in = setup_test_vec1();
-  String out;
+  std::string out;
 
   MSNumpressCoder::NumpressConfig config;
   config.np_compression = MSNumpressCoder::LINEAR;
@@ -205,7 +205,7 @@ END_SECTION
 
 START_SECTION([EXTRA] decodeNP_LINEAR)
 {
-  String in = "QWR64UAAAADo//8/0P//f1kSgA==";
+  std::string in = "QWR64UAAAADo//8/0P//f1kSgA==";
 
   MSNumpressCoder::NumpressConfig config;
   config.np_compression = MSNumpressCoder::LINEAR;
@@ -229,7 +229,7 @@ END_SECTION
 START_SECTION([EXTRA] encodeNP_PIC)
 {
   std::vector< double > in = setup_test_vec1();
-  String out;
+  std::string out;
 
   MSNumpressCoder::NumpressConfig config;
   config.np_compression = MSNumpressCoder::PIC;
@@ -244,7 +244,7 @@ END_SECTION
 
 START_SECTION([EXTRA] decodeNP_PIC)
 {
-  String in = "ZGaMXCFQkQ==";
+  std::string in = "ZGaMXCFQkQ==";
 
   MSNumpressCoder::NumpressConfig config;
   config.np_compression = MSNumpressCoder::PIC;
@@ -268,7 +268,7 @@ END_SECTION
 START_SECTION([EXTRA] encodeNP_SLOF)
 {
   std::vector< double > in = setup_test_vec1();
-  String out;
+  std::string out;
 
   MSNumpressCoder::NumpressConfig config;
   config.np_compression = MSNumpressCoder::SLOF;
@@ -284,7 +284,7 @@ END_SECTION
 
 START_SECTION([EXTRA] decodeNP_SLOF)
 {
-  String in = "QMVagAAAAAAZxX3ivPP8/w==";
+  std::string in = "QMVagAAAAAAZxX3ivPP8/w==";
 
   MSNumpressCoder::NumpressConfig config;
   config.np_compression = MSNumpressCoder::SLOF;
@@ -314,7 +314,7 @@ END_SECTION
 START_SECTION([EXTRA] test_large_LINEAR)
 {
   std::vector< double > in = setup_test_vec2();
-  String base64_string;
+  std::string base64_string;
   std::vector<double> result;
 
   MSNumpressCoder::NumpressConfig config;
@@ -335,7 +335,7 @@ END_SECTION
 START_SECTION([EXTRA] test_large_PIC)
 {
   std::vector< double > in = setup_test_vec2();
-  String base64_string;
+  std::string base64_string;
   std::vector<double> result;
 
   MSNumpressCoder::NumpressConfig config;
@@ -355,7 +355,7 @@ END_SECTION
 START_SECTION([EXTRA] test_large_SLOF)
 {
   std::vector< double > in = setup_test_vec2();
-  String base64_string;
+  std::string base64_string;
   std::vector<double> result;
 
   MSNumpressCoder::NumpressConfig config;

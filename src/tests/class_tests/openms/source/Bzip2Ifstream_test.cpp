@@ -43,7 +43,7 @@ START_SECTION(Bzip2Ifstream(const char * filename))
 	buffer[29] = '\0';
 	size_t len = 29;
 	TEST_EQUAL(29, bzip.read(buffer, len))
-	TEST_EQUAL(String(buffer), String("Was decompression successful?"))
+	TEST_EQUAL(std::string(buffer),std::string("Was decompression successful?"))
 
 END_SECTION
 
@@ -59,7 +59,7 @@ START_SECTION(void open(const char *filename))
 	buffer[29] = '\0';
 	size_t len = 29;
 	TEST_EQUAL(29, bzip.read(buffer, len))
-	TEST_EQUAL(String(buffer), String("Was decompression successful?"))
+	TEST_EQUAL(std::string(buffer),std::string("Was decompression successful?"))
 	
 END_SECTION
 
@@ -89,7 +89,7 @@ START_SECTION(size_t read(char *s, size_t n))
 	TEST_EXCEPTION(Exception::IllegalArgument, bzip2.read(buffer,10))
 	bzip2.open(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
 	TEST_EQUAL(29, bzip2.read(buffer, len))
-	TEST_EQUAL(String(buffer), String("Was decompression successful?"))
+	TEST_EQUAL(std::string(buffer),std::string("Was decompression successful?"))
 END_SECTION
 
 START_SECTION(void close())

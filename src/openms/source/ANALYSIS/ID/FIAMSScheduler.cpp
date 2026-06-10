@@ -18,9 +18,9 @@
 namespace OpenMS {
   /// default constructor
   FIAMSScheduler::FIAMSScheduler(
-    String filename,
-    String base_dir,
-    String output_dir,
+    std::string filename,
+    std::string base_dir,
+    std::string output_dir,
     bool load_cached
   )
     : 
@@ -40,7 +40,7 @@ namespace OpenMS {
     StringList row;
     for (Size i = 1; i < csv_file.rowCount(); ++i) {
       csv_file.getRow(i, row);
-      std::map<String, String> mapping;
+      std::map<std::string, std::string> mapping;
       for (Size j = 0; j < headers.size(); ++j) {
         mapping[headers[j]] = row[j];
       }
@@ -67,9 +67,9 @@ namespace OpenMS {
       p.setValue("negative_adducts", base_dir_ + samples_[i].at("negative_adducts"));
       fia_processor.setParameters(p);
 
-      String time = samples_[i].at("time");
-      std::vector<String> times;
-      time.split(";", times);
+      std::string time = samples_[i].at("time");
+      std::vector<std::string> times;
+      StringUtils::split(time, ";", times);
       for (Size j = 0; j < times.size(); ++j) {
         OPENMS_LOG_INFO << "Started " << samples_[i].at("filename") << " for " << times[j] << " seconds" << std::endl;
         MzTab mztab_output;
@@ -79,15 +79,15 @@ namespace OpenMS {
     }
   }
 
-  const std::vector<std::map<String, String>>& FIAMSScheduler::getSamples() {
+  const std::vector<std::map<std::string, std::string>>& FIAMSScheduler::getSamples() {
     return samples_;
   }
 
-  const String& FIAMSScheduler::getBaseDir() {
+  const std::string& FIAMSScheduler::getBaseDir() {
     return base_dir_;
   }
 
-  const String& FIAMSScheduler::getOutputDir() {
+  const std::string& FIAMSScheduler::getOutputDir() {
     return output_dir_;
   }
 }

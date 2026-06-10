@@ -20,12 +20,12 @@ namespace OpenMS
 
     const DigestionEnzymeRNA* rnase =
         dynamic_cast<const DigestionEnzymeRNA*>(enzyme_);
-    String five_prime_code = rnase->getFivePrimeGain();
+    std::string five_prime_code = rnase->getFivePrimeGain();
     if (five_prime_code == "p")
     {
       five_prime_code = "5'-p";
     }
-    String three_prime_code = rnase->getThreePrimeGain();
+    std::string three_prime_code = rnase->getThreePrimeGain();
     if (three_prime_code == "p")
     {
       three_prime_code = "3'-p";
@@ -52,8 +52,8 @@ namespace OpenMS
     cuts_before_regexes_.clear();
 
     StringList CAregexes, CBregexes;
-    rnase->getCutsAfterRegEx().split(',', CAregexes);
-    rnase->getCutsBeforeRegEx().split(',', CBregexes);
+    StringUtils::split(rnase->getCutsAfterRegEx(), ',', CAregexes);
+    StringUtils::split(rnase->getCutsBeforeRegEx(), ',', CBregexes);
     for (auto it = std::begin(CAregexes); it != std::end(CAregexes); ++it)
     {
       cuts_after_regexes_.emplace_back(*it);
@@ -65,7 +65,7 @@ namespace OpenMS
   }
 
 
-  void RNaseDigestion::setEnzyme(const String& enzyme_name)
+  void RNaseDigestion::setEnzyme(const std::string& enzyme_name)
   {
     setEnzyme(RNaseDB::getInstance()->getEnzyme(enzyme_name));
   }
@@ -216,11 +216,11 @@ namespace OpenMS
         IdentificationData::IdentifiedOligo oligo(fragment);
         Size end_pos = pos.first + pos.second; // past-the-end position!
         IdentificationData::ParentMatch match(pos.first, end_pos - 1);
-        match.left_neighbor = ((pos.first > 0) ?
-                               rna[pos.first - 1]->getCode() :
+        match.left_neighbor = std::string(1, (pos.first > 0) ?
+                               rna[pos.first - 1]->getCode()[0] :
                                IdentificationData::ParentMatch::LEFT_TERMINUS);
-        match.right_neighbor = ((end_pos < rna.size()) ?
-                                rna[end_pos]->getCode() :
+        match.right_neighbor = std::string(1, (end_pos < rna.size()) ?
+                                rna[end_pos]->getCode()[0] :
                                 IdentificationData::ParentMatch::RIGHT_TERMINUS);
         oligo.parent_matches[parent_ref].insert(match);
         id_data.registerIdentifiedOligo(oligo);

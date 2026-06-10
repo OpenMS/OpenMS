@@ -20,7 +20,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  SearchEngineBase::SearchEngineBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations, bool toolhandler_test) :
+  SearchEngineBase::SearchEngineBase(const std::string& tool_name, const std::string& tool_description, bool official, const std::vector<Citation>& citations, bool toolhandler_test) :
     TOPPBase(tool_name, tool_description, official, citations, toolhandler_test)
   {
   }
@@ -28,9 +28,9 @@ namespace OpenMS
   SearchEngineBase::~SearchEngineBase() = default;
 
   
-  String SearchEngineBase::getRawfileName(int ms_level) const
+  std::string SearchEngineBase::getRawfileName(int ms_level) const
   {
-    String inputfile_name = getStringOption_("in");
+    std::string inputfile_name = getStringOption_("in");
     FileHandler fh;
     auto type = fh.getType(inputfile_name);
     switch (type)
@@ -43,7 +43,7 @@ namespace OpenMS
         const auto& lvl_info = centroid_info.find(ms_level);
         if (lvl_info == centroid_info.end())
         {
-          throw Exception::FileEmpty(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: No MS" + String(ms_level) + " spectra in input file.");
+          throw Exception::FileEmpty(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: No MS" + StringUtils::toStr(ms_level) + " spectra in input file.");
         }
 
         if (lvl_info->second.count_profile > 0)
@@ -56,20 +56,20 @@ namespace OpenMS
           else
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "Error: Profile data provided but centroided MS" + String(ms_level) + " spectra required. To enforce processing (unwise!) of the data enable the -force flag (results will be bogus!).");
+              "Error: Profile data provided but centroided MS" + StringUtils::toStr(ms_level) + " spectra required. To enforce processing (unwise!) of the data enable the -force flag (results will be bogus!).");
           }
         }
         if (lvl_info->second.count_centroided == 0)
         {
           if (getFlag_("force"))
           {
-            OPENMS_LOG_WARN << "Warning: No centroided MS" + String(ms_level) + " were found, but are required. "
+            OPENMS_LOG_WARN << "Warning: No centroided MS" + StringUtils::toStr(ms_level) + " were found, but are required. "
                                "Since '-force' flag is in effect, we will continue, but results might be bogus." << std::endl;
           }
           else
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              "Error: No centroided MS" + String(ms_level) + " spectra were found, but are required. To enforce processing of the data enable the -force flag (results will likely be bogus!).");
+              "Error: No centroided MS" + StringUtils::toStr(ms_level) + " spectra were found, but are required. To enforce processing of the data enable the -force flag (results will likely be bogus!).");
           }
         }
         // do no check for UNKNOWN, since it does not really tell much (UNKNOWN can only occur if meta data is missing and our peak type estimation fails (which only happens for (almost) empty spectra))
@@ -88,9 +88,9 @@ namespace OpenMS
     return inputfile_name;
   }
 
-  String SearchEngineBase::getDBFilename(const String& db) const
+  std::string SearchEngineBase::getDBFilename(const std::string& db) const
   {
-    String db_name(db.empty() ? getStringOption_("database") : db);
+    std::string db_name(db.empty() ? getStringOption_("database") : db);
     if (!File::readable(db_name))
     {
       db_name = File::findDatabase(db_name);

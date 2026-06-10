@@ -47,7 +47,7 @@ namespace OpenMS
     double wavelength = params_.getValue("wavelength");
     if (wavelength > (xmax_ - xmin_))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "B-spline 'wavelength' can't be larger than the data range (here: " + String(xmax_ - xmin_) + ").", String(wavelength));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "B-spline 'wavelength' can't be larger than the data range (here: " + StringUtils::toStr(xmax_ - xmin_) + ").",StringUtils::toStr(wavelength));
     }
 
     // since we can't initialize a BSpline2d object in the init list (no c'tor
@@ -72,7 +72,7 @@ namespace OpenMS
     {
       extrapolate_ = EX_GLOBAL_LINEAR;
       TransformationModelLinear lm(data, Param());
-      String x_weight, y_weight;
+      std::string x_weight, y_weight;
       double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
       lm.getParameters(slope_min_, offset_min_, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
       slope_max_ = slope_min_;

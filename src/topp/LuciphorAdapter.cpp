@@ -75,20 +75,20 @@ public:
   LuciphorAdapter() :
     TOPPBase("LuciphorAdapter", "Modification site localisation using LuciPHOr2."),
     // parameter choices (the order of the values must be the same as in the LuciPHOr2 parameters!):
-    fragment_methods_(ListUtils::create<String>("CID,HCD")),
-    fragment_error_units_(ListUtils::create<String>("Da,ppm")),
-    score_selection_method_(ListUtils::create<String>("Peptide Prophet probability,Mascot Ion Score,-log(E-value),X!Tandem Hyperscore,Sequest Xcorr"))
+    fragment_methods_(ListUtils::create<std::string>("CID,HCD")),
+    fragment_error_units_(ListUtils::create<std::string>("Da,ppm")),
+    score_selection_method_(ListUtils::create<std::string>("Peptide Prophet probability,Mascot Ion Score,-log(E-value),X!Tandem Hyperscore,Sequest Xcorr"))
   {
   }
 
 protected:
   struct LuciphorPSM
   {
-    String spec_id;
+    std::string spec_id;
     int scan_nr;
     int scan_idx;
     int charge;
-    String predicted_pep;
+    std::string predicted_pep;
     double delta_score;
     double predicted_pep_score;
     double global_flr;
@@ -98,18 +98,18 @@ protected:
     };
 
   // lists of allowed parameter values:
-  vector<String> fragment_methods_, fragment_error_units_, score_selection_method_;
+  vector<std::string> fragment_methods_, fragment_error_units_, score_selection_method_;
 
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input spectrum file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
     
     registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
-    setValidFormats_("id", ListUtils::create<String>("idXML"));
+    setValidFormats_("id", ListUtils::create<std::string>("idXML"));
 
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML"));
 
     registerInputFile_("executable", "<file>", "luciphor2.jar", "LuciPHOr2 .jar file. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
 
@@ -122,16 +122,16 @@ protected:
 
     registerDoubleOption_("min_mz", "<value>", 150.0, "Do not consider peaks below this value for matching fragment ions", false);
     
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("target_modifications", "<mods>", ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), "List the amino acids to be searched for and their mass modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false);
+    registerStringList_("target_modifications", "<mods>", ListUtils::create<std::string>("Phospho (S),Phospho (T),Phospho (Y)"), "List the amino acids to be searched for and their mass modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false);
     setValidStrings_("target_modifications", all_mods);
     
-    registerStringList_("neutral_losses", "<value>", ListUtils::create<String>("sty -H3PO4 -97.97690"), "List the types of neutral losses that you want to consider. The residue field is case sensitive. For example: lower case 'sty' implies that the neutral loss can only occur if the specified modification is present. Syntax: NL = <RESDIUES> -<NEUTRAL_LOSS_MOLECULAR_FORMULA> <MASS_LOST>", false);
+    registerStringList_("neutral_losses", "<value>", ListUtils::create<std::string>("sty -H3PO4 -97.97690"), "List the types of neutral losses that you want to consider. The residue field is case sensitive. For example: lower case 'sty' implies that the neutral loss can only occur if the specified modification is present. Syntax: NL = <RESDIUES> -<NEUTRAL_LOSS_MOLECULAR_FORMULA> <MASS_LOST>", false);
     
     registerDoubleOption_("decoy_mass", "<value>", 79.966331, "How much to add to an amino acid to make it a decoy", false);
     setMinFloat_("decoy_mass", 1.0);
-    registerStringList_("decoy_neutral_losses", "<value>", ListUtils::create<String>("X -H3PO4 -97.97690"), "For handling the neutral loss from a decoy sequence. The syntax for this is identical to that of the normal neutral losses given above except that the residue is always 'X'. Syntax: DECOY_NL = X -<NEUTRAL_LOSS_MOLECULAR_FORMULA> <MASS_LOST>", false);
+    registerStringList_("decoy_neutral_losses", "<value>", ListUtils::create<std::string>("X -H3PO4 -97.97690"), "For handling the neutral loss from a decoy sequence. The syntax for this is identical to that of the normal neutral losses given above except that the residue is always 'X'. Syntax: DECOY_NL = X -<NEUTRAL_LOSS_MOLECULAR_FORMULA> <MASS_LOST>", false);
     
     registerIntOption_("max_charge_state", "<num>", 5, "Do not consider PSMs with a charge state above this value", false);
     setMinInt_("max_charge_state", 1);
@@ -155,7 +155,7 @@ protected:
     setMinInt_("num_threads", 0);
 
     registerStringOption_("run_mode", "<choice>", "0", "Determines how Luciphor will run: 0 = calculate FLR then rerun scoring without decoys (two iterations), 1 = Report Decoys: calculate FLR but don't rescore PSMs, all decoy hits will be reported", false);
-    setValidStrings_("run_mode", ListUtils::create<String>("0,1"));
+    setValidStrings_("run_mode", ListUtils::create<std::string>("0,1"));
 
     registerDoubleOption_("rt_tolerance", "<num>", 0.01, "Set the retention time tolerance (for the mapping of identifications to spectra in case multiple search engines were used)", false);
     setMinFloat_("rt_tolerance", 0.0);
@@ -165,15 +165,15 @@ protected:
     registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
   }
   
-  String makeModString_(const String& mod_name)
+  std::string makeModString_(const std::string& mod_name)
   {
     const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_name);
-    const String& residue = mod->getOrigin();
-    return String(residue +  " " + mod->getDiffMonoMass());    
+    const std::string residue = StringUtils::toStr(mod->getOrigin());
+    return std::string(residue +  " " + mod->getDiffMonoMass());    
   }
  
-  ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& id, const String& in,
-    const String& out, const vector<String>& target_mods, String selection_method)
+  ExitCodes parseParameters_(map<std::string, vector<std::string> >& config_map, const std::string& id, const std::string& in,
+    const std::string& out, const vector<std::string>& target_mods, std::string selection_method)
   {
     FileHandler fh;
     
@@ -181,38 +181,38 @@ protected:
     config_map["SPECTRUM_SUFFIX"].push_back(FileTypes::typeToName(fh.getTypeByFileName(in)));
     config_map["INPUT_DATA"].push_back(id);
     
-    String type = FileTypes::typeToName(fh.getTypeByFileName(id));
-    config_map["INPUT_TYPE"].push_back(0);
+    std::string type = FileTypes::typeToName(fh.getTypeByFileName(id));
+    config_map["INPUT_TYPE"].push_back(StringUtils::toStr(0));
     
-    config_map["ALGORITHM"].push_back(ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method")));
-    config_map["MS2_TOL"].push_back(getDoubleOption_("fragment_mass_tolerance"));
-    config_map["MS2_TOL_UNITS"].push_back(ListUtils::getIndex<String>(fragment_error_units_, getStringOption_("fragment_error_units")));
-    config_map["MIN_MZ"].push_back(getDoubleOption_("min_mz"));
+    config_map["ALGORITHM"].push_back(StringUtils::toStr(ListUtils::getIndex<std::string>(fragment_methods_, getStringOption_("fragment_method"))));
+    config_map["MS2_TOL"].push_back(StringUtils::toStr(getDoubleOption_("fragment_mass_tolerance")));
+    config_map["MS2_TOL_UNITS"].push_back(StringUtils::toStr(ListUtils::getIndex<std::string>(fragment_error_units_, getStringOption_("fragment_error_units"))));
+    config_map["MIN_MZ"].push_back(StringUtils::toStr(getDoubleOption_("min_mz")));
     config_map["OUTPUT_FILE"].push_back(out);
-    config_map["DECOY_MASS"].push_back(getDoubleOption_("decoy_mass"));
-    config_map["MAX_CHARGE_STATE"].push_back(getIntOption_("max_charge_state"));
-    config_map["MAX_PEP_LEN"].push_back(getIntOption_("max_peptide_length"));
-    config_map["MAX_NUM_PERM"].push_back(getIntOption_("max_num_perm"));
-    config_map["SELECTION_METHOD"].push_back(ListUtils::getIndex<String>(score_selection_method_, selection_method));    
-    config_map["MODELING_SCORE_THRESHOLD"].push_back(getDoubleOption_("modeling_score_threshold"));
-    config_map["SCORING_THRESHOLD"].push_back(getDoubleOption_("scoring_threshold"));
-    config_map["MIN_NUM_PSMS_MODEL"].push_back(getIntOption_("min_num_psms_model"));
-    config_map["NUM_THREADS"].push_back(getIntOption_("num_threads"));
+    config_map["DECOY_MASS"].push_back(StringUtils::toStr(getDoubleOption_("decoy_mass")));
+    config_map["MAX_CHARGE_STATE"].push_back(StringUtils::toStr(getIntOption_("max_charge_state")));
+    config_map["MAX_PEP_LEN"].push_back(StringUtils::toStr(getIntOption_("max_peptide_length")));
+    config_map["MAX_NUM_PERM"].push_back(StringUtils::toStr(getIntOption_("max_num_perm")));
+    config_map["SELECTION_METHOD"].push_back(StringUtils::toStr(ListUtils::getIndex<std::string>(score_selection_method_, selection_method)));    
+    config_map["MODELING_SCORE_THRESHOLD"].push_back(StringUtils::toStr(getDoubleOption_("modeling_score_threshold")));
+    config_map["SCORING_THRESHOLD"].push_back(StringUtils::toStr(getDoubleOption_("scoring_threshold")));
+    config_map["MIN_NUM_PSMS_MODEL"].push_back(StringUtils::toStr(getIntOption_("min_num_psms_model")));
+    config_map["NUM_THREADS"].push_back(StringUtils::toStr(getIntOption_("num_threads")));
     config_map["RUN_MODE"].push_back(getStringOption_("run_mode"));
     
-    for (vector<String>::const_iterator it = target_mods.begin(); it != target_mods.end(); ++it)
+    for (vector<std::string>::const_iterator it = target_mods.begin(); it != target_mods.end(); ++it)
     {
       config_map["TARGET_MOD"].push_back(makeModString_(*it));
     }
     
-    vector<String> neutral_losses = getStringList_("neutral_losses");
-    for (vector<String>::const_iterator it = neutral_losses.begin(); it != neutral_losses.end(); ++it)
+    vector<std::string> neutral_losses = getStringList_("neutral_losses");
+    for (vector<std::string>::const_iterator it = neutral_losses.begin(); it != neutral_losses.end(); ++it)
     {
       config_map["NL"].push_back(*it);
     }
     
-    vector<String> dcy_neutral_losses = getStringList_("decoy_neutral_losses");
-    for (vector<String>::const_iterator it = dcy_neutral_losses.begin(); it != dcy_neutral_losses.end(); ++it)
+    vector<std::string> dcy_neutral_losses = getStringList_("decoy_neutral_losses");
+    for (vector<std::string>::const_iterator it = dcy_neutral_losses.begin(); it != dcy_neutral_losses.end(); ++it)
     {
       config_map["DECOY_NL"].push_back(*it);
     }
@@ -220,17 +220,17 @@ protected:
     return EXECUTION_OK;
   }
   
-  void writeConfigurationFile_(const String& out_path, map<String, vector<String> >& config_map)
+  void writeConfigurationFile_(const std::string& out_path, map<std::string, vector<std::string> >& config_map)
   {
     ofstream output(out_path.c_str());
     output << "## Input file for Luciphor2 (aka: LucXor). (part of OpenMS)\n\n";
 
-    for (std::map<String, vector<String> >::iterator it = config_map.begin(); it != config_map.end(); ++it)
+    for (std::map<std::string, vector<std::string> >::iterator it = config_map.begin(); it != config_map.end(); ++it)
     {
-      String key = it->first;
+      std::string key = it->first;
       if (!key.empty())
       {
-        for (vector<String>::iterator it_val = it->second.begin(); it_val != it->second.end(); ++it_val)
+        for (vector<std::string>::iterator it_val = it->second.begin(); it_val != it->second.end(); ++it_val)
         {
           output << key << " = " << *it_val << "\n";
         }        
@@ -253,29 +253,29 @@ protected:
     output << "               ## 4 = write HCD non-parametric models to disk (HCD-mode only option)\n";
   }
   
-  struct LuciphorPSM splitSpecId_(const String& spec_id)
+  struct LuciphorPSM splitSpecId_(const std::string& spec_id)
   {
     struct LuciphorPSM l_psm;
     l_psm.spec_id = spec_id;
     
-    vector<String> parts;
-    spec_id.split(".", parts);
-    l_psm.scan_nr = parts[1].toInt();
-    l_psm.charge = parts[3].toInt();
+    vector<std::string> parts;
+    StringUtils::split(spec_id, ".", parts);
+    l_psm.scan_nr = StringUtils::toInt32(parts[1]);
+    l_psm.charge = StringUtils::toInt32(parts[3]);
     
     return l_psm;
   }
   
-  ExitCodes convertTargetModification_(const vector<String>& target_mods, map<String, String>& modifications)
+  ExitCodes convertTargetModification_(const vector<std::string>& target_mods, map<std::string, std::string>& modifications)
   {
     modifications.clear();
-    for (vector<String>::const_iterator it = target_mods.begin(); it !=target_mods.end(); ++it)
+    for (vector<std::string>::const_iterator it = target_mods.begin(); it !=target_mods.end(); ++it)
     {
-      String mod_param_value = *it;
-      String mod;
+      std::string mod_param_value = *it;
+      std::string mod;
       
-      vector<String> parts;
-      mod_param_value.split(' ', parts);
+      vector<std::string> parts;
+      StringUtils::split(mod_param_value, ' ', parts);
       if (parts.size() != 2)
       {
         writeLogError_("Error: cannot parse modification '" + mod_param_value + "'");
@@ -284,17 +284,17 @@ protected:
       else
       {
         mod = parts[0];
-        String AAs = parts[1];
+        std::string AAs = parts[1];
         
         // LuciPHOr2 discards C-term and N-term modifications in the sequence. The modifications must be added based on the original sequence.
-        if (!AAs.hasPrefix("(C-term") && !AAs.hasPrefix("(N-term"))
+        if (!StringUtils::hasPrefix(AAs, "(C-term") && !StringUtils::hasPrefix(AAs, "(N-term"))
         {
-          AAs.remove(')');
-          AAs.remove('(');
+          StringUtils::remove(AAs, ')');
+          StringUtils::remove(AAs, '(');
           // because origin can be e.g. (STY)
-          for (String::iterator aa = AAs.begin(); aa != AAs.end(); ++aa)
+          for (std::string::iterator aa = AAs.begin(); aa != AAs.end(); ++aa)
           {
-            modifications[*aa] = mod;
+            modifications[StringUtils::toStr(*aa)] = mod;
           }
         }          
       }
@@ -302,7 +302,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  String parseLuciphorOutput_(const String& l_out, map<int, LuciphorPSM>& l_psms, const SpectrumLookup& lookup)
+  std::string parseLuciphorOutput_(const std::string& l_out, map<int, LuciphorPSM>& l_psms, const SpectrumLookup& lookup)
   {
     if (!File::exists(l_out))
     {
@@ -311,28 +311,28 @@ protected:
     }
 
     CsvFile tsvfile(l_out, '\t');
-    String spec_id = "";
+    std::string spec_id;
         
     for (Size row_count = 1; row_count < tsvfile.rowCount(); ++row_count) // skip header line
     {
-      vector<String> elements;
+      vector<std::string> elements;
       if (!tsvfile.getRow(row_count, elements))
       {
-        writeLogError_("Error: could not split row " + String(row_count) + " of file '" + l_out + "'");
-        return PARSE_ERROR;
+        writeLogError_("Error: could not split row " + StringUtils::toStr(row_count) + " of file '" + l_out + "'");
+        return StringUtils::toStr((int)PARSE_ERROR);
       }
       
       spec_id = elements[0];
       struct LuciphorPSM l_psm = splitSpecId_(spec_id);
       l_psm.scan_idx = lookup.findByScanNumber(l_psm.scan_nr);
       l_psm.predicted_pep = elements[2];
-      l_psm.delta_score = elements[7].toDouble();
-      l_psm.predicted_pep_score = elements[8].toDouble();
-      l_psm.global_flr = elements[10].toDouble();
-      l_psm.local_flr = elements[11].toDouble();
+      l_psm.delta_score = StringUtils::toDouble(elements[7]);
+      l_psm.predicted_pep_score = StringUtils::toDouble(elements[8]);
+      l_psm.global_flr = StringUtils::toDouble(elements[10]);
+      l_psm.local_flr = StringUtils::toDouble(elements[11]);
       if (l_psms.contains(l_psm.scan_idx))
       {
-        return "Duplicate scannr existing " + String(l_psm.scan_nr) + ".";
+        return "Duplicate scannr existing " + StringUtils::toStr(l_psm.scan_nr) + ".";
       }
       l_psms[l_psm.scan_idx] = l_psm;
     }    
@@ -341,7 +341,7 @@ protected:
   
   // remove all modifications which are LuciPHOr2 target modifications,
   // because for these LuciPHOr2 could predict a different position.
-  AASequence removeLuciphorTargetMods_(const AASequence& original_seq, const map<String, String>& target_mods_conv)
+  AASequence removeLuciphorTargetMods_(const AASequence& original_seq, const map<std::string, std::string>& target_mods_conv)
   {
     if (!original_seq.isModified()) {
       return original_seq;
@@ -364,11 +364,11 @@ protected:
     {
       if (original_seq.getResidue(i).isModified())
       {
-        String mod = original_seq.getResidue(i).getModificationName();
+        std::string mod = original_seq.getResidue(i).getModificationName();
         
         // no target modification, modification can be set
         bool found = false;
-        for (map<String, String>::const_iterator iter = target_mods_conv.begin(); iter != target_mods_conv.end() && !found; ++iter)
+        for (map<std::string, std::string>::const_iterator iter = target_mods_conv.begin(); iter != target_mods_conv.end() && !found; ++iter)
         {
           if (mod == iter->second)
           {
@@ -385,14 +385,14 @@ protected:
   }
   
   // set modifications changed by LuciPHOr2
-  ExitCodes setLuciphorTargetMods_(AASequence& seq, String seq_luciphor, const map<String, String>& target_mods_conv)
+  ExitCodes setLuciphorTargetMods_(AASequence& seq, std::string seq_luciphor, const map<std::string, std::string>& target_mods_conv)
   {
     for (Size i = 0; i < seq_luciphor.length(); ++i)
     {
       char aa = seq_luciphor[i];
       if (std::islower(aa))
       {
-        map<String, String>::const_iterator iter = target_mods_conv.find(String(aa).toUpper());
+        map<std::string, std::string>::const_iterator iter = target_mods_conv.find(StringUtils::toUppered(StringUtils::toStr(aa)));
         if (iter != target_mods_conv.end())
         {
           if (seq.getResidue(i).isModified())
@@ -410,11 +410,11 @@ protected:
     return EXECUTION_OK;
   }
   
-  void addScoreToMetaValues_(PeptideHit& hit, const String score_type)
+  void addScoreToMetaValues_(PeptideHit& hit, const std::string score_type)
   {
     if (!hit.metaValueExists(score_type) && !hit.metaValueExists(score_type + "_score"))
     {
-      if (score_type.hasSubstring("score"))
+      if (StringUtils::hasSubstring(score_type, "score"))
       {
         hit.setMetaValue(score_type, hit.getScore());
       }
@@ -425,9 +425,9 @@ protected:
     }
   }
   
-  String getSelectionMethod_(const PeptideIdentification& pep_id, String search_engine)
+  std::string getSelectionMethod_(const PeptideIdentification& pep_id, std::string search_engine)
   {
-    String selection_method = "";
+    std::string selection_method;
     if (pep_id.getScoreType() == "Posterior Error Probability" || pep_id.getScoreType() == "pep" || search_engine == "Percolator")
     {
       selection_method = score_selection_method_[0];
@@ -442,7 +442,7 @@ protected:
     }
     else
     {
-      String msg = "SELECTION_METHOD parameter could not be set. Only Mascot, X! Tandem, or Posterior Error Probability score types are supported.";
+      std::string msg = "SELECTION_METHOD parameter could not be set. Only Mascot, X! Tandem, or Posterior Error Probability score types are supported.";
       throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
     }
     return selection_method;
@@ -450,7 +450,7 @@ protected:
   
   ExitCodes main_(int, const char**) override
   {
-    String java_executable = getStringOption_("java_executable");
+    std::string java_executable = getStringOption_("java_executable");
     if (!getFlag_("force"))
     {
       if (!JavaInfo::canRun(java_executable))
@@ -468,11 +468,11 @@ protected:
     File::TempDir tmp_dir(debug_level_ >= 2);
 
     // create a temporary config file for LuciPHOr2 parameters
-    String conf_file = tmp_dir.getPath() + "luciphor2_input_template.txt";
+    std::string conf_file = tmp_dir.getPath() + "luciphor2_input_template.txt";
     
-    String id = getStringOption_("id");
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string id = getStringOption_("id");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
     double rt_tolerance = getDoubleOption_("rt_tolerance");
     
     FileHandler fh;
@@ -514,7 +514,7 @@ protected:
         OPENMS_LOG_WARN << "No PeptideIdentifications found in the IdXMLFile. Please check your previous steps.\n";
       }
       // create a temporary pepXML file for LuciPHOR2 input
-      String id_file_name = FileHandler::swapExtension(File::basename(id), FileTypes::PEPXML);
+      std::string id_file_name = FileHandler::swapExtension(File::basename(id), FileTypes::PEPXML);
       id = tmp_dir.getPath() + id_file_name;
 
       PepXMLFile().store(id, prot_ids, pep_ids, in, "", false, rt_tolerance);
@@ -526,7 +526,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
     
-    vector<String> target_mods = getStringList_("target_modifications");
+    vector<std::string> target_mods = getStringList_("target_modifications");
     if (target_mods.empty())
     {
       writeLogError_("Error: No target modification existing.");
@@ -534,8 +534,8 @@ protected:
     }
     
     // initialize map
-    map<String, vector<String> > config_map;
-    String selection_method = getSelectionMethod_(pep_ids[0], prot_ids.begin()->getSearchEngine());
+    map<std::string, vector<std::string> > config_map;
+    std::string selection_method = getSelectionMethod_(pep_ids[0], prot_ids.begin()->getSearchEngine());
     
     ExitCodes ret = parseParameters_(config_map, id, in, out, target_mods, selection_method);
     if (ret != EXECUTION_OK)
@@ -546,17 +546,17 @@ protected:
     writeConfigurationFile_(conf_file, config_map);
 
     // memory for JVM
-    String java_memory = "-Xmx" + String(getIntOption_("java_memory")) + "m";
+    std::string java_memory = "-Xmx" + StringUtils::toStr(getIntOption_("java_memory")) + "m";
     int java_permgen = getIntOption_("java_permgen");
 
-    String executable = getStringOption_("executable");
+    std::string executable = getStringOption_("executable");
 
-    std::vector<String> process_params; // the actual process is Java, not LuciPHOr2!
+    std::vector<std::string> process_params; // the actual process is Java, not LuciPHOr2!
     process_params.push_back(java_memory);
 
     if (java_permgen > 0)
     {
-      process_params.push_back("-XX:MaxPermSize=" + String(java_permgen));
+      process_params.push_back("-XX:MaxPermSize=" + StringUtils::toStr(java_permgen));
     }
 
     process_params.push_back("-jar"); process_params.push_back(executable); process_params.push_back(conf_file);
@@ -577,7 +577,7 @@ protected:
     map<int, LuciphorPSM> l_psms;    
     ProteinIdentification::SearchParameters search_params;
 
-    String error = parseLuciphorOutput_(out, l_psms, lookup);
+    std::string error = parseLuciphorOutput_(out, l_psms, lookup);
     if (!error.empty())
     {
       error = "Error: LuciPHOr2 output is not correctly formated. " + error;
@@ -589,7 +589,7 @@ protected:
     // writing output - merge LuciPHOr2 result to idXML
     //-------------------------------------------------------------
     PeptideIdentificationList pep_out;
-    map<String, String> target_mods_conv;
+    map<std::string, std::string> target_mods_conv;
     ret = convertTargetModification_(target_mods, target_mods_conv);
     if (ret != EXECUTION_OK)
     {
@@ -599,7 +599,7 @@ protected:
     for (PeptideIdentification& pep : pep_ids)
     {
       Size scan_idx;
-      const String& ID_native_ids = pep.getSpectrumReference();
+      const std::string& ID_native_ids = pep.getSpectrumReference();
       try
       {
         scan_idx = lookup.findByNativeID(ID_native_ids);

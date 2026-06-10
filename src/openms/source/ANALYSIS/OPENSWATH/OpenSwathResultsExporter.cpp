@@ -19,14 +19,14 @@ namespace OpenMS
 {
   namespace
   {
-    String optionalToString_(const std::optional<double>& value)
+    std::string optionalToString_(const std::optional<double>& value)
     {
-      return value.has_value() ? String(*value) : String();
+      return value.has_value() ? StringUtils::toStr(*value) : std::string();
     }
 
-    String optionalToString_(const std::optional<Int64>& value)
+    std::string optionalToString_(const std::optional<Int64>& value)
     {
-      return value.has_value() ? String(*value) : String();
+      return value.has_value() ? StringUtils::toStr(*value) : std::string();
     }
 
     void appendOptionalDouble_(arrow::DoubleBuilder& builder, const std::optional<double>& value)
@@ -53,7 +53,7 @@ namespace OpenMS
       }
     }
 
-    void appendString_(arrow::StringBuilder& builder, const String& value)
+    void appendString_(arrow::StringBuilder& builder, const std::string& value)
     {
       if (value.empty())
       {
@@ -66,7 +66,7 @@ namespace OpenMS
     }
   } // namespace
 
-  void OpenSwathResultsExporter::write(const String& filename,
+  void OpenSwathResultsExporter::write(const std::string& filename,
                                        const std::vector<OpenSwathExportRow>& rows,
                                        const OpenSwathResultsExportConfig& config)
   {

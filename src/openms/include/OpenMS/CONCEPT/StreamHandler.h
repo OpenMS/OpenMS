@@ -69,7 +69,7 @@ public:
      *
      * @return An integer indicating if the operation was completed successfully (@p value != 1 means a failure occurred).
      */
-    Int registerStream(StreamType const type, const String & stream_name);
+    Int registerStream(StreamType const type, const std::string & stream_name);
 
     /**
      * @brief De-registers a stream of type @p type and with name @p stream_name from the handler.
@@ -81,7 +81,7 @@ public:
      * @param[in] stream_name Name of the stream (e.g. the file name for a file stream).
      *
      */
-    void unregisterStream(StreamType const type, const String & stream_name);
+    void unregisterStream(StreamType const type, const std::string & stream_name);
 
     /**
      * @brief Returns a reference to the stream of type @p type and with name @p stream_name.
@@ -95,7 +95,7 @@ public:
      *
      * @return A reference to the requested stream.
      */
-    std::ostream & getStream(StreamType const type, const String & stream_name);
+    std::ostream & getStream(StreamType const type, const std::string & stream_name);
 
     /**
      * @brief Returns true if the stream @p stream_name with type @p type is
@@ -106,13 +106,13 @@ public:
      *
      * @return bool indication if the stream is known.
      */
-    bool hasStream(const StreamType type, const String & stream_name);
+    bool hasStream(const StreamType type, const std::string & stream_name);
 
 protected:
 
-    std::map<String, std::ostream *>  name_to_stream_map_;  ///< Maps all registered stream names to the corresponding std::ostream.
-    std::map<String, StreamType> name_to_type_map_;  ///< Maps all registered stream names to the corresponding StreamHandler::StreamType
-    std::map<String, Size>      name_to_counter_map_;   ///< Maps all registered stream names to the number of times it was registered. If the counter goes to zero, the stream will be closed and removed.
+    std::map<std::string, std::ostream *>  name_to_stream_map_;  ///< Maps all registered stream names to the corresponding std::ostream.
+    std::map<std::string, StreamType> name_to_type_map_;  ///< Maps all registered stream names to the corresponding StreamHandler::StreamType
+    std::map<std::string, Size>      name_to_counter_map_;   ///< Maps all registered stream names to the number of times it was registered. If the counter goes to zero, the stream will be closed and removed.
 
     /**
      * @brief Creates a stream with the given type and the given name.
@@ -122,7 +122,7 @@ protected:
      *
      * @return A pointer to the created stream.
      */
-    std::ostream * createStream_(const StreamType type, const String & stream_name);
+    std::ostream * createStream_(const StreamType type, const std::string & stream_name);
 
 private:
     // copy constructor and assignment operator are hidden to avoid

@@ -96,7 +96,7 @@ namespace OpenMS
     return true;
   }
 
-  void InspectInfile::store(const String& filename)
+  void InspectInfile::store(const std::string& filename)
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::TSV))
     {
@@ -125,11 +125,11 @@ namespace OpenMS
       file_content << "blind," << blind_ << "\n";
     }
     //mod,+57,C,fix,carbamidomethylation
-    for (std::map<String, vector<String> >::iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i)
+    for (std::map<std::string, vector<std::string> >::iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i)
     {
       // fix", "cterminal", "nterminal", and "opt
-      mods_i->second[2].toLower();
-      if (mods_i->second[2].hasSuffix("term"))
+      StringUtils::toLower(mods_i->second[2]);
+      if (StringUtils::hasSuffix(mods_i->second[2], "term"))
       {
         mods_i->second[2].append("inal");
       }
@@ -170,15 +170,15 @@ namespace OpenMS
     ofs.clear();
   }
 
-  void InspectInfile::handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic)
+  void InspectInfile::handlePTMs(const std::string& modification_line, const std::string& modifications_filename, const bool monoisotopic)
   {
     PTMname_residues_mass_type_.clear();
     // to store the information about modifications from the ptm xml file
-    std::map<String, pair<String, String> > ptm_informations;
+    std::map<std::string, pair<std::string, std::string> > ptm_informations;
     if (!modification_line.empty()) // if modifications are used look whether whether composition and residues (and type and name) is given, the name (type) is used (then the modifications file is needed) or only the mass and residues (and type and name) is given
     {
-      vector<String> modifications, mod_parts;
-      modification_line.split(':', modifications); // get the single modifications
+      vector<std::string> modifications, mod_parts;
+      StringUtils::split(modification_line, ':', modifications); // get the single modifications
       if (modifications.empty())
       {
         modifications.push_back(modification_line);
@@ -186,13 +186,13 @@ namespace OpenMS
       // to get masses from a formula
       EmpiricalFormula add_formula, substract_formula;
 
-      String types = "OPT#FIX#";
-      String name, residues, mass, type;
+      std::string types = "OPT#FIX#";
+      std::string name, residues, mass, type;
 
       // 0 - mass; 1 - composition; 2 - ptm name
       Int mass_or_composition_or_name(-1);
 
-      for (vector<String>::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i)
+      for (vector<std::string>::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i)
       {
         if (mod_i->empty())
         {
@@ -203,7 +203,7 @@ namespace OpenMS
         name = residues = mass = type = "";
 
         // get the single parts of the modification string
-        mod_i->split(',', mod_parts);
+        StringUtils::split(*mod_i, ',', mod_parts);
         if (mod_parts.empty())
           mod_parts.push_back(*mod_i);
         mass_or_composition_or_name = -1;
@@ -216,21 +216,21 @@ namespace OpenMS
           mass = mod_parts.front();
           // to check whether the first part is a mass, it is converted into a float and then back into a string and compared to the given string
           // remove + signs because they don't appear in a float
-          if (mass.hasPrefix("+"))
+          if (StringUtils::hasPrefix(mass, "+"))
           {
             mass.erase(0, 1);
           }
-          if (mass.hasSuffix("+"))
+          if (StringUtils::hasSuffix(mass, "+"))
           {
             mass.erase(mass.length() - 1, 1);
           }
-          if (mass.hasSuffix("-")) // a - sign at the end will not be converted
+          if (StringUtils::hasSuffix(mass, "-")) // a - sign at the end will not be converted
           {
             mass.erase(mass.length() - 1, 1);
             mass.insert(0, "-");
           }
           // if it is a mass
-          if (!String(mass.toFloat()).empty()) // just check if conversion does not throw, i.e. consumes the whole string
+          if (!StringUtils::toStr(StringUtils::toFloat(mass)).empty()) // just check if conversion does not throw, i.e. consumes the whole string
           {
             mass_or_composition_or_name = 0;
           }
@@ -276,13 +276,13 @@ namespace OpenMS
         if (mass_or_composition_or_name == -1 || mass_or_composition_or_name == 2)
         {
           // check whether there is a positive and a negative formula
-          String::size_type pos = mass.find("-");
+          std::string::size_type pos = mass.find("-");
           try
           {
-            if (pos != String::npos)
+            if (pos != std::string::npos)
             {
-              add_formula = EmpiricalFormula(mass.substr(0, pos));
-              substract_formula = EmpiricalFormula(mass.substr(++pos));
+              add_formula = EmpiricalFormula(StringUtils::substr(mass, 0, pos));
+              substract_formula = EmpiricalFormula(StringUtils::substr(mass, ++pos));
             }
             else
             {
@@ -291,11 +291,11 @@ namespace OpenMS
             // sum up the masses
             if (monoisotopic)
             {
-              mass = String(add_formula.getMonoWeight() - substract_formula.getMonoWeight());
+              mass =StringUtils::toStr(add_formula.getMonoWeight() - substract_formula.getMonoWeight());
             }
             else
             {
-              mass = String(add_formula.getAverageWeight() - substract_formula.getAverageWeight());
+              mass =StringUtils::toStr(add_formula.getAverageWeight() - substract_formula.getAverageWeight());
             }
             if (mass_or_composition_or_name == -1)
             {
@@ -321,8 +321,8 @@ namespace OpenMS
 
           // get the residues
           residues = mod_parts.front();
-          residues.substitute('*', 'X');
-          residues.toUpper();
+          StringUtils::substitute(residues, '*', 'X');
+          StringUtils::toUpper(residues);
           mod_parts.erase(mod_parts.begin());
         }
 
@@ -334,7 +334,7 @@ namespace OpenMS
         else
         {
           type = mod_parts.front();
-          type.toUpper();
+          StringUtils::toUpper(type);
           if (types.contains(type))
           {
             mod_parts.erase(mod_parts.begin());
@@ -356,7 +356,7 @@ namespace OpenMS
         {
           if (mod_parts.empty())
           {
-            name = "PTM_" + String(PTMname_residues_mass_type_.size());
+            name = "PTM_" + StringUtils::toStr(PTMname_residues_mass_type_.size());
           }
           else
           {
@@ -367,10 +367,10 @@ namespace OpenMS
         // insert the modification
         if (!PTMname_residues_mass_type_.contains(name))
         {
-          PTMname_residues_mass_type_[name] = vector<String>(3);
+          PTMname_residues_mass_type_[name] = vector<std::string>(3);
           PTMname_residues_mass_type_[name][0] = residues;
           // mass must not have more than 5 digits after the . (otherwise the test may fail)
-          PTMname_residues_mass_type_[name][1] = mass.substr(0, mass.find(".") + 6);
+          PTMname_residues_mass_type_[name][1] = StringUtils::substr(mass, 0, mass.find(".") + 6);
           PTMname_residues_mass_type_[name][2] = type;
         }
         else
@@ -382,37 +382,37 @@ namespace OpenMS
     }
   }
 
-  const std::map<String, vector<String> >& InspectInfile::getModifications() const
+  const std::map<std::string, vector<std::string> >& InspectInfile::getModifications() const
   {
     return PTMname_residues_mass_type_;
   }
 
-  const String& InspectInfile::getSpectra() const
+  const std::string& InspectInfile::getSpectra() const
   {
     return spectra_;
   }
 
-  void InspectInfile::setSpectra(const String& spectra)
+  void InspectInfile::setSpectra(const std::string& spectra)
   {
     spectra_ = spectra;
   }
 
-  const String& InspectInfile::getDb() const
+  const std::string& InspectInfile::getDb() const
   {
     return db_;
   }
 
-  void InspectInfile::setDb(const String& db)
+  void InspectInfile::setDb(const std::string& db)
   {
     db_ = db;
   }
 
-  const String& InspectInfile::getEnzyme() const
+  const std::string& InspectInfile::getEnzyme() const
   {
     return enzyme_;
   }
 
-  void InspectInfile::setEnzyme(const String& enzyme)
+  void InspectInfile::setEnzyme(const std::string& enzyme)
   {
     enzyme_ = enzyme;
   }
@@ -477,12 +477,12 @@ namespace OpenMS
     multicharge_ = multicharge;
   }
 
-  const String& InspectInfile::getInstrument() const
+  const std::string& InspectInfile::getInstrument() const
   {
     return instrument_;
   }
 
-  void InspectInfile::setInstrument(const String& instrument)
+  void InspectInfile::setInstrument(const std::string& instrument)
   {
     instrument_ = instrument;
   }

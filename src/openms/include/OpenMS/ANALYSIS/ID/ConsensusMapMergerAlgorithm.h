@@ -70,14 +70,14 @@ namespace OpenMS
     /// Uses the first run as reference and compares all to it.
     /// @return all same? TODO: return a merged RunDescription about what to put in the new runs (e.g. for SILAC)
     /// @throws BaseException for disagreeing settings
-    bool checkOldRunConsistency_(const std::vector<ProteinIdentification>& protRuns, const String& experiment_type) const;
+    bool checkOldRunConsistency_(const std::vector<ProteinIdentification>& protRuns, const std::string& experiment_type) const;
     /// Same as above but with specific reference run
-    bool checkOldRunConsistency_(const std::vector<ProteinIdentification>& protRuns, const ProteinIdentification& ref, const String& experiment_type) const;
+    bool checkOldRunConsistency_(const std::vector<ProteinIdentification>& protRuns, const ProteinIdentification& ref, const std::string& experiment_type) const;
 
 
     static size_t accessionHash_(const ProteinHit& p)
     {
-      return std::hash<String>()(p.getAccession());
+      return std::hash<std::string>()(p.getAccession());
     }
     static bool accessionEqual_(const ProteinHit& p1, const ProteinHit& p2)
     {

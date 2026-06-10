@@ -44,11 +44,11 @@ namespace OpenMS
     /// Structure representing a monosaccharide
     struct OPENMS_DLLAPI Monosaccharide
     {
-      String symbol;                    ///< Primary symbol (e.g., "Hex", "HexNAc")
-      String name;                      ///< Full name or description
+      std::string symbol;                    ///< Primary symbol (e.g., "Hex", "HexNAc")
+      std::string name;                      ///< Full name or description
       double mass;                      ///< Monoisotopic mass in Daltons
-      String formula;                   ///< Chemical formula (e.g., "C6H10O5")
-      std::vector<String> synonyms;     ///< Alternative symbols/names
+      std::string formula;                   ///< Chemical formula (e.g., "C6H10O5")
+      std::vector<std::string> synonyms;     ///< Alternative symbols/names
     };
 
     /** @name Accessors */
@@ -60,14 +60,14 @@ namespace OpenMS
     static const MonosaccharideDB* getInstance();
 
     /// Check if a symbol (or synonym) is a known monosaccharide
-    bool hasSymbol(const String& symbol) const;
+    bool hasSymbol(const std::string& symbol) const;
 
     /**
      * @brief Get monosaccharide by symbol
      * @param symbol The monosaccharide symbol (e.g., "Hex") or a known synonym
      * @return Pointer to the monosaccharide, or nullptr if not found
      */
-    const Monosaccharide* getMonosaccharide(const String& symbol) const;
+    const Monosaccharide* getMonosaccharide(const std::string& symbol) const;
 
     /**
      * @brief Get monosaccharide by symbol (throws if not found)
@@ -75,10 +75,10 @@ namespace OpenMS
      * @return Reference to the monosaccharide
      * @throw Exception::ElementNotFound if symbol is not known
      */
-    const Monosaccharide& getMonosaccharideOrThrow(const String& symbol) const;
+    const Monosaccharide& getMonosaccharideOrThrow(const std::string& symbol) const;
 
     /// Get all known primary symbols
-    std::vector<String> getAllSymbols() const;
+    std::vector<std::string> getAllSymbols() const;
 
     /// Get the number of monosaccharides in the database
     Size getNumberOfMonosaccharides() const;
@@ -108,10 +108,10 @@ namespace OpenMS
     void loadFromJSON_();
 
     /// Map from primary symbol to monosaccharide data
-    std::map<String, Monosaccharide> monosaccharides_;
+    std::map<std::string, Monosaccharide> monosaccharides_;
 
     /// Map from synonyms to primary symbol (for lookup)
-    std::map<String, String> synonym_to_symbol_;
+    std::map<std::string, std::string> synonym_to_symbol_;
   };
 
 } // namespace OpenMS

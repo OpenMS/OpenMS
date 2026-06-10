@@ -83,7 +83,7 @@ START_SECTION((void quantify(const ConsensusMap &consensus_map_in, ConsensusMap 
 	iq.setParameters(p);
 	iq.quantify(cm_in,cm_out);
 
-	String cm_file_out;
+	std::string cm_file_out;
 	NEW_TMP_FILE(cm_file_out);
 	cm_file.store(cm_file_out,cm_out);
 

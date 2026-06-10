@@ -49,7 +49,7 @@ public:
   struct svm_model* model_;
 
   // Names of predictors in the model (excluding uninformative ones)
-  std::vector<String> predictor_names_;
+  std::vector<std::string> predictor_names_;
 
   // Number of partitions for cross-validation
   Size n_parts_;
@@ -309,7 +309,7 @@ void SimpleSVM::Impl::optimizeParameters_(bool classification)
   prog_log.startProgress(1, log2_gamma_.size() * log2_C_.size() * log2_p_.size(), 
                         "testing parameters");
 
-  const String& performance_type = classification ? "accuracy: " : "error: ";
+  const std::string& performance_type = classification ? "accuracy: " : "error: ";
 
   // classification performance for different parameter pairs:
   // vary "C"s in inner loop to keep results for all "C"s in one vector:
@@ -370,7 +370,7 @@ SimpleSVM::SimpleSVM() :
   defaults_.setValue("xval", 5, "Number of partitions for cross-validation (parameter optimization)");
   defaults_.setMinInt("xval", 1);
 
-  String values = "-5,-3,-1,1,3,5,7,9,11,13,15";
+  std::string values = "-5,-3,-1,1,3,5,7,9,11,13,15";
   defaults_.setValue("log2_C", ListUtils::create<double>(values), "Values to try for the SVM parameter 'C' during parameter optimization. A value 'x' is used as 'C = 2^x'.");
 
   values = "-15,-13,-11,-9,-7,-5,-3,-1,1,3";
@@ -430,10 +430,10 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& outcome
     const double& outcome = it->second;
     if (it->first >= n_obs)
     {
-      String msg = "Invalid training index; there are only " + String(n_obs) +
+      std::string msg = "Invalid training index; there are only " + StringUtils::toStr(n_obs) +
         " observations.";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    msg, String(it->first));
+                                    msg,StringUtils::toStr(it->first));
     }
     pimpl_->data_.x[index] = &(pimpl_->nodes_[training_index][0]);
     pimpl_->data_.y[index] = outcome;
@@ -450,18 +450,18 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& outcome
                                           "labels) for SVM classification.");
     }
 
-    String msg = "Training SVM on " + String(pimpl_->data_.l) + " observations. Classes:";
+    std::string msg = "Training SVM on " + StringUtils::toStr(pimpl_->data_.l) + " observations. Classes:";
     for (map<double, Size>::iterator it = label_table.begin(); 
         it != label_table.end(); ++it)
     {
       if (it->second < pimpl_->n_parts_)
       {
-        msg = "Not enough observations of class " + String(it->first) + " for " +
-          String(pimpl_->n_parts_) + "-fold cross-validation.";
+        msg = "Not enough observations of class " + StringUtils::toStr(it->first) + " for " +
+          StringUtils::toStr(pimpl_->n_parts_) + "-fold cross-validation.";
         throw Exception::MissingInformation(__FILE__, __LINE__, 
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
-      msg += "\n- '" + String(it->first) + "': " + String(it->second) +
+      msg += "\n- '" + StringUtils::toStr(it->first) + "': " + StringUtils::toStr(it->second) +
         " observations";
     }
     OPENMS_LOG_INFO << msg << endl;
@@ -472,12 +472,12 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& outcome
   { // regression
     if ((unsigned int)pimpl_->data_.l < pimpl_->n_parts_) // TODO: check minimum amount of points needed for training a regression model. Assume 1 is enough for now.
     {
-        String msg = "Not enough observations for " + String(pimpl_->n_parts_) + "-fold cross-validation.";
+        std::string msg = "Not enough observations for " + StringUtils::toStr(pimpl_->n_parts_) + "-fold cross-validation.";
         throw Exception::MissingInformation(__FILE__, __LINE__, 
                                             OPENMS_PRETTY_FUNCTION, msg);
     }
 
-    OPENMS_LOG_INFO << "Training SVR on " + String(pimpl_->data_.l) + " observations." << endl;
+    OPENMS_LOG_INFO << "Training SVR on " + StringUtils::toStr(pimpl_->data_.l) + " observations." << endl;
 
     pimpl_->svm_params_.svm_type = EPSILON_SVR;
     pimpl_->svm_params_.p = 0.1; // epsilon parameter of epsilon-SVR
@@ -526,10 +526,10 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) c
   {
     if (*it >= pimpl_->nodes_.size())
     {
-      String msg = "Invalid index for prediction; there are only " + 
-        String(n_obs) + " observations.";
+      std::string msg = "Invalid index for prediction; there are only " + 
+        StringUtils::toStr(n_obs) + " observations.";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    msg, String(*it));
+                                    msg,StringUtils::toStr(*it));
     }
     Prediction pred;
     pred.outcome = svm_predict_probability(pimpl_->model_, &(pimpl_->nodes_[*it][0]), 
@@ -542,7 +542,7 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) c
   }
 }
 
-void scaleDataUsingTrainingRanges(SimpleSVM::PredictorMap& predictors, const map<String, pair<double, double>>& scaling)
+void scaleDataUsingTrainingRanges(SimpleSVM::PredictorMap& predictors, const map<std::string, pair<double, double>>& scaling)
 {
   // scale each feature dimension to the min-max-range
   for (auto pred_it = predictors.begin();
@@ -615,7 +615,7 @@ void SimpleSVM::predict(PredictorMap& predictors, vector<Prediction>& prediction
 }
 
 // only works in classification mode
-void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
+void SimpleSVM::getFeatureWeights(map<std::string, double>& feature_weights) const
 {
   if (pimpl_->model_ == nullptr)
   {
@@ -641,7 +641,7 @@ void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
     {
       const struct svm_node& node = pimpl_->model_->SV[l][n];
       if (node.index == -1) break;
-      const String& predictor_name = pimpl_->predictor_names_[node.index - 1];
+      const std::string& predictor_name = pimpl_->predictor_names_[node.index - 1];
       feature_weights[predictor_name] += sv_coef * node.value;
     }
   }
@@ -653,7 +653,7 @@ const SimpleSVM::ScaleMap& SimpleSVM::getScaling() const
 }
 
 
-void SimpleSVM::writeXvalResults(const String& path) const
+void SimpleSVM::writeXvalResults(const std::string& path) const
 {
   SVOutStream output(path);
   output.modifyStrings(false);

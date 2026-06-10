@@ -24,7 +24,7 @@
 
 using namespace OpenMS;
 
-MQEvidence::MQEvidence(const String& path)
+MQEvidence::MQEvidence(const std::string& path)
 {
   if (path.empty())
   {
@@ -133,11 +133,11 @@ void MQEvidence::exportRowFromFeature_(
   const Feature& f,
   const ConsensusMap& cmap,
   const Size c_feature_number,
-  const String& raw_file,
-  const std::multimap<String, std::pair<Size, Size>>& UIDs,
+  const std::string& raw_file,
+  const std::multimap<std::string, std::pair<Size, Size>>& UIDs,
   const ProteinIdentification::Mapping& mp_f,
   const MSExperiment& exp,
-  const std::map<String,String>& prot_mapper)
+  const std::map<std::string, std::string>& prot_mapper)
 {
 
   MQExporterHelper::MQCommonOutputs common_outputs{f, cmap, c_feature_number, UIDs, mp_f, exp, prot_mapper};
@@ -145,7 +145,7 @@ void MQEvidence::exportRowFromFeature_(
   const PeptideHit* ptr_best_hit; // the best hit referring to score
   const ConsensusFeature& cf = cmap[c_feature_number];
   Size pep_ids_size = 0;
-  String type;
+  std::string type;
   if (MQExporterHelper::hasValidPepID_(f, c_feature_number, UIDs, mp_f))
   {
     for (Size i = 1; i < f.getPeptideIdentifications().size(); ++i) // for msms-count
@@ -189,7 +189,7 @@ void MQEvidence::exportRowFromFeature_(
   file_ << common_outputs.oxidation.str() << "\t"; // Oxidation (M)
 
   file_ << ptr_best_hit->getMetaValue("missed_cleavages", "NA") << "\t"; // missed cleavages
-  const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();
+  const std::set<std::string>& accessions = ptr_best_hit->extractProteinAccessionsSet();
   file_ << ListUtils::concatenate(accessions, ";") << "\t";  // Proteins
   file_ << ptr_best_hit->getPeptideEvidences()[0].getProteinAccession() << "\t"; // Leading Proteins
   file_ << ptr_best_hit->getPeptideEvidences()[0].getProteinAccession() << "\t"; // Leading Razor Proteins
@@ -273,7 +273,7 @@ void MQEvidence::exportRowFromFeature_(
 
   ptr_best_hit->isDecoy() ? file_ << "1\t" : file_ << "\t"; // reverse
 
-  String pot_containment = ptr_best_hit->getMetaValue("is_contaminant", "NA");
+  std::string pot_containment = StringUtils::toStr(ptr_best_hit->getMetaValue("is_contaminant", "NA"));
   if (pot_containment == "1")
   {
     file_ << "+"
@@ -291,7 +291,7 @@ void MQEvidence::exportRowFromFeature_(
 
 }
 
-void MQEvidence::exportFeatureMap(const FeatureMap& feature_map, const ConsensusMap& cmap, const MSExperiment& exp, const std::map<String,String>& prot_mapper)
+void MQEvidence::exportFeatureMap(const FeatureMap& feature_map, const ConsensusMap& cmap, const MSExperiment& exp, const std::map<std::string, std::string>& prot_mapper)
 {
 if (!MQExporterHelper::isValid(filename_))
   {
@@ -301,12 +301,12 @@ if (!MQExporterHelper::isValid(filename_))
   const std::map<Size, Size>& fTc = MQExporterHelper::makeFeatureUIDtoConsensusMapIndex_(cmap);
   StringList spectra_data;
   feature_map.getPrimaryMSRunPath(spectra_data);
-  String raw_file = File::basename(spectra_data.empty() ? feature_map.getLoadedFilePath() : spectra_data[0]);
+  std::string raw_file = File::basename(spectra_data.empty() ? feature_map.getLoadedFilePath() : spectra_data[0]);
 
   ProteinIdentification::Mapping mp_f;
   mp_f.create(feature_map.getProteinIdentifications());
 
-  std::multimap<String, std::pair<Size, Size>> UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
+  std::multimap<std::string, std::pair<Size, Size>> UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
 
   for (const Feature& f : feature_map)
   {

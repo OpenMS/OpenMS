@@ -52,7 +52,7 @@ START_TEST(ConsensusMapMergerAlgorithm, "$Id$")
         ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(cmap);
         ExperimentalDesign::SampleSection ss{
             {{"1","C1"},{"2","C2"},{"3","C3"}},
-            {{1,0},{2,1},{3,2}},
+            {{"1",0},{"2",1},{"3",2}},
             {{"Sample",0},{"Condition",1}}
         };
         ed.setSampleSection(ss);

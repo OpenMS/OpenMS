@@ -374,7 +374,7 @@ namespace OpenMS
     use_gauss_ = (bool)param_.getValue("use_gauss").toBool();
     remove_overlapping_ = (bool)param_.getValue("remove_overlapping_peaks").toBool();
     write_sn_log_messages_ = (bool)param_.getValue("write_sn_log_messages").toBool();
-    method_ = (String)param_.getValue("method").toString();
+    method_ = param_.getValue("method").toString();
 
     if (method_ != "crawdad" && method_ != "corrected" && method_ != "legacy")
     {

@@ -53,8 +53,8 @@ struct OPENMS_DLLAPI NuXLParameterParsing
   // and their marker ions. In addition, each cross-linkable nucleotide is mapped to its chemically feasible fragment adducts.
   // Chemical feasible means in this context, that the fragment or marker ion adduct is a subformula of the precursor adduct.
   static MS2AdductsOfSinglePrecursorAdduct getFeasibleFragmentAdducts(
-    const String& exp_pc_adduct,
-    const String& exp_pc_formula,
+    const std::string& exp_pc_adduct,
+    const std::string& exp_pc_formula,
     const NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts,
     const std::set<char>& can_xl,
     const bool always_add_default_marker_ions,

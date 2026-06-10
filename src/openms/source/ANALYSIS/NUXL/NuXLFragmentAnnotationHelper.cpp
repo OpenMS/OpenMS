@@ -21,13 +21,13 @@ using namespace OpenMS;
 
 namespace OpenMS
 {
-  String NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon(char c, const String& fragment_shift_name)
+  std::string NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon(char c, const std::string& fragment_shift_name)
   {
-    return String("i") + c + "+" + fragment_shift_name + "+";
+    return std::string("i") + c + "+" + fragment_shift_name + "+";
   }
 
   std::vector<PeptideHit::PeakAnnotation> NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA(
-    const String& ion_type, 
+    const std::string& ion_type, 
     const std::map<Size, std::vector<FragmentAnnotationDetail_> >& ion_annotation_details)
   {
     std::vector<PeptideHit::PeakAnnotation> fas;
@@ -41,11 +41,11 @@ namespace OpenMS
         fa.intensity = sit.intensity;
         if (sit.shift.empty())
         {
-          fa.annotation = ion_type + String(ait.first) + String(fa.charge, '+');
+          fa.annotation = ion_type + StringUtils::toStr(ait.first) + std::string(fa.charge, '+');
         }
         else
         {
-          const String annotation_text = ion_type + String(ait.first) + "+" + sit.shift + String(fa.charge, '+'); 
+          const std::string annotation_text = ion_type + StringUtils::toStr(ait.first) + "+" + sit.shift + std::string(fa.charge, '+'); 
           fa.annotation = annotation_text;
         }
         fas.push_back(std::move(fa));
@@ -55,8 +55,8 @@ namespace OpenMS
   }
 
    std::vector<PeptideHit::PeakAnnotation> NuXLFragmentAnnotationHelper::shiftedToPHFA(
-    const std::map<String, 
-    std::set<std::pair<String, double> > >& shifted_ions)
+    const std::map<std::string, 
+    std::set<std::pair<std::string, double> > >& shifted_ions)
   {
     std::vector<PeptideHit::PeakAnnotation> fas;
     for (const auto& ait : shifted_ions)
@@ -67,7 +67,7 @@ namespace OpenMS
         fa.charge = 1;
         fa.mz = sit.second;
         fa.intensity = 1;
-        const String annotation_text = sit.first;
+        const std::string annotation_text = sit.first;
         fa.annotation = annotation_text;
         fas.push_back(std::move(fa)); 
       }
@@ -75,15 +75,15 @@ namespace OpenMS
     return fas;
   }
 
-  String NuXLFragmentAnnotationHelper::shiftedIonsToString(const std::vector<PeptideHit::PeakAnnotation>& as)
+  std::string NuXLFragmentAnnotationHelper::shiftedIonsToString(const std::vector<PeptideHit::PeakAnnotation>& as)
   {
     std::vector<PeptideHit::PeakAnnotation> sorted(as);
     stable_sort(sorted.begin(), sorted.end());
-    String fas;
+    std::string fas;
     for (const auto & a : sorted)
     {
-      fas += String("(") + String::number(a.mz, 3) + "," 
-        + String::number(100.0 * a.intensity, 1) + ",\"" 
+      fas +=std::string("(") + StringUtils::number(a.mz, 3) + "," 
+        + StringUtils::number(100.0 * a.intensity, 1) + ",\"" 
         + a.annotation + "\")";    
       if (&a != &sorted.back()) { fas += "|"; }     
     }

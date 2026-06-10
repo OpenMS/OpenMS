@@ -815,7 +815,7 @@ namespace OpenMS
 
   std::string ParamValue::doubleToString(double value, bool full_precision)
   {
-    return String(value, full_precision);
+    return StringUtils::toStr(value, full_precision);
   }
 
 } //namespace

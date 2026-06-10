@@ -684,7 +684,7 @@ namespace OpenMS
     return cohesions;
   }
 
-  String ClusterAnalyzer::newickTree(const std::vector<BinaryTreeNode> & tree, const bool include_distance)
+  std::string ClusterAnalyzer::newickTree(const std::vector<BinaryTreeNode> & tree, const bool include_distance)
   {
     std::set<Size> leafs;
     for (Size i = 0; i < tree.size(); ++i)
@@ -693,10 +693,10 @@ namespace OpenMS
       leafs.insert(tree[i].right_child);
     }
 
-    std::vector<String> clusters(*(leafs.rbegin()) + 1, "");
+    std::vector<std::string> clusters(*(leafs.rbegin()) + 1, "");
     for (std::set<Size>::iterator it = leafs.begin(); it != leafs.end(); ++it)
     {
-      clusters[*it] = String(*it);
+      clusters[*it] =StringUtils::toStr(*it);
     }
 
     //redo clustering till step (original.dimensionsize()-1)
@@ -707,18 +707,18 @@ namespace OpenMS
       if (include_distance)
       {
         clusters[tree[cluster_step].left_child] += ":";
-        clusters[tree[cluster_step].left_child] += String(tree[cluster_step].distance);
+        clusters[tree[cluster_step].left_child] +=StringUtils::toStr(tree[cluster_step].distance);
       }
       clusters[tree[cluster_step].left_child] += " , ";
       clusters[tree[cluster_step].left_child] += clusters[tree[cluster_step].right_child];
       if (include_distance)
       {
         clusters[tree[cluster_step].left_child] += ":";
-        clusters[tree[cluster_step].left_child] += String(tree[cluster_step].distance);
+        clusters[tree[cluster_step].left_child] +=StringUtils::toStr(tree[cluster_step].distance);
       }
       clusters[tree[cluster_step].left_child] += " )";
 
-      clusters[tree[cluster_step].right_child] = String("");
+      clusters[tree[cluster_step].right_child] =std::string("");
     }
 
     Size first_filled(0);
@@ -738,14 +738,14 @@ namespace OpenMS
         if (include_distance)
         {
           clusters[first_filled] += ":";
-          clusters[first_filled] += String("1");
+          clusters[first_filled] +=std::string("1");
         }
         clusters[first_filled] += " , ";
         clusters[first_filled] += clusters[i];
         if (include_distance)
         {
           clusters[first_filled] += ":";
-          clusters[first_filled] += String("1");
+          clusters[first_filled] +=std::string("1");
         }
         clusters[first_filled] += " )";
       }

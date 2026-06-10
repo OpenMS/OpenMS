@@ -10,9 +10,10 @@
 
 #include <OpenMS/config.h>
 
+#include <string>
+
 namespace OpenMS
 {
-  class String;
   /**
     @brief Detect Python and retrieve information.
 
@@ -34,7 +35,7 @@ namespace OpenMS
       @param[out] error_msg On error, contains detailed error description (e.g. 
       @return Returns false if Python executable can not be called; true if Python executable can be executed
     **/
-    static bool canRun(String& python_executable, String& error_msg);
+    static bool canRun(std::string& python_executable, std::string& error_msg);
 
 
     /**
@@ -47,7 +48,7 @@ namespace OpenMS
      @param[in] package_name The package you want to test (mind lower/upper case!)
      @return true if package is installed
     */
-    static bool isPackageInstalled(const String& python_executable, const String& package_name);
+    static bool isPackageInstalled(const std::string& python_executable, const std::string& package_name);
 
     /**
      @brief Determine the version of Python given in @p python_executable by calling '--version'
@@ -58,7 +59,7 @@ namespace OpenMS
      @param[in] python_executable As determined by canRun()...
      @return the output of 'python --version'
     */
-    static String getVersion(const String& python_executable);
+    static std::string getVersion(const std::string& python_executable);
   };
 
 }

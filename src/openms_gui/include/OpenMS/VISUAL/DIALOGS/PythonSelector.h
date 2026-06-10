@@ -33,7 +33,7 @@ namespace OpenMS
       explicit PythonSelector(QWidget* parent = nullptr);
       ~PythonSelector();
 
-      const String& getLastPython() const
+      const std::string& getLastPython() const
       {
         return last_known_python_exe_;
       }
@@ -51,7 +51,7 @@ namespace OpenMS
       void validate_();
 
     private:
-      String last_known_python_exe_ = "python"; ///< initial guess or last valid user input
+      std::string last_known_python_exe_ = "python"; ///< initial guess or last valid user input
       bool currently_valid_ = false; ///< unless proven otherwise by 'validate_()'
 
       Ui::PythonSelector* ui_;

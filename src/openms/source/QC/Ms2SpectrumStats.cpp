@@ -130,7 +130,7 @@ namespace OpenMS
   }
 
   // returns the name of the metric
-  const String& Ms2SpectrumStats::getName() const
+  const std::string& Ms2SpectrumStats::getName() const
   {
     return name_;
   }

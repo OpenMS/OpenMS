@@ -48,9 +48,9 @@ public:
 
     double get() const;
 
-    String toCellString() const;
+    std::string toCellString() const;
 
-    void fromCellString(const String& s);
+    void fromCellString(const std::string& s);
 
     bool isNull() const;
 
@@ -84,9 +84,9 @@ public:
 
     void setNull(bool b);
 
-    String toCellString() const;
+    std::string toCellString() const;
 
-    void fromCellString(const String& s);
+    void fromCellString(const std::string& s);
 
     std::vector<MzTabDouble> get() const;
 
@@ -108,9 +108,9 @@ public:
 
     Int get() const;
 
-    String toCellString() const;
+    std::string toCellString() const;
 
-    void fromCellString(const String& s);
+    void fromCellString(const std::string& s);
 
     bool isNull() const;
 
@@ -139,9 +139,9 @@ public:
 
     void setNull(bool b);
 
-    String toCellString() const;
+    std::string toCellString() const;
 
-    void fromCellString(const String& s);
+    void fromCellString(const std::string& s);
 
     std::vector<MzTabInteger> get() const;
 
@@ -167,9 +167,9 @@ public:
 
     Int get() const;
 
-    String toCellString() const;
+    std::string toCellString() const;
 
-    void fromCellString(const String& s);
+    void fromCellString(const std::string& s);
 
     ~MzTabBoolean() = default;
 protected:
@@ -181,26 +181,26 @@ protected:
 public:
     MzTabString();
 
-    explicit MzTabString(const String& s);
+    explicit MzTabString(const std::string& s);
 
     bool isNull() const;
 
     void setNull(bool b);
 
-    void set(const String& value);
+    void set(const std::string& value);
 
-    String get() const;
+    std::string get() const;
 
-    String toCellString() const;
+    std::string toCellString() const;
 
-    void fromCellString(const String& s);
+    void fromCellString(const std::string& s);
 
     ~MzTabString() = default;
 protected:
-    String value_;
+    std::string value_;
   };
 
-  typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; //<  column name (not null able), value (null able)
+  typedef std::pair<std::string, MzTabString> MzTabOptionalColumnEntry; //<  column name (not null able), value (null able)
 
   class OPENMS_DLLAPI MzTabParameter
   {
@@ -211,32 +211,32 @@ protected:
 
     void setNull(bool b);
 
-    void setCVLabel(const String& CV_label);
+    void setCVLabel(const std::string& CV_label);
 
-    void setAccession(const String& accession);
+    void setAccession(const std::string& accession);
 
-    void setName(const String& name);
+    void setName(const std::string& name);
 
-    void setValue(const String& value);
+    void setValue(const std::string& value);
 
-    String getCVLabel() const;
+    std::string getCVLabel() const;
 
-    String getAccession() const;
+    std::string getAccession() const;
 
-    String getName() const;
+    std::string getName() const;
 
-    String getValue() const;
+    std::string getValue() const;
 
-    String toCellString() const;
+    std::string toCellString() const;
 
-    void fromCellString(const String& s);
+    void fromCellString(const std::string& s);
 
     ~MzTabParameter() = default;
   protected:
-    String CV_label_;
-    String accession_;
-    String name_;
-    String value_;
+    std::string CV_label_;
+    std::string accession_;
+    std::string name_;
+    std::string value_;
   };
 
   class OPENMS_DLLAPI MzTabParameterList
@@ -248,9 +248,9 @@ protected:
 
     void setNull(bool b);
 
-    String toCellString() const;
+    std::string toCellString() const;
 
-    void fromCellString(const String& s);
+    void fromCellString(const std::string& s);
 
     std::vector<MzTabParameter> get() const;
 
@@ -274,9 +274,9 @@ protected:
     /// needed for e.g. ambiguity_members and GO accessions as these use ',' as separator while the others use '|'
     void setSeparator(char sep);
 
-    String toCellString() const;
+    std::string toCellString() const;
 
-    void fromCellString(const String& s);
+    void fromCellString(const std::string& s);
 
     std::vector<MzTabString> get() const;
 
@@ -299,22 +299,22 @@ protected:
 
     void setMSFile(Size index);
 
-    void setSpecRef(const String& spec_ref);
+    void setSpecRef(const std::string& spec_ref);
 
-    String getSpecRef() const;
+    std::string getSpecRef() const;
 
     Size getMSFile() const;
 
-    void setSpecRefFile(const String& spec_ref);
+    void setSpecRefFile(const std::string& spec_ref);
 
-    String toCellString() const;
+    std::string toCellString() const;
 
-    void fromCellString(const String& s);
+    void fromCellString(const std::string& s);
 
     ~MzTabSpectraRef() = default;
   protected:
     Size ms_run_; //< number is specified in the meta data section.
-    String spec_ref_;
+    std::string spec_ref_;
   };
 
   // MTD
@@ -366,10 +366,10 @@ protected:
   protected:
     /// Helper function for "get...OptionalColumnNames" functions
     template <typename SectionRows>
-    std::vector<String> getOptionalColumnNames_(const SectionRows& rows) const
+    std::vector<std::string> getOptionalColumnNames_(const SectionRows& rows) const
     {
       // vector is used to preserve the column order
-      std::vector<String> names;
+      std::vector<std::string> names;
       for (typename SectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
       {
         for (auto it_opt = it->opt_.cbegin(); it_opt != it->opt_.cend(); ++it_opt)

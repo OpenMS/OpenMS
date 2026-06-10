@@ -80,7 +80,7 @@ public:
             can be PSI-MOD identifier or any other unique name supported by PSI-MOD. TermSpec
             definitions and other specific definitions are given by the modifications themselves.
     */
-    void setModifications(const String& fixed_modifications, const String& variable_modifications);
+    void setModifications(const std::string& fixed_modifications, const std::string& variable_modifications);
 
     /// same as above, but using StringList instead of comma separated strings
     void setModifications(const StringList& fixed_modifications, const StringList& variable_modifications);
@@ -95,16 +95,16 @@ public:
     const std::set<ModificationDefinition>& getVariableModifications() const;
 
     /// returns only the names of the modifications stored in the set
-    std::set<String> getModificationNames() const;
+    std::set<std::string> getModificationNames() const;
 
     /// populates the output lists with the modification names (use e.g. for ProteinIdentification::SearchParameters)
     void getModificationNames(StringList& fixed_modifications, StringList& variable_modifications) const;
 
     /// returns only the names of the fixed modifications
-    std::set<String> getFixedModificationNames() const;
+    std::set<std::string> getFixedModificationNames() const;
 
     /// returns only the names of the variable modifications
-    std::set<String> getVariableModificationNames() const;
+    std::set<std::string> getVariableModificationNames() const;
     //@}
 
     /** @name Assignment
@@ -141,7 +141,7 @@ public:
 
        @throw Exception::IllegalArgument if both @p consider_variable and @p consider_fixed are false
     */
-    void findMatches(std::multimap<double, ModificationDefinition>& matches, double mass, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY, bool consider_fixed = true, bool consider_variable = true, bool is_delta = true, double tolerance = 0.01) const;
+    void findMatches(std::multimap<double, ModificationDefinition>& matches, double mass, const std::string& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY, bool consider_fixed = true, bool consider_variable = true, bool is_delta = true, double tolerance = 0.01) const;
 
     /// Infers the sets of defined modifications from the modifications present on peptide identifications
     void inferFromPeptides(const PeptideIdentificationList& peptides);
@@ -155,7 +155,7 @@ protected:
     Size max_mods_per_peptide_;
 
     /// helper function for findMatches() - finds matching modifications in @p source and adds them to @p matches
-    static void addMatches_(std::multimap<double, ModificationDefinition>& matches, double mass, const String& residue, ResidueModification::TermSpecificity term_spec, const std::set<ModificationDefinition>& source, bool is_delta, double tolerance);
+    static void addMatches_(std::multimap<double, ModificationDefinition>& matches, double mass, const std::string& residue, ResidueModification::TermSpecificity term_spec, const std::set<ModificationDefinition>& source, bool is_delta, double tolerance);
  
   };
 

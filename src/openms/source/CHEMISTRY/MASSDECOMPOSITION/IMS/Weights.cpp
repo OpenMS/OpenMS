@@ -54,7 +54,7 @@ namespace OpenMS::ims
     // checker whether the passed decomposition is applicable
     if (alphabet_masses_.size() != decomposition.size())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("The passed decomposition has the wrong size. Expected ") + String(alphabet_masses_.size()) + String(" but got ") + String(decomposition.size()) + String("."));
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,"The passed decomposition has the wrong size. Expected " + StringUtils::toStr(alphabet_masses_.size()) + std::string(" but got ") + StringUtils::toStr(decomposition.size()) + std::string("."));
     }
 
     alphabet_mass_type parent_mass = 0;

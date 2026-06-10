@@ -101,7 +101,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& section) const override
+  Param getSubsectionDefaults_(const std::string& section) const override
   {
     if (section == "algorithm")
     {
@@ -133,10 +133,10 @@ protected:
     StringList out_trafos = getStringList_("trafo_out");
 
     Size reference_index = getIntOption_("reference:index");
-    String reference_file = getStringOption_("reference:file");
+    std::string reference_file = getStringOption_("reference:file");
 
     FileTypes::Type in_type = FileHandler::getType(in_files[0]);
-    String file;
+    std::string file;
     if (!reference_file.empty())
     {
       file = reference_file;
@@ -233,10 +233,10 @@ protected:
         // reference_index is set to in_files.size() (an invalid index) when
         // -reference:file is used, so fall back to the user-specified reference
         // filename in that case.
-        const String ref_name = (reference_index < in_files.size()) ? in_files[reference_index] : reference_file;
+        const std::string ref_name = (reference_index < in_files.size()) ? in_files[reference_index] : reference_file;
         OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << ref_name
                          << " failed. No transformation will be applied (RT not changed for this file)." << endl;
-        writeLogError_("Alignment failed (" + String(e.getName()) + "): " + String(e.what()) +
+        writeLogError_("Alignment failed (" + std::string(e.getName()) + "): " + std::string(e.what()) +
                        ". Using identity transformation for this file.");
         trafo.fitModel("identity");
       }

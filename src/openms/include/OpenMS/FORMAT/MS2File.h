@@ -47,7 +47,7 @@ public:
     ~MS2File() override;
 
     template <typename MapType>
-    void load(const String & filename, MapType & exp)
+    void load(const std::string & filename, MapType & exp)
     {
       //startProgress(0,0,"loading DTA2D file");
 
@@ -72,7 +72,7 @@ public:
       typename MapType::SpectrumType spec;
       typename MapType::SpectrumType::PeakType p;
 
-      String line;
+      std::string line;
       bool first_spec(true);
 
       // line number counter
@@ -82,7 +82,7 @@ public:
       {
         ++line_number;
 
-        line.trim();
+        StringUtils::trim(line);
         if (line.empty()) continue;
 
         // header
@@ -97,7 +97,7 @@ public:
           if (!first_spec)
           {
             spec.setMSLevel(2);
-            spec.setNativeID(String("index=") + (spectrum_number++));
+            spec.setNativeID(std::string("index=") + (spectrum_number++));
             exp.addSpectrum(spec);
           }
           else
@@ -105,15 +105,15 @@ public:
             first_spec = false;
           }
           spec.clear(true);
-          line.simplify();
-          std::vector<String> split;
-          line.split(' ', split);
+          StringUtils::simplify(line);
+          std::vector<std::string> split;
+          StringUtils::split(line, ' ', split);
           if (split.size() != 4)
           {
-            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "line (" + String(line_number) + ") '" + line  + "' should contain four values, got " + String(split.size()) + "!", "");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "line (" + StringUtils::toStr(line_number) + ") '" + line  + "' should contain four values, got " + StringUtils::toStr(split.size()) + "!", "");
           }
           spec.getPrecursors().resize(1);
-          spec.getPrecursors()[0].setMZ(split[3].toDouble());
+          spec.getPrecursors()[0].setMZ(StringUtils::toDouble(split[3]));
           continue;
         }
 
@@ -136,22 +136,22 @@ public:
         }
 
         // yet another peak, hopefully
-        line.simplify();
-        std::vector<String> split;
-        line.split(' ', split);
+        StringUtils::simplify(line);
+        std::vector<std::string> split;
+        StringUtils::split(line, ' ', split);
         if (split.size() != 2)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "line (" + String(line_number) + ") '" + line  + "' should contain two values, got " + String(split.size()) + "!", "");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "line (" + StringUtils::toStr(line_number) + ") '" + line  + "' should contain two values, got " + StringUtils::toStr(split.size()) + "!", "");
         }
 
         try
         {
-          p.setPosition(split[0].toDouble());
-          p.setIntensity(split[1].toFloat());
+          p.setPosition(StringUtils::toDouble(split[0]));
+          p.setIntensity(StringUtils::toFloat(split[1]));
         }
         catch ( Exception::ConversionError& )
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ConversionError: line (" + String(line_number) + ") '" + line  + "' does not contain two numbers!", "");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ConversionError: line (" + StringUtils::toStr(line_number) + ") '" + line  + "' does not contain two numbers!", "");
         }
         spec.push_back(p);
       }
@@ -159,7 +159,7 @@ public:
       if (!first_spec)
       {
         spec.setMSLevel(2);
-        spec.setNativeID(String("index=") + (spectrum_number++));
+        spec.setNativeID(std::string("index=") + (spectrum_number++));
         exp.addSpectrum(spec);
       }
       exp.updateRanges();

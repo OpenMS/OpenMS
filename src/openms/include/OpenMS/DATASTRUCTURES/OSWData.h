@@ -83,7 +83,7 @@ namespace OpenMS
         /// default c'tor
         OSWTransition() = default;
         /// custom c'tor which fills all the members with data; all members are read-only
-        OSWTransition(const String& annotation, const UInt32 id, const float product_mz, const char type, const bool is_decoy);
+        OSWTransition(const std::string& annotation, const UInt32 id, const float product_mz, const char type, const bool is_decoy);
         OSWTransition(const OSWTransition& rhs) = default;
         OSWTransition& operator=(const OSWTransition& rhs) = default;
         OSWTransition(OSWTransition&& rhs) = default;
@@ -91,7 +91,7 @@ namespace OpenMS
         ~OSWTransition() = default;
 
         /// e.g. y5/-0.002
-        const String& getAnnotation() const
+        const std::string& getAnnotation() const
         {
           return annotation_;
         }
@@ -117,7 +117,7 @@ namespace OpenMS
         }
 
       private:
-        String annotation_; ///< e.g. y5/-0.002
+        std::string annotation_; ///< e.g. y5/-0.002
         UInt32 id_;         ///< ID as used in OSWPeakGroup::transition_ids
         float product_mz_;  ///< observed product m/z value
         char type_;         ///< b, y,
@@ -212,7 +212,7 @@ namespace OpenMS
         /// just a dummy feature to allow for acceptor output values etc
         OSWPeptidePrecursor() = default;
         /// custom c'tor which fills all the members with data; all members are read-only
-        OSWPeptidePrecursor(const String& seq, const short charge, const bool decoy, const float precursor_mz, std::vector<OSWPeakGroup>&& features);
+        OSWPeptidePrecursor(const std::string& seq, const short charge, const bool decoy, const float precursor_mz, std::vector<OSWPeakGroup>&& features);
         /// Copy c'tor
         OSWPeptidePrecursor(const OSWPeptidePrecursor& rhs) = default;
         /// assignment operator
@@ -223,7 +223,7 @@ namespace OpenMS
         OSWPeptidePrecursor& operator=(OSWPeptidePrecursor&& rhs) = default;
 
         /// the peptide sequence (incl. mods)
-        const String& getSequence() const
+        const std::string& getSequence() const
         {
           return seq_;
         }
@@ -249,7 +249,7 @@ namespace OpenMS
         }
 
       private:
-        String seq_;
+        std::string seq_;
         short charge_{0};
         bool decoy_{false};
         float precursor_mz_{0};
@@ -267,7 +267,7 @@ namespace OpenMS
         /// just a dummy feature to allow for acceptor output values etc
         OSWProtein() = default;
         /// custom c'tor which fills all the members with data; all members are read-only
-        OSWProtein(const String& accession, const Size id, std::vector<OSWPeptidePrecursor>&& peptides);
+        OSWProtein(const std::string& accession, const Size id, std::vector<OSWPeptidePrecursor>&& peptides);
         /// Copy c'tor
         OSWProtein(const OSWProtein& rhs) = default;
         /// assignment operator
@@ -278,7 +278,7 @@ namespace OpenMS
         OSWProtein& operator=(OSWProtein&& rhs) = default;
 
         /// Protein accession (UniProt-style identifier supplied at construction).
-        const String& getAccession() const
+        const std::string& getAccession() const
         {
           return accession_;
         }
@@ -296,7 +296,7 @@ namespace OpenMS
         }
 
       private:
-        String accession_;
+        std::string accession_;
         Size id_;
         std::vector<OSWPeptidePrecursor> peptides_;
     };
@@ -370,12 +370,12 @@ namespace OpenMS
           return transitions_;
         }
 
-        void setSqlSourceFile(const String& filename)
+        void setSqlSourceFile(const std::string& filename)
         {
           source_file_ = filename;
         }
 
-        const String& getSqlSourceFile() const
+        const std::string& getSqlSourceFile() const
         {
           return source_file_;
         }
@@ -424,7 +424,7 @@ namespace OpenMS
       private:
         std::map<UInt32, OSWTransition> transitions_;
         std::vector<OSWProtein> proteins_;
-        String source_file_;                        ///< remember from which sql OSW file this data is loaded (to lazy load more data)
+        std::string source_file_;                        ///< remember from which sql OSW file this data is loaded (to lazy load more data)
         UInt64 run_id_;                             ///< the ID of this run from the SQL RUN table
         std::map<UInt32, UInt32> transID_to_index_; ///< map a Transition.ID (==native_id) to a chromatogram index in the sqMass experiment which contains the raw data
     };

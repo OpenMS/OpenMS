@@ -63,7 +63,7 @@ public:
         @note @p in will be empty after this method
     */
     template <typename FromType>
-    static void encode(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression = false);
+    static void encode(std::vector<FromType> & in, ByteOrder to_byte_order, std::string & out, bool zlib_compression = false);
 
     /**
         @brief Decodes a Base64 string to a vector of floating point numbers
@@ -71,7 +71,7 @@ public:
         You have to specify the byte order of the input and if it is zlib-compressed.
     */
     template <typename ToType>
-    static void decode(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression = false);
+    static void decode(const std::string & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression = false);
 
     /**
         @brief Encodes a vector of integer point numbers to a Base64 string
@@ -81,7 +81,7 @@ public:
         @note @p in will be empty after this method
     */
     template <typename FromType>
-    static void encodeIntegers(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression = false);
+    static void encodeIntegers(std::vector<FromType> & in, ByteOrder to_byte_order, std::string & out, bool zlib_compression = false);
 
     /**
         @brief Decodes a Base64 string to a vector of integer numbers
@@ -89,7 +89,7 @@ public:
         You have to specify the byte order of the input and if it is zlib-compressed.
     */
     template <typename ToType>
-    static void decodeIntegers(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression = false);
+    static void decodeIntegers(const std::string & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression = false);
 
     /**
         @brief Encodes a vector of strings to a Base64 string
@@ -97,33 +97,33 @@ public:
         You can specify zlib-compression.
 
         @param[in] in A vector of data to be encoded (String)
-        @param[out] out A String containing the Base64 encoded data
+        @param[out] out A std::string containing the Base64 encoded data
         @param[in] zlib_compression Whether the data should be compressed with zlib before encoding in Base64
         @param[in] append_null_byte Whether a null-byte should be appended after each of the Strings contained in the in vector
 
         @note Unless append_null_byte is false, will add a null byte ("\0") at the end of each input
     */
-    static void encodeStrings(const std::vector<String> & in, String & out, bool zlib_compression = false, bool append_null_byte = true);
+    static void encodeStrings(const std::vector<std::string> & in, std::string & out, bool zlib_compression = false, bool append_null_byte = true);
 
     /**
         @brief Decodes a Base64 string to a vector of (null-terminated) strings
 
         You have to specify whether the Base64 string is zlib-compressed.
 
-        @param[in] in A String containing the Base64 encoded data
+        @param[in] in A std::string containing the Base64 encoded data
         @param[out] out A vector containing the decoded data (split at null "\0") bytes
         @param[in] zlib_compression Whether the data should be decompressed with zlib after decoding in Base64
     */
-    static void decodeStrings(const String & in, std::vector<String> & out, bool zlib_compression = false);
+    static void decodeStrings(const std::string & in, std::vector<std::string> & out, bool zlib_compression = false);
 
     /**
         @brief Decodes a Base64 string
 
-        @param[in] in A String containing the Base64 encoded data
-        @param[out] out A String containing the decoded data
+        @param[in] in A std::string containing the Base64 encoded data
+        @param[out] out A std::string containing the decoded data
         @param[in] zlib_compression Should the data be decompressed with zlib after decoding in Base64?
     */
-    static void decodeSingleString(const String& in, String& out, bool zlib_compression);
+    static void decodeSingleString(const std::string& in, std::string& out, bool zlib_compression);
 
 private:
 
@@ -145,19 +145,19 @@ private:
     static const char decoder_[];
     /// Decodes a Base64 string to a vector of floating point numbers
     template <typename ToType>
-    static void decodeUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
+    static void decodeUncompressed_(const std::string & in, ByteOrder from_byte_order, std::vector<ToType> & out);
 
     ///Decodes a compressed Base64 string to a vector of floating point numbers
     template <typename ToType>
-    static void decodeCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
+    static void decodeCompressed_(const std::string & in, ByteOrder from_byte_order, std::vector<ToType> & out);
 
     /// Decodes a Base64 string to a vector of integer numbers
     template <typename ToType>
-    static void decodeIntegersUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
+    static void decodeIntegersUncompressed_(const std::string & in, ByteOrder from_byte_order, std::vector<ToType> & out);
 
     ///Decodes a compressed Base64 string to a vector of integer numbers
     template <typename ToType>
-    static void decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
+    static void decodeIntegersCompressed_(const std::string & in, ByteOrder from_byte_order, std::vector<ToType> & out);
 
     static void stringSimdEncoder_(std::string& in, std::string& out);
 
@@ -191,7 +191,7 @@ private:
   }
 
   template <typename FromType>
-  void Base64::encode(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression)
+  void Base64::encode(std::vector<FromType> & in, ByteOrder to_byte_order, std::string & out, bool zlib_compression)
   {
     out.clear();
     if (in.empty())
@@ -231,20 +231,20 @@ private:
     // encode with compression
     if (zlib_compression)
     {
-      String compressed;
+      std::string compressed;
       ZlibCompression::compressData((void*)in.data(), input_bytes, compressed);
       stringSimdEncoder_(compressed, out);
     }
     else // encode without compression
     {
-      String str((char*)in.data(), input_bytes);
+      std::string str((char*)in.data(), input_bytes);
       stringSimdEncoder_(str, out);
     }
 
   }
 
   template <typename ToType>  ////////////////////////////////////////////nothing to change here, magic happenes elsewhere
-  void Base64::decode(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression)
+  void Base64::decode(const std::string & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression)
   {
     if (zlib_compression)
     {
@@ -273,7 +273,7 @@ private:
 
 
   template <typename ToType>
-  void Base64::decodeCompressed_(const String& in, ByteOrder from_byte_order, std::vector<ToType>& out)
+  void Base64::decodeCompressed_(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out)
   {
     out.clear();
     if (in.empty())
@@ -281,7 +281,7 @@ private:
       return;
     }
 
-    String decompressed;
+    std::string decompressed;
     Base64::decodeSingleString(in, decompressed, true);
 
     void* byte_buffer = reinterpret_cast<void*>(&decompressed[0]);
@@ -307,7 +307,7 @@ private:
   }
 
   template <typename ToType>
-  void Base64::decodeUncompressed_(const String& in, ByteOrder from_byte_order , std::vector<ToType>& out)
+  void Base64::decodeUncompressed_(const std::string& in, ByteOrder from_byte_order , std::vector<ToType>& out)
   {
     out.clear();
 
@@ -331,7 +331,7 @@ private:
     src_size -= padding;
 
     constexpr Size element_size = sizeof(ToType);
-    String s;
+    std::string s;
     stringSimdDecoder_(in,s);
 
     // change endianness if necessary (mzML is always LITTLE_ENDIAN; x64 is LITTLE_ENDIAN)
@@ -346,7 +346,7 @@ private:
   }
 
   template <typename FromType>
-  void Base64::encodeIntegers(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression)
+  void Base64::encodeIntegers(std::vector<FromType> & in, ByteOrder to_byte_order, std::string & out, bool zlib_compression)
   {
     out.clear();
     if (in.empty())
@@ -382,19 +382,19 @@ private:
     // encode with compression (use Qt because of zlib support)
     if (zlib_compression)
     {
-      String compressed;
+      std::string compressed;
       ZlibCompression::compressData((void*)in.data(), input_bytes, compressed);
       stringSimdEncoder_(compressed, out);
     }
     else // encode without compression
     {
-      String str((char*)in.data(), input_bytes);
+      std::string str((char*)in.data(), input_bytes);
       stringSimdEncoder_(str, out);
     }
   }
 
   template <typename ToType>
-  void Base64::decodeIntegers(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression)
+  void Base64::decodeIntegers(const std::string & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression)
   {
     if (zlib_compression)
     {
@@ -407,7 +407,7 @@ private:
   }
 
   template <typename ToType>
-  void Base64::decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
+  void Base64::decodeIntegersCompressed_(const std::string & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
     if (in.empty())
@@ -415,7 +415,7 @@ private:
 
     constexpr Size element_size = sizeof(ToType);
 
-    String decompressed;
+    std::string decompressed;
     Base64::decodeSingleString(in, decompressed, true);
     if (decompressed.empty())
     {
@@ -504,7 +504,7 @@ private:
   }
 
   template <typename ToType>
-  void Base64::decodeIntegersUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
+  void Base64::decodeIntegersUncompressed_(const std::string & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
 

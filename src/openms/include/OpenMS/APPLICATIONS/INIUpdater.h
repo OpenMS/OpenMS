@@ -42,7 +42,7 @@ public:
 
       @return true on success
     */
-    bool getNewToolName(const String & old_name, const String & tools_type, String & new_name);
+    bool getNewToolName(const std::string & old_name, const std::string & tools_type, std::string & new_name);
 
 private:
     static ToolMapping map_;

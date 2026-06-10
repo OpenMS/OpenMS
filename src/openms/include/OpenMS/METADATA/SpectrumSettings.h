@@ -112,14 +112,14 @@ public:
     IMPeakType getIMPeakType() const;
 
     /// returns the native identifier for the spectrum, used by the acquisition software.
-    const String & getNativeID() const;
+    const std::string & getNativeID() const;
     /// sets the native identifier for the spectrum, used by the acquisition software.
-    void setNativeID(const String & native_id);
+    void setNativeID(const std::string & native_id);
 
     /// returns the free-text comment
-    const String & getComment() const;
+    const std::string & getComment() const;
     /// sets the free-text comment
-    void setComment(const String & comment);
+    void setComment(const std::string & comment);
 
     /// returns a const reference to the instrument settings of the current spectrum
     const InstrumentSettings & getInstrumentSettings() const;
@@ -170,8 +170,8 @@ protected:
     SpectrumType type_ = SpectrumType::UNKNOWN;
     IMFormat im_type_ = IMFormat::UNKNOWN;
     IMPeakType im_peak_type_ = IMPeakType::UNKNOWN;
-    String native_id_;
-    String comment_;
+    std::string native_id_;
+    std::string comment_;
     InstrumentSettings instrument_settings_;
     SourceFile source_file_;
     AcquisitionInfo acquisition_info_;

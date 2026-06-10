@@ -92,11 +92,11 @@ private:
     /// Log-score of one putative charge-pair edge given the underlying feature intensities and the recorded mass-shift probability
     double getLogScore_(const PairsType::value_type& pair, const FeatureMap& fm) const;
 
-    /// Internal lookup: feature id (as @ref String) -> set of compatible charge-annotation variant indices encountered for that feature so far
-    typedef std::map<String, std::set<Size> > FeatureType_;
+    /// Internal lookup: feature id (as @c std::string) -> set of compatible charge-annotation variant indices encountered for that feature so far
+    typedef std::map<std::string, std::set<Size> > FeatureType_;
 
     /// Record one more charge-annotation variant @p v for the feature whose rotated id is @p rota_l in @p f_set
-    void updateFeatureVariant_(FeatureType_& f_set, const String& rota_l, const Size& v) const;
+    void updateFeatureVariant_(FeatureType_& f_set, const std::string& rota_l, const Size& v) const;
 
 
 
