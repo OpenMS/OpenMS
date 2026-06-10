@@ -13,7 +13,7 @@
 
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <QtWidgets/QMdiArea>
 #include <QtWidgets/QMainWindow>

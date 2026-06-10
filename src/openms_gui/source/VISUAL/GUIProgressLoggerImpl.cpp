@@ -8,7 +8,7 @@
 
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <QApplication>
 #include <QProgressDialog>

@@ -13,7 +13,7 @@
 
 #include <vector>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <QPaintEvent>
 #include <QPainter>

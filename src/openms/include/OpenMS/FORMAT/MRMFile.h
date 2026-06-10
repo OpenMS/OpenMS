@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <memory>
 

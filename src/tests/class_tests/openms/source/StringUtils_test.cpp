@@ -10,7 +10,6 @@
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/DATASTRUCTURES/StringUtilsSimple.h>
 ///////////////////////////
 
 using namespace OpenMS;

@@ -11,7 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/GzipInputStream.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <xercesc/util/PlatformUtils.hpp>
 

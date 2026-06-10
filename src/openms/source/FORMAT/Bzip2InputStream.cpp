@@ -8,7 +8,7 @@
 
 
 #include <OpenMS/FORMAT/Bzip2InputStream.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 using namespace xercesc;
 

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/OpenMSConfig.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <algorithm>

@@ -16,7 +16,7 @@
 #include <functional>
 
 #include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 ///////////////////////////
 

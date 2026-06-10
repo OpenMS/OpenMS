@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <map>
 #include <vector>

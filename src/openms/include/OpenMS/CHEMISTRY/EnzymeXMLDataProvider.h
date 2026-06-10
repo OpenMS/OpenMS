@@ -11,7 +11,7 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzymeDataProvider.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/config.h>
 
 namespace OpenMS

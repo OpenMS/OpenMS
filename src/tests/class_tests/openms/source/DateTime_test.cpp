@@ -12,7 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <iostream>
 #include <vector>
 

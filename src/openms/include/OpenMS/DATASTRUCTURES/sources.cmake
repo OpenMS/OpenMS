@@ -40,10 +40,7 @@ OSWData.h
 Param.h
 ParamValue.h
 QTCluster.h
-String.h
-StringConversions.h
 StringUtils.h
-StringUtilsSimple.h
 StringListUtils.h
 ToolDescription.h
 )

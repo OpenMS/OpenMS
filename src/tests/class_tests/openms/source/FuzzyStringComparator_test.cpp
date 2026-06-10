@@ -18,7 +18,7 @@ using namespace OpenMS;
 
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <fstream>

@@ -14,7 +14,7 @@
 
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <map>
 

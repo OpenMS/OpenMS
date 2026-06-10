@@ -9,7 +9,7 @@
 #pragma once
 
 // OpenMS
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
 namespace OpenMS

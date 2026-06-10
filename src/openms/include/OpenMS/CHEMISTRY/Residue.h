@@ -13,7 +13,7 @@
 #include <OpenMS/CONCEPT/CommonEnums.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <array>
 #include <functional>
