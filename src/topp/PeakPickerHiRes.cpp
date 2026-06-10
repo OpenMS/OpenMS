@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
@@ -108,7 +109,7 @@ protected:
 
   public:
 
-    PPHiResMzMLConsumer(String filename, const PeakPickerHiRes& pp) :
+    PPHiResMzMLConsumer(std::string filename, const PeakPickerHiRes& pp) :
       MSDataWritingConsumer(std::move(filename)),
       ms_levels_(pp.getParameters().getValue("ms_levels").toIntVector())
     {
@@ -150,17 +151,17 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input profile data file ");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("out", "<file>", "", "output peak file ");
-    setValidFormats_("out", ListUtils::create<String>("mzML"));
+    setValidFormats_("out", ListUtils::create<std::string>("mzML"));
 
     registerStringOption_("processOption", "<name>", "inmemory", "Whether to load all data and process them in-memory or whether to process the data on the fly (lowmemory) without loading the whole file into memory first", false, true);
-    setValidStrings_("processOption", ListUtils::create<String>("inmemory,lowmemory"));
+    setValidStrings_("processOption", ListUtils::create<std::string>("inmemory,lowmemory"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const override
+  Param getSubsectionDefaults_(const std::string & /*section*/) const override
   {
     return PeakPickerHiRes().getDefaults();
   }
@@ -191,7 +192,7 @@ protected:
 
     in = getStringOption_("in");
     out = getStringOption_("out");
-    String process_option = getStringOption_("processOption");
+    std::string process_option = getStringOption_("processOption");
 
     Param pepi_param = getParam_().copy("algorithm:", true);
     writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3);
@@ -210,6 +211,21 @@ protected:
     //-------------------------------------------------------------
     PeakMap ms_exp_raw;
     FileHandler().loadExperiment(in, ms_exp_raw, {FileTypes::MZML}, log_type_);
+
+    // Warn about per-peak ion mobility data (PeakPickerHiRes picks m/z only)
+    for (const auto& spec : ms_exp_raw)
+    {
+      IMFormat im_format = IMTypes::determineIMFormat(spec);
+      if (im_format == IMFormat::IM_PEAK)
+      {
+        OPENMS_LOG_WARN << "Warning: Input contains per-peak ion mobility data (IM_PEAK, "
+                        << imPeakTypeToString(spec.getIMPeakType())
+                        << "). PeakPickerHiRes picks in m/z only and reports intensity-weighted "
+                        << "mean ion mobility. This produces incorrect results on unbinned data. "
+                        << "Consider IonMobilityBinning or PeakPickerIM first." << std::endl;
+        break; // warn once
+      }
+    }
 
     if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().empty())
     {
@@ -256,8 +272,8 @@ protected:
   }
 
   // parameters
-  String in;
-  String out;
+  std::string in;
+  std::string out;
 };
 
 

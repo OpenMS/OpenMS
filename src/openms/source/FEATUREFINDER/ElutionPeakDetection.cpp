@@ -49,7 +49,7 @@ namespace OpenMS
   {
     // compute RMSE
     double squared_sum(0.0);
-    std::vector<double> smooth_ints(tr.getSmoothedIntensities());
+    const std::vector<double>& smooth_ints(tr.getSmoothedIntensities());
 
     for (Size i = 0; i < smooth_ints.size(); ++i)
     {
@@ -109,7 +109,7 @@ namespace OpenMS
     if (mt_length != tr.getSize())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "MassTrace was not smoothed before! Aborting...", String(smoothed_ints_vec.size()));
+          "MassTrace was not smoothed before! Aborting...",StringUtils::toStr(smoothed_ints_vec.size()));
     }
 
     // first make sure that everything is cleared
@@ -497,7 +497,7 @@ namespace OpenMS
         MassTrace new_mt(tmp_mt);
         new_mt.setSmoothedIntensities(smoothed_tmp);
         // copy ion mobility centroid and peak fwhm to split traces
-        new_mt.setCentroidIM(mt.getCentroidIM());
+        if (mt.containsIMData()) new_mt.setCentroidIM(mt.getCentroidIM());
         new_mt.fwhm_mz_avg = mt.fwhm_mz_avg;
         new_mt.fwhm_im_avg = mt.fwhm_im_avg;
 
@@ -531,7 +531,7 @@ namespace OpenMS
         if (pw_ok && snr_ok)
         {
           // set label of sub-trace
-          new_mt.setLabel(mt.getLabel() + "." + String(min_idx + 1));
+          new_mt.setLabel(mt.getLabel() + "." + StringUtils::toStr(min_idx + 1));
           new_mt.updateSmoothedMaxRT();
           new_mt.updateWeightedMeanMZ();
           new_mt.updateWeightedMZsd();

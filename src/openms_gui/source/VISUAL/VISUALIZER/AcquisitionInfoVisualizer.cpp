@@ -8,6 +8,7 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/AcquisitionInfoVisualizer.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 // QT
 #include <QValidator>
@@ -39,7 +40,7 @@ namespace OpenMS
 
   void AcquisitionInfoVisualizer::store()
   {
-    ptr_->setMethodOfCombination(acquisitioninfo_method_->text());
+    ptr_->setMethodOfCombination(fromQString(acquisitioninfo_method_->text()));
 
     temp_ = (*ptr_);
   }

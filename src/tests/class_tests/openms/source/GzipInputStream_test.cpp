@@ -11,7 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/GzipInputStream.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <xercesc/util/PlatformUtils.hpp>
 
@@ -36,9 +36,9 @@ START_SECTION((~GzipInputStream()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(GzipInputStream(const String& file_name))
+START_SECTION(GzipInputStream(const std::string& file_name))
 	TEST_EXCEPTION(Exception::FileNotFound, GzipInputStream gzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
-	String filename(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
+	std::string filename(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
 	ptr = new GzipInputStream(filename);
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	TEST_EQUAL(ptr->getIsOpen(),true)
@@ -55,7 +55,7 @@ START_SECTION(virtual XMLSize_t readBytes(XMLByte *const to_fill, const XMLSize_
 	TEST_EQUAL(gzip.readBytes(xml_buffer,(XMLSize_t)10),10)
 	TEST_EQUAL(gzip.readBytes(&xml_buffer[10],(XMLSize_t)10),10)
 	TEST_EQUAL(gzip.readBytes(&xml_buffer[20],(XMLSize_t)9),9)
-	TEST_EQUAL(String(buffer), String("Was decompression successful?"))
+	TEST_EQUAL(std::string(buffer),std::string("Was decompression successful?"))
 	TEST_EQUAL(gzip.getIsOpen(),true)
 	TEST_EQUAL(gzip.readBytes(&xml_buffer[30],(XMLSize_t)10),1)
 	TEST_EQUAL(gzip.getIsOpen(),false)

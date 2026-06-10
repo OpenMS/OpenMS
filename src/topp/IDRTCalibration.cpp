@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -73,9 +75,9 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML"));
     registerDoubleOption_("calibrant_1_reference", "<RT>", 0.1, "The RT of the first calibrant in the reference file.", false);
     registerDoubleOption_("calibrant_2_reference", "<RT>", 0.9, "The RT of the second calibrant in the reference file.", false);
     registerDoubleOption_("calibrant_1_input", "<RT>", -1.0, "The RT of the first calibrant in the input file. Please note that this value needs to be set. The default value -1.0 is not allowed.", false);
@@ -88,8 +90,8 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
 
-    String in_file = getStringOption_("in");
-    String out_file = getStringOption_("out");
+    std::string in_file = getStringOption_("in");
+    std::string out_file = getStringOption_("out");
 
     double rt_calibrant_1_input = getDoubleOption_("calibrant_1_input");
     double rt_calibrant_2_input =  getDoubleOption_("calibrant_2_input");

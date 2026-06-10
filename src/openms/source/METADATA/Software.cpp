@@ -13,7 +13,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  Software::Software(const String& name, const String& version) :
+  Software::Software(const std::string& name, const std::string& version) :
     CVTermList(),
     name_(name),
     version_(version)
@@ -39,22 +39,22 @@ namespace OpenMS
     return tie(name_, version_) < tie(rhs.name_, rhs.version_);
   }
 
-  const String& Software::getName() const
+  const std::string& Software::getName() const
   {
     return name_;
   }
 
-  void Software::setName(const String& name)
+  void Software::setName(const std::string& name)
   {
     name_ = name;
   }
 
-  const String& Software::getVersion() const
+  const std::string& Software::getVersion() const
   {
     return version_;
   }
 
-  void Software::setVersion(const String& version)
+  void Software::setVersion(const std::string& version)
   {
     version_ = version;
   }

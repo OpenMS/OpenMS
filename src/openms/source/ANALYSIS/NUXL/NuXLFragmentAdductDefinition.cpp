@@ -14,8 +14,8 @@ namespace OpenMS
 {
   bool NuXLFragmentAdductDefinition::operator<(const NuXLFragmentAdductDefinition& other) const
   {
-    String fa = formula.toString();
-    String fb = other.formula.toString();
+    std::string fa = formula.toString();
+    std::string fb = other.formula.toString();
     return std::tie(mass, fa, name) < std::tie(other.mass, fb, other.name);
   }
 

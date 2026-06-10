@@ -107,7 +107,7 @@ END_SECTION
 
 START_SECTION((void add(const Adduct &a, UInt side)))
 {
-	//Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob
+	//Adduct(Int charge, Int amount, double singleMass, std::string formula, double log_prob
 	Adduct a1(123, 43, 123.456, "S", -0.3453, 0);
 	Adduct a2(123,  3, 123.456, "S", -0.3453, 0);
 
@@ -308,7 +308,7 @@ START_SECTION((StringList getLabels(const UInt side) const))
 }
 END_SECTION
 
-START_SECTION((String getAdductsAsString() const))
+START_SECTION((std::string getAdductsAsString() const))
 {
   Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
 	Adduct a2(1, -1, 1.007, "H1", -0.13, 0);
@@ -321,7 +321,7 @@ START_SECTION((String getAdductsAsString() const))
 }
 END_SECTION
 
-START_SECTION((String getAdductsAsString(UInt side) const))
+START_SECTION((std::string getAdductsAsString(UInt side) const))
 {
   Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
 	Adduct a2(1, -1, 1.007, "H1", -0.13, 0);
@@ -458,6 +458,30 @@ START_SECTION([EXTRA] std::hash<Compomer>)
   Compomer empty1;
   Compomer empty2;
   TEST_EQUAL(std::hash<Compomer>{}(empty1), std::hash<Compomer>{}(empty2));
+}
+END_SECTION
+
+START_SECTION((double getSideMass(UInt side) const))
+{
+  // empty compomer has zero mass on both sides
+  Compomer c;
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::LEFT), 0.0);
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::RIGHT), 0.0);
+
+  // single adduct on right side
+  Adduct a1(1, 2, 10.5, "Na", -0.3, 0);
+  c.add(a1, Compomer::RIGHT);
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::RIGHT), 2 * 10.5); // amount * singleMass
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::LEFT), 0.0);
+
+  // add adduct on left side
+  Adduct a2(1, 3, 1.008, "H", -0.1, 0);
+  c.add(a2, Compomer::LEFT);
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::LEFT), 3 * 1.008);
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::RIGHT), 2 * 10.5);
+
+  // invalid side throws
+  TEST_EXCEPTION(Exception::InvalidValue, c.getSideMass(Compomer::BOTH));
 }
 END_SECTION
 

@@ -34,6 +34,7 @@
 
 #include <map>
 #include <OpenMS/VISUAL/TOPPASOutputFolderVertex.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 namespace OpenMS
 {
@@ -56,7 +57,7 @@ namespace OpenMS
     file_name_(),
     tmp_path_(tmp_path),
     gui_(gui),
-    out_dir_(File::getUserDirectory().toQString()),
+    out_dir_(toQString(File::getUserDirectory())),
     changed_(false),
     running_(false),
     error_occured_(false),
@@ -248,7 +249,7 @@ namespace OpenMS
           //ss << "test test";
           my_log << " ---------------------------------- " << std::endl; // this will cause a flush... removing this line might cause loss(!) of log content!
           my_log.flush(); // bug! this sometimes does not cause the content to be flushed to the stringstream; the cache seems to be inactive as well. also std::endl does not help
-          emit messageReady(String(ss.str()).toQString());
+          emit messageReady(toQString(ss.str()));
           //std::cerr << ss.str();
         }
         remove_edge = true;
@@ -633,18 +634,18 @@ namespace OpenMS
     }
   }
 
-  bool TOPPASScene::store(const String& file)
+  bool TOPPASScene::store(const std::string& file)
   {
     Param save_param;
 
     save_param.setValue("info:version", VersionInfo::getVersion());
     save_param.setValue("info:num_vertices", vertices_.size());
     save_param.setValue("info:num_edges", edges_.size());
-    save_param.setValue("info:description", String("<![CDATA[") + String(this->description_text_) + String("]]>"));
+    save_param.setValue("info:description",std::string("<![CDATA[") + fromQString(this->description_text_) + std::string("]]>"));
 
     // lambda function to store common parameters of all vertices
     auto save_common_params =
-      [&save_param](const TOPPASVertex* tv, const String& id, const String& type)
+      [&save_param](const TOPPASVertex* tv, const std::string& id, const std::string& type)
       {
         save_param.setValue("vertices:" + id + ":toppas_type", type);
         save_param.setValue("vertices:" + id + ":x_pos", tv->x());
@@ -656,13 +657,13 @@ namespace OpenMS
     // store all vertices (together with all parameters)
     for (TOPPASVertex * tv : vertices_)
     {
-      String id(tv->getTopoNr() - 1);
+      std::string id = StringUtils::toStr(tv->getTopoNr() - 1);
 
       // vertex subclasses
       if (auto* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv); iflv)
       {
         // store file names relative to toppas file
-        QDir save_dir(File::path(file).toQString());
+        QDir save_dir(toQString(File::path(file)));
         const QStringList& files_qt = iflv->getFileNames();
         std::vector<std::string> files;
         for (const QString &file_qt : files_qt)
@@ -725,10 +726,10 @@ namespace OpenMS
         continue;
       }
 
-      save_param.setValue("edges:" + String(counter) + ":source/target:", String(te->getSourceVertex()->getTopoNr() - 1) + "/" + String(te->getTargetVertex()->getTopoNr() - 1));
-      //save_param.setValue("edges:"+String(counter)+":source_out_param:", te->getSourceOutParam()));
-      //save_param.setValue("edges:"+String(counter)+":target_in_param:", te->getTargetInParam()));
-      String v = "__no_name__";
+      save_param.setValue("edges:" + StringUtils::toStr(counter) + ":source/target:",StringUtils::toStr(te->getSourceVertex()->getTopoNr() - 1) + "/" + StringUtils::toStr(te->getTargetVertex()->getTopoNr() - 1));
+      //save_param.setValue("edges:"+StringUtils::toStr(counter)+":source_out_param:", te->getSourceOutParam()));
+      //save_param.setValue("edges:"+StringUtils::toStr(counter)+":target_in_param:", te->getTargetInParam()));
+      std::string v = "__no_name__";
       if (te->getSourceOutParam() >= 0)
       {
         TOPPASToolVertex* tv_src = qobject_cast<TOPPASToolVertex*>(te->getSourceVertex());
@@ -739,7 +740,7 @@ namespace OpenMS
           v = files[te->getSourceOutParam()].param_name;
         }
       }
-      save_param.setValue("edges:" + String(counter) + ":source_out_param:", v);
+      save_param.setValue("edges:" + StringUtils::toStr(counter) + ":source_out_param:", v);
 
       v = "__no_name__";
       if (te->getTargetInParam() >= 0)
@@ -752,7 +753,7 @@ namespace OpenMS
           v = files[te->getTargetInParam()].param_name;
         }
       }
-      save_param.setValue("edges:" + String(counter) + ":target_in_param:", v);
+      save_param.setValue("edges:" + StringUtils::toStr(counter) + ":target_in_param:", v);
 
       ++counter;
     }
@@ -777,7 +778,7 @@ namespace OpenMS
     description_text_ = desc;
   }
 
-  void TOPPASScene::load(const String& file)
+  void TOPPASScene::load(const std::string& file)
   {
     file_name_ = file;
 
@@ -792,7 +793,7 @@ namespace OpenMS
 
     // check for TOPPAS file version. Deny loading if too old or too new
     // get version of TOPPAS file
-    String file_version = "1.8.0"; // default (were we did not have the tag)
+    std::string file_version = "1.8.0"; // default (were we did not have the tag)
     if (load_param.exists("info:version"))
     {
       file_version = load_param.getValue("info:version").toString();
@@ -814,12 +815,12 @@ namespace OpenMS
         }
         // only update in GUI mode, as in non-GUI mode, we'd create infinite recursive calls when instantiating TOPPASScene in INIUpdater
 #ifdef OPENMS_WINDOWSPLATFORM
-        String extra_quotes = "\""; // note: double quoting required for Windows, as outer quotes are required by cmd.exe (arghh)...
+        std::string extra_quotes = "\""; // note: double quoting required for Windows, as outer quotes are required by cmd.exe (arghh)...
 #else
-        String extra_quotes = "";
+        std::string extra_quotes;
 #endif
 
-        String cmd = extra_quotes + "\"" + File::findSiblingTOPPExecutable("INIUpdater") + "\" -in \"" + file + "\" -i " + extra_quotes;
+        std::string cmd = extra_quotes + "\"" + File::findSiblingTOPPExecutable("INIUpdater") + "\" -in \"" + file + "\" -i " + extra_quotes;
         std::cerr << cmd << "\n\n";
         if (std::system(cmd.c_str()))
         {
@@ -850,13 +851,13 @@ namespace OpenMS
     }
     if (load_param.exists("info:description"))
     {
-      String text = String(load_param.getValue("info:description").toString()).toQString();
-      text.substitute("<![CDATA[", "");
-      text.substitute("]]>", "");
-      description_text_ = text.trim().toQString();
+      std::string text =std::string(load_param.getValue("info:description").toString());
+      StringUtils::substitute(text, "<![CDATA[", "");
+      StringUtils::substitute(text, "]]>", "");
+      description_text_ = toQString(StringUtils::trim(text));
     }
 
-    String current_type, current_id;
+    std::string current_type, current_id;
     TOPPASVertex* current_vertex = nullptr;
     QVector<TOPPASVertex*> vertex_vector;
     vertex_vector.resize((Size)(int)load_param.getValue("info:num_vertices"));
@@ -865,13 +866,13 @@ namespace OpenMS
     for (Param::ParamIterator it = vertices_param.begin(); it != vertices_param.end(); ++it)
     {
       StringList substrings;
-      String(it.getName()).split(':', substrings);
+      StringUtils::split(std::string(it.getName()), ':', substrings);
       if (substrings.back() == "toppas_type") // next node (all nodes have a "toppas_type")
       {
         current_vertex = nullptr;
         current_type = (it->value).toString();
         current_id = substrings[0];
-        Int index = current_id.toInt();
+        Int index = StringUtils::toInt32(current_id);
 
         if (current_type == "input file list")
         {
@@ -880,10 +881,10 @@ namespace OpenMS
 
           for (StringList::const_iterator str_it = file_names.begin(); str_it != file_names.end(); ++str_it)
           {
-            QString f = str_it->toQString();
+            QString f = toQString(*str_it);
             if (QDir::isRelativePath(f)) // prepend path of toppas file to relative path of the input files
             {
-              f = File::path(file).toQString() + "/" + f;
+              f = toQString(File::path(file)) + "/" + f;
             }
             file_names_qt.push_back(QDir::cleanPath(f));
           }
@@ -896,7 +897,7 @@ namespace OpenMS
           // custom output folder
           if (vertices_param.exists(current_id + ":output_folder_name"))
           {
-            oflv->setOutputFolderName(String(vertices_param.getValue(current_id + ":output_folder_name").toString()).toQString());
+            oflv->setOutputFolderName(toQString(std::string(vertices_param.getValue(current_id + ":output_folder_name").toString())));
           }
           
           connectOutputVertexSignals(oflv); // todo
@@ -909,7 +910,7 @@ namespace OpenMS
           // custom output folder
           if (vertices_param.exists(current_id + ":output_folder_name"))
           {
-            ofv->setOutputFolderName(String(vertices_param.getValue(current_id + ":output_folder_name").toString()).toQString());
+            ofv->setOutputFolderName(toQString(std::string(vertices_param.getValue(current_id + ":output_folder_name").toString())));
           }
 
           connectOutputVertexSignals(ofv);
@@ -918,8 +919,8 @@ namespace OpenMS
         }
         else if (current_type == "tool")
         {
-          String tool_name = vertices_param.getValue(current_id + ":tool_name").toString();
-          String tool_type = vertices_param.getValue(current_id + ":tool_type").toString();
+          std::string tool_name = vertices_param.getValue(current_id + ":tool_name").toString();
+          std::string tool_type = vertices_param.getValue(current_id + ":tool_type").toString();
           Param param_param = vertices_param.copy(current_id + ":parameters:", true);
           TOPPASToolVertex* tv = new TOPPASToolVertex(tool_name, tool_type);
           tv->setParam(param_param);
@@ -930,7 +931,7 @@ namespace OpenMS
         }
         else if (current_type == "merger")
         {
-          String rb = "true";
+          std::string rb = "true";
           if (vertices_param.exists(current_id + ":round_based"))
           {
             rb = vertices_param.getValue(current_id + ":round_based").toString();
@@ -962,7 +963,7 @@ namespace OpenMS
           // vertex parameters:
           if (vertices_param.exists(current_id + ":recycle_output")) // only since TOPPAS 1.9, so does not need to exist
           {
-            String recycle = vertices_param.getValue(current_id + ":recycle_output").toString();
+            std::string recycle = vertices_param.getValue(current_id + ":recycle_output").toString();
             current_vertex->setRecycling(recycle == "true" ? true : false);
           }
 
@@ -999,16 +1000,16 @@ namespace OpenMS
     // load all edges
     for (Param::ParamIterator it = edges_param.begin(); it != edges_param.end(); ++it)
     {
-      const String& edge = (it->value).toString();
+      const std::string& edge = (it->value).toString();
       StringList edge_substrings;
-      edge.split('/', edge_substrings);
+      StringUtils::split(edge, '/', edge_substrings);
       if (edge_substrings.size() != 2)
       {
         std::cerr << "Invalid edge format" << std::endl;
         break;
       }
-      Int index_1 = edge_substrings[0].toInt();
-      Int index_2 = edge_substrings[1].toInt();
+      Int index_1 = StringUtils::toInt32(edge_substrings[0]);
+      Int index_2 = StringUtils::toInt32(edge_substrings[1]);
 
       if (index_1 >= vertex_vector.size() || index_2 >= vertex_vector.size())
       {
@@ -1036,12 +1037,12 @@ namespace OpenMS
 
         addEdge(edge);
 
-        String source_out_param = (++it)->value.toString();
-        String target_in_param = (++it)->value.toString();
+        std::string source_out_param = (++it)->value.toString();
+        std::string target_in_param = (++it)->value.toString();
         if (pre_1_9_toppas) // just indices stored - no way we can check
         {
-          edge->setSourceOutParam(source_out_param.toInt());
-          edge->setTargetInParam(target_in_param.toInt());
+          edge->setSourceOutParam(StringUtils::toInt32(source_out_param));
+          edge->setTargetInParam(StringUtils::toInt32(target_in_param));
         }
         else
         {
@@ -1061,7 +1062,7 @@ namespace OpenMS
               }
             }
             if (src_index == -1)
-              logTOPPOutput(String("Could not find output parameter called '" + source_out_param + "'. Check edge!").toQString());
+              logTOPPOutput(toQString(std::string("Could not find output parameter called '" + source_out_param + "'. Check edge!")));
           }
 
           tv_src = qobject_cast<TOPPASToolVertex*>(tv_2);
@@ -1078,7 +1079,7 @@ namespace OpenMS
               }
             }
             if (tgt_index == -1)
-              logTOPPOutput(String("Could not find input parameter called '" + target_in_param + "'. Check edge!").toQString());
+              logTOPPOutput(toQString(std::string("Could not find input parameter called '" + target_in_param + "'. Check edge!")));
           }
 
           edge->setSourceOutParam(src_index);
@@ -1088,7 +1089,7 @@ namespace OpenMS
     }
     if (pre_1_9_toppas) // just indices stored - no way we can check
     {
-      logTOPPOutput(String("Your TOPPAS file was build with an old version of TOPPAS and is susceptible to errors when used with new versions of OpenMS. Check every edge for correct input/output parameter names and store the workflow using the current version of TOPPAS (e.g using the \"Save as ...\" functionality) to make the workflow more robust to changes in future versions of TOPP tools!").toQString());
+      logTOPPOutput(toQString(std::string("Your TOPPAS file was build with an old version of TOPPAS and is susceptible to errors when used with new versions of OpenMS. Check every edge for correct input/output parameter names and store the workflow using the current version of TOPPAS (e.g using the \"Save as ...\" functionality) to make the workflow more robust to changes in future versions of TOPP tools!")));
     }
 
 /*
@@ -1238,12 +1239,12 @@ namespace OpenMS
     updateEdgeColors();
   }
 
-  const String& TOPPASScene::getSaveFileName()
+  const std::string& TOPPASScene::getSaveFileName()
   {
     return file_name_;
   }
 
-  void TOPPASScene::setSaveFileName(const String& name)
+  void TOPPASScene::setSaveFileName(const std::string& name)
   {
     file_name_ = name;
   }
@@ -1310,7 +1311,7 @@ namespace OpenMS
     QFile logfile(out_dir_ + QDir::separator() + "TOPPAS.log");
     if (!logfile.open(QIODevice::Append | QIODevice::Text))
     {
-      std::cerr << "Could not write to logfile '" << String(logfile.fileName()) << "'" << std::endl;
+      std::cerr << "Could not write to logfile '" << fromQString(logfile.fileName()) << "'" << std::endl;
       return;
     }
 
@@ -1326,7 +1327,7 @@ namespace OpenMS
     {
       //return;
     }
-    String text = String(out);
+    std::string text = fromQString(out);
 
     if (!gui_)
     {
@@ -1334,7 +1335,7 @@ namespace OpenMS
     }
     emit messageReady(out); // let TOPPAS know about it
 
-    writeToLogFile_(text.toQString());
+    writeToLogFile_(toQString(text));
   }
 
   void TOPPASScene::logToolStarted()
@@ -1342,8 +1343,8 @@ namespace OpenMS
     TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
     if (tv)
     {
-      String text = tv->getName();
-      String type = tv->getType();
+      std::string text = tv->getName();
+      std::string type = tv->getType();
       if (!type.empty())
       {
         text += " (" + type + ")";
@@ -1355,7 +1356,7 @@ namespace OpenMS
         std::cout << '\n' << text << std::endl;
       }
 
-      writeToLogFile_(text.toQString());
+      writeToLogFile_(toQString(text));
     }
   }
 
@@ -1364,8 +1365,8 @@ namespace OpenMS
     TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
     if (tv)
     {
-      String text = tv->getName();
-      String type = tv->getType();
+      std::string text = tv->getName();
+      std::string type = tv->getType();
       if (!type.empty())
       {
         text += " (" + type + ")";
@@ -1377,7 +1378,7 @@ namespace OpenMS
         std::cout << '\n' << text << std::endl;
       }
 
-      writeToLogFile_(text.toQString());
+      writeToLogFile_(toQString(text));
     }
   }
 
@@ -1386,8 +1387,8 @@ namespace OpenMS
     TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
     if (tv)
     {
-      String text = tv->getName();
-      String type = tv->getType();
+      std::string text = tv->getName();
+      std::string type = tv->getType();
       if (!type.empty())
       {
         text += " (" + type + ")";
@@ -1399,7 +1400,7 @@ namespace OpenMS
         std::cout << '\n' << text << std::endl;
       }
 
-      writeToLogFile_(text.toQString());
+      writeToLogFile_(toQString(text));
     }
   }
 
@@ -1408,8 +1409,8 @@ namespace OpenMS
     TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(QObject::sender());
     if (tv)
     {
-      String text = tv->getName();
-      String type = tv->getType();
+      std::string text = tv->getName();
+      std::string type = tv->getType();
       if (!type.empty())
       {
         text += " (" + type + ")";
@@ -1421,20 +1422,20 @@ namespace OpenMS
         std::cout << '\n' << text << std::endl;
       }
 
-      writeToLogFile_(text.toQString());
+      writeToLogFile_(toQString(text));
     }
   }
 
-  void TOPPASScene::logOutputFileWritten(const String& file)
+  void TOPPASScene::logOutputFileWritten(const std::string& file)
   {
-    String text = "Output file '" + file + "' written.";
+    std::string text = "Output file '" + file + "' written.";
 
     if (!gui_)
     {
       std::cout << std::endl << text << std::endl;
     }
 
-    writeToLogFile_(text.toQString());
+    writeToLogFile_(toQString(text));
   }
 
   void TOPPASScene::topoSort(bool resort_all)
@@ -1589,7 +1590,7 @@ namespace OpenMS
     // Save changes
     if (gui_ && changed_)
     {
-      QString name = file_name_.empty() ? "Untitled" : File::basename(file_name_).toQString();
+      QString name = file_name_.empty() ? "Untitled" : toQString(File::basename(file_name_));
       QMessageBox::StandardButton ret;
       ret = QMessageBox::warning(views().first(), "Save changes?", "'" + name + "' has been modified.\n\nDo you want to save your changes?", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
       if (ret == QMessageBox::Save)
@@ -2225,7 +2226,7 @@ namespace OpenMS
 
   void TOPPASScene::connectOutputVertexSignals(TOPPASOutputVertex* oflv)
   {
-    connect(oflv, SIGNAL(outputFileWritten(const String &)), this, SLOT(logOutputFileWritten(const String&)));
+    connect(oflv, SIGNAL(outputFileWritten(const std::string &)), this, SLOT(logOutputFileWritten(const std::string&)));
     connect(oflv, SIGNAL(outputFolderNameChanged()), this, SLOT(changedOutputFolder()));
   }
 

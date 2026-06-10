@@ -20,7 +20,6 @@
 #include <QtWidgets/QButtonGroup>
 #include <QtCore/QProcess>
 #include <QtWidgets/QSplashScreen>
-#include <QtNetwork/QNetworkReply>
 
 class QToolBar;
 class QListWidget;
@@ -30,8 +29,6 @@ class QLabel;
 class QWidget;
 class QTreeWidget;
 class QTreeWidgetItem;
-class QWebView;
-class QNetworkAccessManager;
 
 namespace Ui
 {
@@ -67,10 +64,10 @@ protected:
 
     /// The current path (used for loading and storing).
     /// Depending on the preferences this is static or changes with the current window/layer.
-    String current_path_;
+    std::string current_path_;
 
     /// The path for temporary files
-    String tmp_path_;
+    std::string tmp_path_;
 
   private slots:
     // names created by QtCreator. Do not change them.

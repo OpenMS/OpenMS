@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/VISUALIZER/SourceFileVisualizer.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QComboBox>
@@ -39,7 +40,7 @@ namespace OpenMS
   {
     name_of_file_->setText(temp_.getNameOfFile().c_str());
     path_to_file_->setText(temp_.getPathToFile().c_str());
-    file_size_->setText(String(temp_.getFileSize()).c_str());
+    file_size_->setText(StringUtils::toStr(temp_.getFileSize()).c_str());
     file_type_->setText(temp_.getFileType().c_str());
     checksum_->setText(temp_.getChecksum().c_str());
     native_id_type_->setText(temp_.getNativeIDType().c_str());
@@ -57,12 +58,12 @@ namespace OpenMS
 
   void SourceFileVisualizer::store()
   {
-    ptr_->setNameOfFile(name_of_file_->text());
-    ptr_->setPathToFile(path_to_file_->text());
+    ptr_->setNameOfFile(fromQString(name_of_file_->text()));
+    ptr_->setPathToFile(fromQString(path_to_file_->text()));
     ptr_->setFileSize(file_size_->text().toFloat());
-    ptr_->setFileType(file_type_->text());
-    ptr_->setChecksum(checksum_->text(), (SourceFile::ChecksumType)checksum_type_->currentIndex());
-    ptr_->setNativeIDType(native_id_type_->text());
+    ptr_->setFileType(fromQString(file_type_->text()));
+    ptr_->setChecksum(fromQString(checksum_->text()), (SourceFile::ChecksumType)checksum_type_->currentIndex());
+    ptr_->setNativeIDType(fromQString(native_id_type_->text()));
 
     temp_ = (*ptr_);
   }

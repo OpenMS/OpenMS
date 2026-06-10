@@ -39,14 +39,14 @@ namespace OpenMS
     struct Configuration :
       public CVTermList
     {
-      String contact_ref;
-      String instrument_ref;
+      std::string contact_ref;
+      std::string instrument_ref;
       std::vector<CVTermList> validations;
     };
 
     struct CV
     {
-      CV(const String & new_id, const String & new_fullname, const String & new_version, const String & new_URI) :
+      CV(const std::string & new_id, const std::string & new_fullname, const std::string & new_version, const std::string & new_URI) :
         id(new_id),
         fullname(new_fullname),
         version(new_version),
@@ -55,10 +55,10 @@ namespace OpenMS
 
       }
 
-      String id;
-      String fullname;
-      String version;
-      String URI;
+      std::string id;
+      std::string fullname;
+      std::string version;
+      std::string URI;
 
       bool operator==(const CV & cv) const
       {
@@ -81,8 +81,8 @@ namespace OpenMS
           sequence == rhs.sequence;
       }
 
-      String id;
-      String sequence;
+      std::string id;
+      std::string sequence;
 
     };
 
@@ -164,7 +164,7 @@ public:
         return retention_time_;
       }
 
-      String software_ref;
+      std::string software_ref;
       RTUnit retention_time_unit;
       RTType retention_time_type;
 
@@ -278,7 +278,7 @@ public:
       }
       //@}
 
-      String id;
+      std::string id;
       std::vector<RetentionTime> rts;
 
 protected:
@@ -316,8 +316,8 @@ public:
                theoretical_mass == rhs.theoretical_mass;
       }
 
-      String molecular_formula;
-      String smiles_string;
+      std::string molecular_formula;
+      std::string smiles_string;
       double theoretical_mass;
 
 protected:
@@ -378,25 +378,25 @@ public:
      */
       //@{
       /// Set the peptide group label
-      void setPeptideGroupLabel(const String & label)
+      void setPeptideGroupLabel(const std::string & label)
       {
         peptide_group_label_ = label;
       }
 
       /// Get the peptide group label
-      String getPeptideGroupLabel() const
+      std::string getPeptideGroupLabel() const
       {
         return peptide_group_label_;
       }
       //@}
 
-      std::vector<String> protein_refs;
+      std::vector<std::string> protein_refs;
       CVTermList evidence;
-      String sequence;
+      std::string sequence;
       std::vector<Modification> mods;
 
 protected:
-      String peptide_group_label_;
+      std::string peptide_group_label_;
     };
 
     struct OPENMS_DLLAPI Contact :
@@ -413,7 +413,7 @@ protected:
                id == rhs.id;
       }
 
-      String id;
+      std::string id;
     };
 
     struct OPENMS_DLLAPI Publication :
@@ -430,7 +430,7 @@ protected:
                id == rhs.id;
       }
 
-      String id;
+      std::string id;
     };
 
     struct OPENMS_DLLAPI Instrument :
@@ -447,7 +447,7 @@ protected:
                id == rhs.id;
       }
 
-      String id;
+      std::string id;
     };
 
     struct OPENMS_DLLAPI Prediction :
@@ -465,8 +465,8 @@ protected:
                software_ref == rhs.software_ref;
       }
 
-      String software_ref;
-      String contact_ref;
+      std::string software_ref;
+      std::string contact_ref;
     };
 
     /**
@@ -622,7 +622,7 @@ private:
     OPENMS_DLLAPI OpenMS::AASequence getAASequence(const Peptide& peptide);
 
     /// helper function that sets a modification on a AASequence object
-    OPENMS_DLLAPI void setModification(int location, int max_size, const String& modification, OpenMS::AASequence & aas);
+    OPENMS_DLLAPI void setModification(int location, int max_size, const std::string& modification, OpenMS::AASequence & aas);
 
   }
 

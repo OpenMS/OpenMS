@@ -12,6 +12,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
@@ -110,15 +112,14 @@ Each input experiment gives rise to the two RT and mz columns plus additional fi
 
 struct HeaderInfo
 {
-  explicit HeaderInfo(const String& filename)
+  explicit HeaderInfo(const std::string& filename)
   {
     header_description = "-- empty --";
     TextFile tf;
     tf.load(filename);
-    String content;
-    content.concatenate(tf.begin(), tf.end(), ";");
+    std::string content = StringUtils::concatenate(tf, ";");
 
-    String search = "$$ Sample Description:";
+    std::string search = "$$ Sample Description:";
     Size pos = content.find(search);
     if (pos != std::string::npos)
     {
@@ -126,15 +127,15 @@ struct HeaderInfo
       Size pos_end = content.find("$$", pos);
       if (pos_end != std::string::npos)
       {
-        String tmp = content.substr(pos, pos_end - pos - 1);
-        if (!tmp.trim().empty()) header_description = tmp;
+        std::string tmp = StringUtils::substr(content, pos, pos_end - pos - 1);
+        if (!StringUtils::trim(tmp).empty()) header_description = tmp;
         //std::cerr << "Header info is: " << header_description << std::endl;
       }
     }
   }
 
-  String header_description;
-  String filename;
+  std::string header_description;
+  std::string filename;
 };
 
 
@@ -149,14 +150,14 @@ public:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFileList_("in", "<file>", ListUtils::create<String>(""), "Input raw data file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    registerInputFileList_("in", "<file>", ListUtils::create<std::string>(""), "Input raw data file");
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
 
-    registerInputFileList_("in_header", "<file>", ListUtils::create<String>(""), "[for Waters data only] Read additional information from _HEADER.TXT. Provide one for each raw input file.", false);
-    setValidFormats_("in_header", ListUtils::create<String>("txt"));
+    registerInputFileList_("in_header", "<file>", ListUtils::create<std::string>(""), "[for Waters data only] Read additional information from _HEADER.TXT. Provide one for each raw input file.", false);
+    setValidFormats_("in_header", ListUtils::create<std::string>("txt"));
 
     registerInputFile_("pos", "<file>", "", "Input config file stating where to find signal");
-    setValidFormats_("pos", ListUtils::create<String>("edta"));
+    setValidFormats_("pos", ListUtils::create<std::string>("edta"));
     registerDoubleOption_("rt_tol", "", 3, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
     registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
     registerIntOption_("rt_collect", "", 1, "# of scans up & down in RT from highest point for ppm estimation in result", false, false);
@@ -166,13 +167,13 @@ public:
     registerDoubleOption_("auto_rt:FHWM", "<FWHM [s]>", 5, "Expected full width at half-maximum of each raw RT peak in [s]. Gaussian smoothing filter with this width is applied to TIC.", false, true);
     registerDoubleOption_("auto_rt:SNThreshold", "<S/N>", 5, "S/N threshold for a smoothed raw peak to pass peak picking. Higher thesholds will result in less peaks.", false, true);
     registerOutputFile_("auto_rt:out_debug_TIC", "<file>", "", "Optional output file (for first input) containing the smoothed TIC, S/N levels and picked RT positions", false, true);
-    setValidFormats_("auto_rt:out_debug_TIC", ListUtils::create<String>("mzML"));
+    setValidFormats_("auto_rt:out_debug_TIC", ListUtils::create<std::string>("mzML"));
 
     registerStringOption_("out_separator", "<sep>", ",", "Separator character for output CSV file.", false, true);
-    //setValidStrings_("out_separator", ListUtils::create<String>(",!\t! ", '!')); // comma not allowed as valid string
+    //setValidStrings_("out_separator", ListUtils::create<std::string>(",!\t! ", '!')); // comma not allowed as valid string
 
     registerOutputFile_("out", "<file>", "", "Output quantitation file (multiple columns for each input compound)");
-    setValidFormats_("out", ListUtils::create<String>("csv"));
+    setValidFormats_("out", ListUtils::create<std::string>("csv"));
   }
 
   MSChromatogram toChromatogram(const MSSpectrum& in) // for debugging
@@ -193,10 +194,10 @@ public:
     // parameter handling
     //-------------------------------------------------------------
     StringList in = getStringList_("in");
-    String edta = getStringOption_("pos");
-    String out = getStringOption_("out");
-    String out_sep = getStringOption_("out_separator");
-    String out_TIC_debug = getStringOption_("auto_rt:out_debug_TIC");
+    std::string edta = getStringOption_("pos");
+    std::string out = getStringOption_("out");
+    std::string out_sep = getStringOption_("out_separator");
+    std::string out_TIC_debug = getStringOption_("auto_rt:out_debug_TIC");
 
     StringList in_header = getStringList_("in_header");
 
@@ -242,7 +243,7 @@ public:
 
     StringList tf_single_header0, tf_single_header1, tf_single_header2; // header content, for each column
 
-    std::vector<String> vec_single; // one line for each compound, multiple columns per experiment
+    std::vector<std::string> vec_single; // one line for each compound, multiple columns per experiment
     vec_single.resize(cm.size());
 
     PeakIntegrator peak_integrator; // for raw signal integration
@@ -329,7 +330,7 @@ public:
 
           out_debug.addChromatogram(toChromatogram(tics_pp));
           // get rid of "native-id" missing warning
-          for (Size id = 0; id < out_debug.size(); ++id) out_debug[id].setNativeID(String("spectrum=") + id);
+          for (Size id = 0; id < out_debug.size(); ++id) out_debug[id].setNativeID(std::string("spectrum=") + id);
 
           mzml_file.storeExperiment(out_TIC_debug, out_debug,{FileTypes::MZML});
           OPENMS_LOG_DEBUG << "Storing debug AUTO-RT: " << out_TIC_debug << std::endl;
@@ -344,7 +345,7 @@ public:
         {
           if (cf.getRT() < 0)
           {
-            if (mz_doubles.find(cf.getMZ()) == mz_doubles.end())
+            if (!mz_doubles.contains(cf.getMZ()))
             {
               mz_doubles.insert(cf.getMZ());
             }
@@ -379,7 +380,7 @@ public:
       Int not_found(0);
       std::map<Size, double> quant;
 
-      String description;
+      std::string description;
       if (fi < in_header.size())
       {
         HeaderInfo info(in_header[fi]);
@@ -471,20 +472,20 @@ public:
         }
 
         // appending the second column set requires separator
-        String append_sep = (fi == 0 ? "" : out_sep);
+        std::string append_sep = (fi == 0 ? "" : out_sep);
 
         vec_single[i] += append_sep; // new line
         if (fi == 0)
         {
-          vec_single[i] += String(cm[i].getRT()) + out_sep +
-                           String(cm[i].getMZ()) + out_sep;
+          vec_single[i] +=StringUtils::toStr(cm[i].getRT()) + out_sep +
+                           StringUtils::toStr(cm[i].getMZ()) + out_sep;
         }
-        vec_single[i] += String(max_peak.getRT()) + out_sep +
-                         String(max_peak.getRT() - cm[i].getRT()) + out_sep +
-                         String(max_peak.getMZ()) + out_sep +
-                         String(ppm) + out_sep +
-                         String(max_peak.getIntensity()) + out_sep +
-                         String(peak_area.area);
+        vec_single[i] +=StringUtils::toStr(max_peak.getRT()) + out_sep +
+                         StringUtils::toStr(max_peak.getRT() - cm[i].getRT()) + out_sep +
+                         StringUtils::toStr(max_peak.getMZ()) + out_sep +
+                         StringUtils::toStr(ppm) + out_sep +
+                         StringUtils::toStr(max_peak.getIntensity()) + out_sep +
+                         StringUtils::toStr(peak_area.area);
       }
 
       if (not_found)

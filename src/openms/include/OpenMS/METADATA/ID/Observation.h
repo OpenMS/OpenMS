@@ -27,7 +27,7 @@ namespace OpenMS
     struct Observation: public MetaInfoInterface
     {
       /// Spectrum or feature ID (from the file referenced by @p input_file)
-      String data_id;
+      std::string data_id;
 
       /// Reference to the input file
       InputFileRef input_file;
@@ -36,7 +36,7 @@ namespace OpenMS
 
       /// Constructor
       explicit Observation(
-        const String& data_id,
+        const std::string& data_id,
         const InputFileRef& input_file,
         double rt = std::numeric_limits<double>::quiet_NaN(),
         double mz = std::numeric_limits<double>::quiet_NaN()):
@@ -64,7 +64,7 @@ namespace OpenMS
             Observation,
             boost::multi_index::member<Observation, InputFileRef,
                                        &Observation::input_file>,
-            boost::multi_index::member<Observation, String,
+            boost::multi_index::member<Observation, std::string,
                                        &Observation::data_id>>>>
       > Observations;
     typedef IteratorWrapper<Observations::iterator> ObservationRef;

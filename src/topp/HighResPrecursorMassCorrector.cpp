@@ -12,6 +12,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
@@ -82,17 +83,17 @@ class TOPPHiResPrecursorMassCorrector :
     {
       // input files
       registerInputFile_("in", "<file>", "", "Input file (centroided data)");
-      setValidFormats_("in", ListUtils::create<String>("mzML"));
+      setValidFormats_("in", ListUtils::create<std::string>("mzML"));
 
       registerOutputFile_("out", "<file>", "", "Output file");
-      setValidFormats_("out", ListUtils::create<String>("mzML"));
+      setValidFormats_("out", ListUtils::create<std::string>("mzML"));
       
       registerTOPPSubsection_("feature", "Use features for precursor mass correction.");
       registerInputFile_("feature:in", "<file>", "", "Features used to correct precursor masses.", false);
-      setValidFormats_("feature:in", ListUtils::create<String>("featureXML"));
+      setValidFormats_("feature:in", ListUtils::create<std::string>("featureXML"));
       registerDoubleOption_("feature:mz_tolerance", "<num>", 5.0, "The precursor mass tolerance. Used to determine matching to feature mass traces.", false);
       registerStringOption_("feature:mz_tolerance_unit", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
-      setValidStrings_("feature:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+      setValidStrings_("feature:mz_tolerance_unit", ListUtils::create<std::string>("Da,ppm"));
       registerDoubleOption_("feature:rt_tolerance", "<num>", 0.0, "Additional retention time tolerance added to feature boundaries.", false);
       registerIntOption_("feature:max_trace", "<num>", 2, "Maximum isotopic peak offset from the monoisotopic peak to consider for correction. For example, with max_trace=2, the tool can reassign a precursor to the monoisotopic peak (M+0) even if it was originally assigned to M+1 or M+2 (corrections of approximately -1 or -2 Da). To allow larger corrections (e.g., -3 Da), increase this value accordingly.", false, true);
       registerFlag_("feature:believe_charge", "Assume precursor charge to be correct.");
@@ -102,15 +103,15 @@ class TOPPHiResPrecursorMassCorrector :
       registerTOPPSubsection_("nearest_peak", "Use nearest centroided MS1 peak for precursor mass correction.");
       registerDoubleOption_("nearest_peak:mz_tolerance", "<num>", 0.0, "The precursor mass tolerance to find the closest MS1 peak. (Disable method by setting value to 0.0)", false);
       registerStringOption_("nearest_peak:mz_tolerance_unit", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
-      setValidStrings_("nearest_peak:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+      setValidStrings_("nearest_peak:mz_tolerance_unit", ListUtils::create<std::string>("Da,ppm"));
 
       registerTOPPSubsection_("highest_intensity_peak", "Use centroided MS1 peak with the highest intensity in a certrain mass range - for precursor mass correction");
       registerDoubleOption_("highest_intensity_peak:mz_tolerance", "<num>", 0.0, "The precursor mass tolerance to find the highest intensity MS1 peak. Suggested value 1/max. expected charge. (Disable method by setting value to 0.0)", false);
       registerStringOption_("highest_intensity_peak:mz_tolerance_unit", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
-      setValidStrings_("highest_intensity_peak:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+      setValidStrings_("highest_intensity_peak:mz_tolerance_unit", ListUtils::create<std::string>("Da,ppm"));
 
-      registerOutputFile_("out_csv", "<file>", "", "Optional CSV output file for results on 'nearest_peak' or 'highest_intensity_peak' algorithm (see corresponding subsection) containing columns: " + ListUtils::concatenate(ListUtils::create<String>(PrecursorCorrection::csv_header), ", ") + ".", false);
-      setValidFormats_("out_csv", ListUtils::create<String>("csv"));
+      registerOutputFile_("out_csv", "<file>", "", "Optional CSV output file for results on 'nearest_peak' or 'highest_intensity_peak' algorithm (see corresponding subsection) containing columns: " + ListUtils::concatenate(ListUtils::create<std::string>(PrecursorCorrection::csv_header), ", ") + ".", false);
+      setValidFormats_("out_csv", ListUtils::create<std::string>("csv"));
     }
 
     ExitCodes main_(int, const char **) override

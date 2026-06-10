@@ -27,6 +27,7 @@
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <vector>
@@ -74,8 +75,8 @@ namespace OpenMS
     defaults_.setValue("algorithm:averagine_similarity_scaling", 0.95, "Let x denote this scaling factor, and p the averagine similarity parameter. For the detection of single peptides, the averagine parameter p is replaced by p' = p + x(1-p), i.e. x = 0 -> p' = p and x = 1 -> p' = 1. (For knock_out = true, peptide doublets and singlets are detected simultaneously. For singlets, the peptide similarity filter is irreleavant. In order to compensate for this 'missing filter', the averagine parameter p is replaced by the more restrictive p' when searching for singlets.)", {"advanced"});
     defaults_.setMinFloat("algorithm:averagine_similarity_scaling", 0.0);
     defaults_.setMaxFloat("algorithm:averagine_similarity_scaling", 1.0);
-    defaults_.setValue("algorithm:missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion. (Only relevant if enzymatic cutting site coincides with labelling site. For example, Arg/Lys in the case of trypsin digestion and SILAC labelling.)");
-    defaults_.setMinInt("algorithm:missed_cleavages", 0);
+    defaults_.setValue("algorithm:max_nr_labelled_aas", 0, "Maximum number of labelled amino acids per peptide, minus one. The algorithm searches for peptides with up to (this value + 1) labelled amino acids. For SILAC with trypsin digestion, this parameter corresponds to the maximum number of missed cleavages.");
+    defaults_.setMinInt("algorithm:max_nr_labelled_aas", 0);
     defaults_.setValue("algorithm:spectrum_type", "automatic", "Type of MS1 spectra in input mzML file. 'automatic' determines the spectrum type directly from the input mzML file.", {"advanced"});
     defaults_.setValidStrings("algorithm:spectrum_type", {"profile","centroid","automatic"});
     defaults_.setValue("algorithm:averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide", {"advanced"});
@@ -94,7 +95,7 @@ namespace OpenMS
     const Param& p = generator.getParameters();
     for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
     {
-      String label_name = "labels:";
+      std::string label_name = "labels:";
       label_name += it->name;
 
       defaults_.setValue(label_name, it->value, it->description, {"advanced"});
@@ -104,18 +105,18 @@ namespace OpenMS
     }
 
     // parameter section: algorithm, get selected charge range
-    String charge_string = defaults_.getValue("algorithm:charge").toString();
-    charge_min_ = charge_string.prefix(':').toInt();
-    charge_max_ = charge_string.suffix(':').toInt();
+    std::string charge_string = defaults_.getValue("algorithm:charge").toString();
+    charge_min_ = StringUtils::toInt32(StringUtils::prefix(charge_string, ':'));
+    charge_max_ = StringUtils::toInt32(StringUtils::suffix(charge_string, ':'));
     if (charge_min_ > charge_max_)
     {
       swap(charge_min_, charge_max_);
     }
 
     // parameter section: algorithm, get isotopes per peptide range
-    String isotopes_per_peptide_string = defaults_.getValue("algorithm:isotopes_per_peptide").toString();
-    isotopes_per_peptide_min_ = isotopes_per_peptide_string.prefix(':').toInt();
-    isotopes_per_peptide_max_ = isotopes_per_peptide_string.suffix(':').toInt();
+    std::string isotopes_per_peptide_string = defaults_.getValue("algorithm:isotopes_per_peptide").toString();
+    isotopes_per_peptide_min_ = StringUtils::toInt32(StringUtils::prefix(isotopes_per_peptide_string, ':'));
+    isotopes_per_peptide_max_ = StringUtils::toInt32(StringUtils::suffix(isotopes_per_peptide_string, ':'));
     if (isotopes_per_peptide_min_ > isotopes_per_peptide_max_)
     {
       swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
@@ -232,7 +233,7 @@ namespace OpenMS
         // find splines for the mass traces of the lightest and other peptide
         size_t idx_1 = isotope;
         size_t idx_2 = peptide * isotopes_per_peptide_max_ + isotope;
-        if ((spline_chromatograms.find(idx_1) == spline_chromatograms.end()) || (spline_chromatograms.find(idx_2) == spline_chromatograms.end()))
+        if ((!spline_chromatograms.contains(idx_1)) || (!spline_chromatograms.contains(idx_2)))
         {
            continue;
         }
@@ -360,7 +361,7 @@ namespace OpenMS
           rt += rt_temp * intensity_temp;
           intensity_sum_simple += intensity_temp;
 
-          chromatogram.push_back(ChromatogramPeak(rt_temp, intensity_temp));
+          chromatogram.push_back(ChromatogramPeak(rt_temp, static_cast<ChromatogramPeak::IntensityType>(intensity_temp)));
         }
 
         chromatogram.sortByPosition();
@@ -472,7 +473,7 @@ namespace OpenMS
           rt += rt_temp * intensity_temp;
           intensity_sum_simple += intensity_temp;
 
-          chromatogram.push_back(ChromatogramPeak(rt_temp, intensity_temp));
+          chromatogram.push_back(ChromatogramPeak(rt_temp, static_cast<ChromatogramPeak::IntensityType>(intensity_temp)));
         }
 
         makePeakPositionUnique(chromatogram, IntensityAveragingMethod::MEDIAN);
@@ -875,18 +876,18 @@ namespace OpenMS
   void FeatureFinderMultiplexAlgorithm::run(MSExperiment& exp, bool progress)
   {
     // parameter section: algorithm, get selected charge range
-    String charge_string = param_.getValue("algorithm:charge").toString();
-    charge_min_ = charge_string.prefix(':').toInt();
-    charge_max_ = charge_string.suffix(':').toInt();
+    std::string charge_string = param_.getValue("algorithm:charge").toString();
+    charge_min_ = StringUtils::toInt32(StringUtils::prefix(charge_string, ':'));
+    charge_max_ = StringUtils::toInt32(StringUtils::suffix(charge_string, ':'));
     if (charge_min_ > charge_max_)
     {
       swap(charge_min_, charge_max_);
     }
 
     // parameter section: algorithm, get isotopes per peptide range
-    String isotopes_per_peptide_string = param_.getValue("algorithm:isotopes_per_peptide").toString();
-    isotopes_per_peptide_min_ = isotopes_per_peptide_string.prefix(':').toInt();
-    isotopes_per_peptide_max_ = isotopes_per_peptide_string.suffix(':').toInt();
+    std::string isotopes_per_peptide_string = param_.getValue("algorithm:isotopes_per_peptide").toString();
+    isotopes_per_peptide_min_ = StringUtils::toInt32(StringUtils::prefix(isotopes_per_peptide_string, ':'));
+    isotopes_per_peptide_max_ = StringUtils::toInt32(StringUtils::suffix(isotopes_per_peptide_string, ':'));
     if (isotopes_per_peptide_min_ > isotopes_per_peptide_max_)
     {
       swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
@@ -976,7 +977,7 @@ namespace OpenMS
     /**
      * generate peak patterns for subsequent filtering step
      */
-    MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(param_.getValue("algorithm:labels").toString(), param_.getValue("algorithm:missed_cleavages"), label_mass_shift_);
+    MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(param_.getValue("algorithm:labels").toString(), param_.getValue("algorithm:max_nr_labelled_aas"), label_mass_shift_);
     if (param_.getValue("algorithm:knock_out") == "true")
     {
       generator.generateKnockoutDeltaMasses();
@@ -993,7 +994,7 @@ namespace OpenMS
     // Switch off averagine_similarity_scaling if we search for single peptide features only.
     // (This scaling parameter is only relevant if we search for multiplets and (!) singlets.)
     double averagine_similarity_scaling;
-    std::vector<std::vector<String> > list = generator.getSamplesLabelsList();
+    std::vector<std::vector<std::string> > list = generator.getSamplesLabelsList();
     if (list.size() == 1 && list[0].size() == 1 && list[0][0] == "no_label")
     {
       // search for singlets only
@@ -1071,10 +1072,10 @@ namespace OpenMS
     }
 
     // construct sample_labels
-    std::vector<std::vector<String> > samples_labels;
-    std::vector<String> temp_samples;
+    std::vector<std::vector<std::string> > samples_labels;
+    std::vector<std::string> temp_samples;
 
-    String labels(param_.getValue("algorithm:labels").toString());
+    std::string labels(param_.getValue("algorithm:labels").toString());
     boost::replace_all(labels, "[]", "no_label");
     boost::replace_all(labels, "()", "no_label");
     boost::replace_all(labels, "{}", "no_label");
@@ -1086,13 +1087,13 @@ namespace OpenMS
       {
         if (temp_samples[i]=="no_label")
         {
-          vector<String> temp_labels;
+          vector<std::string> temp_labels;
           temp_labels.emplace_back("no_label");
           samples_labels.push_back(temp_labels);
         }
         else
         {
-          vector<String> temp_labels;
+          vector<std::string> temp_labels;
           boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: ")); // various separators allowed to separate labels
           samples_labels.push_back(temp_labels);
         }
@@ -1101,7 +1102,7 @@ namespace OpenMS
 
     if (samples_labels.empty())
     {
-      vector<String> temp_labels;
+      vector<std::string> temp_labels;
       temp_labels.emplace_back("no_label");
       samples_labels.push_back(temp_labels);
     }
@@ -1121,7 +1122,7 @@ namespace OpenMS
       }
       else
       {
-        String label_string;
+        std::string label_string;
         for (unsigned j = 0; j < samples_labels[i].size(); ++j)
         {
           label_string.append(samples_labels[i][j]);

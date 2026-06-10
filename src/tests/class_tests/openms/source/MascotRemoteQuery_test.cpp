@@ -1,6 +1,6 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow$
@@ -23,7 +23,7 @@ START_TEST(MascotRemoteQuery, "$Id$")
 
 MascotRemoteQuery* ptr = nullptr;
 MascotRemoteQuery* nullPointer = nullptr;
-START_SECTION(MascotRemoteQuery(QObject *parent=0))
+START_SECTION(MascotRemoteQuery())
 {
 	ptr = new MascotRemoteQuery();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -36,7 +36,7 @@ START_SECTION(virtual ~MascotRemoteQuery())
 }
 END_SECTION
 
-START_SECTION((void setQuerySpectra(const String &exp)))
+START_SECTION((void setQuerySpectra(const std::string &exp)))
 {
   MascotRemoteQuery query;
 	query.setQuerySpectra("BEGIN IONS\n1 1\n1 1\nEND IONS");
@@ -44,7 +44,7 @@ START_SECTION((void setQuerySpectra(const String &exp)))
 }
 END_SECTION
 
-START_SECTION((const QByteArray& getMascotXMLResponse() const ))
+START_SECTION((const std::string& getMascotXMLResponse() const ))
 {
   MascotRemoteQuery query;
 	TEST_EQUAL(query.getMascotXMLResponse().size(), 0)
@@ -58,7 +58,7 @@ START_SECTION((bool hasError() const ))
 }
 END_SECTION
 
-START_SECTION((const String& getErrorMessage() const ))
+START_SECTION((const std::string& getErrorMessage() const ))
 {
   MascotRemoteQuery query;
 	TEST_STRING_EQUAL(query.getErrorMessage(), "")

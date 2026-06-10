@@ -9,7 +9,7 @@
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <QMouseEvent>
 #include <QtWidgets/QMenu>
@@ -85,7 +85,7 @@ namespace OpenMS
     }
   }
 
-  int EnhancedTabBar::addTab(const String& text, int id)
+  int EnhancedTabBar::addTab(const std::string& text, int id)
   {
     // make sure this ID does not exist yet
     for (int i = 0; i < this->count(); ++i)
@@ -111,7 +111,7 @@ namespace OpenMS
         return;
       }
     }
-   throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Tab with ID ") + id + " is already gone!");
+   throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Tab with ID ") + id + " is already gone!");
   }
 
   void EnhancedTabBar::show(int id)

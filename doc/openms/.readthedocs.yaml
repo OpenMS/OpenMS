@@ -1,0 +1,22 @@
+version: 2
+
+# Build from the docs/ directory with Sphinx
+sphinx:
+  configuration: doc/openms/docs/conf.py
+
+build:
+  os: ubuntu-24.04
+  tools:
+    python: "3.11"
+  jobs:
+    post_checkout:
+      # Debug: print the git identifier for troubleshooting RTD builds
+      - echo "READTHEDOCS_GIT_IDENTIFIER=$READTHEDOCS_GIT_IDENTIFIER"
+
+python:
+  install:
+    - requirements: doc/openms/requirements.txt
+
+formats:
+    - pdf
+    - htmlzip

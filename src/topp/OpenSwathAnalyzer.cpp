@@ -12,6 +12,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -81,7 +83,7 @@ protected:
 
   typedef PeakMap MapType;
 
-  void registerModelOptions_(const String &default_model)
+  void registerModelOptions_(const std::string &default_model)
   {
     registerTOPPSubsection_("model", "Options to control the modeling of retention time transformations from data");
     registerStringOption_("model:type", "<name>", default_model, "Type of model", false, true);
@@ -99,18 +101,18 @@ protected:
   {
     registerInputFile_("in", "<file>", "",
                        "input file containing the chromatograms." /* , false */);
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file");
-    setValidFormats_("tr", ListUtils::create<String>("traML"));
+    setValidFormats_("tr", ListUtils::create<std::string>("traML"));
 
     registerInputFile_("rt_norm", "<file>", "",
                        "RT normalization file (how to map the RTs of this run to the ones stored in the library)",
                        false);
-    setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
+    setValidFormats_("rt_norm", ListUtils::create<std::string>("trafoXML"));
 
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML"));
 
     registerFlag_("no-strict",
                   "run in non-strict mode and allow some chromatograms to not be mapped.");
@@ -121,7 +123,7 @@ protected:
                            "Swath files that were used to extract the transitions. "
                            "If present, SWATH specific scoring will be used.",
                            false);
-    setValidFormats_("swath_files", ListUtils::create<String>("mzML"));
+    setValidFormats_("swath_files", ListUtils::create<std::string>("mzML"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0,
                           "[applies only if you have full MS2 spectra maps] "
@@ -134,7 +136,7 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String &) const override
+  Param getSubsectionDefaults_(const std::string &) const override
   {
     return MRMFeatureFinderScoring().getDefaults();
   }
@@ -143,20 +145,20 @@ protected:
   {
 
     StringList file_list = getStringList_("swath_files");
-    String in = getStringOption_("in");
-    String tr_file = getStringOption_("tr");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string tr_file = getStringOption_("tr");
+    std::string out = getStringOption_("out");
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     bool nostrict = getFlag_("no-strict");
 
     // If we have a transformation file, trafo will transform the RT in the
     // scoring according to the model. If we don't have one, it will apply the
     // null transformation.
-    String trafo_in = getStringOption_("rt_norm");
+    std::string trafo_in = getStringOption_("rt_norm");
     TransformationDescription trafo;
     if (!trafo_in.empty())
     {
-      String model_type = getStringOption_("model:type");
+      std::string model_type = getStringOption_("model:type");
       Param model_params = getParam_().copy("model:", true);
       FileHandler().loadTransformations(trafo_in, trafo, true, {FileTypes::TRANSFORMATIONXML});
       trafo.fitModel(model_type, model_params);

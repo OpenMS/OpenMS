@@ -17,7 +17,6 @@
 
 namespace OpenMS
 {
-  class String;
   /**
       @brief File adapter for OMSSACSV files.
 
@@ -45,7 +44,7 @@ public:
               @throw FileNotFound is thrown if the given file could not be found
               @throw ParseError is thrown if the given file could not be parsed
     */
-    void load(const String & filename, ProteinIdentification & protein_identification, PeptideIdentificationList & id_data) const;
+    void load(const std::string & filename, ProteinIdentification & protein_identification, PeptideIdentificationList & id_data) const;
   };
 } // namespace OpenMS
 

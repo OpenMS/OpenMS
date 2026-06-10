@@ -30,6 +30,8 @@ GNPSMGFFile.cpp
 GNPSQuantificationFile.cpp
 GzipIfstream.cpp
 GzipInputStream.cpp
+ZipIfstream.cpp
+ZipInputStream.cpp
 IBSpectraFile.cpp
 IdXMLFile.cpp
 IndentedStream.cpp
@@ -103,15 +105,34 @@ TargetedDataFileLoader.cpp
 )
 
 if (WITH_HDF5)
-  list(APPEND sources_list HDF5Connector.cpp)  
+  list(APPEND sources_list HDF5Connector.cpp)
 endif()
 
-if (WITH_PARQUET)
-  list(APPEND sources_list MSExperimentArrowExport.cpp)
-  list(APPEND sources_list ConsensusMapArrowExport.cpp)
-  list(APPEND sources_list ParquetFilter.cpp)
-  list(APPEND sources_list QPXFile.cpp)
-  list(APPEND sources_list XICParquetFile.cpp)
+list(APPEND sources_list ZipArchiveFile.cpp)
+list(APPEND sources_list ZipRandomAccessFile.cpp)
+list(APPEND sources_list MSExperimentArrowExport.cpp)
+list(APPEND sources_list ConsensusMapArrowExport.cpp)
+list(APPEND sources_list ParquetFile.cpp)
+list(APPEND sources_list ParquetFilter.cpp)
+list(APPEND sources_list QPXFile.cpp)
+list(APPEND sources_list XICParquetFile.cpp)
+list(APPEND sources_list XIMParquetFile.cpp)
+list(APPEND sources_list ProteinGroupArrowExport.cpp)
+list(APPEND sources_list ProteinIdentificationArrowIO.cpp)
+list(APPEND sources_list FeatureMapArrowIO.cpp)
+list(APPEND sources_list ConsensusMapArrowIO.cpp)
+list(APPEND sources_list PSMArrowIO.cpp)
+list(APPEND sources_list ArrowSchemaRegistry.cpp)
+list(APPEND sources_list ArrowIOHelpers.cpp)
+
+if (WITH_OPENTIMS)
+  list(APPEND sources_list BrukerTimsFile.cpp)
+  list(APPEND sources_list BrukerTimsImagingFile.cpp)
+  list(APPEND sources_list RationalScan2ImConverter.cpp)
+endif()
+
+if (WITH_THERMO_RAW)
+  list(APPEND sources_list ThermoRawFile.cpp)
 endif()
 
 ### add path to the filenames

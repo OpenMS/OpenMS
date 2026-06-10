@@ -80,7 +80,7 @@ private:
     /// similarity of two peaks
     double comparepeaks_(double posa, double posb, double inta, double intb) const;
 
-    static const String info_;
+    static const std::string info_;
 
     /// consensus spectrum of the last comparison
     mutable PeakSpectrum lastconsensus_;

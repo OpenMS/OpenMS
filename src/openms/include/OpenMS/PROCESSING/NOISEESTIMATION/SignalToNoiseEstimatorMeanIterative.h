@@ -167,7 +167,7 @@ protected:
         // we use a histogram approach here as well.
         if ((auto_max_percentile_ < 0) || (auto_max_percentile_ > 100))
         {
-          String s = auto_max_percentile_;
+          std::string s = StringUtils::toStr(auto_max_percentile_);
           throw Exception::InvalidValue(__FILE__,
                                         __LINE__,
                                         OPENMS_PRETTY_FUNCTION,
@@ -208,7 +208,7 @@ protected:
       {
         if (max_intensity_ <= 0)
         {
-          String s = max_intensity_;
+          std::string s = StringUtils::toStr(max_intensity_);
           throw Exception::InvalidValue(__FILE__,
                                         __LINE__,
                                         OPENMS_PRETTY_FUNCTION,

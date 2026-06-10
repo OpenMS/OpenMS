@@ -17,6 +17,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QCoreApplication>
 #include <QDir>
@@ -109,16 +110,16 @@ namespace OpenMS
     return plugin_params_;
   }
 
-  Param TVToolDiscovery::getParamFromIni_(const String& tool_path, bool plugins)
+  Param TVToolDiscovery::getParamFromIni_(const std::string& tool_path, bool plugins)
   {
     static std::mutex io_mutex;
     FileHandler fh;
     // Temporary file path and arguments
-    String path = File::getTemporaryFile();
-    String working_dir = path.prefix(path.find_last_of('/'));
-    QStringList args{"-write_ini", path.toQString()};
+    std::string path = File::getTemporaryFile();
+    std::string working_dir = StringUtils::prefix(path, path.find_last_of('/'));
+    std::vector<std::string> args{"-write_ini", path};
     Param tool_param;
-    String executable;
+    std::string executable;
     // Return empty param if tool executable cannot be found
     try
     {
@@ -135,8 +136,8 @@ namespace OpenMS
 
     // Write tool ini to temporary file
     static std::atomic<int> running_processes{0}; // used to limit the number of parallel processes
-    auto lam_out = [&](const String& out) { OPENMS_LOG_INFO << out; };
-    auto lam_err = [&](const String& out) { OPENMS_LOG_INFO << out; };
+    auto lam_out = [&](const std::string& out) { OPENMS_LOG_INFO << out; };
+    auto lam_err = [&](const std::string& out) { OPENMS_LOG_INFO << out; };
 
     // Spawning a thread for all tools is no problem (if std::async decides to do so)
     // but spawning that many processes failed with not enough file handles on machines with large number of cores.
@@ -150,7 +151,7 @@ namespace OpenMS
     ExternalProcess proc(lam_out, lam_err);
     // Write tool ini to temporary file
     ++running_processes;
-    auto return_state = proc.run(executable.toQString(), args, working_dir.toQString(), true, ExternalProcess::IO_MODE::NO_IO);
+    auto return_state = proc.run(executable, args, working_dir, true, ExternalProcess::IO_MODE::NO_IO);
     --running_processes;
 
     // Return empty param if writing the ini file failed
@@ -198,7 +199,7 @@ namespace OpenMS
     const auto comparator = [valid_extensions](const std::string& plugin) -> bool
     {
         return !File::executable(plugin) ||
-          (std::find(valid_extensions.begin(), valid_extensions.end(), plugin.substr(plugin.find_last_of('.'))) == valid_extensions.end());
+          (std::find(valid_extensions.begin(), valid_extensions.end(), StringUtils::substr(plugin, plugin.find_last_of('.'))) == valid_extensions.end());
     };
 
     if (File::fileList(plugin_path_, "*", plugins, true))
@@ -209,13 +210,13 @@ namespace OpenMS
     return plugins;
   }
 
-  bool TVToolDiscovery::setPluginPath(const String& plugin_path, bool create)
+  bool TVToolDiscovery::setPluginPath(const std::string& plugin_path, bool create)
   {
     if (!File::exists(plugin_path))
     {
       if (create)
       {
-        QDir path = QDir(plugin_path.toQString());
+        QDir path = QDir(toQString(plugin_path));
         QString dir = path.dirName();
         path.cdUp();
 

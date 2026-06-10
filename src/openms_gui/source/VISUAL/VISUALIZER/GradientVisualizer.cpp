@@ -8,7 +8,8 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/GradientVisualizer.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //QT
 #include <QtWidgets/QLabel>
@@ -84,18 +85,18 @@ namespace OpenMS
   void GradientVisualizer::addTimepoint_()
   {
     //Check whether new timepoint is in range
-    String m(new_timepoint_->text());
+    std::string m(fromQString(new_timepoint_->text()));
 
-    if (timepoints_.empty() && m.trim().length() != 0)
+    if (timepoints_.empty() && StringUtils::trim(m).length() != 0)
     {
-      temp_.addTimepoint(m.toInt());
+      temp_.addTimepoint(StringUtils::toInt32(m));
       update_();
     }
     else
     {
-      if (m.trim().length() != 0 && timepoints_.back() < m.toInt())
+      if (StringUtils::trim(m).length() != 0 && timepoints_.back() < StringUtils::toInt32(m))
       {
-        temp_.addTimepoint(m.toInt());
+        temp_.addTimepoint(StringUtils::toInt32(m));
         update_();
       }
     }
@@ -103,10 +104,10 @@ namespace OpenMS
 
   void GradientVisualizer::addEluent_()
   {
-    String m(new_eluent_->text());
-    std::vector<String>::iterator iter;
+    std::string m(fromQString(new_eluent_->text()));
+    std::vector<std::string>::iterator iter;
     //check if eluent name is empty
-    if (m.trim().length() != 0)
+    if (StringUtils::trim(m).length() != 0)
     {
       //check if eluent name already exists
       for (iter = eluents_.begin(); iter < eluents_.end(); ++iter)
@@ -134,9 +135,9 @@ namespace OpenMS
       elu_count = i;
       for (Size j = 0; j < elu_size; ++j)
       {
-        String value((gradientdata_[elu_count])->text());
+        std::string value(fromQString((gradientdata_[elu_count])->text()));
         elu_count  = elu_count + time_size;
-        sum_check = sum_check + value.toInt();
+        sum_check = sum_check + StringUtils::toInt32(value);
         if (j == elu_size - 1 && sum_check != 100)
         {
           cout << "The sum does not add up to 100 !" << endl;
@@ -152,8 +153,8 @@ namespace OpenMS
     {
       for (Size j = 0; j < timepoints_.size(); ++j)
       {
-        String value((gradientdata_[count + j])->text());
-        temp_.setPercentage(eluents_[i], timepoints_[j], value.toInt());
+        std::string value(fromQString((gradientdata_[count + j])->text()));
+        temp_.setPercentage(eluents_[i], timepoints_[j], StringUtils::toInt32(value));
       }
       count = count + time_size;
 
@@ -187,7 +188,7 @@ namespace OpenMS
     for (Size i = 0; i < timepoints_.size(); ++i)
     {
       //Add labels to display eluent-timepoint-percentage-triplets.
-      QLabel * label1 = new QLabel(String(timepoints_[i]).c_str(), this);
+      QLabel * label1 = new QLabel(StringUtils::toStr(timepoints_[i]).c_str(), this);
       viewlayout_->addWidget(label1, 1, (int)(i + 1));
       label1->show();
       gradientlabel_.push_back(label1);
@@ -207,7 +208,7 @@ namespace OpenMS
       for (Size j = 0; j < timepoints_.size(); ++j)
       {
         percentage_ = new QLineEdit(this);
-        percentage_->setText(String(temp_.getPercentage(eluents_[i], timepoints_[j])).c_str());
+        percentage_->setText(StringUtils::toStr(temp_.getPercentage(eluents_[i], timepoints_[j])).c_str());
         viewlayout_->addWidget(percentage_, nextrow_, (int)(j + 1));
         //Store pointers to the QLineEdits
         gradientdata_.push_back(percentage_);

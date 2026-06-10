@@ -20,6 +20,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -39,7 +40,7 @@ namespace OpenMS
     
     defaults_.setValue("auto_irt:irt_peptides_per_bin", 5, "Peptides sampled per bin for linear iRT");
     defaults_.setMinInt("auto_irt:irt_peptides_per_bin", 1);
-    defaults_.setMaxInt("auto_irt:irt_peptides_per_bin", 1000);
+    // defaults_.setMaxInt("auto_irt:irt_peptides_per_bin", 1000);
     
     defaults_.setValue("auto_irt:irt_seed", 5489, "RNG seed for reproducible sampling (0 = non-deterministic)");
     defaults_.setMinInt("auto_irt:irt_seed", 0);
@@ -50,7 +51,7 @@ namespace OpenMS
     
     defaults_.setValue("auto_irt:irt_peptides_per_bin_nonlinear", 50, "Peptides sampled per bin for nonlinear iRT (0 = skip nonlinear)");
     defaults_.setMinInt("auto_irt:irt_peptides_per_bin_nonlinear", 0);
-    defaults_.setMaxInt("auto_irt:irt_peptides_per_bin_nonlinear", 1000);
+    // defaults_.setMaxInt("auto_irt:irt_peptides_per_bin_nonlinear", 10000);
     
     defaults_.setValue("auto_irt:linear_top_fraction", 0.4, "Top fraction of intense peptides to sample for linear iRT");
     defaults_.setMinFloat("auto_irt:linear_top_fraction", 0.01);
@@ -121,8 +122,8 @@ namespace OpenMS
     const Param& mrm_mapping_param,
     bool pasef,
     bool load_into_memory,
-    const String& irt_trafo_out,
-    const String& irt_mzml_out,
+    const std::string& irt_trafo_out,
+    const std::string& irt_mzml_out,
     Size debug_level)
   {
     // Validate that iRT experiments are ready
@@ -193,8 +194,8 @@ namespace OpenMS
     const Param& mrm_mapping_param,
     bool pasef,
     bool load_into_memory,
-    const String& irt_trafo_out,
-    const String& irt_mzml_out,
+    const std::string& irt_trafo_out,
+    const std::string& irt_mzml_out,
     Size debug_level)
   {
     // Validate that we have linear iRT transitions (required for any calibration)
@@ -213,7 +214,7 @@ namespace OpenMS
     linear_params.setValue("outlierMethod", linear_outlier_detection_);
 
     // Configure calibration parameters - let SwathMapMassCorrection use its own m/z and IM parameters
-    Param calibration_params_configured = calibration_param;
+    const Param& calibration_params_configured = calibration_param;
 
     TransformationDescription im_trafo;
     // Call the member implementation (moved into CalibrationWorkflow)
@@ -270,8 +271,8 @@ namespace OpenMS
     const Param& mrm_mapping_param,
     bool pasef,
     bool load_into_memory,
-    const String& irt_trafo_out,
-    const String& irt_mzml_out,
+    const std::string& irt_trafo_out,
+    const std::string& irt_mzml_out,
     Size debug_level)
   {
     // This method focuses on linear + nonlinear iRT-based calibration only
@@ -315,7 +316,7 @@ namespace OpenMS
     nl_params.setValue("outlierMethod", nonlinear_outlier_detection_); // Use nonlinear-specific outlier method
     
     // Configure calibration parameters - let SwathMapMassCorrection use its own m/z and IM parameters
-    Param calibration_params_configured = calibration_param;
+    const Param& calibration_params_configured = calibration_param;
     
     TransformationDescription im_trafo;
     TransformationDescription nonlinear_trafo = this->doDataNormalization_(
@@ -348,11 +349,11 @@ namespace OpenMS
     // Save nonlinear transformation if requested
     if (!irt_trafo_out.empty())
     {
-      String nonlinear_path = irt_trafo_out;
-      const String ext = ".trafoXML";
-      if (nonlinear_path.hasSuffix(ext))
+      std::string nonlinear_path = irt_trafo_out;
+      const std::string ext = ".trafoXML";
+      if (StringUtils::hasSuffix(nonlinear_path, ext))
       {
-        nonlinear_path = nonlinear_path.substr(0, nonlinear_path.size() - ext.size());
+        nonlinear_path = StringUtils::substr(nonlinear_path, 0, nonlinear_path.size() - ext.size());
         nonlinear_path += "_nonlinear.trafoXML";
       }
       FileHandler().storeTransformations(nonlinear_path, final_result.rt_trafo, 
@@ -376,7 +377,7 @@ namespace OpenMS
     const Param& irt_detection_param,
     const Param& calibration_param,
     const Param& mrm_mapping_param,
-    const String& irt_mzml_out,
+    const std::string& irt_mzml_out,
     Size debug_level,
     bool pasef,
     bool load_into_memory)
@@ -391,8 +392,34 @@ namespace OpenMS
       irt_chromatograms = provider->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp_irt, TransformationDescription(), pasef, load_into_memory);
     }
 
+    // Summarize chromatogram extraction quality — empty chromatograms are a leading
+    // indicator that downstream calibration will fail (insufficient RT bin coverage).
+    // The per-batch "Detected N empty chromatograms" warnings from DIAChromHandler
+    // scroll past easily; this one-line summary is the aggregated view.
+    {
+      Size nr_empty = std::count_if(irt_chromatograms.begin(), irt_chromatograms.end(),
+        [](const MSChromatogram& c) { return c.empty(); });
+      Size nr_total = irt_chromatograms.size();
+      Size nr_nonempty = nr_total - nr_empty;
+      if (nr_total > 0 && nr_empty > nr_total / 2)
+      {
+        OPENMS_LOG_WARN << "[OpenSwath] iRT chromatogram extraction: " << nr_nonempty << "/"
+                        << nr_total << " non-empty (" << std::fixed << std::setprecision(1)
+                        << (100.0 * nr_nonempty / nr_total) << "%). "
+                        << "Over half are empty - iRT calibration may fail. "
+                        << "Common causes: wrong SWATH boundaries, poor data quality, "
+                        << "or unsorted m/z peaks in the input spectra." << std::endl;
+      }
+      else if (nr_total > 0)
+      {
+        OPENMS_LOG_INFO << "[OpenSwath] iRT chromatogram extraction: " << nr_nonempty << "/"
+                        << nr_total << " non-empty (" << std::fixed << std::setprecision(1)
+                        << (100.0 * nr_nonempty / nr_total) << "%)" << std::endl;
+      }
+    }
+
     // debug output of the iRT chromatograms
-    String irt_mzml_out_local = irt_mzml_out;
+    std::string irt_mzml_out_local = irt_mzml_out;
     if (irt_mzml_out_local.empty() && debug_level > 1)
     {
       irt_mzml_out_local = "debug_irts.mzML";
@@ -450,7 +477,7 @@ namespace OpenMS
     std::pair<double,double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
 
     // 2. Store the peptide retention times in an intermediate map
-    std::unordered_map<OpenMS::String, double> PeptideRTMap;
+    std::unordered_map<std::string, double> PeptideRTMap;
     PeptideRTMap.reserve(targeted_exp.getCompounds().size());
     for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
     {
@@ -510,7 +537,7 @@ namespace OpenMS
       estimateBestPeptides, irt_detection_param.getValue("OverallQualityCutoff"));
 
     // Create pairs vector and store peaks
-    std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_allpeaks; // store all peaks above cutoff
+    std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_allpeaks; // store all peaks above cutoff
     for (std::map<std::string, double>::iterator it = best_features.begin(); it != best_features.end(); ++it)
     {
       pairs.emplace_back(it->second, PeptideRTMap[it->first]); // pair<exp_rt, theor_rt>
@@ -523,7 +550,7 @@ namespace OpenMS
 
     // 5. Perform the outlier detection
     std::vector<std::pair<double, double> > pairs_corrected;
-    String outlier_method = irt_detection_param.getValue("outlierMethod").toString();
+    std::string outlier_method = irt_detection_param.getValue("outlierMethod").toString();
     if (outlier_method == "iter_residual" || outlier_method == "iter_jackknife")
     {
       pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage,
@@ -548,7 +575,7 @@ namespace OpenMS
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        String("Illegal argument '") + outlier_method +
+        std::string("Illegal argument '") + outlier_method +
         "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
     }
 
@@ -563,19 +590,35 @@ namespace OpenMS
 
       if (!enoughPeptides)
       {
+        const int nr_bins = irt_detection_param.getValue("NrRTBins");
+        const int min_pep = irt_detection_param.getValue("MinPeptidesPerBin");
+        const int min_filled = irt_detection_param.getValue("MinBinsFilled");
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "There were not enough bins with the minimal number of peptides");
+          std::string("iRT calibration failed: insufficient RT coverage after outlier removal.\n") +
+          "  Chromatograms extracted:    " + StringUtils::toStr(chromatograms.size()) + "\n" +
+          "  iRT peptides matched:       " + StringUtils::toStr(pairs.size()) + " (before outlier removal)\n" +
+          "  After outlier removal:      " + StringUtils::toStr(pairs_corrected.size()) + " (exp_RT, theor_RT) pairs\n" +
+          "  Binning requires:           " + StringUtils::toStr(min_filled) + "/" + StringUtils::toStr(nr_bins) + " RT bins "
+          "with >= " + StringUtils::toStr(min_pep) + " peptides each\n" +
+          "  RT range:                   " + std::string(RTRange.first, 1) + " - " + std::string(RTRange.second, 1) + " s\n" +
+          "Common causes:\n"
+          "  - Too few iRT/CiRT peptides in the transition library for the LC gradient\n"
+          "  - Low data quality (check the 'Detected N empty chromatograms' warnings above)\n"
+          "  - Wrong SWATH window boundaries (precursor m/z mismatch between library and data)");
       }
     }
     if (pairs_corrected.size() < 2)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "There are less than 2 iRT normalization peptides, not enough for an RT correction.");
+        "Less than 2 iRT normalization peptides after outlier removal (have " +
+        StringUtils::toStr(pairs_corrected.size()) + " from " + StringUtils::toStr(pairs.size()) + " initial matches, " +
+        StringUtils::toStr(chromatograms.size()) + " chromatograms extracted). "
+        "Not enough for an RT correction.");
     }
 
     // 7. Select the "correct" peaks for m/z (and IM) correction (e.g. remove those not
     // part of the linear regression)
-    std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_final; // store all peaks above cutoff
+    std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_final; // store all peaks above cutoff
     for (const auto& it : trgrmap_allpeaks)
     {
       if (it.second->getFeatures().empty() ) {continue;}
@@ -620,7 +663,7 @@ namespace OpenMS
     model_params.setValue("auto_span_max", irt_detection_param.getValue("lowess:auto_span_max"));
     model_params.setValue("auto_span_grid", irt_detection_param.getValue("lowess:auto_span_grid"));
     model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
-    String model_type = irt_detection_param.getValue("alignmentMethod").toString();
+    std::string model_type = irt_detection_param.getValue("alignmentMethod").toString();
     trafo_out.fitModel(model_type, model_params);
 
     return trafo_out;
@@ -724,8 +767,8 @@ namespace OpenMS
 
   OpenSwath::LightTargetedExperiment
   CalibrationWorkflow::loadIrtExperimentFromFile_(
-    const String& irt_file_path,
-    const String& label) const
+    const std::string& irt_file_path,
+    const std::string& label) const
   {
     OpenSwath::LightTargetedExperiment irt_exp;
     
@@ -770,7 +813,7 @@ namespace OpenMS
       else
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        String("Unsupported iRT file format: ") + FileTypes::typeToName(file_type));
+                                        std::string("Unsupported iRT file format: ") + FileTypes::typeToName(file_type));
       }
       
       return irt_exp;
@@ -778,7 +821,7 @@ namespace OpenMS
     catch (const Exception::BaseException& e)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                String("Failed to load ") + label + " iRT file " + irt_file_path + ": " + e.getMessage(),
+                                std::string("Failed to load ") + label + " iRT file " + irt_file_path + ": " + e.getMessage(),
                                 irt_file_path);
     }
   }
@@ -802,7 +845,7 @@ namespace OpenMS
       if (linear_irt_files_list_.size() != num_runs)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "files:linear_irt_file contains different number of entries (" + String((Int)linear_irt_files_list_.size()) + ") than the number of runs (" + String((Int)num_runs) + ") - provide one file per run or use STATIC_FILES");
+          "files:linear_irt_file contains different number of entries (" + StringUtils::toStr((Int)linear_irt_files_list_.size()) + ") than the number of runs (" + StringUtils::toStr((Int)num_runs) + ") - provide one file per run or use STATIC_FILES");
       }
       // Validate nonlinear list length if present (must be same length or empty or size==1)
       if (!nonlinear_irt_files_list_.empty() && nonlinear_irt_files_list_.size() != linear_irt_files_list_.size() && nonlinear_irt_files_list_.size() != 1)
@@ -852,7 +895,7 @@ namespace OpenMS
   CalibrationWorkflow::prepareIrtExperiments(
     IrtStrategy strategy,
     const OpenSwath::LightTargetedExperiment& full_transition_exp,
-    const std::vector<String>& priority_peptides,
+    const std::vector<std::string>& priority_peptides,
     size_t run_index,
     const IrtExperiments* cached_irts)
   {
@@ -901,7 +944,7 @@ namespace OpenMS
               "SAMPLE_ONCE strategy requires full_transition_exp to be provided");
           }
           
-          // Convert vector<String> to unordered_set<string> for priority peptides
+          // Convert vector<std::string> to unordered_set<string> for priority peptides
           std::unordered_set<std::string> priority_set;
           for (const auto& pep : priority_peptides) {
             priority_set.insert(pep.c_str());
@@ -944,7 +987,7 @@ namespace OpenMS
             "SAMPLE_PER_RUN strategy requires full_transition_exp to be provided");
         }
         
-        // Convert vector<String> to unordered_set<string> for priority peptides
+        // Convert vector<std::string> to unordered_set<string> for priority peptides
         std::unordered_set<std::string> priority_set;
         for (const auto& pep : priority_peptides) {
           priority_set.insert(pep.c_str());
@@ -992,7 +1035,7 @@ namespace OpenMS
         if (run_index >= linear_irt_files_list_.size())
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Run index out of range for files:linear_irt_file (run_index=" + String((Int)run_index) + ", list_size=" + String((Int)linear_irt_files_list_.size()) + ")");
+            "Run index out of range for files:linear_irt_file (run_index=" + StringUtils::toStr((Int)run_index) + ", list_size=" + StringUtils::toStr((Int)linear_irt_files_list_.size()) + ")");
         }
         result.linear_irt = loadIrtExperimentFromFile_(linear_irt_files_list_[run_index], "linear");
 
@@ -1012,7 +1055,7 @@ namespace OpenMS
             if (run_index >= nonlinear_irt_files_list_.size())
             {
               throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                "Run index out of range for files:nonlinear_irt_file (run_index=" + String((Int)run_index) + ", list_size=" + String((Int)nonlinear_irt_files_list_.size()) + ")");
+                "Run index out of range for files:nonlinear_irt_file (run_index=" + StringUtils::toStr((Int)run_index) + ", list_size=" + StringUtils::toStr((Int)nonlinear_irt_files_list_.size()) + ")");
             }
             if (!nonlinear_irt_files_list_[run_index].empty())
             {
@@ -1079,15 +1122,15 @@ namespace OpenMS
 
     {
       StringList tmp;
-      String legacy = param_.getValue("files:linear_irt_file").toString();
-      legacy.split(' ', tmp);
+      std::string legacy = param_.getValue("files:linear_irt_file").toString();
+      StringUtils::split(legacy, ' ', tmp);
       linear_irt_files_list_ = tmp;
     }
 
     {
       StringList tmp;
-      String legacy = param_.getValue("files:nonlinear_irt_file").toString();
-      legacy.split(' ', tmp);
+      std::string legacy = param_.getValue("files:nonlinear_irt_file").toString();
+      StringUtils::split(legacy, ' ', tmp);
       nonlinear_irt_files_list_ = tmp;
     }
   }

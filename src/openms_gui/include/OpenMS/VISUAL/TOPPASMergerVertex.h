@@ -48,7 +48,7 @@ public:
   virtual std::unique_ptr<TOPPASVertex> clone() const override;
 
   /// returns "MergerVertex"
-  String getName() const override;
+  std::string getName() const override;
   /// check if upstream nodes are finished and call downstream nodes
   void run() override;
   /// Determines whether this merger is merging round based or merging all inputs into one list

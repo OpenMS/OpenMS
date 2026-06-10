@@ -7,14 +7,19 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <string_view>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
@@ -88,7 +93,6 @@
 #include <OpenMS/KERNEL/BinnedSpectrum.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QStringList>
 
 #include <map>
 #include <algorithm>
@@ -218,11 +222,11 @@ struct NuXLLinearRescore
               predictors[f].push_back(value);
             }
             // only add label for training data (rank = 0 and previously selected for training)
-            if (psm_rank == 0 && top_indices.count(index) != 0)
+            if (psm_rank == 0 && top_indices.contains(index))
             {
               labels[current_row] = 1.0;
             }
-            else if (psm_rank == 0 && bottom_indices.count(index) != 0)
+            else if (psm_rank == 0 && bottom_indices.contains(index))
             {
               labels[current_row] = 0.0;
             }
@@ -240,7 +244,7 @@ struct NuXLLinearRescore
       vector<SimpleSVM::Prediction> predictions;
       OPENMS_LOG_INFO << "Predicting class probabilities:" << endl;
       svm.predict(predictions);
-      std::map<String, double> feature_weights;
+      std::map<std::string, double> feature_weights;
       svm.getFeatureWeights(feature_weights);
 
       OPENMS_LOG_DEBUG << "Feature weights:" << endl;
@@ -357,7 +361,7 @@ struct NuXLLinearRescore
                predictors[f].push_back(value);
              }
              // only add label for training data (rank = 0 and previously selected for training)
-             if (psm_rank == 0 && training_indices.count(index) > 0)
+             if (psm_rank == 0 && training_indices.contains(index))
              {
                labels[current_row] = is_target;
              }
@@ -376,7 +380,7 @@ struct NuXLLinearRescore
         vector<SimpleSVM::Prediction> predictions;
         cout << "Predicting class probabilities:" << endl;
         svm.predict(predictions);
-        std::map<String, double> feature_weights;
+        std::map<std::string, double> feature_weights;
         svm.getFeatureWeights(feature_weights);
  /*
         cout << "Feature weights:" << endl;
@@ -414,8 +418,8 @@ struct NuXLRTPrediction
 {
   SimpleSVM svm;
 
-  String nucleotides = "CATGUXS";
-  String amino_acids = "ACDEFGHIKLMNPQRSTVWYkmsty"; // all AA + modified MSTY
+  std::string nucleotides = "CATGUXS";
+  std::string amino_acids = "ACDEFGHIKLMNPQRSTVWYkmsty"; // all AA + modified MSTY
 
   map<char, double> encodeAAHist_(const AASequence& aa_seq)
   {
@@ -430,7 +434,7 @@ struct NuXLRTPrediction
     return v;
   }
 
-  map<char, double> encodeNAHist_(const String& seq)
+  map<char, double> encodeNAHist_(const std::string& seq)
   {
     map<char, double> v;
     for (auto& c : seq) 
@@ -458,20 +462,20 @@ struct NuXLRTPrediction
       if (phits.empty()) continue;
 
       const auto& ph = phits[0]; 
-      const String& seq = ph.getSequence().toUnmodifiedString();
+      const std::string& seq = ph.getSequence().toUnmodifiedString();
 
       auto encoded_aas = encodeAAHist_(ph.getSequence());
       for (const auto& c : amino_acids)
       {
         if (auto it = encoded_aas.find(c); it != encoded_aas.end())
         {
-          x[String(c)].push_back(it->second);
-          x["freq_" + String(c)].push_back(it->second / seq.size());
+          x[StringUtils::toStr(c)].push_back(it->second);
+          x["freq_" + StringUtils::toStr(c)].push_back(it->second / seq.size());
         }
         else
         {
-          x[String(c)].push_back(0.0);
-          x["freq_" + String(c)].push_back(0.0);
+          x[StringUtils::toStr(c)].push_back(0.0);
+          x["freq_" + StringUtils::toStr(c)].push_back(0.0);
         }
       }
 
@@ -480,11 +484,11 @@ struct NuXLRTPrediction
       {
         if (c == seq[0])
         {
-          x["Nterm_" + String(c)].push_back(1.0);
+          x["Nterm_" + StringUtils::toStr(c)].push_back(1.0);
         }
         else
         {
-          x["Nterm_" + String(c)].push_back(0.0);
+          x["Nterm_" + StringUtils::toStr(c)].push_back(0.0);
         }
       }
 
@@ -492,11 +496,11 @@ struct NuXLRTPrediction
       {
         if (c == seq[seq.size() - 1])
         {
-          x["Cterm_" + String(c)].push_back(1.0);
+          x["Cterm_" + StringUtils::toStr(c)].push_back(1.0);
         }
         else
         {
-          x["Cterm_" + String(c)].push_back(0.0);
+          x["Cterm_" + StringUtils::toStr(c)].push_back(0.0);
         }
       }
 
@@ -506,17 +510,17 @@ struct NuXLRTPrediction
       x["mass"].push_back(f.getCharge() * f.getMZ()); // approx mass
 
       // nucleotide histogram      
-      auto nas = (String)ph.getMetaValue("NuXL:NA", String(""));
+      auto nas = StringUtils::toStr(ph.getMetaValue("NuXL:NA",std::string("")));
       auto encoded_nas = encodeNAHist_(nas);
       for (const auto& c : nucleotides)
       {
         if (auto it = encoded_nas.find(c); it != encoded_nas.end())
         {
-          x["NA:"+String(c)].push_back(it->second);
+          x["NA:"+StringUtils::toStr(c)].push_back(it->second);
         }
         else
         {
-          x["NA:"+String(c)].push_back(0.0);
+          x["NA:"+StringUtils::toStr(c)].push_back(0.0);
         }
       }
         
@@ -545,19 +549,19 @@ struct NuXLRTPrediction
 
       for (const auto& ph : phits)
       {
-        const String& seq = ph.getSequence().toUnmodifiedString();
+        const std::string& seq = ph.getSequence().toUnmodifiedString();
         auto encoded_aas = encodeAAHist_(ph.getSequence());
         for (const auto& c : amino_acids)
         {
           if (auto it = encoded_aas.find(c); it != encoded_aas.end())
           {
-            x[String(c)].push_back(it->second);
-            x["freq_" + String(c)].push_back(it->second / seq.size());
+            x[StringUtils::toStr(c)].push_back(it->second);
+            x["freq_" + StringUtils::toStr(c)].push_back(it->second / seq.size());
           }
           else
           {
-            x[String(c)].push_back(0.0);
-            x["freq_" + String(c)].push_back(0.0);
+            x[StringUtils::toStr(c)].push_back(0.0);
+            x["freq_" + StringUtils::toStr(c)].push_back(0.0);
           }
         }
 
@@ -566,11 +570,11 @@ struct NuXLRTPrediction
         {
           if (c == seq[0])
           {
-            x["Nterm_" + String(c)].push_back(1.0);
+            x["Nterm_" + StringUtils::toStr(c)].push_back(1.0);
           }
           else
           {
-            x["Nterm_" + String(c)].push_back(0.0);
+            x["Nterm_" + StringUtils::toStr(c)].push_back(0.0);
           }
         }
 
@@ -578,11 +582,11 @@ struct NuXLRTPrediction
         {
         if (c == seq[seq.size() - 1])
         {
-          x["Cterm_" + String(c)].push_back(1.0);
+          x["Cterm_" + StringUtils::toStr(c)].push_back(1.0);
         }
         else
         {
-          x["Cterm_" + String(c)].push_back(0.0);
+          x["Cterm_" + StringUtils::toStr(c)].push_back(0.0);
           }
         }
 
@@ -591,17 +595,17 @@ struct NuXLRTPrediction
         x["mass"].push_back(ph.getCharge() * pid.getMZ()); // approx mass
 
         // nucleotide histogram      
-        auto nas = (String)ph.getMetaValue("NuXL:NA", String(""));
+        auto nas = StringUtils::toStr(ph.getMetaValue("NuXL:NA",std::string("")));
         auto encoded_nas = encodeNAHist_(nas);
         for (const auto& c : nucleotides)
         {
           if (auto it = encoded_nas.find(c); it != encoded_nas.end())
           {
-            x["NA:"+String(c)].push_back(it->second);
+            x["NA:"+StringUtils::toStr(c)].push_back(it->second);
           }
           else
           {
-            x["NA:"+String(c)].push_back(0.0);
+            x["NA:"+StringUtils::toStr(c)].push_back(0.0);
           }
         }
 
@@ -678,7 +682,7 @@ struct NuXLRTPrediction
 // stores which residues (known to give rise to immonium ions) are in the sequence
 struct ImmoniumIonsInPeptide
 {
-  explicit ImmoniumIonsInPeptide(const String& s)
+  explicit ImmoniumIonsInPeptide(const std::string& s)
   {
     for (const char & c : s)
     {
@@ -804,21 +808,21 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzML,raw"));
-    registerInputFile_("NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, ListUtils::create<String>("skipexists"));
-    registerInputFile_("ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, ListUtils::create<String>("skipexists"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML,raw"));
+    registerInputFile_("NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, ListUtils::create<std::string>("skipexists"));
+    registerInputFile_("ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, ListUtils::create<std::string>("skipexists"));
 
     registerInputFile_("database", "<file>", "", "The protein database used for identification.");
-    setValidFormats_("database", ListUtils::create<String>("fasta"));
+    setValidFormats_("database", ListUtils::create<std::string>("fasta"));
 
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML"));
 
     registerOutputFile_("out_tsv", "<file>", "", "tsv output file", false);
-    setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_tsv", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out_xls", "<file>", "", "XL output file with group q-values calculated at the XL PSM-level. Generated for the highest FDR threshold in report:xlFDR.", false);
-    setValidFormats_("out_xls", ListUtils::create<String>("idXML"));
+    setValidFormats_("out_xls", ListUtils::create<std::string>("idXML"));
 
     registerStringOption_("output_folder", "<folder>", "", "Store intermediate files (and final result) also in this output folder. Convenient for TOPPAS/KNIME/etc. users because these files are otherwise only stored in tmp folders.", false, false);
 
@@ -850,11 +854,11 @@ protected:
     setValidStrings_("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
 
     registerTOPPSubsection_("modifications", "Modifications Options");
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("modifications:fixed", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'.", false);
+    registerStringList_("modifications:fixed", "<mods>", ListUtils::create<std::string>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'.", false);
     setValidStrings_("modifications:fixed", all_mods);
-    registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>("Oxidation (M)"), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
+    registerStringList_("modifications:variable", "<mods>", ListUtils::create<std::string>("Oxidation (M)"), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
     setValidStrings_("modifications:variable", all_mods);
     registerIntOption_("modifications:variable_max_per_peptide", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate peptide.", false, false);
 
@@ -881,7 +885,7 @@ protected:
         #else
                        "percolator",
         #endif
-                       "Percolator executable of the installation e.g. 'percolator.exe'", false, false, ListUtils::create<String>("skipexists"));
+                       "Percolator executable of the installation e.g. 'percolator.exe'", false, false, ListUtils::create<std::string>("skipexists"));
 
 
     // NuXL specific
@@ -889,9 +893,9 @@ protected:
 
     registerStringOption_("NuXL:presets", "<option>", "none", "Set precursor and fragment adducts from presets (recommended). Custom presets can be defined in a 'nuxl_presets.json' file placed in the share/OpenMS/NUXL/ directory or specified via NuXL:presets_file.", false, false);
     registerInputFile_("NuXL:presets_file", "<file>", "", "Optional custom path to nuxl_presets.json file. If not provided, the default file in share/OpenMS/NUXL/ will be used.", false, true);
-    setValidFormats_("NuXL:presets_file", ListUtils::create<String>("json"));
+    setValidFormats_("NuXL:presets_file", ListUtils::create<std::string>("json"));
     // append StringLists
-    String custom_presets_file = getStringOption_("NuXL:presets_file");
+    std::string custom_presets_file = getStringOption_("NuXL:presets_file");
     StringList all_presets = NuXLPresets::getAllPresetsNames(custom_presets_file);
     setValidStrings_("NuXL:presets", all_presets);
 
@@ -899,10 +903,10 @@ protected:
     for (const auto& p : all_presets)
     {
       if (p == "none") continue;
-      String subsection_name = "presets:" + p;
+      std::string subsection_name = "presets:" + p;
       registerTOPPSubsection_(subsection_name, "Presets for " + p + " cross-link protocol (Note: changes will be ignored).");
       StringList target_nucleotides, mappings, modifications, fragment_adducts;
-      String can_cross_link;
+      std::string can_cross_link;
       NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
 
       registerStringList_(subsection_name + ":target_nucleotides", "", target_nucleotides, "", false, true);
@@ -1042,7 +1046,7 @@ protected:
     for (const auto& d : data_dependent_features)  { feature_set_ << d; }
 
     // one-hot encoding of cross-linked nucleotide
-    for (const auto& c : can_xl_) { feature_set_ << String("NuXL:XL_" + String(c)); }
+    for (const auto& c : can_xl_) { feature_set_ << std::string("NuXL:XL_" + StringUtils::toStr(c)); }
   }
 
   // bad score or less then two peaks matching and less than 1% explained signal
@@ -1064,9 +1068,9 @@ protected:
     return (plss_Morph < MIN_SHIFTED_IONS && plss_im_MIC < 0.03);
   }
 
-  map<String, PrecursorPurity::PurityScores> calculatePrecursorPurities_(const String& in_mzml, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) const
+  unordered_map<std::string, PrecursorPurity::PurityScores> calculatePrecursorPurities_(const std::string& in_mzml, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) const
   {
-    map<String, PrecursorPurity::PurityScores> purities;
+    unordered_map<std::string, PrecursorPurity::PurityScores> purities;
     PeakMap tmp_spectra;
     // Important: load both MS1 and MS2 for precursor purity annotation
     MzMLFile().load(in_mzml, tmp_spectra);
@@ -1592,7 +1596,7 @@ protected:
     OPENMS_PRECONDITION(partial_loss_template_z1_b_ions.size() == partial_loss_template_z1_y_ions.size(), "b- and y-ion arrays must have same size.");
     OPENMS_PRECONDITION(partial_loss_template_z1_b_ions.size() > 0, "b- and y-ion arrays must not be empty.");
 
-    auto ambiguous_match = [&](const double& mz, const double z, const String& name)->bool
+    auto ambiguous_match = [&](const double& mz, const double z, const std::string& name)->bool
     {
       auto it = fragment_adduct2block_if_masses_present.find(name); // get vector of blocked mass lists
       if (it != fragment_adduct2block_if_masses_present.end())
@@ -2489,7 +2493,7 @@ static void scoreXLIons_(
   }
 */
 
-  static map<String, vector<vector<double>>> fragment_adduct2block_if_masses_present;
+  static map<std::string, vector<vector<double>>> fragment_adduct2block_if_masses_present;
 
 
   static set<double> getSetOfAdductMasses(const NuXLParameterParsing::NucleotideToFragmentAdductMap &  nucleotide_to_fragment_adducts)
@@ -2561,9 +2565,9 @@ static void scoreXLIons_(
     return aa_plus_adduct_mass;
   }
 
-  static map<double, set<String>> getAdductMass2Name(const NuXLParameterParsing::NucleotideToFragmentAdductMap&  nucleotide_to_fragment_adducts)
+  static map<double, set<std::string>> getAdductMass2Name(const NuXLParameterParsing::NucleotideToFragmentAdductMap&  nucleotide_to_fragment_adducts)
   {
-    map<double, set<String>> adduct_mass2adduct_names;
+    map<double, set<std::string>> adduct_mass2adduct_names;
     for (const auto & p : nucleotide_to_fragment_adducts)
     {
       for (const auto & fa : p.second)
@@ -2574,9 +2578,9 @@ static void scoreXLIons_(
     return adduct_mass2adduct_names;
   }
 
-  static map<double, map<const Residue*, String>> getMapAAPlusAdductMassToResidueToAdductName(const NuXLParameterParsing::NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts)
+  static map<double, map<const Residue*, std::string>> getMapAAPlusAdductMassToResidueToAdductName(const NuXLParameterParsing::NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts)
   {
-    map<double, map<const Residue*, String>> res_adduct_mass2residue2adduct;
+    map<double, map<const Residue*, std::string>> res_adduct_mass2residue2adduct;
     auto residues = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
 
     for (const auto & p : nucleotide_to_fragment_adducts)
@@ -2595,16 +2599,16 @@ static void scoreXLIons_(
 
   static void getTagToAdduct(
     const NuXLParameterParsing::NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts, 
-    map<String, set<String>>& tag2ADs, 
-    unordered_map<String, unordered_set<String>>& ADs2tag,
+    map<std::string, set<std::string>>& tag2ADs, 
+    unordered_map<std::string, unordered_set<std::string>>& ADs2tag,
     const double fragment_mass_tolerance,
     const bool fragment_mass_tolerance_unit_ppm)
   {
     // create map from adduct mass to adduct name (e.g., "U-H2O")
-    map<double, set<String>> adduct_mass2adduct_names = getAdductMass2Name(nucleotide_to_fragment_adducts);
+    map<double, set<std::string>> adduct_mass2adduct_names = getAdductMass2Name(nucleotide_to_fragment_adducts);
 
     // create map from residue + adduct to residue to adduct names
-    map<double, map<const Residue*, String>> res_adduct_mass2residue2adduct = getMapAAPlusAdductMassToResidueToAdductName(nucleotide_to_fragment_adducts);
+    map<double, map<const Residue*, std::string>> res_adduct_mass2residue2adduct = getMapAAPlusAdductMassToResidueToAdductName(nucleotide_to_fragment_adducts);
 
     auto residues = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
 
@@ -2625,14 +2629,14 @@ static void scoreXLIons_(
         for (; left != right; ++left)
         { // found at least one AA + adduct mass that matches to A+B mass
           auto& residues2adductname = left->second;
-          const String& A = a->getOneLetterCode();
-          const String& B = b->getOneLetterCode();
-          String tag = A+B;
+          const std::string& A = a->getOneLetterCode();
+          const std::string& B = b->getOneLetterCode();
+          std::string tag = A+B;
           // sort AA tag because there is no difference between e.g., "AB" or "BA" 
           std::sort(tag.begin(), tag.end());
           for (auto& r2s : residues2adductname)
           {
-            const String& adduct_name = r2s.second;
+            const std::string& adduct_name = r2s.second;
             OPENMS_LOG_DEBUG << abmass << ":" << tag << "=" << r2s.first->getOneLetterCode() << "+" << adduct_name << endl;
             tag2ADs[tag].insert(adduct_name);
             ADs2tag[adduct_name].insert(tag);
@@ -2662,9 +2666,9 @@ static void scoreXLIons_(
         auto right = adduct_mass2adduct_names.upper_bound(abmass + tolerance);
         for (; left != right; ++left)
         { // found at least one adduct mass that matches to A+B mass
-          const String& A = a->getOneLetterCode();
-          const String& B = b->getOneLetterCode();
-          String tag = A+B;
+          const std::string& A = a->getOneLetterCode();
+          const std::string& B = b->getOneLetterCode();
+          std::string tag = A+B;
           // sort AA tag because there is no difference between e.g., "AB" or "BA" 
           std::sort(tag.begin(), tag.end());
           for (auto& adduct_name : left->second)
@@ -2697,10 +2701,10 @@ static void scoreXLIons_(
       for (; left != right; ++left)
       { // at least one AA matches another AA + adduct mass
         auto& residues2adductname = left->second;
-        const String& A = a->getOneLetterCode();
+        const std::string& A = a->getOneLetterCode();
         for (auto& r2s : residues2adductname)
         {
-          const String& adduct_name = r2s.second;
+          const std::string& adduct_name = r2s.second;
           OPENMS_LOG_DEBUG<< am << ":" << A << "=" << r2s.first->getOneLetterCode() << "+" << adduct_name << endl;
           tag2ADs[A].insert(adduct_name);
           ADs2tag[adduct_name].insert(A);
@@ -2723,7 +2727,7 @@ static void scoreXLIons_(
       auto right = adduct_mass2adduct_names.upper_bound(am + tolerance);
       for (; left != right; ++left)
       { // at least one adduct mass matches another AA
-        const String& A = a->getOneLetterCode();
+        const std::string& A = a->getOneLetterCode();
         for (auto& adduct_name : left->second)
         {
           OPENMS_LOG_DEBUG << am << ":" << A << "=" << adduct_name << endl;
@@ -2737,7 +2741,7 @@ static void scoreXLIons_(
     }
   }
 
-  static void calculateAATagsOfLength1and2(MSExperiment& exp, const map<String, set<String>>& tag2ADs)
+  static void calculateAATagsOfLength1and2(MSExperiment& exp, const map<std::string, set<std::string>>& tag2ADs)
   {
     // precalculate AA tags of length 1-2nt and store potential conflicting adducts in the spectrum meta data
     OpenNuXLTagger tagger(0.03,1,2); // calculate tags of length 1-2nt
@@ -2871,7 +2875,7 @@ static void scoreXLIons_(
       for (auto& r2a : residue2adduct)
       {
         const Residue* residue = r2a.first;
-        String name = residue->getName();
+        std::string name = residue->getName();
         aa2mass2count[residue][mass] = count;
       }
     }
@@ -2960,8 +2964,8 @@ static void scoreXLIons_(
     const NuXLParameterParsing::NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts)
   {
     // check for theoretically ambiguous fragment shifts: AA tags of length 1-2 without adduct that match to two AA + adduct, one AA + adduct, just an adduct
-    map<String, set<String>> tag2ADs; // AA tags that match adduct names in mass
-    unordered_map<String, unordered_set<String>> ADs2tag;
+    map<std::string, set<std::string>> tag2ADs; // AA tags that match adduct names in mass
+    unordered_map<std::string, unordered_set<std::string>> ADs2tag;
     getTagToAdduct(nucleotide_to_fragment_adducts, tag2ADs, ADs2tag, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
     // calculate and annotate in stringdataarray
@@ -2972,11 +2976,11 @@ static void scoreXLIons_(
     map<double, size_t> adduct_mass_count;
     map<double, size_t> aa_plus_adduct_mass_count;
     // Output CSV to same directory as input file
-    String input_file = getStringOption_("in");
-    String dir = File::path(input_file);
-    String csv_file;
+    std::string input_file = getStringOption_("in");
+    std::string dir = File::path(input_file);
+    std::string csv_file;
     csv_file = dir;
-    csv_file.ensureLastChar('/');
+    StringUtils::ensureLastChar(csv_file, '/');
     csv_file += File::basename(input_file) + ".ambiguous_masses.csv";
     getAdductAndAAPlusAdductMassCountsFromSpectra(nucleotide_to_fragment_adducts, exp, adduct_mass_count, aa_plus_adduct_mass_count, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, csv_file);
 
@@ -3065,7 +3069,7 @@ static void scoreXLIons_(
     bool annotate_charge,
     double window_size,
     size_t peakcount,
-    const std::map<String, PrecursorPurity::PurityScores>& purities)
+    const std::unordered_map<std::string, PrecursorPurity::PurityScores>& purities)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -3294,7 +3298,7 @@ static void scoreXLIons_(
         auto NA_adduct_it = mod_combinations_it->second.begin();
         for (size_t NA_adduct_amb_index = 0; NA_adduct_amb_index != NA_adducts.size(); ++NA_adduct_amb_index)
         { // for all NA adducts with current sum formula (e.g, U-H2O and C-NH3)
-          const String& precursor_na_adduct = *NA_adduct_it;
+          const std::string& precursor_na_adduct = *NA_adduct_it;
           const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_na_adduct).feasible_adducts;
 
           if (precursor_na_adduct == "none") 
@@ -3327,7 +3331,7 @@ static void scoreXLIons_(
         NuXLAnnotatedHit& ah = annotated_hits[scan_index][i];
 
         // reconstruct fixed and variable modified peptide sequence (without NA)
-        const String& unmodified_sequence = ah.sequence.getString();
+        const std::string& unmodified_sequence = std::string(ah.sequence);
         AASequence aas = AASequence::fromString(unmodified_sequence);
         vector<AASequence> all_modified_peptides;
         ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
@@ -3343,7 +3347,7 @@ static void scoreXLIons_(
         auto NA_adduct_it = mod_combinations_it->second.begin();
         for (size_t NA_adduct_amb_index = 0; NA_adduct_amb_index != NA_adducts.size(); ++NA_adduct_amb_index, ++NA_adduct_it)
         { // for all NA adducts with current sum formula (e.g, U-H2O and C-NH3)
-          const String& precursor_na_adduct = *NA_adduct_it;
+          const std::string& precursor_na_adduct = *NA_adduct_it;
           const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_na_adduct).feasible_adducts;
           const vector<NuXLFragmentAdductDefinition>& marker_ions = all_feasible_adducts.at(precursor_na_adduct).marker_ions;
           const double precursor_na_mass = EmpiricalFormula(mod_combinations_it->first).getMonoWeight();
@@ -3504,11 +3508,11 @@ static void scoreXLIons_(
     const Size max_variable_mods_per_peptide,
     const Size scan_index, 
     const MSSpectrum& spec,
-    const map<String, PrecursorPurity::PurityScores>& purities,
+    const unordered_map<std::string, PrecursorPurity::PurityScores>& purities,
     const vector<size_t>& nr_candidates,
     const vector<size_t>& matched_peaks
     /*,
-    const String& can_cross_link*/)
+    const std::string& can_cross_link*/)
   {
     pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
     pi.setMetaValue("spectrum_reference", spec.getNativeID());
@@ -3528,7 +3532,7 @@ static void scoreXLIons_(
       ph.setCharge(charge);
 
       // get unmodified string
-      const String & s = ah.sequence.getString();
+      const std::string & s = std::string(ah.sequence);
 
       OPENMS_POSTCONDITION(!s.empty(), "Error: empty sequence in annotated hits.");
       AASequence aas = AASequence::fromString(s);
@@ -3541,7 +3545,7 @@ static void scoreXLIons_(
       // reannotate much more memory heavy AASequence object
       AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index];           
       ph.setScore(ah.score);
-      ph.setMetaValue(String("NuXL:score"), ah.score); // important for Percolator feature set because the PeptideHit score might be overwritten by a q-value
+      ph.setMetaValue(std::string("NuXL:score"), ah.score); // important for Percolator feature set because the PeptideHit score might be overwritten by a q-value
 
       // - # of variable mods 
       // - Phosphopeptide
@@ -3551,7 +3555,7 @@ static void scoreXLIons_(
       { 
         const Residue& r = fixed_and_variable_modified_peptide[i];
         if (!r.isModified()) continue;
-        if (variable_modifications.val.find(r.getModification()) != variable_modifications.val.end())
+        if (variable_modifications.val.contains(r.getModification()))
         {
           ++n_var_mods;
         }
@@ -3562,12 +3566,12 @@ static void scoreXLIons_(
       auto c_term_mod = fixed_and_variable_modified_peptide.getCTerminalModification();
 
       if (n_term_mod != nullptr &&
-        variable_modifications.val.find(n_term_mod) != variable_modifications.val.end()) ++n_var_mods;
+        variable_modifications.val.contains(n_term_mod)) ++n_var_mods;
       if (c_term_mod != nullptr &&
-        variable_modifications.val.find(c_term_mod) != variable_modifications.val.end()) ++n_var_mods;
+        variable_modifications.val.contains(c_term_mod)) ++n_var_mods;
 
-      ph.setMetaValue(String("variable_modifications"), n_var_mods);
-      ph.setMetaValue(String("n_theoretical_peaks"), ah.n_theoretical_peaks);
+      ph.setMetaValue(std::string("variable_modifications"), n_var_mods);
+      ph.setMetaValue(std::string("n_theoretical_peaks"), ah.n_theoretical_peaks);
 
       // determine empirical formula of NA modification from index in map
       auto mod_combinations_it = mm.mod_combinations.cbegin();
@@ -3577,35 +3581,35 @@ static void scoreXLIons_(
       auto NA_adduct_it = mod_combinations_it->second.cbegin(); // set of all NA adducts for current sum formula (e.g, U-H2O and C-NH3 have same elemental composition)
       std::advance(NA_adduct_it, ah.NA_adduct_amb_index);
 
-      ph.setMetaValue(String("NuXL:mass_error_p"), ah.mass_error_p);
-      ph.setMetaValue(String("NuXL:total_loss_score"), ah.total_loss_score);
-      ph.setMetaValue(String("NuXL:immonium_score"), ah.immonium_score);
-      ph.setMetaValue(String("NuXL:precursor_score"), ah.precursor_score);
-      ph.setMetaValue(String("NuXL:marker_ions_score"), ah.marker_ions_score);
-      ph.setMetaValue(String("NuXL:partial_loss_score"), ah.partial_loss_score);
+      ph.setMetaValue(std::string("NuXL:mass_error_p"), ah.mass_error_p);
+      ph.setMetaValue(std::string("NuXL:total_loss_score"), ah.total_loss_score);
+      ph.setMetaValue(std::string("NuXL:immonium_score"), ah.immonium_score);
+      ph.setMetaValue(std::string("NuXL:precursor_score"), ah.precursor_score);
+      ph.setMetaValue(std::string("NuXL:marker_ions_score"), ah.marker_ions_score);
+      ph.setMetaValue(std::string("NuXL:partial_loss_score"), ah.partial_loss_score);
 
       // total loss and partial loss (pl) related subscores (matched ion current, avg. fragment error, morpheus score)
-      ph.setMetaValue(String("NuXL:MIC"), ah.MIC);
-      ph.setMetaValue(String("NuXL:err"), ah.err);
-      ph.setMetaValue(String("NuXL:Morph"), ah.Morph);
-      ph.setMetaValue(String("NuXL:modds"), ah.modds);
-      ph.setMetaValue(String("NuXL:pl_MIC"), ah.pl_MIC);
-      ph.setMetaValue(String("NuXL:pl_err"), ah.pl_err);
-      ph.setMetaValue(String("NuXL:pl_Morph"), ah.pl_Morph);
-      ph.setMetaValue(String("NuXL:pl_modds"), ah.pl_modds);
-      ph.setMetaValue(String("NuXL:pl_pc_MIC"), ah.pl_pc_MIC);
-      ph.setMetaValue(String("NuXL:pl_im_MIC"), ah.pl_im_MIC);
-      ph.setMetaValue(String("NuXL:total_Morph"), ah.Morph + ah.pl_Morph);
-      ph.setMetaValue(String("NuXL:total_HS"), ah.total_loss_score + ah.partial_loss_score);
+      ph.setMetaValue(std::string("NuXL:MIC"), ah.MIC);
+      ph.setMetaValue(std::string("NuXL:err"), ah.err);
+      ph.setMetaValue(std::string("NuXL:Morph"), ah.Morph);
+      ph.setMetaValue(std::string("NuXL:modds"), ah.modds);
+      ph.setMetaValue(std::string("NuXL:pl_MIC"), ah.pl_MIC);
+      ph.setMetaValue(std::string("NuXL:pl_err"), ah.pl_err);
+      ph.setMetaValue(std::string("NuXL:pl_Morph"), ah.pl_Morph);
+      ph.setMetaValue(std::string("NuXL:pl_modds"), ah.pl_modds);
+      ph.setMetaValue(std::string("NuXL:pl_pc_MIC"), ah.pl_pc_MIC);
+      ph.setMetaValue(std::string("NuXL:pl_im_MIC"), ah.pl_im_MIC);
+      ph.setMetaValue(std::string("NuXL:total_Morph"), ah.Morph + ah.pl_Morph);
+      ph.setMetaValue(std::string("NuXL:total_HS"), ah.total_loss_score + ah.partial_loss_score);
 
-      ph.setMetaValue(String("NuXL:tag_XLed"), ah.tag_XLed);
-      ph.setMetaValue(String("NuXL:tag_unshifted"), ah.tag_unshifted);
-      ph.setMetaValue(String("NuXL:tag_shifted"), ah.tag_shifted);
+      ph.setMetaValue(std::string("NuXL:tag_XLed"), ah.tag_XLed);
+      ph.setMetaValue(std::string("NuXL:tag_unshifted"), ah.tag_unshifted);
+      ph.setMetaValue(std::string("NuXL:tag_shifted"), ah.tag_shifted);
       
-      ph.setMetaValue(String("NuXL:total_MIC"), ah.total_MIC);  // fraction of matched ion current from total + partial losses
+      ph.setMetaValue(std::string("NuXL:total_MIC"), ah.total_MIC);  // fraction of matched ion current from total + partial losses
 
-      const String NA = *NA_adduct_it;
-      ph.setMetaValue(String("NuXL:NA"), NA); // the nucleotide formula e.g., U-H2O
+      const std::string NA = *NA_adduct_it;
+      ph.setMetaValue(std::string("NuXL:NA"), NA); // the nucleotide formula e.g., U-H2O
 
       double na_mass_z0 = EmpiricalFormula(mod_combinations_it->first).getMonoWeight(); // NA uncharged mass via empirical formula
       // length of oligo
@@ -3614,19 +3618,19 @@ static void scoreXLIons_(
       {
         if (na_mass_z0 > 0)
         {
-          ph.setMetaValue(String("NuXL:NA_length"), NA.size());
+          ph.setMetaValue(std::string("NuXL:NA_length"), NA.size());
         }
         else
         {
-          ph.setMetaValue(String("NuXL:NA_length"), 0);
+          ph.setMetaValue(std::string("NuXL:NA_length"), 0);
         }
       }
       else
       {
-        ph.setMetaValue(String("NuXL:NA_length"), NA_length);
+        ph.setMetaValue(std::string("NuXL:NA_length"), NA_length);
       }
 
-      ph.setMetaValue("NuXL:NT", String(ah.cross_linked_nucleotide));  // the cross-linked nucleotide
+      ph.setMetaValue("NuXL:NT",StringUtils::toStr(ah.cross_linked_nucleotide));  // the cross-linked nucleotide
       ph.setMetaValue("NuXL:NA_MASS_z0", na_mass_z0); // NA uncharged mass via empirical formula
       ph.setMetaValue("NuXL:isXL", na_mass_z0 > 0); 
       ph.setMetaValue("NuXL:isPhospho", is_phospho); 
@@ -3648,11 +3652,11 @@ static void scoreXLIons_(
       {
         if (c == ah.cross_linked_nucleotide)
         { 
-          ph.setMetaValue(String("NuXL:XL_" + String(c)), 1);
+          ph.setMetaValue(std::string("NuXL:XL_" + StringUtils::toStr(c)), 1);
         }
         else
         {
-          ph.setMetaValue(String("NuXL:XL_" + String(c)), 0);
+          ph.setMetaValue(std::string("NuXL:XL_" + StringUtils::toStr(c)), 0);
         }
       }
 
@@ -3690,14 +3694,14 @@ static void scoreXLIons_(
 
       ph.setPeakAnnotations(ah.fragment_annotations);
       ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));
-      ph.setMetaValue(String("NuXL:ladder_score"), ah.ladder_score);
-      ph.setMetaValue(String("NuXL:sequence_score"), ah.sequence_score);
-      ph.setMetaValue(String("CalcMass"), + (fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge) + na_mass_z0)/charge); // overwrites CalcMass in PercolatorAdapter
+      ph.setMetaValue(std::string("NuXL:ladder_score"), ah.ladder_score);
+      ph.setMetaValue(std::string("NuXL:sequence_score"), ah.sequence_score);
+      ph.setMetaValue(std::string("CalcMass"), + (fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge) + na_mass_z0)/charge); // overwrites CalcMass in PercolatorAdapter
       // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
       ph.setSequence(fixed_and_variable_modified_peptide);
 
       ProteaseDigestion pd;
-      const String enzyme = getStringOption_("peptide:enzyme");
+      const std::string enzyme = getStringOption_("peptide:enzyme");
       pd.setEnzyme(enzyme);
       size_t num_mc = pd.countInternalCleavageSites(aas.toUnmodifiedString());
       ph.setMetaValue("missed_cleavages", num_mc);
@@ -3731,11 +3735,11 @@ static void scoreXLIons_(
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide,
-    const map<String, PrecursorPurity::PurityScores>& purities,
+    const unordered_map<std::string, PrecursorPurity::PurityScores>& purities,
     const vector<size_t>& nr_candidates,
     const vector<size_t>& matched_peaks
     /*,
-    const String& can_cross_link*/)
+    const std::string& can_cross_link*/)
   {
     assert(annotated_XL_hits.size() == annotated_peptide_hits.size());
     SignedSize hit_count = static_cast<SignedSize>(annotated_XL_hits.size());
@@ -3789,15 +3793,15 @@ static void scoreXLIons_(
     }
     // hits have rank and are sorted by score
 
-    map<String, Size> sequence_is_topPSM;
-    map<String, set<int>> sequence_charges; // of top PSM
-    map<String, Size> sequence_is_XL;
-    map<String, Size> sequence_is_peptide;
+    map<std::string, Size> sequence_is_topPSM;
+    map<std::string, set<int>> sequence_charges; // of top PSM
+    map<std::string, Size> sequence_is_XL;
+    map<std::string, Size> sequence_is_peptide;
     for (const auto & pid : peptide_ids)
     {
       if (pid.getHits().empty()) continue;
       const auto & top_hit = pid.getHits()[0];
-      const String& unmodified_sequence = top_hit.getSequence().toUnmodifiedString();
+      const std::string& unmodified_sequence = top_hit.getSequence().toUnmodifiedString();
       ++sequence_is_topPSM[unmodified_sequence];
       sequence_charges[unmodified_sequence].insert(top_hit.getCharge());
       if (static_cast<int>(top_hit.getMetaValue("NuXL:isXL")) == 1)
@@ -3813,8 +3817,8 @@ static void scoreXLIons_(
     {
       for (auto & ph : pid.getHits())
       {
-        const String& unmodified_sequence = ph.getSequence().toUnmodifiedString();
-        if (sequence_is_topPSM.find(unmodified_sequence) != sequence_is_topPSM.end())
+        const std::string& unmodified_sequence = ph.getSequence().toUnmodifiedString();
+        if (sequence_is_topPSM.contains(unmodified_sequence))
         {  
           ph.setMetaValue("CountSequenceIsTop", sequence_is_topPSM[unmodified_sequence]);
           ph.setMetaValue("CountSequenceCharges", sequence_charges[unmodified_sequence].size());
@@ -3836,7 +3840,7 @@ static void scoreXLIons_(
 
     for (auto& s : identified_adducts)
     {
-      feature_set_ << String("NuXL:MS1Adduct_") + s;
+      feature_set_ << std::string("NuXL:MS1Adduct_") + s;
     }
 
     for (auto & pid : peptide_ids)
@@ -3847,7 +3851,7 @@ static void scoreXLIons_(
         for (auto& s : identified_adducts)
         {
           size_t one_hot = (adduct == s) ? 1 : 0;
-          ph.setMetaValue(String("NuXL:MS1Adduct_") + s, one_hot);
+          ph.setMetaValue(std::string("NuXL:MS1Adduct_") + s, one_hot);
         }
       }
     } 
@@ -3860,7 +3864,7 @@ static void scoreXLIons_(
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.db = getStringOption_("database");
-    search_parameters.charges = String(getIntOption_("precursor:min_charge")) + ":" + String(getIntOption_("precursor:max_charge"));
+    search_parameters.charges =StringUtils::toStr(getIntOption_("precursor:min_charge")) + ":" + StringUtils::toStr(getIntOption_("precursor:max_charge"));
     search_parameters.fixed_modifications = getStringList_("modifications:fixed");
     search_parameters.variable_modifications = getStringList_("modifications:variable");
     search_parameters.missed_cleavages = getIntOption_("peptide:missed_cleavages");
@@ -3935,7 +3939,7 @@ static void scoreXLIons_(
   // calculate PSMs using total loss scoring (no NA-shifted fragments) - used in fast scoring
   static void addPSMsTotalLossScoring_(
     const PeakSpectrum& exp_spectrum,
-    const StringView sequence,
+    const std::string_view sequence,
     const Size & mod_pep_idx,
     const Size & na_mod_idx,
     const double & current_peptide_mass,
@@ -4007,7 +4011,7 @@ static void scoreXLIons_(
     NuXLAnnotatedHit ah;
     ah.mass_error_p = mass_error_score;
 
-    ah.sequence = sequence; // copy StringView
+    ah.sequence = sequence; // copy view
     ah.peptide_mod_index = mod_pep_idx;
     ah.total_loss_score = total_loss_score;
 
@@ -4150,45 +4154,34 @@ static void scoreXLIons_(
     return count + MIC; // Morph score of matched (complete / partial) ladder
   }
 
-  String convertRawFile_(const String& in, bool no_peak_picking = false)
+  std::string convertRawFile_(const std::string& in, bool no_peak_picking = false)
   {
     writeLogInfo_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
-    String net_executable = getStringOption_("NET_executable");
+    std::string net_executable = getStringOption_("NET_executable");
     TOPPBase::ExitCodes exit_code;
-    QStringList arguments;
-    String out = in + ".mzML";
+    std::vector<std::string> arguments;
+    std::string out = in + ".mzML";
     // check if this file exists and not empty so we can skip further conversions
     if (!File::empty(out)) { return out; }
-#ifdef OPENMS_WINDOWSPLATFORM      
+#ifdef OPENMS_WINDOWSPLATFORM
     if (net_executable.empty())
     { // default on Windows: if no mono executable is set use the "native" .NET one
-      arguments << String("-i=" + in).toQString()
-                << String("--output_file=" + out).toQString()
-                << String("-f=2").toQString() // indexedMzML
-                << String("-e").toQString(); // ignore instrument errors
-      if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
-      exit_code = runExternalProcess_(getStringOption_("ThermoRaw_executable").toQString(), arguments);
+      arguments = {"-i=" + in, "--output_file=" + out, "-f=2", "-e"};
+      if (no_peak_picking)  { arguments.push_back("--noPeakPicking"); }
+      exit_code = runExternalProcess_(getStringOption_("ThermoRaw_executable"), arguments);
     }
     else
     { // use e.g., mono
-      arguments << getStringOption_("ThermoRaw_executable").toQString()
-                << String("-i=" + in).toQString()
-                << String("--output_file=" + out).toQString()
-                << String("-f=2").toQString()
-                << String("-e").toQString();
-      if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
-      exit_code = runExternalProcess_(net_executable.toQString(), arguments);       
-    }      
+      arguments = {getStringOption_("ThermoRaw_executable"), "-i=" + in, "--output_file=" + out, "-f=2", "-e"};
+      if (no_peak_picking)  { arguments.push_back("--noPeakPicking"); }
+      exit_code = runExternalProcess_(net_executable, arguments);
+    }
 #else
     // default on Mac, Linux: use mono
     net_executable = net_executable.empty() ? "mono" : net_executable;
-    arguments << getStringOption_("ThermoRaw_executable").toQString()
-              << String("-i=" + in).toQString()
-              << String("--output_file=" + out).toQString()
-              << String("-f=2").toQString()
-              << String("-e").toQString();
-    if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
-    exit_code = runExternalProcess_(net_executable.toQString(), arguments);       
+    arguments = {getStringOption_("ThermoRaw_executable"), "-i=" + in, "--output_file=" + out, "-f=2", "-e"};
+    if (no_peak_picking)  { arguments.push_back("--noPeakPicking"); }
+    exit_code = runExternalProcess_(net_executable, arguments);
 #endif
     if (exit_code != ExitCodes::EXECUTION_OK)
     {
@@ -4401,7 +4394,7 @@ static void scoreXLIons_(
       mzs, 
       rts
       );      
-    writeLogInfo_("Info: Corrected " + String(corrected_to_highest_intensity_peak.size()) + " precursors.");
+    writeLogInfo_("Info: Corrected " + StringUtils::toStr(corrected_to_highest_intensity_peak.size()) + " precursors.");
     if (!deltaMZs.empty())
     {
       vector<double> deltaMZs_ppm, deltaMZs_ppmabs;
@@ -4416,9 +4409,9 @@ static void scoreXLIons_(
       double median_abs = Math::median(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end());
       double MAD_abs = Math::MAD(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end(), median_abs);
       writeLogInfo_("Precursor correction to highest intensity peak:\n  median delta m/z  = " 
-        + String(median) + " ppm  MAD = " + String(MAD)
-        + "\n  median delta m/z (abs.) = " + String(median_abs) 
-        + " ppm  MAD = " + String(MAD_abs));
+        + StringUtils::toStr(median) + " ppm  MAD = " + StringUtils::toStr(MAD)
+        + "\n  median delta m/z (abs.) = " + StringUtils::toStr(median_abs) 
+        + " ppm  MAD = " + StringUtils::toStr(MAD_abs));
     }
 
       FeatureMap features;    
@@ -4435,7 +4428,7 @@ static void scoreXLIons_(
       algorithm.setParameters(p);
       algorithm.run(e, true);
       features = algorithm.getFeatureMap(); 
-      writeLogInfo_("Detected peptides: " + String(features.size()));
+      writeLogInfo_("Detected peptides: " + StringUtils::toStr(features.size()));
     }
 
     set<Size> correct_to_nearest_feature = PrecursorCorrection::correctToNearestFeature(
@@ -4450,7 +4443,7 @@ static void scoreXLIons_(
       3, 
       10);
     writeLogInfo_("Precursor correction to feature:\n  succesful in = " 
-      + String(correct_to_nearest_feature.size()) + " cases.");
+      + StringUtils::toStr(correct_to_nearest_feature.size()) + " cases.");
 
     return EXECUTION_OK;
   }
@@ -4554,9 +4547,9 @@ static void scoreXLIons_(
 
   std::tuple<IMFormat, DriftTimeUnit> getMS2IMType(const MSExperiment& spectra)
   {
-    IMFormat IM_format = IMTypes::determineIMFormat(spectra);  
+    IMFormat IM_format = IMTypes::determineIMFormat(spectra, 2);
     DriftTimeUnit IM_unit = DriftTimeUnit::NONE;
-    if (IM_format == IMFormat::MULTIPLE_SPECTRA)
+    if (IM_format == IMFormat::IM_SPECTRUM)
     {
       OPENMS_LOG_INFO << "Ion Mobility annotated at the spectrum level." << std::endl;
 
@@ -4577,13 +4570,9 @@ static void scoreXLIons_(
     {
       OPENMS_LOG_INFO << "No Ion Mobility annotated at the spectrum level." << std::endl;
     }
-    else if (IM_format == IMFormat::CONCATENATED)
+    else if (IM_format == IMFormat::IM_PEAK)
     {
-      OPENMS_LOG_INFO << "Concatenated Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
-    }
-    else if (IM_format == IMFormat::MIXED)
-    {
-      OPENMS_LOG_INFO << "Mixed Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
+      OPENMS_LOG_INFO << "Per-peak Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
     }
     return make_tuple(IM_format, IM_unit);
   }
@@ -4591,22 +4580,32 @@ static void scoreXLIons_(
   void convertVSSCToCCS(MSExperiment& spectra)
   { // confirmed values with alpha and MaxQuant
     OPENMS_LOG_INFO << "Converting 1/k0 to CCS values." << std::endl;
-    constexpr double bruker_CCS_coef = 1059.62245; // constant coefficient for Bruker in the Mason-Schamp equation
-    constexpr double IM_N2_gas_mass = 28.0; // like in alpha code
     for (auto& s : spectra)
     {
+      // spectra without convertible IM (no precursor / no IM / missing charge) get their IM cleared,
+      // so downstream code (e.g. fillSpectrumID_) never mixes raw 1/K0 with CCS values.
+      if (s.getPrecursors().empty())
+      {
+        s.setDriftTime(0.0);
+        s.setDriftTimeUnit(DriftTimeUnit::NONE);
+        continue;
+      }
       const double IM = s.getDriftTime();
       const double mz = s.getPrecursors()[0].getMZ();
-      const double charge = s.getPrecursors()[0].getCharge();
-      const double mass = mz * charge;
-      const double reduced_mass = mass * IM_N2_gas_mass / (mass + IM_N2_gas_mass);
-      const double CCS = IM * charge * bruker_CCS_coef / std::sqrt(reduced_mass); // Mason-Schamp equation
+      const int charge = s.getPrecursors()[0].getCharge();
+      if (IM <= 0.0 || mz <= 0.0 || charge == 0)
+      {
+        s.setDriftTime(0.0);
+        s.setDriftTimeUnit(DriftTimeUnit::NONE);
+        continue;
+      }
+      const double CCS = IMTypes::oneOverK0ToCCS(IM, mz, charge); // Mason-Schamp equation
       s.setDriftTime(CCS);
       s.setDriftTimeUnit(DriftTimeUnit::CCS);
     }
   }
 
-  void filterPeakInterference_(PeakMap& spectra, const map<String, PrecursorPurity::PurityScores>& purities, double fragment_mass_tolerance = 20.0, bool fragment_mass_tolerance_unit_ppm = true)
+  void filterPeakInterference_(PeakMap& spectra, const unordered_map<std::string, PrecursorPurity::PurityScores>& purities, double fragment_mass_tolerance = 20.0, bool fragment_mass_tolerance_unit_ppm = true)
   {
     double filtered_peaks_count{0};
     size_t filtered_spectra{0};
@@ -4628,7 +4627,7 @@ static void scoreXLIons_(
         vector<size_t> idx_to_keep; // inverse
         for (size_t i = 0; i != s.size(); ++i)
         { // add indices we don't want to remove
-          if (idx_to_remove.find(i) == idx_to_remove.end()) idx_to_keep.push_back(i);
+          if (!idx_to_remove.contains(i)) idx_to_keep.push_back(i);
         }
         filtered_peaks_count += idx_to_remove.size();
         s.select(idx_to_keep);
@@ -4648,7 +4647,7 @@ static void scoreXLIons_(
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(getStringOption_("in"));
 
-    String in_mzml; 
+    std::string in_mzml; 
     if (in_type == FileTypes::MZML)
     {
       in_mzml = getStringOption_("in");
@@ -4658,13 +4657,13 @@ static void scoreXLIons_(
       in_mzml = convertRawFile_(getStringOption_("in"));
     }
 
-    String out_idxml = getStringOption_("out");
-    String in_db = getStringOption_("database");
+    std::string out_idxml = getStringOption_("out");
+    std::string in_db = getStringOption_("database");
 
-    String out_xl_idxml = getStringOption_("out_xls");
+    std::string out_xl_idxml = getStringOption_("out_xls");
 
     // create extra output directory if set
-    String extra_output_directory = getStringOption_("output_folder");
+    std::string extra_output_directory = getStringOption_("output_folder");
     if (!extra_output_directory.empty())
     {
       // convert path to absolute path
@@ -4710,7 +4709,7 @@ static void scoreXLIons_(
     InternalCalibration ic; // only filled if pcrecalibration is set and there are enough calibrants
 
     // autotune (only works if non-XL peptides present)
-    set<String> skip_peptide_spectrum;
+    set<std::string> skip_peptide_spectrum;
     double global_fragment_error(0);
 
     if (autotune || idfilter)
@@ -4735,6 +4734,7 @@ static void scoreXLIons_(
       p.setValue("peptide:missed_cleavages", 2);
       p.setValue("precursor:isotopes", IntList{0, 1});
       p.setValue("decoys", generate_decoys ? "true" : "false");
+      p.setValue("FDR:PSM", 0.0); // disable built-in FDR — OpenNuXL handles FDR filtering separately
       p.setValue("enzyme", getStringOption_("peptide:enzyme"));
       p.setValue("annotate:PSM", 
         vector<string>{
@@ -4760,7 +4760,7 @@ static void scoreXLIons_(
 
         // add RT prediction as extra feature for percolator      
         auto search_parameters = prot_ids[0].getSearchParameters();
-        String new_features = (String)search_parameters.getMetaValue("extra_features") + String(",RT_error,RT_predict");
+        std::string new_features = StringUtils::toStr(search_parameters.getMetaValue("extra_features")) + std::string(", RT_error,RT_predict");
         search_parameters.setMetaValue("extra_features", new_features);
         prot_ids[0].setSearchParameters(search_parameters);
       }
@@ -4770,38 +4770,34 @@ static void scoreXLIons_(
         vector<ProteinIdentification> perc_prot_ids;
         PeptideIdentificationList perc_pep_ids;
 
-        const String percolator_executable = getStringOption_("percolator_executable");
+        const std::string percolator_executable = getStringOption_("percolator_executable");
         bool sufficient_PSMs_for_score_recalibration = pep_ids.size() > 1000;
         if (!percolator_executable.empty() && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
         {
-          String perc_in = out_idxml;
-          perc_in.substitute(".idXML", "_sse_perc_in.idXML");
+          std::string perc_in = out_idxml;
+          StringUtils::substitute(perc_in, ".idXML", "_sse_perc_in.idXML");
           IdXMLFile().store(perc_in, prot_ids, pep_ids);
 
           // run percolator on idXML
-          String perc_out = out_idxml;
-          perc_out.substitute(".idXML", "_sse_perc_out.idXML");
+          std::string perc_out = out_idxml;
+          StringUtils::substitute(perc_out, ".idXML", "_sse_perc_out.idXML");
            
-          String weights_out = out_idxml;
-          weights_out.substitute(".idXML", "_sse_perc.weights");
+          std::string weights_out = out_idxml;
+          StringUtils::substitute(weights_out, ".idXML", "_sse_perc.weights");
 
-          QStringList process_params;
-          process_params << "-in" << perc_in.toQString()
-                       << "-out" << perc_out.toQString()
-                       << "-percolator_executable" << percolator_executable.toQString()
-                       << "-train_best_positive" 
-                       << "-score_type" << "q-value"
-                       << "-post_processing_tdc"
-                       << "-weights" << weights_out.toQString()
-//                       << "-nested_xval_bins" << "3"
-                       ;
+          std::vector<std::string> process_params = {"-in", perc_in, "-out", perc_out,
+                       "-percolator_executable", percolator_executable,
+                       "-train_best_positive",
+                       "-score_type", "q-value",
+                       "-post_processing_tdc",
+                       "-weights", weights_out};
 
           if (getStringOption_("peptide:enzyme") == "Lys-C")
           {
-            process_params << "-enzyme" << "lys-c";
+            process_params.push_back("-enzyme"); process_params.push_back("lys-c");
           }
-                       
-          TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
+
+          TOPPBase::ExitCodes exit_code = runExternalProcess_(std::string("PercolatorAdapter"), process_params);
 
           if (exit_code != EXECUTION_OK) 
           { 
@@ -4828,7 +4824,7 @@ static void scoreXLIons_(
         {
           for (const auto& pi : perc_pep_ids)
           {
-            skip_peptide_spectrum.insert((String)pi.getMetaValue("spectrum_reference")); // get native id
+            skip_peptide_spectrum.insert(StringUtils::toStr(pi.getMetaValue("spectrum_reference"))); // get native id
           }
         }
 
@@ -4870,7 +4866,7 @@ static void scoreXLIons_(
           // filter all coeluting MS2 with high spectral similarity to identified one
           for (const auto& pi : perc_pep_ids)
           {
-            String this_native_id = (String)pi.getMetaValue("spectrum_reference");
+            std::string this_native_id = StringUtils::toStr(pi.getMetaValue("spectrum_reference"));
 
             std::vector<Size> result_indices;
 
@@ -4883,10 +4879,10 @@ static void scoreXLIons_(
               for (Size ix : result_indices)
               {
                 auto f = kdtree.feature(ix);
-                const String other_native_id = f->getMetaValue("native_id");
+                const std::string other_native_id = StringUtils::toStr(f->getMetaValue("native_id"));
 
                 // skip self-comparison and already identified spectra
-                if (this_native_id == other_native_id || skip_peptide_spectrum.count(other_native_id) > 0) continue;
+                if (this_native_id == other_native_id || skip_peptide_spectrum.contains(other_native_id)) continue;
 
                 const MSSpectrum& this_spec = spectra[lookup.findByNativeID(this_native_id)];
                 const MSSpectrum& other_spec = spectra[lookup.findByNativeID(other_native_id)];
@@ -4998,7 +4994,7 @@ static void scoreXLIons_(
    
     OPENMS_LOG_INFO << "IDFilter excludes " << skip_peptide_spectrum.size() << " spectra." << endl;
  
-    String out_tsv = getStringOption_("out_tsv");
+    std::string out_tsv = getStringOption_("out_tsv");
 
     fast_scoring_ = getStringOption_("NuXL:scoring") == "fast" ? true : false;
 
@@ -5016,7 +5012,7 @@ static void scoreXLIons_(
     double small_peptide_mass_filter_threshold = getDoubleOption_("NuXL:filter_small_peptide_mass");
 
     StringList fixedModNames = getStringList_("modifications:fixed");
-    set<String> fixed_unique(fixedModNames.begin(), fixedModNames.end());
+    set<std::string> fixed_unique(fixedModNames.begin(), fixedModNames.end());
 
     Size peptide_min_size = getIntOption_("peptide:min_size");
 
@@ -5027,7 +5023,7 @@ static void scoreXLIons_(
     }
 
     StringList varModNames = getStringList_("modifications:variable");
-    set<String> var_unique(varModNames.begin(), varModNames.end());
+    set<std::string> var_unique(varModNames.begin(), varModNames.end());
     if (var_unique.size() != varModNames.size())
     {
       OPENMS_LOG_WARN << "duplicate variable modification provided." << endl;
@@ -5050,7 +5046,7 @@ static void scoreXLIons_(
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
         "q-value list for PSMs and peptides differ in size.", 
-        String(XL_FDR.size()) + "!=" + String(XL_peptidelevel_FDR.size())); 
+        StringUtils::toStr(XL_FDR.size()) + "!=" + StringUtils::toStr(XL_peptidelevel_FDR.size())); 
     }
 
     // determine maximum FDR treshold used to create result files
@@ -5066,7 +5062,7 @@ static void scoreXLIons_(
     // these are responsible for shifted fragment ions. Their fragment adducts thus determine which shifts will be observed on b-,a-,y-ions
     StringList modifications;
     StringList fragment_adducts;
-    String can_cross_link;
+    std::string can_cross_link;
     // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
     StringList target_nucleotides;
     // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
@@ -5085,11 +5081,11 @@ static void scoreXLIons_(
 
       for (const auto& t : target_nucleotides) // TODO: improve: checking also formula is safe
       {
-        if (t.hasPrefix("U") || t.hasPrefix("u"))
+        if (StringUtils::hasPrefix(t, "U") || StringUtils::hasPrefix(t, "u"))
         {
           isRNA = true;
         } 
-        else if (t.hasPrefix("T") || t.hasPrefix("t"))
+        else if (StringUtils::hasPrefix(t, "T") || StringUtils::hasPrefix(t, "t"))
         {
           isRNA = false;
         }
@@ -5097,16 +5093,16 @@ static void scoreXLIons_(
     }
     else
     { // set from presets
-      String p = getStringOption_("NuXL:presets");
-      String custom_presets_file = getStringOption_("NuXL:presets_file");
+      std::string p = getStringOption_("NuXL:presets");
+      std::string custom_presets_file = getStringOption_("NuXL:presets_file");
       NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
       
       // set if DNA or RNA preset
-      if (p.hasSubstring("RNA"))
+      if (StringUtils::hasSubstring(p, "RNA"))
       {      
         isRNA = true;
       }
-      else if (p.hasSubstring("DNA"))
+      else if (StringUtils::hasSubstring(p, "DNA"))
       {
         isRNA = false;
       }
@@ -5114,7 +5110,7 @@ static void scoreXLIons_(
     // convert string to set
     for (const auto& c : can_cross_link) { can_xl_.insert(c); } // sort and make unique
 
-    String sequence_restriction = getStringOption_("NuXL:sequence");
+    std::string sequence_restriction = getStringOption_("NuXL:sequence");
 
     Int max_nucleotide_length = getIntOption_("NuXL:length");
 
@@ -5170,7 +5166,7 @@ static void scoreXLIons_(
     MzMLFile f;
     f.setLogType(log_type_);
 
-    map<String, PrecursorPurity::PurityScores> purities = calculatePrecursorPurities_(in_mzml, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+    unordered_map<std::string, PrecursorPurity::PurityScores> purities = calculatePrecursorPurities_(in_mzml, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
 
     // define percolator feature set
     StringList data_dependent_features; // percolator features that only exist e.g., if MS1 spectra were present
@@ -5223,7 +5219,7 @@ static void scoreXLIons_(
 
       IntList ms_level = {1};
       double rt_chunk = 300.0; // 5 minutes covered by each linear model
-      String qc_residual_path, qc_residual_png_path;
+      std::string qc_residual_path, qc_residual_png_path;
 
       if (!ic.calibrate(spectra, ms_level, md, rt_chunk, use_RANSAC, 
               10.0,
@@ -5302,7 +5298,7 @@ static void scoreXLIons_(
     {
       progresslogger.startProgress(0, 1, "Generating decoys...");
       ProteaseDigestion digestor;
-      const String enzyme = getStringOption_("peptide:enzyme");
+      const std::string enzyme = getStringOption_("peptide:enzyme");
       digestor.setEnzyme(enzyme);
       digestor.setMissedCleavages(0);  // for decoy generation disable missed cleavages
 
@@ -5350,7 +5346,7 @@ static void scoreXLIons_(
     progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
-    set<StringView> processed_petides;
+    set<std::string_view> processed_petides;
 
     // set minimum size of peptide after digestion
     Size min_peptide_length = (Size)getIntOption_("peptide:min_size");
@@ -5374,11 +5370,11 @@ static void scoreXLIons_(
         progresslogger.setProgress((SignedSize)count_proteins);
       }
 
-      vector<StringView> current_digest;
+      vector<std::string_view> current_digest;
 
       auto const & current_fasta_entry = fasta_db[fasta_index];
 
-      bool is_decoy = current_fasta_entry.identifier[5] == '_'; // faster check than current_fasta_entry.identifier.hasPrefix("DECOY_")
+      bool is_decoy = current_fasta_entry.identifier[5] == '_'; // faster check than current_fasta_entry.StringUtils::hasPrefix(identifier, "DECOY_")
 
       // digest the protein into peptides (filter out too short or too long peptides)
       digestor.digestUnmodified(current_fasta_entry.sequence, current_digest, min_peptide_length, max_peptide_length);
@@ -5392,7 +5388,7 @@ static void scoreXLIons_(
 #endif
         {
           // skip peptide (and all modified variants) if already processed
-          if (processed_petides.find(*cit) != processed_petides.end())
+          if (processed_petides.contains(*cit))
           {
             already_processed = true;
           }
@@ -5424,7 +5420,7 @@ static void scoreXLIons_(
           ++count_target_peptides;
         }
 
-        const String unmodified_sequence = cit->getString();
+        const std::string unmodified_sequence = std::string(*cit);
 
          // only process peptides without ambiguous amino acids (placeholder / any amino acid)
         if (unmodified_sequence.find_first_of("XBZ") != std::string::npos) continue;
@@ -5454,7 +5450,7 @@ static void scoreXLIons_(
           Size NA_mod_index = 0;
 
 	  // for the current variably and statically modified peptide, apply all precursor adducts (RNA/DNA oligos with/without losses)
-          for (std::map<String, double>::const_iterator na_mod_it = mm.formula2mass.begin(); 
+          for (std::map<std::string, double>::const_iterator na_mod_it = mm.formula2mass.begin(); 
             na_mod_it != mm.formula2mass.end(); 
             ++na_mod_it, ++NA_mod_index)
           {            
@@ -5501,7 +5497,7 @@ static void scoreXLIons_(
               auto NA_adduct_it = mod_combinations_it->second.begin();
               for (size_t NA_adduct_amb_index = 0; NA_adduct_amb_index != NA_adducts.size(); ++NA_adduct_amb_index, ++NA_adduct_it)
               { // for all NA adducts with current sum formula (e.g, U-H2O and C-NH3)
-                const String& precursor_na_adduct = *NA_adduct_it;
+                const std::string& precursor_na_adduct = *NA_adduct_it;
 
                 if (precursor_na_adduct == "none")
                 {
@@ -5569,7 +5565,7 @@ static void scoreXLIons_(
                     NuXLAnnotatedHit ah;
                     ah.NA_adduct_amb_index = NA_adduct_amb_index; // store index the entry in the set of ambiguous precursor adducts
                     ah.mass_error_p = mass_error_score;
-                    ah.sequence = *cit; // copy StringView
+                    ah.sequence = *cit; // copy view
                     ah.peptide_mod_index = mod_pep_idx;
                     ah.MIC = tlss_MIC;
                     ah.err = tlss_err;
@@ -5662,7 +5658,7 @@ static void scoreXLIons_(
 
                   //cout << "'" << precursor_na_adduct << "'" << endl;
                   //OPENMS_POSTCONDITION(!feasible_MS2_adducts.empty(),
-                  //                String("FATAL: No feasible adducts for " + precursor_na_adduct).c_str());
+                  //                StringUtils::toStr("FATAL: No feasible adducts for " + precursor_na_adduct).c_str());
 
 
                   // Do we have (nucleotide) specific fragmentation adducts? for the current NA adduct on the precursor?
@@ -5697,7 +5693,7 @@ static void scoreXLIons_(
                       const PeakSpectrum & exp_spectrum = spectra[scan_index];
                       //////////////////////////////////////////
                       //               ID-Filter
-                      if (skip_peptide_spectrum.find(exp_spectrum.getNativeID()) != skip_peptide_spectrum.end()) { continue; }
+                      if (skip_peptide_spectrum.contains(exp_spectrum.getNativeID())) { continue; }
 
 #pragma omp atomic
                       ++nr_candidates[scan_index]; // count candidate for spectrum
@@ -5802,7 +5798,7 @@ static void scoreXLIons_(
                       ah.NA_adduct_amb_index = NA_adduct_amb_index; // store index the entry in the set of ambiguous precursor adducts
                       ah.mass_error_p = mass_error_score;
 
-                      ah.sequence = *cit; // copy StringView
+                      ah.sequence = *cit; // copy view
                       ah.peptide_mod_index = mod_pep_idx;
   /*
   /////////////////////////////////////////////////////////////////////////////// test recalculate hyperscore on merged XL/non-XL ladders
@@ -5902,10 +5898,10 @@ static void scoreXLIons_(
               for (auto & l = low_it; l != up_it; ++l)
               {
                 const Size & scan_index = l->second.first;
-                const String& precursor_na_adduct = *mod_combinations_it->second.begin(); // For fast scoring it should be sufficient to only consider any of the adducts for this mass and formula (e.g., C-H3N vs U-H2O)
+                const std::string& precursor_na_adduct = *mod_combinations_it->second.begin(); // For fast scoring it should be sufficient to only consider any of the adducts for this mass and formula (e.g., C-H3N vs U-H2O)
                 MSSpectrum& exp_spectrum = spectra[scan_index];
 
-                if (precursor_na_adduct != "none" && skip_peptide_spectrum.find(exp_spectrum.getNativeID()) != skip_peptide_spectrum.end()) continue;
+                if (precursor_na_adduct != "none" && skip_peptide_spectrum.contains(exp_spectrum.getNativeID())) continue;
 
 #pragma omp atomic       
                 ++nr_candidates[scan_index];
@@ -6168,7 +6164,7 @@ static void scoreXLIons_(
       {
         OPENMS_LOG_INFO << "Imputing decoy medians." << endl;
         // calculate median score of decoys for specific meta value
-        auto metaMedian = [](const PeptideIdentificationList & peptide_ids, const String name)->double
+        auto metaMedian = [](const PeptideIdentificationList & peptide_ids, const std::string name)->double
         {
           vector<double> decoy_XL_scores;
           for (const auto & pi : peptide_ids)
@@ -6188,7 +6184,7 @@ static void scoreXLIons_(
      
 /*
         // all medians 
-        auto metaMean = [](const PeptideIdentificationList & peptide_ids, const String name)->double
+        auto metaMean = [](const PeptideIdentificationList & peptide_ids, const std::string name)->double
         {
           vector<double> decoy_XL_scores;
           for (const auto & pi : peptide_ids)
@@ -6206,8 +6202,8 @@ static void scoreXLIons_(
           return Math::mean(decoy_XL_scores.begin(), decoy_XL_scores.end());
         };
 */
-        map<String, double> medians;
-        for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
+        map<std::string, double> medians;
+        for (const std::string mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
         {
            medians[mn] = metaMedian(peptide_ids, mn);
            OPENMS_LOG_DEBUG << "median(" << mn << "):" << medians[mn] << endl;
@@ -6222,7 +6218,7 @@ static void scoreXLIons_(
              const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
              if (!is_XL) 
              { 
-               for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
+               for (const std::string mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
                {
                  ph.setMetaValue(mn, medians[mn]);   // impute missing with medians
                }
@@ -6333,7 +6329,7 @@ static void scoreXLIons_(
 
         // add RT prediction as extra feature for percolator      
         auto search_parameters = protein_ids[0].getSearchParameters();
-        String new_features = (String)search_parameters.getMetaValue("extra_features") + String(",RT_error,RT_predict");
+        std::string new_features = StringUtils::toStr(search_parameters.getMetaValue("extra_features")) + std::string(", RT_error,RT_predict");
         search_parameters.setMetaValue("extra_features", new_features);
         protein_ids[0].setSearchParameters(search_parameters);
       }
@@ -6347,8 +6343,8 @@ static void scoreXLIons_(
 
       // split PSMs into XLs and non-XLs but keep only best one of both
       OPENMS_LOG_INFO << "Calculating peptide and XL q-values." << endl;
-      String original_PSM_output_filename(out_idxml);
-      original_PSM_output_filename.substitute(".idXML", "_");
+      std::string original_PSM_output_filename(out_idxml);
+      StringUtils::substitute(original_PSM_output_filename, ".idXML", "_");
       PeptideIdentificationList pep_pi, xl_pi;
       if (extra_output_directory.empty())
       {
@@ -6365,14 +6361,14 @@ static void scoreXLIons_(
         // copy XL results (with highest threshold=little filtering) to output
         if (!out_xl_idxml.empty())
         {
-          File::copy(original_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
+          File::copy(original_PSM_output_filename + StringUtils::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
         }
       }
       else
       { // use output_folder
-        String id_xml_out = extra_output_directory;
-        id_xml_out.ensureLastChar('/');
-        id_xml_out += File::basename(out_idxml).substitute(".idXML", "_");
+        std::string id_xml_out = extra_output_directory;
+        StringUtils::ensureLastChar(id_xml_out, '/');
+        id_xml_out += StringUtils::substituted(File::basename(out_idxml), ".idXML", "_");
 
         fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
           peptide_ids,
@@ -6387,7 +6383,7 @@ static void scoreXLIons_(
         // copy XL results (with highest threshold=little filtering) to output
         if (!out_xl_idxml.empty())
         {
-          File::copy(id_xml_out + String::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
+          File::copy(id_xml_out + StringUtils::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
         }
       }
 
@@ -6396,38 +6392,34 @@ static void scoreXLIons_(
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // score recalibration with percolator
 
-      String percolator_executable = getStringOption_("percolator_executable");
+      std::string percolator_executable = getStringOption_("percolator_executable");
       bool sufficient_PSMs_for_score_recalibration = (xl_pi.size() + pep_pi.size()) >= 1000;
       if (!percolator_executable.empty() && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
       {
         // run percolator on idXML
-        String perc_out = out_idxml;
-        perc_out.substitute(".idXML", "_perc.idXML");
-        String weights_out = out_idxml;
-        weights_out.substitute(".idXML", ".weights");
-        String pin = out_idxml;
-        pin.substitute(".idXML", ".tsv");
+        std::string perc_out = out_idxml;
+        StringUtils::substitute(perc_out, ".idXML", "_perc.idXML");
+        std::string weights_out = out_idxml;
+        StringUtils::substitute(weights_out, ".idXML", ".weights");
+        std::string pin = out_idxml;
+        StringUtils::substitute(pin, ".idXML", ".tsv");
 
-        QStringList process_params;
-        process_params << "-in" << out_idxml.toQString()
-                       << "-out" << perc_out.toQString()
-                       << "-percolator_executable" << percolator_executable.toQString()
-                       << "-train_best_positive" 
-                       << "-score_type" << "svm"
-                       << "-unitnorm"
-                       << "-post_processing_tdc"
-//                       << "-nested_xval_bins" << "3"
-                       << "-weights" << weights_out.toQString()
-                       << "-out_pin" << pin.toQString();
+        std::vector<std::string> process_params = {"-in", out_idxml, "-out", perc_out,
+                       "-percolator_executable", percolator_executable,
+                       "-train_best_positive",
+                       "-score_type", "svm",
+                       "-unitnorm",
+                       "-post_processing_tdc",
+                       "-weights", weights_out,
+                       "-out_pin", pin};
 
         if (getStringOption_("peptide:enzyme") == "Lys-C")
         {
-          process_params << "-enzyme" << "lys-c";
+          process_params.push_back("-enzyme"); process_params.push_back("lys-c");
         }
-//        process_params << "-out_pout_target" << "merged_target.tab" << "-out_pout_decoy" << "merged_decoy.tab";
 
         OPENMS_LOG_INFO << "Running percolator." << endl;
-        TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
+        TOPPBase::ExitCodes exit_code = runExternalProcess_(std::string("PercolatorAdapter"), process_params);
         OPENMS_LOG_INFO << "done." << endl;
 
         if (exit_code != EXECUTION_OK) 
@@ -6455,14 +6447,14 @@ static void scoreXLIons_(
             {
               csv_file.addLine(r.getString("\t"));
             }
-            const String out_percolator_tsv = FileHandler::stripExtension(out_tsv) + "_perc.tsv";
+            const std::string out_percolator_tsv = FileHandler::stripExtension(out_tsv) + "_perc.tsv";
             csv_file.store(out_percolator_tsv);
           }
 
           PeptideIdentificationList pep_pi, xl_pi;
           
-          String percolator_PSM_output_filename(out_idxml);
-          percolator_PSM_output_filename.substitute(".idXML", "_perc_");
+          std::string percolator_PSM_output_filename(out_idxml);
+          StringUtils::substitute(percolator_PSM_output_filename, ".idXML", "_perc_");
           OPENMS_LOG_INFO << "Calculating peptide and XL q-values for percolator results." << endl;
 
           if (extra_output_directory.empty())
@@ -6481,14 +6473,14 @@ static void scoreXLIons_(
             // copy XL results (with highest threshold=little filtering) to outut TODO: first copy would not be needed
             if (!out_xl_idxml.empty())
             {
-              File::copy(percolator_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
+              File::copy(percolator_PSM_output_filename + StringUtils::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
             }
           }
           else
           { // use output_folder
-            String id_xml_out = extra_output_directory;
-            id_xml_out.ensureLastChar('/');
-            id_xml_out += File::basename(out_idxml).substitute(".idXML", "_perc_");
+            std::string id_xml_out = extra_output_directory;
+            StringUtils::ensureLastChar(id_xml_out, '/');
+            id_xml_out += StringUtils::substituted(File::basename(out_idxml), ".idXML", "_perc_");
 
             fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
               peptide_ids,
@@ -6505,7 +6497,7 @@ static void scoreXLIons_(
             // copy XL results (with highest threshold=little filtering) to output TODO: first copy would not be needed if percolator succeeds
             if (!out_xl_idxml.empty())
             {
-              File::copy(id_xml_out + String::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
+              File::copy(id_xml_out + StringUtils::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
             }
           }
           OPENMS_LOG_INFO << "done." << endl;
@@ -6616,7 +6608,7 @@ static void scoreXLIons_(
   }
 };
 
-map<String, vector<vector<double>>> OpenNuXL::fragment_adduct2block_if_masses_present = {};
+map<std::string, vector<vector<double>>> OpenNuXL::fragment_adduct2block_if_masses_present = {};
 
 int main(int argc, const char** argv)
 {

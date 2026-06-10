@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
@@ -65,7 +65,7 @@ public:
               ProteinIdentification & protein_identification,
               const double & score_threshold,
               const IndexPosMappingType & id_rt_mz,
-              const std::map<String, String> & mod_id_map);
+              const std::map<std::string, std::string> & mod_id_map);
 
     /** @brief get the search engine version and search parameters from a PepNovo output file
      *
@@ -74,7 +74,7 @@ public:
         @param[in] pepnovo_output_without_parameters_filename
         @param[in] protein_identification
     */
-    void getSearchEngineAndVersion(const String & pepnovo_output_without_parameters_filename, ProteinIdentification & protein_identification);
+    void getSearchEngineAndVersion(const std::string & pepnovo_output_without_parameters_filename, ProteinIdentification & protein_identification);
 
   };
 

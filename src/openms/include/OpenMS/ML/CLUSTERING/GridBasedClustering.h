@@ -10,7 +10,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/ML/CLUSTERING/ClusteringGrid.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
@@ -158,10 +158,10 @@ public:
     void cluster()
     {
       // progress logger
-      // NOTE: for some reason, gcc7 chokes if we remove the OpenMS::String
+      // NOTE: for some reason, gcc7 chokes if we remove the std::string
       // below, so lets just not change it.
       Size clusters_start = clusters_.size();
-      startProgress(0, clusters_start, OpenMS::String("clustering"));
+      startProgress(0, clusters_start, std::string("clustering"));
 
       MinimumDistance zero_distance(-1, -1, 0);
 

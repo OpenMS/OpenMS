@@ -38,10 +38,10 @@ START_SECTION(bool ModificationsDB::isInstantiated())
 }
 END_SECTION
 
-ModificationsDB* ptr = nullptr;
-ModificationsDB* nullPointer = nullptr;
+const ModificationsDB* ptr = nullptr;
+const ModificationsDB* nullPointer = nullptr;
 
-START_SECTION(ModificationsDB* getInstance())
+START_SECTION(const ModificationsDB* getInstance())
 {
 	ptr = ModificationsDB::getInstance();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -64,7 +64,7 @@ START_SECTION(const ResidueModification& getModification(Size index) const)
 	TEST_EQUAL(!ptr->getModification(0)->getId().empty(), true)
 END_SECTION
 
-  START_SECTION((void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const))
+  START_SECTION((void searchModifications(std::set<const ResidueModification*>& mods, const std::string& mod_name, const std::string& residue, ResidueModification::TermSpecificity term_spec) const))
 {
   set<const ResidueModification*> mods;
   ptr->searchModifications(mods, "Phosphorylation", "T", ResidueModification::ANYWHERE);
@@ -143,9 +143,9 @@ END_SECTION
 END_SECTION
 
 
-START_SECTION((void searchModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)))
+START_SECTION((void searchModificationsByDiffMonoMass(std::vector<std::string>& mods, double mass, double max_error, const std::string& residue, ResidueModification::TermSpecificity term_spec)))
 {
-  vector<String> mods;
+  vector<std::string> mods;
   ptr->searchModificationsByDiffMonoMass(mods, 80.0, 0.1, "S");
   TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho (S)") != mods.end(), true);
   TEST_EQUAL(find(mods.begin(), mods.end(), "Sulfo (S)") != mods.end(), true);
@@ -156,8 +156,8 @@ START_SECTION((void searchModificationsByDiffMonoMass(std::vector<String>& mods,
 
   // terminal mod:
   ptr->searchModificationsByDiffMonoMass(mods, 42, 0.1, "", ResidueModification::N_TERM);
-  set<String> uniq_mods;
-  for (vector<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+  set<std::string> uniq_mods;
+  for (vector<std::string>::const_iterator it = mods.begin(); it != mods.end(); ++it)
   {
     uniq_mods.insert(*it);
   }
@@ -171,7 +171,7 @@ START_SECTION((void searchModificationsByDiffMonoMass(std::vector<String>& mods,
 
   ptr->searchModificationsByDiffMonoMass(mods, 80.0, 0.1);
   uniq_mods.clear();
-  for (vector<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+  for (vector<std::string>::const_iterator it = mods.begin(); it != mods.end(); ++it)
   {
     uniq_mods.insert(*it);
   }
@@ -212,7 +212,7 @@ START_SECTION((void searchModificationsByDiffMonoMass(std::vector<String>& mods,
 }
 END_SECTION
 
-START_SECTION((const ResidueModification& getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const))
+START_SECTION((const ResidueModification& getModification(const std::string& mod_name, const std::string& residue, ResidueModification::TermSpecificity term_spec) const))
 {
   TEST_EQUAL(ptr->getModification("Carboxymethyl (C)")->getFullId(), "Carboxymethyl (C)");
   TEST_EQUAL(ptr->getModification("Carboxymethyl (C)")->getId(), "Carboxymethyl");
@@ -232,7 +232,7 @@ START_SECTION((const ResidueModification& getModification(const String& mod_name
 }
 END_SECTION
 
-START_SECTION((Size findModificationIndex(const String& mod_name) const))
+START_SECTION((Size findModificationIndex(const std::string& mod_name) const))
 {
   Size index = numeric_limits<Size>::max();
   index = ptr->findModificationIndex("Phospho (T)");
@@ -240,19 +240,10 @@ START_SECTION((Size findModificationIndex(const String& mod_name) const))
 }
 END_SECTION
 
-START_SECTION(void readFromOBOFile(const String& filename))
-	// implicitely tested above
-	NOT_TESTABLE
-END_SECTION
 
-START_SECTION(void readFromUnimodXMLFile(const String& filename))
-	// just provided for convenience at the moment
-	NOT_TESTABLE
-END_SECTION
-
-START_SECTION((void getAllSearchModifications(std::vector<String>& modifications)))
+START_SECTION((void getAllSearchModifications(std::vector<std::string>& modifications)))
 {
-  vector<String> mods;
+  vector<std::string> mods;
   ptr->getAllSearchModifications(mods);
   TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho (S)") != mods.end(), true);
   TEST_EQUAL(find(mods.begin(), mods.end(), "Sulfo (S)") != mods.end(), true);
@@ -288,14 +279,14 @@ START_SECTION([EXTRA] multithreaded example)
   // 1e6 iterations -> 6.28 seconds with std::mutex
   // 1e6 iterations -> 4.64 seconds with pragma critical
 
-   static ModificationsDB* mdb = ModificationsDB::getInstance();
+   static const ModificationsDB* mdb = ModificationsDB::getInstance();
 
    int nr_iterations (1e4), test (0);
 #pragma omp parallel for reduction (+: test)
   for (int k = 1; k < nr_iterations + 1; k++)
   {
     int mod_id = k;
-    String modname = "mod" + String(mod_id);
+    std::string modname = "mod" + StringUtils::toStr(mod_id);
     std::unique_ptr<ResidueModification> new_mod(new ResidueModification());
     new_mod->setFullId(modname);
     new_mod->setMonoMass( 0.11 * mod_id);
@@ -313,7 +304,7 @@ START_SECTION([EXTRA] multithreaded example)
   for (int k = 1; k < nr_iterations + 1; k++)
   {
     int mod_id = 42;
-    String modname = "mod" + String(mod_id);
+    std::string modname = "mod" + StringUtils::toStr(mod_id);
     if (!mdb->has(modname))
     {
       std::unique_ptr<ResidueModification> new_mod(new ResidueModification());

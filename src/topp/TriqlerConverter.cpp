@@ -8,9 +8,13 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
@@ -63,11 +67,11 @@ protected:
       // Input consensusXML
       registerInputFile_(param_in, "<in>", "", "Input consensusXML with peptide intensities",
                          true, false);
-      setValidFormats_(param_in, ListUtils::create<String>("consensusXML"), true);
+      setValidFormats_(param_in, ListUtils::create<std::string>("consensusXML"), true);
 
       registerInputFile_(param_in_design, "<in_design>", "", "Experimental Design file", true,
                          false);
-      setValidFormats_(param_in_design, ListUtils::create<String>("tsv"), true);
+      setValidFormats_(param_in_design, ListUtils::create<std::string>("tsv"), true);
 
       registerStringOption_(param_Triqler_condition, "<Triqler_condition>", "Triqler_Condition",
                             "Which column in the condition table should be used for Triqler 'Condition'", false, false);
@@ -75,11 +79,11 @@ protected:
       // advanced option to overwrite MS file annotations in consensusXML
       registerInputFileList_(param_reannotate_filenames, "<file(s)>", StringList(),
                              "Overwrite MS file names in consensusXML", false, true);
-      setValidFormats_(param_reannotate_filenames, ListUtils::create<String>("mzML"), true);                             
+      setValidFormats_(param_reannotate_filenames, ListUtils::create<std::string>("mzML"), true);                             
 
       // Output CSV file
       registerOutputFile_(param_out, "<out>", "", "Input CSV file for Triqler.", true, false);
-      setValidFormats_(param_out, ListUtils::create<String>("csv"));
+      setValidFormats_(param_out, ListUtils::create<std::string>("csv"));
     }
 
     // the main_ function is called after all parameters are read
@@ -88,7 +92,7 @@ protected:
       try
       {
         // Input file, must be consensusXML
-        const String arg_in(getStringOption_(param_in));
+        const std::string arg_in(getStringOption_(param_in));
         const FileTypes::Type in_type(FileHandler::getType(arg_in));
 
         fatalErrorIf_(
@@ -96,11 +100,11 @@ protected:
                 "Input type is not consensusXML!",
                 ILLEGAL_PARAMETERS);
         // Tool arguments
-        const String arg_method = getStringOption_(param_method);
-        const String arg_out = getStringOption_(param_out);
+        const std::string arg_method = getStringOption_(param_method);
+        const std::string arg_out = getStringOption_(param_out);
 
         // Experimental Design file
-        const String arg_in_design = getStringOption_(param_in_design);
+        const std::string arg_in_design = getStringOption_(param_in_design);
         const ExperimentalDesign design = ExperimentalDesignFile::load(arg_in_design, false);
         ExperimentalDesign::SampleSection sampleSection = design.getSampleSection();
 
@@ -108,8 +112,8 @@ protected:
         FileHandler().loadConsensusFeatures(arg_in, consensus_map, {FileTypes::CONSENSUSXML});
 
         StringList reannotate_filenames = getStringList_(param_reannotate_filenames);
-        String condition = getStringOption_(param_Triqler_condition);
-        String retention_time_summarization_method = getStringOption_(param_retention_time_summarization_method);
+        std::string condition = getStringOption_(param_Triqler_condition);
+        std::string retention_time_summarization_method = getStringOption_(param_retention_time_summarization_method);
 
         TriqlerFile TriqlerFile;
 
@@ -127,16 +131,16 @@ protected:
 
     }
 
-    static const String param_in;
-    static const String param_in_design;
-    static const String param_method;
-    static const String param_Triqler_condition;
-    static const String param_out;    
-    static const String param_retention_time_summarization_method;
-    static const String param_reannotate_filenames;
+    static const std::string param_in;
+    static const std::string param_in_design;
+    static const std::string param_method;
+    static const std::string param_Triqler_condition;
+    static const std::string param_out;    
+    static const std::string param_retention_time_summarization_method;
+    static const std::string param_reannotate_filenames;
 
 private:
-    static void fatalErrorIf_(const bool error_condition, const String &message, const int exit_code)
+    static void fatalErrorIf_(const bool error_condition, const std::string &message, const int exit_code)
     {
       if (error_condition)
       {
@@ -146,13 +150,13 @@ private:
     }
 };
 
-const String TOPPTriqlerConverter::param_in = "in";
-const String TOPPTriqlerConverter::param_in_design = "in_design";
-const String TOPPTriqlerConverter::param_method = "method";
-const String TOPPTriqlerConverter::param_Triqler_condition = "Triqler_condition";
-const String TOPPTriqlerConverter::param_out = "out";
-const String TOPPTriqlerConverter::param_retention_time_summarization_method = "retention_time_summarization_method";
-const String TOPPTriqlerConverter::param_reannotate_filenames = "reannotate_filenames";
+const std::string TOPPTriqlerConverter::param_in = "in";
+const std::string TOPPTriqlerConverter::param_in_design = "in_design";
+const std::string TOPPTriqlerConverter::param_method = "method";
+const std::string TOPPTriqlerConverter::param_Triqler_condition = "Triqler_condition";
+const std::string TOPPTriqlerConverter::param_out = "out";
+const std::string TOPPTriqlerConverter::param_retention_time_summarization_method = "retention_time_summarization_method";
+const std::string TOPPTriqlerConverter::param_reannotate_filenames = "reannotate_filenames";
 
 // the actual main function needed to create an executable
 int main(int argc, const char **argv)

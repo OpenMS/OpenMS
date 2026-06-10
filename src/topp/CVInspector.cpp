@@ -56,31 +56,31 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("cv_files", "<files>", StringList(), "List of ontology files in OBO format.");
-    setValidFormats_("cv_files", ListUtils::create<String>("obo"));
+    setValidFormats_("cv_files", ListUtils::create<std::string>("obo"));
 
     registerStringList_("cv_names", "<names>", StringList(), "List of identifiers (one for each ontology file).");
 
     registerInputFile_("mapping_file", "<file>", "", "Mapping file in CVMapping (XML) format.");
-    setValidFormats_("mapping_file", ListUtils::create<String>("XML"));
+    setValidFormats_("mapping_file", ListUtils::create<std::string>("XML"));
 
-    registerStringList_("ignore_cv", "<list>", ListUtils::create<String>("UO,PATO,BTO"), "A list of CV identifiers which should be ignored.", false);
+    registerStringList_("ignore_cv", "<list>", ListUtils::create<std::string>("UO,PATO,BTO"), "A list of CV identifiers which should be ignored.", false);
 
     registerOutputFile_("html", "<file>", "", "Writes an HTML version of the mapping file with annotated CV terms", false);
-    setValidFormats_("html", ListUtils::create<String>("HTML"));
+    setValidFormats_("html", ListUtils::create<std::string>("HTML"));
   }
 
-  void writeTermTree_(const String& accession, const ControlledVocabulary& cv, TextFile& file, UInt indent)
+  void writeTermTree_(const std::string& accession, const ControlledVocabulary& cv, TextFile& file, UInt indent)
   {
     const ControlledVocabulary::CVTerm& term = cv.getTerm(accession);
-    for (set<String>::const_iterator it = term.children.begin(); it != term.children.end(); ++it)
+    for (set<std::string>::const_iterator it = term.children.begin(); it != term.children.end(); ++it)
     {
       const ControlledVocabulary::CVTerm& child_term = cv.getTerm(*it);
-      String subterm_line;
+      std::string subterm_line;
       for (Size i = 0; i < 4 * indent; ++i) subterm_line += "&nbsp;";
-      String description = child_term.description;
+      std::string description = child_term.description;
       if (!child_term.synonyms.empty())
       {
-        description += String(" -- Synonyms: '") + ListUtils::concatenate(child_term.synonyms, ", ") + "'";
+        description +=std::string(" -- Synonyms: '") + ListUtils::concatenate(child_term.synonyms, ", ") + "'";
       }
       subterm_line += "- <span title=\"" + description + "\">" + child_term.id + " ! " + child_term.name + "</span>";
       StringList tags;
@@ -95,11 +95,11 @@ protected:
       if (!child_term.units.empty())
       {
         StringList units;
-        for (set<String>::const_iterator u_it = child_term.units.begin(); u_it != child_term.units.end(); ++u_it)
+        for (set<std::string>::const_iterator u_it = child_term.units.begin(); u_it != child_term.units.end(); ++u_it)
         {
           units.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
         }
-        tags.push_back(String("units=") + ListUtils::concatenate(units, ","));
+        tags.push_back(std::string("units=") + ListUtils::concatenate(units, ","));
       }
       if (!child_term.xref_binary.empty())
       {
@@ -108,11 +108,11 @@ protected:
         {
           types.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
         }
-        tags.push_back(String("binary-array-types=") + ListUtils::concatenate(types, ","));
+        tags.push_back(std::string("binary-array-types=") + ListUtils::concatenate(types, ","));
       }
       if (!tags.empty())
       {
-        subterm_line += String("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
+        subterm_line +=std::string("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
       }
       file.addLine(subterm_line + "<BR>");
       writeTermTree_(child_term.id, cv, file, indent + 1);
@@ -138,7 +138,7 @@ protected:
     auto terms = cv.getTerms();
 
     // load mappings from mapping file
-    String mapping_file = getStringOption_("mapping_file");
+    std::string mapping_file = getStringOption_("mapping_file");
     CVMappings mappings;
     CVMappingFile().load(mapping_file, mappings);
 
@@ -174,12 +174,12 @@ protected:
           ++term_count;
         }
       }
-      String expand_all = "    <a href=\"javascript:toggleDiv('div0','true')";
-      String collapse_all = "    <a href=\"javascript:toggleDiv('div0','false')";
+      std::string expand_all = "    <a href=\"javascript:toggleDiv('div0','true')";
+      std::string collapse_all = "    <a href=\"javascript:toggleDiv('div0','false')";
       for (Int i = 1; i < term_count; ++i)
       {
-        expand_all += String(";toggleDiv('div") + i + "','true')";
-        collapse_all += String(";toggleDiv('div") + i + "','false')";
+        expand_all +=std::string(";toggleDiv('div") + i + "','true')";
+        collapse_all +=std::string(";toggleDiv('div") + i + "','false')";
       }
       file.addLine(expand_all + "\">Expand all</a><BR>");
       file.addLine(collapse_all + "\">Collapse all</a>");
@@ -189,8 +189,8 @@ protected:
       {
         //create rule line
         file.addLine("      <TR><TD colspan=\"2\"><HR></TD></TR>");
-        file.addLine(String("      <TR><TD>Identifier:</TD><TD><B>") + it->getIdentifier() + "</B></TD></TR>");
-        file.addLine(String("      <TR><TD>Element:</TD><TD><B>") + it->getElementPath() + "</B></TD></TR>");
+        file.addLine(std::string("      <TR><TD>Identifier:</TD><TD><B>") + it->getIdentifier() + "</B></TD></TR>");
+        file.addLine(std::string("      <TR><TD>Element:</TD><TD><B>") + it->getElementPath() + "</B></TD></TR>");
         if (it->getRequirementLevel() == CVMappingRule::MUST)
         {
           file.addLine("      <TR><TD>Requirement level:</TD><TD><FONT color=\"red\">MUST</FONT></TD></TR>");
@@ -220,25 +220,25 @@ protected:
         for (vector<CVMappingTerm>::const_iterator tit = it->getCVTerms().begin(); tit != it->getCVTerms().end(); ++tit)
         {
           //create term line
-          String term_line = String("      <TR><TD valign=\"top\">Term:</TD><TD>");
+          std::string term_line =std::string("      <TR><TD valign=\"top\">Term:</TD><TD>");
           if (tit->getAllowChildren())
           {
             ++term_count;
-            term_line += String("<a href=\"javascript:toggleDiv('div") + term_count + "','')\" style=\"text-decoration:none\" >+</a> ";
+            term_line +=std::string("<a href=\"javascript:toggleDiv('div") + term_count + "','')\" style=\"text-decoration:none\" >+</a> ";
           }
           else
           {
-            term_line += String("&nbsp;&nbsp;");
+            term_line +=std::string("&nbsp;&nbsp;");
           }
           //add Term accession, name and description (as popup)
           if (cv.exists(tit->getAccession()))
           {
             const ControlledVocabulary::CVTerm& child_term = cv.getTerm(tit->getAccession());
 
-            String description = child_term.description;
+            std::string description = child_term.description;
             if (!child_term.synonyms.empty())
             {
-              description += String(" -- Synonyms: '") + ListUtils::concatenate(child_term.synonyms, ", ") + "'";
+              description +=std::string(" -- Synonyms: '") + ListUtils::concatenate(child_term.synonyms, ", ") + "'";
             }
             term_line += "<span title=\"" + description + "\">";
           }
@@ -277,11 +277,11 @@ protected:
             if (!term.units.empty())
             {
               StringList units;
-              for (set<String>::const_iterator u_it = term.units.begin(); u_it != term.units.end(); ++u_it)
+              for (set<std::string>::const_iterator u_it = term.units.begin(); u_it != term.units.end(); ++u_it)
               {
                 units.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
               }
-              tags.push_back(String("units=") + ListUtils::concatenate(units, ","));
+              tags.push_back(std::string("units=") + ListUtils::concatenate(units, ","));
             }
             if (!term.xref_binary.empty())
             {
@@ -290,30 +290,30 @@ protected:
               {
                 types.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
               }
-              tags.push_back(String("binary-array-types=") + ListUtils::concatenate(types, ","));
+              tags.push_back(std::string("binary-array-types=") + ListUtils::concatenate(types, ","));
             }
           }
           if (!tags.empty())
           {
-            term_line += String("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
+            term_line +=std::string("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
           }
           file.addLine(term_line);
 
           // check whether we need the whole tree, or just the term itself
           if (tit->getAllowChildren())
           {
-            file.addLine(String("        <div id=\"div") + term_count + R"(" style="display: none">)");
+            file.addLine(std::string("        <div id=\"div") + term_count + R"(" style="display: none">)");
             if (cv.exists(tit->getAccession()))
             {
               writeTermTree_(tit->getAccession(), cv, file, 1);
               //BEGIN - THIS IS NEEDED FOR WRITING PARSERS ONLY
               /*
-              set<String> allowed_terms;
+              set<std::string> allowed_terms;
               cv.getAllChildTerms(allowed_terms, tit->getAccession());
-              for (set<String>::const_iterator atit=allowed_terms.begin(); atit!=allowed_terms.end(); ++atit)
+              for (set<std::string>::const_iterator atit=allowed_terms.begin(); atit!=allowed_terms.end(); ++atit)
               {
                   const ControlledVocabulary::CVTerm& child_term = cv.getTerm(*atit);
-                  String parser_string = String("os << \"&lt;cvParam cvRef=\\\"MS\\\" accession=\\\"") + child_term.id + "\\\" name=\\\"" + child_term.name + "\\\"";
+                  std::string parser_string =std::string("os << \"&lt;cvParam cvRef=\\\"MS\\\" accession=\\\"") + child_term.id + "\\\" name=\\\"" + child_term.name + "\\\"";
                   for (Size i=0; i<child_term.unparsed.size(); ++i)
                   {
                       //TODO this does not work anymore. The type is now stored as a member
@@ -345,15 +345,15 @@ protected:
 
     // iterator over all mapping rules and store the mentioned terms
     StringList ignore_namespaces = getStringList_("ignore_cv");
-    set<String> ignore_cv_list;
+    set<std::string> ignore_cv_list;
     for (StringList::const_iterator it = ignore_namespaces.begin(); it != ignore_namespaces.end(); ++it)
     {
       ignore_cv_list.insert(*it);
     }
-    set<String> used_terms;
+    set<std::string> used_terms;
     for (vector<CVMappingRule>::const_iterator it = mappings.getMappingRules().begin(); it != mappings.getMappingRules().end(); ++it)
     {
-      set<String> allowed_terms;
+      set<std::string> allowed_terms;
       // iterate over all allowed terms
       for (vector<CVMappingTerm>::const_iterator tit = it->getCVTerms().begin(); tit != it->getCVTerms().end(); ++tit)
       {
@@ -367,7 +367,7 @@ protected:
         if (tit->getAllowChildren())
         {
           // check whether we want to ignore this term
-          if (!(tit->getAccession().has(':') && ignore_cv_list.find(tit->getAccession().prefix(':')) != ignore_cv_list.end()))
+          if (!(StringUtils::has(tit->getAccession(), ':') && ignore_cv_list.contains(StringUtils::prefix(tit->getAccession(), ':'))))
           {
             cv.getAllChildTerms(allowed_terms, tit->getAccession());
           }
@@ -379,7 +379,7 @@ protected:
 
       // print the allowed terms for the rule
       cout << "MappingRule: id=" << it->getIdentifier() << ", elementPath=" << it->getElementPath() << ", #terms=" << it->getCVTerms().size() << endl;
-      for (set<String>::const_iterator ait = allowed_terms.begin(); ait != allowed_terms.end(); ++ait)
+      for (set<std::string>::const_iterator ait = allowed_terms.begin(); ait != allowed_terms.end(); ++ait)
       {
         cout << *ait << " " << terms[*ait].name << endl;
       }
@@ -387,10 +387,10 @@ protected:
     }
 
     // find unused terms, which CANNOT be used in the XML due to the mapping file
-    set<String> unused_terms;
+    set<std::string> unused_terms;
     for (const auto& [acc, _] : terms)
     {
-      if (used_terms.find(acc) == used_terms.end())
+      if (!used_terms.contains(acc))
       {
         unused_terms.insert(acc);
       }

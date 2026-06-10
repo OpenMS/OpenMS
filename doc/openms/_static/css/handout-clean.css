@@ -1,0 +1,2027 @@
+ 
+/* start css.sty */
+.ec-lmtt-12{ font-family: monospace,monospace;}
+.ec-lmtt-12{ font-family: monospace,monospace;}
+.ec-lmtt-12{ font-family: monospace,monospace;}
+.ec-lmtt-12{ font-family: monospace,monospace;}
+.ec-lmtt-12{ font-family: monospace,monospace;}
+.ec-lmtt-12{ font-family: monospace,monospace;}
+.ec-lmtt-12{ font-family: monospace,monospace;}
+.ec-lmtt-12{ font-family: monospace,monospace;}
+.ec-lmtt-12{ font-family: monospace,monospace;}
+.rm-lmbx-12x-x-172{font-size:172%; font-weight: bold;}
+.cmr-8{font-size:66%;}
+.cmr-6{font-size:50%;}
+.cmmi-12{font-style: italic;}
+.rm-lmr-17{font-size:141%;}
+.rm-lmbx-12x-x-144{font-size:144%; font-weight: bold;}
+.rm-lmbx-12{ font-weight: bold;}
+.rm-lmr-10{font-size:83%;}
+.ec-lmss-10{font-size:83%; font-family: sans-serif;}
+.ec-lmss-10{ font-family: sans-serif;}
+.ec-lmss-10{ font-family: sans-serif;}
+.ec-lmss-10{ font-family: sans-serif;}
+.ec-lmss-10{ font-family: sans-serif;}
+.ec-lmss-10{ font-family: sans-serif;}
+.ec-lmss-10{ font-family: sans-serif;}
+.ec-lmss-10{ font-family: sans-serif;}
+.ec-lmss-10{ font-family: sans-serif;}
+.rm-lmri-12{ font-style:italic;}
+.rm-lmr-10x-x-109{font-size:90%;}
+.ec-lmtt-10{font-size:83%; font-family: monospace,monospace;}
+.ec-lmtt-10{ font-family: monospace,monospace;}
+.ec-lmtt-10{ font-family: monospace,monospace;}
+.ec-lmtt-10{ font-family: monospace,monospace;}
+.ec-lmtt-10{ font-family: monospace,monospace;}
+.ec-lmtt-10{ font-family: monospace,monospace;}
+.ec-lmtt-10{ font-family: monospace,monospace;}
+.ec-lmtt-10{ font-family: monospace,monospace;}
+.ec-lmtt-10{ font-family: monospace,monospace;}
+.ec-lmss-8{font-size:66%; font-family: sans-serif;}
+.ec-lmss-8{ font-family: sans-serif;}
+.ec-lmss-8{ font-family: sans-serif;}
+.ec-lmss-8{ font-family: sans-serif;}
+.ec-lmss-8{ font-family: sans-serif;}
+.ec-lmss-8{ font-family: sans-serif;}
+.ec-lmss-8{ font-family: sans-serif;}
+.ec-lmss-8{ font-family: sans-serif;}
+.ec-lmss-8{ font-family: sans-serif;}
+.ec-lmtk-10{font-size:83%; font-family: monospace,monospace;}
+.ec-lmtk-10{ font-family: monospace,monospace;}
+.ec-lmtk-10{ font-family: monospace,monospace;}
+.ec-lmtk-10{ font-family: monospace,monospace;}
+.ec-lmtk-10{ font-family: monospace,monospace;}
+.ec-lmtk-10{ font-family: monospace,monospace;}
+.ec-lmtk-10{ font-family: monospace,monospace;}
+.ec-lmtk-10{ font-family: monospace,monospace;}
+.ec-lmtk-10{ font-family: monospace,monospace;}
+.ts1-lmtt10-{font-size:83%;}
+.ec-lmtti-10{font-size:83%; font-family: monospace,monospace; font-style:italic;}
+.ec-lmtti-10{ font-family: monospace,monospace; font-style:italic;}
+.ec-lmtti-10{ font-family: monospace,monospace; font-style:italic;}
+.ec-lmtti-10{ font-family: monospace,monospace; font-style:italic;}
+.ec-lmtti-10{ font-family: monospace,monospace; font-style:italic;}
+.ec-lmtti-10{ font-family: monospace,monospace; font-style:italic;}
+.ec-lmtti-10{ font-family: monospace,monospace; font-style:italic;}
+.ec-lmtti-10{ font-family: monospace,monospace; font-style:italic;}
+.ec-lmtti-10{ font-family: monospace,monospace; font-style:italic;}
+.ec-lmtt-10x-x-109{font-size:90%; font-family: monospace,monospace;}
+.ec-lmtt-10x-x-109{ font-family: monospace,monospace;}
+.ec-lmtt-10x-x-109{ font-family: monospace,monospace;}
+.ec-lmtt-10x-x-109{ font-family: monospace,monospace;}
+.ec-lmtt-10x-x-109{ font-family: monospace,monospace;}
+.ec-lmtt-10x-x-109{ font-family: monospace,monospace;}
+.ec-lmtt-10x-x-109{ font-family: monospace,monospace;}
+.ec-lmtt-10x-x-109{ font-family: monospace,monospace;}
+.ec-lmtt-10x-x-109{ font-family: monospace,monospace;}
+.rm-lmri-10x-x-109{font-size:90%; font-style:italic;}
+.rm-lmbx-10x-x-109{font-size:90%; font-weight: bold;}
+.ec-lmtk-10x-x-120{ font-family: monospace,monospace;}
+.ec-lmtk-10x-x-120{ font-family: monospace,monospace;}
+.ec-lmtk-10x-x-120{ font-family: monospace,monospace;}
+.ec-lmtk-10x-x-120{ font-family: monospace,monospace;}
+.ec-lmtk-10x-x-120{ font-family: monospace,monospace;}
+.ec-lmtk-10x-x-120{ font-family: monospace,monospace;}
+.ec-lmtk-10x-x-120{ font-family: monospace,monospace;}
+.ec-lmtk-10x-x-120{ font-family: monospace,monospace;}
+.ec-lmtk-10x-x-120{ font-family: monospace,monospace;}
+.rm-lmr-8{font-size:66%;}
+.rm-lmr-6{font-size:50%;}
+.ec-lmtt-8x-x-75{font-size:50%; font-family: monospace,monospace;}
+.ec-lmtt-8x-x-75{ font-family: monospace,monospace;}
+.ec-lmtt-8x-x-75{ font-family: monospace,monospace;}
+.ec-lmtt-8x-x-75{ font-family: monospace,monospace;}
+.ec-lmtt-8x-x-75{ font-family: monospace,monospace;}
+.ec-lmtt-8x-x-75{ font-family: monospace,monospace;}
+.ec-lmtt-8x-x-75{ font-family: monospace,monospace;}
+.ec-lmtt-8x-x-75{ font-family: monospace,monospace;}
+.ec-lmtt-8x-x-75{ font-family: monospace,monospace;}
+.rm-lmri-10{font-size:83%; font-style:italic;}
+p{margin-top:0;margin-bottom:0}
+p.indent{text-indent:0;}
+p + p{margin-top:1em;}
+p + div, p + pre {margin-top:1em;}
+div + p, pre + p {margin-top:1em;}
+a { overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; hyphens: auto; }
+@media print {div.crosslinks {visibility:hidden;}}
+a img { border-top: 0; border-left: 0; border-right: 0; }
+center { margin-top:1em; margin-bottom:1em; }
+td center { margin-top:0em; margin-bottom:0em; }
+.Canvas { position:relative; }
+img.math{vertical-align:middle;}
+div.par-math-display, div.math-display{text-align:center;}
+li p.indent { text-indent: 0em }
+li p:first-child{ margin-top:0em; }
+li p:last-child, li div:last-child { margin-bottom:0.5em; }
+li p~ul:last-child, li p~ol:last-child{ margin-bottom:0.5em; }
+.enumerate1 {list-style-type:decimal;}
+.enumerate2 {list-style-type:lower-alpha;}
+.enumerate3 {list-style-type:lower-roman;}
+.enumerate4 {list-style-type:upper-alpha;}
+div.newtheorem { margin-bottom: 2em; margin-top: 2em;}
+.obeylines-h,.obeylines-v {white-space: nowrap; }
+div.obeylines-v p { margin-top:0; margin-bottom:0; }
+.overline{ text-decoration:overline; }
+.overline img{ border-top: 1px solid black; }
+td.displaylines {text-align:center; white-space:nowrap;}
+.centerline {text-align:center;}
+.rightline {text-align:right;}
+pre.verbatim {font-family: monospace,monospace; text-align:left; clear:both; }
+.fbox {padding-left:3.0pt; padding-right:3.0pt; text-indent:0pt; border:solid black 0.4pt; }
+div.fbox {display:table}
+div.center div.fbox {text-align:center; clear:both; padding-left:3.0pt; padding-right:3.0pt; text-indent:0pt; border:solid black 0.4pt; }
+div.minipage{width:100%;}
+div.center, div.center div.center {text-align: center; margin-left:1em; margin-right:1em;}
+div.center div {text-align: left;}
+div.flushright, div.flushright div.flushright {text-align: right;}
+div.flushright div {text-align: left;}
+div.flushleft {text-align: left;}
+.underline{ text-decoration:underline; }
+.underline img{ border-bottom: 1px solid black; margin-bottom:1pt; }
+.framebox-c, .framebox-l, .framebox-r { padding-left:3.0pt; padding-right:3.0pt; text-indent:0pt; border:solid black 0.4pt; }
+.framebox-c {text-align:center;}
+.framebox-l {text-align:left;}
+.framebox-r {text-align:right;}
+span.thank-mark{ vertical-align: super }
+span.footnote-mark sup.textsuperscript, span.footnote-mark a sup.textsuperscript{ font-size:80%; }
+div.tabular, div.center div.tabular {text-align: center; margin-top:0.5em; margin-bottom:0.5em; }
+table.tabular td p{margin-top:0em;}
+table.tabular {margin-left: auto; margin-right: auto;}
+td p:first-child{ margin-top:0em; }
+td p:last-child{ margin-bottom:0em; }
+div.td00{ margin-left:0pt; margin-right:0pt; }
+div.td01{ margin-left:0pt; margin-right:5pt; }
+div.td10{ margin-left:5pt; margin-right:0pt; }
+div.td11{ margin-left:5pt; margin-right:5pt; }
+table[rules] {border-left:solid black 0.4pt; border-right:solid black 0.4pt; }
+td.td00{ padding-left:0pt; padding-right:0pt; }
+td.td01{ padding-left:0pt; padding-right:5pt; }
+td.td10{ padding-left:5pt; padding-right:0pt; }
+td.td11{ padding-left:5pt; padding-right:5pt; }
+table[rules] {border-left:solid black 0.4pt; border-right:solid black 0.4pt; }
+.hline hr, .cline hr{ height : 0px; margin:0px; }
+.hline td, .cline td{ padding: 0; }
+.hline hr, .cline hr{border:none;border-top:1px solid black;}
+.tabbing-right {text-align:right;}
+div.float, div.figure {margin-left: auto; margin-right: auto;}
+div.float img {text-align:center;}
+div.figure img {text-align:center;}
+.marginpar,.reversemarginpar {width:20%; float:right; text-align:left; margin-left:auto; margin-top:0.5em; font-size:85%; text-decoration:underline;}
+.marginpar p,.reversemarginpar p{margin-top:0.4em; margin-bottom:0.4em;}
+.reversemarginpar{float:left;}
+table.equation {width:100%;}
+.equation td{text-align:center; }
+td.equation { margin-top:1em; margin-bottom:1em; } 
+td.equation-label { width:5%; text-align:center; }
+td.eqnarray4 { width:5%; white-space: normal; }
+td.eqnarray2 { width:5%; }
+table.eqnarray-star, table.eqnarray {width:100%;}
+div.eqnarray{text-align:center;}
+div.array {text-align:center;}
+div.pmatrix {text-align:center;}
+table.pmatrix {width:100%;}
+span.pmatrix img{vertical-align:middle;}
+div.pmatrix {text-align:center;}
+table.pmatrix {width:100%;}
+span.bar-css {text-decoration:overline;}
+table.tabular{border-collapse: collapse; border-spacing: 0;}
+img.cdots{vertical-align:middle;}
+.partToc a, .partToc, .likepartToc a, .likepartToc {line-height: 200%; font-weight:bold; font-size:110%;}
+.chapterToc a, .chapterToc, .likechapterToc a, .likechapterToc, .appendixToc a, .appendixToc {line-height: 200%; font-weight:bold;}
+.index-item, .index-subitem, .index-subsubitem {display:block}
+div.caption {text-indent:-2em; margin-left:3em; margin-right:1em; text-align:left;}
+div.caption span.id{font-weight: bold; white-space: nowrap; }
+h1.partHead{text-align: center}
+p.bibitem { text-indent: -2em; margin-left: 2em; margin-top:0.6em; margin-bottom:0.6em; }
+p.bibitem-p { text-indent: 0em; margin-left: 2em; margin-top:0.6em; margin-bottom:0.6em; }
+.paragraphHead, .likeparagraphHead { margin-top:2em; font-weight: bold;}
+.subparagraphHead, .likesubparagraphHead { font-weight: bold;}
+.verse{white-space:nowrap; margin-left:2em}
+div.maketitle {text-align:center;}
+h2.titleHead{text-align:center;}
+div.maketitle{ margin-bottom: 2em; }
+div.author, div.date {text-align:center;}
+div.thanks{text-align:left; margin-left:10%; font-size:85%; font-style:italic; }
+div.author{white-space: nowrap;}
+div.abstract p {margin-left:5%; margin-right:5%;}
+div.abstract {width:100%;}
+.abstracttitle{text-align:center;margin-bottom:1em;}
+figure.float, div.figure {margin-left: auto; margin-right: auto;}
+figure.float img, figure.figure img {display: block; margin-left: auto; margin-right: auto;}
+figure.figure {text-align:center;}
+figcaption.caption {text-indent:-2em; margin-left:3em; margin-right:1em; text-align:center;}
+figcaption.caption span.id{font-weight: bold; white-space: nowrap; }
+.abstract{margin:1em;}
+.small-caps{font-variant: small-caps;}
+.equation td{text-align:center; }
+.equation-star td{text-align:center; }
+table.equation-star { width:100%; }
+table.equation { width:100%; }
+table.align, table.alignat, table.xalignat, table.xxalignat, table.flalign {width:95%; margin-left:5%; white-space: nowrap;}
+table.align-star, table.alignat-star, table.xalignat-star, table.flalign-star {margin-left:auto; margin-right:auto; white-space: nowrap;}
+td.align-label { width:5%; text-align:center; }
+td.align-odd { text-align:right; padding-right:0.3em;}
+td.align-even { text-align:left; padding-right:0.6em;}
+table.multline, table.multline-star {width:100%;}
+td.gather {text-align:center; }
+table.gather {width:100%;}
+div.gather-star {text-align:center;}
+.CD {text-align:center}
+.rotatebox{display: inline-block;}
+pre.fancyvrb {white-space: pre-wrap; margin:0em;font-family:monospace,monospace;}
+.framedenv{border: 1px solid black;}
+div.subfigure {text-align:center;display:inline-block; max-width:45%;}
+.mdframed{margin-top:1em;margin-bottom:1em;}
+span.textso{letter-spacing: 0.3em; word-spacing: 0.3em}
+span.textul{text-decoration:underline}
+span.textst{text-decoration:line-through}
+span.textcaps{font-variant:small-caps}
+div.tabular, div.center div.tabular {text-align: center; margin-top:0.5em; margin-bottom:0.5em; }
+table.tabular td p{margin-top:0em;}
+table.tabular {margin-left: auto; margin-right: auto;}
+td p:first-child{ margin-top:0em; }
+td p:last-child{ margin-bottom:0em; }
+div.td00{ margin-left:0pt; margin-right:0pt; }
+div.td01{ margin-left:0pt; margin-right:5pt; }
+div.td10{ margin-left:5pt; margin-right:0pt; }
+div.td11{ margin-left:5pt; margin-right:5pt; }
+table[rules] {border-left:solid black 0.4pt; border-right:solid black 0.4pt; }
+td.td00{ padding-left:0pt; padding-right:0pt; }
+td.td01{ padding-left:0pt; padding-right:5pt; }
+td.td10{ padding-left:5pt; padding-right:0pt; }
+td.td11{ padding-left:5pt; padding-right:5pt; }
+table[rules] {border-left:solid black 0.4pt; border-right:solid black 0.4pt; }
+.hline hr, .cline hr{ height : 0px; margin:0px; }
+.hline td, .cline td{ padding: 0; }
+.hline hr, .cline hr{border:none;border-top:1px solid black;}
+div.array {text-align:center;}
+div.minipage { float: left; } 
+div.minipage:last-child { clear: none; float: right; } 
+ div.minipage + :not(.minipage) {clear:both;overflow:auto;width:100%;}
+div.lstlisting .cmtt-10 {font-family:monospace; color:DimGray}
+div.lstlisting .cmss-10 {font-family:monospace; color:Black}
+div.lstlisting .cmssbx-10 {font-family:monospace; color:Blue}
+div.lstlisting .cmr-10 {font-family:monospace; color:Green}
+div.lstlisting .cmti-10 {font-family:monospace; color:DarkRed}
+div.lstlisting .cmr-8 {display:inline-block; width:20px}
+#minipage0{width:49.00000000000001%;}
+#minipage1{width:49.00000000000001%;}
+#mdframed-1{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-2{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-3{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-4{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-5{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-6{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+span#textcolor1{color:rgb(0,0,0)}
+span#textcolor2{color:rgb(0,0,0)}
+span#textcolor3{color:rgb(79,153,5)}
+span#textcolor4{color:rgb(0,0,0)}
+span#textcolor5{color:rgb(79,153,5)}
+span#textcolor6{color:rgb(0,0,0)}
+span#textcolor7{color:rgb(0,0,0)}
+span#textcolor8{color:rgb(206,91,0)}
+span#textcolor9{color:rgb(79,153,5)}
+span#textcolor10{color:rgb(0,0,0)}
+span#textcolor11{color:rgb(0,0,0)}
+span#textcolor12{color:rgb(0,0,0)}
+span#textcolor13{color:rgb(79,153,5)}
+span#textcolor14{color:rgb(0,0,0)}
+span#textcolor15{color:rgb(0,0,0)}
+span#textcolor16{color:rgb(0,0,0)}
+span#textcolor17{color:rgb(79,153,5)}
+span#textcolor18{color:rgb(0,0,0)}
+span#textcolor19{color:rgb(0,0,0)}
+span#textcolor20{color:rgb(0,0,0)}
+span#textcolor21{color:rgb(79,153,5)}
+span#textcolor22{color:rgb(0,0,0)}
+span#textcolor23{color:rgb(0,0,0)}
+span#textcolor24{color:rgb(0,0,0)}
+span#textcolor25{color:rgb(79,153,5)}
+span#textcolor26{color:rgb(0,0,0)}
+span#textcolor27{color:rgb(0,0,0)}
+span#textcolor28{color:rgb(0,0,0)}
+span#textcolor29{color:rgb(206,91,0)}
+span#textcolor30{color:rgb(0,0,0)}
+span#textcolor31{color:rgb(0,0,0)}
+span#textcolor32{color:rgb(79,153,5)}
+span#textcolor33{color:rgb(0,0,0)}
+span#textcolor34{color:rgb(0,0,0)}
+span#textcolor35{color:rgb(206,91,0)}
+span#textcolor36{color:rgb(33,73,135)}
+span#textcolor37{color:rgb(0,0,0)}
+span#textcolor38{color:rgb(0,0,0)}
+span#textcolor39{color:rgb(0,0,0)}
+span#textcolor40{color:rgb(79,153,5)}
+span#textcolor41{color:rgb(0,0,0)}
+span#textcolor42{color:rgb(0,0,0)}
+span#textcolor43{color:rgb(206,91,0)}
+span#textcolor44{color:rgb(0,0,0)}
+span#textcolor45{color:rgb(0,0,0)}
+span#textcolor46{color:rgb(0,0,0)}
+span#textcolor47{color:rgb(206,91,0)}
+span#textcolor48{color:rgb(0,0,0)}
+span#textcolor49{color:rgb(0,0,0)}
+span#textcolor50{color:rgb(0,0,0)}
+span#textcolor51{color:rgb(0,0,0)}
+span#textcolor52{color:rgb(79,153,5)}
+span#textcolor53{color:rgb(0,0,0)}
+#mdframed-7{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-8{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-9{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-10{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-11{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-12{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-13{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-14{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-15{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+span#textcolor54{color:rgb(0,0,0)}
+span#textcolor55{color:rgb(0,0,0)}
+span#textcolor56{color:rgb(0,0,0)}
+span#textcolor57{color:rgb(206,91,0)}
+span#textcolor58{color:rgb(0,0,0)}
+span#textcolor59{color:rgb(206,91,0)}
+span#textcolor60{color:rgb(0,0,0)}
+span#textcolor61{color:rgb(0,0,0)}
+span#textcolor62{color:rgb(0,0,0)}
+span#textcolor63{color:rgb(206,91,0)}
+span#textcolor64{color:rgb(0,0,0)}
+span#textcolor65{color:rgb(206,91,0)}
+span#textcolor66{color:rgb(0,0,0)}
+span#textcolor67{color:rgb(0,0,0)}
+span#textcolor68{color:rgb(0,0,0)}
+span#textcolor69{color:rgb(206,91,0)}
+span#textcolor70{color:rgb(79,153,5)}
+span#textcolor71{color:rgb(0,0,0)}
+span#textcolor72{color:rgb(0,0,0)}
+span#textcolor73{color:rgb(206,91,0)}
+span#textcolor74{color:rgb(0,0,0)}
+span#textcolor75{color:rgb(206,91,0)}
+span#textcolor76{color:rgb(79,153,5)}
+span#textcolor77{color:rgb(0,0,0)}
+#mdframed-16{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-17{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-18{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-19{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-20{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-21{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-22{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-23{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-24{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-25{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-26{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-27{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+span#textcolor78{color:rgb(0,0,0)}
+span#textcolor79{color:rgb(206,91,0)}
+span#textcolor80{color:rgb(0,0,0)}
+span#textcolor81{color:rgb(142,89,2)}
+span#textcolor82{color:rgb(0,0,0)}
+span#textcolor83{color:rgb(0,0,0)}
+span#textcolor84{color:rgb(0,0,0)}
+span#textcolor85{color:rgb(206,91,0)}
+span#textcolor86{color:rgb(0,0,206)}
+span#textcolor87{color:rgb(0,0,0)}
+span#textcolor88{color:rgb(206,91,0)}
+span#textcolor89{color:rgb(33,73,135)}
+span#textcolor90{color:rgb(142,89,2)}
+span#textcolor91{color:rgb(0,0,0)}
+span#textcolor92{color:rgb(206,91,0)}
+span#textcolor93{color:rgb(0,0,0)}
+span#textcolor94{color:rgb(0,0,0)}
+span#textcolor95{color:rgb(0,0,0)}
+span#textcolor96{color:rgb(0,0,0)}
+span#textcolor97{color:rgb(142,89,2)}
+span#textcolor98{color:rgb(0,0,0)}
+span#textcolor99{color:rgb(206,91,0)}
+span#textcolor100{color:rgb(0,0,0)}
+span#textcolor101{color:rgb(142,89,2)}
+#mdframed-28{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+tr#TBL-1-1- td{border-top:0.1344em solid} 
+tr#TBL-1-1- td{border-bottom:0.084em solid}
+tr#TBL-1-2- td{border-bottom:0.084em solid}
+tr#TBL-1-8- td{border-bottom:0.1344em solid}
+#mdframed-29{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+tr#TBL-5-1- td{border-top:0.1344em solid} 
+tr#TBL-5-1- td{border-bottom:0.084em solid}
+tr#TBL-5-9- td{border-bottom:0.1344em solid}
+tr#TBL-6-1- td{border-top:0.1344em solid} 
+tr#TBL-6-1- td{border-bottom:0.084em solid}
+tr#TBL-6-5- td{border-bottom:0.1344em solid}
+span#textcolor102{color:rgb(0,0,0)}
+span#textcolor103{color:rgb(0,0,0)}
+span#textcolor104{color:rgb(0,0,0)}
+span#textcolor105{color:rgb(0,0,0)}
+span#textcolor106{color:rgb(0,0,0)}
+span#textcolor107{color:rgb(206,91,0)}
+span#textcolor108{color:rgb(0,0,0)}
+span#textcolor109{color:rgb(0,0,0)}
+span#textcolor110{color:rgb(206,91,0)}
+span#textcolor111{color:rgb(0,0,0)}
+span#textcolor112{color:rgb(0,0,0)}
+span#textcolor113{color:rgb(0,0,0)}
+span#textcolor114{color:rgb(0,0,0)}
+span#textcolor115{color:rgb(0,0,0)}
+span#textcolor116{color:rgb(206,91,0)}
+span#textcolor117{color:rgb(33,73,135)}
+span#textcolor118{color:rgb(0,0,0)}
+span#textcolor119{color:rgb(0,0,0)}
+span#textcolor120{color:rgb(206,91,0)}
+span#textcolor121{color:rgb(0,0,0)}
+span#textcolor122{color:rgb(0,0,0)}
+span#textcolor123{color:rgb(0,0,0)}
+span#textcolor124{color:rgb(0,0,0)}
+span#textcolor125{color:rgb(0,0,0)}
+span#textcolor126{color:rgb(206,91,0)}
+span#textcolor127{color:rgb(79,153,5)}
+span#textcolor128{color:rgb(0,0,0)}
+span#textcolor129{color:rgb(0,0,0)}
+span#textcolor130{color:rgb(206,91,0)}
+span#textcolor131{color:rgb(0,0,0)}
+span#textcolor132{color:rgb(0,0,0)}
+span#textcolor133{color:rgb(0,0,0)}
+span#textcolor134{color:rgb(0,0,0)}
+span#textcolor135{color:rgb(0,0,206)}
+span#textcolor136{color:rgb(0,0,0)}
+span#textcolor137{color:rgb(0,0,206)}
+span#textcolor138{color:rgb(0,0,0)}
+span#textcolor139{color:rgb(0,0,206)}
+span#textcolor140{color:rgb(0,0,0)}
+span#textcolor141{color:rgb(0,0,206)}
+span#textcolor142{color:rgb(0,0,0)}
+span#textcolor143{color:rgb(0,0,0)}
+span#textcolor144{color:rgb(206,91,0)}
+span#textcolor145{color:rgb(0,0,206)}
+span#textcolor146{color:rgb(0,0,0)}
+span#textcolor147{color:rgb(0,0,0)}
+span#textcolor148{color:rgb(206,91,0)}
+span#textcolor149{color:rgb(0,0,0)}
+span#textcolor150{color:rgb(0,0,0)}
+span#textcolor151{color:rgb(0,0,0)}
+span#textcolor152{color:rgb(0,0,0)}
+span#textcolor153{color:rgb(0,0,206)}
+span#textcolor154{color:rgb(0,0,0)}
+span#textcolor155{color:rgb(0,0,206)}
+span#textcolor156{color:rgb(0,0,0)}
+span#textcolor157{color:rgb(0,0,206)}
+span#textcolor158{color:rgb(0,0,0)}
+span#textcolor159{color:rgb(0,0,206)}
+span#textcolor160{color:rgb(0,0,0)}
+span#textcolor161{color:rgb(0,0,0)}
+span#textcolor162{color:rgb(206,91,0)}
+span#textcolor163{color:rgb(0,0,206)}
+span#textcolor164{color:rgb(0,0,0)}
+span#textcolor165{color:rgb(0,0,0)}
+span#textcolor166{color:rgb(206,91,0)}
+span#textcolor167{color:rgb(0,0,0)}
+span#textcolor168{color:rgb(0,0,0)}
+span#textcolor169{color:rgb(0,0,0)}
+span#textcolor170{color:rgb(0,0,0)}
+span#textcolor171{color:rgb(0,0,206)}
+span#textcolor172{color:rgb(0,0,0)}
+span#textcolor173{color:rgb(0,0,206)}
+span#textcolor174{color:rgb(0,0,0)}
+span#textcolor175{color:rgb(0,0,206)}
+span#textcolor176{color:rgb(0,0,0)}
+span#textcolor177{color:rgb(0,0,206)}
+span#textcolor178{color:rgb(0,0,0)}
+span#textcolor179{color:rgb(0,0,0)}
+span#textcolor180{color:rgb(206,91,0)}
+span#textcolor181{color:rgb(0,0,206)}
+span#textcolor182{color:rgb(0,0,0)}
+span#textcolor183{color:rgb(0,0,0)}
+span#textcolor184{color:rgb(206,91,0)}
+span#textcolor185{color:rgb(0,0,0)}
+span#textcolor186{color:rgb(0,0,0)}
+span#textcolor187{color:rgb(0,0,0)}
+span#textcolor188{color:rgb(0,0,0)}
+span#textcolor189{color:rgb(0,0,206)}
+span#textcolor190{color:rgb(0,0,0)}
+span#textcolor191{color:rgb(0,0,206)}
+span#textcolor192{color:rgb(0,0,0)}
+span#textcolor193{color:rgb(0,0,206)}
+span#textcolor194{color:rgb(0,0,0)}
+span#textcolor195{color:rgb(0,0,206)}
+span#textcolor196{color:rgb(0,0,0)}
+span#textcolor197{color:rgb(0,0,0)}
+span#textcolor198{color:rgb(206,91,0)}
+span#textcolor199{color:rgb(0,0,206)}
+span#textcolor200{color:rgb(0,0,0)}
+span#textcolor201{color:rgb(0,0,0)}
+span#textcolor202{color:rgb(206,91,0)}
+span#textcolor203{color:rgb(0,0,0)}
+span#textcolor204{color:rgb(0,0,0)}
+span#textcolor205{color:rgb(0,0,0)}
+span#textcolor206{color:rgb(0,0,0)}
+span#textcolor207{color:rgb(0,0,206)}
+span#textcolor208{color:rgb(0,0,0)}
+span#textcolor209{color:rgb(0,0,206)}
+span#textcolor210{color:rgb(0,0,0)}
+span#textcolor211{color:rgb(0,0,206)}
+span#textcolor212{color:rgb(0,0,0)}
+span#textcolor213{color:rgb(0,0,206)}
+span#textcolor214{color:rgb(0,0,0)}
+span#textcolor215{color:rgb(0,0,0)}
+span#textcolor216{color:rgb(206,91,0)}
+span#textcolor217{color:rgb(0,0,206)}
+span#textcolor218{color:rgb(0,0,0)}
+span#textcolor219{color:rgb(0,0,0)}
+span#textcolor220{color:rgb(206,91,0)}
+span#textcolor221{color:rgb(0,0,0)}
+span#textcolor222{color:rgb(0,0,0)}
+span#textcolor223{color:rgb(0,0,0)}
+span#textcolor224{color:rgb(0,0,0)}
+span#textcolor225{color:rgb(0,0,206)}
+span#textcolor226{color:rgb(0,0,0)}
+span#textcolor227{color:rgb(0,0,206)}
+span#textcolor228{color:rgb(0,0,0)}
+span#textcolor229{color:rgb(0,0,206)}
+span#textcolor230{color:rgb(0,0,0)}
+span#textcolor231{color:rgb(0,0,206)}
+span#textcolor232{color:rgb(0,0,0)}
+span#textcolor233{color:rgb(0,0,0)}
+span#textcolor234{color:rgb(206,91,0)}
+span#textcolor235{color:rgb(0,0,206)}
+span#textcolor236{color:rgb(0,0,0)}
+span#textcolor237{color:rgb(0,0,0)}
+span#textcolor238{color:rgb(206,91,0)}
+span#textcolor239{color:rgb(0,0,0)}
+span#textcolor240{color:rgb(0,0,0)}
+span#textcolor241{color:rgb(0,0,0)}
+span#textcolor242{color:rgb(0,0,0)}
+span#textcolor243{color:rgb(0,0,0)}
+span#textcolor244{color:rgb(0,0,0)}
+span#textcolor245{color:rgb(0,0,0)}
+span#textcolor246{color:rgb(0,0,0)}
+span#textcolor247{color:rgb(0,0,0)}
+span#textcolor248{color:rgb(0,0,0)}
+span#textcolor249{color:rgb(0,0,0)}
+span#textcolor250{color:rgb(0,0,0)}
+span#textcolor251{color:rgb(0,0,0)}
+span#textcolor252{color:rgb(0,0,0)}
+span#textcolor253{color:rgb(0,0,0)}
+span#textcolor254{color:rgb(0,0,0)}
+span#textcolor255{color:rgb(0,0,0)}
+span#textcolor256{color:rgb(0,0,0)}
+span#textcolor257{color:rgb(206,91,0)}
+span#textcolor258{color:rgb(0,0,0)}
+span#textcolor259{color:rgb(0,0,0)}
+span#textcolor260{color:rgb(79,153,5)}
+span#textcolor261{color:rgb(0,0,0)}
+span#textcolor262{color:rgb(79,153,5)}
+span#textcolor263{color:rgb(0,0,0)}
+span#textcolor264{color:rgb(79,153,5)}
+span#textcolor265{color:rgb(0,0,0)}
+span#textcolor266{color:rgb(79,153,5)}
+span#textcolor267{color:rgb(0,0,0)}
+span#textcolor268{color:rgb(79,153,5)}
+span#textcolor269{color:rgb(0,0,0)}
+span#textcolor270{color:rgb(79,153,5)}
+span#textcolor271{color:rgb(0,0,0)}
+span#textcolor272{color:rgb(0,0,0)}
+span#textcolor273{color:rgb(206,91,0)}
+span#textcolor274{color:rgb(0,0,0)}
+span#textcolor275{color:rgb(0,0,0)}
+span#textcolor276{color:rgb(0,0,0)}
+span#textcolor277{color:rgb(206,91,0)}
+span#textcolor278{color:rgb(0,0,0)}
+span#textcolor279{color:rgb(0,0,0)}
+span#textcolor280{color:rgb(0,0,0)}
+span#textcolor281{color:rgb(206,91,0)}
+span#textcolor282{color:rgb(0,0,0)}
+span#textcolor283{color:rgb(0,0,0)}
+span#textcolor284{color:rgb(0,0,0)}
+span#textcolor285{color:rgb(0,0,0)}
+span#textcolor286{color:rgb(206,91,0)}
+span#textcolor287{color:rgb(0,0,0)}
+span#textcolor288{color:rgb(206,91,0)}
+span#textcolor289{color:rgb(0,0,0)}
+span#textcolor290{color:rgb(142,89,2)}
+span#textcolor291{color:rgb(0,0,0)}
+span#textcolor292{color:rgb(206,91,0)}
+span#textcolor293{color:rgb(0,0,0)}
+span#textcolor294{color:rgb(0,0,0)}
+span#textcolor295{color:rgb(79,153,5)}
+span#textcolor296{color:rgb(0,0,0)}
+span#textcolor297{color:rgb(79,153,5)}
+span#textcolor298{color:rgb(0,0,0)}
+span#textcolor299{color:rgb(79,153,5)}
+span#textcolor300{color:rgb(0,0,0)}
+span#textcolor301{color:rgb(79,153,5)}
+span#textcolor302{color:rgb(0,0,0)}
+span#textcolor303{color:rgb(79,153,5)}
+span#textcolor304{color:rgb(0,0,0)}
+span#textcolor305{color:rgb(79,153,5)}
+span#textcolor306{color:rgb(0,0,0)}
+span#textcolor307{color:rgb(0,0,0)}
+span#textcolor308{color:rgb(0,0,0)}
+span#textcolor309{color:rgb(0,0,0)}
+span#textcolor310{color:rgb(0,0,0)}
+span#textcolor311{color:rgb(206,91,0)}
+span#textcolor312{color:rgb(0,0,0)}
+span#textcolor313{color:rgb(0,0,0)}
+span#textcolor314{color:rgb(79,153,5)}
+span#textcolor315{color:rgb(0,0,0)}
+span#textcolor316{color:rgb(79,153,5)}
+span#textcolor317{color:rgb(0,0,0)}
+span#textcolor318{color:rgb(79,153,5)}
+span#textcolor319{color:rgb(0,0,0)}
+span#textcolor320{color:rgb(79,153,5)}
+span#textcolor321{color:rgb(0,0,0)}
+span#textcolor322{color:rgb(79,153,5)}
+span#textcolor323{color:rgb(0,0,0)}
+span#textcolor324{color:rgb(79,153,5)}
+span#textcolor325{color:rgb(0,0,0)}
+span#textcolor326{color:rgb(0,0,0)}
+span#textcolor327{color:rgb(206,91,0)}
+span#textcolor328{color:rgb(0,0,0)}
+span#textcolor329{color:rgb(0,0,0)}
+span#textcolor330{color:rgb(0,0,0)}
+span#textcolor331{color:rgb(0,0,0)}
+span#textcolor332{color:rgb(0,0,0)}
+span#textcolor333{color:rgb(0,0,0)}
+span#textcolor334{color:rgb(79,153,5)}
+span#textcolor335{color:rgb(0,0,0)}
+span#textcolor336{color:rgb(0,0,0)}
+span#textcolor337{color:rgb(206,91,0)}
+span#textcolor338{color:rgb(0,0,0)}
+span#textcolor339{color:rgb(0,0,0)}
+span#textcolor340{color:rgb(0,0,0)}
+span#textcolor341{color:rgb(0,0,0)}
+span#textcolor342{color:rgb(0,0,0)}
+span#textcolor343{color:rgb(0,0,0)}
+span#textcolor344{color:rgb(79,153,5)}
+span#textcolor345{color:rgb(0,0,0)}
+span#textcolor346{color:rgb(0,0,0)}
+span#textcolor347{color:rgb(206,91,0)}
+span#textcolor348{color:rgb(0,0,0)}
+span#textcolor349{color:rgb(0,0,0)}
+span#textcolor350{color:rgb(0,0,0)}
+span#textcolor351{color:rgb(0,0,0)}
+span#textcolor352{color:rgb(0,0,0)}
+span#textcolor353{color:rgb(0,0,0)}
+span#textcolor354{color:rgb(79,153,5)}
+span#textcolor355{color:rgb(0,0,0)}
+span#textcolor356{color:rgb(0,0,0)}
+span#textcolor357{color:rgb(206,91,0)}
+span#textcolor358{color:rgb(0,0,0)}
+span#textcolor359{color:rgb(0,0,0)}
+span#textcolor360{color:rgb(0,0,0)}
+span#textcolor361{color:rgb(0,0,0)}
+span#textcolor362{color:rgb(0,0,0)}
+span#textcolor363{color:rgb(0,0,0)}
+span#textcolor364{color:rgb(79,153,5)}
+span#textcolor365{color:rgb(0,0,0)}
+span#textcolor366{color:rgb(0,0,0)}
+span#textcolor367{color:rgb(206,91,0)}
+span#textcolor368{color:rgb(0,0,0)}
+span#textcolor369{color:rgb(0,0,0)}
+span#textcolor370{color:rgb(0,0,0)}
+span#textcolor371{color:rgb(0,0,0)}
+span#textcolor372{color:rgb(0,0,0)}
+span#textcolor373{color:rgb(0,0,0)}
+span#textcolor374{color:rgb(79,153,5)}
+span#textcolor375{color:rgb(0,0,0)}
+span#textcolor376{color:rgb(0,0,0)}
+span#textcolor377{color:rgb(206,91,0)}
+span#textcolor378{color:rgb(0,0,0)}
+span#textcolor379{color:rgb(0,0,0)}
+span#textcolor380{color:rgb(0,0,0)}
+span#textcolor381{color:rgb(0,0,0)}
+span#textcolor382{color:rgb(0,0,0)}
+span#textcolor383{color:rgb(0,0,0)}
+span#textcolor384{color:rgb(79,153,5)}
+span#textcolor385{color:rgb(0,0,0)}
+span#textcolor386{color:rgb(0,0,0)}
+span#textcolor387{color:rgb(206,91,0)}
+span#textcolor388{color:rgb(0,0,0)}
+span#textcolor389{color:rgb(0,0,0)}
+span#textcolor390{color:rgb(0,0,0)}
+span#textcolor391{color:rgb(142,89,2)}
+span#textcolor392{color:rgb(0,0,0)}
+span#textcolor393{color:rgb(206,91,0)}
+span#textcolor394{color:rgb(0,0,0)}
+span#textcolor395{color:rgb(206,91,0)}
+span#textcolor396{color:rgb(0,0,0)}
+span#textcolor397{color:rgb(0,0,0)}
+span#textcolor398{color:rgb(0,0,0)}
+span#textcolor399{color:rgb(206,91,0)}
+span#textcolor400{color:rgb(0,0,0)}
+span#textcolor401{color:rgb(0,0,0)}
+span#textcolor402{color:rgb(0,0,0)}
+span#textcolor403{color:rgb(0,0,0)}
+span#textcolor404{color:rgb(0,0,0)}
+span#textcolor405{color:rgb(0,0,0)}
+span#textcolor406{color:rgb(0,0,0)}
+span#textcolor407{color:rgb(0,0,0)}
+span#textcolor408{color:rgb(0,0,0)}
+span#textcolor409{color:rgb(0,0,0)}
+span#textcolor410{color:rgb(0,0,0)}
+span#textcolor411{color:rgb(0,0,0)}
+span#textcolor412{color:rgb(0,0,0)}
+span#textcolor413{color:rgb(0,0,0)}
+span#textcolor414{color:rgb(206,91,0)}
+span#textcolor415{color:rgb(0,0,0)}
+span#textcolor416{color:rgb(206,91,0)}
+span#textcolor417{color:rgb(0,0,0)}
+span#textcolor418{color:rgb(0,0,0)}
+span#textcolor419{color:rgb(0,0,0)}
+span#textcolor420{color:rgb(206,91,0)}
+span#textcolor421{color:rgb(0,0,0)}
+span#textcolor422{color:rgb(0,0,0)}
+span#textcolor423{color:rgb(0,0,0)}
+span#textcolor424{color:rgb(0,0,0)}
+span#textcolor425{color:rgb(0,0,0)}
+span#textcolor426{color:rgb(0,0,0)}
+span#textcolor427{color:rgb(0,0,0)}
+span#textcolor428{color:rgb(0,0,0)}
+span#textcolor429{color:rgb(206,91,0)}
+span#textcolor430{color:rgb(0,0,0)}
+span#textcolor431{color:rgb(0,0,0)}
+span#textcolor432{color:rgb(0,0,0)}
+span#textcolor433{color:rgb(0,0,0)}
+span#textcolor434{color:rgb(0,0,0)}
+span#textcolor435{color:rgb(0,0,0)}
+span#textcolor436{color:rgb(0,0,0)}
+span#textcolor437{color:rgb(206,91,0)}
+span#textcolor438{color:rgb(0,0,0)}
+span#textcolor439{color:rgb(0,0,0)}
+span#textcolor440{color:rgb(0,0,0)}
+span#textcolor441{color:rgb(0,0,0)}
+span#textcolor442{color:rgb(0,0,0)}
+span#textcolor443{color:rgb(0,0,0)}
+span#textcolor444{color:rgb(0,0,0)}
+span#textcolor445{color:rgb(0,0,0)}
+span#textcolor446{color:rgb(0,0,0)}
+span#textcolor447{color:rgb(0,0,0)}
+span#textcolor448{color:rgb(0,0,0)}
+span#textcolor449{color:rgb(0,0,0)}
+span#textcolor450{color:rgb(0,0,0)}
+span#textcolor451{color:rgb(0,0,0)}
+span#textcolor452{color:rgb(0,0,0)}
+span#textcolor453{color:rgb(0,0,0)}
+span#textcolor454{color:rgb(0,0,0)}
+span#textcolor455{color:rgb(0,0,0)}
+span#textcolor456{color:rgb(79,153,5)}
+span#textcolor457{color:rgb(0,0,0)}
+span#textcolor458{color:rgb(0,0,0)}
+span#textcolor459{color:rgb(0,0,0)}
+span#textcolor460{color:rgb(0,0,0)}
+span#textcolor461{color:rgb(206,91,0)}
+span#textcolor462{color:rgb(0,0,0)}
+span#textcolor463{color:rgb(0,0,0)}
+span#textcolor464{color:rgb(0,0,0)}
+span#textcolor465{color:rgb(0,0,0)}
+span#textcolor466{color:rgb(0,0,0)}
+span#textcolor467{color:rgb(206,91,0)}
+span#textcolor468{color:rgb(79,153,5)}
+span#textcolor469{color:rgb(0,0,0)}
+span#textcolor470{color:rgb(0,0,0)}
+span#textcolor471{color:rgb(206,91,0)}
+span#textcolor472{color:rgb(0,0,206)}
+span#textcolor473{color:rgb(0,0,0)}
+span#textcolor474{color:rgb(0,0,0)}
+span#textcolor475{color:rgb(206,91,0)}
+span#textcolor476{color:rgb(79,153,5)}
+span#textcolor477{color:rgb(0,0,0)}
+span#textcolor478{color:rgb(0,0,0)}
+span#textcolor479{color:rgb(206,91,0)}
+span#textcolor480{color:rgb(0,0,206)}
+span#textcolor481{color:rgb(0,0,0)}
+span#textcolor482{color:rgb(0,0,0)}
+span#textcolor483{color:rgb(206,91,0)}
+span#textcolor484{color:rgb(0,0,206)}
+span#textcolor485{color:rgb(0,0,0)}
+span#textcolor486{color:rgb(0,0,0)}
+span#textcolor487{color:rgb(206,91,0)}
+span#textcolor488{color:rgb(50,101,163)}
+span#textcolor489{color:rgb(0,0,0)}
+span#textcolor490{color:rgb(0,0,0)}
+span#textcolor491{color:rgb(0,0,0)}
+span#textcolor492{color:rgb(0,0,0)}
+span#textcolor493{color:rgb(206,91,0)}
+span#textcolor494{color:rgb(0,0,0)}
+span#textcolor495{color:rgb(0,0,0)}
+span#textcolor496{color:rgb(0,0,0)}
+span#textcolor497{color:rgb(206,91,0)}
+span#textcolor498{color:rgb(79,153,5)}
+span#textcolor499{color:rgb(0,0,0)}
+span#textcolor500{color:rgb(0,0,0)}
+span#textcolor501{color:rgb(206,91,0)}
+span#textcolor502{color:rgb(0,0,206)}
+span#textcolor503{color:rgb(0,0,0)}
+span#textcolor504{color:rgb(0,0,0)}
+span#textcolor505{color:rgb(206,91,0)}
+span#textcolor506{color:rgb(0,0,206)}
+span#textcolor507{color:rgb(0,0,0)}
+span#textcolor508{color:rgb(0,0,0)}
+span#textcolor509{color:rgb(206,91,0)}
+span#textcolor510{color:rgb(0,0,206)}
+span#textcolor511{color:rgb(0,0,0)}
+span#textcolor512{color:rgb(0,0,0)}
+span#textcolor513{color:rgb(206,91,0)}
+span#textcolor514{color:rgb(0,0,206)}
+span#textcolor515{color:rgb(0,0,0)}
+span#textcolor516{color:rgb(0,0,0)}
+span#textcolor517{color:rgb(206,91,0)}
+span#textcolor518{color:rgb(79,153,5)}
+span#textcolor519{color:rgb(0,0,0)}
+span#textcolor520{color:rgb(0,0,0)}
+span#textcolor521{color:rgb(206,91,0)}
+span#textcolor522{color:rgb(50,101,163)}
+span#textcolor523{color:rgb(0,0,0)}
+span#textcolor524{color:rgb(0,0,0)}
+span#textcolor525{color:rgb(206,91,0)}
+span#textcolor526{color:rgb(0,0,0)}
+span#textcolor527{color:rgb(0,0,0)}
+span#textcolor528{color:rgb(206,91,0)}
+span#textcolor529{color:rgb(0,0,0)}
+span#textcolor530{color:rgb(0,0,0)}
+span#textcolor531{color:rgb(206,91,0)}
+span#textcolor532{color:rgb(0,0,0)}
+span#textcolor533{color:rgb(0,0,0)}
+span#textcolor534{color:rgb(0,0,0)}
+span#textcolor535{color:rgb(0,0,0)}
+span#textcolor536{color:rgb(79,153,5)}
+span#textcolor537{color:rgb(0,0,0)}
+span#textcolor538{color:rgb(0,0,206)}
+span#textcolor539{color:rgb(0,0,0)}
+span#textcolor540{color:rgb(0,0,0)}
+span#textcolor541{color:rgb(0,0,0)}
+span#textcolor542{color:rgb(0,0,0)}
+span#textcolor543{color:rgb(0,0,0)}
+span#textcolor544{color:rgb(79,153,5)}
+span#textcolor545{color:rgb(0,0,0)}
+span#textcolor546{color:rgb(0,0,0)}
+span#textcolor547{color:rgb(206,91,0)}
+span#textcolor548{color:rgb(0,0,0)}
+span#textcolor549{color:rgb(0,0,0)}
+span#textcolor550{color:rgb(0,0,0)}
+span#textcolor551{color:rgb(0,0,0)}
+span#textcolor552{color:rgb(0,0,0)}
+span#textcolor553{color:rgb(206,91,0)}
+span#textcolor554{color:rgb(0,0,0)}
+span#textcolor555{color:rgb(0,0,0)}
+span#textcolor556{color:rgb(206,91,0)}
+span#textcolor557{color:rgb(0,0,0)}
+span#textcolor558{color:rgb(0,0,0)}
+span#textcolor559{color:rgb(0,0,0)}
+span#textcolor560{color:rgb(0,0,0)}
+span#textcolor561{color:rgb(0,0,0)}
+span#textcolor562{color:rgb(206,91,0)}
+span#textcolor563{color:rgb(0,0,0)}
+span#textcolor564{color:rgb(0,0,0)}
+span#textcolor565{color:rgb(0,0,0)}
+span#textcolor566{color:rgb(0,0,0)}
+span#textcolor567{color:rgb(0,0,0)}
+span#textcolor568{color:rgb(206,91,0)}
+span#textcolor569{color:rgb(79,153,5)}
+span#textcolor570{color:rgb(0,0,0)}
+span#textcolor571{color:rgb(0,0,0)}
+span#textcolor572{color:rgb(206,91,0)}
+span#textcolor573{color:rgb(33,73,135)}
+span#textcolor574{color:rgb(0,0,0)}
+span#textcolor575{color:rgb(0,0,0)}
+span#textcolor576{color:rgb(206,91,0)}
+span#textcolor577{color:rgb(33,73,135)}
+span#textcolor578{color:rgb(0,0,0)}
+span#textcolor579{color:rgb(0,0,0)}
+span#textcolor580{color:rgb(206,91,0)}
+span#textcolor581{color:rgb(33,73,135)}
+span#textcolor582{color:rgb(0,0,0)}
+span#textcolor583{color:rgb(0,0,0)}
+span#textcolor584{color:rgb(206,91,0)}
+span#textcolor585{color:rgb(33,73,135)}
+span#textcolor586{color:rgb(0,0,0)}
+span#textcolor587{color:rgb(0,0,0)}
+span#textcolor588{color:rgb(206,91,0)}
+span#textcolor589{color:rgb(33,73,135)}
+span#textcolor590{color:rgb(0,0,0)}
+span#textcolor591{color:rgb(0,0,0)}
+span#textcolor592{color:rgb(206,91,0)}
+span#textcolor593{color:rgb(33,73,135)}
+span#textcolor594{color:rgb(0,0,0)}
+span#textcolor595{color:rgb(142,89,2)}
+span#textcolor596{color:rgb(0,0,0)}
+span#textcolor597{color:rgb(0,0,0)}
+span#textcolor598{color:rgb(0,0,0)}
+span#textcolor599{color:rgb(206,91,0)}
+span#textcolor600{color:rgb(0,0,0)}
+span#textcolor601{color:rgb(0,0,0)}
+span#textcolor602{color:rgb(0,0,0)}
+span#textcolor603{color:rgb(206,91,0)}
+span#textcolor604{color:rgb(0,0,0)}
+span#textcolor605{color:rgb(0,0,0)}
+span#textcolor606{color:rgb(0,0,0)}
+span#textcolor607{color:rgb(0,0,0)}
+span#textcolor608{color:rgb(0,0,206)}
+span#textcolor609{color:rgb(0,0,0)}
+span#textcolor610{color:rgb(0,0,206)}
+span#textcolor611{color:rgb(0,0,0)}
+span#textcolor612{color:rgb(0,0,206)}
+span#textcolor613{color:rgb(0,0,0)}
+span#textcolor614{color:rgb(0,0,206)}
+span#textcolor615{color:rgb(0,0,0)}
+span#textcolor616{color:rgb(0,0,206)}
+span#textcolor617{color:rgb(0,0,0)}
+span#textcolor618{color:rgb(0,0,206)}
+span#textcolor619{color:rgb(0,0,0)}
+span#textcolor620{color:rgb(0,0,206)}
+span#textcolor621{color:rgb(0,0,0)}
+span#textcolor622{color:rgb(0,0,206)}
+span#textcolor623{color:rgb(0,0,0)}
+span#textcolor624{color:rgb(0,0,206)}
+span#textcolor625{color:rgb(0,0,0)}
+span#textcolor626{color:rgb(0,0,206)}
+span#textcolor627{color:rgb(0,0,0)}
+span#textcolor628{color:rgb(0,0,206)}
+span#textcolor629{color:rgb(0,0,0)}
+span#textcolor630{color:rgb(0,0,206)}
+span#textcolor631{color:rgb(0,0,0)}
+span#textcolor632{color:rgb(0,0,206)}
+span#textcolor633{color:rgb(0,0,0)}
+span#textcolor634{color:rgb(0,0,206)}
+span#textcolor635{color:rgb(0,0,0)}
+span#textcolor636{color:rgb(0,0,206)}
+span#textcolor637{color:rgb(0,0,0)}
+span#textcolor638{color:rgb(0,0,206)}
+span#textcolor639{color:rgb(0,0,0)}
+span#textcolor640{color:rgb(0,0,206)}
+span#textcolor641{color:rgb(0,0,0)}
+span#textcolor642{color:rgb(0,0,206)}
+span#textcolor643{color:rgb(0,0,0)}
+span#textcolor644{color:rgb(0,0,206)}
+span#textcolor645{color:rgb(0,0,0)}
+span#textcolor646{color:rgb(0,0,206)}
+span#textcolor647{color:rgb(0,0,0)}
+span#textcolor648{color:rgb(0,0,0)}
+span#textcolor649{color:rgb(206,91,0)}
+span#textcolor650{color:rgb(0,0,206)}
+span#textcolor651{color:rgb(0,0,0)}
+span#textcolor652{color:rgb(0,0,0)}
+span#textcolor653{color:rgb(206,91,0)}
+span#textcolor654{color:rgb(50,101,163)}
+span#textcolor655{color:rgb(0,0,0)}
+span#textcolor656{color:rgb(142,89,2)}
+span#textcolor657{color:rgb(0,0,0)}
+span#textcolor658{color:rgb(0,0,0)}
+span#textcolor659{color:rgb(0,0,0)}
+span#textcolor660{color:rgb(0,0,0)}
+span#textcolor661{color:rgb(206,91,0)}
+span#textcolor662{color:rgb(0,0,0)}
+span#textcolor663{color:rgb(206,91,0)}
+span#textcolor664{color:rgb(0,0,0)}
+span#textcolor665{color:rgb(0,0,0)}
+span#textcolor666{color:rgb(79,153,5)}
+span#textcolor667{color:rgb(0,0,0)}
+span#textcolor668{color:rgb(79,153,5)}
+span#textcolor669{color:rgb(0,0,0)}
+span#textcolor670{color:rgb(79,153,5)}
+span#textcolor671{color:rgb(0,0,0)}
+span#textcolor672{color:rgb(79,153,5)}
+span#textcolor673{color:rgb(0,0,0)}
+span#textcolor674{color:rgb(79,153,5)}
+span#textcolor675{color:rgb(0,0,0)}
+span#textcolor676{color:rgb(142,89,2)}
+span#textcolor677{color:rgb(0,0,0)}
+span#textcolor678{color:rgb(0,0,0)}
+span#textcolor679{color:rgb(0,0,0)}
+span#textcolor680{color:rgb(0,0,0)}
+span#textcolor681{color:rgb(206,91,0)}
+span#textcolor682{color:rgb(0,0,0)}
+span#textcolor683{color:rgb(0,0,0)}
+span#textcolor684{color:rgb(79,153,5)}
+span#textcolor685{color:rgb(0,0,0)}
+span#textcolor686{color:rgb(79,153,5)}
+span#textcolor687{color:rgb(0,0,0)}
+span#textcolor688{color:rgb(79,153,5)}
+span#textcolor689{color:rgb(0,0,0)}
+span#textcolor690{color:rgb(79,153,5)}
+span#textcolor691{color:rgb(0,0,0)}
+span#textcolor692{color:rgb(0,0,0)}
+span#textcolor693{color:rgb(206,91,0)}
+span#textcolor694{color:rgb(0,0,0)}
+span#textcolor695{color:rgb(0,0,0)}
+span#textcolor696{color:rgb(0,0,0)}
+span#textcolor697{color:rgb(206,91,0)}
+span#textcolor698{color:rgb(0,0,0)}
+span#textcolor699{color:rgb(0,0,0)}
+span#textcolor700{color:rgb(0,0,0)}
+span#textcolor701{color:rgb(206,91,0)}
+span#textcolor702{color:rgb(0,0,0)}
+span#textcolor703{color:rgb(0,0,0)}
+span#textcolor704{color:rgb(0,0,0)}
+span#textcolor705{color:rgb(206,91,0)}
+span#textcolor706{color:rgb(33,73,135)}
+span#textcolor707{color:rgb(0,0,0)}
+span#textcolor708{color:rgb(142,89,2)}
+span#textcolor709{color:rgb(0,0,0)}
+span#textcolor710{color:rgb(206,91,0)}
+span#textcolor711{color:rgb(79,153,5)}
+span#textcolor712{color:rgb(0,0,0)}
+span#textcolor713{color:rgb(142,89,2)}
+span#textcolor714{color:rgb(0,0,0)}
+span#textcolor715{color:rgb(206,91,0)}
+span#textcolor716{color:rgb(0,0,0)}
+span#textcolor717{color:rgb(206,91,0)}
+span#textcolor718{color:rgb(0,0,0)}
+span#textcolor719{color:rgb(0,0,0)}
+span#textcolor720{color:rgb(206,91,0)}
+span#textcolor721{color:rgb(0,0,0)}
+span#textcolor722{color:rgb(0,0,0)}
+span#textcolor723{color:rgb(0,0,0)}
+span#textcolor724{color:rgb(0,0,0)}
+span#textcolor725{color:rgb(0,0,0)}
+span#textcolor726{color:rgb(0,0,0)}
+span#textcolor727{color:rgb(0,0,0)}
+span#textcolor728{color:rgb(0,0,0)}
+span#textcolor729{color:rgb(0,0,0)}
+span#textcolor730{color:rgb(0,0,0)}
+span#textcolor731{color:rgb(0,0,0)}
+span#textcolor732{color:rgb(206,91,0)}
+span#textcolor733{color:rgb(0,0,0)}
+span#textcolor734{color:rgb(0,0,0)}
+span#textcolor735{color:rgb(0,0,0)}
+span#textcolor736{color:rgb(206,91,0)}
+span#textcolor737{color:rgb(79,153,5)}
+span#textcolor738{color:rgb(0,0,0)}
+span#textcolor739{color:rgb(0,0,0)}
+span#textcolor740{color:rgb(206,91,0)}
+span#textcolor741{color:rgb(50,101,163)}
+span#textcolor742{color:rgb(0,0,0)}
+span#textcolor743{color:rgb(0,0,0)}
+span#textcolor744{color:rgb(206,91,0)}
+span#textcolor745{color:rgb(79,153,5)}
+span#textcolor746{color:rgb(0,0,0)}
+span#textcolor747{color:rgb(0,0,0)}
+span#textcolor748{color:rgb(206,91,0)}
+span#textcolor749{color:rgb(0,0,206)}
+span#textcolor750{color:rgb(0,0,0)}
+span#textcolor751{background-color:#BEBEBE}
+#TBL-9 colgroup{border-left: 1px solid black;border-right:1px solid black;}
+#TBL-9{border-collapse:collapse;}
+span#textcolor752{background-color:#BEBEBE}
+span#textcolor753{background-color:#BEBEBE}
+span#textcolor754{background-color:#BEBEBE}
+#TBL-10 colgroup{border-left: 1px solid black;border-right:1px solid black;}
+#TBL-10{border-collapse:collapse;}
+#TBL-11 colgroup{border-left: 1px solid black;border-right:1px solid black;}
+#TBL-11{border-collapse:collapse;}
+#mdframed-30{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-31{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-32{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-33{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-34{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-35{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-36{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-37{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-38{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-39{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-40{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+span#textcolor755{color:rgb(142,89,2)}
+span#textcolor756{color:rgb(0,0,0)}
+span#textcolor757{color:rgb(0,0,0)}
+span#textcolor758{color:rgb(79,153,5)}
+span#textcolor759{color:rgb(0,0,0)}
+span#textcolor760{color:rgb(142,89,2)}
+span#textcolor761{color:rgb(0,0,0)}
+span#textcolor762{color:rgb(0,0,0)}
+span#textcolor763{color:rgb(79,153,5)}
+span#textcolor764{color:rgb(0,0,0)}
+span#textcolor765{color:rgb(0,0,0)}
+span#textcolor766{color:rgb(0,0,0)}
+span#textcolor767{color:rgb(0,0,0)}
+span#textcolor768{color:rgb(0,0,0)}
+span#textcolor769{color:rgb(0,0,0)}
+span#textcolor770{color:rgb(0,0,0)}
+span#textcolor771{color:rgb(0,0,0)}
+span#textcolor772{color:rgb(0,0,0)}
+#mdframed-41{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-42{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+span#textcolor773{color:rgb(33,73,135)}
+span#textcolor774{color:rgb(33,73,135)}
+span#textcolor775{color:rgb(0,0,0)}
+span#textcolor776{color:rgb(206,91,0)}
+span#textcolor777{color:rgb(0,0,0)}
+span#textcolor778{color:rgb(206,91,0)}
+span#textcolor779{color:rgb(0,0,0)}
+span#textcolor780{color:rgb(206,91,0)}
+span#textcolor781{color:rgb(0,0,0)}
+span#textcolor782{color:rgb(206,91,0)}
+span#textcolor783{color:rgb(0,0,206)}
+span#textcolor784{color:rgb(0,0,0)}
+span#textcolor785{color:rgb(206,91,0)}
+span#textcolor786{color:rgb(0,0,0)}
+span#textcolor787{color:rgb(206,91,0)}
+span#textcolor788{color:rgb(0,0,206)}
+span#textcolor789{color:rgb(0,0,0)}
+span#textcolor790{color:rgb(206,91,0)}
+span#textcolor791{color:rgb(0,0,206)}
+span#textcolor792{color:rgb(79,153,5)}
+span#textcolor793{color:rgb(0,0,0)}
+span#textcolor794{color:rgb(206,91,0)}
+span#textcolor795{color:rgb(0,0,0)}
+span#textcolor796{color:rgb(206,91,0)}
+span#textcolor797{color:rgb(0,0,0)}
+span#textcolor798{color:rgb(206,91,0)}
+span#textcolor799{color:rgb(0,0,0)}
+span#textcolor800{color:rgb(206,91,0)}
+span#textcolor801{color:rgb(0,0,206)}
+span#textcolor802{color:rgb(0,0,0)}
+span#textcolor803{color:rgb(206,91,0)}
+span#textcolor804{color:rgb(0,0,0)}
+span#textcolor805{color:rgb(206,91,0)}
+span#textcolor806{color:rgb(0,0,206)}
+span#textcolor807{color:rgb(0,0,0)}
+span#textcolor808{color:rgb(206,91,0)}
+span#textcolor809{color:rgb(0,0,206)}
+span#textcolor810{color:rgb(0,0,0)}
+span#textcolor811{color:rgb(206,91,0)}
+span#textcolor812{color:rgb(0,0,206)}
+span#textcolor813{color:rgb(0,0,0)}
+span#textcolor814{color:rgb(206,91,0)}
+span#textcolor815{color:rgb(0,0,206)}
+#TBL-12 colgroup{border-left: 1px solid black;border-right:1px solid black;}
+#TBL-12{border-collapse:collapse;}
+#TBL-13 colgroup{border-left: 1px solid black;border-right:1px solid black;}
+#TBL-13{border-collapse:collapse;}
+#TBL-14 colgroup{border-left: 1px solid black;border-right:1px solid black;}
+#TBL-14{border-collapse:collapse;}
+#TBL-15 colgroup{border-left: 1px solid black;border-right:1px solid black;}
+#TBL-15{border-collapse:collapse;}
+#TBL-16 colgroup{border-left: 1px solid black;border-right:1px solid black;}
+#TBL-16{border-collapse:collapse;}
+#TBL-17 colgroup{border-left: 1px solid black;border-right:1px solid black;}
+#TBL-17{border-collapse:collapse;}
+span#textcolor816{color:rgb(79,153,5)}
+span#textcolor817{color:rgb(79,153,5)}
+span#textcolor818{color:rgb(0,0,206)}
+span#textcolor819{color:rgb(0,0,0)}
+span#textcolor820{color:rgb(206,91,0)}
+span#textcolor821{color:rgb(0,0,206)}
+span#textcolor822{color:rgb(33,73,135)}
+span#textcolor823{color:rgb(206,91,0)}
+span#textcolor824{color:rgb(33,73,135)}
+span#textcolor825{color:rgb(33,73,135)}
+span#textcolor826{color:rgb(206,91,0)}
+span#textcolor827{color:rgb(33,73,135)}
+span#textcolor828{color:rgb(0,0,0)}
+span#textcolor829{color:rgb(33,73,135)}
+span#textcolor830{color:rgb(206,91,0)}
+span#textcolor831{color:rgb(0,0,0)}
+span#textcolor832{color:rgb(206,91,0)}
+span#textcolor833{color:rgb(0,0,0)}
+span#textcolor834{color:rgb(206,91,0)}
+span#textcolor835{color:rgb(0,0,0)}
+span#textcolor836{color:rgb(0,0,0)}
+span#textcolor837{color:rgb(79,153,5)}
+span#textcolor838{color:rgb(0,0,0)}
+span#textcolor839{color:rgb(0,0,0)}
+span#textcolor840{color:rgb(206,91,0)}
+span#textcolor841{color:rgb(0,0,0)}
+span#textcolor842{color:rgb(206,91,0)}
+span#textcolor843{color:rgb(0,0,0)}
+span#textcolor844{color:rgb(0,0,0)}
+span#textcolor845{color:rgb(0,0,0)}
+span#textcolor846{color:rgb(206,91,0)}
+span#textcolor847{color:rgb(0,0,0)}
+span#textcolor848{color:rgb(206,91,0)}
+span#textcolor849{color:rgb(0,0,0)}
+span#textcolor850{color:rgb(0,0,0)}
+span#textcolor851{color:rgb(0,0,206)}
+span#textcolor852{color:rgb(0,0,0)}
+span#textcolor853{color:rgb(0,0,0)}
+span#textcolor854{color:rgb(206,91,0)}
+span#textcolor855{color:rgb(0,0,0)}
+span#textcolor856{color:rgb(206,91,0)}
+span#textcolor857{color:rgb(0,0,0)}
+span#textcolor858{color:rgb(0,0,0)}
+span#textcolor859{color:rgb(0,0,0)}
+span#textcolor860{color:rgb(206,91,0)}
+span#textcolor861{color:rgb(0,0,0)}
+span#textcolor862{color:rgb(206,91,0)}
+span#textcolor863{color:rgb(0,0,0)}
+span#textcolor864{color:rgb(0,0,0)}
+span#textcolor865{color:rgb(0,0,206)}
+span#textcolor866{color:rgb(0,0,0)}
+span#textcolor867{color:rgb(33,73,135)}
+span#textcolor868{color:rgb(0,0,0)}
+span#textcolor869{color:rgb(79,153,5)}
+span#textcolor870{color:rgb(206,91,0)}
+span#textcolor871{color:rgb(0,0,0)}
+span#textcolor872{color:rgb(206,91,0)}
+span#textcolor873{color:rgb(0,0,0)}
+span#textcolor874{color:rgb(0,0,0)}
+span#textcolor875{color:rgb(206,91,0)}
+span#textcolor876{color:rgb(0,0,0)}
+span#textcolor877{color:rgb(0,0,0)}
+span#textcolor878{color:rgb(79,153,5)}
+span#textcolor879{color:rgb(0,0,0)}
+span#textcolor880{color:rgb(206,91,0)}
+span#textcolor881{color:rgb(79,153,5)}
+span#textcolor882{color:rgb(0,0,0)}
+span#textcolor883{color:rgb(33,73,135)}
+span#textcolor884{color:rgb(0,0,0)}
+span#textcolor885{color:rgb(79,153,5)}
+span#textcolor886{color:rgb(206,91,0)}
+span#textcolor887{color:rgb(33,73,135)}
+span#textcolor888{color:rgb(0,0,0)}
+span#textcolor889{color:rgb(0,0,0)}
+span#textcolor890{color:rgb(0,0,0)}
+span#textcolor891{color:rgb(33,73,135)}
+span#textcolor892{color:rgb(0,0,0)}
+span#textcolor893{color:rgb(79,153,5)}
+span#textcolor894{color:rgb(206,91,0)}
+span#textcolor895{color:rgb(33,73,135)}
+span#textcolor896{color:rgb(0,0,0)}
+span#textcolor897{color:rgb(0,0,0)}
+span#textcolor898{color:rgb(0,0,0)}
+span#textcolor899{color:rgb(0,0,0)}
+span#textcolor900{color:rgb(206,91,0)}
+span#textcolor901{color:rgb(79,153,5)}
+span#textcolor902{color:rgb(0,0,0)}
+span#textcolor903{color:rgb(206,91,0)}
+span#textcolor904{color:rgb(0,0,0)}
+span#textcolor905{color:rgb(206,91,0)}
+span#textcolor906{color:rgb(0,0,0)}
+span#textcolor907{color:rgb(0,0,0)}
+span#textcolor908{color:rgb(79,153,5)}
+span#textcolor909{color:rgb(0,0,0)}
+span#textcolor910{color:rgb(0,0,0)}
+span#textcolor911{color:rgb(206,91,0)}
+span#textcolor912{color:rgb(0,0,0)}
+span#textcolor913{color:rgb(0,0,0)}
+span#textcolor914{color:rgb(206,91,0)}
+span#textcolor915{color:rgb(0,0,0)}
+span#textcolor916{color:rgb(0,0,0)}
+span#textcolor917{color:rgb(0,0,0)}
+span#textcolor918{color:rgb(206,91,0)}
+span#textcolor919{color:rgb(0,0,0)}
+span#textcolor920{color:rgb(0,0,0)}
+span#textcolor921{color:rgb(0,0,0)}
+span#textcolor922{color:rgb(0,0,0)}
+span#textcolor923{color:rgb(0,0,0)}
+span#textcolor924{color:rgb(206,91,0)}
+span#textcolor925{color:rgb(0,0,0)}
+span#textcolor926{color:rgb(0,0,0)}
+span#textcolor927{color:rgb(0,0,0)}
+span#textcolor928{color:rgb(0,0,0)}
+span#textcolor929{color:rgb(0,0,0)}
+span#textcolor930{color:rgb(0,0,0)}
+span#textcolor931{color:rgb(33,73,135)}
+span#textcolor932{color:rgb(0,0,0)}
+span#textcolor933{color:rgb(79,153,5)}
+span#textcolor934{color:rgb(206,91,0)}
+span#textcolor935{color:rgb(0,0,0)}
+span#textcolor936{color:rgb(206,91,0)}
+span#textcolor937{color:rgb(0,0,0)}
+span#textcolor938{color:rgb(0,0,0)}
+span#textcolor939{color:rgb(206,91,0)}
+span#textcolor940{color:rgb(0,0,0)}
+span#textcolor941{color:rgb(0,0,0)}
+span#textcolor942{color:rgb(79,153,5)}
+span#textcolor943{color:rgb(0,0,0)}
+span#textcolor944{color:rgb(206,91,0)}
+span#textcolor945{color:rgb(79,153,5)}
+span#textcolor946{color:rgb(206,91,0)}
+span#textcolor947{color:rgb(33,73,135)}
+span#textcolor948{color:rgb(0,0,0)}
+span#textcolor949{color:rgb(0,0,0)}
+span#textcolor950{color:rgb(206,91,0)}
+span#textcolor951{color:rgb(0,0,0)}
+span#textcolor952{color:rgb(0,0,0)}
+span#textcolor953{color:rgb(206,91,0)}
+span#textcolor954{color:rgb(0,0,0)}
+span#textcolor955{color:rgb(0,0,0)}
+span#textcolor956{color:rgb(79,153,5)}
+span#textcolor957{color:rgb(0,0,0)}
+span#textcolor958{color:rgb(206,91,0)}
+span#textcolor959{color:rgb(79,153,5)}
+span#textcolor960{color:rgb(0,0,0)}
+span#textcolor961{color:rgb(33,73,135)}
+span#textcolor962{color:rgb(0,0,0)}
+span#textcolor963{color:rgb(33,73,135)}
+span#textcolor964{color:rgb(0,0,0)}
+span#textcolor965{color:rgb(0,0,0)}
+span#textcolor966{color:rgb(33,73,135)}
+span#textcolor967{color:rgb(0,0,0)}
+span#textcolor968{color:rgb(0,0,0)}
+span#textcolor969{color:rgb(206,91,0)}
+span#textcolor970{color:rgb(0,0,0)}
+span#textcolor971{color:rgb(0,0,0)}
+span#textcolor972{color:rgb(206,91,0)}
+span#textcolor973{color:rgb(0,0,0)}
+span#textcolor974{color:rgb(0,0,0)}
+span#textcolor975{color:rgb(79,153,5)}
+span#textcolor976{color:rgb(0,0,0)}
+span#textcolor977{color:rgb(33,73,135)}
+span#textcolor978{color:rgb(0,0,0)}
+span#textcolor979{color:rgb(33,73,135)}
+span#textcolor980{color:rgb(206,91,0)}
+span#textcolor981{color:rgb(0,0,0)}
+span#textcolor982{color:rgb(206,91,0)}
+span#textcolor983{color:rgb(0,0,0)}
+span#textcolor984{color:rgb(0,0,0)}
+span#textcolor985{color:rgb(79,153,5)}
+span#textcolor986{color:rgb(0,0,0)}
+span#textcolor987{color:rgb(0,0,0)}
+span#textcolor988{color:rgb(206,91,0)}
+span#textcolor989{color:rgb(0,0,0)}
+span#textcolor990{color:rgb(0,0,0)}
+span#textcolor991{color:rgb(79,153,5)}
+span#textcolor992{color:rgb(0,0,0)}
+span#textcolor993{color:rgb(0,0,0)}
+span#textcolor994{color:rgb(206,91,0)}
+span#textcolor995{color:rgb(0,0,0)}
+span#textcolor996{color:rgb(0,0,0)}
+span#textcolor997{color:rgb(0,0,0)}
+span#textcolor998{color:rgb(206,91,0)}
+span#textcolor999{color:rgb(0,0,0)}
+span#textcolor1000{color:rgb(0,0,0)}
+span#textcolor1001{color:rgb(206,91,0)}
+span#textcolor1002{color:rgb(0,0,0)}
+span#textcolor1003{color:rgb(0,0,0)}
+span#textcolor1004{color:rgb(79,153,5)}
+span#textcolor1005{color:rgb(0,0,0)}
+span#textcolor1006{color:rgb(206,91,0)}
+span#textcolor1007{color:rgb(0,0,0)}
+span#textcolor1008{color:rgb(206,91,0)}
+span#textcolor1009{color:rgb(0,0,0)}
+span#textcolor1010{color:rgb(0,0,0)}
+span#textcolor1011{color:rgb(206,91,0)}
+span#textcolor1012{color:rgb(0,0,0)}
+span#textcolor1013{color:rgb(0,0,0)}
+span#textcolor1014{color:rgb(79,153,5)}
+span#textcolor1015{color:rgb(0,0,0)}
+span#textcolor1016{color:rgb(33,73,135)}
+span#textcolor1017{color:rgb(0,0,0)}
+span#textcolor1018{color:rgb(0,0,0)}
+span#textcolor1019{color:rgb(206,91,0)}
+span#textcolor1020{color:rgb(0,0,0)}
+span#textcolor1021{color:rgb(0,0,0)}
+span#textcolor1022{color:rgb(206,91,0)}
+span#textcolor1023{color:rgb(0,0,0)}
+span#textcolor1024{color:rgb(0,0,0)}
+span#textcolor1025{color:rgb(79,153,5)}
+span#textcolor1026{color:rgb(0,0,0)}
+span#textcolor1027{color:rgb(33,73,135)}
+span#textcolor1028{color:rgb(0,0,0)}
+span#textcolor1029{color:rgb(0,0,0)}
+span#textcolor1030{color:rgb(206,91,0)}
+span#textcolor1031{color:rgb(0,0,0)}
+span#textcolor1032{color:rgb(0,0,0)}
+span#textcolor1033{color:rgb(0,0,0)}
+span#textcolor1034{color:rgb(206,91,0)}
+span#textcolor1035{color:rgb(0,0,0)}
+span#textcolor1036{color:rgb(206,91,0)}
+span#textcolor1037{color:rgb(0,0,0)}
+span#textcolor1038{color:rgb(0,0,0)}
+span#textcolor1039{color:rgb(0,0,0)}
+span#textcolor1040{color:rgb(0,0,0)}
+span#textcolor1041{color:rgb(0,0,206)}
+span#textcolor1042{color:rgb(0,0,0)}
+span#textcolor1043{color:rgb(0,0,0)}
+span#textcolor1044{color:rgb(33,73,135)}
+span#textcolor1045{color:rgb(0,0,0)}
+span#textcolor1046{color:rgb(33,73,135)}
+span#textcolor1047{color:rgb(0,0,0)}
+span#textcolor1048{color:rgb(206,91,0)}
+span#textcolor1049{color:rgb(0,0,0)}
+span#textcolor1050{color:rgb(0,0,0)}
+span#textcolor1051{color:rgb(33,73,135)}
+span#textcolor1052{color:rgb(0,0,0)}
+span#textcolor1053{color:rgb(0,0,0)}
+span#textcolor1054{color:rgb(206,91,0)}
+span#textcolor1055{color:rgb(0,0,0)}
+span#textcolor1056{color:rgb(0,0,0)}
+span#textcolor1057{color:rgb(79,153,5)}
+span#textcolor1058{color:rgb(0,0,0)}
+span#textcolor1059{color:rgb(0,0,0)}
+span#textcolor1060{color:rgb(206,91,0)}
+span#textcolor1061{color:rgb(0,0,0)}
+span#textcolor1062{color:rgb(0,0,0)}
+span#textcolor1063{color:rgb(206,91,0)}
+span#textcolor1064{color:rgb(206,91,0)}
+span#textcolor1065{color:rgb(206,91,0)}
+span#textcolor1066{color:rgb(206,91,0)}
+span#textcolor1067{color:rgb(206,91,0)}
+span#textcolor1068{color:rgb(206,91,0)}
+span#textcolor1069{color:rgb(206,91,0)}
+span#textcolor1070{color:rgb(206,91,0)}
+span#textcolor1071{color:rgb(206,91,0)}
+span#textcolor1072{color:rgb(206,91,0)}
+span#textcolor1073{color:rgb(206,91,0)}
+span#textcolor1074{color:rgb(206,91,0)}
+span#textcolor1075{color:rgb(206,91,0)}
+span#textcolor1076{color:rgb(206,91,0)}
+span#textcolor1077{color:rgb(33,73,135)}
+span#textcolor1078{color:rgb(33,73,135)}
+span#textcolor1079{color:rgb(206,91,0)}
+span#textcolor1080{color:rgb(206,91,0)}
+span#textcolor1081{color:rgb(33,73,135)}
+span#textcolor1082{color:rgb(206,91,0)}
+span#textcolor1083{color:rgb(206,91,0)}
+span#textcolor1084{color:rgb(33,73,135)}
+span#textcolor1085{color:rgb(142,89,2)}
+span#textcolor1086{color:rgb(33,73,135)}
+span#textcolor1087{color:rgb(0,0,0)}
+span#textcolor1088{color:rgb(33,73,135)}
+span#textcolor1089{color:rgb(0,0,0)}
+span#textcolor1090{color:rgb(0,0,0)}
+span#textcolor1091{color:rgb(0,0,0)}
+span#textcolor1092{color:rgb(0,0,0)}
+span#textcolor1093{color:rgb(142,89,2)}
+span#textcolor1094{color:rgb(33,73,135)}
+span#textcolor1095{color:rgb(0,0,0)}
+span#textcolor1096{color:rgb(0,0,0)}
+span#textcolor1097{color:rgb(206,91,0)}
+span#textcolor1098{color:rgb(0,0,0)}
+span#textcolor1099{color:rgb(0,0,0)}
+span#textcolor1100{color:rgb(0,0,0)}
+span#textcolor1101{color:rgb(206,91,0)}
+span#textcolor1102{color:rgb(0,0,0)}
+span#textcolor1103{color:rgb(0,0,0)}
+span#textcolor1104{color:rgb(0,0,0)}
+span#textcolor1105{color:rgb(206,91,0)}
+span#textcolor1106{color:rgb(0,0,0)}
+span#textcolor1107{color:rgb(0,0,0)}
+span#textcolor1108{color:rgb(0,0,0)}
+span#textcolor1109{color:rgb(206,91,0)}
+span#textcolor1110{color:rgb(0,0,0)}
+span#textcolor1111{color:rgb(0,0,0)}
+span#textcolor1112{color:rgb(0,0,0)}
+span#textcolor1113{color:rgb(206,91,0)}
+span#textcolor1114{color:rgb(0,0,0)}
+span#textcolor1115{color:rgb(0,0,0)}
+span#textcolor1116{color:rgb(0,0,0)}
+span#textcolor1117{color:rgb(206,91,0)}
+span#textcolor1118{color:rgb(0,0,0)}
+span#textcolor1119{color:rgb(0,0,0)}
+span#textcolor1120{color:rgb(33,73,135)}
+span#textcolor1121{color:rgb(0,0,0)}
+span#textcolor1122{color:rgb(0,0,0)}
+span#textcolor1123{color:rgb(33,73,135)}
+span#textcolor1124{color:rgb(0,0,0)}
+span#textcolor1125{color:rgb(0,0,0)}
+span#textcolor1126{color:rgb(206,91,0)}
+span#textcolor1127{color:rgb(79,153,5)}
+span#textcolor1128{color:rgb(0,0,0)}
+span#textcolor1129{color:rgb(206,91,0)}
+span#textcolor1130{color:rgb(79,153,5)}
+span#textcolor1131{color:rgb(79,153,5)}
+span#textcolor1132{color:rgb(79,153,5)}
+span#textcolor1133{color:rgb(0,0,0)}
+span#textcolor1134{color:rgb(206,91,0)}
+span#textcolor1135{color:rgb(0,0,0)}
+span#textcolor1136{color:rgb(206,91,0)}
+span#textcolor1137{color:rgb(0,0,0)}
+span#textcolor1138{color:rgb(0,0,0)}
+span#textcolor1139{color:rgb(0,0,0)}
+span#textcolor1140{color:rgb(206,91,0)}
+span#textcolor1141{color:rgb(0,0,0)}
+span#textcolor1142{color:rgb(0,0,0)}
+span#textcolor1143{color:rgb(0,0,0)}
+span#textcolor1144{color:rgb(206,91,0)}
+span#textcolor1145{color:rgb(0,0,0)}
+span#textcolor1146{color:rgb(0,0,0)}
+span#textcolor1147{color:rgb(79,153,5)}
+span#textcolor1148{color:rgb(0,0,0)}
+span#textcolor1149{color:rgb(0,0,0)}
+span#textcolor1150{color:rgb(206,91,0)}
+span#textcolor1151{color:rgb(79,153,5)}
+span#textcolor1152{color:rgb(0,0,0)}
+span#textcolor1153{color:rgb(0,0,0)}
+span#textcolor1154{color:rgb(206,91,0)}
+span#textcolor1155{color:rgb(79,153,5)}
+span#textcolor1156{color:rgb(0,0,0)}
+span#textcolor1157{color:rgb(0,0,0)}
+span#textcolor1158{color:rgb(206,91,0)}
+span#textcolor1159{color:rgb(0,0,0)}
+span#textcolor1160{color:rgb(0,0,0)}
+span#textcolor1161{color:rgb(79,153,5)}
+span#textcolor1162{color:rgb(0,0,0)}
+span#textcolor1163{color:rgb(0,0,0)}
+span#textcolor1164{color:rgb(206,91,0)}
+span#textcolor1165{color:rgb(79,153,5)}
+span#textcolor1166{color:rgb(0,0,0)}
+span#textcolor1167{color:rgb(0,0,0)}
+span#textcolor1168{color:rgb(206,91,0)}
+span#textcolor1169{color:rgb(79,153,5)}
+span#textcolor1170{color:rgb(0,0,0)}
+span#textcolor1171{color:rgb(0,0,0)}
+span#textcolor1172{color:rgb(206,91,0)}
+span#textcolor1173{color:rgb(0,0,0)}
+span#textcolor1174{color:rgb(0,0,0)}
+span#textcolor1175{color:rgb(79,153,5)}
+span#textcolor1176{color:rgb(0,0,0)}
+span#textcolor1177{color:rgb(0,0,0)}
+span#textcolor1178{color:rgb(206,91,0)}
+span#textcolor1179{color:rgb(79,153,5)}
+span#textcolor1180{color:rgb(0,0,0)}
+span#textcolor1181{color:rgb(0,0,0)}
+span#textcolor1182{color:rgb(206,91,0)}
+span#textcolor1183{color:rgb(79,153,5)}
+span#textcolor1184{color:rgb(0,0,0)}
+span#textcolor1185{color:rgb(0,0,0)}
+span#textcolor1186{color:rgb(206,91,0)}
+span#textcolor1187{color:rgb(0,0,0)}
+span#textcolor1188{color:rgb(0,0,0)}
+span#textcolor1189{color:rgb(79,153,5)}
+span#textcolor1190{color:rgb(0,0,0)}
+span#textcolor1191{color:rgb(33,73,135)}
+span#textcolor1192{color:rgb(206,91,0)}
+span#textcolor1193{color:rgb(33,73,135)}
+span#textcolor1194{color:rgb(0,0,0)}
+span#textcolor1195{color:rgb(0,0,0)}
+span#textcolor1196{color:rgb(206,91,0)}
+span#textcolor1197{color:rgb(79,153,5)}
+span#textcolor1198{color:rgb(0,0,0)}
+span#textcolor1199{color:rgb(0,0,0)}
+span#textcolor1200{color:rgb(206,91,0)}
+span#textcolor1201{color:rgb(79,153,5)}
+span#textcolor1202{color:rgb(0,0,0)}
+span#textcolor1203{color:rgb(0,0,0)}
+span#textcolor1204{color:rgb(206,91,0)}
+span#textcolor1205{color:rgb(0,0,0)}
+span#textcolor1206{color:rgb(0,0,0)}
+span#textcolor1207{color:rgb(79,153,5)}
+span#textcolor1208{color:rgb(0,0,0)}
+span#textcolor1209{color:rgb(33,73,135)}
+span#textcolor1210{color:rgb(206,91,0)}
+span#textcolor1211{color:rgb(33,73,135)}
+span#textcolor1212{color:rgb(0,0,0)}
+span#textcolor1213{color:rgb(0,0,0)}
+span#textcolor1214{color:rgb(206,91,0)}
+span#textcolor1215{color:rgb(79,153,5)}
+span#textcolor1216{color:rgb(0,0,0)}
+span#textcolor1217{color:rgb(0,0,0)}
+span#textcolor1218{color:rgb(206,91,0)}
+span#textcolor1219{color:rgb(79,153,5)}
+span#textcolor1220{color:rgb(0,0,0)}
+span#textcolor1221{color:rgb(0,0,0)}
+span#textcolor1222{color:rgb(206,91,0)}
+span#textcolor1223{color:rgb(0,0,0)}
+span#textcolor1224{color:rgb(0,0,0)}
+span#textcolor1225{color:rgb(79,153,5)}
+span#textcolor1226{color:rgb(0,0,0)}
+span#textcolor1227{color:rgb(33,73,135)}
+span#textcolor1228{color:rgb(206,91,0)}
+span#textcolor1229{color:rgb(33,73,135)}
+span#textcolor1230{color:rgb(0,0,0)}
+span#textcolor1231{color:rgb(0,0,0)}
+span#textcolor1232{color:rgb(206,91,0)}
+span#textcolor1233{color:rgb(79,153,5)}
+span#textcolor1234{color:rgb(0,0,0)}
+span#textcolor1235{color:rgb(0,0,0)}
+span#textcolor1236{color:rgb(206,91,0)}
+span#textcolor1237{color:rgb(79,153,5)}
+span#textcolor1238{color:rgb(0,0,0)}
+span#textcolor1239{color:rgb(0,0,0)}
+span#textcolor1240{color:rgb(206,91,0)}
+span#textcolor1241{color:rgb(0,0,0)}
+span#textcolor1242{color:rgb(206,91,0)}
+span#textcolor1243{color:rgb(0,0,0)}
+span#textcolor1244{color:rgb(0,0,0)}
+span#textcolor1245{color:rgb(0,0,0)}
+span#textcolor1246{color:rgb(206,91,0)}
+span#textcolor1247{color:rgb(0,0,0)}
+span#textcolor1248{color:rgb(0,0,0)}
+span#textcolor1249{color:rgb(0,0,206)}
+span#textcolor1250{color:rgb(0,0,0)}
+span#textcolor1251{color:rgb(33,73,135)}
+span#textcolor1252{color:rgb(0,0,0)}
+span#textcolor1253{color:rgb(33,73,135)}
+span#textcolor1254{color:rgb(0,0,0)}
+span#textcolor1255{color:rgb(206,91,0)}
+span#textcolor1256{color:rgb(79,153,5)}
+span#textcolor1257{color:rgb(0,0,0)}
+span#textcolor1258{color:rgb(0,0,0)}
+span#textcolor1259{color:rgb(206,91,0)}
+span#textcolor1260{color:rgb(0,0,0)}
+span#textcolor1261{color:rgb(0,0,0)}
+span#textcolor1262{color:rgb(0,0,0)}
+span#textcolor1263{color:rgb(0,0,0)}
+span#textcolor1264{color:rgb(0,0,0)}
+span#textcolor1265{color:rgb(0,0,0)}
+span#textcolor1266{color:rgb(0,0,206)}
+span#textcolor1267{color:rgb(0,0,206)}
+span#textcolor1268{color:rgb(0,0,206)}
+span#textcolor1269{color:rgb(142,89,2)}
+span#textcolor1270{color:rgb(142,89,2)}
+span#textcolor1271{color:rgb(0,0,0)}
+span#textcolor1272{color:rgb(206,91,0)}
+span#textcolor1273{color:rgb(0,0,0)}
+span#textcolor1274{color:rgb(0,0,0)}
+span#textcolor1275{color:rgb(206,91,0)}
+span#textcolor1276{color:rgb(0,0,0)}
+span#textcolor1277{color:rgb(0,0,0)}
+span#textcolor1278{color:rgb(206,91,0)}
+span#textcolor1279{color:rgb(0,0,0)}
+span#textcolor1280{color:rgb(0,0,0)}
+span#textcolor1281{color:rgb(0,0,0)}
+span#textcolor1282{color:rgb(0,0,0)}
+span#textcolor1283{color:rgb(142,89,2)}
+span#textcolor1284{color:rgb(0,0,0)}
+span#textcolor1285{color:rgb(206,91,0)}
+span#textcolor1286{color:rgb(0,0,0)}
+span#textcolor1287{color:rgb(0,0,0)}
+span#textcolor1288{color:rgb(79,153,5)}
+span#textcolor1289{color:rgb(0,0,0)}
+span#textcolor1290{color:rgb(0,0,0)}
+span#textcolor1291{color:rgb(206,91,0)}
+span#textcolor1292{color:rgb(79,153,5)}
+span#textcolor1293{color:rgb(0,0,0)}
+span#textcolor1294{color:rgb(0,0,0)}
+span#textcolor1295{color:rgb(206,91,0)}
+span#textcolor1296{color:rgb(79,153,5)}
+span#textcolor1297{color:rgb(206,91,0)}
+span#textcolor1298{color:rgb(79,153,5)}
+span#textcolor1299{color:rgb(206,91,0)}
+span#textcolor1300{color:rgb(0,0,0)}
+span#textcolor1301{color:rgb(0,0,0)}
+span#textcolor1302{color:rgb(33,73,135)}
+span#textcolor1303{color:rgb(0,0,0)}
+span#textcolor1304{color:rgb(33,73,135)}
+span#textcolor1305{color:rgb(206,91,0)}
+span#textcolor1306{color:rgb(0,0,0)}
+span#textcolor1307{color:rgb(0,0,0)}
+span#textcolor1308{color:rgb(0,0,0)}
+span#textcolor1309{color:rgb(0,0,0)}
+span#textcolor1310{color:rgb(142,89,2)}
+span#textcolor1311{color:rgb(142,89,2)}
+span#textcolor1312{color:rgb(0,0,0)}
+span#textcolor1313{color:rgb(206,91,0)}
+span#textcolor1314{color:rgb(0,0,0)}
+span#textcolor1315{color:rgb(0,0,0)}
+span#textcolor1316{color:rgb(0,0,0)}
+span#textcolor1317{color:rgb(206,91,0)}
+span#textcolor1318{color:rgb(0,0,0)}
+span#textcolor1319{color:rgb(0,0,0)}
+span#textcolor1320{color:rgb(0,0,0)}
+span#textcolor1321{color:rgb(206,91,0)}
+span#textcolor1322{color:rgb(0,0,0)}
+span#textcolor1323{color:rgb(0,0,0)}
+span#textcolor1324{color:rgb(0,0,0)}
+span#textcolor1325{color:rgb(206,91,0)}
+span#textcolor1326{color:rgb(0,0,0)}
+span#textcolor1327{color:rgb(0,0,0)}
+span#textcolor1328{color:rgb(0,0,0)}
+span#textcolor1329{color:rgb(206,91,0)}
+span#textcolor1330{color:rgb(0,0,0)}
+span#textcolor1331{color:rgb(0,0,0)}
+span#textcolor1332{color:rgb(142,89,2)}
+span#textcolor1333{color:rgb(142,89,2)}
+span#textcolor1334{color:rgb(142,89,2)}
+span#textcolor1335{color:rgb(0,0,0)}
+span#textcolor1336{color:rgb(206,91,0)}
+span#textcolor1337{color:rgb(0,0,0)}
+span#textcolor1338{color:rgb(0,0,0)}
+span#textcolor1339{color:rgb(0,0,0)}
+span#textcolor1340{color:rgb(206,91,0)}
+span#textcolor1341{color:rgb(0,0,0)}
+span#textcolor1342{color:rgb(0,0,0)}
+span#textcolor1343{color:rgb(0,0,0)}
+span#textcolor1344{color:rgb(206,91,0)}
+span#textcolor1345{color:rgb(0,0,0)}
+span#textcolor1346{color:rgb(0,0,0)}
+span#textcolor1347{color:rgb(0,0,0)}
+span#textcolor1348{color:rgb(0,0,0)}
+span#textcolor1349{color:rgb(0,0,0)}
+span#textcolor1350{color:rgb(206,91,0)}
+span#textcolor1351{color:rgb(0,0,0)}
+span#textcolor1352{color:rgb(0,0,0)}
+span#textcolor1353{color:rgb(0,0,0)}
+span#textcolor1354{color:rgb(206,91,0)}
+span#textcolor1355{color:rgb(0,0,0)}
+span#textcolor1356{color:rgb(0,0,0)}
+span#textcolor1357{color:rgb(142,89,2)}
+span#textcolor1358{color:rgb(0,0,0)}
+span#textcolor1359{color:rgb(206,91,0)}
+span#textcolor1360{color:rgb(0,0,0)}
+span#textcolor1361{color:rgb(0,0,0)}
+span#textcolor1362{color:rgb(0,0,0)}
+span#textcolor1363{color:rgb(206,91,0)}
+span#textcolor1364{color:rgb(0,0,0)}
+span#textcolor1365{color:rgb(0,0,0)}
+span#textcolor1366{color:rgb(0,0,0)}
+span#textcolor1367{color:rgb(206,91,0)}
+span#textcolor1368{color:rgb(0,0,0)}
+span#textcolor1369{color:rgb(0,0,0)}
+span#textcolor1370{color:rgb(142,89,2)}
+span#textcolor1371{color:rgb(0,0,0)}
+span#textcolor1372{color:rgb(206,91,0)}
+span#textcolor1373{color:rgb(0,0,0)}
+span#textcolor1374{color:rgb(0,0,0)}
+span#textcolor1375{color:rgb(142,89,2)}
+span#textcolor1376{color:rgb(33,73,135)}
+span#textcolor1377{color:rgb(0,0,0)}
+span#textcolor1378{color:rgb(0,0,0)}
+span#textcolor1379{color:rgb(206,91,0)}
+span#textcolor1380{color:rgb(0,0,0)}
+span#textcolor1381{color:rgb(0,0,0)}
+span#textcolor1382{color:rgb(0,0,0)}
+span#textcolor1383{color:rgb(0,0,0)}
+span#textcolor1384{color:rgb(0,0,0)}
+span#textcolor1385{color:rgb(206,91,0)}
+span#textcolor1386{color:rgb(0,0,0)}
+span#textcolor1387{color:rgb(0,0,0)}
+span#textcolor1388{color:rgb(0,0,0)}
+span#textcolor1389{color:rgb(206,91,0)}
+span#textcolor1390{color:rgb(0,0,0)}
+span#textcolor1391{color:rgb(0,0,0)}
+span#textcolor1392{color:rgb(0,0,0)}
+span#textcolor1393{color:rgb(206,91,0)}
+span#textcolor1394{color:rgb(0,0,0)}
+span#textcolor1395{color:rgb(0,0,0)}
+span#textcolor1396{color:rgb(0,0,0)}
+span#textcolor1397{color:rgb(0,0,0)}
+span#textcolor1398{color:rgb(0,0,0)}
+span#textcolor1399{color:rgb(0,0,0)}
+span#textcolor1400{color:rgb(33,73,135)}
+span#textcolor1401{color:rgb(0,0,0)}
+span#textcolor1402{color:rgb(0,0,0)}
+span#textcolor1403{color:rgb(0,0,0)}
+span#textcolor1404{color:rgb(0,0,0)}
+span#textcolor1405{color:rgb(142,89,2)}
+span#textcolor1406{color:rgb(0,0,0)}
+span#textcolor1407{color:rgb(206,91,0)}
+span#textcolor1408{color:rgb(0,0,0)}
+span#textcolor1409{color:rgb(0,0,0)}
+span#textcolor1410{color:rgb(0,0,0)}
+span#textcolor1411{color:rgb(206,91,0)}
+span#textcolor1412{color:rgb(0,0,0)}
+span#textcolor1413{color:rgb(0,0,0)}
+span#textcolor1414{color:rgb(0,0,0)}
+span#textcolor1415{color:rgb(206,91,0)}
+span#textcolor1416{color:rgb(0,0,0)}
+span#textcolor1417{color:rgb(0,0,0)}
+span#textcolor1418{color:rgb(0,0,0)}
+span#textcolor1419{color:rgb(206,91,0)}
+span#textcolor1420{color:rgb(0,0,0)}
+span#textcolor1421{color:rgb(0,0,0)}
+span#textcolor1422{color:rgb(142,89,2)}
+span#textcolor1423{color:rgb(0,0,0)}
+span#textcolor1424{color:rgb(206,91,0)}
+span#textcolor1425{color:rgb(0,0,0)}
+span#textcolor1426{color:rgb(0,0,0)}
+span#textcolor1427{color:rgb(0,0,0)}
+span#textcolor1428{color:rgb(206,91,0)}
+span#textcolor1429{color:rgb(0,0,0)}
+span#textcolor1430{color:rgb(0,0,0)}
+span#textcolor1431{color:rgb(0,0,0)}
+span#textcolor1432{color:rgb(206,91,0)}
+span#textcolor1433{color:rgb(0,0,0)}
+span#textcolor1434{color:rgb(0,0,0)}
+span#textcolor1435{color:rgb(0,0,0)}
+span#textcolor1436{color:rgb(206,91,0)}
+span#textcolor1437{color:rgb(0,0,0)}
+span#textcolor1438{color:rgb(0,0,0)}
+span#textcolor1439{color:rgb(0,0,0)}
+span#textcolor1440{color:rgb(206,91,0)}
+span#textcolor1441{color:rgb(0,0,0)}
+span#textcolor1442{color:rgb(0,0,0)}
+span#textcolor1443{color:rgb(142,89,2)}
+span#textcolor1444{color:rgb(0,0,0)}
+span#textcolor1445{color:rgb(206,91,0)}
+span#textcolor1446{color:rgb(0,0,0)}
+span#textcolor1447{color:rgb(0,0,0)}
+span#textcolor1448{color:rgb(206,91,0)}
+span#textcolor1449{color:rgb(0,0,0)}
+span#textcolor1450{color:rgb(0,0,0)}
+span#textcolor1451{color:rgb(206,91,0)}
+span#textcolor1452{color:rgb(0,0,0)}
+span#textcolor1453{color:rgb(0,0,0)}
+span#textcolor1454{color:rgb(0,0,0)}
+span#textcolor1455{color:rgb(206,91,0)}
+span#textcolor1456{color:rgb(0,0,0)}
+span#textcolor1457{color:rgb(0,0,0)}
+span#textcolor1458{color:rgb(0,0,0)}
+span#textcolor1459{color:rgb(0,0,0)}
+span#textcolor1460{color:rgb(0,0,0)}
+span#textcolor1461{color:rgb(206,91,0)}
+span#textcolor1462{color:rgb(0,0,0)}
+span#textcolor1463{color:rgb(0,0,0)}
+span#textcolor1464{color:rgb(142,89,2)}
+span#textcolor1465{color:rgb(0,0,0)}
+span#textcolor1466{color:rgb(206,91,0)}
+span#textcolor1467{color:rgb(0,0,206)}
+span#textcolor1468{color:rgb(33,73,135)}
+span#textcolor1469{color:rgb(0,0,0)}
+span#textcolor1470{color:rgb(0,0,0)}
+span#textcolor1471{color:rgb(206,91,0)}
+span#textcolor1472{color:rgb(0,0,0)}
+span#textcolor1473{color:rgb(0,0,0)}
+span#textcolor1474{color:rgb(0,0,0)}
+span#textcolor1475{color:rgb(0,0,0)}
+span#textcolor1476{color:rgb(142,89,2)}
+span#textcolor1477{color:rgb(0,0,0)}
+span#textcolor1478{color:rgb(206,91,0)}
+span#textcolor1479{color:rgb(0,0,0)}
+span#textcolor1480{color:rgb(0,0,0)}
+span#textcolor1481{color:rgb(0,0,0)}
+span#textcolor1482{color:rgb(206,91,0)}
+span#textcolor1483{color:rgb(0,0,0)}
+span#textcolor1484{color:rgb(0,0,0)}
+span#textcolor1485{color:rgb(0,0,0)}
+span#textcolor1486{color:rgb(206,91,0)}
+span#textcolor1487{color:rgb(0,0,0)}
+span#textcolor1488{color:rgb(0,0,0)}
+span#textcolor1489{color:rgb(0,0,0)}
+span#textcolor1490{color:rgb(206,91,0)}
+span#textcolor1491{color:rgb(0,0,0)}
+span#textcolor1492{color:rgb(0,0,0)}
+span#textcolor1493{color:rgb(0,0,0)}
+span#textcolor1494{color:rgb(206,91,0)}
+span#textcolor1495{color:rgb(0,0,0)}
+span#textcolor1496{color:rgb(0,0,0)}
+span#textcolor1497{color:rgb(142,89,2)}
+span#textcolor1498{color:rgb(0,0,0)}
+span#textcolor1499{color:rgb(206,91,0)}
+span#textcolor1500{color:rgb(0,0,0)}
+span#textcolor1501{color:rgb(0,0,0)}
+span#textcolor1502{color:rgb(0,0,0)}
+span#textcolor1503{color:rgb(0,0,0)}
+span#textcolor1504{color:rgb(142,89,2)}
+span#textcolor1505{color:rgb(142,89,2)}
+span#textcolor1506{color:rgb(0,0,0)}
+span#textcolor1507{color:rgb(206,91,0)}
+span#textcolor1508{color:rgb(0,0,0)}
+span#textcolor1509{color:rgb(0,0,0)}
+span#textcolor1510{color:rgb(0,0,0)}
+span#textcolor1511{color:rgb(206,91,0)}
+span#textcolor1512{color:rgb(0,0,0)}
+span#textcolor1513{color:rgb(0,0,0)}
+span#textcolor1514{color:rgb(0,0,0)}
+span#textcolor1515{color:rgb(206,91,0)}
+span#textcolor1516{color:rgb(0,0,0)}
+span#textcolor1517{color:rgb(0,0,0)}
+span#textcolor1518{color:rgb(0,0,0)}
+span#textcolor1519{color:rgb(206,91,0)}
+span#textcolor1520{color:rgb(0,0,0)}
+span#textcolor1521{color:rgb(0,0,0)}
+span#textcolor1522{color:rgb(0,0,0)}
+span#textcolor1523{color:rgb(0,0,0)}
+span#textcolor1524{color:rgb(142,89,2)}
+span#textcolor1525{color:rgb(0,0,0)}
+span#textcolor1526{color:rgb(206,91,0)}
+span#textcolor1527{color:rgb(0,0,0)}
+span#textcolor1528{color:rgb(0,0,0)}
+span#textcolor1529{color:rgb(206,91,0)}
+span#textcolor1530{color:rgb(0,0,0)}
+span#textcolor1531{color:rgb(0,0,0)}
+span#textcolor1532{color:rgb(33,73,135)}
+span#textcolor1533{color:rgb(0,0,0)}
+span#textcolor1534{color:rgb(0,0,0)}
+span#textcolor1535{color:rgb(206,91,0)}
+span#textcolor1536{color:rgb(0,0,0)}
+span#textcolor1537{color:rgb(206,91,0)}
+span#textcolor1538{color:rgb(79,153,5)}
+span#textcolor1539{color:rgb(0,0,0)}
+span#textcolor1540{color:rgb(0,0,0)}
+span#textcolor1541{color:rgb(206,91,0)}
+span#textcolor1542{color:rgb(0,0,0)}
+span#textcolor1543{color:rgb(0,0,0)}
+span#textcolor1544{color:rgb(0,0,0)}
+span#textcolor1545{color:rgb(206,91,0)}
+span#textcolor1546{color:rgb(0,0,0)}
+span#textcolor1547{color:rgb(0,0,0)}
+span#textcolor1548{color:rgb(0,0,0)}
+span#textcolor1549{color:rgb(206,91,0)}
+span#textcolor1550{color:rgb(0,0,0)}
+span#textcolor1551{color:rgb(0,0,0)}
+span#textcolor1552{color:rgb(33,73,135)}
+span#textcolor1553{color:rgb(0,0,0)}
+span#textcolor1554{color:rgb(0,0,0)}
+span#textcolor1555{color:rgb(206,91,0)}
+span#textcolor1556{color:rgb(0,0,0)}
+span#textcolor1557{color:rgb(206,91,0)}
+span#textcolor1558{color:rgb(0,0,0)}
+span#textcolor1559{color:rgb(0,0,0)}
+span#textcolor1560{color:rgb(0,0,0)}
+span#textcolor1561{color:rgb(206,91,0)}
+span#textcolor1562{color:rgb(0,0,0)}
+span#textcolor1563{color:rgb(0,0,0)}
+span#textcolor1564{color:rgb(0,0,0)}
+span#textcolor1565{color:rgb(206,91,0)}
+span#textcolor1566{color:rgb(0,0,0)}
+span#textcolor1567{color:rgb(0,0,0)}
+span#textcolor1568{color:rgb(0,0,0)}
+span#textcolor1569{color:rgb(0,0,0)}
+span#textcolor1570{color:rgb(0,0,0)}
+span#textcolor1571{color:rgb(206,91,0)}
+span#textcolor1572{color:rgb(0,0,0)}
+span#textcolor1573{color:rgb(0,0,0)}
+span#textcolor1574{color:rgb(0,0,0)}
+span#textcolor1575{color:rgb(206,91,0)}
+span#textcolor1576{color:rgb(0,0,0)}
+span#textcolor1577{color:rgb(0,0,0)}
+span#textcolor1578{color:rgb(33,73,135)}
+span#textcolor1579{color:rgb(0,0,0)}
+span#textcolor1580{color:rgb(33,73,135)}
+span#textcolor1581{color:rgb(0,0,0)}
+span#textcolor1582{color:rgb(0,0,0)}
+span#textcolor1583{color:rgb(142,89,2)}
+span#textcolor1584{color:rgb(0,0,0)}
+span#textcolor1585{color:rgb(206,91,0)}
+span#textcolor1586{color:rgb(0,0,0)}
+span#textcolor1587{color:rgb(0,0,0)}
+span#textcolor1588{color:rgb(0,0,0)}
+span#textcolor1589{color:rgb(206,91,0)}
+span#textcolor1590{color:rgb(0,0,0)}
+span#textcolor1591{color:rgb(0,0,0)}
+span#textcolor1592{color:rgb(0,0,0)}
+span#textcolor1593{color:rgb(0,0,0)}
+span#textcolor1594{color:rgb(0,0,0)}
+span#textcolor1595{color:rgb(206,91,0)}
+span#textcolor1596{color:rgb(0,0,0)}
+span#textcolor1597{color:rgb(0,0,0)}
+span#textcolor1598{color:rgb(0,0,0)}
+span#textcolor1599{color:rgb(0,0,0)}
+span#textcolor1600{color:rgb(0,0,0)}
+span#textcolor1601{color:rgb(206,91,0)}
+span#textcolor1602{color:rgb(0,0,0)}
+span#textcolor1603{color:rgb(0,0,0)}
+span#textcolor1604{color:rgb(0,0,0)}
+span#textcolor1605{color:rgb(0,0,0)}
+span#textcolor1606{color:rgb(33,73,135)}
+span#textcolor1607{color:rgb(0,0,0)}
+span#textcolor1608{color:rgb(33,73,135)}
+span#textcolor1609{color:rgb(0,0,0)}
+span#textcolor1610{color:rgb(0,0,0)}
+span#textcolor1611{color:rgb(0,0,0)}
+span#textcolor1612{color:rgb(206,91,0)}
+span#textcolor1613{color:rgb(79,153,5)}
+span#textcolor1614{color:rgb(0,0,0)}
+span#textcolor1615{color:rgb(0,0,0)}
+span#textcolor1616{color:rgb(206,91,0)}
+span#textcolor1617{color:rgb(0,0,0)}
+span#textcolor1618{color:rgb(0,0,0)}
+span#textcolor1619{color:rgb(0,0,0)}
+span#textcolor1620{color:rgb(206,91,0)}
+span#textcolor1621{color:rgb(0,0,0)}
+span#textcolor1622{color:rgb(0,0,0)}
+span#textcolor1623{color:rgb(0,0,0)}
+span#textcolor1624{color:rgb(206,91,0)}
+span#textcolor1625{color:rgb(0,0,0)}
+span#textcolor1626{color:rgb(0,0,0)}
+span#textcolor1627{color:rgb(0,0,0)}
+span#textcolor1628{color:rgb(0,0,0)}
+span#textcolor1629{color:rgb(0,0,0)}
+span#textcolor1630{color:rgb(0,0,0)}
+span#textcolor1631{color:rgb(0,0,206)}
+span#textcolor1632{color:rgb(0,0,206)}
+span#textcolor1633{color:rgb(0,0,206)}
+#mdframed-43{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-44{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+span#textcolor1634{color:rgb(142,89,2)}
+span#textcolor1635{color:rgb(142,89,2)}
+span#textcolor1636{color:rgb(0,0,0)}
+span#textcolor1637{color:rgb(0,0,0)}
+span#textcolor1638{color:rgb(79,153,5)}
+span#textcolor1639{color:rgb(0,0,0)}
+span#textcolor1640{color:rgb(0,0,0)}
+span#textcolor1641{color:rgb(0,0,0)}
+span#textcolor1642{color:rgb(79,153,5)}
+span#textcolor1643{color:rgb(0,0,0)}
+#mdframed-45{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+#mdframed-46{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+span#textcolor1644{color:rgb(142,89,2)}
+span#textcolor1645{color:rgb(0,0,0)}
+span#textcolor1646{color:rgb(0,0,0)}
+span#textcolor1647{color:rgb(79,153,5)}
+span#textcolor1648{color:rgb(0,0,0)}
+span#textcolor1649{color:rgb(0,0,0)}
+span#textcolor1650{color:rgb(0,0,0)}
+span#textcolor1651{color:rgb(0,0,0)}
+span#textcolor1652{color:rgb(0,0,0)}
+span#textcolor1653{color:rgb(0,0,0)}
+span#textcolor1654{color:rgb(0,0,0)}
+span#textcolor1655{color:rgb(0,0,0)}
+span#textcolor1656{color:rgb(206,91,0)}
+span#textcolor1657{color:rgb(0,0,0)}
+span#textcolor1658{color:rgb(0,0,0)}
+span#textcolor1659{color:rgb(206,91,0)}
+span#textcolor1660{color:rgb(0,0,0)}
+span#textcolor1661{color:rgb(0,0,0)}
+span#textcolor1662{color:rgb(0,0,0)}
+span#textcolor1663{color:rgb(206,91,0)}
+span#textcolor1664{color:rgb(0,0,206)}
+span#textcolor1665{color:rgb(0,0,0)}
+span#textcolor1666{color:rgb(0,0,0)}
+span#textcolor1667{color:rgb(206,91,0)}
+span#textcolor1668{color:rgb(0,0,206)}
+span#textcolor1669{color:rgb(0,0,0)}
+span#textcolor1670{color:rgb(206,91,0)}
+span#textcolor1671{color:rgb(0,0,0)}
+span#textcolor1672{color:rgb(0,0,0)}
+span#textcolor1673{color:rgb(206,91,0)}
+span#textcolor1674{color:rgb(0,0,0)}
+span#textcolor1675{color:rgb(0,0,0)}
+span#textcolor1676{color:rgb(79,153,5)}
+span#textcolor1677{color:rgb(0,0,0)}
+span#textcolor1678{color:rgb(206,91,0)}
+span#textcolor1679{color:rgb(0,0,0)}
+span#textcolor1680{color:rgb(0,0,0)}
+span#textcolor1681{color:rgb(79,153,5)}
+span#textcolor1682{color:rgb(0,0,0)}
+#mdframed-47{border:1.0pt solid #000000; background-color: #FFFFFF; color:#000000;}
+/* end css.sty */
+

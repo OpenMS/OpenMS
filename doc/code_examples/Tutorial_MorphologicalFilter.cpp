@@ -4,6 +4,7 @@
 
 #include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 #include <iostream>
@@ -13,7 +14,7 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  auto tutorial_data_path = OPENMS_DOC_PATH + String("/code_examples/");
+  auto tutorial_data_path = OPENMS_DOC_PATH + std::string("/code_examples/");
 
   PeakMap exp;
 

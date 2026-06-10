@@ -41,8 +41,8 @@ namespace OpenMS
       }
       if (float_data_arrays_[i].size() != peaks_old)
       {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + String(i) + "] size (" +
-                                                                                  String(float_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + StringUtils::toStr(i) + "] size (" +
+                                                                                  StringUtils::toStr(float_data_arrays_[i].size()) + ") does not match spectrum size (" + StringUtils::toStr(peaks_old) + ")");
       }
 
       mda_tmp_float.clear();
@@ -54,7 +54,7 @@ namespace OpenMS
       std::swap(float_data_arrays_[i], mda_tmp_float);
     }
 
-    std::vector<String> mda_tmp_str;
+    std::vector<std::string> mda_tmp_str;
     for (Size i = 0; i < string_data_arrays_.size(); ++i)
     {
       if (string_data_arrays_[i].empty())
@@ -63,8 +63,8 @@ namespace OpenMS
       }
       if (string_data_arrays_[i].size() != peaks_old)
       {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" +
-                                                                                  String(string_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + StringUtils::toStr(i) + "] size (" +
+                                                                                  StringUtils::toStr(string_data_arrays_[i].size()) + ") does not match spectrum size (" + StringUtils::toStr(peaks_old) + ")");
       }
 
       mda_tmp_str.clear();
@@ -85,8 +85,8 @@ namespace OpenMS
       }
       if (integer_data_arrays_[i].size() != peaks_old)
       {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" +
-                                                                                  String(integer_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + StringUtils::toStr(i) + "] size (" +
+                                                                                  StringUtils::toStr(integer_data_arrays_[i].size()) + ") does not match spectrum size (" + StringUtils::toStr(peaks_old) + ")");
       }
 
       mda_tmp_int.clear();
@@ -596,7 +596,7 @@ namespace OpenMS
     return drift_time_unit_;
   }
 
-  String MSSpectrum::getDriftTimeUnitAsString() const
+  std::string MSSpectrum::getDriftTimeUnitAsString() const
   {
     return NamesOfDriftTimeUnit[(size_t)drift_time_unit_];
   }
@@ -626,12 +626,12 @@ namespace OpenMS
     ms_level_ = ms_level;
   }
 
-  const String &MSSpectrum::getName() const
+  const std::string &MSSpectrum::getName() const
   {
     return name_;
   }
 
-  void MSSpectrum::setName(const String &name)
+  void MSSpectrum::setName(const std::string &name)
   {
     name_ = name;
   }
@@ -796,7 +796,7 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "Cannot get ion mobility data. No float array with the correct name available."
                                           " Number of float arrays: " +
-                                              String(this->getFloatDataArrays().size()));
+                                              StringUtils::toStr(this->getFloatDataArrays().size()));
     }
 
     return {index, unit };
@@ -833,12 +833,12 @@ namespace OpenMS
     if (im_bins == 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Number of IM bins must be positive", String(im_bins));
+        "Number of IM bins must be positive",StringUtils::toStr(im_bins));
     }
     if (mz_bins == 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Number of m/z bins must be positive", String(mz_bins));
+        "Number of m/z bins must be positive",StringUtils::toStr(mz_bins));
     }
     if (min_im >= max_im)
     {
@@ -868,8 +868,8 @@ namespace OpenMS
     if (im_data.size() != this->size())
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "IM data array size (" + String(im_data.size()) +
-        ") does not match spectrum size (" + String(this->size()) + ")");
+        "IM data array size (" + StringUtils::toStr(im_data.size()) +
+        ") does not match spectrum size (" + StringUtils::toStr(this->size()) + ")");
     }
 
     // Precompute bin sizes for mapping coordinates to pixel indices

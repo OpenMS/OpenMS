@@ -1,0 +1,1998 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_1907448822859406979" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="spectra_data" value="[/home/axel/dev/pyopenms-docs/src/data/Metabolomics_1.mzML]"/>
+	<IdentificationRun id="PI_0" date="2022-06-14T09:13:55" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<featureList count="74">
+		<feature id="f_3425613362220617319">
+			<position dim="0">237.215857486999994</position>
+			<position dim="1">431.298028301672389</position>
+			<intensity>4.385868e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.290812e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="431.298034667969" RT="234.897589583" spectrum_reference="controllerType=0 controllerNumber=1 scan=938" >
+				<UserParam type="int" name="spectrum_index" value="79"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="431.298065185547" RT="239.794194127" spectrum_reference="controllerType=0 controllerNumber=1 scan=958" >
+				<UserParam type="int" name="spectrum_index" value="93"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T107_T247"/>
+			<UserParam type="float" name="FWHM" value="15.510936737060547"/>
+			<UserParam type="float" name="max_height" value="3.4841421875e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[4.385867367308469e06, 8.345252742733177e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[237.215857486999994, 238.458755854999993]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[431.298028301672389, 432.301419200514431]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003390898842042]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="9157068463701752033"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_9240257202847493221">
+			<position dim="0">243.397188510999996</position>
+			<position dim="1">300.203079514456306</position>
+			<intensity>4.085774e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.326533e-04</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="300.203094482422" RT="243.484220255" spectrum_reference="controllerType=0 controllerNumber=1 scan=973" >
+				<UserParam type="int" name="spectrum_index" value="101"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T49_T100"/>
+			<UserParam type="float" name="FWHM" value="3.722304105758667"/>
+			<UserParam type="float" name="max_height" value="1.272968625e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[4.085774167282282e06, 1.152409752330611e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[243.397188510999996, 243.397188510999996]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[300.203079514456306, 300.704541078247644]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.501461563791338]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="1974506660865159523"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_17304323164086589850">
+			<position dim="0">247.019713566999997</position>
+			<position dim="1">413.287484154675326</position>
+			<intensity>1.692179e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>5.005471e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="413.287475585938" RT="244.047961551" spectrum_reference="controllerType=0 controllerNumber=1 scan=975" >
+				<UserParam type="int" name="spectrum_index" value="102"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="413.287506103516" RT="248.314180447" spectrum_reference="controllerType=0 controllerNumber=1 scan=993" >
+				<UserParam type="int" name="spectrum_index" value="114"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T50.1_T119.1"/>
+			<UserParam type="float" name="FWHM" value="3.127480745315552"/>
+			<UserParam type="float" name="max_height" value="4.832868125e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.692178446410089e06, 3.415228328110002e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[247.019713566999997, 247.019713566999997]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[413.287484154675326, 414.290876798052182]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003392643376856]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="18044944332604630061"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_15266348138576158438">
+			<position dim="0">259.326586238999994</position>
+			<position dim="1">469.324990595051588</position>
+			<intensity>9.706997e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.887983e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="469.324890136719" RT="259.959379199" spectrum_reference="controllerType=0 controllerNumber=1 scan=1040" >
+				<UserParam type="int" name="spectrum_index" value="146"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T22.1_T48.1"/>
+			<UserParam type="float" name="FWHM" value="3.119400978088379"/>
+			<UserParam type="float" name="max_height" value="2.896655625e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[9.706996946848133e05, 2.037531538637024e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[259.326586238999994, 259.326586238999994]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[469.324990595051588, 470.328361605001248]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00337100994966]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H-1O-1"/>
+			<UserParam type="stringList" name="adducts" value="[[M-H-O]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="-17.0027400319"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="3473630921092303557"/>
+		</feature>
+		<feature id="f_9127989512403801476">
+			<position dim="0">259.326586238999994</position>
+			<position dim="1">487.335625991060397</position>
+			<intensity>4.581281e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.574978e-03</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="487.335632324219" RT="258.208287871" spectrum_reference="controllerType=0 controllerNumber=1 scan=1033" >
+				<UserParam type="int" name="spectrum_index" value="139"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="487.335601806641" RT="263.056217743" spectrum_reference="controllerType=0 controllerNumber=1 scan=1053" >
+				<UserParam type="int" name="spectrum_index" value="155"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T17.2_T31.1_T89.1"/>
+			<UserParam type="float" name="FWHM" value="3.753434658050537"/>
+			<UserParam type="float" name="max_height" value="1.3976681e07"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[4.581280946755652e07, 1.158419326276905e07, 1.357819000792834e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[259.326586238999994, 259.326586238999994, 259.326586238999994]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[487.335625991060397, 488.337541024065558, 489.340763452335239]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.001915033005162, 1.00322242826968]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="string" name="Group" value="3473630921092303557"/>
+		</feature>
+		<feature id="f_21343505088903114">
+			<position dim="0">261.762536751000027</position>
+			<position dim="1">445.313727159261418</position>
+			<intensity>5.075244e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.637416e-03</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="445.313659667969" RT="259.395618159" spectrum_reference="controllerType=0 controllerNumber=1 scan=1038" >
+				<UserParam type="int" name="spectrum_index" value="144"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="445.313720703125" RT="264.260685823" spectrum_reference="controllerType=0 controllerNumber=1 scan=1058" >
+				<UserParam type="int" name="spectrum_index" value="160"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T3.1_T8.1_T15.1_T43.1"/>
+			<UserParam type="float" name="FWHM" value="9.673539161682129"/>
+			<UserParam type="float" name="max_height" value="5.975292e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="4"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[5.0752438397633e07, 1.131453323987997e07, 1.326990787564378e06, 1.350443328698927e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[261.762536751000027, 261.762536751000027, 261.762536751000027, 260.561188766999976]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[445.313727159261418, 446.316489239638713, 447.319373526296431, 448.321995828689353]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.002762080377295, 1.002884286657718, 1.002622302392922]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="4813057781017624395"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_2726455339746237289">
+			<position dim="0">269.12868543899998</position>
+			<position dim="1">314.229954314858844</position>
+			<intensity>6.216076e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.815174e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="314.230010986328" RT="264.823538591" spectrum_reference="controllerType=0 controllerNumber=1 scan=1060" >
+				<UserParam type="int" name="spectrum_index" value="161"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="314.230010986328" RT="269.729968703" spectrum_reference="controllerType=0 controllerNumber=1 scan=1080" >
+				<UserParam type="int" name="spectrum_index" value="175"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T40.2_T115.2"/>
+			<UserParam type="float" name="FWHM" value="2.546959400177002"/>
+			<UserParam type="float" name="max_height" value="1.89538925e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[6.21607602868798e06, 1.010670589279783e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[269.12868543899998, 269.12868543899998]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[314.229954314858844, 315.233291983937875]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003337669079031]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="11849384497948666707"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_1873755187947587954">
+			<position dim="0">269.12868543899998</position>
+			<position dim="1">417.30761246431689</position>
+			<intensity>8.672688e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.683664e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="417.3076171875" RT="267.029892207" spectrum_reference="controllerType=0 controllerNumber=1 scan=1069" >
+				<UserParam type="int" name="spectrum_index" value="166"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="417.307434082031" RT="272.027435455" spectrum_reference="controllerType=0 controllerNumber=1 scan=1090" >
+				<UserParam type="int" name="spectrum_index" value="184"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T67.1_T132"/>
+			<UserParam type="float" name="FWHM" value="14.565006256103516"/>
+			<UserParam type="float" name="max_height" value="7.381098125e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[8.672687598461362e06, 1.665251657248366e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[269.12868543899998, 270.289258126999982]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[417.30761246431689, 418.31050820554708]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.002895741230191]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="669344520826683970"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_6387312226025714120">
+			<position dim="0">269.12868543899998</position>
+			<position dim="1">487.335488138566006</position>
+			<intensity>3.613303e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.105876e-03</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="487.335632324219" RT="268.233753951" spectrum_reference="controllerType=0 controllerNumber=1 scan=1074" >
+				<UserParam type="int" name="spectrum_index" value="170"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="487.3355" RT="271.737469791" spectrum_reference="controllerType=0 controllerNumber=1 scan=1089" >
+				<UserParam type="int" name="spectrum_index" value="183"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T17.3_T31.2"/>
+			<UserParam type="float" name="FWHM" value="3.107307910919189"/>
+			<UserParam type="float" name="max_height" value="1.0950175e07"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[3.613303216793266e07, 7.910633409650555e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[269.12868543899998, 269.12868543899998]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[487.335488138566006, 488.338661358238426]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003173219672419]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="7464855173845448930"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_9369934313543338837">
+			<position dim="0">270.289258126999982</position>
+			<position dim="1">469.324788102877903</position>
+			<intensity>2.044854e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>6.153688e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="469.324981689453" RT="269.440890895" spectrum_reference="controllerType=0 controllerNumber=1 scan=1079" >
+				<UserParam type="int" name="spectrum_index" value="174"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="469.324798583984" RT="274.307523695" spectrum_reference="controllerType=0 controllerNumber=1 scan=1100" >
+				<UserParam type="int" name="spectrum_index" value="193"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T22.2_T48.2"/>
+			<UserParam type="float" name="FWHM" value="3.784448146820068"/>
+			<UserParam type="float" name="max_height" value="6.606449e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.044854424488468e07, 3.692319227091538e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[270.289258126999982, 270.289258126999982]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[469.324788102877903, 470.327938614780464]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003150511902561]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="6877638987407071626"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_9534018939450161847">
+			<position dim="0">271.43140447899998</position>
+			<position dim="1">409.292574416247874</position>
+			<intensity>4.759436e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.448005e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.292327880859" RT="270.330242655" spectrum_reference="controllerType=0 controllerNumber=1 scan=1083" >
+				<UserParam type="int" name="spectrum_index" value="177"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T6.1_T11.1"/>
+			<UserParam type="float" name="FWHM" value="7.050264358520508"/>
+			<UserParam type="float" name="max_height" value="8.330764374999999e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[4.759435906238342e06, 1.090373014809589e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[271.43140447899998, 274.863367599000014]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[409.292574416247874, 410.295823395760579]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003248979512705]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="13768350815012474928"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_18132980561467193265">
+			<position dim="0">271.43140447899998</position>
+			<position dim="1">517.334766586247497</position>
+			<intensity>1.532946e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>4.468071e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="517.335021972656" RT="268.528239519" spectrum_reference="controllerType=0 controllerNumber=1 scan=1075" >
+				<UserParam type="int" name="spectrum_index" value="171"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="517.334838867188" RT="272.614085615" spectrum_reference="controllerType=0 controllerNumber=1 scan=1093" >
+				<UserParam type="int" name="spectrum_index" value="187"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T35.2_T66.2"/>
+			<UserParam type="float" name="FWHM" value="5.749941349029541"/>
+			<UserParam type="float" name="max_height" value="3.24569875e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.532945630722085e07, 3.09402146356587e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[271.43140447899998, 271.43140447899998]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[517.334766586247497, 518.338355503310481]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003588917062984]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="15840540745637220324"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_7215580023088431669">
+			<position dim="0">273.721867262999979</position>
+			<position dim="1">445.3136887307856</position>
+			<intensity>6.291989e09</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.211765</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="445.313720703125" RT="269.172601663" spectrum_reference="controllerType=0 controllerNumber=1 scan=1078" >
+				<UserParam type="int" name="spectrum_index" value="173"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="445.31396484375" RT="278.156001471" spectrum_reference="controllerType=0 controllerNumber=1 scan=1117" >
+				<UserParam type="int" name="spectrum_index" value="209"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T3.2_T8.2_T15.2_T43.2"/>
+			<UserParam type="float" name="FWHM" value="11.967262268066406"/>
+			<UserParam type="float" name="max_height" value="6.4814688e08"/>
+			<UserParam type="int" name="num_of_masstraces" value="4"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[6.291989636912037e09, 1.432078607885117e09, 1.651071422527423e08, 1.651818522059857e07]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[273.721867262999979, 273.721867262999979, 273.721867262999979, 280.129423087000021]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[445.3136887307856, 446.315419962604267, 447.318479774896161, 448.32122380147672]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.001731231818667, 1.003059812291895, 1.002744026580558]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="2601534216908226386"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_75873979479498943">
+			<position dim="0">274.863367599000014</position>
+			<position dim="1">399.296691719140938</position>
+			<intensity>7.51515e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.214926e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="399.296600341797" RT="274.028435615" spectrum_reference="controllerType=0 controllerNumber=1 scan=1099" >
+				<UserParam type="int" name="spectrum_index" value="192"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T62.1_T129.1"/>
+			<UserParam type="float" name="FWHM" value="11.979448318481445"/>
+			<UserParam type="float" name="max_height" value="7.4652625e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[7.515150065931796e06, 1.703961126712494e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[274.863367599000014, 270.289258126999982]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[399.296691719140938, 400.300246301855964]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003554582715026]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="436217149930405905"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_3367999785504641169">
+			<position dim="0">280.129423087000021</position>
+			<position dim="1">367.270551535848426</position>
+			<intensity>2.151929e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>6.356242e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="367.270538330078" RT="279.535985983" spectrum_reference="controllerType=0 controllerNumber=1 scan=1123" >
+				<UserParam type="int" name="spectrum_index" value="215"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="367.270690917969" RT="283.789765503" spectrum_reference="controllerType=0 controllerNumber=1 scan=1143" >
+				<UserParam type="int" name="spectrum_index" value="235"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T16.2_T28.1"/>
+			<UserParam type="float" name="FWHM" value="2.336589574813843"/>
+			<UserParam type="float" name="max_height" value="9.433702e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.151929488996009e07, 4.84415134377273e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[280.129423087000021, 280.129423087000021]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[367.270551535848426, 368.274055560581644]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003504024733218]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="6056452843107293376"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_14541481522141480687">
+			<position dim="0">280.129423087000021</position>
+			<position dim="1">409.292403053142948</position>
+			<intensity>1.929299e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>5.755308e-03</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.293243408203" RT="275.451776303" spectrum_reference="controllerType=0 controllerNumber=1 scan=1105" >
+				<UserParam type="int" name="spectrum_index" value="198"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.2927" RT="276.639743103" spectrum_reference="controllerType=0 controllerNumber=1 scan=1110" >
+				<UserParam type="int" name="spectrum_index" value="203"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.292388916016" RT="281.017946447" spectrum_reference="controllerType=0 controllerNumber=1 scan=1130" >
+				<UserParam type="int" name="spectrum_index" value="222"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T6.2_T11.2_T41"/>
+			<UserParam type="float" name="FWHM" value="2.423206806182861"/>
+			<UserParam type="float" name="max_height" value="8.333740799999999e07"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.929298482874251e08, 3.954008909798997e07, 4.040446152348514e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[280.129423087000021, 280.129423087000021, 280.129423087000021]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[409.292403053142948, 410.295818342596704, 411.298792578674181]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003415289453756, 1.002974236077478]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H-1O-1"/>
+			<UserParam type="stringList" name="adducts" value="[[M-H-O]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="-17.0027400319"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="529471682639336506"/>
+		</feature>
+		<feature id="f_18362955835960499313">
+			<position dim="0">280.129423087000021</position>
+			<position dim="1">427.303228374776438</position>
+			<intensity>5.997969e09</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.201294</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.303039550781" RT="280.169976863" spectrum_reference="controllerType=0 controllerNumber=1 scan=1126" >
+				<UserParam type="int" name="spectrum_index" value="218"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.3035" RT="283.268521599" spectrum_reference="controllerType=0 controllerNumber=1 scan=1141" >
+				<UserParam type="int" name="spectrum_index" value="233"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T1.2_T4.1_T9.1_T20.1"/>
+			<UserParam type="float" name="FWHM" value="3.86716628074646"/>
+			<UserParam type="float" name="max_height" value="2.1577856e09"/>
+			<UserParam type="int" name="num_of_masstraces" value="4"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[5.997968928817156e09, 1.437671483708136e09, 1.526014674698497e08, 1.136045834374278e07]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[280.129423087000021, 280.129423087000021, 280.129423087000021, 280.129423087000021]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[427.303228374776438, 428.30461368277264, 429.307835130788419, 430.310870604226295]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.001385307996202, 1.003221448015779, 1.003035473437876]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="string" name="Group" value="529471682639336506"/>
+		</feature>
+		<feature id="f_4983555384465772669">
+			<position dim="0">280.129423087000021</position>
+			<position dim="1">449.284592346078853</position>
+			<intensity>1.297202e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.678555e-04</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="T25.2_T61.1"/>
+			<UserParam type="float" name="FWHM" value="3.77295184135437"/>
+			<UserParam type="float" name="max_height" value="3.7048115e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.29720209577542e07, 2.203922119400808e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[280.129423087000021, 280.129423087000021]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[449.284592346078853, 450.288582818164173]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00399047208532]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+Na]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="22.989769280899999"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="529471682639336506"/>
+		</feature>
+		<feature id="f_5009251366176514165">
+			<position dim="0">285.544818030999977</position>
+			<position dim="1">429.317366397744934</position>
+			<intensity>8.791533e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.027242</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="T5.1_T10.1_T21"/>
+			<UserParam type="float" name="FWHM" value="4.428470134735107"/>
+			<UserParam type="float" name="max_height" value="2.66342192e08"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[8.791532911078127e08, 1.888431541310667e08, 2.218204015851148e07]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[285.544818030999977, 285.544818030999977, 285.544818030999977]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[429.317366397744934, 430.320568441682781, 431.323635152906832]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003202043937847, 1.003066711224051]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="12824108526390653526"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_1423660348451629624">
+			<position dim="0">285.544818030999977</position>
+			<position dim="1">459.329131071796041</position>
+			<intensity>1.989066e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>5.915204e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="459.329162597656" RT="284.057759759" spectrum_reference="controllerType=0 controllerNumber=1 scan=1144" >
+				<UserParam type="int" name="spectrum_index" value="236"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="459.3292" RT="285.211501359" spectrum_reference="controllerType=0 controllerNumber=1 scan=1149" >
+				<UserParam type="int" name="spectrum_index" value="241"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T2.1_T7.1_T13.1"/>
+			<UserParam type="float" name="FWHM" value="4.471484184265137"/>
+			<UserParam type="float" name="max_height" value="6.364802e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.989065885005175e07, 3.70770045226852e06, 4.896356905679051e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[285.544818030999977, 285.544818030999977, 284.390818878999994]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[459.329131071796041, 460.332546725301995, 461.334720018728831]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003415653505954, 1.002173293426836]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="4518836663344303037"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_16424944789331594539">
+			<position dim="0">285.544818030999977</position>
+			<position dim="1">501.351209274375321</position>
+			<intensity>8.033713e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.390886e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="501.351379394531" RT="284.696762351" spectrum_reference="controllerType=0 controllerNumber=1 scan=1147" >
+				<UserParam type="int" name="spectrum_index" value="239"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="501.351226806641" RT="289.513683743" spectrum_reference="controllerType=0 controllerNumber=1 scan=1168" >
+				<UserParam type="int" name="spectrum_index" value="260"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T37.2_T71"/>
+			<UserParam type="float" name="FWHM" value="3.874109745025635"/>
+			<UserParam type="float" name="max_height" value="2.60259625e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[8.03371362358658e06, 1.711771016090028e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[285.544818030999977, 284.390818878999994]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[501.351209274375321, 502.354564490450741]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00335521607542]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="17777777724916061068"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_7899271505765075307">
+			<position dim="0">292.353602782999985</position>
+			<position dim="1">459.329525117291098</position>
+			<intensity>2.031783e09</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.067106</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="459.329193115234" RT="290.647050111" spectrum_reference="controllerType=0 controllerNumber=1 scan=1173" >
+				<UserParam type="int" name="spectrum_index" value="265"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="459.3295" RT="292.659408191" spectrum_reference="controllerType=0 controllerNumber=1 scan=1182" >
+				<UserParam type="int" name="spectrum_index" value="274"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="459.329498291016" RT="296.884224495" spectrum_reference="controllerType=0 controllerNumber=1 scan=1201" >
+				<UserParam type="int" name="spectrum_index" value="292"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T2.2_T7.2_T13.2_T45"/>
+			<UserParam type="float" name="FWHM" value="3.657649993896484"/>
+			<UserParam type="float" name="max_height" value="6.28015104e08"/>
+			<UserParam type="int" name="num_of_masstraces" value="4"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.03178340695163e09, 5.106564440280808e08, 6.231131086487684e07, 5.003626055574739e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[292.353602782999985, 292.353602782999985, 292.353602782999985, 292.353602782999985]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[459.329525117291098, 460.330553806486137, 461.333649000360936, 462.336672609552522]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.001028689195039, 1.003095193874799, 1.003023609191587]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="7565942450280599354"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_6151744392491123464">
+			<position dim="0">293.420174351000014</position>
+			<position dim="1">576.408406201411481</position>
+			<intensity>1.678134e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>5.020814e-05</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="T99_T227.1"/>
+			<UserParam type="float" name="FWHM" value="6.500935077667236"/>
+			<UserParam type="float" name="max_height" value="3.3443028125e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.678134353134026e06, 3.746125092909931e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[293.420174351000014, 294.570194878999985]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[576.408406201411481, 577.412158189465913]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003751988054432]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="9584583671191631993"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_696283120704624517">
+			<position dim="0">298.998983887000009</position>
+			<position dim="1">254.197539089879484</position>
+			<intensity>4.224071e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.218939e-03</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="254.197509765625" RT="299.304308127" spectrum_reference="controllerType=0 controllerNumber=1 scan=1212" >
+				<UserParam type="int" name="spectrum_index" value="301"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="254.1976" RT="300.541035727" spectrum_reference="controllerType=0 controllerNumber=1 scan=1217" >
+				<UserParam type="int" name="spectrum_index" value="306"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T14.3_T36.2"/>
+			<UserParam type="float" name="FWHM" value="2.777228832244873"/>
+			<UserParam type="float" name="max_height" value="1.4350982e07"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[4.224070573848595e07, 5.808348143453323e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[298.998983887000009, 298.998983887000009]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[254.197539089879484, 255.200864151534603]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003325061655119]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H-1O-1"/>
+			<UserParam type="stringList" name="adducts" value="[[M-H-O]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="-17.0027400319"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="15736955394343027957"/>
+		</feature>
+		<feature id="f_1573316367408197248">
+			<position dim="0">298.998983887000009</position>
+			<position dim="1">272.208096320725986</position>
+			<intensity>7.85601e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.250997e-03</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="272.208068847656" RT="294.610994703" spectrum_reference="controllerType=0 controllerNumber=1 scan=1191" >
+				<UserParam type="int" name="spectrum_index" value="282"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="272.208068847656" RT="299.559416159" spectrum_reference="controllerType=0 controllerNumber=1 scan=1213" >
+				<UserParam type="int" name="spectrum_index" value="302"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="272.208099365234" RT="303.571610687" spectrum_reference="controllerType=0 controllerNumber=1 scan=1231" >
+				<UserParam type="int" name="spectrum_index" value="320"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T12.3_T27.2"/>
+			<UserParam type="float" name="FWHM" value="2.862898588180542"/>
+			<UserParam type="float" name="max_height" value="2.7049294e07"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[7.856010403084843e07, 9.876650704053677e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[298.998983887000009, 298.998983887000009]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[272.208096320725986, 273.211456466359664]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003360145633678]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="string" name="Group" value="15736955394343027957"/>
+		</feature>
+		<feature id="f_8246879291177308278">
+			<position dim="0">298.998983887000009</position>
+			<position dim="1">367.270524628852229</position>
+			<intensity>6.633862e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.984781e-03</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="367.270477294922" RT="299.781536479" spectrum_reference="controllerType=0 controllerNumber=1 scan=1214" >
+				<UserParam type="int" name="spectrum_index" value="303"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T16.3_T28.2"/>
+			<UserParam type="float" name="FWHM" value="5.084392547607422"/>
+			<UserParam type="float" name="max_height" value="1.4209696e07"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[6.633861771835033e07, 1.542075605442953e07]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[298.998983887000009, 298.998983887000009]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[367.270524628852229, 368.273934342494385]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003409713642156]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="11041283482582397552"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_13619326963810845383">
+			<position dim="0">298.998983887000009</position>
+			<position dim="1">409.292349572315629</position>
+			<intensity>8.759979e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.026202</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.2921" RT="294.236988527" spectrum_reference="controllerType=0 controllerNumber=1 scan=1189" >
+				<UserParam type="int" name="spectrum_index" value="280"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.292266845703" RT="299.036046367" spectrum_reference="controllerType=0 controllerNumber=1 scan=1211" >
+				<UserParam type="int" name="spectrum_index" value="300"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.292388916016" RT="302.404881375" spectrum_reference="controllerType=0 controllerNumber=1 scan=1226" >
+				<UserParam type="int" name="spectrum_index" value="315"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T6.3_T11.3_T30.1"/>
+			<UserParam type="float" name="FWHM" value="5.310133934020996"/>
+			<UserParam type="float" name="max_height" value="1.96613632e08"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[8.759979065586599e08, 1.827213909194909e08, 1.684102368480305e07]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[298.998983887000009, 298.998983887000009, 300.234997454999984]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[409.292349572315629, 410.295750755361496, 411.298535800703007]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003401183045867, 1.002785045341511]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H-1O-1"/>
+			<UserParam type="stringList" name="adducts" value="[[M-H-O]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="-17.0027400319"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="7932311079824288202"/>
+		</feature>
+		<feature id="f_9077686133586966169">
+			<position dim="0">298.998983887000009</position>
+			<position dim="1">427.303200515218748</position>
+			<intensity>1.16924e10</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.383949</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.3036" RT="297.930073007" spectrum_reference="controllerType=0 controllerNumber=1 scan=1206" >
+				<UserParam type="int" name="spectrum_index" value="296"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.3034" RT="300.899021375" spectrum_reference="controllerType=0 controllerNumber=1 scan=1219" >
+				<UserParam type="int" name="spectrum_index" value="308"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T1.3_T4.2_T9.2_T20.3"/>
+			<UserParam type="float" name="FWHM" value="5.27006721496582"/>
+			<UserParam type="float" name="max_height" value="2.56331776e09"/>
+			<UserParam type="int" name="num_of_masstraces" value="4"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.169240300150846e10, 2.688539278957291e09, 3.010562355803442e08, 1.677258863770515e07]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[298.998983887000009, 298.998983887000009, 298.998983887000009, 298.998983887000009]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[427.303200515218748, 428.304267516023572, 429.307487105851976, 430.310586022577979]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.001067000804824, 1.003219589828404, 1.003098916726003]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="string" name="Group" value="7932311079824288202"/>
+		</feature>
+		<feature id="f_15625809597318125508">
+			<position dim="0">307.798896078999974</position>
+			<position dim="1">441.318633143968953</position>
+			<intensity>2.520327e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>7.821044e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.318389892578" RT="305.025757103" spectrum_reference="controllerType=0 controllerNumber=1 scan=1237" >
+				<UserParam type="int" name="spectrum_index" value="326"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.318634033203" RT="309.124034751" spectrum_reference="controllerType=0 controllerNumber=1 scan=1254" >
+				<UserParam type="int" name="spectrum_index" value="341"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T18.2_T34.1_T106.1"/>
+			<UserParam type="float" name="FWHM" value="4.871179103851318"/>
+			<UserParam type="float" name="max_height" value="5.8111255e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.520326709931879e07, 5.736439122581376e06, 6.275702034024527e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[307.798896078999974, 307.798896078999974, 307.798896078999974]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[441.318633143968953, 442.32180283826267, 443.324979061761781]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003169694293717, 1.003176223499111]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="15173635883548896251"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_4617599052738281501">
+			<position dim="0">307.798896078999974</position>
+			<position dim="1">513.34001893612708</position>
+			<intensity>2.795873e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>8.300212e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="513.340148925781" RT="308.434692447" spectrum_reference="controllerType=0 controllerNumber=1 scan=1251" >
+				<UserParam type="int" name="spectrum_index" value="338"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T90.1_T183"/>
+			<UserParam type="float" name="FWHM" value="7.031240463256836"/>
+			<UserParam type="float" name="max_height" value="4.606440625e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.795873129205445e06, 5.784352375427318e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[307.798896078999974, 307.798896078999974]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[513.34001893612708, 514.343416530389163]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003397594262083]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="11035437248913492629"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_5558094103280267906">
+			<position dim="0">309.03697702300002</position>
+			<position dim="1">413.287527624929851</position>
+			<intensity>8.96231e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.685887e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="413.287506103516" RT="309.392420575" spectrum_reference="controllerType=0 controllerNumber=1 scan=1255" >
+				<UserParam type="int" name="spectrum_index" value="342"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T39.1_T75"/>
+			<UserParam type="float" name="FWHM" value="3.975049257278442"/>
+			<UserParam type="float" name="max_height" value="2.75368725e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[8.96231047926417e06, 1.934994799212895e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[309.03697702300002, 309.03697702300002]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[413.287527624929851, 414.290852391306146]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003324766376295]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="772402085986646066"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_5079771580268633475">
+			<position dim="0">309.03697702300002</position>
+			<position dim="1">473.344948209204915</position>
+			<intensity>8.672958e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.546812e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="473.345062255859" RT="311.182620735" spectrum_reference="controllerType=0 controllerNumber=1 scan=1262" >
+				<UserParam type="int" name="spectrum_index" value="347"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T32.1_T63.1"/>
+			<UserParam type="float" name="FWHM" value="3.260488033294678"/>
+			<UserParam type="float" name="max_height" value="2.5502715625e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[8.672958779870573e05, 1.667442384481732e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[309.03697702300002, 310.292845886999999]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[473.344948209204915, 474.348398885231291]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003450676026375]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="4135116355208959270"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_4238515167072335743">
+			<position dim="0">311.516168799000013</position>
+			<position dim="1">427.303337657284771</position>
+			<intensity>8.78695e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.856752e-03</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.304" RT="306.892833711" spectrum_reference="controllerType=0 controllerNumber=1 scan=1245" >
+				<UserParam type="int" name="spectrum_index" value="333"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.3034" RT="309.691654431" spectrum_reference="controllerType=0 controllerNumber=1 scan=1256" >
+				<UserParam type="int" name="spectrum_index" value="343"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.303649902344" RT="314.046458207" spectrum_reference="controllerType=0 controllerNumber=1 scan=1274" >
+				<UserParam type="int" name="spectrum_index" value="356"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T1.4_T4.3_T9.3"/>
+			<UserParam type="float" name="FWHM" value="4.841572284698486"/>
+			<UserParam type="float" name="max_height" value="2.4794922e07"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[8.786950036954506e07, 2.093953282888295e07, 2.1112630270733e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[311.516168799000013, 311.516168799000013, 311.516168799000013]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[427.303337657284771, 428.304332850013907, 429.307872615642907]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.000995192729135, 1.003539765629]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="string" name="Group" value="4387705501578751234"/>
+		</feature>
+		<feature id="f_6068562690596245784">
+			<position dim="0">311.516168799000013</position>
+			<position dim="1">449.285013071079163</position>
+			<intensity>4.7684e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.404824e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="449.285003662109" RT="313.646629295" spectrum_reference="controllerType=0 controllerNumber=1 scan=1272" >
+				<UserParam type="int" name="spectrum_index" value="354"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T25.5_T61.4"/>
+			<UserParam type="float" name="FWHM" value="2.444611310958862"/>
+			<UserParam type="float" name="max_height" value="1.51904421875e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[4.768400176756159e05, 1.026950430234703e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[311.516168799000013, 311.516168799000013]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[449.285013071079163, 450.288517515013837]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003504443934673]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+Na]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="22.989769280899999"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="4387705501578751234"/>
+		</feature>
+		<feature id="f_10196540138961233352">
+			<position dim="0">316.408887262999997</position>
+			<position dim="1">441.318701567964354</position>
+			<intensity>9.720844e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.906163e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.3187" RT="314.314970399" spectrum_reference="controllerType=0 controllerNumber=1 scan=1275" >
+				<UserParam type="int" name="spectrum_index" value="357"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.318603515625" RT="318.868791647" spectrum_reference="controllerType=0 controllerNumber=1 scan=1294" >
+				<UserParam type="int" name="spectrum_index" value="372"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T18.3_T34.2_T106.2"/>
+			<UserParam type="float" name="FWHM" value="5.748049736022949"/>
+			<UserParam type="float" name="max_height" value="2.2191765e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[9.720844289889609e06, 1.871849006303647e06, 2.283503882673732e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[316.408887262999997, 316.408887262999997, 316.408887262999997]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[441.318701567964354, 442.322050166617146, 443.324887317807338]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003348598652792, 1.002837151190192]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="10919198488829345392"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_435929759483178759">
+			<position dim="0">316.408887262999997</position>
+			<position dim="1">473.34496514823212</position>
+			<intensity>1.373165e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>4.278481e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="473.344940185547" RT="315.284476911" spectrum_reference="controllerType=0 controllerNumber=1 scan=1279" >
+				<UserParam type="int" name="spectrum_index" value="361"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="473.344879150391" RT="320.293272591" spectrum_reference="controllerType=0 controllerNumber=1 scan=1300" >
+				<UserParam type="int" name="spectrum_index" value="377"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T32.2_T63.2_T184.1"/>
+			<UserParam type="float" name="FWHM" value="3.884237051010132"/>
+			<UserParam type="float" name="max_height" value="3.9033615e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.373165313939657e07, 3.222040626476285e06, 4.473447495112628e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[316.408887262999997, 316.408887262999997, 315.201898255000003]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[473.34496514823212, 474.348159647905675, 475.350978676365401]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003194499673555, 1.002819028459726]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="10609618300353040897"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_8691282778786794493">
+			<position dim="0">316.408887262999997</position>
+			<position dim="1">504.338467763965923</position>
+			<intensity>7.231652e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.185208e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="504.338562011719" RT="317.060537247" spectrum_reference="controllerType=0 controllerNumber=1 scan=1286" >
+				<UserParam type="int" name="spectrum_index" value="366"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T165_T328"/>
+			<UserParam type="float" name="FWHM" value="5.957504272460938"/>
+			<UserParam type="float" name="max_height" value="1.49896640625e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[7.231651600559951e05, 1.888925036714903e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[316.408887262999997, 316.408887262999997]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[504.338467763965923, 505.341885299591354]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003417535625431]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="8537117708280376648"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_3628266933437084310">
+			<position dim="0">317.618744414999981</position>
+			<position dim="1">481.313584186976925</position>
+			<intensity>7.812118e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.331399e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="481.313659667969" RT="318.491422959" spectrum_reference="controllerType=0 controllerNumber=1 scan=1292" >
+				<UserParam type="int" name="spectrum_index" value="370"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T122.1_T266"/>
+			<UserParam type="float" name="FWHM" value="3.41130805015564"/>
+			<UserParam type="float" name="max_height" value="2.19990640625e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[7.812118284137759e05, 2.227481048406136e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[317.618744414999981, 317.618744414999981]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[481.313584186976925, 482.317276930599405]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00369274362248]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="14148505911154728355"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_2377852967136685388">
+			<position dim="0">319.982463038999981</position>
+			<position dim="1">367.270594408814645</position>
+			<intensity>1.307579e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.933302e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="367.270538330078" RT="320.582736959" spectrum_reference="controllerType=0 controllerNumber=1 scan=1301" >
+				<UserParam type="int" name="spectrum_index" value="378"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T16.4_T28.3"/>
+			<UserParam type="float" name="FWHM" value="4.372957706451416"/>
+			<UserParam type="float" name="max_height" value="3.843130625e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.307579411392806e06, 3.423894558619526e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[319.982463038999981, 319.982463038999981]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[367.270594408814645, 368.274066186997743]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003471778183098]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="13727919366244649792"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_12071298843156911547">
+			<position dim="0">319.982463038999981</position>
+			<position dim="1">409.292481335598438</position>
+			<intensity>1.299398e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.895653e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.292602539063" RT="316.764192671" spectrum_reference="controllerType=0 controllerNumber=1 scan=1285" >
+				<UserParam type="int" name="spectrum_index" value="365"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.29248046875" RT="321.190981439" spectrum_reference="controllerType=0 controllerNumber=1 scan=1304" >
+				<UserParam type="int" name="spectrum_index" value="381"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T6.4_T11.4_T30.2"/>
+			<UserParam type="float" name="FWHM" value="4.358086109161377"/>
+			<UserParam type="float" name="max_height" value="3.8461865e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.29939825120613e07, 2.804296089433695e06, 2.713769206038702e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[319.982463038999981, 319.982463038999981, 319.982463038999981]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[409.292481335598438, 410.295898516115415, 411.29875462489241]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003417180516976, 1.002856108776996]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H-1O-1"/>
+			<UserParam type="stringList" name="adducts" value="[[M-H-O]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="-17.0027400319"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="17814661367117794664"/>
+		</feature>
+		<feature id="f_15997049391328728630">
+			<position dim="0">319.982463038999981</position>
+			<position dim="1">427.303335319054611</position>
+			<intensity>3.426106e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.010957</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.3031" RT="317.665155775" spectrum_reference="controllerType=0 controllerNumber=1 scan=1289" >
+				<UserParam type="int" name="spectrum_index" value="368"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T1.5_T4.4_T9.4_T20.4"/>
+			<UserParam type="float" name="FWHM" value="4.497646331787109"/>
+			<UserParam type="float" name="max_height" value="9.1769088e07"/>
+			<UserParam type="int" name="num_of_masstraces" value="4"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[3.426106065395048e08, 7.402383424082394e07, 7.675607776726359e06, 5.97085942035334e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[319.982463038999981, 319.982463038999981, 319.982463038999981, 319.982463038999981]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[427.303335319054611, 428.304337109026733, 429.307789129817991, 430.310800372007918]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.001001789972122, 1.003452020791258, 1.003011242189928]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="string" name="Group" value="17814661367117794664"/>
+		</feature>
+		<feature id="f_12341773160978967713">
+			<position dim="0">319.982463038999981</position>
+			<position dim="1">449.285022685333445</position>
+			<intensity>2.866735e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>8.501333e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="449.284942626953" RT="319.136789279" spectrum_reference="controllerType=0 controllerNumber=1 scan=1295" >
+				<UserParam type="int" name="spectrum_index" value="373"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T25.6_T61.5"/>
+			<UserParam type="float" name="FWHM" value="4.479643821716309"/>
+			<UserParam type="float" name="max_height" value="8.630564375000001e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.866735166256809e06, 6.291556429194926e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[319.982463038999981, 319.982463038999981]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[449.285022685333445, 450.288470971239235]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00344828590579]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+Na]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="22.989769280899999"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="17814661367117794664"/>
+		</feature>
+		<feature id="f_984056432815566501">
+			<position dim="0">323.530030079000028</position>
+			<position dim="1">430.300663378640365</position>
+			<intensity>6.74935e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.932537e-05</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="T220_T84.2"/>
+			<UserParam type="float" name="FWHM" value="8.518935203552246"/>
+			<UserParam type="float" name="max_height" value="8.84264609375e04"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[6.74934935152079e05, 1.063745587919031e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[323.530030079000028, 322.305429134999997]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[430.300663378640365, 431.304321362909036]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003657984268671]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="6229015876798862473"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_5446088485843164363">
+			<position dim="0">323.530030079000028</position>
+			<position dim="1">457.319426496408369</position>
+			<intensity>1.375855e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>6.124691e-04</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="457.319274902344" RT="323.617074351" spectrum_reference="controllerType=0 controllerNumber=1 scan=1314" >
+				<UserParam type="int" name="spectrum_index" value="390"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="457.319274902344" RT="328.450880751" spectrum_reference="controllerType=0 controllerNumber=1 scan=1334" >
+				<UserParam type="int" name="spectrum_index" value="404"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T29.3_T44.1_T80.1_T240.1"/>
+			<UserParam type="float" name="FWHM" value="3.369404792785645"/>
+			<UserParam type="float" name="max_height" value="4.08742525e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="4"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.375855325435118e07, 7.029852393033851e06, 1.841429047455321e06, 2.59146630977215e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[323.530030079000028, 323.530030079000028, 323.530030079000028, 323.530030079000028]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[457.319426496408369, 457.820388409146574, 458.321409642423532, 458.823148766698978]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.500961912738205, 0.501021233276958, 0.501739124275446]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="5699670227045793251"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_1502146012908355593">
+			<position dim="0">323.530030079000028</position>
+			<position dim="1">548.364683539063208</position>
+			<intensity>6.209075e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.906884e-05</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="T201_T351"/>
+			<UserParam type="float" name="FWHM" value="6.996821880340576"/>
+			<UserParam type="float" name="max_height" value="1.056832421875e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[6.209075032917487e05, 1.575655821516332e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[323.530030079000028, 324.780009951000011]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[548.364683539063208, 549.367985554010602]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003302014947394]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="1140777961679035204"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_16884451415184175858">
+			<position dim="0">324.780009951000011</position>
+			<position dim="1">448.313979750610145</position>
+			<intensity>7.166448e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.498276e-05</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="448.31396484375" RT="326.292939951" spectrum_reference="controllerType=0 controllerNumber=1 scan=1325" >
+				<UserParam type="int" name="spectrum_index" value="398"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T124.1_T197.1_T347.1"/>
+			<UserParam type="float" name="FWHM" value="3.318148851394653"/>
+			<UserParam type="float" name="max_height" value="2.06773765625e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[7.1664476831706e05, 3.146215536491338e05, 1.109217853488975e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[324.780009951000011, 324.780009951000011, 322.305429134999997]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[448.313979750610145, 448.815576179917969, 449.320534113857718]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.501596429307824, 0.50495793393975]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="10955328784388458259"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_8597732871900304961">
+			<position dim="0">325.955991727000026</position>
+			<position dim="1">427.803523731615599</position>
+			<intensity>2.666998e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>7.421717e-04</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="T19.1_T98.1"/>
+			<UserParam type="float" name="FWHM" value="6.391266345977783"/>
+			<UserParam type="float" name="max_height" value="4.8176245e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.666997657080056e07, 9.904394996883585e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[325.955991727000026, 325.955991727000026]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[427.803523731615599, 428.806246507569881]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.002722775954282]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="1821356409827874540"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_8839715998761042372">
+			<position dim="0">325.955991727000026</position>
+			<position dim="1">473.344925505550521</position>
+			<intensity>2.727015e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>8.159402e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="473.344940185547" RT="326.024939583" spectrum_reference="controllerType=0 controllerNumber=1 scan=1324" >
+				<UserParam type="int" name="spectrum_index" value="397"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T32.3_T63.3"/>
+			<UserParam type="float" name="FWHM" value="4.123515129089355"/>
+			<UserParam type="float" name="max_height" value="8.199146875e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.727014512445562e06, 6.41863433186137e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[325.955991727000026, 325.955991727000026]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[473.344925505550521, 474.348338311884277]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003412806333756]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="17844053437002077784"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_1111703050277175956">
+			<position dim="0">327.185982479000018</position>
+			<position dim="1">418.297888395643042</position>
+			<intensity>2.582449e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>8.262682e-06</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="label" value="T23.1_T38.1"/>
+			<UserParam type="float" name="FWHM" value="3.568954944610596"/>
+			<UserParam type="float" name="max_height" value="7.84228671875e04"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.582449025956785e05, 1.285693572097654e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[327.185982479000018, 327.185982479000018]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[418.297888395643042, 418.799723742347226]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.501835346704183]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="18102057889235227745"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_6491588797266023955">
+			<position dim="0">328.394579390999979</position>
+			<position dim="1">441.318694917550658</position>
+			<intensity>4.472758e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.431226e-03</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.318664550781" RT="324.447064287" spectrum_reference="controllerType=0 controllerNumber=1 scan=1317" >
+				<UserParam type="int" name="spectrum_index" value="392"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.318695068359" RT="329.62301824" spectrum_reference="controllerType=0 controllerNumber=1 scan=1339" >
+				<UserParam type="int" name="spectrum_index" value="409"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T18.4_T34.3_T106.3"/>
+			<UserParam type="float" name="FWHM" value="3.865054130554199"/>
+			<UserParam type="float" name="max_height" value="1.3497435e07"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[4.472758045188873e07, 1.009162874048692e07, 1.141277740264981e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[328.394579390999979, 328.394579390999979, 328.394579390999979]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[441.318694917550658, 442.321545095370027, 443.324542917576252]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.002850177819369, 1.002997822206225]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="15174476256783357613"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_6885114260817447833">
+			<position dim="0">331.984531423000021</position>
+			<position dim="1">464.327016079896225</position>
+			<intensity>5.468525e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.988325e-04</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="464.326965332031" RT="329.275863855" spectrum_reference="controllerType=0 controllerNumber=1 scan=1337" >
+				<UserParam type="int" name="spectrum_index" value="407"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="464.327087402344" RT="333.285315951" spectrum_reference="controllerType=0 controllerNumber=1 scan=1354" >
+				<UserParam type="int" name="spectrum_index" value="419"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T59.1_T86.1"/>
+			<UserParam type="float" name="FWHM" value="6.426403522491455"/>
+			<UserParam type="float" name="max_height" value="9.231654375e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[5.468525093788752e06, 2.457971058275819e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[331.984531423000021, 331.984531423000021]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[464.327016079896225, 464.828415571110497]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.501399491214272]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="15807037470079853476"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_11190568930224718369">
+			<position dim="0">333.216859999000008</position>
+			<position dim="1">418.298128176081264</position>
+			<intensity>1.90345e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>8.101031e-04</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="418.298004150391" RT="332.323715039" spectrum_reference="controllerType=0 controllerNumber=1 scan=1350" >
+				<UserParam type="int" name="spectrum_index" value="416"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="418.297943115234" RT="336.903882656" spectrum_reference="controllerType=0 controllerNumber=1 scan=1369" >
+				<UserParam type="int" name="spectrum_index" value="430"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T23.2_T38.2_T69.1_T215.1"/>
+			<UserParam type="float" name="FWHM" value="4.413070201873779"/>
+			<UserParam type="float" name="max_height" value="5.388558e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="4"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.903450344018635e07, 9.318314372364762e06, 2.067379466634339e06, 3.180938588601194e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[333.216859999000008, 333.216859999000008, 331.984531423000021, 331.984531423000021]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[418.298128176081264, 418.798848823918263, 419.300125769527654, 419.801572147749653]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.500720647836999, 0.501276945609391, 0.501446378221999]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="8469990029951104808"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_2011605522654706457">
+			<position dim="0">335.567981214999975</position>
+			<position dim="1">457.319397784267721</position>
+			<intensity>3.918865e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.571653e-04</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="457.319396972656" RT="335.056165007" spectrum_reference="controllerType=0 controllerNumber=1 scan=1361" >
+				<UserParam type="int" name="spectrum_index" value="424"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="457.319305419922" RT="339.792103088" spectrum_reference="controllerType=0 controllerNumber=1 scan=1381" >
+				<UserParam type="int" name="spectrum_index" value="439"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T29.4_T44.2_T80.2"/>
+			<UserParam type="float" name="FWHM" value="4.110328674316406"/>
+			<UserParam type="float" name="max_height" value="1.100242875e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[3.918864751772521e06, 1.934610368201003e06, 4.906246782664395e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[335.567981214999975, 335.567981214999975, 335.567981214999975]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[457.319397784267721, 457.820766101638299, 458.3220282648021]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.501368317370577, 0.501262163163801]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="13866057459393488542"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_14046910416433004468">
+			<position dim="0">338.024452880000013</position>
+			<position dim="1">443.316209169735885</position>
+			<intensity>2.103142e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>7.818006e-05</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="label" value="T125.1_T170.1"/>
+			<UserParam type="float" name="FWHM" value="11.841826438903809"/>
+			<UserParam type="float" name="max_height" value="2.2723896875e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.103141848855283e06, 1.025032510337423e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[338.024452880000013, 339.232940272000008]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[443.316209169735885, 443.817620458238139]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.501411288502254]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="9285983562507218709"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_1933759626987908195">
+			<position dim="0">338.024452880000013</position>
+			<position dim="1">487.360725788426919</position>
+			<intensity>7.800514e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.37335e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="487.360870361328" RT="338.8993792" spectrum_reference="controllerType=0 controllerNumber=1 scan=1377" >
+				<UserParam type="int" name="spectrum_index" value="436"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T131.2_T294.1"/>
+			<UserParam type="float" name="FWHM" value="4.125359058380127"/>
+			<UserParam type="float" name="max_height" value="2.1735521875e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[7.800514124794259e05, 1.996315974980856e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[338.024452880000013, 338.024452880000013]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[487.360725788426919, 488.364083120348255]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003357331921336]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="8670845061832549873"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_6251078444401900397">
+			<position dim="0">339.232940272000008</position>
+			<position dim="1">423.308421133347281</position>
+			<intensity>1.13904e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.359571e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="423.308288574219" RT="340.66773552" spectrum_reference="controllerType=0 controllerNumber=1 scan=1385" >
+				<UserParam type="int" name="spectrum_index" value="443"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T70.2_T146.2"/>
+			<UserParam type="float" name="FWHM" value="4.262327671051025"/>
+			<UserParam type="float" name="max_height" value="2.34944765625e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.139039711061037e06, 2.649071522762841e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[339.232940272000008, 339.232940272000008]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[423.308421133347281, 424.312009493387052]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003588360039771]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H-1O-1"/>
+			<UserParam type="stringList" name="adducts" value="[[M-H-O]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="-17.0027400319"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="11788793410587010810"/>
+		</feature>
+		<feature id="f_3268584022482411841">
+			<position dim="0">339.232940272000008</position>
+			<position dim="1">427.30339036367468</position>
+			<intensity>8.040252e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.073775e-03</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.303009033203" RT="337.172269456" spectrum_reference="controllerType=0 controllerNumber=1 scan=1370" >
+				<UserParam type="int" name="spectrum_index" value="431"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.3032" RT="340.399460064" spectrum_reference="controllerType=0 controllerNumber=1 scan=1384" >
+				<UserParam type="int" name="spectrum_index" value="442"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.3037" RT="341.57498256" spectrum_reference="controllerType=0 controllerNumber=1 scan=1389" >
+				<UserParam type="int" name="spectrum_index" value="447"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T1.6_T19.2_T4.5_T98.2_T9.5"/>
+			<UserParam type="float" name="FWHM" value="4.404571533203125"/>
+			<UserParam type="float" name="max_height" value="1.9340524e07"/>
+			<UserParam type="int" name="num_of_masstraces" value="5"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[8.040252309413914e07, 3.613768646608107e07, 1.05396213958682e07, 1.4498406145494e06, 3.145497817728648e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[339.232940272000008, 339.232940272000008, 339.232940272000008, 339.232940272000008, 339.232940272000008]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[427.30339036367468, 427.803566513433339, 428.304855665930518, 428.806273128767032, 429.308507463158207]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.500176149758659, 0.501289152497179, 0.501417462836514, 0.502234334391176]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H-3Na1O-2"/>
+			<UserParam type="stringList" name="adducts" value="[[M-3H+Na-2O]2+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="-12.023535814799999"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="16686970134647076323"/>
+		</feature>
+		<feature id="f_5568122370215408713">
+			<position dim="0">339.232940272000008</position>
+			<position dim="1">434.310674467221872</position>
+			<intensity>9.03549e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.939836e-05</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="434.310607910156" RT="340.95807336" spectrum_reference="controllerType=0 controllerNumber=1 scan=1386" >
+				<UserParam type="int" name="spectrum_index" value="444"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T120.1_T185.1"/>
+			<UserParam type="float" name="FWHM" value="5.17518424987793"/>
+			<UserParam type="float" name="max_height" value="2.08141265625e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[9.035490206967159e05, 3.41678142831142e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[339.232940272000008, 339.232940272000008]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[434.310674467221872, 434.812336293096564]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.501661825874692]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="stringList" name="adducts" value="[[M+2H]2+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.0156500638"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="string" name="Group" value="16686970134647076323"/>
+		</feature>
+		<feature id="f_7554698776465229712">
+			<position dim="0">339.232940272000008</position>
+			<position dim="1">441.318649886087542</position>
+			<intensity>2.130752e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>6.468314e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.318756103516" RT="334.536697503" spectrum_reference="controllerType=0 controllerNumber=1 scan=1359" >
+				<UserParam type="int" name="spectrum_index" value="422"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.318664550781" RT="339.279012592" spectrum_reference="controllerType=0 controllerNumber=1 scan=1379" >
+				<UserParam type="int" name="spectrum_index" value="438"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T18.5_T34.4_T106.4"/>
+			<UserParam type="float" name="FWHM" value="3.320531845092773"/>
+			<UserParam type="float" name="max_height" value="6.8440825e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.130751671567668e07, 4.793573266865379e06, 4.790544623635889e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[339.232940272000008, 339.232940272000008, 339.232940272000008]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[441.318649886087542, 442.32197929139852, 443.324950141045235]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003329405310978, 1.002970849646715]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="string" name="Group" value="11788793410587010810"/>
+		</feature>
+		<feature id="f_5387971089065574305">
+			<position dim="0">339.232940272000008</position>
+			<position dim="1">518.354001752174781</position>
+			<intensity>7.401883e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.290084e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="518.354125976563" RT="341.224819184" spectrum_reference="controllerType=0 controllerNumber=1 scan=1387" >
+				<UserParam type="int" name="spectrum_index" value="445"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T151_T289"/>
+			<UserParam type="float" name="FWHM" value="4.218886852264404"/>
+			<UserParam type="float" name="max_height" value="1.67672265625e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[7.401882670300911e05, 2.070447708949628e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[339.232940272000008, 339.232940272000008]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[518.354001752174781, 519.357313183616498]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003311431441716]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="15592196037826090433"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_5955885334686062387">
+			<position dim="0">340.347917343999995</position>
+			<position dim="1">448.313875250278159</position>
+			<intensity>8.409058e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.822534e-05</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="label" value="T124.2_T197.2"/>
+			<UserParam type="float" name="FWHM" value="3.906185150146484"/>
+			<UserParam type="float" name="max_height" value="2.42530640625e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[8.409057471415332e05, 3.973944878335073e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[340.347917343999995, 340.347917343999995]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[448.313875250278159, 448.815560507916814]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.501685257638655]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="17448852060008685395"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_1639725828618893268">
+			<position dim="0">340.347917343999995</position>
+			<position dim="1">471.334857906656225</position>
+			<intensity>5.510926e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.049119e-05</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="471.334747314453" RT="342.120680688" spectrum_reference="controllerType=0 controllerNumber=1 scan=1391" >
+				<UserParam type="int" name="spectrum_index" value="449"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T155_T234"/>
+			<UserParam type="float" name="FWHM" value="3.518860578536987"/>
+			<UserParam type="float" name="max_height" value="1.45530484375e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[5.510925400896842e05, 3.118013743443544e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[340.347917343999995, 339.232940272000008]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[471.334857906656225, 471.836376147377564]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.501518240721339]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="6040652166120766116"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_14989711914861113181">
+			<position dim="0">342.721526352000012</position>
+			<position dim="1">308.194528422248595</position>
+			<intensity>4.064963e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.178891e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="308.194519042969" RT="342.38830192" spectrum_reference="controllerType=0 controllerNumber=1 scan=1392" >
+				<UserParam type="int" name="spectrum_index" value="450"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="308.194549560547" RT="346.718016032" spectrum_reference="controllerType=0 controllerNumber=1 scan=1410" >
+				<UserParam type="int" name="spectrum_index" value="461"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T51_T141"/>
+			<UserParam type="float" name="FWHM" value="3.877014398574829"/>
+			<UserParam type="float" name="max_height" value="1.255735e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[4.064963295508234e06, 6.056924547934503e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[342.721526352000012, 342.721526352000012]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[308.194528422248595, 309.197869392558914]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003340970310319]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="14805548548153622176"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_4390788802385104534">
+			<position dim="0">343.902234399999998</position>
+			<position dim="1">461.316255602299918</position>
+			<intensity>1.668748e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>5.948898e-06</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="label" value="T101.1_T143.1"/>
+			<UserParam type="float" name="FWHM" value="7.522663593292236"/>
+			<UserParam type="float" name="max_height" value="2.3139935546875e04"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.668747877540294e05, 9.102585896088366e04]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[343.902234399999998, 345.108101551999994]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[461.316255602299918, 461.817882702438681]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.501627100138762]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="14538417323837621742"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_10952348760626667940">
+			<position dim="0">350.065520240000012</position>
+			<position dim="1">418.297893154655242</position>
+			<intensity>3.985371e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.519774e-04</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="418.297943115234" RT="347.279732896" spectrum_reference="controllerType=0 controllerNumber=1 scan=1412" >
+				<UserParam type="int" name="spectrum_index" value="463"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="418.297943115234" RT="351.391796832" spectrum_reference="controllerType=0 controllerNumber=1 scan=1429" >
+				<UserParam type="int" name="spectrum_index" value="473"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T23.3_T38.3_T69.2"/>
+			<UserParam type="float" name="FWHM" value="3.859209060668945"/>
+			<UserParam type="float" name="max_height" value="1.036107375e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[3.985371197791866e06, 1.911176349223583e06, 4.211083137771395e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[350.065520240000012, 350.065520240000012, 350.065520240000012]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[418.297893154655242, 418.799337020953772, 419.300806842918803]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.50144386629853, 0.501469821965031]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="2490335845531881725"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_15412946083553915887">
+			<position dim="0">352.508244848000004</position>
+			<position dim="1">461.316323369529016</position>
+			<intensity>1.333327e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>4.731938e-05</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="461.316375732422" RT="352.594673984" spectrum_reference="controllerType=0 controllerNumber=1 scan=1434" >
+				<UserParam type="int" name="spectrum_index" value="478"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T101.2_T143.2"/>
+			<UserParam type="float" name="FWHM" value="3.694282054901123"/>
+			<UserParam type="float" name="max_height" value="3.8063840625e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.333326636569819e06, 6.627937346238509e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[352.508244848000004, 352.508244848000004]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[461.316323369529016, 461.81787222875505]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.501548859226034]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="12138088327080274120"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_13845385516040302036">
+			<position dim="0">353.758109728000022</position>
+			<position dim="1">207.159058918844693</position>
+			<intensity>1.87674e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>5.410619e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="207.159072875977" RT="353.845015568" spectrum_reference="controllerType=0 controllerNumber=1 scan=1439" >
+				<UserParam type="int" name="spectrum_index" value="481"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T24_T76"/>
+			<UserParam type="float" name="FWHM" value="5.17134428024292"/>
+			<UserParam type="float" name="max_height" value="4.7808695e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.876739692025471e07, 1.818835176466176e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[353.758109728000022, 354.966055327999982]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[207.159058918844693, 208.16201175764246]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.002952838797768]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="15626217915696237033"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_7638445592211852256">
+			<position dim="0">354.966055327999982</position>
+			<position dim="1">434.310869900465775</position>
+			<intensity>1.4857e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>5.079512e-05</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="434.310913085938" RT="351.660194832" spectrum_reference="controllerType=0 controllerNumber=1 scan=1430" >
+				<UserParam type="int" name="spectrum_index" value="474"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="434.310760498047" RT="356.254760512" spectrum_reference="controllerType=0 controllerNumber=1 scan=1449" >
+				<UserParam type="int" name="spectrum_index" value="486"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T120.2_T185.2"/>
+			<UserParam type="float" name="FWHM" value="9.615883827209473"/>
+			<UserParam type="float" name="max_height" value="1.85274921875e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.485699964286567e06, 6.462793336362789e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[354.966055327999982, 354.966055327999982]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[434.310869900465775, 434.812434481074774]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.501564580608999]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="12365366285237458314"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_1666417140310132599">
+			<position dim="0">363.665959008000016</position>
+			<position dim="1">434.310872572717869</position>
+			<intensity>8.836031e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.105987e-05</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="434.310882568359" RT="364.318739232" spectrum_reference="controllerType=0 controllerNumber=1 scan=1481" >
+				<UserParam type="int" name="spectrum_index" value="504"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T120.3_T185.3"/>
+			<UserParam type="float" name="FWHM" value="3.836178302764893"/>
+			<UserParam type="float" name="max_height" value="2.56590375e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[8.83603104379973e05, 4.107094393870421e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[363.665959008000016, 363.665959008000016]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[434.310872572717869, 434.812399209557441]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.501526636839571]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="13901270941891040285"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_13282546605635865820">
+			<position dim="0">373.332162944000004</position>
+			<position dim="1">427.303066655215162</position>
+			<intensity>2.536665e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>7.676005e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.303039550781" RT="368.656339952" spectrum_reference="controllerType=0 controllerNumber=1 scan=1499" >
+				<UserParam type="int" name="spectrum_index" value="512"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.303070068359" RT="373.687623024" spectrum_reference="controllerType=0 controllerNumber=1 scan=1520" >
+				<UserParam type="int" name="spectrum_index" value="526"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.303070068359" RT="378.278444608" spectrum_reference="controllerType=0 controllerNumber=1 scan=1539" >
+				<UserParam type="int" name="spectrum_index" value="536"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T1.7_T4.7"/>
+			<UserParam type="float" name="FWHM" value="2.913674831390381"/>
+			<UserParam type="float" name="max_height" value="8.770634375e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.536665337308386e06, 6.35905295665818e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[373.332162944000004, 373.332162944000004]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[427.303066655215162, 428.306450173186363]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003383517971201]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="18220975582002298009"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_2843617178417666846">
+			<position dim="0">402.23541353600001</position>
+			<position dim="1">495.333085730044729</position>
+			<intensity>2.726115e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>9.286737e-06</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="label" value="T313_T387"/>
+			<UserParam type="float" name="FWHM" value="7.679875373840332"/>
+			<UserParam type="float" name="max_height" value="4.200824609375e04"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.726114648875698e05, 1.369024287377471e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[402.23541353600001, 402.23541353600001]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[495.333085730044729, 495.834753585532837]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.501667855488108]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
+			<UserParam type="string" name="Group" value="569233351506410805"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+		<feature id="f_11676422754479268079">
+			<position dim="0">498.98786385599999</position>
+			<position dim="1">279.093382000153269</position>
+			<intensity>1.321831e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.963376e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="279.093414306641" RT="498.386457408" spectrum_reference="controllerType=0 controllerNumber=1 scan=2031" >
+				<UserParam type="int" name="spectrum_index" value="812"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="279.093383789063" RT="502.776433792" spectrum_reference="controllerType=0 controllerNumber=1 scan=2049" >
+				<UserParam type="int" name="spectrum_index" value="822"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T26.2_T65.1"/>
+			<UserParam type="float" name="FWHM" value="2.786037445068359"/>
+			<UserParam type="float" name="max_height" value="3.82704225e06"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.321831011121503e07, 2.573079936394762e06]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[498.98786385599999, 498.98786385599999]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[279.093382000153269, 280.096594990507526]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003212990354257]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="string" name="Group" value="11150217222193298742"/>
+		</feature>
+		<feature id="f_17935176223160030179">
+			<position dim="0">498.98786385599999</position>
+			<position dim="1">301.07533006562079</position>
+			<intensity>2.007466e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>5.896457e-05</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="301.075347900391" RT="499.072566032" spectrum_reference="controllerType=0 controllerNumber=1 scan=2034" >
+				<UserParam type="int" name="spectrum_index" value="814"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T79.1_T198"/>
+			<UserParam type="float" name="FWHM" value="5.287493705749512"/>
+			<UserParam type="float" name="max_height" value="5.0372746875e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2.00746581222904e06, 3.54882229683421e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[498.98786385599999, 498.98786385599999]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[301.07533006562079, 302.078674217951686]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003344152330897]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+Na]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="22.989769280899999"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="string" name="Group" value="11150217222193298742"/>
+		</feature>
+		<feature id="f_2228847169375718282">
+			<position dim="0">544.292637967000019</position>
+			<position dim="1">209.153596298900368</position>
+			<intensity>1.468729e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>4.233677e-05</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="T135.1_T392"/>
+			<UserParam type="float" name="FWHM" value="7.415191173553467"/>
+			<UserParam type="float" name="max_height" value="2.208183125e05"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.468729158841025e06, 2.023903988420903e05]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[544.292637967000019, 544.292637967000019]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[209.153596298900368, 210.156951117422125]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.003354818521757]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
+			<UserParam type="string" name="Group" value="11980224611310600096"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</feature>
+	</featureList>
+</featureMap>

@@ -57,7 +57,7 @@ namespace OpenMS
     */
     static void writeDeconvolvedMasses(const DeconvolvedSpectrum& dspec,
                                        std::ostream& os,
-                                       const String& file_name,
+                                       const std::string& file_name,
                                        const FLASHHelperClasses::PrecalculatedAveragine& avg,
                                        const FLASHHelperClasses::PrecalculatedAveragine& decoy_avg,
                                        double tol,
@@ -75,8 +75,8 @@ namespace OpenMS
      */
     static void writeMzML(const MSExperiment& map,
                           std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
-                          const String& deconvolved_mzML_file,
-                          const String& annotated_mzML_file,
+                          const std::string& deconvolved_mzML_file,
+                          const std::string& annotated_mzML_file,
                           int mzml_charge, DoubleList tols);
 
     /**
@@ -99,7 +99,7 @@ namespace OpenMS
       @param[in] randomize_precursor_mass if set, a random number between -100 to 100 is added to precursor mass
       @param[in] randomize_fragment_mass if set, a random number between -100 to 100 is added to fragment mass
     */
-    static void writeTopFD(const DeconvolvedSpectrum& dspec, std::ostream& os, const String& filename,
+    static void writeTopFD(const DeconvolvedSpectrum& dspec, std::ostream& os, const std::string& filename,
                            double qval_threshold = 1.0,
                            uint min_ms_level = 1,
                            bool randomize_precursor_mass = false,

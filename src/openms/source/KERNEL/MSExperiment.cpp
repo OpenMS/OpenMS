@@ -158,8 +158,8 @@ namespace OpenMS
       {
         t = (float)it.getRT();
         rt.push_back(t);
-        mz.push_back(std::vector<float>());
-        intensity.push_back(std::vector<float>());
+        mz.emplace_back();
+        intensity.emplace_back();
       }
       mz.back().push_back((float)it->getMZ());
       intensity.back().push_back(it->getIntensity());
@@ -187,9 +187,9 @@ namespace OpenMS
         t = (float)it.getRT();
         rt.push_back(t);
         std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
-        mz.push_back(std::vector<float>());
-        intensity.push_back(std::vector<float>());
-        ion_mobility.push_back(std::vector<float>());
+        mz.emplace_back();
+        intensity.emplace_back();
+        ion_mobility.emplace_back();
       }
 
       if (unit != DriftTimeUnit::NONE)
@@ -279,12 +279,12 @@ namespace OpenMS
     if (rt_bins == 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Number of RT bins must be positive", String(rt_bins));
+        "Number of RT bins must be positive",StringUtils::toStr(rt_bins));
     }
     if (mz_bins == 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Number of m/z bins must be positive", String(mz_bins));
+        "Number of m/z bins must be positive",StringUtils::toStr(mz_bins));
     }
     if (min_rt >= max_rt)
     {
@@ -334,13 +334,72 @@ namespace OpenMS
       return;
     }
 
-    // Determine number of threads
+    // Determine number of threads.
+    // Each thread needs a full-size output buffer (total_pixels * 4 bytes) and the
+    // merge phase iterates all buffers sequentially. Too many threads causes the
+    // merge cost (num_threads * total_pixels) to dominate. We approximate:
+    //   processing_time ~ num_spectra / num_threads
+    //   merge_time      ~ num_threads * total_pixels
+    // Optimal: num_threads ~ sqrt(num_spectra / total_pixels * C)
+    // In practice, cap at sqrt(num_spectra) and limit total buffer memory to ~4MB.
     int num_threads = 1;
     #ifdef _OPENMP
-    num_threads = omp_get_max_threads();
+    {
+      int max_threads = omp_get_max_threads();
+      int max_by_memory = std::max(1, static_cast<int>(4ULL * 1024 * 1024 / (total_pixels * sizeof(float))));
+      int max_by_sqrt = std::max(1, static_cast<int>(std::sqrt(static_cast<double>(spectra_view.size()))));
+      num_threads = std::min({max_threads, max_by_memory, max_by_sqrt});
+    }
     #endif
 
-    // Allocate thread-local accumulation buffers to avoid contention
+    // For single-threaded case, write directly to output (skip buffer allocation + merge)
+    if (num_threads <= 1)
+    {
+      for (Size spec_idx = 0; spec_idx < spectra_view.size(); ++spec_idx)
+      {
+        const MSSpectrum& spec = spectra_view[spec_idx].get();
+        const double rt = spec.getRT();
+        Int64 rt_bin = static_cast<Int64>((rt - min_rt) * rt_scale);
+        if (rt_bin < 0) continue;
+        if (rt_bin >= static_cast<Int64>(rt_bins)) rt_bin = static_cast<Int64>(rt_bins) - 1;
+
+        auto mz_begin_it = spec.MZBegin(min_mz);
+        auto mz_end_it = spec.MZEnd(max_mz);
+        const Size peak_start = static_cast<Size>(mz_begin_it - spec.begin());
+        const Size peak_end = static_cast<Size>(mz_end_it - spec.begin());
+        const Int64 mz_bins_minus_one = static_cast<Int64>(mz_bins) - 1;
+
+        if (aggregation == RasterAggregation::SUM)
+        {
+          for (Size peak_idx = peak_start; peak_idx < peak_end; ++peak_idx)
+          {
+            Int64 mz_bin = static_cast<Int64>((spec[peak_idx].getMZ() - min_mz) * mz_scale);
+            if (mz_bin >= 0)
+            {
+              if (mz_bin > mz_bins_minus_one) mz_bin = mz_bins_minus_one;
+              output[static_cast<Size>(mz_bin) * rt_bins + static_cast<Size>(rt_bin)] += spec[peak_idx].getIntensity();
+            }
+          }
+        }
+        else
+        {
+          for (Size peak_idx = peak_start; peak_idx < peak_end; ++peak_idx)
+          {
+            Int64 mz_bin = static_cast<Int64>((spec[peak_idx].getMZ() - min_mz) * mz_scale);
+            if (mz_bin >= 0)
+            {
+              if (mz_bin > mz_bins_minus_one) mz_bin = mz_bins_minus_one;
+              const Size pixel_idx = static_cast<Size>(mz_bin) * rt_bins + static_cast<Size>(rt_bin);
+              const float intensity = spec[peak_idx].getIntensity();
+              if (intensity > output[pixel_idx]) output[pixel_idx] = intensity;
+            }
+          }
+        }
+      }
+      return;
+    }
+
+    // Multi-threaded: allocate thread-local accumulation buffers to avoid contention
     std::vector<std::vector<float>> thread_buffers(num_threads);
     for (auto& buf : thread_buffers)
     {
@@ -348,7 +407,7 @@ namespace OpenMS
     }
 
     // Process spectra in parallel using thread-local buffers
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic) num_threads(num_threads)
     for (Int64 spec_idx = 0; spec_idx < static_cast<Int64>(spectra_view.size()); ++spec_idx)
     {
       int thread_id = 0;
@@ -431,7 +490,7 @@ namespace OpenMS
     // Merge thread-local buffers into output
     if (aggregation == RasterAggregation::SUM)
     {
-      // Sum reduction: add all thread buffers
+      // Sum reduction: add all thread buffers (iterating per-buffer is cache-friendly)
       for (int t = 0; t < num_threads; ++t)
       {
         const float* thread_buf = thread_buffers[t].data();
@@ -705,7 +764,7 @@ namespace OpenMS
     return ms_levels;
   }
 
-  const String sqMassRunID = "sqMassRunID";
+  const std::string sqMassRunID = "sqMassRunID";
 
   UInt64 MSExperiment::getSqlRunID() const
   {
@@ -799,6 +858,7 @@ namespace OpenMS
   void MSExperiment::reset()
   {
     spectra_.clear();           //remove data
+    chromatograms_.clear();     //remove chromatograms
     clearRanges(); // reset all ranges
     ExperimentalSettings::operator=(ExperimentalSettings());           //reset meta info
   }
@@ -848,8 +908,8 @@ namespace OpenMS
     for (const SourceFile& ss : sfs)
     {
       // assemble a single location string from the URI (path to file) and file name
-      String path = ss.getPathToFile();
-      String filename = ss.getNameOfFile();
+      std::string path = ss.getPathToFile();
+      std::string filename = ss.getNameOfFile();
 
       if (path.empty() || filename.empty())
       {
@@ -860,9 +920,9 @@ namespace OpenMS
       else
       {
         // use Windows or UNIX path separator?
-        String actual_path = path.hasPrefix("file:///") ? path.substr(8) : path;
-        String sep = (actual_path.has('\\') && !actual_path.has('/')) ? "\\" : "/";
-        String ms_run_location = path + sep + filename;
+        std::string actual_path = StringUtils::hasPrefix(path, "file:///") ? StringUtils::substr(path, 8) : path;
+        std::string sep = (StringUtils::has(actual_path, '\\') && !StringUtils::has(actual_path, '/')) ? "\\" : "/";
+        std::string ms_run_location = path + sep + filename;
         toFill.push_back(ms_run_location);
       }
     }
@@ -898,7 +958,7 @@ namespace OpenMS
       const auto precursor = iterator->getPrecursors()[0];
       if (precursor.metaValueExists("spectrum_ref"))
       {
-        String ref = precursor.getMetaValue("spectrum_ref");
+        std::string ref = StringUtils::toStr(precursor.getMetaValue("spectrum_ref"));
         auto tmp_spec_iter = iterator; // such that we can reiterate later
         do
         {
@@ -974,7 +1034,7 @@ namespace OpenMS
 
         // check if it has the parent a precursor
         const auto precursor = it->getPrecursors()[0];
-        String ref = precursor.getMetaValue("spectrum_ref", "");  
+        std::string ref = StringUtils::toStr(precursor.getMetaValue("spectrum_ref", ""));  
         if (!ref.empty() && ref == parent_native_id)
         {
           return it;
@@ -1263,7 +1323,7 @@ namespace OpenMS
 
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)
   {
-    spectra_.emplace_back(SpectrumType());
+    spectra_.emplace_back();
     SpectrumType* spectrum = &(spectra_.back());
     spectrum->setRT(rt);
     spectrum->setMSLevel(1);
@@ -1284,7 +1344,7 @@ namespace OpenMS
     spectrum->getFloatDataArrays().reserve(metadata_names.size());
     for (StringList::const_iterator itm = metadata_names.begin(); itm != metadata_names.end(); ++itm)
     {
-      spectrum->getFloatDataArrays().push_back(MSSpectrum::FloatDataArray());
+      spectrum->getFloatDataArrays().emplace_back();
       spectrum->getFloatDataArrays().back().setName(*itm);
     }
     return spectrum;

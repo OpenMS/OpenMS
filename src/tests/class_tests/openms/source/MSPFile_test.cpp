@@ -57,7 +57,7 @@ START_SECTION(MSPFile& operator=(const MSPFile &rhs))
 	TEST_EQUAL(f1.getParameters() == f2.getParameters(), true)
 END_SECTION
 
-START_SECTION(void load(const String &filename, std::vector< PeptideIdentification > &ids, PeakMap &exp))
+START_SECTION(void load(const std::string &filename, std::vector< PeptideIdentification > &ids, PeakMap &exp))
 	MSPFile msp_file;
 	PeptideIdentificationList ids;
 	PeakMap exp;
@@ -117,11 +117,11 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 
 END_SECTION
 
-START_SECTION(void store(const String& filename, const AnnotatedMSRun& annot_exp) const)
+START_SECTION(void store(const std::string& filename, const AnnotatedMSRun& annot_exp) const)
 	MSPFile msp_file;
 	AnnotatedMSRun annot_exp;
 	msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), annot_exp);
-	String filename;
+	std::string filename;
 	NEW_TMP_FILE(filename);
 	msp_file.store(filename, annot_exp);
 

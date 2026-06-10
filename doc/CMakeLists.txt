@@ -91,20 +91,30 @@ if(ENABLE_DOCS)
   # As soon as there is a TeX formula in the html documentation we need LaTeX, dvips and ghostscript.
   # Probably only affects class documentation.
 
-  if (DOXYGEN_FOUND)
-  
+  if (Doxygen_FOUND)
+
     # check doxygen for bug with generated latex files
     set(DOXYGEN_MIN_REQUIRED "1.8.13")
 
+    ## NOTE: keep the all-caps DOXYGEN_VERSION here. The mixed-case Doxygen_VERSION only exists in
+    ## CMake >= 4.2, while OpenMS still supports CMake 3.21; on older CMake it would be empty, making
+    ## this version check always fire and dropping the version argument passed to Doxygen_Warning_test
+    ## below. DOXYGEN_VERSION is set across the whole supported range (3.9 .. 4.2+).
     if (DOXYGEN_VERSION VERSION_LESS DOXYGEN_MIN_REQUIRED )
       message(STATUS "Warning: Doxygen ( vers. installed = ${DOXYGEN_VERSION} < ${DOXYGEN_MIN_REQUIRED}) does not correctly process \\include commands in developer's installation instructions. This will make them incomplete. Upgrade Doxygen to fix.")
     endif()
-    
-    ## if not found, use empty string to avoid `warning: the dot tool could not be found as 'DOXYGEN_DOT_EXECUTABLE-NOTFOUND/dot.exe'` in doxygen-error.log
-    if (DOXYGEN_DOT_EXECUTABLE) 
-      set(CF_DOXYGEN_DOT_EXECUTABLE "${DOXYGEN_DOT_EXECUTABLE}")
+
+    ## DOT (Graphviz) is an optional component. When present, substitute the full path to the dot
+    ## executable into the Doxyfile and enable HAVE_DOT; otherwise leave DOT_PATH empty (avoids
+    ## `warning: the dot tool could not be found ...` in doxygen-error.log) and set HAVE_DOT=NO.
+    ## Note: HAVE_DOT must be the literal YES/NO that doxygen expects, not the CMake TRUE/FALSE of
+    ## Doxygen_dot_FOUND, hence the explicit mapping below.
+    if (TARGET Doxygen::dot)
+      get_target_property(CF_DOXYGEN_DOT_EXECUTABLE Doxygen::dot IMPORTED_LOCATION)
+      set(DOXYGEN_HAVE_DOT "YES")
     else()
       set(CF_DOXYGEN_DOT_EXECUTABLE "")
+      set(DOXYGEN_HAVE_DOT "NO")
     endif()
       
     
@@ -203,13 +213,6 @@ if(ENABLE_DOCS)
 
     add_dependencies(doc_param_internal doc_progs)
 
-    if(NOT WITH_PARQUET)
-      add_custom_command(TARGET doc_param_internal POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E echo "Creating placeholder documentation for tools disabled due to missing dependencies..."
-      COMMAND ${CMAKE_COMMAND} -E echo "<html><body><h2>Tool not available</h2><p>QPXConverter requires Parquet support which was disabled during compilation (WITH_PARQUET=OFF).</p></body></html>" > ${CMAKE_CURRENT_BINARY_DIR}/doxygen/parameters/output/TOPP_QPXConverter.html
-      COMMENT "Generate placeholder HTML for disabled tools"
-      VERBATIM)
-    endif()
 
     #------------------------------------------------------------------------------
     # doc(_html) generation code reused in two independent targets
@@ -219,7 +222,7 @@ if(ENABLE_DOCS)
       COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation"
       COMMAND ${CMAKE_COMMAND} -E echo ""
       COMMAND ${CMAKE_COMMAND} -E remove_directory html
-      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile
+      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile
       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
       COMMAND ${CMAKE_COMMAND} -E echo ""
       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -251,14 +254,14 @@ if(ENABLE_DOCS)
                       VERBATIM)
 
     #------------------------------------------------------------------------------
-    # doc_internal target
+    # doc_xml target
     add_custom_target(doc_xml
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating XML documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E remove_directory xml_output
-                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_xml
+                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_xml
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E echo "The XML documentation has been successfully created."
@@ -274,7 +277,7 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E remove_directory html
-                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_noclass
+                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_noclass
                       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -293,7 +296,7 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class/TOPP documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E remove_directory html
-                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_noclass
+                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_noclass
                       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -309,7 +312,7 @@ if(ENABLE_DOCS)
     # stage to avoid confusion if doc_minimal is built first
     add_dependencies(doc_minimal TOPP)
 
-    if (DOXYGEN_DOT_FOUND OR DOXYGEN_DOT_EXECUTABLE)
+    if (TARGET Doxygen::dot)
       #------------------------------------------------------------------------------
       # doc_dot target
       add_custom_target(doc_dot
@@ -318,7 +321,7 @@ if(ENABLE_DOCS)
                         COMMAND ${CMAKE_COMMAND} -E echo "Creating DOT html documentation"
                         COMMAND ${CMAKE_COMMAND} -E echo ""
                         COMMAND ${CMAKE_COMMAND} -E remove_directory html-dot
-                        COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_dot
+                        COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_dot
                         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
                         COMMAND ${CMAKE_COMMAND} -E echo ""
                         COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"

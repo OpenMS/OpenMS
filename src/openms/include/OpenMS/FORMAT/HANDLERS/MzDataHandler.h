@@ -41,10 +41,10 @@ public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
-      MzDataHandler(MapType & exp, const String & filename, const String & version, ProgressLogger & logger);
+      MzDataHandler(MapType & exp, const std::string & filename, const std::string & version, ProgressLogger & logger);
 
       /// Constructor for a read-only handler
-      MzDataHandler(const MapType & exp, const String & filename, const String & version, const ProgressLogger & logger);
+      MzDataHandler(const MapType & exp, const std::string & filename, const std::string & version, const ProgressLogger & logger);
 
       /// Destructor
       ~MzDataHandler() override
@@ -97,15 +97,15 @@ protected:
       /// The current spectrum
       SpectrumType spec_;
       /// An array of pairs MetaInfodescriptions and their ids
-      std::vector<std::pair<String, MetaInfoDescription> > meta_id_descs_;
+      std::vector<std::pair<std::string, MetaInfoDescription> > meta_id_descs_;
       /// encoded data which is read and has to be decoded
-      std::vector<String> data_to_decode_;
+      std::vector<std::string> data_to_decode_;
       /// floating point numbers which have to be encoded and written
       std::vector<float> data_to_encode_;
       std::vector<std::vector<float> > decoded_list_;
       std::vector<std::vector<double> > decoded_double_list_;
-      std::vector<String> precisions_;
-      std::vector<String> endians_;
+      std::vector<std::string> precisions_;
+      std::vector<std::string> endians_;
       //@}
 
       /// Flag that indicates whether this spectrum should be skipped (due to options)
@@ -130,7 +130,7 @@ protected:
           Example:
           &lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
       */
-      inline void writeCVS_(std::ostream & os, double value, const String & acc, const String & name, UInt indent = 4) const;
+      inline void writeCVS_(std::ostream & os, double value, const std::string & acc, const std::string & name, UInt indent = 4) const;
 
       /**
           @brief write cvParam containing strings to stream
@@ -143,7 +143,7 @@ protected:
           Example:
           &lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
       */
-      inline void writeCVS_(std::ostream & os, const String & value, const String & acc, const String & name, UInt indent = 4) const;
+      inline void writeCVS_(std::ostream & os, const std::string & value, const std::string & acc, const std::string & name, UInt indent = 4) const;
 
       /**
           @brief write cvParam element to stream
@@ -158,7 +158,7 @@ protected:
           Example:
           &lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value=""/&gt;
       */
-      inline void writeCVS_(std::ostream & os, UInt value, UInt map, const String & acc, const String & name, UInt indent = 4);
+      inline void writeCVS_(std::ostream & os, UInt value, UInt map, const std::string & acc, const std::string & name, UInt indent = 4);
 
       ///Writing the MetaInfo as UserParam to the file
       inline void writeUserParam_(std::ostream & os, const MetaInfoInterface & meta, UInt indent = 4);
@@ -170,7 +170,7 @@ protected:
           &lt;cvParam cvLabel="psi" accession="PSI:1000001" name="@p name" value="@p value"/&gt;
           @p name and sometimes @p value are defined in the MzData ontology.
       */
-      void cvParam_(const String & name, const String & value);
+      void cvParam_(const std::string & name, const std::string & value);
       //@}
 
       /**
@@ -178,7 +178,7 @@ protected:
 
           The @p name and @p id are only used if the @p tag is @em supDataArrayBinary or @em supDataArray.
       */
-      inline void writeBinary_(std::ostream & os, Size size, const String & tag, const String & name = "", SignedSize id = -1);
+      inline void writeBinary_(std::ostream & os, Size size, const std::string & tag, const std::string & name = "", SignedSize id = -1);
 
       //Data processing auxiliary variable
       std::shared_ptr< DataProcessing > data_processing_;

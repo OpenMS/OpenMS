@@ -63,7 +63,7 @@ spectra.push_back(spectrum);
 
 SpectrumMetaDataLookup lookup;
 
-START_SECTION((template <typename SpectrumContainer> void readSpectra(const SpectrumContainer&, const String&, bool)))
+START_SECTION((template <typename SpectrumContainer> void readSpectra(const SpectrumContainer&, const std::string&, bool)))
 {
   lookup.readSpectra(spectra, SpectrumLookup::default_scan_regexp, true);
   TEST_EQUAL(lookup.empty(), false);
@@ -111,7 +111,7 @@ START_SECTION((static void getSpectrumMetaData(const MSSpectrum&, SpectrumMetaDa
 }
 END_SECTION
 
-START_SECTION((void getSpectrumMetaData(const String&, SpectrumMetaData&, MetaDataFlags) const))
+START_SECTION((void getSpectrumMetaData(const std::string&, SpectrumMetaData&, MetaDataFlags) const))
 {
   SpectrumMetaDataLookup::SpectrumMetaData meta;
   lookup.addReferenceFormat(SpectrumLookup::default_scan_regexp);
@@ -199,7 +199,7 @@ START_SECTION((bool addMissingIMToPeptideIDs(PeptideIdentificationList& peptides
   MSExperiment exp_empty;
   TEST_EQUAL(SpectrumMetaDataLookup::addMissingIMToPeptideIDs(peptides, exp_empty), false);
 
-  // Test 2: MSExperiment with no IM format (not MULTIPLE_SPECTRA)
+  // Test 2: MSExperiment with no IM format (not IM_SPECTRUM)
   MSExperiment exp_no_im;
   MSSpectrum spectrum_no_im;
   spectrum_no_im.setNativeID("index=0");
@@ -230,7 +230,7 @@ END_SECTION
 
 
 START_SECTION((bool addMissingSpectrumReferences(PeptideIdentificationList& peptides, 
-  const String& filename, 
+  const std::string& filename, 
   bool stop_on_error, 
   bool override_spectra_data, 
   bool override_spectra_references, 
@@ -239,7 +239,7 @@ START_SECTION((bool addMissingSpectrumReferences(PeptideIdentificationList& pept
   PeptideIdentificationList peptides(1);
   peptides[0].setRT(5.1);
   peptides[0].setSpectrumReference( "index=666");
-  String filename = "this_file_does_not_exist.mzML";
+  std::string filename = "this_file_does_not_exist.mzML";
   SpectrumMetaDataLookup lookup;
   // missing file -> exception, no non-effective executions
   TEST_EXCEPTION(Exception::FileNotFound, SpectrumMetaDataLookup::addMissingSpectrumReferences(

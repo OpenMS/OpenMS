@@ -57,7 +57,7 @@ namespace OpenMS
         nrReplicates_(nrReplicates)
     {}
 
-    void insert(String& seq, Size replicate, int charge, vertex_t pepVtx)
+    void insert(std::string& seq, Size replicate, int charge, vertex_t pepVtx)
     {
       int chargeToPut = charge - minCharge_;
       OPENMS_PRECONDITION(replicate < nrReplicates_, "Replicate OOR")
@@ -154,7 +154,7 @@ namespace OpenMS
   }
 
   unordered_map<unsigned, unsigned> convertMapLabelFree_(
-      const map<pair<String, unsigned>, unsigned>& fileToRun,
+      const map<pair<std::string, unsigned>, unsigned>& fileToRun,
       const StringList& files)
   {
     unordered_map<unsigned, unsigned> indexToRun;
@@ -168,9 +168,9 @@ namespace OpenMS
   }
 
   unordered_map<unsigned, unsigned> convertMap_(
-      const map<pair<String, unsigned>, unsigned>& fileLabToPrefractionationGroup,
+      const map<pair<std::string, unsigned>, unsigned>& fileLabToPrefractionationGroup,
       const ConsensusMap::ColumnHeaders& idxToFileLabMappings,
-      const String& experiment_type)
+      const std::string& experiment_type)
   {
     unordered_map<unsigned, unsigned> indexToRun;
     for (const auto& mapping : idxToFileLabMappings)
@@ -233,7 +233,7 @@ namespace OpenMS
 
     if (spectrum.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
     {
-      idx = spectrum.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+      idx = (Size)(Int)spectrum.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
       auto find_it = indexToPrefractionationGroup.find(idx);
       if (find_it == indexToPrefractionationGroup.end())
       {
@@ -297,7 +297,7 @@ namespace OpenMS
       //proteins.getPrimaryMSRunPath(files); // files merged in the protein identification run to be inferred
       const ConsensusMap::ColumnHeaders& colHeaders = cmap.getColumnHeaders(); // all possible files and labels in the experiment
       //TODO use exp. design to merge fractions
-      map<pair<String, unsigned>, unsigned> fileLabelToPrefractionationGroup = ed.getPathLabelToPrefractionationMapping(false);
+      map<pair<std::string, unsigned>, unsigned> fileLabelToPrefractionationGroup = ed.getPathLabelToPrefractionationMapping(false);
       nrPrefractionationGroups_ = fileLabelToPrefractionationGroup.size();
       indexToPrefractionationGroup = convertMap_(fileLabelToPrefractionationGroup, colHeaders, cmap.getExperimentType()); // convert to index in the peptide ids
     }
@@ -318,7 +318,7 @@ namespace OpenMS
     if (use_unassigned_ids) roughNrIds += cmap.getUnassignedPeptideIdentifications().size();
     pl.setLogType(ProgressLogger::CMD);
     pl.startProgress(0, roughNrIds, "Building graph with run information...");
-    const String& protRun = proteins.getIdentifier();
+    const std::string& protRun = proteins.getIdentifier();
     for (auto& feat : cmap)
     {
       for (auto& spectrum : feat.getPeptideIdentifications())
@@ -357,7 +357,7 @@ namespace OpenMS
     {
       StringList files;
       proteins.getPrimaryMSRunPath(files);
-      map<pair<String, unsigned>, unsigned> fileLabelToPrefractionationGroup = ed.getPathLabelToPrefractionationMapping(false);
+      map<pair<std::string, unsigned>, unsigned> fileLabelToPrefractionationGroup = ed.getPathLabelToPrefractionationMapping(false);
       nrPrefractionationGroups_ = fileLabelToPrefractionationGroup.size();
       //TODO if only given proteins and peptide IDs we automatically assume label-free since I don't know
       // where the label would be stored.
@@ -378,7 +378,7 @@ namespace OpenMS
     ProgressLogger pl;
     pl.setLogType(ProgressLogger::CMD);
     pl.startProgress(0, idedSpectra.size(), "Building graph with run info...");
-    const String& protRun = proteins.getIdentifier();
+    const std::string& protRun = proteins.getIdentifier();
     for (auto& spectrum : idedSpectra)
     {
       if (spectrum.getIdentifier() == protRun)
@@ -410,7 +410,7 @@ namespace OpenMS
     ProgressLogger pl;
     pl.setLogType(ProgressLogger::CMD);
     pl.startProgress(0, idedSpectra.size(), "Building graph...");
-    const String& protRun = proteins.getIdentifier();
+    const std::string& protRun = proteins.getIdentifier();
     for (auto& spectrum : idedSpectra)
     {
       if (spectrum.getIdentifier() == protRun)
@@ -446,7 +446,7 @@ namespace OpenMS
     if (use_unassigned_ids) roughNrIds += cmap.getUnassignedPeptideIdentifications().size();
     pl.setLogType(ProgressLogger::CMD);
     pl.startProgress(0, roughNrIds, "Building graph...");
-    const String& protRun = proteins.getIdentifier();
+    const std::string& protRun = proteins.getIdentifier();
     for (auto& feature : cmap)
     {
       for (auto& id : feature.getPeptideIdentifications())
@@ -498,7 +498,7 @@ namespace OpenMS
     bool invalid_protein_sequence = false;
     Size count_j_proteins(0);
     Size prot_count(0);
-    String prot = "";
+    std::string prot = "";
     while (true)
     {
       has_active_data = proteins.activateCache(); // swap in last cache
@@ -512,10 +512,10 @@ namespace OpenMS
       for (Size i = 0; i < prot_count; ++i)
       {
         prot = proteins.chunkAt(i).sequence;
-        prot.remove('*');
+        StringUtils::remove(prot, '*');
 
         // check for invalid sequences with modifications
-        if (prot.has('[') || prot.has('('))
+        if (StringUtils::has(prot, '[') || StringUtils::has(prot, '('))
         {
           invalid_protein_sequence = true; // not omp-critical because its write-only
           // we cannot throw an exception here, since we'd need to catch it within the parallel region
@@ -524,12 +524,12 @@ namespace OpenMS
         // convert  L/J to I; also replace 'J' in proteins
         if (IL_equivalent)
         {
-          prot.substitute('L', 'I');
-          prot.substitute('J', 'I');
+          StringUtils::substitute(prot, 'L', 'I');
+          StringUtils::substitute(prot, 'J', 'I');
         }
         else
         { // warn if 'J' is found (it eats into aaa_max)
-          if (prot.has('J'))
+          if (StringUtils::has(prot, 'J'))
           {
             ++count_j_proteins;
           }
@@ -730,7 +730,7 @@ namespace OpenMS
       }
       pl.endProgress();
     }
-    OPENMS_LOG_INFO << "Annotated " << String(protIDs_.getIndistinguishableProteins().size()) << " indist. protein groups.\n";
+    OPENMS_LOG_INFO << "Annotated " << StringUtils::toStr(protIDs_.getIndistinguishableProteins().size()) << " indist. protein groups.\n";
   }
 
   void IDBoostGraph::calculateAndAnnotateIndistProteins(bool addSingletons)
@@ -793,7 +793,7 @@ namespace OpenMS
     // Cluster proteins
     for (; ui != ui_end; ++ui)
     {
-      IDBoostGraph::IDPointer curr_idObj = fg[*ui];
+      const IDBoostGraph::IDPointer& curr_idObj = fg[*ui];
       //TODO introduce an enum for the types to make it more clear.
       // Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
       if (curr_idObj.which() == 0) //protein: find indist. ones
@@ -1002,7 +1002,7 @@ namespace OpenMS
     Graph::vertex_iterator ui, ui_end;
     boost::tie(ui,ui_end) = boost::vertices(fg);
 
-    set<String> accs_to_remove;
+    set<std::string> accs_to_remove;
     queue<vertex_t> q;
     vector<vertex_t> groups_or_singles;
     vector<vertex_t> singles;
@@ -1095,7 +1095,7 @@ namespace OpenMS
             auto& ev = peptidePtr->getPeptideEvidences();
             for (const auto& e : ev)
             {
-              if (accs_to_remove.find(e.getProteinAccession()) == accs_to_remove.end())
+              if (!accs_to_remove.contains(e.getProteinAccession()))
               {
                 newev.emplace_back(e);
               }
@@ -1179,7 +1179,7 @@ namespace OpenMS
               if (curr_cc[*adjIt].which() == 6)
               {
                 PeptideHit *phitp = boost::get<PeptideHit *>(curr_cc[*adjIt]);
-                String seq = phitp->getSequence().toUnmodifiedString();
+                std::string seq = phitp->getSequence().toUnmodifiedString();
 
                 //TODO I think it is also best to completely focus on the extended Model here and assume that
                 // this information is present. If we allow mixtures of graphical models it gets complex

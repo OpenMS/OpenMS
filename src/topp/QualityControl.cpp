@@ -11,6 +11,10 @@
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
@@ -105,7 +109,7 @@ protected:
     setValidFormats_("out_feat", { "featureXML" });
     registerTOPPSubsection_("FragmentMassError", "Fragment Mass Error settings");
     registerStringOption_("FragmentMassError:unit", "<unit>", "auto", "Unit for mass tolerance. 'auto' uses information from FeatureXML", false);
-    setValidStrings_("FragmentMassError:unit", std::vector<String>(FragmentMassError::names_of_toleranceUnit, FragmentMassError::names_of_toleranceUnit + (int)FragmentMassError::ToleranceUnit::SIZE_OF_TOLERANCEUNIT));
+    setValidStrings_("FragmentMassError:unit", std::vector<std::string>(FragmentMassError::names_of_toleranceUnit, FragmentMassError::names_of_toleranceUnit + (int)FragmentMassError::ToleranceUnit::SIZE_OF_TOLERANCEUNIT));
     registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "m/z search window for matching peaks in two spectra", false);
     registerInputFile_("in_contaminants", "<file>", "", "Proteins considered contaminants", false);
     setValidFormats_("in_contaminants", {"fasta"});
@@ -139,7 +143,7 @@ protected:
     StringList in_trafo = updateFileStatus_(status, number_exps, "in_trafo", QCBase::Requires::TRAFOALIGN);
 
     // load databases and other single file inputs
-    String in_contaminants = getStringOption_("in_contaminants");
+    std::string in_contaminants = getStringOption_("in_contaminants");
     vector<FASTAFile::FASTAEntry> contaminants;
     if (!in_contaminants.empty())
     {
@@ -148,7 +152,7 @@ protected:
     }
 
     //the additional file the user passed, with annotate genenames & protnames
-    String fasta_file = getStringOption_("in_fasta");
+    std::string fasta_file = getStringOption_("in_fasta");
     vector<FASTAFile::FASTAEntry> prot_description;
     if(!fasta_file.empty())
     {
@@ -157,7 +161,7 @@ protected:
     }
 
     ConsensusMap cmap;
-    String in_cm = getStringOption_("in_cm");
+    std::string in_cm = getStringOption_("in_cm");
     FileHandler().loadConsensusFeatures(in_cm, cmap, {FileTypes::CONSENSUSXML});
     for (ConsensusFeature & cf: cmap) // make sure that the first PeptideIdentification of a ConsensusFeature is the one with the highest Score
     {
@@ -174,7 +178,7 @@ protected:
         OPENMS_LOG_INFO << "Labeled data detected!" << std::endl;
         if (number_exps != 1) // no features given, but >1 trafos...
         {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("More than one mzML or TrafoXML were given, but this is not supported in 'labeled' mode."));
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("More than one mzML or TrafoXML were given, but this is not supported in 'labeled' mode."));
         }
         // number_exps can remain 1, since we only need to annotate the first FMap with metavalues (the others only have exact copies)
         // ...
@@ -193,7 +197,7 @@ protected:
         if (number_exps != fmaps.size())
         {
           throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        String("Number of Maps in the ConsensusMap (") + fmaps.size() +
+                                        std::string("Number of Maps in the ConsensusMap (") + fmaps.size() +
                                           ") does not match length of -in_raw or -in_trafo (" + number_exps + ").");
         }
       }
@@ -213,7 +217,7 @@ protected:
     //-------------------------------------------------------------
     // Build a PepID Map to later find the corresponding PepID in the CMap
     //-------------------------------------------------------------
-    multimap<String, std::pair<Size, Size>> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
+    multimap<std::string, std::pair<Size, Size>> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
 
 
     customID_to_cpepID = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
@@ -262,7 +266,7 @@ protected:
     PeptideIdentificationList all_new_upep_ids;
 
 
-    String out_txt_dir = getOutputDirOption("out_txt:directory");
+    std::string out_txt_dir = getOutputDirOption("out_txt:directory");
     const bool write_mq_evidence = !getFlag_("out_txt:omit_mq_evidence");
     const bool write_mq_msms = !getFlag_("out_txt:omit_mq_msms");
     MQEvidence export_evidence(write_mq_evidence ? out_txt_dir : "");
@@ -370,7 +374,7 @@ protected:
           return ILLEGAL_PARAMETERS;
         }
         const StringList& f_runpath = mp_f.getMSRunPaths(f_identifiers[0]);
-        String cmap_identifier;
+        std::string cmap_identifier;
         if (!mp_c.tryGetIdentifier(f_runpath, cmap_identifier))
         {
           OPENMS_LOG_ERROR << "FeatureXML (MS run '" << ListUtils::concatenate(f_runpath, ", ") << "') does not correspond to ConsensusXML (run not found). Check input!\n";
@@ -416,7 +420,7 @@ protected:
         const auto& cmap_prot_ids = cmap.getProteinIdentifications();
         if(!cmap_prot_ids.empty())
         {
-          const String& file_name = cmap_prot_ids[0].getSearchParameters().db;
+          const std::string& file_name = cmap_prot_ids[0].getSearchParameters().db;
           if(prot_description.empty())
           {
             fallbackFasta(file_name, prot_description);
@@ -424,7 +428,7 @@ protected:
         }
 
         //index the fasta file for constant access
-        map<String,String> fasta_map {};
+        map<std::string, std::string> fasta_map {};
         indexFasta(prot_description, fasta_map);
 
 
@@ -465,13 +469,13 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    String out_cm = getStringOption_("out_cm");
+    std::string out_cm = getStringOption_("out_cm");
     if (!out_cm.empty())
     {
       FileHandler().storeConsensusFeatures(out_cm, cmap, {FileTypes::CONSENSUSXML}, log_type_);
     }
 
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     if (!out.empty())
     {
       MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true, "QC export from OpenMS");
@@ -488,7 +492,7 @@ protected:
   }
 
 private:
-  StringList updateFileStatus_(QCBase::Status& status, UInt64& number_exps, const String& port, const QCBase::Requires& req) const
+  StringList updateFileStatus_(QCBase::Status& status, UInt64& number_exps, const std::string& port, const QCBase::Requires& req) const
   {
     // since files are optional, leave function if none are provided by the user
     StringList files = getStringList_(port);
@@ -525,7 +529,7 @@ private:
 
   void addPepIDMetaValues_(
     const PeptideIdentificationList& f_pep_ids,
-    const multimap<String, pair<Size, Size>>& customID_to_cpepID,
+    const multimap<std::string, pair<Size, Size>>& customID_to_cpepID,
     const IdentifierMSRunMapper& mapping,
     ConsensusMap& cmap) const
   {
@@ -536,7 +540,7 @@ private:
       {
         continue;
       }
-      String UID = PeptideIdentification::buildUIDFromPepID(f_pep_id, mapping);
+      std::string UID = PeptideIdentification::buildUIDFromPepID(f_pep_id, mapping);
       const auto range = customID_to_cpepID.equal_range(UID);
 
       for (auto it_pep = range.first; it_pep != range.second; ++it_pep) // OMS_CODING_TEST_EXCLUDE
@@ -560,7 +564,7 @@ private:
     }
   }
 
-  void indexFasta(std::vector<FASTAFile::FASTAEntry>& prot_description, std::map<String, String>& fasta_map)
+  void indexFasta(std::vector<FASTAFile::FASTAEntry>& prot_description, std::map<std::string, std::string>& fasta_map)
   {
     //map the identifier to the description so that we can access the description via the cmap-identifier
     for(const auto& entry : prot_description)
@@ -569,7 +573,7 @@ private:
     }
   }
 
-  void fallbackFasta(const String& file_name, std::vector<FASTAFile::FASTAEntry>& prot_description)
+  void fallbackFasta(const std::string& file_name, std::vector<FASTAFile::FASTAEntry>& prot_description)
   {
     OPENMS_LOG_INFO << "No FASTA passed, looking for the default search parameters in consensusXML" << std::endl;
     try

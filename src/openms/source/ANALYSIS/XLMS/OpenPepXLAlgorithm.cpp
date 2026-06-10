@@ -39,7 +39,7 @@ using namespace OpenMS;
   OpenPepXLAlgorithm::OpenPepXLAlgorithm()
     : DefaultParamHandler("OpenPepXLAlgorithm")
   {
-    defaults_.setValue("decoy_string", "DECOY_", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
+    defaults_.setValue("decoy_string", "DECOY_", "std::string that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
     std::vector<std::string> bool_strings = {"true","false"};
     defaults_.setValue("decoy_prefix", "true", "Set to true, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.");
     defaults_.setValidStrings("decoy_prefix", bool_strings);
@@ -59,7 +59,7 @@ using namespace OpenMS;
     defaults_.setValidStrings("fragment:mass_tolerance_unit", mass_tolerance_unit_valid_strings);
     defaults_.setSectionDescription("fragment", "Fragment peak matching settings");
 
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
 
     defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
@@ -71,7 +71,7 @@ using namespace OpenMS;
 
     defaults_.setValue("peptide:min_size", 5, "Minimum size a peptide must have after digestion to be considered in the search.");
     defaults_.setValue("peptide:missed_cleavages", 3, "Number of missed cleavages.");
-    vector<String> all_enzymes;
+    vector<std::string> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
 
     defaults_.setValue("peptide:enzyme", "Trypsin", "The enzyme used for peptide digestion.");
@@ -176,14 +176,14 @@ using namespace OpenMS;
                       ((!fragment_mass_tolerance_unit_ppm_ && fragment_mass_tolerance_ < 0.1) ||
                       (fragment_mass_tolerance_unit_ppm_ && fragment_mass_tolerance_ < 100)));
 
-    set<String> fixed_unique(fixedModNames_.begin(), fixedModNames_.end());
+    set<std::string> fixed_unique(fixedModNames_.begin(), fixedModNames_.end());
     if (fixed_unique.size() != fixedModNames_.size())
     {
       OPENMS_LOG_WARN << "duplicate fixed modification provided." << endl;
       return ExitCodes::ILLEGAL_PARAMETERS;
     }
 
-    set<String> var_unique(varModNames_.begin(), varModNames_.end());
+    set<std::string> var_unique(varModNames_.begin(), varModNames_.end());
     if (var_unique.size() != varModNames_.size())
     {
       OPENMS_LOG_WARN << "duplicate variable modification provided." << endl;
@@ -220,7 +220,7 @@ using namespace OpenMS;
     unprocessed_spectra.clear(true);
 
     // Precursor Purity precalculation
-    map<String, PrecursorPurity::PurityScores> precursor_purities = PrecursorPurity::computePrecursorPurities(picked_spectra, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_);
+    unordered_map<std::string, PrecursorPurity::PurityScores> precursor_purities = PrecursorPurity::computePrecursorPurities(picked_spectra, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_);
 
     // preprocess spectra (filter out 0 values, sort by position)
     progresslogger.startProgress(0, 1, "Filtering spectra...");
@@ -239,7 +239,7 @@ using namespace OpenMS;
     Param p = idmapper.getParameters();
     p.setValue("rt_tolerance", 30.0);
     p.setValue("mz_tolerance", precursor_mass_tolerance_);
-    String mz_measure = precursor_mass_tolerance_unit_ppm_ ? "ppm" : "Da";
+    std::string mz_measure = precursor_mass_tolerance_unit_ppm_ ? "ppm" : "Da";
     p.setValue("mz_measure", mz_measure);
     p.setValue("mz_reference", "precursor");
     p.setValue("ignore_charge", "false");
@@ -290,10 +290,10 @@ using namespace OpenMS;
     progresslogger.endProgress();
 
     ProteinIdentification::SearchParameters search_params = protein_ids[0].getSearchParameters();
-    String searched_charges((String(min_precursor_charge_)));
+    std::string searched_charges((StringUtils::toStr(min_precursor_charge_)));
     for (int ch = min_precursor_charge_+1; ch <= max_precursor_charge_; ++ch)
     {
-      searched_charges += "," + String(ch);
+      searched_charges += "," + StringUtils::toStr(ch);
     }
     search_params.charges = searched_charges;
     search_params.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name_));
@@ -854,9 +854,9 @@ using namespace OpenMS;
             auto num_iso_peaks_array_it = getDataArrayByName(all_peaks.getIntegerDataArrays(), "iso_peak_count");
             DataArrays::IntegerDataArray num_iso_peaks_array = *num_iso_peaks_array_it;
             auto num_iso_peaks_array_linear_it = getDataArrayByName(linear_peaks.getIntegerDataArrays(), "iso_peak_count");
-            DataArrays::IntegerDataArray num_iso_peaks_array_linear = *num_iso_peaks_array_linear_it;
+            const DataArrays::IntegerDataArray& num_iso_peaks_array_linear = *num_iso_peaks_array_linear_it;
             auto num_iso_peaks_array_xlinks_it = getDataArrayByName(xlink_peaks.getIntegerDataArrays(), "iso_peak_count");
-            DataArrays::IntegerDataArray num_iso_peaks_array_xlinks = *num_iso_peaks_array_xlinks_it;
+            const DataArrays::IntegerDataArray& num_iso_peaks_array_xlinks = *num_iso_peaks_array_xlinks_it;
 
             csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
 
@@ -1069,9 +1069,9 @@ using namespace OpenMS;
     PeptideIndexing pep_indexing;
     Param indexing_param = pep_indexing.getParameters();
 
-    String d_prefix = decoy_prefix_ ? "prefix" : "suffix";
+    std::string d_prefix = decoy_prefix_ ? "prefix" : "suffix";
     indexing_param.setValue("decoy_string_position", d_prefix, "If set, protein accessions in the database contain 'decoy_string' as prefix.");
-    indexing_param.setValue("decoy_string", decoy_string_, "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
+    indexing_param.setValue("decoy_string", decoy_string_, "std::string that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
     indexing_param.setValue("missing_decoy_action", "warn");
     indexing_param.setValue("enzyme:name", enzyme_name_);
     pep_indexing.setParameters(indexing_param);

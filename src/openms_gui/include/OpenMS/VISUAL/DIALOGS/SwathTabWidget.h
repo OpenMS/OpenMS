@@ -12,7 +12,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/MISC/ExternalProcessMBox.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
@@ -52,7 +52,7 @@ namespace OpenMS
 
       StringList getMzMLInputFiles() const;
 
-      QStringList getPyProphetOutputFileNames() const;
+      std::vector<std::string> getPyProphetOutputFileNames() const;
 
     private slots:
       void on_run_swath_clicked();
@@ -70,7 +70,7 @@ namespace OpenMS
     private:
       /// find the path of a Script, given the location of python(.exe). E.g. pyprophet.exe or feature_alignment.py
       /// Returns true on success, with the full path in @p script_name
-      bool findPythonScript_(const String& path_to_python_exe, String& script_name);
+      bool findPythonScript_(const std::string& path_to_python_exe, std::string& script_name);
 
       /// collect all parameters throughout the Wizard's controls and update 'swath_param_'
       void updateSwathParamFromWidgets_();
@@ -83,7 +83,7 @@ namespace OpenMS
 
       /// translate the current list of input mzMLs and the current output directory of OSW to a list of expected OSW output files == pyProphet input files
       /// The bool indicates if the file is already present
-      std::vector<std::pair<String, bool>> getPyProphetInputFiles() const;
+      std::vector<std::pair<std::string, bool>> getPyProphetInputFiles() const;
 
       /// check if input to pyProphet is already present in the output directory of OSW
       void checkPyProphetInput_();
@@ -97,7 +97,7 @@ namespace OpenMS
       /// @param[in] new_section Start a new block with a date and time
       void writeLog_(const QString& text, const QColor& color = "#000000", bool new_section = false);
       /// @brief convenient overload for String
-      void writeLog_(const String& text, const QColor& color = "#000000", bool new_section = false);
+      void writeLog_(const std::string& text, const QColor& color = "#000000", bool new_section = false);
 
       /// Ensure all input widgets are filled with data by the user to run OpenSwathWorkflow
       /// If anything is missing: show a Messagebox and return false.

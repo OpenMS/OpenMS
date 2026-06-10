@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -76,12 +78,12 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
-    setValidFormats_("in", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("consensusXML"));
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("consensusXML"));
     addEmptyLine_();
     registerStringOption_("algorithm_type", "<type>", "robust_regression", "The normalization algorithm that is applied. 'robust_regression' scales each map by a fator computed from the ratios of non-differential background features (as determined by the ratio_threshold parameter), 'quantile' performs quantile normalization, 'median' scales all maps to the same median intensity, 'median_shift' shifts the median instead of scaling (WARNING: if you have regular, log-normal MS data, 'median_shift' is probably the wrong choice. Use only if you know what you're doing!)", false, false);
-    setValidStrings_("algorithm_type", ListUtils::create<String>("robust_regression,median,median_shift,quantile"));
+    setValidStrings_("algorithm_type", ListUtils::create<std::string>("robust_regression,median,median_shift,quantile"));
     registerDoubleOption_("ratio_threshold", "<ratio>", 0.67, "Only for 'robust_regression': the parameter is used to distinguish between non-outliers (ratio_threshold < intensity ratio < 1/ratio_threshold) and outliers.", false);
     setMinFloat_("ratio_threshold", 0.001);
     setMaxFloat_("ratio_threshold", 1.0);
@@ -91,11 +93,11 @@ protected:
 
   ExitCodes main_(int, const char **) override
   {
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
-    String algo_type = getStringOption_("algorithm_type");
-    String acc_filter = getStringOption_("accession_filter");
-    String desc_filter = getStringOption_("description_filter");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
+    std::string algo_type = getStringOption_("algorithm_type");
+    std::string acc_filter = getStringOption_("accession_filter");
+    std::string desc_filter = getStringOption_("description_filter");
     double ratio_threshold = getDoubleOption_("ratio_threshold");
 
     FileHandler infile;

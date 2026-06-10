@@ -36,7 +36,7 @@ public:
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
 
-    const String& getMethodName() const override;
+    const std::string& getMethodName() const override;
 
     const IsobaricChannelList& getChannelInformation() const override;
 
@@ -53,7 +53,7 @@ private:
     IsobaricChannelList channels_;
 
     /// The name of the quantitation method.
-    static const String name_;
+    static const std::string name_;
     
     /// The reference channel for this experiment.
     Size reference_channel_;

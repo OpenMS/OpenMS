@@ -15,6 +15,10 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
 
@@ -79,16 +83,16 @@ protected:
   {
     //TODO allow consensusXML version
     registerInputFileList_("in", "<file>", StringList(), "input file(s)");
-    setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("idXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML,consensusXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML,consensusXML"));
     registerStringOption_("out_type", "<file>", "", "output file type", false);
-    setValidStrings_("out_type", ListUtils::create<String>("idXML,consensusXML"));
+    setValidStrings_("out_type", ListUtils::create<std::string>("idXML,consensusXML"));
 
     //TODO add function to merge based on replicates only. Needs additional exp. design file then.
     registerStringOption_("merge_runs", "<choice>", "all",
                           "If your idXML contains multiple runs, merge them beforehand? Otherwise performs inference separately per run.", false);
-    setValidStrings_("merge_runs", ListUtils::create<String>("no,all"));
+    setValidStrings_("merge_runs", ListUtils::create<std::string>("no,all"));
 
     registerStringOption_("protein_fdr",
                           "<option>",
@@ -142,8 +146,8 @@ protected:
     // Merging if specifically asked or multiple files given. If you want to not merge
     // and use multiple files, use a loop
     bool merge_runs = getStringOption_("merge_runs") == "all" || in.size() > 1;
-    String out = getStringOption_("out");
-    String out_type = getStringOption_("out_type");
+    std::string out = getStringOption_("out");
+    std::string out_type = getStringOption_("out_type");
     // load identifications
     OPENMS_LOG_INFO << "Loading input..." << std::endl;
 
@@ -222,7 +226,7 @@ protected:
         // otherwise you need to build a map of peptides everytime you want to quickly check if the peptide is already
         // present)
         //TODO allow experimental design aware merging
-        IDMergerAlgorithm merger{String("all_merged")};
+        IDMergerAlgorithm merger{std::string("all_merged")};
         merger.setParameters(getParam_().copy("Merging:", true));
 
         for (const auto &idfile : in)

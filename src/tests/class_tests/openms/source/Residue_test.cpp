@@ -42,7 +42,7 @@ START_SECTION((virtual ~Residue()))
 }
 END_SECTION
 
-ResidueDB* db = ResidueDB::getInstance();
+const ResidueDB* db = ResidueDB::getInstance();
 e_ptr = new Residue(*db->getResidue("Lys"));
 
 EmpiricalFormula h2o("H2O");
@@ -92,7 +92,7 @@ START_SECTION(Residue(const Residue &residue))
   TEST_EQUAL(copy, *e_ptr)
 END_SECTION
 
-START_SECTION(Residue(const String &name, const String &three_letter_code, const String &one_letter_code, const EmpiricalFormula &formula))
+START_SECTION(Residue(const std::string &name, const std::string &three_letter_code, const std::string &one_letter_code, const EmpiricalFormula &formula))
 {
   Residue copy(e_ptr->getName(), e_ptr->getThreeLetterCode(), e_ptr->getOneLetterCode(), e_ptr->getFormula());
   TEST_EQUAL(copy.getName(), e_ptr->getName())
@@ -110,7 +110,7 @@ START_SECTION(Residue& operator=(const Residue &residue))
 }
 END_SECTION
 
-START_SECTION(void setName(const String &name))
+START_SECTION(void setName(const std::string &name))
 {
   Residue copy(*e_ptr);
   e_ptr->setName("BLUBB");
@@ -118,16 +118,16 @@ START_SECTION(void setName(const String &name))
 }
 END_SECTION
 
-START_SECTION(const String& getName() const)
+START_SECTION(const std::string& getName() const)
 {
   TEST_EQUAL(e_ptr->getName(), "BLUBB")
 }
 END_SECTION
 
-START_SECTION(void setSynonyms(const std::set< String > &synonyms))
+START_SECTION(void setSynonyms(const std::set<std::string> &synonyms))
 {
   Residue copy(*e_ptr);
-  set<String> syn;
+  set<std::string> syn;
   syn.insert("BLI");
   syn.insert("BLA");
   e_ptr->setSynonyms(syn);
@@ -135,7 +135,7 @@ START_SECTION(void setSynonyms(const std::set< String > &synonyms))
 }
 END_SECTION
 
-START_SECTION(void addSynonym(const String &synonym))
+START_SECTION(void addSynonym(const std::string &synonym))
 {
   Residue copy(*e_ptr);
   e_ptr->addSynonym("BLUFF");
@@ -143,13 +143,13 @@ START_SECTION(void addSynonym(const String &synonym))
 }
 END_SECTION
 
-START_SECTION(const std::set<String>& getSynonyms() const)
+START_SECTION(const std::set<std::string>& getSynonyms() const)
 {
   TEST_EQUAL(e_ptr->getSynonyms().size(), 3)
 }
 END_SECTION
 
-START_SECTION(void setThreeLetterCode(const String &three_letter_code))
+START_SECTION(void setThreeLetterCode(const std::string &three_letter_code))
 {
   Residue copy(*e_ptr);
   e_ptr->setThreeLetterCode("BLA");
@@ -157,13 +157,13 @@ START_SECTION(void setThreeLetterCode(const String &three_letter_code))
 }
 END_SECTION
 
-START_SECTION(const String& getThreeLetterCode() const)
+START_SECTION(const std::string& getThreeLetterCode() const)
 {
   TEST_EQUAL(e_ptr->getThreeLetterCode(), "BLA")
 }
 END_SECTION
 
-START_SECTION(void setOneLetterCode(const String &one_letter_code))
+START_SECTION(void setOneLetterCode(const std::string &one_letter_code))
 {
   Residue copy(*e_ptr);
   e_ptr->setOneLetterCode("B");
@@ -171,7 +171,7 @@ START_SECTION(void setOneLetterCode(const String &one_letter_code))
 }
 END_SECTION
 
-START_SECTION(const String& getOneLetterCode() const)
+START_SECTION(const std::string& getOneLetterCode() const)
 {
   TEST_EQUAL(e_ptr->getOneLetterCode(), "B")
 }
@@ -205,26 +205,26 @@ START_SECTION(const std::vector<EmpiricalFormula>& getLossFormulas() const)
 }
 END_SECTION
 
-START_SECTION(void setLossNames(const std::vector<String> &name))
+START_SECTION(void setLossNames(const std::vector<std::string> &name))
 {
   Residue copy(*e_ptr);
   TEST_EQUAL(*e_ptr, copy)
-  vector<String> names;
+  vector<std::string> names;
   names.push_back("Waesserchen");
   e_ptr->setLossNames(names);
   TEST_NOT_EQUAL(*e_ptr, copy)
 }
 END_SECTION
 
-START_SECTION(const std::vector<String>& getLossNames() const)
+START_SECTION(const std::vector<std::string>& getLossNames() const)
 {
-  vector<String> names;
+  vector<std::string> names;
   names.push_back("Waesserchen");
   TEST_EQUAL(e_ptr->getLossNames() == names, true)
 }
 END_SECTION
 
-START_SECTION(void addLossName(const String& name))
+START_SECTION(void addLossName(const std::string& name))
 {
   Residue copy(*e_ptr);
   TEST_EQUAL(*e_ptr, copy)
@@ -261,26 +261,26 @@ START_SECTION(void addNTermLossFormula(const EmpiricalFormula&))
 }
 END_SECTION
 
-START_SECTION(void setNTermLossNames(const std::vector< String > &name))
+START_SECTION(void setNTermLossNames(const std::vector<std::string> &name))
 {
   Residue copy(*e_ptr);
   TEST_EQUAL(*e_ptr, copy);
-  vector<String> names;
+  vector<std::string> names;
   names.push_back("Nwaesserchen");
   e_ptr->setNTermLossNames(names);
   TEST_NOT_EQUAL(*e_ptr, copy)
 }
 END_SECTION
 
-START_SECTION(const std::vector<String>& getNTermLossNames() const)
+START_SECTION(const std::vector<std::string>& getNTermLossNames() const)
 {
-  vector<String> names;
+  vector<std::string> names;
   names.push_back("Nwaesserchen");
   TEST_EQUAL(e_ptr->getNTermLossNames() == names, true)
 }
 END_SECTION
 
-START_SECTION(void addNTermLossName(const String &name))
+START_SECTION(void addNTermLossName(const std::string &name))
 {
   Residue copy(*e_ptr);
   TEST_EQUAL(*e_ptr, copy);
@@ -294,7 +294,7 @@ START_SECTION(bool hasNTermNeutralLosses() const)
   Residue copy(*e_ptr);
   TEST_EQUAL(copy.hasNTermNeutralLosses(), true)
   copy.setNTermLossFormulas(vector<EmpiricalFormula>());
-  copy.setNTermLossNames(vector<String>());
+  copy.setNTermLossNames(vector<std::string>());
   TEST_EQUAL(copy.hasNTermNeutralLosses(), false)
 }
 END_SECTION
@@ -336,7 +336,7 @@ START_SECTION(double getMonoWeight(ResidueType res_type=Full) const)
 END_SECTION
 
 
-START_SECTION(void setModification(const String& name))
+START_SECTION(void setModification(const std::string& name))
 {
   e_ptr->setOneLetterCode("M"); // we need M for this mod
   TEST_EQUAL(e_ptr->getModificationName(), "")
@@ -362,7 +362,7 @@ START_SECTION(void setModificationByDiffMonoMass(double diffMonoMass))
 }
 END_SECTION
 
-START_SECTION(String Residue::toString() const)
+START_SECTION(std::string Residue::toString() const)
 {
   auto rr(*db->getResidue("Met"));
   TEST_EQUAL(rr.toString(), "M");
@@ -376,7 +376,7 @@ START_SECTION(String Residue::toString() const)
 }
 END_SECTION
 
-START_SECTION(const String& getModificationName() const)
+START_SECTION(const std::string& getModificationName() const)
   NOT_TESTABLE // tested above
 END_SECTION
 
@@ -419,7 +419,7 @@ START_SECTION(bool operator==(const Residue &residue) const)
   r = *e_ptr;
   TEST_EQUAL(r == *e_ptr, true)
 
-  set<String> syns;
+  set<std::string> syns;
   syns.insert("new_syn");
   r.setSynonyms(syns);
   TEST_EQUAL(r == *e_ptr, false)
@@ -516,7 +516,7 @@ START_SECTION(bool operator!=(const Residue &residue) const)
   r = *e_ptr;
   TEST_EQUAL(r != *e_ptr, false)
 
-  set<String> syns;
+  set<std::string> syns;
   syns.insert("new_syn");
   r.setSynonyms(syns);
   TEST_EQUAL(r != *e_ptr, true)
@@ -683,9 +683,9 @@ START_SECTION(bool isModified() const)
 }
 END_SECTION
 
-START_SECTION((void setResidueSets(const std::set< String > &residues_sets)))
+START_SECTION((void setResidueSets(const std::set<std::string> &residues_sets)))
 {
-  set<String> res_sets;
+  set<std::string> res_sets;
   res_sets.insert("rs1");
   res_sets.insert("rs2");
   e_ptr->setResidueSets(res_sets);
@@ -693,14 +693,14 @@ START_SECTION((void setResidueSets(const std::set< String > &residues_sets)))
 }
 END_SECTION
 
-START_SECTION((void addResidueSet(const String &residue_sets)))
+START_SECTION((void addResidueSet(const std::string &residue_sets)))
   e_ptr->addResidueSet("rs3");
   TEST_EQUAL(e_ptr->getResidueSets().size(), 3)
 END_SECTION
 
-START_SECTION((const std::set<String>& getResidueSets() const))
+START_SECTION((const std::set<std::string>& getResidueSets() const))
 {
-  set<String> res_sets;
+  set<std::string> res_sets;
   res_sets.insert("rs1");
   res_sets.insert("rs2");
   res_sets.insert("rs3");
@@ -708,7 +708,7 @@ START_SECTION((const std::set<String>& getResidueSets() const))
 }
 END_SECTION
 
-START_SECTION((bool isInResidueSet(const String &residue_set)))
+START_SECTION((bool isInResidueSet(const std::string &residue_set)))
 {
   TEST_EQUAL(e_ptr->isInResidueSet("rs1"), true)
   TEST_EQUAL(e_ptr->isInResidueSet("rs3"), true)
@@ -716,7 +716,7 @@ START_SECTION((bool isInResidueSet(const String &residue_set)))
 }
 END_SECTION
 
-START_SECTION((static String getResidueTypeName(const ResidueType res_type)))
+START_SECTION((static std::string getResidueTypeName(const ResidueType res_type)))
 {
   TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::Full), "full")
   TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::Internal), "internal")
@@ -745,6 +745,24 @@ START_SECTION((static String getResidueTypeName(const ResidueType res_type)))
   {
     TEST_FALSE(Residue::getResidueTypeName(static_cast<Residue::ResidueType>(i)).empty());
   }
+}
+END_SECTION
+
+START_SECTION((double getHydrophobicity(const HydrophobicityScaleMethod scale) const))
+{
+  Residue res;
+  res.setOneLetterCode("A");
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE),1.800);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG),0.620);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::HOPP_WOODS),-0.5);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::BULL_BREESE),0.610);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::BLACK_MOULD),0.616);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::GUY),0.1);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG_CONSENSUS),0.25);
+  res.setOneLetterCode("X");
+  TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE));
+  res.setOneLetterCode("");
+  TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE));
 }
 END_SECTION
 
@@ -823,7 +841,7 @@ START_SECTION(([EXTRA] std::hash<Residue>))
   TEST_EQUAL(residue_map[r3], 3)
 
   // Test 5: Residues from ResidueDB
-  ResidueDB* rdb = ResidueDB::getInstance();
+  const ResidueDB* rdb = ResidueDB::getInstance();
   const Residue* ala = rdb->getResidue("Ala");
   const Residue* gly = rdb->getResidue("Gly");
   const Residue* ala2 = rdb->getResidue("Alanine"); // Same as Ala

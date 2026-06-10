@@ -22,7 +22,7 @@ using namespace std;
 class AbsoluteQuantitationMethodFile_facade : AbsoluteQuantitationMethodFile
 {
   public:
-    void parseLine_(StringList & line, std::map<String,Size> & headers, AbsoluteQuantitationMethod & aqm)
+    void parseLine_(StringList & line, std::map<std::string,Size> & headers, AbsoluteQuantitationMethod & aqm)
     {
       AbsoluteQuantitationMethodFile::parseLine_(line, headers, aqm);
     }
@@ -36,9 +36,9 @@ START_TEST(AbsoluteQuantitationMethodFile, "$Id$")
 
 AbsoluteQuantitationMethodFile* ptr = nullptr;
 AbsoluteQuantitationMethodFile* nullPointer = nullptr;
-const String in_file_1 = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_in_1.csv");
-const String in_file_2 = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_in_2.csv");
-const String out_file = File::getTemporaryFile();
+const std::string in_file_1 = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_in_1.csv");
+const std::string in_file_2 = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_in_2.csv");
+const std::string out_file = File::getTemporaryFile();
 
 START_SECTION((AbsoluteQuantitationMethodFile()))
 	ptr = new AbsoluteQuantitationMethodFile();
@@ -49,12 +49,12 @@ START_SECTION((~AbsoluteQuantitationMethodFile()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(void parseLine_(StringList & line, std::map<String,Size> & headers, AbsoluteQuantitationMethod & aqm) const)
+START_SECTION(void parseLine_(StringList & line, std::map<std::string,Size> & headers, AbsoluteQuantitationMethod & aqm) const)
   AbsoluteQuantitationMethodFile_facade aqmf;
   AbsoluteQuantitationMethod aqm;
 
   // headers
-  std::map<String, Size> headers;
+  std::map<std::string, Size> headers;
   headers["IS_name"] = 0;
   headers["component_name"] = 1;
   headers["feature_name"] = 2;
@@ -103,7 +103,7 @@ START_SECTION(void parseLine_(StringList & line, std::map<String,Size> & headers
   TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 1.0);
 END_SECTION
 
-START_SECTION(void load(const String & filename, std::vector<AbsoluteQuantitationMethod> & aqm_list))
+START_SECTION(void load(const std::string & filename, std::vector<AbsoluteQuantitationMethod> & aqm_list))
   AbsoluteQuantitationMethodFile aqmf;
   std::vector<AbsoluteQuantitationMethod> aqm_list;
 
@@ -233,7 +233,7 @@ START_SECTION(void load(const String & filename, std::vector<AbsoluteQuantitatio
   TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 2.0);
 END_SECTION
 
-START_SECTION(void store(const String & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list) const)
+START_SECTION(void store(const std::string & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list) const)
   AbsoluteQuantitationMethodFile aqmf;
   vector<AbsoluteQuantitationMethod> aqm_list1, aqm_list2;
   aqmf.load(in_file_1, aqm_list1);

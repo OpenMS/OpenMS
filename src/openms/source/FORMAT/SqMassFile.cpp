@@ -9,6 +9,8 @@
 #include <OpenMS/FORMAT/SqMassFile.h>
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenMS
 {
@@ -17,14 +19,14 @@ namespace OpenMS
 
   SqMassFile::~SqMassFile() = default;
 
-  void SqMassFile::load(const String& filename, MapType& map) const
+  void SqMassFile::load(const std::string& filename, MapType& map) const
   {
     OpenMS::Internal::MzMLSqliteHandler sql_mass(filename, 0);
     sql_mass.setConfig(config_.write_full_meta, config_.use_lossy_numpress, config_.linear_fp_mass_acc);
     sql_mass.readExperiment(map);
   }
 
-  void SqMassFile::store(const String& filename, const MapType& map) const
+  void SqMassFile::store(const std::string& filename, const MapType& map) const
   {
     OpenMS::Internal::MzMLSqliteHandler sql_mass(filename, map.getSqlRunID());
     sql_mass.setConfig(config_.write_full_meta, config_.use_lossy_numpress, config_.linear_fp_mass_acc);
@@ -32,7 +34,7 @@ namespace OpenMS
     sql_mass.writeExperiment(map);
   }
 
-  void SqMassFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool /* skip_full_count */, bool /* skip_first_pass */) const
+  void SqMassFile::transform(const std::string& filename_in, Interfaces::IMSDataConsumer* consumer, bool /* skip_full_count */, bool /* skip_first_pass */) const
   {
     OpenMS::Internal::MzMLSqliteHandler sql_mass(filename_in, 0);
     sql_mass.setConfig(config_.write_full_meta, config_.use_lossy_numpress, config_.linear_fp_mass_acc);
@@ -49,12 +51,11 @@ namespace OpenMS
       std::vector<int> indices;
       for (size_t batch_idx = 0; batch_idx <= (sql_mass.getNrSpectra() / batch_size); batch_idx++)
       {
-        int idx_start, idx_end;
-        idx_start = batch_idx * batch_size;
-        idx_end = std::max(batch_idx * (batch_size+1), sql_mass.getNrSpectra());
+        int idx_start = static_cast<int>(batch_idx * batch_size);
+        int idx_end = static_cast<int>(std::min((batch_idx + 1) * static_cast<size_t>(batch_size), sql_mass.getNrSpectra()));
 
         indices.resize(idx_end - idx_start);
-        for (int k = 0; k < idx_end-idx_start; k++)
+        for (int k = 0; k < idx_end - idx_start; k++)
         {
           indices[k] = idx_start + k;
         }
@@ -72,12 +73,11 @@ namespace OpenMS
       std::vector<int> indices;
       for (size_t batch_idx = 0; batch_idx <= (sql_mass.getNrChromatograms() / batch_size); batch_idx++)
       {
-        int idx_start, idx_end;
-        idx_start = batch_idx * batch_size;
-        idx_end = std::max(batch_idx * (batch_size+1), sql_mass.getNrChromatograms());
+        int idx_start = static_cast<int>(batch_idx * batch_size);
+        int idx_end = static_cast<int>(std::min((batch_idx + 1) * static_cast<size_t>(batch_size), sql_mass.getNrChromatograms()));
 
         indices.resize(idx_end - idx_start);
-        for (int k = 0; k < idx_end-idx_start; k++)
+        for (int k = 0; k < idx_end - idx_start; k++)
         {
           indices[k] = idx_start + k;
         }
@@ -89,6 +89,24 @@ namespace OpenMS
         }
       }
     }
+  }
+
+  void SqMassFile::convertToXICParquet(const std::string& filename_in, const std::string& xic_filename, UInt64 run_id, const std::string& source_file, const OpenSwath::LightTargetedExperiment& transition_exp) const
+  {
+    // source_file fallback to input filename if not provided
+    std::string src = source_file.empty() ? filename_in : source_file;
+
+    // Create an MSChromatogramParquetConsumer and stream chromatograms from the
+    // sqMass file. Callers must supply a populated transition experiment;
+    // chromatograms that reference missing metadata will cause the consumer to
+    // throw an InvalidValue exception.
+    MSChromatogramParquetConsumer parquet_consumer(xic_filename, run_id, src, transition_exp);
+
+    // Delegate to transform which will call setExpectedSize and then stream chromatograms
+    transform(filename_in, &parquet_consumer, /*skip_full_count=*/false, /*skip_first_pass=*/false);
+
+    // Ensure writer finalizes (flush and close)
+    parquet_consumer.finalize();
   }
 
 }

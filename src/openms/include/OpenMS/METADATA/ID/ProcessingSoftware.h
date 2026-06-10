@@ -30,7 +30,7 @@ namespace OpenMS
       std::vector<ScoreTypeRef> assigned_scores;
 
       explicit ProcessingSoftware(
-        const String& name = "", const String& version = "",
+        const std::string& name = "", const std::string& version = "",
         const std::vector<ScoreTypeRef>& assigned_scores = std::vector<ScoreTypeRef>()):
         Software(name, version), assigned_scores(assigned_scores)
       {

@@ -13,6 +13,10 @@
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -133,13 +137,13 @@ namespace OpenMS
    */
   void writeMSMSBlockHeader_(
     ofstream &output_file,
-    const String &output_type,
+    const std::string &output_type,
     const int &scan_index,
-    const String &feature_id,
+    const std::string &feature_id,
     const int &feature_charge,
-    const String &feature_mz,
-    const String &spec_index,
-    const String &feature_rt
+    const std::string &feature_mz,
+    const std::string &spec_index,
+    const std::string &feature_rt
   )
   {
     if (output_file.is_open())
@@ -221,8 +225,8 @@ namespace OpenMS
         if (pept_id.metaValueExists("spectrum_index") && pept_id.metaValueExists("map_index")
             && (int)pept_id.getMetaValue("map_index") == element_map)
         {
-          int map_index = pept_id.getMetaValue("map_index");
-          int spec_index = pept_id.getMetaValue("spectrum_index");
+          int map_index = (int)pept_id.getMetaValue("map_index");
+          int spec_index = (int)pept_id.getMetaValue("spectrum_index");
           pepts.emplace_back(map_index,spec_index);
           break;
         }
@@ -231,7 +235,7 @@ namespace OpenMS
     // return will be reformatted PeptideIdentificationList pepts passed in by value
   }
 
-  void GNPSMGFFile::store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const
+  void GNPSMGFFile::store(const std::string& consensus_file_path, const StringList& mzml_file_paths, const std::string& out) const
   {
     std::string output_type = getParameters().getValue("output_type");
 
@@ -297,7 +301,7 @@ namespace OpenMS
         int map_index = pep.first;
 
         // open on-disc experiments
-        if (map_index2file_index.find(map_index) == map_index2file_index.end())
+        if (!map_index2file_index.contains(map_index))
         {
           specs_list[num_msmaps_cached].openFile(mzml_file_paths[map_index], false); // open on-disc experiment and load meta-data
           map_index2file_index[map_index] = num_msmaps_cached;
@@ -317,11 +321,11 @@ namespace OpenMS
         output_file,
         output_type,
         (cons_i + 1),
-        feature.getUniqueId(),
+        StringUtils::toStr(feature.getUniqueId()),
         charge,
-        feature.getMZ(),
-        best_speci,
-        best_spec.getRT()
+        StringUtils::toStr(feature.getMZ()),
+        StringUtils::toStr(best_speci),
+        StringUtils::toStr(best_spec.getRT())
       );
 
       // OPENMS_LOG_DEBUG << "Best spectrum (index/RT): " << best_speci << "\t" << best_spec.getRT() << std::endl;

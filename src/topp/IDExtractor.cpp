@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -70,9 +71,9 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML"));
     registerIntOption_("number_of_peptides", "<int>", 10, "Number of randomly chosen peptides", false);
     setMinInt_("number_of_peptides", 1);
     registerIntOption_("number_of_rand_invokations", "<int>", 0, "Number of rand invocations before random draw (basically a seed)", false);
@@ -90,9 +91,9 @@ protected:
     vector<PeptideHit> temp_peptide_hits;
     vector<ProteinHit> temp_protein_hits;
     vector<ProteinHit> chosen_protein_hits;
-    map<String, PeptideIdentificationList > identifiers;
+    map<std::string, PeptideIdentificationList > identifiers;
     PeptideIdentification temp_identification;
-    vector<String> chosen_ids;
+    vector<std::string> chosen_ids;
     vector<pair<double, PeptideIdentification> > identifications_with_scores;
     vector<pair<double, PeptideIdentification> >::iterator it = identifications_with_scores.begin();
     PeptideIdentificationList temp_identifications;
@@ -102,8 +103,8 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String inputfile_name = getStringOption_("in");
-    String outputfile_name = getStringOption_("out");
+    std::string inputfile_name = getStringOption_("in");
+    std::string outputfile_name = getStringOption_("out");
     Size number_of_peptides = getIntOption_("number_of_peptides");
     Size number_of_rand_invokations = getIntOption_("number_of_rand_invokations");
     bool best_hits = getFlag_("best_hits");
@@ -136,7 +137,7 @@ protected:
         {
           chosen_ids.push_back(it->second.getHits()[0].getSequence().toString());
           chosen_identifications.push_back(it->second);
-          if (identifiers.find(it->second.getIdentifier()) == identifiers.end())
+          if (!identifiers.contains(it->second.getIdentifier()))
           {
             temp_identifications.clear();
           }
@@ -168,7 +169,7 @@ protected:
         {
           chosen_ids.push_back(identifications[indices[index]].getHits()[0].getSequence().toString());
           chosen_identifications.push_back(identifications[indices[index]]);
-          if (identifiers.find(identifications[indices[index]].getIdentifier()) == identifiers.end())
+          if (!identifiers.contains(identifications[indices[index]].getIdentifier()))
           {
             temp_identifications.clear();
           }
@@ -186,7 +187,7 @@ protected:
 
     if (chosen_ids.size() < number_of_peptides)
     {
-      writeLogError_("Number of existing unique peptides (" + String(chosen_ids.size()) + ") smaller than number of chosen peptides. Aborting!");
+      writeLogError_("Number of existing unique peptides (" + StringUtils::toStr(chosen_ids.size()) + ") smaller than number of chosen peptides. Aborting!");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -194,7 +195,7 @@ protected:
     {
       temp_protein_hits = protein_identifications[i].getHits();
       chosen_protein_hits.clear();
-      if (identifiers.find(protein_identifications[i].getIdentifier()) != identifiers.end())
+      if (identifiers.contains(protein_identifications[i].getIdentifier()))
       {
         temp_identifications = identifiers[protein_identifications[i].getIdentifier()];
         for (Size j = 0; j < temp_protein_hits.size(); ++j)
@@ -203,7 +204,7 @@ protected:
           for (Size k = 0; k < temp_identifications.size(); ++k)
           {
             temp_peptide_hits.clear();
-            set<String> accession;
+            set<std::string> accession;
             accession.insert(temp_protein_hits[j].getAccession());
             temp_peptide_hits = PeptideIdentification::getReferencingHits(temp_identifications[k].getHits(), accession);
             if (!temp_peptide_hits.empty() && !already_chosen)

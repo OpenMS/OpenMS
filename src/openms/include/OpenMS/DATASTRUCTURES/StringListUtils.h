@@ -8,11 +8,9 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/OpenMSConfig.h>
-
-#include <QtCore/qcontainerfwd.h> // for QStringList
 
 namespace OpenMS
 {
@@ -29,17 +27,14 @@ public:
     */
     //@{
     /// Mutable iterator
-    typedef std::vector<String>::iterator Iterator;
+    typedef std::vector<std::string>::iterator Iterator;
     /// Non-mutable iterator
-    typedef std::vector<String>::const_iterator ConstIterator;
+    typedef std::vector<std::string>::const_iterator ConstIterator;
     /// Mutable reverse iterator
-    typedef std::vector<String>::reverse_iterator ReverseIterator;
+    typedef std::vector<std::string>::reverse_iterator ReverseIterator;
     /// Non-mutable reverse iterator
-    typedef std::vector<String>::const_reverse_iterator ConstReverseIterator;
+    typedef std::vector<std::string>::const_reverse_iterator ConstReverseIterator;
     //@}
-
-    /// Creates a StringList from a QStringList
-    static StringList fromQStringList(const QStringList& rhs);
 
     ///@name Search methods
     //@{
@@ -52,7 +47,7 @@ public:
       @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static Iterator searchPrefix(const Iterator& start, const Iterator& end, const String& text, bool trim = false);
+    static Iterator searchPrefix(const Iterator& start, const Iterator& end, const std::string& text, bool trim = false);
 
     /**
       @brief Searches for the first line that starts with @p text beginning at line @p start
@@ -63,7 +58,7 @@ public:
       @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static ConstIterator searchPrefix(const ConstIterator& start, const ConstIterator& end, const String& text, bool trim = false);
+    static ConstIterator searchPrefix(const ConstIterator& start, const ConstIterator& end, const std::string& text, bool trim = false);
 
     /**
       @brief Searches for the first line that starts with @p text in the StringList @p container.
@@ -73,7 +68,7 @@ public:
       @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static ConstIterator searchPrefix(const StringList& container, const String& text, bool trim = false);
+    static ConstIterator searchPrefix(const StringList& container, const std::string& text, bool trim = false);
 
     /**
       @brief Searches for the first line that starts with @p text in the StringList @p container.
@@ -83,7 +78,7 @@ public:
       @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static Iterator searchPrefix(StringList& container, const String& text, bool trim = false);
+    static Iterator searchPrefix(StringList& container, const std::string& text, bool trim = false);
 
     /**
       @brief Searches for the first line that ends with @p text beginning at line @p start
@@ -94,7 +89,7 @@ public:
       @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static Iterator searchSuffix(const Iterator& start, const Iterator& end, const String& text, bool trim = false);
+    static Iterator searchSuffix(const Iterator& start, const Iterator& end, const std::string& text, bool trim = false);
 
     /**
       @brief Searches for the first line that ends with @p text beginning at line @p start
@@ -105,7 +100,7 @@ public:
       @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static ConstIterator searchSuffix(const ConstIterator& start, const ConstIterator& end, const String& text, bool trim = false);
+    static ConstIterator searchSuffix(const ConstIterator& start, const ConstIterator& end, const std::string& text, bool trim = false);
 
     /**
       @brief Searches for the first line that ends with @p text in the StringList @p container.
@@ -115,7 +110,7 @@ public:
       @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static ConstIterator searchSuffix(const StringList& container, const String& text, bool trim = false);
+    static ConstIterator searchSuffix(const StringList& container, const std::string& text, bool trim = false);
 
     /**
       @brief Searches for the first line that ends with @p text in the StringList @p container.
@@ -125,7 +120,7 @@ public:
       @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static Iterator searchSuffix(StringList& container, const String& text, bool trim = false);
+    static Iterator searchSuffix(StringList& container, const std::string& text, bool trim = false);
 
 
     //@}
@@ -148,20 +143,20 @@ private:
     /// @cond INTERNAL
     struct TrimmableStringPredicate_
     {
-      TrimmableStringPredicate_(const String& target, const bool trim) :
+      TrimmableStringPredicate_(const std::string& target, const bool trim) :
         trim_(trim),
         target_(target)
       {
-        if (trim_) target_.trim();
+        if (trim_) StringUtils::trim(target_);
       }
 
-      inline String getValue(const String& value) const
+      inline std::string getValue(const std::string& value) const
       {
         if (trim_)
         {
           // trim is not a const function so we need to create a copy first
-          String cp = value;
-          return cp.trim();
+          std::string cp = value;
+          return StringUtils::trim(cp);
         }
         else
         {
@@ -173,14 +168,14 @@ protected:
       /// Should the strings be trimmed.
       bool trim_;
       /// The target value that should be found.
-      String target_;
+      std::string target_;
     };
 
     /// Predicate to search in a StringList for a specific prefix.
     struct PrefixPredicate_ :
       TrimmableStringPredicate_
     {
-      PrefixPredicate_(const String& target, const bool trim) :
+      PrefixPredicate_(const std::string& target, const bool trim) :
         TrimmableStringPredicate_(target, trim)
       {}
 
@@ -190,9 +185,9 @@ protected:
         @param[in] value The value to test.
         @return true if value has prefix target, false otherwise.
       */
-      inline bool operator()(const String& value)
+      inline bool operator()(const std::string& value)
       {
-        return getValue(value).hasPrefix(target_);
+        return StringUtils::hasPrefix(getValue(value), target_);
       }
 
     };
@@ -201,7 +196,7 @@ protected:
     struct SuffixPredicate_ :
       TrimmableStringPredicate_
     {
-      SuffixPredicate_(const String& target, const bool trim) :
+      SuffixPredicate_(const std::string& target, const bool trim) :
         TrimmableStringPredicate_(target, trim)
       {}
 
@@ -211,9 +206,9 @@ protected:
        @param[in] value The value to test.
        @return true if value has suffix target, false otherwise.
        */
-      inline bool operator()(const String& value)
+      inline bool operator()(const std::string& value)
       {
-        return getValue(value).hasSuffix(target_);
+        return StringUtils::hasSuffix(getValue(value), target_);
       }
 
     };

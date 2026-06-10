@@ -255,6 +255,13 @@ namespace OpenMS
        */
       inline const std::string INVERSE_REDUCED_ION_MOBILITY = "inverse reduced ion mobility";
 
+      /** Alternative MetaValue key for ion mobility data (inverse reduced ion mobility).
+       * Some files store ion mobility data with this prefix instead of "Ion Mobility".
+       * Unit is typically volt-seconds per square centimeter (Vs/cm^2) also known as 1/k0.
+       * CV Term MS:1003006
+       */
+      inline const std::string MEAN_INVERSE_REDUCED_ION_MOBILITY_ARRAY = "mean inverse reduced ion mobility array";
+
       /** MetaValue key for centroided ion mobility data output by PeakPickerIM and MassTraceDetection.
        * PeakPickerIM outputs centroided peaks with this array name.
        * MassTraceDetection computes intensity-weighted ion mobility average of connected centroided peaks.
@@ -343,6 +350,22 @@ namespace OpenMS
 
       // User parameter name for the fraction of suffix ions that have been matched
       inline const std::string MATCHED_SUFFIX_IONS_FRACTION = "matched_suffix_ions_fraction";
+
+      // User parameter name for the number of matched prefix ions (a/b/c, absolute count)
+      inline const std::string MATCHED_PREFIX_IONS = "matched_prefix_ions";
+
+      // User parameter name for the number of matched suffix ions (x/y/z, absolute count)
+      inline const std::string MATCHED_SUFFIX_IONS = "matched_suffix_ions";
+
+      // User parameter name for the total number of matched fragment ions
+      inline const std::string NUM_MATCHED_PEAKS = "num_matched_peaks";
+
+      // User parameter name for the longest consecutive prefix (a/b/c) or suffix (x/y/z) ion series
+      inline const std::string LONGEST_PEPTIDE_ION_SEQUENCE = "longest_peptide_ion_sequence";
+
+      // User parameter name for the matched ion current (sum of experimental
+      // intensities over all matched fragment peaks, raw — not log-transformed)
+      inline const std::string MATCHED_ION_CURRENT = "matched_ion_current";
 
       /** User parameter name for the spectrum reference in PeptideIdentification (it is not yet treated as a class attribute)
               String
@@ -569,7 +592,7 @@ namespace OpenMS
       inline const std::string   ADDUCT_GROUP = "Group";
 
       /** User parameter name for a list of ADDUCT_GROUP annotations in a ConsensusFeature. (Required for IIMN)
-              vector<String>
+              vector<std::string>
       */
       inline const std::string   IIMN_LINKED_GROUPS = "LinkedGroups";
 
@@ -612,6 +635,11 @@ namespace OpenMS
               String
       */
       inline const std::string   MSM_SUM_FORMULA = "Sum_Formula";
+
+      /** User parameter name for the collision cross section (CCS, in Angstrom^2) of a metabolite. (Used by MetaboliteSpectralMatcher for ion-mobility filtering)
+              double
+      */
+      inline const std::string   MSM_CCS = "CCS";
 
       /** User parameter name for the base name which links to underlying peak map
               String

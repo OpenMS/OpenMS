@@ -41,7 +41,7 @@ namespace OpenMS
       }
     }
 
-    void PrecursorCorrection::writeHist(const String& out_csv,
+    void PrecursorCorrection::writeHist(const std::string& out_csv,
                                         const vector<double> & delta_mzs,
                                         const vector<double> & mzs,
                                         const vector<double> & rts)
@@ -51,7 +51,7 @@ namespace OpenMS
       csv_file << setprecision(9);
 
       // header
-      csv_file << ListUtils::concatenate(ListUtils::create<String>(PrecursorCorrection::csv_header), "\t") << "\n";
+      csv_file << ListUtils::concatenate(ListUtils::create<std::string>(PrecursorCorrection::csv_header), "\t") << "\n";
 
       // entries
       for (vector<double>::const_iterator it = delta_mzs.begin(); it != delta_mzs.end(); ++it)

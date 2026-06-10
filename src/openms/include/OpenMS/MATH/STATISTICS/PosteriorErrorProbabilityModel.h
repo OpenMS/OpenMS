@@ -21,7 +21,6 @@
 
 namespace OpenMS
 {
-  class String;
   class TextFile;
   class PeptideIdentification;
   class ProteinIdentification;
@@ -69,7 +68,7 @@ public:
        * @return engine (and optional charge state) id -> vector of triplets (score, target, decoy)
        * @note supported engines are: XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet,Sage
        */
-      static std::map<String, std::vector<std::vector<double>>> extractAndTransformScores(
+      static std::map<std::string, std::vector<std::vector<double>>> extractAndTransformScores(
         const std::vector<ProteinIdentification> & protein_ids,
         const PeptideIdentificationList & peptide_ids,
         const bool split_charge,
@@ -92,7 +91,7 @@ public:
        */
       static void updateScores(
         const PosteriorErrorProbabilityModel & PEP_model,
-        const String & search_engine,
+        const std::string & search_engine,
         const Int charge,
         const bool prob_correct,
         const bool split_charge,
@@ -110,7 +109,7 @@ public:
           @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vector is sorted from smallest to biggest value!
       */
-      bool fit(std::vector<double>& search_engine_scores, const String& outlier_handling);
+      bool fit(std::vector<double>& search_engine_scores, const std::string& outlier_handling);
 
       /**
           @brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables.
@@ -121,7 +120,7 @@ public:
           @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vector is sorted from smallest to biggest value!
       */
-      bool fitGumbelGauss(std::vector<double>& search_engine_scores, const String& outlier_handling);
+      bool fitGumbelGauss(std::vector<double>& search_engine_scores, const std::string& outlier_handling);
 
       /**
           @brief fits the distributions to the data points(search_engine_scores) and writes the computed probabilities into the given vector (the second one).
@@ -131,7 +130,7 @@ public:
           @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vectors are sorted from smallest to biggest value!
       */
-      bool fit(std::vector<double>& search_engine_scores, std::vector<double>& probabilities, const String& outlier_handling);
+      bool fit(std::vector<double>& search_engine_scores, std::vector<double>& probabilities, const std::string& outlier_handling);
 
       ///Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences.
       void fillDensities(const std::vector<double> & x_scores, std::vector<double> & incorrect_density, std::vector<double> & correct_density);
@@ -214,13 +213,13 @@ public:
       TextFile initPlots(std::vector<double> & x_scores);
 
       /// returns the gnuplot formula of the fitted gumbel distribution. Only x0 and sigma are used as local parameter alpha and scale parameter beta, respectively.
-      const String getGumbelGnuplotFormula(const GaussFitter::GaussFitResult & params) const;
+      const std::string getGumbelGnuplotFormula(const GaussFitter::GaussFitResult & params) const;
 
       /// returns the gnuplot formula of the fitted gauss distribution.
-      const String getGaussGnuplotFormula(const GaussFitter::GaussFitResult & params) const;
+      const std::string getGaussGnuplotFormula(const GaussFitter::GaussFitResult & params) const;
 
       /// returns the gnuplot formula of the fitted mixture distribution.
-      const String getBothGnuplotFormula(const GaussFitter::GaussFitResult & incorrect, const GaussFitter::GaussFitResult & correct) const;
+      const std::string getBothGnuplotFormula(const GaussFitter::GaussFitResult & incorrect, const GaussFitter::GaussFitResult & correct) const;
 
       ///plots the estimated distribution against target and decoy hits
       void plotTargetDecoyEstimation(std::vector<double> & target, std::vector<double> & decoy);
@@ -232,23 +231,23 @@ public:
       }
 
       /// try to invoke 'gnuplot' on the file to create PDF automatically
-      void tryGnuplot(const String& gp_file);
+      void tryGnuplot(const std::string& gp_file);
 
 private:
       /// transform different score types to a range and score orientation that the model can handle (engine string is assumed in upper-case)
-      void processOutliers_(std::vector<double>& x_scores, const String& outlier_handling) const;
+      void processOutliers_(std::vector<double>& x_scores, const std::string& outlier_handling) const;
 
       /// transform different score types to a range and score orientation that the model can handle (engine string is assumed in upper-case)
       /// @param[in] engine the search engine name as in the SE param object
       /// @param[in] hit the PeptideHit to extract transformed scores from
       /// @param[in] current_score_type the current score type of the PeptideIdentification to take precedence
-      static double transformScore_(const String& engine, const PeptideHit& hit, const String& current_score_type);
+      static double transformScore_(const std::string& engine, const PeptideHit& hit, const std::string& current_score_type);
 
       /// gets a specific score (either main score [preferred] or metavalue)
       /// @param[in] requested_score_types the requested score_types in order of preference (will be tested with a "_score" suffix as well)
       /// @param[in] hit the PeptideHit to extract from
       /// @param[in] actual_score_type the current score type to take preference if matching
-      static double getScore_(const std::vector<String>& requested_score_types, const PeptideHit & hit, const String& actual_score_type);
+      static double getScore_(const std::vector<std::string>& requested_score_types, const PeptideHit & hit, const std::string& actual_score_type);
 
       /// assignment operator (not implemented)
       PosteriorErrorProbabilityModel & operator=(const PosteriorErrorProbabilityModel & rhs);
@@ -268,9 +267,9 @@ private:
       ///smallest score which was used for fitting the model
       double smallest_score_;
       ///points either to getGumbelGnuplotFormula or getGaussGnuplotFormula depending on whether one uses the gumbel or the gaussian distribution for incorrectly assigned sequences.
-      const String (PosteriorErrorProbabilityModel::* getNegativeGnuplotFormula_)(const GaussFitter::GaussFitResult & params) const;
+      const std::string (PosteriorErrorProbabilityModel::* getNegativeGnuplotFormula_)(const GaussFitter::GaussFitResult & params) const;
       ///points to getGumbelGnuplotFormula
-      const String (PosteriorErrorProbabilityModel::* getPositiveGnuplotFormula_)(const GaussFitter::GaussFitResult & params) const;
+      const std::string (PosteriorErrorProbabilityModel::* getPositiveGnuplotFormula_)(const GaussFitter::GaussFitResult & params) const;
     };
   }
 }

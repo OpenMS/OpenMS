@@ -43,7 +43,7 @@ namespace OpenMS
     os.flush();
   }
 
-  void FLASHDeconvFeatureFile::writeFeatures(const std::vector<FLASHHelperClasses::MassFeature>& mass_features, const String& file_name, std::ostream& os, bool report_decoy)
+  void FLASHDeconvFeatureFile::writeFeatures(const std::vector<FLASHHelperClasses::MassFeature>& mass_features, const std::string& file_name, std::ostream& os, bool report_decoy)
   {
     std::stringstream ss;
     for (auto& mass_feature : mass_features)
@@ -102,7 +102,7 @@ namespace OpenMS
   }
 
   void FLASHDeconvFeatureFile::writeTopFDFeatures(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features,
-                                                  const std::map<int, double>& scan_rt_map, const String& file_name, std::ostream& os, uint ms_level)
+                                                  const std::map<int, double>& scan_rt_map, const std::string& file_name, std::ostream& os, uint ms_level)
   {
     std::stringstream ss;
 

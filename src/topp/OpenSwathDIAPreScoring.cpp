@@ -19,6 +19,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -61,22 +62,22 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("tr", "<file>", "", "transition file");
-    setValidFormats_("tr", ListUtils::create<String>("traML"));
+    setValidFormats_("tr", ListUtils::create<std::string>("traML"));
     registerInputFileList_("swath_files", "<files>", StringList(),
                            "Swath files that were used to extract the transitions. If present, SWATH specific scoring will be applied.",
                            true);
-    setValidFormats_("swath_files", ListUtils::create<String>("mzML"));
+    setValidFormats_("swath_files", ListUtils::create<std::string>("mzML"));
     registerOutputFileList_("output_files", "<files>", StringList(),
                            "Output files. One per Swath input file.",
                            true);
-    setValidFormats_("output_files", ListUtils::create<String>("tsv"));
+    setValidFormats_("output_files", ListUtils::create<std::string>("tsv"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0,
                           "Minimal distance to the edge to still consider a precursor, in Thomson (only in SWATH)",
                           false);
   }
 
-  Param getSubsectionDefaults_(const String&) const override
+  Param getSubsectionDefaults_(const std::string&) const override
   {
     return OpenMS::DiaPrescore().getDefaults();
   }
@@ -113,7 +114,7 @@ protected:
       MapTypePtr swath_map (new MapType);
       FeatureMap featureFile;
       std::cout << "Loading file " << file_list[i] << std::endl;
-      String fname = outfile_list[i];
+      std::string fname = outfile_list[i];
       FileHandler().loadExperiment(file_list[i], *swath_map, {FileTypes::MZML}, log_type_);
       if (swath_map->empty() || (*swath_map)[0].getPrecursors().empty())
       {

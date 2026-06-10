@@ -37,9 +37,9 @@ namespace OpenMS
     }
   }
 
-  const String& FWHM::getName() const
+  const std::string& FWHM::getName() const
   {
-    static const String& name = "FWHM";
+    static const std::string& name = "FWHM";
     return name;
   }
 

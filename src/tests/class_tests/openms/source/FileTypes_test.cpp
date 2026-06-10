@@ -25,7 +25,7 @@ START_TEST(FileHandler, "Id")
 using namespace OpenMS;
 using namespace std;
 
-START_SECTION((static String typeToName(Type type)))
+START_SECTION((static std::string typeToName(Type type)))
 {
   TEST_EQUAL(FileTypes::typeToName(FileTypes::UNKNOWN), "unknown");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::DTA), "dta");
@@ -52,13 +52,13 @@ START_SECTION((static String typeToName(Type type)))
 }
 END_SECTION
 
-START_SECTION((static Type nameToType(const String& name)))
+START_SECTION((static Type nameToType(const std::string& name)))
   TEST_EQUAL(FileTypes::typeToDescription(FileTypes::DTA2D), "dta2d raw data file");
   TEST_EQUAL(FileTypes::typeToDescription(FileTypes::UNKNOWN), "unknown file extension");
 END_SECTION
 
 
-START_SECTION((static Type nameToType(const String& name)))
+START_SECTION((static Type nameToType(const std::string& name)))
 {
   TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("unknown"));
   TEST_EQUAL(FileTypes::DTA, FileTypes::nameToType("dta"));
@@ -94,8 +94,31 @@ START_SECTION((static Type nameToType(const String& name)))
   TEST_EQUAL(FileTypes::TXT, FileTypes::nameToType("txt"));
   TEST_EQUAL(FileTypes::PARQUET, FileTypes::nameToType("parquet"));
   TEST_EQUAL(FileTypes::PARQUET, FileTypes::nameToType("pqt")); // Test alternate extension
+  TEST_EQUAL(FileTypes::nameToType("idparquet"), FileTypes::IDPARQUET);
+  TEST_EQUAL(FileTypes::nameToType("IDPARQUET"), FileTypes::IDPARQUET);
+  TEST_STRING_EQUAL(FileTypes::typeToName(FileTypes::IDPARQUET), "idparquet");
+  TEST_EQUAL(FileTypes::nameToType("featureparquet"), FileTypes::FEATUREPARQUET);
+  TEST_EQUAL(FileTypes::nameToType("FEATUREPARQUET"), FileTypes::FEATUREPARQUET);
+  TEST_STRING_EQUAL(FileTypes::typeToName(FileTypes::FEATUREPARQUET), "featureparquet");
+  TEST_EQUAL(FileTypes::nameToType("consensusparquet"), FileTypes::CONSENSUSPARQUET);
+  TEST_EQUAL(FileTypes::nameToType("CONSENSUSPARQUET"), FileTypes::CONSENSUSPARQUET);
+  TEST_STRING_EQUAL(FileTypes::typeToName(FileTypes::CONSENSUSPARQUET), "consensusparquet");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::BRUKER_TDF), "d");
+  TEST_EQUAL(FileTypes::BRUKER_TDF, FileTypes::nameToType("d"));
 
   TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("somethingunknown"));
+}
+END_SECTION
+
+START_SECTION(([EXTRA] isDirectoryType))
+{
+  TEST_TRUE(FileTypes::isDirectoryType(FileTypes::IDPARQUET));
+  TEST_TRUE(FileTypes::isDirectoryType(FileTypes::FEATUREPARQUET));
+  TEST_TRUE(FileTypes::isDirectoryType(FileTypes::CONSENSUSPARQUET));
+  TEST_TRUE(FileTypes::isDirectoryType(FileTypes::BRUKER_TDF));
+  TEST_FALSE(FileTypes::isDirectoryType(FileTypes::IDXML));
+  TEST_FALSE(FileTypes::isDirectoryType(FileTypes::PARQUET));
+  TEST_FALSE(FileTypes::isDirectoryType(FileTypes::UNKNOWN));
 }
 END_SECTION
 
@@ -110,7 +133,7 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
   TEST_EQUAL(list.toFileDialogFilter(FilterLayout::ONE_BY_ONE, true), "mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
   TEST_EQUAL(list.toFileDialogFilter(FilterLayout::BOTH, false), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2)")
 
-  // testing Type FileTypeList::fromFileDialogFilter(const String& filter, const Type fallback = Type::UNKNOWN) const
+  // testing Type FileTypeList::fromFileDialogFilter(const std::string& filter, const Type fallback = Type::UNKNOWN) const
   TEST_EQUAL(list.fromFileDialogFilter("all readable files (*.mzML *.bz2)"), FileTypes::UNKNOWN);
   TEST_EQUAL(list.fromFileDialogFilter("all files (*)"), FileTypes::UNKNOWN);
   TEST_EQUAL(list.fromFileDialogFilter("mzML raw data file (*.mzML)"), FileTypes::MZML);
@@ -130,10 +153,8 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
     std::vector<FileTypes::FileProperties> f;
     f.push_back(FileTypes::FileProperties::READABLE);
     FileTypeList g = FileTypeList::typesWithProperties(f);
-    TEST_EQUAL(g.getTypes().size(), 40);
-    // Test that empty filter returns the full list
-    TEST_EQUAL(FileTypeList::typesWithProperties({}).size(), 63);
-    // Test that the full list is equal to the list of known file types
+    TEST_EQUAL(g.getTypes().size(), 48);
+    // Test that empty filter returns the full list, equal to the list of known file types
     TEST_EQUAL(FileTypeList::typesWithProperties({}).size(),static_cast<size_t>(FileTypes::Type::SIZE_OF_TYPE));
     // Check that we don't have duplicate Types in our type_with_annotation__
     vector<FileTypes::Type> vec = FileTypeList::typesWithProperties({});

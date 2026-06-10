@@ -12,8 +12,10 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <nlohmann/json.hpp>
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
+
+#include <filesystem>
+#include <fstream>
+#include <sstream>
 
 namespace OpenMS
 {
@@ -22,7 +24,7 @@ namespace OpenMS
     loadFromJSON_();
   }
 
-  MonosaccharideDB* MonosaccharideDB::getInstance()
+  const MonosaccharideDB* MonosaccharideDB::getInstance()
   {
     // Meyers' singleton - thread safe in C++11 and later
     static MonosaccharideDB* instance_ = new MonosaccharideDB();
@@ -33,29 +35,29 @@ namespace OpenMS
   {
     using json = nlohmann::json;
 
-    String path = "CHEMISTRY/monosaccharides.json";
-    String full_path = File::find(path);
+    std::string path = "CHEMISTRY/monosaccharides.json";
+    std::string full_path = File::find(path);
 
     OPENMS_LOG_DEBUG << "Loading monosaccharide data from " << full_path << "\n";
 
-    QFile file(full_path.toQString());
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    // Use std::filesystem::path to support non-ASCII paths on Windows (wide-string open)
+    std::ifstream file{std::filesystem::path{std::string(full_path)}};
+    if (!file.is_open())
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, full_path);
     }
 
-    QTextStream source(&file);
-    source.setAutoDetectUnicode(true);
-
     json data;
     try
     {
-      data = json::parse(String(source.readAll()));
+      std::ostringstream content;
+      content << file.rdbuf();
+      data = json::parse(content.str());
     }
     catch (const json::parse_error& e)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        full_path, String("JSON parse error: ") + e.what());
+        full_path,std::string("JSON parse error: ") + e.what());
     }
 
     // Check for required structure
@@ -69,7 +71,7 @@ namespace OpenMS
 
     for (auto it = monos.begin(); it != monos.end(); ++it)
     {
-      const String symbol = it.key();
+      const std::string symbol = it.key();
       const auto& entry = it.value();
 
       Monosaccharide mono;
@@ -102,7 +104,7 @@ namespace OpenMS
       {
         for (const auto& syn : entry["synonyms"])
         {
-          String synonym = syn.get<std::string>();
+          std::string synonym = syn.get<std::string>();
           mono.synonyms.push_back(synonym);
           // Map synonym to primary symbol for lookup
           synonym_to_symbol_[synonym] = symbol;
@@ -117,12 +119,12 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "Loaded " << monosaccharides_.size() << " monosaccharides\n";
   }
 
-  bool MonosaccharideDB::hasSymbol(const String& symbol) const
+  bool MonosaccharideDB::hasSymbol(const std::string& symbol) const
   {
-    return synonym_to_symbol_.find(symbol) != synonym_to_symbol_.end();
+    return synonym_to_symbol_.contains(symbol);
   }
 
-  const MonosaccharideDB::Monosaccharide* MonosaccharideDB::getMonosaccharide(const String& symbol) const
+  const MonosaccharideDB::Monosaccharide* MonosaccharideDB::getMonosaccharide(const std::string& symbol) const
   {
     // First check if it's a synonym
     auto syn_it = synonym_to_symbol_.find(symbol);
@@ -141,7 +143,7 @@ namespace OpenMS
     return &(mono_it->second);
   }
 
-  const MonosaccharideDB::Monosaccharide& MonosaccharideDB::getMonosaccharideOrThrow(const String& symbol) const
+  const MonosaccharideDB::Monosaccharide& MonosaccharideDB::getMonosaccharideOrThrow(const std::string& symbol) const
   {
     const Monosaccharide* mono = getMonosaccharide(symbol);
     if (mono == nullptr)
@@ -151,9 +153,9 @@ namespace OpenMS
     return *mono;
   }
 
-  std::vector<String> MonosaccharideDB::getAllSymbols() const
+  std::vector<std::string> MonosaccharideDB::getAllSymbols() const
   {
-    std::vector<String> symbols;
+    std::vector<std::string> symbols;
     symbols.reserve(monosaccharides_.size());
     for (const auto& pair : monosaccharides_)
     {

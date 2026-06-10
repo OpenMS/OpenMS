@@ -44,7 +44,6 @@ vars_to_cache=(
   "Python_ROOT_DIR"
   "Python_FIND_STRATEGY"
   "WITH_GUI"
-  "WITH_PARQUET"
   "WITH_THERMORAWFILEPARSER_TEST"
   "USE_EXTERNAL_JSON"
 )

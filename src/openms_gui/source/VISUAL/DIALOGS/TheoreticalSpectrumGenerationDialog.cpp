@@ -14,7 +14,8 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 // Qt includes
 #include <QtWidgets/QMessageBox>
@@ -25,7 +26,7 @@
 
 namespace OpenMS
 {
-  TheoreticalSpectrumGenerationDialog::CheckBox::CheckBox(QDoubleSpinBox** sb, QLabel** l, std::array<CheckBoxState, 3> s, std::pair<String, String> p_t, std::pair<String, String> p_s) :
+  TheoreticalSpectrumGenerationDialog::CheckBox::CheckBox(QDoubleSpinBox** sb, QLabel** l, std::array<CheckBoxState, 3> s, std::pair<std::string, std::string> p_t, std::pair<std::string, std::string> p_s) :
       ptr_to_spin_box(sb), ptr_to_spin_label(l), state(s), param_this(std::move(p_t)), param_spin(std::move(p_s))
   {}
 
@@ -106,9 +107,9 @@ namespace OpenMS
     delete ui_;
   }
 
-  const String TheoreticalSpectrumGenerationDialog::getSequence() const
+  const std::string TheoreticalSpectrumGenerationDialog::getSequence() const
   {
-    return ui_->seq_input->text();
+    return fromQString(ui_->seq_input->text());
   }
 
   Param TheoreticalSpectrumGenerationDialog::getParam_() const
@@ -153,7 +154,7 @@ namespace OpenMS
       if (!ui_->model_none_button->isChecked()) // add isotopes if any other model than 'None' is chosen
       {
         bool coarse_model = ui_->model_coarse_button->isChecked();
-        String model = coarse_model ? "coarse" : "fine";
+        std::string model = coarse_model ? "coarse" : "fine";
         p.setValue("isotope_model", model,
                    "Model to use for isotopic peaks ('none' means no isotopic peaks are added, 'coarse' adds isotopic peaks in unit mass distance, 'fine' uses the hyperfine isotopic generator to add "
                    "accurate isotopic peaks. Note that adding isotopic peaks is very slow.");
@@ -196,10 +197,10 @@ namespace OpenMS
   {
     if (!spec_.empty()) spec_.clear(true);
 
-    String seq_string(this->getSequence());
+    std::string seq_string(this->getSequence());
     if (seq_string.empty())
     {
-      const std::array<String, 3> types{"Peptide", "RNA", "Metabolite"};
+      const std::array<std::string, 3> types{"Peptide", "RNA", "Metabolite"};
       QMessageBox::warning(this, "Error", QString("You must enter a ") + QString::fromStdString(types.at(int(seq_type_))) + " sequence!");
       return;
     }
@@ -318,7 +319,7 @@ namespace OpenMS
   void TheoreticalSpectrumGenerationDialog::seqTypeSwitch_()
   {
     // save current sequence type setting in member
-    String tmp = ui_->seq_type->currentText();
+    std::string tmp = fromQString(ui_->seq_type->currentText());
     if (tmp == "Peptide")
     {
       seq_type_ = SequenceType::PEPTIDE;

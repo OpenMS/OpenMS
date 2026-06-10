@@ -11,7 +11,7 @@ ARG MAKEFLAGS="-j${NUM_BUILD_CORES}"
 
 
 ### OpenMS base ###
-FROM ubuntu:22.04 AS base
+FROM ubuntu:24.04 AS base
 ARG OPENMS_VERSION_TAG
 ARG CMAKE_VERSION=3.28.1
 ARG TARGETARCH
@@ -33,29 +33,34 @@ RUN apt-get update \
     zlib1g-dev \
     libzip4 \
     zlib1g \
+    # ICU is needed by the .NET SDK/runtime for the openms-thermo-bridge build (amd64)
+    libicu74 \
     libxerces-c-dev \
     libbz2-dev \
+    libcurl4-openssl-dev \
     libomp-dev \
     libhdf5-dev\
     coinor-libcoinmp-dev \
     libeigen3-dev \
-    libboost-date-time1.74-dev \
-    libboost-iostreams1.74-dev \
-    libboost-regex1.74-dev \
-    libboost-math1.74-dev \
-    libboost-random1.74-dev \
+    libboost-date-time-dev \
+    libboost-iostreams-dev \
+    libboost-regex-dev \
+    libboost-math-dev \
+    libboost-random-dev \
     qt6-base-dev \
     libglx-dev \
     libgl1-mesa-dev \
     libqt6opengl6-dev \
-    libqt6svg6-dev \   
+    libqt6svg6-dev \
   && rm -rf /var/lib/apt/lists/* \
   && update-ca-certificates \
   && apt-get update && apt-get install -y --no-install-recommends wget \
-  && wget https://repo1.maven.org/maven2/org/apache/arrow/ubuntu/apache-arrow-apt-source-latest-jammy.deb \
-  && apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-jammy.deb \
+  && wget https://repo1.maven.org/maven2/org/apache/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
+  && apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-noble.deb \
+  # Pin Arrow/Parquet to v23 so build-time dev libs match the runtime SONAME (libarrow2300/libparquet2300)
+  && printf 'Package: libarrow* libparquet*\nPin: version 23.*\nPin-Priority: 999\n' > /etc/apt/preferences.d/arrow \
   && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests libparquet-dev \
-  && rm apache-arrow-apt-source-latest-jammy.deb
+  && rm apache-arrow-apt-source-latest-noble.deb
 
 # installing cmake
 WORKDIR /tmp
@@ -75,10 +80,30 @@ RUN <<-EOF
     rm -rf /tmp/*
 EOF
 
+# Install the .NET 8 SDK for the openms-thermo-bridge build (WITH_THERMO_RAW).
+# The bridge's FindDotNetHost.cmake requires the nethost headers/library from
+# the official .NET SDK host pack under /usr/share/dotnet/packs/..., and runs
+# `dotnet publish` to build the managed Thermo wrapper. We use Microsoft's
+# dotnet-install.sh because Ubuntu's own dotnet-sdk-8.0 installs to /usr/lib/dotnet
+# and does not provide the host pack in the expected layout.
+# WITH_THERMO_RAW defaults OFF on linux/aarch64, so .NET is only needed for amd64.
+ENV DOTNET_ROOT=/usr/share/dotnet
+ENV PATH="${DOTNET_ROOT}:${PATH}"
+RUN <<-EOF
+    set -eux
+    if [ "${TARGETARCH}" = "amd64" ]; then
+        wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh
+        chmod +x /tmp/dotnet-install.sh
+        /tmp/dotnet-install.sh --channel 8.0 --install-dir "${DOTNET_ROOT}"
+        ln -s "${DOTNET_ROOT}/dotnet" /usr/local/bin/dotnet
+        rm -f /tmp/dotnet-install.sh
+    fi
+EOF
+
 # The main reason we're pulling this in is to make sure that the metadata
 # below is consistently formatted for releases irrespective of the base image
 LABEL version="${OPENMS_VERSION_TAG}"
-LABEL software.version="${OPENMS_VERSION_TAG}-Ubuntu22.04"
+LABEL software.version="${OPENMS_VERSION_TAG}-Ubuntu24.04"
 LABEL org.opencontainers.image.source https://github.com/OpenMS/OpenMS
 
 
@@ -155,27 +180,56 @@ RUN make install/strip
 
 
 ### OpenMS library ###
-FROM ubuntu:22.04 AS library
+FROM ubuntu:24.04 AS library
 ARG INSTALL_DIR
+ARG TARGETARCH
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
+    ca-certificates \
+    wget \
     qt6-base-dev \
     libqt6opengl6 \
     libsvm3 \
     libzip4 \
     zlib1g \
     libbz2-1.0 \
+    libcurl4 \
     libgomp1 \
     libqt6svg6 \
     libxerces-c3.2 \
     coinor-libcoinmp1v5 \
-    libboost-date-time1.74-dev  \
-    libboost-iostreams1.74-dev \
-    libboost-regex1.74-dev \
-    libboost-math1.74-dev \
-    libboost-random1.74-dev \
+    libboost-date-time1.83.0 \
+    libboost-iostreams1.83.0 \
+    libboost-regex1.83.0 \
+    libboost-math1.83.0 \
+    libboost-random1.83.0 \
+    # ICU is required by the .NET runtime that hosts the openms-thermo-bridge (amd64)
+    libicu74 \
+  && wget https://repo1.maven.org/maven2/org/apache/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
+  && apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-noble.deb \
+  && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
+    libarrow2300 \
+    libparquet2300 \
+  && rm apache-arrow-apt-source-latest-noble.deb \
+  # Install the .NET 8 runtime so the openms-thermo-bridge native library can host
+  # the managed Thermo RawFileReader at runtime (managed assemblies are shipped
+  # under ${INSTALL_DIR}/lib/openms_thermo_bridge/managed). amd64 only: WITH_THERMO_RAW
+  # is OFF on linux/aarch64. A runtime (not SDK) install is sufficient here.
+  && if [ "${TARGETARCH}" = "amd64" ]; then \
+       wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh \
+       && chmod +x /tmp/dotnet-install.sh \
+       && /tmp/dotnet-install.sh --channel 8.0 --runtime dotnet --install-dir /usr/share/dotnet \
+       && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
+       && rm -f /tmp/dotnet-install.sh ; \
+     fi \
+  && apt-get purge -y wget && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/*
+
+# Make the .NET runtime discoverable by the bridge's nethost/hostfxr at runtime.
+# Propagates to the tools, tools-thirdparty and test stages (all derived from library).
+ENV DOTNET_ROOT=/usr/share/dotnet
+ENV PATH="${DOTNET_ROOT}:${PATH}"
 
 COPY --from=build ${INSTALL_DIR}/lib ${INSTALL_DIR}/lib
 COPY --from=build ${INSTALL_DIR}/include ${INSTALL_DIR}/include
@@ -190,6 +244,13 @@ ARG INSTALL_DIR
 
 COPY --from=build ${INSTALL_DIR}/bin ${INSTALL_DIR}/bin
 ENV PATH="${INSTALL_DIR}/bin:${PATH}"
+
+# Ensure a writable home directory for config files (e.g., UpdateCheck .ver files).
+# Without this, $HOME may resolve to / in CI environments, causing tools to crash
+# when trying to create $HOME/.config/OpenMS.
+# This ENV propagates to all child stages (tools-thirdparty, test).
+RUN mkdir -p /app && chmod -R 755 /app
+ENV HOME=/app
 
 LABEL software="OpenMS (tools)"
 

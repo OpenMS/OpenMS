@@ -57,7 +57,7 @@ namespace OpenMS
 
   private:
     /// The quantification method used for the dataset to be analyzed.
-    std::map<String, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
+    std::map<std::string, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
     /// retain only fully quantified ratios
     bool only_fully_quantified_ = false;
     void addMethod_(std::unique_ptr<IsobaricQuantitationMethod> ptr)

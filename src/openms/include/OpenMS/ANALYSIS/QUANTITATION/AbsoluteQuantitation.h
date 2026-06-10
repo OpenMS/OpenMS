@@ -76,7 +76,7 @@ namespace OpenMS
     aq.setQuantMethods(methods);
 
     // Optimize calibration curves from standards
-    std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> standards;
+    std::map<std::string, std::vector<AbsoluteQuantitationStandards::featureConcentration>> standards;
     // ... populate standards ...
     aq.optimizeCalibrationCurves(standards);
 
@@ -119,7 +119,7 @@ public:
       @brief quant_method getter.  A list of AbsoluteQuantitationMethod classes are returned.
     */ 
     std::vector<AbsoluteQuantitationMethod> getQuantMethods();
-    std::map<String, AbsoluteQuantitationMethod> getQuantMethodsAsMap();
+    std::map<std::string, AbsoluteQuantitationMethod> getQuantMethodsAsMap();
  
     /**
       @brief This function calculates the ratio between features.
@@ -133,7 +133,7 @@ public:
 
       @exception Exception::UnableToFit
     */
-    double calculateRatio(const Feature & component_1, const Feature & component_2, const String & feature_name);
+    double calculateRatio(const Feature & component_1, const Feature & component_2, const std::string & feature_name);
 
     /**
       @brief This function calculates the bias of the calibration.
@@ -166,8 +166,8 @@ public:
       @exception Exception::UnableToFit
     */
     Param fitCalibration(const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-      const String & feature_name,
-      const String & transformation_model,
+      const std::string & feature_name,
+      const std::string & transformation_model,
       const Param & transformation_model_params);
 
     /**
@@ -184,8 +184,8 @@ public:
     */
     void calculateBiasAndR(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-      const String & feature_name,
-      const String & transformation_model,
+      const std::string & feature_name,
+      const std::string & transformation_model,
       const Param & transformation_model_params,
       std::vector<double> & biases,
       double & correlation_coefficient);
@@ -201,14 +201,14 @@ public:
       @param[in] transformation_model_params parameters used by the transformation_model
       @param[out] optimized_params optimized parameters
 
-      @returns true if a a fit was found, false otherwise
+      @returns true if a fit was found, false otherwise
 
       @exception Exception::UnableToFit
     */
     bool optimizeCalibrationCurveIterative(
       std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-      const String & feature_name,
-      const String & transformation_model,
+      const std::string & feature_name,
+      const std::string & transformation_model,
       const Param & transformation_model_params,
       Param & optimized_params);
 
@@ -221,7 +221,7 @@ public:
         components_concentrations will reflect the optimal set of points for downstream QC/QA.
 
     */
-    void optimizeCalibrationCurves(std::map<String,std::vector<AbsoluteQuantitationStandards::featureConcentration>> & components_concentrations);    
+    void optimizeCalibrationCurves(std::map<std::string,std::vector<AbsoluteQuantitationStandards::featureConcentration>> & components_concentrations);    
 
     /**
       @brief This function optimizes the parameters of the calibration for a single component.
@@ -233,7 +233,7 @@ public:
         value will reflect the optimal set of points for downstream QC/QA.
     */
     void optimizeSingleCalibrationCurve(
-      const String& component_name,
+      const std::string& component_name,
       std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations
     );
 
@@ -253,8 +253,8 @@ public:
     */
     double applyCalibration(const Feature & component,
       const Feature & IS_component,
-      const String & feature_name,
-      const String & transformation_model,
+      const std::string & feature_name,
+      const std::string & transformation_model,
       const Param & transformation_model_params);
 
     /**
@@ -303,8 +303,8 @@ protected:
     */
     int jackknifeOutlierCandidate_(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
-      const String & feature_name,
-      const String & transformation_model,
+      const std::string & feature_name,
+      const std::string & transformation_model,
       const Param & transformation_model_params);
 
     /**
@@ -323,8 +323,8 @@ protected:
     */
     int residualOutlierCandidate_(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
-      const String & feature_name,
-      const String & transformation_model,
+      const std::string & feature_name,
+      const std::string & transformation_model,
       const Param & transformation_model_params);
      
 private:  
@@ -335,13 +335,13 @@ private:
     double max_bias_;
     double min_correlation_coefficient_; 
     size_t max_iters_;
-    String outlier_detection_method_;
+    std::string outlier_detection_method_;
     bool use_chauvenet_;
-    String optimization_method_;
+    std::string optimization_method_;
     
     // members
     /// map between components and quantitation methods
-    std::map<String, AbsoluteQuantitationMethod> quant_methods_;
+    std::map<std::string, AbsoluteQuantitationMethod> quant_methods_;
 
   };
 

@@ -39,9 +39,9 @@ START_SECTION(~ChromeleonFile())
 }
 END_SECTION
 
-START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
+START_SECTION(void load(const std::string& filename, MSExperiment& experiment) const)
 {
-  String input_filepath = OPENMS_GET_TEST_DATA_PATH("20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.txt");
+  std::string input_filepath = OPENMS_GET_TEST_DATA_PATH("20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.txt");
   MSExperiment experiment;
   ChromeleonFile cf;
   cf.load(input_filepath, experiment);
@@ -73,7 +73,7 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   TEST_REAL_SIMILAR(c[3300].getIntensity(), -0.130904)
 
   MzMLFile mzml;
-  const String output_filepath = File::getTemporaryFile();
+  const std::string output_filepath = File::getTemporaryFile();
   mzml.store(output_filepath, experiment);
   MSExperiment read_exp;
   mzml.load(output_filepath, read_exp);
@@ -98,7 +98,7 @@ END_SECTION
 
 START_SECTION(load_with_new_raw_data_header)
 {
-  String input_filepath = OPENMS_GET_TEST_DATA_PATH("ChromeleonFile_new_header.txt");
+  std::string input_filepath = OPENMS_GET_TEST_DATA_PATH("ChromeleonFile_new_header.txt");
   MSExperiment experiment;
   ChromeleonFile cf;
   cf.load(input_filepath, experiment);
@@ -128,7 +128,7 @@ START_SECTION(load_with_new_raw_data_header)
   TEST_REAL_SIMILAR(c[9].getIntensity(), 4.930000)
 
   MzMLFile mzml;
-  const String output_filepath = File::getTemporaryFile();
+  const std::string output_filepath = File::getTemporaryFile();
   mzml.store(output_filepath, experiment);
   MSExperiment read_exp;
   mzml.load(output_filepath, read_exp);
@@ -151,7 +151,7 @@ END_SECTION
 
 START_SECTION(load_file_with_comma_thousands_separator)
 {
-  String input_filepath = OPENMS_GET_TEST_DATA_PATH("ChromeleonFile_commas.txt");
+  std::string input_filepath = OPENMS_GET_TEST_DATA_PATH("ChromeleonFile_commas.txt");
   MSExperiment experiment;
   ChromeleonFile cf;
   cf.load(input_filepath, experiment);

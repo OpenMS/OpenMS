@@ -102,7 +102,7 @@ protected:
 
     void candidateEdges_(FeatureMap& fm_out, const Adduct& default_adduct, PairsType& feature_relation, std::map<Size, std::set<CmpInfo_>>& feature_adducts);
 
-    void annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt side, const Int new_q, const Int old_q);
+    void annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt side, const Int new_q, const Int old_q, const Int mol_multiplier = 1);
 
     /// A function mostly for debugging
     void printEdgesOfConnectedFeatures_(Size idx_1, Size idx_2, const PairsType& feature_relation);
@@ -126,9 +126,9 @@ protected:
     /// List of adducts used to explain mass differences
     MassExplainer::AdductsType potential_adducts_;
     /// labeling table
-    std::map<Size, String> map_label_;
+    std::map<Size, std::string> map_label_;
     /// labeling table inverse
-    std::map<String, Size> map_label_inverse_;
+    std::map<std::string, Size> map_label_inverse_;
     /// status of intensity filter for edges
     bool enable_intensity_filter_;
     /// status of ionization mode

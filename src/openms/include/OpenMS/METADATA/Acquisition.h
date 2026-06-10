@@ -44,12 +44,12 @@ public:
     bool operator!=(const Acquisition & rhs) const;
 
     /// return the identifier/index/number of the acquisition
-    const String & getIdentifier() const;
+    const std::string & getIdentifier() const;
     /// sets the index/number of the scan
-    void setIdentifier(const String & identifier);
+    void setIdentifier(const std::string & identifier);
 
 protected:
-    String identifier_;
+    std::string identifier_;
 
   };
 } // namespace OpenMS

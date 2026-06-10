@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h>
 
@@ -75,15 +76,15 @@ class TOPPPeakPickerIterative
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in","<file>","","input file ");
-    setValidFormats_("in",ListUtils::create<String>("mzML"));
+    setValidFormats_("in",ListUtils::create<std::string>("mzML"));
 
     registerOutputFile_("out","<file>","","output file");
-    setValidFormats_("out",ListUtils::create<String>("mzML"));
+    setValidFormats_("out",ListUtils::create<std::string>("mzML"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String &) const override
+  Param getSubsectionDefaults_(const std::string &) const override
   {
     return PeakPickerIterative().getDefaults();
   }
@@ -91,8 +92,8 @@ class TOPPPeakPickerIterative
   ExitCodes main_(int , const char**) override
   {
 
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
 
     MapType exp;
     MapType out_exp;

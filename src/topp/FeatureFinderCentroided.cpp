@@ -7,12 +7,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
@@ -136,11 +139,15 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML"));
     registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
-    setValidFormats_("seeds", ListUtils::create<String>("featureXML"));
+    setValidFormats_("seeds", ListUtils::create<std::string>("featureXML"));
 
     addEmptyLine_();
     registerStringOption_("faims_merge_features", "<true/false>", "true",
@@ -155,7 +162,7 @@ protected:
   }
 
 
-  Param getSubsectionDefaults_(const String& ) const override
+  Param getSubsectionDefaults_(const std::string& ) const override
   {
     return FeatureFinderAlgorithmPicked().getDefaultParameters();
   }
@@ -164,8 +171,8 @@ protected:
   ExitCodes main_(int, const char**) override
   {
     //input file names
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
 
     // prevent loading of fragment spectra
     PeakFileOptions options;
@@ -180,12 +187,26 @@ protected:
     f.getOptions() = options;
 
     PeakMap exp;
-    f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
+    f.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
     exp.updateRanges();
 
     if (exp.getSpectra().empty())
     {
       throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
+    }
+
+    // Check for unsupported per-peak ion mobility data
+    for (const auto& spec : exp)
+    {
+      IMFormat im_format = IMTypes::determineIMFormat(spec);
+      if (im_format == IMFormat::IM_PEAK)
+      {
+        OPENMS_LOG_ERROR << "Error: Input contains per-peak ion mobility data (IM_PEAK, "
+                         << imPeakTypeToString(spec.getIMPeakType())
+                         << ") which is not supported by FeatureFinderCentroided. "
+                         << "Preprocess with IonMobilityBinning or PeakPickerIM first." << std::endl;
+        return INCOMPATIBLE_INPUT_DATA;
+      }
     }
 
     // determine type of spectral data (profile or centroided)
@@ -266,7 +287,7 @@ protected:
       FeatureMap features_cv;
 
       // Apply the feature finder
-      ff.run(faims_group, features_cv, feafi_param, seeds_cv);
+      ff.run(std::move(faims_group), features_cv, feafi_param, seeds_cv);
 
       // Annotate features with FAIMS CV (if FAIMS data) and add to results
       for (auto& feat : features_cv)
@@ -313,7 +334,7 @@ protected:
       {
         if (!ft.isMetaEmpty())
         {
-          vector<String> keys;
+          vector<std::string> keys;
           ft.getKeys(keys);
           OPENMS_LOG_INFO << "Feature " << ft.getUniqueId() << endl;
           for (Size i = 0; i < keys.size(); i++)

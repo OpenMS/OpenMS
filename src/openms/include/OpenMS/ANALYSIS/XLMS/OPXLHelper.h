@@ -133,7 +133,7 @@ namespace OpenMS
                                                                                     const DoubleList & cross_link_mass_mono_link,
                                                                                     const std::vector< double >& spectrum_precursor_vector,
                                                                                     const std::vector< double >& allowed_error_vector,
-                                                                                    const String& cross_link_name);
+                                                                                    const std::string& cross_link_name);
 
       /**
        * @brief Fills up the given FragmentAnnotation vector with annotations from a theoretical spectrum
@@ -255,7 +255,7 @@ namespace OpenMS
                                                                                                 const DoubleList& cross_link_mass_mono_link,
                                                                                                 const StringList& cross_link_residue1,
                                                                                                 const StringList& cross_link_residue2,
-                                                                                                String cross_link_name,
+                                                                                                std::string cross_link_name,
                                                                                                 bool use_sequence_tags = false,
                                                                                                 const std::vector<std::string>& tags = std::vector<std::string>());
 

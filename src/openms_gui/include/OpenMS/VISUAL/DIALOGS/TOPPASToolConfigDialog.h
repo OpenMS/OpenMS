@@ -12,7 +12,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 class QComboBox;
 class QPushButton;
@@ -52,7 +52,7 @@ public:
         @param[in] tool_desc The tool description
         @param[in] hidden_entries List of entries that are used already in edges etc and should not be shown
     */
-    TOPPASToolConfigDialog(QWidget * parent, Param & param, const String& default_dir, const String& tool_name, const String& tool_type, const String& tool_desc, const QVector<String>& hidden_entries);
+    TOPPASToolConfigDialog(QWidget * parent, Param & param, const std::string& default_dir, const std::string& tool_name, const std::string& tool_type, const std::string& tool_desc, const QVector<std::string>& hidden_entries);
     ///Destructor
     ~TOPPASToolConfigDialog() override;
 
@@ -64,15 +64,15 @@ private:
     /// Param for loading the ini-file
     Param arg_param_;
     /// default-dir of ini-file to open
-    String default_dir_;
+    std::string default_dir_;
     /// name of ini-file
     QString filename_;
     /// The name of the tool
-    String tool_name_;
+    std::string tool_name_;
     /// The type of the tool
-    String tool_type_;
+    std::string tool_type_;
     /// The parameters already explained by in edges
-    QVector<String> hidden_entries_;
+    QVector<std::string> hidden_entries_;
 
 protected slots:
     /// Slot for OK button

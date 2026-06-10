@@ -56,6 +56,9 @@
 				<UserParam type="string" name="CometAdapter:1:no_progress" value="false"/>
 				<UserParam type="string" name="CometAdapter:1:force" value="true"/>
 				<UserParam type="string" name="CometAdapter:1:test" value="true"/>
+				<UserParam type="string" name="CometAdapter:1:export_mode" value="auto"/>
+				<UserParam type="float" name="CometAdapter:1:calibration_tolerance" value="0.0"/>
+				<UserParam type="string" name="CometAdapter:1:calibrate" value="false"/>
 				<UserParam type="string" name="CometAdapter:1:decoy_string" value=""/>
 				<UserParam type="string" name="CometAdapter:1:decoy_string_position" value="prefix"/>
 				<UserParam type="string" name="CometAdapter:1:missing_decoy_action" value="warn"/>

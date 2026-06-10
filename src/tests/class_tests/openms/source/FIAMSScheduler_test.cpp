@@ -14,7 +14,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QDir>
+#include <filesystem>
 
 ///////////////////////////
 
@@ -31,7 +31,7 @@ FIAMSScheduler* null_ptr_2 = nullptr;
 START_SECTION(FIAMSScheduler())
 {
     ptr_1 = new FIAMSScheduler(
-        String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input/params_test.csv"))
+        StringUtils::toStr(OPENMS_GET_TEST_DATA_PATH("FIAMS_input/params_test.csv"))
     );
     TEST_NOT_EQUAL(ptr_1, null_ptr_2);
     TEST_EQUAL(ptr_1->getBaseDir(), "/");
@@ -46,18 +46,17 @@ END_SECTION
 
 START_SECTION(FIAMSScheduler)
 {
-  QDir d;
-  String tmp_dir = d.currentPath().toStdString()  + "/"; // write output to current directory
+  std::string tmp_dir = std::filesystem::current_path().generic_string()  + "/"; // write output to current directory
   FIAMSScheduler fia_scheduler(
-      String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input/params_test.csv")),
-      String(OPENMS_GET_TEST_DATA_PATH("")),
+      StringUtils::toStr(OPENMS_GET_TEST_DATA_PATH("FIAMS_input/params_test.csv")),
+      StringUtils::toStr(OPENMS_GET_TEST_DATA_PATH("")),
       tmp_dir
   );
-  const vector<map<String, String>> samples = fia_scheduler.getSamples();
+  const vector<map<std::string, std::string>> samples = fia_scheduler.getSamples();
   TEST_EQUAL(samples[0].at("time"), "10");
   fia_scheduler.run();
-  String outfile = String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/SerumTest_10.mzTab"));
-  String outfile2 = tmp_dir + "FIAMS_output/SerumTest_10.mzTab";
+  std::string outfile =StringUtils::toStr(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/SerumTest_10.mzTab"));
+  std::string outfile2 = tmp_dir + "FIAMS_output/SerumTest_10.mzTab";
   TEST_FILE_EQUAL(outfile2.c_str(), outfile.c_str());
 }
 END_SECTION

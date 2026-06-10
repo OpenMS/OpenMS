@@ -130,12 +130,12 @@ namespace OpenMS
     }
   }
 
-  const String& PeptideIdentification::getScoreType() const
+  const std::string& PeptideIdentification::getScoreType() const
   {
     return score_type_;
   }
 
-  void PeptideIdentification::setScoreType(const String& type)
+  void PeptideIdentification::setScoreType(const std::string& type)
   {
     score_type_ = type;
   }
@@ -150,32 +150,32 @@ namespace OpenMS
     higher_score_better_ = value;
   }
 
-  const String& PeptideIdentification::getIdentifier() const
+  const std::string& PeptideIdentification::getIdentifier() const
   {
     return id_;
   }
 
-  void PeptideIdentification::setIdentifier(const String& id)
+  void PeptideIdentification::setIdentifier(const std::string& id)
   {
     id_ = id;
   }
 
-  String PeptideIdentification::getSpectrumReference() const
+  std::string PeptideIdentification::getSpectrumReference() const
   {
     return getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
   }
 
-  void PeptideIdentification::setSpectrumReference(const String& id)
+  void PeptideIdentification::setSpectrumReference(const std::string& id)
   {
     setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, id);
   }
 
-  String PeptideIdentification::getBaseName() const
+  std::string PeptideIdentification::getBaseName() const
   {
     return getMetaValue(Constants::UserParam::BASE_NAME, "");
   }
 
-  void PeptideIdentification::setBaseName(const String& base_name)
+  void PeptideIdentification::setBaseName(const std::string& base_name)
   {
     // do not store empty base_name (default value)
     if (!base_name.empty())
@@ -188,14 +188,14 @@ namespace OpenMS
     }
   }
 
-  const String PeptideIdentification::getExperimentLabel() const
+  const std::string PeptideIdentification::getExperimentLabel() const
   {
     // implement as meta value in order to reduce bloat of PeptideIdentification object
     //  -> this is mostly used for pepxml at the moment which allows each peptide id to belong to a different experiment
     return this->getMetaValue("experiment_label", "");
   }
 
-  void PeptideIdentification::setExperimentLabel(const String& label)
+  void PeptideIdentification::setExperimentLabel(const std::string& label)
   {
     // do not store empty label (default value)
     if (!label.empty())
@@ -232,13 +232,13 @@ namespace OpenMS
            && getBaseName().empty();
   }
 
-  std::vector<PeptideHit> PeptideIdentification::getReferencingHits(const std::vector<PeptideHit>& hits, const std::set<String>& accession)
+  std::vector<PeptideHit> PeptideIdentification::getReferencingHits(const std::vector<PeptideHit>& hits, const std::set<std::string>& accession)
   {
     std::vector<PeptideHit> filtered;
     for (const PeptideHit& h_it : hits)
     {
-      set<String> hit_accessions = h_it.extractProteinAccessionsSet();
-      set<String> intersect;
+      set<std::string> hit_accessions = h_it.extractProteinAccessionsSet();
+      set<std::string> intersect;
       set_intersection(hit_accessions.begin(), hit_accessions.end(), accession.begin(), accession.end(), std::inserter(intersect, intersect.begin()));
       if (!intersect.empty())
       {
@@ -248,17 +248,17 @@ namespace OpenMS
     return filtered;
   }
 
-  std::multimap<String, std::pair<Size, Size>>
+  std::multimap<std::string, std::pair<Size, Size>>
   PeptideIdentification::buildUIDsFromAllPepIDs(const ConsensusMap &cmap)
   {
-    multimap<String, std::pair<Size, Size>> customID_to_cpepID{};
+    multimap<std::string, std::pair<Size, Size>> customID_to_cpepID{};
 
     IdentifierMSRunMapper mapping(cmap.getProteinIdentifications());
     //Iterates of the vector of PeptideIdentification to build the UID
     //and the pep_index
     auto lambda = [](const PeptideIdentificationList &cpep_ids,
                      const IdentifierMSRunMapper& id_mapping,
-                     multimap<String, std::pair<Size, Size>> &customID_to_cpepID,
+                     multimap<std::string, std::pair<Size, Size>> &customID_to_cpepID,
                      const Size &cf_index) {
         Size pep_index = 0;
         for (const PeptideIdentification &cpep_id : cpep_ids)
@@ -282,7 +282,7 @@ namespace OpenMS
     return customID_to_cpepID;
   }
 
-  String PeptideIdentification::buildUIDFromPepID(const PeptideIdentification &pep_id,
+  std::string PeptideIdentification::buildUIDFromPepID(const PeptideIdentification &pep_id,
                                                   const IdentifierMSRunMapper& mapping)
   {
     if (!pep_id.metaValueExists("spectrum_reference"))
@@ -290,7 +290,7 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "Spectrum reference missing at PeptideIdentification.");
     }
-    String UID;
+    std::string UID;
     const StringList& ms_run_paths = mapping.getMSRunPaths(pep_id.getIdentifier());
     if (ms_run_paths.size() == 1)
     {
@@ -309,12 +309,12 @@ namespace OpenMS
     return UID;
   }
 
-  USI PeptideIdentification::buildUSI(const String& ms_run_name,
-                                      const String& dataset_id,
+  USI PeptideIdentification::buildUSI(const std::string& ms_run_name,
+                                      const std::string& dataset_id,
                                       bool include_interpretation) const
   {
     // Get the spectrum reference (native ID)
-    String spec_ref = getSpectrumReference();
+    std::string spec_ref = getSpectrumReference();
 
     // Try to extract scan number from native ID
     auto scan_num = USI::extractScanNumberFromNativeID(spec_ref);
@@ -322,7 +322,7 @@ namespace OpenMS
     // Build interpretation string if requested and hits are available
     // Note: The first hit is used as the interpretation. For best results,
     // call sort() before this method to ensure the best-scoring hit is first.
-    String interpretation;
+    std::string interpretation;
     if (include_interpretation && !hits_.empty())
     {
       const PeptideHit& first_hit = hits_.front();
@@ -338,7 +338,7 @@ namespace OpenMS
     if (scan_num.has_value())
     {
       // Use scan number if extraction succeeded
-      return USI(dataset_id, ms_run_name, USI::IndexType::SCAN, String(scan_num.value()), interpretation);
+      return USI(dataset_id, ms_run_name, USI::IndexType::SCAN,StringUtils::toStr(scan_num.value()), interpretation);
     }
     else if (!spec_ref.empty())
     {
@@ -353,18 +353,18 @@ namespace OpenMS
   }
 
   USI PeptideIdentification::buildUSI(const IdentifierMSRunMapper& mapping,
-                                      const String& dataset_id,
+                                      const std::string& dataset_id,
                                       bool include_interpretation) const
   {
     // Get the primary MS run path for this identification using the mapping
-    String ms_run_path = mapping.getPrimaryMSRunPath(*this);
+    std::string ms_run_path = mapping.getPrimaryMSRunPath(*this);
     if (ms_run_path.empty())
     {
       return USI(); // Invalid USI if mapping not found
     }
 
     // Extract basename from the resolved path
-    String ms_run_name = USI::extractBasename(ms_run_path);
+    std::string ms_run_name = USI::extractBasename(ms_run_path);
 
     return buildUSI(ms_run_name, dataset_id, include_interpretation);
   }

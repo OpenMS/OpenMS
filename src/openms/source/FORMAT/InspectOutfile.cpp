@@ -14,10 +14,10 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QRegularExpression>
-
 #include <fstream>
+#include <regex>
 
 #ifdef __clang__
   #pragma clang diagnostic push
@@ -52,8 +52,8 @@ namespace OpenMS
     return true;
   }
 
-  vector<Size> InspectOutfile::load(const String& result_filename, PeptideIdentificationList& peptide_identifications,
-                                    ProteinIdentification& protein_identification, const double p_value_threshold, const String& database_filename)
+  vector<Size> InspectOutfile::load(const std::string& result_filename, PeptideIdentificationList& peptide_identifications,
+                                    ProteinIdentification& protein_identification, const double p_value_threshold, const std::string& database_filename)
   {
     // check whether the p_value is correct
     if ((p_value_threshold < 0) || (p_value_threshold > 1))
@@ -78,12 +78,7 @@ namespace OpenMS
       }
     }
 
-    String
-      line,
-      accession,
-      accession_type,
-      spectrum_file,
-      identifier;
+    std::string line, accession, accession_type, spectrum_file, identifier;
 
     Size
       record_number(0),
@@ -91,7 +86,7 @@ namespace OpenMS
     line_number(0),
     number_of_columns(0);
 
-    vector<String> substrings;
+    vector<std::string> substrings;
     vector<Size> corrupted_lines;
 
     PeptideIdentification peptide_identification;
@@ -104,7 +99,7 @@ namespace OpenMS
     }
     if (!line.empty() && (line[line.length() - 1] < 33))
       line.resize(line.length() - 1);
-    line.trim();
+    StringUtils::trim(line);
     ++line_number;
 
     DateTime datetime = DateTime::now();
@@ -117,7 +112,7 @@ namespace OpenMS
       identifier = protein_identification.getSearchEngine() + "_" + datetime.getDate();
     }
     // to get the precursor retention time and mz values later, save the filename and the numbers of the scans
-    vector<pair<String, vector<pair<Size, Size> > > > files_and_peptide_identification_with_scan_number;
+    vector<pair<std::string, vector<pair<Size, Size> > > > files_and_peptide_identification_with_scan_number;
     // the record number is mapped to the position in the protein hits, to retrieve their sequences
     map<Size, Size> rn_position_map;
 
@@ -134,7 +129,7 @@ namespace OpenMS
     DB_file_pos_column(-1),
     spec_file_pos_column(-1);
 
-    String::size_type start(0), end(0);
+    std::string::size_type start(0), end(0);
 
     try
     {
@@ -153,12 +148,12 @@ namespace OpenMS
       ++line_number;
       if (!line.empty() && (line[line.length() - 1] < 33))
         line.resize(line.length() - 1);
-      line.trim();
+      StringUtils::trim(line);
       if (line.empty())
         continue;
 
       // check whether the line has enough columns
-      line.split('\t', substrings);
+      StringUtils::split(line, '\t', substrings);
       if (substrings.size() != number_of_columns)
       {
         corrupted_lines.push_back(line_number);
@@ -166,7 +161,7 @@ namespace OpenMS
       }
 
       // if the pvalue is too small, skip the line
-      if (substrings[p_value_column].toFloat() > p_value_threshold)
+      if (StringUtils::toFloat(substrings[p_value_column]) > p_value_threshold)
       {
         continue;
       }
@@ -178,11 +173,11 @@ namespace OpenMS
 //          protein_hit.setScore(0.0);
 
       // the database position of the protein (the i-th protein)
-      record_number = substrings[record_number_column].toInt();
+      record_number = StringUtils::toInt32(substrings[record_number_column]);
 
       // map the database position of the protein to its position in the
       // protein hits and insert it, if it's a new protein
-      if (rn_position_map.find(record_number) == rn_position_map.end())
+      if (!rn_position_map.contains(record_number))
       {
         rn_position_map[record_number] = protein_identification.getHits().size();
         protein_identification.insertHit(protein_hit);
@@ -191,7 +186,7 @@ namespace OpenMS
       // if a new scan is found (new file or new scan), insert it into the
       // vector (the first time the condition is fulfilled because
       // spectrum_file is "")
-      if ((substrings[spectrum_file_column] != spectrum_file) || ((Size) substrings[scan_column].toInt() != scan_number))
+      if ((substrings[spectrum_file_column] != spectrum_file) || ((Size) StringUtils::toInt32(substrings[scan_column]) != scan_number))
       {
         // if it's a new file, insert it into the vector (used to retrieve RT and MT later)
         if (substrings[spectrum_file_column] != spectrum_file)
@@ -209,7 +204,7 @@ namespace OpenMS
         }
 
         spectrum_file = substrings[spectrum_file_column];
-        scan_number = substrings[scan_column].toInt();
+        scan_number = StringUtils::toInt32(substrings[scan_column]);
 
         // if it's not the first scan and if hits have been found, insert the peptide identification
         if (!peptide_identification.empty() && !peptide_identification.getHits().empty())
@@ -226,12 +221,12 @@ namespace OpenMS
 
       // get the peptide infos from the new peptide and insert it
       PeptideHit peptide_hit;
-      peptide_hit.setCharge(substrings[charge_column].toInt());
-      peptide_hit.setScore(substrings[MQ_score_column].toFloat());
+      peptide_hit.setCharge(StringUtils::toInt32(substrings[charge_column]));
+      peptide_hit.setScore(StringUtils::toFloat(substrings[MQ_score_column]));
       peptide_hit.setRank(0); // all ranks are set to zero and assigned later
 
       // get the sequence and the amino acid before and after
-      String sequence, sequence_with_mods;
+      std::string sequence, sequence_with_mods;
       sequence_with_mods = substrings[peptide_column];
       start = sequence_with_mods.find('.') + 1;
       end = sequence_with_mods.find_last_of('.');
@@ -250,7 +245,7 @@ namespace OpenMS
 
       //remove modifications (small characters and anything that's not in the alphabet)
       sequence_with_mods = substrings[peptide_column].substr(start, end - start);
-      for (String::ConstIterator c_i = sequence_with_mods.begin(); c_i != sequence_with_mods.end(); ++c_i)
+      for (std::string::const_iterator c_i = sequence_with_mods.begin(); c_i != sequence_with_mods.end(); ++c_i)
       {
         if ((bool) isalpha(*c_i) && (bool) isupper(*c_i))
           sequence.append(1, *c_i);
@@ -287,11 +282,11 @@ namespace OpenMS
     if (!protein_identification.getHits().empty() && !database_filename.empty())
     {
       vector<ProteinHit> protein_hits = protein_identification.getHits();
-      vector<String> sequences;
+      vector<std::string> sequences;
       getSequences(database_filename, rn_position_map, sequences);
 
       // set the retrieved sequences
-      vector<String>::const_iterator s_i = sequences.begin();
+      vector<std::string>::const_iterator s_i = sequences.begin();
       for (map<Size, Size>::const_iterator rn_i = rn_position_map.begin(); rn_i != rn_position_map.end(); ++rn_i, ++s_i)
         protein_hits[rn_i->second].setSequence(*s_i);
 
@@ -312,9 +307,9 @@ namespace OpenMS
   // < record number, number of protein in a vector >
   vector<Size>
   InspectOutfile::getSequences(
-    const String& database_filename,
+    const std::string& database_filename,
     const map<Size, Size>& wanted_records,
-    vector<String>& sequences)
+    vector<std::string>& sequences)
   {
     ifstream database(database_filename.c_str());
     if (!database)
@@ -364,17 +359,17 @@ namespace OpenMS
 
   void
   InspectOutfile::getACAndACType(
-    String line,
-    String& accession,
-    String& accession_type)
+    std::string line,
+    std::string& accession,
+    std::string& accession_type)
   {
-    String swissprot_prefixes = "JLOPQUX";
+    std::string swissprot_prefixes = "JLOPQUX";
     /// @todo replace this by general FastA implementation? (Martin)
     accession.clear();
     accession_type.clear();
 
     // if it's a FASTA line
-    if (line.hasPrefix(">"))
+    if (StringUtils::hasPrefix(line, ">"))
     {
       line.erase(0, 1);
     }
@@ -382,24 +377,24 @@ namespace OpenMS
     {
       line.resize(line.length() - 1);
     }
-    line.trim();
+    StringUtils::trim(line);
 
     // if it's a swissprot accession
-    if (line.hasPrefix("tr") || line.hasPrefix("sp"))
+    if (StringUtils::hasPrefix(line, "tr") || StringUtils::hasPrefix(line, "sp"))
     {
-      accession = line.substr(3, line.find('|', 3) - 3);
+      accession = StringUtils::substr(line, 3, line.find('|', 3) - 3);
       accession_type = "SwissProt";
     }
-    else if (line.hasPrefix("gi"))
+    else if (StringUtils::hasPrefix(line, "gi"))
     {
-      String::size_type snd(line.find('|', 3));
-      String::size_type third(0);
-      if (snd != String::npos)
+      std::string::size_type snd(line.find('|', 3));
+      std::string::size_type third(0);
+      if (snd != std::string::npos)
       {
         third = line.find('|', ++snd) + 1;
 
-        accession = line.substr(third, line.find('|', third) - third);
-        accession_type = line.substr(snd, third - 1 - snd);
+        accession = StringUtils::substr(line, third, line.find('|', third) - third);
+        accession_type = StringUtils::substr(line, snd, third - 1 - snd);
       }
       if (accession_type == "gb")
       {
@@ -426,34 +421,34 @@ namespace OpenMS
         accession_type = accession;
         snd = line.find('|', third);
         third = line.find('|', ++snd);
-        if (third != String::npos)
+        if (third != std::string::npos)
         {
-          accession = line.substr(snd, third - snd);
+          accession = StringUtils::substr(line, snd, third - snd);
         }
         else
         {
           third = line.find(' ', snd);
-          if (third != String::npos)
+          if (third != std::string::npos)
           {
-            accession = line.substr(snd, third - snd);
+            accession = StringUtils::substr(line, snd, third - snd);
           }
           else
           {
-            accession = line.substr(snd);
+            accession = StringUtils::substr(line, snd);
           }
         }
       }
       else
       {
-        String::size_type pos1(line.find('(', 0));
-        String::size_type pos2(0);
-        if (pos1 != String::npos)
+        std::string::size_type pos1(line.find('(', 0));
+        std::string::size_type pos2(0);
+        if (pos1 != std::string::npos)
         {
           pos2 = line.find(')', ++pos1);
-          if (pos2 != String::npos)
+          if (pos2 != std::string::npos)
           {
-            accession = line.substr(pos1, pos2 - pos1);
-            if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+            accession = StringUtils::substr(line, pos1, pos2 - pos1);
+            if ((accession.size() == 6) && (std::string(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
             {
               accession_type = "SwissProt";
             }
@@ -466,37 +461,37 @@ namespace OpenMS
         if (accession.empty())
         {
           accession_type = "gi";
-          if (snd != String::npos)
+          if (snd != std::string::npos)
           {
-            accession = line.substr(3, snd - 4);
+            accession = StringUtils::substr(line, 3, snd - 4);
           }
           else
           {
             snd = line.find(' ', 3);
-            if (snd != String::npos)
+            if (snd != std::string::npos)
             {
-              accession = line.substr(3, snd - 3);
+              accession = StringUtils::substr(line, 3, snd - 3);
             }
             else
             {
-              accession = line.substr(3);
+              accession = StringUtils::substr(line, 3);
             }
           }
         }
       }
     }
-    else if (line.hasPrefix("ref"))
+    else if (StringUtils::hasPrefix(line, "ref"))
     {
-      accession = line.substr(4, line.find('|', 4) - 4);
+      accession = StringUtils::substr(line, 4, line.find('|', 4) - 4);
       accession_type = "NCBI";
     }
-    else if (line.hasPrefix("gnl"))
+    else if (StringUtils::hasPrefix(line, "gnl"))
     {
       line.erase(0, 3);
-      accession_type = line.substr(0, line.find('|', 0));
-      accession = line.substr(accession_type.length() + 1);
+      accession_type = StringUtils::substr(line, 0, line.find('|', 0));
+      accession = StringUtils::substr(line, accession_type.length() + 1);
     }
-    else if (line.hasPrefix("lcl"))
+    else if (StringUtils::hasPrefix(line, "lcl"))
     {
       line.erase(0, 4);
       accession_type = "lcl";
@@ -504,15 +499,15 @@ namespace OpenMS
     }
     else
     {
-      String::size_type pos1(line.find('(', 0));
-      String::size_type pos2(0);
-      if (pos1 != String::npos)
+      std::string::size_type pos1(line.find('(', 0));
+      std::string::size_type pos2(0);
+      if (pos1 != std::string::npos)
       {
         pos2 = line.find(')', ++pos1);
-        if (pos2 != String::npos)
+        if (pos2 != std::string::npos)
         {
-          accession = line.substr(pos1, pos2 - pos1);
-          if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+          accession = StringUtils::substr(line, pos1, pos2 - pos1);
+          if ((accession.size() == 6) && (std::string(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
           {
             accession_type = "SwissProt";
           }
@@ -525,21 +520,21 @@ namespace OpenMS
       if (accession.empty())
       {
         pos1 = line.find('|');
-        accession = line.substr(0, pos1);
-        if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+        accession = StringUtils::substr(line, 0, pos1);
+        if ((accession.size() == 6) && (std::string(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
           accession_type = "SwissProt";
         else
         {
           pos1 = line.find(' ');
-          accession = line.substr(0, pos1);
-          if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+          accession = StringUtils::substr(line, 0, pos1);
+          if ((accession.size() == 6) && (std::string(swissprot_prefixes).find(accession[0], 0) != std::string::npos))
           {
             accession_type = "SwissProt";
           }
           else
           {
-            accession = line.substr(0, 6);
-            if (String(swissprot_prefixes).find(accession[0], 0) != String::npos)
+            accession = StringUtils::substr(line, 0, 6);
+            if (std::string(swissprot_prefixes).find(accession[0], 0) != std::string::npos)
             {
               accession_type = "SwissProt";
             }
@@ -553,26 +548,26 @@ namespace OpenMS
     }
     if (accession.empty())
     {
-      accession = line.trim();
+      accession = StringUtils::trim(line);
       accession_type = "unknown";
     }
   }
 
   void
   InspectOutfile::getPrecursorRTandMZ(
-    const vector<pair<String, vector<pair<Size, Size> > > >& files_and_peptide_identification_with_scan_number,
+    const vector<pair<std::string, vector<pair<Size, Size> > > >& files_and_peptide_identification_with_scan_number,
     PeptideIdentificationList& ids)
   {
     PeakMap experiment;
-    String type;
+    std::string type;
 
-    for (vector<pair<String, vector<pair<Size, Size> > > >::const_iterator fs_i = files_and_peptide_identification_with_scan_number.begin(); fs_i != files_and_peptide_identification_with_scan_number.end(); ++fs_i)
+    for (vector<pair<std::string, vector<pair<Size, Size> > > >::const_iterator fs_i = files_and_peptide_identification_with_scan_number.begin(); fs_i != files_and_peptide_identification_with_scan_number.end(); ++fs_i)
     {
       getExperiment(experiment, type, fs_i->first); // may throw an exception if the filetype could not be determined
 
       if (experiment.size() < fs_i->second.back().second)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enough scans in file! (" + String(experiment.size()) + " available, should be at least " + String(fs_i->second.back().second) + ")", fs_i->first);
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enough scans in file! (" + StringUtils::toStr(experiment.size()) + " available, should be at least " + StringUtils::toStr(fs_i->second.back().second) + ")", fs_i->first);
       }
 
       for (vector<pair<Size, Size> >::const_iterator pi_scan_i = fs_i->second.begin(); pi_scan_i != fs_i->second.end(); ++pi_scan_i)
@@ -585,11 +580,11 @@ namespace OpenMS
 
   void
   InspectOutfile::compressTrieDB(
-    const String& database_filename,
-    const String& index_filename,
+    const std::string& database_filename,
+    const std::string& index_filename,
     vector<Size>& wanted_records,
-    const String& snd_database_filename,
-    const String& snd_index_filename,
+    const std::string& snd_database_filename,
+    const std::string& snd_index_filename,
     bool append)
   {
     if (database_filename == snd_database_filename)
@@ -775,11 +770,11 @@ namespace OpenMS
   }
 
   void InspectOutfile::generateTrieDB(
-    const String& source_database_filename,
-    const String& database_filename,
-    const String& index_filename,
+    const std::string& source_database_filename,
+    const std::string& database_filename,
+    const std::string& index_filename,
     bool append,
-    const String& species)
+    const std::string& species)
   {
     ifstream source_database(source_database_filename.c_str());
     if (!source_database)
@@ -799,7 +794,7 @@ namespace OpenMS
     }
 
     // get the labels
-    String ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
+    std::string ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
     getLabels(source_database_filename, ac_label, sequence_start_label, sequence_end_label, comment_label, species_label);
 
     ofstream database;
@@ -843,11 +838,11 @@ namespace OpenMS
     // the value
     unsigned char record_flags = 0;
 
-    String::size_type pos(0); // the position in a line
+    std::string::size_type pos(0); // the position in a line
     unsigned long long source_database_pos = source_database.tellg(); // the start of a protein in the source database
     unsigned long long source_database_pos_buffer = 0; // because you don't know whether a new protein starts unless the line is read, the actual position is buffered before any new getline
     Size database_pos(0);
-    String line, sequence, protein_name;
+    std::string line, sequence, protein_name;
     char* record = new char[record_length_]; // a record in the index file
     char* protein_name_pos = record + db_pos_length_ + trie_db_pos_length_;
 
@@ -857,10 +852,10 @@ namespace OpenMS
       {
         line.resize(line.length() - 1);
       }
-      line.trim();
+      StringUtils::trim(line);
 
       // empty and comment lines are skipped
-      if (line.empty() || line.hasPrefix(comment_label))
+      if (line.empty() || StringUtils::hasPrefix(line, comment_label))
       {
         source_database_pos_buffer = source_database.tellg();
         continue;
@@ -869,10 +864,10 @@ namespace OpenMS
       // read the sequence if the accession and the species have been read already
       if (record_flags == (ac_flag | species_flag | sequence_flag))
       {
-        if (!line.hasPrefix(sequence_end_label)) // if it is still the same protein, append the sequence
+        if (!StringUtils::hasPrefix(line, sequence_end_label)) // if it is still the same protein, append the sequence
         {
-          line.trim(); // erase all whitespaces from the sequence
-          line.remove(trie_delimiter_);
+          StringUtils::trim(line); // erase all whitespaces from the sequence
+          StringUtils::remove(line, trie_delimiter_);
           // save this part of the sequence
           sequence.append(line);
         }
@@ -931,7 +926,7 @@ namespace OpenMS
       // if not reading the sequence
       if (!(record_flags & sequence_flag))
       {
-        if (line.hasPrefix(ac_label))
+        if (StringUtils::hasPrefix(line, ac_label))
         {
           pos = ac_label.length(); // find the beginning of the accession
 
@@ -941,8 +936,8 @@ namespace OpenMS
           {
             memset(protein_name_pos, 0, protein_name_length_); // clear the protein name
             // read at most protein_name_length_ characters from the record name and write them to the record
-            protein_name = line.substr(pos, protein_name_length_);
-            protein_name.substitute('>', '}');
+            protein_name = StringUtils::substr(line, pos, protein_name_length_);
+            StringUtils::substitute(protein_name, '>', '}');
             // cppcheck produces a false positive warning here -> ignore
             // cppcheck-suppress redundant copy
             memcpy(protein_name_pos, protein_name.c_str(), protein_name.length());
@@ -953,10 +948,10 @@ namespace OpenMS
             record_flags = 0;
         }
         // if a species line is found and an accession has already been found, check whether this record is from the wanted species, if not, skip it
-        if (species_flag && line.hasPrefix(species_label) && (record_flags == ac_flag))
+        if (species_flag && StringUtils::hasPrefix(line, species_label) && (record_flags == ac_flag))
         {
           pos = species_label.length();
-          if (line.find(species, pos) != String::npos)
+          if (line.find(species, pos) != std::string::npos)
           {
             record_flags |= species_flag;
           }
@@ -966,7 +961,7 @@ namespace OpenMS
           }
         }
         // if the beginning of the sequence is found and accession and correct species have been found
-        if (line.hasPrefix(sequence_start_label) && ((record_flags & (ac_flag | species_flag)) == (ac_flag | species_flag)))
+        if (StringUtils::hasPrefix(line, sequence_start_label) && ((record_flags & (ac_flag | species_flag)) == (ac_flag | species_flag)))
         {
           record_flags |= sequence_flag;
         }
@@ -1030,12 +1025,12 @@ namespace OpenMS
   }
 
   void InspectOutfile::getLabels(
-    const String& source_database_filename,
-    String& ac_label,
-    String& sequence_start_label,
-    String& sequence_end_label,
-    String& comment_label,
-    String& species_label)
+    const std::string& source_database_filename,
+    std::string& ac_label,
+    std::string& sequence_start_label,
+    std::string& sequence_end_label,
+    std::string& comment_label,
+    std::string& species_label)
   {
     ac_label = sequence_start_label = sequence_end_label = comment_label = species_label = "";
     ifstream source_database(source_database_filename.c_str());
@@ -1055,18 +1050,18 @@ namespace OpenMS
       }
     }
 
-    String line;
+    std::string line;
     while (getline(source_database, line) && (sequence_start_label.empty()))
     {
       if (!line.empty() && (line[line.length() - 1] < 33))
       {
         line.resize(line.length() - 1);
       }
-      if (line.trim().empty())
+      if (StringUtils::trim(line).empty())
       {
         continue;
       }
-      else if (line.hasPrefix(">"))
+      else if (StringUtils::hasPrefix(line, ">"))
       {
         ac_label = ">";
         sequence_start_label = ">";
@@ -1074,7 +1069,7 @@ namespace OpenMS
         comment_label = ";";
         species_label = ">";
       }
-      else if (line.hasPrefix("SQ"))
+      else if (StringUtils::hasPrefix(line, "SQ"))
       {
         ac_label = "AC";
         sequence_start_label = "SQ";
@@ -1093,7 +1088,7 @@ namespace OpenMS
     }
   }
 
-  vector<Size> InspectOutfile::getWantedRecords(const String& result_filename, double p_value_threshold)
+  vector<Size> InspectOutfile::getWantedRecords(const std::string& result_filename, double p_value_threshold)
   {
     // check whether the p_value is correct
     if ((p_value_threshold < 0) || (p_value_threshold > 1))
@@ -1118,8 +1113,8 @@ namespace OpenMS
       }
     }
 
-    String line;
-    vector<String> substrings;
+    std::string line;
+    vector<std::string> substrings;
 
     set<Size> wanted_records_set;
 
@@ -1160,12 +1155,12 @@ namespace OpenMS
       {
         line.resize(line.length() - 1);
       }
-      line.trim();
+      StringUtils::trim(line);
       if (line.empty())
       {
         continue;
       }
-      line.split('\t', substrings);
+      StringUtils::split(line, '\t', substrings);
 
       // check whether the line has enough columns
       if (substrings.size() != number_of_columns)
@@ -1175,11 +1170,11 @@ namespace OpenMS
       }
 
       // take only those peptides whose p-value is less or equal the given threshold
-      if (substrings[p_value_column].toFloat() > p_value_threshold)
+      if (StringUtils::toFloat(substrings[p_value_column]) > p_value_threshold)
       {
         continue;
       }
-      wanted_records_set.insert(substrings[record_number_column].toInt());
+      wanted_records_set.insert(StringUtils::toInt32(substrings[record_number_column]));
     }
 
     result_file.close();
@@ -1195,27 +1190,27 @@ namespace OpenMS
 
   bool
   InspectOutfile::getSearchEngineAndVersion(
-    const String& cmd_output,
+    const std::string& cmd_output,
     ProteinIdentification& protein_identification)
   {
     protein_identification.setSearchEngine("InsPecT");
     protein_identification.setSearchEngineVersion("unknown");
     // searching for something like this: InsPecT version 20060907, InsPecT version 20100331
-    QString response(cmd_output.toQString());
-    QRegularExpression rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
-    auto match = rx.match(response);
-    if (!match.hasMatch())
+    std::smatch match;
+    const std::string& response(cmd_output);
+    static const std::regex rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
+    if (!std::regex_search(response, match, rx))
     {
       return false;
     }
-    protein_identification.setSearchEngineVersion(match.captured(2));
+    protein_identification.setSearchEngineVersion(match[2].str());
     return true;
   }
 
   void
   InspectOutfile::readOutHeader(
-    const String& filename,
-    const String& header_line,
+    const std::string& filename,
+    const std::string& header_line,
     Int& spectrum_file_column,
     Int& scan_column,
     Int& peptide_column,
@@ -1230,11 +1225,11 @@ namespace OpenMS
   {
     spectrum_file_column = scan_column = peptide_column = protein_column = charge_column = MQ_score_column = p_value_column = record_number_column = DB_file_pos_column = spec_file_pos_column = -1;
 
-    vector<String> substrings;
-    header_line.split('\t', substrings);
+    vector<std::string> substrings;
+    StringUtils::split(header_line, '\t', substrings);
 
     // #SpectrumFile Scan# Annotation Protein Charge MQScore Length TotalPRMScore MedianPRMScore FractionY FractionB Intensity NTT p-value F-Score DeltaScore DeltaScoreOther RecordNumber DBFilePos SpecFilePos
-    for (vector<String>::const_iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i)
+    for (vector<std::string>::const_iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i)
     {
       if ((*s_i) == "#SpectrumFile")
       {
@@ -1290,7 +1285,7 @@ namespace OpenMS
   const Size InspectOutfile::protein_name_length_ = 80;
   const Size InspectOutfile::record_length_ = db_pos_length_ + trie_db_pos_length_ + protein_name_length_;
   const char InspectOutfile::trie_delimiter_ = '*';
-  const String InspectOutfile::score_type_ = "Inspect";
+  const std::string InspectOutfile::score_type_ = "Inspect";
 
 } //namespace OpenMS
 

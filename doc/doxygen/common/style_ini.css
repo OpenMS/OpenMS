@@ -1,3 +1,7 @@
+:root {
+  --item-advanced-foreground-color: var(--nav-menu-foreground-color);
+}
+
 div.ini_global {
 	padding-left:10px;
 	border: 2px solid;
@@ -43,9 +47,7 @@ div.ini_global > div.item {
 }
 
 .item_advanced {
-	/* we are kind of abusing an unrelated variable here */
-	/* TODO maybe redefine? */
-	color: var(--nav-menu-foreground-color)
+	color: var(--item-advanced-foreground-color);
 }
 
 div.item span.item_name {

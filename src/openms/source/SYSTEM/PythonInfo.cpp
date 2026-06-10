@@ -10,27 +10,48 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
-#include <QtCore/QProcess>
-#include <QtCore/QDir>
+#include <boost/version.hpp>
 
+// Boost.Process v1 compatibility shims removed in Boost 1.88; use v1/ prefix for 1.88+
+#if BOOST_VERSION >= 108800
+#include <boost/process/v1/child.hpp>
+#include <boost/process/v1/args.hpp>
+#include <boost/process/v1/io.hpp>
+#include <boost/process/v1/search_path.hpp>
+#else
+#include <boost/process/child.hpp>
+#include <boost/process/args.hpp>
+#include <boost/process/io.hpp>
+#include <boost/process/search_path.hpp>
+#endif
+
+#include <chrono>
+#include <filesystem>
 #include <sstream>
+
+#if BOOST_VERSION >= 108800
+namespace bp = boost::process::v1;
+#else
+namespace bp = boost::process;
+#endif
 
 using namespace std;
 
 namespace OpenMS
 {
-  bool PythonInfo::canRun(String& python_executable, String& error_msg)
+  bool PythonInfo::canRun(std::string& python_executable, std::string& error_msg)
   {
     stringstream ss;
-    String py_original = python_executable;
+    std::string py_original = python_executable;
     if (!File::findExecutable(python_executable))
     {
       ss << "  Python not found at '" << python_executable << "'!\n"
          << "  Make sure Python is installed and this location is correct.\n";
-      if (QDir::isRelativePath(python_executable.toQString()))
+      if (to_path(python_executable).is_relative())
       {
-        static String path;
+        static std::string path;
         if (path.empty())
         {
           path = getenv("PATH");
@@ -51,51 +72,103 @@ namespace OpenMS
       ss << "Python executable ('" << py_original << "') resolved to '" << python_executable << "'\n";
     }
 
-    QProcess qp;
-    qp.start(python_executable.toQString(), QStringList() << "--version", QIODevice::ReadOnly);
-    bool success = qp.waitForFinished();
-    if (!success)
+    try
     {
-      if (qp.error() == QProcess::Timedout)
+      bp::ipstream pipe_out;
+      bp::ipstream pipe_err;
+      bp::child child(
+        bp::search_path(static_cast<std::string>(python_executable)),
+        bp::args({"--version"}),
+        bp::std_out > pipe_out,
+        bp::std_err > pipe_err
+      );
+
+      bool finished = child.wait_for(std::chrono::seconds(30));
+      if (!finished)
       {
+        child.terminate();
+        child.wait(); // collect after terminate
         ss << "  Python was found at '" << python_executable << "' but the process timed out (can happen on very busy systems).\n"
            << "  Please free some resources or if you want to run the TOPP tool nevertheless set the TOPP tools 'force' flag in order to avoid this check.\n";
+        error_msg = ss.str();
+        return false;
       }
-      else if (qp.error() == QProcess::FailedToStart)
+
+      error_msg = ss.str();
+      return (child.exit_code() == 0);
+    }
+    catch (const bp::process_error& /*e*/)
+    {
+      ss << "  Python found at '" << python_executable << "' but failed to run!\n"
+         << "  Make sure you have the rights to execute this binary file.\n";
+      error_msg = ss.str();
+      return false;
+    }
+  }
+
+  bool PythonInfo::isPackageInstalled(const std::string& python_executable, const std::string& package_name)
+  {
+    try
+    {
+      bp::child child(
+        bp::search_path(static_cast<std::string>(python_executable)),
+        bp::args({"-c", "import " + static_cast<std::string>(package_name)}),
+        bp::std_out > bp::null,
+        bp::std_err > bp::null
+      );
+
+      bool finished = child.wait_for(std::chrono::seconds(30));
+      if (!finished)
       {
-        ss << "  Python found at '" << python_executable << "' but failed to run!\n"
-           << "  Make sure you have the rights to execute this binary file.\n";
+        child.terminate();
+        child.wait();
+        return false;
       }
-      else
+      return (child.exit_code() == 0);
+    }
+    catch (const bp::process_error&)
+    {
+      return false;
+    }
+  }
+
+  std::string PythonInfo::getVersion(const std::string& python_executable)
+  {
+    std::string v;
+    try
+    {
+      bp::ipstream pipe_out;
+      bp::ipstream pipe_err;
+      bp::child child(
+        bp::search_path(static_cast<std::string>(python_executable)),
+        bp::args({"--version"}),
+        bp::std_out > pipe_out,
+        bp::std_err > pipe_err
+      );
+
+      bool finished = child.wait_for(std::chrono::seconds(30));
+      if (finished && child.exit_code() == 0)
       {
-        ss << "  Error executing '" << python_executable << "'!\n"
-           << "  Error description: '" << qp.errorString().toStdString() << "'.\n";
+        std::string line;
+        while (std::getline(pipe_out, line))
+        {
+          v += line;
+        }
+        while (std::getline(pipe_err, line))
+        {
+          v += line; // some pythons report version on stderr
+        }
+        StringUtils::trim(v); // remove '\n'
+      }
+      else if (!finished)
+      {
+        child.terminate();
+        child.wait();
       }
     }
-
-    error_msg = ss.str();
-    return success;
-  }
-
-  bool PythonInfo::isPackageInstalled(const String& python_executable, const String& package_name)
-  {
-    QProcess qp;
-    qp.start(python_executable.toQString(), QStringList() << "-c" << (String("import ") + package_name).c_str(), QIODevice::ReadOnly);
-    bool success = qp.waitForFinished();
-    return (success && qp.exitStatus() == QProcess::ExitStatus::NormalExit && qp.exitCode() == 0);
-  }
-
-  String PythonInfo::getVersion(const String& python_executable)
-  {
-    String v;
-    QProcess qp;
-    qp.start(python_executable.toQString(), QStringList() << "--version", QIODevice::ReadOnly);
-    bool success = qp.waitForFinished();
-    if (success && qp.exitStatus() == QProcess::ExitStatus::NormalExit && qp.exitCode() == 0)
+    catch (const bp::process_error&)
     {
-      v = qp.readAllStandardOutput().toStdString(); // some pythons report is on stdout
-      v += qp.readAllStandardError().toStdString();  // ... some on stderr
-      v.trim(); // remove '\n'
+      // return empty string
     }
     return v;
   }

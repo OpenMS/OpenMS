@@ -42,7 +42,7 @@ START_SECTION((ParamXMLFile()))
 END_SECTION
 
 
-START_SECTION((void load(const String& filename, Param& param)))
+START_SECTION((void load(const std::string& filename, Param& param)))
 	Param p2;
   ParamXMLFile paramFile;
 	TEST_EXCEPTION(Exception::FileNotFound, paramFile.load("FileDoesNotExist.xml",p2))
@@ -58,7 +58,7 @@ p.setValue("test2:int",18);
 p.setSectionDescription("test","sectiondesc");
 p.addTags("test:float", {"a","b","c"});
 
-START_SECTION((void store(const String& filename, const Param& param) const))
+START_SECTION((void store(const std::string& filename, const Param& param) const))
   ParamXMLFile paramFile;
 
 	Param p2(p);
@@ -73,7 +73,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	Param p300;
 	TEST_EXCEPTION(Exception::UnableToCreateFile, paramFile.store("/does/not/exist/FileDoesNotExist.xml",p300))
 
-	String filename;
+	std::string filename;
 	NEW_TMP_FILE(filename);
 	paramFile.store(filename,p2);
 	Param p3;
@@ -230,8 +230,8 @@ START_SECTION((void store(const String& filename, const Param& param) const))
   // ... test the actual values written to INI (should be 'NaN', not 'nan', for compatibility with downstream tools, like Java's double)
   TextFile tf;
   tf.load(filename);
-  TEST_TRUE((tf.begin() + 2)->hasSubstring("value=\"NaN\""))
-  TEST_TRUE((tf.begin() + 3)->hasSubstring("value=\"NaN\""))
+  TEST_TRUE(StringUtils::hasSubstring(*(tf.begin() + 2), "value=\"NaN\""))
+  TEST_TRUE(StringUtils::hasSubstring(*(tf.begin() + 3), "value=\"NaN\""))
 
 	//Test if an empty Param written to a file validates against the schema
 	NEW_TMP_FILE(filename);
@@ -245,7 +245,7 @@ START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) c
 	Param p;
 	p.setValue("stringlist", std::vector<std::string>{"a","bb","ccc"}, "StringList Description");
 	p.setValue("intlist", ListUtils::create<Int>("1,22,333"));
-	p.setValue("item", String("bla"));
+	p.setValue("item",std::string("bla"));
 	p.setValue("stringlist2", std::vector<std::string>());
 	p.setValue("intlist2", ListUtils::create<Int>(""));
 	p.setValue("item1", 7);
@@ -263,7 +263,7 @@ START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) c
   p.setValue("noflagJustTrueFalse", "true", "This is not a flag but has a boolean meaning.");
   p.setValidStrings("noflagJustTrueFalse", {"true","false"});
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   std::ofstream s(filename.c_str(), std::ios::out);
   ParamXMLFile paramFile;
@@ -278,7 +278,7 @@ START_SECTION([EXTRA] loading and storing of lists)
 	Param p;
 	p.setValue("stringlist", std::vector<std::string>{"a","bb","ccc"});
 	p.setValue("intlist", ListUtils::create<Int>("1,22,333"));
-	p.setValue("item", String("bla"));
+	p.setValue("item",std::string("bla"));
 	p.setValue("stringlist2", std::vector<std::string>());
 	p.setValue("intlist2", ListUtils::create<Int>(""));
 	p.setValue("item1", 7);
@@ -289,7 +289,7 @@ START_SECTION([EXTRA] loading and storing of lists)
 	p.setValue("doublelist2", ListUtils::create<double>(""));
 	p.setValue("doublelist3", ListUtils::create<double>("1.4"));
 	//store
-	String filename;
+	std::string filename;
 	NEW_TMP_FILE(filename);
 	paramFile.store(filename,p);
 	//load
@@ -353,20 +353,20 @@ START_SECTION(([EXTRA] Escaping of characters))
 	Param p;
   ParamXMLFile paramFile;
 
-	p.setValue("string",String("bla"),"string");
-	p.setValue("string_with_ampersand", String("bla2&blubb"), "string with ampersand");
-	p.setValue("string_with_ampersand_in_descr", String("blaxx"), "String with & in description");
-	p.setValue("string_with_single_quote", String("bla'xxx"), "String with single quotes");
-	p.setValue("string_with_single_quote_in_descr", String("blaxxx"), "String with ' quote in description");
-	p.setValue("string_with_double_quote", String("bla\"xxx"), "String with double quote");
-	p.setValue("string_with_double_quote_in_descr", String("bla\"xxx"), "String with \" description");
-	p.setValue("string_with_greater_sign", String("bla>xxx"), "String with greater sign");
-	p.setValue("string_with_greater_sign_in_descr", String("bla greater xxx"), "String with >");
-	p.setValue("string_with_less_sign", String("bla<xxx"), "String with less sign");
-	p.setValue("string_with_less_sign_in_descr", String("bla less sign_xxx"), "String with less sign <");
+	p.setValue("string",std::string("bla"),"string");
+	p.setValue("string_with_ampersand",std::string("bla2&blubb"), "string with ampersand");
+	p.setValue("string_with_ampersand_in_descr",std::string("blaxx"), "std::string with & in description");
+	p.setValue("string_with_single_quote",std::string("bla'xxx"), "std::string with single quotes");
+	p.setValue("string_with_single_quote_in_descr",std::string("blaxxx"), "std::string with ' quote in description");
+	p.setValue("string_with_double_quote",std::string("bla\"xxx"), "std::string with double quote");
+	p.setValue("string_with_double_quote_in_descr",std::string("bla\"xxx"), "std::string with \" description");
+	p.setValue("string_with_greater_sign",std::string("bla>xxx"), "std::string with greater sign");
+	p.setValue("string_with_greater_sign_in_descr",std::string("bla greater xxx"), "std::string with >");
+	p.setValue("string_with_less_sign",std::string("bla<xxx"), "std::string with less sign");
+	p.setValue("string_with_less_sign_in_descr",std::string("bla less sign_xxx"), "std::string with less sign <");
 
 
-	String filename;
+	std::string filename;
 	NEW_TMP_FILE(filename)
 	paramFile.store(filename,p);
 
@@ -375,16 +375,16 @@ START_SECTION(([EXTRA] Escaping of characters))
 
 	TEST_STRING_EQUAL(p2.getDescription("string"), "string")
 
-  TEST_STRING_EQUAL(p.getValue("string_with_ampersand"), String("bla2&blubb"))
-  TEST_STRING_EQUAL(p.getDescription("string_with_ampersand_in_descr"), "String with & in description")
-  TEST_STRING_EQUAL(p.getValue("string_with_single_quote"), String("bla'xxx"))
-  TEST_STRING_EQUAL(p.getDescription("string_with_single_quote_in_descr"), "String with ' quote in description")
-  TEST_STRING_EQUAL(p.getValue("string_with_double_quote"), String("bla\"xxx"))
-  TEST_STRING_EQUAL(p.getDescription("string_with_double_quote_in_descr"), "String with \" description")
-  TEST_STRING_EQUAL(p.getValue("string_with_greater_sign"), String("bla>xxx"))
-  TEST_STRING_EQUAL(p.getDescription("string_with_greater_sign_in_descr"), "String with >")
-  TEST_STRING_EQUAL(p.getValue("string_with_less_sign"), String("bla<xxx"))
-  TEST_STRING_EQUAL(p.getDescription("string_with_less_sign_in_descr"), "String with less sign <")
+  TEST_STRING_EQUAL(p.getValue("string_with_ampersand"),std::string("bla2&blubb"))
+  TEST_STRING_EQUAL(p.getDescription("string_with_ampersand_in_descr"), "std::string with & in description")
+  TEST_STRING_EQUAL(p.getValue("string_with_single_quote"),std::string("bla'xxx"))
+  TEST_STRING_EQUAL(p.getDescription("string_with_single_quote_in_descr"), "std::string with ' quote in description")
+  TEST_STRING_EQUAL(p.getValue("string_with_double_quote"),std::string("bla\"xxx"))
+  TEST_STRING_EQUAL(p.getDescription("string_with_double_quote_in_descr"), "std::string with \" description")
+  TEST_STRING_EQUAL(p.getValue("string_with_greater_sign"),std::string("bla>xxx"))
+  TEST_STRING_EQUAL(p.getDescription("string_with_greater_sign_in_descr"), "std::string with >")
+  TEST_STRING_EQUAL(p.getValue("string_with_less_sign"),std::string("bla<xxx"))
+  TEST_STRING_EQUAL(p.getDescription("string_with_less_sign_in_descr"), "std::string with less sign <")
 END_SECTION
 
 START_SECTION([EXTRA] loading pre 1.6.2 files and storing them in 1.6.2 format)
@@ -410,7 +410,7 @@ START_SECTION([EXTRA] loading pre 1.6.2 files and storing them in 1.6.2 format)
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:no_progress", "required"), false)
 
   // write as 1.6.2 ini and check if the output is as expected
-	String filename;
+	std::string filename;
 	NEW_TMP_FILE(filename)
 	paramFile.store(filename,p);
 

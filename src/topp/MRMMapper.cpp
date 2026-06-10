@@ -8,6 +8,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -94,18 +95,18 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file containing chromatograms (converted mzXML file)");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file");
-    setValidFormats_("tr", ListUtils::create<String>("traML"));
+    setValidFormats_("tr", ListUtils::create<std::string>("traML"));
 
     registerOutputFile_("out", "<file>", "", "Output file containing mapped chromatograms");
-    setValidFormats_("out", ListUtils::create<String>("mzML"));
+    setValidFormats_("out", ListUtils::create<std::string>("mzML"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& name) const override
+  Param getSubsectionDefaults_(const std::string& name) const override
   {
     if (name == "algorithm")
     {
@@ -119,9 +120,9 @@ protected:
 
   ExitCodes main_(int, const char **) override
   {
-    String in = getStringOption_("in");
-    String tr_file = getStringOption_("tr");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string tr_file = getStringOption_("tr");
+    std::string out = getStringOption_("out");
 
     OpenMS::TargetedExperiment targeted_exp;
     OpenMS::PeakMap chromatogram_map;

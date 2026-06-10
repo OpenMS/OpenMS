@@ -17,7 +17,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
 namespace OpenMS
@@ -100,7 +100,7 @@ public:
     ProteinHit();
 
     /// Values constructor
-    ProteinHit(double score, UInt rank, String accession, String sequence);
+    ProteinHit(double score, UInt rank, std::string accession, std::string sequence);
 
     /// Copy constructor
     ProteinHit(const ProteinHit &) = default;
@@ -136,13 +136,13 @@ public:
     UInt getRank() const;
 
     /// returns the protein sequence
-    const String & getSequence() const;
+    const std::string & getSequence() const;
 
     /// returns the accession of the protein
-    const String & getAccession() const;
+    const std::string & getAccession() const;
     
     /// returns the description of the protein
-    String getDescription() const;
+    std::string getDescription() const;
 
     /// returns the coverage (in percent) of the protein hit based upon matched peptides
     double getCoverage() const;
@@ -154,14 +154,14 @@ public:
     void setRank(UInt newrank);
 
     /// sets the protein sequence
-    void setSequence(const String & sequence);
-    void setSequence(String && sequence);
+    void setSequence(const std::string & sequence);
+    void setSequence(std::string && sequence);
 
     /// sets the accession of the protein
-    void setAccession(const String & accession);
+    void setAccession(const std::string & accession);
 
     /// sets the description of the protein
-    void setDescription(const String & description);
+    void setDescription(const std::string & description);
 
     /// sets the coverage (in percent) of the protein hit based upon matched peptides
     void setCoverage(const double coverage);
@@ -205,8 +205,8 @@ public:
 protected:
     double score_;       ///< the score of the protein hit
     UInt rank_;          ///< the position(rank) where the hit appeared in the hit list
-    String accession_;   ///< the protein identifier
-    String sequence_;    ///< the amino acid sequence of the protein hit
+    std::string accession_;   ///< the protein identifier
+    std::string sequence_;    ///< the amino acid sequence of the protein hit
     double coverage_;    ///< coverage of the protein based upon the matched peptide sequences
     std::set<std::pair<Size, ResidueModification> > modifications_; ///< modified positions in a protein
   };
@@ -225,8 +225,8 @@ namespace std
    * Computes a hash based on all fields used in operator==:
    * - score (double)
    * - rank (UInt)
-   * - accession (String)
-   * - sequence (String)
+   * - accession (std::string)
+   * - sequence (std::string)
    * - coverage (double)
    * - modifications (set of position-modification pairs)
    *

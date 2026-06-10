@@ -13,6 +13,10 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
@@ -83,7 +87,7 @@ This set of proteins can be given through a FASTA file (<tt>...:proteins</tt>) o
 Note that even in the case of a FASTA file, matching is only done by protein accession, not by sequence.
 If necessary, use @ref TOPP_PeptideIndexer to generate protein references for peptide hits via sequence look-up.
 
-@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML or idparquet using @ref TOPP_IDFileConverter if necessary.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_IDFilter.cli
@@ -109,7 +113,7 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     StringList all_enzymes;
     StringList specificity;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
@@ -117,9 +121,9 @@ protected:
     specificity.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + 3); //only allow none,semi,full for now
 
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", {"idXML","consensusXML"});
+    setValidFormats_("in", {"idXML","consensusXML","idparquet","consensusparquet"});
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", {"idXML","consensusXML"});
+    setValidFormats_("out", {"idXML","consensusXML","idparquet","consensusparquet"});
 
     registerTOPPSubsection_("precursor", "Filtering by precursor attributes (RT, m/z, charge, length)");
     registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract [s].", false);
@@ -145,11 +149,11 @@ protected:
                                                            "All peptides that are not referencing a protein in this file are removed.\n"
                                                            "All proteins whose accessions are not present in this file are removed.", false);
     setValidFormats_("whitelist:proteins", {"fasta"});
-    registerStringList_("whitelist:protein_accessions", "<accessions>", vector<String>(), "All peptides that do not reference at least one of the provided protein accession are removed.\nOnly proteins of the provided list are retained.", false);
+    registerStringList_("whitelist:protein_accessions", "<accessions>", vector<std::string>(), "All peptides that do not reference at least one of the provided protein accession are removed.\nOnly proteins of the provided list are retained.", false);
     registerInputFile_("whitelist:peptides", "<file>", "", "Only peptides with the same sequence and modification assignment as any peptide in this file are kept. Use with 'whitelist:ignore_modifications' to only compare by sequence.\n", false);
-    setValidFormats_("whitelist:peptides", {"idXML"});
+    setValidFormats_("whitelist:peptides", {"idXML","idparquet"});
     registerFlag_("whitelist:ignore_modifications", "Compare whitelisted peptides by sequence only.", true);
-    registerStringList_("whitelist:modifications", "<selection>", vector<String>(), "Keep only peptides with sequences that contain (any of) the selected modification(s)", false, true);
+    registerStringList_("whitelist:modifications", "<selection>", vector<std::string>(), "Keep only peptides with sequences that contain (any of) the selected modification(s)", false, true);
     setValidStrings_("whitelist:modifications", all_mods);
 
     registerTOPPSubsection_("blacklist", "Filtering by blacklisting (only peptides/proteins NOT present in a given set can pass)");
@@ -157,11 +161,11 @@ protected:
                                                            "All peptides that are referencing a protein in this file are removed.\n"
                                                            "All proteins whose accessions are present in this file are removed.", false);
     setValidFormats_("blacklist:proteins", {"fasta"});
-    registerStringList_("blacklist:protein_accessions", "<accessions>", vector<String>(), "All peptides that reference at least one of the provided protein accession are removed.\nOnly proteins not in the provided list are retained.", false);
+    registerStringList_("blacklist:protein_accessions", "<accessions>", vector<std::string>(), "All peptides that reference at least one of the provided protein accession are removed.\nOnly proteins not in the provided list are retained.", false);
     registerInputFile_("blacklist:peptides", "<file>", "", "Peptides with the same sequence and modification assignment as any peptide in this file are filtered out. Use with 'blacklist:ignore_modifications' to only compare by sequence.\n", false);
-    setValidFormats_("blacklist:peptides", {"idXML"});
+    setValidFormats_("blacklist:peptides", {"idXML","idparquet"});
     registerFlag_("blacklist:ignore_modifications", "Compare blacklisted peptides by sequence only.", true);
-    registerStringList_("blacklist:modifications", "<selection>", vector<String>(), "Remove all peptides with sequences that contain (any of) the selected modification(s)", false, true);
+    registerStringList_("blacklist:modifications", "<selection>", vector<std::string>(), "Remove all peptides with sequences that contain (any of) the selected modification(s)", false, true);
     setValidStrings_("blacklist:modifications", all_mods);
     registerStringOption_("blacklist:RegEx",  "<selection>", "", "Remove all peptides with (unmodified) sequences matched by the RegEx e.g. [BJXZ] removes ambiguous peptides.", false, true);
     registerTOPPSubsection_("in_silico_digestion", "This filter option removes peptide hits which are not in the list of in silico peptides generated by the rules specified below");
@@ -195,15 +199,15 @@ protected:
 
     registerTOPPSubsection_("mz", "Filtering by mass error");
     registerDoubleOption_("mz:error", "<float>", -1, "Filtering by deviation to theoretical mass (disabled for negative values).", false, true);
-    registerStringOption_("mz:unit", "<String>", "ppm", "Absolute or relative error.", false, true);
-    setValidStrings_("mz:unit", ListUtils::create<String>("Da,ppm"));
+    registerStringOption_("mz:unit", "<std::string>", "ppm", "Absolute or relative error.", false, true);
+    setValidStrings_("mz:unit", ListUtils::create<std::string>("Da,ppm"));
 
     registerTOPPSubsection_("best", "Filtering best hits per spectrum (for peptides) or from proteins");
     registerIntOption_("best:n_spectra", "<integer>", 0, "Keep only the 'n' best spectra (i.e., PeptideIdentifications) (for n > 0). A spectrum is considered better if it has a higher scoring peptide hit than the other spectrum.", false);
     setMinInt_("best:n_spectra", 0);
     registerIntOption_("best:n_peptide_hits", "<integer>", 0, "Keep only the 'n' highest scoring peptide hits per spectrum (for n > 0).", false);
     setMinInt_("best:n_peptide_hits", 0);
-    registerStringOption_("best:spectrum_per_peptide", "<String>", "false", "Keep one spectrum per peptide. Value determines if same sequence but different charges or modifications are treated as separate peptides or the same peptide. (default: false = filter disabled).", false);
+    registerStringOption_("best:spectrum_per_peptide", "<std::string>", "false", "Keep one spectrum per peptide. Value determines if same sequence but different charges or modifications are treated as separate peptides or the same peptide. (default: false = filter disabled).", false);
     setValidStrings_("best:spectrum_per_peptide", {"false", "sequence", "sequence+charge", "sequence+modification", "sequence+charge+modification"});    
     registerIntOption_("best:n_protein_hits", "<integer>", 0, "Keep only the 'n' highest scoring protein hits (for n > 0).", false);
     setMinInt_("best:n_protein_hits", 0);
@@ -226,9 +230,9 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    const String tmp_feature_id_metaval_ = "tmp_feature_id";
-    String inputfile_name = getStringOption_("in");
-    String outputfile_name = getStringOption_("out");
+    const std::string tmp_feature_id_metaval_ = "tmp_feature_id";
+    std::string inputfile_name = getStringOption_("in");
+    std::string outputfile_name = getStringOption_("out");
 
     vector<ProteinIdentification> proteins;
     PeptideIdentificationList peptides;
@@ -238,20 +242,20 @@ protected:
     unordered_map<UInt64, ConsensusFeature*> id_to_featureref;
 
     const auto& infiletype = FileHandler::getType(inputfile_name);
-    if (infiletype == FileTypes::IDXML)
+    if (infiletype == FileTypes::IDXML || infiletype == FileTypes::IDPARQUET)
     {
-      FileHandler().loadIdentifications(inputfile_name, proteins, peptides, {FileTypes::IDXML});
+      FileHandler().loadIdentifications(inputfile_name, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
     }
-    else if (infiletype == FileTypes::CONSENSUSXML)
+    else if (infiletype == FileTypes::CONSENSUSXML || infiletype == FileTypes::CONSENSUSPARQUET)
     {
-      FileHandler().loadConsensusFeatures(inputfile_name, cmap, {FileTypes::CONSENSUSXML});
+      FileHandler().loadConsensusFeatures(inputfile_name, cmap, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
       for (auto& f : cmap)
       {
         UInt64 id = f.getUniqueId();
         id_to_featureref[id] = &f;
         for (auto& p : f.getPeptideIdentifications())
         {
-          p.setMetaValue(tmp_feature_id_metaval_, String(id));
+          p.setMetaValue(tmp_feature_id_metaval_,StringUtils::toStr(id));
           peptides.push_back(std::move(p));
           //if ((UInt64)peptides.back().getMetaValue(tmp_feature_id_metaval_) != id) std::cout << "WHAT THE FUCK" << std::endl;
         }
@@ -277,7 +281,7 @@ protected:
     bool remove_meta_enabled = (!meta_info.empty());
     if (remove_meta_enabled && meta_info.size() != 3)
     {
-      writeLogError_("Param 'remove_peptide_hits_by_metavalue' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
+      writeLogError_("Param 'remove_peptide_hits_by_metavalue' has invalid number of arguments. Expected 3, got " + StringUtils::toStr(meta_info.size()) + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -335,14 +339,14 @@ protected:
         peptides, "predicted_RT_p_value_first_dim", pred_rt_pv_1d);
     }
 
-    String whitelist_fasta = getStringOption_("whitelist:proteins").trim();
+    std::string whitelist_fasta = StringUtils::trimmed(getStringOption_("whitelist:proteins"));
     if (!whitelist_fasta.empty())
     {
       OPENMS_LOG_INFO << "Filtering by protein whitelisting (FASTA input)..." << endl;
       // load protein accessions from FASTA file:
       vector<FASTAFile::FASTAEntry> fasta;
       FASTAFile().load(whitelist_fasta, fasta);
-      set<String> accessions;
+      set<std::string> accessions;
       for (vector<FASTAFile::FASTAEntry>::iterator it = fasta.begin();
            it != fasta.end(); ++it)
       {
@@ -352,48 +356,48 @@ protected:
       IDFilter::keepHitsMatchingProteins(proteins, accessions);
     }
 
-    vector<String> whitelist_accessions =
+    vector<std::string> whitelist_accessions =
       getStringList_("whitelist:protein_accessions");
     if (!whitelist_accessions.empty())
     {
       OPENMS_LOG_INFO << "Filtering by protein whitelisting (accessions input)..."
                << endl;
-      set<String> accessions(whitelist_accessions.begin(),
+      set<std::string> accessions(whitelist_accessions.begin(),
                              whitelist_accessions.end());
       IDFilter::keepHitsMatchingProteins(peptides, accessions);
       IDFilter::keepHitsMatchingProteins(proteins, accessions);
     }
 
-    String whitelist_peptides = getStringOption_("whitelist:peptides").trim();
+    std::string whitelist_peptides = StringUtils::trimmed(getStringOption_("whitelist:peptides"));
     if (!whitelist_peptides.empty())
     {
       OPENMS_LOG_INFO << "Filtering by inclusion peptide whitelisting..." << endl;
       PeptideIdentificationList inclusion_peptides;
       vector<ProteinIdentification> inclusion_proteins; // ignored
       FileHandler().loadIdentifications(whitelist_peptides, inclusion_proteins,
-                       inclusion_peptides, {FileTypes::IDXML});
+                       inclusion_peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
       bool ignore_mods = getFlag_("whitelist:ignore_modifications");
       IDFilter::keepPeptidesWithMatchingSequences(peptides, inclusion_peptides,
                                                   ignore_mods);
     }
 
-    vector<String> whitelist_mods = getStringList_("whitelist:modifications");
+    vector<std::string> whitelist_mods = getStringList_("whitelist:modifications");
     if (!whitelist_mods.empty())
     {
       OPENMS_LOG_INFO << "Filtering peptide IDs by modification whitelisting..."
                << endl;
-      set<String> good_mods(whitelist_mods.begin(), whitelist_mods.end());
+      set<std::string> good_mods(whitelist_mods.begin(), whitelist_mods.end());
       IDFilter::keepPeptidesWithMatchingModifications(peptides, good_mods);
     }
 
-    String blacklist_fasta = getStringOption_("blacklist:proteins").trim();
+    std::string blacklist_fasta = StringUtils::trimmed(getStringOption_("blacklist:proteins"));
     if (!blacklist_fasta.empty())
     {
       OPENMS_LOG_INFO << "Filtering by protein blacklisting (FASTA input)..." << endl;
       // load protein accessions from FASTA file:
       vector<FASTAFile::FASTAEntry> fasta;
       FASTAFile().load(blacklist_fasta, fasta);
-      set<String> accessions;
+      set<std::string> accessions;
       for (FASTAFile::FASTAEntry& ft : fasta)
       {
         accessions.insert(ft.identifier);
@@ -402,41 +406,41 @@ protected:
       IDFilter::removeHitsMatchingProteins(proteins, accessions);
     }
 
-    vector<String> blacklist_accessions =
+    vector<std::string> blacklist_accessions =
       getStringList_("blacklist:protein_accessions");
     if (!blacklist_accessions.empty())
     {
       OPENMS_LOG_INFO << "Filtering by protein blacklisting (accessions input)..."
                << endl;
-      set<String> accessions(blacklist_accessions.begin(),
+      set<std::string> accessions(blacklist_accessions.begin(),
                              blacklist_accessions.end());
       IDFilter::removeHitsMatchingProteins(peptides, accessions);
       IDFilter::removeHitsMatchingProteins(proteins, accessions);
     }
 
-    String blacklist_peptides = getStringOption_("blacklist:peptides").trim();
+    std::string blacklist_peptides = StringUtils::trimmed(getStringOption_("blacklist:peptides"));
     if (!blacklist_peptides.empty())
     {
       OPENMS_LOG_INFO << "Filtering by exclusion peptide blacklisting..." << endl;
       PeptideIdentificationList exclusion_peptides;
       vector<ProteinIdentification> exclusion_proteins; // ignored
       FileHandler().loadIdentifications(blacklist_peptides, exclusion_proteins,
-                       exclusion_peptides, {FileTypes::IDXML});
+                       exclusion_peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
       bool ignore_mods = getFlag_("blacklist:ignore_modifications");
       IDFilter::removePeptidesWithMatchingSequences(
         peptides, exclusion_peptides, ignore_mods);
     }
 
-    vector<String> blacklist_mods = getStringList_("blacklist:modifications");
+    vector<std::string> blacklist_mods = getStringList_("blacklist:modifications");
     if (!blacklist_mods.empty())
     {
       OPENMS_LOG_INFO << "Filtering peptide IDs by modification blacklisting..."
                << endl;
-      set<String> bad_mods(blacklist_mods.begin(), blacklist_mods.end());
+      set<std::string> bad_mods(blacklist_mods.begin(), blacklist_mods.end());
       IDFilter::removePeptidesWithMatchingModifications(peptides, bad_mods);
     }
 
-    String blacklist_regex = getStringOption_("blacklist:RegEx");
+    std::string blacklist_regex = getStringOption_("blacklist:RegEx");
     if (!blacklist_regex.empty())
     {
       IDFilter::removePeptidesWithMatchingRegEx(peptides, blacklist_regex);
@@ -464,7 +468,7 @@ protected:
 
     // Filter by digestion enzyme product
 
-    String protein_fasta = getStringOption_("in_silico_digestion:fasta").trim();
+    std::string protein_fasta = StringUtils::trimmed(getStringOption_("in_silico_digestion:fasta"));
     if (!protein_fasta.empty())
     {
       OPENMS_LOG_INFO << "Filtering peptides by digested protein (FASTA input)..." << endl;
@@ -474,13 +478,13 @@ protected:
 
       // Configure Enzymatic digestion
       ProteaseDigestion digestion;
-      String enzyme = getStringOption_("in_silico_digestion:enzyme").trim();
+      std::string enzyme = StringUtils::trimmed(getStringOption_("in_silico_digestion:enzyme"));
       if (!enzyme.empty())
       {
         digestion.setEnzyme(enzyme);
       }
 
-      String specificity = getStringOption_("in_silico_digestion:specificity").trim();
+      std::string specificity = StringUtils::trimmed(getStringOption_("in_silico_digestion:specificity"));
       if (!specificity.empty())
       {
         digestion.setSpecificity(digestion.getSpecificityByName(specificity));
@@ -522,7 +526,7 @@ protected:
     {
       // Configure Enzymatic digestion
       ProteaseDigestion digestion;
-      String enzyme = getStringOption_("missed_cleavages:enzyme");
+      std::string enzyme = getStringOption_("missed_cleavages:enzyme");
       if (!enzyme.empty())
       {
         digestion.setEnzyme(enzyme);
@@ -544,12 +548,12 @@ protected:
     {
       OPENMS_LOG_INFO << "Filtering for variable modifications..." << endl;
       // gather possible variable modifications from search parameters:
-      set<String> var_mods;
+      set<std::string> var_mods;
       for (ProteinIdentification& prot : proteins)
       {
         const ProteinIdentification::SearchParameters& params =
           prot.getSearchParameters();
-        for (vector<String>::const_iterator mod_it =
+        for (vector<std::string>::const_iterator mod_it =
                params.variable_modifications.begin(); mod_it !=
                params.variable_modifications.end(); ++mod_it)
         {
@@ -571,7 +575,7 @@ protected:
     }
 
     double pep_score = getDoubleOption_("score:peptide");
-    String score_type = getStringOption_("score:type_peptide");
+    std::string score_type = getStringOption_("score:type_peptide");
 
     if (!std::isnan(pep_score))
     {
@@ -615,7 +619,7 @@ protected:
       IDFilter::keepNBestHits(peptides, best_n_pep);
     }
 
-    String spectrum_per_peptide = getStringOption_("best:spectrum_per_peptide");
+    std::string spectrum_per_peptide = getStringOption_("best:spectrum_per_peptide");
     if (spectrum_per_peptide != "false")
     {
       OPENMS_LOG_INFO << "Keeping best spectrum per " << spectrum_per_peptide << endl;
@@ -658,7 +662,7 @@ protected:
 
     // Filtering protein identifications according to set criteria
     double prot_score = getDoubleOption_("score:protein");
-    String score_type_prot = getStringOption_("score:type_protein");
+    std::string score_type_prot = getStringOption_("score:type_protein");
 
     if (!std::isnan(prot_score))
     {
@@ -720,10 +724,10 @@ protected:
         DataValue v_user;
         switch (v_data.valueType())
         {
-          case DataValue::STRING_VALUE : v_user = String(meta_info[2]); break;
-          case DataValue::INT_VALUE : v_user = String(meta_info[2]).toInt(); break;
-          case DataValue::DOUBLE_VALUE : v_user = String(meta_info[2]).toDouble(); break;
-          case DataValue::STRING_LIST : v_user = (StringList)ListUtils::create<String>(meta_info[2]); break;
+          case DataValue::STRING_VALUE : v_user =std::string(meta_info[2]); break;
+          case DataValue::INT_VALUE : v_user =StringUtils::toInt32(std::string(meta_info[2])); break;
+          case DataValue::DOUBLE_VALUE : v_user = StringUtils::toDouble(meta_info[2]); break;
+          case DataValue::STRING_LIST : v_user = (StringList)ListUtils::create<std::string>(meta_info[2]); break;
           case DataValue::INT_LIST : v_user = ListUtils::create<Int>(meta_info[2]); break;
           case DataValue::DOUBLE_LIST : v_user = ListUtils::create<double>(meta_info[2]); break;
           case DataValue::EMPTY_VALUE : v_user = DataValue::EMPTY; break;
@@ -824,11 +828,11 @@ protected:
              << peptides.size() << " spectra identified with "
              << IDFilter::countHits(peptides) << " spectrum matches." << endl;
 
-    if (infiletype == FileTypes::IDXML)
+    if (infiletype == FileTypes::IDXML || infiletype == FileTypes::IDPARQUET)
     {
-      FileHandler().storeIdentifications(outputfile_name, proteins, peptides, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(outputfile_name, proteins, peptides, {infiletype});
     }
-    else if (infiletype == FileTypes::CONSENSUSXML)
+    else if (infiletype == FileTypes::CONSENSUSXML || infiletype == FileTypes::CONSENSUSPARQUET)
     {
       for (auto& p : peptides)
       {
@@ -848,7 +852,7 @@ protected:
       peptides.clear();
       std::swap(proteins, cmap.getProteinIdentifications());
       proteins.clear();
-      FileHandler().storeConsensusFeatures(outputfile_name, cmap, {FileTypes::CONSENSUSXML});
+      FileHandler().storeConsensusFeatures(outputfile_name, cmap, {infiletype});
     }
 
     return EXECUTION_OK;

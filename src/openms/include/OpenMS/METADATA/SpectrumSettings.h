@@ -8,13 +8,12 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/InstrumentSettings.h>
 #include <OpenMS/METADATA/AcquisitionInfo.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/METADATA/Product.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -98,21 +97,29 @@ public:
     /// @param[in] im_type
     void setIMFormat(const IMFormat& im_type);
 
-    /// @brief returns the IMFormat of the spectrum if set. Otherwise UNKNOWN (default). 
-    /// 
+    /// @brief returns the IMFormat of the spectrum if set. Otherwise UNKNOWN (default).
+    ///
     /// Note: If UNKNOWN, use IMFormat::determineIMFormat to determine the IMFormat based on the data.
     /// @return IMFormat of the spectrum
     IMFormat getIMFormat() const;
 
+    /// @brief sets the IM peak type (profile vs centroided in the IM dimension)
+    /// @param[in] im_peak_type the IM processing state to set
+    void setIMPeakType(IMPeakType im_peak_type);
+
+    /// @brief returns the IM peak type of the spectrum if set. Otherwise UNKNOWN (default).
+    /// @return IMPeakType of the spectrum
+    IMPeakType getIMPeakType() const;
+
     /// returns the native identifier for the spectrum, used by the acquisition software.
-    const String & getNativeID() const;
+    const std::string & getNativeID() const;
     /// sets the native identifier for the spectrum, used by the acquisition software.
-    void setNativeID(const String & native_id);
+    void setNativeID(const std::string & native_id);
 
     /// returns the free-text comment
-    const String & getComment() const;
+    const std::string & getComment() const;
     /// sets the free-text comment
-    void setComment(const String & comment);
+    void setComment(const std::string & comment);
 
     /// returns a const reference to the instrument settings of the current spectrum
     const InstrumentSettings & getInstrumentSettings() const;
@@ -162,8 +169,9 @@ protected:
 
     SpectrumType type_ = SpectrumType::UNKNOWN;
     IMFormat im_type_ = IMFormat::UNKNOWN;
-    String native_id_;
-    String comment_;
+    IMPeakType im_peak_type_ = IMPeakType::UNKNOWN;
+    std::string native_id_;
+    std::string comment_;
     InstrumentSettings instrument_settings_;
     SourceFile source_file_;
     AcquisitionInfo acquisition_info_;

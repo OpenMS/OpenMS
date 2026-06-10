@@ -6,6 +6,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 
 using namespace OpenMS;
@@ -15,7 +16,7 @@ int main(int argc, const char** argv)
 {
   vector<FeatureMap> maps(1, FeatureMap{});
 
-  FileHandler().loadFeatures(OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_Labeled.featureXML"), maps[0], {FileTypes::FEATUREXML});
+  FileHandler().loadFeatures(OPENMS_DOC_PATH + std::string("/code_examples/data/Tutorial_Labeled.featureXML"), maps[0], {FileTypes::FEATUREXML});
   ConsensusMap out;
   out.getColumnHeaders()[0].filename = "data/Tutorial_Labeled.mzML";
   out.getColumnHeaders()[0].size = maps[0].size();

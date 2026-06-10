@@ -20,6 +20,7 @@ MzMLSpectrumDecoder.h
 MzMLSqliteHandler.h
 MzMLSqliteSwathHandler.h
 MzXMLHandler.h
+PASEFHillCentroider.h
 PTMXMLHandler.h
 ParamXMLHandler.h
 ToolDescriptionHandler.h

@@ -10,6 +10,7 @@
 
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
@@ -72,7 +73,7 @@ protected:
     registerInputFile_("in", "<file>", "", "featureXML or consensusXML file");
     setValidFormats_("in", {"featureXML", "consensusXML"});
     registerOutputFile_("out", "<file>", "", "mzTab file");
-    setValidFormats_("out", ListUtils::create<String>("mzTab"));
+    setValidFormats_("out", ListUtils::create<std::string>("mzTab"));
 
     registerOutputFile_("out_annotation", "<file>", "", "A copy of the input file, annotated with matching hits from the database.", false);
     setValidFormats_("out_annotation", {"featureXML", "consensusXML", "oms"});
@@ -93,7 +94,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+  Param getSubsectionDefaults_(const std::string& /*section*/) const override
   {
     Param p = AccurateMassSearchEngine().getDefaults();
     // remove params which are already registered at top level (see registerOptionsAndFlags_())
@@ -109,9 +110,9 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
-    String file_ann = getStringOption_("out_annotation");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
+    std::string file_ann = getStringOption_("out_annotation");
 
     Param ams_param = getParam_().copy("algorithm:", true);
     // copy top-level params to algorithm
@@ -120,7 +121,7 @@ protected:
     ams_param.setValue("positive_adducts", getStringOption_("positive_adducts"));
     ams_param.setValue("negative_adducts", getStringOption_("negative_adducts"));
 
-    if (file_ann.hasSuffix("oms"))
+    if (StringUtils::hasSuffix(file_ann, "oms"))
     {
       ams_param.setValue("id_format", "ID"); // use IdentificationData to store id results
     }
@@ -161,11 +162,11 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      if (file_ann.hasSuffix("featureXML"))
+      if (StringUtils::hasSuffix(file_ann, "featureXML"))
       {
         FileHandler().storeFeatures(file_ann, ms_feat_map, {FileTypes::FEATUREXML});
       }
-      else if (file_ann.hasSuffix("oms"))
+      else if (StringUtils::hasSuffix(file_ann, "oms"))
       {
         OMSFile().store(file_ann, ms_feat_map);
       }

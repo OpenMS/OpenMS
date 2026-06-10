@@ -88,16 +88,16 @@ public:
     */
     void generateDecoys(const OpenMS::TargetedExperiment& exp,
                         OpenMS::TargetedExperiment& dec,
-                        const String& method,
+                        const std::string& method,
                         const double aim_decoy_fraction,
                         const bool switchKR,
-                        const String& decoy_tag,
+                        const std::string& decoy_tag,
                         const int max_attempts,
                         const double identity_threshold,
                         const double precursor_mz_shift,
                         const double product_mz_shift,
                         const double product_mz_threshold,
-                        const std::vector<String>& fragment_types,
+                        const std::vector<std::string>& fragment_types,
                         const std::vector<size_t>& fragment_charges,
                         const bool enable_specific_losses,
                         const bool enable_unspecific_losses,
@@ -128,16 +128,16 @@ public:
     */
     void generateDecoysLight(const OpenSwath::LightTargetedExperiment& exp,
                              OpenSwath::LightTargetedExperiment& dec,
-                             const String& method,
+                             const std::string& method,
                              const double aim_decoy_fraction,
                              const bool switchKR,
-                             const String& decoy_tag,
+                             const std::string& decoy_tag,
                              const int max_attempts,
                              const double identity_threshold,
                              const double precursor_mz_shift,
                              const double product_mz_shift,
                              const double product_mz_threshold,
-                             const std::vector<String>& fragment_types,
+                             const std::vector<std::string>& fragment_types,
                              const std::vector<size_t>& fragment_charges,
                              const bool enable_specific_losses,
                              const bool enable_unspecific_losses,
@@ -155,13 +155,13 @@ public:
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
-    typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
+    typedef std::map<std::string, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
 
     /**
       @brief Compute relative identity (relative number of matches of amino
       acids at the same position) between two sequences.
     */
-    float AASequenceIdentity(const String& sequence, const String& decoy) const;
+    float AASequenceIdentity(const std::string& sequence, const std::string& decoy) const;
 
     /**
       @brief Shuffle a peptide (with its modifications) sequence
@@ -188,7 +188,7 @@ public:
                 const OpenMS::TargetedExperiment::Peptide& peptide,
                 const bool keepN,
                 const bool keepC,
-                const String& const_pattern = String());
+                const std::string& const_pattern = std::string());
 
     /**
       @brief Find all residues in a sequence that should not be reversed / shuffled
@@ -199,7 +199,7 @@ public:
       @param[in] keep_const_pattern A string containing the AA to not change (e.g. 'KRP')
     */
     static IndexType findFixedResidues(const std::string& sequence,
-        bool keepN, bool keepC, const OpenMS::String& keep_const_pattern);
+        bool keepN, bool keepC, const std::string& keep_const_pattern);
 
     /**
       @brief Reverse a peptide sequence (light version operating on strings)
@@ -219,7 +219,7 @@ public:
         const std::vector<OpenSwath::LightModification>& modifications,
         bool keepN,
         bool keepC,
-        const String& const_pattern = String());
+        const std::string& const_pattern = std::string());
 
     /**
       @brief Shuffle a peptide sequence (light version operating on strings)
@@ -320,12 +320,12 @@ protected:
     /**
      @brief Convert a peptide to a string which contains the peptide sequence and modifications
     **/
-    String getModifiedPeptideSequence_(const OpenMS::TargetedExperiment::Peptide& pep) const;
+    std::string getModifiedPeptideSequence_(const OpenMS::TargetedExperiment::Peptide& pep) const;
 
     /// Synchronize members with param class
     void updateMembers_() override;
 
-    String keep_const_pattern_;
+    std::string keep_const_pattern_;
     bool keepN_;
     bool keepC_;
   };

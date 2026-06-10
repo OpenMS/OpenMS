@@ -9,6 +9,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -34,11 +37,7 @@
 
 #include <boost/math/distributions/normal.hpp>
 
-#include <QtCore/QStringList>
-#include <QtCore/QFile>
-#include <QtCore/QDir>
-#include <QtCore/QFileInfo>
-#include <QtCore/QProcess>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
 
 #include <algorithm>
 #include <iostream>
@@ -207,7 +206,7 @@ struct SIPPeptide
 {
   AASequence sequence; ///< sequence of the peptide
 
-  vector<String> accessions; ///< protein accessions of the peptide
+  vector<std::string> accessions; ///< protein accessions of the peptide
 
   bool unique = true; ///< if the peptide is unique and therefor identifies the protein umambiguously
 
@@ -239,7 +238,7 @@ struct SIPPeptide
 
   double explained_TIC_fraction = -1.; ///< fraction of the MS2 TIC that is explained by the maximum correlating decomposition weights
 
-  String feature_type; ///< used to distinguish features from FeatureFinder, or synthetised from ids or averagine ids in reporting
+  std::string feature_type; ///< used to distinguish features from FeatureFinder, or synthetised from ids or averagine ids in reporting
 
   Size non_zero_decomposition_coefficients = 0; ///< decomposition coefficients significantly larger than 0
 
@@ -306,7 +305,7 @@ public:
       y.push_back(it->second);
     }
 
-    if (rate2score.find(100.0) == rate2score.end() && x[x.size() - 1] < 100.0)
+    if (!rate2score.contains(100.0) && x[x.size() - 1] < 100.0)
     {
       x.push_back(100.0);
       y.push_back(0);
@@ -370,7 +369,7 @@ public:
       // build histogram of rates
       for (vector<SIPIncorporation>::const_iterator iit = cit->incorporations.begin(); iit != cit->incorporations.end(); ++iit)
       {
-        if (hist.find(iit->rate) == hist.end())
+        if (!hist.contains(iit->rate))
         {
           hist[iit->rate] = 1.0;
         }
@@ -453,20 +452,57 @@ public:
 
 };
 
+/// Run an R script and return the exit status. Optionally capture merged output.
+static ExternalProcess::RETURNSTATE runRScript(
+    const std::string& r_executable,
+    const std::string& script_path,
+    const std::string& tmp_path,
+    Size debug_level,
+    std::string* captured_output = nullptr)
+{
+  std::vector<std::string> args = {"--vanilla"};
+  if (debug_level < 1)
+  {
+    args.emplace_back("--quiet");
+  }
+  args.emplace_back("--slave");
+  args.emplace_back("--file=" + script_path);
+
+  std::string merged_output;
+  auto capture = [&merged_output](const std::string& s) { merged_output += s; };
+
+  ExternalProcess proc(capture, capture); // merge stdout+stderr into same buffer
+  std::string error_msg;
+  std::map<std::string, std::string> env = {{"R_LIBS", tmp_path}};
+
+  auto state = proc.run(r_executable, args, "", false, error_msg, ExternalProcess::IO_MODE::READ_ONLY, env);
+
+  // Surface startup diagnostics from ExternalProcess alongside captured output
+  if (!error_msg.empty())
+  {
+    merged_output += error_msg;
+  }
+  if (captured_output)
+  {
+    *captured_output = merged_output;
+  }
+  return state;
+}
+
 class MetaProSIPReporting
 {
 public:
-  static void plotHeatMap(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<vector<double> >& binned_ria, vector<String> class_labels, Size debug_level = 0, const QString& executable = QString("R"))
+  static void plotHeatMap(const std::string& output_dir, const std::string& tmp_path, const std::string& file_suffix, const std::string& file_extension, const vector<vector<double> >& binned_ria, vector<std::string> class_labels, Size debug_level = 0, const std::string& executable = "R")
   {
-    String filename = String("heatmap") + file_suffix + "." + file_extension;
-    String script_filename = String("heatmap") + file_suffix + String(".R");
+    std::string filename =std::string("heatmap") + file_suffix + "." + file_extension;
+    std::string script_filename =std::string("heatmap") + file_suffix + std::string(".R");
 
     TextFile current_script;
     StringList ria_list, col_labels;
 
     for (Size i = 0; i != binned_ria[0].size(); ++i)
     {
-      String label = String(i * (100 / binned_ria[0].size())) + "%-" + String((i + 1) * (100 / binned_ria[0].size())) + "%";
+      std::string label =StringUtils::toStr(i * (100 / binned_ria[0].size())) + "%-" + StringUtils::toStr((i + 1) * (100 / binned_ria[0].size())) + "%";
       col_labels.push_back(label);
     }
 
@@ -474,7 +510,7 @@ public:
     {
       for (vector<double>::const_iterator rit = pit->begin(); rit != pit->end(); ++rit)
       {
-        ria_list.push_back(String(*rit));
+        ria_list.push_back(StringUtils::toStr(*rit));
       }
     }
 
@@ -490,13 +526,12 @@ public:
 
     // plot heatmap
     current_script.addLine("library(gplots)");
-    String ria_list_string;
-    ria_list_string.concatenate(ria_list.begin(), ria_list.end(), ",");
-    current_script.addLine("mdat <- matrix(c(" + ria_list_string + "), ncol=" + String(binned_ria[0].size()) + ", byrow=TRUE)");
+    std::string ria_list_string = StringUtils::concatenate(ria_list, ",");
+    current_script.addLine("mdat <- matrix(c(" + ria_list_string + "), ncol=" + StringUtils::toStr(binned_ria[0].size()) + ", byrow=TRUE)");
 
     if (file_extension == "png")
     {
-      current_script.addLine("png('" + tmp_path + "/" + filename + "', width=1000, height=" + String(10 * binned_ria.size()) + ")");
+      current_script.addLine("png('" + tmp_path + "/" + filename + "', width=1000, height=" + StringUtils::toStr(10 * binned_ria.size()) + ")");
     }
     else if (file_extension == "svg")
     {
@@ -507,62 +542,44 @@ public:
       current_script.addLine("pdf('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
     }
 
-    String labRowString;
+    std::string labRowString;
     if (row_labels.empty())
     {
       labRowString = "FALSE";
     }
     else
     {
-      String row_labels_string;
-      row_labels_string.concatenate(row_labels.begin(), row_labels.end(), "\",\"");
-      labRowString = String("c(\"") + row_labels_string + "\")";
+      std::string row_labels_string = StringUtils::concatenate(row_labels, "\",\"");
+      labRowString =std::string("c(\"") + row_labels_string + "\")";
     }
 
-    String col_labels_string;
-    col_labels_string.concatenate(col_labels.begin(), col_labels.end(), "\",\"");
+    std::string col_labels_string = StringUtils::concatenate(col_labels, "\",\"");
 
     current_script.addLine(R"(heatmap.2(mdat, dendrogram="none", col=colorRampPalette(c("black","red")), Rowv=FALSE, Colv=FALSE, key=FALSE, labRow=)" + labRowString + ",labCol=c(\"" + col_labels_string + R"("),trace="none", density.info="none"))");
 
     current_script.addLine("tmp<-dev.off()");
     current_script.store(tmp_path + "/" + script_filename);
 
-    QProcess p;
-    QStringList env = QProcess::systemEnvironment();
-    env << QString("R_LIBS=") + tmp_path.toQString();
-    p.setEnvironment(env);
-
-    QStringList qparam;
-    qparam << "--vanilla";
-    if (debug_level < 1)
-    {
-      qparam << "--quiet";
-    }
-    qparam << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-    p.start(executable, qparam);
-    p.waitForFinished(-1);
-    int status = p.exitCode();
-
-    // cleanup
-    if (status != 0)
+    auto state = runRScript(executable, tmp_path + "/" + script_filename, tmp_path, debug_level);
+    if (state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
       std::cerr << "Error: Process returned with non 0 status." << std::endl;
     }
     else
     {
-      QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).copy(output_dir.toQString() + "/heatmap" + file_suffix.toQString() + "." + file_extension.toQString());
+      File::copy(tmp_path + "/" + filename, output_dir + "/heatmap" + file_suffix + "." + file_extension);
       if (debug_level < 1)
       {
-        QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
-        QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).remove();
+        File::remove(tmp_path + "/" + script_filename);
+        File::remove(tmp_path + "/" + filename);
       }
     }
   }
 
-  static void plotFilteredSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0, const QString& executable = QString("R"))
+  static void plotFilteredSpectra(const std::string& output_dir, const std::string& tmp_path, const std::string& file_suffix, const std::string& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0, const std::string& executable = "R")
   {
-    String filename = String("spectrum_plot") + file_suffix + "." + file_extension;
-    String script_filename = String("spectrum_plot") + file_suffix + String(".R");
+    std::string filename =std::string("spectrum_plot") + file_suffix + "." + file_extension;
+    std::string script_filename =std::string("spectrum_plot") + file_suffix + std::string(".R");
 
     for (Size i = 0; i != sip_peptides.size(); ++i)
     {
@@ -573,15 +590,13 @@ public:
       for (Size j = 0; j != sip_peptides[i].accumulated.size(); ++j)
       {
         const Peak1D& peak = sip_peptides[i].accumulated[j];
-        mz_list.push_back(String(peak.getMZ()));
-        intensity_list.push_back(String(peak.getIntensity()));
+        mz_list.push_back(StringUtils::toStr(peak.getMZ()));
+        intensity_list.push_back(StringUtils::toStr(peak.getIntensity()));
       }
 
-      String mz_list_string;
-      mz_list_string.concatenate(mz_list.begin(), mz_list.end(), ",");
+      std::string mz_list_string = StringUtils::concatenate(mz_list, ",");
 
-      String intensity_list_string;
-      intensity_list_string.concatenate(intensity_list.begin(), intensity_list.end(), ",");
+      std::string intensity_list_string = StringUtils::concatenate(intensity_list, ",");
 
       current_script.addLine("mz<-c(" + mz_list_string + ")");
       current_script.addLine("int<-c(" + intensity_list_string + ")");
@@ -610,34 +625,24 @@ public:
       current_script.addLine("tmp<-dev.off()");
       current_script.store(tmp_path + "/" + script_filename);
 
-      QProcess p;
-      QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + tmp_path.toQString();
-      p.setEnvironment(env);
-
-      QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-      p.start(executable, qparam);
-      p.waitForFinished(-1);
-      int status = p.exitCode();
-
-      if (status != 0)
+      auto state = runRScript(executable, tmp_path + "/" + script_filename, tmp_path, 0);
+      if (state != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         std::cerr << "Error: Process returned with non 0 status." << std::endl;
       }
       else
       {
-        QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).copy(output_dir.toQString() + "/spectrum" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
+        File::copy(tmp_path + "/" + filename, output_dir + "/spectrum" + file_suffix + "_rt_" + StringUtils::toStr(sip_peptides[i].feature_rt) + "." + file_extension);
         if (debug_level < 1)
         {
-          QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
-          QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).remove();
+          File::remove(tmp_path + "/" + script_filename);
+          File::remove(tmp_path + "/" + filename);
         }
       }
     }
   }
 
-  static void writeHTML(const String& qc_output_directory, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides)
+  static void writeHTML(const std::string& qc_output_directory, const std::string& file_suffix, const std::string& file_extension, const vector<SIPPeptide>& sip_peptides)
   {
     TextFile current_script;
 
@@ -645,78 +650,78 @@ public:
     current_script.addLine("<!DOCTYPE html>\n<html>\n<body>\n");
 
     // peptide heat map plot
-    current_script.addLine(String("<h1>") + "peptide heat map</h1>");
-    String peptide_heatmap_plot_filename = String("heatmap_peptide") + file_suffix + String(".") + file_extension;
+    current_script.addLine(std::string("<h1>") + "peptide heat map</h1>");
+    std::string peptide_heatmap_plot_filename =std::string("heatmap_peptide") + file_suffix + std::string(".") + file_extension;
     current_script.addLine("<p> <img src=\"" + peptide_heatmap_plot_filename + R"(" alt="graphic"></p>)");
 
     for (Size i = 0; i != sip_peptides.size(); ++i)
     {
       // heading
-      current_script.addLine(String("<h1>") + "RT: " + String(sip_peptides[i].feature_rt) + "</h1>");
+      current_script.addLine(std::string("<h1>") + "RT: " + StringUtils::toStr(sip_peptides[i].feature_rt) + "</h1>");
 
       current_script.addLine("<table border=\"1\">");
       // sequence table row
       current_script.addLine("<tr>");
       current_script.addLine("<td>sequence</td>");
-      current_script.addLine(String("<td>") + sip_peptides[i].sequence.toString() + "</td>");
+      current_script.addLine(std::string("<td>") + sip_peptides[i].sequence.toString() + "</td>");
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>rt (min.)</td>");
-      current_script.addLine(String("<td>" + String::number(sip_peptides[i].feature_rt / 60.0, 2) + "</td>"));
+      current_script.addLine(std::string("<td>" + StringUtils::number(sip_peptides[i].feature_rt / 60.0, 2) + "</td>"));
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>rt (sec.)</td>");
-      current_script.addLine(String("<td>" + String::number(sip_peptides[i].feature_rt, 2) + "</td>"));
+      current_script.addLine(std::string("<td>" + StringUtils::number(sip_peptides[i].feature_rt, 2) + "</td>"));
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>mz</td>");
-      current_script.addLine(String("<td>" + String::number(sip_peptides[i].feature_mz, 4) + "</td>"));
+      current_script.addLine(std::string("<td>" + StringUtils::number(sip_peptides[i].feature_mz, 4) + "</td>"));
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>theo. mz</td>");
-      current_script.addLine(String("<td>" + String::number(sip_peptides[i].mz_theo, 4) + "</td>"));
+      current_script.addLine(std::string("<td>" + StringUtils::number(sip_peptides[i].mz_theo, 4) + "</td>"));
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>charge</td>");
-      current_script.addLine(String("<td>" + String(sip_peptides[i].charge) + "</td>"));
+      current_script.addLine(std::string("<td>" + StringUtils::toStr(sip_peptides[i].charge) + "</td>"));
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>feature type</td>");
-      current_script.addLine(String("<td>" + String(sip_peptides[i].feature_type) + "</td>"));
+      current_script.addLine(std::string("<td>" + std::string(sip_peptides[i].feature_type) + "</td>"));
       current_script.addLine("</tr>");
 
       if (!sip_peptides[i].accessions.empty())
       {
-        current_script.addLine(String("<tr>"));
+        current_script.addLine(std::string("<tr>"));
         current_script.addLine("<td>accessions</td>");
-        current_script.addLine(String("<td>" + *sip_peptides[i].accessions.begin() + "</td>"));
-        current_script.addLine(String("</tr>"));
+        current_script.addLine(std::string("<td>" + *sip_peptides[i].accessions.begin() + "</td>"));
+        current_script.addLine(std::string("</tr>"));
 
-        current_script.addLine(String("<tr>"));
+        current_script.addLine(std::string("<tr>"));
         current_script.addLine("<td>unique</td>");
-        current_script.addLine(String("<td>" + String(sip_peptides[i].unique) + "</td>"));
-        current_script.addLine(String("</tr>"));
+        current_script.addLine(std::string("<td>" + StringUtils::toStr(sip_peptides[i].unique) + "</td>"));
+        current_script.addLine(std::string("</tr>"));
       }
 
-      current_script.addLine(String("<tr>"));
+      current_script.addLine(std::string("<tr>"));
       current_script.addLine("<td>search score</td>");
-      current_script.addLine(String("<td>") + String(sip_peptides[i].score) + "</td>");
+      current_script.addLine("<td>" + StringUtils::toStr(sip_peptides[i].score) + "</td>");
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>global labeling ratio</td>");
-      current_script.addLine(String("<td>") + String::number(sip_peptides[i].global_LR, 2) + "</td>");
+      current_script.addLine(std::string("<td>") + StringUtils::number(sip_peptides[i].global_LR, 2) + "</td>");
       current_script.addLine("</tr>");
 
       current_script.addLine("<tr>");
       current_script.addLine("<td>R squared</td>");
-      current_script.addLine(String("<td>") + String::number(sip_peptides[i].RR, 2) + "</td>");
+      current_script.addLine(std::string("<td>") + StringUtils::number(sip_peptides[i].RR, 2) + "</td>");
       current_script.addLine("</tr>");
 
       current_script.addLine("</table>");
@@ -727,9 +732,9 @@ public:
       current_script.addLine("<tr>");
       for (Size k = 0; k != sip_peptides[i].incorporations.size(); ++k)
       {
-        current_script.addLine(String("<td>RIA") + String(k + 1) + "</td>");
-        current_script.addLine(String("<td>CORR.") + String(k + 1) + "</td>");
-        current_script.addLine(String("<td>INT") + String(k + 1) + "</td>");
+        current_script.addLine("<td>RIA" + StringUtils::toStr(k + 1) + "</td>");
+        current_script.addLine("<td>CORR." + StringUtils::toStr(k + 1) + "</td>");
+        current_script.addLine("<td>INT" + StringUtils::toStr(k + 1) + "</td>");
       }
       current_script.addLine("</tr>");
 
@@ -738,30 +743,30 @@ public:
       for (Size k = 0; k != sip_peptides[i].incorporations.size(); ++k)
       {
         SIPIncorporation p = sip_peptides[i].incorporations[k];
-        current_script.addLine(String("<td>") + String::number(p.rate, 2) + "</td>");
-        current_script.addLine(String("<td>") + String::number(p.correlation, 2) + "</td>");
-        current_script.addLine(String("<td>") + String::number(p.abundance, 0) + "</td>");
+        current_script.addLine(std::string("<td>") + StringUtils::number(p.rate, 2) + "</td>");
+        current_script.addLine(std::string("<td>") + StringUtils::number(p.correlation, 2) + "</td>");
+        current_script.addLine(std::string("<td>") + StringUtils::number(p.abundance, 0) + "</td>");
       }
       current_script.addLine("</tr>");
 
       current_script.addLine("</table>");
 
       // spectrum plot
-      String spectrum_filename = String("spectrum") + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension;
+      std::string spectrum_filename =std::string("spectrum") + file_suffix + "_rt_" + StringUtils::toStr(sip_peptides[i].feature_rt) + "." + file_extension;
       current_script.addLine("<p> <img src=\"" + spectrum_filename + R"(" alt="graphic"></p>)");
 
       // score plot
-      String score_filename = String("scores") + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension;
+      std::string score_filename =std::string("scores") + file_suffix + "_rt_" + StringUtils::toStr(sip_peptides[i].feature_rt) + "." + file_extension;
       current_script.addLine("<p> <img src=\"" + score_filename + R"(" alt="graphic"></p>)");
     }
     current_script.addLine("\n</body>\n</html>");
-    current_script.store(qc_output_directory.toQString() + "/index" + file_suffix.toQString() + ".html");
+    current_script.store(qc_output_directory + "/index" + file_suffix + ".html");
   }
 
-  static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0, const QString& executable = QString("R"))
+  static void plotScoresAndWeights(const std::string& output_dir, const std::string& tmp_path, const std::string& file_suffix, const std::string& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0, const std::string& executable = "R")
   {
-    String score_filename = String("score_plot") + file_suffix + file_extension;
-    String script_filename = String("score_plot") + file_suffix + String(".R");
+    std::string score_filename =std::string("score_plot") + file_suffix + file_extension;
+    std::string script_filename =std::string("score_plot") + file_suffix + std::string(".R");
 
     for (Size i = 0; i != sip_peptides.size(); ++i)
     {
@@ -773,27 +778,23 @@ public:
 
       for (MapRateToScoreType::const_iterator mit = sip_peptides[i].decomposition_map.begin(); mit != sip_peptides[i].decomposition_map.end(); ++mit)
       {
-        rate_dec_list.push_back(String(mit->first));
-        weights_list.push_back(String(mit->second));
+        rate_dec_list.push_back(StringUtils::toStr(mit->first));
+        weights_list.push_back(StringUtils::toStr(mit->second));
       }
 
       for (MapRateToScoreType::const_iterator mit = sip_peptides[i].correlation_map.begin(); mit != sip_peptides[i].correlation_map.end(); ++mit)
       {
-        rate_corr_list.push_back(String(mit->first));
-        corr_list.push_back(String(mit->second));
+        rate_corr_list.push_back(StringUtils::toStr(mit->first));
+        corr_list.push_back(StringUtils::toStr(mit->second));
       }
 
-      String rate_dec_list_string;
-      rate_dec_list_string.concatenate(rate_dec_list.begin(), rate_dec_list.end(), ",");
+      std::string rate_dec_list_string = StringUtils::concatenate(rate_dec_list, ",");
 
-      String weights_list_string;
-      weights_list_string.concatenate(weights_list.begin(), weights_list.end(), ",");
+      std::string weights_list_string = StringUtils::concatenate(weights_list, ",");
 
-      String rate_corr_list_string;
-      rate_corr_list_string.concatenate(rate_corr_list.begin(), rate_corr_list.end(), ",");
+      std::string rate_corr_list_string = StringUtils::concatenate(rate_corr_list, ",");
 
-      String corr_list_string;
-      corr_list_string.concatenate(corr_list.begin(), corr_list.end(), ",");
+      std::string corr_list_string = StringUtils::concatenate(corr_list, ",");
 
       current_script.addLine("rate_dec<-c(" + rate_dec_list_string + ")");
       current_script.addLine("dec<-c(" + weights_list_string + ")");
@@ -820,7 +821,7 @@ public:
         current_script.addLine("pdf('" + tmp_path + "/" + score_filename + "', width=8, height=4.5)");
       }
       current_script.addLine("plot.new()");
-      current_script.addLine("plot.window(xlim=c(0,100), ylim=c(" + String(score_plot_yaxis_min) + ",1))");
+      current_script.addLine("plot.window(xlim=c(0,100), ylim=c(" + StringUtils::toStr(score_plot_yaxis_min) + ",1))");
       current_script.addLine("axis(1); axis(2)");
       current_script.addLine("title(xlab=\"RIA\")");
       current_script.addLine("title(ylab=\"normalized weight / corr.\")");
@@ -831,42 +832,32 @@ public:
       current_script.addLine("tmp<-dev.off()");
       current_script.store(tmp_path + "/" + script_filename);
 
-      QProcess p;
-      QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + tmp_path.toQString();
-      p.setEnvironment(env);
-
-      QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-      p.start(executable, qparam);
-      p.waitForFinished(-1);
-      int status = p.exitCode();
-
-      if (status != 0)
+      auto state = runRScript(executable, tmp_path + "/" + script_filename, tmp_path, 0);
+      if (state != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         std::cerr << "Error: Process returned with non 0 status." << std::endl;
       }
       else
       {
-        QFile(QString(tmp_path.toQString() + "/" + score_filename.toQString())).copy(output_dir.toQString() + "/scores" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
+        File::copy(tmp_path + "/" + score_filename, output_dir + "/scores" + file_suffix + "_rt_" + StringUtils::toStr(sip_peptides[i].feature_rt) + "." + file_extension);
         if (debug_level < 1)
         {
-          QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
-          QFile(QString(tmp_path.toQString() + "/" + score_filename.toQString())).remove();
+          File::remove(tmp_path + "/" + script_filename);
+          File::remove(tmp_path + "/" + score_filename);
         }
       }
     }
   }
 
-  static void createQualityReport(const String& tmp_path,
-                                  const String& qc_output_directory,
-                                  const String& file_suffix,
-                                  const String& file_extension,
+  static void createQualityReport(const std::string& tmp_path,
+                                  const std::string& qc_output_directory,
+                                  const std::string& file_suffix,
+                                  const std::string& file_extension,
                                   const vector<vector<SIPPeptide> >& sip_peptide_cluster,
                                   Size n_heatmap_bins,
                                   double score_plot_y_axis_min,
                                   bool report_natural_peptides,
-                                  const QString& executable = QString("R"))
+                                  const std::string& executable = "R")
   {
     vector<SIPPeptide> sip_peptides;
     for (vector<vector<SIPPeptide> >::const_iterator cit = sip_peptide_cluster.begin(); cit != sip_peptide_cluster.end(); ++cit)
@@ -885,7 +876,7 @@ public:
     // heat map based on peptide RIAs
     OPENMS_LOG_INFO << "Plotting peptide heat map of " << sip_peptides.size() << endl;
     vector<vector<double> > binned_peptide_ria;
-    vector<String> class_labels;
+    vector<std::string> class_labels;
     createBinnedPeptideRIAData_(n_heatmap_bins, sip_peptide_cluster, binned_peptide_ria, class_labels);
     plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels, 0, executable);
 
@@ -901,9 +892,9 @@ public:
     }
   }
 
-  static void createCSVReport(vector<vector<SIPPeptide> >& sippeptide_cluster, ofstream& os, map<String, String>& proteinid_to_description)
+  static void createCSVReport(vector<vector<SIPPeptide> >& sippeptide_cluster, ofstream& os, map<std::string, std::string>& proteinid_to_description)
   {
-    SVOutStream out_csv_stream(os, "\t", "_", String::NONE);
+    SVOutStream out_csv_stream(os, "\t", "_", OpenMS::QuotingMethod::NONE);
     // sort clusters by non increasing size
     sort(sippeptide_cluster.rbegin(), sippeptide_cluster.rend(), SizeLess());
 
@@ -912,17 +903,17 @@ public:
       const vector<SIPPeptide>& current_cluster = sippeptide_cluster[pep_clust_i];
 
       // Group
-      map<String, vector<SIPPeptide> > all_peptides; // map sequence to SIPPeptide
-      map<String, vector<SIPPeptide> > ambigous_peptides; // map sequence to SIPPeptide
-      map<String, map<String, vector<SIPPeptide> > > unambigous_proteins; // map Accession to unmodified String to SIPPeptides
+      map<std::string, vector<SIPPeptide> > all_peptides; // map sequence to SIPPeptide
+      map<std::string, vector<SIPPeptide> > ambigous_peptides; // map sequence to SIPPeptide
+      map<std::string, map<std::string, vector<SIPPeptide> > > unambigous_proteins; // map Accession to unmodified std::string to SIPPeptides
 
       for (Size k = 0; k != current_cluster.size(); ++k)
       {
         const SIPPeptide& current_SIPpeptide = current_cluster[k];
-        String seq = current_SIPpeptide.sequence.toUnmodifiedString();
+        std::string seq = current_SIPpeptide.sequence.toUnmodifiedString();
         if (current_SIPpeptide.unique)
         {
-          String first_accession = *current_SIPpeptide.accessions.begin();
+          std::string first_accession = *current_SIPpeptide.accessions.begin();
           unambigous_proteins[first_accession][seq].push_back(current_SIPpeptide);
         }
         else
@@ -939,7 +930,7 @@ public:
       // determine median global LR of whole group
       vector<double> group_global_LRs;
       vector<double> group_number_RIAs;
-      for (map<String, vector<SIPPeptide> >::const_iterator all_it = all_peptides.begin(); all_it != all_peptides.end(); ++all_it)
+      for (map<std::string, vector<SIPPeptide> >::const_iterator all_it = all_peptides.begin(); all_it != all_peptides.end(); ++all_it)
       {
         for (vector<SIPPeptide>::const_iterator v_it = all_it->second.begin(); v_it != all_it->second.end(); ++v_it)
         {
@@ -952,10 +943,10 @@ public:
       Size group_number_RIA = lround(Math::median(group_number_RIAs.begin(), group_number_RIAs.end(), false)); // median number of RIAs
       // Group header
       // Distinct peptides := different (on sequence level) unique and non-unique peptides
-      out_csv_stream << String("Group ") + String(pep_clust_i + 1) << "# Distinct Peptides" << "# Unambiguous Proteins" << "Median Global LR";
+      out_csv_stream << "Group " + StringUtils::toStr(pep_clust_i + 1) << "# Distinct Peptides" << "# Unambiguous Proteins" << "Median Global LR";
       for (Size i = 0; i != group_number_RIA; ++i)
       {
-        out_csv_stream << "median RIA " + String(i + 1);
+        out_csv_stream << "median RIA " + StringUtils::toStr(i + 1);
       }
       out_csv_stream << endl;
 
@@ -965,7 +956,7 @@ public:
       vector<vector<double> > group_RIAs(group_number_RIA, vector<double>());
       vector<double> group_RIA_medians(group_number_RIA, 0);
 
-      for (map<String, vector<SIPPeptide> >::const_iterator all_it = all_peptides.begin(); all_it != all_peptides.end(); ++all_it)
+      for (map<std::string, vector<SIPPeptide> >::const_iterator all_it = all_peptides.begin(); all_it != all_peptides.end(); ++all_it)
       {
         for (vector<SIPPeptide>::const_iterator v_it = all_it->second.begin(); v_it != all_it->second.end(); ++v_it)
         {
@@ -987,17 +978,17 @@ public:
 
       for (Size i = 0; i != group_number_RIA; ++i)
       {
-        out_csv_stream << String(group_RIA_medians[i]);
+        out_csv_stream << StringUtils::toStr(group_RIA_medians[i]);
       }
       out_csv_stream << endl;
 
       // unambiguous protein level
-      for (map<String, map<String, vector<SIPPeptide> > >::const_iterator prot_it = unambigous_proteins.begin(); prot_it != unambigous_proteins.end(); ++prot_it)
+      for (map<std::string, map<std::string, vector<SIPPeptide> > >::const_iterator prot_it = unambigous_proteins.begin(); prot_it != unambigous_proteins.end(); ++prot_it)
       {
         // determine median global LR of protein
         vector<double> protein_global_LRs;
         vector<double> protein_number_RIAs;
-        for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
+        for (map<std::string, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
         {
           for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
           {
@@ -1011,15 +1002,15 @@ public:
         out_csv_stream << "" << "Protein Accession" << "Description" << "# Unique Peptides" << "Median Global LR";
         for (Size i = 0; i != protein_number_RIA; ++i)
         {
-          out_csv_stream << "median RIA " + String(i + 1);
+          out_csv_stream << "median RIA " + StringUtils::toStr(i + 1);
         }
         out_csv_stream << endl;
 
-        String protein_accession = prot_it->first;
-        String protein_description = "none";
-        if (proteinid_to_description.find(protein_accession.trim().toUpper()) != proteinid_to_description.end())
+        std::string protein_accession = prot_it->first;
+        std::string protein_description = "none";
+        if (proteinid_to_description.contains(StringUtils::toUpper(StringUtils::trim(protein_accession))))
         {
-          protein_description = proteinid_to_description.at(protein_accession.trim().toUpper());
+          protein_description = proteinid_to_description.at(StringUtils::toUpper(StringUtils::trim(protein_accession)));
         }
 
         out_csv_stream << "" << protein_accession << protein_description << prot_it->second.size() << protein_global_LR;
@@ -1032,7 +1023,7 @@ public:
         vector<double> protein_ratio_medians(protein_number_RIA, 0);
 
         // collect 1th, 2nd, ... RIA of the protein based on the peptide RIAs
-        for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
+        for (map<std::string, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
         {
           for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
           {
@@ -1056,7 +1047,7 @@ public:
 
         for (Size i = 0; i != protein_number_RIA; ++i)
         {
-          out_csv_stream << String(protein_RIA_medians[i]);
+          out_csv_stream << StringUtils::toStr(protein_RIA_medians[i]);
         }
 
         out_csv_stream << endl;
@@ -1064,7 +1055,7 @@ public:
         // print header of unique peptides
         out_csv_stream << "" << "" << "Peptide Sequence" << "RT" << "Exp. m/z" << "Theo. m/z" << "Charge" << "Score" << "TIC fraction" << "#non-natural weights" << "";
         Size max_incorporations = 0;
-        for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
+        for (map<std::string, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
         {
           for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
           {
@@ -1074,19 +1065,19 @@ public:
 
         for (Size i = 0; i != max_incorporations; ++i)
         {
-          out_csv_stream << "RIA " + String(i + 1) << "INT " + String(i + 1) << "Cor. " + String(i + 1);
+          out_csv_stream << "RIA " + StringUtils::toStr(i + 1) << "INT " + StringUtils::toStr(i + 1) << "Cor. " + StringUtils::toStr(i + 1);
         }
         out_csv_stream << "Peak intensities" << "Global LR" << endl;
 
         // print data of unique peptides
-        for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
+        for (map<std::string, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
         {
           for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
           {
-            out_csv_stream << "" << "" << v_it->sequence.toString() << String::number(v_it->feature_rt / 60.0, 2) << String::number(v_it->feature_mz, 4) << v_it->mz_theo << v_it->charge << v_it->score << v_it->explained_TIC_fraction << v_it->non_zero_decomposition_coefficients << "";
+            out_csv_stream << "" << "" << v_it->sequence.toString() << StringUtils::number(v_it->feature_rt / 60.0, 2) << StringUtils::number(v_it->feature_mz, 4) << v_it->mz_theo << v_it->charge << v_it->score << v_it->explained_TIC_fraction << v_it->non_zero_decomposition_coefficients << "";
             for (vector<SIPIncorporation>::const_iterator incorps = v_it->incorporations.begin(); incorps != v_it->incorporations.end(); ++incorps)
             {
-              out_csv_stream << String::number(incorps->rate, 1) << String::number(incorps->abundance, 0) << String::number(incorps->correlation, 2);
+              out_csv_stream << StringUtils::number(incorps->rate, 1) << StringUtils::number(incorps->abundance, 0) << StringUtils::number(incorps->correlation, 2);
             }
 
             // blank entries for nicer formatting
@@ -1096,10 +1087,10 @@ public:
             }
 
             // output peak intensities
-            String peak_intensities;
+            std::string peak_intensities;
             for (PeakSpectrum::const_iterator p = v_it->accumulated.begin(); p != v_it->accumulated.end(); ++p)
             {
-              peak_intensities += String::number(p->getIntensity(), 0) + " ";
+              peak_intensities += StringUtils::number(p->getIntensity(), 0) + " ";
             }
             out_csv_stream << peak_intensities;
             out_csv_stream << v_it->global_LR;
@@ -1111,7 +1102,7 @@ public:
 
       // print header of non-unique peptides below the protein section
       Size max_incorporations = 0;
-      for (map<String, vector<SIPPeptide> >::const_iterator pept_it = ambigous_peptides.begin(); pept_it != ambigous_peptides.end(); ++pept_it)
+      for (map<std::string, vector<SIPPeptide> >::const_iterator pept_it = ambigous_peptides.begin(); pept_it != ambigous_peptides.end(); ++pept_it)
       {
         for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
         {
@@ -1123,18 +1114,18 @@ public:
 
       for (Size m = 0; m != max_incorporations; ++m)
       {
-        out_csv_stream << "RIA " + String(m + 1) << "INT " + String(m + 1) << "Cor. " + String(m + 1);
+        out_csv_stream << "RIA " + StringUtils::toStr(m + 1) << "INT " + StringUtils::toStr(m + 1) << "Cor. " + StringUtils::toStr(m + 1);
       }
       out_csv_stream << "Peak intensities" << "Global LR" << endl;
 
       // print data of non-unique peptides below the protein section
-      for (map<String, vector<SIPPeptide> >::const_iterator pept_it = ambigous_peptides.begin(); pept_it != ambigous_peptides.end(); ++pept_it)
+      for (map<std::string, vector<SIPPeptide> >::const_iterator pept_it = ambigous_peptides.begin(); pept_it != ambigous_peptides.end(); ++pept_it)
       {
         // build up the protein accession string for non-unique peptides. Only the first 3 accessions are added.
         for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
         {
-          String accessions_string;
-          String description_string = "none";
+          std::string accessions_string;
+          std::string description_string = "none";
 
           for (Size ac = 0; ac != v_it->accessions.size(); ++ac)
           {
@@ -1143,16 +1134,16 @@ public:
               accessions_string += "...";
               break;
             }
-            String protein_accession = v_it->accessions[ac];
+            std::string protein_accession = v_it->accessions[ac];
             accessions_string += protein_accession;
 
-            if (proteinid_to_description.find(protein_accession.trim().toUpper()) != proteinid_to_description.end())
+            if (proteinid_to_description.contains(StringUtils::toUpper(StringUtils::trim(protein_accession))))
             {
               if (description_string == "none")
               {
                 description_string = "";
               }
-              description_string += proteinid_to_description.at(protein_accession.trim().toUpper());
+              description_string += proteinid_to_description.at(StringUtils::toUpper(StringUtils::trim(protein_accession)));
             }
 
             if (ac < v_it->accessions.size() - 1)
@@ -1165,12 +1156,12 @@ public:
             }
           }
 
-          out_csv_stream << "" << accessions_string << v_it->sequence.toString() << description_string << v_it->score << String::number(v_it->feature_rt / 60.0, 2) << String::number(v_it->feature_mz, 4) << v_it->mz_theo << v_it->charge << v_it->non_zero_decomposition_coefficients << "";
+          out_csv_stream << "" << accessions_string << v_it->sequence.toString() << description_string << v_it->score << StringUtils::number(v_it->feature_rt / 60.0, 2) << StringUtils::number(v_it->feature_mz, 4) << v_it->mz_theo << v_it->charge << v_it->non_zero_decomposition_coefficients << "";
 
           // output variable sized RIA part
           for (vector<SIPIncorporation>::const_iterator incorps = v_it->incorporations.begin(); incorps != v_it->incorporations.end(); ++incorps)
           {
-            out_csv_stream << String::number(incorps->rate, 1) << String::number(incorps->abundance, 0) << String::number(incorps->correlation, 2);
+            out_csv_stream << StringUtils::number(incorps->rate, 1) << StringUtils::number(incorps->abundance, 0) << StringUtils::number(incorps->correlation, 2);
           }
 
           // blank entries for nicer formatting
@@ -1180,10 +1171,10 @@ public:
           }
 
           // output peak intensities
-          String peak_intensities;
+          std::string peak_intensities;
           for (PeakSpectrum::const_iterator p = v_it->accumulated.begin(); p != v_it->accumulated.end(); ++p)
           {
-            peak_intensities += String::number(p->getIntensity(), 0) + " ";
+            peak_intensities += StringUtils::number(p->getIntensity(), 0) + " ";
           }
           out_csv_stream << peak_intensities;
           out_csv_stream << v_it->global_LR;
@@ -1194,9 +1185,9 @@ public:
     os.close();
   }
 
-  static void createPeptideCentricCSVReport(const String& in_mzML, const String& file_extension, vector<vector<SIPPeptide> >& sippeptide_cluster, ofstream& os, map<String, String>& proteinid_to_description, String qc_output_directory, String file_suffix, bool report_natural_peptides)
+  static void createPeptideCentricCSVReport(const std::string& in_mzML, const std::string& file_extension, vector<vector<SIPPeptide> >& sippeptide_cluster, ofstream& os, map<std::string, std::string>& proteinid_to_description, std::string qc_output_directory, std::string file_suffix, bool report_natural_peptides)
   {
-    SVOutStream out_csv_stream(os, "\t", "_", String::NONE);
+    SVOutStream out_csv_stream(os, "\t", "_", OpenMS::QuotingMethod::NONE);
 
     // sort clusters by non increasing size
     sort(sippeptide_cluster.rbegin(), sippeptide_cluster.rend(), SizeLess());
@@ -1222,7 +1213,7 @@ public:
 
     for (Size i = 1; i <= 10; ++i)
     {
-      out_csv_stream << "RIA " + String(i) << "LR of RIA " + String(i) << "INT " + String(i) << "Cor. " + String(i);
+      out_csv_stream << "RIA " + StringUtils::toStr(i) << "LR of RIA " + StringUtils::toStr(i) << "INT " + StringUtils::toStr(i) << "Cor. " + StringUtils::toStr(i);
     }
     out_csv_stream << std::endl;
 
@@ -1250,21 +1241,21 @@ public:
       }
       else
       {
-        String qr_spectrum_filename = String("file://") + qc_output_directory + "/" + String("spectrum") + file_suffix + "_rt_" + String(current_SIPpeptide.feature_rt) + "." + file_extension;
-        String qr_scores_filename = String("file://") + qc_output_directory + "/" + String("scores") + file_suffix + "_rt_" + String(current_SIPpeptide.feature_rt) + "." + file_extension;
+        std::string qr_spectrum_filename =std::string("file://") + qc_output_directory + "/" + std::string("spectrum") + file_suffix + "_rt_" + StringUtils::toStr(current_SIPpeptide.feature_rt) + "." + file_extension;
+        std::string qr_scores_filename =std::string("file://") + qc_output_directory + "/" + std::string("scores") + file_suffix + "_rt_" + StringUtils::toStr(current_SIPpeptide.feature_rt) + "." + file_extension;
         out_csv_stream << qr_spectrum_filename << qr_scores_filename << in_mzML;
       }
 
       // output protein accessions and descriptions
-      String accession_string;
-      String protein_descriptions = "none";
+      std::string accession_string;
+      std::string protein_descriptions = "none";
       for (Size j = 0; j != current_SIPpeptide.accessions.size(); ++j)
       {
-        String current_accession = current_SIPpeptide.accessions[j];
-        current_accession.trim().toUpper();
+        std::string current_accession = current_SIPpeptide.accessions[j];
+        StringUtils::toUpper(StringUtils::trim(current_accession));
         accession_string += current_accession;
 
-        if (proteinid_to_description.find(current_accession) != proteinid_to_description.end())
+        if (proteinid_to_description.contains(current_accession))
         {
           if (protein_descriptions == "none")
           {
@@ -1284,14 +1275,14 @@ public:
         }
       }
 
-      out_csv_stream << accession_string << protein_descriptions << current_SIPpeptide.unique << current_SIPpeptide.accessions.size() << current_SIPpeptide.score << String::number(current_SIPpeptide.feature_rt / 60.0, 2)
-                     << String::number(current_SIPpeptide.feature_mz, 4) << String::number(current_SIPpeptide.mz_theo, 4) << current_SIPpeptide.charge << current_SIPpeptide.explained_TIC_fraction << current_SIPpeptide.non_zero_decomposition_coefficients;
+      out_csv_stream << accession_string << protein_descriptions << current_SIPpeptide.unique << current_SIPpeptide.accessions.size() << current_SIPpeptide.score << StringUtils::number(current_SIPpeptide.feature_rt / 60.0, 2)
+                     << StringUtils::number(current_SIPpeptide.feature_mz, 4) << StringUtils::number(current_SIPpeptide.mz_theo, 4) << current_SIPpeptide.charge << current_SIPpeptide.explained_TIC_fraction << current_SIPpeptide.non_zero_decomposition_coefficients;
 
       // output peak intensities
-      String peak_intensities;
+      std::string peak_intensities;
       for (PeakSpectrum::const_iterator p = current_SIPpeptide.accumulated.begin(); p != current_SIPpeptide.accumulated.end(); ++p)
       {
-        peak_intensities += String::number(p->getIntensity(), 0) + " ";
+        peak_intensities += StringUtils::number(p->getIntensity(), 0) + " ";
       }
       out_csv_stream << peak_intensities;
 
@@ -1308,7 +1299,7 @@ public:
         {
           LR_of_RIA = abundance / current_SIPpeptide.incorporations[0].abundance;
         }
-        out_csv_stream << String::number(ria, 1) << String::number(LR_of_RIA, 1) << String::number(abundance, 1) << String::number(corr, 1);
+        out_csv_stream << StringUtils::number(ria, 1) << StringUtils::number(LR_of_RIA, 1) << StringUtils::number(abundance, 1) << StringUtils::number(corr, 1);
       }
       out_csv_stream << endl;
     }
@@ -1318,7 +1309,7 @@ public:
   }
 
 protected:
-  static void createBinnedPeptideRIAData_(const Size n_heatmap_bins, const vector<vector<SIPPeptide> >& sip_clusters, vector<vector<double> >& binned_peptide_ria, vector<String>& cluster_labels)
+  static void createBinnedPeptideRIAData_(const Size n_heatmap_bins, const vector<vector<SIPPeptide> >& sip_clusters, vector<vector<double> >& binned_peptide_ria, vector<std::string>& cluster_labels)
   {
     cluster_labels.clear();
     binned_peptide_ria.clear();
@@ -1337,7 +1328,7 @@ protected:
           binned[bin] = log1p(iit->abundance);
         }
         binned_peptide_ria.push_back(binned);
-        cluster_labels.push_back((String)(cit - sip_clusters.begin()));
+        cluster_labels.push_back(StringUtils::toStr(cit - sip_clusters.begin()));
       }
     }
   }
@@ -1432,7 +1423,6 @@ public:
   {
     IsotopePatterns ret;
     const Element* e1 = ElementDB::getInstance()->getElement("Carbon");
-    Element* e2 = const_cast<Element*>(e1);
 
     EmpiricalFormula peptide_ef = peptide.getFormula();
     Size MAXISOTOPES = static_cast<Size>(peptide_ef.getNumberOf(e1));
@@ -1454,8 +1444,9 @@ public:
         isotopes.clear();
         isotopes.insert(12, 1.0 - a);
         isotopes.insert(13, a);
-        e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_carbon + additional_isotopes));
+        CoarseIsotopePatternGenerator gen(max_labeling_carbon + additional_isotopes);
+        gen.setIsotopeOverride(e1, isotopes);
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(gen);
         dist.set(CoarseIsotopePatternGenerator().convolve(dist.getContainer(), modification_dist.getContainer())); // convolve with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
@@ -1478,8 +1469,9 @@ public:
         isotopes.clear();
         isotopes.insert(12, 1.0 - a);
         isotopes.insert(13, a);
-        e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(MAXISOTOPES + additional_isotopes));
+        CoarseIsotopePatternGenerator gen(MAXISOTOPES + additional_isotopes);
+        gen.setIsotopeOverride(e1, isotopes);
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(gen);
 
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
@@ -1492,16 +1484,10 @@ public:
       }
     }
 
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.clear();
-    isotopes.insert(12, 0.9893f);
-    isotopes.insert(13, 0.0107f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 
-  static Size getNumberOfLabelingElements(const String& labeling_element, const AASequence& peptide)
+  static Size getNumberOfLabelingElements(const std::string& labeling_element, const AASequence& peptide)
   {
     const Element * e;
     if (labeling_element == "N")
@@ -1552,7 +1538,6 @@ public:
     IsotopePatterns ret;
 
     const Element* e1 = ElementDB::getInstance()->getElement("Nitrogen");
-    Element* e2 = const_cast<Element*>(e1);
 
     EmpiricalFormula peptide_ef = peptide.getFormula();
     UInt MAXISOTOPES = static_cast<UInt>(peptide_ef.getNumberOf(e1));
@@ -1573,8 +1558,9 @@ public:
         isotopes.clear();
         isotopes.insert(14, 1.0 - a);
         isotopes.insert(15, a);
-        e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_nitrogens + additional_isotopes));
+        CoarseIsotopePatternGenerator gen(max_labeling_nitrogens + additional_isotopes);
+        gen.setIsotopeOverride(e1, isotopes);
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(gen);
         dist.set(CoarseIsotopePatternGenerator().convolve(dist.getContainer(), modification_dist.getContainer())); // calculate convolution with isotope distribution of modification(s)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
@@ -1596,8 +1582,9 @@ public:
         isotopes.clear();
         isotopes.insert(14, 1.0 - a);
         isotopes.insert(15, a);
-        e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(MAXISOTOPES + additional_isotopes));
+        CoarseIsotopePatternGenerator gen(MAXISOTOPES + additional_isotopes);
+        gen.setIsotopeOverride(e1, isotopes);
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(gen);
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1607,12 +1594,6 @@ public:
         ret.push_back(make_pair(abundance, intensities));
       }
     }
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.clear();
-    isotopes.insert(14, 0.99632f);
-    isotopes.insert(15, 0.368f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 
@@ -1621,7 +1602,6 @@ public:
     IsotopePatterns ret;
 
     const Element* e1 = ElementDB::getInstance()->getElement("Hydrogen");
-    Element* e2 = const_cast<Element*>(e1);
 
     EmpiricalFormula peptide_ef = peptide.getFormula();
     Size MAXISOTOPES = static_cast<Size>(peptide_ef.getNumberOf(e1));
@@ -1642,9 +1622,10 @@ public:
         isotopes.clear();
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, a);
-        e2->setIsotopeDistribution(isotopes);
+        CoarseIsotopePatternGenerator gen(max_labeling_element + additional_isotopes);
+        gen.setIsotopeOverride(e1, isotopes);
 
-        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_element + additional_isotopes));
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(gen);
         dist.set(CoarseIsotopePatternGenerator().convolve(dist.getContainer(), modification_dist.getContainer())); // convole with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
@@ -1666,8 +1647,9 @@ public:
         isotopes.clear();
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, a);
-        e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(MAXISOTOPES + additional_isotopes));
+        CoarseIsotopePatternGenerator gen(MAXISOTOPES + additional_isotopes);
+        gen.setIsotopeOverride(e1, isotopes);
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(gen);
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1678,12 +1660,6 @@ public:
       }
     }
 
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.clear();
-    isotopes.insert(1, 0.999885f);
-    isotopes.insert(2, 0.000115f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 
@@ -1692,7 +1668,6 @@ public:
     IsotopePatterns ret;
 
     const Element* e1 = ElementDB::getInstance()->getElement("Oxygen");
-    Element* e2 = const_cast<Element*>(e1);
 
     EmpiricalFormula peptide_ef = peptide.getFormula();
     Size MAXISOTOPES = static_cast<Size>(peptide_ef.getNumberOf(e1));
@@ -1712,9 +1687,10 @@ public:
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, 0.0); // 17O is neglectable (=0.038%)
         isotopes.insert(3, a);
-        e2->setIsotopeDistribution(isotopes);
+        CoarseIsotopePatternGenerator gen(max_labeling_element * 2 + additional_isotopes); // 2 * isotopic traces
+        gen.setIsotopeOverride(e1, isotopes);
 
-        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_element * 2 + additional_isotopes)); // 2 * isotopic traces
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(gen);
         dist.set(CoarseIsotopePatternGenerator().convolve(dist.getContainer(), modification_dist.getContainer())); // convole with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
@@ -1737,8 +1713,9 @@ public:
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, 0.0); // 17O is neglectable (=0.038%)
         isotopes.insert(3, a);
-        e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(MAXISOTOPES * 2 + additional_isotopes)); // 2 * isotopic traces
+        CoarseIsotopePatternGenerator gen(MAXISOTOPES * 2 + additional_isotopes); // 2 * isotopic traces
+        gen.setIsotopeOverride(e1, isotopes);
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(gen);
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1749,13 +1726,6 @@ public:
       }
     }
 
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.clear();
-    isotopes.insert(1, 0.99757f);
-    isotopes.insert(2, 0.00038f);
-    isotopes.insert(3, 0.00205f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 
@@ -1763,7 +1733,6 @@ public:
   {
     IsotopePatterns ret;
     const Element* e1 = ElementDB::getInstance()->getElement("Nitrogen");
-    Element* e2 = const_cast<Element*>(e1);
 
     // calculate number of expected labeling elements using averagine model
     Size element_count = static_cast<Size>(mass * 0.0122177302837372);
@@ -1777,8 +1746,8 @@ public:
       isotopes.clear();
       isotopes.insert(14, 1.0 - a);
       isotopes.insert(15, a);
-      e2->setIsotopeDistribution(isotopes);
       CoarseIsotopePatternGenerator solver(element_count);
+      solver.setIsotopeOverride(e1, isotopes);
       auto dist = solver.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
@@ -1789,12 +1758,6 @@ public:
       ret.push_back(make_pair(abundance, intensities));
     }
 
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.clear();
-    isotopes.insert(14, 0.99632f);
-    isotopes.insert(15, 0.368f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 
@@ -1802,7 +1765,6 @@ public:
   {
     IsotopePatterns ret;
     const Element* e1 = ElementDB::getInstance()->getElement("Carbon");
-    Element* e2 = const_cast<Element*>(e1);
     Size element_count = static_cast<Size>(mass * 0.0444398894906044);
 
     // calculate isotope distribution for a given peptide and varying incoperation rates
@@ -1814,8 +1776,8 @@ public:
       isotopes.clear();
       isotopes.insert(12, 1.0 - a);
       isotopes.insert(13, a);
-      e2->setIsotopeDistribution(isotopes);
       CoarseIsotopePatternGenerator solver(element_count);
+      solver.setIsotopeOverride(e1, isotopes);
       auto dist = solver.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
@@ -1826,11 +1788,6 @@ public:
       ret.push_back(make_pair(abundance, intensities));
     }
 
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.insert(12, 0.9893f);
-    isotopes.insert(13, 0.010f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 
@@ -1839,7 +1796,6 @@ public:
     IsotopePatterns ret;
 
     const Element* e1 = ElementDB::getInstance()->getElement("Hydrogen");
-    Element* e2 = const_cast<Element*>(e1);
     Size element_count = static_cast<Size>(mass * 0.06981572169);
 
     // calculate isotope distribution for a given peptide and varying incoperation rates
@@ -1851,8 +1807,8 @@ public:
       isotopes.clear();
       isotopes.insert(1, 1.0 - a);
       isotopes.insert(2, a);
-      e2->setIsotopeDistribution(isotopes);
       CoarseIsotopePatternGenerator solver(element_count);
+      solver.setIsotopeOverride(e1, isotopes);
       auto dist = solver.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
@@ -1863,12 +1819,6 @@ public:
       ret.push_back(make_pair(abundance, intensities));
     }
 
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.clear();
-    isotopes.insert(1, 0.999885f);
-    isotopes.insert(2, 0.000115f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 
@@ -1877,7 +1827,6 @@ public:
     IsotopePatterns ret;
 
     const Element* e1 = ElementDB::getInstance()->getElement("Oxygen");
-    Element* e2 = const_cast<Element*>(e1);
     Size element_count = static_cast<Size>(mass * 0.01329399039);
 
     // calculate isotope distribution for a given peptide and varying incoperation rates
@@ -1890,8 +1839,8 @@ public:
       isotopes.insert(1, 1.0 - a);
       isotopes.insert(2, 0);
       isotopes.insert(3, a);
-      e2->setIsotopeDistribution(isotopes);
       CoarseIsotopePatternGenerator solver(element_count * 2); // spaces are 2 Da between 18O and 16O but we observe isotopic peaks at every (approx.) nominal mass
+      solver.setIsotopeOverride(e1, isotopes);
       auto dist = solver.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
@@ -1902,13 +1851,6 @@ public:
       ret.push_back(make_pair(abundance, intensities));
     }
 
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    isotopes.clear();
-    isotopes.insert(1, 0.99757f);
-    isotopes.insert(2, 0.00038f);
-    isotopes.insert(3, 0.00205f);
-    e2->setIsotopeDistribution(isotopes);
     return ret;
   }
 };
@@ -1948,7 +1890,7 @@ public:
       for (; it != peak_map.areaEndConst(); ++it)
       {
         double rt = it.getRT();
-        if (xic.find(rt) != xic.end())
+        if (xic.contains(rt))
         {
           xic[rt] += it->getIntensity();
         }
@@ -2032,10 +1974,10 @@ class RIntegration
 {
 public:
   // Perform a simple check if R and all R dependencies are there
-  static bool checkRDependencies(const String& tmp_path, StringList package_names, const QString& executable = QString("R"))
+  static bool checkRDependencies(const std::string& tmp_path, StringList package_names, const std::string& executable = "R")
   {
-    String random_name = String::random(8);
-    String script_filename = tmp_path + String("/") + random_name + String(".R");
+    std::string random_name = StringUtils::random(8);
+    std::string script_filename = tmp_path + std::string("/") + random_name + std::string(".R");
 
     // check if R in path and can be executed
     TextFile checkRInPath;
@@ -2044,18 +1986,8 @@ public:
 
     OPENMS_LOG_INFO << "Checking R...";
     {
-      QProcess p;
-      p.setProcessChannelMode(QProcess::MergedChannels);
-      QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + tmp_path.toQString();
-      p.setEnvironment(env);
-
-      QStringList checkRinPathQParam;
-      checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
-      p.start(executable, checkRinPathQParam);
-      p.waitForFinished(-1);
-
-      if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
+      auto state = runRScript(executable, script_filename, tmp_path, 0);
+      if (state != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         OPENMS_LOG_INFO << " failed" << std::endl;
         OPENMS_LOG_ERROR << "Can't execute R. Do you have R installed? Check if the path to R is in your system path variable." << std::endl;
@@ -2088,27 +2020,17 @@ public:
 
     current_script.store(script_filename);
 
-    QProcess p;
-    p.setProcessChannelMode(QProcess::MergedChannels);
-    QStringList env = QProcess::systemEnvironment();
-    env << QString("R_LIBS=") + tmp_path.toQString();
-    p.setEnvironment(env);
+    std::string captured_output;
+    auto state = runRScript(executable, script_filename, tmp_path, 0, &captured_output);
 
-    QStringList qparam;
-    qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
-    p.start(executable, qparam);
-    p.waitForFinished(-1);
-    int status = p.exitCode();
-
-    if (status != 0)
+    if (state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
       OPENMS_LOG_ERROR << "\nProblem finding all R dependencies. Check if R and following libraries are installed:" << std::endl;
       for (TextFile::ConstIterator line_it = current_script.begin(); line_it != current_script.end(); ++line_it)
       {
         OPENMS_LOG_ERROR << *line_it  << std::endl;
       }
-      QString s = p.readAllStandardOutput();
-      OPENMS_LOG_ERROR << s.toStdString() << std::endl;
+      OPENMS_LOG_ERROR << captured_output << std::endl;
       return false;
     }
     OPENMS_LOG_INFO << " success" << std::endl;
@@ -2126,10 +2048,10 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in_mzML", "<file>", "", "Centroided MS1 data");
-    setValidFormats_("in_mzML", ListUtils::create<String>("mzML"));
+    setValidFormats_("in_mzML", ListUtils::create<std::string>("mzML"));
 
     registerInputFile_("in_fasta", "<file>", "", "Protein sequence database");
-    setValidFormats_("in_fasta", ListUtils::create<String>("fasta"));
+    setValidFormats_("in_fasta", ListUtils::create<std::string>("fasta"));
 
     registerOutputFile_("out_csv", "<file>", "", "Tab-separated, group-centric report of SIP incorporation results. "
       "Organized hierarchically by groups, proteins, and peptides. "
@@ -2138,7 +2060,7 @@ protected:
       "Cor. (correlation), followed by Peak intensities and Global LR (labeling ratio). "
       "Non-unique peptides additionally list protein Accessions and Descriptions. "
       "Group and protein summary rows report median Global LR and median RIA values.");
-    setValidFormats_("out_csv", ListUtils::create<String>("csv"));
+    setValidFormats_("out_csv", ListUtils::create<std::string>("csv"));
 
     registerOutputFile_("out_peptide_centric_csv", "<file>", "", "Tab-separated, peptide-centric report of SIP incorporation results. "
       "Columns: Peptide Sequence, Feature, Quality Report Spectrum (path), Quality report scores (path), "
@@ -2146,10 +2068,10 @@ protected:
       "Exp. m/z, Theo. m/z, Charge, TIC fraction, #non-natural weights, Peak intensities, Group, "
       "Global Peptide LR (labeling ratio), then for each incorporation (up to 10): RIA (%), LR of RIA, "
       "INT (intensity), Cor. (correlation).");
-    setValidFormats_("out_peptide_centric_csv", ListUtils::create<String>("csv"));
+    setValidFormats_("out_peptide_centric_csv", ListUtils::create<std::string>("csv"));
 
     registerInputFile_("in_featureXML", "<file>", "", "Feature data annotated with identifications (IDMapper)");
-    setValidFormats_("in_featureXML", ListUtils::create<String>("featureXML"));
+    setValidFormats_("in_featureXML", ListUtils::create<std::string>("featureXML"));
 
     static const bool is_required(false);
     static const bool is_advanced_option(true);
@@ -2299,7 +2221,7 @@ protected:
 
   ///< Calculates the correlation between measured isotopic_intensities and the theoretical isotopic patterns for all incorporation rates
   void calculateCorrelation(Size n_element, const vector<double>& isotopic_intensities, IsotopePatterns patterns,
-                            MapRateToScoreType& map_rate_to_correlation_score, String labeling_element, double mass, double min_correlation_distance_to_averagine)
+                            MapRateToScoreType& map_rate_to_correlation_score, std::string labeling_element, double mass, double min_correlation_distance_to_averagine)
   {
     double min_observed_peak_fraction = getDoubleOption_("observed_peak_fraction");
 
@@ -2525,7 +2447,7 @@ protected:
       intensities_sum_13C += isotopic_intensities[u];
     }
 
-    String int_string;
+    std::string int_string;
     // print 12C peaks
     for (Size u = 0; u != 5; ++u)
     {
@@ -2533,7 +2455,7 @@ protected:
       {
         break;
       }
-      int_string += String::number(isotopic_intensities[u], 0);
+      int_string += StringUtils::number(isotopic_intensities[u], 0);
       int_string += " ";
     }
     int_string += ", ";
@@ -2543,7 +2465,7 @@ protected:
       // print 13C peaks
       for (Size u = 5; u < isotopic_intensities.size(); ++u)
       {
-        int_string += String::number(isotopic_intensities[u], 0);
+        int_string += StringUtils::number(isotopic_intensities[u], 0);
         if (u < isotopic_intensities.size() - 1)
         {
           int_string += " ";
@@ -3025,10 +2947,10 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    String file_extension_ = getStringOption_("plot_extension");
+    std::string file_extension_ = getStringOption_("plot_extension");
     Int debug_level = getIntOption_("debug");
-    String in_mzml = getStringOption_("in_mzML");
-    String in_features = getStringOption_("in_featureXML");
+    std::string in_mzml = getStringOption_("in_mzML");
+    std::string in_features = getStringOption_("in_featureXML");
     double mz_tolerance_ppm_ = getDoubleOption_("mz_tolerance_ppm");
     double rt_tolerance_s = getDoubleOption_("rt_tolerance_s");
 
@@ -3038,26 +2960,25 @@ protected:
 
     Size min_consecutive_isotopes = (Size)getIntOption_("min_consecutive_isotopes");
 
-    String qc_output_directory = getStringOption_("qc_output_directory");
+    std::string qc_output_directory = getStringOption_("qc_output_directory");
 
     Size n_heatmap_bins = getIntOption_("heatmap_bins");
     double score_plot_y_axis_min = getDoubleOption_("score_plot_yaxis_min");
 
-    String tmp_path = File::getTempDirectory();
-    tmp_path.substitute('\\', '/');
+    std::string tmp_path = File::getTempDirectory();
+    StringUtils::substitute(tmp_path, '\\', '/');
 
     // Do we want to create a qc report?
     if (!qc_output_directory.empty())
     {
-      QString executable = getStringOption_("r_executable").toQString();
+      std::string executable = getStringOption_("r_executable");
       // convert path to absolute path
-      QDir qc_dir(qc_output_directory.toQString());
-      qc_output_directory = String(qc_dir.absolutePath());
+      qc_output_directory = File::absolutePath(qc_output_directory);
 
       // trying to create qc_output_directory if not present
-      if (!qc_dir.exists())
+      if (!File::exists(qc_output_directory))
       {
-        qc_dir.mkpath(qc_output_directory.toQString());
+        File::makeDir(qc_output_directory);
       }
       // check if R and dependencies are installed
       StringList package_names;
@@ -3071,22 +2992,22 @@ protected:
       }
     }
 
-    String out_csv = getStringOption_("out_csv");
+    std::string out_csv = getStringOption_("out_csv");
     ofstream out_csv_stream(out_csv.c_str());
     out_csv_stream << fixed << setprecision(4);
 
-    String out_peptide_centric_csv = getStringOption_("out_peptide_centric_csv");
+    std::string out_peptide_centric_csv = getStringOption_("out_peptide_centric_csv");
     ofstream out_peptide_csv_stream(out_peptide_centric_csv.c_str());
     out_peptide_csv_stream << fixed << setprecision(4);
 
-    String labeling_element = getStringOption_("labeling_element");
+    std::string labeling_element = getStringOption_("labeling_element");
 
     //bool plot_merged = getFlag_("plot_merged");
     bool report_natural_peptides = getFlag_("report_natural_peptides");
     bool use_unassigned_ids = getFlag_("use_unassigned_ids");
     bool use_averagine_ids = getFlag_("use_averagine_ids");
 
-    //String debug_patterns_name = getStringOption_("debug_patterns_name");
+    //std::string debug_patterns_name = getStringOption_("debug_patterns_name");
 
     double correlation_threshold = getDoubleOption_("correlation_threshold");
 
@@ -3097,18 +3018,18 @@ protected:
     bool cluster_flag = getFlag_("cluster");
 
     // read descriptions from FASTA and create map for fast annotation
-    String in_fasta = getStringOption_("in_fasta");
+    std::string in_fasta = getStringOption_("in_fasta");
     vector<FASTAFile::FASTAEntry> fasta_entries;
     FASTAFile fasta_file;
     fasta_file.setLogType(log_type_);
     fasta_file.load(in_fasta, fasta_entries);
-    map<String, String> proteinid_to_description;
+    map<std::string, std::string> proteinid_to_description;
     for (vector<FASTAFile::FASTAEntry>::const_iterator it = fasta_entries.begin(); it != fasta_entries.end(); ++it)
     {
       if (!it->identifier.empty() && !it->description.empty())
       {
-        String s = it->identifier;
-        proteinid_to_description[s.trim().toUpper()] = it->description;
+        std::string s = it->identifier;
+        proteinid_to_description[StringUtils::toUpper(StringUtils::trim(s))] = it->description;
       }
     }
 
@@ -3260,12 +3181,12 @@ protected:
     peak_map.sortSpectra();
 
     // used to generate plots
-    vector<String> titles;
+    vector<std::string> titles;
     vector<MapRateToScoreType> weight_maps;
     vector<MapRateToScoreType> normalized_weight_maps;
     vector<MapRateToScoreType> correlation_maps;
 
-    String file_suffix = "_" + String(QFileInfo(in_mzml.toQString()).baseName()) + "_" + String::random(4);
+    std::string file_suffix = "_" + File::stemName(in_mzml) + "_" + StringUtils::random(4);
 
     vector<SIPPeptide> sip_peptides;
 
@@ -3314,7 +3235,7 @@ protected:
       tmp_pepid.sort();
 
       SIPPeptide sip_peptide;
-      sip_peptide.feature_type = feature_it->getMetaValue("feature_type"); // used to annotate feature type in reporting
+      sip_peptide.feature_type = StringUtils::toStr(feature_it->getMetaValue("feature_type")); // used to annotate feature type in reporting
 
       // retrieve identification information
       const PeptideHit& feature_hit = tmp_pepid.getHits()[0];
@@ -3322,7 +3243,7 @@ protected:
       const double feature_hit_center_mz = feature_it->getMZ();
       const Int feature_hit_charge = feature_hit.getCharge();
 
-      String feature_hit_seq = "";
+      std::string feature_hit_seq;
       double feature_hit_theoretical_mz = 0;
       AASequence feature_hit_aaseq;
       // set theoretical mz of peptide hit to:
@@ -3338,7 +3259,7 @@ protected:
       else if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
       {
         feature_hit_aaseq = AASequence();
-        feature_hit_seq = String("");
+        feature_hit_seq =std::string("");
         feature_hit_theoretical_mz = feature_hit_center_mz;
       }
 
@@ -3347,8 +3268,8 @@ protected:
         OPENMS_LOG_DEBUG << "Feature type: (" << sip_peptide.feature_type << ") Seq.: " << feature_hit_seq << " m/z: " << feature_hit_theoretical_mz << endl;
       }
 
-      const set<String> protein_accessions = feature_hit.extractProteinAccessionsSet();
-      sip_peptide.accessions = vector<String>(protein_accessions.begin(), protein_accessions.end());
+      const set<std::string> protein_accessions = feature_hit.extractProteinAccessionsSet();
+      sip_peptide.accessions = vector<std::string>(protein_accessions.begin(), protein_accessions.end());
       sip_peptide.sequence = feature_hit_aaseq;
       sip_peptide.mz_theo = feature_hit_theoretical_mz;
       sip_peptide.mass_theo = feature_hit_theoretical_mz * feature_hit_charge - feature_hit_charge * Constants::PROTON_MASS_U;
@@ -3628,7 +3549,7 @@ protected:
       MapRateToScoreType map_rate_to_normalized_weight = normalizeToMax(map_rate_to_decomposition_weight);
 
       // store for plotting
-      titles.push_back(feature_hit_seq + " " + String(feature_hit_center_rt));
+      titles.push_back(feature_hit_seq + " " + StringUtils::toStr(feature_hit_center_rt));
       weight_maps.push_back(map_rate_to_decomposition_weight);
       normalized_weight_maps.push_back(map_rate_to_normalized_weight);
       correlation_maps.push_back(map_rate_to_correlation_score);
@@ -3722,7 +3643,7 @@ protected:
     // quality report
     if (!qc_output_directory.empty())
     {
-      QString executable = getStringOption_("r_executable").toQString();
+      std::string executable = getStringOption_("r_executable");
       // TODO plot merged is now passed as false
       MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides, executable);
     }

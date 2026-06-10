@@ -30,7 +30,7 @@ T ByteReverse(const T in)
 
 namespace OpenMS::Internal
 {
-  FidHandler::FidHandler(const String & filename) :
+  FidHandler::FidHandler(const std::string & filename) :
     ifstream(filename.c_str(), ios_base::binary | ios_base::in)
   {
     index_ = 0;

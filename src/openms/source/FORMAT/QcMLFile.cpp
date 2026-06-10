@@ -11,13 +11,15 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 
-#include <QtCore/QFileInfo>
+#include <filesystem>
 
 #include <fstream>
 #include <set>
@@ -59,23 +61,23 @@ namespace OpenMS
 
   bool QcMLFile::QualityParameter::operator<(const QualityParameter& rhs) const
   {
-    return name.toQString() < rhs.name.toQString();
+    return name < rhs.name;
   }
 
   bool QcMLFile::QualityParameter::operator>(const QualityParameter& rhs) const
   {
-    return name.toQString() > rhs.name.toQString();
+    return name > rhs.name;
   }
 
   bool QcMLFile::QualityParameter::operator==(const QualityParameter& rhs) const
   {
-    return name.toQString() == rhs.name.toQString();
+    return name == rhs.name;
   }
 
-  String QcMLFile::QualityParameter::toXMLString(UInt indentation_level) const
+  std::string QcMLFile::QualityParameter::toXMLString(UInt indentation_level) const
   {
-    String indent = String(indentation_level, '\t');
-    String s = indent;
+    std::string indent(indentation_level, '\t');
+    std::string s = indent;
     s += "<qualityParameter";
     s += " name=\"" + name + "\"" + " ID=\"" + id + "\"" + " cvRef=\"" + cvRef + "\"" + " accession=\"" + cvAcc + "\"";
     if (!value.empty())
@@ -137,44 +139,44 @@ namespace OpenMS
 
   bool QcMLFile::Attachment::operator<(const Attachment& rhs) const
   {
-    return name.toQString() < rhs.name.toQString();
+    return name < rhs.name;
   }
 
   bool QcMLFile::Attachment::operator>(const Attachment& rhs) const
   {
-    return name.toQString() > rhs.name.toQString();
+    return name > rhs.name;
   }
 
   bool QcMLFile::Attachment::operator==(const Attachment& rhs) const
   {
-    return name.toQString() == rhs.name.toQString();
+    return name == rhs.name;
   }
 
-  String QcMLFile::Attachment::toCSVString(const String& separator) const
+  std::string QcMLFile::Attachment::toCSVString(const std::string& separator) const
   {
-    String s = "";
+    std::string s;
     if ((!colTypes.empty()) && (!tableRows.empty()))
     {
-      String replacement = "_";
+      std::string replacement = "_";
       if (separator == replacement)
       {
         replacement = "$";
       }
-      std::vector<String> copy = colTypes;
-      for (std::vector<String>::iterator it = copy.begin(); it != copy.end(); ++it)
+      std::vector<std::string> copy = colTypes;
+      for (std::vector<std::string>::iterator it = copy.begin(); it != copy.end(); ++it)
       {
-        it->substitute(separator, replacement);
+        StringUtils::substitute(*it, separator, replacement);
       }
-      s += ListUtils::concatenate(copy, separator).trim();
+      s += StringUtils::trimmed(ListUtils::concatenate(copy, separator));
       s += "\n";
-      for (std::vector<std::vector<String> >::const_iterator it = tableRows.begin(); it != tableRows.end(); ++it)
+      for (std::vector<std::vector<std::string> >::const_iterator it = tableRows.begin(); it != tableRows.end(); ++it)
       {
-        std::vector<String> copy_row = *it;
-        for (std::vector<String>::iterator sit = copy_row.begin(); sit != copy_row.end(); ++sit)
+        std::vector<std::string> copy_row = *it;
+        for (std::vector<std::string>::iterator sit = copy_row.begin(); sit != copy_row.end(); ++sit)
         {
-          sit->substitute(separator, replacement);
+          StringUtils::substitute(*sit, separator, replacement);
         }
-        s += ListUtils::concatenate(copy_row, separator).trim();
+        s += StringUtils::trimmed(ListUtils::concatenate(copy_row, separator));
         s += "\n";
       }
     }
@@ -182,11 +184,11 @@ namespace OpenMS
   }
 
   //TODO CHANGE TO ACCEPTABLE WAY OF GENERATING A PRETTY XML FILE
-  String QcMLFile::Attachment::toXMLString(UInt indentation_level) const
+  std::string QcMLFile::Attachment::toXMLString(UInt indentation_level) const
   {
     //TODO manage IDREF to qp internally
-    String indent = String(indentation_level, '\t');
-    String s = indent;
+    std::string indent(indentation_level, '\t');
+    std::string s = indent;
     s += "<attachment ";
     s += " name=\"" + name + "\"" + " ID=\"" + id + "\"" + " cvRef=\"" + cvRef + "\"" + " accession=\"" + cvAcc + "\"";
     if (!value.empty())
@@ -218,25 +220,25 @@ namespace OpenMS
       s += "<table>";
       s += indent + "\t" + "<tableColumnTypes>";
 
-      std::vector<String> copy = colTypes;
-      for (String& it : copy)
+      std::vector<std::string> copy = colTypes;
+      for (std::string& it : copy)
       {
-        it.substitute(String(" "), String("_"));
+        StringUtils::substitute(it, std::string(" "), std::string("_"));
       }
 
-      s += ListUtils::concatenate(copy, " ").trim();
+      s += StringUtils::trimmed(ListUtils::concatenate(copy, " "));
       s += "</tableColumnTypes>\n";
-      for (std::vector<std::vector<String> >::const_iterator it = tableRows.begin(); it != tableRows.end(); ++it)
+      for (std::vector<std::vector<std::string> >::const_iterator it = tableRows.begin(); it != tableRows.end(); ++it)
       {
         s += indent + "\t" + "<tableRowValues>";
 
-        std::vector<String> copy_row = *it;
-        for (String& sit : copy_row)
+        std::vector<std::string> copy_row = *it;
+        for (std::string& sit : copy_row)
         {
-          sit.substitute(String(" "), String("_"));
+          StringUtils::substitute(sit, std::string(" "), std::string("_"));
         }
 
-        s += ListUtils::concatenate(*it, " ").trim();
+        s += StringUtils::trimmed(ListUtils::concatenate(*it, " "));
         s += "</tableRowValues>\n";
       }
       s += "</table>";
@@ -258,17 +260,17 @@ namespace OpenMS
 
   QcMLFile::~QcMLFile() = default;
 
-  void QcMLFile::addRunQualityParameter(const String& run_id, const QualityParameter& qp)
+  void QcMLFile::addRunQualityParameter(const std::string& run_id, const QualityParameter& qp)
   {
     // TODO warn that run has to be registered!
-    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(run_id); //if 'filename is a ID:'
+    std::map<std::string, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(run_id); //if 'filename is a ID:'
     if (qpsit != runQualityQPs_.end())
     {
       runQualityQPs_[run_id].push_back(qp);
     }
     else
     {
-      std::map<String, String>::const_iterator qpsit = run_Name_ID_map_.find(run_id); //if 'filename' is a name
+      std::map<std::string, std::string>::const_iterator qpsit = run_Name_ID_map_.find(run_id); //if 'filename' is a name
       if (qpsit != run_Name_ID_map_.end())
       {
         runQualityQPs_[qpsit->second].push_back(qp);
@@ -277,17 +279,17 @@ namespace OpenMS
     //TODO redundancy check
   }
 
-  void QcMLFile::addSetQualityParameter(const String& set_id, const QualityParameter& qp)
+  void QcMLFile::addSetQualityParameter(const std::string& set_id, const QualityParameter& qp)
   {
     // TODO warn that set has to be registered!
-    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(set_id); //if 'filename is a ID:'
+    std::map<std::string, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(set_id); //if 'filename is a ID:'
     if (qpsit != setQualityQPs_.end())
     {
       setQualityQPs_[set_id].push_back(qp);
     }
     else
     {
-      std::map<String, String>::const_iterator qpsit = set_Name_ID_map_.find(set_id); //if 'filename' is a name
+      std::map<std::string, std::string>::const_iterator qpsit = set_Name_ID_map_.find(set_id); //if 'filename' is a name
       if (qpsit != set_Name_ID_map_.end())
       {
         setQualityQPs_[qpsit->second].push_back(qp);
@@ -296,38 +298,38 @@ namespace OpenMS
     //TODO redundancy check
   }
 
-  void QcMLFile::addRunAttachment(const String& run_id, const Attachment& at)
+  void QcMLFile::addRunAttachment(const std::string& run_id, const Attachment& at)
   {
     runQualityAts_[run_id].push_back(at); //TODO permit AT without a QP (or enable orphan write out in store),redundancy check
   }
 
-  void QcMLFile::addSetAttachment(const String& run_id, const Attachment& at)
+  void QcMLFile::addSetAttachment(const std::string& run_id, const Attachment& at)
   {
     setQualityAts_[run_id].push_back(at); //TODO add file QP to set member
   }
 
-  void QcMLFile::getRunNames(std::vector<String>& ids) const
+  void QcMLFile::getRunNames(std::vector<std::string>& ids) const
   {
     ids.clear();
     for (const auto& m : run_Name_ID_map_) ids.push_back(m.first);
   }
 
-  void QcMLFile::getRunIDs(std::vector<String>& ids) const
+  void QcMLFile::getRunIDs(std::vector<std::string>& ids) const
   {
     ids.clear();
     for (const auto& m : runQualityQPs_) ids.push_back(m.first);
   }
 
-  bool QcMLFile::existsRun(const String& filename, bool checkname) const
+  bool QcMLFile::existsRun(const std::string& filename, bool checkname) const
   {
-    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename); //if 'filename is a ID:'
+    std::map<std::string, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename); //if 'filename is a ID:'
     if (qpsit != runQualityQPs_.end()) //NO, do not!: permit AT without a QP
     {
       return true;
     }
     else if (checkname)
     {
-      std::map<String, String>::const_iterator qpsit = run_Name_ID_map_.find(filename); //if 'filename' is a name
+      std::map<std::string, std::string>::const_iterator qpsit = run_Name_ID_map_.find(filename); //if 'filename' is a name
       if (qpsit != run_Name_ID_map_.end()) //NO, do not!: permit AT without a QP
       {
         return true;
@@ -337,16 +339,16 @@ namespace OpenMS
     return false;
   }
 
-  bool QcMLFile::existsSet(const String& filename, bool checkname) const
+  bool QcMLFile::existsSet(const std::string& filename, bool checkname) const
   {
-    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename); //if 'filename is a ID:'
+    std::map<std::string, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename); //if 'filename is a ID:'
     if (qpsit != setQualityQPs_.end()) //NO, do not!: permit AT without a QP
     {
       return true;
     }
     else if (checkname)
     {
-      std::map<String, String>::const_iterator qpsit = set_Name_ID_map_.find(filename); //if 'filename' is a name
+      std::map<std::string, std::string>::const_iterator qpsit = set_Name_ID_map_.find(filename); //if 'filename' is a name
       if (qpsit != set_Name_ID_map_.end()) //NO, do not!: permit AT without a QP
       {
         return true;
@@ -355,13 +357,13 @@ namespace OpenMS
     return false;
   }
 
-  void QcMLFile::existsRunQualityParameter(const String& filename, const String& qpname, std::vector<String>& ids) const
+  void QcMLFile::existsRunQualityParameter(const std::string& filename, const std::string& qpname, std::vector<std::string>& ids) const
   {
     ids.clear();
-    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
+    std::map<std::string, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
     if (qpsit == runQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
     {
-      std::map<String, String>::const_iterator mapsit = run_Name_ID_map_.find(filename);
+      std::map<std::string, std::string>::const_iterator mapsit = run_Name_ID_map_.find(filename);
       if (mapsit != run_Name_ID_map_.end())
       {
         qpsit = runQualityQPs_.find(mapsit->second);
@@ -379,13 +381,13 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::existsSetQualityParameter(const String& filename, const String& qpname, std::vector<String>& ids) const
+  void QcMLFile::existsSetQualityParameter(const std::string& filename, const std::string& qpname, std::vector<std::string>& ids) const
   {
     ids.clear();
-    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename);
+    std::map<std::string, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename);
     if (qpsit == setQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
     {
-      std::map<String, String>::const_iterator mapsit = set_Name_ID_map_.find(filename);
+      std::map<std::string, std::string>::const_iterator mapsit = set_Name_ID_map_.find(filename);
       if (mapsit != set_Name_ID_map_.end())
       {
         qpsit = setQualityQPs_.find(mapsit->second);
@@ -405,7 +407,7 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::removeQualityParameter(const String& r, std::vector<String>& ids)
+  void QcMLFile::removeQualityParameter(const std::string& r, std::vector<std::string>& ids)
   {
     removeAttachment(r, ids);
     for (Size i = 0; i < ids.size(); ++i)
@@ -437,7 +439,7 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::removeAttachment(const String& r, std::vector<String>& ids, const String& at)
+  void QcMLFile::removeAttachment(const std::string& r, std::vector<std::string>& ids, const std::string& at)
   {
     bool not_all = !at.empty();
     for (Size i = 0; i < ids.size(); ++i)
@@ -469,7 +471,7 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::removeAttachment(const String& r, const String& at)
+  void QcMLFile::removeAttachment(const std::string& r, const std::string& at)
   {
     if (existsRun(r))
     {
@@ -505,22 +507,22 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::removeAllAttachments(const String& at)
+  void QcMLFile::removeAllAttachments(const std::string& at)
   {
-    for (std::map<String, std::vector<Attachment> >::iterator it = runQualityAts_.begin(); it != runQualityAts_.end(); ++it)
+    for (std::map<std::string, std::vector<Attachment> >::iterator it = runQualityAts_.begin(); it != runQualityAts_.end(); ++it)
     {
       removeAttachment(it->first, at);
     }
   }
 
-  void QcMLFile::registerRun(const String& id, const String& name)
+  void QcMLFile::registerRun(const std::string& id, const std::string& name)
   {
     runQualityQPs_[id] = std::vector<QualityParameter>();
     runQualityAts_[id] = std::vector<Attachment>();
     run_Name_ID_map_[name] = id;
   }
 
-  void QcMLFile::registerSet(const String& id, const String& name, const std::set<String>& names)
+  void QcMLFile::registerSet(const std::string& id, const std::string& name, const std::set<std::string>& names)
   {
     setQualityQPs_[id] = std::vector<QualityParameter>();
     setQualityAts_[id] = std::vector<Attachment>();
@@ -528,10 +530,10 @@ namespace OpenMS
     setQualityQPs_members_[id] = names;
   }
 
-  void QcMLFile::merge(const QcMLFile& addendum, const String& setname)
+  void QcMLFile::merge(const QcMLFile& addendum, const std::string& setname)
   {
     //~ runs (and create set if setname not empty)
-    for (std::map<String, std::vector<QualityParameter> >::const_iterator it = addendum.runQualityQPs_.begin(); it != addendum.runQualityQPs_.end(); ++it)
+    for (std::map<std::string, std::vector<QualityParameter> >::const_iterator it = addendum.runQualityQPs_.begin(); it != addendum.runQualityQPs_.end(); ++it)
     {
       runQualityQPs_[it->first].insert(runQualityQPs_[it->first].end(), it->second.begin(), it->second.end());
       std::sort(runQualityQPs_[it->first].begin(), runQualityQPs_[it->first].end());
@@ -541,7 +543,7 @@ namespace OpenMS
         setQualityQPs_members_[setname].insert(it->first);
       }
     }
-    for (std::map<String, std::vector<Attachment> >::const_iterator it = addendum.runQualityAts_.begin(); it != addendum.runQualityAts_.end(); ++it)
+    for (std::map<std::string, std::vector<Attachment> >::const_iterator it = addendum.runQualityAts_.begin(); it != addendum.runQualityAts_.end(); ++it)
     {
       runQualityAts_[it->first].insert(runQualityAts_[it->first].end(), it->second.begin(), it->second.end());
       std::sort(runQualityAts_[it->first].begin(), runQualityAts_[it->first].end());
@@ -555,13 +557,13 @@ namespace OpenMS
     // sets
     //~ TODO sets are not supposed to overlap - throw error if so
     setQualityQPs_members_.insert(addendum.setQualityQPs_members_.begin(), addendum.setQualityQPs_members_.end());
-    for (std::map<String, std::vector<QualityParameter> >::const_iterator it = addendum.setQualityQPs_.begin(); it != addendum.setQualityQPs_.end(); ++it)
+    for (std::map<std::string, std::vector<QualityParameter> >::const_iterator it = addendum.setQualityQPs_.begin(); it != addendum.setQualityQPs_.end(); ++it)
     {
       setQualityQPs_[it->first].insert(setQualityQPs_[it->first].end(), it->second.begin(), it->second.end());
       std::sort(setQualityQPs_[it->first].begin(), setQualityQPs_[it->first].end());
       setQualityQPs_[it->first].erase(std::unique(setQualityQPs_[it->first].begin(), setQualityQPs_[it->first].end()), setQualityQPs_[it->first].end());
     }
-    for (std::map<String, std::vector<Attachment> >::const_iterator it = addendum.setQualityAts_.begin(); it != addendum.setQualityAts_.end(); ++it)
+    for (std::map<std::string, std::vector<Attachment> >::const_iterator it = addendum.setQualityAts_.begin(); it != addendum.setQualityAts_.end(); ++it)
     {
       setQualityAts_[it->first].insert(setQualityAts_[it->first].end(), it->second.begin(), it->second.end());
       std::sort(setQualityAts_[it->first].begin(), setQualityAts_[it->first].end());
@@ -569,12 +571,12 @@ namespace OpenMS
     }
   }
 
-  String QcMLFile::exportAttachment(const String& filename, const String& qpname) const
+  std::string QcMLFile::exportAttachment(const std::string& filename, const std::string& qpname) const
   {
-    std::map<String, std::vector<QcMLFile::Attachment> >::const_iterator qpsit = runQualityAts_.find(filename);
+    std::map<std::string, std::vector<QcMLFile::Attachment> >::const_iterator qpsit = runQualityAts_.find(filename);
     if (qpsit == runQualityAts_.end()) //try name mapping if 'filename' is no ID but name
     {
-      std::map<String, String>::const_iterator mapsit = run_Name_ID_map_.find(filename);
+      std::map<std::string, std::string>::const_iterator mapsit = run_Name_ID_map_.find(filename);
       if (mapsit != run_Name_ID_map_.end())
       {
         qpsit = runQualityAts_.find(mapsit->second);
@@ -596,7 +598,7 @@ namespace OpenMS
     qpsit = setQualityAts_.find(filename);
     if (qpsit == setQualityAts_.end()) //try name mapping if 'filename' is no ID but name
     {
-      std::map<String, String>::const_iterator mapsit = set_Name_ID_map_.find(filename);
+      std::map<std::string, std::string>::const_iterator mapsit = set_Name_ID_map_.find(filename);
       if (mapsit != set_Name_ID_map_.end())
       {
         qpsit = setQualityAts_.find(mapsit->second);
@@ -617,12 +619,12 @@ namespace OpenMS
     return "";
   }
 
-  String QcMLFile::exportQP(const String& filename, const String& qpname) const
+  std::string QcMLFile::exportQP(const std::string& filename, const std::string& qpname) const
   {
-    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
+    std::map<std::string, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
     if (qpsit == runQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
     {
-      std::map<String, String>::const_iterator mapsit = run_Name_ID_map_.find(filename);
+      std::map<std::string, std::string>::const_iterator mapsit = run_Name_ID_map_.find(filename);
       if (mapsit != run_Name_ID_map_.end())
       {
         qpsit = runQualityQPs_.find(mapsit->second);
@@ -643,7 +645,7 @@ namespace OpenMS
     qpsit = setQualityQPs_.find(filename);
     if (qpsit == setQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
     {
-      std::map<String, String>::const_iterator mapsit = set_Name_ID_map_.find(filename);
+      std::map<std::string, std::string>::const_iterator mapsit = set_Name_ID_map_.find(filename);
       if (mapsit != set_Name_ID_map_.end())
       {
         qpsit = setQualityQPs_.find(mapsit->second);
@@ -663,9 +665,9 @@ namespace OpenMS
     return "N/A";
   }
 
-  String QcMLFile::exportQPs(const String& filename, const StringList& qpnames) const
+  std::string QcMLFile::exportQPs(const std::string& filename, const StringList& qpnames) const
   {
-    String ret = "";
+    std::string ret;
     for (StringList::const_iterator qit = qpnames.begin(); qit != qpnames.end(); ++qit)
     {
       ret += exportQP(filename, *qit);
@@ -674,31 +676,31 @@ namespace OpenMS
     return ret;
   }
 
-  String QcMLFile::map2csv(const std::map<String, std::map<String, String> >& cvs_table, const String& separator) const
+  std::string QcMLFile::map2csv(const std::map<std::string, std::map<std::string, std::string> >& cvs_table, const std::string& separator) const
   {
-    String ret = "";
-    std::vector<String> cols;
+    std::string ret;
+    std::vector<std::string> cols;
     if (!cvs_table.empty())
     {
-      for (std::map<String, String>::const_iterator it = cvs_table.begin()->second.begin(); it != cvs_table.begin()->second.end(); ++it)
+      for (std::map<std::string, std::string>::const_iterator it = cvs_table.begin()->second.begin(); it != cvs_table.begin()->second.end(); ++it)
       {
         cols.push_back(it->first);
       }
       ret += "qp";
       ret += separator;
-      for (std::vector<String>::const_iterator jt = cols.begin(); jt != cols.end(); ++jt)
+      for (std::vector<std::string>::const_iterator jt = cols.begin(); jt != cols.end(); ++jt)
       {
         ret += *jt;
         ret += separator;
       }
       ret += "\n";
-      for (std::map<String, std::map<String, String> >::const_iterator it = cvs_table.begin(); it != cvs_table.end(); ++it)
+      for (std::map<std::string, std::map<std::string, std::string> >::const_iterator it = cvs_table.begin(); it != cvs_table.end(); ++it)
       {
         ret += it->first;
         ret += separator;
-        for (std::vector<String>::const_iterator jt = cols.begin(); jt != cols.end(); ++jt)
+        for (std::vector<std::string>::const_iterator jt = cols.begin(); jt != cols.end(); ++jt)
         {
-          std::map<String, String>::const_iterator found = it->second.find(*jt);
+          std::map<std::string, std::string>::const_iterator found = it->second.find(*jt);
           if (found != it->second.end())
           {
             ret += found->second;
@@ -711,12 +713,12 @@ namespace OpenMS
     return ret;
   }
 
-  String QcMLFile::exportIDstats(const String& filename) const
+  std::string QcMLFile::exportIDstats(const std::string& filename) const
   {
-    std::map<String, std::vector<QualityParameter> >::const_iterator found = setQualityQPs_.find(filename);
+    std::map<std::string, std::vector<QualityParameter> >::const_iterator found = setQualityQPs_.find(filename);
     if (found == setQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
     {
-      std::map<String, String>::const_iterator mapsit = set_Name_ID_map_.find(filename);
+      std::map<std::string, std::string>::const_iterator mapsit = set_Name_ID_map_.find(filename);
       if (mapsit != set_Name_ID_map_.end())
       {
         found = setQualityQPs_.find(mapsit->second);
@@ -724,16 +726,16 @@ namespace OpenMS
     }
     if (found != setQualityQPs_.end())
     {
-      std::map<String, std::map<String, String> > cvs_table;
+      std::map<std::string, std::map<std::string, std::string> > cvs_table;
       for (const QualityParameter& it : found->second)
       {
         if (it.cvAcc == "QC:0000043" || it.cvAcc == "QC:0000044" || it.cvAcc == "QC:0000045" || it.cvAcc == "QC:0000046" || it.cvAcc == "QC:0000047")
         {
-          cvs_table["id"][it.name.prefix(' ')] = it.value;
+          cvs_table["id"][StringUtils::prefix(it.name, ' ')] = it.value;
         }
         else if (it.cvAcc == "QC:0000053" || it.cvAcc == "QC:0000054" || it.cvAcc == "QC:0000055" || it.cvAcc == "QC:0000056" || it.cvAcc == "QC:0000057")
         {
-          cvs_table["ms2"][it.name.prefix(' ')] = it.value;
+          cvs_table["ms2"][StringUtils::prefix(it.name, ' ')] = it.value;
         }
       }
       if (!cvs_table.empty())
@@ -745,9 +747,9 @@ namespace OpenMS
     return "";
   }
 
-  void QcMLFile::collectSetParameter(const String& setname, const String& qp, std::vector<String>& ret)
+  void QcMLFile::collectSetParameter(const std::string& setname, const std::string& qp, std::vector<std::string>& ret)
   {
-    for (std::set<String>::const_iterator it = setQualityQPs_members_[setname].begin(); it != setQualityQPs_members_[setname].end(); ++it)
+    for (std::set<std::string>::const_iterator it = setQualityQPs_members_[setname].begin(); it != setQualityQPs_members_[setname].end(); ++it)
     {
       for (const QualityParameter& jt : runQualityQPs_[*it])
       {
@@ -759,7 +761,7 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::load(const String& filename)
+  void QcMLFile::load(const std::string& filename)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -776,14 +778,14 @@ namespace OpenMS
   void QcMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
     tag_ = sm_.convert(qname);
-    String parent_tag;
+    std::string parent_tag;
     if (!open_tags_.empty())
     {
       parent_tag = open_tags_.back();
     }
     open_tags_.push_back(tag_);
 
-    static set<String> to_ignore;
+    static set<std::string> to_ignore;
     if (to_ignore.empty())
     {
       to_ignore.insert("tableColumnTypes"); // will be handled entirely in characters.
@@ -791,12 +793,12 @@ namespace OpenMS
       to_ignore.insert("binary"); // ...
     }
 
-    if (to_ignore.find(tag_) != to_ignore.end())
+    if (to_ignore.contains(tag_))
     {
       return;
     }
 
-    String tmp_str;
+    std::string tmp_str;
     if (tag_ == "qcML")
     {
       startProgress(0, 0, "loading qcML file");
@@ -870,19 +872,19 @@ namespace OpenMS
   {
     if (tag_ == "tableRowValues")
     {
-      String s = sm_.convert(chars);
-      s.trim();
+      std::string s = sm_.convert(chars);
+      StringUtils::trim(s);
       if (!s.empty()) // always two notifications for a row, only the first one contains chars - dunno why
       {
-        s.split(" ", row_);
+        StringUtils::split(s, " ", row_);
       }
     }
     else if (tag_ == "tableColumnTypes")
     {
-      String s = sm_.convert(chars);
+      std::string s = sm_.convert(chars);
       if (!s.empty()) // always two notifications for a row, only the first one contains chars - dunno why
       {
-        s.split(" ", header_);
+        StringUtils::split(s, " ", header_);
       }
     }
     else if (tag_ == "binary")
@@ -895,7 +897,7 @@ namespace OpenMS
 
   void QcMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
-    static set<String> to_ignore;
+    static set<std::string> to_ignore;
     if (to_ignore.empty())
     {
       //~ to_ignore.insert("binary");
@@ -904,12 +906,12 @@ namespace OpenMS
     tag_ = sm_.convert(qname);
 
     //determine parent tag
-    String parent_tag;
+    std::string parent_tag;
     if (open_tags_.size() > 1)
     {
       parent_tag = *(open_tags_.end() - 2);
     }
-    String parent_parent_tag;
+    std::string parent_parent_tag;
     if (open_tags_.size() > 2)
     {
       parent_parent_tag = *(open_tags_.end() - 3);
@@ -918,7 +920,7 @@ namespace OpenMS
     //close current tag
     open_tags_.pop_back();
 
-    if (to_ignore.find(tag_) != to_ignore.end())
+    if (to_ignore.contains(tag_))
     {
       return;
     }
@@ -953,7 +955,7 @@ namespace OpenMS
       if (name_.empty())
       {
         name_ = run_id_;
-        //~ name_ = String(UniqueIdGenerator::getUniqueId());
+        //~ name_ =StringUtils::toStr(UniqueIdGenerator::getUniqueId());
         //TODO give warning that a run should have a name cv!!!
       }
       registerRun(run_id_, name_);
@@ -973,7 +975,7 @@ namespace OpenMS
       if (name_.empty())
       {
         name_ = run_id_;
-        //~ name_ = String(UniqueIdGenerator::getUniqueId());
+        //~ name_ =StringUtils::toStr(UniqueIdGenerator::getUniqueId());
         //TODO give warning that a run should have a name cv!!!
       }
       registerSet(run_id_, name_, names_);
@@ -1038,7 +1040,7 @@ namespace OpenMS
                                PeptideIdentificationList& pep_ids,
                                const FeatureMap& feature_map,
                                const ConsensusMap& consensus_map,
-                               const String& inputfile_raw, 
+                               const std::string& inputfile_raw, 
                                const bool remove_duplicate_features,
                                const MSExperiment& exp)
   {
@@ -1050,7 +1052,7 @@ namespace OpenMS
       //-------------------------------------------------------------
       // MS acquisition
       //------------------------------------------------------------
-      String base_name = QFileInfo(QString::fromStdString(inputfile_raw)).baseName();
+      std::string base_name = to_path(inputfile_raw).stem().string();
 
       UInt min_mz = std::numeric_limits<UInt>::max();
       UInt max_mz = 0;
@@ -1058,7 +1060,7 @@ namespace OpenMS
       
       registerRun(base_name,base_name); //TODO use UIDs
       //---base MS aquisition qp
-      String msaq_ref = base_name + "_msaq";
+      std::string msaq_ref = base_name + "_msaq";
       QcMLFile::QualityParameter qp;
       qp.id = msaq_ref; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
@@ -1134,12 +1136,12 @@ namespace OpenMS
           {
             max_mz = exp[i].getPrecursors().front().getMZ();
           }
-          std::vector<String> row;
-          row.emplace_back(exp[i].getRT());
-          row.emplace_back(exp[i].getPrecursors().front().getMZ());
-          row.emplace_back(exp[i].getPrecursors().front().getCharge());
-          row.emplace_back(calculateSNmedian(exp[i]));
-          row.emplace_back(exp[i].size());
+          std::vector<std::string> row;
+          row.push_back(StringUtils::toStr(exp[i].getRT()));
+          row.push_back(StringUtils::toStr(exp[i].getPrecursors().front().getMZ()));
+          row.push_back(StringUtils::toStr(exp[i].getPrecursors().front().getCharge()));
+          row.push_back(StringUtils::toStr(calculateSNmedian(exp[i])));
+          row.push_back(StringUtils::toStr(exp[i].size()));
           at.tableRows.push_back(row);
         }
       }
@@ -1150,7 +1152,7 @@ namespace OpenMS
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000006"; ///< cv accession for "aquisition results"
       qp.id = base_name + "_ms1aquisition"; ///< Identifier
-      qp.value = String(mslevelcounts[1]);
+      qp.value =StringUtils::toStr(mslevelcounts[1]);
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1167,7 +1169,7 @@ namespace OpenMS
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000007"; ///< cv accession for "aquisition results"
       qp.id = base_name + "_ms2aquisition"; ///< Identifier
-      qp.value = String(mslevelcounts[2]);
+      qp.value =StringUtils::toStr(mslevelcounts[2]);
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1183,7 +1185,7 @@ namespace OpenMS
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000008"; ///< cv accession for "aquisition results"
       qp.id = base_name + "_Chromaquisition"; ///< Identifier
-      qp.value = String(exp.getChromatograms().size());
+      qp.value =StringUtils::toStr(exp.getChromatograms().size());
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1212,9 +1214,9 @@ namespace OpenMS
 
       at.colTypes.emplace_back("QC:0000010"); //MZ
       at.colTypes.emplace_back("QC:0000011"); //MZ
-      std::vector<String> rowmz;
-      rowmz.emplace_back(min_mz);
-      rowmz.emplace_back(max_mz);
+      std::vector<std::string> rowmz;
+      rowmz.push_back(StringUtils::toStr(min_mz));
+      rowmz.push_back(StringUtils::toStr(max_mz));
       at.tableRows.push_back(rowmz);
       addRunAttachment(base_name, at);
 
@@ -1235,9 +1237,9 @@ namespace OpenMS
 
       at.colTypes.emplace_back("QC:0000013"); //MZ
       at.colTypes.emplace_back("QC:0000014"); //MZ
-      std::vector<String> rowrt;
-      rowrt.emplace_back(exp.begin()->getRT());
-      rowrt.emplace_back(exp.getSpectra().back().getRT());
+      std::vector<std::string> rowrt;
+      rowrt.push_back(StringUtils::toStr(exp.begin()->getRT()));
+      rowrt.push_back(StringUtils::toStr(exp.getSpectra().back().getRT()));
       at.tableRows.push_back(rowrt);
       addRunAttachment(base_name, at);
       
@@ -1261,7 +1263,7 @@ namespace OpenMS
       at.colTypes.emplace_back("MS:1000894_[sec]");
       at.colTypes.emplace_back("MS:1000285");
       Size below_10k = 0;
-      std::vector<OpenMS::Chromatogram> chroms = exp.getChromatograms();
+      const std::vector<OpenMS::Chromatogram>& chroms = exp.getChromatograms();
       if (!chroms.empty()) //real TIC from the mzML
       {
         for (Size t = 0; t < chroms.size(); ++t)
@@ -1275,9 +1277,9 @@ namespace OpenMS
               {
                 ++below_10k;
               }
-              std::vector<String> row;
-              row.emplace_back(chroms[t][i].getRT() * 60);
-              row.emplace_back(sum);
+              std::vector<std::string> row;
+              row.push_back(StringUtils::toStr(chroms[t][i].getRT() * 60));
+              row.push_back(StringUtils::toStr(sum));
               at.tableRows.push_back(row);
             }
             break;  // what if there are more than one? should generally not be though ...
@@ -1289,7 +1291,7 @@ namespace OpenMS
         qp.id = base_name + "_ticslump"; ///< Identifier
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000023";
-        qp.value = String((100 / exp.size()) * below_10k);
+        qp.value =StringUtils::toStr((100 / exp.size()) * below_10k);
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1349,11 +1351,11 @@ namespace OpenMS
             ++below_10k;
           }
           prev = sum;
-          std::vector<String> row;
-          row.emplace_back(exp[i].getRT());
-          row.emplace_back(sum);
-          row.emplace_back(calculateSNmedian(exp[i]));
-          row.emplace_back(exp[i].size());
+          std::vector<std::string> row;
+          row.push_back(StringUtils::toStr(exp[i].getRT()));
+          row.push_back(StringUtils::toStr(sum));
+          row.push_back(StringUtils::toStr(calculateSNmedian(exp[i])));
+          row.push_back(StringUtils::toStr(exp[i].size()));
           at.tableRows.push_back(row);
         }
       }
@@ -1363,7 +1365,7 @@ namespace OpenMS
       qp.id = base_name + "_ricslump"; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000057";
-      qp.value = String((100 / exp.size()) * below_10k);
+      qp.value =StringUtils::toStr((100 / exp.size()) * below_10k);
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1379,7 +1381,7 @@ namespace OpenMS
       qp.id = base_name + "_ricjump"; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000059";
-      qp.value = String(jumps);
+      qp.value =StringUtils::toStr(jumps);
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1395,7 +1397,7 @@ namespace OpenMS
       qp.id = base_name + "_ricdump"; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000060";
-      qp.value = String(drops);
+      qp.value =StringUtils::toStr(drops);
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1433,9 +1435,9 @@ namespace OpenMS
           {
             if (exp[i].getAcquisitionInfo()[j].metaValueExists("MS:1000927"))
             {
-              std::vector<String> row;
-              row.emplace_back(exp[i].getRT());
-              row.emplace_back(exp[i].getAcquisitionInfo()[j].getMetaValue("MS:1000927"));
+              std::vector<std::string> row;
+              row.push_back(StringUtils::toStr(exp[i].getRT()));
+              row.push_back(StringUtils::toStr(exp[i].getAcquisitionInfo()[j].getMetaValue("MS:1000927")));
               at.tableRows.push_back(row);
             }
           }
@@ -1452,10 +1454,10 @@ namespace OpenMS
       if (!prot_ids.empty() && !pep_ids.empty())
       {
         ProteinIdentification::SearchParameters params = prot_ids[0].getSearchParameters();
-        vector<String> var_mods = params.variable_modifications;
+        vector<std::string> var_mods = params.variable_modifications;
         //~ boost::regex re("(?<=[KR])(?=[^P])");
       
-        String msid_ref = base_name + "_msid";
+        std::string msid_ref = base_name + "_msid";
         QcMLFile::QualityParameter qp;
         qp.id = msid_ref; ///< Identifier
         qp.cvRef = "QC"; ///< cv reference
@@ -1490,7 +1492,7 @@ namespace OpenMS
         at.colTypes.emplace_back("MS:1001013"); //MS:1001013 db name  MS:1001016 version  MS:1001020 taxonomy
         at.colTypes.emplace_back("MS:1001016");
         at.colTypes.emplace_back("MS:1001020");
-        std::vector<String> row;
+        std::vector<std::string> row;
         row.emplace_back(prot_ids.front().getSearchParameters().db);
         row.emplace_back(prot_ids.front().getSearchParameters().db_version);
         row.emplace_back(prot_ids.front().getSearchParameters().taxonomy);
@@ -1501,8 +1503,8 @@ namespace OpenMS
         UInt spectrum_count = 0;
         Size peptide_hit_count = 0;
         Size protein_hit_count = 0;
-        set<String> peptides;
-        set<String> proteins;
+        set<std::string> peptides;
+        set<std::string> proteins;
         Size missedcleavages = 0;
         for (Size i = 0; i < pep_ids.size(); ++i)
         {
@@ -1517,9 +1519,9 @@ namespace OpenMS
             }
           }
         }
-        for (set<String>::iterator it = peptides.begin(); it != peptides.end(); ++it)
+        for (set<std::string>::iterator it = peptides.begin(); it != peptides.end(); ++it)
         {
-          for (String::const_iterator st = it->begin(); st != it->end() - 1; ++st)
+          for (std::string::const_iterator st = it->begin(); st != it->end() - 1; ++st)
           {
             if (*st == 'K' || *st == 'R')
             {
@@ -1541,7 +1543,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000037"; ///< cv accession
         qp.id = base_name + "_misscleave"; ///< Identifier
-        qp.value = missedcleavages;
+        qp.value = StringUtils::toStr(missedcleavages);
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1558,7 +1560,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000032"; ///< cv accession
         qp.id = base_name + "_totprot"; ///< Identifier
-        qp.value = protein_hit_count;
+        qp.value = StringUtils::toStr(protein_hit_count);
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1575,7 +1577,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000033"; ///< cv accession
         qp.id = base_name + "_totuniqprot"; ///< Identifier
-        qp.value = String(proteins.size());
+        qp.value =StringUtils::toStr(proteins.size());
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1592,7 +1594,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000029"; ///< cv accession
         qp.id = base_name + "_psms"; ///< Identifier
-        qp.value = String(spectrum_count);
+        qp.value =StringUtils::toStr(spectrum_count);
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1609,7 +1611,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000030"; ///< cv accession
         qp.id = base_name + "_totpeps"; ///< Identifier
-        qp.value = String(peptide_hit_count);
+        qp.value =StringUtils::toStr(peptide_hit_count);
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1626,7 +1628,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000031"; ///< cv accession
         qp.id = base_name + "_totuniqpeps"; ///< Identifier
-        qp.value = String(peptides.size());
+        qp.value =StringUtils::toStr(peptides.size());
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1665,7 +1667,7 @@ namespace OpenMS
   //      at.colTypes.push_back("S/N");
         for (UInt w = 0; w < var_mods.size(); ++w)
         {
-          at.colTypes.push_back(String(var_mods[w]).substitute(' ', '_'));
+          { std::string vmod = std::string(var_mods[w]); StringUtils::substitute(vmod, ' ', '_'); at.colTypes.push_back(vmod); }
         }
 
         std::vector<double> deltas;
@@ -1674,9 +1676,9 @@ namespace OpenMS
         {
           if (!pep_id.getHits().empty())
           {
-            std::vector<String> row;
-            row.emplace_back(pep_id.getRT());
-            row.emplace_back(pep_id.getMZ());
+            std::vector<std::string> row;
+            row.push_back(StringUtils::toStr(pep_id.getRT()));
+            row.push_back(StringUtils::toStr(pep_id.getMZ()));
             PeptideHit tmp = pep_id.getHits().front();  //N.B.: depends on score & sort
             vector<UInt> pep_mods;
             for (UInt w = 0; w < var_mods.size(); ++w)
@@ -1685,8 +1687,8 @@ namespace OpenMS
             }
             for (const Residue& z : tmp.getSequence())
             {
-              Residue res = z;
-              String temp;
+              const Residue& res = z;
+              std::string temp;
               if (res.isModified() && res.getModificationName() != "Carbamidomethyl")
               {
                 temp = res.getModificationName() + " (" + res.getOneLetterCode()  + ")";
@@ -1702,17 +1704,17 @@ namespace OpenMS
               }
             }
 
-            row.emplace_back(tmp.getScore());
-            row.push_back(tmp.getSequence().toString().removeWhitespaces());
-            row.emplace_back(tmp.getCharge());
+            row.push_back(StringUtils::toStr(tmp.getScore()));
+            { std::string seq_str = tmp.getSequence().toString(); row.push_back(StringUtils::removeWhitespaces(seq_str)); }
+            row.push_back(StringUtils::toStr(tmp.getCharge()));
             double mz = tmp.getSequence().getMZ(tmp.getCharge());
-            row.emplace_back(mz);
+            row.push_back(StringUtils::toStr(mz));
             double dppm = (pep_id.getMZ()-mz)/(mz*(double)1e-6);
-            row.emplace_back(dppm);
+            row.push_back(StringUtils::toStr(dppm));
             deltas.push_back(dppm);
             for (UInt w = 0; w < var_mods.size(); ++w)
             {
-              row.emplace_back(pep_mods[w]);
+              row.push_back(StringUtils::toStr(pep_mods[w]));
             }
             at.tableRows.push_back(row);
           }
@@ -1722,7 +1724,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000040"; ///< cv accession
         qp.id = base_name + "_mean_delta"; ///< Identifier
-        qp.value = String(OpenMS::Math::mean(deltas.begin(), deltas.end()));
+        qp.value =StringUtils::toStr(OpenMS::Math::mean(deltas.begin(), deltas.end()));
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1739,7 +1741,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000041"; ///< cv accession
         qp.id = base_name + "_median_delta"; ///< Identifier
-        qp.value = String(OpenMS::Math::median(deltas.begin(), deltas.end(), false));
+        qp.value =StringUtils::toStr(OpenMS::Math::median(deltas.begin(), deltas.end(), false));
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1756,7 +1758,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000035"; ///< cv accession
         qp.id = base_name + "_ratio_id"; ///< Identifier
-        qp.value = String(double(pep_ids.size()) / double(mslevelcounts[2]));
+        qp.value =StringUtils::toStr(double(pep_ids.size()) / double(mslevelcounts[2]));
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1772,7 +1774,7 @@ namespace OpenMS
       //-------------------------------------------------------------
       // MS quantitation
       //------------------------------------------------------------
-      String msqu_ref = base_name + "_msqu";
+      std::string msqu_ref = base_name + "_msqu";
       if (!feature_map.empty())
       {
         qp = QcMLFile::QualityParameter();
@@ -1794,7 +1796,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000046"; ///< cv accession
         qp.id = base_name + "_feature_count"; ///< Identifier
-        qp.value = String(feature_map.size());
+        qp.value =StringUtils::toStr(feature_map.size());
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1836,14 +1838,14 @@ namespace OpenMS
         //ofstream out(outputfile_name.c_str());
         while (fiter < feature_map.size())
         {
-          std::vector<String> row;
-          row.emplace_back(feature_map[fiter].getMZ());
-          row.emplace_back(feature_map[fiter].getRT());
-          row.emplace_back(feature_map[fiter].getIntensity());
-          row.emplace_back(feature_map[fiter].getCharge());
-          row.emplace_back(feature_map[fiter].getOverallQuality());
-          row.emplace_back(feature_map[fiter].getWidth());
-          row.emplace_back(feature_map[fiter].getPeptideIdentifications().size());
+          std::vector<std::string> row;
+          row.push_back(StringUtils::toStr(feature_map[fiter].getMZ()));
+          row.push_back(StringUtils::toStr(feature_map[fiter].getRT()));
+          row.push_back(StringUtils::toStr(feature_map[fiter].getIntensity()));
+          row.push_back(StringUtils::toStr(feature_map[fiter].getCharge()));
+          row.push_back(StringUtils::toStr(feature_map[fiter].getOverallQuality()));
+          row.push_back(StringUtils::toStr(feature_map[fiter].getWidth()));
+          row.push_back(StringUtils::toStr(feature_map[fiter].getPeptideIdentifications().size()));
           if (!feature_map[fiter].getPeptideIdentifications().empty())
           {
             ++ided;
@@ -1857,7 +1859,7 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000058"; ///< cv accession
         qp.id = base_name + "_idfeature_count"; ///< Identifier
-        qp.value = ided;
+        qp.value = StringUtils::toStr(ided);
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1945,14 +1947,15 @@ namespace OpenMS
           const ConsensusFeature& CF = *cmit;
           for (ConsensusFeature::const_iterator cfit = CF.begin(); cfit != CF.end(); ++cfit)
           {
-            std::vector<String> row;
-            FeatureHandle FH = *cfit;
-            row.emplace_back(CF.getMetaValue("spectrum_native_id"));
-            row.emplace_back(CF.getRT()); row.emplace_back(CF.getMZ());
-            row.emplace_back(CF.getIntensity());
-            row.emplace_back(FH.getRT());
-            row.emplace_back(FH.getMZ());
-            row.emplace_back(FH.getCharge());
+            std::vector<std::string> row;
+            const FeatureHandle& FH = *cfit;
+            row.push_back(StringUtils::toStr(CF.getMetaValue("spectrum_native_id")));
+            row.push_back(StringUtils::toStr(CF.getRT()));
+            row.push_back(StringUtils::toStr(CF.getMZ()));
+            row.push_back(StringUtils::toStr(CF.getIntensity()));
+            row.push_back(StringUtils::toStr(FH.getRT()));
+            row.push_back(StringUtils::toStr(FH.getMZ()));
+            row.push_back(StringUtils::toStr(FH.getCharge()));
             at.tableRows.push_back(row);
           }
         }
@@ -1963,18 +1966,18 @@ namespace OpenMS
 
 
 
-  void QcMLFile::store(const String& filename) const 
+  void QcMLFile::store(const std::string& filename) const 
   {
     //~ startProgress(0, 0, "storing qcML file");
     //~ progress_ = 0;
     //~ setProgress(++progress_);
 
     //~ file should either contain the complete stylesheet injection (including the stylesheet file preamble, the DOCTYPE definition and the stylesheet itself) or be empty
-    std::string xslt = "";
-    std::string xslt_ref = "";
+    std::string xslt;
+    std::string xslt_ref;
     try
     {
-      String xslt_file = File::find("XSL/QcML_report_sheet.xsl"); //TODO make this user defined pt.1
+      std::string xslt_file = File::find("XSL/QcML_report_sheet.xsl"); //TODO make this user defined pt.1
       std::ifstream in(xslt_file.c_str());
       xslt = std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
       xslt = xslt.erase(0, xslt.find('\n') + 1);
@@ -1982,7 +1985,7 @@ namespace OpenMS
     }
     catch (Exception::FileNotFound &)
     {
-      warning(STORE, String("No qcml stylesheet found, result will not be viewable in a browser!"));
+      warning(STORE,std::string("No qcml stylesheet found, result will not be viewable in a browser!"));
     }
 
 
@@ -2010,22 +2013,22 @@ namespace OpenMS
     os << "<qcML xmlns=\"https://github.com/qcML/qcml\" >\n"; //TODO creation date into schema!!
 
     //content runs
-    std::set<String> keys;
-    for (std::map<String, std::vector<QualityParameter> >::const_iterator it = runQualityQPs_.begin(); it != runQualityQPs_.end(); ++it)
+    std::set<std::string> keys;
+    for (std::map<std::string, std::vector<QualityParameter> >::const_iterator it = runQualityQPs_.begin(); it != runQualityQPs_.end(); ++it)
     {
       keys.insert(it->first);
     }
-    for (std::map<String, std::vector<Attachment> >::const_iterator it = runQualityAts_.begin(); it != runQualityAts_.end(); ++it)
+    for (std::map<std::string, std::vector<Attachment> >::const_iterator it = runQualityAts_.begin(); it != runQualityAts_.end(); ++it)
     {
       keys.insert(it->first);
     }
 
     if (!keys.empty())
     {
-      for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+      for (std::set<std::string>::const_iterator it = keys.begin(); it != keys.end(); ++it)
       {
-        os << "\t<runQuality ID=\"" << String(*it) << "\">\n";
-        std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(*it);
+        os << "\t<runQuality ID=\"" << std::string(*it) << "\">\n";
+        std::map<std::string, std::vector<QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(*it);
         if (qpsit != runQualityQPs_.end())
         {
           for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
@@ -2033,7 +2036,7 @@ namespace OpenMS
             os << qit->toXMLString(4);
           }
         }
-        std::map<String, std::vector<Attachment> >::const_iterator attit = runQualityAts_.find(*it);
+        std::map<std::string, std::vector<Attachment> >::const_iterator attit = runQualityAts_.find(*it);
         if (attit != runQualityAts_.end())
         {
           for (std::vector<QcMLFile::Attachment>::const_iterator ait = attit->second.begin(); ait != attit->second.end(); ++ait)
@@ -2047,30 +2050,30 @@ namespace OpenMS
 
     //content sets
     keys.clear();
-    for (std::map<String, std::vector<QualityParameter> >::const_iterator it = setQualityQPs_.begin(); it != setQualityQPs_.end(); ++it)
+    for (std::map<std::string, std::vector<QualityParameter> >::const_iterator it = setQualityQPs_.begin(); it != setQualityQPs_.end(); ++it)
     {
       keys.insert(it->first);
     }
-    for (std::map<String, std::vector<Attachment> >::const_iterator it = setQualityAts_.begin(); it != setQualityAts_.end(); ++it)
+    for (std::map<std::string, std::vector<Attachment> >::const_iterator it = setQualityAts_.begin(); it != setQualityAts_.end(); ++it)
     {
       keys.insert(it->first);
     }
 
     if (!keys.empty())
     {
-      for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+      for (std::set<std::string>::const_iterator it = keys.begin(); it != keys.end(); ++it)
       {
-        os << "\t<setQuality ID=\"" << String(*it) << "\">\n";
+        os << "\t<setQuality ID=\"" << std::string(*it) << "\">\n";
         //~ TODO warn if key has no entries in members_
 
         //document set members
-        std::map<String, std::set<String> >::const_iterator jt = setQualityQPs_members_.find(*it);
+        std::map<std::string, std::set<std::string> >::const_iterator jt = setQualityQPs_members_.find(*it);
 
         if (jt != setQualityQPs_members_.end())
         {
-          for (std::set<String>::const_iterator kt = jt->second.begin(); kt != jt->second.end(); ++kt)
+          for (std::set<std::string>::const_iterator kt = jt->second.begin(); kt != jt->second.end(); ++kt)
           {
-            std::map<String, std::vector<QualityParameter> >::const_iterator rq = runQualityQPs_.find(*kt);
+            std::map<std::string, std::vector<QualityParameter> >::const_iterator rq = runQualityQPs_.find(*kt);
             if (rq != runQualityQPs_.end())
             {
                 QcMLFile::QualityParameter qp;
@@ -2094,7 +2097,7 @@ namespace OpenMS
           }
         }
 
-        std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(*it);
+        std::map<std::string, std::vector<QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(*it);
         if (qpsit != setQualityQPs_.end())
         {
           for (const QcMLFile::QualityParameter& qit : qpsit->second)
@@ -2103,7 +2106,7 @@ namespace OpenMS
           }
         }
 
-        std::map<String, std::vector<Attachment> >::const_iterator attit = setQualityAts_.find(*it);
+        std::map<std::string, std::vector<Attachment> >::const_iterator attit = setQualityAts_.find(*it);
         if (attit != setQualityAts_.end())
         {
           for (const QcMLFile::Attachment& ait : attit->second)

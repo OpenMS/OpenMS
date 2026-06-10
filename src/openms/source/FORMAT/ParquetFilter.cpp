@@ -29,78 +29,78 @@ namespace OpenMS
     return *this;
   }
 
-  ParquetFilter& ParquetFilter::eq(const String& column, Int64 value)
+  ParquetFilter& ParquetFilter::eq(const std::string& column, Int64 value)
   {
-    return addCondition_(column, "=", ColumnType::INT, {String(value)});
+    return addCondition_(column, "=", ColumnType::INT, {StringUtils::toStr(value)});
   }
 
-  ParquetFilter& ParquetFilter::ne(const String& column, Int64 value)
+  ParquetFilter& ParquetFilter::ne(const std::string& column, Int64 value)
   {
-    return addCondition_(column, "!=", ColumnType::INT, {String(value)});
+    return addCondition_(column, "!=", ColumnType::INT, {StringUtils::toStr(value)});
   }
 
-  ParquetFilter& ParquetFilter::lt(const String& column, Int64 value)
+  ParquetFilter& ParquetFilter::lt(const std::string& column, Int64 value)
   {
-    return addCondition_(column, "<", ColumnType::INT, {String(value)});
+    return addCondition_(column, "<", ColumnType::INT, {StringUtils::toStr(value)});
   }
 
-  ParquetFilter& ParquetFilter::le(const String& column, Int64 value)
+  ParquetFilter& ParquetFilter::le(const std::string& column, Int64 value)
   {
-    return addCondition_(column, "<=", ColumnType::INT, {String(value)});
+    return addCondition_(column, "<=", ColumnType::INT, {StringUtils::toStr(value)});
   }
 
-  ParquetFilter& ParquetFilter::gt(const String& column, Int64 value)
+  ParquetFilter& ParquetFilter::gt(const std::string& column, Int64 value)
   {
-    return addCondition_(column, ">", ColumnType::INT, {String(value)});
+    return addCondition_(column, ">", ColumnType::INT, {StringUtils::toStr(value)});
   }
 
-  ParquetFilter& ParquetFilter::ge(const String& column, Int64 value)
+  ParquetFilter& ParquetFilter::ge(const std::string& column, Int64 value)
   {
-    return addCondition_(column, ">=", ColumnType::INT, {String(value)});
+    return addCondition_(column, ">=", ColumnType::INT, {StringUtils::toStr(value)});
   }
 
-  ParquetFilter& ParquetFilter::in(const String& column, const std::vector<Int64>& values)
+  ParquetFilter& ParquetFilter::in(const std::string& column, const std::vector<Int64>& values)
   {
-    std::vector<String> str_values;
+    std::vector<std::string> str_values;
     str_values.reserve(values.size());
     for (const auto& v : values)
     {
-      str_values.emplace_back(String(v));
+      str_values.emplace_back(StringUtils::toStr(v));
     }
     return addCondition_(column, "IN", ColumnType::INT, str_values);
   }
 
-  ParquetFilter& ParquetFilter::eq(const String& column, const String& value)
+  ParquetFilter& ParquetFilter::eq(const std::string& column, const std::string& value)
   {
     return addCondition_(column, "=", ColumnType::STRING, {value});
   }
 
-  ParquetFilter& ParquetFilter::ne(const String& column, const String& value)
+  ParquetFilter& ParquetFilter::ne(const std::string& column, const std::string& value)
   {
     return addCondition_(column, "!=", ColumnType::STRING, {value});
   }
 
-  ParquetFilter& ParquetFilter::lt(const String& column, const String& value)
+  ParquetFilter& ParquetFilter::lt(const std::string& column, const std::string& value)
   {
     return addCondition_(column, "<", ColumnType::STRING, {value});
   }
 
-  ParquetFilter& ParquetFilter::le(const String& column, const String& value)
+  ParquetFilter& ParquetFilter::le(const std::string& column, const std::string& value)
   {
     return addCondition_(column, "<=", ColumnType::STRING, {value});
   }
 
-  ParquetFilter& ParquetFilter::gt(const String& column, const String& value)
+  ParquetFilter& ParquetFilter::gt(const std::string& column, const std::string& value)
   {
     return addCondition_(column, ">", ColumnType::STRING, {value});
   }
 
-  ParquetFilter& ParquetFilter::ge(const String& column, const String& value)
+  ParquetFilter& ParquetFilter::ge(const std::string& column, const std::string& value)
   {
     return addCondition_(column, ">=", ColumnType::STRING, {value});
   }
 
-  ParquetFilter& ParquetFilter::in(const String& column, const std::vector<String>& values)
+  ParquetFilter& ParquetFilter::in(const std::string& column, const std::vector<std::string>& values)
   {
     return addCondition_(column, "IN", ColumnType::STRING, values);
   }
@@ -117,7 +117,7 @@ namespace OpenMS
 
   FilterExpression ParquetFilter::merge(const FilterExpression& lhs,
                                         const FilterExpression& rhs,
-                                        const String& connector)
+                                        const std::string& connector)
   {
     if (lhs.conditions.empty())
     {
@@ -141,10 +141,10 @@ namespace OpenMS
     return combined;
   }
 
-  ParquetFilter& ParquetFilter::addCondition_(const String& column,
-                                              const String& op,
+  ParquetFilter& ParquetFilter::addCondition_(const std::string& column,
+                                              const std::string& op,
                                               ColumnType type,
-                                              const std::vector<String>& values)
+                                              const std::vector<std::string>& values)
   {
     Condition cond;
     cond.column = column;
@@ -174,85 +174,85 @@ namespace OpenMS
     return *this;
   }
 
-  ParquetFilterBuilder& ParquetFilterBuilder::eq(const String& column, Int64 value)
+  ParquetFilterBuilder& ParquetFilterBuilder::eq(const std::string& column, Int64 value)
   {
     filter_.eq(column, value);
     return *this;
   }
 
-  ParquetFilterBuilder& ParquetFilterBuilder::ne(const String& column, Int64 value)
+  ParquetFilterBuilder& ParquetFilterBuilder::ne(const std::string& column, Int64 value)
   {
     filter_.ne(column, value);
     return *this;
   }
 
-  ParquetFilterBuilder& ParquetFilterBuilder::lt(const String& column, Int64 value)
+  ParquetFilterBuilder& ParquetFilterBuilder::lt(const std::string& column, Int64 value)
   {
     filter_.lt(column, value);
     return *this;
   }
 
-  ParquetFilterBuilder& ParquetFilterBuilder::le(const String& column, Int64 value)
+  ParquetFilterBuilder& ParquetFilterBuilder::le(const std::string& column, Int64 value)
   {
     filter_.le(column, value);
     return *this;
   }
 
-  ParquetFilterBuilder& ParquetFilterBuilder::gt(const String& column, Int64 value)
+  ParquetFilterBuilder& ParquetFilterBuilder::gt(const std::string& column, Int64 value)
   {
     filter_.gt(column, value);
     return *this;
   }
 
-  ParquetFilterBuilder& ParquetFilterBuilder::ge(const String& column, Int64 value)
+  ParquetFilterBuilder& ParquetFilterBuilder::ge(const std::string& column, Int64 value)
   {
     filter_.ge(column, value);
     return *this;
   }
 
-  ParquetFilterBuilder& ParquetFilterBuilder::in(const String& column, const std::vector<Int64>& values)
+  ParquetFilterBuilder& ParquetFilterBuilder::in(const std::string& column, const std::vector<Int64>& values)
   {
     filter_.in(column, values);
     return *this;
   }
 
-  ParquetFilterBuilder& ParquetFilterBuilder::eq(const String& column, const String& value)
+  ParquetFilterBuilder& ParquetFilterBuilder::eq(const std::string& column, const std::string& value)
   {
     filter_.eq(column, value);
     return *this;
   }
 
-  ParquetFilterBuilder& ParquetFilterBuilder::ne(const String& column, const String& value)
+  ParquetFilterBuilder& ParquetFilterBuilder::ne(const std::string& column, const std::string& value)
   {
     filter_.ne(column, value);
     return *this;
   }
 
-  ParquetFilterBuilder& ParquetFilterBuilder::lt(const String& column, const String& value)
+  ParquetFilterBuilder& ParquetFilterBuilder::lt(const std::string& column, const std::string& value)
   {
     filter_.lt(column, value);
     return *this;
   }
 
-  ParquetFilterBuilder& ParquetFilterBuilder::le(const String& column, const String& value)
+  ParquetFilterBuilder& ParquetFilterBuilder::le(const std::string& column, const std::string& value)
   {
     filter_.le(column, value);
     return *this;
   }
 
-  ParquetFilterBuilder& ParquetFilterBuilder::gt(const String& column, const String& value)
+  ParquetFilterBuilder& ParquetFilterBuilder::gt(const std::string& column, const std::string& value)
   {
     filter_.gt(column, value);
     return *this;
   }
 
-  ParquetFilterBuilder& ParquetFilterBuilder::ge(const String& column, const String& value)
+  ParquetFilterBuilder& ParquetFilterBuilder::ge(const std::string& column, const std::string& value)
   {
     filter_.ge(column, value);
     return *this;
   }
 
-  ParquetFilterBuilder& ParquetFilterBuilder::in(const String& column, const std::vector<String>& values)
+  ParquetFilterBuilder& ParquetFilterBuilder::in(const std::string& column, const std::vector<std::string>& values)
   {
     filter_.in(column, values);
     return *this;

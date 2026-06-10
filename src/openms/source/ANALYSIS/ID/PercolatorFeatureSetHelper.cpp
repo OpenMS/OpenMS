@@ -43,7 +43,7 @@ namespace OpenMS
     {
       //TODO annotate isotope error in Adapter and add here as well.
       // Find out which ions are in XTandem-File and take only these as features
-      StringList ion_types = ListUtils::create<String>("a,b,c,x,y,z");
+      StringList ion_types = ListUtils::create<std::string>("a,b,c,x,y,z");
       StringList ion_types_found;
       for (StringList::const_iterator ion = ion_types.begin(); ion != ion_types.end(); ++ion)
       {
@@ -60,10 +60,10 @@ namespace OpenMS
       for (PeptideIdentificationList::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
       {
         double hyper_score = it->getHits().front().getScore();
-        double delta_score = hyper_score - it->getHits().front().getMetaValue("nextscore").toString().toDouble();
+        double delta_score = hyper_score - StringUtils::toDouble(it->getHits().front().getMetaValue("nextscore").toString());
         it->getHits().front().setMetaValue("XTANDEM:deltascore", delta_score);
         
-        String sequence = it->getHits().front().getSequence().toUnmodifiedString();
+        std::string sequence = it->getHits().front().getSequence().toUnmodifiedString();
         int length = sequence.length();
 
         // Find out correct ion types and get its Values
@@ -73,7 +73,7 @@ namespace OpenMS
               !peptide_ids.front().getHits().front().getMetaValue(*ion + "_ions").toString().empty())
           {
             // recalculate ion score
-            double ion_score = it->getHits().front().getMetaValue(*ion + "_ions").toString().toDouble() / length;
+            double ion_score = StringUtils::toDouble(it->getHits().front().getMetaValue(*ion + "_ions").toString()) / length;
             it->getHits().front().setMetaValue("XTANDEM:frac_ion_" + *ion, ion_score);
           }
         }
@@ -107,7 +107,7 @@ namespace OpenMS
         Int cnt = 0;
         for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
-          double xcorr = hit->getMetaValue("MS:1002252").toString().toDouble();
+          double xcorr = StringUtils::toDouble(hit->getMetaValue("MS:1002252").toString());
           worst_xcorr = xcorr;
           if (cnt == 1) { second_xcorr = xcorr; }
           ++cnt;
@@ -116,7 +116,7 @@ namespace OpenMS
         for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
 
-          double xcorr = hit->getMetaValue("MS:1002252").toString().toDouble();
+          double xcorr = StringUtils::toDouble(hit->getMetaValue("MS:1002252").toString());
 
           if (!hit->metaValueExists("COMET:deltaCn"))
           {
@@ -130,7 +130,7 @@ namespace OpenMS
             hit->setMetaValue("COMET:deltaLCn", delta_last_cn);
           }
           
-          double ln_expect = log(hit->getMetaValue("MS:1002257").toString().toDouble());
+          double ln_expect = log(StringUtils::toDouble(hit->getMetaValue("MS:1002257").toString()));
           hit->setMetaValue("COMET:lnExpect", ln_expect);
 
           if (!hit->metaValueExists("COMET:lnNumSP"))
@@ -138,26 +138,26 @@ namespace OpenMS
             double ln_num_sp;   
             if (hit->metaValueExists("num_matched_peptides"))
             {
-              double num_sp = hit->getMetaValue("num_matched_peptides").toString().toDouble();
+              double num_sp = StringUtils::toDouble(hit->getMetaValue("num_matched_peptides").toString());
               ln_num_sp = log(max(1.0, num_sp));  // if recorded, one can be safely assumed
             }
             else // fallback TODO: remove?
             {
-              ln_num_sp = hit->getMetaValue("MS:1002255").toString().toDouble();
+              ln_num_sp = StringUtils::toDouble(hit->getMetaValue("MS:1002255").toString());
             }  
             hit->setMetaValue("COMET:lnNumSP", ln_num_sp);
           }
 
           if (!hit->metaValueExists("COMET:lnRankSP"))
           {          
-            double ln_rank_sp = log(max(1.0, hit->getMetaValue("MS:1002256").toString().toDouble()));
+            double ln_rank_sp = log(max(1.0, StringUtils::toDouble(hit->getMetaValue("MS:1002256").toString())));
             hit->setMetaValue("COMET:lnRankSP", ln_rank_sp);
           }
 
           if (!hit->metaValueExists("COMET:IonFrac"))
           {
-            double num_matched_ions = hit->getMetaValue("MS:1002258").toString().toDouble();
-            double num_total_ions = hit->getMetaValue("MS:1002259").toString().toDouble();
+            double num_matched_ions = StringUtils::toDouble(hit->getMetaValue("MS:1002258").toString());
+            double num_total_ions = StringUtils::toDouble(hit->getMetaValue("MS:1002259").toString());
             double ion_frac = num_matched_ions / num_total_ions;
             hit->setMetaValue("COMET:IonFrac", ion_frac);
           }
@@ -229,18 +229,18 @@ namespace OpenMS
       }
     }
 
-    void PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const String& search_engine)
+    void PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const std::string& search_engine)
     {
       OPENMS_LOG_DEBUG << "creating spectrum map" << endl;
       
-      std::map<String,PeptideIdentification> unified;
+      std::map<std::string,PeptideIdentification> unified;
       //setup map of merge characteristics per spectrum
       for (PeptideIdentificationList::iterator pit = all_peptide_ids.begin(); pit != all_peptide_ids.end(); ++pit)
       {
         PeptideIdentification ins = *pit;
         ins.setScoreType("multiple");
         ins.setIdentifier("TopPerc_multiple_SE_input");
-        String spectrum_reference = getScanMergeKey_(pit, all_peptide_ids.begin());
+        std::string spectrum_reference = getScanMergeKey_(pit, all_peptide_ids.begin());
         unified[spectrum_reference] = ins;
       }
       OPENMS_LOG_DEBUG << "filled spectrum map with previously observed PSM: " << unified.size() << endl;
@@ -251,7 +251,7 @@ namespace OpenMS
       for (PeptideIdentificationList::iterator pit = new_peptide_ids.begin(); pit != new_peptide_ids.end(); ++pit)
       {
         PeptideIdentification ins = *pit;
-        String st = pit->getScoreType();
+        std::string st = pit->getScoreType();
         //prepare for merge
         for (vector<PeptideHit>::iterator hit = ins.getHits().begin(); hit != ins.getHits().end(); ++hit)
         {
@@ -300,10 +300,10 @@ namespace OpenMS
         }
         ins.setScoreType("multiple");
         ins.setIdentifier("TopPerc_multiple_SE_input");
-        String spectrum_reference = getScanMergeKey_(pit, new_peptide_ids.begin());
+        std::string spectrum_reference = getScanMergeKey_(pit, new_peptide_ids.begin());
         //merge in unified map
         // insert newly identified spectra (PeptideIdentifications) or ..
-        if (unified.find(spectrum_reference) == unified.end())
+        if (!unified.contains(spectrum_reference))
         {
           unified[spectrum_reference] = ins;
           ++nc;
@@ -357,7 +357,7 @@ namespace OpenMS
       PeptideIdentificationList swip;
       swip.reserve(unified.size());
       OPENMS_LOG_DEBUG << "merging spectrum map" << endl;
-      for (std::map<String,PeptideIdentification>::iterator it = unified.begin(); it != unified.end(); ++it)
+      for (std::map<std::string,PeptideIdentification>::iterator it = unified.begin(); it != unified.end(); ++it)
       {
         swip.push_back(it->second);
       }
@@ -370,13 +370,13 @@ namespace OpenMS
     {      
       OPENMS_LOG_DEBUG << "merging search parameters" << endl;
       
-      String SE = new_protein_ids.front().getSearchEngine();  
+      std::string SE = new_protein_ids.front().getSearchEngine();  
       if (all_protein_ids.empty())
       {
         all_protein_ids.emplace_back();
         DateTime now = DateTime::now();
-        String date_string = now.getDate();
-        String identifier = "TopPerc_" + date_string;
+        std::string date_string = now.getDate();
+        std::string identifier = "TopPerc_" + date_string;
         all_protein_ids.front().setDateTime(now);
         all_protein_ids.front().setIdentifier(identifier);
         all_protein_ids.front().setSearchEngine(SE);
@@ -461,7 +461,7 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << "Merging for this file finished." << endl;
     }
     
-    void PercolatorFeatureSetHelper::concatMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const String& search_engine)
+    void PercolatorFeatureSetHelper::concatMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const std::string& search_engine)
     {      
       for (PeptideIdentificationList::iterator pit = new_peptide_ids.begin(); pit != new_peptide_ids.end(); ++pit)
       {
@@ -471,22 +471,22 @@ namespace OpenMS
           if (search_engine == "MS-GF+")
           {
             hit->setMetaValue("CONCAT:" + search_engine, hit->getMetaValue("MS:1002049"));  // rawscore
-            evalue = hit->getMetaValue("MS:1002049").toString().toDouble();  // evalue
+            evalue = StringUtils::toDouble(hit->getMetaValue("MS:1002049").toString());  // evalue
           }
           if (search_engine == "Mascot")
           {
             hit->setMetaValue("CONCAT:" + search_engine, hit->getMetaValue("MS:1001171")); // mscore
-            evalue = hit->getMetaValue("EValue").toString().toDouble();
+            evalue = StringUtils::toDouble(hit->getMetaValue("EValue").toString());
           }
           if (search_engine == "Comet")
           {
             hit->setMetaValue("CONCAT:" + search_engine, hit->getMetaValue("MS:1002252"));  // xcorr
-            evalue = hit->getMetaValue("MS:1002257").toString().toDouble();
+            evalue = StringUtils::toDouble(hit->getMetaValue("MS:1002257").toString());
           }
           if (search_engine == "XTandem")
           {
             hit->setMetaValue("CONCAT:" + search_engine, hit->getMetaValue("XTandem_score"));  // xtandem score
-            evalue = hit->getMetaValue("E-Value").toString().toDouble();
+            evalue = StringUtils::toDouble(hit->getMetaValue("E-Value").toString());
           }
           hit->setMetaValue("CONCAT:lnEvalue", log(evalue));  // log(evalue)
         }
@@ -496,8 +496,8 @@ namespace OpenMS
 
     void PercolatorFeatureSetHelper::addMULTISEFeatures(PeptideIdentificationList& peptide_ids, StringList& search_engines_used, StringList& feature_set, bool complete_only, bool limits_imputation)
     {
-      map<String,vector<double> > extremals;  // will have as keys the below SE cv terms
-      vector<String> max_better, min_better;
+      map<std::string,vector<double> > extremals;  // will have as keys the below SE cv terms
+      vector<std::string> max_better, min_better;
       // This is the minimum set for each SE that should be available in all openms id files in one way or another
       if (ListUtils::contains(search_engines_used, "MS-GF+"))
       {
@@ -546,7 +546,7 @@ namespace OpenMS
                 // TODO raise issue: MS-GF raw score values are sometimes registered as string DataValues and henceforth casted defectively
                 if (hit->getMetaValue(*feats).valueType() == DataValue::STRING_VALUE)
                 {
-                  String recast = hit->getMetaValue(*feats);
+                  std::string recast = hit->getMetaValue(*feats);
                   double d = boost::lexical_cast<double>(recast);
                   OPENMS_LOG_DEBUG << "recast: "
                             << recast << " "
@@ -562,9 +562,9 @@ namespace OpenMS
           }
         }
         // TODO : add optional manual extremal values settings for 'data imputation' instead of min/max or numeric_limits value
-        for (vector<String>::iterator maxbt = max_better.begin(); maxbt != max_better.end(); ++maxbt)
+        for (vector<std::string>::iterator maxbt = max_better.begin(); maxbt != max_better.end(); ++maxbt)
         {
-          map<String,vector<double> >::iterator fi = extremals.find(*maxbt);
+          map<std::string,vector<double> >::iterator fi = extremals.find(*maxbt);
           if (fi != extremals.end())
           {
             vector<double>::iterator mymax = min_element(fi->second.begin(), fi->second.end());
@@ -575,9 +575,9 @@ namespace OpenMS
             }
           }
         }
-        for (vector<String>::iterator minbt = min_better.begin(); minbt != min_better.end(); ++minbt)
+        for (vector<std::string>::iterator minbt = min_better.begin(); minbt != min_better.end(); ++minbt)
         {
-          map<String,vector<double> >::iterator fi = extremals.find(*minbt);
+          map<std::string,vector<double> >::iterator fi = extremals.find(*minbt);
           if (fi != extremals.end())
           {
             vector<double>::iterator mymin = max_element(fi->second.begin(), fi->second.end());
@@ -606,7 +606,7 @@ namespace OpenMS
         size_t imputed_back = imputed_values;
         for (vector<PeptideHit>::iterator hit = pi->getHits().begin(); hit != pi->getHits().end(); ++hit)
         {
-          //double ion_frac = hit->getMetaValue("matched_intensity").toString().toDouble() / hit->getMetaValue("sum_intensity").toString().toDouble();  // also consider "matched_ion_number"/"peak_number"
+          //double ion_frac = hit->getMetaValue("matched_intensity").toString().toDouble( / hit->getMetaValue("sum_intensity").toString().toDouble(;  // also consider "matched_ion_number"/"peak_number"
           //hit->setMetaValue("MULTI:ionFrac", ion_frac);
           
           for (StringList::iterator feats = feature_set.begin(); feats != feature_set.end(); ++feats)
@@ -691,7 +691,7 @@ namespace OpenMS
       return featureValue * ((double)numerator / denominator);
     }
     
-    void PercolatorFeatureSetHelper::assignDeltaScore_(vector<PeptideHit>& hits, const String& score_ref, const String& output_ref)
+    void PercolatorFeatureSetHelper::assignDeltaScore_(vector<PeptideHit>& hits, const std::string& score_ref, const std::string& output_ref)
     {
       if (!hits.empty())
       {
@@ -711,40 +711,40 @@ namespace OpenMS
     // TODO: this is code redundancy to PercolatorAdapter
     // TODO: in case of merged idXML files from fractions and/or replicates make sure that you also consider the file origin
     //  this is usually stored in the map_index MetaValue of a PeptideIdentification (PSM) object.
-    String PercolatorFeatureSetHelper::getScanMergeKey_(PeptideIdentificationList::iterator it, PeptideIdentificationList::iterator start)
+    std::string PercolatorFeatureSetHelper::getScanMergeKey_(PeptideIdentificationList::iterator it, PeptideIdentificationList::iterator start)
     {
       // MSGF+ uses this field, is empty if not specified
-      String scan_identifier = it->getSpectrumReference();
+      std::string scan_identifier = it->getSpectrumReference();
       if (scan_identifier.empty())
       {
         // XTandem uses this (integer) field
         // these ids are 1-based in contrast to the index which is 0-based, so subtract 1.
         if (it->metaValueExists("spectrum_id") && !it->getMetaValue("spectrum_id").toString().empty())
         {
-          scan_identifier = "index=" + String(it->getMetaValue("spectrum_id").toString().toInt() - 1);
+          scan_identifier = "index=" + StringUtils::toStr(StringUtils::toInt32(it->getMetaValue("spectrum_id").toString()) - 1);
         }
         else
         {
-          scan_identifier = "index=" + String(it - start + 1);
+          scan_identifier = "index=" + StringUtils::toStr(it - start + 1);
           OPENMS_LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
         }
       }
       
       Int scan = 0;
-      StringList fields = ListUtils::create<String>(scan_identifier);
+      StringList fields = ListUtils::create<std::string>(scan_identifier);
       for (StringList::const_iterator it = fields.begin(); it != fields.end(); ++it)
       {
         Size idx = 0;
-        if ((idx = it->find("scan=")) != String::npos)
+        if ((idx = it->find("scan=")) != std::string::npos)
         {
-          scan = it->substr(idx + 5).toInt();
+          scan = StringUtils::toInt32(it->substr(idx + 5));
           break;
         }  // only if scan number is not available, use the scan index
-        else if ((idx = it->find("index=")) != String::npos)
+        else if ((idx = it->find("index=")) != std::string::npos)
         {
-          scan = it->substr(idx + 6).toInt();
+          scan = StringUtils::toInt32(it->substr(idx + 6));
         }
       }
-      return String(scan);
+      return StringUtils::toStr(scan);
     }
 }

@@ -15,8 +15,10 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
@@ -44,9 +46,9 @@ namespace OpenMS
           for (const auto& arr : spectrum->getDataArrays())
           {
             // Check for CCS CV term (MS:1002954) or square angstrom unit (UO:0000324)
-            if (arr->description.find("MS:1002954") != std::string::npos ||
-                arr->description.find("UO:0000324") != std::string::npos ||
-                arr->description.find("collision cross section") != std::string::npos)
+            if (arr->description.contains("MS:1002954") ||
+                arr->description.contains("UO:0000324") ||
+                arr->description.contains("collision cross section"))
             {
               OPENMS_LOG_WARN << "Warning: Ion mobility data appears to be in CCS (Collisional Cross Section) format. "
                               << "OpenSwath expects ion mobility in 1/K0 (inverse reduced ion mobility) units. "
@@ -61,7 +63,7 @@ namespace OpenMS
     }
   }
 
-  TOPPOpenSwathBase::TOPPOpenSwathBase(String name, String description, bool official, const std::vector<Citation>& citations) :
+  TOPPOpenSwathBase::TOPPOpenSwathBase(std::string name, std::string description, bool official, const std::vector<Citation>& citations) :
     TOPPBase(name, description, official, citations)
   {
   }
@@ -72,11 +74,11 @@ namespace OpenMS
 
   void TOPPOpenSwathBase::loadSwathFiles_(const StringList& file_list,
                        const bool split_file,
-                       const String& tmp,
-                       const String& readoptions,
+                       const std::string& tmp,
+                       const std::string& readoptions,
                        std::shared_ptr<ExperimentalSettings > & exp_meta,
                        std::vector< OpenSwath::SwathMap > & swath_maps,
-                       std::vector<String> & swath_map_sources,
+                       std::vector<std::string> & swath_map_sources,
                        Interfaces::IMSDataConsumer* plugin_consumer)
   {
     SwathFile swath_file;
@@ -127,10 +129,44 @@ namespace OpenMS
             swath_map_sources.push_back(f);
           }
         }
+#ifdef WITH_OPENTIMS
+        else if (in_file_type == FileTypes::BRUKER_TDF)
+        {
+          auto maps = swath_file.loadBrukerTdf(f, tmp, exp_meta, readoptions);
+          for (auto & m : maps)
+          {
+            swath_maps.push_back(m);
+            swath_map_sources.push_back(f);
+          }
+        }
+#endif
+#ifdef WITH_THERMO_RAW
+        else if (in_file_type == FileTypes::RAW)
+        {
+          // Load .raw fully via ThermoRawFile (in-process), then build SwathMaps
+          // directly from the in-memory MSExperiment — no temp mzML round-trip.
+          auto exp_raw = std::make_shared<PeakMap>();
+          FileHandler().loadExperiment(f, *exp_raw, {FileTypes::RAW});
+          auto maps = swath_file.loadFromMSExperiment(exp_raw, tmp, exp_meta, readoptions);
+          for (auto & m : maps)
+          {
+            swath_maps.push_back(m);
+            swath_map_sources.push_back(f);
+          }
+        }
+#endif
         else
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                           "Input file needs to have ending mzML or mzXML");
+                                           "Input file needs to have a supported extension "
+                                           "(mzML, mzXML, sqMass"
+#ifdef WITH_OPENTIMS
+                                           ", .d (Bruker TDF)"
+#endif
+#ifdef WITH_THERMO_RAW
+                                           ", raw (Thermo)"
+#endif
+                                           ")");
         }
       }
     }
@@ -157,10 +193,38 @@ namespace OpenMS
         swath_map_sources.clear();
         for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
       }
+#ifdef WITH_OPENTIMS
+      else if (in_file_type == FileTypes::BRUKER_TDF)
+      {
+        swath_maps = swath_file.loadBrukerTdf(file_list[0], tmp, exp_meta, readoptions);
+        swath_map_sources.clear();
+        for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
+      }
+#endif
+#ifdef WITH_THERMO_RAW
+      else if (in_file_type == FileTypes::RAW)
+      {
+        // Load .raw fully via ThermoRawFile (in-process), then build SwathMaps
+        // directly from the in-memory MSExperiment — no temp mzML round-trip.
+        auto exp_raw = std::make_shared<PeakMap>();
+        FileHandler().loadExperiment(file_list[0], *exp_raw, {FileTypes::RAW});
+        swath_maps = swath_file.loadFromMSExperiment(exp_raw, tmp, exp_meta, readoptions);
+        swath_map_sources.clear();
+        for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
+      }
+#endif
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Input file needs to have ending mzML or mzXML");
+                                         "Input file needs to have a supported extension "
+                                         "(mzML, mzXML, sqMass"
+#ifdef WITH_OPENTIMS
+                                         ", .d (Bruker TDF)"
+#endif
+#ifdef WITH_THERMO_RAW
+                                         ", raw (Thermo)"
+#endif
+                                         ")");
       }
     }
   }
@@ -170,16 +234,15 @@ namespace OpenMS
   bool TOPPOpenSwathBase::loadSwathFiles(const StringList& file_list,
                       std::shared_ptr<ExperimentalSettings >& exp_meta,
                       std::vector< OpenSwath::SwathMap >& swath_maps,
-                      std::vector<String> & swath_map_sources,
+                      std::vector<std::string> & swath_map_sources,
                       const bool split_file,
-                      const String& tmp,
-                      const String& readoptions,
-                      const String& swath_windows_file,
+                      const std::string& tmp,
+                      const std::string& readoptions,
+                      const std::string& swath_windows_file,
                       const double min_upper_edge_dist,
                       const bool force,
                       const bool sort_swath_maps,
                       const bool prm,
-                      const bool pasef,
                       Interfaces::IMSDataConsumer* plugin_consumer)
   {
     // (i) Load files
@@ -189,11 +252,11 @@ namespace OpenMS
     if (!swath_maps.empty())
     {
       bool first_has_spectra = (swath_maps[0].sptr->getNrSpectra() > 0);
-      String first_file_type = first_has_spectra ? "DIA/PRM (spectra-based)" : "SRM/MRM (chromatogram-only)";
+      std::string first_file_type = first_has_spectra ? "DIA/PRM (spectra-based)" : "SRM/MRM (chromatogram-only)";
       for (Size i = 1; i < swath_maps.size(); ++i)
       {
         bool current_has_spectra = (swath_maps[i].sptr->getNrSpectra() > 0);
-        String current_file_type = current_has_spectra ? "DIA/PRM (spectra-based)" : "SRM/MRM (chromatogram-only)";
+        std::string current_file_type = current_has_spectra ? "DIA/PRM (spectra-based)" : "SRM/MRM (chromatogram-only)";
         if (current_has_spectra != first_has_spectra)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -234,6 +297,10 @@ namespace OpenMS
     // sort by lower bound (first entry in pair)
     std::sort(sw_windows.begin(), sw_windows.end());
 
+    // Auto-detect PASEF/IM data: check if any non-MS1 swath map has ion mobility bounds
+    bool has_im_windows = std::any_of(swath_maps.begin(), swath_maps.end(),
+      [](const OpenSwath::SwathMap& m) { return !m.ms1 && m.imLower >= 0 && m.imUpper >= 0; });
+
     for (Size i = 1; i < sw_windows.size(); i++)
     {
       double lower_map_end = sw_windows[i-1].second - min_upper_edge_dist;
@@ -252,15 +319,14 @@ namespace OpenMS
         }
       }
 
-      if (pasef) {continue;} // skip this step, expect there to be overlap ...
+      if (has_im_windows) {continue;} // IM data present: m/z overlap expected across IM dimension
 
       if (lower_map_end - upper_map_start > 0.01)
       {
         OPENMS_LOG_WARN << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << "!\n"
                         << "This will lead to multiple extraction of the transitions in the overlapping region "
                         << "which will lead to duplicated output. It is very unlikely that you want this." << "\n"
-                        << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << "\n"
-                        << "Did you mean to set the -pasef Flag?" << std::endl;
+                        << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << std::endl;
         if (!force)
         {
           OPENMS_LOG_ERROR << "Extraction windows overlap. Will abort (override with -force)" << std::endl;
@@ -278,9 +344,9 @@ namespace OpenMS
   void TOPPOpenSwathBase::prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer,
                           const std::shared_ptr<ExperimentalSettings>& exp_meta,
                           const OpenSwath::LightTargetedExperiment& transition_exp,
-                          const String& out_chrom,
+                          const std::string& out_chrom,
                           const UInt64 run_id,
-                          const String& source_file)
+                          const std::string& source_file)
   {
     if (!out_chrom.empty())
     {
@@ -293,15 +359,10 @@ namespace OpenMS
       }
       else if (out_chrom_type == FileTypes::CHROMPARQUET)
       {
-#ifndef WITH_PARQUET
-        (void*)&source_file; // to suppress unused variable warning
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#else
         auto * chromConsumer = new MSChromatogramParquetConsumer(out_chrom, run_id, source_file, transition_exp);
         Size expected_chromatograms = transition_exp.transitions.size();
         chromConsumer->setExpectedSize(0, expected_chromatograms);
         *chromatogramConsumer = chromConsumer;
-#endif
       }
       else
       {
@@ -336,8 +397,39 @@ namespace OpenMS
     }
   }
 
+
+  void TOPPOpenSwathBase::prepareMobilogramOutput(std::unique_ptr<MobilogramParquetConsumer>& mobilogramConsumer,
+                                                  const std::shared_ptr<ExperimentalSettings>& /*exp_meta*/,
+                                                  const OpenSwath::LightTargetedExperiment& transition_exp,
+                                                  const std::string& out_mobilogram,
+                                                  const UInt64 run_id,
+                                                  const std::string& source_file)
+  {
+    if (!out_mobilogram.empty())
+    {
+      const FileTypes::Type out_mob_type = FileHandler::getType(out_mobilogram);
+      if (out_mob_type == FileTypes::MOBILPARQUET)
+      {
+        mobilogramConsumer = std::make_unique<MobilogramParquetConsumer>(out_mobilogram, run_id, source_file, transition_exp);
+        // estimate expected mobilograms from transitions
+        Size expected = transition_exp.transitions.size();
+        mobilogramConsumer->setExpectedSize(expected);
+      }
+      else
+      {
+        // Unknown mobilogram format: currently only MOBILPARQUET supported
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Unsupported mobilogram output type: " + FileTypes::typeToName(out_mob_type));
+      }
+    }
+    else
+    {
+      mobilogramConsumer.reset();
+    }
+  }
+
   OpenSwath::LightTargetedExperiment TOPPOpenSwathBase::loadTransitionList(const FileTypes::Type& tr_type,
-                                                        const String& tr_file,
+                                                        const std::string& tr_file,
                                                         const Param& tsv_reader_param)
   {
     OpenSwath::LightTargetedExperiment transition_exp;
@@ -365,9 +457,15 @@ namespace OpenMS
       tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
       progresslogger.endProgress();
     }
+    else if (tr_type == FileTypes::OSWPQ)
+    {
+      progresslogger.startProgress(0, 1, "Load Parquet library");
+      TransitionParquetFile().convertParquetToTargetedExperiment(tr_file, transition_exp);
+      progresslogger.endProgress();
+    }
     else
     {
-      OPENMS_LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
+      OPENMS_LOG_ERROR << "Provide valid TraML, TSV, PQP or OSWPQ transition file." << std::endl;
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Need to provide valid input file.");
     }
     return transition_exp;

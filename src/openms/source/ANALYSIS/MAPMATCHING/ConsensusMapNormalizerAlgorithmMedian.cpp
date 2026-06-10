@@ -23,7 +23,7 @@ namespace OpenMS
 
   ConsensusMapNormalizerAlgorithmMedian::~ConsensusMapNormalizerAlgorithmMedian() = default;
 
-  Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap & map, vector<double>& medians, const String& acc_filter, const String& desc_filter)
+  Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap & map, vector<double>& medians, const std::string& acc_filter, const std::string& desc_filter)
   {
     Size number_of_maps = map.getColumnHeaders().size();
     vector<vector<double> > feature_int(number_of_maps);
@@ -37,12 +37,12 @@ namespace OpenMS
       ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().find(i);
       if (it == map.getColumnHeaders().end()) 
       {
-        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr(i));
       }
       else if (i >= feature_int.size())
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          String(i) + " exceeds map number");
+          StringUtils::toStr(i) + " exceeds map number");
       }
        
       feature_int[i].reserve(it->second.size);
@@ -106,7 +106,7 @@ namespace OpenMS
     return map_with_most_features_idx;
   }
 
-  void ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(ConsensusMap & map, NormalizationMethod method, const String& acc_filter, const String& desc_filter)
+  void ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(ConsensusMap & map, NormalizationMethod method, const std::string& acc_filter, const std::string& desc_filter)
   {
     if (method == NM_SHIFT)
     {
@@ -153,7 +153,7 @@ namespace OpenMS
     progresslogger.endProgress();
   }
 
-  bool ConsensusMapNormalizerAlgorithmMedian::passesFilters_(ConsensusMap::ConstIterator cf_it, const ConsensusMap& map, const String& acc_filter, const String& desc_filter)
+  bool ConsensusMapNormalizerAlgorithmMedian::passesFilters_(ConsensusMap::ConstIterator cf_it, const ConsensusMap& map, const std::string& acc_filter, const std::string& desc_filter)
   {
     boost::regex acc_regexp(acc_filter);
     boost::regex desc_regexp(desc_filter);
@@ -174,8 +174,8 @@ namespace OpenMS
       const vector<PeptideHit>& hits = p_it->getHits();
       for (vector<PeptideHit>::const_iterator h_it = hits.begin(); h_it != hits.end(); ++h_it)
       {
-        const set<String>& accs = h_it->extractProteinAccessionsSet();
-        for (set<String>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
+        const set<std::string>& accs = h_it->extractProteinAccessionsSet();
+        for (set<std::string>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
         {
           // does accession match?
           if (!(acc_filter.empty() ||

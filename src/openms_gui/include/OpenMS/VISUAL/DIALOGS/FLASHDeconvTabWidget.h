@@ -11,7 +11,7 @@
 // OpenMS_GUI config
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/VISUAL/MISC/ExternalProcessMBox.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -81,7 +81,7 @@ namespace OpenMS
       /// @param[in] new_section Start a new block with a date and time
       void writeLog_(const QString& text, const QColor& color = "#000000", bool new_section = false);
       /// @brief convenient overload for String
-      void writeLog_(const String& text, const QColor& color = "#000000", bool new_section = false);
+      void writeLog_(const std::string& text, const QColor& color = "#000000", bool new_section = false);
 
       /// Ensure all input widgets are filled with data by the user to run FLASHDeconv
       /// If anything is missing: show a Messagebox and return false.

@@ -32,17 +32,20 @@
     "boost-date-time",
     "boost-accumulators",
     "boost-typeof",
+    "boost-process",
     "xerces-c",
     "qtbase",
     "libsvm",
     "qtsvg",
     "zlib",
+    "curl",
     "coin-or-cgl",
     "coin-or-clp",
     "coin-or-cbc",
     "coinutils",
     "eigen3",
     "bzip2",
-    "arrow"
+    "arrow",
+    "libzip"
   ]
 }

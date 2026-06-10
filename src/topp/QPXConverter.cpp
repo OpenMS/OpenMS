@@ -10,6 +10,9 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
 using namespace OpenMS;
@@ -20,7 +23,6 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-/// @cond WITH_PARQUET
 @page TOPP_QPXConverter QPXConverter
 
 @brief Converts IdXML files to parquet format following QPX PSM specification.
@@ -52,7 +54,6 @@ protein accessions as list, and metavalue columns.
 @verbinclude TOPP_QPXConverter.cli
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_QPXConverter.html
-/// @endcond
 */
 
 // We do not want this class to show up in the docu:
@@ -71,10 +72,10 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input idXML file");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("idXML"));
 
     registerOutputFile_("out", "<file>", "", "Output parquet file", true);
-    setValidFormats_("out", ListUtils::create<String>("parquet"));
+    setValidFormats_("out", ListUtils::create<std::string>("parquet"));
 
     registerFlag_("export_all_psms", "Export all PSMs per spectrum (not just the best hit)");
   }
@@ -84,8 +85,8 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    const String in = getStringOption_("in");
-    const String out = getStringOption_("out");
+    const std::string in = getStringOption_("in");
+    const std::string out = getStringOption_("out");
     const bool export_all = getFlag_("export_all_psms");
 
     //-------------------------------------------------------------

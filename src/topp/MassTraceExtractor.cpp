@@ -14,6 +14,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
@@ -77,18 +79,22 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input centroided mzML file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerOutputFile_("out", "<file>", "", "output featureXML file with mass traces");
-    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML,consensusXML"));
     registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content", false);
-    setValidStrings_("out_type", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidStrings_("out_type", ListUtils::create<std::string>("featureXML,consensusXML"));
 
     addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm parameters section");
 
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+  Param getSubsectionDefaults_(const std::string& /*section*/) const override
   {
     Param combined;
     Param p_com;
@@ -123,8 +129,8 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
 
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
     if (out_type == FileTypes::UNKNOWN)
@@ -139,7 +145,7 @@ protected:
     PeakMap ms_peakmap;
     std::vector<Int> ms_level(1, 1);
     (mz_data_file.getOptions()).setMSLevels(ms_level);
-    mz_data_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML}, log_type_);
+    mz_data_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     if (ms_peakmap.empty())
     {

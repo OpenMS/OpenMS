@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/MSPFile.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -50,7 +51,7 @@ namespace OpenMS
 
   MSPFile::~MSPFile() = default;
 
-  void MSPFile::load(const String & filename, PeptideIdentificationList & ids, PeakMap & exp)
+  void MSPFile::load(const std::string & filename, PeptideIdentificationList & ids, PeakMap & exp)
   {
     if (!File::exists(filename))
     {
@@ -74,10 +75,10 @@ namespace OpenMS
     exp.setLoadedFileType(filename);
     exp.setLoadedFilePath(filename);
 
-    String line;
+    std::string line;
     ifstream is(filename.c_str());
 
-    std::map<String, String> modname_to_unimod;
+    std::map<std::string, std::string> modname_to_unimod;
     modname_to_unimod["Pyro-glu"] = "Gln->pyro-Glu";
     modname_to_unimod["CAM"] = "Carbamidomethyl";
     modname_to_unimod["AB_old_ICATd8"] = "ICAT-D:2H(8)";
@@ -86,7 +87,7 @@ namespace OpenMS
     bool parse_headers(param_.getValue("parse_headers").toBool());
     bool parse_peakinfo(param_.getValue("parse_peakinfo").toBool());
     bool parse_firstpeakinfo_only(param_.getValue("parse_firstpeakinfo_only").toBool());
-    std::string instrument((std::string)param_.getValue("instrument"));
+    std::string instrument(StringUtils::toStr(param_.getValue("instrument")));
     bool inst_type_correct(true);
     [[maybe_unused]] bool spectrast_format(false); // TODO: implement usage
     Size spectrum_number = 0;
@@ -100,16 +101,16 @@ namespace OpenMS
     {
       ++line_number;
 
-      if (line.hasPrefix("Name:"))
+      if (StringUtils::hasPrefix(line, "Name:"))
       {
-        vector<String> split, split2;
-        line.split(' ', split);
-        split[1].split('/', split2);
-        String peptide = split2[0];
+        vector<std::string> split, split2;
+        StringUtils::split(line, ' ', split);
+        StringUtils::split(split[1], '/', split2);
+        std::string peptide = split2[0];
         // in newer NIST versions, the charge is followed by the modification(s) e.g. "_1(0,A,Acetyl)"
-        vector<String> split3;
-        split2[1].split('_', split3);
-        Int charge = split3[0].toInt();
+        vector<std::string> split3;
+        StringUtils::split(split2[1], '_', split3);
+        Int charge = StringUtils::toInt32(split3[0]);
 
         // remove modifications inside the peptide string, since it is also defined in 'Mods=' comment
         peptide = std::regex_replace(peptide, rex, "");
@@ -118,31 +119,31 @@ namespace OpenMS
         ids.push_back(id);
         inst_type_correct = true;
       }
-      else if (line.hasPrefix("MW:"))
+      else if (StringUtils::hasPrefix(line, "MW:"))
       {
-        vector<String> split;
-        line.split(' ', split);
+        vector<std::string> split;
+        StringUtils::split(line, ' ', split);
         if (split.size() == 2)
         {
           UInt charge = ids.back().getHits().begin()->getCharge();
           spec.getPrecursors().resize(1);
-          spec.getPrecursors()[0].setMZ((split[1].toDouble() + (double)charge * Constants::PROTON_MASS_U) / (double)charge);
+          spec.getPrecursors()[0].setMZ((StringUtils::toDouble(split[1]) + (double)charge * Constants::PROTON_MASS_U) / (double)charge);
         }
       }
-      else if (line.hasPrefix("Comment:"))
+      else if (StringUtils::hasPrefix(line, "Comment:"))
       {
         // slow, but we need the modifications from the header and the instrument type
-        vector<String> split;
-        line.split(' ', split);
-        for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
+        vector<std::string> split;
+        StringUtils::split(line, ' ', split);
+        for (vector<std::string>::const_iterator it = split.begin(); it != split.end(); ++it)
         {
           if (!inst_type_correct)
           {
             break;
           }
-          if (!instrument.empty() && it->hasPrefix("Inst="))
+          if (!instrument.empty() && StringUtils::hasPrefix(*it, "Inst="))
           {
-            String inst_type = it->suffix('=');
+            std::string inst_type = StringUtils::suffix(*it, '=');
             if (instrument != inst_type)
             {
               inst_type_correct = false;
@@ -151,17 +152,17 @@ namespace OpenMS
             break;
           }
 
-          if (it->hasPrefix("Mods=") && *it != "Mods=0")
+          if (StringUtils::hasPrefix(*it, "Mods=") && *it != "Mods=0")
           {
-            String mods = it->suffix('=');
+            std::string mods = StringUtils::suffix(*it, '=');
             // e.g. Mods=2/7,K,Carbamyl/22,K,Carbamyl
-            vector<String> mod_split;
-            mods.split('/', mod_split);
+            vector<std::string> mod_split;
+            StringUtils::split(mods, '/', mod_split);
             if (mod_split.size() <= 1) // e.g. Mods=2(0,A,Acetyl)(11,M,Oxidation)
             {
               mod_split.clear();
-              mod_split.emplace_back(mods.prefix('('));
-              Size sz = mod_split[0].toInt();
+              mod_split.emplace_back(StringUtils::prefix(mods, '('));
+              Size sz = StringUtils::toInt32(mod_split[0]);
               std::smatch sm;
               std::string::const_iterator cit = mods.cbegin();
               // go through all pairs of parentheses
@@ -176,18 +177,18 @@ namespace OpenMS
               }
             }
             AASequence peptide = ids.back().getHits().begin()->getSequence();
-            for (Size i = 1; i <= (UInt)mod_split[0].toInt(); ++i)
+            for (Size i = 1; i <= (UInt)StringUtils::toInt32(mod_split[0]); ++i)
             {
-              vector<String> single_mod;
-              mod_split[i].split(',', single_mod);
+              vector<std::string> single_mod;
+              StringUtils::split(mod_split[i], ',', single_mod);
 
-              String mod_name = single_mod[2];
-              if (modname_to_unimod.find(mod_name) != modname_to_unimod.end())
+              std::string mod_name = single_mod[2];
+              if (modname_to_unimod.contains(mod_name))
               {
                 mod_name = modname_to_unimod[mod_name];
               }
-              String origin  = single_mod[1];
-              Size position = single_mod[0].toInt();
+              std::string origin  = single_mod[1];
+              Size position = StringUtils::toInt32(single_mod[0]);
 
               //cerr << "MSP modification: " << origin << " " << mod_name << " " << position << "\n";
 
@@ -235,9 +236,9 @@ namespace OpenMS
           parseHeader_(line, spec);
         }
       }
-      else if (line.hasPrefix("Num peaks:") || line.hasPrefix("NumPeaks:"))
+      else if (StringUtils::hasPrefix(line, "Num peaks:") || StringUtils::hasPrefix(line, "NumPeaks:"))
       {
-        if (line.hasPrefix("NumPeaks:"))
+        if (StringUtils::hasPrefix(line, "NumPeaks:"))
         {
           spectrast_format = true;
         }
@@ -262,43 +263,43 @@ namespace OpenMS
             if (iter == end)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          line, R"(not <mz><tab/spaces><intensity><tab/spaces>"<annotation>"<tab/spaces>"<comment>" in line )" + String(line_number));
+                                          line, R"(not <mz><tab/spaces><intensity><tab/spaces>"<annotation>"<tab/spaces>"<comment>" in line )" + StringUtils::toStr(line_number));
             }
             Peak1D peak;
-            float mz = String(iter->str()).toFloat();
+            float mz = StringUtils::toFloat(iter->str());
             peak.setMZ(mz);
             ++iter;
             if (iter == end)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          line, R"(not <mz><tab/spaces><intensity><tab/spaces>"<annotation>"<tab/spaces>"<comment>" in line )" + String(line_number));
+                                          line, R"(not <mz><tab/spaces><intensity><tab/spaces>"<annotation>"<tab/spaces>"<comment>" in line )" + StringUtils::toStr(line_number));
             }
-            float ity = String(iter->str()).toFloat();
+            float ity = StringUtils::toFloat(iter->str());
             peak.setIntensity(ity);
             ++iter;
             if (parse_peakinfo && iter != end)
             {
               //e.g. "b32-H2O^3/0.11,y19-H2O^2/0.26"
-              String annot = iter->str();
-              annot = annot.unquote();
-              if (annot.hasPrefix("?"))  //"? 2/2 0.6" or "?i 2/2 0.6" whatever i means, it will be lost here
+              std::string annot = iter->str();
+              StringUtils::unquote(annot);
+              if (StringUtils::hasPrefix(annot, "?"))  //"? 2/2 0.6" or "?i 2/2 0.6" whatever i means, it will be lost here
               {
                 annots.push_back(PeptideHit::PeakAnnotation{"?", 0, mz, ity});
               }
               else
               {
-                if (annot.has(' ')) annot = annot.prefix(' '); // in case of different format "b8/-0.07,y9-46/-0.01 2/2 32.4" we only need the first part
+                if (StringUtils::has(annot, ' ')) annot = StringUtils::prefix(annot, ' '); // in case of different format "b8/-0.07,y9-46/-0.01 2/2 32.4" we only need the first part
                 StringList splitstr;
-                annot.split(',',splitstr);
+                StringUtils::split(annot, ',', splitstr);
                 for (auto& str : splitstr)
                 {
-                  String splitstrprefix = str.prefix('/');
+                  std::string splitstrprefix = StringUtils::prefix(str, '/');
                   int charge = 1;
                   StringList splitstr2;
-                  splitstrprefix.split('^', splitstr2);
+                  StringUtils::split(splitstrprefix, '^', splitstr2);
                   if (splitstr2.size() > 1)
                   {
-                    charge = splitstr2[1].toInt();
+                    charge = StringUtils::toInt32(splitstr2[1]);
                   }
                   annots.push_back(PeptideHit::PeakAnnotation{splitstr2[0], charge, mz, ity});
                   if (parse_firstpeakinfo_only) break;
@@ -308,12 +309,12 @@ namespace OpenMS
             else if (parse_peakinfo)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          line, "Requested reading peak info but no annotation found for line " + String(line_number));
+                                          line, "Requested reading peak info but no annotation found for line " + StringUtils::toStr(line_number));
             }
             spec.push_back(peak);
           }
           hitToAnnotate.setPeakAnnotations(annots);
-          spec.setNativeID(String("index=") + spectrum_number);
+          spec.setNativeID(std::string("index=") + spectrum_number);
           exp.addSpectrum(spec);
           // clear spectrum
           spec.clear(true);
@@ -323,7 +324,7 @@ namespace OpenMS
     }
   }
 
-  void MSPFile::load(const String & filename, AnnotatedMSRun & annot_exp)
+  void MSPFile::load(const std::string & filename, AnnotatedMSRun & annot_exp)
   {
     // use existing load function
     PeptideIdentificationList ids;
@@ -335,19 +336,19 @@ namespace OpenMS
     annot_exp.getMSExperiment() = std::move(exp);
   }
 
-  void MSPFile::parseHeader_(const String & header, PeakSpectrum & spec)
+  void MSPFile::parseHeader_(const std::string & header, PeakSpectrum & spec)
   {
     // first header from std_protein of NIST spectra DB
     // Spec=Consensus Pep=Tryptic Fullname=R.AAANFFSASCVPCADQSSFPK.L/2 Mods=0 Parent=1074.480 Inst=it Mz_diff=0.500 Mz_exact=1074.4805 Mz_av=1075.204 Protein="TRFE_BOVIN" Organism="Protein Standard" Se=2^X23:ex=3.1e-008/1.934e-005,td=5.14e+007/2.552e+019,sd=0/0,hs=45.8/5.661,bs=6.3e-021,b2=1.2e-015,bd=5.87e+020^O22:ex=3.24e-005/0.0001075,td=304500/5.909e+297,pr=3.87e-007/1.42e-006,bs=1.65e-301,b2=1.25e-008,bd=1.3e+299 Sample=1/bovine-serotransferrin_cam,23,26 Nreps=23/34 Missing=0.3308/0.0425 Parent_med=1074.88/0.23 Max2med_orig=22.1/9.5 Dotfull=0.618/0.029 Dot_cons=0.728/0.040 Unassign_all=0.161 Unassigned=0.000 Dotbest=0.70 Naa=21 DUScorr=2.3/3.8/0.61 Dottheory=0.86 Pfin=4.3e+010 Probcorr=1 Tfratio=8e+008 Specqual=0.0
-    vector<String> split;
-    header.split(' ', split);
+    vector<std::string> split;
+    StringUtils::split(header, ' ', split);
 
-    for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
+    for (vector<std::string>::const_iterator it = split.begin(); it != split.end(); ++it)
     {
-      vector<String> split2;
-      String tmp = *it;
-      tmp.trim();
-      tmp.split('=', split2);
+      vector<std::string> split2;
+      std::string tmp = *it;
+      StringUtils::trim(tmp);
+      StringUtils::split(tmp, '=', split2);
       if (split2.size() == 2)
       {
         spec.setMetaValue(split2[0], split2[1]);
@@ -356,7 +357,7 @@ namespace OpenMS
   }
 
   //TODO adapt store to write new? format
-  void MSPFile::store(const String & filename, const AnnotatedMSRun & exp) const
+  void MSPFile::store(const std::string & filename, const AnnotatedMSRun & exp) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::MSP))
     {
@@ -376,7 +377,7 @@ namespace OpenMS
       if (!peptide_id.getHits().empty())
       {
         PeptideHit hit = peptide_id.getHits()[0];
-        String peptide;
+        std::string peptide;
         for (const Residue& pit : hit.getSequence())
         {
           if (pit.isModified() && pit.getOneLetterCode() == "M" &&
@@ -396,12 +397,12 @@ namespace OpenMS
         // modifications
         // e.g. 2/9,C,Carbamidomethyl/12,C,Carbamidomethyl
         Size num_mods(0);
-        vector<String> modifications;
+        vector<std::string> modifications;
         if (hit.getSequence().hasNTerminalModification())
         {
-          String mod = hit.getSequence().getNTerminalModificationName();
+          std::string mod = hit.getSequence().getNTerminalModificationName();
           ++num_mods;
-          String modification = "0," + hit.getSequence().begin()->getOneLetterCode() + "," + mod;
+          std::string modification = "0," + hit.getSequence().begin()->getOneLetterCode() + "," + mod;
           modifications.push_back(modification);
         }
 
@@ -414,18 +415,17 @@ namespace OpenMS
             continue;
           }
 
-          String mod = pit->getModificationName();
-          String res = pit->getOneLetterCode();
+          std::string mod = pit->getModificationName();
+          std::string res = pit->getOneLetterCode();
           ++num_mods;
-          String modification = String(pos) + "," + res + "," + mod;
+          std::string modification =StringUtils::toStr(pos) + "," + res + "," + mod;
           modifications.push_back(modification);
         }
 
-        String mods;
-        mods.concatenate(modifications.begin(), modifications.end(), "/");
+        std::string mods = StringUtils::concatenate(modifications, "/");
         if (!mods.empty())
         {
-          out << " Mods=" << String(num_mods)  << "/" << mods;
+          out << " Mods=" << StringUtils::toStr(num_mods)  << "/" << mods;
         }
         else
         {

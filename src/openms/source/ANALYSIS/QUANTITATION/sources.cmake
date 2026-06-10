@@ -23,6 +23,8 @@ TMTSixteenPlexQuantitationMethod.cpp
 TMTElevenPlexQuantitationMethod.cpp
 TMTSixPlexQuantitationMethod.cpp
 TMTTenPlexQuantitationMethod.cpp
+TMTThirtyTwoPlexQuantitationMethod.cpp
+TMTThirtyFivePlexQuantitationMethod.cpp
 AbsoluteQuantitation.cpp
 AbsoluteQuantitationMethod.cpp
 )

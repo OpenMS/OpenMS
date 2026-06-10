@@ -46,7 +46,7 @@ namespace OpenMS
     for (size_t i = 0; i < protein_ident.getHits().size(); ++i)
     {
       // Protein Accession
-      String accession = protein_ident.getHits()[i].getAccession();
+      std::string accession = protein_ident.getHits()[i].getAccession();
 
       // consensus feature -> peptide hit
       std::map<size_t, PeptideHit> consensus_to_peptide;
@@ -63,7 +63,7 @@ namespace OpenMS
           if (it_pepid->getIdentifier() != protein_ident.getIdentifier())
             continue;
 
-          std::set<String> accessions;
+          std::set<std::string> accessions;
           accessions.insert(accession);
           std::vector<PeptideHit> peptide_hits_local = PeptideIdentification::getReferencingHits(it_pepid->getHits(), accessions);
 
@@ -145,7 +145,7 @@ namespace OpenMS
            it_file != consensus_map.getColumnHeaders().end();
            ++it_file)
       {
-        if (ratios.find(it_file->first) != ratios.end())
+        if (ratios.contains(it_file->first))
         {
           //sort intensity ratios for map #it_file->first
           std::sort(ratios[it_file->first].begin(), ratios[it_file->first].end());
@@ -154,7 +154,7 @@ namespace OpenMS
 
           //TODO if ratios have high variance emit a warning!
 
-          protein_ident.getHits()[i].setMetaValue(String("ratio_") + String(it_file->first), protein_ratio);
+          protein_ident.getHits()[i].setMetaValue("ratio_" + StringUtils::toStr(it_file->first), protein_ratio);
         }
 
       } // ! map loop
@@ -191,7 +191,7 @@ namespace OpenMS
     }
 
     //-> lets see if its unique:
-    std::set<String> protein_accessions = peptide_hits_local[0].extractProteinAccessionsSet();
+    std::set<std::string> protein_accessions = peptide_hits_local[0].extractProteinAccessionsSet();
     if (protein_accessions.size() != 1)
     {
       // this is a shared peptide --> do not use it

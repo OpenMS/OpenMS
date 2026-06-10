@@ -146,13 +146,13 @@ public:
               ChromatogramPeak chr_p;
               chr_p.setRT(it->getRT());
               chr_p.setIntensity(p.getIntensity());
-              if (chroms_xic.find(mz) == chroms_xic.end())
+              if (!chroms_xic.contains(mz))
               {
                 // new chromatogram
                 chroms_xic[mz].getPrecursor().setMZ(mz);
                 // chroms_xic[mz].setProduct(prod); // probably no product
                 chroms_xic[mz].setInstrumentSettings(it->getInstrumentSettings());
-                chroms_xic[mz].getPrecursor().setMetaValue("description", String("XIC @ " + String(mz)));
+                chroms_xic[mz].getPrecursor().setMetaValue("description",std::string("XIC @ " + StringUtils::toStr(mz)));
                 chroms_xic[mz].setAcquisitionInfo(it->getAcquisitionInfo());
                 chroms_xic[mz].setSourceFile(it->getSourceFile());
               }

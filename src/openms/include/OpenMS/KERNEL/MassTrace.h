@@ -46,7 +46,7 @@ public:
     static const std::string names_of_quantmethod[SIZE_OF_MT_QUANTMETHOD];
 
     /// converts a string to enum value; returns 'SIZE_OF_MT_QUANTMETHOD' upon error
-    static MT_QUANTMETHOD getQuantMethod(const String& val);
+    static MT_QUANTMETHOD getQuantMethod(const std::string& val);
 
     /** @name Constructors and Destructor
     */
@@ -138,13 +138,13 @@ public:
     }
 
     /// Gets label of mass trace.
-    String getLabel() const
+    std::string getLabel() const
     {
       return label_;
     }
 
     /// Sets label of mass trace.
-    void setLabel(const String & label)
+    void setLabel(const std::string & label)
     {
       label_ = label;
     }
@@ -153,6 +153,12 @@ public:
     double getCentroidMZ() const
     {
       return centroid_mz_;
+    }
+
+    /// Returns true if this mass trace contains ion mobility data.
+    bool containsIMData() const
+    {
+      return has_centroid_im_;
     }
 
     /// Returns the centroid ion mobility.
@@ -180,6 +186,7 @@ public:
     void setCentroidIM(const double & im)
     {
       centroid_im_ = im;
+      has_centroid_im_ = true;
     }
 
     double getFWHM() const
@@ -217,7 +224,7 @@ public:
       if (trace_peaks_.size() != db_vec.size())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Number of smoothed intensities deviates from mass trace size! Aborting...", String(db_vec.size()));
+            "Number of smoothed intensities deviates from mass trace size! Aborting...",StringUtils::toStr(db_vec.size()));
       }
 
       smoothed_intensities_ = db_vec;
@@ -328,8 +335,10 @@ private:
     double centroid_mz_ = 0.0;
 
     /// centroid ion mobility peak
-    /// 0.0 denotes no im data in the data
     double centroid_im_ = 0.0;
+
+    /// whether this mass trace has ion mobility data (set via setCentroidIM)
+    bool has_centroid_im_ = false;
 
     /// intensity-weighted STD
     double centroid_sd_ = 0.0;
@@ -338,7 +347,7 @@ private:
     double centroid_rt_ = 0.0;
 
     /// Trace label
-    String label_;
+    std::string label_;
 
     /// Container for smoothed intensities. Smoothing must be done externally.
     std::vector<double> smoothed_intensities_;

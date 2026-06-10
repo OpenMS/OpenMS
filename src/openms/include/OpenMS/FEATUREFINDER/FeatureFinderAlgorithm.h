@@ -24,9 +24,9 @@ namespace OpenMS
   /// Summary of fitting results
   struct OPENMS_DLLAPI Summary
   {
-    std::map<String, UInt> exception; ///<count exceptions
+    std::map<std::string, UInt> exception; ///<count exceptions
     UInt no_exceptions;
-    std::map<String, UInt> mz_model; ///<count used mz models
+    std::map<std::string, UInt> mz_model; ///<count used mz models
     std::map<float, UInt> mz_stdev; ///<count used mz standard deviations
     std::vector<UInt> charge; ///<count used charges
     double corr_mean, corr_max, corr_min; //boxplot for correlation
