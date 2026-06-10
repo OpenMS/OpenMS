@@ -4,27 +4,27 @@
 		{
 			"name": "base",
 			"hidden": true,
-			"generator": "Ninja Multi-Config",
+			"generator": "Ninja",
 			"binaryDir": "${sourceDir}/build/${presetName}",
-			"installDir": "${sourceDir}/install/${presetName}",
 			"architecture": {
 				"value": "x64",
 				"strategy": "external"
 			},
 			"cacheVariables": {
+				"BOOST_USE_STATIC": "OFF",
 				"CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-				"CMAKE_COLOR_DIAGNOSTICS": "ON",
-				"OPENMS_USE_VCPKG": "ON",
-        		"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+				"CMAKE_COLOR_DIAGNOSTICS": "ON"
 			}
 		},
 		{
 			"name": "linux",
-			"displayName": "Linux",
-			"description": "Builds with the default host compiler on Linux",
+			"displayName": "Linux (vcpkg)",
+			"description": "Builds with core dependencies from the pinned vcpkg manifest",
 			"inherits": "base",
 			"cacheVariables": {
-				"VCPKG_TARGET_TRIPLET": "x64-linux-dynamic"
+				"OPENMS_USE_VCPKG": "ON",
+				"CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+				"VCPKG_TARGET_TRIPLET": "x64-linux"
 			},
 			"condition": {
 				"type": "equals",
@@ -55,28 +55,6 @@
 			"displayName": "Release",
 			"configurePreset": "linux",
 			"inherits": "release"
-		}
-	],
-	"testPresets": [
-		{
-			"name": "test",
-			"hidden": true,
-			"configuration": "Debug",
-			"output": {
-				"shortProgress": true,
-				"outputOnFailure": true
-			},
-			"filter": {
-				"include": {
-					"label": "unit"
-				}
-			}
-		},
-		{
-			"name": "linux-test",
-			"displayName": "Unit Tests",
-			"configurePreset": "linux",
-			"inherits": "test"
 		}
 	]
 }
