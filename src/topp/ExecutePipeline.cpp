@@ -89,38 +89,17 @@ protected:
     setMinInt_("num_jobs", 1);
   }
 
-  /// Parse a TOPPAS resource file (.trf) into input-file overrides keyed by the input node's topological number.
-  std::map<std::string, std::vector<std::string>> loadResources_(const std::string& file)
-  {
-    std::map<std::string, std::vector<std::string>> result;
-    Param p;
-    ParamXMLFile().load(file, p);
-    for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
-    {
-      std::string key = it.getName(); // "<node>:url_list"
-      std::string::size_type pos = key.rfind(":url_list");
-      if (pos == std::string::npos) continue;
-      std::string node = key.substr(0, pos);
-      StringList urls = ListUtils::toStringList<std::string>(it->value);
-      std::vector<std::string> files;
-      for (std::string u : urls)
-      {
-        // strip a 'file:' / 'file://' URL scheme to get a local path
-        if (StringUtils::hasPrefix(u, "file://")) u = u.substr(7);
-        else if (StringUtils::hasPrefix(u, "file:")) u = u.substr(5);
-        files.push_back(u);
-      }
-      result[node] = files;
-    }
-    return result;
-  }
-
   ExitCodes main_(int, const char**) override
   {
     std::string toppas_file = getStringOption_("in");
     std::string out_dir = getStringOption_("out_dir");
     std::string resource_file = getStringOption_("resource_file");
     int num_jobs = getIntOption_("num_jobs");
+
+    if (num_jobs > 1)
+    {
+      writeLogWarn_("Note: parallel execution is not implemented yet; running the pipeline serially (num_jobs is ignored).");
+    }
 
     // create a fresh temporary working directory (deleted at the end)
     std::string tmp_path = File::getTempDirectory() + "/" + File::getUniqueName();
@@ -156,7 +135,7 @@ protected:
     std::map<std::string, std::vector<std::string>> overrides;
     if (!resource_file.empty())
     {
-      overrides = loadResources_(resource_file);
+      overrides = PipelineExecutor::loadResourceFile(resource_file);
     }
 
     PipelineExecutor::Options opts;

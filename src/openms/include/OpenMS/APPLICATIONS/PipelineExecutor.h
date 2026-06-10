@@ -63,11 +63,6 @@ namespace OpenMS
     Result execute(const Options& opts, const std::map<std::string, std::vector<std::string>>& input_overrides,
                    std::string& error_msg);
 
-  protected:
-    void processToolNode_(int node_index, const RoundPackages& inputs) override;
-    void processOutputNode_(int node_index, const RoundPackages& inputs) override;
-
-  private:
     /// A tool's input or output file parameter (resolved from its Param), used for edge<->index mapping.
     struct IOParam
     {
@@ -76,6 +71,19 @@ namespace OpenMS
       std::string ext;      ///< first valid file extension (without the leading dot), or "" if unrestricted
     };
 
+    /// Collect a tool's input (@p input == true) or output file parameters from its @p param, ordered
+    /// identically to the historical TOPPASToolVertex (so the index matches what .toppas edges reference).
+    static std::vector<IOParam> collectIO(const Param& param, bool input);
+
+    /// Parse a TOPPAS resource file (.trf) into input-file overrides keyed by the input node's
+    /// topological number (the value of each '<node>:url_list', with the 'file:'/'file://' scheme stripped).
+    static std::map<std::string, std::vector<std::string>> loadResourceFile(const std::string& filename);
+
+  protected:
+    void processToolNode_(int node_index, const RoundPackages& inputs) override;
+    void processOutputNode_(int node_index, const RoundPackages& inputs) override;
+
+  private:
     /// Per-tool-node description (only TOOL nodes have a populated entry).
     struct ToolDesc
     {
@@ -93,9 +101,6 @@ namespace OpenMS
       Result result;
       std::string msg;
     };
-
-    /// Collect a tool's input (or output) file parameters from its Param, sorted like TOPPASToolVertex.
-    static std::vector<IOParam> collectIO_(const Param& param, bool input);
 
     /// Set @p name in @p p to @p files (as a list, or as a single value).
     static void setFileParam_(Param& p, const std::string& name, const std::vector<std::string>& files, bool is_list);

@@ -60,7 +60,7 @@ namespace OpenMS
     }
   } // namespace
 
-  std::vector<PipelineExecutor::IOParam> PipelineExecutor::collectIO_(const Param& param, bool input)
+  std::vector<PipelineExecutor::IOParam> PipelineExecutor::collectIO(const Param& param, bool input)
   {
     // tuple of (sort_type, IOParam) where sort_type mirrors TOPPASToolVertex::IOInfo::IOType
     // (0 = file, 1 = list, 2 = dir); IOInfo::operator< sorts files first, then by name.
@@ -116,6 +116,31 @@ namespace OpenMS
     std::vector<IOParam> result;
     result.reserve(tmp.size());
     for (auto& p : tmp) result.push_back(p.second);
+    return result;
+  }
+
+  std::map<std::string, std::vector<std::string>> PipelineExecutor::loadResourceFile(const std::string& filename)
+  {
+    std::map<std::string, std::vector<std::string>> result;
+    Param p;
+    ParamXMLFile().load(filename, p);
+    for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
+    {
+      std::string key = it.getName(); // "<node>:url_list"
+      std::string::size_type pos = key.rfind(":url_list");
+      if (pos == std::string::npos) continue;
+      std::string node = key.substr(0, pos);
+      StringList urls = ListUtils::toStringList<std::string>(it->value);
+      std::vector<std::string> files;
+      for (std::string u : urls)
+      {
+        // strip a 'file:' / 'file://' URL scheme to get a local path
+        if (StringUtils::hasPrefix(u, "file://")) u = u.substr(7);
+        else if (StringUtils::hasPrefix(u, "file:")) u = u.substr(5);
+        files.push_back(u);
+      }
+      result[node] = files;
+    }
     return result;
   }
 
@@ -186,8 +211,8 @@ namespace OpenMS
           td.name = wn.tool_name;
           td.type = wn.tool_type;
           td.param = wn.parameters;
-          td.in = collectIO_(wn.parameters, true);
-          td.out = collectIO_(wn.parameters, false);
+          td.in = collectIO(wn.parameters, true);
+          td.out = collectIO(wn.parameters, false);
           break;
         default:
           continue; // unknown node type -> skip (keeps nodes_/tools_ aligned)
