@@ -40,7 +40,6 @@
 #include <unordered_map>
 #include <boost/sort/sort.hpp>
 
-
 using namespace std;
 
 
@@ -1592,8 +1591,32 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // zeroed via .assign. Avoids per-spectrum allocation and keeps the table hot
     // in cache for large indices. Saturates at UINT16_MAX (far above any realistic
     // matched-peak count) to protect against pathological inputs without branch-on-overflow.
-    thread_local std::vector<uint16_t> score_table;
-    score_table.assign(fi_peptides_.size(), 0);
+    const size_t n_mothers = fi_peptides_.size();
+    const size_t n_words = (n_mothers + 63) / 64;
+
+    // Persistent thread-local buffers, sized once. Between spectra they are
+    // restored to all-zero by O(touched) resets (touched_ids / emitted_touched),
+    // avoiding a full-index memset per spectrum (the score_table.assign + the
+    // per-(charge,iso,sigma) std::fill(emitted) were the dominant non-scan cost
+    // at proteome scale).
+    thread_local std::vector<uint16_t> score_table;     // matched-peak count per viable mother
+    thread_local std::vector<uint64_t> viable_words;    // precursor-viability bitset, 1 bit / mother
+    thread_local std::vector<uint8_t> emitted;          // Phase-2 per-(charge,iso,sigma) dedup guard
+    thread_local std::vector<UInt32> touched_ids;       // mothers marked viable (== only ids ever written)
+    thread_local std::vector<UInt32> emitted_touched;   // ids set in emitted since its last reset
+
+    if (score_table.size() != n_mothers) score_table.assign(n_mothers, 0);
+    if (viable_words.size() != n_words)  viable_words.assign(n_words, 0);
+    if (emitted.size() != n_mothers)     emitted.assign(n_mothers, 0);
+    for (UInt32 id : touched_ids) { score_table[id] = 0; viable_words[id >> 6] &= ~(uint64_t{1} << (id & 63)); }
+    touched_ids.clear();
+    for (UInt32 id : emitted_touched) emitted[id] = 0;
+    emitted_touched.clear();
+
+    auto viable_test = [&](UInt32 id) -> bool { return (viable_words[id >> 6] >> (id & 63)) & uint64_t{1}; };
+    auto viable_set  = [&](UInt32 id) { uint64_t& w = viable_words[id >> 6]; const uint64_t b = uint64_t{1} << (id & 63);
+                                        if (!(w & b)) { w |= b; touched_ids.push_back(id); } };
+    auto emit_mark   = [&](UInt32 id) { emitted[id] = 1; emitted_touched.push_back(id); };
 
     // Fragment-charge upper bound for the byte scan. Use the max charge in the
     // `charges` list (the spectrum's known charge, or max_precursor_charge_ when
@@ -1604,6 +1627,74 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     uint16_t byte_scan_max_frag_charge = 0;
     for (uint16_t c : charges) byte_scan_max_frag_charge = std::max(byte_scan_max_frag_charge, c);
     byte_scan_max_frag_charge = std::min(byte_scan_max_frag_charge, max_fragment_charge_);
+
+    // ===================== Pre-pass: mark precursor-viable mothers =====================
+    // The Phase-1 byte scan below only writes a count for a mother that this pre-pass
+    // marked viable. The marked set is a strict SUPERSET of the mothers Phase-2 can
+    // emit: we walk the SAME precursor-derived fragment targets (Single-N b_k,
+    // Single-C y_k) and the SAME full-length precursor_mz_ ranges, but drop the
+    // single_c / protein-anchor / score-threshold filters (over-approximation). So no
+    // mother that Phase-2 emits is ever missing its count, while the ~165M non-viable
+    // mothers no longer take a (cache-missing) random write per matched fragment.
+    // Target formulas MUST stay in sync with Phase-2 below.
+    {
+      const float water_f = static_cast<float>(Residue::getInternalToFull().getMonoWeight());
+      const bool open_mode_pp = isOpenSearchMode_();
+      const int16_t iso_lo_pp = open_mode_pp ? 0 : min_isotope_error_;
+      const int16_t iso_hi_pp = open_mode_pp ? 0 : max_isotope_error_;
+
+      std::vector<double> sigma_union = snes_sigma_delta_set_;
+      sigma_union.insert(sigma_union.end(), snes_sigma_delta_set_with_prot_nterm_.begin(), snes_sigma_delta_set_with_prot_nterm_.end());
+      sigma_union.insert(sigma_union.end(), snes_sigma_delta_set_with_prot_cterm_.begin(), snes_sigma_delta_set_with_prot_cterm_.end());
+
+      auto mark_bucket_range = [&](float target, float tol_lo, float tol_hi) {
+        auto lb = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), target + tol_lo);
+        auto rb = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), target + tol_hi);
+        if (lb != bucket_min_mz_.begin()) --lb;
+        const size_t jb = std::distance(bucket_min_mz_.begin(), lb);
+        const size_t je = std::distance(bucket_min_mz_.begin(), rb);
+        for (size_t j = jb; j < je; ++j)
+        {
+          const auto sb = fi_fragments_.begin() + (j * bucketsize_);
+          const auto se = ((j + 1) * bucketsize_) >= fi_fragments_.size()
+            ? fi_fragments_.end() : (fi_fragments_.begin() + ((j + 1) * bucketsize_));
+          for (auto it = sb; it != se; ++it)
+          {
+            const float d = it->fragment_mz_ - target;
+            if (d >= tol_lo && d <= tol_hi) viable_set(it->peptide_idx_);
+          }
+        }
+      };
+      auto mark_precursor_range = [&](float target, float tol_lo, float tol_hi) {
+        auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(), target + tol_lo,
+                                   [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
+        auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(), target + tol_hi,
+                                   [](float b, const Peptide& a) { return b < a.precursor_mz_; });
+        for (auto it = lb; it != ub; ++it)
+          viable_set(static_cast<UInt32>(std::distance(fi_peptides_.begin(), it)));
+      };
+
+      for (uint16_t charge : charges)
+      {
+        const float mh_plus = static_cast<float>(precursor.getMZ()) * charge
+          - (charge - 1) * static_cast<float>(Constants::PROTON_MASS_U);
+        for (int16_t iso_err = iso_lo_pp; iso_err <= iso_hi_pp; ++iso_err)
+        {
+          const float shifted_mh = mh_plus
+            + static_cast<float>(iso_err) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
+          const auto prec_window = computeMassWindow_(shifted_mh);
+          const float tlo = prec_window.first;   // <= 0
+          const float thi = prec_window.second;  // >= 0
+          for (double sigma : sigma_union)
+          {
+            const float s = static_cast<float>(sigma);
+            mark_bucket_range(shifted_mh - water_f - static_cast<float>(fixed_cterm_delta_) - s, tlo, thi); // Single-N b_k
+            mark_bucket_range(shifted_mh - static_cast<float>(fixed_nterm_delta_) - s, tlo, thi);           // Single-C y_k
+            mark_precursor_range(shifted_mh - s, tlo, thi);                                                 // full-length
+          }
+        }
+      }
+    }
 
     for (const Peak1D& peak : spectrum)
     {
@@ -1642,7 +1733,9 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
             if (adjusted_mass >= it->fragment_mz_ - frag_tol
                 && adjusted_mass <= it->fragment_mz_ + frag_tol)
             {
-              auto& cell = score_table[it->peptide_idx_];
+              const UInt32 id = it->peptide_idx_;
+              if (!viable_test(id)) continue;   // precursor-prefilter: skip the non-viable mothers
+              auto& cell = score_table[id];
               if (cell < std::numeric_limits<uint16_t>::max()) ++cell;
             }
           }
@@ -1662,12 +1755,9 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // the minimum-matched-peaks threshold.
     static const double water = Residue::getInternalToFull().getMonoWeight();
 
-    // Dedup guard (thread_local, sized once per query). The actual per-
-    // (charge, iso_err, sigma) reset happens inside the Σ loops below via
-    // std::fill — this assign() is only for size-safe initialization of
-    // the thread-local buffer when fi_peptides_.size() changes between calls.
-    thread_local std::vector<uint8_t> emitted;
-    emitted.assign(fi_peptides_.size(), 0);
+    // Dedup guard `emitted` is declared and reset (O(touched), via emitted_touched)
+    // in the setup block above. The per-(charge, iso_err, sigma) reset below is also
+    // O(touched) rather than a full-index std::fill.
 
     // Helper: compute the iso-shifted observed (M+H)+ for a given (charge, iso_err).
     // Used by the subset-enumeration post-pass to reconstruct the realization target.
@@ -1723,7 +1813,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
           if (score_table[id] < min_matched_peaks_) continue;
 
-          emitted[id] = 1;
+          emit_mark(id);
           SpectrumMatch sm;
           sm.peptide_idx_ = id;
           sm.num_matched_ = score_table[id];
@@ -1797,7 +1887,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         {
           // Reset dedup per (charge, iso_err, sigma) combo so the same mother
           // can re-emit at distinct sigma values (each is a distinct match).
-          std::fill(emitted.begin(), emitted.end(), 0);
+          { for (UInt32 eid : emitted_touched) emitted[eid] = 0; emitted_touched.clear(); }
 
           const float s = static_cast<float>(sigma);
 
@@ -1842,7 +1932,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
               const UInt32 id = static_cast<UInt32>(std::distance(fi_peptides_.begin(), it));
               if (emitted[id]) continue;
               if (score_table[id] < min_matched_peaks_) continue;
-              emitted[id] = 1;
+              emit_mark(id);
               SpectrumMatch sm;
               sm.peptide_idx_ = id;
               sm.num_matched_ = score_table[id];
@@ -1859,7 +1949,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         // are configured.
         for (double sigma : prot_nterm_extra)
         {
-          std::fill(emitted.begin(), emitted.end(), 0);
+          { for (UInt32 eid : emitted_touched) emitted[eid] = 0; emitted_touched.clear(); }
           const float s = static_cast<float>(sigma);
           collect_candidates(shifted_mh - static_cast<float>(water)
                                         - static_cast<float>(fixed_cterm_delta_) - s,
@@ -1881,7 +1971,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
               if (fi_peptides_[id].sequence_.first != 0) continue; // PROT_NTERM anchor
               if (isSingleCMother(fi_peptides_[id].mod_bitmask_)) continue; // Single-N only
               if (score_table[id] < min_matched_peaks_) continue;
-              emitted[id] = 1;
+              emit_mark(id);
               SpectrumMatch sm;
               sm.peptide_idx_ = id;
               sm.num_matched_ = score_table[id];
@@ -1896,7 +1986,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         // Extra walks for PROTEIN_C_TERM-only Σ values.
         for (double sigma : prot_cterm_extra)
         {
-          std::fill(emitted.begin(), emitted.end(), 0);
+          { for (UInt32 eid : emitted_touched) emitted[eid] = 0; emitted_touched.clear(); }
           const float s = static_cast<float>(sigma);
           collect_candidates(shifted_mh - static_cast<float>(fixed_nterm_delta_) - s,
                              prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, iso_err, charge,
@@ -1919,7 +2009,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
               if (static_cast<uint32_t>(fi_peptides_[id].sequence_.first)
                   + fi_peptides_[id].sequence_.second != prot_len) continue;
               if (score_table[id] < min_matched_peaks_) continue;
-              emitted[id] = 1;
+              emit_mark(id);
               SpectrumMatch sm;
               sm.peptide_idx_ = id;
               sm.num_matched_ = score_table[id];
