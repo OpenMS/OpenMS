@@ -374,6 +374,23 @@ START_SECTION([EXTRA] peptide:enzyme_specificity (full / semi / none))
 }
 END_SECTION
 
+// A FASTA entry longer than 65535 residues would overflow the 16-bit peptide start offset in
+// Peptide::sequence_ and silently index fragments from the wrong subsequence. build() must reject it.
+START_SECTION([EXTRA] build() rejects FASTA entries longer than 65535 residues)
+{
+  // 70000-residue contig (> uint16 max): the guard fires on length before digestion.
+  const std::vector<FASTAFile::FASTAEntry> too_long{{"contig1", "long metaproteomic contig", std::string(70000, 'A')}};
+  FragmentIndex fi_long;
+  TEST_EXCEPTION(Exception::InvalidParameter, fi_long.build(too_long))
+
+  // Boundary: exactly 65535 residues is the largest allowed and must NOT throw.
+  const std::vector<FASTAFile::FASTAEntry> ok{{"contig_ok", "ok", std::string(65535, 'A')}};
+  FragmentIndex fi_ok;
+  fi_ok.build(ok); // must not throw
+  TEST_EQUAL(fi_ok.isBuild(), true)
+}
+END_SECTION
+
 // Verify that clear() resets the internal peptide container.
 START_SECTION(clear())
 {
