@@ -1063,6 +1063,19 @@ namespace OpenMS
       protein_lengths_.reserve(fasta_entries.size());
       for (const auto& e : fasta_entries)
       {
+        // Peptide coordinates (start offset, length) are stored as 16-bit values in
+        // Peptide::sequence_, so a FASTA entry must not exceed 65535 residues. Beyond that,
+        // the start-offset cast to uint16_t in generatePeptides()/generateSNESMothers_ would
+        // wrap modulo 65536 and silently index fragments from the wrong subsequence. Fail loud
+        // instead: long metaproteomic contigs / six-frame-translated frames must be split first.
+        if (e.sequence.size() > std::numeric_limits<uint16_t>::max())
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "FragmentIndex: FASTA entry '" + e.identifier + "' has " + std::to_string(e.sequence.size())
+            + " residues, exceeding the supported maximum of 65535 (peptide offsets are stored as 16-bit). "
+            "Split long contigs / six-frame-translated frames into windows of at most 65535 residues "
+            "(with overlap >= peptide:max_size so no peptide is lost across a split) before building the index.");
+        }
         protein_lengths_.push_back(static_cast<uint32_t>(e.sequence.size()));
       }
 
