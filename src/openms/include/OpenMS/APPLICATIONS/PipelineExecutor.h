@@ -79,10 +79,6 @@ namespace OpenMS
     /// topological number (the value of each '<node>:url_list', with the 'file:'/'file://' scheme stripped).
     static std::map<std::string, std::vector<std::string>> loadResourceFile(const std::string& filename);
 
-  protected:
-    void processToolNode_(int node_index, const RoundPackages& inputs) override;
-    void processOutputNode_(int node_index, const RoundPackages& inputs) override;
-
   private:
     /// Per-tool-node description (only TOOL nodes have a populated entry).
     struct ToolDesc
@@ -95,6 +91,23 @@ namespace OpenMS
       std::vector<IOParam> out;     ///< output-file params, sorted -> index == source_out_param
     };
 
+    /// One scheduled subprocess: running @p exe with @p args produces one round of one tool node.
+    struct Task
+    {
+      int node = -1;             ///< the tool node this task belongs to
+      std::string exe;           ///< tool executable
+      std::vector<std::string> args; ///< command line (-type ... -ini <inifile>)
+      bool stop = false;         ///< worker-termination sentinel
+    };
+
+    /// Result of a finished Task (as reported back by a worker thread).
+    struct TaskResult
+    {
+      int node = -1;
+      Result status = OK;
+      std::string msg;
+    };
+
     /// Thrown internally to abort execution with a specific result code.
     struct ExecError
     {
@@ -104,6 +117,13 @@ namespace OpenMS
 
     /// Set @p name in @p p to @p files (as a list, or as a single value).
     static void setFileParam_(Param& p, const std::string& name, const std::vector<std::string>& files, bool is_list);
+
+    /// Prepare a tool node for execution: build the per-round output file names and INI files (filling
+    /// @c output_files), and return one Task per round. Does not run anything.
+    std::vector<Task> prepareToolTasks_(int node_index, const RoundPackages& inputs);
+
+    /// Copy a finished output node's incoming files into its (per-node) output directory.
+    void runOutputNode_(int node_index);
 
     std::vector<ToolDesc> tools_; ///< indexed by node index
     std::string toppas_stem_;     ///< basename of the .toppas (for output-dir names)

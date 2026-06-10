@@ -18,8 +18,14 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
+#include <atomic>
+#include <condition_variable>
+#include <deque>
 #include <filesystem>
+#include <functional>
+#include <mutex>
 #include <set>
+#include <thread>
 
 namespace OpenMS
 {
@@ -271,29 +277,174 @@ namespace OpenMS
       }
     }
 
-    try
+    // ------------------------------------------------------------------------------------------------
+    // Global, dynamic, process-level scheduler (reproduces TOPPASScene's allowed_threads_ queue):
+    // up to num_jobs TOOL processes run concurrently across the whole DAG. All graph logic runs on this
+    // (coordinator) thread; worker threads only launch the blocking ExternalProcess subprocesses. The
+    // "instant" nodes (input/merger/splitter/output) are processed inline as soon as they become ready.
+    // ------------------------------------------------------------------------------------------------
+    const int n = (int)nodes_.size();
+    const int jobs = std::max(1, opts_.num_jobs);
+
+    std::mutex tq_m;
+    std::condition_variable tq_cv;
+    std::deque<Task> task_q;
+    std::mutex rq_m;
+    std::condition_variable rq_cv;
+    std::deque<TaskResult> result_q;
+    std::atomic<bool> abort_flag{false};
+
+    auto push_task = [&](const Task& t) {
+      { std::lock_guard<std::mutex> lk(tq_m); task_q.push_back(t); }
+      tq_cv.notify_one();
+    };
+    auto pop_result = [&]() -> TaskResult {
+      std::unique_lock<std::mutex> lk(rq_m);
+      rq_cv.wait(lk, [&] { return !result_q.empty(); });
+      TaskResult r = result_q.front();
+      result_q.pop_front();
+      return r;
+    };
+
+    // worker: pull tasks and launch the (blocking) subprocess; report the outcome
+    auto worker = [&]() {
+      while (true)
+      {
+        Task t;
+        {
+          std::unique_lock<std::mutex> lk(tq_m);
+          tq_cv.wait(lk, [&] { return !task_q.empty(); });
+          t = task_q.front();
+          task_q.pop_front();
+        }
+        if (t.stop) break;
+        TaskResult r;
+        r.node = t.node;
+        if (!abort_flag.load()) // after an error, queued tasks are skipped (just drained)
+        {
+          ExternalProcess proc;
+          std::string perr;
+          ExternalProcess::RETURNSTATE st = proc.run(t.exe, t.args, "", false, perr);
+          if (st == ExternalProcess::RETURNSTATE::SUCCESS) { /* OK */ }
+          else if (st == ExternalProcess::RETURNSTATE::FAILED_TO_START) { r.status = TOOL_NOT_FOUND; r.msg = "Could not start tool: " + perr; }
+          // a TOPP tool missing its OWN external program exits 14 -> propagate as a skip (TOOL_NOT_FOUND)
+          else if (childExitCode(perr) == 14) { r.status = TOOL_NOT_FOUND; r.msg = "Tool is missing a required external program: " + perr; }
+          else { r.status = TOOL_FAILED; r.msg = "Tool failed: " + perr; }
+        }
+        { std::lock_guard<std::mutex> lk(rq_m); result_q.push_back(r); }
+        rq_cv.notify_one();
+      }
+    };
+    std::vector<std::thread> pool;
+    for (int i = 0; i < jobs; ++i) pool.emplace_back(worker);
+
+    std::vector<int> in_degree(n, 0);
+    for (const Edge& e : edges_) if (e.to >= 0 && e.from >= 0) ++in_degree[e.to];
+    std::vector<int> remaining_tasks(n, 0);
+    int outstanding = 0;
+    Result error = OK;
+    std::string emsg;
+
+    // process a node whose inputs are all ready; dispatches tool rounds as tasks, runs instant nodes inline;
+    // returns false (and sets error/emsg) on failure
+    std::function<bool(int)> processReady = [&](int ni) -> bool {
+      Node& node = nodes_[ni];
+      try
+      {
+        switch (node.kind)
+        {
+          case NodeKind::INPUT:
+            runInput_(node);
+            break;
+          case NodeKind::MERGER:
+          {
+            RoundPackages pkg;
+            if (!buildRoundPackages(ni, pkg, emsg)) { error = INVALID; return false; }
+            runMerger_(node, pkg);
+            break;
+          }
+          case NodeKind::SPLITTER:
+          {
+            RoundPackages pkg;
+            if (!buildRoundPackages(ni, pkg, emsg)) { error = INVALID; return false; }
+            runSplitter_(node, pkg);
+            break;
+          }
+          case NodeKind::OUTPUT:
+          case NodeKind::OUTPUT_FOLDER:
+            runOutputNode_(ni);
+            break;
+          case NodeKind::TOOL:
+          {
+            RoundPackages pkg;
+            if (!buildRoundPackages(ni, pkg, emsg)) { error = INVALID; return false; }
+            node.round_total = (int)pkg.size();
+            std::vector<Task> tasks = prepareToolTasks_(ni, pkg);
+            if (!tasks.empty())
+            {
+              remaining_tasks[ni] = (int)tasks.size();
+              for (const Task& t : tasks) { push_task(t); ++outstanding; }
+              return true; // not finished yet -- wait for the subprocesses to complete
+            }
+            break; // tool with zero rounds -> nothing to run
+          }
+        }
+      }
+      catch (const ExecError& e) { error = e.result; emsg = e.msg; return false; }
+      catch (const Exception::BaseException& e) { error = TOOL_FAILED; emsg = e.what(); return false; }
+      catch (const std::exception& e) { error = TOOL_FAILED; emsg = e.what(); return false; }
+
+      // an instant node (or a tool with no rounds) is done -> mark finished and release its successors
+      node.finished = true;
+      for (int ei : node.out_edges)
+      {
+        int v = edges_[ei].to;
+        if (--in_degree[v] == 0 && !processReady(v)) return false;
+      }
+      return true;
+    };
+
+    // kick off the source nodes (collected up-front so propagation never re-processes a node)
+    std::vector<int> sources;
+    for (int ni = 0; ni < n; ++ni) if (in_degree[ni] == 0) sources.push_back(ni);
+    for (int ni : sources)
     {
-      if (!computeDataFlow(error_msg)) return INVALID;
+      if (error != OK) break;
+      if (!processReady(ni)) break;
     }
-    catch (const ExecError& e)
+
+    // drive the tool subprocesses to completion, releasing successors as each tool node finishes
+    while (outstanding > 0 && error == OK)
     {
-      error_msg = e.msg;
-      return e.result;
+      TaskResult r = pop_result();
+      --outstanding;
+      if (r.status != OK) { error = r.status; emsg = r.msg; break; }
+      if (--remaining_tasks[r.node] == 0)
+      {
+        nodes_[r.node].finished = true;
+        bool ok = true;
+        for (int ei : nodes_[r.node].out_edges)
+        {
+          int v = edges_[ei].to;
+          if (--in_degree[v] == 0 && !processReady(v)) { ok = false; break; }
+        }
+        if (!ok) break;
+      }
     }
-    catch (const Exception::BaseException& e)
-    {
-      error_msg = e.what();
-      return TOOL_FAILED;
-    }
-    catch (const std::exception& e) // e.g. std::filesystem_error -- must not escape to std::terminate
-    {
-      error_msg = e.what();
-      return TOOL_FAILED;
-    }
+
+    // on error, let already-running subprocesses finish (and skip queued ones) so nothing is left dangling
+    abort_flag.store(true);
+    while (outstanding > 0) { pop_result(); --outstanding; }
+
+    // shut the workers down
+    for (int i = 0; i < jobs; ++i) { Task s; s.stop = true; push_task(s); }
+    for (std::thread& w : pool) w.join();
+
+    if (error != OK) { error_msg = emsg; return error; }
     return OK;
   }
 
-  void PipelineExecutor::processToolNode_(int node_index, const RoundPackages& inputs)
+  std::vector<PipelineExecutor::Task> PipelineExecutor::prepareToolTasks_(int node_index, const RoundPackages& inputs)
   {
     Node& node = nodes_[node_index];
     const ToolDesc& td = tools_[node_index];
@@ -328,6 +479,8 @@ namespace OpenMS
       throw ExecError{TOOL_NOT_FOUND, "Tool executable not found: " + td.name};
     }
 
+    std::vector<Task> tasks;
+    tasks.reserve(rounds);
     for (int round = 0; round < rounds; ++round)
     {
       Param ptmp = td.param;
@@ -374,40 +527,27 @@ namespace OpenMS
       std::string ini_file = out_dir + "/" + td.name + (td.type.empty() ? "" : "_" + td.type) + "_r" + std::to_string(round) + ".ini";
       ParamXMLFile().store(ini_file, ini);
 
-      // run the tool
-      std::vector<std::string> args;
+      // build the task (the subprocess is launched later by a worker thread)
+      Task t;
+      t.node = node_index;
+      t.exe = exe;
       if (!td.type.empty())
       {
-        args.push_back("-type");
-        args.push_back(td.type);
+        t.args.push_back("-type");
+        t.args.push_back(td.type);
       }
-      args.push_back("-ini");
-      args.push_back(ini_file);
-
-      ExternalProcess proc;
-      std::string proc_err;
-      ExternalProcess::RETURNSTATE state = proc.run(exe, args, "", false, proc_err);
-      if (state == ExternalProcess::RETURNSTATE::FAILED_TO_START)
-      {
-        throw ExecError{TOOL_NOT_FOUND, "Could not start tool '" + td.name + "': " + proc_err};
-      }
-      if (state != ExternalProcess::RETURNSTATE::SUCCESS)
-      {
-        // a TOPP tool that cannot find its OWN external program exits with EXTERNAL_PROGRAM_NOTFOUND (14);
-        // propagate that as TOOL_NOT_FOUND so a pipeline using e.g. CometAdapter without comet SKIPS (matches
-        // the historical behavior, where the child exit code was passed through)
-        if (childExitCode(proc_err) == 14)
-        {
-          throw ExecError{TOOL_NOT_FOUND, "Tool '" + td.name + "' is missing a required external program: " + proc_err};
-        }
-        throw ExecError{TOOL_FAILED, "Tool '" + td.name + "' failed: " + proc_err};
-      }
+      t.args.push_back("-ini");
+      t.args.push_back(ini_file);
+      tasks.push_back(std::move(t));
     }
+    return tasks;
   }
 
-  void PipelineExecutor::processOutputNode_(int node_index, const RoundPackages& inputs)
+  void PipelineExecutor::runOutputNode_(int node_index)
   {
     Node& node = nodes_[node_index];
+    RoundPackages inputs = collectOutputNodeInputs_(node_index);
+    node.round_total = (int)inputs.size();
     node.output_files.assign(node.round_total, RoundPackage());
 
     // each output node writes into its own sub-directory so that files of different output nodes (which

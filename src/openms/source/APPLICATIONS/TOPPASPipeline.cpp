@@ -272,23 +272,7 @@ namespace OpenMS
         case NodeKind::OUTPUT:
         case NodeKind::OUTPUT_FOLDER:
         {
-          // Output nodes take the upstream's output files DIRECTLY (like TOPPASOutputFileListVertex::run),
-          // NOT via buildRoundPackages -- otherwise a single recycling input would be wrongly rejected.
-          RoundPackages inputs;
-          for (int ei : node.in_edges)
-          {
-            const Edge& e = edges_[ei];
-            const Node& up = nodes_[e.from];
-            if (inputs.size() < up.output_files.size()) inputs.resize(up.output_files.size());
-            for (Size r = 0; r < up.output_files.size(); ++r)
-            {
-              RoundPackage::const_iterator fit = up.output_files[r].find(e.source_out_param);
-              if (fit == up.output_files[r].end()) continue;
-              Int key = e.source_out_param;
-              while (inputs[r].count(key)) --key; // avoid clashes if several edges feed the same round
-              inputs[r][key] = fit->second;
-            }
-          }
+          RoundPackages inputs = collectOutputNodeInputs_(ni);
           node.round_total = (int)inputs.size();
           processOutputNode_(ni, inputs); // base: no-op; executor: copy files to the output directory
           node.finished = true;
@@ -297,6 +281,29 @@ namespace OpenMS
       }
     }
     return true;
+  }
+
+  TOPPASPipeline::RoundPackages TOPPASPipeline::collectOutputNodeInputs_(int node_index) const
+  {
+    // Output nodes take the upstream's output files DIRECTLY (like TOPPASOutputFileListVertex::run),
+    // NOT via buildRoundPackages -- otherwise a single recycling input would be wrongly rejected.
+    const Node& node = nodes_[node_index];
+    RoundPackages inputs;
+    for (int ei : node.in_edges)
+    {
+      const Edge& e = edges_[ei];
+      const Node& up = nodes_[e.from];
+      if (inputs.size() < up.output_files.size()) inputs.resize(up.output_files.size());
+      for (Size r = 0; r < up.output_files.size(); ++r)
+      {
+        RoundPackage::const_iterator fit = up.output_files[r].find(e.source_out_param);
+        if (fit == up.output_files[r].end()) continue;
+        Int key = e.source_out_param;
+        while (inputs[r].count(key)) --key; // avoid clashes if several edges feed the same round
+        inputs[r][key] = fit->second;
+      }
+    }
+    return inputs;
   }
 
   void TOPPASPipeline::processToolNode_(int node_index, const RoundPackages& /*inputs*/)

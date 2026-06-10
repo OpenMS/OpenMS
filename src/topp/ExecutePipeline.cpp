@@ -96,11 +96,6 @@ protected:
     std::string resource_file = getStringOption_("resource_file");
     int num_jobs = getIntOption_("num_jobs");
 
-    if (num_jobs > 1)
-    {
-      writeLogWarn_("Note: parallel execution is not implemented yet; running the pipeline serially (num_jobs is ignored).");
-    }
-
     // create a fresh temporary working directory (deleted at the end)
     std::string tmp_path = File::getTempDirectory() + "/" + File::getUniqueName();
     if (!File::makeDir(tmp_path))

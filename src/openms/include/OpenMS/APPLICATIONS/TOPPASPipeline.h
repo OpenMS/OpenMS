@@ -150,6 +150,10 @@ namespace OpenMS
     /// Virtual split of @p node (one round of N files becomes N rounds of one file).
     void runSplitter_(Node& node, const RoundPackages& pkg) const;
 
+    /// Collect the files arriving at an OUTPUT / OUTPUT_FOLDER node by reading its upstream nodes'
+    /// @c output_files directly (NOT via buildRoundPackages, which would reject a single recycling input).
+    RoundPackages collectOutputNodeInputs_(int node_index) const;
+
     /**
       @brief Hook called by computeDataFlow() for each TOOL node with its (already built) input packages.
 
