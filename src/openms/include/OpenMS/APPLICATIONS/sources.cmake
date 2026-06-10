@@ -10,6 +10,7 @@ OpenSwathBase.h
 ParameterInformation.h
 SearchEngineBase.h
 ToolHandler.h
+TOPPASPipeline.h
 TOPPBase.h
 )
 
