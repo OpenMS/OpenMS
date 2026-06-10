@@ -600,6 +600,7 @@ set(applications_executables_list
   INIUpdater_test
   #MapAlignerBase_test
   SearchEngineBase_test
+  TOPPASPipeline_test
   TOPPASWorkflow_test
   TOPPBase_test
   ToolHandler_test
