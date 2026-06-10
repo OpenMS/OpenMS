@@ -97,7 +97,6 @@ namespace OpenMS
       int node = -1;             ///< the tool node this task belongs to
       std::string exe;           ///< tool executable
       std::vector<std::string> args; ///< command line (-type ... -ini <inifile>)
-      bool stop = false;         ///< worker-termination sentinel
     };
 
     /// Result of a finished Task (as reported back by a worker thread).

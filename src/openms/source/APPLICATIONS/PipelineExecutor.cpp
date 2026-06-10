@@ -292,7 +292,8 @@ namespace OpenMS
     std::mutex rq_m;
     std::condition_variable rq_cv;
     std::deque<TaskResult> result_q;
-    std::atomic<bool> abort_flag{false};
+    std::atomic<bool> abort_flag{false}; ///< after an error, queued tasks are skipped (not run)
+    std::atomic<bool> stop_flag{false};  ///< tells workers to exit once the task queue is drained
 
     auto push_task = [&](const Task& t) {
       { std::lock_guard<std::mutex> lk(tq_m); task_q.push_back(t); }
@@ -313,24 +314,30 @@ namespace OpenMS
         Task t;
         {
           std::unique_lock<std::mutex> lk(tq_m);
-          tq_cv.wait(lk, [&] { return !task_q.empty(); });
+          tq_cv.wait(lk, [&] { return !task_q.empty() || stop_flag.load(); });
+          if (task_q.empty()) break; // shutdown requested and nothing left to run
           t = task_q.front();
           task_q.pop_front();
         }
-        if (t.stop) break;
         TaskResult r;
         r.node = t.node;
-        if (!abort_flag.load()) // after an error, queued tasks are skipped (just drained)
+        // an exception must never escape a std::thread callable (-> std::terminate); turn it into a result
+        try
         {
-          ExternalProcess proc;
-          std::string perr;
-          ExternalProcess::RETURNSTATE st = proc.run(t.exe, t.args, "", false, perr);
-          if (st == ExternalProcess::RETURNSTATE::SUCCESS) { /* OK */ }
-          else if (st == ExternalProcess::RETURNSTATE::FAILED_TO_START) { r.status = TOOL_NOT_FOUND; r.msg = "Could not start tool: " + perr; }
-          // a TOPP tool missing its OWN external program exits 14 -> propagate as a skip (TOOL_NOT_FOUND)
-          else if (childExitCode(perr) == 14) { r.status = TOOL_NOT_FOUND; r.msg = "Tool is missing a required external program: " + perr; }
-          else { r.status = TOOL_FAILED; r.msg = "Tool failed: " + perr; }
+          if (!abort_flag.load()) // after an error, queued tasks are skipped (just drained)
+          {
+            ExternalProcess proc;
+            std::string perr;
+            ExternalProcess::RETURNSTATE st = proc.run(t.exe, t.args, "", false, perr);
+            if (st == ExternalProcess::RETURNSTATE::SUCCESS) { /* OK */ }
+            else if (st == ExternalProcess::RETURNSTATE::FAILED_TO_START) { r.status = TOOL_NOT_FOUND; r.msg = "Could not start tool: " + perr; }
+            // a TOPP tool missing its OWN external program exits 14 -> propagate as a skip (TOOL_NOT_FOUND)
+            else if (childExitCode(perr) == 14) { r.status = TOOL_NOT_FOUND; r.msg = "Tool is missing a required external program: " + perr; }
+            else { r.status = TOOL_FAILED; r.msg = "Tool failed: " + perr; }
+          }
         }
+        catch (const std::exception& e) { r.status = TOOL_FAILED; r.msg = std::string("internal error running tool: ") + e.what(); }
+        catch (...) { r.status = TOOL_FAILED; r.msg = "internal error running tool"; }
         { std::lock_guard<std::mutex> lk(rq_m); result_q.push_back(r); }
         rq_cv.notify_one();
       }
@@ -338,12 +345,27 @@ namespace OpenMS
     std::vector<std::thread> pool;
     for (int i = 0; i < jobs; ++i) pool.emplace_back(worker);
 
+    // Stop and join all workers. Allocation-free (only atomic stores + notify_all) so it cannot itself
+    // throw: abort_flag makes still-queued tasks skip their subprocess; stop_flag makes each worker exit
+    // once the queue is empty. This MUST run on every exit path (normal, error, or exception) -- otherwise
+    // ~vector<thread> would destroy joinable threads and call std::terminate.
+    auto shutdown = [&]() noexcept {
+      abort_flag.store(true);
+      stop_flag.store(true);
+      tq_cv.notify_all();
+      for (std::thread& w : pool) { if (w.joinable()) w.join(); }
+    };
+
+    Result error = OK;
+    std::string emsg;
+    // Everything between pool creation and shutdown() runs under this try so that ANY exception (e.g. a
+    // std::bad_alloc) still joins the workers instead of letting ~vector<thread> call std::terminate.
+    try
+    {
     std::vector<int> in_degree(n, 0);
     for (const Edge& e : edges_) if (e.to >= 0 && e.from >= 0) ++in_degree[e.to];
     std::vector<int> remaining_tasks(n, 0);
     int outstanding = 0;
-    Result error = OK;
-    std::string emsg;
 
     // process a node whose inputs are all ready; dispatches tool rounds as tasks, runs instant nodes inline;
     // returns false (and sets error/emsg) on failure
@@ -431,14 +453,11 @@ namespace OpenMS
         if (!ok) break;
       }
     }
+    } // end of the post-pool try block
+    catch (const std::exception& e) { if (error == OK) { error = TOOL_FAILED; emsg = e.what(); } }
+    catch (...) { if (error == OK) { error = TOOL_FAILED; emsg = "internal scheduler error"; } }
 
-    // on error, let already-running subprocesses finish (and skip queued ones) so nothing is left dangling
-    abort_flag.store(true);
-    while (outstanding > 0) { pop_result(); --outstanding; }
-
-    // shut the workers down
-    for (int i = 0; i < jobs; ++i) { Task s; s.stop = true; push_task(s); }
-    for (std::thread& w : pool) w.join();
+    shutdown(); // always joins every worker before 'pool' is destroyed (even on exception)
 
     if (error != OK) { error_msg = emsg; return error; }
     return OK;
