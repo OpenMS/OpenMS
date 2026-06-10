@@ -17,12 +17,12 @@ namespace OpenMS
 {
   namespace NuXLPresets
   {
-    StringList getAllPresetsNames(const String& custom_presets_file)
+    StringList getAllPresetsNames(const std::string& custom_presets_file)
     {
       StringList presets;
       
       // Determine which JSON file to use
-      String json_path;
+      std::string json_path;
       if (!custom_presets_file.empty() && File::exists(custom_presets_file))
       {
         json_path = custom_presets_file;
@@ -64,17 +64,17 @@ namespace OpenMS
       return presets;
     }
     
-    void getPresets(const String& p,
-      const String& custom_presets_file,
+    void getPresets(const std::string& p,
+      const std::string& custom_presets_file,
       StringList& nucleotides, 
       StringList& mapping, 
       StringList& modifications, 
       StringList& fragment_adducts, 
-      String& can_cross_link)
+      std::string& can_cross_link)
     {
       StringList presets = getAllPresetsNames(custom_presets_file);
       OPENMS_LOG_INFO << "Found presets: " << presets.size() << std::endl;
-      for (const String& s : presets)
+      for (const std::string& s : presets)
       {
         OPENMS_LOG_DEBUG << s << std::endl;
       }
@@ -86,14 +86,14 @@ namespace OpenMS
       }
 
       // Try to load presets from JSON file
-      String json_path;
+      std::string json_path;
       if (!custom_presets_file.empty() && File::exists(custom_presets_file))
       {
         json_path = custom_presets_file;
       }
       else
       {
-        String share_path = File::getOpenMSDataPath();
+        std::string share_path = File::getOpenMSDataPath();
         json_path = share_path + "/NUXL/nuxl_presets.json";
       }
       
@@ -157,7 +157,7 @@ namespace OpenMS
             }
             
             // Special handling for DEB and NM presets that need methionine loss
-            if (p.hasSubstring("DEB") || p.hasSubstring("NM"))
+            if (StringUtils::hasSubstring(p, "DEB") || StringUtils::hasSubstring(p, "NM"))
             {
               // add special methionine loss
               auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
@@ -183,12 +183,12 @@ namespace OpenMS
     }
     
     // Overload that uses the default presets file
-    void getPresets(const String& p, 
+    void getPresets(const std::string& p, 
       StringList& nucleotides, 
       StringList& mapping, 
       StringList& modifications, 
       StringList& fragment_adducts, 
-      String& can_cross_link)
+      std::string& can_cross_link)
     {
       getPresets(p, "", nucleotides, mapping, modifications, fragment_adducts, can_cross_link);
     }

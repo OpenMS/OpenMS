@@ -49,26 +49,26 @@ START_SECTION((static ToolListType getTOPPToolList()))
 }
 END_SECTION
 
-START_SECTION((static StringList getTypes(const String &toolname)))
+START_SECTION((static StringList getTypes(const std::string &toolname)))
 {
   TEST_EQUAL(ToolHandler::getTypes("IsobaricAnalyzer").empty(), true);
   TEST_EQUAL(ToolHandler::getTypes("IDMapper").empty(), true);
 }
 END_SECTION
 
-START_SECTION((static String getExternalToolsPath()))
+START_SECTION((static std::string getExternalToolsPath()))
 {
-  TEST_NOT_EQUAL(ToolHandler::getExternalToolsPath(), String())
+  TEST_NOT_EQUAL(ToolHandler::getExternalToolsPath(), std::string())
 }
 END_SECTION
 
-START_SECTION((static String getInternalToolsPath()))
+START_SECTION((static std::string getInternalToolsPath()))
 {
-  TEST_NOT_EQUAL(ToolHandler::getExternalToolsPath(), String())
+  TEST_NOT_EQUAL(ToolHandler::getExternalToolsPath(), std::string())
 }
 END_SECTION
 
-START_SECTION((static String getCategory(const String &toolname)))
+START_SECTION((static std::string getCategory(const std::string &toolname)))
 {
   TEST_EQUAL(ToolHandler::getCategory("IDFilter"), "File Filtering, Extraction and Merging")
   TEST_EQUAL(ToolHandler::getCategory("DOESNOTEXIST"), "")

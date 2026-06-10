@@ -210,7 +210,7 @@ namespace OpenMS
   const char Base64::encoder_[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   const char Base64::decoder_[] = "|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
 
-  void Base64::encodeStrings(const std::vector<String>& in, String& out, bool zlib_compression, bool append_null_byte)
+  void Base64::encodeStrings(const std::vector<std::string>& in, std::string& out, bool zlib_compression, bool append_null_byte)
   {
     out.clear();
     if (in.empty())
@@ -229,7 +229,7 @@ namespace OpenMS
 
     if (zlib_compression)
     {
-      String compressed;
+      std::string compressed;
       ZlibCompression::compressString(str, compressed);
       Base64::stringSimdEncoder_(compressed, out);
     }
@@ -240,7 +240,7 @@ namespace OpenMS
   }
   
 
-  void Base64::decodeStrings(const String& in, std::vector<String>& out, bool zlib_compression)
+  void Base64::decodeStrings(const std::string& in, std::vector<std::string>& out, bool zlib_compression)
   {
     out.clear();
 
@@ -250,7 +250,7 @@ namespace OpenMS
     {
       return;
     }
-    String decoded;
+    std::string decoded;
     decodeSingleString(in, decoded, zlib_compression);
 
     const char* first_sep = decoded.data(); // start of current string
@@ -267,7 +267,7 @@ namespace OpenMS
     }
   }
 
-  void Base64::decodeSingleString(const String& in, String& out, bool zlib_compression)
+  void Base64::decodeSingleString(const std::string& in, std::string& out, bool zlib_compression)
   {
     // The length of a base64 string is a always a multiple of 4 (always 3
     // bytes are encoded as 4 characters)
@@ -278,7 +278,7 @@ namespace OpenMS
 
     if (zlib_compression)
     {
-      String decoded;
+      std::string decoded;
       stringSimdDecoder_(in, decoded);
       ZlibCompression::uncompressString(decoded, out);
     }

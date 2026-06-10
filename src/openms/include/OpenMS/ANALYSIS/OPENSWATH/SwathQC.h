@@ -17,7 +17,6 @@
 
 namespace OpenMS
 {
-  class String;
   class MSSpectrum;
   class ExperimentalSettings;
 
@@ -89,7 +88,7 @@ namespace OpenSwath
     /**
       @brief Save all internally collected data to a JSON file.
     */
-    void storeJSON(const OpenMS::String& filename);
+    void storeJSON(const std::string& filename);
 
     /**
       @brief returns the charge distribution which was internally computed by applying getSpectraProcessingFunc() externally

@@ -17,15 +17,15 @@ namespace OpenMS
   namespace // anonymous namespace for internal helpers
   {
     /// Collect protein accessions referenced by peptide hits, grouped by run identifier
-    std::map<String, std::unordered_set<String>> collectReferencedAccessions(const PeptideIdentificationList& peptides)
+    std::map<std::string, std::unordered_set<std::string>> collectReferencedAccessions(const PeptideIdentificationList& peptides)
     {
-      std::map<String, std::unordered_set<String>> run_to_accessions;
+      std::map<std::string, std::unordered_set<std::string>> run_to_accessions;
       for (const PeptideIdentification& pep : peptides)
       {
-        const String& run_id = pep.getIdentifier();
+        const std::string& run_id = pep.getIdentifier();
         for (const PeptideHit& hit : pep.getHits())
         {
-          const set<String>& current_accessions = hit.extractProteinAccessionsSet();
+          const set<std::string>& current_accessions = hit.extractProteinAccessionsSet();
           run_to_accessions[run_id].insert(current_accessions.begin(), current_accessions.end());
         }
       }
@@ -33,12 +33,12 @@ namespace OpenMS
     }
 
     /// Collect valid protein accessions from protein identifications, grouped by run identifier
-    std::map<String, std::unordered_set<String>> collectProteinAccessions(const std::vector<ProteinIdentification>& proteins)
+    std::map<std::string, std::unordered_set<std::string>> collectProteinAccessions(const std::vector<ProteinIdentification>& proteins)
     {
-      std::map<String, std::unordered_set<String>> run_to_accessions;
+      std::map<std::string, std::unordered_set<std::string>> run_to_accessions;
       for (const ProteinIdentification& prot : proteins)
       {
-        const String& run_id = prot.getIdentifier();
+        const std::string& run_id = prot.getIdentifier();
         for (const ProteinHit& hit : prot.getHits())
         {
           run_to_accessions[run_id].insert(hit.getAccession());
@@ -48,7 +48,7 @@ namespace OpenMS
     }
 
     /// Filter peptide evidences to keep only those referencing proteins in the given accession set
-    void filterEvidencesByAccessions(PeptideHit& hit, const std::unordered_set<String>& accessions)
+    void filterEvidencesByAccessions(PeptideHit& hit, const std::unordered_set<std::string>& accessions)
     {
       IDFilter::HasMatchingAccessionUnordered<PeptideEvidence> acc_filter(accessions);
       vector<PeptideEvidence> evidences;
@@ -59,7 +59,7 @@ namespace OpenMS
 
     /// Process a PeptideIdentification to filter evidences and optionally remove hits without references
     void filterPeptideReferences(PeptideIdentification& pep,
-                                 const std::unordered_set<String>& accessions,
+                                 const std::unordered_set<std::string>& accessions,
                                  bool remove_peptides_without_reference)
     {
       for (PeptideHit& hit : pep.getHits())
@@ -132,9 +132,9 @@ namespace OpenMS
   struct IDFilter::HasMatchingModification {
     typedef PeptideHit argument_type; // for use as a predicate
 
-    const set<String>& mods_;
+    const set<std::string>& mods_;
 
-    explicit HasMatchingModification(const set<String>& mods) : mods_(mods)
+    explicit HasMatchingModification(const set<std::string>& mods) : mods_(mods)
     {
     }
 
@@ -149,7 +149,7 @@ namespace OpenMS
       {
         if (seq[i].isModified())
         {
-          String mod_name = seq[i].getModification()->getFullId();
+          std::string mod_name = seq[i].getModification()->getFullId();
           if (mods_.contains(mod_name))
             return true;
         }
@@ -158,13 +158,13 @@ namespace OpenMS
       // terminal modifications:
       if (seq.hasNTerminalModification())
       {
-        String mod_name = seq.getNTerminalModification()->getFullId();
+        std::string mod_name = seq.getNTerminalModification()->getFullId();
         if (mods_.contains(mod_name))
           return true;
       }
       if (seq.hasCTerminalModification())
       {
-        String mod_name = seq.getCTerminalModification()->getFullId();
+        std::string mod_name = seq.getCTerminalModification()->getFullId();
         if (mods_.contains(mod_name))
           return true;
       }
@@ -177,16 +177,16 @@ namespace OpenMS
   struct IDFilter::HasMatchingSequence {
     typedef PeptideHit argument_type; // for use as a predicate
 
-    const set<String>& sequences_;
+    const set<std::string>& sequences_;
     bool ignore_mods_;
 
-    explicit HasMatchingSequence(const set<String>& sequences, bool ignore_mods = false) : sequences_(sequences), ignore_mods_(ignore_mods)
+    explicit HasMatchingSequence(const set<std::string>& sequences, bool ignore_mods = false) : sequences_(sequences), ignore_mods_(ignore_mods)
     {
     }
 
     bool operator()(const PeptideHit& hit) const
     {
-      const String& query = (ignore_mods_ ? hit.getSequence().toUnmodifiedString() : hit.getSequence().toString());
+      const std::string& query = (ignore_mods_ ? hit.getSequence().toUnmodifiedString() : hit.getSequence().toString());
       return (sequences_.contains(query));
     }
   };
@@ -235,7 +235,7 @@ namespace OpenMS
   };
 
 
-  void IDFilter::extractPeptideSequences(const PeptideIdentificationList& peptides, set<String>& sequences, bool ignore_mods)
+  void IDFilter::extractPeptideSequences(const PeptideIdentificationList& peptides, set<std::string>& sequences, bool ignore_mods)
   {
     for (const PeptideIdentification& pep : peptides)
     {
@@ -253,20 +253,20 @@ namespace OpenMS
     }
   }
 
-  map<String, vector<ProteinHit>> IDFilter::extractUnassignedProteins(ConsensusMap& cmap)
+  map<std::string, vector<ProteinHit>> IDFilter::extractUnassignedProteins(ConsensusMap& cmap)
   {
     // collect accessions that are referenced by peptides for each ID run:
-    map<String, unordered_set<String>> run_to_accessions;
+    map<std::string, unordered_set<std::string>> run_to_accessions;
 
     for (const auto& f : cmap)
     {
       for (const auto& pepid : f.getPeptideIdentifications())
       {
-        const String& run_id = pepid.getIdentifier();
+        const std::string& run_id = pepid.getIdentifier();
         // extract protein accessions of each peptide hit:
         for (const PeptideHit& hit : pepid.getHits())
         {
-          const set<String>& current_accessions = hit.extractProteinAccessionsSet();
+          const set<std::string>& current_accessions = hit.extractProteinAccessionsSet();
           run_to_accessions[run_id].insert(current_accessions.begin(), current_accessions.end());
         }
       }
@@ -274,12 +274,12 @@ namespace OpenMS
 
     vector<ProteinIdentification>& prots = cmap.getProteinIdentifications();
 
-    map<String, vector<ProteinHit>> result {};
+    map<std::string, vector<ProteinHit>> result {};
     for (ProteinIdentification& prot : prots)
     {
-      const String& run_id = prot.getIdentifier();
+      const std::string& run_id = prot.getIdentifier();
       auto target = result.emplace(run_id, vector<ProteinHit> {});
-      const unordered_set<String>& accessions = run_to_accessions[run_id];
+      const unordered_set<std::string>& accessions = run_to_accessions[run_id];
       HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
       moveMatchingItems(prot.getHits(), std::not_fn(acc_filter), target.first->second);
     }
@@ -289,14 +289,14 @@ namespace OpenMS
   void IDFilter::removeUnreferencedProteins(ConsensusMap& cmap, bool include_unassigned)
   {
     // collect accessions that are referenced by peptides for each ID run:
-    map<String, unordered_set<String>> run_to_accessions;
+    map<std::string, unordered_set<std::string>> run_to_accessions;
 
     auto add_references_to_map = [&run_to_accessions](const PeptideIdentification& pepid) {
-      const String& run_id = pepid.getIdentifier();
+      const std::string& run_id = pepid.getIdentifier();
       // extract protein accessions of each peptide hit:
       for (const PeptideHit& hit : pepid.getHits())
       {
-        const set<String>& current_accessions = hit.extractProteinAccessionsSet();
+        const set<std::string>& current_accessions = hit.extractProteinAccessionsSet();
         run_to_accessions[run_id].insert(current_accessions.begin(), current_accessions.end());
       }
     };
@@ -306,8 +306,8 @@ namespace OpenMS
 
     for (ProteinIdentification& prot : prots)
     {
-      const String& run_id = prot.getIdentifier();
-      const unordered_set<String>& accessions = run_to_accessions[run_id];
+      const std::string& run_id = prot.getIdentifier();
+      const unordered_set<std::string>& accessions = run_to_accessions[run_id];
       HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
       keepMatchingItems(prot.getHits(), acc_filter);
     }
@@ -316,7 +316,7 @@ namespace OpenMS
   void IDFilter::removeUnreferencedProteins(ProteinIdentification& proteins, const PeptideIdentificationList& peptides)
   {
     auto run_to_accessions = collectReferencedAccessions(peptides);
-    const unordered_set<String>& accessions = run_to_accessions[proteins.getIdentifier()];
+    const unordered_set<std::string>& accessions = run_to_accessions[proteins.getIdentifier()];
     HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
     keepMatchingItems(proteins.getHits(), acc_filter);
   }
@@ -326,7 +326,7 @@ namespace OpenMS
     auto run_to_accessions = collectReferencedAccessions(peptides);
     for (ProteinIdentification& prot : proteins)
     {
-      const unordered_set<String>& accessions = run_to_accessions[prot.getIdentifier()];
+      const unordered_set<std::string>& accessions = run_to_accessions[prot.getIdentifier()];
       HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
       keepMatchingItems(prot.getHits(), acc_filter);
     }
@@ -344,7 +344,7 @@ namespace OpenMS
 
   void IDFilter::removeDanglingProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference)
   {
-    unordered_set<String> accessions;
+    unordered_set<std::string> accessions;
     for (const ProteinHit& hit : ref_run.getHits())
     {
       accessions.insert(hit.getAccession());
@@ -372,7 +372,7 @@ namespace OpenMS
       return true; // nothing to update
 
     // we'll do lots of look-ups, so use a suitable data structure:
-    unordered_set<String> valid_accessions;
+    unordered_set<std::string> valid_accessions;
     for (const ProteinHit& hit : hits)
     {
       valid_accessions.insert(hit.getAccession());
@@ -383,7 +383,7 @@ namespace OpenMS
     for (ProteinIdentification::ProteinGroup& group : groups)
     {
       ProteinIdentification::ProteinGroup filtered;
-      for (const String& acc : group.accessions)
+      for (const std::string& acc : group.accessions)
       {
         if (valid_accessions.contains(acc))
         {
@@ -412,7 +412,7 @@ namespace OpenMS
       return; // nothing to update
     }
     // we'll do lots of look-ups, so use a suitable data structure:
-    unordered_set<String> valid_accessions;
+    unordered_set<std::string> valid_accessions;
     for (const auto& grp : groups)
     {
       valid_accessions.insert(grp.accessions.begin(), grp.accessions.end());
@@ -540,7 +540,7 @@ namespace OpenMS
   }
 
 
-  void IDFilter::filterPeptidesByRTPredictPValue(PeptideIdentificationList& peptides, const String& metavalue_key, double threshold)
+  void IDFilter::filterPeptidesByRTPredictPValue(PeptideIdentificationList& peptides, const std::string& metavalue_key, double threshold)
   {
     Size n_initial = 0, n_metavalue = 0; // keep track of numbers of hits
     struct HasMetaValue<PeptideHit> present_filter(metavalue_key, DataValue());
@@ -563,7 +563,7 @@ namespace OpenMS
   }
 
 
-  void IDFilter::removePeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<String>& modifications)
+  void IDFilter::removePeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<std::string>& modifications)
   {
     struct HasMatchingModification mod_filter(modifications);
     for (PeptideIdentification& pep : peptides)
@@ -572,7 +572,7 @@ namespace OpenMS
     }
   }
 
-  void IDFilter::removePeptidesWithMatchingRegEx(PeptideIdentificationList& peptides, const String& regex)
+  void IDFilter::removePeptidesWithMatchingRegEx(PeptideIdentificationList& peptides, const std::string& regex)
   {
     const std::regex re(regex);
 
@@ -585,7 +585,7 @@ namespace OpenMS
     }
   }
 
-  void IDFilter::keepPeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<String>& modifications)
+  void IDFilter::keepPeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<std::string>& modifications)
   {
     struct HasMatchingModification mod_filter(modifications);
     for (PeptideIdentification& pep : peptides)
@@ -597,7 +597,7 @@ namespace OpenMS
 
   void IDFilter::removePeptidesWithMatchingSequences(PeptideIdentificationList& peptides, const PeptideIdentificationList& bad_peptides, bool ignore_mods)
   {
-    set<String> bad_seqs;
+    set<std::string> bad_seqs;
     extractPeptideSequences(bad_peptides, bad_seqs, ignore_mods);
     struct HasMatchingSequence seq_filter(bad_seqs, ignore_mods);
     for (PeptideIdentification& pep : peptides)
@@ -609,7 +609,7 @@ namespace OpenMS
 
   void IDFilter::keepPeptidesWithMatchingSequences(PeptideIdentificationList& peptides, const PeptideIdentificationList& good_peptides, bool ignore_mods)
   {
-    set<String> good_seqs;
+    set<std::string> good_seqs;
     extractPeptideSequences(good_peptides, good_seqs, ignore_mods);
     struct HasMatchingSequence seq_filter(good_seqs, ignore_mods);
     for (PeptideIdentification& pep : peptides)
@@ -676,7 +676,7 @@ namespace OpenMS
 
   void IDFilter::keepNBestSpectra(PeptideIdentificationList& peptides, Size n)
   {
-    String score_type;
+    std::string score_type;
     for (PeptideIdentification& p : peptides)
     {
       p.sort();
@@ -688,7 +688,7 @@ namespace OpenMS
       {
         if (p.getScoreType() != score_type)
         {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("PSM score types must be identical to allow proper filtering."));
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("PSM score types must be identical to allow proper filtering."));
         }
       }
     }

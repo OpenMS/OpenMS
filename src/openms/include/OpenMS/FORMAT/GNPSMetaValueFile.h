@@ -42,6 +42,6 @@ namespace OpenMS
         @param[in] consensus_map Consensus map whose primary MS-run paths provide the file list.
         @param[in] output_file   Destination path for the TSV file (overwritten if it exists).
       */
-      static void store(const ConsensusMap& consensus_map, const String& output_file);
+      static void store(const ConsensusMap& consensus_map, const std::string& output_file);
   };
 }

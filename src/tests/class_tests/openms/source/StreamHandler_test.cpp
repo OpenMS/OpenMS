@@ -41,9 +41,9 @@ END_SECTION
 // main instance for the test
 StreamHandler handler;
 
-START_SECTION((Int registerStream(StreamType const type, const String &stream_name)))
+START_SECTION((Int registerStream(StreamType const type, const std::string &stream_name)))
 {
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
 
   handler.registerStream(StreamHandler::FILE, filename);
@@ -62,9 +62,9 @@ START_SECTION((Int registerStream(StreamType const type, const String &stream_na
 }
 END_SECTION
 
-START_SECTION((void unregisterStream(StreamType const type, const String &stream_name)))
+START_SECTION((void unregisterStream(StreamType const type, const std::string &stream_name)))
 {
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
 
   // this one was registered twice
@@ -83,9 +83,9 @@ START_SECTION((void unregisterStream(StreamType const type, const String &stream
 }
 END_SECTION
 
-START_SECTION((ostream& getStream(StreamType const type, const String &stream_name)))
+START_SECTION((ostream& getStream(StreamType const type, const std::string &stream_name)))
 {
-  String file2;
+  std::string file2;
   NEW_TMP_FILE(file2);
 
   handler.registerStream(StreamHandler::FILE, file2);
@@ -104,9 +104,9 @@ START_SECTION((ostream& getStream(StreamType const type, const String &stream_na
   string_stream << "And another test!" << endl;
 
   ostringstream & ostr = static_cast<ostringstream&>(handler.getStream(StreamHandler::STRING, "getStream_testing_stream"));
-  String output(ostr.str());
+  std::string output(ostr.str());
   StringList results;
-  output.trim().split('\n',results);
+  StringUtils::trim(output); StringUtils::split(output, '\n', results);
 
   TEST_EQUAL(results.size(), 2)
   TEST_EQUAL(results[0], "This is a test!")
@@ -114,7 +114,7 @@ START_SECTION((ostream& getStream(StreamType const type, const String &stream_na
 }
 END_SECTION
 
-START_SECTION((bool hasStream(const StreamType type, const String &stream_name)))
+START_SECTION((bool hasStream(const StreamType type, const std::string &stream_name)))
 {
   handler.registerStream(StreamHandler::STRING, "this_is_a_test_stream");
 

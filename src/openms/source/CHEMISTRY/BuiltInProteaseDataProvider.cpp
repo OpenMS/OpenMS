@@ -21,7 +21,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Trypsin",
       "(?<=[KRX])(?!P)",
-      set<String>(),
+      set<std::string>(),
       "Trypsin cleaves following a K or R residue unless the next residue is P.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -36,7 +36,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Arg-C",
       "(?<=[RX])(?!P)",
-      set<String>{"Clostripain", "argc", "arg_c"},
+      set<std::string>{"Clostripain", "argc", "arg_c"},
       "Arg-C cleaves following R residue unless the next residue is P.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -51,7 +51,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Arg-C/P",
       "(?<=[RX])",
-      set<String>(),
+      set<std::string>(),
       "Arg-C/P cleaves after R residues.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -66,7 +66,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Asp-N",
       "(?=[DBX])",
-      set<String>{"asp_n"},
+      set<std::string>{"asp_n"},
       "Asp-N cleaves before D(or B).",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -81,7 +81,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Asp-N/B",
       "(?=[DX])",
-      set<String>(),
+      set<std::string>(),
       "Asp-N/B cleaves before D(while B is ignored).",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -96,7 +96,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Asp-N_ambic",
       "(?=[DBEZX])",
-      set<String>(),
+      set<std::string>(),
       "Asp-N Ammonium bicarbonate cleaves before D(or B) or E(or Z).",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -111,7 +111,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Chymotrypsin",
       "(?<=[FYWLJX])(?!P)",
-      set<String>(),
+      set<std::string>(),
       "Chymotrypsin cleaves following F, Y, W or L(or J) residue unless the next residue is P.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -126,7 +126,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Chymotrypsin/P",
       "(?<=[FYWLJX])",
-      set<String>(),
+      set<std::string>(),
       "Chymotrypsin cleaves following F, Y, W or L(or J) residue.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -141,7 +141,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "CNBr",
       "(?<=[MX])",
-      set<String>(),
+      set<std::string>(),
       "CNBr cleaves following M.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -156,7 +156,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Formic_acid",
       "(?<=[DBX])(?=[DBX])",
-      set<String>(),
+      set<std::string>(),
       "Formic_acid cuts after D(or B) and next residue is D (or B).",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -171,7 +171,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Lys-C",
       "(?<=[KX])(?!P)",
-      set<String>{"lys_c"},
+      set<std::string>{"lys_c"},
       "Lys-C cuts after K if not followed by P.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -186,7 +186,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Lys-N",
       "(?=[KX])",
-      set<String>{"lys_n"},
+      set<std::string>{"lys_n"},
       "Lys-N cuts before K.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -201,7 +201,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Lys-C/P",
       "(?<=[KX])",
-      set<String>(),
+      set<std::string>(),
       "Lys-C/P cuts after K.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -216,7 +216,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "PepsinA",
       "(?<=[FLJX])",
-      set<String>(),
+      set<std::string>(),
       "PepsinA cuts after F or L(or J).",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -231,7 +231,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "TrypChymo",
       "(?<=[FYWLJKRX])(?!P)",
-      set<String>(),
+      set<std::string>(),
       "TrypChymo cuts after F, Y, W, L(or J), K or R if not followed by P.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -246,7 +246,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Trypsin/P",
       "(?<=[KRX])",
-      set<String>(),
+      set<std::string>(),
       "Trypsin/P cuts after K or R.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -261,7 +261,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "V8-DE",
       "(?<=[DBEZX])(?!P)",
-      set<String>(),
+      set<std::string>(),
       "V8-DE cuts after D(or B) or E(or Z) if not followed by P.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -276,7 +276,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "V8-E",
       "(?<=[EZX])(?!P)",
-      set<String>(),
+      set<std::string>(),
       "V8-E cuts after E(or Z) if not followed by P.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -291,7 +291,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "leukocyte elastase",
       "(?<=[ALIJVX])(?!P)",
-      set<String>(),
+      set<std::string>(),
       "leukocyte elastase cuts after A or L or I(or J) or V if not followed by P.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -306,7 +306,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "proline endopeptidase",
       "(?<=[HKRX][PX])(?!P)",
-      set<String>(),
+      set<std::string>(),
       "proline endopeptidase cuts after HP, KP or RP if not followed by P.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -321,7 +321,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "glutamyl endopeptidase",
       "(?<=[DBEZX])",
-      set<String>{"Glu-C", "glu_c", "staphylococcal protease"},
+      set<std::string>{"Glu-C", "glu_c", "staphylococcal protease"},
       "glutamyl endopeptidase cuts after D(or B) or E(or Z).",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -336,7 +336,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Alpha-lytic protease",
       "(?<=[TASVX])",
-      set<String>(),
+      set<std::string>(),
       "Alpha-lytic protease (aLP) cuts after T, A, S, or V.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -351,7 +351,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "2-iodobenzoate",
       "(?<=[WX])",
-      set<String>(),
+      set<std::string>(),
       "2-iodobenzoate cuts after W.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -366,7 +366,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "iodosobenzoate",
       "(?<=W)",
-      set<String>(),
+      set<std::string>(),
       "iodosobenzoate cuts after W.",
       EmpiricalFormula(""),
       EmpiricalFormula(""),
@@ -381,7 +381,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "staphylococcal protease/D",
       "(?<=[EZX])",
-      set<String>{"Glu-C/D"},
+      set<std::string>{"Glu-C/D"},
       "staphylococcal protease/D cuts after E(or Z).",
       EmpiricalFormula(""),
       EmpiricalFormula(""),
@@ -396,7 +396,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "proline-endopeptidase/HKR",
       "(?<=[PX])",
-      set<String>(),
+      set<std::string>(),
       "proline-endopeptidase/HKR cuts after P.",
       EmpiricalFormula(""),
       EmpiricalFormula(""),
@@ -411,7 +411,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Glu-C+P",
       "(?<=[DBEZX])(?!P)",
-      set<String>{"staphylococcal protease+P"},
+      set<std::string>{"staphylococcal protease+P"},
       "Glu-C+P cuts after D(or B) or E(or Z) unless followed by P.",
       EmpiricalFormula(""),
       EmpiricalFormula(""),
@@ -426,7 +426,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "PepsinA + P",
       "(?<=[FLJX])(?!P)",
-      set<String>(),
+      set<std::string>(),
       "PepsinA + P cuts after F or L(or J) unless followed by P.",
       EmpiricalFormula(""),
       EmpiricalFormula(""),
@@ -441,7 +441,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "cyanogen-bromide",
       "(?<=[MX])",
-      set<String>(),
+      set<std::string>(),
       "cyanogen-bromide cuts after M.",
       EmpiricalFormula(""),
       EmpiricalFormula(""),
@@ -456,7 +456,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Clostripain/P",
       "(?<=[RX])",
-      set<String>(),
+      set<std::string>(),
       "Clostripain/P cuts after R.",
       EmpiricalFormula(""),
       EmpiricalFormula(""),
@@ -471,7 +471,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "elastase-trypsin-chymotrypsin",
       "(?<=[ALIVKRWFYX])(?!P)",
-      set<String>(),
+      set<std::string>(),
       "elastase-trypsin-chymotrypsin cuts after A,L,I(or J),V,K,R,W,F,Y unless followed by P.",
       EmpiricalFormula(""),
       EmpiricalFormula(""),
@@ -486,7 +486,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "no cleavage",
       "()",
-      set<String>{"no_cut"},
+      set<std::string>{"no_cut"},
       "no cleavage.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -501,7 +501,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "unspecific cleavage",
       "(?<=[A-Z])",
-      set<String>{"no_enzyme", "nonspecific"},
+      set<std::string>{"no_enzyme", "nonspecific"},
       "unspecific cleavage cuts at every site.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),

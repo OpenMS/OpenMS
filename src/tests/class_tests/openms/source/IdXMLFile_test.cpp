@@ -32,7 +32,7 @@ START_SECTION((IdXMLFile()))
   delete ptr;
 END_SECTION
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) )
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) )
   std::vector<ProteinIdentification> protein_ids;
   PeptideIdentificationList peptide_ids;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids);
@@ -42,10 +42,10 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 END_SECTION
 
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, String& document_id) )
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, std::string& document_id) )
   std::vector<ProteinIdentification> protein_ids;
   PeptideIdentificationList peptide_ids;
-  String document_id;
+  std::string document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids, document_id);
 
   TEST_STRING_EQUAL(document_id,"LSID1234")
@@ -59,14 +59,14 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[0].getSearchEngineVersion(),"2.1.0")
   TEST_EQUAL(protein_ids[0].getDateTime().getDate(),"2006-01-12")
   TEST_EQUAL(protein_ids[0].getDateTime().getTime(),"12:13:14")
-  TEST_EQUAL(protein_ids[0].getIdentifier().hasPrefix("Mascot_2006-01-12T12:13:14"), true)
+  TEST_EQUAL(StringUtils::hasPrefix(protein_ids[0].getIdentifier(), "Mascot_2006-01-12T12:13:14"), true)
   TEST_EQUAL(protein_ids[0].getSearchParameters().db,"MSDB")
   TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,"1.0")
   TEST_EQUAL(protein_ids[0].getSearchParameters().charges,"1, 2")
   TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,ProteinIdentification::PeakMassType::AVERAGE)
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().fragment_mass_tolerance,0.3)
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,1.0)
-  TEST_EQUAL((String)(protein_ids[0].getMetaValue("name")),"ProteinIdentification")
+  TEST_EQUAL(std::string(protein_ids[0].getMetaValue("name")),"ProteinIdentification")
 
   TEST_EQUAL(protein_ids[0].getProteinGroups().size(), 1);
   TEST_EQUAL(protein_ids[0].getProteinGroups()[0].probability, 0.88);
@@ -87,7 +87,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_REAL_SIMILAR(protein_ids[0].getHits()[0].getScore(),34.4)
   TEST_EQUAL(protein_ids[0].getHits()[0].getAccession(),"PROT1")
   TEST_EQUAL(protein_ids[0].getHits()[0].getSequence(),"ABCDEFG")
-  TEST_EQUAL((String)(protein_ids[0].getHits()[0].getMetaValue("name")),"ProteinHit")
+  TEST_EQUAL(std::string(protein_ids[0].getHits()[0].getMetaValue("name")),"ProteinHit")
   //protein hit 2
   TEST_REAL_SIMILAR(protein_ids[0].getHits()[1].getScore(),24.4)
   TEST_EQUAL(protein_ids[0].getHits()[1].getAccession(),"PROT2")
@@ -96,11 +96,11 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   //peptide id 1
   TEST_EQUAL(peptide_ids[0].getScoreType(),"MOWSE")
   TEST_EQUAL(peptide_ids[0].isHigherScoreBetter(),false)
-  TEST_EQUAL(peptide_ids[0].getIdentifier().hasPrefix("Mascot_2006-01-12T12:13:14"), true)
+  TEST_EQUAL(StringUtils::hasPrefix(peptide_ids[0].getIdentifier(), "Mascot_2006-01-12T12:13:14"), true)
   TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),675.9)
   TEST_REAL_SIMILAR(peptide_ids[0].getRT(),1234.5)
   TEST_EQUAL((peptide_ids[0].getSpectrumReference()),"17")
-  TEST_EQUAL((String)(peptide_ids[0].getMetaValue("name")),"PeptideIdentification")
+  TEST_EQUAL(std::string(peptide_ids[0].getMetaValue("name")),"PeptideIdentification")
   TEST_EQUAL(peptide_ids[0].getHits().size(),2)
   //peptide hit 1
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),0.9)
@@ -112,7 +112,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(pes0[1].getProteinAccession(),"PROT2")
   TEST_EQUAL(pes0[0].getAABefore(),'A')
   TEST_EQUAL(pes0[0].getAAAfter(),'B')
-  TEST_EQUAL((String)(peptide_ids[0].getHits()[0].getMetaValue("name")),"PeptideHit")
+  TEST_EQUAL(std::string(peptide_ids[0].getHits()[0].getMetaValue("name")),"PeptideHit")
   //peptide hit 2
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[1].getScore(),1.4)
   vector<PeptideEvidence> pes1 = peptide_ids[0].getHits()[1].getPeptideEvidences();
@@ -122,7 +122,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   //peptide id 2
   TEST_EQUAL(peptide_ids[1].getScoreType(),"MOWSE")
   TEST_EQUAL(peptide_ids[1].isHigherScoreBetter(),true)
-  TEST_EQUAL(peptide_ids[1].getIdentifier().hasPrefix("Mascot_2006-01-12T12:13:14"), true)
+  TEST_EQUAL(StringUtils::hasPrefix(peptide_ids[1].getIdentifier(), "Mascot_2006-01-12T12:13:14"), true)
   TEST_EQUAL(peptide_ids[1].getHits().size(),2)
   //peptide hit 1
   TEST_REAL_SIMILAR(peptide_ids[1].getHits()[0].getScore(),44.4)
@@ -144,7 +144,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[1].getSearchEngineVersion(),"2.1.1")
   TEST_EQUAL(protein_ids[1].getDateTime().getDate(),"2007-01-12")
   TEST_EQUAL(protein_ids[1].getDateTime().getTime(),"12:13:14")
-  TEST_EQUAL(protein_ids[1].getIdentifier().hasPrefix("Mascot_2007-01-12T12:13:14"), true)
+  TEST_EQUAL(StringUtils::hasPrefix(protein_ids[1].getIdentifier(), "Mascot_2007-01-12T12:13:14"), true)
   TEST_EQUAL(protein_ids[1].getSearchParameters().db,"MSDB")
   TEST_EQUAL(protein_ids[1].getSearchParameters().db_version,"1.1")
   TEST_EQUAL(protein_ids[1].getSearchParameters().charges,"1, 2, 3")
@@ -165,7 +165,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   //peptide id 3
   TEST_EQUAL(peptide_ids[2].getScoreType(),"MOWSE")
   TEST_EQUAL(peptide_ids[2].isHigherScoreBetter(),true)
-  TEST_EQUAL(peptide_ids[2].getIdentifier().hasPrefix("Mascot_2007-01-12T12:13:14"), true)
+  TEST_EQUAL(StringUtils::hasPrefix(peptide_ids[2].getIdentifier(), "Mascot_2007-01-12T12:13:14"), true)
   TEST_EQUAL(peptide_ids[2].getHits().size(),1)
   //peptide hit 1
   TEST_REAL_SIMILAR(peptide_ids[2].getHits()[0].getScore(),1.4)
@@ -178,31 +178,31 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(pes4[0].getAAAfter(), PeptideEvidence::UNKNOWN_AA)
 END_SECTION
 
-START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const String& document_id="") )
+START_SECTION(void store(std::string filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const std::string& document_id="") )
 
   // load, store, and reload data
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
   PeptideIdentificationList peptide_ids, peptide_ids2;
-  String document_id, document_id2;
-  String target_file = OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML");
+  std::string document_id, document_id2;
+  std::string target_file = OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML");
   IdXMLFile().load(target_file, protein_ids2, peptide_ids2, document_id2);
 
-  String actual_file;
+  std::string actual_file;
   NEW_TMP_FILE(actual_file)
   IdXMLFile().store(actual_file, protein_ids2, peptide_ids2, document_id2);
 
   FuzzyStringComparator fuzzy;
-  fuzzy.setWhitelist(ListUtils::create<String>("<?xml-stylesheet"));
+  fuzzy.setWhitelist(ListUtils::create<std::string>("<?xml-stylesheet"));
   fuzzy.setAcceptableAbsolute(0.0001);
   bool result = fuzzy.compareFiles(actual_file, target_file);
   TEST_EQUAL(result, true);
 END_SECTION
 
 
-START_SECTION([EXTRA] static bool isValid(const String& filename))
+START_SECTION([EXTRA] static bool isValid(const std::string& filename))
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
   PeptideIdentificationList peptide_ids, peptide_ids2;
-  String filename;
+  std::string filename;
   IdXMLFile f;
 
   //test if empty file is valid
@@ -212,9 +212,9 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 
   //test if full file is valid
   NEW_TMP_FILE(filename);
-  String document_id;
+  std::string document_id;
   f.load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids2, peptide_ids2, document_id);
-  protein_ids2[0].setMetaValue("stringvalue",String("bla"));
+  protein_ids2[0].setMetaValue("stringvalue",std::string("bla"));
   protein_ids2[0].setMetaValue("intvalue",4711);
   protein_ids2[0].setMetaValue("floatvalue",5.3);
   f.store(filename, protein_ids2, peptide_ids2);
@@ -235,7 +235,7 @@ START_SECTION(([EXTRA] No protein identification bug))
   TEST_EQUAL(peptide_ids.size(), 10)
   TEST_EQUAL(peptide_ids[0].getHits().size(), 1)
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   id_xmlfile.store(filename , protein_ids, peptide_ids);
 
@@ -259,7 +259,7 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   vector<ProteinIdentification> protein_ids;
   PeptideIdentificationList peptide_ids;
 
-  String input_file= OPENMS_GET_TEST_DATA_PATH("IdXML_XLMS_labelled.idXML");
+  std::string input_file= OPENMS_GET_TEST_DATA_PATH("IdXML_XLMS_labelled.idXML");
   IdXMLFile().load(input_file, protein_ids, peptide_ids);
 
   TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[0].annotation, "[alpha|ci$b2]")
@@ -279,7 +279,7 @@ START_SECTION([EXTRA] Compressed file writing - gzip round-trip)
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids);
 
   // Store as gzip-compressed file
-  String tmp_gz;
+  std::string tmp_gz;
   NEW_TMP_FILE(tmp_gz);
   tmp_gz += ".gz";
   IdXMLFile().store(tmp_gz, protein_ids, peptide_ids);
@@ -303,7 +303,7 @@ START_SECTION([EXTRA] Compressed file writing - bzip2 round-trip)
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids);
 
   // Store as bzip2-compressed file
-  String tmp_bz2;
+  std::string tmp_bz2;
   NEW_TMP_FILE(tmp_bz2);
   tmp_bz2 += ".bz2";
   IdXMLFile().store(tmp_bz2, protein_ids, peptide_ids);

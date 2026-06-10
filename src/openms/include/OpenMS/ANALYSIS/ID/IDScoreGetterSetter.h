@@ -66,9 +66,9 @@ namespace OpenMS
      * @param[in]  decoy_prefix If the @p decoy_string is a prefix (true) or suffix.
      */
     static void getPickedProteinScores_(
-        std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
+        std::unordered_map<std::string, ScoreToTgtDecLabelPair>& picked_scores,
         const ProteinIdentification& id,
-        const String& decoy_string,
+        const std::string& decoy_string,
         bool decoy_prefix);
 
     /**
@@ -81,21 +81,21 @@ namespace OpenMS
      * @param[in]  decoy_prefix If the @p decoy_string is a prefix (true) or suffix.
      */
     static void getPickedProteinGroupScores_(
-        const std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
+        const std::unordered_map<std::string, ScoreToTgtDecLabelPair>& picked_scores,
         ScoreToTgtDecLabelPairs& scores_labels,
         const std::vector<ProteinIdentification::ProteinGroup>& grps,
-        const String& decoy_string,
+        const std::string& decoy_string,
         bool decoy_prefix);
 
     /// removes the @p decoy_string from @p acc if present. Returns if string was removed and the new string.
-    static std::pair<bool,String> removeDecoyStringIfPresent_(const String& acc, const String& decoy_string, bool decoy_prefix);
+    static std::pair<bool, std::string> removeDecoyStringIfPresent_(const std::string& acc, const std::string& decoy_string, bool decoy_prefix);
 
     static void fillPeptideScoreMap_(
-      std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
+      std::unordered_map<std::string, ScoreToTgtDecLabelPair>& seq_to_score_labels,
       PeptideIdentificationList const& ids);
 
     static void fillPeptideScoreMap_(
-      std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
+      std::unordered_map<std::string, ScoreToTgtDecLabelPair>& seq_to_score_labels,
       ConsensusMap const& map,
       bool include_unassigned);
 
@@ -271,10 +271,10 @@ namespace OpenMS
     }
 
     template<typename IDType>
-    static String setScoreType_(IDType &id, const std::string &score_type,
+    static std::string setScoreType_(IDType &id, const std::string &score_type,
                          bool higher_better)
     {
-      String old_score_type = id.getScoreType() + "_score";
+      std::string old_score_type = id.getScoreType() + "_score";
       id.setScoreType(score_type);
       id.setHigherScoreBetter(higher_better);
       return old_score_type;
@@ -285,7 +285,7 @@ namespace OpenMS
                     bool higher_better, bool keep_decoy)
     {
       bool old_higher_better = id.isHigherScoreBetter();
-      String old_score_type = setScoreType_(id, score_type, higher_better);
+      std::string old_score_type = setScoreType_(id, score_type, higher_better);
 
       if (keep_decoy) //in-place set scores
       {
@@ -313,7 +313,7 @@ namespace OpenMS
 
     template<typename IDType>
     static void setScores_(const std::map<double, double> &scores_to_FDR, IDType &id,
-                    const String &old_score_type)
+                    const std::string &old_score_type)
     {
       std::vector<typename IDType::HitType> &hits = id.getHits();
       for (auto &hit : hits)
@@ -324,7 +324,7 @@ namespace OpenMS
 
     template<typename IDType>
     static void setScoresHigherWorse_(const std::map<double, double> &scores_to_FDR, IDType &id,
-                           const String &old_score_type)
+                           const std::string &old_score_type)
     {
       std::vector<typename IDType::HitType> &hits = id.getHits();
       for (auto &hit : hits)
@@ -335,7 +335,7 @@ namespace OpenMS
 
     template<typename IDType, class ...Args>
     static void setScoresAndRemoveDecoys_(const std::map<double, double> &scores_to_FDR, IDType &id,
-                                   const String &old_score_type, Args&& ... args)
+                                   const std::string &old_score_type, Args&& ... args)
     {
       std::vector<typename IDType::HitType> &hits = id.getHits();
       std::vector<typename IDType::HitType> new_hits;
@@ -349,7 +349,7 @@ namespace OpenMS
 
     template<typename IDType, class ...Args>
     static void setScoresHigherWorseAndRemoveDecoys_(const std::map<double, double> &scores_to_FDR, IDType &id,
-                                          const String &old_score_type, Args&& ... args)
+                                          const std::string &old_score_type, Args&& ... args)
     {
       std::vector<typename IDType::HitType> &hits = id.getHits();
       std::vector<typename IDType::HitType> new_hits;
@@ -382,7 +382,7 @@ namespace OpenMS
                     bool higher_better)
     {
       bool old_higher_better = id.isHigherScoreBetter();
-      String old_score_type = setScoreType_(id, score_type, higher_better);
+      std::string old_score_type = setScoreType_(id, score_type, higher_better);
       setScores_(scores_to_FDR, id, old_score_type, old_higher_better);
     }*/
 
@@ -393,7 +393,7 @@ namespace OpenMS
                     bool keep_decoy,
                     int charge)
     {
-      String old_score_type = setScoreType_(id, score_type, higher_better);
+      std::string old_score_type = setScoreType_(id, score_type, higher_better);
       if (keep_decoy) //in-place set scores
       {
         setScores_(scores_to_FDR, id, old_score_type, higher_better, charge);
@@ -410,7 +410,7 @@ namespace OpenMS
                     bool higher_better,
                     bool keep_decoy,
                     int charge,
-                    const String &identifier)
+                    const std::string &identifier)
     {
       if (id.getIdentifier() == identifier)
       {
@@ -420,7 +420,7 @@ namespace OpenMS
 
     template<typename IDType>
     static void setScores_(const std::map<double, double> &scores_to_FDR, IDType &id, const std::string &score_type,
-                    bool higher_better, bool keep_decoy, const String &identifier)
+                    bool higher_better, bool keep_decoy, const std::string &identifier)
     {
       if (id.getIdentifier() == identifier)
       {
@@ -433,7 +433,7 @@ namespace OpenMS
                     const std::string &score_type,
                     bool higher_better,
                     int charge,
-                    const String &identifier)
+                    const std::string &identifier)
     {
       if (id.getIdentifier() == identifier)
       {
@@ -443,7 +443,7 @@ namespace OpenMS
 
     template<typename IDType>
     static void setScores_(const std::map<double, double> &scores_to_FDR, IDType &id, const std::string &score_type,
-                    bool higher_better, const String &identifier)
+                    bool higher_better, const std::string &identifier)
     {
       if (id.getIdentifier() == identifier)
       {
@@ -494,7 +494,7 @@ namespace OpenMS
                                   const std::string &old_score_type,
                                   std::vector<HitType> &new_hits)
     {
-      const String &target_decoy(hit.getMetaValue("target_decoy"));
+      const std::string &target_decoy(hit.getMetaValue("target_decoy"));
       if (target_decoy[0] == 't')
       {
         hit.setMetaValue(old_score_type, hit.getScore());
@@ -509,7 +509,7 @@ namespace OpenMS
                                          const std::string &old_score_type,
                                          std::vector<HitType> &new_hits)
     {
-      const String &target_decoy(hit.getMetaValue("target_decoy"));
+      const std::string &target_decoy(hit.getMetaValue("target_decoy"));
       if (target_decoy[0] == 't')
       {
         hit.setMetaValue(old_score_type, hit.getScore());
@@ -537,7 +537,7 @@ namespace OpenMS
     {
       if (charge == hit.getCharge())
       {
-        const String &target_decoy(hit.getMetaValue("target_decoy"));
+        const std::string &target_decoy(hit.getMetaValue("target_decoy"));
         if (target_decoy[0] == 't')
         {
           hit.setMetaValue(old_score_type, hit.getScore());
@@ -595,12 +595,12 @@ namespace OpenMS
       }
     }
 
-    static void setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
+    static void setPeptideScoresFromMap_(std::unordered_map<std::string, ScoreToTgtDecLabelPair> const& seq_to_fdr,
                                          PeptideIdentificationList& ids,
                                          std::string const& score_type,
                                          bool keep_decoys);
 
-    static void setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
+    static void setPeptideScoresFromMap_(std::unordered_map<std::string, ScoreToTgtDecLabelPair> const& seq_to_fdr,
                                          ConsensusMap& map,
                                          std::string const& score_type,
                                          bool keep_decoys,

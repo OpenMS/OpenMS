@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/OMSSACSVFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -34,8 +34,8 @@ OMSSACSVFile* nullPointer = nullptr;
 ProteinIdentification protein_identification;
 PeptideIdentificationList peptide_identifications; 
 PeptideIdentificationList peptide_identifications2; 
-String date_string_1;
-String date_string_2;
+std::string date_string_1;
+std::string date_string_2;
 PeptideHit peptide_hit;
 
 START_SECTION((OMSSACSVFile()))
@@ -49,7 +49,7 @@ END_SECTION
 
 ptr = new OMSSACSVFile();
 
-START_SECTION(void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data) const)
+START_SECTION(void load(const std::string &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data) const)
 	ptr->load(OPENMS_GET_TEST_DATA_PATH("OMSSACSVFile_test_1.csv"), protein_identification, peptide_identifications);
 	TEST_EQUAL(protein_identification.getHits().size(), 0)
 	TEST_EQUAL(peptide_identifications.size(), 1)

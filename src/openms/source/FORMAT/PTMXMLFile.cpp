@@ -16,7 +16,7 @@ namespace OpenMS
 
   PTMXMLFile::PTMXMLFile() = default;
 
-  void PTMXMLFile::load(const String & filename, map<String, pair<String, String> > & ptm_informations)
+  void PTMXMLFile::load(const std::string & filename, map<std::string, pair<std::string, std::string> > & ptm_informations)
   {
     ptm_informations.clear();
 
@@ -24,7 +24,7 @@ namespace OpenMS
     parse_(filename, &handler);
   }
 
-  void PTMXMLFile::store(const String& filename, map<String, pair<String, String> > & ptm_informations) const
+  void PTMXMLFile::store(const std::string& filename, map<std::string, pair<std::string, std::string> > & ptm_informations) const
   {
     Internal::PTMXMLHandler handler(ptm_informations, filename);
     save_(filename, &handler);

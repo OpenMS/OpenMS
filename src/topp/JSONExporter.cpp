@@ -68,8 +68,8 @@ class JSONExporter: public TOPPBase
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
 
     OMSFile oms(log_type_);
     oms.exportToJSON(in, out);

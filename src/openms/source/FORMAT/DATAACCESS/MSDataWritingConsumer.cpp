@@ -16,7 +16,7 @@
 namespace OpenMS
 {
 
-  MSDataWritingConsumer::MSDataWritingConsumer(const String& filename) :
+  MSDataWritingConsumer::MSDataWritingConsumer(const std::string& filename) :
     Internal::MzMLHandler(MapType(), filename, MzMLFile().getVersion(), ProgressLogger()),
     started_writing_(false),
     writing_spectra_(false),

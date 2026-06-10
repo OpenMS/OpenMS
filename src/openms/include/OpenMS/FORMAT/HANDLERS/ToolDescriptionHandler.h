@@ -33,7 +33,7 @@ public:
       //@{
 
       /// Constructor
-      ToolDescriptionHandler(const String & filename, const String & version);
+      ToolDescriptionHandler(const std::string & filename, const std::string & version);
 
       /// Destructor
       ~ToolDescriptionHandler() override;
@@ -66,7 +66,7 @@ protected:
       Internal::ToolDescription td_;
       std::vector<Internal::ToolDescription> td_vec_;
 
-      String tag_;
+      std::string tag_;
 
       bool in_ini_section_;
 

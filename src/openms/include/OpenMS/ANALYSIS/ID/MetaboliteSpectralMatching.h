@@ -15,7 +15,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <vector>
@@ -98,44 +98,44 @@ namespace OpenMS
     void setMatchingSpectrumIndex(const Size&);
 
     /// Native id (vendor-specific id) of the observed MS2 spectrum
-    String getObservedSpectrumNativeID() const;
+    std::string getObservedSpectrumNativeID() const;
     /// Setter for the observed-spectrum native id
-    void setObservedSpectrumNativeID(const String&);
+    void setObservedSpectrumNativeID(const std::string&);
 
     /// Primary identifier of the matched metabolite. The .cpp populates this via the first available of: @c GNPS_Spectrum_ID, @c Massbank_Accession_ID, the metabolite-name meta value, or — as a last fallback — the DB spectrum's native id.
-    String getPrimaryIdentifier() const;
+    std::string getPrimaryIdentifier() const;
     /// Setter for the primary metabolite identifier
-    void setPrimaryIdentifier(const String&);
+    void setPrimaryIdentifier(const std::string&);
 
     /// Secondary identifier of the matched metabolite. The .cpp populates this from the @c HMDB_ID meta value on the DB-side spectrum.
-    String getSecondaryIdentifier() const;
+    std::string getSecondaryIdentifier() const;
     /// Setter for the secondary metabolite identifier
-    void setSecondaryIdentifier(const String&);
+    void setSecondaryIdentifier(const std::string&);
 
     /// Common (trivial) name of the matched metabolite
-    String getCommonName() const;
+    std::string getCommonName() const;
     /// Setter for the common name
-    void setCommonName(const String&);
+    void setCommonName(const std::string&);
 
     /// Chemical sum formula of the matched metabolite (neutral)
-    String getSumFormula() const;
+    std::string getSumFormula() const;
     /// Setter for the sum formula
-    void setSumFormula(const String&);
+    void setSumFormula(const std::string&);
 
     /// InChI string of the matched metabolite
-    String getInchiString() const;
+    std::string getInchiString() const;
     /// Setter for the InChI string
-    void setInchiString(const String&);
+    void setInchiString(const std::string&);
 
     /// SMILES string of the matched metabolite
-    String getSMILESString() const;
+    std::string getSMILESString() const;
     /// Setter for the SMILES string
-    void setSMILESString(const String&);
+    void setSMILESString(const std::string&);
 
     /// Adduct annotation recorded on the DB-side precursor (e.g. "[M+H]+")
-    String getPrecursorAdduct() const;
+    std::string getPrecursorAdduct() const;
     /// Setter for the precursor adduct
-    void setPrecursorAdduct(const String&);
+    void setPrecursorAdduct(const std::string&);
 
     /// Observed collision cross section (CCS) of the experimental precursor in Angstrom^2; -1.0 if not available
     double getObservedCCS() const;
@@ -156,16 +156,16 @@ namespace OpenMS
     double matching_score_;            ///< Hyperscore (see @ref MetaboliteSpectralMatching::computeHyperScore)
     Size observed_spectrum_idx_;       ///< Index of the observed spectrum in the input PeakMap
     Size matching_spectrum_idx_;       ///< Index of the DB spectrum in the spectral-library PeakMap
-    String observed_spectrum_native_id_; ///< Native id (vendor-specific) of the observed spectrum
+    std::string observed_spectrum_native_id_; ///< Native id (vendor-specific) of the observed spectrum
 
     // further meta information
-    String primary_id_;     ///< Primary metabolite identifier
-    String secondary_id_;   ///< Secondary metabolite identifier
-    String common_name_;    ///< Trivial / common name
-    String sum_formula_;    ///< Neutral chemical sum formula
-    String inchi_string_;   ///< InChI string
-    String smiles_string_;  ///< SMILES string
-    String precursor_adduct_; ///< DB-side precursor adduct annotation
+    std::string primary_id_;     ///< Primary metabolite identifier
+    std::string secondary_id_;   ///< Secondary metabolite identifier
+    std::string common_name_;    ///< Trivial / common name
+    std::string sum_formula_;    ///< Neutral chemical sum formula
+    std::string inchi_string_;   ///< InChI string
+    std::string smiles_string_;  ///< SMILES string
+    std::string precursor_adduct_; ///< DB-side precursor adduct annotation
 
     double observed_ccs_;   ///< Observed-side collision cross section (Angstrom^2); -1.0 if not available
     double found_ccs_;      ///< DB-side collision cross section (Angstrom^2); -1.0 if not available
@@ -290,7 +290,7 @@ namespace OpenMS
       @param[out]    mztab_out   MzTab result table populated with the top matches.
       @param[in]     out_spectra If non-empty, the (noise-reduced) experimental spectra are also written to this mzML path.
     */
-    void run(PeakMap & msexp, PeakMap & spec_db, MzTab & mztab_out, String & out_spectra);
+    void run(PeakMap & msexp, PeakMap & spec_db, MzTab & mztab_out, std::string & out_spectra);
 
   protected:
     void updateMembers_() override;
@@ -310,10 +310,10 @@ namespace OpenMS
 
     double precursor_mz_error_;     ///< Precursor m/z tolerance (value); unit per @c mz_error_unit_
     double fragment_mz_error_;      ///< Fragment m/z tolerance (value); unit per @c mz_error_unit_
-    String mz_error_unit_;          ///< "ppm" or "Da"
-    String ion_mode_;               ///< Cached value of parameter @c "ionization_mode"; @c "positive" or @c "negative"; pre-filters DB spectra by precursor-charge sign
+    std::string mz_error_unit_;          ///< "ppm" or "Da"
+    std::string ion_mode_;               ///< Cached value of parameter @c "ionization_mode"; @c "positive" or @c "negative"; pre-filters DB spectra by precursor-charge sign
 
-    String report_mode_;            ///< Cached value of parameter @c "report_mode"; only @c "top3" or @c "best" are valid — controls whether the top 3 or only the single best match per spectrum is exported to MzTab
+    std::string report_mode_;            ///< Cached value of parameter @c "report_mode"; only @c "top3" or @c "best" are valid — controls whether the top 3 or only the single best match per spectrum is exported to MzTab
 
     bool merge_spectra_;            ///< If true, merge same-precursor MS2 spectra before searching
 

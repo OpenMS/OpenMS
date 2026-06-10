@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <arrow/io/api.h>
 
@@ -27,8 +27,8 @@ namespace OpenMS
 */
 struct OPENMS_DLLAPI ZipRandomAccessFile
 {
-  static arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> Open(const String& archive_path,
-                                                                         const String& entry_name,
+  static arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> Open(const std::string& archive_path,
+                                                                         const std::string& entry_name,
                                                                          std::unique_ptr<File::TempDir>& temp_dir);
 };
 

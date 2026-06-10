@@ -60,19 +60,19 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (any xml file)");
-    setValidFormats_("in", ListUtils::create<String>("analysisXML,mzML,traML,mzid,mzData,xml"));
+    setValidFormats_("in", ListUtils::create<std::string>("analysisXML,mzML,traML,mzid,mzData,xml"));
 
     registerInputFile_("mapping_file", "<file>", "", "Mapping file which is used to semantically validate the given XML file against this mapping file (see 'share/OpenMS/MAPPING' for templates).");
-    setValidFormats_("mapping_file", ListUtils::create<String>("xml"));
+    setValidFormats_("mapping_file", ListUtils::create<std::string>("xml"));
 
-    registerInputFileList_("cv", "<files>", ListUtils::create<String>(""), "Controlled Vocabulary files containg the CV terms (if left empty, a set of default files are used)", false);
-    setValidFormats_("cv", ListUtils::create<String>("obo"));
+    registerInputFileList_("cv", "<files>", ListUtils::create<std::string>(""), "Controlled Vocabulary files containg the CV terms (if left empty, a set of default files are used)", false);
+    setValidFormats_("cv", ListUtils::create<std::string>("obo"));
   }
 
   ExitCodes main_(int, const char**) override
   {
-    String in_file = getStringOption_("in");
-    String mapping_file = getStringOption_("mapping_file");
+    std::string in_file = getStringOption_("in");
+    std::string mapping_file = getStringOption_("mapping_file");
     StringList cv_list = getStringList_("cv");
 
     CVMappings mappings;

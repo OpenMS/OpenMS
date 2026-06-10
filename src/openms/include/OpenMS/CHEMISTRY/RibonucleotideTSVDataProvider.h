@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/RibonucleotideDataProvider.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS
 {
@@ -27,12 +27,12 @@ namespace OpenMS
     /**
       @param filename Path to a TSV file (resolved via File::find)
     */
-    explicit RibonucleotideTSVDataProvider(const String& filename);
+    explicit RibonucleotideTSVDataProvider(const std::string& filename);
 
     std::vector<RibonucleotideEntry> loadRibonucleotides() override;
 
   private:
-    String filename_;
+    std::string filename_;
   };
 
 } // namespace OpenMS

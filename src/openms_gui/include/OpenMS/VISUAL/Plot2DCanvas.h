@@ -205,7 +205,7 @@ protected:
     PeakIndex findNearestPeak_(const QPoint& pos);
 
     /// Paints a peak icon for feature and consensus feature peaks
-    void paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p) const;
+    void paintIcon_(const QPoint& pos, const QRgb& color, const std::string& icon, Size s, QPainter& p) const;
 
     /// Translates the visible area by a given offset specified in fractions of current visible area
     void translateVisibleArea_(double x_axis_rel, double y_axis_rel);

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
@@ -23,7 +23,7 @@ namespace OpenMS
 struct OPENMS_DLLAPI NuXLFragmentAdductDefinition
 {
   EmpiricalFormula formula; // formula
-  String name;  // name used in annotation
+  std::string name;  // name used in annotation
   double mass = 0;
 
   NuXLFragmentAdductDefinition() = default;
@@ -32,7 +32,7 @@ struct OPENMS_DLLAPI NuXLFragmentAdductDefinition
 
   NuXLFragmentAdductDefinition(NuXLFragmentAdductDefinition&&) = default;
 
-  NuXLFragmentAdductDefinition(const EmpiricalFormula& f, const String& n, double m) : formula(f), name(n), mass(m) {}
+  NuXLFragmentAdductDefinition(const EmpiricalFormula& f, const std::string& n, double m) : formula(f), name(n), mass(m) {}
 
   NuXLFragmentAdductDefinition& operator=(const NuXLFragmentAdductDefinition&) = default;
 
@@ -66,7 +66,7 @@ namespace std
       std::size_t seed = 0;
       // Hash formula using EmpiricalFormula's std::hash specialization
       OpenMS::hash_combine(seed, std::hash<OpenMS::EmpiricalFormula>{}(fad.formula));
-      // Hash name using fnv1a_hash_string (String inherits from std::string)
+      // Hash name using fnv1a_hash_string (std::string inherits from std::string)
       OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(fad.name));
       return seed;
     }

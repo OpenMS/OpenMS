@@ -79,7 +79,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Pixel references missing spectrum",
-                                    String(idx));
+                                    StringUtils::toStr(idx));
     }
     return experiment_[idx];
   }
@@ -91,7 +91,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Pixel references missing spectrum",
-                                    String(idx));
+                                    StringUtils::toStr(idx));
     }
     return experiment_[idx];
   }
@@ -103,7 +103,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "mz and tolerance_ppm must be finite and non-negative",
-                                    "mz=" + String(mz) + ", tolerance_ppm=" + String(tolerance_ppm));
+                                    "mz=" + StringUtils::toStr(mz) + ", tolerance_ppm=" + StringUtils::toStr(tolerance_ppm));
     }
     const double dm = mz * tolerance_ppm * 1e-6;
     const double mz_lo = mz - dm;
@@ -119,7 +119,7 @@ namespace OpenMS
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Pixel references missing spectrum",
-                                      String(p.spectrum_index));
+                                      StringUtils::toStr(p.spectrum_index));
       }
       const MSSpectrum& spec = experiment_[p.spectrum_index];
       double sum = 0.0;
@@ -143,7 +143,7 @@ namespace OpenMS
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Pixel references missing spectrum",
-                                      String(p.spectrum_index));
+                                      StringUtils::toStr(p.spectrum_index));
       }
     }
   }

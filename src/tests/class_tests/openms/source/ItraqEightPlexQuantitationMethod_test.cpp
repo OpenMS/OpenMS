@@ -39,7 +39,7 @@ START_SECTION(~ItraqEightPlexQuantitationMethod())
 }
 END_SECTION
 
-START_SECTION((const String& getMethodName() const ))
+START_SECTION((const std::string& getMethodName() const ))
 {
   ItraqEightPlexQuantitationMethod quant_meth;
   TEST_EQUAL(quant_meth.getMethodName(), "itraq8plex")

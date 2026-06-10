@@ -25,7 +25,7 @@ namespace OpenMS
     // check the string list
     if (stringlist.size() != getNumberOfChannels())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IsobaricQuantitationMethod: Invalid string representation of the isotope correction matrix. Expected ") + getNumberOfChannels() + " entries but got " + stringlist.size() + ".");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("IsobaricQuantitationMethod: Invalid string representation of the isotope correction matrix. Expected ") + getNumberOfChannels() + " entries but got " + stringlist.size() + ".");
     }
 
     // compute frequency matrix based on the deviation matrix
@@ -38,12 +38,12 @@ namespace OpenMS
     for (const auto& l : stringlist)
     {
       StringList corrections;
-      l.split('/', corrections);
+      StringUtils::split(l, '/', corrections);
 
       auto number_of_columns = getChannelInformation()[contributing_channel].affected_channels.size();
       if (corrections.size() != number_of_columns )
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Corrections for channel ID #") + contributing_channel + " must contain " + number_of_columns + " values, but has " + corrections.size() + "!", String(corrections.size()));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Corrections for channel ID #") + contributing_channel + " must contain " + number_of_columns + " values, but has " + corrections.size() + "!",StringUtils::toStr(corrections.size()));
       }
 
       // overwrite line in Matrix with custom values
@@ -53,22 +53,22 @@ namespace OpenMS
       Int target_channel;
       for (auto& c : corrections)
       {
-        c = c.trim().toUpper();
+        StringUtils::trim(c); StringUtils::toUpper(c);
         if (c != "NA" && c != "-1" && c != "0.0")
         {
           target_channel = getChannelInformation()[contributing_channel].affected_channels[affected_channel_idx];
           try
           {
-            correction = c.toDouble();
+            correction = StringUtils::toDouble(c);
           }
           catch (Exception::ConversionError& e)
           {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Correction entry #") + affected_channel_idx + " in channel ID " + contributing_channel + " must be one of na/NA/-1 or a floating point number representation!", c);
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Correction entry #") + affected_channel_idx + " in channel ID " + contributing_channel + " must be one of na/NA/-1 or a floating point number representation!", c);
           }
 
           if (correction < 0.0 || correction > 100.0)
           {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Correction entry #") + affected_channel_idx + " in channel ID " + contributing_channel + " must be a percentage between 0 and 100!", c);
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Correction entry #") + affected_channel_idx + " in channel ID " + contributing_channel + " must be a percentage between 0 and 100!", c);
           }
           
           if (target_channel >= 0 && Size(target_channel) < getNumberOfChannels())

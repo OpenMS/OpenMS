@@ -260,7 +260,7 @@ START_SECTION([EXTRA] multithreaded example)
   int nr_iterations (1e5);
   int test = 0;
   // many modifications
-  vector<String> all_mods = {"Carbamidomethyl (C)", "Oxidation (M)", "Carbamyl (M)", "Phospho (S)", "Phospho (T)", "Carbamyl (T)", "Phospho (Y)", "Carbamyl (K)", "Carbamyl (N-term)"};
+  vector<std::string> all_mods = {"Carbamidomethyl (C)", "Oxidation (M)", "Carbamyl (M)", "Phospho (S)", "Phospho (T)", "Carbamyl (T)", "Phospho (Y)", "Carbamyl (K)", "Carbamyl (N-term)"};
 
   ModifiedPeptideGenerator::MapToResidueType variable_mods = ModifiedPeptideGenerator::getModifications(all_mods);
 

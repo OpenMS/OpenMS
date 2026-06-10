@@ -24,7 +24,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  MultiplexDeltaMassesGenerator::Label::Label(String sn, String ln, String d, double dm) :
+  MultiplexDeltaMassesGenerator::Label::Label(std::string sn, std::string ln, std::string d, double dm) :
     short_name(std::move(sn)),
     long_name(std::move(ln)),
     description(std::move(d)),
@@ -52,7 +52,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MultiplexDeltaMassesGenerator::MultiplexDeltaMassesGenerator(String labels, int max_nr_labelled_aas, std::map<String,double> label_delta_mass) :
+  MultiplexDeltaMassesGenerator::MultiplexDeltaMassesGenerator(std::string labels, int max_nr_labelled_aas, std::map<std::string,double> label_delta_mass) :
     DefaultParamHandler("labels"),
     labels_(std::move(labels)),
     labels_list_(),
@@ -71,8 +71,8 @@ namespace OpenMS
     }
 
     // split the labels_ string
-    String temp_labels_string(labels_);
-    std::vector<String> temp_samples;
+    std::string temp_labels_string(labels_);
+    std::vector<std::string> temp_samples;
 
     boost::replace_all(temp_labels_string, "[]", "no_label");
     boost::replace_all(temp_labels_string, "()", "no_label");
@@ -81,19 +81,19 @@ namespace OpenMS
 
     samples_labels_.reserve(temp_samples.size()); // Pre-allocate for performance
 
-    for (String::size_type i = 0; i < temp_samples.size(); ++i)
+    for (std::string::size_type i = 0; i < temp_samples.size(); ++i)
     {
       if (!temp_samples[i].empty())
       {
         if (temp_samples[i]=="no_label")
         {
-          vector<String> temp_labels;
+          vector<std::string> temp_labels;
           temp_labels.emplace_back("no_label");
           samples_labels_.push_back(temp_labels);
         }
         else
         {
-          vector<String> temp_labels;
+          vector<std::string> temp_labels;
           boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: ")); // various separators allowed to separate labels
           samples_labels_.push_back(temp_labels);
         }
@@ -102,7 +102,7 @@ namespace OpenMS
 
     if (samples_labels_.empty())
     {
-      vector<String> temp_labels;
+      vector<std::string> temp_labels;
       temp_labels.emplace_back("no_label");
       samples_labels_.push_back(temp_labels);
     }
@@ -166,10 +166,10 @@ namespace OpenMS
     // unless the labelling is numeric.
     if (!numeric)
     {
-      String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Leu3 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
-      for (std::vector<std::vector<String> >::size_type i = 0; i < samples_labels_.size(); i++)
+      std::string all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Leu3 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
+      for (std::vector<std::vector<std::string> >::size_type i = 0; i < samples_labels_.size(); i++)
       {
-        for (std::vector<String>::size_type j = 0; j < samples_labels_[i].size(); ++j)
+        for (std::vector<std::string>::size_type j = 0; j < samples_labels_[i].size(); ++j)
         {
           if (!all_labels.contains(samples_labels_[i][j]))
           {
@@ -532,47 +532,47 @@ namespace OpenMS
     return delta_masses_list_;
   }
 
-  std::vector<std::vector<String> > MultiplexDeltaMassesGenerator::getSamplesLabelsList()
+  std::vector<std::vector<std::string> > MultiplexDeltaMassesGenerator::getSamplesLabelsList()
   {
     return samples_labels_;
   }
 
-  const std::vector<std::vector<String> >& MultiplexDeltaMassesGenerator::getSamplesLabelsList() const
+  const std::vector<std::vector<std::string> >& MultiplexDeltaMassesGenerator::getSamplesLabelsList() const
   {
     return samples_labels_;
   }
 
-  String MultiplexDeltaMassesGenerator::getLabelShort(const String& label)
+  std::string MultiplexDeltaMassesGenerator::getLabelShort(const std::string& label)
   {
     return label_long_short_[label];
   }
 
-  String MultiplexDeltaMassesGenerator::getLabelLong(const String& label)
+  std::string MultiplexDeltaMassesGenerator::getLabelLong(const std::string& label)
   {
     return label_short_long_[label];
   }
 
   MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(const AASequence& sequence)
   {
-    String s(sequence.toString());
+    std::string s(sequence.toString());
 
     MultiplexDeltaMasses::LabelSet label_set;
     // loop over all labels that might occur
-    for (std::vector<String>::size_type i = 0; i < labels_list_.size(); ++i)
+    for (std::vector<std::string>::size_type i = 0; i < labels_list_.size(); ++i)
     {
-      String label("(" + getLabelLong(labels_list_[i]) + ")");
-      String::size_type length_label = label.size();
+      std::string label("(" + getLabelLong(labels_list_[i]) + ")");
+      std::string::size_type length_label = label.size();
 
       // check if label occurs in peptide sequence
-      if (s.hasSubstring(label))
+      if (StringUtils::hasSubstring(s, label))
       {
-        String::size_type length_before = s.size();
-        s.substitute(label, "");
-        String::size_type length_after = s.size();
-        String::size_type multiple = (length_before - length_after)/length_label;
+        std::string::size_type length_before = s.size();
+        StringUtils::substitute(s, label, "");
+        std::string::size_type length_after = s.size();
+        std::string::size_type multiple = (length_before - length_after)/length_label;
 
         // add as many labels to the set as occurred in the peptide sequence
-        for (String::size_type j = 0; j < multiple; ++j)
+        for (std::string::size_type j = 0; j < multiple; ++j)
         {
           label_set.insert(labels_list_[i]);
         }

@@ -11,7 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/METADATA/Gradient.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -33,12 +33,12 @@ START_SECTION((~Gradient()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((const std::vector<String>& getEluents() const))
+START_SECTION((const std::vector<std::string>& getEluents() const))
   Gradient tmp;
   TEST_EQUAL(tmp.getEluents().size(),0);
 END_SECTION
 
-START_SECTION((void addEluent(const String& eluent) ))
+START_SECTION((void addEluent(const std::string& eluent) ))
   Gradient tmp;
 
   tmp.addEluent("A");
@@ -110,7 +110,7 @@ START_SECTION((const std::vector< std::vector< UInt > > & getPercentages() const
   TEST_EQUAL(tmp.getPercentages()[2][1],0);
 END_SECTION
 
-START_SECTION((void setPercentage(const String& eluent, Int timepoint, UInt percentage) ))
+START_SECTION((void setPercentage(const std::string& eluent, Int timepoint, UInt percentage) ))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);
@@ -141,7 +141,7 @@ START_SECTION((void setPercentage(const String& eluent, Int timepoint, UInt perc
   TEST_EXCEPTION(Exception::InvalidValue,tmp.setPercentage("C",7,101));
 END_SECTION
 
-START_SECTION((UInt getPercentage(const String& eluent, Int timepoint) const ))
+START_SECTION((UInt getPercentage(const std::string& eluent, Int timepoint) const ))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);

@@ -43,7 +43,7 @@ END_SECTION
 OpenMS::ReactionMonitoringTransition transition = ReactionMonitoringTransition();
 
 CVTerm charge_cv;
-String charge_cv_acc = "MS:1000041";
+std::string charge_cv_acc = "MS:1000041";
 charge_cv.setCVIdentifierRef("MS");
 charge_cv.setAccession(charge_cv_acc);
 charge_cv.setName("charge state");
@@ -144,7 +144,7 @@ START_SECTION((ReactionMonitoringTransition& operator=(const ReactionMonitoringT
 END_SECTION
 
 
-START_SECTION((void setName(const String &name)))
+START_SECTION((void setName(const std::string &name)))
 {
   OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
   tr.setName("test_tr");
@@ -153,13 +153,13 @@ START_SECTION((void setName(const String &name)))
 }
 END_SECTION
 
-START_SECTION((const String& getName() const ))
+START_SECTION((const std::string& getName() const ))
 {
   TEST_EQUAL(transition.getName(), "")
 }
 END_SECTION
 
-START_SECTION((void setPeptideRef(const String &peptide_ref)))
+START_SECTION((void setPeptideRef(const std::string &peptide_ref)))
 {
   OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
   tr.setPeptideRef("test_ref");
@@ -168,13 +168,13 @@ START_SECTION((void setPeptideRef(const String &peptide_ref)))
 }
 END_SECTION
 
-START_SECTION((const String& getPeptideRef() const ))
+START_SECTION((const std::string& getPeptideRef() const ))
 {
   TEST_EQUAL(transition.getPeptideRef(), "")
 }
 END_SECTION
 
-START_SECTION((void setCompoundRef(const String &compound_ref)))
+START_SECTION((void setCompoundRef(const std::string &compound_ref)))
 {
   OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
   tr.setCompoundRef("test_ref");
@@ -183,7 +183,7 @@ START_SECTION((void setCompoundRef(const String &compound_ref)))
 }
 END_SECTION
 
-START_SECTION((const String& getCompoundRef() const ))
+START_SECTION((const std::string& getCompoundRef() const ))
 {
   TEST_EQUAL(transition.getCompoundRef(), "")
 }

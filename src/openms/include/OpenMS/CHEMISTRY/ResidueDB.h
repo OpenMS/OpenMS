@@ -9,7 +9,7 @@
 #pragma once
 
 #include <unordered_map>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/Macros.h> // for OPENMS_PRECONDITION
 
 #include <map>
@@ -59,7 +59,7 @@ public:
     Size getNumberOfModifiedResidues() const;
 
     /// returns a pointer to the residue with name, 3 letter code or 1 letter code name
-    const Residue* getResidue(const String& name) const;
+    const Residue* getResidue(const std::string& name) const;
 
     /// returns a pointer to the residue with 1 letter code name
     const Residue* getResidue(const unsigned char& one_letter_code) const;
@@ -73,7 +73,7 @@ public:
        @note Logically @c const: the lazily created modified residue is memoized
        in the (mutable) cache; repeated calls return the same pointer.
     */
-    const Residue* getModifiedResidue(const String& name) const;
+    const Residue* getModifiedResidue(const std::string& name) const;
 
     /**
        @brief Returns a pointer to a modified residue given a residue and a modification name
@@ -83,7 +83,7 @@ public:
        @throw Exception::IllegalArgument if the residue was not found
        @throw Exception::InvalidValue if no matching modification was found (via ModificationsDB::getModification)
     */
-    const Residue* getModifiedResidue(const Residue* residue, const String& name) const;
+    const Residue* getModifiedResidue(const Residue* residue, const std::string& name) const;
 
     /**
        @brief Returns a pointer to a modified residue given a residue and a pointer to a modification from the ModificationsDB
@@ -110,10 +110,10 @@ public:
 
        returns an empty set if the specified residue set is not defined
     */
-    const std::set<const Residue*> getResidues(const String& residue_set = "All") const;
+    const std::set<const Residue*> getResidues(const std::string& residue_set = "All") const;
 
     /// returns all residue sets that are registered which this instance
-    const std::set<String> getResidueSets() const;
+    const std::set<std::string> getResidueSets() const;
 
     //@}
 
@@ -121,7 +121,7 @@ public:
     */
     //@{
     /// returns true if the db contains a residue with the given name
-    bool hasResidue(const String& name) const;
+    bool hasResidue(const std::string& name) const;
 
     /// returns true if the db contains the residue of the given pointer
     bool hasResidue(const Residue* residue) const;
@@ -152,7 +152,7 @@ protected:
     void buildResidues_();
     
     /// creates and adds residues to a lookup table including the residue set
-    void insertResidueAndAssociateWithResidueSet_(Residue* residue, const std::vector<String>& residue_sets);
+    void insertResidueAndAssociateWithResidueSet_(Residue* residue, const std::vector<std::string>& residue_sets);
 
     /// lazily register a freshly created modified residue and its names in the cache
     /// (logically const memoization; only the @c mutable cache members are touched)
@@ -165,7 +165,7 @@ protected:
     void addModifiedResidueNames_(const Residue*) const;
 
     /// cache of name -> modification-name -> modified residue (lazily filled by getModifiedResidue)
-    mutable std::map<String, std::map<String, const Residue*> > residue_mod_names_;
+    mutable std::map<std::string, std::map<std::string, const Residue*> > residue_mod_names_;
 
     /// all (unmodified) residues
     std::set<const Residue*> const_residues_;
@@ -173,14 +173,14 @@ protected:
     /// all modified residues (lazily filled by getModifiedResidue)
     mutable std::set<const Residue*> const_modified_residues_;
 
-    std::set<String> residue_sets_;
+    std::set<std::string> residue_sets_;
 
     /// lookup from name to residue
-    std::unordered_map<String, const Residue*> residue_names_;
+    std::unordered_map<std::string, const Residue*> residue_names_;
 
     /// fast lookup table for residues  
     std::array<const Residue*, 256> residue_by_one_letter_code_ = {{nullptr}};
 
-    std::map<String, std::set<const Residue*> > residues_by_set_;    
+    std::map<std::string, std::set<const Residue*> > residues_by_set_;    
   };
 }

@@ -1406,7 +1406,7 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Ion mobility array index out of range.",
-                                    String(im_index));
+                                    StringUtils::toStr(im_index));
     }
     im_array_ptr = &fda[im_index];
   }
@@ -1422,7 +1422,7 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Ion mobility array shorter than peak list.",
-                                      String(peak_idx));
+                                      StringUtils::toStr(peak_idx));
       }
       const double im = (*im_array_ptr)[peak_idx];
       int im_bin = (paseftol_ > 0.0) ? static_cast<int>(im / paseftol_) : 0;
@@ -1493,14 +1493,14 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Ion mobility array index out of range.",
-                                      String(im_index_local));
+                                      StringUtils::toStr(im_index_local));
       }
       const auto& im_array_local = fda_local[im_index_local];
       if (p_idx >= im_array_local.size())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Ion mobility array shorter than peak list.",
-                                      String(p_idx));
+                                      StringUtils::toStr(p_idx));
       }
       ion_mobility = im_array_local[p_idx];
     }
@@ -1978,7 +1978,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills_(const vector<Hill
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Split hill meta data arrays are inconsistent.",
-                                      String(new_hill.scan_indices.size()));
+                                      StringUtils::toStr(new_hill.scan_indices.size()));
       }
 
 	      new_hill.length = new_hill.scan_indices.size();
@@ -3254,7 +3254,7 @@ double Biosaur2Algorithm::cosineCorrelation_(const vector<double>& intensities1,
   return dot_product / (sqrt(norm1) * sqrt(norm2));
 }
 
-void Biosaur2Algorithm::writeTSV(const vector<PeptideFeature>& features, const String& filename) const
+void Biosaur2Algorithm::writeTSV(const vector<PeptideFeature>& features, const std::string& filename) const
 {
   ofstream out(filename);
   if (!out)
@@ -3283,7 +3283,7 @@ void Biosaur2Algorithm::writeTSV(const vector<PeptideFeature>& features, const S
   OPENMS_LOG_INFO << "Wrote " << features.size() << " features to TSV file: " << filename << endl;
 }
 
-void Biosaur2Algorithm::writeHills(const vector<Hill>& hills, const String& filename) const
+void Biosaur2Algorithm::writeHills(const vector<Hill>& hills, const std::string& filename) const
 {
   ofstream out(filename);
   if (!out)

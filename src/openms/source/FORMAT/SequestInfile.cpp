@@ -158,7 +158,7 @@ namespace OpenMS
 
   void
   SequestInfile::store(
-    const String & filename)
+    const std::string & filename)
   {
     ofstream ofs(filename.c_str());
     if (!ofs)
@@ -174,38 +174,38 @@ namespace OpenMS
 
     // compute the masses for the amino acids, divided into fixed and optional modifications
     float mass(0.0);
-    String residues, dyn_mods_string;
-    for (map<String, vector<String> >::const_iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i)
+    std::string residues, dyn_mods_string;
+    for (map<std::string, vector<std::string> >::const_iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i)
     {
       if (mods_i->second[0] == "CTERM")
       {
         if (mods_i->second[2] == "OPT")
         {
-          dyn_c_term_mod += mods_i->second[1].toFloat();
+          dyn_c_term_mod += StringUtils::toFloat(mods_i->second[1]);
         }
         if (mods_i->second[2] == "FIX")
         {
-          stat_c_term_mod += mods_i->second[1].toFloat();
+          stat_c_term_mod += StringUtils::toFloat(mods_i->second[1]);
         }
       }
       else if (mods_i->second[0] == "NTERM")
       {
         if (mods_i->second[2] == "OPT")
         {
-          dyn_n_term_mod += mods_i->second[1].toFloat();
+          dyn_n_term_mod += StringUtils::toFloat(mods_i->second[1]);
         }
         if (mods_i->second[2] == "FIX")
         {
-          stat_n_term_mod += mods_i->second[1].toFloat();
+          stat_n_term_mod += StringUtils::toFloat(mods_i->second[1]);
         }
       }
       else if (mods_i->second[0] == "CTERM_PROT")
       {
-        stat_c_term_prot_mod += mods_i->second[1].toFloat();
+        stat_c_term_prot_mod += StringUtils::toFloat(mods_i->second[1]);
       }
       else if (mods_i->second[0] == "NTERM_PROT")
       {
-        stat_n_term_prot_mod += mods_i->second[1].toFloat();
+        stat_n_term_prot_mod += StringUtils::toFloat(mods_i->second[1]);
       }
       else
       {
@@ -217,15 +217,15 @@ namespace OpenMS
         {
           mods_p = &dyn_mods;
         }
-        mass = mods_i->second[1].toFloat();
+        mass = StringUtils::toFloat(mods_i->second[1]);
         residues = mods_i->second[0];
-        for (String::const_iterator residue_i = residues.begin(); residue_i != residues.end(); ++residue_i)
+        for (std::string::const_iterator residue_i = residues.begin(); residue_i != residues.end(); ++residue_i)
           (*mods_p)[*residue_i] += mass;
       }
     }
 
     // now put together all optional modifications with the same mass change
-    map<float, String> dyn_mods_masses;
+    map<float, std::string> dyn_mods_masses;
     for (map<char, float>::const_iterator dyn_mod_i = dyn_mods.begin(); dyn_mod_i != dyn_mods.end(); ++dyn_mod_i)
     {
       dyn_mods_masses[dyn_mod_i->second].append(1, dyn_mod_i->first);
@@ -237,9 +237,9 @@ namespace OpenMS
     }
     else
     {
-      for (map<float, String>::const_iterator dyn_mod_i = dyn_mods_masses.begin(); dyn_mod_i != dyn_mods_masses.end(); ++dyn_mod_i)
+      for (map<float, std::string>::const_iterator dyn_mod_i = dyn_mods_masses.begin(); dyn_mod_i != dyn_mods_masses.end(); ++dyn_mod_i)
       {
-        dyn_mods_string.append(String(dyn_mod_i->first) + " " + dyn_mod_i->second + " ");
+        dyn_mods_string.append(StringUtils::toStr(dyn_mod_i->first) + " " + dyn_mod_i->second + " ");
       }
       dyn_mods_string.erase(dyn_mods_string.length() - 1);
     }
@@ -348,39 +348,39 @@ namespace OpenMS
     ofs.clear();
   }
 
-  const map<String, vector<String> > & SequestInfile::getEnzymeInfo_() const
+  const map<std::string, vector<std::string> > & SequestInfile::getEnzymeInfo_() const
   {
     return enzyme_info_;
   }
 
-  const String
+  const std::string
   SequestInfile::getEnzymeInfoAsString() const
   {
     stringstream ss;
     Size i(0);
-    String::size_type max_name_length(0);
-    String::size_type max_cut_before_length(0);
-    String::size_type max_doesnt_cut_after_length(0);
+    std::string::size_type max_name_length(0);
+    std::string::size_type max_cut_before_length(0);
+    std::string::size_type max_doesnt_cut_after_length(0);
     ss << "[SEQUEST_ENZYME_INFO]" << "\n";
-    for (map<String, vector<String> >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i)
+    for (map<std::string, vector<std::string> >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i)
     {
       max_name_length = max(max_name_length, einfo_i->first.length());
       max_cut_before_length = max(max_cut_before_length, einfo_i->second[1].length());
       max_doesnt_cut_after_length = max(max_doesnt_cut_after_length, einfo_i->second[2].length());
     }
-    for (map<String, vector<String> >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i, ++i)
+    for (map<std::string, vector<std::string> >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i, ++i)
     {
-      ss << i << ".  " << einfo_i->first << String(max_name_length + 5 - einfo_i->first.length(), ' ') << einfo_i->second[0] << "     " << einfo_i->second[1] << String(max_cut_before_length + 5 - einfo_i->second[1].length(), ' ') << einfo_i->second[2] << "\n";
+      ss << i << ".  " << einfo_i->first << std::string(max_name_length + 5 - einfo_i->first.length(), ' ') << einfo_i->second[0] << "     " << einfo_i->second[1] << std::string(max_cut_before_length + 5 - einfo_i->second[1].length(), ' ') << einfo_i->second[2] << "\n";
     }
-    return String(ss.str());
+    return ss.str();
   }
 
   void
-  SequestInfile::addEnzymeInfo(vector<String> & enzyme_info)
+  SequestInfile::addEnzymeInfo(vector<std::string> & enzyme_info)
   {
     // remove duplicates from the concerned amino acids
     set<char> aas;
-    for (String::const_iterator s_i = enzyme_info[2].begin(); s_i != enzyme_info[2].end(); ++s_i)
+    for (std::string::const_iterator s_i = enzyme_info[2].begin(); s_i != enzyme_info[2].end(); ++s_i)
     {
       aas.insert(*s_i);
     }
@@ -394,73 +394,73 @@ namespace OpenMS
       }
     }
 
-    String enzyme_name = enzyme_info[0];
+    std::string enzyme_name = enzyme_info[0];
     enzyme_info.erase(enzyme_info.begin());
     enzyme_info_[enzyme_name] = enzyme_info;
     enzyme_number_ = 0;
-    for (std::map<String, std::vector<String> >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i, ++enzyme_number_)
+    for (std::map<std::string, std::vector<std::string> >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i, ++enzyme_number_)
     {
       if (einfo_i->first == enzyme_name)
         break;
     }
   }
 
-  const String & SequestInfile::getDatabase() const
+  const std::string & SequestInfile::getDatabase() const
   {
     return database_;
   }
 
-  void SequestInfile::setDatabase(const String & database)
+  void SequestInfile::setDatabase(const std::string & database)
   {
     database_ = database;
   }
 
-  const String & SequestInfile::getNeutralLossesForIons() const
+  const std::string & SequestInfile::getNeutralLossesForIons() const
   {
     return neutral_losses_for_ions_;
   }
 
-  void SequestInfile::setNeutralLossesForIons(const String & neutral_losses_for_ions)
+  void SequestInfile::setNeutralLossesForIons(const std::string & neutral_losses_for_ions)
   {
     neutral_losses_for_ions_ = neutral_losses_for_ions;
   }
 
-  const String & SequestInfile::getIonSeriesWeights() const
+  const std::string & SequestInfile::getIonSeriesWeights() const
   {
     return ion_series_weights_;
   }
 
-  void SequestInfile::setIonSeriesWeights(const String & ion_series_weights)
+  void SequestInfile::setIonSeriesWeights(const std::string & ion_series_weights)
   {
     ion_series_weights_ = ion_series_weights;
   }
 
-  const String & SequestInfile::getPartialSequence() const
+  const std::string & SequestInfile::getPartialSequence() const
   {
     return partial_sequence_;
   }
 
-  void SequestInfile::setPartialSequence(const String & partial_sequence)
+  void SequestInfile::setPartialSequence(const std::string & partial_sequence)
   {
     partial_sequence_ = partial_sequence;
   }
 
-  const String & SequestInfile::getSequenceHeaderFilter() const
+  const std::string & SequestInfile::getSequenceHeaderFilter() const
   {
     return sequence_header_filter_;
   }
 
-  void SequestInfile::setSequenceHeaderFilter(const String & sequence_header_filter)
+  void SequestInfile::setSequenceHeaderFilter(const std::string & sequence_header_filter)
   {
     sequence_header_filter_ = sequence_header_filter;
   }
 
-  const String & SequestInfile::getProteinMassFilter() const
+  const std::string & SequestInfile::getProteinMassFilter() const
   {
     return protein_mass_filter_;
   }
 
-  void SequestInfile::setProteinMassFilter(const String & protein_mass_filter)
+  void SequestInfile::setProteinMassFilter(const std::string & protein_mass_filter)
   {
     protein_mass_filter_ = protein_mass_filter;
   }
@@ -530,19 +530,19 @@ namespace OpenMS
     return enzyme_number_;
   }
 
-  String SequestInfile::getEnzymeName() const
+  std::string SequestInfile::getEnzymeName() const
   {
-    map<String, vector<String> >::const_iterator einfo_i = enzyme_info_.begin();
+    map<std::string, vector<std::string> >::const_iterator einfo_i = enzyme_info_.begin();
     for (Size enzyme_number = 0; enzyme_number < enzyme_number_; ++enzyme_number, ++einfo_i)
     {
     }
     return einfo_i->first;
   }
 
-  Size SequestInfile::setEnzyme(const String& enzyme_name)
+  Size SequestInfile::setEnzyme(const std::string& enzyme_name)
   {
     enzyme_number_ = 0;
-    map<String, vector<String> >::const_iterator einfo_i;
+    map<std::string, vector<std::string> >::const_iterator einfo_i;
     for (einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i, ++enzyme_number_)
     {
       if (einfo_i->first == enzyme_name)
@@ -683,31 +683,31 @@ namespace OpenMS
     residues_in_upper_case_ = residues_in_upper_case;
   }
 
-  const map<String, vector<String> > & SequestInfile::getModifications() const
+  const map<std::string, vector<std::string> > & SequestInfile::getModifications() const
   {
     return PTMname_residues_mass_type_;
   }
 
-  void SequestInfile::handlePTMs(const String & modification_line, const String & modifications_filename, const bool monoisotopic)
+  void SequestInfile::handlePTMs(const std::string & modification_line, const std::string & modifications_filename, const bool monoisotopic)
   {
     PTMname_residues_mass_type_.clear();
     // to store the information about modifications from the ptm xml file
-    map<String, pair<String, String> > ptm_informations;
+    map<std::string, pair<std::string, std::string> > ptm_informations;
     if (!modification_line.empty())       // if modifications are used look whether whether composition and residues (and type and name) is given, the name (type) is used (then the modifications file is needed) or only the mass and residues (and type and name) is given
     {
-      vector<String> modifications, mod_parts;
-      modification_line.split(':', modifications);       // get the single modifications
+      vector<std::string> modifications, mod_parts;
+      StringUtils::split(modification_line, ':', modifications);       // get the single modifications
 
       // to get masses from a formula
       EmpiricalFormula add_formula, substract_formula;
 
-      String types = "OPT#FIX#";
-      String name, residues, mass, type;
+      std::string types = "OPT#FIX#";
+      std::string name, residues, mass, type;
 
       // 0 - mass; 1 - composition; 2 - ptm name
       Int mass_or_composition_or_name(-1);
 
-      for (const String& mod_i : modifications)
+      for (const std::string& mod_i : modifications)
       {
         if (mod_i.empty())
         {
@@ -718,7 +718,7 @@ namespace OpenMS
         name = residues = mass = type = "";
 
         // get the single parts of the modification string
-        mod_i.split(',', mod_parts);
+        StringUtils::split(mod_i, ',', mod_parts);
         mass_or_composition_or_name = -1;
 
         // check whether the first part is a mass, composition or name
@@ -729,21 +729,21 @@ namespace OpenMS
           mass = mod_parts.front();
           // to check whether the first part is a mass, it is converted into a float and then back into a string and compared to the given string
           // remove + signs because they don't appear in a float
-          if (mass.hasPrefix("+"))
+          if (StringUtils::hasPrefix(mass, "+"))
           {
             mass.erase(0, 1);
           }
-          if (mass.hasSuffix("+"))
+          if (StringUtils::hasSuffix(mass, "+"))
           {
             mass.erase(mass.length() - 1, 1);
           }
-          if (mass.hasSuffix("-"))             // a - sign at the end will not be converted
+          if (StringUtils::hasSuffix(mass, "-"))             // a - sign at the end will not be converted
           {
             mass.erase(mass.length() - 1, 1);
             mass.insert(0, "-");
           }
           // if it is a mass
-          if (!String(mass.toFloat()).empty()) // just check if conversion does not throw, i.e. consumes the whole string
+          if (!StringUtils::toStr(StringUtils::toFloat(mass)).empty()) // just check if conversion does not throw, i.e. consumes the whole string
           {
             mass_or_composition_or_name = 0;
           }
@@ -789,13 +789,13 @@ namespace OpenMS
         if (mass_or_composition_or_name == -1 || mass_or_composition_or_name == 2)
         {
           // check whether there is a positive and a negative formula
-          String::size_type pos = mass.find("-");
+          std::string::size_type pos = mass.find("-");
           try
           {
-            if (pos != String::npos)
+            if (pos != std::string::npos)
             {
-              add_formula = EmpiricalFormula(mass.substr(0, pos));
-              substract_formula = EmpiricalFormula(mass.substr(++pos));
+              add_formula = EmpiricalFormula(StringUtils::substr(mass, 0, pos));
+              substract_formula = EmpiricalFormula(StringUtils::substr(mass, ++pos));
             }
             else
             {
@@ -804,11 +804,11 @@ namespace OpenMS
             // sum up the masses
             if (monoisotopic)
             {
-              mass = String(add_formula.getMonoWeight() - substract_formula.getMonoWeight());
+              mass =StringUtils::toStr(add_formula.getMonoWeight() - substract_formula.getMonoWeight());
             }
             else
             {
-              mass = String(add_formula.getAverageWeight() - substract_formula.getAverageWeight());
+              mass =StringUtils::toStr(add_formula.getAverageWeight() - substract_formula.getAverageWeight());
             }
             if (mass_or_composition_or_name == -1)
             {
@@ -834,8 +834,8 @@ namespace OpenMS
 
           // get the residues
           residues = mod_parts.front();
-          residues.substitute('*', 'X');
-          residues.toUpper();
+          StringUtils::substitute(residues, '*', 'X');
+          StringUtils::toUpper(residues);
           mod_parts.erase(mod_parts.begin());
         }
 
@@ -847,7 +847,7 @@ namespace OpenMS
         else
         {
           type = mod_parts.front();
-          type.toUpper();
+          StringUtils::toUpper(type);
           if (types.contains(type))
           {
             mod_parts.erase(mod_parts.begin());
@@ -869,7 +869,7 @@ namespace OpenMS
         {
           if (mod_parts.empty())
           {
-            name = "PTM_" + String(PTMname_residues_mass_type_.size());
+            name = "PTM_" + StringUtils::toStr(PTMname_residues_mass_type_.size());
           }
           else
           {
@@ -880,10 +880,10 @@ namespace OpenMS
         // insert the modification
         if (!PTMname_residues_mass_type_.contains(name))
         {
-          PTMname_residues_mass_type_[name] = vector<String>(3);
+          PTMname_residues_mass_type_[name] = vector<std::string>(3);
           PTMname_residues_mass_type_[name][0] = residues;
           // mass must not have more than 5 digits after the . (otherwise the test may fail)
-          PTMname_residues_mass_type_[name][1] = mass.substr(0, mass.find(".") + 6);
+          PTMname_residues_mass_type_[name][1] = StringUtils::substr(mass, 0, mass.find(".") + 6);
           PTMname_residues_mass_type_[name][2] = type;
         }
         else
@@ -897,7 +897,7 @@ namespace OpenMS
 
   void SequestInfile::setStandardEnzymeInfo_()
   {
-    vector<String> info;
+    vector<std::string> info;
     // cuts n to c? cuts before doesn't cut after
     info.emplace_back("0"); info.emplace_back("-"); info.emplace_back("-"); enzyme_info_["No_Enzyme"] = info; info.clear();
     info.emplace_back("1"); info.emplace_back("KR"); info.emplace_back("-"); enzyme_info_["Trypsin_Strict"] = info; info.clear();

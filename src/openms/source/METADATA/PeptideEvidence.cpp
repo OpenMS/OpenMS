@@ -28,7 +28,7 @@ namespace OpenMS
   {
   }
 
-  PeptideEvidence::PeptideEvidence(const String& accession, Int start, Int end, char aa_before, char aa_after) :
+  PeptideEvidence::PeptideEvidence(const std::string& accession, Int start, Int end, char aa_before, char aa_after) :
       accession_(accession),
       start_(start),
       end_(end),
@@ -85,12 +85,12 @@ namespace OpenMS
       getEnd() == N_TERMINAL_POSITION);
   }
 
-  void PeptideEvidence::setProteinAccession(const String& s)
+  void PeptideEvidence::setProteinAccession(const std::string& s)
   {
     accession_ = s;
   }
 
-  const String& PeptideEvidence::getProteinAccession() const
+  const std::string& PeptideEvidence::getProteinAccession() const
   {
     return accession_;
   }

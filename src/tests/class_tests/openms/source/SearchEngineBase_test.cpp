@@ -55,10 +55,10 @@ class SearchEngineBaseTest
     ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
     {
       // check raw file (must contain centroided MS2 spectra)
-      String in = getRawfileName();
+      std::string in = getRawfileName();
 
       // check if DB is found (no PATH lookup possible here, since we do not control the OpenMS.ini; so usefulness is limited)
-      String db = getDBFilename();
+      std::string db = getDBFilename();
 
       return EXECUTION_OK;
     }
@@ -81,7 +81,7 @@ START_TEST(SearchEngineBase, "$Id$");
 
 SearchEngineBaseTest* ptr = nullptr;
 SearchEngineBaseTest* nullPointer = nullptr;
-START_SECTION(SearchEngineBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true))
+START_SECTION(SearchEngineBase(const std::string& name, const std::string& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true))
 	ptr = new SearchEngineBaseTest();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
@@ -90,11 +90,11 @@ START_SECTION((virtual ~SearchEngineBase()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(String getRawfileName(int ms_level = 2) const;)
+START_SECTION(std::string getRawfileName(int ms_level = 2) const;)
   // collect arguments to TOPP/SEB
-  String db(OPENMS_GET_TEST_DATA_PATH("degenerate_cases/empty.fasta"));
-  String infile_empty(OPENMS_GET_TEST_DATA_PATH("degenerate_cases/empty_spec.mzML"));
-  String infile_profile(OPENMS_GET_TEST_DATA_PATH("Single_MS2_profileMode.mzML"));
+  std::string db(OPENMS_GET_TEST_DATA_PATH("degenerate_cases/empty.fasta"));
+  std::string infile_empty(OPENMS_GET_TEST_DATA_PATH("degenerate_cases/empty_spec.mzML"));
+  std::string infile_profile(OPENMS_GET_TEST_DATA_PATH("Single_MS2_profileMode.mzML"));
   StringList args;
 
   // need local scopes; calling TOPPBase::main() twice leads to error
@@ -138,7 +138,7 @@ START_SECTION(String getRawfileName(int ms_level = 2) const;)
 END_SECTION
 
 
-START_SECTION(String getDBFilename(String db = "") const)
+START_SECTION(std::string getDBFilename(std::string db = "") const)
   NOT_TESTABLE // tested above
 END_SECTION
 

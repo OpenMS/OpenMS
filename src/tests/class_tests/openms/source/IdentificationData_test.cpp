@@ -487,7 +487,7 @@ START_SECTION((pair<ID::ObservationMatchRef, ID::ObservationMatchRef> getMatches
 }
 END_SECTION
 
-START_SECTION((ScoreTypeRef findScoreType(const String& score_name) const))
+START_SECTION((ScoreTypeRef findScoreType(const std::string& score_name) const))
 {
   // non-existent score:
   TEST_EQUAL(data.findScoreType("fake_score") == data.getScoreTypes().end(), true);

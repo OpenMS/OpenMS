@@ -245,14 +245,14 @@ return bestfit
             print 'iteration %d:len(alsoinliers) = %d'%(
                 iterations,len(alsoinliers))
         if len(alsoinliers) > d:
-            betterdata = numpy.concatenate( (maybeinliers, alsoinliers) )
+            betterdata = StringUtils::concatenate(numpy,  (maybeinliers, alsoinliers) )
             bettermodel = model.fit(betterdata)
             better_errs = model.get_error( betterdata, bettermodel)
             thiserr = numpy.mean( better_errs )
             if thiserr < besterr:
                 bestfit = bettermodel
                 besterr = thiserr
-                best_inlier_idxs = numpy.concatenate( (maybe_idxs, also_idxs) )
+                best_inlier_idxs = StringUtils::concatenate(numpy,  (maybe_idxs, also_idxs) )
         iterations+=1
     if bestfit is None:
         raise ValueError("did not meet fit acceptance criteria")

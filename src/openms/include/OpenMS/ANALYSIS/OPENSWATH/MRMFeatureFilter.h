@@ -16,7 +16,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS
 {
@@ -162,7 +162,7 @@ public:
 
       @return The ratio.
     */
-    double calculateIonRatio(const Feature& component_1, const Feature& component_2, const String& feature_name) const;
+    double calculateIonRatio(const Feature& component_1, const Feature& component_2, const std::string& feature_name) const;
 
     /**
       @brief Calculates the retention time difference between two features
@@ -197,7 +197,7 @@ public:
     */
     bool checkMetaValue(
       const Feature& component,
-      const String& meta_value_key,
+      const std::string& meta_value_key,
       const double& meta_value_l,
       const double& meta_value_u,
       bool& key_exists
@@ -214,7 +214,7 @@ public:
     */
     void updateMetaValue(
       const Feature& component,
-      const String& meta_value_key,
+      const std::string& meta_value_key,
       double& meta_value_l,
       double& meta_value_u,
       bool& key_exists
@@ -231,7 +231,7 @@ public:
     */
     void setMetaValue(
       const Feature& component,
-      const String& meta_value_key,
+      const std::string& meta_value_key,
       double& meta_value_l,
       double& meta_value_u,
       bool& key_exists
@@ -248,7 +248,7 @@ public:
     */
     void initMetaValue(
       const Feature& component,
-      const String& meta_value_key,
+      const std::string& meta_value_key,
       double& meta_value_l,
       double& meta_value_u,
       bool& key_exists
@@ -262,7 +262,7 @@ public:
 
       @return Map of labels/transition types and their corresponding number.
     */
-    std::map<String,int> countLabelsAndTransitionTypes(const Feature& component_group,
+    std::map<std::string,int> countLabelsAndTransitionTypes(const Feature& component_group,
       const TargetedExperiment& transitions) const;
 
     /**
@@ -339,7 +339,7 @@ public:
 private:
     // Members
     /// flag or filter (i.e., remove) features that do not pass the QC
-    String flag_or_filter_;
+    std::string flag_or_filter_;
   };
 }
 

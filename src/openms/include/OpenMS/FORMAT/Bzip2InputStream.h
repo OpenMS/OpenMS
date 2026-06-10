@@ -15,7 +15,6 @@
 
 namespace OpenMS
 {
-  class String;
   /**
     * @brief Implements the BinInputStream class of the xerces-c library in order to read bzip2 compressed XML files.
     *
@@ -25,7 +24,7 @@ namespace OpenMS
   {
 public:
     ///Constructor
-    explicit Bzip2InputStream(const String& file_name);
+    explicit Bzip2InputStream(const std::string& file_name);
 
     explicit Bzip2InputStream(const char* const file_name);
 

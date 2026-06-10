@@ -34,10 +34,10 @@ namespace OpenMS
     double transition_quality_score; ///< transitions quality score (not yet used)
     double precursor_mz; ///< precursor mass-to-charge
     double compound_rt; ///< compound retention time
-    String molecular_formula; ///<< (putative) molecular formula
+    std::string molecular_formula; ///<< (putative) molecular formula
     int compound_file; ///< integer of file it belongs to in a list of files
-    String compound_name; ///< compound name
-    String compound_adduct; ///< compound adduct
+    std::string compound_name; ///< compound name
+    std::string compound_adduct; ///< compound adduct
     TargetedExperiment::Compound potential_cmp; ///< compound information stored in a TargetedExperiment
     std::vector<ReactionMonitoringTransition> potential_rmts; ///< vector of transitions belonging to the compound
 
@@ -162,7 +162,7 @@ namespace OpenMS
     static std::unordered_map< UInt64, std::vector<MetaboTargetedAssay> > buildAmbiguityGroup(const std::vector<MetaboTargetedAssay>& v_mta,
                                                                                               const double& ar_mz_tol,
                                                                                               const double& ar_rt_tol,
-                                                                                              const String& ar_mz_tol_unit_res, size_t in_files_size);
+                                                                                              const std::string& ar_mz_tol_unit_res, size_t in_files_size);
 
     /**
     @brief Resolve ambiguity groups based on occurrence in samples (e.g. at least in 20% of the samples) and if multiple possible identifications are reported within one ambiguity group use the one with the highest occurrence
@@ -188,7 +188,7 @@ namespace OpenMS
     /**
     @brief Gets charge from a singly charged adduct ([M+H]+/[M-H]-)
     */
-    static int getChargeFromAdduct_(const String& adduct);
+    static int getChargeFromAdduct_(const std::string& adduct);
 
     /**
     @brief Filter one ambiguity group based on occurrence in samples (e.g. at least in 20% of the samples)

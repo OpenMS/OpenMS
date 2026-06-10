@@ -8,7 +8,7 @@
 
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <boost/version.hpp>
 #include <boost/asio/io_context.hpp>
@@ -51,11 +51,11 @@ namespace OpenMS
 
   /// default Ctor; callbacks for stdout/stderr are empty
   ExternalProcess::ExternalProcess()
-    : ExternalProcess([](const String& /*out*/) {}, [](const String& /*out*/) {})
+    : ExternalProcess([](const std::string& /*out*/) {}, [](const std::string& /*out*/) {})
   {
   }
 
-  ExternalProcess::ExternalProcess(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr)
+  ExternalProcess::ExternalProcess(std::function<void(const std::string&)> callbackStdOut, std::function<void(const std::string&)> callbackStdErr)
     : callbackStdOut_(std::move(callbackStdOut)),
       callbackStdErr_(std::move(callbackStdErr))
   {
@@ -64,27 +64,27 @@ namespace OpenMS
   ExternalProcess::~ExternalProcess() = default;
 
   /// re-wire the callbacks used using run()
-  void ExternalProcess::setCallbacks(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr)
+  void ExternalProcess::setCallbacks(std::function<void(const std::string&)> callbackStdOut, std::function<void(const std::string&)> callbackStdErr)
   {
     callbackStdOut_ = std::move(callbackStdOut);
     callbackStdErr_ = std::move(callbackStdErr);
   }
 
-  ExternalProcess::RETURNSTATE ExternalProcess::run(const String& exe, const std::vector<String>& args, const String& working_dir, const bool verbose,
-                                                     IO_MODE io_mode, const std::map<String, String>& env, std::function<void()> idle_callback)
+  ExternalProcess::RETURNSTATE ExternalProcess::run(const std::string& exe, const std::vector<std::string>& args, const std::string& working_dir, const bool verbose,
+                                                     IO_MODE io_mode, const std::map<std::string, std::string>& env, std::function<void()> idle_callback)
   {
-    String error_msg;
+    std::string error_msg;
     return run(exe, args, working_dir, verbose, error_msg, io_mode, env, std::move(idle_callback));
   }
 
-  ExternalProcess::RETURNSTATE ExternalProcess::run(const String& exe, const std::vector<String>& args, const String& working_dir, const bool verbose,
-                                                     String& error_msg, IO_MODE io_mode, const std::map<String, String>& env, std::function<void()> idle_callback)
+  ExternalProcess::RETURNSTATE ExternalProcess::run(const std::string& exe, const std::vector<std::string>& args, const std::string& working_dir, const bool verbose,
+                                                     std::string& error_msg, IO_MODE io_mode, const std::map<std::string, std::string>& env, std::function<void()> idle_callback)
   {
     error_msg.clear();
 
     if (verbose)
     {
-      String cmd = "Running: " + exe;
+      std::string cmd = "Running: " + exe;
       for (const auto& a : args)
       {
         cmd += " " + a;
@@ -93,7 +93,7 @@ namespace OpenMS
       callbackStdOut_(cmd);
     }
 
-    // Convert args from OpenMS::String to std::string
+    // Convert args from std::string to std::string
     std::vector<std::string> std_args;
     std_args.reserve(args.size());
     for (const auto& a : args)
@@ -160,7 +160,7 @@ namespace OpenMS
         read_out = [&](const boost::system::error_code& ec, std::size_t n) {
           if (!ec && n > 0)
           {
-            callbackStdOut_(String(std::string(buf_out.data(), n)));
+            callbackStdOut_(std::string(std::string(buf_out.data(), n)));
           }
           if (!ec)
           {
@@ -171,7 +171,7 @@ namespace OpenMS
         read_err = [&](const boost::system::error_code& ec, std::size_t n) {
           if (!ec && n > 0)
           {
-            callbackStdErr_(String(std::string(buf_err.data(), n)));
+            callbackStdErr_(std::string(std::string(buf_err.data(), n)));
           }
           if (!ec)
           {
@@ -219,7 +219,7 @@ namespace OpenMS
         }
         else if (exit_code != 0)
         {
-          error_msg = "Process '" + exe + "' did not finish successfully (exit code: " + String(exit_code) + "). Please check the log.";
+          error_msg = "Process '" + exe + "' did not finish successfully (exit code: " + StringUtils::toStr(exit_code) + "). Please check the log.";
           if (verbose)
           {
             callbackStdErr_(error_msg + "\n");
@@ -265,7 +265,7 @@ namespace OpenMS
         int exit_code = child.exit_code();
         if (exit_code != 0)
         {
-          error_msg = "Process '" + exe + "' did not finish successfully (exit code: " + String(exit_code) + "). Please check the log.";
+          error_msg = "Process '" + exe + "' did not finish successfully (exit code: " + StringUtils::toStr(exit_code) + "). Please check the log.";
           if (verbose)
           {
             callbackStdErr_(error_msg + "\n");

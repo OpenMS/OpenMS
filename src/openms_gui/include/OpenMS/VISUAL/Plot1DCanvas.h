@@ -71,7 +71,7 @@ namespace OpenMS
     {
       if (axis != DIM::X && axis != DIM::Y)
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a valid axis for 1D plotting", String((int)axis));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a valid axis for 1D plotting",StringUtils::toStr((int)axis));
       }
       gravity_axis_ = axis;
     }
@@ -347,9 +347,9 @@ public:
                        ODExperimentSharedPtrType ondisc_sptr, 
                        OSWDataSharedPtrType chrom_annotation,
                        const int index,
-                       const String& filename, 
-                       const String& basename,
-                       const String& basename_extra);
+                       const std::string& filename, 
+                       const std::string& basename,
+                       const std::string& basename_extra);
 
     
     ///Enumerate all available paint styles

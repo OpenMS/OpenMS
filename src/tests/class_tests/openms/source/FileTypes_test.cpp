@@ -25,7 +25,7 @@ START_TEST(FileHandler, "Id")
 using namespace OpenMS;
 using namespace std;
 
-START_SECTION((static String typeToName(Type type)))
+START_SECTION((static std::string typeToName(Type type)))
 {
   TEST_EQUAL(FileTypes::typeToName(FileTypes::UNKNOWN), "unknown");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::DTA), "dta");
@@ -52,13 +52,13 @@ START_SECTION((static String typeToName(Type type)))
 }
 END_SECTION
 
-START_SECTION((static Type nameToType(const String& name)))
+START_SECTION((static Type nameToType(const std::string& name)))
   TEST_EQUAL(FileTypes::typeToDescription(FileTypes::DTA2D), "dta2d raw data file");
   TEST_EQUAL(FileTypes::typeToDescription(FileTypes::UNKNOWN), "unknown file extension");
 END_SECTION
 
 
-START_SECTION((static Type nameToType(const String& name)))
+START_SECTION((static Type nameToType(const std::string& name)))
 {
   TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("unknown"));
   TEST_EQUAL(FileTypes::DTA, FileTypes::nameToType("dta"));
@@ -133,7 +133,7 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
   TEST_EQUAL(list.toFileDialogFilter(FilterLayout::ONE_BY_ONE, true), "mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
   TEST_EQUAL(list.toFileDialogFilter(FilterLayout::BOTH, false), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2)")
 
-  // testing Type FileTypeList::fromFileDialogFilter(const String& filter, const Type fallback = Type::UNKNOWN) const
+  // testing Type FileTypeList::fromFileDialogFilter(const std::string& filter, const Type fallback = Type::UNKNOWN) const
   TEST_EQUAL(list.fromFileDialogFilter("all readable files (*.mzML *.bz2)"), FileTypes::UNKNOWN);
   TEST_EQUAL(list.fromFileDialogFilter("all files (*)"), FileTypes::UNKNOWN);
   TEST_EQUAL(list.fromFileDialogFilter("mzML raw data file (*.mzML)"), FileTypes::MZML);

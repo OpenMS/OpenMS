@@ -87,7 +87,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (idXML or idparquet) containing the identifications.");
-    setValidFormats_("in", ListUtils::create<String>("idXML,idparquet"));
+    setValidFormats_("in", ListUtils::create<std::string>("idXML,idparquet"));
     registerInputFile_("fasta", "<file>", "", "Input sequence database in FASTA format. "
                                               "Leave empty for using the same DB as used for the input idXML (this might fail). "
                                               "Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'", false, false, { "skipexists" });
@@ -103,9 +103,9 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
-    String db_name = getStringOption_("fasta"); // optional. Might be empty.
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
+    std::string db_name = getStringOption_("fasta"); // optional. Might be empty.
 
     //-------------------------------------------------------------
     // reading input
@@ -137,7 +137,7 @@ protected:
     
     if (!File::readable(db_name))
     {
-      String full_db_name;
+      std::string full_db_name;
       try
       {
         full_db_name = File::findDatabase(db_name);

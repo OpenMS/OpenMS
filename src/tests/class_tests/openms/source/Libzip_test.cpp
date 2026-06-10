@@ -298,21 +298,21 @@ START_SECTION(seek_within_uncompressed_entry)
   std::vector<char> buf(10);
   zip_int64_t bytes_read = zip_fread(f, buf.data(), 10);
   TEST_EQUAL(bytes_read, 10)
-  TEST_EQUAL(std::string(buf.data(), 10), file1_data.substr(0, 10))
+  TEST_EQUAL(std::string(buf.data(), 10), StringUtils::substr(file1_data, 0, 10))
 
   // Seek to byte offset 20
   TEST_EQUAL(zip_fseek(f, 20, SEEK_SET), 0)
   TEST_EQUAL(zip_ftell(f), 20)
   bytes_read = zip_fread(f, buf.data(), 10);
   TEST_EQUAL(bytes_read, 10)
-  TEST_EQUAL(std::string(buf.data(), 10), file1_data.substr(20, 10))
+  TEST_EQUAL(std::string(buf.data(), 10), StringUtils::substr(file1_data, 20, 10))
 
   // Seek backwards to offset 5
   TEST_EQUAL(zip_fseek(f, 5, SEEK_SET), 0)
   TEST_EQUAL(zip_ftell(f), 5)
   bytes_read = zip_fread(f, buf.data(), 10);
   TEST_EQUAL(bytes_read, 10)
-  TEST_EQUAL(std::string(buf.data(), 10), file1_data.substr(5, 10))
+  TEST_EQUAL(std::string(buf.data(), 10), StringUtils::substr(file1_data, 5, 10))
 
   // Seek to near the end and read last 5 bytes
   int64_t near_end = static_cast<int64_t>(file1_data.size()) - 5;
@@ -320,13 +320,13 @@ START_SECTION(seek_within_uncompressed_entry)
   std::vector<char> tail_buf(5);
   bytes_read = zip_fread(f, tail_buf.data(), 5);
   TEST_EQUAL(bytes_read, 5)
-  TEST_EQUAL(std::string(tail_buf.data(), 5), file1_data.substr(file1_data.size() - 5, 5))
+  TEST_EQUAL(std::string(tail_buf.data(), 5), StringUtils::substr(file1_data, file1_data.size() - 5, 5))
 
   // Seek from end
   TEST_EQUAL(zip_fseek(f, -5, SEEK_END), 0)
   bytes_read = zip_fread(f, tail_buf.data(), 5);
   TEST_EQUAL(bytes_read, 5)
-  TEST_EQUAL(std::string(tail_buf.data(), 5), file1_data.substr(file1_data.size() - 5, 5))
+  TEST_EQUAL(std::string(tail_buf.data(), 5), StringUtils::substr(file1_data, file1_data.size() - 5, 5))
 
   zip_fclose(f);
 
@@ -338,7 +338,7 @@ START_SECTION(seek_within_uncompressed_entry)
   TEST_EQUAL(zip_fseek(f, mid2, SEEK_SET), 0)
   bytes_read = zip_fread(f, buf.data(), 10);
   TEST_EQUAL(bytes_read, 10)
-  TEST_EQUAL(std::string(buf.data(), 10), file2_data.substr(mid2, 10))
+  TEST_EQUAL(std::string(buf.data(), 10), StringUtils::substr(file2_data, mid2, 10))
 
   zip_fclose(f);
   zip_close(archive);

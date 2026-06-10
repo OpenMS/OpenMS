@@ -11,7 +11,7 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeDataProvider.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <set>
 #include <map>
@@ -70,7 +70,7 @@ namespace OpenMS
     /// returns a pointer to the enzyme with name (supports synonym names)
     /// @throw Exception::ElementNotFound if enzyme is unknown
     /// @note enzymes are registered in regular and in toLowercase() style, if unsure use toLowercase
-    const DigestionEnzymeType* getEnzyme(const String& name) const
+    const DigestionEnzymeType* getEnzyme(const std::string& name) const
     {
       auto pos = enzyme_names_.find(name);
       if (pos == enzyme_names_.end())
@@ -82,19 +82,19 @@ namespace OpenMS
 
     /// returns a pointer to the enzyme with cleavage regex
     /// @throw Exception::IllegalArgument if enzyme regex  is unregistered.
-    const DigestionEnzymeType* getEnzymeByRegEx(const String& cleavage_regex) const
+    const DigestionEnzymeType* getEnzymeByRegEx(const std::string& cleavage_regex) const
     {
       if (!hasRegEx(cleavage_regex))
       {
         // @TODO: why does this use a different exception than "getEnzyme"?
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         String("Enzyme with regex " + cleavage_regex + " was not registered in Enzyme DB, register first!").c_str());
+                                         std::string("Enzyme with regex " + cleavage_regex + " was not registered in Enzyme DB, register first!").c_str());
       }
       return enzyme_regex_.at(cleavage_regex);
     }
 
     /// returns all the enzyme names (does NOT include synonym names)
-    void getAllNames(std::vector<String>& all_names) const
+    void getAllNames(std::vector<std::string>& all_names) const
     {
       all_names.clear();
       for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
@@ -108,13 +108,13 @@ namespace OpenMS
     */
     //@{
     /// returns true if the db contains a enzyme with the given name (supports synonym names)
-    bool hasEnzyme(const String& name) const
+    bool hasEnzyme(const std::string& name) const
     {
       return (enzyme_names_.contains(name));
     }
 
     /// returns true if the db contains a enzyme with the given regex
-    bool hasRegEx(const String& cleavage_regex) const
+    bool hasRegEx(const std::string& cleavage_regex) const
     {
       return (enzyme_regex_.contains(cleavage_regex));
     }
@@ -151,7 +151,7 @@ namespace OpenMS
     /// If an enzyme with the same name already exists, it is replaced.
     void addEnzyme_(const DigestionEnzymeType* enzyme)
     {
-      String name = enzyme->getName();
+      std::string name = enzyme->getName();
 
       // if an enzyme with the same name exists, remove the old one first
       auto existing = enzyme_names_.find(name);
@@ -160,9 +160,9 @@ namespace OpenMS
         const DigestionEnzymeType* old = existing->second;
         const_enzymes_.erase(old);
         // remove old name/synonym entries
-        String old_name = old->getName();
+        std::string old_name = old->getName();
         enzyme_names_.erase(old_name);
-        enzyme_names_.erase(old_name.toLower());
+        enzyme_names_.erase(StringUtils::toLower(old_name));
         for (const auto& syn : old->getSynonyms())
         {
           enzyme_names_.erase(syn);
@@ -179,8 +179,8 @@ namespace OpenMS
       const_enzymes_.insert(enzyme);
       // add to internal indices (by name and its synonyms)
       enzyme_names_[name] = enzyme;
-      enzyme_names_[name.toLower()] = enzyme;
-      for (std::set<String>::const_iterator it = enzyme->getSynonyms().begin(); it != enzyme->getSynonyms().end(); ++it)
+      enzyme_names_[StringUtils::toLower(name)] = enzyme;
+      for (std::set<std::string>::const_iterator it = enzyme->getSynonyms().begin(); it != enzyme->getSynonyms().end(); ++it)
       {
         enzyme_names_[*it] = enzyme;
       }
@@ -207,9 +207,9 @@ namespace OpenMS
       }
     }
 
-    std::map<String, const DigestionEnzymeType*> enzyme_names_; ///< index by names
+    std::map<std::string, const DigestionEnzymeType*> enzyme_names_; ///< index by names
 
-    std::map<String, const DigestionEnzymeType*> enzyme_regex_; ///< index by regex
+    std::map<std::string, const DigestionEnzymeType*> enzyme_regex_; ///< index by regex
 
     std::set<const DigestionEnzymeType*> const_enzymes_; ///< set of enzymes
 

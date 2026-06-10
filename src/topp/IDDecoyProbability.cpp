@@ -75,19 +75,19 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Identification input of combined forward decoy search (reindex with PeptideIndexer first)", false);
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("idXML"));
     registerInputFile_("fwd_in", "<file>", "", "Identification input of forward run", false);
-    setValidFormats_("fwd_in", ListUtils::create<String>("idXML"));
+    setValidFormats_("fwd_in", ListUtils::create<std::string>("idXML"));
     registerInputFile_("rev_in", "<file>", "", "Identification input of decoy run", false);
-    setValidFormats_("rev_in", ListUtils::create<String>("idXML"));
+    setValidFormats_("rev_in", ListUtils::create<std::string>("idXML"));
     registerOutputFile_("out", "<file>", "", "Identification output with forward scores converted to probabilities");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML"));
 
     registerSubsection_("decoy_algorithm", "Algorithm parameter subsection");
     addEmptyLine_();
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const override
+  Param getSubsectionDefaults_(const std::string & /*section*/) const override
   {
     IDDecoyProbability decoy_prob;
     return decoy_prob.getParameters();
@@ -101,7 +101,7 @@ protected:
 
     //input/output files
     // either fwd_in and rev_in must be given or just the in which contains results of a search against a concatenated target decoy sequence db
-    String fwd_in(getStringOption_("fwd_in")), rev_in(getStringOption_("rev_in")), in(getStringOption_("in"));
+    std::string fwd_in(getStringOption_("fwd_in")), rev_in(getStringOption_("rev_in")), in(getStringOption_("in"));
     bool combined(false);
     if (!fwd_in.empty() && !rev_in.empty())
     {
@@ -124,7 +124,7 @@ protected:
       }
     }
 
-    String out(getStringOption_("out"));
+    std::string out(getStringOption_("out"));
 
     //-------------------------------------------------------------
     // loading input
@@ -158,7 +158,7 @@ protected:
     {
       vector<ProteinIdentification> prot_ids;
       PeptideIdentificationList pep_ids;
-      String document_id;
+      std::string document_id;
       FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
 
       decoy_prob.apply(pep_ids);

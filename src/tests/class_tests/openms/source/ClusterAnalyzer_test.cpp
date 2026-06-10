@@ -313,7 +313,7 @@ START_SECTION((void cut(const Size cluster_quantity, const std::vector<BinaryTre
 }
 END_SECTION
 
-START_SECTION((String newickTree(const std::vector<BinaryTreeNode>& tree, const bool include_distance = false)))
+START_SECTION((std::string newickTree(const std::vector<BinaryTreeNode>& tree, const bool include_distance = false)))
 {
 	vector< BinaryTreeNode > tree;
 	tree.push_back(BinaryTreeNode(1,2,0.3f));
@@ -322,7 +322,7 @@ START_SECTION((String newickTree(const std::vector<BinaryTreeNode>& tree, const 
 	tree.push_back(BinaryTreeNode(0,3,0.6f));
 	tree.push_back(BinaryTreeNode(0,5,0.7f));
 
-	String result = ptr->newickTree(tree);
+	std::string result = ptr->newickTree(tree);
 	TEST_EQUAL(result,"( ( ( 0 , ( 1 , 2 ) ) , ( 3 , 4 ) ) , 5 )");
 	result = ptr->newickTree(tree,true);
 	TEST_EQUAL(result,"( ( ( 0:0.5 , ( 1:0.3 , 2:0.3 ):0.5 ):0.6 , ( 3:0.4 , 4:0.4 ):0.6 ):0.7 , 5:0.7 )");

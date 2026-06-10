@@ -22,9 +22,9 @@ namespace OpenMS
 
   Residue::Residue() = default;
 
-  Residue::Residue(const String& name,
-            const String& three_letter_code,
-            const String& one_letter_code,
+  Residue::Residue(const std::string& name,
+            const std::string& three_letter_code,
+            const std::string& one_letter_code,
             const EmpiricalFormula& formula,
             double pka,
             double pkb,
@@ -32,7 +32,7 @@ namespace OpenMS
             double gb_sc,
             double gb_bb_l,
             double gb_bb_r,
-            const set<String>& synonyms):
+            const set<std::string>& synonyms):
     name_(name),
     synonyms_(synonyms),
     three_letter_code_(three_letter_code),
@@ -55,57 +55,57 @@ namespace OpenMS
 
   Residue::~Residue() = default;
 
-  void Residue::setName(const String& name)
+  void Residue::setName(const std::string& name)
   {
     name_ = name;
   }
 
-  const String& Residue::getName() const
+  const std::string& Residue::getName() const
   {
     return name_;
   }
 
-  String Residue::getResidueTypeName(const Residue::ResidueType res_type)
+  std::string Residue::getResidueTypeName(const Residue::ResidueType res_type)
   {
-    return names_of_residuetype[res_type];
+    return std::string(names_of_residuetype[res_type]);
   }
 
-  void Residue::setSynonyms(const set<String>& synonyms)
+  void Residue::setSynonyms(const set<std::string>& synonyms)
   {
     synonyms_ = synonyms;
   }
 
-  void Residue::addSynonym(const String& synonym)
+  void Residue::addSynonym(const std::string& synonym)
   {
     synonyms_.insert(synonym);
   }
 
-  const set<String>& Residue::getSynonyms() const
+  const set<std::string>& Residue::getSynonyms() const
   {
     return synonyms_;
   }
 
-  void Residue::setThreeLetterCode(const String& three_letter_code)
+  void Residue::setThreeLetterCode(const std::string& three_letter_code)
   {
-    OPENMS_PRECONDITION(three_letter_code.empty() || three_letter_code.size() == 3, "Three letter code needs to be a String of size 3")
+    OPENMS_PRECONDITION(three_letter_code.empty() || three_letter_code.size() == 3, "Three letter code needs to be a std::string of size 3")
     three_letter_code_ = three_letter_code;
   }
 
-  const String& Residue::getThreeLetterCode() const
+  const std::string& Residue::getThreeLetterCode() const
   {
-    OPENMS_POSTCONDITION(three_letter_code_.empty() || three_letter_code_.size() == 3, "Three letter code needs to be a String of size 3")
+    OPENMS_POSTCONDITION(three_letter_code_.empty() || three_letter_code_.size() == 3, "Three letter code needs to be a std::string of size 3")
     return three_letter_code_;
   }
 
-  void Residue::setOneLetterCode(const String& one_letter_code)
+  void Residue::setOneLetterCode(const std::string& one_letter_code)
   {
-    OPENMS_PRECONDITION(one_letter_code.empty() || one_letter_code.size() == 1, "One letter code needs to be a String of size 1")
+    OPENMS_PRECONDITION(one_letter_code.empty() || one_letter_code.size() == 1, "One letter code needs to be a std::string of size 1")
     one_letter_code_ = one_letter_code;
   }
 
-  const String& Residue::getOneLetterCode() const
+  const std::string& Residue::getOneLetterCode() const
   {
-    OPENMS_POSTCONDITION(one_letter_code_.empty() || one_letter_code_.size() == 1, "One letter code needs to be a String of size 1")
+    OPENMS_POSTCONDITION(one_letter_code_.empty() || one_letter_code_.size() == 1, "One letter code needs to be a std::string of size 1")
     return one_letter_code_;
   }
 
@@ -177,17 +177,17 @@ namespace OpenMS
     return loss_formulas_;
   }
 
-  void Residue::addLossName(const String& name)
+  void Residue::addLossName(const std::string& name)
   {
     loss_names_.push_back(name);
   }
 
-  void Residue::setLossNames(const vector<String>& names)
+  void Residue::setLossNames(const vector<std::string>& names)
   {
     loss_names_ = names;
   }
 
-  const vector<String>& Residue::getLossNames() const
+  const vector<std::string>& Residue::getLossNames() const
   {
     return loss_names_;
   }
@@ -207,17 +207,17 @@ namespace OpenMS
     return NTerm_loss_formulas_;
   }
 
-  void Residue::addNTermLossName(const String& name)
+  void Residue::addNTermLossName(const std::string& name)
   {
     NTerm_loss_names_.push_back(name);
   }
 
-  void Residue::setNTermLossNames(const vector<String>& names)
+  void Residue::setNTermLossNames(const vector<std::string>& names)
   {
     NTerm_loss_names_ = names;
   }
 
-  const vector<String>& Residue::getNTermLossNames() const
+  const vector<std::string>& Residue::getNTermLossNames() const
   {
     return NTerm_loss_names_;
   }
@@ -401,8 +401,8 @@ namespace OpenMS
     }
     else if (!mod->getFormula().empty())
     {
-      String formula = mod->getFormula();
-      formula.removeWhitespaces();
+      std::string formula = mod->getFormula();
+      StringUtils::removeWhitespaces(formula);
       setFormula(EmpiricalFormula(formula));
     }
 
@@ -421,7 +421,7 @@ namespace OpenMS
     return modification_;
   }
 
-  void Residue::setModification(const String& name)
+  void Residue::setModification(const std::string& name)
   {
     const ModificationsDB* mod_db = ModificationsDB::getInstance();
     const ResidueModification* mod = mod_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
@@ -445,7 +445,7 @@ namespace OpenMS
     const ModificationsDB* mod_db = ModificationsDB::getInstance();
     bool multimatch = false;
     // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
-    String diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
+    std::string diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
     const ResidueModification* mod = mod_db->searchModificationsFast(one_letter_code_ + diffMonoMassStr, multimatch);
     const double tol = 0.002;
     if (mod == nullptr)
@@ -455,7 +455,7 @@ namespace OpenMS
     if (mod == nullptr)
     {
       OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification." << std::endl;
-      mod = ResidueModification::createUnknownFromMassString(String(diffMonoMass),
+      mod = ResidueModification::createUnknownFromMassString(StringUtils::toStr(diffMonoMass),
                                                                         diffMonoMass,
                                                                         true,
                                                                         ResidueModification::ANYWHERE,
@@ -464,9 +464,10 @@ namespace OpenMS
     setModification(mod);
   }
 
-  const String& Residue::getModificationName() const
+  const std::string& Residue::getModificationName() const
   {
-    if (!isModified()) return String::EMPTY;
+    static const std::string EMPTY;
+    if (!isModified()) return EMPTY;
     return modification_->getId();
   }
 
@@ -510,17 +511,17 @@ namespace OpenMS
     gb_sc_ = gb_sc;
   }
 
-  void Residue::setResidueSets(const set<String>& residue_sets)
+  void Residue::setResidueSets(const set<std::string>& residue_sets)
   {
     residue_sets_ = residue_sets;
   }
 
-  const set<String> & Residue::getResidueSets() const
+  const set<std::string> & Residue::getResidueSets() const
   {
     return residue_sets_;
   }
 
-  void Residue::addResidueSet(const String& residue_set)
+  void Residue::addResidueSet(const std::string& residue_set)
   {
     residue_sets_.insert(residue_set);
   }
@@ -582,7 +583,7 @@ namespace OpenMS
     return !(*this == residue);
   }
 
-  bool Residue::isInResidueSet(const String& residue_set)
+  bool Residue::isInResidueSet(const std::string& residue_set)
   {
     return residue_sets_.contains(residue_set);
   }
@@ -605,7 +606,7 @@ namespace OpenMS
     return "";
   }
 
-  String Residue::toString() const
+  std::string Residue::toString() const
   {
     if (getOneLetterCode().empty())
     {
@@ -700,7 +701,7 @@ namespace OpenMS
     const int scale_idx = static_cast<int>(scale);
     if (scale_idx < 0 || scale_idx >= 7)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown hydrophobicity scale", String(scale_idx));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown hydrophobicity scale", StringUtils::toStr(scale_idx));
     }
     const double result = scales[scale_idx][amino_acid - 'A'];
     if (result == 999)

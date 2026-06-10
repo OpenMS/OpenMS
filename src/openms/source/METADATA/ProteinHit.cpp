@@ -28,12 +28,12 @@ namespace OpenMS
   }
 
   // values constructor
-  ProteinHit::ProteinHit(double score, UInt rank, String accession, String sequence) :
+  ProteinHit::ProteinHit(double score, UInt rank, std::string accession, std::string sequence) :
     MetaInfoInterface(),
     score_(score),
     rank_(rank),
-    accession_(accession.trim()),
-    sequence_(sequence.trim()),
+    accession_(StringUtils::trim(accession)),
+    sequence_(StringUtils::trim(sequence)),
     coverage_(COVERAGE_UNKNOWN)
   {
   }
@@ -76,19 +76,19 @@ namespace OpenMS
   }
 
   // returns the protein sequence
-  const String& ProteinHit::getSequence() const
+  const std::string& ProteinHit::getSequence() const
   {
     return sequence_;
   }
 
   // returns the accession of the protein
-  const String& ProteinHit::getAccession() const
+  const std::string& ProteinHit::getAccession() const
   {
     return accession_;
   }
 
   // returns the description of the protein
-  String ProteinHit::getDescription() const
+  std::string ProteinHit::getDescription() const
   {
     return getMetaValue("Description").toString();
   }
@@ -112,31 +112,31 @@ namespace OpenMS
   }
 
   // sets the protein sequence
-  void ProteinHit::setSequence(const String& sequence)
+  void ProteinHit::setSequence(const std::string& sequence)
   {
     sequence_ = sequence;
-    sequence_.trim();
+    StringUtils::trim(sequence_);
   }
 
   // sets the protein sequence
-  void ProteinHit::setSequence(String&& sequence)
+  void ProteinHit::setSequence(std::string&& sequence)
   {
     sequence_ = std::move(sequence);
-    sequence_.trim();
+    StringUtils::trim(sequence_);
   }
 
 
   // sets the description of the protein
-  void ProteinHit::setDescription(const String& description)
+  void ProteinHit::setDescription(const std::string& description)
   {
     setMetaValue("Description", description);
   }
 
   // sets the accession of the protein
-  void ProteinHit::setAccession(const String& accession)
+  void ProteinHit::setAccession(const std::string& accession)
   {
     accession_ = accession;
-    accession_.trim();
+    StringUtils::trim(accession_);
   }
 
   // sets the coverage (in percent) of the protein hit based upon matched peptides
@@ -183,7 +183,7 @@ namespace OpenMS
       return TargetDecoyType::UNKNOWN;
     }
     
-    String td = getMetaValue("target_decoy").toString().toLower();
+    std::string td = StringUtils::toLowered(getMetaValue("target_decoy").toString());
     if (td == "decoy") return TargetDecoyType::DECOY;
     if (td == "target") return TargetDecoyType::TARGET;
     
@@ -193,7 +193,7 @@ namespace OpenMS
   std::ostream& operator<< (std::ostream& stream, const ProteinHit& hit)
   {
     return stream << "protein hit with accession '" + hit.getAccession() + "', score " +
-                         String(hit.getScore());
+                         StringUtils::toStr(hit.getScore());
   }
 
 } // namespace OpenMS

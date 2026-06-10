@@ -70,39 +70,39 @@ END_SECTION
 
 InspectInfile file;
 
-START_SECTION(void setSpectra(const String& spectra))
+START_SECTION(void setSpectra(const std::string& spectra))
 	file.setSpectra("dummy4712");
 	TEST_STRING_EQUAL(file.getSpectra(), "dummy4712")
 END_SECTION
 
-START_SECTION((const String& getSpectra() const))
+START_SECTION((const std::string& getSpectra() const))
 	TEST_STRING_EQUAL(file.getSpectra(), "dummy4712")
 END_SECTION
 
 
-START_SECTION(void setDb(const String& db))
+START_SECTION(void setDb(const std::string& db))
 	file.setDb("dummy4711");
 	TEST_STRING_EQUAL(file.getDb(), "dummy4711");
 END_SECTION
 
-START_SECTION((const String& getDb() const))
+START_SECTION((const std::string& getDb() const))
 	TEST_STRING_EQUAL(file.getDb(), "dummy4711");
 END_SECTION
 
 
-START_SECTION(void setEnzyme(const String& enzyme))
+START_SECTION(void setEnzyme(const std::string& enzyme))
 	file.setEnzyme("Trypsin");
 	TEST_STRING_EQUAL(file.getEnzyme(), "Trypsin")
 END_SECTION
 
-START_SECTION((const String& getEnzyme() const))
+START_SECTION((const std::string& getEnzyme() const))
 	TEST_STRING_EQUAL(file.getEnzyme(), "Trypsin")
 END_SECTION
 
-START_SECTION(void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic))
+START_SECTION(void handlePTMs(const std::string& modification_line, const std::string& modifications_filename, const bool monoisotopic))
 
 	// test exceptions
-	String modification_line = "Phosphorylation";
+	std::string modification_line = "Phosphorylation";
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.handlePTMs(modification_line, "a", true), "the file 'a' could not be found")
 	
 // 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotReadable, file.handlePTMs(modification_line, OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), true), "the file `data/Inspect_unreadable_unwriteable.txt' is not readable for the current user")
@@ -127,49 +127,49 @@ START_SECTION(void handlePTMs(const String& modification_line, const String& mod
 	// average masses
   file.handlePTMs(modification_line,  OPENMS_GET_TEST_DATA_PATH("Inspect_PTMs.xml"), false);
 
-	map< String, vector< String > > modifications;
-	modifications["PTM_0"] = vector< String >(3);
+	map<std::string, vector<std::string> > modifications;
+	modifications["PTM_0"] = vector<std::string>(3);
 	modifications["PTM_0"][0] = "KRLNH";
 	modifications["PTM_0"][1] = "10.3";
 	modifications["PTM_0"][2] = "FIX";
-//	modifications["Phosphorylation"] = vector< String >(3);
+//	modifications["Phosphorylation"] = vector<std::string>(3);
 //	modifications["Phosphorylation"][0] = "STYDHCR";
 //	modifications["Phosphorylation"][1] = "79.97990";
 //	modifications["Phosphorylation"][2] = "OPT";
-	modifications["PTM_1"] = vector< String >(3);
+	modifications["PTM_1"] = vector<std::string>(3);
 	modifications["PTM_1"][0] = "C";
 	modifications["PTM_1"][1] = "16";
 	modifications["PTM_1"][2] = "OPT";
-// 	modifications["Carbamylation"] = vector< String >(3);
+// 	modifications["Carbamylation"] = vector<std::string>(3);
 // 	modifications["Carbamylation"][0] = "NTERM";
 // 	modifications["Carbamylation"][1] = "43.02474";
 // 	modifications["Carbamylation"][2] = "OPT";
-//	modifications["Methylation"] = vector< String >(3);
+//	modifications["Methylation"] = vector<std::string>(3);
 //	modifications["Methylation"][0] = "CHKNQRILDEST";
 //	modifications["Methylation"][1] = "14.02658";
 //	modifications["Methylation"][2] = "OPT";
-// 	modifications["PTM_5"] = vector< String >(3);
+// 	modifications["PTM_5"] = vector<std::string>(3);
 // 	modifications["PTM_5"][0] = "CTERM";
 // 	modifications["PTM_5"][1] = "-16";
 // 	modifications["PTM_5"][2] = "OPT";
-// 	modifications["PTM_6"] = vector< String >(3);
+// 	modifications["PTM_6"] = vector<std::string>(3);
 // 	modifications["PTM_6"][0] = "NTERM";
 // 	modifications["PTM_6"][1] = "-16";
 // 	modifications["PTM_6"][2] = "OPT";
-	modifications["PTM_2"] = vector< String >(3);
+	modifications["PTM_2"] = vector<std::string>(3);
 	modifications["PTM_2"][0] = "CTERM";
 	modifications["PTM_2"][1] = "-16";
 	modifications["PTM_2"][2] = "OPT";
-	modifications["PTM_3"] = vector< String >(3);
+	modifications["PTM_3"] = vector<std::string>(3);
 	modifications["PTM_3"][0] = "NTERM";
 	modifications["PTM_3"][1] = "-16";
 	modifications["PTM_3"][2] = "OPT";
 
-	map< String, vector< String > >::const_iterator result_mod_i = file.getModifications().begin();
+	map<std::string, vector<std::string> >::const_iterator result_mod_i = file.getModifications().begin();
 	TEST_EQUAL(file.getModifications().size(), modifications.size())
 	if ( file.getModifications().size() == modifications.size() )
 	{
-		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
+		for ( map<std::string, vector<std::string> >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
 		{
 			TEST_STRING_EQUAL(result_mod_i->first, mod_i->first)
 			TEST_EQUAL(result_mod_i->second.size(), 3)
@@ -194,7 +194,7 @@ START_SECTION(void handlePTMs(const String& modification_line, const String& mod
 	TEST_EQUAL(file.getModifications().size(), modifications.size())
 	if ( file.getModifications().size() == modifications.size() )
 	{
-		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
+		for ( map<std::string, vector<std::string> >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
 		{
 			TEST_STRING_EQUAL(result_mod_i->first, mod_i->first)
 			TEST_EQUAL(result_mod_i->second.size(), 3)
@@ -208,56 +208,56 @@ START_SECTION(void handlePTMs(const String& modification_line, const String& mod
 	}
 END_SECTION
 
-START_SECTION((const Map< String, std::vector< String > >& getModifications() const))
-	String modification_line = "10.3+,KRLNH,fix:+16,C:16-,cterm:-16,nterm";
+START_SECTION((const Map< String, std::vector<std::string> >& getModifications() const))
+	std::string modification_line = "10.3+,KRLNH,fix:+16,C:16-,cterm:-16,nterm";
 // 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
 
 	// average masses
 	file.handlePTMs(modification_line,  OPENMS_GET_TEST_DATA_PATH("Inspect_PTMs.xml"), false);
 
-	map< String, vector< String > > modifications;
-	modifications["PTM_0"] = vector< String >(3);
+	map<std::string, vector<std::string> > modifications;
+	modifications["PTM_0"] = vector<std::string>(3);
 	modifications["PTM_0"][0] = "KRLNH";
 	modifications["PTM_0"][1] = "10.3";
 	modifications["PTM_0"][2] = "FIX";
-//	modifications["Phosphorylation"] = vector< String >(3);
+//	modifications["Phosphorylation"] = vector<std::string>(3);
 //	modifications["Phosphorylation"][0] = "STYDHCR";
 //	modifications["Phosphorylation"][1] = "79.97990";
 //	modifications["Phosphorylation"][2] = "OPT";
-	modifications["PTM_1"] = vector< String >(3);
+	modifications["PTM_1"] = vector<std::string>(3);
 	modifications["PTM_1"][0] = "C";
 	modifications["PTM_1"][1] = "16";
 	modifications["PTM_1"][2] = "OPT";
-// 	modifications["Carbamylation"] = vector< String >(3);
+// 	modifications["Carbamylation"] = vector<std::string>(3);
 // 	modifications["Carbamylation"][0] = "NTERM";
 // 	modifications["Carbamylation"][1] = "43.02474";
 // 	modifications["Carbamylation"][2] = "OPT";
-//	modifications["Methylation"] = vector< String >(3);
+//	modifications["Methylation"] = vector<std::string>(3);
 //	modifications["Methylation"][0] = "CHKNQRILDEST";
 //	modifications["Methylation"][1] = "14.02658";
 //	modifications["Methylation"][2] = "OPT";
-// 	modifications["PTM_5"] = vector< String >(3);
+// 	modifications["PTM_5"] = vector<std::string>(3);
 // 	modifications["PTM_5"][0] = "CTERM";
 // 	modifications["PTM_5"][1] = "-16";
 // 	modifications["PTM_5"][2] = "OPT";
-// 	modifications["PTM_6"] = vector< String >(3);
+// 	modifications["PTM_6"] = vector<std::string>(3);
 // 	modifications["PTM_6"][0] = "NTERM";
 // 	modifications["PTM_6"][1] = "-16";
 // 	modifications["PTM_6"][2] = "OPT";
-	modifications["PTM_2"] = vector< String >(3);
+	modifications["PTM_2"] = vector<std::string>(3);
 	modifications["PTM_2"][0] = "CTERM";
 	modifications["PTM_2"][1] = "-16";
 	modifications["PTM_2"][2] = "OPT";
-	modifications["PTM_3"] = vector< String >(3);
+	modifications["PTM_3"] = vector<std::string>(3);
 	modifications["PTM_3"][0] = "NTERM";
 	modifications["PTM_3"][1] = "-16";
 	modifications["PTM_3"][2] = "OPT";
 
-	map< String, vector< String > >::const_iterator result_mod_i = file.getModifications().begin();
+	map<std::string, vector<std::string> >::const_iterator result_mod_i = file.getModifications().begin();
 	TEST_EQUAL(file.getModifications().size(), modifications.size())
 	if ( file.getModifications().size() == modifications.size() )
 	{
-		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
+		for ( map<std::string, vector<std::string> >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
 		{
 			TEST_STRING_EQUAL(result_mod_i->first, mod_i->first)
 			TEST_EQUAL(result_mod_i->second.size(), 3)
@@ -333,12 +333,12 @@ START_SECTION((UInt getMulticharge() const))
 END_SECTION
 
 
-START_SECTION(void setInstrument(const String& instrument))
+START_SECTION(void setInstrument(const std::string& instrument))
 	file.setInstrument("ESI-ION-TRAP");
 	TEST_STRING_EQUAL(file.getInstrument(), "ESI-ION-TRAP")
 END_SECTION
 
-START_SECTION((const String& getInstrument() const))
+START_SECTION((const std::string& getInstrument() const))
 	TEST_STRING_EQUAL(file.getInstrument(), "ESI-ION-TRAP")
 END_SECTION
 
@@ -353,8 +353,8 @@ START_SECTION((Int getTagCount() const))
 END_SECTION
 
 
-START_SECTION(void store(const String& filename))
-	String filename;
+START_SECTION(void store(const std::string& filename))
+	std::string filename;
 	NEW_TMP_FILE(filename)
 	
 // 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.store(OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt")), "the file `data/Inspect_unreadable_unwriteable.txt' could not be created")

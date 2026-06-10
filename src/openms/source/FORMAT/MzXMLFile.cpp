@@ -36,7 +36,7 @@ namespace OpenMS
       options_ = options;
   }
 
-  void MzXMLFile::load(const String & filename, MapType & map)
+  void MzXMLFile::load(const std::string & filename, MapType & map)
   {
     map.reset();
 
@@ -49,14 +49,14 @@ namespace OpenMS
     parse_(filename, &handler);
   }
 
-  void MzXMLFile::store(const String & filename, const MapType & map) const
+  void MzXMLFile::store(const std::string & filename, const MapType & map) const
   {
     Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
     handler.setOptions(options_);
     save_(filename, &handler);
   }
 
-  void MzXMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count)
+  void MzXMLFile::transform(const std::string& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count)
   {
     // First pass through the file -> get the meta-data and hand it to the consumer
     transformFirstPass_(filename_in, consumer, skip_full_count);
@@ -71,7 +71,7 @@ namespace OpenMS
     }
   }
 
-  void MzXMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, MapType& map, bool skip_full_count)
+  void MzXMLFile::transform(const std::string& filename_in, Interfaces::IMSDataConsumer * consumer, MapType& map, bool skip_full_count)
   {
     // First pass through the file -> get the meta-data and hand it to the consumer
     transformFirstPass_(filename_in, consumer, skip_full_count);
@@ -88,7 +88,7 @@ namespace OpenMS
     }
   }
 
-  void MzXMLFile::transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count)
+  void MzXMLFile::transformFirstPass_(const std::string& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count)
   {
     // Create temporary objects and counters
     PeakFileOptions tmp_options(options_);

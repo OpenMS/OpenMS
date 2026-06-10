@@ -361,9 +361,9 @@ namespace OpenMS
     coeff_.push_back(power);
   }
 
-  OpenMS::String MZTrafoModel::toString() const
+  std::string MZTrafoModel::toString() const
   {
-    String s;
+    std::string s;
     if (coeff_.empty())
     {
       s = "nan, nan, nan";

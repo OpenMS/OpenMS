@@ -19,14 +19,14 @@ namespace OpenMS
 
   SqMassFile::~SqMassFile() = default;
 
-  void SqMassFile::load(const String& filename, MapType& map) const
+  void SqMassFile::load(const std::string& filename, MapType& map) const
   {
     OpenMS::Internal::MzMLSqliteHandler sql_mass(filename, 0);
     sql_mass.setConfig(config_.write_full_meta, config_.use_lossy_numpress, config_.linear_fp_mass_acc);
     sql_mass.readExperiment(map);
   }
 
-  void SqMassFile::store(const String& filename, const MapType& map) const
+  void SqMassFile::store(const std::string& filename, const MapType& map) const
   {
     OpenMS::Internal::MzMLSqliteHandler sql_mass(filename, map.getSqlRunID());
     sql_mass.setConfig(config_.write_full_meta, config_.use_lossy_numpress, config_.linear_fp_mass_acc);
@@ -34,7 +34,7 @@ namespace OpenMS
     sql_mass.writeExperiment(map);
   }
 
-  void SqMassFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool /* skip_full_count */, bool /* skip_first_pass */) const
+  void SqMassFile::transform(const std::string& filename_in, Interfaces::IMSDataConsumer* consumer, bool /* skip_full_count */, bool /* skip_first_pass */) const
   {
     OpenMS::Internal::MzMLSqliteHandler sql_mass(filename_in, 0);
     sql_mass.setConfig(config_.write_full_meta, config_.use_lossy_numpress, config_.linear_fp_mass_acc);
@@ -91,10 +91,10 @@ namespace OpenMS
     }
   }
 
-  void SqMassFile::convertToXICParquet(const String& filename_in, const String& xic_filename, UInt64 run_id, const String& source_file, const OpenSwath::LightTargetedExperiment& transition_exp) const
+  void SqMassFile::convertToXICParquet(const std::string& filename_in, const std::string& xic_filename, UInt64 run_id, const std::string& source_file, const OpenSwath::LightTargetedExperiment& transition_exp) const
   {
     // source_file fallback to input filename if not provided
-    String src = source_file.empty() ? filename_in : source_file;
+    std::string src = source_file.empty() ? filename_in : source_file;
 
     // Create an MSChromatogramParquetConsumer and stream chromatograms from the
     // sqMass file. Callers must supply a populated transition experiment;

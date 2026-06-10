@@ -26,7 +26,7 @@ namespace OpenMS
   class OPENMS_DLLAPI PercolatorInfile
   {
     public:
-      static void store(const String& pin_file, 
+      static void store(const std::string& pin_file, 
         const PeptideIdentificationList& peptide_ids, 
         const StringList& feature_set, 
         const std::string& enz, 
@@ -61,17 +61,17 @@ namespace OpenMS
       * @throws `Exception::ParseError` if any line in the input file does not have the expected number of columns.
       * TODO: implement something similar to PepXMLFile().setPreferredFixedModifications(getModifications_(fixed_modifications_names));      
       */
-      static PeptideIdentificationList load(const String& pin_file, 
+      static PeptideIdentificationList load(const std::string& pin_file, 
         bool higher_score_better, 
-        const String& score_name, 
+        const std::string& score_name, 
         const StringList& extra_scores,
         StringList& filenames, 
-        String decoy_prefix = "",
+        std::string decoy_prefix = "",
         double threshold = 0.01, 
         bool SageAnnotation = false);
 
       // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
-      static String getScanIdentifier(const PeptideIdentification& pid, size_t index);
+      static std::string getScanIdentifier(const PeptideIdentification& pid, size_t index);
 
       /**
        * @brief Returns the standard Percolator feature columns every .pin file should declare.
@@ -129,7 +129,7 @@ namespace OpenMS
 
       static bool isEnz_(const char& n, const char& c, const std::string& enz);
 
-      static Size countEnzymatic_(const String& peptide, const std::string& enz);
+      static Size countEnzymatic_(const std::string& peptide, const std::string& enz);
 
   };
 } // namespace OpenMS

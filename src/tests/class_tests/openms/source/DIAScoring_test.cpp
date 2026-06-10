@@ -223,7 +223,7 @@ END_SECTION
 START_SECTION(([EXTRA] void MRMFeatureScoring::getBYSeries(AASequence& a, int charge, std::vector<double>& bseries, std::vector<double>& yseries)))
 {
   OpenMS::DIAScoring diascoring;
-  String sequence = "SYVAWDR";
+  std::string sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
 
@@ -782,7 +782,7 @@ START_SECTION ( void dia_by_ion_score(std::vector<SpectrumType> spectrum, AASequ
 
   DIAScoring diascoring;
   diascoring.setParameters(p_dia);
-  String sequence = "SYVAWDR";
+  std::string sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
   AASequence a = AASequence::fromString(sequence);
 

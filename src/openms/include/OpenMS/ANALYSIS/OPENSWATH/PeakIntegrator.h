@@ -12,7 +12,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MISC/EmgGradientDescent.h>
@@ -900,12 +900,12 @@ private:
       The integration technique to use in integratePeak() and estimateBackground().
       Possible values are: "trapezoid", "simpson", "intensity_sum".
     */
-    String integration_type_ = INTEGRATION_TYPE_INTENSITYSUM;
+    std::string integration_type_ = INTEGRATION_TYPE_INTENSITYSUM;
     /**
       The baseline type to use in estimateBackground().
       Possible values are: "vertical_division_max", "vertical_division_min", "base_to_base".
     */
-    String baseline_type_ = BASELINE_TYPE_BASETOBASE;
+    std::string baseline_type_ = BASELINE_TYPE_BASETOBASE;
     ///@}
 
     /// Enable/disable EMG peak model fitting

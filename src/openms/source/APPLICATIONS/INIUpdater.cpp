@@ -28,10 +28,10 @@ namespace OpenMS
 
     for (Param::ParamIterator it = ini.begin(); it != ini.end(); ++it)
     {
-      String name = it.getName();
-      if (std::count(name.begin(), name.end(), ':') == 1 && name.hasSuffix(":version"))
+      std::string name = it.getName();
+      if (std::count(name.begin(), name.end(), ':') == 1 && StringUtils::hasSuffix(name, ":version"))
       {
-        tool_names.push_back(name.prefix(':'));
+        tool_names.push_back(StringUtils::prefix(name, ':'));
       }
     }
     return tool_names;
@@ -41,35 +41,35 @@ namespace OpenMS
   {
     if (map_.empty())
     {
-      map_[TDE("FeatureFinder", ListUtils::create<String>("centroided"))] = TDE("FeatureFinderCentroided", ListUtils::create<String>(""));
-      map_[TDE("FeatureFinder", ListUtils::create<String>("isotope_wavelet"))] = TDE("FeatureFinderIsotopeWavelet", ListUtils::create<String>(""));
-      map_[TDE("FeatureFinder", ListUtils::create<String>("mrm"))] = TDE("FeatureFinderMRM", ListUtils::create<String>(""));
+      map_[TDE("FeatureFinder", ListUtils::create<std::string>("centroided"))] = TDE("FeatureFinderCentroided", ListUtils::create<std::string>(""));
+      map_[TDE("FeatureFinder", ListUtils::create<std::string>("isotope_wavelet"))] = TDE("FeatureFinderIsotopeWavelet", ListUtils::create<std::string>(""));
+      map_[TDE("FeatureFinder", ListUtils::create<std::string>("mrm"))] = TDE("FeatureFinderMRM", ListUtils::create<std::string>(""));
 
-      map_[TDE("FeatureLinker", ListUtils::create<String>("labeled"))] = TDE("FeatureLinkerLabeled", ListUtils::create<String>(""));
-      map_[TDE("FeatureLinker", ListUtils::create<String>("unlabeled"))] = TDE("FeatureLinkerUnlabeled", ListUtils::create<String>(""));
-      map_[TDE("FeatureLinker", ListUtils::create<String>("unlabeled_qt"))] = TDE("FeatureLinkerUnlabeledQT", ListUtils::create<String>(""));
+      map_[TDE("FeatureLinker", ListUtils::create<std::string>("labeled"))] = TDE("FeatureLinkerLabeled", ListUtils::create<std::string>(""));
+      map_[TDE("FeatureLinker", ListUtils::create<std::string>("unlabeled"))] = TDE("FeatureLinkerUnlabeled", ListUtils::create<std::string>(""));
+      map_[TDE("FeatureLinker", ListUtils::create<std::string>("unlabeled_qt"))] = TDE("FeatureLinkerUnlabeledQT", ListUtils::create<std::string>(""));
 
-      map_[TDE("NoiseFilter", ListUtils::create<String>("gaussian"))] = TDE("NoiseFilterGaussian", ListUtils::create<String>(""));
-      map_[TDE("NoiseFilter", ListUtils::create<String>("sgolay"))] = TDE("NoiseFilterSGolay", ListUtils::create<String>(""));
+      map_[TDE("NoiseFilter", ListUtils::create<std::string>("gaussian"))] = TDE("NoiseFilterGaussian", ListUtils::create<std::string>(""));
+      map_[TDE("NoiseFilter", ListUtils::create<std::string>("sgolay"))] = TDE("NoiseFilterSGolay", ListUtils::create<std::string>(""));
 
-      map_[TDE("MapAligner", ListUtils::create<String>("apply_given_trafo"))] = TDE("MapRTTransformer", ListUtils::create<String>(""));
-      map_[TDE("MapAligner", ListUtils::create<String>("identification"))] = TDE("MapAlignerIdentification", ListUtils::create<String>(""));
-      map_[TDE("MapAligner", ListUtils::create<String>("pose_clustering"))] = TDE("MapAlignerPoseClustering", ListUtils::create<String>(""));
+      map_[TDE("MapAligner", ListUtils::create<std::string>("apply_given_trafo"))] = TDE("MapRTTransformer", ListUtils::create<std::string>(""));
+      map_[TDE("MapAligner", ListUtils::create<std::string>("identification"))] = TDE("MapAlignerIdentification", ListUtils::create<std::string>(""));
+      map_[TDE("MapAligner", ListUtils::create<std::string>("pose_clustering"))] = TDE("MapAlignerPoseClustering", ListUtils::create<std::string>(""));
 
       // SpectraFilter ...
 
-      map_[TDE("PeakPicker", ListUtils::create<String>("wavelet"))] = TDE("PeakPickerWavelet", ListUtils::create<String>(""));
-      map_[TDE("PeakPicker", ListUtils::create<String>("high_res"))] = TDE("PeakPickerHiRes", ListUtils::create<String>(""));
+      map_[TDE("PeakPicker", ListUtils::create<std::string>("wavelet"))] = TDE("PeakPickerWavelet", ListUtils::create<std::string>(""));
+      map_[TDE("PeakPicker", ListUtils::create<std::string>("high_res"))] = TDE("PeakPickerHiRes", ListUtils::create<std::string>(""));
     }
 
     return map_;
   }
 
-  bool INIUpdater::getNewToolName(const String & old_name, const String & tools_type, String & new_name)
+  bool INIUpdater::getNewToolName(const std::string & old_name, const std::string & tools_type, std::string & new_name)
   {
     new_name = "";
     // try with type (as some new tools for one type might have the exact same name as old ones with several types)
-    TDE old_withtype(old_name, ListUtils::create<String>(tools_type));
+    TDE old_withtype(old_name, ListUtils::create<std::string>(tools_type));
     if (map_.contains(old_withtype))
     {
       new_name = map_[old_withtype].name;

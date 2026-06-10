@@ -142,7 +142,7 @@ namespace OpenMS
       Int precursor_charge; ///< Precursor charge
       Size ms_level; ///< MS level
       Int scan_number; ///< Scan number
-      String native_id; ///< Native ID
+      std::string native_id; ///< Native ID
 
       /// Constructor
       SpectrumMetaData():
@@ -185,7 +185,7 @@ namespace OpenMS
     */
     template <typename SpectrumContainer>
     void readSpectra(const SpectrumContainer& spectra,
-                     const String& scan_regexp = default_scan_regexp,
+                     const std::string& scan_regexp = default_scan_regexp,
                      bool get_precursor_rt = false)
     {
       // If class SpectrumContainer is e.g. OnDiscMSExperiment, reading each
@@ -213,7 +213,7 @@ namespace OpenMS
      *
      * @param[in] spectra_data the name (and path) of the origin of the read SpectrumContainer
      */
-    void setSpectraDataRef(const String& spectra_data)
+    void setSpectraDataRef(const std::string& spectra_data)
     {
       this->spectra_data_ref = spectra_data;
     }
@@ -253,7 +253,7 @@ namespace OpenMS
 
        This function is a combination of getSpectrumMetaData() and SpectrumLookup::findByReference(). However, the spectrum is only looked up if necessary, i.e. if the required meta data - as defined by @p flags - cannot be extracted from the spectrum reference itself.
     */
-    void getSpectrumMetaData(const String& spectrum_ref, SpectrumMetaData& meta,
+    void getSpectrumMetaData(const std::string& spectrum_ref, SpectrumMetaData& meta,
                              MetaDataFlags flags = MDF_ALL) const;
 
 	/**
@@ -314,7 +314,7 @@ namespace OpenMS
      * Look-up works by matching RT of a peptide identification with the given spectra. Matched spectra 'native ID' will be annotated to the identification. All spectrum_references are updated/added.
      */
     static bool addMissingSpectrumReferences(PeptideIdentificationList& peptides, 
-      const String& filename,
+      const std::string& filename,
       bool stop_on_error = false, 
       bool override_spectra_data = false, 
       bool override_spectra_references = false, 
@@ -325,7 +325,7 @@ namespace OpenMS
   protected:
 
     std::vector<SpectrumMetaData> metadata_; ///< Meta data for spectra
-    String spectra_data_ref;
+    std::string spectra_data_ref;
 
   private:
 

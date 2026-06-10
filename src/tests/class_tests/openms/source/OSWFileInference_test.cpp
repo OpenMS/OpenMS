@@ -20,28 +20,28 @@ using namespace OpenMS;
 
 namespace
 {
-  void copySharedInferenceFixture_(const String& filename)
+  void copySharedInferenceFixture_(const std::string& filename)
   {
     File::remove(filename);
     TEST_EQUAL(File::copy(OPENMS_GET_TEST_DATA_PATH("PyProphet_inference_test.osw"), filename), true)
   }
 
-  Size countRows_(const String& filename, const String& table_name)
+  Size countRows_(const std::string& filename, const std::string& table_name)
   {
     SqliteConnector conn(filename, SqliteConnector::SqlOpenMode::READ_ONLY);
     return conn.countTableRows(table_name);
   }
 
-  Size countFilteredRows_(const String& filename, const String& table_name, const String& where_clause)
+  Size countFilteredRows_(const std::string& filename, const std::string& table_name, const std::string& where_clause)
   {
     SqliteConnector conn(filename, SqliteConnector::SqlOpenMode::READWRITE);
-    const String temp_view = "__oswfile_inference_test_count_view";
+    const std::string temp_view = "__oswfile_inference_test_count_view";
     conn.executeStatement("DROP VIEW IF EXISTS " + temp_view + ";");
     conn.executeStatement("CREATE TEMP VIEW " + temp_view + " AS SELECT * FROM " + table_name + " WHERE " + where_clause + ";");
     return conn.countTableRows(temp_view);
   }
 
-  void createLargeTransitionOSW_(const String& filename)
+  void createLargeTransitionOSW_(const std::string& filename)
   {
     SqliteConnector conn(filename);
     conn.executeStatement(
@@ -93,7 +93,7 @@ START_TEST(OSWFileInference, "$Id$")
 
 START_SECTION(OSWFile IPF readers)
 {
-  String tmp_osw;
+  std::string tmp_osw;
   NEW_TMP_FILE(tmp_osw);
   copySharedInferenceFixture_(tmp_osw);
 
@@ -129,7 +129,7 @@ END_SECTION
 
 START_SECTION(OSWFile level-context readers)
 {
-  String tmp_osw;
+  std::string tmp_osw;
   NEW_TMP_FILE(tmp_osw);
   copySharedInferenceFixture_(tmp_osw);
 
@@ -159,11 +159,11 @@ END_SECTION
 
 START_SECTION(OSWFile writers)
 {
-  String tmp_osw;
+  std::string tmp_osw;
   NEW_TMP_FILE(tmp_osw);
   copySharedInferenceFixture_(tmp_osw);
 
-  String out_osw;
+  std::string out_osw;
   NEW_TMP_FILE(out_osw);
   File::remove(out_osw);
 
@@ -194,7 +194,7 @@ END_SECTION
 
 START_SECTION(OSWFile transition reader scales with thresholded evidence)
 {
-  String tmp_osw;
+  std::string tmp_osw;
   NEW_TMP_FILE(tmp_osw);
   createLargeTransitionOSW_(tmp_osw);
 

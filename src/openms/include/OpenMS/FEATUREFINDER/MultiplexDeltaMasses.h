@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <vector>
 #include <set>
@@ -43,7 +43,7 @@ namespace OpenMS
      * For example, a set of SILAC labels [Lys8, Lys8, Arg10] would
      * result in a +26 Da mass shift.
      */
-    typedef std::multiset<String> LabelSet;
+    typedef std::multiset<std::string> LabelSet;
 
     /**
      * @brief mass shift with corresponding label set
@@ -56,7 +56,7 @@ namespace OpenMS
       DeltaMass(double dm, LabelSet ls);
       
       // delta mass with a label set containing a single label
-      DeltaMass(double dm, const String& l);
+      DeltaMass(double dm, const std::string& l);
     };
 
     /**
@@ -82,7 +82,7 @@ namespace OpenMS
     /**
      * @brief converts a label set to a string
      */
-    static String labelSetToString(const LabelSet& ls);
+    static std::string labelSetToString(const LabelSet& ls);
     
     private:
    

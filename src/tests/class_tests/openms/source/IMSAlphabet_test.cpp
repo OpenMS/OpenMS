@@ -266,7 +266,7 @@ START_SECTION((virtual void load(const std::string &fname, IMSAlphabetParser<> *
   TEST_EQUAL(load_copy.size(), 3)
 
   // create file with minimal content
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
 
   // just create the file

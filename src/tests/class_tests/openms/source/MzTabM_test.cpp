@@ -45,7 +45,7 @@ START_SECTION(Fill data structure)
   // SML Small molecule section row
   MzTabMSmallMoleculeSectionRows sml_rows;
   MzTabMSmallMoleculeSectionRow sml_row;
-  sml_row.sml_identifier.fromCellString(1);
+  sml_row.sml_identifier.fromCellString(StringUtils::toStr(1));
   sml_row.smf_id_refs.fromCellString("1,2");
   sml_row.database_identifier.fromCellString("[HMDB:HMDB0001847]");
   sml_row.chemical_formula.fromCellString("[C17H20N4O2]");
@@ -82,7 +82,7 @@ START_SECTION(Fill data structure)
   // SMF Small molecule feature section
   MzTabMSmallMoleculeFeatureSectionRows smf_rows;
   MzTabMSmallMoleculeFeatureSectionRow smf_row;
-  smf_row.smf_identifier.fromCellString(1);
+  smf_row.smf_identifier.fromCellString(StringUtils::toStr(1));
   smf_row.sme_id_refs.fromCellString("1");
   smf_row.sme_id_ref_ambiguity_code.fromCellString("null");
   smf_row.adduct.fromCellString("[M+H]1+");
@@ -97,7 +97,7 @@ START_SECTION(Fill data structure)
   // SME Small molecule evidence section
   MzTabMSmallMoleculeEvidenceSectionRows sme_rows;
   MzTabMSmallMoleculeEvidenceSectionRow sme_row;
-  sme_row.sme_identifier.set(1);
+  sme_row.sme_identifier.set(StringUtils::toStr(1));
   sme_row.evidence_input_id.set("1234.5_156.0");
   sme_row.database_identifier.set("HMDB:HMDB0001847");
   sme_row.chemical_formula.set("C17H20N4O2");
@@ -306,8 +306,8 @@ START_SECTION(Fill data structure)
   // p_qunit.fromCellString("[MS, MS:1000042, peak intensity, ]");
   TEST_EQUAL(mtest.small_molecule_quantification_unit.toCellString(), "[MS, MS:1000042, peak intensity, ]")
 
-  vector<String> optional_sml_columns = mztabm.getMSmallMoleculeOptionalColumnNames();
-  vector<String> optional_sme_columns = mztabm.getMSmallMoleculeEvidenceOptionalColumnNames();
+  vector<std::string> optional_sml_columns = mztabm.getMSmallMoleculeOptionalColumnNames();
+  vector<std::string> optional_sme_columns = mztabm.getMSmallMoleculeEvidenceOptionalColumnNames();
 
   TEST_EQUAL(mztabm.getMSmallMoleculeSectionRows().size(),1)
   TEST_EQUAL(mztabm.getMSmallMoleculeFeatureSectionRows().size(), 1)

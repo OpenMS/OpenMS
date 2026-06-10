@@ -104,7 +104,7 @@ namespace OpenMS
     void compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants);
 
     /// Name of this QC metric (@c "Contaminants").
-    const String& getName() const override;
+    const std::string& getName() const override;
 
     /// Per-call summaries appended by @ref compute, in call order.
     const std::vector<Contaminants::ContaminantsSummary>& getResults();
@@ -118,13 +118,13 @@ namespace OpenMS
 
   private:
     /// Metric name returned by @ref getName.
-    const String name_ = "Contaminants";
+    const std::string name_ = "Contaminants";
 
     /// Per-call summaries; @ref compute appends one entry per invocation.
     std::vector<Contaminants::ContaminantsSummary> results_;
 
     /// Cached digested contaminants database, filled on the first @ref compute call and reused thereafter.
-    std::unordered_set<String> digested_db_;
+    std::unordered_set<std::string> digested_db_;
 
     /**
       @brief Increment the contaminant counters and annotate one hit with @c "is_contaminant".
@@ -140,6 +140,6 @@ namespace OpenMS
       @param[in,out] sum_cont  Contaminant-intensity accumulator; incremented by @p intensity only on a hit.
       @param[in]     intensity Intensity associated with this PSM.
     */
-    void compare_(const String& key, PeptideHit& pep_hit, Int64& total, Int64& cont, double& sum_total, double& sum_cont, double intensity);
+    void compare_(const std::string& key, PeptideHit& pep_hit, Int64& total, Int64& cont, double& sum_total, double& sum_cont, double intensity);
   };
 } // namespace OpenMS

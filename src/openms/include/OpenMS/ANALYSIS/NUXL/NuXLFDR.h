@@ -179,7 +179,7 @@ class OPENMS_DLLAPI NuXLFDR
       PeptideIdentificationList& xl_pi,
       std::vector<double> xl_PSM_qvalue_thresholds,
       std::vector<double> xl_peptidelevel_qvalue_thresholds,
-      const String& out_idxml,
+      const std::string& out_idxml,
       int decoy_factor) const;
 
   private:

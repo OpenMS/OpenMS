@@ -53,7 +53,7 @@ if (pred_file.is_open())
   while (getline(pred_file, line))
   {
     stringstream ss(line);
-    String name;
+    std::string name;
     ss >> name;
     while (ss.good())
     {
@@ -152,10 +152,10 @@ START_SECTION((void predict(vector<Prediction>& predictions,
 }
 END_SECTION
 
-START_SECTION((void getFeatureWeights(map<String, double> feature_weights)
+START_SECTION((void getFeatureWeights(map<std::string, double> feature_weights)
                const))
 {
-  map<String, double> feat_weights;
+  map<std::string, double> feat_weights;
   TEST_EXCEPTION(Exception::Precondition,
                  untrained_svm.getFeatureWeights(feat_weights));
 
@@ -164,7 +164,7 @@ START_SECTION((void getFeatureWeights(map<String, double> feature_weights)
 }
 END_SECTION
 
-START_SECTION((map<String, pair<double, double>> void getScaling()
+START_SECTION((map<std::string, pair<double, double>> void getScaling()
                const))
 {
   auto scaling = svm.getScaling();
@@ -203,7 +203,7 @@ START_SECTION((map<String, pair<double, double>> void getScaling()
 END_SECTION
 
 
-START_SECTION((void writeXvalResults(const String& path) const))
+START_SECTION((void writeXvalResults(const std::string& path) const))
 {
   string xval_file;
   NEW_TMP_FILE(xval_file);

@@ -70,7 +70,7 @@ namespace OpenMS
     mw_->setRightSplitter(position);
   }
 
-  void HistogramDialog::setLegend(const String & legend)
+  void HistogramDialog::setLegend(const std::string & legend)
   {
     mw_->setLegend(legend);
   }

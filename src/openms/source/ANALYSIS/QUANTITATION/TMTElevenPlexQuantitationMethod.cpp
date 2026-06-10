@@ -15,7 +15,7 @@
 
 namespace OpenMS
 {
-const String TMTElevenPlexQuantitationMethod::name_ = "tmt11plex";
+const std::string TMTElevenPlexQuantitationMethod::name_ = "tmt11plex";
 const std::vector<std::string> TMTElevenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131N","131C"};
 
 TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod()
@@ -139,7 +139,7 @@ TMTElevenPlexQuantitationMethod& TMTElevenPlexQuantitationMethod::operator=(cons
     return *this;
 }
 
-const String& TMTElevenPlexQuantitationMethod::getMethodName() const
+const std::string& TMTElevenPlexQuantitationMethod::getMethodName() const
 {
     return TMTElevenPlexQuantitationMethod::name_;
 }

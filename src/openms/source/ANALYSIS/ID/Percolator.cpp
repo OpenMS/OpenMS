@@ -937,21 +937,21 @@ namespace
   /// Numeric-feature auto-discovery from a PeptideHit's meta values.
   /// Excludes: the target/decoy meta, OpenMS internal scoring keys, and
   /// keys previously stamped by a Percolator run.
-  StringList discoverFeatureNames_(const PeptideHit& hit, const String& td_meta)
+  StringList discoverFeatureNames_(const PeptideHit& hit, const std::string& td_meta)
   {
-    static const std::vector<String> blocklist {
+    static const std::vector<std::string> blocklist {
       "percolator_score", "percolator_q_value", "percolator_pep",
       "q-value", "q-value_score", "score", "RT", "MZ",
       "target_decoy", "isDecoy"
     };
     StringList out;
-    std::vector<String> keys;
+    std::vector<std::string> keys;
     hit.getKeys(keys);
-    for (const String& k : keys)
+    for (const std::string& k : keys)
     {
       if (k == td_meta) continue;
       bool skipped = false;
-      for (const String& b : blocklist)
+      for (const std::string& b : blocklist)
       {
         if (k == b) { skipped = true; break; }
       }
@@ -994,7 +994,7 @@ void Percolator::fillPINCompatibleFields(
 
   // Spec-lookup regex is derived from the first pid's scan identifier (same
   // as PercolatorInfile::preparePin_).
-  const String first_sid = PercolatorInfile::getScanIdentifier(peptide_ids.front(), 0);
+  const std::string first_sid = PercolatorInfile::getScanIdentifier(peptide_ids.front(), 0);
   const boost::regex scan_regex(
     SpectrumLookup::getRegExFromNativeID(first_sid));
 
@@ -1005,14 +1005,14 @@ void Percolator::fillPINCompatibleFields(
     ++pid_index;
     if (pid.getHits().empty()) continue;
 
-    const String scan_identifier = PercolatorInfile::getScanIdentifier(pid, pid_index);
+    const std::string scan_identifier = PercolatorInfile::getScanIdentifier(pid, pid_index);
     const Int scan_number = SpectrumLookup::extractScanNumber(
         scan_identifier, scan_regex, /*no_error=*/true);
 
     const std::string file_key =
-      static_cast<std::string>(pid.getMetaValue("file_origin", String())) +
+      static_cast<std::string>(pid.getMetaValue("file_origin", std::string())) +
       "|" +
-      static_cast<std::string>(pid.getMetaValue("id_merge_index", String()));
+      static_cast<std::string>(pid.getMetaValue("id_merge_index", std::string()));
 
     int spec_file = 0;
     auto it = spec_file_to_idx.find(file_key);
@@ -1056,7 +1056,7 @@ void Percolator::fillPINCompatibleFields(
   }
 }
 
-void Percolator::saveModel(const PercolatorModel& model, const String& filename)
+void Percolator::saveModel(const PercolatorModel& model, const std::string& filename)
 {
   if (model.weights.size() != model.feature_names.size() + 1)
   {
@@ -1086,7 +1086,7 @@ void Percolator::saveModel(const PercolatorModel& model, const String& filename)
   }
 }
 
-PercolatorModel Percolator::loadModel(const String& filename)
+PercolatorModel Percolator::loadModel(const std::string& filename)
 {
   std::ifstream is(filename.c_str());
   if (!is)
@@ -1229,7 +1229,7 @@ void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,
 {
   if (peptide_ids.empty()) return;
 
-  const String td_meta = param_.getValue("target_decoy_metavalue").toString();
+  const std::string td_meta = param_.getValue("target_decoy_metavalue").toString();
 
   // Auto-discover features from first hit if not provided.
   StringList features = feature_names;
@@ -1272,7 +1272,7 @@ void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,
 
       std::vector<double> row;
       row.reserve(features.size());
-      for (const String& f : features)
+      for (const std::string& f : features)
       {
         if (!hit.metaValueExists(f))
         {

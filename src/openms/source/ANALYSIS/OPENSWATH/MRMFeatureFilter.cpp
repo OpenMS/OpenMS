@@ -56,9 +56,9 @@ namespace OpenMS
     // iterate through each component_group/feature
     for (size_t feature_it = 0; feature_it < features.size(); ++feature_it)
     {
-      String component_group_name = (String)features.at(feature_it).getMetaValue("PeptideRef");
+      std::string component_group_name = StringUtils::toStr(features.at(feature_it).getMetaValue("PeptideRef"));
 
-      std::map<String, int> labels_and_transition_types = countLabelsAndTransitionTypes(features.at(feature_it), transitions);
+      std::map<std::string, int> labels_and_transition_types = countLabelsAndTransitionTypes(features.at(feature_it), transitions);
 
       // initialize the new feature and subordinates
       std::vector<Feature> subordinates_filtered;
@@ -69,7 +69,7 @@ namespace OpenMS
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < features.at(feature_it).getSubordinates().size(); ++sub_it)
       {
-        String component_name = (String)features.at(feature_it).getSubordinates().at(sub_it).getMetaValue("native_id");
+        std::string component_name = StringUtils::toStr(features.at(feature_it).getSubordinates().at(sub_it).getMetaValue("native_id"));
         bool c_qc_pass = true;
         StringList c_qc_fail_message_vec;
 
@@ -154,7 +154,7 @@ namespace OpenMS
             // ion ratio QC
             for (size_t sub_it2 = 0; sub_it2 < features.at(feature_it).getSubordinates().size(); ++sub_it2)
             {
-              String component_name2 = (String)features.at(feature_it).getSubordinates().at(sub_it2).getMetaValue("native_id");
+              std::string component_name2 = StringUtils::toStr(features.at(feature_it).getSubordinates().at(sub_it2).getMetaValue("native_id"));
               // find the ion ratio pair
               if (!filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1.empty()
                && !filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2.empty()
@@ -174,7 +174,7 @@ namespace OpenMS
               }
             }
 
-            //std::pair<const String, std::pair<double, double>>
+            //std::pair<const std::string, std::pair<double, double>>
             for (const auto& kv : filter_criteria.component_group_qcs.at(cg_qc_it).meta_value_qc)
             {
               bool metavalue_exists{ false };
@@ -309,7 +309,7 @@ namespace OpenMS
     // iterate through each component_group/feature
     for (size_t feature_it = 0; feature_it < features.size(); ++feature_it)
     {
-      String component_group_name = (String)features.at(feature_it).getMetaValue("PeptideRef");
+      std::string component_group_name = StringUtils::toStr(features.at(feature_it).getMetaValue("PeptideRef"));
 
       // initialize the new feature and subordinates
       std::vector<Feature> subordinates_filtered;
@@ -320,7 +320,7 @@ namespace OpenMS
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < features.at(feature_it).getSubordinates().size(); ++sub_it)
       {
-        String component_name = (String)features.at(feature_it).getSubordinates().at(sub_it).getMetaValue("native_id");
+        std::string component_name = StringUtils::toStr(features.at(feature_it).getSubordinates().at(sub_it).getMetaValue("native_id"));
         bool c_qc_pass = true;
         StringList c_qc_fail_message_vec;
 
@@ -502,7 +502,7 @@ namespace OpenMS
     // iterate through each component_group/feature
     for (size_t feature_it = 0; feature_it < features.size(); ++feature_it)
     {
-      String component_group_name = (String)features.at(feature_it).getMetaValue("PeptideRef");
+      std::string component_group_name = StringUtils::toStr(features.at(feature_it).getMetaValue("PeptideRef"));
 
       // initialize the new feature and subordinates
       std::vector<Feature> subordinates_filtered;
@@ -513,7 +513,7 @@ namespace OpenMS
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < features.at(feature_it).getSubordinates().size(); ++sub_it)
       {
-        String component_name = (String)features.at(feature_it).getSubordinates().at(sub_it).getMetaValue("native_id");
+        std::string component_name = StringUtils::toStr(features.at(feature_it).getSubordinates().at(sub_it).getMetaValue("native_id"));
         bool c_qc_pass = true;
         StringList c_qc_fail_message_vec;
 
@@ -624,13 +624,13 @@ namespace OpenMS
       // iterate through each component_group/feature
       for (size_t feature_it = 0; feature_it < samples.at(sample_it).size(); ++feature_it)
       {
-        String component_group_name = (String)samples.at(sample_it).at(feature_it).getMetaValue("PeptideRef");
-        std::map<String, int> labels_and_transition_types = countLabelsAndTransitionTypes(samples.at(sample_it).at(feature_it), transitions);
+        std::string component_group_name = StringUtils::toStr(samples.at(sample_it).at(feature_it).getMetaValue("PeptideRef"));
+        std::map<std::string, int> labels_and_transition_types = countLabelsAndTransitionTypes(samples.at(sample_it).at(feature_it), transitions);
 
         // iterate through each component/sub-feature
         for (size_t sub_it = 0; sub_it < samples.at(sample_it).at(feature_it).getSubordinates().size(); ++sub_it)
         {
-          String component_name = (String)samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it).getMetaValue("native_id");
+          std::string component_name = StringUtils::toStr(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it).getMetaValue("native_id"));
 
           // iterate through multi-feature/multi-sub-feature QCs/filters
           // iterate through component_groups
@@ -715,7 +715,7 @@ namespace OpenMS
               // ion ratio QC
               for (size_t sub_it2 = 0; sub_it2 < samples.at(sample_it).at(feature_it).getSubordinates().size(); ++sub_it2)
               {
-                String component_name2 = (String)samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it2).getMetaValue("native_id");
+                std::string component_name2 = StringUtils::toStr(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it2).getMetaValue("native_id"));
                 // find the ion ratio pair
                 if (!filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1.empty()
                  && !filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2.empty()
@@ -851,12 +851,12 @@ namespace OpenMS
     calculateFilterValuesMean(filter_template, filter_values, filter_template);
   }
 
-  std::map<String, int> MRMFeatureFilter::countLabelsAndTransitionTypes(
+  std::map<std::string, int> MRMFeatureFilter::countLabelsAndTransitionTypes(
     const Feature& component_group,
     const TargetedExperiment& transitions) const
   {
     int n_heavy(0), n_light(0), n_quant(0), n_detect(0), n_ident(0), n_trans(0);
-    std::map<String, int> output;
+    std::map<std::string, int> output;
 
     for (size_t cg_it = 0; cg_it < component_group.getSubordinates().size(); ++cg_it)
     {
@@ -873,7 +873,7 @@ namespace OpenMS
       }
 
       // count labels and transition types
-      String label_type = (String)component_group.getSubordinates()[cg_it].getMetaValue("LabelType");
+      std::string label_type = StringUtils::toStr(component_group.getSubordinates()[cg_it].getMetaValue("LabelType"));
       if (label_type == "Heavy")
       {
         ++n_heavy;
@@ -908,7 +908,7 @@ namespace OpenMS
     return output;
   }
 
-  double MRMFeatureFilter::calculateIonRatio(const Feature& component_1, const Feature& component_2, const String& feature_name) const
+  double MRMFeatureFilter::calculateIonRatio(const Feature& component_1, const Feature& component_2, const std::string& feature_name) const
   {
     double ratio = 0.0;
     // member feature_name access
@@ -932,14 +932,14 @@ namespace OpenMS
     {
       if (component_1.metaValueExists(feature_name)&& component_2.metaValueExists(feature_name))
       {
-        const double feature_1 = component_1.getMetaValue(feature_name);
-        const double feature_2 = component_2.getMetaValue(feature_name);
+        const double feature_1 = (double)component_1.getMetaValue(feature_name);
+        const double feature_2 = (double)component_2.getMetaValue(feature_name);
         ratio = feature_1 / feature_2;
       }
       else if (component_1.metaValueExists(feature_name))
       {
         OPENMS_LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << "." << std::endl;
-        const double feature_1 = component_1.getMetaValue(feature_name);
+        const double feature_1 = (double)component_1.getMetaValue(feature_name);
         ratio = feature_1;
       }
       else
@@ -998,7 +998,7 @@ namespace OpenMS
 
   bool MRMFeatureFilter::checkMetaValue(
     const Feature& component,
-    const String& meta_value_key,
+    const std::string& meta_value_key,
     const double& meta_value_l,
     const double& meta_value_u,
     bool& key_exists
@@ -1007,7 +1007,7 @@ namespace OpenMS
     bool check = true;
     if (component.metaValueExists(meta_value_key)) {
       key_exists = true;
-      const double meta_value = (double)component.getMetaValue(meta_value_key);
+      const double meta_value = (double)(double)component.getMetaValue(meta_value_key);
       check = checkRange(meta_value, meta_value_l, meta_value_u);
     } else {
       key_exists = false;
@@ -1016,12 +1016,12 @@ namespace OpenMS
     return check;
   }
 
-  void MRMFeatureFilter::updateMetaValue(const Feature& component, const String& meta_value_key, double& meta_value_l, double& meta_value_u, bool& key_exists) const
+  void MRMFeatureFilter::updateMetaValue(const Feature& component, const std::string& meta_value_key, double& meta_value_l, double& meta_value_u, bool& key_exists) const
   {
     if (component.metaValueExists(meta_value_key))
     {
       key_exists = true;
-      const double meta_value = (double)component.getMetaValue(meta_value_key);
+      const double meta_value = (double)(double)component.getMetaValue(meta_value_key);
       updateRange(meta_value, meta_value_l, meta_value_u);
     }
     else
@@ -1031,12 +1031,12 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::setMetaValue(const Feature& component, const String& meta_value_key, double& meta_value_l, double& meta_value_u, bool& key_exists) const
+  void MRMFeatureFilter::setMetaValue(const Feature& component, const std::string& meta_value_key, double& meta_value_l, double& meta_value_u, bool& key_exists) const
   {
     if (component.metaValueExists(meta_value_key))
     {
       key_exists = true;
-      const double meta_value = (double)component.getMetaValue(meta_value_key);
+      const double meta_value = (double)(double)component.getMetaValue(meta_value_key);
       setRange(meta_value, meta_value_l, meta_value_u);
     }
     else
@@ -1046,12 +1046,12 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::initMetaValue(const Feature& component, const String& meta_value_key, double& meta_value_l, double& meta_value_u, bool& key_exists) const
+  void MRMFeatureFilter::initMetaValue(const Feature& component, const std::string& meta_value_key, double& meta_value_l, double& meta_value_u, bool& key_exists) const
   {
     if (component.metaValueExists(meta_value_key))
     {
       key_exists = true;
-      const double meta_value = (double)component.getMetaValue(meta_value_key);
+      const double meta_value = (double)(double)component.getMetaValue(meta_value_key);
       initRange(meta_value, meta_value_l, meta_value_u);
     }
     else
@@ -1078,13 +1078,13 @@ namespace OpenMS
       // iterate through each component_group/feature
       for (size_t feature_it = 0; feature_it < samples.at(sample_it).size(); ++feature_it)
       {
-        String component_group_name = (String)samples.at(sample_it).at(feature_it).getMetaValue("PeptideRef");
-        std::map<String, int> labels_and_transition_types = countLabelsAndTransitionTypes(samples.at(sample_it).at(feature_it), transitions);
+        std::string component_group_name = StringUtils::toStr(samples.at(sample_it).at(feature_it).getMetaValue("PeptideRef"));
+        std::map<std::string, int> labels_and_transition_types = countLabelsAndTransitionTypes(samples.at(sample_it).at(feature_it), transitions);
 
         // iterate through each component/sub-feature
         for (size_t sub_it = 0; sub_it < samples.at(sample_it).at(feature_it).getSubordinates().size(); ++sub_it)
         {
-          String component_name = (String)samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it).getMetaValue("native_id");
+          std::string component_name = StringUtils::toStr(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it).getMetaValue("native_id"));
 
           // iterate through multi-feature/multi-sub-feature QCs/filters
           // iterate through component_groups
@@ -1130,7 +1130,7 @@ namespace OpenMS
               // ion ratio QC
               for (size_t sub_it2 = 0; sub_it2 < samples.at(sample_it).at(feature_it).getSubordinates().size(); ++sub_it2)
               {
-                String component_name2 = (String)samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it2).getMetaValue("native_id");
+                std::string component_name2 = StringUtils::toStr(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it2).getMetaValue("native_id"));
                 // find the ion ratio pair
                 if (!filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1.empty()
                  && !filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2.empty()

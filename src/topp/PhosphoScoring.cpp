@@ -219,9 +219,9 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file with MS/MS spectra");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
     registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database");
-    setValidFormats_("id", ListUtils::create<String>("idXML"));
+    setValidFormats_("id", ListUtils::create<std::string>("idXML"));
     registerOutputFile_("out", "<file>", "", "Identification output annotated with phosphorylation scores");
     setValidFormats_("out", { "idXML" });
     // Ascore algorithm parameters:
@@ -232,11 +232,11 @@ protected:
   // E.g. Percolator_qvalue <-> q-value.
   // Improvement for the future would be to have unique names for the score_types
   // LuciphorAdapter uses the same strategy to backup previous scores.
-  void addScoreToMetaValues_(PeptideHit& hit, const String score_type)
+  void addScoreToMetaValues_(PeptideHit& hit, const std::string score_type)
   {
     if (!hit.metaValueExists(score_type) && !hit.metaValueExists(score_type + "_score"))
     {
-      if (score_type.hasSubstring("score"))
+      if (StringUtils::hasSubstring(score_type, "score"))
       {
         hit.setMetaValue(score_type, hit.getScore());
       }
@@ -253,9 +253,9 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
 
-    String in(getStringOption_("in"));
-    String id(getStringOption_("id"));
-    String out(getStringOption_("out"));
+    std::string in(getStringOption_("in"));
+    std::string id(getStringOption_("id"));
+    std::string out(getStringOption_("out"));
 
     AScore ascore;
     Param ascore_params = ascore.getDefaults();

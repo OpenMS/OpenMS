@@ -223,7 +223,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
     // Get spectrum-level data once per spectrum
     float rt = static_cast<float>(spec.getRT());
     uint8_t ms_level = static_cast<uint8_t>(spec.getMSLevel());
-    const String& native_id = spec.getNativeID();
+    const std::string& native_id = spec.getNativeID();
 
     // Precursor info (null for MS1)
     bool has_precursor = !spec.getPrecursors().empty();
@@ -894,7 +894,7 @@ std::shared_ptr<arrow::Table> exportChromatogramsToArrow(
     {
       double prec_mz = chrom.getPrecursor().getMZ();
       double prod_mz = chrom.getProduct().getMZ();
-      const String& native_id = chrom.getNativeID();
+      const std::string& native_id = chrom.getNativeID();
 
       for (const auto& point : chrom)
       {
@@ -1205,7 +1205,7 @@ arrow::Compression::type toArrowCompression(ParquetWriteConfig::Compression comp
 /// Write an Arrow table to a Parquet file
 bool writeTableToParquet(
   const std::shared_ptr<arrow::Table>& table,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   // Open output file
@@ -1283,7 +1283,7 @@ bool writeTableToParquet(
 
 bool MSExperimentArrowExport::exportSpectraToParquet(
   const MSExperiment& exp,
-  const String& filename,
+  const std::string& filename,
   const ArrowSpectraExportConfig& config,
   const ParquetWriteConfig& parquet_config)
 {
@@ -1302,7 +1302,7 @@ bool MSExperimentArrowExport::exportSpectraToParquet(
 
 bool MSExperimentArrowExport::exportChromatogramsToParquet(
   const MSExperiment& exp,
-  const String& filename,
+  const std::string& filename,
   const ArrowChromatogramExportConfig& config,
   const ParquetWriteConfig& parquet_config)
 {
