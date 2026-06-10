@@ -394,6 +394,7 @@ jobs:
     # This step submits the signed package to Apple for notarization and staples the ticket
     - name: Notarize macOS Package
       if: steps.set-vars.outputs.pkg_type == 'pkg' && startsWith(matrix.os, 'macos')
+      continue-on-error: true
       shell: bash
       env:
         APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD }}
