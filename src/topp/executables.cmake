@@ -24,6 +24,7 @@ DigestorMotif
 DTAExtractor
 EICExtractor
 Epifany
+ExecutePipeline
 ExternalCalibration
 FalseDiscoveryRate
 FeatureFinderCentroided

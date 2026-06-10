@@ -139,6 +139,9 @@ namespace OpenMS
     /// Throws Exception::IndexOverflow if the round/parameter is absent.
     const Filenames& getFileNames(int node_index, Int param_index, int round) const;
 
+    /// virtual dtor (this class is meant to be subclassed by an executor)
+    virtual ~TOPPASPipeline() = default;
+
   protected:
     /// Seed an INPUT node: one round per input file, keyed by -1.
     void runInput_(Node& node) const;
@@ -146,6 +149,19 @@ namespace OpenMS
     void runMerger_(Node& node, const RoundPackages& pkg) const;
     /// Virtual split of @p node (one round of N files becomes N rounds of one file).
     void runSplitter_(Node& node, const RoundPackages& pkg) const;
+
+    /**
+      @brief Hook called by computeDataFlow() for each TOOL node with its (already built) input packages.
+
+      The base implementation only sets a placeholder output (one empty RoundPackage per round) -- the
+      pure data-flow engine does not run tools. A PipelineExecutor overrides this to generate the output
+      file names, run the tool, and fill @c nodes_[node_index].output_files with the produced files.
+      @c nodes_[node_index].round_total is already set when this is called.
+    */
+    virtual void processToolNode_(int node_index, const RoundPackages& inputs);
+
+    /// Hook called by computeDataFlow() for each OUTPUT / OUTPUT_FOLDER node. Base implementation: no-op.
+    virtual void processOutputNode_(int node_index, const RoundPackages& inputs);
 
     std::vector<Node> nodes_;
     std::vector<Edge> edges_;

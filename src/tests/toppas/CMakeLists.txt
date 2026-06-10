@@ -46,7 +46,7 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 #
 ################################################################################
 
-if(WITH_GUI) # ExecutePipeline requires Qt/GUI internally
+# ExecutePipeline is a Qt-free TOPP tool now -- these pipeline tests run without WITH_GUI or an X server
 
   ### General settings
   set(TOPP_BIN_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
@@ -55,7 +55,6 @@ if(WITH_GUI) # ExecutePipeline requires Qt/GUI internally
   set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -test  -whitelist "IdentificationRun " "SearchParameters " "xml-stylesheet")
 
 
-  if(HAS_XSERVER)
   #------------------------------------------------------------------------------
   # configure resource files (for TOPPAS/ExecutePipeline) - there is no other
   # way to specify the input
@@ -108,10 +107,5 @@ if(WITH_GUI) # ExecutePipeline requires Qt/GUI internally
   # add_test("TOPPAS_${WF_NAME}_out5" ${DIFF} -in1 ${DATA_DIR_TOPPAS}/${WF_NAME}/TOPPAS_out/${OF_PATH} -in2 ${DATA_DIR_TOPPAS}/${WF_NAME}/desired_output/${OF_PATH})
   # set_tests_properties("TOPPAS_${WF_NAME}_out5" PROPERTIES DEPENDS "TOPPAS_${WF_NAME}")
 
-  endif()
-
 
 ################################################################################
-
-
-endif()

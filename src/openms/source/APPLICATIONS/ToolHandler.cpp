@@ -199,7 +199,6 @@ namespace OpenMS
     // ATTENTION: tools requiring the GUI lib
 #ifndef WITH_GUI
     StringList GUI_tools = {
-      "ExecutePipeline",
       "ImageCreator",
       "INIUpdater",
     };

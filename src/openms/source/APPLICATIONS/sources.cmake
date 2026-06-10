@@ -7,6 +7,7 @@ ConsoleUtils.cpp
 INIUpdater.cpp
 ParameterInformation.cpp
 OpenSwathBase.cpp
+PipelineExecutor.cpp
 SearchEngineBase.cpp
 ToolHandler.cpp
 TOPPASPipeline.cpp

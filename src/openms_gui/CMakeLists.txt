@@ -91,12 +91,12 @@ foreach(i ${GUI_executables})
 endforeach(i)
 
 # GUI TOPP tools also need direct OpenMS link for TOPPBase etc.
-foreach(i ExecutePipeline ImageCreator INIUpdater)
+foreach(i ImageCreator INIUpdater)
   target_link_libraries(${i} OpenMS)
 endforeach()
 
 # Add GUI-based TOPP tools to the TOPP_TOOLS list for CWL/INI generation
-set(GUI_TOPP_TOOLS ExecutePipeline ImageCreator INIUpdater)
+set(GUI_TOPP_TOOLS ImageCreator INIUpdater)
 set(TOPP_TOOLS ${TOPP_TOOLS} ${GUI_TOPP_TOOLS}
     CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
 

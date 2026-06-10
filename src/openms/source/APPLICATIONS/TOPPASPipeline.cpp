@@ -39,36 +39,39 @@ namespace OpenMS
 
   bool TOPPASPipeline::topoSort(std::string& error_msg)
   {
+    // This reproduces the historical TOPPASScene::topoSort numbering: repeatedly sweep the nodes in
+    // container order and immediately number any node whose predecessors are all already numbered.
+    // The exact numbering matters because input-node resource keys (.trf files) reference topo numbers.
     const Size n = nodes_.size();
-    std::vector<int> indeg(n, 0);
-    for (const Edge& e : edges_)
-    {
-      if (e.to >= 0) ++indeg[e.to];
-    }
-    // process zero-indegree nodes in index order (deterministic)
-    std::vector<int> queue;
-    for (Size i = 0; i < n; ++i)
-    {
-      if (indeg[i] == 0) queue.push_back((int)i);
-    }
-    Size head = 0;
-    Int topo = 1;
+    std::vector<bool> marked(n, false);
+    Int topo_counter = 1;
     Size processed = 0;
-    while (head < queue.size())
+    while (processed < n)
     {
-      int u = queue[head++];
-      nodes_[u].topo_nr = topo++;
-      ++processed;
-      for (int ei : nodes_[u].out_edges)
+      bool progress = false;
+      for (Size i = 0; i < n; ++i)
       {
-        int v = edges_[ei].to;
-        if (--indeg[v] == 0) queue.push_back(v);
+        if (marked[i]) continue;
+        bool has_unmarked_predecessor = false;
+        for (int ei : nodes_[i].in_edges)
+        {
+          if (!marked[edges_[ei].from])
+          {
+            has_unmarked_predecessor = true;
+            break;
+          }
+        }
+        if (has_unmarked_predecessor) continue;
+        nodes_[i].topo_nr = topo_counter++;
+        marked[i] = true;
+        ++processed;
+        progress = true;
       }
-    }
-    if (processed != n)
-    {
-      error_msg = "TOPPASPipeline: workflow graph contains a cycle.";
-      return false;
+      if (!progress) // some nodes remain but none became ready -> cycle
+      {
+        error_msg = "TOPPASPipeline: workflow graph contains a cycle.";
+        return false;
+      }
     }
     return true;
   }
@@ -262,23 +265,50 @@ namespace OpenMS
           RoundPackages pkg;
           if (!buildRoundPackages(ni, pkg, error_msg)) return false;
           node.round_total = (int)pkg.size();
-          // placeholder: the actual output files are produced by a PipelineExecutor
-          node.output_files.assign(node.round_total, RoundPackage());
+          processToolNode_(ni, pkg); // base: placeholder output; executor: generate names + run the tool
           node.finished = true;
           break;
         }
         case NodeKind::OUTPUT:
         case NodeKind::OUTPUT_FOLDER:
         {
-          RoundPackages pkg;
-          if (!buildRoundPackages(ni, pkg, error_msg)) return false;
-          node.round_total = (int)pkg.size();
+          // Output nodes take the upstream's output files DIRECTLY (like TOPPASOutputFileListVertex::run),
+          // NOT via buildRoundPackages -- otherwise a single recycling input would be wrongly rejected.
+          RoundPackages inputs;
+          for (int ei : node.in_edges)
+          {
+            const Edge& e = edges_[ei];
+            const Node& up = nodes_[e.from];
+            if (inputs.size() < up.output_files.size()) inputs.resize(up.output_files.size());
+            for (Size r = 0; r < up.output_files.size(); ++r)
+            {
+              RoundPackage::const_iterator fit = up.output_files[r].find(e.source_out_param);
+              if (fit == up.output_files[r].end()) continue;
+              Int key = e.source_out_param;
+              while (inputs[r].count(key)) --key; // avoid clashes if several edges feed the same round
+              inputs[r][key] = fit->second;
+            }
+          }
+          node.round_total = (int)inputs.size();
+          processOutputNode_(ni, inputs); // base: no-op; executor: copy files to the output directory
           node.finished = true;
           break;
         }
       }
     }
     return true;
+  }
+
+  void TOPPASPipeline::processToolNode_(int node_index, const RoundPackages& /*inputs*/)
+  {
+    // pure data-flow engine: the actual output files are produced by a PipelineExecutor
+    Node& node = nodes_[node_index];
+    node.output_files.assign(node.round_total, RoundPackage());
+  }
+
+  void TOPPASPipeline::processOutputNode_(int /*node_index*/, const RoundPackages& /*inputs*/)
+  {
+    // pure data-flow engine: nothing to do (a PipelineExecutor copies the files)
   }
 
 } // namespace OpenMS
