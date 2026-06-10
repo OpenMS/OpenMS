@@ -204,8 +204,14 @@ namespace OpenMS
           }
           break;
         }
-        case TOPPASWorkflow::NodeType::OUTPUT_FILE_LIST: n.kind = NodeKind::OUTPUT; break;
-        case TOPPASWorkflow::NodeType::OUTPUT_FOLDER: n.kind = NodeKind::OUTPUT_FOLDER; break;
+        case TOPPASWorkflow::NodeType::OUTPUT_FILE_LIST:
+          n.kind = NodeKind::OUTPUT;
+          td.output_folder_name = wn.output_folder_name;
+          break;
+        case TOPPASWorkflow::NodeType::OUTPUT_FOLDER:
+          n.kind = NodeKind::OUTPUT_FOLDER;
+          td.output_folder_name = wn.output_folder_name;
+          break;
         case TOPPASWorkflow::NodeType::MERGER:
           n.kind = NodeKind::MERGER;
           n.round_based_merge = wn.round_based;
@@ -276,6 +282,15 @@ namespace OpenMS
         if (it != input_overrides.end()) n.input_files = it->second;
       }
     }
+
+    // validate the input nodes (mirrors TOPPASScene::sanityCheck_ for non-interactive runs)
+    if (Result sc = sanityCheck_(error_msg); sc != OK) return sc;
+
+    // dry run: route the entire data flow and generate all output names without launching a single tool,
+    // so a graph/routing error (inconsistent rounds, missing tool, cycle, ...) is reported before any real
+    // tool is started (mirrors TOPPAS's "for (dry_run : {true, false})" two-pass execution).
+    if (Result dr = validateDryRun_(error_msg); dr != OK) return dr;
+    resetDataFlow_(); // discard the dry-run state; the real run recomputes everything from scratch
 
     // ------------------------------------------------------------------------------------------------
     // Global, dynamic, process-level scheduler (reproduces TOPPASScene's allowed_threads_ queue):
@@ -463,7 +478,7 @@ namespace OpenMS
     return OK;
   }
 
-  std::vector<PipelineExecutor::Task> PipelineExecutor::prepareToolTasks_(int node_index, const RoundPackages& inputs)
+  std::vector<PipelineExecutor::Task> PipelineExecutor::prepareToolTasks_(int node_index, const RoundPackages& inputs, bool dry_run)
   {
     Node& node = nodes_[node_index];
     const ToolDesc& td = tools_[node_index];
@@ -474,7 +489,7 @@ namespace OpenMS
     // per-tool output directory: <tmp>/<workflow>/<topo>_<tool>[_<type>]
     std::string out_dir = opts_.tmp_dir + "/" + toppas_stem_ + "/" + threeChars(node.topo_nr) + "_" + td.name;
     if (!td.type.empty()) out_dir += "_" + td.type;
-    if (!File::makeDir(out_dir) && !File::isDirectory(out_dir))
+    if (!dry_run && !File::makeDir(out_dir) && !File::isDirectory(out_dir))
     {
       throw ExecError{TOOL_FAILED, "Could not create working directory '" + out_dir + "'"};
     }
@@ -538,6 +553,8 @@ namespace OpenMS
         node.output_files[round][pidx].filenames = ofiles;
       }
 
+      if (dry_run) continue; // dry run: output names generated, but no INI written and no task launched
+
       // write the per-round INI (TOPP tools expect "<tool>:1:<params>")
       Param ini;
       ini.setValue(td.name + ":1:toppas_dummy", "x");
@@ -569,9 +586,10 @@ namespace OpenMS
     node.round_total = (int)inputs.size();
     node.output_files.assign(node.round_total, RoundPackage());
 
-    // each output node writes into its own sub-directory so that files of different output nodes (which
-    // commonly share a parameter name like 'out') never clobber each other in the shared output directory
-    std::string node_out_dir = opts_.out_dir + "/" + threeChars(node.topo_nr);
+    // each output node writes into its own "TOPPAS_out/<...>" sub-directory (matching the historical
+    // TOPPASOutputVertex layout) so that files of different output nodes (which commonly share a parameter
+    // name like 'out') never clobber each other in the shared output directory
+    std::string node_out_dir = opts_.out_dir + "/" + outputSubDir_(node_index);
     if (!File::makeDir(node_out_dir) && !File::isDirectory(node_out_dir))
     {
       throw ExecError{TOOL_FAILED, "Could not create output directory '" + node_out_dir + "'"};
@@ -610,6 +628,168 @@ namespace OpenMS
         }
       }
     }
+  }
+
+  PipelineExecutor::Result PipelineExecutor::sanityCheck_(std::string& error_msg) const
+  {
+    // 1) there must be at least one input node
+    std::vector<const Node*> input_nodes;
+    for (const Node& n : nodes_)
+    {
+      if (n.kind == NodeKind::INPUT) input_nodes.push_back(&n);
+    }
+    if (input_nodes.empty())
+    {
+      error_msg = "The pipeline does not contain any input file nodes!";
+      return INVALID;
+    }
+
+    // 2) connected input nodes must have a non-empty file list (disconnected ones may be empty)
+    for (const Node* n : input_nodes)
+    {
+      if (!n->out_edges.empty() && n->input_files.empty())
+      {
+        error_msg = "Pipeline contains input file nodes without specified files!";
+        return INVALID;
+      }
+    }
+
+    // 3) connected input nodes must reference only existing, non-duplicate files
+    for (const Node* n : input_nodes)
+    {
+      if (n->out_edges.empty()) continue;
+      std::set<std::string> seen;
+      for (const std::string& f : n->input_files)
+      {
+        if (!File::exists(f))
+        {
+          error_msg = "Pipeline contains input file nodes with invalid (non-existing or duplicate) input files!";
+          return INVALID;
+        }
+        std::string canonical = f;
+        try { canonical = File::absolutePath(f); }
+        catch (...) { /* keep the raw name if it cannot be resolved */ }
+        if (!seen.insert(canonical).second)
+        {
+          error_msg = "Pipeline contains input file nodes with invalid (non-existing or duplicate) input files!";
+          return INVALID;
+        }
+      }
+    }
+
+    return OK;
+  }
+
+  PipelineExecutor::Result PipelineExecutor::validateDryRun_(std::string& error_msg)
+  {
+    // visit nodes in topological order so every upstream is processed before its successors
+    std::vector<int> order(nodes_.size());
+    for (Size i = 0; i < nodes_.size(); ++i) order[i] = (int)i;
+    std::sort(order.begin(), order.end(), [this](int a, int b) { return nodes_[a].topo_nr < nodes_[b].topo_nr; });
+
+    for (int ni : order)
+    {
+      Node& node = nodes_[ni];
+      try
+      {
+        switch (node.kind)
+        {
+          case NodeKind::INPUT:
+            runInput_(node);
+            break;
+          case NodeKind::MERGER:
+          {
+            RoundPackages pkg;
+            if (!buildRoundPackages(ni, pkg, error_msg)) return INVALID;
+            runMerger_(node, pkg);
+            break;
+          }
+          case NodeKind::SPLITTER:
+          {
+            RoundPackages pkg;
+            if (!buildRoundPackages(ni, pkg, error_msg)) return INVALID;
+            runSplitter_(node, pkg);
+            break;
+          }
+          case NodeKind::TOOL:
+          {
+            RoundPackages pkg;
+            if (!buildRoundPackages(ni, pkg, error_msg)) return INVALID;
+            node.round_total = (int)pkg.size();
+            prepareToolTasks_(ni, pkg, /*dry_run=*/true); // generate output names, resolve the executable
+            node.finished = true;
+            break;
+          }
+          case NodeKind::OUTPUT:
+          case NodeKind::OUTPUT_FOLDER:
+          {
+            RoundPackages inputs = collectOutputNodeInputs_(ni);
+            node.round_total = (int)inputs.size();
+            outputSubDir_(ni); // validate that an output folder name can be knit (needs an incoming edge)
+            node.finished = true;
+            break;
+          }
+        }
+      }
+      catch (const ExecError& e) { error_msg = e.msg; return e.result; }
+      catch (const Exception::BaseException& e) { error_msg = e.what(); return TOOL_FAILED; }
+      catch (const std::exception& e) { error_msg = e.what(); return TOOL_FAILED; }
+    }
+    return OK;
+  }
+
+  void PipelineExecutor::resetDataFlow_()
+  {
+    for (Node& n : nodes_)
+    {
+      n.output_files.clear();
+      n.round_total = -1;
+      n.finished = false;
+    }
+  }
+
+  std::string PipelineExecutor::vertexName_(int node_index) const
+  {
+    switch (nodes_[node_index].kind)
+    {
+      case NodeKind::TOOL:          return tools_[node_index].name;
+      case NodeKind::INPUT:         return "InputVertex";
+      case NodeKind::MERGER:        return "MergerVertex";
+      case NodeKind::SPLITTER:      return "SplitterVertex";
+      case NodeKind::OUTPUT:        return "OutputFileVertex";
+      case NodeKind::OUTPUT_FOLDER: return "OutputFolderVertex";
+    }
+    return "";
+  }
+
+  std::string PipelineExecutor::outputSubDir_(int node_index) const
+  {
+    const Node& node = nodes_[node_index];
+    std::string dir = "TOPPAS_out/";
+
+    const std::string& folder = tools_[node_index].output_folder_name;
+    if (!folder.empty())
+    {
+      dir += folder;
+      return dir;
+    }
+
+    // knit a meaningful name from the (single) incoming edge: "<NNN>-<source vertex>-<source out param>"
+    if (node.in_edges.empty())
+    {
+      throw ExecError{TOOL_FAILED, "Output node #" + std::to_string(node.topo_nr) +
+                                   " has no incoming edge to derive its output folder name."};
+    }
+    const Edge& e = edges_[node.in_edges.front()];
+    std::string src_param; // empty unless the source is a tool with a named output parameter
+    if (nodes_[e.from].kind == NodeKind::TOOL && e.source_out_param >= 0 &&
+        e.source_out_param < (Int)tools_[e.from].out.size())
+    {
+      src_param = tools_[e.from].out[e.source_out_param].name;
+      src_param.erase(std::remove(src_param.begin(), src_param.end(), ':'), src_param.end()); // ':' is path-unsafe
+    }
+    dir += threeChars(node.topo_nr) + "-" + vertexName_(e.from) + "-" + src_param;
+    return dir;
   }
 
 } // namespace OpenMS

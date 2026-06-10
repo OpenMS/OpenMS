@@ -80,7 +80,7 @@ namespace OpenMS
     static std::map<std::string, std::vector<std::string>> loadResourceFile(const std::string& filename);
 
   private:
-    /// Per-tool-node description (only TOOL nodes have a populated entry).
+    /// Per-node description (TOOL nodes have a populated tool entry; output nodes carry their folder name).
     struct ToolDesc
     {
       bool is_tool = false;
@@ -89,6 +89,7 @@ namespace OpenMS
       Param param;                  ///< the tool's parameters (bare, as stored in the .toppas)
       std::vector<IOParam> in;      ///< input-file params, sorted -> index == target_in_param
       std::vector<IOParam> out;     ///< output-file params, sorted -> index == source_out_param
+      std::string output_folder_name; ///< OUTPUT / OUTPUT_FOLDER nodes only: custom output folder name (or empty)
     };
 
     /// One scheduled subprocess: running @p exe with @p args produces one round of one tool node.
@@ -117,12 +118,36 @@ namespace OpenMS
     /// Set @p name in @p p to @p files (as a list, or as a single value).
     static void setFileParam_(Param& p, const std::string& name, const std::vector<std::string>& files, bool is_list);
 
-    /// Prepare a tool node for execution: build the per-round output file names and INI files (filling
-    /// @c output_files), and return one Task per round. Does not run anything.
-    std::vector<Task> prepareToolTasks_(int node_index, const RoundPackages& inputs);
+    /// Prepare a tool node for execution: build the per-round output file names (filling @c output_files)
+    /// and return one Task per round. When @p dry_run is true, only the output names are computed (no
+    /// working directory is created and no INI is written) and an empty task list is returned.
+    std::vector<Task> prepareToolTasks_(int node_index, const RoundPackages& inputs, bool dry_run = false);
 
-    /// Copy a finished output node's incoming files into its (per-node) output directory.
+    /// Copy a finished output node's incoming files into its output directory.
     void runOutputNode_(int node_index);
+
+    /// Validate the input nodes the way the GUI's TOPPASScene::sanityCheck_ does for non-interactive runs:
+    /// there must be at least one input node, and every connected input node must have a non-empty list of
+    /// existing, non-duplicate files. Returns OK if the pipeline passes, INVALID otherwise.
+    Result sanityCheck_(std::string& error_msg) const;
+
+    /// Single-threaded, topological dry-run pass that routes the whole data flow (input seeding, mergers,
+    /// splitters, recycling, tool output-name generation) WITHOUT launching any tool or copying any file.
+    /// Mirrors TOPPAS's "dry run" so graph/routing errors are caught before any real tool is started.
+    /// Returns OK on success, or the failing result code (with @p error_msg set).
+    Result validateDryRun_(std::string& error_msg);
+
+    /// Reset the per-node data-flow state (output_files / round_total / finished) between the dry and the
+    /// real run. The INPUT nodes' seed @c input_files are preserved.
+    void resetDataFlow_();
+
+    /// Display name of a node mirroring TOPPASVertex::getName() (used to knit output directory names).
+    std::string vertexName_(int node_index) const;
+
+    /// Output sub-directory of an OUTPUT / OUTPUT_FOLDER node relative to the output root, mirroring
+    /// TOPPASOutputVertex::getOutputDir: "TOPPAS_out/<folder>" if a custom folder name is set, else
+    /// "TOPPAS_out/<NNN>-<source-vertex>-<source-out-param-without-colons>".
+    std::string outputSubDir_(int node_index) const;
 
     std::vector<ToolDesc> tools_; ///< indexed by node index
     std::string toppas_stem_;     ///< basename of the .toppas (for output-dir names)
