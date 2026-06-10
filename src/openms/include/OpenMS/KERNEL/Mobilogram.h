@@ -51,7 +51,7 @@ namespace OpenMS
     /// Float data array vector type
     typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
-    /// String data array vector type
+    /// std::string data array vector type
     typedef OpenMS::DataArrays::StringDataArray StringDataArray ;
     typedef std::vector<StringDataArray> StringDataArrays;
     /// Integer data array vector type
@@ -263,7 +263,7 @@ namespace OpenMS
     }
 
     /// returns the ion mobility drift time unit as string
-    String getDriftTimeUnitAsString() const;
+    std::string getDriftTimeUnitAsString() const;
 
     /**
       @brief Sets the ion mobility drift time unit
@@ -581,7 +581,7 @@ namespace OpenMS
     /// Float data arrays
     FloatDataArrays float_data_arrays_;
 
-    /// String data arrays
+    /// std::string data arrays
     StringDataArrays string_data_arrays_;
 
     /// Integer data arrays

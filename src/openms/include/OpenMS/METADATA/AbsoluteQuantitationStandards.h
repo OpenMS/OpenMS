@@ -48,12 +48,12 @@ public:
     */
     struct runConcentration
     {
-      String sample_name;              ///< Sample identifier; matched against @ref FeatureMap::getPrimaryMSRunPath after stripping a @c .mzML or @c .txt suffix.
-      String component_name;           ///< Identifier of the target component (matched against subordinate-feature meta value @c "native_id").
-      String IS_component_name;        ///< Identifier of the paired internal standard, or empty if there is none.
+      std::string sample_name;              ///< Sample identifier; matched against @ref FeatureMap::getPrimaryMSRunPath after stripping a @c .mzML or @c .txt suffix.
+      std::string component_name;           ///< Identifier of the target component (matched against subordinate-feature meta value @c "native_id").
+      std::string IS_component_name;        ///< Identifier of the paired internal standard, or empty if there is none.
       double actual_concentration;     ///< Known concentration of the target component in this sample.
       double IS_actual_concentration;  ///< Known concentration of the internal standard in this sample.
-      String concentration_units;      ///< Units the concentration values are expressed in.
+      std::string concentration_units;      ///< Units the concentration values are expressed in.
       double dilution_factor;          ///< Sample dilution factor.
     };
 
@@ -70,7 +70,7 @@ public:
       Feature IS_feature;              ///< Subordinate feature for the internal standard. Default-constructed when @ref runConcentration::IS_component_name was empty or no IS subordinate was found.
       double actual_concentration;     ///< Copied from @ref runConcentration::actual_concentration.
       double IS_actual_concentration;  ///< Copied from @ref runConcentration::IS_actual_concentration.
-      String concentration_units;      ///< Copied from @ref runConcentration::concentration_units.
+      std::string concentration_units;      ///< Copied from @ref runConcentration::concentration_units.
       double dilution_factor;          ///< Copied from @ref runConcentration::dilution_factor.
     };
 
@@ -107,7 +107,7 @@ public:
     void mapComponentsToConcentrations(
       const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
       const std::vector<FeatureMap>& feature_maps,
-      std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>>& components_to_concentrations
+      std::map<std::string, std::vector<AbsoluteQuantitationStandards::featureConcentration>>& components_to_concentrations
     ) const;
 
     /**
@@ -129,7 +129,7 @@ public:
     void getComponentFeatureConcentrations(
       const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
       const std::vector<FeatureMap>& feature_maps,
-      const String& component_name,
+      const std::string& component_name,
       std::vector<AbsoluteQuantitationStandards::featureConcentration>& feature_concentrations
     ) const;
 
@@ -148,7 +148,7 @@ private:
     */
     bool findComponentFeature_(
       const FeatureMap& feature_map,
-      const String& component_name,
+      const std::string& component_name,
       Feature& feature_found
     ) const;
   };

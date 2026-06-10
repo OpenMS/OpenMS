@@ -15,7 +15,7 @@
 #include <fstream>  // Required for temporary file creation
 
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
@@ -49,7 +49,7 @@ START_SECTION([FASTAFile::FASTAEntry] FASTAEntry())
   delete ptr_e;
 END_SECTION
 
-START_SECTION([FASTAFile::FASTAEntry] FASTAEntry(String id, String desc, String seq))
+START_SECTION([FASTAFile::FASTAEntry] FASTAEntry(std::string id, std::string desc, std::string seq))
   FASTAFile::FASTAEntry entry("ID", "DESC", "DAVLDELNER");
   TEST_EQUAL(entry.identifier, "ID")
   TEST_EQUAL(entry.description, "DESC")
@@ -64,7 +64,7 @@ START_SECTION([FASTAFile::FASTAEntry] bool operator==(const FASTAEntry &rhs) con
   TEST_EQUAL(entry1 == entry3, false)
 END_SECTION
 
-START_SECTION((void load(const String &filename, std::vector<FASTAEntry> &data)))
+START_SECTION((void load(const std::string &filename, std::vector<FASTAEntry> &data)))
   vector<FASTAFile::FASTAEntry> data;
   FASTAFile file;
 
@@ -73,67 +73,67 @@ START_SECTION((void load(const String &filename, std::vector<FASTAEntry> &data))
   file.load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"), data);
   vector<FASTAFile::FASTAEntry>::const_iterator sequences_iterator = data.begin();
   TEST_EQUAL(data.size(), 5)
-  TEST_EQUAL(sequences_iterator->identifier, String("P68509|1433F_BOVIN"))
-  TEST_EQUAL(sequences_iterator->description, String("This is the description of the first protein"))
-  TEST_EQUAL(sequences_iterator->sequence, String("GDREQLLQRARLAEQAERYDDMASAMKAVTEL") +
-                                           String("NEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVC") +
-                                           String("NDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEIS") +
-                                           String("KEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQL") +
-                                           String("LRDNLTLWTSDQQDEEAGEGN"))
+  TEST_EQUAL(sequences_iterator->identifier,std::string("P68509|1433F_BOVIN"))
+  TEST_EQUAL(sequences_iterator->description,std::string("This is the description of the first protein"))
+  TEST_EQUAL(sequences_iterator->sequence,std::string("GDREQLLQRARLAEQAERYDDMASAMKAVTEL") +
+                                           std::string("NEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVC") +
+                                           std::string("NDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEIS") +
+                                           std::string("KEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQL") +
+                                           std::string("LRDNLTLWTSDQQDEEAGEGN"))
   sequences_iterator++;
   TEST_EQUAL(sequences_iterator->identifier, "Q9CQV8|1433B_MOUSE")
-  TEST_EQUAL(sequences_iterator->sequence, String("TMDKSELVQKAKLAEQAERYDDMAAAMKAVTE") +
-                                           String("QGHELSNEERNLLSVAYKNVVGARRSSWRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICND") +
-                                           String("VLELLDKYLILNATQAESKVFYLKMKGDYFRYLSEVASGENKQTTVSNSQQAYQEAFEISKKEMQ") +
-                                           String("PTHPIRLGLALNFSVFYYEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLT") +
-                                           String("LWTSENQGDEGDAGEGEN"))
+  TEST_EQUAL(sequences_iterator->sequence,std::string("TMDKSELVQKAKLAEQAERYDDMAAAMKAVTE") +
+                                           std::string("QGHELSNEERNLLSVAYKNVVGARRSSWRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICND") +
+                                           std::string("VLELLDKYLILNATQAESKVFYLKMKGDYFRYLSEVASGENKQTTVSNSQQAYQEAFEISKKEMQ") +
+                                           std::string("PTHPIRLGLALNFSVFYYEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLT") +
+                                           std::string("LWTSENQGDEGDAGEGEN"))
   sequences_iterator++;
   TEST_EQUAL(sequences_iterator->identifier, "sp|P31946|1433B_HUMAN")
   TEST_EQUAL(sequences_iterator->description,
-             String("14-3-3 protein beta/alpha OS=Homo sapiens GN=YWHAB PE=1 SV=3"))
-  TEST_EQUAL(sequences_iterator->sequence, String("MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS") +
-                                           String("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY") +
-                                           String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY") +
-                                           String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD") + 
-                                           String("AGEGEN"))
+             std::string("14-3-3 protein beta/alpha OS=Homo sapiens GN=YWHAB PE=1 SV=3"))
+  TEST_EQUAL(sequences_iterator->sequence,std::string("MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS") +
+                                           std::string("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY") +
+                                           std::string("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY") +
+                                           std::string("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD") + 
+                                           std::string("AGEGEN"))
 
   sequences_iterator++;
   TEST_EQUAL(sequences_iterator->identifier, "sp|P00000|0000A_UNKNOWN")
-  TEST_EQUAL(sequences_iterator->description, String("Artificially modified version of sp|P31946|1433B_HUMAN"))
+  TEST_EQUAL(sequences_iterator->description,std::string("Artificially modified version of sp|P31946|1433B_HUMAN"))
   TEST_EQUAL(sequences_iterator->sequence,
-             String("(ICPL:13C(6))MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS") +
-             String("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY") +
-             String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY") +
-             String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD") +
-             String("AGEGEN"))
+             std::string("(ICPL:13C(6))MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS") +
+             std::string("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY") +
+             std::string("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY") +
+             std::string("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD") +
+             std::string("AGEGEN"))
 
   // Test modified sequence conversion
   AASequence aa = AASequence::fromString(sequences_iterator->sequence);
-  TEST_EQUAL(aa.toUnmodifiedString(), String("MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS") +
-                                      String("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY") +
-                                      String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY") +
-                                      String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD") +
-                                      String("AGEGEN"))
+  TEST_EQUAL(aa.toUnmodifiedString(),std::string("MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS") +
+                                      std::string("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY") +
+                                      std::string("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY") +
+                                      std::string("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD") +
+                                      std::string("AGEGEN"))
   TEST_EQUAL(aa.isModified(), true)
-  String expectedModification = ModificationsDB::getInstance()->getModification("ICPL:13C(6)", "", 
+  std::string expectedModification = ModificationsDB::getInstance()->getModification("ICPL:13C(6)", "", 
                                                                                 ResidueModification::N_TERM)->getId();
   TEST_EQUAL(aa.getNTerminalModificationName(), expectedModification)
 
   sequences_iterator++;
   TEST_EQUAL(sequences_iterator->identifier, "test")
-  TEST_EQUAL(sequences_iterator->description, String(" ##0"))
+  TEST_EQUAL(sequences_iterator->description,std::string(" ##0"))
   TEST_EQUAL(sequences_iterator->sequence,
-             String("GSMTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVS") +
-             String("PAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSVGSMTVDMQEIGSTEMPYEVPTQ") +
-             String("PNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVSPAVYTFGL") +
-             String("FVQNASESLTSDDPSDVPTQRTFKSDFQSVAXXSTFDFYQRRLVTLAESPRAPSPGSMTV") +
-             String("DMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSF") +
-             String("KEKVSELVSPAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSV"))
+             std::string("GSMTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVS") +
+             std::string("PAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSVGSMTVDMQEIGSTEMPYEVPTQ") +
+             std::string("PNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVSPAVYTFGL") +
+             std::string("FVQNASESLTSDDPSDVPTQRTFKSDFQSVAXXSTFDFYQRRLVTLAESPRAPSPGSMTV") +
+             std::string("DMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSF") +
+             std::string("KEKVSELVSPAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSV"))
 END_SECTION
 
-START_SECTION((void store(const String &filename, const std::vector<FASTAEntry> &data) const))
+START_SECTION((void store(const std::string &filename, const std::vector<FASTAEntry> &data) const))
   vector<FASTAFile::FASTAEntry> data, data2;
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   FASTAFile file;
 
@@ -147,7 +147,7 @@ END_SECTION
 
 START_SECTION(test_leading_whitespace_and_peff)
 {
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
 
   // Create test file with leading whitespace and PEFF headers
@@ -178,7 +178,7 @@ END_SECTION
 
 START_SECTION(test_empty_lines_between_entries)
 {
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
 
   // Create test file with empty lines between entries
@@ -209,14 +209,14 @@ END_SECTION
 
 START_SECTION([EXTRA] test_strange_symbols_in_sequence)
   // test if * is read correctly (not changed into something weird like 'X')
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   FASTAFile file;
   vector<FASTAFile::FASTAEntry> data, data2;
   FASTAFile::FASTAEntry temp_entry;
-  temp_entry.identifier = String("P68509|1433F_BOVIN");
-  temp_entry.description = String("This is the description of the first protein");
-  temp_entry.sequence = String("GDREQLLQRAR*LAEQ*AERYDDMASAMKAVTEL");
+  temp_entry.identifier =std::string("P68509|1433F_BOVIN");
+  temp_entry.description =std::string("This is the description of the first protein");
+  temp_entry.sequence =std::string("GDREQLLQRAR*LAEQ*AERYDDMASAMKAVTEL");
   data.push_back(temp_entry);
   data.push_back(temp_entry); // twice
 
@@ -231,14 +231,14 @@ END_SECTION
 
 START_SECTION([EXTRA] test_strange_symbols_in_sequence)
   // test if * is read correctly (not changed into something weird like 'X')
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   FASTAFile file;
   vector<FASTAFile::FASTAEntry> data, data2;
   FASTAFile::FASTAEntry temp_entry;
-  temp_entry.identifier = String("P68509|1433F_BOVIN");
-  temp_entry.description = String("This is the description of the first protein");
-  temp_entry.sequence = String("GDREQLLQRAR*LAEQ*AERYDDMASAMKAVTEL");
+  temp_entry.identifier =std::string("P68509|1433F_BOVIN");
+  temp_entry.description =std::string("This is the description of the first protein");
+  temp_entry.sequence =std::string("GDREQLLQRAR*LAEQ*AERYDDMASAMKAVTEL");
   data.push_back(temp_entry);
   data.push_back(temp_entry); // twice
 
@@ -254,15 +254,15 @@ END_SECTION
 
 START_SECTION(test_white_spaces)
   //test if spaces and tabulators are removed correctly
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   FASTAFile file;
   vector<FASTAFile::FASTAEntry> data, data2;
 
   FASTAFile::FASTAEntry temp_entry;
-  temp_entry.identifier = String("P68509|1433F_BOVIN");
-  temp_entry.description = String("This is the description of the first protein");
-  temp_entry.sequence = String("GDREQLLQRAR LAEQ\tAERYDDMASAMKAVTEL");
+  temp_entry.identifier =std::string("P68509|1433F_BOVIN");
+  temp_entry.description =std::string("This is the description of the first protein");
+  temp_entry.sequence =std::string("GDREQLLQRAR LAEQ\tAERYDDMASAMKAVTEL");
   data.push_back(temp_entry);
 
   file.store(tmp_filename, data);
@@ -274,7 +274,7 @@ END_SECTION
 
 START_SECTION([EXTRA] test_position)
   // test if setPosition() works correctly
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   FASTAFile file;
 

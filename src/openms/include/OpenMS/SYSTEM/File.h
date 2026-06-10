@@ -44,7 +44,7 @@ public:
       /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
       /// @param base_dir The base directory under which to create the temp folder (e.g., user-specified temp path)
       /// @param keep_dir If true, the folder will not be deleted on destruction
-      TempDir(const String& base_dir, bool keep_dir = false);
+      TempDir(const std::string& base_dir, bool keep_dir = false);
 
       /// Destroy temporary folder (can be prohibited in Constructor)
       ~TempDir();
@@ -56,10 +56,10 @@ public:
       TempDir& operator=(TempDir&&) = delete;
 
       /// Return path to temporary folder
-      const String& getPath() const;
+      const std::string& getPath() const;
 
     private:
-      String temp_dir_;
+      std::string temp_dir_;
       bool keep_dir_;
     };
 
@@ -67,19 +67,19 @@ public:
     /// The returned path is either just an EMPTY string if the call to system subroutines failed
     /// or the complete path including a trailing "/", to enable usage of this function as
     /// File::getExecutablePath() + "mytool"
-    static String getExecutablePath();
+    static std::string getExecutablePath();
 
     /// Method used to test if a @p file exists.
-    static bool exists(const String& file);
+    static bool exists(const std::string& file);
 
     /// Return true if the file does not exist or the file is empty
-    static bool empty(const String& file);
+    static bool empty(const std::string& file);
 
     /// Method used to test if a @p file is executable.
-    static bool executable(const String& file);
+    static bool executable(const std::string& file);
 
     /// The filesize in bytes (or -1 on error, e.g. if the file does not exist)
-    static UInt64 fileSize(const String& file);
+    static UInt64 fileSize(const std::string& file);
 
     /**
        @brief Rename a file
@@ -95,7 +95,7 @@ public:
        @param[in] verbose Print message to OPENMS_LOG_ERROR if something goes wrong.
        @return True on success
     */
-    static bool rename(const String& from, const String& to, bool overwrite_existing = true, bool verbose = true);
+    static bool rename(const std::string& from, const std::string& to, bool overwrite_existing = true, bool verbose = true);
 
     /**
        @brief Copy directory recursively
@@ -114,67 +114,67 @@ public:
        @return True on success
     */
     enum class CopyOptions {OVERWRITE,SKIP,CANCEL};
-    static bool copyDirRecursively(const String& from_dir, const String& to_dir, File::CopyOptions option = CopyOptions::OVERWRITE);
+    static bool copyDirRecursively(const std::string& from_dir, const std::string& to_dir, File::CopyOptions option = CopyOptions::OVERWRITE);
 
     /// Copy a file (if it exists). Returns true if successful.
-    static bool copy(const String& from, const String& to);
+    static bool copy(const std::string& from, const std::string& to);
 
     /**
       @brief Removes a file (if it exists).
 
       @return Returns true if the file was successfully deleted (or if it did not exist).
     */
-    static bool remove(const String& file);
+    static bool remove(const std::string& file);
 
     /// Removes a directory and all its contents recursively (absolute path). Returns true if successful.
-    static bool removeDirRecursively(const String& dir_name);
+    static bool removeDirRecursively(const std::string& dir_name);
 
     /// Removes a directory and all its contents (absolute path). Returns true if successful.
-    static bool removeDir(const String& dir_name);
+    static bool removeDir(const std::string& dir_name);
 
     /// Creates a directory (absolute path or relative to the current working dir), even if subdirectories do not exist. Returns true if successful.
     /// If the path already exists when this function is called, it will return true.
-    static bool makeDir(const String& dir_name);
+    static bool makeDir(const std::string& dir_name);
 
     /// Replaces the relative path in the argument with the absolute path.
-    static String absolutePath(const String& file);
+    static std::string absolutePath(const std::string& file);
 
     /// Returns the basename of the file (without the path).
     /// No checking is done on the filesystem, i.e. '/path/some_entity' will return 'some_entity', irrespective of 'some_entity' is a file or a directory.
     /// However, '/path/some_entity/' will return ''.
-    static String basename(const String& file);
+    static std::string basename(const std::string& file);
 
     /// Returns the basename of the file without any known file extension.
     /// Delegates to FileHandler::stripExtension(File::basename(file)).
     /// E.g., "/path/sample.mzML.gz" returns "sample", "/path/data.featureXML" returns "data".
     /// Unknown extensions are stripped at the last dot: "/path/file.txt" returns "file".
     /// Directories with dots in the path are handled correctly: "/my.dir/file" returns "file".
-    static String stemName(const String& file);
+    static std::string stemName(const std::string& file);
 
     /// Returns the file extension including the leading dot.
     /// Recognizes compound OpenMS extensions like ".mzML.gz".
     /// E.g., "/path/sample.mzML.gz" returns ".mzML.gz", "/path/file.txt" returns ".txt".
     /// Returns empty string if there is no extension: "/path/file" returns "".
-    static String extension(const String& file);
+    static std::string extension(const std::string& file);
 
     /// Returns a sorted list of subdirectory absolute paths (non-recursive) in the given directory.
     /// Uses '/' separators. Returns an empty list on any error or if the path is not a directory (no throw).
-    static StringList listDirectories(const String& dir);
+    static StringList listDirectories(const std::string& dir);
 
     /// Returns the path of the file (without the file name and without path separator).
     /// If just a filename is given without any path, then "." is returned.
     /// No checking is done on the filesystem, i.e. '/path/some_entity' will return '/path', irrespective of 'some_entity' is a file or a directory.
     /// However, '/path/some_entity/' will return '/path/some_entity'.
-    static String path(const String& file);
+    static std::string path(const std::string& file);
 
     /// Return true if the file exists and is readable
-    static bool readable(const String& file);
+    static bool readable(const std::string& file);
 
     /// Return true if the file is writable
-    static bool writable(const String& file);
+    static bool writable(const std::string& file);
 
     /// Return true if the given path specifies a directory
-    static bool isDirectory(const String& path);
+    static bool isDirectory(const std::string& path);
 
     /**
       @brief Looks up the location of the file @p filename
@@ -186,7 +186,7 @@ public:
 
       @exception FileNotFound is thrown, if the file is not found
     */
-    static String find(const String& filename, StringList directories = StringList());
+    static std::string find(const std::string& filename, StringList directories = StringList());
 
     /**
       @brief Retrieves a list of files matching @p file_pattern in directory
@@ -194,7 +194,7 @@ public:
 
       @return true => there are matching files
     */
-    static bool fileList(const String& dir, const String& file_pattern, StringList& output, bool full_path = false);
+    static bool fileList(const std::string& dir, const std::string& file_pattern, StringList& output, bool full_path = false);
 
     /**
       @brief Resolves a partial file name to a documentation file in the doc-folder.
@@ -212,7 +212,7 @@ public:
 
       @exception FileNotFound is thrown, if the file is not found
     */
-    static String findDoc(const String& filename);
+    static std::string findDoc(const std::string& filename);
     
     /**
       @brief Returns a string, consisting of date, time, hostname, process id, and a incrementing number. This can be used for temporary files.
@@ -220,27 +220,27 @@ public:
       @param[in] include_hostname add hostname into result - potentially a long string
       @return a unique name
     */
-    static String getUniqueName(bool include_hostname = true);
+    static std::string getUniqueName(bool include_hostname = true);
 
     /// Returns the OpenMS data path (environment variable overwrites the default installation path)
-    static String getOpenMSDataPath();
+    static std::string getOpenMSDataPath();
 
     /// Returns the OpenMS home path (environment variable overwrites the default home path)
-    static String getOpenMSHomePath();
+    static std::string getOpenMSHomePath();
 
     /// The current OpenMS temporary data path (for temporary files).
     /// Looks up the following locations, taking the first one which is non-null:
     ///   - environment variable OPENMS_TMPDIR
     ///   - 'temp_dir' in the ~/OpenMS.ini file
     ///   - System temp directory (usually defined by environment 'TMP' or 'TEMP'
-    static String getTempDirectory();
+    static std::string getTempDirectory();
 
     /// The current OpenMS user data path (for result files)
     /// Tries to set the user directory in following order:
     ///   1. OPENMS_HOME_DIR if environmental variable set
     ///   2. "home_dir" entry in OpenMS.ini
     ///   3. user home directory
-    static String getUserDirectory();
+    static std::string getUserDirectory();
 
     /// get the system's default OpenMS.ini file in the users home directory (&lt;home&gt;/OpenMS/OpenMS.ini)
     /// or create/repair it if required
@@ -252,7 +252,7 @@ public:
     /// uses File::find() to search for a file names @p db_name
     /// in the 'id_db_dir' param of the OpenMS system parameters
     /// @exception FileNotFound is thrown, if the file is not found
-    static String findDatabase(const String& db_name);
+    static std::string findDatabase(const std::string& db_name);
 
     /**
       @brief Extract list of directories from a concatenated string (usually $PATH).
@@ -264,7 +264,7 @@ public:
 
       Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).  
     */
-    static StringList getPathLocations(const String& path = std::getenv("PATH"));
+    static StringList getPathLocations(const std::string& path = std::getenv("PATH"));
 
     /**
       @brief Searches for an executable with the given name (similar to @em where (Windows) or @em which (Linux/MacOS)
@@ -279,7 +279,7 @@ public:
       @param[in,out] exe_filename The executable to search for.
       @return true if @p exe_filename could be resolved to a full path and it exists
     */
-    static bool findExecutable(OpenMS::String& exe_filename);
+    static bool findExecutable(std::string& exe_filename);
 
     /**
       @brief Searches for an executable with the given name.
@@ -287,7 +287,7 @@ public:
       @param[in] toolName The executable to search for.
       @exception FileNotFound is thrown, if the tool executable was not found.
     */
-    static String findSiblingTOPPExecutable(const String& toolName);
+    static std::string findSiblingTOPPExecutable(const std::string& toolName);
 
     /**
       @brief Obtain a temporary filename, ensuring automatic deletion upon exit
@@ -305,7 +305,7 @@ public:
       @param[in] alternative_file If this string is not empty, no action is taken and it is used as return value
       @return Full path to a temporary file
     */
-    static String getTemporaryFile(const String& alternative_file = "");
+    static std::string getTemporaryFile(const std::string& alternative_file = "");
 
 
     enum class MatchingFileListsStatus 
@@ -341,7 +341,7 @@ private:
     static Param getSystemParameterDefaults_();
 
     /// Check if the given path is a valid OPENMS_DATA_PATH
-    static bool isOpenMSDataPath_(const String& path);
+    static bool isOpenMSDataPath_(const std::string& path);
 
 #ifdef OPENMS_WINDOWSPLATFORM
     /**
@@ -354,7 +354,7 @@ private:
       Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).
 
     */
-    static StringList executableExtensions_(const String& ext = std::getenv("PATHEXT"));
+    static StringList executableExtensions_(const std::string& ext = std::getenv("PATHEXT"));
 #endif
 
     /**
@@ -367,7 +367,7 @@ private:
         TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
         TemporaryFiles_();
         /// create a new filename and queue internally for deletion
-        String newFile();
+        std::string newFile();
 
         ~TemporaryFiles_();
       private:

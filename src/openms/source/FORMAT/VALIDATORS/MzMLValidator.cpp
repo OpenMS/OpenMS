@@ -32,13 +32,13 @@ namespace OpenMS::Internal
     // - check if binaryDataArray name and type match
     void MzMLValidator::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
     {
-      String tag = sm_.convert(qname);
-      String parent_tag;
+      std::string tag = sm_.convert(qname);
+      std::string parent_tag;
       if (!open_tags_.empty())
       {
         parent_tag = open_tags_.back();
       }
-      String path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
+      std::string path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
       open_tags_.push_back(tag);
 
       if (tag == "referenceableParamGroup")
@@ -67,14 +67,14 @@ namespace OpenMS::Internal
         //check if the term is unknown
         if (!cv_.exists(parsed_term.accession))
         {
-          warnings_.push_back(String("Unknown CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
+          warnings_.push_back(std::string("Unknown CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
           return;
         }
 
         //check if the term is obsolete
         if (cv_.getTerm(parsed_term.accession).obsolete)
         {
-          warnings_.push_back(String("Obsolete CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
+          warnings_.push_back(std::string("Obsolete CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
         }
 
         //actual handling of the term
@@ -90,37 +90,37 @@ namespace OpenMS::Internal
     }
 
     //reimplemented in order to remove the "indexedmzML" tag from the front (if present)
-    String MzMLValidator::getPath_(UInt remove_from_end) const
+    std::string MzMLValidator::getPath_(UInt remove_from_end) const
     {
-      String path;
+      std::string path;
       if (!open_tags_.empty() && open_tags_.front() == "indexedmzML")
       {
-        path.concatenate(open_tags_.begin() + 1, open_tags_.end() - remove_from_end, "/");
+        StringUtils::concatenate(path, open_tags_.begin() + 1, open_tags_.end() - remove_from_end, "/");
       }
       else
       {
-        path.concatenate(open_tags_.begin(), open_tags_.end() - remove_from_end, "/");
+        StringUtils::concatenate(path, open_tags_.begin(), open_tags_.end() - remove_from_end, "/");
       }
-      path = String("/") + path;
+      path =std::string("/") + path;
       return path;
     }
 
     //reimplemented to
     // - catch non-PSI CVs
     // - check if binaryDataArray name and type match
-    void MzMLValidator::handleTerm_(const String & path, const CVTerm & parsed_term)
+    void MzMLValidator::handleTerm_(const std::string & path, const CVTerm & parsed_term)
     {
       //some CVs cannot be validated because they use 'part_of' which spoils the inheritance
-      if (parsed_term.accession.hasPrefix("GO:"))
+      if (StringUtils::hasPrefix(parsed_term.accession, "GO:"))
       {
         return;
       }
-      if (parsed_term.accession.hasPrefix("BTO:"))
+      if (StringUtils::hasPrefix(parsed_term.accession, "BTO:"))
       {
         return;
       }
       //check binary data array terms
-      if (path.hasSuffix("/binaryDataArray/cvParam/@accession"))
+      if (StringUtils::hasSuffix(path, "/binaryDataArray/cvParam/@accession"))
       {
         //binary data array
         if (cv_.isChildOf(parsed_term.accession, "MS:1000513"))
@@ -137,7 +137,7 @@ namespace OpenMS::Internal
         {
           if (!ListUtils::contains(cv_.getTerm(binary_data_array_).xref_binary, binary_data_type_))
           {
-            errors_.push_back(String("Binary data array of type '") + binary_data_array_ + " ! " + cv_.getTerm(binary_data_array_).name + "' cannot have the value type '" + binary_data_type_ + " ! " + cv_.getTerm(binary_data_type_).name + "'.");
+            errors_.push_back(std::string("Binary data array of type '") + binary_data_array_ + " ! " + cv_.getTerm(binary_data_array_).name + "' cannot have the value type '" + binary_data_type_ + " ! " + cv_.getTerm(binary_data_type_).name + "'.");
           }
         }
       }

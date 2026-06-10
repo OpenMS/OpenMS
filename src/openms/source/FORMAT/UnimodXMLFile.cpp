@@ -24,9 +24,9 @@ namespace OpenMS
 
   UnimodXMLFile::~UnimodXMLFile() = default;
 
-  void UnimodXMLFile::load(const String& filename, vector<ResidueModification*> & modifications)
+  void UnimodXMLFile::load(const std::string& filename, vector<ResidueModification*> & modifications)
   {
-    String file = File::find(filename);
+    std::string file = File::find(filename);
 
     Internal::UnimodXMLHandler handler(modifications, file);
     parse_(file, &handler);

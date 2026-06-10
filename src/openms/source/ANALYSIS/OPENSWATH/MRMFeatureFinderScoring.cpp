@@ -120,7 +120,7 @@ namespace OpenMS
     defaults_.setValidStrings("apply_im_peak_picking", {"true","false"});
 
     // enzyme used for missed cleavage counting
-    std::vector<String> all_enzymes;
+    std::vector<std::string> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     defaults_.setValue("enzyme", "Trypsin", "Enzyme used for counting missed cleavages in peptide sequences");
     defaults_.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
@@ -1261,9 +1261,9 @@ namespace OpenMS
       processFeatureForOutput(*f_it, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS2");
     }
     // Also append data for MS1 precursors
-    std::vector<String> precursors_ids;
+    std::vector<std::string> precursors_ids;
     mrmfeature.getPrecursorFeatureIDs(precursors_ids);
-    for (std::vector<String>::iterator id_it = precursors_ids.begin(); id_it != precursors_ids.end(); ++id_it)
+    for (std::vector<std::string>::iterator id_it = precursors_ids.begin(); id_it != precursors_ids.end(); ++id_it)
     {
       Feature curr_feature = mrmfeature.getPrecursorFeature(*id_it);
       if (charge != 0)
@@ -1348,7 +1348,7 @@ namespace OpenMS
     double rt_min, rt_max, expected_rt;
     trafo.invert();
 
-    std::unordered_map<String, int> chromatogram_map;
+    std::unordered_map<std::string, int> chromatogram_map;
     Size nr_chromatograms = input->getNrChromatograms();
     chromatogram_map.reserve(nr_chromatograms);
     for (Size i = 0; i < nr_chromatograms; i++)
@@ -1445,8 +1445,8 @@ namespace OpenMS
       if (!trgroup_it->second.isInternallyConsistent())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Could not match all transition to all chromatograms:\nFor chromatogram " + \
-                                         trgroup_it->second.getTransitionGroupID() + " I found " + String(trgroup_it->second.getChromatograms().size()) + \
-                                         " chromatograms but " + String(trgroup_it->second.getTransitions().size()) + " transitions.");
+                                         trgroup_it->second.getTransitionGroupID() + " I found " + StringUtils::toStr(trgroup_it->second.getChromatograms().size()) + \
+                                         " chromatograms but " + StringUtils::toStr(trgroup_it->second.getTransitions().size()) + " transitions.");
       }
     }
   }

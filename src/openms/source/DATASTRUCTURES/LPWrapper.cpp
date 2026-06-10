@@ -95,7 +95,7 @@ namespace OpenMS
 #endif
   }
 
-  Int LPWrapper::addRow(const std::vector<Int>& row_indices, const std::vector<double>& row_values, const String& name) // return index
+  Int LPWrapper::addRow(const std::vector<Int>& row_indices, const std::vector<double>& row_values, const std::string& name) // return index
   {
     if (row_indices.size() != row_values.size())
     {
@@ -142,7 +142,7 @@ namespace OpenMS
 #endif
   }
 
-  Int LPWrapper::addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values, const String& name)
+  Int LPWrapper::addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values, const std::string& name)
   {
     if (column_indices.empty())
     {
@@ -179,7 +179,7 @@ namespace OpenMS
   }
 
   Int LPWrapper::addRow(const std::vector<Int>& row_indices, const std::vector<double>& row_values,
-                        const String& name, double lower_bound, double upper_bound, Type type)
+                        const std::string& name, double lower_bound, double upper_bound, Type type)
   {
     const Int index = addRow(row_indices, row_values, name);
 #ifdef OPENMS_HAS_COINOR
@@ -210,7 +210,7 @@ namespace OpenMS
   }
 
   Int LPWrapper::addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values,
-                           const String& name, double lower_bound, double upper_bound, Type type) //return index
+                           const std::string& name, double lower_bound, double upper_bound, Type type) //return index
   {
     const Int index = addColumn(column_indices, column_values, name);
 #ifdef OPENMS_HAS_COINOR
@@ -257,7 +257,7 @@ namespace OpenMS
   {
     if (row_index >= getNumberOfRows() || column_index >= getNumberOfColumns())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid index given", String("invalid column_index or row_index"));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid index given",std::string("invalid column_index or row_index"));
     }
 #ifdef OPENMS_HAS_COINOR
     model_->setElement(row_index, column_index, value);
@@ -303,7 +303,7 @@ namespace OpenMS
   {
     if (row_index >= getNumberOfRows() || column_index >= getNumberOfColumns())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid index given", String("invalid column_index or row_index"));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid index given",std::string("invalid column_index or row_index"));
     }
 #ifdef OPENMS_HAS_COINOR
     return model_->getElement(row_index, column_index);
@@ -325,7 +325,7 @@ namespace OpenMS
 #endif
   }
 
-  void LPWrapper::setColumnName(Int index, const String& name)
+  void LPWrapper::setColumnName(Int index, const std::string& name)
   {
 #ifdef OPENMS_HAS_COINOR
     model_->setColumnName(index, name.c_str());
@@ -336,7 +336,7 @@ namespace OpenMS
 #endif
   }
 
-  void LPWrapper::setRowName(Int index, const String& name)
+  void LPWrapper::setRowName(Int index, const std::string& name)
   {
 #ifdef OPENMS_HAS_COINOR
     model_->setRowName(index, name.c_str());
@@ -529,33 +529,33 @@ namespace OpenMS
 #endif
   }
 
-  String LPWrapper::getColumnName(Int index)
+  std::string LPWrapper::getColumnName(Int index)
   {
 #ifdef OPENMS_HAS_COINOR
     return model_->getColumnName(index);
 #elif defined(OPENMS_HAS_HIGHS)
     std::string name;
     highs_->getColName(index, name);
-    return String(name);
+    return StringUtils::toStr(name);
 #else
-    return String(glp_get_col_name(lp_problem_, index + 1));
+    return StringUtils::toStr(glp_get_col_name(lp_problem_, index + 1));
 #endif
   }
 
-  String LPWrapper::getRowName(Int index)
+  std::string LPWrapper::getRowName(Int index)
   {
 #ifdef OPENMS_HAS_COINOR
     return model_->getRowName(index);
 #elif defined(OPENMS_HAS_HIGHS)
     std::string name;
     highs_->getRowName(index, name);
-    return String(name);
+    return StringUtils::toStr(name);
 #else
-    return String(glp_get_row_name(lp_problem_, index + 1));
+    return StringUtils::toStr(glp_get_row_name(lp_problem_, index + 1));
 #endif
   }
 
-  Int LPWrapper::getRowIndex(const String& name)
+  Int LPWrapper::getRowIndex(const std::string& name)
   {
 #ifdef OPENMS_HAS_COINOR
     return model_->row(name.c_str());
@@ -576,7 +576,7 @@ namespace OpenMS
 #endif
   }
 
-  Int LPWrapper::getColumnIndex(const String& name)
+  Int LPWrapper::getColumnIndex(const std::string& name)
   {
 #ifdef OPENMS_HAS_COINOR
     return model_->column(name.c_str());
@@ -603,14 +603,14 @@ namespace OpenMS
   }
 
 #ifdef OPENMS_HAS_COINOR
-  void LPWrapper::readProblem(const String& filename, const String& /*format*/)
+  void LPWrapper::readProblem(const std::string& filename, const std::string& /*format*/)
   {
     // delete old model and create a new model in its place (using same ptr)
     delete model_;
     model_ = new CoinModel(filename.c_str());
   }
 #elif defined(OPENMS_HAS_HIGHS)
-  void LPWrapper::readProblem(const String& filename, const String& /*format*/)
+  void LPWrapper::readProblem(const std::string& filename, const std::string& /*format*/)
   {
     // Clear and read a new model
     highs_->clear();
@@ -618,7 +618,7 @@ namespace OpenMS
     highs_->readModel(filename.c_str());
   }
 #else
-  void LPWrapper::readProblem(const String& filename, const String& format) // format=(LP,MPS,GLPK)
+  void LPWrapper::readProblem(const std::string& filename, const std::string& format) // format=(LP,MPS,GLPK)
   {
     // delete old model and create a new model in its place (using same ptr)
     glp_erase_prob(lp_problem_);
@@ -640,7 +640,7 @@ namespace OpenMS
   }
 #endif
 
-  void LPWrapper::writeProblem(const String& filename, const WriteFormat format) const
+  void LPWrapper::writeProblem(const std::string& filename, const WriteFormat format) const
   {
 #ifdef OPENMS_HAS_COINOR
     if (format == FORMAT_MPS)

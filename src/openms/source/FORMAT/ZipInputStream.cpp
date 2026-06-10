@@ -8,14 +8,14 @@
 
 #include <OpenMS/FORMAT/ZipInputStream.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ZipIfstream.h>
 
 using namespace xercesc;
 
 namespace OpenMS
 {
-  ZipInputStream::ZipInputStream(const String& file_name) :
+  ZipInputStream::ZipInputStream(const std::string& file_name) :
     zip_(new ZipIfstream(file_name.c_str())), file_current_index_(0)
   {
   }

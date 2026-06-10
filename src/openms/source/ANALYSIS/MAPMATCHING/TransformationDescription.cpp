@@ -65,7 +65,7 @@ namespace OpenMS
     return *this;
   }
 
-  void TransformationDescription::fitModel(const String& model_type,
+  void TransformationDescription::fitModel(const std::string& model_type,
                                            const Param& params)
   {
     // if (previous) transformation is the identity, don't fit another model:
@@ -107,14 +107,14 @@ namespace OpenMS
     return model_->evaluate(value);
   }
 
-  const String& TransformationDescription::getModelType() const
+  const std::string& TransformationDescription::getModelType() const
   {
     return model_type_;
   }
 
   void TransformationDescription::getModelTypes(StringList& result)
   {
-    result = ListUtils::create<String>("linear,b_spline,interpolated,lowess");
+    result = ListUtils::create<std::string>("linear,b_spline,interpolated,lowess");
     // "none" and "identity" don't count
   }
 
@@ -248,7 +248,7 @@ namespace OpenMS
     vector<double> diffs;
     getDeviations(diffs);
     bool no_model = (model_type_ == "none") || (model_type_ == "identity");
-    os << String("Summary of x/y deviations") +
+    os << std::string("Summary of x/y deviations") +
       (no_model ? "" : " before transformation") + ":\n";
 
     for (Size p : s.percents)

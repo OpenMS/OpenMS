@@ -43,7 +43,7 @@ namespace OpenMS
   struct MapAlignerBase
   {
     // "public" so it can be used in DefaultParamHandlerDocumenter to get docu
-    static Param getModelDefaults(const String& default_model)
+    static Param getModelDefaults(const std::string& default_model)
     {
       Param params;
       params.setValue("type", default_model, "Type of model");
@@ -82,7 +82,7 @@ class TOPPMapAlignerBase :
 {
 
 public:
-  TOPPMapAlignerBase(String name, String description, bool official = true) :
+  TOPPMapAlignerBase(std::string name, std::string description, bool official = true) :
     TOPPBase(name, description, official), ref_params_(REF_NONE)
   {
   }
@@ -96,32 +96,32 @@ protected:
   enum ReferenceParameterKind { REF_NONE, REF_RESTRICTED, REF_FLEXIBLE }
     ref_params_;
 
-  void registerOptionsAndFlagsMapAligners_(const String& file_formats,
+  void registerOptionsAndFlagsMapAligners_(const std::string& file_formats,
                                            enum ReferenceParameterKind ref_params)
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files to align (all must have the same file type)", true);
-    setValidFormats_("in", ListUtils::create<String>(file_formats));
+    setValidFormats_("in", ListUtils::create<std::string>(file_formats));
     registerOutputFileList_("out", "<files>", StringList(), "Output files (same file type as 'in'). This option or 'trafo_out' has to be provided; they can be used together.", false);
-    setValidFormats_("out", ListUtils::create<String>(file_formats));
+    setValidFormats_("out", ListUtils::create<std::string>(file_formats));
     registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. This option or 'out' has to be provided; they can be used together.", false);
-    setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
+    setValidFormats_("trafo_out", ListUtils::create<std::string>("trafoXML"));
 
     // Optional spectra files for transformation
     registerInputFileList_("in_spectra_files", "<files>", StringList(), "Optional input spectra files (mzML) that will be transformed along with the alignment. Size must match the number of input files.", false);
-    setValidFormats_("in_spectra_files", ListUtils::create<String>("mzML"));
+    setValidFormats_("in_spectra_files", ListUtils::create<std::string>("mzML"));
     registerOutputFileList_("out_spectra_files", "<files>", StringList(), "Optional output spectra files (mzML) corresponding to transformed in_spectra_files. Size must match in_spectra_files.", false);
-    setValidFormats_("out_spectra_files", ListUtils::create<String>("mzML"));
+    setValidFormats_("out_spectra_files", ListUtils::create<std::string>("mzML"));
 
     if (ref_params != REF_NONE)
     {
       registerTOPPSubsection_("reference", "Options to define a reference file (use either 'file' or 'index', not both)");
-      String description = "File to use as reference";
+      std::string description = "File to use as reference";
       if (ref_params == REF_RESTRICTED)
       {
         description += " (same file format as input files required)";
       }
       registerInputFile_("reference:file", "<file>", "",  description, false);
-      setValidFormats_("reference:file", ListUtils::create<String>(file_formats));
+      setValidFormats_("reference:file", ListUtils::create<std::string>(file_formats));
       registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set - the algorithm will select a reference.", false);
       setMinInt_("reference:index", 0);
     }
@@ -188,7 +188,7 @@ protected:
     if (ref_params_ != REF_NONE) // a valid ref. index OR file should be given
     {
       Size reference_index = getIntOption_("reference:index");
-      String reference_file = getStringOption_("reference:file");
+      std::string reference_file = getStringOption_("reference:file");
       if (reference_index > ins.size())
       {
         writeLogError_("Error: Value of parameter 'reference:index' must not be higher than the number of input files");

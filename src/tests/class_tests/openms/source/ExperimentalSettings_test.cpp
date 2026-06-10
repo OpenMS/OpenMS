@@ -58,23 +58,23 @@ START_SECTION((const std::vector<SourceFile>& getSourceFiles() const))
   TEST_EQUAL(tmp.getSourceFiles().size(),0);
 END_SECTION
 
-START_SECTION((const String& getComment() const))
+START_SECTION((const std::string& getComment() const))
 	ExperimentalSettings tmp;
 	TEST_EQUAL(tmp.getComment(), "");
 END_SECTION
 
-START_SECTION((void setComment(const String& comment)))
+START_SECTION((void setComment(const std::string& comment)))
 	ExperimentalSettings tmp;
 	tmp.setComment("bla");
 	TEST_EQUAL(tmp.getComment(), "bla");
 END_SECTION
 
-START_SECTION((const String& getFractionIdentifier() const))
+START_SECTION((const std::string& getFractionIdentifier() const))
 	ExperimentalSettings tmp;
 	TEST_EQUAL(tmp.getFractionIdentifier(), "");
 END_SECTION
 
-START_SECTION((void setFractionIdentifier(const String& fraction_identifier)))
+START_SECTION((void setFractionIdentifier(const std::string& fraction_identifier)))
 	ExperimentalSettings tmp;
 	tmp.setFractionIdentifier("bla");
 	TEST_EQUAL(tmp.getFractionIdentifier(), "bla");
@@ -199,7 +199,7 @@ START_SECTION((ExperimentalSettings(const ExperimentalSettings& source)))
   tmp.getSourceFiles().resize(1);
   tmp.getContacts().resize(1);
 
-  tmp.setMetaValue("label",String("label"));
+  tmp.setMetaValue("label",std::string("label"));
   
   ExperimentalSettings tmp2(tmp);
   TEST_EQUAL(tmp2.getComment(),"bla");
@@ -211,7 +211,7 @@ START_SECTION((ExperimentalSettings(const ExperimentalSettings& source)))
   TEST_EQUAL(tmp2.getSourceFiles().size(),1);
   TEST_EQUAL(tmp2.getContacts().size(),1);
 
-  TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
+  TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");  
 END_SECTION
 
 START_SECTION((ExperimentalSettings& operator= (const ExperimentalSettings& source)))
@@ -233,7 +233,7 @@ START_SECTION((ExperimentalSettings& operator= (const ExperimentalSettings& sour
   tmp.getSourceFiles().resize(1);
   tmp.getContacts().resize(1);
 
-  tmp.setMetaValue("label",String("label"));
+  tmp.setMetaValue("label",std::string("label"));
   
   ExperimentalSettings tmp2;
   tmp2 = tmp;
@@ -245,7 +245,7 @@ START_SECTION((ExperimentalSettings& operator= (const ExperimentalSettings& sour
   TEST_EQUAL(tmp2.getSample().getName(),"bla2");
   TEST_EQUAL(tmp2.getSourceFiles().size(),1);
   TEST_EQUAL(tmp2.getContacts().size(),1);
-  TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
+  TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");  
 
   tmp2 = ExperimentalSettings();
   TEST_EQUAL(tmp2.getHPLC().getFlux(),0);
@@ -303,7 +303,7 @@ START_SECTION((bool operator== (const ExperimentalSettings& rhs) const))
   TEST_EQUAL(edit==empty, false);
 
 	edit = empty;
-	edit.setMetaValue("label",String("label"));
+	edit.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(edit==empty,false);
 END_SECTION
 
@@ -347,7 +347,7 @@ START_SECTION((bool operator!= (const ExperimentalSettings& rhs) const))
   TEST_EQUAL(edit!=empty,true);
 
 	edit = empty;
-	edit.setMetaValue("label",String("label"));
+	edit.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(edit!=empty,true);
 END_SECTION
 

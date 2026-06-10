@@ -155,7 +155,7 @@ namespace OpenMS
       {
         return AnnotationState::FEATURE_ID_SINGLE;
       }
-      std::set<String> seqs;
+      std::set<std::string> seqs;
       for (Size i = 0; i < peptides_.size(); ++i)
       {
         if (!peptides_[i].getHits().empty())

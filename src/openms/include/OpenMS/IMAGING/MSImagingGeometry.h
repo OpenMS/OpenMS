@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <unordered_map>
 #include <vector>
@@ -59,7 +59,7 @@ namespace OpenMS
       @param[in] y    Pixel size along y.
       @param[in] unit Length unit (default "micrometer").
     */
-    void setPixelSize(double x, double y, const String& unit = "micrometer");
+    void setPixelSize(double x, double y, const std::string& unit = "micrometer");
 
     /// @brief Physical pixel size along x.
     /// @return Stored x pixel size.
@@ -71,7 +71,7 @@ namespace OpenMS
 
     /// @brief Unit for the pixel size.
     /// @return Reference to the unit string.
-    const String& getPixelSizeUnit() const;
+    const std::string& getPixelSizeUnit() const;
 
     /**
       @brief Adds a pixel at (@p x, @p y) bound to @p spectrum_index.
@@ -117,7 +117,7 @@ namespace OpenMS
     UInt height_ = 0;
     double pixel_size_x_ = 1.0;
     double pixel_size_y_ = 1.0;
-    String pixel_size_unit_ = "micrometer";
+    std::string pixel_size_unit_ = "micrometer";
     std::vector<Pixel> pixels_;
     std::unordered_map<UInt64, Size> lookup_;
 

@@ -40,13 +40,13 @@ START_SECTION((~TraMLFile()))
 }
 END_SECTION
 
-START_SECTION((void load(const String &filename, TargetedExperiment & id)))
+START_SECTION((void load(const std::string &filename, TargetedExperiment & id)))
 {
   NOT_TESTABLE // tested below
 }
 END_SECTION
 
-START_SECTION((void store(const String &filename, const TargetedExperiment &id) const))
+START_SECTION((void store(const std::string &filename, const TargetedExperiment &id) const))
 {
   TraMLFile file;
 
@@ -160,7 +160,7 @@ START_SECTION((void add()))
 }
 END_SECTION
 
-START_SECTION([EXTRA] bool isValid(const String & filename, std::ostream & os = std::cerr))
+START_SECTION([EXTRA] bool isValid(const std::string & filename, std::ostream & os = std::cerr))
 {
   std::string tmp_filename;
   TraMLFile file;
@@ -179,7 +179,7 @@ START_SECTION([EXTRA] bool isValid(const String & filename, std::ostream & os = 
 }
 END_SECTION
 
-START_SECTION(bool isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings))
+START_SECTION(bool isSemanticallyValid(const std::string & filename, StringList & errors, StringList & warnings))
 {
   std::string tmp_filename;
   TraMLFile file;

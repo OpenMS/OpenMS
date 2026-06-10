@@ -28,7 +28,7 @@ using namespace OpenMS;
 /////////////////////////////////////////////////////////////
 
 File::TempDir dir;
-const String path = dir.getPath();
+const std::string path = dir.getPath();
 
 START_SECTION(MQEvidence())
 {
@@ -45,14 +45,14 @@ START_SECTION((void exportFeatureMap(
                     const OpenMS::FeatureMap& feature_map,  
                     const OpenMS::ConsensusMap& cmap,
                     const OpenMS::MSExperiment& exp,
-                    const std::map<String, String>& fasta_map)))
+                    const std::map<std::string, std::string>& fasta_map)))
 
 {
   {
 
     //FASTA-HANDELING
     std::vector<FASTAFile::FASTAEntry> fasta_info;
-    std::map<String, String> fasta_map;
+    std::map<std::string, std::string> fasta_map;
     FASTAFile().load(OPENMS_GET_TEST_DATA_PATH("FASTAContainer_test.fasta"), fasta_info);
     //map the identifier to the description so that we can access the description via the cmap-identifier
     for(const auto& entry : fasta_info)
@@ -85,7 +85,7 @@ START_SECTION((void exportFeatureMap(
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_6.featureXML"), fmap_six);
     evd.exportFeatureMap(fmap_six, cmap_one, exp, fasta_map);
   }
-  String filename = path + "/evidence.txt";
+  std::string filename = path + "/evidence.txt";
   TEST_FILE_SIMILAR(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("MQEvidence_result.txt"));
 }
 END_SECTION

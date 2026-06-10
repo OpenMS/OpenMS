@@ -196,7 +196,7 @@ namespace OpenMS
       }
       else
       {
-        String feature_id = goto_dialog.getFeatureNumber();
+        std::string feature_id = goto_dialog.getFeatureNumber();
         //try to convert to UInt64 id
         UniqueIdInterface uid;
         uid.setUniqueId(feature_id);
@@ -216,7 +216,7 @@ namespace OpenMS
         {
           try
           {
-            feature_index = feature_id.toInt(); // normal feature index as stored in map
+            feature_index = StringUtils::toInt32(feature_id); // normal feature index as stored in map
           }
           catch (...) // we might still deal with a UID, so toInt() will throw as the number is too big
           {

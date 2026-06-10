@@ -29,7 +29,7 @@ void TestTOPPView::scheduleModalWidget_(const QString& key_sequence, const QStri
   }
 }
 
-void TestTOPPView::waitForModalWidget(const int max_wait, const String& line)
+void TestTOPPView::waitForModalWidget(const int max_wait, const std::string& line)
 {
   // test if accumulated scheduled time is less than max_wait
   int min_required_time = 0;
@@ -39,7 +39,7 @@ void TestTOPPView::waitForModalWidget(const int max_wait, const String& line)
   }
   if (min_required_time > max_wait)
   {
-    QFAIL ( String("Test is bound to fail due to a time restriction in line " + line + ". Please rethink!").c_str());
+    QFAIL (std::string("Test is bound to fail due to a time restriction in line " + line + ". Please rethink!").c_str());
   }
 
 
@@ -52,7 +52,7 @@ void TestTOPPView::waitForModalWidget(const int max_wait, const String& line)
 
   if (!modal_key_sequence_.isEmpty ())
   {
-    QWARN ( String("Modal dialogs timed out in line " + line + ". The following tests will most likely fail.").c_str());
+    QWARN (std::string("Modal dialogs timed out in line " + line + ". The following tests will most likely fail.").c_str());
     modal_key_sequence_.clear();
   }
 

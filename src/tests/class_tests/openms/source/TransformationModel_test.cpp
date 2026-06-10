@@ -380,7 +380,7 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] DataPoint::DataPoint(double, double, const String&)))
+START_SECTION(([EXTRA] DataPoint::DataPoint(double, double, const std::string&)))
 {
   NOT_TESTABLE // tested below
 }

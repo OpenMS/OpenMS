@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <vector>
 
@@ -43,7 +43,7 @@ public:
       @return Full filename with absolute path
       @throw Exception::FileNotFound
     */
-    static String findScript(const String& script_file, bool verbose = true);
+    static std::string findScript(const std::string& script_file, bool verbose = true);
 
     /**
       @brief Check for presence of 'Rscript'.
@@ -52,7 +52,7 @@ public:
       @param[in] verbose Print failure information?
       @return Success status
     */
-    static bool findR(const String& executable = "Rscript", bool verbose = true);
+    static bool findR(const std::string& executable = "Rscript", bool verbose = true);
 
 
     /**
@@ -75,7 +75,7 @@ public:
       @param[in] verbose Print status information; also passed internally to findR() and findScript().
       @return Success status
     */
-    static bool runScript(const String& script_file, const std::vector<String>& cmd_args, const String& executable = "Rscript", bool find_R = false, bool verbose = true);
+    static bool runScript(const std::string& script_file, const std::vector<std::string>& cmd_args, const std::string& executable = "Rscript", bool find_R = false, bool verbose = true);
 
   };
 

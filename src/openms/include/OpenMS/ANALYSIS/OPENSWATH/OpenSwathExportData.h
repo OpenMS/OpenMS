@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/config.h>
 
 #include <optional>
@@ -68,7 +68,7 @@ namespace OpenMS
     MedianMedian
   };
 
-  inline String toString(const OpenSwathExportFileFormat format)
+  inline std::string toString(const OpenSwathExportFileFormat format)
   {
     switch (format)
     {
@@ -78,7 +78,7 @@ namespace OpenMS
     return "";
   }
 
-  inline String toString(const OpenSwathIPFExportMode mode)
+  inline std::string toString(const OpenSwathIPFExportMode mode)
   {
     switch (mode)
     {
@@ -89,7 +89,7 @@ namespace OpenMS
     return "";
   }
 
-  inline String toString(const OpenSwathMatrixLevel level)
+  inline std::string toString(const OpenSwathMatrixLevel level)
   {
     switch (level)
     {
@@ -101,7 +101,7 @@ namespace OpenMS
     return "";
   }
 
-  inline String toString(const OpenSwathMatrixNormalization normalization)
+  inline std::string toString(const OpenSwathMatrixNormalization normalization)
   {
     switch (normalization)
     {
@@ -125,17 +125,17 @@ namespace OpenMS
   struct OPENMS_DLLAPI OpenSwathExportRow
   {
     Int64 run_id = -1;
-    String filename;
-    String run_name;
+    std::string filename;
+    std::string run_name;
     Int64 feature_id = -1;
     Int64 peptide_id = -1;
     Int64 precursor_id = -1;
-    String transition_group_id;
+    std::string transition_group_id;
     bool decoy = false;
-    String sequence;
-    String full_peptide_name;
-    String protein_name;
-    String gene_name;
+    std::string sequence;
+    std::string full_peptide_name;
+    std::string protein_name;
+    std::string gene_name;
     Int32 charge = 0;
     double mz = 0.0;
     double rt = 0.0;
@@ -176,10 +176,10 @@ namespace OpenMS
     std::optional<double> alignment_pep;
     std::optional<double> alignment_qvalue;
     bool from_alignment = false;
-    String aggr_peak_area;
-    String aggr_peak_apex;
-    String aggr_fragment_annotation;
-    String ipf_full_peptide_name;
+    std::string aggr_peak_area;
+    std::string aggr_peak_apex;
+    std::string aggr_fragment_annotation;
+    std::string ipf_full_peptide_name;
     std::optional<double> ipf_precursor_peakgroup_pep;
     std::optional<double> ipf_peptidoform_pep;
     std::optional<double> ipf_peptidoform_m_score;
@@ -196,24 +196,24 @@ namespace OpenMS
     Int64 peptide_id = -1;
     std::optional<Int64> ipf_peptide_id;
     Int64 precursor_id = -1;
-    String protein_accession;
-    String unmodified_sequence;
-    String modified_sequence;
-    String precursor_traml_id;
-    String precursor_group_label;
+    std::string protein_accession;
+    std::string unmodified_sequence;
+    std::string modified_sequence;
+    std::string precursor_traml_id;
+    std::string precursor_group_label;
     double precursor_mz = 0.0;
     Int32 precursor_charge = 0;
     std::optional<double> precursor_library_intensity;
     std::optional<double> precursor_library_rt;
     std::optional<double> precursor_library_drift_time;
     std::optional<Int64> gene_id;
-    String gene_name;
+    std::string gene_name;
     std::optional<bool> gene_decoy;
     bool protein_decoy = false;
     bool peptide_decoy = false;
     bool precursor_decoy = false;
     Int64 run_id = -1;
-    String filename;
+    std::string filename;
     Int64 feature_id = -1;
     double exp_rt = 0.0;
     std::optional<double> exp_im;
@@ -289,8 +289,8 @@ namespace OpenMS
   */
   struct OPENMS_DLLAPI OpenSwathFeatureScoreTable
   {
-    std::vector<String> feature_ms1_column_names;
-    std::vector<String> feature_ms2_column_names;
+    std::vector<std::string> feature_ms1_column_names;
+    std::vector<std::string> feature_ms2_column_names;
     std::vector<OpenSwathFeatureScoreRow> rows;
   };
 
@@ -305,12 +305,12 @@ namespace OpenMS
     std::optional<Int64> ipf_peptide_id;
     Int64 precursor_id = -1;
     Int64 transition_id = -1;
-    String transition_traml_id;
+    std::string transition_traml_id;
     double product_mz = 0.0;
     Int32 transition_charge = 0;
-    String transition_type;
+    std::string transition_type;
     Int32 transition_ordinal = 0;
-    String annotation;
+    std::string annotation;
     bool transition_detecting = false;
     std::optional<double> transition_library_intensity;
     bool transition_decoy = false;
@@ -330,7 +330,7 @@ namespace OpenMS
   */
   struct OPENMS_DLLAPI OpenSwathTransitionScoreTable
   {
-    std::vector<String> feature_transition_column_names;
+    std::vector<std::string> feature_transition_column_names;
     std::vector<OpenSwathTransitionScoreRow> rows;
   };
 
@@ -344,9 +344,9 @@ namespace OpenMS
   */
   struct OPENMS_DLLAPI OpenSwathQuantMatrix
   {
-    std::vector<String> identifier_column_names;
-    std::vector<std::vector<String>> identifier_rows;
-    std::vector<String> sample_column_names;
+    std::vector<std::string> identifier_column_names;
+    std::vector<std::vector<std::string>> identifier_rows;
+    std::vector<std::string> sample_column_names;
     std::vector<std::vector<std::optional<double>>> values;
   };
 } // namespace OpenMS

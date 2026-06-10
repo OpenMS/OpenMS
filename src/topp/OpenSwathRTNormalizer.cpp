@@ -79,16 +79,16 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file with the RT peptides ('TraML' or 'csv')");
-    setValidFormats_("tr", ListUtils::create<String>("csv,traML"));
+    setValidFormats_("tr", ListUtils::create<std::string>("csv,traML"));
     
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", ListUtils::create<String>("trafoXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("trafoXML"));
 
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library)", false);
-    setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
+    setValidFormats_("rt_norm", ListUtils::create<std::string>("trafoXML"));
 
     registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false);
     registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false);
@@ -102,7 +102,7 @@ protected:
     registerSubsection_("RTNormalization", "Parameters for the RTNormalization. RT normalization and outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
   }
 
-  Param getSubsectionDefaults_(const String & section) const override
+  Param getSubsectionDefaults_(const std::string & section) const override
   {
     if (section == "algorithm")
     {
@@ -143,8 +143,8 @@ protected:
     // Read input files and parameters
     ///////////////////////////////////
     StringList file_list = getStringList_("in");
-    String tr_file_str = getStringOption_("tr");
-    String out = getStringOption_("out");
+    std::string tr_file_str = getStringOption_("tr");
+    std::string out = getStringOption_("out");
     double min_rsq = getDoubleOption_("min_rsq");
     double min_coverage = getDoubleOption_("min_coverage");
     bool estimateBestPeptides = getFlag_("estimateBestPeptides");
@@ -162,7 +162,7 @@ protected:
 
     Param pepEstimationParams = getParam_().copy("peptideEstimation:", true);
     Param RTNormParams = getParam_().copy("RTNormalization:", true);
-    String outlier_method = RTNormParams.getValue("outlierMethod").toString();
+    std::string outlier_method = RTNormParams.getValue("outlierMethod").toString();
 
     // 1. Estimate the retention time range of the whole experiment
     std::pair<double,double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
@@ -182,8 +182,8 @@ protected:
     // null transformation.
     if (!getStringOption_("rt_norm").empty())
     {
-      String trafo_in = getStringOption_("rt_norm");
-      String model_type = "linear"; //getStringOption_("model:type");
+      std::string trafo_in = getStringOption_("rt_norm");
+      std::string model_type = "linear"; //getStringOption_("model:type");
       FileHandler().loadTransformations(trafo_in, trafo, true, {FileTypes::TRANSFORMATIONXML});
     }
 
@@ -263,7 +263,7 @@ protected:
     else 
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        String("Illegal argument '") + outlier_method + "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
+        std::string("Illegal argument '") + outlier_method + "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
     }
 
     // 5. Check whether the found peptides fulfill the binned coverage criteria
@@ -286,7 +286,7 @@ protected:
     trafo_out.setDataPoints(pairs_corrected);
     Param model_params;
     model_params.setValue("symmetric_regression", "false");
-    String model_type = "linear";
+    std::string model_type = "linear";
     trafo_out.fitModel(model_type, model_params);
     FileHandler().storeTransformations(out, trafo_out, {FileTypes::TRANSFORMATIONXML});
 

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <fstream>
@@ -36,7 +36,7 @@ namespace OpenMS
     public:
         /**
             @brief FASTA entry type (identifier, description and sequence)
-            The first String corresponds to the identifier that is
+            The first std::string corresponds to the identifier that is
             written after the > in the FASTA file. The part after the
             first whitespace is stored in description and the text
             from the next line until the next > (exclusive) is stored
@@ -44,13 +44,13 @@ namespace OpenMS
         */
         struct FASTAEntry
         {
-            String identifier;
-            String description;
-            String sequence;
+            std::string identifier;
+            std::string description;
+            std::string sequence;
 
             FASTAEntry() = default;
 
-            FASTAEntry(const String& id, const String& desc, const String& seq) :
+            FASTAEntry(const std::string& id, const std::string& desc, const std::string& seq) :
                     identifier(id),
                     description(desc),
                     sequence(seq)
@@ -101,10 +101,10 @@ namespace OpenMS
           @exception Exception::FileNotFound is thrown if the file does not exists.
           @exception Exception::ParseError is thrown if the file does not suit to the standard.
         */
-        void readStart(const String& filename);
+        void readStart(const std::string& filename);
 
         /// same as readStart(), but does internal progress logging whenever readNextWithProgress() is called
-        void readStartWithProgress(const String& filename, const String& progress_label);
+        void readStartWithProgress(const std::string& filename, const std::string& progress_label);
 
         /**
           @brief Reads the next FASTA entry from file.
@@ -133,7 +133,7 @@ namespace OpenMS
         @brief Prepares a FASTA file given by 'filename' for streamed writing using writeNext().
         @exception Exception::UnableToCreateFile is thrown if the process is not able to write to the file (disk full?).
         */
-        void writeStart(const String& filename);
+        void writeStart(const std::string& filename);
 
         /**
         @brief Stores the data given by @p protein. Call writeStart() once before calling writeNext().
@@ -154,7 +154,7 @@ namespace OpenMS
           @exception Exception::FileNotFound is thrown if the file does not exists.
           @exception Exception::ParseError is thrown if the file does not suit to the standard.
         */
-        void load(const String& filename, std::vector<FASTAEntry>& data) const;
+        void load(const std::string& filename, std::vector<FASTAEntry>& data) const;
 
         /**
             @brief stores the data given by 'data' at the file 'filename'
@@ -162,7 +162,7 @@ namespace OpenMS
             This uses more RAM than writeStart() and writeNext().
             @exception Exception::UnableToCreateFile is thrown if the process is not able to write the file.
           */
-        void store(const String& filename, const std::vector<FASTAEntry>& data) const;
+        void store(const std::string& filename, const std::vector<FASTAEntry>& data) const;
 
     protected:
         /**

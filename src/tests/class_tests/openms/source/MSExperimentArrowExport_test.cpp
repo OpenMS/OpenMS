@@ -493,7 +493,7 @@ START_SECTION(exportSpectraToParquet - basic export)
 {
   MSExperiment exp = createTestExperiment();
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
@@ -510,7 +510,7 @@ START_SECTION(exportSpectraToParquet - with compression options)
 {
   MSExperiment exp = createTestExperiment();
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
@@ -532,7 +532,7 @@ START_SECTION(exportSpectraToParquet - with filtering)
 {
   MSExperiment exp = createTestExperiment();
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
@@ -552,7 +552,7 @@ START_SECTION(exportSpectraToParquet - empty experiment)
 {
   MSExperiment exp;
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
@@ -586,7 +586,7 @@ START_SECTION(exportChromatogramsToParquet - basic export)
   chrom2.push_back(ChromatogramPeak(25.0, 75.0));
   exp.addChromatogram(chrom2);
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
@@ -613,7 +613,7 @@ START_SECTION(exportChromatogramsToParquet - with compression options)
   chrom.push_back(ChromatogramPeak(15.0, 750.0));
   exp.addChromatogram(chrom);
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 

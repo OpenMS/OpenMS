@@ -60,7 +60,7 @@ namespace OpenMS
     return db_;
   }
 
-  const ModificationsDB* ModificationsDB::initializeModificationsDB(OpenMS::String unimod_file, OpenMS::String custommod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
+  const ModificationsDB* ModificationsDB::initializeModificationsDB(std::string unimod_file, std::string custommod_file, std::string psimod_file, std::string xlmod_file)
   {
     std::vector<std::unique_ptr<ModificationDataProvider>> providers;
     if (!unimod_file.empty())
@@ -114,15 +114,15 @@ namespace OpenMS
     return s;
   }
 
-  const ResidueModification* ModificationsDB::searchModificationsFast(const String& mod_name_,
+  const ResidueModification* ModificationsDB::searchModificationsFast(const std::string& mod_name_,
                                                                       bool& multiple_matches,
-                                                                      const String& residue,
+                                                                      const std::string& residue,
                                                                       ResidueModification::TermSpecificity term_spec
                                                                       ) const
   {
     const ResidueModification* mod(nullptr);
 
-    String mod_name = mod_name_;
+    std::string mod_name = mod_name_;
     multiple_matches = false;
 
     char res = '?'; // empty
@@ -135,9 +135,9 @@ namespace OpenMS
       if (modifications == modification_names_.end())
       {
         // Try to fix things, Skyline for example uses unimod:10 and not UniMod:10 syntax
-        if (mod_name.size() > 6 && mod_name.prefix(6).toLower() == "unimod")
+        if (mod_name.size() > 6 && StringUtils::toLowered(StringUtils::prefix(mod_name, 6)) == "unimod")
         {
-          mod_name = "UniMod" + mod_name.substr(6, mod_name.size() - 6);
+          mod_name = "UniMod" + StringUtils::substr(mod_name, 6, mod_name.size() - 6);
         }
 
         modifications = modification_names_.find(mod_name);
@@ -171,7 +171,7 @@ namespace OpenMS
   {
     const ResidueModification* mod(nullptr);
 
-    const String& mod_name = mod_in.getFullId();
+    const std::string& mod_name = mod_in.getFullId();
 
     #pragma omp critical(OpenMS_ModificationsDB)
     {
@@ -206,13 +206,13 @@ namespace OpenMS
   }
 
   void ModificationsDB::searchModifications(set<const ResidueModification*>& mods,
-                                            const String& mod_name_,
-                                            const String& residue,
+                                            const std::string& mod_name_,
+                                            const std::string& residue,
                                             ResidueModification::TermSpecificity term_spec) const
   {
     mods.clear();
 
-    String mod_name = mod_name_;
+    std::string mod_name = mod_name_;
 
     char res = '?'; // empty
     if (!residue.empty()) res = residue[0];
@@ -224,9 +224,9 @@ namespace OpenMS
       if (modifications == modification_names_.end())
       {
         // Try to fix things, Skyline for example uses unimod:10 and not UniMod:10 syntax
-        if (mod_name.size() > 6 && mod_name.prefix(6).toLower() == "unimod")
+        if (mod_name.size() > 6 && StringUtils::toLowered(StringUtils::prefix(mod_name, 6)) == "unimod")
         {
-          mod_name = "UniMod" + mod_name.substr(6, mod_name.size() - 6);
+          mod_name = "UniMod" + StringUtils::substr(mod_name, 6, mod_name.size() - 6);
         }
 
         modifications = modification_names_.find(mod_name);
@@ -252,7 +252,7 @@ namespace OpenMS
     } 
   }
 
-  const ResidueModification* ModificationsDB::getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
+  const ResidueModification* ModificationsDB::getModification(const std::string& mod_name, const std::string& residue, ResidueModification::TermSpecificity term_spec) const
   {
     const ResidueModification* mod(nullptr);
     // if residue is specified, try residue-specific search first to avoid
@@ -267,13 +267,13 @@ namespace OpenMS
     if (mod == nullptr) mod = searchModificationsFast(mod_name, multiple_matches, residue, term_spec);
     if (mod == nullptr)
     {
-      String message = String("Retrieving the modification failed. It is not available for the residue '") + residue 
+      std::string message =std::string("Retrieving the modification failed. It is not available for the residue '") + residue 
         + "' and term specificity '" + ResidueModification().getTermSpecificityName(term_spec) + "'. ";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message, mod_name);
     }
     if (multiple_matches)
     {
-      OPENMS_LOG_WARN << "Warning (ModificationsDB::getModification): more than one modification with name '" + mod_name + "', residue '" + residue + "', specificity '" + String(Int(term_spec)) << "' found, picking the first one only.";
+      OPENMS_LOG_WARN << "Warning (ModificationsDB::getModification): more than one modification with name '" + mod_name + "', residue '" + residue + "', specificity '" + StringUtils::toStr(Int(term_spec)) << "' found, picking the first one only.";
       // for (auto it = mods.begin(); it != mods.end(); ++it)
       // {
       //   OPENMS_LOG_WARN << " " << (*it)->getFullId();
@@ -284,7 +284,7 @@ namespace OpenMS
   }
 
 
-  bool ModificationsDB::has(const String & modification) const
+  bool ModificationsDB::has(const std::string & modification) const
   {
     bool has_mod;
     #pragma omp critical(OpenMS_ModificationsDB)
@@ -294,7 +294,7 @@ namespace OpenMS
     return has_mod;
   }
 
-  Size ModificationsDB::findModificationIndex(const String & mod_name) const
+  Size ModificationsDB::findModificationIndex(const std::string & mod_name) const
   {
     if (!has(mod_name))
     {
@@ -335,7 +335,7 @@ namespace OpenMS
     return index;
   }
 
-  void ModificationsDB::searchModificationsByDiffMonoMass(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec) const
+  void ModificationsDB::searchModificationsByDiffMonoMass(vector<std::string>& mods, double mass, double max_error, const std::string& residue, ResidueModification::TermSpecificity term_spec) const
   {
     mods.clear();
     char res = '?'; // empty
@@ -355,7 +355,7 @@ namespace OpenMS
     }
   }
 
-  void ModificationsDB::searchModificationsByDiffMonoMass(vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec) const
+  void ModificationsDB::searchModificationsByDiffMonoMass(vector<const ResidueModification*>& mods, double mass, double max_error, const std::string& residue, ResidueModification::TermSpecificity term_spec) const
   {
     mods.clear();
     char res = '?'; // empty
@@ -375,10 +375,10 @@ namespace OpenMS
     }
   }
 
-  void ModificationsDB::searchModificationsByDiffMonoMassSorted(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec) const
+  void ModificationsDB::searchModificationsByDiffMonoMassSorted(vector<std::string>& mods, double mass, double max_error, const std::string& residue, ResidueModification::TermSpecificity term_spec) const
   {
     mods.clear();
-    std::map<std::pair<double,Size>, const String&> diff_idx2mods;
+    std::map<std::pair<double,Size>, const std::string&> diff_idx2mods;
     char res = '?'; // empty
     if (!residue.empty()) res = residue[0];
     double diff = 0;
@@ -403,7 +403,7 @@ namespace OpenMS
     }
   }
 
-  void ModificationsDB::searchModificationsByDiffMonoMassSorted(vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec) const
+  void ModificationsDB::searchModificationsByDiffMonoMassSorted(vector<const ResidueModification*>& mods, double mass, double max_error, const std::string& residue, ResidueModification::TermSpecificity term_spec) const
   {
     mods.clear();
     std::map<std::pair<double,Size>, const ResidueModification*> diff_idx2mods;
@@ -432,7 +432,7 @@ namespace OpenMS
   }
 
 
-  const ResidueModification* ModificationsDB::getBestModificationByDiffMonoMass(double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec) const
+  const ResidueModification* ModificationsDB::getBestModificationByDiffMonoMass(double mass, double max_error, const std::string& residue, ResidueModification::TermSpecificity term_spec) const
   {
     double min_error = max_error;
     const ResidueModification* mod = nullptr;
@@ -583,7 +583,7 @@ namespace OpenMS
     }
   }
 
-  void ModificationsDB::getAllSearchModifications(vector<String>& modifications) const
+  void ModificationsDB::getAllSearchModifications(vector<std::string>& modifications) const
   {
     modifications.clear();
 
@@ -599,7 +599,7 @@ namespace OpenMS
     }
 
     // sort by name (case INsensitive)
-    sort(modifications.begin(), modifications.end(), [&](const String& a, const String& b) {
+    sort(modifications.begin(), modifications.end(), [&](const std::string& a, const std::string& b) {
       size_t i(0);
       while (i < a.size() && i < b.size())
       {
@@ -616,7 +616,7 @@ namespace OpenMS
     });
   }
 
-  void ModificationsDB::writeTSV(String const& filename) const
+  void ModificationsDB::writeTSV(std::string const& filename) const
   {
     std::ofstream ofs(filename, std::ofstream::out);
     ofs << "FullId\tFullName\tUnimodAccession\tOrigin/AA\tTerminusSpecificity\tDiffMonoMass\n";

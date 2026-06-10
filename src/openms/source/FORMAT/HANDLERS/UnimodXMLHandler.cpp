@@ -16,7 +16,7 @@ namespace OpenMS::Internal
 {
 
 
-    UnimodXMLHandler::UnimodXMLHandler(vector<ResidueModification*>& mods, const String& filename) :
+    UnimodXMLHandler::UnimodXMLHandler(vector<ResidueModification*>& mods, const std::string& filename) :
       XMLHandler(filename, "2.0"),
       avge_mass_(0.0),
       mono_mass_(0.0),
@@ -31,18 +31,18 @@ namespace OpenMS::Internal
     void UnimodXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
 
-      tag_ = String(sm_.convert(qname));
+      tag_ =std::string(sm_.convert(qname));
 
       // new modification?
       if (tag_ == "umod:mod" || tag_ == "mod")
       {
         sites_.clear();
         modification_ = new ResidueModification();
-        String title(attributeAsString_(attributes, "title"));
+        std::string title(attributeAsString_(attributes, "title"));
         modification_->setId(title);
 
-        String full_name(attributeAsString_(attributes, "full_name"));
-        // full_name.substitute("®", ""); // remove damn character (will be interpreted differently across platforms)
+        std::string full_name(attributeAsString_(attributes, "full_name"));
+        // StringUtils::substitute(full_name, "®", ""); // remove damn character (will be interpreted differently across platforms)
         // deleted this in the unimod.xml file
         modification_->setFullName(full_name);
 
@@ -59,16 +59,16 @@ namespace OpenMS::Internal
 
         // classification of mod
         // TODO do this for all mods, do not overwrite for each specificity
-        String classification(attributeAsString_(attributes, "classification"));
+        std::string classification(attributeAsString_(attributes, "classification"));
         modification_->setSourceClassification(classification);
 
         // allowed site
-        String site = attributeAsString_(attributes, "site");
+        std::string site = attributeAsString_(attributes, "site");
         //sites_.push_back(site);
 
         // allowed positions
         ResidueModification::TermSpecificity position = ResidueModification::ANYWHERE;
-        String pos(attributeAsString_(attributes, "position"));
+        std::string pos(attributeAsString_(attributes, "position"));
         if (pos == "Anywhere")
         {
           position = ResidueModification::ANYWHERE;
@@ -91,7 +91,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          warning(LOAD, String("Don't know allowed position called: '") + pos  + "' - setting to anywhere");
+          warning(LOAD,std::string("Don't know allowed position called: '") + pos  + "' - setting to anywhere");
         }
 
         was_valid_peptide_modification_ = true;
@@ -116,17 +116,17 @@ namespace OpenMS::Internal
       if (tag_ == "umod:delta" || tag_ == "delta")
       {
         // avge_mass="-0.9848" mono_mass="-0.984016" composition="H N O(-1)" >
-        avge_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("avge_mass").c_str())))).toDouble();
-        mono_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mono_mass").c_str())))).toDouble();
+        avge_mass_ = StringUtils::toDouble(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("avge_mass").c_str()))));
+        mono_mass_ = StringUtils::toDouble(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mono_mass").c_str()))));
         return;
       }
 
       // <umod:element symbol="H" number="1"/>
       if (tag_ == "umod:element")
       {
-        String symbol = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("symbol").c_str())));
-        String num = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("number").c_str())));
-        String isotope, tmp_symbol;
+        std::string symbol = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("symbol").c_str())));
+        std::string num = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("number").c_str())));
+        std::string isotope, tmp_symbol;
         for (Size i = 0; i != symbol.size(); ++i)
         {
           if (isdigit(symbol[i]))
@@ -139,10 +139,10 @@ namespace OpenMS::Internal
           }
         }
 
-        String formula;
+        std::string formula;
         if (!isotope.empty())
         {
-          formula = '(' + isotope + ')' + tmp_symbol + String(num);
+          formula = '(' + isotope + ')' + tmp_symbol + std::string(num);
         }
         else
         {
@@ -154,7 +154,7 @@ namespace OpenMS::Internal
 
     void UnimodXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      tag_ = String(sm_.convert(qname));
+      tag_ =std::string(sm_.convert(qname));
 
       // write the modifications to vector
       if (tag_ == "umod:mod" || tag_ == "mod")

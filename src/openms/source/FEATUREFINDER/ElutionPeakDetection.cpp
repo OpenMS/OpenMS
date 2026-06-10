@@ -109,7 +109,7 @@ namespace OpenMS
     if (mt_length != tr.getSize())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "MassTrace was not smoothed before! Aborting...", String(smoothed_ints_vec.size()));
+          "MassTrace was not smoothed before! Aborting...",StringUtils::toStr(smoothed_ints_vec.size()));
     }
 
     // first make sure that everything is cleared
@@ -531,7 +531,7 @@ namespace OpenMS
         if (pw_ok && snr_ok)
         {
           // set label of sub-trace
-          new_mt.setLabel(mt.getLabel() + "." + String(min_idx + 1));
+          new_mt.setLabel(mt.getLabel() + "." + StringUtils::toStr(min_idx + 1));
           new_mt.updateSmoothedMaxRT();
           new_mt.updateWeightedMeanMZ();
           new_mt.updateWeightedMZsd();

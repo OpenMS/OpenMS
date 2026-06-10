@@ -30,14 +30,14 @@ namespace OpenMS
       return 0;
   }
 
-  void UniqueIdInterface::setUniqueId(const String & rhs)
+  void UniqueIdInterface::setUniqueId(const std::string & rhs)
   {
     clearUniqueId();
 
-    String::size_type last_underscore = rhs.rfind('_');
-    String s = rhs.substr(last_underscore + 1);
+    std::string::size_type last_underscore = rhs.rfind('_');
+    std::string s = StringUtils::substr(rhs, last_underscore + 1);
 
-    for (String::const_iterator s_i = s.begin(); s_i < s.end(); ++s_i)
+    for (std::string::const_iterator s_i = s.begin(); s_i < s.end(); ++s_i)
     {
       int i = (*s_i - '0');
       if (i < 0 || i > 9)

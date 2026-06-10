@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -58,7 +58,7 @@ public:
             @throw ParseError is thrown if the given file could not be parsed
             @throw FileEmpty is thrown if the given file is empty
     */
-    std::vector<Size> load(const String & result_filename, PeptideIdentificationList & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, const String & database_filename = "");
+    std::vector<Size> load(const std::string & result_filename, PeptideIdentificationList & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, const std::string & database_filename = "");
 
     /** loads only results which exceeds a given P-value threshold
 
@@ -67,7 +67,7 @@ public:
             @throw FileNotFound is thrown is the file is not found
             @throw FileEmpty is thrown if the given file is empty
     */
-    std::vector<Size> getWantedRecords(const String & result_filename, double p_value_threshold);
+    std::vector<Size> getWantedRecords(const std::string & result_filename, double p_value_threshold);
 
     /** generates a trie database from another one, using the wanted records only
 
@@ -76,44 +76,44 @@ public:
             @throw Exception::UnableToCreateFile
 
     */
-    void compressTrieDB(const String & database_filename, const String & index_filename, std::vector<Size> & wanted_records, const String & snd_database_filename, const String & snd_index_filename, bool append = false);
+    void compressTrieDB(const std::string & database_filename, const std::string & index_filename, std::vector<Size> & wanted_records, const std::string & snd_database_filename, const std::string & snd_index_filename, bool append = false);
 
     /** generates a trie database from a given one (the type of database is determined by getLabels)
             @throw Exception::FileNotFound
             @throw Exception::UnableToCreateFile
     */
-    void generateTrieDB(const String & source_database_filename, const String & database_filename, const String & index_filename, bool append = false, const String& species = "");
+    void generateTrieDB(const std::string & source_database_filename, const std::string & database_filename, const std::string & index_filename, bool append = false, const std::string& species = "");
 
 
     /// retrieve the accession type and accession number from a protein description line
     /// (e.g. from FASTA line: >gi|5524211|gb|AAD44166.1| cytochrome b [Elephas maximus maximus], get ac:AAD44166.1 ac type: GenBank)
-    void getACAndACType(String line, String & accession, String & accession_type);
+    void getACAndACType(std::string line, std::string &accession, std::string &accession_type);
 
     /** retrieve the precursor retention time and mz value
 
             @throw Exception::ParseError
     */
-    void getPrecursorRTandMZ(const std::vector<std::pair<String, std::vector<std::pair<Size, Size> > > > & files_and_peptide_identification_with_scan_number, PeptideIdentificationList & ids);
+    void getPrecursorRTandMZ(const std::vector<std::pair<std::string, std::vector<std::pair<Size, Size> > > > & files_and_peptide_identification_with_scan_number, PeptideIdentificationList & ids);
 
     /** retrieve the labels of a given database (at the moment FASTA and Swissprot)
 
             @throw Exception::FileNotFound
             @throw Exception::ParseError
     */
-    void getLabels(const String & source_database_filename, String & ac_label, String & sequence_start_label, String & sequence_end_label, String & comment_label, String & species_label);
+    void getLabels(const std::string & source_database_filename, std::string &ac_label, std::string &sequence_start_label, std::string &sequence_end_label, std::string &comment_label, std::string &species_label);
 
     /** retrieve sequences from a trie database
 
             @throw Exception::FileNotFound
     */
-    std::vector<Size> getSequences(const String & database_filename, const std::map<Size, Size> & wanted_records, std::vector<String> & sequences);
+    std::vector<Size> getSequences(const std::string & database_filename, const std::map<Size, Size> & wanted_records, std::vector<std::string> & sequences);
 
     /** 
       get the experiment from a file
 
       @throw Exception::ParseError is thrown if the file could not be parsed or the filetype could not be determined
     */
-    void getExperiment(PeakMap & exp, String & type, const String & in_filename)
+    void getExperiment(PeakMap & exp, std::string &type, const std::string & in_filename)
     {
       type.clear();
       exp.reset();
@@ -133,12 +133,12 @@ public:
 
             returns true on success, false otherwise
     */
-    bool getSearchEngineAndVersion(const String & cmd_output, ProteinIdentification & protein_identification);
+    bool getSearchEngineAndVersion(const std::string & cmd_output, ProteinIdentification & protein_identification);
 
     /** @brief read the header of an inspect output file and retrieve various information
             @throw Exception::ParseError
     */
-    void readOutHeader(const String & filename, const String & header_line, Int & spectrum_file_column, Int & scan_column, Int & peptide_column, Int & protein_column, Int & charge_column, Int & MQ_score_column, Int & p_value_column, Int & record_number_column, Int & DB_file_pos_column, Int & spec_file_pos_column, Size & number_of_columns);
+    void readOutHeader(const std::string & filename, const std::string & header_line, Int & spectrum_file_column, Int & scan_column, Int & peptide_column, Int & protein_column, Int & charge_column, Int & MQ_score_column, Int & p_value_column, Int & record_number_column, Int & DB_file_pos_column, Int & spec_file_pos_column, Size & number_of_columns);
 
 protected:
     /// a record in the index file that belongs to a trie database consists of three parts
@@ -150,7 +150,7 @@ protected:
     static const Size protein_name_length_;         ///< length of 3)
     static const Size record_length_;         ///< length of the whole record
     static const char trie_delimiter_;         ///< the sequences in the trie database are delimited by this character
-    static const String score_type_;        ///< type of score
+    static const std::string score_type_;        ///< type of score
   };
 
 } //namespace OpenMS

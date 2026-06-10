@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <map>
@@ -47,7 +47,7 @@ namespace OpenMS
   */
 
   /// Map: TOPP tool name -> its @ref Internal::ToolDescription (category + per-type configuration).
-  typedef std::map<String, Internal::ToolDescription> ToolListType;
+  typedef std::map<std::string, Internal::ToolDescription> ToolListType;
 
   class OPENMS_DLLAPI ToolHandler
   {
@@ -73,7 +73,7 @@ public:
       @param[in] toolname Name of the TOPP tool to query.
       @return Type names (may be empty); empty also when the tool is unknown.
     */
-    static StringList getTypes(const String& toolname);
+    static StringList getTypes(const std::string& toolname);
 
     /**
       @brief Return the KNIME-style category string of a tool.
@@ -81,19 +81,19 @@ public:
       @param[in] toolname Name of the TOPP tool to query.
       @return Category string (e.g. @c "Quantitation") or an empty string if @p toolname is unknown.
     */
-    static String getCategory(const String& toolname);
+    static std::string getCategory(const std::string& toolname);
 
     /**
       @brief Resolved file-system path of the external-tool config directory.
       @return @c File::getOpenMSDataPath() + @c "/TOOLS/EXTERNAL".
     */
-    static String getExternalToolsPath();
+    static std::string getExternalToolsPath();
 
     /**
       @brief Resolved file-system path of the internal-tool config directory (root of the @c .ttd search).
       @return @c File::getOpenMSDataPath() + @c "/TOOLS/INTERNAL".
     */
-    static String getInternalToolsPath();
+    static std::string getInternalToolsPath();
 
 private:
 

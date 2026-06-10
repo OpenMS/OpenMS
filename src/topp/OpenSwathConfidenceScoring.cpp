@@ -101,15 +101,15 @@ public:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (OpenSwath results)");
-    setValidFormats_("in", ListUtils::create<String>("featureXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("featureXML"));
     registerInputFile_("lib", "<file>", "", "Assay library");
-    setValidFormats_("lib", ListUtils::create<String>("traML"));
+    setValidFormats_("lib", ListUtils::create<std::string>("traML"));
     registerOutputFile_("out", "<file>", "", 
                         "Output file (results with confidence scores)");
-    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML"));
     registerInputFile_("trafo", "<file>", "", "Retention time transformation",
                        false);
-    setValidFormats_("trafo", ListUtils::create<String>("trafoXML"));
+    setValidFormats_("trafo", ListUtils::create<std::string>("trafoXML"));
     registerIntOption_("decoys", "<number>", 1000, "Number of decoy assays to "
                        "select from the library for every true assay (0 for "
                        "\"all\")", false);
@@ -138,10 +138,10 @@ public:
     TransformationDescription rt_trafo_; /// RT transformation to map measured RTs to assay RTs
 
     OPENMS_LOG_DEBUG << "Reading parameters..." << endl;
-    String in = getStringOption_("in");
-    String lib = getStringOption_("lib");
-    String out = getStringOption_("out");
-    String trafo = getStringOption_("trafo");
+    std::string in = getStringOption_("in");
+    std::string lib = getStringOption_("lib");
+    std::string out = getStringOption_("out");
+    std::string trafo = getStringOption_("trafo");
     n_decoys_ = getIntOption_("decoys");
     n_transitions_ = getIntOption_("transitions");
 

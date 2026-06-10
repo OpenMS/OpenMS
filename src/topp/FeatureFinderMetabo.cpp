@@ -216,10 +216,10 @@ protected:
 #endif
     });
     registerOutputFile_("out", "<file>", "", "FeatureXML file with metabolite features");
-    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML"));
 
     registerOutputFile_("out_chrom", "<file>", "", "Optional mzML file with chromatograms", false);
-    setValidFormats_("out_chrom", ListUtils::create<String>("mzML"));
+    setValidFormats_("out_chrom", ListUtils::create<std::string>("mzML"));
 
     addEmptyLine_();
     registerStringOption_("faims_merge_features", "<true/false>", "true",
@@ -232,7 +232,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+  Param getSubsectionDefaults_(const std::string& /*section*/) const override
   {
     Param combined;
     Param p_com;
@@ -275,9 +275,9 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
 
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
-    String out_chrom = getStringOption_("out_chrom");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
+    std::string out_chrom = getStringOption_("out_chrom");
 
     //-------------------------------------------------------------
     // loading input
@@ -323,7 +323,7 @@ protected:
     Param ffm_param = getParam_().copy("algorithm:ffm:", true);
     writeDebug_("Parameters passed to FeatureFindingMetabo", ffm_param, 3);
 
-    String report_chromatograms = out_chrom.empty() ? "false" : "true";
+    std::string report_chromatograms = out_chrom.empty() ? "false" : "true";
     ffm_param.setValue("report_chromatograms", report_chromatograms);
 
     // Store polarities before potentially moving ms_peakmap (needed later for output annotation)

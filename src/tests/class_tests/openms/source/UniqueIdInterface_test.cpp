@@ -217,7 +217,7 @@ START_SECTION((void setUniqueId(UInt64 rhs)))
 }
 END_SECTION
 
-START_SECTION((void setUniqueId(const String &rhs)))
+START_SECTION((void setUniqueId(const std::string &rhs)))
 {
   UniqueIdInterface uii1;
   TEST_EQUAL(uii1.getUniqueId(),0);

@@ -55,7 +55,7 @@ START_SECTION(~ChromatogramExtractorAlgorithm())
 }
 END_SECTION
 
-START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr > &output, std::vector< ExtractionCoordinates >& extraction_coordinates, double mz_extraction_window, bool ppm, String filter))
+START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr > &output, std::vector< ExtractionCoordinates >& extraction_coordinates, double mz_extraction_window, bool ppm, std::string filter))
 {
   double extract_window = 0.05;
   std::shared_ptr<PeakMap > exp(new PeakMap);
@@ -111,7 +111,7 @@ START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input
 }
 END_SECTION
 
-START_SECTION([EXTRA] void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr > &output, std::vector< ExtractionCoordinates >& extraction_coordinates, double mz_extraction_window, bool ppm, String filter))
+START_SECTION([EXTRA] void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr > &output, std::vector< ExtractionCoordinates >& extraction_coordinates, double mz_extraction_window, bool ppm, std::string filter))
 {
   typedef OpenMS::DataArrays::FloatDataArray FloatDataArray;
 

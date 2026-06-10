@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/KERNEL/Peak2D.h>
@@ -77,20 +77,20 @@ public:
     struct IsobaricChannelInformation
     {
       /// The name of the channel.
-      String name;
+      std::string name;
       /// The id of the channel.
       Int id;
       /// Optional description of the channel.
-      String description;
+      std::string description;
       /// The expected centroid position of the channel peak in m/z.
       Peak2D::CoordinateType center;
       /// Ids of the affected channels. Must contain 4 or 8 entries, depending on the number of columns in the Thermo data sheet (with or without subchannels). Order has to match the ones from the correction matrix parameter.
       std::vector<Int> affected_channels;
 
       /// C'tor
-      IsobaricChannelInformation(String local_name,
+      IsobaricChannelInformation(std::string local_name,
                                  const Int local_id,
-                                 String  local_description,
+                                 std::string local_description,
                                  const Peak2D::CoordinateType& local_center,
                                  const std::vector<Int>& affected_channels) :
           name(std::move(local_name)),

@@ -21,7 +21,7 @@ START_TEST(SpectrumNativeIDParser, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION((static bool isNativeID(const String& id)))
+START_SECTION((static bool isNativeID(const std::string& id)))
 {
   // Test recognized native ID prefixes
   TEST_EQUAL(SpectrumNativeIDParser::isNativeID("scan=123"), true);
@@ -43,7 +43,7 @@ START_SECTION((static bool isNativeID(const String& id)))
 END_SECTION
 
 
-START_SECTION((static std::string getRegExFromNativeID(const String& native_id)))
+START_SECTION((static std::string getRegExFromNativeID(const std::string& native_id)))
 {
   // Test Thermo format: "controllerType=0 controllerNumber=1 scan=NUMBER"
   TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("controllerType=0 controllerNumber=1 scan=100"), R"(scan=(?<GROUP>\d+))");
@@ -79,7 +79,7 @@ START_SECTION((static std::string getRegExFromNativeID(const String& native_id))
 END_SECTION
 
 
-START_SECTION((static Int extractScanNumber(const String& native_id, const boost::regex& scan_regexp, bool no_error = false)))
+START_SECTION((static Int extractScanNumber(const std::string& native_id, const boost::regex& scan_regexp, bool no_error = false)))
 {
   // Test successful extraction with spectrum= format
   boost::regex re_spectrum("spectrum=(?<SCAN>\\d+)");
@@ -112,7 +112,7 @@ START_SECTION((static Int extractScanNumber(const String& native_id, const boost
 END_SECTION
 
 
-START_SECTION((static Int extractScanNumber(const String& native_id, const String& native_id_type_accession)))
+START_SECTION((static Int extractScanNumber(const std::string& native_id, const std::string& native_id_type_accession)))
 {
   // Test Thermo nativeID format (MS:1000768) - scan=NUMBER
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("scan=42", "MS:1000768"), 42);

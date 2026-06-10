@@ -67,7 +67,7 @@ namespace OpenMS
         return bjellqvist;
       default:
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Unsupported ProteomicsPkaScale value", String(static_cast<Int>(scale)));
+          "Unsupported ProteomicsPkaScale value", StringUtils::toStr(static_cast<Int>(scale)));
     }
   }
 
@@ -130,7 +130,7 @@ namespace OpenMS
     // Add side chain contributions
     for (const auto& residue : seq)
     {
-      const String& olc = residue.getOneLetterCode();
+      const std::string& olc = residue.getOneLetterCode();
       if (olc == "D")
       {
         charge += chargeAcidic_(pH, pka.D);

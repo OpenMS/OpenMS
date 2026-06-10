@@ -59,7 +59,7 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, ProteinIdentification & protein_ids, PeptideIdentification & peptide_ids);
+    void load(const std::string & filename, ProteinIdentification & protein_ids, PeptideIdentification & peptide_ids);
 
     /**
         @brief [not implemented yet!] Stores the data in an ProtXML file
@@ -69,7 +69,7 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const ProteinIdentification & protein_ids, const PeptideIdentification & peptide_ids, const String & document_id = "");
+    void store(const std::string & filename, const ProteinIdentification & protein_ids, const PeptideIdentification & peptide_ids, const std::string & document_id = "");
 
 protected:
 
@@ -83,7 +83,7 @@ protected:
     void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
 
     /// Creates a new protein entry (if not already present) and appends it to the current group
-    void registerProtein_(const String & protein_name);
+    void registerProtein_(const std::string & protein_name);
 
     /**
         @brief find modification name given a modified AA mass
@@ -97,7 +97,7 @@ protected:
         @param[in] origin AA one letter code
         @param[in] modification_description [out] Name of the modification, e.g. 'Carboxymethyl (C)'
     */
-    void matchModification_(const double mass, const String & origin, String & modification_description);
+    void matchModification_(const double mass, const std::string & origin, std::string & modification_description);
 
     /// @name members for loading data
     //@{

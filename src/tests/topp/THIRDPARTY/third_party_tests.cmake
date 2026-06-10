@@ -107,7 +107,16 @@ if (NOT (${MSGFPLUS_BINARY} STREQUAL "MSGFPLUS_BINARY-NOTFOUND"))
   
   ## MS2 profile spectra are not allowed
   add_test("TOPP_MSGFPlusAdapter_PROFILE" ${TOPP_BIN_PATH}/MSGFPlusAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteinslong.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/MS2_profile.mzML -out MSGFPlusAdapter_3_out.tmp.idXML -executable "${MSGFPLUS_BINARY}")
-  set_tests_properties("TOPP_MSGFPlusAdapter_PROFILE" PROPERTIES WILL_FAIL 1) 
+  set_tests_properties("TOPP_MSGFPlusAdapter_PROFILE" PROPERTIES WILL_FAIL 1)
+
+  ## smoke test for the new -allow_dense_centroided_peaks flag: same input/output as test 1, only the flag differs.
+  ## The flag does not change the search result for these (non-dense) spectra, so the output equals MSGFPlusAdapter_1_out
+  ## except for the recorded parameter value (allow_dense_centroided_peaks=true instead of false), which is whitelisted.
+  add_test("TOPP_MSGFPlusAdapter_2" ${TOPP_BIN_PATH}/MSGFPlusAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out MSGFPlusAdapter_2_out1.tmp.idXML -mzid_out MSGFPlusAdapter_2_out2.tmp.mzid -executable "${MSGFPLUS_BINARY}" -allow_dense_centroided_peaks)
+  add_test("TOPP_MSGFPlusAdapter_2_out1" ${DIFF} -in1 MSGFPlusAdapter_2_out1.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:in\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:executable\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:database\" value=" "MSGFPlusAdapter:1:out\"" "MSGFPlusAdapter:1:mzid_out\"" "MSGFPlusAdapter:1:allow_dense_centroided_peaks")
+  set_tests_properties("TOPP_MSGFPlusAdapter_2_out1" PROPERTIES DEPENDS "TOPP_MSGFPlusAdapter_2")
+  add_test("TOPP_MSGFPlusAdapter_2_out2" ${DIFF} -in1 MSGFPlusAdapter_2_out2.tmp.mzid -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -whitelist "creationDate=" "SearchDatabase numDatabaseSequences=\"10\" location=" "SpectraData location=" "AnalysisSoftware")
+  set_tests_properties("TOPP_MSGFPlusAdapter_2_out2" PROPERTIES DEPENDS "TOPP_MSGFPlusAdapter_2")
 endif()
 ## test returncode when MSGFPlus not found:
 add_test("TOPP_MSGFPlusAdapter_missing" ${TOPP_BIN_PATH}/MSGFPlusAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out MSGFPlusAdapter_1_out.tmp.idXML -executable "/does/not/exists/path.exe")

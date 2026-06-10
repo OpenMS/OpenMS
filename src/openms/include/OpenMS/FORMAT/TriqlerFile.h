@@ -37,17 +37,17 @@ namespace OpenMS
         ~TriqlerFile() = default;
 
         /// store label free experiment
-        void storeLFQ(const String& filename, 
+        void storeLFQ(const std::string& filename, 
                       const ConsensusMap &consensus_map,
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
-                      const String& condition);
+                      const std::string& condition);
         
     private:
       typedef OpenMS::Peak2D::IntensityType Intensity;
       typedef OpenMS::Peak2D::CoordinateType Coordinate;
 
-      static const String na_string_;
+      static const std::string na_string_;
       static const char delim_ = ',';
       static const char accdelim_ = ';';
       static const char quote_ = '"';
@@ -58,7 +58,7 @@ namespace OpenMS
         */
       struct AggregatedConsensusInfo
       {
-        std::vector< std::vector< String > > consensus_feature_filenames;           //< Filenames of ConsensusFeature
+        std::vector< std::vector< std::string> > consensus_feature_filenames;           //< Filenames of ConsensusFeature
         std::vector< std::vector< Intensity > > consensus_feature_intensities;       //< Intensities of ConsensusFeature
         std::vector< std::vector< Coordinate > > consensus_feature_retention_times; //< Retention times of ConsensusFeature
         std::vector< std::vector< unsigned > > consensus_feature_labels;          //< Labels of ConsensusFeature
@@ -71,24 +71,24 @@ namespace OpenMS
         *  Stores them in AggregatedConsensusInfo for later processing
         */
       TriqlerFile::AggregatedConsensusInfo aggregateInfo_(const ConsensusMap& consensus_map,
-                                                          const std::vector<String>& spectra_paths);
+                                                          const std::vector<std::string>& spectra_paths);
 
       /*
         *  @brief: Internal function to check if condition exists in Experimental Design
         */
-      static void checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection, const String& condition);
+      static void checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection, const std::string& condition);
 
       /*
         *  In OpenMS, a run is split into multiple fractions.
         */
       static void assembleRunMap_(
-              std::map< std::pair< String, unsigned>, unsigned> &run_map,
+              std::map< std::pair< std::string, unsigned>, unsigned> &run_map,
               const ExperimentalDesign &design);
 
       /*
         * @brief checks two vectors for same content
         */
-      static bool checkUnorderedContent_(const std::vector< String> &first, const std::vector< String > &second);
+      static bool checkUnorderedContent_(const std::vector< std::string> &first, const std::vector< std::string> &second);
 
       OpenMS::Peak2D::IntensityType sumIntensity_(const std::set< OpenMS::Peak2D::IntensityType > &intensities) const
       {
@@ -109,13 +109,13 @@ namespace OpenMS
       {
       public :
         TriqlerLine_(
-            const String& run,
-            const String& condition,
-            const String& precursor_charge,
-            const String& search_score,           
-            const String& intensity,
-            const String& sequence,
-            const String& accession
+            const std::string& run,
+            const std::string& condition,
+            const std::string& precursor_charge,
+            const std::string& search_score,           
+            const std::string& intensity,
+            const std::string& sequence,
+            const std::string& accession
         ):  run_(run),
             condition_(condition),
             precursor_charge_(precursor_charge),
@@ -130,7 +130,7 @@ namespace OpenMS
         TriqlerLine_(const TriqlerLine_& m) = default;
 
         /// as string
-        String toString() const;
+        std::string toString() const;
 
         friend bool operator<(const TriqlerLine_ &l,
                               const TriqlerLine_ &r) 
@@ -140,28 +140,28 @@ namespace OpenMS
         }
 
       private:
-        String run_;
-        String condition_;
-        String precursor_charge_;
-        String search_score_;
-        String intensity_;
-        String sequence_;
-        String accession_;
+        std::string run_;
+        std::string condition_;
+        std::string precursor_charge_;
+        std::string search_score_;
+        std::string intensity_;
+        std::string sequence_;
+        std::string accession_;
       };
 
-      using MapSequenceToLines_ = std::map<String, std::set<TriqlerLine_>>;
+      using MapSequenceToLines_ = std::map<std::string, std::set<TriqlerLine_>>;
       /*
         *  @brief Constructs the lines and adds them to the TextFile
         *  @param[out] peptideseq_quantifyable Has to be a set (only) for deterministic ordered output
         */
       void constructFile_(TextFile& csv_out,
-                          const std::set<String>& peptideseq_quantifyable,
+                          const std::set<std::string>& peptideseq_quantifyable,
                           const MapSequenceToLines_& peptideseq_to_line) const;
 
       /*
       *  @brief Constructs the accession to indist. group mapping
       */
-      static std::unordered_map<OpenMS::String, const IndProtGrp* > getAccessionToGroupMap_(const IndProtGrps& ind_prots);
+      static std::unordered_map<std::string, const IndProtGrp* > getAccessionToGroupMap_(const IndProtGrps& ind_prots);
 
 
       /*
@@ -170,8 +170,8 @@ namespace OpenMS
        *
        */
       bool isQuantifyable_(
-          const std::set<String>& accs,
-          const std::unordered_map<String, const IndProtGrp*>& accession_to_group) const;
+          const std::set<std::string>& accs,
+          const std::unordered_map<std::string, const IndProtGrp*>& accession_to_group) const;
 
     };
 } // namespace OpenMS

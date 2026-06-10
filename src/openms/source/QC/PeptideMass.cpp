@@ -25,9 +25,9 @@ namespace OpenMS
       true);
   }
 
-  const String& PeptideMass::getName() const
+  const std::string& PeptideMass::getName() const
   {
-    static const String& name = "PeptideMass";
+    static const std::string& name = "PeptideMass";
     return name;
   }
 

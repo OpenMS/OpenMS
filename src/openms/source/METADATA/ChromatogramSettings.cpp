@@ -61,12 +61,12 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  const String & ChromatogramSettings::getComment() const
+  const std::string & ChromatogramSettings::getComment() const
   {
     return comment_;
   }
 
-  void ChromatogramSettings::setComment(const String & comment)
+  void ChromatogramSettings::setComment(const std::string & comment)
   {
     comment_ = comment;
   }
@@ -153,12 +153,12 @@ namespace OpenMS
     return os;
   }
 
-  const String & ChromatogramSettings::getNativeID() const
+  const std::string & ChromatogramSettings::getNativeID() const
   {
     return native_id_;
   }
 
-  void ChromatogramSettings::setNativeID(const String & native_id)
+  void ChromatogramSettings::setNativeID(const std::string & native_id)
   {
     native_id_ = native_id;
   }

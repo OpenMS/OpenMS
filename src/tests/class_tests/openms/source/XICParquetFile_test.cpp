@@ -38,7 +38,7 @@ START_SECTION(void load(std::vector<XICChromatogram>& output) const)
 }
 END_SECTION
 
-START_SECTION(void getChromatograms(std::vector<XICChromatogram>&, Int64, Int64, const String&, Int64, Int64, Int64, Int64, const String&) const)
+START_SECTION(void getChromatograms(std::vector<XICChromatogram>&, Int64, Int64, const std::string&, Int64, Int64, Int64, Int64, const std::string&) const)
 {
   XICParquetFile xic(OPENMS_GET_TEST_DATA_PATH("XICParquetFile_1_input.xic"));
   std::vector<XICChromatogram> chroms_all;
@@ -78,7 +78,7 @@ END_SECTION
 
 START_SECTION(void getChromatograms_multi_file)
 {
-  std::vector<String> files;
+  std::vector<std::string> files;
   files.emplace_back(OPENMS_GET_TEST_DATA_PATH("XICParquetFile_1_input.xic"));
   files.emplace_back(OPENMS_GET_TEST_DATA_PATH("XICParquetFile_2_input.xic"));
 
@@ -104,7 +104,7 @@ START_SECTION(void getAnalytes(std::vector<XICAnalyte>& output, bool) const)
   XICParquetFile xic(OPENMS_GET_TEST_DATA_PATH("XICParquetFile_1_input.xic"));
 
   std::vector<XICAnalyte> analytes_exploded;
-  std::vector<String> columns;
+  std::vector<std::string> columns;
   xic.getAnalytes(analytes_exploded, columns, false);
   TEST_EQUAL(analytes_exploded.size(), 18)
 

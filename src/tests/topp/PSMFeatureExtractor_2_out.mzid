@@ -90,6 +90,7 @@
 			<userParam name="MSGFPlusAdapter:1:tasks" unitName="xsd:integer" value="0"/>
 			<userParam name="MSGFPlusAdapter:1:fixed_modifications" unitName="xsd:string" value="[]"/>
 			<userParam name="MSGFPlusAdapter:1:variable_modifications" unitName="xsd:string" value="[Oxidation (M)]"/>
+			<userParam name="MSGFPlusAdapter:1:allow_dense_centroided_peaks" unitName="xsd:string" value="false"/>
 			<userParam name="MSGFPlusAdapter:1:legacy_conversion" unitName="xsd:string" value="false"/>
 			<userParam name="MSGFPlusAdapter:1:conf" unitName="xsd:string" value=""/>
 			<userParam name="MSGFPlusAdapter:1:java_executable" unitName="xsd:string" value="java"/>

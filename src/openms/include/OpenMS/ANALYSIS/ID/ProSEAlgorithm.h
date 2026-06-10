@@ -15,7 +15,6 @@
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -152,8 +151,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *  - May signal invalid parameters via ILLEGAL_PARAMETERS exit code.
      *  - May propagate OpenMS exceptions (e.g., I/O or parse errors) from underlying components.
      */
-    ExitCodes search(const String& in_spectra,
-      const String& in_db,
+    ExitCodes search(const std::string& in_spectra,
+      const std::string& in_db,
       std::vector<ProteinIdentification>& prot_ids,
       PeptideIdentificationList& pep_ids) const;
 
@@ -202,9 +201,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * }
      * @endcode
      */
-    SearchResult searchWithModificationAnalysis(const String& in_spectra,
-                                                const String& in_db,
-                                                const String& output_base_name = "") const;
+    SearchResult searchWithModificationAnalysis(const std::string& in_spectra,
+                                                const std::string& in_db,
+                                                const std::string& output_base_name = "") const;
 
     /**
      * @brief In-memory search: search spectra against a protein database without file I/O.
@@ -285,7 +284,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      */
     SearchResult searchWithModificationAnalysis(PeakMap& spectra,
                                                 const std::vector<FASTAFile::FASTAEntry>& fasta_db,
-                                                const String& output_base_name = "") const;
+                                                const std::string& output_base_name = "") const;
 
     /**
      * @brief Multi-file search with modification analysis (in-memory FASTA).
@@ -314,10 +313,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *    non-empty and its size differs from @p in_spectra_files.
      */
     MultiFileSearchResult searchWithModificationAnalysis(
-        const std::vector<String>& in_spectra_files,
+        const std::vector<std::string>& in_spectra_files,
         const std::vector<FASTAFile::FASTAEntry>& fasta_db,
-        const std::vector<String>& output_base_names = {},
-        const String& aggregate_base_name = "") const;
+        const std::vector<std::string>& output_base_names = {},
+        const std::string& aggregate_base_name = "") const;
 
     /**
      * @brief Multi-file search with modification analysis (FASTA file path).
@@ -327,13 +326,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * is recorded in each per-file ProteinIdentification's SearchParameters
      * (and on the aggregate result).
      *
-     * @see searchWithModificationAnalysis(const std::vector<String>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<String>&, const String&) const
+     * @see searchWithModificationAnalysis(const std::vector<std::string>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<std::string>&, const std::string&) const
      */
     MultiFileSearchResult searchWithModificationAnalysis(
-        const std::vector<String>& in_spectra_files,
-        const String& in_db,
-        const std::vector<String>& output_base_names = {},
-        const String& aggregate_base_name = "") const;
+        const std::vector<std::string>& in_spectra_files,
+        const std::string& in_db,
+        const std::vector<std::string>& output_base_names = {},
+        const std::string& aggregate_base_name = "") const;
 
   protected:
     void updateMembers_() override;
@@ -343,7 +342,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     {
       AASequence sequence;
       /*
-      StringView sequence;
+      std::string_view sequence;
       SignedSize peptide_mod_index; ///< enumeration index of the non-RNA peptide modification
       */
       // Layout: doubles first, then floats, then int, then uint16_t — minimizes padding (40 bytes excluding AASequence)
@@ -428,7 +427,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         bool fragment_mass_tolerance_unit_ppm,
         bool open_search_mode,
         std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
-        const String& progress_label) const;
+        const std::string& progress_label) const;
 
     /**
      * @brief Filter and annotate search results.
@@ -464,19 +463,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       Int peptide_missed_cleavages,
       double precursor_mass_tolerance,
       double fragment_mass_tolerance,
-      const String& precursor_mass_tolerance_unit_ppm,
-      const String& fragment_mass_tolerance_unit_ppm,
+      const std::string& precursor_mass_tolerance_unit_ppm,
+      const std::string& fragment_mass_tolerance_unit_ppm,
       const Int precursor_min_charge,
       const Int precursor_max_charge,
-      const String& enzyme,
-      const String& database_name) const;
+      const std::string& enzyme,
+      const std::string& database_name) const;
 
     /// Calibration overwrites these with the calibrated magnitudes for the duration of
     /// search(); pure runtime-state mutation that does not affect the logical const-ness
     /// of search(), matching the `mutable` pattern used by last_calibration_result_.
     mutable double precursor_mass_tolerance_lower_{20.0};   ///< positive magnitude
     mutable double precursor_mass_tolerance_upper_{20.0};   ///< positive magnitude
-    String precursor_mass_tolerance_unit_{"ppm"};
+    std::string precursor_mass_tolerance_unit_{"ppm"};
 
     Size precursor_min_charge_;
     Size precursor_max_charge_;
@@ -485,7 +484,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     double fragment_mass_tolerance_;
 
-    String fragment_mass_tolerance_unit_;
+    std::string fragment_mass_tolerance_unit_;
 
     StringList modifications_fixed_;
 
@@ -493,10 +492,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     Size modifications_max_variable_mods_per_peptide_;
 
-    String enzyme_;
+    std::string enzyme_;
 
     bool decoys_;
-    String decoy_prefix_;
+    std::string decoy_prefix_;
 
     double fdr_psm_{0.0};
     double fdr_protein_{0.0};
@@ -508,7 +507,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     Size peptide_missed_cleavages_;
     EnzymaticDigestion::Specificity peptide_enzyme_specificity_{EnzymaticDigestion::SPEC_FULL};
 
-    String peptide_motif_;
+    std::string peptide_motif_;
 
     Size report_top_hits_;
 
@@ -593,7 +592,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     /// Helper: log the modification analysis summary (shared by in-memory and file-based paths)
     void logModificationAnalysisSummary_(const SearchResult& result,
-                                         const String& output_base_name) const;
+                                         const std::string& output_base_name) const;
 
     /// Helper: log search summary statistics and per-run tolerance estimation
     void logSearchDiagnostics_(const PeakMap& spectra,

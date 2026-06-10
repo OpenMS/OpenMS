@@ -18,43 +18,43 @@ using ID = OpenMS::IdentificationData;
 
 namespace OpenMS
 {
-  void OMSFile::store(const String& filename, const IdentificationData& id_data)
+  void OMSFile::store(const std::string& filename, const IdentificationData& id_data)
   {
     OpenMS::Internal::OMSFileStore helper(filename, log_type_);
     helper.store(id_data);
   }
 
-  void OMSFile::store(const String& filename, const FeatureMap& features)
+  void OMSFile::store(const std::string& filename, const FeatureMap& features)
   {
     OpenMS::Internal::OMSFileStore helper(filename, log_type_);
     helper.store(features);
   }
 
-  void OMSFile::store(const String& filename, const ConsensusMap& consensus)
+  void OMSFile::store(const std::string& filename, const ConsensusMap& consensus)
   {
     OpenMS::Internal::OMSFileStore helper(filename, log_type_);
     helper.store(consensus);
   }
 
-  void OMSFile::load(const String& filename, IdentificationData& id_data)
+  void OMSFile::load(const std::string& filename, IdentificationData& id_data)
   {
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
     helper.load(id_data);
   }
 
-  void OMSFile::load(const String& filename, FeatureMap& features)
+  void OMSFile::load(const std::string& filename, FeatureMap& features)
   {
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
     helper.load(features);
   }
 
-  void OMSFile::load(const String& filename, ConsensusMap& consensus)
+  void OMSFile::load(const std::string& filename, ConsensusMap& consensus)
   {
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
     helper.load(consensus);
   }
 
-  void OMSFile::exportToJSON(const String& filename_in, const String& filename_out)
+  void OMSFile::exportToJSON(const std::string& filename_in, const std::string& filename_out)
   {
     OpenMS::Internal::OMSFileLoad helper(filename_in, log_type_);
     ofstream output(filename_out.c_str());

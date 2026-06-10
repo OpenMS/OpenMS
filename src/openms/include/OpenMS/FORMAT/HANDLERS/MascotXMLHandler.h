@@ -33,8 +33,8 @@ public:
       /// Constructor
       MascotXMLHandler(ProteinIdentification& protein_identification,
                        PeptideIdentificationList& identifications,
-                       const String& filename,
-                       std::map<String, std::vector<AASequence> >& peptides,
+                       const std::string& filename,
+                       std::map<std::string, std::vector<AASequence> >& peptides,
                        const SpectrumMetaDataLookup& lookup);
 
       /// Destructor
@@ -50,7 +50,7 @@ public:
       void characters(const XMLCh* const chars, const XMLSize_t /*length*/) override;
       
       /// Split modification search parameter if for more than one amino acid specified e.g. Phospho (ST)
-      static std::vector<String> splitModificationBySpecifiedAA(const String& mod);
+      static std::vector<std::string> splitModificationBySpecifiedAA(const std::string& mod);
 
 private:
 
@@ -60,23 +60,23 @@ private:
       PeptideHit actual_peptide_hit_;
       PeptideEvidence actual_peptide_evidence_;
       UInt peptide_identification_index_;
-      String tag_;
+      std::string tag_;
       DateTime date_;
-      String date_time_string_;
+      std::string date_time_string_;
       UInt actual_query_;
       ProteinIdentification::SearchParameters search_parameters_;
-      String identifier_;
-      String actual_title_;
-      std::map<String, std::vector<AASequence> >& modified_peptides_;
+      std::string identifier_;
+      std::string actual_title_;
+      std::map<std::string, std::vector<AASequence> >& modified_peptides_;
 
       StringList tags_open_; ///< tracking the current XML tree
-      String character_buffer_; ///< filled by MascotXMLHandler::characters
-      String major_version_;
-      String minor_version_;
+      std::string character_buffer_; ///< filled by MascotXMLHandler::characters
+      std::string major_version_;
+      std::string minor_version_;
       
       // list of modifications, which cannot be set as fixed and needs
       // to be removed, because added from mascot as variable modification
-      std::vector<String> remove_fixed_mods_;
+      std::vector<std::string> remove_fixed_mods_;
 
       /// Helper object for looking up RT information
       const SpectrumMetaDataLookup& lookup_;

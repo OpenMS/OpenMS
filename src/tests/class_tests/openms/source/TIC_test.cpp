@@ -36,7 +36,7 @@ delete ptr;
 END_SECTION
 
 TIC tic;
-START_SECTION(const String& getName() const override)
+START_SECTION(const std::string& getName() const override)
 TEST_EQUAL(tic.getName(), "TIC")
 END_SECTION
 

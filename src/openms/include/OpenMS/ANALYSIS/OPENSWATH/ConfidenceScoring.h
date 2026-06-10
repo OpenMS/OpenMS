@@ -117,7 +117,7 @@ namespace OpenMS
 
       Size n_decoys_; ///< Number of decoy assays to sample per feature (0 = use all unrelated assays as decoys)
 
-      std::map<String, IntList> transition_map_; ///< Lookup assay-id -> indexes into @c library_.getTransitions()
+      std::map<std::string, IntList> transition_map_; ///< Lookup assay-id -> indexes into @c library_.getTransitions()
 
       Size n_transitions_; ///< Number of top-intensity transitions to keep when computing the intensity-distance term (0 = keep all)
 
@@ -150,7 +150,7 @@ namespace OpenMS
       */
       double scoreAssay_(const TargetedExperiment::Peptide& assay,
                          double feature_rt, DoubleList& feature_intensities,
-                         const std::set<String>& transition_ids = std::set<String>());
+                         const std::set<std::string>& transition_ids = std::set<std::string>());
 
       /// Score one feature against its matching assay plus a random decoy sample; writes the per-assay scores into @p feature's MetaValues
       void scoreFeature_(Feature& feature);
@@ -242,7 +242,7 @@ namespace OpenMS
         OPENMS_LOG_DEBUG << "Building transition map..." << std::endl;
         for (Size i = 0; i < library_.getTransitions().size(); ++i)
         {
-          const String& ref = library_.getTransitions()[i].getPeptideRef();
+          const std::string& ref = library_.getTransitions()[i].getPeptideRef();
           transition_map_[ref].push_back(boost::numeric_cast<Int>(i));
         }
         // find min./max. RT in the library:

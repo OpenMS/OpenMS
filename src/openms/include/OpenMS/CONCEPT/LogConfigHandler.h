@@ -27,7 +27,7 @@ namespace OpenMS
   {
 public:
 
-    static String PARAM_NAME; ///< Name of the parameter in which the configuration should be stored
+    static std::string PARAM_NAME; ///< Name of the parameter in which the configuration should be stored
 
     /**
       @brief Translates the given list of parameter settings into a LogStream configuration
@@ -88,7 +88,7 @@ public:
 
       @return Reference to the stream.
      */
-    std::ostream & getStream(const String & stream_name);
+    std::ostream & getStream(const std::string & stream_name);
 
     /**
       @brief Sets a minimum @p log_level by removing all streams from loggers lower than that level,
@@ -104,7 +104,7 @@ public:
       
       @param[in] log_level The minimum log level to enable. Levels below this will have their streams removed.
      */
-    void setLogLevel(const String & log_level);
+    void setLogLevel(const std::string & log_level);
 
     /**
       @brief Returns the instance of LogConfigHandler.
@@ -125,35 +125,35 @@ protected:
 
       @return A reference to the named LogStream
      */
-    Logger::LogStream & getLogStreamByName_(const String & stream_name);
+    Logger::LogStream & getLogStreamByName_(const std::string & stream_name);
 
     /**
       @brief Returns the correct set of registered streams for the given stream type (e.g. DEBUG, INFO, ..)
 
-      @param[in] stream_type String representation of the stream type (DEBUG, INFO, ..)
+      @param[in] stream_type std::string representation of the stream type (DEBUG, INFO, ..)
 
       @throw ElementNotFoundException if the given @p stream_type does not correspond to one of the known LogStreams
      */
-    std::set<String> & getConfigSetByName_(const String & stream_type);
+    std::set<std::string> & getConfigSetByName_(const std::string & stream_type);
 
     /**
-      @brief Translates the given @p stream_type String into a valid StreamHandler::StreamType
+      @brief Translates the given @p stream_type std::string into a valid StreamHandler::StreamType
 
-      @param[in] stream_type String representation of the StreamHandler::StreamType
+      @param[in] stream_type std::string representation of the StreamHandler::StreamType
 
       @throw Exception::IllegalArgument is thrown when the passed @p stream_type does not correspond to an existing StreamHandler::StreamType
 
       @return The requested StreamHandler::StreamType
      */
-    StreamHandler::StreamType getStreamTypeByName_(const String & stream_type);
+    StreamHandler::StreamType getStreamTypeByName_(const std::string & stream_type);
 
-    std::set<String> debug_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogDebug()
-    std::set<String> info_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogInfo()
-    std::set<String> warn_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogWarn()
-    std::set<String> error_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogError()
-    std::set<String> fatal_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogFatal()
+    std::set<std::string> debug_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogDebug()
+    std::set<std::string> info_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogInfo()
+    std::set<std::string> warn_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogWarn()
+    std::set<std::string> error_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogError()
+    std::set<std::string> fatal_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogFatal()
 
-    std::map<String, StreamHandler::StreamType> stream_type_map_; ///< Maps the registered streams to a StreamHandler::StreamType
+    std::map<std::string, StreamHandler::StreamType> stream_type_map_; ///< Maps the registered streams to a StreamHandler::StreamType
 
 private:
     friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, LogConfigHandler const & lch);

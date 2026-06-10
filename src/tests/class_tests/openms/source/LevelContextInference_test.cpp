@@ -23,7 +23,7 @@ using namespace OpenMS;
 
 namespace
 {
-  void copySharedInferenceFixture_(const String& filename)
+  void copySharedInferenceFixture_(const std::string& filename)
   {
     File::remove(filename);
     TEST_TRUE(File::copy(OPENMS_GET_TEST_DATA_PATH("PyProphet_inference_test.osw"), filename))
@@ -160,7 +160,7 @@ START_SECTION(static std::vector<LevelContextResultRow> infer(const std::vector<
   }
 
   {
-    String tmp_osw;
+    std::string tmp_osw;
     NEW_TMP_FILE(tmp_osw);
     copySharedInferenceFixture_(tmp_osw);
 

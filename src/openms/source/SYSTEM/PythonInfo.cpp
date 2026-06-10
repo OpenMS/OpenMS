@@ -41,17 +41,17 @@ using namespace std;
 
 namespace OpenMS
 {
-  bool PythonInfo::canRun(String& python_executable, String& error_msg)
+  bool PythonInfo::canRun(std::string& python_executable, std::string& error_msg)
   {
     stringstream ss;
-    String py_original = python_executable;
+    std::string py_original = python_executable;
     if (!File::findExecutable(python_executable))
     {
       ss << "  Python not found at '" << python_executable << "'!\n"
          << "  Make sure Python is installed and this location is correct.\n";
       if (to_path(python_executable).is_relative())
       {
-        static String path;
+        static std::string path;
         if (path.empty())
         {
           path = getenv("PATH");
@@ -106,7 +106,7 @@ namespace OpenMS
     }
   }
 
-  bool PythonInfo::isPackageInstalled(const String& python_executable, const String& package_name)
+  bool PythonInfo::isPackageInstalled(const std::string& python_executable, const std::string& package_name)
   {
     try
     {
@@ -132,9 +132,9 @@ namespace OpenMS
     }
   }
 
-  String PythonInfo::getVersion(const String& python_executable)
+  std::string PythonInfo::getVersion(const std::string& python_executable)
   {
-    String v;
+    std::string v;
     try
     {
       bp::ipstream pipe_out;
@@ -158,7 +158,7 @@ namespace OpenMS
         {
           v += line; // some pythons report version on stderr
         }
-        v.trim(); // remove '\n'
+        StringUtils::trim(v); // remove '\n'
       }
       else if (!finished)
       {

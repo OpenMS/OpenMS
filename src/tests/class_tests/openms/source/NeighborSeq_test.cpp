@@ -22,7 +22,7 @@ START_TEST(NeighborSeq, "$Id$")
 
 // Test section for the generateSpectrum function
 // The spectra were generated via TOPPView and contained b-and y-ion
-START_SECTION(MSSpectrum generateSpectrum(const String& peptide_sequence))
+START_SECTION(MSSpectrum generateSpectrum(const std::string& peptide_sequence))
 {
   NeighborSeq ns({AASequence::fromString("TEST")});
   MSSpectrum spec_1 = ns.generateSpectrum(AASequence::fromString("PEPT"));

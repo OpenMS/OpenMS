@@ -63,13 +63,13 @@ class OPENMS_DLLAPI PrecursorCorrection
      180.9	610.0001	    610	        -0.0001
      183.92	611.0035	    611.0033	  -0.0002
      
-     @param[out] out_csv: constant String for csv output.
+     @param[out] out_csv: constant std::string for csv output.
      @param[in] delta_mzs: delta m/z column values.
      @param[in] mzs: m/z column vector (uncorrectedMZ)
      @param[in] rts: retention time column vector 
      
      */
-     static void writeHist(const String& out_csv,
+     static void writeHist(const std::string& out_csv,
                            const std::vector<double> & delta_mzs,
                            const std::vector<double> & mzs,
                            const std::vector<double> & rts);

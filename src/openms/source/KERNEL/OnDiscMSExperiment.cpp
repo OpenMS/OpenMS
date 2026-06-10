@@ -13,7 +13,7 @@
 
 namespace OpenMS
 {
-  bool OnDiscMSExperiment::openFile(const String& filename, bool skipMetaData)
+  bool OnDiscMSExperiment::openFile(const std::string& filename, bool skipMetaData)
   {
     filename_ = filename;
     indexed_mzml_file_.openFile(filename);
@@ -49,7 +49,7 @@ namespace OpenMS
     return indexed_mzml_file_.getChromatogramById(id);
   }
 
-  void OnDiscMSExperiment::loadMetaData_(const String& filename)
+  void OnDiscMSExperiment::loadMetaData_(const std::string& filename)
   {
     meta_ms_experiment_ = std::shared_ptr< PeakMap >(new PeakMap);
 
@@ -76,7 +76,7 @@ namespace OpenMS
     if (!chromatograms_native_ids_.contains(id))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          String("Could not find chromatogram with id '") + id + "'.");
+          std::string("Could not find chromatogram with id '") + id + "'.");
     }
     return meta_ms_experiment_->getChromatogram(chromatograms_native_ids_[id]);
   }
@@ -108,7 +108,7 @@ namespace OpenMS
     if (!spectra_native_ids_.contains(id))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          String("Could not find spectrum with id '") + id + "'.");
+          std::string("Could not find spectrum with id '") + id + "'.");
     }
     return meta_ms_experiment_->getSpectrum(spectra_native_ids_[id]);
   }

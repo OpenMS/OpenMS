@@ -40,12 +40,12 @@ END_SECTION
 
 // Something is terribly wrong here ... looks like an unintentional commit?
 
-START_SECTION(CsvFile(const String& filename, char is = ',',bool ie = false, Int first_n = -1))
+START_SECTION(CsvFile(const std::string& filename, char is = ',',bool ie = false, Int first_n = -1))
 //tested in getRow
 TEST_EXCEPTION(Exception::FileNotFound, CsvFile("CsvFile_1.csv"))
 END_SECTION
 
-START_SECTION(void load(const String& filename, char is = ',', bool ie = false, Int first_n = -1))
+START_SECTION(void load(const std::string& filename, char is = ',', bool ie = false, Int first_n = -1))
 //tested in getRow
 TEST_EXCEPTION(Exception::FileNotFound, f1.load("CsvFile_1.csv"))
 
@@ -61,74 +61,74 @@ START_SECTION(bool getRow(Size row,StringList &list))
 	CsvFile f2(OPENMS_GET_TEST_DATA_PATH("CsvFile_1.csv"), '\t');
 	StringList list;
 	f2.getRow(0,list);
-	TEST_EQUAL(list,ListUtils::create<String>("hello,world"))
+	TEST_EQUAL(list,ListUtils::create<std::string>("hello,world"))
 	f2.getRow(1,list);
-	TEST_EQUAL(list,ListUtils::create<String>("the,dude"))
+	TEST_EQUAL(list,ListUtils::create<std::string>("the,dude"))
 	f2.getRow(2,list);
-	TEST_EQUAL(list,ListUtils::create<String>("spectral,search"))
+	TEST_EQUAL(list,ListUtils::create<std::string>("spectral,search"))
 
 	f3.load(OPENMS_GET_TEST_DATA_PATH("CsvFile_1.csv"),'\t');
 	f3.getRow(0,list);
-	TEST_EQUAL(list,ListUtils::create<String>("hello,world"))
+	TEST_EQUAL(list,ListUtils::create<std::string>("hello,world"))
 	f3.getRow(1,list);
-	TEST_EQUAL(list,ListUtils::create<String>("the,dude"))
+	TEST_EQUAL(list,ListUtils::create<std::string>("the,dude"))
 	f3.getRow(2,list);
-	TEST_EQUAL(list,ListUtils::create<String>("spectral,search"))
+	TEST_EQUAL(list,ListUtils::create<std::string>("spectral,search"))
 
 	f4.load(OPENMS_GET_TEST_DATA_PATH("CsvFile_2.csv"),'\t',true);
 	f4.getRow(0,list);
-	TEST_EQUAL(list,ListUtils::create<String>("hello,world"))
+	TEST_EQUAL(list,ListUtils::create<std::string>("hello,world"))
 	f4.getRow(1,list);
-	TEST_EQUAL(list,ListUtils::create<String>("the,dude"))
+	TEST_EQUAL(list,ListUtils::create<std::string>("the,dude"))
 	f4.getRow(2,list);
-	TEST_EQUAL(list,ListUtils::create<String>("spectral,search"))
+	TEST_EQUAL(list,ListUtils::create<std::string>("spectral,search"))
 
 END_SECTION
 
-START_SECTION(void store(const String& filename))
+START_SECTION(void store(const std::string& filename))
 	CsvFile f1,f2;
 	StringList list;
 
 	f1.load(OPENMS_GET_TEST_DATA_PATH("CsvFile_2.csv"), '\t', true); // load from a file
-	String tmpfile = File::getTemporaryFile();
+	std::string tmpfile = File::getTemporaryFile();
   f1.store(tmpfile);          // store into a new one
 	f2.load(tmpfile, '\t', true); // load the new one
 	f2.getRow(0,list);
-	TEST_EQUAL(list,ListUtils::create<String>("hello,world"))
+	TEST_EQUAL(list,ListUtils::create<std::string>("hello,world"))
 	f2.getRow(1,list);
-	TEST_EQUAL(list,ListUtils::create<String>("the,dude"))
+	TEST_EQUAL(list,ListUtils::create<std::string>("the,dude"))
 	f2.getRow(2,list);
-	TEST_EQUAL(list,ListUtils::create<String>("spectral,search"))
+	TEST_EQUAL(list,ListUtils::create<std::string>("spectral,search"))
 END_SECTION
 
 START_SECTION(void addRow(const StringList& list))
 	CsvFile f1, f2;
 	StringList list;
 
-	f1.addRow(ListUtils::create<String>("first,second,third"));
-	f1.addRow(ListUtils::create<String>("4,5,6"));
+	f1.addRow(ListUtils::create<std::string>("first,second,third"));
+	f1.addRow(ListUtils::create<std::string>("4,5,6"));
   
-  String tmpfile = File::getTemporaryFile();
+  std::string tmpfile = File::getTemporaryFile();
 	f1.store(tmpfile);
 	f2.load(tmpfile, ',', false);
 	f2.getRow(0,list);
-	TEST_EQUAL(list, ListUtils::create<String>("first,second,third"))
+	TEST_EQUAL(list, ListUtils::create<std::string>("first,second,third"))
 	f2.getRow(1,list);
-	TEST_EQUAL(list, ListUtils::create<String>("4,5,6"))
+	TEST_EQUAL(list, ListUtils::create<std::string>("4,5,6"))
 END_SECTION
 
 START_SECTION(void clear())
 	CsvFile f1;
 	StringList list;
 
-	f1.addRow(ListUtils::create<String>("hello,world"));
+	f1.addRow(ListUtils::create<std::string>("hello,world"));
 	f1.getRow(0, list);
-	TEST_EQUAL(list, ListUtils::create<String>("hello,world"))
+	TEST_EQUAL(list, ListUtils::create<std::string>("hello,world"))
 	f1.clear();
 	TEST_EXCEPTION(Exception::InvalidIterator, f1.getRow(0, list))
 END_SECTION
 
-START_SECTION(std::vector<String>::size_type CsvFile::rowCount())
+START_SECTION(std::vector<std::string>::size_type CsvFile::rowCount())
 	CsvFile f1(OPENMS_GET_TEST_DATA_PATH("CsvFile_1.csv"), '\t');
 	// file has 5 lines, 2 of them comments
 	TEST_EQUAL(f1.rowCount(),3)

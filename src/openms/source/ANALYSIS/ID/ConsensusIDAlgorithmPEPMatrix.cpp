@@ -40,7 +40,7 @@ namespace OpenMS
     }
     else
     {
-      String msg = "Gap penalty should be positive";
+      std::string msg = "Gap penalty should be positive";
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
     }
@@ -52,8 +52,8 @@ namespace OpenMS
                                                        AASequence seq2)
   {
     // here we cannot take modifications into account:
-    String unmod_seq1 = seq1.toUnmodifiedString();
-    String unmod_seq2 = seq2.toUnmodifiedString();
+    std::string unmod_seq1 = seq1.toUnmodifiedString();
+    std::string unmod_seq2 = seq2.toUnmodifiedString();
     if (unmod_seq1 == unmod_seq2) return 1.0;
 
     double score_sim = alignment_.align(unmod_seq1, unmod_seq2);

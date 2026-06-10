@@ -28,13 +28,13 @@ using namespace std;
 
 namespace OpenMS
 { 
-  void MzQCFile::store(const String& input_file,
-                       const String& output_file,
+  void MzQCFile::store(const std::string& input_file,
+                       const std::string& output_file,
                        const MSExperiment& exp,
-                       const String& contact_name,
-                       const String& contact_address,
-                       const String& description,
-                       const String& label,
+                       const std::string& contact_name,
+                       const std::string& contact_address,
+                       const std::string& description,
+                       const std::string& label,
                        const FeatureMap& feature_map,
                        vector<ProteinIdentification>& prot_ids,
                        PeptideIdentificationList& pep_ids) const
@@ -78,7 +78,7 @@ namespace OpenMS
     // ---------------------------------------------------------------
     // function to add quality metrics to quality_metrics
     // ---------------------------------------------------------------
-    auto addMetric = [&cv, &quality_metrics](const String& accession, const auto& value) -> void
+    auto addMetric = [&cv, &quality_metrics](const std::string& accession, const auto& value) -> void
       {
         json qm;
         qm["accession"] = accession.c_str();
@@ -229,17 +229,17 @@ namespace OpenMS
                       {
                         {"accession", "MS:1000747"},
                         {"name", "completion time"},
-                        {"value", String(exp.getDateTime().getDate() + "T" + exp.getDateTime().getTime()).c_str()}
+                        {"value",std::string(exp.getDateTime().getDate() + "T" + exp.getDateTime().getTime()).c_str()}
                       },
                       {
                         {"accession", "MS:1000569"},
                         {"name", "SHA-1"},
-                        {"value", String(FileHandler::computeFileHash(input_file)).c_str()}
+                        {"value",std::string(FileHandler::computeFileHash(input_file)).c_str()}
                       },
                       {
                         {"accession", "MS:1000031"},
                         {"name", "instrument model"},
-                        {"value", String(exp.getInstrument().getName()).c_str()}
+                        {"value",std::string(exp.getInstrument().getName()).c_str()}
                       }
                     }
                   }
@@ -251,7 +251,7 @@ namespace OpenMS
                 {
                   {"accession", "MS:1009001" }, // create new qc-cv for QCCalculator: MS:1009001 quality control metrics generating software
                   {"name", "QCCalculator"},
-                  {"version", (String(version.version_major)+"."+String(version.version_minor)+"."+String(version.version_patch)).c_str()},
+                  {"version", (StringUtils::toStr(version.version_major)+"."+StringUtils::toStr(version.version_minor)+"."+StringUtils::toStr(version.version_patch)).c_str()},
                   {"uri", "https://www.openms.de"}
                 }
               }

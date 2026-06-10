@@ -3,7 +3,7 @@
  * @brief nanobind type casters for OpenMS::DataValue and OpenMS::ParamValue
  *
  * These are variant types that can hold multiple value types.
- * DataValue: int, double, String, StringList, IntList, DoubleList
+ * DataValue: int, double, std::string, StringList, IntList, DoubleList
  * ParamValue: similar to DataValue with slight differences
  */
 
@@ -17,7 +17,7 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include "string.h"  // For OpenMS::String caster
+#include "string.h"  // For std::string caster
 
 namespace nanobind {
 namespace detail {
@@ -30,7 +30,7 @@ namespace detail {
  *   - int (Int64)
  *   - double
  *   - String
- *   - StringList (vector<String>)
+ *   - StringList (vector<std::string>)
  *   - IntList (vector<int>)
  *   - DoubleList (vector<double>)
  *
@@ -91,7 +91,7 @@ public:
                 PyErr_Clear();
                 return false;
             }
-            value = OpenMS::DataValue(OpenMS::String(data, size));
+            value = OpenMS::DataValue(std::string(data, size));
             return true;
         }
 
@@ -103,7 +103,7 @@ public:
                 PyErr_Clear();
                 return false;
             }
-            value = OpenMS::DataValue(OpenMS::String(data, size));
+            value = OpenMS::DataValue(std::string(data, size));
             return true;
         }
 
@@ -153,7 +153,7 @@ public:
                             PyErr_Clear();
                             return false;
                         }
-                        sl.push_back(OpenMS::String(data, size));
+                        sl.push_back(std::string(data, size));
                     } else if (PyBytes_Check(item)) {
                         char* data;
                         Py_ssize_t size;
@@ -162,7 +162,7 @@ public:
                             PyErr_Clear();
                             return false;
                         }
-                        sl.push_back(OpenMS::String(data, size));
+                        sl.push_back(std::string(data, size));
                     } else {
                         Py_DECREF(item);
                         return false;  // reject non-string items
@@ -237,8 +237,8 @@ public:
                 return PyFloat_FromDouble(static_cast<double>(src));
 
             case ValueType::STRING_VALUE: {
-                // Use toString() - DataValue has no operator String()
-                OpenMS::String s = src.toString();
+                // Use toString() - DataValue has no operator std::string()
+                std::string s = src.toString();
                 return PyUnicode_FromStringAndSize(s.c_str(), s.size());
             }
 

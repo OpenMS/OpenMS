@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -23,16 +23,16 @@ namespace OpenMS
     /// Information about input files that were processed
     struct InputFile
     {
-      String name;
+      std::string name;
 
-      String experimental_design_id;
+      std::string experimental_design_id;
 
-      std::set<String> primary_files;
+      std::set<std::string> primary_files;
 
-      explicit InputFile(const String& name,
-                         const String& experimental_design_id = "",
-                         const std::set<String>& primary_files =
-                         std::set<String>()):
+      explicit InputFile(const std::string& name,
+                         const std::string& experimental_design_id = "",
+                         const std::set<std::string>& primary_files =
+                         std::set<std::string>()):
         name(name), experimental_design_id(experimental_design_id),
         primary_files(primary_files)
       {
@@ -64,7 +64,7 @@ namespace OpenMS
       InputFile,
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<boost::multi_index::member<
-          InputFile, String, &InputFile::name>>>
+          InputFile, std::string, &InputFile::name>>>
       > InputFiles;
     typedef IteratorWrapper<InputFiles::iterator> InputFileRef;
 

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/build_config.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <cstddef>
 #include <string>
@@ -90,11 +90,11 @@ namespace OpenMS
       {
         if (line.compare(0, 11, "VERSION_ID=") == 0)
         {
-          std::string val = line.substr(11);
+          std::string val = StringUtils::substr(line, 11);
           // Strip surrounding quotes if present
           if (val.size() >= 2 && val.front() == '"' && val.back() == '"')
           {
-            val = val.substr(1, val.size() - 2);
+            val = StringUtils::substr(val, 1, val.size() - 2);
           }
           return val;
         }
@@ -122,7 +122,7 @@ namespace OpenMS
     class OPENMS_DLLAPI OpenMSOSInfo
     {
       OpenMS_OS os_;
-      String os_version_;
+      std::string os_version_;
       OpenMS_Architecture arch_;
 
     public:
@@ -134,19 +134,19 @@ namespace OpenMS
       {}
 
       /// Return the running operating system name (@c "Windows", @c "MacOS", @c "Linux", or @c "unknown").
-      String getOSAsString() const
+      std::string getOSAsString() const
       {
         return OpenMS_OSNames[static_cast<size_t>(os_)];
       }
 
       /// Return the running architecture (@c "32 bit", @c "64 bit", or @c "unknown") as detected by @ref getOSInfo from the pointer width.
-      String getArchAsString() const
+      std::string getArchAsString() const
       {
         return OpenMS_ArchNames[static_cast<size_t>(arch_)];
       }
 
       /// Return the OS version captured by @ref getOSInfo (e.g. @c "10.15" on macOS or @c "10.0.19045" on Windows); @c "unknown" if the platform query failed.
-      String getOSVersionAsString() const
+      std::string getOSVersionAsString() const
       {
         return os_version_;
       }
@@ -157,7 +157,7 @@ namespace OpenMS
         @c "32 bit" if @c sizeof(size_t) is 4, @c "64 bit" if 8, otherwise @c "unknown".
         This reflects how the binary was compiled, independent of the running OS.
       */
-      static String getBinaryArchitecture()
+      static std::string getBinaryArchitecture()
       {
         size_t bytes = sizeof(size_t);
         switch (bytes)
@@ -178,7 +178,7 @@ namespace OpenMS
         @c neon, @c SSE, @c SSE2, @c SSE3, @c SSE4.1, @c SSE4.2, @c AVX, @c AVX2, @c FMA.
         Returns an empty string if none of those is set.
       */
-      static String getActiveSIMDExtensions();
+      static std::string getActiveSIMDExtensions();
 
       /**
         @brief Probe the running platform and return a populated @ref OpenMSOSInfo.
@@ -241,7 +241,7 @@ namespace OpenMS
       }
 
       /// Return the CMake build type baked into the library (e.g. @c "Release", @c "Debug"), captured from the @c OPENMS_BUILD_TYPE configure-time macro.
-      static String getBuildType()
+      static std::string getBuildType()
       {
         return OPENMS_BUILD_TYPE;
       }

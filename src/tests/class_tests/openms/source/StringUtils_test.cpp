@@ -10,7 +10,6 @@
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/DATASTRUCTURES/StringUtilsSimple.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -28,18 +27,18 @@ START_SECTION(inline const char* skipWhitespace(const char* p, const char* p_end
   #define s16 "                "
   for (const char whitespace : whitespaces)
   {
-    String at1 = "0 2  3456789101112" x16;
-    at1.substitute(' ', whitespace);
+    std::string at1 = "0 2  3456789101112" x16;
+    StringUtils::substitute(at1, ' ', whitespace);
     TEST_EQUAL(skipWhitespace(at1), 0);
     TEST_EQUAL(skipWhitespace(std::string_view(at1.data() + 1)), 1);
     TEST_EQUAL(skipWhitespace(std::string_view(at1.data() + 2)), 0);
     TEST_EQUAL(skipWhitespace(std::string_view(at1.data() + 3)), 2);
-    String at2 = s16 s16 "1" x16;
-    at2.substitute(' ', whitespace);
+    std::string at2 = s16 s16 "1" x16;
+    StringUtils::substitute(at2, ' ', whitespace);
     TEST_EQUAL(skipWhitespace(std::string_view(at2.data())), 32);
     TEST_EQUAL(skipWhitespace(std::string_view(at2.data() + 2)), 30);
-    String at1_noSSE = "0 2  34";
-    at1_noSSE.substitute(' ', whitespace);
+    std::string at1_noSSE = "0 2  34";
+    StringUtils::substitute(at1_noSSE, ' ', whitespace);
     TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data())), 0);
     TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data() + 1)), 1);
     TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data() + 2)), 0);
@@ -55,20 +54,20 @@ START_SECTION(inline const char* skipNonWhitespace(const char* p, const char* p_
   #define s16 "                "
   for (const char whitespace : whitespaces)
   {
-    String at1 = "0 2  3456789101112" x16;
-    at1.substitute(' ', whitespace);
+    std::string at1 = "0 2  3456789101112" x16;
+    StringUtils::substitute(at1, ' ', whitespace);
     TEST_EQUAL(skipNonWhitespace(at1), 1);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1.data() + 1)), 0);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1.data() + 2)), 1);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1.data() + 3)), 0);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1.data() + 5)), 13 + 16);
-    String at2 = x16 x16 " " x16;
-    at2.substitute(' ', whitespace);
+    std::string at2 = x16 x16 " " x16;
+    StringUtils::substitute(at2, ' ', whitespace);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at2.data())), 32);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at2.data() + 31)), 1);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at2.data() + 33)), 16);
-    String at1_noSSE = "0 2  34";
-    at1_noSSE.substitute(' ', whitespace);
+    std::string at1_noSSE = "0 2  34";
+    StringUtils::substitute(at1_noSSE, ' ', whitespace);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data())), 1);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data() + 1)), 0);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data() + 2)), 1);
@@ -98,164 +97,164 @@ START_SECTION(~StringUtilsHelper())
 }
 END_SECTION
 
-START_SECTION((static String numberLength(double d, UInt n)))
+START_SECTION((static std::string numberLength(double d, UInt n)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String number(double d, UInt n)))
+START_SECTION((static std::string number(double d, UInt n)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& fillLeft(String &this_s, char c, UInt size)))
+START_SECTION((static std::string& fillLeft(String &this_s, char c, UInt size)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& fillRight(String &this_s, char c, UInt size)))
+START_SECTION((static std::string& fillRight(String &this_s, char c, UInt size)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static bool hasPrefix(const String &this_s, const String &string)))
+START_SECTION((static bool hasPrefix(const std::string &this_s, const std::string &string)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static bool hasSuffix(const String &this_s, const String &string)))
+START_SECTION((static bool hasSuffix(const std::string &this_s, const std::string &string)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static bool hasSubstring(const String &this_s, const String &string)))
+START_SECTION((static bool hasSubstring(const std::string &this_s, const std::string &string)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static bool has(const String &this_s, Byte byte)))
+START_SECTION((static bool has(const std::string &this_s, Byte byte)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String prefix(const String &this_s, size_t length)))
+START_SECTION((static std::string prefix(const std::string &this_s, size_t length)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String suffix(const String &this_s, size_t length)))
+START_SECTION((static std::string suffix(const std::string &this_s, size_t length)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String prefix(const String &this_s, Int length)))
+START_SECTION((static std::string prefix(const std::string &this_s, Int length)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String suffix(const String &this_s, Int length)))
+START_SECTION((static std::string suffix(const std::string &this_s, Int length)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String prefix(const String &this_s, char delim)))
+START_SECTION((static std::string prefix(const std::string &this_s, char delim)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String suffix(const String &this_s, char delim)))
+START_SECTION((static std::string suffix(const std::string &this_s, char delim)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String substr(const String &this_s, size_t pos, size_t n)))
+START_SECTION((static std::string substr(const std::string &this_s, size_t pos, size_t n)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String chop(const String &this_s, Size n)))
+START_SECTION((static std::string chop(const std::string &this_s, Size n)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& trim(String &this_s)))
+START_SECTION((static std::string& trim(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& quote(String &this_s, char q, String::QuotingMethod method)))
+START_SECTION((static std::string& quote(String &this_s, char q, OpenMS::QuotingMethod method)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& unquote(String &this_s, char q, String::QuotingMethod method)))
+START_SECTION((static std::string& unquote(String &this_s, char q, OpenMS::QuotingMethod method)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& simplify(String &this_s)))
+START_SECTION((static std::string& simplify(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String random(UInt length)))
+START_SECTION((static std::string random(UInt length)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& reverse(String &this_s)))
+START_SECTION((static std::string& reverse(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static bool split(const String &this_s, const char splitter, std::vector< String > &substrings, bool quote_protect)))
+START_SECTION((static bool split(const std::string &this_s, const char splitter, std::vector<std::string> &substrings, bool quote_protect)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static bool split(const String &this_s, const String &splitter, std::vector< String > &substrings)))
+START_SECTION((static bool split(const std::string &this_s, const std::string &splitter, std::vector<std::string> &substrings)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static bool split_quoted(const String &this_s, const String &splitter, std::vector< String > &substrings, char q, String::QuotingMethod method)))
+START_SECTION((static bool split_quoted(const std::string &this_s, const std::string &splitter, std::vector<std::string> &substrings, char q, OpenMS::QuotingMethod method)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static QString toQString(const String &this_s)))
+START_SECTION((static QString toQString(const std::string &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 
-START_SECTION((static Int32 toInt32(const String &this_s)))
+START_SECTION((static Int32 toInt32(const std::string &this_s)))
 {
   // easy case
   TEST_EQUAL(StringUtils::toInt32("2147483647"), 2147483647)
@@ -278,7 +277,7 @@ END_SECTION
 
 
 
-START_SECTION((static Int64 toInt64(const String &this_s)))
+START_SECTION((static Int64 toInt64(const std::string &this_s)))
 {
   // easy case
   TEST_EQUAL(StringUtils::toInt64("9223372036854775807"), 9223372036854775807)
@@ -299,7 +298,7 @@ START_SECTION((static Int64 toInt64(const String &this_s)))
 }
 END_SECTION
 
-START_SECTION((static float toFloat(const String &this_s)))
+START_SECTION((static float toFloat(const std::string &this_s)))
 {
   // easy case
   TEST_REAL_SIMILAR(StringUtils::toFloat("1234.45"), 1234.45)
@@ -315,7 +314,7 @@ START_SECTION((static float toFloat(const String &this_s)))
 }
 END_SECTION
 
-START_SECTION((static double toDouble(const String &this_s)))
+START_SECTION((static double toDouble(const std::string &this_s)))
 {
   // easy case
   TEST_REAL_SIMILAR(StringUtils::toDouble("1234.45"), 1234.45)
@@ -456,49 +455,49 @@ START_SECTION((template <typename IteratorT> static bool extractInt(IteratorT& b
 END_SECTION
 
 
-START_SECTION((static String& toUpper(String &this_s)))
+START_SECTION((static std::string& toUpper(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& firstToUpper(String &this_s)))
+START_SECTION((static std::string& firstToUpper(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& toLower(String &this_s)))
+START_SECTION((static std::string& toLower(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& substitute(String &this_s, char from, char to)))
+START_SECTION((static std::string& substitute(String &this_s, char from, char to)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& substitute(String &this_s, const String &from, const String &to)))
+START_SECTION((static std::string& substitute(String &this_s, const std::string &from, const std::string &to)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& remove(String &this_s, char what)))
+START_SECTION((static std::string& remove(String &this_s, char what)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& ensureLastChar(String &this_s, char end)))
+START_SECTION((static std::string& ensureLastChar(String &this_s, char end)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& removeWhitespaces(String &this_s)))
+START_SECTION((static std::string& removeWhitespaces(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }

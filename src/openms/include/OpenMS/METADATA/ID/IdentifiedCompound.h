@@ -21,21 +21,21 @@ namespace OpenMS
   {
     struct IdentifiedCompound: public ScoredProcessingResult
     {
-      String identifier;
+      std::string identifier;
 
       EmpiricalFormula formula;
 
-      String name;
+      std::string name;
 
-      String smile;
+      std::string smile;
 
-      String inchi;
+      std::string inchi;
 
       explicit IdentifiedCompound(
-        const String& identifier,
+        const std::string& identifier,
         const EmpiricalFormula& formula = EmpiricalFormula(),
-        const String& name = "", const String& smile = "",
-        const String& inchi = "", const AppliedProcessingSteps&
+        const std::string& name = "", const std::string& smile = "",
+        const std::string& inchi = "", const AppliedProcessingSteps&
         steps_and_scores = AppliedProcessingSteps()):
         ScoredProcessingResult(steps_and_scores), identifier(identifier),
         formula(formula), name(name), smile(smile), inchi(inchi)
@@ -50,7 +50,7 @@ namespace OpenMS
       IdentifiedCompound,
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<boost::multi_index::member<
-          IdentifiedCompound, String, &IdentifiedCompound::identifier>>>
+          IdentifiedCompound, std::string, &IdentifiedCompound::identifier>>>
       > IdentifiedCompounds;
     typedef IteratorWrapper<IdentifiedCompounds::iterator> IdentifiedCompoundRef;
   }
