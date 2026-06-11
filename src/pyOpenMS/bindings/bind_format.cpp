@@ -800,7 +800,11 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
         .def("store", [](OpenMS::ImzMLFile& self, const std::string& filename, const OpenMS::MSExperiment& exp) {
             nb::gil_scoped_release release;
             self.store(filename, exp);
-        }, "filename"_a, "exp"_a, "Store an MSExperiment as imzML (.imzML + .ibd)")
+        }, "filename"_a, "exp"_a, "Store an MSExperiment as imzML (.imzML + .ibd); spectra must carry imzml:x/y MetaValues")
+        .def("store", [](OpenMS::ImzMLFile& self, const std::string& filename, const OpenMS::MSImagingExperiment& exp) {
+            nb::gil_scoped_release release;
+            self.store(filename, exp);
+        }, "filename"_a, "exp"_a, "Store an MSImagingExperiment as imzML (.imzML + .ibd); coordinates come from its MSImagingGeometry")
         .def("getOptions", [](OpenMS::ImzMLFile& self) -> OpenMS::PeakFileOptions& { return self.getOptions(); },
              nb::rv_policy::reference_internal, "Returns the options for loading")
         .def("setOptions", [](OpenMS::ImzMLFile& self, const OpenMS::PeakFileOptions& opts) { self.setOptions(opts); },

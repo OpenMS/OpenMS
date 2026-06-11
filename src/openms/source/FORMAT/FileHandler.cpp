@@ -20,7 +20,6 @@
 #include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/ImzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
@@ -1293,12 +1292,12 @@ namespace OpenMS
 
       case FileTypes::IMZML:
       {
-        ImzMLFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.store(filename, exp);
+        // imzML is a mass spectrometry imaging format; FileHandler does not store it from a
+        // flat MSExperiment. Use ImzMLFile::store with an MSImagingExperiment (geometry-driven),
+        // or ImzMLFile::store(MSExperiment) directly if the spectra already carry imzml:x/y.
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+          "imzML is a mass spectrometry imaging format; store it via ImzMLFile from an MSImagingExperiment");
       }
-      break;
 
       default:
       {

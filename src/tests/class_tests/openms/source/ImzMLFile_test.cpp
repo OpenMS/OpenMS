@@ -480,6 +480,51 @@ START_SECTION(void store round-trip continuous imzML)
 END_SECTION
 
 
+START_SECTION(void store(const std::string& filename, const MSImagingExperiment& exp))
+{
+  // Geometry-driven store: build an MSImagingExperiment whose spectra carry NO imzml:x/y
+  // MetaValues (as the BrukerTimsImagingFile path produces) — only the geometry holds the
+  // coordinates — and verify store derives them from the geometry and they round-trip.
+  MSExperiment ms;
+  for (int i = 0; i < 4; ++i)
+  {
+    MSSpectrum s;
+    Peak1D p;
+    p.setMZ(100.0 + i);
+    p.setIntensity(10.0 * (i + 1));
+    s.push_back(p);
+    ms.addSpectrum(s);
+  }
+  TEST_EQUAL(ms[0].metaValueExists("imzml:x"), false) // no per-spectrum coordinates anywhere
+
+  MSImagingGeometry geom;
+  geom.setDimensions(2, 2);
+  geom.setPixelSize(25.0, 25.0, "micrometer");
+  geom.addPixel(0, 0, 0);
+  geom.addPixel(1, 0, 1);
+  geom.addPixel(0, 1, 2);
+  geom.addPixel(1, 1, 3);
+
+  MSImagingExperiment img;
+  img.setMSExperiment(ms);
+  img.setGeometry(geom);
+
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  ImzMLFile().store(tmp_imzml, img); // must NOT throw despite missing imzml:x/y MetaValues
+
+  MSImagingExperiment reloaded;
+  ImzMLFile().load(tmp_imzml, reloaded);
+  TEST_EQUAL(reloaded.getMSExperiment().getNrSpectra(), 4)
+  TEST_EQUAL(reloaded.getGeometry().getNumberOfPixels(), 4)
+  TEST_EQUAL(reloaded.getGeometry().getWidth(), 2)
+  TEST_EQUAL(reloaded.getGeometry().getHeight(), 2)
+  TEST_EQUAL(reloaded.getGeometry().hasPixel(0, 0), true)
+  TEST_EQUAL(reloaded.getGeometry().hasPixel(1, 1), true)
+}
+END_SECTION
+
+
 START_SECTION(void store round-trip processed imzML)
 {
   MSExperiment original = loadImzMLExperiment_(imzml_processed_path);

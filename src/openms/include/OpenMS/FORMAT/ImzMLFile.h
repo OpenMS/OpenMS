@@ -190,6 +190,26 @@ namespace OpenMS
       @throws Exception::ParseError if binary array serialization fails.
     */
     void store(const std::string& filename, const MSExperiment& exp) const;
+
+    /**
+      @brief Store an MSImagingExperiment as imzML, taking pixel coordinates and grid
+             dimensions from its MSImagingGeometry (the source of truth).
+
+      Unlike the @p MSExperiment overload, this does not require @p imzml:x/y MetaValues on
+      the spectra: the spatial information is read from @p exp.getGeometry(), so any
+      MSImagingExperiment can be written — including ones built without those MetaValues
+      (e.g. from @p BrukerTimsImagingFile). Dataset-level imzML metadata already present on
+      the wrapped experiment (imaging mode, data types, scan geometry, ...) is preserved;
+      grid dimensions and pixel size are taken from the geometry.
+
+      @param[in] filename Path to the output @c .imzML file.
+      @param[in] exp      Imaging experiment to store.
+
+      @throws Exception::InvalidValue if a geometry pixel references a spectrum index outside
+              the experiment, or pixel coordinates are invalid or duplicate.
+      @throws Exception::UnableToCreateFile if output files cannot be written.
+    */
+    void store(const std::string& filename, const MSImagingExperiment& exp) const;
     //@}
 
   private:

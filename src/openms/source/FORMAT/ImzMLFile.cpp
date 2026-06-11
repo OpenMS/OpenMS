@@ -338,6 +338,40 @@ void ImzMLFile::store(const std::string& filename, const MSExperiment& exp) cons
   Internal::ImzMLWriter::store(filename, exp, options_, const_cast<ImzMLFile&>(*this));
 }
 
+void ImzMLFile::store(const std::string& filename, const MSImagingExperiment& exp) const
+{
+  // Geometry-driven store: the MSImagingGeometry is the source of truth for pixel
+  // coordinates and grid dimensions, so this works for any MSImagingExperiment — including
+  // ones built without imzml:x/y MetaValues (e.g. from BrukerTimsImagingFile). We synthesize
+  // those MetaValues from the geometry onto a copy of the experiment and reuse the writer.
+  const MSImagingGeometry& geom = exp.getGeometry();
+  MSExperiment out = exp.getMSExperiment();
+
+  for (const MSImagingGeometry::Pixel& px : geom.getPixels())
+  {
+    if (px.spectrum_index >= out.getNrSpectra())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "imaging geometry references a spectrum index outside the experiment",
+        OpenMS::StringConversions::toString(px.spectrum_index));
+    }
+    MSSpectrum& s = out[px.spectrum_index];
+    s.setMetaValue("imzml:x", static_cast<Int>(px.x) + 1); // 0-based geometry -> 1-based imzML
+    s.setMetaValue("imzml:y", static_cast<Int>(px.y) + 1);
+    if (!s.metaValueExists("imzml:z"))
+    {
+      s.setMetaValue("imzml:z", 1);
+    }
+  }
+
+  if (geom.getWidth() > 0)  { out.setMetaValue("imzml:max_count_x", static_cast<UInt>(geom.getWidth())); }
+  if (geom.getHeight() > 0) { out.setMetaValue("imzml:max_count_y", static_cast<UInt>(geom.getHeight())); }
+  if (geom.getPixelSizeX() > 0) { out.setMetaValue("imzml:pixel_size_x", geom.getPixelSizeX()); }
+  if (geom.getPixelSizeY() > 0) { out.setMetaValue("imzml:pixel_size_y", geom.getPixelSizeY()); }
+
+  store(filename, out);
+}
+
 void ImzMLFile::loadImpl_(const std::string& filename,
                           Interfaces::IMSDataConsumer* consumer,
                           MSExperiment& meta_exp,
