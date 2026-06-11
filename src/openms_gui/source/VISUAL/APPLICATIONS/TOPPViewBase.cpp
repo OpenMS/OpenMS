@@ -252,10 +252,15 @@ namespace OpenMS
 
     connect(dm_precursors_2d_, &QAction::toggled, this, &TOPPViewBase::changeLayerFlag);
 
-    projections_2d_ = tool_bar_2d_peak_->addAction(QIcon(":/projections.png"), "Show Projections", this, &TOPPViewBase::toggleProjections);
+    projections_2d_ = tool_bar_2d_peak_->addAction(QIcon(":/projections.png"), "Show Projections");
     projections_2d_->setCheckable(true);
     projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.<BR>(Hotkey: 2)");
     projections_2d_->setShortcut(Qt::Key_2);
+    // drive the *actual* projection visibility from the button's (post-toggle) checked state;
+    // the widget reports the resulting state back via projectionsVisibilityChanged (see showPlotWidgetInWindow)
+    connect(projections_2d_, &QAction::triggered, this, [this](bool checked) {
+      if (Plot2DWidget* w = getActive2DWidget()) { w->setProjectionsVisible(checked); }
+    });
 
     //--2D feature toolbar--
     tool_bar_2d_feat_ = addToolBar("2D feature tool bar");
@@ -1232,6 +1237,8 @@ namespace OpenMS
         if (w2->canvas()->getCurrentLayer().type == LayerDataBase::DT_PEAK)
         {
           dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::P_PRECURSORS));
+          // reflect this window's actual projection state (the button is shared across all 2D windows)
+          projections_2d_->setChecked(w2->projectionsVisible());
           tool_bar_2d_peak_->show();
         }
         // feature draw modes
@@ -1399,6 +1406,11 @@ namespace OpenMS
       connect(sw2, &Plot2DWidget::showSpectrumAsNew1D, selection_view_, &DataSelectionTabs::showSpectrumAsNew1D);
       connect(sw2, &Plot2DWidget::showCurrentPeaksAsIonMobility, this, &TOPPViewBase::showCurrentPeaksAsIonMobility);
       connect(sw2, &Plot2DWidget::showCurrentPeaksAs3D, this, &TOPPViewBase::showCurrentPeaksAs3D);
+      // keep the (shared) toolbar toggle button in sync with this window's projection state.
+      // Only react when the emitting window is the active one (a background window's auto-update must not flip the button).
+      connect(sw2, &Plot2DWidget::projectionsVisibilityChanged, this, [this, sw2](bool visible) {
+        if (getActive2DWidget() == sw2) { projections_2d_->setChecked(visible); }
+      });
       base_name += " (2D)";
     }
 
@@ -1885,24 +1897,6 @@ namespace OpenMS
       return nullptr;
     }
     return &(canvas->getCurrentLayer());
-  }
-
-  void TOPPViewBase::toggleProjections()
-  {
-    Plot2DWidget* w = getActive2DWidget();
-    if (w)
-    {
-      // update minimum size before
-      if (!w->projectionsVisible())
-      {
-        setMinimumSize(700, 700);
-      }
-      else
-      {
-        setMinimumSize(400, 400);
-      }
-      w->toggleProjections();
-    }
   }
 
   void TOPPViewBase::annotateWithAMS()
