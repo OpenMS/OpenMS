@@ -18,7 +18,7 @@ namespace OpenMS
   ItraqEightPlexQuantitationMethod::ItraqEightPlexQuantitationMethod() :
     IsobaricQuantitationMethod(MethodType::ITRAQ_8PLEX)
   {
-    setName("ItraqFourPlexQuantitationMethod");
+    setName("ItraqEightPlexQuantitationMethod");
 
     // create the channel map
     channels_.push_back(IsobaricChannelInformation("113", 0, "", 113.1078, {-1, -1, 1, 2}));
