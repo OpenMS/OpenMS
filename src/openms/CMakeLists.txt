@@ -240,10 +240,13 @@ install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE
 install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_CMAKE_DIR}/Modules cmake)
 file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
 
+openms_doc_path("${PROJECT_SOURCE_DIR}/include")
+
+# Add the new ONNX source files conditionally
 if(WITH_ONNX)
-    # 1. Add the new native ONNX inference source files to the OpenMS library
-    target_sources(OpenMS PRIVATE
-        "${PROJECT_SOURCE_DIR}/source/ML/PeptDeepRTInference.cpp"
-        "${PROJECT_SOURCE_DIR}/source/ML/PeptDeepMS2Inference.cpp"
-    )
+  target_sources(OpenMS PRIVATE
+    source/ML/ONNXEnvironment.cpp
+    source/ML/PeptDeepRTInference.cpp
+    source/ML/PeptDeepMS2Inference.cpp
+  )
 endif()

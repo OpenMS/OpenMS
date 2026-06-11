@@ -1,6 +1,6 @@
 # Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche $
 # $Authors: Stephan Aiche $
@@ -236,3 +236,25 @@ foreach(i ${TEST_executables})
   list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
 source_group("" FILES ${sources_VS})
+
+# --- Fetch PeptDeep ONNX models from OpenMS Archive ---
+if(WITH_ONNX)
+  set(PEPTDEEP_MODEL_URL "http://archive.openms.de/openms/models")
+  set(TEST_DATA_DIR "${CMAKE_BINARY_DIR}/src/tests/class_tests/openms/data")
+  file(MAKE_DIRECTORY ${TEST_DATA_DIR})
+
+  set(PEPTDEEP_MODELS
+      "peptdeep_ms2_dynamic.onnx"
+      "peptdeep_ms2_dynamic.onnx.data"
+      "peptdeep_rt_dynamic.onnx"
+      "peptdeep_rt_dynamic.onnx.data"
+  )
+
+  foreach(MODEL ${PEPTDEEP_MODELS})
+      if(NOT EXISTS "${TEST_DATA_DIR}/${MODEL}")
+          message(STATUS "Fetching PeptDeep model: ${MODEL} from archive...")
+          file(DOWNLOAD "${PEPTDEEP_MODEL_URL}/${MODEL}" "${TEST_DATA_DIR}/${MODEL}" SHOW_PROGRESS)
+      endif()
+  endforeach()
+endif()
+# ------------------------------------------------------

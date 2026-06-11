@@ -527,8 +527,6 @@ if(WITH_ONNX)
   # 1. Tell CMake to look for the package ONLY if the switch is ON
   find_package(ONNXRuntime REQUIRED)
 
-  # 2. Link the library
-  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ONNXRuntime::ONNXRuntime)
 endif()
 
 

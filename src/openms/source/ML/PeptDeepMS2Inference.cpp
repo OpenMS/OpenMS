@@ -2,17 +2,16 @@
 #include <OpenMS/ML/ONNXEnvironment.h>
 #include <onnxruntime_cxx_api.h>
 #include <stdexcept>
-#include <map>
 
 namespace OpenMS {
 
-static const std::map<char, int64_t> aa_vocab = {
-    {'A', 1}, {'R', 2}, {'N', 3}, {'D', 4}, {'C', 5},
-    {'Q', 6}, {'E', 7}, {'G', 8}, {'H', 9}, {'I', 10},
-    {'L', 11}, {'K', 12}, {'M', 13}, {'F', 14}, {'P', 15},
-    {'S', 16}, {'T', 17}, {'W', 18}, {'Y', 19}, {'V', 20}
-};
-
+namespace {
+    inline int64_t getAAIndex(char aa) {
+        if (aa >= 'A' && aa <= 'Z') return aa - 'A' + 1;
+        if (aa >= 'a' && aa <= 'z') return aa - 'a' + 1;
+        return 0; // 0 serves as the padding and unknown token
+    }
+}
 
 // 1. THE HIDDEN IMPLEMENTATION STRUCT
 struct PeptDeepMS2Inference::Impl
@@ -24,9 +23,16 @@ struct PeptDeepMS2Inference::Impl
     // Constructor
     Impl(const std::string& model_path)
     {
-        session_options_.SetIntraOpNumThreads(1);
-        session_options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
-        session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), model_path.c_str(), session_options_);
+        try
+        {
+            session_options_.SetIntraOpNumThreads(1);
+            session_options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+            session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), model_path.c_str(), session_options_);
+        }
+        catch (const Ort::Exception& e)
+        {
+            throw std::runtime_error(std::string("ONNX Runtime initialization failed: ") + e.what());
+        }
     }
 
     // Core Prediction Logic
@@ -43,22 +49,37 @@ struct PeptDeepMS2Inference::Impl
         aa_indices.reserve(seq_length);
 
         for (char aa : peptide_sequence) {
-            auto it = aa_vocab.find(std::toupper(aa));
-            if (it == aa_vocab.end()) {
-                throw std::invalid_argument(std::string("Unknown amino acid residue encountered: ") + aa);
-            }
-            aa_indices.push_back(it->second);
+            aa_indices.push_back(getAAIndex(aa));
         }
 
         std::vector<int64_t> aa_shape = {batch_size, seq_length};
         Ort::Value aa_tensor = Ort::Value::CreateTensor<int64_t>(
             memory_info_, const_cast<int64_t*>(aa_indices.data()), aa_indices.size(), aa_shape.data(), aa_shape.size());
 
-        int64_t mod_dim = 109;
-        std::vector<float> mod_x_data(batch_size * seq_length * mod_dim, 0.0f);
-        std::vector<int64_t> mod_x_shape = {batch_size, seq_length, mod_dim};
+        // Query mod_x dimensions dynamically instead of hardcoding 109
+        Ort::TypeInfo mod_type_info = session_->GetInputTypeInfo(1);
+        auto mod_tensor_info = mod_type_info.GetTensorTypeAndShapeInfo();
+        std::vector<int64_t> mod_shape = mod_tensor_info.GetShape();
+
+        if (mod_shape.size() < 3) {
+            throw std::runtime_error("PeptDeep MS2 model input 'mod_x' must have 3 dimensions [batch, length, features].");
+        }
+
+        mod_shape[0] = batch_size;
+        mod_shape[1] = seq_length;
+
+        int64_t total_mod_elements = 1;
+        for (int64_t dim : mod_shape) {
+            if (dim < 0) {
+                total_mod_elements *= 109; // Safeguard dynamic feature dimensions
+            } else {
+                total_mod_elements *= dim;
+            }
+        }
+
+        std::vector<float> mod_x_data(total_mod_elements, 0.0f);
         Ort::Value mod_tensor = Ort::Value::CreateTensor<float>(
-            memory_info_, mod_x_data.data(), mod_x_data.size(), mod_x_shape.data(), mod_x_shape.size());
+            memory_info_, mod_x_data.data(), mod_x_data.size(), mod_shape.data(), mod_shape.size());
 
         std::vector<float> charge_data = {charge};
         std::vector<int64_t> charge_shape = {batch_size, 1};

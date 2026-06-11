@@ -3,10 +3,17 @@
 #include <onnxruntime_cxx_api.h>
 #include <iostream>
 #include <stdexcept>
-#include <unordered_map>
 
 namespace OpenMS
 {
+    namespace {
+        inline int64_t getAAIndex(char aa) {
+            if (aa >= 'A' && aa <= 'Z') return aa - 'A' + 1;
+            if (aa >= 'a' && aa <= 'z') return aa - 'a' + 1;
+            return 0; // 0 serves as the padding and unknown token
+        }
+    }
+
     // 1. THE HIDDEN IMPLEMENTATION STRUCT
     struct PeptDeepRTInference::Impl
     {
@@ -17,31 +24,31 @@ namespace OpenMS
         // Constructor
         Impl(const std::string& model_path)
         {
-            session_options_.SetIntraOpNumThreads(1);
-            session_options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
-            session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), model_path.c_str(), session_options_);
+            try
+            {
+                session_options_.SetIntraOpNumThreads(1);
+                session_options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+                session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), model_path.c_str(), session_options_);
+            }
+            catch (const Ort::Exception& e)
+            {
+                throw std::runtime_error(std::string("ONNX Runtime initialization failed: ") + e.what());
+            }
         }
 
         // Helper Function (Moved from public class to hidden Impl)
         std::vector<int64_t> tokenizePeptides(const std::vector<std::string>& peptides, size_t& max_length)
         {
-            std::unordered_map<char, int64_t> vocab = {
-                {'A', 1}, {'R', 2}, {'N', 3}, {'D', 4}, {'C', 5},
-                {'E', 6}, {'Q', 7}, {'G', 8}, {'H', 9}, {'I', 10},
-                {'L', 11}, {'K', 12}, {'M', 13}, {'F', 14}, {'P', 15},
-                {'S', 16}, {'T', 17}, {'W', 18}, {'Y', 19}, {'V', 20}
-            };
-
             max_length = 132;
             std::vector<int64_t> flat_tokens;
             flat_tokens.reserve(peptides.size() * max_length);
 
             for (const auto& p : peptides) {
                 for (size_t i = 0; i < max_length; ++i) {
-                    if (i < p.length() && vocab.count(p[i])) {
-                        flat_tokens.push_back(vocab[p[i]]);
+                    if (i < p.length()) {
+                        flat_tokens.push_back(getAAIndex(p[i]));
                     } else {
-                        flat_tokens.push_back(0);
+                        flat_tokens.push_back(0); // Padding token
                     }
                 }
             }
@@ -61,12 +68,27 @@ namespace OpenMS
             auto mod_tensor_info = mod_type_info.GetTensorTypeAndShapeInfo();
             std::vector<int64_t> mod_shape = mod_tensor_info.GetShape();
 
+            // Guard against unexpected lower-rank shapes
+            if (mod_shape.size() < 2)
+            {
+                throw std::runtime_error("PeptDeep RT model input 'mod_x' must have at least 2 dimensions.");
+            }
+
             mod_shape[0] = peptides.size();
             mod_shape[1] = max_seq_len;
 
             int64_t total_mod_elements = 1;
-            for (int64_t dim : mod_shape) {
-                total_mod_elements *= dim;
+            for (int64_t dim : mod_shape)
+            {
+                // If a dynamic dimension (-1) is encountered, fallback to standard AlphaPeptDeep feature width
+                if (dim < 0)
+                {
+                    total_mod_elements *= 109;
+                }
+                else
+                {
+                    total_mod_elements *= dim;
+                }
             }
 
             std::vector<float> mod_x_data(total_mod_elements, 0.0f);

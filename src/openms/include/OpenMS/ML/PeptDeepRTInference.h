@@ -1,15 +1,16 @@
 #pragma once
 
+#include <OpenMS/config.h> 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-
 
 namespace OpenMS
 {
-    class __attribute__((visibility("default"))) PeptDeepRTInference
-    {
-    public:
+  class OPENMS_DLLAPI PeptDeepRTInference
+  {
+  public:
+    // ... keep the rest of your class definition exactly the same ...
         /**
          * @brief Constructor initializes the ONNX environment and loads the model
          * @param model_path Absolute path to peptdeep_rt_dynamic.onnx
