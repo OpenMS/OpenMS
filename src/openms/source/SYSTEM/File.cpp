@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/openms_data_path.h>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -18,10 +19,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
-#include <QtCore/QDir>
-#include <QtCore/QFile>
-#include <QtCore/QFileInfo>
-
+#include <algorithm>
 #include <atomic>
 #include <cerrno>
 #include <filesystem>
@@ -29,7 +27,11 @@
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName() && GetComputerNameA()
+#include <Shlwapi.h> // for PathMatchSpecA
+#include <io.h>      // for _access_s
+#pragma comment(lib, "Shlwapi.lib")
 #else
+#include <fnmatch.h>
 #include <unistd.h> // for gethostname()
 #endif
 
@@ -41,6 +43,7 @@
 #include <mach-o/dyld.h>
 #endif
 
+namespace fs = std::filesystem;
 
 using namespace std;
 
@@ -52,8 +55,21 @@ namespace OpenMS
   {
     temp_dir_ = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
     OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
-    QDir d;
-    d.mkpath(temp_dir_.toQString());
+    fs::create_directories(to_path(temp_dir_));
+  };
+
+  File::TempDir::TempDir(const std::string& base_dir, bool keep_dir)
+    : keep_dir_(keep_dir)
+  {
+    // Create a unique subdirectory under the provided base_dir
+    temp_dir_ = base_dir;
+    if (!temp_dir_.empty() && !StringUtils::hasSuffix(temp_dir_, "/"))
+    {
+      temp_dir_ += "/";
+    }
+    temp_dir_ += "OpenMSTempDir_" + File::getUniqueName() + "/";
+    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
+    fs::create_directories(to_path(temp_dir_));
   };
 
   File::TempDir::~TempDir()
@@ -67,17 +83,17 @@ namespace OpenMS
     File::removeDirRecursively(temp_dir_);
   };
 
-  const String& File::TempDir::getPath() const
+  const std::string& File::TempDir::getPath() const
   {
     return temp_dir_;
   }
 
-  String File::getExecutablePath()
+  std::string File::getExecutablePath()
   {
     // see http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe/1024937#1024937 for more OS' (if needed)
     // Use immediately evaluated lambda to protect static variable from concurrent access.
-    static const String spath = [&]() -> String {
-        String rpath = "";
+    static const std::string spath = [&]() -> std::string {
+        std::string rpath;
 
         char path[1024]; // maximum path length
 
@@ -98,11 +114,11 @@ namespace OpenMS
         if (len != -1)
 #endif
         {
-          rpath = File::path(String(path));
+          rpath = File::path(std::string(path));
           if (File::exists(rpath)) // check if directory exists
           {
             // ensure path ends with a "/", such that we can just write path + "ToolX", and to not worry about if its empty or a path.
-            rpath.ensureLastChar('/');
+            StringUtils::ensureLastChar(rpath, '/');
           }
           else
           {
@@ -118,40 +134,62 @@ namespace OpenMS
     return spath;
   }
 
-  bool File::exists(const String& file)
+  bool File::exists(const std::string& file)
   {
-    QFileInfo fi(file.toQString());
-    return fi.exists();
+    return fs::exists(to_path(file));
   }
 
-  bool File::empty(const String& file)
+  bool File::empty(const std::string& file)
   {
-    QFileInfo fi(file.toQString());
-    return !fi.exists() || fi.size() == 0;
+    std::error_code ec;
+    auto p = to_path(file);
+    if (!fs::exists(p, ec)) return true;
+    auto sz = fs::file_size(p, ec);
+    if (ec) return true; // e.g. if it is a directory
+    return sz == 0;
   }
 
-  bool File::executable(const String& file)
+  bool File::executable(const std::string& file)
   {
-    QFileInfo fi(file.toQString());
-    return fi.exists() && fi.isExecutable();
+    auto p = to_path(file);
+    std::error_code ec;
+    auto st = fs::status(p, ec);
+    if (ec || !fs::exists(st)) return false;
+#ifdef OPENMS_WINDOWSPLATFORM
+    // On Windows, all files are considered executable
+    return true;
+#else
+    auto perms = st.permissions();
+    return (perms & (fs::perms::owner_exec | fs::perms::group_exec | fs::perms::others_exec)) != fs::perms::none;
+#endif
   }
 
-  UInt64 File::fileSize(const String& file)
+  UInt64 File::fileSize(const std::string& file)
   {
     if (!File::exists(file)) return -1;
 
-    return QFile(file.toQString()).size();
+    std::error_code ec;
+    auto sz = fs::file_size(to_path(file), ec);
+    if (ec) return -1;
+    return sz;
   }
 
-  bool File::rename(const String& from, const String& to, bool overwrite_existing, bool verbose)
+  bool File::rename(const std::string& from, const std::string& to, bool overwrite_existing, bool verbose)
   {
     // check for equality
-    if (QFileInfo(from.c_str()).canonicalFilePath() == QFileInfo(to.c_str()).canonicalFilePath())
-    { // same file; no need to to anything
-      return true;
+    std::error_code ec;
+    auto canon_from = fs::canonical(to_path(from), ec);
+    if (!ec)
+    {
+      auto canon_to = fs::canonical(to_path(to), ec);
+      if (!ec && canon_from == canon_to)
+      { // same file; no need to do anything
+        return true;
+      }
     }
 
-    // existing file? Qt won't overwrite, so try to remove it:
+    // existing file? std::filesystem::rename overwrites on POSIX but not always on Windows.
+    // To be consistent, handle overwrite explicitly:
     if (overwrite_existing && exists(to) && !remove(to))
     {
       if (verbose)
@@ -161,7 +199,30 @@ namespace OpenMS
       return false;
     }
     // move the file to the actual destination:
-    if (!QFile::rename(from.toQString(), to.toQString()))
+    std::error_code rename_ec;
+    fs::rename(to_path(from), to_path(to), rename_ec);
+
+    // Cross-device rename fails with EXDEV on POSIX. Qt's QFile::rename silently
+    // copied and removed in that case; preserve that so TOPP tools can move files
+    // out of a tmp dir into a bind-mounted output (common in containers).
+    if (rename_ec == std::errc::cross_device_link)
+    {
+      std::error_code copy_ec;
+      fs::copy_file(to_path(from), to_path(to),
+                    fs::copy_options::overwrite_existing, copy_ec);
+      if (!copy_ec)
+      {
+        std::error_code remove_ec;
+        fs::remove(to_path(from), remove_ec); // best-effort source cleanup
+        rename_ec.clear();
+      }
+      else
+      {
+        rename_ec = copy_ec;
+      }
+    }
+
+    if (rename_ec)
     {
       if (verbose)
       {
@@ -172,59 +233,65 @@ namespace OpenMS
     return true;
   }
 
-  // https://stackoverflow.com/questions/2536524/copy-directory-using-qt
-  bool File::copyDirRecursively(const QString& from_dir, const QString& to_dir, File::CopyOptions option)
+  bool File::copyDirRecursively(const std::string& from_dir, const std::string& to_dir, File::CopyOptions option)
   {
-    QDir source_dir(from_dir);
-    QDir target_dir(to_dir);
+    auto source_path = to_path(from_dir);
+    auto target_path = to_path(to_dir);
 
-    QString canonical_source_dir = source_dir.canonicalPath();
-    QString canonical_target_dir = target_dir.canonicalPath();
-
-    // check canonical path
-    if (canonical_source_dir == canonical_target_dir)
+    std::error_code ec;
+    auto canonical_source = fs::canonical(source_path, ec);
+    // if source doesn't exist, canonical will fail
+    if (ec)
     {
-      OPENMS_LOG_ERROR << "Error: Could not copy  " << from_dir.toStdString() << " to " << to_dir.toStdString() << ". Same path given.\n";
+      OPENMS_LOG_ERROR << "Error: Source directory '" << from_dir << "' does not exist.\n";
       return false;
     }
 
-    // make directory if not present
-    if (!target_dir.exists())
+    // If target exists, check canonical to avoid copy onto self
+    if (fs::exists(target_path, ec))
     {
-      target_dir.mkpath(to_dir);
+      auto canonical_target = fs::canonical(target_path, ec);
+      if (!ec && canonical_source == canonical_target)
+      {
+        OPENMS_LOG_ERROR << "Error: Could not copy  " << from_dir << " to " << to_dir << ". Same path given.\n";
+        return false;
+      }
     }
 
+    // make directory if not present
+    fs::create_directories(target_path, ec);
+
     // copy folder recursively
-    QFileInfoList file_list = source_dir.entryInfoList();
-    for (const QFileInfo& entry : file_list)
+    for (const auto& entry : fs::directory_iterator(source_path))
     {
-      if (entry.fileName() == "." || entry.fileName() == "..")
+      auto target_file = target_path / entry.path().filename();
+
+      if (entry.is_directory())
       {
-        continue;
-      }
-      if (entry.isDir())
-      {
-        if (!copyDirRecursively(entry.filePath(), target_dir.filePath(entry.fileName()), option))
+        if (!copyDirRecursively(entry.path().generic_string(), target_file.generic_string(), option))
         {
           return false;
         }
       }
       else
       {
-        if (target_dir.exists(entry.fileName()))
+        if (fs::exists(target_file))
         {
           switch (option)
-            {
-              case CopyOptions::CANCEL:
-                return false;
-              case CopyOptions::SKIP:
-                OPENMS_LOG_WARN << "The file " << entry.fileName().toStdString() << " was skipped.\n";
-                continue;
-              case CopyOptions::OVERWRITE:
-                target_dir.remove(entry.fileName());
-            }
+          {
+            case CopyOptions::CANCEL:
+              return false;
+            case CopyOptions::SKIP:
+              OPENMS_LOG_WARN << "The file " << entry.path().filename().string() << " was skipped.\n";
+              continue;
+            case CopyOptions::OVERWRITE:
+              fs::remove(target_file, ec);
+              break;
+          }
         }
-        if (!QFile::copy(entry.filePath(), target_dir.filePath(entry.fileName())))
+        std::error_code copy_ec;
+        fs::copy_file(entry.path(), target_file, copy_ec);
+        if (copy_ec)
         {
           return false;
         }
@@ -233,12 +300,13 @@ namespace OpenMS
     return true;
   }
 
-  bool File::copy(const String& from, const String& to)
+  bool File::copy(const std::string& from, const std::string& to)
   {
-    return QFile::copy(from.toQString(), to.toQString());
+    std::error_code ec;
+    return fs::copy_file(to_path(from), to_path(to), ec);
   }
 
-  bool File::remove(const String& file)
+  bool File::remove(const std::string& file)
   {
     if (!exists(file))
     {
@@ -251,124 +319,139 @@ namespace OpenMS
     return true;
   }
 
-  bool File::removeDir(const QString& dir_name)
+  bool File::removeDir(const std::string& dir_name)
   {
-    bool result = true;
-    QDir dir(dir_name);
-
-    if (dir.exists(dir_name))
+    std::error_code ec;
+    fs::remove_all(to_path(dir_name), ec); // recursive, matching original Qt behavior
+    if (ec)
     {
-      Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst))
-        {
-          if (info.isDir())
-          {
-            result = removeDir(info.absoluteFilePath());
-          }
-          else
-          {
-            result = QFile::remove(info.absoluteFilePath());
-          }
-          if (!result)
-          {
-            return result;
-          }
-        }
-      result = dir.rmdir(dir_name);
+      std::cerr << "Could not remove directory " << dir_name << ": " << ec.message() << std::endl;
+      return false;
     }
+    return true;
+  }
+
+  bool File::makeDir(const std::string& dir_name)
+  {
+    std::error_code ec;
+    fs::create_directories(to_path(dir_name), ec);
+    // create_directories returns false if the directory already existed, but that is not an error for us
+    return !ec;
+  }
+
+  bool File::removeDirRecursively(const std::string& dir_name)
+  {
+    std::error_code ec;
+    fs::remove_all(to_path(dir_name), ec);
+    if (ec)
+    {
+      std::cerr << "Could not remove directory " << dir_name << ": " << ec.message() << std::endl;
+      return false;
+    }
+    return true;
+  }
+
+  std::string File::absolutePath(const std::string& file)
+  {
+    if (file.empty()) return fs::current_path().generic_string();
+#ifdef OPENMS_WINDOWSPLATFORM
+    // On Windows, paths starting with '/' are treated as absolute by Qt
+    // but fs::absolute() prepends the current drive letter. Preserve Qt behavior.
+    if (file[0] == '/') return file;
+#endif
+    return fs::absolute(to_path(file)).generic_string();
+  }
+
+  std::string File::basename(const std::string& file)
+  { // using well-defined overflow of unsigned ints here if path separator is not found
+    return StringUtils::substr(file, file.find_last_of("\\/") + 1);
+  }
+
+  std::string File::stemName(const std::string& file)
+  {
+    return FileHandler::stripExtension(basename(file));
+  }
+
+  std::string File::extension(const std::string& file)
+  {
+    std::string base = basename(file);
+    std::string stem = FileHandler::stripExtension(base);
+    if (stem.size() >= base.size())
+    {
+      return ""; // no extension (stripExtension returned the same or longer string)
+    }
+    return StringUtils::substr(base, stem.size()); // everything after the stem, including leading '.'
+  }
+
+  StringList File::listDirectories(const std::string& dir)
+  {
+    StringList result;
+    auto dir_path = to_path(dir);
+    std::error_code ec;
+    if (!fs::is_directory(dir_path, ec)) return result;
+
+    for (fs::directory_iterator it(dir_path, ec), end; !ec && it != end; it.increment(ec))
+    {
+      if (it->is_directory(ec))
+      {
+        result.push_back(fs::absolute(it->path(), ec).generic_string());
+      }
+    }
+    if (ec) return {};
+    std::sort(result.begin(), result.end());
     return result;
   }
 
-  bool File::makeDir(const String& dir_name)
-  {
-    QDir dir;
-    return dir.mkpath(dir_name.toQString());
-  }
-
-  bool File::removeDirRecursively(const String& dir_name)
-  {
-    bool fail = false;
-    QString path = dir_name.toQString();
-    QDir dir(path);
-    QStringList files = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
-    foreach(const QString &file_name, files)
-    {
-      if (!dir.remove(file_name))
-      {
-        OPENMS_LOG_WARN << "Could not remove file " << String(file_name) << "!\n";
-        fail = true;
-      }
-    }
-    QStringList contained_dirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-    foreach(const QString &contained_dir, contained_dirs)
-    {
-      if (!removeDirRecursively(path + QDir::separator() + contained_dir))
-      {
-        fail = true;
-      }
-    }
-
-    QDir parent_dir(path);
-    if (parent_dir.cdUp())
-    {
-      if (!parent_dir.rmdir(path))
-      {
-        std::cerr << "Could not remove directory " << String(dir.dirName()) << "!" << std::endl;
-        fail = true;
-      }
-    }
-
-    return !fail;
-  }
-
-  String File::absolutePath(const String& file)
-  {
-    QFileInfo fi(file.toQString());
-    return fi.absoluteFilePath();
-  }
-
-  String File::basename(const String& file)
-  { // using well-defined overflow of unsigned ints here if path separator is not found
-    return file.substr(file.find_last_of("\\/") + 1);
-  }
-
-  String File::path(const String& file)
+  std::string File::path(const std::string& file)
   {
     size_t pos = file.find_last_of("\\/");
     // do NOT return an empty string, because this leads to issues when in generic code you do:
-    // String new_path = path("a.txt") + '/' + basename("a.txt");
+    // std::string new_path = path("a.txt") + '/' + basename("a.txt");
     // , as this would lead to "/a.txt", i.e. create a wrong absolute path from a relative name
-    String no_path = ".";
-    return pos == string::npos ? no_path : file.substr(0, pos);
+    std::string no_path = ".";
+    return pos == string::npos ? no_path : StringUtils::substr(file, 0, pos);
   }
 
-  bool File::readable(const String& file)
+  bool File::readable(const std::string& file)
   {
-    QFileInfo fi(file.toQString());
-    return fi.exists() && fi.isReadable();
+    auto p = to_path(file);
+    std::error_code ec;
+    if (!fs::exists(p, ec)) return false;
+#ifdef OPENMS_WINDOWSPLATFORM
+    return _access_s(file.c_str(), 4) == 0; // 4 = read permission
+#else
+    return access(file.c_str(), R_OK) == 0;
+#endif
   }
 
-  bool File::writable(const String& file)
+  bool File::writable(const std::string& file)
   {
-    QFileInfo fi(file.toQString());
+    auto p = to_path(file);
+    std::error_code ec;
 
-    bool tmp = false;
-    if (fi.exists())
+    if (fs::exists(p, ec))
     {
-      tmp = fi.isWritable();
+#ifdef OPENMS_WINDOWSPLATFORM
+      return _access_s(file.c_str(), 2) == 0; // 2 = write permission
+#else
+      return access(file.c_str(), W_OK) == 0;
+#endif
     }
     else
     {
-      QFile f;
-      f.setFileName(file.toQString());
-      f.open(QIODevice::WriteOnly);
-      tmp = f.isWritable();
-      f.remove();
+      // File does not exist: probe by trying to create it
+      std::ofstream f(file.c_str());
+      bool ok = f.is_open() && f.good();
+      f.close();
+      if (ok)
+      {
+        std::remove(file.c_str());
+      }
+      return ok;
     }
-
-    return tmp;
   }
 
-  String File::find(const String& filename, StringList directories)
+  std::string File::find(const std::string& filename, StringList directories)
   {
     // maybe we do not need to do anything?!
     // This check is required since calling File::find(File::find("CHEMISTRY/unimod.xml")) will otherwise fail
@@ -377,11 +460,11 @@ namespace OpenMS
     {
       return filename;
     }
-    String filename_new = filename;
+    std::string filename_new = filename;
 
     // empty string cannot be found, so throw Exception.
     // The code below would return success on empty string, since a path is prepended and thus the location exists
-    if (filename_new.trim().empty())
+    if (StringUtils::trim(filename_new).empty())
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
@@ -389,27 +472,27 @@ namespace OpenMS
     directories.push_back(getOpenMSDataPath());
 
     //add path suffix to all specified directories
-    String path = File::path(filename);
+    std::string path = File::path(filename);
     if (!path.empty())
     {
-      for (String& str : directories)
+      for (std::string& str : directories)
       {
-        str.ensureLastChar('/');
+        StringUtils::ensureLastChar(str, '/');
         str += path;
       }
       filename_new = File::basename(filename);
     }
 
     //look up file
-    for (const String& str : directories)
+    for (const std::string& str : directories)
     {
-      String loc = str;
-      loc.ensureLastChar('/');
+      std::string loc = str;
+      StringUtils::ensureLastChar(loc, '/');
       loc = loc + filename_new;
 
       if (exists(loc))
       {
-        return String(QDir::cleanPath(loc.toQString()));
+        return to_path(loc).lexically_normal().generic_string();
       }
     }
 
@@ -417,62 +500,59 @@ namespace OpenMS
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
   }
 
-  bool File::fileList(const String& dir, const String& file_pattern, StringList& output, bool full_path)
+  bool File::fileList(const std::string& dir, const std::string& file_pattern, StringList& output, bool full_path)
   {
-    QDir d(dir.toQString(), file_pattern.toQString(), QDir::Name, QDir::Files);
-    QFileInfoList list = d.entryInfoList();
-
-    //clear and check if empty
     output.clear();
-    if (list.empty())
+    auto dir_path = to_path(dir);
+    std::error_code ec;
+    if (!fs::is_directory(dir_path, ec)) return false;
+
+    for (const auto& entry : fs::directory_iterator(dir_path, ec))
     {
-      return false;
+      if (!entry.is_regular_file()) continue;
+      std::string fname = entry.path().filename().string();
+#ifdef OPENMS_WINDOWSPLATFORM
+      if (!PathMatchSpecA(fname.c_str(), file_pattern.c_str())) continue;
+#else
+      if (fnmatch(file_pattern.c_str(), fname.c_str(), 0) != 0) continue;
+#endif
+      output.push_back(full_path ? entry.path().generic_string() : fname);
     }
-
-    //resize output
-    output.resize(list.size());
-
-    //fill output
-    UInt i = 0;
-    for (QFileInfoList::const_iterator it = list.constBegin(); it != list.constEnd(); ++it)
-    {
-      output[i++] = full_path ? it->filePath() : it->fileName();
-    }
-
-    return true;
+    std::sort(output.begin(), output.end());
+    return !output.empty();
   }
 
-  String File::findDoc(const String& filename)
+  std::string File::findDoc(const std::string& filename)
   {
     StringList search_dirs;
-    search_dirs.push_back(String(OPENMS_BINARY_PATH) + "/../../doc/");
+    search_dirs.push_back(std::string(OPENMS_BINARY_PATH) + "/../../doc/");
     // source path is host/openms so doc is ../doc
-    search_dirs.push_back(String(OPENMS_SOURCE_PATH) + "/../../doc/");
+    search_dirs.push_back(std::string(OPENMS_SOURCE_PATH) + "/../../doc/");
     search_dirs.push_back(getOpenMSDataPath() + "/../../doc/");
     search_dirs.push_back(OPENMS_DOC_PATH);
     search_dirs.push_back(OPENMS_INSTALL_DOC_PATH);
 
     // needed for OpenMS Mac OS X packages where documentation is stored in <package-root>/Documentation
 #if defined(__APPLE__)
-    search_dirs.push_back(String(OPENMS_BINARY_PATH) + "/Documentation/");
-    search_dirs.push_back(String(OPENMS_SOURCE_PATH) + "/Documentation/");
+    search_dirs.push_back(StringUtils::toStr(OPENMS_BINARY_PATH) + "/Documentation/");
+    search_dirs.push_back(StringUtils::toStr(OPENMS_SOURCE_PATH) + "/Documentation/");
     search_dirs.push_back(getOpenMSDataPath() + "/../../Documentation/");
 #endif
 
     return File::find(filename, search_dirs);
   }
 
-  String File::getUniqueName(bool include_hostname)
+  std::string File::getUniqueName(bool include_hostname)
   {
     DateTime now = DateTime::now();
-    String pid;
+    std::string pid;
 #ifdef OPENMS_WINDOWSPLATFORM
-    pid = (String)GetCurrentProcessId();
+    pid = StringUtils::toStr(static_cast<long long>(GetCurrentProcessId()));
 #else
-    pid = (String)getpid();
+    pid = StringUtils::toStr(static_cast<long long>(getpid()));
 #endif
     static std::atomic_int number = 0;
-    String hostname_str;
+    std::string hostname_str;
     if (include_hostname)
     {
       char hbuf[256] = {};
@@ -492,20 +572,22 @@ namespace OpenMS
 #endif
       if (hbuf[0] != '\0')
       {
-        hostname_str = String(hbuf) + "_";
+        hostname_str =std::string(hbuf) + "_";
       }
     }
-    return now.getDate().remove('-') + "_" + now.getTime().remove(':') + "_" + hostname_str + pid + "_" + (++number);
+    auto d = now.getDate(); StringUtils::remove(d, '-');
+    auto t = now.getTime(); StringUtils::remove(t, ':');
+    return d + "_" + t + "_" + hostname_str + pid + "_" + (++number);
   }
 
-  String File::getOpenMSDataPath()
+  std::string File::getOpenMSDataPath()
   {
     // Use immediately evaluated lambda to protect static variable from concurrent access.
-    static const String path = [&]() -> String {
-      String path;
+    static const std::string path = [&]() -> std::string {
+      std::string path;
       bool path_checked = false;
 
-      String found_path_from;
+      std::string found_path_from;
       bool from_env(false);
       if (getenv("OPENMS_DATA_PATH") != nullptr)
       {
@@ -559,20 +641,20 @@ namespace OpenMS
       }
 
       // make its a proper path:
-      path = path.substitute("\\", "/").ensureLastChar('/').chop(1);
+      StringUtils::substitute(path, "\\", "/"); StringUtils::ensureLastChar(path, '/'); path = StringUtils::chop(path, 1);
 
       if (!path_checked) // - now we're in big trouble as './share' is not were its supposed to be...
       { // - do NOT use OPENMS_LOG_ERROR or similar for the messages below! (it might not even usable at this point)
         std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
         if (from_env)
         {
-          String p = getenv("OPENMS_DATA_PATH");
+          std::string p = getenv("OPENMS_DATA_PATH");
           std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << p << "', which is incorrect!\n";
         }
   #ifdef OPENMS_WINDOWSPLATFORM
-        String share_dir = R"(c:\Program Files\OpenMS\share\OpenMS)";
+        std::string share_dir = R"(c:\Program Files\OpenMS\share\OpenMS)";
   #else
-        String share_dir = "/usr/share/OpenMS";
+        std::string share_dir = "/usr/share/OpenMS";
   #endif
         std::cerr << "  To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').\n";
         std::cerr << "Exiting now.\n";
@@ -584,62 +666,67 @@ namespace OpenMS
     return path;
   }
 
-  bool File::isOpenMSDataPath_(const String& path)
+  bool File::isOpenMSDataPath_(const std::string& path)
   {
     bool found = exists(path + "/CHEMISTRY/unimod.xml");
     return found;
   }
 
-  bool File::isDirectory(const String& path)
+  bool File::isDirectory(const std::string& path)
   {
-    QFileInfo fi(path.toQString());
-    return fi.isDir();
+    return fs::is_directory(to_path(path));
   }
 
-  String File::getTempDirectory()
+  std::string File::getTempDirectory()
   {
     Param p = getSystemParameters();
-    String dir;
+    std::string dir;
     if (getenv("OPENMS_TMPDIR") != nullptr)
     {
       dir = getenv("OPENMS_TMPDIR");
     }
-    else if (p.exists("temp_dir") && !String(p.getValue("temp_dir").toString()).trim().empty())
+    else if (p.exists("temp_dir") && !StringUtils::trimmed(p.getValue("temp_dir").toString()).empty())
     {
       dir = p.getValue("temp_dir").toString();
     }
     else
     {
-      dir = String(QDir::tempPath());
+      dir = fs::temp_directory_path().generic_string();
     }
     return dir;
   }
 
   /// The current OpenMS user data path (for result files)
-  String File::getUserDirectory()
+  std::string File::getUserDirectory()
   {
     Param p = getSystemParameters();
-    String dir;
+    std::string dir;
     if (getenv("OPENMS_HOME_PATH") != nullptr)
     {
       dir = getenv("OPENMS_HOME_PATH");
     }
-    else if (p.exists("home_dir") && !String(p.getValue("home_dir").toString()).trim().empty())
+    else if (p.exists("home_dir") && !StringUtils::trimmed(p.getValue("home_dir").toString()).empty())
     {
       dir = p.getValue("home_dir").toString();
     }
     else
     {
-      dir = String(QDir::homePath());
+#ifdef OPENMS_WINDOWSPLATFORM
+      const char* home = getenv("USERPROFILE");
+#else
+      const char* home = getenv("HOME");
+#endif
+      dir = home ? std::string(home) : std::string(".");
+      StringUtils::substitute(dir, '\\', '/');
     }
-    dir.ensureLastChar('/');
+    StringUtils::ensureLastChar(dir, '/');
     return dir;
   }
 
-  String File::findDatabase(const String& db_name)
+  std::string File::findDatabase(const std::string& db_name)
   {
     Param sys_p = getSystemParameters();
-    String full_db_name;
+    std::string full_db_name;
     try
     {
       full_db_name = find(db_name, ListUtils::toStringList<std::string>(sys_p.getValue("id_db_dir")));
@@ -654,9 +741,9 @@ namespace OpenMS
     return full_db_name;
   }
 
-  String File::getOpenMSHomePath()
+  std::string File::getOpenMSHomePath()
   {
-    String home_path;
+    std::string home_path;
     // set path where OpenMS.ini is found from environment or use default
     if (getenv("OPENMS_HOME_PATH") != nullptr)
     {
@@ -664,20 +751,26 @@ namespace OpenMS
     }
     else
     {
-      home_path = String(QDir::homePath());
+#ifdef OPENMS_WINDOWSPLATFORM
+      const char* home = getenv("USERPROFILE");
+#else
+      const char* home = getenv("HOME");
+#endif
+      home_path = home ? std::string(home) : std::string(".");
+      StringUtils::substitute(home_path, '\\', '/');
     }
     return home_path;
   }
 
   Param File::getSystemParameters()
   {
-    String home_path = File::getOpenMSHomePath();
-    String filename;
+    std::string home_path = File::getOpenMSHomePath();
+    std::string filename;
     //Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems
     #ifdef __unix__
       if (getenv("XDG_CONFIG_HOME"))
       {
-        filename = String(getenv("XDG_CONFIG_HOME")) + "/OpenMS/OpenMS.ini";
+        filename =std::string(getenv("XDG_CONFIG_HOME")) + "/OpenMS/OpenMS.ini";
       }
       else
       {
@@ -725,7 +818,7 @@ namespace OpenMS
     p.setValue("home_dir", ""); // only active when user enters something in this value
     p.setValue("temp_dir", ""); // only active when user enters something in this value
     p.setValue("id_db_dir", std::vector<std::string>(),
-               String("Default directory for FASTA and psq files used as databased for id engines. ") + \
+               std::string("Default directory for FASTA and psq files used as databased for id engines. ") + \
                "This allows you to specify just the filename of the DB in the " + \
                "respective TOPP tool, and the database will be searched in the directories specified here " + \
                ""); // only active when user enters something in this value
@@ -735,11 +828,11 @@ namespace OpenMS
   }
 
 #ifdef OPENMS_WINDOWSPLATFORM
-  StringList File::executableExtensions_(const String& ext)
+  StringList File::executableExtensions_(const std::string& ext)
   {
     // check if content of env-var %PATHEXT% makes sense
     StringList exts;
-    ext.split(';', exts);
+    StringUtils::split(ext, ';', exts);
     // sanity check
     if (ListUtils::contains(exts, ".exe", ListUtils::CASE::INSENSITIVE)) return exts;
     // .. use fallback otherwise
@@ -747,21 +840,21 @@ namespace OpenMS
   }
 #endif
 
-  StringList File::getPathLocations(const String& path)
+  StringList File::getPathLocations(const std::string& path)
   {
     // split by ":" or ";", depending on platform
     StringList paths;
 #ifdef OPENMS_WINDOWSPLATFORM
-    path.split(';', paths);
+    StringUtils::split(path, ';', paths);
 #else
-    path.split(':', paths);
+    StringUtils::split(path, ':', paths);
 #endif
     // ensure it ends with '/'
-    for (String& p : paths) p.substitute('\\', '/').ensureLastChar('/');
+    for (std::string& p : paths) { StringUtils::substitute(p, '\\', '/'); StringUtils::ensureLastChar(p, '/'); }
     return paths;
   }
 
-  bool File::findExecutable(OpenMS::String& exe_filename)
+  bool File::findExecutable(std::string& exe_filename)
   {
     if (exists(exe_filename) && !isDirectory(exe_filename))
     {
@@ -771,17 +864,17 @@ namespace OpenMS
     StringList exe_filenames = { exe_filename };
 #ifdef OPENMS_WINDOWSPLATFORM
     // try extensions like .exe on Windows
-    if (!exe_filename.has('.'))
+    if (!StringUtils::has(exe_filename, '.'))
     {
       StringList exts = executableExtensions_();
-      for (String& ext : exts) ext = exe_filename + ext;
+      for (std::string& ext : exts) ext = exe_filename + ext;
       exe_filenames = exts;
     }
 #endif
     // try all filenames (on Windows its potentially more than one) in each path...
-    for (const String& p : paths)
+    for (const std::string& p : paths)
     {
-      for (const String& fn : exe_filenames)
+      for (const std::string& fn : exe_filenames)
       {
         if (exists(p + fn) && !isDirectory(p + fn))
         {
@@ -793,13 +886,13 @@ namespace OpenMS
     return false;
   }
 
-  String File::findSiblingTOPPExecutable(const OpenMS::String& toolName)
+  std::string File::findSiblingTOPPExecutable(const std::string& toolName)
   {
     // we first try the executablePath
-    String exec = File::getExecutablePath() + toolName;
+    std::string exec = File::getExecutablePath() + toolName;
 
 #if OPENMS_WINDOWSPLATFORM
-    if (!exec.hasSuffix(".exe")) exec += ".exe";
+    if (!StringUtils::hasSuffix(exec, ".exe")) exec += ".exe";
 #endif
 
     if (File::exists(exec))
@@ -824,7 +917,7 @@ namespace OpenMS
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, toolName);
   }
 
-  String File::getTemporaryFile(const String& alternative_file)
+  std::string File::getTemporaryFile(const std::string& alternative_file)
   {
     // take no action
     if (!alternative_file.empty())
@@ -841,9 +934,9 @@ namespace OpenMS
   {
   }
 
-  String File::TemporaryFiles_::newFile()
+  std::string File::TemporaryFiles_::newFile()
   {
-    String s = getTempDirectory().ensureLastChar('/') + getUniqueName();
+    std::string s = getTempDirectory(); StringUtils::ensureLastChar(s, '/'); s += getUniqueName();
     std::lock_guard<std::mutex> _(mtx_);
     filenames_.push_back(s);
     // do NOT return filenames_.back() by ref, since another thread might resize the vector and invalidate the reference!
@@ -862,9 +955,9 @@ namespace OpenMS
     }
   }
 
-  File::MatchingFileListsStatus File::validateMatchingFileNames(const StringList& sl1, 
-                                                        const StringList& sl2, 
-                                                        bool basename, 
+  File::MatchingFileListsStatus File::validateMatchingFileNames(const StringList& sl1,
+                                                        const StringList& sl2,
+                                                        bool basename,
                                                         bool ignore_extension)
   {
       // Different counts means different sets
@@ -873,15 +966,15 @@ namespace OpenMS
           return MatchingFileListsStatus::SET_MISMATCH;
       }
 
-      set<String> sl1_set;
-      set<String> sl2_set;
+      set<std::string> sl1_set;
+      set<std::string> sl2_set;
       bool different_name_at_index = false;
 
       // Process and compare each filename
       for (size_t i = 0; i != sl1.size(); ++i)
       {
-          String sl1_name = sl1[i];
-          String sl2_name = sl2[i];
+          std::string sl1_name = sl1[i];
+          std::string sl2_name = sl2[i];
 
           if (basename)
           {
@@ -909,8 +1002,8 @@ namespace OpenMS
       // Check if it's an order mismatch or complete mismatch
       if (same_set)
       {
-          return different_name_at_index ? 
-                MatchingFileListsStatus::ORDER_MISMATCH : 
+          return different_name_at_index ?
+                MatchingFileListsStatus::ORDER_MISMATCH :
                 MatchingFileListsStatus::MATCH;
       }
 

@@ -40,7 +40,7 @@ using namespace std;
             <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML or Bruker .d format)</td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
         </tr>
     </table>
@@ -76,13 +76,20 @@ class SimpleSearchEngine :
     void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "input file ");
-      setValidFormats_("in", ListUtils::create<String>("mzML"));
+      setValidFormats_("in", { "mzML",
+#ifdef WITH_OPENTIMS
+        "d",
+#endif
+#ifdef WITH_THERMO_RAW
+        "raw",
+#endif
+      });
 
       registerInputFile_("database", "<file>", "", "input file ");
-      setValidFormats_("database", ListUtils::create<String>("fasta"));
+      setValidFormats_("database", ListUtils::create<std::string>("fasta"));
 
       registerOutputFile_("out", "<file>", "", "output file ");
-      setValidFormats_("out", ListUtils::create<String>("idXML"));
+      setValidFormats_("out", ListUtils::create<std::string>("idXML"));
 
       // put search algorithm parameters at Search: subtree of parameters
       Param search_algo_params_with_subsection;
@@ -92,9 +99,9 @@ class SimpleSearchEngine :
 
     ExitCodes main_(int, const char**) override
     {
-      String in = getStringOption_("in");
-      String database = getStringOption_("database");
-      String out = getStringOption_("out");
+      std::string in = getStringOption_("in");
+      std::string database = getStringOption_("database");
+      std::string out = getStringOption_("out");
 
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);

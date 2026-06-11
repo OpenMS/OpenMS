@@ -10,9 +10,10 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CONCEPT/CommonEnums.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <array>
 #include <functional>
@@ -197,7 +198,7 @@ public:
     };
 
     /// returns the ion name given as a residue type
-    static String getResidueTypeName(const ResidueType res_type);
+    static std::string getResidueTypeName(const ResidueType res_type);
 
     /** @name Constructors
     */
@@ -213,9 +214,9 @@ public:
     Residue(Residue&&) = default;
            
     // Detailed constructor 
-    Residue(const String& name,
-            const String& three_letter_code,
-            const String& one_letter_code,
+    Residue(const std::string& name,
+            const std::string& three_letter_code,
+            const std::string& one_letter_code,
             const EmpiricalFormula& formula,
             double pka = 0,
             double pkb = 0,
@@ -223,7 +224,7 @@ public:
             double gb_sc = 0,
             double gb_bb_l = 0,
             double gb_bb_r = 0,
-            const std::set<String>& synonyms = std::set<String>());
+            const std::set<std::string>& synonyms = std::set<std::string>());
 
     /// Destructor
     virtual ~Residue();
@@ -244,31 +245,31 @@ public:
     */
     //@{
     /// sets the name of the residue
-    void setName(const String& name);
+    void setName(const std::string& name);
 
     /// returns the name of the residue
-    const String& getName() const;
+    const std::string& getName() const;
 
     /// sets the synonyms
-    void setSynonyms(const std::set<String>& synonyms);
+    void setSynonyms(const std::set<std::string>& synonyms);
 
     /// adds a synonym
-    void addSynonym(const String& synonym);
+    void addSynonym(const std::string& synonym);
 
     /// returns the synonyms
-    const std::set<String>& getSynonyms() const;
+    const std::set<std::string>& getSynonyms() const;
 
-    /// sets the name of the residue as three letter code (String of size 3)
-    void setThreeLetterCode(const String& three_letter_code);
+    /// sets the name of the residue as three letter code (std::string of size 3)
+    void setThreeLetterCode(const std::string& three_letter_code);
 
-    /// returns the name of the residue as three letter code (String of size 3)
-    const String& getThreeLetterCode() const;
+    /// returns the name of the residue as three letter code (std::string of size 3)
+    const std::string& getThreeLetterCode() const;
 
-    /// sets the name as one letter code (String of size 1)
-    void setOneLetterCode(const String& one_letter_code);
+    /// sets the name as one letter code (std::string of size 1)
+    void setOneLetterCode(const std::string& one_letter_code);
 
-    /// returns the name as one letter code (String of size 1)
-    const String& getOneLetterCode() const;
+    /// returns the name as one letter code (std::string of size 1)
+    const std::string& getOneLetterCode() const;
 
     /// adds a neutral loss formula
     void addLossFormula(const EmpiricalFormula&);
@@ -289,22 +290,22 @@ public:
     const std::vector<EmpiricalFormula>& getNTermLossFormulas() const;
 
     /// set the neutral loss molecule name
-    void setLossNames(const std::vector<String>& name);
+    void setLossNames(const std::vector<std::string>& name);
 
     /// sets the N-terminal loss names
-    void setNTermLossNames(const std::vector<String>& name);
+    void setNTermLossNames(const std::vector<std::string>& name);
 
     /// add neutral loss molecule name
-    void addLossName(const String& name);
+    void addLossName(const std::string& name);
 
     /// adds a N-terminal loss name
-    void addNTermLossName(const String& name);
+    void addNTermLossName(const std::string& name);
 
     /// gets neutral loss name (if there is one, else returns an empty string)
-    const std::vector<String>& getLossNames() const;
+    const std::vector<std::string>& getLossNames() const;
 
     /// returns the N-terminal loss names
-    const std::vector<String>& getNTermLossNames() const;
+    const std::vector<std::string>& getNTermLossNames() const;
 
     /// set empirical formula of the residue (must be full, with N and C-terminus)
     void setFormula(const EmpiricalFormula& formula);
@@ -328,7 +329,7 @@ public:
     const ResidueModification* getModification() const;
 
     /// sets the modification by name; the mod should be present in ModificationsDB
-    void setModification(const String& name);
+    void setModification(const std::string& name);
 
     /// sets the modification by existing ResMod (make sure it exists in ModificationsDB)
     void setModification(const ResidueModification* mod);
@@ -342,7 +343,7 @@ public:
     void setModificationByDiffMonoMass(double diffMonoMass);
     
     /// returns the name (ID) of the modification, or an empty string if none is set
-    const String& getModificationName() const;
+    const std::string& getModificationName() const;
 
     /// sets the low mass marker ions as a vector of formulas
     void setLowMassIons(const std::vector<EmpiricalFormula>& low_mass_ions);
@@ -351,13 +352,13 @@ public:
     const std::vector<EmpiricalFormula>& getLowMassIons() const;
 
     /// sets the residue sets the amino acid is contained in (e.g. Natural20)
-    void setResidueSets(const std::set<String>& residues_sets);
+    void setResidueSets(const std::set<std::string>& residues_sets);
 
     /// adds a residue set to the residue sets (e.g. Natural20)
-    void addResidueSet(const String& residue_sets);
+    void addResidueSet(const std::string& residue_sets);
 
     /// returns the residue sets this residue is contained in (e.g. Natural20)
-    const std::set<String>& getResidueSets() const;
+    const std::set<std::string>& getResidueSets() const;
 
     /// returns the pka of the residue
     double getPka() const;
@@ -424,7 +425,7 @@ public:
     bool isModified() const;
 
     /// true if the residue is contained in the set
-    bool isInResidueSet(const String& residue_set);
+    bool isInResidueSet(const std::string& residue_set);
     //@}
 
     /// helper for mapping residue types to letters for Text annotations and labels
@@ -432,21 +433,32 @@ public:
 
     /// Write as Origin+Modification, e.g. M(Oxidation), or X[945.34] or N[+14.54] for user-defined mods.
     /// This requires the Residue to have a valid OneLetterCode and an optional (but valid) ResidueModification (see ResidueModification::toString())
-    String toString() const;
+    std::string toString() const;
 
     /// ostream iterator to write the residue to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
+    
+    /** 
+    @brief returns the hydrophobicity value of the residue
 
+    The sources for the hydrophobicity scales are here: @ref HydrophobicityProfile
+
+    @param scale which scale to use for the hydrophobicity value
+    @return hydrophobicity value of the residue
+    @throw Exception::InvalidValue Throws an exception if the residue is not one of the 20 common amino acids or when an unknown scale is used
+    */
+    double getHydrophobicity(const HydrophobicityScaleMethod scale) const;
+ 
 protected:
 
     /// the name of the residue
-    String name_ = "unknown";
+    std::string name_ = "unknown";
 
-    std::set<String> synonyms_;
+    std::set<std::string> synonyms_;
 
-    String three_letter_code_;
+    std::string three_letter_code_;
 
-    String one_letter_code_;
+    std::string one_letter_code_;
 
     EmpiricalFormula formula_;
 
@@ -460,11 +472,11 @@ protected:
     const ResidueModification* modification_ = nullptr;
 
     // loss
-    std::vector<String> loss_names_;
+    std::vector<std::string> loss_names_;
 
     std::vector<EmpiricalFormula> loss_formulas_;
 
-    std::vector<String> NTerm_loss_names_;
+    std::vector<std::string> NTerm_loss_names_;
 
     std::vector<EmpiricalFormula> NTerm_loss_formulas_;
 
@@ -490,7 +502,7 @@ protected:
     double gb_bb_r_ = 0;
 
     /// residue sets this amino acid is contained in
-    std::set<String> residue_sets_;
+    std::set<std::string> residue_sets_;
 
     // pre-calculated residue type delta weights for more efficient weight calculation
     static const double internal_to_full_monoweight_;
@@ -525,7 +537,7 @@ namespace std
       // Hash name_
       OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(r.getName()));
 
-      // Hash synonyms_ (std::set<String>)
+      // Hash synonyms_ (std::set<std::string>)
       for (const auto& syn : r.getSynonyms())
       {
         OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(syn));
@@ -549,7 +561,7 @@ namespace std
       // Hash modification_ (pointer comparison in operator==)
       OpenMS::hash_combine(seed, OpenMS::hash_int(reinterpret_cast<std::uintptr_t>(r.getModification())));
 
-      // Hash loss_names_ (std::vector<String>)
+      // Hash loss_names_ (std::vector<std::string>)
       for (const auto& name : r.getLossNames())
       {
         OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(name));
@@ -561,7 +573,7 @@ namespace std
         OpenMS::hash_combine(seed, std::hash<OpenMS::EmpiricalFormula>{}(formula));
       }
 
-      // Hash NTerm_loss_names_ (std::vector<String>)
+      // Hash NTerm_loss_names_ (std::vector<std::string>)
       for (const auto& name : r.getNTermLossNames())
       {
         OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(name));
@@ -597,7 +609,7 @@ namespace std
       // Hash gb_bb_r_
       OpenMS::hash_combine(seed, OpenMS::hash_float(r.getBackboneBasicityRight()));
 
-      // Hash residue_sets_ (std::set<String>)
+      // Hash residue_sets_ (std::set<std::string>)
       for (const auto& rs : r.getResidueSets())
       {
         OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(rs));

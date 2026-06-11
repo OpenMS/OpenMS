@@ -67,7 +67,7 @@ DataFilters::DataFilter filter_11;
 DataFilters::DataFilter filter_12;
 
 
-START_SECTION(([EXTRA]void DataFilter::fromString(const String& filter)))
+START_SECTION(([EXTRA]void DataFilter::fromString(const std::string& filter)))
 
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString(""), "the value '' was used but is not valid; invalid filter format")
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("not_enough_arguments"), "the value 'not_enough_arguments' was used but is not valid; invalid filter format")
@@ -98,7 +98,7 @@ START_SECTION(([EXTRA]void DataFilter::fromString(const String& filter)))
 END_SECTION
 
 
-START_SECTION(([EXTRA]String DataFilter::toString() const))
+START_SECTION(([EXTRA]std::string DataFilter::toString() const))
 	
 	TEST_STRING_EQUAL(filter_1.toString(), "Intensity <= 201.334000000000003")
 	TEST_STRING_EQUAL(filter_2.toString(), "Intensity >= 1000.0")
@@ -228,25 +228,25 @@ Feature feature_1;
 feature_1.setIntensity(1000.00f);
 feature_1.setCharge(4);
 feature_1.setOverallQuality((QualityType)31.3334);
-feature_1.setMetaValue(String("test_int"), 5);
-feature_1.setMetaValue(String("test_double"), 23.42);
-feature_1.setMetaValue(String("test_string"), String("hello world 1"));
+feature_1.setMetaValue(std::string("test_int"), 5);
+feature_1.setMetaValue(std::string("test_double"), 23.42);
+feature_1.setMetaValue(std::string("test_string"),std::string("hello world 1"));
 
 Feature feature_2;
 feature_2.setIntensity(122.01f);
 feature_2.setCharge(3);
 feature_2.setOverallQuality((QualityType)0.002);
-feature_2.setMetaValue(String("test_int"), 10);
-feature_2.setMetaValue(String("test_double"), 0.042);
-feature_2.setMetaValue(String("test_string"), String("hello world 2"));
+feature_2.setMetaValue(std::string("test_int"), 10);
+feature_2.setMetaValue(std::string("test_double"), 0.042);
+feature_2.setMetaValue(std::string("test_string"),std::string("hello world 2"));
 
 Feature feature_3;
 feature_3.setIntensity(55.0f);
 feature_3.setCharge(4);
 feature_3.setOverallQuality((QualityType) 1.);
-feature_3.setMetaValue(String("test_int"), 0);
-feature_3.setMetaValue(String("test_double"), 100.01);
-feature_3.setMetaValue(String("test_string"), String("hello world 3"));
+feature_3.setMetaValue(std::string("test_int"), 0);
+feature_3.setMetaValue(std::string("test_double"), 100.01);
+feature_3.setMetaValue(std::string("test_string"),std::string("hello world 3"));
 
 ///construct some test consensus features
 ConsensusFeature c_feature_1;
@@ -416,7 +416,7 @@ START_SECTION(([DataFilters::DataFilter] DataFilter()))
 }
 END_SECTION
 
-START_SECTION(([DataFilters::DataFilter] String toString() const ))
+START_SECTION(([DataFilters::DataFilter] std::string toString() const ))
 {
   DataFilters::DataFilter df1;
   df1.field = DataFilters::INTENSITY;
@@ -438,7 +438,7 @@ START_SECTION(([DataFilters::DataFilter] String toString() const ))
 }
 END_SECTION
 
-START_SECTION(([DataFilters::DataFilter] void fromString(const String &filter)))
+START_SECTION(([DataFilters::DataFilter] void fromString(const std::string &filter)))
 {
   DataFilters::DataFilter df1;
   df1.fromString("Intensity <= 25.3");

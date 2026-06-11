@@ -6,6 +6,7 @@
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/FORMAT/AbsoluteQuantitationStandardsFile.h>
 #include <OpenMS/FORMAT/Base64.h>
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
@@ -45,9 +46,7 @@
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/PEFFFile.h>
 #include <OpenMS/FORMAT/ParamCTDFile.h>
-#ifdef WITH_PARQUET
 #include <OpenMS/FORMAT/ParquetFilter.h>
-#endif
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
@@ -59,14 +58,13 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
-#ifdef WITH_PARQUET
 #include <OpenMS/FORMAT/XICParquetFile.h>
+#include <OpenMS/FORMAT/XIMParquetFile.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
-#endif
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -99,7 +97,7 @@ NB_MODULE(_pyopenms_format, m) {
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::AbsoluteQuantitationStandardsFile& self) { return OpenMS::AbsoluteQuantitationStandardsFile(self); })
         .def("__deepcopy__", [](const OpenMS::AbsoluteQuantitationStandardsFile& self, nb::dict) { return OpenMS::AbsoluteQuantitationStandardsFile(self); }, "memo"_a)
-        .def("load", [](const OpenMS::AbsoluteQuantitationStandardsFile& self, const OpenMS::String& filename, std::vector<OpenMS::AbsoluteQuantitationStandards::runConcentration>& run_concentrations) { self.load(filename, run_concentrations); }, "filename"_a, "run_concentrations"_a)
+        .def("load", [](const OpenMS::AbsoluteQuantitationStandardsFile& self, const std::string& filename, std::vector<OpenMS::AbsoluteQuantitationStandards::runConcentration>& run_concentrations) { self.load(filename, run_concentrations); }, "filename"_a, "run_concentrations"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -109,34 +107,34 @@ NB_MODULE(_pyopenms_format, m) {
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::Base64& self) { return OpenMS::Base64(self); })
         .def("__deepcopy__", [](const OpenMS::Base64& self, nb::dict) { return OpenMS::Base64(self); }, "memo"_a)
-        .def_static("encodeStrings", [](const std::vector<OpenMS::String>& in, bool zlib_compression, bool append_null_byte) { OpenMS::String out; OpenMS::Base64::encodeStrings(in, out, zlib_compression, append_null_byte); return out; }, "in"_a, "zlib_compression"_a, "append_null_byte"_a, "Encodes a vector of strings to a Base64 string")
-        .def_static("decodeStrings", [](const OpenMS::String& in, bool zlib_compression) { std::vector<OpenMS::String> out; OpenMS::Base64::decodeStrings(in, out, zlib_compression); return out; }, "in"_a, "zlib_compression"_a, "Decodes a Base64 string to a vector of (null-terminated) strings")
+        .def_static("encodeStrings", [](const std::vector<std::string>& in, bool zlib_compression, bool append_null_byte) { std::string out; OpenMS::Base64::encodeStrings(in, out, zlib_compression, append_null_byte); return out; }, "in"_a, "zlib_compression"_a, "append_null_byte"_a, "Encodes a vector of strings to a Base64 string")
+        .def_static("decodeStrings", [](const std::string& in, bool zlib_compression) { std::vector<std::string> out; OpenMS::Base64::decodeStrings(in, out, zlib_compression); return out; }, "in"_a, "zlib_compression"_a, "Decodes a Base64 string to a vector of (null-terminated) strings")
         .def_static("encode64", [](std::vector<double> in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
-            OpenMS::String out;
+            std::string out;
             OpenMS::Base64::encode(in, byte_order, out, zlib_compression);
             return out;
         }, "in"_a, "byte_order"_a, "zlib_compression"_a = false, "Encodes a vector of 64-bit floats (doubles) to a Base64 string")
-        .def_static("decode64", [](const OpenMS::String& in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
+        .def_static("decode64", [](const std::string& in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
             std::vector<double> out;
             OpenMS::Base64::decode(in, byte_order, out, zlib_compression);
             return out;
         }, "in"_a, "byte_order"_a, "zlib_compression"_a = false, "Decodes a Base64 string to a vector of 64-bit floats (doubles)")
         .def_static("encode32", [](std::vector<float> in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
-            OpenMS::String out;
+            std::string out;
             OpenMS::Base64::encode(in, byte_order, out, zlib_compression);
             return out;
         }, "in"_a, "byte_order"_a, "zlib_compression"_a = false, "Encodes a vector of 32-bit floats to a Base64 string")
-        .def_static("decode32", [](const OpenMS::String& in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
+        .def_static("decode32", [](const std::string& in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
             std::vector<float> out;
             OpenMS::Base64::decode(in, byte_order, out, zlib_compression);
             return out;
         }, "in"_a, "byte_order"_a, "zlib_compression"_a = false, "Decodes a Base64 string to a vector of 32-bit floats")
         .def_static("encodeIntegers", [](std::vector<int32_t> in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
-            OpenMS::String out;
+            std::string out;
             OpenMS::Base64::encodeIntegers(in, byte_order, out, zlib_compression);
             return out;
         }, "in"_a, "byte_order"_a, "zlib_compression"_a = false, "Encodes a vector of 32-bit integers to a Base64 string")
-        .def_static("decodeIntegers", [](const OpenMS::String& in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
+        .def_static("decodeIntegers", [](const std::string& in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
             std::vector<int32_t> out;
             OpenMS::Base64::decodeIntegers(in, byte_order, out, zlib_compression);
             return out;
@@ -148,14 +146,107 @@ NB_MODULE(_pyopenms_format, m) {
         .value("BYTEORDER_LITTLEENDIAN", OpenMS::Base64::ByteOrder::BYTEORDER_LITTLEENDIAN)
         .export_values();
 
+#ifdef WITH_OPENTIMS
+    // -----------------------------------------------------------------------
+    // BrukerTimsFile
+    // -----------------------------------------------------------------------
+    auto brukertimsfile_class = nb::class_<OpenMS::BrukerTimsFile>(m, "BrukerTimsFile",
+        R"doc(
+Reader for Bruker TimsTOF .d directories via opentims.
+
+Supports DDA-PASEF, DIA-PASEF, and raw frame-level 4D access.
+Ion mobility data is stored in VSSC (1/K0) units using IM_PEAK format
+for MS1 and DIA MS2, and scalar drift times for DDA MS2.
+
+This class is only available when OpenMS is built with
+``WITH_OPENTIMS=ON`` (the default). The Bruker SDK
+(``timsdata.dll`` / ``libtimsdata.so``) is not bundled with pyOpenMS;
+supply it via the ``OPENMS_BRUKER_SDK_PATH`` environment variable or
+``Config.bruker_sdk_path``.
+
+Use ``hasattr(pyopenms, "BrukerTimsFile")`` to feature-detect at
+runtime.
+)doc");
+    brukertimsfile_class
+        .def(nb::init<>())
+        .def("load", [](OpenMS::BrukerTimsFile& self, const std::string& path) {
+            OpenMS::MSExperiment exp; self.load(path, exp); return exp;
+        }, "path"_a, "Load a .d directory into a new MSExperiment using default configuration")
+        .def("load", [](OpenMS::BrukerTimsFile& self, const std::string& path, const OpenMS::BrukerTimsFile::Config& config) {
+            OpenMS::MSExperiment exp; self.load(path, exp, config); return exp;
+        }, "path"_a, "config"_a, "Load a .d directory into a new MSExperiment with explicit configuration")
+        .def("readDIAMetadata", [](OpenMS::BrukerTimsFile& self, const std::string& path) {
+            OpenMS::ExperimentalSettings settings;
+            auto meta = self.readDIAMetadata(path, settings);
+            return nb::make_tuple(meta, settings);
+        }, "path"_a, "Read DIA SWATH boundaries and spectrum counts (no peak data). Returns (DIAStreamingMetadata, ExperimentalSettings).")
+        .def("readDIAMetadata", [](OpenMS::BrukerTimsFile& self, const std::string& path, const OpenMS::BrukerTimsFile::Config& config) {
+            OpenMS::ExperimentalSettings settings;
+            auto meta = self.readDIAMetadata(path, settings, config);
+            return nb::make_tuple(meta, settings);
+        }, "path"_a, "config"_a, "Read DIA SWATH boundaries and spectrum counts with explicit configuration. Returns (DIAStreamingMetadata, ExperimentalSettings).")
+        ;
+    def_ProgressLogger<OpenMS::BrukerTimsFile>(brukertimsfile_class);
+
+    // Nested Config struct
+    auto brukertimsfile_config = nb::class_<OpenMS::BrukerTimsFile::Config>(brukertimsfile_class, "Config",
+        "Processing and export configuration for BrukerTimsFile.load() and readDIAMetadata()")
+        .def(nb::init<>())
+        .def_rw("calibration_tolerance", &OpenMS::BrukerTimsFile::Config::calibration_tolerance, "m/z recalibration tolerance in Da (0 = default 0.1 Da)")
+        .def_rw("calibrate", &OpenMS::BrukerTimsFile::Config::calibrate, "Enable m/z recalibration (off by default; may fail on some datasets)")
+        .def_rw("load_ms1", &OpenMS::BrukerTimsFile::Config::load_ms1, "Load MS1 spectra. Disable for MS2-only workflows.")
+        .def_rw("ms1_centroid_mz_ppm", &OpenMS::BrukerTimsFile::Config::ms1_centroid_mz_ppm, "MS1 IM-centroiding m/z tolerance in ppm (0 = disabled, suggested: 5.0)")
+        .def_rw("ms1_centroid_im_pct", &OpenMS::BrukerTimsFile::Config::ms1_centroid_im_pct, "MS1 IM-centroiding ion mobility tolerance in percent (0 = disabled, suggested: 3.0)")
+        .def_rw("ms1_centroid_max_peaks", &OpenMS::BrukerTimsFile::Config::ms1_centroid_max_peaks, "Upper bound on centroided peaks per MS1 spectrum")
+        .def_rw("dia_ms2_n_neighbors", &OpenMS::BrukerTimsFile::Config::dia_ms2_n_neighbors, "DIA MS2 frame aggregation: number of adjacent frames on each side (0 = disabled)")
+        .def_rw("dia_ms2_min_support", &OpenMS::BrukerTimsFile::Config::dia_ms2_min_support, "DIA MS2 denoising: minimum occupied neighbors in 3x3 (m/z x IM) grid")
+        .def_rw("dia_ms2_centroid", &OpenMS::BrukerTimsFile::Config::dia_ms2_centroid, "DIA MS2 2D peak picking: Gaussian smoothing + local maxima detection")
+        .def_rw("ms1_n_neighbors", &OpenMS::BrukerTimsFile::Config::ms1_n_neighbors, "MS1 frame aggregation: adjacent MS1 frames on each side (0 = disabled)")
+        .def_rw("ms1_min_support", &OpenMS::BrukerTimsFile::Config::ms1_min_support, "MS1 denoising after aggregation: min occupied 3x3 neighbors (0 = disabled)")
+        .def_rw("ms1_max_rt_distance_sec", &OpenMS::BrukerTimsFile::Config::ms1_max_rt_distance_sec, "Cap RT distance (s) between neighbor MS1 frame and center frame during aggregation (0 = no cap)")
+        .def_rw("export_mode", &OpenMS::BrukerTimsFile::Config::export_mode, "AUTO detects DDA vs DIA; SPECTRUM forces per-precursor; FRAME returns raw 4D frames")
+        .def_rw("tims_calibration_strategy", &OpenMS::BrukerTimsFile::Config::tims_calibration_strategy, "Strategy for converting TIMS scan indices to 1/K0 values")
+        .def_rw("pressure_compensation", &OpenMS::BrukerTimsFile::Config::pressure_compensation, "Pressure compensation strategy (only effective with BRUKER_SDK calibration)")
+        .def_rw("bruker_sdk_path", &OpenMS::BrukerTimsFile::Config::bruker_sdk_path, "Path to Bruker SDK library (empty = discover from OPENMS_BRUKER_SDK_PATH env var)")
+        ;
+
+    nb::enum_<OpenMS::BrukerTimsFile::Config::ExportMode>(brukertimsfile_config, "ExportMode")
+        .value("AUTO", OpenMS::BrukerTimsFile::Config::ExportMode::AUTO)
+        .value("SPECTRUM", OpenMS::BrukerTimsFile::Config::ExportMode::SPECTRUM)
+        .value("FRAME", OpenMS::BrukerTimsFile::Config::ExportMode::FRAME)
+        ;
+
+    nb::enum_<OpenMS::BrukerTimsFile::Config::TimsCalibrationStrategy>(brukertimsfile_config, "TimsCalibrationStrategy")
+        .value("AUTO", OpenMS::BrukerTimsFile::Config::TimsCalibrationStrategy::AUTO)
+        .value("BRUKER_SDK", OpenMS::BrukerTimsFile::Config::TimsCalibrationStrategy::BRUKER_SDK)
+        .value("RATIONAL", OpenMS::BrukerTimsFile::Config::TimsCalibrationStrategy::RATIONAL)
+        .value("LINEAR", OpenMS::BrukerTimsFile::Config::TimsCalibrationStrategy::LINEAR)
+        ;
+
+    nb::enum_<OpenMS::BrukerTimsFile::Config::PressureCompensation>(brukertimsfile_config, "PressureCompensation")
+        .value("NONE", OpenMS::BrukerTimsFile::Config::PressureCompensation::NONE)
+        .value("GLOBAL", OpenMS::BrukerTimsFile::Config::PressureCompensation::GLOBAL)
+        .value("PER_FRAME", OpenMS::BrukerTimsFile::Config::PressureCompensation::PER_FRAME)
+        ;
+
+    // Nested DIAStreamingMetadata struct
+    nb::class_<OpenMS::BrukerTimsFile::DIAStreamingMetadata>(brukertimsfile_class, "DIAStreamingMetadata",
+        "Metadata describing DIA SWATH layout for streaming consumers")
+        .def(nb::init<>())
+        .def_rw("boundaries", &OpenMS::BrukerTimsFile::DIAStreamingMetadata::boundaries, "One SwathMap per DIA window (MS2 only)")
+        .def_rw("nr_ms1_spectra", &OpenMS::BrukerTimsFile::DIAStreamingMetadata::nr_ms1_spectra, "Number of MS1 frames")
+        .def_rw("nr_ms2_spectra", &OpenMS::BrukerTimsFile::DIAStreamingMetadata::nr_ms2_spectra, "Per-window spectrum counts (parallel to boundaries)")
+        ;
+#endif // WITH_OPENTIMS
+
     // -----------------------------------------------------------------------
     // CachedSwathFileConsumer
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::CachedSwathFileConsumer>(m, "CachedSwathFileConsumer", "FullSwathFileConsumer")
         .def("__copy__", [](const OpenMS::CachedSwathFileConsumer& self) { return OpenMS::CachedSwathFileConsumer(self); })
         .def("__deepcopy__", [](const OpenMS::CachedSwathFileConsumer& self, nb::dict) { return OpenMS::CachedSwathFileConsumer(self); }, "memo"_a)
-        .def(nb::init<OpenMS::String, OpenMS::String, size_t, std::vector<int>>())
-        .def(nb::init<std::vector<OpenSwath::SwathMap>, OpenMS::String, OpenMS::String, size_t, std::vector<int>>())
+        .def(nb::init<std::string, std::string, size_t, std::vector<int>>())
+        .def(nb::init<std::vector<OpenSwath::SwathMap>, std::string, std::string, size_t, std::vector<int>>())
         .def("setExpectedSize", [](OpenMS::CachedSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
         .def("setExperimentalSettings", [](OpenMS::CachedSwathFileConsumer& self, const OpenMS::ExperimentalSettings& exp) { return self.setExperimentalSettings(exp); }, "exp"_a)
         .def("retrieveSwathMaps", [](OpenMS::CachedSwathFileConsumer& self) { std::vector<OpenSwath::SwathMap> maps; self.retrieveSwathMaps(maps); return maps; })
@@ -172,8 +263,8 @@ An class that uses on-disk caching to read and write spectra and
 chromatograms
 )doc")
         .def(nb::init<>())
-        .def(nb::init<OpenMS::String>())
         .def(nb::init<const OpenMS::CachedmzML &>())
+        .def(nb::init<std::string>())
         .def("__copy__", [](const OpenMS::CachedmzML& self) { return OpenMS::CachedmzML(self); })
         .def("__deepcopy__", [](const OpenMS::CachedmzML& self, nb::dict) { return OpenMS::CachedmzML(self); }, "memo"_a)
         .def("getSpectrum", [](OpenMS::CachedmzML& self, size_t id) { return self.getSpectrum(id); }, "id"_a)
@@ -181,9 +272,9 @@ chromatograms
         .def("getNrSpectra", [](const OpenMS::CachedmzML& self) { return self.getNrSpectra(); })
         .def("getNrChromatograms", [](const OpenMS::CachedmzML& self) { return self.getNrChromatograms(); })
         .def("getMetaData", [](const OpenMS::CachedmzML& self) -> const OpenMS::MSExperiment & { return self.getMetaData(); }, nb::rv_policy::reference_internal)
-        .def_static("store", [](const OpenMS::String& filename, const OpenMS::MSExperiment& map) { return OpenMS::CachedmzML::store(filename, map); }, "filename"_a, "map"_a)
+        .def_static("store", [](const std::string& filename, const OpenMS::MSExperiment& map) { return OpenMS::CachedmzML::store(filename, map); }, "filename"_a, "map"_a)
 
-        .def_static("load", [](const OpenMS::String& filename, OpenMS::CachedmzML& cached) {
+        .def_static("load", [](const std::string& filename, OpenMS::CachedmzML& cached) {
             OpenMS::CachedmzML::load(filename, cached);
         }, "filename"_a, "cached"_a, "Load a cached mzML file into a CachedmzML object (backward-compatible)")
         ;
@@ -195,7 +286,7 @@ chromatograms
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::ChromeleonFile& self) { return OpenMS::ChromeleonFile(self); })
         .def("__deepcopy__", [](const OpenMS::ChromeleonFile& self, nb::dict) { return OpenMS::ChromeleonFile(self); }, "memo"_a)
-        .def("load", [](const OpenMS::ChromeleonFile& self, const OpenMS::String& filename) { OpenMS::MSExperiment experiment; self.load(filename, experiment); return experiment; }, "filename"_a, "Load the file's data and metadata, and save it into a `MSExperiment`")
+        .def("load", [](const OpenMS::ChromeleonFile& self, const std::string& filename) { OpenMS::MSExperiment experiment; self.load(filename, experiment); return experiment; }, "filename"_a, "Load the file's data and metadata, and save it into a `MSExperiment`")
         ;
 
     // -----------------------------------------------------------------------
@@ -205,12 +296,12 @@ chromatograms
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::DTAFile& self) { return OpenMS::DTAFile(self); })
         .def("__deepcopy__", [](const OpenMS::DTAFile& self, nb::dict) { return OpenMS::DTAFile(self); }, "memo"_a)
-        .def("load", [](OpenMS::DTAFile& self, const OpenMS::String& filename) {
+        .def("load", [](OpenMS::DTAFile& self, const std::string& filename) {
             OpenMS::MSSpectrum spectrum;
             self.load(filename, spectrum);
             return spectrum;
         }, "filename"_a, "Loads a DTA file into an MSSpectrum")
-        .def("store", [](const OpenMS::DTAFile& self, const OpenMS::String& filename, const OpenMS::MSSpectrum& spectrum) {
+        .def("store", [](const OpenMS::DTAFile& self, const std::string& filename, const OpenMS::MSSpectrum& spectrum) {
             self.store(filename, spectrum);
         }, "filename"_a, "spectrum"_a, "Stores an MSSpectrum to a DTA file")
         ;
@@ -222,9 +313,9 @@ chromatograms
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::EDTAFile& self) { return OpenMS::EDTAFile(self); })
         .def("__deepcopy__", [](const OpenMS::EDTAFile& self, nb::dict) { return OpenMS::EDTAFile(self); }, "memo"_a)
-        .def("load", [](OpenMS::EDTAFile& self, const OpenMS::String& filename) { OpenMS::ConsensusMap consensus_map; self.load(filename, consensus_map); return consensus_map; }, "filename"_a)
-        .def("store", [](const OpenMS::EDTAFile& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& map) { return self.store(filename, map); }, "filename"_a, "map"_a)
-        .def("store", [](const OpenMS::EDTAFile& self, const OpenMS::String& filename, const OpenMS::FeatureMap& map) { return self.store(filename, map); }, "filename"_a, "map"_a)
+        .def("load", [](OpenMS::EDTAFile& self, const std::string& filename) { OpenMS::ConsensusMap consensus_map; self.load(filename, consensus_map); return consensus_map; }, "filename"_a)
+        .def("store", [](const OpenMS::EDTAFile& self, const std::string& filename, const OpenMS::ConsensusMap& map) { return self.store(filename, map); }, "filename"_a, "map"_a)
+        .def("store", [](const OpenMS::EDTAFile& self, const std::string& filename, const OpenMS::FeatureMap& map) { return self.store(filename, map); }, "filename"_a, "map"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -239,7 +330,7 @@ for details on the supported format)
         .def(nb::init<const OpenMS::ExperimentalDesignFile &>())
         .def("__copy__", [](const OpenMS::ExperimentalDesignFile& self) { return OpenMS::ExperimentalDesignFile(self); })
         .def("__deepcopy__", [](const OpenMS::ExperimentalDesignFile& self, nb::dict) { return OpenMS::ExperimentalDesignFile(self); }, "memo"_a)
-        .def_static("load", [](const OpenMS::String& tsv_file, bool require_spectra_files) {
+        .def_static("load", [](const std::string& tsv_file, bool require_spectra_files) {
             return OpenMS::ExperimentalDesignFile::load(tsv_file, require_spectra_files);
         }, "tsv_file"_a, "require_spectra_files"_a, "Load an experimental design from a TSV file")
         ;
@@ -272,7 +363,7 @@ Note: Methods taking std::ostream are not directly exposed. Use file-based workf
         .def(nb::init<const OpenMS::FLASHDeconvSpectrumFile &>())
         .def("__copy__", [](const OpenMS::FLASHDeconvSpectrumFile& self) { return OpenMS::FLASHDeconvSpectrumFile(self); })
         .def("__deepcopy__", [](const OpenMS::FLASHDeconvSpectrumFile& self, nb::dict) { return OpenMS::FLASHDeconvSpectrumFile(self); }, "memo"_a)
-        .def_static("writeMzML", [](const OpenMS::MSExperiment& map, std::vector<OpenMS::DeconvolvedSpectrum>& deconvolved_spectra, const OpenMS::String& deconvolved_mzML_file, const OpenMS::String& annotated_mzML_file, int mzml_charge, std::vector<double> tols) { return OpenMS::FLASHDeconvSpectrumFile::writeMzML(map, deconvolved_spectra, deconvolved_mzML_file, annotated_mzML_file, mzml_charge, tols); }, "map"_a, "deconvolved_spectra"_a, "deconvolved_mzML_file"_a, "annotated_mzML_file"_a, "mzml_charge"_a, "tols"_a)
+        .def_static("writeMzML", [](const OpenMS::MSExperiment& map, std::vector<OpenMS::DeconvolvedSpectrum>& deconvolved_spectra, const std::string& deconvolved_mzML_file, const std::string& annotated_mzML_file, int mzml_charge, std::vector<double> tols) { return OpenMS::FLASHDeconvSpectrumFile::writeMzML(map, deconvolved_spectra, deconvolved_mzML_file, annotated_mzML_file, mzml_charge, tols); }, "map"_a, "deconvolved_spectra"_a, "deconvolved_mzML_file"_a, "annotated_mzML_file"_a, "mzml_charge"_a, "tols"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -309,33 +400,33 @@ Note: Methods taking std::ostream are not directly exposed. Use file-based workf
 FileHandler().loadExperiment("test.mzML", exp)
 )doc")
         .def(nb::init<>())
-        .def_static("getTypeByFileName", [](const OpenMS::String& filename) { return OpenMS::FileHandler::getTypeByFileName(filename); }, "filename"_a, 
+        .def_static("getTypeByFileName", [](const std::string& filename) { return OpenMS::FileHandler::getTypeByFileName(filename); }, "filename"_a, 
             R"doc(
 Determines the file type based on the file name and/or content
 :param filename: Path to the file
 :returns: Integer representation of the file type
 )doc")
-        .def_static("hasValidExtension", [](const OpenMS::String& filename, OpenMS::FileTypes::Type type) { return OpenMS::FileHandler::hasValidExtension(filename, type); }, "filename"_a, "type"_a,
+        .def_static("hasValidExtension", [](const std::string& filename, OpenMS::FileTypes::Type type) { return OpenMS::FileHandler::hasValidExtension(filename, type); }, "filename"_a, "type"_a,
             R"doc(
 Checks whether the file has a valid extension for the given type
 :param filename: Path to the file
 :param type: The expected file type
 :returns: True if the extension matches the file type
 )doc")
-        .def_static("stripExtension", [](const OpenMS::String& filename) { return OpenMS::FileHandler::stripExtension(filename); }, "filename"_a,
+        .def_static("stripExtension", [](const std::string& filename) { return OpenMS::FileHandler::stripExtension(filename); }, "filename"_a,
             R"doc(
 Returns the file name without the extension
 :param filename: Path to the file
 :returns: File path without extension
 )doc")
-        .def_static("swapExtension", [](const OpenMS::String& filename, OpenMS::FileTypes::Type new_type) { return OpenMS::FileHandler::swapExtension(filename, new_type); }, "filename"_a, "new_type"_a,
+        .def_static("swapExtension", [](const std::string& filename, OpenMS::FileTypes::Type new_type) { return OpenMS::FileHandler::swapExtension(filename, new_type); }, "filename"_a, "new_type"_a,
             R"doc(
 Replaces the file extension with the extension for the given type
 :param filename: Path to the file
 :param new_type: The new file type whose extension to use
 :returns: File path with the new extension
 )doc")
-        .def_static("getTypeByContent", [](const OpenMS::String& filename) { return OpenMS::FileHandler::getTypeByContent(filename); }, "filename"_a,
+        .def_static("getTypeByContent", [](const std::string& filename) { return OpenMS::FileHandler::getTypeByContent(filename); }, "filename"_a,
             R"doc(
 Determines the file type based on the file content
 :param filename: Path to the file
@@ -349,7 +440,7 @@ Checks whether the given file type is supported
 )doc")
         .def("getOptions", [](OpenMS::FileHandler& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Access to the options for loading/storing")
         .def("setOptions", [](OpenMS::FileHandler& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Sets options for loading/storing")
-        .def("loadFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename) { OpenMS::FeatureMap map; self.loadFeatures(filename, map); return map; }, "filename"_a,
+        .def("loadFeatures", [](OpenMS::FileHandler& self, const std::string& filename) { OpenMS::FeatureMap map; self.loadFeatures(filename, map); return map; }, "filename"_a,
             R"doc(
 Loads features from a file into a FeatureMap (auto-detect file type)
 :param filename: The name of the file to load features from
@@ -357,7 +448,7 @@ Loads features from a file into a FeatureMap (auto-detect file type)
 :raises:
 Exception: FileNotFound is thrown if the file could not be opened
 )doc")
-        .def("loadFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename, std::vector<OpenMS::FileTypes::Type> allowed_types, OpenMS::ProgressLogger::LogType log) { OpenMS::FeatureMap map; self.loadFeatures(filename, map, allowed_types, log); return map; }, "filename"_a, "allowed_types"_a, "log"_a,
+        .def("loadFeatures", [](OpenMS::FileHandler& self, const std::string& filename, std::vector<OpenMS::FileTypes::Type> allowed_types, OpenMS::ProgressLogger::LogType log) { OpenMS::FeatureMap map; self.loadFeatures(filename, map, allowed_types, log); return map; }, "filename"_a, "allowed_types"_a, "log"_a,
             R"doc(
 Loads features from a file into a FeatureMap
 :param filename: The name of the file to load features from
@@ -367,39 +458,39 @@ Loads features from a file into a FeatureMap
 :raises:
 Exception: FileNotFound is thrown if the file could not be opened
 )doc")
-        .def_static("computeFileHash", [](const OpenMS::String& filename) { return OpenMS::FileHandler::computeFileHash(filename); }, "filename"_a,
+        .def_static("computeFileHash", [](const std::string& filename) { return OpenMS::FileHandler::computeFileHash(filename); }, "filename"_a,
             R"doc(
 Computes a SHA-1 hash of the file content
 :param filename: Path to the file
 :returns: SHA-1 hash string of the file content
 )doc")
 
-        .def("loadExperiment", [](OpenMS::FileHandler& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) {
+        .def("loadExperiment", [](OpenMS::FileHandler& self, const std::string& filename, OpenMS::MSExperiment& exp) {
             nb::gil_scoped_release release;
             self.loadExperiment(filename, exp);
         }, "filename"_a, "exp"_a, "Load experiment from file")
-        .def("loadExperiment", [](OpenMS::FileHandler& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp,
+        .def("loadExperiment", [](OpenMS::FileHandler& self, const std::string& filename, OpenMS::MSExperiment& exp,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log,
              bool rewrite_source_file, bool compute_hash) {
             nb::gil_scoped_release release;
             self.loadExperiment(filename, exp, allowed_types, log, rewrite_source_file, compute_hash);
         }, "filename"_a, "exp"_a, "allowed_types"_a, "log"_a, "rewrite_source_file"_a = false, "compute_hash"_a = false, "Load experiment with options")
 
-        .def("storeExperiment", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp) {
+        .def("storeExperiment", [](OpenMS::FileHandler& self, const std::string& filename, const OpenMS::MSExperiment& exp) {
             nb::gil_scoped_release release;
             self.storeExperiment(filename, exp);
         }, "filename"_a, "exp"_a, "Store experiment to file")
-        .def("storeExperiment", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp,
+        .def("storeExperiment", [](OpenMS::FileHandler& self, const std::string& filename, const OpenMS::MSExperiment& exp,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
             nb::gil_scoped_release release;
             self.storeExperiment(filename, exp, allowed_types, log);
         }, "filename"_a, "exp"_a, "allowed_types"_a, "log"_a, "Store experiment with options")
 
-        .def_static("getType", [](const OpenMS::String& filename) {
+        .def_static("getType", [](const std::string& filename) {
             return OpenMS::FileHandler::getType(filename);
         }, "filename"_a, "Determine the file type from the file name")
 
-        .def_static("getConsistentOutputfileType", [](const OpenMS::String& output_filename, const OpenMS::String& requested_type) {
+        .def_static("getConsistentOutputfileType", [](const std::string& output_filename, const std::string& requested_type) {
             return OpenMS::FileHandler::getConsistentOutputfileType(output_filename, requested_type);
         }, "output_filename"_a, "requested_type"_a,
            "Checks consistency of output file type from filename and requested type. Returns consistent type or UNKNOWN on conflict")
@@ -409,59 +500,59 @@ Computes a SHA-1 hash of the file content
         .def("setFeatOptions", [](OpenMS::FileHandler& self, const OpenMS::FeatureFileOptions& opts) { self.setFeatOptions(opts); }, "options"_a,
             "Set feature file options for loading/storing")
 
-        .def("loadSpectrum", [](OpenMS::FileHandler& self, const OpenMS::String& filename) {
+        .def("loadSpectrum", [](OpenMS::FileHandler& self, const std::string& filename) {
             OpenMS::MSSpectrum spec;
             self.loadSpectrum(filename, spec);
             return spec;
         }, "filename"_a, "Load a single MSSpectrum from a file")
-        .def("loadSpectrum", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const std::vector<OpenMS::FileTypes::Type>& allowed_types) {
+        .def("loadSpectrum", [](OpenMS::FileHandler& self, const std::string& filename, const std::vector<OpenMS::FileTypes::Type>& allowed_types) {
             OpenMS::MSSpectrum spec;
             self.loadSpectrum(filename, spec, allowed_types);
             return spec;
         }, "filename"_a, "allowed_types"_a, "Load a single MSSpectrum from a file with allowed types filter")
 
-        .def("storeSpectrum", [](OpenMS::FileHandler& self, const OpenMS::String& filename, OpenMS::MSSpectrum& spec) {
+        .def("storeSpectrum", [](OpenMS::FileHandler& self, const std::string& filename, OpenMS::MSSpectrum& spec) {
             self.storeSpectrum(filename, spec);
         }, "filename"_a, "spec"_a, "Store a single MSSpectrum to a file")
-        .def("storeSpectrum", [](OpenMS::FileHandler& self, const OpenMS::String& filename, OpenMS::MSSpectrum& spec, const std::vector<OpenMS::FileTypes::Type>& allowed_types) {
+        .def("storeSpectrum", [](OpenMS::FileHandler& self, const std::string& filename, OpenMS::MSSpectrum& spec, const std::vector<OpenMS::FileTypes::Type>& allowed_types) {
             self.storeSpectrum(filename, spec, allowed_types);
         }, "filename"_a, "spec"_a, "allowed_types"_a, "Store a single MSSpectrum to a file with allowed types filter")
 
-        .def("storeFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::FeatureMap& map) {
+        .def("storeFeatures", [](OpenMS::FileHandler& self, const std::string& filename, const OpenMS::FeatureMap& map) {
             self.storeFeatures(filename, map);
         }, "filename"_a, "map"_a, "Store a FeatureMap to a file")
-        .def("storeFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::FeatureMap& map,
+        .def("storeFeatures", [](OpenMS::FileHandler& self, const std::string& filename, const OpenMS::FeatureMap& map,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
             self.storeFeatures(filename, map, allowed_types, log);
         }, "filename"_a, "map"_a, "allowed_types"_a, "log"_a, "Store a FeatureMap to a file with options")
 
-        .def("loadConsensusFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename) {
+        .def("loadConsensusFeatures", [](OpenMS::FileHandler& self, const std::string& filename) {
             OpenMS::ConsensusMap map;
             self.loadConsensusFeatures(filename, map);
             return map;
         }, "filename"_a, "Load a ConsensusMap from a file")
-        .def("loadConsensusFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename,
+        .def("loadConsensusFeatures", [](OpenMS::FileHandler& self, const std::string& filename,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
             OpenMS::ConsensusMap map;
             self.loadConsensusFeatures(filename, map, allowed_types, log);
             return map;
         }, "filename"_a, "allowed_types"_a, "log"_a, "Load a ConsensusMap from a file with options")
 
-        .def("storeConsensusFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& map) {
+        .def("storeConsensusFeatures", [](OpenMS::FileHandler& self, const std::string& filename, const OpenMS::ConsensusMap& map) {
             self.storeConsensusFeatures(filename, map);
         }, "filename"_a, "map"_a, "Store a ConsensusMap to a file")
-        .def("storeConsensusFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& map,
+        .def("storeConsensusFeatures", [](OpenMS::FileHandler& self, const std::string& filename, const OpenMS::ConsensusMap& map,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
             self.storeConsensusFeatures(filename, map, allowed_types, log);
         }, "filename"_a, "map"_a, "allowed_types"_a, "log"_a, "Store a ConsensusMap to a file with options")
 
-        .def("loadIdentifications", [](OpenMS::FileHandler& self, const OpenMS::String& filename) {
+        .def("loadIdentifications", [](OpenMS::FileHandler& self, const std::string& filename) {
             std::vector<OpenMS::ProteinIdentification> proteins;
             OpenMS::PeptideIdentificationList peptides;
             self.loadIdentifications(filename, proteins, peptides);
             return nb::make_tuple(proteins, peptides);
         }, "filename"_a, "Load identifications from file. Returns (list[ProteinIdentification], PeptideIdentificationList)")
-        .def("loadIdentifications", [](OpenMS::FileHandler& self, const OpenMS::String& filename,
+        .def("loadIdentifications", [](OpenMS::FileHandler& self, const std::string& filename,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
             std::vector<OpenMS::ProteinIdentification> proteins;
             OpenMS::PeptideIdentificationList peptides;
@@ -469,52 +560,52 @@ Computes a SHA-1 hash of the file content
             return nb::make_tuple(proteins, peptides);
         }, "filename"_a, "allowed_types"_a, "log"_a, "Load identifications from file with options. Returns (list[ProteinIdentification], PeptideIdentificationList)")
 
-        .def("storeIdentifications", [](OpenMS::FileHandler& self, const OpenMS::String& filename,
+        .def("storeIdentifications", [](OpenMS::FileHandler& self, const std::string& filename,
              const std::vector<OpenMS::ProteinIdentification>& proteins, const OpenMS::PeptideIdentificationList& peptides) {
             self.storeIdentifications(filename, proteins, peptides);
         }, "filename"_a, "proteins"_a, "peptides"_a, "Store identifications to file")
-        .def("storeIdentifications", [](OpenMS::FileHandler& self, const OpenMS::String& filename,
+        .def("storeIdentifications", [](OpenMS::FileHandler& self, const std::string& filename,
              const std::vector<OpenMS::ProteinIdentification>& proteins, const OpenMS::PeptideIdentificationList& peptides,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
             self.storeIdentifications(filename, proteins, peptides, allowed_types, log);
         }, "filename"_a, "proteins"_a, "peptides"_a, "allowed_types"_a, "log"_a, "Store identifications to file with options")
 
-        .def("loadTransitions", [](OpenMS::FileHandler& self, const OpenMS::String& filename) {
+        .def("loadTransitions", [](OpenMS::FileHandler& self, const std::string& filename) {
             OpenMS::TargetedExperiment library;
             self.loadTransitions(filename, library);
             return library;
         }, "filename"_a, "Load targeted experiment transitions from file")
-        .def("loadTransitions", [](OpenMS::FileHandler& self, const OpenMS::String& filename,
+        .def("loadTransitions", [](OpenMS::FileHandler& self, const std::string& filename,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
             OpenMS::TargetedExperiment library;
             self.loadTransitions(filename, library, allowed_types, log);
             return library;
         }, "filename"_a, "allowed_types"_a, "log"_a, "Load targeted experiment transitions from file with options")
 
-        .def("storeTransitions", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::TargetedExperiment& library) {
+        .def("storeTransitions", [](OpenMS::FileHandler& self, const std::string& filename, const OpenMS::TargetedExperiment& library) {
             self.storeTransitions(filename, library);
         }, "filename"_a, "library"_a, "Store targeted experiment transitions to file")
-        .def("storeTransitions", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::TargetedExperiment& library,
+        .def("storeTransitions", [](OpenMS::FileHandler& self, const std::string& filename, const OpenMS::TargetedExperiment& library,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
             self.storeTransitions(filename, library, allowed_types, log);
         }, "filename"_a, "library"_a, "allowed_types"_a, "log"_a, "Store targeted experiment transitions to file with options")
 
-        .def("loadTransformations", [](OpenMS::FileHandler& self, const OpenMS::String& filename, bool fit_model) {
+        .def("loadTransformations", [](OpenMS::FileHandler& self, const std::string& filename, bool fit_model) {
             OpenMS::TransformationDescription map;
             self.loadTransformations(filename, map, fit_model);
             return map;
         }, "filename"_a, "fit_model"_a = true, "Load transformation description from file")
-        .def("loadTransformations", [](OpenMS::FileHandler& self, const OpenMS::String& filename, bool fit_model,
+        .def("loadTransformations", [](OpenMS::FileHandler& self, const std::string& filename, bool fit_model,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types) {
             OpenMS::TransformationDescription map;
             self.loadTransformations(filename, map, fit_model, allowed_types);
             return map;
         }, "filename"_a, "fit_model"_a, "allowed_types"_a, "Load transformation description from file with allowed types filter")
 
-        .def("storeTransformations", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::TransformationDescription& map) {
+        .def("storeTransformations", [](OpenMS::FileHandler& self, const std::string& filename, const OpenMS::TransformationDescription& map) {
             self.storeTransformations(filename, map);
         }, "filename"_a, "map"_a, "Store transformation description to file")
-        .def("storeTransformations", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::TransformationDescription& map,
+        .def("storeTransformations", [](OpenMS::FileHandler& self, const std::string& filename, const OpenMS::TransformationDescription& map,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types) {
             self.storeTransformations(filename, map, allowed_types);
         }, "filename"_a, "map"_a, "allowed_types"_a, "Store transformation description to file with allowed types filter")
@@ -530,7 +621,7 @@ Computes a SHA-1 hash of the file content
         .def("__deepcopy__", [](const OpenMS::FileTypes& self, nb::dict) { return OpenMS::FileTypes(self); }, "memo"_a)
         .def_static("typeToName", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToName(type); }, "type"_a, "Returns the name/extension of the type")
         .def_static("typeToDescription", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToDescription(type); }, "type"_a, "Returns the human-readable explanation of the type")
-        .def_static("nameToType", [](const OpenMS::String& name) { return OpenMS::FileTypes::nameToType(name); }, "name"_a)
+        .def_static("nameToType", [](const std::string& name) { return OpenMS::FileTypes::nameToType(name); }, "name"_a)
         .def_static("typeToMZML", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToMZML(type); }, "type"_a, "Returns the mzML name")
         ;
     // FileType enum nested under FileTypes
@@ -608,7 +699,7 @@ Computes a SHA-1 hash of the file content
         .def(nb::init<const OpenMS::GNPSMetaValueFile &>())
         .def("__copy__", [](const OpenMS::GNPSMetaValueFile& self) { return OpenMS::GNPSMetaValueFile(self); })
         .def("__deepcopy__", [](const OpenMS::GNPSMetaValueFile& self, nb::dict) { return OpenMS::GNPSMetaValueFile(self); }, "memo"_a)
-        .def_static("store", [](const OpenMS::ConsensusMap& consensus_map, const OpenMS::String& output_file) { return OpenMS::GNPSMetaValueFile::store(consensus_map, output_file); }, "consensus_map"_a, "output_file"_a)
+        .def_static("store", [](const OpenMS::ConsensusMap& consensus_map, const std::string& output_file) { return OpenMS::GNPSMetaValueFile::store(consensus_map, output_file); }, "consensus_map"_a, "output_file"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -619,7 +710,7 @@ Computes a SHA-1 hash of the file content
         .def(nb::init<const OpenMS::GNPSQuantificationFile &>())
         .def("__copy__", [](const OpenMS::GNPSQuantificationFile& self) { return OpenMS::GNPSQuantificationFile(self); })
         .def("__deepcopy__", [](const OpenMS::GNPSQuantificationFile& self, nb::dict) { return OpenMS::GNPSQuantificationFile(self); }, "memo"_a)
-        .def_static("store", [](const OpenMS::ConsensusMap& consensus_map, const OpenMS::String& output_file) { return OpenMS::GNPSQuantificationFile::store(consensus_map, output_file); }, "consensus_map"_a, "output_file"_a)
+        .def_static("store", [](const OpenMS::ConsensusMap& consensus_map, const std::string& output_file) { return OpenMS::GNPSQuantificationFile::store(consensus_map, output_file); }, "consensus_map"_a, "output_file"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -634,7 +725,7 @@ by isobar to load quantification results
         .def(nb::init<const OpenMS::IBSpectraFile &>())
         .def("__copy__", [](const OpenMS::IBSpectraFile& self) { return OpenMS::IBSpectraFile(self); })
         .def("__deepcopy__", [](const OpenMS::IBSpectraFile& self, nb::dict) { return OpenMS::IBSpectraFile(self); }, "memo"_a)
-        .def("store", [](OpenMS::IBSpectraFile& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& cm) { return self.store(filename, cm); }, "filename"_a, "cm"_a)
+        .def("store", [](OpenMS::IBSpectraFile& self, const std::string& filename, const OpenMS::ConsensusMap& cm) { return self.store(filename, cm); }, "filename"_a, "cm"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -655,7 +746,7 @@ to all spectra and chromatogram offsets
         .def(nb::init<const OpenMS::IndexedMzMLDecoder &>())
         .def("__copy__", [](const OpenMS::IndexedMzMLDecoder& self) { return OpenMS::IndexedMzMLDecoder(self); })
         .def("__deepcopy__", [](const OpenMS::IndexedMzMLDecoder& self, nb::dict) { return OpenMS::IndexedMzMLDecoder(self); }, "memo"_a)
-        .def("findIndexListOffset", [](OpenMS::IndexedMzMLDecoder& self, const OpenMS::String& filename, int buffersize) { return self.findIndexListOffset(filename, buffersize); }, "filename"_a, "buffersize"_a = 1023)
+        .def("findIndexListOffset", [](OpenMS::IndexedMzMLDecoder& self, const std::string& filename, int buffersize) { return self.findIndexListOffset(filename, buffersize); }, "filename"_a, "buffersize"_a = 1023)
         ;
 
     // -----------------------------------------------------------------------
@@ -665,8 +756,8 @@ to all spectra and chromatogram offsets
         .def(nb::init<>())
         .def("getOptions", [](OpenMS::IndexedMzMLFileLoader& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Returns the options for loading/storing")
         .def("setOptions", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Returns the options for loading/storing")
-        .def("load", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::String& filename, OpenMS::OnDiscMSExperiment& exp) { nb::gil_scoped_release release; return self.load(filename, exp); }, "filename"_a, "exp"_a)
-        .def("store", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::String& filename, OpenMS::OnDiscMSExperiment& exp) { nb::gil_scoped_release release; return self.store(filename, exp); }, "filename"_a, "exp"_a,
+        .def("load", [](OpenMS::IndexedMzMLFileLoader& self, const std::string& filename, OpenMS::OnDiscMSExperiment& exp) { nb::gil_scoped_release release; return self.load(filename, exp); }, "filename"_a, "exp"_a)
+        .def("store", [](OpenMS::IndexedMzMLFileLoader& self, const std::string& filename, OpenMS::OnDiscMSExperiment& exp) { nb::gil_scoped_release release; return self.store(filename, exp); }, "filename"_a, "exp"_a,
             R"doc(
 Load a file\n
 Tries to parse the file, success needs to be checked with the return value
@@ -674,7 +765,7 @@ Tries to parse the file, success needs to be checked with the return value
 :param exp: Object which will contain the data after the call
 :return: Indicates whether parsing was successful (if it is false, the file most likely was not an mzML or not indexed)
 )doc")
-        .def("store", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) { nb::gil_scoped_release release; return self.store(filename, exp); }, "filename"_a, "exp"_a,
+        .def("store", [](OpenMS::IndexedMzMLFileLoader& self, const std::string& filename, OpenMS::MSExperiment& exp) { nb::gil_scoped_release release; return self.store(filename, exp); }, "filename"_a, "exp"_a,
             R"doc(
 Load a file\n
 Tries to parse the file, success needs to be checked with the return value
@@ -689,21 +780,21 @@ Tries to parse the file, success needs to be checked with the return value
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Internal::IndexedMzMLHandler>(m, "IndexedMzMLHandler", "A low-level class to read an indexedmzML file")
         .def(nb::init<>())
-        .def(nb::init<OpenMS::String>())
         .def(nb::init<const OpenMS::Internal::IndexedMzMLHandler &>())
+        .def(nb::init<std::string>())
         .def("__copy__", [](const OpenMS::Internal::IndexedMzMLHandler& self) { return OpenMS::Internal::IndexedMzMLHandler(self); })
         .def("__deepcopy__", [](const OpenMS::Internal::IndexedMzMLHandler& self, nb::dict) { return OpenMS::Internal::IndexedMzMLHandler(self); }, "memo"_a)
-        .def("openFile", [](OpenMS::Internal::IndexedMzMLHandler& self, const OpenMS::String& filename) { return self.openFile(filename); }, "filename"_a)
+        .def("openFile", [](OpenMS::Internal::IndexedMzMLHandler& self, const std::string& filename) { return self.openFile(filename); }, "filename"_a)
         .def("getParsingSuccess", [](const OpenMS::Internal::IndexedMzMLHandler& self) { return self.getParsingSuccess(); })
         .def("getNrSpectra", [](const OpenMS::Internal::IndexedMzMLHandler& self) { return self.getNrSpectra(); })
         .def("getNrChromatograms", [](const OpenMS::Internal::IndexedMzMLHandler& self) { return self.getNrChromatograms(); })
         .def("getSpectrumById", [](OpenMS::Internal::IndexedMzMLHandler& self, int id) { return self.getSpectrumById(id); }, "id"_a)
         .def("getMSSpectrumById", [](OpenMS::Internal::IndexedMzMLHandler& self, int id) { return self.getMSSpectrumById(id); }, "id"_a)
-        .def("getMSSpectrumByNativeId", [](OpenMS::Internal::IndexedMzMLHandler& self, const OpenMS::String& id) { OpenMS::MSSpectrum s; self.getMSSpectrumByNativeId(id, s); return s; }, "id"_a)
+        .def("getMSSpectrumByNativeId", [](OpenMS::Internal::IndexedMzMLHandler& self, const std::string& id) { OpenMS::MSSpectrum s; self.getMSSpectrumByNativeId(id, s); return s; }, "id"_a)
         .def("getMSSpectrumById", [](OpenMS::Internal::IndexedMzMLHandler& self, int id, OpenMS::MSSpectrum& s) { return self.getMSSpectrumById(id, s); }, "id"_a, "s"_a)
         .def("getChromatogramById", [](OpenMS::Internal::IndexedMzMLHandler& self, int id) { return self.getChromatogramById(id); }, "id"_a)
         .def("getMSChromatogramById", [](OpenMS::Internal::IndexedMzMLHandler& self, int id) { return self.getMSChromatogramById(id); }, "id"_a)
-        .def("getMSChromatogramByNativeId", [](OpenMS::Internal::IndexedMzMLHandler& self, const OpenMS::String& id) { OpenMS::MSChromatogram c; self.getMSChromatogramByNativeId(id, c); return c; }, "id"_a)
+        .def("getMSChromatogramByNativeId", [](OpenMS::Internal::IndexedMzMLHandler& self, const std::string& id) { OpenMS::MSChromatogram c; self.getMSChromatogramByNativeId(id, c); return c; }, "id"_a)
         .def("getMSChromatogramById", [](OpenMS::Internal::IndexedMzMLHandler& self, int id, OpenMS::MSChromatogram& c) { return self.getMSChromatogramById(id, c); }, "id"_a, "c"_a)
         .def("setSkipXMLChecks", [](OpenMS::Internal::IndexedMzMLHandler& self, bool skip) { return self.setSkipXMLChecks(skip); }, "skip"_a)
         ;
@@ -717,17 +808,17 @@ Tries to parse the file, success needs to be checked with the return value
         .def("__copy__", [](const OpenMS::InspectInfile& self) { return OpenMS::InspectInfile(self); })
         .def("__deepcopy__", [](const OpenMS::InspectInfile& self, nb::dict) { return OpenMS::InspectInfile(self); }, "memo"_a)
         .def(nb::self == nb::self)
-        .def("store", [](OpenMS::InspectInfile& self, const OpenMS::String& filename) { return self.store(filename); }, "filename"_a, "Stores the experiment data in an Inspect input file that can be used as input for Inspect shell execution")
-        .def("handlePTMs", [](OpenMS::InspectInfile& self, const OpenMS::String& modification_line, const OpenMS::String& modifications_filename, bool monoisotopic) { return self.handlePTMs(modification_line, modifications_filename, monoisotopic); }, "modification_line"_a, "modifications_filename"_a, "monoisotopic"_a)
+        .def("store", [](OpenMS::InspectInfile& self, const std::string& filename) { return self.store(filename); }, "filename"_a, "Stores the experiment data in an Inspect input file that can be used as input for Inspect shell execution")
+        .def("handlePTMs", [](OpenMS::InspectInfile& self, const std::string& modification_line, const std::string& modifications_filename, bool monoisotopic) { return self.handlePTMs(modification_line, modifications_filename, monoisotopic); }, "modification_line"_a, "modifications_filename"_a, "monoisotopic"_a)
         .def("getSpectra", [](const OpenMS::InspectInfile& self) { return self.getSpectra(); }, "Specifies a spectrum file to search")
-        .def("setSpectra", [](OpenMS::InspectInfile& self, const OpenMS::String& spectra) { return self.setSpectra(spectra); }, "spectra"_a, "Specifies a spectrum file to search")
+        .def("setSpectra", [](OpenMS::InspectInfile& self, const std::string& spectra) { return self.setSpectra(spectra); }, "spectra"_a, "Specifies a spectrum file to search")
         .def("getDb", [](const OpenMS::InspectInfile& self) { return self.getDb(); }, "Specifies the name of a database (.trie file) to search")
-        .def("setDb", [](OpenMS::InspectInfile& self, const OpenMS::String& db) { return self.setDb(db); }, "db"_a, "Specifies the name of a database (.trie file) to search")
+        .def("setDb", [](OpenMS::InspectInfile& self, const std::string& db) { return self.setDb(db); }, "db"_a, "Specifies the name of a database (.trie file) to search")
         .def("getEnzyme", [](const OpenMS::InspectInfile& self) { return self.getEnzyme(); }, 
             R"doc(
 Specifies the name of a enzyme. "Trypsin", "None", and "Chymotrypsin" are the available values
 )doc")
-        .def("setEnzyme", [](OpenMS::InspectInfile& self, const OpenMS::String& enzyme) { return self.setEnzyme(enzyme); }, "enzyme"_a, 
+        .def("setEnzyme", [](OpenMS::InspectInfile& self, const std::string& enzyme) { return self.setEnzyme(enzyme); }, "enzyme"_a, 
             R"doc(
 Specifies the name of a enzyme. "Trypsin", "None", and "Chymotrypsin" are the available values
 )doc")
@@ -744,7 +835,7 @@ Specifies the name of a enzyme. "Trypsin", "None", and "Chymotrypsin" are the av
         .def("getMulticharge", [](const OpenMS::InspectInfile& self) { return self.getMulticharge(); }, "If set to true, attempt to guess the precursor charge and mass, and consider multiple charge states if feasible")
         .def("setMulticharge", [](OpenMS::InspectInfile& self, unsigned int multicharge) { return self.setMulticharge(multicharge); }, "multicharge"_a, "If set to true, attempt to guess the precursor charge and mass, and consider multiple charge states if feasible")
         .def("getInstrument", [](const OpenMS::InspectInfile& self) { return self.getInstrument(); }, "If set to QTOF, uses a QTOF-derived fragmentation model, and does not attempt to correct the parent mass")
-        .def("setInstrument", [](OpenMS::InspectInfile& self, const OpenMS::String& instrument) { return self.setInstrument(instrument); }, "instrument"_a, "If set to QTOF, uses a QTOF-derived fragmentation model, and does not attempt to correct the parent mass")
+        .def("setInstrument", [](OpenMS::InspectInfile& self, const std::string& instrument) { return self.setInstrument(instrument); }, "instrument"_a, "If set to QTOF, uses a QTOF-derived fragmentation model, and does not attempt to correct the parent mass")
         .def("getTagCount", [](const OpenMS::InspectInfile& self) { return self.getTagCount(); }, "Number of tags to generate")
         .def("setTagCount", [](OpenMS::InspectInfile& self, int TagCount) { return self.setTagCount(TagCount); }, "TagCount"_a, "Number of tags to generate")
         .def("getModifications", [](const OpenMS::InspectInfile& self) { return self.getModifications(); }, "Returns the modifications")
@@ -759,8 +850,8 @@ Specifies the name of a enzyme. "Trypsin", "None", and "Chymotrypsin" are the av
         .def("__copy__", [](const OpenMS::InspectOutfile& self) { return OpenMS::InspectOutfile(self); })
         .def("__deepcopy__", [](const OpenMS::InspectOutfile& self, nb::dict) { return OpenMS::InspectOutfile(self); }, "memo"_a)
         .def(nb::self == nb::self)
-        .def("load", [](OpenMS::InspectOutfile& self, const OpenMS::String& result_filename, OpenMS::PeptideIdentificationList& peptide_identifications, OpenMS::ProteinIdentification& protein_identification, double p_value_threshold, const OpenMS::String& database_filename) { return self.load(result_filename, peptide_identifications, protein_identification, p_value_threshold, database_filename); }, "result_filename"_a, "peptide_identifications"_a, "protein_identification"_a, "p_value_threshold"_a, "database_filename"_a = "")
-        .def("getWantedRecords", [](OpenMS::InspectOutfile& self, const OpenMS::String& result_filename, double p_value_threshold) { return self.getWantedRecords(result_filename, p_value_threshold); }, "result_filename"_a, "p_value_threshold"_a, 
+        .def("load", [](OpenMS::InspectOutfile& self, const std::string& result_filename, OpenMS::PeptideIdentificationList& peptide_identifications, OpenMS::ProteinIdentification& protein_identification, double p_value_threshold, const std::string& database_filename) { return self.load(result_filename, peptide_identifications, protein_identification, p_value_threshold, database_filename); }, "result_filename"_a, "peptide_identifications"_a, "protein_identification"_a, "p_value_threshold"_a, "database_filename"_a = "")
+        .def("getWantedRecords", [](OpenMS::InspectOutfile& self, const std::string& result_filename, double p_value_threshold) { return self.getWantedRecords(result_filename, p_value_threshold); }, "result_filename"_a, "p_value_threshold"_a, 
             R"doc(
 Load the results of an Inspect search
 :param result_filename: Input parameter which is the file name of the input file
@@ -775,14 +866,14 @@ Exception: ParseError is thrown if the given file could not be parsed
 :raises:
 Exception: FileEmpty is thrown if the given file is empty
 )doc")
-        .def("compressTrieDB", [](OpenMS::InspectOutfile& self, const OpenMS::String& database_filename, const OpenMS::String& index_filename, std::vector<size_t>& wanted_records, const OpenMS::String& snd_database_filename, const OpenMS::String& snd_index_filename, bool append) { return self.compressTrieDB(database_filename, index_filename, wanted_records, snd_database_filename, snd_index_filename, append); }, "database_filename"_a, "index_filename"_a, "wanted_records"_a, "snd_database_filename"_a, "snd_index_filename"_a, "append"_a = false, "Generates a trie database from another one, using the wanted records only")
-        .def("generateTrieDB", [](OpenMS::InspectOutfile& self, const OpenMS::String& source_database_filename, const OpenMS::String& database_filename, const OpenMS::String& index_filename, bool append, const OpenMS::String& species) { return self.generateTrieDB(source_database_filename, database_filename, index_filename, append, species); }, "source_database_filename"_a, "database_filename"_a, "index_filename"_a, "append"_a = false, "species"_a = "", "Generates a trie database from a given one (the type of database is determined by getLabels)")
-        .def("getACAndACType", [](OpenMS::InspectOutfile& self, OpenMS::String line) { OpenMS::String accession; OpenMS::String accession_type; self.getACAndACType(line, accession, accession_type); return std::make_tuple(accession, accession_type); }, "line"_a, "Retrieve the accession type and accession number from a protein description line")
-        .def("getLabels", [](OpenMS::InspectOutfile& self, const OpenMS::String& source_database_filename) { OpenMS::String ac_label, sequence_start_label, sequence_end_label, comment_label, species_label; self.getLabels(source_database_filename, ac_label, sequence_start_label, sequence_end_label, comment_label, species_label); return std::make_tuple(ac_label, sequence_start_label, sequence_end_label, comment_label, species_label); }, "source_database_filename"_a, "Retrieve the labels of a given database (at the moment FASTA and Swissprot)")
-        .def("getSequences", [](OpenMS::InspectOutfile& self, const OpenMS::String& database_filename, const std::map<size_t, size_t>& wanted_records) { std::vector<OpenMS::String> sequences; self.getSequences(database_filename, wanted_records, sequences); return sequences; }, "database_filename"_a, "wanted_records"_a, "Retrieve sequences from a trie database")
-        .def("getExperiment", [](OpenMS::InspectOutfile& self, const OpenMS::String& in_filename) { OpenMS::MSExperiment exp; OpenMS::String type; self.getExperiment(exp, type, in_filename); return std::make_tuple(exp, type); }, "in_filename"_a, "Get the experiment from a file")
-        .def("getSearchEngineAndVersion", [](OpenMS::InspectOutfile& self, const OpenMS::String& cmd_output, OpenMS::ProteinIdentification& protein_identification) { return self.getSearchEngineAndVersion(cmd_output, protein_identification); }, "cmd_output"_a, "protein_identification"_a, "Get the search engine and its version from the output of the InsPecT executable without parameters. Returns true on success, false otherwise")
-        .def("readOutHeader", [](OpenMS::InspectOutfile& self, const OpenMS::String& filename, const OpenMS::String& header_line) {
+        .def("compressTrieDB", [](OpenMS::InspectOutfile& self, const std::string& database_filename, const std::string& index_filename, std::vector<size_t>& wanted_records, const std::string& snd_database_filename, const std::string& snd_index_filename, bool append) { return self.compressTrieDB(database_filename, index_filename, wanted_records, snd_database_filename, snd_index_filename, append); }, "database_filename"_a, "index_filename"_a, "wanted_records"_a, "snd_database_filename"_a, "snd_index_filename"_a, "append"_a = false, "Generates a trie database from another one, using the wanted records only")
+        .def("generateTrieDB", [](OpenMS::InspectOutfile& self, const std::string& source_database_filename, const std::string& database_filename, const std::string& index_filename, bool append, const std::string& species) { return self.generateTrieDB(source_database_filename, database_filename, index_filename, append, species); }, "source_database_filename"_a, "database_filename"_a, "index_filename"_a, "append"_a = false, "species"_a = "", "Generates a trie database from a given one (the type of database is determined by getLabels)")
+        .def("getACAndACType", [](OpenMS::InspectOutfile& self, std::string line) { std::string accession; std::string accession_type; self.getACAndACType(line, accession, accession_type); return std::make_tuple(accession, accession_type); }, "line"_a, "Retrieve the accession type and accession number from a protein description line")
+        .def("getLabels", [](OpenMS::InspectOutfile& self, const std::string& source_database_filename) { std::string ac_label, sequence_start_label, sequence_end_label, comment_label, species_label; self.getLabels(source_database_filename, ac_label, sequence_start_label, sequence_end_label, comment_label, species_label); return std::make_tuple(ac_label, sequence_start_label, sequence_end_label, comment_label, species_label); }, "source_database_filename"_a, "Retrieve the labels of a given database (at the moment FASTA and Swissprot)")
+        .def("getSequences", [](OpenMS::InspectOutfile& self, const std::string& database_filename, const std::map<size_t, size_t>& wanted_records) { std::vector<std::string> sequences; self.getSequences(database_filename, wanted_records, sequences); return sequences; }, "database_filename"_a, "wanted_records"_a, "Retrieve sequences from a trie database")
+        .def("getExperiment", [](OpenMS::InspectOutfile& self, const std::string& in_filename) { OpenMS::MSExperiment exp; std::string type; self.getExperiment(exp, type, in_filename); return std::make_tuple(exp, type); }, "in_filename"_a, "Get the experiment from a file")
+        .def("getSearchEngineAndVersion", [](OpenMS::InspectOutfile& self, const std::string& cmd_output, OpenMS::ProteinIdentification& protein_identification) { return self.getSearchEngineAndVersion(cmd_output, protein_identification); }, "cmd_output"_a, "protein_identification"_a, "Get the search engine and its version from the output of the InsPecT executable without parameters. Returns true on success, false otherwise")
+        .def("readOutHeader", [](OpenMS::InspectOutfile& self, const std::string& filename, const std::string& header_line) {
             OpenMS::Int spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column;
             OpenMS::Size number_of_columns;
             self.readOutHeader(filename, header_line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns);
@@ -804,8 +895,8 @@ metavalues with the following names "FirstScan", "LastScan", "NumOfScans" and "A
 The width in m/z of the overall convex hull of each feature is set to 3 Th in lack of a value provided by the Kroenik file
 )doc")
         .def(nb::init<>())
-        .def("load", [](OpenMS::KroenikFile& self, const OpenMS::String& filename) { OpenMS::FeatureMap feature_map; self.load(filename, feature_map); return feature_map; }, "filename"_a)
-        .def("store", [](const OpenMS::KroenikFile& self, const OpenMS::String& filename, const OpenMS::FeatureMap& fmap) { self.store(filename, fmap); }, "filename"_a, "fmap"_a, "Stores a FeatureMap to a Kroenik file")
+        .def("load", [](OpenMS::KroenikFile& self, const std::string& filename) { OpenMS::FeatureMap feature_map; self.load(filename, feature_map); return feature_map; }, "filename"_a)
+        .def("store", [](const OpenMS::KroenikFile& self, const std::string& filename, const OpenMS::FeatureMap& fmap) { self.store(filename, fmap); }, "filename"_a, "fmap"_a, "Stores a FeatureMap to a Kroenik file")
         ;
 
     // -----------------------------------------------------------------------
@@ -816,7 +907,7 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
         .def(nb::init<const OpenMS::MRMFile &>())
         .def("__copy__", [](const OpenMS::MRMFile& self) { return OpenMS::MRMFile(self); })
         .def("__deepcopy__", [](const OpenMS::MRMFile& self, nb::dict) { return OpenMS::MRMFile(self); }, "memo"_a)
-        .def_static("loadMzML", [](const OpenMS::String& file, const OpenMS::String& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta) { return OpenMS::MRMFile::loadMzML(file, tmp, exp_meta); }, "file"_a, "tmp"_a, "exp_meta"_a)
+        .def_static("loadMzML", [](const std::string& file, const std::string& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta) { return OpenMS::MRMFile::loadMzML(file, tmp, exp_meta); }, "file"_a, "tmp"_a, "exp_meta"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -828,7 +919,7 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
         .def("__deepcopy__", [](const OpenMS::MSNumpressCoder& self, nb::dict) { return OpenMS::MSNumpressCoder(self); }, "memo"_a)
 
         .def("encodeNP", [](OpenMS::MSNumpressCoder& self, std::vector<double> in, nb::object out_obj, bool zlib_compression, OpenMS::MSNumpressCoder::NumpressConfig config) {
-            OpenMS::String result;
+            std::string result;
             self.encodeNP(in, result, zlib_compression, config);
             // Write result back to the output String-like object
             if (nb::hasattr(out_obj, "_value")) {
@@ -850,7 +941,7 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
         }, "in"_a, "out"_a, "zlib_compression"_a, "config"_a, "Decode Base64 numpress string to vector of doubles")
 
         .def("encodeNPRaw", [](OpenMS::MSNumpressCoder& self, std::vector<double> in, nb::object out_obj, OpenMS::MSNumpressCoder::NumpressConfig config) {
-            OpenMS::String result;
+            std::string result;
             self.encodeNPRaw(in, result, config);
             if (nb::hasattr(out_obj, "_value")) {
                 // Raw encoding may contain null bytes - use the full size
@@ -903,8 +994,8 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::MSstatsFile& self) { return OpenMS::MSstatsFile(self); })
         .def("__deepcopy__", [](const OpenMS::MSstatsFile& self, nb::dict) { return OpenMS::MSstatsFile(self); }, "memo"_a)
-        .def("storeLFQ", [](OpenMS::MSstatsFile& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const bool is_isotope_label_type, const OpenMS::String& bioreplicate, const OpenMS::String& condition, const OpenMS::String& retention_time_summarization_method) { self.storeLFQ(filename, consensus_map, design, reannotate_filenames, is_isotope_label_type, bioreplicate, condition, retention_time_summarization_method); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "is_isotope_label_type"_a, "bioreplicate"_a, "condition"_a, "retention_time_summarization_method"_a)
-        .def("storeISO", [](OpenMS::MSstatsFile& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const OpenMS::String& bioreplicate, const OpenMS::String& condition, const OpenMS::String& mixture, const OpenMS::String& retention_time_summarization_method) { self.storeISO(filename, consensus_map, design, reannotate_filenames, bioreplicate, condition, mixture, retention_time_summarization_method); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "bioreplicate"_a, "condition"_a, "mixture"_a, "retention_time_summarization_method"_a)
+        .def("storeLFQ", [](OpenMS::MSstatsFile& self, const std::string& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const bool is_isotope_label_type, const std::string& bioreplicate, const std::string& condition, const std::string& retention_time_summarization_method, const bool remove_shared_peptides) { self.storeLFQ(filename, consensus_map, design, reannotate_filenames, is_isotope_label_type, bioreplicate, condition, retention_time_summarization_method, remove_shared_peptides); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "is_isotope_label_type"_a, "bioreplicate"_a, "condition"_a, "retention_time_summarization_method"_a, "remove_shared_peptides"_a = true)
+        .def("storeISO", [](OpenMS::MSstatsFile& self, const std::string& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const std::string& bioreplicate, const std::string& condition, const std::string& mixture, const std::string& retention_time_summarization_method, const bool remove_shared_peptides) { self.storeISO(filename, consensus_map, design, reannotate_filenames, bioreplicate, condition, mixture, retention_time_summarization_method, remove_shared_peptides); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "bioreplicate"_a, "condition"_a, "mixture"_a, "retention_time_summarization_method"_a, "remove_shared_peptides"_a = true)
         ;
 
     // -----------------------------------------------------------------------
@@ -914,8 +1005,8 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::MsInspectFile& self) { return OpenMS::MsInspectFile(self); })
         .def("__deepcopy__", [](const OpenMS::MsInspectFile& self, nb::dict) { return OpenMS::MsInspectFile(self); }, "memo"_a)
-        .def("load", [](OpenMS::MsInspectFile& self, const OpenMS::String& filename, OpenMS::FeatureMap& feature_map) { self.load(filename, feature_map); }, "filename"_a, "feature_map"_a)
-        .def("store", [](const OpenMS::MsInspectFile& self, const OpenMS::String& filename, const OpenMS::MSSpectrum& spectrum) { self.store(filename, spectrum); }, "filename"_a, "spectrum"_a)
+        .def("load", [](OpenMS::MsInspectFile& self, const std::string& filename, OpenMS::FeatureMap& feature_map) { self.load(filename, feature_map); }, "filename"_a, "feature_map"_a)
+        .def("store", [](const OpenMS::MsInspectFile& self, const std::string& filename, const OpenMS::MSSpectrum& spectrum) { self.store(filename, spectrum); }, "filename"_a, "spectrum"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -932,7 +1023,7 @@ binaryDataArray for Intensity / mass-to-charge or Intensity / time
         .def(nb::init<bool>())
         .def("__copy__", [](const OpenMS::MzMLSpectrumDecoder& self) { return OpenMS::MzMLSpectrumDecoder(self); })
         .def("__deepcopy__", [](const OpenMS::MzMLSpectrumDecoder& self, nb::dict) { return OpenMS::MzMLSpectrumDecoder(self); }, "memo"_a)
-        .def("domParseSpectrum", [](OpenMS::MzMLSpectrumDecoder& self, const OpenMS::String& in, std::shared_ptr<OpenMS::Interfaces::Spectrum>& sptr) { return self.domParseSpectrum(in, sptr); }, "in"_a, "sptr"_a, 
+        .def("domParseSpectrum", [](OpenMS::MzMLSpectrumDecoder& self, const std::string& in, std::shared_ptr<OpenMS::Interfaces::Spectrum>& sptr) { return self.domParseSpectrum(in, sptr); }, "in"_a, "sptr"_a, 
             R"doc(
 Extract data from a string which contains a full mzML chromatogram
 Extracts data from the input string which is expected to contain exactly
@@ -942,7 +1033,7 @@ result as Chromatogram
 :param in: Input string containing the raw XML
 :param cptr: Resulting chromatogram
 )doc")
-        .def("domParseSpectrum", [](OpenMS::MzMLSpectrumDecoder& self, const OpenMS::String& in, OpenMS::MSSpectrum& s) { return self.domParseSpectrum(in, s); }, "in"_a, "s"_a, 
+        .def("domParseSpectrum", [](OpenMS::MzMLSpectrumDecoder& self, const std::string& in, OpenMS::MSSpectrum& s) { return self.domParseSpectrum(in, s); }, "in"_a, "s"_a, 
             R"doc(
 Extract data from a string which contains a full mzML chromatogram
 Extracts data from the input string which is expected to contain exactly
@@ -952,8 +1043,8 @@ result as Chromatogram
 :param in: Input string containing the raw XML
 :param cptr: Resulting chromatogram
 )doc")
-        .def("domParseChromatogram", [](OpenMS::MzMLSpectrumDecoder& self, const OpenMS::String& in, OpenMS::MSChromatogram& c) { return self.domParseChromatogram(in, c); }, "in"_a, "c"_a)
-        .def("domParseChromatogram", [](OpenMS::MzMLSpectrumDecoder& self, const OpenMS::String& in, std::shared_ptr<OpenMS::Interfaces::Chromatogram>& cptr) { return self.domParseChromatogram(in, cptr); }, "in"_a, "cptr"_a)
+        .def("domParseChromatogram", [](OpenMS::MzMLSpectrumDecoder& self, const std::string& in, OpenMS::MSChromatogram& c) { return self.domParseChromatogram(in, c); }, "in"_a, "c"_a)
+        .def("domParseChromatogram", [](OpenMS::MzMLSpectrumDecoder& self, const std::string& in, std::shared_ptr<OpenMS::Interfaces::Chromatogram>& cptr) { return self.domParseChromatogram(in, cptr); }, "in"_a, "cptr"_a)
         .def("setSkipXMLChecks", [](OpenMS::MzMLSpectrumDecoder& self, bool only) { return self.setSkipXMLChecks(only); }, "only"_a, "Whether to skip some XML checks (e.g. removing whitespace inside base64 arrays) and be fast instead")
         ;
 
@@ -961,8 +1052,8 @@ result as Chromatogram
     // MzMLSwathFileConsumer
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MzMLSwathFileConsumer>(m, "MzMLSwathFileConsumer", "FullSwathFileConsumer")
-        .def(nb::init<OpenMS::String, OpenMS::String, size_t, std::vector<int>>())
-        .def(nb::init<std::vector<OpenSwath::SwathMap>, OpenMS::String, OpenMS::String, size_t, std::vector<int>>())
+        .def(nb::init<std::string, std::string, size_t, std::vector<int>>())
+        .def(nb::init<std::vector<OpenSwath::SwathMap>, std::string, std::string, size_t, std::vector<int>>())
         .def("setExpectedSize", [](OpenMS::MzMLSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
         .def("setExperimentalSettings", [](OpenMS::MzMLSwathFileConsumer& self, const OpenMS::ExperimentalSettings& exp) { return self.setExperimentalSettings(exp); }, "exp"_a)
         .def("retrieveSwathMaps", [](OpenMS::MzMLSwathFileConsumer& self) { std::vector<OpenSwath::SwathMap> maps; self.retrieveSwathMaps(maps); return maps; })
@@ -979,7 +1070,7 @@ File adapter for mzQC files used to load and store mzQC files
 This class collects the data for the mzQC File
 )doc")
         .def(nb::init<>())
-        .def("store", [](const OpenMS::MzQCFile& self, const OpenMS::String& input_file, const OpenMS::String& output_file, const OpenMS::MSExperiment& exp, const OpenMS::String& contact_name, const OpenMS::String& contact_address, const OpenMS::String& description, const OpenMS::String& label, const OpenMS::FeatureMap& feature_map, std::vector<OpenMS::ProteinIdentification>& prot_ids, OpenMS::PeptideIdentificationList& pep_ids) { self.store(input_file, output_file, exp, contact_name, contact_address, description, label, feature_map, prot_ids, pep_ids); }, "input_file"_a, "output_file"_a, "exp"_a, "contact_name"_a, "contact_address"_a, "description"_a, "label"_a, "feature_map"_a, "prot_ids"_a, "pep_ids"_a)
+        .def("store", [](const OpenMS::MzQCFile& self, const std::string& input_file, const std::string& output_file, const OpenMS::MSExperiment& exp, const std::string& contact_name, const std::string& contact_address, const std::string& description, const std::string& label, const OpenMS::FeatureMap& feature_map, std::vector<OpenMS::ProteinIdentification>& prot_ids, OpenMS::PeptideIdentificationList& pep_ids) { self.store(input_file, output_file, exp, contact_name, contact_address, description, label, feature_map, prot_ids, pep_ids); }, "input_file"_a, "output_file"_a, "exp"_a, "contact_name"_a, "contact_address"_a, "description"_a, "label"_a, "feature_map"_a, "prot_ids"_a, "pep_ids"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -1002,9 +1093,9 @@ Please see the official MzTab specification at https://code.google.com/p/mztab/
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::MzTabFile& self) { return OpenMS::MzTabFile(self); })
         .def("__deepcopy__", [](const OpenMS::MzTabFile& self, nb::dict) { return OpenMS::MzTabFile(self); }, "memo"_a)
-        .def("store", [](const OpenMS::MzTabFile& self, const OpenMS::String& filename, const OpenMS::MzTab& mz_tab) { return self.store(filename, mz_tab); }, "filename"_a, "mz_tab"_a, "Stores MzTab file")
-        .def("store", [](OpenMS::MzTabFile& self, const OpenMS::String& filename, const std::vector<OpenMS::ProteinIdentification>& protein_identifications, const OpenMS::PeptideIdentificationList& peptide_identifications, bool first_run_inference_only, bool export_empty_pep_ids, bool export_all_psms, const OpenMS::String& title) { return self.store(filename, protein_identifications, peptide_identifications, first_run_inference_only, export_empty_pep_ids, export_all_psms, title); }, "filename"_a, "protein_identifications"_a, "peptide_identifications"_a, "first_run_inference_only"_a, "export_empty_pep_ids"_a = false, "export_all_psms"_a = false, "title"_a = "ID export from OpenMS", "Stores MzTab file")
-        .def("load", [](OpenMS::MzTabFile& self, const OpenMS::String& filename) { OpenMS::MzTab mz_tab; self.load(filename, mz_tab); return mz_tab; }, "filename"_a, "Loads MzTab file")
+        .def("store", [](const OpenMS::MzTabFile& self, const std::string& filename, const OpenMS::MzTab& mz_tab) { return self.store(filename, mz_tab); }, "filename"_a, "mz_tab"_a, "Stores MzTab file")
+        .def("store", [](OpenMS::MzTabFile& self, const std::string& filename, const std::vector<OpenMS::ProteinIdentification>& protein_identifications, const OpenMS::PeptideIdentificationList& peptide_identifications, bool first_run_inference_only, bool export_empty_pep_ids, bool export_all_psms, const std::string& title) { return self.store(filename, protein_identifications, peptide_identifications, first_run_inference_only, export_empty_pep_ids, export_all_psms, title); }, "filename"_a, "protein_identifications"_a, "peptide_identifications"_a, "first_run_inference_only"_a, "export_empty_pep_ids"_a = false, "export_all_psms"_a = false, "title"_a = "ID export from OpenMS", "Stores MzTab file")
+        .def("load", [](OpenMS::MzTabFile& self, const std::string& filename) { OpenMS::MzTab mz_tab; self.load(filename, mz_tab); return mz_tab; }, "filename"_a, "Loads MzTab file")
         ;
 
     // -----------------------------------------------------------------------
@@ -1028,7 +1119,7 @@ Please see the official MzTabM specification at https://github.com/HUPO-PSI/mzTa
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::MzTabMFile& self) { return OpenMS::MzTabMFile(self); })
         .def("__deepcopy__", [](const OpenMS::MzTabMFile& self, nb::dict) { return OpenMS::MzTabMFile(self); }, "memo"_a)
-        .def("store", [](const OpenMS::MzTabMFile& self, const OpenMS::String& filename, const OpenMS::MzTabM& mztab_m) { return self.store(filename, mztab_m); }, "filename"_a, "mztab_m"_a, "Store MzTabM file")
+        .def("store", [](const OpenMS::MzTabMFile& self, const std::string& filename, const OpenMS::MzTabM& mztab_m) { return self.store(filename, mztab_m); }, "filename"_a, "mztab_m"_a, "Store MzTabM file")
         ;
 
     // -----------------------------------------------------------------------
@@ -1041,7 +1132,7 @@ This is sometimes necessary to fulfill the requirement of passing an
 valid MSDataWritingConsumer object or pointer but no operation is
 required
 )doc")
-        .def(nb::init<OpenMS::String>())
+        .def(nb::init<std::string>())
         .def("setExperimentalSettings", [](OpenMS::NoopMSDataWritingConsumer& self, const OpenMS::ExperimentalSettings& p0) { return self.setExperimentalSettings(p0); })
         .def("consumeSpectrum", [](OpenMS::NoopMSDataWritingConsumer& self, OpenMS::MSSpectrum& p0) { return self.consumeSpectrum(p0); })
         .def("consumeChromatogram", [](OpenMS::NoopMSDataWritingConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); })
@@ -1063,7 +1154,7 @@ load the data from such a file into the structures of OpenMS
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::OMSSACSVFile& self) { return OpenMS::OMSSACSVFile(self); })
         .def("__deepcopy__", [](const OpenMS::OMSSACSVFile& self, nb::dict) { return OpenMS::OMSSACSVFile(self); }, "memo"_a)
-        .def("load", [](const OpenMS::OMSSACSVFile& self, const OpenMS::String& filename) { OpenMS::ProteinIdentification protein_identification; OpenMS::PeptideIdentificationList id_data; self.load(filename, protein_identification, id_data); return std::make_tuple(protein_identification, id_data); }, "filename"_a)
+        .def("load", [](const OpenMS::OMSSACSVFile& self, const std::string& filename) { OpenMS::ProteinIdentification protein_identification; OpenMS::PeptideIdentificationList id_data; self.load(filename, protein_identification, id_data); return std::make_tuple(protein_identification, id_data); }, "filename"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -1151,7 +1242,7 @@ optional_tag: Optional tag (e.g., "between chains")
 annotation_id: Optional annotation identifier (UInt, max value = not set)
 )doc")
         .def(nb::init<>())
-        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, unsigned int>())
+        .def(nb::init<std::string, std::string, std::string, unsigned int>())
         .def_rw("id1", &OpenMS::PEFFDisulfideBond::id1)
         .def_rw("id2", &OpenMS::PEFFDisulfideBond::id2)
         .def_rw("optional_tag", &OpenMS::PEFFDisulfideBond::optional_tag)
@@ -1194,7 +1285,7 @@ proteoforms: List of proteoforms in ProForma notation
 Get an AASequence with all annotated modifications applied.
 Modifications with unknown positions (position == 0) are skipped.
 )doc")
-        .def("getProcessedSequence", [](const OpenMS::PEFFEntry& self, const OpenMS::String& region_accession) { return self.getProcessedSequence(region_accession); }, "region_accession"_a, 
+        .def("getProcessedSequence", [](const OpenMS::PEFFEntry& self, const std::string& region_accession) { return self.getProcessedSequence(region_accession); }, "region_accession"_a, 
             R"doc(
 Get processed sequence (e.g., mature protein without signal peptide).
 Uses default region accession "PEFF:0001021" (signal peptide).
@@ -1249,7 +1340,7 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
 type: Modification type (PSI_MOD, UNIMOD, or GENERIC)
 )doc")
         .def(nb::init<>())
-        .def(nb::init<size_t, OpenMS::String, OpenMS::String, OpenMS::String, unsigned int>())
+        .def(nb::init<size_t, std::string, std::string, std::string, unsigned int>())
         .def_rw("position", &OpenMS::PEFFModification::position)
         .def_rw("accession", &OpenMS::PEFFModification::accession)
         .def_rw("name", &OpenMS::PEFFModification::name)
@@ -1279,7 +1370,7 @@ optional_tag: Optional tag (last component of annotation tuple)
 annotation_id: Optional annotation identifier (UInt, max value = not set)
 )doc")
         .def(nb::init<>())
-        .def(nb::init<size_t, size_t, OpenMS::String, OpenMS::String, OpenMS::String, unsigned int>())
+        .def(nb::init<size_t, size_t, std::string, std::string, std::string, unsigned int>())
         .def_rw("start_position", &OpenMS::PEFFProcessedRegion::start_position)
         .def_rw("end_position", &OpenMS::PEFFProcessedRegion::end_position)
         .def_rw("accession", &OpenMS::PEFFProcessedRegion::accession)
@@ -1302,7 +1393,7 @@ optional_tag: Optional tag (last component of annotation tuple)
 annotation_id: Optional annotation identifier (UInt, max value = not set)
 )doc")
         .def(nb::init<>())
-        .def(nb::init<size_t, size_t, OpenMS::String, OpenMS::String, unsigned int>())
+        .def(nb::init<size_t, size_t, std::string, std::string, unsigned int>())
         .def_rw("start_position", &OpenMS::PEFFVariantComplex::start_position)
         .def_rw("end_position", &OpenMS::PEFFVariantComplex::end_position)
         .def_rw("replacement", &OpenMS::PEFFVariantComplex::replacement)
@@ -1323,7 +1414,7 @@ optional_tag: Optional tag (last component of annotation tuple)
 annotation_id: Optional annotation identifier (UInt, max value = not set)
 )doc")
         .def(nb::init<>())
-        .def(nb::init<size_t, char, OpenMS::String, unsigned int>())
+        .def(nb::init<size_t, char, std::string, unsigned int>())
         .def_rw("position", &OpenMS::PEFFVariantSimple::position)
         .def_rw("variant_aa", &OpenMS::PEFFVariantSimple::variant_aa)
         .def_rw("optional_tag", &OpenMS::PEFFVariantSimple::optional_tag)
@@ -1335,10 +1426,9 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::ParamCTDFile>(m, "ParamCTDFile", "Serializes a Param object to/from a CTD (Common Tool Description) file")
         .def(nb::init<>())
-        .def("store", [](const OpenMS::ParamCTDFile& self, const OpenMS::String& filename, const OpenMS::Param& param, const OpenMS::ToolInfo& tool_info) { return self.store(filename, param, tool_info); }, "filename"_a, "param"_a, "tool_info"_a)
+        .def("store", [](const OpenMS::ParamCTDFile& self, const std::string& filename, const OpenMS::Param& param, const OpenMS::ToolInfo& tool_info) { return self.store(filename, param, tool_info); }, "filename"_a, "param"_a, "tool_info"_a)
         ;
 
-#ifdef WITH_PARQUET
     // -----------------------------------------------------------------------
     // ParquetFilter
     // -----------------------------------------------------------------------
@@ -1349,21 +1439,21 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def("__deepcopy__", [](const OpenMS::ParquetFilter& self, nb::dict) { return OpenMS::ParquetFilter(self); }, "memo"_a)
         .def("andNext", [](OpenMS::ParquetFilter& self) -> OpenMS::ParquetFilter & { return self.andNext(); }, nb::rv_policy::reference_internal)
         .def("orNext", [](OpenMS::ParquetFilter& self) -> OpenMS::ParquetFilter & { return self.orNext(); }, nb::rv_policy::reference_internal)
-        .def("eq", [](OpenMS::ParquetFilter& self, const OpenMS::String& column, long value) -> OpenMS::ParquetFilter & { return self.eq(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("ne", [](OpenMS::ParquetFilter& self, const OpenMS::String& column, long value) -> OpenMS::ParquetFilter & { return self.ne(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("lt", [](OpenMS::ParquetFilter& self, const OpenMS::String& column, long value) -> OpenMS::ParquetFilter & { return self.lt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("le", [](OpenMS::ParquetFilter& self, const OpenMS::String& column, long value) -> OpenMS::ParquetFilter & { return self.le(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("gt", [](OpenMS::ParquetFilter& self, const OpenMS::String& column, long value) -> OpenMS::ParquetFilter & { return self.gt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("ge", [](OpenMS::ParquetFilter& self, const OpenMS::String& column, long value) -> OpenMS::ParquetFilter & { return self.ge(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("eq", [](OpenMS::ParquetFilter& self, const OpenMS::String& column, const OpenMS::String& value) -> OpenMS::ParquetFilter & { return self.eq(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("ne", [](OpenMS::ParquetFilter& self, const OpenMS::String& column, const OpenMS::String& value) -> OpenMS::ParquetFilter & { return self.ne(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("lt", [](OpenMS::ParquetFilter& self, const OpenMS::String& column, const OpenMS::String& value) -> OpenMS::ParquetFilter & { return self.lt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("le", [](OpenMS::ParquetFilter& self, const OpenMS::String& column, const OpenMS::String& value) -> OpenMS::ParquetFilter & { return self.le(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("gt", [](OpenMS::ParquetFilter& self, const OpenMS::String& column, const OpenMS::String& value) -> OpenMS::ParquetFilter & { return self.gt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("ge", [](OpenMS::ParquetFilter& self, const OpenMS::String& column, const OpenMS::String& value) -> OpenMS::ParquetFilter & { return self.ge(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("eq", [](OpenMS::ParquetFilter& self, const std::string& column, long value) -> OpenMS::ParquetFilter & { return self.eq(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("ne", [](OpenMS::ParquetFilter& self, const std::string& column, long value) -> OpenMS::ParquetFilter & { return self.ne(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("lt", [](OpenMS::ParquetFilter& self, const std::string& column, long value) -> OpenMS::ParquetFilter & { return self.lt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("le", [](OpenMS::ParquetFilter& self, const std::string& column, long value) -> OpenMS::ParquetFilter & { return self.le(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("gt", [](OpenMS::ParquetFilter& self, const std::string& column, long value) -> OpenMS::ParquetFilter & { return self.gt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("ge", [](OpenMS::ParquetFilter& self, const std::string& column, long value) -> OpenMS::ParquetFilter & { return self.ge(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("eq", [](OpenMS::ParquetFilter& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilter & { return self.eq(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("ne", [](OpenMS::ParquetFilter& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilter & { return self.ne(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("lt", [](OpenMS::ParquetFilter& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilter & { return self.lt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("le", [](OpenMS::ParquetFilter& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilter & { return self.le(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("gt", [](OpenMS::ParquetFilter& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilter & { return self.gt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("ge", [](OpenMS::ParquetFilter& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilter & { return self.ge(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
         .def("empty", [](const OpenMS::ParquetFilter& self) { return self.empty(); })
-        .def("in_", [](OpenMS::ParquetFilter& self, const OpenMS::String& column, const std::vector<OpenMS::Int64>& values) -> OpenMS::ParquetFilter & { return self.in(column, values); }, "column"_a, "values"_a, nb::rv_policy::reference_internal)
-        .def("in_", [](OpenMS::ParquetFilter& self, const OpenMS::String& column, const std::vector<OpenMS::String>& values) -> OpenMS::ParquetFilter & { return self.in(column, values); }, "column"_a, "values"_a, nb::rv_policy::reference_internal)
+        .def("in_", [](OpenMS::ParquetFilter& self, const std::string& column, const std::vector<OpenMS::Int64>& values) -> OpenMS::ParquetFilter & { return self.in(column, values); }, "column"_a, "values"_a, nb::rv_policy::reference_internal)
+        .def("in_", [](OpenMS::ParquetFilter& self, const std::string& column, const std::vector<std::string>& values) -> OpenMS::ParquetFilter & { return self.in(column, values); }, "column"_a, "values"_a, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -1376,24 +1466,23 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def("__deepcopy__", [](const OpenMS::ParquetFilterBuilder& self, nb::dict) { return OpenMS::ParquetFilterBuilder(self); }, "memo"_a)
         .def("andNext", [](OpenMS::ParquetFilterBuilder& self) -> OpenMS::ParquetFilterBuilder & { return self.andNext(); }, nb::rv_policy::reference_internal)
         .def("orNext", [](OpenMS::ParquetFilterBuilder& self) -> OpenMS::ParquetFilterBuilder & { return self.orNext(); }, nb::rv_policy::reference_internal)
-        .def("eq", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.eq(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("ne", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.ne(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("lt", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.lt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("le", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.le(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("gt", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.gt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("ge", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.ge(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("eq", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, const OpenMS::String& value) -> OpenMS::ParquetFilterBuilder & { return self.eq(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("ne", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, const OpenMS::String& value) -> OpenMS::ParquetFilterBuilder & { return self.ne(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("lt", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, const OpenMS::String& value) -> OpenMS::ParquetFilterBuilder & { return self.lt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("le", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, const OpenMS::String& value) -> OpenMS::ParquetFilterBuilder & { return self.le(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("gt", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, const OpenMS::String& value) -> OpenMS::ParquetFilterBuilder & { return self.gt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("ge", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, const OpenMS::String& value) -> OpenMS::ParquetFilterBuilder & { return self.ge(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("eq", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.eq(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("ne", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.ne(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("lt", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.lt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("le", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.le(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("gt", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.gt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("ge", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, long value) -> OpenMS::ParquetFilterBuilder & { return self.ge(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("eq", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilterBuilder & { return self.eq(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("ne", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilterBuilder & { return self.ne(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("lt", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilterBuilder & { return self.lt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("le", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilterBuilder & { return self.le(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("gt", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilterBuilder & { return self.gt(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("ge", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::string& value) -> OpenMS::ParquetFilterBuilder & { return self.ge(column, value); }, "column"_a, "value"_a, nb::rv_policy::reference_internal)
         .def("filter", [](const OpenMS::ParquetFilterBuilder& self) -> const OpenMS::ParquetFilter & { return self.filter(); }, nb::rv_policy::reference_internal)
         .def("empty", [](const OpenMS::ParquetFilterBuilder& self) { return self.empty(); })
-        .def("in_", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, const std::vector<OpenMS::Int64>& values) -> OpenMS::ParquetFilterBuilder & { return self.in(column, values); }, "column"_a, "values"_a, nb::rv_policy::reference_internal)
-        .def("in_", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, const std::vector<OpenMS::String>& values) -> OpenMS::ParquetFilterBuilder & { return self.in(column, values); }, "column"_a, "values"_a, nb::rv_policy::reference_internal)
+        .def("in_", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::vector<OpenMS::Int64>& values) -> OpenMS::ParquetFilterBuilder & { return self.in(column, values); }, "column"_a, "values"_a, nb::rv_policy::reference_internal)
+        .def("in_", [](OpenMS::ParquetFilterBuilder& self, const std::string& column, const std::vector<std::string>& values) -> OpenMS::ParquetFilterBuilder & { return self.in(column, values); }, "column"_a, "values"_a, nb::rv_policy::reference_internal)
         ;
-#endif // WITH_PARQUET
 
     // -----------------------------------------------------------------------
     // PeakFileOptions
@@ -1579,7 +1668,7 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def(nb::init<const OpenMS::PercolatorInfile &>())
         .def("__copy__", [](const OpenMS::PercolatorInfile& self) { return OpenMS::PercolatorInfile(self); })
         .def("__deepcopy__", [](const OpenMS::PercolatorInfile& self, nb::dict) { return OpenMS::PercolatorInfile(self); }, "memo"_a)
-        .def_static("store", [](const OpenMS::String& pin_file, const OpenMS::PeptideIdentificationList& peptide_ids, const std::vector<OpenMS::String>& feature_set, const OpenMS::String& enz, int min_charge, int max_charge) { return OpenMS::PercolatorInfile::store(pin_file, peptide_ids, feature_set, enz, min_charge, max_charge); }, "pin_file"_a, "peptide_ids"_a, "feature_set"_a, "enz"_a, "min_charge"_a, "max_charge"_a)
+        .def_static("store", [](const std::string& pin_file, const OpenMS::PeptideIdentificationList& peptide_ids, const std::vector<std::string>& feature_set, const std::string& enz, int min_charge, int max_charge) { return OpenMS::PercolatorInfile::store(pin_file, peptide_ids, feature_set, enz, min_charge, max_charge); }, "pin_file"_a, "peptide_ids"_a, "feature_set"_a, "enz"_a, "min_charge"_a, "max_charge"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -1593,8 +1682,8 @@ For PSM-level output, the file extension should be ".psms"
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::PercolatorOutfile& self) { return OpenMS::PercolatorOutfile(self); })
         .def("__deepcopy__", [](const OpenMS::PercolatorOutfile& self, nb::dict) { return OpenMS::PercolatorOutfile(self); }, "memo"_a)
-        .def_static("getScoreType", [](OpenMS::String score_type_name) { return OpenMS::PercolatorOutfile::getScoreType(score_type_name); }, "score_type_name"_a, "Returns a score type given its name")
-        .def("load", [](OpenMS::PercolatorOutfile& self, const OpenMS::String& filename, OpenMS::ProteinIdentification& proteins, OpenMS::PeptideIdentificationList& peptides, OpenMS::SpectrumMetaDataLookup& lookup, OpenMS::PercolatorOutfile::ScoreType output_score) { return self.load(filename, proteins, peptides, lookup, output_score); }, "filename"_a, "proteins"_a, "peptides"_a, "lookup"_a, "output_score"_a, "Loads a Percolator output file")
+        .def_static("getScoreType", [](std::string score_type_name) { return OpenMS::PercolatorOutfile::getScoreType(score_type_name); }, "score_type_name"_a, "Returns a score type given its name")
+        .def("load", [](OpenMS::PercolatorOutfile& self, const std::string& filename, OpenMS::ProteinIdentification& proteins, OpenMS::PeptideIdentificationList& peptides, OpenMS::SpectrumMetaDataLookup& lookup, OpenMS::PercolatorOutfile::ScoreType output_score) { return self.load(filename, proteins, peptides, lookup, output_score); }, "filename"_a, "proteins"_a, "peptides"_a, "lookup"_a, "output_score"_a, "Loads a Percolator output file")
         ;
     // ScoreType enum nested under PercolatorOutfile
     nb::enum_<OpenMS::PercolatorOutfile::ScoreType>(percolatoroutfile_class, "ScoreType", nb::is_arithmetic())
@@ -1608,7 +1697,7 @@ For PSM-level output, the file extension should be ".psms"
     // PlainMSDataWritingConsumer
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::PlainMSDataWritingConsumer>(m, "PlainMSDataWritingConsumer", "Consumer class that writes MS data to disk using the mzML format")
-        .def(nb::init<OpenMS::String>())
+        .def(nb::init<std::string>())
         .def("setExperimentalSettings", [](OpenMS::PlainMSDataWritingConsumer& self, const OpenMS::ExperimentalSettings& exp) { return self.setExperimentalSettings(exp); }, "exp"_a)
         .def("setExpectedSize", [](OpenMS::PlainMSDataWritingConsumer& self, size_t expectedSpectra, size_t expectedChromatograms) { return self.setExpectedSize(expectedSpectra, expectedChromatograms); }, "expectedSpectra"_a, "expectedChromatograms"_a, 
             R"doc(
@@ -1679,20 +1768,20 @@ FullSwathFileConsumer
         .def("__copy__", [](const OpenMS::SequestInfile& self) { return OpenMS::SequestInfile(self); })
         .def("__deepcopy__", [](const OpenMS::SequestInfile& self, nb::dict) { return OpenMS::SequestInfile(self); }, "memo"_a)
         .def(nb::self == nb::self)
-        .def("store", [](OpenMS::SequestInfile& self, const OpenMS::String& filename) { return self.store(filename); }, "filename"_a)
+        .def("store", [](OpenMS::SequestInfile& self, const std::string& filename) { return self.store(filename); }, "filename"_a)
         .def("getEnzymeInfoAsString", [](const OpenMS::SequestInfile& self) { return self.getEnzymeInfoAsString(); }, "Returns the enzyme list as a string")
         .def("getDatabase", [](const OpenMS::SequestInfile& self) { return self.getDatabase(); }, "Returns the used database")
-        .def("setDatabase", [](OpenMS::SequestInfile& self, const OpenMS::String& database) { return self.setDatabase(database); }, "database"_a, "Sets the used database")
+        .def("setDatabase", [](OpenMS::SequestInfile& self, const std::string& database) { return self.setDatabase(database); }, "database"_a, "Sets the used database")
         .def("getNeutralLossesForIons", [](const OpenMS::SequestInfile& self) { return self.getNeutralLossesForIons(); }, "Returns whether neutral losses are considered for the a-, b- and y-ions")
-        .def("setNeutralLossesForIons", [](OpenMS::SequestInfile& self, const OpenMS::String& neutral_losses_for_ions) { return self.setNeutralLossesForIons(neutral_losses_for_ions); }, "neutral_losses_for_ions"_a, "Sets whether neutral losses are considered for the a-, b- and y-ions")
+        .def("setNeutralLossesForIons", [](OpenMS::SequestInfile& self, const std::string& neutral_losses_for_ions) { return self.setNeutralLossesForIons(neutral_losses_for_ions); }, "neutral_losses_for_ions"_a, "Sets whether neutral losses are considered for the a-, b- and y-ions")
         .def("getIonSeriesWeights", [](const OpenMS::SequestInfile& self) { return self.getIonSeriesWeights(); }, "Returns the weights for the a-, b-, c-, d-, v-, w-, x-, y- and z-ion series")
-        .def("setIonSeriesWeights", [](OpenMS::SequestInfile& self, const OpenMS::String& ion_series_weights) { return self.setIonSeriesWeights(ion_series_weights); }, "ion_series_weights"_a, "Sets the weights for the a-, b-, c-, d-, v-, w-, x-, y- and z-ion series")
+        .def("setIonSeriesWeights", [](OpenMS::SequestInfile& self, const std::string& ion_series_weights) { return self.setIonSeriesWeights(ion_series_weights); }, "ion_series_weights"_a, "Sets the weights for the a-, b-, c-, d-, v-, w-, x-, y- and z-ion series")
         .def("getPartialSequence", [](const OpenMS::SequestInfile& self) { return self.getPartialSequence(); }, "Returns the partial sequences (space delimited) that have to occur in the theoretical spectra")
-        .def("setPartialSequence", [](OpenMS::SequestInfile& self, const OpenMS::String& partial_sequence) { return self.setPartialSequence(partial_sequence); }, "partial_sequence"_a, "Sets the partial sequences (space delimited) that have to occur in the theoretical spectra")
+        .def("setPartialSequence", [](OpenMS::SequestInfile& self, const std::string& partial_sequence) { return self.setPartialSequence(partial_sequence); }, "partial_sequence"_a, "Sets the partial sequences (space delimited) that have to occur in the theoretical spectra")
         .def("getSequenceHeaderFilter", [](const OpenMS::SequestInfile& self) { return self.getSequenceHeaderFilter(); }, "Returns the sequences (space delimited) that have to occur, or be absent (preceded by a tilde) in the header of a protein to be considered")
-        .def("setSequenceHeaderFilter", [](OpenMS::SequestInfile& self, const OpenMS::String& sequence_header_filter) { return self.setSequenceHeaderFilter(sequence_header_filter); }, "sequence_header_filter"_a, "Sets the sequences (space delimited) that have to occur, or be absent (preceded by a tilde) in the header of a protein to be considered")
+        .def("setSequenceHeaderFilter", [](OpenMS::SequestInfile& self, const std::string& sequence_header_filter) { return self.setSequenceHeaderFilter(sequence_header_filter); }, "sequence_header_filter"_a, "Sets the sequences (space delimited) that have to occur, or be absent (preceded by a tilde) in the header of a protein to be considered")
         .def("getProteinMassFilter", [](const OpenMS::SequestInfile& self) { return self.getProteinMassFilter(); }, "Returns the protein mass filter (either min and max mass, or mass and tolerance value in percent)")
-        .def("setProteinMassFilter", [](OpenMS::SequestInfile& self, const OpenMS::String& protein_mass_filter) { return self.setProteinMassFilter(protein_mass_filter); }, "protein_mass_filter"_a, "Sets the protein mass filter (either min and max mass, or mass and tolerance value in percent)")
+        .def("setProteinMassFilter", [](OpenMS::SequestInfile& self, const std::string& protein_mass_filter) { return self.setProteinMassFilter(protein_mass_filter); }, "protein_mass_filter"_a, "Sets the protein mass filter (either min and max mass, or mass and tolerance value in percent)")
         .def("getPeakMassTolerance", [](const OpenMS::SequestInfile& self) { return self.getPeakMassTolerance(); }, "Returns the peak mass tolerance")
         .def("setPeakMassTolerance", [](OpenMS::SequestInfile& self, float peak_mass_tolerance) { return self.setPeakMassTolerance(peak_mass_tolerance); }, "peak_mass_tolerance"_a, "Sets the peak mass tolerance")
         .def("getPrecursorMassTolerance", [](const OpenMS::SequestInfile& self) { return self.getPrecursorMassTolerance(); }, "Returns the precursor mass tolerance")
@@ -1707,7 +1796,7 @@ FullSwathFileConsumer
         .def("setOutputLines", [](OpenMS::SequestInfile& self, size_t output_lines) { return self.setOutputLines(output_lines); }, "output_lines"_a, "Sets the number of peptides to be displayed")
         .def("getEnzymeNumber", [](const OpenMS::SequestInfile& self) { return self.getEnzymeNumber(); }, "Returns the enzyme used for cleavage (by means of the number from a list of enzymes)")
         .def("getEnzymeName", [](const OpenMS::SequestInfile& self) { return self.getEnzymeName(); }, "Returns the enzyme used for cleavage")
-        .def("setEnzyme", [](OpenMS::SequestInfile& self, const OpenMS::String& enzyme_name) { return self.setEnzyme(enzyme_name); }, "enzyme_name"_a, "Sets the enzyme used for cleavage (by means of the number from a list of enzymes)")
+        .def("setEnzyme", [](OpenMS::SequestInfile& self, const std::string& enzyme_name) { return self.setEnzyme(enzyme_name); }, "enzyme_name"_a, "Sets the enzyme used for cleavage (by means of the number from a list of enzymes)")
         .def("getMaxAAPerModPerPeptide", [](const OpenMS::SequestInfile& self) { return self.getMaxAAPerModPerPeptide(); }, "Returns the maximum number of amino acids containing the same modification in a peptide")
         .def("setMaxAAPerModPerPeptide", [](OpenMS::SequestInfile& self, size_t max_aa_per_mod_per_peptide) { return self.setMaxAAPerModPerPeptide(max_aa_per_mod_per_peptide); }, "max_aa_per_mod_per_peptide"_a, "Sets the maximum number of amino acids containing the same modification in a peptide")
         .def("getMaxModsPerPeptide", [](const OpenMS::SequestInfile& self) { return self.getMaxModsPerPeptide(); }, "Returns the maximum number of modifications that are allowed in a peptide")
@@ -1734,9 +1823,9 @@ FullSwathFileConsumer
         .def("setNormalizeXcorr", [](OpenMS::SequestInfile& self, bool normalize_xcorr) { return self.setNormalizeXcorr(normalize_xcorr); }, "normalize_xcorr"_a, "Sets whether normalized xcorr values are displayed")
         .def("getResiduesInUpperCase", [](const OpenMS::SequestInfile& self) { return self.getResiduesInUpperCase(); }, "Returns whether residues are in upper case")
         .def("setResiduesInUpperCase", [](OpenMS::SequestInfile& self, bool residues_in_upper_case) { return self.setResiduesInUpperCase(residues_in_upper_case); }, "residues_in_upper_case"_a, "Sets whether residues are in upper case")
-        .def("addEnzymeInfo", [](OpenMS::SequestInfile& self, std::vector<OpenMS::String>& enzyme_info) { return self.addEnzymeInfo(enzyme_info); }, "enzyme_info"_a, "Adds an enzyme to the list and sets is as used")
-        .def("handlePTMs", [](OpenMS::SequestInfile& self, const OpenMS::String& modification_line, const OpenMS::String& modifications_filename, bool monoisotopic) { return self.handlePTMs(modification_line, modifications_filename, monoisotopic); }, "modification_line"_a, "modifications_filename"_a, "monoisotopic"_a)
-        .def("getModifications", [](const OpenMS::SequestInfile& self) -> std::map<OpenMS::String, std::vector<OpenMS::String>> { return self.getModifications(); }, "Returns the modifications (the modification names map to the affected residues, the mass change and the type)")
+        .def("addEnzymeInfo", [](OpenMS::SequestInfile& self, std::vector<std::string>& enzyme_info) { return self.addEnzymeInfo(enzyme_info); }, "enzyme_info"_a, "Adds an enzyme to the list and sets is as used")
+        .def("handlePTMs", [](OpenMS::SequestInfile& self, const std::string& modification_line, const std::string& modifications_filename, bool monoisotopic) { return self.handlePTMs(modification_line, modifications_filename, monoisotopic); }, "modification_line"_a, "modifications_filename"_a, "monoisotopic"_a)
+        .def("getModifications", [](const OpenMS::SequestInfile& self) -> std::map<std::string, std::vector<std::string>> { return self.getModifications(); }, "Returns the modifications (the modification names map to the affected residues, the mass change and the type)")
         ;
 
     // -----------------------------------------------------------------------
@@ -1748,13 +1837,13 @@ FullSwathFileConsumer
         .def("__copy__", [](const OpenMS::SequestOutfile& self) { return OpenMS::SequestOutfile(self); })
         .def("__deepcopy__", [](const OpenMS::SequestOutfile& self, nb::dict) { return OpenMS::SequestOutfile(self); }, "memo"_a)
         .def(nb::self == nb::self)
-        .def("load", [](OpenMS::SequestOutfile& self, const OpenMS::String& result_filename, OpenMS::PeptideIdentificationList& peptide_identifications, OpenMS::ProteinIdentification& protein_identification, double p_value_threshold, const OpenMS::String& database, bool ignore_proteins_per_peptide) { std::vector<double> pvalues; self.load(result_filename, peptide_identifications, protein_identification, p_value_threshold, pvalues, database, ignore_proteins_per_peptide); return pvalues; }, "result_filename"_a, "peptide_identifications"_a, "protein_identification"_a, "p_value_threshold"_a, "database"_a, "ignore_proteins_per_peptide"_a)
-        .def("getColumns", [](OpenMS::SequestOutfile& self, const OpenMS::String& line, size_t number_of_columns, size_t reference_column) { std::vector<OpenMS::String> substrings; self.getColumns(line, substrings, number_of_columns, reference_column); return substrings; }, "line"_a, "number_of_columns"_a, "reference_column"_a, "Retrieves columns from a Sequest outfile line")
-        .def("getACAndACType", [](OpenMS::SequestOutfile& self, OpenMS::String line) { OpenMS::String accession; OpenMS::String accession_type; self.getACAndACType(line, accession, accession_type); return std::make_tuple(accession, accession_type); }, "line"_a, "Retrieves the accession type and accession number from a protein description line")
-        .def("getSequences", [](OpenMS::SequestOutfile& self, const OpenMS::String& database_filename, const std::map<OpenMS::String, size_t>& ac_position_map) {
-            std::vector<OpenMS::String> sequences;
-            std::vector<std::pair<OpenMS::String, size_t>> found;
-            std::map<OpenMS::String, size_t> not_found;
+        .def("load", [](OpenMS::SequestOutfile& self, const std::string& result_filename, OpenMS::PeptideIdentificationList& peptide_identifications, OpenMS::ProteinIdentification& protein_identification, double p_value_threshold, const std::string& database, bool ignore_proteins_per_peptide) { std::vector<double> pvalues; self.load(result_filename, peptide_identifications, protein_identification, p_value_threshold, pvalues, database, ignore_proteins_per_peptide); return pvalues; }, "result_filename"_a, "peptide_identifications"_a, "protein_identification"_a, "p_value_threshold"_a, "database"_a, "ignore_proteins_per_peptide"_a)
+        .def("getColumns", [](OpenMS::SequestOutfile& self, const std::string& line, size_t number_of_columns, size_t reference_column) { std::vector<std::string> substrings; self.getColumns(line, substrings, number_of_columns, reference_column); return substrings; }, "line"_a, "number_of_columns"_a, "reference_column"_a, "Retrieves columns from a Sequest outfile line")
+        .def("getACAndACType", [](OpenMS::SequestOutfile& self, std::string line) { std::string accession; std::string accession_type; self.getACAndACType(line, accession, accession_type); return std::make_tuple(accession, accession_type); }, "line"_a, "Retrieves the accession type and accession number from a protein description line")
+        .def("getSequences", [](OpenMS::SequestOutfile& self, const std::string& database_filename, const std::map<std::string, size_t>& ac_position_map) {
+            std::vector<std::string> sequences;
+            std::vector<std::pair<std::string, size_t>> found;
+            std::map<std::string, size_t> not_found;
             self.getSequences(database_filename, ac_position_map, sequences, found, not_found);
             return nb::make_tuple(sequences, found, not_found);
         }, "database_filename"_a, "ac_position_map"_a, "Retrieves sequences from a FASTA database. Returns (sequences, found, not_found)")
@@ -1768,8 +1857,8 @@ FullSwathFileConsumer
         .def(nb::init<const OpenMS::SiriusFragmentAnnotation &>())
         .def("__copy__", [](const OpenMS::SiriusFragmentAnnotation& self) { return OpenMS::SiriusFragmentAnnotation(self); })
         .def("__deepcopy__", [](const OpenMS::SiriusFragmentAnnotation& self, nb::dict) { return OpenMS::SiriusFragmentAnnotation(self); }, "memo"_a)
-        .def_static("extractAndResolveSiriusAnnotations", [](const std::vector<OpenMS::String>& sirius_workspace_subdirs, double score_threshold, bool use_exact_mass, bool decoy_generation) { return OpenMS::SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(sirius_workspace_subdirs, score_threshold, use_exact_mass, decoy_generation); }, "sirius_workspace_subdirs"_a, "score_threshold"_a, "use_exact_mass"_a, "decoy_generation"_a)
-        .def_static("extractAnnotationsFromSiriusFile", [](const OpenMS::String& path_to_sirius_workspace, size_t max_rank, bool decoy, bool use_exact_mass) { return OpenMS::SiriusFragmentAnnotation::extractAnnotationsFromSiriusFile(path_to_sirius_workspace, max_rank, decoy, use_exact_mass); }, "path_to_sirius_workspace"_a, "max_rank"_a, "decoy"_a, "use_exact_mass"_a)
+        .def_static("extractAndResolveSiriusAnnotations", [](const std::vector<std::string>& sirius_workspace_subdirs, double score_threshold, bool use_exact_mass, bool decoy_generation) { return OpenMS::SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(sirius_workspace_subdirs, score_threshold, use_exact_mass, decoy_generation); }, "sirius_workspace_subdirs"_a, "score_threshold"_a, "use_exact_mass"_a, "decoy_generation"_a)
+        .def_static("extractAnnotationsFromSiriusFile", [](const std::string& path_to_sirius_workspace, size_t max_rank, bool decoy, bool use_exact_mass) { return OpenMS::SiriusFragmentAnnotation::extractAnnotationsFromSiriusFile(path_to_sirius_workspace, max_rank, decoy, use_exact_mass); }, "path_to_sirius_workspace"_a, "max_rank"_a, "decoy"_a, "use_exact_mass"_a)
         .def_static("extract_columnname_to_columnindex", [](const OpenMS::CsvFile& csvfile) { return OpenMS::SiriusFragmentAnnotation::extract_columnname_to_columnindex(csvfile); }, "csvfile"_a)
         ;
 
@@ -1812,8 +1901,8 @@ on-demand even in a large collection of data
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::SqMassFile& self) { return OpenMS::SqMassFile(self); })
         .def("__deepcopy__", [](const OpenMS::SqMassFile& self, nb::dict) { return OpenMS::SqMassFile(self); }, "memo"_a)
-        .def("load", [](const OpenMS::SqMassFile& self, const OpenMS::String& filename) { OpenMS::MSExperiment map; self.load(filename, map); return map; }, "filename"_a, "Read / Write a complete mass spectrometric experiment")
-        .def("store", [](const OpenMS::SqMassFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& map) { return self.store(filename, map); }, "filename"_a, "map"_a, "Store an MSExperiment in sqMass format")
+        .def("load", [](const OpenMS::SqMassFile& self, const std::string& filename) { OpenMS::MSExperiment map; self.load(filename, map); return map; }, "filename"_a, "Read / Write a complete mass spectrometric experiment")
+        .def("store", [](const OpenMS::SqMassFile& self, const std::string& filename, const OpenMS::MSExperiment& map) { return self.store(filename, map); }, "filename"_a, "map"_a, "Store an MSExperiment in sqMass format")
         .def("setConfig", [](OpenMS::SqMassFile& self, const OpenMS::SqMassFile::SqMassConfig& config) { return self.setConfig(config); }, "config"_a)
         ;
 
@@ -1829,7 +1918,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def(nb::init<const OpenMS::TargetedDataFileLoader &>())
         .def("__copy__", [](const OpenMS::TargetedDataFileLoader& self) { return OpenMS::TargetedDataFileLoader(self); })
         .def("__deepcopy__", [](const OpenMS::TargetedDataFileLoader& self, nb::dict) { return OpenMS::TargetedDataFileLoader(self); }, "memo"_a)
-        .def_static("loadFile", [](const OpenMS::String& file, const OpenMS::String& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const OpenMS::String& readoptions, OpenMS::Interfaces::IMSDataConsumer * plugin_consumer) { return OpenMS::TargetedDataFileLoader::loadFile(file, tmp, exp_meta, readoptions, plugin_consumer); }, "file"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a, "plugin_consumer"_a)
+        .def_static("loadFile", [](const std::string& file, const std::string& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const std::string& readoptions, OpenMS::Interfaces::IMSDataConsumer * plugin_consumer) { return OpenMS::TargetedDataFileLoader::loadFile(file, tmp, exp_meta, readoptions, plugin_consumer); }, "file"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a, "plugin_consumer"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -1847,21 +1936,20 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def_rw("citations_", &OpenMS::ToolInfo::citations_)
         ;
 
-#ifdef WITH_PARQUET
     // -----------------------------------------------------------------------
     // XICParquetFile
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::XICParquetFile>(m, "XICParquetFile", "OpenMS class XICParquetFile")
-        .def(nb::init<OpenMS::String>())
-        .def(nb::init<std::vector<OpenMS::String>>())
         .def(nb::init<const OpenMS::XICParquetFile &>())
+        .def(nb::init<std::string>())
+        .def(nb::init<std::vector<std::string>>())
         .def("__copy__", [](const OpenMS::XICParquetFile& self) { return OpenMS::XICParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XICParquetFile& self, nb::dict) { return OpenMS::XICParquetFile(self); }, "memo"_a)
         .def("getFilename", [](const OpenMS::XICParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH chromatogram Parquet files (.xic).")
-        .def("getFilenames", [](const OpenMS::XICParquetFile& self) -> const std::vector<OpenMS::String> & { return self.getFilenames(); }, nb::rv_policy::reference_internal)
+        .def("getFilenames", [](const OpenMS::XICParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, nb::rv_policy::reference_internal)
 
         .def("getColumns", [](const OpenMS::XICParquetFile& self) {
-            std::vector<OpenMS::String> columns;
+            std::vector<std::string> columns;
             self.getColumns(columns);
             nb::list result;
             for (const auto& col : columns) {
@@ -1885,7 +1973,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         }, "Return unique run metadata as a dict")
 
         .def("getAnalytes", [](const OpenMS::XICParquetFile& self, bool nest_transitions, nb::object columns_obj) {
-            std::vector<OpenMS::String> columns;
+            std::vector<std::string> columns;
             std::set<std::string> requested_cols;
             bool filter_cols = !columns_obj.is_none();
             if (filter_cols) {
@@ -1964,9 +2052,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
                                     const std::string& filter, bool explode) {
             std::vector<OpenMS::XICParquetFile::XICChromatogram> chroms;
             self.getChromatograms(chroms, precursor_id, transition_id,
-                                  OpenMS::String(modified_sequence),
+                                  std::string(modified_sequence),
                                   precursor_charge, product_charge,
-                                  ms_level, run_id, OpenMS::String(filter));
+                                  ms_level, run_id, std::string(filter));
 
             nb::list run_id_list, source_file_list, ms_level_list;
             nb::list precursor_id_list, transition_id_list, modified_sequence_list;
@@ -2048,6 +2136,218 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         ;
 
     // -----------------------------------------------------------------------
+    // XIMParquetFile
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::XIMParquetFile>(m, "XIMParquetFile", "OpenMS class XIMParquetFile")
+        .def(nb::init<const OpenMS::XIMParquetFile &>())
+        .def(nb::init<std::string>())
+        .def(nb::init<std::vector<std::string>>())
+        .def("__copy__", [](const OpenMS::XIMParquetFile& self) { return OpenMS::XIMParquetFile(self); })
+        .def("__deepcopy__", [](const OpenMS::XIMParquetFile& self, nb::dict) { return OpenMS::XIMParquetFile(self); }, "memo"_a)
+        .def("getFilename", [](const OpenMS::XIMParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH mobilogram Parquet files (.xim).")
+        .def("getFilenames", [](const OpenMS::XIMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, nb::rv_policy::reference_internal)
+
+        .def("getColumns", [](const OpenMS::XIMParquetFile& self) {
+            std::vector<std::string> columns;
+            self.getColumns(columns);
+            nb::list result;
+            for (const auto& col : columns) {
+                result.append(nb::str(col.c_str()));
+            }
+            return result;
+        }, "Return parquet schema column names as a list")
+
+        .def("getRuns", [](const OpenMS::XIMParquetFile& self) {
+            std::vector<OpenMS::XIMParquetFile::XIMRunInfo> runs;
+            self.getRuns(runs);
+            nb::list run_ids, source_files;
+            for (const auto& r : runs) {
+                run_ids.append(r.run_id);
+                source_files.append(nb::str(r.source_file.c_str()));
+            }
+            nb::dict result;
+            result["run_id"] = run_ids;
+            result["source_file"] = source_files;
+            return result;
+        }, "Return unique run metadata as a dict")
+
+        .def("getAnalytes", [](const OpenMS::XIMParquetFile& self, bool nest_transitions, nb::object columns_obj) {
+            std::vector<std::string> columns;
+            std::set<std::string> requested_cols;
+            bool filter_cols = !columns_obj.is_none();
+            if (filter_cols) {
+                for (auto item : columns_obj) {
+                    std::string col = nb::cast<std::string>(item);
+                    columns.push_back(col);
+                    std::string lower_col = col;
+                    std::transform(lower_col.begin(), lower_col.end(), lower_col.begin(), ::tolower);
+                    requested_cols.insert(lower_col);
+                }
+            }
+            std::vector<OpenMS::XIMParquetFile::XIMAnalyte> analytes;
+            self.getAnalytes(analytes, columns, nest_transitions);
+
+            nb::list precursor_id_list, modified_sequence_list, precursor_charge_list, precursor_decoy_list;
+            nb::list transition_id_list, product_charge_list, transition_ordinal_list;
+            nb::list detecting_transition_list, product_decoy_list, transition_type_list, annotation_list;
+
+            auto want = [&](const std::string& col) { return !filter_cols || requested_cols.count(col) > 0; };
+
+            for (const auto& a : analytes) {
+                if (want("precursor_id")) precursor_id_list.append(a.has_precursor_id ? nb::cast(a.precursor_id) : nb::none());
+                if (want("modified_sequence")) modified_sequence_list.append(nb::str(a.modified_sequence.c_str()));
+                if (want("precursor_charge")) precursor_charge_list.append(a.has_precursor_charge ? nb::cast(a.precursor_charge) : nb::none());
+                if (want("precursor_decoy")) precursor_decoy_list.append(a.has_precursor_decoy ? nb::cast(a.precursor_decoy) : nb::none());
+
+                if (!nest_transitions) {
+                    if (want("transition_id")) transition_id_list.append(a.has_transition_id ? nb::cast(a.transition_id) : nb::none());
+                    if (want("product_charge")) product_charge_list.append(a.has_product_charge ? nb::cast(a.product_charge) : nb::none());
+                    if (want("transition_ordinal")) transition_ordinal_list.append(a.has_transition_ordinal ? nb::cast(a.transition_ordinal) : nb::none());
+                    if (want("detecting_transition")) detecting_transition_list.append(a.has_detecting_transition ? nb::cast(a.detecting_transition) : nb::none());
+                    if (want("product_decoy")) product_decoy_list.append(a.has_product_decoy ? nb::cast(a.product_decoy) : nb::none());
+                    if (want("transition_type")) transition_type_list.append(nb::str(a.transition_type.c_str()));
+                    if (want("annotation")) annotation_list.append(nb::str(a.annotation.c_str()));
+                } else {
+                    nb::list t_ids, p_charges, t_ordinals, d_transitions, p_decoys, t_types, annots;
+                    for (auto v : a.transition_ids) t_ids.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (auto v : a.product_charges) p_charges.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (auto v : a.transition_ordinals) t_ordinals.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (auto v : a.detecting_transitions) d_transitions.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (auto v : a.product_decoys) p_decoys.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (const auto& s : a.transition_types) t_types.append(nb::str(s.c_str()));
+                    for (const auto& s : a.annotations) annots.append(nb::str(s.c_str()));
+                    if (want("transition_id")) transition_id_list.append(t_ids);
+                    if (want("product_charge")) product_charge_list.append(p_charges);
+                    if (want("transition_ordinal")) transition_ordinal_list.append(t_ordinals);
+                    if (want("detecting_transition")) detecting_transition_list.append(d_transitions);
+                    if (want("product_decoy")) product_decoy_list.append(p_decoys);
+                    if (want("transition_type")) transition_type_list.append(t_types);
+                    if (want("annotation")) annotation_list.append(annots);
+                }
+            }
+
+            nb::dict result;
+            if (want("precursor_id")) result["precursor_id"] = precursor_id_list;
+            if (want("modified_sequence")) result["modified_sequence"] = modified_sequence_list;
+            if (want("precursor_charge")) result["precursor_charge"] = precursor_charge_list;
+            if (want("precursor_decoy")) result["precursor_decoy"] = precursor_decoy_list;
+            if (want("transition_id")) result["transition_id"] = transition_id_list;
+            if (want("product_charge")) result["product_charge"] = product_charge_list;
+            if (want("transition_ordinal")) result["transition_ordinal"] = transition_ordinal_list;
+            if (want("detecting_transition")) result["detecting_transition"] = detecting_transition_list;
+            if (want("product_decoy")) result["product_decoy"] = product_decoy_list;
+            if (want("transition_type")) result["transition_type"] = transition_type_list;
+            if (want("annotation")) result["annotation"] = annotation_list;
+            return result;
+        }, "nest_transitions"_a = true, "columns"_a = nb::none(),
+           "Return unique analyte metadata as a dict")
+
+        .def("getMobilograms", [](const OpenMS::XIMParquetFile& self,
+                                    int64_t precursor_id, int64_t transition_id,
+                                    const std::string& modified_sequence,
+                                    int64_t precursor_charge, int64_t product_charge,
+                                    int64_t ms_level, int64_t run_id,
+                                    const std::string& mobilogram_type, int64_t feature_id, double feature_rt,
+                                    const std::string& filter, bool explode) {
+            std::vector<OpenMS::XIMParquetFile::XIMMobilogram> mobilos;
+            self.getMobilograms(mobilos, precursor_id, transition_id,
+                                  std::string(modified_sequence),
+                                  precursor_charge, product_charge,
+                                  ms_level, run_id, std::string(mobilogram_type), feature_id, feature_rt, std::string(filter));
+
+            nb::list run_id_list, source_file_list, ms_level_list;
+            nb::list precursor_id_list, transition_id_list, modified_sequence_list;
+            nb::list precursor_charge_list, product_charge_list, detecting_transition_list;
+            nb::list precursor_decoy_list, product_decoy_list, transition_ordinal_list;
+            nb::list transition_type_list, annotation_list, mobility_list, intensity_list;
+            nb::list mobilogram_type_list, feature_id_list, feature_rt_list;
+
+            for (const auto& c : mobilos) {
+                if (explode) {
+                    if (c.mobility.empty()) continue;
+                    if (c.mobility.size() != c.intensity.size()) {
+                        throw std::runtime_error("XIMParquetFile: mobility/intensity length mismatch");
+                    }
+                    for (size_t j = 0; j < c.mobility.size(); ++j) {
+                        run_id_list.append(c.run_id);
+                        source_file_list.append(nb::str(c.source_file.c_str()));
+                        ms_level_list.append(c.ms_level);
+                        precursor_id_list.append(c.has_precursor_id ? nb::cast(c.precursor_id) : nb::none());
+                        transition_id_list.append(c.has_transition_id ? nb::cast(c.transition_id) : nb::none());
+                        modified_sequence_list.append(nb::str(c.modified_sequence.c_str()));
+                        precursor_charge_list.append(c.has_precursor_charge ? nb::cast(c.precursor_charge) : nb::none());
+                        product_charge_list.append(c.has_product_charge ? nb::cast(c.product_charge) : nb::none());
+                        detecting_transition_list.append(c.has_detecting_transition ? nb::cast(c.detecting_transition) : nb::none());
+                        precursor_decoy_list.append(c.has_precursor_decoy ? nb::cast(c.precursor_decoy) : nb::none());
+                        product_decoy_list.append(c.has_product_decoy ? nb::cast(c.product_decoy) : nb::none());
+                        transition_ordinal_list.append(c.has_transition_ordinal ? nb::cast(c.transition_ordinal) : nb::none());
+                        transition_type_list.append(nb::str(c.transition_type.c_str()));
+                        annotation_list.append(nb::str(c.annotation.c_str()));
+                        mobilogram_type_list.append(nb::str(c.mobilogram_type.c_str()));
+                        feature_id_list.append(c.has_feature_id ? nb::cast(c.feature_id) : nb::none());
+                        feature_rt_list.append(c.has_feature_rt ? nb::cast(c.feature_rt) : nb::none());
+                        mobility_list.append(c.mobility[j]);
+                        intensity_list.append(c.intensity[j]);
+                    }
+                } else {
+                    run_id_list.append(c.run_id);
+                    source_file_list.append(nb::str(c.source_file.c_str()));
+                    ms_level_list.append(c.ms_level);
+                    precursor_id_list.append(c.has_precursor_id ? nb::cast(c.precursor_id) : nb::none());
+                    transition_id_list.append(c.has_transition_id ? nb::cast(c.transition_id) : nb::none());
+                    modified_sequence_list.append(nb::str(c.modified_sequence.c_str()));
+                    precursor_charge_list.append(c.has_precursor_charge ? nb::cast(c.precursor_charge) : nb::none());
+                    product_charge_list.append(c.has_product_charge ? nb::cast(c.product_charge) : nb::none());
+                    detecting_transition_list.append(c.has_detecting_transition ? nb::cast(c.detecting_transition) : nb::none());
+                    precursor_decoy_list.append(c.has_precursor_decoy ? nb::cast(c.precursor_decoy) : nb::none());
+                    product_decoy_list.append(c.has_product_decoy ? nb::cast(c.product_decoy) : nb::none());
+                    transition_ordinal_list.append(c.has_transition_ordinal ? nb::cast(c.transition_ordinal) : nb::none());
+                    transition_type_list.append(nb::str(c.transition_type.c_str()));
+                    annotation_list.append(nb::str(c.annotation.c_str()));
+                    mobilogram_type_list.append(nb::str(c.mobilogram_type.c_str()));
+                    feature_id_list.append(c.has_feature_id ? nb::cast(c.feature_id) : nb::none());
+                    feature_rt_list.append(c.has_feature_rt ? nb::cast(c.feature_rt) : nb::none());
+                    nb::list mobility_vals, int_vals;
+                    for (auto v : c.mobility) mobility_vals.append(v);
+                    for (auto v : c.intensity) int_vals.append(v);
+                    mobility_list.append(mobility_vals);
+                    intensity_list.append(int_vals);
+                }
+            }
+
+            nb::dict result;
+            result["run_id"] = run_id_list;
+            result["source_file"] = source_file_list;
+            result["ms_level"] = ms_level_list;
+            result["precursor_id"] = precursor_id_list;
+            result["transition_id"] = transition_id_list;
+            result["modified_sequence"] = modified_sequence_list;
+            result["precursor_charge"] = precursor_charge_list;
+            result["product_charge"] = product_charge_list;
+            result["detecting_transition"] = detecting_transition_list;
+            result["precursor_decoy"] = precursor_decoy_list;
+            result["product_decoy"] = product_decoy_list;
+            result["transition_ordinal"] = transition_ordinal_list;
+            result["transition_type"] = transition_type_list;
+            result["annotation"] = annotation_list;
+            result["mobilogram_type"] = mobilogram_type_list;
+            result["feature_id"] = feature_id_list;
+            result["feature_rt"] = feature_rt_list;
+            result["mobility"] = mobility_list;
+            result["intensity"] = intensity_list;
+            return result;
+        }, "precursor_id"_a = -1, "transition_id"_a = -1, "modified_sequence"_a = "",
+           "precursor_charge"_a = -1, "product_charge"_a = -1, "ms_level"_a = -1,
+           "run_id"_a = -1, "mobilogram_type"_a = "", "feature_id"_a = -1, "feature_rt"_a = -1.0, "filter"_a = "", "explode"_a = false,
+           "Return mobilogram data as a dict")
+        .def("__repr__", [](const OpenMS::XIMParquetFile& self) {
+            const auto& files = self.getFilenames();
+            return "XIMParquetFile(n_files=" + std::to_string(files.size()) + ")";
+        })
+        .def("__str__", [](const OpenMS::XIMParquetFile& self) { return nb::cast(self).attr("__repr__")(); })
+        ;
+
+    // -----------------------------------------------------------------------
     // ParquetWriteConfig
     // -----------------------------------------------------------------------
     auto parquetwriteconfig_class = nb::class_<OpenMS::ParquetWriteConfig>(m, "ParquetWriteConfig",
@@ -2077,7 +2377,12 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     nb::class_<OpenMS::QPXFile>(m, "QPXFile",
         "Export PSM data to Apache Arrow/Parquet format following QPX PSM schema")
         .def(nb::init<>())
-        .def_static("exportToParquet", &OpenMS::QPXFile::exportToParquet,
+        .def_static("exportToParquet",
+            static_cast<bool (*)(const std::vector<OpenMS::ProteinIdentification>&,
+                                 const OpenMS::PeptideIdentificationList&,
+                                 const std::string&,
+                                 bool,
+                                 const OpenMS::ParquetWriteConfig&)>(&OpenMS::QPXFile::exportToParquet),
             "protein_identifications"_a, "peptide_identifications"_a,
             "filename"_a, "export_all_psms"_a = false,
             "config"_a = OpenMS::ParquetWriteConfig{},
@@ -2135,9 +2440,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         // Import methods: std::vector<ProteinIdentification>& is an output param.
         // Since vectors go through nanobind's STL type caster (creates copies),
         // we must use lambdas that return the modified vector.
-        .def_static("importFromParquet", [](const OpenMS::String& proteins_filename,
-            const OpenMS::String& protein_groups_filename,
-            const OpenMS::String& search_params_filename) {
+        .def_static("importFromParquet", [](const std::string& proteins_filename,
+            const std::string& protein_groups_filename,
+            const std::string& search_params_filename) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
             bool ok = OpenMS::ProteinIdentificationArrowIO::importFromParquet(
                 proteins_filename, protein_groups_filename, search_params_filename, prot_ids);
@@ -2145,21 +2450,21 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
             return prot_ids;
         }, "proteins_filename"_a, "protein_groups_filename"_a, "search_params_filename"_a,
             "Import all three Parquet files and return reconstructed ProteinIdentifications")
-        .def_static("importSearchParamsFromParquet", [](const OpenMS::String& filename) {
+        .def_static("importSearchParamsFromParquet", [](const std::string& filename) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
             bool ok = OpenMS::ProteinIdentificationArrowIO::importSearchParamsFromParquet(filename, prot_ids);
             if (!ok) throw std::runtime_error("Failed to import search parameters from Parquet");
             return prot_ids;
         }, "filename"_a,
             "Import search parameters from Parquet file. Returns list of ProteinIdentifications")
-        .def_static("importProteinsFromParquet", [](const OpenMS::String& filename,
+        .def_static("importProteinsFromParquet", [](const std::string& filename,
             std::vector<OpenMS::ProteinIdentification> prot_ids) {
             bool ok = OpenMS::ProteinIdentificationArrowIO::importProteinsFromParquet(filename, prot_ids);
             if (!ok) throw std::runtime_error("Failed to import proteins from Parquet");
             return prot_ids;
         }, "filename"_a, "protein_identifications"_a,
             "Import protein hits from Parquet file into existing ProteinIdentifications. Returns updated list")
-        .def_static("importProteinGroupsFromParquet", [](const OpenMS::String& filename,
+        .def_static("importProteinGroupsFromParquet", [](const std::string& filename,
             std::vector<OpenMS::ProteinIdentification> prot_ids) {
             bool ok = OpenMS::ProteinIdentificationArrowIO::importProteinGroupsFromParquet(filename, prot_ids);
             if (!ok) throw std::runtime_error("Failed to import protein groups from Parquet");
@@ -2167,8 +2472,6 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         }, "filename"_a, "protein_identifications"_a,
             "Import protein groups from Parquet file into existing ProteinIdentifications. Returns updated list")
         ;
-
-#endif // WITH_PARQUET
 
     // -----------------------------------------------------------------------
     // ControlledVocabulary
@@ -2178,12 +2481,12 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::ControlledVocabulary& self) { return OpenMS::ControlledVocabulary(self); })
         .def("__deepcopy__", [](const OpenMS::ControlledVocabulary& self, nb::dict) { return OpenMS::ControlledVocabulary(self); }, "memo"_a)
-        .def("loadFromOBO", [](OpenMS::ControlledVocabulary& self, const OpenMS::String& name, const OpenMS::String& filename) { self.loadFromOBO(name, filename); }, "name"_a, "filename"_a, "Loads the CV from an OBO file")
+        .def("loadFromOBO", [](OpenMS::ControlledVocabulary& self, const std::string& name, const std::string& filename) { self.loadFromOBO(name, filename); }, "name"_a, "filename"_a, "Loads the CV from an OBO file")
         .def("name", [](const OpenMS::ControlledVocabulary& self) { return self.name(); })
-        .def("exists", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& id) { return self.exists(id); }, "id"_a)
-        .def("hasTermWithName", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& name) { return self.hasTermWithName(name); }, "name"_a)
-        .def("isChildOf", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& child_id, const OpenMS::String& parent_id) { return self.isChildOf(child_id, parent_id); }, "child_id"_a, "parent_id"_a)
-        .def("getTerm", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& id) {
+        .def("exists", [](const OpenMS::ControlledVocabulary& self, const std::string& id) { return self.exists(id); }, "id"_a)
+        .def("hasTermWithName", [](const OpenMS::ControlledVocabulary& self, const std::string& name) { return self.hasTermWithName(name); }, "name"_a)
+        .def("isChildOf", [](const OpenMS::ControlledVocabulary& self, const std::string& child_id, const std::string& parent_id) { return self.isChildOf(child_id, parent_id); }, "child_id"_a, "parent_id"_a)
+        .def("getTerm", [](const OpenMS::ControlledVocabulary& self, const std::string& id) {
             const auto& term = self.getTerm(id);
             nb::dict d;
             d["id"] = nb::str(term.id.c_str());
@@ -2191,7 +2494,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
             d["description"] = nb::str(term.description.c_str());
             return d;
         }, "id"_a, "Returns the term with the given id as a dict")
-        .def("getTermByName", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& name, const OpenMS::String& desc) {
+        .def("getTermByName", [](const OpenMS::ControlledVocabulary& self, const std::string& name, const std::string& desc) {
             const auto& term = self.getTermByName(name, desc);
             nb::dict d;
             d["id"] = nb::str(term.id.c_str());
@@ -2199,7 +2502,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
             d["description"] = nb::str(term.description.c_str());
             return d;
         }, "name"_a, "desc"_a = "", "Returns the term with the given name as a dict")
-        .def("getAllChildTerms", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& parent_id) { std::set<OpenMS::String> terms; self.getAllChildTerms(terms, parent_id); return terms; }, "parent_id"_a, "Returns all child terms of the given parent term")
+        .def("getAllChildTerms", [](const OpenMS::ControlledVocabulary& self, const std::string& parent_id) { std::set<std::string> terms; self.getAllChildTerms(terms, parent_id); return terms; }, "parent_id"_a, "Returns all child terms of the given parent term")
         ;
 
     // -----------------------------------------------------------------------
@@ -2226,11 +2529,11 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
             "Returns the name of the cross-reference type")
         .def_static("isHigherBetterScore", &OpenMS::ControlledVocabulary::CVTerm::isHigherBetterScore, "term"_a,
             "Returns whether a higher score is better for this term")
-        .def("toXMLString", [](const OpenMS::ControlledVocabulary::CVTerm& self, const OpenMS::String& ref, const OpenMS::String& value) {
+        .def("toXMLString", [](const OpenMS::ControlledVocabulary::CVTerm& self, const std::string& ref, const std::string& value) {
             return self.toXMLString(ref, value);
         }, "ref"_a, "value"_a = "", "Returns the XML representation of this term")
         ;
-    m.def("__static_CVTerm_ControlledVocabulary_getXRefTypeName", [](OpenMS::ControlledVocabulary::CVTerm::XRefType type) -> OpenMS::String { return OpenMS::ControlledVocabulary::CVTerm::getXRefTypeName(type); }, "type"_a);
+    m.def("__static_CVTerm_ControlledVocabulary_getXRefTypeName", [](OpenMS::ControlledVocabulary::CVTerm::XRefType type) -> std::string { return OpenMS::ControlledVocabulary::CVTerm::getXRefTypeName(type); }, "type"_a);
     m.def("__static_CVTerm_ControlledVocabulary_isHigherBetterScore", [](OpenMS::ControlledVocabulary::CVTerm term) -> bool { return OpenMS::ControlledVocabulary::CVTerm::isHigherBetterScore(term); }, "term"_a);
 
     // -----------------------------------------------------------------------
@@ -2257,7 +2560,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     nb::class_<OpenMS::CVMappingFile>(m, "CVMappingFile",
         "Used to load CvMapping files")
         .def(nb::init<>())
-        .def("load", [](OpenMS::CVMappingFile& self, const OpenMS::String& filename, OpenMS::CVMappings& cv_mappings, bool strip_namespaces) { self.load(filename, cv_mappings, strip_namespaces); }, "filename"_a, "cv_mappings"_a, "strip_namespaces"_a = false, "Loads CvMappings from the given file")
+        .def("load", [](OpenMS::CVMappingFile& self, const std::string& filename, OpenMS::CVMappings& cv_mappings, bool strip_namespaces) { self.load(filename, cv_mappings, strip_namespaces); }, "filename"_a, "cv_mappings"_a, "strip_namespaces"_a = false, "Loads CvMappings from the given file")
         ;
 
     // -----------------------------------------------------------------------
@@ -2266,21 +2569,21 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     nb::class_<OpenMS::Internal::SemanticValidator>(m, "SemanticValidator",
         "Semantically validates XML files using CVMappings and a ControlledVocabulary")
         .def(nb::init<const OpenMS::CVMappings &, const OpenMS::ControlledVocabulary &>(), "mapping"_a, "cv"_a)
-        .def("validate", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& filename) {
+        .def("validate", [](OpenMS::Internal::SemanticValidator& self, const std::string& filename) {
             OpenMS::StringList errors, warnings;
             bool result = self.validate(filename, errors, warnings);
             return nb::make_tuple(result, errors, warnings);
         }, "filename"_a, "Validates an XML file. Returns (success, errors, warnings)")
         .def("setCheckTermValueTypes", [](OpenMS::Internal::SemanticValidator& self, bool check) { self.setCheckTermValueTypes(check); }, "check"_a)
         .def("setCheckUnits", [](OpenMS::Internal::SemanticValidator& self, bool check) { self.setCheckUnits(check); }, "check"_a)
-        .def("setTag", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& tag) { self.setTag(tag); }, "tag"_a)
-        .def("setAccessionAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& accession) { self.setAccessionAttribute(accession); }, "accession"_a)
-        .def("setNameAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& name) { self.setNameAttribute(name); }, "name"_a)
-        .def("setValueAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& value) { self.setValueAttribute(value); }, "value"_a)
-        .def("setUnitAccessionAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& accession) { self.setUnitAccessionAttribute(accession); }, "accession"_a, "Sets the name of the unit accession attribute")
-        .def("setUnitNameAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& name) { self.setUnitNameAttribute(name); }, "name"_a, "Sets the name of the unit name attribute")
+        .def("setTag", [](OpenMS::Internal::SemanticValidator& self, const std::string& tag) { self.setTag(tag); }, "tag"_a)
+        .def("setAccessionAttribute", [](OpenMS::Internal::SemanticValidator& self, const std::string& accession) { self.setAccessionAttribute(accession); }, "accession"_a)
+        .def("setNameAttribute", [](OpenMS::Internal::SemanticValidator& self, const std::string& name) { self.setNameAttribute(name); }, "name"_a)
+        .def("setValueAttribute", [](OpenMS::Internal::SemanticValidator& self, const std::string& value) { self.setValueAttribute(value); }, "value"_a)
+        .def("setUnitAccessionAttribute", [](OpenMS::Internal::SemanticValidator& self, const std::string& accession) { self.setUnitAccessionAttribute(accession); }, "accession"_a, "Sets the name of the unit accession attribute")
+        .def("setUnitNameAttribute", [](OpenMS::Internal::SemanticValidator& self, const std::string& name) { self.setUnitNameAttribute(name); }, "name"_a, "Sets the name of the unit name attribute")
         .def("locateTerm", [](const OpenMS::Internal::SemanticValidator& self,
-                const OpenMS::String& path,
+                const std::string& path,
                 const OpenMS::Internal::SemanticValidator::CVTerm& parsed_term) {
             return self.locateTerm(path, parsed_term);
         }, "path"_a, "parsed_term"_a, "Locate a CV term in the mapping file")
@@ -2294,7 +2597,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         "SQLite-based handler for mzML data (sqMass format)")
         .def("__copy__", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return OpenMS::Internal::MzMLSqliteHandler(self); })
         .def("__deepcopy__", [](const OpenMS::Internal::MzMLSqliteHandler& self, nb::dict) { return OpenMS::Internal::MzMLSqliteHandler(self); }, "memo"_a)
-        .def(nb::init<const OpenMS::String&, const OpenMS::UInt64>(), "filename"_a, "run_id"_a)
+        .def(nb::init<const std::string&, const OpenMS::UInt64>(), "filename"_a, "run_id"_a)
         .def("readExperiment", [](const OpenMS::Internal::MzMLSqliteHandler& self, OpenMS::MSExperiment& exp, bool meta_only) { self.readExperiment(exp, meta_only); }, "exp"_a, "meta_only"_a = false)
         .def("writeExperiment", [](OpenMS::Internal::MzMLSqliteHandler& self, const OpenMS::MSExperiment& exp) { self.writeExperiment(exp); }, "exp"_a)
         .def("createTables", [](OpenMS::Internal::MzMLSqliteHandler& self) { self.createTables(); })
@@ -2318,11 +2621,11 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     auto mspgenericfile_class = nb::class_<OpenMS::MSPGenericFile>(m, "MSPGenericFile",
         "MSP spectral library file reader/writer")
         .def(nb::init<>())
-        .def(nb::init<const OpenMS::String&, OpenMS::MSExperiment&>(), "filename"_a, "library"_a)
+        .def(nb::init<const std::string&, OpenMS::MSExperiment&>(), "filename"_a, "library"_a)
         .def("__copy__", [](const OpenMS::MSPGenericFile& self) { return OpenMS::MSPGenericFile(self); })
         .def("__deepcopy__", [](const OpenMS::MSPGenericFile& self, nb::dict) { return OpenMS::MSPGenericFile(self); }, "memo"_a)
-        .def("load", [](OpenMS::MSPGenericFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& library) { self.load(filename, library); }, "filename"_a, "library"_a)
-        .def("store", [](const OpenMS::MSPGenericFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& library) { self.store(filename, library); }, "filename"_a, "library"_a)
+        .def("load", [](OpenMS::MSPGenericFile& self, const std::string& filename, OpenMS::MSExperiment& library) { self.load(filename, library); }, "filename"_a, "library"_a)
+        .def("store", [](const OpenMS::MSPGenericFile& self, const std::string& filename, const OpenMS::MSExperiment& library) { self.store(filename, library); }, "filename"_a, "library"_a)
         .def("getDefaultParameters", [](OpenMS::MSPGenericFile& self) { OpenMS::Param p; self.getDefaultParameters(p); return p; }, "Gets the class' default parameters")
         ;
     def_DefaultParamHandler<OpenMS::MSPGenericFile>(mspgenericfile_class);
@@ -2348,9 +2651,5 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     m.def("fromFASTAEntry", [](const OpenMS::FASTAFile::FASTAEntry& fasta) {
         return OpenMS::PEFFEntry::fromFASTAEntry(fasta);
     }, "fasta"_a, "Create a PEFFEntry from a FASTAEntry");
-
-    // NOTE: OSWFile cannot be bound here because OSWFile.h includes
-    // SqliteConnector.h which has a READONLY enum that conflicts with
-    // Python's READONLY macro from structmember.h.
 
 }

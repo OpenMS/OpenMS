@@ -14,15 +14,12 @@
 #include <iostream>
 #include <cmath>
 
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/writer.h>
-#endif
 
 using namespace OpenMS;
 
-#ifdef WITH_PARQUET
 namespace
 {
   template <typename BuilderT, typename ValueT>
@@ -43,7 +40,7 @@ namespace
     return nullptr;
   }
 
-  ::arrow::Status writeParquetTable_(const std::shared_ptr<arrow::Table>& table, const String& filename)
+  ::arrow::Status writeParquetTable_(const std::shared_ptr<arrow::Table>& table, const std::string& filename)
   {
     auto outfile_result = arrow::io::FileOutputStream::Open(std::string(filename));
     if (!outfile_result.ok())
@@ -54,7 +51,6 @@ namespace
     return parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024);
   }
 }
-#endif
 
 START_TEST(OpenSwathOSWParquetReader, "$Id$")
 
@@ -67,15 +63,14 @@ START_SECTION(OpenSwathOSWParquetReader())
 }
 END_SECTION
 
-START_SECTION(void load(const String& oswpq_dir))
+START_SECTION(void load(const std::string& oswpq_dir))
 {
-#ifdef WITH_PARQUET
   // Create a minimal .oswpq directory with library, runs and features
   File::TempDir tmp_dir;
-  const String base_dir = tmp_dir.getPath() + "/test.oswpq";
-  const String library_dir = base_dir + "/library";
-  const String runs_dir = base_dir + "/runs";
-  const String run_subdir = runs_dir + "/run_id=1";
+  const std::string base_dir = tmp_dir.getPath() + "/test.oswpq";
+  const std::string library_dir = base_dir + "/library";
+  const std::string runs_dir = base_dir + "/runs";
+  const std::string run_subdir = runs_dir + "/run_id=1";
   File::makeDir(base_dir);
   File::makeDir(library_dir);
   File::makeDir(runs_dir);
@@ -229,7 +224,7 @@ START_SECTION(void load(const String& oswpq_dir))
   TEST_EQUAL(tresult.product_charge.size(), 2)
   TEST_EQUAL(tresult.product_charge[0], 1)
   TEST_EQUAL(tresult.precursor_charge[0], 2)
-  TEST_EQUAL(tresult.group_id[0], String("1_1_1_1"))
+  TEST_EQUAL(tresult.group_id[0],std::string("1_1_1_1"))
 
   // Test fetchUnscoredData on the synthetic temp .oswpq we just created
   auto uresult = reader.fetchUnscoredData(base_dir);
@@ -250,7 +245,7 @@ START_SECTION(void load(const String& oswpq_dir))
 
     
   // Test using test file
-  const String real_path = OPENMS_GET_TEST_DATA_PATH("OpenSwathWorkflow_tworuns_1_17.output.oswpq");
+  const std::string real_path = OPENMS_GET_TEST_DATA_PATH("OpenSwathWorkflow_tworuns_1_17.output.oswpq");
 
   // Read once 
   OpenSwathOSWParquetReader real_reader(real_path);
@@ -310,9 +305,6 @@ START_SECTION(void load(const String& oswpq_dir))
 
   // Basic consistency: at least one of the result tables should contain more than one row
   TEST_EQUAL((pf.feature_id.size() > 1) || (tf.feature_id.size() > 1) || (uf.id.size() > 1), true)
-#else
-  NOT_TESTABLE
-#endif
 }
 END_SECTION
 

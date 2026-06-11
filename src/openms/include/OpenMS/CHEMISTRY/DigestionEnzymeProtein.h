@@ -41,14 +41,14 @@ namespace OpenMS
     DigestionEnzymeProtein(DigestionEnzymeProtein&&) = default;
 
     /// Detailed constructor
-    explicit DigestionEnzymeProtein(const String& name,
-                                    const String& cleavage_regex,
-                                    const std::set<String>& synonyms = std::set<String>(),
-                                    String regex_description = "",
+    explicit DigestionEnzymeProtein(const std::string& name,
+                                    const std::string& cleavage_regex,
+                                    const std::set<std::string>& synonyms = std::set<std::string>(),
+                                    std::string regex_description = "",
                                     EmpiricalFormula n_term_gain = EmpiricalFormula("H"),
                                     EmpiricalFormula c_term_gain = EmpiricalFormula("OH"),
-                                    String psi_id = "",
-                                    String xtandem_id = "",
+                                    std::string psi_id = "",
+                                    std::string xtandem_id = "",
                                     Int comet_id = -1,
                                     Int msgf_id = -1,
                                     Int omssa_id = -1);
@@ -83,16 +83,16 @@ namespace OpenMS
     EmpiricalFormula getCTermGain() const;
 
     /// sets the PSI ID
-    void setPSIID(const String& value);
+    void setPSIID(const std::string& value);
 
     /// returns the PSI ID
-    String getPSIID() const;
+    std::string getPSIID() const;
 
     /// sets the X! Tandem enzyme ID
-    void setXTandemID(const String& value);
+    void setXTandemID(const std::string& value);
 
     /// returns the X! Tandem enzyme ID
-    String getXTandemID() const;
+    std::string getXTandemID() const;
 
     /// sets the Comet enzyme ID
     void setCometID(Int value);
@@ -125,10 +125,10 @@ namespace OpenMS
 
     // Note: comparison operator is not inherited. TODO rename and make virtual
     /// equality operator for regex
-    bool operator==(const String& cleavage_regex) const;
+    bool operator==(const std::string& cleavage_regex) const;
 
     /// equality operator for regex
-    bool operator!=(const String& cleavage_regex) const;
+    bool operator!=(const std::string& cleavage_regex) const;
 
     /// order operator
     bool operator<(const DigestionEnzymeProtein& enzyme) const;
@@ -139,7 +139,7 @@ namespace OpenMS
 
        Returns whether the key was recognized and the value set successfully.
     */
-    bool setValueFromFile(const String& key, const String& value) override;
+    bool setValueFromFile(const std::string& key, const std::string& value) override;
 
     /// ostream iterator to write the enzyme to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const DigestionEnzymeProtein& enzyme);
@@ -149,9 +149,9 @@ namespace OpenMS
 
     EmpiricalFormula c_term_gain_;
 
-    String psi_id_;
+    std::string psi_id_;
 
-    String xtandem_id_;
+    std::string xtandem_id_;
 
     Int comet_id_;
 

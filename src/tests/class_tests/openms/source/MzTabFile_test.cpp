@@ -21,7 +21,7 @@ using namespace std;
 class MzTabFile2 : public MzTabFile
 {
   public:
-    String generateMzTabPSMSectionRow2_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns, const MzTabMetaData& meta) const
+    std::string generateMzTabPSMSectionRow2_(const MzTabPSMSectionRow& row, const vector<std::string>& optional_columns, const MzTabMetaData& meta) const
     {
       size_t n_columns = 0;
       return generateMzTabSectionRow_(row, optional_columns, meta, n_columns);
@@ -42,28 +42,28 @@ START_SECTION(MzTabFile())
 }
 END_SECTION
 
-START_SECTION(void load(const String& filename, MzTab& mzTab) )
+START_SECTION(void load(const std::string& filename, MzTab& mzTab) )
   MzTab mzTab;
   MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab"), mzTab);
 END_SECTION
 
-START_SECTION(void store(const String& filename, MzTab& mzTab) )
+START_SECTION(void store(const std::string& filename, MzTab& mzTab) )
 {
-  std::vector<String> files_to_test;
+  std::vector<std::string> files_to_test;
   files_to_test.push_back("MzTabFile_SILAC.mzTab");
   files_to_test.push_back("MzTabFile_SILAC2.mzTab");
   files_to_test.push_back("MzTabFile_labelfree.mzTab");
   files_to_test.push_back("MzTabFile_iTRAQ.mzTab");
   files_to_test.push_back("MzTabFile_Cytidine.mzTab");
 
-  for (std::vector<String>::const_iterator sit = files_to_test.begin(); sit != files_to_test.end(); ++sit)
+  for (std::vector<std::string>::const_iterator sit = files_to_test.begin(); sit != files_to_test.end(); ++sit)
   {
     // load mzTab
     MzTab mzTab;
     MzTabFile().load(OPENMS_GET_TEST_DATA_PATH(*sit), mzTab);
 
     // store mzTab
-    String stored_mzTab;
+    std::string stored_mzTab;
     NEW_TMP_FILE(stored_mzTab)
     MzTabFile().store(stored_mzTab, mzTab);
 
@@ -77,16 +77,16 @@ START_SECTION(void store(const String& filename, MzTab& mzTab) )
 
     for (TextFile::Iterator it = file1.begin(); it != file1.end(); ++it)
     {
-      it->substitute(" ","");
+      StringUtils::substitute(*it, " ", "");
     }
 
     for (TextFile::Iterator it = file2.begin(); it != file2.end(); ++it)
     {
-      it->substitute(" ","");
+      StringUtils::substitute(*it, " ", "");
     }
 
-    String tmpfile1;
-    String tmpfile2;
+    std::string tmpfile1;
+    std::string tmpfile2;
     NEW_TMP_FILE(tmpfile1)
     NEW_TMP_FILE(tmpfile2)
     file1.store(tmpfile1);
@@ -102,7 +102,7 @@ START_SECTION(~MzTabFile())
 }
 END_SECTION
 
-START_SECTION(generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns) const)
+START_SECTION(generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const vector<std::string>& optional_columns) const)
 {
   MzTabFile2 mzTab;
   MzTabPSMSectionRow row;
@@ -139,7 +139,7 @@ START_SECTION(generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const v
   row.opt_.push_back(e);
   
   // Tests ///////////////////////////////  
-  vector<String> optional_columns;
+  vector<std::string> optional_columns;
   optional_columns.push_back("Percolator_score");
   optional_columns.push_back("Percolator_qvalue");
   optional_columns.push_back("EMPTY");
@@ -149,9 +149,9 @@ START_SECTION(generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const v
 
   MzTabMetaData m{};
     
-  String strRow(mzTab.generateMzTabPSMSectionRow2_(row, optional_columns, m));
-  std::vector<String> substrings;
-  strRow.split('\t', substrings);
+  std::string strRow(mzTab.generateMzTabPSMSectionRow2_(row, optional_columns, m));
+  std::vector<std::string> substrings;
+  StringUtils::split(strRow, '\t', substrings);
   TEST_EQUAL(substrings[substrings.size() - 1],"null")
   TEST_EQUAL(substrings[substrings.size() - 2],"NDYKAPPQPAPGK")
   TEST_EQUAL(substrings[substrings.size() - 3],"0.0420992")

@@ -42,7 +42,7 @@ START_SECTION((void apply(PeptideIdentificationList &fwd_ids, PeptideIdentificat
   ptr = new FalseDiscoveryRate();
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
   PeptideIdentificationList fwd_pep_ids, rev_pep_ids;
-  String document_id;
+  std::string document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), fwd_prot_ids, fwd_pep_ids, document_id);
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids.idXML"), rev_prot_ids, rev_pep_ids, document_id);
   ptr->apply(fwd_pep_ids, rev_pep_ids);
@@ -72,7 +72,7 @@ START_SECTION((void apply(std::vector<ProteinIdentification> &fwd_ids, std::vect
 {
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
   PeptideIdentificationList fwd_pep_ids, rev_pep_ids;
-  String document_id;
+  std::string document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids_withProtScores.idXML"), fwd_prot_ids, fwd_pep_ids, document_id);
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids_withProtScores.idXML"), rev_prot_ids, rev_pep_ids, document_id);
   ptr->apply(fwd_prot_ids, rev_prot_ids);
@@ -155,7 +155,7 @@ START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
 {
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids, prot_ids;
   PeptideIdentificationList fwd_pep_ids, rev_pep_ids, pep_ids;
-  String document_id;
+  std::string document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), fwd_prot_ids, fwd_pep_ids, document_id);
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids.idXML"), rev_prot_ids, rev_pep_ids, document_id);
 
@@ -233,7 +233,7 @@ START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
 {
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids, prot_ids;
   PeptideIdentificationList fwd_pep_ids, rev_pep_ids, pep_ids;
-  String document_id;
+  std::string document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), fwd_prot_ids, fwd_pep_ids, document_id);
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids.idXML"), rev_prot_ids, rev_pep_ids, document_id);
 

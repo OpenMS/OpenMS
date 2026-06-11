@@ -18,13 +18,13 @@ namespace OpenMS
 {
   using Internal::IDBoostGraph;
 
-  String NuXLReportRow::getString(const String& separator) const
+  std::string NuXLReportRow::getString(const std::string& separator) const
   {
     StringList sl;
 
     // rt mz
-    sl << String::number(rt, 3) 
-       << String::number(original_mz, 4);
+    sl << StringUtils::number(rt, 3) 
+       << StringUtils::number(original_mz, 4);
 
     // id if available
     if (no_id)
@@ -36,18 +36,18 @@ namespace OpenMS
       sl << accessions 
          << peptide 
          << NA 
-         << String(charge) 
-         << String(score)
-         << String(rank)
-         << best_localization_score 
+         << StringUtils::toStr(charge) 
+         << StringUtils::toStr(score)
+         << StringUtils::toStr(rank)
+         << StringUtils::toStr(best_localization_score)
          << localization_scores 
          << best_localization
-         << String::number(peptide_weight, 4) << String::number(NA_weight, 4)
-         << String::number(peptide_weight + NA_weight, 4);
+         << StringUtils::number(peptide_weight, 4) << StringUtils::number(NA_weight, 4)
+         << StringUtils::number(peptide_weight + NA_weight, 4);
     }
 
     // write out meta value columns
-    for (const String& v : meta_values)
+    for (const std::string& v : meta_values)
     {
       sl << v;
     }
@@ -57,7 +57,7 @@ namespace OpenMS
     {
       for (Size i = 0; i != it->second.size(); ++i)
       {
-        sl << String::number(it->second[i].second * 100.0, 2);
+        sl << StringUtils::number(it->second[i].second * 100.0, 2);
       }
     }
 
@@ -69,14 +69,14 @@ namespace OpenMS
     else
     {
       // error
-      sl << String::number(abs_prec_error, 4)
-         << String::number(rel_prec_error, 1);
+      sl << StringUtils::number(abs_prec_error, 4)
+         << StringUtils::number(rel_prec_error, 1);
 
       // weight
-      sl << String::number(m_H, 4)
-         << String::number(m_2H, 4)
-         << String::number(m_3H, 4)
-         << String::number(m_4H, 4);
+      sl << StringUtils::number(m_H, 4)
+         << StringUtils::number(m_2H, 4)
+         << StringUtils::number(m_3H, 4)
+         << StringUtils::number(m_4H, 4);
 
       sl << fragment_annotation;
     }
@@ -84,7 +84,7 @@ namespace OpenMS
     return ListUtils::concatenate(sl, separator);
   }
 
-  String NuXLReportRowHeader::getString(const String& separator, const StringList& meta_values_to_export)
+  std::string NuXLReportRowHeader::getString(const std::string& separator, const StringList& meta_values_to_export)
   {
     StringList sl;
     sl << "#RT" 
@@ -102,7 +102,7 @@ namespace OpenMS
        << "NA weight" 
        << "cross-link weight";
 
-    for (const String& s : meta_values_to_export) sl << s;
+    for (const std::string& s : meta_values_to_export) sl << s;
 
     // marker ion fields
     NuXLMarkerIonExtractor::MarkerIonsType marker_ions = NuXLMarkerIonExtractor::extractMarkerIons(PeakSpectrum(), 0.0); // call only to generate header entries
@@ -110,7 +110,7 @@ namespace OpenMS
     {
       for (Size i = 0; i != ma.second.size(); ++i)
       {
-        sl << String(ma.first + "_" + ma.second[i].first);
+        sl << std::string(ma.first + "_" + ma.second[i].first);
       }
     }
     sl << "abs prec. error Da" 
@@ -129,7 +129,7 @@ namespace OpenMS
     for (Size i = 0; i != peptide_ids.size(); ++i)
     {
       OPENMS_PRECONDITION(!peptide_ids[i].getHits().empty(), "Error: no empty peptide ids allowed.");
-      Size scan_index = (unsigned int)peptide_ids[i].getMetaValue("scan_index");
+      Size scan_index = (Size)(unsigned int)peptide_ids[i].getMetaValue("scan_index");
       map_spectra_to_id[scan_index] = i;
     }
 
@@ -152,7 +152,7 @@ namespace OpenMS
         NuXLReportRow row;
 
         // case 1: no peptide identification: store rt, mz, charge and marker ion intensities
-        if (map_spectra_to_id.find(scan_index) == map_spectra_to_id.end())
+        if (!map_spectra_to_id.contains(scan_index))
         {
           row.no_id = true;
           row.rt = rt;
@@ -172,7 +172,7 @@ namespace OpenMS
         {
           ++rank;
           
-          for (const String& meta_key : meta_values_to_export)
+          for (const std::string& meta_key : meta_values_to_export)
           {
             row.meta_values.emplace_back(ph.getMetaValue(meta_key).toString());
           }
@@ -182,14 +182,14 @@ namespace OpenMS
           // total weight = precursor NA weight + peptide weight
           // this ensures that sequences with additional reported partial loss match the total weight
           // Note that the partial loss is only relevent on the MS2 and would otherwise be added to the totalweight
-          String sequence_string = ph.getSequence().toString();
+          std::string sequence_string = ph.getSequence().toString();
 
           const AASequence sequence = AASequence::fromString(sequence_string);
 
           double peptide_weight = sequence.getMonoWeight();
-          String rna_name = ph.getMetaValue("NuXL:NA");
-          double rna_weight = ph.getMetaValue("NuXL:NA_MASS_z0");
-          int isotope_error = ph.getMetaValue("isotope_error");
+          std::string rna_name = StringUtils::toStr(ph.getMetaValue("NuXL:NA"));
+          double rna_weight = (double)ph.getMetaValue("NuXL:NA_MASS_z0");
+          int isotope_error = (int)ph.getMetaValue("isotope_error");
           // crosslink weight for different charge states
           double weight_z1 = (peptide_weight + rna_weight + 1.0 * Constants::PROTON_MASS_U);
           double weight_z2 = (peptide_weight + rna_weight + 2.0 * Constants::PROTON_MASS_U) / 2.0;
@@ -203,11 +203,11 @@ namespace OpenMS
           double absolute_difference = theo_mz - corr_mz;
           double ppm_difference =  Math::getPPM(corr_mz, theo_mz);
 
-          String protein_accessions;
-          std::set<String> accs = ph.extractProteinAccessionsSet();
+          std::string protein_accessions;
+          std::set<std::string> accs = ph.extractProteinAccessionsSet();
 
           // concatenate set into String
-          for (std::set<String>::const_iterator a_it = accs.begin(); a_it != accs.end(); ++a_it)
+          for (std::set<std::string>::const_iterator a_it = accs.begin(); a_it != accs.end(); ++a_it)
           {
             if (a_it != accs.begin())
             {
@@ -252,9 +252,9 @@ namespace OpenMS
               ph.metaValueExists("NuXL:localization_scores") && 
               ph.metaValueExists("NuXL:best_localization"))
           {
-            row.best_localization_score = ph.getMetaValue("NuXL:best_localization_score");
-            row.localization_scores = ph.getMetaValue("NuXL:localization_scores");
-            row.best_localization = ph.getMetaValue("NuXL:best_localization");;
+            row.best_localization_score = (double)ph.getMetaValue("NuXL:best_localization_score");
+            row.localization_scores = StringUtils::toStr(ph.getMetaValue("NuXL:localization_scores"));
+            row.best_localization = StringUtils::toStr(ph.getMetaValue("NuXL:best_localization"));;
           }
 
           ph.setMetaValue("NuXL:Da difference", (double)absolute_difference);
@@ -283,7 +283,7 @@ namespace OpenMS
       if (hits.empty()) continue;
       const PeptideHit& ph = hits[0]; // only consider top hit
       if (ph.isDecoy() || ph.getMetaValue("NuXL:isXL") == "false") continue;
-      const int best_localization = ph.getMetaValue("NuXL:best_localization_position");
+      const int best_localization = (int)ph.getMetaValue("NuXL:best_localization_position");
 
       if (best_localization >= 0)
       {
@@ -311,15 +311,15 @@ namespace OpenMS
   }
 
   // returns map of adduct to counts
-  map<String, size_t> NuXLProteinReport::countAdducts(const PeptideIdentificationList& peps)
+  map<std::string, size_t> NuXLProteinReport::countAdducts(const PeptideIdentificationList& peps)
   {
-    map<String, size_t> adduct2count;
+    map<std::string, size_t> adduct2count;
     for (const PeptideIdentification& pep : peps)
     {
       auto& hits = pep.getHits();
       if (hits.empty()) continue;
       const PeptideHit& ph = hits[0]; // only consider top hit
-      const String NA = ph.getMetaValue("NuXL:NA", String("none"));
+      const std::string NA = ph.getMetaValue("NuXL:NA",std::string("none"));
       adduct2count[NA] += 1;
     }
     return adduct2count;
@@ -364,7 +364,7 @@ Output format:
   // all localization information for protein accession
   struct ProteinReport
   {
-    String sequence; //< the protein sequence
+    std::string sequence; //< the protein sequence
     size_t CSMs_of_shared_peptides = 0; // XL spectral count of shared peptides
     size_t CSMs_of_unique_peptides = 0; // XL spectral count of unique peptides
     map<size_t, AALevelLocalization> aa_level_localization; // position in protein to loc info
@@ -373,12 +373,12 @@ Output format:
 
   // all proteins
   using ProteinsReport = map<std::string, ProteinReport>; //< protein accession to details
-  std::unordered_map<String, double> peptide_seq2XLFDR;
+  std::unordered_map<std::string, double> peptide_seq2XLFDR;
 
   ProteinsReport getProteinReportEntries(
 //    vector<ProteinIdentification>& prot_ids, 
     const PeptideIdentificationList& peps,
-    const map<String, ProteinHit*>& acc2protein_targets,
+    const map<std::string, ProteinHit*>& acc2protein_targets,
     const std::map<string, set<string>>& peptide2proteins
     )
   {
@@ -392,9 +392,9 @@ Output format:
       if (hits.empty()) continue;
 
       const PeptideHit& ph = hits[0]; // only consider top hit
-      const int best_localization = ph.getMetaValue("NuXL:best_localization_position");        
-      const String& NA = ph.getMetaValue("NuXL:NA"); // adduct
-      const String& NT = ph.getMetaValue("NuXL:NT"); // XLed nucleotide
+      const int best_localization = (int)ph.getMetaValue("NuXL:best_localization_position");        
+      const std::string& NA = StringUtils::toStr(ph.getMetaValue("NuXL:NA")); // adduct
+      const std::string& NT = StringUtils::toStr(ph.getMetaValue("NuXL:NT")); // XLed nucleotide
       const int charge = ph.getCharge();
       const AASequence& peptide_sequence = ph.getSequence();
       
@@ -403,11 +403,11 @@ Output format:
       const std::string peptide_sequence_string = peptide_sequence.toUnmodifiedString();
 
       // the peptide-level FDR in the group of cross-linked peptides
-      double peptide_XL_level_qvalue = (double)ph.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE, 0.0);
+      double peptide_XL_level_qvalue = (double)(double)ph.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE, 0.0);
       peptide_seq2XLFDR[peptide_sequence_string] = peptide_XL_level_qvalue;
 
       // loop over all target proteins the peptide maps to
-      const std::set<std::string> proteins = peptide2proteins.at(peptide_sequence_string);
+      const std::set<std::string>& proteins = peptide2proteins.at(peptide_sequence_string);
       const bool is_unique = proteins.size() == 1;
 
       for (const auto& acc : proteins)
@@ -494,16 +494,16 @@ Output format:
     set<string> printed_peptides;
 
     // one row per localized peptide
-    const string line_start = accession + "\t" + aa_loc.AA + "\t" + String(position) + "\t";
+    const string line_start = accession + "\t" + aa_loc.AA + "\t" + StringUtils::toStr(position) + "\t";
     for (const auto& [peptide, localizedXLs] : aa_loc.peptide2XL)
     {
       printed_peptides.insert(peptide);      
       // protein, AA, position
-      String l = line_start;
+      std::string l = line_start;
 
       // TODO: handle all set entries (e.g., if peptide maps multiple times in same protein)
       // start and end of peptide in protein
-      string region = String(peptides2proteins2regions[peptide][accession].begin()->first) + "\t" + String(peptides2proteins2regions[peptide][accession].begin()->second) +"\t";
+      string region =StringUtils::toStr(peptides2proteins2regions[peptide][accession].begin()->first) + "\t" + StringUtils::toStr(peptides2proteins2regions[peptide][accession].begin()->second) +"\t";
       l += region;
 
       bool is_unique = peptide2proteins[peptide].size() == 1;
@@ -523,16 +523,16 @@ Output format:
       {
         adduct_set.insert(xls.adduct);
         nt_set.insert(xls.NT);
-        charge_set.insert(String(xls.charge));        
+        charge_set.insert(StringUtils::toStr(xls.charge));        
         if (is_unique)
         {
           unique_localized_CSM_count++;
-          unique_peptidoforms.insert(xls.adduct + xls.NT + String(xls.charge));
+          unique_peptidoforms.insert(xls.adduct + xls.NT + StringUtils::toStr(xls.charge));
         }
         else
         {
           shared_localized_CSM_count++;
-          shared_peptidoforms.insert(xls.adduct + xls.NT + String(xls.charge));
+          shared_peptidoforms.insert(xls.adduct + xls.NT + StringUtils::toStr(xls.charge));
         } 
       }
 
@@ -546,16 +546,16 @@ Output format:
         for (const auto& xls : *unlocalized)
         {
           unlocalized_adduct_set.insert(xls.adduct);
-          unlocalized_charge_set.insert(String(xls.charge));        
+          unlocalized_charge_set.insert(StringUtils::toStr(xls.charge));        
           if (is_unique)
           {
             unique_unlocalized_CSM_count++;
-            unique_unlocalized_peptidoforms.insert(xls.adduct + String(xls.charge));
+            unique_unlocalized_peptidoforms.insert(xls.adduct + StringUtils::toStr(xls.charge));
           }
           else
           {
             shared_unlocalized_CSM_count++;
-            shared_unlocalized_peptidoforms.insert(xls.adduct + String(xls.charge));
+            shared_unlocalized_peptidoforms.insert(xls.adduct + StringUtils::toStr(xls.charge));
           }     
         }
       }
@@ -564,18 +564,18 @@ Output format:
       l += ListUtils::concatenate(adduct_set, ",") + "\t"; 
       l += ListUtils::concatenate(nt_set, ",") + "\t";
       l += ListUtils::concatenate(charge_set, ",") + "\t";
-      l += String(unique_localized_CSM_count) + "\t";
-      l += String(shared_localized_CSM_count) + "\t";
-      l += String(unique_peptidoforms.size()) + "\t"; // peptide counts
-      l += String(shared_peptidoforms.size()) + "\t";
+      l +=StringUtils::toStr(unique_localized_CSM_count) + "\t";
+      l +=StringUtils::toStr(shared_localized_CSM_count) + "\t";
+      l +=StringUtils::toStr(unique_peptidoforms.size()) + "\t"; // peptide counts
+      l +=StringUtils::toStr(shared_peptidoforms.size()) + "\t";
 
       // print adducts, nucleotides and charge sets of unlocalized peptides
       l += ListUtils::concatenate(unlocalized_adduct_set, ",") + "\t"; 
       l += ListUtils::concatenate(unlocalized_charge_set, ",") + "\t";
-      l += String(unique_unlocalized_CSM_count) + "\t";
-      l += String(shared_unlocalized_CSM_count) + "\t";
-      l += String(unique_unlocalized_peptidoforms.size()) + "\t"; // peptide counts
-      l += String(shared_unlocalized_peptidoforms.size()) + "\t";
+      l +=StringUtils::toStr(unique_unlocalized_CSM_count) + "\t";
+      l +=StringUtils::toStr(shared_unlocalized_CSM_count) + "\t";
+      l +=StringUtils::toStr(unique_unlocalized_peptidoforms.size()) + "\t"; // peptide counts
+      l +=StringUtils::toStr(shared_unlocalized_peptidoforms.size()) + "\t";
 
       // create string with other proteins
       auto ambiguities = peptide2proteins[peptide];
@@ -604,13 +604,13 @@ Output format:
     // one row per unlocalized peptide    
     for (const auto& [peptide, unlocalizedXLs] : region_loc.peptide2unlocalizedXL)
     {
-      if (remaining_peptides.find(peptide) == remaining_peptides.end()) continue;
+      if (!remaining_peptides.contains(peptide)) continue;
 
       // protein, AA, position
-      String l = accession + "\t-\t-\t";
+      std::string l = accession + "\t-\t-\t";
 
       // TODO: handle all set entries (e.g., if peptide maps multiple times in same protein)
-      string region = String(peptides2proteins2regions[peptide][accession].begin()->first) + "\t" + String(peptides2proteins2regions[peptide][accession].begin()->second);
+      string region =StringUtils::toStr(peptides2proteins2regions[peptide][accession].begin()->first) + "\t" + StringUtils::toStr(peptides2proteins2regions[peptide][accession].begin()->second);
       l += region + "\t";
 
       bool is_unique = peptide2proteins[peptide].size() == 1;
@@ -623,16 +623,16 @@ Output format:
       for (const auto& xls : unlocalizedXLs)
       {
         unlocalized_adduct_set.insert(xls.adduct);
-        unlocalized_charge_set.insert(String(xls.charge));        
+        unlocalized_charge_set.insert(StringUtils::toStr(xls.charge));        
         if (is_unique)
         {
           unique_unlocalized_CSM_count++;
-          unique_unlocalized_peptidoforms.insert(xls.adduct + String(xls.charge));
+          unique_unlocalized_peptidoforms.insert(xls.adduct + StringUtils::toStr(xls.charge));
         }
         else
         {
           shared_unlocalized_CSM_count++;
-          shared_unlocalized_peptidoforms.insert(xls.adduct + String(xls.charge));
+          shared_unlocalized_peptidoforms.insert(xls.adduct + StringUtils::toStr(xls.charge));
         }  
       }
 
@@ -642,10 +642,10 @@ Output format:
       // print adducts, nucleotides and charge sets of unlocalized peptides
       l += ListUtils::concatenate(unlocalized_adduct_set, ",") + "\t"; 
       l += ListUtils::concatenate(unlocalized_charge_set, ",") + "\t";
-      l += String(unique_unlocalized_CSM_count) + "\t";
-      l += String(shared_unlocalized_CSM_count)+ "\t";
-      l += String(unique_unlocalized_peptidoforms.size()) + "\t"; // peptide counts
-      l += String(shared_unlocalized_peptidoforms.size()) + "\t";
+      l +=StringUtils::toStr(unique_unlocalized_CSM_count) + "\t";
+      l +=StringUtils::toStr(shared_unlocalized_CSM_count)+ "\t";
+      l +=StringUtils::toStr(unique_unlocalized_peptidoforms.size()) + "\t"; // peptide counts
+      l +=StringUtils::toStr(shared_unlocalized_peptidoforms.size()) + "\t";
 
       // create string with other proteins
       auto ambiguities = peptide2proteins[peptide];
@@ -659,7 +659,7 @@ Output format:
   }
 
   // static 
-  void  NuXLProteinReport::mapAccessionToTDProteins(ProteinIdentification& prot_id, std::map<String, ProteinHit*>& acc2protein_targets, std::map<String, ProteinHit*>& acc2protein_decoys)
+  void  NuXLProteinReport::mapAccessionToTDProteins(ProteinIdentification& prot_id, std::map<std::string, ProteinHit*>& acc2protein_targets, std::map<std::string, ProteinHit*>& acc2protein_decoys)
   {
     std::vector<ProteinHit>& proteins = prot_id.getHits();
     for (ProteinHit& protein : proteins)
@@ -723,7 +723,7 @@ Output format:
     ProteinIdentification& prot_id = prot_ids[0];
 
     // create lookup accession -> protein
-    map<String, ProteinHit*> acc2protein_targets, acc2protein_decoys;
+    map<std::string, ProteinHit*> acc2protein_targets, acc2protein_decoys;
     NuXLProteinReport::mapAccessionToTDProteins(prot_id, acc2protein_targets, acc2protein_decoys);
 
     size_t CSMs_sum{}; // total number of XLed spectra
@@ -743,8 +743,8 @@ Output format:
       ++CSMs_sum;
       for (auto& ph_evidence : ph_evidences)
       {
-        const String& acc = ph_evidence.getProteinAccession();
-        bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
+        const std::string& acc = ph_evidence.getProteinAccession();
+        bool is_target = acc2protein_targets.contains(acc);
         if (!is_target) continue; // skip decoys            
         peptide2proteins[peptide_sequence].insert(acc);
         protein2peptides[acc].insert(peptide_sequence);
@@ -772,7 +772,7 @@ Output format:
     // write to file
     cout << "Writing " << report.size() << " proteins to tsv file... " << endl;
 
-    tsv_file.addLine(String("accession\tAA\tpos.\tstart\tend\t") + 
+    tsv_file.addLine(std::string("accession\tAA\tpos.\tstart\tend\t") + 
                      "adducts (loc. + unique)\tNT (loc. + unique)\tcharges (loc. + unique)\t" + 
                      "CSMs (loc. + unique)\tCSMs (loc. + shared)\tprecursors (loc. + unique)\tprecursors (loc. + shared)\t" +
                      "adducts (\\wo loc. + unique)\tcharges (\\wo loc. + unique)\t" + 
@@ -813,7 +813,7 @@ Output format:
       }
 
       // determine peptides/regions not yet printed (e.g., no site localization exists for those)
-      set<string> all_peptides = protein2peptides.at(accession);
+      const set<string>& all_peptides = protein2peptides.at(accession);
 
       set<string> remaining_peptides;
       std::set_difference(all_peptides.begin(), all_peptides.end(), 
@@ -836,8 +836,8 @@ Output format:
 
     tsv_file.addLine("\n=============================================================");
     tsv_file.addLine("Run summary:");
-    tsv_file.addLine("CSMs:\t" + String(CSMs_sum));
-    tsv_file.addLine("Proteins:\t" + String(report.size()));
+    tsv_file.addLine("CSMs:\t" + StringUtils::toStr(CSMs_sum));
+    tsv_file.addLine("Proteins:\t" + StringUtils::toStr(report.size()));
 
     tsv_file.addLine("\n=============================================================");
     tsv_file.addLine("Protein summary:");
@@ -886,21 +886,21 @@ Output format:
     {
       if (accessionToUniquePeptides.count(accession) == 1)
       { // protein with unique peptide
-        String group_type = "protein";
-        tsv_file.addLine(accession + "\t" + String(pr.CSMs_of_unique_peptides) 
-          + "\t" + String(pr.CSMs_of_shared_peptides) 
+        std::string group_type = "protein";
+        tsv_file.addLine(accession + "\t" + StringUtils::toStr(pr.CSMs_of_unique_peptides) 
+          + "\t" + StringUtils::toStr(pr.CSMs_of_shared_peptides) 
           + "\t" + group_type);        
       }
       else if (auto it = accessionToIndistinguishableGroup.find(accession);
         it != accessionToIndistinguishableGroup.end())
       { // ind. protein group
-        if (printed_ind_group.count(accession) == 0)
+        if (!printed_ind_group.contains(accession))
         {
           const ProteinIdentification::ProteinGroup* pg = it->second;
-          String a = ListUtils::concatenate(pg->accessions, ",");
-          String group_type = "ind. protein group";
-          tsv_file.addLine(a + "\t" + String(pr.CSMs_of_unique_peptides) 
-            + "\t" + String(pr.CSMs_of_shared_peptides) 
+          std::string a = ListUtils::concatenate(pg->accessions, ",");
+          std::string group_type = "ind. protein group";
+          tsv_file.addLine(a + "\t" + StringUtils::toStr(pr.CSMs_of_unique_peptides) 
+            + "\t" + StringUtils::toStr(pr.CSMs_of_shared_peptides) 
             + "\t" + group_type);
 
           for (auto a : pg->accessions) 
@@ -913,8 +913,8 @@ Output format:
       { // general protein groups
         set<string> group_neighbors = protein2proteins[accession];
         group_neighbors.erase(accession);
-        tsv_file.addLine(accession + "\t" + String(pr.CSMs_of_unique_peptides) 
-          + "\t" + String(pr.CSMs_of_shared_peptides) 
+        tsv_file.addLine(accession + "\t" + StringUtils::toStr(pr.CSMs_of_unique_peptides) 
+          + "\t" + StringUtils::toStr(pr.CSMs_of_shared_peptides) 
           + "\tgen. protein group (shares XL peptides with: " + ListUtils::concatenate(group_neighbors, ",") + ")");
       }
     }
@@ -924,15 +924,15 @@ Output format:
     auto aa_xl_freq = getCrossLinkEfficiency(peps);
     for (auto& m : aa_xl_freq) 
     { 
-      tsv_file.addLine(String(m.first) + "\t" + String(m.second));
+      tsv_file.addLine(StringUtils::toStr(m.first) + "\t" + StringUtils::toStr(m.second));
     }
 
     tsv_file.addLine("\n=============================================================");
     tsv_file.addLine("Precursor adduct summary:");
     tsv_file.addLine("Precursor adduct:\tPSMs:\tPSMs(%)");
 
-    map<String, size_t> adduct2count = countAdducts(peps);
-    vector<pair<size_t, String>> count2adduct;
+    map<std::string, size_t> adduct2count = countAdducts(peps);
+    vector<pair<size_t, std::string>> count2adduct;
     size_t total_psms{};
     for (const auto& ac : adduct2count)
     {
@@ -941,14 +941,14 @@ Output format:
     }
 
     std::sort(count2adduct.begin(), count2adduct.end(), 
-      [](const pair<size_t, String> & a, const pair<size_t, String> & b) -> bool
+      [](const pair<size_t, std::string> & a, const pair<size_t, std::string> & b) -> bool
       { 
          return std::tie(a.first, a.second) > std::tie(b.first, b.second);
       }); 
 
     for (const auto& ca : count2adduct)
     {
-      tsv_file.addLine(ca.second + "\t" + String(ca.first) + "\t" + String(100.0 * (double)ca.first / (double)total_psms));
+      tsv_file.addLine(ca.second + "\t" + StringUtils::toStr(ca.first) + "\t" + StringUtils::toStr(100.0 * (double)ca.first / (double)total_psms));
     }
 
   }

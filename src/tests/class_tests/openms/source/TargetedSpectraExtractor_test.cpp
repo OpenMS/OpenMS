@@ -21,7 +21,7 @@
 using namespace OpenMS;
 using namespace std;
 
-vector<MSSpectrum>::const_iterator findSpectrumByName(const vector<MSSpectrum>& spectra, const String& name)
+vector<MSSpectrum>::const_iterator findSpectrumByName(const vector<MSSpectrum>& spectra, const std::string& name)
 {
   vector<MSSpectrum>::const_iterator it;
   it = std::find_if(spectra.cbegin(), spectra.cend(), [&name] (const MSSpectrum& s)
@@ -37,10 +37,10 @@ vector<MSSpectrum>::const_iterator findSpectrumByName(const vector<MSSpectrum>& 
 
 namespace std
 {
-  std::ostream& operator<<(ostream& os, const std::vector<OpenMS::String> string_list)
+  std::ostream& operator<<(ostream& os, const std::vector<std::string> string_list)
   {
     os << "[";
-    std::string separator = "";
+    std::string separator;
     for (const auto& string_item : string_list)
     {
       os << separator << string_item;
@@ -97,8 +97,8 @@ const MSSpectrum spectrum = s;
 
 TargetedSpectraExtractor* ptr = nullptr;
 TargetedSpectraExtractor* null_ptr = nullptr;
-const String experiment_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_13C1_spectra0to100.mzML");
-const String target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_13CFlux_TraML.csv");
+const std::string experiment_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_13C1_spectra0to100.mzML");
+const std::string target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_13CFlux_TraML.csv");
 MzMLFile mzml;
 MSExperiment experiment;
 TransitionTSVFile tsv_reader;
@@ -754,7 +754,7 @@ START_SECTION(void extractSpectra(
   params.setValue("fwhm_threshold", 0.23);
   tse.setParameters(params);
 
-  const String msp_path = OPENMS_GET_TEST_DATA_PATH("Germicidin_A_standard.msp");
+  const std::string msp_path = OPENMS_GET_TEST_DATA_PATH("Germicidin_A_standard.msp");
   MSExperiment spectrum;
   MSPGenericFile mse(msp_path, spectrum);
   for (OpenMS::MSSpectrum& spec : spectrum)
@@ -762,7 +762,7 @@ START_SECTION(void extractSpectra(
     spec.setMSLevel(2);
   }
 
-  const String featurexml_path = OPENMS_GET_TEST_DATA_PATH("Germicidin_A_standard.featureXML");
+  const std::string featurexml_path = OPENMS_GET_TEST_DATA_PATH("Germicidin_A_standard.featureXML");
   OpenMS::FeatureXMLFile featurexml;
   OpenMS::FeatureMap ms1_features;
   featurexml.load(featurexml_path, ms1_features);
@@ -794,9 +794,9 @@ START_SECTION(void matchSpectrum(
   // https://creativecommons.org/licenses/by/4.0/legalcode
   // Changes made: Only a very small subset of spectra is reproduced
 
-  const String msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
-  const String gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
-  const String target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_traML.csv");
+  const std::string msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
+  const std::string gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
+  const std::string target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_traML.csv");
   MzMLFile mzml;
   MSExperiment gcms_experiment;
   TransitionTSVFile tsv_reader;
@@ -832,7 +832,7 @@ START_SECTION(void matchSpectrum(
   vector<TargetedSpectraExtractor::Match> matches;
 
   TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
-  std::map<String,DataValue> options = {
+  std::map<std::string,DataValue> options = {
     {"bin_size", 1.0},
     {"peak_spread", 0},
     {"bin_offset", 0.4}
@@ -877,9 +877,9 @@ START_SECTION(void targetedMatching(
   // https://creativecommons.org/licenses/by/4.0/legalcode
   // Changes made: Only a very small subset of spectra is reproduced
 
-  const String msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
-  const String gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
-  const String target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_traML.csv");
+  const std::string msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
+  const std::string gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
+  const std::string target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_traML.csv");
   MzMLFile mzml;
   MSExperiment gcms_experiment;
   TransitionTSVFile tsv_reader;
@@ -913,7 +913,7 @@ START_SECTION(void targetedMatching(
   TEST_EQUAL(library.getSpectra().size(), 21)
 
   TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
-  std::map<String,DataValue> options = {
+  std::map<std::string,DataValue> options = {
     {"bin_size", 1.0},
     {"peak_spread", 0},
     {"bin_offset", 0.4}
@@ -924,7 +924,7 @@ START_SECTION(void targetedMatching(
 
   TEST_STRING_EQUAL(extracted_features[0].getMetaValue("spectral_library_name"), "beta-D-(+)-Glucose")
   TEST_REAL_SIMILAR(extracted_features[0].getMetaValue("spectral_library_score"), 0.946971)
-  String comments = R"("accession=PR010079" "author=Kusano M, Fukushima A, Plant Science Center, RIKEN." "license=CC BY-SA" "exact mass=180.06339" "instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies" "instrument type=GC-EI-TOF" "ms level=MS1" "retention index=1882.4" "retention time=459.562 sec" "derivative formula=C22H55NO6Si5" "derivative mass=569.28757" "derivatization type=5 TMS; 1 MEOX" "ionization mode=positive" "compound class=Natural Product" "SMILES=OCC(O1)C(O)C(O)C(O)C(O)1" "cas=492-61-5" "chebi=15903" "kegg=C00221" "pubchem=3521" "InChI=InChI=1S/C6H12O6/c7-1-2-3(8)4(9)5(10)6(11)12-2/h2-11H,1H2/t2-,3-,4+,5-,6-/m1/s1" "molecular formula=C6H12O6" "total exact mass=180.06338810399998" "SMILES=C(C1C(C(C(C(O)O1)O)O)O)O" "InChIKey=WQZGKKKJIJFFOK-VFUOTHLCSA-N")";
+  std::string comments = R"("accession=PR010079" "author=Kusano M, Fukushima A, Plant Science Center, RIKEN." "license=CC BY-SA" "exact mass=180.06339" "instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies" "instrument type=GC-EI-TOF" "ms level=MS1" "retention index=1882.4" "retention time=459.562 sec" "derivative formula=C22H55NO6Si5" "derivative mass=569.28757" "derivatization type=5 TMS; 1 MEOX" "ionization mode=positive" "compound class=Natural Product" "SMILES=OCC(O1)C(O)C(O)C(O)C(O)1" "cas=492-61-5" "chebi=15903" "kegg=C00221" "pubchem=3521" "InChI=InChI=1S/C6H12O6/c7-1-2-3(8)4(9)5(10)6(11)12-2/h2-11H,1H2/t2-,3-,4+,5-,6-/m1/s1" "molecular formula=C6H12O6" "total exact mass=180.06338810399998" "SMILES=C(C1C(C(C(C(O)O1)O)O)O)O" "InChIKey=WQZGKKKJIJFFOK-VFUOTHLCSA-N")";
   TEST_STRING_EQUAL(extracted_features[0].getMetaValue("spectral_library_comments"), comments)
 
   TEST_STRING_EQUAL(extracted_features[5].getMetaValue("spectral_library_name"), "Adonitol")
@@ -951,8 +951,8 @@ START_SECTION(void untargetedMatching(
   // https://creativecommons.org/licenses/by/4.0/legalcode
   // Changes made: Only a very small subset of spectra is reproduced
 
-  const String msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
-  const String gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
+  const std::string msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
+  const std::string gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
   MzMLFile mzml;
   MSExperiment gcms_experiment;
   TargetedExperiment targeted_exp;
@@ -971,7 +971,7 @@ START_SECTION(void untargetedMatching(
   TEST_EQUAL(library.getSpectra().size(), 21)
 
   TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
-  std::map<String,DataValue> options = {
+  std::map<std::string,DataValue> options = {
     {"bin_size", 1.0},
     {"peak_spread", 0},
     {"bin_offset", 0.4}
@@ -987,7 +987,7 @@ START_SECTION(void untargetedMatching(
 
   TEST_STRING_EQUAL(features[1].getMetaValue("spectral_library_name"), "D-Glucose-6-phosphate")
   TEST_REAL_SIMILAR(features[1].getMetaValue("spectral_library_score"), 0.691226)
-  String comments = R"("accession=PR010050" "author=Kusano M, Fukushima A, Plant Science Center, RIKEN." "license=CC BY-SA" "exact mass=260.02972" "instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies" "instrument type=GC-EI-TOF" "ms level=MS1" "retention index=2300.2" "retention time=538.069 sec" "derivative formula=C25H64NO9PSi6" "derivative mass=721.29343" "derivatization type=6 TMS; 1 MEOX" "ionization mode=positive" "compound class=Natural Product" "SMILES=OC(O1)[C@H](O)[C@@H](O)[C@H](O)[C@H]1COP(O)(O)=O" "cas=54010-71-8" "InChI=InChI=1S/C6H13O9P/c7-3-2(1-14-16(11,12)13)15-6(10)5(9)4(3)8/h2-10H,1H2,(H2,11,12,13)/t2-,3-,4+,5-,6?/m1/s1" "molecular formula=C6H13O9P" "total exact mass=260.029718626" "SMILES=C(C1C(C(C(C(O)O1)O)O)O)OP(O)(O)=O" "InChIKey=NBSCHQHZLSJFNQ-GASJEMHNSA-N")";
+  std::string comments = R"("accession=PR010050" "author=Kusano M, Fukushima A, Plant Science Center, RIKEN." "license=CC BY-SA" "exact mass=260.02972" "instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies" "instrument type=GC-EI-TOF" "ms level=MS1" "retention index=2300.2" "retention time=538.069 sec" "derivative formula=C25H64NO9PSi6" "derivative mass=721.29343" "derivatization type=6 TMS; 1 MEOX" "ionization mode=positive" "compound class=Natural Product" "SMILES=OC(O1)[C@H](O)[C@@H](O)[C@H](O)[C@H]1COP(O)(O)=O" "cas=54010-71-8" "InChI=InChI=1S/C6H13O9P/c7-3-2(1-14-16(11,12)13)15-6(10)5(9)4(3)8/h2-10H,1H2,(H2,11,12,13)/t2-,3-,4+,5-,6?/m1/s1" "molecular formula=C6H13O9P" "total exact mass=260.029718626" "SMILES=C(C1C(C(C(C(O)O1)O)O)O)OP(O)(O)=O" "InChIKey=NBSCHQHZLSJFNQ-GASJEMHNSA-N")";
   TEST_STRING_EQUAL(features[1].getMetaValue("spectral_library_comments"), comments)
 
   TEST_STRING_EQUAL(features[6].getMetaValue("spectral_library_name"), "2,3-Pyridinedicarboxylic acid")
@@ -1009,7 +1009,7 @@ START_SECTION(mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::Featur
 
   OpenMS::Feature f1;
   f1.setUniqueId();
-  std::vector<String> identifier1{"ident1"};
+  std::vector<std::string> identifier1{"ident1"};
   f1.setMetaValue("identifier", identifier1);
   f1.setMetaValue("PeptideRef", "PeptideRef1");
   f1.setIntensity(1);
@@ -1019,7 +1019,7 @@ START_SECTION(mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::Featur
 
   OpenMS::Feature f2;
   f2.setUniqueId();
-  std::vector<String> identifier2{"ident1", "ident2"};
+  std::vector<std::string> identifier2{"ident1", "ident2"};
   f2.setMetaValue("identifier", identifier2);
   f2.setMetaValue("PeptideRef", "PeptideRef1");
   f2.setIntensity(2);
@@ -1029,7 +1029,7 @@ START_SECTION(mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::Featur
 
   OpenMS::Feature f3;
   f3.setUniqueId();
-  std::vector<String> identifier3{"ident3"};
+  std::vector<std::string> identifier3{"ident3"};
   f3.setMetaValue("identifier", identifier3);
   f3.setMetaValue("PeptideRef", "PeptideRef3");
   f3.setIntensity(3);
@@ -1077,7 +1077,7 @@ START_SECTION(annotateSpectra(const std::vector<MSSpectrum>& spectra, const Feat
 
   OpenMS::Feature f1;
   f1.setUniqueId();
-  std::vector<String> identifier1{"ident1"};
+  std::vector<std::string> identifier1{"ident1"};
   f1.setMetaValue("identifier", identifier1);
   f1.setIntensity(1);
   f1.setMZ(10);
@@ -1130,7 +1130,7 @@ START_SECTION(annotateSpectra(const std::vector<MSSpectrum>& spectra, const Feat
 }
 END_SECTION
 
-START_SECTION(constructTransitionsList(const String& filename, const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features) const)
+START_SECTION(constructTransitionsList(const std::string& filename, const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features) const)
 {
   OpenMS::FeatureMap ms1_features;
   OpenMS::Feature ms1_f1;
@@ -1179,7 +1179,7 @@ START_SECTION(constructTransitionsList(const String& filename, const OpenMS::Fea
 }
 END_SECTION
 
-START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSExperiment& experiment) const)
+START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const std::string& filename, MSExperiment& experiment) const)
 {
   MSExperiment experiment;
   
@@ -1201,7 +1201,7 @@ START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filen
   peak2.setIntensity(20);
   spectra.push_back(spectr1);
   
-  String output_filepath;
+  std::string output_filepath;
   NEW_TMP_FILE_EXT(output_filepath, ".msp")
 
   experiment.setSpectra(spectra);
@@ -1221,7 +1221,7 @@ START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filen
 }
 END_SECTION
 
-START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSExperiment& experiment) const)
+START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const std::string& filename, MSExperiment& experiment) const)
 {
   FeatureMap input_fm;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), input_fm);

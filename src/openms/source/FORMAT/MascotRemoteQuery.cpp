@@ -64,7 +64,7 @@ namespace OpenMS
 
     // Mascot export options
     defaults_.setValue("export_params", "_ignoreionsscorebelow=0&_sigthreshold=0.99&_showsubsets=1&show_same_sets=1&report=0&percolate=0&query_master=0", "Adjustable export parameters (passed to Mascot's 'export_dat_2.pl' script). Generally only parameters that control which hits to export are safe to adjust/add. Many settings that govern what types of information to include are required by OpenMS and cannot be changed. Note that setting 'query_master' to 1 may lead to incorrect protein references for peptides.", {"advanced"});
-    defaults_.setValue("skip_export", "false", "For use with an external Mascot Percolator (via GenericWrapper): Run the Mascot search, but do not export the results. The output file produced by MascotAdapterOnline will contain only the Mascot search number.", {"advanced"});
+    defaults_.setValue("skip_export", "false", "For use with an external Mascot Percolator: Run the Mascot search, but do not export the results. The output file produced by MascotAdapterOnline will contain only the Mascot search number.", {"advanced"});
     defaults_.setValidStrings("skip_export", {"true","false"});
     defaults_.setValue("batch_size", 50000, "Number of spectra processed in one batch by Mascot (default 50000)", {"advanced"});
     defaults_.setMinInt("batch_size", 0);
@@ -112,18 +112,18 @@ namespace OpenMS
     bool use_proxy(param_.getValue("use_proxy").toBool());
     if (use_proxy)
     {
-      String proxy_host(param_.getValue("proxy_host").toString());
+      std::string proxy_host(param_.getValue("proxy_host").toString());
       Int proxy_port(param_.getValue("proxy_port"));
-      string proxy_url = proxy_host + ":" + String(proxy_port);
+      string proxy_url = proxy_host + ":" + StringUtils::toStr(proxy_port);
       curl_easy_setopt(curl, CURLOPT_PROXY, proxy_url.c_str());
       // SOCKS5 matches the original Qt implementation (QNetworkProxy::Socks5Proxy)
       curl_easy_setopt(curl, CURLOPT_PROXYTYPE, static_cast<long>(CURLPROXY_SOCKS5));
 
-      String proxy_username(param_.getValue("proxy_username").toString());
+      std::string proxy_username(param_.getValue("proxy_username").toString());
       if (!proxy_username.empty())
       {
         curl_easy_setopt(curl, CURLOPT_PROXYUSERNAME, proxy_username.c_str());
-        String proxy_password(param_.getValue("proxy_password").toString());
+        std::string proxy_password(param_.getValue("proxy_password").toString());
         curl_easy_setopt(curl, CURLOPT_PROXYPASSWORD, proxy_password.c_str());
       }
     }
@@ -174,7 +174,7 @@ namespace OpenMS
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK)
     {
-      error_message_ = String("Mascot HTTP GET failed: ") + curl_easy_strerror(res);
+      error_message_ =std::string("Mascot HTTP GET failed: ") + curl_easy_strerror(res);
       return {};
     }
 
@@ -182,7 +182,7 @@ namespace OpenMS
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
     if (http_code >= 400)
     {
-      error_message_ = String("Mascot server returned HTTP error ") + String(http_code) + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
+      error_message_ ="Mascot server returned HTTP error " + StringUtils::toStr(http_code) + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
       return {};
     }
 
@@ -217,7 +217,7 @@ namespace OpenMS
 
     if (res != CURLE_OK)
     {
-      error_message_ = String("Mascot HTTP POST failed: ") + curl_easy_strerror(res);
+      error_message_ =std::string("Mascot HTTP POST failed: ") + curl_easy_strerror(res);
       return {};
     }
 
@@ -225,7 +225,7 @@ namespace OpenMS
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
     if (http_code >= 400)
     {
-      error_message_ = String("Mascot server returned HTTP error ") + String(http_code) + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
+      error_message_ ="Mascot server returned HTTP error " + StringUtils::toStr(http_code) + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
       return {};
     }
 
@@ -266,15 +266,15 @@ namespace OpenMS
 
     if (hasError()) return;
 
-    if (response.find("Logged in successfu") != string::npos)
+    if (response.contains("Logged in successfu"))
     {
       OPENMS_LOG_INFO << "Login successful!" << std::endl;
     }
-    else if (response.find("Error: You have entered an invalid password") != string::npos)
+    else if (response.contains("Error: You have entered an invalid password"))
     {
       error_message_ = "Error: You have entered an invalid password";
     }
-    else if (response.find("is not a valid user") != string::npos)
+    else if (response.contains("is not a valid user"))
     {
       error_message_ = "Error: Username is not valid";
     }
@@ -311,7 +311,7 @@ namespace OpenMS
     if (hasError()) return;
 
     // Check for "Click here to see Search Report"
-    if (response.find("Click here to see Search Report") == string::npos)
+    if (!response.contains("Click here to see Search Report"))
     {
       // Check for Mascot error codes
       regex mascot_error_regex(R"(\[M[0-9]{5}\])");
@@ -363,7 +363,7 @@ namespace OpenMS
     if (hasError()) return;
 
     // Check if this is a decoy response
-    if (xml_response.find("<decoy>") != string::npos)
+    if (xml_response.contains("<decoy>"))
     {
       mascot_decoy_xml_ = std::move(xml_response);
       return;
@@ -393,8 +393,8 @@ namespace OpenMS
     if (hasError()) return {};
 
     // Handle Mascot 2.4 continuation links (these are in-body HTML, NOT HTTP redirects)
-    while (response.find("Finished after") != string::npos &&
-           response.find("<a id=\"continuation-link\"") != string::npos)
+    while (response.contains("Finished after") &&
+           response.contains("<a id=\"continuation-link\""))
     {
       regex rx(R"xx(<a id="continuation-link" href="(.*?)")xx");
       smatch match;
@@ -443,23 +443,23 @@ namespace OpenMS
   string MascotRemoteQuery::removeHostName(const string& url) const
   {
     string result = url;
-    if (result.substr(0, 7) == "http://")
-      result = result.substr(7);
-    else if (result.substr(0, 8) == "https://")
-      result = result.substr(8);
+    if (StringUtils::substr(result, 0, 7) == "http://")
+      result = StringUtils::substr(result, 7);
+    else if (StringUtils::substr(result, 0, 8) == "https://")
+      result = StringUtils::substr(result, 8);
 
     string hostname = string(host_name_.c_str());
-    if (result.substr(0, hostname.size()) == hostname)
+    if (StringUtils::substr(result, 0, hostname.size()) == hostname)
     {
-      result = result.substr(hostname.size());
+      result = StringUtils::substr(result, hostname.size());
     }
 
     // Check for port suffix
     Int port = param_.getValue("host_port");
     string port_suffix = ":" + to_string(port);
-    if (result.substr(0, port_suffix.size()) == port_suffix)
+    if (StringUtils::substr(result, 0, port_suffix.size()) == port_suffix)
     {
-      result = result.substr(port_suffix.size());
+      result = StringUtils::substr(result, port_suffix.size());
     }
 
     // ensure path starts with /
@@ -468,7 +468,7 @@ namespace OpenMS
     return result;
   }
 
-  void MascotRemoteQuery::setQuerySpectra(const String& exp)
+  void MascotRemoteQuery::setQuerySpectra(const std::string& exp)
   {
     query_spectra_ = exp;
   }
@@ -493,12 +493,12 @@ namespace OpenMS
     return !error_message_.empty();
   }
 
-  const String& MascotRemoteQuery::getErrorMessage() const
+  const std::string& MascotRemoteQuery::getErrorMessage() const
   {
     return error_message_;
   }
 
-  String MascotRemoteQuery::getSearchIdentifier() const
+  std::string MascotRemoteQuery::getSearchIdentifier() const
   {
     return search_identifier_;
   }
@@ -527,15 +527,15 @@ namespace OpenMS
     requires_login_ = param_.getValue("login").toBool();
   }
 
-  String MascotRemoteQuery::getSearchIdentifierFromFilePath(const String& path) const
+  std::string MascotRemoteQuery::getSearchIdentifierFromFilePath(const std::string& path) const
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG
     std::cerr << "MascotRemoteQuery::getSearchIdentifierFromFilePath " << path << std::endl;
 #endif
     size_t pos = path.find_last_of("/\\");
-    String tmp = path.substr(pos + 1);
+    std::string tmp = StringUtils::substr(path, pos + 1);
     pos = tmp.find_last_of(".");
-    tmp = tmp.substr(1, pos - 1);
+    tmp = StringUtils::substr(tmp, 1, pos - 1);
 #ifdef MASCOTREMOTEQUERY_DEBUG
     std::cerr << "MascotRemoteQuery::getSearchIdentifierFromFilePath will return" << tmp << std::endl;
 #endif

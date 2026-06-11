@@ -157,19 +157,19 @@ namespace OpenMS
       // legacy
 #if 1
       const auto& cv_terms = transition.getCVTerms();
-      if (cv_terms.find("decoy") != cv_terms.end() && cv_terms.at("decoy")[0].getValue().toString() == "1" )
+      if (cv_terms.contains("decoy") && cv_terms.at("decoy")[0].getValue().toString() == "1" )
       {
         t.setDecoy(true);
       }
-      else if (cv_terms.find("MS:1002007") != cv_terms.end())    // target SRM transition
+      else if (cv_terms.contains("MS:1002007"))    // target SRM transition
       {
         t.setDecoy(false);
       }
-      else if (cv_terms.find("MS:1002008") != cv_terms.end())    // decoy SRM transition
+      else if (cv_terms.contains("MS:1002008"))    // decoy SRM transition
       {
         t.setDecoy(true);
       }
-      else if (cv_terms.find("MS:1002007") != cv_terms.end() && cv_terms.find("MS:1002008") != cv_terms.end())    // both == illegal
+      else if (cv_terms.contains("MS:1002007") && cv_terms.contains("MS:1002008"))    // both == illegal
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Transition " + t.transition_name + " cannot be target and decoy at the same time.");
@@ -199,6 +199,12 @@ namespace OpenMS
   {
     OpenSwath::LightModification light_mod;
 
+    // Reset RT-related fields up front so a reused LightCompound doesn't leak
+    // a stale rt/rt_start/rt_end when the new source has no RT info.
+    p.rt       = std::numeric_limits<double>::quiet_NaN();
+    p.rt_start = std::numeric_limits<double>::quiet_NaN();
+    p.rt_end   = std::numeric_limits<double>::quiet_NaN();
+
     p.id = pep.id;
     if (pep.hasRetentionTime())
     {
@@ -207,6 +213,23 @@ namespace OpenMS
       {
         p.rt = 60 * pep.getRetentionTime();
       }
+    }
+    // If the source library encodes a retention-time *range* via exactly two
+    // RT entries (e.g. some pqp/TraML libraries), preserve it on the
+    // LightCompound so that ChromatogramExtractor::prepare_coordinates with
+    // rt_extraction_window=NaN can use it. We require exactly two entries
+    // (not >=2) to match the old heavyweight overload's contract; libraries
+    // with 3+ RT entries encode different semantics and should not be silently
+    // truncated.
+    if (pep.rts.size() == 2)
+    {
+      auto rt_in_seconds = [](const TargetedExperimentHelper::RetentionTime& r) {
+        return r.retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE
+                 ? 60.0 * r.getRT()
+                 : r.getRT();
+      };
+      p.rt_start = rt_in_seconds(pep.rts[0]);
+      p.rt_end   = rt_in_seconds(pep.rts[1]);
     }
     p.setDriftTime(pep.getDriftTime());
 
@@ -220,17 +243,17 @@ namespace OpenMS
 
     if (pep.metaValueExists("GeneName"))
     {
-      p.gene_name = (std::string)pep.getMetaValue("GeneName");
+      p.gene_name = StringUtils::toStr(pep.getMetaValue("GeneName"));
     }
 
     // Is it potentially a metabolomics compound
     if (pep.metaValueExists("SumFormula"))
     {
-      p.sum_formula = (std::string)pep.getMetaValue("SumFormula");
+      p.sum_formula = StringUtils::toStr(pep.getMetaValue("SumFormula"));
     }
     if (pep.metaValueExists("CompoundName"))
     {
-      p.compound_name = (std::string)pep.getMetaValue("CompoundName");
+      p.compound_name = StringUtils::toStr(pep.getMetaValue("CompoundName"));
     }
 
     p.protein_refs.clear();
@@ -275,6 +298,12 @@ namespace OpenMS
 
   void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound & comp)
   {
+    // Reset RT-related fields up front so a reused LightCompound doesn't leak
+    // stale values when the new source has no RT info.
+    comp.rt       = std::numeric_limits<double>::quiet_NaN();
+    comp.rt_start = std::numeric_limits<double>::quiet_NaN();
+    comp.rt_end   = std::numeric_limits<double>::quiet_NaN();
+
     comp.id = compound.id;
     if (compound.hasRetentionTime())
     {
@@ -283,6 +312,21 @@ namespace OpenMS
       {
         comp.rt = 60 * compound.getRetentionTime();
       }
+    }
+    // Preserve a per-compound retention-time range (rt_start, rt_end) when the
+    // source library encodes one via exactly two RT entries — used by
+    // ChromatogramExtractor::prepare_coordinates with rt_extraction_window=NaN.
+    // We require exactly two entries to match the old heavyweight overload's
+    // contract.
+    if (compound.rts.size() == 2)
+    {
+      auto rt_in_seconds = [](const TargetedExperimentHelper::RetentionTime& r) {
+        return r.retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE
+                 ? 60.0 * r.getRT()
+                 : r.getRT();
+      };
+      comp.rt_start = rt_in_seconds(compound.rts[0]);
+      comp.rt_end   = rt_in_seconds(compound.rts[1]);
     }
     comp.setDriftTime(compound.getDriftTime());
 
@@ -294,7 +338,7 @@ namespace OpenMS
     comp.sum_formula = (std::string)compound.molecular_formula;
     if (compound.metaValueExists("CompoundName"))
     {
-      comp.compound_name = (std::string)compound.getMetaValue("CompoundName");
+      comp.compound_name = StringUtils::toStr(compound.getMetaValue("CompoundName"));
     }
   }
 
@@ -309,7 +353,7 @@ namespace OpenMS
       {
         TargetedExperimentHelper::setModification(it.location,
                                                   int(peptide.sequence.size()),
-                                                  "UniMod:" + String(it.unimod_id), aa_sequence);
+                                                  "UniMod:" + StringUtils::toStr(it.unimod_id), aa_sequence);
       }
     }
   }

@@ -32,6 +32,7 @@ Pick `bindings/bind_<domain>.cpp` based on the C++ header path:
 | `KERNEL/MSSpectrum.h` | `bind_spectrum.cpp` |
 | `KERNEL/MSChromatogram.h` | `bind_chromatogram.cpp` |
 | `KERNEL/MSExperiment.h` | `bind_experiment.cpp` |
+| `IMAGING/` | `bind_experiment.cpp` |
 | `FORMAT/` | `bind_format.cpp` |
 | `ANALYSIS/` | `bind_analysis.cpp` |
 | `CHEMISTRY/` | `bind_chemistry.cpp` |
@@ -40,7 +41,8 @@ Pick `bindings/bind_<domain>.cpp` based on the C++ header path:
 | `FEATUREFINDER/` | `bind_featurefinder.cpp` |
 | `DATASTRUCTURES/`, `MATH/`, `CONCEPT/` | `bind_datastructures.cpp` |
 | `ML/` | `bind_ml.cpp` |
-| Everything else | `bind_misc.cpp` |
+| `IONMOBILITY/` enums (`DriftTimeUnit`, `IMFormat`, `IMPeakType`) | `bind_kernel.cpp` |
+| Everything else (incl. `IONMOBILITY/IMTypes`) | `bind_misc.cpp` |
 
 ### 2. Add the `#include` and class binding
 
@@ -150,7 +152,7 @@ Each class has a section comment (`// --- ClassName ---`) for navigation.
 `_pyopenms_featurefinder`, `_pyopenms_format`, `_pyopenms_processing`,
 `_pyopenms_datastructures`, `_pyopenms_ml`, `_pyopenms_misc`
 
-Plus `_pyopenms` (main entry) and `_arrow_zerocopy` (when WITH_PARQUET=ON).
+Plus `_pyopenms` (main entry) and `_arrow_zerocopy`.
 
 All modules use `NB_DOMAIN "pyopenms"` to share type information.
 

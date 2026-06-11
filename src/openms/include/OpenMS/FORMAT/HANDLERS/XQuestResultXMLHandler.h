@@ -27,13 +27,13 @@ namespace OpenMS
     public:
 
       /// Maps enzyme_num in xQuest result file to the enzyme name used by OpenMS
-      static std::map< Size, String > enzymes;
+      static std::map< Size, std::string > enzymes;
 
-      /// Maps String encoding month to the numeric value
-      static std::map<String, UInt> months;
+      /// Maps std::string encoding month to the numeric value
+      static std::map<std::string, UInt> months;
 
       /// Constructor for a read-only handler for internal identification structures
-      XQuestResultXMLHandler(const String & filename,
+      XQuestResultXMLHandler(const std::string & filename,
                              PeptideIdentificationList & pep_ids,
                              std::vector< ProteinIdentification > & prot_ids
                              );
@@ -41,8 +41,8 @@ namespace OpenMS
       /// Constructor for a write-only handler for internal identification structures
       XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id,
                              const PeptideIdentificationList& pep_id,
-                             const String& filename,
-                             const String& version
+                             const std::string& filename,
+                             const std::string& version
                            );
 
       ~XQuestResultXMLHandler() override;
@@ -83,7 +83,7 @@ namespace OpenMS
 
         * @return StringList with two elements, the two parts of the input without the nth separator
       */
-      static StringList splitByNth(const String& input, const char separator, const Size n);
+      static StringList splitByNth(const std::string& input, const char separator, const Size n);
 
       /**
         * @brief counts occurrences of the @p separator and splits the @p string into two at the middle
@@ -97,16 +97,16 @@ namespace OpenMS
         * @exception Exception::IllegalArgument is thrown if the @p separator does not occur in the @p input string an uneven number of times and at least once
         * @return StringList with two elements, the two halves of the input without the middle separator
       */
-      static StringList splitByMiddle(const String& input, const char separator);
+      static StringList splitByMiddle(const std::string& input, const char separator);
 
     private:
 
 
       // Decoy string used by xQuest, initialize to a default value
-      String decoy_string_ = "decoy_";
+      std::string decoy_string_ = "decoy_";
       int spectrum_index_light_;
       int spectrum_index_heavy_;
-      String cross_linker_name_;
+      std::string cross_linker_name_;
 
       // Main data structures that are populated during loading the file
       PeptideIdentificationList* pep_ids_;
@@ -126,10 +126,10 @@ namespace OpenMS
       bool is_openpepxl_;
 
       /// Set of all protein accessions that are within the ProteinHits.
-      std::set< String > accessions_;
+      std::set< std::string > accessions_;
 
       /// The enzyme database for enzyme lookup
-      ProteaseDB* enzymes_db_;
+      const ProteaseDB* enzymes_db_;
 
       /// Keeps track of the charges of the hits
       std::set< UInt > charges_;
@@ -146,20 +146,20 @@ namespace OpenMS
 
       // primary MS run path
       StringList ms_run_path_;
-      String spectrum_input_file_;
+      std::string spectrum_input_file_;
 
       /// The current spectrum search
       std::vector< PeptideIdentification > current_spectrum_search_;
 
       /// Stores the attributes of a record (peptide identification)
-      std::map<String, DataValue> peptide_id_meta_values_;
+      std::map<std::string, DataValue> peptide_id_meta_values_;
 
       /**
        * @brief Extracts the DateTime from datetime string from xQuest
-       * @param[in] xquest_datetime_string The DateTime String to be processed
+       * @param[in] xquest_datetime_string The DateTime std::string to be processed
        * @param[in] date_time DateTime that reflects the value given in the `xquest_datetime_string`
        */
-      inline void extractDateTime_(const String & xquest_datetime_string, DateTime & date_time) const;
+      inline void extractDateTime_(const std::string & xquest_datetime_string, DateTime & date_time) const;
 
       /**
        * @brief Assigns all meta values stored in the peptide_id_attributes
@@ -181,7 +181,7 @@ namespace OpenMS
        * @param[out] prot_string Protein string of the xquest file the peptide evidence should be populated from.
        * @param[in] pep_hit For which peptide hit the peptide evidence should be set.
        */
-      void setPeptideEvidence_(const String & prot_string, PeptideHit & pep_hit);
+      void setPeptideEvidence_(const std::string & prot_string, PeptideHit & pep_hit);
 
     };
   } // namespace Internal

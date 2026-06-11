@@ -11,16 +11,16 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <map>
+#include <string>
 #include <vector>
 
 namespace OpenMS
 {
-  class String;
 
   struct OPENMS_DLLAPI NuXLMarkerIonExtractor
   {
     /// name to mass-intensity pair
-    typedef std::map<String, std::vector<std::pair<double, double> > > MarkerIonsType;
+    typedef std::map<std::string, std::vector<std::pair<double, double> > > MarkerIonsType;
   
     /// extract an annotate RNA marker ions
     static MarkerIonsType extractMarkerIons(const PeakSpectrum& s, const double marker_tolerance);

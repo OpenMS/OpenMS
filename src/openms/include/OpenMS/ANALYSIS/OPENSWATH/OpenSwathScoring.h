@@ -40,6 +40,8 @@ namespace OpenMS
    * Use this class to invoke the individual OpenSWATH scoring routines.
    *
   */
+  class MobilogramParquetConsumer;
+
   class OPENMS_DLLAPI OpenSwathScoring
   {
     typedef OpenSwath::LightCompound CompoundType;
@@ -180,6 +182,7 @@ namespace OpenMS
      *
      * @param[in] imrmfeature The feature to be scored
      * @param[in] transitions The library transition to score the feature against
+     * @param[in] normalized_library_intensity Normalized library intensities aligned to @p transitions
      * @param[in] swath_maps The SWATH-MS (DIA) maps from which to retrieve full MS/MS spectra at the chromatographic peak apices
      * @param[in] ms1_map The corresponding MS1 (precursor ion map) from which the precursor spectra can be retrieved (optional, may be NULL)
      * @param[in] diascoring DIA Scoring object to use for scoring
@@ -188,18 +191,23 @@ namespace OpenMS
      * @param[in] mzerror_ppm m/z and mass error (in ppm) for all transitions
      * @param[in] drift_target target drift value
      * @param[in] range_im drift time lower and upper bounds
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
+     * @param[in] feature_id Optional feature id of the retention time apex that the extract ion mobilogram corresponds to
      *
     */
-    void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
-                            const std::vector<TransitionType>& transitions,
-                            const std::vector<OpenSwath::SwathMap>& swath_maps,
-                            const OpenSwath::SpectrumAccessPtr& ms1_map,
-                            const OpenMS::DIAScoring& diascoring,
-                            const CompoundType& compound,
-                            OpenSwath_Scores& scores,
-                            std::vector<double>& mzerror_ppm,
-                            const double drift_target,
-                            const RangeMobility& range_im);
+  void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
+              const std::vector<TransitionType>& transitions,
+              const std::vector<double>& normalized_library_intensity,
+              const std::vector<OpenSwath::SwathMap>& swath_maps,
+              const OpenSwath::SpectrumAccessPtr& ms1_map,
+              const OpenMS::DIAScoring& diascoring,
+              const CompoundType& compound,
+              OpenSwath_Scores& scores,
+              std::vector<double>& mzerror_ppm,
+              const double drift_target,
+              const RangeMobility& range_im,
+              MobilogramParquetConsumer* mobilogram_consumer = nullptr,
+              Int64 feature_id = -1);
 
     /** @brief Score a single chromatographic feature using the precursor map.
      *
@@ -234,6 +242,8 @@ namespace OpenMS
      * @param[in] diascoring DIA Scoring object to use for scoring
      * @param[out] scores The object to store the result
      * @param[out] drift_target target drift value
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
+     * @param[in] feature_id Optional feature id of the retention time apex that the extract ion mobilogram corresponds to
      *
     */
     void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -243,18 +253,9 @@ namespace OpenMS
                               RangeMobility& range_im,
                               const OpenMS::DIAScoring & diascoring,
                               OpenSwath_Scores & scores,
-                              const double drift_target);
-
-    /** @brief Computing the normalized library intensities from the transition objects
-     *
-     * The intensities are normalized such that the sum to one.
-     *
-     * @param[in] transitions The library transition to score the feature against
-     * @param[out] normalized_library_intensity The resulting normalized library intensities
-     *
-    */
-    void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
-                                            std::vector<double>& normalized_library_intensity);
+                              const double drift_target,
+                              MobilogramParquetConsumer* mobilogram_consumer = nullptr,
+                              Int64 feature_id = -1);
 
     /** @brief Prepares a spectrum for DIA analysis (single map)
      *
@@ -279,6 +280,20 @@ namespace OpenMS
      *
     */
     SpectrumSequence fetchSpectrumSwath(const std::vector<OpenSwath::SwathMap>& swath_maps, double RT, int nr_spectra_to_add, const RangeMobility& im_range);
+
+    /**
+      @brief Fill a caller-provided spectrum sequence for DIA analysis.
+
+      Reuses @p out as storage for the fetched spectra and clears existing
+      entries before appending the selected or merged spectrum sequence.
+
+      @param[in] swath_maps The maps containing spectra
+      @param[in] RT The target retention time
+      @param[in] nr_spectra_to_add How many spectra to add up
+      @param[in] im_range Drift time lower and upper bounds
+      @param[out] out Spectrum sequence to fill
+    */
+    void fetchSpectrumSwath(const std::vector<OpenSwath::SwathMap>& swath_maps, double RT, int nr_spectra_to_add, const RangeMobility& im_range, SpectrumSequence& out);
 
 
    /** @brief Prepares a spectrum for DIA analysis (multiple map)
@@ -306,5 +321,19 @@ namespace OpenMS
      *
     */
     SpectrumSequence fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add, const RangeMobility& im_range);
+
+    /**
+      @brief Fill a caller-provided spectrum sequence for DIA analysis.
+
+      Reuses @p out as storage for the fetched spectra and clears existing
+      entries before appending the selected or merged spectrum sequence.
+
+      @param[in] swath_map The map containing spectra
+      @param[in] RT The target retention time
+      @param[in] nr_spectra_to_add How many spectra to add up
+      @param[in] im_range Mobility range, only used if resampling spectrum addition is selected
+      @param[out] out Spectrum sequence to fill
+    */
+    void fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add, const RangeMobility& im_range, SpectrumSequence& out);
   };
 }

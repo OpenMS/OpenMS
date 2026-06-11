@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <vector>
 
@@ -75,6 +75,7 @@ namespace OpenMS
       SQMASS,             ///< SqLite format for mass and chromatograms, see SqMassFile
       PQP,                ///< OpenSWATH Peptide Query Parameter (PQP) SQLite DB, see TransitionPQPFile
       CHROMPARQUET,       ///< OpenSWATH Parquet chromatogram output (.xic)
+      MOBILPARQUET,       ///< OpenSWATH Parquet mobilogram output (.xim)
       OSWPQ,              ///< OpenSWATH Parquet bundle (.oswpq) for library and/or feature output
       MS,                 ///< SIRIUS file format (.ms)
       OSW,                ///< OpenSWATH OpenSWATH report (OSW) SQLite DB
@@ -92,7 +93,12 @@ namespace OpenMS
       XML,                ///< any XML format
       BZ2,                ///< any BZ2 compressed file
       GZ,                 ///< any Gzipped file
+      ZIP,                ///< any ZIP compressed file
       PARQUET,            ///< Apache Parquet file format (.parquet, .pqt)
+      IDPARQUET,          ///< OpenMS internal identification parquet bundle (directory: psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
+      FEATUREPARQUET,     ///< OpenMS internal feature map parquet bundle (directory: features.parquet + psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
+      CONSENSUSPARQUET,   ///< OpenMS internal consensus map parquet bundle (directory: consensus_features.parquet + psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
+      BRUKER_TDF,         ///< Bruker TimsTOF .d directory (TDF format)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 
@@ -113,19 +119,22 @@ namespace OpenMS
     };
 
     /// Returns the name/extension of the type.
-    static String typeToName(Type type);
+    static std::string typeToName(Type type);
     
     /// Returns the human-readable explanation of the type.
     /// This may or may not add information, e.g.
     /// MZML becomes "mzML raw data file", but FEATUREXML becomes "OpenMS feature map"
-    static String typeToDescription(Type type);
+    static std::string typeToDescription(Type type);
     
     /// Converts a file type name into a Type
     /// @param[in] name A case-insensitive name (e.g. FASTA or Fasta, etc.)
-    static Type nameToType(const String& name);
+    static Type nameToType(const std::string& name);
 
     /// Returns the mzML name (TODO: switch to accession since they are more stable!)
-    static String typeToMZML(Type type);
+    static std::string typeToMZML(Type type);
+
+    /// Returns true if @p type represents a directory-shaped format (e.g. BRUKER_TDF, IDPARQUET, FEATUREPARQUET, CONSENSUSPARQUET).
+    static bool isDirectoryType(Type type);
   };
 
  enum class FilterLayout
@@ -156,7 +165,7 @@ namespace OpenMS
     /// e.g. "all readable files (*.mzML *.mzXML);;". See Filter enum.
     /// @param[in] style Create a combined filter, or single filters, or both
     /// @param[in] add_all_filter Add 'all files (*)' as a single filter at the end?
-    String toFileDialogFilter(const FilterLayout style, bool add_all_filter) const;
+    std::string toFileDialogFilter(const FilterLayout style, bool add_all_filter) const;
 
     /**
       @brief Convert a Qt filter back to a Type if possible.
@@ -172,7 +181,7 @@ namespace OpenMS
       @return The type associated to the filter or the fallback
       @throw Exception::ElementNotFound if the given @p filter is not a filter produced by toFileDialogFilter()
     **/
-    FileTypes::Type fromFileDialogFilter(const String& filter, const FileTypes::Type fallback = FileTypes::Type::UNKNOWN) const;
+    FileTypes::Type fromFileDialogFilter(const std::string& filter, const FileTypes::Type fallback = FileTypes::Type::UNKNOWN) const;
 
 
     /**
@@ -188,7 +197,7 @@ namespace OpenMS
     /// hold filter items (for Qt dialogs) along with their OpenMS type
     struct FilterElements_
     {
-      std::vector<String> items;
+      std::vector<std::string> items;
       std::vector<FileTypes::Type> types;
     };
     /// creates Qt filters and the corresponding elements from type_list_

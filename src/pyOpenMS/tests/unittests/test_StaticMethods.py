@@ -260,9 +260,9 @@ class TestIMTypesStaticMethods(unittest.TestCase):
 
     def test_toIMFormat(self):
         """Test IMTypes.toIMFormat static method."""
-        fmt = pyopenms.IMTypes.toIMFormat("concatenated")
+        fmt = pyopenms.IMTypes.toIMFormat("im_peak")
         # IMFormat enum is at module level, not nested under IMTypes
-        self.assertEqual(fmt, pyopenms.IMFormat.CONCATENATED)
+        self.assertEqual(fmt, pyopenms.IMFormat.IM_PEAK)
 
 
 class TestTransformationModelStaticMethods(unittest.TestCase):
@@ -299,6 +299,11 @@ class TestMZTrafoModelStaticMethods(unittest.TestCase):
         """Test MZTrafoModel.enumToName static method."""
         name = pyopenms.MZTrafoModel.enumToName(pyopenms.MZTrafoModel.MODELTYPE.LINEAR)
         self.assertEqual(name, "linear")
+
+    def test_setRANSACSeed(self):
+        """Test MZTrafoModel.setRANSACSeed static method."""
+        pyopenms.MZTrafoModel.setRANSACSeed(42)
+        pyopenms.MZTrafoModel.setRANSACSeed(0)
 
 
 class TestSpectrumHelperStaticMethods(unittest.TestCase):

@@ -9,7 +9,7 @@
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
@@ -31,7 +31,7 @@ namespace OpenMS
     clear_();
   }
 
-  ElementDB* ElementDB::getInstance()
+  const ElementDB* ElementDB::getInstance()
   {
     static ElementDB* db_ = new ElementDB;
     return db_;
@@ -79,26 +79,12 @@ namespace OpenMS
 
   bool ElementDB::hasElement(const string& name) const
   {
-    return (names_.find(name) != names_.end()) || (symbols_.find(name) != symbols_.end());
+    return (names_.contains(name)) || (symbols_.contains(name));
   }
 
   bool ElementDB::hasElement(unsigned int atomic_number) const
   {
-    return atomic_numbers_.find(atomic_number) != atomic_numbers_.end();
-  }
-
-  void ElementDB::addElement(const std::string& name,
-                             const std::string& symbol,
-                             const unsigned int an,
-                             const std::map<unsigned int, double>& abundance,
-                             const std::map<unsigned int, double>& mass,
-                             bool replace_existing)
-  {
-    if (hasElement(an) && !replace_existing)
-    {      
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Element with atomic number ") + an + " already exists");
-    }
-    buildElement_(name, symbol, an, abundance, mass);
+    return atomic_numbers_.contains(atomic_number);
   }
 
   double ElementDB::calculateAvgWeight_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
@@ -138,7 +124,7 @@ namespace OpenMS
     auto elem = container.find(key);
     if (elem != container.end())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(key), "Already exists!");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr(key), "Already exists!");
     }
     container[key] = replacement.get();
   }
@@ -601,6 +587,9 @@ namespace OpenMS
     storeIsotopes_(name, symbol, an, mass, isotopes);
   }
 
+  // Build-time helper: overwrite an element in place so existing pointers stay valid.
+  // Only ever runs while the singleton is being constructed (storeElements_/storeIsotopes_),
+  // before getInstance() hands out the immutable instance.
   void overwrite(const Element* old, unique_ptr<const Element>& new_e)
   {
     if (old->getSymbol() != new_e->getSymbol())
@@ -615,7 +604,7 @@ namespace OpenMS
     if (old->getAtomicNumber() != new_e->getAtomicNumber())
     { // -- this would invalidate the lookup, since e_ptr->getAtomicNumbers().at(12)->getAtomicNumber() == 14
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(),
-                                    "Replacing element with atomic number " + String(old->getAtomicNumber()) + " has different new atomic number: " + String(new_e->getAtomicNumber()));
+                                    "Replacing element with atomic number " + StringUtils::toStr(old->getAtomicNumber()) + " has different new atomic number: " + StringUtils::toStr(new_e->getAtomicNumber()));
     }
     // ... overwrite
     *(const_cast<Element*>(old)) = *new_e;
@@ -625,7 +614,7 @@ namespace OpenMS
   {
     // overwrite existing element if it already exists
     // find() has to be protected here in a parallel context
-    if (atomic_numbers_.find(an) != atomic_numbers_.end())
+    if (atomic_numbers_.contains(an))
     {
       // in order to ensure that existing elements are still valid and memory
       // addresses do not change, we have to modify the Element in place
@@ -656,7 +645,7 @@ namespace OpenMS
       double iso_mono_weight = iso_avg_weight;
       IsotopeDistribution iso_isotopes;
       IsotopeDistribution::ContainerType iso_container;
-      iso_container.push_back(Peak1D(atomic_mass, 1.0));
+      iso_container.emplace_back(atomic_mass, 1.0);
       iso_isotopes.set(iso_container);  
 
       auto iso_element = make_unique<const Element>(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
@@ -680,7 +669,7 @@ namespace OpenMS
     
     for (map<unsigned int, double>::const_iterator it = abundance.begin(); it != abundance.end(); ++it)
     { 
-      dist.push_back(Peak1D(mass.at(it->first) , abundance.at(it->first)));
+      dist.emplace_back(mass.at(it->first) , abundance.at(it->first));
     }
 
     IsotopeDistribution iso_dist;

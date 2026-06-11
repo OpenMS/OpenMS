@@ -195,7 +195,7 @@ namespace OpenMS
   {
     std::visit([&j](auto&& arg) {
       using T = std::decay_t<decltype(arg)>;
-      if constexpr (std::is_same_v<T, OpenMS::String>)
+      if constexpr (std::is_same_v<T, std::string>)
       {
         j = nlohmann::json{{"type", "name"}, {"value", static_cast<std::string>(arg)}};
       }
@@ -212,7 +212,7 @@ namespace OpenMS
     std::string type = j.at("type").get<std::string>();
     if (type == "name")
     {
-      mono = String(j.at("value").get<std::string>());
+      mono =j.at("value").get<std::string>();
     }
     else if (type == "formula")
     {
@@ -669,7 +669,7 @@ namespace OpenMS
     gm.locations.clear();
     for (const auto& loc : j.at("locations"))
     {
-      gm.locations.push_back(String(loc.get<std::string>()));
+      gm.locations.push_back(loc.get<std::string>());
     }
   }
 
@@ -850,7 +850,7 @@ namespace OpenMS
     j.at("c_term_mods").get_to(pf.c_term_mods);
     if (j.contains("name") && !j.at("name").is_null())
     {
-      pf.name = String(j.at("name").get<std::string>());
+      pf.name =j.at("name").get<std::string>();
     }
     else
     {
@@ -892,7 +892,7 @@ namespace OpenMS
     j.at("chains").get_to(pfi.chains);
     if (j.contains("name") && !j.at("name").is_null())
     {
-      pfi.name = String(j.at("name").get<std::string>());
+      pfi.name =j.at("name").get<std::string>();
     }
     else
     {

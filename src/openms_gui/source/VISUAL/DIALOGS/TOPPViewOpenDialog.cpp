@@ -12,7 +12,8 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 
 // QT includes
@@ -27,7 +28,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  TOPPViewOpenDialog::TOPPViewOpenDialog(const String & data_name, bool as_window, bool as_2d, bool cutoff, QWidget * parent) :
+  TOPPViewOpenDialog::TOPPViewOpenDialog(const std::string & data_name, bool as_window, bool as_2d, bool cutoff, QWidget * parent) :
     QDialog(parent),
     map_as_2d_disabled_(false),
     ui_(new Ui::TOPPViewOpenDialogTemplate)
@@ -66,7 +67,7 @@ namespace OpenMS
     connect(ui_->merge_combo_, SIGNAL(activated(int)), ui_->merge_, SLOT(click()));
 
     //set title
-    setWindowTitle((String("Open data options for ") + data_name).toQString());
+    setWindowTitle(toQString((std::string("Open data options for ") + data_name)));
   }
 
   TOPPViewOpenDialog::~TOPPViewOpenDialog()
@@ -146,7 +147,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewOpenDialog::setMergeLayers(const std::map<Size, String> & layers)
+  void TOPPViewOpenDialog::setMergeLayers(const std::map<Size, std::string> & layers)
   {
     // remove all items
     ui_->merge_combo_->clear();
@@ -158,7 +159,7 @@ namespace OpenMS
       UInt i = 0;
       for (const auto& it : layers)
       {
-        ui_->merge_combo_->insertItem(i++, it.second.toQString(), (int)(it.first));
+        ui_->merge_combo_->insertItem(i++, toQString(it.second), (int)(it.first));
       }
     }
     else

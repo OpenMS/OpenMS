@@ -104,30 +104,30 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file ('TraML' or 'csv')");
-    setValidFormats_("tr", ListUtils::create<String>("csv,traML"));
+    setValidFormats_("tr", ListUtils::create<std::string>("csv,traML"));
 
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String &) const override
+  Param getSubsectionDefaults_(const std::string &) const override
   {
     return MRMTransitionGroupPicker().getDefaults();
   }
 
   struct MRMGroupMapper 
   {
-    typedef std::map<String, std::vector< const TransitionType* > > AssayMapT;
+    typedef std::map<std::string, std::vector< const TransitionType* > > AssayMapT;
 
     // chromatogram map
-    std::map<String, int> chromatogram_map;
+    std::map<std::string, int> chromatogram_map;
     // Map peptide id
-    std::map<String, int> assay_peptide_map;
+    std::map<std::string, int> assay_peptide_map;
     // Group transitions
     AssayMapT assay_map;
 
@@ -155,7 +155,7 @@ protected:
       {
         for (Size i = 0; i < assay_it->second.size(); i++)
         {
-          if (chromatogram_map.find(assay_it->second[i]->getNativeID()) == chromatogram_map.end())
+          if (!chromatogram_map.contains(assay_it->second[i]->getNativeID()))
           {
             return false;
           }
@@ -165,7 +165,7 @@ protected:
     }
 
     /// Fill up transition group with paired Transitions and Chromatograms
-    void getTransitionGroup(OpenSwath::SpectrumAccessPtr input, MRMTransitionGroupType& transition_group, String id)
+    void getTransitionGroup(OpenSwath::SpectrumAccessPtr input, MRMTransitionGroupType& transition_group, std::string id)
     {
       transition_group.setTransitionGroupID(id);
 
@@ -175,7 +175,7 @@ protected:
 
         // Check first whether we have a mapping (e.g. see -force option)
         const TransitionType* transition = assay_map[id][i];
-        if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
+        if (!chromatogram_map.contains(transition->getNativeID()))
         {
           OPENMS_LOG_DEBUG << "Found no matching chromatogram for id " << transition->getNativeID() << std::endl;
           continue;
@@ -215,7 +215,7 @@ protected:
     // Iterating over all the assays
     for (MRMGroupMapper::AssayMapT::iterator assay_it = m.assay_map.begin(); assay_it != m.assay_map.end(); ++assay_it)
     {
-      String id = assay_it->first;
+      std::string id = assay_it->first;
 
       // Create new transition group if there is none for this peptide
       MRMTransitionGroupType transition_group;
@@ -245,9 +245,9 @@ protected:
   ExitCodes main_(int, const char **) override
   {
 
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
-    String tr_file = getStringOption_("tr");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
+    std::string tr_file = getStringOption_("tr");
     bool force = getFlag_("force");
 
     std::shared_ptr<PeakMap > exp ( new PeakMap );

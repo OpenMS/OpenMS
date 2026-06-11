@@ -19,21 +19,21 @@ namespace OpenMS
     /**
     @brief Generates a feature quantification file required for GNPS FBMN, as defined here: https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/#feature-quantification-table
     */
-    void GNPSQuantificationFile::store(const ConsensusMap& consensus_map, const String& output_file)
+    void GNPSQuantificationFile::store(const ConsensusMap& consensus_map, const std::string& output_file)
     {
         // IIMN meta values will be exported, if first feature contains mv Constants::UserParam::IIMN_ROW_ID
         bool iimn = false;
         if (consensus_map[0].metaValueExists(Constants::UserParam::IIMN_ROW_ID)) iimn = true;
 
         // meta values for ion identity molecular networking
-        std::vector<String> iimn_mvs{Constants::UserParam::IIMN_ROW_ID,
+        std::vector<std::string> iimn_mvs{Constants::UserParam::IIMN_ROW_ID,
                                     Constants::UserParam::IIMN_BEST_ION,
                                     Constants::UserParam::IIMN_ADDUCT_PARTNERS,
                                     Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER};
         
         // initialize SVOutStream with tab separation
         std::ofstream outstr(output_file.c_str());
-        SVOutStream out(outstr, "\t", "_", String::NONE);
+        SVOutStream out(outstr, "\t", "_", OpenMS::QuotingMethod::NONE);
         
         // write headers for MAP and CONSENSUS
         out << "#MAP" << "id" << "filename" << "label" << "size" << std::endl;
@@ -44,7 +44,7 @@ namespace OpenMS
         }
         for (size_t i = 0; i < consensus_map.getColumnHeaders().size(); i++)
         {
-        out << "rt_" + String(i) << "mz_" + String(i) << "intensity_" + String(i) << "charge_" + String(i) << "width_" + String(i);
+        out << "rt_" + StringUtils::toStr(i) << "mz_" + StringUtils::toStr(i) << "intensity_" + StringUtils::toStr(i) << "charge_" + StringUtils::toStr(i) << "width_" + StringUtils::toStr(i);
         }
         out << std::endl;
 
@@ -67,7 +67,7 @@ namespace OpenMS
         for (const auto& fh: cf.getFeatures()) index_to_feature[fh.getMapIndex()] = fh;
         for (size_t i = 0; i < consensus_map.getColumnHeaders().size(); i++)
         {
-            if (index_to_feature.count(i))
+            if (index_to_feature.contains(i))
             {
             out << index_to_feature[i].getRT() << index_to_feature[i].getMZ() << index_to_feature[i].getIntensity() << index_to_feature[i].getCharge() << index_to_feature[i].getWidth();
             }

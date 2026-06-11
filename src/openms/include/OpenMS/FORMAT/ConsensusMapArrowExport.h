@@ -10,8 +10,6 @@
 
 #include <OpenMS/config.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
@@ -64,10 +62,8 @@ public:
   */
   static bool exportToParquet(
     const ConsensusMap& cmap,
-    const String& filename,
+    const std::string& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 };
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

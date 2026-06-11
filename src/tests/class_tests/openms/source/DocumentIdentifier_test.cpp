@@ -74,7 +74,7 @@ START_SECTION((bool operator==(const DocumentIdentifier &rhs) const))
 }
 END_SECTION
 
-START_SECTION((void setIdentifier(const String &id)))
+START_SECTION((void setIdentifier(const std::string &id)))
 {
   DocumentIdentifier di1;
 	di1.setIdentifier("this is a test");
@@ -82,14 +82,14 @@ START_SECTION((void setIdentifier(const String &id)))
 }
 END_SECTION
 
-START_SECTION((const String& getIdentifier() const))
+START_SECTION((const std::string& getIdentifier() const))
 {
 	// tested above
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void setLoadedFileType(const String &file_name)))
+START_SECTION((void setLoadedFileType(const std::string &file_name)))
 {
   DocumentIdentifier di1;
 	di1.setLoadedFileType( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"));
@@ -104,7 +104,7 @@ START_SECTION((const FileTypes::Type& getLoadedFileType() const))
 }
 END_SECTION
 
-START_SECTION((void setLoadedFilePath(const String &file_name)))
+START_SECTION((void setLoadedFilePath(const std::string &file_name)))
 {
   DocumentIdentifier di1;
 	di1.setLoadedFilePath( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"));
@@ -112,7 +112,7 @@ START_SECTION((void setLoadedFilePath(const String &file_name)))
 }
 END_SECTION
 
-START_SECTION((const String& getLoadedFilePath() const))
+START_SECTION((const std::string& getLoadedFilePath() const))
 {
 	// tested above
   NOT_TESTABLE

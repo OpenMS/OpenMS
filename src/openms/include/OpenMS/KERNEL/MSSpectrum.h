@@ -104,7 +104,7 @@ public:
     /// Float data array vector type
     typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
-    /// String data array vector type
+    /// std::string data array vector type
     typedef OpenMS::DataArrays::StringDataArray StringDataArray ;
     typedef std::vector<StringDataArray> StringDataArrays;
     /// Integer data array vector type
@@ -225,7 +225,7 @@ public:
     DriftTimeUnit getDriftTimeUnit() const;
 
     /// returns the ion mobility drift time unit as string
-    String getDriftTimeUnitAsString() const;
+    std::string getDriftTimeUnitAsString() const;
 
     /**
       @brief Sets the ion mobility drift time unit
@@ -243,10 +243,10 @@ public:
     void setMSLevel(UInt ms_level);
 
     /// Returns the name
-    const String& getName() const;
+    const std::string& getName() const;
 
     /// Sets the name
-    void setName(const String& name);
+    void setName(const std::string& name);
 
     //@}
 
@@ -636,7 +636,7 @@ public:
      * @brief Rasterizes an ion mobility frame into a 2D intensity matrix (IM vs m/z).
      *
      * This method creates a 2D heatmap/image representation of an IM frame by binning peak
-     * intensities into a regular grid of pixels. It is designed for spectra in CONCATENATED
+     * intensities into a regular grid of pixels. It is designed for spectra in IM_PEAK
      * format where each peak has an associated ion mobility value stored in a float data array.
      *
      * The output matrix has dimensions [mz_bins x im_bins] where:
@@ -699,12 +699,12 @@ protected:
     UInt ms_level_ = 1;
 
     /// Name
-    String name_;
+    std::string name_;
 
     /// Float data arrays
     FloatDataArrays float_data_arrays_;
 
-    /// String data arrays
+    /// std::string data arrays
     StringDataArrays string_data_arrays_;
 
     /// Integer data arrays

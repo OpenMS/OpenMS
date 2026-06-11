@@ -10,15 +10,11 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/OpenMSConfig.h>
 
 #include <functional>
-#include <memory> // unique_ptr
 #include <string>
-
-// foward declarations
-class QDateTime;
 
 namespace OpenMS
 {
@@ -43,19 +39,19 @@ public:
     DateTime();
 
     /// Copy constructor
-    DateTime(const DateTime& date);
+    DateTime(const DateTime& date) = default;
 
     /// Move constructor
-    DateTime(DateTime&&) noexcept;
+    DateTime(DateTime&&) noexcept = default;
 
     /// Assignment operator
-    DateTime& operator=(const DateTime& source);
+    DateTime& operator=(const DateTime& source) = default;
 
     /// Move assignment operator
-    DateTime& operator=(DateTime&&) & noexcept;
+    DateTime& operator=(DateTime&&) & noexcept = default;
 
     /// Destructor
-    ~DateTime();
+    ~DateTime() = default;
 
     /// equal operator
     bool operator==(const DateTime& rhs) const;
@@ -73,7 +69,7 @@ public:
 
         @exception Exception::ParseError
     */
-    void setDate(const String& date);
+    void setDate(const std::string& date);
 
     /**
         @brief sets time from a string
@@ -82,7 +78,7 @@ public:
 
         @exception Exception::ParseError
     */
-    void setTime(const String& date);
+    void setTime(const std::string& date);
 
     /**
         @brief sets data from three integers
@@ -130,7 +126,7 @@ public:
 
         The format of the string is yyyy-MM-dd
     */
-    String getDate() const;
+    std::string getDate() const;
 
     /**
         @brief Fills the arguments with the time
@@ -147,7 +143,7 @@ public:
 
         The format of the string is hh:mm:ss
     */
-    String getTime() const;
+    std::string getTime() const;
 
     /// Returns the current date and time
     static DateTime now();
@@ -167,7 +163,7 @@ public:
     /* @brief Returns a string representation of the DateTime object.
        @param[in] format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
 	  */
-	  String toString(const std::string& format = "yyyy-MM-ddThh:mm:ss") const;
+	  std::string toString(const std::string& format = "yyyy-MM-ddThh:mm:ss") const;
 
     /* @brief Creates a DateTime object from string representation.
        @param[in] format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
@@ -179,7 +175,7 @@ public:
 
           The format of the string will be yyyy-MM-dd hh:mm:ss
       */
-      String get() const;
+      std::string get() const;
 
       /**
         @brief Sets date and time
@@ -194,10 +190,14 @@ public:
 
         @exception Exception::ParseError
       */
-      void set(const String& date);
+      void set(const std::string& date);
 
     private:
-      std::unique_ptr<QDateTime> dt_; // use PImpl, to avoid costly #include
+      struct Fields {
+        int year = 0, month = 0, day = 0;
+        int hour = 0, minute = 0, second = 0, millisecond = 0;
+        bool valid = false;
+      } fields_;
   };
 
 } // namespace OpenMS
@@ -211,8 +211,6 @@ namespace std
     std::size_t operator()(const OpenMS::DateTime& dt) const noexcept
     {
       // Hash the date/time components including milliseconds to match operator==
-      // (which compares the underlying QDateTime including milliseconds)
-      // Use toString with millisecond format and convert to std::string for hashing
       std::string datetime_str = dt.toString("yyyy-MM-ddThh:mm:ss.zzz");
       return OpenMS::fnv1a_hash_string(datetime_str);
     }

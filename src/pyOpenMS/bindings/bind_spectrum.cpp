@@ -130,7 +130,7 @@ Usage:
         .def("getMSLevel", [](const OpenMS::MSSpectrum& self) { return self.getMSLevel(); }, "Returns the MS level")
         .def("setMSLevel", [](OpenMS::MSSpectrum& self, unsigned int ms_level) { return self.setMSLevel(ms_level); }, "ms_level"_a, "Sets the MS level")
         .def("getName", [](const OpenMS::MSSpectrum& self) { return self.getName(); }, "Returns the name of the spectrum")
-        .def("setName", [](OpenMS::MSSpectrum& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of the spectrum")
+        .def("setName", [](OpenMS::MSSpectrum& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name of the spectrum")
         .def("sortByIntensity", [](OpenMS::MSSpectrum& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false, "Sorts the peaks by intensity (ascending if reverse is False, descending if True)")
         .def("sortByPosition", [](OpenMS::MSSpectrum& self) { return self.sortByPosition(); }, "Sorts the peaks by m/z position")
         .def("isSorted", [](const OpenMS::MSSpectrum& self) { return self.isSorted(); }, "Returns True if the spectrum is sorted by m/z")
@@ -142,15 +142,17 @@ Usage:
         .def("getType", [](const OpenMS::MSSpectrum& self, bool query_data) { return self.getType(query_data); }, "query_data"_a = false, "Returns the spectrum type (centroided, profile or unknown). If SpectrumSettings and DataProcessing information are not sufficient and query_data is True, the data will be queried (potentially expensive)")
         .def_static("getAllNamesOfSpectrumType", []() { return OpenMS::MSSpectrum::getAllNamesOfSpectrumType(); }, "Returns all spectrum type names known to OpenMS")
         .def_static("spectrumTypeToString", [](OpenMS::SpectrumSettings::SpectrumType type) { return OpenMS::SpectrumSettings::spectrumTypeToString(type); }, "type"_a, "Convert a SpectrumType enum to String. Throws Exception::InvalidValue if type is SIZE_OF_SPECTRUMTYPE")
-        .def_static("toSpectrumType", [](const OpenMS::String& name) { return OpenMS::SpectrumSettings::toSpectrumType(name); }, "name"_a, "Convert a string to SpectrumType enum. Throws Exception::InvalidValue if name is not a valid spectrum type")
+        .def_static("toSpectrumType", [](const std::string& name) { return OpenMS::SpectrumSettings::toSpectrumType(name); }, "name"_a, "Convert a string to SpectrumType enum. Throws Exception::InvalidValue if name is not a valid spectrum type")
         .def("unify", [](OpenMS::MSSpectrum& self, const OpenMS::SpectrumSettings& rhs) { return self.unify(rhs); }, "rhs"_a)
         .def("setType", [](OpenMS::MSSpectrum& self, OpenMS::SpectrumSettings::SpectrumType type) { return self.setType(type); }, "type"_a, "Sets the spectrum type")
         .def("setIMFormat", [](OpenMS::MSSpectrum& self, const OpenMS::IMFormat& im_type) { return self.setIMFormat(im_type); }, "im_type"_a, "Sets the ion mobility format")
         .def("getIMFormat", [](const OpenMS::MSSpectrum& self) { return self.getIMFormat(); }, "Returns the ion mobility format")
+        .def("setIMPeakType", [](OpenMS::MSSpectrum& self, OpenMS::IMPeakType pt) { self.setIMPeakType(pt); }, "pt"_a, "Sets the IM peak type (profile/centroided)")
+        .def("getIMPeakType", [](const OpenMS::MSSpectrum& self) { return self.getIMPeakType(); }, "Returns the IM peak type")
         .def("getNativeID", [](const OpenMS::MSSpectrum& self) { return self.getNativeID(); }, "Returns the native identifier for the spectrum, used by the acquisition software")
-        .def("setNativeID", [](OpenMS::MSSpectrum& self, const OpenMS::String& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the spectrum, used by the acquisition software")
+        .def("setNativeID", [](OpenMS::MSSpectrum& self, const std::string& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the spectrum, used by the acquisition software")
         .def("getComment", [](const OpenMS::MSSpectrum& self) { return self.getComment(); }, "Returns the free-text comment")
-        .def("setComment", [](OpenMS::MSSpectrum& self, const OpenMS::String& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
+        .def("setComment", [](OpenMS::MSSpectrum& self, const std::string& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
         .def("getInstrumentSettings", [](const OpenMS::MSSpectrum& self) -> const OpenMS::InstrumentSettings & { return self.getInstrumentSettings(); }, nb::rv_policy::reference_internal, "Returns a const reference to the instrument settings of the current spectrum")
         .def("setInstrumentSettings", [](OpenMS::MSSpectrum& self, const OpenMS::InstrumentSettings& instrument_settings) { return self.setInstrumentSettings(instrument_settings); }, "instrument_settings"_a, "Sets the instrument settings of the current spectrum")
         .def("getAcquisitionInfo", [](const OpenMS::MSSpectrum& self) -> const OpenMS::AcquisitionInfo & { return self.getAcquisitionInfo(); }, nb::rv_policy::reference_internal, "Returns a const reference to the acquisition info")
@@ -410,7 +412,7 @@ Usage:
         R"doc(Rasterize an ion mobility frame into a 2D intensity matrix (IM vs m/z).
 
 Creates a 2D heatmap representation by binning peak intensities into a regular grid.
-Designed for spectra in CONCATENATED format where each peak has an associated ion mobility value.
+Designed for spectra in IM_PEAK format where each peak has an associated ion mobility value.
 
 Parameters
 ----------

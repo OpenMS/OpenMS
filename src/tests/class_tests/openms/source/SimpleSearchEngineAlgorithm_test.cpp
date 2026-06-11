@@ -35,7 +35,7 @@ START_SECTION(~SimpleSearchEngineAlgorithm())
 }
 END_SECTION
 
-START_SECTION((ExitCodes search(const String &in_mzML, const String &in_db, std::vector< ProteinIdentification > &prot_ids, std::vector< PeptideIdentification > &pep_ids) const ))
+START_SECTION((ExitCodes search(const std::string &in_mzML, const std::string &in_db, std::vector< ProteinIdentification > &prot_ids, std::vector< PeptideIdentification > &pep_ids) const ))
 {
   // tested via tool
   NOT_TESTABLE

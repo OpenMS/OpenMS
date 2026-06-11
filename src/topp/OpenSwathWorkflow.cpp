@@ -9,6 +9,7 @@
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 
 // Files
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -21,12 +22,11 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
-#ifdef WITH_PARQUET
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <OpenMS/config.h>
 #include <filesystem>
-#endif
 #include <OpenMS/SYSTEM/File.h>
 
 // Kernel and implementations
@@ -47,6 +47,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
@@ -68,7 +69,6 @@ using namespace OpenMS;
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 
-#include <QDir>
 #include <unordered_map>
 
 //-------------------------------------------------------------
@@ -88,7 +88,7 @@ http://openswath.org/ for additional documentation.
 It executes the following steps in order, which is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow":
 
 <ul>
-  <li>Reading of input SRM/MRM/PRM/DIA(PASEF) mzML files</li>
+  <li>Reading of input SRM/MRM/PRM/DIA(PASEF) mzML files or Bruker .d (TDF) directories (requires WITH_OPENTIMS)</li>
   <li>Computing the retention time transformation, mass-to-charge and ion mobility correction using calibrant peptides</li>
   <li>Reading of the transition list</li>
   <li>Extracting the specified transitions</li>
@@ -121,6 +121,14 @@ instrument exports individual window files.
 Since files can be large, it is recommended to avoid loading whole datasets
 into memory; use the `-readOptions` (for example `cacheWorkingInMemory`) to
 cache or reduce data in advance.
+
+<h4>Bruker .d (diaPASEF, requires WITH_OPENTIMS)</h4>
+Bruker TimsTOF .d directories containing DIA-PASEF data can be passed directly
+without prior mzML conversion when OpenMS is built with the WITH_OPENTIMS option.
+The tool automatically discovers SWATH windows from the TDF metadata and
+partitions spectra accordingly. Ion mobility lower/upper limits are attached as
+spectrum meta values so that PASEF windows sharing the same m/z range but
+differing in ion mobility are correctly distinguished.
 
 <h4>PRM</h4>
 PRM (parallel reaction monitoring) is a targeted MS2 acquisition mode. PRM
@@ -168,7 +176,7 @@ can adjust the smoothing parameters for the peak picking, by adjusting
 Gaussian smoothing based on your estimated peak width. Adjusting the signal
 to noise threshold will make the peaks wider or smaller.
 
-<h3>Output: Feature list and chromatograms </h3>
+<h3>Output: Feature list, chromatograms, and ion mobilograms </h3>
 The output of the OpenSwathWorkflow is a feature list, either as FeatureXML,
 a @ref OpenMS::OSWFile "OpenSWATH SQLite file", or an OpenSWATH Parquet output
 (use @p -out_features) while the SQLite output is more memory
@@ -180,6 +188,11 @@ For downstream analysis (e.g. using pyProphet) the @ref OpenMS::OSWFile "OSWFile
 
 In addition, the extracted chromatograms can be written out using the
 @p -out_chrom parameter.
+
+When processing ion mobility (diaPASEF) data, the extracted ion mobilograms
+(XIMs) can optionally be saved to a Parquet file using the @p -out_mobilogram
+parameter. The output file must have the @p .xim extension. The resulting file can be
+read back using the @ref OpenMS::XIMParquetFile "XIMParquetFile" class.
 
 <h4> Feature list output format </h4>
 
@@ -227,13 +240,18 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,sqMass"));
+    StringList in_formats = {"mzML", "mzXML", "sqMass"};
+#ifdef WITH_OPENTIMS
+    in_formats.push_back("d");
+#endif
+#ifdef WITH_THERMO_RAW
+    in_formats.push_back("raw");
+#endif
+    setValidFormats_("in", in_formats);
 
     registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp','oswpq')");
     StringList tr_formats = {"traML", "tsv", "pqp"};
-#ifdef WITH_PARQUET
     tr_formats.push_back("oswpq");
-#endif
     setValidFormats_("tr", tr_formats);
     registerStringOption_("tr_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
     setValidStrings_("tr_type", tr_formats);
@@ -242,27 +260,28 @@ protected:
     registerFlag_("sort_swath_maps", "Sort input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
     registerStringOption_("enable_ms1", "<true|false>", "true", "Extract the precursor ion trace(s) and use for scoring if present", false, true);
-    setValidStrings_("enable_ms1", ListUtils::create<String>("true,false"));
+    setValidStrings_("enable_ms1", ListUtils::create<std::string>("true,false"));
 
     registerStringOption_("enable_ipf", "<true|false>", "true", "Enable additional scoring of identification assays using IPF (see online documentation)", false, true);
-    setValidStrings_("enable_ipf", ListUtils::create<String>("true,false"));
+    setValidStrings_("enable_ipf", ListUtils::create<std::string>("true,false"));
 
     registerOutputFile_("out_features", "<file>", "", "feature output file, either .osw (PyProphet-compatible SQLite file), .oswpq, or .featureXML", false);
-    std::vector<String> out_feature_formats = {"osw", "featureXML"};
-#ifdef WITH_PARQUET
+    std::vector<std::string> out_feature_formats = {"osw", "featureXML"};
     out_feature_formats.push_back("oswpq");
-#endif
     setValidFormats_("out_features", out_feature_formats);
 
     registerStringOption_("out_features_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
     setValidStrings_("out_features_type", out_feature_formats);
 
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML), sqMass (SQLite format) or xic (Parquet)", false, true);
-    setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass,xic"));
+    setValidFormats_("out_chrom", ListUtils::create<std::string>("mzML,sqMass,xic"));
+
+    registerOutputFile_("out_mobilogram", "<file>", "", "Also output extracted ion mobilograms in Parquet format", false, true);
+    setValidFormats_("out_mobilogram", ListUtils::create<std::string>("xim"));
 
     // additional QC data
     registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1). Only works with mzML input files.", false, true);
-    setValidFormats_("out_qc", ListUtils::create<String>("json"));
+    setValidFormats_("out_qc", ListUtils::create<std::string>("json"));
 
 
     // misc options
@@ -276,26 +295,26 @@ protected:
     registerDoubleOption_("mz_extraction_window", "<double>", 50, "Extraction window in Thomson or ppm (see mz_extraction_window_unit)", false);
     setMinFloat_("mz_extraction_window", 0.0);
     registerStringOption_("mz_extraction_window_unit", "<name>", "ppm", "Unit for mz extraction", false, true);
-    setValidStrings_("mz_extraction_window_unit", ListUtils::create<String>("Th,ppm"));
+    setValidStrings_("mz_extraction_window_unit", ListUtils::create<std::string>("Th,ppm"));
 
     // MS1 mz windows and ion mobility
     registerDoubleOption_("mz_extraction_window_ms1", "<double>", 50, "Extraction window used in MS1 in Thomson or ppm (see mz_extraction_window_ms1_unit)", false);
     setMinFloat_("mz_extraction_window_ms1", 0.0);
     registerStringOption_("mz_extraction_window_ms1_unit", "<name>", "ppm", "Unit of the MS1 m/z extraction window", false, true);
-    setValidStrings_("mz_extraction_window_ms1_unit", ListUtils::create<String>("ppm,Th"));
+    setValidStrings_("mz_extraction_window_ms1_unit", ListUtils::create<std::string>("ppm,Th"));
     registerDoubleOption_("im_extraction_window_ms1", "<double>", -1, "Extraction window in ion mobility dimension for MS1 (in 1/K0, milliseconds, or CCS depending on library). -1 means this is not ion mobility data.", false);
 
     registerStringOption_("use_ms1_ion_mobility", "<name>", "true", "Also perform precursor extraction using the same ion mobility window as for fragment ion extraction", false, true);
-    setValidStrings_("use_ms1_ion_mobility", ListUtils::create<String>("true,false"));
+    setValidStrings_("use_ms1_ion_mobility", ListUtils::create<std::string>("true,false"));
 
     registerStringOption_("matching_window_only", "<name>", "false", "Assume the input data is targeted / PRM-like data with potentially overlapping DIA windows. Will only attempt to extract each assay from the *best* matching DIA window (instead of all matching windows).", false, true);
-    setValidStrings_("matching_window_only", ListUtils::create<String>("true,false"));
+    setValidStrings_("matching_window_only", ListUtils::create<std::string>("true,false"));
 
     // iRT mz and IM windows
     registerDoubleOption_("irt_mz_extraction_window", "<double>", 50, "Extraction window used for iRT and m/z correction in Thomson or ppm (see irt_mz_extraction_window_unit)", false, true);
     setMinFloat_("irt_mz_extraction_window", 0.0);
     registerStringOption_("irt_mz_extraction_window_unit", "<name>", "ppm", "Unit for mz extraction", false, true);
-    setValidStrings_("irt_mz_extraction_window_unit", ListUtils::create<String>("Th,ppm"));
+    setValidStrings_("irt_mz_extraction_window_unit", ListUtils::create<std::string>("Th,ppm"));
     registerDoubleOption_("irt_im_extraction_window", "<double>", -1, "Ion mobility extraction window used for iRT (in 1/K0 or milliseconds depending on library). -1 means do not perform ion mobility calibration", false, true);
 
     registerFlag_("split_file_input", "The input files each contain one single SWATH (alternatively: all SWATH are in separate files)", true);
@@ -304,16 +323,37 @@ protected:
     registerFlag_("append_oswpq", "If out_features is an oswpq archive, optionally append to the existing .oswpq archive instead of overwriting. This may be useful if you run separate instances of OpenSwathWorkflow for separate input files. (default: overwrite)", true);
 
     registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory", false, true);
-    setValidStrings_("readOptions", ListUtils::create<String>("normal,cache,cacheWorkingInMemory,workingInMemory"));
+    setValidStrings_("readOptions", ListUtils::create<std::string>("normal,cache,cacheWorkingInMemory,workingInMemory"));
 
     registerStringOption_("tempDirectory", "<tmp>", File::getTempDirectory(), "Temporary directory to store cached files for example", false, true);
+    registerFlag_("keep_cached_files", "If set, do not remove cached files created in tempDirectory (disable automated cleanup)", false);
 
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
-    setValidStrings_("extraction_function", ListUtils::create<String>("tophat,bartlett"));
+    setValidStrings_("extraction_function", ListUtils::create<std::string>("tophat,bartlett"));
 
-    registerIntOption_("batchSize", "<number>", 1000, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 250-1000)", false, true);
+    registerIntOption_("batchSize", "<number>", 0,
+                       "Compound batch size for the legacy per-SWATH extraction/scoring path. "
+                       "0 enables automatic scheduling: with in-memory reads (cacheWorkingInMemory or workingInMemory) "
+                       "this uses the SWATH wave scheduler; otherwise it uses automatic "
+                       "inner batches in the legacy path. Set a positive value to force the legacy batch scheduler "
+                       "(typical legacy values are 250-1000).",
+                       false, true);
     setMinInt_("batchSize", 0);
-    registerIntOption_("outer_loop_threads", "<number>", -1, "How many threads should be used for the outer loop (-1 use all threads, use 4 to analyze 4 SWATH windows in memory at once).", false, true);
+    registerIntOption_("innerBatchSize", "<number>", -1,
+                       "Inner scoring batch size for automatic/wave scheduling (<=0 enables automatic sizing based on input and memory).",
+                       false, true);
+    setMinInt_("innerBatchSize", -1);
+    registerIntOption_("maxConcurrentSwaths", "<number>", -1,
+                       "Maximum concurrent non-MS1 SWATH maps to keep in memory for automatic/wave scheduling "
+                       "(-1 auto compute based on free memory and transition density).",
+                       false, true);
+    setMinInt_("maxConcurrentSwaths", -1);
+    registerIntOption_("outer_loop_threads", "<number>", -1,
+                       "Legacy nested OpenMP outer-loop thread count. This is only relevant for the old per-SWATH "
+                       "parallel path and only when OpenMS was built with nested OpenMP support. Leave -1 to allow "
+                       "automatic scheduling; with batchSize 0 and in-memory reads this permits the SWATH wave scheduler. "
+                       "Setting this >=0 requests legacy outer-loop parallelism and disables the wave scheduler in nested OpenMP builds.",
+                       false, true);
 
     registerIntOption_("ms1_isotopes", "<number>", 3, "The number of MS1 isotopes used for extraction", false, true);
     setMinInt_("ms1_isotopes", 0);
@@ -328,9 +368,9 @@ protected:
 
     registerTOPPSubsection_("Debugging", "Debugging");
     registerOutputFile_("Debugging:irt_mzml", "<file>", "", "Chromatogram mzML containing the iRT peptides", false);
-    setValidFormats_("Debugging:irt_mzml", ListUtils::create<String>("mzML"));
+    setValidFormats_("Debugging:irt_mzml", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("Debugging:irt_trafo", "<file>", "", "Transformation file for RT transform", false);
-    setValidFormats_("Debugging:irt_trafo", ListUtils::create<String>("trafoXML"));
+    setValidFormats_("Debugging:irt_trafo", ListUtils::create<std::string>("trafoXML"));
     registerStringList_("Debugging:disable_features", "<list>", StringList(),
       "Selectively disable features for debugging/benchmarking. "
       "Valid values: "
@@ -339,10 +379,10 @@ protected:
       "does not affect IM calibration -- use no_IM_calibration for that). "
       "Note: IM scoring is controlled separately via -Scoring:Scores:use_ion_mobility_scores (auto/true/false).", false, true);
     setValidStrings_("Debugging:disable_features",
-      ListUtils::create<String>("no_IM_calibration,no_IM_windowing"));
+      ListUtils::create<std::string>("no_IM_calibration,no_IM_windowing"));
   }
 
-  Param getSubsectionDefaults_(const String& name) const override
+  Param getSubsectionDefaults_(const std::string& name) const override
   {
     if (name == "Scoring")
     {
@@ -494,7 +534,7 @@ protected:
     @return Set of unique peptide sequences from the loaded files
   */
   std::unordered_set<std::string> loadPriorityPeptideSequences(
-    const std::vector<String>& tsv_files,
+    const std::vector<std::string>& tsv_files,
     const Param& tsv_reader_param)
   {
     std::unordered_set<std::string> priority_sequences;
@@ -538,19 +578,24 @@ protected:
 
   ExitCodes main_(int, const char **) override
   {
+    // Suppress repeated resampling-spacing warnings only for the lifetime of
+    // this tool invocation so the global setting does not leak across reuse in
+    // a shared process.
+    Internal::ScopedResamplingWarningSuppression scoped_resampling_warning_suppression;
+    
     ///////////////////////////////////
     // Prepare Parameters
     ///////////////////////////////////
     StringList file_list = getStringList_("in");
-    String tr_file = getStringOption_("tr");
-    String out_features = getStringOption_("out_features");
+    std::string tr_file = getStringOption_("tr");
+    std::string out_features = getStringOption_("out_features");
 
     //tr_file input file type
     FileTypes::Type tr_type = FileTypes::nameToType(getStringOption_("tr_type"));
     if (tr_type == FileTypes::UNKNOWN)
     {
       tr_type = FileHandler::getType(tr_file);
-      writeDebug_(String("Input file type (-tr): ") + FileTypes::typeToName(tr_type), 2);
+      writeDebug_(std::string("Input file type (-tr): ") + FileTypes::typeToName(tr_type), 2);
     }
 
     if (tr_type == FileTypes::UNKNOWN)
@@ -564,7 +609,7 @@ protected:
     if (out_features_type == FileTypes::UNKNOWN)
     {
       out_features_type = FileHandler::getType(out_features);
-      writeDebug_(String("Input file type (-out): ") + FileTypes::typeToName(out_features_type), 2);
+      writeDebug_(std::string("Input file type (-out): ") + FileTypes::typeToName(out_features_type), 2);
     }
 
     if (out_features_type == FileTypes::UNKNOWN)
@@ -572,23 +617,15 @@ protected:
       writeLogError_("Error: Could not determine input file type for '-out_features' !");
       return PARSE_ERROR;
     }
-#ifndef WITH_PARQUET
-    if (out_features_type == FileTypes::OSWPQ)
-    {
-      writeLogError_("Error: OpenMS was built without Parquet support, cannot write oswpq output.");
-      return PARSE_ERROR;
-    }
-#endif
-
-    String out_qc = getStringOption_("out_qc");
+    std::string out_qc = getStringOption_("out_qc");
 
     Param irt_calibration_params = getParam_().copy("Calibration:", true);
     bool auto_irt = (irt_calibration_params.getValue("auto_irt:enabled").toString() == "true");
 
     // Extract only the parameters needed for OpenSwathWorkflow-specific validation and logic
-    String irt_tr_file = irt_calibration_params.getValue("files:linear_irt_file").toString();
-    String priority_sampling_irt_tr_file = irt_calibration_params.getValue("tr_irt_priority_sampling").toString();
-    String trafo_in = irt_calibration_params.getValue("rt_norm").toString();
+    std::string irt_tr_file = irt_calibration_params.getValue("files:linear_irt_file").toString();
+    std::string priority_sampling_irt_tr_file = irt_calibration_params.getValue("tr_irt_priority_sampling").toString();
+    std::string trafo_in = irt_calibration_params.getValue("rt_norm").toString();
     
     // Extract parameters needed for OpenSwathWorkflow validation logic
     UInt irt_bins_lin = irt_calibration_params.getValue("auto_irt:irt_bins");
@@ -609,20 +646,10 @@ protected:
       irt_calibration_params.setValue("tr_irt_priority_sampling", "");
     }
     
-    String swath_windows_file = getStringOption_("swath_windows_file");
+    std::string swath_windows_file = getStringOption_("swath_windows_file");
 
-    String out_chrom = getStringOption_("out_chrom");
-    if (!out_chrom.empty())
-    {
-      const FileTypes::Type out_chrom_type = FileHandler::getType(out_chrom);
-#ifndef WITH_PARQUET
-      if (out_chrom_type == FileTypes::CHROMPARQUET)
-      {
-        writeLogError_("Error: OpenMS was built without Parquet support, cannot write chrom_parquet output.");
-        return PARSE_ERROR;
-      }
-#endif
-    }
+    std::string out_chrom = getStringOption_("out_chrom");
+    std::string out_mobilogram = getStringOption_("out_mobilogram");
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool force = getFlag_("force");
@@ -633,6 +660,8 @@ protected:
     int batchSize = (int)getIntOption_("batchSize");
     int outer_loop_threads = (int)getIntOption_("outer_loop_threads");
     int ms1_isotopes = (int)getIntOption_("ms1_isotopes");
+    int innerBatchSize = (int)getIntOption_("innerBatchSize");
+    int maxConcurrentSwaths = (int)getIntOption_("maxConcurrentSwaths");
     Size debug_level = (Size)getIntOption_("debug");
 
     Param debug_params = getParam_().copy("Debugging:", true);
@@ -641,11 +670,12 @@ protected:
     bool disable_im_calibration = std::find(disable_features.begin(), disable_features.end(), "no_IM_calibration") != disable_features.end();
     bool disable_im_windowing   = std::find(disable_features.begin(), disable_features.end(), "no_IM_windowing")   != disable_features.end();
 
-    String readoptions = getStringOption_("readOptions");
+    std::string readoptions = getStringOption_("readOptions");
+    bool keep_cached_files = getFlag_("keep_cached_files");
 
     // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
-    // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
-    String tmp_dir = String(QDir(getStringOption_("tempDirectory").c_str()).absolutePath()).ensureLastChar('/');
+    // File::absolutePath() always uses '/' separators
+    std::string tmp_dir = StringUtils::ensureLastChar(File::absolutePath(getStringOption_("tempDirectory")), '/');
 
     ///////////////////////////////////
     // Parameter validation
@@ -876,10 +906,6 @@ protected:
       }
       else if (tr_type == FileTypes::OSWPQ)
       {
-#ifndef WITH_PARQUET
-        writeLogError_("Error: OpenMS was built without Parquet support, cannot use oswpq input with OSW output.");
-        return PARSE_ERROR;
-#else
         // Convert parquet library to .PQP for OSW output
         TransitionPQPFile().convertLightTargetedExperimentToPQP(out_features.c_str(), transition_exp);
 
@@ -908,13 +934,12 @@ protected:
             tr.transition_name = id->second;
           }
         }
-#endif
       }
       else if (tr_type == FileTypes::TRAML)
       {
         if (out_features_type == FileTypes::OSW)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Conversion from TraML to OSW is not supported."));
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Conversion from TraML to OSW is not supported."));
         }
       }
     }
@@ -923,11 +948,11 @@ protected:
     std::unordered_set<std::string> priority_peptides;
     if (auto_irt)
     {
-      String data_path = File::getOpenMSDataPath();
-      std::vector<String> priority_files;
+      std::string data_path = File::getOpenMSDataPath();
+      std::vector<std::string> priority_files;
       
-      String irtkit_path = data_path + "/CHEMISTRY/irtkit.tsv";
-      String cirtkit_path = data_path + "/CHEMISTRY/cirtkit.tsv";
+      std::string irtkit_path = data_path + "/CHEMISTRY/irtkit.tsv";
+      std::string cirtkit_path = data_path + "/CHEMISTRY/cirtkit.tsv";
       
       if (File::exists(irtkit_path))
       {
@@ -975,7 +1000,7 @@ protected:
     else
     {
       // multi-run mode: N runs, each with single file
-      for (const String& file : file_list)
+      for (const std::string& file : file_list)
       {
         run_groups.push_back({file});
       }
@@ -986,14 +1011,14 @@ protected:
     ///////////////////////////////////
 
     // Set up shared output objects that persist across files
-    FeatureMap out_featureFile;  // accumulates features across all files
+    FeatureMap out_featureFile;  // only featureXML output accumulates features across files
     const bool write_osw = (out_features_type == FileTypes::OSW);
     const bool write_parquet = (out_features_type == FileTypes::OSWPQ);
-    String osw_out_filename = write_osw ? out_features : "";
+    const bool write_featurexml = (out_features_type == FileTypes::FEATUREXML);
+    std::string osw_out_filename = write_osw ? out_features : "";
     OpenSwathOSWWriter oswwriter(osw_out_filename, enable_uis_scoring);
 
-#ifdef WITH_PARQUET
-    String parquet_dir = out_features;
+    std::string parquet_dir = out_features;
     bool parquet_zip_output = false;
     std::unique_ptr<File::TempDir> parquet_temp_dir;
     OpenSwathOSWParquetWriter parquet_writer;
@@ -1001,19 +1026,22 @@ protected:
     parquet_writer.setPreserveExisting(getFlag_("append_oswpq"));
     if (write_parquet)
     {
-      parquet_zip_output = out_features.hasSuffix(".oswpq");
+      parquet_zip_output = StringUtils::hasSuffix(out_features, ".oswpq");
       if (parquet_zip_output)
       {
-        parquet_temp_dir = std::make_unique<File::TempDir>();
-        parquet_dir = parquet_temp_dir->getPath() + "/oswpq_output";
-        // Pre-create the directory so that OpenSwathOSWParquetWriter::write()
-        // detects it as an existing directory (File::isDirectory() returns true)
-        // and persists all run data there instead of redirecting to its own
-        // internal temp dir (which is destroyed after each call).
-        File::makeDir(parquet_dir);
+        if (getFlag_("append_oswpq") && File::exists(out_features))
+        {
+          // Extract existing archive so prior run data is preserved when appending.
+          parquet_dir = ZipArchiveFile::unzipDirectory(out_features, parquet_temp_dir);
+        }
+        else
+        {
+          parquet_temp_dir = std::make_unique<File::TempDir>();
+          parquet_dir = parquet_temp_dir->getPath() + "/oswpq_output";
+          File::makeDir(parquet_dir);
+        }
       }
     }
-#endif
 
     // Write DB schema once (only for first file)
     if (write_osw)
@@ -1034,12 +1062,23 @@ protected:
       ChromExtractParams cp_ms1_current = cp_ms1;
       ChromExtractParams cp_irt_current = cp_irt;
       Param feature_finder_param_run = feature_finder_param;
+      
       ///////////////////////////////////
+      // Per-run temporary cache directory (created only when using cache readOptions)
+      // Use File::TempDir for RAII-based cleanup: destructor removes dir (unless keep_cached_files is true)
+      std::string per_run_tmp = tmp_dir;
+      std::unique_ptr<File::TempDir> per_run_temp_dir;
+      if (readoptions == "cache")
+      {
+        per_run_temp_dir = std::make_unique<File::TempDir>(tmp_dir, keep_cached_files);
+        per_run_tmp = per_run_temp_dir->getPath();
+      }
+
       // Load the SWATH files (if split data, otherwise load single experiment mzML)
       ///////////////////////////////////
       std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
       std::vector< OpenSwath::SwathMap > swath_maps;
-      std::vector<String> swath_map_sources;
+      std::vector<std::string> swath_map_sources;
 
       StringList single_file_list = current_run_files;
 
@@ -1050,9 +1089,9 @@ protected:
         MSDataTransformingConsumer qc_consumer; // apply some transformation
         qc_consumer.setSpectraProcessingFunc(qc.getSpectraProcessingFunc());
         qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
-        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, tmp_dir, readoptions,
-                            swath_windows_file, min_upper_edge_dist, force,
-                            sort_swath_maps, prm, &qc_consumer))
+        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, per_run_tmp, readoptions,
+                swath_windows_file, min_upper_edge_dist, force,
+                sort_swath_maps, prm, &qc_consumer))
         {
           OPENMS_LOG_ERROR << "Failed to load SWATH files for Run " << (run_index + 1)
                            << ": " << ListUtils::concatenate(single_file_list, ", ") << std::endl
@@ -1065,9 +1104,9 @@ protected:
       }
       else
       {
-        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, tmp_dir, readoptions,
-                            swath_windows_file, min_upper_edge_dist, force,
-                            sort_swath_maps, prm))
+        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, per_run_tmp, readoptions,
+                swath_windows_file, min_upper_edge_dist, force,
+                sort_swath_maps, prm))
         {
           OPENMS_LOG_ERROR << "Failed to load SWATH files for Run " << (run_index + 1)
                            << ": " << ListUtils::concatenate(single_file_list, ", ") << std::endl
@@ -1101,7 +1140,7 @@ protected:
       // Resolve "auto" for ion mobility scoring: enable for PASEF data, disable otherwise.
       // Explicit "true"/"false" from the user is always respected.
       {
-        String im_score_setting = feature_finder_param_run.getValue("Scores:use_ion_mobility_scores").toString();
+        std::string im_score_setting = feature_finder_param_run.getValue("Scores:use_ion_mobility_scores").toString();
         if (im_score_setting == "auto")
         {
           if (pasef)
@@ -1141,16 +1180,16 @@ protected:
       ///////////////////////////////////
 
       // Create a basename for this run's outputs (used for multi-run scenarios)
-      String file_basename;
+      std::string file_basename;
       if (run_groups.size() > 1)
       {
         // Extract basename from input file path (remove directory and extension)
         // For multi-run mode, each run has exactly one file
-        String filename = File::basename(current_run_files[0]);
+        std::string filename = File::basename(current_run_files[0]);
         Size dot_pos = filename.find_last_of('.');
-        if (dot_pos != String::npos)
+        if (dot_pos != std::string::npos)
         {
-          file_basename = filename.substr(0, dot_pos);
+          file_basename = StringUtils::substr(filename, 0, dot_pos);
         }
         else
         {
@@ -1158,21 +1197,21 @@ protected:
         }
       }
 
-      String irt_trafo_out = debug_params.getValue("irt_trafo").toString();
+      std::string irt_trafo_out = debug_params.getValue("irt_trafo").toString();
       if (!irt_trafo_out.empty() && run_groups.size() > 1)
       {
         // For multi-run, use basename prefix to make unique filenames
-        String base_name = irt_trafo_out.substr(0, irt_trafo_out.find_last_of('.'));
-        String extension = irt_trafo_out.substr(irt_trafo_out.find_last_of('.'));
+        std::string base_name = StringUtils::substr(irt_trafo_out, 0, irt_trafo_out.find_last_of('.'));
+        std::string extension = StringUtils::substr(irt_trafo_out, irt_trafo_out.find_last_of('.'));
         irt_trafo_out = file_basename + "_" + base_name + extension;
       }
 
-      String irt_mzml_out = debug_params.getValue("irt_mzml").toString();
+      std::string irt_mzml_out = debug_params.getValue("irt_mzml").toString();
       if (!irt_mzml_out.empty() && run_groups.size() > 1)
       {
         // For multi-run, use basename prefix to make unique filenames
-        String base_name = irt_mzml_out.substr(0, irt_mzml_out.find_last_of('.'));
-        String extension = irt_mzml_out.substr(irt_mzml_out.find_last_of('.'));
+        std::string base_name = StringUtils::substr(irt_mzml_out, 0, irt_mzml_out.find_last_of('.'));
+        std::string extension = StringUtils::substr(irt_mzml_out, irt_mzml_out.find_last_of('.'));
         irt_mzml_out = file_basename + "_" + base_name + extension;
       }
 
@@ -1213,7 +1252,7 @@ protected:
         // copy span and num_nodes from the RTNormalization detection params
         model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
         model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
-        String model_type = irt_detection_param.getValue("alignmentMethod").toString();
+        std::string model_type = irt_detection_param.getValue("alignmentMethod").toString();
 
         // Fit the model to the loaded transformation
         trafo_rtnorm.fitModel(model_type, model_params);
@@ -1245,11 +1284,11 @@ protected:
           transition_exp, run_groups.size());
         
         // Prepare iRT experiments for this run
-        std::vector<String> priority_pep_strings;
+        std::vector<std::string> priority_pep_strings;
         priority_pep_strings.reserve(priority_peptides.size());
         for (const auto& pep : priority_peptides)
         {
-          priority_pep_strings.push_back(String(pep));
+          priority_pep_strings.push_back(std::string(pep));
         }
         
         CalibrationWorkflow::IrtExperiments irt_experiments = calibration_wf.prepareIrtExperiments(
@@ -1282,49 +1321,86 @@ protected:
     // perform extraction on current file
     ///////////////////////////////////
 
+    // Create one run ID per input run and reuse it across all run-level outputs.
+    UInt64 cur_run = OpenMS::UniqueIdGenerator::getUniqueId();
+
     // Set up chromatogram output for this file
     // Either use chrom.mzML or sqliteDB (sqMass)
     Interfaces::IMSDataConsumer* chromatogramConsumer;
-    UInt64 run_id = OpenMS::UniqueIdGenerator::getUniqueId();
-    String out_chrom_current = out_chrom;
+    std::string out_chrom_current = out_chrom;
     if (!out_chrom.empty() && run_groups.size() > 1)
     {
-      // For multi-run, use basename prefix to make unique filenames
-      String base_name = out_chrom.substr(0, out_chrom.find_last_of('.'));
-      String extension = out_chrom.substr(out_chrom.find_last_of('.'));
-      out_chrom_current = file_basename + "_" + base_name + extension;
+      // Preserve parent directory when creating per-run filenames.
+      // Split path and filename first, then prepend the run prefix to the filename only.
+      std::string parent = File::path(out_chrom);
+      std::string filename = File::basename(out_chrom);
+      std::string stem = StringUtils::substr(filename, 0, filename.find_last_of('.'));
+      std::string extension = StringUtils::substr(filename, filename.find_last_of('.'));
+      std::string fname_with_prefix = file_basename + "_" + stem + extension;
+      out_chrom_current = (parent == "." ? fname_with_prefix : parent + "/" + fname_with_prefix);
     }
-    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, run_id, current_run_files[0]);
+    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, cur_run, current_run_files[0]);
 
+    // Prepare mobilogram output (per-run)
+    std::unique_ptr<MobilogramParquetConsumer> mobilogramConsumer;
+    std::string out_mobilogram_current = out_mobilogram;
+    if (!out_mobilogram.empty() && run_groups.size() > 1)
+    {
+      // Preserve parent directory when creating per-run filenames.
+      // Split path and filename first, then prepend the run prefix to the filename only.
+      std::string parent = File::path(out_mobilogram);
+      std::string filename = File::basename(out_mobilogram);
+      std::string stem = StringUtils::substr(filename, 0, filename.find_last_of('.'));
+      std::string extension = StringUtils::substr(filename, filename.find_last_of('.'));
+      std::string fname_with_prefix = file_basename + "_" + stem + extension;
+      out_mobilogram_current = (parent == "." ? fname_with_prefix : parent + "/" + fname_with_prefix);
+    }
+    prepareMobilogramOutput(mobilogramConsumer, exp_meta, transition_exp, out_mobilogram_current, cur_run, current_run_files[0]);
+
+    // Register the same run ID in OSW.
     // For OSW, use the first file in the run group as the representative filename
     if (write_osw)
     {
-      oswwriter.addRun(run_id, current_run_files[0]);
+      oswwriter.addRun(cur_run, current_run_files[0]);
     }
     // Also register run in chromatogram consumer if it is a SQL consumer
     MSDataSqlConsumer* sql_cons = dynamic_cast<MSDataSqlConsumer*>(chromatogramConsumer);
     if (sql_cons != nullptr)
     {
-      sql_cons->addRun(current_run_files[0], run_id);
+      sql_cons->addRun(current_run_files[0], cur_run);
     }
 
     // set current run id in writer
-    oswwriter.setRunId(run_id);
+    oswwriter.setRunId(cur_run);
     // set current run id for sqMass writer as well (reuse previous cast)
     if (sql_cons != nullptr)
     {
-      sql_cons->setRunId(run_id);
+      sql_cons->setRunId(cur_run);
     }
 
     FeatureMap run_featureFile;
-    FeatureMap& active_feature_map = write_parquet ? run_featureFile : out_featureFile;
+    FeatureMap& active_feature_map = write_featurexml ? out_featureFile : run_featureFile;
+    const bool store_features_in_feature_file = write_featurexml || write_parquet;
 
-    OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
-    wf.setLogType(log_type_);
+    {
+      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
+      wf.setLogType(log_type_);
 
-    // perform extraction for this file's swath maps
-    wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,
-                         active_feature_map, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param);
+      // OSW output is streamed by the writer during extraction. Avoid retaining
+      // the same peak groups in a FeatureMap across runs.
+      wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,
+           active_feature_map, store_features_in_feature_file, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes,
+           load_into_memory, mrm_map_param, mobilogramConsumer.get(), innerBatchSize, maxConcurrentSwaths);
+    }
+
+    swath_maps.clear();
+    swath_maps.shrink_to_fit();
+
+    if (mobilogramConsumer)
+    {
+      mobilogramConsumer->finalize();
+      mobilogramConsumer.reset();
+    }
 
     //// Write out data
 
@@ -1332,24 +1408,22 @@ protected:
 
     if (write_parquet)
     {
-#ifdef WITH_PARQUET
       parquet_writer.write(parquet_dir, transition_exp, active_feature_map,
-                           run_id, current_run_files[0], enable_uis_scoring);
-#endif
+                           cur_run, current_run_files[0], enable_uis_scoring);
     }
 
     OPENMS_LOG_INFO << std::endl;
+
     ++run_index;
     } // end for each run
 
-#ifdef WITH_PARQUET
     if (write_parquet && parquet_zip_output)
     {
       // Stream files into the zip archive instead of unzipping/rezipping the
       // whole directory. This uses ZipArchiveFile::addOrReplaceFromFile which
       // streams from disk and avoids loading large parquet blobs into memory.
-      const std::filesystem::path dirpath = std::filesystem::u8path(std::string(parquet_dir));
-      const String output_zip_abs = File::absolutePath(out_features);
+      const std::filesystem::path dirpath = std::filesystem::path(std::string(parquet_dir));
+      const std::string output_zip_abs = File::absolutePath(out_features);
       if (File::exists(output_zip_abs))
       {
         File::remove(output_zip_abs);
@@ -1360,13 +1434,12 @@ protected:
         if (it->is_directory()) continue;
         const auto full = it->path();
         std::string rel = std::filesystem::relative(full, dirpath).generic_string();
-        ZipArchiveFile::addOrReplaceFromFile(out_features, String(rel), String(full.string()));
+        ZipArchiveFile::addOrReplaceFromFile(out_features,std::string(rel),std::string(full.string()));
       }
       // Write the embedded sidecar index that enables random-access reads
       // directly from the archive without extracting (RAF pattern).
       ZipArchiveFile::writeSidecarIndex(output_zip_abs);
     }
-#endif
 
     if ( out_features_type == FileTypes::FEATUREXML )
     {

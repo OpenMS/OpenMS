@@ -128,8 +128,8 @@ END_SECTION
 
 START_SECTION((static void uncompressString(const void * compressed_data, size_t nr_bytes, std::string& raw_data)))
 {
-  String compressed_data;
-  String uncompressed_data;
+  std::string compressed_data;
+  std::string uncompressed_data;
 
   ZlibCompression::compressString(raw_data, compressed_data);
   ZlibCompression::uncompressString(compressed_data, uncompressed_data);

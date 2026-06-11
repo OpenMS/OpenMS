@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <memory>
+
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
@@ -49,11 +51,40 @@
 
 namespace OpenMS
 {
+  /**
+    @brief Shared @ref TOPPBase scaffolding for OpenSWATH-family CLI tools (currently @ref TOPP_OpenSwathWorkflow).
+
+    Bundles the input-loading and output-setup steps that any OpenSWATH DIA tool needs, so the
+    individual TOPP front-ends can stay focused on configuration and workflow wiring. The
+    protected methods cover the three I/O stages of a typical run:
+
+      - loadSwathFiles() — read one or more mzML / mzXML / sqMass SWATH input files via
+        @ref SwathFile (with the @c readoptions parameter selecting in-memory vs. cached
+        access), optionally remap the per-map isolation windows from a @c swath_windows_file,
+        and return both the per-map @ref OpenSwath::SwathMap pointers and a one-to-one list of
+        source-file names.
+      - prepareChromOutput() / prepareMobilogramOutput() — install the output @ref Interfaces::IMSDataConsumer
+        for chromatograms (sqMass / mzML+numpress / Parquet @c .xic) and the optional Parquet
+        mobilogram writer.
+      - loadTransitionList() — read the spectral library from TraML / TSV / PQP into an
+        @ref OpenSwath::LightTargetedExperiment.
+
+    The @ref CalibrationResult inner struct is the return-channel for the per-run RT / m/z /
+    IM calibration step run by the consuming tool (see @ref CalibrationWorkflow).
+
+    @ingroup TargetedQuantitation
+  */
   class OPENMS_DLLAPI TOPPOpenSwathBase : public TOPPBase
   {
 
   public:
-    /// Outputs of RT, m/z, IM calibration
+    /**
+      @brief Per-run outputs of the RT / m/z / IM calibration step.
+
+      Populated by the consuming tool (via @ref CalibrationWorkflow) and consumed later
+      during the analytical extraction phase. Window fields default to @c -1.0 meaning
+      "not computed" — callers must check before using them as extraction windows.
+    */
     struct CalibrationResult
     {
       /// RT normalization transformation (fitted Trafo)
@@ -83,7 +114,7 @@ namespace OpenMS
              If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
       @param[in] citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
     */
-    TOPPOpenSwathBase(String name, String description, bool official = true, const std::vector<Citation>& citations = {});
+    TOPPOpenSwathBase(std::string name, std::string description, bool official = true, const std::vector<Citation>& citations = {});
 
     /// Destructor
     ~TOPPOpenSwathBase() override;
@@ -117,11 +148,11 @@ namespace OpenMS
     bool loadSwathFiles(const StringList& file_list,
                         std::shared_ptr<ExperimentalSettings >& exp_meta,
                         std::vector< OpenSwath::SwathMap >& swath_maps,
-                        std::vector<String> & swath_map_sources,
+                        std::vector<std::string> & swath_map_sources,
                         const bool split_file,
-                        const String& tmp,
-                        const String& readoptions,
-                        const String& swath_windows_file,
+                        const std::string& tmp,
+                        const std::string& readoptions,
+                        const std::string& swath_windows_file,
                         const double min_upper_edge_dist,
                         const bool force,
                         const bool sort_swath_maps,
@@ -145,9 +176,29 @@ namespace OpenMS
     void prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer,
                             const std::shared_ptr<ExperimentalSettings>& exp_meta,
                             const OpenSwath::LightTargetedExperiment& transition_exp,
-                            const String& out_chrom,
+                            const std::string& out_chrom,
                             const UInt64 run_id,
-                            const String& source_file);
+                            const std::string& source_file);
+
+    /**
+     * @brief Prepare mobilogram output
+     *
+     * Sets up the mobilogram output, currently only supports Parquet via MobilogramParquetConsumer.
+     * If no output requested, returns a null consumer by allocating a nullptr.
+     *
+     * @param[out] mobilogramConsumer The consumer to process mobilograms
+     * @param[in] exp_meta meta data about experiment
+     * @param[in] transition_exp The spectral library
+     * @param[in] out_mobilogram The output file for the mobilograms
+     * @param[in] run_id Unique identifier which links the mobilogram and OSW file
+     * @param[in] source_file Source file name for provenance
+     */
+    void prepareMobilogramOutput(std::unique_ptr<class MobilogramParquetConsumer>& mobilogramConsumer,
+                  const std::shared_ptr<ExperimentalSettings>& exp_meta,
+                  const OpenSwath::LightTargetedExperiment& transition_exp,
+                  const std::string& out_mobilogram,
+                  const UInt64 run_id,
+                  const std::string& source_file);
 
     /**
      * @brief Loads transition list from TraML / TSV or PQP
@@ -158,17 +209,17 @@ namespace OpenMS
      *
      */
     OpenSwath::LightTargetedExperiment loadTransitionList(const FileTypes::Type& tr_type,
-                                                          const String& tr_file,
+                                                          const std::string& tr_file,
                                                           const Param& tsv_reader_param);
 
   private:
     void loadSwathFiles_(const StringList& file_list,
                          const bool split_file,
-                         const String& tmp,
-                         const String& readoptions,
+                         const std::string& tmp,
+                         const std::string& readoptions,
                          std::shared_ptr<ExperimentalSettings > & exp_meta,
                          std::vector< OpenSwath::SwathMap > & swath_maps,
-                         std::vector<String> & swath_map_sources,
+                         std::vector<std::string> & swath_map_sources,
                          Interfaces::IMSDataConsumer* plugin_consumer);
   }; // end TOPPOpenSwathBase
 } //  end NS OpenMS

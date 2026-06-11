@@ -158,8 +158,8 @@ namespace OpenMS
       {
         t = (float)it.getRT();
         rt.push_back(t);
-        mz.push_back(std::vector<float>());
-        intensity.push_back(std::vector<float>());
+        mz.emplace_back();
+        intensity.emplace_back();
       }
       mz.back().push_back((float)it->getMZ());
       intensity.back().push_back(it->getIntensity());
@@ -187,9 +187,9 @@ namespace OpenMS
         t = (float)it.getRT();
         rt.push_back(t);
         std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
-        mz.push_back(std::vector<float>());
-        intensity.push_back(std::vector<float>());
-        ion_mobility.push_back(std::vector<float>());
+        mz.emplace_back();
+        intensity.emplace_back();
+        ion_mobility.emplace_back();
       }
 
       if (unit != DriftTimeUnit::NONE)
@@ -279,12 +279,12 @@ namespace OpenMS
     if (rt_bins == 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Number of RT bins must be positive", String(rt_bins));
+        "Number of RT bins must be positive",StringUtils::toStr(rt_bins));
     }
     if (mz_bins == 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Number of m/z bins must be positive", String(mz_bins));
+        "Number of m/z bins must be positive",StringUtils::toStr(mz_bins));
     }
     if (min_rt >= max_rt)
     {
@@ -764,7 +764,7 @@ namespace OpenMS
     return ms_levels;
   }
 
-  const String sqMassRunID = "sqMassRunID";
+  const std::string sqMassRunID = "sqMassRunID";
 
   UInt64 MSExperiment::getSqlRunID() const
   {
@@ -858,6 +858,7 @@ namespace OpenMS
   void MSExperiment::reset()
   {
     spectra_.clear();           //remove data
+    chromatograms_.clear();     //remove chromatograms
     clearRanges(); // reset all ranges
     ExperimentalSettings::operator=(ExperimentalSettings());           //reset meta info
   }
@@ -907,8 +908,8 @@ namespace OpenMS
     for (const SourceFile& ss : sfs)
     {
       // assemble a single location string from the URI (path to file) and file name
-      String path = ss.getPathToFile();
-      String filename = ss.getNameOfFile();
+      std::string path = ss.getPathToFile();
+      std::string filename = ss.getNameOfFile();
 
       if (path.empty() || filename.empty())
       {
@@ -919,9 +920,9 @@ namespace OpenMS
       else
       {
         // use Windows or UNIX path separator?
-        String actual_path = path.hasPrefix("file:///") ? path.substr(8) : path;
-        String sep = (actual_path.has('\\') && !actual_path.has('/')) ? "\\" : "/";
-        String ms_run_location = path + sep + filename;
+        std::string actual_path = StringUtils::hasPrefix(path, "file:///") ? StringUtils::substr(path, 8) : path;
+        std::string sep = (StringUtils::has(actual_path, '\\') && !StringUtils::has(actual_path, '/')) ? "\\" : "/";
+        std::string ms_run_location = path + sep + filename;
         toFill.push_back(ms_run_location);
       }
     }
@@ -957,7 +958,7 @@ namespace OpenMS
       const auto precursor = iterator->getPrecursors()[0];
       if (precursor.metaValueExists("spectrum_ref"))
       {
-        String ref = precursor.getMetaValue("spectrum_ref");
+        std::string ref = StringUtils::toStr(precursor.getMetaValue("spectrum_ref"));
         auto tmp_spec_iter = iterator; // such that we can reiterate later
         do
         {
@@ -1033,7 +1034,7 @@ namespace OpenMS
 
         // check if it has the parent a precursor
         const auto precursor = it->getPrecursors()[0];
-        String ref = precursor.getMetaValue("spectrum_ref", "");  
+        std::string ref = StringUtils::toStr(precursor.getMetaValue("spectrum_ref", ""));  
         if (!ref.empty() && ref == parent_native_id)
         {
           return it;
@@ -1322,7 +1323,7 @@ namespace OpenMS
 
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)
   {
-    spectra_.emplace_back(SpectrumType());
+    spectra_.emplace_back();
     SpectrumType* spectrum = &(spectra_.back());
     spectrum->setRT(rt);
     spectrum->setMSLevel(1);
@@ -1343,7 +1344,7 @@ namespace OpenMS
     spectrum->getFloatDataArrays().reserve(metadata_names.size());
     for (StringList::const_iterator itm = metadata_names.begin(); itm != metadata_names.end(); ++itm)
     {
-      spectrum->getFloatDataArrays().push_back(MSSpectrum::FloatDataArray());
+      spectrum->getFloatDataArrays().emplace_back();
       spectrum->getFloatDataArrays().back().setName(*itm);
     }
     return spectrum;

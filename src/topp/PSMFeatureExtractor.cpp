@@ -16,10 +16,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
-#include <QtCore/QFile>
-#include <QtCore/QDir>
-#include <QtCore/QProcess>
-
 #include <iostream>
 #include <cmath>
 #include <string>
@@ -86,12 +82,12 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
-    setValidFormats_("in", ListUtils::create<String>("idXML,mzid"));
-    registerOutputFile_("out", "<file>", "", "Output file in mzid or idXML format", true);
-    setValidFormats_("out", ListUtils::create<String>("idXML,mzid"));    
+    setValidFormats_("in", ListUtils::create<std::string>("idXML,mzid,idparquet"));
+    registerOutputFile_("out", "<file>", "", "Output file in idXML, mzid or idparquet format", true);
+    setValidFormats_("out", ListUtils::create<std::string>("idXML,mzid,idparquet"));
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
-    setValidStrings_("out_type", ListUtils::create<String>("idXML,mzid"));
-    registerStringList_("extra", "<MetaData parameter>", vector<String>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
+    setValidStrings_("out_type", ListUtils::create<std::string>("idXML,mzid,idparquet"));
+    registerStringList_("extra", "<MetaData parameter>", vector<std::string>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
     registerFlag_("multiple_search_engines", "Combine PSMs from different search engines by merging on scan level.");
     registerFlag_("skip_db_check", "Manual override to skip the check if same settings for multiple search engines were applied. Only valid together with -multiple_search_engines flag.", true);
     registerFlag_("concat", "Naive merging of PSMs from different search engines: concatenate multiple search results instead of merging on scan level. Only valid together with -multiple_search_engines flag.", true);
@@ -120,7 +116,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
     
-    const String out(getStringOption_("out"));
+    const std::string out(getStringOption_("out"));
 
     //-------------------------------------------------------------
     // read input
@@ -132,13 +128,13 @@ protected:
     {
       PeptideIdentificationList peptide_ids;
       vector<ProteinIdentification> protein_ids;
-      String in = *fit;
+      std::string in = *fit;
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(in);
       OPENMS_LOG_INFO << "Loading input file: " << in << endl;
-      if (in_type == FileTypes::IDXML || in_type == FileTypes::MZIDENTML)
+      if (in_type == FileTypes::IDXML || in_type == FileTypes::MZIDENTML || in_type == FileTypes::IDPARQUET)
       {
-        FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
+        FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML, FileTypes::IDPARQUET});
       }
       if (in_type == FileTypes::MZIDENTML)
       {
@@ -156,7 +152,7 @@ protected:
             "File '" + in + "' has more than one ProteinIDRun. This is currently not correctly handled."
             "Please use the merge_proteins_add_psms option if you used IDMerger. Alternatively, pass"
             " all original single-run idXML inputs as list to this tool.",
-            "# runs: " + String(protein_ids.size()));
+            "# runs: " + StringUtils::toStr(protein_ids.size()));
       }
 
       // will check if all ProteinIdentifications have the same search db unless it is the first, in which case all_protein_ids is empty yet.
@@ -177,7 +173,7 @@ protected:
       }
       else
       {
-        String search_engine = protein_ids.front().getSearchEngine();
+        std::string search_engine = protein_ids.front().getSearchEngine();
         if (!ListUtils::contains(search_engines_used, search_engine))
         {
           search_engines_used.push_back(search_engine);
@@ -207,7 +203,7 @@ protected:
     //-------------------------------------------------------------
     // extract search engine and prepare pin
     //-------------------------------------------------------------
-    String search_engine = all_protein_ids.front().getSearchEngine();
+    std::string search_engine = all_protein_ids.front().getSearchEngine();
     if (multiple_search_engines) search_engine = "multiple";
     OPENMS_LOG_DEBUG << "Registered search engine: " << search_engine << endl;
     
@@ -253,7 +249,7 @@ protected:
       return INCOMPATIBLE_INPUT_DATA;
     }
 
-    String run_identifier = all_protein_ids.front().getIdentifier();
+    std::string run_identifier = all_protein_ids.front().getIdentifier();
     for (PeptideIdentificationList::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
     {
       it->setIdentifier(run_identifier);
@@ -292,7 +288,7 @@ protected:
     OPENMS_LOG_INFO << "writing output file: " << out << endl;
     
 
-    FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::MZIDENTML, FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {out_type});
 
 
     writeLogInfo_("PSMFeatureExtractor finished successfully!");

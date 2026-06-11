@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -124,16 +124,16 @@ namespace OpenMS
     std::optional<int> ordinal;                     ///< Position/ordinal (4 in y4)
     std::optional<char> immonium_residue;           ///< Residue for immonium ions (Y in IY)
     std::optional<std::pair<int, int>> internal_range; ///< Range for internal fragments (m3:6 -> {3,6})
-    std::optional<String> reporter_name;            ///< Name for reporter ions (r[TMT127N])
+    std::optional<std::string> reporter_name;            ///< Name for reporter ions (r[TMT127N])
     std::optional<EmpiricalFormula> formula;        ///< Chemical formula for formula ions (f{C16H22O})
-    std::optional<String> named_compound;           ///< Name for named compound ions (_[name])
+    std::optional<std::string> named_compound;           ///< Name for named compound ions (_[name])
     std::vector<MzPAFNeutralLoss> neutral_losses;   ///< Neutral losses (-H2O, -NH3, etc.)
     std::optional<int> isotope_offset;              ///< Isotope offset (+1i, +2i for M+1, M+2)
     std::optional<EmpiricalFormula> adduct;         ///< Adduct ion (+Na, +K, etc.)
     std::optional<int> charge;                      ///< Charge state (^2, ^3)
     std::optional<MzPAFMassDelta> mass_delta;       ///< Mass delta (/0.001, /-1.4ppm)
     std::optional<double> confidence;               ///< Confidence score (*0.75)
-    std::optional<String> embedded_sequence;        ///< Embedded ProForma sequence string ({LC[Carbamidomethyl]})
+    std::optional<std::string> embedded_sequence;        ///< Embedded ProForma sequence string ({LC[Carbamidomethyl]})
 
     /// Check if this annotation has minimal valid data
     bool isValid() const;
@@ -215,21 +215,21 @@ namespace OpenMS
       const char* function,
       MzPAFErrorCode error_code,
       size_t error_position,
-      const String& input,
-      const String& message
+      const std::string& input,
+      const std::string& message
     ) noexcept;
 
     MzPAFErrorCode getErrorCode() const noexcept { return code_; }
     size_t getPosition() const noexcept { return position_; }
-    String getFormattedMessage() const;
+    std::string getFormattedMessage() const;
 
   private:
     MzPAFErrorCode code_;
     size_t position_;
-    String context_before_;
-    String context_after_;
+    std::string context_before_;
+    std::string context_after_;
 
-    void extractContext_(const String& input, size_t pos);
+    void extractContext_(const std::string& input, size_t pos);
   };
 
   //--------------------------------------------------------------------------
@@ -257,7 +257,7 @@ namespace OpenMS
     MzPAFPeakAnnotations anns = MzPAF::parseMultiple("b2,y4^2");
 
     // Convert back to string
-    String s = MzPAF::toString(ann);
+    std::string s = MzPAF::toString(ann);
 
     // Check if a string is mzPAF format
     if (MzPAF::isMzPAFFormat("y4^2")) { ... }
@@ -284,7 +284,7 @@ namespace OpenMS
       @note If the input contains multiple comma-separated annotations, only the first is returned.
             Use parseMultiple() for multi-annotation strings.
     */
-    static MzPAFAnnotation parse(const String& input);
+    static MzPAFAnnotation parse(const std::string& input);
 
     /**
       @brief Parse an mzPAF string with potentially multiple annotations
@@ -293,7 +293,7 @@ namespace OpenMS
       @return All parsed annotations
       @throws MzPAFParseError if parsing fails
     */
-    static MzPAFPeakAnnotations parseMultiple(const String& input);
+    static MzPAFPeakAnnotations parseMultiple(const std::string& input);
 
     /**
       @brief Try to parse an mzPAF string (non-throwing)
@@ -301,7 +301,7 @@ namespace OpenMS
       @param[in] input The mzPAF string to parse
       @return The parsed annotation, or std::nullopt on failure
     */
-    static std::optional<MzPAFAnnotation> tryParse(const String& input);
+    static std::optional<MzPAFAnnotation> tryParse(const std::string& input);
 
     /**
       @brief Try to parse multiple annotations (non-throwing)
@@ -309,7 +309,7 @@ namespace OpenMS
       @param[in] input The mzPAF string to parse
       @return The parsed annotations, or empty on failure
     */
-    static std::optional<MzPAFPeakAnnotations> tryParseMultiple(const String& input);
+    static std::optional<MzPAFPeakAnnotations> tryParseMultiple(const std::string& input);
 
     //--------------------------------------------------------------------------
     // Serialization
@@ -321,7 +321,7 @@ namespace OpenMS
       @param[in] ann The annotation to convert
       @return The mzPAF string representation
     */
-    static String toString(const MzPAFAnnotation& ann);
+    static std::string toString(const MzPAFAnnotation& ann);
 
     /**
       @brief Convert multiple annotations to mzPAF string
@@ -329,7 +329,7 @@ namespace OpenMS
       @param[in] anns The annotations to convert
       @return The mzPAF string representation (comma-separated)
     */
-    static String toString(const MzPAFPeakAnnotations& anns);
+    static std::string toString(const MzPAFPeakAnnotations& anns);
 
     //--------------------------------------------------------------------------
     // PeakAnnotation Integration
@@ -371,7 +371,7 @@ namespace OpenMS
       @param[in] annotation The string to check
       @return True if the string appears to be mzPAF format
     */
-    static bool isMzPAFFormat(const String& annotation);
+    static bool isMzPAFFormat(const std::string& annotation);
 
     /**
       @brief Calculate theoretical m/z for an annotation

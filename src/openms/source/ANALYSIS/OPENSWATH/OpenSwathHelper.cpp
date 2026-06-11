@@ -96,11 +96,11 @@ namespace OpenMS
       const std::vector<Precursor>& prec = swath_map[index].getPrecursors();
       if (prec.size() != 1)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " does not have exactly one precursor.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + StringUtils::toStr(index) + " does not have exactly one precursor.");
       }
       if (swath_map[index].getMSLevel() != expected_mslevel)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " if of a different MS level than the first scan.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + StringUtils::toStr(index) + " if of a different MS level than the first scan.");
       }
       if (
         fabs(prec[0].getMZ() - first_prec[0].getMZ()) > 0.1 ||
@@ -108,7 +108,7 @@ namespace OpenMS
         fabs(prec[0].getIsolationWindowUpperOffset() - first_prec[0].getIsolationWindowUpperOffset()) > 0.1
         )
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " has a different precursor isolation window than the first scan.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + StringUtils::toStr(index) + " has a different precursor isolation window than the first scan.");
       }
     }
   }
@@ -131,7 +131,7 @@ namespace OpenMS
     std::set<std::string> matching_proteins;
     for (Size i = 0; i < targeted_exp.compounds.size(); i++)
     {
-      if (matching_compounds.find(targeted_exp.compounds[i].id) != matching_compounds.end())
+      if (matching_compounds.contains(targeted_exp.compounds[i].id))
       {
         transition_exp_used.compounds.push_back( targeted_exp.compounds[i] );
         for (Size j = 0; j < targeted_exp.compounds[i].protein_refs.size(); j++)
@@ -142,7 +142,7 @@ namespace OpenMS
     }
     for (Size i = 0; i < targeted_exp.proteins.size(); i++)
     {
-      if (matching_proteins.find(targeted_exp.proteins[i].id) != matching_proteins.end())
+      if (matching_proteins.contains(targeted_exp.proteins[i].id))
       {
         transition_exp_used.proteins.push_back( targeted_exp.proteins[i] );
       }
@@ -185,7 +185,7 @@ namespace OpenMS
     std::vector<OpenSwath::LightCompound> candidates;
     std::vector<OpenSwath::LightCompound> priority_candidates;
 
-    std::unordered_set<String> good_ids;
+    std::unordered_set<std::string> good_ids;
     for (auto & tr : exp.getTransitions())
     {
       if (!tr.getDecoy())
@@ -195,9 +195,9 @@ namespace OpenMS
     // Separate compounds into priority and regular candidates
     for (auto & cmp : exp.getCompounds())
     {
-      if (good_ids.count(cmp.id))
+      if (good_ids.contains(cmp.id))
       {
-        if (priority_peptides.count(cmp.sequence))
+        if (priority_peptides.contains(cmp.sequence))
         {
           priority_candidates.push_back(cmp);
         }
@@ -212,7 +212,7 @@ namespace OpenMS
     if (sort_by_intensity && top_fraction > 0.0 && top_fraction <= 1.0)
     {
       // sum intensities per peptide across all transitions
-      std::unordered_map<String, double> intensity_sum;
+      std::unordered_map<std::string, double> intensity_sum;
       for (auto & tr : exp.getTransitions())
       {
         if (!tr.getDecoy())
@@ -245,7 +245,7 @@ namespace OpenMS
     if (all_candidates.size() < 3)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "Insufficient candidates for sampling: " + String(all_candidates.size()) +
+                                       "Insufficient candidates for sampling: " + StringUtils::toStr(all_candidates.size()) +
                                          " found, minimum 3 required for meaningful iRT calibration.");
     }
 
@@ -281,7 +281,7 @@ namespace OpenMS
         
         for (auto & cmp : priority_candidates)
         {
-          if (cmp.rt >= lo && cmp.rt < hi && picked_sequences.find(cmp.sequence) == picked_sequences.end())
+          if (cmp.rt >= lo && cmp.rt < hi && !picked_sequences.contains(cmp.sequence))
             bucket.push_back(cmp);
         }
         
@@ -329,7 +329,7 @@ namespace OpenMS
           std::vector<OpenSwath::LightCompound> bucket;
           for (auto & cmp : candidates)
           {
-            if (cmp.rt >= lo && cmp.rt < hi && picked_sequences.find(cmp.sequence) == picked_sequences.end())
+            if (cmp.rt >= lo && cmp.rt < hi && !picked_sequences.contains(cmp.sequence))
               bucket.push_back(cmp);
           }
           
@@ -352,7 +352,7 @@ namespace OpenMS
     out_exp.compounds = picked;
 
     // copy matching transitions, excluding decoys if requested
-    std::unordered_set<String> pep_ids;
+    std::unordered_set<std::string> pep_ids;
     for (auto & cmp : picked)
       pep_ids.insert(cmp.id);
     for (auto & tr : exp.getTransitions())
@@ -362,13 +362,13 @@ namespace OpenMS
     }
 
     // copy associated proteins
-    std::unordered_set<String> prot_ids;
+    std::unordered_set<std::string> prot_ids;
     for (auto & cmp : picked)
       for (auto & pid : cmp.protein_refs)
         prot_ids.insert(pid);
     for (auto & prot : exp.getProteins())
     {
-      if (prot_ids.count(prot.id))
+      if (prot_ids.contains(prot.id))
         out_exp.proteins.push_back(prot);
     }
 
@@ -394,7 +394,7 @@ namespace OpenMS
       }
 
       // If we have a found a best feature, add it to the vector
-      String pepref = trgroup_it.second.getTransitions()[0].getPeptideRef();
+      std::string pepref = trgroup_it.second.getTransitions()[0].getPeptideRef();
       result[ pepref ] = bestf.getRT();
     }
     return result;

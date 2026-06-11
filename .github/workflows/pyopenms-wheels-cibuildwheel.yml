@@ -131,9 +131,9 @@ jobs:
                 -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
                 -DPYOPENMS=OFF \
                 -DWITH_GUI=OFF \
+                -DWITH_THERMO_RAW=OFF \
                 -DENABLE_TUTORIALS=OFF \
-                -DENABLE_DOCS=OFF \
-                -DWITH_PARQUET=ON
+                -DENABLE_DOCS=OFF
               ninja OpenMS OpenSwathAlgo
               cmake --install . --component library --strip
               cmake --install . --component OpenMS_headers
@@ -211,9 +211,9 @@ jobs:
                 -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
                 -DPYOPENMS=OFF \
                 -DWITH_GUI=OFF \
+                -DWITH_THERMO_RAW=OFF \
                 -DENABLE_TUTORIALS=OFF \
-                -DENABLE_DOCS=OFF \
-                -DWITH_PARQUET=ON
+                -DENABLE_DOCS=OFF
               ninja OpenMS OpenSwathAlgo
               cmake --install . --component library --strip
               cmake --install . --component OpenMS_headers
@@ -254,12 +254,20 @@ jobs:
   # macOS: Build OpenMS and wheels in same job to preserve absolute library paths for delocate
   build-wheels-macos:
     needs: [setup]
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
         run: bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps && brew install ccache
+
+      # macOS runners do not ship a .NET SDK. OpenMSThermoBridge targets net8.0
+      # and FindDotNetHost.cmake needs the nethost SDK pack for osx-arm64; the
+      # action installs the SDK and exports DOTNET_ROOT.
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
       - name: Build and install OpenMS
         run: |
@@ -281,8 +289,7 @@ jobs:
             -DWITH_GUI=OFF \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
-            -DMT_ENABLE_OPENMP=ON \
-            -DWITH_PARQUET=ON
+            -DMT_ENABLE_OPENMP=ON
           ninja OpenMS OpenSwathAlgo
           cmake --install . --component library --strip
           cmake --install . --component OpenMS_headers
@@ -312,7 +319,7 @@ jobs:
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT="${{ github.workspace }}/install"
             CMAKE_PREFIX_PATH="/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/install"
-            MACOSX_DEPLOYMENT_TARGET=14.0
+            MACOSX_DEPLOYMENT_TARGET=15.0
             CMAKE_BUILD_PARALLEL_LEVEL=2
           CIBW_BUILD_VERBOSITY: 1
           #CIBW_TEST_SKIP: "*"
@@ -386,9 +393,9 @@ jobs:
             -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contrib" \
             -DPYOPENMS=OFF \
             -DWITH_GUI=OFF \
+            -DWITH_THERMO_RAW=OFF \
             -DENABLE_TUTORIALS=OFF \
-            -DENABLE_DOCS=OFF \
-            -DWITH_PARQUET=ON
+            -DENABLE_DOCS=OFF
           cmake --build . --target OpenMS OpenSwathAlgo
           cmake --install . --component library --strip
           cmake --install . --component OpenMS_headers
@@ -446,14 +453,14 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
-        os: [ubuntu-latest, ubuntu-22.04-arm, macos-14, windows-latest]
+        os: [ubuntu-latest, ubuntu-22.04-arm, macos-15, windows-latest]
         include:
           # Map os to artifact names
           - os: ubuntu-latest
             artifact: wheels-linux-x64
           - os: ubuntu-22.04-arm
             artifact: wheels-linux-arm64
-          - os: macos-14
+          - os: macos-15
             artifact: wheels-macos-arm64
           - os: windows-latest
             artifact: wheels-windows-x64

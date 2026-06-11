@@ -29,11 +29,11 @@ namespace OpenMS
       MassExplainer::AdductsType getPotentialAdducts()
       { return potential_adducts_;}
       /// labeling table
-      std::map<Size, String> getMapLabels()
+      std::map<Size, std::string> getMapLabels()
       { return map_label_;}
 
       /// labeling table inverse
-      std::map<String, Size> getMapLabelInverse()
+      std::map<std::string, Size> getMapLabelInverse()
       { return map_label_inverse_;}
 
 			/// status of intensity filter for edges
@@ -81,8 +81,8 @@ START_SECTION([EXTRA](void updateMembers_()))
   
   {
 	MassExplainer::AdductsType adducts = fdt.getPotentialAdducts();
-  std::map<Size, String> map = fdt.getMapLabels();
-  std::map<String, Size> map_i = fdt.getMapLabelInverse();
+  std::map<Size, std::string> map = fdt.getMapLabels();
+  std::map<std::string, Size> map_i = fdt.getMapLabelInverse();
   bool b_filter = fdt.isIntensityFilterEnabled();
   FeatureDeconvolution::CHARGEMODE cm = fdt.getChargeMode();
 
@@ -127,8 +127,8 @@ START_SECTION([EXTRA](void updateMembers_()))
 	fdt.setParameters(p);
   {
   MassExplainer::AdductsType adducts = fdt.getPotentialAdducts();
-  std::map<Size, String> map = fdt.getMapLabels();
-  std::map<String, Size> map_i = fdt.getMapLabelInverse();
+  std::map<Size, std::string> map = fdt.getMapLabels();
+  std::map<std::string, Size> map_i = fdt.getMapLabelInverse();
   bool b_filter = fdt.isIntensityFilterEnabled();
   FeatureDeconvolution::CHARGEMODE cm = fdt.getChargeMode();
 
@@ -199,7 +199,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 	fl.load(OPENMS_GET_TEST_DATA_PATH("FeatureDeconvolution_easy_input.featureXML"), fm_in);
 	fd.compute(fm_in, fm_out, cm, cm2);
 
-	String out_file;
+	std::string out_file;
 	NEW_TMP_FILE(out_file)
 	ConsensusXMLFile c1;
 

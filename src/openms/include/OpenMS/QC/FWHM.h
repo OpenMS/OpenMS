@@ -44,7 +44,7 @@ namespace OpenMS
     void compute(FeatureMap& features);
 
 
-    const String& getName() const override;
+    const std::string& getName() const override;
 
     Status requirements() const override;
   };

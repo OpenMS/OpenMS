@@ -11,10 +11,9 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#ifdef WITH_PARQUET
 #include <parquet/file_reader.h>
 #include <filesystem>
 #include <fstream>
@@ -24,12 +23,9 @@
 #include <zip.h>
 #define OPENMS_HAVE_LIBZIP 1
 #endif
-#endif
 
 namespace OpenMS
 {
-
-#ifdef WITH_PARQUET
 
   // ---- Arrow builder helpers ------------------------------------------------
 
@@ -50,7 +46,7 @@ namespace OpenMS
 
   // ---- Parquet file I/O -----------------------------------------------------
 
-  void ParquetFile::writeTable(const std::shared_ptr<arrow::Table>& table, const String& filename,
+  void ParquetFile::writeTable(const std::shared_ptr<arrow::Table>& table, const std::string& filename,
                                int64_t row_group_size)
   {
     auto outfile_result = arrow::io::FileOutputStream::Open(std::string(filename));
@@ -58,7 +54,7 @@ namespace OpenMS
     {
       throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
-    auto outfile = outfile_result.ValueOrDie();
+    const auto& outfile = outfile_result.ValueOrDie();
     // Use a larger default row_group_size than 1024 to improve compression and reduce metadata overhead.
     // Default is configurable by callers via the row_group_size parameter.
     auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, static_cast<int>(row_group_size));
@@ -69,7 +65,7 @@ namespace OpenMS
     }
   }
 
-  std::shared_ptr<arrow::Table> ParquetFile::readTable(const String& filename)
+  std::shared_ptr<arrow::Table> ParquetFile::readTable(const std::string& filename)
   {
     auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
     if (!infile_result.ok())
@@ -77,7 +73,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Failed to open parquet file", filename);
     }
-    std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+    const std::shared_ptr<arrow::io::ReadableFile>& infile = *infile_result;
 
     auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
     if (!reader_result.ok())
@@ -232,7 +228,7 @@ namespace OpenMS
         if (v > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Unsigned integer value too large to fit into int64_t", String(std::to_string(v)));
+                                        "Unsigned integer value too large to fit into int64_t",std::string(std::to_string(v)));
         }
         return static_cast<int64_t>(v);
       }
@@ -342,11 +338,11 @@ namespace OpenMS
     // semicolon-delimited string
     if (array->type_id() == arrow::Type::STRING || array->type_id() == arrow::Type::LARGE_STRING)
     {
-      String raw = getString(array, row);
+      std::string raw = getString(array, row);
       if (!raw.empty())
       {
-        std::vector<String> parts;
-        raw.split(';', parts);
+        std::vector<std::string> parts;
+        StringUtils::split(raw, ';', parts);
         values.reserve(parts.size());
         for (const auto& part : parts)
         {
@@ -387,13 +383,10 @@ namespace OpenMS
                                   "Unsupported list column type", "");
   }
 
-#endif // WITH_PARQUET
-
   // ---- Parquet archive utilities --------------------------------------------
 
 
-#ifdef WITH_PARQUET
-  std::string ParquetFile::jsonEscape(const String& input)
+  std::string ParquetFile::jsonEscape(const std::string& input)
   {
     std::string out;
     out.reserve(input.size());
@@ -425,12 +418,11 @@ namespace OpenMS
     return out;
   }
 
-  int64_t ParquetFile::rowCount(const String& filename)
+  int64_t ParquetFile::rowCount(const std::string& filename)
   {
     if (!File::exists(filename)) return 0;
     std::unique_ptr<parquet::ParquetFileReader> reader = parquet::ParquetFileReader::OpenFile(std::string(filename), false);
     return reader->metadata()->num_rows();
   }
-#endif
 
 } // namespace OpenMS

@@ -47,7 +47,7 @@ END_SECTION
 START_SECTION((void generateSeedList(const PeakMap& experiment, SeedList& seeds)))
 {
 	PeakMap experiment;
-	String path = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
+	std::string path = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
 	MzMLFile().load(path, experiment);
 	SeedListGenerator::SeedList seeds;
 	SeedListGenerator().generateSeedList(experiment, seeds);
@@ -91,7 +91,7 @@ END_SECTION
 START_SECTION((void generateSeedLists(const ConsensusMap& consensus, Map<UInt64, SeedList>& seed_lists)))
 {
 	ConsensusMap consensus;
-	String path = OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML");
+	std::string path = OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML");
 	ConsensusXMLFile().load(path, consensus);
 	std::map<UInt64, SeedListGenerator::SeedList> seed_lists;
 	SeedListGenerator().generateSeedLists(consensus, seed_lists);

@@ -9,13 +9,8 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/OpenMSConfig.h>
-
-#include <memory>
-
-// forward declaration
-class QDate;
 
 namespace OpenMS
 {
@@ -39,22 +34,19 @@ public:
     Date();
 
     /// Copy constructor
-    Date(const Date& date);
-
-    /// Copy constructor from Qt base class
-    Date(const QDate& date);
+    Date(const Date& date) = default;
 
     /// Move constructor
-    Date(Date&&) noexcept;
+    Date(Date&&) noexcept = default;
 
     /// Destructor
-    ~Date();
+    ~Date() = default;
 
     /// Assignment operator
-    Date& operator=(const Date& source);
+    Date& operator=(const Date& source) = default;
 
     /// Move assignment operator
-    Date& operator=(Date&&) & noexcept;
+    Date& operator=(Date&&) & noexcept = default;
 
     /// Equality operator
     bool operator==(const Date& rhs) const;
@@ -75,7 +67,7 @@ public:
 
         @exception Exception::ParseError is thrown if the date is given in the wrong format
     */
-    void set(const String& date);
+    void set(const std::string& date);
 
     /**
         @brief sets data from three integers
@@ -92,7 +84,7 @@ public:
 
         Uses the iso/ansi date format: 'yyyy-mm-dd'
     */
-    String get() const;
+    std::string get() const;
 
     /**
         @brief Fills the arguments with the date
@@ -120,7 +112,9 @@ public:
     int day() const;
 
 private:
-    std::unique_ptr<QDate> date_; ///< Internal QDate representation
+    struct Fields {
+      int year = 0, month = 0, day = 0;
+      bool valid = false;
+    } fields_;
   };
-} // namespace OPENMS
-
+} // namespace OpenMS

@@ -53,8 +53,8 @@ namespace OpenMS
     // don't check for low max. intensity, because intensities may be ignored:
     if ((max_mz < 1e-16) || (max_mz > 1e16) || (max_intensity > 1e16))
     {
-      String msg = "Maximum m/z or intensity out of range (m/z: " + 
-        String(max_mz) + ", intensity: " + String(max_intensity) + "). "
+      std::string msg = "Maximum m/z or intensity out of range (m/z: " + 
+        StringUtils::toStr(max_mz) + ", intensity: " + StringUtils::toStr(max_intensity) + "). "
         "Has 'updateRanges' been called on the input maps?";
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
@@ -91,8 +91,8 @@ namespace OpenMS
     if (use_IDs_)
     {
       // map string "modified sequence/charge" to all RTs the feature has been observed in the different maps
-      std::unordered_map<String, std::vector<double>> ided_feat_rts;
-      //std::unordered_map<String, std::vector<const typename MapType::FeatureType*>> ided_feats;
+      std::unordered_map<std::string, std::vector<double>> ided_feat_rts;
+      //std::unordered_map<std::string, std::vector<const typename MapType::FeatureType*>> ided_feats;
       double minRT = std::numeric_limits<double>::max();
       for (auto& map : input_maps)
       {
@@ -112,7 +112,7 @@ namespace OpenMS
               {
                 //TODO we could loosen the score filtering by requiring only ONE IDed feature of a peptide to pass the threshold.
                 // Would require a second pass though
-                const String key = pepIDs[0].getHits()[0].getSequence().toString() + "/" + feat.getCharge();
+                const std::string key = pepIDs[0].getHits()[0].getSequence().toString() + "/" + feat.getCharge();
                 const auto [it, inserted] = ided_feat_rts.emplace(key, std::vector<double>{feat.getRT()});
                 if (!inserted) // already present
                 {
@@ -514,7 +514,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
     float best_quality = 0;
     size_t best_quality_index = 0;
     // collect the "Group" MetaValues of Features in a ConsensusFeature MetaValue (Constanst::UserParam::IIMN_LINKED_GROUPS)
-    vector<String> linked_groups;
+    vector<std::string> linked_groups;
     // the features of the current best cluster are inserted into the new consensus feature
     for (const auto& element : elements)
     {
@@ -526,7 +526,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       feature.insert(element.map_index, elem_feat);
       if (elem_feat.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
       {
-        feature.setMetaValue(String(elem_feat.getUniqueId()), elem_feat.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
+        feature.setMetaValue(StringUtils::toStr(elem_feat.getUniqueId()), elem_feat.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
       }
       if (elem_feat.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) && (elem_feat.getQuality() > best_quality))
       {
@@ -690,7 +690,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 
             // Skip features that we have already used -> we cannot add them to
             // be neighbors any more
-            if (already_used_.find(neighbor_feature) != already_used_.end() )
+            if (already_used_.contains(neighbor_feature) )
             {
               continue;
             }

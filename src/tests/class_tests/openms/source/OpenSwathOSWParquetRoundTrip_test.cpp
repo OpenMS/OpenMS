@@ -16,12 +16,11 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <OpenMS/FORMAT/ZipRandomAccessFile.h>
 
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/writer.h>
-#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -30,9 +29,8 @@ START_TEST(OpenSwathOSWParquetRoundTrip, "$Id$")
 
 START_SECTION(void round-trip write/read .oswpq archive using RAF path)
 {
-#ifdef WITH_PARQUET
   // Build a reference LightTargetedExperiment from a TraML file
-  const String input_file = OPENMS_GET_TEST_DATA_PATH("MRMAssay_detectingTransistionCompound_input.TraML");
+  const std::string input_file = OPENMS_GET_TEST_DATA_PATH("MRMAssay_detectingTransistionCompound_input.TraML");
   TraMLFile traml;
   TargetedExperiment targeted_exp;
   traml.load(input_file, targeted_exp);
@@ -43,11 +41,11 @@ START_SECTION(void round-trip write/read .oswpq archive using RAF path)
 
   // Write to a single .oswpq archive (do NOT create a directory) to exercise archive writer path
   File::TempDir tmp_dir;
-  const String out_archive = tmp_dir.getPath() + "/roundtrip.oswpq";
+  const std::string out_archive = tmp_dir.getPath() + "/roundtrip.oswpq";
 
   OpenSwathOSWParquetWriter writer;
   FeatureMap empty_map;
-  writer.write(out_archive, light_exp, empty_map, 1, String("test_input"), false);
+  writer.write(out_archive, light_exp, empty_map, 1,std::string("test_input"), false);
 
   // Archive and embedded sidecar should exist (sidecar is written inside the zip)
   TEST_EQUAL(File::exists(out_archive), true)
@@ -58,20 +56,24 @@ START_SECTION(void round-trip write/read .oswpq archive using RAF path)
     TEST_EQUAL(found, true)
   }
 
-  // Read back using TransitionParquetFile which should prefer RAF-based reads when available
-  // Reset test extraction counter and assert no extraction occurs (i.e., RAF path used)
-  ZipArchiveFile::testResetExtractionCount();
+  // Verify the RAF path works: ZipRandomAccessFile::Open should succeed directly on the archive
+  {
+    std::unique_ptr<File::TempDir> raf_tmp;
+    auto ra_res = ZipRandomAccessFile::Open(out_archive, "library/precursors.parquet", raf_tmp);
+#if __has_include(<zip.h>)
+    TEST_EQUAL(ra_res.ok(), true)
+#else
+    TEST_EQUAL(ra_res.status().IsNotImplemented(), true)
+#endif
+  }
+
+  // Read back using TransitionParquetFile and verify the round-trip data
   TransitionParquetFile reader;
   OpenSwath::LightTargetedExperiment roundtrip_exp;
   reader.convertParquetToTargetedExperiment(out_archive, roundtrip_exp);
 
-  TEST_EQUAL(ZipArchiveFile::testGetExtractionCount(), 0)
-
   TEST_EQUAL(roundtrip_exp.compounds.size(), light_exp.compounds.size())
   TEST_EQUAL(roundtrip_exp.transitions.size(), light_exp.transitions.size())
-#else
-  NOT_TESTABLE
-#endif
 }
 END_SECTION
 

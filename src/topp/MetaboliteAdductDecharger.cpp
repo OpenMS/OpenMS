@@ -25,7 +25,7 @@ using namespace std;
 /**
 @page TOPP_MetaboliteAdductDecharger MetaboliteAdductDecharger
 
-@brief Decharges a feature map by clustering charge variants of metabolites to zero-charge entities.
+@brief Decharges a feature map by clustering charge variants of metabolites to zero-charge entities and optionally detects multimers.
 <CENTER>
     <table>
         <tr>
@@ -51,6 +51,10 @@ Via this mechanism it is also possible to use this tool to find pairs/triples/qu
 tag weight as an adduct). If mass tags induce an RT shift (e.g. deuterium labeled data) you can also specify this also in the adduct list.
 This will allow to tighten the RT search window, thus reducing false positive results.
 
+The tool can also detect multimers (dimers, trimers, etc.) via the 'max_multimer' parameter. For example, setting max_multimer=2 enables
+detection of charge-changing multimer relationships such as [M+H]+ and [2M+2H]2+, which are common in lipidomics. The default value of 1
+disables multimer detection for backward compatibility.
+
 This tool is derived from the method described in the following publication:
 
 Bielow C, Ruzek S, Huber CG, Reinert K. Optimal decharging and clustering of charge ladders generated in ESI-MS. J Proteome Res 2010; 9: 2688.<br>
@@ -70,7 +74,7 @@ class UTILMetaboliteAdductDecharger :
 {
 public:
   UTILMetaboliteAdductDecharger() :
-    TOPPBase("MetaboliteAdductDecharger", "Decharges and merges different feature charge variants of the same metabolite.")
+    TOPPBase("MetaboliteAdductDecharger", "Decharges and merges different feature charge variants of the same metabolite; optionally detects multimers.")
   {
   }
 
@@ -78,18 +82,18 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("featureXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("featureXML"));
     registerOutputFile_("out_cm", "<file>", "", "output consensus map", false);
     registerOutputFile_("out_fm", "<file>", "", "output feature map", false);
     registerOutputFile_("outpairs", "<file>", "", "output file", false);
-    setValidFormats_("out_fm", ListUtils::create<String>("featureXML"));
-    setValidFormats_("out_cm", ListUtils::create<String>("consensusXML"));
-    setValidFormats_("outpairs", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("out_fm", ListUtils::create<std::string>("featureXML"));
+    setValidFormats_("out_cm", ListUtils::create<std::string>("consensusXML"));
+    setValidFormats_("outpairs", ListUtils::create<std::string>("consensusXML"));
     addEmptyLine_();
     registerSubsection_("algorithm", "Feature decharging algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const override
+  Param getSubsectionDefaults_(const std::string & /*section*/) const override
   {
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the FeatureDecharger param
     MetaboliteFeatureDeconvolution fdc;
@@ -103,10 +107,10 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String infile = getStringOption_("in");
-    String outfile_fm = getStringOption_("out_fm");
-    String outfile_cm = getStringOption_("out_cm");
-    String outfile_p = getStringOption_("outpairs");
+    std::string infile = getStringOption_("in");
+    std::string outfile_fm = getStringOption_("out_fm");
+    std::string outfile_cm = getStringOption_("out_cm");
+    std::string outfile_p = getStringOption_("outpairs");
 
     MetaboliteFeatureDeconvolution fdc;
     Param const & dc_param = getParam_().copy("algorithm:MetaboliteFeatureDeconvolution:", true);

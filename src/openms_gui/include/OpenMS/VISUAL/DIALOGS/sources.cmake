@@ -5,12 +5,9 @@ set(directory include/OpenMS/VISUAL/DIALOGS)
 set(sources_list_h
 DataFilterDialog.h
 FeatureEditDialog.h
-FLASHDeconvTabWidget.h
 HistogramDialog.h
 LayerStatisticsDialog.h
 ListFilterDialog.h
-PythonModuleRequirement.h
-PythonSelector.h
 SaveImageDialog.h
 Plot1DGoToDialog.h
 Plot1DPrefDialog.h
@@ -18,7 +15,6 @@ Plot2DGoToDialog.h
 Plot2DPrefDialog.h
 Plot3DPrefDialog.h
 SpectrumAlignmentDialog.h
-SwathTabWidget.h
 TOPPASIOMappingDialog.h
 TOPPASInputFileDialog.h
 TOPPASInputFilesDialog.h
@@ -29,7 +25,6 @@ TOPPViewOpenDialog.h
 TOPPViewPrefDialog.h
 TheoreticalSpectrumGenerationDialog.h
 ToolsDialog.h
-WizardHelper.h
 )
 
 ### add path to the filenames

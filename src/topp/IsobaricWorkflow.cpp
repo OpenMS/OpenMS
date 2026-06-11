@@ -47,9 +47,9 @@
 
 #include <memory> // for std::unique_ptr
 
-#ifdef WITH_PARQUET
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
-#endif
+#include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/FORMAT/QPXFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -85,8 +85,10 @@ using namespace std;
 
   This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, and 18-plex and higher labeling methods.
   It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
-  in which each consensus feature represents one relevant MSn scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
-  The MS level for quantification is chosen automatically, i.e. if MS3 is present, MS2 will be ignored.
+  in which each consensus feature represents one identified PSM together with its reporter ions.
+  The MS level for quantification is chosen automatically per PSM: if MS3 is present, the MS3 product spectrum of the identifying MS2 scan is used (SPS-MS3), otherwise the MS2 scan itself.
+  Unlike @ref TOPP_IsobaricAnalyzer, this tool does NOT filter quantification scans by activation method (@p extraction:select_activation is ignored),
+  because SPS-MS3 reporter scans are frequently labelled as plain CID rather than HCD; selection is therefore based on the MS-level structure alone.
   For intensity, the closest non-zero m/z signal to the theoretical position is taken as reporter ion abundance.
   The position (RT, m/z) of the consensus centroid is the precursor position in MS1 (from the MS2 spectrum);
   the consensus sub-elements correspond to the theoretical channel m/z (with m/z values of 113-121 Th for iTRAQ and 126-131 Th for TMT, respectively).
@@ -150,8 +152,8 @@ class TOPPIsobaricWorkflow :
 {
 private:
   std::string ID_RUN_NAME_ = "IsobaricWorkflow_";
-  std::map<String, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
-  std::map<String, String> quant_method_names_;
+  std::map<std::string, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
+  std::map<std::string, std::string> quant_method_names_;
 
   void addMethod_(std::unique_ptr<IsobaricQuantitationMethod> ptr, std::string name)
   {
@@ -188,7 +190,7 @@ protected:
     registerInputFileList_("in", "<file>", {}, "input centroided spectrum files");
     setValidFormats_("in", {"mzML"});
     registerInputFileList_("in_id", "<file>", {}, "corresponding input PSMs");
-    setValidFormats_("in_id", {"idXML"});
+    setValidFormats_("in_id", {"idXML", "mzId", "idparquet"});
     registerInputFile_("exp_design", "<file>", "", "experimental design file (optional). If not given, the design is assumed to be unfractionated.", false);
     setValidFormats_("exp_design", {"tsv"});
     registerOutputFile_("out", "<file>", "", "output consensusXML file");
@@ -196,10 +198,7 @@ protected:
     registerOutputFile_("out_mzTab", "<file>", "", "output mzTab file with quantitative information");
     setValidFormats_("out_mzTab", {"mzTab"});
 
-#ifdef WITH_PARQUET
-    registerOutputFile_("out_feature_qpx", "<file>", "", "Output parquet file for feature-level quantification (QPX feature format)", false, false);
-    setValidFormats_("out_feature_qpx", {"parquet"});
-#endif
+    registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet)", false, false);
     registerFlag_("calculate_id_purity", "Calculate the purity of the precursor ion based on the MS1 spectrum. Only used for MS3, otherwise it is the same as the quant. precursor purity.");
     //registerIntOption_("max_parallel_files", "<num>", 1, "Maximum number of files to load in parallel.", false);
     registerDoubleOption_("psm_score", "<score>", NAN, "The score which should be reached by a peptide hit to be kept.  (use 'NAN' to disable this filter)", false);
@@ -207,7 +206,7 @@ protected:
     registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the IDs.");
     // registerFlag_("remove_decoys", "Remove decoys according to the information in the user parameters.");
     registerStringOption_("inference_method", "<option>", "aggregation", "Methods used for protein inference", false);
-    setValidStrings_("inference_method", ListUtils::create<String>("aggregation,bayesian"));
+    setValidStrings_("inference_method", ListUtils::create<std::string>("aggregation,bayesian"));
     registerStringOption_("picked_fdr", "<option>", "false", "Use a picked protein FDR", false, true);
     setValidStrings_("picked_fdr", {"true", "false"});
     registerStringOption_("picked_decoy_string", "<decoy_string>", "", "If using picked protein FDRs, which decoy string was used? Leave blank for auto-detection.", false, true);
@@ -228,13 +227,13 @@ protected:
         "strictly_unique_peptides = use peptides mapping to a unique single protein only.\n"
         "shared_peptides = use shared peptides only for its best group (by inference score)",
         false, true);
-    setValidStrings_("protein_quantification", ListUtils::create<String>("unique_peptides,strictly_unique_peptides,shared_peptides"));
+    setValidStrings_("protein_quantification", ListUtils::create<std::string>("unique_peptides,strictly_unique_peptides,shared_peptides"));
 
     registerSubsection_("extraction", "Parameters for the channel extraction.");
     registerSubsection_("quantification", "Parameters for the peptide quantification.");
     for (const auto& qm : quant_methods_)
     {
-      registerSubsection_(qm.second->getMethodName(), String("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
+      registerSubsection_(qm.second->getMethodName(),std::string("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
     }
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
     pq_defaults.setValue("top:include_all", "true");
@@ -269,7 +268,7 @@ protected:
     registerFullParam_(combined);
   }
 
-  Param getSubsectionDefaults_(const String& section) const override
+  Param getSubsectionDefaults_(const std::string& section) const override
   {
     ItraqFourPlexQuantitationMethod temp_quant;
     if (section == "extraction")
@@ -460,7 +459,7 @@ protected:
     time(&rawtime);
     const auto timeinfo = localtime(&rawtime);
     strftime(buffer.data(), sizeof(buffer), "%d-%m-%Y %H-%M-%S", timeinfo);
-    return s + String(buffer.data());
+    return s + std::string(buffer.data());
   }
 
   ExitCodes main_(int, const char**) override
@@ -469,8 +468,8 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String out = getStringOption_("out");
-    String exp_design = getStringOption_("exp_design");
+    std::string out = getStringOption_("out");
+    std::string exp_design = getStringOption_("exp_design");
     bool bayesian = getStringOption_("inference_method") == "bayesian";
     
     Param pq_param = getParam_().copy("ProteinQuantification:", true);
@@ -492,6 +491,23 @@ protected:
     channel_extractor.setParameters(extract_param);
     double min_reporter_intensity = channel_extractor.getParameters().getValue("min_reporter_intensity");
 
+    // IsobaricWorkflow selects the quantification spectrum per identified PSM purely by MS level
+    // (the MS3 product spectrum if MS3 is present, otherwise the identifying MS2 scan). It does NOT
+    // filter the quantification scans by activation method: for SPS-MS3 the MS3 reporter scans are
+    // frequently labelled as plain CID rather than HCD, so an activation filter would wrongly discard
+    // valid reporter scans. If the user explicitly requested a concrete activation method, warn that it
+    // is ignored here, so the behaviour is not silently different from IsobaricAnalyzer. See issue #7165.
+    {
+      const std::string sel_act = channel_extractor.getParameters().getValue("select_activation").toString();
+      if (!sel_act.empty() && sel_act != "any" && sel_act != "auto")
+      {
+        OPENMS_LOG_WARN << "Parameter 'extraction:select_activation' is set to '" << sel_act
+                        << "', but IsobaricWorkflow chooses the quantification spectrum automatically by MS level "
+                        << "(MS3 if present, otherwise MS2) and does not filter by activation method. "
+                        << "This setting will be ignored." << std::endl;
+      }
+    }
+
     // TODO since I am mostly using the internal classes IsobaricChannelCorrector and IsobaricNormalizer (if at all),
     //  I should only expose their parameters and only init their objects here.
     IsobaricQuantifier quantifier(quant_method.get());
@@ -504,7 +520,7 @@ protected:
     bool interpolate_precursor_purity = channel_extractor.getParameters().getValue("purity_interpolation").toBool();
     double max_precursor_isotope_deviation = channel_extractor.getParameters().getValue("precursor_isotope_deviation");
 
-    //const String& exp_design = getStringOption_("exp_design");
+    //const std::string& exp_design = getStringOption_("exp_design");
     IDMergerAlgorithm merger(ID_RUN_NAME_, false);
     ConsensusMap cmap;
     MzMLFile mzml_file;
@@ -531,13 +547,13 @@ protected:
     {
       //ConsensusMap& cur_cmap = all_cmaps[i];
       ConsensusMap cur_cmap;
-      const String& mz_file = in_mz[i];
-      const String& id_file = in_id[i];
+      const std::string& mz_file = in_mz[i];
+      const std::string& id_file = in_id[i];
 
       // load mzML
       PeakMap exp;
       mzml_file.load(mz_file, exp);
-      std::unordered_map<String, Size> ms2scan_to_index;
+      std::unordered_map<std::string, Size> ms2scan_to_index;
 
       bool has_ms3 = false;
       for (Size s = 0; s < exp.size(); ++s)
@@ -559,7 +575,8 @@ protected:
       // load idXML
       vector<ProteinIdentification> prot_ids;
       PeptideIdentificationList pep_ids;
-      FileHandler().loadIdentifications(id_file, prot_ids, pep_ids);
+      FileHandler().loadIdentifications(id_file, prot_ids, pep_ids,
+          {FileTypes::IDXML, FileTypes::MZIDENTML, FileTypes::IDPARQUET}, log_type_);
       // TODO filter by qvalue here?
       double pro_score = getDoubleOption_("protein_score");
       double psm_score = getDoubleOption_("psm_score");
@@ -627,7 +644,7 @@ protected:
 
             if (has_ms3 && exp[quant_spec_idx].getMSLevel() != 3)
             {
-              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MS3 spectrum expected but not found.", String(exp[quant_spec_idx].getMSLevel()));
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MS3 spectrum expected but not found.",StringUtils::toStr(exp[quant_spec_idx].getMSLevel()));
             }
 
             std::vector<double> itys = channel_extractor.extractSingleSpec(quant_spec_idx, exp, channel_qc);
@@ -707,26 +724,26 @@ protected:
     DataProcessing dp = getProcessingInfo_(DataProcessing::QUANTITATION);
     
     // Remove parameters for unused quantification methods
-    String selected_method = quant_method->getMethodName();
-    vector<String> keys_to_remove;
+    std::string selected_method = quant_method->getMethodName();
+    vector<std::string> keys_to_remove;
     
     for (const auto& qm : quant_methods_)
     {
       if (qm.first != selected_method)
       {
         // Collect all parameter keys that start with this unused method name
-        vector<String> all_keys;
+        vector<std::string> all_keys;
         dp.getKeys(all_keys);
-        for (const String& key : all_keys)
+        for (const std::string& key : all_keys)
         {
-          if (key.hasPrefix("parameter: " + qm.first + ":"))
+          if (StringUtils::hasPrefix(key, "parameter: " + qm.first + ":"))
           {
             keys_to_remove.push_back(key);
           }
         }
       }
     }
-    for (const String& key : keys_to_remove)
+    for (const std::string& key : keys_to_remove)
     {
       dp.removeMetaValue(key);
     }
@@ -861,21 +878,6 @@ protected:
     }
 
 
-#ifdef WITH_PARQUET
-    {
-      String out_feature_qpx = getStringOption_("out_feature_qpx");
-      if (!out_feature_qpx.empty())
-      {
-        OPENMS_LOG_INFO << "Exporting feature-level Parquet file..." << std::endl;
-        if (!ConsensusMapArrowExport::exportToParquet(cmap, out_feature_qpx))
-        {
-          OPENMS_LOG_ERROR << "Failed to write Parquet file: " << out_feature_qpx << std::endl;
-          return CANNOT_WRITE_OUTPUT_FILE;
-        }
-      }
-    }
-#endif
-
     PeptideAndProteinQuant prot_quantifier;
     prot_quantifier.setParameters(pq_param);
     prot_quantifier.readQuantData(
@@ -905,10 +907,51 @@ protected:
     prot_quantifier.annotateQuantificationsToProteins(
       protein_quants, inferred_proteins, true);
 
-    // TODO also allow storing mzTab and even better, parquet
+    {
+      std::string out_qpx = getOutputDirOption("out_qpx");
+      if (!out_qpx.empty())
+      {
+        OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
+
+        // Feature-level export
+        if (!ConsensusMapArrowExport::exportToParquet(cmap, out_qpx + "/quantms.feature.parquet"))
+        {
+          OPENMS_LOG_ERROR << "Failed to write features Parquet file" << std::endl;
+          return CANNOT_WRITE_OUTPUT_FILE;
+        }
+
+        // PSM-level export: collect all peptide IDs from consensus map
+        PeptideIdentificationList all_pepids;
+        for (const auto& feature : cmap)
+        {
+          for (const auto& pepid : feature.getPeptideIdentifications())
+          {
+            all_pepids.push_back(pepid);
+          }
+        }
+        for (const auto& pepid : cmap.getUnassignedPeptideIdentifications())
+        {
+          all_pepids.push_back(pepid);
+        }
+
+        if (!QPXFile::exportToParquet(cmap.getProteinIdentifications(), all_pepids, out_qpx + "/quantms.psm.parquet"))
+        {
+          OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
+          return CANNOT_WRITE_OUTPUT_FILE;
+        }
+
+        // Protein group export
+        if (!ProteinGroupArrowExport::exportToParquet(cmap, out_qpx + "/quantms.pg.parquet"))
+        {
+          OPENMS_LOG_ERROR << "Failed to write protein groups Parquet file" << std::endl;
+          return CANNOT_WRITE_OUTPUT_FILE;
+        }
+      }
+    }
+
     FileHandler().storeConsensusFeatures(out, cmap);
     
-    String out_mzTab = getStringOption_("out_mzTab");
+    std::string out_mzTab = getStringOption_("out_mzTab");
     if (! out_mzTab.empty()) 
     {
       const bool report_unidentified_features(false);

@@ -269,6 +269,48 @@ START_SECTION(([EXTRA] std::hash<ChargePair>))
 END_SECTION
 
 
+START_SECTION((Int getMolMultiplier(UInt pairID) const))
+{
+  // default constructor gives multiplier 1
+  ChargePair cp;
+  TEST_EQUAL(cp.getMolMultiplier(0), 1);
+  TEST_EQUAL(cp.getMolMultiplier(1), 1);
+}
+END_SECTION
+
+START_SECTION((void setMolMultiplier(UInt pairID, Int m)))
+{
+  ChargePair cp;
+  cp.setMolMultiplier(0, 2);
+  cp.setMolMultiplier(1, 3);
+  TEST_EQUAL(cp.getMolMultiplier(0), 2);
+  TEST_EQUAL(cp.getMolMultiplier(1), 3);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ChargePair multiplier in equality and hash))
+{
+  // multiplier affects equality
+  ChargePair cp1(34, 45, 4, 5, cmp, 12.34, false);
+  ChargePair cp2(34, 45, 4, 5, cmp, 12.34, false);
+  cp1.setMolMultiplier(0, 2);
+  TEST_FALSE(cp1 == cp2);
+
+  // same multiplier -> equal
+  cp2.setMolMultiplier(0, 2);
+  TEST_TRUE(cp1 == cp2);
+
+  // hash consistency
+  std::hash<ChargePair> hasher;
+  TEST_EQUAL(hasher(cp1), hasher(cp2));
+
+  // different multiplier -> different hash (likely)
+  cp2.setMolMultiplier(1, 3);
+  TEST_FALSE(cp1 == cp2);
+  TEST_NOT_EQUAL(hasher(cp1), hasher(cp2));
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

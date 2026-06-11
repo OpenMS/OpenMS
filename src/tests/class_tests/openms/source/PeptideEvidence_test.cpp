@@ -65,13 +65,13 @@ START_SECTION((bool operator!=(const PeptideEvidence &rhs) const ))
 }
 END_SECTION
 
-START_SECTION((const String& getProteinAccession() const ))
+START_SECTION((const std::string& getProteinAccession() const ))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((void setProteinAccession(const String &s)))
+START_SECTION((void setProteinAccession(const std::string &s)))
 {
   // TODO
 }

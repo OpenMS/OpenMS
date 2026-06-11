@@ -148,6 +148,23 @@ else()
     endif()
   endif()
 
+  # Patch nanobind's __forceinline → inline on MSVC to avoid O(n²) optimizer
+  # blowup that causes multi-hour compile times on large binding files.
+  # NB_DIR is set by nanobind-config.cmake regardless of install method
+  # (FetchContent or pip). See https://github.com/wjakob/nanobind/discussions/791
+  if(MSVC AND DEFINED NB_DIR)
+    set(_nb_defs_h "${NB_DIR}/include/nanobind/nb_defs.h")
+    if(EXISTS "${_nb_defs_h}")
+      file(READ "${_nb_defs_h}" _nb_defs)
+      string(FIND "${_nb_defs}" "__forceinline" _fi_pos)
+      if(NOT _fi_pos EQUAL -1)
+        string(REPLACE "__forceinline" "inline" _nb_defs "${_nb_defs}")
+        file(WRITE "${_nb_defs_h}" "${_nb_defs}")
+        message(STATUS "Patched nanobind nb_defs.h: __forceinline → inline (MSVC compile-time fix)")
+      endif()
+    endif()
+  endif()
+
   message(STATUS "Python found at ${Python_EXECUTABLE} with version ${Python_VERSION}")
   message(STATUS "Building pyOpenMS (nanobind) against OpenMS ${CF_OPENMS_PACKAGE_VERSION}")
   if(NO_DEPENDENCIES)
@@ -235,8 +252,14 @@ else()
     if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
       set_target_properties(${target_name} PROPERTIES
         INSTALL_RPATH "${PY_RPATH}"
-        BUILD_WITH_INSTALL_RPATH 1
       )
+      if(NOT NO_DEPENDENCIES)
+        # When dependencies are bundled alongside the modules, use the install
+        # RPATH at build time so $ORIGIN/ finds the co-located libraries.
+        set_target_properties(${target_name} PROPERTIES
+          BUILD_WITH_INSTALL_RPATH 1
+        )
+      endif()
       if(APPLE)
         set_target_properties(${target_name} PROPERTIES
           BUILD_WITH_INSTALL_NAME_DIR 1
@@ -275,48 +298,42 @@ else()
   _pyopenms_module_props(_pyopenms)
 
   # --------------------------------------------------------------------------
-  # Arrow zero-copy export (only when OpenMS was built with Parquet/Arrow)
+  # Arrow zero-copy export
   # --------------------------------------------------------------------------
-  get_target_property(_OPENMS_DEFS ${OPENMS_TARGET} INTERFACE_COMPILE_DEFINITIONS)
-  set(_HAS_PARQUET FALSE)
-  if(_OPENMS_DEFS)
-    foreach(_def ${_OPENMS_DEFS})
-      if(_def MATCHES "^WITH_PARQUET")
-        set(_HAS_PARQUET TRUE)
-      endif()
-    endforeach()
-  endif()
-  # Fall back: check if WITH_PARQUET was set in the OpenMS build cache
-  if(NOT _HAS_PARQUET AND WITH_PARQUET)
-    set(_HAS_PARQUET TRUE)
-  endif()
-  if(_HAS_PARQUET)
-    # In standalone builds, OPENMS_ARROW_TARGET is not exported by OpenMSConfig.cmake.
-    # Find Arrow ourselves so we can link the C++ bridge functions (ExportSchema, etc.).
-    if(NOT OPENMS_ARROW_TARGET)
-      find_package(Arrow QUIET)
-      if(Arrow_FOUND)
-        if(TARGET Arrow::arrow_static)
-          set(OPENMS_ARROW_TARGET Arrow::arrow_static)
-        elseif(TARGET Arrow::arrow_shared)
-          set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
-        endif()
-      endif()
+  # In standalone builds, OPENMS_ARROW_TARGET is not exported by OpenMSConfig.cmake.
+  # Find Arrow ourselves so we can link the C++ bridge functions (ExportSchema, etc.).
+  if(NOT OPENMS_ARROW_TARGET)
+    # Don't pin the version in find_package — Arrow's ConfigVersion uses
+    # SameMajorVersion compatibility, so requesting 23 rejects 24.x. Check the
+    # version manually after the call. Mirrors the main cmake path in
+    # cmake/cmake_findExternalLibs.cmake.
+    find_package(Arrow CONFIG REQUIRED)
+    if(Arrow_VERSION VERSION_LESS 23)
+      message(FATAL_ERROR "Apache Arrow >= 23 required (found ${Arrow_VERSION}).")
     endif()
-
-    message(STATUS "pyOpenMS: Building _arrow_zerocopy module (WITH_PARQUET detected)")
-    nanobind_add_module(_arrow_zerocopy
-      NB_DOMAIN pyopenms
-      NOMINSIZE
-      ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
-    )
-    _pyopenms_module_props(_arrow_zerocopy)
-    # arrow_zerocopy.cpp uses Arrow C++ API (ExportSchema, ImportRecordBatch, etc.)
-    # for zero-copy Table conversion between C++ and PyArrow.
-    target_link_libraries(_arrow_zerocopy PRIVATE ${OPENMS_ARROW_TARGET})
-  else()
-    message(STATUS "pyOpenMS: Skipping _arrow_zerocopy module (WITH_PARQUET not found)")
+    if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
+      set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+    elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_shared)
+      set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+    elseif(TARGET Arrow::arrow_static)
+      set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+    elseif(TARGET Arrow::arrow_shared)
+      set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+    else()
+      message(FATAL_ERROR "No suitable Arrow target found for _arrow_zerocopy")
+    endif()
   endif()
+
+  message(STATUS "pyOpenMS: Building _arrow_zerocopy module")
+  nanobind_add_module(_arrow_zerocopy
+    NB_DOMAIN pyopenms
+    NOMINSIZE
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
+  )
+  _pyopenms_module_props(_arrow_zerocopy)
+  # arrow_zerocopy.cpp uses Arrow C++ API (ExportSchema, ImportRecordBatch, etc.)
+  # for zero-copy Table conversion between C++ and PyArrow.
+  target_link_libraries(_arrow_zerocopy PRIVATE ${OPENMS_ARROW_TARGET})
 
   # --------------------------------------------------------------------------
   # Aggregate compile target
@@ -326,9 +343,7 @@ else()
   foreach(domain ${PYOPENMS_DOMAINS})
     add_dependencies(pyopenms_compile "_pyopenms_${domain}")
   endforeach()
-  if(_HAS_PARQUET)
-    add_dependencies(pyopenms_compile _arrow_zerocopy)
-  endif()
+  add_dependencies(pyopenms_compile _arrow_zerocopy)
 
   # --------------------------------------------------------------------------
   # Copy Python package files to build directory
@@ -363,11 +378,6 @@ else()
   # Stub generation
   # --------------------------------------------------------------------------
   if(PYOPENMS_GENERATE_STUBS)
-    set(_STUB_DEPS _pyopenms)
-    foreach(domain ${PYOPENMS_DOMAINS})
-      list(APPEND _STUB_DEPS "_pyopenms_${domain}")
-    endforeach()
-
     add_custom_target(pyopenms_stubs
       COMMAND ${Python_EXECUTABLE} -m nanobind.stubgen
               -m pyopenms
@@ -379,7 +389,7 @@ else()
       COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/fix_stubs.py
               ${PYOPENMS_BUILD_DIR}/pyopenms
       WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
-      DEPENDS ${_STUB_DEPS}
+      DEPENDS pyopenms_compile
       COMMENT "Generating .pyi stub files for pyopenms"
     )
   endif()
@@ -500,11 +510,60 @@ if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
   file(COPY ${PROJECT_SOURCE_DIR}/tests DESTINATION ${PYOPENMS_BUILD_DIR})
 
   enable_testing()
+
+  # Split pyopenms tests into separate CTest entries for better CDash reporting.
+  # Use -q (quiet) and --tb=short to avoid cluttering CDash with verbose passing output.
+  # Override pyproject.toml's addopts which uses -v (verbose).
+  set(_PYTEST_ARGS -m pytest -o addopts=-q\ --tb=short)
+
   add_test(
-    NAME pyopenms_tests
-    COMMAND ${Python_EXECUTABLE} -m pytest tests
+    NAME pyopenms_unittests
+    COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS}
+      --ignore=tests/unittests/test_docstrings.py
+      --ignore=tests/unittests/test_docstring_format.py
+      tests/unittests
     WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
   )
+
+  # Mirror the BrukerTimsFile_test pattern: forward optional CMake-configured
+  # paths to real Bruker .d directories as environment variables, so
+  # test_BrukerTimsFile.py can skip when they are unset.
+  if(OPENTIMS_DDA_TEST_DATA OR OPENTIMS_DIA_TEST_DATA)
+    set(_pyopenms_test_env "")
+    if(OPENTIMS_DDA_TEST_DATA)
+      list(APPEND _pyopenms_test_env "OPENTIMS_DDA_TEST_DATA=${OPENTIMS_DDA_TEST_DATA}")
+    endif()
+    if(OPENTIMS_DIA_TEST_DATA)
+      list(APPEND _pyopenms_test_env "OPENTIMS_DIA_TEST_DATA=${OPENTIMS_DIA_TEST_DATA}")
+    endif()
+    set_tests_properties(pyopenms_unittests PROPERTIES
+      ENVIRONMENT "${_pyopenms_test_env}"
+    )
+  endif()
+
+  add_test(
+    NAME pyopenms_docstring_tests
+    COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS}
+      tests/unittests/test_docstrings.py
+      tests/unittests/test_docstring_format.py
+    WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+  )
+
+  add_test(
+    NAME pyopenms_integration_tests
+    COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS} tests/integration_tests
+    WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+  )
+
+  # Top-level test files (ProForma, modification discovery, matrix zerocopy, etc.)
+  file(GLOB _pyopenms_toplevel_tests "${PYOPENMS_BUILD_DIR}/tests/test_*.py")
+  if(_pyopenms_toplevel_tests)
+    add_test(
+      NAME pyopenms_feature_tests
+      COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS} ${_pyopenms_toplevel_tests}
+      WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+    )
+  endif()
 endif()
 
 # --------------------------------------------------------------------------
@@ -525,5 +584,5 @@ message(STATUS "  Prebuilt:          ${PYOPENMS_USE_PREBUILT}")
 message(STATUS "  No dependencies:   ${NO_DEPENDENCIES}")
 message(STATUS "  Wheel repair:      ${PYOPENMS_PREPARE_WHEEL_REPAIR}")
 message(STATUS "  Generate stubs:    ${PYOPENMS_GENERATE_STUBS}")
-message(STATUS "  Parquet/Arrow:     ${_HAS_PARQUET}")
+message(STATUS "  Parquet/Arrow:     ON")
 message(STATUS "")

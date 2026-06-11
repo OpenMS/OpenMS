@@ -41,6 +41,9 @@
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/PSMArrowIO.h>
+#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
 
 #include <OpenMS/FORMAT/MsInspectFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
@@ -50,6 +53,16 @@
 
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
+#include <OpenMS/FORMAT/ZipIfstream.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
+
+#ifdef WITH_OPENTIMS
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
+
+#ifdef WITH_THERMO_RAW
+#include <OpenMS/FORMAT/ThermoRawFile.h>
+#endif
 
 #include <cstdint>
 #include <cstring>
@@ -145,9 +158,9 @@ namespace OpenMS
     };
   } // anonymous namespace
 
-  String allowedToString_(vector<FileTypes::Type> types)
+  std::string allowedToString_(vector<FileTypes::Type> types)
   {
-    String aStrings;
+    std::string aStrings;
     for (auto i : types)
     {
       if (i != FileTypes::SIZE_OF_TYPE)
@@ -158,39 +171,78 @@ namespace OpenMS
     return aStrings;
   }
 
-  FileTypes::Type FileHandler::getType(const String& filename)
+  FileTypes::Type FileHandler::getType(const std::string& filename)
   {
-    FileTypes::Type type = getTypeByFileName(filename);
+    // Strip trailing directory separators (important for directory-based formats
+    // like .d where shell tab-completion appends '/')
+    std::string normalized = filename;
+    while (StringUtils::hasSuffix(normalized, "/") || StringUtils::hasSuffix(normalized, "\\"))
+    {
+      normalized = StringUtils::prefix(normalized, normalized.size() - 1);
+    }
+
+    FileTypes::Type type = getTypeByFileName(normalized);
+
+    // Directory-based formats: validate marker files before returning.
+    // Must happen before getTypeByContent() which would fail on directories.
+#ifdef WITH_OPENTIMS
+    if (type == FileTypes::BRUKER_TDF)
+    {
+      if (File::exists(normalized + "/analysis.tdf") || File::exists(normalized + "/analysis.tdf_bin"))
+      {
+        return FileTypes::BRUKER_TDF;
+      }
+      // Check for .d.zip: a ZIP archive containing a Bruker .d directory
+      if (File::exists(normalized) && !File::isDirectory(normalized) && StringUtils::hasSuffix(StringUtils::toLowered(normalized), ".zip"))
+      {
+        return FileTypes::BRUKER_TDF;
+      }
+      return FileTypes::UNKNOWN; // .d suffix but not a TDF directory
+    }
+#else
+    if (type == FileTypes::BRUKER_TDF)
+    {
+      return FileTypes::UNKNOWN; // .d format requires WITH_OPENTIMS
+    }
+#endif
+
+    // Note: .raw is always recognized as FileTypes::RAW, even without WITH_THERMO_RAW.
+    // The in-process reader (loadExperiment below) is #ifdef WITH_THERMO_RAW guarded,
+    // but FileConverter can still convert .raw via the external ThermoRawFileParser
+    // (mono) path, which is available on all platforms. Callers that try to load a
+    // .raw in-process without WITH_THERMO_RAW get a clear "type is not supported"
+    // ParseError from loadExperiment's default case.
+
     if (type == FileTypes::UNKNOWN)
     {
-      type = getTypeByContent(filename);
+      type = getTypeByContent(normalized);
     }
     return type;
   }
 
-  FileTypes::Type FileHandler::getTypeByFileName(const String& filename)
+  FileTypes::Type FileHandler::getTypeByFileName(const std::string& filename)
   {
-    String basename = File::basename(filename), tmp;
+    std::string basename = File::basename(filename), tmp;
     // special rules for "double extensions":
-    if (basename.hasSuffix(".pep.xml"))
+    if (StringUtils::hasSuffix(basename, ".pep.xml"))
     {
       return FileTypes::PEPXML;
     }
-    if (basename.hasSuffix(".prot.xml"))
+    if (StringUtils::hasSuffix(basename, ".prot.xml"))
     {
       return FileTypes::PROTXML;
     }
-    if (basename.hasSuffix(".xquest.xml"))
+    if (StringUtils::hasSuffix(basename, ".xquest.xml"))
     {
       return FileTypes::XQUESTXML;
     }
-    if (basename.hasSuffix(".spec.xml"))
+    if (StringUtils::hasSuffix(basename, ".spec.xml"))
     {
       return FileTypes::SPECXML;
     }
     try
     {
-      tmp = basename.suffix('.');
+      tmp = StringUtils::suffix(basename, '.');
     }
     // no '.' => unknown type
     catch (Exception::ElementNotFound&)
@@ -202,32 +254,32 @@ namespace OpenMS
       }
       return FileTypes::UNKNOWN;
     }
-    tmp.toUpper();
-    if (tmp == "BZ2" || tmp == "GZ") // todo ZIP (not supported yet):       || tmp == "ZIP"
+    StringUtils::toUpper(tmp);
+    if (tmp == "BZ2" || tmp == "GZ" || tmp == "ZIP")
     {
       // do not use getTypeByContent() here, as this is deadly for output files!
-      return getTypeByFileName(filename.prefix(filename.size() - tmp.size() - 1)); // check name without compression suffix (e.g. bla.mzML.gz --> bla.mzML)
+      return getTypeByFileName(StringUtils::prefix(filename, filename.size() - tmp.size() - 1)); // check name without compression suffix (e.g. bla.mzML.gz --> bla.mzML)
     }
 
     return FileTypes::nameToType(tmp);
   }
 
-  bool FileHandler::hasValidExtension(const String& filename, const FileTypes::Type type)
+  bool FileHandler::hasValidExtension(const std::string& filename, const FileTypes::Type type)
   {
     FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
     return (ft == type || ft == FileTypes::UNKNOWN);
   }
 
-  String FileHandler::stripExtension(const String& filename)
+  std::string FileHandler::stripExtension(const std::string& filename)
   {
-    if (!filename.has('.'))
+    if (!StringUtils::has(filename, '.'))
     {
       return filename;
     }
     // we don't just search for the last '.' and remove the suffix, because this could be wrong, e.g. bla.mzML.gz would become bla.mzML
     auto type = getTypeByFileName(filename);
     auto s_type = FileTypes::typeToName(type);
-    size_t pos = String(filename).toLower().rfind(s_type.toLower()); // search backwards in entire string, because we could search for 'mzML' and have 'mzML.gz'
+    size_t pos = StringUtils::toLowered(filename).rfind(StringUtils::toLowered(s_type)); // search backwards in entire string, because we could search for 'mzML' and have 'mzML.gz'
     if (pos == string::npos) // file type was FileTypes::UNKNOWN and we did not find '.unknown' as ending
     {
       size_t ext_pos = filename.rfind('.');
@@ -236,12 +288,12 @@ namespace OpenMS
       { // do not strip anything, because there is no extension to strip
         return filename;
       }
-      return filename.prefix(ext_pos);
+      return StringUtils::prefix(filename, ext_pos);
     }
-    return filename.prefix(pos - 1); // strip the '.' as well
+    return StringUtils::prefix(filename, pos - 1); // strip the '.' as well
   }
 
-  String FileHandler::swapExtension(const String& filename, const FileTypes::Type new_type)
+  std::string FileHandler::swapExtension(const std::string& filename, const FileTypes::Type new_type)
   {
     return stripExtension(filename) + "." + FileTypes::typeToName(new_type);
   }
@@ -258,7 +310,7 @@ namespace OpenMS
     }
   }
 
-  FileTypes::Type FileHandler::getConsistentOutputfileType(const String& output_filename, const String& requested_type)
+  FileTypes::Type FileHandler::getConsistentOutputfileType(const std::string& output_filename, const std::string& requested_type)
   {
     FileTypes::Type t_file = getTypeByFileName(output_filename);
     FileTypes::Type t_req = FileTypes::nameToType(requested_type);
@@ -285,20 +337,20 @@ namespace OpenMS
     }
   }
 
-  FileTypes::Type FileHandler::getTypeByContent(const String& filename)
+  FileTypes::Type FileHandler::getTypeByContent(const std::string& filename)
   {
-    String first_line;
-    String two_five;
-    String all_simple;
+    std::string first_line;
+    std::string two_five;
+    std::string all_simple;
 
     // only the first five lines will be set for compressed files
     // so far, compression is only supported for XML files
-    vector<String> complete_file;
+    vector<std::string> complete_file;
 
-    // test whether the file is compressed (bzip2 or gzip)
+    // test whether the file is compressed (bzip2, gzip, or zip)
     ifstream compressed_file(filename.c_str());
-    char bz[2];
-    compressed_file.read(bz, 2);
+    char bz[4] = {};
+    compressed_file.read(bz, 4);
     char g1 = 0x1f;
     char g2 = 0;
     g2 |= 1 << 7;
@@ -316,9 +368,9 @@ namespace OpenMS
       buffer[bytes_read] = '\0';
 
       // get first five lines
-      String buffer_str(buffer);
-      vector<String> split;
-      buffer_str.split('\n', split);
+      std::string buffer_str(buffer);
+      vector<std::string> split;
+      StringUtils::split(buffer_str, '\n', split);
       split.resize(5);
 
       first_line = split[0];
@@ -336,9 +388,9 @@ namespace OpenMS
       buffer[bytes_read] = '\0';
 
       // get first five lines
-      String buffer_str(buffer);
-      vector<String> split;
-      buffer_str.split('\n', split);
+      std::string buffer_str(buffer);
+      vector<std::string> split;
+      StringUtils::split(buffer_str, '\n', split);
       split.resize(5);
 
       first_line = split[0];
@@ -346,7 +398,26 @@ namespace OpenMS
       all_simple = first_line + ' ' + two_five;
       complete_file = split;
     }
-    //else {} // TODO: ZIP
+    else if (bz[0] == 'P' && bz[1] == 'K' && bz[2] == 0x03 && bz[3] == 0x04) // ZIP local file header
+    {
+      ZipIfstream zip_file(filename.c_str());
+
+      // read in 1024 bytes (keep last byte for zero to end string)
+      char buffer[1024];
+      size_t bytes_read = zip_file.read(buffer, 1024-1);
+      buffer[bytes_read] = '\0';
+
+      // get first five lines
+      std::string buffer_str(buffer);
+      vector<std::string> split;
+      StringUtils::split(buffer_str, '\n', split);
+      split.resize(5);
+
+      first_line = split[0];
+      two_five = split[1] + ' ' + split[2] + ' ' + split[3] + ' ' + split[4];
+      all_simple = first_line + ' ' + two_five;
+      complete_file = split;
+    }
     else // uncompressed
     {
       //load first 5 lines
@@ -380,8 +451,8 @@ namespace OpenMS
         }
 
         // remove trailing space
-        two_five = two_five.chop(1);
-        two_five.substitute('\t', ' ');
+        two_five = StringUtils::chop(two_five, 1);
+        StringUtils::substitute(two_five, '\t', ' ');
         all_simple = *(file.begin()) + ' ' + two_five;
         first_line = *(file.begin());
       }
@@ -392,91 +463,91 @@ namespace OpenMS
 
 
     //mzXML (all lines)
-    if (all_simple.hasSubstring("<mzXML"))
+    if (StringUtils::hasSubstring(all_simple, "<mzXML"))
     {
       return FileTypes::MZXML;
     }
     //mzData (all lines)
-    if (all_simple.hasSubstring("<mzData"))
+    if (StringUtils::hasSubstring(all_simple, "<mzData"))
     { 
       return FileTypes::MZDATA;
     }
     //mzML (all lines)
-    if (all_simple.hasSubstring("<mzML"))
+    if (StringUtils::hasSubstring(all_simple, "<mzML"))
     {
       return FileTypes::MZML;
     }
     //"analysisXML" aka. mzid (all lines)
-    if (all_simple.hasSubstring("<MzIdentML"))
+    if (StringUtils::hasSubstring(all_simple, "<MzIdentML"))
     {
       return FileTypes::MZIDENTML;
     }
     //subject to change!
-    if (all_simple.hasSubstring("<MzQualityMLType"))
+    if (StringUtils::hasSubstring(all_simple, "<MzQualityMLType"))
     {
       return FileTypes::QCML;
     }
     //pepXML (all lines)
-    if (all_simple.hasSubstring("xmlns=\"http://regis-web.systemsbiology.net/pepXML\""))
+    if (StringUtils::hasSubstring(all_simple, "xmlns=\"http://regis-web.systemsbiology.net/pepXML\""))
     {
       return FileTypes::PEPXML;
     }
     //protXML (all lines)
-    if (all_simple.hasSubstring("xmlns=\"http://regis-web.systemsbiology.net/protXML\""))
+    if (StringUtils::hasSubstring(all_simple, "xmlns=\"http://regis-web.systemsbiology.net/protXML\""))
     {
       return FileTypes::PROTXML;
     }
     //feature map (all lines)
-    if (all_simple.hasSubstring("<featureMap"))
+    if (StringUtils::hasSubstring(all_simple, "<featureMap"))
     {
       return FileTypes::FEATUREXML;
     }
     //idXML (all lines)
-    if (all_simple.hasSubstring("<IdXML"))
+    if (StringUtils::hasSubstring(all_simple, "<IdXML"))
     {
       return FileTypes::IDXML;
     }
     //consensusXML (all lines)
-    if (all_simple.hasSubstring("<consensusXML"))
+    if (StringUtils::hasSubstring(all_simple, "<consensusXML"))
     {
       return FileTypes::CONSENSUSXML;
     }
     //TOPPAS (all lines)
-    if (all_simple.hasSubstring("<PARAMETERS") && all_simple.hasSubstring("<NODE name=\"info\"") && all_simple.hasSubstring("<ITEM name=\"num_vertices\""))
+    if (StringUtils::hasSubstring(all_simple, "<PARAMETERS") && StringUtils::hasSubstring(all_simple, "<NODE name=\"info\"") && StringUtils::hasSubstring(all_simple, "<ITEM name=\"num_vertices\""))
     {
       return FileTypes::TOPPAS;
     }
     //INI (all lines) (must be AFTER TOPPAS) - as this is less restrictive
-    if (all_simple.hasSubstring("<PARAMETERS"))
+    if (StringUtils::hasSubstring(all_simple, "<PARAMETERS"))
     {
       return FileTypes::INI;
     }
     //TrafoXML (all lines)
-    if (all_simple.hasSubstring("<TrafoXML"))
+    if (StringUtils::hasSubstring(all_simple, "<TrafoXML"))
     {
       return FileTypes::TRANSFORMATIONXML;
     }
     //GelML (all lines)
-    if (all_simple.hasSubstring("<GelML"))
+    if (StringUtils::hasSubstring(all_simple, "<GelML"))
     {
       return FileTypes::GELML;
     }
     //traML (all lines)
-    if (all_simple.hasSubstring("<TraML"))
+    if (StringUtils::hasSubstring(all_simple, "<TraML"))
     {
       return FileTypes::TRAML;
     }
     //OMSSAXML file
-    if (all_simple.hasSubstring("<MSResponse"))
+    if (StringUtils::hasSubstring(all_simple, "<MSResponse"))
     {
       return FileTypes::OMSSAXML;
     }
     //MASCOTXML file
-    if (all_simple.hasSubstring("<mascot_search_results"))
+    if (StringUtils::hasSubstring(all_simple, "<mascot_search_results"))
     {
       return FileTypes::MASCOTXML;
     }
-    if (all_simple.hasPrefix("{"))
+    if (StringUtils::hasPrefix(all_simple, "{"))
     {
       return FileTypes::JSON;
     }
@@ -487,12 +558,13 @@ namespace OpenMS
       Size bigger_than = 0;
       while (i < complete_file.size())
       {
-        if (complete_file[i].trim().hasPrefix(">"))
+        StringUtils::trim(complete_file[i]);
+        if (StringUtils::hasPrefix(complete_file[i], ">"))
         {
           ++bigger_than;
           ++i;
         }
-        else if (complete_file[i].trim().hasPrefix("#"))
+        else if (StringUtils::hasPrefix(complete_file[i], "#"))
         {
           ++i;
         }
@@ -509,26 +581,26 @@ namespace OpenMS
 
     // PNG file (to be really correct, the first eight bytes of the file would
     // have to be checked; see e.g. the Wikipedia article)
-    if (first_line.substr(1, 3) == "PNG")
+    if (StringUtils::substr(first_line, 1, 3) == "PNG")
     {
       return FileTypes::PNG;
     }
     //MSP (all lines)
     for (Size i = 0; i != complete_file.size(); ++i)
     {
-      if (complete_file[i].hasPrefix("Name: ") && complete_file[i].hasSubstring("/"))
+      if (StringUtils::hasPrefix(complete_file[i], "Name: ") && StringUtils::hasSubstring(complete_file[i], "/"))
       {
         return FileTypes::MSP;
       }
-      if (complete_file[i].hasPrefix("Num peaks: "))
+      if (StringUtils::hasPrefix(complete_file[i], "Num peaks: "))
       {
         return FileTypes::MSP;
       }
     }
 
     //tokenize lines 2-5
-    vector<String> parts;
-    two_five.split(' ', parts);
+    vector<std::string> parts;
+    StringUtils::split(two_five, ' ', parts);
 
     //DTA
     if (parts.size() == 8)
@@ -538,7 +610,7 @@ namespace OpenMS
       {
         for (Size i = 0; i < 8; ++i)
         {
-          parts[i].toFloat();
+          StringUtils::toFloat(parts[i]);
         }
       }
       catch ( Exception::ConversionError& )
@@ -559,7 +631,7 @@ namespace OpenMS
       {
         for (Size i = 0; i < 12; ++i)
         {
-          parts[i].toFloat();
+          StringUtils::toFloat(parts[i]);
         }
       }
       catch ( Exception::ConversionError& )
@@ -573,7 +645,7 @@ namespace OpenMS
     }
 
     // MGF (Mascot Generic Format)
-    if (two_five.hasSubstring("BEGIN IONS"))
+    if (StringUtils::hasSubstring(two_five, "BEGIN IONS"))
     {
       return FileTypes::MGF;
     }
@@ -581,7 +653,7 @@ namespace OpenMS
     {
       for (Size i = 0; i != complete_file.size(); ++i)
       {
-        if (complete_file[i].trim() == "FORMAT=Mascot generic" || complete_file[i].trim() == "BEGIN IONS")
+        if (StringUtils::trim(complete_file[i]) == "FORMAT=Mascot generic" || StringUtils::trim(complete_file[i]) == "BEGIN IONS")
         {
           return FileTypes::MGF;
         }
@@ -589,7 +661,7 @@ namespace OpenMS
     }
 
     // MS2 file format
-    if (all_simple.hasSubstring("CreationDate"))
+    if (StringUtils::hasSubstring(all_simple, "CreationDate"))
     {
       if (!all_simple.empty() && all_simple[0] == 'H')
       {
@@ -599,7 +671,7 @@ namespace OpenMS
 
     // mzTab file format
     for (Size i = 0; i != complete_file.size(); ++i) {
-        if (complete_file[i].hasSubstring("MTD\tmzTab-version")) {
+        if (StringUtils::hasSubstring(complete_file[i], "MTD\tmzTab-version")) {
             return FileTypes::MZTAB;
         }
     }
@@ -607,14 +679,14 @@ namespace OpenMS
     // msInspect file (.tsv)
     for (Size i = 0; i != complete_file.size(); ++i)
     {
-      if (complete_file[i].hasSubstring("scan\ttime\tmz\taccurateMZ\tmass\tintensity\tcharge\tchargeStates\tkl\tbackground\tmedian\tpeaks\tscanFirst\tscanLast\tscanCount\ttotalIntensity\tsumSquaresDist\tdescription"))
+      if (StringUtils::hasSubstring(complete_file[i], "scan\ttime\tmz\taccurateMZ\tmass\tintensity\tcharge\tchargeStates\tkl\tbackground\tmedian\tpeaks\tscanFirst\tscanLast\tscanCount\ttotalIntensity\tsumSquaresDist\tdescription"))
       {
         return FileTypes::TSV;
       }
     }
 
     // specArray file (.pepList)
-    if (first_line.hasSubstring("       m/z\t     rt(min)\t       snr\t      charge\t   intensity"))
+    if (StringUtils::hasSubstring(first_line, "       m/z\t     rt(min)\t       snr\t      charge\t   intensity"))
     {
       return FileTypes::PEPLIST;
     }
@@ -622,20 +694,20 @@ namespace OpenMS
     // hardkloer file (.hardkloer)
     /**
       NOT IMPLEMENTED YET
-      if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoisotopic Mass	Base Isotope Peak	Best Intensity	Summed Intensity	First RTime	Last RTime	Best RTime	Best Correlation	Modifications"))
+      if (StringUtils::hasSubstring(first_line, "File	First Scan	Last Scan	Num of Scans	Charge	Monoisotopic Mass	Base Isotope Peak	Best Intensity	Summed Intensity	First RTime	Last RTime	Best RTime	Best Correlation	Modifications"))
     {
         return FileTypes::HARDKLOER;
     }
     **/
 
     // kroenik file (.kroenik)
-    if (first_line.hasSubstring("File\tFirst Scan\tLast Scan\tNum of Scans\tCharge\tMonoisotopic Mass\tBase Isotope Peak\tBest Intensity\tSummed Intensity\tFirst RTime\tLast RTime\tBest RTime\tBest Correlation\tModifications"))
+    if (StringUtils::hasSubstring(first_line, "File\tFirst Scan\tLast Scan\tNum of Scans\tCharge\tMonoisotopic Mass\tBase Isotope Peak\tBest Intensity\tSummed Intensity\tFirst RTime\tLast RTime\tBest RTime\tBest Correlation\tModifications"))
     {
       return FileTypes::KROENIK;
     }
 
     // Percolator tab-delimited output (PSM level, .psms)
-    if (first_line.hasPrefix("PSMId\tscore\tq-value\tposterior_error_prob\tpeptide\tproteinIds"))
+    if (StringUtils::hasPrefix(first_line, "PSMId\tscore\tq-value\tposterior_error_prob\tpeptide\tproteinIds"))
     {
       return FileTypes::PSMS;
     }
@@ -676,7 +748,7 @@ namespace OpenMS
     f_options_ = f_options;
   }
 
-  String FileHandler::computeFileHash(const String& filename)
+  std::string FileHandler::computeFileHash(const std::string& filename)
   {
     std::ifstream file{std::filesystem::path{std::string(filename)}, std::ios::binary};
     if (!file.is_open())
@@ -700,7 +772,7 @@ namespace OpenMS
     return result.str();
   }
 
-  void FileHandler::loadSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types)
+  void FileHandler::loadSpectrum(const std::string& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types)
   {
     // determine file type
     FileTypes::Type type = getType(filename);
@@ -733,7 +805,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::storeSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types)
+  void FileHandler::storeSpectrum(const std::string& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -769,7 +841,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log, const bool rewrite_source_file,
+  void FileHandler::loadExperiment(const std::string& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log, const bool rewrite_source_file,
                                    const bool compute_hash)
   {
     // setting the flag for hash recomputation only works if source file entries are rewritten
@@ -865,13 +937,62 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::MSP: 
+      case FileTypes::MSP:
       {
         MSPGenericFile().load(filename, exp);
       }
       break;
 
-      default: 
+#ifdef WITH_OPENTIMS
+      case FileTypes::BRUKER_TDF:
+      {
+        // If the input is a .d.zip archive, extract to a temp directory first.
+        std::unique_ptr<File::TempDir> temp_dir;
+        std::string load_path = filename;
+        if (!File::isDirectory(filename) && StringUtils::hasSuffix(StringUtils::toLowered(filename), ".zip"))
+        {
+          load_path = ZipArchiveFile::unzipDirectory(filename, temp_dir);
+          // Find the .d directory inside the extracted archive (may be nested)
+          bool found_d = false;
+          for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(load_path)))
+          {
+            if (entry.is_directory() && entry.path().extension() == ".d")
+            {
+              load_path = entry.path().string();
+              found_d = true;
+              break;
+            }
+          }
+          if (!found_d)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              filename, "ZIP archive does not contain a .d directory");
+          }
+        }
+        BrukerTimsFile f;
+        f.setLogType(log);
+        f.load(load_path, exp);
+
+        // BrukerTimsFile loads everything; apply PeakFileOptions filters post-load.
+        applyPostLoadOptions_(exp);
+      }
+      break;
+#endif
+
+#ifdef WITH_THERMO_RAW
+      case FileTypes::RAW:
+      {
+        ThermoRawFile f;
+        f.setLogType(log);
+        f.load(filename, exp);
+
+        // ThermoRawFile loads everything; apply PeakFileOptions filters post-load.
+        applyPostLoadOptions_(exp);
+      }
+      break;
+#endif
+
+      default:
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading experiments");
       }
@@ -892,17 +1013,21 @@ namespace OpenMS
         src_file = exp.getSourceFiles()[0];
       }
 
-      src_file.setNameOfFile(File::basename(filename));
-      String path_to_file = File::path(File::absolutePath(filename)); // convert to absolute path and strip file name
+      // Normalize directory paths: strip trailing slashes for basename and URI
+      std::string normalized_name = filename;
+      while (StringUtils::hasSuffix(normalized_name, "/") || StringUtils::hasSuffix(normalized_name, "\\"))
+        normalized_name = StringUtils::prefix(normalized_name, normalized_name.size() - 1);
+      src_file.setNameOfFile(File::basename(normalized_name));
+      std::string path_to_file = File::path(File::absolutePath(normalized_name)); // convert to absolute path and strip file name
 
       // make sure we end up with at most 3 forward slashes
-      String uri = path_to_file.hasPrefix("/") ? String("file://") + path_to_file : String("file:///") + path_to_file;
+      std::string uri = StringUtils::hasPrefix(path_to_file, "/") ? std::string("file://") + path_to_file : std::string("file:///") + path_to_file;
       src_file.setPathToFile(uri);
       // this is more complicated since the data formats allowed by mzML are very verbose.
       // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
       src_file.setFileType(FileTypes::typeToMZML(type));
 
-      if (compute_hash)
+      if (compute_hash && type != FileTypes::BRUKER_TDF)
       {
         src_file.setChecksum(computeFileHash(filename), SourceFile::ChecksumType::SHA1);
       }
@@ -912,7 +1037,87 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::applyPostLoadOptions_(MSExperiment& exp) const
+  {
+    // Filter by MS level
+    if (options_.hasMSLevels())
+    {
+      exp.getSpectra().erase(
+        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+          [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
+        exp.getSpectra().end());
+    }
+
+    // Filter by RT range
+    if (options_.hasRTRange())
+    {
+      const auto& rt_range = options_.getRTRange();
+      exp.getSpectra().erase(
+        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+          [&rt_range](const MSSpectrum& s) { return !rt_range.encloses(DPosition<1>(s.getRT())); }),
+        exp.getSpectra().end());
+    }
+
+    // Filter by precursor m/z range (for MSn spectra)
+    if (options_.hasPrecursorMZRange())
+    {
+      const auto& prec_range = options_.getPrecursorMZRange();
+      exp.getSpectra().erase(
+        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+          [&prec_range](const MSSpectrum& s)
+          {
+            if (s.getMSLevel() <= 1) { return false; } // keep MS1
+            if (s.getPrecursors().empty()) { return false; }
+            return !prec_range.encloses(DPosition<1>(s.getPrecursors()[0].getMZ()));
+          }),
+        exp.getSpectra().end());
+    }
+
+    // Filter peaks by m/z range and intensity range within each spectrum.
+    // Use MSSpectrum::select() rather than erase(): select() rebuilds the parallel data
+    // arrays so the per-peak ion-mobility FloatDataArray carried by Bruker .d frames (and any
+    // other float/string/integer array) stays aligned with the peaks. A raw erase() would
+    // shrink only the peak vector, leaving the IM array too long -> corrupt mzML output or a
+    // Precondition throw on the next sortByPosition()/select().
+    if (options_.hasMZRange() || options_.hasIntensityRange())
+    {
+      const bool filter_mz = options_.hasMZRange();
+      const bool filter_int = options_.hasIntensityRange();
+      const auto& mz_range = options_.getMZRange();
+      const auto& int_range = options_.getIntensityRange();
+
+      std::vector<Size> kept;
+      for (auto& spectrum : exp.getSpectra())
+      {
+        kept.clear();
+        kept.reserve(spectrum.size());
+        for (Size i = 0; i < spectrum.size(); ++i)
+        {
+          const Peak1D& p = spectrum[i];
+          if (filter_mz && !mz_range.encloses(DPosition<1>(p.getMZ()))) { continue; }
+          if (filter_int && !int_range.encloses(DPosition<1>(p.getIntensity()))) { continue; }
+          kept.push_back(i);
+        }
+        if (kept.size() != spectrum.size())
+        {
+          spectrum.select(kept);
+        }
+      }
+    }
+
+    // Metadata only: strip peak data
+    if (options_.getMetadataOnly())
+    {
+      for (auto& spectrum : exp.getSpectra())
+      {
+        spectrum.clear(false); // clear data but keep metadata
+      }
+    }
+
+    exp.updateRanges();
+  }
+
+  void FileHandler::storeExperiment(const std::string& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -1022,7 +1227,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadFeatures(const std::string& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     // determine file type
     FileTypes::Type type = getType(filename);
@@ -1064,7 +1269,7 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::OMS: 
+      case FileTypes::OMS:
       {
         OMSFile f;
         f.setLogType(log);
@@ -1072,14 +1277,24 @@ namespace OpenMS
       }
       break;
 
-      default: 
+      case FileTypes::FEATUREPARQUET:
+      {
+        if (!FeatureMapArrowIO::importFromParquet(filename, map))
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                      "FeatureMapArrowIO::importFromParquet failed");
+        }
+      }
+      break;
+
+      default:
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,"type: " + FileTypes::typeToName(type) + " is not supported for loading features");
       }
     }
   }
 
-  void FileHandler::storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeFeatures(const std::string& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -1141,6 +1356,16 @@ namespace OpenMS
       }
       break;
 
+      case FileTypes::FEATUREPARQUET:
+      {
+        if (!FeatureMapArrowIO::exportToParquet(map, filename))
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                              "FeatureMapArrowIO::exportToParquet failed");
+        }
+      }
+      break;
+
       default:
       {
           throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing features");
@@ -1148,7 +1373,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadConsensusFeatures(const std::string& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
 
     //determine file type
@@ -1180,11 +1405,21 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::OMS: 
+      case FileTypes::OMS:
       {
         OMSFile f;
         f.setLogType(log);
         f.load(filename, map);
+      }
+      break;
+
+      case FileTypes::CONSENSUSPARQUET:
+      {
+        if (!ConsensusMapArrowIO::importFromParquet(filename, map))
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                      "ConsensusMapArrowIO::importFromParquet failed");
+        }
       }
       break;
 
@@ -1195,7 +1430,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeConsensusFeatures(const std::string& filename, const ConsensusMap& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -1234,15 +1469,25 @@ namespace OpenMS
         f.store(filename, map);
       }
       break;
-      
+
+      case FileTypes::CONSENSUSPARQUET:
+      {
+        if (!ConsensusMapArrowIO::exportToParquet(map, filename))
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                              "ConsensusMapArrowIO::exportToParquet failed");
+        }
+      }
+      break;
+
       default:
-      {        
+      {
         throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing consensus features");
       }
     }
   }
 
-  void FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadIdentifications(const std::string& filename, std::vector<ProteinIdentification>& additional_proteins, PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     
     //determine file type
@@ -1314,12 +1559,22 @@ namespace OpenMS
       }
       break;
 
+      case FileTypes::IDPARQUET:
+      {
+        if (!PSMArrowIO::importFromParquet(filename, additional_proteins, additional_peptides))
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                      "PSMArrowIO::importFromParquet failed");
+        }
+      }
+      break;
+
       default:
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for loading identifications");
     }   
   }
 
-  void FileHandler::storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeIdentifications(const std::string& filename, const std::vector<ProteinIdentification>& additional_proteins, const PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -1371,14 +1626,24 @@ namespace OpenMS
       }
       break;
 
+      case FileTypes::IDPARQUET:
+      {
+        if (!PSMArrowIO::exportToParquet(additional_proteins, additional_peptides, filename))
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                              "PSMArrowIO::exportToParquet failed");
+        }
+      }
+      break;
+
       default:
       {
         throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing Identifications");
       }
-    }   
+    }
   }
 
-  void FileHandler::loadTransitions(const String& filename,TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadTransitions(const std::string& filename,TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     //determine file type
     FileTypes::Type type = getType(filename);
@@ -1407,7 +1672,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeTransitions(const std::string& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -1439,7 +1704,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::loadTransformations(const String& filename, TransformationDescription& map, bool fit_model, const std::vector<FileTypes::Type> allowed_types)
+  void FileHandler::loadTransformations(const std::string& filename, TransformationDescription& map, bool fit_model, const std::vector<FileTypes::Type> allowed_types)
   {
     //determine file type
     FileTypes::Type type = getType(filename);
@@ -1465,7 +1730,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::storeTransformations(const String& filename, const TransformationDescription& map,  const std::vector<FileTypes::Type> allowed_types)
+  void FileHandler::storeTransformations(const std::string& filename, const TransformationDescription& map,  const std::vector<FileTypes::Type> allowed_types)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -1496,17 +1761,17 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::storeQC(const String& input_file,
-               const String& filename,
+  void FileHandler::storeQC(const std::string& input_file,
+               const std::string& filename,
                const MSExperiment& exp,
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
                PeptideIdentificationList& pep_ids,
                const ConsensusMap& consensus_map,
-               const String& contact_name,
-               const String& contact_address,
-               const String& description,
-               const String& label,
+               const std::string& contact_name,
+               const std::string& contact_address,
+               const std::string& description,
+               const std::string& label,
                const bool remove_duplicate_features,
                const std::vector<FileTypes::Type> allowed_types
              )

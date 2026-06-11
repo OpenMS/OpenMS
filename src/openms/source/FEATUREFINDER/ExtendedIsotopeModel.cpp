@@ -76,26 +76,26 @@ namespace OpenMS
     Int H_num = Int(0.5 + mass * averagine_[H]);
     Int S_num = Int(0.5 + mass * averagine_[S]);
 
-    String form("");
+    std::string form;
     if (C_num)
     {
-      form.append("C").append(String(C_num));
+      form.append("C").append(StringUtils::toStr(C_num));
     }
     if (H_num)
     {
-      form.append("H").append(String(H_num));
+      form.append("H").append(StringUtils::toStr(H_num));
     }
     if (N_num)
     {
-      form.append("N").append(String(N_num));
+      form.append("N").append(StringUtils::toStr(N_num));
     }
     if (O_num)
     {
-      form.append("O").append(String(O_num));
+      form.append("O").append(StringUtils::toStr(O_num));
     }
     if (S_num)
     {
-      form.append("S").append(String(S_num));
+      form.append("S").append(StringUtils::toStr(S_num));
     }
     EmpiricalFormula formula(form);
     IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));

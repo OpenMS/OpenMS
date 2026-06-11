@@ -11,7 +11,6 @@
 #include <vector>
 #include <arrow/buffer.h>
 
-#ifdef WITH_PARQUET
 #if __has_include(<zip.h>)
 #include <zip.h>
 #define OPENMS_HAVE_LIBZIP 1
@@ -119,8 +118,8 @@ private:
 };
 
 
-arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> ZipRandomAccessFile::Open(const String& archive_path,
-																																											const String& entry_name,
+arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> ZipRandomAccessFile::Open(const std::string& archive_path,
+																																											const std::string& entry_name,
 											std::unique_ptr<File::TempDir>& temp_dir)
 {
     // temp_dir is only used on the extraction fallback path; silence unused-parameter
@@ -140,9 +139,7 @@ arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> ZipRandomAccessFile:
 	}
 
 #if !defined(OPENMS_HAVE_LIBZIP)
-	// Fall back: extract to temp file and open as ReadableFile
-	const String path = ZipArchiveFile::extractEntryToTempFile(archive_path, entry_name, temp_dir);
-	return arrow::io::ReadableFile::Open(std::string(path));
+	return arrow::Status::NotImplemented("libzip not available, cannot open ZIP entry directly");
 #else
 	int err = 0;
 	zip_t* za = zip_open(archive_path.c_str(), ZIP_RDONLY, &err);
@@ -172,5 +169,3 @@ arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> ZipRandomAccessFile:
 }
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

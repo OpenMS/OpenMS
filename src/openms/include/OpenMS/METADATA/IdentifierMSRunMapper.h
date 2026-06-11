@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/config.h>
 
@@ -34,7 +34,7 @@ namespace OpenMS
     IdentifierMSRunMapper mapping(protein_ids);
 
     // Get the source file for a peptide identification
-    String source_file = mapping.getPrimaryMSRunPath(pep_id);
+    std::string source_file = mapping.getPrimaryMSRunPath(pep_id);
 
     // Build a USI using the mapping
     USI usi = pep_id.buildUSI(mapping, "PXD000561");
@@ -59,13 +59,13 @@ namespace OpenMS
     void create(const std::vector<ProteinIdentification>& prot_ids);
 
     /// Get the primary MS run path for a PeptideIdentification (using id_merge_index metadata)
-    String getPrimaryMSRunPath(const PeptideIdentification& pepid) const;
+    std::string getPrimaryMSRunPath(const PeptideIdentification& pepid) const;
 
     /// Check if the mapping contains an entry for the given identifier
-    bool hasIdentifier(const String& identifier) const;
+    bool hasIdentifier(const std::string& identifier) const;
 
     /// Get the identifier for a given MS run path list (throws if not found)
-    const String& getIdentifier(const StringList& ms_run_paths) const;
+    const std::string& getIdentifier(const StringList& ms_run_paths) const;
 
     /// Check if the mapping is empty
     bool empty() const;
@@ -74,21 +74,21 @@ namespace OpenMS
     Size size() const;
 
     /// Get the MS run paths for a given identifier (returns empty list if not found)
-    const StringList& getMSRunPaths(const String& identifier) const;
+    const StringList& getMSRunPaths(const std::string& identifier) const;
 
     /// Get all identifiers in this mapping
-    std::vector<String> getIdentifiers() const;
+    std::vector<std::string> getIdentifiers() const;
 
     /// Check if the mapping contains an entry for the given MS run paths
     bool hasRunPath(const StringList& ms_run_paths) const;
 
     /// Try to get identifier for a given MS run path list (returns false if not found)
-    bool tryGetIdentifier(const StringList& ms_run_paths, String& identifier) const;
+    bool tryGetIdentifier(const StringList& ms_run_paths, std::string& identifier) const;
 
   private:
     static const StringList empty_stringlist_; ///< Empty list returned by getMSRunPaths when identifier not found
-    std::map<String, StringList> identifier_to_msrunpath_;
-    std::map<StringList, String> runpath_to_identifier_;
+    std::map<std::string, StringList> identifier_to_msrunpath_;
+    std::map<StringList, std::string> runpath_to_identifier_;
   };
 
 } // namespace OpenMS

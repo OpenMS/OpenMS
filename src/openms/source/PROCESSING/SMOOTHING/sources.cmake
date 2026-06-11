@@ -8,6 +8,7 @@ GaussFilterAlgorithm.cpp
 LowessSmoothing.cpp
 FastLowessSmoothing.cpp
 SavitzkyGolayFilter.cpp
+ModifiedSincSmoother.cpp
 )
 
 ### add path to the filenames

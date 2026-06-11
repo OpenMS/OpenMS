@@ -11,7 +11,6 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <QStringList>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
@@ -23,25 +22,10 @@ START_TEST(StringList, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-START_SECTION((static StringList fromQStringList(const QStringList &rhs)))
-{
-  QStringList q_str_list;
-  q_str_list << "First Element" << "Second Element" << "Third Element";
-
-  StringList str_list = StringListUtils::fromQStringList(q_str_list);
-  TEST_EQUAL((int)str_list.size(), q_str_list.size())
-  ABORT_IF((int)str_list.size() != q_str_list.size())
-  for(Size i = 0 ; i < str_list.size() ; ++i)
-  {
-    TEST_EQUAL(str_list[i], String(q_str_list[(int)i]))
-  }
-}
-END_SECTION
-
 
 START_SECTION((static void toUpper(StringList &sl)))
 {
-	StringList list = ListUtils::create<String>("yes,no");
+	StringList list = ListUtils::create<std::string>("yes,no");
 	StringListUtils::toUpper(list);
 	TEST_EQUAL(list[0],"YES")
 	TEST_EQUAL(list[1],"NO")
@@ -50,7 +34,7 @@ END_SECTION
 
 START_SECTION((static void toLower(StringList &sl)))
 {
-	StringList list = ListUtils::create<String>("yES,nO");
+	StringList list = ListUtils::create<std::string>("yES,nO");
 	StringListUtils::toLower(list);
 	TEST_EQUAL(list[0],"yes")
 	TEST_EQUAL(list[1],"no")
@@ -83,7 +67,7 @@ tmp_list2.push_back("back_tab_line");
 tmp_list2.push_back("");
 tmp_list2.push_back("last_line");
 
-START_SECTION((static Iterator searchPrefix(const Iterator &start, const Iterator &end, const String &text, bool trim=false)))
+START_SECTION((static Iterator searchPrefix(const Iterator &start, const Iterator &end, const std::string &text, bool trim=false)))
 {
 	StringList list(tmp_list);
 
@@ -125,7 +109,7 @@ START_SECTION((static Iterator searchPrefix(const Iterator &start, const Iterato
 
 END_SECTION
 
-START_SECTION((static Iterator searchPrefix(StringList &container, const String &text, bool trim=false)))
+START_SECTION((static Iterator searchPrefix(StringList &container, const std::string &text, bool trim=false)))
 {
 	StringList list(tmp_list);
 
@@ -162,7 +146,7 @@ START_SECTION((static Iterator searchPrefix(StringList &container, const String 
 }
 END_SECTION
 
-START_SECTION((static Iterator searchSuffix(const Iterator &start, const Iterator &end, const String &text, bool trim=false)))
+START_SECTION((static Iterator searchSuffix(const Iterator &start, const Iterator &end, const std::string &text, bool trim=false)))
 {
 	StringList list(tmp_list);
 
@@ -177,7 +161,7 @@ START_SECTION((static Iterator searchSuffix(const Iterator &start, const Iterato
 }
 END_SECTION
 
-START_SECTION((static Iterator searchSuffix(StringList &container, const String &text, bool trim=false)))
+START_SECTION((static Iterator searchSuffix(StringList &container, const std::string &text, bool trim=false)))
 {
 	StringList list(tmp_list);
 
@@ -191,7 +175,7 @@ START_SECTION((static Iterator searchSuffix(StringList &container, const String 
 }
 END_SECTION
 
-START_SECTION((static ConstIterator searchPrefix(const ConstIterator &start, const ConstIterator &end, const String &text, bool trim=false)))
+START_SECTION((static ConstIterator searchPrefix(const ConstIterator &start, const ConstIterator &end, const std::string &text, bool trim=false)))
 {
 	const StringList list(tmp_list);
 
@@ -233,7 +217,7 @@ START_SECTION((static ConstIterator searchPrefix(const ConstIterator &start, con
 }
 END_SECTION
 
-START_SECTION((static ConstIterator searchPrefix(const StringList &container, const String &text, bool trim=false)))
+START_SECTION((static ConstIterator searchPrefix(const StringList &container, const std::string &text, bool trim=false)))
 {
 	const StringList list(tmp_list);
 
@@ -270,7 +254,7 @@ START_SECTION((static ConstIterator searchPrefix(const StringList &container, co
 }
 END_SECTION
 
-START_SECTION((static ConstIterator searchSuffix(const ConstIterator &start, const ConstIterator &end, const String &text, bool trim=false)))
+START_SECTION((static ConstIterator searchSuffix(const ConstIterator &start, const ConstIterator &end, const std::string &text, bool trim=false)))
 {
 	const StringList list(tmp_list);
 
@@ -285,7 +269,7 @@ START_SECTION((static ConstIterator searchSuffix(const ConstIterator &start, con
 }
 END_SECTION
 
-START_SECTION((static ConstIterator searchSuffix(const StringList &container, const String &text, bool trim=false)))
+START_SECTION((static ConstIterator searchSuffix(const StringList &container, const std::string &text, bool trim=false)))
 {
 	const StringList list(tmp_list);
 

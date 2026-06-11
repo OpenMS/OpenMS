@@ -37,7 +37,7 @@ START_SECTION([EXTRA] ~RNaseDigestion())
 }
 END_SECTION
 
-START_SECTION((void setEnzyme(const String& enzyme_name)))
+START_SECTION((void setEnzyme(const std::string& enzyme_name)))
 {
   RNaseDigestion rd;
   rd.setEnzyme("RNase_T1");

@@ -68,7 +68,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
   void TopDownIsobaricQuantification::quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features)
   {
     // set the parameters for this method
-    String type = getParameters().getValue("type").toString();
+    std::string type = getParameters().getValue("type").toString();
 
     if (type == "none")
     {
@@ -155,7 +155,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
         if (abs(trt.first - p.getRT()) > .01)
           continue;
         int scan = trt.second;
-        if (scan_precursors_map.find(scan) == scan_precursors_map.end())
+        if (!scan_precursors_map.contains(scan))
           continue;
         for (auto& pg : scan_precursors_map[scan])
         {
@@ -183,7 +183,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
         continue;
       }
       auto& precursor = dspec.getPrecursorPeakGroup();
-      if (precursor.empty() || precursor_cluster_index.find(precursor) != precursor_cluster_index.end())
+      if (precursor.empty() || precursor_cluster_index.contains(precursor))
         continue;
       precursor_clusters.push_back(std::vector<PeakGroup> {precursor});
       precursor_cluster_index[precursor] = (int)precursor_clusters.size() - 1;
@@ -226,9 +226,9 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
       std::vector<double> intensities (0);
       for (int ms2_scan : precursor_scan_ms2_scans[ms2_scan_precursor_scan[scan]])
       {
-        if (ms2_ints.find(ms2_scan) == ms2_ints.end() || ms2_ints[ms2_scan].empty())
+        if (!ms2_ints.contains(ms2_scan) || ms2_ints[ms2_scan].empty())
           continue;
-        if (ms2_scan_precursor_mz.find(ms2_scan) == ms2_scan_precursor_mz.end() || abs(ms2_scan_precursor_mz[ms2_scan] - pre_mz) > .01)
+        if (!ms2_scan_precursor_mz.contains(ms2_scan) || abs(ms2_scan_precursor_mz[ms2_scan] - pre_mz) > .01)
           continue;
         if (intensities.empty())
         {

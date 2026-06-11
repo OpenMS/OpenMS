@@ -96,8 +96,24 @@ START_SECTION(OSSpectrum_data_2)
   TEST_EQUAL (s.getDriftTimeArray() == nullptr, true)
   s.getDataArrays().back()->description = "Ion Mobility (blah)";
   TEST_EQUAL (s.getDriftTimeArray() == nullptr, false)
-  s.getDataArrays().back()->description = "Ion mOBILITY (blah)"; // wrong
+  s.getDataArrays().back()->description = "Ion mOBILITY (blah)"; // wrong case
   TEST_EQUAL (s.getDriftTimeArray() == nullptr, true)
+
+  // BrukerTimsFile via IMDataConverter (CV MS:1003008)
+  s.getDataArrays().back()->description = "raw inverse reduced ion mobility array";
+  TEST_EQUAL (s.getDriftTimeArray() == nullptr, false)
+  // IMDataConverter for millisecond IM (CV MS:1002816)
+  s.getDataArrays().back()->description = "mean ion mobility array";
+  TEST_EQUAL (s.getDriftTimeArray() == nullptr, false)
+  // MSConvert legacy
+  s.getDataArrays().back()->description = "inverse reduced ion mobility";
+  TEST_EQUAL (s.getDriftTimeArray() == nullptr, false)
+  // ProteoWizard diaPASEF
+  s.getDataArrays().back()->description = "mean inverse reduced ion mobility array";
+  TEST_EQUAL (s.getDriftTimeArray() == nullptr, false)
+  // PeakPickerIM output
+  s.getDataArrays().back()->description = "Ion Mobility Centroid";
+  TEST_EQUAL (s.getDriftTimeArray() == nullptr, false)
 }
 END_SECTION
 

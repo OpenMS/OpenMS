@@ -293,8 +293,8 @@ namespace detail
   class ProFormaWriter
   {
   public:
-    static String toString(const Peptidoform& peptidoform, WriteMode mode);
-    static String toString(const PeptidoformIon& ion, WriteMode mode);
+    static std::string toString(const Peptidoform& peptidoform, WriteMode mode);
+    static std::string toString(const PeptidoformIon& ion, WriteMode mode);
 
   private:
     static void writeGlobalMods_(std::ostream& os, const std::vector<GlobalModEntry>& mods, WriteMode mode);
@@ -324,7 +324,7 @@ namespace detail
     static const char* massSourceToString_(MassDelta::Source source);
   };
 
-  String ProFormaWriter::toString(const Peptidoform& peptidoform, WriteMode mode)
+  std::string ProFormaWriter::toString(const Peptidoform& peptidoform, WriteMode mode)
   {
     std::ostringstream os;
     if (peptidoform.name.has_value()) os << "(>" << peptidoform.name.value() << ")";
@@ -334,10 +334,10 @@ namespace detail
     writeNTermMods_(os, peptidoform.n_term_mods, mode);
     writeSequence_(os, peptidoform.sequence, mode);
     writeCTermMods_(os, peptidoform.c_term_mods, mode);
-    return String(os.str());
+    return os.str();
   }
 
-  String ProFormaWriter::toString(const PeptidoformIon& ion, WriteMode mode)
+  std::string ProFormaWriter::toString(const PeptidoformIon& ion, WriteMode mode)
   {
     std::ostringstream os;
     const char* separator = ion.is_chimeric ? "+" : "//";
@@ -350,7 +350,7 @@ namespace detail
       if (ion.is_chimeric && chain.charge.has_value()) writeChargeState_(os, chain.charge.value());
     }
     if (ion.charge.has_value()) writeChargeState_(os, ion.charge.value());
-    return String(os.str());
+    return os.str();
   }
 
   void ProFormaWriter::writeGlobalMods_(std::ostream& os, const std::vector<GlobalModEntry>& mods, WriteMode mode)
@@ -447,7 +447,7 @@ namespace detail
     {
       std::visit([&os](auto&& mono) {
         using T = std::decay_t<decltype(mono)>;
-        if constexpr (std::is_same_v<T, String>) os << mono;
+        if constexpr (std::is_same_v<T, std::string>) os << mono;
         else if constexpr (std::is_same_v<T, FormulaTag>) {
           os << "Formula:" << mono.formula_string;
           if (mono.charge.has_value()) { os << ":z"; int c = mono.charge.value(); if (c >= 0) os << '+'; os << c; }
@@ -644,7 +644,7 @@ const char* ProForma::errorCodeToString(ErrorCode code)
 ProForma::ParseError::ParseError(
   const char* file, int line, const char* function,
   ErrorCode error_code, size_t error_position,
-  const String& input, const String& message) noexcept :
+  const std::string& input, const std::string& message) noexcept :
   Exception::ParseError(file, line, function, input, message),
   code_(error_code),
   position_(std::min(error_position, input.size()))
@@ -653,31 +653,31 @@ ProForma::ParseError::ParseError(
   Exception::GlobalExceptionHandler::getInstance().setMessage(what());
 }
 
-void ProForma::ParseError::extractContext_(const String& input, size_t pos)
+void ProForma::ParseError::extractContext_(const std::string& input, size_t pos)
 {
   const size_t context_length = 20;
   if (pos > 0)
   {
     size_t start = (pos > context_length) ? pos - context_length : 0;
-    context_before_ = input.substr(start, pos - start);
+    context_before_ = StringUtils::substr(input, start, pos - start);
   }
   else context_before_ = "";
   if (pos < input.size())
   {
     size_t length = std::min(context_length, input.size() - pos);
-    context_after_ = input.substr(pos, length);
+    context_after_ = StringUtils::substr(input, pos, length);
   }
   else context_after_ = "";
 }
 
-String ProForma::ParseError::getFormattedMessage() const
+std::string ProForma::ParseError::getFormattedMessage() const
 {
   std::ostringstream oss;
   oss << "ProForma parse error at position " << position_ << ": " << ProForma::errorCodeToString(code_);
   oss << "\nContext: ";
   if (position_ > context_before_.size()) oss << "...";
   oss << context_before_;
-  if (!context_after_.empty()) { oss << ">>>" << context_after_.substr(0, 1) << "<<<"; if (context_after_.size() > 1) oss << context_after_.substr(1); }
+  if (!context_after_.empty()) { oss << ">>>" << StringUtils::substr(context_after_, 0, 1) << "<<<"; if (context_after_.size() > 1) oss << StringUtils::substr(context_after_, 1); }
   else oss << ">>><END OF INPUT><<<";
   if (context_after_.size() >= 20) oss << "...";
   if (!expected_.empty() || !found_.empty())
@@ -685,10 +685,10 @@ String ProForma::ParseError::getFormattedMessage() const
     if (!expected_.empty()) oss << "\nExpected: " << expected_;
     if (!found_.empty()) oss << "\nFound: " << found_;
   }
-  return String(oss.str());
+  return oss.str();
 }
 
-void ProForma::ParseError::setExpectedFound(const String& expected, const String& found)
+void ProForma::ParseError::setExpectedFound(const std::string& expected, const std::string& found)
 {
   expected_ = expected;
   found_ = found;
@@ -698,13 +698,13 @@ void ProForma::ParseError::setExpectedFound(const String& expected, const String
 // JSON implementation (delegates to ProFormaDataJson.h inline functions)
 //============================================================================
 
-String ProForma::toJSON(const Peptidoform& pf)
+std::string ProForma::toJSON(const Peptidoform& pf)
 {
   nlohmann::json j = pf;
-  return String(j.dump());
+  return j.dump();
 }
 
-ProForma::Peptidoform ProForma::peptidoformFromJSON(const String& json_str)
+ProForma::Peptidoform ProForma::peptidoformFromJSON(const std::string& json_str)
 {
   try
   {
@@ -713,21 +713,21 @@ ProForma::Peptidoform ProForma::peptidoformFromJSON(const String& json_str)
   }
   catch (const nlohmann::json::exception& e)
   {
-    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str, String("JSON parsing failed: ") + e.what());
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str,std::string("JSON parsing failed: ") + e.what());
   }
   catch (const std::exception& e)
   {
-    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str, String("JSON deserialization failed: ") + e.what());
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str,std::string("JSON deserialization failed: ") + e.what());
   }
 }
 
-String ProForma::toJSON(const PeptidoformIon& pfi)
+std::string ProForma::toJSON(const PeptidoformIon& pfi)
 {
   nlohmann::json j = pfi;
-  return String(j.dump());
+  return j.dump();
 }
 
-ProForma::PeptidoformIon ProForma::peptidoformIonFromJSON(const String& json_str)
+ProForma::PeptidoformIon ProForma::peptidoformIonFromJSON(const std::string& json_str)
 {
   try
   {
@@ -736,11 +736,11 @@ ProForma::PeptidoformIon ProForma::peptidoformIonFromJSON(const String& json_str
   }
   catch (const nlohmann::json::exception& e)
   {
-    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str, String("JSON parsing failed: ") + e.what());
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str,std::string("JSON parsing failed: ") + e.what());
   }
   catch (const std::exception& e)
   {
-    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str, String("JSON deserialization failed: ") + e.what());
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, json_str,std::string("JSON deserialization failed: ") + e.what());
   }
 }
 
@@ -912,7 +912,7 @@ namespace detail
       if (!combined_name.empty()) combined_name += " / ";
       combined_name += name;
     }
-    if (!combined_name.empty()) pf.name = String(combined_name);
+    if (!combined_name.empty()) pf.name =std::string(combined_name);
     while (check_(TokenType::LANGLE)) { auto mods = parseGlobalMods_(); for (auto& m : mods) pf.global_mods.push_back(std::move(m)); }
     pf.unlocalised_mods = parseUnlocalisedMods_();
     pf.labile_mods = parseLabileModifications_();
@@ -1280,7 +1280,7 @@ namespace detail
       else break;
     }
     if (name.empty()) error_(ErrorCode::UNEXPECTED_CHARACTER, "Expected modification name");
-    nm.name = String(name);
+    nm.name =std::string(name);
     return nm;
   }
 
@@ -1318,7 +1318,7 @@ namespace detail
       if (accession.empty()) error_(ErrorCode::INVALID_CV_ACCESSION, "Expected accession");
       cv.accession = accession;
     }
-    else { Token num = expect_(TokenType::NUMBER, "accession number"); cv.accession = String(num.text); }
+    else { Token num = expect_(TokenType::NUMBER, "accession number"); cv.accession =std::string(num.text); }
     return cv;
   }
 
@@ -1399,7 +1399,7 @@ namespace detail
         try { count = std::stoi(std::string(num.text)); }
         catch (const std::exception&) { errorAt_(ErrorCode::INVALID_MASS_VALUE, num.position, "Invalid monosaccharide count"); }
       }
-      gc.components.emplace_back(String(mono_name), count);
+      gc.components.emplace_back(std::string(mono_name), count);
     }
     if (gc.components.empty()) error_(ErrorCode::UNKNOWN_MONOSACCHARIDE, "Empty glycan composition");
     return gc;
@@ -1465,9 +1465,9 @@ namespace detail
     if (check_(TokenType::IDENTIFIER)) { Token id = advance_(); label_str = std::string(id.text); if (check_(TokenType::NUMBER)) { Token num = advance_(); label_str += std::string(num.text); } }
     else if (check_(TokenType::NUMBER)) { Token num = advance_(); label_str = std::string(num.text); }
     else error_(ErrorCode::UNEXPECTED_CHARACTER, "Expected label identifier");
-    label.identifier = String(label_str);
+    label.identifier =std::string(label_str);
     if (label.identifier == "BRANCH") label.type = Label::Type::BRANCH;
-    else if (label.identifier.hasPrefix("XL")) label.type = Label::Type::CROSSLINK;
+    else if (StringUtils::hasPrefix(label.identifier, "XL")) label.type = Label::Type::CROSSLINK;
     else label.type = Label::Type::AMBIGUOUS;
     if (match_(TokenType::LPAREN))
     {
@@ -1524,7 +1524,7 @@ namespace detail
       advance_();
     }
     if (formula.empty()) error_(ErrorCode::UNEXPECTED_CHARACTER, "Expected adduct formula");
-    adduct.formula = String(formula);
+    adduct.formula =std::string(formula);
     expect_(TokenType::COLON, "':'");
     expect_(TokenType::IDENTIFIER, "'z'");
     int sign = 1;
@@ -1549,7 +1549,7 @@ namespace detail
   Token ProFormaParserImpl::expect_(TokenType type, const char* expected_desc) { Token tok = current_(); if (tok.type != type) errorAt_(ErrorCode::UNEXPECTED_CHARACTER, tok.position, (std::string("Expected ") + expected_desc).c_str()); return advance_(); }
   bool ProFormaParserImpl::isAtEnd_() { return current_().type == TokenType::END; }
   void ProFormaParserImpl::error_(ErrorCode code, const char* message) { errorAt_(code, current_().position, message); }
-  void ProFormaParserImpl::errorAt_(ErrorCode code, size_t pos, const char* message) { throw ProForma::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, pos, input_, message); }
+  void ProFormaParserImpl::errorAt_(ErrorCode code, size_t pos, const char* message) { throw ProForma::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, pos, std::string(input_), std::string(message)); }
   bool ProFormaParserImpl::isAminoAcid_(char c) { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'); }
 
 } // namespace detail
@@ -1558,24 +1558,24 @@ namespace detail
 // Public ProFormaParser static methods
 //============================================================================
 
-ProForma::Peptidoform ProForma::parse(const String& input)
+ProForma::Peptidoform ProForma::parse(const std::string& input)
 {
   detail::ProFormaParserImpl parser(input);
   return parser.parsePeptidoform();
 }
 
-ProForma::PeptidoformIon ProForma::parseIon(const String& input)
+ProForma::PeptidoformIon ProForma::parseIon(const std::string& input)
 {
   detail::ProFormaParserImpl parser(input);
   return parser.parsePeptidoformIon();
 }
 
-String ProForma::toString(const Peptidoform& pf, WriteMode mode)
+std::string ProForma::toString(const Peptidoform& pf, WriteMode mode)
 {
   return detail::ProFormaWriter::toString(pf, mode);
 }
 
-String ProForma::toString(const PeptidoformIon& pfi, WriteMode mode)
+std::string ProForma::toString(const PeptidoformIon& pfi, WriteMode mode)
 {
   return detail::ProFormaWriter::toString(pfi, mode);
 }
@@ -1618,14 +1618,14 @@ namespace
     char residue = '\0',
     ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY)
   {
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     return std::visit([&](auto&& arg) -> const ResidueModification* {
       using T = std::decay_t<decltype(arg)>;
 
       if constexpr (std::is_same_v<T, CvAccession>)
       {
-        String full_accession;
+        std::string full_accession;
         switch (arg.database)
         {
           case CvDatabase::UNIMOD: full_accession = "UNIMOD:" + arg.accession; break;
@@ -1636,7 +1636,7 @@ namespace
         }
         try
         {
-          String residue_str = (residue != '\0') ? String(1, residue) : "";
+          std::string residue_str = (residue != '\0') ? std::string(1, residue) : "";
           return mod_db->getModification(full_accession, residue_str, term_spec);
         }
         catch (const Exception::ElementNotFound&) { return nullptr; }
@@ -1644,12 +1644,12 @@ namespace
       else if constexpr (std::is_same_v<T, NamedMod>)
       {
         bool multiple_matches = false;
-        String residue_str = (residue != '\0') ? String(1, residue) : "";
+        std::string residue_str = (residue != '\0') ? std::string(1, residue) : "";
         return mod_db->searchModificationsFast(arg.name, multiple_matches, residue_str, term_spec);
       }
       else if constexpr (std::is_same_v<T, MassDelta>)
       {
-        String residue_str = (residue != '\0') ? String(1, residue) : "";
+        std::string residue_str = (residue != '\0') ? std::string(1, residue) : "";
         return mod_db->getBestModificationByDiffMonoMass(arg.mass, 0.01, residue_str, term_spec);
       }
       else if constexpr (std::is_same_v<T, FormulaTag>) { return nullptr; }
@@ -1695,7 +1695,7 @@ namespace
     }
   }
 
-  double calculateChainMass_(const Peptidoform& pf_resolved, std::set<String>& counted_crosslinks)
+  double calculateChainMass_(const Peptidoform& pf_resolved, std::set<std::string>& counted_crosslinks)
   {
     double mass = 0.0;
 
@@ -1705,7 +1705,7 @@ namespace
         const auto& label = mod.alternatives[0].second.value();
         if (label.type == Label::Type::CROSSLINK)
         {
-          if (counted_crosslinks.count(label.identifier) > 0) return;
+          if (counted_crosslinks.contains(label.identifier)) return;
           counted_crosslinks.insert(label.identifier);
         }
       }
@@ -1774,7 +1774,7 @@ namespace
           {
             if (const auto* elem = std::get_if<SequenceElement>(&section))
             {
-              for (const String& loc : gm->locations)
+              for (const std::string& loc : gm->locations)
               {
                 if (loc.size() == 1 && elem->amino_acid == loc[0]) { ++count; break; }
               }
@@ -1789,7 +1789,7 @@ namespace
   }
 
   // Spectrum generation helpers
-  std::tuple<bool, size_t, double, String> findCrossLink(const Peptidoform& chain)
+  std::tuple<bool, size_t, double, std::string> findCrossLink(const Peptidoform& chain)
   {
     size_t position = 0;
     for (const auto& section : chain.sequence)
@@ -2071,12 +2071,12 @@ ProForma::Peptidoform ProForma::fromAASequence(const AASequence& seq)
       if (mod != nullptr)
       {
         Modification proforma_mod;
-        String unimod_acc = mod->getUniModAccession();
-        if (!unimod_acc.empty() && unimod_acc.hasPrefix("UniMod:"))
+        std::string unimod_acc = mod->getUniModAccession();
+        if (!unimod_acc.empty() && StringUtils::hasPrefix(unimod_acc, "UniMod:"))
         {
           CvAccession cv;
           cv.database = CvDatabase::UNIMOD;
-          cv.accession = unimod_acc.substr(7);
+          cv.accession = StringUtils::substr(unimod_acc, 7);
           proforma_mod.alternatives.emplace_back(std::move(cv), std::nullopt);
         }
         else
@@ -2099,12 +2099,12 @@ ProForma::Peptidoform ProForma::fromAASequence(const AASequence& seq)
     if (mod != nullptr)
     {
       Modification proforma_mod;
-      String unimod_acc = mod->getUniModAccession();
-      if (!unimod_acc.empty() && unimod_acc.hasPrefix("UniMod:"))
+      std::string unimod_acc = mod->getUniModAccession();
+      if (!unimod_acc.empty() && StringUtils::hasPrefix(unimod_acc, "UniMod:"))
       {
         CvAccession cv;
         cv.database = CvDatabase::UNIMOD;
-        cv.accession = unimod_acc.substr(7);
+        cv.accession = StringUtils::substr(unimod_acc, 7);
         proforma_mod.alternatives.emplace_back(std::move(cv), std::nullopt);
       }
       else
@@ -2125,12 +2125,12 @@ ProForma::Peptidoform ProForma::fromAASequence(const AASequence& seq)
     if (mod != nullptr)
     {
       Modification proforma_mod;
-      String unimod_acc = mod->getUniModAccession();
-      if (!unimod_acc.empty() && unimod_acc.hasPrefix("UniMod:"))
+      std::string unimod_acc = mod->getUniModAccession();
+      if (!unimod_acc.empty() && StringUtils::hasPrefix(unimod_acc, "UniMod:"))
       {
         CvAccession cv;
         cv.database = CvDatabase::UNIMOD;
-        cv.accession = unimod_acc.substr(7);
+        cv.accession = StringUtils::substr(unimod_acc, 7);
         proforma_mod.alternatives.emplace_back(std::move(cv), std::nullopt);
       }
       else
@@ -2166,7 +2166,7 @@ std::vector<ProForma::ConversionIssue> ProForma::getMassCalculationIssues(const 
       const Residue* res = ResidueDB::getInstance()->getResidue(elem->amino_acid);
       if (res == nullptr)
         issues.push_back({ConversionIssueType::UNSUPPORTED_FEATURE,
-          String("Unknown amino acid '") + elem->amino_acid + "' at position " + String(position), position});
+          std::string("Unknown amino acid '") + elem->amino_acid + "' at position " + StringUtils::toStr(position), position});
       for (const auto& mod : elem->modifications) checkModificationForMass_(mod, position, issues);
       ++position;
     }
@@ -2178,7 +2178,7 @@ std::vector<ProForma::ConversionIssue> ProForma::getMassCalculationIssues(const 
         const Residue* res = ResidueDB::getInstance()->getResidue(elem.amino_acid);
         if (res != nullptr) masses.insert(res->getMonoWeight(Residue::Internal));
         else issues.push_back({ConversionIssueType::UNSUPPORTED_FEATURE,
-          String("Unknown amino acid '") + elem.amino_acid + "' in ambiguous region", position});
+          std::string("Unknown amino acid '") + elem.amino_acid + "' in ambiguous region", position});
       }
       if (masses.size() > 1)
         issues.push_back({ConversionIssueType::AMBIGUOUS_REGION,
@@ -2192,7 +2192,7 @@ std::vector<ProForma::ConversionIssue> ProForma::getMassCalculationIssues(const 
         const Residue* res = ResidueDB::getInstance()->getResidue(elem.amino_acid);
         if (res == nullptr)
           issues.push_back({ConversionIssueType::UNSUPPORTED_FEATURE,
-            String("Unknown amino acid '") + elem.amino_acid + "' in range", position});
+            std::string("Unknown amino acid '") + elem.amino_acid + "' in range", position});
         ++position;
       }
       for (const auto& mod : range->modifications)
@@ -2238,7 +2238,7 @@ double ProForma::getMonoWeight(const Peptidoform& pf)
 
   Peptidoform pf_copy = pf;
   resolveModifications(pf_copy);
-  std::set<String> counted_crosslinks;
+  std::set<std::string> counted_crosslinks;
   return calculateChainMass_(pf_copy, counted_crosslinks);
 }
 
@@ -2255,7 +2255,7 @@ double ProForma::getMonoWeight(const PeptidoformIon& pfi)
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       "Cannot calculate single mass for chimeric spectra.", "");
 
-  std::set<String> counted_crosslinks;
+  std::set<std::string> counted_crosslinks;
   double total = 0.0;
   for (const auto& chain : pfi.chains)
   {
@@ -2310,7 +2310,7 @@ std::optional<double> ProForma::tryGetMonoWeight(const Peptidoform& pf, std::vec
   resolveModifications(pf_copy);
   issues_out = getMassCalculationIssues(pf_copy);
   if (!issues_out.empty()) return std::nullopt;
-  std::set<String> counted_crosslinks;
+  std::set<std::string> counted_crosslinks;
   return calculateChainMass_(pf_copy, counted_crosslinks);
 }
 
@@ -2345,7 +2345,7 @@ std::optional<double> ProForma::tryGetMonoWeight(const PeptidoformIon& pfi, std:
   }
   if (!issues_out.empty()) return std::nullopt;
 
-  std::set<String> counted_crosslinks;
+  std::set<std::string> counted_crosslinks;
   double total = 0.0;
   for (const auto& chain : pfi.chains)
   {
@@ -2445,14 +2445,14 @@ MSSpectrum ProForma::generateSpectrum(
 
   TheoreticalSpectrumGenerator generator;
   Param param = generator.getParameters();
-  param.setValue("add_a_ions", ion_types.find('a') != std::string::npos ? "true" : "false");
-  param.setValue("add_b_ions", ion_types.find('b') != std::string::npos ? "true" : "false");
-  param.setValue("add_c_ions", ion_types.find('c') != std::string::npos ? "true" : "false");
-  param.setValue("add_x_ions", ion_types.find('x') != std::string::npos ? "true" : "false");
-  param.setValue("add_y_ions", ion_types.find('y') != std::string::npos ? "true" : "false");
-  param.setValue("add_z_ions", ion_types.find('z') != std::string::npos ? "true" : "false");
-  param.setValue("add_precursor_peaks", ion_types.find('M') != std::string::npos ? "true" : "false");
-  param.setValue("add_abundant_immonium_ions", ion_types.find('I') != std::string::npos ? "true" : "false");
+  param.setValue("add_a_ions", ion_types.contains('a') ? "true" : "false");
+  param.setValue("add_b_ions", ion_types.contains('b') ? "true" : "false");
+  param.setValue("add_c_ions", ion_types.contains('c') ? "true" : "false");
+  param.setValue("add_x_ions", ion_types.contains('x') ? "true" : "false");
+  param.setValue("add_y_ions", ion_types.contains('y') ? "true" : "false");
+  param.setValue("add_z_ions", ion_types.contains('z') ? "true" : "false");
+  param.setValue("add_precursor_peaks", ion_types.contains('M') ? "true" : "false");
+  param.setValue("add_abundant_immonium_ions", ion_types.contains('I') ? "true" : "false");
   param.setValue("add_losses", add_losses ? "true" : "false");
   param.setValue("add_metainfo", add_metainfo ? "true" : "false");
   generator.setParameters(param);
@@ -2501,13 +2501,13 @@ MSSpectrum ProForma::generateSpectrum(
 
   TheoreticalSpectrumGeneratorXLMS generator;
   Param param = generator.getParameters();
-  param.setValue("add_a_ions", ion_types.find('a') != std::string::npos ? "true" : "false");
-  param.setValue("add_b_ions", ion_types.find('b') != std::string::npos ? "true" : "false");
-  param.setValue("add_c_ions", ion_types.find('c') != std::string::npos ? "true" : "false");
-  param.setValue("add_x_ions", ion_types.find('x') != std::string::npos ? "true" : "false");
-  param.setValue("add_y_ions", ion_types.find('y') != std::string::npos ? "true" : "false");
-  param.setValue("add_z_ions", ion_types.find('z') != std::string::npos ? "true" : "false");
-  param.setValue("add_precursor_peaks", ion_types.find('M') != std::string::npos ? "true" : "false");
+  param.setValue("add_a_ions", ion_types.contains('a') ? "true" : "false");
+  param.setValue("add_b_ions", ion_types.contains('b') ? "true" : "false");
+  param.setValue("add_c_ions", ion_types.contains('c') ? "true" : "false");
+  param.setValue("add_x_ions", ion_types.contains('x') ? "true" : "false");
+  param.setValue("add_y_ions", ion_types.contains('y') ? "true" : "false");
+  param.setValue("add_z_ions", ion_types.contains('z') ? "true" : "false");
+  param.setValue("add_precursor_peaks", ion_types.contains('M') ? "true" : "false");
   param.setValue("add_losses", add_losses ? "true" : "false");
   param.setValue("add_metainfo", add_metainfo ? "true" : "false");
   generator.setParameters(param);

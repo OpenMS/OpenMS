@@ -48,7 +48,7 @@ namespace OpenMS
   }
 
   MRMDecoy::IndexType MRMDecoy::findFixedResidues(const std::string& sequence,
-      bool keepN, bool keepC, const OpenMS::String& keep_const_pattern)
+      bool keepN, bool keepC, const std::string& keep_const_pattern)
   {
     // also blocks both N- and C-terminus from shuffling if required
     MRMDecoy::IndexType idx;
@@ -81,7 +81,7 @@ namespace OpenMS
     return MRMDecoy::findFixedResidues(sequence, keepN_, keepC_, keep_const_pattern_);
   }
 
-  float MRMDecoy::AASequenceIdentity(const String& sequence, const String& decoy) const
+  float MRMDecoy::AASequenceIdentity(const std::string& sequence, const std::string& decoy) const
   {
     OPENMS_PRECONDITION(sequence.size() == decoy.size(), "Cannot compare two sequences of unequal length");
 
@@ -161,7 +161,7 @@ namespace OpenMS
 
   OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
       const OpenMS::TargetedExperiment::Peptide& peptide, const bool keepN, const bool keepC,
-      const String& const_pattern)
+      const std::string& const_pattern)
   {
     // Delegate to light implementation
     auto light_mods = detail::toLightMods(peptide.mods);
@@ -199,9 +199,9 @@ namespace OpenMS
     return hasCNterminalModsLight_(light_mods, peptide.sequence.size(), checkCterminalAA);
   }
 
-  String MRMDecoy::getModifiedPeptideSequence_(const OpenMS::TargetedExperiment::Peptide& pep) const
+  std::string MRMDecoy::getModifiedPeptideSequence_(const OpenMS::TargetedExperiment::Peptide& pep) const
   {
-    String full_peptide_name;
+    std::string full_peptide_name;
     for (int loc = -1; loc <= (int)pep.sequence.size(); loc++)
     {
       if (loc > -1 && loc < (int)pep.sequence.size())
@@ -213,7 +213,7 @@ namespace OpenMS
       {
         if (pep.mods[modloc].location == loc)
         {
-          full_peptide_name += "(UniMod:" + String(pep.mods[modloc].unimod_id) + ")";
+          full_peptide_name += "(UniMod:" + StringUtils::toStr(pep.mods[modloc].unimod_id) + ")";
         }
       }
     }
@@ -230,7 +230,7 @@ namespace OpenMS
       const std::vector<OpenSwath::LightModification>& modifications,
       const bool keepN,
       const bool keepC,
-      const String& const_pattern)
+      const std::string& const_pattern)
   {
     std::string reversed = sequence;
     std::vector<OpenSwath::LightModification> reversed_mods = modifications;
@@ -491,10 +491,10 @@ namespace OpenMS
   }
 
   void MRMDecoy::generateDecoys(const OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
-                                const String& method, const double aim_decoy_fraction, const bool do_switchKR,
-                                const String& decoy_tag, const int max_attempts, const double identity_threshold,
+                                const std::string& method, const double aim_decoy_fraction, const bool do_switchKR,
+                                const std::string& decoy_tag, const int max_attempts, const double identity_threshold,
                                 const double precursor_mz_shift, const double product_mz_shift, const double product_mz_threshold,
-                                const std::vector<String>& fragment_types, const std::vector<size_t>& fragment_charges,
+                                const std::vector<std::string>& fragment_types, const std::vector<size_t>& fragment_charges,
                                 const bool enable_specific_losses, const bool enable_unspecific_losses, const int round_decPow) const
   {
     MRMIonSeries mrmis;
@@ -539,10 +539,10 @@ namespace OpenMS
       OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[pep_idx];
 
       // create a modified peptide sequence string
-      allPeptideSequences[MRMDecoy::getModifiedPeptideSequence_(peptide) + String(peptide.getChargeState()) ] = peptide.id;
+      allPeptideSequences[MRMDecoy::getModifiedPeptideSequence_(peptide) + StringUtils::toStr(peptide.getChargeState()) ] = peptide.id;
     }
 
-    std::unordered_set<String> exclusion_peptides;
+    std::unordered_set<std::string> exclusion_peptides;
     // Go through all peptides and apply the decoy method to the sequence
     // (pseudo-reverse, reverse or shuffle). Then set the peptides and proteins of the decoy
     // experiment.
@@ -601,8 +601,8 @@ namespace OpenMS
 
       // Check that the decoy precursor does not happen to be a target precursor AND is not already present.
       // Use getModifiedPeptideSequence_ to match the key format used when populating allPeptideSequences above.
-      const std::string peptide_key = MRMDecoy::getModifiedPeptideSequence_(peptide) + String(peptide.getChargeState());
-      if (allPeptideSequences.find(peptide_key) != allPeptideSequences.end())
+      const std::string peptide_key = MRMDecoy::getModifiedPeptideSequence_(peptide) + StringUtils::toStr(peptide.getChargeState());
+      if (allPeptideSequences.contains(peptide_key))
       {
         OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy peptide is also a target peptide or this decoy peptide is already present\n";
         exclusion_peptides.insert(peptide.id);
@@ -638,8 +638,8 @@ namespace OpenMS
     {
       setProgress(++progress);
 
-      String peptide_ref = pep_it->first;
-      String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
+      std::string peptide_ref = pep_it->first;
+      std::string decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
       if (!dec.hasPeptide(decoy_peptide_ref)) { continue; }
       const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(peptide_ref);
 
@@ -680,8 +680,8 @@ namespace OpenMS
 
         // determine the current annotation for the target ion and then select
         // the appropriate decoy ion for this target transition
-        std::pair<String, double> targetion = mrmis.annotateIon(target_ionseries, tr.getProductMZ(), product_mz_threshold);
-        std::pair<String, double> decoyion = mrmis.getIon(decoy_ionseries, targetion.first);
+        std::pair<std::string, double> targetion = mrmis.annotateIon(target_ionseries, tr.getProductMZ(), product_mz_threshold);
+        std::pair<std::string, double> decoyion = mrmis.getIon(decoy_ionseries, targetion.first);
 
         if (method == "shift")
         {
@@ -712,16 +712,16 @@ namespace OpenMS
                             decoy_transitions.begin(), decoy_transitions.end(),
                             [&exclusion_peptides](const OpenMS::ReactionMonitoringTransition& tr)
     {
-      return exclusion_peptides.find(tr.getPeptideRef()) != exclusion_peptides.end();
+      return exclusion_peptides.contains(tr.getPeptideRef());
     }), decoy_transitions.end());
     dec.setTransitions(std::move(decoy_transitions));
 
-    std::unordered_set<String> protein_ids;
+    std::unordered_set<std::string> protein_ids;
     decoy_peptides.reserve(peptides.size());
     for (const auto& peptide : peptides)
     {
       // Check if peptide has any transitions left
-      if (exclusion_peptides.find(peptide.id) == exclusion_peptides.end())
+      if (!exclusion_peptides.contains(peptide.id))
       {
         decoy_peptides.push_back(peptide);
         for (Size j = 0; j < peptide.protein_refs.size(); ++j)
@@ -739,7 +739,7 @@ namespace OpenMS
     for (const auto& protein : proteins)
     {
       // Check if protein has any peptides left
-      if (protein_ids.find(protein.id) != protein_ids.end())
+      if (protein_ids.contains(protein.id))
       {
         decoy_proteins.push_back(protein);
       }
@@ -756,16 +756,16 @@ namespace OpenMS
 
   void MRMDecoy::generateDecoysLight(const OpenSwath::LightTargetedExperiment& exp,
                                      OpenSwath::LightTargetedExperiment& dec,
-                                     const String& method,
+                                     const std::string& method,
                                      const double aim_decoy_fraction,
                                      const bool do_switchKR,
-                                     const String& decoy_tag,
+                                     const std::string& decoy_tag,
                                      const int max_attempts,
                                      const double identity_threshold,
                                      const double precursor_mz_shift,
                                      const double product_mz_shift,
                                      const double product_mz_threshold,
-                                     const std::vector<String>& fragment_types,
+                                     const std::vector<std::string>& fragment_types,
                                      const std::vector<size_t>& fragment_charges,
                                      const bool enable_specific_losses,
                                      const bool enable_unspecific_losses,
@@ -932,7 +932,7 @@ namespace OpenMS
 
       // Build modified sequence string with UniMod notation (must be done before duplicate check)
       // This matches the Heavy path which uses getModifiedPeptideSequence_() for duplicate detection
-      String full_decoy_sequence;
+      std::string full_decoy_sequence;
       for (int loc = -1; loc <= static_cast<int>(decoy_sequence.size()); loc++)
       {
         if (loc > -1 && loc < static_cast<int>(decoy_sequence.size()))
@@ -944,7 +944,7 @@ namespace OpenMS
         {
           if (mod.location == loc)
           {
-            full_decoy_sequence += "(UniMod:" + String(mod.unimod_id) + ")";
+            full_decoy_sequence += "(UniMod:" + StringUtils::toStr(mod.unimod_id) + ")";
           }
         }
       }
@@ -954,8 +954,8 @@ namespace OpenMS
       // The Heavy path uses getModifiedPeptideSequence_(peptide) + charge for storing decoys,
       // which includes UniMod annotations. This ensures peptides with the same unmodified
       // sequence but different modifications are NOT considered duplicates.
-      std::string decoy_key = full_decoy_sequence + String(decoy_compound.charge);
-      if (allPeptideSequences.find(decoy_key) != allPeptideSequences.end())
+      std::string decoy_key = full_decoy_sequence + StringUtils::toStr(decoy_compound.charge);
+      if (allPeptideSequences.contains(decoy_key))
       {
         OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " since decoy peptide is also a target peptide or this decoy peptide is already present\n";
         exclusion_peptides.insert(decoy_compound.id);
@@ -1065,8 +1065,8 @@ namespace OpenMS
         decoy_tr.precursor_mz = decoy_precursor_mz;
 
         // Annotate and get decoy fragment m/z
-        std::pair<String, double> targetion = mrmis.annotateIon(target_ionseries, tr->product_mz, product_mz_threshold);
-        std::pair<String, double> decoyion = mrmis.getIon(decoy_ionseries, targetion.first);
+        std::pair<std::string, double> targetion = mrmis.annotateIon(target_ionseries, tr->product_mz, product_mz_threshold);
+        std::pair<std::string, double> decoyion = mrmis.getIon(decoy_ionseries, targetion.first);
 
         if (method == "shift")
         {
@@ -1082,7 +1082,7 @@ namespace OpenMS
           // Update fragment type/number/charge from annotation (format: b4^1, y10^2, etc.)
           if (!targetion.first.empty())
           {
-            decoy_tr.setFragmentType(targetion.first.substr(0, 1));
+            decoy_tr.setFragmentType(StringUtils::substr(targetion.first, 0, 1));
             std::string num_str;
             size_t i = 1;
             for (; i < targetion.first.size() && std::isdigit(targetion.first[i]); ++i)
@@ -1123,7 +1123,7 @@ namespace OpenMS
     decoy_transitions.erase(
         std::remove_if(decoy_transitions.begin(), decoy_transitions.end(),
                        [&exclusion_peptides](const OpenSwath::LightTransition& tr) {
-                         return exclusion_peptides.find(tr.peptide_ref) != exclusion_peptides.end();
+                         return exclusion_peptides.contains(tr.peptide_ref);
                        }),
         decoy_transitions.end());
 
@@ -1132,7 +1132,7 @@ namespace OpenMS
     std::unordered_set<std::string> protein_ids;
     for (const auto& compound : decoy_compounds)
     {
-      if (exclusion_peptides.find(compound.id) == exclusion_peptides.end())
+      if (!exclusion_peptides.contains(compound.id))
       {
         filtered_compounds.push_back(compound);
         for (const auto& prot_ref : compound.protein_refs)
@@ -1146,7 +1146,7 @@ namespace OpenMS
     std::vector<OpenSwath::LightProtein> filtered_proteins;
     for (const auto& protein : decoy_proteins)
     {
-      if (protein_ids.find(protein.id) != protein_ids.end())
+      if (protein_ids.contains(protein.id))
       {
         filtered_proteins.push_back(protein);
       }

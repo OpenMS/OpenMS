@@ -18,7 +18,7 @@
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 ///////////////////////////
@@ -79,7 +79,7 @@ START_SECTION((ProteinIdentification(const ProteinIdentification &source)))
 	TEST_EQUAL(hits.getDateTime() == hits2.getDateTime(), true)
 	TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
 	TEST_EQUAL(hits.getHits().size() == 1, true)
-	TEST_EQUAL(hits.getHits()[0].getSequence(), String(""))
+	TEST_EQUAL(hits.getHits()[0].getSequence(),std::string(""))
 	TEST_EQUAL(hits.getHits()[0] == protein_hit, true)
 	TEST_EQUAL(hits.getProteinGroups().size() == 2, true)
 	TEST_EQUAL(hits.getProteinGroups()[0] == g, true)
@@ -271,13 +271,13 @@ START_SECTION((void setHits(const std::vector<ProteinHit> &hits)))
 END_SECTION
 
 
-START_SECTION((const String& getScoreType() const))
+START_SECTION((const std::string& getScoreType() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.getScoreType(), "")
 END_SECTION
 
 
-START_SECTION((void setScoreType(const String& type)))
+START_SECTION((void setScoreType(const std::string& type)))
 	ProteinIdentification hits;
 	hits.setScoreType("bla");
 	TEST_EQUAL(hits.getScoreType(), "bla")
@@ -297,39 +297,39 @@ START_SECTION((void setHigherScoreBetter(bool higher_is_better)))
 END_SECTION
 
 
-START_SECTION((const String& getIdentifier() const))
+START_SECTION((const std::string& getIdentifier() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.getIdentifier(), "")
 END_SECTION
 
 
-START_SECTION((void setIdentifier(const String& id)))
+START_SECTION((void setIdentifier(const std::string& id)))
 	ProteinIdentification hits;
 	hits.setIdentifier("bla");
 	TEST_EQUAL(hits.getIdentifier(), "bla")
 END_SECTION
 
 
-START_SECTION((const String& getSearchEngine() const))
+START_SECTION((const std::string& getSearchEngine() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.getSearchEngine(), "")
 END_SECTION
 
 
-START_SECTION((void setSearchEngine(const String& search_engine)))
+START_SECTION((void setSearchEngine(const std::string& search_engine)))
 	ProteinIdentification hits;
 	hits.setIdentifier("bla");
 	TEST_EQUAL(hits.getIdentifier(), "bla")
 END_SECTION
 
 
-START_SECTION((const String& getSearchEngineVersion() const))
+START_SECTION((const std::string& getSearchEngineVersion() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.getSearchEngineVersion(), "")
 END_SECTION
 
 
-START_SECTION((void setSearchEngineVersion(const String &search_engine_version)))
+START_SECTION((void setSearchEngineVersion(const std::string &search_engine_version)))
 	ProteinIdentification hits;
 	hits.setSearchEngineVersion("bla");
 	TEST_EQUAL(hits.getSearchEngineVersion(), "bla")
@@ -725,7 +725,7 @@ START_SECTION((void insertIndistinguishableProteins(const ProteinGroup& group)))
 END_SECTION
 
 
-START_SECTION((vector<ProteinHit>::iterator findHit(const String& accession)))
+START_SECTION((vector<ProteinHit>::iterator findHit(const std::string& accession)))
 {
 	ProteinIdentification protein;
 	ProteinHit hit;

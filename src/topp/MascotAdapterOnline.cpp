@@ -108,15 +108,15 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file in mzML format.\n");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("out", "<file>", "", "output file in idXML format.\n");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML"));
 
     registerSubsection_("Mascot_server", "Mascot server details");
     registerSubsection_("Mascot_parameters", "Mascot parameters used for searching");
   }
 
-  Param getSubsectionDefaults_(const String& section) const override
+  Param getSubsectionDefaults_(const std::string& section) const override
   {
     if (section == "Mascot_server")
     {
@@ -137,7 +137,7 @@ protected:
 
   void parseMascotResponse_(const PeakMap& exp, bool decoy, MascotRemoteQuery* mascot_query, ProteinIdentification& prot_id, PeptideIdentificationList& pep_ids)
   {
-    String mascot_tmp_file_name = decoy ? (File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_decoy_response") : (File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
+    std::string mascot_tmp_file_name = decoy ? (File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_decoy_response") : (File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
 
     {
       const std::string& data = decoy ? mascot_query->getMascotXMLDecoyResponse() : mascot_query->getMascotXMLResponse();
@@ -154,7 +154,7 @@ protected:
       }
     }
 
-    writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
+    writeDebug_(std::string("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
 
     // set up helper object for looking up spectrum meta data:
     SpectrumMetaDataLookup lookup;
@@ -162,12 +162,12 @@ protected:
 
     // read the response
     MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, lookup);
-    writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
+    writeDebug_("Read " + StringUtils::toStr(pep_ids.size()) + " peptide ids and " + StringUtils::toStr(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
 
     // for debugging errors relating to unexpected response files
     if (this->debug_level_ >= 100)
     {
-      writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
+      writeDebug_(std::string("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
     }
     else
     {
@@ -197,12 +197,12 @@ protected:
       }
     }
     
-    map<String, size_t> native_id2id_index;
+    map<std::string, size_t> native_id2id_index;
     size_t index{};
-    String run_identifier;
+    std::string run_identifier;
     for (const PeptideIdentification& pep : pep_a)
     {
-      const String& native_id = pep.getSpectrumReference();
+      const std::string& native_id = pep.getSpectrumReference();
       native_id2id_index[native_id] = index;
       ++index;
       if (run_identifier.empty()) run_identifier = pep.getIdentifier();
@@ -239,8 +239,8 @@ protected:
     //-------------------------------------------------------------
 
     // input/output files
-    String in = getRawfileName();
-    String out(getStringOption_("out"));
+    std::string in = getRawfileName();
+    std::string out(getStringOption_("out"));
 
     //-------------------------------------------------------------
     // loading input
@@ -251,7 +251,7 @@ protected:
     FileHandler fh;
     fh.getOptions().setMSLevels({2});
     fh.loadExperiment(in, exp, {FileTypes::Type::MZML}, log_type_, false, false);
-    writeLogInfo_("Number of spectra loaded: " + String(exp.size()));
+    writeLogInfo_("Number of spectra loaded: " + StringUtils::toStr(exp.size()));
 
 
     //-------------------------------------------------------------
@@ -263,7 +263,7 @@ protected:
     // overwrite default search title with filename
     if (mascot_param.getValue("search_title") == "OpenMS_search")
     {
-      mascot_param.setValue("search_title", FileHandler::stripExtension(File::basename(in)));
+      mascot_param.setValue("search_title", File::stemName(in));
     }
 
     mascot_param.setValue("internal:HTTP_format", "true");
@@ -349,7 +349,7 @@ protected:
         {
           // no need to reannotate
           if (pep.metaValueExists("spectrum_reference") 
-            && !(static_cast<String>(pep.getMetaValue("spectrum_reference")).empty()))
+            && !(static_cast<std::string>(pep.getMetaValue("spectrum_reference")).empty()))
           {
             continue;
           }
@@ -361,7 +361,7 @@ protected:
           }
           catch (Exception::ElementNotFound&)
           {
-            OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(pep.getRT()) + "'." << endl;
+            OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + StringUtils::toStr(pep.getRT()) + "'." << endl;
           }
         }
 
@@ -376,7 +376,7 @@ protected:
           {
             // no need to reannotate
             if (pep.metaValueExists("spectrum_reference") 
-              && !(static_cast<String>(pep.getMetaValue("spectrum_reference")).empty()))
+              && !(static_cast<std::string>(pep.getMetaValue("spectrum_reference")).empty()))
             {
               continue;
             } 
@@ -388,14 +388,14 @@ protected:
             }
             catch (Exception::ElementNotFound&)
             {
-              OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(pep.getRT()) + "'." << endl;
+              OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + StringUtils::toStr(pep.getRT()) + "'." << endl;
             }
           }
           mergeIDs_(prot_id, decoy_prot_id, pep_ids, decoy_pep_ids);
         }
       }
 
-      String search_number = mascot_query->getSearchIdentifier();
+      std::string search_number = mascot_query->getSearchIdentifier();
       if (search_number.empty())
       {
         writeLogError_("Error: Failed to extract the Mascot search identifier (search number).");
@@ -424,8 +424,8 @@ protected:
     all_prot_id.setPrimaryMSRunPath({ in }, exp);
 
     DateTime now = DateTime::now();
-    String date_string = now.get();
-    String run_identifier("Mascot_" + date_string);
+    std::string date_string = now.get();
+    std::string run_identifier("Mascot_" + date_string);
 
     // remove proteins as protein links seem are broken and reindexing is needed
     all_prot_id.getHits().clear(); 

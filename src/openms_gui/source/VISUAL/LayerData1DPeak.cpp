@@ -9,6 +9,7 @@
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
@@ -177,7 +178,7 @@ namespace OpenMS
       pep_id.setIdentifier("Unknown");
 
       // create a dummy ProteinIdentification for all ID-less PeakAnnotations
-      if (prot_ids.empty() || prot_ids.back().getIdentifier() != String("Unknown"))
+      if (prot_ids.empty() || prot_ids.back().getIdentifier() !=std::string("Unknown"))
       {
         ProteinIdentification prot_id;
         prot_id.setIdentifier("Unknown");
@@ -254,7 +255,7 @@ namespace OpenMS
 
         if (fabs(tmp_a.mz - pa->getPeakPosition().getMZ()) < 1e-6)
         {
-          if (String(pa->getText()).hasPrefix(tmp_a.annotation))
+          if (StringUtils::hasPrefix(fromQString(pa->getText()), tmp_a.annotation))
           {
             to_remove.push_back(tmp_a);
           }

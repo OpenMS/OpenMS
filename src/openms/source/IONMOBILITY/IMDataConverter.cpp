@@ -155,11 +155,11 @@ namespace OpenMS
   {
     if (number_of_bins == 0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot split into 0 bins.", String(number_of_bins));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot split into 0 bins.",StringUtils::toStr(number_of_bins));
     }
     if (bin_extension_abs < 0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Overlap must not be negative.", String(bin_extension_abs));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Overlap must not be negative.",StringUtils::toStr(bin_extension_abs));
     }
     std::vector<MSExperiment> results(number_of_bins);
     in.updateRanges();
@@ -167,7 +167,7 @@ namespace OpenMS
     const auto range_IM = RangeMobility(in.spectrumRanges());
     if (range_IM.getSpan() / number_of_bins < bin_extension_abs * 2)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Bin size (") + String(range_IM.getSpan() / number_of_bins) + ") is smaller than the overlap.", String(bin_extension_abs*2));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,"Bin size (" + StringUtils::toStr(range_IM.getSpan() / number_of_bins) + ") is smaller than the overlap.",StringUtils::toStr(bin_extension_abs*2));
     }
 
     // compute the bins
@@ -181,7 +181,7 @@ namespace OpenMS
     const auto ms_levels = in.getMSLevels();
     p.setValue("block_method:ms_levels", IntList(ms_levels.begin(), ms_levels.end())); // merge all MS levels
     p.setValue("mz_binning_width", mz_binning_width);
-    p.setValue("mz_binning_width_unit", String(MZ_UNIT_NAMES[(int)mz_binning_width_unit]));
+    p.setValue("mz_binning_width_unit",std::string(MZ_UNIT_NAMES[(int)mz_binning_width_unit]));
     p.setValue("block_method:rt_block_size", INT_MAX);
     p.setValue("block_method:rt_max_length", 10e10);
 
@@ -288,7 +288,7 @@ namespace OpenMS
     {
       // copy non-IM or already framed spectra
       // throws Exception if spec has mixed IM format
-      if (IMTypes::determineIMFormat(spec) != IMFormat::MULTIPLE_SPECTRA)
+      if (IMTypes::determineIMFormat(spec) != IMFormat::IM_SPECTRUM)
       {
         processDriftTimeStack(stack, result); // clear current stack
         result.getSpectra().push_back(spec);
@@ -330,14 +330,15 @@ namespace OpenMS
   bool IMDataConverter::getIMUnit(const DataArrays::FloatDataArray& fda, DriftTimeUnit& unit)
   {
     const auto& cv = ControlledVocabulary::getPSIMSCV();
-    if (fda.getName().hasPrefix(Constants::UserParam::ION_MOBILITY) ||
-        fda.getName().hasPrefix(Constants::UserParam::INVERSE_REDUCED_ION_MOBILITY))
-    { // fallback for non-standard IM arrays (as created by Mobi-DIK, "Ion Mobility Centroid" from PeakPickerIM, or "inverse reduced ion mobility" from MSConvert)
-      if (fda.getName().hasSubstring("MS:1002815"))
+    if (StringUtils::hasPrefix(fda.getName(), Constants::UserParam::ION_MOBILITY) ||
+        StringUtils::hasPrefix(fda.getName(), Constants::UserParam::INVERSE_REDUCED_ION_MOBILITY) ||
+        StringUtils::hasPrefix(fda.getName(), Constants::UserParam::MEAN_INVERSE_REDUCED_ION_MOBILITY_ARRAY))
+    { // fallback for non-standard IM arrays (as created by Mobi-DIK, "Ion Mobility Centroid" from PeakPickerIM, "inverse reduced ion mobility" from MSConvert, or "mean inverse reduced ion mobility array" from Bruker)
+      if (StringUtils::hasSubstring(fda.getName(), "MS:1002815") || StringUtils::hasSubstring(fda.getName(), "MS:1003006"))
       {
         unit = DriftTimeUnit::VSSC;
       }
-      else if (fda.getName().hasSubstring("MS:1002954"))
+      else if (StringUtils::hasSubstring(fda.getName(), "MS:1002954"))
       {
         unit = DriftTimeUnit::CCS;
       }
@@ -353,15 +354,15 @@ namespace OpenMS
 
       if (cv.isChildOf(cv_term.id, "MS:1002893")) // is child of generic 'ion mobility array'?
       {
-        if (cv_term.units.find("MS:1002814") != cv_term.units.end())
+        if (cv_term.units.contains("MS:1002814"))
         { // MS:1002814 ! volt-second per square centimeter
           unit = DriftTimeUnit::VSSC;
         }
-        else if (cv_term.units.find("UO:0000028") != cv_term.units.end())
+        else if (cv_term.units.contains("UO:0000028"))
         { // UO:0000028 ! millisecond
           unit = DriftTimeUnit::MILLISECOND;
         }
-        else if (cv_term.units.find("UO:0000324") != cv_term.units.end())
+        else if (cv_term.units.contains("UO:0000324"))
         { // UO:0000324 ! square angstrom (CCS)
           unit = DriftTimeUnit::CCS;
         }

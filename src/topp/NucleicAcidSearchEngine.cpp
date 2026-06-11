@@ -11,7 +11,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/MATH/StatisticFunctions.h> // for "median"
 
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -57,8 +57,6 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
-
-#include <QtCore/QProcess>
 
 #include <algorithm>
 #include <iostream>
@@ -128,41 +126,48 @@ public:
   }
 
 protected:
-  vector<String> fragment_ion_codes_;
-  map<String, String> ambiguous_mods_; //< map: specific code -> ambig. code
+  vector<std::string> fragment_ion_codes_;
+  map<std::string, std::string> ambiguous_mods_; //< map: specific code -> ambig. code
   bool resolve_ambiguous_mods_;
 
 
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: spectra");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
 
     registerInputFile_("database", "<file>", "", "Input file: sequence database. Required unless 'digest' is set.", false);
-    setValidFormats_("database", ListUtils::create<String>("fasta"));
+    setValidFormats_("database", ListUtils::create<std::string>("fasta"));
 
     registerInputFile_("digest", "<file>", "", "Input file: pre-digested sequence database. Can be used instead of 'database'. Sets all 'oligo:...' parameters.", false);
     setValidFormats_("digest", {"oms"});
 
     registerOutputFile_("out", "<file>", "", "Output file: mzTab");
-    setValidFormats_("out", ListUtils::create<String>("mzTab"));
+    setValidFormats_("out", ListUtils::create<std::string>("mzTab"));
 
     registerOutputFile_("id_out", "<file>", "", "Output file: idXML (for visualization in TOPPView)", false);
-    setValidFormats_("id_out", ListUtils::create<String>("idXML"));
+    setValidFormats_("id_out", ListUtils::create<std::string>("idXML"));
 
     registerOutputFile_("db_out", "<file>", "", "Output file: oms (SQLite database)", false);
-    setValidFormats_("db_out", ListUtils::create<String>("oms"));
+    setValidFormats_("db_out", ListUtils::create<std::string>("oms"));
 
     registerOutputFile_("digest_out", "<file>", "", "Output file: sequence database digest. Ignored if 'digest' input is used.", false);
     setValidFormats_("digest_out", {"oms"});
 
     registerOutputFile_("lfq_out", "<file>", "", "Output file: targets for label-free quantification using FeatureFinderMetaboIdent ('id' input)", false);
-    setValidFormats_("lfq_out", vector<String>(1, "tsv"));
+    setValidFormats_("lfq_out", vector<std::string>(1, "tsv"));
 
     registerOutputFile_("theo_ms2_out", "<file>", "", "Output file: theoretical MS2 spectra for precursor mass matches", false, true);
-    setValidFormats_("theo_ms2_out", ListUtils::create<String>("mzML"));
+    setValidFormats_("theo_ms2_out", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("exp_ms2_out", "<file>", "", "Output file: experimental MS2 spectra for precursor mass matches", false, true);
-    setValidFormats_("exp_ms2_out", ListUtils::create<String>("mzML"));
+    setValidFormats_("exp_ms2_out", ListUtils::create<std::string>("mzML"));
 
     registerFlag_("decharge_ms2", "Decharge the MS2 spectra for scoring", true);
 
@@ -170,7 +175,7 @@ protected:
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance (+/- around uncharged precursor mass)", false);
 
     registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance", false, false);
-    setValidStrings_("precursor:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+    setValidStrings_("precursor:mass_tolerance_unit", ListUtils::create<std::string>("Da,ppm"));
 
     registerIntOption_("precursor:min_charge", "<num>", -1, "Minimum precursor charge to be considered", false, false);
     registerIntOption_("precursor:max_charge", "<num>", -20, "Maximum precursor charge to be considered", false, false);
@@ -181,7 +186,7 @@ protected:
 
     // Whether to look for precursors with salt adducts
     registerFlag_("precursor:use_adducts", "Consider possible salt adducts (see 'precursor:potential_adducts') when matching precursor masses", false);
-    registerStringList_("precursor:potential_adducts", "<list>", ListUtils::create<String>("Na:+"), "Adducts considered to explain mass differences. Format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicates the charge, e.g. 'Ca:++' indicates +2. Only used if 'precursor:use_adducts' is set.", false, false);
+    registerStringList_("precursor:potential_adducts", "<list>", ListUtils::create<std::string>("Na:+"), "Adducts considered to explain mass differences. Format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicates the charge, e.g. 'Ca:++' indicates +2. Only used if 'precursor:use_adducts' is set.", false, false);
 
     IntList isotopes = {0, 1, 2, 3, 4};
     registerIntList_("precursor:isotopes", "<list>", isotopes, "Correct for mono-isotopic peak misassignments. E.g.: 1 = precursor may be misassigned to the first isotopic peak. Ignored if 'use_avg_mass' is set.", false, false);
@@ -190,7 +195,7 @@ protected:
     registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance (+/- around fragment m/z)", false);
 
     registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment mass tolerance", false, false);
-    setValidStrings_("fragment:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+    setValidStrings_("fragment:mass_tolerance_unit", ListUtils::create<std::string>("Da,ppm"));
 
     registerStringList_("fragment:ions", "<choice>", fragment_ion_codes_, "Fragment ions to include in theoretical spectra", false);
     setValidStrings_("fragment:ions", fragment_ion_codes_);
@@ -198,19 +203,19 @@ protected:
     registerTOPPSubsection_("modifications", "Modification options");
 
     // add modified ribos from database
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     for (const auto& r : *RibonucleotideDB::getInstance())
     {
       if (r->isModified())
       {
-        String code = r->getCode();
+        std::string code = r->getCode();
         // commas aren't allowed in parameter string restrictions:
-        all_mods.push_back(code.remove(','));
+        all_mods.push_back(StringUtils::remove(code, ','));
       }
     }
-    registerStringList_("modifications:fixed", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using modomics (https://genesilico.pl/modomics/modifications) terms.", false);
+    registerStringList_("modifications:fixed", "<mods>", ListUtils::create<std::string>(""), "Fixed modifications, specified using modomics (https://genesilico.pl/modomics/modifications) terms.", false);
     setValidStrings_("modifications:fixed", all_mods);
-    registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>(""), "Variable modifications", false);
+    registerStringList_("modifications:variable", "<mods>", ListUtils::create<std::string>(""), "Variable modifications", false);
     setValidStrings_("modifications:variable", all_mods);
     registerIntOption_("modifications:variable_max_per_oligo", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate oligonucleotide", false, false);
     registerFlag_("modifications:resolve_ambiguities", "Attempt to resolve ambiguous modifications (e.g. 'mA?' for 'mA'/'Am') based on a-B ions.\nThis incurs a performance cost because two modifications have to be considered for each case.\nRequires a-B ions to be enabled in parameter 'fragment:ions'.");
@@ -231,7 +236,7 @@ protected:
     setMinInt_("report:top_hits", 0);
 
     registerTOPPSubsection_("fdr", "False Discovery Rate options");
-    registerStringOption_("fdr:decoy_pattern", "<string>", "", "String used as part of the accession to annotate decoy sequences (e.g. 'DECOY_'). Leave empty to skip the FDR/q-value calculation.", false);
+    registerStringOption_("fdr:decoy_pattern", "<string>", "", "std::string used as part of the accession to annotate decoy sequences (e.g. 'DECOY_'). Leave empty to skip the FDR/q-value calculation.", false);
     registerDoubleOption_("fdr:cutoff", "<value>", 1.0, "Cut-off for FDR filtering; search hits with higher q-values will be removed", false);
     setMinFloat_("fdr:cutoff", 0.0);
     setMaxFloat_("fdr:cutoff", 1.0);
@@ -266,12 +271,12 @@ protected:
   typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
 
   // query modified residues from database
-  set<ConstRibonucleotidePtr> getModifications_(const set<String>& mod_names)
+  set<ConstRibonucleotidePtr> getModifications_(const set<std::string>& mod_names)
   {
     set<ConstRibonucleotidePtr> modifications;
     auto db_ptr = RibonucleotideDB::getInstance();
     std::regex double_digits(R"((\d)(?=\d))");
-    for (String m : mod_names)
+    for (std::string m : mod_names)
     {
       ConstRibonucleotidePtr mod = 0;
       try
@@ -322,13 +327,13 @@ protected:
 
   // turn an adduct string (param. "precursor:potential_adducts") into a formula
   // @TODO: adapt "AdductInfo::parseAdductString" and use that
-  AdductInfo parseAdduct_(const String& adduct)
+  AdductInfo parseAdduct_(const std::string& adduct)
   {
     StringList parts;
-    adduct.split(':', parts);
+    StringUtils::split(adduct, ':', parts);
     if (parts.size() != 2)
     {
-      String error = "entry in parameter 'precursor:potential_adducts' does not have two parts separated by ':'";
+      std::string error = "entry in parameter 'precursor:potential_adducts' does not have two parts separated by ':'";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     error, adduct);
     }
@@ -339,7 +344,7 @@ protected:
     OPENMS_LOG_DEBUG << ": " << pos_charge - neg_charge << endl;
     if (pos_charge > 0 && neg_charge > 0)
     {
-      String error = "entry in parameter 'precursor:potential_adducts' mixes positive and negative charges";
+      std::string error = "entry in parameter 'precursor:potential_adducts' mixes positive and negative charges";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     error, adduct);
     }
@@ -686,7 +691,7 @@ protected:
         else
         {
           // is this ribonucleotide in the previous hit already ambiguous?
-          const String& ambig_code = pos_current->second;
+          const std::string& ambig_code = pos_current->second;
           if (previous_seq[i]->getCode() == ambig_code) continue;
           // if not, should we replace it with an ambiguous mod.?
           if (const auto pos_previous = ambiguous_mods_.find(previous_seq[i]->getCode()); 
@@ -807,7 +812,7 @@ protected:
   }
 
 
-  void generateLFQInput_(IdentificationData& id_data, const String& out_file)
+  void generateLFQInput_(IdentificationData& id_data, const std::string& out_file)
   {
     using AdductedOligo = pair<NASequence, IdentificationData::AdductOpt>;
     using PrecursorPair = pair<double, double>; // precursor intensity, RT
@@ -832,7 +837,7 @@ protected:
         << "RetentionTime" << "RetentionTimeRange" << "IsoDistribution" << endl;
     for (const auto& entry : rt_info)
     {
-      String name = entry.first.first.toString();
+      std::string name = entry.first.first.toString();
       EmpiricalFormula ef = entry.first.first.getFormula();
       const IdentificationData::AdductOpt& adduct = entry.first.second;
       if (adduct)
@@ -870,9 +875,9 @@ protected:
     IdentificationData id_data; // container for results
 
     // load parameters and check validity:
-    String in_mzml = getStringOption_("in");
-    String in_db = getStringOption_("database");
-    String in_digest = getStringOption_("digest");
+    std::string in_mzml = getStringOption_("in");
+    std::string in_db = getStringOption_("database");
+    std::string in_digest = getStringOption_("digest");
 
     if (in_db.empty() && in_digest.empty())
     {
@@ -887,12 +892,12 @@ protected:
         << endl;
     }
 
-    String out = getStringOption_("out");
-    String id_out = getStringOption_("id_out");
-    String db_out = getStringOption_("db_out");
-    String lfq_out = getStringOption_("lfq_out");
-    String theo_ms2_out = getStringOption_("theo_ms2_out");
-    String exp_ms2_out = getStringOption_("exp_ms2_out");
+    std::string out = getStringOption_("out");
+    std::string id_out = getStringOption_("id_out");
+    std::string db_out = getStringOption_("db_out");
+    std::string lfq_out = getStringOption_("lfq_out");
+    std::string theo_ms2_out = getStringOption_("theo_ms2_out");
+    std::string exp_ms2_out = getStringOption_("exp_ms2_out");
     bool use_avg_mass = getFlag_("precursor:use_avg_mass");
     Int min_charge = getIntOption_("precursor:min_charge");
     Int max_charge = getIntOption_("precursor:max_charge");
@@ -968,7 +973,7 @@ protected:
     bool single_charge_spectra = getFlag_("decharge_ms2");
     if (use_adducts)
     {
-      for (const String& adduct_name : potential_adducts)
+      for (const std::string& adduct_name : potential_adducts)
       {
         AdductInfo adduct = parseAdduct_(adduct_name);
         double mass = adduct.getMassShift(use_avg_mass);
@@ -986,13 +991,13 @@ protected:
     options.clearMSLevels();
     options.addMSLevel(2);
     f.setOptions(options);
-    f.loadExperiment(in_mzml, spectra, {FileTypes::MZML}, log_type_);
+    f.loadExperiment(in_mzml, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
     spectra.sortSpectra(true);
 
     // input file meta data:
-    String input_name = test_mode_ ? File::basename(in_mzml) : in_mzml;
+    std::string input_name = test_mode_ ? File::basename(in_mzml) : in_mzml;
     IdentificationData::InputFile input(input_name);
-    vector<String> primary_files;
+    vector<std::string> primary_files;
     spectra.getPrimaryMSRunPath(primary_files);
     input.primary_files.insert(primary_files.begin(), primary_files.end());
     IdentificationData::InputFileRef file_ref =
@@ -1018,12 +1023,12 @@ protected:
     IdentificationData::ProcessingStepRef step_ref;
 
     // get digested sequences:
-    String decoy_pattern = getStringOption_("fdr:decoy_pattern");
+    std::string decoy_pattern = getStringOption_("fdr:decoy_pattern");
     if (in_digest.empty()) // new digestion
     {
       search_param.database = in_db;
       search_param.missed_cleavages = getIntOption_("oligo:missed_cleavages");
-      String enzyme_name = getStringOption_("oligo:enzyme");
+      std::string enzyme_name = getStringOption_("oligo:enzyme");
       search_param.digestion_enzyme =
         RNaseDB::getInstance()->getEnzyme(enzyme_name);
       IdentificationData::SearchParamRef search_ref =
@@ -1049,7 +1054,7 @@ protected:
         id_data, fasta_db, IdentificationData::MoleculeType::RNA, decoy_pattern);
       digestor.digest(id_data, min_oligo_length, max_oligo_length);
 
-      String digest_out = getStringOption_("digest_out");
+      std::string digest_out = getStringOption_("digest_out");
       if (!digest_out.empty())
       {
         OMSFile(log_type_).store(digest_out, id_data);
@@ -1168,17 +1173,17 @@ protected:
     // create spectrum generator:
     NucleicAcidSpectrumGenerator spectrum_generator;
     Param param = spectrum_generator.getParameters();
-    vector<String> temp = getStringList_("fragment:ions");
-    set<String> selected_ions(temp.begin(), temp.end());
-    if (resolve_ambiguous_mods_ && !selected_ions.count("a-B"))
+    vector<std::string> temp = getStringList_("fragment:ions");
+    set<std::string> selected_ions(temp.begin(), temp.end());
+    if (resolve_ambiguous_mods_ && !selected_ions.contains("a-B"))
     {
       OPENMS_LOG_WARN << "Warning: option 'modifications:resolve_ambiguities' requires a-B ions in parameter 'fragment:ions' - disabling the option." << endl;
       resolve_ambiguous_mods_ = false;
     }
     for (const auto& code : fragment_ion_codes_)
     {
-      String param_name = "add_" + code + "_ions";
-      if (selected_ions.count(code))
+      std::string param_name = "add_" + code + "_ions";
+      if (selected_ions.contains(code))
       {
         param.setValue(param_name, "true");
       }
@@ -1195,7 +1200,7 @@ protected:
     vector<HitsByScore> annotated_hits(spectra.size());
     MSExperiment exp_ms2_spectra, theo_ms2_spectra; // debug output
 
-    String msg = "scoring oligonucleotide models against spectra...";
+    std::string msg = "scoring oligonucleotide models against spectra...";
     progresslogger.startProgress(0, id_data.getIdentifiedOligos().size(), msg);
     Size hit_counter = 0;
 

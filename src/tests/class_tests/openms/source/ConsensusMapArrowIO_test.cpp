@@ -15,8 +15,6 @@
 
 #include <OpenMS/config.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
@@ -103,7 +101,7 @@ START_SECTION(exportFeaturesToArrow - single feature with handles and metavalues
   // Add metavalues
   cf.setMetaValue("my_int", 42);
   cf.setMetaValue("my_float", 3.14);
-  cf.setMetaValue("my_string", String("hello"));
+  cf.setMetaValue("my_string",std::string("hello"));
 
   cmap.push_back(cf);
 
@@ -274,7 +272,7 @@ START_SECTION(importFeaturesFromArrow - feature round-trip with handles and meta
   cf1.setUniqueId(1001);
   cf1.setMetaValue("my_int", 42);
   cf1.setMetaValue("my_float", 3.14);
-  cf1.setMetaValue("my_string", String("hello"));
+  cf1.setMetaValue("my_string",std::string("hello"));
   cf1.setMetaValue("test_int_list", DataValue(IntList{1, 2, 3}));
   cf1.setMetaValue("test_double_list", DataValue(DoubleList{1.5, 2.5}));
   cf1.setMetaValue("test_string_list", DataValue(StringList{"a", "b", "c"}));
@@ -357,7 +355,7 @@ START_SECTION(importFeaturesFromArrow - feature round-trip with handles and meta
   // Verify metavalues
   TEST_EQUAL(int(out1.getMetaValue("my_int")), 42)
   TEST_REAL_SIMILAR(double(out1.getMetaValue("my_float")), 3.14)
-  TEST_EQUAL(String(out1.getMetaValue("my_string")), "hello")
+  TEST_EQUAL(StringUtils::toStr(out1.getMetaValue("my_string")), "hello")
 
   // Check list metavalue types are preserved
   TEST_EQUAL(out1.getMetaValue("test_int_list").valueType(), DataValue::INT_LIST)
@@ -527,7 +525,7 @@ START_SECTION(exportToParquet / importFromParquet - per-PSM higher_score_better 
   cmap.getUnassignedPeptideIdentifications().push_back(pep_id2);
 
   // --- Export and import ---
-  String tmp_dir;
+  std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".cmd";
 
@@ -678,7 +676,7 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
   cmap.setUnassignedPeptideIdentifications({unassigned});
 
   // --- Export to temp directory ---
-  String tmp_dir;
+  std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".cmd";
 
@@ -743,7 +741,14 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
 
   // --- Verify protein identifications ---
   TEST_EQUAL(imported.getProteinIdentifications().size(), 1)
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getIdentifier(), "run_full_1")
+  // Identifier synthesized on load per IdXMLFile.cpp:530 parity — stored "run_full_1"
+  // becomes `<search_engine>_<date>_<UniqueIdGenerator>`. All pep_id collections
+  // (per-consensus-feature + unassigned) are re-stamped in lock-step.
+  const std::string& cm_synth_id = imported.getProteinIdentifications()[0].getIdentifier();
+  TEST_NOT_EQUAL(cm_synth_id, "")
+  TEST_NOT_EQUAL(cm_synth_id, "run_full_1")
+  TEST_STRING_EQUAL(imported[0].getPeptideIdentifications()[0].getIdentifier(), cm_synth_id);
+  TEST_STRING_EQUAL(imported.getUnassignedPeptideIdentifications()[0].getIdentifier(), cm_synth_id);
   TEST_EQUAL(imported.getProteinIdentifications()[0].getSearchEngine(), "Comet")
   TEST_EQUAL(imported.getProteinIdentifications()[0].getHits().size(), 1)
   TEST_EQUAL(imported.getProteinIdentifications()[0].getHits()[0].getAccession(), "P12345")
@@ -767,7 +772,7 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
   cmap.setUniqueId(77777);
 
   // --- Set ConsensusMap-level MetaValues ---
-  cmap.setMetaValue("analysis_type", String("differential"));
+  cmap.setMetaValue("analysis_type",std::string("differential"));
   cmap.setMetaValue("num_runs", 5);
   cmap.setMetaValue("threshold", 0.01);
 
@@ -778,7 +783,7 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
   ch0.size = 500;
   ch0.unique_id = 1111;
   ch0.setMetaValue("injection_order", 1);
-  ch0.setMetaValue("sample_group", String("control"));
+  ch0.setMetaValue("sample_group",std::string("control"));
   cmap.getColumnHeaders()[0] = ch0;
 
   ConsensusMap::ColumnHeader ch1;
@@ -787,7 +792,7 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
   ch1.size = 600;
   ch1.unique_id = 2222;
   ch1.setMetaValue("injection_order", 2);
-  ch1.setMetaValue("sample_group", String("treatment"));
+  ch1.setMetaValue("sample_group",std::string("treatment"));
   cmap.getColumnHeaders()[1] = ch1;
 
   ConsensusMap::ColumnHeader ch2;
@@ -807,7 +812,7 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
   dp1.setCompletionTime(DateTime::fromString("2025-06-15T14:30:00", "yyyy-MM-ddThh:mm:ss"));
   dp1.getProcessingActions().insert(DataProcessing::PEAK_PICKING);
   dp1.getProcessingActions().insert(DataProcessing::FILTERING);
-  dp1.setMetaValue("parameter_file", String("params.ini"));
+  dp1.setMetaValue("parameter_file",std::string("params.ini"));
   dp1.setMetaValue("num_threads", 8);
 
   DataProcessing dp2;
@@ -834,7 +839,7 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
   cmap.setProteinIdentifications({prot_id});
 
   // --- Export ---
-  String tmp_dir;
+  std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".cmd";
 
@@ -852,7 +857,7 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
   TEST_EQUAL(imported.getUniqueId(), 77777)
 
   // --- Verify ConsensusMap-level MetaValues ---
-  TEST_EQUAL(String(imported.getMetaValue("analysis_type")), "differential")
+  TEST_EQUAL(StringUtils::toStr(imported.getMetaValue("analysis_type")), "differential")
   TEST_EQUAL(int(imported.getMetaValue("num_runs")), 5)
   TEST_REAL_SIMILAR(double(imported.getMetaValue("threshold")), 0.01)
 
@@ -872,9 +877,9 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
 
   // --- Verify column header metavalues ---
   TEST_EQUAL(int(imported.getColumnHeaders().at(0).getMetaValue("injection_order")), 1)
-  TEST_EQUAL(String(imported.getColumnHeaders().at(0).getMetaValue("sample_group")), "control")
+  TEST_EQUAL(StringUtils::toStr(imported.getColumnHeaders().at(0).getMetaValue("sample_group")), "control")
   TEST_EQUAL(int(imported.getColumnHeaders().at(1).getMetaValue("injection_order")), 2)
-  TEST_EQUAL(String(imported.getColumnHeaders().at(1).getMetaValue("sample_group")), "treatment")
+  TEST_EQUAL(StringUtils::toStr(imported.getColumnHeaders().at(1).getMetaValue("sample_group")), "treatment")
 
   // --- Verify DataProcessing ---
   TEST_EQUAL(imported.getDataProcessing().size(), 2)
@@ -885,7 +890,7 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
   TEST_EQUAL(out_dp1.getCompletionTime().toString("yyyy-MM-ddThh:mm:ss"), "2025-06-15T14:30:00")
   TEST_EQUAL(out_dp1.getProcessingActions().count(DataProcessing::PEAK_PICKING), 1)
   TEST_EQUAL(out_dp1.getProcessingActions().count(DataProcessing::FILTERING), 1)
-  TEST_EQUAL(String(out_dp1.getMetaValue("parameter_file")), "params.ini")
+  TEST_EQUAL(StringUtils::toStr(out_dp1.getMetaValue("parameter_file")), "params.ini")
   TEST_EQUAL(int(out_dp1.getMetaValue("num_threads")), 8)
 
   const auto& out_dp2 = imported.getDataProcessing()[1];
@@ -895,6 +900,88 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
 }
 END_SECTION
 
-#endif // WITH_PARQUET
+/////////////////////////////////////////////////////////////
+// ConsensusMap-level MetaValue list-type round-trip (parity with FeatureMap)
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportToParquet / importFromParquet - ConsensusMap-level list-typed MetaValue round-trip)
+{
+  ConsensusMap cmap;
+
+  // Scalar coverage exists in the metadata round-trip test above; this section
+  // exercises the typed-list deserializer paths, which mirror FeatureMap's
+  // setPrimaryMSRunPath-via-spectra_data case (StringList round-trip).
+  cmap.setMetaValue("spectra_data_like", DataValue(StringList{"sample_A.mzML", "sample_B.mzML"}));
+  cmap.setMetaValue("scan_counts", DataValue(IntList{100, 200, 300}));
+  cmap.setMetaValue("rt_offsets", DataValue(DoubleList{1.5, -0.5}));
+
+  ConsensusFeature cf;
+  cf.setRT(100.0);
+  cf.setMZ(500.0);
+  cf.setIntensity(1000.0f);
+  cf.setCharge(2);
+  cf.setUniqueId(9999);
+  cmap.push_back(cf);
+
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_lists_test");
+  cmap.setProteinIdentifications({prot_id});
+
+  std::string tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".cmd";
+
+  TEST_EQUAL(ConsensusMapArrowIO::exportToParquet(cmap, tmp_dir), true)
+
+  ConsensusMap imported;
+  TEST_EQUAL(ConsensusMapArrowIO::importFromParquet(tmp_dir, imported), true)
+
+  // StringList -> survives as STRING_LIST.
+  TEST_EQUAL(imported.metaValueExists("spectra_data_like"), true)
+  TEST_EQUAL(imported.getMetaValue("spectra_data_like").valueType(), DataValue::STRING_LIST)
+  StringList out_sl = imported.getMetaValue("spectra_data_like");
+  TEST_EQUAL(out_sl.size(), 2)
+  TEST_EQUAL(out_sl[0], "sample_A.mzML")
+  TEST_EQUAL(out_sl[1], "sample_B.mzML")
+
+  // IntList round-trip.
+  TEST_EQUAL(imported.getMetaValue("scan_counts").valueType(), DataValue::INT_LIST)
+  IntList out_il = imported.getMetaValue("scan_counts");
+  TEST_EQUAL(out_il.size(), 3)
+  TEST_EQUAL(out_il[1], 200)
+
+  // DoubleList round-trip.
+  TEST_EQUAL(imported.getMetaValue("rt_offsets").valueType(), DataValue::DOUBLE_LIST)
+  DoubleList out_dl = imported.getMetaValue("rt_offsets");
+  TEST_EQUAL(out_dl.size(), 2)
+  TEST_REAL_SIMILAR(out_dl[0], 1.5)
+  TEST_REAL_SIMILAR(out_dl[1], -0.5)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Fix #2b: exportToParquet rejects duplicate ProtID identifiers (XML-lane parity)
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers throw Exception::InvalidValue)
+{
+  ConsensusMap cmap;
+
+  ProteinIdentification p1; p1.setIdentifier("dup");
+  ProteinIdentification p2; p2.setIdentifier("dup");
+  cmap.setProteinIdentifications({p1, p2});
+
+  ConsensusFeature cf;
+  cf.setRT(50.0); cf.setMZ(400.0); cf.setIntensity(500.0f); cf.setCharge(1); cf.setUniqueId(101);
+  cmap.push_back(cf);
+
+  std::string tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".cmd";
+
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 ConsensusMapArrowIO::exportToParquet(cmap, tmp_dir))
+}
+END_SECTION
 
 END_TEST

@@ -12,6 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -42,11 +43,11 @@ START_SECTION((~MzIdentMLFile()))
 }
 END_SECTION
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) )
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) )
 {
   std::vector<ProteinIdentification> protein_ids;
   PeptideIdentificationList peptide_ids;
-  std::vector<String> fm{"Carbamidomethyl (C)", "Xlink:DTSSP[88] (Protein N-term)"};
+  std::vector<std::string> fm{"Carbamidomethyl (C)", "Xlink:DTSSP[88] (Protein N-term)"};
   MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), protein_ids, peptide_ids);
 
   TEST_EQUAL(protein_ids.size(),2)
@@ -105,14 +106,14 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 }
 END_SECTION
 
-START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids) )
+START_SECTION(void store(std::string filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids) )
 {
   //store and load data from various sources, starting with idxml, contents already checked above, so checking integrity of the data over repeated r/w
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
   PeptideIdentificationList peptide_ids, peptide_ids2;
-  String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
+  std::string input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
   MzIdentMLFile().load(input_path, protein_ids2, peptide_ids2);
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids2, peptide_ids2);
 
@@ -232,9 +233,9 @@ START_SECTION(([EXTRA] multiple runs))
 {
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
   PeptideIdentificationList peptide_ids, peptide_ids2;
-  String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid");
+  std::string input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid");
   MzIdentMLFile().load(input_path, protein_ids2, peptide_ids2);
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids2, peptide_ids2);
 
@@ -254,7 +255,7 @@ START_SECTION(([EXTRA] thresholds))
 {
   std::vector<ProteinIdentification> protein_ids;
   PeptideIdentificationList peptide_ids;
-  String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
+  std::string input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
   MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
 
   TEST_EQUAL(protein_ids.size(),1)
@@ -278,7 +279,7 @@ START_SECTION(([EXTRA] thresholds))
     }
   }
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
   protein_ids.clear();
@@ -310,7 +311,7 @@ START_SECTION(([EXTRA] regression test for file loading on example files))
 {
   std::vector<ProteinIdentification> protein_ids;
   PeptideIdentificationList peptide_ids;
-  String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
+  std::string input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
   MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
 //  input_path = OPENMS_GET_TEST_DATA_PATH("Mascot_MSMS_example.mzid");
 //  MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
@@ -334,7 +335,7 @@ START_SECTION(([EXTRA] compability issues))
 //  TEST_EQUAL(peptide_ids.size(), 10)
 //  TEST_EQUAL(peptide_ids[0].getHits().size(), 1)
 
-//  String filename;
+//  std::string filename;
 //  NEW_TMP_FILE(filename)
 //  mzidfile.store(filename , protein_ids, peptide_ids);
 
@@ -365,7 +366,7 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   vector<ProteinIdentification> protein_ids2;
   PeptideIdentificationList peptide_ids2;
 
-  String input_file= OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_labelled.mzid");
+  std::string input_file= OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_labelled.mzid");
   MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
   //
   TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1), 3)
@@ -375,7 +376,7 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence().toString(), "FIVKASSGPR")
 
   // Reading and writing
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
   MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
@@ -386,8 +387,8 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(protein_ids2[0].getSearchParameters().precursor_mass_tolerance_ppm, true)
   TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:residue1"), "[K, N-term]")
   TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:residue2"), "[K, N-term]")
-  TEST_REAL_SIMILAR(String(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass")).toDouble(), 138.0680796)
-  TEST_REAL_SIMILAR(String(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass_isoshift")).toDouble(), 12.075321)
+  TEST_REAL_SIMILAR(StringUtils::toDouble(StringUtils::toStr(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass"))), 138.0680796)
+  TEST_REAL_SIMILAR(StringUtils::toDouble(StringUtils::toStr(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass_isoshift"))), 12.075321)
   TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("extra_features"), "precursor_mz_error_ppm,\
 OpenPepXL:score,isotope_error,OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,\
 OpenPepXL:xcorr common,OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,OpenPepXL:prescore,OpenPepXL:log_occupancy,\
@@ -420,7 +421,7 @@ precursor_residual_peak_count")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2), 4)
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA), "ANYWHERE")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA), "ANYWHERE")
-  TEST_REAL_SIMILAR(String(peptide_ids2[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS)).toDouble(), 138.0680796)
+  TEST_REAL_SIMILAR(StringUtils::toDouble(StringUtils::toStr(peptide_ids2[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS))), 138.0680796)
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD), "DSS")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[0].annotation, "[alpha|ci$b2]")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[0].charge, 1)
@@ -439,11 +440,11 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   vector<ProteinIdentification> protein_ids2;
   PeptideIdentificationList peptide_ids2;
 
-  String input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_unlabelled.mzid");
+  std::string input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_unlabelled.mzid");
   MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
 
   // Reading and writing
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
   MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
@@ -453,7 +454,7 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   TEST_EQUAL(protein_ids2[0].getSearchParameters().precursor_mass_tolerance_ppm, true)
   TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:residue1"), "[K, N-term]")
   TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:residue2"), "[K, N-term]")
-  TEST_EQUAL(String(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass")).toDouble(), 138.0680796)
+  TEST_EQUAL(StringUtils::toDouble(StringUtils::toStr(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass"))), 138.0680796)
   TEST_EQUAL(protein_ids[0].getMetaValue("SpectrumIdentificationProtocol"), "MS:1002494") // crosslinking search
 
   // PeptideIdentification (Indices may change, without making the reading/writing invalid, if e.g. more is added to the test file)
@@ -496,6 +497,112 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   TEST_EQUAL(peptide_ids2[2].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE), "-")
   TEST_EQUAL(peptide_ids2[2].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1), 12)
   TEST_EQUAL(peptide_ids2[2].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2), "-")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 crosslinking scores_and_thresholds))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  std::string input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_crosslinking.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+
+  // every parsed identification carries a spectrum reference; collect hits across all ids
+  // (a SpectrumIdentificationResult may legitimately yield an id without hits, so guard the hit access)
+  Size total_hits = 0;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    TEST_EQUAL(pid.getSpectrumReference().empty(), false)
+    total_hits += pid.getHits().size();
+    if (!pid.getHits().empty())
+    {
+      TEST_EQUAL(pid.getHits()[0].getSequence().empty(), false)
+    }
+  }
+  TEST_EQUAL(total_hits > 0, true)
+
+  // store/load roundtrip: the writer must default to mzIdentML 1.3.0 and the reader must read it back without loss
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  MzIdentMLFile().store(filename, protein_ids, peptide_ids);
+
+  // the default writer path emits version 1.3.0
+  TextFile written(filename);
+  bool has_version_130 = false;
+  for (TextFile::ConstIterator it = written.begin(); it != written.end(); ++it)
+  {
+    if (StringUtils::hasSubstring(*it, "version=\"1.3.0\"")) { has_version_130 = true; break; }
+  }
+  TEST_EQUAL(has_version_130, true)
+
+  vector<ProteinIdentification> protein_ids2;
+  PeptideIdentificationList peptide_ids2;
+  MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
+  TEST_EQUAL(!peptide_ids2.empty(), true)
+  TEST_EQUAL(!protein_ids2.empty(), true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 noncovalent association))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  std::string input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_noncov_assoc.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+
+  // parsed hits must have valid sequences (modification/cvParam fallbacks resolved correctly)
+  Size total_hits = 0;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    total_hits += pid.getHits().size();
+    if (!pid.getHits().empty())
+    {
+      TEST_EQUAL(pid.getHits()[0].getSequence().empty(), false)
+    }
+  }
+  TEST_EQUAL(total_hits > 0, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 EDC crosslinking))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  std::string input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_xlink_edc.mzid");
+  // EDC files mix crosslinked and standalone (non-XL) peptides; both must parse without throwing
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+
+  Size total_hits = 0;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    total_hits += pid.getHits().size();
+  }
+  TEST_EQUAL(total_hits > 0, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 multiple spectra per identification))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  std::string input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_multi_spectra.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+
+  // multiple SpectrumIdentificationLists yield several distinct spectrum references
+  set<std::string> refs;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    refs.insert(pid.getSpectrumReference());
+  }
+  TEST_EQUAL(refs.size() > 1, true)
 }
 END_SECTION
 

@@ -73,7 +73,7 @@ namespace OpenMS
 
         @param[out] filename Filename for the output mzML
       */
-      explicit MSDataWritingConsumer(const String& filename);
+      explicit MSDataWritingConsumer(const std::string& filename);
 
       /// Destructor
       ~MSDataWritingConsumer() override;
@@ -218,7 +218,7 @@ namespace OpenMS
 
     public:
 
-      explicit PlainMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
+      explicit PlainMSDataWritingConsumer(std::string filename) : MSDataWritingConsumer(filename) {}
     };
 
     /**
@@ -233,7 +233,7 @@ namespace OpenMS
     {
     public:
 
-      explicit NoopMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
+      explicit NoopMSDataWritingConsumer(std::string filename) : MSDataWritingConsumer(filename) {}
       void setExperimentalSettings(const ExperimentalSettings& /* exp */) override {}
       void consumeSpectrum(SpectrumType & /* s */) override {}
       void consumeChromatogram(ChromatogramType & /* c */) override {}

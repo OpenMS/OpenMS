@@ -317,10 +317,10 @@ namespace OpenMS
     Size id_matches_none(0), id_matches_single(0), id_matches_multiple(0);
 
     // build map from file to peptide id
-    std::map<String, std::unordered_map<String, const PeptideIdentification*>> file2nativeid2pepid;
+    std::map<std::string, std::unordered_map<std::string, const PeptideIdentification*>> file2nativeid2pepid;
     bool has_spectrum_references{false};
 
-    std::unordered_map<String, ConsensusFeature*> nativeid2cf;
+    std::unordered_map<std::string, ConsensusFeature*> nativeid2cf;
 
     NATIVE_ID_TYPE native_id_type = checkTMTType(map);
 
@@ -337,8 +337,8 @@ namespace OpenMS
         
         if (pid->getHits().empty()) continue; // skip IDs without peptide annotations
 
-        String spectrum_file = File::basename(mspath_mapping.getPrimaryMSRunPath(*pid));
-        String spectrum_reference = pid->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
+        std::string spectrum_file = File::basename(mspath_mapping.getPrimaryMSRunPath(*pid));
+        std::string spectrum_reference = pid->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
         // missing file origin is fine, but we need a spectrum_reference if we want to build the map
         if (spectrum_reference.empty()) continue;
         // TODO make a unique decision in the whole class on if to extract by scan number or full string?
@@ -347,7 +347,7 @@ namespace OpenMS
           // check if spectrum reference is a string that just contains a number
           try
           {
-            ids[0].getSpectrumReference().toInt64();
+            StringUtils::toInt64(ids[0].getSpectrumReference());
             lookForScanNrsAsIntegers = true;
           }
           catch (...)
@@ -355,9 +355,12 @@ namespace OpenMS
             lookForScanNrsAsIntegers = false;
           }  
         }
-    
-        // TODO: check if there is already an entry
-        file2nativeid2pepid[spectrum_file][spectrum_reference] = pid;
+        auto& inner_map = file2nativeid2pepid[spectrum_file];
+        auto result = inner_map.insert({spectrum_reference, pid});
+        if (!result.second)
+        {
+          OPENMS_LOG_WARN << "Duplicate spectrum reference detected: "<< spectrum_reference << "\n";
+        }
         has_spectrum_references = true;
       }
 
@@ -379,11 +382,11 @@ namespace OpenMS
       for (auto& cf : map)
       {  
         const auto first_channel = *cf.getFeatures().begin();                  
-        String filename = File::basename(map.getColumnHeaders()[first_channel.getMapIndex()].filename); // all channels are associated with same file in TMT/iTRAQ
+        std::string filename = File::basename(map.getColumnHeaders()[first_channel.getMapIndex()].filename); // all channels are associated with same file in TMT/iTRAQ
 
         boost::regex scanregex{""};
-        String cf_scan_id_key_name = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? "id_scan_id" : "scan_id";
-        String cf_scan_id = cf.getMetaValue(cf_scan_id_key_name, "");
+        std::string cf_scan_id_key_name = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? "id_scan_id" : "scan_id";
+        std::string cf_scan_id = StringUtils::toStr(cf.getMetaValue(cf_scan_id_key_name, ""));
         if (!cf_scan_id.empty()) 
         {
           // This assumes all scan_ids are of the same structure
@@ -401,7 +404,7 @@ namespace OpenMS
             // look for only the scan_number in case the search engine only extracted this (e.g. Sage)
             else if (lookForScanNrsAsIntegers)
             {
-              auto scanid_it = run_it->second.find(SpectrumLookup::extractScanNumber(cf_scan_id, scanregex, false));
+              auto scanid_it = run_it->second.find(StringUtils::toStr(SpectrumLookup::extractScanNumber(cf_scan_id, scanregex, false)));
               if(scanid_it != run_it->second.end())
               {
                 cf.getPeptideIdentifications().push_back(*scanid_it->second);
@@ -488,7 +491,7 @@ namespace OpenMS
                 {
                   id_mapped = true;
                   was_added = true;
-                  if (mapping[cm_index].count(i) == 0)
+                  if (!mapping[cm_index].contains(i))
                   {
                     // Store the map index of the peptide feature in the id the feature was mapped to.
                     PeptideIdentification id_pep = ids[i];
@@ -1026,7 +1029,7 @@ namespace OpenMS
     {
       return mz_tolerance_;
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!", String(measure_));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!",StringUtils::toStr(measure_));
   }
 
   bool IDMapper::isMatch_(const double rt_distance, const double mz_theoretical, const double mz_observed) const
@@ -1039,7 +1042,7 @@ namespace OpenMS
     {
       return (fabs(rt_distance) <= rt_tolerance_) && (fabs(mz_theoretical - mz_observed) <= mz_tolerance_);
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!", String(measure_));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!",StringUtils::toStr(measure_));
   }
 
   void IDMapper::checkHits_(const PeptideIdentificationList& ids) const
@@ -1099,12 +1102,12 @@ namespace OpenMS
   bool IDMapper::checkMassType_(const vector<DataProcessing>& processing) const
   {
     bool use_avg_mass = false;
-    String before;
+    std::string before;
     for (const DataProcessing& proc_it : processing)
     {
       if (proc_it.getSoftware().getName() == "FeatureFinder")
       {
-        String reported_mz = proc_it.getMetaValue("parameter: algorithm:feature:reported_mz");
+        std::string reported_mz = StringUtils::toStr(proc_it.getMetaValue("parameter: algorithm:feature:reported_mz"));
         if (reported_mz.empty())
           continue; // parameter info not available
         if (!before.empty() && (reported_mz != before))

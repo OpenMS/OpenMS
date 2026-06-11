@@ -39,14 +39,14 @@ public:
     class OPENMS_DLLAPI QualityParameter
     {
     public:
-      String name; ///< Name
-      String id; ///< Identifier
-      String value; ///< Value
-      String cvRef; ///< cv reference
-      String cvAcc; ///< cv accession
-      String unitRef; ///< cv reference of the unit
-      String unitAcc; ///< cv accession of the unit
-      String flag; ///< cv accession of the unit
+      std::string name; ///< Name
+      std::string id; ///< Identifier
+      std::string value; ///< Value
+      std::string cvRef; ///< cv reference
+      std::string cvAcc; ///< cv accession
+      std::string unitRef; ///< cv reference of the unit
+      std::string unitAcc; ///< cv accession of the unit
+      std::string flag; ///< cv accession of the unit
 
       ///Default constructor
       QualityParameter();
@@ -58,24 +58,24 @@ public:
       bool operator<(const QualityParameter& rhs) const;
       bool operator>(const QualityParameter& rhs) const;
 
-      String toXMLString(UInt indentation_level) const;
+      std::string toXMLString(UInt indentation_level) const;
     };
 
     /// Representation of an attachment
     class OPENMS_DLLAPI Attachment
     {
     public:
-      String name; ///< Name
-      String id; ///< Name
-      String value; ///< Value
-      String cvRef; ///< cv reference
-      String cvAcc; ///< cv accession
-      String unitRef; ///< cv reference of the unit
-      String unitAcc; ///< cv accession of the unit
-      String binary; ///< binary content of the attachment
-      String qualityRef; ///< reference to qp to which attachment, if empty attached to run/set
-      std::vector<String> colTypes; ///< type of the cols if QP has a table of values
-      std::vector< std::vector<String> > tableRows; ///< cell values if QP has a table, type see colType
+      std::string name; ///< Name
+      std::string id; ///< Name
+      std::string value; ///< Value
+      std::string cvRef; ///< cv reference
+      std::string cvAcc; ///< cv accession
+      std::string unitRef; ///< cv reference of the unit
+      std::string unitAcc; ///< cv accession of the unit
+      std::string binary; ///< binary content of the attachment
+      std::string qualityRef; ///< reference to qp to which attachment, if empty attached to run/set
+      std::vector<std::string> colTypes; ///< type of the cols if QP has a table of values
+      std::vector< std::vector<std::string> > tableRows; ///< cell values if QP has a table, type see colType
       //~ TODO -schema- coltypes with full definition (uintRef, unitAcc)
 
       ///Default constructor
@@ -88,8 +88,8 @@ public:
       bool operator<(const Attachment& rhs) const;
       bool operator>(const Attachment& rhs) const;
 
-      String toXMLString(UInt indentation_level) const;
-      String toCSVString(const String& separator) const;
+      std::string toXMLString(UInt indentation_level) const;
+      std::string toCSVString(const std::string& separator) const;
     };
 
     ///Default constructor
@@ -97,51 +97,51 @@ public:
     ///Destructor
     ~QcMLFile() override;
 
-    String map2csv(const std::map< String, std::map<String, String> >& cvs_table, const String& separator) const;
-    String exportIDstats(const String& filename) const;
+    std::string map2csv(const std::map< std::string, std::map<std::string, std::string> >& cvs_table, const std::string& separator) const;
+    std::string exportIDstats(const std::string& filename) const;
     
     /// Registers a run in the qcml file with the respective mappings
-    void registerRun(const String& id, const String& name);
+    void registerRun(const std::string& id, const std::string& name);
     /// Registers a set in the qcml file with the respective mappings
-    void registerSet(const String& id, const String& name, const std::set<String>& names);
+    void registerSet(const std::string& id, const std::string& name, const std::set<std::string>& names);
     /// Just adds a qualityparameter to run by the name r
-    void addRunQualityParameter(const String& r, const QualityParameter& qp);
+    void addRunQualityParameter(const std::string& r, const QualityParameter& qp);
     /// Just adds a attachment to run by the name r
-    void addRunAttachment(const String& r, const Attachment& at);
+    void addRunAttachment(const std::string& r, const Attachment& at);
     /// Just adds a qualityparameter to set by the name r
-    void addSetQualityParameter(const String& r, const QualityParameter& qp);
+    void addSetQualityParameter(const std::string& r, const QualityParameter& qp);
     /// Just adds a attachment to set by the name r
-    void addSetAttachment(const String& r, const Attachment& at);
+    void addSetAttachment(const std::string& r, const Attachment& at);
     /// Removes attachments referencing a id given in ids, from run/set r. All attachments if no attachment name is given with at.
-    void removeAttachment(const String& r, std::vector<String>& ids, const String& at = "");
+    void removeAttachment(const std::string& r, std::vector<std::string>& ids, const std::string& at = "");
     /// Removes attachment with cv accession at from run/set r.
-    void removeAttachment(const String& r, const String& at);
+    void removeAttachment(const std::string& r, const std::string& at);
     /// Removes attachment with cv accession at from  all runs/sets.
-    void removeAllAttachments(const String& at);
+    void removeAllAttachments(const std::string& at);
     /// Just removes qualityparameter going by one of the ID attributes given in ids.
-    void removeQualityParameter(const String& r, std::vector<String>& ids);
+    void removeQualityParameter(const std::string& r, std::vector<std::string>& ids);
     /// merges the given QCFile into this one
-    void merge(const QcMLFile & addendum, const String& setname = "");
+    void merge(const QcMLFile & addendum, const std::string& setname = "");
     /// collects the values of given QPs (as CVid) of the given set
-    void/* std::vector<String>& */ collectSetParameter(const String& setname, const String& qp, std::vector<String>& ret);
-    /// Returns a String of a tab separated rows if found empty string else from run/set by the name filename of the qualityparameter by the name qpname
-    String exportAttachment(const String& filename, const String& qpname) const; 
-    /// Returns a String value in quotation of a qualityparameter by the name qpname in run/set by the name filename
-    String exportQP(const String& filename, const String& qpname) const;
-    /// Returns a String of a tab separated qualityparameter by the name qpname in run/set by the name filename
-    String exportQPs(const String& filename, const StringList& qpnames) const;
+    void/* std::vector<std::string>& */ collectSetParameter(const std::string& setname, const std::string& qp, std::vector<std::string>& ret);
+    /// Returns a std::string of a tab separated rows if found empty string else from run/set by the name filename of the qualityparameter by the name qpname
+    std::string exportAttachment(const std::string& filename, const std::string& qpname) const; 
+    /// Returns a std::string value in quotation of a qualityparameter by the name qpname in run/set by the name filename
+    std::string exportQP(const std::string& filename, const std::string& qpname) const;
+    /// Returns a std::string of a tab separated qualityparameter by the name qpname in run/set by the name filename
+    std::string exportQPs(const std::string& filename, const StringList& qpnames) const;
     /// Gives the ids of the registered runs in the vector ids.
-    void getRunIDs (std::vector<String>& ids) const;
+    void getRunIDs (std::vector<std::string>& ids) const;
     /// Gives the names of the registered runs in the vector ids.
-    void getRunNames (std::vector<String>& ids) const;
+    void getRunNames (std::vector<std::string>& ids) const;
     /// Returns true if the given run id is present in this file, if checkname is true it also checks the names
-    bool existsRun(const String& filename, bool checkname = false) const;
+    bool existsRun(const std::string& filename, bool checkname = false) const;
     /// Returns true if the given set id is present in this file, if checkname is true it also checks the names
-    bool existsSet(const String& filename, bool checkname = false) const;
+    bool existsSet(const std::string& filename, bool checkname = false) const;
     /// Returns the ids of the parameter name given if found in given run empty else
-    void existsRunQualityParameter(const String& filename, const String& qpname, std::vector<String>& ids) const;
+    void existsRunQualityParameter(const std::string& filename, const std::string& qpname, std::vector<std::string>& ids) const;
     /// Returns the ids of the parameter name given if found in given set, empty else
-    void existsSetQualityParameter(const String& filename, const String& qpname, std::vector<String>& ids) const;
+    void existsSetQualityParameter(const std::string& filename, const std::string& qpname, std::vector<std::string>& ids) const;
     /// Calculation and collection of QC data
     /**
       @brief Collects QC data in qualityParameters and qualityAttachments
@@ -157,7 +157,7 @@ public:
                        PeptideIdentificationList& pep_ids,
                        const FeatureMap& feature_map,
                        const ConsensusMap& consensus_map,
-                       const String& inputfile_raw,
+                       const std::string& inputfile_raw,
                        const bool remove_duplicate_features,
                        const MSExperiment& exp);
     ///Store the QCFile
@@ -165,10 +165,10 @@ public:
       @brief Store the qcML file
       @param[out] filename qcML output file name
     */
-    void store(const String& filename) const;
+    void store(const std::string& filename) const;
 
     ///Load a QCFile
-    void load(const String & filename);
+    void load(const std::string & filename);
 
     //~ int siz; //debug
 
@@ -182,23 +182,23 @@ protected:
     // Docu in base class
     void characters(const XMLCh * const chars, const XMLSize_t length) override;
 
-    std::map<String, std::vector< QualityParameter > > runQualityQPs_; //TODO run name attribute to schema of RunQuality
-    std::map<String, std::vector< Attachment > > runQualityAts_;
-    std::map<String, std::vector< QualityParameter > > setQualityQPs_;
-    std::map<String, std::vector< Attachment > > setQualityAts_;
-    std::map<String, std::set< String > > setQualityQPs_members_;
-    std::map<String, String > run_Name_ID_map_;
-    std::map<String, String > set_Name_ID_map_;
+    std::map<std::string, std::vector< QualityParameter > > runQualityQPs_; //TODO run name attribute to schema of RunQuality
+    std::map<std::string, std::vector< Attachment > > runQualityAts_;
+    std::map<std::string, std::vector< QualityParameter > > setQualityQPs_;
+    std::map<std::string, std::vector< Attachment > > setQualityAts_;
+    std::map<std::string, std::set< std::string > > setQualityQPs_members_;
+    std::map<std::string, std::string > run_Name_ID_map_;
+    std::map<std::string, std::string > set_Name_ID_map_;
 
-    String tag_;
+    std::string tag_;
     UInt progress_;
     QualityParameter qp_;
     Attachment at_;
-    std::vector<String> row_;
-    std::vector<String> header_;
-    String name_;
-    String run_id_;
-    std::set<String> names_;
+    std::vector<std::string> row_;
+    std::vector<std::string> header_;
+    std::string name_;
+    std::string run_id_;
+    std::set<std::string> names_;
     std::vector<QualityParameter> qps_;
     std::vector<Attachment> ats_;
   };

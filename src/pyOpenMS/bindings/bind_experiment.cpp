@@ -8,6 +8,9 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/SpectrumRangeManager.h>
 #include <OpenMS/KERNEL/ChromatogramRangeManager.h>
+#include <OpenMS/IMAGING/IonImage.h>
+#include <OpenMS/IMAGING/MSImagingGeometry.h>
+#include <OpenMS/IMAGING/MSImagingExperiment.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
@@ -73,8 +76,8 @@ mz, intensities = spectrum.get_peaks()
         .def("end", [](const OpenMS::MSExperiment& self) { return self.end(); })
         .def("reserveSpaceSpectra", [](OpenMS::MSExperiment& self, size_t s) { return self.reserveSpaceSpectra(s); }, "s"_a, "Reserves space for the specified number of spectra")
         .def("reserveSpaceChromatograms", [](OpenMS::MSExperiment& self, size_t s) { return self.reserveSpaceChromatograms(s); }, "s"_a, "Reserves space for the specified number of chromatograms")
-        .def("aggregateFromMatrix", [](const OpenMS::MSExperiment& self, const OpenMS::Matrix<double>& ranges, unsigned int ms_level, const OpenMS::String& mz_agg) { return self.aggregateFromMatrix(ranges, ms_level, mz_agg); }, "ranges"_a, "ms_level"_a, "mz_agg"_a, "Aggregates intensity values for multiple m/z and RT ranges specified in a matrix")
-        .def("extractXICsFromMatrix", [](const OpenMS::MSExperiment& self, const OpenMS::Matrix<double>& ranges, unsigned int ms_level, const OpenMS::String& mz_agg) { return self.extractXICsFromMatrix(ranges, ms_level, mz_agg); }, "ranges"_a, "ms_level"_a, "mz_agg"_a, "Extracts XIC chromatograms for multiple m/z and RT ranges specified in a matrix")
+        .def("aggregateFromMatrix", [](const OpenMS::MSExperiment& self, const OpenMS::Matrix<double>& ranges, unsigned int ms_level, const std::string& mz_agg) { return self.aggregateFromMatrix(ranges, ms_level, mz_agg); }, "ranges"_a, "ms_level"_a, "mz_agg"_a, "Aggregates intensity values for multiple m/z and RT ranges specified in a matrix")
+        .def("extractXICsFromMatrix", [](const OpenMS::MSExperiment& self, const OpenMS::Matrix<double>& ranges, unsigned int ms_level, const std::string& mz_agg) { return self.extractXICsFromMatrix(ranges, ms_level, mz_agg); }, "ranges"_a, "ms_level"_a, "mz_agg"_a, "Extracts XIC chromatograms for multiple m/z and RT ranges specified in a matrix")
         .def("clearRanges", [](OpenMS::MSExperiment& self) { return self.clearRanges(); }, "Clear all ranges in all range managers")
         .def("getMinRT", [](const OpenMS::MSExperiment& self) { return self.getMinRT(); }, "Get the minimum RT value from the combined ranges")
         .def("getMaxRT", [](const OpenMS::MSExperiment& self) { return self.getMaxRT(); }, "Get the maximum RT value from the combined ranges")
@@ -92,7 +95,7 @@ mz, intensities = spectrum.get_peaks()
         .def("reset", [](OpenMS::MSExperiment& self) { return self.reset(); }, "Clears all data and meta data")
         .def("clearMetaDataArrays", [](OpenMS::MSExperiment& self) { return self.clearMetaDataArrays(); }, "Clears the meta data arrays of all contained spectra")
         .def("getExperimentalSettings", [](OpenMS::MSExperiment& self) -> OpenMS::ExperimentalSettings & { return self.getExperimentalSettings(); }, nb::rv_policy::reference_internal, "Returns the meta information of this experiment")
-        .def("getPrimaryMSRunPath", [](const OpenMS::MSExperiment& self) { std::vector<OpenMS::String> toFill; self.getPrimaryMSRunPath(toFill); return toFill; }, "References to the first MS file(s) after conversions. Used to trace results back to original data.")
+        .def("getPrimaryMSRunPath", [](const OpenMS::MSExperiment& self) { std::vector<std::string> toFill; self.getPrimaryMSRunPath(toFill); return toFill; }, "References to the first MS file(s) after conversions. Used to trace results back to original data.")
         .def("getPrecursorSpectrum", [](const OpenMS::MSExperiment& self, int zero_based_index) { return self.getPrecursorSpectrum(zero_based_index); }, "zero_based_index"_a, "Returns the index of the precursor spectrum for spectrum at index @p zero_based_index")
         .def("swap", [](OpenMS::MSExperiment& self, OpenMS::MSExperiment& from) { return self.swap(from); }, "from"_a, "Swaps the content of this experiment with another")
         .def("setSpectra", [](OpenMS::MSExperiment& self, const std::vector<OpenMS::MSSpectrum>& spectra) { return self.setSpectra(spectra); }, "spectra"_a, "Sets the spectrum list")
@@ -126,9 +129,9 @@ mz, intensities = spectrum.get_peaks()
         .def("getDateTime", [](const OpenMS::MSExperiment& self) -> const OpenMS::DateTime & { return self.getDateTime(); }, nb::rv_policy::reference_internal, "Returns the date the experiment was performed")
         .def("setDateTime", [](OpenMS::MSExperiment& self, const OpenMS::DateTime& date) { return self.setDateTime(date); }, "date"_a, "Sets the date the experiment was performed")
         .def("getComment", [](const OpenMS::MSExperiment& self) { return self.getComment(); }, "Returns the free-text comment")
-        .def("setComment", [](OpenMS::MSExperiment& self, const OpenMS::String& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
+        .def("setComment", [](OpenMS::MSExperiment& self, const std::string& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
         .def("getFractionIdentifier", [](const OpenMS::MSExperiment& self) { return self.getFractionIdentifier(); }, "Returns fraction identifier")
-        .def("setFractionIdentifier", [](OpenMS::MSExperiment& self, const OpenMS::String& fraction_identifier) { return self.setFractionIdentifier(fraction_identifier); }, "fraction_identifier"_a, "Sets the fraction identifier")
+        .def("setFractionIdentifier", [](OpenMS::MSExperiment& self, const std::string& fraction_identifier) { return self.setFractionIdentifier(fraction_identifier); }, "fraction_identifier"_a, "Sets the fraction identifier")
 
         .def("__iter__", [](OpenMS::MSExperiment& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::MSExperiment>(), "MSExperiment_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::MSExperiment& self) { return self.size(); })
@@ -383,6 +386,189 @@ mz, intensities = spectrum.get_peaks()
     nb::enum_<OpenMS::MSExperiment::RasterAggregation>(msexperiment_class, "MSExperimentRasterAggregation")
         .value("SUM", OpenMS::MSExperiment::RasterAggregation::SUM)
         .value("MAX", OpenMS::MSExperiment::RasterAggregation::MAX)
+        ;
+
+    // -----------------------------------------------------------------------
+    // IMAGING module (IonImage, MSImagingGeometry, MSImagingExperiment)
+    // -----------------------------------------------------------------------
+    // ABI guards for zero-copy structured array access of the Pixel struct.
+    static_assert(std::is_standard_layout_v<OpenMS::MSImagingGeometry::Pixel>,
+        "Pixel must be standard-layout for zero-copy struct views (member order must match dtype)");
+    static_assert(sizeof(OpenMS::MSImagingGeometry::Pixel) == 16,
+        "Pixel layout assumption: 4(x) + 4(y) + 8(spectrum_index) = 16 bytes");
+    static_assert(sizeof(OpenMS::UInt) == 4,
+        "UInt must be 4 bytes (dtype assumes uint32 for pixel coordinates)");
+    static_assert(sizeof(OpenMS::Size) == 8,
+        "Size must be 8 bytes (dtype assumes uint64 for spectrum_index)");
+
+    // --- IonImage ---
+    nb::class_<OpenMS::IonImage>(m, "IonImage", R"doc(
+Dense W x H grid of ion intensities with a per-pixel mask.
+
+Storage is row-major: index = y * W + x. Use get_data() for a zero-copy
+2D numpy view of the intensity grid (shape (H, W), dtype float64).
+Pixels are masked-out by default; setIntensity marks them present.
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<OpenMS::UInt, OpenMS::UInt>(), "width"_a, "height"_a)
+        .def(nb::init<const OpenMS::IonImage &>())
+        .def("__copy__", [](const OpenMS::IonImage& self) { return OpenMS::IonImage(self); })
+        .def("__deepcopy__", [](const OpenMS::IonImage& self, nb::dict) { return OpenMS::IonImage(self); }, "memo"_a)
+        .def("resize", &OpenMS::IonImage::resize, "width"_a, "height"_a, "Resize and zero-initialize; all pixels become invalid.")
+        .def("getWidth", &OpenMS::IonImage::getWidth, "Image width (columns).")
+        .def("getHeight", &OpenMS::IonImage::getHeight, "Image height (rows).")
+        .def("hasPixel", &OpenMS::IonImage::hasPixel, "x"_a, "y"_a, "True once setIntensity has been called for (x, y).")
+        .def("getIntensity", &OpenMS::IonImage::getIntensity, "x"_a, "y"_a, "Intensity at (x, y); 0.0 if never set. Raises on out-of-bounds.")
+        .def("setIntensity", &OpenMS::IonImage::setIntensity, "x"_a, "y"_a, "intensity"_a, "Stores intensity at (x, y) and marks the cell valid.")
+        .def("setMzRange", &OpenMS::IonImage::setMzRange, "range"_a, "Records the m/z window the image was extracted from.")
+        .def("getMzRange", &OpenMS::IonImage::getMzRange, nb::rv_policy::reference_internal, "m/z window the image was extracted from.")
+
+        .def("get_data", [](nb::object self_obj) -> nb::object {
+            auto& self = nb::cast<OpenMS::IonImage&>(self_obj);
+            auto np = nb::module_::import_("numpy");
+            const size_t h = self.getHeight();
+            const size_t w = self.getWidth();
+            if (w == 0 || h == 0)
+            {
+                return np.attr("empty")(nb::make_tuple(h, w), np.attr("float64"));
+            }
+            // Zero-copy 2D view of the row-major intensity buffer (cast away const;
+            // the numpy array is mutable but writes bypass mask tracking, so
+            // prefer setIntensity for correctness-sensitive updates).
+            double* ptr = const_cast<double*>(self.getData().data());
+            size_t shape[2] = { h, w };
+            auto arr = nb::ndarray<nb::numpy, double, nb::ndim<2>, nb::c_contig>(
+                ptr, 2, shape, self_obj);
+            return nb::cast(arr);
+        },
+        nb::rv_policy::reference_internal,
+        R"doc(Zero-copy 2D numpy view (shape (H, W), dtype float64) of the intensity grid.
+
+Writes through the view modify the underlying buffer but do NOT flip the
+mask. Use setIntensity(x, y, val) when correctness of the mask matters.)doc")
+
+        .def("get_mask", [](const OpenMS::IonImage& self) {
+            // std::vector<bool> is bit-packed; cannot be zero-copied. Materialize
+            // a uint8 mask for downstream numpy use.
+            const size_t h = self.getHeight();
+            const size_t w = self.getWidth();
+            const size_t n = h * w;
+            uint8_t* buf = new uint8_t[n ? n : 1];
+            const auto& v = self.getMask();
+            for (size_t i = 0; i < n; ++i) buf[i] = v[i] ? 1 : 0;
+            nb::capsule owner(buf, [](void* p) noexcept { delete[] static_cast<uint8_t*>(p); });
+            size_t shape[2] = { h, w };
+            return nb::ndarray<nb::numpy, uint8_t, nb::ndim<2>>(buf, 2, shape, owner);
+        }, "Returns a 2D uint8 numpy array (H, W) of the pixel mask (1 = present). Copy, not zero-copy.")
+
+        .def("__repr__", [](const OpenMS::IonImage& self) {
+            std::ostringstream oss;
+            oss << "IonImage(width=" << self.getWidth()
+                << ", height=" << self.getHeight() << ")";
+            return oss.str();
+        })
+        ;
+
+    // --- MSImagingGeometry ---
+    auto geom_cls = nb::class_<OpenMS::MSImagingGeometry>(m, "MSImagingGeometry", R"doc(
+Pixel grid metadata and (x, y) -> spectrum_index lookup for MSI data.
+
+Coordinates are zero-based. Use get_pixels_struct() for a zero-copy
+structured numpy view of all pixels at once.
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::MSImagingGeometry &>())
+        .def("__copy__", [](const OpenMS::MSImagingGeometry& self) { return OpenMS::MSImagingGeometry(self); })
+        .def("__deepcopy__", [](const OpenMS::MSImagingGeometry& self, nb::dict) { return OpenMS::MSImagingGeometry(self); }, "memo"_a)
+        .def("setDimensions", &OpenMS::MSImagingGeometry::setDimensions, "width"_a, "height"_a)
+        .def("getWidth", &OpenMS::MSImagingGeometry::getWidth)
+        .def("getHeight", &OpenMS::MSImagingGeometry::getHeight)
+        .def("setPixelSize", &OpenMS::MSImagingGeometry::setPixelSize,
+             "x"_a, "y"_a, "unit"_a = std::string("micrometer"))
+        .def("getPixelSizeX", &OpenMS::MSImagingGeometry::getPixelSizeX)
+        .def("getPixelSizeY", &OpenMS::MSImagingGeometry::getPixelSizeY)
+        .def("getPixelSizeUnit", &OpenMS::MSImagingGeometry::getPixelSizeUnit)
+        .def("addPixel", &OpenMS::MSImagingGeometry::addPixel,
+             "x"_a, "y"_a, "spectrum_index"_a,
+             "Adds a pixel at (x, y) bound to spectrum_index.")
+        .def("hasPixel", &OpenMS::MSImagingGeometry::hasPixel, "x"_a, "y"_a)
+        .def("getSpectrumIndex", &OpenMS::MSImagingGeometry::getSpectrumIndex, "x"_a, "y"_a)
+        .def("getNumberOfPixels", &OpenMS::MSImagingGeometry::getNumberOfPixels)
+        .def("clear", &OpenMS::MSImagingGeometry::clear)
+
+        .def("get_pixels_struct", [](nb::object self_obj) -> nb::object {
+            auto& self = nb::cast<OpenMS::MSImagingGeometry&>(self_obj);
+            const auto& pixels = self.getPixels();
+            const size_t n = pixels.size();
+            auto np = nb::module_::import_("numpy");
+            nb::dict dtype_dict;
+            dtype_dict["names"] = nb::make_tuple("x", "y", "spectrum_index");
+            dtype_dict["formats"] = nb::make_tuple(np.attr("uint32"), np.attr("uint32"), np.attr("uint64"));
+            dtype_dict["offsets"] = nb::make_tuple(
+                offsetof(OpenMS::MSImagingGeometry::Pixel, x),
+                offsetof(OpenMS::MSImagingGeometry::Pixel, y),
+                offsetof(OpenMS::MSImagingGeometry::Pixel, spectrum_index));
+            dtype_dict["itemsize"] = sizeof(OpenMS::MSImagingGeometry::Pixel);
+            auto py_dtype = np.attr("dtype")(dtype_dict);
+            if (n == 0) return np.attr("empty")(0, py_dtype);
+            uint8_t* data_ptr = reinterpret_cast<uint8_t*>(
+                const_cast<OpenMS::MSImagingGeometry::Pixel*>(pixels.data()));
+            size_t byte_shape[1] = { n * sizeof(OpenMS::MSImagingGeometry::Pixel) };
+            auto raw = nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
+                data_ptr, 1, byte_shape, self_obj);
+            return np.attr("frombuffer")(raw, py_dtype);
+        },
+        nb::rv_policy::reference_internal,
+        "Zero-copy structured numpy array with fields 'x' (uint32), 'y' (uint32), 'spectrum_index' (uint64).")
+
+        .def("__len__", &OpenMS::MSImagingGeometry::getNumberOfPixels)
+        .def("__repr__", [](const OpenMS::MSImagingGeometry& self) {
+            std::ostringstream oss;
+            oss << "MSImagingGeometry(width=" << self.getWidth()
+                << ", height=" << self.getHeight()
+                << ", num_pixels=" << self.getNumberOfPixels() << ")";
+            return oss.str();
+        })
+        ;
+
+    // --- MSImagingExperiment ---
+    nb::class_<OpenMS::MSImagingExperiment>(m, "MSImagingExperiment", R"doc(
+In-memory model for a 2D imaging mass spectrometry dataset.
+
+Owns an MSExperiment (spectra) and an MSImagingGeometry (pixel grid +
+pixel -> spectrum index mapping). Provides pixel-based spectrum access
+and a simple sum-based ion image extraction.
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<OpenMS::MSExperiment>(), "exp"_a, "Wrap an MSExperiment with an empty geometry.")
+        .def(nb::init<const OpenMS::MSImagingExperiment &>())
+        .def("__copy__", [](const OpenMS::MSImagingExperiment& self) { return OpenMS::MSImagingExperiment(self); })
+        .def("__deepcopy__", [](const OpenMS::MSImagingExperiment& self, nb::dict) { return OpenMS::MSImagingExperiment(self); }, "memo"_a)
+        .def("getMSExperiment",
+             [](OpenMS::MSImagingExperiment& self) -> OpenMS::MSExperiment& { return self.getMSExperiment(); },
+             nb::rv_policy::reference_internal)
+        .def("setMSExperiment", &OpenMS::MSImagingExperiment::setMSExperiment, "exp"_a,
+             "Replaces the owned MSExperiment without touching the geometry.")
+        .def("getGeometry",
+             [](OpenMS::MSImagingExperiment& self) -> OpenMS::MSImagingGeometry& { return self.getGeometry(); },
+             nb::rv_policy::reference_internal)
+        .def("setGeometry", &OpenMS::MSImagingExperiment::setGeometry, "geom"_a)
+        .def("getNumberOfPixels", &OpenMS::MSImagingExperiment::getNumberOfPixels)
+        .def("getNumberOfSpectra", &OpenMS::MSImagingExperiment::getNumberOfSpectra)
+        .def("hasPixel", &OpenMS::MSImagingExperiment::hasPixel, "x"_a, "y"_a)
+        .def("getSpectrum",
+             [](OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum& {
+                 return self.getSpectrum(x, y);
+             },
+             "x"_a, "y"_a, nb::rv_policy::reference_internal)
+        .def("extractIonImage", &OpenMS::MSImagingExperiment::extractIonImage, "mz"_a, "tolerance_ppm"_a)
+        .def("validate", &OpenMS::MSImagingExperiment::validate)
+        .def("__repr__", [](const OpenMS::MSImagingExperiment& self) {
+            std::ostringstream oss;
+            oss << "MSImagingExperiment(num_pixels=" << self.getNumberOfPixels()
+                << ", num_spectra=" << self.getNumberOfSpectra() << ")";
+            return oss.str();
+        })
         ;
 
 } // NB_MODULE

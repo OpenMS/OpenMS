@@ -17,10 +17,10 @@ using namespace std;
 using namespace OpenMS;
 
 
-const String TriqlerFile::na_string_ = "NA";
+const std::string TriqlerFile::na_string_ = "NA";
 
 void TriqlerFile::checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection,
-                                             const String& condition)
+                                             const std::string& condition)
 {
   // Sample Section must contain the column that contains the condition used for Triqler
   if (!sampleSection.hasFactor(condition))
@@ -34,14 +34,14 @@ void TriqlerFile::checkConditionLFQ_(const ExperimentalDesign::SampleSection& sa
 // Cant we just get this stuff on the fly?
 // We go through the features anyway again.
 TriqlerFile::AggregatedConsensusInfo TriqlerFile::aggregateInfo_(const ConsensusMap& consensus_map,
-                                                                                 const std::vector<String>& spectra_paths)
+                                                                                 const std::vector<std::string>& spectra_paths)
 {
   TriqlerFile::AggregatedConsensusInfo aggregatedInfo; //results
   const auto &column_headers = consensus_map.getColumnHeaders(); // needed for label_id
 
   for (const ConsensusFeature &consensus_feature : consensus_map)
   {
-    vector<String> filenames;
+    vector<std::string> filenames;
     vector<TriqlerFile::Intensity> intensities;
     vector<TriqlerFile::Coordinate> retention_times;
     vector<unsigned> cf_labels;
@@ -80,7 +80,7 @@ TriqlerFile::AggregatedConsensusInfo TriqlerFile::aggregateInfo_(const Consensus
 //@todo LineType should be a template only for the line, not for the whole
 // mapping structure. More exact type matching/info then.
 void TriqlerFile::constructFile_(TextFile& csv_out,
-                                         const std::set<String>& peptideseq_quantifyable,
+                                         const std::set<std::string>& peptideseq_quantifyable,
                                          const MapSequenceToLines_& peptideseq_to_line) const
 
 {
@@ -90,11 +90,11 @@ void TriqlerFile::constructFile_(TextFile& csv_out,
   }
 }
 
-void TriqlerFile::storeLFQ(const String& filename,
+void TriqlerFile::storeLFQ(const std::string& filename,
                                    const ConsensusMap& consensus_map,
                                    const ExperimentalDesign& design,
                                    const StringList& reannotate_filenames,
-                                   const String& condition)
+                                   const std::string& condition)
 {
   // Experimental Design file
   const ExperimentalDesign::SampleSection& sampleSection = design.getSampleSection();
@@ -107,29 +107,29 @@ void TriqlerFile::storeLFQ(const String& filename,
   checkConditionLFQ_(sampleSection, condition);
 
   // assemble lookup table for run (each combination of pathname and fraction is a run)
-  std::map< pair< String, unsigned>, unsigned > run_map{};
+  std::map< pair< std::string , unsigned>, unsigned > run_map{};
   assembleRunMap_(run_map, design);
 
   // Maps run in Triqler input to run for OpenMS
   map< unsigned, unsigned > Triqler_run_to_openms_fractiongroup;
 
   // Mapping of filepath and label to sample and fraction
-  map< pair< String, unsigned >, unsigned> path_label_to_sample = design.getPathLabelToSampleMapping(true);
-  map< pair< String, unsigned >, unsigned> path_label_to_fraction = design.getPathLabelToFractionMapping(true);
-  map< pair< String, unsigned >, unsigned> path_label_to_fractiongroup = design.getPathLabelToFractionGroupMapping(true);
+  map< pair< std::string , unsigned >, unsigned> path_label_to_sample = design.getPathLabelToSampleMapping(true);
+  map< pair< std::string , unsigned >, unsigned> path_label_to_fraction = design.getPathLabelToFractionMapping(true);
+  map< pair< std::string , unsigned >, unsigned> path_label_to_fractiongroup = design.getPathLabelToFractionGroupMapping(true);
 
   ExperimentalDesign::MSFileSection msfile_section = design.getMSFileSection();
 
   // Extract the Spectra Filepath column from the design
-  std::vector<String> design_filenames{};
+  std::vector<std::string> design_filenames{};
   for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
   {
-    const String fn = File::basename(f.path);
+    const std::string fn = File::basename(f.path);
     design_filenames.push_back(fn);
   }
 
   //vector< BaseFeature> features{};
-  vector< String > spectra_paths{};
+  vector< std::string > spectra_paths{};
 
   //features.reserve(consensus_map.size());
 
@@ -184,7 +184,7 @@ void TriqlerFile::storeLFQ(const String& filename,
   if (consensus_map.getProteinIdentifications().size() > 1)
   {
     OPENMS_LOG_WARN << "Found " +
-    String(consensus_map.getProteinIdentifications().size()) +
+    StringUtils::toStr(consensus_map.getProteinIdentifications().size()) +
     " protein runs in consensusXML. Using first one only to parse inference data for now." << std::endl;
   }
 
@@ -203,10 +203,10 @@ void TriqlerFile::storeLFQ(const String& filename,
   const IndProtGrps& ind_prots = consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins();
 
   // Map protein accession to its indistinguishable group
-  std::unordered_map< String, const IndProtGrp* > accession_to_group = getAccessionToGroupMap_(ind_prots);
+  std::unordered_map< std::string, const IndProtGrp* > accession_to_group = getAccessionToGroupMap_(ind_prots);
 
   // To aggregate/uniquify on peptide sequence-level and save if a peptide is quantifyable
-  std::set<String> peptideseq_quantifyable; //set for deterministic ordering
+  std::set<std::string> peptideseq_quantifyable; //set for deterministic ordering
 
   // Stores all the lines that will be present in the final Triqler output
   MapSequenceToLines_ peptideseq_to_line;
@@ -225,13 +225,13 @@ void TriqlerFile::storeLFQ(const String& filename,
       }
       for (const PeptideHit & pep_hit : pep_id.getHits())
       {
-        const String & sequence = pep_hit.getSequence().toString(); // to modified string
+        const std::string & sequence = pep_hit.getSequence().toString(); // to modified string
 
         const double & search_score = pep_hit.getScore();
 
         // check if all referenced protein accessions are part of the same indistinguishable group
         // if so, we mark the sequence as quantifiable
-        std::set<String> accs = pep_hit.extractProteinAccessionsSet();
+        std::set<std::string> accs = pep_hit.extractProteinAccessionsSet();
 
         //Note: In general as long as we only support merged proteins across conditions,
         // we check if the map is already set at this sequence since
@@ -249,7 +249,7 @@ void TriqlerFile::storeLFQ(const String& filename,
         // Variables of the peptide hit
         const Int precursor_charge = pep_hit.getCharge();
 
-        String accession  = ListUtils::concatenate(accs, accdelim_);
+        std::string accession  = ListUtils::concatenate(accs, std::string(1, accdelim_));
         if (accession.empty())
         {
           accession = na_string_; // shouldn't really matter since we skip unquantifiable peptides
@@ -257,16 +257,16 @@ void TriqlerFile::storeLFQ(const String& filename,
         // Write new line for each run
         for (Size j = 0; j < aggregatedInfo.consensus_feature_filenames[i].size(); j++)
         {
-          const String &current_filename = aggregatedInfo.consensus_feature_filenames[i][j];
+          const std::string &current_filename = aggregatedInfo.consensus_feature_filenames[i][j];
           const Intensity intensity(aggregatedInfo.consensus_feature_intensities[i][j]);
           // const Coordinate retention_time(aggregatedInfo.consensus_feature_retention_times[i][j]);
           const unsigned label(aggregatedInfo.consensus_feature_labels[i][j]);
 
-          const pair< String, unsigned> tpl1 = make_pair(current_filename, label);
+          const pair< std::string , unsigned> tpl1 = make_pair(current_filename, label);
           const unsigned sample = path_label_to_sample[tpl1];
           const unsigned fraction = path_label_to_fraction[tpl1];
 
-          const pair< String, unsigned> tpl2 = make_pair(current_filename, fraction);
+          const pair< std::string , unsigned> tpl2 = make_pair(current_filename, fraction);
 
           // Resolve run
           const unsigned run = run_map[tpl2];  // Triqler run according to the file table
@@ -275,11 +275,11 @@ void TriqlerFile::storeLFQ(const String& filename,
 
           // Store Triqler line          
           peptideseq_to_line[sequence].insert(TriqlerLine_(
-                  String(run),
+                  StringUtils::toStr(run),
                   sampleSection.getFactorValue(sample, condition),
-                  String(precursor_charge),
-                  String(1. - search_score),
-                  String(intensity), 
+                  StringUtils::toStr(precursor_charge),
+                  StringUtils::toStr(1. - search_score),
+                  StringUtils::toStr(intensity), 
                   sequence,
                   accession));
         }
@@ -290,8 +290,8 @@ void TriqlerFile::storeLFQ(const String& filename,
   // Print the run mapping between Triqler and OpenMS
   for (const auto& run_mapping : Triqler_run_to_openms_fractiongroup)
   {
-    cout << "Triqler run " << String(run_mapping.first)
-         << " corresponds to OpenMS fraction group " << String(run_mapping.second) << endl;
+    cout << "Triqler run " << StringUtils::toStr(run_mapping.first)
+         << " corresponds to OpenMS fraction group " << StringUtils::toStr(run_mapping.second) << endl;
   }
 
   constructFile_(csv_out,
@@ -302,16 +302,16 @@ void TriqlerFile::storeLFQ(const String& filename,
   csv_out.store(filename);
 }
 
-bool TriqlerFile::checkUnorderedContent_(const std::vector<String> &first, const std::vector<String> &second)
+bool TriqlerFile::checkUnorderedContent_(const std::vector<std::string> &first, const std::vector<std::string> &second)
 {
-  const std::set< String > lhs(first.begin(), first.end());
-  const std::set< String > rhs(second.begin(), second.end());
+  const std::set< std::string > lhs(first.begin(), first.end());
+  const std::set< std::string > rhs(second.begin(), second.end());
   return lhs == rhs
          && std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
 void TriqlerFile::assembleRunMap_(
-    std::map< std::pair<String, unsigned>, unsigned> &run_map,
+    std::map< std::pair<std::string, unsigned>, unsigned> &run_map,
     const ExperimentalDesign &design)
 {
   run_map.clear();
@@ -320,20 +320,20 @@ void TriqlerFile::assembleRunMap_(
 
   for (ExperimentalDesign::MSFileSectionEntry const& r : msfile_section)
   {
-    std::pair< String, unsigned> tpl = std::make_pair(File::basename(r.path), r.fraction);
-    if (run_map.find(tpl) == run_map.end())
+    std::pair< std::string , unsigned> tpl = std::make_pair(File::basename(r.path), r.fraction);
+    if (!run_map.contains(tpl))
     {
       run_map[tpl] = run_counter++;
     }
   }
 }
 
-std::unordered_map<String, const IndProtGrp* > TriqlerFile::getAccessionToGroupMap_(const IndProtGrps& ind_prots)
+std::unordered_map<std::string, const IndProtGrp* > TriqlerFile::getAccessionToGroupMap_(const IndProtGrps& ind_prots)
 {
-  std::unordered_map<String, const IndProtGrp* > res{};
+  std::unordered_map<std::string, const IndProtGrp* > res{};
   for (const IndProtGrp& pgrp : ind_prots)
   {
-    for (const String& a : pgrp.accessions)
+    for (const std::string& a : pgrp.accessions)
     {
       res[a] = &(pgrp);
     }
@@ -342,8 +342,8 @@ std::unordered_map<String, const IndProtGrp* > TriqlerFile::getAccessionToGroupM
 }
 
 bool TriqlerFile::isQuantifyable_(
-    const std::set<String>& accs,
-    const std::unordered_map<String, const IndProtGrp*>& accession_to_group) const
+    const std::set<std::string>& accs,
+    const std::unordered_map<std::string, const IndProtGrp*>& accession_to_group) const
 {
   if (accs.empty())
   {
@@ -384,9 +384,9 @@ bool TriqlerFile::isQuantifyable_(
   return true;
 }
 
-String TriqlerFile::TriqlerLine_::toString() const
+std::string TriqlerFile::TriqlerLine_::toString() const
 {
-  const String delim("\t");
+  const std::string delim("\t");
   return  run_
           + delim + condition_
           + delim + precursor_charge_

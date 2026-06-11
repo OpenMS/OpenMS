@@ -86,14 +86,14 @@ START_SECTION((void configure(const Param &param)))
   getGlobalLogWarn() << "5" << endl;
 
   ostringstream& info_warn_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("testing_info_warn_stream"));
-  String info_warn_stream_content(info_warn_stream.str());
+  std::string info_warn_stream_content(info_warn_stream.str());
   StringList info_warn_result;
-  info_warn_stream_content.trim().split('\n', info_warn_result, true );
+  StringUtils::trim(info_warn_stream_content); StringUtils::split(info_warn_stream_content, '\n', info_warn_result, true );
 
   TEST_EQUAL(info_warn_result.size() , 3)
 
   // check output with regex
-  String pattern("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] ");
+  std::string pattern("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] ");
   boost::regex rx(pattern);
 
   int i = 1;
@@ -104,20 +104,20 @@ START_SECTION((void configure(const Param &param)))
     ++i;
   }
   ostringstream& error_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("only_error_string_stream"));
-  String error_stream_content(error_stream.str());
+  std::string error_stream_content(error_stream.str());
   StringList error_result;
-  error_stream_content.trim().split('\n', error_result, true );
+  StringUtils::trim(error_stream_content); StringUtils::split(error_stream_content, '\n', error_result, true );
 
 
   TEST_EQUAL(error_result.size(), 1)
 
-  String pattern2("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] 4");
+  std::string pattern2("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] 4");
   rx.assign(pattern2);
   TEST_TRUE(regex_search(error_result[0], rx)) // stream may be wrapped in ANSI color codes; only search infix
 }
 END_SECTION
 
-START_SECTION((ostream& getStream(const String &stream_name)))
+START_SECTION((ostream& getStream(const std::string &stream_name)))
 {
   // Use global streams directly to test LogConfigHandler configuration
   std::vector<std::string> settings;
@@ -131,15 +131,15 @@ START_SECTION((ostream& getStream(const String &stream_name)))
   getGlobalLogInfo() << "getStream 1" << endl;
 
   ostringstream& info_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("testing_getStream"));
-  String info_content(info_stream.str());
+  std::string info_content(info_stream.str());
 
   StringList info_result;
-  info_content.trim().split('\n', info_result, true );
+  StringUtils::trim(info_content); StringUtils::split(info_content, '\n', info_result, true );
 
   TEST_EQUAL(info_result.size() , 1)
 
   // check if everything landed in the stream we wanted
-  String pattern("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] getStream 1");
+  std::string pattern("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] getStream 1");
   boost::regex rx(pattern);
   TEST_EQUAL(regex_match(info_result[0], rx), true)
 }
@@ -152,7 +152,7 @@ START_SECTION((static LogConfigHandler* getInstance()))
 }
 END_SECTION
 
-START_SECTION((void setLogLevel(const String &log_level) - restoring streams))
+START_SECTION((void setLogLevel(const std::string &log_level) - restoring streams))
 {
   // Test that setLogLevel can restore streams when lowering the log level
   // Use global streams directly to test LogConfigHandler configuration
@@ -182,14 +182,14 @@ START_SECTION((void setLogLevel(const String &log_level) - restoring streams))
   
   // Check the stream content
   ostringstream& test_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_setloglevel_stream"));
-  String content(test_stream.str());
+  std::string content(test_stream.str());
   StringList result;
-  content.trim().split('\n', result, true);
+  StringUtils::trim(content); StringUtils::split(content, '\n', result, true);
   
   // Should have message1 and message3, but not message2
   TEST_EQUAL(result.size(), 2)
-  TEST_TRUE(result[0].hasSubstring("message1"))
-  TEST_TRUE(result[1].hasSubstring("message3"))
+  TEST_TRUE(StringUtils::hasSubstring(result[0], "message1"))
+  TEST_TRUE(StringUtils::hasSubstring(result[1], "message3"))
 }
 END_SECTION
 
@@ -215,14 +215,14 @@ START_SECTION((removeAllStreams flushes buffers))
   
   // Check the stream content - the unflushed message should be there
   ostringstream& test_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_flush_stream"));
-  String content(test_stream.str());
+  std::string content(test_stream.str());
   
   // The message should be in the stream even though it wasn't flushed with endl
-  TEST_TRUE(content.hasSubstring("unflushed_message"))
+  TEST_TRUE(StringUtils::hasSubstring(content, "unflushed_message"))
 }
 END_SECTION
 
-START_SECTION((void setLogLevel(const String &log_level) - NONE level))
+START_SECTION((void setLogLevel(const std::string &log_level) - NONE level))
 {
   // Test that setLogLevel("NONE") disables all logging and can be restored
   // Use global streams directly to test LogConfigHandler configuration
@@ -256,21 +256,21 @@ START_SECTION((void setLogLevel(const String &log_level) - NONE level))
   
   // Check INFO stream
   ostringstream& info_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_none_info_stream"));
-  String info_content(info_stream.str());
-  TEST_TRUE(info_content.hasSubstring("before_none_info"))
-  TEST_FALSE(info_content.hasSubstring("during_none_info"))
-  TEST_TRUE(info_content.hasSubstring("after_none_info"))
+  std::string info_content(info_stream.str());
+  TEST_TRUE(StringUtils::hasSubstring(info_content, "before_none_info"))
+  TEST_FALSE(StringUtils::hasSubstring(info_content, "during_none_info"))
+  TEST_TRUE(StringUtils::hasSubstring(info_content, "after_none_info"))
   
   // Check ERROR stream
   ostringstream& error_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_none_error_stream"));
-  String error_content(error_stream.str());
-  TEST_TRUE(error_content.hasSubstring("before_none_error"))
-  TEST_FALSE(error_content.hasSubstring("during_none_error"))
-  TEST_TRUE(error_content.hasSubstring("after_none_error"))
+  std::string error_content(error_stream.str());
+  TEST_TRUE(StringUtils::hasSubstring(error_content, "before_none_error"))
+  TEST_FALSE(StringUtils::hasSubstring(error_content, "during_none_error"))
+  TEST_TRUE(StringUtils::hasSubstring(error_content, "after_none_error"))
 }
 END_SECTION
 
-START_SECTION((void setLogLevel(const String &log_level) - invalid level))
+START_SECTION((void setLogLevel(const std::string &log_level) - invalid level))
 {
   // Test that setLogLevel throws an exception for invalid log levels
   TEST_EXCEPTION(Exception::IllegalArgument, LogConfigHandler::getInstance()->setLogLevel("INVALID_LEVEL"))

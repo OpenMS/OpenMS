@@ -36,7 +36,7 @@ namespace OpenMS
     if (iso_pattern_.empty())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "FeatureHypothesis is empty, no traces contained!", String(iso_pattern_.size()));
+          "FeatureHypothesis is empty, no traces contained!",StringUtils::toStr(iso_pattern_.size()));
     }
     return iso_pattern_[0]->getIntensity(smoothed);
   }
@@ -105,7 +105,7 @@ namespace OpenMS
     Precursor prec;
     prec.setMZ(mz);
     prec.setCharge(charge_);
-    prec.setMetaValue("peptide_sequence", String(feature_id));
+    prec.setMetaValue("peptide_sequence",StringUtils::toStr(feature_id));
 
     std::vector< OpenMS::MSChromatogram > tmp_chromatograms;
     for (Size mt_idx = 0; mt_idx < iso_pattern_.size(); ++mt_idx)
@@ -119,8 +119,8 @@ namespace OpenMS
         peak.setIntensity((*l_it).getIntensity());
         chromatogram.push_back(peak);
       }
-      chromatogram.setNativeID(String(feature_id) + "_" + String(mt_idx));
-      chromatogram.setName(String(feature_id) + "_" + String(mt_idx));
+      chromatogram.setNativeID(StringUtils::toStr(feature_id) + "_" + StringUtils::toStr(mt_idx));
+      chromatogram.setName(StringUtils::toStr(feature_id) + "_" + StringUtils::toStr(mt_idx));
       chromatogram.setChromatogramType(ChromatogramSettings::ChromatogramType::BASEPEAK_CHROMATOGRAM);
       chromatogram.setPrecursor(prec);
       chromatogram.sortByPosition();
@@ -131,7 +131,7 @@ namespace OpenMS
     return tmp_chromatograms;
   }
 
-  OpenMS::String FeatureHypothesis::getLabel() const
+  std::string FeatureHypothesis::getLabel() const
   {
     return ListUtils::concatenate(getLabels(), "_");
   }
@@ -141,9 +141,9 @@ namespace OpenMS
     return iso_pattern_.size();
   }
 
-  std::vector<String> FeatureHypothesis::getLabels() const
+  std::vector<std::string> FeatureHypothesis::getLabels() const
   {
-    std::vector<String> tmp_labels;
+    std::vector<std::string> tmp_labels;
 
     for (Size i = 0; i < iso_pattern_.size(); ++i)
     {
@@ -227,7 +227,7 @@ namespace OpenMS
     if (iso_pattern_.empty())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
+                                    "FeatureHypothesis is empty, no centroid MZ!",StringUtils::toStr(iso_pattern_.size()));
     }
     return iso_pattern_[0]->getCentroidMZ();
   }
@@ -237,7 +237,7 @@ namespace OpenMS
     if (iso_pattern_.empty())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
+        "FeatureHypothesis is empty, no centroid RT!",StringUtils::toStr(iso_pattern_.size()));
     }
     return iso_pattern_[0]->getCentroidRT();
   }
@@ -360,7 +360,7 @@ namespace OpenMS
     auto isodist = solver.estimateFromPeptideWeight(mol_weight);
     // isodist.renormalize();
 
-    IsotopeDistribution::ContainerType averagine_dist = isodist.getContainer();
+    const IsotopeDistribution::ContainerType& averagine_dist = isodist.getContainer();
     double max_int(0.0), theo_max_int(0.0);
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {
@@ -464,9 +464,9 @@ namespace OpenMS
     return (predict == 2.0) ? 1 : 0;
   }
 
-  void FeatureFindingMetabo::loadIsotopeModel_(const String& model_name)
+  void FeatureFindingMetabo::loadIsotopeModel_(const std::string& model_name)
   {
-    String search_name("CHEMISTRY/" + model_name);
+    std::string search_name("CHEMISTRY/" + model_name);
 
     std::string model_filename = File::find(search_name + ".svm");
     std::string scale_filename = File::find(search_name + ".scale");
@@ -511,7 +511,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Numbers of centers and scales from file " + scale_filename + " are different!",
-          String(svm_feat_centers_.size()) + " and " + String(svm_feat_scales_.size()));
+          StringUtils::toStr(svm_feat_centers_.size()) + " and " + StringUtils::toStr(svm_feat_scales_.size()));
     }
   }
 
@@ -968,15 +968,15 @@ namespace OpenMS
     // scoring one. Accept them if they do not contain traces that have 
     // already been used by a higher scoring hypothesis.
     // *********************************************************** //
-    std::map<String, bool> trace_excl_map;
+    std::map<std::string, bool> trace_excl_map;
     for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++hypo_idx)
     {
       // std::cout << "score now: " <<  feat_hypos[hypo_idx].getScore() << '\n';
-      std::vector<String> labels(feat_hypos[hypo_idx].getLabels());
+      std::vector<std::string> labels(feat_hypos[hypo_idx].getLabels());
       bool trace_coll = false;   // trace collision?
       for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)
       {
-        if (trace_excl_map.find(labels[lab_idx]) != trace_excl_map.end())
+        if (trace_excl_map.contains(labels[lab_idx]))
         {
           trace_coll = true;
           break;

@@ -9,9 +9,10 @@
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
-#include <QtCore/QDir>
+#include <filesystem>
 
 namespace OpenMS
 {
@@ -25,21 +26,28 @@ namespace OpenMS
 
   DocumentIdentifier::~DocumentIdentifier() = default;
 
-  void DocumentIdentifier::setIdentifier(const String & id)
+  void DocumentIdentifier::setIdentifier(const std::string & id)
   {
     id_ = id;
   }
 
-  const String & DocumentIdentifier::getIdentifier() const
+  const std::string & DocumentIdentifier::getIdentifier() const
   {
     return id_;
   }
 
-  void DocumentIdentifier::setLoadedFilePath(const String & file_name)
+  void DocumentIdentifier::setLoadedFilePath(const std::string & file_name)
   {
     // only change the path if we need to, otherwise low and upper case might be altered by Qt, making comparison in tests more tricky
     // i.e., a call to this will report unmatched strings
-    if (QDir::isRelativePath(file_name.toQString()))
+    // Treat paths starting with '/' as absolute on all platforms (matching Qt behavior).
+    // On Windows, std::filesystem considers "/data/foo" relative (no drive letter),
+    // but Qt treated it as absolute.
+    bool is_relative = to_path(file_name).is_relative();
+#ifdef OPENMS_WINDOWSPLATFORM
+    if (!file_name.empty() && file_name[0] == '/') is_relative = false;
+#endif
+    if (is_relative)
     {
       file_path_ = File::absolutePath(file_name);
     }
@@ -49,12 +57,12 @@ namespace OpenMS
     }
   }
 
-  const String & DocumentIdentifier::getLoadedFilePath() const
+  const std::string & DocumentIdentifier::getLoadedFilePath() const
   {
     return file_path_;
   }
 
-  void DocumentIdentifier::setLoadedFileType(const String & file_name)
+  void DocumentIdentifier::setLoadedFileType(const std::string & file_name)
   {
     file_type_ = FileHandler::getTypeByContent(file_name);
   }

@@ -10,8 +10,6 @@
 
 #include <OpenMS/config.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
@@ -85,7 +83,7 @@ public:
   */
   static bool exportToParquet(
     const FeatureMap& feature_map,
-    const String& directory,
+    const std::string& directory,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 
   // ==================== Import methods ====================
@@ -132,10 +130,8 @@ public:
     @return true on success, false on error
   */
   static bool importFromParquet(
-    const String& directory,
+    const std::string& directory,
     FeatureMap& feature_map);
 };
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

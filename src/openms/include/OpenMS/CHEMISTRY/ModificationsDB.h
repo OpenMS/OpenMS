@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationDataProvider.h>
 
@@ -52,10 +52,13 @@ namespace OpenMS
 public:
 
     /// Returns a pointer to the modifications DB (singleton)
-    static ModificationsDB* getInstance();
+    /// @note Immutable from a caller's perspective: the reference modifications (UniMod/PSI-MOD)
+    ///       loaded at construction never change. addModification() only interns previously unseen
+    ///       modifications into a thread-safe, idempotent pool; the const-qualified API reflects this.
+    static const ModificationsDB* getInstance();
 
     /// Initializes the modification DB with non-default modification files (can only be done once)
-    static ModificationsDB* initializeModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String custommod_file = "CHEMISTRY/custom_mods.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
+    static const ModificationsDB* initializeModificationsDB(std::string unimod_file = "CHEMISTRY/unimod.xml", std::string custommod_file = "CHEMISTRY/custom_mods.xml", std::string psimod_file = "CHEMISTRY/PSI-MOD.obo", std::string xlmod_file = "CHEMISTRY/XLMOD.obo");
 
     /// Check whether ModificationsDB was instantiated before
     static bool isInstantiated();
@@ -96,8 +99,8 @@ public:
         The resulting set of modifications will be empty if no modification exists that fulfills the criteria.
     */
     void searchModifications(std::set<const ResidueModification*>& mods,
-                             const String& mod_name,
-                             const String& residue = "",
+                             const std::string& mod_name,
+                             const std::string& residue = "",
                              ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
    /**
@@ -125,9 +128,9 @@ public:
        if no modification exists that fulfills the criteria. If multiple
        modifications are found, the @p multiple_matches flag will be set.
     */
-    const ResidueModification* searchModificationsFast(const String& mod_name,
+    const ResidueModification* searchModificationsFast(const std::string& mod_name,
                                                        bool& multiple_matches,
-                                                       const String& residue = "",
+                                                       const std::string& residue = "",
                                                        ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
     /**
@@ -143,10 +146,10 @@ public:
         @throw Exception::ElementNotFound if no modification named @p mod_name exists (via searchModifications())
        @throw Exception::InvalidValue if no matching modification exists
     */
-    const ResidueModification* getModification(const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
+    const ResidueModification* getModification(const std::string& mod_name, const std::string& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
     /// Returns true if the modification exists
-    bool has(const String& modification) const;
+    bool has(const std::string& modification) const;
 
     /**
        @brief Add a new modification to ModificationsDB.
@@ -155,7 +158,7 @@ public:
 
        @param[in] new_mod Owning pointer, which transfers ownership to ModificationsDB (mod might get deleted if already present!)
     */
-    const ResidueModification* addModification(std::unique_ptr<ResidueModification> new_mod);
+    const ResidueModification* addModification(std::unique_ptr<ResidueModification> new_mod) const;
 
     /**
        @brief Add a new modification to ModificationsDB.
@@ -164,7 +167,7 @@ public:
 
        @param[in] new_mod The new modification object. A copy will be made on the heap and added to the ModificationsDB if not already present.
     */
-    const ResidueModification* addModification(const ResidueModification& new_mod);
+    const ResidueModification* addModification(const ResidueModification& new_mod) const;
 
     /**
        @brief Returns the index of the modification in the mods_ vector; a unique name must be given
@@ -174,7 +177,7 @@ public:
 
        @throw Exception::ElementNotFound if not exactly one matching modification was found. 
     */
-    Size findModificationIndex(const String& mod_name) const;
+    Size findModificationIndex(const std::string& mod_name) const;
 
     /**
        @brief Collects all modifications with delta mass inside a tolerance window
@@ -183,8 +186,8 @@ public:
        If @p residue is set, only modifications with matching residue of origin are considered.
        If @p term_spec is set, only modifications with matching term specificity are considered.
     */
-    void searchModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
-    void searchModificationsByDiffMonoMass(std::vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+    void searchModificationsByDiffMonoMass(std::vector<std::string>& mods, double mass, double max_error, const std::string& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
+    void searchModificationsByDiffMonoMass(std::vector<const ResidueModification*>& mods, double mass, double max_error, const std::string& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
     /**
      @brief Collects all modifications with delta mass inside a tolerance window and adds them sorted
@@ -193,8 +196,8 @@ public:
      If @p residue is set, only modifications with matching residue of origin are considered.
      If @p term_spec is set, only modifications with matching term specificity are considered.
     */
-    void searchModificationsByDiffMonoMassSorted(std::vector<String>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
-    void searchModificationsByDiffMonoMassSorted(std::vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+    void searchModificationsByDiffMonoMassSorted(std::vector<std::string>& mods, double mass, double max_error, const std::string& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
+    void searchModificationsByDiffMonoMassSorted(std::vector<const ResidueModification*>& mods, double mass, double max_error, const std::string& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
 
     /** @brief Returns the best matching modification for the given delta mass and residue
@@ -217,24 +220,24 @@ public:
         @return A pointer to the best matching modification (or NULL if none was found)
 
     */
-    const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+    const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error, const std::string& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
     /// Collects all modifications that can be used for identification searches
-    void getAllSearchModifications(std::vector<String>& modifications) const;
+    void getAllSearchModifications(std::vector<std::string>& modifications) const;
 
     /// Writes tab separated entries: FullId,FullName,Origin,AA,TerminusSpecificity,DiffMonoMass (including header) to TSV file
-    void writeTSV(const String& filename);
+    void writeTSV(const std::string& filename) const;
 
   protected:
 
     /// Stores whether ModificationsDB was instantiated before
     static bool is_instantiated_;
 
-    /// Stores the modifications
-    std::vector<ResidueModification*> mods_;
+    /// Stores the modifications (mutable: the singleton interns runtime-encountered mods through a const API; see getInstance())
+    mutable std::vector<ResidueModification*> mods_;
 
-    /// Stores the mappings of (unique) names to the modifications
-    std::unordered_map<String, std::set<const ResidueModification*> > modification_names_;
+    /// Stores the mappings of (unique) names to the modifications (mutable; see mods_)
+    mutable std::unordered_map<std::string, std::set<const ResidueModification*> > modification_names_;
 
     /** @brief Helper function to check if a residue matches the origin for a modification
      *
@@ -269,7 +272,7 @@ private:
 
        @param[in] new_mod A copy will be made on the heap and added to the modification if not already present.
     */
-    const ResidueModification* addNewModification_(const ResidueModification& new_mod);
+    const ResidueModification* addNewModification_(const ResidueModification& new_mod) const;
 
     /// Loads and indexes modifications from the given providers
     void loadFromProviders_(std::vector<std::unique_ptr<ModificationDataProvider>>& providers);

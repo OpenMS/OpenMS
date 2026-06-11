@@ -15,7 +15,7 @@
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/METADATA/Instrument.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <vector>
 
@@ -96,14 +96,14 @@ public:
     void setDateTime(const DateTime & date);
 
     /// returns the free-text comment
-    const String & getComment() const;
+    const std::string & getComment() const;
     /// sets the free-text comment
-    void setComment(const String & comment);
+    void setComment(const std::string & comment);
 
     /// returns fraction identifier
-    const String & getFractionIdentifier() const;
+    const std::string & getFractionIdentifier() const;
     /// sets the fraction identifier
-    void setFractionIdentifier(const String & fraction_identifier);
+    void setFractionIdentifier(const std::string & fraction_identifier);
 
 protected:
     Sample sample_;
@@ -112,8 +112,8 @@ protected:
     Instrument instrument_;
     HPLC hplc_;
     DateTime datetime_;
-    String comment_;
-    String fraction_identifier_;
+    std::string comment_;
+    std::string fraction_identifier_;
   };
 
   ///Print the contents to a stream.

@@ -17,7 +17,7 @@
 
 namespace OpenMS
 {
-  SqliteConnector::SqliteConnector(const String& filename, const SqlOpenMode mode)
+  SqliteConnector::SqliteConnector(const std::string& filename, const SqlOpenMode mode)
   {
     openDatabase_(filename, mode);
   }
@@ -30,13 +30,13 @@ namespace OpenMS
     }
   }
 
-  void SqliteConnector::openDatabase_(const String& filename, const SqlOpenMode mode)
+  void SqliteConnector::openDatabase_(const std::string& filename, const SqlOpenMode mode)
   {
     // Open database
     int flags = 0;
     switch (mode)
     {
-      case SqlOpenMode::READONLY:
+      case SqlOpenMode::READ_ONLY:
         flags = SQLITE_OPEN_READONLY;
         break;
       case SqlOpenMode::READWRITE:
@@ -49,11 +49,11 @@ namespace OpenMS
     int rc = sqlite3_open_v2(filename.c_str(), &db_, flags, nullptr);
     if (rc)
     {
-      throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not open sqlite db '" + filename + "' in mode " + String(int(mode)));
+      throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not open sqlite db '" + filename + "' in mode " + StringUtils::toStr(int(mode)));
     }
   }
 
-  bool SqliteConnector::columnExists(sqlite3 *db, const String& tablename, const String& colname)
+  bool SqliteConnector::columnExists(sqlite3 *db, const std::string& tablename, const std::string& colname)
   {
     bool found = false;
 
@@ -76,7 +76,7 @@ namespace OpenMS
     return found;
   }
 
-  bool SqliteConnector::tableExists(sqlite3 *db, const String& tablename)
+  bool SqliteConnector::tableExists(sqlite3 *db, const std::string& tablename)
   {
     sqlite3_stmt* stmt;
     prepareStatement(db, &stmt, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='" + tablename + "';");
@@ -89,10 +89,10 @@ namespace OpenMS
     return found;
   }
 
-  Size SqliteConnector::countTableRows(const String& table_name)
+  Size SqliteConnector::countTableRows(const std::string& table_name)
   {
     sqlite3_stmt* stmt;
-    String select_runs = "SELECT count(*) FROM " + table_name + ";";
+    std::string select_runs = "SELECT count(*) FROM " + table_name + ";";
     this->prepareStatement(&stmt, select_runs);
     sqlite3_step(stmt);
     if (sqlite3_column_type(stmt, 0) == SQLITE_NULL)
@@ -104,13 +104,13 @@ namespace OpenMS
     return res;
   }
 
-  void SqliteConnector::executeStatement(sqlite3 *db, const String& statement)
+  void SqliteConnector::executeStatement(sqlite3 *db, const std::string& statement)
   {
     char *zErrMsg = nullptr;
     int rc = sqlite3_exec(db, statement.c_str(), nullptr /* callback */, nullptr, &zErrMsg);
     if (rc != SQLITE_OK)
     {
-      String error(zErrMsg);
+      std::string error(zErrMsg);
       std::cerr << "Error message after sqlite3_exec" << std::endl;
       std::cerr << "Prepared statement " << statement << std::endl;
       sqlite3_free(zErrMsg);
@@ -118,7 +118,7 @@ namespace OpenMS
     }
   }
 
-  void SqliteConnector::prepareStatement(sqlite3 *db, sqlite3_stmt** stmt, const String& prepare_statement)
+  void SqliteConnector::prepareStatement(sqlite3 *db, sqlite3_stmt** stmt, const std::string& prepare_statement)
   {
     int rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), (int)prepare_statement.size(), stmt, nullptr);
     if (rc != SQLITE_OK)
@@ -129,7 +129,7 @@ namespace OpenMS
     }
   }
 
-  void SqliteConnector::executeBindStatement(sqlite3 *db, const String& prepare_statement, const std::vector<String>& data)
+  void SqliteConnector::executeBindStatement(sqlite3 *db, const std::string& prepare_statement, const std::vector<std::string>& data)
   {
     int rc;
     sqlite3_stmt *stmt = nullptr;
@@ -194,16 +194,6 @@ namespace OpenMS
         return false;
       }
 
-      template <> bool extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
-      {
-        if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
-        {
-          *dst = String(reinterpret_cast<const char*>(sqlite3_column_text(stmt, pos)));
-          return true;
-        }
-        return false;
-      }
-
       template <> bool extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
         if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
@@ -247,11 +237,11 @@ namespace OpenMS
       }
 
       /// Special case: store integer in a string data value
-      bool extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos)
+      bool extractValueIntStr(std::string* dst, sqlite3_stmt* stmt, int pos)
       {
         if (sqlite3_column_type(stmt, pos) == SQLITE_INTEGER)
         {
-          *dst = sqlite3_column_int(stmt, pos);
+          *dst = StringUtils::toStr(sqlite3_column_int(stmt, pos));
           return true;
         }
         return false;
@@ -262,7 +252,7 @@ namespace OpenMS
         double res;
         if (!extractValue<double>(&res, stmt, pos)) 
         {
-          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to double failed");
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + StringUtils::toStr(pos) + " to double failed");
         }
         return res;
       }
@@ -272,7 +262,7 @@ namespace OpenMS
         double res; // there is no sqlite3_column_float.. so we extract double and convert
         if (!extractValue<double>(&res, stmt, pos))
         {
-          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to double/float failed");
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + StringUtils::toStr(pos) + " to double/float failed");
         }
         return (float)res;
       }
@@ -282,7 +272,7 @@ namespace OpenMS
         int res;
         if (!extractValue<int>(&res, stmt, pos))
         {
-          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to int failed");
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + StringUtils::toStr(pos) + " to int failed");
         }
         return res;
       }
@@ -292,17 +282,17 @@ namespace OpenMS
         Int64 res;
         if (!extractValue<Int64>(&res, stmt, pos))
         {
-          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to Int64 failed");
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + StringUtils::toStr(pos) + " to Int64 failed");
         }
         return res;
       }
 
-      String extractString(sqlite3_stmt* stmt, int pos)
+      std::string extractString(sqlite3_stmt* stmt, int pos)
       {
-        String res;
-        if (!extractValue<String>(&res, stmt, pos))
+        std::string res;
+        if (!extractValue<std::string>(&res, stmt, pos))
         {
-          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to String failed");
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + StringUtils::toStr(pos) + " to std::string failed");
         }
         return res;
       }
@@ -320,5 +310,4 @@ namespace OpenMS
     }
 
 }
-
 

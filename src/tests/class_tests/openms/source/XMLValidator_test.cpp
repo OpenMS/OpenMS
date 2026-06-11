@@ -34,7 +34,7 @@ START_SECTION(([EXTRA]~XMLValidator()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((bool isValid(const String &filename, const String &schema,  std::ostream& os = std::cerr) ))
+START_SECTION((bool isValid(const std::string &filename, const std::string &schema,  std::ostream& os = std::cerr) ))
 	XMLValidator v;
 	
 	TEST_EQUAL(v.isValid(OPENMS_GET_TEST_DATA_PATH("XMLValidator_valid.xml"),OPENMS_GET_TEST_DATA_PATH("XMLValidator.xsd")), true);

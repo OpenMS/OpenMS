@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <MzIdentML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.2 https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/schema/mzIdentML1.2.0.xsd"
-	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
-	version="1.2.0"
+	xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.3 https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/schema/mzIdentML1.3.0.xsd"
+	xmlns="http://psidev.info/psi/pi/mzIdentML/1.3"
+	version="1.3.0"
 	id="OpenMS_5634796270667792442"
 	creationDate="2025-04-24T12:33:45">
 <cvList>

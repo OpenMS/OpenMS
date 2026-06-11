@@ -23,9 +23,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QDir>
-#include <QtCore/QDirIterator>
-#include <QtCore/QString>
 #include <algorithm>
 #include <map>
 
@@ -96,14 +93,14 @@ protected:
     registerInputFile_("in", "<directory>", "", "SIRIUS project directory");
 
     registerInputFile_("in_compoundinfo", "<file>", "", "Compound info table (.tsv file)");
-    setValidFormats_("in_compoundinfo", ListUtils::create<String>("tsv"));
+    setValidFormats_("in_compoundinfo", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out", "<file>", "", "Assay library output file");
-    setValidFormats_("out", ListUtils::create<String>("tsv,traML,pqp"));
+    setValidFormats_("out", ListUtils::create<std::string>("tsv,traML,pqp"));
 
     registerDoubleOption_("ambiguity_resolution_mz_tolerance", "<num>", 10.0, "Mz tolerance for the resolution of identification ambiguity over multiple files", false);
     registerStringOption_("ambiguity_resolution_mz_tolerance_unit", "<choice>", "ppm", "Unit of the ambiguity_resolution_mz_tolerance", false, true);
-    setValidStrings_("ambiguity_resolution_mz_tolerance_unit", ListUtils::create<String>("ppm,Da"));
+    setValidStrings_("ambiguity_resolution_mz_tolerance_unit", ListUtils::create<std::string>("ppm,Da"));
     registerDoubleOption_("ambiguity_resolution_rt_tolerance", "<num>", 10.0, "RT tolerance in seconds for the resolution of identification ambiguity over multiple files", false);
     registerDoubleOption_("total_occurrence_filter", "<num>", 0.1, "Filter compound based on total occurrence in analysed samples", false);
     setMinFloat_("total_occurrence_filter", 0.0);
@@ -115,7 +112,7 @@ protected:
 
 
     registerStringOption_("method", "<choice>", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum is used for assay library construction (if no fragment annotation is used).",false);
-    setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
+    setValidStrings_("method", ListUtils::create<std::string>("highest_intensity,consensus_spectrum"));
 
     registerFlag_("use_exact_mass", "Use exact mass for precursor and fragment annotations", false);
     registerFlag_("exclude_ms2_precursor", "Excludes precursor in ms2 from transition list", false);
@@ -131,10 +128,10 @@ protected:
     // decoys
     registerFlag_("decoy_generation", "Decoys will be generated using the fragmentation tree re-rooting approach. This option does only work in combination with the fragment annotation via Sirius.", false);
     registerStringOption_("decoy_generation_method", "<choice>", "original", "Uses different methods for decoy generation. Basis for the method is the fragmentation-tree re-rooting approach ('original'). This approach can be extended by using 'resolve_overlap', which will resolve overlapping target/decoy fragments by adding -CH2 mass to the overlapping decoy fragments. 'generate_missing_decoys' will add a -CH2 mass shift to the target fragments and use them as decoys if fragmentation-tree re-rooting failed. 'Both' combines the extended methods (resolve_overlap, generate_missing_decoys).",false);
-    setValidStrings_("decoy_generation_method", ListUtils::create<String>("original,resolve_overlap,generate_missing_decoys,both"));
+    setValidStrings_("decoy_generation_method", ListUtils::create<std::string>("original,resolve_overlap,generate_missing_decoys,both"));
     registerDoubleOption_("decoy_resolution_mz_tolerance", "<num>", 10.0, "Mz tolerance for the resolution of overlapping m/z values for targets and decoys of one compound.", false);
     registerStringOption_("decoy_resolution_mz_tolerance_unit", "<choice>", "ppm", "Unit of the decoy_resolution_mz_tolerance", false, true);
-    setValidStrings_("decoy_resolution_mz_tolerance_unit", ListUtils::create<String>("ppm,Da"));
+    setValidStrings_("decoy_resolution_mz_tolerance_unit", ListUtils::create<std::string>("ppm,Da"));
   }
 
   ExitCodes main_(int, const char **) override
@@ -142,19 +139,19 @@ protected:
     //-------------------------------------------------------------
     // Parsing parameters
     //-------------------------------------------------------------
-    String sirius_project_directory = getStringOption_("in");
-    String compoundinfo_file = getStringOption_("in_compoundinfo");
-    String out = getStringOption_("out");
-    String method = getStringOption_("method");
+    std::string sirius_project_directory = getStringOption_("in");
+    std::string compoundinfo_file = getStringOption_("in_compoundinfo");
+    std::string out = getStringOption_("out");
+    std::string method = getStringOption_("method");
     double ar_mz_tol = getDoubleOption_("ambiguity_resolution_mz_tolerance");
-    String ar_mz_tol_unit_res = getStringOption_("ambiguity_resolution_mz_tolerance_unit");
+    std::string ar_mz_tol_unit_res = getStringOption_("ambiguity_resolution_mz_tolerance_unit");
     double ar_rt_tol = getDoubleOption_("ambiguity_resolution_rt_tolerance");
     double total_occurrence_filter = getDoubleOption_("total_occurrence_filter");
     double score_threshold = getDoubleOption_("fragment_annotation_score_threshold");
     bool decoy_generation = getFlag_("decoy_generation");
     bool use_exact_mass = getFlag_("use_exact_mass");
     bool exclude_ms2_precursor = getFlag_("exclude_ms2_precursor");
-    String decoy_generation_method = getStringOption_("decoy_generation_method");
+    std::string decoy_generation_method = getStringOption_("decoy_generation_method");
     bool original = false;
     bool resolve_overlap = false;
     bool generate_missing_decoys = false;
@@ -180,7 +177,7 @@ protected:
       generate_missing_decoys = true;
     }
     double decoy_mz_tol = getDoubleOption_("decoy_resolution_mz_tolerance");
-    String decoy_mz_tol_unit_res = getStringOption_("decoy_resolution_mz_tolerance_unit");
+    std::string decoy_mz_tol_unit_res = getStringOption_("decoy_resolution_mz_tolerance_unit");
     int min_transitions = getIntOption_("min_transitions");
     int max_transitions = getIntOption_("max_transitions");
     double min_fragment_mz = getDoubleOption_("min_fragment_mz");
@@ -191,12 +188,7 @@ protected:
     //-------------------------------------------------------------
     // Get all subdirectories within the SIRIUS project directory
     //-------------------------------------------------------------
-    std::vector<String> subdirs;
-    QDirIterator it(sirius_project_directory.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
-    while (it.hasNext())
-    {
-      subdirs.emplace_back(it.next());
-    }  
+    std::vector<std::string> subdirs = File::listDirectories(sirius_project_directory);
     OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
     if (subdirs.empty())
     {
@@ -325,7 +317,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    String extension = out.substr(out.find_last_of(".")+1);
+    std::string extension = StringUtils::substr(out, out.find_last_of(".")+1);
 
     if (extension == "tsv")
     {

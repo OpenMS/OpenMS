@@ -18,9 +18,9 @@ import pyarrow.parquet as pq
 
 import pyopenms as oms
 
-# Skip if the Arrow IO classes were not built (WITH_PARQUET=OFF)
+# Skip if the Arrow IO classes were not built
 if not hasattr(oms, "FeatureMapArrowIO"):
-    pytest.skip("Arrow IO classes not available (OpenMS built without WITH_PARQUET)",
+    pytest.skip("Arrow IO classes not available",
                 allow_module_level=True)
 
 # Import zero-copy functions
@@ -349,42 +349,30 @@ class TestConsensusMapArrowZerocopy:
 
 class TestProteinIdentificationArrowIOParquet:
 
-    def test_export_proteins_to_parquet(self, protein_identifications):
-        with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
-            path = f.name
-        try:
-            ok = oms.ProteinIdentificationArrowIO.exportProteinsToParquet(
-                protein_identifications, path)
-            assert ok
-            assert os.path.exists(path)
-            table = pq.read_table(path)
-            assert table.num_rows == 2  # 2 protein hits
-        finally:
-            os.unlink(path)
+    def test_export_proteins_to_parquet(self, protein_identifications, tmp_path):
+        path = str(tmp_path / "proteins.parquet")
+        ok = oms.ProteinIdentificationArrowIO.exportProteinsToParquet(
+            protein_identifications, path)
+        assert ok
+        assert os.path.exists(path)
+        table = pq.read_table(path)
+        assert table.num_rows == 2  # 2 protein hits
 
-    def test_export_groups_to_parquet(self, protein_identifications):
-        with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
-            path = f.name
-        try:
-            ok = oms.ProteinIdentificationArrowIO.exportProteinGroupsToParquet(
-                protein_identifications, path)
-            assert ok
-            table = pq.read_table(path)
-            assert table.num_rows >= 1
-        finally:
-            os.unlink(path)
+    def test_export_groups_to_parquet(self, protein_identifications, tmp_path):
+        path = str(tmp_path / "groups.parquet")
+        ok = oms.ProteinIdentificationArrowIO.exportProteinGroupsToParquet(
+            protein_identifications, path)
+        assert ok
+        table = pq.read_table(path)
+        assert table.num_rows >= 1
 
-    def test_export_search_params_to_parquet(self, protein_identifications):
-        with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
-            path = f.name
-        try:
-            ok = oms.ProteinIdentificationArrowIO.exportSearchParamsToParquet(
-                protein_identifications, path)
-            assert ok
-            table = pq.read_table(path)
-            assert table.num_rows == 1  # 1 search run
-        finally:
-            os.unlink(path)
+    def test_export_search_params_to_parquet(self, protein_identifications, tmp_path):
+        path = str(tmp_path / "params.parquet")
+        ok = oms.ProteinIdentificationArrowIO.exportSearchParamsToParquet(
+            protein_identifications, path)
+        assert ok
+        table = pq.read_table(path)
+        assert table.num_rows == 1  # 1 search run
 
     def test_parquet_full_round_trip(self, protein_identifications):
         """Export all three files, reimport via importFromParquet."""

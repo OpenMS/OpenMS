@@ -66,7 +66,7 @@ namespace OpenMS
   }
 
   /// Returns the name of the metric
-  const String& TIC::getName() const
+  const std::string& TIC::getName() const
   {
     return name_;
   }
@@ -78,7 +78,7 @@ namespace OpenMS
     return QCBase::Status(QCBase::Requires::RAWMZML);
   }
 
-  void TIC::addMetaDataMetricsToMzTab(OpenMS::MzTabMetaData& meta, vector<TIC::Result>& tics)
+  void TIC::addMetaDataMetricsToMzTab(OpenMS::MzTabMetaData& meta, const vector<TIC::Result>& tics)
   {
     // Adding TIC information to meta data
     for (Size i = 0; i < tics.size(); ++i)
@@ -90,12 +90,12 @@ namespace OpenMS
       MzTabParameter tic {};
       tic.setCVLabel("total ion current");
       tic.setAccession("MS:1000285");
-      tic.setName("TIC_" + String(i + 1));
-      String value("[");
-      value += String(tics[i].retention_times[0], false) + ", " + String((UInt64)tics[i].intensities[0]);
+      tic.setName("TIC_" + StringUtils::toStr(i + 1));
+      std::string value("[");
+      value +=StringUtils::toStr(tics[i].retention_times[0], false) + ", " + StringUtils::toStr((UInt64)tics[i].intensities[0]);
       for (Size j = 1; j < tics[i].intensities.size(); ++j)
       {
-        value += ", " + String(tics[i].retention_times[j], false) + ", " + String((UInt64)tics[i].intensities[j]);
+        value += ", " + StringUtils::toStr(tics[i].retention_times[j], false) + ", " + StringUtils::toStr((UInt64)tics[i].intensities[j]);
       }
       value += "]";
       tic.setValue(value);

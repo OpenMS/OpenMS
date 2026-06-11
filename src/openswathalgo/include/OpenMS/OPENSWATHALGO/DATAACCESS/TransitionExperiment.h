@@ -13,6 +13,7 @@
 #include <map>
 #include <cstdint>
 #include <functional>
+#include <limits>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
@@ -269,12 +270,24 @@ namespace OpenSwath
 
     LightCompound() :
       drift_time(-1),
+      rt(std::numeric_limits<double>::quiet_NaN()),
+      rt_start(std::numeric_limits<double>::quiet_NaN()),
+      rt_end(std::numeric_limits<double>::quiet_NaN()),
       charge(0)
     {
     }
 
     double drift_time;
+    /// Retention time (seconds). NaN if unset — `ChromatogramExtractor::prepare_coordinates`
+    /// throws if a non-negative `rt_extraction_window` is requested but `rt` is NaN.
     double rt;
+    /// Optional retention time range, used by ChromatogramExtractor::prepare_coordinates
+    /// when called with rt_extraction_window=NaN. Both NaN means "no range encoded";
+    /// otherwise rt_start..rt_end define the per-compound extraction window.
+    /// Populated by OpenSwathDataAccessHelper::convertTargetedExp from a heavyweight
+    /// TargetedExperiment::Peptide that has two retention-time entries.
+    double rt_start;
+    double rt_end;
     int charge;
     std::string sequence;
     std::vector<std::string> protein_refs;

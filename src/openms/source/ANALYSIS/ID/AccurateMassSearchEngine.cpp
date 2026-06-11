@@ -19,6 +19,7 @@
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <numeric>
 
 namespace OpenMS
@@ -185,32 +186,32 @@ namespace OpenMS
     source_feature_index_ = idx;
   }
 
-  const String& AccurateMassSearchResult::getFoundAdduct() const
+  const std::string& AccurateMassSearchResult::getFoundAdduct() const
   {
     return found_adduct_;
   }
 
-  void AccurateMassSearchResult::setFoundAdduct(const String& add)
+  void AccurateMassSearchResult::setFoundAdduct(const std::string& add)
   {
     found_adduct_ = add;
   }
 
-  const String& AccurateMassSearchResult::getFormulaString() const
+  const std::string& AccurateMassSearchResult::getFormulaString() const
   {
     return empirical_formula_;
   }
 
-  void AccurateMassSearchResult::setEmpiricalFormula(const String& ep)
+  void AccurateMassSearchResult::setEmpiricalFormula(const std::string& ep)
   {
     empirical_formula_ = ep;
   }
 
-  const std::vector<String>& AccurateMassSearchResult::getMatchingHMDBids() const
+  const std::vector<std::string>& AccurateMassSearchResult::getMatchingHMDBids() const
   {
     return matching_hmdb_ids_;
   }
 
-  void AccurateMassSearchResult::setMatchingHMDBids(const std::vector<String>& match_ids)
+  void AccurateMassSearchResult::setMatchingHMDBids(const std::vector<std::string>& match_ids)
   {
     matching_hmdb_ids_ = match_ids;
   }
@@ -310,7 +311,7 @@ namespace OpenMS
 
 /// public methods
 
-  void AccurateMassSearchEngine::queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results, const EmpiricalFormula& observed_adduct) const
+  void AccurateMassSearchEngine::queryByMZ(const double& observed_mz, const Int& observed_charge, const std::string& ion_mode, std::vector<AccurateMassSearchResult>& results, const EmpiricalFormula& observed_adduct) const
   {
     if (!is_initialized_)
     {
@@ -331,7 +332,17 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Ion mode cannot be set to '") + ion_mode + "'. Must be 'positive' or 'negative'!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Ion mode cannot be set to '") + ion_mode + "'. Must be 'positive' or 'negative'!");
+    }
+
+    // If a specific adduct is provided, narrow the range to just that adduct.
+    if (!observed_adduct.isEmpty())
+    {
+      auto it = std::find_if(it_s, it_e, [&observed_adduct](const AdductInfo& a) {
+        return a.getEmpiricalFormula() == observed_adduct;
+      });
+      it_s = it;
+      if (it != it_e) { it_e = it + 1; }
     }
 
     std::pair<Size, Size> hit_idx;
@@ -340,11 +351,6 @@ namespace OpenMS
       if (observed_charge != 0 && (std::abs(observed_charge) != std::abs(it->getCharge())))
       { // charge of evidence and adduct must match in absolute terms (absolute, since any FeatureFinder gives only positive charges, even for negative-mode spectra)
         // observed_charge==0 will pass, since we basically do not know its real charge (apparently, no isotopes were found)
-        continue;
-      }
-
-      if ((observed_adduct != EmpiricalFormula()) && (observed_adduct != it->getEmpiricalFormula()))
-      { // If feature has no adduct annotation, method call defaults to empty EF(). If feature is annotated with an adduct, it must match.
         continue;
       }
 
@@ -427,14 +433,14 @@ namespace OpenMS
       ams_result.setMatchingIndex(-1); // this is checked to identify 'not-found'
       ams_result.setFoundAdduct("null");
       ams_result.setEmpiricalFormula("");
-      ams_result.setMatchingHMDBids(std::vector<String>(1, "null"));
+      ams_result.setMatchingHMDBids(std::vector<std::string>(1, "null"));
       results.push_back(ams_result);
     }
 
     return;
   }
 
-  void AccurateMassSearchEngine::queryByFeature(const Feature& feature, const Size& feature_index, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const
+  void AccurateMassSearchEngine::queryByFeature(const Feature& feature, const Size& feature_index, const std::string& ion_mode, std::vector<AccurateMassSearchResult>& results) const
   {
     if (!is_initialized_)
     {
@@ -466,7 +472,7 @@ namespace OpenMS
       {
           if (feature.metaValueExists("masstrace_intensity"))
           {
-            mti = feature.getMetaValue("masstrace_intensity");
+            mti = feature.getMetaValue("masstrace_intensity").toDoubleList();
           }
         results_part[hit_idx].setMasstraceIntensities(mti);
       }
@@ -476,7 +482,7 @@ namespace OpenMS
     }
   }
 
-  void AccurateMassSearchEngine::queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const
+  void AccurateMassSearchEngine::queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const std::string& ion_mode, std::vector<AccurateMassSearchResult>& results) const
   {
     if (!is_initialized_)
     {
@@ -550,7 +556,7 @@ namespace OpenMS
     }
 
     // check ion_mode
-    String ion_mode_internal(ion_mode_);
+    std::string ion_mode_internal(ion_mode_);
     if (ion_mode_ == "auto")
     {
       ion_mode_internal = resolveAutoMode_(fmap);
@@ -664,14 +670,14 @@ namespace OpenMS
     fmap.getPrimaryMSRunPath(ms_run_paths);
 
     // check ion_mode
-    String ion_mode_internal(ion_mode_);
+    std::string ion_mode_internal(ion_mode_);
     if (ion_mode_ == "auto")
     {
       ion_mode_internal = resolveAutoMode_(fmap);
     }
 
     // corresponding file locations
-    std::vector<String> file_locations;
+    std::vector<std::string> file_locations;
     if (!ms_run_paths.empty()) // if the file location is not available it will be set to UNKNOWN by MzTab
     {
       file_locations.emplace_back(ms_run_paths[0]);
@@ -728,22 +734,22 @@ namespace OpenMS
     BaseFeature& f) const
   {
     // register feature as search item associated with input file
-    IdentificationData::Observation obs(String(f.getUniqueId()), file_ref, f.getRT(), f.getMZ());
+    IdentificationData::Observation obs(StringUtils::toStr(f.getUniqueId()), file_ref, f.getRT(), f.getMZ());
     auto obs_ref = id.registerObservation(obs);
 
     for (const AccurateMassSearchResult& r : amr)
     {
       for (Size i = 0; i < r.getMatchingHMDBids().size(); ++i)
       {
-        if (!hmdb_properties_mapping_.count(r.getMatchingHMDBids()[i]))
+        if (!hmdb_properties_mapping_.contains(r.getMatchingHMDBids()[i]))
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + r.getMatchingHMDBids()[i] + "' not found in struct file!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("DB entry '") + r.getMatchingHMDBids()[i] + "' not found in struct file!");
         }
         // get name from index 0 (2nd column in structMapping file)
         HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(r.getMatchingHMDBids()[i]);
         if  (entry == hmdb_properties_mapping_.end())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + r.getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("DB entry '") + r.getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
         }
 
         double mass_error_Da = r.getObservedMZ() - r.getCalculatedMZ();
@@ -757,11 +763,11 @@ namespace OpenMS
         applied_processing_steps.emplace_back(applied_processing_step);
 
         // register compound
-        const String& name = entry->second[0];
-        const String& smiles = entry->second[1];
-        const String& inchi_key = entry->second[2];
-        std::vector<String> names = {name}; // to fit legacy format - MetaValue
-        std::vector<String> identifiers = {r.getMatchingHMDBids()[i]}; // to fit legacy format - MetaValue
+        const std::string& name = entry->second[0];
+        const std::string& smiles = entry->second[1];
+        const std::string& inchi_key = entry->second[2];
+        std::vector<std::string> names = {name}; // to fit legacy format - MetaValue
+        std::vector<std::string> identifiers = {r.getMatchingHMDBids()[i]}; // to fit legacy format - MetaValue
         IdentificationData::IdentifiedCompound compound(r.getMatchingHMDBids()[i],
                                                         EmpiricalFormula(r.getFormulaString()),
                                                         name,
@@ -783,7 +789,7 @@ namespace OpenMS
         match.setMetaValue("mz_error_Da", mass_error_Da);
 
         // add adduct to the ObservationMatch
-        String adduct = r.getFoundAdduct(); // M+Na;1+
+        const std::string& adduct = r.getFoundAdduct(); // M+Na;1+
         if (!adduct.empty() && adduct != "null")
         {
           AdductInfo ainfo = AdductInfo::parseAdductString(adduct);
@@ -812,15 +818,15 @@ namespace OpenMS
       StringList names;
       for (Size i = 0; i < result.getMatchingHMDBids().size(); ++i)
       { // mapping ok?
-        if (!hmdb_properties_mapping_.count(result.getMatchingHMDBids()[i]))
+        if (!hmdb_properties_mapping_.contains(result.getMatchingHMDBids()[i]))
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + result.getMatchingHMDBids()[i] + "' not found in struct file!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("DB entry '") + result.getMatchingHMDBids()[i] + "' not found in struct file!");
         }
         // get name from index 0 (2nd column in structMapping file)
         HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(result.getMatchingHMDBids()[i]);
         if  (entry == hmdb_properties_mapping_.end())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + result.getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("DB entry '") + result.getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
         }
         names.push_back(entry->second[0]);
       }
@@ -841,7 +847,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
 
-    String ion_mode_internal(ion_mode_);
+    std::string ion_mode_internal(ion_mode_);
     if (ion_mode_ == "auto")
     {
       ion_mode_internal = resolveAutoMode_(cmap);
@@ -851,7 +857,7 @@ namespace OpenMS
     Size num_of_maps = fd_map.size();
 
     // corresponding file locations
-    std::vector<String> file_locations;
+    std::vector<std::string> file_locations;
     for (const auto& fd : fd_map)
     {
       file_locations.emplace_back(fd.second.filename);
@@ -882,7 +888,7 @@ namespace OpenMS
     mztabm_out = MzTabM::exportFeatureMapToMzTabM(fmap);
   }
 
-  void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out, const std::vector<String>& file_locations) const
+  void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out, const std::vector<std::string>& file_locations) const
   {
     if (overall_results.empty())
     {
@@ -929,8 +935,8 @@ namespace OpenMS
 
     Size id_group(1);
 
-    std::map<String, UInt> adduct_stats; // adduct --> # occurrences
-    std::map<String, std::set<Size> > adduct_stats_unique; // adduct --> # occurrences (count each feature only once)
+    std::map<std::string, UInt> adduct_stats; // adduct --> # occurrences
+    std::map<std::string, std::set<Size> > adduct_stats_unique; // adduct --> # occurrences (count each feature only once)
 
     bool isotope_export = param_.getValue("mzTab:exportIsotopeIntensities").toString() == "true";
 
@@ -938,13 +944,13 @@ namespace OpenMS
     {
       for (Size hit_idx = 0; hit_idx < tab_it->size(); ++hit_idx)
       {
-        std::vector<String> matching_ids = (*tab_it)[hit_idx].getMatchingHMDBids();
+        std::vector<std::string> matching_ids = (*tab_it)[hit_idx].getMatchingHMDBids();
         // iterate over multiple IDs, generate a new row for each one
         for (Size id_idx = 0; id_idx < matching_ids.size(); ++id_idx)
         {
           MzTabSmallMoleculeSectionRow mztab_row_record;
           // set the identifier field
-          String hid_temp = matching_ids[id_idx];
+          const std::string& hid_temp = matching_ids[id_idx];
           bool db_hit = (hid_temp != "null");
           if (db_hit)
           {
@@ -958,7 +964,7 @@ namespace OpenMS
 
             // set the chemical formula field
             MzTabString chem_form;
-            String form_temp = (*tab_it)[hit_idx].getFormulaString();
+            std::string form_temp = (*tab_it)[hit_idx].getFormulaString();
             chem_form.set(form_temp);
 
             mztab_row_record.chemical_formula = chem_form;
@@ -966,14 +972,14 @@ namespace OpenMS
             HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(hid_temp);
 
             // set the smiles field
-            String smi_temp = entry->second[1]; // extract SMILES from struct mapping file
+            std::string smi_temp = entry->second[1]; // extract SMILES from struct mapping file
             MzTabString smi_string;
             smi_string.set(smi_temp);
 
             mztab_row_record.smiles = smi_string;
 
             // set the inchi_key field
-            String inchi_temp = entry->second[2]; // extract INCHIKEY from struct mapping file
+            std::string inchi_temp = entry->second[2]; // extract INCHIKEY from struct mapping file
             MzTabString inchi_key;
             inchi_key.set(inchi_temp);
 
@@ -1009,13 +1015,13 @@ namespace OpenMS
           mztab_row_record.exp_mass_to_charge = exp_mass_to_charge;
 
           // set database field
-          String dbname_temp = database_name_;
+          std::string dbname_temp = database_name_;
           MzTabString dbname;
           dbname.set(dbname_temp);
           mztab_row_record.database = dbname;
 
           // set database_version field
-          String dbver_temp = database_version_;
+          std::string dbver_temp = database_version_;
           MzTabString dbversion;
           dbversion.set(dbver_temp);
           mztab_row_record.database_version = dbversion;
@@ -1114,7 +1120,7 @@ namespace OpenMS
           MzTabString ppmerr;
           if (db_hit)
           {
-            ppmerr.set(String((*tab_it)[hit_idx].getMZErrorPPM()));
+            ppmerr.set(StringUtils::toStr((*tab_it)[hit_idx].getMZErrorPPM()));
           }
           MzTabOptionalColumnEntry col0;
           col0.first = "opt_global_mz_ppm_error";
@@ -1125,7 +1131,7 @@ namespace OpenMS
           MzTabString addion;
           if (db_hit)
           {
-            String addion_temp((*tab_it)[hit_idx].getFoundAdduct());
+            std::string addion_temp((*tab_it)[hit_idx].getFoundAdduct());
             addion.set(addion_temp);
             ++adduct_stats[addion_temp]; // just some stats
             adduct_stats_unique[addion_temp].insert(id_group); // stats ...
@@ -1142,7 +1148,7 @@ namespace OpenMS
             double sim_score_temp((*tab_it)[hit_idx].getIsotopesSimScore());
             std::stringstream read_in;
             read_in << sim_score_temp;
-            String sim_score_temp2(read_in.str());
+            std::string sim_score_temp2(read_in.str());
             sim_score.set(sim_score_temp2);
           }
 
@@ -1164,10 +1170,10 @@ namespace OpenMS
                              [](double d) { return std::to_string(d); }
               );
 
-              String mt_int_str = ListUtils::concatenate(mt_int_strlist, ",");
+              std::string mt_int_str = ListUtils::concatenate(mt_int_strlist, ",");
 
               MzTabOptionalColumnEntry col_mt;
-              col_mt.first = String("opt_global_MTint");
+              col_mt.first =std::string("opt_global_MTint");
               col_mt.second = MzTabString(mt_int_str);
               optionals.push_back(col_mt);
           }
@@ -1176,7 +1182,7 @@ namespace OpenMS
           MzTabString neutral_mass_string;
           if (db_hit)
           {
-            String neutral_mass((*tab_it)[hit_idx].getQueryMass());
+            std::string neutral_mass = StringUtils::toStr((*tab_it)[hit_idx].getQueryMass());
             neutral_mass_string.fromCellString(neutral_mass);
           }
 
@@ -1186,7 +1192,7 @@ namespace OpenMS
           optionals.push_back(col3);
 
           // set id group; rows with the same id group number originated from the same feature
-          String id_group_temp(id_group);
+          std::string id_group_temp = StringUtils::toStr(id_group);
           MzTabString id_group_str;
           id_group_str.set(id_group_temp);
           MzTabOptionalColumnEntry col4;
@@ -1204,7 +1210,7 @@ namespace OpenMS
 
     // print some adduct stats:
     OPENMS_LOG_INFO << "Hits by adduct: #peaks explained (# matching db entries)'\n";
-    for (std::map<String, UInt>::const_iterator it = adduct_stats.begin(); it != adduct_stats.end(); ++it)
+    for (std::map<std::string, UInt>::const_iterator it = adduct_stats.begin(); it != adduct_stats.end(); ++it)
     {
       OPENMS_LOG_INFO << "  '" << it->first << "' : " << adduct_stats_unique[it->first].size() << " (" << it->second << ")\n";
     }
@@ -1244,12 +1250,12 @@ namespace OpenMS
   {
     mass_mappings_.clear();
 
-    database_location_ = ListUtils::concatenate(db_mapping_file, '|');
+    database_location_ = ListUtils::concatenate(db_mapping_file, "|");
 
     // load map_fname mapping file
     for (StringList::const_iterator it_f = db_mapping_file.begin(); it_f != db_mapping_file.end(); ++it_f)
     {
-      String filename = *it_f;
+      std::string filename = *it_f;
       // load map_fname mapping file
       if (!File::readable(filename))
       {
@@ -1257,25 +1263,25 @@ namespace OpenMS
         filename = File::find(filename);
       }
 
-      String line;
+      std::string line;
       Size line_count(0);
       std::stringstream str_buf;
-      std::istream_iterator<String> eol;
+      std::istream_iterator<std::string> eol;
 
       // OPENMS_LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
 
       std::ifstream ifs(filename.c_str());
       while (getline(ifs, line))
       {
-        line.trim();
+        StringUtils::trim(line);
         // skip empty lines
         if (line.empty()) continue;
         ++line_count;
 
         if (line_count == 1)
         {
-          std::vector<String> fields;
-          line.trim().split('\t', fields);
+          std::vector<std::string> fields;
+          StringUtils::trim(line); StringUtils::split(line, '\t', fields);
           if (fields[0] == "database_name")
           {
             database_name_ = fields[1];
@@ -1283,13 +1289,13 @@ namespace OpenMS
           }
           else
           {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Mapping file (") + filename + "') must contain \"database_name\t{NAME}\" as first line.!", line);
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Mapping file (") + filename + "') must contain \"database_name\t{NAME}\" as first line.!", line);
           }
         }
         else if (line_count == 2)
         {
-          std::vector<String> fields;
-          line.trim().split('\t', fields);
+          std::vector<std::string> fields;
+          StringUtils::trim(line); StringUtils::split(line, '\t', fields);
           if (fields[0] == "database_version")
           {
             database_version_ = fields[1];
@@ -1297,13 +1303,13 @@ namespace OpenMS
           }
           else
           {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Mapping file (") + filename + "') must contain \"database_version\t{VERSION}\" as second line.!", line);
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Mapping file (") + filename + "') must contain \"database_version\t{VERSION}\" as second line.!", line);
           }
         }
 
         str_buf.clear();
         str_buf << line;
-        std::istream_iterator<String> istr_it(str_buf);
+        std::istream_iterator<std::string> istr_it(str_buf);
 
         Size word_count(0);
         MappingEntry_ entry;
@@ -1313,7 +1319,7 @@ namespace OpenMS
           // OPENMS_LOG_DEBUG << *istr_it << " ";
           if (word_count == 0)
           {
-            entry.mass = istr_it->toDouble();
+            entry.mass = StringUtils::toDouble(*istr_it);
           }
           else if (word_count == 1)
           {
@@ -1336,7 +1342,7 @@ namespace OpenMS
 
         if (entry.massIDs.empty())
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("File '") + filename + "' in line " + line_count + " as '" + line + "' cannot be parsed. Found " + word_count + " entries, expected at least three!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("File '") + filename + "' in line " + line_count + " as '" + line + "' cannot be parsed. Found " + word_count + " entries, expected at least three!");
         }
         mass_mappings_.push_back(entry);
       }
@@ -1354,7 +1360,7 @@ namespace OpenMS
 
     for (StringList::const_iterator it_f = db_struct_file.begin(); it_f != db_struct_file.end(); ++it_f)
     {
-      String filename = *it_f;
+      std::string filename = *it_f;
 
       // load map_fname mapping file
       if (!File::readable(filename))
@@ -1364,44 +1370,44 @@ namespace OpenMS
       }
 
       std::ifstream ifs(filename.c_str());
-      String line;
+      std::string line;
       // OPENMS_LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
 
-      std::vector<String> parts;
+      std::vector<std::string> parts;
       while (getline(ifs, line))
       {
-        line.trim();
-        line.split("\t", parts);
+        StringUtils::trim(line);
+        StringUtils::split(line, "\t", parts);
 
         if (parts.size() == 4)
         {
-          String hmdb_id_key(parts[0]);
+          std::string hmdb_id_key(parts[0]);
 
-          if (hmdb_properties_mapping_.count(hmdb_id_key))
+          if (hmdb_properties_mapping_.contains(hmdb_id_key))
           {
-            throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("File '") + filename + "' in line '" + line + "' cannot be parsed. The ID entry was already used (see above)!");
+            throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("File '") + filename + "' in line '" + line + "' cannot be parsed. The ID entry was already used (see above)!");
           }
           std::copy(parts.begin() + 1, parts.end(), std::back_inserter(hmdb_properties_mapping_[hmdb_id_key]));
         }
         else
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("File '") + filename + "' in line '" + line + "' cannot be parsed. Expected four entries separated by tab. Found " + parts.size() + " entries!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("File '") + filename + "' in line '" + line + "' cannot be parsed. Expected four entries separated by tab. Found " + parts.size() + " entries!");
         }
       }
     }
 
     // add a null entry, so mzTab annotation does not discard 'not-found' features
-    std::vector<String> dummy_data(3, "null");
+    std::vector<std::string> dummy_data(3, "null");
     hmdb_properties_mapping_["null"] = dummy_data;
 
     return;
   }
 
-  void AccurateMassSearchEngine::parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result)
+  void AccurateMassSearchEngine::parseAdductsFile_(const std::string& filename, std::vector<AdductInfo>& result)
   {
     result.clear();
 
-    String fname = filename;
+    std::string fname = filename;
     // search for mapping file
     if (!File::readable(fname))
     { // throws Exception::FileNotFound if not found
@@ -1466,7 +1472,7 @@ namespace OpenMS
 
   double AccurateMassSearchEngine::computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form) const
   {
-    Size num_traces = (Size)feat.getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
+    Size num_traces = (Size)(Size)feat.getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
     const Size MAX_THEORET_ISOS(5);
 
     Size common_size = std::min(num_traces, MAX_THEORET_ISOS);
@@ -1487,13 +1493,13 @@ namespace OpenMS
     std::vector<double> observed_iso_dist;
     if (num_traces > 0)
     {
-      observed_iso_dist = feat.getMetaValue("masstrace_intensity");
+      observed_iso_dist = feat.getMetaValue("masstrace_intensity").toDoubleList();
     }
 
     return computeCosineSim_(theoretical_iso_dist, observed_iso_dist);
   }
 
-  std::vector<AccurateMassSearchResult> AccurateMassSearchEngine::extractQueryResults_(const Feature& feature, const Size& feature_index, const String& ion_mode_internal, Size& dummy_count) const
+  std::vector<AccurateMassSearchResult> AccurateMassSearchEngine::extractQueryResults_(const Feature& feature, const Size& feature_index, const std::string& ion_mode_internal, Size& dummy_count) const
   {
     std::vector<AccurateMassSearchResult> query_results;
 
@@ -1520,7 +1526,7 @@ namespace OpenMS
         // it is impossible to decide here which one is best
         for (Size hit_idx = 0; hit_idx < query_results.size(); ++hit_idx)
         {
-          String emp_formula(query_results[hit_idx].getFormulaString());
+          std::string emp_formula(query_results[hit_idx].getFormulaString());
           double iso_sim(computeIsotopePatternSimilarity_(feature, EmpiricalFormula(emp_formula)));
           query_results[hit_idx].setIsotopesSimScore(iso_sim);
         }

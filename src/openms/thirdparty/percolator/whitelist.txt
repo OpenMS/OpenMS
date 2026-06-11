@@ -1,0 +1,78 @@
+# Files to copy verbatim from upstream Percolator on sync. Lines prefixed
+# with '#' are comments and skipped.
+#
+# Files present in this directory but NOT listed here are OpenMS-local
+# additions (e.g. InProcessSampler.{h,cpp}) or build-system scaffolding
+# (sources.cmake, patches/, sync-from-upstream.sh). They must be preserved
+# on sync — sync-from-upstream.sh only copies whitelisted paths, so the
+# default is safe, but be careful when adding new local files to ensure
+# they don't shadow upstream names.
+Array.h
+BaseSpline.cpp
+BaseSpline.h
+CrossValidation.cpp
+CrossValidation.h
+DataSet.cpp
+DataSet.h
+FeatureMemoryPool.cpp
+FeatureMemoryPool.h
+FeatureNames.cpp
+FeatureNames.h
+Globals.cpp
+ISplineTRRRegressor.h
+IsotonicPEP.cpp
+IsotonicPEP.h
+LabelType.h
+Logger.cpp
+Logger.h
+LogisticRegression.cpp
+LogisticRegression.h
+MassHandler.cpp
+MassHandler.h
+MonotoneRegressor.cpp
+MonotoneRegressor.h
+MyException.cpp
+MyException.h
+NoNormalizer.cpp
+NoNormalizer.h
+Normalizer.cpp
+Normalizer.h
+Numerical.cpp
+Numerical.h
+PackedMatrix.cpp
+PackedMatrix.h
+PackedVector.cpp
+PackedVector.h
+PAVARegressor.h
+PosteriorEstimator.cpp
+PosteriorEstimator.h
+PSMDescription.cpp
+PSMDescription.h
+PseudoRandom.cpp
+PseudoRandom.h
+ResultHolder.cpp
+ResultHolder.h
+SanityCheck.cpp
+SanityCheck.h
+ScoreHolder.cpp
+ScoreHolder.h
+Scores.cpp
+Scores.h
+Set.cpp
+Set.h
+SetHandler.cpp
+SetHandler.h
+StdvNormalizer.cpp
+TabReader.h
+StdvNormalizer.h
+Timer.cpp
+Timer.h
+Transform.h
+UniNormalizer.cpp
+UniNormalizer.h
+Vector.cpp
+Vector.h
+# ssl.cpp / ssl.h are NOT whitelisted: they were replaced with the
+# TRON-based SVM solver from the percolator-tron development branch.
+# tron.cpp / tron.h likewise come from percolator-tron, not upstream
+# Percolator. See UPSTREAM.md for provenance.

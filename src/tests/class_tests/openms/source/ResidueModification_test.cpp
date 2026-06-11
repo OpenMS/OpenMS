@@ -42,8 +42,8 @@ START_SECTION(~ResidueModification())
 	delete ptr;
 END_SECTION
 
-ModificationsDB* mod_DB = ModificationsDB::getInstance();
-ResidueDB* res_DB = ResidueDB::getInstance();
+const ModificationsDB* mod_DB = ModificationsDB::getInstance();
+const ResidueDB* res_DB = ResidueDB::getInstance();
 
 ptr = new ResidueModification();
 
@@ -59,36 +59,36 @@ START_SECTION(ResidueModification& operator=(const ResidueModification& modifica
 END_SECTION
 
 START_SECTION(bool ResidueModification::operator<(const ResidueModification& rhs) const)
-  ModificationsDB* ptr = ModificationsDB::getInstance();
+  const ModificationsDB* ptr = ModificationsDB::getInstance();
   const ResidueModification* cm = ptr->getModification("Carboxymethyl (C)");
   const ResidueModification* pm = ptr->getModification("Phospho (S)");
   TEST_EQUAL(*cm < *pm, true);
 END_SECTION
 
-START_SECTION(void setId(const String& id))
+START_SECTION(void setId(const std::string& id))
 	ptr->setId("blubb_new_id");
 	TEST_STRING_EQUAL(ptr->getId(), "blubb_new_id")
 END_SECTION
 
-START_SECTION(const String& getId() const)
+START_SECTION(const std::string& getId() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setFullName(const String& full_name))
+START_SECTION(void setFullName(const std::string& full_name))
 	ptr->setFullName("blubb_new_full_name");
 	TEST_STRING_EQUAL(ptr->getFullName(), "blubb_new_full_name")
 END_SECTION
 
-START_SECTION(const String& getFullName() const)
+START_SECTION(const std::string& getFullName() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setName(const String& name))
+START_SECTION(void setName(const std::string& name))
 	ptr->setName("blubb_new_name");
 	TEST_STRING_EQUAL(ptr->getName(), "blubb_new_name")
 END_SECTION
 
-START_SECTION(const String& getName() const)
+START_SECTION(const std::string& getName() const)
 	NOT_TESTABLE
 END_SECTION
 
@@ -135,12 +135,12 @@ START_SECTION((bool hasNeutralLoss() const))
 	TEST_EQUAL(mod.hasNeutralLoss(), true)
 END_SECTION
 
-START_SECTION((void setFullId(const String& full_id)))
+START_SECTION((void setFullId(const std::string& full_id)))
 	ptr->setFullId("blubb_new_fullid");
 	TEST_STRING_EQUAL(ptr->getFullId(), "blubb_new_fullid")
 END_SECTION
 
-START_SECTION((const String& getFullId() const))
+START_SECTION((const std::string& getFullId() const))
 	NOT_TESTABLE
 END_SECTION
 
@@ -149,21 +149,21 @@ START_SECTION((void setUniModRecordId(const Int& id)))
 	TEST_EQUAL(ptr->getUniModRecordId(), 42)
 END_SECTION
 
-START_SECTION((const String& getUniModRecordId() const))
+START_SECTION((const std::string& getUniModRecordId() const))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((const String& getUniModAccession() const))
+START_SECTION((const std::string& getUniModAccession() const))
 	ptr->setUniModRecordId(42);
 	TEST_STRING_EQUAL(ptr->getUniModAccession(), "UniMod:42")
 END_SECTION
 
-START_SECTION((void setPSIMODAccession(const String& id)))
+START_SECTION((void setPSIMODAccession(const std::string& id)))
 	ptr->setPSIMODAccession("blubb_new_PSIMODAccession");
 	TEST_STRING_EQUAL(ptr->getPSIMODAccession(), "blubb_new_PSIMODAccession")
 END_SECTION
 
-START_SECTION((const String& getPSIMODAccession() const))
+START_SECTION((const std::string& getPSIMODAccession() const))
 	NOT_TESTABLE
 END_SECTION
 
@@ -177,7 +177,7 @@ START_SECTION(void setTermSpecificity(TermSpecificity term_spec))
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::N_TERM)
 END_SECTION
 
-START_SECTION(void setTermSpecificity(const String& name))
+START_SECTION(void setTermSpecificity(const std::string& name))
 	ptr->setTermSpecificity("C-term");
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::C_TERM)
 	ptr->setTermSpecificity("N-term");
@@ -190,7 +190,7 @@ START_SECTION(TermSpecificity getTermSpecificity() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(String getTermSpecificityName(TermSpecificity=NUMBER_OF_TERM_SPECIFICITY) const)
+START_SECTION(std::string getTermSpecificityName(TermSpecificity=NUMBER_OF_TERM_SPECIFICITY) const)
 	ptr->setTermSpecificity(ResidueModification::C_TERM);
 	TEST_STRING_EQUAL(ptr->getTermSpecificityName(), "C-term")
 	ptr->setTermSpecificity(ResidueModification::N_TERM);
@@ -220,7 +220,7 @@ START_SECTION(void setSourceClassification(SourceClassification classification))
 	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::HYPOTHETICAL)
 END_SECTION
 
-START_SECTION(void setSourceClassification(const String& classification))
+START_SECTION(void setSourceClassification(const std::string& classification))
 	ptr->setSourceClassification("Artifact");
 	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::ARTIFACT)
 	ptr->setSourceClassification("Natural");
@@ -233,7 +233,7 @@ START_SECTION(SourceClassification getSourceClassification() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(String getSourceClassificationName(SourceClassification classification=NUMBER_OF_SOURCE_CLASSIFICATIONS) const)
+START_SECTION(std::string getSourceClassificationName(SourceClassification classification=NUMBER_OF_SOURCE_CLASSIFICATIONS) const)
 	ptr->setSourceClassification(ResidueModification::ARTIFACT);
 	TEST_STRING_EQUAL(ptr->getSourceClassificationName(), "Artefact")
 	ptr->setSourceClassification(ResidueModification::NATURAL);
@@ -281,12 +281,12 @@ START_SECTION(double getDiffMonoMass() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setFormula(const String& composition))
+START_SECTION(void setFormula(const std::string& composition))
 	ptr->setFormula("blubb_new_formula");
 	TEST_STRING_EQUAL(ptr->getFormula(), "blubb_new_formula")
 END_SECTION
 
-START_SECTION(const String& getFormula() const)
+START_SECTION(const std::string& getFormula() const)
 	NOT_TESTABLE
 END_SECTION
 
@@ -300,20 +300,20 @@ START_SECTION(const EmpiricalFormula& getDiffFormula() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setSynonyms(const std::set<String>& synonyms))
-	set<String> synonyms;
+START_SECTION(void setSynonyms(const std::set<std::string>& synonyms))
+	set<std::string> synonyms;
 	synonyms.insert("blubb_syn1");
 	synonyms.insert("blubb_syn2");
 	ptr->setSynonyms(synonyms);
 	TEST_EQUAL(ptr->getSynonyms() == synonyms, true)
 END_SECTION
 
-START_SECTION(void addSynonym(const String& synonym))
+START_SECTION(void addSynonym(const std::string& synonym))
 	ptr->addSynonym("blubb_syn3");
 	TEST_EQUAL(ptr->getSynonyms().size(), 3)
 END_SECTION
 
-START_SECTION(const std::set<String>& getSynonyms() const)
+START_SECTION(const std::set<std::string>& getSynonyms() const)
 	NOT_TESTABLE
 END_SECTION
 
@@ -487,26 +487,26 @@ START_SECTION(static const ResidueModification* combineMods(const ResidueModific
 	TEST_EQUAL(ResidueModification::combineMods(nullptr, {}, true) == nullptr, true)
 END_SECTION
 
-START_SECTION(String toString() const)
+START_SECTION(std::string toString() const)
 	const ResidueModification* base = mod_DB->getModification("Phospho (S)");
 	TEST_EQUAL(base->toString(), "S(Phospho)")
   TEST_EQUAL(combined_mod->toString(), "S[+80.963365999999994]")
 
 END_SECTION
 
-START_SECTION(static String getDiffMonoMassString(const double diff_mono_mass))
+START_SECTION(static std::string getDiffMonoMassString(const double diff_mono_mass))
 	TEST_EQUAL(ResidueModification::getDiffMonoMassString(16), "+16.0");
 	TEST_EQUAL(ResidueModification::getDiffMonoMassString(-16), "-16.0");
 END_SECTION
 
 /// return a string of the form '[+&gt;mass&lt;] (the '+' might be a '-', if mass is negative).
-START_SECTION(static String getDiffMonoMassWithBracket(const double diff_mono_mass))
+START_SECTION(static std::string getDiffMonoMassWithBracket(const double diff_mono_mass))
 	TEST_EQUAL(ResidueModification::getDiffMonoMassWithBracket(16), "[+16.0]");
 	TEST_EQUAL(ResidueModification::getDiffMonoMassWithBracket(-16), "[-16.0]");
 END_SECTION
 
 /// return a string of the form '[&gt;mass&lt;]
-START_SECTION(static String getMonoMassWithBracket(const double mono_mass))
+START_SECTION(static std::string getMonoMassWithBracket(const double mono_mass))
 	TEST_EQUAL(ResidueModification::getDiffMonoMassWithBracket(16), "[+16.0]");
 	TEST_EXCEPTION(Exception::InvalidValue, ResidueModification::getMonoMassWithBracket(-16));
 END_SECTION

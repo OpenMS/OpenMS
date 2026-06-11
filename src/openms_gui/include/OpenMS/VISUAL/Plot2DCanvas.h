@@ -109,8 +109,14 @@ protected:
     // Docu in base class
     bool finishAdding_() override;
 
-    /// Collects fragment ion scans in the indicated RT/mz area and adds them to the menus
-    bool collectFragmentScansInArea_(const RangeType& range, QMenu* msn_scans, QMenu* msn_meta);
+    /// Collects fragment ion scans in the indicated RT/mz area and adds them to the menus.
+    /// Enumerates left and right from the center RT position.
+    /// @param range RT/mz area to search within
+    /// @param center_rt RT position to expand from (left and right)
+    /// @param msn_scans Menu to add scan actions to
+    /// @param msn_meta Menu to add metadata actions to
+    /// @param max_count Maximum number of MS2 scans to collect; 0 means unlimited.
+    bool collectFragmentScansInArea_(const RangeType& range, double center_rt, QMenu* msn_scans, QMenu* msn_meta, int max_count = 10);
 
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
     void drawCoordinates_(QPainter& painter, const PeakIndex& peak);
@@ -199,7 +205,7 @@ protected:
     PeakIndex findNearestPeak_(const QPoint& pos);
 
     /// Paints a peak icon for feature and consensus feature peaks
-    void paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p) const;
+    void paintIcon_(const QPoint& pos, const QRgb& color, const std::string& icon, Size s, QPainter& p) const;
 
     /// Translates the visible area by a given offset specified in fractions of current visible area
     void translateVisibleArea_(double x_axis_rel, double y_axis_rel);

@@ -66,7 +66,7 @@ namespace OpenMS
 
     PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const override;
 
-    String getDataArrayDescription(const PeakIndex& peak_index) override;
+    std::string getDataArrayDescription(const PeakIndex& peak_index) override;
 
     std::unique_ptr<LayerStatistics> getStats() const override;
 

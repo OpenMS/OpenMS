@@ -69,6 +69,7 @@
 #include <QtWidgets/QWhatsThis>
 #include <utility>
 #include <OpenMS/VISUAL/TOPPASOutputFolderVertex.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 
 using namespace std;
@@ -139,7 +140,7 @@ namespace OpenMS
     file->addSeparator();
     // Recent files
     file->addMenu(recent_files_menu_.getMenu()); // updates automatically via RecentFilesMenu class, since this is just a pointer
-    connect(&recent_files_menu_, &RecentFilesMenu::recentFileClicked, [this](const String& filename) { addTOPPASFile(filename, true);});
+    connect(&recent_files_menu_, &RecentFilesMenu::recentFileClicked, [this](const std::string& filename) { addTOPPASFile(filename, true);});
 
     file->addSeparator();
     file->addAction("&Load TOPPAS resource file", this, SLOT(loadPipelineResourceFile()));
@@ -164,7 +165,7 @@ namespace OpenMS
     action->setData("http://www.OpenMS.de");
     action = help->addAction("TOPPAS tutorial", this, &TOPPASBase::showURL);
     action->setShortcut(Qt::Key_F1);
-    action->setData(String("html/TOPPAS_tutorial.html").toQString());
+    action->setData(toQString(std::string("html/TOPPAS_tutorial.html")));
 
     help->addSeparator();
     help->addAction("&About", this, SLOT(showAboutDialog()));
@@ -245,11 +246,11 @@ namespace OpenMS
     current_path_ = param_.getValue("preferences:default_path").toString();
 
     // set & create temporary path -- make sure its a new subdirectory, as it will be deleted later
-    QString new_tmp_dir = File::getUniqueName(false).toQString();
-    QDir qd(File::getTempDirectory().toQString());
+    QString new_tmp_dir = toQString(File::getUniqueName(false));
+    QDir qd(toQString(File::getTempDirectory()));
     qd.mkdir(new_tmp_dir);
     qd.cd(new_tmp_dir);
-    tmp_path_ = qd.absolutePath();
+    tmp_path_ = fromQString(qd.absolutePath());
 
 /* 
      QT5 replace with QWebEngine
@@ -277,7 +278,7 @@ namespace OpenMS
     savePreferences();
     // delete temporary files (TODO: make this a user dialog and ask - for later resume)
     // safety measure: only delete if subdirectory of Temp path; we do not want to delete / or c:
-    if (String(tmp_path_).substitute("\\", "/").hasPrefix(File::getTempDirectory().substitute("\\", "/") + "/"))
+    if (StringUtils::hasPrefix(StringUtils::substituted(std::string(tmp_path_), "\\", "/"), StringUtils::substituted(File::getTempDirectory(), "\\", "/") + "/"))
     {
       File::removeDirRecursively(tmp_path_);
     }
@@ -289,7 +290,7 @@ namespace OpenMS
     {
       return;
     }
-    //std::cerr << "changed to '" << String(desc_->toHtml()) << "'\n";
+    //std::cerr << "changed to '" << StringUtils::toStr(desc_->toHtml()) << "'\n";
     activeSubWindow_()->getScene()->setChanged(true);
     activeSubWindow_()->getScene()->setDescription(desc_->toHtml());
   }
@@ -320,19 +321,19 @@ namespace OpenMS
 
     //Param category_param = param_.copy("tool_categories:", true);
 
-    ToolListType tools_list = ToolHandler::getTOPPToolList(true);
+    ToolListType tools_list = ToolHandler::getTOPPToolList();
 
     // any tool without a category gets into "unassigned" bin
     for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
-      if (it->second.category.trim().empty())
+      if (StringUtils::trim(it->second.category).empty())
         it->second.category = "Unassigned";
     }
 
     QSet<QString> category_set;
     for (ToolListType::const_iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
-      category_set << String(it->second.category).toQString();
+      category_set << toQString(std::string(it->second.category));
     }
 
     QStringList category_list = category_set.values();
@@ -350,14 +351,14 @@ namespace OpenMS
 
     for (const auto& tool : tools_list)
     {
-      auto item = new QTreeWidgetItem(category_map[tool.second.category.toQString()]);
-      item->setText(0, tool.first.toQString());
+      auto item = new QTreeWidgetItem(category_map[toQString(tool.second.category)]);
+      item->setText(0, toQString(tool.first));
       QTreeWidgetItem* parent_item = item;
       StringList types = ToolHandler::getTypes(tool.first);
       for (const auto& type : types)
       {
         item = new QTreeWidgetItem(parent_item);
-        item->setText(0, type.toQString());
+        item->setText(0, toQString(type));
       }
     }
     tools_tree_view->resizeColumnToContents(0);
@@ -368,7 +369,7 @@ namespace OpenMS
   {
     for (StringList::const_iterator it = list.begin(); it != list.end(); ++it)
     {
-      splash_screen->showMessage((String("Loading file: ") + *it).toQString());
+      splash_screen->showMessage(toQString((std::string("Loading file: ") + *it)));
       splash_screen->repaint();
       QApplication::processEvents();
       addTOPPASFile(*it);
@@ -378,32 +379,32 @@ namespace OpenMS
   void TOPPASBase::openExampleDialog()
   {
     QString file_name = QFileDialog::getOpenFileName(this, tr("Open example workflow"),
-                                                     File::getOpenMSDataPath().toQString()
+                                                     toQString(File::getOpenMSDataPath())
                                                      + QDir::separator() + "examples" + QDir::separator()
                                                      + "TOPPAS" + QDir::separator(),
                                                      tr("TOPPAS pipelines (*.toppas)"));
 
-    addTOPPASFile(file_name);
+    addTOPPASFile(fromQString(file_name));
   }
 
   void TOPPASBase::openFilesByDialog()
   {
-    QString file_name = QFileDialog::getOpenFileName(this, tr("Open workflow"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
+    QString file_name = QFileDialog::getOpenFileName(this, tr("Open workflow"), toQString(current_path_), tr("TOPPAS pipelines (*.toppas)"));
 
-    addTOPPASFile(file_name);
+    addTOPPASFile(fromQString(file_name));
   }
 
   void TOPPASBase::includePipeline()
   {
-    QString file_name = QFileDialog::getOpenFileName(this, tr("Include workflow"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
-    addTOPPASFile(file_name, false);
+    QString file_name = QFileDialog::getOpenFileName(this, tr("Include workflow"), toQString(current_path_), tr("TOPPAS pipelines (*.toppas)"));
+    addTOPPASFile(fromQString(file_name), false);
   }
 
-  void TOPPASBase::addTOPPASFile(const String& file_name, bool in_new_window)
+  void TOPPASBase::addTOPPASFile(const std::string& file_name, bool in_new_window)
   {
     if (file_name.empty()) return;
 
-    if (!file_name.toQString().endsWith(".toppas", Qt::CaseInsensitive))
+    if (!toQString(file_name).endsWith(".toppas", Qt::CaseInsensitive))
     {
       OPENMS_LOG_ERROR << "The file '" << file_name << "' is not a .toppas file" << std::endl;
       return;
@@ -430,7 +431,7 @@ namespace OpenMS
     {
       if (!activeSubWindow_()) return;
 
-      TOPPASScene* tmp_scene = new TOPPASScene(nullptr, this->tmp_path_.toQString(), false);
+      TOPPASScene* tmp_scene = new TOPPASScene(nullptr, toQString(this->tmp_path_), false);
       tmp_scene->load(file_name);
       scene = activeSubWindow_()->getScene();
       scene->include(tmp_scene);
@@ -463,7 +464,7 @@ namespace OpenMS
       TOPPASOutputFileListVertex* oflv = dynamic_cast<TOPPASOutputFileListVertex*>(*it);
       if (oflv)
       {
-        connect(oflv, SIGNAL(outputFileWritten(const String &)), this, SLOT(outputVertexFinished(const String &)));
+        connect(oflv, SIGNAL(outputFileWritten(const std::string &)), this, SLOT(outputVertexFinished(const std::string &)));
         continue;
       }
     }
@@ -500,7 +501,7 @@ namespace OpenMS
       return;
     }
 
-    QString file_name = w->getScene()->getSaveFileName().toQString();
+    QString file_name = toQString(w->getScene()->getSaveFileName());
     if (file_name != "")
     {
       // accept also upper case TOPPAS extensions, since
@@ -509,7 +510,7 @@ namespace OpenMS
       {
         file_name += ".toppas";
       }
-      if (!w->getScene()->store(file_name))
+      if (!w->getScene()->store(fromQString(file_name)))
       {
         QMessageBox::warning(this, tr("Error"),
                              tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
@@ -518,11 +519,11 @@ namespace OpenMS
     }
     else
     {
-      QString savedFileName = TOPPASBase::savePipelineAs(w, current_path_.toQString());
+      QString savedFileName = TOPPASBase::savePipelineAs(w, toQString(current_path_));
       // update tab title
       if (savedFileName != "")
       {
-        tab_bar_->setTabText(File::basename(savedFileName).toQString());
+        tab_bar_->setTabText(toQString(File::basename(fromQString(savedFileName))));
       }
     }
   }
@@ -530,10 +531,10 @@ namespace OpenMS
   void TOPPASBase::saveCurrentPipelineAs()
   {
     TOPPASWidget* w = activeSubWindow_();
-    QString file_name = TOPPASBase::savePipelineAs(w, current_path_.toQString());
+    QString file_name = TOPPASBase::savePipelineAs(w, toQString(current_path_));
     if (file_name != "")
     {
-      tab_bar_->setTabText(File::basename(file_name).toQString());
+      tab_bar_->setTabText(toQString(File::basename(fromQString(file_name))));
     }
   }
 
@@ -552,12 +553,12 @@ namespace OpenMS
       {
         file_name += ".toppas";
       }
-      if (!w->getScene()->store(file_name))
+      if (!w->getScene()->store(fromQString(file_name)))
       {
         QMessageBox::warning(nullptr, tr("Error"),
                              tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
       }
-      QString caption = File::basename(file_name).toQString();
+      QString caption = toQString(File::basename(fromQString(file_name)));
       w->setWindowTitle(caption);
     }
     return file_name;
@@ -568,7 +569,7 @@ namespace OpenMS
     TOPPASWidget* w = activeSubWindow_();
     TOPPASScene* s = w->getScene();
 
-    QString cp = current_path_.toQString();
+    QString cp = toQString(current_path_);
     QString file_name = QFileDialog::getSaveFileName(w, tr("Save image"), cp, tr("Images (*.svg *.png *.jpg)"));
     if (file_name == "")
     {
@@ -628,7 +629,7 @@ namespace OpenMS
   void TOPPASBase::loadPipelineResourceFile()
   {
     TOPPASWidget* w = activeSubWindow_();
-    TOPPASBase::loadPipelineResourceFile(w, current_path_.toQString());
+    TOPPASBase::loadPipelineResourceFile(w, toQString(current_path_));
   }
 
   // static
@@ -653,7 +654,7 @@ namespace OpenMS
   void TOPPASBase::savePipelineResourceFile()
   {
     TOPPASWidget* w = activeSubWindow_();
-    TOPPASBase::savePipelineResourceFile(w, current_path_.toQString());
+    TOPPASBase::savePipelineResourceFile(w, toQString(current_path_));
   }
 
   // static
@@ -685,15 +686,15 @@ namespace OpenMS
     savePreferences();
   }
 
-  void TOPPASBase::showAsWindow_(TOPPASWidget* tw, const String& caption)
+  void TOPPASBase::showAsWindow_(TOPPASWidget* tw, const std::string& caption)
   {
     ws_->addSubWindow(tw);
     tw->showMaximized();
     connect(tw, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)), this, SLOT(showStatusMessage(std::string, OpenMS::UInt)));
     connect(tw, SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatus(double, double)));
     connect(tw, SIGNAL(toolDroppedOnWidget(double, double)), this, SLOT(insertNewVertex_(double, double)));
-    connect(tw, SIGNAL(pipelineDroppedOnWidget(const String &, bool)), this, SLOT(addTOPPASFile(const String &, bool)));
-    tw->setWindowTitle(caption.toQString());
+    connect(tw, SIGNAL(pipelineDroppedOnWidget(const std::string &, bool)), this, SLOT(addTOPPASFile(const std::string &, bool)));
+    tw->setWindowTitle(toQString(caption));
 
     tw->addToTabBar(tab_bar_, caption, true);
 
@@ -856,10 +857,10 @@ namespace OpenMS
     }
   }
 
-  void TOPPASBase::loadPreferences(String filename)
+  void TOPPASBase::loadPreferences(std::string filename)
   {
     //compose default ini file path
-    String default_ini_file = String(QDir::homePath()) + "/.TOPPAS.ini";
+    std::string default_ini_file = fromQString(QDir::homePath()) + "/.TOPPAS.ini";
 
     if (filename.empty())
     {
@@ -1060,7 +1061,7 @@ namespace OpenMS
 
     TOPPASScene* scene = activeSubWindow_()->getScene();
     QTreeWidgetItem* current_tool = item ? item : tools_tree_view_->currentItem();
-    String tool_name = String(current_tool->text(0));
+    std::string tool_name = fromQString(current_tool->text(0));
     TOPPASVertex* tv = nullptr;
 
     if (tool_name == "<Input files>")
@@ -1071,14 +1072,14 @@ namespace OpenMS
     {
       tv = new TOPPASOutputFileListVertex();
       TOPPASOutputFileListVertex* oflv = dynamic_cast<TOPPASOutputFileListVertex*>(tv);
-      connect(tv, SIGNAL(outputFileWritten(const String &)), this, SLOT(outputVertexFinished(const String &)));
+      connect(tv, SIGNAL(outputFileWritten(const std::string &)), this, SLOT(outputVertexFinished(const std::string &)));
       scene->connectOutputVertexSignals((TOPPASOutputVertex*)oflv);
     }
     else if (tool_name == "<Output folder>")
     {
       tv = new TOPPASOutputFolderVertex();
       TOPPASOutputFolderVertex* oflv = dynamic_cast<TOPPASOutputFolderVertex*>(tv);
-      connect(tv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
+      connect(tv, SIGNAL(outputFileWritten(const std::string&)), this, SLOT(outputVertexFinished(const std::string&)));
       scene->connectOutputVertexSignals((TOPPASOutputVertex*)oflv);
     }
     else if (tool_name == "<Merger>")
@@ -1102,17 +1103,17 @@ namespace OpenMS
         // category or tool name with types is selected (instead of a concrete type)
         return;
       }
-      String tool_type;
+      std::string tool_type;
       if (current_tool->parent() != nullptr && current_tool->parent()->parent() != nullptr)
       {
         // selected item is a type
-        tool_type = String(current_tool->text(0));
-        tool_name = String(current_tool->parent()->text(0));
+        tool_type = fromQString(current_tool->text(0));
+        tool_name = fromQString(current_tool->parent()->text(0));
       }
       else
       {
         // normal tool which does not have type selected
-        tool_name = String(current_tool->text(0));
+        tool_name = fromQString(current_tool->text(0));
         tool_type = "";
       }
 
@@ -1169,13 +1170,13 @@ namespace OpenMS
     TOPPASToolVertex* tv = dynamic_cast<TOPPASToolVertex*>(QObject::sender());
     if (tv)
     {
-      String text = tv->getName();
-      String type = tv->getType();
+      std::string text = tv->getName();
+      std::string type = tv->getType();
       if (!type.empty())
       {
         text += " (" + type + ")";
       }
-      text += " of node #" + String(tv->getTopoNr()) + " started. Processing ...";
+      text += " of node #" + StringUtils::toStr(tv->getTopoNr()) + " started. Processing ...";
 
       log_->appendNewHeader(LogWindow::LogState::NOTICE, text, "");
     }
@@ -1187,8 +1188,8 @@ namespace OpenMS
     TOPPASToolVertex* tv = dynamic_cast<TOPPASToolVertex*>(QObject::sender());
     if (tv)
     {
-      String text = tv->getName();
-      String type = tv->getType();
+      std::string text = tv->getName();
+      std::string type = tv->getType();
       if (!type.empty())
       {
         text += " (" + type + ")";
@@ -1205,8 +1206,8 @@ namespace OpenMS
     TOPPASToolVertex* tv = dynamic_cast<TOPPASToolVertex*>(QObject::sender());
     if (tv)
     {
-      String text = tv->getName();
-      String type = tv->getType();
+      std::string text = tv->getName();
+      std::string type = tv->getType();
       if (!type.empty())
       {
         text += " (" + type + ")";
@@ -1223,8 +1224,8 @@ namespace OpenMS
     TOPPASToolVertex* tv = dynamic_cast<TOPPASToolVertex*>(QObject::sender());
     if (tv)
     {
-      String text = tv->getName();
-      String type = tv->getType();
+      std::string text = tv->getName();
+      std::string type = tv->getType();
       if (!type.empty())
       {
         text += " (" + type + ")";
@@ -1236,9 +1237,9 @@ namespace OpenMS
     updateMenu();
   }
 
-  void TOPPASBase::outputVertexFinished(const String& file)
+  void TOPPASBase::outputVertexFinished(const std::string& file)
   {
-    String text = "Output file '" + file + "' written.";
+    std::string text = "Output file '" + file + "' written.";
     log_->appendNewHeader(LogWindow::LogState::NOTICE, text, "");
   }
 
@@ -1295,10 +1296,10 @@ namespace OpenMS
   void TOPPASBase::refreshParameters()
   {
     TOPPASWidget* w = activeSubWindow_();
-    QString file_name = TOPPASBase::refreshPipelineParameters(w, current_path_.toQString());
+    QString file_name = TOPPASBase::refreshPipelineParameters(w, toQString(current_path_));
     if (file_name != "")
     {
-      tab_bar_->setTabText(File::basename(file_name).toQString());
+      tab_bar_->setTabText(toQString(File::basename(fromQString(file_name))));
     }
   }
 
@@ -1383,7 +1384,7 @@ namespace OpenMS
 
   void TOPPASBase::openToppasFile(const QString& filename)
   {
-    addTOPPASFile(String(filename));
+    addTOPPASFile(fromQString(filename));
   }
 
 } //namespace OpenMS
