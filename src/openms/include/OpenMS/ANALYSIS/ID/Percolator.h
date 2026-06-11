@@ -293,7 +293,7 @@ namespace OpenMS
       @throws Exception::InvalidValue if the model violates its internal
               invariant (weights.size() == feature_names.size() + 1).
     */
-    static void saveModel(const PercolatorModel& model, const String& filename);
+    static void saveModel(const PercolatorModel& model, const std::string& filename);
 
     /**
       @brief Deserialize a PercolatorModel written by saveModel().
@@ -308,7 +308,7 @@ namespace OpenMS
               duplicate header key, missing required field, unsupported
               format_version, invalid normalizer, or row/count mismatch).
     */
-    static PercolatorModel loadModel(const String& filename);
+    static PercolatorModel loadModel(const std::string& filename);
 
   protected:
     void updateMembers_() override;

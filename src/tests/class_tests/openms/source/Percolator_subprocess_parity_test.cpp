@@ -53,7 +53,7 @@ namespace
 {
 
 /// Reference idXML: same input the TOPP PercolatorAdapter_1 test uses.
-String inputIdxml()
+std::string inputIdxml()
 {
   return OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/PercolatorAdapter_1.idXML");
 }
@@ -85,7 +85,7 @@ StringList buildFeatureSet(const vector<ProteinIdentification>& prs,
     const auto& sp = prs.front().getSearchParameters();
     if (sp.metaValueExists("extra_features"))
     {
-      StringList extras = ListUtils::create<String>(
+      StringList extras = ListUtils::create<std::string>(
         sp.getMetaValue("extra_features").toString());
       feature_set.insert(feature_set.end(), extras.begin(), extras.end());
     }
@@ -99,7 +99,7 @@ StringList buildFeatureSet(const vector<ProteinIdentification>& prs,
 /// an SVM. Mirrors the filter PercolatorAdapter's in-process branch applies.
 StringList numericFeatures(const StringList& feature_set)
 {
-  static const std::set<String> metadata_not_feature {
+  static const std::set<std::string> metadata_not_feature {
     "SpecId", "Label", "ScanNr", "ExpMass", "CalcMass", "Peptide", "Proteins"
   };
   StringList numeric;
@@ -112,14 +112,14 @@ StringList numericFeatures(const StringList& feature_set)
 
 /// Composite key for 1:1 cross-run matching of PSMs. Scan + sequence + charge
 /// uniquely identifies a row in the .pin for the TOPP test data.
-String rowKey(const PeptideIdentification& pid, const PeptideHit& hit)
+std::string rowKey(const PeptideIdentification& pid, const PeptideHit& hit)
 {
-  String sr = String(pid.getSpectrumReference());
+  std::string sr = std::string(pid.getSpectrumReference());
   if (sr.empty() && pid.metaValueExists("spectrum_id"))
   {
     sr = pid.getMetaValue("spectrum_id").toString();
   }
-  return sr + "|" + hit.getSequence().toString() + "|" + String(hit.getCharge());
+  return sr + "|" + hit.getSequence().toString() + "|" + StringUtils::toStr(hit.getCharge());
 }
 
 struct PercolatorTriplet
@@ -131,12 +131,12 @@ struct PercolatorTriplet
 
 /// Extract the PSI-MS CV values the subprocess adapter stamps on each hit.
 /// MS:1001491 = q-value, MS:1001492 = SVM score, MS:1001493 = PEP.
-std::map<String, PercolatorTriplet> loadBaselineTriplets(const String& idxml)
+std::map<std::string, PercolatorTriplet> loadBaselineTriplets(const std::string& idxml)
 {
   vector<ProteinIdentification> prs;
   PeptideIdentificationList pids;
   IdXMLFile().load(idxml, prs, pids);
-  std::map<String, PercolatorTriplet> out;
+  std::map<std::string, PercolatorTriplet> out;
   for (const auto& pid : pids)
   {
     for (const auto& hit : pid.getHits())
@@ -196,11 +196,11 @@ BuiltInput buildRescoreInput(const PeptideIdentificationList& pids,
 // variable PERCOLATOR_BINARY (set by CTest when the binary is found).
 ///////////////////////////////////////////////////////////////////////////////
 
-String percolatorBinary()
+std::string percolatorBinary()
 {
   const char* env = std::getenv("PERCOLATOR_BINARY");
-  if (!env || !*env) return String();
-  return String(env);
+  if (!env || !*env) return std::string();
+  return std::string(env);
 }
 
 /// Generate a realistic-scale synthetic dataset: 2000 PSMs with a mildly
@@ -270,7 +270,7 @@ void generateSyntheticData(RescoreInput& ri, std::mt19937& rng,
 /// header token). DataSet::readPsm then calls setSpectrumFileName() which
 /// populates PSMDescription::specFileNr from the lookup table, matching the
 /// value we set in RescoreInput::spec_file_numbers for the in-process path.
-void writePinFile(const String& path, const RescoreInput& ri,
+void writePinFile(const std::string& path, const RescoreInput& ri,
                   bool emit_filename = false)
 {
   std::ofstream f(path.c_str());
@@ -308,20 +308,20 @@ void writePinFile(const String& path, const RescoreInput& ri,
 
 struct SubprocessOut
 {
-  std::map<String, PercolatorTriplet> triplets;  // keyed by row_id (PSMId)
+  std::map<std::string, PercolatorTriplet> triplets;  // keyed by row_id (PSMId)
   int exit_code = -1;
 };
 
 /// Invoke the external percolator binary on `pin_path`. `extra_args` is space-
 /// separated (appended verbatim). Returns parsed PSM triplets keyed by PSMId.
-SubprocessOut runSubprocess(const String& bin,
-                            const String& pin_path,
+SubprocessOut runSubprocess(const std::string& bin,
+                            const std::string& pin_path,
                             const std::string& extra_args = "")
 {
-  const String target_pout = File::getTemporaryFile();
-  const String decoy_pout  = File::getTemporaryFile();
-  const String stdout_log  = File::getTemporaryFile();
-  const String stderr_log  = File::getTemporaryFile();
+  const std::string target_pout = File::getTemporaryFile();
+  const std::string decoy_pout  = File::getTemporaryFile();
+  const std::string stdout_log  = File::getTemporaryFile();
+  const std::string stderr_log  = File::getTemporaryFile();
 
   std::ostringstream cmd;
   cmd << "\"" << bin << "\""
@@ -346,10 +346,10 @@ SubprocessOut runSubprocess(const String& bin,
 #endif
   if (s.exit_code != 0) return s;
 
-  auto parse = [&s](const String& path)
+  auto parse = [&s](const std::string& path)
   {
     std::ifstream f(path.c_str());
-    String line;
+    std::string line;
     bool header_seen = false;
     bool has_filename_col = false;  // true when pout has PSMId filename score ...
     while (std::getline(f, line))
@@ -362,7 +362,7 @@ SubprocessOut runSubprocess(const String& bin,
         // or
         //   PSMId  filename  score  q-value  (filename column was in input PIN)
         std::istringstream hs(line);
-        String col1, col2;
+        std::string col1, col2;
         hs >> col1 >> col2;
         has_filename_col = (col2 == "filename" || col2 == "spectrafile");
         continue;
@@ -370,11 +370,11 @@ SubprocessOut runSubprocess(const String& bin,
       if (line.empty()) continue;
       // Fields: PSMId  [filename]  score  q-value  posterior_error_prob  peptide  protein...
       std::istringstream ls(line);
-      String psm_id;
+      std::string psm_id;
       double score = 0, qval = 0, pep = 0;
-      String peptide;
+      std::string peptide;
       ls >> psm_id;
-      if (has_filename_col) { String skip_fn; ls >> skip_fn; }
+      if (has_filename_col) { std::string skip_fn; ls >> skip_fn; }
       ls >> score >> qval >> pep >> peptide;
       if (!ls) continue;
       PercolatorTriplet t;
@@ -479,7 +479,7 @@ START_SECTION([EXTRA] PIN file content equals stamped meta values)
   const std::string enz = "no_enzyme";
 
   // (a) Write PIN via store(). This also internally stamps, then serializes.
-  const String pin_path = File::getTemporaryFile();
+  const std::string pin_path = File::getTemporaryFile();
   PercolatorInfile::store(pin_path, pids, feature_set, enz, min_charge, max_charge);
 
   // (b) Stamp an independent copy so we can read back the meta values
@@ -494,7 +494,7 @@ START_SECTION([EXTRA] PIN file content equals stamped meta values)
   const size_t n_lines = std::distance(txt.begin(), txt.end());
   TEST_TRUE(n_lines >= 2)
 
-  StringList header = ListUtils::create<String>(*txt.begin(), '\t');
+  StringList header = ListUtils::create<std::string>(*txt.begin(), '\t');
   TEST_EQUAL(header.size(), feature_set.size())
   {
     bool header_matches = (header.size() == feature_set.size());
@@ -529,13 +529,13 @@ START_SECTION([EXTRA] PIN file content equals stamped meta values)
 
   size_t compared_rows = 0;
   size_t diffs = 0;
-  String first_mismatch;
+  std::string first_mismatch;
   size_t row_idx = 0;
   for (auto it = txt.begin() + 1;
        it != txt.end() && row_idx < expected_rows.size();
        ++it, ++row_idx)
   {
-    StringList cols = ListUtils::create<String>(*it, '\t');
+    StringList cols = ListUtils::create<std::string>(*it, '\t');
     if (cols.size() < last_compared)
     {
       diffs++;
@@ -546,21 +546,21 @@ START_SECTION([EXTRA] PIN file content equals stamped meta values)
 
     for (size_t c = 0; c < last_compared; ++c)
     {
-      const String& feat = feature_set[c];
+      const std::string& feat = feature_set[c];
       if (!hit.metaValueExists(feat))
       {
         diffs++;
         if (first_mismatch.empty())
-          first_mismatch = "row " + String(row_idx) + ": missing meta value " + feat;
+          first_mismatch = "row " + StringUtils::toStr(row_idx) + ": missing meta value " + feat;
         break;
       }
-      const String stamped_val = hit.getMetaValue(feat).toString();
+      const std::string stamped_val = hit.getMetaValue(feat).toString();
       if (cols[c] != stamped_val)
       {
         diffs++;
         if (first_mismatch.empty())
         {
-          first_mismatch = "row " + String(row_idx) + " col " + feat
+          first_mismatch = "row " + StringUtils::toStr(row_idx) + " col " + feat
             + ": pin='" + cols[c] + "' stamped='" + stamped_val + "'";
         }
         break;
@@ -571,7 +571,7 @@ START_SECTION([EXTRA] PIN file content equals stamped meta values)
 
   if (!first_mismatch.empty())
   {
-    TEST_EQUAL(first_mismatch, String())  // makes the diff visible on failure
+    TEST_EQUAL(first_mismatch, std::string())  // makes the diff visible on failure
   }
   TEST_EQUAL(diffs, 0)
   TEST_TRUE(compared_rows > 20)  // sanity: we compared a meaningful number of rows
@@ -599,7 +599,7 @@ END_SECTION
 
 START_SECTION([EXTRA] scores and FDR-threshold counts match subprocess)
 {
-  const String bin = percolatorBinary();
+  const std::string bin = percolatorBinary();
   if (bin.empty())
   {
     TEST_EQUAL(true, true);  // skip silently; external binary unavailable
@@ -610,7 +610,7 @@ START_SECTION([EXTRA] scores and FDR-threshold counts match subprocess)
     RescoreInput ri;
     generateSyntheticData(ri, rng);
 
-    const String pin_path = File::getTemporaryFile();
+    const std::string pin_path = File::getTemporaryFile();
     writePinFile(pin_path, ri);
 
     SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1");
@@ -677,7 +677,7 @@ END_SECTION
 
 START_SECTION([EXTRA] ranking parity at q &lt;= 0.01 / 0.05 / 0.10)
 {
-  const String bin = percolatorBinary();
+  const std::string bin = percolatorBinary();
   if (bin.empty())
   {
     TEST_EQUAL(true, true);  // skip silently
@@ -688,7 +688,7 @@ START_SECTION([EXTRA] ranking parity at q &lt;= 0.01 / 0.05 / 0.10)
     RescoreInput ri;
     generateSyntheticData(ri, rng);
 
-    const String pin_path = File::getTemporaryFile();
+    const std::string pin_path = File::getTemporaryFile();
     writePinFile(pin_path, ri);
 
     SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1");
@@ -751,7 +751,7 @@ END_SECTION
 
 START_SECTION([EXTRA] parameter matrix: each flag flows through to the SVM)
 {
-  const String bin = percolatorBinary();
+  const std::string bin = percolatorBinary();
   if (bin.empty())
   {
     TEST_EQUAL(true, true);  // skip silently
@@ -802,7 +802,7 @@ START_SECTION([EXTRA] parameter matrix: each flag flows through to the SVM)
       std::mt19937 rng(2026);
       RescoreInput ri;
       generateSyntheticData(ri, rng);
-      const String pin_path = File::getTemporaryFile();
+      const std::string pin_path = File::getTemporaryFile();
       writePinFile(pin_path, ri);
 
       SubprocessOut sub = runSubprocess(bin, pin_path, tc.extra_args);
@@ -843,16 +843,16 @@ START_SECTION([EXTRA] parameter matrix: each flag flows through to the SVM)
       // Fail with the case name in the message so regressions are bisectable.
       if (r < tc.min_r)
       {
-        TEST_EQUAL(String("case ") + tc.name + " r=" + String(r)
-                   + " < min_r=" + String(tc.min_r),
-                   String("case ok"))
+        TEST_EQUAL(std::string("case ") + tc.name + " r=" + StringUtils::toStr(r)
+                   + " < min_r=" + StringUtils::toStr(tc.min_r),
+                   std::string("case ok"))
       }
       TEST_TRUE(r >= tc.min_r)
       if (tgt_q01_in != tgt_q01_sub)
       {
-        TEST_EQUAL(String("case ") + tc.name + " target@q01 mismatch: in="
-                   + String(tgt_q01_in) + " sub=" + String(tgt_q01_sub),
-                   String("case ok"))
+        TEST_EQUAL(std::string("case ") + tc.name + " target@q01 mismatch: in="
+                   + StringUtils::toStr(tgt_q01_in) + " sub=" + StringUtils::toStr(tgt_q01_sub),
+                   std::string("case ok"))
       }
       TEST_EQUAL(tgt_q01_in, tgt_q01_sub)
     }
@@ -880,7 +880,7 @@ END_SECTION
 
 START_SECTION([EXTRA] SVM weights match average of per-fold subprocess weights)
 {
-  const String bin = percolatorBinary();
+  const std::string bin = percolatorBinary();
   if (bin.empty())
   {
     TEST_EQUAL(true, true);  // skip silently
@@ -890,11 +890,11 @@ START_SECTION([EXTRA] SVM weights match average of per-fold subprocess weights)
     std::mt19937 rng(2026);
     RescoreInput ri;
     generateSyntheticData(ri, rng);
-    const String pin_path = File::getTemporaryFile();
+    const std::string pin_path = File::getTemporaryFile();
     writePinFile(pin_path, ri);
 
     // Ask percolator to dump weights.
-    const String wfile = File::getTemporaryFile();
+    const std::string wfile = File::getTemporaryFile();
     SubprocessOut sub = runSubprocess(
       bin, pin_path, "-S 1 -w \"" + wfile + "\"");
     TEST_EQUAL(sub.exit_code, 0)
@@ -907,7 +907,7 @@ START_SECTION([EXTRA] SVM weights match average of per-fold subprocess weights)
     std::vector<std::vector<double>> raw_per_fold;
     {
       std::ifstream f(wfile.c_str());
-      String line;
+      std::string line;
       size_t block_line = 0;  // 0=header, 1=normalized, 2=raw (mod 3)
       while (std::getline(f, line))
       {
@@ -961,11 +961,11 @@ START_SECTION([EXTRA] SVM weights match average of per-fold subprocess weights)
     }
     if (max_abs > 1e-3)
     {
-      TEST_EQUAL(String("feature ") + ri.feature_names[arg_max]
-                 + " |dw| = " + String(max_abs)
-                 + " in=" + String(in_weights.front()[arg_max])
-                 + " sub_avg=" + String(sub_avg[arg_max]),
-                 String("weights match"))
+      TEST_EQUAL(std::string("feature ") + ri.feature_names[arg_max]
+                 + " |dw| = " + StringUtils::toStr(max_abs)
+                 + " in=" + StringUtils::toStr(in_weights.front()[arg_max])
+                 + " sub_avg=" + StringUtils::toStr(sub_avg[arg_max]),
+                 std::string("weights match"))
     }
     TEST_TRUE(max_abs <= 1e-3)
   }
@@ -997,7 +997,7 @@ END_SECTION
 
 START_SECTION([EXTRA] realistic idXML parity at library layer)
 {
-  const String bin = percolatorBinary();
+  const std::string bin = percolatorBinary();
   if (bin.empty())
   {
     TEST_EQUAL(true, true);  // skip silently
@@ -1006,7 +1006,7 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
   {
     vector<ProteinIdentification> prs;
     PeptideIdentificationList pids;
-    const String idxml_path =
+    const std::string idxml_path =
       OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/CometAdapter_4_out.idXML");
     IdXMLFile().load(idxml_path, prs, pids);
     TEST_FALSE(pids.empty())
@@ -1017,7 +1017,7 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
     const std::string enz = "trypsin";
 
     // Write .pin (also stamps meta values under the hood).
-    const String pin_path = File::getTemporaryFile();
+    const std::string pin_path = File::getTemporaryFile();
     PercolatorInfile::store(pin_path, pids, feature_set, enz, min_charge, max_charge);
 
     // Parse .pin back to build RescoreInput that matches subprocess input
@@ -1028,8 +1028,8 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
     const size_t n_lines = std::distance(pin.begin(), pin.end());
     TEST_TRUE(n_lines >= 2)
 
-    StringList header = ListUtils::create<String>(*pin.begin(), '\t');
-    std::map<String, size_t> col_index;
+    StringList header = ListUtils::create<std::string>(*pin.begin(), '\t');
+    std::map<std::string, size_t> col_index;
     for (size_t c = 0; c < header.size(); ++c) col_index[header[c]] = c;
 
     StringList numeric = numericFeatures(feature_set);
@@ -1037,12 +1037,12 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
     // inputs have ~4 hits sharing the same file+scan SpecId), so subprocess
     // output map would collapse siblings. Use SpecId|Peptide to disambiguate;
     // runSubprocess() uses the same composite key on the .pout side.
-    std::vector<String> pin_keys;
+    std::vector<std::string> pin_keys;
     RescoreInput ri;
     ri.feature_names = numeric;
     for (auto it = pin.begin() + 1; it != pin.end(); ++it)
     {
-      StringList cols = ListUtils::create<String>(*it, '\t');
+      StringList cols = ListUtils::create<std::string>(*it, '\t');
       // Tolerate Proteins column with embedded tabs by checking up to the
       // last numeric-feature column.
       bool ok = true;
@@ -1051,17 +1051,17 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
         if (col_index[f] >= cols.size()) { ok = false; break; }
       }
       if (!ok) continue;
-      const String peptide_col = (col_index["Peptide"] < cols.size())
-        ? cols[col_index["Peptide"]] : String();
+      const std::string peptide_col = (col_index["Peptide"] < cols.size())
+        ? cols[col_index["Peptide"]] : std::string();
       pin_keys.push_back(cols[col_index["SpecId"]] + "|" + peptide_col);
       ri.is_decoy.push_back(cols[col_index["Label"]] == "-1");
-      ri.scan_numbers.push_back(cols[col_index["ScanNr"]].toInt());
+      ri.scan_numbers.push_back(StringUtils::toInt32(cols[col_index["ScanNr"]]));
       ri.spec_file_numbers.push_back(0);
-      ri.exp_masses.push_back(cols[col_index["ExpMass"]].toDouble());
-      ri.calc_masses.push_back(cols[col_index["CalcMass"]].toDouble());
+      ri.exp_masses.push_back(StringUtils::toDouble(cols[col_index["ExpMass"]]));
+      ri.calc_masses.push_back(StringUtils::toDouble(cols[col_index["CalcMass"]]));
       std::vector<double> feats;
       feats.reserve(numeric.size());
-      for (const auto& f : numeric) feats.push_back(cols[col_index[f]].toDouble());
+      for (const auto& f : numeric) feats.push_back(StringUtils::toDouble(cols[col_index[f]]));
       ri.features.push_back(std::move(feats));
     }
     TEST_TRUE(ri.features.size() >= 20)
@@ -1119,7 +1119,7 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
 
     for (double thr : {0.01, 0.05, 0.10})
     {
-      std::set<String> a_in, a_sub;
+      std::set<std::string> a_in, a_sub;
       for (size_t i = 0; i < out.scores.size(); ++i)
       {
         if (ri.is_decoy[i]) continue;
@@ -1130,9 +1130,9 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
       }
       if (a_in != a_sub)
       {
-        TEST_EQUAL(String("q=") + String(thr) + " accepted-set mismatch: in="
-                   + String(a_in.size()) + " sub=" + String(a_sub.size()),
-                   String("sets match"))
+        TEST_EQUAL("q=" + StringUtils::toStr(thr) + " accepted-set mismatch: in="
+                   + StringUtils::toStr(a_in.size()) + " sub=" + StringUtils::toStr(a_sub.size()),
+                   std::string("sets match"))
       }
       TEST_EQUAL(a_in == a_sub, true)
     }
@@ -1150,7 +1150,7 @@ END_SECTION
 
 START_SECTION([EXTRA] reservoir-sampling parity at 20k rows)
 {
-  const String bin = percolatorBinary();
+  const std::string bin = percolatorBinary();
   if (bin.empty())
   {
     TEST_EQUAL(true, true);  // skip
@@ -1162,7 +1162,7 @@ START_SECTION([EXTRA] reservoir-sampling parity at 20k rows)
     generateSyntheticData(ri, rng, /*size_mult=*/10.0);
     TEST_EQUAL(ri.features.size(), 20000)
 
-    const String pin_path = File::getTemporaryFile();
+    const std::string pin_path = File::getTemporaryFile();
     writePinFile(pin_path, ri);
 
     SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1 -N 5000");
@@ -1262,7 +1262,7 @@ END_SECTION
 
 START_SECTION([EXTRA] multi-file PIN parity)
 {
-  const String bin = percolatorBinary();
+  const std::string bin = percolatorBinary();
   if (bin.empty())
   {
     TEST_EQUAL(true, true);  // skip
@@ -1280,7 +1280,7 @@ START_SECTION([EXTRA] multi-file PIN parity)
       ri.spec_file_numbers[i] = (i < half) ? 0 : 1;
     }
 
-    const String pin_path = File::getTemporaryFile();
+    const std::string pin_path = File::getTemporaryFile();
     writePinFile(pin_path, ri, /*emit_filename=*/true);
 
     SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1");

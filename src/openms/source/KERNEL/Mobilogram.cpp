@@ -88,7 +88,7 @@ namespace OpenMS
     return integer_data_arrays_;
   }
 
-  String Mobilogram::getDriftTimeUnitAsString() const
+  std::string Mobilogram::getDriftTimeUnitAsString() const
   {
     return NamesOfDriftTimeUnit[(size_t)drift_time_unit_];
   }

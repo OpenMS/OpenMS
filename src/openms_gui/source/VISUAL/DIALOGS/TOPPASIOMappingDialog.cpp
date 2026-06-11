@@ -103,7 +103,7 @@ namespace OpenMS
       {
         if (info.type != TOPPASToolVertex::IOInfo::IOT_DIR) continue;
 
-        String item_name = "Directory: " + info.param_name + " ";
+        std::string item_name = "Directory: " + info.param_name + " ";
         ui_->source_combo->addItem(toQString(item_name), source_output_dirs.indexOf(info));
       }
       if (ui_->source_combo->count() == 1) // no directories found; return empty to signal invalid edge
@@ -128,7 +128,7 @@ namespace OpenMS
       for (const TOPPASToolVertex::IOInfo& info : source_output_files)
       {
         if (info.type == TOPPASToolVertex::IOInfo::IOT_DIR) continue;
-        String item_name;
+        std::string item_name;
         if (info.type == TOPPASToolVertex::IOInfo::IOT_FILE)
         {
           if (target_splitter) continue; // inputs for splitters must be lists
@@ -199,7 +199,7 @@ namespace OpenMS
           continue;
         }
 
-        String item_name;
+        std::string item_name;
         if (info.type == TOPPASToolVertex::IOInfo::IOT_FILE)
         {
           if (source_merger && !source_merger->roundBasedMode()) continue; // collectors produce lists

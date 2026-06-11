@@ -135,7 +135,7 @@ END_SECTION
 
 TOLERANCE_RELATIVE(1.0005)
 
-START_SECTION(void load(const String& filename, MapType& map))
+START_SECTION(void load(const std::string& filename, MapType& map))
 {
   MSExperiment exp;
   SqMassFile().load(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), exp);
@@ -174,7 +174,7 @@ END_SECTION
 TOLERANCE_ABSOLUTE(1e-5)
 TOLERANCE_RELATIVE(1+1e-5)
 
-START_SECTION(void store(const String& filename, MapType& map))
+START_SECTION(void store(const std::string& filename, MapType& map))
 {
   MSExperiment exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
@@ -229,7 +229,7 @@ START_SECTION(void store(const String& filename, MapType& map))
 }
 END_SECTION
 
-START_SECTION([EXTRA_LOSSY] void store(const String& filename, MapType& map))
+START_SECTION([EXTRA_LOSSY] void store(const std::string& filename, MapType& map))
 {
   MSExperiment exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
@@ -344,7 +344,7 @@ START_SECTION([EXTRA_LOSSY] void store(const String& filename, MapType& map))
 }
 END_SECTION
 
-START_SECTION([EXTRA_FULL_META] void store(const String& filename, MapType& map))
+START_SECTION([EXTRA_FULL_META] void store(const std::string& filename, MapType& map))
 {
   MSExperiment exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);

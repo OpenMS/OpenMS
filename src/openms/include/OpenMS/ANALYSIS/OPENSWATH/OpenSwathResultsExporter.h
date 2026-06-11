@@ -29,7 +29,7 @@ namespace OpenMS
   public:
     /// Write @p rows to @p filename using the selected output format.
     /// Empty exports are allowed and result in a header-only TSV or an empty Parquet table.
-    static void write(const String& filename,
+    static void write(const std::string& filename,
                       const std::vector<OpenSwathExportRow>& rows,
                       const OpenSwathResultsExportConfig& config);
   };

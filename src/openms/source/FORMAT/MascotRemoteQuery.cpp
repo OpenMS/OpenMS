@@ -112,18 +112,18 @@ namespace OpenMS
     bool use_proxy(param_.getValue("use_proxy").toBool());
     if (use_proxy)
     {
-      String proxy_host(param_.getValue("proxy_host").toString());
+      std::string proxy_host(param_.getValue("proxy_host").toString());
       Int proxy_port(param_.getValue("proxy_port"));
-      string proxy_url = proxy_host + ":" + String(proxy_port);
+      string proxy_url = proxy_host + ":" + StringUtils::toStr(proxy_port);
       curl_easy_setopt(curl, CURLOPT_PROXY, proxy_url.c_str());
       // SOCKS5 matches the original Qt implementation (QNetworkProxy::Socks5Proxy)
       curl_easy_setopt(curl, CURLOPT_PROXYTYPE, static_cast<long>(CURLPROXY_SOCKS5));
 
-      String proxy_username(param_.getValue("proxy_username").toString());
+      std::string proxy_username(param_.getValue("proxy_username").toString());
       if (!proxy_username.empty())
       {
         curl_easy_setopt(curl, CURLOPT_PROXYUSERNAME, proxy_username.c_str());
-        String proxy_password(param_.getValue("proxy_password").toString());
+        std::string proxy_password(param_.getValue("proxy_password").toString());
         curl_easy_setopt(curl, CURLOPT_PROXYPASSWORD, proxy_password.c_str());
       }
     }
@@ -174,7 +174,7 @@ namespace OpenMS
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK)
     {
-      error_message_ = String("Mascot HTTP GET failed: ") + curl_easy_strerror(res);
+      error_message_ =std::string("Mascot HTTP GET failed: ") + curl_easy_strerror(res);
       return {};
     }
 
@@ -182,7 +182,7 @@ namespace OpenMS
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
     if (http_code >= 400)
     {
-      error_message_ = String("Mascot server returned HTTP error ") + String(http_code) + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
+      error_message_ ="Mascot server returned HTTP error " + StringUtils::toStr(http_code) + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
       return {};
     }
 
@@ -217,7 +217,7 @@ namespace OpenMS
 
     if (res != CURLE_OK)
     {
-      error_message_ = String("Mascot HTTP POST failed: ") + curl_easy_strerror(res);
+      error_message_ =std::string("Mascot HTTP POST failed: ") + curl_easy_strerror(res);
       return {};
     }
 
@@ -225,7 +225,7 @@ namespace OpenMS
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
     if (http_code >= 400)
     {
-      error_message_ = String("Mascot server returned HTTP error ") + String(http_code) + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
+      error_message_ ="Mascot server returned HTTP error " + StringUtils::toStr(http_code) + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
       return {};
     }
 
@@ -443,23 +443,23 @@ namespace OpenMS
   string MascotRemoteQuery::removeHostName(const string& url) const
   {
     string result = url;
-    if (result.substr(0, 7) == "http://")
-      result = result.substr(7);
-    else if (result.substr(0, 8) == "https://")
-      result = result.substr(8);
+    if (StringUtils::substr(result, 0, 7) == "http://")
+      result = StringUtils::substr(result, 7);
+    else if (StringUtils::substr(result, 0, 8) == "https://")
+      result = StringUtils::substr(result, 8);
 
     string hostname = string(host_name_.c_str());
-    if (result.substr(0, hostname.size()) == hostname)
+    if (StringUtils::substr(result, 0, hostname.size()) == hostname)
     {
-      result = result.substr(hostname.size());
+      result = StringUtils::substr(result, hostname.size());
     }
 
     // Check for port suffix
     Int port = param_.getValue("host_port");
     string port_suffix = ":" + to_string(port);
-    if (result.substr(0, port_suffix.size()) == port_suffix)
+    if (StringUtils::substr(result, 0, port_suffix.size()) == port_suffix)
     {
-      result = result.substr(port_suffix.size());
+      result = StringUtils::substr(result, port_suffix.size());
     }
 
     // ensure path starts with /
@@ -468,7 +468,7 @@ namespace OpenMS
     return result;
   }
 
-  void MascotRemoteQuery::setQuerySpectra(const String& exp)
+  void MascotRemoteQuery::setQuerySpectra(const std::string& exp)
   {
     query_spectra_ = exp;
   }
@@ -493,12 +493,12 @@ namespace OpenMS
     return !error_message_.empty();
   }
 
-  const String& MascotRemoteQuery::getErrorMessage() const
+  const std::string& MascotRemoteQuery::getErrorMessage() const
   {
     return error_message_;
   }
 
-  String MascotRemoteQuery::getSearchIdentifier() const
+  std::string MascotRemoteQuery::getSearchIdentifier() const
   {
     return search_identifier_;
   }
@@ -527,15 +527,15 @@ namespace OpenMS
     requires_login_ = param_.getValue("login").toBool();
   }
 
-  String MascotRemoteQuery::getSearchIdentifierFromFilePath(const String& path) const
+  std::string MascotRemoteQuery::getSearchIdentifierFromFilePath(const std::string& path) const
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG
     std::cerr << "MascotRemoteQuery::getSearchIdentifierFromFilePath " << path << std::endl;
 #endif
     size_t pos = path.find_last_of("/\\");
-    String tmp = path.substr(pos + 1);
+    std::string tmp = StringUtils::substr(path, pos + 1);
     pos = tmp.find_last_of(".");
-    tmp = tmp.substr(1, pos - 1);
+    tmp = StringUtils::substr(tmp, 1, pos - 1);
 #ifdef MASCOTREMOTEQUERY_DEBUG
     std::cerr << "MascotRemoteQuery::getSearchIdentifierFromFilePath will return" << tmp << std::endl;
 #endif

@@ -35,7 +35,7 @@ namespace OpenMS
       if (!status.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      String("Failed to append value for ") + column, status.ToString());
+                                      std::string("Failed to append value for ") + column, status.ToString());
       }
     }
 
@@ -44,7 +44,7 @@ namespace OpenMS
       if (!status.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      String("Failed to reserve capacity for ") + column, status.ToString());
+                                      std::string("Failed to reserve capacity for ") + column, status.ToString());
       }
     }
 
@@ -56,7 +56,7 @@ namespace OpenMS
       if (!status.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      String("Failed to finish array for ") + name, status.ToString());
+                                      std::string("Failed to finish array for ") + name, status.ToString());
       }
       return array;
     }
@@ -73,7 +73,7 @@ namespace OpenMS
       }
     }
 
-    void appendOptionalString_(arrow::StringBuilder& builder, const String& value, const char* column)
+    void appendOptionalString_(arrow::StringBuilder& builder, const std::string& value, const char* column)
     {
       if (value.empty())
       {
@@ -85,13 +85,13 @@ namespace OpenMS
       }
     }
 
-    void appendBinary_(arrow::BinaryBuilder& builder, const String& value, const char* column)
+    void appendBinary_(arrow::BinaryBuilder& builder, const std::string& value, const char* column)
     {
       if (value.size() > static_cast<size_t>(std::numeric_limits<int32_t>::max()))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      String("Binary value for column ") + column + " exceeds Arrow int32 size limit (2 GB).",
-                                      String(value.size()));
+                                      std::string("Binary value for column ") + column + " exceeds Arrow int32 size limit (2 GB).",
+                                      StringUtils::toStr(value.size()));
       }
       appendOrThrow_(builder.Append(reinterpret_cast<const uint8_t*>(value.c_str()),
                                     static_cast<int32_t>(value.size())), column);
@@ -100,7 +100,7 @@ namespace OpenMS
     struct CompoundInfo
     {
       int64_t precursor_id = 0;
-      String modified_sequence;
+      std::string modified_sequence;
       int64_t precursor_charge = 0;
       int64_t precursor_decoy = 0;
     };
@@ -109,22 +109,22 @@ namespace OpenMS
     {
       int64_t transition_id = 0;
       int64_t precursor_id = 0;
-      String modified_sequence;
+      std::string modified_sequence;
       int64_t precursor_charge = 0;
       int64_t product_charge = 0;
       int64_t detecting_transition = 0;
       int64_t precursor_decoy = 0;
       int64_t product_decoy = 0;
       int64_t transition_ordinal = 0;
-      String transition_type;
-      String annotation;
+      std::string transition_type;
+      std::string annotation;
     };
 
-    int64_t parseOrAssignId_(const String& text, int64_t& next_id, std::unordered_set<int64_t>& used_ids)
+    int64_t parseOrAssignId_(const std::string& text, int64_t& next_id, std::unordered_set<int64_t>& used_ids)
     {
       try
       {
-        int64_t value = text.toInt64();
+        int64_t value = StringUtils::toInt64(text);
         if (used_ids.insert(value).second)
         {
           if (value >= next_id)
@@ -146,27 +146,27 @@ namespace OpenMS
       return next_id++;
     }
 
-    String buildAnnotation_(const String& transition_type, int64_t ordinal, int64_t charge)
+    std::string buildAnnotation_(const std::string& transition_type, int64_t ordinal, int64_t charge)
     {
       if (transition_type.empty() || ordinal < 0)
       {
         return "";
       }
-      String annotation = transition_type + String(ordinal);
+      std::string annotation = transition_type + StringUtils::toStr(ordinal);
       if (charge > 0)
       {
-        annotation += "^" + String(charge);
+        annotation += "^" + StringUtils::toStr(charge);
       }
       return annotation;
     }
 
-    String buildPrecursorAnnotation_(const String& native_id)
+    std::string buildPrecursorAnnotation_(const std::string& native_id)
     {
-      const String tag = "_Precursor_i";
+      const std::string tag = "_Precursor_i";
       const Size pos = native_id.rfind(tag);
-      if (pos != String::npos)
+      if (pos != std::string::npos)
       {
-        return native_id.substr(pos + 1);
+        return StringUtils::substr(native_id, pos + 1);
       }
       return "";
     }
@@ -175,9 +175,9 @@ namespace OpenMS
   class MSChromatogramParquetConsumerImpl
   {
   public:
-    MSChromatogramParquetConsumerImpl(const String& filename,
+    MSChromatogramParquetConsumerImpl(const std::string& filename,
                                       UInt64 run_id,
-                                      const String& source_file,
+                                      const std::string& source_file,
                                       const OpenSwath::LightTargetedExperiment& transition_exp) :
       filename_(filename),
       run_id_(run_id),
@@ -218,8 +218,8 @@ namespace OpenMS
 
     void consumeChromatogram(MSChromatogramParquetConsumer::ChromatogramType& c)
     {
-      const String native_id = c.getNativeID();
-      const bool is_precursor = native_id.hasSubstring("_Precursor_i");
+      const std::string native_id = c.getNativeID();
+      const bool is_precursor = StringUtils::hasSubstring(native_id, "_Precursor_i");
       const int64_t ms_level = is_precursor ? 1 : 2;
 
       appendOrThrow_(run_id_builder_.Append(static_cast<int64_t>(run_id_)), "RUN_ID");
@@ -227,8 +227,8 @@ namespace OpenMS
       appendOrThrow_(ms_level_builder_.Append(ms_level), "MS_LEVEL");
       if (is_precursor)
       {
-        const String precursor_annotation = buildPrecursorAnnotation_(native_id);
-        const String group_id = OpenSwathHelper::computeTransitionGroupId(native_id);
+        const std::string precursor_annotation = buildPrecursorAnnotation_(native_id);
+        const std::string group_id = OpenSwathHelper::computeTransitionGroupId(native_id);
         auto comp_it = compound_info_.find(group_id);
         if (comp_it != compound_info_.end())
         {
@@ -242,7 +242,7 @@ namespace OpenMS
         {
           // If we have an extracted ion chromatogram to write out to disk, we likely would want to know what precursor the XIC belongs to. Otherwise we could end up with a parquet file with a log of XICs but without any meta data to identify them.
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        String("Chromatogram native ID '") + native_id + "' looks like a precursor but no matching compound metadata entry was found. Please ensure the native ID is correct and that the transition library contains metadata for this precursor.", String());
+                                        std::string("Chromatogram native ID '") + native_id + "' looks like a precursor but no matching compound metadata entry was found. Please ensure the native ID is correct and that the transition library contains metadata for this precursor.", std::string{});
         }
 
         appendOrThrow_(transition_id_builder_.AppendNull(), "TRANSITION_ID");
@@ -275,7 +275,7 @@ namespace OpenMS
         {
           // Same comment as for the precursor case applies here: if we have a chromatogram to write out to disk, we likely would want to know what transition it belongs to. Otherwise we could end up with a parquet file with a log of chromatograms but without any meta data to identify them.
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        String("Chromatogram native ID '") + native_id + "' does not have a matching transition metadata entry. Please ensure the native ID is correct and that the transition library contains metadata for this transition.", String());
+                                        std::string("Chromatogram native ID '") + native_id + "' does not have a matching transition metadata entry. Please ensure the native ID is correct and that the transition library contains metadata for this transition.", std::string{});
         }
       }
 
@@ -322,23 +322,23 @@ namespace OpenMS
     }
 
   private:
-    String filename_;
+    std::string filename_;
     UInt64 run_id_{0};
-    String source_file_;
+    std::string source_file_;
     bool wrote_{false};
     void buildTransitionMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
     {
       // Build lookup tables for precursor- and transition-level metadata.
 
-      std::unordered_map<String, int64_t> precursor_ids;
+      std::unordered_map<std::string, int64_t> precursor_ids;
       precursor_ids.reserve(transition_exp.getCompounds().size());
 
-      std::unordered_map<String, int64_t> precursor_decoy;
+      std::unordered_map<std::string, int64_t> precursor_decoy;
       precursor_decoy.reserve(transition_exp.getCompounds().size());
 
       for (const auto& compound : transition_exp.getCompounds())
       {
-        const String compound_id = compound.id;
+        const std::string compound_id = compound.id;
         const int64_t precursor_id = parseOrAssignId_(compound_id, next_precursor_id_, used_precursor_ids_);
         precursor_ids[compound_id] = precursor_id;
         precursor_decoy[compound_id] = 0;
@@ -353,8 +353,8 @@ namespace OpenMS
 
       for (const auto& transition : transition_exp.getTransitions())
       {
-        const String transition_name = transition.transition_name;
-        const String peptide_ref = transition.peptide_ref;
+        const std::string transition_name = transition.transition_name;
+        const std::string peptide_ref = transition.peptide_ref;
 
         int64_t transition_id = 0;
         auto it = transition_ids_.find(transition_name);
@@ -433,8 +433,8 @@ namespace OpenMS
       const int64_t rt_compression = use_lossy_compression ? 5 : 1;
       const int64_t intensity_compression = use_lossy_compression ? 6 : 1;
 
-      String rt_encoded;
-      String int_encoded;
+      std::string rt_encoded;
+      std::string int_encoded;
       if (rt_data.empty())
       {
         appendBinary_(rt_data_builder_, rt_encoded, "RT_DATA");
@@ -457,11 +457,11 @@ namespace OpenMS
         npconfig_int.numpressErrorTolerance = -1.0;
         npconfig_int.setCompression("slof");
 
-        String rt_uncompressed;
+        std::string rt_uncompressed;
         MSNumpressCoder().encodeNPRaw(rt_data, rt_uncompressed, npconfig_mz);
         ZlibCompression::compressString(rt_uncompressed, rt_encoded);
 
-        String int_uncompressed;
+        std::string int_uncompressed;
         MSNumpressCoder().encodeNPRaw(intensity_data, int_uncompressed, npconfig_int);
         ZlibCompression::compressString(int_uncompressed, int_encoded);
       }
@@ -655,9 +655,9 @@ namespace OpenMS
       }
     }
 
-    std::unordered_map<String, CompoundInfo> compound_info_;
-    std::unordered_map<String, TransitionInfo> transition_info_;
-    std::unordered_map<String, int64_t> transition_ids_;
+    std::unordered_map<std::string, CompoundInfo> compound_info_;
+    std::unordered_map<std::string, TransitionInfo> transition_info_;
+    std::unordered_map<std::string, int64_t> transition_ids_;
     // Auto-assignment state for when no transition experiment is provided.
     int64_t next_precursor_id_ = 1;
     int64_t next_transition_id_ = 1;
@@ -696,9 +696,9 @@ namespace OpenMS
     std::shared_ptr<arrow::Schema> schema_;
   };
 
-  MSChromatogramParquetConsumer::MSChromatogramParquetConsumer(const String& filename,
+  MSChromatogramParquetConsumer::MSChromatogramParquetConsumer(const std::string& filename,
                                                                UInt64 run_id,
-                                                               const String& source_file,
+                                                               const std::string& source_file,
                                                                const OpenSwath::LightTargetedExperiment& transition_exp)
   {
     impl_ = std::make_unique<MSChromatogramParquetConsumerImpl>(filename, run_id, source_file, transition_exp);

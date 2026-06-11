@@ -9,10 +9,10 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <string>
 
 namespace OpenMS
 {
-  class String;
 
   /**
     @brief Base class for all classes that want to report their progress.
@@ -52,7 +52,7 @@ public:
     class OPENMS_DLLAPI ProgressLoggerImpl
     {
 public:
-      virtual void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const = 0;
+      virtual void startProgress(const SignedSize begin, const SignedSize end, const std::string& label, const int current_recursion_depth) const = 0;
       virtual void setProgress(const SignedSize value, const int current_recursion_depth) const = 0;
       virtual SignedSize nextProgress() const = 0; //< does not print/show anything; returns current progress
       /// finalize; usually stops the clock and prints a summary; 
@@ -87,7 +87,7 @@ public:
 
       @note Make sure to call setLogType first!
     */
-    void startProgress(SignedSize begin, SignedSize end, const String& label) const;
+    void startProgress(SignedSize begin, SignedSize end, const std::string& label) const;
 
     /// Sets the current progress
     void setProgress(SignedSize value) const;

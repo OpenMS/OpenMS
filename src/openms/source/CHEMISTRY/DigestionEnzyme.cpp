@@ -25,10 +25,10 @@ namespace OpenMS
   {
   }
 
-  DigestionEnzyme::DigestionEnzyme(const String& name,
-                                   const String& cleavage_regex,
-                                   const std::set<String>& synonyms,
-                                   String regex_description) :
+  DigestionEnzyme::DigestionEnzyme(const std::string& name,
+                                   const std::string& cleavage_regex,
+                                   const std::set<std::string>& synonyms,
+                                   std::string regex_description) :
     name_(name),
     cleavage_regex_(cleavage_regex),
     synonyms_(synonyms),
@@ -36,12 +36,12 @@ namespace OpenMS
   {
   }
 
-  DigestionEnzyme::DigestionEnzyme(const String& name,
-                                   String cut_before,
-                                   const String& nocut_after,
-                                   String sense,
-                                   const std::set<String>& synonyms,
-                                   String regex_description) :
+  DigestionEnzyme::DigestionEnzyme(const std::string& name,
+                                   std::string cut_before,
+                                   const std::string& nocut_after,
+                                   std::string sense,
+                                   const std::set<std::string>& synonyms,
+                                   std::string regex_description) :
       name_(name),
       synonyms_(synonyms),
       regex_description_(std::move(regex_description))
@@ -56,13 +56,13 @@ namespace OpenMS
           OPENMS_PRETTY_FUNCTION,
           "No cleavage position given when trying to construct a DigestionEnzyme.");
     }
-    else if (!cut_before.hasSuffix("X"))
+    else if (!StringUtils::hasSuffix(cut_before, "X"))
     {
       //TODO think about this
       cut_before = cut_before + "X";
     }
     cleavage_regex_ = "";
-    if (sense.toLower() == "c")
+    if (StringUtils::toLower(sense) == "c")
     {
       cleavage_regex_ += "(?<=[" + cut_before + "]";
       if (!nocut_after.empty())
@@ -70,7 +70,7 @@ namespace OpenMS
         cleavage_regex_ += "(?!" + nocut_after + "])";
       }
     }
-    else if (sense.toLower() == "n")
+    else if (StringUtils::toLower(sense) == "n")
     {
       if (!nocut_after.empty())
       {
@@ -90,47 +90,47 @@ namespace OpenMS
 
   DigestionEnzyme::~DigestionEnzyme() = default;
 
-  void DigestionEnzyme::setName(const String& name)
+  void DigestionEnzyme::setName(const std::string& name)
   {
     name_ = name;
   }
 
-  const String& DigestionEnzyme::getName() const
+  const std::string& DigestionEnzyme::getName() const
   {
     return name_;
   }
 
-  void DigestionEnzyme::setSynonyms(const set<String>& synonyms)
+  void DigestionEnzyme::setSynonyms(const set<std::string>& synonyms)
   {
     synonyms_ = synonyms;
   }
 
-  void DigestionEnzyme::addSynonym(const String& synonym)
+  void DigestionEnzyme::addSynonym(const std::string& synonym)
   {
     synonyms_.insert(synonym);
   }
 
-  const set<String>& DigestionEnzyme::getSynonyms() const
+  const set<std::string>& DigestionEnzyme::getSynonyms() const
   {
     return synonyms_;
   }
 
-  void DigestionEnzyme::setRegEx(const String& cleavage_regex)
+  void DigestionEnzyme::setRegEx(const std::string& cleavage_regex)
   {
     cleavage_regex_ = cleavage_regex;
   }
 
-  const String& DigestionEnzyme::getRegEx() const
+  const std::string& DigestionEnzyme::getRegEx() const
   {
     return cleavage_regex_;
   }
 
-  void DigestionEnzyme::setRegExDescription(const String& value)
+  void DigestionEnzyme::setRegExDescription(const std::string& value)
   {
     regex_description_ = value;
   }
 
-  const String& DigestionEnzyme::getRegExDescription() const
+  const std::string& DigestionEnzyme::getRegExDescription() const
   {
     return regex_description_;
   }
@@ -143,12 +143,12 @@ namespace OpenMS
            regex_description_ == enzyme.regex_description_;
   }
 
-  bool DigestionEnzyme::operator==(const String& cleavage_regex) const
+  bool DigestionEnzyme::operator==(const std::string& cleavage_regex) const
   {
     return cleavage_regex_ == cleavage_regex;
   }
 
-  bool DigestionEnzyme::operator!=(const String& cleavage_regex) const
+  bool DigestionEnzyme::operator!=(const std::string& cleavage_regex) const
   {
     return cleavage_regex_ != cleavage_regex;
   }
@@ -163,24 +163,24 @@ namespace OpenMS
     return this->getName() < enzyme.getName();
   }
 
-  bool DigestionEnzyme::setValueFromFile(const String& key, const String& value)
+  bool DigestionEnzyme::setValueFromFile(const std::string& key, const std::string& value)
   {
-    if (key.hasSuffix(":Name"))
+    if (StringUtils::hasSuffix(key, ":Name"))
     {
       setName(value);
       return true;
     }
-    if (key.hasSuffix(":RegEx"))
+    if (StringUtils::hasSuffix(key, ":RegEx"))
     {
       setRegEx(value);
       return true;
     }
-    if (key.hasSuffix(":RegExDescription"))
+    if (StringUtils::hasSuffix(key, ":RegExDescription"))
     {
       setRegExDescription(value);
       return true;
     }
-    if (key.hasSubstring(":Synonyms:"))
+    if (StringUtils::hasSubstring(key, ":Synonyms:"))
     {
       addSynonym(value);
       return true;

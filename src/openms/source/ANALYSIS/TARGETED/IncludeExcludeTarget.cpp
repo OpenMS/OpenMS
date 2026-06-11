@@ -64,32 +64,32 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  void IncludeExcludeTarget::setName(const String & name)
+  void IncludeExcludeTarget::setName(const std::string & name)
   {
     name_ = name;
   }
 
-  const String & IncludeExcludeTarget::getName() const
+  const std::string & IncludeExcludeTarget::getName() const
   {
     return name_;
   }
 
-  void IncludeExcludeTarget::setPeptideRef(const String & peptide_ref)
+  void IncludeExcludeTarget::setPeptideRef(const std::string & peptide_ref)
   {
     peptide_ref_ = peptide_ref;
   }
 
-  const String & IncludeExcludeTarget::getPeptideRef() const
+  const std::string & IncludeExcludeTarget::getPeptideRef() const
   {
     return peptide_ref_;
   }
 
-  void IncludeExcludeTarget::setCompoundRef(const String & compound_ref)
+  void IncludeExcludeTarget::setCompoundRef(const std::string & compound_ref)
   {
     compound_ref_ = compound_ref;
   }
 
-  const String & IncludeExcludeTarget::getCompoundRef() const
+  const std::string & IncludeExcludeTarget::getCompoundRef() const
   {
     return compound_ref_;
   }

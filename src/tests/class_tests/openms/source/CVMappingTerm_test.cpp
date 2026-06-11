@@ -233,14 +233,14 @@ START_SECTION((bool operator != (const CVMappingTerm& rhs) const))
 }
 END_SECTION
 
-START_SECTION((void setAccession(const String &accession)))
+START_SECTION((void setAccession(const std::string &accession)))
 {
   ptr->setAccession("my_test_accession");
 	TEST_STRING_EQUAL(ptr->getAccession(), "my_test_accession")
 }
 END_SECTION
 
-START_SECTION((const String& getAccession() const ))
+START_SECTION((const std::string& getAccession() const ))
 {
   NOT_TESTABLE
 }
@@ -276,14 +276,14 @@ START_SECTION((bool getUseTerm() const ))
 }
 END_SECTION
 
-START_SECTION((void setTermName(const String &term_name)))
+START_SECTION((void setTermName(const std::string &term_name)))
 {
   ptr->setTermName("my_test_termname");
 	TEST_EQUAL(ptr->getTermName(), "my_test_termname")
 }
 END_SECTION
 
-START_SECTION((const String& getTermName() const ))
+START_SECTION((const std::string& getTermName() const ))
 {
   NOT_TESTABLE
 }
@@ -319,14 +319,14 @@ START_SECTION((bool getAllowChildren() const ))
 }
 END_SECTION
 
-START_SECTION((void setCVIdentifierRef(const String &cv_identifier_ref)))
+START_SECTION((void setCVIdentifierRef(const std::string &cv_identifier_ref)))
 {
   ptr->setCVIdentifierRef("my_test_cvidentifierref");
 	TEST_EQUAL(ptr->getCVIdentifierRef(), "my_test_cvidentifierref")
 }
 END_SECTION
 
-START_SECTION((const String& getCVIdentifierRef() const ))
+START_SECTION((const std::string& getCVIdentifierRef() const ))
 {
   NOT_TESTABLE
 }

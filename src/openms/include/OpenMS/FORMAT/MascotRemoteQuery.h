@@ -48,7 +48,7 @@ public:
     //@}
 
     /// sets the query spectra, given in MGF file format
-    OPENMS_DLLAPI void setQuerySpectra(const String& exp);
+    OPENMS_DLLAPI void setQuerySpectra(const std::string& exp);
 
     /// returns the Mascot XML response which contains the identifications
     OPENMS_DLLAPI const std::string& getMascotXMLResponse() const;
@@ -60,10 +60,10 @@ public:
     OPENMS_DLLAPI bool hasError() const;
 
     /// returns the error message, if hasError can be used to check whether an error has occurred
-    OPENMS_DLLAPI const String& getErrorMessage() const;
+    OPENMS_DLLAPI const std::string& getErrorMessage() const;
 
     /// returns the search number
-    OPENMS_DLLAPI String getSearchIdentifier() const;
+    OPENMS_DLLAPI std::string getSearchIdentifier() const;
 
     /// request export of decoy summary and decoys (note: internal decoy search must be enabled in the MGF file passed to mascot)
     OPENMS_DLLAPI void setExportDecoys(const bool b);
@@ -96,30 +96,30 @@ private:
     std::string buildUrl(const std::string& path) const;
 
     /// Extract search identifier from .dat file path
-    OPENMS_DLLAPI String getSearchIdentifierFromFilePath(const String& path) const;
+    OPENMS_DLLAPI std::string getSearchIdentifierFromFilePath(const std::string& path) const;
 
     /// Remove host name information from a url
     std::string removeHostName(const std::string& url) const;
 
     // Input / Output data
-    String query_spectra_;
+    std::string query_spectra_;
     std::string mascot_xml_;
     std::string mascot_decoy_xml_;
 
     // Internal data structures
-    String error_message_;
-    String search_identifier_;
+    std::string error_message_;
+    std::string search_identifier_;
 
     /// Path on mascot server
-    String server_path_;
+    std::string server_path_;
     /// Hostname of the mascot server
-    String host_name_;
+    std::string host_name_;
     /// Login required
     bool requires_login_ = false;
     /// Use SSL connection
     bool use_ssl_ = false;
     /// boundary string that will be embedded into the HTTP requests
-    String boundary_;
+    std::string boundary_;
     /// Timeout after these many seconds
     Int to_ = 1500;
 

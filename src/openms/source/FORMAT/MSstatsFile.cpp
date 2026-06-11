@@ -15,11 +15,11 @@
 using namespace std;
 using namespace OpenMS;
 
-const String MSstatsFile::na_string_ = "NA";
+const std::string MSstatsFile::na_string_ = "NA";
 
 void MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection,
-                                             const String& bioreplicate,
-                                             const String& condition)
+                                             const std::string& bioreplicate,
+                                             const std::string& condition)
 {
   // Sample Section must contain the column that contains the condition used for MSstats
   if (!sampleSection.hasFactor(condition))
@@ -35,9 +35,9 @@ void MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSection& sa
 }
 
 void MSstatsFile::checkConditionISO_(const ExperimentalDesign::SampleSection& sampleSection,
-                                             const String& bioreplicate,
-                                             const String& condition,
-                                             const String& mixture)
+                                             const std::string& bioreplicate,
+                                             const std::string& condition,
+                                             const std::string& mixture)
 {
   checkConditionLFQ_(sampleSection, bioreplicate, condition);
 
@@ -54,7 +54,7 @@ void MSstatsFile::checkConditionISO_(const ExperimentalDesign::SampleSection& sa
 // Cant we just get this stuff on the fly?
 // We go through the features anyway again.
 MSstatsFile::AggregatedConsensusInfo MSstatsFile::aggregateInfo_(const ConsensusMap& consensus_map,
-                                                                                 const std::vector<String>& spectra_paths)
+                                                                                 const std::vector<std::string>& spectra_paths)
 {
   MSstatsFile::AggregatedConsensusInfo aggregatedInfo; //results
   const auto &column_headers = consensus_map.getColumnHeaders(); // needed for label_id
@@ -62,7 +62,7 @@ MSstatsFile::AggregatedConsensusInfo MSstatsFile::aggregateInfo_(const Consensus
   for (const ConsensusFeature &consensus_feature : consensus_map)
   {
 
-    vector<String> filenames;
+    vector<std::string> filenames;
     vector<MSstatsFile::Intensity> intensities;
     vector<MSstatsFile::Coordinate> retention_times;
     vector<unsigned> cf_labels;
@@ -101,15 +101,15 @@ MSstatsFile::AggregatedConsensusInfo MSstatsFile::aggregateInfo_(const Consensus
 //@todo LineType should be a template only for the line, not for the whole
 // mapping structure. More exact type matching/info then.
 template <class LineType>
-void MSstatsFile::constructFile_(const String& retention_time_summarization_method,
+void MSstatsFile::constructFile_(const std::string& retention_time_summarization_method,
                                          const bool rt_summarization_manual,
                                          TextFile& csv_out,
-                                         const std::set<String>& peptideseq_quantifyable,
+                                         const std::set<std::string>& peptideseq_quantifyable,
                                          LineType& peptideseq_to_prefix_to_intensities) const
 
 {
   // sanity check that the triples (peptide_sequence, precursor_charge, run) only appears once
-  set<tuple<String, String, String> > peptideseq_precursor_charge_run;
+  set<tuple<std::string, std::string, std::string> > peptideseq_precursor_charge_run;
 
   for (const auto &peptideseq : peptideseq_quantifyable)
   {
@@ -142,7 +142,7 @@ void MSstatsFile::constructFile_(const String& retention_time_summarization_meth
         {
           //RT, common prefix items, intensity, "unique ID (file+spectrumID)"
           csv_out.addLine(
-              String(get<1>(ity_rt_file)) + ',' + line.first.toString() + ',' + String(get<0>(ity_rt_file)) + ','
+              StringUtils::toStr(get<1>(ity_rt_file)) + ',' + line.first.toString() + ',' + StringUtils::toStr(get<0>(ity_rt_file)) + ','
               + quote_ + get<2>(ity_rt_file) + quote_);
         }
       }
@@ -169,21 +169,21 @@ void MSstatsFile::constructFile_(const String& retention_time_summarization_meth
         //common prefix items, aggregated intensity, "unique ID (file of first spectrum in the set of 'same')"
         //@todo we could collect all spectrum references contributing to this intensity instead
         csv_out.addLine(
-            line.first.toString() + delim_ + String(intensity) + delim_ + quote_ +
+            line.first.toString() + delim_ + StringUtils::toStr(intensity) + delim_ + quote_ +
             get<2>(*line.second.begin()) + quote_);
       }
     }
   }
 }
 
-void MSstatsFile::storeLFQ(const String& filename,
+void MSstatsFile::storeLFQ(const std::string& filename,
                                    const ConsensusMap& consensus_map,
                                    const ExperimentalDesign& design,
                                    const StringList& reannotate_filenames,
                                    const bool is_isotope_label_type,
-                                   const String& bioreplicate,
-                                   const String& condition,
-                                   const String& retention_time_summarization_method,
+                                   const std::string& bioreplicate,
+                                   const std::string& condition,
+                                   const std::string& retention_time_summarization_method,
                                    const bool remove_shared_peptides)
 {
   // Experimental Design file
@@ -197,16 +197,16 @@ void MSstatsFile::storeLFQ(const String& filename,
   checkConditionLFQ_(sampleSection, bioreplicate, condition);
 
   // assemble lookup table for run (each combination of pathname and fraction is a run)
-  std::map< pair< String, unsigned>, unsigned > run_map{};
+  std::map< pair< std::string, unsigned>, unsigned > run_map{};
   assembleRunMap_(run_map, design);
 
   // Maps run in MSstats input to run for OpenMS
   map< unsigned, unsigned > msstats_run_to_openms_fractiongroup;
 
   // Mapping of filepath and label to sample and fraction
-  map< pair< String, unsigned >, unsigned> path_label_to_sample = design.getPathLabelToSampleMapping(true);
-  map< pair< String, unsigned >, unsigned> path_label_to_fraction = design.getPathLabelToFractionMapping(true);
-  map< pair< String, unsigned >, unsigned> path_label_to_fractiongroup = design.getPathLabelToFractionGroupMapping(true);
+  map< pair< std::string, unsigned >, unsigned> path_label_to_sample = design.getPathLabelToSampleMapping(true);
+  map< pair< std::string, unsigned >, unsigned> path_label_to_fraction = design.getPathLabelToFractionMapping(true);
+  map< pair< std::string, unsigned >, unsigned> path_label_to_fractiongroup = design.getPathLabelToFractionGroupMapping(true);
 
   // The Retention Time is additionally written to the output as soon as the user wants to resolve multiple peptides manually
   const bool rt_summarization_manual(retention_time_summarization_method == "manual");
@@ -222,10 +222,10 @@ void MSstatsFile::storeLFQ(const String& filename,
   ExperimentalDesign::MSFileSection msfile_section = design.getMSFileSection();
 
   // Extract the Spectra Filepath column from the design
-  std::vector<String> design_filenames{};
+  std::vector<std::string> design_filenames{};
   for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
   {
-    const String fn = File::basename(f.path);
+    const std::string fn = File::basename(f.path);
     design_filenames.push_back(fn);
   }
 
@@ -234,8 +234,8 @@ void MSstatsFile::storeLFQ(const String& filename,
 
   //vector< BaseFeature> features{};
   //vector< BaseFeature> features{};
-  vector< String > spectra_paths;
-  vector< String > raw_spectra_paths;
+  vector< std::string > spectra_paths;
+  vector< std::string > raw_spectra_paths;
 
   //features.reserve(consensus_map.size());
 
@@ -266,7 +266,7 @@ void MSstatsFile::storeLFQ(const String& filename,
   }
 
   // --- NEW FIX: Extract only the active paths that weren't removed by FileFilter ---
-  std::vector<String> active_spectra_paths;
+  std::vector<std::string> active_spectra_paths;
   for (const auto& kv : consensus_map.getColumnHeaders())
   {
     active_spectra_paths.push_back(spectra_paths[kv.first]);
@@ -299,13 +299,13 @@ void MSstatsFile::storeLFQ(const String& filename,
   // The output file of the MSstats converter
   TextFile csv_out;
   csv_out.addLine(
-    String(rt_summarization_manual ? "RetentionTime,": "") +
+    std::string(rt_summarization_manual ? "RetentionTime,": "") +
     "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,"
     "ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," +
-    String(has_fraction ? "Fraction,": "") + "Intensity,Reference");
+    std::string(has_fraction ? "Fraction,": "") + "Intensity,Reference");
 
   // From the MSstats user guide: endogenous peptides (use "L") or labeled reference peptides (use "H").
-  String isotope_label_type = "L";
+  std::string isotope_label_type = "L";
   if (is_isotope_label_type) //@todo remove? not sure if this is correct. I think DDA LFQ is always "L"
   {
     // use the channel_id information (?)
@@ -323,7 +323,7 @@ void MSstatsFile::storeLFQ(const String& filename,
   if (consensus_map.getProteinIdentifications().size() > 1)
   {
     OPENMS_LOG_WARN << "Found " +
-    String(consensus_map.getProteinIdentifications().size()) +
+    StringUtils::toStr(consensus_map.getProteinIdentifications().size()) +
     " protein runs in consensusXML. Using first one only to parse inference data for now." << std::endl;
   }
 
@@ -342,10 +342,10 @@ void MSstatsFile::storeLFQ(const String& filename,
   const IndProtGrps& ind_prots = consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins();
 
   // Map protein accession to its indistinguishable group
-  std::unordered_map< String, const IndProtGrp* > accession_to_group = getAccessionToGroupMap_(ind_prots);
+  std::unordered_map< std::string, const IndProtGrp* > accession_to_group = getAccessionToGroupMap_(ind_prots);
 
   // To aggregate/uniquify on peptide sequence-level and save if a peptide is quantifyable
-  std::set<String> peptideseq_quantifyable; //set for deterministic ordering
+  std::set<std::string> peptideseq_quantifyable; //set for deterministic ordering
 
   Size n_shared_peptides_dropped = 0;
 
@@ -354,7 +354,7 @@ void MSstatsFile::storeLFQ(const String& filename,
   // - We need to map peptide sequences to full features, because then we can ignore peptides
   //   that are mapped to multiple proteins.
   // - We also need to map to the intensities, such that we combine intensities over multiple retention times.
-  map< String, map< MSstatsLine_, set< tuple<Intensity, Coordinate, String> > > > peptideseq_to_prefix_to_intensities;
+  map< std::string, map< MSstatsLine_, set< tuple<Intensity, Coordinate, std::string> > > > peptideseq_to_prefix_to_intensities;
 
   for (Size i = 0; i < aggregatedInfo.features.size(); ++i)
   {
@@ -372,11 +372,11 @@ void MSstatsFile::storeLFQ(const String& filename,
 
         //TODO Really double check with Meena Choi (MSStats author) or make it an option! I can't find any info
         // on what is correct. For TMT we include them (since it is necessary) (see occurrence above as well when map is built!)
-        const String & sequence = pep_hit.getSequence().toString(); // to modified string
+        const std::string & sequence = pep_hit.getSequence().toString(); // to modified string
 
         // check if all referenced protein accessions are part of the same indistinguishable group
         // if so, we mark the sequence as quantifiable
-        std::set<String> accs = pep_hit.extractProteinAccessionsSet();
+        std::set<std::string> accs = pep_hit.extractProteinAccessionsSet();
 
         //Note: In general as long as we only support merged proteins across conditions,
         // we check if the map is already set at this sequence since
@@ -394,10 +394,10 @@ void MSstatsFile::storeLFQ(const String& filename,
         const Int precursor_charge = pep_hit.getCharge();
 
         // Unused for DDA data anyway
-        String fragment_ion = na_string_;
-        String frag_charge = "0";
+        std::string fragment_ion = na_string_;
+        std::string frag_charge = "0";
 
-        String accession  = ListUtils::concatenate(accs,accdelim_);
+        std::string accession  = ListUtils::concatenate(accs, std::string(1, accdelim_));
         if (accession.empty())
         {
           accession = na_string_; //shouldn't really matter since we skip unquantifiable peptides
@@ -405,16 +405,16 @@ void MSstatsFile::storeLFQ(const String& filename,
         // Write new line for each run
         for (Size j = 0; j < aggregatedInfo.consensus_feature_filenames[i].size(); j++)
         {
-          const String &current_filename = aggregatedInfo.consensus_feature_filenames[i][j];
+          const std::string &current_filename = aggregatedInfo.consensus_feature_filenames[i][j];
           const Intensity intensity(aggregatedInfo.consensus_feature_intensities[i][j]);
           const Coordinate retention_time(aggregatedInfo.consensus_feature_retention_times[i][j]);
           const unsigned label(aggregatedInfo.consensus_feature_labels[i][j]);
 
-          const pair< String, unsigned> tpl1 = make_pair(current_filename, label);
+          const pair< std::string, unsigned> tpl1 = make_pair(current_filename, label);
           const unsigned sample_idx = path_label_to_sample[tpl1];
           const unsigned fraction = path_label_to_fraction[tpl1];
 
-          const pair< String, unsigned> tpl2 = make_pair(current_filename, fraction);
+          const pair< std::string, unsigned> tpl2 = make_pair(current_filename, fraction);
 
           // Resolve run
           const unsigned run = run_map[tpl2];  // MSstats run according to the file table
@@ -428,16 +428,16 @@ void MSstatsFile::storeLFQ(const String& filename,
                   has_fraction,
                   accession,
                   sequence,
-                  precursor_charge,
+                  StringUtils::toStr(precursor_charge),
                   fragment_ion,
                   frag_charge,
                   isotope_label_type,
                   sampleSection.getFactorValue(sample_idx, condition),
                   sampleSection.getFactorValue(sample_idx, bioreplicate),
-                  String(run),
-                  (has_fraction ? String(fraction) : "")
+                  StringUtils::toStr(run),
+                  (has_fraction ? StringUtils::toStr(fraction) : "")
           );
-          tuple<Intensity, Coordinate, String> intensity_retention_time = make_tuple(intensity, retention_time, current_filename);
+          tuple<Intensity, Coordinate, std::string> intensity_retention_time = make_tuple(intensity, retention_time, current_filename);
           peptideseq_to_prefix_to_intensities[sequence][prefix].insert(intensity_retention_time);
         }
       }
@@ -455,8 +455,8 @@ void MSstatsFile::storeLFQ(const String& filename,
   // Print the run mapping between MSstats and OpenMS
   for (const auto& run_mapping : msstats_run_to_openms_fractiongroup)
   {
-    cout << "MSstats run " << String(run_mapping.first)
-         << " corresponds to OpenMS fraction group " << String(run_mapping.second) << endl;
+    cout << "MSstats run " << StringUtils::toStr(run_mapping.first)
+         << " corresponds to OpenMS fraction group " << StringUtils::toStr(run_mapping.second) << endl;
   }
 
   constructFile_(retention_time_summarization_method,
@@ -469,14 +469,14 @@ void MSstatsFile::storeLFQ(const String& filename,
   csv_out.store(filename);
 }
 
-void MSstatsFile::storeISO(const String& filename,
+void MSstatsFile::storeISO(const std::string& filename,
                                    const ConsensusMap& consensus_map,
                                    const ExperimentalDesign& design,
                                    const StringList& reannotate_filenames,
-                                   const String& bioreplicate,
-                                   const String& condition,
-                                   const String& mixture,
-                                   const String& retention_time_summarization_method,
+                                   const std::string& bioreplicate,
+                                   const std::string& condition,
+                                   const std::string& mixture,
+                                   const std::string& retention_time_summarization_method,
                                    const bool remove_shared_peptides)
 {
   // Experimental Design file
@@ -495,7 +495,7 @@ void MSstatsFile::storeISO(const String& filename,
   if (consensus_map.getProteinIdentifications().size() > 1)
   {
     OPENMS_LOG_WARN << "Found " +
-                       String(consensus_map.getProteinIdentifications().size()) +
+                       StringUtils::toStr(consensus_map.getProteinIdentifications().size()) +
                        " protein runs in consensusXML. Using first one only to parse inference data for now." << std::endl;
   }
 
@@ -508,9 +508,9 @@ void MSstatsFile::storeISO(const String& filename,
   map< unsigned, unsigned > msstats_run_to_openms_fractiongroup;
 
   // Mapping of filepath and label to sample and fraction
-  map< pair< String, unsigned >, unsigned> path_label_to_sample = design.getPathLabelToSampleMapping(true);
-  map< pair< String, unsigned >, unsigned> path_label_to_fraction = design.getPathLabelToFractionMapping(true);
-  map< pair< String, unsigned >, unsigned> path_label_to_fractiongroup = design.getPathLabelToFractionGroupMapping(true);
+  map< pair< std::string, unsigned >, unsigned> path_label_to_sample = design.getPathLabelToSampleMapping(true);
+  map< pair< std::string, unsigned >, unsigned> path_label_to_fraction = design.getPathLabelToFractionMapping(true);
+  map< pair< std::string, unsigned >, unsigned> path_label_to_fractiongroup = design.getPathLabelToFractionGroupMapping(true);
 
   // The Retention Time is additionally written to the output as soon as the user wants to resolve multiple peptides manually
   bool rt_summarization_manual(retention_time_summarization_method == "manual");
@@ -526,18 +526,18 @@ void MSstatsFile::storeISO(const String& filename,
   ExperimentalDesign::MSFileSection msfile_section = design.getMSFileSection();
 
   // Extract the Spectra Filepath column from the design
-  std::vector<String> design_filenames;
+  std::vector<std::string> design_filenames;
   for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
   {
-    const String fn = File::basename(f.path);
+    const std::string fn = File::basename(f.path);
     design_filenames.push_back(fn);
   }
 
   vector< BaseFeature> features;
   features.reserve(consensus_map.size());
 
-  vector< String > spectra_paths;
-  vector< String > raw_spectra_paths;
+  vector< std::string > spectra_paths;
+  vector< std::string > raw_spectra_paths;
 
   if (reannotate_filenames.empty())
   {
@@ -566,7 +566,7 @@ void MSstatsFile::storeISO(const String& filename,
   }
 
   // --- NEW FIX: Extract only the active paths that weren't removed by FileFilter ---
-  std::vector<String> active_spectra_paths;
+  std::vector<std::string> active_spectra_paths;
   for (const auto& kv : consensus_map.getColumnHeaders())
   {
     active_spectra_paths.push_back(spectra_paths[kv.first]);
@@ -598,7 +598,7 @@ void MSstatsFile::storeISO(const String& filename,
 
   // The output file of the MSstatsConverter
   TextFile csv_out;
-  csv_out.addLine(String(rt_summarization_manual ? "RetentionTime,": "") +
+  csv_out.addLine(std::string(rt_summarization_manual ? "RetentionTime,": "") +
     "ProteinName,PeptideSequence,Charge,Channel,Condition,BioReplicate,Run,Mixture,TechRepMixture,Fraction,Intensity,Reference");
 
   // We quantify indistinguishable groups with one (corner case) or multiple proteins.
@@ -608,9 +608,9 @@ void MSstatsFile::storeISO(const String& filename,
   const IndProtGrps& ind_prots = consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins();
 
   // Map protein accession to its indistinguishable group
-  std::unordered_map< String, const IndProtGrp* > accession_to_group = getAccessionToGroupMap_(ind_prots);
+  std::unordered_map< std::string, const IndProtGrp* > accession_to_group = getAccessionToGroupMap_(ind_prots);
 
-  std::set<String> peptideseq_quantifyable; //set for deterministic ordering
+  std::set<std::string> peptideseq_quantifyable; //set for deterministic ordering
 
   Size n_shared_peptides_dropped = 0;
 
@@ -618,7 +618,7 @@ void MSstatsFile::storeISO(const String& filename,
   // We need to map peptide sequences to full features, because then we can ignore peptides
   // that are mapped to multiple proteins. We also need to map to the
   // intensities, such that we combine intensities over multiple retention times.
-  map< String, map< MSstatsTMTLine_, set< tuple<Intensity, Coordinate, String> > > > peptideseq_to_prefix_to_intensities;
+  map< std::string, map< MSstatsTMTLine_, set< tuple<Intensity, Coordinate, std::string> > > > peptideseq_to_prefix_to_intensities;
 
   for (Size i = 0; i < AggregatedInfo.features.size(); ++i)
   {
@@ -626,10 +626,10 @@ void MSstatsFile::storeISO(const String& filename,
 
     for (const PeptideIdentification &pep_id : base_feature.getPeptideIdentifications())
     {
-      String nativeID = "NONATIVEID";
+      std::string nativeID = "NONATIVEID";
       if (pep_id.metaValueExists("spectrum_reference"))
       {
-        nativeID = pep_id.getMetaValue("spectrum_reference");
+        nativeID = StringUtils::toStr(pep_id.getMetaValue("spectrum_reference"));
       }
 
       for (const PeptideHit & pep_hit : pep_id.getHits())
@@ -643,11 +643,11 @@ void MSstatsFile::storeISO(const String& filename,
         // Variables of the peptide hit
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
         const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
-        const String & sequence = pep_hit.getSequence().toString();
+        const std::string & sequence = pep_hit.getSequence().toString();
 
         // check if all referenced protein accessions are part of the same indistinguishable group
         // if so, we mark the sequence as quantifiable
-        std::set<String> accs = pep_hit.extractProteinAccessionsSet();
+        std::set<std::string> accs = pep_hit.extractProteinAccessionsSet();
 
         // When using extractProteinAccessionSet, we do not really need to loop over Evidences
         // anymore since MSStats does not care about anything else but the Protein accessions
@@ -659,47 +659,47 @@ void MSstatsFile::storeISO(const String& filename,
         }
         peptideseq_quantifyable.emplace(sequence);
 
-        String accession = ListUtils::concatenate(accs,accdelim_);
+        std::string accession = ListUtils::concatenate(accs, std::string(1, accdelim_));
         if (accession.empty()) accession = na_string_; //shouldn't really matter since we skip unquantifiable peptides
 
         // Write new line for each run
         for (Size j = 0; j < AggregatedInfo.consensus_feature_filenames[i].size(); j++)
         {
-          const String &current_filename = AggregatedInfo.consensus_feature_filenames[i][j];
+          const std::string &current_filename = AggregatedInfo.consensus_feature_filenames[i][j];
 
           const Intensity intensity(AggregatedInfo.consensus_feature_intensities[i][j]);
           const Coordinate retention_time(AggregatedInfo.consensus_feature_retention_times[i][j]);
           const unsigned channel(AggregatedInfo.consensus_feature_labels[i][j] + 1);
 
-          const pair< String, unsigned> tpl1 = make_pair(current_filename, channel);
+          const pair< std::string, unsigned> tpl1 = make_pair(current_filename, channel);
           const unsigned sample = path_label_to_sample[tpl1];
           const unsigned fraction = path_label_to_fraction[tpl1];
 
           // Resolve techrepmixture, run
           const unsigned openms_fractiongroup = path_label_to_fractiongroup[tpl1];
-          String techrepmixture = String(sampleSection.getFactorValue(sample, mixture)) + "_" + String(openms_fractiongroup);
-          String run = techrepmixture + "_" + String(fraction);
+          std::string techrepmixture =std::string(sampleSection.getFactorValue(sample, mixture)) + "_" + StringUtils::toStr(openms_fractiongroup);
+          std::string run = techrepmixture + "_" + StringUtils::toStr(fraction);
 
           // Assemble MSstats line
           MSstatsTMTLine_ prefix(
               accession,
               sequence,
-              precursor_charge,
-              String(channel),
+              StringUtils::toStr(precursor_charge),
+              StringUtils::toStr(channel),
               sampleSection.getFactorValue(sample, condition),
               sampleSection.getFactorValue(sample, bioreplicate),
-              String(run),
+              std::string(run),
               sampleSection.getFactorValue(sample, mixture),
-              String(techrepmixture),
-              String(fraction)
+              std::string(techrepmixture),
+              StringUtils::toStr(fraction)
           );
 
-          String identifier = current_filename;
+          std::string identifier = current_filename;
           if (rt_summarization_manual)
           {
             identifier += "_" + nativeID;
           }
-          tuple<Intensity, Coordinate, String> intensity_retention_time = make_tuple(intensity, retention_time, identifier);
+          tuple<Intensity, Coordinate, std::string> intensity_retention_time = make_tuple(intensity, retention_time, identifier);
           peptideseq_to_prefix_to_intensities[sequence][prefix].insert(intensity_retention_time);
         }
       }
@@ -717,8 +717,8 @@ void MSstatsFile::storeISO(const String& filename,
 
   for (const auto& run_mapping : msstats_run_to_openms_fractiongroup)
   {
-    cout << "MSstats run " << String(run_mapping.first)
-         << " corresponds to OpenMS TechRepMixture " << String(run_mapping.second) << endl;
+    cout << "MSstats run " << StringUtils::toStr(run_mapping.first)
+         << " corresponds to OpenMS TechRepMixture " << StringUtils::toStr(run_mapping.second) << endl;
   }
 
   constructFile_(retention_time_summarization_method,
@@ -731,17 +731,17 @@ void MSstatsFile::storeISO(const String& filename,
   csv_out.store(filename);
 }
 
-bool MSstatsFile::isSubsetOf_(const std::vector<String> &first, const std::vector<String> &second)
+bool MSstatsFile::isSubsetOf_(const std::vector<std::string> &first, const std::vector<std::string> &second)
 {
-  const std::set< String > lhs(first.begin(), first.end());
-  const std::set< String > rhs(second.begin(), second.end());
+  const std::set< std::string > lhs(first.begin(), first.end());
+  const std::set< std::string > rhs(second.begin(), second.end());
 
   // Return true if lhs (consensus map files) is a subset of rhs (design files)
   return std::includes(rhs.begin(), rhs.end(), lhs.begin(), lhs.end());
 }
 
 void MSstatsFile::assembleRunMap_(
-    std::map< std::pair<String, unsigned>, unsigned> &run_map,
+    std::map< std::pair<std::string, unsigned>, unsigned> &run_map,
     const ExperimentalDesign &design)
 {
   run_map.clear();
@@ -750,7 +750,7 @@ void MSstatsFile::assembleRunMap_(
 
   for (ExperimentalDesign::MSFileSectionEntry const& r : msfile_section)
   {
-    std::pair< String, unsigned> tpl = std::make_pair(File::basename(r.path), r.fraction);
+    std::pair< std::string, unsigned> tpl = std::make_pair(File::basename(r.path), r.fraction);
     if (!run_map.contains(tpl))
     {
       run_map[tpl] = run_counter++;
@@ -758,12 +758,12 @@ void MSstatsFile::assembleRunMap_(
   }
 }
 
-std::unordered_map<String, const IndProtGrp* > MSstatsFile::getAccessionToGroupMap_(const IndProtGrps& ind_prots)
+std::unordered_map<std::string, const IndProtGrp* > MSstatsFile::getAccessionToGroupMap_(const IndProtGrps& ind_prots)
 {
-  std::unordered_map<String, const IndProtGrp* > res{};
+  std::unordered_map<std::string, const IndProtGrp* > res{};
   for (const IndProtGrp& pgrp : ind_prots)
   {
-    for (const String& a : pgrp.accessions)
+    for (const std::string& a : pgrp.accessions)
     {
       res[a] = &(pgrp);
     }
@@ -772,8 +772,8 @@ std::unordered_map<String, const IndProtGrp* > MSstatsFile::getAccessionToGroupM
 }
 
 bool MSstatsFile::isQuantifyable_(
-    const std::set<String>& accs,
-    const std::unordered_map<String, const IndProtGrp*>& accession_to_group) const
+    const std::set<std::string>& accs,
+    const std::unordered_map<std::string, const IndProtGrp*>& accession_to_group) const
 {
   if (accs.empty())
   {
@@ -814,11 +814,11 @@ bool MSstatsFile::isQuantifyable_(
   return true;
 }
 
-void MSstatsFile::warnOnSubsetFiles_(const std::vector<String>& spectra_paths, const std::vector<String>& design_filenames)
+void MSstatsFile::warnOnSubsetFiles_(const std::vector<std::string>& spectra_paths, const std::vector<std::string>& design_filenames)
   {
-    std::vector<String> missing_files;
-    std::set<String> design_set(design_filenames.begin(), design_filenames.end());
-    std::set<String> spectra_set(spectra_paths.begin(), spectra_paths.end());
+    std::vector<std::string> missing_files;
+    std::set<std::string> design_set(design_filenames.begin(), design_filenames.end());
+    std::set<std::string> spectra_set(spectra_paths.begin(), spectra_paths.end());
 
     std::set_difference(design_set.begin(), design_set.end(),
                         spectra_set.begin(), spectra_set.end(),

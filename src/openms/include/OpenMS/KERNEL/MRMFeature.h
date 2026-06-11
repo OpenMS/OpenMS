@@ -63,41 +63,41 @@ public:
     OpenSwath_Scores & getScores();
 
     /// get a specified feature
-    Feature & getFeature(const String& key);
+    Feature & getFeature(const std::string& key);
 
     /// get a specified feature (const)
-    const Feature & getFeature(const String& key) const;
+    const Feature & getFeature(const std::string& key) const;
 
     /// set all peakgroup scores
     void setScores(const OpenSwath_Scores & scores);
 
     /// set a single peakgroup score
-    void addScore(const String & score_name, double score);
+    void addScore(const std::string & score_name, double score);
 
     /// Adds an feature from a single chromatogram into the feature.
-    void addFeature(const Feature & feature, const String& key);
+    void addFeature(const Feature & feature, const std::string& key);
 
-    void addFeature(Feature && feature, const String& key);
+    void addFeature(Feature && feature, const std::string& key);
 
     /// get a list of features
     const std::vector<Feature> & getFeatures() const;
 
     /// get a list of IDs of available features
-    void getFeatureIDs(std::vector<String> & result) const;
+    void getFeatureIDs(std::vector<std::string> & result) const;
 
     /// Adds a precursor feature from a single chromatogram into the feature.
-    void addPrecursorFeature(const Feature & feature, const String& key);
+    void addPrecursorFeature(const Feature & feature, const std::string& key);
 
-    void addPrecursorFeature(Feature && feature, const String& key);
+    void addPrecursorFeature(Feature && feature, const std::string& key);
 
     /// get a list of IDs of available precursor features
-    void getPrecursorFeatureIDs(std::vector<String> & result) const;
+    void getPrecursorFeatureIDs(std::vector<std::string> & result) const;
 
     /// get a specified precursor feature
-    Feature & getPrecursorFeature(const String& key);
+    Feature & getPrecursorFeature(const std::string& key);
 
     /// get a specified precursor feature (const)
-    const Feature & getPrecursorFeature(const String& key) const;
+    const Feature & getPrecursorFeature(const std::string& key) const;
 
     void IDScoresAsMetaValue(bool decoy, const OpenSwath_Ind_Scores& idscores);
     //@}
@@ -112,10 +112,10 @@ protected:
     OpenSwath_Scores pg_scores_;
 
     /// map native ids to the features
-    std::map<String, int> feature_map_;
+    std::map<std::string, int> feature_map_;
 
     /// map native ids to the precursor features
-    std::map<String, int> precursor_feature_map_;
+    std::map<std::string, int> precursor_feature_map_;
 
   };
 }

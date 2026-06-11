@@ -28,7 +28,7 @@ namespace OpenMS
     // Parse the integer frame id from a Bruker TDF native ID of the form
     // "frame=<id>" or "frame=<id> ...". Returns -1 if the prefix is missing
     // or the integer cannot be parsed.
-    Int parseFrameId(const String& native_id)
+    Int parseFrameId(const std::string& native_id)
     {
       const std::string prefix = "frame=";
       const std::size_t pos = native_id.find(prefix);
@@ -38,7 +38,7 @@ namespace OpenMS
       if (end == std::string::npos) { end = native_id.size(); }
       try
       {
-        return String(native_id.substr(start, end - start)).toInt();
+        return StringUtils::toInt32(native_id.substr(start, end - start));
       }
       catch (...)
       {
@@ -47,9 +47,9 @@ namespace OpenMS
     }
   }
 
-  String BrukerTimsImagingFile::resolveTdfPath_(const String& d_folder)
+  std::string BrukerTimsImagingFile::resolveTdfPath_(const std::string& d_folder)
   {
-    const String tdf = d_folder + "/analysis.tdf";
+    const std::string tdf = d_folder + "/analysis.tdf";
     if (!File::exists(tdf))
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tdf);
@@ -57,7 +57,7 @@ namespace OpenMS
     return tdf;
   }
 
-  bool BrukerTimsImagingFile::isImagingDataset(const String& path)
+  bool BrukerTimsImagingFile::isImagingDataset(const std::string& path)
   {
     try
     {
@@ -69,9 +69,9 @@ namespace OpenMS
     }
   }
 
-  String BrukerTimsImagingFile::readGlobalMetadataValue(const String& d_folder, const String& key)
+  std::string BrukerTimsImagingFile::readGlobalMetadataValue(const std::string& d_folder, const std::string& key)
   {
-    const String tdf = resolveTdfPath_(d_folder);
+    const std::string tdf = resolveTdfPath_(d_folder);
     SqliteConnector conn(tdf, SqliteConnector::SqlOpenMode::READ_ONLY);
     if (!conn.tableExists("GlobalMetadata")) { return ""; }
 
@@ -79,7 +79,7 @@ namespace OpenMS
     conn.prepareStatement(&stmt, "SELECT Value FROM GlobalMetadata WHERE Key = ?1 LIMIT 1;");
     sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_TRANSIENT);
 
-    String result;
+    std::string result;
     if (sqlite3_step(stmt) == SQLITE_ROW)
     {
       const unsigned char* txt = sqlite3_column_text(stmt, 0);
@@ -90,9 +90,9 @@ namespace OpenMS
   }
 
   std::vector<BrukerTimsImagingFile::MaldiPixel>
-  BrukerTimsImagingFile::readMaldiFrameInfo(const String& d_folder)
+  BrukerTimsImagingFile::readMaldiFrameInfo(const std::string& d_folder)
   {
-    const String tdf = resolveTdfPath_(d_folder);
+    const std::string tdf = resolveTdfPath_(d_folder);
     SqliteConnector conn(tdf, SqliteConnector::SqlOpenMode::READ_ONLY);
     if (!conn.tableExists("MaldiFrameInfo"))
     {
@@ -139,12 +139,12 @@ namespace OpenMS
     height = static_cast<UInt>(y_max - y_min + 1);
   }
 
-  void BrukerTimsImagingFile::load(const String& path, MSImagingExperiment& exp)
+  void BrukerTimsImagingFile::load(const std::string& path, MSImagingExperiment& exp)
   {
     load(path, exp, Config{});
   }
 
-  void BrukerTimsImagingFile::load(const String& path, MSImagingExperiment& exp, const Config& config)
+  void BrukerTimsImagingFile::load(const std::string& path, MSImagingExperiment& exp, const Config& config)
   {
     if (!File::exists(path))
     {
@@ -154,7 +154,7 @@ namespace OpenMS
     // Resolve analysis.tdf eagerly so an I/O error surfaces as FileNotReadable
     // here, rather than being masked by isImagingDataset() (which swallows
     // exceptions to behave as a non-throwing probe).
-    const String tdf = resolveTdfPath_(path);
+    const std::string tdf = resolveTdfPath_(path);
 
     if (config.strict_imaging_only && !isImagingDataset(path))
     {
@@ -210,12 +210,12 @@ namespace OpenMS
     MSImagingGeometry geometry;
     geometry.setDimensions(width, height);
 
-    String spot_size_str = readGlobalMetadataValue(path, "MaldiSpotSize_um");
+    std::string spot_size_str = readGlobalMetadataValue(path, "MaldiSpotSize_um");
     if (spot_size_str.empty()) { spot_size_str = readGlobalMetadataValue(path, "ImagingAreaSpotSize_um"); }
     double spot_size = 1.0;
     if (!spot_size_str.empty())
     {
-      try { spot_size = spot_size_str.toDouble(); }
+      try { spot_size = StringUtils::toDouble(spot_size_str); }
       catch (...) { spot_size = 1.0; }
     }
     geometry.setPixelSize(spot_size, spot_size, "micrometer");

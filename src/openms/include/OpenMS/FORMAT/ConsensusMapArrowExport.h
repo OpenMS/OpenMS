@@ -62,7 +62,7 @@ public:
   */
   static bool exportToParquet(
     const ConsensusMap& cmap,
-    const String& filename,
+    const std::string& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 };
 

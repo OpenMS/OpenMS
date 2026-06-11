@@ -35,7 +35,7 @@ namespace OpenMS
   StreamHandler::~StreamHandler()
   {
     // close all associated streams
-    for (map<String, ostream *>::iterator iter = name_to_stream_map_.begin(); iter != name_to_stream_map_.end(); ++iter)
+    for (map<std::string, ostream *>::iterator iter = name_to_stream_map_.begin(); iter != name_to_stream_map_.end(); ++iter)
     {
       ostream * stream_pointer = iter->second;
       // file streams need to be closed before
@@ -49,7 +49,7 @@ namespace OpenMS
 
   StreamHandler & StreamHandler::operator=(const StreamHandler & source) = default;
 
-  ostream & StreamHandler::getStream(StreamType const type, const String & stream_name)
+  ostream & StreamHandler::getStream(StreamType const type, const std::string & stream_name)
   {
     if (hasStream(type, stream_name))
     {
@@ -61,7 +61,7 @@ namespace OpenMS
     }
   }
 
-  ostream * StreamHandler::createStream_(const StreamType type, const String & stream_name)
+  ostream * StreamHandler::createStream_(const StreamType type, const std::string & stream_name)
   {
     ostream * stream_pointer;
     switch (type)
@@ -79,7 +79,7 @@ namespace OpenMS
     return stream_pointer;
   }
 
-  Int StreamHandler::registerStream(StreamType const type, const String & stream_name)
+  Int StreamHandler::registerStream(StreamType const type, const std::string & stream_name)
   {
     Int state = 1;
 
@@ -108,7 +108,7 @@ namespace OpenMS
     return state;
   }
 
-  bool StreamHandler::hasStream(const StreamType type, const String & stream_name)
+  bool StreamHandler::hasStream(const StreamType type, const std::string & stream_name)
   {
     if (name_to_stream_map_.contains(stream_name))
     {
@@ -120,7 +120,7 @@ namespace OpenMS
     }
   }
 
-  void StreamHandler::unregisterStream(StreamType const type, const String & stream_name)
+  void StreamHandler::unregisterStream(StreamType const type, const std::string & stream_name)
   {
     if (name_to_stream_map_.contains(stream_name)) // check if we know this stream
     {
@@ -155,7 +155,7 @@ namespace OpenMS
 
   std::ostream & operator<<(std::ostream & os, StreamHandler const & stream_handler)
   {
-    for (map<String, ostream *>::const_iterator iter = stream_handler.name_to_stream_map_.begin(); iter != stream_handler.name_to_stream_map_.end(); ++iter)
+    for (map<std::string, ostream *>::const_iterator iter = stream_handler.name_to_stream_map_.begin(); iter != stream_handler.name_to_stream_map_.end(); ++iter)
     {
       os << "[" << iter->first << "] of type";
 

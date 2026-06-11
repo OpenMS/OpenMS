@@ -70,14 +70,14 @@ protected:
                                   bool whitelist,
                                   vector<FASTAFile::FASTAEntry>& db_new)
   {
-    set<String> id_accessions;
+    set<std::string> id_accessions;
     for (const auto& pep_id : peptide_identifications)
     {
       for (const auto& hit : pep_id.getHits())
       {
         for (const auto& ev : hit.getPeptideEvidences())
         {
-          const String& id_accession = ev.getProteinAccession();
+          const std::string& id_accession = ev.getProteinAccession();
           id_accessions.insert(id_accession);
         }
       }
@@ -87,7 +87,7 @@ protected:
 
     for (const auto& entry : db)
     {
-      const String& fasta_accession = entry.identifier;
+      const std::string& fasta_accession = entry.identifier;
       const bool found = id_accessions.contains(fasta_accession);
       if ((found && whitelist) || (! found && ! whitelist)) // either found in the whitelist or not found in the blacklist
       {
@@ -103,11 +103,11 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in(getStringOption_("in"));
-    String ids(getStringOption_("id"));
-    String method(getStringOption_("method"));
+    std::string in(getStringOption_("in"));
+    std::string ids(getStringOption_("id"));
+    std::string method(getStringOption_("method"));
     bool whitelist = (method == "whitelist");
-    String out(getStringOption_("out"));
+    std::string out(getStringOption_("out"));
 
     //-------------------------------------------------------------
     // reading input

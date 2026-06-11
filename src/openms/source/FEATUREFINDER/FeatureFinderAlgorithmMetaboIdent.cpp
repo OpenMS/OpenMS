@@ -167,7 +167,7 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable,
     FeatureMap& features,
-    const String& spectra_file)
+    const std::string& spectra_file)
   {
     // Check for FAIMS data
     auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
@@ -268,7 +268,7 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmMetaboIdent::runSingleGroup_(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable,
     FeatureMap& features,
-    const String& spectra_file)
+    const std::string& spectra_file)
   {
     // if proper mzML is annotated in MS data use this as reference. Otherwise, overwrite with spectra_file information.
     features.setPrimaryMSRunPath({spectra_file}, ms_data_);
@@ -463,13 +463,13 @@ namespace OpenMS
           {
             // update annotations:
             // @TODO: also adjust "formula" and "expected_rt"?
-            String label = cluster_representative.getMetaValue("label");            
-            label += "/" + String(overlap.getMetaValue("label"));
+            std::string label = StringUtils::toStr(cluster_representative.getMetaValue("label"));            
+            label += "/" + StringUtils::toStr(overlap.getMetaValue("label"));
             cluster_representative.setMetaValue("label", label);
             StringList alt_refs;
             if (cluster_representative.metaValueExists("alt_PeptideRef"))
             {
-              alt_refs = cluster_representative.getMetaValue("alt_PeptideRef");
+              alt_refs = cluster_representative.getMetaValue("alt_PeptideRef").toStringList();
             }
             alt_refs.push_back(overlap.getMetaValue("PeptideRef"));
             cluster_representative.setMetaValue("alt_PeptideRef", alt_refs);
@@ -477,10 +477,10 @@ namespace OpenMS
         }
 
         // annotate which features were removed because of overlap with the representative feature
-        String ref = String(overlap.getMetaValue("PeptideRef")) + " (RT " +
-          String(float(overlap.getRT())) + ")";
+        std::string ref =StringUtils::toStr(overlap.getMetaValue("PeptideRef")) + " (RT " +
+          StringUtils::toStr(float(overlap.getRT())) + ")";
 
-        StringList overlap_refs = cluster_representative.getMetaValue("overlap_removed", StringList{});
+        StringList overlap_refs = cluster_representative.metaValueExists("overlap_removed") ? cluster_representative.getMetaValue("overlap_removed").toStringList() : StringList{};
         overlap_refs.push_back(std::move(ref));
         cluster_representative.setMetaValue("overlap_removed", std::move(overlap_refs)); // TODO: implement setMetaValue that takes DataValue as r-value reference &&
 
@@ -529,13 +529,13 @@ namespace OpenMS
   }
 
   /// Add a target (from the input file) to the assay library
-  void FeatureFinderAlgorithmMetaboIdent::addTargetToLibrary_(const String& name, const String& formula,
+  void FeatureFinderAlgorithmMetaboIdent::addTargetToLibrary_(const std::string& name, const std::string& formula,
                            double mass, const vector<Int>& charges,
                            const vector<double>& rts,
                            vector<double> rt_ranges,
                            const vector<double>& iso_distrib,
                            const vector<double>& ion_mobilities,
-                           const String& adduct)
+                           const std::string& adduct)
   {
     if ((mass <= 0) && formula.empty())
     {
@@ -560,7 +560,7 @@ namespace OpenMS
       mass = emp_formula.getMonoWeight();
     }
     target.theoretical_mass = mass;
-    String target_id = name + "_m" + String(float(mass));
+    std::string target_id = name + "_m" + StringUtils::toStr(float(mass));
 
     // get isotope distribution for target:
     IsotopeDistribution iso_dist;
@@ -647,19 +647,19 @@ namespace OpenMS
       double mz = 0.0;
 
       // Determine which adduct to use for m/z calculation
-      String adduct_str = adduct;
+      std::string adduct_str = adduct;
       if (adduct_str.empty())
       {
         // Default: [M+H]+ for positive charge, [M-H]- for negative charge (backward compatible)
         if (*z_it > 0)
         {
           if (*z_it == 1) adduct_str = "M+H;1+";
-          else adduct_str = "M+" + String(*z_it) + "H;" + String(*z_it) + "+";
+          else adduct_str = "M+" + StringUtils::toStr(*z_it) + "H;" + StringUtils::toStr(*z_it) + "+";
         }
         else
         {
           if (*z_it == -1) adduct_str = "M-H;1-";
-          else adduct_str = "M-" + String(abs(*z_it)) + "H;" + String(abs(*z_it)) + "-";
+          else adduct_str = "M-" + StringUtils::toStr(abs(*z_it)) + "H;" + StringUtils::toStr(abs(*z_it)) + "-";
         }
       }
 
@@ -695,8 +695,8 @@ namespace OpenMS
 
       for (Size i = 0; i < rts.size(); ++i)
       {
-        target.id = target_id + "_z" + String(*z_it) + "_rt" +
-          String(float(rts[i]));
+        target.id = target_id + "_z" + StringUtils::toStr(*z_it) + "_rt" +
+          StringUtils::toStr(float(rts[i]));
         target.setMetaValue("expected_rt", rts[i]);
         target_rts_[target.id] = rts[i];
 
@@ -729,7 +729,7 @@ namespace OpenMS
   }
 
   /// Generate transitions for a target ion and add them to the library
-  void FeatureFinderAlgorithmMetaboIdent::generateTransitions_(const String& target_id, double mz, Int charge,
+  void FeatureFinderAlgorithmMetaboIdent::generateTransitions_(const std::string& target_id, double mz, Int charge,
                             const IsotopeDistribution& iso_dist)
   {
     // go through different isotopes:
@@ -737,8 +737,8 @@ namespace OpenMS
     for (const Peak1D& iso : iso_dist)
     {
       ReactionMonitoringTransition transition;
-      String annotation = "i" + String(counter);
-      String transition_name = target_id + "_" + annotation;
+      std::string annotation = "i" + StringUtils::toStr(counter);
+      std::string transition_name = target_id + "_" + annotation;
 
       transition.setNativeID(transition_name);
       transition.setPrecursorMZ(mz);
@@ -774,7 +774,7 @@ namespace OpenMS
     for (Feature& feat : features)
     {
       feat.setMZ(feat.getMetaValue("PrecursorMZ"));
-      String ref = feat.getMetaValue("PeptideRef");
+      std::string ref = StringUtils::toStr(feat.getMetaValue("PeptideRef"));
       const TargetedExperiment::Compound& compound =
         library_.getCompoundByRef(ref);
       feat.setCharge(compound.getChargeState());
@@ -796,7 +796,7 @@ namespace OpenMS
       // annotate subordinates with theoretical isotope intensities:
       for (Feature& sub : feat.getSubordinates())
       {
-        String native_id = sub.getMetaValue("native_id");
+        std::string native_id = StringUtils::toStr(sub.getMetaValue("native_id"));
         sub.setMetaValue("isotope_probability", isotope_probs_[native_id]);
         sub.removeMetaValue("FeatureLevel"); // value "MS2" is misleading
       }
@@ -811,8 +811,8 @@ namespace OpenMS
   {
     if (feature.getConvexHulls().empty())
     {
-      double rt_min = feature.getMetaValue("leftWidth");
-      double rt_max = feature.getMetaValue("rightWidth");
+      double rt_min = (double)feature.getMetaValue("leftWidth");
+      double rt_max = (double)feature.getMetaValue("rightWidth");
       for (Feature& sub : feature.getSubordinates())
       {
         double abs_mz_tol = mz_window_ / 2.0;
@@ -833,14 +833,14 @@ namespace OpenMS
   /// Select the best feature for an assay from a set of candidates
   void FeatureFinderAlgorithmMetaboIdent::selectFeaturesFromCandidates_(FeatureMap& features)
   {
-    String previous_ref;
+    std::string previous_ref;
     double best_rt_dist = numeric_limits<double>::infinity();
     FeatureMap::Iterator best_it = features.begin();
     for (FeatureMap::Iterator it = features.begin(); it != features.end();
          ++it)
     {
       // features from same assay (same "PeptideRef") appear consecutively:
-      String ref = it->getMetaValue("PeptideRef");
+      std::string ref = StringUtils::toStr(it->getMetaValue("PeptideRef"));
       if (ref != previous_ref) // new assay
       {
         previous_ref = ref;
@@ -887,19 +887,19 @@ namespace OpenMS
   }
 
   /// Create a string of identifying information for a compound
-  String FeatureFinderAlgorithmMetaboIdent::prettyPrintCompound(const TargetedExperiment::Compound& compound)
+  std::string FeatureFinderAlgorithmMetaboIdent::prettyPrintCompound(const TargetedExperiment::Compound& compound)
   {
-    return (String(compound.getMetaValue("name")) + " (m=" +
-            String(float(compound.theoretical_mass)) + ", z=" +
-            String(compound.getChargeState()) + ", rt=" +
-            String(float(double(compound.getMetaValue("expected_rt")))) + ")");
+    return (StringUtils::toStr(compound.getMetaValue("name")) + " (m=" +
+            StringUtils::toStr(float(compound.theoretical_mass)) + ", z=" +
+            StringUtils::toStr(compound.getChargeState()) + ", rt=" +
+            StringUtils::toStr(float(double(compound.getMetaValue("expected_rt")))) + ")");
   }
 
   /// Add "peptide" identifications with information about targets to features
   Size FeatureFinderAlgorithmMetaboIdent::addTargetAnnotations_(FeatureMap& features)
   {
     Size n_shared = 0;
-    set<String> found_refs;
+    set<std::string> found_refs;
     for (FeatureMap::Iterator it = features.begin(); it != features.end(); ++it)
     {
       found_refs.insert(it->getMetaValue("PeptideRef"));
@@ -951,9 +951,9 @@ namespace OpenMS
     for (const auto& f : features)
     {
       TransformationDescription::DataPoint point;
-      point.first = f.getMetaValue("expected_rt");
+      point.first = (double)f.getMetaValue("expected_rt");
       point.second = f.getRT();
-      point.note = f.getMetaValue("PeptideRef");
+      point.note = StringUtils::toStr(f.getMetaValue("PeptideRef"));
       points.push_back(point);
     }
     trafo_.setDataPoints(points);

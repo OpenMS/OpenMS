@@ -64,12 +64,12 @@ class TOPPBaseTest
       registerDoubleOption_("doubleoption","<double>",0.4711,"double description",false);
       registerIntList_("intlist","<intlist>",ListUtils::create<Int>("1,2,3,4"),"intlist description",false);
       registerDoubleList_("doublelist","<doublelist>", ListUtils::create<double>("0.4711,1.022,4.0"),"doubelist description",false);
-      registerStringList_("stringlist","<stringlist>", ListUtils::create<String>("abc,def,ghi,jkl"),"stringlist description",false);
+      registerStringList_("stringlist","<stringlist>", ListUtils::create<std::string>("abc,def,ghi,jkl"),"stringlist description",false);
       registerFlag_("flag","flag description");
 
       //for testing write_ini parameter (and with it setDefaults)
-      registerStringList_("stringlist2","<stringlist>", ListUtils::create<String>("hopla,dude"),"stringlist with restrictions",false);
-      vector<String> rest;
+      registerStringList_("stringlist2","<stringlist>", ListUtils::create<std::string>("hopla,dude"),"stringlist with restrictions",false);
+      vector<std::string> rest;
       rest.push_back("hopla");
       rest.push_back("dude");
       setValidStrings_("stringlist2",rest);
@@ -83,32 +83,32 @@ class TOPPBaseTest
       setMaxFloat_("doublelist2",5.4);
     }
 
-    String getStringOption(const String& name) const
+    std::string getStringOption(const std::string& name) const
     {
       return getStringOption_(name);
     }
 
-    double getDoubleOption(const String& name) const
+    double getDoubleOption(const std::string& name) const
     {
       return getDoubleOption_(name);
     }
 
-    Int getIntOption(const String& name) const
+    Int getIntOption(const std::string& name) const
     {
       return getIntOption_(name);
     }
 
-    StringList getStringList(const String& name) const
+    StringList getStringList(const std::string& name) const
     {
       return getStringList_(name);
     }
 
-    IntList getIntList(const String& name) const
+    IntList getIntList(const std::string& name) const
     {
       return getIntList_(name);
     }
 
-    DoubleList getDoubleList(const String& name) const
+    DoubleList getDoubleList(const std::string& name) const
     {
       return getDoubleList_(name);
     }
@@ -118,7 +118,7 @@ class TOPPBaseTest
       return getParam_();
     }
 
-    bool getFlag(const String& name) const
+    bool getFlag(const std::string& name) const
     {
       return getFlag_(name);
     }
@@ -128,17 +128,17 @@ class TOPPBaseTest
       return EXECUTION_OK;
     }
 
-    String const& getIniLocation() const
+    std::string const& getIniLocation() const
     {
       return getIniLocation_();
     }
 
-    void inputFileReadable(const String& filename, const String& param_name) const
+    void inputFileReadable(const std::string& filename, const std::string& param_name) const
     {
       inputFileReadable_(filename, param_name);
     }
 
-    void outputFileWritable(const String& filename, const String& param_name) const
+    void outputFileWritable(const std::string& filename, const std::string& param_name) const
     {
       outputFileWritable_(filename, param_name);
     }
@@ -157,12 +157,12 @@ class TOPPBaseTest
       addDataProcessing_(c_map, dp);
     }
 
-    bool parseRange(const String& text, double& low, double& high) const
+    bool parseRange(const std::string& text, double& low, double& high) const
     {
       return parseRange_(text, low, high);
     }
 
-    TOPPBase::ExitCodes runExternalProcess(const String& executable, const std::vector<String>& arguments, const String& workdir) const
+    TOPPBase::ExitCodes runExternalProcess(const std::string& executable, const std::vector<std::string>& arguments, const std::string& workdir) const
     {
       return runExternalProcess_(executable, arguments, workdir);
     }
@@ -204,36 +204,36 @@ class TOPPBaseTestNOP
       registerIntOption_("intoption","<int>",0,"int description",false);
       registerDoubleOption_("doubleoption","<double>", -1.0,"double description", false);
       registerFlag_("flag","flag description");
-      registerStringList_("stringlist","<stringlist>", ListUtils::create<String>(""),"stringlist description");
+      registerStringList_("stringlist","<stringlist>", ListUtils::create<std::string>(""),"stringlist description");
       registerIntList_("intlist","<intlist>",ListUtils::create<Int>(""),"intlist description");
       registerDoubleList_("doublelist","<doublelist>", ListUtils::create<double>(""),"doubelist description");
     }
 
-    String getStringOption(const String& name) const
+    std::string getStringOption(const std::string& name) const
     {
       return getStringOption_(name);
     }
 
-    double getDoubleOption(const String& name) const
+    double getDoubleOption(const std::string& name) const
     {
       return getDoubleOption_(name);
     }
 
-    Int getIntOption(const String& name) const
+    Int getIntOption(const std::string& name) const
     {
       return getIntOption_(name);
     }
 
-    StringList getStringList(const String& name) const
+    StringList getStringList(const std::string& name) const
     {
       return getStringList_(name);
     }
-        IntList getIntList(const String& name) const
+        IntList getIntList(const std::string& name) const
     {
       return getIntList_(name);
     }
 
-    DoubleList getDoubleList(const String& name) const
+    DoubleList getDoubleList(const std::string& name) const
     {
       return getDoubleList_(name);
     }
@@ -333,7 +333,7 @@ public:
     registerSubsection_("other", "Other parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & section) const override
+  Param getSubsectionDefaults_(const std::string & section) const override
   {
     Param p;
     if (section == "algorithm")
@@ -369,7 +369,7 @@ public:
     return EXECUTION_OK;
   }
 
-  String getStringOption(String name)
+  std::string getStringOption(std::string name)
   {
     return getStringOption_(name);
   }
@@ -388,7 +388,7 @@ public:
 
 TOPPBaseTest* ptr = nullptr;
 TOPPBaseTest* nullPointer = nullptr;
-START_SECTION(TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true))
+START_SECTION(TOPPBase(const std::string& name, const std::string& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true))
 	ptr = new TOPPBaseTest();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
@@ -433,7 +433,7 @@ const char* a20 ="0.411";
 const char* a21 = "-write_ini";
 const char* test = "-test";
 
-START_SECTION(([EXTRA]String const& getIniLocation_() const))
+START_SECTION(([EXTRA]std::string const& getIniLocation_() const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getIniLocation(),"TOPPBaseTest:1:")
@@ -444,7 +444,7 @@ START_SECTION(([EXTRA]String const& getIniLocation_() const))
 END_SECTION
 
 
-START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
+START_SECTION(([EXTRA]std::string getStringOption_(const std::string& name) const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getStringOption("stringoption"),"string default");
@@ -485,7 +485,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp8.getStringOption("stringoption"));
 
 	//test option write_ini
-	String filename;
+	std::string filename;
 	NEW_TMP_FILE(filename);
 	const char* f_name = filename.c_str();
 	const char* write_ini[3]={a1, a21, f_name};
@@ -516,10 +516,10 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	//with restriction
   p2.setValue("TOPPBaseTest:1:stringlist2", std::vector<std::string>{"hopla","dude"},"stringlist with restrictions");
 	vector<std::string> rest = {"hopla","dude"};
-	String stringlist2 = "TOPPBaseTest:1:stringlist2";
+	std::string stringlist2 = "TOPPBaseTest:1:stringlist2";
 	p2.setValidStrings(stringlist2,rest);
-	String intlist2 = "TOPPBaseTest:1:intlist2";
-	String doublelist2 = "TOPPBaseTest:1:doublelist2";
+	std::string intlist2 = "TOPPBaseTest:1:intlist2";
+	std::string doublelist2 = "TOPPBaseTest:1:doublelist2";
 	p2.setValue(intlist2,ListUtils::create<Int>("3,4,5"),"intlist with restriction");
 	p2.setMinInt(intlist2,2);
 	p2.setMaxInt(intlist2,6);
@@ -530,7 +530,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	WHITELIST("version")
 	TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("TOPPBase_test_write_ini_out.ini"))
 
-  String filename2;
+  std::string filename2;
   NEW_TMP_FILE(filename2);
   const char* f_name2 = filename2.c_str();
   const char* b = "TOPPBaseCmdParseSubsectionsTest";
@@ -540,7 +540,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
   TEST_FILE_SIMILAR(filename2, OPENMS_GET_TEST_DATA_PATH("TOPPBase_test_write_ini_subsec_out.ini"))
 END_SECTION
 
-START_SECTION(([EXTRA]String getIntOption_(const String& name) const))
+START_SECTION(([EXTRA]std::string getIntOption_(const std::string& name) const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getIntOption("intoption"),4711);
@@ -556,7 +556,7 @@ START_SECTION(([EXTRA]String getIntOption_(const String& name) const))
 	//-> not testable, as ints cannot be made 'required' (no NAN supported)
 END_SECTION
 
-START_SECTION(([EXTRA]String getDoubleOption_(const String& name) const))
+START_SECTION(([EXTRA]std::string getDoubleOption_(const std::string& name) const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_REAL_SIMILAR(tmp.getDoubleOption("doubleoption"),0.4711);
@@ -569,7 +569,7 @@ START_SECTION(([EXTRA]String getDoubleOption_(const String& name) const))
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getDoubleOption("imleeewenit"));
 END_SECTION
 
-START_SECTION(([EXTRA] String getIntList_(const String& name) const))
+START_SECTION(([EXTRA] std::string getIntList_(const std::string& name) const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getIntList("intlist") == ListUtils::create<Int>("1,2,3,4"), true)
@@ -591,7 +591,7 @@ START_SECTION(([EXTRA] String getIntList_(const String& name) const))
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp4.getIntList("intlist"));
 END_SECTION
 
-START_SECTION(([EXTRA] String getDoubleList_(const String& name) const))
+START_SECTION(([EXTRA] std::string getDoubleList_(const std::string& name) const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getDoubleList("doublelist") == ListUtils::create<double>("0.4711,1.022,4.0"), true)
@@ -616,14 +616,14 @@ START_SECTION(([EXTRA] String getDoubleList_(const String& name) const))
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp4.getDoubleList("doublelist"));
 END_SECTION
 
-START_SECTION(([EXTRA] String getStringList_(const String& name) const))
+START_SECTION(([EXTRA] std::string getStringList_(const std::string& name) const))
 	//default
 	TOPPBaseTest tmp;
-	TEST_EQUAL(tmp.getStringList("stringlist") == ListUtils::create<String>("abc,def,ghi,jkl"), true)
+	TEST_EQUAL(tmp.getStringList("stringlist") == ListUtils::create<std::string>("abc,def,ghi,jkl"), true)
 	//command line
 	const char* string_cl[3]={a1,a17,a12};	//commandline: "TOPPBaseTest -stringlist conmandline"
 	TOPPBaseTest tmp2(3, string_cl);
-	TEST_EQUAL(tmp2.getStringList("stringlist") == ListUtils::create<String>("commandline"), true)
+	TEST_EQUAL(tmp2.getStringList("stringlist") == ListUtils::create<std::string>("commandline"), true)
 
 	const char* string_cl2[5]={a1,a17,a12,a7, a8};	//commandline: "TOPPBaseTest -stringlist conmandline data/TOPPBase_toolcommon.ini data/TOPPBase_common.ini"
 	TOPPBaseTest tmp3(5, string_cl2);
@@ -643,7 +643,7 @@ START_SECTION(([EXTRA] String getStringList_(const String& name) const))
 
 END_SECTION
 
-START_SECTION(([EXTRA]bool getFlag_(const String& name) const))
+START_SECTION(([EXTRA]bool getFlag_(const std::string& name) const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getFlag("flag"),false);
@@ -656,17 +656,17 @@ START_SECTION(([EXTRA]bool getFlag_(const String& name) const))
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getFlag("imleeewenit"));
 END_SECTION
 
-START_SECTION(([EXTRA]void inputFileReadable_(const String& filename, const String& param_name) const))
+START_SECTION(([EXTRA]void inputFileReadable_(const std::string& filename, const std::string& param_name) const))
 	TOPPBaseTest tmp;
 	TEST_EXCEPTION(Exception::FileNotFound, tmp.inputFileReadable("/this/file/does/not/exist.txt", "someparam"));
 	TEST_EXCEPTION(Exception::FileEmpty, tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_empty.txt"), "someparam"));
 	tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini"), "ini");
 END_SECTION
 
-START_SECTION(([EXTRA]void outputFileWritable_(const String& filename, const String& param_name) const))
+START_SECTION(([EXTRA]void outputFileWritable_(const std::string& filename, const std::string& param_name) const))
 	TEST_EXCEPTION(Exception::UnableToCreateFile,TOPPBaseTest().outputFileWritable("/this/file/cannot/be/written/does_not_exists.txt","someparam"));
 
-	String filename;
+	std::string filename;
 	NEW_TMP_FILE(filename);
 	TOPPBaseTest().outputFileWritable(filename, "");
 	//Actually writing something to the file is not necessary, but on Mac all tmp files are called 'source_<line>.tmp'.
@@ -676,13 +676,13 @@ START_SECTION(([EXTRA]void outputFileWritable_(const String& filename, const Str
 	dummy.store(filename);
 END_SECTION
 
-START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& high) const))
+START_SECTION(([EXTRA]void parseRange_(const std::string& text, double& low, double& high) const))
 {
 	TOPPBaseTest topp;
 	double a = -1.0;
 	double b = -1.0;
 
-	String s = ":";
+	std::string s = ":";
 	bool result = topp.parseRange(s, a, b);
 	TEST_REAL_SIMILAR(a, -1.0);
 	TEST_REAL_SIMILAR(b, -1.0);
@@ -708,19 +708,19 @@ START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& 
 }
 END_SECTION
 
-START_SECTION(([EXTRA] TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const String& executable, const std::vector<String>& arguments, const String& workdir) const))
+START_SECTION(([EXTRA] TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const std::string& executable, const std::vector<std::string>& arguments, const std::string& workdir) const))
 {
 
 // we just need ANY commandline tool available on (hopefully) all boxes.
 // note that commands like "dir" or "type" are only known within cmd.exe and are not actual executables (unlike on Linux)
 #ifdef OPENMS_WINDOWSPLATFORM
-  const String exe = "cmd";
-  const std::vector<String> args = {"/C", "echo hi"};
-  const std::vector<String> args_broken = {"/C", "doesnotexist"};
+  const std::string exe = "cmd";
+  const std::vector<std::string> args = {"/C", "echo hi"};
+  const std::vector<std::string> args_broken = {"/C", "doesnotexist"};
 #else
-  const String exe = "ls";
-  const std::vector<String> args = {"-l"};
-  const std::vector<String> args_broken = {"-0"};
+  const std::string exe = "ls";
+  const std::vector<std::string> args = {"-l"};
+  const std::vector<std::string> args_broken = {"-0"};
 #endif //
 
   TOPPBaseTest topp;

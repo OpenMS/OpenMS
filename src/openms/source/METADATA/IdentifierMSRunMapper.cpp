@@ -32,7 +32,7 @@ namespace OpenMS
     {
       StringList ms_run_paths;
       prot_id.getPrimaryMSRunPath(ms_run_paths);
-      const String& identifier = prot_id.getIdentifier();
+      const std::string& identifier = prot_id.getIdentifier();
 
       identifier_to_msrunpath_[identifier] = ms_run_paths;
 
@@ -48,19 +48,19 @@ namespace OpenMS
     }
   }
 
-  String IdentifierMSRunMapper::getPrimaryMSRunPath(const PeptideIdentification& pepid) const
+  std::string IdentifierMSRunMapper::getPrimaryMSRunPath(const PeptideIdentification& pepid) const
   {
-    const String& identifier = pepid.getIdentifier();
+    const std::string& identifier = pepid.getIdentifier();
     auto it = identifier_to_msrunpath_.find(identifier);
     if (it == identifier_to_msrunpath_.end())
     {
-      return String();
+      return std::string();
     }
 
     const StringList& ms_run_paths = it->second;
     if (ms_run_paths.empty())
     {
-      return String();
+      return std::string();
     }
 
     // Determine which file to use (default to index 0)
@@ -73,18 +73,18 @@ namespace OpenMS
     // Check if index is valid
     if (merge_index >= ms_run_paths.size())
     {
-      return String(); // Invalid index
+      return std::string(); // Invalid index
     }
 
     return ms_run_paths[merge_index];
   }
 
-  bool IdentifierMSRunMapper::hasIdentifier(const String& identifier) const
+  bool IdentifierMSRunMapper::hasIdentifier(const std::string& identifier) const
   {
     return identifier_to_msrunpath_.contains(identifier);
   }
 
-  const String& IdentifierMSRunMapper::getIdentifier(const StringList& ms_run_paths) const
+  const std::string& IdentifierMSRunMapper::getIdentifier(const StringList& ms_run_paths) const
   {
     auto it = runpath_to_identifier_.find(ms_run_paths);
     if (it == runpath_to_identifier_.end())
@@ -104,7 +104,7 @@ namespace OpenMS
     return identifier_to_msrunpath_.size();
   }
 
-  const StringList& IdentifierMSRunMapper::getMSRunPaths(const String& identifier) const
+  const StringList& IdentifierMSRunMapper::getMSRunPaths(const std::string& identifier) const
   {
     auto it = identifier_to_msrunpath_.find(identifier);
     if (it == identifier_to_msrunpath_.end())
@@ -114,9 +114,9 @@ namespace OpenMS
     return it->second;
   }
 
-  std::vector<String> IdentifierMSRunMapper::getIdentifiers() const
+  std::vector<std::string> IdentifierMSRunMapper::getIdentifiers() const
   {
-    std::vector<String> identifiers;
+    std::vector<std::string> identifiers;
     identifiers.reserve(identifier_to_msrunpath_.size());
     for (const auto& pair : identifier_to_msrunpath_)
     {
@@ -130,7 +130,7 @@ namespace OpenMS
     return runpath_to_identifier_.contains(ms_run_paths);
   }
 
-  bool IdentifierMSRunMapper::tryGetIdentifier(const StringList& ms_run_paths, String& identifier) const
+  bool IdentifierMSRunMapper::tryGetIdentifier(const StringList& ms_run_paths, std::string& identifier) const
   {
     auto it = runpath_to_identifier_.find(ms_run_paths);
     if (it == runpath_to_identifier_.end())

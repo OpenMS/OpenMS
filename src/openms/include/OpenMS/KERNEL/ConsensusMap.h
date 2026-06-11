@@ -21,7 +21,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/ExposedVector.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
 #include <OpenMS/OpenMSConfig.h>
 
@@ -89,10 +89,10 @@ public:
       ColumnHeader& operator=(const ColumnHeader&) = default;
 
       /// File name of the mzML file
-      String filename;
+      std::string filename;
 
       /// Label e.g. 'heavy' and 'light' for ICAT, or 'sample1' and 'sample2' for label-free quantitation
-      String label;
+      std::string label;
 
       /// @brief Number of elements (features, peaks, ...).
       /// This is e.g. used to check for correct element indices when writing a consensus map TODO fix that
@@ -101,7 +101,7 @@ public:
       /// Unique id of the file
       UInt64 unique_id = UniqueIdInterface::INVALID;
 
-      unsigned getLabelAsUInt(const String& experiment_type) const;
+      unsigned getLabelAsUInt(const std::string& experiment_type) const;
     };
 
     ///@name Type definitions
@@ -174,10 +174,10 @@ public:
     void setColumnHeaders(const ColumnHeaders& column_description);
 
     /// Non-mutable access to the experiment type
-    const String& getExperimentType() const;
+    const std::string& getExperimentType() const;
 
     /// Mutable access to the experiment type
-    void setExperimentType(const String& experiment_type);
+    void setExperimentType(const std::string& experiment_type);
 
     /**
       @name Sorting.
@@ -230,10 +230,10 @@ public:
     void setProteinIdentifications(std::vector<ProteinIdentification>&& protein_identifications);
 
     /// finds a protein identification by its identifier (returns nullptr if not found)
-    const ProteinIdentification* findProteinIdentification(const String& identifier) const;
+    const ProteinIdentification* findProteinIdentification(const std::string& identifier) const;
 
     /// finds a protein identification by its identifier (returns nullptr if not found)
-    ProteinIdentification* findProteinIdentification(const String& identifier);
+    ProteinIdentification* findProteinIdentification(const std::string& identifier);
 
     /// non-mutable access to the unassigned peptide identifications
     const PeptideIdentificationList& getUnassignedPeptideIdentifications() const;
@@ -361,7 +361,7 @@ public:
     ColumnHeaders column_description_;
 
     /// type of experiment (label-free, labeled_MS1, labeled_MS2)
-    String experiment_type_ = "label-free";
+    std::string experiment_type_ = "label-free";
 
     /// protein identifications
     std::vector<ProteinIdentification> protein_identifications_;

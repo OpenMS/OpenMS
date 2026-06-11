@@ -17,7 +17,6 @@
 
 namespace OpenMS
 {
-  class String;
   class ProteinIdentification;
 
   /**
@@ -52,7 +51,7 @@ public:
 
       @ingroup FileIO
     */
-    void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, ModificationDefinitionsSet& mod_def_set);
+    void load(const std::string& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, ModificationDefinitionsSet& mod_def_set);
 
 
 protected:
@@ -94,7 +93,7 @@ private:
     std::set<UInt> protein_uids_;
 
     // accession of the current protein
-    String current_protein_;
+    std::string current_protein_;
 
     // charge of current peptide
     Int current_charge_;
@@ -103,7 +102,7 @@ private:
     UInt current_id_;
 
     // tag
-    String tag_;
+    std::string tag_;
 
     // start position of current peptide in protein sequence
     UInt current_start_;
@@ -112,10 +111,10 @@ private:
     UInt current_stop_;
 
     // previous peptide sequence
-    String previous_seq_;
+    std::string previous_seq_;
 
     // mapping from X! Tandem ID to spectrum ID
-    std::map<UInt, String> spectrum_ids_;
+    std::map<UInt, std::string> spectrum_ids_;
 
     // modification definitions
     ModificationDefinitionsSet mod_def_set_;

@@ -33,9 +33,9 @@ namespace OpenMS
   }
 
 
-  String DataFilters::DataFilter::toString() const
+  std::string DataFilters::DataFilter::toString() const
   {
-    String out;
+    std::string out;
     //field
     if (field == INTENSITY)
     {
@@ -94,13 +94,13 @@ namespace OpenMS
     return out;
   }
 
-  void DataFilters::DataFilter::fromString(const String & filter)
+  void DataFilters::DataFilter::fromString(const std::string & filter)
   {
     bool meta = false;
-    String tmp = filter;
-    tmp.trim();
+    std::string tmp = filter;
+    StringUtils::trim(tmp);
     StringList parts;
-    tmp.split(' ', parts);
+    StringUtils::split(tmp, ' ', parts);
     SignedSize size = parts.size();
     if (size < 2)
     {
@@ -108,7 +108,7 @@ namespace OpenMS
     }
     //field
     tmp = parts[0];
-    tmp.toLower();
+    StringUtils::toLower(tmp);
     if (tmp == "intensity")
     {
       field = INTENSITY;
@@ -125,11 +125,11 @@ namespace OpenMS
     {
       field = QUALITY;
     }
-    else if (tmp.hasPrefix(String("meta::")))
+    else if (StringUtils::hasPrefix(tmp,std::string("meta::")))
     {
       meta = true;
       field = META_DATA;
-      meta_name = tmp.suffix(tmp.size() - 6);
+      meta_name = StringUtils::suffix(tmp, tmp.size() - 6);
     }
     else
     {
@@ -159,7 +159,7 @@ namespace OpenMS
     //value
     if (size > 3)     // string values may contain spaces, implode to a single string
     {
-      tmp.concatenate(parts.begin() + 2, parts.end(), " ");
+      StringUtils::concatenate(tmp, parts.begin() + 2, parts.end(), " ");
     }
     else if (size == 3)
     {
@@ -171,19 +171,19 @@ namespace OpenMS
     }
     try
     {
-      value = tmp.toDouble();
+      value = StringUtils::toDouble(tmp);
       value_is_numerical = true;
     }
     catch (Exception::ConversionError&)
     {
       value_is_numerical = false;
-      if (!(tmp.hasPrefix("\"") && tmp.hasSuffix("\"")))
+      if (!(StringUtils::hasPrefix(tmp, "\"") && StringUtils::hasSuffix(tmp, "\"")))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid value", tmp);
       }
       else
       {
-        tmp = tmp.substr(1, tmp.size() - 2);
+        tmp = StringUtils::substr(tmp, 1, tmp.size() - 2);
       }
       if (!meta)       // non meta values must be numerical
       {

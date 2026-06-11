@@ -44,7 +44,7 @@ START_SECTION(~Ms2SpectrumStats())
 END_SECTION
 
 Ms2SpectrumStats top;
-START_SECTION(const String& getName() const override) {TEST_EQUAL(top.getName(), "Ms2SpectrumStats")} END_SECTION
+START_SECTION(const std::string& getName() const override) {TEST_EQUAL(top.getName(), "Ms2SpectrumStats")} END_SECTION
 
   START_SECTION(QCBase::Status requirements() const override)
 {

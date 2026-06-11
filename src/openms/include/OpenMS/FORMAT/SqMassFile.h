@@ -87,7 +87,7 @@ public:
                                             advertises an unsupported
                                             configuration.
     */
-    void load(const String& filename, MapType& map) const;
+    void load(const std::string& filename, MapType& map) const;
 
     /**
       @brief Store an @c MSExperiment in @c sqMass format.
@@ -111,7 +111,7 @@ public:
                                             be created or opened for
                                             writing.
     */
-    void store(const String& filename, const MapType& map) const;
+    void store(const std::string& filename, const MapType& map) const;
 
     /**
       @brief Stream the spectra and chromatograms of an @c sqMass file through @p consumer.
@@ -147,7 +147,7 @@ public:
                                             advertises an unsupported
                                             configuration.
     */
-    void transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count = false, bool skip_first_pass = false) const;
+    void transform(const std::string& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count = false, bool skip_first_pass = false) const;
 
     /**
       @brief Convert an sqMass file containing chromatogram data to an XIC Parquet file.
@@ -179,10 +179,10 @@ public:
       @throws Exception::BaseException Other OpenMS exceptions propagated from
       the writer/encoding layers may also be thrown.
     */
-    void convertToXICParquet(const String& filename_in,
-                const String& xic_filename,
+    void convertToXICParquet(const std::string& filename_in,
+                const std::string& xic_filename,
                 UInt64 run_id = 0,
-                const String& source_file = "",
+                const std::string& source_file = "",
                 const OpenSwath::LightTargetedExperiment& transition_exp = OpenSwath::LightTargetedExperiment()) const;
 
     /**

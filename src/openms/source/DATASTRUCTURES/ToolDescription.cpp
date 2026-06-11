@@ -16,7 +16,7 @@ namespace OpenMS
   namespace Internal
   {
     // C'Tor with arguments
-    ToolDescriptionInternal::ToolDescriptionInternal(const bool p_is_internal, const String& p_name, const String& p_category, const StringList& p_types) :
+    ToolDescriptionInternal::ToolDescriptionInternal(const bool p_is_internal, const std::string& p_name, const std::string& p_category, const StringList& p_types) :
       is_internal(p_is_internal),
       name(p_name),
       category(p_category),
@@ -24,7 +24,7 @@ namespace OpenMS
     {
     }
 
-    ToolDescriptionInternal::ToolDescriptionInternal(const String& p_name, const StringList& p_types) :
+    ToolDescriptionInternal::ToolDescriptionInternal(const std::string& p_name, const StringList& p_types) :
       
       name(p_name),
       category(),
@@ -52,7 +52,7 @@ namespace OpenMS
     }
     
     // C'Tor for internal TOPP tools
-    ToolDescription::ToolDescription(const String& p_name, const String& p_category, const StringList& p_types) :
+    ToolDescription::ToolDescription(const std::string& p_name, const std::string& p_category, const StringList& p_types) :
       ToolDescriptionInternal(true, p_name, p_category, p_types)
     {
     }

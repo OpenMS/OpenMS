@@ -35,14 +35,14 @@ namespace OpenMS
       else builder.AppendNull();
     }
 
-    void appendString_(arrow::StringBuilder& builder, const String& value)
+    void appendString_(arrow::StringBuilder& builder, const std::string& value)
     {
       if (value.empty()) builder.AppendNull();
       else builder.Append(value.c_str());
     }
   }
 
-  void OpenSwathParquetExporter::writeFeatureScores(const String& filename,
+  void OpenSwathParquetExporter::writeFeatureScores(const std::string& filename,
                                                     const OpenSwathFeatureScoreTable& table)
   {
     std::vector<std::shared_ptr<arrow::Field>> fields;
@@ -282,7 +282,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathParquetExporter::writeTransitionScores(const String& filename,
+  void OpenSwathParquetExporter::writeTransitionScores(const std::string& filename,
                                                        const OpenSwathTransitionScoreTable& table)
   {
     std::vector<std::shared_ptr<arrow::Field>> fields;

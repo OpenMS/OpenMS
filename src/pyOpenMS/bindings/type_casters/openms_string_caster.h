@@ -1,39 +1,39 @@
 /**
  * @file string.h
- * @brief nanobind type caster for OpenMS::String
+ * @brief nanobind type caster for std::string
  *
- * Provides bidirectional conversion between Python str/bytes and OpenMS::String.
+ * Provides bidirectional conversion between Python str/bytes and std::string.
  */
 
 #pragma once
 
 #include <nanobind/nanobind.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace nanobind {
 namespace detail {
 
 /**
- * Type caster for OpenMS::String <-> Python str
+ * Type caster for std::string <-> Python str
  *
  * This caster enables automatic conversion between Python strings (str)
- * and OpenMS::String in both directions.
+ * and std::string in both directions.
  *
  * Python -> C++:
- *   - str: decoded as UTF-8 into OpenMS::String
- *   - bytes: used directly as OpenMS::String content
+ *   - str: decoded as UTF-8 into std::string
+ *   - bytes: used directly as std::string content
  *
  * C++ -> Python:
- *   - OpenMS::String: converted to Python str (assuming UTF-8)
+ *   - std::string: converted to Python str (assuming UTF-8)
  */
 template <>
-struct type_caster<OpenMS::String> {
+struct type_caster<std::string> {
 public:
     // Python type hint
-    NB_TYPE_CASTER(OpenMS::String, const_name("str"))
+    NB_TYPE_CASTER(std::string, const_name("str"))
 
     /**
-     * Convert Python object to OpenMS::String
+     * Convert Python object to std::string
      */
     bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
         // Handle None
@@ -49,7 +49,7 @@ public:
                 PyErr_Clear();
                 return false;
             }
-            value = OpenMS::String(data, size);
+            value = std::string(data, size);
             return true;
         }
 
@@ -61,7 +61,7 @@ public:
                 PyErr_Clear();
                 return false;
             }
-            value = OpenMS::String(data, size);
+            value = std::string(data, size);
             return true;
         }
 
@@ -71,7 +71,7 @@ public:
             Py_ssize_t size;
             const char* data = PyUnicode_AsUTF8AndSize(str_obj, &size);
             if (data) {
-                value = OpenMS::String(data, size);
+                value = std::string(data, size);
                 Py_DECREF(str_obj);
                 return true;
             }
@@ -84,40 +84,40 @@ public:
     }
 
     /**
-     * Convert OpenMS::String to Python object
+     * Convert std::string to Python object
      */
-    static handle from_cpp(const OpenMS::String& src, rv_policy policy, cleanup_list* cleanup) noexcept {
+    static handle from_cpp(const std::string& src, rv_policy policy, cleanup_list* cleanup) noexcept {
         return PyUnicode_FromStringAndSize(src.c_str(), src.size());
     }
 
     /**
-     * Convert OpenMS::String reference to Python object
+     * Convert std::string reference to Python object
      */
-    static handle from_cpp(OpenMS::String& src, rv_policy policy, cleanup_list* cleanup) noexcept {
-        return from_cpp(const_cast<const OpenMS::String&>(src), policy, cleanup);
+    static handle from_cpp(std::string& src, rv_policy policy, cleanup_list* cleanup) noexcept {
+        return from_cpp(const_cast<const std::string&>(src), policy, cleanup);
     }
 
     /**
-     * Convert OpenMS::String rvalue to Python object
+     * Convert std::string rvalue to Python object
      */
-    static handle from_cpp(OpenMS::String&& src, rv_policy policy, cleanup_list* cleanup) noexcept {
-        return from_cpp(const_cast<const OpenMS::String&>(src), policy, cleanup);
+    static handle from_cpp(std::string&& src, rv_policy policy, cleanup_list* cleanup) noexcept {
+        return from_cpp(const_cast<const std::string&>(src), policy, cleanup);
     }
 };
 
 /**
- * Type caster for const OpenMS::String&
+ * Type caster for const std::string&
  * Delegates to the main caster
  */
 template <>
-struct type_caster<const OpenMS::String&> : type_caster<OpenMS::String> {};
+struct type_caster<const std::string&> : type_caster<std::string> {};
 
 /**
- * Type caster for OpenMS::String*
+ * Type caster for std::string*
  */
 template <>
-struct type_caster<OpenMS::String*> {
-    NB_TYPE_CASTER(OpenMS::String*, const_name("str | None"))
+struct type_caster<std::string*> {
+    NB_TYPE_CASTER(std::string*, const_name("str | None"))
 
     bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
@@ -125,7 +125,7 @@ struct type_caster<OpenMS::String*> {
             return true;
         }
 
-        type_caster<OpenMS::String> inner;
+        type_caster<std::string> inner;
         if (!inner.from_python(src, flags, cleanup)) {
             return false;
         }
@@ -136,15 +136,15 @@ struct type_caster<OpenMS::String*> {
         return true;
     }
 
-    static handle from_cpp(OpenMS::String* src, rv_policy policy, cleanup_list* cleanup) noexcept {
+    static handle from_cpp(std::string* src, rv_policy policy, cleanup_list* cleanup) noexcept {
         if (!src) {
             return none().release();
         }
-        return type_caster<OpenMS::String>::from_cpp(*src, policy, cleanup);
+        return type_caster<std::string>::from_cpp(*src, policy, cleanup);
     }
 
 private:
-    OpenMS::String temp_value_;
+    std::string temp_value_;
 };
 
 }  // namespace detail

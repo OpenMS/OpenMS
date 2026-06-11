@@ -10,7 +10,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 // forward declarations
@@ -50,7 +50,7 @@ public:
 
           @param[in] filename Path of the sqMass file to read.
       */
-      MzMLSqliteSwathHandler(const String& filename) :
+      MzMLSqliteSwathHandler(const std::string& filename) :
         filename_(filename)
       {}
 
@@ -110,7 +110,7 @@ public:
 protected:
 
       /// Path of the sqMass file passed in at construction time.
-      String filename_;
+      std::string filename_;
 
       /// Next spectrum id used when appending spectra to the database; lets multiple append passes coexist on the same file.
       Int spec_id_;

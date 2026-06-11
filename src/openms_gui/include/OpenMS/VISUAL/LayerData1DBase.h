@@ -67,7 +67,7 @@ namespace OpenMS
 
 
     /// get name augmented with attributes, e.g. '*' if modified
-    String getDecoratedName() const override;
+    std::string getDecoratedName() const override;
         
     /// Returns a const reference to the annotations of the current spectrum (1D view)
     const Annotations1DContainer& getCurrentAnnotations() const

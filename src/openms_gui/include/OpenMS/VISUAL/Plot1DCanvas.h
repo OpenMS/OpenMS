@@ -12,6 +12,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // OpenMS
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/VISUAL/LayerData1DBase.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/PlotCanvas.h>
@@ -71,7 +72,7 @@ namespace OpenMS
     {
       if (axis != DIM::X && axis != DIM::Y)
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a valid axis for 1D plotting", String((int)axis));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a valid axis for 1D plotting",StringUtils::toStr((int)axis));
       }
       gravity_axis_ = axis;
     }
@@ -258,7 +259,7 @@ namespace OpenMS
     /// @param[in] p A X-Y data point
     /// @return Either the X or Y component, depending on gravity
     template<UInt D>
-    int gravityValue(const DPosition<D>& p) const
+    auto gravityValue(const DPosition<D>& p) const
     {
       return p[(int)gravity_axis_];
     }
@@ -347,9 +348,9 @@ public:
                        ODExperimentSharedPtrType ondisc_sptr, 
                        OSWDataSharedPtrType chrom_annotation,
                        const int index,
-                       const String& filename, 
-                       const String& basename,
-                       const String& basename_extra);
+                       const std::string& filename, 
+                       const std::string& basename,
+                       const std::string& basename_extra);
 
     
     ///Enumerate all available paint styles
@@ -490,6 +491,12 @@ public:
 
     /// Return true if interesting m/s are annotated
     bool isDrawInterestingMZs() const;
+
+    /// Enable TMT reporter-ion annotation overlay for the given method (MethodType::UNKNOWN = disabled).
+    void setTMTAnnotationMethod(IsobaricQuantitationMethod::MethodType method);
+
+    /// Returns the currently active TMT annotation method (UNKNOWN = disabled).
+    IsobaricQuantitationMethod::MethodType getTMTAnnotationMethod() const;
 
     // Show/hide ion ladder on top right corner (Identification view)
     void setIonLadderVisible(bool show);
@@ -692,6 +699,14 @@ protected:
     // docu in base class
     void paintGridLines_(QPainter& painter) override;
 
+    /// (Re-)compute TMT reporter-ion annotations for the current spectrum.
+    void updateTMTAnnotations_();
+    /// Remove all annotation items previously added by TMT mode.
+    void removeTMTAnnotations_();
+    /// Vertically stagger the TMT vertical-line labels so neighbouring ones do not overlap horizontally at the
+    /// current zoom level (labels that would overlap are pushed down by whole text-line heights). Cheap; call on zoom.
+    void layoutTMTLabels_();
+
     /// Find peak next to the given position
     PeakIndex findPeakAtPosition_(QPoint);
 
@@ -743,6 +758,14 @@ protected:
     bool ion_ladder_visible_ = true;
     /// annotate interesting peaks with m/z's
     bool draw_interesting_MZs_ = false;
+    /// Active TMT annotation method; UNKNOWN = disabled
+    IsobaricQuantitationMethod::MethodType tmt_method_type_ {IsobaricQuantitationMethod::MethodType::UNKNOWN};
+    /// Raw pointers to Annotation1DItems added by TMT mode (ownership stays in the per-spectrum Annotations1DContainer).
+    /// These stay valid across spectrum navigation because Annotations1DContainer has a move c'tor (no cloning on reallocation).
+    std::vector<Annotation1DItem*> tmt_annotation_items_;
+    /// Spectrum index (within the current layer) that tmt_annotation_items_ were added to; needed to remove them
+    /// from the correct per-spectrum container (the shown spectrum may have changed since they were added).
+    Size tmt_annotation_spectrum_idx_ = 0;
     /// The text box in the upper left corner with the current data coordinates of the cursor
     QTextDocument text_box_content_;
     /// handles pulling/pushing of points to the edges of the widget

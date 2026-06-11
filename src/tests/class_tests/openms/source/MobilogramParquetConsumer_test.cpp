@@ -30,9 +30,9 @@ START_SECTION(MobilogramParquetConsumer_basic)
 
   OpenSwath::LightTargetedExperiment light_exp; // empty
 
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
-  String out = tmp + ".xim";
+  std::string out = tmp + ".xim";
   {
     MobilogramParquetConsumer consumer(out, 1, "test_source", light_exp);
     consumer.consumeMobilogram(m);
@@ -52,9 +52,9 @@ START_SECTION(MobilogramParquetConsumer_const_mobilogram_not_modified)
   const Size initial_size = m.size();
 
   OpenSwath::LightTargetedExperiment light_exp;
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
-  String out = tmp + ".xim";
+  std::string out = tmp + ".xim";
   {
     MobilogramParquetConsumer consumer(out, 1, "src", light_exp);
     consumer.consumeMobilogram(m);
@@ -77,9 +77,9 @@ START_SECTION(MobilogramParquetConsumer_round_trip_file_written)
   m.push_back(MobilityPeak1D(1.00, 3000.0));
 
   OpenSwath::LightTargetedExperiment light_exp;
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
-  String out = tmp + ".xim";
+  std::string out = tmp + ".xim";
   {
     MobilogramParquetConsumer consumer(out, 42, "run_src", light_exp);
     consumer.consumeMobilogram(m, "ms2", 2, -1, "tr1", 50.0, 7);
@@ -96,9 +96,9 @@ START_SECTION(MobilogramParquetConsumer_empty_mobilograms)
 {
   OpenSwath::LightTargetedExperiment light_exp;
 
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
-  String out = tmp + ".xim";
+  std::string out = tmp + ".xim";
   {
     MobilogramParquetConsumer consumer(out, 1, "test_source", light_exp);
     // Do not consume any mobilograms
@@ -115,9 +115,9 @@ START_SECTION(MobilogramParquetConsumer_destructor_flushes)
   m.push_back(MobilityPeak1D(1.0, 100.0));
 
   OpenSwath::LightTargetedExperiment light_exp;
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
-  String out = tmp + ".xim";
+  std::string out = tmp + ".xim";
   {
     MobilogramParquetConsumer consumer(out, 1, "test_source", light_exp);
     consumer.consumeMobilogram(m);

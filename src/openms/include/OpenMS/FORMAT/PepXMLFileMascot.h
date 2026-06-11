@@ -40,7 +40,7 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, std::map<String, std::vector<AASequence> > & peptides);
+    void load(const std::string & filename, std::map<std::string, std::vector<AASequence> > & peptides);
 
 protected:
 
@@ -50,32 +50,32 @@ protected:
     // Docu in base class
     void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
 
-    void matchModification_(double mass, String & modification_description);
+    void matchModification_(double mass, std::string & modification_description);
 
     /// @name members for loading data
     //@{
     /// Pointer to fill in protein identifications
 
     /// The title of the actual spectrum
-    String actual_title_;
+    std::string actual_title_;
 
     /// The sequence of the actual peptide hit
-    String actual_sequence_;
+    std::string actual_sequence_;
 
     /// The modifications of the actual peptide hit (position is 1-based)
-    std::vector<std::pair<String, UInt> > actual_modifications_;
+    std::vector<std::pair<std::string, UInt> > actual_modifications_;
 
     /// The peptides together with the spectrum title
-    std::map<String, std::vector<AASequence> > * peptides_;
+    std::map<std::string, std::vector<AASequence> > * peptides_;
 
     /// stores the actual peptide sequences
     std::vector<AASequence> actual_aa_sequences_;
 
     /// stores the fixed residue modifications
-    std::vector<String> fixed_modifications_;
+    std::vector<std::string> fixed_modifications_;
 
     /// stores the variable residue modifications
-    std::vector<std::pair<String, double> > variable_modifications_;
+    std::vector<std::pair<std::string, double> > variable_modifications_;
     //@}
   };
 

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
@@ -49,7 +49,7 @@ struct OPENMS_DLLAPI CometModification
   static constexpr double MASS_TOLERANCE = 1e-6;
 
   double mass{0.0};              ///< Modification mass difference (in Da).
-  String residues;               ///< Residue(s) this modification applies to (e.g. @c "K", @c "KR", @c "n", @c "nKR").
+  std::string residues;               ///< Residue(s) this modification applies to (e.g. @c "K", @c "KR", @c "n", @c "nKR").
   int binary_group{0};           ///< Comet binary modification group (used e.g. for SILAC).
   int max_mods_per_peptide{5};   ///< Maximum number of occurrences of this modification per peptide.
   int term_distance{-1};         ///< Terminal distance constraint: @c -1 = no constraint, @c 0 = terminal only.
@@ -128,7 +128,7 @@ struct OPENMS_DLLAPI CometModification
     @param[in] index 1-based modification index used to form the @c variable_modXX key.
     @return The fully-formed @c variable_modXX = ... line.
   */
-  String toCometString(Size index) const;
+  std::string toCometString(Size index) const;
 
   /**
     @brief Greedy first-fit merge of a vector of entries.

@@ -282,13 +282,13 @@ namespace OpenMS
                                       bool use_RANSAC,
                                       double post_ppm_median,
                                       double post_ppm_MAD,
-                                      const String& file_models,
-                                      const String& file_models_plot,
-                                      const String& file_residuals,
-                                      const String& file_residuals_plot,
-                                      const String& rscript_executable_)
+                                      const std::string& file_models,
+                                      const std::string& file_models_plot,
+                                      const std::string& file_residuals,
+                                      const std::string& file_residuals_plot,
+                                      const std::string& rscript_executable_)
   {
-    String rscript_executable = rscript_executable_;
+    std::string rscript_executable = rscript_executable_;
 
     // ensure sorting; required for finding RT ranges and lock masses
     if (!exp.isSorted(true))
@@ -394,7 +394,7 @@ namespace OpenMS
         {
           if (!MZTrafoModel::isValidModel(tms[j]))
           {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "InternalCalibration::calibrate(): Internal error. Not all models are valid!", String(j));
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "InternalCalibration::calibrate(): Internal error. Not all models are valid!",StringUtils::toStr(j));
           }
         }
       }
@@ -416,9 +416,9 @@ namespace OpenMS
     //
     if (!file_models.empty() || !file_models_plot.empty())
     {
-      String out_table = File::getTemporaryFile(file_models);
+      std::string out_table = File::getTemporaryFile(file_models);
       { // we need this scope, to ensure that SVOutStream writes its cache, before we call RWrapper!
-        SVOutStream sv(out_table, ", ", ", ", String::NONE);
+        SVOutStream sv(out_table, ", ", ", ", OpenMS::QuotingMethod::NONE);
 
         sv << "# model parameters (for all successfully trained models)" << nl
           << "RT" << "A (offset)" << "B (slope)" << "C (power)" << "source" << nl;
@@ -458,11 +458,11 @@ namespace OpenMS
     // go through Calibration data points
     //
     SVOutStream* sv = nullptr;      
-    String out_table_residuals;
+    std::string out_table_residuals;
     if (!file_residuals.empty() || !file_residuals_plot.empty())
     {
       out_table_residuals = File::getTemporaryFile(file_residuals);
-      sv = new SVOutStream(out_table_residuals, ", ", ", ", String::NONE);
+      sv = new SVOutStream(out_table_residuals, ", ", ", ", OpenMS::QuotingMethod::NONE);
     }
 
     std::vector<double> vec_ppm_before, vec_ppm_after;

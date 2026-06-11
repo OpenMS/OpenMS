@@ -128,7 +128,7 @@ START_SECTION((static bool isSubsampledSpectrum_(const size_t total_spec_count, 
 }
 END_SECTION
 
-START_SECTION((static void storeJSON(const OpenMS::String& filename)))
+START_SECTION((static void storeJSON(const std::string& filename)))
 {
   SwathQC qc(10, 0.04);
   int count{};
@@ -144,9 +144,9 @@ START_SECTION((static void storeJSON(const OpenMS::String& filename)))
   }
 
   // getChargeDistribution(swath_maps, 10, 0.04);
-  String tmp_json = File::getTemporaryFile();
+  std::string tmp_json = File::getTemporaryFile();
   qc.storeJSON(tmp_json);
-  String tmp_expected = File::getTemporaryFile();
+  std::string tmp_expected = File::getTemporaryFile();
   TextFile tf;
   tf.addLine(R"({
   "ChargeDistributionMS1": [

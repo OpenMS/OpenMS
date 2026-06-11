@@ -98,10 +98,10 @@ public:
       //@{
 
       /// Constructor for a read-only  handler
-      MzMLHandler(MapType& exp, const String& filename, const String& version, const ProgressLogger& logger);
+      MzMLHandler(MapType& exp, const std::string& filename, const std::string& version, const ProgressLogger& logger);
 
       /// Constructor for a write-only handler
-      MzMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger);
+      MzMLHandler(const MapType& exp, const std::string& filename, const std::string& version, const ProgressLogger& logger);
 
       /// Destructor
       ~MzMLHandler() override;
@@ -172,7 +172,7 @@ public:
 protected:
 
       /// delegated constructor for the two public versions
-      MzMLHandler(const String& filename, const String& version, const ProgressLogger& logger);
+      MzMLHandler(const std::string& filename, const std::string& version, const ProgressLogger& logger);
 
       /// Peak type
       typedef MapType::PeakType PeakType;
@@ -247,20 +247,20 @@ protected:
       void fillChromatogramData_();
 
       /// Handles CV terms
-      void handleCVParam_(const String& parent_parent_tag,
-                          const String& parent_tag,
-                          const String& accession,
-                          const String& name,
-                          const String& value,
-                          const String& unit_accession = "");
+      void handleCVParam_(const std::string& parent_parent_tag,
+                          const std::string& parent_tag,
+                          const std::string& accession,
+                          const std::string& name,
+                          const std::string& value,
+                          const std::string& unit_accession = "");
 
       /// Handles user terms
-      void handleUserParam_(const String& parent_parent_tag,
-                            const String& parent_tag,
-                            const String& name,
-                            const String& type,
-                            const String& value,
-                            const String& unit_accession = "");
+      void handleUserParam_(const std::string& parent_parent_tag,
+                            const std::string& parent_tag,
+                            const std::string& name,
+                            const std::string& type,
+                            const std::string& value,
+                            const std::string& unit_accession = "");
       //@}
 
       /**
@@ -291,7 +291,7 @@ protected:
                               const Internal::MzMLValidator& validator);
 
       template <typename ContainerT>
-      void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, const String& array_type);
+      void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, const std::string& array_type);
 
       /**
           @brief Write a single \<binaryDataArray\> element to the output
@@ -310,7 +310,7 @@ protected:
                                  const PeakFileOptions& options,
                                  std::vector<DataType>& data,
                                  bool is32bit,
-                                 String array_type);
+                                 std::string array_type);
 
       /**
           @brief Write a single \<binaryDataArray\> element for a float data array to the output
@@ -335,16 +335,16 @@ protected:
                                       const Internal::MzMLValidator& validator);
 
       /// Writes user terms
-      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude = {}) const;
+      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const std::string& path, const Internal::MzMLValidator& validator, const std::set<std::string>& exclude = {}) const;
 
       /// Helper method that writes a software
-      void writeSoftware_(std::ostream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator);
+      void writeSoftware_(std::ostream& os, const std::string& id, const Software& software, const Internal::MzMLValidator& validator);
 
       /// Helper method that writes a source file
-      void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software, const Internal::MzMLValidator& validator);
+      void writeSourceFile_(std::ostream& os, const std::string& id, const SourceFile& software, const Internal::MzMLValidator& validator);
 
       /// Helper method that writes a data processing list
-      void writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, const Internal::MzMLValidator& validator);
+      void writeDataProcessing_(std::ostream& os, const std::string& id, const std::vector< ConstDataProcessingPtr >& dps, const Internal::MzMLValidator& validator);
 
       /// Helper method that write precursor information from spectra and chromatograms
       void writePrecursor_(std::ostream& os, const Precursor& precursor, const Internal::MzMLValidator& validator);
@@ -353,13 +353,13 @@ protected:
       void writeProduct_(std::ostream& os, const Product& product, const Internal::MzMLValidator& validator);
 
       /// Helper method to write an CV based on a meta value
-      String writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue) const;
+      std::string writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue) const;
 
       /// Helper method to validate if the given CV is allowed in the current location (path)
-      bool validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator) const;
+      bool validateCV_(const ControlledVocabulary::CVTerm& c, const std::string& path, const Internal::MzMLValidator& validator) const;
 
       /// Helper method to look up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
-      ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
+      ControlledVocabulary::CVTerm getChildWithName_(const std::string& parent_accession, const std::string& name) const;
 
       //@}
 
@@ -393,23 +393,23 @@ protected:
       /// Remember whether the RT of the spectrum was set or not
       bool rt_set_{ false };
       /// Id of the current list. Used for referencing param group, source file, sample, software, ...
-      String current_id_;
+      std::string current_id_;
       /// The referencing param groups: id => array (accession, value)
-      std::map<String, std::vector<SemanticValidator::CVTerm> > ref_param_;
+      std::map<std::string, std::vector<SemanticValidator::CVTerm> > ref_param_;
       /// The source files: id => SourceFile
-      std::map<String, SourceFile> source_files_;
+      std::map<std::string, SourceFile> source_files_;
       /// The sample list: id => Sample
-      std::map<String, Sample> samples_;
+      std::map<std::string, Sample> samples_;
       /// The software list: id => Software
-      std::map<String, Software> software_;
+      std::map<std::string, Software> software_;
       /// The data processing list: id => Instrument
-      std::map<String, Instrument> instruments_;
+      std::map<std::string, Instrument> instruments_;
       /// CV terms-path-combinations that have been checked in validateCV_()
-      mutable std::map<std::pair<String, String>, bool> cached_terms_;
+      mutable std::map<std::pair<std::string, std::string>, bool> cached_terms_;
       /// The data processing list: id => Instrument
-      std::map<String, std::vector< DataProcessingPtr > > processing_;
+      std::map<std::string, std::vector< DataProcessingPtr > > processing_;
       /// id of the default data processing (used when no processing is defined)
-      String default_processing_;
+      std::string default_processing_;
       /// Count of selected ions
       UInt selected_ion_count_{ 0 };
 

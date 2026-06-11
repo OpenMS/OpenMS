@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenSwath
@@ -70,11 +70,11 @@ namespace OpenMS
       @throws Exception::MissingInformation if a feature is missing required meta values
       @throws Exception::InvalidValue if a run_id already exists in the output
     */
-    void write(const String& output_path,
+    void write(const std::string& output_path,
                const OpenSwath::LightTargetedExperiment& assay_library,
                const FeatureMap& feature_map,
                UInt64 run_id,
-               const String& input_filename,
+               const std::string& input_filename,
                bool enable_uis_scoring) const;
 
     /**

@@ -25,7 +25,7 @@ std::vector<FASTAFile::FASTAEntry> toFASTAVec(const std::vector<std::string>& sl
   std::vector<FASTAFile::FASTAEntry> proteins;
   for (size_t i = 0; i < sl_prot.size(); ++i)
   {
-    String id = i < identifier.size() ? String(identifier[i]) : String(i); // use identifier if given; or create automatically
+    std::string id = i < identifier.size() ? std::string(identifier[i]) : StringUtils::toStr(i); // use identifier if given; or create automatically
     proteins.push_back(FASTAFile::FASTAEntry(id, "", sl_prot[i]));
   }
   return proteins;
@@ -121,7 +121,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
     r = pi.run(proteins_local, prot_ids, pep_ids_local);
     for (Size i = 0; i < pep_ids.size(); ++i)
     {
-      set<String> protein_accessions = pep_ids_local[i].getHits()[0].extractProteinAccessionsSet();
+      set<std::string> protein_accessions = pep_ids_local[i].getHits()[0].extractProteinAccessionsSet();
       TEST_EQUAL(protein_accessions.size(), i_aa >= 2 ? 1 : 0); // no hit or one hit!
     }
   }
@@ -144,7 +144,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
     pi.run(proteins_local, prot_ids, pep_ids_local);
     for (Size i = 0; i < pep_ids.size(); ++i)
     {
-      set<String> protein_accessions = pep_ids_local[i].getHits()[0].extractProteinAccessionsSet();
+      set<std::string> protein_accessions = pep_ids_local[i].getHits()[0].extractProteinAccessionsSet();
       bool is_CASIQK = (i == 0);
       bool allow_at_least_3_ambAA = (i_aa >= 3);
       std::cerr << "TEST: ambAA=" << i_aa << ", hit#:" << i << " ==> prots: " << protein_accessions.size() << "==" << (is_CASIQK & allow_at_least_3_ambAA ? 1 : 0) << "?\n";

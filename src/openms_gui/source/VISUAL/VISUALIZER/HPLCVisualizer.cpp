@@ -41,9 +41,9 @@ namespace OpenMS
   {
     hplcinstrument_->setText(temp_.getInstrument().c_str());
     hplccolumn_->setText(temp_.getColumn().c_str());
-    hplctemperature_->setText(String(temp_.getTemperature()).c_str());
-    hplcpressure_->setText(String(temp_.getPressure()).c_str());
-    hplcflux_->setText(String(temp_.getFlux()).c_str());
+    hplctemperature_->setText(StringUtils::toStr(temp_.getTemperature()).c_str());
+    hplcpressure_->setText(StringUtils::toStr(temp_.getPressure()).c_str());
+    hplcflux_->setText(StringUtils::toStr(temp_.getFlux()).c_str());
     hplccomment_->setText(temp_.getComment().c_str());
   }
 

@@ -16,7 +16,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -131,15 +131,15 @@ START_SECTION((template <class IdentificationType> static bool getBestHit(const 
 }
 END_SECTION
 
-START_SECTION((static void extractPeptideSequences(const PeptideIdentificationList& peptides, set<String>& sequences, bool ignore_mods = false)))
+START_SECTION((static void extractPeptideSequences(const PeptideIdentificationList& peptides, set<std::string>& sequences, bool ignore_mods = false)))
 {
-  set<String> seqs;
+  set<std::string> seqs;
   IDFilter::extractPeptideSequences(global_peptides, seqs);
   TEST_EQUAL(seqs.size(), 11);
-  vector<String> expected = ListUtils::create<String>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNM(Oxidation)ISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
-  vector<String> expected_unmodified = ListUtils::create<String>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNMISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
+  vector<std::string> expected = ListUtils::create<std::string>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNM(Oxidation)ISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
+  vector<std::string> expected_unmodified = ListUtils::create<std::string>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNMISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
   Size counter = 0;
-  for (set<String>::iterator it = seqs.begin(); it != seqs.end(); ++it,
+  for (set<std::string>::iterator it = seqs.begin(); it != seqs.end(); ++it,
          ++counter)
   {
     TEST_EQUAL(*it, expected[counter]);
@@ -149,7 +149,7 @@ START_SECTION((static void extractPeptideSequences(const PeptideIdentificationLi
   IDFilter::extractPeptideSequences(global_peptides, seqs, true);
   TEST_EQUAL(seqs.size(), 10);
   counter = 0;
-  for (set<String>::iterator it = seqs.begin(); it != seqs.end(); ++it,
+  for (set<std::string>::iterator it = seqs.begin(); it != seqs.end(); ++it,
          ++counter)
   {
     if (counter == 6) counter++; // skip the modified sequence
@@ -432,9 +432,9 @@ START_SECTION((template <class IdentificationType> static void removeDecoyHits(v
 }
 END_SECTION
 
-START_SECTION((template <class IdentificationType> static void removeHitsMatchingProteins(vector<IdentificationType>& ids, const set<String> accessions)))
+START_SECTION((template <class IdentificationType> static void removeHitsMatchingProteins(vector<IdentificationType>& ids, const set<std::string> accessions)))
 {
-  set<String> accessions;
+  set<std::string> accessions;
   accessions.insert("Q824A5");
   accessions.insert("Q872T5");
 
@@ -461,9 +461,9 @@ START_SECTION((template <class IdentificationType> static void removeHitsMatchin
 }
 END_SECTION
 
-START_SECTION((template <class IdentificationType> static void keepHitsMatchingProteins(vector<IdentificationType>& ids, const set<String> accessions)))
+START_SECTION((template <class IdentificationType> static void keepHitsMatchingProteins(vector<IdentificationType>& ids, const set<std::string> accessions)))
 {
-  set<String> accessions;
+  set<std::string> accessions;
   accessions.insert("Q824A5");
   accessions.insert("Q872T5");
 
@@ -615,7 +615,7 @@ START_SECTION((static void filterPeptidesByMZError(PeptideIdentificationList& pe
 }
 END_SECTION
 
-START_SECTION((static void filterPeptidesByRTPredictPValue(PeptideIdentificationList& peptides, const String& metavalue_key, double threshold = 0.05)))
+START_SECTION((static void filterPeptidesByRTPredictPValue(PeptideIdentificationList& peptides, const std::string& metavalue_key, double threshold = 0.05)))
 {
   vector<ProteinIdentification> proteins;
   PeptideIdentificationList peptides;
@@ -650,10 +650,10 @@ START_SECTION((static void filterPeptidesByRTPredictPValue(PeptideIdentification
 }
 END_SECTION
 
-START_SECTION((static void removePeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<String>& modifications)))
+START_SECTION((static void removePeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<std::string>& modifications)))
 {
   PeptideIdentificationList peptides = global_peptides;
-  set<String> mods;
+  set<std::string> mods;
   mods.insert("Carbamidomethyl (C)"); // not present in the data
   IDFilter::removePeptidesWithMatchingModifications(peptides, mods);
   TEST_TRUE(peptides == global_peptides); // no changes
@@ -679,10 +679,10 @@ START_SECTION((static void removePeptidesWithMatchingModifications(PeptideIdenti
 }
 END_SECTION
 
-START_SECTION((static void removePeptidesWithMatchingRegEx(PeptideIdentificationList& peptides, const String& regex)))
+START_SECTION((static void removePeptidesWithMatchingRegEx(PeptideIdentificationList& peptides, const std::string& regex)))
 {
   PeptideIdentificationList peptides = global_peptides;
-  String re{"[BJXZ]"};
+  std::string re{"[BJXZ]"};
 
   IDFilter::removePeptidesWithMatchingRegEx(peptides, re);
   TEST_TRUE(peptides == global_peptides); // no changes
@@ -707,10 +707,10 @@ START_SECTION((static void removePeptidesWithMatchingRegEx(PeptideIdentification
 }
 END_SECTION
 
-START_SECTION((static void keepPeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<String>& modifications)))
+START_SECTION((static void keepPeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<std::string>& modifications)))
 {
   PeptideIdentificationList peptides = global_peptides;
-  set<String> mods;
+  set<std::string> mods;
   mods.insert("Oxidation (M)");
   IDFilter::keepPeptidesWithMatchingModifications(peptides, mods);
   TEST_EQUAL(peptides[0].getHits().size(), 1);

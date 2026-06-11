@@ -81,7 +81,7 @@ namespace OpenMS
      * @param[in] create Attempt to create the directory if it does not already exist
      * @returns False if setting/creating the path fails. True otherwise.
      */
-    [[maybe_unused]] bool setPluginPath(const String& path, bool create=false);
+    [[maybe_unused]] bool setPluginPath(const std::string& path, bool create=false);
 
     /// set the verbosity level of the tool discovery for debug purposes
     void setVerbose(int verbosity_level);
@@ -96,7 +96,7 @@ namespace OpenMS
     /** Returns param for a given tool/util. This function is thread-safe. Additionally inserts names of tools into 
         plugin list
      */
-    static Param getParamFromIni_(const String& tool_path, bool plugins=false);
+    static Param getParamFromIni_(const std::string& tool_path, bool plugins=false);
 
     /** Start creating params for each plugin in the set plugin path asynchronously
      *  This should only be called from waitForPluginParams() or the names in the plugins vector are not correct

@@ -66,15 +66,15 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "file to validate");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzData,featureXML,mzid,idXML,consensusXML,mzXML,ini,pepXML,traML,xml"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML,mzData,featureXML,mzid,idXML,consensusXML,mzXML,ini,pepXML,traML,xml"));
     registerInputFile_("schema", "<file>", "", "schema to validate against.\nIf no schema is given, the file is validated against the latest schema of the file type.", false);
-    setValidFormats_("schema", ListUtils::create<String>("xsd"));
+    setValidFormats_("schema", ListUtils::create<std::string>("xsd"));
   }
 
   ExitCodes main_(int, const char**) override
   {
-    String in = getStringOption_("in");
-    String schema = getStringOption_("schema");
+    std::string in = getStringOption_("in");
+    std::string schema = getStringOption_("schema");
     bool valid = false;
 
     if (!schema.empty()) //schema explicitly given

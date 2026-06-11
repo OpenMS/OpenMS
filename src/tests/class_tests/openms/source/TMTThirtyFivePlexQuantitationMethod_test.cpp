@@ -38,7 +38,7 @@ START_SECTION(~TMTThirtyFivePlexQuantitationMethod())
 }
 END_SECTION
 
-START_SECTION((const String& getMethodName() const ))
+START_SECTION((const std::string& getMethodName() const ))
 {
   TMTThirtyFivePlexQuantitationMethod quant_meth;
   TEST_EQUAL(quant_meth.getMethodName(), "tmt35plex")
@@ -53,7 +53,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TEST_EQUAL(channel_list.size(), 35)
   ABORT_IF(channel_list.size() != 35)
 
-  String channel_names[35] = {
+  std::string channel_names[35] = {
     "126", "127N", "127C", "127D", "128N", 
     "128C","128ND","128CD","129N", "129C", 
     "129ND","129CD","130N","130C", "130ND",

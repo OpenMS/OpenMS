@@ -128,22 +128,22 @@ namespace OpenMS
     return os;
   }
 
-  const String & ExperimentalSettings::getComment() const
+  const std::string & ExperimentalSettings::getComment() const
   {
     return comment_;
   }
 
-  void ExperimentalSettings::setComment(const String & comment)
+  void ExperimentalSettings::setComment(const std::string & comment)
   {
     comment_ = comment;
   }
 
-  const String & ExperimentalSettings::getFractionIdentifier() const
+  const std::string & ExperimentalSettings::getFractionIdentifier() const
   {
     return fraction_identifier_;
   }
 
-  void ExperimentalSettings::setFractionIdentifier(const String & fraction_identifier)
+  void ExperimentalSettings::setFractionIdentifier(const std::string & fraction_identifier)
   {
     fraction_identifier_ = fraction_identifier;
   }

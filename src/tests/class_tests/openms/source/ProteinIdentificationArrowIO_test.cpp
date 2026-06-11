@@ -533,7 +533,7 @@ START_SECTION(exportProteinsToParquet())
 
   std::vector<ProteinIdentification> prot_ids = {prot_id};
 
-  String tmp_file;
+  std::string tmp_file;
   NEW_TMP_FILE(tmp_file)
   tmp_file += ".parquet";
 
@@ -580,7 +580,7 @@ START_SECTION(exportProteinGroupsToParquet())
 
   std::vector<ProteinIdentification> prot_ids = {prot_id};
 
-  String tmp_file;
+  std::string tmp_file;
   NEW_TMP_FILE(tmp_file)
   tmp_file += ".parquet";
 
@@ -632,7 +632,7 @@ START_SECTION(exportSearchParamsToParquet())
 
   std::vector<ProteinIdentification> prot_ids = {prot_id};
 
-  String tmp_file;
+  std::string tmp_file;
   NEW_TMP_FILE(tmp_file)
   tmp_file += ".parquet";
 
@@ -764,11 +764,11 @@ START_SECTION(importSearchParamsFromArrow - round trip)
   TEST_EQUAL(imp.getInferenceEngineVersion(), "3.06")
 
   // SearchParameters metavalues should be on SearchParameters, not on ProteinIdentification
-  TEST_EQUAL(String(imp_sp.getMetaValue("sp_custom_param")), "my_value")
+  TEST_EQUAL(StringUtils::toStr(imp_sp.getMetaValue("sp_custom_param")), "my_value")
   TEST_EQUAL(int(imp_sp.getMetaValue("sp_custom_int")), 123)
 
   // ProteinIdentification metavalue should be on ProteinIdentification
-  TEST_EQUAL(String(imp.getMetaValue("prot_id_custom")), "prot_level_value")
+  TEST_EQUAL(StringUtils::toStr(imp.getMetaValue("prot_id_custom")), "prot_level_value")
 
   // Cross-check: sp_custom_param should NOT be on the ProteinIdentification object
   TEST_EQUAL(imp.metaValueExists("sp_custom_param"), false)
@@ -842,7 +842,7 @@ START_SECTION(importProteinsFromArrow - round trip)
   TEST_REAL_SIMILAR(imp_hit1.getCoverage(), 45.2)
   TEST_EQUAL(imp_hit1.getSequence(), "MKWVTFISLLLLFSSAYS")
   TEST_EQUAL(imp_hit1.getDescription(), "Serum albumin")
-  TEST_EQUAL(String(imp_hit1.getMetaValue("target_decoy")), "target")
+  TEST_EQUAL(StringUtils::toStr(imp_hit1.getMetaValue("target_decoy")), "target")
   TEST_REAL_SIMILAR(double(imp_hit1.getMetaValue("custom_score")), 0.99)
 
   // Hit 2
@@ -851,7 +851,7 @@ START_SECTION(importProteinsFromArrow - round trip)
   TEST_REAL_SIMILAR(imp_hit2.getScore(), 25.3)
   TEST_EQUAL(imp_hit2.getRank(), 2)
   TEST_REAL_SIMILAR(imp_hit2.getCoverage(), ProteinHit::COVERAGE_UNKNOWN) // was null -> default
-  TEST_EQUAL(String(imp_hit2.getMetaValue("target_decoy")), "decoy")
+  TEST_EQUAL(StringUtils::toStr(imp_hit2.getMetaValue("target_decoy")), "decoy")
 }
 END_SECTION
 
@@ -930,7 +930,7 @@ START_SECTION(importSearchParamsFromParquet - file round trip)
 
   vector<ProteinIdentification> orig_ids = {prot_id};
 
-  String tmp_file;
+  std::string tmp_file;
   NEW_TMP_FILE(tmp_file)
   tmp_file += ".parquet";
 
@@ -960,7 +960,7 @@ START_SECTION(importProteinsFromParquet - file round trip)
 
   vector<ProteinIdentification> orig_ids = {prot_id};
 
-  String tmp_file;
+  std::string tmp_file;
   NEW_TMP_FILE(tmp_file)
   tmp_file += ".parquet";
 
@@ -987,7 +987,7 @@ START_SECTION(importProteinGroupsFromParquet - file round trip)
 
   vector<ProteinIdentification> orig_ids = {prot_id};
 
-  String tmp_file;
+  std::string tmp_file;
   NEW_TMP_FILE(tmp_file)
   tmp_file += ".parquet";
 
@@ -1098,7 +1098,7 @@ START_SECTION(importFromParquet - full combined round trip)
   }
 
   // Export all 3 tables
-  String proteins_file, groups_file, params_file;
+  std::string proteins_file, groups_file, params_file;
   NEW_TMP_FILE(proteins_file)
   proteins_file += ".parquet";
   NEW_TMP_FILE(groups_file)
@@ -1263,7 +1263,7 @@ START_SECTION(metavalue type preservation round trip)
   const auto& imp_hit = imported_ids[0].getHits()[0];
   TEST_EQUAL(int(imp_hit.getMetaValue("my_int")), 42)
   TEST_REAL_SIMILAR(double(imp_hit.getMetaValue("my_float")), 3.14)
-  TEST_EQUAL(String(imp_hit.getMetaValue("my_string")), "hello_world")
+  TEST_EQUAL(StringUtils::toStr(imp_hit.getMetaValue("my_string")), "hello_world")
 
   // Check list metavalue types are preserved
   TEST_EQUAL(imp_hit.getMetaValue("test_int_list").valueType(), DataValue::INT_LIST)
@@ -1332,7 +1332,7 @@ START_SECTION(protein groups with data arrays round trip)
   TEST_REAL_SIMILAR(imp_pg.getFloatDataArrays()[0][0], 0.01)
   TEST_REAL_SIMILAR(imp_pg.getFloatDataArrays()[0][1], 0.02)
 
-  // String data arrays
+  // std::string data arrays
   TEST_EQUAL(imp_pg.getStringDataArrays().size(), 1)
   TEST_EQUAL(imp_pg.getStringDataArrays()[0].getName(), "annotations")
   TEST_EQUAL(imp_pg.getStringDataArrays()[0].size(), 2)
@@ -1376,8 +1376,8 @@ START_SECTION(([EXTRA] synthesizeRunIdentifiers + applyRunIdentifierRename - hap
   TEST_NOT_EQUAL(prot_ids[0].getIdentifier(), prot_ids[1].getIdentifier())
 
   // Synthesized identifier shape: <search_engine>_<date>_<UniqueIdGenerator>.
-  TEST_TRUE(prot_ids[0].getIdentifier().hasPrefix("Comet_2025-08-01T12:00:00_"))
-  TEST_TRUE(prot_ids[1].getIdentifier().hasPrefix("Mascot_2025-08-02T13:00:00_"))
+  TEST_TRUE(StringUtils::hasPrefix(prot_ids[0].getIdentifier(), "Comet_2025-08-01T12:00:00_"))
+  TEST_TRUE(StringUtils::hasPrefix(prot_ids[1].getIdentifier(), "Mascot_2025-08-02T13:00:00_"))
 
   // Rename map agrees with the synthesized values.
   TEST_STRING_EQUAL(rename["orig_run_A"], prot_ids[0].getIdentifier())
@@ -1405,8 +1405,8 @@ START_SECTION(([EXTRA] synthesizeRunIdentifiers - edge cases (empty search engin
 
   auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(prot_ids);
 
-  TEST_TRUE(prot_ids[0].getIdentifier().hasPrefix("unknown_2025-09-09T09:09:09_"))
-  TEST_TRUE(prot_ids[1].getIdentifier().hasPrefix("Sage_1900-01-01T00:00:00_"))
+  TEST_TRUE(StringUtils::hasPrefix(prot_ids[0].getIdentifier(), "unknown_2025-09-09T09:09:09_"))
+  TEST_TRUE(StringUtils::hasPrefix(prot_ids[1].getIdentifier(), "Sage_1900-01-01T00:00:00_"))
   TEST_EQUAL(rename.size(), 2)
 }
 END_SECTION
@@ -1426,8 +1426,8 @@ START_SECTION(([EXTRA] synthesizeRunIdentifiers - duplicate stored identifiers c
 
   // Each ProtID gets its own distinct synthesized identifier ...
   TEST_NOT_EQUAL(prot_ids[0].getIdentifier(), prot_ids[1].getIdentifier())
-  TEST_TRUE(prot_ids[0].getIdentifier().hasPrefix("Comet_"))
-  TEST_TRUE(prot_ids[1].getIdentifier().hasPrefix("Mascot_"))
+  TEST_TRUE(StringUtils::hasPrefix(prot_ids[0].getIdentifier(), "Comet_"))
+  TEST_TRUE(StringUtils::hasPrefix(prot_ids[1].getIdentifier(), "Mascot_"))
   // ... but rename map has 1 entry, last-seen wins. Pep_ids with stored
   // identifier "dup" will all re-stamp to the LAST ProtID (the Mascot one).
   TEST_EQUAL(rename.size(), 1)

@@ -47,7 +47,7 @@ qcmlfile.registerRun("123","testrun1");
 qcmlfile.registerRun("456","testrun2");
 
 
-START_SECTION((void registerRun(const String id, const String name)))
+START_SECTION((void registerRun(const std::string id, const std::string name)))
 {
   QcMLFile qcmlfile1;
   qcmlfile1.registerRun("abc","somerun");
@@ -57,10 +57,10 @@ START_SECTION((void registerRun(const String id, const String name)))
 END_SECTION
 
 
-START_SECTION((void registerSet(const String id, const String name, const std::set< String > &names)))
+START_SECTION((void registerSet(const std::string id, const std::string name, const std::set<std::string> &names)))
 {
   QcMLFile qcmlfile1;
-  std::set<String> n;
+  std::set<std::string> n;
   n.insert("somerun1");
   n.insert("somerun2");
   qcmlfile1.registerSet("def","someset", n);
@@ -69,69 +69,69 @@ START_SECTION((void registerSet(const String id, const String name, const std::s
 }
 END_SECTION
 
-START_SECTION((void addRunQualityParameter(String r, QualityParameter qp)))
+START_SECTION((void addRunQualityParameter(std::string r, QualityParameter qp)))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void addRunAttachment(String r, Attachment at)))
+START_SECTION((void addRunAttachment(std::string r, Attachment at)))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void addSetQualityParameter(String r, QualityParameter qp)))
+START_SECTION((void addSetQualityParameter(std::string r, QualityParameter qp)))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void addSetAttachment(String r, Attachment at)))
+START_SECTION((void addSetAttachment(std::string r, Attachment at)))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void removeAttachment(String r, std::vector< String > &ids, String at="")))
+START_SECTION((void removeAttachment(std::string r, std::vector<std::string> &ids, std::string at="")))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void removeAttachment(String r, String at)))
+START_SECTION((void removeAttachment(std::string r, std::string at)))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void removeAllAttachments(String at)))
+START_SECTION((void removeAllAttachments(std::string at)))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void removeQualityParameter(String r, std::vector< String > &ids)))
+START_SECTION((void removeQualityParameter(std::string r, std::vector<std::string> &ids)))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void merge(const QcMLFile &addendum, String setname="")))
+START_SECTION((void merge(const QcMLFile &addendum, std::string setname="")))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void collectSetParameter(const String setname, const String qp, std::vector< String > &ret)))
+START_SECTION((void collectSetParameter(const std::string setname, const std::string qp, std::vector<std::string> &ret)))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((String exportAttachment(const String filename, const String qpname) const ))
+START_SECTION((std::string exportAttachment(const std::string filename, const std::string qpname) const ))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((String exportQP(const String filename, const String qpname) const ))
+START_SECTION((std::string exportQP(const std::string filename, const std::string qpname) const ))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((String exportQPs(const String filename, const StringList qpnames) const ))
+START_SECTION((std::string exportQPs(const std::string filename, const StringList qpnames) const ))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((String map2csv(const std::map< String, std::map< String, String > > &cvs_table, const String &separator) const ))
+START_SECTION((std::string map2csv(const std::map<std::string, std::map<std::string, std::string> > &cvs_table, const std::string &separator) const ))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((String exportIDstats(const String &filename) const ))
+START_SECTION((std::string exportIDstats(const std::string &filename) const ))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void getRunIDs(std::vector< String > &ids) const ))
+START_SECTION((void getRunIDs(std::vector<std::string> &ids) const ))
 {
-  std::vector< String > ids, test;
+  std::vector<std::string> ids, test;
   test.push_back("123");
   test.push_back("456");
   qcmlfile.getRunIDs(ids);
@@ -139,9 +139,9 @@ START_SECTION((void getRunIDs(std::vector< String > &ids) const ))
 }
 END_SECTION
 
-START_SECTION((void getRunNames(std::vector< String > &ids) const ))
+START_SECTION((void getRunNames(std::vector<std::string> &ids) const ))
 {
-  std::vector< String > ids, test;
+  std::vector<std::string> ids, test;
   test.push_back("testrun1");
   test.push_back("testrun2");
   qcmlfile.getRunNames(ids);
@@ -149,7 +149,7 @@ START_SECTION((void getRunNames(std::vector< String > &ids) const ))
 }
 END_SECTION
 
-START_SECTION((bool existsRun(const String filename, bool checkname=false) const ))
+START_SECTION((bool existsRun(const std::string filename, bool checkname=false) const ))
 {
   QcMLFile qcmlfile1;
   qcmlfile.registerRun("abc","somerun");
@@ -158,25 +158,25 @@ START_SECTION((bool existsRun(const String filename, bool checkname=false) const
 }
 END_SECTION
 
-START_SECTION((bool existsSet(const String filename, bool checkname=false) const ))
+START_SECTION((bool existsSet(const std::string filename, bool checkname=false) const ))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void existsRunQualityParameter(const String filename, const String qpname, std::vector< String > &ids) const ))
+START_SECTION((void existsRunQualityParameter(const std::string filename, const std::string qpname, std::vector<std::string> &ids) const ))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void existsSetQualityParameter(const String filename, const String qpname, std::vector< String > &ids) const ))
+START_SECTION((void existsSetQualityParameter(const std::string filename, const std::string qpname, std::vector<std::string> &ids) const ))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void store(const String &filename) const ))
+START_SECTION((void store(const std::string &filename) const ))
 {
 	NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void load(const String &filename)))
+START_SECTION((void load(const std::string &filename)))
 {
 	NOT_TESTABLE
 }
@@ -218,13 +218,13 @@ START_SECTION(([QcMLFile::Attachment] bool operator>(const Attachment &rhs) cons
 }
 END_SECTION
 
-START_SECTION(([QcMLFile::Attachment] String toXMLString(UInt indentation_level) const ))
+START_SECTION(([QcMLFile::Attachment] std::string toXMLString(UInt indentation_level) const ))
 {
 	NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION(([QcMLFile::Attachment] String toCSVString(String separator) const ))
+START_SECTION(([QcMLFile::Attachment] std::string toCSVString(std::string separator) const ))
 {
 	NOT_TESTABLE
 }
@@ -308,7 +308,7 @@ START_SECTION(([QcMLFile::QualityParameter] bool operator>(const QualityParamete
 }
 END_SECTION
 
-START_SECTION(([QcMLFile::QualityParameter] String toXMLString(UInt indentation_level) const ))
+START_SECTION(([QcMLFile::QualityParameter] std::string toXMLString(UInt indentation_level) const ))
 {
 	NOT_TESTABLE
 }

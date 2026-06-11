@@ -27,7 +27,7 @@ namespace OpenMS
     {
 public:
       /// Default constructor
-      UnimodXMLHandler(std::vector<ResidueModification*>& mods, const String& filename);
+      UnimodXMLHandler(std::vector<ResidueModification*>& mods, const std::string& filename);
 
       /// Destructor
       ~UnimodXMLHandler() override;
@@ -43,7 +43,7 @@ public:
 
 private:
 
-      String tag_;
+      std::string tag_;
 
       double avge_mass_;
 

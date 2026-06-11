@@ -201,7 +201,6 @@ namespace OpenMS
     StringList GUI_tools = {
       "ExecutePipeline",
       "ImageCreator",
-      "INIUpdater",
     };
     for (const auto& tool : GUI_tools) {
       tools_map.erase(tool);
@@ -226,7 +225,7 @@ namespace OpenMS
     return tools_map;
   }
 
-  StringList ToolHandler::getTypes(const String& toolname)
+  StringList ToolHandler::getTypes(const std::string& toolname)
   {
     Internal::ToolDescription ret;
     ToolListType tools = getTOPPToolList();
@@ -247,12 +246,12 @@ namespace OpenMS
     return tools_internal_;
   }
 
-  String ToolHandler::getExternalToolsPath()
+  std::string ToolHandler::getExternalToolsPath()
   {
     return File::getOpenMSDataPath() + "/TOOLS/EXTERNAL";
   }
 
-  String ToolHandler::getInternalToolsPath()
+  std::string ToolHandler::getInternalToolsPath()
   {
     return File::getOpenMSDataPath() + "/TOOLS/INTERNAL";
   }
@@ -287,7 +286,7 @@ namespace OpenMS
     // additional environment
     if (getenv("OPENMS_TTD_INTERNAL_PATH") != nullptr)
     {
-      paths.push_back(String(getenv("OPENMS_TTD_INTERNAL_PATH")));
+      paths.push_back(std::string(getenv("OPENMS_TTD_INTERNAL_PATH")));
     }
 
     StringList all_files;
@@ -300,10 +299,10 @@ namespace OpenMS
     return all_files;
   }
 
-  String ToolHandler::getCategory(const String& toolname)
+  std::string ToolHandler::getCategory(const std::string& toolname)
   {
     ToolListType tools = getTOPPToolList();
-    String s;
+    std::string s;
     if (tools.contains(toolname))
     {
       s = tools[toolname].category;

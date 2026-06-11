@@ -79,7 +79,7 @@ START_SECTION((void normalize(ConsensusMap &consensus_map)))
 
   normalizer.normalize(cm_in);
 
-	String cm_file_out;
+	std::string cm_file_out;
 	NEW_TMP_FILE(cm_file_out);
 	cm_file.store(cm_file_out,cm_in);
 

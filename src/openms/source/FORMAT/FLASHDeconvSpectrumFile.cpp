@@ -21,7 +21,7 @@ namespace OpenMS
   inline std::default_random_engine generator_;
   inline std::uniform_real_distribution<double> distribution_(0.0,1.0);
 
-  void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(const DeconvolvedSpectrum& dspec, std::ostream& os, const String& file_name, const FLASHHelperClasses::PrecalculatedAveragine& avg, const FLASHHelperClasses::PrecalculatedAveragine& decoy_avg, double tol,
+  void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(const DeconvolvedSpectrum& dspec, std::ostream& os, const std::string& file_name, const FLASHHelperClasses::PrecalculatedAveragine& avg, const FLASHHelperClasses::PrecalculatedAveragine& decoy_avg, double tol,
                                                        const bool write_detail, const bool report_decoy, const double noise_decoy_weight)
   {
     if (!report_decoy && dspec.isDecoy()) return;
@@ -422,7 +422,7 @@ namespace OpenMS
     os << ss.str();
   }
 
-  void FLASHDeconvSpectrumFile::writeMzML(const MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const String& deconvolved_mzML_file, const String& annotated_mzML_file,
+  void FLASHDeconvSpectrumFile::writeMzML(const MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::string& deconvolved_mzML_file, const std::string& annotated_mzML_file,
                                           int mzml_charge, DoubleList tols)
   {
     if (deconvolved_mzML_file.empty() && annotated_mzML_file.empty())
@@ -524,7 +524,7 @@ namespace OpenMS
     os << "####################### Parameters ######################\n";
   }
 
-  void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec, std::ostream& os, const String& filename, double qval_threshold, uint min_ms_level,
+  void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec, std::ostream& os, const std::string& filename, double qval_threshold, uint min_ms_level,
                                            bool randomize_precursor_mass, bool randomize_fragment_mass)
   {
     std::stringstream ss;

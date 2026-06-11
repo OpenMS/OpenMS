@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>  // for ParquetWriteConfig
 
 #include <cstdint>
@@ -46,7 +46,7 @@ namespace ArrowIOHelpers
 
     @return UUID string, e.g. "550e8400-e29b-41d4-a716-446655440000"
   */
-  OPENMS_DLLAPI String generateUuidV4();
+  OPENMS_DLLAPI std::string generateUuidV4();
 
   /**
     @brief Write an Arrow table to a Parquet file
@@ -58,7 +58,7 @@ namespace ArrowIOHelpers
   */
   OPENMS_DLLAPI bool writeTableToParquet(
     const std::shared_ptr<arrow::Table>& table,
-    const String& filename,
+    const std::string& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 
   /**
@@ -74,7 +74,7 @@ namespace ArrowIOHelpers
   */
   OPENMS_DLLAPI bool concatenateAndWriteToParquet(
     const std::vector<std::shared_ptr<arrow::Table>>& tables,
-    const String& filename,
+    const std::string& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 
   // ---------------------------------------------------------------------------
@@ -93,7 +93,7 @@ namespace ArrowIOHelpers
     bool required = true);
 
   /// Read a string at @p row, or "" if null/out-of-bounds
-  OPENMS_DLLAPI String getStringValue(
+  OPENMS_DLLAPI std::string getStringValue(
     const std::shared_ptr<arrow::Array>& array,
     int64_t row);
 

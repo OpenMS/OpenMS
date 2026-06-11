@@ -76,7 +76,7 @@ START_SECTION(exportFeaturesToArrow - single feature with convex hulls and metav
   // Add metavalues
   f.setMetaValue("my_int", 42);
   f.setMetaValue("my_float", 3.14);
-  f.setMetaValue("my_string", String("hello"));
+  f.setMetaValue("my_string",std::string("hello"));
 
   fm.push_back(f);
 
@@ -247,7 +247,7 @@ START_SECTION(importFeaturesFromArrow - round-trip with subordinates and hulls a
   // Metavalues (note: setWidth also adds FWHM metavalue)
   f1.setMetaValue("my_int", 42);
   f1.setMetaValue("my_float", 3.14);
-  f1.setMetaValue("my_string", String("hello"));
+  f1.setMetaValue("my_string",std::string("hello"));
   f1.setMetaValue("test_int_list", DataValue(IntList{1, 2, 3}));
   f1.setMetaValue("test_double_list", DataValue(DoubleList{1.5, 2.5}));
   f1.setMetaValue("test_string_list", DataValue(StringList{"a", "b", "c"}));
@@ -684,7 +684,7 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
   fm.setUnassignedPeptideIdentifications({unassigned});
 
   // --- Export to temp directory ---
-  String tmp_dir;
+  std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
 
@@ -731,7 +731,7 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
   // Identifier synthesized on load per IdXMLFile.cpp:530 parity — stored "run_full_1"
   // becomes `<search_engine>_<date>_<UniqueIdGenerator>`. All pep_id collections
   // (per-feature + unassigned) are re-stamped in lock-step.
-  const String& fm_synth_id = imported.getProteinIdentifications()[0].getIdentifier();
+  const std::string& fm_synth_id = imported.getProteinIdentifications()[0].getIdentifier();
   TEST_NOT_EQUAL(fm_synth_id, "")
   TEST_NOT_EQUAL(fm_synth_id, "run_full_1")
   TEST_STRING_EQUAL(imported[0].getPeptideIdentifications()[0].getIdentifier(), fm_synth_id);
@@ -765,7 +765,7 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap metadata round-tr
   dp1.setCompletionTime(DateTime::fromString("2025-06-15T14:30:00", "yyyy-MM-ddThh:mm:ss"));
   dp1.getProcessingActions().insert(DataProcessing::PEAK_PICKING);
   dp1.getProcessingActions().insert(DataProcessing::FILTERING);
-  dp1.setMetaValue("parameter_file", String("params.ini"));
+  dp1.setMetaValue("parameter_file",std::string("params.ini"));
   dp1.setMetaValue("num_threads", 8);
 
   DataProcessing dp2;
@@ -792,7 +792,7 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap metadata round-tr
   fm.setProteinIdentifications({prot_id});
 
   // --- Export to temp directory ---
-  String tmp_dir;
+  std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
 
@@ -939,7 +939,7 @@ START_SECTION(exportToParquet / importFromParquet - PSM completeness round-trip 
   fm.setUnassignedPeptideIdentifications({pep_id2});
 
   // --- Export and import ---
-  String tmp_dir;
+  std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
 
@@ -1067,7 +1067,7 @@ START_SECTION(exportToParquet / importFromParquet - per-PSM higher_score_better 
   fm.setUnassignedPeptideIdentifications({pep_id2});
 
   // --- Export and import ---
-  String tmp_dir;
+  std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
 
@@ -1112,7 +1112,7 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap-level MetaValue r
   // Plus a few scalar / typed meta-values to exercise the typed deserializer.
   fm.setMetaValue("custom_int", 1234);
   fm.setMetaValue("custom_double", 2.71828);
-  fm.setMetaValue("custom_string", String("free-form text"));
+  fm.setMetaValue("custom_string", std::string("free-form text"));
   fm.setMetaValue("custom_int_list", DataValue(IntList{10, 20, 30}));
   fm.setMetaValue("custom_double_list", DataValue(DoubleList{1.5, 2.5}));
 
@@ -1130,7 +1130,7 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap-level MetaValue r
   f.setUniqueId(101);
   fm.push_back(f);
 
-  String tmp_dir;
+  std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
 
@@ -1150,7 +1150,7 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap-level MetaValue r
   TEST_EQUAL(imported.metaValueExists("custom_int"), true)
   TEST_EQUAL(static_cast<int>(imported.getMetaValue("custom_int")), 1234)
   TEST_REAL_SIMILAR(static_cast<double>(imported.getMetaValue("custom_double")), 2.71828)
-  TEST_EQUAL(String(imported.getMetaValue("custom_string")), "free-form text")
+  TEST_EQUAL(StringUtils::toStr(imported.getMetaValue("custom_string")), "free-form text")
 
   // List-typed meta-values restore as their original types.
   IntList out_il = imported.getMetaValue("custom_int_list");
@@ -1180,7 +1180,7 @@ START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers thro
   f.setRT(50.0); f.setMZ(400.0); f.setIntensity(500.0f); f.setCharge(1); f.setUniqueId(101);
   fm.push_back(f);
 
-  String tmp_dir;
+  std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
 

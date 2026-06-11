@@ -88,7 +88,7 @@ namespace OpenMS
     if (!RangeMZ(0.0, 1.0e12).containsMZ({mz_min, mz_max}) ||
         !RangeRT(-1.0e12, 1.0e12).containsRT({rt_min, rt_max}) ) 
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MinMZ,MaxMZ,MinRT,MaxRT values outside of sensible value ranges. Are they uninitialized? (" + String(mz_min) + "/" + String(mz_max) + "/" + String(rt_min) + "/" + String(rt_max));
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MinMZ,MaxMZ,MinRT,MaxRT values outside of sensible value ranges. Are they uninitialized? (" + StringUtils::toStr(mz_min) + "/" + StringUtils::toStr(mz_max) + "/" + StringUtils::toStr(rt_min) + "/" + StringUtils::toStr(rt_max));
     }
     
     // extend the grid by a small absolute margin

@@ -174,7 +174,7 @@ public:
       @param[in] window_id in which window the file is opened if opened as a new layer (0 or default equals current window).
       @param[in] spectrum_id determines the spectrum to show in 1D view.
     */
-    LOAD_RESULT addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption = "", UInt window_id = 0, Size spectrum_id = 0);
+    LOAD_RESULT addDataFile(const std::string& filename, bool show_options, bool add_to_recent, std::string caption = "", UInt window_id = 0, Size spectrum_id = 0);
 
     /**
       @brief Adds a peak or feature map to the viewer
@@ -202,8 +202,8 @@ public:
                  bool show_as_1d,
                  bool show_options,
                  bool as_new_window = true,
-                 const String& filename = "",
-                 const String& caption = "",
+                 const std::string& filename = "",
+                 const std::string& caption = "",
                  UInt window_id = 0,
                  Size spectrum_id = 0);
 
@@ -215,7 +215,7 @@ public:
 
       If the filename is empty, the application name + ".ini" is used as filename
     */
-    void loadPreferences(String filename = "");
+    void loadPreferences(std::string filename = "");
 
     /// Stores the preferences (used when this window is closed)
     void savePreferences();
@@ -258,7 +258,7 @@ public slots:
     /// changes the current path according to the currently active window/layer
     void updateCurrentPath();
     /// shows the file dialog for opening files (a starting directory, e.g. for the example files can be provided; otherwise, uses the current_path_)
-    void openFilesByDialog(const String& initial_directory = "");
+    void openFilesByDialog(const std::string& initial_directory = "");
     /// shows the DB dialog for opening files
     void showGoToDialog() const;
     /// shows the preferences dialog
@@ -301,7 +301,7 @@ public slots:
     */
     void showStatusMessage(const std::string& msg, OpenMS::UInt time);
     /// shows X/Y axis mouse values in the status bar
-    void showCursorStatus(const String& x, const String& y);
+    void showCursorStatus(const std::string& x, const std::string& y);
     /// Apply TOPP tool
     void showTOPPDialog();
     /// Annotates current layer with ID data from AccurateMassSearch
@@ -351,7 +351,7 @@ public slots:
 
     /// list of the recently opened files
     /// called when RecentFileMenu items is clicked
-    void openFile(const String& filename);
+    void openFile(const std::string& filename);
 
     /// Enables/disables the data filters for the current layer
     void layerFilterVisibilityChange(bool) const;
@@ -382,7 +382,7 @@ protected slots:
     void updateProcessLog();
 
     /// Called if a data file has been externally changed
-    void fileChanged_(const String&);
+    void fileChanged_(const std::string&);
 protected:
     /// Initializes the default parameters on TOPPView construction.
     void initializeDefaultParameters_();
@@ -390,7 +390,7 @@ protected:
     /**
         @brief Shows a dialog where the user can select files
     */
-    QStringList chooseFilesDialog_(const String& path_overwrite = "");
+    QStringList chooseFilesDialog_(const std::string& path_overwrite = "");
 
     ///@name dock widgets
     //@{
@@ -485,7 +485,7 @@ protected:
     /// @name Recent files
     //@{
     /// adds a Filename to the recent files
-    void addRecentFile_(const String& filename);
+    void addRecentFile_(const std::string& filename);
 
     //@}
 
@@ -498,13 +498,13 @@ protected:
     struct
     {
       Param param;
-      String tool;
-      String in;
-      String out;
-      String file_name;
-      String file_name_in;
-      String file_name_out;
-      String layer_name;
+      std::string tool;
+      std::string in;
+      std::string out;
+      std::string file_name;
+      std::string file_name_in;
+      std::string file_name_out;
+      std::string layer_name;
       UInt window_id;
       Size spectrum_id;
       QProcess* process = nullptr;
@@ -528,11 +528,11 @@ protected:
 
     /// The current path (used for loading and storing).
     /// Depending on the preferences this is static or changes with the current window/layer.
-    String current_path_;
+    std::string current_path_;
 
 private:
     /// Suffix appended to caption of tabs when layer is shown in 3D
-    static const String CAPTION_3D_SUFFIX_;
+    static const std::string CAPTION_3D_SUFFIX_;
 
     /// This dialog is a member so that its settings can be perserved upon closing.
     TheoreticalSpectrumGenerationDialog spec_gen_dialog_;

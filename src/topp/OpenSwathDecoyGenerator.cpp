@@ -105,7 +105,7 @@ protected:
     setValidStrings_("out_type", formats);
 
     registerStringOption_("method", "<type>", "shuffle", "Decoy generation method", false);
-    setValidStrings_("method", ListUtils::create<String>(String("shuffle,pseudo-reverse,reverse,shift")));
+    setValidStrings_("method", ListUtils::create<std::string>(std::string("shuffle,pseudo-reverse,reverse,shift")));
 
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);
 
@@ -124,7 +124,7 @@ protected:
     registerFlag_("enable_detection_specific_losses", "set this flag if specific neutral losses for detection fragment ions should be allowed", true);
     registerFlag_("enable_detection_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for detection fragment ions should be allowed", true);
     registerStringOption_("switchKR", "<true/false>", "true", "Whether to switch terminal K and R (to achieve different precursor mass)", false);
-    setValidStrings_("switchKR", ListUtils::create<String>(String("true,false")));
+    setValidStrings_("switchKR", ListUtils::create<std::string>(std::string("true,false")));
 
     registerFlag_("separate", "set this flag if decoys should not be appended to targets.", true);
   }
@@ -134,13 +134,13 @@ protected:
     FileHandler fh;
 
     //input file type
-    String in = getStringOption_("in");
+    std::string in = getStringOption_("in");
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)
@@ -150,7 +150,7 @@ protected:
     }
 
     //output file names and types
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
     if (out_type == FileTypes::UNKNOWN)
@@ -164,8 +164,8 @@ protected:
       return PARSE_ERROR;
     }
 
-    String method = getStringOption_("method");
-    String decoy_tag = getStringOption_("decoy_tag");
+    std::string method = getStringOption_("method");
+    std::string decoy_tag = getStringOption_("decoy_tag");
 
     double min_decoy_fraction = getDoubleOption_("min_decoy_fraction");
     double aim_decoy_fraction = getDoubleOption_("aim_decoy_fraction");
@@ -177,20 +177,20 @@ protected:
     double product_mz_shift = getDoubleOption_("shift_product_mz_shift");
 
     double product_mz_threshold = getDoubleOption_("product_mz_threshold");
-    String allowed_fragment_types_string = getStringOption_("allowed_fragment_types");
-    String allowed_fragment_charges_string = getStringOption_("allowed_fragment_charges");
+    std::string allowed_fragment_types_string = getStringOption_("allowed_fragment_types");
+    std::string allowed_fragment_charges_string = getStringOption_("allowed_fragment_charges");
     bool enable_detection_specific_losses = getFlag_("enable_detection_specific_losses");
     bool enable_detection_unspecific_losses = getFlag_("enable_detection_unspecific_losses");
     bool switchKR = getStringOption_("switchKR") == "true";
 
     bool separate = getFlag_("separate");
 
-    std::vector<String> allowed_fragment_types;
-    allowed_fragment_types_string.split(",", allowed_fragment_types);
+    std::vector<std::string> allowed_fragment_types;
+    StringUtils::split(allowed_fragment_types_string, ",", allowed_fragment_types);
 
-    std::vector<String> allowed_fragment_charges_string_vector;
+    std::vector<std::string> allowed_fragment_charges_string_vector;
     std::vector<size_t> allowed_fragment_charges;
-    allowed_fragment_charges_string.split(",", allowed_fragment_charges_string_vector);
+    StringUtils::split(allowed_fragment_charges_string, ",", allowed_fragment_charges_string_vector);
     for (size_t i = 0; i < allowed_fragment_charges_string_vector.size(); i++)
     {
       size_t charge = std::atoi(allowed_fragment_charges_string_vector.at(i).c_str());
@@ -263,7 +263,7 @@ protected:
           (float)light_decoy.proteins.size() / (float)light_exp.proteins.size() < min_decoy_fraction)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "The number of decoys for peptides or proteins is below the threshold of " + String(min_decoy_fraction * 100) + "% of the number of targets.");
+          "The number of decoys for peptides or proteins is below the threshold of " + StringUtils::toStr(min_decoy_fraction * 100) + "% of the number of targets.");
       }
 
       if (separate)
@@ -363,7 +363,7 @@ protected:
             (float)targeted_decoy.getProteins().size() / (float)targeted_exp.getProteins().size() < min_decoy_fraction)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "The number of decoys for peptides or proteins is below the threshold of " + String(min_decoy_fraction * 100) + "% of the number of targets.");
+            "The number of decoys for peptides or proteins is below the threshold of " + StringUtils::toStr(min_decoy_fraction * 100) + "% of the number of targets.");
         }
 
         if (separate)

@@ -41,8 +41,8 @@ namespace Internal
   {
 public:
     ///Constructor
-    ConsensusXMLHandler(ConsensusMap& map, const String& filename);
-    ConsensusXMLHandler(const ConsensusMap& map, const String& filename);
+    ConsensusXMLHandler(ConsensusMap& map, const std::string& filename);
+    ConsensusXMLHandler(const ConsensusMap& map, const std::string& filename);
     ///Destructor
     ~ConsensusXMLHandler() override;
 
@@ -69,17 +69,17 @@ protected:
     void characters(const XMLCh* const chars, const XMLSize_t length) override;
 
     /// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
-    void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level);
+    void writePeptideIdentification_(const std::string& filename, std::ostream& os, const PeptideIdentification& id, const std::string& tag_name, UInt indentation_level);
 
     /// Add data from ProteinGroups to a MetaInfoInterface
     /// Since it can be used during load and store, it needs to take a param for the current mode (LOAD/STORE)
     /// to throw appropriate warnings/errors
     void addProteinGroups_(MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups,
-                           const String& group_name, const std::unordered_map<std::string, UInt>& accession_to_id,
-                           const String& runid, XMLHandler::ActionMode mode);
+                           const std::string& group_name, const std::unordered_map<std::string, UInt>& accession_to_id,
+                           const std::string& runid, XMLHandler::ActionMode mode);
 
     /// Read and store ProteinGroup data
-    void getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>& groups, const String& group_name);
+    void getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>& groups, const std::string& group_name);
 
     /// Options that can be set
     PeakFileOptions options_;
@@ -106,13 +106,13 @@ protected:
     /// Temporary peptide evidences
     std::vector<PeptideEvidence> peptide_evidences_;
     /// Map from protein id to accession
-    std::map<String, String> proteinid_to_accession_;
+    std::map<std::string, std::string> proteinid_to_accession_;
     /// Map from search identifier concatenated with protein accession to id
     std::unordered_map<std::string, UInt> accession_to_id_;
     /// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
-    std::map<String, String> identifier_id_;
+    std::map<std::string, std::string> identifier_id_;
     /// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)
-    std::map<String, String> id_identifier_;
+    std::map<std::string, std::string> id_identifier_;
     /// Temporary search parameters file
     ProteinIdentification::SearchParameters search_param_;
 

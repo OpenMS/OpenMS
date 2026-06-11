@@ -21,10 +21,10 @@ using namespace std;
 namespace OpenMS
 {
 
-std::vector<::OpenSwath::SwathMap> TargetedDataFileLoader::loadFile(const String& file,
-                                                                  const String& tmp,
+std::vector<::OpenSwath::SwathMap> TargetedDataFileLoader::loadFile(const std::string& file,
+                                                                  const std::string& tmp,
                                                                   std::shared_ptr<ExperimentalSettings>& exp_meta,
-                                                                  const String& readoptions,
+                                                                  const std::string& readoptions,
                                                                   Interfaces::IMSDataConsumer* plugin_consumer)
 {
   // Quick probe: load metadata only (no data) to check for presence of spectra

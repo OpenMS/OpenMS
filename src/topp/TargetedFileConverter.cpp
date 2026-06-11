@@ -83,7 +83,7 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String&) const override
+  Param getSubsectionDefaults_(const std::string&) const override
   {
     return TransitionTSVFile().getDefaults();
   }
@@ -93,13 +93,13 @@ protected:
     FileHandler fh;
 
     //input file type
-    String in = getStringOption_("in");
+    std::string in = getStringOption_("in");
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)
@@ -109,7 +109,7 @@ protected:
     }
 
     //output file names and types
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
     if (out_type == FileTypes::UNKNOWN)

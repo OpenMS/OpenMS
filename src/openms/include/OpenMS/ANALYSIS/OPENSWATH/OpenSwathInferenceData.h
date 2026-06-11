@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/config.h>
 
@@ -47,7 +47,7 @@ namespace OpenMS
   };
 
   /// String conversion helper for inference levels.
-  inline String toString(const InferenceLevel level)
+  inline std::string toString(const InferenceLevel level)
   {
     switch (level)
     {
@@ -60,7 +60,7 @@ namespace OpenMS
   }
 
   /// String conversion helper for inference contexts.
-  inline String toString(const InferenceContext context)
+  inline std::string toString(const InferenceContext context)
   {
     switch (context)
     {
@@ -144,7 +144,7 @@ namespace OpenMS
   struct OPENMS_DLLAPI LevelContextInputRow
   {
     std::optional<Int64> run_id;
-    String group_id;
+    std::string group_id;
     Int64 entity_id = -1;
     bool decoy = false;
     double score = 0.0;

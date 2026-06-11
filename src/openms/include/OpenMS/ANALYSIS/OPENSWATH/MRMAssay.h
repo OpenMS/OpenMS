@@ -55,19 +55,19 @@ public:
     typedef std::vector<OpenMS::TargetedExperiment::Compound> CompoundVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
-    typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
-    typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > CompoundTransitionMapType;
+    typedef std::map<std::string, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
+    typedef std::map<std::string, std::vector<const ReactionMonitoringTransition*> > CompoundTransitionMapType;
 
-    typedef std::map<String, std::set<std::string> > ModifiedSequenceMap; ///< Maps an unmodified sequence to all its modified sequences
+    typedef std::map<std::string, std::set<std::string> > ModifiedSequenceMap; ///< Maps an unmodified sequence to all its modified sequences
     typedef std::map<size_t, ModifiedSequenceMap> SequenceMapT; ///< Stores the ModifiedSequenceMap for all SWATH windows (uses std::map for deterministic iteration order)
 
     typedef std::vector<std::pair<double, std::string> > FragmentSeqMap; ///< Describes a fragment sequence map of : "fragment m/z" -> "modified sequence"
-    typedef std::map<size_t, std::map<String, FragmentSeqMap > > IonMapT; ///< Stores a mapping : "unmodified sequence" -> FragmentSeqMap for all SWATH windows (uses std::map for deterministic iteration order)
+    typedef std::map<size_t, std::map<std::string, FragmentSeqMap > > IonMapT; ///< Stores a mapping : "unmodified sequence" -> FragmentSeqMap for all SWATH windows (uses std::map for deterministic iteration order)
 
     typedef std::vector<std::pair<std::string, double> > IonSeries; ///< Describes an ion series: "ion_type" -> "fragment m/z"
-    typedef std::map<String, IonSeries > PeptideMapT; ///< Maps a peptide sequence to an ion series: "ion_type" -> "fragment m/z"
+    typedef std::map<std::string, IonSeries > PeptideMapT; ///< Maps a peptide sequence to an ion series: "ion_type" -> "fragment m/z"
 
-    typedef std::map<String, TargetedExperiment::Peptide> TargetDecoyMapT; ///< Maps the peptide id (same for target and decoy) to the decoy peptide object
+    typedef std::map<std::string, TargetedExperiment::Peptide> TargetDecoyMapT; ///< Maps the peptide id (same for target and decoy) to the decoy peptide object
 
     /**
       @brief Annotates and filters transitions in a TargetedExperiment
@@ -85,7 +85,7 @@ public:
     void reannotateTransitions(OpenMS::TargetedExperiment& exp,
                                double precursor_mz_threshold,
                                double product_mz_threshold,
-                               const std::vector<String>& fragment_types,
+                               const std::vector<std::string>& fragment_types,
                                const std::vector<size_t>& fragment_charges,
                                bool enable_specific_losses,
                                bool enable_unspecific_losses,
@@ -149,7 +149,7 @@ public:
       @param[in] disable_decoy_transitions whether to disable generation of decoy UIS transitions
     */
     void uisTransitions(OpenMS::TargetedExperiment& exp,
-                        const std::vector<String>& fragment_types,
+                        const std::vector<std::string>& fragment_types,
                         const std::vector<size_t>& fragment_charges,
                         bool enable_specific_losses,
                         bool enable_unspecific_losses,
@@ -208,7 +208,7 @@ public:
     void reannotateTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
                                     double precursor_mz_threshold,
                                     double product_mz_threshold,
-                                    const std::vector<String>& fragment_types,
+                                    const std::vector<std::string>& fragment_types,
                                     const std::vector<size_t>& fragment_charges,
                                     bool enable_specific_losses,
                                     bool enable_unspecific_losses,
@@ -264,7 +264,7 @@ public:
       @param[in] disable_decoy_transitions Skip decoy transition generation
     */
     void uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
-                             const std::vector<String>& fragment_types,
+                             const std::vector<std::string>& fragment_types,
                              const std::vector<size_t>& fragment_charges,
                              bool enable_specific_losses,
                              bool enable_unspecific_losses,
@@ -338,13 +338,13 @@ protected:
 
       @param[in] sequences template AASequences
       @param[in] mods_combs all possible combinations (e.g. from nchoosekcombinations() )
-      @param[in] modification String of the modification
+      @param[in] modification std::string of the modification
 
       @return a vector of all modified peptides.
     */
     std::vector<OpenMS::AASequence> addModificationsSequences_(const std::vector<OpenMS::AASequence>& sequences,
                                                                const std::vector<std::vector<size_t> >& mods_combs,
-                                                               const OpenMS::String& modification);
+                                                               const std::string& modification);
 
     /**
       @brief Generate alternative modified peptide forms according to ModificationsDB
@@ -392,7 +392,7 @@ protected:
 
     */
     void generateTargetInSilicoMap_(const OpenMS::TargetedExperiment& exp,
-                                    const std::vector<String>& fragment_types,
+                                    const std::vector<std::string>& fragment_types,
                                     const std::vector<size_t>& fragment_charges,
                                     bool enable_specific_losses,
                                     bool enable_unspecific_losses,
@@ -414,7 +414,7 @@ protected:
 
     */
     void generateDecoySequences_(const SequenceMapT& TargetSequenceMap,
-                                 std::map<String, String>& DecoySequenceMap,
+                                 std::map<std::string, std::string>& DecoySequenceMap,
                                  int shuffle_seed);
 
     /**
@@ -429,7 +429,7 @@ protected:
 
     */
     void generateDecoyInSilicoMap_(const OpenMS::TargetedExperiment& exp,
-                                   const std::vector<String>& fragment_types,
+                                   const std::vector<std::string>& fragment_types,
                                    const std::vector<size_t>& fragment_charges,
                                    bool enable_specific_losses,
                                    bool enable_unspecific_losses,
@@ -438,7 +438,7 @@ protected:
                                    int round_decPow,
                                    TargetDecoyMapT& TargetDecoyMap,
                                    PeptideMapT& TargetPeptideMap,
-                                   std::map<String, String>& DecoySequenceMap,
+                                   std::map<std::string, std::string>& DecoySequenceMap,
                                    IonMapT& DecoyIonMap,
                                    PeptideMapT& DecoyPeptideMap);
 
@@ -489,7 +489,7 @@ protected:
     // =====================================================================
 
     /// Light version of TargetDecoyMapT using LightCompound
-    typedef std::map<String, OpenSwath::LightCompound> TargetDecoyMapLightT;
+    typedef std::map<std::string, OpenSwath::LightCompound> TargetDecoyMapLightT;
 
     /**
       @brief Generate target in silico map (light version)
@@ -499,7 +499,7 @@ protected:
       @details Used internally by the IPF algorithm, see MRMAssay::uisTransitionsLight()
     */
     void generateTargetInSilicoMapLight_(const OpenSwath::LightTargetedExperiment& exp,
-                                         const std::vector<String>& fragment_types,
+                                         const std::vector<std::string>& fragment_types,
                                          const std::vector<size_t>& fragment_charges,
                                          bool enable_specific_losses,
                                          bool enable_unspecific_losses,
@@ -519,7 +519,7 @@ protected:
       @details Used internally by the IPF algorithm, see MRMAssay::uisTransitionsLight()
     */
     void generateDecoyInSilicoMapLight_(const OpenSwath::LightTargetedExperiment& exp,
-                                        const std::vector<String>& fragment_types,
+                                        const std::vector<std::string>& fragment_types,
                                         const std::vector<size_t>& fragment_charges,
                                         bool enable_specific_losses,
                                         bool enable_unspecific_losses,
@@ -528,7 +528,7 @@ protected:
                                         int round_decPow,
                                         TargetDecoyMapLightT& TargetDecoyMap,
                                         const PeptideMapT& TargetPeptideMap,
-                                        const std::map<String, String>& DecoySequenceMap,
+                                        const std::map<std::string, std::string>& DecoySequenceMap,
                                         IonMapT& DecoyIonMap,
                                         PeptideMapT& DecoyPeptideMap);
 

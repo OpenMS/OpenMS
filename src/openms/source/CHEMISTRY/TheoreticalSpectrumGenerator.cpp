@@ -415,7 +415,7 @@ namespace OpenMS
       dist = f.getIsotopeDistribution(FineIsotopePatternGenerator(max_isotope_probability_));
     }
 
-    const String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size());
+    const std::string ion_name =std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(ion.size());
 
     for (const auto& it : dist)
     {
@@ -435,14 +435,14 @@ namespace OpenMS
                          int ion_ordinal,
                          DataArrays::StringDataArray& ion_names,
                          DataArrays::IntegerDataArray& charges,
-                         const std::map<EmpiricalFormula, String>& formula_str_cache,
+                         const std::map<EmpiricalFormula, std::string>& formula_str_cache,
                          double intensity,
-                         const String& ion_type_string,
+                         const std::string& ion_type_string,
                          bool add_metainfo,
                          int charge) const
   {
-    const String charge_str((Size)abs(charge), '+');
-    const String ion_ordinal_str = ion_ordinal < 0 ? "-" : String(ion_ordinal) + "-"; // only add ion number for non-negative values
+    const std::string charge_str((Size)abs(charge), '+');
+    const std::string ion_ordinal_str = ion_ordinal < 0 ? "-" : StringUtils::toStr(ion_ordinal) + "-"; // only add ion number for non-negative values
 
     // TODO why do you need a separate set for the losses? Just use the keys from the formula_str_cache?
     for (const auto& formula : f_losses)
@@ -452,7 +452,7 @@ namespace OpenMS
       if (add_metainfo)
       {
         const auto it = formula_str_cache.find(formula);
-        const String& loss_name = it->second;
+        const std::string& loss_name = it->second;
         // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
         ion_names.push_back(ion_type_string);
         ion_names.back().reserve(2 + ion_ordinal_str.size() + loss_name.size() + charge_str.size());
@@ -470,11 +470,11 @@ namespace OpenMS
                                                 const Residue::ResidueType res_type,
                                                 int charge) const
   {
-    const String charge_str((Size)abs(charge), '+');
-    const String ion_type_str(Residue::residueTypeToIonLetter(res_type));
-    const String ion_ordinal_str(String(ion.size()) + "-");
+    const std::string charge_str((Size)abs(charge), '+');
+    const std::string ion_type_str(Residue::residueTypeToIonLetter(res_type));
+    const std::string ion_ordinal_str(StringUtils::toStr(ion.size()) + "-");
 
-    std::set<String> losses;
+    std::set<std::string> losses;
     for (const auto& it : ion)
     {
       if (it.hasNeutralLoss())
@@ -487,7 +487,7 @@ namespace OpenMS
     }
 
     spectrum.reserve(spectrum.size() + losses.size());
-    String ion_name;
+    std::string ion_name;
     for (const auto& it : losses)
     {
       EmpiricalFormula loss_ion = ion.getFormula(res_type, charge) - EmpiricalFormula(it);
@@ -508,7 +508,7 @@ namespace OpenMS
         continue;
       }
       double loss_pos = loss_ion.getMonoWeight();
-      const String& loss_name = it;
+      const std::string& loss_name = it;
 
       ion_name = ion_type_str + ion_ordinal_str + loss_name + charge_str;
 
@@ -566,14 +566,14 @@ namespace OpenMS
     spectrum.reserve(spectrum.size() + f * peptide.size());
 
     // precompute formula_str_cache
-    std::map<EmpiricalFormula, String> formula_str_cache;
+    std::map<EmpiricalFormula, std::string> formula_str_cache;
     if (add_losses_)
     {
       for (auto& p : peptide)
       {
         for (auto& formula : p.getLossFormulas())
         {
-          String& loss_name = formula_str_cache[formula];
+          std::string& loss_name = formula_str_cache[formula];
           if (loss_name.empty())
           {
             loss_name = formula.toString();
@@ -584,7 +584,7 @@ namespace OpenMS
       {
         {
           auto formula = EmpiricalFormula("H2O");
-          String& loss_name = formula_str_cache[formula];
+          std::string& loss_name = formula_str_cache[formula];
           if (loss_name.empty())
           {
             loss_name = formula.toString();
@@ -592,7 +592,7 @@ namespace OpenMS
         }
         {
           auto formula = EmpiricalFormula("NH3");
-          String& loss_name = formula_str_cache[formula];
+          std::string& loss_name = formula_str_cache[formula];
           if (loss_name.empty())
           {
             loss_name = formula.toString();
@@ -619,7 +619,7 @@ namespace OpenMS
 
       double initial_mono_weight(mono_weight);
 
-      String ion_name;
+      std::string ion_name;
       for (size_t i = l; i < peptide.size() - 1; ++i)
       {
         if (i-l >= 10) break; // unlikely to observe longer internal fragments
@@ -658,7 +658,7 @@ namespace OpenMS
       if (add_losses_)
       {
         mono_weight = initial_mono_weight;
-        String ion_name;
+        std::string ion_name;
         for (size_t i = l; i < peptide.size() - 1; ++i)
         {
           if (i-l >= 10) break; // unlikely to observe longer internal fragments
@@ -680,7 +680,7 @@ namespace OpenMS
             for (const auto& formula : peptide[i].getLossFormulas()) fx_losses.insert(formula);
           }
 
-          const String annotation_prefix_string = (res_type == Residue::AIon) ? ion_name + "-CO" : ion_name; // add string indicating a-ion
+          const std::string annotation_prefix_string = (res_type == Residue::AIon) ? ion_name + "-CO" : ion_name; // add string indicating a-ion
 
           addLossesFaster_(spectrum, mono_weight + ion_offset, fx_losses,
                             -1, ion_names, charges, formula_str_cache, intensity * rel_loss_intensity_, // -1 = don't add ion number for internal ions
@@ -701,8 +701,8 @@ namespace OpenMS
                                                const Residue::ResidueType res_type,
                                                Int charge) const
   {
-    const String charge_str((Size)abs(charge), '+');
-    const String ion_name_str(Residue::residueTypeToIonLetter(res_type));
+    const std::string charge_str((Size)abs(charge), '+');
+    const std::string ion_name_str(Residue::residueTypeToIonLetter(res_type));
 
     int min_nr_new_peaks = 1 + int(add_isotopes_) + int(add_losses_);
     spectrum.reserve(spectrum.size() + min_nr_new_peaks * peptide.size());
@@ -735,7 +735,7 @@ namespace OpenMS
     //  formula would be basically equivalent to calling toString()
     //  which we are trying to avoid here, while the less than operator
     //  in a map can check for size first and check the element map of a formula one-by-one
-    std::map<EmpiricalFormula, String> formula_str_cache;
+    std::map<EmpiricalFormula, std::string> formula_str_cache;
 
     // pre-compute formula_str_cache
     if (add_losses_ && add_metainfo_)
@@ -744,7 +744,7 @@ namespace OpenMS
       {
         for (auto& formula : p.getLossFormulas())
         {
-          String& loss_name = formula_str_cache[formula];
+          std::string& loss_name = formula_str_cache[formula];
           if (loss_name.empty())
           {
             loss_name = formula.toString();
@@ -755,7 +755,7 @@ namespace OpenMS
       {
         {
           auto formula = EmpiricalFormula("H2O");
-          String& loss_name = formula_str_cache[formula];
+          std::string& loss_name = formula_str_cache[formula];
           if (loss_name.empty())
           {
             loss_name = formula.toString();
@@ -763,7 +763,7 @@ namespace OpenMS
         }
         {
           auto formula = EmpiricalFormula("NH3");
-          String& loss_name = formula_str_cache[formula];
+          std::string& loss_name = formula_str_cache[formula];
           if (loss_name.empty())
           {
             loss_name = formula.toString();
@@ -824,7 +824,7 @@ namespace OpenMS
         mono_weight = initial_mono_weight;
         if (add_losses_)
         {
-          const String annotation_prefix_string(Residue::residueTypeToIonLetter(res_type));
+          const std::string annotation_prefix_string(Residue::residueTypeToIonLetter(res_type));
           if (add_term_losses_)
           {
             fx_losses.insert(EmpiricalFormula("H2O")); // HCD water loss at N-term
@@ -926,7 +926,7 @@ namespace OpenMS
           if (add_metainfo_)
           {
             ion_names.emplace_back(ion_name_str);
-            //note: size of Residue::residueTypeToIonLetter(res_type) => 1, size of String(peptide.size() - i) => 3;
+            //note: size of Residue::residueTypeToIonLetter(res_type) => 1, size of StringUtils::toStr(peptide.size() - i) => 3;
             ion_names.back().reserve(2 + 3 + charge_str.size());
             (ion_names.back() += Size(peptide.size() - i)) += charge_str;
             charges.push_back(charge);
@@ -936,7 +936,7 @@ namespace OpenMS
 
         if (add_losses_)
         {
-          const String annotation_prefix_string(Residue::residueTypeToIonLetter(res_type));
+          const std::string annotation_prefix_string(Residue::residueTypeToIonLetter(res_type));
           if (add_term_losses_)
           {
             fx_losses.insert(EmpiricalFormula("H2O")); // HCD water and ammonia loss at C-term
@@ -1000,15 +1000,15 @@ namespace OpenMS
                                                         DataArrays::IntegerDataArray& charges,
                                                         Int charge) const
   {
-    const String charge_str((Size)abs(charge), '+');
-    String ion_name;
+    const std::string charge_str((Size)abs(charge), '+');
+    std::string ion_name;
     if (charge == 1)
     {
       ion_name = "[M+H]" + charge_str;
     }
     else
     { 
-      ion_name = "[M+" + String(charge) + "H]" + charge_str;
+      ion_name = "[M+" + StringUtils::toStr(charge) + "H]" + charge_str;
     }
 
     // precursor peak
@@ -1054,7 +1054,7 @@ namespace OpenMS
     // loss of water
     EmpiricalFormula ion = peptide.getFormula(Residue::Full, charge) - EmpiricalFormula("H2O");
     mono_pos = ion.getMonoWeight();
-    const String ion_name_h2o("[M+H]-H2O");
+    const std::string ion_name_h2o("[M+H]-H2O");
     if (add_isotopes_)
     {
       ion += EmpiricalFormula("H") * charge;
@@ -1074,14 +1074,14 @@ namespace OpenMS
       {
         if (add_metainfo_)
         {
-          String ion_name;
+          std::string ion_name;
           if (charge == 1)
           {
             ion_name = "[M+H-H2O]" + charge_str;
           }
           else
           { 
-            ion_name = "[M+" + String(charge) + "H-H2O]" + charge_str;
+            ion_name = "[M+" + StringUtils::toStr(charge) + "H-H2O]" + charge_str;
           }
           ion_names.push_back(ion_name);
           charges.push_back(charge);
@@ -1093,14 +1093,14 @@ namespace OpenMS
     {
       if (add_metainfo_)
       {
-        String ion_name;
+        std::string ion_name;
         if (charge == 1)
         {
           ion_name = "[M+H-H2O]" + charge_str;
         }
         else
         { 
-          ion_name = "[M+" + String(charge) + "H-H2O]" + charge_str;
+          ion_name = "[M+" + StringUtils::toStr(charge) + "H-H2O]" + charge_str;
         }
         ion_names.push_back(ion_name);
         charges.push_back(charge);
@@ -1111,7 +1111,7 @@ namespace OpenMS
     //loss of ammonia
     ion = peptide.getFormula(Residue::Full, charge) - EmpiricalFormula("NH3");
     mono_pos = ion.getMonoWeight();
-    const String ion_name_nh3("[M+H]-NH3");
+    const std::string ion_name_nh3("[M+H]-NH3");
     if (add_isotopes_)
     {
       // manually compute correct sum formula (instead of using built-in assumption of hydrogen adduct)
@@ -1132,14 +1132,14 @@ namespace OpenMS
       {
         if (add_metainfo_)
         {
-          String ion_name;
+          std::string ion_name;
           if (charge == 1)
           {
             ion_name = "[M+H-NH3]" + charge_str;
           }
           else
           { 
-            ion_name = "[M+" + String(charge) + "H-NH3]" + charge_str;
+            ion_name = "[M+" + StringUtils::toStr(charge) + "H-NH3]" + charge_str;
           }
 
           ion_names.push_back(ion_name);
@@ -1152,14 +1152,14 @@ namespace OpenMS
     {
       if (add_metainfo_)
       {
-        String ion_name;
+        std::string ion_name;
         if (charge == 1)
         {
           ion_name = "[M+H-NH3]" + charge_str;
         }
         else
         { 
-          ion_name = "[M+" + String(charge) + "H-NH3]" + charge_str;
+          ion_name = "[M+" + StringUtils::toStr(charge) + "H-NH3]" + charge_str;
         }        
         ion_names.push_back(ion_name);
         charges.push_back(charge);

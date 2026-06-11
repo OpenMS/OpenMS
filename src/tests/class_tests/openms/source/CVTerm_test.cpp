@@ -118,7 +118,7 @@ START_SECTION((bool hasUnit() const ))
 }
 END_SECTION
 
-START_SECTION((void setAccession(const String &accession)))
+START_SECTION((void setAccession(const std::string &accession)))
 {
 	CVTerm term;
 	TEST_STRING_EQUAL(term.getAccession(), "")
@@ -127,13 +127,13 @@ START_SECTION((void setAccession(const String &accession)))
 }
 END_SECTION
 
-START_SECTION((const String& getAccession() const ))
+START_SECTION((const std::string& getAccession() const ))
 {
   NOT_TESTABLE // tested above
 }
 END_SECTION
 
-START_SECTION((void setName(const String &name)))
+START_SECTION((void setName(const std::string &name)))
 {
   CVTerm term;
 	TEST_STRING_EQUAL(term.getName(), "")
@@ -142,13 +142,13 @@ START_SECTION((void setName(const String &name)))
 }
 END_SECTION
 
-START_SECTION((const String& getName() const ))
+START_SECTION((const std::string& getName() const ))
 {
 	NOT_TESTABLE // tested above
 }
 END_SECTION
 
-START_SECTION((void setCVIdentifierRef(const String &cv_identifier_ref)))
+START_SECTION((void setCVIdentifierRef(const std::string &cv_identifier_ref)))
 {
   CVTerm term;
 	TEST_STRING_EQUAL(term.getCVIdentifierRef(), "")
@@ -157,7 +157,7 @@ START_SECTION((void setCVIdentifierRef(const String &cv_identifier_ref)))
 }
 END_SECTION
 
-START_SECTION((const String& getCVIdentifierRef() const ))
+START_SECTION((const std::string& getCVIdentifierRef() const ))
 {
   NOT_TESTABLE // tested above
 }
@@ -202,7 +202,7 @@ START_SECTION((const Unit& getUnit() const ))
 }
 END_SECTION
 
-START_SECTION((CVTerm(const String &accession, const String &name, const String &cv_identifier_ref, const String &value, const Unit &unit)))
+START_SECTION((CVTerm(const std::string &accession, const std::string &name, const std::string &cv_identifier_ref, const std::string &value, const Unit &unit)))
 {
 	CVTerm::Unit unit("u_acc", "u_name", "u_cv_ref");
   CVTerm term("acc", "name", "cv_id_ref", "value", unit);
@@ -275,7 +275,7 @@ START_SECTION(([CVTerm::Unit] Unit()))
 }
 END_SECTION
 
-START_SECTION(([CVTerm::Unit] Unit(const String &p_accession, const String &p_name, const String &p_cv_ref)))
+START_SECTION(([CVTerm::Unit] Unit(const std::string &p_accession, const std::string &p_name, const std::string &p_cv_ref)))
 {
   CVTerm::Unit u("ACCESSION", "p_name", "p_cv_ref");
   TEST_EQUAL(u.accession, "ACCESSION")

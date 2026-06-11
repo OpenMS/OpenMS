@@ -55,7 +55,7 @@ public:
     ///sets list (and its type)that will be modified by user
     void setList(const StringList & list, ListEditor::Type type);
     ///set restrictions for list elements
-    void setListRestrictions(const String & restrictions);
+    void setListRestrictions(const std::string & restrictions);
     ///set name of type
     void setTypeName(QString name);
 
@@ -134,7 +134,7 @@ public:
       //sets Type of List
       void setType(const ListEditor::Type type);
       //sets restrictions for listelements
-      void setRestrictions(const String & restrictions);
+      void setRestrictions(const std::string & restrictions);
       ///set name of type
       void setTypeName(QString name);
       ///sets the fileName
@@ -146,7 +146,7 @@ private:
       ///List type
       ListEditor::Type type_;
       ///restrictions for list elements
-      String restrictions_;
+      std::string restrictions_;
       ///type name. used to distinguish output/input from string lists
       QString typeName_;
       ///used to set input and output values in setModelData

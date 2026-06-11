@@ -9,7 +9,7 @@
 
 #include <OpenMS/ML/CLUSTERING/AverageLinkage.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS
 {

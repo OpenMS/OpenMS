@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
@@ -69,13 +69,13 @@ public:
        This class serves to read in a Sequest outfile. The information can be
        retrieved via the load function.
    */
-    void load(const String & result_filename, PeptideIdentificationList & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, std::vector<double> & pvalues, const String & database = "", const bool ignore_proteins_per_peptide = false);
+    void load(const std::string & result_filename, PeptideIdentificationList & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, std::vector<double> & pvalues, const std::string & database = "", const bool ignore_proteins_per_peptide = false);
 
 // /// retrieve the p-values from the out files
 //          void getPValuesFromOutFiles(vector< pair < String, vector< double > > >& filenames_and_pvalues) throw (Exception::FileNotFound&, Exception::ParseError);
 
     /// retrieve columns from a Sequest outfile line
-    bool getColumns(const String & line, std::vector<String> & substrings, Size number_of_columns, Size reference_column);
+    bool getColumns(const std::string & line, std::vector<std::string> & substrings, Size number_of_columns, Size reference_column);
 
     /** retrieve sequences from a FASTA database
             @param[in] database_filename
@@ -85,18 +85,18 @@ public:
             @param[in] not_found
             @throw Exception::FileNotFound is thrown if the database file could not be found
     */
-    void getSequences(const String & database_filename, const std::map<String, Size> & ac_position_map, std::vector<String> & sequences, std::vector<std::pair<String, Size> > & found, std::map<String, Size> & not_found);
+    void getSequences(const std::string & database_filename, const std::map<std::string, Size> & ac_position_map, std::vector<std::string> & sequences, std::vector<std::pair<std::string, Size> > & found, std::map<std::string, Size> & not_found);
 
     /// retrieve the accession type and accession number from a protein description line
     /// (e.g. from FASTA line: >gi|5524211|gb|AAD44166.1| cytochrome b [Elephas maximus maximus], get ac:AAD44166.1 ac type: GenBank)
-    void getACAndACType(String line, String & accession, String & accession_type);
+    void getACAndACType(std::string line, std::string &accession, std::string &accession_type);
 
     /** read the header of an out file and retrieve various information
 
             @throw Exception::FileNotFound is thrown if the results file could not be found
             @throw Exception::ParseError is thrown if the results file could not be parsed
     */
-    void readOutHeader(const String & result_filename, DateTime & datetime, double & precursor_mz_value, Int & charge, Size & precursor_mass_type, Size & ion_mass_type, Size & displayed_peptides, String & sequest, String & sequest_version, String & database_type, Int & number_column, Int & rank_sp_column, Int & id_column, Int & mh_column, Int & delta_cn_column, Int & xcorr_column, Int & sp_column, Int & sf_column, Int & ions_column, Int & reference_column, Int & peptide_column, Int & score_column, Size & number_of_columns);
+    void readOutHeader(const std::string & result_filename, DateTime & datetime, double & precursor_mz_value, Int & charge, Size & precursor_mass_type, Size & ion_mass_type, Size & displayed_peptides, std::string &sequest, std::string &sequest_version, std::string &database_type, Int & number_column, Int & rank_sp_column, Int & id_column, Int & mh_column, Int & delta_cn_column, Int & xcorr_column, Int & sp_column, Int & sf_column, Int & ions_column, Int & reference_column, Int & peptide_column, Int & score_column, Size & number_of_columns);
 
 private:
 

@@ -17,7 +17,6 @@
 
 namespace OpenMS
 {
-  class String;
 
   /**
     @brief Used to load CvMapping files
@@ -50,7 +49,7 @@ public:
         @param[out] cv_mappings  The CVMappings instance in which the rules, cvs and other content from the file should be stored
         @param[in] strip_namespaces if enable, namespace definitions of the paths are eliminated, e.g. 'pf:cvParam' -> 'cvParam'
     */
-    void load(const String& filename, CVMappings& cv_mappings, bool strip_namespaces = false);
+    void load(const std::string& filename, CVMappings& cv_mappings, bool strip_namespaces = false);
 
 protected:
 
@@ -71,7 +70,7 @@ private:
     ///Not implemented
     CVMappingFile& operator=(const CVMappingFile& rhs);
 
-    String tag_;
+    std::string tag_;
 
     bool strip_namespaces_;
 

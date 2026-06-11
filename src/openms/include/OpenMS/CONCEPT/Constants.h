@@ -592,7 +592,7 @@ namespace OpenMS
       inline const std::string   ADDUCT_GROUP = "Group";
 
       /** User parameter name for a list of ADDUCT_GROUP annotations in a ConsensusFeature. (Required for IIMN)
-              vector<String>
+              vector<std::string>
       */
       inline const std::string   IIMN_LINKED_GROUPS = "LinkedGroups";
 
