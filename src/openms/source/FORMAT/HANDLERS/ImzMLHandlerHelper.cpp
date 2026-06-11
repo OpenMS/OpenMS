@@ -28,7 +28,7 @@ namespace OpenMS
 
 namespace
 {
-  void throwReadError_(const String& ibd_path, const String& detail)
+  void throwReadError_(const std::string& ibd_path, const std::string& detail)
   {
     throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path, detail);
   }
@@ -36,39 +36,39 @@ namespace
   /// Guard against malformed imzML metadata requesting huge vector allocations.
   static constexpr uint64_t MAX_IBD_ARRAY_ELEMENTS = 100'000'000ULL;
 
-  void validateCount_(const uint64_t count, const String& ibd_path, const char* context)
+  void validateCount_(const uint64_t count, const std::string& ibd_path, const char* context)
   {
     if (count > MAX_IBD_ARRAY_ELEMENTS)
     {
       throwReadError_(ibd_path,
-                      String(context) + ": element count " + count + " exceeds limit of "
-                      + MAX_IBD_ARRAY_ELEMENTS);
+                      std::string(context) + ": element count " + OpenMS::StringConversions::toString(count) + " exceeds limit of "
+                      + OpenMS::StringConversions::toString(MAX_IBD_ARRAY_ELEMENTS));
     }
     if (count > static_cast<uint64_t>(std::numeric_limits<Size>::max()))
     {
-      throwReadError_(ibd_path, String(context) + ": element count exceeds platform limit");
+      throwReadError_(ibd_path, std::string(context) + ": element count exceeds platform limit");
     }
   }
 
-  void seekIbd_(FILE* ibd, const uint64_t offset, const String& ibd_path, const char* context)
+  void seekIbd_(FILE* ibd, const uint64_t offset, const std::string& ibd_path, const char* context)
   {
 #ifdef WIN32
     if (offset > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))
     {
       throwReadError_(ibd_path,
-                      String(context) + ": byte offset " + offset + " exceeds platform seek limit");
+                      std::string(context) + ": byte offset " + OpenMS::StringConversions::toString(offset) + " exceeds platform seek limit");
     }
     if (_fseeki64(ibd, static_cast<int64_t>(offset), SEEK_SET) != 0)
 #else
     if (offset > static_cast<uint64_t>(std::numeric_limits<off_t>::max()))
     {
       throwReadError_(ibd_path,
-                      String(context) + ": byte offset " + offset + " exceeds platform seek limit");
+                      std::string(context) + ": byte offset " + OpenMS::StringConversions::toString(offset) + " exceeds platform seek limit");
     }
     if (fseeko(ibd, static_cast<off_t>(offset), SEEK_SET) != 0)
 #endif
     {
-      throwReadError_(ibd_path, String(context) + ": failed to seek in .ibd");
+      throwReadError_(ibd_path, std::string(context) + ": failed to seek in .ibd");
     }
   }
 
@@ -116,7 +116,7 @@ void ImzMLBinaryIO::readMzArray(FILE* ibd,
                                 const uint64_t count,
                                 const ImzMLSpectrumIndex::DataType dt,
                                 std::vector<double>& out,
-                                const String& ibd_path)
+                                const std::string& ibd_path)
 {
   out.clear();
   if (!ibd || count == 0)
@@ -191,7 +191,7 @@ void ImzMLBinaryIO::readIntArray(FILE* ibd,
                                  const uint64_t count,
                                  const ImzMLSpectrumIndex::DataType dt,
                                  std::vector<float>& out,
-                                 const String& ibd_path)
+                                 const std::string& ibd_path)
 {
   out.clear();
   if (!ibd || count == 0)
@@ -264,7 +264,7 @@ void ImzMLBinaryIO::readIntArray(FILE* ibd,
 void ImzMLBinaryIO::writeFloat32Array(FILE* ibd,
                                       const float* data,
                                       const uint64_t count,
-                                      const String& ibd_path)
+                                      const std::string& ibd_path)
 {
   if (!ibd)
   {
@@ -293,7 +293,7 @@ void ImzMLBinaryIO::writeFloat32Array(FILE* ibd,
 
 void ImzMLBinaryIO::writeMzAsFloat32(FILE* ibd,
                                      const std::vector<double>& mz,
-                                     const String& ibd_path)
+                                     const std::string& ibd_path)
 {
   if (mz.empty())
   {
@@ -310,7 +310,7 @@ void ImzMLBinaryIO::writeMzAsFloat32(FILE* ibd,
 void ImzMLBinaryIO::writeFloat64Array(FILE* ibd,
                                       const double* data,
                                       const uint64_t count,
-                                      const String& ibd_path)
+                                      const std::string& ibd_path)
 {
   if (!ibd)
   {
@@ -339,7 +339,7 @@ void ImzMLBinaryIO::writeFloat64Array(FILE* ibd,
 
 void ImzMLBinaryIO::writeMzAsFloat64(FILE* ibd,
                                      const std::vector<double>& mz,
-                                     const String& ibd_path)
+                                     const std::string& ibd_path)
 {
   if (mz.empty())
   {

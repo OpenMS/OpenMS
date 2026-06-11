@@ -11,14 +11,17 @@
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <string>
 
 namespace OpenMS
 {
+
+  class MSImagingGeometry; // OpenMS/IMAGING/MSImagingGeometry.h — included in the .cpp
 
   /**
     @brief Random-access, on-disc reader for imzML mass spectrometry imaging datasets.
@@ -71,17 +74,26 @@ namespace OpenMS
     // ------------------------------------------------------------------
 
     /**
-      @brief Open an imzML dataset: parse the XML index and open the .ibd.
+      @brief Open an imzML dataset: parse the XML index, build the imaging geometry,
+             and open the .ibd.
 
       The .ibd path is inferred from @p imzml_path unless @p ibd_path is
-      provided explicitly.  No peak data is read.
+      provided explicitly.  No peak data is read — peak arrays are decoded lazily
+      per getSpectrum() call. The 2D pixel geometry (see getGeometry()) is built
+      eagerly here from the parsed index (an in-memory pass, no .ibd reads), so a
+      structurally broken coordinate grid is rejected at open() rather than later.
+
+      A UUID-header mismatch between the .ibd and the XML's IMS:1000080, an out-of-grid
+      pixel, or a <1 coordinate are reported as warnings (the dataset still loads); only
+      duplicate pixel coordinates are a hard error.
 
       @param imzml_path  Path to the .imzML file.
       @param ibd_path    Optional override for the .ibd path.
       @throws Exception::FileNotFound if either file cannot be opened.
       @throws Exception::ParseError   on malformed XML.
+      @throws Exception::InvalidValue if the dataset has duplicate pixel coordinates.
     */
-    void open(const String& imzml_path, const String& ibd_path = "");
+    void open(const std::string& imzml_path, const std::string& ibd_path = "");
 
     /**
       @brief Close the companion .ibd file and release on-disc resources.
@@ -134,13 +146,18 @@ namespace OpenMS
     MSSpectrum operator[](std::size_t i) const { return getSpectrum(i); }
 
     /**
-      @brief Return the spectrum at pixel coordinate (x, y[, z]).
+      @brief Return the spectrum at imzML pixel coordinate (x, y[, z]).
 
-      Builds a coordinate→index map on first call (O(n)), then O(1).
+      Coordinates are imzML-native @b 1-based, matching ImzMLSpectrumIndex::x/y/z.
+      The lookup is served by the shared @p MSImagingGeometry (see getGeometry()),
+      which is 0-based and 2-dimensional; this method converts (x, y) to 0-based
+      and only the z == 1 plane is addressable (consistent with the in-memory
+      ImzMLFile loader, which likewise builds a 2D geometry). The geometry is built
+      once during open(), so this is an O(1) lookup plus one peak-decode read.
 
       @param x  Pixel column (1-based).
       @param y  Pixel row    (1-based).
-      @param z  Depth slice  (1-based, default 1).
+      @param z  Depth slice  (1-based, default 1; only z == 1 is supported).
       @throws Exception::ElementNotFound if no spectrum exists at (x, y, z).
     */
     MSSpectrum getSpectrumAtCoord(uint32_t x, uint32_t y, uint32_t z = 1) const;
@@ -151,6 +168,19 @@ namespace OpenMS
 
     /// Returns imaging metadata parsed during open() — no IBD reads.
     const ImzMLMeta& getImzMLMeta() const noexcept;
+
+    /**
+      @brief The standard 2D imaging geometry (pixel grid + (x,y)->spectrum map).
+
+      Returns the shared @p MSImagingGeometry abstraction (the same type populated
+      by ImzMLFile::load(filename, MSImagingExperiment&)), so on-disc and in-memory
+      access expose pixel coordinates the same way. Coordinates are @b 0-based;
+      imzML's 1-based coordinates are normalized here, and only the z == 1 plane is
+      represented. Built during open() from the parsed index (no IBD reads); this is
+      a const, O(1) accessor (any duplicate/invalid-coordinate error already surfaced
+      at open()).
+    */
+    const MSImagingGeometry& getGeometry() const;
 
     /// Shorthand for getImzMLMeta().max_count_x.
     uint32_t gridWidth()  const noexcept;

@@ -797,7 +797,7 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::ImzMLFile& self) { return OpenMS::ImzMLFile(self); })
         .def("__deepcopy__", [](const OpenMS::ImzMLFile& self, nb::dict) { return OpenMS::ImzMLFile(self); }, "memo"_a)
-        .def("store", [](OpenMS::ImzMLFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp) {
+        .def("store", [](OpenMS::ImzMLFile& self, const std::string& filename, const OpenMS::MSExperiment& exp) {
             nb::gil_scoped_release release;
             self.store(filename, exp);
         }, "filename"_a, "exp"_a, "Store an MSExperiment as imzML (.imzML + .ibd)")
@@ -805,22 +805,22 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
              nb::rv_policy::reference_internal, "Returns the options for loading")
         .def("setOptions", [](OpenMS::ImzMLFile& self, const OpenMS::PeakFileOptions& opts) { self.setOptions(opts); },
              "Set PeakFileOptions for filtering during load")
-        .def("load", [](OpenMS::ImzMLFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) {
+        .def("load", [](OpenMS::ImzMLFile& self, const std::string& filename, OpenMS::MSExperiment& exp) {
             nb::gil_scoped_release release;
             self.load(filename, exp);
         }, "filename"_a, "exp"_a, "Load an imzML file into an MSExperiment")
-        .def("load", [](OpenMS::ImzMLFile& self, const OpenMS::String& filename, OpenMS::MSImagingExperiment& exp) {
+        .def("load", [](OpenMS::ImzMLFile& self, const std::string& filename, OpenMS::MSImagingExperiment& exp) {
             nb::gil_scoped_release release;
             self.load(filename, exp);
         }, "filename"_a, "exp"_a, "Load an imzML file into an MSImagingExperiment with pixel lookup")
         .def_static("buildImagingGeometry", &OpenMS::ImzMLFile::buildImagingGeometry, "exp"_a, "geom"_a,
              "Build MSImagingGeometry from a loaded imzML MSExperiment")
-        .def("load", [](OpenMS::ImzMLFile& self, const OpenMS::String& filename, nb::object consumer) {
+        .def("load", [](OpenMS::ImzMLFile& self, const std::string& filename, nb::object consumer) {
             NanobindMSDataConsumer wrapper(consumer);
             nb::gil_scoped_release release;
             self.load(filename, wrapper);
         }, "filename"_a, "consumer"_a, "Stream-load imzML; spectra are delivered after spectrumList parsing")
-        .def("loadSpectraIndex", [](OpenMS::ImzMLFile& self, const OpenMS::String& filename) {
+        .def("loadSpectraIndex", [](OpenMS::ImzMLFile& self, const std::string& filename) {
             OpenMS::ImzMLMeta meta;
             std::vector<OpenMS::ImzMLSpectrumIndex> index;
             {
@@ -834,7 +834,7 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
             }
             return nb::make_tuple(meta, py_index);
         }, "filename"_a, "Parse imzML XML and return (ImzMLMeta, list[ImzMLSpectrumIndex]) without loading peaks")
-        .def("isValid", [](OpenMS::ImzMLFile& self, const OpenMS::String& filename) {
+        .def("isValid", [](OpenMS::ImzMLFile& self, const std::string& filename) {
             std::ostringstream os;
             bool ok = false;
             {

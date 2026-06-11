@@ -10,6 +10,7 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <xercesc/util/XMLString.hpp>
 
@@ -24,13 +25,13 @@ namespace Internal
 
 namespace
 {
-  [[noreturn]] void throwImsParseError_(const String& file, const String& acc, const String& val, const String& reason)
+  [[noreturn]] void throwImsParseError_(const std::string& file, const std::string& acc, const std::string& val, const std::string& reason)
   {
     throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file,
                                 "Invalid IMS CV value for " + acc + " ('" + val + "'): " + reason);
   }
 
-  uint32_t parseImsUInt32_(const String& file, const String& acc, const String& val)
+  uint32_t parseImsUInt32_(const std::string& file, const std::string& acc, const std::string& val)
   {
     if (val.empty())
     {
@@ -60,11 +61,17 @@ namespace
     }
   }
 
-  uint64_t parseImsUInt64_(const String& file, const String& acc, const String& val)
+  uint64_t parseImsUInt64_(const std::string& file, const std::string& acc, const std::string& val)
   {
     if (val.empty())
     {
       throwImsParseError_(file, acc, val, "empty value");
+    }
+    if (val.find('-') != std::string::npos)
+    {
+      // std::stoull silently wraps a negative value to a huge unsigned number (no range
+      // ceiling exists for uint64, unlike parseImsUInt32_), so reject it explicitly.
+      throwImsParseError_(file, acc, val, "negative value not allowed");
     }
     try
     {
@@ -86,7 +93,7 @@ namespace
     }
   }
 
-  double parseImsDouble_(const String& file, const String& acc, const String& val)
+  double parseImsDouble_(const std::string& file, const std::string& acc, const std::string& val)
   {
     if (val.empty())
     {
@@ -166,7 +173,7 @@ public:
       {
         std::vector<double> mz_vec;
         std::vector<float>  int_vec;
-        const String& ibd_path = handler_.meta_.ibd_file_path;
+        const std::string& ibd_path = handler_.meta_.ibd_file_path;
         if (ims->mz_meta.is_ext)
         {
           ImzMLBinaryIO::readMzArray(handler_.ibd_, ims->mz_meta.offset, ims->mz_meta.count,
@@ -197,8 +204,8 @@ public:
         if (mz_vec.size() != int_vec.size())
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path,
-            String("m/z and intensity array length mismatch at pixel (") + ims->x + "," + ims->y + "," + ims->z
-            + "): mz=" + mz_vec.size() + " intensity=" + int_vec.size());
+            "m/z and intensity array length mismatch at pixel (" + StringConversions::toString(ims->x) + "," + StringConversions::toString(ims->y) + "," + StringConversions::toString(ims->z)
+            + "): mz=" + StringConversions::toString(mz_vec.size()) + " intensity=" + StringConversions::toString(int_vec.size()));
         }
 
         s.resize(mz_vec.size());
@@ -243,7 +250,7 @@ private:
   Interfaces::IMSDataConsumer* downstream_;
   int                          spec_idx_  {0};
 
-  static String dtStr_(ImzMLSpectrumIndex::DataType dt)
+  static std::string dtStr_(ImzMLSpectrumIndex::DataType dt)
   {
     switch (dt)
     {
@@ -261,7 +268,7 @@ private:
 // ===========================================================================
 
 ImzMLHandler::ImzMLHandler(PeakMap&              exp,
-                            const String&         filename,
+                            const std::string&    filename,
                             const ProgressLogger& logger)
   : MzMLHandler(exp, filename, "1.1.0", logger)
 {}
@@ -284,7 +291,7 @@ void ImzMLHandler::connectDecodeConsumer(Interfaces::IMSDataConsumer* downstream
   setOptions(opt);
 }
 
-void ImzMLHandler::openIBD(const String& ibd_path)
+void ImzMLHandler::openIBD(const std::string& ibd_path)
 {
   FILE* new_ibd = fopen(ibd_path.c_str(), "rb");
   if (!new_ibd)
@@ -331,14 +338,14 @@ void ImzMLHandler::startElement(const XMLCh*               uri,
   if (tag == "referenceableParamGroup")
   {
     in_ref_group_ = true;
-    String id_om;
+    std::string id_om;
     optionalAttributeAsString_(id_om, attrs, "id");
     cur_ref_id_ = id_om;
     ref_groups_[cur_ref_id_]; // ensure key exists
   }
   if (tag == "referenceableParamGroupRef")
   {
-    String ref_id_om;
+    std::string ref_id_om;
     optionalAttributeAsString_(ref_id_om, attrs, "ref");
     applyRefGroup_(ref_id_om);
   }
@@ -346,7 +353,7 @@ void ImzMLHandler::startElement(const XMLCh*               uri,
   // Intercept <cvParam> before MzMLHandler: capture IMS:* terms
   if (tag == "cvParam")
   {
-    String acc_om, val_om;
+    std::string acc_om, val_om;
     optionalAttributeAsString_(acc_om, attrs, "accession");
     optionalAttributeAsString_(val_om, attrs, "value");
 
@@ -384,13 +391,26 @@ void ImzMLHandler::endElement(const XMLCh* uri,
     // Snapshot per-spectrum IMS state NOW — before cur_* are reset.
     // MzMLHandler delivers spectra to consumeSpectrum() after the entire
     // spectrumList is parsed, so live cur_* fields would all be 0 by then.
-    SpecIMS snap;
-    snap.x        = cur_x_;
-    snap.y        = cur_y_;
-    snap.z        = cur_z_;
-    snap.mz_meta  = cur_mz_meta_;
-    snap.int_meta = cur_int_meta_;
-    spec_ims_.push_back(snap);
+    //
+    // Only snapshot spectra that MzMLHandler will actually deliver. skip_spectrum_
+    // (protected base member, set during this spectrum's content parsing when it
+    // is filtered out via PeakFileOptions) holds this spectrum's final decision
+    // here — it is the same value MzMLHandler::endElement() uses below to decide
+    // whether to collect/deliver the spectrum, and is only reset for the *next*
+    // spectrum inside that base call. ImzMLInterceptConsumer::consumeSpectrum()
+    // re-associates delivered spectra with spec_ims_ by a running counter, so an
+    // unconditional push would desync coordinates and .ibd offsets as soon as any
+    // spectrum is skipped.
+    if (!skip_spectrum_)
+    {
+      SpecIMS snap;
+      snap.x        = cur_x_;
+      snap.y        = cur_y_;
+      snap.z        = cur_z_;
+      snap.mz_meta  = cur_mz_meta_;
+      snap.int_meta = cur_int_meta_;
+      spec_ims_.push_back(snap);
+    }
     in_spectrum_ = false;
   }
   if (tag == "referenceableParamGroup")
@@ -414,7 +434,7 @@ void ImzMLHandler::endElement(const XMLCh* uri,
 // IMS CV dispatch
 // ===========================================================================
 
-void ImzMLHandler::handleIMSCvParam_(const String& acc, const String& val)
+void ImzMLHandler::handleIMSCvParam_(const std::string& acc, const std::string& val)
 {
   // Pixel coordinates (inside <scan> inside <spectrum>)
   if (in_scan_ && in_spectrum_)
@@ -463,7 +483,7 @@ void ImzMLHandler::handleIMSCvParam_(const String& acc, const String& val)
   if (acc == "IMS:1000492") { meta_.line_scan_direction = "right-left";  return; }
 }
 
-void ImzMLHandler::applyRefGroup_(const String& id)
+void ImzMLHandler::applyRefGroup_(const std::string& id)
 {
   auto it = ref_groups_.find(id);
   if (it == ref_groups_.end()) return;

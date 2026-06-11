@@ -9,10 +9,11 @@
 #pragma once
 
 #include <OpenMS/OpenMSConfig.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <cstdint>
 #include <cstdio>
+#include <string>
 #include <vector>
 
 namespace OpenMS
@@ -50,32 +51,32 @@ namespace OpenMS
     // -------------------------------------------------------------------------
 
     /// "continuous" (shared m/z array) or "processed" (per-spectrum m/z).
-    String imaging_mode;
+    std::string imaging_mode;
 
     // -------------------------------------------------------------------------
     // IBD companion file
     // -------------------------------------------------------------------------
 
-    String ibd_file_path; ///< Absolute path to the .ibd file
-    String ibd_sha1;      ///< SHA-1 checksum (IMS:1000091), empty if absent
-    String ibd_md5;       ///< MD5  checksum (IMS:1000090), empty if absent
-    String uuid;          ///< Dataset UUID (IMS:1000080)
+    std::string ibd_file_path; ///< Absolute path to the .ibd file
+    std::string ibd_sha1;      ///< SHA-1 checksum (IMS:1000091), empty if absent
+    std::string ibd_md5;       ///< MD5  checksum (IMS:1000090), empty if absent
+    std::string uuid;          ///< Dataset UUID (IMS:1000080)
 
     // -------------------------------------------------------------------------
     // Array data types (first occurrence, dataset-level summary)
     // -------------------------------------------------------------------------
 
-    String mz_data_type;   ///< "float32" | "float64" | "int32" | "int64"
-    String int_data_type;  ///< same set as mz_data_type
+    std::string mz_data_type;   ///< "float32" | "float64" | "int32" | "int64"
+    std::string int_data_type;  ///< same set as mz_data_type
 
     // -------------------------------------------------------------------------
     // Acquisition geometry
     // -------------------------------------------------------------------------
 
-    String scan_pattern;        ///< "top down" | "bottom up" (IMS:1000401/402)
-    String scan_direction;      ///< "flyback" | "meander" | "horizontal" | "vertical"
-    String line_scan_direction; ///< "left-right" | "right-left" (IMS:1000491/492)
-    String polarity;            ///< "positive" | "negative"  (MS:1000130/129)
+    std::string scan_pattern;        ///< "top down" | "bottom up" (IMS:1000401/402)
+    std::string scan_direction;      ///< "flyback" | "meander" | "horizontal" | "vertical"
+    std::string line_scan_direction; ///< "left-right" | "right-left" (IMS:1000491/492)
+    std::string polarity;            ///< "positive" | "negative"  (MS:1000130/129)
   };
 
 
@@ -132,7 +133,7 @@ namespace OpenMS
                             uint64_t count,
                             ImzMLSpectrumIndex::DataType dt,
                             std::vector<double>& out,
-                            const String& ibd_path);
+                            const std::string& ibd_path);
 
     /**
       @brief Read an intensity array from the companion .ibd file.
@@ -144,7 +145,7 @@ namespace OpenMS
                              uint64_t count,
                              ImzMLSpectrumIndex::DataType dt,
                              std::vector<float>& out,
-                             const String& ibd_path);
+                             const std::string& ibd_path);
 
     /**
       @brief Write a float32 array to the companion .ibd file (little-endian).
@@ -154,7 +155,7 @@ namespace OpenMS
     static void writeFloat32Array(FILE* ibd,
                                   const float* data,
                                   uint64_t count,
-                                  const String& ibd_path);
+                                  const std::string& ibd_path);
 
     /**
       @brief Write m/z values as float32 to the companion .ibd file.
@@ -163,7 +164,7 @@ namespace OpenMS
     */
     static void writeMzAsFloat32(FILE* ibd,
                                  const std::vector<double>& mz,
-                                 const String& ibd_path);
+                                 const std::string& ibd_path);
 
     /**
       @brief Write a float64 array to the companion .ibd file (little-endian).
@@ -173,7 +174,7 @@ namespace OpenMS
     static void writeFloat64Array(FILE* ibd,
                                   const double* data,
                                   uint64_t count,
-                                  const String& ibd_path);
+                                  const std::string& ibd_path);
 
     /**
       @brief Write m/z values as float64 to the companion .ibd file.
@@ -182,7 +183,7 @@ namespace OpenMS
     */
     static void writeMzAsFloat64(FILE* ibd,
                                  const std::vector<double>& mz,
-                                 const String& ibd_path);
+                                 const std::string& ibd_path);
   };
 
 } // namespace OpenMS

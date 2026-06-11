@@ -58,11 +58,11 @@ namespace
     bool share_mz {false};
   };
 
-  String inferIbdPath_(const String& imzml_path)
+  std::string inferIbdPath_(const std::string& imzml_path)
   {
-    String lower = imzml_path;
-    lower.toLower();
-    if (lower.hasSuffix(".imzml"))
+    std::string lower = imzml_path;
+    OpenMS::StringUtils::toLower(lower);
+    if (OpenMS::StringUtils::hasSuffix(lower, ".imzml"))
     {
       return imzml_path.substr(0, imzml_path.size() - 6) + ".ibd";
     }
@@ -115,7 +115,7 @@ namespace
       if (!spec.metaValueExists("imzml:x") || !spec.metaValueExists("imzml:y"))
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            String("spectrum ") + i + " missing imzml:x/y MetaValues required for imzML export");
+                                            "spectrum " + OpenMS::StringConversions::toString(i) + " missing imzml:x/y MetaValues required for imzML export");
       }
 
       const Int x_imz = spec.getMetaValue("imzml:x");
@@ -124,7 +124,7 @@ namespace
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "imzML pixel coordinates must be >= 1",
-                                      String("(") + x_imz + "," + y_imz + ") at spectrum " + i);
+                                      "(" + OpenMS::StringConversions::toString(x_imz) + "," + OpenMS::StringConversions::toString(y_imz) + ") at spectrum " + OpenMS::StringConversions::toString(i));
       }
 
       Int z_imz = 1;
@@ -136,7 +136,7 @@ namespace
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "imzML pixel z coordinate must be >= 1",
-                                      String("z=") + z_imz + " at spectrum " + i);
+                                      "z=" + OpenMS::StringConversions::toString(z_imz) + " at spectrum " + OpenMS::StringConversions::toString(i));
       }
 
       const PixelKey key {static_cast<uint32_t>(x_imz),
@@ -146,7 +146,7 @@ namespace
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Duplicate pixel coordinate",
-                                      String("(") + x_imz + "," + y_imz + "," + z_imz + ") at spectrum " + i);
+                                      "(" + OpenMS::StringConversions::toString(x_imz) + "," + OpenMS::StringConversions::toString(y_imz) + "," + OpenMS::StringConversions::toString(z_imz) + ") at spectrum " + OpenMS::StringConversions::toString(i));
       }
     }
   }
@@ -209,7 +209,7 @@ namespace
     return meta;
   }
 
-  String instrumentModelForExport_(const MSExperiment& exp)
+  std::string instrumentModelForExport_(const MSExperiment& exp)
   {
     const Instrument& inst = exp.getInstrument();
     if (!inst.getModel().empty())
@@ -316,7 +316,7 @@ namespace
   void writeMzArray_(FILE* ibd,
                      const std::vector<double>& mz,
                      const bool mz_32_bit,
-                     const String& ibd_path)
+                     const std::string& ibd_path)
   {
     if (mz_32_bit)
     {
@@ -331,7 +331,7 @@ namespace
   void writeIntArray_(FILE* ibd,
                       const std::vector<float>& intensities,
                       const bool int_32_bit,
-                      const String& ibd_path)
+                      const std::string& ibd_path)
   {
     if (int_32_bit)
     {
@@ -353,17 +353,17 @@ namespace
     return (value << bits) | (value >> (32 - bits));
   }
 
-  bool uuidStringToBytes_(const String& uuid, unsigned char out[16])
+  bool uuidStringToBytes_(const std::string& uuid, unsigned char out[16])
   {
-    String hex = uuid;
-    hex.substitute("-", "");
+    std::string hex = uuid;
+    OpenMS::StringUtils::substitute(hex, "-", "");
     if (hex.size() != 32)
     {
       return false;
     }
     for (int i = 0; i < 16; ++i)
     {
-      const String byte_str = hex.substr(static_cast<Size>(i * 2), 2);
+      const std::string byte_str = hex.substr(static_cast<Size>(i * 2), 2);
       char* end = nullptr;
       const unsigned long value = std::strtoul(byte_str.c_str(), &end, 16);
       if (end != byte_str.c_str() + byte_str.size() || value > 255)
@@ -375,7 +375,7 @@ namespace
     return true;
   }
 
-  String uuidBytesToString_(const unsigned char bytes[16])
+  std::string uuidBytesToString_(const unsigned char bytes[16])
   {
     std::ostringstream oss;
     oss << std::hex << std::setfill('0');
@@ -409,7 +409,7 @@ namespace
     meta.uuid = uuidBytesToString_(out);
   }
 
-  void writeIbdUuidHeader_(FILE* ibd, const unsigned char uuid[16], const String& ibd_path)
+  void writeIbdUuidHeader_(FILE* ibd, const unsigned char uuid[16], const std::string& ibd_path)
   {
     if (fwrite(uuid, 1, IBD_UUID_HEADER_BYTES, ibd) != IBD_UUID_HEADER_BYTES)
     {
@@ -621,7 +621,7 @@ namespace
     d0 += D;
   }
 
-  String md5DigestToHex_(uint32_t a0, uint32_t b0, uint32_t c0, uint32_t d0)
+  std::string md5DigestToHex_(uint32_t a0, uint32_t b0, uint32_t c0, uint32_t d0)
   {
     std::ostringstream oss;
     oss << std::hex << std::setfill('0');
@@ -636,7 +636,7 @@ namespace
   }
 
   // RFC 1321 MD5 (hex digest), streaming over file contents.
-  String md5Hex_(const String& file_path)
+  std::string md5Hex_(const std::string& file_path)
   {
     std::ifstream in(file_path.c_str(), std::ios::binary);
     if (!in)
@@ -697,7 +697,7 @@ namespace
     return md5DigestToHex_(a0, b0, c0, d0);
   }
 
-  String sha1DigestToHex_(const uint32_t digest[5])
+  std::string sha1DigestToHex_(const uint32_t digest[5])
   {
     std::ostringstream oss;
     oss << std::hex << std::setfill('0');
@@ -708,7 +708,7 @@ namespace
     return oss.str();
   }
 
-  String sha1Hex_(const String& file_path)
+  std::string sha1Hex_(const std::string& file_path)
   {
     std::ifstream in(file_path.c_str(), std::ios::binary);
     if (!in)
@@ -805,11 +805,11 @@ namespace
   }
 
   void writeCvParam_(std::ostream& os,
-                     const String& cv_ref,
-                     const String& accession,
-                     const String& name,
-                     const String& value = "",
-                     const String& unit_attrs = "")
+                     const std::string& cv_ref,
+                     const std::string& accession,
+                     const std::string& name,
+                     const std::string& value = "",
+                     const std::string& unit_attrs = "")
   {
     os << "<cvParam cvRef=\"" << cv_ref << "\" accession=\"" << accession << "\" name=\"" << name << "\"";
     if (!value.empty())
@@ -878,33 +878,33 @@ namespace
   }
 
   void writeExternalBinaryArray_(std::ostream& os,
-                                 const String& ref_group,
+                                 const std::string& ref_group,
                                  uint64_t offset,
                                  uint64_t count,
                                  uint64_t encoded,
                                  int indent)
   {
-    const String pad(indent, '\t');
+    const std::string pad(indent, '\t');
     os << pad << "<binaryDataArray encodedLength=\"0\">\n";
     os << pad << "\t<referenceableParamGroupRef ref=\"" << ref_group << "\"/>\n";
     os << pad << "\t";
-    writeCvParam_(os, "IMS", "IMS:1000102", "external offset", String(offset));
+    writeCvParam_(os, "IMS", "IMS:1000102", "external offset", OpenMS::StringConversions::toString(offset));
     os << "\n" << pad << "\t";
-    writeCvParam_(os, "IMS", "IMS:1000103", "external array length", String(count));
+    writeCvParam_(os, "IMS", "IMS:1000103", "external array length", OpenMS::StringConversions::toString(count));
     os << "\n" << pad << "\t";
-    writeCvParam_(os, "IMS", "IMS:1000104", "external encoded length", String(encoded));
+    writeCvParam_(os, "IMS", "IMS:1000104", "external encoded length", OpenMS::StringConversions::toString(encoded));
     os << "\n";
     os << pad << "\t<binary/>\n";
     os << pad << "</binaryDataArray>\n";
   }
 
-  void writeImzMLXml_(const String& imzml_path,
+  void writeImzMLXml_(const std::string& imzml_path,
                       const MSExperiment& exp,
                       const ImzMLMeta& meta,
                       const std::vector<SpectrumWritePlan>& plans,
-                      const String& ibd_md5,
-                      const String& ibd_sha1,
-                      const String& instrument_model,
+                      const std::string& ibd_md5,
+                      const std::string& ibd_sha1,
+                      const std::string& instrument_model,
                       const bool continuous,
                       const bool mz_32_bit,
                       const bool int_32_bit)
@@ -915,13 +915,13 @@ namespace
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, imzml_path);
     }
 
-    const String uuid = meta.uuid;
-    const String mode_acc = continuous ? "IMS:1000030" : "IMS:1000031";
-    const String mode_name = continuous ? "continuous" : "processed";
-    const String mz_precision_acc = mz_32_bit ? "MS:1000521" : "MS:1000523";
-    const String mz_precision_name = mz_32_bit ? "32-bit float" : "64-bit float";
-    const String int_precision_acc = int_32_bit ? "MS:1000521" : "MS:1000523";
-    const String int_precision_name = int_32_bit ? "32-bit float" : "64-bit float";
+    const std::string uuid = meta.uuid;
+    const std::string mode_acc = continuous ? "IMS:1000030" : "IMS:1000031";
+    const std::string mode_name = continuous ? "continuous" : "processed";
+    const std::string mz_precision_acc = mz_32_bit ? "MS:1000521" : "MS:1000523";
+    const std::string mz_precision_name = mz_32_bit ? "32-bit float" : "64-bit float";
+    const std::string int_precision_acc = int_32_bit ? "MS:1000521" : "MS:1000523";
+    const std::string int_precision_name = int_32_bit ? "32-bit float" : "64-bit float";
 
     os << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
     os << "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" version=\"1.1.0\">\n";
@@ -999,40 +999,40 @@ namespace
     if (meta.max_count_x > 0)
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000042", "max count of pixels x", String(meta.max_count_x));
+      writeCvParam_(os, "IMS", "IMS:1000042", "max count of pixels x", OpenMS::StringConversions::toString(meta.max_count_x));
       os << "\n";
     }
     if (meta.max_count_y > 0)
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000043", "max count of pixels y", String(meta.max_count_y));
+      writeCvParam_(os, "IMS", "IMS:1000043", "max count of pixels y", OpenMS::StringConversions::toString(meta.max_count_y));
       os << "\n";
     }
     if (meta.max_dim_x > 0)
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000044", "max dimension x", String(meta.max_dim_x),
+      writeCvParam_(os, "IMS", "IMS:1000044", "max dimension x", OpenMS::StringConversions::toString(meta.max_dim_x),
                     "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
       os << "\n";
     }
     if (meta.max_dim_y > 0)
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000045", "max dimension y", String(meta.max_dim_y),
+      writeCvParam_(os, "IMS", "IMS:1000045", "max dimension y", OpenMS::StringConversions::toString(meta.max_dim_y),
                     "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
       os << "\n";
     }
     if (meta.pixel_size_x > 0)
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000046", "pixel size x", String(meta.pixel_size_x),
+      writeCvParam_(os, "IMS", "IMS:1000046", "pixel size x", OpenMS::StringConversions::toString(meta.pixel_size_x),
                     "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
       os << "\n";
     }
     if (meta.pixel_size_y > 0)
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000047", "pixel size y", String(meta.pixel_size_y),
+      writeCvParam_(os, "IMS", "IMS:1000047", "pixel size y", OpenMS::StringConversions::toString(meta.pixel_size_y),
                     "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
       os << "\n";
     }
@@ -1062,10 +1062,10 @@ namespace
     {
       const MSSpectrum& spec = exp[i];
       const SpectrumWritePlan& plan = plans[i];
-      String native_id = spec.getNativeID();
+      std::string native_id = spec.getNativeID();
       if (native_id.empty())
       {
-        native_id = String("spectrum=") + (i + 1);
+        native_id = "spectrum=" + OpenMS::StringConversions::toString(i + 1);
       }
 
       os << "\t\t\t<spectrum index=\"" << i << "\" id=\"" << XMLHandler::writeXMLEscape(native_id)
@@ -1077,7 +1077,7 @@ namespace
       if (spec.getMSLevel() != 0)
       {
         os << "\t\t\t\t";
-        writeCvParam_(os, "MS", "MS:1000511", "ms level", String(spec.getMSLevel()));
+        writeCvParam_(os, "MS", "MS:1000511", "ms level", OpenMS::StringConversions::toString(spec.getMSLevel()));
         os << "\n";
       }
       os << "\t\t\t\t<scanList count=\"1\">\n";
@@ -1086,14 +1086,14 @@ namespace
       os << "\n";
       os << "\t\t\t\t\t<scan instrumentConfigurationRef=\"IC1\">\n";
       os << "\t\t\t\t\t\t";
-      writeCvParam_(os, "MS", "MS:1000016", "scan start time", String(spec.getRT()),
+      writeCvParam_(os, "MS", "MS:1000016", "scan start time", OpenMS::StringConversions::toString(spec.getRT()),
                     "unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"");
       os << "\n\t\t\t\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000050", "position x", String(plan.pixel.x));
+      writeCvParam_(os, "IMS", "IMS:1000050", "position x", OpenMS::StringConversions::toString(plan.pixel.x));
       os << "\n\t\t\t\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000051", "position y", String(plan.pixel.y));
+      writeCvParam_(os, "IMS", "IMS:1000051", "position y", OpenMS::StringConversions::toString(plan.pixel.y));
       os << "\n\t\t\t\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000052", "position z", String(plan.pixel.z));
+      writeCvParam_(os, "IMS", "IMS:1000052", "position z", OpenMS::StringConversions::toString(plan.pixel.z));
       os << "\n";
       os << "\t\t\t\t\t</scan>\n";
       os << "\t\t\t\t</scanList>\n";
@@ -1111,7 +1111,7 @@ namespace
 
 } // namespace
 
-void ImzMLWriter::store(const String& imzml_path,
+void ImzMLWriter::store(const std::string& imzml_path,
                           const MSExperiment& exp,
                           const PeakFileOptions& options,
                           ProgressLogger& logger)
@@ -1149,8 +1149,8 @@ void ImzMLWriter::store(const String& imzml_path,
   }
   updateGridFromPixels_(meta, plans);
 
-  const String ibd_path = inferIbdPath_(imzml_path);
-  const String instrument_model = instrumentModelForExport_(work);
+  const std::string ibd_path = inferIbdPath_(imzml_path);
+  const std::string instrument_model = instrumentModelForExport_(work);
   logger.startProgress(0, work.size() + 2, "storing imzML file");
 
   {
@@ -1226,8 +1226,8 @@ void ImzMLWriter::store(const String& imzml_path,
 
   logger.setProgress(work.size() + 1);
 
-  const String ibd_md5 = md5Hex_(ibd_path);
-  const String ibd_sha1 = sha1Hex_(ibd_path);
+  const std::string ibd_md5 = md5Hex_(ibd_path);
+  const std::string ibd_sha1 = sha1Hex_(ibd_path);
   writeImzMLXml_(imzml_path, work, meta, plans, ibd_md5, ibd_sha1, instrument_model, continuous,
                  mz_32_bit, int_32_bit);
   logger.endProgress();

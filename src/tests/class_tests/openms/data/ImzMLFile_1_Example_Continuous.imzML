@@ -15,7 +15,7 @@
   <fileDescription>
     <fileContent>
       <cvParam accession="IMS:1000080" name="universally unique identifier" value="12345678-1234-1234-1234-123456789012"/>
-      <cvParam accession="IMS:1000090" name="ibd MD5" value="d8654952b0bb69e3f1e70c4a5fd3e06d"/>
+      <cvParam accession="IMS:1000090" name="ibd MD5" value="4b5dd9fa84fafc955cfdd301f9ed55d7"/>
       <cvParam accession="IMS:1000030" name="continuous" value=""/>
       <cvParam accession="MS:1000294"  name="mass spectrum" value=""/>
     </fileContent>
@@ -74,14 +74,14 @@
         <binaryDataArrayList count="2">
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="mzArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="0"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="16"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
           </binaryDataArray>
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="intensityArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="33596"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="33612"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
@@ -101,14 +101,14 @@
         <binaryDataArrayList count="2">
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="mzArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="0"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="16"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
           </binaryDataArray>
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="intensityArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="67192"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="67208"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
@@ -128,14 +128,14 @@
         <binaryDataArrayList count="2">
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="mzArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="0"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="16"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
           </binaryDataArray>
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="intensityArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="100788"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="100804"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
@@ -155,14 +155,14 @@
         <binaryDataArrayList count="2">
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="mzArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="0"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="16"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
           </binaryDataArray>
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="intensityArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="134384"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="134400"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
@@ -182,14 +182,14 @@
         <binaryDataArrayList count="2">
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="mzArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="0"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="16"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
           </binaryDataArray>
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="intensityArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="167980"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="167996"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
@@ -209,14 +209,14 @@
         <binaryDataArrayList count="2">
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="mzArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="0"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="16"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
           </binaryDataArray>
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="intensityArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="201576"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="201592"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
@@ -236,14 +236,14 @@
         <binaryDataArrayList count="2">
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="mzArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="0"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="16"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
           </binaryDataArray>
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="intensityArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="235172"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="235188"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
@@ -263,14 +263,14 @@
         <binaryDataArrayList count="2">
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="mzArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="0"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="16"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
           </binaryDataArray>
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="intensityArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="268768"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="268784"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
@@ -290,14 +290,14 @@
         <binaryDataArrayList count="2">
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="mzArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="0"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="16"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>
           </binaryDataArray>
           <binaryDataArray encodedLength="0">
             <referenceableParamGroupRef ref="intensityArray"/>
-            <cvParam accession="IMS:1000102" name="external offset" value="302364"/>
+            <cvParam accession="IMS:1000102" name="external offset" value="302380"/>
             <cvParam accession="IMS:1000103" name="external array length" value="8399"/>
             <cvParam accession="IMS:1000104" name="external encoded length" value="33596"/>
             <binary/>

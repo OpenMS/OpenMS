@@ -11,22 +11,21 @@ def get_class_test_data_dir() -> str:
 
     Resolution order:
     1. ``OPENMS_CLASS_TEST_DATA_PATH`` environment variable
-    2. Source-tree layout (``src/pyOpenMS/tests/`` → ``src/tests/...``)
-    3. Build-tree layout (``OpenMS-build/pyOpenMS/tests/`` → ``../src/tests/...``)
+    2. Walk upward from this file looking for ``src/tests/class_tests/openms/data``.
+       Depth-independent, so it works both in the source tree
+       (``src/pyOpenMS/tests/unittests/``) and in the build tree
+       (``OpenMS-build/pyOpenMS/tests/unittests/``, where ``src`` sits one level
+       above the build directory).
     """
     env_path = os.environ.get("OPENMS_CLASS_TEST_DATA_PATH")
     if env_path and os.path.isdir(env_path):
         return env_path
 
-    here = Path(__file__).resolve().parent
-    candidates = (
-        here.parent.parent / "tests" / "class_tests" / "openms" / "data",
-        here.parents[2] / "src" / "tests" / "class_tests" / "openms" / "data",
-    )
-    for candidate in candidates:
-        resolved = candidate.resolve()
-        if resolved.is_dir():
-            return str(resolved)
+    rel = Path("src") / "tests" / "class_tests" / "openms" / "data"
+    for base in Path(__file__).resolve().parents:
+        candidate = base / rel
+        if candidate.is_dir():
+            return str(candidate)
 
     raise RuntimeError(
         "Could not locate class test data directory "

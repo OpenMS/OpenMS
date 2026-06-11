@@ -3,7 +3,7 @@ import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_data_paths import get_class_test_data_dir
 
 import pyopenms
@@ -128,7 +128,7 @@ class TestImzMLFile(unittest.TestCase):
             str(exp.getMetaValue("imzml:uuid")), "12345678-1234-1234-1234-123456789012"
         )
         self.assertEqual(
-            str(exp.getMetaValue("imzml:ibd_md5")), "d8654952b0bb69e3f1e70c4a5fd3e06d"
+            str(exp.getMetaValue("imzml:ibd_md5")), "4b5dd9fa84fafc955cfdd301f9ed55d7"
         )
         self.assertFalse(exp.metaValueExists("imzml:ibd_sha1"))
         self.assertEqual(str(exp.getMetaValue("imzml:mz_data_type")), "float32")

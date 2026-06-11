@@ -94,7 +94,7 @@ namespace
 
 int main(int argc, const char** argv)
 {
-  String path;
+  std::string path;
   if (argc >= 2)
   {
     path = argv[1];
@@ -199,7 +199,7 @@ int main(int argc, const char** argv)
   // Mode 7: export (store) and reload
   // ------------------------------------------------------------------
   std::cout << "\n=== Mode 7: ImzMLFile::store round-trip ===\n";
-  String tmp_imzml = File::getTemporaryFile("Tutorial_ImzMLFile_export.imzML");
+  std::string tmp_imzml = File::getTemporaryFile("Tutorial_ImzMLFile_export.imzML");
   loader.store(tmp_imzml, exp);
   MSExperiment reloaded;
   loader.load(tmp_imzml, reloaded);

@@ -34,6 +34,7 @@
 #include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
+#include <OpenMS/IMAGING/MSImagingGeometry.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/PeakIndex.h>
@@ -1857,7 +1858,7 @@ This is an alias for getChromatogramByNativeId().
     nb::class_<OpenMS::OnDiscImzMLExperiment>(m, "OnDiscImzMLExperiment",
         "Random-access on-disc reader for imzML (.imzML + .ibd), analogous to OnDiscMSExperiment for indexed mzML.")
         .def(nb::init<>())
-        .def("open", [](OpenMS::OnDiscImzMLExperiment& self, const OpenMS::String& imzml_path, const OpenMS::String& ibd_path) {
+        .def("open", [](OpenMS::OnDiscImzMLExperiment& self, const std::string& imzml_path, const std::string& ibd_path) {
             self.open(imzml_path, ibd_path);
         }, "imzml_path"_a, "ibd_path"_a = "", "Open imzML index and companion .ibd file")
         .def("close", [](OpenMS::OnDiscImzMLExperiment& self) { self.close(); },
@@ -1877,6 +1878,10 @@ This is an alias for getChromatogramByNativeId().
         .def("getImzMLMeta", [](const OpenMS::OnDiscImzMLExperiment& self) {
             return self.getImzMLMeta();
         }, "Return dataset-level ImzMLMeta parsed during open()")
+        .def("getGeometry",
+            [](const OpenMS::OnDiscImzMLExperiment& self) -> const OpenMS::MSImagingGeometry& { return self.getGeometry(); },
+            nb::rv_policy::reference_internal,
+            "Return the shared 2D MSImagingGeometry (0-based pixel grid + (x,y)->spectrum index), built lazily from the index")
         .def("gridWidth", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.gridWidth(); })
         .def("gridHeight", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.gridHeight(); })
         ;

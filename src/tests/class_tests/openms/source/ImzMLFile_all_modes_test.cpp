@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ImzMLFile.h>
@@ -41,14 +42,14 @@ namespace
       }
     }
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     String("(") + x + "," + y + ")");
+                                     "(" + OpenMS::StringConversions::toString(x) + "," + OpenMS::StringConversions::toString(y) + ")");
   }
 } // namespace
 
 START_TEST(ImzMLFile_all_modes, "$Id$")
 
-const String continuous_path = String(OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML"));
-const String processed_path = String(OPENMS_GET_TEST_DATA_PATH("ImzMLFile_2_Example_Processed.imzML"));
+const std::string continuous_path = std::string(OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML"));
+const std::string processed_path = std::string(OPENMS_GET_TEST_DATA_PATH("ImzMLFile_2_Example_Processed.imzML"));
 
 /////////////////////////////////////////////////////////////
 START_SECTION(mode 1: full load into MSExperiment)
@@ -58,7 +59,7 @@ START_SECTION(mode 1: full load into MSExperiment)
 
   TEST_EQUAL(exp.getNrSpectra(), k_continuous_spectra)
   TEST_EQUAL(exp.metaValueExists("imzml:imaging_mode"), true)
-  TEST_EQUAL(String(exp.getMetaValue("imzml:imaging_mode")), String("continuous"))
+  TEST_EQUAL(OpenMS::StringConversions::toString(exp.getMetaValue("imzml:imaging_mode")), std::string("continuous"))
   TEST_EQUAL(static_cast<UInt>(exp.getMetaValue("imzml:max_count_x")), k_grid)
   TEST_EQUAL(static_cast<UInt>(exp.getMetaValue("imzml:max_count_y")), k_grid)
   if (!exp.empty())
@@ -236,7 +237,7 @@ START_SECTION(processed imzML encoding)
   ImzMLFile().load(processed_path, exp);
 
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
-  TEST_EQUAL(String(exp.getMetaValue("imzml:imaging_mode")), String("processed"))
+  TEST_EQUAL(OpenMS::StringConversions::toString(exp.getMetaValue("imzml:imaging_mode")), std::string("processed"))
   if (!exp.empty())
   {
     TEST_EQUAL(exp[0].size() > 0, true)

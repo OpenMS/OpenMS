@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
@@ -97,7 +97,7 @@ namespace OpenMS
       @throws Exception::FileNotFound if the @c .imzML or @c .ibd cannot be opened.
       @throws Exception::ParseError   if the XML is malformed.
     */
-    void load(const String& filename, MSExperiment& exp);
+    void load(const std::string& filename, MSExperiment& exp);
 
     /**
       @brief Load an imzML file into an MSImagingExperiment for in-memory random access.
@@ -117,7 +117,7 @@ namespace OpenMS
       @throws Exception::ParseError   if the XML is malformed.
       @throws Exception::InvalidValue if pixel coordinates are invalid or duplicate.
     */
-    void load(const String& filename, MSImagingExperiment& exp);
+    void load(const std::string& filename, MSImagingExperiment& exp);
 
     /**
       @brief Build @p MSImagingGeometry from a loaded imzML @p MSExperiment.
@@ -147,7 +147,7 @@ namespace OpenMS
       @throws Exception::FileNotFound if the @c .imzML or @c .ibd cannot be opened.
       @throws Exception::ParseError   if the XML is malformed.
     */
-    void load(const String& filename, Interfaces::IMSDataConsumer& consumer);
+    void load(const std::string& filename, Interfaces::IMSDataConsumer& consumer);
 
     /**
       @brief Parse XML and build a per-spectrum @c .ibd index without loading peaks.
@@ -162,9 +162,10 @@ namespace OpenMS
       @throws Exception::FileNotFound if the @c .imzML or @c .ibd cannot be opened.
       @throws Exception::ParseError   if the XML is malformed.
     */
-    void loadSpectraIndex(const String& filename,
+    void loadSpectraIndex(const std::string& filename,
                           ImzMLMeta& meta,
-                          std::vector<ImzMLSpectrumIndex>& index);
+                          std::vector<ImzMLSpectrumIndex>& index,
+                          const std::string& ibd_path = "");
     //@}
 
     /** @name Validation and storage */
@@ -176,7 +177,7 @@ namespace OpenMS
       @param[out] os       Stream receiving validation messages.
       @return @c true if the file passes schema validation.
     */
-    bool isValid(const String& filename, std::ostream& os);
+    bool isValid(const std::string& filename, std::ostream& os);
 
     /**
       @brief Store an experiment as imzML (XML + companion .ibd).
@@ -201,19 +202,20 @@ namespace OpenMS
       @throws Exception::UnableToCreateFile if output files cannot be written.
       @throws Exception::ParseError if binary array serialization fails.
     */
-    void store(const String& filename, const MSExperiment& exp) const;
+    void store(const std::string& filename, const MSExperiment& exp) const;
     //@}
 
   private:
 
-    void loadImpl_(const String& filename,
+    void loadImpl_(const std::string& filename,
                    Interfaces::IMSDataConsumer* consumer,
                    MSExperiment& meta_exp,
                    ImzMLMeta* out_meta,
                    std::vector<ImzMLSpectrumIndex>* out_index,
-                   bool index_only);
+                   bool index_only,
+                   const std::string& ibd_path_override = "");
 
-    static String inferIbdPath_(const String& imzml_path);
+    static std::string inferIbdPath_(const std::string& imzml_path);
 
     PeakFileOptions options_;
   };

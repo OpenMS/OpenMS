@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -52,7 +52,7 @@ namespace Internal
       @throws Exception::UnableToCreateFile if output files cannot be written.
       @throws Exception::ParseError if binary array serialization fails.
     */
-    static void store(const String& imzml_path,
+    static void store(const std::string& imzml_path,
                       const MSExperiment& exp,
                       const PeakFileOptions& options,
                       ProgressLogger& logger);

@@ -52,6 +52,8 @@
 
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 #include <OpenMS/FORMAT/ZipIfstream.h>
@@ -158,7 +160,7 @@ namespace OpenMS
       }
     };
 
-    String sha1ToHexString_(const uint32_t digest[5])
+    std::string sha1ToHexString_(const uint32_t digest[5])
     {
       std::ostringstream result;
       for (int i = 0; i < 5; ++i)
@@ -168,7 +170,7 @@ namespace OpenMS
       return result.str();
     }
 
-    bool appendFileToSha1_(SHA1& sha, const String& filename)
+    bool appendFileToSha1_(SHA1& sha, const std::string& filename)
     {
       std::ifstream file{std::filesystem::path{std::string(filename)}, std::ios::binary};
       if (!file.is_open())
@@ -183,19 +185,19 @@ namespace OpenMS
       return true;
     }
 
-    String inferImzMLIbdPath_(const String& imzml_path)
+    std::string inferImzMLIbdPath_(const std::string& imzml_path)
     {
-      String p = imzml_path;
-      String lower = p;
-      lower.toLower();
-      if (lower.hasSuffix(".imzml"))
+      std::string p = imzml_path;
+      std::string lower = p;
+      StringUtils::toLower(lower);
+      if (StringUtils::hasSuffix(lower, ".imzml"))
       {
         return p.substr(0, p.size() - 6) + ".ibd";
       }
       return p + ".ibd";
     }
 
-    String computeImzMLDatasetHash_(const String& imzml_path)
+    std::string computeImzMLDatasetHash_(const std::string& imzml_path)
     {
       SHA1 sha;
       if (!appendFileToSha1_(sha, imzml_path))
@@ -401,7 +403,7 @@ namespace OpenMS
     // so far, compression is only supported for XML files
     vector<std::string> complete_file;
     bool is_uncompressed = false;
-    String decompressed_preview;
+    std::string decompressed_preview;
 
     // test whether the file is compressed (bzip2, gzip, or zip)
     ifstream compressed_file(filename.c_str());
@@ -535,12 +537,12 @@ namespace OpenMS
     //imzML / mzML (all lines) — imzML uses mzML root + IMS ontology
     if (StringUtils::hasSubstring(all_simple, "<mzML"))
     {
-      auto isImzMLContent = [](const String& text) -> bool
+      auto isImzMLContent = [](const std::string& text) -> bool
       {
-        return text.hasSubstring("Imaging MS Ontology")
-               || text.hasSubstring("IMS:1000050")
-               || text.hasSubstring("IMS:1000030")
-               || text.hasSubstring("IMS:1000080");
+        return StringUtils::hasSubstring(text, "Imaging MS Ontology")
+               || StringUtils::hasSubstring(text, "IMS:1000050")
+               || StringUtils::hasSubstring(text, "IMS:1000030")
+               || StringUtils::hasSubstring(text, "IMS:1000080");
       };
       if (isImzMLContent(all_simple))
       {
@@ -552,9 +554,9 @@ namespace OpenMS
       }
       if (!decompressed_preview.empty())
       {
-        vector<String> preview_lines;
-        decompressed_preview.split('\n', preview_lines);
-        for (const String& line : preview_lines)
+        vector<std::string> preview_lines;
+        StringUtils::split(decompressed_preview, '\n', preview_lines);
+        for (const std::string& line : preview_lines)
         {
           if (isImzMLContent(line))
           {

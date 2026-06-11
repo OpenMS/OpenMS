@@ -75,7 +75,7 @@ namespace Internal
       @param logger    ProgressLogger inherited from the owning @p ImzMLFile.
     */
     ImzMLHandler(PeakMap&              exp,
-                 const String&         filename,
+                 const std::string&    filename,
                  const ProgressLogger& logger);
 
     ~ImzMLHandler() override;  ///< Closes the .ibd FILE* if open.
@@ -93,7 +93,7 @@ namespace Internal
 
       @throws Exception::FileNotFound if the file cannot be opened.
     */
-    void openIBD(const String& ibd_path);
+    void openIBD(const std::string& ibd_path);
 
     /// Imaging metadata accumulated during SAX parse (read after parse_() returns).
     const ImzMLMeta& getImzMLMeta() const noexcept { return meta_; }
@@ -132,8 +132,8 @@ namespace Internal
     // ------------------------------------------------------------------
     // IMS CV dispatch
     // ------------------------------------------------------------------
-    void handleIMSCvParam_(const String& acc, const String& val);
-    void applyRefGroup_   (const String& id);
+    void handleIMSCvParam_(const std::string& acc, const std::string& val);
+    void applyRefGroup_   (const std::string& id);
 
     // ------------------------------------------------------------------
     // Per-binaryDataArray IMS metadata
@@ -179,9 +179,9 @@ namespace Internal
     std::vector<SpecIMS>             spec_ims_;  ///< IMS state per spectrum (document order)
     std::vector<ImzMLSpectrumIndex>  index_;     ///< Full index for OnDiscImzMLExperiment
 
-    using CvPair = std::pair<String, String>;
-    std::unordered_map<String, std::vector<CvPair>> ref_groups_;
-    String cur_ref_id_;
+    using CvPair = std::pair<std::string, std::string>;
+    std::unordered_map<std::string, std::vector<CvPair>> ref_groups_;
+    std::string cur_ref_id_;
     bool   in_ref_group_ { false };
     bool   decode_ibd_ { true };
     bool   cur_x_seen_ { false };
