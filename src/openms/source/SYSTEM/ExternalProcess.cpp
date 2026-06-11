@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/ExternalProcess.h>
-#include <thread>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <boost/version.hpp>
