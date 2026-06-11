@@ -6,7 +6,8 @@
 // Usage:
 //   Tutorial_ImzMLFile [file.imzML]
 //
-// When no path is given, uses OPENMS_IMZML_TUTORIAL_FILE (set at build time).
+// When no path is given, uses the bundled example dataset
+// doc/code_examples/data/Tutorial_ImzMLFile.imzML.
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ImzMLFile.h>
@@ -16,6 +17,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/openms_data_path.h> // OPENMS_DOC_PATH (location of bundled tutorial data)
 
 #include <algorithm>
 #include <iostream>
@@ -94,22 +96,10 @@ namespace
 
 int main(int argc, const char** argv)
 {
-  std::string path;
-  if (argc >= 2)
-  {
-    path = argv[1];
-  }
-#ifdef OPENMS_IMZML_TUTORIAL_FILE
-  else
-  {
-    path = OPENMS_IMZML_TUTORIAL_FILE;
-  }
-#endif
-  if (path.empty())
-  {
-    std::cerr << "Usage: " << argv[0] << " [file.imzML]\n";
-    return 1;
-  }
+  // Default to the bundled example dataset; an explicit path may be passed as argv[1].
+  const std::string path = (argc >= 2)
+                             ? std::string(argv[1])
+                             : OPENMS_DOC_PATH + std::string("/code_examples/data/Tutorial_ImzMLFile.imzML");
   ImzMLFile loader;
   loader.setLogType(ProgressLogger::CMD);
 

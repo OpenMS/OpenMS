@@ -26,11 +26,6 @@ foreach(i ${EXAMPLES_executables})
   add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.cpp)
   target_link_libraries(${i} OpenMS)
 
-  if(i STREQUAL "Tutorial_ImzMLFile")
-    target_compile_definitions(${i} PRIVATE
-      OPENMS_IMZML_TUTORIAL_FILE="${OPENMS_HOST_DIRECTORY}/src/tests/class_tests/openms/data/ImzMLFile_1_Example_Continuous.imzML")
-  endif()
-
   # if not GUI and no style tests requested -> add as test
   if(NOT ENABLE_STYLE_TESTING)
     add_test(NAME ${i}
