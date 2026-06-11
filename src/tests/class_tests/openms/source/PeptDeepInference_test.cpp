@@ -1,3 +1,11 @@
+// Copyright (c) 2002-present, OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Satyam Yadav $
+// --------------------------------------------------------------------------
+
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/ML/PeptDeepRTInference.h>
 #include <OpenMS/ML/PeptDeepMS2Inference.h>
@@ -39,7 +47,7 @@ START_SECTION((Mathematical regression checks))
 
     TEST_EQUAL(rt_predictions.size(), 1);
 
-    TEST_REAL_SIMILAR(rt_predictions[0], 0.0f);
+    TEST_REAL_SIMILAR(rt_predictions[0], -0.0202387f);
 
     STATUS("Verifying MS2 engine returns proper fragment slice count...");
     PeptDeepMS2Inference ms2_engine_exec(ms2_model);
@@ -48,7 +56,7 @@ START_SECTION((Mathematical regression checks))
     TEST_EQUAL(ms2_preds.size() > 0, true);
 
     // Replace 0.0f with the actual expected head intensity value from your reference pass
-    TEST_REAL_SIMILAR(ms2_preds[0], 0.0f);
+    TEST_REAL_SIMILAR(ms2_preds[0], 2.63506e-06f);
 
     STATUS("All PeptDeepInference tests passed safely within this section!");
 END_SECTION

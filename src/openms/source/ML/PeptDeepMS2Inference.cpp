@@ -1,3 +1,11 @@
+// Copyright (c) 2002-present, OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Satyam Yadav $
+// --------------------------------------------------------------------------
+
 #include <OpenMS/ML/PeptDeepMS2Inference.h>
 #include <OpenMS/ML/ONNXEnvironment.h>
 #include <onnxruntime_cxx_api.h>
@@ -45,14 +53,18 @@ struct PeptDeepMS2Inference::Impl
             throw std::invalid_argument("Peptide sequence length cannot be zero.");
         }
 
-        std::vector<int64_t> aa_indices;
-        aa_indices.reserve(seq_length);
+        int64_t padded_length = seq_length + 2;
 
+        std::vector<int64_t> aa_indices;
+        aa_indices.reserve(padded_length);
+
+        aa_indices.push_back(0); // Leading padding token
         for (char aa : peptide_sequence) {
             aa_indices.push_back(getAAIndex(aa));
         }
+        aa_indices.push_back(0); // Trailing padding token
 
-        std::vector<int64_t> aa_shape = {batch_size, seq_length};
+        std::vector<int64_t> aa_shape = {batch_size, padded_length};
         Ort::Value aa_tensor = Ort::Value::CreateTensor<int64_t>(
             memory_info_, const_cast<int64_t*>(aa_indices.data()), aa_indices.size(), aa_shape.data(), aa_shape.size());
 
@@ -66,7 +78,7 @@ struct PeptDeepMS2Inference::Impl
         }
 
         mod_shape[0] = batch_size;
-        mod_shape[1] = seq_length;
+        mod_shape[1] = padded_length;
 
         int64_t total_mod_elements = 1;
         for (int64_t dim : mod_shape) {

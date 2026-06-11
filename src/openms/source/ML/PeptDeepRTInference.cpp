@@ -1,3 +1,11 @@
+// Copyright (c) 2002-present, OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Satyam Yadav $
+// --------------------------------------------------------------------------
+
 #include <OpenMS/ML/PeptDeepRTInference.h>
 #include <OpenMS/ML/ONNXEnvironment.h>
 #include <onnxruntime_cxx_api.h>
@@ -44,6 +52,10 @@ namespace OpenMS
             flat_tokens.reserve(peptides.size() * max_length);
 
             for (const auto& p : peptides) {
+                if (p.length() > max_length) {
+                    throw std::invalid_argument("Peptide sequence exceeds the maximum allowed length of 132 residues.");
+                }
+
                 for (size_t i = 0; i < max_length; ++i) {
                     if (i < p.length()) {
                         flat_tokens.push_back(getAAIndex(p[i]));
@@ -114,6 +126,11 @@ namespace OpenMS
             auto output_tensors = session_->Run(
                 Ort::RunOptions{nullptr}, input_names, input_tensors.data(), 2, output_names, 1
             );
+
+            size_t output_count = output_tensors.front().GetTensorTypeAndShapeInfo().GetElementCount();
+            if (output_count < peptides.size()) {
+                throw std::runtime_error("ONNX model output shape mismatch: returned fewer elements than requested.");
+            }
 
             float* floatarr = output_tensors.front().GetTensorMutableData<float>();
             return std::vector<float>(floatarr, floatarr + peptides.size());

@@ -7,8 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/ExternalProcess.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <string>
+#include <thread>
 #include <boost/version.hpp>
 #include <boost/asio/io_context.hpp>
 

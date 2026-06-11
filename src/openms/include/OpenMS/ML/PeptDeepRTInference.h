@@ -1,6 +1,14 @@
+// Copyright (c) 2002-present, OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Satyam Yadav $
+// --------------------------------------------------------------------------
+
 #pragma once
 
-#include <OpenMS/config.h> 
+#include <OpenMS/config.h>
 #include <memory>
 #include <string>
 #include <vector>
