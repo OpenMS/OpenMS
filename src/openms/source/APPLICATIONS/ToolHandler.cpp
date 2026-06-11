@@ -201,7 +201,6 @@ namespace OpenMS
     StringList GUI_tools = {
       "ExecutePipeline",
       "ImageCreator",
-      "INIUpdater",
     };
     for (const auto& tool : GUI_tools) {
       tools_map.erase(tool);

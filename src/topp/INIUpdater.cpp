@@ -8,17 +8,11 @@
 
 #include <OpenMS/APPLICATIONS/INIUpdater.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-#include <OpenMS/VISUAL/TOPPASScene.h>
-#include <OpenMS/VISUAL/MISC/Qt5Port.h>
-
-
-#include <QApplication>
-#include <QFileInfo>
-#include <QFile>
-#include <QDir>
 
 using namespace OpenMS;
 using namespace std;
@@ -83,14 +77,53 @@ protected:
     setValidFormats_("out", ListUtils::create<std::string>("ini,toppas"));
   }
 
+  /// Run @p tool_name with '-write_ini' to dump its current default parameters into @p tmp_ini_file.
+  /// Returns false if the tool executable could not be found or did not finish successfully.
+  bool runWriteIni_(const std::string& tool_name, const std::string& tmp_ini_file, Int instance)
+  {
+    std::string tool_exe;
+    try
+    {
+      tool_exe = File::findSiblingTOPPExecutable(tool_name);
+    }
+    catch (Exception::FileNotFound&)
+    {
+      return false;
+    }
+
+    ExternalProcess proc;
+    std::string error_msg;
+    ExternalProcess::RETURNSTATE state = proc.run(
+      tool_exe, {"-write_ini", tmp_ini_file, "-instance", std::to_string(instance)}, "", false, error_msg);
+    return state == ExternalProcess::RETURNSTATE::SUCCESS;
+  }
+
+  /// Renames @p infile to a versioned backup "<dir>/<basename-without-extension>_v<version><extension>".
+  /// Refuses to overwrite an already existing backup (returns false and leaves @p infile untouched), matching
+  /// the original QFile::rename behavior, so a previous backup is never destroyed. On success, @p backup_name
+  /// holds the created backup path; on failure it holds the attempted path (for error reporting).
+  static bool createBackup_(const std::string& infile, const std::string& version, const std::string& extension, std::string& backup_name)
+  {
+    std::string base = File::basename(infile);
+    std::string::size_type dot = base.rfind('.');
+    if (dot != std::string::npos)
+    {
+      base = base.substr(0, dot);
+    }
+    backup_name = File::path(infile) + "/" + base + "_v" + version + extension;
+    if (File::exists(backup_name)) // never clobber an existing backup
+    {
+      return false;
+    }
+    return File::rename(infile, backup_name, false);
+  }
+
   void updateTOPPAS(const std::string& infile, const std::string& outfile)
   {
     Int this_instance = getIntOption_("instance");
     INIUpdater updater;
     std::string tmp_ini_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_INIUpdater.ini";
     tmp_files_.push_back(tmp_ini_file);
-
-    std::string path = File::getExecutablePath();
 
     ParamXMLFile paramFile;
     Param p;
@@ -156,14 +189,7 @@ protected:
       p.setValue(sec_inst + "tool_type", "");
 
       // get defaults of new tool by calling it
-      QProcess pr;
-      QStringList arguments;
-      arguments << "-write_ini";
-      arguments << toQString(tmp_ini_file);
-      arguments << "-instance";
-      arguments << toQString(StringUtils::toStr(this_instance));
-      pr.start(toQString(path + "/" + new_tool), arguments);
-      if (!pr.waitForFinished(-1))
+      if (!runWriteIni_(new_tool, tmp_ini_file, this_instance))
       {
         writeLogWarn_("Update for file " + infile + " failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
         update_success = false;
@@ -187,32 +213,11 @@ protected:
       return;
     }
 
-    paramFile.store(tmp_ini_file, p);
-
-    // update internal structure (e.g. edges format changed from 1.8 to 1.9)
-    int argc = 1;
-    const char* c = "IniUpdater";
-    const char** argv = &c;
-
-    QApplication app(argc, const_cast<char**>(argv), false);
-    std::string tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
-    QDir d;
-    d.mkpath(toQString(tmp_dir));
-    {
-      TOPPASScene ts(nullptr, toQString(tmp_dir), false);
-      paramFile.store(tmp_ini_file, p);
-      ts.load(tmp_ini_file);
-      ts.store(tmp_ini_file);
-      paramFile.load(tmp_ini_file, p);
-    } // ts goes out of scope before we remove its directory
-    QDir(toQString(tmp_dir)).removeRecursively();
-
     // STORE
     if (outfile.empty()) // create a backup
     {
-      QFileInfo fi(toQString(infile));
-      std::string new_name = fromQString(fi.path()) + "/" + fromQString(fi.completeBaseName()) + "_v" + version + ".toppas";
-      if (!QFile::rename(toQString(infile), toQString(new_name)))
+      std::string new_name;
+      if (!createBackup_(infile, version, ".toppas", new_name))
       {
         OPENMS_LOG_ERROR << "Could not create backup '" << new_name << "' from '" << infile << "'. Aborting update to prevent data loss." << std::endl;
         failed_.push_back(infile);
@@ -233,8 +238,6 @@ protected:
     INIUpdater updater;
     std::string tmp_ini_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_INIUpdater.ini";
     tmp_files_.push_back(tmp_ini_file);
-
-    std::string path = File::getExecutablePath();
 
     Param p;
     ParamXMLFile paramFile;
@@ -289,14 +292,7 @@ protected:
         break;
       }
       // get defaults of new tool by calling it
-      QProcess pr;
-      QStringList arguments;
-      arguments << "-write_ini";
-      arguments << toQString(tmp_ini_file);
-      arguments << "-instance";
-      arguments << toQString(StringUtils::toStr(this_instance));
-      pr.start(toQString(path + "/" + new_tool), arguments);
-      if (!pr.waitForFinished(-1))
+      if (!runWriteIni_(new_tool, tmp_ini_file, this_instance))
       {
         writeLogWarn_("Update for file '" + infile + "' failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
         update_success = false;
@@ -323,9 +319,8 @@ protected:
     // STORE
     if (outfile.empty()) // create a backup
     {
-      QFileInfo fi(toQString(infile));
-      std::string backup_filename = fromQString(fi.path()) + "/" + fromQString(fi.completeBaseName()) + "_v" + version_old + ".ini";
-      if (!QFile::rename(toQString(infile), toQString(backup_filename)))
+      std::string backup_filename;
+      if (!createBackup_(infile, version_old, ".ini", backup_filename))
       {
         OPENMS_LOG_ERROR << "Could not create backup '" << backup_filename << "' from '" << infile << "'. Aborting update to prevent data loss." << std::endl;
         failed_.push_back(infile);

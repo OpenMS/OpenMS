@@ -294,7 +294,7 @@ ARG TARGETARCH
 
 RUN apt-get update \ 
     && apt-get install -y --no-install-recommends --no-install-suggests \
-    # we need Xvfb to run a small subset of tests (eg. TOPP_INIUpdater)
+    # we need Xvfb to run a small subset of GUI tests (eg. TOPPView_test)
     xvfb \
     # needed for TSGDialog_test and TOPPView_test
     libqt6test6 \
