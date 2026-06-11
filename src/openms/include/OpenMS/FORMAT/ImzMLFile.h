@@ -165,6 +165,8 @@ namespace OpenMS
       @param[in] filename Path to the @c .imzML file.
       @param[out] meta     Dataset-level imaging metadata.
       @param[out] index    Per-spectrum index entries (offsets into @c .ibd).
+      @param[in] ibd_path  Optional explicit path to the companion @c .ibd; inferred from
+                           @p filename when empty.
 
       @throws Exception::FileNotFound if the @c .imzML or @c .ibd cannot be opened.
       @throws Exception::ParseError   if the XML is malformed.
