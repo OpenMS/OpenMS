@@ -454,6 +454,37 @@ START_SECTION(void buildImagingGeometry(const MSExperiment& exp, MSImagingGeomet
 END_SECTION
 
 
+START_SECTION(static void buildImagingGeometry(const std::vector<ImzMLSpectrumIndex>& index, const ImzMLMeta& meta, MSImagingGeometry& geom))
+{
+  // Source-of-truth builder: geometry is derived straight from a parsed index with NO
+  // MSExperiment and NO imzml:* MetaValues anywhere (as the loaders now use it).
+  std::vector<ImzMLSpectrumIndex> index(4);
+  index[0].x = 1; index[0].y = 1; // 1-based imzML coords
+  index[1].x = 2; index[1].y = 1;
+  index[2].x = 1; index[2].y = 2;
+  index[3].x = 2; index[3].y = 2;
+
+  ImzMLMeta meta;
+  meta.max_count_x = 2;
+  meta.max_count_y = 2;
+  meta.pixel_size_x = 25.0;
+  meta.pixel_size_y = 25.0;
+
+  MSImagingGeometry geom;
+  ImzMLFile::buildImagingGeometry(index, meta, geom);
+
+  TEST_EQUAL(geom.getNumberOfPixels(), 4)
+  TEST_EQUAL(geom.getWidth(), 2)
+  TEST_EQUAL(geom.getHeight(), 2)
+  TEST_REAL_SIMILAR(geom.getPixelSizeX(), 25.0)
+  TEST_EQUAL(geom.hasPixel(0, 0), true) // (1,1) -> (0,0)
+  TEST_EQUAL(geom.getSpectrumIndex(0, 0), 0)
+  TEST_EQUAL(geom.hasPixel(1, 1), true) // (2,2) -> (1,1)
+  TEST_EQUAL(geom.getSpectrumIndex(1, 1), 3)
+}
+END_SECTION
+
+
 START_SECTION(void store round-trip continuous imzML)
 {
   MSExperiment original = loadImzMLExperiment_(imzml_path);

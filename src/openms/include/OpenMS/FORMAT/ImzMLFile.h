@@ -122,6 +122,26 @@ namespace OpenMS
     static void buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry& geom);
 
     /**
+      @brief Build @p MSImagingGeometry directly from a parsed imzML spectrum index.
+
+      This is the source-of-truth path used by the loaders: it derives the pixel grid
+      straight from the per-spectrum coordinates captured during parsing (no reliance on
+      @p imzml:x/y MetaValues), mirroring how BrukerTimsImagingFile populates its geometry.
+      Each index entry's 1-based (x, y) with z = 1 is registered as a zero-based pixel bound
+      to that spectrum; dimensions and pixel size come from @p meta. Out-of-grid or < 1
+      coordinates are warned and skipped; duplicates raise Exception::InvalidValue.
+
+      @param[in]  index Per-spectrum index entries (e.g. from @p loadSpectraIndex or the loader).
+      @param[in]  meta  Dataset metadata (grid dimensions, pixel size).
+      @param[out] geom  Geometry to populate (cleared first).
+
+      @throws Exception::InvalidValue on duplicate pixel coordinates.
+    */
+    static void buildImagingGeometry(const std::vector<ImzMLSpectrumIndex>& index,
+                                     const ImzMLMeta& meta,
+                                     MSImagingGeometry& geom);
+
+    /**
       @brief Stream-load an imzML file into a consumer.
 
       Decoded spectra are passed to @p consumer.consumeSpectrum() after the

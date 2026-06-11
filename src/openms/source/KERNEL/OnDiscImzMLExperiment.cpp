@@ -11,9 +11,7 @@
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
-#include <algorithm>
 #include <cstdio>
 #include <utility>
 
@@ -45,75 +43,11 @@ struct OnDiscImzMLExperiment::Impl
     }
   }
 
-  // Populate geometry_ from the parsed index. Mirrors ImzMLFile::buildImagingGeometry
-  // (the in-memory sibling) so the two paths normalize coordinates identically:
-  // imzML 1-based -> 0-based, z == 1 plane only, dimensions and pixel size from
-  // ImzMLMeta. Keep the two implementations in sync. <1 and out-of-grid coordinates are
-  // warned and skipped; only duplicate coordinates raise Exception::InvalidValue.
+  // Populate geometry_ directly from the parsed index via the single shared builder in
+  // ImzMLFile, so the on-disc and in-memory paths cannot diverge.
   void buildGeometry_()
   {
-    geometry_.clear();
-
-    UInt width = meta_.max_count_x;
-    UInt height = meta_.max_count_y;
-    if (width > 0 && height > 0)
-    {
-      geometry_.setDimensions(width, height);
-    }
-
-    UInt max_x = 0;
-    UInt max_y = 0;
-    for (std::size_t i = 0; i < index_.size(); ++i)
-    {
-      const ImzMLSpectrumIndex& e = index_[i];
-      if (e.z != 1) // MSImagingGeometry is 2D: only the first plane is mapped
-      {
-        continue;
-      }
-      if (e.x < 1 || e.y < 1)
-      {
-        // imzML coordinates are 1-based; a <1 value is non-conformant. Warn and skip the
-        // spectrum (it stays reachable by linear index) rather than aborting the load.
-        OPENMS_LOG_WARN << "imzML: pixel coordinates must be >= 1; skipping spectrum " << i
-                        << " at (" << StringConversions::toString(e.x) << ","
-                        << StringConversions::toString(e.y) << ")." << std::endl;
-        continue;
-      }
-      const UInt x = static_cast<UInt>(e.x - 1);
-      const UInt y = static_cast<UInt>(e.y - 1);
-      // Soften the geometry's strict in-bounds rule to a warning: a pixel beyond the
-      // declared grid (IMS:1000042/043) is dropped from the geometry (the spectrum stays
-      // reachable by linear index) instead of aborting the load.
-      if (width > 0 && height > 0 && (x >= width || y >= height))
-      {
-        OPENMS_LOG_WARN << "imzML: pixel (" << StringConversions::toString(e.x) << ","
-                        << StringConversions::toString(e.y) << ") at spectrum " << i
-                        << " lies outside the declared " << width << "x" << height
-                        << " grid; excluding it from the imaging geometry." << std::endl;
-        continue;
-      }
-      max_x = std::max(max_x, x);
-      max_y = std::max(max_y, y);
-      geometry_.addPixel(x, y, i); // still throws Exception::InvalidValue on duplicate coordinates
-    }
-
-    if (width == 0 && (max_x > 0 || geometry_.getNumberOfPixels() > 0))
-    {
-      width = max_x + 1;
-    }
-    if (height == 0 && (max_y > 0 || geometry_.getNumberOfPixels() > 0))
-    {
-      height = max_y + 1;
-    }
-    if (width > 0 && height > 0 && (geometry_.getWidth() != width || geometry_.getHeight() != height))
-    {
-      geometry_.setDimensions(width, height);
-    }
-
-    if (meta_.pixel_size_x > 0 && meta_.pixel_size_y > 0)
-    {
-      geometry_.setPixelSize(meta_.pixel_size_x, meta_.pixel_size_y, "micrometer");
-    }
+    ImzMLFile::buildImagingGeometry(index_, meta_, geometry_);
   }
 
   MSSpectrum decodeSpectrum(std::size_t i) const

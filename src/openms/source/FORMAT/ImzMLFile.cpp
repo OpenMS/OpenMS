@@ -214,10 +214,15 @@ void ImzMLFile::load(const std::string& filename, MSImagingExperiment& exp)
   // Callers that only need the flat spectra can use exp.getMSExperiment() afterwards.
   MSExperiment ms_exp;
   ms_exp.reset();
-  loadImpl_(filename, nullptr, ms_exp, nullptr, nullptr, false);
+  ImzMLMeta meta;
+  std::vector<ImzMLSpectrumIndex> index;
+  loadImpl_(filename, nullptr, ms_exp, &meta, &index, false);
 
+  // Build the geometry directly from the parsed per-spectrum index (the source of truth),
+  // not by reading imzml:x/y MetaValues back off the spectra. index[i] corresponds to
+  // spectrum i in ms_exp (both driven by the same delivery order).
   MSImagingGeometry geom;
-  buildImagingGeometry(ms_exp, geom);
+  buildImagingGeometry(index, meta, geom);
 
   exp.setMSExperiment(std::move(ms_exp));
   exp.setGeometry(std::move(geom));
@@ -313,6 +318,76 @@ void ImzMLFile::buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry&
     const double px = static_cast<double>(exp.getMetaValue("imzml:pixel_size_x"));
     const double py = static_cast<double>(exp.getMetaValue("imzml:pixel_size_y"));
     geom.setPixelSize(px, py, "micrometer");
+  }
+}
+
+void ImzMLFile::buildImagingGeometry(const std::vector<ImzMLSpectrumIndex>& index,
+                                     const ImzMLMeta& meta,
+                                     MSImagingGeometry& geom)
+{
+  // Source-of-truth geometry builder: coordinates come straight from the parsed index
+  // (1-based imzML), not from imzml:x/y MetaValues. Shared by ImzMLFile::load(MSImagingExperiment&)
+  // and OnDiscImzMLExperiment so the in-memory and on-disc paths cannot diverge.
+  geom.clear();
+
+  UInt width = meta.max_count_x;
+  UInt height = meta.max_count_y;
+  if (width > 0 && height > 0)
+  {
+    geom.setDimensions(width, height);
+  }
+
+  UInt max_x = 0;
+  UInt max_y = 0;
+  for (Size i = 0; i < index.size(); ++i)
+  {
+    const ImzMLSpectrumIndex& e = index[i];
+    if (e.z != 1) // MSImagingGeometry is 2D: only the first plane is mapped
+    {
+      continue;
+    }
+    if (e.x < 1 || e.y < 1)
+    {
+      // imzML coordinates are 1-based; a <1 value is non-conformant. Warn and skip the
+      // spectrum (it stays reachable by linear index) rather than aborting the load.
+      OPENMS_LOG_WARN << "imzML: pixel coordinates must be >= 1; skipping spectrum " << i
+                      << " at (" << OpenMS::StringConversions::toString(e.x) << ","
+                      << OpenMS::StringConversions::toString(e.y) << ")." << std::endl;
+      continue;
+    }
+    const UInt x = static_cast<UInt>(e.x - 1);
+    const UInt y = static_cast<UInt>(e.y - 1);
+    // Soften the geometry's strict in-bounds rule to a warning: a pixel beyond the declared
+    // grid is dropped from the geometry (the spectrum stays reachable by index).
+    if (width > 0 && height > 0 && (x >= width || y >= height))
+    {
+      OPENMS_LOG_WARN << "imzML: pixel (" << OpenMS::StringConversions::toString(e.x) << ","
+                      << OpenMS::StringConversions::toString(e.y) << ") at spectrum " << i
+                      << " lies outside the declared " << width << "x" << height
+                      << " grid; excluding it from the imaging geometry." << std::endl;
+      continue;
+    }
+    max_x = std::max(max_x, x);
+    max_y = std::max(max_y, y);
+    geom.addPixel(x, y, i); // throws Exception::InvalidValue on duplicate coordinates
+  }
+
+  if (width == 0 && (max_x > 0 || geom.getNumberOfPixels() > 0))
+  {
+    width = max_x + 1;
+  }
+  if (height == 0 && (max_y > 0 || geom.getNumberOfPixels() > 0))
+  {
+    height = max_y + 1;
+  }
+  if (width > 0 && height > 0 && (geom.getWidth() != width || geom.getHeight() != height))
+  {
+    geom.setDimensions(width, height);
+  }
+
+  if (meta.pixel_size_x > 0 && meta.pixel_size_y > 0)
+  {
+    geom.setPixelSize(meta.pixel_size_x, meta.pixel_size_y, "micrometer");
   }
 }
 
