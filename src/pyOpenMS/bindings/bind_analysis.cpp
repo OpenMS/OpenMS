@@ -67,7 +67,6 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureNode.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
@@ -2459,23 +2458,6 @@ These metrics are combined over the previous and the next MS1 spectrum
         .def_rw("seq_2", &OpenMS::ProbablePhosphoSites::seq_2)
         .def_rw("peak_depth", &OpenMS::ProbablePhosphoSites::peak_depth)
         .def_rw("AScore", &OpenMS::ProbablePhosphoSites::AScore)
-        ;
-
-    // -----------------------------------------------------------------------
-    // ProteinInference
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ProteinInference>(m, "ProteinInference", 
-        R"doc(
-[experimental class] given a peptide quantitation, infer corresponding protein quantities
-Infers protein ratios from peptide ratios (currently using unique peptides only).
-Use the IDMapper class to add protein and peptide information to a
-quantitative ConsensusMap prior to this step
-)doc")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::ProteinInference &>())
-        .def("__copy__", [](const OpenMS::ProteinInference& self) { return OpenMS::ProteinInference(self); })
-        .def("__deepcopy__", [](const OpenMS::ProteinInference& self, nb::dict) { return OpenMS::ProteinInference(self); }, "memo"_a)
-        .def("infer", [](OpenMS::ProteinInference& self, OpenMS::ConsensusMap& consensus_map, unsigned int reference_map) { return self.infer(consensus_map, reference_map); }, "consensus_map"_a, "reference_map"_a)
         ;
 
     // -----------------------------------------------------------------------
