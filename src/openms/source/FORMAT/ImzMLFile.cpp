@@ -206,16 +206,15 @@ PeakFileOptions& ImzMLFile::getOptions()             { return options_; }
 const PeakFileOptions& ImzMLFile::getOptions() const { return options_; }
 void ImzMLFile::setOptions(const PeakFileOptions& o) { options_ = o; }
 
-void ImzMLFile::load(const std::string& filename, MSExperiment& exp)
-{
-  exp.reset();
-  loadImpl_(filename, nullptr, exp, nullptr, nullptr, false);
-}
-
 void ImzMLFile::load(const std::string& filename, MSImagingExperiment& exp)
 {
+  // imzML is a mass spectrometry imaging format, so MSImagingExperiment is the
+  // canonical in-memory target (cf. BrukerTimsImagingFile). Decode the spectra into a
+  // plain MSExperiment, derive the pixel geometry, and hand both to the imaging model.
+  // Callers that only need the flat spectra can use exp.getMSExperiment() afterwards.
   MSExperiment ms_exp;
-  load(filename, ms_exp);
+  ms_exp.reset();
+  loadImpl_(filename, nullptr, ms_exp, nullptr, nullptr, false);
 
   MSImagingGeometry geom;
   buildImagingGeometry(ms_exp, geom);

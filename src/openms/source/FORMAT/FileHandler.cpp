@@ -185,33 +185,6 @@ namespace OpenMS
       return true;
     }
 
-    std::string inferImzMLIbdPath_(const std::string& imzml_path)
-    {
-      std::string p = imzml_path;
-      std::string lower = p;
-      StringUtils::toLower(lower);
-      if (StringUtils::hasSuffix(lower, ".imzml"))
-      {
-        return p.substr(0, p.size() - 6) + ".ibd";
-      }
-      return p + ".ibd";
-    }
-
-    std::string computeImzMLDatasetHash_(const std::string& imzml_path)
-    {
-      SHA1 sha;
-      if (!appendFileToSha1_(sha, imzml_path))
-      {
-        return "";
-      }
-      if (!appendFileToSha1_(sha, inferImzMLIbdPath_(imzml_path)))
-      {
-        return "";
-      }
-      uint32_t digest[5];
-      sha.finalize(digest);
-      return sha1ToHexString_(digest);
-    }
   } // anonymous namespace
 
   std::string allowedToString_(vector<FileTypes::Type> types)
@@ -997,14 +970,14 @@ namespace OpenMS
 
       case FileTypes::IMZML:
       {
-        ImzMLFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.load(filename, exp);
+        // imzML is a mass spectrometry imaging format; it is not loadable into a flat
+        // MSExperiment via the generic FileHandler. Use ImzMLFile to load it into an
+        // MSImagingExperiment (cf. BrukerTimsImagingFile, which is likewise imaging-only).
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+          "imzML is a mass spectrometry imaging format; load it via ImzMLFile into an MSImagingExperiment");
       }
-      break;
 
-      case FileTypes::MGF: 
+      case FileTypes::MGF:
       {
         MascotGenericFile f;
         f.setLogType(log);
@@ -1127,14 +1100,7 @@ namespace OpenMS
 
       if (compute_hash && type != FileTypes::BRUKER_TDF)
       {
-        if (type == FileTypes::IMZML)
-        {
-          src_file.setChecksum(computeImzMLDatasetHash_(filename), SourceFile::ChecksumType::SHA1);
-        }
-        else
-        {
-          src_file.setChecksum(computeFileHash(filename), SourceFile::ChecksumType::SHA1);
-        }
+        src_file.setChecksum(computeFileHash(filename), SourceFile::ChecksumType::SHA1);
       }
 
       exp.getSourceFiles().clear();

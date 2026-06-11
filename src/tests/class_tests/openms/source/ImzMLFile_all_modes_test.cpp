@@ -26,6 +26,16 @@ using namespace std;
 
 namespace
 {
+  MSExperiment loadImzMLExperiment_(const std::string& path,
+                                    const PeakFileOptions& opts = PeakFileOptions())
+  {
+    ImzMLFile f;
+    f.setOptions(opts);
+    MSImagingExperiment img;
+    f.load(path, img);
+    return img.getMSExperiment();
+  }
+
   const Size k_continuous_spectra = 9;
   const UInt k_grid = 3;
 
@@ -54,8 +64,7 @@ const std::string processed_path = std::string(OPENMS_GET_TEST_DATA_PATH("ImzMLF
 /////////////////////////////////////////////////////////////
 START_SECTION(mode 1: full load into MSExperiment)
 {
-  MSExperiment exp;
-  ImzMLFile().load(continuous_path, exp);
+  MSExperiment exp = loadImzMLExperiment_(continuous_path);
 
   TEST_EQUAL(exp.getNrSpectra(), k_continuous_spectra)
   TEST_EQUAL(exp.metaValueExists("imzml:imaging_mode"), true)
@@ -78,12 +87,8 @@ START_SECTION(mode 2: FileHandler and FileTypes)
   TEST_EQUAL(FileHandler::getTypeByContent(continuous_path), FileTypes::IMZML)
 
   MSExperiment exp;
-  FileHandler().loadExperiment(continuous_path, exp);
-  TEST_EQUAL(exp.getNrSpectra(), k_continuous_spectra)
-  if (!exp.empty())
-  {
-    TEST_EQUAL(exp[0].size() > 0, true)
-  }
+  FileHandler fh;
+  TEST_EXCEPTION(Exception::InvalidFileType, fh.loadExperiment(continuous_path, exp))
 }
 END_SECTION
 
@@ -184,8 +189,7 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 START_SECTION(mode 7: buildImagingGeometry from MSExperiment)
 {
-  MSExperiment exp;
-  ImzMLFile().load(continuous_path, exp);
+  MSExperiment exp = loadImzMLExperiment_(continuous_path);
 
   MSImagingGeometry geom;
   ImzMLFile::buildImagingGeometry(exp, geom);
@@ -201,8 +205,7 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 START_SECTION(cross-mode consistency: full load vs on-disc vs RAM lookup)
 {
-  MSExperiment exp;
-  ImzMLFile().load(continuous_path, exp);
+  MSExperiment exp = loadImzMLExperiment_(continuous_path);
 
   MSImagingExperiment imaging;
   ImzMLFile().load(continuous_path, imaging);
@@ -233,8 +236,7 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 START_SECTION(processed imzML encoding)
 {
-  MSExperiment exp;
-  ImzMLFile().load(processed_path, exp);
+  MSExperiment exp = loadImzMLExperiment_(processed_path);
 
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   TEST_EQUAL(OpenMS::StringConversions::toString(exp.getMetaValue("imzml:imaging_mode")), std::string("processed"))

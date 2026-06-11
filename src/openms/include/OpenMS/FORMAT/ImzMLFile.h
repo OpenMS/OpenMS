@@ -87,19 +87,6 @@ namespace OpenMS
     /** @name Load */
     //@{
     /**
-      @brief Load an imzML file into an MSExperiment.
-
-      Parses @p filename and decodes all peak arrays from the companion @c .ibd.
-
-      @param[in] filename Path to the @c .imzML file.
-      @param[out] exp       Target experiment (cleared before filling).
-
-      @throws Exception::FileNotFound if the @c .imzML or @c .ibd cannot be opened.
-      @throws Exception::ParseError   if the XML is malformed.
-    */
-    void load(const std::string& filename, MSExperiment& exp);
-
-    /**
       @brief Load an imzML file into an MSImagingExperiment for in-memory random access.
 
       Performs a full load, then builds @p MSImagingGeometry from @p imzml:x/y

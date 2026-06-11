@@ -306,24 +306,13 @@ tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"
 TEST_EQUAL(map.size(), 7);
 END_SECTION
 
-START_SECTION((void loadExperiment(const std::string& filename, PeakMap& exp) imzML))
+START_SECTION((void loadExperiment imzML is rejected by FileHandler))
+  // imzML is a mass spectrometry imaging format; FileHandler no longer loads it into a
+  // flat MSExperiment. Callers must use ImzMLFile to load it into an MSImagingExperiment.
   FileHandler fh_imz;
   PeakMap exp_imz;
   const std::string imzml_path = OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML");
-  fh_imz.loadExperiment(imzml_path, exp_imz);
-  TEST_EQUAL(exp_imz.getNrSpectra() > 0, true)
-  if (exp_imz.getNrSpectra() > 0)
-  {
-    TEST_EQUAL(exp_imz[0].size() > 0, true)
-  }
-
-  PeakMap exp_imz_hash;
-  fh_imz.loadExperiment(imzml_path, exp_imz_hash, {}, ProgressLogger::NONE, true, true);
-  TEST_NOT_EQUAL(exp_imz_hash.getSourceFiles().empty(), true)
-  TEST_NOT_EQUAL(exp_imz_hash.getSourceFiles()[0].getChecksum().empty(), true)
-  TEST_EQUAL(exp_imz_hash.getSourceFiles()[0].getChecksumType(), SourceFile::ChecksumType::SHA1)
-  TEST_NOT_EQUAL(exp_imz_hash.getSourceFiles()[0].getChecksum(), FileHandler::computeFileHash(imzml_path))
-  TEST_STRING_EQUAL(exp_imz_hash.getSourceFiles()[0].getChecksum(), "ad5eb70f07bf1fd9592d9a352fe06ff0acbb8b7e")
+  TEST_EXCEPTION(Exception::InvalidFileType, fh_imz.loadExperiment(imzml_path, exp_imz))
 END_SECTION
 
 START_SECTION((void storeExperiment(const std::string &filename, const MSExperiment<>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))

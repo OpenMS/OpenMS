@@ -40,15 +40,16 @@ class TestImzMLFile(unittest.TestCase):
         return spec
 
     def test_imzml_file_load(self):
-        exp = pyopenms.MSExperiment()
-        pyopenms.ImzMLFile().load(self.imzml_path, exp)
+        img = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.imzml_path, img)
+        exp = img.getMSExperiment()
         self.assertGreater(exp.getNrSpectra(), 0)
         self.assertGreater(exp.getSpectrum(0).size(), 0)
 
     def test_file_handler_load(self):
         exp = pyopenms.MSExperiment()
-        pyopenms.FileHandler().loadExperiment(self.imzml_path, exp)
-        self.assertGreater(exp.getNrSpectra(), 0)
+        with self.assertRaises(Exception):
+            pyopenms.FileHandler().loadExperiment(self.imzml_path, exp)
 
     def test_file_types(self):
         t = pyopenms.FileHandler.getType(self.imzml_path)
@@ -119,8 +120,9 @@ class TestImzMLFile(unittest.TestCase):
 
     def test_load_dataset_metadata_mirrored_on_experiment(self):
         """ImzMLMeta fields are mirrored as MetaValues on MSExperiment after load."""
-        exp = pyopenms.MSExperiment()
-        pyopenms.ImzMLFile().load(self.imzml_path, exp)
+        img = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.imzml_path, img)
+        exp = img.getMSExperiment()
 
         self.assertEqual(str(exp.getMetaValue("imzml:imaging_mode")), "continuous")
         self._assert_grid_metadata_on_experiment(exp)
@@ -148,8 +150,9 @@ class TestImzMLFile(unittest.TestCase):
         if not os.path.isfile(self.processed_path):
             self.skipTest(f"processed imzML test data not found: {self.processed_path}")
 
-        exp_p = pyopenms.MSExperiment()
-        pyopenms.ImzMLFile().load(self.processed_path, exp_p)
+        img_p = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.processed_path, img_p)
+        exp_p = img_p.getMSExperiment()
 
         self.assertEqual(str(exp_p.getMetaValue("imzml:imaging_mode")), "processed")
         self._assert_grid_metadata_on_experiment(exp_p)
@@ -189,14 +192,16 @@ class TestImzMLFile(unittest.TestCase):
     def test_store_round_trip(self):
         import tempfile
 
-        exp = pyopenms.MSExperiment()
-        pyopenms.ImzMLFile().load(self.imzml_path, exp)
+        img = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.imzml_path, img)
+        exp = img.getMSExperiment()
         with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
             out_path = tmp.name
         try:
             pyopenms.ImzMLFile().store(out_path, exp)
-            reloaded = pyopenms.MSExperiment()
-            pyopenms.ImzMLFile().load(out_path, reloaded)
+            reloaded_img = pyopenms.MSImagingExperiment()
+            pyopenms.ImzMLFile().load(out_path, reloaded_img)
+            reloaded = reloaded_img.getMSExperiment()
             self.assertEqual(reloaded.getNrSpectra(), exp.getNrSpectra())
             self.assertGreater(reloaded.getSpectrum(0).size(), 0)
             self.assertEqual(str(reloaded.getMetaValue("imzml:imaging_mode")), "continuous")
@@ -214,14 +219,16 @@ class TestImzMLFile(unittest.TestCase):
 
         import tempfile
 
-        exp = pyopenms.MSExperiment()
-        pyopenms.ImzMLFile().load(self.processed_path, exp)
+        img = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.processed_path, img)
+        exp = img.getMSExperiment()
         with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
             out_path = tmp.name
         try:
             pyopenms.ImzMLFile().store(out_path, exp)
-            reloaded = pyopenms.MSExperiment()
-            pyopenms.ImzMLFile().load(out_path, reloaded)
+            reloaded_img = pyopenms.MSImagingExperiment()
+            pyopenms.ImzMLFile().load(out_path, reloaded_img)
+            reloaded = reloaded_img.getMSExperiment()
             self.assertEqual(reloaded.getNrSpectra(), exp.getNrSpectra())
             self.assertGreater(reloaded.getSpectrum(0).size(), 0)
             self.assertEqual(str(reloaded.getMetaValue("imzml:imaging_mode")), "processed")
@@ -234,8 +241,9 @@ class TestImzMLFile(unittest.TestCase):
     def test_is_valid(self):
         import tempfile
 
-        exp = pyopenms.MSExperiment()
-        pyopenms.ImzMLFile().load(self.imzml_path, exp)
+        img = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.imzml_path, img)
+        exp = img.getMSExperiment()
         with tempfile.NamedTemporaryFile(suffix=".imzML", delete=False) as tmp:
             out_path = tmp.name
         try:
@@ -312,8 +320,9 @@ class TestImzMLFile(unittest.TestCase):
     def test_store_applies_mz_range_filter(self):
         import tempfile
 
-        exp = pyopenms.MSExperiment()
-        pyopenms.ImzMLFile().load(self.imzml_path, exp)
+        img = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.imzml_path, img)
+        exp = img.getMSExperiment()
         full_peaks = exp.getSpectrum(0).size()
         lo = exp.getSpectrum(0)[0].getMZ()
         hi = exp.getSpectrum(0)[full_peaks - 1].getMZ()
@@ -328,8 +337,9 @@ class TestImzMLFile(unittest.TestCase):
             out_path = tmp.name
         try:
             f.store(out_path, exp)
-            reloaded = pyopenms.MSExperiment()
-            pyopenms.ImzMLFile().load(out_path, reloaded)
+            reloaded_img = pyopenms.MSImagingExperiment()
+            pyopenms.ImzMLFile().load(out_path, reloaded_img)
+            reloaded = reloaded_img.getMSExperiment()
             self.assertLess(reloaded.getSpectrum(0).size(), full_peaks)
             self.assertLessEqual(reloaded.getSpectrum(0)[reloaded.getSpectrum(0).size() - 1].getMZ(), mid)
         finally:
@@ -341,8 +351,9 @@ class TestImzMLFile(unittest.TestCase):
     def test_store_binary_precision_options(self):
         import tempfile
 
-        exp = pyopenms.MSExperiment()
-        pyopenms.ImzMLFile().load(self.imzml_path, exp)
+        img = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.imzml_path, img)
+        exp = img.getMSExperiment()
 
         f = pyopenms.ImzMLFile()
         opts = pyopenms.PeakFileOptions()
@@ -366,8 +377,9 @@ class TestImzMLFile(unittest.TestCase):
     def test_store_metadata_round_trip(self):
         import tempfile
 
-        exp = pyopenms.MSExperiment()
-        pyopenms.ImzMLFile().load(self.imzml_path, exp)
+        img = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.imzml_path, img)
+        exp = img.getMSExperiment()
         exp.setMetaValue("imzml:scan_pattern", "top down")
         exp.setMetaValue("imzml:polarity", "positive")
         inst = exp.getInstrument()
@@ -382,8 +394,9 @@ class TestImzMLFile(unittest.TestCase):
             out_path = tmp.name
         try:
             pyopenms.ImzMLFile().store(out_path, exp)
-            reloaded = pyopenms.MSExperiment()
-            pyopenms.ImzMLFile().load(out_path, reloaded)
+            reloaded_img = pyopenms.MSImagingExperiment()
+            pyopenms.ImzMLFile().load(out_path, reloaded_img)
+            reloaded = reloaded_img.getMSExperiment()
             self.assertEqual(str(reloaded.getMetaValue("imzml:scan_pattern")), "top down")
             self.assertEqual(str(reloaded.getMetaValue("imzml:polarity")), "positive")
             self.assertTrue(reloaded.metaValueExists("imzml:ibd_sha1"))

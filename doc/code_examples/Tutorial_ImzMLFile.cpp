@@ -9,7 +9,6 @@
 // When no path is given, uses the bundled example dataset
 // doc/code_examples/data/Tutorial_ImzMLFile.imzML.
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ImzMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
@@ -104,11 +103,12 @@ int main(int argc, const char** argv)
   loader.setLogType(ProgressLogger::CMD);
 
   // ------------------------------------------------------------------
-  // Mode 1: full load into MSExperiment
+  // Mode 1: full load into MSImagingExperiment (flat spectra via getMSExperiment())
   // ------------------------------------------------------------------
-  std::cout << "=== Mode 1: ImzMLFile::load -> MSExperiment ===\n";
-  MSExperiment exp;
-  loader.load(path, exp);
+  std::cout << "=== Mode 1: ImzMLFile::load -> MSImagingExperiment ===\n";
+  MSImagingExperiment img;
+  loader.load(path, img);
+  MSExperiment exp = img.getMSExperiment();
   std::cout << "spectra: " << exp.getNrSpectra() << "\n";
 
   ImzMLMeta dataset_meta;
@@ -123,17 +123,9 @@ int main(int argc, const char** argv)
   }
 
   // ------------------------------------------------------------------
-  // Mode 2: FileHandler
+  // Mode 2: streaming consumer
   // ------------------------------------------------------------------
-  std::cout << "\n=== Mode 2: FileHandler::loadExperiment ===\n";
-  MSExperiment fh_exp;
-  FileHandler().loadExperiment(path, fh_exp);
-  std::cout << "spectra via FileHandler: " << fh_exp.getNrSpectra() << "\n";
-
-  // ------------------------------------------------------------------
-  // Mode 3: streaming consumer
-  // ------------------------------------------------------------------
-  std::cout << "\n=== Mode 3: ImzMLFile::load -> IMSDataConsumer ===\n";
+  std::cout << "\n=== Mode 2: ImzMLFile::load -> IMSDataConsumer ===\n";
   struct CountConsumer : public Interfaces::IMSDataConsumer
   {
     Size count {0};
@@ -146,18 +138,18 @@ int main(int argc, const char** argv)
   std::cout << "spectra streamed: " << consumer.count << "\n";
 
   // ------------------------------------------------------------------
-  // Mode 4: index only (feeds OnDiscImzMLExperiment)
+  // Mode 3: index only (feeds OnDiscImzMLExperiment)
   // ------------------------------------------------------------------
-  std::cout << "\n=== Mode 4: loadSpectraIndex ===\n";
+  std::cout << "\n=== Mode 3: loadSpectraIndex ===\n";
   ImzMLMeta meta;
   std::vector<ImzMLSpectrumIndex> index;
   loader.loadSpectraIndex(path, meta, index);
   std::cout << "index entries: " << index.size() << ", mode: " << meta.imaging_mode << "\n";
 
   // ------------------------------------------------------------------
-  // Mode 5: on-disc random access (1-based imzML coordinates)
+  // Mode 4: on-disc random access (1-based imzML coordinates)
   // ------------------------------------------------------------------
-  std::cout << "\n=== Mode 5: OnDiscImzMLExperiment ===\n";
+  std::cout << "\n=== Mode 4: OnDiscImzMLExperiment ===\n";
   OnDiscImzMLExperiment od;
   od.open(path);
   std::cout << "grid: " << od.gridWidth() << " x " << od.gridHeight()
@@ -171,9 +163,9 @@ int main(int argc, const char** argv)
   }
 
   // ------------------------------------------------------------------
-  // Mode 6: in-memory pixel lookup (zero-based geometry coordinates)
+  // Mode 5: in-memory pixel lookup (zero-based geometry coordinates)
   // ------------------------------------------------------------------
-  std::cout << "\n=== Mode 6: MSImagingExperiment (RAM lookup) ===\n";
+  std::cout << "\n=== Mode 5: MSImagingExperiment (RAM lookup) ===\n";
   MSImagingExperiment imaging;
   loader.load(path, imaging);
   std::cout << "geometry: " << imaging.getGeometry().getWidth()
@@ -186,13 +178,14 @@ int main(int argc, const char** argv)
   }
 
   // ------------------------------------------------------------------
-  // Mode 7: export (store) and reload
+  // Mode 6: export (store) and reload
   // ------------------------------------------------------------------
-  std::cout << "\n=== Mode 7: ImzMLFile::store round-trip ===\n";
+  std::cout << "\n=== Mode 6: ImzMLFile::store round-trip ===\n";
   std::string tmp_imzml = File::getTemporaryFile("Tutorial_ImzMLFile_export.imzML");
   loader.store(tmp_imzml, exp);
-  MSExperiment reloaded;
-  loader.load(tmp_imzml, reloaded);
+  MSImagingExperiment reloaded_img;
+  loader.load(tmp_imzml, reloaded_img);
+  MSExperiment reloaded = reloaded_img.getMSExperiment();
   std::cout << "reloaded spectra: " << reloaded.getNrSpectra() << "\n";
   if (reloaded.metaValueExists("imzml:ibd_md5"))
   {

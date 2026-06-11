@@ -42,8 +42,9 @@ class TestImzMLAllModes(unittest.TestCase):
             raise unittest.SkipTest(f"imzML test data not found: {cls.continuous_path}")
 
     def test_mode1_full_load_msexperiment(self):
-        exp = pyopenms.MSExperiment()
-        pyopenms.ImzMLFile().load(self.continuous_path, exp)
+        img = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.continuous_path, img)
+        exp = img.getMSExperiment()
 
         self.assertEqual(exp.getNrSpectra(), self.CONTINUOUS_SPECTRA)
         self.assertGreater(exp.getSpectrum(0).size(), 0)
@@ -64,9 +65,8 @@ class TestImzMLAllModes(unittest.TestCase):
             pyopenms.FileType.IMZML,
         )
         exp = pyopenms.MSExperiment()
-        pyopenms.FileHandler().loadExperiment(self.continuous_path, exp)
-        self.assertEqual(exp.getNrSpectra(), self.CONTINUOUS_SPECTRA)
-        self.assertGreater(exp.getSpectrum(0).size(), 0)
+        with self.assertRaises(Exception):
+            pyopenms.FileHandler().loadExperiment(self.continuous_path, exp)
 
     def test_mode3_streaming_consumer(self):
         class Consumer:
@@ -138,8 +138,9 @@ class TestImzMLAllModes(unittest.TestCase):
         self.assertGreater(imaging.getSpectrum(2, 2).size(), 0)
 
     def test_mode7_build_imaging_geometry(self):
-        exp = pyopenms.MSExperiment()
-        pyopenms.ImzMLFile().load(self.continuous_path, exp)
+        img = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.continuous_path, img)
+        exp = img.getMSExperiment()
 
         geom = pyopenms.MSImagingGeometry()
         pyopenms.ImzMLFile.buildImagingGeometry(exp, geom)
@@ -151,8 +152,9 @@ class TestImzMLAllModes(unittest.TestCase):
         )
 
     def test_cross_mode_peak_count_consistency(self):
-        exp = pyopenms.MSExperiment()
-        pyopenms.ImzMLFile().load(self.continuous_path, exp)
+        img = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.continuous_path, img)
+        exp = img.getMSExperiment()
 
         imaging = pyopenms.MSImagingExperiment()
         pyopenms.ImzMLFile().load(self.continuous_path, imaging)
@@ -179,8 +181,9 @@ class TestImzMLAllModes(unittest.TestCase):
         if not os.path.isfile(self.processed_path):
             self.skipTest(f"processed imzML test data not found: {self.processed_path}")
 
-        exp = pyopenms.MSExperiment()
-        pyopenms.ImzMLFile().load(self.processed_path, exp)
+        img = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.processed_path, img)
+        exp = img.getMSExperiment()
         self.assertGreater(exp.getNrSpectra(), 0)
         self.assertGreater(exp.getSpectrum(0).size(), 0)
         self.assertEqual(str(exp.getMetaValue("imzml:imaging_mode")), "processed")

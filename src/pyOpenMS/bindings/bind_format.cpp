@@ -805,10 +805,6 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
              nb::rv_policy::reference_internal, "Returns the options for loading")
         .def("setOptions", [](OpenMS::ImzMLFile& self, const OpenMS::PeakFileOptions& opts) { self.setOptions(opts); },
              "Set PeakFileOptions for filtering during load")
-        .def("load", [](OpenMS::ImzMLFile& self, const std::string& filename, OpenMS::MSExperiment& exp) {
-            nb::gil_scoped_release release;
-            self.load(filename, exp);
-        }, "filename"_a, "exp"_a, "Load an imzML file into an MSExperiment")
         .def("load", [](OpenMS::ImzMLFile& self, const std::string& filename, OpenMS::MSImagingExperiment& exp) {
             nb::gil_scoped_release release;
             self.load(filename, exp);

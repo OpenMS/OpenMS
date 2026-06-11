@@ -31,6 +31,16 @@ using namespace std;
 
 namespace
 {
+  MSExperiment loadImzMLExperiment_(const std::string& path,
+                                    const PeakFileOptions& opts = PeakFileOptions())
+  {
+    ImzMLFile f;
+    f.setOptions(opts);
+    MSImagingExperiment img;
+    f.load(path, img);
+    return img.getMSExperiment();
+  }
+
   MSSpectrum makePixelSpectrum_(Int x, Int y, double mz, float intensity)
   {
     MSSpectrum spec;
@@ -191,10 +201,7 @@ const std::string imzml_processed_path = std::string(OPENMS_GET_TEST_DATA_PATH("
 
 START_SECTION(void load(const std::string& filename, MSExperiment& exp))
 {
-  MSExperiment exp;
-  ImzMLFile f;
-  f.setLogType(ProgressLogger::CMD);
-  f.load(imzml_path, exp);
+  MSExperiment exp = loadImzMLExperiment_(imzml_path);
 
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   if (!exp.empty())
@@ -297,9 +304,7 @@ END_SECTION
 
 START_SECTION(void load Example_Processed imzML)
 {
-  MSExperiment exp;
-  ImzMLFile f;
-  f.load(imzml_processed_path, exp);
+  MSExperiment exp = loadImzMLExperiment_(imzml_processed_path);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   if (!exp.empty())
   {
@@ -358,8 +363,7 @@ START_SECTION(dataset metadata mirrored on MSExperiment after load)
 
   // Continuous reference file: shared m/z axis, MD5 checksum, float32 arrays.
   {
-    MSExperiment exp;
-    ImzMLFile().load(imzml_path, exp);
+    MSExperiment exp = loadImzMLExperiment_(imzml_path);
 
     TEST_EQUAL(OpenMS::StringConversions::toString(exp.getMetaValue("imzml:imaging_mode")), std::string("continuous"))
     checkGridMeta_(exp);
@@ -384,8 +388,7 @@ START_SECTION(dataset metadata mirrored on MSExperiment after load)
 
   // Processed reference file: per-spectrum m/z, SHA-1, acquisition geometry terms.
   {
-    MSExperiment exp;
-    ImzMLFile().load(imzml_processed_path, exp);
+    MSExperiment exp = loadImzMLExperiment_(imzml_processed_path);
 
     TEST_EQUAL(OpenMS::StringConversions::toString(exp.getMetaValue("imzml:imaging_mode")), std::string("processed"))
     checkGridMeta_(exp);
@@ -438,9 +441,7 @@ END_SECTION
 
 START_SECTION(void buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry& geom))
 {
-  MSExperiment exp;
-  ImzMLFile f;
-  f.load(imzml_path, exp);
+  MSExperiment exp = loadImzMLExperiment_(imzml_path);
 
   MSImagingGeometry geom;
   ImzMLFile::buildImagingGeometry(exp, geom);
@@ -455,16 +456,14 @@ END_SECTION
 
 START_SECTION(void store round-trip continuous imzML)
 {
-  MSExperiment original;
-  ImzMLFile f;
-  f.load(imzml_path, original);
+  MSExperiment original = loadImzMLExperiment_(imzml_path);
 
+  ImzMLFile f;
   std::string tmp_imzml;
   NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
   f.store(tmp_imzml, original);
 
-  MSExperiment reloaded;
-  f.load(tmp_imzml, reloaded);
+  MSExperiment reloaded = loadImzMLExperiment_(tmp_imzml);
 
   TEST_EQUAL(reloaded.getNrSpectra(), original.getNrSpectra())
   if (!original.empty() && !reloaded.empty())
@@ -483,16 +482,14 @@ END_SECTION
 
 START_SECTION(void store round-trip processed imzML)
 {
-  MSExperiment original;
-  ImzMLFile f;
-  f.load(imzml_processed_path, original);
+  MSExperiment original = loadImzMLExperiment_(imzml_processed_path);
 
+  ImzMLFile f;
   std::string tmp_imzml;
   NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
   f.store(tmp_imzml, original);
 
-  MSExperiment reloaded;
-  f.load(tmp_imzml, reloaded);
+  MSExperiment reloaded = loadImzMLExperiment_(tmp_imzml);
 
   TEST_EQUAL(reloaded.getNrSpectra(), original.getNrSpectra())
   if (!original.empty() && !reloaded.empty())
@@ -507,10 +504,9 @@ END_SECTION
 
 START_SECTION(bool isValid(const std::string& filename, std::ostream& os))
 {
-  ImzMLFile f;
-  MSExperiment exp;
-  f.load(imzml_path, exp);
+  MSExperiment exp = loadImzMLExperiment_(imzml_path);
 
+  ImzMLFile f;
   std::string tmp_imzml;
   NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
   f.store(tmp_imzml, exp);
@@ -584,8 +580,8 @@ START_SECTION(void load rejects spectrum missing pixel coordinates)
   writeMissingPixelCoordImzML_(tmp_imzml);
 
   ImzMLFile f;
-  MSExperiment exp;
-  TEST_EXCEPTION(Exception::ParseError, f.load(tmp_imzml, exp))
+  MSImagingExperiment img;
+  TEST_EXCEPTION(Exception::ParseError, f.load(tmp_imzml, img))
 
   std::string ibd_path = tmp_imzml;
   std::string lower = tmp_imzml;
@@ -624,9 +620,8 @@ END_SECTION
 
 START_SECTION(void store applies PeakFileOptions m/z range filter)
 {
-  MSExperiment original;
+  MSExperiment original = loadImzMLExperiment_(imzml_path);
   ImzMLFile f;
-  f.load(imzml_path, original);
   TEST_EQUAL(original.getNrSpectra() > 0, true)
   if (original.getNrSpectra() > 0 && !original[0].empty())
   {
@@ -643,9 +638,7 @@ START_SECTION(void store applies PeakFileOptions m/z range filter)
     NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
     f.store(tmp_imzml, original);
 
-    MSExperiment filtered;
-    ImzMLFile f2;
-    f2.load(tmp_imzml, filtered);
+    MSExperiment filtered = loadImzMLExperiment_(tmp_imzml);
     TEST_EQUAL(filtered.getNrSpectra(), original.getNrSpectra())
     TEST_EQUAL(filtered[0].size() < full_peaks, true)
     TEST_EQUAL(filtered[0][0].getMZ() >= lo_mz, true)
@@ -657,9 +650,8 @@ END_SECTION
 
 START_SECTION(void store honors PeakFileOptions binary precision)
 {
-  MSExperiment original;
+  MSExperiment original = loadImzMLExperiment_(imzml_path);
   ImzMLFile f;
-  f.load(imzml_path, original);
 
   PeakFileOptions opts;
   opts.setMz32Bit(false);
@@ -682,9 +674,8 @@ END_SECTION
 
 START_SECTION(void store metadata round-trip)
 {
-  MSExperiment original;
+  MSExperiment original = loadImzMLExperiment_(imzml_path);
   ImzMLFile f;
-  f.load(imzml_path, original);
 
   original.setMetaValue("imzml:scan_pattern", "top down");
   original.setMetaValue("imzml:scan_direction", "flyback");
@@ -703,8 +694,7 @@ START_SECTION(void store metadata round-trip)
   NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
   f.store(tmp_imzml, original);
 
-  MSExperiment reloaded;
-  f.load(tmp_imzml, reloaded);
+  MSExperiment reloaded = loadImzMLExperiment_(tmp_imzml);
   TEST_EQUAL(OpenMS::StringConversions::toString(reloaded.getMetaValue("imzml:scan_pattern")), std::string("top down"))
   TEST_EQUAL(OpenMS::StringConversions::toString(reloaded.getMetaValue("imzml:scan_direction")), std::string("flyback"))
   TEST_EQUAL(OpenMS::StringConversions::toString(reloaded.getMetaValue("imzml:line_scan_direction")), std::string("left-right"))
