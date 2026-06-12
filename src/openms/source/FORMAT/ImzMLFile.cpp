@@ -182,17 +182,24 @@ namespace
     }
   }
 
-  /// Balance Xerces Initialize()/Terminate() for each load invocation.
+  /// Ensure Xerces is initialized before parsing.
+  ///
+  /// OpenMS initializes Xerces exactly once, process-wide, via the global guard in
+  /// CONCEPT/Init.cpp (see ticket #352); XMLPlatformUtils::Initialize() is reference
+  /// counted and idempotent, so this defensive call (matching Internal::XMLFile) is a
+  /// no-op when the global guard already ran.
+  ///
+  /// We deliberately do NOT call XMLPlatformUtils::Terminate() here. Terminate() is not
+  /// noexcept and may throw; running it from this (implicitly noexcept) destructor would
+  /// invoke std::terminate() (observed on Windows/MSVC as a __fastfail with exit code
+  /// 0xC0000409). It would also tear down the global Xerces state shared with every other
+  /// OpenMS XML reader. No other OpenMS parser pairs Initialize() with a per-operation
+  /// Terminate(); the process-global guard owns teardown at exit.
   struct XercesPlatformGuard
   {
     XercesPlatformGuard()
     {
       xercesc::XMLPlatformUtils::Initialize();
-    }
-
-    ~XercesPlatformGuard()
-    {
-      xercesc::XMLPlatformUtils::Terminate();
     }
   };
 } // namespace
