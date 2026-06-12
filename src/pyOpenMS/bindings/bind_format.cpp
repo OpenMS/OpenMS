@@ -789,9 +789,9 @@ by isobar to load quantification results
         R"doc(
 File adapter for imzML 1.1.0 mass spectrometry imaging files (.imzML + companion .ibd).
 
-Same usage pattern as MzMLFile: load into MSExperiment, or stream via IMSDataConsumer
-(batched delivery after spectrumList parsing). PeakFileOptions apply during load and store
-(filtering, sort, binary precision on export).
+Load into an MSImagingExperiment (imaging-only, like BrukerTimsImagingFile) for pixel
+(x, y) access, or stream via IMSDataConsumer (batched delivery after spectrumList parsing).
+PeakFileOptions apply during load and store (filtering, sort, binary precision on export).
 Use store() to export imzML + UUID-linked companion .ibd (binary precision via PeakFileOptions).
 )doc")
         .def(nb::init<>())

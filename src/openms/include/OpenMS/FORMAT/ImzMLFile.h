@@ -43,10 +43,10 @@ namespace OpenMS
     decodes IMS-specific terms and reads peak data from the @c .ibd file.
 
     @b Loading modes
-    - In-memory: @p load(filename, MSExperiment&) fills spectra and settings.
-    - In-memory with pixel lookup: @p load(filename, MSImagingExperiment&) fills
-      spectra and builds @p MSImagingGeometry for random access by (x, y) in RAM
-      (zero-based coordinates; imzML file coordinates are 1-based).
+    - In-memory: @p load(filename, MSImagingExperiment&) decodes the spectra and
+      builds @p MSImagingGeometry for random access by (x, y) in RAM (zero-based
+      coordinates; imzML file coordinates are 1-based). Use
+      @p MSImagingExperiment::getMSExperiment() for the flat spectra.
     - Streaming: @p load(filename, IMSDataConsumer&) forwards decoded spectra to
       the consumer without retaining them in @p ImzMLFile. Delivery is batched
       after the @c spectrumList XML section is parsed (same as @p MzMLHandler),
