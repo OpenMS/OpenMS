@@ -372,7 +372,8 @@ namespace OpenMS
       ++count_mt;
     }
 
-    std::cout << "pw low: " << filt_mtraces[0].estimateFWHM(true) << " " << " pw high: " << filt_mtraces[filt_mtraces.size() - 1].estimateFWHM(true) << '\n';
+    // (removed stray debug output that printed to std::cout and indexed filt_mtraces[0] /
+    //  filt_mtraces[size()-1] without an empty check -> out-of-bounds when no trace passed the width filter)
 
     return;
   }

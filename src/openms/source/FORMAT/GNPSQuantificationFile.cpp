@@ -22,8 +22,9 @@ namespace OpenMS
     void GNPSQuantificationFile::store(const ConsensusMap& consensus_map, const std::string& output_file)
     {
         // IIMN meta values will be exported, if first feature contains mv Constants::UserParam::IIMN_ROW_ID
+        // (guard against an empty ConsensusMap: consensus_map[0] would otherwise be out of bounds)
         bool iimn = false;
-        if (consensus_map[0].metaValueExists(Constants::UserParam::IIMN_ROW_ID)) iimn = true;
+        if (!consensus_map.empty() && consensus_map[0].metaValueExists(Constants::UserParam::IIMN_ROW_ID)) iimn = true;
 
         // meta values for ion identity molecular networking
         std::vector<std::string> iimn_mvs{Constants::UserParam::IIMN_ROW_ID,
