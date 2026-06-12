@@ -6,7 +6,6 @@ set(GUI_executables
 ExecutePipeline
 ImageCreator
 INIFileEditor
-INIUpdater
 TOPPAS
 TOPPView
 )

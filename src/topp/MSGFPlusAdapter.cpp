@@ -733,7 +733,9 @@ protected:
           int scan_number = 0;
           if ((elements[2].empty()) || (elements[2] == "-1"))
           {
-            scan_number = StringUtils::toInt32(elements[1]);
+            // SpecID may be "controllerType=0 controllerNumber=1 scan=17"; extract the value after the last '='
+            auto eq_pos = elements[1].rfind('=');
+            scan_number = StringUtils::toInt32(eq_pos != std::string::npos ? elements[1].substr(eq_pos + 1) : elements[1]);
           }
           else
           {

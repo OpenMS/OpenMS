@@ -14,6 +14,9 @@
 
 #include <OpenMS/KERNEL/Peak2D.h>
 
+#include <array>
+#include <memory>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -31,6 +34,42 @@ namespace OpenMS
     public DefaultParamHandler
   {
 public:
+
+    /// Identifies a concrete isobaric quantitation method. UNKNOWN is used as a sentinel (disabled/none).
+    enum class MethodType
+    {
+      UNKNOWN = 0,
+      TMT_6PLEX,
+      TMT_10PLEX,
+      TMT_11PLEX,
+      TMT_16PLEX,
+      TMT_18PLEX,
+      TMT_32PLEX,
+      TMT_35PLEX,
+      ITRAQ_4PLEX,
+      ITRAQ_8PLEX,
+      SIZE_OF_METHODTYPE ///< keep last
+    };
+
+    /// Returns the canonical string identifier for a given MethodType (e.g. "tmt6plex"); "unknown" for MethodType::UNKNOWN.
+    /// @throws Exception::IllegalArgument for an out-of-range value (MethodType::SIZE_OF_METHODTYPE or beyond).
+    static std::string_view methodTypeName(MethodType mt);
+
+    /// Returns a human-readable display name for a given MethodType (e.g. "TMT 6-plex"); "none" for MethodType::UNKNOWN.
+    /// @throws Exception::IllegalArgument for an out-of-range value (MethodType::SIZE_OF_METHODTYPE or beyond).
+    static std::string_view methodDisplayName(MethodType mt);
+
+    /// Returns the MethodType corresponding to @p name (canonical identifier as returned by methodTypeName()), or MethodType::UNKNOWN if not found.
+    static MethodType methodTypeFromName(std::string_view name);
+
+    /**
+      @brief Factory: creates a new instance of the concrete quantitation method identified by @p mt.
+
+      @param mt The quantitation method to instantiate.
+      @return An owning pointer to the newly created method, or @c nullptr if @p mt is MethodType::UNKNOWN (the disabled/none sentinel).
+      @throws Exception::IllegalArgument if @p mt is not a concrete method, i.e. MethodType::SIZE_OF_METHODTYPE or any value outside the enum range.
+    */
+    static std::unique_ptr<IsobaricQuantitationMethod> create(MethodType mt);
 
     /**
       @brief Summary of an isobaric quantitation channel.
@@ -63,8 +102,8 @@ public:
       }
     };
 
-    /// @brief c'tor setting the name for the underlying param handler
-    IsobaricQuantitationMethod();
+    /// @brief Default c'tor is deleted: a concrete method must be constructed with its MethodType (see the protected c'tor).
+    IsobaricQuantitationMethod() = delete;
 
     /// @brief d'tor
     ~IsobaricQuantitationMethod() override;
@@ -72,11 +111,14 @@ public:
     typedef std::vector<IsobaricChannelInformation> IsobaricChannelList;
 
     /**
-      @brief Returns a unique name for the quantitation method.
+      @brief Returns a unique name for the quantitation method (its canonical identifier, e.g. "tmt6plex").
 
       @return The unique name or identifier of the quantitation method.
     */
-    virtual const std::string& getMethodName() const = 0;
+    const std::string& getMethodName() const;
+
+    /// Returns the MethodType enum value of this quantitation method.
+    MethodType getMethodType() const { return iso_method_; }
 
     /**
       @brief Returns information on the different channels used by the quantitation method.
@@ -103,6 +145,9 @@ public:
     virtual Size getReferenceChannel() const = 0;
 
 protected:
+    /// @brief c'tor for derived classes: sets the underlying param-handler name and records the concrete @p method_type.
+    explicit IsobaricQuantitationMethod(MethodType method_type);
+
     /**
       @brief Helper function to convert a string list containing an isotope correction matrix into a Matrix<double>.
 
@@ -110,6 +155,10 @@ protected:
       @return An isotope correction matrix as Matrix<double>.
     */
     Matrix<double> stringListToIsotopeCorrectionMatrix_(const std::vector<std::string>& stringlist) const;
+
+private:
+    /// The concrete isobaric method this instance represents; set by the c'tor and returned by getMethodType()/getMethodName().
+    MethodType iso_method_;
   };
 } // namespace
 

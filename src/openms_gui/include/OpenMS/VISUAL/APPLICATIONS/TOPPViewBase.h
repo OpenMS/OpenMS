@@ -346,7 +346,6 @@ public slots:
     void changeLabel(QAction*);
     void changeUnassigned(QAction*);
     void resetZoom() const;
-    void toggleProjections();
     //@}
 
     /// list of the recently opened files
