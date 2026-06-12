@@ -133,6 +133,10 @@ START_SECTION([EXTRA](template <typename IteratorType> static double absdev(Iter
   // single element -> 0
   int x3[] = {-1};
   TEST_REAL_SIMILAR(Math::absdev(x3, x3 + 1, -1.0), 0.0);
+
+  // empty range -> InvalidRange (documented contract, enforced via checkIteratorsNotNULL)
+  int empty[] = {0};
+  TEST_EXCEPTION(Exception::InvalidRange, Math::absdev(empty, empty));
 }
 END_SECTION
 
