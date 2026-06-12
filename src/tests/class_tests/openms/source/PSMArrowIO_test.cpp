@@ -300,6 +300,9 @@ START_SECTION(([EXTRA] exportToParquet rejects duplicate ProteinIdentification i
 
   TEST_EXCEPTION(Exception::InvalidValue,
                  PSMArrowIO::exportToParquet(prot_ids, pep_ids, dir))
+
+  // clean up if a regression let the export run instead of throwing
+  if (File::exists(dir)) { File::removeDirRecursively(dir); }
 }
 END_SECTION
 
