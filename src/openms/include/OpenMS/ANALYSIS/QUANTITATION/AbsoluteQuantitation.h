@@ -124,14 +124,20 @@ public:
     /**
       @brief This function calculates the ratio between features.
 
+      The ratio is component_1 / component_2 evaluated on @p feature_name. The special name
+      @c "intensity" reads Feature::getIntensity(); any other name reads the corresponding metaValue.
+
       @param[in] component_1 component of the numerator
       @param[in] component_2 component of the denominator
       @param[in] feature_name name of the feature to calculate the ratio on
-       e.g., peak_apex, peak_area
+       e.g., "intensity", peak_apex, peak_area
 
       @return The ratio.
 
-      @exception Exception::UnableToFit
+      @note This function does NOT throw when a value is missing. If only @p component_1 carries the
+            value (no internal standard), the bare value of @p component_1 is returned; if neither
+            component carries the value, @c 0.0 is returned (only a debug message is logged). A returned
+            @c 0.0 is therefore indistinguishable from a legitimately measured zero ratio.
     */
     double calculateRatio(const Feature & component_1, const Feature & component_2, const std::string & feature_name);
 
