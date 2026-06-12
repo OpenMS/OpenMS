@@ -17,7 +17,8 @@ namespace OpenMS
   /**
     @brief QC metric annotating the OBSERVED neutral mass of a peptide from the precursor m/z (precursor_mz - proton_mass)*charge, NOT the theoretical sequence mass
 
-    Each PeptideHit in the FeatureMap will be annotated with its theoretical mass as metavalue 'mass'
+    The first PeptideHit of each PeptideIdentification in the FeatureMap is annotated with its observed
+    neutral mass (derived from the precursor m/z) as metavalue 'mass'.
 
     **/
   class OPENMS_DLLAPI PeptideMass : public QCBase
@@ -30,7 +31,7 @@ namespace OpenMS
     virtual ~PeptideMass() = default;
 
     /**
-    @brief Sets the 'mass' metavalue to all PeptideHits by computing the theoretical mass
+    @brief Sets the 'mass' metavalue on the first PeptideHit of each ID to the observed neutral mass from the precursor m/z ((precursor_mz - proton_mass)*charge)
 
     @param[in,out] features FeatureMap with PeptideHits
     **/
