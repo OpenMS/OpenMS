@@ -366,7 +366,7 @@ START_SECTION(static bool findExecutable(std::string& exe_filename))
 }
 END_SECTION
 
-START_SECTION(static StringList getPathLocations(const std::string& path = std::getenv("PATH")))
+START_SECTION(static StringList getPathLocations(const std::string& path = ""))
 {
   // set env-variables is not portable across platforms, thus we inject the PATH values
 #ifdef OPENMS_WINDOWSPLATFORM

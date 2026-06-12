@@ -216,11 +216,11 @@ DistanceMatrix<double> dm3(dm);
 START_SECTION(bool operator==(DistanceMatrix< ValueType > const &rhs) const)
 {
 	TEST_EQUAL((dm==dm3),true)
-	// differently-sized matrices must compare unequal instead of throwing (debug) or reading
-	// out of bounds (release) -- the second form (smaller on the left) triggered the OOB read (regression)
-	DistanceMatrix<double> dm_small(3, 1.0);
-	TEST_EQUAL((dm==dm_small), false)
-	TEST_EQUAL((dm_small==dm), false)
+  // differently-sized matrices must compare unequal instead of throwing (debug) or reading
+  // out of bounds (release) -- the second form (smaller on the left) triggered the OOB read (regression)
+  DistanceMatrix<double> dm_small(3, 1.0);
+  TEST_EQUAL((dm==dm_small), false)
+  TEST_EQUAL((dm_small==dm), false)
 }
 END_SECTION
 
