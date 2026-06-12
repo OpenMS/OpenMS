@@ -13,7 +13,10 @@
 
 namespace OpenMS
 {
-  const std::string QCBase::names_of_requires[] = {"fail", "raw.mzML", "postFDR.featureXML", "preFDR.featureXML", "contaminants.fasta", "trafoAlign.trafoXML"};
+  // NOTE: this array is indexed by the Requires enum value (see isRunnable()); it must have one entry per
+  // enum value up to (but excluding) SIZE_OF_REQUIRES. The trailing "id.idXML" entry corresponds to Requires::ID,
+  // which was previously missing and caused an out-of-bounds read for metrics that require protein IDs.
+  const std::string QCBase::names_of_requires[] = {"fail", "raw.mzML", "postFDR.featureXML", "preFDR.featureXML", "contaminants.fasta", "trafoAlign.trafoXML", "id.idXML"};
 
   const std::string QCBase::names_of_toleranceUnit[] = {"auto", "ppm", "da"};
 

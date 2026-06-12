@@ -118,6 +118,24 @@ START_SECTION([EXTRA](template <typename IteratorType> double MeanAbsoluteDeviat
 }
 END_SECTION
 
+START_SECTION([EXTRA](template <typename IteratorType> static double absdev(IteratorType begin, IteratorType end, double mean = std::numeric_limits<double>::max())))
+{
+  // absdev is the mean absolute deviation: it must accumulate |x - mean|.
+  // (A previous bug accumulated the signed (x - mean), which sums to ~0 for the mean.)
+  int x1[] = {-1, 0, 1, 2, 3}; // mean = 1
+  TEST_REAL_SIMILAR(Math::absdev(x1, x1 + 5, 1.0), 1.2);
+  TEST_REAL_SIMILAR(Math::absdev(x1, x1 + 5), 1.2); // mean computed internally (== 1)
+
+  // symmetric data around the mean: the signed sum is exactly 0, the absolute deviation is clearly non-zero
+  DoubleList sym = ListUtils::create<double>("-2.0, -1.0, 1.0, 2.0"); // mean = 0
+  TEST_REAL_SIMILAR(Math::absdev(sym.begin(), sym.end(), 0.0), 1.5);
+
+  // single element -> 0
+  int x3[] = {-1};
+  TEST_REAL_SIMILAR(Math::absdev(x3, x3 + 1, -1.0), 0.0);
+}
+END_SECTION
+
 START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType meanSquareError( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
 {
 	std::list<double> numbers1(20, 1.5);

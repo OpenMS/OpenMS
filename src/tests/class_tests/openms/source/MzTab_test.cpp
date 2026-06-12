@@ -143,6 +143,19 @@ START_SECTION(static void addMetaInfoToOptionalColumns(const std::set<std::strin
 }
 END_SECTION
 
+START_SECTION([EXTRA] MzTabBoolean setNull / isNull polarity)
+{
+  // regression: setNull(true) must make the cell null, setNull(false) must make it not-null (the branches were inverted).
+  MzTabBoolean b(true);
+  TEST_EQUAL(b.isNull(), false)
+  b.setNull(true);
+  TEST_EQUAL(b.isNull(), true)
+  TEST_EQUAL(b.toCellString(), "null")
+  b.setNull(false);
+  TEST_EQUAL(b.isNull(), false)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

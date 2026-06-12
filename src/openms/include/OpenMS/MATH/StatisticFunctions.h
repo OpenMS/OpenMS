@@ -579,7 +579,7 @@ namespace OpenMS
       }
       for (IteratorType iter=begin; iter!=end; ++iter)
       {
-        sum_value += *iter - mean;
+        sum_value += std::fabs(*iter - mean); // absolute deviation: accumulate the magnitude, not the signed difference
       }
       return sum_value / std::distance(begin, end);
     }
