@@ -91,6 +91,10 @@ namespace OpenMS
     std::vector<double> & swath_prec_upper_ )
   {
     std::ifstream data(filename.c_str());
+    if (!data)
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    }
     std::string line;
     std::vector<std::string> headerSubstrings;
     double lower, upper;
