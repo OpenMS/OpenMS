@@ -227,6 +227,19 @@ START_SECTION((const Protein& getProteinByRef(const std::string& ref) const))
   TEST_EQUAL(t.getProteinByRef("myProtein").id, "myProtein")
   // unknown ref must throw instead of inserting/dereferencing a null pointer (regression)
   TEST_EXCEPTION(Exception::ElementNotFound, t.getProteinByRef("does_not_exist"))
+
+  // same fix applies to the peptide and compound accessors
+  TargetedExperiment::Peptide pep;
+  pep.id = "myPep";
+  t.addPeptide(pep);
+  TEST_EQUAL(t.getPeptideByRef("myPep").id, "myPep")
+  TEST_EXCEPTION(Exception::ElementNotFound, t.getPeptideByRef("does_not_exist"))
+
+  TargetedExperiment::Compound comp;
+  comp.id = "myComp";
+  t.addCompound(comp);
+  TEST_EQUAL(t.getCompoundByRef("myComp").id, "myComp")
+  TEST_EXCEPTION(Exception::ElementNotFound, t.getCompoundByRef("does_not_exist"))
 }
 END_SECTION
 

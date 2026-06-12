@@ -320,9 +320,8 @@ namespace OpenMS
 
   const ReactionMonitoringTransition::Prediction & ReactionMonitoringTransition::getPrediction() const
   {
-    // guard the correct member (the precondition previously checked hasPrecursorCVTerms(), which is unrelated to
-    // the prediction). The runtime check ensures release builds throw instead of dereferencing a null pointer.
-    OPENMS_PRECONDITION(hasPrediction(), "ReactionMonitoringTransition has no Prediction object, check first with hasPrediction()")
+    // Always throw on a missing Prediction (a runtime check, not an OPENMS_PRECONDITION), so the contract is
+    // identical across build configurations. The previous code guarded the wrong member (hasPrecursorCVTerms()).
     if (prediction_ == nullptr)
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
