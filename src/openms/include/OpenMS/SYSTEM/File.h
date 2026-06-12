@@ -270,9 +270,10 @@ public:
       E.g. for 'PATH=/usr/bin:/home/unicorn' the result is {"/usr/bin/", "/home/unicorn/"}
             or 'PATH=c:\\temp;c:\\Windows' the result is {"c:/temp/", "c:/Windows/"}
 
-      Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).  
+      Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).
+      If @p path is empty, the value of the $PATH environment variable is used (or nothing if $PATH is unset).
     */
-    static StringList getPathLocations(const std::string& path = std::getenv("PATH"));
+    static StringList getPathLocations(const std::string& path = "");
 
     /**
       @brief Searches for an executable with the given name (similar to @em where (Windows) or @em which (Linux/MacOS)
@@ -360,9 +361,9 @@ private:
       fallback, i.e. {".exe", ".bat"}.
 
       Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).
-
+      If @p ext is empty, the value of the %PATHEXT% environment variable is used (or nothing if %PATHEXT% is unset).
     */
-    static StringList executableExtensions_(const std::string& ext = std::getenv("PATHEXT"));
+    static StringList executableExtensions_(const std::string& ext = "");
 #endif
 
     /**

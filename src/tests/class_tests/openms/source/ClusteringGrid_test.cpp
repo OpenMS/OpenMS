@@ -77,6 +77,8 @@ START_SECTION(std::list<int> getClusters(const CellIndex &cell_index) const)
     grid.addCluster(index1,1);
     grid.addCluster(index2,2);
     TEST_EQUAL(grid.getClusters(index1).front(), 1);
+    // an empty / never-populated cell must return an empty list, not dereference map::end() (regression)
+    TEST_EQUAL(grid.getClusters(index3).empty(), true);
 END_SECTION
 
 START_SECTION(CellIndex getIndex(const Point &position) const)

@@ -386,11 +386,11 @@ public:
   /**
     @brief Equality comparator.
 
-    @throw Exception::Precondition thrown if given DistanceMatrix is not compatible in size
+    Matrices of different sizes always compare unequal (returns false).
   */
   bool operator==(DistanceMatrix<ValueType> const& rhs) const
   {
-    OPENMS_PRECONDITION(dimensionsize_ == rhs.dimensionsize_, "DistanceMatrices have different sizes.");
+    if (dimensionsize_ != rhs.dimensionsize_) { return false; }
     for (Size i = 1; i < rhs.dimensionsize(); ++i)
     {
       for (Size j = 0; j < i; ++j)

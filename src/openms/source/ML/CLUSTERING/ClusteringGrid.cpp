@@ -65,7 +65,12 @@ void ClusteringGrid::removeAllClusters()
 
 std::list<int> ClusteringGrid::getClusters(const CellIndex &cell_index) const
 {
-    return cells_.find(cell_index)->second;
+    auto it = cells_.find(cell_index);
+    if (it == cells_.end())
+    {
+        return std::list<int>(); // empty/never-populated cell -> no clusters
+    }
+    return it->second;
 }
 
 ClusteringGrid::CellIndex ClusteringGrid::getIndex(const Point &position) const
