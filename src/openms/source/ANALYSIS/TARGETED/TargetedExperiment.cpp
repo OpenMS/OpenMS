@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <ostream> // for ostream& operator<<(ostream& os, const TargetedExperiment::SummaryStatistics& s);
@@ -403,8 +404,14 @@ namespace OpenMS
     {
       createProteinReferenceMap_();
     }
-    OPENMS_PRECONDITION(protein_reference_map_.contains(ref), "Could not find protein in map")
-    return *(protein_reference_map_[ref]);
+    // use find() instead of operator[]: on an unknown ref, operator[] would insert a null pointer and the
+    // subsequent dereference would be undefined behavior (the OPENMS_PRECONDITION is a no-op in release builds).
+    auto it = protein_reference_map_.find(ref);
+    if (it == protein_reference_map_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ref);
+    }
+    return *(it->second);
   }
 
   bool TargetedExperiment::hasProtein(const std::string & ref) const
@@ -460,8 +467,13 @@ namespace OpenMS
     {
       createPeptideReferenceMap_();
     }
-    OPENMS_PRECONDITION(hasPeptide(ref), "Cannot return peptide that does not exist, check with hasPeptide() first")
-    return *(peptide_reference_map_[ref]);
+    // use find() instead of operator[] to avoid inserting a null pointer (and dereferencing it) for an unknown ref
+    auto it = peptide_reference_map_.find(ref);
+    if (it == peptide_reference_map_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ref);
+    }
+    return *(it->second);
   }
 
   const TargetedExperiment::Compound & TargetedExperiment::getCompoundByRef(const std::string & ref) const
@@ -470,8 +482,13 @@ namespace OpenMS
     {
       createCompoundReferenceMap_();
     }
-    OPENMS_PRECONDITION(hasCompound(ref), "Cannot return compound that does not exist, check with hasCompound() first")
-    return *(compound_reference_map_[ref]);
+    // use find() instead of operator[] to avoid inserting a null pointer (and dereferencing it) for an unknown ref
+    auto it = compound_reference_map_.find(ref);
+    if (it == compound_reference_map_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ref);
+    }
+    return *(it->second);
   }
 
   bool TargetedExperiment::hasPeptide(const std::string & ref) const

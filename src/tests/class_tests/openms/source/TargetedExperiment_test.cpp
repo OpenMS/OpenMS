@@ -210,11 +210,23 @@ END_SECTION
 
 START_SECTION((bool hasProtein(const std::string & ref) const))
 {
-  TargetedExperiment t; 
+  TargetedExperiment t;
   TargetedExperiment::Protein p;
   p.id = "myProtein";
   t.addProtein(p);
   TEST_EQUAL(t.hasProtein("myProtein"), true)
+}
+END_SECTION
+
+START_SECTION((const Protein& getProteinByRef(const std::string& ref) const))
+{
+  TargetedExperiment t;
+  TargetedExperiment::Protein p;
+  p.id = "myProtein";
+  t.addProtein(p);
+  TEST_EQUAL(t.getProteinByRef("myProtein").id, "myProtein")
+  // unknown ref must throw instead of inserting/dereferencing a null pointer (regression)
+  TEST_EXCEPTION(Exception::ElementNotFound, t.getProteinByRef("does_not_exist"))
 }
 END_SECTION
 
