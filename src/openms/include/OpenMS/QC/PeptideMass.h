@@ -15,7 +15,7 @@ namespace OpenMS
   class FeatureMap;
 
   /**
-    @brief QC metric calculating theoretical mass of a peptide sequence
+    @brief QC metric annotating the OBSERVED neutral mass of a peptide from the precursor m/z (precursor_mz - proton_mass)*charge, NOT the theoretical sequence mass
 
     Each PeptideHit in the FeatureMap will be annotated with its theoretical mass as metavalue 'mass'
 

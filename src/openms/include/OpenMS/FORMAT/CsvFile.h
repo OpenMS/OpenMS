@@ -14,7 +14,11 @@
 namespace OpenMS
 {
   /**
-    @brief This class handles csv files. Currently only loading is implemented. Does NOT support comment lines!
+    @brief This class handles csv files. Currently only loading is implemented.
+
+    @note Lines whose first (untrimmed) character is '#' are unconditionally treated as comments and silently
+          skipped on load (they are not stored and are not counted by rowCount()). This comment symbol is hardcoded
+          and cannot be disabled, so a CSV whose first field legitimately starts with '#' will lose those rows.
 
     @note items are allowed to be enclosed by only one character e.g. "item" where " is enclosing character
 

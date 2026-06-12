@@ -76,6 +76,11 @@ namespace OpenMS
               multiple distinct @c ZIndexPos values (out of scope for the 2D
               MSImagingGeometry; load each section separately).
       @throws Exception::ParseError if @c MaldiFrameInfo is absent or empty.
+      @note Partial result: any @c MaldiFrameInfo pixel whose frame id is not
+            present among the loaded spectra (e.g. because @c inner_config
+            restricts the loaded frame range) is silently skipped — it is only
+            counted into a single warn-level log line and does NOT cause
+            @c load() to fail. The resulting image may therefore be incomplete.
     */
     void load(const std::string& path, MSImagingExperiment& exp);
 
@@ -90,6 +95,11 @@ namespace OpenMS
               @c strict_imaging_only is true, or if the dataset contains
               multiple distinct @c ZIndexPos values.
       @throws Exception::ParseError if @c MaldiFrameInfo is absent or empty.
+      @note Partial result: any @c MaldiFrameInfo pixel whose frame id is not
+            present among the loaded spectra (e.g. because @c inner_config
+            restricts the loaded frame range) is silently skipped — it is only
+            counted into a single warn-level log line and does NOT cause
+            @c load() to fail. The resulting image may therefore be incomplete.
     */
     void load(const std::string& path, MSImagingExperiment& exp, const Config& config);
 

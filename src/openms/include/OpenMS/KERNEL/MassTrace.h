@@ -272,6 +272,18 @@ public:
     // double computeFwhmAreaSmoothRobust() const;
     // double computeFwhmAreaRobust() const;
 
+    /**
+      @brief Returns the quantitated value of the mass trace according to the configured quantitation method (see setQuantMethod()).
+
+      Despite the name "intensity", the returned value depends on getQuantMethod():
+        - MT_QUANT_AREA   (default): chromatographic peak area within the FWHM range.
+                          @note This requires a prior call to estimateFWHM(); otherwise the
+                          FWHM borders are unset and 0 is returned silently.
+        - MT_QUANT_MEDIAN: median of the (raw) peak intensities. The @p smoothed flag is ignored in this mode.
+        - MT_QUANT_HEIGHT: apex (maximum) intensity (see getMaxIntensity()).
+
+      @param smoothed If true, smoothed intensities are used where applicable (ignored for MT_QUANT_MEDIAN).
+    */
     double getIntensity(bool smoothed) const;
     double getMaxIntensity(bool smoothed) const;
 
