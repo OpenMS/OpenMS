@@ -185,6 +185,8 @@ namespace OpenMS
 
   void Plot2DCanvas::pickProjectionLayer()
   {
+    // Note: layer 0 is painted first (bottom) and higher-index layers are painted on top;
+    //
     // find the last (visible) peak layers
     Size layer_count = 0;
     Size last_layer = 0;
@@ -209,31 +211,37 @@ namespace OpenMS
       }
     }
 
-    // try to find the right layer to project
-    const LayerDataBase* layer = nullptr;
-    //first choice: current layer
-    if (layer_count != 0 && getCurrentLayer().type == LayerDataBase::DT_PEAK)
+    //no layer with peaks: nothing to project.
+    if (layer_count == 0)
     {
-      layer = &(getCurrentLayer());
-    }
-    //second choice: the only peak layer
-    else if (layer_count == 1)
-    {
-      layer = &(getLayer(last_layer));
-    }
-    //third choice: the only visible peak layer
-    else if (visible_layer_count == 1)
-    {
-      layer = &(getLayer(visible_last_layer));
-    }
-    //no layer with peaks: disable projections
-    else
-    {
-      emit toggleProjections();
+      // Do not emit toggleProjections() here: when this is reached from a 'show' request
+      // (projections currently hidden) it would recursively try to show them again.
+      // Leaving the projections untouched keeps projectionsVisible() false, and the caller
+      // (Plot2DWidget::setProjectionsVisible) reports the actual state back to the toolbar.
       return;
     }
 
-    emit showProjections(layer);    
+    // Pick a peak layer to project. This must not depend on which layer is *active*:
+    // while a non-peak layer (e.g. a feature map) is the current layer, zooming still has to
+    // keep the peak projection up to date. So we always fall back to a peak layer if one exists.
+    const LayerDataBase* layer = nullptr;
+    // first choice: the current layer (if it is a peak layer)
+    if (getCurrentLayer().type == LayerDataBase::DT_PEAK)
+    {
+      layer = &(getCurrentLayer());
+    }
+    // second choice: the last visible peak layer
+    else if (visible_layer_count != 0)
+    {
+      layer = &(getLayer(visible_last_layer));
+    }
+    // third choice: the last peak layer (even if currently hidden)
+    else
+    {
+      layer = &(getLayer(last_layer));
+    }
+  
+    emit showProjections(layer);
   }
 
   bool Plot2DCanvas::finishAdding_()
@@ -995,7 +1003,9 @@ namespace OpenMS
       } // end of hasRT
 
       finishContextMenu_(context_menu, settings_menu);
-      context_menu->exec(mapToGlobal(e->pos()));
+      // capture the result so the common-action handler below (projections, precursors,
+      // grid lines, ...) actually runs for peak layers
+      result = context_menu->exec(mapToGlobal(e->pos()));
     }
     //-------------------FEATURES----------------------------------
     else if (auto* lf = dynamic_cast<const LayerDataFeature*>(&layer))
