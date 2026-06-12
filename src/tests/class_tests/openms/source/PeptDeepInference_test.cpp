@@ -27,7 +27,7 @@ TOLERANCE_ABSOLUTE(0.05);
 
 START_SECTION((PeptDeepRTInference(const string& model_path)))
     STATUS("Checking invalid model path handling...");
-    TEST_EXCEPTION(std::runtime_error, PeptDeepRTInference("non_existent_path.onnx"));
+    TEST_EXCEPTION(Exception::FileNotFound, PeptDeepRTInference("non_existent_path.onnx"));
 END_SECTION
 
 // TEST CASE 2: Tokenization & Constraints
@@ -35,7 +35,7 @@ START_SECTION((std::vector<float> predictMS2(const std::string&, float, float, i
     PeptDeepMS2Inference ms2_engine(ms2_model);
 
     STATUS("Testing empty input sequence violation...");
-    TEST_EXCEPTION(std::invalid_argument, ms2_engine.predictMS2("", 2.0f, 0.25f, 0));
+    TEST_EXCEPTION(Exception::IllegalArgument, ms2_engine.predictMS2("", 2.0f, 30.0f, 0));
 END_SECTION
 
 // TEST CASE 3: Execution Sanity & Numeric Regression

@@ -5,6 +5,11 @@ set(directory include/OpenMS/ML)
 set(sources_list_h
 )
 
+set(sources_list_h
+  PeptDeepMS2Inference.h
+  PeptDeepRTInference.h
+)
+
 ### add path to the filenames
 set(sources_h)
 foreach(i ${sources_list_h})

@@ -7,8 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ML/PeptDeepRTInference.h>
-#include <OpenMS/ML/ONNXEnvironment.h>
-#include <onnxruntime_cxx_api.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include "ONNXEnvironment.h"
 #include <iostream>
 #include <stdexcept>
 
@@ -40,7 +40,7 @@ namespace OpenMS
             }
             catch (const Ort::Exception& e)
             {
-                throw std::runtime_error(std::string("ONNX Runtime initialization failed: ") + e.what());
+                throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, model_path);
             }
         }
 
@@ -70,7 +70,11 @@ namespace OpenMS
         // Core Prediction Logic
         std::vector<float> predictRT(const std::vector<std::string>& peptides)
         {
-            if (peptides.empty()) return {};
+            // Update length/constraint violations in predictRT to:
+            if (peptides.empty())
+            {
+                throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide list cannot be empty.");
+            }
 
             size_t max_seq_len = 132;
             std::vector<int64_t> input_tokens = tokenizePeptides(peptides, max_seq_len);

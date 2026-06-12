@@ -7,8 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ML/PeptDeepMS2Inference.h>
-#include <OpenMS/ML/ONNXEnvironment.h>
-#include <onnxruntime_cxx_api.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include "ONNXEnvironment.h"
 #include <stdexcept>
 
 namespace OpenMS {
@@ -39,7 +39,7 @@ struct PeptDeepMS2Inference::Impl
         }
         catch (const Ort::Exception& e)
         {
-            throw std::runtime_error(std::string("ONNX Runtime initialization failed: ") + e.what());
+            throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, model_path);
         }
     }
 
@@ -50,7 +50,7 @@ struct PeptDeepMS2Inference::Impl
         int64_t batch_size = 1;
 
         if (seq_length == 0) {
-            throw std::invalid_argument("Peptide sequence length cannot be zero.");
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide sequence cannot be empty.");
         }
 
         int64_t padded_length = seq_length + 2;
