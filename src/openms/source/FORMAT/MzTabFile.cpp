@@ -1540,6 +1540,12 @@ namespace OpenMS
       mz_tab_small_molecule_section_data.push_back(row);
       continue;
     }
+
+    if (section == "NUH" || section == "NUC" || section == "OLH" || section == "OLI" || section == "OSH" || section == "OSM")
+    {
+      OPENMS_LOG_WARN << "MzTabFile::load: discarding unparsed section " << section << " in " << filename << std::endl;
+      continue;
+    }
   }
 
   // TODO: check compulsoriness

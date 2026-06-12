@@ -387,6 +387,11 @@ START_SECTION((template < typename ToType > void decodeIntegers(const std::strin
   b64.decodeIntegers(src, Base64::BYTEORDER_BIGENDIAN,res,false);
   TEST_EQUAL(res.size(), 0)
 
+  // a length that is not a multiple of 4 (and >= 4) is malformed -> throw,
+  // matching the float decode() path (regression: the integer path silently ignored it)
+  src = "AAAAA"; // 5 chars
+  TEST_EXCEPTION(Exception::ConversionError, b64.decodeIntegers(src, Base64::BYTEORDER_BIGENDIAN, res, false))
+
   // src = "Q A..A=="; // spaces and dots are not allowed
   // b64.decodeIntegers(src, Base64::BYTEORDER_BIGENDIAN,res,false);
   // TODO : some error checking and handling

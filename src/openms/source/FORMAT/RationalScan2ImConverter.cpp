@@ -6,6 +6,7 @@
 #ifdef WITH_OPENTIMS
 
 #include <OpenMS/FORMAT/RationalScan2ImConverter.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <SQLiteCpp/SQLiteCpp.h>
@@ -35,13 +36,12 @@ namespace OpenMS
         return it->second;
       }
     }
-    // Fallback: use first calibration entry (should not happen in valid data)
-    if (frame_id != 0)
-    {
-      OPENMS_LOG_WARN << "RationalScan2ImConverter: frame_id " << frame_id
-                      << " out of range, using first calibration" << std::endl;
-    }
-    return calibrations_.begin()->second;
+    // No calibration for this frame_id: refuse rather than silently returning a
+    // wrong frame's calibration (which would yield physically wrong 1/K0 values).
+    // This also avoids dereferencing calibrations_.begin() on an empty map (UB).
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "RationalScan2ImConverter: no calibration available for frame_id",
+      std::to_string(frame_id));
   }
 
   double RationalScan2ImConverter::applyFormula(const Coefficients& c, double scan)

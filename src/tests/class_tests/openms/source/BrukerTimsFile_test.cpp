@@ -233,6 +233,9 @@ START_SECTION(RationalScan2ImConverter per-frame calibration)
   // Both should be positive
   TEST_EQUAL(result_f1 > 0.0, true);
   TEST_EQUAL(result_f2 > 0.0, true);
+
+  // an unknown frame_id must throw instead of silently returning the first frame's calibration (regression)
+  TEST_EXCEPTION(Exception::InvalidValue, converter.getCalibration(99));
 }
 END_SECTION
 
