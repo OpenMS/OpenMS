@@ -1618,6 +1618,46 @@ START_SECTION(ProForma to AASequence roundtrip)
 }
 END_SECTION
 
+START_SECTION([EXTRA] QPX/Parquet lane peptidoform round-trip preserves modifications)
+{
+  // QPXFile and FeatureMapArrowIO serialize each PSM peptidoform as a canonical ProForma
+  // string and reconstruct the AASequence on read, using exactly this chain:
+  //   write: ProForma::toString(ProForma::fromAASequence(seq), WriteMode::CANONICAL)
+  //   read:  ProForma::toAASequence(ProForma::parse(str), ConversionPolicy::BEST_EFFORT)
+  // Pin that chain here so a silent modification drop/mangle in the Parquet/QPX lane (which
+  // feeds the new quant outputs) is caught at the unit level, not only in end-to-end data.
+  // Asserting positions-modified (rather than exact toString) mirrors the other round-trip
+  // sections above: notation may normalize, but a dropped modification must fail the test.
+  std::vector<std::string> seqs;
+  seqs.push_back("PEPTIDER");                  // unmodified backbone
+  seqs.push_back("PEPM(Oxidation)TIDEK");      // variable mod (UNIMOD:35)
+  seqs.push_back("PEPT(Phospho)IDESK");        // phospho (UNIMOD:21)
+  seqs.push_back("PEPC(Carbamidomethyl)IDEK"); // fixed mod (UNIMOD:4)
+
+  for (const std::string& s : seqs)
+  {
+    AASequence orig = AASequence::fromString(s);
+
+    // write side (CANONICAL) then read side (BEST_EFFORT) -- exactly as QPXFile does
+    std::string canonical = ProForma::toString(ProForma::fromAASequence(orig), WriteMode::CANONICAL);
+    AASequence result = ProForma::toAASequence(ProForma::parse(canonical), ConversionPolicy::BEST_EFFORT);
+
+    // backbone and length must survive unchanged
+    TEST_EQUAL(result.toUnmodifiedString(), orig.toUnmodifiedString())
+    TEST_EQUAL(result.size(), orig.size())
+
+    // every residue that was modified must remain modified at the same position
+    if (result.size() == orig.size())
+    {
+      for (Size i = 0; i < orig.size(); ++i)
+      {
+        TEST_EQUAL(result[i].isModified(), orig[i].isModified())
+      }
+    }
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 // Load and test from fixture files
 /////////////////////////////////////////////////////////////
