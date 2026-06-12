@@ -209,4 +209,24 @@ START_SECTION(NeighborStats getNeighborStats() const)
 }
 END_SECTION
 
+START_SECTION([EXTRA] NeighborStats percentage formatters)
+{
+  // total() == 0 must not divide by zero (regression): all formatters return "X (0%)"
+  NeighborSeq::NeighborStats s;
+  TEST_EQUAL(s.total(), 0)
+  TEST_EQUAL(s.unfindable(), "0 (0%)")
+  TEST_EQUAL(s.noNB(), "0 (0%)")
+  TEST_EQUAL(s.oneNB(), "0 (0%)")
+  TEST_EQUAL(s.multiNB(), "0 (0%)")
+
+  // non-zero total: percentages computed normally
+  NeighborSeq::NeighborStats s2;
+  s2.findable_no_neighbors = 1;
+  s2.findable_one_neighbor = 3;
+  TEST_EQUAL(s2.total(), 4)
+  TEST_EQUAL(s2.noNB(), "1 (25%)")
+  TEST_EQUAL(s2.oneNB(), "3 (75%)")
+}
+END_SECTION
+
 END_TEST
