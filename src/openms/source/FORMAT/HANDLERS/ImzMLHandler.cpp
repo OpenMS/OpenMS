@@ -377,6 +377,20 @@ void ImzMLHandler::endElement(const XMLCh* uri,
   {
     if      (cur_array_.is_mz)  cur_mz_meta_  = cur_array_;
     else if (cur_array_.is_int) cur_int_meta_ = cur_array_;
+
+    // For external (.ibd) arrays the inline <binary> is an empty placeholder, but the
+    // base MzMLHandler captured this array's expected length from defaultArrayLength
+    // (BinaryData::size). MzMLHandlerHelper::decodeBase64Arrays() — run inside
+    // MzMLHandler::populateSpectraWithData_()'s `#pragma omp parallel for` — compares
+    // that length against the 0 decoded values and logs a per-array warning. Those
+    // concurrent writes to the non-thread-safe LogStream corrupt the heap on Windows
+    // (non-deterministic 0xC0000374). Zero the captured length so the empty inline
+    // array decodes cleanly and silently; the real peaks come from the .ibd later.
+    if (cur_array_.is_ext && !bin_data_.empty())
+    {
+      bin_data_.back().size = 0;
+    }
+
     cur_array_.reset();
     in_bda_ = false;
   }
@@ -410,6 +424,24 @@ void ImzMLHandler::endElement(const XMLCh* uri,
       snap.mz_meta  = cur_mz_meta_;
       snap.int_meta = cur_int_meta_;
       spec_ims_.push_back(snap);
+    }
+
+    // imzML peak data lives in the companion .ibd, so the inline <binary> arrays are
+    // empty placeholders while the spectrum still declares defaultArrayLength = N (the
+    // external element count). Left untouched, MzMLHandler::populateSpectraWithData_()
+    // would see the 0-vs-N size mismatch and, for *every* spectrum, emit "array has
+    // size 0 but should have size N" / "Fixing faulty defaultArrayLength" warnings —
+    // from inside its `#pragma omp parallel for`. The shared LogStreamBuf is not
+    // thread-safe (one streambuf, a static line buffer, an incomplete_line_ string and
+    // a message cache), so those concurrent log writes corrupt the heap (observed as a
+    // non-deterministic 0xC0000374 abort in the Windows pyOpenMS wheel tests). Zeroing
+    // the length here — before MzMLHandler::endElement() snapshots it for the batch —
+    // makes the base treat the spectrum as having no inline peaks: no mismatch, no
+    // warning, no wasted populate work. ImzMLInterceptConsumer fills the peaks from the
+    // .ibd afterwards using the external offsets/counts, which are independent of this.
+    if (cur_mz_meta_.is_ext || cur_int_meta_.is_ext)
+    {
+      default_array_length_ = 0;
     }
     in_spectrum_ = false;
   }
