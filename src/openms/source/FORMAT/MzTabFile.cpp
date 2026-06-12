@@ -219,6 +219,7 @@ namespace OpenMS
   Size count_smallmolecule_search_engine_score = 0;
 
   Size line_number = 0;
+  std::set<std::string> warned_unparsed_sections; // warn at most once per discarded section kind
   for (TextFile::ConstIterator sit = tf.begin(); sit != tf.end(); ++sit, ++line_number)
   {
     //  std::cout << *sit << std::endl;
@@ -1543,7 +1544,10 @@ namespace OpenMS
 
     if (section == "NUH" || section == "NUC" || section == "OLH" || section == "OLI" || section == "OSH" || section == "OSM")
     {
-      OPENMS_LOG_WARN << "MzTabFile::load: discarding unparsed section " << section << " in " << filename << std::endl;
+      if (warned_unparsed_sections.insert(section).second) // warn once per section kind, not once per row
+      {
+        OPENMS_LOG_WARN << "MzTabFile::load: discarding unparsed section " << section << " in " << filename << std::endl;
+      }
       continue;
     }
   }
