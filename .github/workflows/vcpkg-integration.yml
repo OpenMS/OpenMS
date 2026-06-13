@@ -38,7 +38,13 @@ jobs:
             
             - name: Configure OpenMS
               run: |
-                cmake --preset linux
+                cmake --preset linux  \
+                  -DWITH_THERMO_RAW=OFF  \
+                  -DWITH_GUI=OFF
+
+            - name: Build OpenMS
+              run: |
+                cmake --build --preset linux-release --parallel 2
 
             - name: Build OpenMS
               run: |
