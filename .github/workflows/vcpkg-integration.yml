@@ -1,0 +1,39 @@
+name: "Vcpkg integration"
+
+on:
+    push:
+        branches:
+            - vcpkg_linux_integration
+
+jobs:
+    configure:
+        runs-on: ubuntu-24.04
+
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                submodules: recursive
+                fetch-depth: 0
+
+            - uses: lukka/get-cmake@latest
+
+            - name: Setup vcpkg
+              uses: lukka/run-vcpkg@v11
+              id: runvcpkg
+
+            - name: Print vcpkg info
+              run: |
+                echo "VCPKG_ROOT=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}"
+                echo "TRIPLET=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}"
+            
+            - name: Configure OpenMS
+              run: |
+                cmake --preset linux
+
+            - name: Inspect vcpkg cache archives
+              run: |
+                echo "Total files: "
+                find ~/.cache/vcpkg/archives -name "*.zip" | wc -l || true
+
+                echo "Total size: "
+                du -sh ~/.cache/vcpkg/archives || true
