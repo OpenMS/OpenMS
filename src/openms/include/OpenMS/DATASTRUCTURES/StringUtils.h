@@ -500,15 +500,21 @@ namespace OpenMS
       return suffix(s, static_cast<size_t>(length));
     }
 
-    /// Returns the part of @p s before the first occurrence of @p delim (excluding it).
-    /// If @p delim is not contained in @p s, the whole string is returned.
+    /**
+      @brief Returns the part of @p s before the first occurrence of @p delim (excluding it).
+
+      If @p delim is not contained in @p s, the whole string is returned.
+    */
     inline std::string prefix(const std::string& s, char delim)
     {
       return s.substr(0, s.find(delim)); // find() returns npos if absent -> substr(0, npos) -> whole string
     }
 
-    /// Returns the part of @p s after the last occurrence of @p delim (excluding it).
-    /// If @p delim is not contained in @p s, the whole string is returned.
+    /**
+      @brief Returns the part of @p s after the last occurrence of @p delim (excluding it).
+
+      If @p delim is not contained in @p s, the whole string is returned.
+    */
     inline std::string suffix(const std::string& s, char delim)
     {
       size_t pos = s.rfind(delim);
