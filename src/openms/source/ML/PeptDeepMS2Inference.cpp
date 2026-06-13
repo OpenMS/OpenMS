@@ -9,17 +9,10 @@
 #include <OpenMS/ML/PeptDeepMS2Inference.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include "ONNXEnvironment.h"
+#include "AminoAcidVocabulary.h"
 #include <stdexcept>
 
 namespace OpenMS {
-
-namespace {
-    inline int64_t getAAIndex(char aa) {
-        if (aa >= 'A' && aa <= 'Z') return aa - 'A' + 1;
-        if (aa >= 'a' && aa <= 'z') return aa - 'a' + 1;
-        return 0; // 0 serves as the padding and unknown token
-    }
-}
 
 // 1. THE HIDDEN IMPLEMENTATION STRUCT
 struct PeptDeepMS2Inference::Impl
@@ -60,13 +53,13 @@ struct PeptDeepMS2Inference::Impl
 
         aa_indices.push_back(0); // Leading padding token
         for (char aa : peptide_sequence) {
-            aa_indices.push_back(getAAIndex(aa));
+            aa_indices.push_back(ML::getAAIndex(aa));
         }
         aa_indices.push_back(0); // Trailing padding token
 
         std::vector<int64_t> aa_shape = {batch_size, padded_length};
         Ort::Value aa_tensor = Ort::Value::CreateTensor<int64_t>(
-            memory_info_, const_cast<int64_t*>(aa_indices.data()), aa_indices.size(), aa_shape.data(), aa_shape.size());
+            memory_info_, aa_indices.data(), aa_indices.size(), aa_shape.data(), aa_shape.size());
 
         // Query mod_x dimensions dynamically instead of hardcoding 109
         Ort::TypeInfo mod_type_info = session_->GetInputTypeInfo(1);
@@ -74,7 +67,9 @@ struct PeptDeepMS2Inference::Impl
         std::vector<int64_t> mod_shape = mod_tensor_info.GetShape();
 
         if (mod_shape.size() < 3) {
-            throw std::runtime_error("PeptDeep MS2 model input 'mod_x' must have 3 dimensions [batch, length, features].");
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "PeptDeep MS2 model input 'mod_x' must have 3 dimensions [batch, length, features].",
+                std::to_string(mod_shape.size()));
         }
 
         mod_shape[0] = batch_size;
@@ -108,15 +103,24 @@ struct PeptDeepMS2Inference::Impl
         Ort::Value inst_tensor = Ort::Value::CreateTensor<int64_t>(
             memory_info_, inst_data.data(), inst_data.size(), inst_shape.data(), inst_shape.size());
 
-        const char* input_names[] = {"aa_indices", "mod_x", "charges", "nce", "instrument_indices"};
+        // Dynamically extract input and output names directly from the ONNX Session
+        Ort::AllocatorWithDefaultOptions ort_alloc;
+        Ort::AllocatedStringPtr aa_name = session_->GetInputNameAllocated(0, ort_alloc);
+        Ort::AllocatedStringPtr mod_name = session_->GetInputNameAllocated(1, ort_alloc);
+        Ort::AllocatedStringPtr charge_name = session_->GetInputNameAllocated(2, ort_alloc);
+        Ort::AllocatedStringPtr nce_name = session_->GetInputNameAllocated(3, ort_alloc);
+        Ort::AllocatedStringPtr inst_name = session_->GetInputNameAllocated(4, ort_alloc);
+        Ort::AllocatedStringPtr out_name = session_->GetOutputNameAllocated(0, ort_alloc);
+
+        const char* input_names[] = { aa_name.get(), mod_name.get(), charge_name.get(), nce_name.get(), inst_name.get() };
+        const char* output_names[] = { out_name.get() };
+
         std::vector<Ort::Value> input_tensors;
         input_tensors.push_back(std::move(aa_tensor));
         input_tensors.push_back(std::move(mod_tensor));
         input_tensors.push_back(std::move(charge_tensor));
         input_tensors.push_back(std::move(nce_tensor));
         input_tensors.push_back(std::move(inst_tensor));
-
-        const char* output_names[] = {"intensities"};
 
         auto output_tensors = session_->Run(
             Ort::RunOptions{nullptr}, input_names, input_tensors.data(), input_tensors.size(), output_names, 1

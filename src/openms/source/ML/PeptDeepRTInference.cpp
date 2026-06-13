@@ -9,25 +9,16 @@
 #include <OpenMS/ML/PeptDeepRTInference.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include "ONNXEnvironment.h"
-#include <iostream>
+#include "AminoAcidVocabulary.h"
 #include <stdexcept>
 
 namespace OpenMS
 {
-    namespace {
-        inline int64_t getAAIndex(char aa) {
-            if (aa >= 'A' && aa <= 'Z') return aa - 'A' + 1;
-            if (aa >= 'a' && aa <= 'z') return aa - 'a' + 1;
-            return 0; // 0 serves as the padding and unknown token
-        }
-    }
-
     // 1. THE HIDDEN IMPLEMENTATION STRUCT
     struct PeptDeepRTInference::Impl
     {
         Ort::SessionOptions session_options_;
         std::unique_ptr<Ort::Session> session_;
-        Ort::AllocatorWithDefaultOptions allocator_;
 
         // Constructor
         Impl(const std::string& model_path)
@@ -53,12 +44,14 @@ namespace OpenMS
 
             for (const auto& p : peptides) {
                 if (p.length() > max_length) {
-                    throw std::invalid_argument("Peptide sequence exceeds the maximum allowed length of 132 residues.");
+                    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                        "Peptide sequence exceeds the maximum allowed length of 132 residues.",
+                        std::to_string(p.length()));
                 }
 
                 for (size_t i = 0; i < max_length; ++i) {
                     if (i < p.length()) {
-                        flat_tokens.push_back(getAAIndex(p[i]));
+                        flat_tokens.push_back(ML::getAAIndex(p[i]));
                     } else {
                         flat_tokens.push_back(0); // Padding token
                     }
@@ -70,7 +63,6 @@ namespace OpenMS
         // Core Prediction Logic
         std::vector<float> predictRT(const std::vector<std::string>& peptides)
         {
-            // Update length/constraint violations in predictRT to:
             if (peptides.empty())
             {
                 throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide list cannot be empty.");
@@ -87,7 +79,9 @@ namespace OpenMS
             // Guard against unexpected lower-rank shapes
             if (mod_shape.size() < 2)
             {
-                throw std::runtime_error("PeptDeep RT model input 'mod_x' must have at least 2 dimensions.");
+                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "PeptDeep RT model input 'mod_x' must have at least 2 dimensions.",
+                    std::to_string(mod_shape.size()));
             }
 
             mod_shape[0] = peptides.size();
@@ -133,7 +127,9 @@ namespace OpenMS
 
             size_t output_count = output_tensors.front().GetTensorTypeAndShapeInfo().GetElementCount();
             if (output_count < peptides.size()) {
-                throw std::runtime_error("ONNX model output shape mismatch: returned fewer elements than requested.");
+                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "ONNX model output shape mismatch: returned fewer elements than requested.",
+                    std::to_string(output_count) + " < " + std::to_string(peptides.size()));
             }
 
             float* floatarr = output_tensors.front().GetTensorMutableData<float>();

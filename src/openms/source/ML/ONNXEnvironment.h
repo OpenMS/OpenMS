@@ -16,7 +16,9 @@
 
 namespace OpenMS
 {
-  /// Returns the process-wide singleton ONNX Runtime environment.
-  /// Thread-safe; initialized exactly once per application lifecycle.
+    /**
+   * @brief Returns the process-wide singleton ONNX Runtime environment.
+   * * Thread-safe; initialized exactly once per application lifecycle.
+   */
   Ort::Env& getONNXEnvironment();
 }

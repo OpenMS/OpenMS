@@ -13,6 +13,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <OpenMS/test_config.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -23,7 +24,7 @@ const string rt_model = "data/peptdeep_rt_dynamic.onnx";
 const string ms2_model = "data/peptdeep_ms2_dynamic.onnx";
 
 // TEST CASE 1: Initialization & Failures
-TOLERANCE_ABSOLUTE(0.05);
+TOLERANCE_ABSOLUTE(1e-6);
 
 START_SECTION((PeptDeepRTInference(const string& model_path)))
     STATUS("Checking invalid model path handling...");

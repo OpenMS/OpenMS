@@ -535,7 +535,6 @@ option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
 if(WITH_ONNX)
   # 1. Tell CMake to look for the package ONLY if the switch is ON
   find_package(ONNXRuntime REQUIRED)
-
 endif()
 
 
