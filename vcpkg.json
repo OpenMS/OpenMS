@@ -63,15 +63,6 @@
     "zlib"
   ],
   "features": {
-    
-    "gui": {
-      "_comment":"TODO: need testing with vcpkg qt",
-      "description": "Qt dependencies for builds configured with -DWITH_GUI=ON.",
-      "dependencies": [
-        "qtbase",
-        "qtsvg"
-      ]
-    },
     "hdf5": {
       "description": "HDF5 C and C++ libraries for builds configured with -DWITH_HDF5=ON.",
       "dependencies": [
