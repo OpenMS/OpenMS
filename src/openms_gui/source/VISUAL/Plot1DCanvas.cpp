@@ -26,6 +26,10 @@
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
@@ -183,6 +187,10 @@ namespace OpenMS
 
   void Plot1DCanvas::activateLayer(Size layer_index)
   {
+    // reset TMT state on layer switch; items are owned by the (previous) layer's container
+    removeTMTAnnotations_();
+    tmt_method_type_ = IsobaricQuantitationMethod::MethodType::UNKNOWN;
+
     layers_.setCurrentLayer(layer_index);
 
     // no peak is selected
@@ -195,6 +203,8 @@ namespace OpenMS
   {
     auto corrected = correctGravityAxisOfVisibleArea_(new_area);
     PlotCanvas::changeVisibleArea_(visible_area_.cloneWith(corrected), repaint, add_to_stack);
+    // re-stagger the TMT reference labels so neighbours stay non-overlapping at the new zoom level (no-op if TMT is off)
+    layoutTMTLabels_();
   }
 
   void Plot1DCanvas::changeVisibleArea_(const AreaXYType& new_area, bool repaint, bool add_to_stack)
@@ -554,6 +564,10 @@ namespace OpenMS
 
   void Plot1DCanvas::removeLayer(Size layer_index)
   {
+    // reset TMT state; items owned by the layer container being removed
+    removeTMTAnnotations_();
+    tmt_method_type_ = IsobaricQuantitationMethod::MethodType::UNKNOWN;
+
     // remove settings
     layers_.removeLayer(layer_index);
     draw_modes_.erase(draw_modes_.begin() + layer_index);
@@ -986,6 +1000,28 @@ namespace OpenMS
         showMetaData(true);
       });
 
+      context_menu->addSeparator();
+      {
+        using MT = IsobaricQuantitationMethod::MethodType;
+        QMenu* iso_menu = new QMenu("Isobaric m/z reference (TMT/iTRAQ)");
+        if (tmt_method_type_ != MT::UNKNOWN)
+        {
+          iso_menu->addAction(
+            QString("Disable (current: %1)").arg(toQString(std::string(IsobaricQuantitationMethod::methodDisplayName(tmt_method_type_)))),
+            [&]() { setTMTAnnotationMethod(MT::UNKNOWN); });
+        }
+        // one entry per concrete method, skipping the UNKNOWN sentinel and the SIZE_OF_METHODTYPE terminator
+        for (int i = static_cast<int>(MT::UNKNOWN) + 1; i < static_cast<int>(MT::SIZE_OF_METHODTYPE); ++i)
+        {
+          const MT mt = static_cast<MT>(i);
+          auto* act = iso_menu->addAction(toQString(std::string(IsobaricQuantitationMethod::methodDisplayName(mt))),
+                                          [this, mt]() { setTMTAnnotationMethod(mt); });
+          if (tmt_method_type_ == mt) { act->setCheckable(true); act->setChecked(true); }
+        }
+        context_menu->addMenu(iso_menu);
+      }
+      context_menu->addSeparator();
+
       QMenu* save_menu = new QMenu("Save");
       
       save_menu->addAction("Layer", [&]() {
@@ -1041,7 +1077,7 @@ namespace OpenMS
       });
 
       settings_menu->addSeparator();
-
+      
       settings_menu->addAction("Preferences", [&]() {
         showCurrentLayerPreferences();
       });
@@ -1520,12 +1556,14 @@ namespace OpenMS
   {
     // clear selected peak, so we do not accidentally access an invalid index next time when moving the mouse
     selected_peak_.clear();
-    
+
     if (getCurrentLayer().hasIndex(index))
     {
       getCurrentLayer().setCurrentIndex(index);
       recalculateRanges_(); // adapt overall_range_(1d)_
       changeVisibleArea_(visible_area_, repaint, false); // updates y-axis based on new spectrum
+      if (tmt_method_type_ != IsobaricQuantitationMethod::MethodType::UNKNOWN)
+        updateTMTAnnotations_();
     }
   }
 
@@ -1575,6 +1613,227 @@ namespace OpenMS
   bool Plot1DCanvas::isDrawInterestingMZs() const
   {
     return draw_interesting_MZs_;
+  }
+
+  IsobaricQuantitationMethod::MethodType Plot1DCanvas::getTMTAnnotationMethod() const
+  {
+    return tmt_method_type_;
+  }
+
+  void Plot1DCanvas::setTMTAnnotationMethod(IsobaricQuantitationMethod::MethodType method)
+  {
+    if (tmt_method_type_ == method) return;
+    tmt_method_type_ = method;
+    updateTMTAnnotations_();
+  }
+
+  void Plot1DCanvas::removeTMTAnnotations_()
+  {
+    if (tmt_annotation_items_.empty()) return;
+    if (layers_.empty()) { tmt_annotation_items_.clear(); return; }
+    auto& layer = getCurrentLayer();
+    // Remove from the spectrum the items were added to (not necessarily the currently shown one, e.g. after
+    // the user navigated away). The pointers stay valid across navigation thanks to Annotations1DContainer's move c'tor.
+    if (layer.hasIndex(tmt_annotation_spectrum_idx_))
+    {
+      layer.getAnnotations(tmt_annotation_spectrum_idx_).removeItems(tmt_annotation_items_);
+    }
+    tmt_annotation_items_.clear();
+    layer.peak_colors_1d.clear();
+  }
+
+  void Plot1DCanvas::updateTMTAnnotations_()
+  {
+    removeTMTAnnotations_();
+
+    using MT = IsobaricQuantitationMethod::MethodType;
+    if (tmt_method_type_ == MT::UNKNOWN) { update_(OPENMS_PRETTY_FUNCTION); return; }
+    if (layers_.empty()) return;
+
+    auto* peak_layer = dynamic_cast<LayerData1DPeak*>(&getCurrentLayer());
+    if (!peak_layer) return;
+    const MSSpectrum& spec = peak_layer->getCurrentSpectrum();
+    if (spec.empty()) return;
+
+    // Build theoretical isobaric reporter-ion spectrum from channel masses
+    std::unique_ptr<IsobaricQuantitationMethod> method = IsobaricQuantitationMethod::create(tmt_method_type_);
+    if (!method) return;
+
+    // Sort channels by m/z so tmt_spec indices stay in sync with channel metadata.
+    // getChannelInformation() does NOT guarantee m/z order (e.g. TMT32 interleaves N/C/ND/CD).
+    const auto channels_sorted = [&]()
+    {
+      auto ch = method->getChannelInformation();
+      std::sort(ch.begin(), ch.end(), [](const auto& a, const auto& b) { return a.center < b.center; });
+      return ch;
+    }();
+    MSSpectrum tmt_spec;
+    for (const auto& ch : channels_sorted)
+      tmt_spec.emplace_back(ch.center, 1.0f);
+
+    // Profile vs. centroid handling
+    const bool is_profile = (spec.getType(true) == SpectrumSettings::SpectrumType::PROFILE);
+    MSSpectrum picked;
+    std::vector<PeakPickerHiRes::PeakBoundary> boundaries;
+    if (is_profile)
+    {
+      PeakPickerHiRes picker;
+      Param picker_params;
+      picker_params.setValue("signal_to_noise", 0.0);
+      picker.setParameters(picker_params);
+      picker.pick(spec, picked, boundaries);
+    }
+    const MSSpectrum& centroid_spec = is_profile ? picked : spec;
+    if (centroid_spec.empty()) { update_(OPENMS_PRETTY_FUNCTION); return; }
+
+    // Tolerance = min(30 ppm, half the minimum ppm spacing between adjacent channels).
+    // This guarantees non-overlapping tolerance windows so no experimental peak can
+    // be within tolerance of two different TMT channels simultaneously.
+    double min_spacing_ppm = std::numeric_limits<double>::max();
+    for (Size i = 1; i < channels_sorted.size(); ++i)
+      min_spacing_ppm = std::min(min_spacing_ppm,
+        Math::getPPMAbs(channels_sorted[i].center, channels_sorted[i - 1].center));
+    const double tol_ppm = std::min(30.0, min_spacing_ppm / 2.0);
+
+    SpectrumAlignment aligner;
+    {
+      Param aligner_params;
+      aligner_params.setValue("tolerance", tol_ppm);
+      aligner_params.setValue("is_relative_tolerance", "true");
+      aligner.setParameters(aligner_params);
+    }
+    std::vector<std::pair<Size, Size>> tmt_to_centroid; // (tmt_channel_idx, centroid_peak_idx)
+    aligner.getSpectrumAlignment(tmt_to_centroid, tmt_spec, centroid_spec);
+
+    // For profile: align picked centroids to raw spectrum to find best annotation anchor peak
+    std::map<Size, Size> centroid_to_raw_idx;
+    if (is_profile)
+    {
+      Param aligner_params;
+      aligner_params.setValue("tolerance", 5.0);
+      aligner_params.setValue("is_relative_tolerance", "true");
+      aligner.setParameters(aligner_params);
+      std::vector<std::pair<Size, Size>> c2r;
+      aligner.getSpectrumAlignment(c2r, centroid_spec, spec);
+      for (const auto& [ci, ri] : c2r)
+        centroid_to_raw_idx[ci] = ri;
+    }
+
+    // Color scheme:
+    //   found channel  – peak colored orange-red; vertical line solid green
+    //   missing channel – vertical line dashed grey
+    const QColor default_color(toQString(getCurrentLayer().param.getValue("peak_color").toString()));
+    const QColor peak_matched_color(255, 80, 0);    // vibrant orange-red for matched peaks
+    const QColor ann_color(Qt::darkRed);
+    const QColor line_found_color(0, 160, 0);        // green: theoretical mass was matched
+    const QColor line_missing_color(160, 160, 160);  // grey:  theoretical mass was not found
+    auto& layer = *peak_layer;
+    // add to the current spectrum's container and remember that spectrum index for later cleanup
+    tmt_annotation_spectrum_idx_ = layer.getCurrentIndex();
+    auto& tmt_target_annotations = layer.getAnnotations(tmt_annotation_spectrum_idx_);
+    layer.peak_colors_1d.assign(spec.size(), default_color);
+
+    // Which TMT channels were matched?
+    std::vector<bool> tmt_matched(channels_sorted.size(), false);
+    for (const auto& [tmt_idx, cen_idx] : tmt_to_centroid)
+      tmt_matched[tmt_idx] = true;
+
+    // Pass 1: vertical reference lines for ALL theoretical channels (drawn first = below labels).
+    //   Found  → solid green line, no text (Annotation1DPeakItem already labels it).
+    //   Missing → dashed grey line with the channel name as label.
+    for (Size i = 0; i < channels_sorted.size(); ++i)
+    {
+      const auto& ch = channels_sorted[i];
+      const PointXYType theo_pos(ch.center, 0.0);
+      Annotation1DVerticalLineItem* vline;
+      if (tmt_matched[i])
+      {
+        vline = new Annotation1DVerticalLineItem(theo_pos, line_found_color);
+      }
+      else
+      {
+        vline = new Annotation1DVerticalLineItem(theo_pos, 0.0f, 255, /*dashed=*/true, line_missing_color,
+                                                 toQString(ch.name));
+      }
+      vline->setSelected(false);
+      tmt_target_annotations.push_front(vline);
+      tmt_annotation_items_.push_back(vline);
+    }
+
+    // Pass 2: peak annotations for matched channels (push_front → rendered on top of lines).
+    for (const auto& [tmt_idx, cen_idx] : tmt_to_centroid)
+    {
+      const double obs_mz = centroid_spec[cen_idx].getMZ();
+      const double theo_mz = channels_sorted[tmt_idx].center;
+      const double delta_ppm = Math::getPPM(obs_mz, theo_mz);
+
+      Peak1D anchor;
+      if (is_profile)
+      {
+        // Color the entire peak envelope using PeakPickerHiRes boundaries
+        const auto& boundary = boundaries[cen_idx];
+        for (Size si = 0; si < spec.size(); ++si)
+          if (spec[si].getMZ() >= boundary.mz_min && spec[si].getMZ() <= boundary.mz_max)
+            layer.peak_colors_1d[si] = peak_matched_color;
+        // Anchor label at closest raw peak to centroid
+        const auto it = centroid_to_raw_idx.find(cen_idx);
+        anchor = (it != centroid_to_raw_idx.end()) ? spec[it->second] : centroid_spec[cen_idx];
+      }
+      else
+      {
+        layer.peak_colors_1d[cen_idx] = peak_matched_color;
+        anchor = centroid_spec[cen_idx];
+      }
+
+      const QString sign = delta_ppm >= 0 ? "+" : "";
+      const QString text = toQString(channels_sorted[tmt_idx].name)
+                         + "\n" + sign + QString::number(delta_ppm, 'f', 1) + " ppm";
+
+      auto* item = new Annotation1DPeakItem<Peak1D>(anchor, text, ann_color);
+      item->setSelected(false);
+      tmt_target_annotations.push_front(item);
+      tmt_annotation_items_.push_back(item);
+    }
+
+    layoutTMTLabels_();
+    update_(OPENMS_PRETTY_FUNCTION);
+  }
+
+  void Plot1DCanvas::layoutTMTLabels_()
+  {
+    if (tmt_annotation_items_.empty()) return;
+
+    // Collect the labeled vertical-line items with their horizontal text extent (in pixels at the current zoom).
+    // Only Annotation1DVerticalLineItem with non-empty text carry a label (matched channels are labeled by their peak item).
+    struct LabelBox { Annotation1DVerticalLineItem* item; int x_left; int x_right; };
+    std::vector<LabelBox> labels;
+    int row_height = 0;
+    for (auto* anno : tmt_annotation_items_)
+    {
+      auto* vline = dynamic_cast<Annotation1DVerticalLineItem*>(anno);
+      if (vline == nullptr || vline->getText().isEmpty()) continue;
+      QPoint px;
+      dataToWidget(vline->getPosition(), px, false);
+      const QRectF tr = vline->getTextRect();
+      const int x_left = px.x() + 5; // +5 mirrors the text inset used in Annotation1DVerticalLineItem::draw()
+      labels.push_back({vline, x_left, x_left + (int)tr.width()});
+      row_height = std::max(row_height, (int)tr.height());
+    }
+    if (labels.empty()) return;
+
+    // Greedy left-to-right lane assignment: place each label in the topmost row whose previous label ends before this
+    // one starts; otherwise push it down by one text-line. Rows are only added when labels actually overlap (zoomed out),
+    // and collapse back to a single row when there is enough horizontal room (zoomed in).
+    std::sort(labels.begin(), labels.end(), [](const LabelBox& a, const LabelBox& b) { return a.x_left < b.x_left; });
+    std::vector<int> row_right_edge; // right-most occupied pixel per row
+    for (const auto& l : labels)
+    {
+      Size row = 0;
+      while (row < row_right_edge.size() && l.x_left <= row_right_edge[row]) { ++row; }
+      if (row == row_right_edge.size()) { row_right_edge.push_back(0); }
+      row_right_edge[row] = l.x_right;
+      l.item->setTextOffset(static_cast<int>(row) * row_height);
+    }
   }
 
 } //Namespace
