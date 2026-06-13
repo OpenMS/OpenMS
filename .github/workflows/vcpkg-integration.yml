@@ -46,14 +46,18 @@ jobs:
               run: |
                 cmake --build --preset linux-release --parallel 2
 
-            - name: Build OpenMS
-              run: |
-                cmake --build --preset linux-release --parallel 2
-
             - name: Inspect vcpkg cache archives
+              if: always()
               run: |
                 echo "Total files: "
                 find ~/.cache/vcpkg/archives -name "*.zip" | wc -l || true
 
                 echo "Total size: "
                 du -sh ~/.cache/vcpkg/archives || true
+
+            - name: Upload cache artifacts
+              if: always()
+              uses: actions/upload-artifact@v7
+              with:
+                name: vcpkg-cache
+                path: ~/.cache/vcpkg/archives
