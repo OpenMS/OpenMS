@@ -53,7 +53,14 @@ struct PeptDeepMS2Inference::Impl
 
         aa_indices.push_back(0); // Leading padding token
         for (char aa : peptide_sequence) {
-            aa_indices.push_back(ML::getAAIndex(aa));
+            const auto aa_index = ML::getAAIndex(aa);
+            if (aa_index == 0) {
+                throw Exception::InvalidValue(
+                    __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "Unsupported residue in peptide sequence.",
+                    std::string(1, aa));
+            }
+            aa_indices.push_back(aa_index);
         }
         aa_indices.push_back(0); // Trailing padding token
 

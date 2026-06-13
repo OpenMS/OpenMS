@@ -51,7 +51,14 @@ namespace OpenMS
 
                 for (size_t i = 0; i < max_length; ++i) {
                     if (i < p.length()) {
-                        flat_tokens.push_back(ML::getAAIndex(p[i]));
+                        const auto aa_index = ML::getAAIndex(p[i]);
+                        if (aa_index == 0) {
+                            throw Exception::InvalidValue(
+                                __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                "Unsupported residue in peptide sequence.",
+                                std::string(1, p[i]));
+                        }
+                        flat_tokens.push_back(aa_index);
                     } else {
                         flat_tokens.push_back(0); // Padding token
                     }
