@@ -36,8 +36,7 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI TVToolDiscovery
   {
   public:
-    TVToolDiscovery() :
-      plugin_path_() {};
+    TVToolDiscovery() = default;
 
     TVToolDiscovery(const TVToolDiscovery&) = delete;
 
@@ -54,7 +53,6 @@ namespace OpenMS
        While waiting the GUI remains responsive. After waiting it is safe to access the params without further waiting.
      */
     void waitForToolParams();
-    void waitForPluginParams();
 
     /**
        @brief Returns a Param object containing the params for each tool/util.
@@ -65,67 +63,18 @@ namespace OpenMS
      */
     const Param& getToolParams();
 
-    /**
-       @brief Returns a param containing the params for each plugin.
-       @details
-       This function will ALWAYS trigger a reload of the plugins.
-    */
-    const Param& getPluginParams();
-
-    /// Returns the list of read plugin names as saved in the ini.
-    const std::vector<std::string>& getPlugins();
-
-    /**
-     * @brief Sets the path that will be searched for Plugins
-     *
-     * The configured path is always remembered, even if it does not exist on disk: plugin
-     * discovery tolerates a missing directory. The directory is only physically created when
-     * @p create is true, so users who never use plugins do not get an empty folder created.
-     *
-     * @param[in] path The new path to set
-     * @param[in] create Create the directory (including parents) if it does not already exist
-     * @returns False only if @p create is true and creating the directory failed. True otherwise.
-     */
-    [[maybe_unused]] bool setPluginPath(const std::string& path, bool create=false);
-
     /// set the verbosity level of the tool discovery for debug purposes
     void setVerbose(int verbosity_level);
 
-    /// Returns the current set path to search plugins in
-    const std::string getPluginPath();
-
-    /// Returns the path to the plugin executable or an empty string if the plugin name is unknown
-    std::string findPluginExecutable(const std::string& name);
-
   private:
-    /** Returns param for a given tool/util. This function is thread-safe. Additionally inserts names of tools into 
-        plugin list
-     */
-    static Param getParamFromIni_(const std::string& tool_path, bool plugins=false);
+    /// Returns param for a given tool/util. This function is thread-safe.
+    static Param getParamFromIni_(const std::string& tool_path);
 
-    /** Start creating params for each plugin in the set plugin path asynchronously
-     *  This should only be called from waitForPluginParams() or the names in the plugins vector are not correct
-     */
-    void loadPluginParams();
-
-    /// Returns a list of executables that are found at the plugin path
-    const StringList getPlugins_();
-
-    /// The filepath to search pugins in
-    std::string plugin_path_;
-
-    /// The futures for asyncronous loading of the tools and plugins
+    /// The futures for asyncronous loading of the tools
     std::vector<std::future<Param>> tool_param_futures_;
-    std::vector<std::future<Param>> plugin_param_futures_;
 
     /// Contains all the params of the tools/utils
     Param tool_params_;
-
-    /// Contains all the params of the plugins
-    Param plugin_params_;
-
-    /// The names of all loaded plugins, this is used to add the plugins to the list in the ToolsDialog
-    std::vector<std::string> plugins_;
 
     /// Set to value > 0 to output tool discovery debug information
     int verbosity_level_ = 0;

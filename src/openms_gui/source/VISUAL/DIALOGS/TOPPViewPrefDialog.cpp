@@ -32,7 +32,6 @@ namespace OpenMS
       ui_->setupUi(this);
       ui_->param_editor_spec_gen_->load(tsg_param_);
       connect(ui_->browse_default, &QPushButton::clicked, this, &TOPPViewPrefDialog::browseDefaultPath_);
-      connect(ui_->browse_plugins, &QPushButton::clicked, this, &TOPPViewPrefDialog::browsePluginsPath_);
     }
 
     TOPPViewPrefDialog::~TOPPViewPrefDialog()
@@ -52,7 +51,6 @@ namespace OpenMS
       // general tab
       ui_->default_path->setText(toQString(std::string(param_.getValue("default_path").toString())));
       ui_->default_path_current->setChecked(param_.getValue("default_path_current").toBool());
-      ui_->plugins_path->setText(toQString(std::string(param_.getValue("plugins_path").toString())));
       ui_->use_cached_ms1->setChecked(param_.getValue("use_cached_ms1").toBool());
       ui_->use_cached_ms2->setChecked(param_.getValue("use_cached_ms2").toBool());
 
@@ -98,8 +96,6 @@ namespace OpenMS
       p.setValue("default_path", ui_->default_path->text().toStdString());
       p.setValue("default_path_current", fromCheckState(ui_->default_path_current->checkState()));
 
-      p.setValue("plugins_path", ui_->plugins_path->text().toStdString());
-
       p.setValue("use_cached_ms1", fromCheckState(ui_->use_cached_ms1->checkState()));
       p.setValue("use_cached_ms2", fromCheckState(ui_->use_cached_ms2->checkState()));
 
@@ -140,14 +136,6 @@ namespace OpenMS
       }
     }
 
-    void TOPPViewPrefDialog::browsePluginsPath_()
-    {
-      QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", ui_->plugins_path->text());
-      if (!path.isEmpty())
-      {
-        ui_->plugins_path->setText(path);
-      }
-    }
 
   }   //namespace Internal
 } //namespace OpenMS

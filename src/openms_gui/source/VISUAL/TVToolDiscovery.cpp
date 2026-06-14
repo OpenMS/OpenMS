@@ -20,7 +20,6 @@
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QCoreApplication>
-#include <QDir>
 
 #include <thread>
 
@@ -36,27 +35,10 @@ namespace OpenMS
       // Launch threads for loading tool/util params.
       for (const auto& tool : tools)
       {
-        tool_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, tool.first, false));
+        tool_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, tool.first));
       }
       return true;
     }();
-  }
-
-  void TVToolDiscovery::loadPluginParams()
-  {
-    plugin_param_futures_.clear();
-    plugins_.clear();
-    // Create the plugin directory lazily, the first time plugins are actually requested
-    // (e.g. when the user opens the tool/plugin dialog), rather than eagerly at startup.
-    if (!plugin_path_.empty() && !File::exists(plugin_path_))
-    {
-      setPluginPath(plugin_path_, true);
-    }
-    const auto &plugins = getPlugins_();
-    for (auto& plugin : plugins)
-    {
-      plugin_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, plugin, true));
-    }
   }
 
   void TVToolDiscovery::waitForToolParams()
@@ -81,27 +63,6 @@ namespace OpenMS
     }();
   }
 
-  void TVToolDiscovery::waitForPluginParams()
-  {
-    // Make sure threads have been launched before waiting
-    loadPluginParams();
-    // Wait for futures to finish
-    for (auto& param_future : plugin_param_futures_)
-    {
-      while (param_future.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
-      {
-        // Keep GUI responsive while waiting
-        QCoreApplication::processEvents();
-      }
-      // Make future results available in plugin_params_
-      Param new_param = param_future.get();
-      // Skip if the param is empty, that means something went wrong during execution
-      if (new_param.empty()) continue;
-      plugins_.push_back(new_param.begin().getTrace().begin()->name);
-      plugin_params_.insert("", new_param);
-    }
-  }
-
   const Param& TVToolDiscovery::getToolParams()
   {
     // Make sure threads have been launched and waited for before accessing results
@@ -109,14 +70,7 @@ namespace OpenMS
     return tool_params_;
   }
 
-  const Param& TVToolDiscovery::getPluginParams()
-  {
-    plugin_params_.clear();
-    waitForPluginParams();
-    return plugin_params_;
-  }
-
-  Param TVToolDiscovery::getParamFromIni_(const std::string& tool_path, bool plugins)
+  Param TVToolDiscovery::getParamFromIni_(const std::string& tool_path)
   {
     static std::mutex io_mutex;
     FileHandler fh;
@@ -177,83 +131,16 @@ namespace OpenMS
     {
       std::scoped_lock lock(io_mutex);
       OPENMS_LOG_DEBUG << e << "\n" << "TOPP tool: " << executable <<
-        " not able to write ini. Plugins must implement -write_ini parameter. Skipping." << std::endl;
+        " not able to write ini (-write_ini failed). Skipping." << std::endl;
       return tool_param;
-    }
-    
-    if (plugins)
-    {
-      auto tool_name = tool_param.begin().getTrace().begin()->name;
-      auto filename = File::basename(tool_path);
-      tool_param.setValue(tool_name + ":filename", filename, "The filename of the plugin executable. This entry is automatically generated.");
     }
 
     return tool_param;
   }
 
-  const std::vector<std::string>& TVToolDiscovery::getPlugins()
-  {
-    return plugins_;
-  }
-
-  const StringList TVToolDiscovery::getPlugins_()
-  {
-    StringList plugins;
-
-    // here all supported file extensions can be added
-    std::vector<std::string> valid_extensions {"", ".py"};
-    const auto comparator = [valid_extensions](const std::string& plugin) -> bool
-    {
-        return !File::executable(plugin) ||
-          (std::find(valid_extensions.begin(), valid_extensions.end(), StringUtils::substr(plugin, plugin.find_last_of('.'))) == valid_extensions.end());
-    };
-
-    if (File::fileList(plugin_path_, "*", plugins, true))
-    {
-      plugins.erase(std::remove_if(plugins.begin(), plugins.end(), comparator), plugins.end());
-    }
-
-    return plugins;
-  }
-
-  bool TVToolDiscovery::setPluginPath(const std::string& plugin_path, bool create)
-  {
-    // Only physically create the directory when explicitly requested. The configured path is
-    // always remembered: plugin discovery tolerates a missing directory (it simply finds no
-    // plugins), so there is no need to create an empty folder for users who never use plugins.
-    if (create && !File::exists(plugin_path))
-    {
-      // mkpath also creates intermediate directories (e.g. a not-yet-existing config dir)
-      if (!QDir().mkpath(toQString(plugin_path)))
-      {
-        OPENMS_LOG_WARN << "Unable to create plugin directory " << plugin_path << std::endl;
-        return false;
-      }
-    }
-
-    plugin_path_ = plugin_path;
-    return true;
-  }
-
-  const std::string TVToolDiscovery::getPluginPath()
-  {
-    return plugin_path_;
-  }
-
   void TVToolDiscovery::setVerbose(int verbosity_level)
   {
     verbosity_level_ = verbosity_level;
-  }
-
-  std::string TVToolDiscovery::findPluginExecutable(const std::string& name)
-  {
-    //TODO: At the moment the usage of subdirectories in the plugin path are not possible
-    //To change that, the tool scanner has to recursively search all directories in the plugin path
-    if (!plugin_params_.exists(name + ":filename"))
-    {
-      return "";
-    }
-    return plugin_path_ + "/" + plugin_params_.getValue(name + ":filename").toString();
   }
 
 }

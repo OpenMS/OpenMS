@@ -236,13 +236,6 @@ public:
     /// @return String containing the per-user OpenMS configuration directory path
     static std::string getOpenMSConfigDir();
 
-    /// Returns the per-user OpenMS data directory for user-provided application data (e.g. plugins).
-    /// Distinct from getOpenMSDataPath() (the read-only installation share directory).
-    /// Follows the XDG base directory specification on unix-like systems
-    /// (&lt;XDG_DATA_HOME&gt;/OpenMS or &lt;home&gt;/.local/share/OpenMS) and uses &lt;home&gt;/.OpenMS otherwise.
-    /// The returned path has no trailing separator and the directory is not guaranteed to exist.
-    static std::string getOpenMSDataHome();
-
     /// The current OpenMS temporary data path (for temporary files).
     /// Looks up the following locations, taking the first one which is non-null:
     ///   - environment variable OPENMS_TMPDIR
