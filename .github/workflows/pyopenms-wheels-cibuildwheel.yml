@@ -531,3 +531,48 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           verbose: true
+
+  publish-archive-openms:
+    name: Upload wheels to archive.openms.de
+    needs: [setup, test-wheels]
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' &&
+        (startsWith(github.ref, 'refs/heads/nightly') || startsWith(github.ref, 'refs/tags/Release')))
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist/
+
+      - name: Upload wheels to archive
+        shell: bash
+        env:
+          PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+          HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          PORT: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          # Pass interpolations through env (GITHUB_REF/GITHUB_REF_NAME are runner
+          # built-ins) so they are never expanded into the shell script directly.
+          PYOPENMS_VERSION: ${{ needs.setup.outputs.pyopenms-version }}
+        run: |
+          # Pick destination folder mirroring the OpenMSInstaller/Documentation layout.
+          # Sanitize externally-influenced values with a strict whitelist before
+          # using them in a path (branch/tag names may contain shell metacharacters).
+          sanitize() { printf '%s' "${1//[^a-zA-Z0-9._-]/_}"; }
+
+          if [[ "$GITHUB_REF" == refs/tags/Release* ]]; then
+            folder="release/$(sanitize "$PYOPENMS_VERSION")"
+          elif [[ "$GITHUB_REF_NAME" == "nightly" ]]; then
+            folder=nightly
+          else
+            folder="experimental/$(sanitize "$GITHUB_REF_NAME")"
+          fi
+          echo "Uploading wheels to: $folder"
+
+          mkdir -p ~/.ssh/
+          echo "$PASS" > ~/.ssh/private.key
+          chmod 600 ~/.ssh/private.key
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" dist/*.whl "$USER@$HOST:/pyopenms/${folder}/"

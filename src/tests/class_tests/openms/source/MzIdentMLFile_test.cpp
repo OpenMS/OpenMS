@@ -54,6 +54,12 @@ START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentifi
   TEST_EQUAL(protein_ids[0].getHits().size(),2)
   TEST_EQUAL(protein_ids[1].getHits().size(),1)
   TEST_EQUAL(peptide_ids.size(),5)
+
+  // loading again into the same containers must replace, not accumulate
+  // (regression: the DOM handler only appends; load() now clears first, matching IdXMLFile::load)
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), protein_ids, peptide_ids);
+  TEST_EQUAL(protein_ids.size(),2)
+  TEST_EQUAL(peptide_ids.size(),5)
   TEST_EQUAL(peptide_ids[0].getHits().size(),1)
   TEST_EQUAL(peptide_ids[1].getHits().size(),1)
   TEST_EQUAL(peptide_ids[2].getHits().size(),1)

@@ -102,7 +102,11 @@ namespace OpenMS
   {
     double numerator = (bin1.getBins()->cwiseProduct(*bin2.getBins())).norm();
     
-    if (dot_product != 0)
+    // dot_product <= 0 is the sentinel for "not supplied": recompute it.
+    // This covers the documented/default sentinel -1 as well as the legacy
+    // 0 value (which would otherwise divide by zero). A real dot product is
+    // non-negative, so only these degenerate sentinels take the recompute path.
+    if (dot_product > 0)
     {
       return (double)numerator / dot_product;
     }
