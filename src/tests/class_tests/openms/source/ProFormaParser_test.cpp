@@ -1646,6 +1646,10 @@ START_SECTION([EXTRA] QPX/Parquet lane peptidoform round-trip preserves modifica
     TEST_EQUAL(result.toUnmodifiedString(), orig.toUnmodifiedString())
     TEST_EQUAL(result.size(), orig.size())
 
+    // monoisotopic mass must match -- catches a modification being dropped or changed
+    // to a different mass, which the per-position isModified() check below would miss
+    TEST_REAL_SIMILAR(result.getMonoWeight(), orig.getMonoWeight())
+
     // every residue that was modified must remain modified at the same position
     if (result.size() == orig.size())
     {
