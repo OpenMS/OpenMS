@@ -535,6 +535,7 @@ namespace OpenMS
       it->setHigherScoreBetter(false);
       const vector<ProteinHit>& old_hits = it->getHits();
       vector<ProteinHit> new_hits;
+      new_hits.reserve(old_hits.size());
       for (auto hit : old_hits) // NOTE: performs copy
       {
         // Add decoy proteins only if add_decoy_proteins is set
