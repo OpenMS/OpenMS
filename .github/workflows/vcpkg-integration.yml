@@ -31,10 +31,16 @@ jobs:
               uses: lukka/run-vcpkg@v11
               id: runvcpkg
 
+            - name: Override binary cache backedn
+              run: |
+                mkdir -p  "$HOME/.cache/vcpkg/archives"
+                echo "VCPKG_BINARY_SOURCES=clear;files,$HOME/.cache/vcpkg/archives,readwrite" >> $GITHUB_ENV
             - name: Print vcpkg info
               run: |
                 echo "VCPKG_ROOT=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}"
                 echo "TRIPLET=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}"
+                echo "HOME=$HOME"
+                echo "VCPKG_BINARY_SOURCES=$VCPKG_BINARY_SOURCES"
             
             - name: Configure OpenMS
               run: |
@@ -49,15 +55,23 @@ jobs:
             - name: Inspect vcpkg cache archives
               if: always()
               run: |
+                echo "VCPKG_BINARY_SOURCES=$VCPKG_BINARY_SOURCES"
+
+                echo
                 echo "Total files: "
-                find ~/.cache/vcpkg/archives -name "*.zip" | wc -l || true
+                find "$HOME/.cache/vcpkg/archives" -name "*.zip" | wc -l || true
 
+                echo
                 echo "Total size: "
-                du -sh ~/.cache/vcpkg/archives || true
+                du -sh "$HOME/.cache/vcpkg/archives" || true
 
-            - name: Upload cache artifacts
-              if: always()
-              uses: actions/upload-artifact@v7
-              with:
-                name: vcpkg-cache
-                path: ~/.cache/vcpkg/archives
+                echo
+                echo "Some files"
+                find "$HOME/.cache/vcpkg/archives" -name "*.zip" | head -20 || true
+
+            # - name: Upload cache artifacts
+            #   if: always()
+            #   uses: actions/upload-artifact@v7
+            #   with:
+            #     name: vcpkg-cache
+            #     path: ~/.cache/vcpkg/archives
