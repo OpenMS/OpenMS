@@ -554,14 +554,21 @@ jobs:
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
           PORT: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          # Pass interpolations through env (GITHUB_REF/GITHUB_REF_NAME are runner
+          # built-ins) so they are never expanded into the shell script directly.
+          PYOPENMS_VERSION: ${{ needs.setup.outputs.pyopenms-version }}
         run: |
-          # Pick destination folder mirroring the OpenMSInstaller/Documentation layout
-          if [[ "${{ github.ref }}" == refs/tags/Release* ]]; then
-            folder="release/${{ needs.setup.outputs.pyopenms-version }}"
-          elif [[ "${{ github.ref_name }}" == "nightly" ]]; then
+          # Pick destination folder mirroring the OpenMSInstaller/Documentation layout.
+          # Sanitize externally-influenced values with a strict whitelist before
+          # using them in a path (branch/tag names may contain shell metacharacters).
+          sanitize() { printf '%s' "${1//[^a-zA-Z0-9._-]/_}"; }
+
+          if [[ "$GITHUB_REF" == refs/tags/Release* ]]; then
+            folder="release/$(sanitize "$PYOPENMS_VERSION")"
+          elif [[ "$GITHUB_REF_NAME" == "nightly" ]]; then
             folder=nightly
           else
-            folder="experimental/${{ github.ref_name }}"
+            folder="experimental/$(sanitize "$GITHUB_REF_NAME")"
           fi
           echo "Uploading wheels to: $folder"
 
