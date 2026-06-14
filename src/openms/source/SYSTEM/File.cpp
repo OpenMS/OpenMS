@@ -762,23 +762,23 @@ namespace OpenMS
     return home_path;
   }
 
-  Param File::getSystemParameters()
+  std::string File::getOpenMSConfigDir()
   {
-    std::string home_path = File::getOpenMSHomePath();
-    std::string filename;
-    //Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems
+    // Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems
     #ifdef __unix__
       if (getenv("XDG_CONFIG_HOME"))
       {
-        filename =std::string(getenv("XDG_CONFIG_HOME")) + "/OpenMS/OpenMS.ini";
+        return std::string(getenv("XDG_CONFIG_HOME")) + "/OpenMS";
       }
-      else
-      {
-        filename = File::getOpenMSHomePath() + "/.config/OpenMS/OpenMS.ini";
-      }
+      return File::getOpenMSHomePath() + "/.config/OpenMS";
     #else
-      filename = home_path + "/.OpenMS/OpenMS.ini";
+      return File::getOpenMSHomePath() + "/.OpenMS";
     #endif
+  }
+
+  Param File::getSystemParameters()
+  {
+    std::string filename = File::getOpenMSConfigDir() + "/OpenMS.ini";
 
     Param p;
     if (!File::readable(filename)) // no file, lets keep it that way

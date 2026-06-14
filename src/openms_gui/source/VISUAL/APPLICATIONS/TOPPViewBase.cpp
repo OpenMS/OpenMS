@@ -405,14 +405,15 @@ namespace OpenMS
     // set current path
     current_path_ = param_.getValue(user_section + "default_path").toString();
 
-    // set plugin search path, create it if it does not already exist
-    if (verbosity_ == VERBOSITY::VERBOSE) 
+    // remember the plugin search path; the directory is created lazily on first use
+    // (when plugins are actually scanned) instead of eagerly here at startup
+    if (verbosity_ == VERBOSITY::VERBOSE)
     {
       tool_scanner_.setVerbose(1);
     }
 
     std::string plugin_path =std::string(param_.getValue(user_section + "plugins_path").toString());
-    tool_scanner_.setPluginPath(plugin_path, true);
+    tool_scanner_.setPluginPath(plugin_path, false);
 
     // update the menu
     updateMenu();
@@ -442,7 +443,7 @@ namespace OpenMS
     defaults_.setValue(user_section + "default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue(user_section + "default_path_current", "true", "If the current path is preferred over the default path.");
     defaults_.setValidStrings(user_section + "default_path_current", {"true","false"});
-    defaults_.setValue(user_section + "plugins_path", File::getUserDirectory() + "OpenMS_Plugins", "Default path for loading Plugins");
+    defaults_.setValue(user_section + "plugins_path", File::getOpenMSConfigDir() + "/plugins", "Default path for loading Plugins");
     defaults_.setValue(user_section + "intensity_cutoff", "off", "Low intensity cutoff for maps.");
     defaults_.setValidStrings(user_section + "intensity_cutoff", {"on","off"});
     defaults_.setValue(user_section + "on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
@@ -1550,12 +1551,8 @@ namespace OpenMS
           param_.insert("tool_params:", tmp.copy("tool_params:", true));
           tool_params_added = true;
         }
-        // If the saved plugin path does not exist
-        if (!tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString()))
-        {
-          // reset it to the default
-          param_.setValue(user_section + "plugins_path", File::getUserDirectory() + "OpenMS_Plugins");
-        }
+        // remember the saved plugin path (the directory is created lazily on first use)
+        tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString());
       }
     }
     else if (filename != default_ini_file)
@@ -1588,12 +1585,8 @@ namespace OpenMS
       tool_scanner_.waitForToolParams();
       param_.insert("tool_params:", tool_scanner_.getToolParams());
     }
-    // check if the plugin path exists
-    if (!tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString()))
-    {
-      // reset if it does not
-      param_.setValue(user_section + "plugins_path", tool_scanner_.getPluginPath());
-    }
+    // remember the plugin path (the directory is created lazily on first use)
+    tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString());
 
     // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
     try

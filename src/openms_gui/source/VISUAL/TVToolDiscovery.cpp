@@ -46,6 +46,12 @@ namespace OpenMS
   {
     plugin_param_futures_.clear();
     plugins_.clear();
+    // Create the plugin directory lazily, the first time plugins are actually requested
+    // (e.g. when the user opens the tool/plugin dialog), rather than eagerly at startup.
+    if (!plugin_path_.empty() && !File::exists(plugin_path_))
+    {
+      setPluginPath(plugin_path_, true);
+    }
     const auto &plugins = getPlugins_();
     for (auto& plugin : plugins)
     {
@@ -212,24 +218,15 @@ namespace OpenMS
 
   bool TVToolDiscovery::setPluginPath(const std::string& plugin_path, bool create)
   {
-    if (!File::exists(plugin_path))
+    // Only physically create the directory when explicitly requested. The configured path is
+    // always remembered: plugin discovery tolerates a missing directory (it simply finds no
+    // plugins), so there is no need to create an empty folder for users who never use plugins.
+    if (create && !File::exists(plugin_path))
     {
-      if (create)
+      // mkpath also creates intermediate directories (e.g. a not-yet-existing config dir)
+      if (!QDir().mkpath(toQString(plugin_path)))
       {
-        QDir path = QDir(toQString(plugin_path));
-        QString dir = path.dirName();
-        path.cdUp();
-
-        if (!path.mkdir(dir))
-        {
-          OPENMS_LOG_WARN << "Unable to create plugin directory " << plugin_path << std::endl;
-          //plugin_path_ = plugin_path;
-          return false;
-        }
-      }
-      else
-      {
-        OPENMS_LOG_WARN << "Unable to set plugin directory: " << plugin_path << " does not exist." << std::endl;
+        OPENMS_LOG_WARN << "Unable to create plugin directory " << plugin_path << std::endl;
         return false;
       }
     }

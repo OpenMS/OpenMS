@@ -77,9 +77,14 @@ namespace OpenMS
 
     /**
      * @brief Sets the path that will be searched for Plugins
+     *
+     * The configured path is always remembered, even if it does not exist on disk: plugin
+     * discovery tolerates a missing directory. The directory is only physically created when
+     * @p create is true, so users who never use plugins do not get an empty folder created.
+     *
      * @param[in] path The new path to set
-     * @param[in] create Attempt to create the directory if it does not already exist
-     * @returns False if setting/creating the path fails. True otherwise.
+     * @param[in] create Create the directory (including parents) if it does not already exist
+     * @returns False only if @p create is true and creating the directory failed. True otherwise.
      */
     [[maybe_unused]] bool setPluginPath(const std::string& path, bool create=false);
 

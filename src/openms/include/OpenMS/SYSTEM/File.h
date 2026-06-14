@@ -228,6 +228,12 @@ public:
     /// Returns the OpenMS home path (environment variable overwrites the default home path)
     static std::string getOpenMSHomePath();
 
+    /// Returns the per-user OpenMS configuration directory (the directory that holds OpenMS.ini).
+    /// Follows the XDG base directory specification on unix-like systems
+    /// (&lt;XDG_CONFIG_HOME&gt;/OpenMS or &lt;home&gt;/.config/OpenMS) and uses &lt;home&gt;/.OpenMS otherwise.
+    /// The returned path has no trailing separator and the directory is not guaranteed to exist.
+    static std::string getOpenMSConfigDir();
+
     /// The current OpenMS temporary data path (for temporary files).
     /// Looks up the following locations, taking the first one which is non-null:
     ///   - environment variable OPENMS_TMPDIR
