@@ -280,4 +280,30 @@ START_SECTION(([EXTRA] multi_rank_round_trips))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] exportToParquet rejects duplicate ProteinIdentification identifiers))
+{
+  // XML-lane parity (Fix #2b): the store-side checkUniqueIdentifiers guard lives in
+  // PSMArrowIO.cpp, but -- unlike FeatureMapArrowIO_test / ConsensusMapArrowIO_test -- the
+  // PSM lane had no unit test pinning it. A second ProteinIdentification colliding on the
+  // same run identifier must be rejected before anything is written.
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  buildMinimalIds(prot_ids, pep_ids);   // one ProteinIdentification with identifier "run_1"
+
+  ProteinIdentification dup;
+  dup.setIdentifier("run_1");           // duplicate run identifier
+  prot_ids.push_back(dup);
+
+  std::string dir;
+  NEW_TMP_FILE(dir)
+  dir += ".idparquet";
+
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 PSMArrowIO::exportToParquet(prot_ids, pep_ids, dir))
+
+  // clean up if a regression let the export run instead of throwing
+  if (File::exists(dir)) { File::removeDirRecursively(dir); }
+}
+END_SECTION
+
 END_TEST
