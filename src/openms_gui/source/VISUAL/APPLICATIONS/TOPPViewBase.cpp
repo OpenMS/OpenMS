@@ -443,7 +443,7 @@ namespace OpenMS
     defaults_.setValue(user_section + "default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue(user_section + "default_path_current", "true", "If the current path is preferred over the default path.");
     defaults_.setValidStrings(user_section + "default_path_current", {"true","false"});
-    defaults_.setValue(user_section + "plugins_path", File::getOpenMSConfigDir() + "/plugins", "Default path for loading Plugins");
+    defaults_.setValue(user_section + "plugins_path", File::getOpenMSDataHome() + "/plugins", "Default path for loading Plugins");
     defaults_.setValue(user_section + "intensity_cutoff", "off", "Low intensity cutoff for maps.");
     defaults_.setValidStrings(user_section + "intensity_cutoff", {"on","off"});
     defaults_.setValue(user_section + "on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");

@@ -776,6 +776,21 @@ namespace OpenMS
     #endif
   }
 
+  std::string File::getOpenMSDataHome()
+  {
+    // Per-user data directory (for user-provided application data such as plugins).
+    // Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems
+    #ifdef __unix__
+      if (getenv("XDG_DATA_HOME"))
+      {
+        return std::string(getenv("XDG_DATA_HOME")) + "/OpenMS";
+      }
+      return File::getOpenMSHomePath() + "/.local/share/OpenMS";
+    #else
+      return File::getOpenMSHomePath() + "/.OpenMS";
+    #endif
+  }
+
   Param File::getSystemParameters()
   {
     std::string filename = File::getOpenMSConfigDir() + "/OpenMS.ini";
