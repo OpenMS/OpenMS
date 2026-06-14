@@ -45,14 +45,29 @@ namespace OpenMS
     void setOptions(const PeakFileOptions &);
 
     /**
-      @brief Load a file 
+      @brief Load a file
 
       Tries to parse the file, success needs to be checked with the return value.
+
+      @note The return value only distinguishes a successfully parsed indexed mzML
+      from a file that exists but is @b not a valid/indexed mzML (in which case @c false
+      is returned and @p exp is left empty/invalid). It does @b not signal every error:
+      a missing or unreadable file still throws Exception::FileNotFound /
+      Exception::FileNotReadable / Exception::IOException, and a corrupt
+      @c indexListOffset throws Exception::ConversionError (both raised while reading the
+      index footer, before any value is returned). This differs from the sibling file
+      classes (MzMLFile, MzDataFile, MzXMLFile) whose load() returns @c void and reports
+      all failures via exceptions.
 
       @param[out] filename Filename determines where the file is located
       @param[out] exp Object which will contain the data after the call
 
-      @return Indicates whether parsing was successful (if it is false, the file most likely was not an mzML or not indexed).
+      @return Indicates whether parsing was successful (if it is false, the file exists but
+              most likely was not an mzML or not indexed); the return value must be checked.
+
+      @throws Exception::FileNotFound if @p filename does not exist.
+      @throws Exception::FileNotReadable if @p filename cannot be read.
+      @throws Exception::ConversionError if the index footer (indexListOffset) is corrupt.
     */
     bool load(const std::string& filename, OnDiscPeakMap& exp);
 
