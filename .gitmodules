@@ -5,9 +5,6 @@
 	path = THIRDPARTY
 	url = https://github.com/OpenMS/THIRDPARTY
 	shallow = true
-[submodule "openms-ci-artefacts"]
-	path = openms-ci-artefacts
-	url = "https://github.com/castorNova2/openms-ci-artefacts"
 [submodule "src/pyOpenMS/pyopenms-docs"]
 	path = src/pyOpenMS/pyopenms-docs
 	url = https://github.com/OpenMS/pyopenms-docs.git
