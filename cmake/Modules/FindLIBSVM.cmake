@@ -52,38 +52,37 @@ if(TARGET unofficial::libsvm::libsvm)
   set(LIBSVM_INCLUDE_DIRS ${LIBSVM_INCLUDE_DIR})
 endif()
 # set LIBSVM_INCLUDE_DIR
-find_path(LIBSVM_INCLUDE_DIR NAMES svm.h PATH_SUFFIXES libsvm libsvm-3.1/libsvm DOC "LibSVM include directory")
+find_path (LIBSVM_INCLUDE_DIR NAMES svm.h PATH_SUFFIXES libsvm libsvm-3.1/libsvm DOC "LibSVM include directory" )
 
 # set LIBSVM_INCLUDE_DIRS
-if(NOT LIBSVM_INCLUDE_DIRS)
-  set(LIBSVM_INCLUDE_DIRS ${LIBSVM_INCLUDE_DIR})
-endif()
+if (NOT LIBSVM_INCLUDE_DIRS)
+  set (LIBSVM_INCLUDE_DIRS ${LIBSVM_INCLUDE_DIR})
+endif ()
 
 # extract version
-set(LIBSVM_MAJOR_VERSION 0)
-set(LIBSVM_MINOR_VERSION 0)
-set(LIBSVM_SUBMINOR_VERSION 0)
-if(LIBSVM_INCLUDE_DIR)
+set (LIBSVM_MAJOR_VERSION 0)
+set (LIBSVM_MINOR_VERSION 0)
+set (LIBSVM_SUBMINOR_VERSION 0)
+if (LIBSVM_INCLUDE_DIR)
   # LIBSVM_VERSION macro defined in svm.h since version 2.8.9
-  file(STRINGS "${LIBSVM_INCLUDE_DIR}/svm.h" _VERSION_STRING REGEX ".*LIBSVM_VERSION.*")
-  if(_VERSION_STRING)
-    string(REGEX REPLACE ".*_VERSION[ ]+([0-9]+)" "\\1" _VERSION_NUMBER "${_VERSION_STRING}")
-    math(EXPR LIBSVM_MAJOR_VERSION "${_VERSION_NUMBER} / 100")
-    math(EXPR LIBSVM_MINOR_VERSION "(${_VERSION_NUMBER} % 100 ) / 10")
-    math(EXPR LIBSVM_SUBMINOR_VERSION "${_VERSION_NUMBER} % 10")
-  endif()
-endif()
-set(LIBSVM_VERSION "${LIBSVM_MAJOR_VERSION}.${LIBSVM_MINOR_VERSION}.${LIBSVM_SUBMINOR_VERSION}")
+  file (STRINGS "${LIBSVM_INCLUDE_DIR}/svm.h" _VERSION_STRING REGEX ".*LIBSVM_VERSION.*")
+  if (_VERSION_STRING)
+    string (REGEX REPLACE ".*_VERSION[ ]+([0-9]+)" "\\1" _VERSION_NUMBER "${_VERSION_STRING}")
+    math (EXPR LIBSVM_MAJOR_VERSION "${_VERSION_NUMBER} / 100")
+    math (EXPR LIBSVM_MINOR_VERSION "(${_VERSION_NUMBER} % 100 ) / 10")
+    math (EXPR LIBSVM_SUBMINOR_VERSION "${_VERSION_NUMBER} % 10")
+  endif ()
+endif ()
+set (LIBSVM_VERSION "${LIBSVM_MAJOR_VERSION}.${LIBSVM_MINOR_VERSION}.${LIBSVM_SUBMINOR_VERSION}")
 
 # find LIBSVM_LIBRARY
-find_library(LIBSVM_LIBRARY_RELEASE NAMES svm libsvm DOC "LibSVM library location")
-find_library(LIBSVM_LIBRARY_DEBUG NAMES svmd libsvmd DOC "LibSVM library location")
+find_library (LIBSVM_LIBRARY_RELEASE NAMES svm libsvm DOC "LibSVM library location" )
+find_library (LIBSVM_LIBRARY_DEBUG NAMES svmd libsvmd DOC "LibSVM library location" )
 
 include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
 select_library_configurations(LIBSVM)
 
 if(TARGET unofficial::libsvm::libsvm)
-
   if(NOT TARGET LibSVM::LibSVM)
     add_library(LibSVM::LibSVM INTERFACE IMPORTED GLOBAL)
 
@@ -108,11 +107,11 @@ elseif(NOT TARGET LibSVM::LibSVM)
   set_property(TARGET LibSVM::LibSVM PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${LIBSVM_INCLUDE_DIR}")
 endif()
 
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(LIBSVM
-  REQUIRED_VARS LIBSVM_LIBRARIES LIBSVM_INCLUDE_DIRS
-  VERSION_VAR LIBSVM_VERSION)
-mark_as_advanced(
+include (FindPackageHandleStandardArgs)
+find_package_handle_standard_args (LIBSVM
+                                  REQUIRED_VARS LIBSVM_LIBRARIES LIBSVM_INCLUDE_DIRS
+                                  VERSION_VAR LIBSVM_VERSION)
+mark_as_advanced (
   LIBSVM_LIBRARIES
   LIBSVM_INCLUDE_DIR
   LIBSVM_INCLUDE_DIRS
