@@ -4,9 +4,9 @@ set -e
 
 VCPKG_CACHE_DIR="$HOME/.cache/vcpkg/archives"
 TRIPLET="x64-linux"
-BASELINE=$(jq -r '.["builtin-baseline"]' ../vcpkg.json)
+BASELINE=$(jq -r '.["default-registry"].baseline' vcpkg-configuration.json)
 RELEASE_TAG="vcpkg-cache-${TRIPLET}-${BASELINE:0:10}"
-REPO="https://github.com/castorNova2/openms-ci-artefacts"
+REPO="castorNova2/openms-ci-artefacts"
 
 if ! gh release view "$RELEASE_TAG" --repo "$REPO" &>/dev/null; then
     gh release create "$RELEASE_TAG" \
