@@ -41,6 +41,11 @@ jobs:
                 echo "TRIPLET=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}"
                 echo "HOME=$HOME"
                 echo "VCPKG_BINARY_SOURCES=$VCPKG_BINARY_SOURCES"
+
+            - name: Runner info
+              run: |
+                echo "CPU: $(nproc)"
+                free -h
             
             - name: Configure OpenMS
               run: |
@@ -50,7 +55,7 @@ jobs:
 
             - name: Build OpenMS
               run: |
-                cmake --build --preset linux-release --parallel 2
+                cmake --build --preset linux-release --parallel ${nproc}
 
             - name: Inspect vcpkg cache archives
               if: always()
