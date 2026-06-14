@@ -49,7 +49,7 @@ runs:
         if (-not $NPROC) { $NPROC = 4 }
         $env:CMAKE_BUILD_PARALLEL_LEVEL = $NPROC
         Set-Location "${{ github.workspace }}\contrib\build"
-        cmake -G"Visual Studio 17 2022" -Ax64 -DBUILD_TYPE=ALL "${{ github.workspace }}\contrib"
+        cmake -G"Visual Studio 18 2026" -Ax64 -DBUILD_TYPE=ALL "${{ github.workspace }}\contrib"
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     - name: Add THIRDPARTY
