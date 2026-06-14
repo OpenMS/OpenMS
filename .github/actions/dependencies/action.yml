@@ -49,14 +49,7 @@ runs:
         if (-not $NPROC) { $NPROC = 4 }
         $env:CMAKE_BUILD_PARALLEL_LEVEL = $NPROC
         Set-Location "${{ github.workspace }}\contrib\build"
-        # Do not pin the VS generator: let CMake pick the default (newest installed)
-        # Visual Studio so the contrib build follows the runner image's VS version
-        # (the windows-2025 image moved from VS 2022 to VS 2026, which broke the
-        # hardcoded "Visual Studio 17 2022" generator). -Ax64 still selects x64.
-        # contrib guards its generator to VS {14..17}; VS 2026 (18) isn't in that
-        # list yet, so pass OVERRIDE_GENERATOR=On -- safe because the chosen
-        # generator (VS 2026) matches the MSVC toolchain (no generator/toolchain mismatch).
-        cmake -Ax64 -DBUILD_TYPE=ALL -DOVERRIDE_GENERATOR=On "${{ github.workspace }}\contrib"
+        cmake -G"Visual Studio 17 2022" -Ax64 -DBUILD_TYPE=ALL "${{ github.workspace }}\contrib"
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     - name: Add THIRDPARTY

@@ -43,7 +43,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2025
+          - os: windows-2022
+            # Pinned to the VS2022 image: the windows-2025 image moved to VS2026, which the
+            # contrib build's CMake generator guard (VS {14..17}) rejects even with
+            # OVERRIDE_GENERATOR. Move back to windows-2025 once contrib supports VS2026
+            # (and bump the msvc2022 Qt arch below to match).
             # cl.exe is currently the only supported. Needs a VS shell to be set up (especially if used without VS CMake Generator)
             # clang.exe is also installed but untested (might crash with our VS specific compiler definitions)
             # clang-cl.exe might be used instead.
