@@ -73,7 +73,6 @@ namespace OpenMS
   Param TVToolDiscovery::getParamFromIni_(const std::string& tool_path)
   {
     static std::mutex io_mutex;
-    FileHandler fh;
     // Temporary file path and arguments
     std::string path = File::getTemporaryFile();
     std::string working_dir = StringUtils::prefix(path, path.find_last_of('/'));
