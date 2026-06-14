@@ -43,7 +43,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2025
+          # Pinned to windows-2022 because the windows-2025 image now ships Visual Studio 2026 (v18),
+          # which drops VS 2022 (v17). Our contrib build hardcodes the "Visual Studio 17 2022" CMake
+          # generator and the toolset/Qt below target VS 2022, so windows-2025 fails at configure time
+          # with "could not find any instance of Visual Studio". Revisit when migrating to VS 2026.
+          - os: windows-2022
             # cl.exe is currently the only supported. Needs a VS shell to be set up (especially if used without VS CMake Generator)
             # clang.exe is also installed but untested (might crash with our VS specific compiler definitions)
             # clang-cl.exe might be used instead.
