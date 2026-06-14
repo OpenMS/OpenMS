@@ -16,14 +16,14 @@ gh release download "$RELEASE_TAG" \
     --dir "$TMP_DIR" \
     --clobber
 
-+shopt -s nullglob
+shopt -s nullglob
 for f in "$TMP_DIR"/*.zip; do
     filename=$(basename "$f")     
     prefix="${filename:0:2}"     
     mkdir -p "$CACHE_DIR/$prefix"
     mv "$f" "$CACHE_DIR/$prefix/$filename"
 done
-+shopt -s nullglob
+shopt -s nullglob
 
 rm -rf "$TMP_DIR"
 
