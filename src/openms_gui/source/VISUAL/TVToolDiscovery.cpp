@@ -84,8 +84,8 @@ namespace OpenMS
     try
     {
       std::scoped_lock lock(io_mutex);
-      // Is an executable already or has a sibling Executable
-      executable = File::exists(tool_path) ? tool_path : File::findSiblingTOPPExecutable(tool_path);
+      // tool_path is a TOPP tool name; locate the sibling executable next to the running binary
+      executable = File::findSiblingTOPPExecutable(tool_path);
     }
     catch (const Exception::FileNotFound& e)
     {

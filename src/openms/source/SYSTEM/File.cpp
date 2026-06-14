@@ -764,15 +764,16 @@ namespace OpenMS
 
   std::string File::getOpenMSConfigDir()
   {
-    // Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems
-    #ifdef OPENMS_WINDOWSPLATFORM
-      return File::getOpenMSHomePath() + "/.OpenMS";
-    #else
+    // Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems.
+    // This is the single source of truth for the per-user config dir (OpenMS.ini, update-check .ver files, ...).
+    #ifdef __unix__
       if (getenv("XDG_CONFIG_HOME"))
       {
         return std::string(getenv("XDG_CONFIG_HOME")) + "/OpenMS";
       }
       return File::getOpenMSHomePath() + "/.config/OpenMS";
+    #else
+      return File::getOpenMSHomePath() + "/.OpenMS";
     #endif
   }
 
