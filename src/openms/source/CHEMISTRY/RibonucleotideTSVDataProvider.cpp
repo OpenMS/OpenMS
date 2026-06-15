@@ -106,6 +106,15 @@ namespace OpenMS
             std::string msg = "10th field expected for ambiguous modification in line " + StringUtils::toStr(line_count);
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, row, msg);
           }
+          // the 10th field must hold two space-separated alternative codes; without the
+          // space the entry is malformed. Guard explicitly: StringUtils::prefix/suffix no
+          // longer throw on a missing ' ', so an unguarded split would silently set both
+          // alternatives to the same single value instead of skipping the bad row.
+          if (parts[9].find(' ') == std::string::npos)
+          {
+            std::string msg = "two space-separated alternative codes expected in 10th field for ambiguous modification in line " + StringUtils::toStr(line_count);
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, row, msg);
+          }
           std::string code1 = StringUtils::prefix(parts[9], ' '), code2 = StringUtils::suffix(parts[9], ' ');
           entry.alternative_code_1 = code1;
           entry.alternative_code_2 = code2;
