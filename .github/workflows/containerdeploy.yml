@@ -36,30 +36,28 @@ jobs:
           sudo rm -rf "/opt/ghc"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           df -h
-      - name: Extract branch name
-        shell: bash
-        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
-        id: extract_branch
       - name: Define tag name
         shell: bash
         # Pass externally-influenced values through env so they are never
         # expanded into the shell script directly (avoids script injection).
         env:
           INPUT_TAG: ${{ github.event.inputs.tag }}
-          REF_BRANCH: ${{ steps.extract_branch.outputs.branch }}
+          REF: ${{ github.ref }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
             if [[ -n "$INPUT_TAG" ]]; then
               ## Manual run: publish under the user-provided name
               TAG="$INPUT_TAG"
-            else
-              BRANCH="$REF_BRANCH"
+            elif [[ "$REF" == refs/tags/* ]]; then
+              ## Release tag (e.g. Release3.6.0 or Release/3.6.0) -> 3.6.0
+              TAG="${REF_NAME#Release}"
+              TAG="${TAG#/}"
+            elif [[ "$REF_NAME" == "develop" || "$REF_NAME" == "nightly" || "$REF_NAME" == "feat/singularity" ]]; then
               ## use latest to follow docker conventions
-              if [[ "$BRANCH" == "develop" || "$BRANCH" == "nightly" || "$BRANCH" == "feat/singularity" ]]
-              then
-                BRANCH="latest"
-              fi
+              TAG="latest"
+            else
               ## Remove release/ from release branch name (or keep the non-release name)
-              TAG="${BRANCH#release/}"
+              TAG="${REF_NAME#release/}"
             fi
             ## Docker/OCI tags may not contain '/' and have a limited charset
             TAG="${TAG//[^a-zA-Z0-9._-]/_}"
