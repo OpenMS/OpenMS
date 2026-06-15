@@ -79,6 +79,21 @@ def testSpectrumNativeIDParser():
         "MS:1000768"
     ) == 200
 
+    # Test Bruker timsTOF .d (TDF) native IDs: "frame=<F> scan=<S> [precursor=...]" (MS:1002818).
+    # The other parser cases above stop at scan=/MS:1000776 and never exercise frame=;
+    # these mirror the C++ SpectrumNativeIDParser_test "Bruker TDF frame=" section.
+    # isNativeID recognizes the frame= prefix
+    assert pyopenms.SpectrumNativeIDParser.isNativeID("frame=2 scan=529")
+    assert pyopenms.SpectrumNativeIDParser.isNativeID("frame=10 scan=42 precursor=3")
+    # getRegExFromNativeID targets the scan= token for the frame= format
+    assert pyopenms.SpectrumNativeIDParser.getRegExFromNativeID("frame=2 scan=529") == "scan=(?<GROUP>\\d+)"
+    assert pyopenms.SpectrumNativeIDParser.getRegExFromNativeID("frame=10 scan=42 precursor=3") == "scan=(?<GROUP>\\d+)"
+    # extractScanNumber via the Bruker TDF accession (MS:1002818) returns the scan= integer
+    assert pyopenms.SpectrumNativeIDParser.extractScanNumber("frame=2 scan=529", "MS:1002818") == 529
+    assert pyopenms.SpectrumNativeIDParser.extractScanNumber("frame=10 scan=42 precursor=3", "MS:1002818") == 42
+    # multiple scan= tokens (merged) return the last match
+    assert pyopenms.SpectrumNativeIDParser.extractScanNumber("frame=1 scan=5 frame=1 scan=9", "MS:1002818") == 9
+
     print("All SpectrumNativeIDParser tests passed!")
 
 
