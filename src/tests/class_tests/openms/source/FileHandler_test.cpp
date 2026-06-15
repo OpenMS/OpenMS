@@ -67,6 +67,7 @@ TEST_EQUAL(tmp.getTypeByFileName("test.peff"), FileTypes::PEFF)
 TEST_EQUAL(tmp.getTypeByFileName("test.EDTA"), FileTypes::EDTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.csv"), FileTypes::CSV)
 TEST_EQUAL(tmp.getTypeByFileName("test.txt"), FileTypes::TXT)
+TEST_EQUAL(tmp.getTypeByFileName("test.mzpeak"), FileTypes::MZPEAK)
 END_SECTION
 
 START_SECTION((static bool hasValidExtension(const String& filename, const FileTypes::Type type)))
@@ -104,6 +105,7 @@ START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FileHandler_toppas.toppas")), FileTypes::TOPPAS)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FileHandler_MGFbyContent1.mgf")), FileTypes::MGF) // detect via 'FORMAT=Mascot generic\n'
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FileHandler_MGFbyContent2.mgf")), FileTypes::MGF) // detect via 'BEGIN IONS\n'
+  TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("small.mzpeak")), FileTypes::MZPEAK) // ZIP archive containing mzpeak_index.json
 
   TEST_EXCEPTION(Exception::FileNotFound, tmp.getTypeByContent("/bli/bla/bluff"))
 END_SECTION

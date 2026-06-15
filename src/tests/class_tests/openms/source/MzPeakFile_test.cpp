@@ -11,6 +11,8 @@
 
 ///////////////////////////
 
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzPeakFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
@@ -226,6 +228,19 @@ START_SECTION(void load(const String& filename, MapType& map))
 
   // Run date parsed from the ISO start_time (2005-07-20T19:44:22Z).
   TEST_EQUAL(exp.getDateTime().isNull(), false)
+}
+END_SECTION
+
+START_SECTION([EXTRA] load via generic FileHandler API)
+{
+  // .mzpeak must resolve by extension and by content, and route to MzPeakFile.
+  TEST_EQUAL(FileHandler::getTypeByFileName("x.mzpeak") == FileTypes::MZPEAK, true)
+  TEST_EQUAL(FileHandler::getTypeByContent(OPENMS_GET_TEST_DATA_PATH("small.mzpeak")) == FileTypes::MZPEAK, true)
+
+  FileHandler fh;
+  MSExperiment exp;
+  fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("small.mzpeak"), exp);
+  TEST_EQUAL(exp.size(), 48)
 }
 END_SECTION
 

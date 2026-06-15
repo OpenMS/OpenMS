@@ -20,6 +20,7 @@
 #include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzPeakFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
@@ -386,6 +387,18 @@ namespace OpenMS
     }
     else if (bz[0] == 'P' && bz[1] == 'K' && bz[2] == 0x03 && bz[3] == 0x04) // ZIP local file header
     {
+      // .mzpeak: a ZIP archive that CONTAINS a member named "mzpeak_index.json".
+      // The first archive member is "spectra_data.parquet" (binary), so check
+      // membership of the index rather than the first-member content.
+      const std::vector<String> zip_entries = ZipArchiveFile::listEntries(filename);
+      for (const String& entry : zip_entries)
+      {
+        if (entry == "mzpeak_index.json")
+        {
+          return FileTypes::MZPEAK;
+        }
+      }
+
       ZipIfstream zip_file(filename.c_str());
 
       // read in 1024 bytes (keep last byte for zero to end string)
@@ -907,9 +920,15 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::SQMASS: 
+      case FileTypes::SQMASS:
       {
         SqMassFile().load(filename, exp);
+      }
+      break;
+
+      case FileTypes::MZPEAK:
+      {
+        MzPeakFile().load(filename, exp);
       }
       break;
 
