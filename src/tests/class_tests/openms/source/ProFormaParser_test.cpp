@@ -1543,6 +1543,51 @@ START_SECTION(toAASequence - BEST_EFFORT policy ignores unsupported)
 }
 END_SECTION
 
+START_SECTION([EXTRA] toAASequence - mass-delta mods without CV accession - lossy contract)
+{
+  // A mass-delta modification (e.g. M[+15.9949]) carries no UNIMOD/PSI-MOD
+  // accession. toAASequence resolves it by mass to the matching named
+  // modification when one exists (lossless), and otherwise drops it under
+  // BEST_EFFORT (lossy) or throws under FAIL_ON_LOSS. This pins that contract.
+
+  // (1) matchable side-chain mass delta -> resolved to Oxidation
+  {
+    Peptidoform pf = ProForma::parse("EM[+15.9949]K");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toUnmodifiedString(), "EMK")
+    TEST_EQUAL(seq.toString(), "EM(Oxidation)K")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("EM(Oxidation)K").getMonoWeight())
+  }
+
+  // (2) matchable mass delta on S -> Phospho
+  {
+    Peptidoform pf = ProForma::parse("PES[+79.96633]TIDE");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toString(), "PES(Phospho)TIDE")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PES(Phospho)TIDE").getMonoWeight())
+  }
+
+  // (3) matchable N-terminal mass delta -> Acetyl
+  {
+    Peptidoform pf = ProForma::parse("[+42.0106]-PEPTIDE");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toString(), ".(Acetyl)PEPTIDE")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("(Acetyl)PEPTIDE").getMonoWeight())
+  }
+
+  // (4) unmatchable mass delta: BEST_EFFORT drops it (lossy); FAIL_ON_LOSS throws
+  {
+    Peptidoform pf = ProForma::parse("PEM[+0.12345]TIDE");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toString(), "PEMTIDE")            // mass delta dropped
+    TEST_EQUAL(seq.toUnmodifiedString(), "PEMTIDE")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PEMTIDE").getMonoWeight())
+    TEST_EXCEPTION(Exception::ConversionError,
+                   ProForma::toAASequence(pf, ConversionPolicy::FAIL_ON_LOSS))
+  }
+}
+END_SECTION
+
 START_SECTION(fromAASequence - simple sequence)
 {
   // Create AASequence and convert to Peptidoform
