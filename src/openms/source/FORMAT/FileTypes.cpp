@@ -54,6 +54,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::TOPPAS, "toppas", "OpenMS TOPPAS pipeline", {PROP::READABLE}),
     TypeNameBinding(FileTypes::TRANSFORMATIONXML, "trafoXML", "RT transformation file", {PROP::PROVIDES_TRANSFORMATIONS, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::MZML, "mzML", "mzML raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::MZPEAK, "mzpeak", "mzPeak peak file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE}),
     //TODO: Add support for cachedMZML as a first class file type
     TypeNameBinding(FileTypes::CACHEDMZML, "cachedMzML", "cachedMzML raw data file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::MS2, "ms2", "ms2 file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE}),
