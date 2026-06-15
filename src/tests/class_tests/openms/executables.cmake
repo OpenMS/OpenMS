@@ -419,6 +419,7 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
+  AdductInfo_test
   CoarseIsotopeDistribution_test
   CrossLinksDB_test
   DecoyGenerator_test
