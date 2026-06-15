@@ -432,6 +432,7 @@ namespace OpenMS
   void TargetedExperiment::setCompounds(const std::vector<Compound> & compounds)
   {
     compounds_ = compounds;
+    compound_reference_map_dirty_ = true;
   }
 
   const std::vector<TargetedExperiment::Compound> & TargetedExperiment::getCompounds() const
@@ -442,6 +443,7 @@ namespace OpenMS
   void TargetedExperiment::addCompound(const Compound & rhs)
   {
     compounds_.push_back(rhs);
+    compound_reference_map_dirty_ = true;
   }
 
   void TargetedExperiment::setPeptides(const std::vector<Peptide> & peptides)
@@ -694,6 +696,7 @@ namespace OpenMS
 
   void TargetedExperiment::createProteinReferenceMap_() const
   {
+    protein_reference_map_.clear(); // drop stale pointers from a previous build
     for (Size i = 0; i < getProteins().size(); i++)
     {
       protein_reference_map_[getProteins()[i].id] = &getProteins()[i];
@@ -703,6 +706,7 @@ namespace OpenMS
 
   void TargetedExperiment::createPeptideReferenceMap_() const
   {
+    peptide_reference_map_.clear(); // drop stale pointers from a previous build
     for (Size i = 0; i < getPeptides().size(); i++)
     {
       peptide_reference_map_[getPeptides()[i].id] = &getPeptides()[i];
@@ -712,6 +716,7 @@ namespace OpenMS
 
   void TargetedExperiment::createCompoundReferenceMap_() const
   {
+    compound_reference_map_.clear(); // drop stale pointers from a previous build
     for (Size i = 0; i < getCompounds().size(); i++)
     {
       compound_reference_map_[getCompounds()[i].id] = &getCompounds()[i];
