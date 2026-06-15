@@ -6,6 +6,7 @@ set(sources_list
 IonImage.cpp
 MSImagingGeometry.cpp
 MSImagingExperiment.cpp
+MSImagingRegion.cpp
 )
 
 ### add path to the filenames

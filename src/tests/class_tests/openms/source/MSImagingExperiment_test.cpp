@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -11,12 +11,12 @@
 
 ///////////////////////////
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
+#include <OpenMS/IMAGING/MSImagingRegion.h>
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-
 #include <cmath>
 
 using namespace OpenMS;
@@ -24,36 +24,36 @@ using namespace std;
 
 namespace
 {
-  MSSpectrum makeSpec(std::initializer_list<std::pair<double, double>> peaks)
+MSSpectrum makeSpec(std::initializer_list<std::pair<double, double>> peaks)
+{
+  MSSpectrum s;
+  for (const auto& p : peaks)
   {
-    MSSpectrum s;
-    for (const auto& p : peaks)
-    {
-      s.emplace_back(p.first, p.second);
-    }
-    return s;
+    s.emplace_back(p.first, p.second);
   }
-
-  // 2x2 grid; pixel (1,1) intentionally missing.
-  MSImagingExperiment makeFixture()
-  {
-    MSExperiment exp;
-    exp.addSpectrum(makeSpec({{499.95, 10.0}, {500.05, 20.0}}));
-    exp.addSpectrum(makeSpec({{490.0, 5.0}}));
-    exp.addSpectrum(makeSpec({{500.0, 100.0}}));
-
-    MSImagingGeometry geom;
-    geom.setDimensions(2, 2);
-    geom.addPixel(0, 0, 0);
-    geom.addPixel(1, 0, 1);
-    geom.addPixel(0, 1, 2);
-
-    MSImagingExperiment mie;
-    mie.setMSExperiment(std::move(exp));
-    mie.setGeometry(std::move(geom));
-    return mie;
-  }
+  return s;
 }
+
+// 2x2 grid; pixel (1,1) intentionally missing.
+MSImagingExperiment makeFixture()
+{
+  MSExperiment exp;
+  exp.addSpectrum(makeSpec({{499.95, 10.0}, {500.05, 20.0}}));
+  exp.addSpectrum(makeSpec({{490.0, 5.0}}));
+  exp.addSpectrum(makeSpec({{500.0, 100.0}}));
+
+  MSImagingGeometry geom;
+  geom.setDimensions(2, 2);
+  geom.addPixel(0, 0, 0);
+  geom.addPixel(1, 0, 1);
+  geom.addPixel(0, 1, 2);
+
+  MSImagingExperiment mie;
+  mie.setMSExperiment(std::move(exp));
+  mie.setGeometry(std::move(geom));
+  return mie;
+}
+} // namespace
 
 START_TEST(MSImagingExperiment, "$Id$")
 
@@ -72,9 +72,7 @@ START_SECTION((MSImagingExperiment()))
 END_SECTION
 
 START_SECTION((~MSImagingExperiment()))
-{
-  delete ptr;
-}
+{ delete ptr; }
 END_SECTION
 
 START_SECTION((explicit MSImagingExperiment(MSExperiment exp)))
@@ -89,7 +87,7 @@ START_SECTION((explicit MSImagingExperiment(MSExperiment exp)))
 }
 END_SECTION
 
-START_SECTION((MSImagingExperiment& operator=(MSExperiment exp)))
+START_SECTION((MSImagingExperiment & operator=(MSExperiment exp)))
 {
   MSImagingExperiment mie = makeFixture();
   TEST_EQUAL(mie.getNumberOfSpectra(), 3u)
@@ -117,7 +115,7 @@ START_SECTION((void setMSExperiment(MSExperiment exp)))
 }
 END_SECTION
 
-START_SECTION((MSExperiment& getMSExperiment()))
+START_SECTION((MSExperiment & getMSExperiment()))
 {
   MSImagingExperiment mie;
   mie.getMSExperiment().addSpectrum(MSSpectrum());
@@ -125,13 +123,9 @@ START_SECTION((MSExperiment& getMSExperiment()))
 }
 END_SECTION
 
-START_SECTION((const MSExperiment& getMSExperiment() const))
-{
-  NOT_TESTABLE
-}
-END_SECTION
+START_SECTION((const MSExperiment& getMSExperiment() const)) {NOT_TESTABLE} END_SECTION
 
-START_SECTION((void setGeometry(MSImagingGeometry geom)))
+  START_SECTION((void setGeometry(MSImagingGeometry geom)))
 {
   MSImagingGeometry g;
   g.setDimensions(3, 2);
@@ -143,7 +137,7 @@ START_SECTION((void setGeometry(MSImagingGeometry geom)))
 }
 END_SECTION
 
-START_SECTION((MSImagingGeometry& getGeometry()))
+START_SECTION((MSImagingGeometry & getGeometry()))
 {
   MSImagingExperiment mie;
   mie.getGeometry().setDimensions(4, 4);
@@ -151,25 +145,13 @@ START_SECTION((MSImagingGeometry& getGeometry()))
 }
 END_SECTION
 
-START_SECTION((const MSImagingGeometry& getGeometry() const))
-{
-  NOT_TESTABLE
-}
-END_SECTION
+START_SECTION((const MSImagingGeometry& getGeometry() const)) {NOT_TESTABLE} END_SECTION
 
-START_SECTION((Size getNumberOfPixels() const))
-{
-  NOT_TESTABLE
-}
-END_SECTION
+  START_SECTION((Size getNumberOfPixels() const)) {NOT_TESTABLE} END_SECTION
 
-START_SECTION((Size getNumberOfSpectra() const))
-{
-  NOT_TESTABLE
-}
-END_SECTION
+  START_SECTION((Size getNumberOfSpectra() const)) {NOT_TESTABLE} END_SECTION
 
-START_SECTION((bool hasPixel(UInt x, UInt y) const))
+  START_SECTION((bool hasPixel(UInt x, UInt y) const))
 {
   MSImagingExperiment mie = makeFixture();
   TEST_EQUAL(mie.hasPixel(0, 0), true)
@@ -179,7 +161,7 @@ START_SECTION((bool hasPixel(UInt x, UInt y) const))
 }
 END_SECTION
 
-START_SECTION((MSSpectrum& getSpectrum(UInt x, UInt y)))
+START_SECTION((MSSpectrum & getSpectrum(UInt x, UInt y)))
 {
   MSImagingExperiment mie = makeFixture();
   TEST_EQUAL(mie.getSpectrum(0, 1).size(), 1u)
@@ -213,7 +195,7 @@ START_SECTION((IonImage extractIonImage(double mz, double tolerance_ppm) const))
   TEST_REAL_SIMILAR(img.getIntensity(0, 0), 30.0) // 10 + 20
 
   TEST_EQUAL(img.hasPixel(1, 0), true)
-  TEST_REAL_SIMILAR(img.getIntensity(1, 0), 0.0)  // 490 outside window
+  TEST_REAL_SIMILAR(img.getIntensity(1, 0), 0.0) // 490 outside window
 
   TEST_EQUAL(img.hasPixel(0, 1), true)
   TEST_REAL_SIMILAR(img.getIntensity(0, 1), 100.0)
@@ -258,5 +240,42 @@ START_SECTION((void validate() const))
 }
 END_SECTION
 
+START_SECTION((std::vector<Size> getRegionSpectrumIndices(Size region_id) const))
+{
+  MSImagingExperiment mie = makeFixture();
+  // region covering (0,0) and (0,1) -> spectrum indices 0 and 2
+  mie.getGeometry().addRegion(MSImagingRegion::rectangle(1, "col0", 0, 0, 0, 1));
+  auto spec = mie.getRegionSpectrumIndices(1);
+  TEST_EQUAL(spec.size(), 2u)
+  TEST_EQUAL(spec[0], 0u) // pixel (0,0) -> spectrum 0
+  TEST_EQUAL(spec[1], 2u) // pixel (0,1) -> spectrum 2
+  TEST_EXCEPTION(Exception::ElementNotFound, mie.getRegionSpectrumIndices(99))
+}
+END_SECTION
+
+
+START_SECTION((IonImage extractIonImage(double mz, double tolerance_ppm, Size region_id) const))
+{
+  MSImagingExperiment mie = makeFixture();
+  mie.getGeometry().addRegion(MSImagingRegion::rectangle(1, "col0", 0, 0, 0, 1)); // (0,0) and (0,1) only
+  IonImage img = mie.extractIonImage(500.0, 200.0, 1);
+
+  // global dims preserved
+  TEST_EQUAL(img.getWidth(), 2u)
+  TEST_EQUAL(img.getHeight(), 2u)
+
+  // region pixels populated, same values as whole-image
+  TEST_EQUAL(img.hasPixel(0, 0), true)
+  TEST_REAL_SIMILAR(img.getIntensity(0, 0), 30.0)
+  TEST_EQUAL(img.hasPixel(0, 1), true)
+  TEST_REAL_SIMILAR(img.getIntensity(0, 1), 100.0)
+
+  // THE KEY ASSERT: (1,0) is acquired but OUTSIDE the region -> must stay masked/invalid
+  TEST_EQUAL(img.hasPixel(1, 0), false)
+
+  // unknown region id
+  TEST_EXCEPTION(Exception::ElementNotFound, mie.extractIonImage(500.0, 200.0, 99))
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 END_TEST

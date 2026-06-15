@@ -174,3 +174,82 @@ def test_ms_imaging_experiment_assignment_clears_geometry():
     mie2 = type(mie)(fresh)
     assert mie2.getNumberOfSpectra() == 1
     assert mie2.getNumberOfPixels() == 0
+
+def test_ms_imaging_region_rectangle():
+    from pyopenms import MSImagingRegion
+
+    r = MSImagingRegion.rectangle(7, "region", 1,2,4,7)
+    assert r.getId() == 7
+    assert r.getName() == "region"
+    assert r.getShape() == MSImagingRegion.Shape.Rectangle
+    assert r.getBBoxWidth() == 4
+    assert r.getBBoxHeight() == 6
+    assert r.area() == 24
+    assert r.contains(1,2) is True
+    assert r.contains(0,2) is False
+
+    mask = r.get_mask()
+    assert mask.shape == (6,4)
+    assert mask.dtype == np.uint8
+    assert mask.min() == 1  #check we have fully true values
+
+
+def test_ms_imaging_region_from_mask():
+    from pyopenms import MSImagingRegion
+
+    r = MSImagingRegion.fromMask(3, "m", 10, 20, 2, 2, [True, False, False, True])
+    assert r.getShape() == MSImagingRegion.Shape.Mask
+    assert r.area() == 2
+    assert r.contains(10, 20) is True
+    assert r.contains(11, 20) is False   # dropout bit
+
+    mask = r.get_mask()
+    assert mask.shape == (2, 2)
+    assert mask.dtype == np.uint8
+    assert mask[0, 0] == 1
+    assert mask[0, 1] == 0
+    assert mask[1, 1] == 1
+
+def test_ms_imaging_geometry_regions():
+    from pyopenms import MSImagingGeometry, MSImagingRegion
+
+    g = _make_fixture().getGeometry()
+    g.addRegion(MSImagingRegion.rectangle(1, "col_0", 0,0,0,1)) # cover column 0 of our data
+
+    assert g.getNumberOfRegions() == 1
+    assert g.regionOf(0,0) == 1
+    assert g.regionOf(1,0) == MSImagingGeometry.NO_REGION
+    assert g.regionOf(10,10) == MSImagingGeometry.NO_REGION
+
+    assert g.getRegion(1).getId() == 1
+    spec = g.getRegionSpectrumIndices(1)
+    assert list(spec) == [0,2]
+
+    with pytest.raises(Exception):
+        g.addRegion(MSImagingRegion.rectangle(1, "duplicate", 5,5,6,6))
+
+    with pytest.raises(Exception):
+        g.addRegion(MSImagingRegion.rectangle(1, "overlapping", 0,0,1,1))
+
+    g.removeRegion(1)
+    assert g.getNumberOfRegions() == 0
+    assert g.getNumberOfPixels() == 3
+
+def test_ms_imaging_experiment_extract_region():
+    from pyopenms import MSImagingRegion
+
+    mie = _make_fixture()
+    mie.getGeometry().addRegion(MSImagingRegion.rectangle(1, "col0", 0, 0, 0, 1))
+    img = mie.extractIonImage(500.0, 200.0, 1)   # region overload (3 args)
+
+    assert img.getWidth() == 2 and img.getHeight() == 2   # global dims
+    data = img.get_data()
+    assert data[0, 0] == pytest.approx(30.0)
+    assert data[1, 0] == pytest.approx(100.0)   # (0,1) in region
+
+    mask = img.get_mask()
+    assert mask[0, 0] == 1
+    assert mask[0, 1] == 0   # (1,0) acquired but OUTSIDE region -> masked
+
+    with pytest.raises(Exception):
+        mie.extractIonImage(500.0, 200.0, 99)   # unknown region id

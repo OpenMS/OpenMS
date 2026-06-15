@@ -655,6 +655,7 @@ set(imaging_executables_list
   IonImage_test
   MSImagingGeometry_test
   MSImagingExperiment_test
+  MSImagingRegion_test
 )
 
 if(NOT DISABLE_OPENSWATH)

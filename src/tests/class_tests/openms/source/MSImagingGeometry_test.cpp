@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -39,9 +39,7 @@ START_SECTION((MSImagingGeometry()))
 END_SECTION
 
 START_SECTION((~MSImagingGeometry()))
-{
-  delete ptr;
-}
+{ delete ptr; }
 END_SECTION
 
 START_SECTION((void setDimensions(UInt width, UInt height)))
@@ -117,17 +115,19 @@ START_SECTION((const std::vector<Pixel>& getPixels() const))
   g.addPixel(1, 1, 30);
   const auto& pixels = g.getPixels();
   TEST_EQUAL(pixels.size(), 3u)
-  TEST_EQUAL(pixels[0].x, 2u); TEST_EQUAL(pixels[0].y, 0u); TEST_EQUAL(pixels[0].spectrum_index, 10u)
-  TEST_EQUAL(pixels[1].x, 0u); TEST_EQUAL(pixels[1].y, 1u); TEST_EQUAL(pixels[1].spectrum_index, 20u)
-  TEST_EQUAL(pixels[2].x, 1u); TEST_EQUAL(pixels[2].y, 1u); TEST_EQUAL(pixels[2].spectrum_index, 30u)
+  TEST_EQUAL(pixels[0].x, 2u);
+  TEST_EQUAL(pixels[0].y, 0u);
+  TEST_EQUAL(pixels[0].spectrum_index, 10u)
+  TEST_EQUAL(pixels[1].x, 0u);
+  TEST_EQUAL(pixels[1].y, 1u);
+  TEST_EQUAL(pixels[1].spectrum_index, 20u)
+  TEST_EQUAL(pixels[2].x, 1u);
+  TEST_EQUAL(pixels[2].y, 1u);
+  TEST_EQUAL(pixels[2].spectrum_index, 30u)
 }
 END_SECTION
 
-START_SECTION((Size getNumberOfPixels() const))
-{
-  NOT_TESTABLE
-}
-END_SECTION
+START_SECTION((Size getNumberOfPixels() const)) {NOT_TESTABLE} END_SECTION
 
 START_SECTION((void clear()))
 {
@@ -146,33 +146,148 @@ START_SECTION((void clear()))
 }
 END_SECTION
 
-START_SECTION((UInt getWidth() const))
+START_SECTION((UInt getWidth() const)) {NOT_TESTABLE} END_SECTION
+
+  START_SECTION((UInt getHeight() const)) {NOT_TESTABLE} END_SECTION
+
+  START_SECTION((double getPixelSizeX() const)) {NOT_TESTABLE} END_SECTION
+
+  START_SECTION((double getPixelSizeY() const)) {NOT_TESTABLE} END_SECTION
+
+  START_SECTION((const String& getPixelSizeUnit() const)) {NOT_TESTABLE} END_SECTION
+
+  START_SECTION((addRegion()))
 {
-  NOT_TESTABLE
+  MSImagingGeometry g;
+  g.setDimensions(6, 6);
+  g.addPixel(0, 0, 1);
+  g.addPixel(1, 0, 2);
+  g.addPixel(5, 5, 3); // outside of region
+  g.addRegion(MSImagingRegion::rectangle(1, "name", 0, 0, 1, 0));
+  TEST_EQUAL(g.getNumberOfRegions(), 1u);
+
+  auto spec_idx = g.getRegionSpectrumIndices(1);
+  TEST_EQUAL(spec_idx.size(), 2u);
+  TEST_EQUAL(spec_idx[0], 1u);
+  TEST_EQUAL(spec_idx[1], 2u);
+
+  TEST_EXCEPTION(Exception::InvalidValue, g.addRegion(MSImagingRegion::rectangle(2, "collision", 0, 0, 10, 10)));
+  TEST_EQUAL(g.getNumberOfRegions(), 1u); // ensure region was not added
+
+  TEST_EXCEPTION(Exception::InvalidValue, g.addRegion(MSImagingRegion::rectangle(1, "dup", 5, 5, 6, 6))); // duplicate id
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 g.addRegion(MSImagingRegion::rectangle(MSImagingGeometry::NO_REGION, "bad id", 5, 5, 6, 6))); // do not set sentinel id
+
+  g.addRegion(MSImagingRegion::rectangle(2, "far away", 100, 100, 100, 100));
+  TEST_EQUAL(g.getNumberOfRegions(), 2u);
+  TEST_EQUAL(g.getRegionPixels(2).size(), 0u);
 }
 END_SECTION
 
-START_SECTION((UInt getHeight() const))
+START_SECTION((regionOf()))
 {
-  NOT_TESTABLE
+  MSImagingGeometry g;
+  g.addPixel(0, 0, 0);
+  g.addPixel(5, 5, 1);
+  g.addRegion(MSImagingRegion::rectangle(1, "name", 0, 0, 1, 0));
+
+  TEST_EQUAL(g.regionOf(0, 0), 1u);
+  TEST_EQUAL(g.regionOf(5, 5), MSImagingGeometry::NO_REGION);   // exists but not owned
+  TEST_EQUAL(g.regionOf(10, 10), MSImagingGeometry::NO_REGION); // never acquired
 }
 END_SECTION
 
-START_SECTION((double getPixelSizeX() const))
+START_SECTION((getRegionPixels()))
 {
-  NOT_TESTABLE
+  MSImagingGeometry g;
+
+  g.addPixel(0, 0, 1);
+  g.addPixel(1, 0, 2);
+  g.addRegion(MSImagingRegion::rectangle(1, "name", 0, 0, 1, 0));
+
+  auto pixel_idx = g.getRegionPixels(1);
+  TEST_EQUAL(pixel_idx[0], 0u); // pixel (0,0) is at position 0 in getPixels()
+  TEST_EQUAL(pixel_idx[1], 1u); // pixel (1,0) is at position 1
 }
 END_SECTION
 
-START_SECTION((double getPixelSizeY() const))
+START_SECTION((getRegionSpectrumIndices()))
 {
-  NOT_TESTABLE
+  MSImagingGeometry g;
+
+  g.addPixel(0, 0, 1);
+  g.addPixel(1, 0, 2);
+  g.addRegion(MSImagingRegion::rectangle(1, "name", 0, 0, 1, 0));
+
+  auto spec_idx = g.getRegionSpectrumIndices(1);
+  TEST_EQUAL(spec_idx.size(), 2u);
+  TEST_EQUAL(spec_idx[0], 1u);
+  TEST_EQUAL(spec_idx[1], 2u);
 }
 END_SECTION
 
-START_SECTION((const String& getPixelSizeUnit() const))
+
+START_SECTION((region overlay : Mask region))
 {
-  NOT_TESTABLE
+  MSImagingGeometry g;
+  g.addPixel(10, 20, 1); // mask bit 0 (true)
+  g.addPixel(11, 20, 2); // mask bit 1 (false) exists but unowned
+  g.addPixel(11, 21, 3); // mask bit 3 (true)
+  // 2x2 mask, origin (10,20): {true,false,false,true}
+  g.addRegion(MSImagingRegion::fromMask(1, "m", 10, 20, 2, 2, std::vector<bool> {true, false, false, true}));
+  TEST_EQUAL(g.regionOf(10, 20), 1u)                           // set bit -> owned
+  TEST_EQUAL(g.regionOf(11, 20), MSImagingGeometry::NO_REGION) // the unowned pixel
+  TEST_EQUAL(g.regionOf(11, 21), 1u)
+  TEST_EQUAL(g.getRegionSpectrumIndices(1).size(), 2u) // region is 2x2 but only 2 spectra are set
+}
+END_SECTION
+
+START_SECTION((removeRegion()))
+{
+  MSImagingGeometry g;
+  g.addPixel(0, 0, 1);
+  g.addPixel(5, 5, 2);
+  g.addRegion(MSImagingRegion::rectangle(1, "A", 0, 0, 0, 0));
+  g.addRegion(MSImagingRegion::rectangle(2, "B", 5, 5, 5, 5));
+  g.removeRegion(1);
+  TEST_EQUAL(g.getNumberOfRegions(), 1u);
+  TEST_EQUAL(g.regionOf(0, 0), MSImagingGeometry::NO_REGION);
+  TEST_EQUAL(g.regionOf(5, 5), 2u);
+  TEST_EQUAL(g.getNumberOfPixels(), 2u); // removed region but NOT pixel
+}
+END_SECTION
+
+START_SECTION((clearRegions()))
+{
+  MSImagingGeometry g;
+  g.addPixel(0, 0, 1);
+  g.addRegion(MSImagingRegion::rectangle(1, "A", 0, 0, 0, 0));
+  g.clearRegions();
+  TEST_EQUAL(g.getNumberOfRegions(), 0u);
+  TEST_EQUAL(g.regionOf(0, 0), MSImagingGeometry::NO_REGION);
+  TEST_EQUAL(g.getNumberOfPixels(), 1u);
+}
+END_SECTION
+
+START_SECTION((getRegion()))
+{
+  MSImagingGeometry g;
+  g.addRegion(MSImagingRegion::rectangle(1, "A", 0, 0, 1, 1));
+  TEST_EQUAL(g.getRegion(1).getId(), 1u)
+  TEST_EXCEPTION(Exception::ElementNotFound, g.getRegion(99))
+  TEST_EXCEPTION(Exception::ElementNotFound, g.getRegionPixels(99))
+  TEST_EXCEPTION(Exception::ElementNotFound, g.removeRegion(99))
+}
+END_SECTION
+
+START_SECTION((membership staleness test))
+{
+  // we add a pixel after the region to ensure that state is live and not dependent on order of operations
+  MSImagingGeometry g;
+  g.addRegion(MSImagingRegion::rectangle(1, "A", 0, 0, 0, 0));
+  g.addPixel(0, 0, 1);
+  TEST_EQUAL(g.regionOf(0, 0), 1u);
+  TEST_EQUAL(g.getRegionSpectrumIndices(1).size(), 1u);
 }
 END_SECTION
 
