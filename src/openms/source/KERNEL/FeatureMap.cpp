@@ -138,7 +138,11 @@ namespace OpenMS
     return *this;
   }
 
-  //FeatureMap& FeatureMap::operator=(FeatureMap&&) = default; // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
+  // Can be defaulted: moving preserves the addresses of the IdentificationData
+  // objects referenced by the contained features, so (unlike the copy assignment
+  // above) no ID-reference translation is required. This mirrors the defaulted
+  // move constructor.
+  FeatureMap& FeatureMap::operator=(FeatureMap&&) = default;
 
 
   bool FeatureMap::operator==(const FeatureMap& rhs) const
