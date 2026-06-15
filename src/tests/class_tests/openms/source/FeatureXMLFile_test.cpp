@@ -19,6 +19,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <fstream>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -216,6 +218,82 @@ START_SECTION((void store(const std::string &filename, const FeatureMap&feature_
   f.store(tmp_filename, map);
   WHITELIST("?xml-stylesheet")
   TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), tmp_filename)
+}
+END_SECTION
+
+START_SECTION([EXTRA] store and load gzip and bzip2 compressed files - round-trip)
+{
+  // XMLFile::save_() compresses on the fly when the filename ends in
+  // ".gz"/".bz2" and load() transparently decompresses. This verifies that a
+  // store->load round-trip through a compressed file preserves the feature
+  // content (mirrors IdXMLFile_test's compressed round-trip).
+  // Note: a full FeatureMap operator== comparison is intentionally avoided
+  // because store() regenerates invalid unique ids on every call, which is
+  // unrelated to compression; instead the actual feature data is checked.
+  FeatureXMLFile f;
+
+  FeatureMap map_original;
+  f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), map_original);
+  TEST_EQUAL(map_original.size() > 0, true) // guard against a vacuous test
+
+  // read the leading bytes of a file to confirm it is really compressed
+  auto first_bytes = [](const std::string& fn, size_t n) -> std::string
+  {
+    std::ifstream is(fn.c_str(), std::ios::in | std::ios::binary);
+    std::string buf(n, '\0');
+    is.read(&buf[0], static_cast<std::streamsize>(n));
+    buf.resize(static_cast<size_t>(is.gcount()));
+    return buf;
+  };
+
+  // compare the feature content (everything except regenerated unique ids)
+  auto check_same_features = [](const FeatureMap& a, const FeatureMap& b)
+  {
+    TEST_EQUAL(a.size(), b.size())
+    for (Size i = 0; i < a.size() && i < b.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(a[i].getRT(), b[i].getRT())
+      TEST_REAL_SIMILAR(a[i].getMZ(), b[i].getMZ())
+      TEST_REAL_SIMILAR(a[i].getIntensity(), b[i].getIntensity())
+      TEST_EQUAL(a[i].getCharge(), b[i].getCharge())
+      TEST_REAL_SIMILAR(a[i].getOverallQuality(), b[i].getOverallQuality())
+    }
+  };
+
+  // gzip round-trip
+  {
+    std::string tmp_gz;
+    NEW_TMP_FILE(tmp_gz);
+    tmp_gz += ".featureXML.gz";
+    f.store(tmp_gz, map_original);
+
+    // the written file must really be gzip-compressed (magic bytes 0x1f 0x8b),
+    // otherwise the round-trip could pass on a plain-text file with a .gz name
+    std::string magic = first_bytes(tmp_gz, 2);
+    TEST_EQUAL(magic.size(), 2)
+    TEST_EQUAL(static_cast<int>(static_cast<unsigned char>(magic[0])), 0x1f)
+    TEST_EQUAL(static_cast<int>(static_cast<unsigned char>(magic[1])), 0x8b)
+
+    FeatureMap map_gz;
+    f.load(tmp_gz, map_gz);
+    check_same_features(map_original, map_gz);
+  }
+
+  // bzip2 round-trip
+  {
+    std::string tmp_bz2;
+    NEW_TMP_FILE(tmp_bz2);
+    tmp_bz2 += ".featureXML.bz2";
+    f.store(tmp_bz2, map_original);
+
+    // the written file must really be bzip2-compressed (magic bytes "BZh")
+    std::string magic = first_bytes(tmp_bz2, 3);
+    TEST_STRING_EQUAL(magic, "BZh")
+
+    FeatureMap map_bz2;
+    f.load(tmp_bz2, map_bz2);
+    check_same_features(map_original, map_bz2);
+  }
 }
 END_SECTION
 

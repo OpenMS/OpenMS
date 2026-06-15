@@ -17,6 +17,8 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <fstream>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -1059,6 +1061,75 @@ START_SECTION((template <typename MapType> void store(const std::string& filenam
     TEST_EQUAL(exp == exp_original,true)
   }
 
+}
+END_SECTION
+
+START_SECTION([EXTRA] store and load gzip and bzip2 compressed files - round-trip)
+{
+  // The file format is inferred from the extension before the compression
+  // suffix; XMLFile::save_() compresses on the fly when the filename ends in
+  // ".gz"/".bz2" and load() transparently decompresses. This verifies that a
+  // store->load round-trip through a compressed file preserves the content
+  // (mirrors IdXMLFile_test's compressed round-trip).
+  MzMLFile file;
+
+  PeakMap exp_original;
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp_original);
+
+  // uncompressed store->load result used as the reference: this isolates
+  // "does compression preserve data" from "does store/load preserve data".
+  PeakMap exp_plain;
+  {
+    std::string tmp_plain;
+    NEW_TMP_FILE(tmp_plain);
+    file.store(tmp_plain, exp_original);
+    file.load(tmp_plain, exp_plain);
+  }
+
+  // read the leading bytes of a file to confirm it is really compressed
+  auto first_bytes = [](const std::string& fn, size_t n) -> std::string
+  {
+    std::ifstream is(fn.c_str(), std::ios::in | std::ios::binary);
+    std::string buf(n, '\0');
+    is.read(&buf[0], static_cast<std::streamsize>(n));
+    buf.resize(static_cast<size_t>(is.gcount()));
+    return buf;
+  };
+
+  // gzip round-trip
+  {
+    std::string tmp_gz;
+    NEW_TMP_FILE(tmp_gz);
+    tmp_gz += ".mzML.gz";
+    file.store(tmp_gz, exp_original);
+
+    // the written file must really be gzip-compressed (magic bytes 0x1f 0x8b),
+    // otherwise the round-trip could pass on a plain-text file with a .gz name
+    std::string magic = first_bytes(tmp_gz, 2);
+    TEST_EQUAL(magic.size(), 2)
+    TEST_EQUAL(static_cast<int>(static_cast<unsigned char>(magic[0])), 0x1f)
+    TEST_EQUAL(static_cast<int>(static_cast<unsigned char>(magic[1])), 0x8b)
+
+    PeakMap exp_gz;
+    file.load(tmp_gz, exp_gz);
+    TEST_TRUE(exp_gz == exp_plain)
+  }
+
+  // bzip2 round-trip
+  {
+    std::string tmp_bz2;
+    NEW_TMP_FILE(tmp_bz2);
+    tmp_bz2 += ".mzML.bz2";
+    file.store(tmp_bz2, exp_original);
+
+    // the written file must really be bzip2-compressed (magic bytes "BZh")
+    std::string magic = first_bytes(tmp_bz2, 3);
+    TEST_STRING_EQUAL(magic, "BZh")
+
+    PeakMap exp_bz2;
+    file.load(tmp_bz2, exp_bz2);
+    TEST_TRUE(exp_bz2 == exp_plain)
+  }
 }
 END_SECTION
 
