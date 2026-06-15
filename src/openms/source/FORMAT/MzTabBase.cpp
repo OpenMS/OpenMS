@@ -502,8 +502,6 @@ namespace OpenMS
 
   void MzTabBoolean::setNull(bool b)
   {
-    // null is encoded as a negative value (see isNull()); a non-null boolean defaults to false (0).
-    // Note: the previous implementation had the branches inverted (setNull(true) made the value non-null).
     value_ = b ? -1 : 0;
   }
 
