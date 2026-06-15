@@ -55,7 +55,13 @@ public:
   /**
     @brief Store an MSExperiment in mzPeak format.
 
-    @note Not yet implemented; throws Exception::NotImplemented.
+    Writes the experiment as point-layout Parquet tables (profile spectra to
+    @c spectra_data.parquet, centroid spectra to @c spectra_peaks.parquet) plus
+    a per-spectrum @c spectra_metadata.parquet and an @c mzpeak_index.json,
+    bundled (STORED) into a ZIP archive. The output round-trips through load()
+    to an equivalent experiment (spectrum count, ms_level, type, RT, peaks).
+
+    @note Run-level metadata and precursor facets are not yet emitted.
   */
   void store(const String& filename, const MapType& map) const;
 

@@ -1127,7 +1127,7 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::MZML: 
+      case FileTypes::MZML:
       {
         MzMLFile f;
         f.getOptions() = options_;
@@ -1136,7 +1136,13 @@ namespace OpenMS
       }
       break;
 
-      default: 
+      case FileTypes::MZPEAK:
+      {
+        MzPeakFile().store(filename, exp);
+      }
+      break;
+
+      default:
       {
         throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing experiments");
       }

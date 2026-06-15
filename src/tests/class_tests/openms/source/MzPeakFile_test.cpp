@@ -244,6 +244,92 @@ START_SECTION([EXTRA] load via generic FileHandler API)
 }
 END_SECTION
 
+START_SECTION(void store(const String& filename, const MapType& map))
+{
+  // ----------------------------------------------------------------------
+  // Round trip: load the bundled fixture, store it to a fresh .mzpeak, reload,
+  // and assert the reloaded experiment is EQUIVALENT to the source (count,
+  // ms_level, type, RT, peak count, and first/last m/z + intensity per
+  // spectrum within tolerance). Spectra are sorted ascending by m/z.
+  // ----------------------------------------------------------------------
+  MSExperiment src;
+  MzPeakFile().load(OPENMS_GET_TEST_DATA_PATH("small.mzpeak"), src);
+  TEST_EQUAL(src.size(), 48)
+
+  String tmp;
+  NEW_TMP_FILE_EXT(tmp, ".mzpeak")
+  MzPeakFile().store(tmp, src);
+
+  MSExperiment rt;
+  MzPeakFile().load(tmp, rt);
+
+  TEST_EQUAL(rt.size(), src.size())
+
+  // load() sorts spectra by RT; map source spectra by native id so the compare
+  // is robust to ordering differences between the two loads.
+  for (Size i = 0; i < src.size(); ++i)
+  {
+    const MSSpectrum& s = src[i];
+    const MSSpectrum* r = nullptr;
+    for (Size j = 0; j < rt.size(); ++j)
+    {
+      if (rt[j].getNativeID() == s.getNativeID())
+      {
+        r = &rt[j];
+        break;
+      }
+    }
+    TEST_NOT_EQUAL(r, nullptr)
+    if (! r) continue;
+
+    TEST_EQUAL(r->getMSLevel(), s.getMSLevel())
+    TEST_EQUAL(r->getType() == s.getType(), true)
+    TOLERANCE_ABSOLUTE(1e-6)
+    TEST_REAL_SIMILAR(r->getRT(), s.getRT())
+    TEST_EQUAL(r->size(), s.size())
+
+    if (! s.empty() && r->size() == s.size())
+    {
+      // First and last peak m/z (tight absolute) and intensity (relative).
+      TOLERANCE_ABSOLUTE(1e-6)
+      TEST_REAL_SIMILAR((*r)[0].getMZ(), s[0].getMZ())
+      TEST_REAL_SIMILAR((*r)[r->size() - 1].getMZ(), s[s.size() - 1].getMZ())
+
+      TOLERANCE_RELATIVE(1.0 + 1e-3)
+      TEST_REAL_SIMILAR((*r)[0].getIntensity(), s[0].getIntensity())
+      TEST_REAL_SIMILAR((*r)[r->size() - 1].getIntensity(), s[s.size() - 1].getIntensity())
+      TOLERANCE_RELATIVE(1.0)
+      TOLERANCE_ABSOLUTE(1e-4)
+    }
+  }
+
+  // Counts of MS1/MS2 must be preserved exactly.
+  Size src_ms1 = 0, rt_ms1 = 0;
+  for (Size i = 0; i < src.size(); ++i)
+    if (src[i].getMSLevel() == 1) ++src_ms1;
+  for (Size i = 0; i < rt.size(); ++i)
+    if (rt[i].getMSLevel() == 1) ++rt_ms1;
+  TEST_EQUAL(rt_ms1, src_ms1)
+}
+END_SECTION
+
+START_SECTION([EXTRA] store via generic FileHandler API)
+{
+  // FileHandler().storeExperiment must route .mzpeak to MzPeakFile::store.
+  MSExperiment src;
+  MzPeakFile().load(OPENMS_GET_TEST_DATA_PATH("small.mzpeak"), src);
+
+  String tmp;
+  NEW_TMP_FILE_EXT(tmp, ".mzpeak")
+  FileHandler fh;
+  fh.storeExperiment(tmp, src);
+
+  MSExperiment rt;
+  fh.loadExperiment(tmp, rt);
+  TEST_EQUAL(rt.size(), src.size())
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

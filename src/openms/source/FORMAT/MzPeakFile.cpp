@@ -29,10 +29,13 @@
 #include <arrow/io/api.h>
 #include <cmath>
 #include <cstdint>
+#include <fstream>
 #include <map>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <parquet/arrow/reader.h>
+#include <parquet/arrow/writer.h>
+#include <parquet/properties.h>
 #include <string>
 #include <vector>
 
@@ -927,6 +930,146 @@ namespace
     }
   }
 
+  // ==========================================================================
+  // Store path (03-01): build the point-layout Arrow tables + metadata table
+  // from an MSExperiment, write them to Parquet members in a temp dir, and zip
+  // them into a .mzpeak archive that MzPeakFile::load re-reads into an
+  // equivalent experiment. Schemas mirror the known-good mzpeak-lib writer and,
+  // crucially, the exact field names the load path above expects.
+  // ==========================================================================
+
+  /// Throw a uniform ParseError on a failed Arrow status during write.
+  void checkArrowStatus_(const arrow::Status& status, const String& what)
+  {
+    if (! status.ok()) { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "mzPeak store: " + what, status.ToString()); }
+  }
+
+  /// The flattened point columns of one table (data or peaks): the spectrum
+  /// index repeated per point plus the parallel m/z and intensity vectors.
+  struct PointColumns
+  {
+    std::vector<std::uint64_t> spectrum_index;
+    std::vector<double> mz;
+    std::vector<float> intensity;
+  };
+
+  /// Write the point-layout table (top-level `point` struct {spectrum_index
+  /// uint64, mz float64, intensity float32}) to a Parquet file at @p path.
+  /// Matches @c pointStruct_ / @c addSpectraFromTable_ in the load path: a
+  /// single struct column whose three children carry the literal values.
+  void writePointTable_(const String& path, const PointColumns& cols)
+  {
+    arrow::UInt64Builder index_builder;
+    arrow::DoubleBuilder mz_builder;
+    arrow::FloatBuilder intensity_builder;
+    checkArrowStatus_(index_builder.AppendValues(cols.spectrum_index), "append spectrum_index");
+    checkArrowStatus_(mz_builder.AppendValues(cols.mz), "append mz");
+    checkArrowStatus_(intensity_builder.AppendValues(cols.intensity), "append intensity");
+
+    std::shared_ptr<arrow::Array> index_array, mz_array, intensity_array;
+    checkArrowStatus_(index_builder.Finish(&index_array), "finish spectrum_index");
+    checkArrowStatus_(mz_builder.Finish(&mz_array), "finish mz");
+    checkArrowStatus_(intensity_builder.Finish(&intensity_array), "finish intensity");
+
+    arrow::FieldVector point_fields {
+      arrow::field("spectrum_index", arrow::uint64(), /*nullable=*/true),
+      arrow::field("mz", arrow::float64(), /*nullable=*/true),
+      arrow::field("intensity", arrow::float32(), /*nullable=*/true),
+    };
+    auto point_result = arrow::StructArray::Make({index_array, mz_array, intensity_array}, point_fields);
+    checkArrowStatus_(point_result.status(), "build point struct");
+    std::shared_ptr<arrow::Array> point_array = point_result.ValueOrDie();
+
+    auto schema = arrow::schema({arrow::field("point", point_array->type(), /*nullable=*/true)});
+    auto table = arrow::Table::Make(schema, {point_array});
+
+    auto outfile_result = arrow::io::FileOutputStream::Open(std::string(path));
+    checkArrowStatus_(outfile_result.status(), "open output file " + path);
+    std::shared_ptr<arrow::io::FileOutputStream> outfile = outfile_result.ValueOrDie();
+
+    // One bounded row group; a positive size is required even for empty tables.
+    constexpr int64_t kMaxRowGroup = 1 << 20;
+    int64_t row_group_size = table->num_rows() > 0 ? std::min<int64_t>(table->num_rows(), kMaxRowGroup) : kMaxRowGroup;
+    checkArrowStatus_(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, row_group_size), "write point table " + path);
+  }
+
+  /// One row of the spectra_metadata table.
+  struct MetaRow
+  {
+    std::uint64_t index = 0;
+    String id;
+    std::uint8_t ms_level = 0;
+    double time = 0.0; ///< RT in seconds
+    std::int8_t polarity = 0;
+    String representation; ///< MS:1000127 centroid / MS:1000128 profile
+    std::uint64_t n_points = 0;
+    std::uint64_t n_peaks = 0;
+  };
+
+  /// Write the spectra_metadata table: a single `spectrum` struct column whose
+  /// FIRST child is the uint64 index (the load path accesses it positionally /
+  /// reads `time`, `MS_1000511_ms_level`, `MS_1000465_scan_polarity`,
+  /// `MS_1000525_spectrum_representation`).
+  void writeMetadataTable_(const String& path, const std::vector<MetaRow>& rows)
+  {
+    arrow::UInt64Builder index_b;
+    arrow::LargeStringBuilder id_b;
+    arrow::UInt8Builder level_b;
+    arrow::DoubleBuilder time_b;
+    arrow::Int8Builder polarity_b;
+    arrow::StringBuilder repr_b;
+    arrow::UInt64Builder npts_b;
+    arrow::UInt64Builder npks_b;
+
+    for (const MetaRow& r : rows)
+    {
+      checkArrowStatus_(index_b.Append(r.index), "append index");
+      checkArrowStatus_(id_b.Append(std::string(r.id)), "append id");
+      checkArrowStatus_(level_b.Append(r.ms_level), "append ms_level");
+      checkArrowStatus_(time_b.Append(r.time), "append time");
+      checkArrowStatus_(polarity_b.Append(r.polarity), "append polarity");
+      checkArrowStatus_(repr_b.Append(std::string(r.representation)), "append representation");
+      checkArrowStatus_(npts_b.Append(r.n_points), "append number_of_data_points");
+      checkArrowStatus_(npks_b.Append(r.n_peaks), "append number_of_peaks");
+    }
+
+    std::shared_ptr<arrow::Array> index_a, id_a, level_a, time_a, polarity_a, repr_a, npts_a, npks_a;
+    checkArrowStatus_(index_b.Finish(&index_a), "finish index");
+    checkArrowStatus_(id_b.Finish(&id_a), "finish id");
+    checkArrowStatus_(level_b.Finish(&level_a), "finish ms_level");
+    checkArrowStatus_(time_b.Finish(&time_a), "finish time");
+    checkArrowStatus_(polarity_b.Finish(&polarity_a), "finish polarity");
+    checkArrowStatus_(repr_b.Finish(&repr_a), "finish representation");
+    checkArrowStatus_(npts_b.Finish(&npts_a), "finish number_of_data_points");
+    checkArrowStatus_(npks_b.Finish(&npks_a), "finish number_of_peaks");
+
+    // `index` MUST be the first child (load reads it positionally as child 0).
+    arrow::FieldVector spectrum_fields {
+      arrow::field("index", arrow::uint64(), /*nullable=*/true),
+      arrow::field("id", arrow::large_utf8(), /*nullable=*/true),
+      arrow::field("MS_1000511_ms_level", arrow::uint8(), /*nullable=*/true),
+      arrow::field("time", arrow::float64(), /*nullable=*/true),
+      arrow::field("MS_1000465_scan_polarity", arrow::int8(), /*nullable=*/true),
+      arrow::field("MS_1000525_spectrum_representation", arrow::utf8(), /*nullable=*/true),
+      arrow::field("MS_1003060_number_of_data_points", arrow::uint64(), /*nullable=*/true),
+      arrow::field("MS_1003059_number_of_peaks", arrow::uint64(), /*nullable=*/true),
+    };
+    auto spectrum_result = arrow::StructArray::Make({index_a, id_a, level_a, time_a, polarity_a, repr_a, npts_a, npks_a}, spectrum_fields);
+    checkArrowStatus_(spectrum_result.status(), "build spectrum struct");
+    std::shared_ptr<arrow::Array> spectrum_array = spectrum_result.ValueOrDie();
+
+    auto schema = arrow::schema({arrow::field("spectrum", spectrum_array->type(), /*nullable=*/true)});
+    auto table = arrow::Table::Make(schema, {spectrum_array});
+
+    auto outfile_result = arrow::io::FileOutputStream::Open(std::string(path));
+    checkArrowStatus_(outfile_result.status(), "open output file " + path);
+    std::shared_ptr<arrow::io::FileOutputStream> outfile = outfile_result.ValueOrDie();
+
+    constexpr int64_t kMaxRowGroup = 1 << 20;
+    int64_t row_group_size = table->num_rows() > 0 ? std::min<int64_t>(table->num_rows(), kMaxRowGroup) : kMaxRowGroup;
+    checkArrowStatus_(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, row_group_size), "write metadata table " + path);
+  }
+
 } // namespace
 
 MzPeakFile::MzPeakFile() = default;
@@ -1029,8 +1172,107 @@ void MzPeakFile::load(const String& filename, MapType& map) const
   map.updateRanges();
 }
 
-void MzPeakFile::store(const String& /* filename */, const MapType& /* map */) const
-{ throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); }
+void MzPeakFile::store(const String& filename, const MapType& map) const
+{
+  // ------------------------------------------------------------------
+  // 1. Split spectra into profile (-> data arrays) and centroid (-> peaks),
+  //    flatten each into the point columns, and build the metadata rows. The
+  //    point order per spectrum is ascending m/z (sortByPosition) so the load
+  //    path reads strictly ascending values. The spectrum_index is the global
+  //    spectrum position i, matching the "index=i" native id load emits.
+  // ------------------------------------------------------------------
+  PointColumns data;  // profile points
+  PointColumns peaks; // centroid points
+  std::vector<MetaRow> meta_rows;
+  meta_rows.reserve(map.size());
+
+  bool any_centroid = false;
+  for (Size i = 0; i < map.size(); ++i)
+  {
+    MSSpectrum spec = map[i]; // copy so we can sort without mutating the input
+    spec.sortByPosition();
+
+    const bool centroid = spec.getType() == SpectrumSettings::SpectrumType::CENTROID;
+    PointColumns& target = centroid ? peaks : data;
+    if (centroid) any_centroid = true;
+
+    for (const Peak1D& p : spec)
+    {
+      target.spectrum_index.push_back(static_cast<std::uint64_t>(i));
+      target.mz.push_back(p.getMZ());
+      target.intensity.push_back(p.getIntensity());
+    }
+
+    MetaRow row;
+    row.index = static_cast<std::uint64_t>(i);
+    // Prefer the spectrum native id; fall back to the stable "index=i" form.
+    row.id = spec.getNativeID().empty() ? ("index=" + String(i)) : String(spec.getNativeID());
+    row.ms_level = static_cast<std::uint8_t>(spec.getMSLevel());
+    row.time = spec.getRT();
+    // Representation accession: profile MS:1000128, centroid MS:1000127.
+    row.representation = centroid ? "MS:1000127" : "MS:1000128";
+    // Scan polarity as the mzPeak signed int8 (+1 positive, -1 negative).
+    switch (spec.getInstrumentSettings().getPolarity())
+    {
+      case IonSource::Polarity::POSITIVE:
+        row.polarity = 1;
+        break;
+      case IonSource::Polarity::NEGATIVE:
+        row.polarity = -1;
+        break;
+      default:
+        row.polarity = 0;
+        break;
+    }
+    row.n_points = centroid ? 0 : static_cast<std::uint64_t>(spec.size());
+    row.n_peaks = centroid ? static_cast<std::uint64_t>(spec.size()) : 0;
+    meta_rows.push_back(std::move(row));
+  }
+
+  // ------------------------------------------------------------------
+  // 2. Write the Parquet members into a temp dir.
+  // ------------------------------------------------------------------
+  File::TempDir temp_dir;
+  const String dir = temp_dir.getPath();
+  const String data_path = dir + "/spectra_data.parquet";
+  const String peaks_path = dir + "/spectra_peaks.parquet";
+  const String meta_path = dir + "/spectra_metadata.parquet";
+  const String index_path = dir + "/mzpeak_index.json";
+
+  // The data table is always present (may be empty); peaks only when a centroid
+  // spectrum exists, mirroring the mzpeak-lib writer.
+  writePointTable_(data_path, data);
+  if (any_centroid) writePointTable_(peaks_path, peaks);
+  writeMetadataTable_(meta_path, meta_rows);
+
+  // ------------------------------------------------------------------
+  // 3. Write mzpeak_index.json (files[] + minimal metadata{version}). The load
+  //    path matches members by data_kind, so the names + kinds must be exact.
+  // ------------------------------------------------------------------
+  nlohmann::json idx;
+  nlohmann::json files = nlohmann::json::array();
+  files.push_back({{"name", "spectra_data.parquet"}, {"entity_type", "spectrum"}, {"data_kind", "data arrays"}});
+  if (any_centroid) { files.push_back({{"name", "spectra_peaks.parquet"}, {"entity_type", "spectrum"}, {"data_kind", "peaks"}}); }
+  files.push_back({{"name", "spectra_metadata.parquet"}, {"entity_type", "spectrum"}, {"data_kind", "metadata"}});
+  idx["files"] = std::move(files);
+  idx["metadata"] = {{"version", "0.9.0"}};
+
+  {
+    std::string index_json = idx.dump();
+    std::ofstream out(std::string(index_path), std::ios::binary);
+    if (! out) { throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index_path); }
+    out << index_json;
+    out.close();
+    if (! out) { throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index_path); }
+  }
+
+  // ------------------------------------------------------------------
+  // 4. Zip the temp dir into the output .mzpeak (STORE members; parquet is
+  //    already internally compressed and the format mandates ZIP_CM_STORE so
+  //    the members stay randomly accessible).
+  // ------------------------------------------------------------------
+  ZipArchiveFile::zipDirectory(dir, filename);
+}
 
 void MzPeakFile::transform(const String& /* filename_in */,
                            Interfaces::IMSDataConsumer* /* consumer */,
