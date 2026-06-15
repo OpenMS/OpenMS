@@ -78,6 +78,10 @@ TEST_EQUAL(tmp.getTypeByFileName("test.peff"), FileTypes::PEFF)
 TEST_EQUAL(tmp.getTypeByFileName("test.EDTA"), FileTypes::EDTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.csv"), FileTypes::CSV)
 TEST_EQUAL(tmp.getTypeByFileName("test.txt"), FileTypes::TXT)
+// new 3.6 directory-based parquet bundle types
+TEST_EQUAL(tmp.getTypeByFileName("test.idparquet"), FileTypes::IDPARQUET)
+TEST_EQUAL(tmp.getTypeByFileName("test.featureparquet"), FileTypes::FEATUREPARQUET)
+TEST_EQUAL(tmp.getTypeByFileName("test.consensusparquet"), FileTypes::CONSENSUSPARQUET)
 END_SECTION
 
 START_SECTION((static bool hasValidExtension(const std::string& filename, const FileTypes::Type type)))
@@ -175,6 +179,15 @@ START_SECTION((FileTypes::Type FileHandler::getConsistentOutputfileType(const st
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home/doe/file.unknown", "idxml"), FileTypes::IDXML)
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home.with.dot/file", "mzML"), FileTypes::MZML)
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("c:\\home.with.dot\\file", "mzML"), FileTypes::MZML)
+  // new 3.6 directory-based parquet bundle types: an explicit out_type fills in for a
+  // ".unknown" (or extension-less) output name, a matching extension is accepted, and a
+  // conflicting one is rejected.
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.unknown", "featureparquet"), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.unknown", "idparquet"), FileTypes::IDPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out", "consensusparquet"), FileTypes::CONSENSUSPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.featureparquet", ""), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.featureparquet", "featureparquet"), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.featureparquet", "consensusparquet"), FileTypes::UNKNOWN) // inconsistent
 END_SECTION
 
 
