@@ -28,7 +28,13 @@
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
+#include <OpenMS/FORMAT/ImzMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
+#include <OpenMS/IMAGING/MSImagingExperiment.h>
+#include <OpenMS/IMAGING/MSImagingGeometry.h>
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
+#include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
+#include "type_casters/nanobind_ms_data_consumer.h"
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
 #include <OpenMS/FORMAT/KroenikFile.h>
@@ -640,6 +646,7 @@ Computes a SHA-1 hash of the file content
         .value("TRANSFORMATIONXML", OpenMS::FileTypes::Type::TRANSFORMATIONXML)
         .value("MZML", OpenMS::FileTypes::Type::MZML)
         .value("CACHEDMZML", OpenMS::FileTypes::Type::CACHEDMZML)
+        .value("IMZML", OpenMS::FileTypes::Type::IMZML)
         .value("MS2", OpenMS::FileTypes::Type::MS2)
         .value("PEPXML", OpenMS::FileTypes::Type::PEPXML)
         .value("PROTXML", OpenMS::FileTypes::Type::PROTXML)
@@ -727,6 +734,118 @@ by isobar to load quantification results
         .def("__deepcopy__", [](const OpenMS::IBSpectraFile& self, nb::dict) { return OpenMS::IBSpectraFile(self); }, "memo"_a)
         .def("store", [](OpenMS::IBSpectraFile& self, const std::string& filename, const OpenMS::ConsensusMap& cm) { return self.store(filename, cm); }, "filename"_a, "cm"_a)
         ;
+
+    // -----------------------------------------------------------------------
+    // imzML metadata types
+    // -----------------------------------------------------------------------
+    nb::enum_<OpenMS::ImzMLSpectrumIndex::DataType>(m, "ImzMLDataType",
+        "Scalar type of imzML binary array elements in the companion .ibd file")
+        .value("FLOAT32", OpenMS::ImzMLSpectrumIndex::DataType::FLOAT32)
+        .value("FLOAT64", OpenMS::ImzMLSpectrumIndex::DataType::FLOAT64)
+        .value("INT32", OpenMS::ImzMLSpectrumIndex::DataType::INT32)
+        .value("INT64", OpenMS::ImzMLSpectrumIndex::DataType::INT64)
+        .value("UNKNOWN", OpenMS::ImzMLSpectrumIndex::DataType::UNKNOWN)
+        .export_values();
+
+    nb::class_<OpenMS::ImzMLMeta>(m, "ImzMLMeta", "Dataset-level imzML imaging metadata")
+        .def(nb::init<>())
+        .def_ro("max_count_x", &OpenMS::ImzMLMeta::max_count_x)
+        .def_ro("max_count_y", &OpenMS::ImzMLMeta::max_count_y)
+        .def_ro("max_count_z", &OpenMS::ImzMLMeta::max_count_z)
+        .def_ro("pixel_size_x", &OpenMS::ImzMLMeta::pixel_size_x)
+        .def_ro("pixel_size_y", &OpenMS::ImzMLMeta::pixel_size_y)
+        .def_ro("max_dim_x", &OpenMS::ImzMLMeta::max_dim_x)
+        .def_ro("max_dim_y", &OpenMS::ImzMLMeta::max_dim_y)
+        .def_ro("imaging_mode", &OpenMS::ImzMLMeta::imaging_mode)
+        .def_ro("ibd_file_path", &OpenMS::ImzMLMeta::ibd_file_path)
+        .def_ro("ibd_sha1", &OpenMS::ImzMLMeta::ibd_sha1)
+        .def_ro("ibd_md5", &OpenMS::ImzMLMeta::ibd_md5)
+        .def_ro("uuid", &OpenMS::ImzMLMeta::uuid)
+        .def_ro("mz_data_type", &OpenMS::ImzMLMeta::mz_data_type)
+        .def_ro("int_data_type", &OpenMS::ImzMLMeta::int_data_type)
+        .def_ro("scan_pattern", &OpenMS::ImzMLMeta::scan_pattern)
+        .def_ro("scan_direction", &OpenMS::ImzMLMeta::scan_direction)
+        .def_ro("line_scan_direction", &OpenMS::ImzMLMeta::line_scan_direction)
+        .def_ro("polarity", &OpenMS::ImzMLMeta::polarity);
+
+    nb::class_<OpenMS::ImzMLSpectrumIndex>(m, "ImzMLSpectrumIndex",
+        "Per-spectrum .ibd byte-offset index entry for on-disc imzML access")
+        .def(nb::init<>())
+        .def_ro("index", &OpenMS::ImzMLSpectrumIndex::index)
+        .def_ro("x", &OpenMS::ImzMLSpectrumIndex::x)
+        .def_ro("y", &OpenMS::ImzMLSpectrumIndex::y)
+        .def_ro("z", &OpenMS::ImzMLSpectrumIndex::z)
+        .def_ro("mz_offset", &OpenMS::ImzMLSpectrumIndex::mz_offset)
+        .def_ro("mz_length", &OpenMS::ImzMLSpectrumIndex::mz_length)
+        .def_ro("mz_type", &OpenMS::ImzMLSpectrumIndex::mz_type)
+        .def_ro("int_offset", &OpenMS::ImzMLSpectrumIndex::int_offset)
+        .def_ro("int_length", &OpenMS::ImzMLSpectrumIndex::int_length)
+        .def_ro("int_type", &OpenMS::ImzMLSpectrumIndex::int_type);
+
+    // -----------------------------------------------------------------------
+    // ImzMLFile
+    // -----------------------------------------------------------------------
+    auto imzmlfile_class = nb::class_<OpenMS::ImzMLFile>(m, "ImzMLFile",
+        R"doc(
+File adapter for imzML 1.1.0 mass spectrometry imaging files (.imzML + companion .ibd).
+
+Load into an MSImagingExperiment (imaging-only, like BrukerTimsImagingFile) for pixel
+(x, y) access, or stream via IMSDataConsumer (batched delivery after spectrumList parsing).
+PeakFileOptions apply during load and store (filtering, sort, binary precision on export).
+Use store() to export imzML + UUID-linked companion .ibd (binary precision via PeakFileOptions).
+)doc")
+        .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::ImzMLFile& self) { return OpenMS::ImzMLFile(self); })
+        .def("__deepcopy__", [](const OpenMS::ImzMLFile& self, nb::dict) { return OpenMS::ImzMLFile(self); }, "memo"_a)
+        .def("store", [](OpenMS::ImzMLFile& self, const std::string& filename, const OpenMS::MSExperiment& exp) {
+            nb::gil_scoped_release release;
+            self.store(filename, exp);
+        }, "filename"_a, "exp"_a, "Store an MSExperiment as imzML (.imzML + .ibd); spectra must carry imzml:x/y MetaValues")
+        .def("store", [](OpenMS::ImzMLFile& self, const std::string& filename, const OpenMS::MSImagingExperiment& exp) {
+            nb::gil_scoped_release release;
+            self.store(filename, exp);
+        }, "filename"_a, "exp"_a, "Store an MSImagingExperiment as imzML (.imzML + .ibd); coordinates come from its MSImagingGeometry")
+        .def("getOptions", [](OpenMS::ImzMLFile& self) -> OpenMS::PeakFileOptions& { return self.getOptions(); },
+             nb::rv_policy::reference_internal, "Returns the options for loading")
+        .def("setOptions", [](OpenMS::ImzMLFile& self, const OpenMS::PeakFileOptions& opts) { self.setOptions(opts); },
+             "Set PeakFileOptions for filtering during load")
+        .def("load", [](OpenMS::ImzMLFile& self, const std::string& filename, OpenMS::MSImagingExperiment& exp) {
+            nb::gil_scoped_release release;
+            self.load(filename, exp);
+        }, "filename"_a, "exp"_a, "Load an imzML file into an MSImagingExperiment with pixel lookup")
+        .def_static("buildImagingGeometry", [](const OpenMS::MSExperiment& exp, OpenMS::MSImagingGeometry& geom) {
+            OpenMS::ImzMLFile::buildImagingGeometry(exp, geom);
+        }, "exp"_a, "geom"_a, "Build MSImagingGeometry from a loaded imzML MSExperiment (reads imzml:x/y MetaValues)")
+        .def("load", [](OpenMS::ImzMLFile& self, const std::string& filename, nb::object consumer) {
+            NanobindMSDataConsumer wrapper(consumer);
+            nb::gil_scoped_release release;
+            self.load(filename, wrapper);
+        }, "filename"_a, "consumer"_a, "Stream-load imzML; spectra are delivered after spectrumList parsing")
+        .def("loadSpectraIndex", [](OpenMS::ImzMLFile& self, const std::string& filename) {
+            OpenMS::ImzMLMeta meta;
+            std::vector<OpenMS::ImzMLSpectrumIndex> index;
+            {
+              nb::gil_scoped_release release;
+              self.loadSpectraIndex(filename, meta, index);
+            }
+            nb::list py_index;
+            for (const auto& entry : index)
+            {
+              py_index.append(entry);
+            }
+            return nb::make_tuple(meta, py_index);
+        }, "filename"_a, "Parse imzML XML and return (ImzMLMeta, list[ImzMLSpectrumIndex]) without loading peaks")
+        .def("isValid", [](OpenMS::ImzMLFile& self, const std::string& filename) {
+            std::ostringstream os;
+            bool ok = false;
+            {
+              nb::gil_scoped_release release;
+              ok = self.isValid(filename, os);
+            }
+            return nb::make_tuple(ok, os.str());
+        }, "filename"_a, "Validate against mzML schema; returns (is_valid, error_text)")
+        ;
+    def_ProgressLogger<OpenMS::ImzMLFile>(imzmlfile_class);
 
     // -----------------------------------------------------------------------
     // IndexedMzMLDecoder

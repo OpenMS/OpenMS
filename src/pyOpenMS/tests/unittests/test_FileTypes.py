@@ -6,7 +6,7 @@ def test_enum_values_accessible():
     expected = [
         "UNKNOWN", "DTA", "DTA2D", "MZDATA", "MZXML", "FEATUREXML", "IDXML",
         "CONSENSUSXML", "MGF", "INI", "TOPPAS", "TRANSFORMATIONXML", "MZML",
-        "CACHEDMZML", "MS2", "PEPXML", "PROTXML", "MZIDENTML", "QCML", "MZQC",
+        "CACHEDMZML", "IMZML", "MS2", "PEPXML", "PROTXML", "MZIDENTML", "QCML", "MZQC",
         "GELML", "TRAML", "MSP", "OMSSAXML", "MASCOTXML", "PNG", "XMASS",
         "TSV", "MZTAB", "PEPLIST", "HARDKLOER", "KROENIK", "FASTA", "EDTA",
         "CSV", "TXT", "OBO", "HTML", "ANALYSISXML", "XSD", "PSQ", "MRM",

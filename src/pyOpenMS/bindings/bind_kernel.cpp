@@ -33,6 +33,8 @@
 #include <OpenMS/KERNEL/MobilityPeak1D.h>
 #include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
+#include <OpenMS/IMAGING/MSImagingGeometry.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/PeakIndex.h>
@@ -1848,6 +1850,40 @@ Returns a single chromatogram by its native ID string.
 This is an alias for getChromatogramByNativeId().
 :param id: The native identifier of the chromatogram
 )doc")
+        ;
+
+    // -----------------------------------------------------------------------
+    // OnDiscImzMLExperiment
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OnDiscImzMLExperiment>(m, "OnDiscImzMLExperiment",
+        "Random-access on-disc reader for imzML (.imzML + .ibd), analogous to OnDiscMSExperiment for indexed mzML.")
+        .def(nb::init<>())
+        .def("open", [](OpenMS::OnDiscImzMLExperiment& self, const std::string& imzml_path, const std::string& ibd_path) {
+            self.open(imzml_path, ibd_path);
+        }, "imzml_path"_a, "ibd_path"_a = "", "Open imzML index and companion .ibd file")
+        .def("close", [](OpenMS::OnDiscImzMLExperiment& self) { self.close(); },
+            "Close the companion .ibd file and release on-disc resources")
+        .def("isOpen", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.isOpen(); })
+        .def("getNrSpectra", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.getNrSpectra(); })
+        .def("size", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.size(); })
+        .def("getSpectrum", [](OpenMS::OnDiscImzMLExperiment& self, size_t i) {
+            return self.getSpectrum(i);
+        }, "i"_a)
+        .def("getSpectrumAtCoord", [](OpenMS::OnDiscImzMLExperiment& self, uint32_t x, uint32_t y, uint32_t z) {
+            return self.getSpectrumAtCoord(x, y, z);
+        }, "x"_a, "y"_a, "z"_a = 1)
+        .def("getIndex", [](const OpenMS::OnDiscImzMLExperiment& self, size_t i) {
+            return self.getIndex(i);
+        }, "i"_a, "Return ImzMLSpectrumIndex entry without reading .ibd peak data")
+        .def("getImzMLMeta", [](const OpenMS::OnDiscImzMLExperiment& self) {
+            return self.getImzMLMeta();
+        }, "Return dataset-level ImzMLMeta parsed during open()")
+        .def("getGeometry",
+            [](const OpenMS::OnDiscImzMLExperiment& self) -> const OpenMS::MSImagingGeometry& { return self.getGeometry(); },
+            nb::rv_policy::reference_internal,
+            "Return the shared 2D MSImagingGeometry (0-based pixel grid + (x,y)->spectrum index), built lazily from the index")
+        .def("gridWidth", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.gridWidth(); })
+        .def("gridHeight", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.gridHeight(); })
         ;
 
     // -----------------------------------------------------------------------

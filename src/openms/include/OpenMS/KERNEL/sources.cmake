@@ -27,6 +27,7 @@ MSChromatogram.h
 MSExperiment.h
 MSSpectrum.h
 OnDiscMSExperiment.h
+OnDiscImzMLExperiment.h
 Peak1D.h
 Peak2D.h
 PeakIndex.h

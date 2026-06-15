@@ -54,6 +54,8 @@ TEST_EQUAL(tmp.getTypeByFileName("test.ini"), FileTypes::INI)
 TEST_EQUAL(tmp.getTypeByFileName("test.toPPas"), FileTypes::TOPPAS)
 TEST_EQUAL(tmp.getTypeByFileName("test.TraFoXML"), FileTypes::TRANSFORMATIONXML)
 TEST_EQUAL(tmp.getTypeByFileName("test.MzML"), FileTypes::MZML)
+TEST_EQUAL(tmp.getTypeByFileName("test.imzML"), FileTypes::IMZML)
+TEST_EQUAL(tmp.getTypeByFileName(OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML")), FileTypes::IMZML)
 TEST_EQUAL(tmp.getTypeByFileName(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2")), FileTypes::MZML)
 TEST_EQUAL(tmp.getTypeByFileName(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz")), FileTypes::MZML)
 TEST_EQUAL(tmp.getTypeByFileName("test.mS2"), FileTypes::MS2)
@@ -98,6 +100,7 @@ START_SECTION((static FileTypes::Type getTypeByContent(const std::string &filena
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData")), FileTypes::MZDATA)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML")), FileTypes::MZXML)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML")), FileTypes::MZML)
+  TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML")), FileTypes::IMZML)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2")), FileTypes::MZML)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz")), FileTypes::MZML)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid")), FileTypes::MZIDENTML)
@@ -301,6 +304,15 @@ tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"
 TEST_EQUAL(map.size(), 7);
 tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), map);
 TEST_EQUAL(map.size(), 7);
+END_SECTION
+
+START_SECTION((void loadExperiment imzML is rejected by FileHandler))
+  // imzML is a mass spectrometry imaging format; FileHandler no longer loads it into a
+  // flat MSExperiment. Callers must use ImzMLFile to load it into an MSImagingExperiment.
+  FileHandler fh_imz;
+  PeakMap exp_imz;
+  const std::string imzml_path = OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML");
+  TEST_EXCEPTION(Exception::InvalidFileType, fh_imz.loadExperiment(imzml_path, exp_imz))
 END_SECTION
 
 START_SECTION((void storeExperiment(const std::string &filename, const MSExperiment<>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))

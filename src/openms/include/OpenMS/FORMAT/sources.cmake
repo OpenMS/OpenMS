@@ -46,6 +46,7 @@ ZipIfstream.h
 ZipInputStream.h
 IBSpectraFile.h
 IdXMLFile.h
+ImzMLFile.h
 IndentedStream.h
 IndexedMzMLFileLoader.h
 InspectInfile.h
