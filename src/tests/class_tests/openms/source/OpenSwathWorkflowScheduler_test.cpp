@@ -146,6 +146,67 @@ START_SECTION((static std::vector<Wave> planWaves(const std::vector<OpenSwath::S
 }
 END_SECTION
 
+START_SECTION((static Size chooseInnerBatchSize(Size total_compounds, Size active_swaths, Size scoring_threads, int user_inner_batch_size, const Options& options)))
+{
+  Scheduler::Options opts; // defaults: target_jobs_per_thread=3, min=2000, max=10000
+
+  // total_compounds == 0 -> 0 (nothing to batch)
+  TEST_EQUAL(Scheduler::chooseInnerBatchSize(0, 1, 4, -1, opts), 0)
+
+  // explicit user batch size short-circuits to min(user, total)
+  TEST_EQUAL(Scheduler::chooseInnerBatchSize(10000, 1, 4, 500, opts), 500)
+  TEST_EQUAL(Scheduler::chooseInnerBatchSize(1000, 1, 4, 50000, opts), 1000)   // user capped at total
+
+  // auto (user <= 0): target_jobs = max(active, threads*jobs_per_thread); batch =
+  // ceil(total/target_jobs), clamped to [min,max], then capped at total.
+  // total=60000, threads=4 -> target_jobs=12 -> ceil=5000 (within [2000,10000])
+  TEST_EQUAL(Scheduler::chooseInnerBatchSize(60000, 1, 4, -1, opts), 5000)
+  // total=1000000 -> ceil=83334 -> clamped down to max 10000
+  TEST_EQUAL(Scheduler::chooseInnerBatchSize(1000000, 1, 4, -1, opts), 10000)
+  // total=1000 -> ceil=84 -> clamped up to min 2000 -> then capped at total 1000
+  TEST_EQUAL(Scheduler::chooseInnerBatchSize(1000, 1, 4, -1, opts), 1000)
+  // active_swaths dominates: target_jobs = max(50, 12) = 50 -> ceil(200000/50)=4000
+  TEST_EQUAL(Scheduler::chooseInnerBatchSize(200000, 50, 4, -1, opts), 4000)
+  // zero threads / zero active are treated as 1: target_jobs = max(1, 1*3)=3 ->
+  // ceil(30000/3)=10000
+  TEST_EQUAL(Scheduler::chooseInnerBatchSize(30000, 0, 0, -1, opts), 10000)
+}
+END_SECTION
+
+START_SECTION([EXTRA] ConcurrencyLimiter / ScopedSlot acquire and release within capacity)
+{
+  // A null-limiter ScopedSlot is a no-op (lets guard sites be written without branching).
+  {
+    Scheduler::ScopedSlot s(nullptr);
+  }
+
+  // Acquire/release through ScopedSlot RAII, never exceeding capacity, must not
+  // deadlock. (Over-acquiring a full limiter blocks by design, so the sequence below
+  // holds at most 2 slots at a time against a capacity-2 limiter.)
+  Scheduler::ConcurrencyLimiter limiter(2);
+  bool completed = false;
+  {
+    Scheduler::ScopedSlot s1(&limiter); // active = 1
+    {
+      Scheduler::ScopedSlot s2(&limiter); // active = 2 (full)
+    }                                     // s2 releases -> active = 1
+    Scheduler::ScopedSlot s3(&limiter);   // re-fills the freed slot -> active = 2
+  }                                       // s1, s3 release -> active = 0
+  completed = true;
+  TEST_TRUE(completed) // reached here without blocking: acquire/release works
+
+  // A limiter requested with capacity 0 is clamped to 1 internally; a single slot
+  // must still be acquirable and releasable.
+  Scheduler::ConcurrencyLimiter clamped(0);
+  bool clamped_ok = false;
+  {
+    Scheduler::ScopedSlot s(&clamped);
+  }
+  clamped_ok = true;
+  TEST_TRUE(clamped_ok)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
