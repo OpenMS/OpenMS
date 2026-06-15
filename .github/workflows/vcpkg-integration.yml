@@ -56,7 +56,7 @@ jobs:
 
             - name: Build OpenMS
               run: |
-                cmake --build --preset linux-release --parallel "${nproc}"
+                cmake --build --preset linux-release
 
             - name: Inspect vcpkg cache archives
               if: always()
@@ -81,3 +81,8 @@ jobs:
             #   with:
             #     name: vcpkg-cache
             #     path: ~/.cache/vcpkg/archives
+            
+            - name: Test
+              shell: bash
+              run: |
+                cd build/linux && ninja test
