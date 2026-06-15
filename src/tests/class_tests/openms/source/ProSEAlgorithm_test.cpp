@@ -839,6 +839,97 @@ START_SECTION(([EXTRA] Closed search baseline))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] Closed search with c/z ions toggled - ETD-style fragmentation))
+{
+  // ProSE can score c/z fragment ions (e.g. ETD/ECD data) via the
+  // ions:add_c_ions / ions:add_z_ions toggles. Build spectra that contain ONLY
+  // c/z ions and confirm a c/z-enabled search identifies the peptides, while a
+  // default (b/y) search on the same spectra does not -- the c/z peaks are
+  // shifted ~16-17 Da from b/y and cannot be matched as b/y.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+
+  // TheoreticalSpectrumGenerator configured to emit c/z ions only
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_b_ions", "false");
+  tsg_param.setValue("add_y_ions", "false");
+  tsg_param.setValue("add_c_ions", "true");
+  tsg_param.setValue("add_z_ions", "true");
+  tsg_param.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_param);
+
+  // fully-tryptic peptides of the protein with no C/M (no fixed/variable mods)
+  vector<string> test_seqs = { "VLGFHQR", "THQPSANLDIK" };
+
+  PeakMap spectra;
+  double rt = 100.0;
+  for (const auto& seq_str : test_seqs)
+  {
+    AASequence seq = AASequence::fromString(seq_str);
+    int charge = 2;
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, seq, 1, 1);
+    spec.sortByPosition();
+    spec.setMSLevel(2);
+    spec.setRT(rt);
+    rt += 1.0;
+    Precursor prec;
+    prec.setMZ(seq.getMZ(charge));
+    prec.setCharge(charge);
+    spec.setPrecursors({prec});
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
+    spectra.addSpectrum(std::move(spec));
+  }
+
+  auto run_search = [&](bool enable_cz) {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("precursor:mass_tolerance_lower", 10.0);
+    p.setValue("precursor:mass_tolerance_upper", 10.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("modifications:fixed", vector<string>{});
+    p.setValue("modifications:variable", vector<string>{});
+    p.setValue("decoys", "false");
+    p.setValue("peptide:min_size", 7);
+    p.setValue("peptide:max_size", 40);
+    p.setValue("peptide:missed_cleavages", 1);
+    if (enable_cz)
+    {
+      p.setValue("ions:add_b_ions", "false");
+      p.setValue("ions:add_y_ions", "false");
+      p.setValue("ions:add_c_ions", "true");
+      p.setValue("ions:add_z_ions", "true");
+    }
+    algo.setParameters(p);
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+    TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    return pep_ids;
+  };
+
+  // (1) c/z-enabled search identifies the peptides from the c/z spectra
+  PeptideIdentificationList cz_ids = run_search(true);
+  TEST_TRUE(cz_ids.size() > 0)
+  std::set<std::string> found;
+  for (const auto& pid : cz_ids)
+    for (const auto& hit : pid.getHits())
+      found.insert(hit.getSequence().toUnmodifiedString());
+  TEST_EQUAL(found.count("VLGFHQR") + found.count("THQPSANLDIK") > 0, true)
+
+  // (2) a default (b/y) search on the same c/z spectra matches nothing
+  PeptideIdentificationList by_ids = run_search(false);
+  Size by_hits = 0;
+  for (const auto& pid : by_ids) by_hits += pid.getHits().size();
+  TEST_EQUAL(by_hits, 0)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] Ion mobility annotation))
 {
   // Create a small protein database
