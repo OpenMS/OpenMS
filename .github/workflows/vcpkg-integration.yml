@@ -4,6 +4,7 @@ on:
     push:
         branches:
             - vcpkg_linux_integration
+    workflow_dispatch:
 
 jobs:
     configure:
