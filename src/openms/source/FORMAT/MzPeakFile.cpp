@@ -953,11 +953,52 @@ namespace
     std::vector<float> intensity;
   };
 
+  /// Write a Parquet table with Rust-compat writer properties (ZSTD, page index,
+  /// SortingColumn on the first column, store_schema) and optional file-level
+  /// key-value metadata. Column 0 is used as the sort key (the `point` struct
+  /// for data/peaks tables and the `spectrum` struct for the metadata table).
+  void writeTableWithProps_(const String& path, const std::shared_ptr<arrow::Table>& table, const std::map<std::string, std::string>& file_kv)
+  {
+    auto outfile_result = arrow::io::FileOutputStream::Open(std::string(path));
+    checkArrowStatus_(outfile_result.status(), "open output file " + path);
+    std::shared_ptr<arrow::io::FileOutputStream> outfile = outfile_result.ValueOrDie();
+
+    parquet::WriterProperties::Builder props_b;
+    props_b.compression(arrow::Compression::ZSTD);
+    props_b.enable_statistics();
+    props_b.enable_write_page_index();
+    props_b.set_sorting_columns({parquet::SortingColumn {0, false, false}});
+    auto writer_props = props_b.build();
+    auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+
+    auto writer_result = parquet::arrow::FileWriter::Open(*table->schema(), arrow::default_memory_pool(), outfile, writer_props, arrow_props);
+    checkArrowStatus_(writer_result.status(), "open FileWriter for " + path);
+    auto writer = std::move(writer_result).ValueOrDie();
+
+    constexpr int64_t kMaxRowGroup = 1 << 20;
+    int64_t chunk = table->num_rows() > 0 ? std::min<int64_t>(table->num_rows(), kMaxRowGroup) : kMaxRowGroup;
+    checkArrowStatus_(writer->WriteTable(*table, chunk), "write table " + path);
+
+    if (! file_kv.empty())
+    {
+      std::vector<std::string> keys, values;
+      for (const auto& [k, v] : file_kv)
+      {
+        keys.push_back(k);
+        values.push_back(v);
+      }
+      auto kvm = std::make_shared<arrow::KeyValueMetadata>(std::move(keys), std::move(values));
+      checkArrowStatus_(writer->AddKeyValueMetadata(kvm), "add kv metadata " + path);
+    }
+
+    checkArrowStatus_(writer->Close(), "close FileWriter for " + path);
+  }
+
   /// Write the point-layout table (top-level `point` struct {spectrum_index
   /// uint64, mz float64, intensity float32}) to a Parquet file at @p path.
   /// Matches @c pointStruct_ / @c addSpectraFromTable_ in the load path: a
   /// single struct column whose three children carry the literal values.
-  void writePointTable_(const String& path, const PointColumns& cols)
+  void writePointTable_(const String& path, const PointColumns& cols, const std::map<std::string, std::string>& file_kv)
   {
     arrow::UInt64Builder index_builder;
     arrow::DoubleBuilder mz_builder;
@@ -983,14 +1024,7 @@ namespace
     auto schema = arrow::schema({arrow::field("point", point_array->type(), /*nullable=*/true)});
     auto table = arrow::Table::Make(schema, {point_array});
 
-    auto outfile_result = arrow::io::FileOutputStream::Open(std::string(path));
-    checkArrowStatus_(outfile_result.status(), "open output file " + path);
-    std::shared_ptr<arrow::io::FileOutputStream> outfile = outfile_result.ValueOrDie();
-
-    // One bounded row group; a positive size is required even for empty tables.
-    constexpr int64_t kMaxRowGroup = 1 << 20;
-    int64_t row_group_size = table->num_rows() > 0 ? std::min<int64_t>(table->num_rows(), kMaxRowGroup) : kMaxRowGroup;
-    checkArrowStatus_(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, row_group_size), "write point table " + path);
+    writeTableWithProps_(path, table, file_kv);
   }
 
   /// One row of the spectra_metadata table.
@@ -1006,12 +1040,288 @@ namespace
     std::uint64_t n_peaks = 0;
   };
 
-  /// Write the spectra_metadata table: a single `spectrum` struct column whose
-  /// FIRST child is the uint64 index (the load path accesses it positionally /
-  /// reads `time`, `MS_1000511_ms_level`, `MS_1000465_scan_polarity`,
-  /// `MS_1000525_spectrum_representation`).
-  void writeMetadataTable_(const String& path, const std::vector<MetaRow>& rows)
+  /// Per-spectrum precursor data for the store path.
+  struct PrecursorOut
   {
+    bool has_precursor = false; ///< false → null source_index (MS1)
+    std::uint64_t source_index = 0;
+    std::uint64_t precursor_index = 0;
+    bool has_isolation = false;
+    float isolation_target = 0.0f;
+    float isolation_lower = 0.0f;
+    float isolation_upper = 0.0f;
+    /// Activation CvParams: {accession, name, has_float_value, float_val}
+    struct ActParam
+    {
+      String accession;
+      String name;
+      bool has_float = false;
+      double float_val = 0.0;
+    };
+    std::vector<ActParam> activation;
+    bool has_selected_ion = false;
+    double selected_ion_mz = 0.0;
+    bool has_charge = false;
+    int charge = 0;
+    bool has_intensity = false;
+    float intensity = 0.0f;
+  };
+
+  /// Map an OpenMS ActivationMethod to its PSI-MS accession and name.
+  /// Returns {"", ""} for unknown methods.
+  std::pair<String, String> activationMethodCV_(Precursor::ActivationMethod method)
+  {
+    switch (method)
+    {
+      case Precursor::ActivationMethod::CID:
+        return {"MS:1000133", "collision-induced dissociation"};
+      case Precursor::ActivationMethod::PD:
+        return {"MS:1000134", "plasma desorption"};
+      case Precursor::ActivationMethod::PSD:
+        return {"MS:1000135", "post-source decay"};
+      case Precursor::ActivationMethod::SID:
+        return {"MS:1000136", "surface-induced dissociation"};
+      case Precursor::ActivationMethod::BIRD:
+        return {"MS:1000242", "blackbody infrared radiative dissociation"};
+      case Precursor::ActivationMethod::ECD:
+        return {"MS:1000250", "electron capture dissociation"};
+      case Precursor::ActivationMethod::IMD:
+        return {"MS:1000262", "infrared multiphoton dissociation"};
+      case Precursor::ActivationMethod::SORI:
+        return {"MS:1000282", "sustained off-resonance irradiation"};
+      case Precursor::ActivationMethod::HCD:
+        return {"MS:1000422", "beam-type collision-induced dissociation"};
+      case Precursor::ActivationMethod::ETD:
+        return {"MS:1000598", "electron transfer dissociation"};
+      case Precursor::ActivationMethod::PQD:
+        return {"MS:1000599", "pulsed q dissociation"};
+      case Precursor::ActivationMethod::TRAP:
+        return {"MS:1002472", "trap-type collision-induced dissociation"};
+      default:
+        return {"", ""};
+    }
+  }
+
+  /// Build a PrecursorOut from one MSSpectrum.
+  /// Returns {has_precursor=false} for MS1 spectra (no precursors).
+  PrecursorOut buildPrecursorOut_(const MSSpectrum& spec, std::uint64_t spectrum_index, std::uint64_t precursor_index)
+  {
+    PrecursorOut po;
+    if (spec.getPrecursors().empty()) return po; // has_precursor stays false
+    po.has_precursor = true;
+    po.source_index = spectrum_index;
+    po.precursor_index = precursor_index;
+
+    const Precursor& prec = spec.getPrecursors()[0];
+
+    // Isolation window: target from meta value if selected-ion overrode getMZ()
+    po.has_isolation = true;
+    if (prec.metaValueExists("isolation window target m/z"))
+    {
+      po.isolation_target = static_cast<float>(static_cast<double>(prec.getMetaValue("isolation window target m/z")));
+    }
+    else
+    {
+      po.isolation_target = static_cast<float>(prec.getMZ());
+    }
+    po.isolation_lower = static_cast<float>(prec.getIsolationWindowLowerOffset());
+    po.isolation_upper = static_cast<float>(prec.getIsolationWindowUpperOffset());
+
+    // Activation methods
+    for (const auto& method : prec.getActivationMethods())
+    {
+      auto [acc, name] = activationMethodCV_(method);
+      if (! acc.empty())
+      {
+        PrecursorOut::ActParam ap;
+        ap.accession = acc;
+        ap.name = name;
+        ap.has_float = false;
+        po.activation.push_back(std::move(ap));
+      }
+    }
+    // Collision energy as an additional ActParam
+    if (prec.getActivationEnergy() > 0.0)
+    {
+      PrecursorOut::ActParam ap;
+      ap.accession = "MS:1000045";
+      ap.name = "collision energy";
+      ap.has_float = true;
+      ap.float_val = prec.getActivationEnergy();
+      po.activation.push_back(std::move(ap));
+    }
+
+    // Selected ion
+    po.has_selected_ion = true;
+    po.selected_ion_mz = prec.getMZ(); // getMZ() is already the selected-ion mz
+    if (prec.getCharge() != 0)
+    {
+      po.has_charge = true;
+      po.charge = prec.getCharge();
+    }
+    if (prec.getIntensity() != 0.0f)
+    {
+      po.has_intensity = true;
+      po.intensity = prec.getIntensity();
+    }
+
+    return po;
+  }
+
+  /// Build the run-level metadata JSON from ExperimentalSettings.
+  /// Best-effort: if the settings are empty, returns {{"version","0.9.0"}}.
+  nlohmann::json buildRunMetadataJson_(const MSExperiment& map)
+  {
+    nlohmann::json md;
+    bool has_anything = false;
+
+    // ---- run: start_time + id -------------------------------------------
+    {
+      nlohmann::json run_obj = nlohmann::json::object();
+      bool has_run = false;
+      if (! map.getDateTime().isNull())
+      {
+        // Convert DateTime to ISO 8601 string: "YYYY-MM-DD HH:MM:SS" -> replace space with T, append Z
+        String dt_str = map.getDateTime().get();
+        dt_str.substitute(" ", "T");
+        run_obj["start_time"] = std::string(dt_str) + "Z";
+        has_run = true;
+      }
+      if (map.metaValueExists("mzpeak_run_id"))
+      {
+        run_obj["id"] = std::string(static_cast<String>(map.getMetaValue("mzpeak_run_id")));
+        has_run = true;
+      }
+      if (has_run)
+      {
+        md["run"] = std::move(run_obj);
+        has_anything = true;
+      }
+    }
+
+    // ---- instrument_configuration_list ----------------------------------
+    {
+      const Instrument& instr = map.getInstrument();
+      bool has_instr
+        = ! instr.getName().empty() || ! instr.getIonSources().empty() || ! instr.getMassAnalyzers().empty() || ! instr.getIonDetectors().empty();
+      if (has_instr)
+      {
+        nlohmann::json ic = nlohmann::json::object();
+        nlohmann::json params = nlohmann::json::array();
+        if (! instr.getName().empty()) { params.push_back({{"accession", ""}, {"name", std::string(instr.getName())}, {"value", nullptr}}); }
+        ic["parameters"] = std::move(params);
+
+        nlohmann::json components = nlohmann::json::array();
+        int order = 1;
+        for (const IonSource& s : instr.getIonSources())
+        {
+          nlohmann::json comp = nlohmann::json::object();
+          comp["component_type"] = "ionsource";
+          comp["order"] = s.getOrder() > 0 ? s.getOrder() : order;
+          comp["parameters"] = nlohmann::json::array();
+          components.push_back(std::move(comp));
+          ++order;
+        }
+        for (const MassAnalyzer& a : instr.getMassAnalyzers())
+        {
+          nlohmann::json comp = nlohmann::json::object();
+          comp["component_type"] = "analyzer";
+          comp["order"] = a.getOrder() > 0 ? a.getOrder() : order;
+          comp["parameters"] = nlohmann::json::array();
+          components.push_back(std::move(comp));
+          ++order;
+        }
+        for (const IonDetector& d : instr.getIonDetectors())
+        {
+          nlohmann::json comp = nlohmann::json::object();
+          comp["component_type"] = "detector";
+          comp["order"] = d.getOrder() > 0 ? d.getOrder() : order;
+          comp["parameters"] = nlohmann::json::array();
+          components.push_back(std::move(comp));
+          ++order;
+        }
+        ic["components"] = std::move(components);
+
+        md["instrument_configuration_list"] = nlohmann::json::array({std::move(ic)});
+        has_anything = true;
+      }
+    }
+
+    // ---- file_description.source_files ----------------------------------
+    {
+      const std::vector<SourceFile>& sfs = map.getSourceFiles();
+      if (! sfs.empty())
+      {
+        nlohmann::json sf_array = nlohmann::json::array();
+        for (const SourceFile& sf : sfs)
+        {
+          nlohmann::json sfj = nlohmann::json::object();
+          sfj["name"] = std::string(sf.getNameOfFile());
+          sfj["location"] = std::string(sf.getPathToFile());
+          nlohmann::json sf_params = nlohmann::json::array();
+          // SHA-1 checksum
+          if (! sf.getChecksum().empty() && sf.getChecksumType() == SourceFile::ChecksumType::SHA1)
+          {
+            sf_params.push_back({{"accession", "MS:1000569"}, {"name", "SHA-1"}, {"value", std::string(sf.getChecksum())}});
+          }
+          else if (! sf.getChecksum().empty() && sf.getChecksumType() == SourceFile::ChecksumType::MD5)
+          {
+            sf_params.push_back({{"accession", "MS:1000568"}, {"name", "MD5"}, {"value", std::string(sf.getChecksum())}});
+          }
+          // Native ID type
+          if (! sf.getNativeIDTypeAccession().empty())
+          {
+            sf_params.push_back(
+              {{"accession", std::string(sf.getNativeIDTypeAccession())}, {"name", std::string(sf.getNativeIDType())}, {"value", nullptr}});
+          }
+          // File type
+          if (! sf.getFileType().empty()) { sf_params.push_back({{"accession", ""}, {"name", std::string(sf.getFileType())}, {"value", nullptr}}); }
+          sfj["parameters"] = std::move(sf_params);
+          sf_array.push_back(std::move(sfj));
+        }
+        md["file_description"] = {{"source_files", std::move(sf_array)}};
+        has_anything = true;
+      }
+    }
+
+    // ---- sample_list ----------------------------------------------------
+    {
+      const Sample& sample = map.getSample();
+      if (! sample.getName().empty() || ! sample.getNumber().empty())
+      {
+        nlohmann::json sj = nlohmann::json::object();
+        sj["name"] = std::string(sample.getName());
+        sj["id"] = std::string(sample.getNumber());
+        md["sample_list"] = nlohmann::json::array({std::move(sj)});
+        has_anything = true;
+      }
+    }
+
+    // ---- software_list --------------------------------------------------
+    {
+      const Software& sw = map.getInstrument().getSoftware();
+      if (! sw.getName().empty())
+      {
+        nlohmann::json swj = nlohmann::json::object();
+        swj["id"] = std::string(sw.getName());
+        swj["version"] = std::string(sw.getVersion());
+        swj["parameters"] = nlohmann::json::array();
+        md["software_list"] = nlohmann::json::array({std::move(swj)});
+        has_anything = true;
+      }
+    }
+
+    if (! has_anything) return nlohmann::json {{"version", "0.9.0"}};
+    return md;
+  }
+
+  /// Write the spectra_metadata table: a `spectrum` struct column (load path),
+  /// plus `precursor` and `selected_ion` struct columns (round-trip path).
+  /// The precursor/selected_ion schemas mirror the mzpeak-lib reference writer
+  /// exactly so that readPrecursors_() can join them by source_index.
+  void writeMetadataTable_(const String& path, const std::vector<MetaRow>& rows, const std::vector<PrecursorOut>& prec_rows)
+  {
+    // ---- spectrum column ------------------------------------------------
     arrow::UInt64Builder index_b;
     arrow::LargeStringBuilder id_b;
     arrow::UInt8Builder level_b;
@@ -1058,16 +1368,358 @@ namespace
     checkArrowStatus_(spectrum_result.status(), "build spectrum struct");
     std::shared_ptr<arrow::Array> spectrum_array = spectrum_result.ValueOrDie();
 
-    auto schema = arrow::schema({arrow::field("spectrum", spectrum_array->type(), /*nullable=*/true)});
-    auto table = arrow::Table::Make(schema, {spectrum_array});
+    // ---- precursor column -----------------------------------------------
+    // Schema:
+    //  precursor: struct<
+    //    source_index: uint64,
+    //    precursor_index: uint64,
+    //    precursor_id: large_string,
+    //    isolation_window: struct<tgt float, lo float, hi float, parameters large_list<CvParam>>,
+    //    activation: struct<parameters large_list<CvParam>>
+    //  >
+    //
+    // CvParam value union: struct<integer int64, float double, string large_string, boolean bool>
+    // CvParam: struct<value ..., accession string, name large_string, unit string>
+    //
+    // We build all builders manually so we can control null/non-null per row.
 
-    auto outfile_result = arrow::io::FileOutputStream::Open(std::string(path));
-    checkArrowStatus_(outfile_result.status(), "open output file " + path);
-    std::shared_ptr<arrow::io::FileOutputStream> outfile = outfile_result.ValueOrDie();
+    auto* mp = arrow::default_memory_pool();
 
-    constexpr int64_t kMaxRowGroup = 1 << 20;
-    int64_t row_group_size = table->num_rows() > 0 ? std::min<int64_t>(table->num_rows(), kMaxRowGroup) : kMaxRowGroup;
-    checkArrowStatus_(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, row_group_size), "write metadata table " + path);
+    // ---- CvParam value-union sub-builder (shared for iso_params and act_params) ---
+    // We need two independent sets of value-union builders (iso-window params and
+    // activation params) because they are children of different LargeListBuilders.
+
+    // Helper lambda to build one CvParam struct array given a list of rows
+    // (rows encoded as a vector-of-vectors of ActParam). Each sub-call appends
+    // exactly one row per element of prec_rows. The outer struct is always non-null
+    // (Append(true)); source_index / precursor_index children are null for MS1 rows.
+
+    // ---- Build value-union type once (reused for both param lists) --------
+    auto val_union_type = arrow::struct_({
+      arrow::field("integer", arrow::int64(), true),
+      arrow::field("float", arrow::float64(), true),
+      arrow::field("string", arrow::large_utf8(), true),
+      arrow::field("boolean", arrow::boolean(), true),
+    });
+
+    auto cvparam_type = arrow::struct_({
+      arrow::field("value", val_union_type, true),
+      arrow::field("accession", arrow::utf8(), true),
+      arrow::field("name", arrow::large_utf8(), true),
+      arrow::field("unit", arrow::utf8(), true),
+    });
+
+    // isolation_window.parameters type
+    auto iso_params_type = arrow::large_list(cvparam_type);
+
+    auto iso_window_type = arrow::struct_({
+      arrow::field("MS_1000827_isolation_window_target_mz", arrow::float32(), true),
+      arrow::field("MS_1000828_isolation_window_lower_offset", arrow::float32(), true),
+      arrow::field("MS_1000829_isolation_window_upper_offset", arrow::float32(), true),
+      arrow::field("parameters", iso_params_type, true),
+    });
+
+    // activation.parameters type (same CvParam)
+    auto act_params_type = arrow::large_list(cvparam_type);
+    auto act_type = arrow::struct_({arrow::field("parameters", act_params_type, true)});
+
+    auto prec_type = arrow::struct_({
+      arrow::field("source_index", arrow::uint64(), true),
+      arrow::field("precursor_index", arrow::uint64(), true),
+      arrow::field("precursor_id", arrow::large_utf8(), true),
+      arrow::field("isolation_window", iso_window_type, true),
+      arrow::field("activation", act_type, true),
+    });
+
+    // ---- Precursor column builder ----------------------------------------
+    // We build children manually then call StructArray::Make at the end.
+    arrow::UInt64Builder prec_si_b(mp);
+    arrow::UInt64Builder prec_pi_b(mp);
+    arrow::LargeStringBuilder prec_id_b(mp);
+
+    // isolation_window children
+    arrow::FloatBuilder iso_tgt_b(mp);
+    arrow::FloatBuilder iso_lo_b(mp);
+    arrow::FloatBuilder iso_hi_b(mp);
+
+    // isolation_window.parameters — empty list for every row
+    // We build a LargeListBuilder whose values are CvParam structs.
+    // Since we always emit empty lists (no CV params in iso window),
+    // we just accumulate offsets.
+    std::vector<int64_t> iso_param_list_offsets; // one per row + sentinel
+    iso_param_list_offsets.reserve(prec_rows.size() + 1);
+    iso_param_list_offsets.push_back(0); // initial offset
+
+    // No CvParam values for isolation_window.parameters (always empty list).
+
+    // activation.parameters LargeList builder
+    // Each row: for MS2 with activation, append the ActParam entries; for MS1, empty list.
+    std::vector<int64_t> act_param_list_offsets;
+    act_param_list_offsets.reserve(prec_rows.size() + 1);
+    act_param_list_offsets.push_back(0);
+
+    // Activation CvParam children arrays (all actual values):
+    // value union children
+    arrow::Int64Builder act_val_int_b(mp);
+    arrow::DoubleBuilder act_val_float_b(mp);
+    arrow::LargeStringBuilder act_val_str_b(mp);
+    arrow::BooleanBuilder act_val_bool_b(mp);
+
+    arrow::StringBuilder act_acc_b(mp);
+    arrow::LargeStringBuilder act_name_b(mp);
+    arrow::StringBuilder act_unit_b(mp);
+
+    // outer struct null-bitmaps for precursor and isolation_window and activation
+    // We build using StructArray::Make so we need validity bitmaps as uint8 vectors.
+    // Simpler: use explicit validity vectors.
+    std::vector<bool> prec_outer_valid; // always true
+    std::vector<bool> prec_si_valid;
+    std::vector<bool> prec_pi_valid;
+    std::vector<bool> prec_id_null; // always null
+    std::vector<bool> iso_valid;    // always true (outer struct is always non-null)
+    std::vector<bool> iso_tgt_valid;
+    std::vector<bool> iso_lo_valid;
+    std::vector<bool> iso_hi_valid;
+    std::vector<bool> iso_param_null; // always emit list (non-null, empty)
+    std::vector<bool> act_valid;      // always true
+
+    for (const PrecursorOut& po : prec_rows)
+    {
+      prec_outer_valid.push_back(true); // outer struct always non-null
+
+      if (po.has_precursor)
+      {
+        prec_si_valid.push_back(true);
+        prec_pi_valid.push_back(true);
+        checkArrowStatus_(prec_si_b.Append(po.source_index), "append prec source_index");
+        checkArrowStatus_(prec_pi_b.Append(po.precursor_index), "append prec precursor_index");
+      }
+      else
+      {
+        prec_si_valid.push_back(false);
+        prec_pi_valid.push_back(false);
+        checkArrowStatus_(prec_si_b.AppendNull(), "append null prec source_index");
+        checkArrowStatus_(prec_pi_b.AppendNull(), "append null prec precursor_index");
+      }
+      prec_id_null.push_back(false); // always null
+      checkArrowStatus_(prec_id_b.AppendNull(), "append null prec id");
+
+      // isolation_window outer struct — always non-null to match reference
+      iso_valid.push_back(true);
+      if (po.has_isolation)
+      {
+        iso_tgt_valid.push_back(true);
+        iso_lo_valid.push_back(true);
+        iso_hi_valid.push_back(true);
+        checkArrowStatus_(iso_tgt_b.Append(po.isolation_target), "append iso tgt");
+        checkArrowStatus_(iso_lo_b.Append(po.isolation_lower), "append iso lo");
+        checkArrowStatus_(iso_hi_b.Append(po.isolation_upper), "append iso hi");
+      }
+      else
+      {
+        iso_tgt_valid.push_back(false);
+        iso_lo_valid.push_back(false);
+        iso_hi_valid.push_back(false);
+        checkArrowStatus_(iso_tgt_b.AppendNull(), "append null iso tgt");
+        checkArrowStatus_(iso_lo_b.AppendNull(), "append null iso lo");
+        checkArrowStatus_(iso_hi_b.AppendNull(), "append null iso hi");
+      }
+      iso_param_null.push_back(true);                                  // iso params always an empty (non-null) list
+      iso_param_list_offsets.push_back(iso_param_list_offsets.back()); // empty list: offset doesn't advance
+
+      // activation outer struct — always non-null
+      act_valid.push_back(true);
+
+      // activation.parameters list
+      std::size_t n_act = po.activation.size();
+      act_param_list_offsets.push_back(act_param_list_offsets.back() + static_cast<int64_t>(n_act));
+
+      for (const PrecursorOut::ActParam& ap : po.activation)
+      {
+        // value union: if has_float, fill float child, otherwise all null
+        if (ap.has_float)
+        {
+          checkArrowStatus_(act_val_int_b.AppendNull(), "append null act val int");
+          checkArrowStatus_(act_val_float_b.Append(ap.float_val), "append act val float");
+          checkArrowStatus_(act_val_str_b.AppendNull(), "append null act val str");
+          checkArrowStatus_(act_val_bool_b.AppendNull(), "append null act val bool");
+        }
+        else
+        {
+          checkArrowStatus_(act_val_int_b.AppendNull(), "append null act val int");
+          checkArrowStatus_(act_val_float_b.AppendNull(), "append null act val float");
+          checkArrowStatus_(act_val_str_b.AppendNull(), "append null act val str");
+          checkArrowStatus_(act_val_bool_b.AppendNull(), "append null act val bool");
+        }
+        checkArrowStatus_(act_acc_b.Append(std::string(ap.accession)), "append act accession");
+        checkArrowStatus_(act_name_b.Append(std::string(ap.name)), "append act name");
+        checkArrowStatus_(act_unit_b.AppendNull(), "append null act unit");
+      }
+    }
+
+    // ---- Finish arrays ---------------------------------------------------
+    std::shared_ptr<arrow::Array> prec_si_a, prec_pi_a, prec_id_a;
+    checkArrowStatus_(prec_si_b.Finish(&prec_si_a), "finish prec_si");
+    checkArrowStatus_(prec_pi_b.Finish(&prec_pi_a), "finish prec_pi");
+    checkArrowStatus_(prec_id_b.Finish(&prec_id_a), "finish prec_id");
+
+    std::shared_ptr<arrow::Array> iso_tgt_a, iso_lo_a, iso_hi_a;
+    checkArrowStatus_(iso_tgt_b.Finish(&iso_tgt_a), "finish iso_tgt");
+    checkArrowStatus_(iso_lo_b.Finish(&iso_lo_a), "finish iso_lo");
+    checkArrowStatus_(iso_hi_b.Finish(&iso_hi_a), "finish iso_hi");
+
+    // Build isolation_window.parameters as a LargeListArray of always-empty lists.
+    // iso_param_list_offsets has N+1 entries, all equal to 0 (empty lists only).
+    // Use MakeArrayOfNull to get a zero-length typed CvParam values array:
+    auto empty_cvparam_result = arrow::MakeArrayOfNull(cvparam_type, 0, mp);
+    checkArrowStatus_(empty_cvparam_result.status(), "build empty cvparam");
+    auto empty_cvparam_a = empty_cvparam_result.ValueOrDie();
+
+    int64_t n_rows = static_cast<int64_t>(prec_rows.size());
+
+    // Manually build the LargeListArray for iso params (always empty lists):
+    auto iso_params_offsets_buf = std::make_shared<arrow::Buffer>(reinterpret_cast<const uint8_t*>(iso_param_list_offsets.data()),
+                                                                  static_cast<int64_t>(iso_param_list_offsets.size() * sizeof(int64_t)));
+    auto iso_params_arr = std::make_shared<arrow::LargeListArray>(iso_params_type, n_rows, iso_params_offsets_buf, empty_cvparam_a);
+
+    // ---- Build activation.parameters arrays ------------------------------
+    std::shared_ptr<arrow::Array> act_val_int_a, act_val_float_a, act_val_str_a, act_val_bool_a;
+    checkArrowStatus_(act_val_int_b.Finish(&act_val_int_a), "finish act_val_int");
+    checkArrowStatus_(act_val_float_b.Finish(&act_val_float_a), "finish act_val_float");
+    checkArrowStatus_(act_val_str_b.Finish(&act_val_str_a), "finish act_val_str");
+    checkArrowStatus_(act_val_bool_b.Finish(&act_val_bool_a), "finish act_val_bool");
+
+    auto act_val_result
+      = arrow::StructArray::Make({act_val_int_a, act_val_float_a, act_val_str_a, act_val_bool_a},
+                                 {arrow::field("integer", arrow::int64(), true), arrow::field("float", arrow::float64(), true),
+                                  arrow::field("string", arrow::large_utf8(), true), arrow::field("boolean", arrow::boolean(), true)});
+    checkArrowStatus_(act_val_result.status(), "build act value union struct");
+    auto act_val_a = act_val_result.ValueOrDie();
+
+    std::shared_ptr<arrow::Array> act_acc_a, act_name_a, act_unit_a;
+    checkArrowStatus_(act_acc_b.Finish(&act_acc_a), "finish act_acc");
+    checkArrowStatus_(act_name_b.Finish(&act_name_a), "finish act_name");
+    checkArrowStatus_(act_unit_b.Finish(&act_unit_a), "finish act_unit");
+
+    auto act_cvparam_result = arrow::StructArray::Make({act_val_a, act_acc_a, act_name_a, act_unit_a},
+                                                       {arrow::field("value", val_union_type, true), arrow::field("accession", arrow::utf8(), true),
+                                                        arrow::field("name", arrow::large_utf8(), true), arrow::field("unit", arrow::utf8(), true)});
+    checkArrowStatus_(act_cvparam_result.status(), "build act cvparam struct");
+    auto act_cvparam_a = act_cvparam_result.ValueOrDie();
+
+    // Build the activation params LargeListArray from offsets
+    auto act_params_offsets_buf = std::make_shared<arrow::Buffer>(reinterpret_cast<const uint8_t*>(act_param_list_offsets.data()),
+                                                                  static_cast<int64_t>(act_param_list_offsets.size() * sizeof(int64_t)));
+    auto act_params_arr = std::make_shared<arrow::LargeListArray>(act_params_type, n_rows, act_params_offsets_buf, act_cvparam_a);
+
+    // ---- Build isolation_window struct -----------------------------------
+    auto iso_result = arrow::StructArray::Make({iso_tgt_a, iso_lo_a, iso_hi_a, iso_params_arr},
+                                               {arrow::field("MS_1000827_isolation_window_target_mz", arrow::float32(), true),
+                                                arrow::field("MS_1000828_isolation_window_lower_offset", arrow::float32(), true),
+                                                arrow::field("MS_1000829_isolation_window_upper_offset", arrow::float32(), true),
+                                                arrow::field("parameters", iso_params_type, true)});
+    checkArrowStatus_(iso_result.status(), "build isolation_window struct");
+    auto iso_a = iso_result.ValueOrDie();
+
+    // ---- Build activation struct -----------------------------------------
+    auto act_result = arrow::StructArray::Make({act_params_arr}, {arrow::field("parameters", act_params_type, true)});
+    checkArrowStatus_(act_result.status(), "build activation struct");
+    auto act_a = act_result.ValueOrDie();
+
+    // ---- Build precursor outer struct ------------------------------------
+    auto prec_result
+      = arrow::StructArray::Make({prec_si_a, prec_pi_a, prec_id_a, iso_a, act_a},
+                                 {arrow::field("source_index", arrow::uint64(), true), arrow::field("precursor_index", arrow::uint64(), true),
+                                  arrow::field("precursor_id", arrow::large_utf8(), true), arrow::field("isolation_window", iso_window_type, true),
+                                  arrow::field("activation", act_type, true)});
+    checkArrowStatus_(prec_result.status(), "build precursor struct");
+    auto prec_array = prec_result.ValueOrDie();
+
+    // ---- selected_ion column --------------------------------------------
+    // Schema: struct<source_index uint64, precursor_index uint64,
+    //   MS_1000744_selected_ion_mz_unit_MS_1000040 double,
+    //   MS_1000041_charge_state int32,
+    //   MS_1000042_intensity_unit_MS_1000131 float>
+    arrow::UInt64Builder sion_si_b(mp);
+    arrow::UInt64Builder sion_pi_b(mp);
+    arrow::DoubleBuilder sion_mz_b(mp);
+    arrow::Int32Builder sion_charge_b(mp);
+    arrow::FloatBuilder sion_int_b(mp);
+
+    std::vector<bool> sion_si_valid;
+    std::vector<bool> sion_pi_valid;
+    std::vector<bool> sion_mz_valid;
+    std::vector<bool> sion_charge_valid;
+    std::vector<bool> sion_int_valid;
+
+    for (const PrecursorOut& po : prec_rows)
+    {
+      if (po.has_precursor && po.has_selected_ion)
+      {
+        sion_si_valid.push_back(true);
+        sion_pi_valid.push_back(true);
+        sion_mz_valid.push_back(true);
+        checkArrowStatus_(sion_si_b.Append(po.source_index), "append sion si");
+        checkArrowStatus_(sion_pi_b.Append(po.precursor_index), "append sion pi");
+        checkArrowStatus_(sion_mz_b.Append(po.selected_ion_mz), "append sion mz");
+      }
+      else
+      {
+        sion_si_valid.push_back(false);
+        sion_pi_valid.push_back(false);
+        sion_mz_valid.push_back(false);
+        checkArrowStatus_(sion_si_b.AppendNull(), "append null sion si");
+        checkArrowStatus_(sion_pi_b.AppendNull(), "append null sion pi");
+        checkArrowStatus_(sion_mz_b.AppendNull(), "append null sion mz");
+      }
+
+      if (po.has_precursor && po.has_charge)
+      {
+        sion_charge_valid.push_back(true);
+        checkArrowStatus_(sion_charge_b.Append(po.charge), "append sion charge");
+      }
+      else
+      {
+        sion_charge_valid.push_back(false);
+        checkArrowStatus_(sion_charge_b.AppendNull(), "append null sion charge");
+      }
+
+      if (po.has_precursor && po.has_intensity)
+      {
+        sion_int_valid.push_back(true);
+        checkArrowStatus_(sion_int_b.Append(po.intensity), "append sion intensity");
+      }
+      else
+      {
+        sion_int_valid.push_back(false);
+        checkArrowStatus_(sion_int_b.AppendNull(), "append null sion intensity");
+      }
+    }
+
+    std::shared_ptr<arrow::Array> sion_si_a, sion_pi_a, sion_mz_a, sion_charge_a, sion_int_a;
+    checkArrowStatus_(sion_si_b.Finish(&sion_si_a), "finish sion_si");
+    checkArrowStatus_(sion_pi_b.Finish(&sion_pi_a), "finish sion_pi");
+    checkArrowStatus_(sion_mz_b.Finish(&sion_mz_a), "finish sion_mz");
+    checkArrowStatus_(sion_charge_b.Finish(&sion_charge_a), "finish sion_charge");
+    checkArrowStatus_(sion_int_b.Finish(&sion_int_a), "finish sion_int");
+
+    auto sion_result = arrow::StructArray::Make(
+      {sion_si_a, sion_pi_a, sion_mz_a, sion_charge_a, sion_int_a},
+      {arrow::field("source_index", arrow::uint64(), true), arrow::field("precursor_index", arrow::uint64(), true),
+       arrow::field("MS_1000744_selected_ion_mz_unit_MS_1000040", arrow::float64(), true),
+       arrow::field("MS_1000041_charge_state", arrow::int32(), true), arrow::field("MS_1000042_intensity_unit_MS_1000131", arrow::float32(), true)});
+    checkArrowStatus_(sion_result.status(), "build selected_ion struct");
+    auto sion_array = sion_result.ValueOrDie();
+
+    // ---- Assemble table with 3 columns ----------------------------------
+    auto schema = arrow::schema({
+      arrow::field("spectrum", spectrum_array->type(), /*nullable=*/true),
+      arrow::field("precursor", prec_array->type(), /*nullable=*/true),
+      arrow::field("selected_ion", sion_array->type(), /*nullable=*/true),
+    });
+    auto table = arrow::Table::Make(schema, {spectrum_array, prec_array, sion_array});
+
+    writeTableWithProps_(path, table, {});
   }
 
 } // namespace
@@ -1184,7 +1836,9 @@ void MzPeakFile::store(const String& filename, const MapType& map) const
   PointColumns data;  // profile points
   PointColumns peaks; // centroid points
   std::vector<MetaRow> meta_rows;
+  std::vector<PrecursorOut> prec_rows;
   meta_rows.reserve(map.size());
+  prec_rows.reserve(map.size());
 
   bool any_centroid = false;
   for (Size i = 0; i < map.size(); ++i)
@@ -1227,6 +1881,9 @@ void MzPeakFile::store(const String& filename, const MapType& map) const
     row.n_points = centroid ? 0 : static_cast<std::uint64_t>(spec.size());
     row.n_peaks = centroid ? static_cast<std::uint64_t>(spec.size()) : 0;
     meta_rows.push_back(std::move(row));
+
+    // Precursor data for this spectrum
+    prec_rows.push_back(buildPrecursorOut_(spec, static_cast<std::uint64_t>(i), 0));
   }
 
   // ------------------------------------------------------------------
@@ -1239,14 +1896,27 @@ void MzPeakFile::store(const String& filename, const MapType& map) const
   const String meta_path = dir + "/spectra_metadata.parquet";
   const String index_path = dir + "/mzpeak_index.json";
 
+  // The spectrum_array_index JSON is required by the Rust reference reader to
+  // locate the column layout (prefix "point", mz/intensity array type info).
+  // It mirrors the exact structure emitted by the mzpeak-lib Rust writer.
+  static const std::string kSpectrumArrayIndex
+    = R"({"prefix":"point","entries":[{"context":"spectrum","path":"point.mz","data_type":"MS:1000523","array_type":"MS:1000514","array_name":"m/z array","unit":"MS:1000040","buffer_format":"point","transform":"MS:1003901","data_processing_id":null,"buffer_priority":"primary","sorting_rank":0},{"context":"spectrum","path":"point.intensity","data_type":"MS:1000521","array_type":"MS:1000515","array_name":"intensity array","unit":"MS:1000131","buffer_format":"point","transform":"MS:1003902","data_processing_id":null,"buffer_priority":"primary","sorting_rank":null}]})";
+
+  // File-kv for point tables: spectrum_count and spectrum_data_point_count.
+  const std::string n_spectra = std::to_string(map.size());
+  const std::map<std::string, std::string> data_kv {
+    {"spectrum_count", n_spectra}, {"spectrum_data_point_count", std::to_string(data.mz.size())}, {"spectrum_array_index", kSpectrumArrayIndex}};
+  const std::map<std::string, std::string> peaks_kv {
+    {"spectrum_count", n_spectra}, {"spectrum_data_point_count", std::to_string(peaks.mz.size())}, {"spectrum_array_index", kSpectrumArrayIndex}};
+
   // The data table is always present (may be empty); peaks only when a centroid
   // spectrum exists, mirroring the mzpeak-lib writer.
-  writePointTable_(data_path, data);
-  if (any_centroid) writePointTable_(peaks_path, peaks);
-  writeMetadataTable_(meta_path, meta_rows);
+  writePointTable_(data_path, data, data_kv);
+  if (any_centroid) writePointTable_(peaks_path, peaks, peaks_kv);
+  writeMetadataTable_(meta_path, meta_rows, prec_rows);
 
   // ------------------------------------------------------------------
-  // 3. Write mzpeak_index.json (files[] + minimal metadata{version}). The load
+  // 3. Write mzpeak_index.json (files[] + run-level metadata). The load
   //    path matches members by data_kind, so the names + kinds must be exact.
   // ------------------------------------------------------------------
   nlohmann::json idx;
@@ -1255,7 +1925,11 @@ void MzPeakFile::store(const String& filename, const MapType& map) const
   if (any_centroid) { files.push_back({{"name", "spectra_peaks.parquet"}, {"entity_type", "spectrum"}, {"data_kind", "peaks"}}); }
   files.push_back({{"name", "spectra_metadata.parquet"}, {"entity_type", "spectrum"}, {"data_kind", "metadata"}});
   idx["files"] = std::move(files);
-  idx["metadata"] = {{"version", "0.9.0"}};
+
+  // Build run-level metadata from ExperimentalSettings (best-effort)
+  nlohmann::json run_md = buildRunMetadataJson_(map);
+  run_md["version"] = "0.9.0";
+  idx["metadata"] = std::move(run_md);
 
   {
     std::string index_json = idx.dump();

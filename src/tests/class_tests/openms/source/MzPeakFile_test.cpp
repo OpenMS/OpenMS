@@ -310,6 +310,58 @@ START_SECTION(void store(const String& filename, const MapType& map))
   for (Size i = 0; i < rt.size(); ++i)
     if (rt[i].getMSLevel() == 1) ++rt_ms1;
   TEST_EQUAL(rt_ms1, src_ms1)
+
+  // --- Precursor round-trip: MS2 precursor m/z, isolation, activation, selected ion ---
+  {
+    // Find the first MS2 spectrum in src that has a precursor
+    const MSSpectrum* src_ms2 = nullptr;
+    for (Size i = 0; i < src.size(); ++i)
+      if (src[i].getMSLevel() == 2 && ! src[i].getPrecursors().empty())
+      {
+        src_ms2 = &src[i];
+        break;
+      }
+    TEST_NOT_EQUAL(src_ms2, nullptr)
+    if (src_ms2)
+    {
+      // Find matching spectrum in rt
+      const MSSpectrum* rt_ms2 = nullptr;
+      for (Size i = 0; i < rt.size(); ++i)
+        if (rt[i].getNativeID() == src_ms2->getNativeID())
+        {
+          rt_ms2 = &rt[i];
+          break;
+        }
+      TEST_NOT_EQUAL(rt_ms2, nullptr)
+      if (rt_ms2 && ! src_ms2->getPrecursors().empty() && ! rt_ms2->getPrecursors().empty())
+      {
+        const Precursor& sp = src_ms2->getPrecursors()[0];
+        const Precursor& rp = rt_ms2->getPrecursors()[0];
+        TOLERANCE_ABSOLUTE(1e-3)
+        TEST_REAL_SIMILAR(rp.getMZ(), sp.getMZ())
+        TEST_REAL_SIMILAR(rp.getIsolationWindowLowerOffset(), sp.getIsolationWindowLowerOffset())
+        TEST_REAL_SIMILAR(rp.getIsolationWindowUpperOffset(), sp.getIsolationWindowUpperOffset())
+        // Activation: CID method preserved
+        TEST_EQUAL(rp.getActivationMethods().count(Precursor::ActivationMethod::CID)
+                     == sp.getActivationMethods().count(Precursor::ActivationMethod::CID),
+                   true)
+        if (! sp.getActivationMethods().empty()) TEST_REAL_SIMILAR(rp.getActivationEnergy(), sp.getActivationEnergy())
+        TOLERANCE_ABSOLUTE(1.0)
+        TEST_REAL_SIMILAR(rp.getIntensity(), sp.getIntensity())
+        TOLERANCE_ABSOLUTE(1e-4)
+      }
+    }
+  }
+
+  // --- Run-level metadata round-trip ---
+  {
+    // Re-load into fresh experiment to avoid side effects
+    MSExperiment rt2;
+    MzPeakFile().load(tmp, rt2);
+    TEST_EQUAL(rt2.getInstrument().getName().empty(), false)
+    TEST_EQUAL(rt2.getSourceFiles().empty(), false)
+    if (! rt2.getSourceFiles().empty()) TEST_EQUAL(rt2.getSourceFiles()[0].getNameOfFile().empty(), false)
+  }
 }
 END_SECTION
 
