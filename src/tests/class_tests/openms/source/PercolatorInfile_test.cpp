@@ -59,6 +59,53 @@ START_SECTION(PeptideIdentificationList PercolatorInfile::load(const std::string
 }
 END_SECTION
 
+START_SECTION((static StringList getStandardFeatureSet(int min_charge, int max_charge)))
+{
+  // The standard Percolator feature set is the three mandatory header columns
+  // (SpecId, Label, ScanNr), then the mass/length features, then one "charge<c>"
+  // column per charge state in [min,max], then the enzyme / mass-delta features.
+  // Callers append any extra_features and finally Peptide, Proteins before writing
+  // the .pin header that Percolator expects (#9195). This validates that contract.
+
+  // exact ordered feature set for charges 2..4: three mandatory columns, then
+  // mass/length features, then one "charge<c>" column per charge state, then the
+  // enzyme / mass-delta features.
+  StringList fs = PercolatorInfile::getStandardFeatureSet(2, 4);
+  StringList expected = {"SpecId", "Label", "ScanNr", "ExpMass", "CalcMass", "mass", "peplen",
+                         "charge2", "charge3", "charge4",
+                         "enzN", "enzC", "enzInt", "dm", "absdm"};
+  TEST_EQUAL(fs.size(), expected.size())
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    TEST_STRING_EQUAL(fs[i], expected[i])
+  }
+
+  // the three mandatory leading columns
+  TEST_STRING_EQUAL(fs[0], "SpecId")
+  TEST_STRING_EQUAL(fs[1], "Label")
+  TEST_STRING_EQUAL(fs[2], "ScanNr")
+
+  // a single charge state yields exactly one "charge3" column and no other charge column
+  StringList single = PercolatorInfile::getStandardFeatureSet(3, 3);
+  StringList expected_single = {"SpecId", "Label", "ScanNr", "ExpMass", "CalcMass", "mass", "peplen",
+                                "charge3", "enzN", "enzC", "enzInt", "dm", "absdm"};
+  TEST_EQUAL(single.size(), expected_single.size())
+  for (Size i = 0; i < expected_single.size(); ++i)
+  {
+    TEST_STRING_EQUAL(single[i], expected_single[i])
+  }
+
+  // the assembled .pin header (features + Peptide + Proteins) begins with SpecId
+  // and ends with Peptide, Proteins -- the exact shape Percolator parses (#9195).
+  StringList header = fs;
+  header.push_back("Peptide");
+  header.push_back("Proteins");
+  TEST_STRING_EQUAL(header.front(), "SpecId")
+  TEST_STRING_EQUAL(header[header.size() - 2], "Peptide")
+  TEST_STRING_EQUAL(header.back(), "Proteins")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
