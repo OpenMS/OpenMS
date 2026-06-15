@@ -319,6 +319,7 @@ set(math_executables_list
   BSpline2d_test
   BSplineSmoothingSpline_test
   CubicSpline2d_test
+  SplineBisection_test
   EmgGradientDescent_test
   GammaDistributionFitter_test
   GaussFitter_test
