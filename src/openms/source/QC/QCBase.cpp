@@ -13,7 +13,10 @@
 
 namespace OpenMS
 {
-  const std::string QCBase::names_of_requires[] = {"fail", "raw.mzML", "postFDR.featureXML", "preFDR.featureXML", "contaminants.fasta", "trafoAlign.trafoXML"};
+  const std::string QCBase::names_of_requires[] = {"fail", "raw.mzML", "postFDR.featureXML", "preFDR.featureXML", "contaminants.fasta", "trafoAlign.trafoXML", "id.idXML"};
+  static_assert(sizeof(QCBase::names_of_requires) / sizeof(QCBase::names_of_requires[0])
+                  == static_cast<Size>(QCBase::Requires::SIZE_OF_REQUIRES),
+                "names_of_requires must have one entry per QCBase::Requires value");
 
   const std::string QCBase::names_of_toleranceUnit[] = {"auto", "ppm", "da"};
 
