@@ -674,6 +674,7 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathOSWWriter_test
     OpenSwathScoring_test
     OpenSwathScores_test
+    OpenSwathWorkflowScheduler_test
     PeakIntegrator_test
     PeakPickerChromatogram_test
     PeakPickerMobilogram_test
