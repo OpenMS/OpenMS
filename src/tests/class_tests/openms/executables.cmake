@@ -307,6 +307,7 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   MobilogramParquetConsumer_test
   XICParquetFile_test
   XIMParquetFile_test
+  ParquetFile_test
   ProteinIdentificationArrowIO_test
   FeatureMapArrowIO_test
   ConsensusMapArrowIO_test
