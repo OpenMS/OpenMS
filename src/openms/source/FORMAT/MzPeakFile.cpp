@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/MzPeakFile.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/FORMAT/ZipRandomAccessFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -1948,10 +1949,148 @@ void MzPeakFile::store(const String& filename, const MapType& map) const
   ZipArchiveFile::zipDirectory(dir, filename);
 }
 
-void MzPeakFile::transform(const String& /* filename_in */,
-                           Interfaces::IMSDataConsumer* /* consumer */,
-                           bool /* skip_full_count */,
-                           bool /* skip_first_pass */) const
-{ throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); }
+void MzPeakFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool /* skip_full_count */, bool skip_first_pass) const
+{
+  if (! File::exists(filename_in)) { throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_in); }
+
+  // ------------------------------------------------------------------
+  // 1. Parse mzpeak_index.json to locate data / peaks / metadata entries.
+  // ------------------------------------------------------------------
+  std::unique_ptr<File::TempDir> temp_dir;
+  std::string index_json = readEntryBytes_(filename_in, "mzpeak_index.json", temp_dir);
+
+  String data_entry;
+  String peaks_entry;
+  String metadata_entry;
+  try
+  {
+    nlohmann::json idx = nlohmann::json::parse(index_json);
+    for (const auto& f : idx.at("files"))
+    {
+      std::string name = f.value("name", "");
+      std::string entity = f.value("entity_type", "");
+      std::string kind = f.value("data_kind", "");
+      if (entity != "spectrum") continue;
+      if (kind == "data arrays") data_entry = name;
+      else if (kind == "peaks")
+        peaks_entry = name;
+      else if (kind == "metadata")
+        metadata_entry = name;
+    }
+  }
+  catch (const std::exception& e)
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_in,
+                                std::string("Failed to parse mzpeak_index.json: ") + e.what());
+  }
+
+  // ------------------------------------------------------------------
+  // 2. Read per-spectrum metadata (always needed for both passes).
+  // ------------------------------------------------------------------
+  std::map<std::uint64_t, SpectrumMeta> meta;
+  if (! metadata_entry.empty())
+  {
+    auto meta_table = readTableFromArchive_(filename_in, metadata_entry, temp_dir);
+    meta = readSpectraMeta_(meta_table);
+    auto precursors = readPrecursors_(meta_table);
+    for (auto& [source_index, plist] : precursors)
+    {
+      meta[source_index].precursors = std::move(plist);
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // 3. First pass: count filtered spectra + notify consumer.
+  // ------------------------------------------------------------------
+  if (! skip_first_pass)
+  {
+    Size n_spectra = 0;
+    for (const auto& [idx, sm] : meta)
+    {
+      if (options_.hasMSLevels() && ! options_.containsMSLevel(sm.ms_level)) continue;
+      if (options_.hasRTRange() && ! options_.getRTRange().encloses(DPosition<1>(sm.retention_time))) continue;
+      ++n_spectra;
+    }
+    consumer->setExpectedSize(n_spectra, 0);
+
+    MSExperiment tmp_exp;
+    try
+    {
+      nlohmann::json idx_obj = nlohmann::json::parse(index_json);
+      if (idx_obj.contains("metadata")) applyRunMetadata_(idx_obj.at("metadata"), tmp_exp);
+    }
+    catch (...)
+    {
+    }
+    consumer->setExperimentalSettings(tmp_exp);
+  }
+
+  // ------------------------------------------------------------------
+  // 4. Second pass: build spectra and emit through consumer.
+  // ------------------------------------------------------------------
+  const bool metadata_only = options_.getMetadataOnly() || ! options_.getFillData();
+
+  MSExperiment tmp;
+  if (! metadata_only)
+  {
+    if (! data_entry.empty())
+    {
+      auto data_table = readTableFromArchive_(filename_in, data_entry, temp_dir);
+      addSpectraFromTable_(data_table, meta, /*reconstruct=*/true, tmp);
+    }
+    if (! peaks_entry.empty())
+    {
+      auto peaks_table = readTableFromArchive_(filename_in, peaks_entry, temp_dir);
+      addSpectraFromTable_(peaks_table, meta, /*reconstruct=*/false, tmp);
+    }
+    tmp.sortSpectra(false);
+  }
+  else
+  {
+    // Metadata-only: build spectra from the metadata map (no peak data).
+    for (auto& [idx, sm] : meta)
+    {
+      MSSpectrum spec;
+      if (sm.ms_level > 0) spec.setMSLevel(static_cast<UInt>(sm.ms_level));
+      spec.setRT(sm.retention_time);
+      if (sm.representation == "MS:1000127") spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+      else if (sm.representation == "MS:1000128")
+        spec.setType(SpectrumSettings::SpectrumType::PROFILE);
+      if (sm.polarity > 0) spec.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
+      else if (sm.polarity < 0)
+        spec.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
+      for (const CvParam& p : sm.parameters)
+        applyCVParamToSpectrum_(p, spec);
+      buildPrecursors_(sm.precursors, spec);
+      if (! sm.native_id.empty()) spec.setMetaValue("mzpeak_native_id", sm.native_id);
+      spec.setNativeID("index=" + String(idx));
+      tmp.addSpectrum(std::move(spec));
+    }
+    tmp.sortSpectra(false);
+  }
+
+  // ------------------------------------------------------------------
+  // 5. Apply filters and dispatch to consumer.
+  // ------------------------------------------------------------------
+  for (Size i = 0; i < tmp.size(); ++i)
+  {
+    MSSpectrum& spec = tmp[i];
+
+    // MS-level filter
+    if (options_.hasMSLevels() && ! options_.containsMSLevel(spec.getMSLevel())) continue;
+
+    // RT filter
+    if (options_.hasRTRange() && ! options_.getRTRange().encloses(DPosition<1>(spec.getRT()))) continue;
+
+    // m/z range filter: remove peaks outside the requested range
+    if (! metadata_only && options_.hasMZRange() && ! spec.empty())
+    {
+      const DRange<1>& mzr = options_.getMZRange();
+      spec.erase(std::remove_if(spec.begin(), spec.end(), [&mzr](const Peak1D& pk) { return ! mzr.encloses(DPosition<1>(pk.getMZ())); }), spec.end());
+    }
+
+    consumer->consumeSpectrum(spec);
+  }
+}
 
 } // namespace OpenMS

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -18,13 +19,9 @@ namespace OpenMS
   @brief File adapter for the mzPeak format (Apache Parquet payloads packaged in a ZIP container).
 
   The mzPeak format stores mass spectrometric data as one or more Apache Parquet
-  tables bundled together inside a ZIP archive. This class is intended to provide
-  functions to read and write spectra and chromatograms in this format and to
-  stream them to a data consumer.
-
-  @note This class is currently a stub. The load(), store() and transform()
-  methods are not yet implemented and will throw Exception::NotImplemented when
-  called. The actual mzPeak reading/writing logic will be added in a later phase.
+  tables bundled together inside a ZIP archive. This class provides functions to
+  read and write spectra and chromatograms in this format and to stream them to
+  a data consumer.
 */
 class OPENMS_DLLAPI MzPeakFile
 {
@@ -41,14 +38,28 @@ public:
   ~MzPeakFile();
   //@}
 
+  /** @name PeakFileOptions accessors
+   */
+  //@{
+  /// Returns a mutable reference to the current file options.
+  PeakFileOptions& getOptions()
+  { return options_; }
+
+  /// Returns a const reference to the current file options.
+  const PeakFileOptions& getOptions() const
+  { return options_; }
+
+  /// Replaces the current file options.
+  void setOptions(const PeakFileOptions& opts)
+  { options_ = opts; }
+  //@}
+
   /** @name Read / Write a complete mass spectrometric experiment
    */
   //@{
 
   /**
     @brief Load an mzPeak file into an MSExperiment.
-
-    @note Not yet implemented; throws Exception::NotImplemented.
   */
   void load(const String& filename, MapType& map) const;
 
@@ -68,9 +79,21 @@ public:
   /**
     @brief Stream the contents of an mzPeak file into a data consumer.
 
-    @note Not yet implemented; throws Exception::NotImplemented.
+    Performs an optional first pass to count spectra that pass the active
+    PeakFileOptions filters and notify the consumer via setExpectedSize() and
+    setExperimentalSettings(), then a second pass that calls
+    consumeSpectrum() for each passing spectrum.
+
+    @param filename_in    Path to the input .mzpeak archive.
+    @param consumer       Receiver for streamed spectra; must not be null.
+    @param skip_full_count Ignored (kept for API compatibility).
+    @param skip_first_pass When true, the first pass (setExpectedSize /
+                           setExperimentalSettings) is skipped.
   */
   void transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count = false, bool skip_first_pass = false) const;
   //@}
+
+private:
+  PeakFileOptions options_; ///< Active read options (MS-level / RT / m/z / metadata-only filters).
 };
 } // namespace OpenMS

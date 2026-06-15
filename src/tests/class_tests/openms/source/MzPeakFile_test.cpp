@@ -14,6 +14,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzPeakFile.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
@@ -379,6 +381,87 @@ START_SECTION([EXTRA] store via generic FileHandler API)
   MSExperiment rt;
   fh.loadExperiment(tmp, rt);
   TEST_EQUAL(rt.size(), src.size())
+}
+END_SECTION
+
+START_SECTION([EXTRA] transform via IMSDataConsumer)
+{
+  // Minimal counting consumer for streaming tests.
+  struct CountingConsumer : public Interfaces::IMSDataConsumer
+  {
+    Size n = 0;
+    Size n_ms1 = 0;
+    Size n_ms2 = 0;
+    void consumeSpectrum(MSSpectrum& s) override
+    {
+      ++n;
+      if (s.getMSLevel() == 1) ++n_ms1;
+      else if (s.getMSLevel() == 2)
+        ++n_ms2;
+    }
+    void consumeChromatogram(MSChromatogram&) override
+    {
+    }
+    void setExpectedSize(size_t, size_t) override
+    {
+    }
+    void setExperimentalSettings(const ExperimentalSettings&) override
+    {
+    }
+  };
+
+  // ---- basic stream: all spectra (same count as load) ----
+  {
+    CountingConsumer c;
+    MzPeakFile().transform(OPENMS_GET_TEST_DATA_PATH("small.mzpeak"), &c);
+    TEST_EQUAL(c.n, 48)
+    TEST_EQUAL(c.n_ms1, 14)
+    TEST_EQUAL(c.n_ms2, 34)
+  }
+
+  // ---- MS-level filter: only MS2 ----
+  {
+    CountingConsumer c;
+    MzPeakFile mzp;
+    PeakFileOptions opts;
+    opts.addMSLevel(2);
+    mzp.setOptions(opts);
+    mzp.transform(OPENMS_GET_TEST_DATA_PATH("small.mzpeak"), &c);
+    TEST_EQUAL(c.n, 34)
+    TEST_EQUAL(c.n_ms2, 34)
+    TEST_EQUAL(c.n_ms1, 0)
+  }
+
+  // ---- metadata-only: spectra emitted but empty peak arrays ----
+  {
+    struct PeakCheckConsumer : public Interfaces::IMSDataConsumer
+    {
+      Size n = 0;
+      bool all_empty = true;
+      void consumeSpectrum(MSSpectrum& s) override
+      {
+        ++n;
+        if (! s.empty()) all_empty = false;
+      }
+      void consumeChromatogram(MSChromatogram&) override
+      {
+      }
+      void setExpectedSize(size_t, size_t) override
+      {
+      }
+      void setExperimentalSettings(const ExperimentalSettings&) override
+      {
+      }
+    };
+    PeakCheckConsumer c;
+    MzPeakFile mzp;
+    PeakFileOptions opts;
+    opts.setMetadataOnly(true);
+    mzp.setOptions(opts);
+    mzp.transform(OPENMS_GET_TEST_DATA_PATH("small.mzpeak"), &c);
+    TEST_EQUAL(c.n, 48)
+    TEST_EQUAL(c.all_empty, true)
+  }
 }
 END_SECTION
 
