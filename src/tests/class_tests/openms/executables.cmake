@@ -423,6 +423,7 @@ set(chemistry_executables_list
   CrossLinksDB_test
   DecoyGenerator_test
   DigestionEnzymeProtein_test
+  DigestionEnzymeRNA_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test
