@@ -398,7 +398,7 @@ namespace
 
         for (int64_t r = 0; r < prec->length(); ++r)
         {
-          if (si->IsNull(r) || pi->IsNull(r)) continue;
+          if (prec->IsNull(r) || si->IsNull(r) || pi->IsNull(r)) continue;
           PrecursorData pd;
           if (tgt && ! tgt->IsNull(r))
           {
@@ -430,7 +430,7 @@ namespace
 
         for (int64_t r = 0; r < sion->length(); ++r)
         {
-          if (si->IsNull(r) || pi->IsNull(r)) continue;
+          if (sion->IsNull(r) || si->IsNull(r) || pi->IsNull(r)) continue;
           // Attach to the matching precursor row (or create a bare one if the
           // precursor facet had no isolation window for this index pair).
           PrecursorData& pd = joined[{si->Value(r), pi->Value(r)}];
@@ -688,21 +688,46 @@ namespace
       }
       i = j;
 
-      // Reconstruct null-marked m/z for profile spectra.
-      std::vector<double> final_mz = mz_values;
+      // Reconstruct null-marked m/z for profile spectra.  NF-1: when
+      // reconstruction is declined (non-interior-paired null layout, or no
+      // model), filter null positions out so callers never see spurious
+      // (m/z=0, intensity=0) peaks.  When reconstruction succeeds the output
+      // has the same length as mz_values so intensity alignment is preserved.
+      std::vector<double> final_mz;
+      std::vector<float> final_int;
       if (reconstruct && std::find(mz_valid.begin(), mz_valid.end(), false) != mz_valid.end())
       {
         std::vector<double> betas;
         if (auto it = meta.find(cur); it != meta.end()) betas = it->second.mz_delta_model;
         auto rec = reconstruct_null_mz_(mz_values, mz_valid, betas);
-        if (! rec.empty()) final_mz = std::move(rec);
+        if (! rec.empty())
+        {
+          final_mz = std::move(rec);
+          final_int = int_values;
+        }
+        else
+        {
+          for (std::size_t k = 0; k < mz_valid.size(); ++k)
+          {
+            if (mz_valid[k])
+            {
+              final_mz.push_back(mz_values[k]);
+              final_int.push_back(int_values[k]);
+            }
+          }
+        }
+      }
+      else
+      {
+        final_mz = mz_values;
+        final_int = int_values;
       }
 
       MSSpectrum spec;
       spec.reserve(final_mz.size());
       for (std::size_t k = 0; k < final_mz.size(); ++k)
       {
-        spec.push_back(Peak1D(final_mz[k], int_values[k]));
+        spec.push_back(Peak1D(final_mz[k], final_int[k]));
       }
 
       if (auto it = meta.find(cur); it != meta.end())
