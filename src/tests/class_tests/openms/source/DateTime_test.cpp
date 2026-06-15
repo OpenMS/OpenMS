@@ -15,6 +15,9 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <iostream>
 #include <vector>
+#include <clocale>
+#include <cstdlib>
+#include <ctime>
 
 using namespace OpenMS;
 using namespace std;
@@ -322,6 +325,75 @@ END_SECTION
 START_SECTION((static DateTime now()))
 {
   TEST_EQUAL(DateTime::now().isValid(), true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] locale- and timezone-independent parsing and formatting)
+{
+  // DateTime is naive: set()/get()/toString()/fromString() parse and format via
+  // sscanf("%d", ...) (locale-independent integer parsing), strncmp month matching,
+  // and timegm/gmtime (UTC) for arithmetic -- never localtime or locale-sensitive
+  // number/string functions. The output must therefore be byte-identical regardless
+  // of the C locale (e.g. tr_TR's dotted-i, de_DE's decimal comma) and the TZ
+  // environment variable. The other sections never vary either; this pins that
+  // contract. (now() is excluded -- it legitimately returns local wall-clock time.)
+  auto check_invariant = []()
+  {
+    DateTime dt;
+
+    dt.set("1999-11-24 14:24:31");
+    TEST_EQUAL(dt.get(), "1999-11-24 14:24:31")
+
+    dt.set("01.02.2000 14:24:32");           // dd.mm.yyyy
+    TEST_EQUAL(dt.get(), "2000-02-01 14:24:32")
+
+    dt.set("2005-11-13T10:58:57");           // ISO 'T' separator
+    TEST_EQUAL(dt.get(), "2005-11-13 10:58:57")
+
+    dt.set("2011-08-05T15:32:07.468+02:00"); // millisecond + timezone offset, both dropped
+    TEST_EQUAL(dt.get(), "2011-08-05 15:32:07")
+
+    dt.set("Wed Dec 14 11:59:58 2006");      // asctime-style; exercises month-name matching
+    TEST_EQUAL(dt.get(), "2006-12-14 11:59:58")
+
+    DateTime dt2 = DateTime::fromString("2020-03-09T08:07:06", "yyyy-MM-ddThh:mm:ss");
+    TEST_EQUAL(dt2.toString("yyyy-MM-dd hh:mm:ss"), "2020-03-09 08:07:06")
+  };
+
+  // Baseline: whatever locale/TZ the test process started in.
+  check_invariant();
+
+#ifndef OPENMS_WINDOWSPLATFORM
+  // --- vary TZ (POSIX setenv/tzset; tzdata is essentially always present) ---
+  const char* old_tz = std::getenv("TZ");
+  const std::string saved_tz = (old_tz != nullptr) ? std::string(old_tz) : std::string();
+  const bool had_tz = (old_tz != nullptr);
+
+  for (const char* tz : {"UTC", "America/New_York", "Asia/Kolkata", "Pacific/Chatham", "Etc/GMT-14"})
+  {
+    setenv("TZ", tz, 1);
+    tzset();
+    check_invariant();
+  }
+
+  if (had_tz) { setenv("TZ", saved_tz.c_str(), 1); }
+  else        { unsetenv("TZ"); }
+  tzset();
+
+  // --- vary the C locale (guarded: unavailable locales are simply skipped, so the
+  // section still passes on minimal images that lack de_DE / tr_TR) ---
+  const char* cur = setlocale(LC_ALL, nullptr);
+  const std::string saved_loc = (cur != nullptr) ? std::string(cur) : std::string("C");
+
+  for (const char* loc : {"C", "POSIX", "de_DE.UTF-8", "tr_TR.UTF-8", "de_DE.utf8", "tr_TR.utf8"})
+  {
+    if (setlocale(LC_ALL, loc) != nullptr)
+    {
+      check_invariant();
+    }
+  }
+  setlocale(LC_ALL, saved_loc.c_str());
+#endif
 }
 END_SECTION
 
