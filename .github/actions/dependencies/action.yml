@@ -105,12 +105,14 @@ runs:
         conda info
 
         # None of the other arrow sublibraries seemed necessary, but it's an easy addition.
-        # doxygen is installed here (conda-forge) instead of via Chocolatey: the choco
-        # 'doxygen.portable' package downloads from doxygen.nl, which intermittently returns
-        # HTTP 403 and aborts the whole job before it can build. Windows builds the docs
-        # (enable_docs=ON) to catch Doxygen errors pre-merge, so it must be available; conda-forge
-        # ships its own artifact (installed into Library/bin, already on PATH below).
-        conda install -c conda-forge libarrow libparquet libzip doxygen -y
+        # doxygen and ghostscript are installed here (conda-forge) instead of via Chocolatey:
+        #  - choco 'doxygen.portable' downloads from doxygen.nl, which intermittently returns
+        #    HTTP 403 and aborts the whole job before it can build.
+        #  - choco 'ghostscript' (Ghostscript.app) hangs its installer (gs10071w64.exe) for the
+        #    full 2700s timeout on the windows-2025 (Server 2025) image, failing the job.
+        # Both are needed for the docs (enable_docs=ON, built on Windows to catch errors
+        # pre-merge); conda-forge ships them into Library/bin (already on PATH below).
+        conda install -c conda-forge libarrow libparquet libzip doxygen ghostscript -y
 
         # Set variables required for the following steps so they
         # don't need a conda environment or login shell:
@@ -148,12 +150,11 @@ runs:
       if: inputs.os == 'Windows'
       shell: bash
       run: |
-        # NOTE: doxygen is installed via conda-forge in the Conda step above, not here, because
-        # the chocolatey 'doxygen.portable' package downloads from doxygen.nl and frequently
-        # fails with HTTP 403 (the package is also flagged "Likely broken for FOSS users").
+        # NOTE: doxygen AND ghostscript are installed via conda-forge in the Conda step above,
+        # not here: choco 'doxygen.portable' frequently 403s from doxygen.nl, and choco
+        # 'ghostscript' hangs its installer for the full 2700s timeout on windows-2025.
         choco install -y --no-progress \
           ccache \
-          ghostscript \
           graphviz
 
         # Use a custom NSIS, which provides 8-k string support and has
