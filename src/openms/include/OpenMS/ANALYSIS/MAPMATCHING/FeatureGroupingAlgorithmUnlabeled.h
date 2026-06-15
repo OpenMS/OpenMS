@@ -30,8 +30,8 @@ namespace OpenMS
 
       @note The two ways are NOT equivalent in their output. "group" performs additional
             post-processing on the result (transfer of protein identifications, re-indexing of
-            unassigned peptide identifications, setup of column headers for all input maps, and
-            canonical sorting via sortByQuality()/sortByMaps()/sortBySize()). The incremental path
+            unassigned peptide identifications, and canonical sorting via
+            sortByQuality()/sortByMaps()/sortBySize()). The incremental path
             (b) returns the raw pairfinder result via getResultMap() without any of this
             post-processing; callers must perform it themselves if needed (see TOPP FeatureLinkerUnlabeled).
 
@@ -66,8 +66,8 @@ public:
         @brief Returns the computed consensus map (after calling addToGroup with all maps)
 
         @note This is the @em raw incremental result. Unlike group(), it has NOT been post-processed
-              (no protein-ID transfer, no re-indexing of unassigned peptide IDs, no column headers for
-              the added maps, no canonical sorting). Perform that post-processing yourself if required.
+              (no protein-ID transfer, no re-indexing of unassigned peptide IDs, no canonical sorting).
+              Perform that post-processing yourself if required.
     */
     ConsensusMap & getResultMap()
     {
