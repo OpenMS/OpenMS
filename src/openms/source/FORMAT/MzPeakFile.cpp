@@ -7,12 +7,22 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/MzPeakFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/FORMAT/ZipRandomAccessFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/METADATA/CVTerm.h>
+#include <OpenMS/METADATA/Instrument.h>
+#include <OpenMS/METADATA/IonDetector.h>
+#include <OpenMS/METADATA/IonSource.h>
+#include <OpenMS/METADATA/MassAnalyzer.h>
+#include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/METADATA/Sample.h>
+#include <OpenMS/METADATA/Software.h>
+#include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <algorithm>
 #include <arrow/api.h>
@@ -145,12 +155,49 @@ namespace
   // Arrow / Parquet helpers.
   // ==========================================================================
 
+  /// A flat PSI-MS CV parameter tuple, mirroring mzPeak's {accession, name,
+  /// value, unit} CvParam. The value is normalised to a string so the CV
+  /// dispatch can apply typed setters (toDouble/toInt) uniformly, exactly like
+  /// MzMLHandler consumes its XML cvParam @c value attribute.
+  struct CvParam
+  {
+    String accession;
+    String name;
+    String value; ///< stringified union value ("" if absent)
+    String unit;  ///< unit accession ("" if absent)
+  };
+
+  /// One precursor (RDR-10c): an isolation window (target m/z + offsets),
+  /// activation params, and one selected ion. mzPeak emits these as separate
+  /// row-aligned facet columns joined on @c source_index; we map every selected
+  /// ion to its own OpenMS Precursor so MSn/DIA precursor info is never dropped.
+  struct PrecursorData
+  {
+    bool has_isolation = false;
+    double isolation_target_mz = 0.0;
+    double isolation_lower_offset = 0.0;
+    double isolation_upper_offset = 0.0;
+    std::vector<CvParam> activation;
+
+    bool has_selected_ion = false;
+    double selected_ion_mz = 0.0;
+    bool has_charge = false;
+    int charge = 0;
+    bool has_intensity = false;
+    double intensity = 0.0;
+  };
+
   /// Per-spectrum metadata needed to build an MSSpectrum.
   struct SpectrumMeta
   {
     int ms_level = 0;
     double retention_time = 0.0; ///< seconds (mzpeak stores RT in seconds)
     std::vector<double> mz_delta_model;
+    String native_id;
+    String representation;           ///< MS:1000127 centroid / MS:1000128 profile
+    int polarity = 0;                ///< +1 positive, -1 negative, 0 unknown
+    std::vector<CvParam> parameters; ///< per-spectrum flat CV params
+    std::vector<PrecursorData> precursors;
   };
 
   /// Read a whole Parquet table from a named archive entry via Arrow.
@@ -233,8 +280,184 @@ namespace
     return std::static_pointer_cast<arrow::StructArray>(arr);
   }
 
-  /// Read the per-spectrum metadata map (index -> {ms_level, RT, betas}) from
-  /// the spectra_metadata.parquet "spectrum" struct column.
+  /// Stringify one element of a mzPeak value union
+  /// struct<integer,float,string,boolean>. mzPeak stores a CvParam value in
+  /// exactly one populated sub-field; we normalise it to a String so the CV
+  /// dispatch can apply typed setters uniformly. Returns "" if all are null.
+  String valueUnionToString_(const std::shared_ptr<arrow::StructArray>& value_struct, int64_t row)
+  {
+    if (! value_struct || value_struct->IsNull(row)) return "";
+
+    if (auto f = value_struct->GetFieldByName("string"))
+    {
+      if (! f->IsNull(row) && f->type_id() == arrow::Type::LARGE_STRING)
+      {
+        return String(std::static_pointer_cast<arrow::LargeStringArray>(f)->GetString(row));
+      }
+    }
+    if (auto f = value_struct->GetFieldByName("float"))
+    {
+      if (! f->IsNull(row) && f->type_id() == arrow::Type::DOUBLE) { return String(std::static_pointer_cast<arrow::DoubleArray>(f)->Value(row)); }
+    }
+    if (auto f = value_struct->GetFieldByName("integer"))
+    {
+      if (! f->IsNull(row) && f->type_id() == arrow::Type::INT64) { return String(std::static_pointer_cast<arrow::Int64Array>(f)->Value(row)); }
+    }
+    if (auto f = value_struct->GetFieldByName("boolean"))
+    {
+      if (! f->IsNull(row) && f->type_id() == arrow::Type::BOOL)
+      {
+        return std::static_pointer_cast<arrow::BooleanArray>(f)->Value(row) ? String("true") : String("false");
+      }
+    }
+    return "";
+  }
+
+  /// Read a string sub-field of a struct array at @p row, accepting either
+  /// arrow string or large_string. Returns "" if absent/null.
+  String structString_(const std::shared_ptr<arrow::StructArray>& s, const String& field, int64_t row)
+  {
+    if (! s) return "";
+    auto f = s->GetFieldByName(field);
+    if (! f || f->IsNull(row)) return "";
+    if (f->type_id() == arrow::Type::LARGE_STRING) { return String(std::static_pointer_cast<arrow::LargeStringArray>(f)->GetString(row)); }
+    if (f->type_id() == arrow::Type::STRING) { return String(std::static_pointer_cast<arrow::StringArray>(f)->GetString(row)); }
+    return "";
+  }
+
+  /// Decode a CvParam list column (a large_list<struct<value, accession, name,
+  /// unit>>) at the given outer @p row into a flat vector<CvParam>. Mirrors the
+  /// mzpeak reader's parameter-facet decode. Empty/null lists yield {}.
+  std::vector<CvParam> readCvParamList_(const std::shared_ptr<arrow::Array>& list_field, int64_t row)
+  {
+    std::vector<CvParam> out;
+    auto large_list = std::dynamic_pointer_cast<arrow::LargeListArray>(list_field);
+    if (! large_list || large_list->IsNull(row)) return out;
+
+    auto items = std::dynamic_pointer_cast<arrow::StructArray>(large_list->values());
+    if (! items) return out;
+
+    int64_t offset = large_list->value_offset(row);
+    int64_t length = large_list->value_length(row);
+
+    auto value_struct = std::dynamic_pointer_cast<arrow::StructArray>(items->GetFieldByName("value"));
+
+    out.reserve(static_cast<std::size_t>(length));
+    for (int64_t k = 0; k < length; ++k)
+    {
+      int64_t r = offset + k;
+      CvParam p;
+      p.accession = structString_(items, "accession", r);
+      p.name = structString_(items, "name", r);
+      p.unit = structString_(items, "unit", r);
+      p.value = valueUnionToString_(value_struct, r);
+      out.push_back(std::move(p));
+    }
+    return out;
+  }
+
+  /// Read the precursor / selected_ion facet columns and join them by
+  /// @c source_index (the owning spectrum's index). mzPeak stores these as
+  /// row-aligned top-level struct columns separate from the @c spectrum column;
+  /// a single spectrum may own several precursor rows (MSn/DIA). Returns a map
+  /// source_index -> vector<PrecursorData> (one entry per precursor row).
+  std::map<std::uint64_t, std::vector<PrecursorData>> readPrecursors_(const std::shared_ptr<arrow::Table>& table)
+  {
+    std::map<std::uint64_t, std::vector<PrecursorData>> out;
+
+    // Index precursor rows by (source_index, precursor_index) so the selected
+    // ion facet can be matched back onto the right precursor.
+    std::map<std::pair<std::uint64_t, std::uint64_t>, PrecursorData> joined;
+
+    auto prec_col = table->GetColumnByName("precursor");
+    if (prec_col)
+    {
+      for (const auto& chunk : prec_col->chunks())
+      {
+        auto prec = std::dynamic_pointer_cast<arrow::StructArray>(chunk);
+        if (! prec) continue;
+
+        auto si = std::dynamic_pointer_cast<arrow::UInt64Array>(prec->GetFieldByName("source_index"));
+        auto pi = std::dynamic_pointer_cast<arrow::UInt64Array>(prec->GetFieldByName("precursor_index"));
+        auto iso = std::dynamic_pointer_cast<arrow::StructArray>(prec->GetFieldByName("isolation_window"));
+        auto act = std::dynamic_pointer_cast<arrow::StructArray>(prec->GetFieldByName("activation"));
+        if (! si || ! pi) continue;
+
+        std::shared_ptr<arrow::FloatArray> tgt, lo, hi;
+        if (iso)
+        {
+          tgt = std::dynamic_pointer_cast<arrow::FloatArray>(iso->GetFieldByName("MS_1000827_isolation_window_target_mz"));
+          lo = std::dynamic_pointer_cast<arrow::FloatArray>(iso->GetFieldByName("MS_1000828_isolation_window_lower_offset"));
+          hi = std::dynamic_pointer_cast<arrow::FloatArray>(iso->GetFieldByName("MS_1000829_isolation_window_upper_offset"));
+        }
+        auto act_params = act ? act->GetFieldByName("parameters") : nullptr;
+
+        for (int64_t r = 0; r < prec->length(); ++r)
+        {
+          if (si->IsNull(r) || pi->IsNull(r)) continue;
+          PrecursorData pd;
+          if (tgt && ! tgt->IsNull(r))
+          {
+            pd.has_isolation = true;
+            pd.isolation_target_mz = tgt->Value(r);
+            pd.isolation_lower_offset = (lo && ! lo->IsNull(r)) ? lo->Value(r) : 0.0;
+            pd.isolation_upper_offset = (hi && ! hi->IsNull(r)) ? hi->Value(r) : 0.0;
+          }
+          if (act_params) pd.activation = readCvParamList_(act_params, r);
+          joined[{si->Value(r), pi->Value(r)}] = std::move(pd);
+        }
+      }
+    }
+
+    auto si_col = table->GetColumnByName("selected_ion");
+    if (si_col)
+    {
+      for (const auto& chunk : si_col->chunks())
+      {
+        auto sion = std::dynamic_pointer_cast<arrow::StructArray>(chunk);
+        if (! sion) continue;
+
+        auto si = std::dynamic_pointer_cast<arrow::UInt64Array>(sion->GetFieldByName("source_index"));
+        auto pi = std::dynamic_pointer_cast<arrow::UInt64Array>(sion->GetFieldByName("precursor_index"));
+        auto mz = std::dynamic_pointer_cast<arrow::DoubleArray>(sion->GetFieldByName("MS_1000744_selected_ion_mz_unit_MS_1000040"));
+        auto charge = std::dynamic_pointer_cast<arrow::Int32Array>(sion->GetFieldByName("MS_1000041_charge_state"));
+        auto inten = std::dynamic_pointer_cast<arrow::FloatArray>(sion->GetFieldByName("MS_1000042_intensity_unit_MS_1000131"));
+        if (! si || ! pi) continue;
+
+        for (int64_t r = 0; r < sion->length(); ++r)
+        {
+          if (si->IsNull(r) || pi->IsNull(r)) continue;
+          // Attach to the matching precursor row (or create a bare one if the
+          // precursor facet had no isolation window for this index pair).
+          PrecursorData& pd = joined[{si->Value(r), pi->Value(r)}];
+          if (mz && ! mz->IsNull(r))
+          {
+            pd.has_selected_ion = true;
+            pd.selected_ion_mz = mz->Value(r);
+          }
+          if (charge && ! charge->IsNull(r))
+          {
+            pd.has_charge = true;
+            pd.charge = charge->Value(r);
+          }
+          if (inten && ! inten->IsNull(r))
+          {
+            pd.has_intensity = true;
+            pd.intensity = inten->Value(r);
+          }
+        }
+      }
+    }
+
+    for (auto& [key, pd] : joined)
+    {
+      out[key.first].push_back(std::move(pd));
+    }
+    return out;
+  }
+
+  /// Read the per-spectrum metadata map (index -> {ms_level, RT, betas, ...})
+  /// from the spectra_metadata.parquet "spectrum" struct column.
   std::map<std::uint64_t, SpectrumMeta> readSpectraMeta_(const std::shared_ptr<arrow::Table>& table)
   {
     std::map<std::uint64_t, SpectrumMeta> out;
@@ -254,6 +477,8 @@ namespace
       auto level_field = spectrum->GetFieldByName("MS_1000511_ms_level");
       auto time_field = spectrum->GetFieldByName("time");
       auto model_field = spectrum->GetFieldByName("mz_delta_model");
+      auto polarity_field = spectrum->GetFieldByName("MS_1000465_scan_polarity");
+      auto params_field = spectrum->GetFieldByName("parameters");
 
       auto large_list = std::dynamic_pointer_cast<arrow::LargeListArray>(model_field);
       auto list = std::dynamic_pointer_cast<arrow::ListArray>(model_field);
@@ -311,11 +536,107 @@ namespace
           }
         }
 
+        m.native_id = structString_(spectrum, "id", r);
+        m.representation = structString_(spectrum, "MS_1000525_spectrum_representation", r);
+
+        if (polarity_field && ! polarity_field->IsNull(r) && polarity_field->type_id() == arrow::Type::INT8)
+        {
+          m.polarity = static_cast<int>(std::static_pointer_cast<arrow::Int8Array>(polarity_field)->Value(r));
+        }
+
+        if (params_field) m.parameters = readCvParamList_(params_field, r);
+
         out[index->Value(r)] = std::move(m);
       }
     }
 
     return out;
+  }
+
+  // ==========================================================================
+  // CV-param dispatch (§4a M2): mirror the MzMLHandler::handleCVParam_ subset
+  // mzPeak actually emits. Recognised accession -> typed setter; everything
+  // else -> setMetaValue keyed by the bare accession (mirrors
+  // handleUserParam_, so the accession is never lost).
+  // ==========================================================================
+
+  /// Spectrum-context CV dispatch (parent_tag "spectrum"/"scan" in mzML).
+  void applyCVParamToSpectrum_(const CvParam& p, MSSpectrum& spec)
+  {
+    const String& a = p.accession;
+    if (a.empty()) // no accession (e.g. Thermo trailer) -> keep name->value
+    {
+      if (! p.name.empty()) spec.setMetaValue(p.name, p.value);
+      return;
+    }
+    else if (a == "MS:1000127") { spec.setType(SpectrumSettings::SpectrumType::CENTROID); }
+    else if (a == "MS:1000128") { spec.setType(SpectrumSettings::SpectrumType::PROFILE); }
+    else if (a == "MS:1000129") { spec.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE); }
+    else if (a == "MS:1000130") { spec.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE); }
+    else
+    {
+      spec.setMetaValue(a, p.value);
+    } // keep accession-keyed (handleUserParam_)
+  }
+
+  /// Activation-context CV dispatch: map dissociation methods + collision
+  /// energy onto an OpenMS Precursor (parent_tag "activation" in mzML).
+  void applyActivationCVParam_(const CvParam& p, Precursor& prec)
+  {
+    const String& a = p.accession;
+    if (a == "MS:1000133") { prec.getActivationMethods().insert(Precursor::ActivationMethod::CID); }
+    else if (a == "MS:1000134") { prec.getActivationMethods().insert(Precursor::ActivationMethod::PD); }
+    else if (a == "MS:1000135") { prec.getActivationMethods().insert(Precursor::ActivationMethod::PSD); }
+    else if (a == "MS:1000136") { prec.getActivationMethods().insert(Precursor::ActivationMethod::SID); }
+    else if (a == "MS:1000242") { prec.getActivationMethods().insert(Precursor::ActivationMethod::BIRD); }
+    else if (a == "MS:1000250") { prec.getActivationMethods().insert(Precursor::ActivationMethod::ECD); }
+    else if (a == "MS:1000262") { prec.getActivationMethods().insert(Precursor::ActivationMethod::IMD); }
+    else if (a == "MS:1000282") { prec.getActivationMethods().insert(Precursor::ActivationMethod::SORI); }
+    else if (a == "MS:1000422") { prec.getActivationMethods().insert(Precursor::ActivationMethod::HCD); }
+    else if (a == "MS:1000598") { prec.getActivationMethods().insert(Precursor::ActivationMethod::ETD); }
+    else if (a == "MS:1000599") { prec.getActivationMethods().insert(Precursor::ActivationMethod::PQD); }
+    else if (a == "MS:1002472") { prec.getActivationMethods().insert(Precursor::ActivationMethod::TRAP); }
+    else if (a == "MS:1000045") // collision energy
+    {
+      if (! p.value.empty()) prec.setActivationEnergy(p.value.toDouble());
+    }
+    else if (a == "MS:1000509") // activation energy
+    {
+      if (! p.value.empty()) prec.setActivationEnergy(p.value.toDouble());
+    }
+    else if (! a.empty()) { prec.setMetaValue(a, p.value); } // keep otherwise
+  }
+
+  /// Build OpenMS Precursors from the joined precursor/selected_ion facets.
+  /// Isolation window is stored as OFFSETS from the target m/z (the OpenMS
+  /// convention): setMZ(target), setIsolationWindow{Lower,Upper}Offset(offset).
+  /// Every selected ion becomes its own Precursor so MSn/DIA info is preserved.
+  void buildPrecursors_(const std::vector<PrecursorData>& src, MSSpectrum& spec)
+  {
+    for (const PrecursorData& pd : src)
+    {
+      Precursor prec;
+      // Isolation target m/z is the primary m/z; offsets are widths.
+      if (pd.has_isolation)
+      {
+        prec.setMZ(pd.isolation_target_mz);
+        prec.setIsolationWindowLowerOffset(pd.isolation_lower_offset);
+        prec.setIsolationWindowUpperOffset(pd.isolation_upper_offset);
+      }
+      // A selected-ion m/z overrides the isolation target as the precursor m/z
+      // (the mzML "precursor m/z from selected ion" behaviour); keep the
+      // isolation target as a meta value so it is not lost.
+      if (pd.has_selected_ion)
+      {
+        if (pd.has_isolation) prec.setMetaValue("isolation window target m/z", pd.isolation_target_mz);
+        prec.setMZ(pd.selected_ion_mz);
+      }
+      if (pd.has_charge) prec.setCharge(pd.charge);
+      if (pd.has_intensity) prec.setIntensity(pd.intensity);
+      for (const CvParam& p : pd.activation)
+        applyActivationCVParam_(p, prec);
+      spec.getPrecursors().push_back(std::move(prec));
+    }
   }
 
   /// Decode all point-layout spectra from a data/peaks table and add them to
@@ -382,12 +703,227 @@ namespace
 
       if (auto it = meta.find(cur); it != meta.end())
       {
-        if (it->second.ms_level > 0) spec.setMSLevel(static_cast<UInt>(it->second.ms_level));
-        spec.setRT(it->second.retention_time);
+        const SpectrumMeta& sm = it->second;
+        if (sm.ms_level > 0) spec.setMSLevel(static_cast<UInt>(sm.ms_level));
+        spec.setRT(sm.retention_time);
+
+        // Spectrum type from the representation accession (MS:1000127/1000128).
+        if (sm.representation == "MS:1000127") spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+        else if (sm.representation == "MS:1000128")
+          spec.setType(SpectrumSettings::SpectrumType::PROFILE);
+
+        // Polarity (mzPeak scan polarity: +1 positive, -1 negative).
+        if (sm.polarity > 0) spec.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
+        else if (sm.polarity < 0)
+          spec.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
+
+        // Per-spectrum flat CV params via the dispatch helper.
+        for (const CvParam& p : sm.parameters)
+          applyCVParamToSpectrum_(p, spec);
+
+        // Precursors (isolation offsets + activation + every selected ion).
+        buildPrecursors_(sm.precursors, spec);
+
+        // Keep the mzPeak native id (controllerType=...) without breaking the
+        // stable "index=N" id used for lookups.
+        if (! sm.native_id.empty()) spec.setMetaValue("mzpeak_native_id", sm.native_id);
       }
       spec.setNativeID("index=" + String(cur));
       spec.sortByPosition();
       exp.addSpectrum(std::move(spec));
+    }
+  }
+
+  // ==========================================================================
+  // Run-level metadata{} -> ExperimentalSettings (§4 mapping).
+  // ==========================================================================
+
+  /// Convenience accessors for nlohmann JSON CvParam tuples ({accession, name,
+  /// value, unit}); value may be a string/number/null.
+  String jsonAccession_(const nlohmann::json& p)
+  { return p.value("accession", String()); }
+  String jsonName_(const nlohmann::json& p)
+  { return p.value("name", String()); }
+  String jsonParamValue_(const nlohmann::json& p)
+  {
+    if (! p.contains("value") || p.at("value").is_null()) return "";
+    const auto& v = p.at("value");
+    if (v.is_string()) return String(v.get<std::string>());
+    if (v.is_number_integer()) return String(v.get<long long>());
+    if (v.is_number_float()) return String(v.get<double>());
+    if (v.is_boolean()) return v.get<bool>() ? String("true") : String("false");
+    return "";
+  }
+
+  /// Map a source-file CvParam (subset MzMLHandler recognises) onto a SourceFile.
+  /// SourceFile IS-A CVTermList; unrecognised accessions are kept via addCVTerm.
+  void applySourceFileParam_(const nlohmann::json& p, SourceFile& sf)
+  {
+    String a = jsonAccession_(p);
+    String value = jsonParamValue_(p);
+    if (a == "MS:1000569") { sf.setChecksum(value, SourceFile::ChecksumType::SHA1); }
+    else if (a == "MS:1000568") { sf.setChecksum(value, SourceFile::ChecksumType::MD5); }
+    else if (a == "MS:1000563") { sf.setFileType(jsonName_(p)); } // Thermo RAW format
+    else if (a == "MS:1000584") { sf.setFileType(jsonName_(p)); } // mzML format
+    else if (a == "MS:1000768")                                   // Thermo nativeID format
+    {
+      sf.setNativeIDType(jsonName_(p));
+      sf.setNativeIDTypeAccession(a);
+    }
+    else if (! a.empty()) { sf.addCVTerm(CVTerm(a, jsonName_(p), "MS", value)); }
+  }
+
+  /// Map the run-level metadata{} object onto the MSExperiment's
+  /// ExperimentalSettings: run date/ids, instrument (+ components), source
+  /// files, sample, and software. Best-effort; missing blocks are skipped.
+  void applyRunMetadata_(const nlohmann::json& md, MSExperiment& exp)
+  {
+    // ---- run: date + identifier ------------------------------------------
+    if (md.contains("run") && md.at("run").is_object())
+    {
+      const auto& run = md.at("run");
+      if (run.contains("start_time") && run.at("start_time").is_string())
+      {
+        // ISO 8601 (e.g. 2005-07-20T19:44:22Z); DateTime::set tolerates the 'Z'.
+        DateTime dt;
+        String iso = run.value("start_time", String());
+        iso.substitute("Z", "");
+        iso.substitute("T", " ");
+        try
+        {
+          dt.set(iso);
+          exp.setDateTime(dt);
+        }
+        catch (const std::exception&)
+        { /* leave default date if unparseable */
+        }
+      }
+      if (run.contains("id")) exp.setMetaValue("mzpeak_run_id", run.value("id", String()));
+    }
+
+    // ---- instrument_configuration_list -> Instrument ---------------------
+    if (md.contains("instrument_configuration_list") && md.at("instrument_configuration_list").is_array()
+        && ! md.at("instrument_configuration_list").empty())
+    {
+      const auto& ic = md.at("instrument_configuration_list").front();
+      Instrument instrument;
+
+      // Instrument-level params: a named model term -> setName; others kept.
+      if (ic.contains("parameters"))
+      {
+        for (const auto& p : ic.at("parameters"))
+        {
+          String a = jsonAccession_(p);
+          String value = jsonParamValue_(p);
+          if (a == "MS:1000529") { instrument.setMetaValue("instrument serial number", value); }
+          else if (! jsonName_(p).empty() && value.empty())
+          {
+            instrument.setName(jsonName_(p)); // model term (e.g. "LTQ FT")
+          }
+          else if (! a.empty()) { instrument.setMetaValue(a, value); }
+        }
+      }
+
+      // Components -> IonSource / MassAnalyzer / IonDetector (order preserved;
+      // CV accessions kept as meta values since these hosts are not CVTermList).
+      if (ic.contains("components"))
+      {
+        std::vector<IonSource> sources;
+        std::vector<MassAnalyzer> analyzers;
+        std::vector<IonDetector> detectors;
+        for (const auto& c : ic.at("components"))
+        {
+          String ctype = c.value("component_type", String());
+          int order = c.value("order", 0);
+          auto first_acc = [&](String& acc, String& nm) {
+            if (c.contains("parameters") && ! c.at("parameters").empty())
+            {
+              acc = jsonAccession_(c.at("parameters").front());
+              nm = jsonName_(c.at("parameters").front());
+            }
+          };
+          String acc, nm;
+          first_acc(acc, nm);
+          if (ctype == "ionsource")
+          {
+            IonSource s;
+            s.setOrder(order);
+            if (! acc.empty()) s.setMetaValue(acc, nm);
+            sources.push_back(s);
+          }
+          else if (ctype == "analyzer")
+          {
+            MassAnalyzer m;
+            m.setOrder(order);
+            if (! acc.empty()) m.setMetaValue(acc, nm);
+            analyzers.push_back(m);
+          }
+          else if (ctype == "detector")
+          {
+            IonDetector d;
+            d.setOrder(order);
+            if (! acc.empty()) d.setMetaValue(acc, nm);
+            detectors.push_back(d);
+          }
+        }
+        if (! sources.empty()) instrument.setIonSources(sources);
+        if (! analyzers.empty()) instrument.setMassAnalyzers(analyzers);
+        if (! detectors.empty()) instrument.setIonDetectors(detectors);
+      }
+
+      exp.setInstrument(instrument);
+    }
+
+    // ---- file_description.source_files -> setSourceFiles -----------------
+    if (md.contains("file_description") && md.at("file_description").is_object())
+    {
+      const auto& fd = md.at("file_description");
+      if (fd.contains("source_files") && fd.at("source_files").is_array())
+      {
+        std::vector<SourceFile> source_files;
+        for (const auto& sfj : fd.at("source_files"))
+        {
+          SourceFile sf;
+          sf.setNameOfFile(sfj.value("name", String()));
+          sf.setPathToFile(sfj.value("location", String()));
+          if (sfj.contains("parameters"))
+          {
+            for (const auto& p : sfj.at("parameters"))
+              applySourceFileParam_(p, sf);
+          }
+          source_files.push_back(sf);
+        }
+        if (! source_files.empty()) exp.setSourceFiles(source_files);
+      }
+    }
+
+    // ---- sample_list -> setSample (first sample) -------------------------
+    if (md.contains("sample_list") && md.at("sample_list").is_array() && ! md.at("sample_list").empty())
+    {
+      const auto& sj = md.at("sample_list").front();
+      Sample sample;
+      sample.setName(sj.value("name", String()));
+      if (sj.contains("id")) sample.setNumber(sj.value("id", String()));
+      exp.setSample(sample);
+    }
+
+    // ---- software_list -> Instrument::setSoftware (first entry) ----------
+    // Software has no run-level home in OpenMS; attach to the instrument.
+    if (md.contains("software_list") && md.at("software_list").is_array() && ! md.at("software_list").empty())
+    {
+      const auto& swj = md.at("software_list").front();
+      Software sw;
+      sw.setName(swj.value("id", String()));
+      sw.setVersion(swj.value("version", String()));
+      if (swj.contains("parameters"))
+      {
+        for (const auto& p : swj.at("parameters"))
+        {
+          String a = jsonAccession_(p);
+          if (! a.empty()) sw.addCVTerm(CVTerm(a, jsonName_(p), "MS", jsonParamValue_(p)));
+        }
+      }
+      exp.getInstrument().setSoftware(sw);
     }
   }
 
@@ -437,13 +973,36 @@ void MzPeakFile::load(const String& filename, MapType& map) const
   }
 
   // ------------------------------------------------------------------
-  // 2. Read per-spectrum metadata (ms_level, RT seconds, mz_delta_model).
+  // 2. Read per-spectrum metadata (ms_level, RT seconds, mz_delta_model,
+  //    type/polarity/native-id/CV-params) + precursor facets joined by
+  //    source_index.
   // ------------------------------------------------------------------
   std::map<std::uint64_t, SpectrumMeta> meta;
   if (! metadata_entry.empty())
   {
     auto meta_table = readTableFromArchive_(filename, metadata_entry, temp_dir);
     meta = readSpectraMeta_(meta_table);
+
+    auto precursors = readPrecursors_(meta_table);
+    for (auto& [source_index, plist] : precursors)
+    {
+      meta[source_index].precursors = std::move(plist);
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // 2a. Run-level metadata{} -> ExperimentalSettings (instrument, source files,
+  //     sample, software, run date/ids). map IS-A ExperimentalSettings.
+  // ------------------------------------------------------------------
+  try
+  {
+    nlohmann::json idx = nlohmann::json::parse(index_json);
+    if (idx.contains("metadata")) applyRunMetadata_(idx.at("metadata"), map);
+  }
+  catch (const std::exception&)
+  {
+    // Run-level metadata is best-effort; a malformed block must not abort the
+    // peak load (the spectra are the primary payload).
   }
 
   // ------------------------------------------------------------------

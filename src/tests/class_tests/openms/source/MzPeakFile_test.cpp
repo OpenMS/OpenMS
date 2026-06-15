@@ -13,6 +13,8 @@
 
 #include <OpenMS/FORMAT/MzPeakFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/METADATA/SpectrumSettings.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -150,6 +152,80 @@ START_SECTION(void load(const String& filename, MapType& map))
     TEST_REAL_SIMILAR((*cent)[cent->size() - 1].getIntensity(), 22.973094940185547)
     TOLERANCE_ABSOLUTE(1e-4)
   }
+
+  // ======================================================================
+  // METADATA layer (02-02).
+  // ======================================================================
+
+  // ----------------------------------------------------------------------
+  // Spectrum type: profile (index 0) is PROFILE, centroid (index 2) is CENTROID.
+  // Polarity is positive on both; native id is non-empty.
+  // ----------------------------------------------------------------------
+  if (prof)
+  {
+    TEST_EQUAL(prof->getType() == SpectrumSettings::SpectrumType::PROFILE, true)
+    TEST_EQUAL(prof->getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE, true)
+    TEST_EQUAL(prof->getNativeID().empty(), false)
+  }
+  if (cent)
+  {
+    TEST_EQUAL(cent->getType() == SpectrumSettings::SpectrumType::CENTROID, true)
+    TEST_EQUAL(cent->getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE, true)
+    TEST_EQUAL(cent->getNativeID().empty(), false)
+
+    // The mzPeak native id (controllerType=...) is preserved as a meta value.
+    TEST_EQUAL(cent->metaValueExists("mzpeak_native_id"), true)
+
+    // --------------------------------------------------------------------
+    // Precursor (index 2): isolation target ~810.789, offsets 1.0/1.0;
+    // activation CID + collision energy 35; selected-ion m/z ~810.789428,
+    // intensity ~1994039.125.
+    // --------------------------------------------------------------------
+    TEST_EQUAL(cent->getPrecursors().size() >= 1, true)
+    if (! cent->getPrecursors().empty())
+    {
+      const Precursor& prec = cent->getPrecursors()[0];
+
+      // m/z follows the selected ion (~810.789428); within isolation tolerance.
+      TOLERANCE_ABSOLUTE(1e-2)
+      TEST_REAL_SIMILAR(prec.getMZ(), 810.789428)
+      TEST_REAL_SIMILAR(prec.getIsolationWindowLowerOffset(), 1.0)
+      TEST_REAL_SIMILAR(prec.getIsolationWindowUpperOffset(), 1.0)
+
+      // Activation: CID method present, collision energy 35.
+      TEST_EQUAL(prec.getActivationMethods().count(Precursor::ActivationMethod::CID) == 1, true)
+      TEST_REAL_SIMILAR(prec.getActivationEnergy(), 35.0)
+
+      // Selected-ion intensity ~1994039.125.
+      TOLERANCE_ABSOLUTE(1.0)
+      TEST_REAL_SIMILAR(prec.getIntensity(), 1994039.125)
+      TOLERANCE_ABSOLUTE(1e-4)
+
+      // Isolation target m/z kept as a meta value (selected ion overrode m/z).
+      TEST_EQUAL(prec.metaValueExists("isolation window target m/z"), true)
+    }
+  }
+
+  // ----------------------------------------------------------------------
+  // Run-level metadata (ExperimentalSettings): instrument, source file, sample.
+  // small.mzpeak carries an instrument_configuration_list (LTQ FT), a
+  // source_files block (small.RAW), and a sample_list.
+  // ----------------------------------------------------------------------
+  TEST_EQUAL(exp.getInstrument().getName().empty(), false)
+  TEST_EQUAL(exp.getInstrument().getIonSources().empty(), false)
+  TEST_EQUAL(exp.getSourceFiles().empty(), false)
+  if (! exp.getSourceFiles().empty())
+  {
+    TEST_EQUAL(exp.getSourceFiles()[0].getNameOfFile(), "small.RAW")
+    // SHA-1 checksum from MS:1000569 mapped via the source-file CV dispatch.
+    TEST_EQUAL(exp.getSourceFiles()[0].getChecksum().empty(), false)
+  }
+  // An unrecognized CvParam surfaces as a meta value: the instrument serial
+  // number (MS:1000529) is kept on the Instrument as a meta value.
+  TEST_EQUAL(exp.getInstrument().metaValueExists("instrument serial number"), true)
+
+  // Run date parsed from the ISO start_time (2005-07-20T19:44:22Z).
+  TEST_EQUAL(exp.getDateTime().isNull(), false)
 }
 END_SECTION
 
