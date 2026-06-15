@@ -710,6 +710,7 @@ if(NOT DISABLE_OPENSWATH)
   list(APPEND swath_executables_list OpenSwathOSWParquetReader_test)
   list(APPEND swath_executables_list OpenSwathOSWParquetWriter_test)
   list(APPEND format_executables_list OpenSwathOSWParquetRoundTrip_test)
+  list(APPEND swath_executables_list OpenSwathParquetExporter_test)
 endif()
 
 set(Boost_dependent_tests
