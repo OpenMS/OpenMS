@@ -479,6 +479,13 @@ START_SECTION((const std::string& getBaseName() const))
   // Test that it's stored as a MetaValue
   TEST_TRUE(id.metaValueExists(Constants::UserParam::BASE_NAME))
   TEST_EQUAL(id.getMetaValue(Constants::UserParam::BASE_NAME), "test_base_name")
+
+  // Regression (string refactor #9450): tolerate a non-string base_name DataValue
+  // (lenient stringification, must not throw).
+  PeptideIdentification id_int;
+  int int_base = 0;
+  id_int.setMetaValue(Constants::UserParam::BASE_NAME, int_base);
+  TEST_EQUAL(id_int.getBaseName(), "0")
 END_SECTION
 
 START_SECTION((void setBaseName(const std::string& base_name)))
@@ -500,6 +507,28 @@ START_SECTION((void setBaseName(const std::string& base_name)))
   TEST_FALSE(id.empty())
   id.setBaseName("");
   TEST_TRUE(id.empty())
+END_SECTION
+
+START_SECTION((std::string getSpectrumReference() const))
+{
+  PeptideIdentification id;
+  TEST_EQUAL(id.getSpectrumReference(), "")
+
+  // normal string round-trip
+  id.setSpectrumReference("controllerType=0 controllerNumber=1 scan=12345");
+  TEST_EQUAL(id.getSpectrumReference(), "controllerType=0 controllerNumber=1 scan=12345")
+
+  // Regression (string refactor #9450): spectrum_reference may be loaded as a non-string
+  // DataValue (e.g. an integer scan index from idparquet/mzIdentML). The accessor must
+  // stringify leniently and must NOT throw a ConversionError (which the strict
+  // DataValue::operator std::string() does for non-string types). This surfaced as a
+  // ProteomicsLFQ mzTab export crash: "Could not convert non-string DataValue of type
+  // 'Int' and value '0' to string".
+  PeptideIdentification id_int;
+  int int_ref = 0;
+  id_int.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, int_ref);
+  TEST_EQUAL(id_int.getSpectrumReference(), "0")
+}
 END_SECTION
 
 START_SECTION((std::hash<PeptideIdentification>))

@@ -162,7 +162,10 @@ namespace OpenMS
 
   std::string PeptideIdentification::getSpectrumReference() const
   {
-    return getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
+    // spectrum_reference may be stored as a non-string DataValue (e.g. an integer scan
+    // index when loaded from idparquet/mzIdentML), so stringify leniently instead of
+    // relying on the strict DataValue::operator std::string() (which throws on Int/etc.).
+    return StringUtils::toStr(getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, ""));
   }
 
   void PeptideIdentification::setSpectrumReference(const std::string& id)
@@ -172,7 +175,8 @@ namespace OpenMS
 
   std::string PeptideIdentification::getBaseName() const
   {
-    return getMetaValue(Constants::UserParam::BASE_NAME, "");
+    // lenient stringification (see getSpectrumReference) to tolerate non-string DataValues
+    return StringUtils::toStr(getMetaValue(Constants::UserParam::BASE_NAME, ""));
   }
 
   void PeptideIdentification::setBaseName(const std::string& base_name)
@@ -192,7 +196,8 @@ namespace OpenMS
   {
     // implement as meta value in order to reduce bloat of PeptideIdentification object
     //  -> this is mostly used for pepxml at the moment which allows each peptide id to belong to a different experiment
-    return this->getMetaValue("experiment_label", "");
+    // lenient stringification (see getSpectrumReference) to tolerate non-string DataValues
+    return StringUtils::toStr(this->getMetaValue("experiment_label", ""));
   }
 
   void PeptideIdentification::setExperimentLabel(const std::string& label)

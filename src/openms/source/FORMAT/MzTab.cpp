@@ -1994,7 +1994,7 @@ Not sure how to handle these:
     p.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
     for (const auto& pid : peptide_ids)
     {
-      std::string spec_ref = pid->getMetaValue("spectrum_reference", "");
+      std::string spec_ref = pid->getSpectrumReference(); // lenient: tolerates non-string spectrum_reference DataValues
       // note: don't change order as some may contain the other terms as well. Taken from mzTab specification document
       if (StringUtils::hasSubstring(spec_ref, "controllerNumber=")) { p.fromCellString("[MS,MS:1000768,Thermo nativeID format,]"); return p; }
       if (StringUtils::hasSubstring(spec_ref, "process=")) { p.fromCellString("[MS,MS:1000769,Waters nativeID format,]"); return p; }
