@@ -463,6 +463,7 @@ OpenMS Library:
       - OpenSwathParquetExporter: writes per-feature score tables to Parquet format via Apache Arrow
       - OpenSwathResultsExporter: exports combined results in TSV and Parquet formats; reads gene-decoy and transition-annotation columns from OSWFile
       - OSWFile: extended SQL queries to include gene decoy flags and transition annotation fields required by the new export classes
+  - IMAGING: multi-region support - new MSImagingRegion class (axis-aligned rectangle or bbox-local bitmask footprint in global pixel coordinates) and a decoupled region overlay on MSImagingGeometry (addRegion/removeRegion/regionOf/getRegionPixels/getRegionSpectrumIndices); regions form a disjoint partition of acquired pixels with membership derived on demand (not cached). MSImagingExperiment gains a per-region extractIonImage(mz, tolerance_ppm, region_id) overload. pyOpenMS bindings included.
 
 Fixes:
   - Fix inverted use_all_hits logic causing NucleicAcidSearchEngine crash with multiple hits per spectrum (#8542)
