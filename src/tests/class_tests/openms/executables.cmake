@@ -323,6 +323,7 @@ set(math_executables_list
   GammaDistributionFitter_test
   GaussFitter_test
   GumbelDistributionFitter_test
+  GumbelMaxLikelihoodFitter_test
   GridSearch_test
   CrossValidation_test
   Histogram_test
