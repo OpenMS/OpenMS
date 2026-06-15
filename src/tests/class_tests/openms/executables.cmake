@@ -223,6 +223,7 @@ set(format_executables_list
   MzMLSqliteHandler_test
   MzMLSqliteSwathHandler_test
   MzMLValidator_test
+  MzPeakFile_test
   MzTab_test
   MzTabFile_test
   MzTabM_test
