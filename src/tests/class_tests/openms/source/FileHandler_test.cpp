@@ -270,6 +270,50 @@ TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d
     STATUS("Skipping non-ASCII path test: could not create directory")
   }
 }
+
+// Regression test (#9452): a storeExperiment -> loadExperiment round-trip through a
+// non-ASCII path must preserve the map. All file I/O now flows through OpenMS::to_path
+// after the Qt removal, so this guards the core store/load flow end to end.
+{
+  namespace fs = std::filesystem;
+  // Latin-1 only (ä, ö) so path::string() round-trips on the Windows Active Code Page.
+  fs::path nonascii_dir = fs::path(std::string(File::getTempDirectory())) / u8"openms_störe_täst";
+  std::error_code ec;
+  fs::create_directories(nonascii_dir, ec);
+  if (!ec)
+  {
+    const std::string nonascii_mzml = (nonascii_dir / "round_trip.mzML").string();
+
+    PeakMap src;
+    MSSpectrum s;
+    s.setRT(12.5);
+    s.setMSLevel(1);
+    Peak1D p1; p1.setMZ(123.45); p1.setIntensity(678.0f); s.push_back(p1);
+    Peak1D p2; p2.setMZ(200.10); p2.setIntensity(50.0f);  s.push_back(p2);
+    src.addSpectrum(s);
+
+    FileHandler().storeExperiment(nonascii_mzml, src, {FileTypes::MZML});
+    TEST_EQUAL(File::exists(nonascii_mzml), true)
+
+    PeakMap loaded;
+    FileHandler().loadExperiment(nonascii_mzml, loaded, {FileTypes::MZML});
+
+    TEST_EQUAL(loaded.size(), src.size())
+    ABORT_IF(loaded.empty())
+    TEST_REAL_SIMILAR(loaded[0].getRT(), src[0].getRT())
+    TEST_EQUAL(loaded[0].size(), src[0].size())
+    ABORT_IF(loaded[0].size() != 2)
+    TEST_REAL_SIMILAR(loaded[0][0].getMZ(), 123.45)
+    TEST_REAL_SIMILAR(loaded[0][0].getIntensity(), 678.0)
+    TEST_REAL_SIMILAR(loaded[0][1].getMZ(), 200.10)
+
+    fs::remove_all(nonascii_dir, ec);
+  }
+  else
+  {
+    STATUS("Skipping non-ASCII storeExperiment round-trip: could not create directory")
+  }
+}
 END_SECTION
 
 
