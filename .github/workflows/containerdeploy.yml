@@ -1,6 +1,11 @@
 name: Deploy container images
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Name to publish the containers under in ghcr.io (e.g. 3.6.0-rc1, my-test). Run the workflow from the branch/commit you want to package. Leave empty to auto-derive (develop/nightly -> latest)."
+        required: false
+        default: ""
   push:
     branches:
       - nightly
@@ -37,15 +42,28 @@ jobs:
         id: extract_branch
       - name: Define tag name
         shell: bash
+        # Pass externally-influenced values through env so they are never
+        # expanded into the shell script directly (avoids script injection).
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          REF_BRANCH: ${{ steps.extract_branch.outputs.branch }}
         run: |
-            BRANCH=${{ steps.extract_branch.outputs.branch }}
-            ## use latest to follow docker conventions
-            if [[ "$BRANCH" == "develop" || "$BRANCH" == "nightly" || "$BRANCH" == "feat/singularity" ]]
-            then 
-              BRANCH="latest"
+            if [[ -n "$INPUT_TAG" ]]; then
+              ## Manual run: publish under the user-provided name
+              TAG="$INPUT_TAG"
+            else
+              BRANCH="$REF_BRANCH"
+              ## use latest to follow docker conventions
+              if [[ "$BRANCH" == "develop" || "$BRANCH" == "nightly" || "$BRANCH" == "feat/singularity" ]]
+              then
+                BRANCH="latest"
+              fi
+              ## Remove release/ from release branch name (or keep the non-release name)
+              TAG="${BRANCH#release/}"
             fi
-            ## Remove release/ from release branch name (or keep the non-release name)
-            echo "tag=${BRANCH#release/}" >> $GITHUB_OUTPUT
+            ## Docker/OCI tags may not contain '/' and have a limited charset
+            TAG="${TAG//[^a-zA-Z0-9._-]/_}"
+            echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
         id: tag_name
       - name: Downcase REPO
         run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
