@@ -44,6 +44,18 @@ auto expect_equal_real_vectors = [](const std::vector<double>& a, const std::vec
   }
 };
 
+// Helper: element-wise compare, treating a NaN in the expected vector as a match
+// only against a NaN in the actual vector (for nan_policy = Omit / Propagate).
+auto expect_equal_real_or_nan = [](const std::vector<double>& actual, const std::vector<double>& expected)
+{
+  TEST_EQUAL(actual.size(), expected.size())
+  for (Size i = 0; i < actual.size(); ++i)
+  {
+    if (std::isnan(expected[i])) { TEST_TRUE(std::isnan(actual[i])) }
+    else { TEST_REAL_SIMILAR(actual[i], expected[i]) }
+  }
+};
+
 START_SECTION((RankData::rankdata - basic tie methods on doubles))
 {
   using M = RankData::Method;
@@ -230,6 +242,46 @@ START_SECTION((RankData::rankdata - empty input))
   std::vector<double> empty;
   auto r = RankData::rankdata(empty);
   TEST_EQUAL(r.size(), 0)
+}
+END_SECTION
+
+START_SECTION((RankData::rankdata - scipy.stats.rankdata cross-validation))
+{
+  using M = RankData::Method;
+  using P = RankData::NaNPolicy;
+  const double NaN = std::numeric_limits<double>::quiet_NaN();
+
+  // Reference vectors generated with SciPy 1.17.1:
+  //   scipy.stats.rankdata(a, method=<m>, nan_policy=<p>)
+  // The other sections use tiny hand-computed vectors; this pins a larger ties
+  // vector against SciPy for every tie method, plus a ties+NaN vector for both
+  // the propagate and omit policies, so a divergence from SciPy semantics is caught.
+
+  // --- ties, no NaN ---
+  const std::vector<double> ties{3.0, 1.0, 4.0, 1.0, 5.0, 9.0, 2.0, 6.0, 5.0, 3.0};
+  expect_equal_real_vectors(RankData::rankdata(ties, M::Average), {4.5, 1.5, 6.0, 1.5, 7.5, 10.0, 3.0, 9.0, 7.5, 4.5});
+  expect_equal_real_vectors(RankData::rankdata(ties, M::Min),     {4.0, 1.0, 6.0, 1.0, 7.0, 10.0, 3.0, 9.0, 7.0, 4.0});
+  expect_equal_real_vectors(RankData::rankdata(ties, M::Max),     {5.0, 2.0, 6.0, 2.0, 8.0, 10.0, 3.0, 9.0, 8.0, 5.0});
+  expect_equal_real_vectors(RankData::rankdata(ties, M::Dense),   {3.0, 1.0, 4.0, 1.0, 5.0, 7.0, 2.0, 6.0, 5.0, 3.0});
+  expect_equal_real_vectors(RankData::rankdata(ties, M::Ordinal), {4.0, 1.0, 6.0, 2.0, 7.0, 10.0, 3.0, 9.0, 8.0, 5.0});
+
+  // --- ties + NaN ---
+  const std::vector<double> nv{0.0, 2.0, 3.0, NaN, -2.0, NaN, 2.0};
+
+  // nan_policy = Propagate: SciPy 1.17.1 returns all-NaN for every method.
+  for (M m : {M::Average, M::Min, M::Max, M::Dense, M::Ordinal})
+  {
+    auto r = RankData::rankdata(nv, m, P::Propagate);
+    TEST_EQUAL(r.size(), nv.size())
+    TEST_TRUE(all_nan(r))
+  }
+
+  // nan_policy = Omit: rank only the non-NaN values; NaN positions stay NaN.
+  expect_equal_real_or_nan(RankData::rankdata(nv, M::Average, P::Omit), {2.0, 3.5, 5.0, NaN, 1.0, NaN, 3.5});
+  expect_equal_real_or_nan(RankData::rankdata(nv, M::Min,     P::Omit), {2.0, 3.0, 5.0, NaN, 1.0, NaN, 3.0});
+  expect_equal_real_or_nan(RankData::rankdata(nv, M::Max,     P::Omit), {2.0, 4.0, 5.0, NaN, 1.0, NaN, 4.0});
+  expect_equal_real_or_nan(RankData::rankdata(nv, M::Dense,   P::Omit), {2.0, 3.0, 4.0, NaN, 1.0, NaN, 3.0});
+  expect_equal_real_or_nan(RankData::rankdata(nv, M::Ordinal, P::Omit), {2.0, 3.0, 5.0, NaN, 1.0, NaN, 4.0});
 }
 END_SECTION
 
