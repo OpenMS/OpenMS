@@ -19,6 +19,7 @@
 #include <string>
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
@@ -37,6 +38,44 @@ START_SECTION(template<class T> std::vector<double> computeModelFDR(const std::v
   TEST_REAL_SIMILAR(f[0], 0.1)
   TEST_REAL_SIMILAR(f[1], 0.15)
   TEST_REAL_SIMILAR(f[2], 0.2)
+
+  // The case above is already sorted, unique and NaN-free. The deterministic model-FDR
+  // (IPF q-value) path also has to (a) restore the q-values to the original input order,
+  // (b) give tied PEPs a single shared q-value via the 'max' rank, and (c) propagate NaN.
+  // Reference values were verified with an independent reimplementation of the algorithm
+  // (stable argsort -> max-rank -> cumsum -> cumsum[rank-1]/rank, mapped back to input order).
+
+  // (a) unsorted input: the smallest PEP gets the smallest q, written to its ORIGINAL slot
+  auto u = computeModelFDR<double>(std::vector<double>{0.3, 0.1, 0.2});
+  TEST_EQUAL(u.size(), 3)
+  TEST_REAL_SIMILAR(u[0], 0.2)   // PEP 0.3 (largest)
+  TEST_REAL_SIMILAR(u[1], 0.1)   // PEP 0.1 (smallest)
+  TEST_REAL_SIMILAR(u[2], 0.15)  // PEP 0.2
+
+  // (b) ties: tied PEPs share one q-value (= cumulative-sum-at-the-last-tie / max-rank = 0.5/3)
+  auto t = computeModelFDR<double>(std::vector<double>{0.1, 0.2, 0.2, 0.3});
+  TEST_EQUAL(t.size(), 4)
+  TEST_REAL_SIMILAR(t[0], 0.1)
+  TEST_REAL_SIMILAR(t[1], 1.0 / 6.0)
+  TEST_REAL_SIMILAR(t[2], 1.0 / 6.0)
+  TEST_REAL_SIMILAR(t[3], 0.2)
+
+  // unsorted + ties combined
+  auto ut = computeModelFDR<double>(std::vector<double>{0.3, 0.2, 0.2, 0.1});
+  TEST_EQUAL(ut.size(), 4)
+  TEST_REAL_SIMILAR(ut[0], 0.2)
+  TEST_REAL_SIMILAR(ut[1], 1.0 / 6.0)
+  TEST_REAL_SIMILAR(ut[2], 1.0 / 6.0)
+  TEST_REAL_SIMILAR(ut[3], 0.1)
+
+  // (c) any NaN in the input -> all-NaN output (propagate)
+  const double NaN = std::numeric_limits<double>::quiet_NaN();
+  auto nanres = computeModelFDR<double>(std::vector<double>{0.1, NaN, 0.2});
+  TEST_EQUAL(nanres.size(), 3)
+  for (double x : nanres) { TEST_EQUAL(std::isnan(x), true) }
+
+  // empty input -> empty output
+  TEST_EQUAL(computeModelFDR<double>(std::vector<double>{}).size(), 0)
 }
 END_SECTION
 
