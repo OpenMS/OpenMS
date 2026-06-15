@@ -165,6 +165,14 @@ START_SECTION((static std::string swapExtension(const std::string& filename, con
   TEST_STRING_EQUAL(FileHandler::swapExtension("/home.with.dot/file", FileTypes::UNKNOWN), "/home.with.dot/file.unknown")
   TEST_STRING_EQUAL(FileHandler::swapExtension("c:\\home.with.dot\\file", FileTypes::UNKNOWN), "c:\\home.with.dot\\file.unknown")
   TEST_STRING_EQUAL(FileHandler::swapExtension("./filename", FileTypes::UNKNOWN), "./filename.unknown")
+  // new 3.6 directory-based parquet bundle types
+  TEST_STRING_EQUAL(FileHandler::swapExtension("/home/doe/file.txt", FileTypes::FEATUREPARQUET), "/home/doe/file.featureparquet")
+  TEST_STRING_EQUAL(FileHandler::swapExtension("/home/doe/file.idXML", FileTypes::IDPARQUET), "/home/doe/file.idparquet")
+  TEST_STRING_EQUAL(FileHandler::swapExtension("/home/doe/file.featureparquet", FileTypes::CONSENSUSPARQUET), "/home/doe/file.consensusparquet")
+  // round-trip: a swapped-in parquet extension is recognised back as the same type
+  TEST_EQUAL(FileHandler::getTypeByFileName(FileHandler::swapExtension("x.txt", FileTypes::FEATUREPARQUET)), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getTypeByFileName(FileHandler::swapExtension("x.txt", FileTypes::IDPARQUET)), FileTypes::IDPARQUET)
+  TEST_EQUAL(FileHandler::getTypeByFileName(FileHandler::swapExtension("x.txt", FileTypes::CONSENSUSPARQUET)), FileTypes::CONSENSUSPARQUET)
 END_SECTION
 
 START_SECTION((FileTypes::Type FileHandler::getConsistentOutputfileType(const std::string& output_filename, const std::string& requested_type)))
