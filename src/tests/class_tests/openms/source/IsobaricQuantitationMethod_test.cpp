@@ -208,6 +208,10 @@ START_SECTION((static std::unique_ptr<IsobaricQuantitationMethod> create(MethodT
     TEST_STRING_EQUAL(method->getMethodName(), std::string(IsobaricQuantitationMethod::methodTypeName(mt)))
   }
 
+  // The new TMT 32/35-plex methods must instantiate with the correct channel counts (#9460).
+  TEST_EQUAL(IsobaricQuantitationMethod::create(MT::TMT_32PLEX)->getNumberOfChannels(), 32)
+  TEST_EQUAL(IsobaricQuantitationMethod::create(MT::TMT_35PLEX)->getNumberOfChannels(), 35)
+
   // The terminator and any out-of-range value are programming errors and must throw.
   TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::create(MT::SIZE_OF_METHODTYPE))
   TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::create(static_cast<MT>(static_cast<int>(MT::SIZE_OF_METHODTYPE) + 1)))
@@ -236,6 +240,8 @@ START_SECTION((static std::string_view methodTypeName(MethodType mt)))
   TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodTypeName(MT::UNKNOWN)), "unknown")
   TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodTypeName(MT::TMT_6PLEX)), "tmt6plex")
   TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodTypeName(MT::ITRAQ_8PLEX)), "itraq8plex")
+  TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodTypeName(MT::TMT_32PLEX)), "tmt32plex")
+  TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodTypeName(MT::TMT_35PLEX)), "tmt35plex")
   // out-of-range values (the SIZE_OF_METHODTYPE terminator and beyond) are programming errors and must throw
   TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodTypeName(MT::SIZE_OF_METHODTYPE))
   TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodTypeName(static_cast<MT>(static_cast<int>(MT::SIZE_OF_METHODTYPE) + 1)))
@@ -247,6 +253,8 @@ START_SECTION((static std::string_view methodDisplayName(MethodType mt)))
   using MT = IsobaricQuantitationMethod::MethodType;
   TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodDisplayName(MT::UNKNOWN)), "none")
   TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodDisplayName(MT::TMT_6PLEX)), "TMT 6-plex")
+  TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodDisplayName(MT::TMT_32PLEX)), "TMT 32-plex")
+  TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodDisplayName(MT::TMT_35PLEX)), "TMT 35-plex")
   // out-of-range values (the SIZE_OF_METHODTYPE terminator and beyond) are programming errors and must throw
   TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodDisplayName(MT::SIZE_OF_METHODTYPE))
   TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodDisplayName(static_cast<MT>(static_cast<int>(MT::SIZE_OF_METHODTYPE) + 1)))
@@ -258,8 +266,18 @@ START_SECTION((static MethodType methodTypeFromName(std::string_view name)))
   using MT = IsobaricQuantitationMethod::MethodType;
   TEST_EQUAL(IsobaricQuantitationMethod::methodTypeFromName("tmt6plex") == MT::TMT_6PLEX, true)
   TEST_EQUAL(IsobaricQuantitationMethod::methodTypeFromName("itraq4plex") == MT::ITRAQ_4PLEX, true)
+  TEST_EQUAL(IsobaricQuantitationMethod::methodTypeFromName("tmt32plex") == MT::TMT_32PLEX, true)
+  TEST_EQUAL(IsobaricQuantitationMethod::methodTypeFromName("tmt35plex") == MT::TMT_35PLEX, true)
   // an unrecognized name returns the UNKNOWN sentinel (string lookup; does not throw)
   TEST_EQUAL(IsobaricQuantitationMethod::methodTypeFromName("not_a_method") == MT::UNKNOWN, true)
+
+  // round-trip: name <-> type is bijective for every concrete method, so a newly added
+  // method whose name mapping was forgotten (e.g. TMT 32/35-plex) would fail here.
+  for (int i = static_cast<int>(MT::UNKNOWN) + 1; i < static_cast<int>(MT::SIZE_OF_METHODTYPE); ++i)
+  {
+    const MT mt = static_cast<MT>(i);
+    TEST_EQUAL(IsobaricQuantitationMethod::methodTypeFromName(IsobaricQuantitationMethod::methodTypeName(mt)) == mt, true)
+  }
 }
 END_SECTION
 
