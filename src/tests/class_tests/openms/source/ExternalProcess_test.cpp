@@ -15,6 +15,9 @@
 
 #include <OpenMS/config.h>
 
+#include <filesystem>
+#include <fstream>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -104,6 +107,50 @@ END_SECTION
 
 START_SECTION(RETURNSTATE run(const std::string& exe, const std::vector<std::string>& args, const std::string& working_dir, bool verbose, IO_MODE io_mode, const std::map<std::string, std::string>& env, std::function<void()> idle_callback))
  NOT_TESTABLE // tested above..
+END_SECTION
+
+START_SECTION([EXTRA] run with spaces in the executable path and arguments)
+{
+#ifndef OPENMS_WINDOWSPLATFORM
+  // An executable whose path contains spaces (e.g. "/opt/My Tool/bin/x") must
+  // launch correctly and its stdout must be captured intact. Likewise a single
+  // argument that itself contains spaces must be passed as ONE argument, not
+  // shell-split. boost::process receives argv as a vector, so no shell re-quoting
+  // should occur. (Windows is guarded out here because launching a freshly-written
+  // .bat through ExternalProcess needs a cmd shim; the cmd-based section above
+  // already exercises the Windows path.)
+  std::string tmp;
+  NEW_TMP_FILE(tmp)
+  const std::filesystem::path dir = std::filesystem::path(tmp).parent_path() / "open ms space dir";
+  std::filesystem::create_directories(dir);
+  const std::filesystem::path script = dir / "my script.sh";
+  {
+    std::ofstream os(script);
+    os << "#!/bin/sh\n"
+          "echo MARKER_STDOUT_OK\n"
+          "echo \"arg=[$1]\"\n";
+  }
+  std::filesystem::permissions(script, std::filesystem::perms::owner_all, std::filesystem::perm_options::add);
+
+  std::string all_out, all_err, error_msg;
+  ExternalProcess ep([&](const std::string& s) { all_out += s; },
+                     [&](const std::string& s) { all_err += s; });
+
+  // single argument that itself contains spaces
+  const std::vector<std::string> spaced_args{"one two three"};
+  auto r = ep.run(script.string(), spaced_args, "", true, error_msg);
+
+  TEST_EQUAL(r, ExternalProcess::RETURNSTATE::SUCCESS)
+  // stdout from the spaces-in-path executable was captured
+  TEST_TRUE(all_out.find("MARKER_STDOUT_OK") != std::string::npos)
+  // the spaced argument arrived as a single, intact argument (not split into 3)
+  TEST_TRUE(all_out.find("arg=[one two three]") != std::string::npos)
+
+  std::filesystem::remove_all(dir);
+#else
+  NOT_TESTABLE // Windows path-with-spaces is exercised via the cmd-based section above
+#endif
+}
 END_SECTION
 
 
