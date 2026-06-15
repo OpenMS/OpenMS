@@ -12,6 +12,7 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -454,6 +455,56 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
   TEST_REAL_SIMILAR(h_in.getScore(), 0.8);
 
   File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] storeFeatures unknown extension adopts the single allowed type))
+{
+  // FileHandler::storeFeatures adopts a single allowed_type when the output
+  // filename has no informative extension (here ".unknown"): the type stays
+  // UNKNOWN from the name but allowed_types has exactly one entry, so
+  // FEATUREPARQUET is adopted and a parquet bundle is written. The
+  // .featureparquet round-trip above always detects the type from the
+  // extension, so this exercises the size-1 fallback branch instead.
+  FeatureMap fm;
+  Feature f;
+  f.setUniqueId(7);
+  f.setRT(11.5);
+  f.setMZ(222.22);
+  f.setIntensity(345.0f);
+  f.setCharge(3);
+  fm.push_back(f);
+
+  std::string dir;
+  NEW_TMP_FILE(dir)
+  dir += ".unknown"; // getTypeByFileName -> UNKNOWN
+
+  // store: the single allowed type is adopted -- otherwise storeFeatures would
+  // throw InvalidFileType for an UNKNOWN type. A featureparquet bundle is written.
+  FileHandler().storeFeatures(dir, fm, {FileTypes::FEATUREPARQUET});
+
+  // Read the bundle back via the Arrow API and confirm the feature survived the
+  // adopted-type store. (loadFeatures resolves the type via getType(), which
+  // cannot classify a directory whose name ends in ".unknown", so we read the
+  // bundle directly here.)
+  FeatureMap fm_in;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(dir, fm_in), true);
+  TEST_EQUAL(fm_in.size(), 1);
+  TEST_EQUAL(fm_in[0].getUniqueId(), 7);
+  TEST_REAL_SIMILAR(fm_in[0].getRT(), 11.5);
+  TEST_REAL_SIMILAR(fm_in[0].getMZ(), 222.22);
+  TEST_EQUAL(fm_in[0].getCharge(), 3);
+
+  File::removeDirRecursively(dir);
+
+  // negative: an UNKNOWN extension with more than one allowed type is
+  // ambiguous, so the fallback does NOT fire and the type stays UNKNOWN ->
+  // InvalidFileType (proving the adoption is specifically the size-1 case).
+  std::string dir2;
+  NEW_TMP_FILE(dir2)
+  dir2 += ".unknown";
+  TEST_EXCEPTION(Exception::InvalidFileType,
+                 FileHandler().storeFeatures(dir2, fm, {FileTypes::FEATUREPARQUET, FileTypes::FEATUREXML}));
 }
 END_SECTION
 
