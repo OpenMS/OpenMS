@@ -13,6 +13,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzPeakFile.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
@@ -467,4 +468,100 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+// clang-format off
+START_SECTION([EXTRA] mzML->mzpeak->mzML cross-validation (INT-07))
+// clang-format on
+{
+  // -----------------------------------------------------------------------
+  // INT-07: prove that mzML → mzpeak → mzML through OpenMS produces an
+  // equivalent MSExperiment for the non-empty spectra.
+  //
+  // Source: MzMLFile_1.mzML — 4 spectra (3 centroid + 1 profile-empty),
+  // RT in seconds (5.1 / 5.2 / 5.3 / 5.4), simple integer m/z grids.
+  //
+  // Known lossy behaviour:
+  //   - Scan windows, data_processing_refs, chromatograms are not preserved.
+  //   - Empty spectra (0 peaks) have no rows in the mzpeak point tables and
+  //     are therefore absent from the reloaded experiment. The test asserts
+  //     the non-empty spectrum count and per-spectrum peak fidelity only.
+  // -----------------------------------------------------------------------
+
+  // 1. Load source mzML.
+  MSExperiment src;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), src);
+  TEST_EQUAL(src.size() > 0, true)
+
+  // Count source spectra that carry at least one peak (empty spectra are
+  // not representable in the mzpeak point tables and will be dropped).
+  Size src_nonempty = 0;
+  for (Size i = 0; i < src.size(); ++i)
+    if (! src[i].empty()) ++src_nonempty;
+
+  // 2. mzML -> mzpeak.
+  String tmp_mzpeak;
+  NEW_TMP_FILE_EXT(tmp_mzpeak, ".mzpeak")
+  MzPeakFile().store(tmp_mzpeak, src);
+
+  // 3. mzpeak -> MSExperiment (mid).
+  // Only non-empty spectra survive the round-trip through the point tables.
+  MSExperiment mid;
+  MzPeakFile().load(tmp_mzpeak, mid);
+  TEST_EQUAL(mid.size(), src_nonempty)
+
+  // 4. mzpeak -> mzML -> MSExperiment (rt).
+  String tmp_mzml;
+  NEW_TMP_FILE_EXT(tmp_mzml, ".mzML")
+  MzMLFile().store(tmp_mzml, mid);
+  MSExperiment rt;
+  MzMLFile().load(tmp_mzml, rt);
+
+  // 5. Structural equivalence for non-empty spectra.
+  // The rt experiment matches mid exactly; compare rt against the non-empty
+  // subset of src, matched by RT (which is lossless through the chain).
+  TEST_EQUAL(rt.size(), src_nonempty)
+
+  // Build a lookup of non-empty source spectra by RT.
+  std::vector<const MSSpectrum*> src_nonempty_specs;
+  for (Size i = 0; i < src.size(); ++i)
+    if (! src[i].empty()) src_nonempty_specs.push_back(&src[i]);
+
+  // rt is sorted by RT ascending; src_nonempty_specs follow the original
+  // mzML order (also RT-ascending for MzMLFile_1.mzML).
+  TEST_EQUAL(rt.size(), src_nonempty_specs.size())
+
+  for (Size i = 0; i < rt.size() && i < src_nonempty_specs.size(); ++i)
+  {
+    const MSSpectrum& s = *src_nonempty_specs[i];
+    const MSSpectrum& r = rt[i];
+
+    TEST_EQUAL(r.getMSLevel(), s.getMSLevel())
+
+    // RT: mzML (seconds) → OpenMS (seconds) → mzpeak (seconds) → mzML (seconds)
+    // chain is lossless; allow 1e-5 s for float serialisation rounding.
+    TOLERANCE_ABSOLUTE(1e-5)
+    TEST_REAL_SIMILAR(r.getRT(), s.getRT())
+
+    TEST_EQUAL(r.size(), s.size())
+
+    if (! s.empty() && r.size() == s.size())
+    {
+      // m/z: stored as double in mzpeak — tight absolute tolerance.
+      TOLERANCE_ABSOLUTE(1e-9)
+      TEST_REAL_SIMILAR(r[0].getMZ(), s[0].getMZ())
+      TEST_REAL_SIMILAR(r[s.size() - 1].getMZ(), s[s.size() - 1].getMZ())
+
+      // Intensity: float32 in mzpeak → relative 0.1 % tolerance is generous.
+      TOLERANCE_RELATIVE(1.0 + 1e-3)
+      TEST_REAL_SIMILAR(r[0].getIntensity(), s[0].getIntensity())
+      TEST_REAL_SIMILAR(r[s.size() - 1].getIntensity(), s[s.size() - 1].getIntensity())
+
+      // Reset to framework defaults.
+      TOLERANCE_RELATIVE(1.0)
+      TOLERANCE_ABSOLUTE(1e-4)
+    }
+  }
+}
+END_SECTION
+
 END_TEST
