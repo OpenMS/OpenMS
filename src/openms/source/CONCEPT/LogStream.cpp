@@ -17,13 +17,12 @@
 */
 #include <limits>
 #include <string>
-#include <cstring>
 #include <cstdio>
-#include <algorithm>    // std::min
 #include <OpenMS/CONCEPT/Colorizer.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/StreamHandler.h>
 
+#include <mutex>
 #include <sstream>
 #include <iostream>
 
@@ -74,7 +73,11 @@ namespace OpenMS
 
     LogStreamBuf::~LogStreamBuf()
     {
-      // Prevent issue on OSX with OpenMP: destructors of global objects seem to be called after tearing down the OpenMP context, we therefore cannot use any locks here.
+      // ~LogStreamBuf may run during static destruction (on OSX after the OpenMP context is
+      // torn down). It flushes via syncLF_()/clearCache()/distribute_(); distribute_() takes
+      // getLogMutex_(), a process-wide std::recursive_mutex that is (a) never destroyed (leaked),
+      // so it cannot be locked-after-destruction here, and (b) a plain OS primitive, NOT an
+      // OpenMP critical section, so it is unaffected by OpenMP-runtime teardown. Safe to call.
       syncLF_();
       {
         clearCache();
@@ -213,8 +216,31 @@ namespace OpenMS
       log_time_cache_.clear();
     }
 
+    namespace
+    {
+      // Process-wide lock serializing distribute_(), the only place that writes the SHARED
+      // sink ostreams (&cerr/&cout/file streams: copied per-thread but pointing at the same
+      // objects), mutates the SHARED global Colorizer (red/yellow/magenta), and calls the
+      // user-overridable logNotify(). See issue #9515 (concurrent logging from OpenMP regions
+      // corrupted the heap on Windows; the per-thread streams alone do not make logging safe
+      // because these sinks remain shared).
+      //  - recursive_mutex: logNotify() runs while the lock is held; a same-thread override that
+      //    emits OPENMS_LOG_* re-enters distribute_() and would self-deadlock a plain mutex.
+      //  - Intentionally leaked (never destroyed): ~LogStreamBuf runs at static destruction and
+      //    reaches distribute_(); a destroyed mutex would be locked-after-destruction. A heap
+      //    object with no destructor is always lockable. It is an OS primitive, NOT an OpenMP
+      //    critical section, so it does not depend on the (possibly torn-down) OpenMP runtime.
+      std::recursive_mutex& getLogMutex_()
+      {
+        static std::recursive_mutex* m = new std::recursive_mutex(); // NOLINT: intentional leak (see above)
+        return *m;
+      }
+    }
+
     void LogStreamBuf::distribute_(const std::string& outstring)
     {
+      std::lock_guard<std::recursive_mutex> lock(getLogMutex_());
+
       // if there are any streams in our list, we
       // copy the line into that streams, too and flush them
       std::list<StreamStruct>::iterator list_it = stream_list_.begin();
@@ -252,8 +278,6 @@ namespace OpenMS
           char *line_start = pbase();
           char *line_end = pbase();
 
-          static char buf[BUFFER_LENGTH];
-
           while (line_end < pptr())
           {
             // search for the first end of line
@@ -263,31 +287,24 @@ namespace OpenMS
 
             if (line_end >= pptr())
             {
-              // Copy the incomplete line to the incomplete_line_ buffer
-              size_t length = line_end - line_start;
-              length = std::min(length, (size_t) (BUFFER_LENGTH - 1));
-              strncpy(&(buf[0]), line_start, length);
-
-              // if length was too large, we copied one byte less than BUFFER_LENGTH to have
-              // room for the final \0
-              buf[length] = '\0';
-
-              incomplete_line_ += &(buf[0]);
+              // Append the incomplete tail [line_start, line_end) directly into the
+              // per-thread buffer. No shared static buffer (issue #9515), no BUFFER_LENGTH-1
+              // truncation, embedded NULs preserved. (line_end == pptr() in this branch.)
+              incomplete_line_.append(line_start, line_end - line_start);
 
               // mark everything as read
               line_end = pptr() + 1;
             }
             else
             {
-              // note: pptr() - pbase() should be bounded by BUFFER_LENGTH, so this should always work
-              memcpy(&(buf[0]), line_start, line_end - line_start + 1);
-              buf[line_end - line_start] = '\0';
-
               // assemble the string to be written
               // (consider leftovers of the last buffer from incomplete_line_)
               std::string outstring;
               std::swap(outstring, incomplete_line_); // init outstring, while resetting incomplete_line_
-              outstring += &(buf[0]);
+              // append [line_start, line_end) WITHOUT the trailing '\n' (line_end points AT the
+              // '\n'); distribute_ re-adds the newline via std::endl. No shared static buffer
+              // (issue #9515).
+              outstring.append(line_start, line_end - line_start);
 
               // avoid adding empty lines to the cache
               if (outstring.empty())

@@ -278,6 +278,12 @@ public:
 
         The default implementation is a no-op. Override in a subclass to react to log events
         (read @ref stream_ to get the formatted message body).
+
+        @warning An override MUST NOT emit any OPENMS_LOG_* message. logNotify() is invoked while
+                 the process-wide log mutex is held and while this thread's LogStreamBuf is
+                 mid-flush; re-entrant logging on the same thread reuses that buffer's
+                 incomplete_line_/cache mid-flush (a single-threaded reentrancy hazard no lock
+                 can fix) and is unsupported.
       */
       virtual void logNotify();
 
@@ -327,11 +333,11 @@ protected:
       <br>
       Which produces an error message in the log.
 
-      @note The log stream macros are thread safe and can be used in a
-      multithreaded environment, the global variables are not! The macros are
-      protected by a OPENMS_THREAD_CRITICAL directive (which translates to an
-      OpenMP critical pragma), however there may be a small performance penalty
-      to this.
+      @note The OPENMS_LOG_* macros are thread safe: each thread logs through its own
+      thread-local LogStream/LogStreamBuf (private buffer and cache), and the shared output
+      sinks/colorizer are serialized by a process-wide std::recursive_mutex inside distribute_()
+      (see issue #9515). The global LogStream variables are NOT thread safe; configure logging
+      once before spawning threads (see the thread-local accessor restrictions).
 
     */
     class OPENMS_DLLAPI LogStream :

@@ -21,6 +21,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <fstream>
+#include <iostream>
 #include <boost/regex.hpp>
 
 // OpenMP support
@@ -97,6 +98,62 @@ START_SECTION(([EXTRA] OpenMP - test))
     }
     // If we get here without crashing, the test passes
     TEST_EQUAL(true, true)
+  }
+
+  // Test 3 (issue #9515): concurrent WARN logging must not crash or tear lines.
+  // This faithfully exercises the path that corrupted the heap on Windows (0xC0000374):
+  // OPENMS_LOG_WARN writes to the shared std::cerr sink through the shared 'yellow' Colorizer
+  // and (pre-fix) through a shared 'static char buf' in LogStreamBuf::syncLF_(), from inside an
+  // OpenMP parallel region. We redirect std::cerr's buffer to a temp file (the WARN sink OBJECT
+  // is unchanged, so every thread-local buffer still writes to it) to capture output and avoid
+  // console spam, then verify each captured line is an intact, well-formed message.
+  {
+    std::string tmp_filename;
+    NEW_TMP_FILE(tmp_filename)
+
+    const int N = 20000;
+    {
+      std::ofstream capture(tmp_filename.c_str());
+      std::streambuf* old_cerr = std::cerr.rdbuf(capture.rdbuf());
+
+      #ifdef _OPENMP
+      omp_set_num_threads(8);
+      #pragma omp parallel for
+      #endif
+      for (int i = 0; i < N; ++i)
+      {
+        // Unique-per-iteration: defeats the 2-slot dedup cache so every emit actually reaches
+        // distribute_() (the corrupting path). std::endl flushes each message immediately, so the
+        // per-thread LogStreamBuf retains no un-flushed tail when we restore std::cerr below
+        // (a tail would otherwise be flushed at thread exit, after the restore, and leak to cerr).
+        OPENMS_LOG_WARN << "warn_thread_msg_" << i << std::endl;
+      }
+
+      std::cerr.flush();
+      std::cerr.rdbuf(old_cerr); // restore BEFORE 'capture' is destroyed
+    } // 'capture' flushed & closed here
+
+    // Reaching here at all is the primary regression signal (pre-fix: Windows heap abort).
+    TEST_EQUAL(true, true)
+
+    // Integrity: every non-empty captured line, with any ANSI color codes stripped, must be a
+    // complete "warn_thread_msg_<n>" message. A torn/interleaved line fails the match.
+    std::ifstream in(tmp_filename.c_str());
+    std::string line;
+    Size good = 0;
+    boost::regex ansi("\033\\[[0-9;]*m");        // strip color escapes (emitted only on a TTY)
+    boost::regex msg("^warn_thread_msg_[0-9]+$");
+    while (std::getline(in, line))
+    {
+      if (line.empty()) { continue; }
+      std::string clean = boost::regex_replace(line, ansi, "");
+      TEST_EQUAL(boost::regex_match(clean, msg), true)
+      ++good;
+    }
+    // Exactly N lines must survive: messages are unique (no dedup), the default WARN config has a
+    // single sink, and std::endl flushes each line, so capture is complete and deterministic.
+    // good < N would mean silent message loss (a corruption mode short of a torn line).
+    TEST_EQUAL(good == (Size)N, true)
   }
 }
 END_SECTION
