@@ -82,4 +82,41 @@ START_SECTION(void addOrReplaceFromFile(const std::string&, const std::string&, 
 }
 END_SECTION
 
+START_SECTION([EXTRA] unzipDirectory error paths)
+{
+  File::TempDir tmp;
+
+  // Corrupt archive: an existing, readable file that is not a valid ZIP (garbage
+  // bytes, no central directory). libzip's zip_open() fails and unzipDirectory
+  // must raise a clear exception rather than crash.
+  const std::string corrupt = tmp.getPath() + "/corrupt.oswpq";
+  {
+    std::ofstream ofs(corrupt.c_str(), std::ios::binary);
+    TEST_TRUE(ofs.is_open())
+    ofs << "this is not a valid ZIP archive -- just plain text bytes.";
+  }
+  TEST_EQUAL(File::exists(corrupt), true)
+  {
+    std::unique_ptr<File::TempDir> td;
+    TEST_EXCEPTION(Exception::InvalidValue, ZipArchiveFile::unzipDirectory(corrupt, td))
+  }
+
+  // Missing / unreadable input: a clear FileNotFound.
+  {
+    std::unique_ptr<File::TempDir> td;
+    TEST_EXCEPTION(Exception::FileNotFound,
+                   ZipArchiveFile::unzipDirectory("/nonexistent/path/to/archive.oswpq", td))
+  }
+
+  // Already-unpacked directory input: returned as-is (no extraction), supporting
+  // the directory-or-zip bundle convention.
+  {
+    const std::string adir = tmp.getPath() + "/already_a_dir";
+    File::makeDir(adir);
+    std::unique_ptr<File::TempDir> td;
+    TEST_STRING_EQUAL(ZipArchiveFile::unzipDirectory(adir, td), adir)
+  }
+}
+END_SECTION
+
 END_TEST
