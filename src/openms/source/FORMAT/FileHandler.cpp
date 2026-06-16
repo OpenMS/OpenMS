@@ -268,12 +268,7 @@ namespace OpenMS
     {
       return FileTypes::SPECXML;
     }
-    try
-    {
-      tmp = StringUtils::suffix(basename, '.');
-    }
-    // no '.' => unknown type
-    catch (Exception::ElementNotFound&)
+    if (!StringUtils::has(basename, '.')) // no '.' => unknown type
     {
       // last chance, Bruker fid file
       if (basename == "fid")
@@ -282,6 +277,7 @@ namespace OpenMS
       }
       return FileTypes::UNKNOWN;
     }
+    tmp = StringUtils::suffix(basename, '.');
     StringUtils::toUpper(tmp);
     if (tmp == "BZ2" || tmp == "GZ" || tmp == "ZIP")
     {
