@@ -18,6 +18,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
+#include <set>
 
 #include <boost/regex.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
