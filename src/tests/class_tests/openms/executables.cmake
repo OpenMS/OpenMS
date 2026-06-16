@@ -286,6 +286,7 @@ set(format_executables_list
   Libzip_test
   ZipArchiveFile_test
   ZipIfstream_test
+  ZipInputStream_test
   ZipRandomAccessFile_test
   # DATAACCESS
   MSDataCachedConsumer_test
