@@ -829,17 +829,14 @@ namespace OpenMS
   }
 
 #ifdef OPENMS_WINDOWSPLATFORM
-  StringList File::executableExtensions_(const std::string& ext_in)
+  StringList File::executableExtensions_()
   {
-    // If no explicit value is passed, read %PATHEXT% from the environment.
-    // std::getenv may return nullptr if the variable is unset; constructing a
-    // std::string from nullptr is undefined behavior, so guard against it.
-    std::string ext = ext_in;
-    if (ext.empty())
-    {
-      const char* pathext = std::getenv("PATHEXT");
-      if (pathext != nullptr) ext = pathext;
-    }
+    const char* pathext = std::getenv("PATHEXT");
+    return executableExtensions_(pathext == nullptr ? "" : std::string(pathext));
+  }
+
+  StringList File::executableExtensions_(const std::string& ext)
+  {
     // check if content of env-var %PATHEXT% makes sense
     StringList exts;
     StringUtils::split(ext, ';', exts);
@@ -850,17 +847,14 @@ namespace OpenMS
   }
 #endif
 
-  StringList File::getPathLocations(const std::string& path_in)
+  StringList File::getPathLocations()
   {
-    // If no explicit value is passed, read $PATH from the environment.
-    // std::getenv may return nullptr if the variable is unset; constructing a
-    // std::string from nullptr is undefined behavior, so guard against it.
-    std::string path = path_in;
-    if (path.empty())
-    {
-      const char* env_path = std::getenv("PATH");
-      if (env_path != nullptr) path = env_path;
-    }
+    const char* env_path = std::getenv("PATH");
+    return getPathLocations(env_path == nullptr ? "" : std::string(env_path));
+  }
+
+  StringList File::getPathLocations(const std::string& path)
+  {
     // split by ":" or ";", depending on platform
     StringList paths;
 #ifdef OPENMS_WINDOWSPLATFORM

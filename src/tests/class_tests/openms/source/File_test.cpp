@@ -366,7 +366,7 @@ START_SECTION(static bool findExecutable(std::string& exe_filename))
 }
 END_SECTION
 
-START_SECTION(static StringList getPathLocations(const std::string& path = ""))
+START_SECTION(static StringList getPathLocations(const std::string& path))
 {
   // set env-variables is not portable across platforms, thus we inject the PATH values
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -380,6 +380,13 @@ START_SECTION(static StringList getPathLocations(const std::string& path = ""))
 #else
   TEST_EQUAL(ListUtils::contains(l, "/usr/bin/"), true)
 #endif
+
+  StringList empty = File::getPathLocations("");
+  TEST_EQUAL(empty.empty(), true)
+
+  // Also exercise the no-argument overload, which reads PATH safely even when the
+  // environment lookup would otherwise return nullptr.
+  File::getPathLocations();
 }
 END_SECTION
 
