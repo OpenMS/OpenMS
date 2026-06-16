@@ -193,6 +193,10 @@ def test_ms_imaging_region_rectangle():
     assert mask.dtype == np.uint8
     assert mask.min() == 1  #check we have fully true values
 
+    # intersects: r covers x in [1,4], y in [2,7]
+    assert r.intersects(MSImagingRegion.rectangle(8, "overlap", 3, 3, 9, 9)) is True
+    assert r.intersects(MSImagingRegion.rectangle(9, "disjoint", 10, 10, 12, 12)) is False
+
 
 def test_ms_imaging_region_from_mask():
     from pyopenms import MSImagingRegion
@@ -210,6 +214,43 @@ def test_ms_imaging_region_from_mask():
     assert mask[0, 1] == 0
     assert mask[1, 1] == 1
 
+
+def test_ms_imaging_region_from_mask_numpy():
+    from pyopenms import MSImagingRegion
+
+    # 1D numpy bool array (explicit width/height)
+    m1d = np.array([True, False, False, True], dtype=bool)
+    r = MSImagingRegion.fromMask(1, "m1d", 10, 20, 2, 2, m1d)
+    assert r.getShape() == MSImagingRegion.Shape.Mask
+    assert r.area() == 2
+    assert r.contains(10, 20) is True    # bit 0
+    assert r.contains(11, 20) is False   # bit 1
+    assert r.contains(11, 21) is True    # bit 3
+
+    # 2D numpy bool array (height, width); width/height inferred from shape
+    m2d = np.array([[True, False],
+                    [False, True]], dtype=bool)
+    r2 = MSImagingRegion.fromMask(2, "m2d", 10, 20, m2d)   # no width/height args
+    assert r2.getShape() == MSImagingRegion.Shape.Mask
+    assert r2.getBBoxWidth() == 2
+    assert r2.getBBoxHeight() == 2
+    assert r2.area() == 2
+    assert r2.contains(10, 20) is True    # [row 0, col 0] -> (x=10, y=20)
+    assert r2.contains(11, 20) is False   # [0, 1]
+    assert r2.contains(11, 21) is True    # [1, 1]
+
+    # non-contiguous (strided) array must be normalized correctly by c_contig
+    full = np.array([[True, False, False],
+                     [False, True, False]], dtype=bool)   # shape (2, 3)
+    strided = full[:, ::2]   # shape (2, 2), columns 0 and 2 -> non-contiguous
+    assert not strided.flags["C_CONTIGUOUS"]
+    r3 = MSImagingRegion.fromMask(3, "strided", 0, 0, strided)
+    # logical strided cells: [[True, False], [False, False]] -> only (0,0) set
+    assert r3.area() == 1
+    assert r3.contains(0, 0) is True
+    assert r3.contains(1, 1) is False
+
+
 def test_ms_imaging_geometry_regions():
     from pyopenms import MSImagingGeometry, MSImagingRegion
 
@@ -225,11 +266,13 @@ def test_ms_imaging_geometry_regions():
     spec = g.getRegionSpectrumIndices(1)
     assert list(spec) == [0,2]
 
+    # duplicate id is rejected
     with pytest.raises(Exception):
         g.addRegion(MSImagingRegion.rectangle(1, "duplicate", 5,5,6,6))
 
+    # a distinct id whose footprint overlaps region 1's column 0 is rejected as overlapping
     with pytest.raises(Exception):
-        g.addRegion(MSImagingRegion.rectangle(1, "overlapping", 0,0,1,1))
+        g.addRegion(MSImagingRegion.rectangle(2, "overlapping", 0,0,1,1))
 
     g.removeRegion(1)
     assert g.getNumberOfRegions() == 0

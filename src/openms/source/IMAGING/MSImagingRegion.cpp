@@ -104,4 +104,27 @@ bool MSImagingRegion::contains(UInt x, UInt y) const
   const Size idx = (y - min_y_) * getBBoxWidth() + (x - min_x_);
   return mask_[idx];
 }
+bool MSImagingRegion::intersects(const MSImagingRegion& other) const
+{
+  if (max_x_ < other.min_x_|| max_y_ < other.min_y_ || min_x_ > other.max_x_ || min_y_ > other.max_y_)
+  {
+    return false; // boxes do not touch, early return
+  }
+  if (shape_ == Shape::Rectangle && other.shape_ == Shape::Rectangle)
+  {
+    return true; //no further validation needed on rectangle
+  }
+  // get high and low values to only operate on the intersecting rectangle
+  const UInt lo_x = std::max(min_x_, other.min_x_);
+  const UInt hi_x = std::min(max_x_, other.max_x_);
+  const UInt lo_y = std::max(min_y_, other.min_y_);
+  const UInt hi_y = std::min(max_y_, other.max_y_);
+  
+  for (UInt y = lo_y; y <= hi_y; y++)
+    for (UInt x = lo_x; x <= hi_x; x++)
+    {
+      if (contains(x, y) && other.contains(x, y)) return true;
+    }
+  return false;
+}
 } // namespace OpenMS

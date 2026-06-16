@@ -482,8 +482,40 @@ Regions are either Rectangle based and defined by their x/y minima and maxima or
         .def(
           "__deepcopy__", [](const OpenMS::MSImagingRegion& self, nb::dict) { return OpenMS::MSImagingRegion(self); }, "memo"_a)
         .def_static("rectangle", &OpenMS::MSImagingRegion::rectangle, "id"_a, "name"_a, "min_x"_a, "min_y"_a, "max_x"_a, "max_y"_a)
+        // introduce overloads for numpy list, 1d np array and 2d np array
         .def_static("fromMask", &OpenMS::MSImagingRegion::fromMask, "id"_a, "name"_a, "origin_x"_a, "origin_y"_a, "width"_a, "height"_a, "mask"_a)
+        .def_static( //1d np array
+          "fromMask",
+          [](OpenMS::Size id, const std::string& name, OpenMS::UInt origin_x, OpenMS::UInt origin_y, OpenMS::UInt width, OpenMS::UInt height,
+             nb::ndarray<bool, nb::ndim<1>, nb::c_contig> mask_arr) {
+            std::vector<bool> mask(mask_arr.size());
+            const bool* ptr = mask_arr.data();
+            for (size_t i = 0; i < mask_arr.size(); ++i)
+            {
+              mask[i] = ptr[i];
+            }
+            return OpenMS::MSImagingRegion::fromMask(id, name, origin_x, origin_y, width, height, std::move(mask));
+          },
+          "id"_a, "name"_a, "origin_x"_a, "origin_y"_a, "width"_a, "height"_a, "mask"_a,
+          "Create a region from a 1D boolean mask array (row-major, size = width * height).")
+        .def_static( //2d np array, height / width are inferred!
+          "fromMask",
+          [](OpenMS::Size id, const std::string& name, OpenMS::UInt origin_x, OpenMS::UInt origin_y,
+             nb::ndarray<bool, nb::ndim<2>, nb::c_contig> mask_arr) {
+            const OpenMS::UInt height = static_cast<OpenMS::UInt>(mask_arr.shape(0)); // rows
+            const OpenMS::UInt width = static_cast<OpenMS::UInt>(mask_arr.shape(1));  // cols
+            std::vector<bool> mask(mask_arr.size());
+            const bool* ptr = mask_arr.data();
+            for (size_t i = 0; i < mask_arr.size(); ++i)
+            {
+              mask[i] = ptr[i];
+            }
+            return OpenMS::MSImagingRegion::fromMask(id, name, origin_x, origin_y, width, height, std::move(mask));
+          },
+          "id"_a, "name"_a, "origin_x"_a, "origin_y"_a, "mask"_a,
+          "Create a region from a 2D (height, width) boolean numpy array; width/height are taken from the shape.")
         .def("contains", &OpenMS::MSImagingRegion::contains, "x"_a, "y"_a)
+        .def("intersects", &OpenMS::MSImagingRegion::intersects, "other"_a)
         .def("getId", &OpenMS::MSImagingRegion::getId)
         .def("getName", &OpenMS::MSImagingRegion::getName)
         .def("getShape", &OpenMS::MSImagingRegion::getShape)

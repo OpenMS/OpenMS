@@ -51,7 +51,7 @@ START_SECTION((void setDimensions(UInt width, UInt height)))
 }
 END_SECTION
 
-START_SECTION((void setPixelSize(double x, double y, const String& unit)))
+START_SECTION((void setPixelSize(double x, double y, const std::string& unit)))
 {
   MSImagingGeometry g;
   g.setPixelSize(25.0, 25.0, "micrometer");
@@ -154,7 +154,7 @@ START_SECTION((UInt getWidth() const)) {NOT_TESTABLE} END_SECTION
 
   START_SECTION((double getPixelSizeY() const)) {NOT_TESTABLE} END_SECTION
 
-  START_SECTION((const String& getPixelSizeUnit() const)) {NOT_TESTABLE} END_SECTION
+  START_SECTION((const std::string& getPixelSizeUnit() const)) {NOT_TESTABLE} END_SECTION
 
   START_SECTION((addRegion()))
 {
@@ -291,5 +291,19 @@ START_SECTION((membership staleness test))
 }
 END_SECTION
 
+START_SECTION((addRegion rejects geometrically overlapping footprints regardless of pixels))
+{
+  MSImagingGeometry g;
+  // NO pixels added at all
+  g.addRegion(MSImagingRegion::rectangle(1, "A", 0, 0, 5, 5));
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 g.addRegion(MSImagingRegion::rectangle(2, "B", 3, 3, 8, 8)));  // footprints overlap
+  TEST_EQUAL(g.getNumberOfRegions(), 1u);   // B not added
+
+  // a non-overlapping footprint is acceptable
+  g.addRegion(MSImagingRegion::rectangle(3, "C", 100, 100, 110, 110));
+  TEST_EQUAL(g.getNumberOfRegions(), 2u);
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 END_TEST

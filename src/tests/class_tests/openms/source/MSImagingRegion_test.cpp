@@ -103,6 +103,32 @@ START_SECTION((MSImagingRegion() fromMask))
 }
 END_SECTION
 
+START_SECTION((bool intersects(const MSImagingRegion& other) const))
+{
+  //build two overlapping rectangles
+  auto a = MSImagingRegion::rectangle(1, "a", 1, 1, 1, 1);
+  auto b = MSImagingRegion::rectangle(2, "b", 1, 1, 5, 5);
+  // intersects is supposed to be symmetric
+  TEST_TRUE(a.intersects(b));
+  TEST_TRUE(b.intersects(a));
+
+  auto c = MSImagingRegion::rectangle(3, "c", 10,10, 11,11);
+  TEST_FALSE(c.intersects(a));
+
+  //mask with (1,1) and (2,2) set true, overlaps at (1,1)
+  auto m1 = MSImagingRegion::fromMask(4, "mask", 1,1,2,2,std::vector<bool>{true, false, false, true});
+  TEST_TRUE(m1.intersects(a));
+
+  //overlapping mask with no common pixels (1,2) and (2,1) true
+  auto m2 = MSImagingRegion::fromMask(5, "mask2", 1,1,2,2,std::vector<bool>{false, true, true, false});
+  TEST_FALSE(m2.intersects(m1));
+
+  //masks with common set:
+  auto m3 = MSImagingRegion::fromMask(6, "mask3", 1,1,2,2,std::vector<bool>{true, true, true, false});
+  TEST_TRUE(m3.intersects(m2));
+}
+END_SECTION
+
 START_SECTION(area() & contains()) {
   NOT_TESTABLE // covered by all region variations
 } END_SECTION

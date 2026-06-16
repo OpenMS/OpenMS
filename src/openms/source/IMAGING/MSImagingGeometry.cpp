@@ -160,15 +160,9 @@ void MSImagingGeometry::addRegion(const MSImagingRegion& region)
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Duplicate region ID", StringUtils::toStr(region.getId()));
   }
-  const auto& pixels = getPixels();
-  for (const auto& pixel : pixels)
+  if (std::any_of(regions_.begin(), regions_.end(), [&region](const MSImagingRegion& existing) -> bool {return existing.intersects(region);}))
   {
-    if (! region.contains(pixel.x, pixel.y)) continue;
-    const UInt px = pixel.x, py = pixel.y;
-    if (std::any_of(regions_.begin(), regions_.end(), [px, py](const MSImagingRegion& r) { return r.contains(px, py); }))
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Regions must be disjoint", StringUtils::toStr(px) + "," + StringUtils::toStr(py));
-    }
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Regions must be disjoint", StringUtils::toStr(region.getId()));
   }
   region_id_to_index_[region.getId()] = regions_.size();
   regions_.push_back(region);

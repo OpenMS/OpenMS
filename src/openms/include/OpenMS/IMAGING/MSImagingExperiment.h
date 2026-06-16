@@ -173,10 +173,14 @@ public:
   void validate() const;
 
   /**
-   *
-   * @return vector of spectra indices inside region with id
-   * @throws Exception::ElementNotFound if id is unknown
-   */
+    @brief Spectrum indices of the acquired pixels belonging to a region.
+
+    Delegates to the geometry; the returned values are spectrum_index values
+    (indices into the bound MSExperiment), not pixel positions.
+    @param[in] region_id Region id.
+    @return The spectrum_index values of the region's member pixels.
+    @throws Exception::ElementNotFound if @p region_id is unknown.
+  */
   std::vector<Size> getRegionSpectrumIndices(Size region_id) const;
 
 
