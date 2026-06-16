@@ -78,6 +78,12 @@ TEST_EQUAL(tmp.getTypeByFileName("test.peff"), FileTypes::PEFF)
 TEST_EQUAL(tmp.getTypeByFileName("test.EDTA"), FileTypes::EDTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.csv"), FileTypes::CSV)
 TEST_EQUAL(tmp.getTypeByFileName("test.txt"), FileTypes::TXT)
+// Bruker TimsTOF: a ".d" directory and its zipped ".d.zip" form both resolve by name.
+// For ".d.zip" the ".zip" compression suffix is stripped, leaving ".d" -> BRUKER_TDF.
+TEST_EQUAL(tmp.getTypeByFileName("sample.d"), FileTypes::BRUKER_TDF)
+TEST_EQUAL(tmp.getTypeByFileName("sample.d.zip"), FileTypes::BRUKER_TDF)
+TEST_EQUAL(tmp.getTypeByFileName("/data/run 1.d.zip"), FileTypes::BRUKER_TDF)
+TEST_EQUAL(tmp.getTypeByFileName("plain_archive.zip"), FileTypes::UNKNOWN) // a plain .zip is not a Bruker .d
 END_SECTION
 
 START_SECTION((static bool hasValidExtension(const std::string& filename, const FileTypes::Type type)))
@@ -129,6 +135,24 @@ START_SECTION((static FileTypes::Type getType(const std::string &filename)))
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileTypes::TRANSFORMATIONXML)
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("FileHandler_toppas.toppas")), FileTypes::TOPPAS)
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("pepnovo.txt")), FileTypes::TXT)
+
+  // .d.zip: a zipped Bruker TimsTOF .d directory. getType() resolves this to
+  // BRUKER_TDF for an existing, non-directory ".zip" whose name strips to ".d".
+  // SDK-free: only the name and the file's existence matter for type detection,
+  // not the archive contents.
+  {
+    std::string dzip_base;
+    NEW_TMP_FILE(dzip_base)
+    std::string dzip = dzip_base + ".d.zip";
+    { std::ofstream os(dzip.c_str()); os << "PK\003\004 placeholder (contents irrelevant for type detection)"; }
+    TEST_EQUAL(File::exists(dzip), true)
+#ifdef WITH_OPENTIMS
+    TEST_EQUAL(tmp.getType(dzip), FileTypes::BRUKER_TDF)
+#else
+    TEST_EQUAL(tmp.getType(dzip), FileTypes::UNKNOWN) // the .d family requires WITH_OPENTIMS
+#endif
+    File::remove(dzip);
+  }
 
   TEST_EXCEPTION(Exception::FileNotFound, tmp.getType("/bli/bla/bluff"))
 END_SECTION
