@@ -4,6 +4,8 @@ set(concept_executables_list
   Exception_Base_test
   FuzzyStringComparator_test
   #GlobalExceptionHandler_test
+  PrecisionWrapper_test
+  RAIICleanup_test
   StreamHandler_test
   Types_test
   VersionInfo_test
