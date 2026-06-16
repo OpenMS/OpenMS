@@ -295,6 +295,8 @@ set(format_executables_list
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
   SpectrumAccessSqMass_test
+  SpectrumAccessOpenMS_test
+  SpectrumAccessOpenMSInMemory_test
   SiriusFragmentAnnotation_test
 )
 
