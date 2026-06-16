@@ -10,7 +10,8 @@
         "dataset",
         "filesystem",
         "json",
-        "parquet"
+        "parquet",
+        "s3"
       ]
     },
     "boost-accumulators",
