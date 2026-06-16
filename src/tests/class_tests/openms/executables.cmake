@@ -5,6 +5,7 @@ set(concept_executables_list
   FuzzyStringComparator_test
   #GlobalExceptionHandler_test
   PrecisionWrapper_test
+  ProgressLogger_test
   RAIICleanup_test
   StreamHandler_test
   Types_test
