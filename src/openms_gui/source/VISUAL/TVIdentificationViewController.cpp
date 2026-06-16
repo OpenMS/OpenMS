@@ -204,17 +204,17 @@ namespace OpenMS
 
       Annotation1DCaret<Peak1D>* first_dit(nullptr);
       // we could have many hits for different compounds which have the exact same sum formula... so first group by sum formula
-      map<String, StringList> formula_to_names;
+      map<std::string, StringList> formula_to_names;
       for (const PeptideHit& pep : it->getHits())
       {
         if (pep.metaValueExists("identifier") && pep.metaValueExists("chemical_formula"))
         {
-          String name = pep.getMetaValue("identifier");
+          std::string name = StringUtils::toStr(pep.getMetaValue("identifier"));
           if (name.length() > 20)
           {
-            name = name.substr(0, 17) + "...";
+            name = StringUtils::substr(name, 0, 17) + "...";
           }
-          String cf = pep.getMetaValue("chemical_formula");
+          std::string cf = StringUtils::toStr(pep.getMetaValue("chemical_formula"));
           if (cf.empty())
           {
             continue; // skip unannotated "null" peaks
@@ -237,17 +237,17 @@ namespace OpenMS
       }
 
       // assemble annotation (each formula gets a paragraph)
-      String text = "<html><body>";
+      std::string text = "<html><body>";
       Size i = 0;
-      for (map<String, StringList>::iterator ith = formula_to_names.begin();
+      for (map<std::string, StringList>::iterator ith = formula_to_names.begin();
            ith!= formula_to_names.end(); ++ith)
       {
         if (++i == cols.size())
         { // at this point, this is the 4th entry.. which we don't show any more...
-          text += String("<b><span style=\"color:") + fromQString(cols[i].name()) + "\">..." + Size(distance(formula_to_names.begin(), formula_to_names.end()) - 4 + 1) + " more</span></b><br>";
+          text += std::string("<b><span style=\"color:") + fromQString(cols[i].name()) + "\">..." + StringUtils::toStr(Size(distance(formula_to_names.begin(), formula_to_names.end())) - 4 + 1) + " more</span></b><br>";
           break;
         }
-        text += String("<b><span style=\"color:") + fromQString(cols[i].name()) + "\">" + ith->first + "</span></b><br>\n";
+        text +=std::string("<b><span style=\"color:") + fromQString(cols[i].name()) + "\">" + ith->first + "</span></b><br>\n";
         // carets for isotope profile
         EmpiricalFormula ef(ith->first);
         IsotopeDistribution id = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(3)); // three isotopes at most
@@ -262,7 +262,7 @@ namespace OpenMS
         auto ditem = new Annotation1DCaret<Peak1D>(points,
                                                    QString(),
                                                    cols[i],
-                                                   toQString(String(getCurrentLayer().param.getValue("peak_color").toString())));
+                                                   toQString(std::string(getCurrentLayer().param.getValue("peak_color").toString())));
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
         getCurrentLayer().getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
@@ -275,7 +275,7 @@ namespace OpenMS
         if (ith->second.size() > 3)
         {
           Size s = ith->second.size();
-          ith->second[3] = String("...") + (s-3) + " more";
+          ith->second[3] = "..." + StringUtils::toStr(s-3) + " more";
           ith->second.resize(4);
         }
         text += " - " + ListUtils::concatenate(ith->second, "<br> - ") + "<br>\n";
@@ -396,55 +396,55 @@ namespace OpenMS
 
           if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE)) // if this meta value exists, this should be an XL-MS annotation
           {
-            String box_text;
-            String vert_bar = "&#124;";
+            std::string box_text;
+            std::string vert_bar = "&#124;";
 
             if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "loop-link")
             {
-              String hor_bar = "_";
-              String seq_alpha = ph.getSequence().toUnmodifiedString();
-              int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
-              int xl_pos_beta = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt() - xl_pos_alpha - 1;
+              std::string hor_bar = "_";
+              std::string seq_alpha = ph.getSequence().toUnmodifiedString();
+              int xl_pos_alpha =StringUtils::toInt32(StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)));
+              int xl_pos_beta =StringUtils::toInt32(StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2))) - xl_pos_alpha - 1;
 
-              String alpha_cov;
-              String beta_cov;
+              std::string alpha_cov;
+              std::string beta_cov;
               extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), 0);
 
-              // String formatting
-              box_text += alpha_cov + "<br>" +  seq_alpha +  "<br>" + String(xl_pos_alpha, ' ') +  vert_bar + n_times(xl_pos_beta, hor_bar) + vert_bar;
-              // cut out line: "<br>" + String(xl_pos_alpha, ' ') + vert_bar + String(xl_pos_beta, ' ') + vert_bar +
+              // std::string formatting
+              box_text += alpha_cov + "<br>" +  seq_alpha +  "<br>" + std::string(xl_pos_alpha, ' ') +  vert_bar + n_times(xl_pos_beta, hor_bar) + vert_bar;
+              // cut out line: "<br>" + std::string(xl_pos_alpha, ' ') + vert_bar + std::string(xl_pos_beta, ' ') + vert_bar +
             }
             else if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "cross-link")
             {
-              String seq_alpha = ph.getSequence().toUnmodifiedString();
-              String seq_beta = AASequence::fromString(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE)).toUnmodifiedString();
-              int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
-              int xl_pos_beta = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt();
+              std::string seq_alpha = ph.getSequence().toUnmodifiedString();
+              std::string seq_beta = AASequence::fromString(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE)).toUnmodifiedString();
+              int xl_pos_alpha =StringUtils::toInt32(StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)));
+              int xl_pos_beta =StringUtils::toInt32(StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)));
 
-              // String formatting
+              // std::string formatting
               Size prefix_length = max(xl_pos_alpha, xl_pos_beta);
               //Size suffix_length = max(seq_alpha.size() - xl_pos_alpha, seq_beta.size() - xl_pos_beta);
               Size alpha_space = prefix_length - xl_pos_alpha;
               Size beta_space = prefix_length - xl_pos_beta;
 
-              String alpha_cov;
-              String beta_cov;
+              std::string alpha_cov;
+              std::string beta_cov;
               extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), seq_beta.size());
 
-              box_text += String(alpha_space, ' ') + alpha_cov + "<br>" + String(alpha_space, ' ') + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar + "<br>" + String(beta_space, ' ') + seq_beta + "<br>" + String(beta_space, ' ') + beta_cov;
+              box_text +=std::string(alpha_space, ' ') + alpha_cov + "<br>" + std::string(alpha_space, ' ') + seq_alpha + "<br>" + std::string(prefix_length, ' ') + vert_bar + "<br>" + std::string(beta_space, ' ') + seq_beta + "<br>" + std::string(beta_space, ' ') + beta_cov;
               // color: <font color=\"green\">&boxur;</font>
             }
             else // if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "mono-link")
             {
-              String seq_alpha = ph.getSequence().toUnmodifiedString();
-              int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
+              std::string seq_alpha = ph.getSequence().toUnmodifiedString();
+              int xl_pos_alpha =StringUtils::toInt32(StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)));
               Size prefix_length = xl_pos_alpha;
 
-              String alpha_cov;
-              String beta_cov;
+              std::string alpha_cov;
+              std::string beta_cov;
               extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), 0);
 
-              box_text += alpha_cov + "<br>" + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar;
+              box_text += alpha_cov + "<br>" + seq_alpha + "<br>" + std::string(prefix_length, ' ') + vert_bar;
 
             }
             box_text = R"(<font size="5" style="background-color:white;"><pre>)" + box_text + "</pre></font> ";
@@ -452,10 +452,10 @@ namespace OpenMS
           }
           else if (ph.getPeakAnnotations().empty()) // only write the sequence
           {
-            String seq = ph.getSequence().toString();
+            std::string seq = ph.getSequence().toString();
             if (seq.empty())
             {
-              seq = ph.getMetaValue("label"); // e.g. for RNA sequences
+              seq = StringUtils::toStr(ph.getMetaValue("label")); // e.g. for RNA sequences
             }
             widget_1D->canvas()->setTextBox(toQString(seq));
           }
@@ -464,9 +464,9 @@ namespace OpenMS
             if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
             {
               // @TODO: read ion list from the input file (meta value)
-              static vector<String> top_ions = ListUtils::create<String>("a,b,c");
-              static vector<String> bottom_ions = ListUtils::create<String>("x,y,z");
-              String diagram = generateSequenceDiagram_(
+              static vector<std::string> top_ions = ListUtils::create<std::string>("a,b,c");
+              static vector<std::string> bottom_ions = ListUtils::create<std::string>("x,y,z");
+              std::string diagram = generateSequenceDiagram_(
                 ph.getSequence(),
                 ph.getPeakAnnotations(),
                 top_ions,
@@ -479,9 +479,9 @@ namespace OpenMS
               {
                 // @TODO: read ion list from the input file (meta value)
                 NASequence na_seq = NASequence::fromString(ph.getMetaValue("label"));
-                static vector<String> top_ions = ListUtils::create<String>("a-B,a,b,c,d");
-                static vector<String> bottom_ions = ListUtils::create<String>("w,x,y,z");
-                String diagram = generateSequenceDiagram_(na_seq, ph.getPeakAnnotations(),
+                static vector<std::string> top_ions = ListUtils::create<std::string>("a-B,a,b,c,d");
+                static vector<std::string> bottom_ions = ListUtils::create<std::string>("w,x,y,z");
+                std::string diagram = generateSequenceDiagram_(na_seq, ph.getPeakAnnotations(),
                                                           top_ions, bottom_ions);
                 widget_1D->canvas()->setTextBox(toQString(diagram));
               }
@@ -501,9 +501,9 @@ namespace OpenMS
   }
 
   // Helper function for text formatting
-  String TVIdentificationViewController::n_times(Size n, const String& input)
+  std::string TVIdentificationViewController::n_times(Size n, const std::string& input)
   {
-    String result;
+    std::string result;
     for (Size i = 0; i < n; ++i)
     {
       result.append(input);
@@ -512,9 +512,9 @@ namespace OpenMS
   }
 
   // Helper function that collapses a vector of strings into one string
-  String TVIdentificationViewController::collapseStringVector(vector<String> strings)
+  std::string TVIdentificationViewController::collapseStringVector(vector<std::string> strings)
   {
-    String result;
+    std::string result;
     for (Size i = 0; i < strings.size(); ++i)
     {
       result.append(strings[i]);
@@ -523,50 +523,50 @@ namespace OpenMS
   }
 
   // Helper function that turns fragment annotations into coverage strings for visualization with the sequence
-  void TVIdentificationViewController::extractCoverageStrings(vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size)
+  void TVIdentificationViewController::extractCoverageStrings(vector<PeptideHit::PeakAnnotation> frag_annotations, std::string& alpha_string, std::string& beta_string, Size alpha_size, Size beta_size)
   {
-    vector<String> alpha_strings(alpha_size, " ");
-    vector<String> beta_strings(beta_size, " ");
+    vector<std::string> alpha_strings(alpha_size, " ");
+    vector<std::string> beta_strings(beta_size, " ");
     // vectors to keep track of assigned symbols, 0 = nothing, -1 = left, 1 = right, 2 = both
     vector<int> alpha_direction(alpha_size, 0);
     vector<int> beta_direction(beta_size, 0);
 
     for (Size i = 0; i < frag_annotations.size(); ++i)
     {
-      bool has_alpha = frag_annotations[i].annotation.hasSubstring(String("alpha|"));
-      bool has_beta = frag_annotations[i].annotation.hasSubstring(String("beta|"));
+      bool has_alpha = StringUtils::hasSubstring(frag_annotations[i].annotation, std::string("alpha|"));
+      bool has_beta = StringUtils::hasSubstring(frag_annotations[i].annotation, std::string("beta|"));
       // if it has both, it is a complex fragment and more difficult to parse
       // those are ignored for the coverage indicator for now
       if ( has_alpha != has_beta )
       {
-        vector<String> dol_split;
-        frag_annotations[i].annotation.split("$", dol_split);
+        vector<std::string> dol_split;
+        StringUtils::split(frag_annotations[i].annotation, "$", dol_split);
 
-        vector<String> bar_split;
-        dol_split[0].split("|", bar_split);
+        vector<std::string> bar_split;
+        StringUtils::split(dol_split[0], "|", bar_split);
 
         bool alpha = bar_split[0] == "[alpha";
         bool ci = bar_split[1] == "ci";
 
-        vector<String> loss_split;
-        dol_split[1].split("-", loss_split);
+        vector<std::string> loss_split;
+        StringUtils::split(dol_split[1], "-", loss_split);
         // remove b / y ion type letter (must be at first position of second string after $-split)
-        String pos_string = loss_split[0].suffix(loss_split[0].size()-1);
+        std::string pos_string = StringUtils::suffix(loss_split[0], loss_split[0].size()-1);
         int pos;
-        if (pos_string.hasSubstring("]")) // this means the loss_split with "-" did not split the string
+        if (StringUtils::hasSubstring(pos_string, "]")) // this means the loss_split with "-" did not split the string
         {
           // remove the "]" and possible charges at its right side
-          vector<String> pos_split;
-          pos_string.split("]", pos_split);
+          vector<std::string> pos_split;
+          StringUtils::split(pos_string, "]", pos_split);
           pos_string = pos_split[0];
-          pos = pos_string.toInt()-1;
+          pos = StringUtils::toInt32(pos_string)-1;
         }
         else // loss was found and splitted, so the remaining string is just the position
         {
-          pos = pos_string.toInt()-1;
+          pos = StringUtils::toInt32(pos_string)-1;
         }
 
-        String frag_type = dol_split[1][0];
+        std::string frag_type = StringUtils::toStr(dol_split[1][0]);
         //bool left = (frag_type == "a" || frag_type == "b" || frag_type == "c");
         int direction;
         if (frag_type == "a" || frag_type == "b" || frag_type == "c")
@@ -590,7 +590,7 @@ namespace OpenMS
           }
         }
 
-        String arrow;
+        std::string arrow;
         if (ci)
         {
           arrow += "<font color=\"green\">";
@@ -618,7 +618,7 @@ namespace OpenMS
           }
           else if (alpha_direction[pos] != direction && alpha_direction[pos] != 2) // assigned arrow has different direction, make bidirectional arrow
           {
-            alpha_strings[pos] = String("<font color=\"blue\">&#8651;</font>");
+            alpha_strings[pos] =std::string("<font color=\"blue\">&#8651;</font>");
             alpha_direction[pos] = 2;
           } // otherwise an arrow with the correct direction is already assigned
         }
@@ -631,7 +631,7 @@ namespace OpenMS
           }
           else if (beta_direction[pos] != direction && beta_direction[pos] != 2) // assigned arrow has different direction, make bidirectional arrow
           {
-            beta_strings[pos] = String("<font color=\"blue\">&#8651;</font>");
+            beta_strings[pos] =std::string("<font color=\"blue\">&#8651;</font>");
             beta_direction[pos] = 2;
           } // otherwise an arrow with the correct direction is already assigned
         }
@@ -642,7 +642,7 @@ namespace OpenMS
   }
 
 
-  void TVIdentificationViewController::generateSequenceRow_(const AASequence& seq, vector<String>& row)
+  void TVIdentificationViewController::generateSequenceRow_(const AASequence& seq, vector<std::string>& row)
   {
     // @TODO: spell out modifications or just use an indicator like "*"?
     // @TODO: support "user defined modifications"?
@@ -668,11 +668,11 @@ namespace OpenMS
   }
 
 
-  void TVIdentificationViewController::generateSequenceRow_(const NASequence& seq, vector<String>& row)
+  void TVIdentificationViewController::generateSequenceRow_(const NASequence& seq, vector<std::string>& row)
   {
     if (seq.hasFivePrimeMod())
     {
-      const String& code = seq.getFivePrimeMod()->getCode();
+      const std::string& code = seq.getFivePrimeMod()->getCode();
       row[0] = (code == "5'-p" ? "p" : code);
     }
     Size col_index = 1;
@@ -683,26 +683,26 @@ namespace OpenMS
     }
     if (seq.hasThreePrimeMod())
     {
-      const String& code = seq.getThreePrimeMod()->getCode();
+      const std::string& code = seq.getThreePrimeMod()->getCode();
       row[row.size() - 1] = (code == "3'-p" ? "p" : code);
     }
   }
 
 
   template <typename SeqType>
-  String TVIdentificationViewController::generateSequenceDiagram_(
+  std::string TVIdentificationViewController::generateSequenceDiagram_(
     const SeqType& seq,
     const vector<PeptideHit::PeakAnnotation>& annotations,
-    const vector<String>& top_ions,
-    const vector<String>& bottom_ions)
+    const vector<std::string>& top_ions,
+    const vector<std::string>& bottom_ions)
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "Generating Sequence Diagram: " << endl;
     #endif
-    map<String, set<Size>> ion_pos;
+    map<std::string, set<Size>> ion_pos;
     for (const auto& ann : annotations)
     {
-      const String& label = ann.annotation;
+      const std::string& label = ann.annotation;
       #ifdef DEBUG_IDENTIFICATION_VIEW
         cout << "Adding Peak Annotation to Diagram: " << label << endl;
       #endif
@@ -713,22 +713,22 @@ namespace OpenMS
       }
       // cut out the position number:
       Size split = label.find_first_not_of("0123456789", 2);
-      String ion = label.prefix(1);
+      std::string ion = StringUtils::prefix(label, 1);
       // special case for RNA: "a[n]-B", where "[n]" is the ion number
       // -> don't forget to add the "-B" back on if it's there:
-      String more_ion = label.substr(split);
+      std::string more_ion = StringUtils::substr(label, split);
       if (more_ion == "-B")
       {
         ion += more_ion;
       }
-      Size pos = label.substr(1, split - 1).toInt();
+      Size pos = StringUtils::toInt32(StringUtils::substr(label, 1, split - 1));
       ion_pos[ion].insert(pos);
       #ifdef DEBUG_IDENTIFICATION_VIEW
         cout << "Ion: " << ion << " pos: " << pos << endl;
       #endif
     }
 
-    vector<vector<String>> table; // vector of rows
+    vector<vector<std::string>> table; // vector of rows
     table.resize(top_ions.size() + bottom_ions.size() + 3);
     Size n_cols = seq.size() * 2 + 1;
     for (auto& row : table)
@@ -740,12 +740,12 @@ namespace OpenMS
       for (Size i = 1; i < seq.size(); ++i)
       {
         // @TODO: check spacing for i > 9
-        table[0][i * 2] = "<small>" + String(i) + "</small>";
+        table[0][i * 2] = "<small>" + StringUtils::toStr(i) + "</small>";
       }
     }
     Size row_index = 1;
     // ion annotations above sequence - reverse order to have first ion closest to sequence:
-    for (const String& ion : boost::adaptors::reverse(top_ions))
+    for (const std::string& ion : boost::adaptors::reverse(top_ions))
     {
       table[row_index][0] = "<small>" + ion + "</small>";
       for (Size pos : ion_pos[ion])
@@ -781,7 +781,7 @@ namespace OpenMS
     generateSequenceRow_(seq, table[row_index]);
     // ion annotations below sequence - iterate over the bottom ions in reverse order (bottom-most first):
     row_index = table.size() - 2;
-    for (const String& ion : boost::adaptors::reverse(bottom_ions))
+    for (const std::string& ion : boost::adaptors::reverse(bottom_ions))
     {
       table[row_index][n_cols - 1] = "<small>" + ion + "<small>";
       for (Size pos : ion_pos[ion])
@@ -832,15 +832,15 @@ namespace OpenMS
       for (Size i = 1; i < seq.size(); ++i)
       {
         // @TODO: check spacing in diagram for i > 9
-        table[table.size() - 1][n_cols - 2 * i - 1] = "<small>" + String(i) + "</small>";
+        table[table.size() - 1][n_cols - 2 * i - 1] = "<small>" + StringUtils::toStr(i) + "</small>";
       }
     }
 
-    String html = "<table cellspacing=\"0\">";
+    std::string html = "<table cellspacing=\"0\">";
     for (const auto& row : table)
     {
       html += "<tr>";
-      for (const String& cell : row)
+      for (const std::string& cell : row)
       {
         #ifdef DEBUG_IDENTIFICATION_VIEW
           cout << "cell: '" << cell << "'" << endl;
@@ -859,8 +859,8 @@ namespace OpenMS
 
 
   // add specializations to allow template implementation outside of header file:
-  template String TVIdentificationViewController::generateSequenceDiagram_<AASequence>(const AASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
-  template String TVIdentificationViewController::generateSequenceDiagram_<NASequence>(const NASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
+  template std::string TVIdentificationViewController::generateSequenceDiagram_<AASequence>(const AASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
+  template std::string TVIdentificationViewController::generateSequenceDiagram_<NASequence>(const NASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
 
 
   void TVIdentificationViewController::addPrecursorLabels1D_(const vector<Precursor>& pcs)
@@ -982,7 +982,7 @@ namespace OpenMS
     ExperimentSharedPtrType new_exp_sptr = std::make_shared<AnnotatedMSRun>();
     new_exp_sptr->getMSExperiment().addSpectrum(theo_spectrum);
     LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-    String layer_caption = aa_sequence.toString() + " (identification view)";
+    std::string layer_caption = aa_sequence.toString() + " (identification view)";
     current_canvas->addPeakLayer(new_exp_sptr, od_dummy, layer_caption);
 
     // get layer index of new layer
@@ -1166,12 +1166,12 @@ namespace OpenMS
     const vector<PeptideHit::PeakAnnotation>& annotations =
       hit.getPeakAnnotations();
 
-    String seq = hit.getSequence().toString();
+    std::string seq = hit.getSequence().toString();
     if (seq.empty())
     { // no sequence information stored? use label
       if (hit.metaValueExists("label"))
       {
-        seq = hit.getMetaValue("label");
+        seq = StringUtils::toStr(hit.getMetaValue("label"));
       }
     }
 
@@ -1204,8 +1204,8 @@ namespace OpenMS
         continue;
       }
 
-      String label = ann.annotation;
-      label.trim();
+      std::string label = ann.annotation;
+      StringUtils::trim(label);
 
 #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "Adding annotation item based on fragment annotations: " << label << endl;
@@ -1224,22 +1224,22 @@ namespace OpenMS
         case 2: label += "++"; break;
         case -1: label += "-"; break;
         case -2: label += "--"; break;
-        default: label += ((ann.charge > 0) ? "+" : "") + String(ann.charge);
+        default: label += ((ann.charge > 0) ? "+" : "") + StringUtils::toStr(ann.charge);
       }
 
       QColor color(Qt::black);
       QColor peak_color(Qt::black);
 
       // XL-MS specific coloring of the labels, green for linear fragments and red for cross-linked fragments
-      if (label.hasSubstring("[alpha|")
-        || label.hasSubstring("[beta|"))
+      if (StringUtils::hasSubstring(label, "[alpha|")
+        || StringUtils::hasSubstring(label, "[beta|"))
       {
-        if (label.hasSubstring("|ci$"))
+        if (StringUtils::hasSubstring(label, "|ci$"))
         {
           color = Qt::darkGreen;
           peak_color = Qt::green;
         }
-        else if (label.hasSubstring("|xi$"))
+        else if (StringUtils::hasSubstring(label, "|xi$"))
         {
           color = Qt::darkRed;
           peak_color = Qt::red;
@@ -1300,8 +1300,8 @@ namespace OpenMS
       Size lc = canvas_1D->getLayerCount();
       for (Size i = 0; i != lc; ++i)
       {
-        String ln = canvas_1D->getLayerName(i);
-        if (ln.hasSubstring("(identification view)"))
+        std::string ln = canvas_1D->getLayerName(i);
+        if (StringUtils::hasSubstring(ln, "(identification view)"))
         {
           canvas_1D->removeLayer(i);
           canvas_1D->resetAlignment();

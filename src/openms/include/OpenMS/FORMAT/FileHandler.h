@@ -56,7 +56,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file is not present
     */
-    static FileTypes::Type getType(const String& filename);
+    static FileTypes::Type getType(const std::string& filename);
 
 
     /**
@@ -68,7 +68,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file is not present
     */
-    static FileTypes::Type getTypeByFileName(const String& filename);
+    static FileTypes::Type getTypeByFileName(const std::string& filename);
 
 
     /**
@@ -80,7 +80,7 @@ public:
        @param[in] filename The filename to check
        @param[in] type The expected file type
     */
-    static bool hasValidExtension(const String& filename, const FileTypes::Type type);
+    static bool hasValidExtension(const std::string& filename, const FileTypes::Type type);
 
 
     /**
@@ -95,7 +95,7 @@ public:
       @return the stripped filename
 
     */
-    static String stripExtension(const String& filename);
+    static std::string stripExtension(const std::string& filename);
 
 
     /**
@@ -111,7 +111,7 @@ public:
       @return the updated string
 
     */
-    static String swapExtension(const String& filename, const FileTypes::Type new_type);
+    static std::string swapExtension(const std::string& filename, const FileTypes::Type new_type);
 
     
     /**
@@ -126,7 +126,7 @@ public:
                             The string can be empty (yields UNKNOWN for this type)
       @return A consistent file type or UNKNOWN upon conflict
     */
-    static FileTypes::Type getConsistentOutputfileType(const String& output_filename, const String& requested_type);
+    static FileTypes::Type getConsistentOutputfileType(const std::string& output_filename, const std::string& requested_type);
 
 
     /**
@@ -136,7 +136,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file is not present
     */
-    static FileTypes::Type getTypeByContent(const String& filename);
+    static FileTypes::Type getTypeByContent(const std::string& filename);
 
     /// @brief Returns if the file type is supported in this build of the library
     static bool isSupported(FileTypes::Type type);
@@ -172,7 +172,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
+    void loadExperiment(const std::string& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
                         ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = false,
                         const bool compute_hash = false);
 
@@ -188,7 +188,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeExperiment(const std::string& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
         /**
       @brief Loads a single MSSpectrum from a file
@@ -200,7 +200,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types = {});
+    void loadSpectrum(const std::string& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types = {});
 
         /**
       @brief Stores a single MSSpectrum to a file
@@ -211,7 +211,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types = {});
+    void storeSpectrum(const std::string& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types = {});
 
     /**
       @brief Loads a file into a FeatureMap
@@ -224,7 +224,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void loadFeatures(const std::string& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Store a FeatureMap
@@ -245,7 +245,7 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
       @exception Exception::InvalidFileType is thrown if the file type cannot be determined or is not allowed
     */
-    void storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeFeatures(const std::string& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Loads a file into a ConsensusMap
@@ -258,7 +258,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void loadConsensusFeatures(const std::string& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Store a ConsensusFeatureMap
@@ -279,7 +279,7 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
       @exception Exception::InvalidFileType is thrown if the file type cannot be determined or is not allowed
     */
-    void storeConsensusFeatures(const String& filename, const ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeConsensusFeatures(const std::string& filename, const ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Loads an identification file into a proteinIdentifications and peptideIdentifications
@@ -293,7 +293,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void loadIdentifications(const std::string& filename, std::vector<ProteinIdentification>& additional_proteins, PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Stores proteins and peptides into an Identification File
@@ -315,7 +315,7 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
       @exception Exception::InvalidFileType is thrown if the file type cannot be determined or is not allowed
     */
-    void storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeIdentifications(const std::string& filename, const std::vector<ProteinIdentification>& additional_proteins, const PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Load transitions of a spectral library
@@ -328,7 +328,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadTransitions(const String& filename, TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void loadTransitions(const std::string& filename, TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Store transitions of a spectral library
@@ -340,7 +340,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeTransitions(const std::string& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
         /**
       @brief Loads a file into Transformations
@@ -354,7 +354,7 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
 
-    void loadTransformations(const String& filename, TransformationDescription& map, bool fit_model=true, const std::vector<FileTypes::Type> allowed_types = {});
+    void loadTransformations(const std::string& filename, TransformationDescription& map, bool fit_model=true, const std::vector<FileTypes::Type> allowed_types = {});
 
     /**
       @brief Store Transformations
@@ -365,7 +365,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeTransformations(const String& filename, const TransformationDescription& map, const std::vector<FileTypes::Type> allowed_types = {});
+    void storeTransformations(const std::string& filename, const TransformationDescription& map, const std::vector<FileTypes::Type> allowed_types = {});
 
     /**
       @brief Store QC info
@@ -387,17 +387,17 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeQC(const String& input_file,
-               const String& filename,
+    void storeQC(const std::string& input_file,
+               const std::string& filename,
                const MSExperiment& exp,
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
                PeptideIdentificationList& pep_ids,
                const ConsensusMap& consensus_map,
-               const String& contact_name = "",
-               const String& contact_address = "",
-               const String& description = "",
-               const String& label = "label",
+               const std::string& contact_name = "",
+               const std::string& contact_address = "",
+               const std::string& description = "",
+               const std::string& label = "label",
                const bool remove_duplicate_features = false,
                const std::vector<FileTypes::Type> allowed_types = {});
 
@@ -406,7 +406,7 @@ public:
 
       @return The SHA-1 hash of the given file.
     */
-    static String computeFileHash(const String& filename);
+    static std::string computeFileHash(const std::string& filename);
 
 private:
     /**

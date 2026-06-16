@@ -8,15 +8,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-// the available quantitation methods
+// the available quantitation methods (instantiated via IsobaricQuantitationMethod::create())
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
@@ -83,7 +76,7 @@ using namespace std;
 
   The input MSn spectra have to be in centroid mode for the tool to work properly. Use e.g. @ref TOPP_PeakPickerHiRes to perform centroiding of profile data, if necessary.
 
-  This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, and 18-plex and higher labeling methods.
+  This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, 18-plex, 32-plex, and 35-plex labeling methods.
   It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
   in which each consensus feature represents one identified PSM together with its reporter ions.
   The MS level for quantification is chosen automatically per PSM: if MS3 is present, the MS3 product spectrum of the identifying MS2 scan is used (SPS-MS3), otherwise the MS2 scan itself.
@@ -152,8 +145,8 @@ class TOPPIsobaricWorkflow :
 {
 private:
   std::string ID_RUN_NAME_ = "IsobaricWorkflow_";
-  std::map<String, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
-  std::map<String, String> quant_method_names_;
+  std::map<std::string, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
+  std::map<std::string, std::string> quant_method_names_;
 
   void addMethod_(std::unique_ptr<IsobaricQuantitationMethod> ptr, std::string name)
   {
@@ -166,13 +159,12 @@ public:
   TOPPIsobaricWorkflow() :
     TOPPBase("IsobaricWorkflow", "Calculates isobaric quantitative values for peptides")
   {
-    addMethod_(make_unique<ItraqFourPlexQuantitationMethod>(), "iTRAQ 4-plex");
-    addMethod_(make_unique<ItraqEightPlexQuantitationMethod>(), "iTRAQ 8-plex");
-    addMethod_(make_unique<TMTSixPlexQuantitationMethod>(), "TMT 6-plex");
-    addMethod_(make_unique<TMTTenPlexQuantitationMethod>(), "TMT 10-plex");
-    addMethod_(make_unique<TMTElevenPlexQuantitationMethod>(), "TMT 11-plex");
-    addMethod_(make_unique<TMTSixteenPlexQuantitationMethod>(), "TMT 16-plex");
-    addMethod_(make_unique<TMTEighteenPlexQuantitationMethod>(), "TMT 18-plex");
+    using MT = IsobaricQuantitationMethod::MethodType;
+    for (int i = static_cast<int>(MT::UNKNOWN) + 1; i < static_cast<int>(MT::SIZE_OF_METHODTYPE); ++i)
+    {
+      const MT mt = static_cast<MT>(i);
+      addMethod_(IsobaricQuantitationMethod::create(mt), std::string(IsobaricQuantitationMethod::methodDisplayName(mt)));
+    }
   }
 
 protected:
@@ -206,7 +198,7 @@ protected:
     registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the IDs.");
     // registerFlag_("remove_decoys", "Remove decoys according to the information in the user parameters.");
     registerStringOption_("inference_method", "<option>", "aggregation", "Methods used for protein inference", false);
-    setValidStrings_("inference_method", ListUtils::create<String>("aggregation,bayesian"));
+    setValidStrings_("inference_method", ListUtils::create<std::string>("aggregation,bayesian"));
     registerStringOption_("picked_fdr", "<option>", "false", "Use a picked protein FDR", false, true);
     setValidStrings_("picked_fdr", {"true", "false"});
     registerStringOption_("picked_decoy_string", "<decoy_string>", "", "If using picked protein FDRs, which decoy string was used? Leave blank for auto-detection.", false, true);
@@ -227,13 +219,13 @@ protected:
         "strictly_unique_peptides = use peptides mapping to a unique single protein only.\n"
         "shared_peptides = use shared peptides only for its best group (by inference score)",
         false, true);
-    setValidStrings_("protein_quantification", ListUtils::create<String>("unique_peptides,strictly_unique_peptides,shared_peptides"));
+    setValidStrings_("protein_quantification", ListUtils::create<std::string>("unique_peptides,strictly_unique_peptides,shared_peptides"));
 
     registerSubsection_("extraction", "Parameters for the channel extraction.");
     registerSubsection_("quantification", "Parameters for the peptide quantification.");
     for (const auto& qm : quant_methods_)
     {
-      registerSubsection_(qm.second->getMethodName(), String("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
+      registerSubsection_(qm.second->getMethodName(),std::string("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
     }
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
     pq_defaults.setValue("top:include_all", "true");
@@ -268,16 +260,17 @@ protected:
     registerFullParam_(combined);
   }
 
-  Param getSubsectionDefaults_(const String& section) const override
+  Param getSubsectionDefaults_(const std::string& section) const override
   {
-    ItraqFourPlexQuantitationMethod temp_quant;
+    // any concrete method works to obtain the extractor/quantifier defaults; pick an arbitrary one
+    auto temp_quant = IsobaricQuantitationMethod::create(IsobaricQuantitationMethod::MethodType::ITRAQ_4PLEX);
     if (section == "extraction")
     {
-      return IsobaricChannelExtractor(&temp_quant).getParameters();
+      return IsobaricChannelExtractor(temp_quant.get()).getParameters();
     }
     else if (section == "quantification")
     {
-      return IsobaricQuantifier(&temp_quant).getParameters();
+      return IsobaricQuantifier(temp_quant.get()).getParameters();
     }
     else
     {
@@ -459,7 +452,7 @@ protected:
     time(&rawtime);
     const auto timeinfo = localtime(&rawtime);
     strftime(buffer.data(), sizeof(buffer), "%d-%m-%Y %H-%M-%S", timeinfo);
-    return s + String(buffer.data());
+    return s + std::string(buffer.data());
   }
 
   ExitCodes main_(int, const char**) override
@@ -468,8 +461,8 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String out = getStringOption_("out");
-    String exp_design = getStringOption_("exp_design");
+    std::string out = getStringOption_("out");
+    std::string exp_design = getStringOption_("exp_design");
     bool bayesian = getStringOption_("inference_method") == "bayesian";
     
     Param pq_param = getParam_().copy("ProteinQuantification:", true);
@@ -498,7 +491,7 @@ protected:
     // valid reporter scans. If the user explicitly requested a concrete activation method, warn that it
     // is ignored here, so the behaviour is not silently different from IsobaricAnalyzer. See issue #7165.
     {
-      const String sel_act = channel_extractor.getParameters().getValue("select_activation").toString();
+      const std::string sel_act = channel_extractor.getParameters().getValue("select_activation").toString();
       if (!sel_act.empty() && sel_act != "any" && sel_act != "auto")
       {
         OPENMS_LOG_WARN << "Parameter 'extraction:select_activation' is set to '" << sel_act
@@ -520,7 +513,7 @@ protected:
     bool interpolate_precursor_purity = channel_extractor.getParameters().getValue("purity_interpolation").toBool();
     double max_precursor_isotope_deviation = channel_extractor.getParameters().getValue("precursor_isotope_deviation");
 
-    //const String& exp_design = getStringOption_("exp_design");
+    //const std::string& exp_design = getStringOption_("exp_design");
     IDMergerAlgorithm merger(ID_RUN_NAME_, false);
     ConsensusMap cmap;
     MzMLFile mzml_file;
@@ -547,13 +540,13 @@ protected:
     {
       //ConsensusMap& cur_cmap = all_cmaps[i];
       ConsensusMap cur_cmap;
-      const String& mz_file = in_mz[i];
-      const String& id_file = in_id[i];
+      const std::string& mz_file = in_mz[i];
+      const std::string& id_file = in_id[i];
 
       // load mzML
       PeakMap exp;
       mzml_file.load(mz_file, exp);
-      std::unordered_map<String, Size> ms2scan_to_index;
+      std::unordered_map<std::string, Size> ms2scan_to_index;
 
       bool has_ms3 = false;
       for (Size s = 0; s < exp.size(); ++s)
@@ -644,7 +637,7 @@ protected:
 
             if (has_ms3 && exp[quant_spec_idx].getMSLevel() != 3)
             {
-              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MS3 spectrum expected but not found.", String(exp[quant_spec_idx].getMSLevel()));
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MS3 spectrum expected but not found.",StringUtils::toStr(exp[quant_spec_idx].getMSLevel()));
             }
 
             std::vector<double> itys = channel_extractor.extractSingleSpec(quant_spec_idx, exp, channel_qc);
@@ -724,26 +717,26 @@ protected:
     DataProcessing dp = getProcessingInfo_(DataProcessing::QUANTITATION);
     
     // Remove parameters for unused quantification methods
-    String selected_method = quant_method->getMethodName();
-    vector<String> keys_to_remove;
+    std::string selected_method = quant_method->getMethodName();
+    vector<std::string> keys_to_remove;
     
     for (const auto& qm : quant_methods_)
     {
       if (qm.first != selected_method)
       {
         // Collect all parameter keys that start with this unused method name
-        vector<String> all_keys;
+        vector<std::string> all_keys;
         dp.getKeys(all_keys);
-        for (const String& key : all_keys)
+        for (const std::string& key : all_keys)
         {
-          if (key.hasPrefix("parameter: " + qm.first + ":"))
+          if (StringUtils::hasPrefix(key, "parameter: " + qm.first + ":"))
           {
             keys_to_remove.push_back(key);
           }
         }
       }
     }
-    for (const String& key : keys_to_remove)
+    for (const std::string& key : keys_to_remove)
     {
       dp.removeMetaValue(key);
     }
@@ -908,7 +901,7 @@ protected:
       protein_quants, inferred_proteins, true);
 
     {
-      String out_qpx = getOutputDirOption("out_qpx");
+      std::string out_qpx = getOutputDirOption("out_qpx");
       if (!out_qpx.empty())
       {
         OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
@@ -951,7 +944,7 @@ protected:
 
     FileHandler().storeConsensusFeatures(out, cmap);
     
-    String out_mzTab = getStringOption_("out_mzTab");
+    std::string out_mzTab = getStringOption_("out_mzTab");
     if (! out_mzTab.empty()) 
     {
       const bool report_unidentified_features(false);

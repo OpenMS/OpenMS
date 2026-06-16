@@ -65,7 +65,7 @@ public:
                                       parsed or the side-car index
                                       cannot be built.
     */
-    explicit SpectrumAccessOpenMSCached(const String& filename);
+    explicit SpectrumAccessOpenMSCached(const std::string& filename);
 
     /// Destructor; the inherited @ref OpenMS::CachedmzML destructor closes the side-car stream.
     ~SpectrumAccessOpenMSCached() override;

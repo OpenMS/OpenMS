@@ -30,10 +30,10 @@ namespace OpenMS
 
   namespace
   {
-    void checkSqliteReturnCode_(sqlite3* db, const int rc, const String& action);
-    void tryCreateIndex_(SqliteConnector& conn, const String& sql);
+    void checkSqliteReturnCode_(sqlite3* db, const int rc, const std::string& action);
+    void tryCreateIndex_(SqliteConnector& conn, const std::string& sql);
 
-    void tryCreateIndexIfTableExists_(SqliteConnector& conn, const String& table_name, const String& sql)
+    void tryCreateIndexIfTableExists_(SqliteConnector& conn, const std::string& table_name, const std::string& sql)
     {
       if (!conn.tableExists(table_name))
       {
@@ -42,7 +42,7 @@ namespace OpenMS
       tryCreateIndex_(conn, sql);
     }
 
-    void tryCreateIndex_(SqliteConnector& conn, const String& sql)
+    void tryCreateIndex_(SqliteConnector& conn, const std::string& sql)
     {
       try
       {
@@ -54,7 +54,7 @@ namespace OpenMS
       }
     }
 
-    void requireTable_(SqliteConnector& conn, const String& table_name, const String& message)
+    void requireTable_(SqliteConnector& conn, const std::string& table_name, const std::string& message)
     {
       if (!conn.tableExists(table_name))
       {
@@ -140,9 +140,9 @@ namespace OpenMS
       tryCreateIndexIfTableExists_(conn, "SCORE_ALIGNMENT", "CREATE INDEX IF NOT EXISTS idx_export_score_alignment_feature_id ON SCORE_ALIGNMENT (FEATURE_ID);");
     }
 
-    std::vector<String> getTableColumns_(SqliteConnector& conn, const String& table_name)
+    std::vector<std::string> getTableColumns_(SqliteConnector& conn, const std::string& table_name)
     {
-      std::vector<String> columns;
+      std::vector<std::string> columns;
       sqlite3_stmt* stmt = nullptr;
       conn.prepareStatement(&stmt, "PRAGMA table_info('" + table_name + "');");
       Sql::SqlState state = Sql::nextRow(stmt);
@@ -155,26 +155,26 @@ namespace OpenMS
       return columns;
     }
 
-    bool tableHasColumn_(SqliteConnector& conn, const String& table_name, const String& column_name)
+    bool tableHasColumn_(SqliteConnector& conn, const std::string& table_name, const std::string& column_name)
     {
       const auto columns = getTableColumns_(conn, table_name);
       return std::find(columns.begin(), columns.end(), column_name) != columns.end();
     }
 
-    String makeIdFilterClause_(const std::vector<Int64>& ids, const String& column_name)
+    std::string makeIdFilterClause_(const std::vector<Int64>& ids, const std::string& column_name)
     {
       if (ids.empty())
       {
         return "1 = 0";
       }
-      String clause = column_name + " IN (";
+      std::string clause = column_name + " IN (";
       for (Size i = 0; i < ids.size(); ++i)
       {
         if (i != 0)
         {
           clause += ", ";
         }
-        clause += String(ids[i]);
+        clause += StringUtils::toStr(ids[i]);
       }
       clause += ")";
       return clause;
@@ -185,7 +185,7 @@ namespace OpenMS
       return conn.tableExists("FEATURE_MS2_ALIGNMENT") && conn.tableExists("SCORE_ALIGNMENT");
     }
 
-    String geneNameSelect_(SqliteConnector& conn)
+    std::string geneNameSelect_(SqliteConnector& conn)
     {
       if (!conn.tableExists("GENE"))
       {
@@ -198,7 +198,7 @@ namespace OpenMS
       return "CAST(GENE.ID AS TEXT)";
     }
 
-    String geneDecoySelect_(SqliteConnector& conn)
+    std::string geneDecoySelect_(SqliteConnector& conn)
     {
       if (!conn.tableExists("GENE"))
       {
@@ -211,9 +211,9 @@ namespace OpenMS
       return "NULL";
     }
 
-    String transitionAnnotationSelect_(SqliteConnector& conn)
+    std::string transitionAnnotationSelect_(SqliteConnector& conn)
     {
-      const String fallback_annotation =
+      const std::string fallback_annotation =
         "TRANSITION.TYPE || CAST(TRANSITION.ORDINAL AS TEXT) || '^' || CAST(TRANSITION.CHARGE AS TEXT)";
       if (tableHasColumn_(conn, "TRANSITION", "ANNOTATION"))
       {
@@ -222,9 +222,9 @@ namespace OpenMS
       return fallback_annotation;
     }
 
-    String prepareOutputFile_(const String& input_filename, const String& output_filename)
+    std::string prepareOutputFile_(const std::string& input_filename, const std::string& output_filename)
     {
-      const String target_filename = output_filename.empty() ? input_filename : output_filename;
+      const std::string target_filename = output_filename.empty() ? input_filename : output_filename;
       if (target_filename != input_filename)
       {
         if (File::exists(target_filename) && !File::remove(target_filename))
@@ -253,7 +253,7 @@ namespace OpenMS
       checkSqliteReturnCode_(db, rc, "Failed to bind nullable INTEGER value");
     }
 
-    String scoreTableName_(const InferenceLevel level)
+    std::string scoreTableName_(const InferenceLevel level)
     {
       switch (level)
       {
@@ -265,7 +265,7 @@ namespace OpenMS
       }
     }
 
-    String entityIdColumnName_(const InferenceLevel level)
+    std::string entityIdColumnName_(const InferenceLevel level)
     {
       switch (level)
       {
@@ -277,7 +277,7 @@ namespace OpenMS
       }
     }
 
-    void checkSqliteReturnCode_(sqlite3* db, const int rc, const String& action)
+    void checkSqliteReturnCode_(sqlite3* db, const int rc, const std::string& action)
     {
       if (rc != SQLITE_OK)
       {
@@ -285,7 +285,7 @@ namespace OpenMS
       }
     }
 
-    void executePreparedStatement_(sqlite3* db, sqlite3_stmt* stmt, const String& action)
+    void executePreparedStatement_(sqlite3* db, sqlite3_stmt* stmt, const std::string& action)
     {
       const int rc = sqlite3_step(stmt);
       if (rc != SQLITE_DONE)
@@ -332,9 +332,9 @@ namespace OpenMS
                         "INNER JOIN PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID "\
                         "INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID "\
                         "INNER JOIN (SELECT ID, DECOY FROM TRANSITION) AS TRANSITION ON FEATURE_TRANSITION.TRANSITION_ID = TRANSITION.ID "\
-                        "WHERE PEP <= " + OpenMS::String(ipf_max_peakgroup_pep) +
-                          " AND VAR_ISOTOPE_OVERLAP_SCORE <= " + OpenMS::String(ipf_max_transition_isotope_overlap) +
-                          " AND VAR_LOG_SN_SCORE > " + OpenMS::String(ipf_min_transition_sn) +
+                        "WHERE PEP <= " + StringUtils::toStr(ipf_max_peakgroup_pep) +
+                          " AND VAR_ISOTOPE_OVERLAP_SCORE <= " + StringUtils::toStr(ipf_max_transition_isotope_overlap) +
+                          " AND VAR_LOG_SN_SCORE > " + StringUtils::toStr(ipf_min_transition_sn) +
                           " AND PRECURSOR.DECOY == 0 ORDER BY FEATURE_ID, PRECURSOR_ID, TRANSITION_ID;";
       }
       else
@@ -357,7 +357,7 @@ namespace OpenMS
       // Generate features
       int k = 0;
       std::vector<std::string> group_id_index;
-      OpenMS::String tmp;
+      std::string tmp;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         std::string psm_id;
@@ -403,7 +403,7 @@ namespace OpenMS
           }
           if (strncmp(sqlite3_column_name( stmt, i ), "VAR_", 4) == 0)
           {
-            features[OpenMS::String(sqlite3_column_name( stmt, i ))] = sqlite3_column_double( stmt, i );
+            features[std::string(sqlite3_column_name( stmt, i ))] = sqlite3_column_double( stmt, i );
           }
         }
 
@@ -435,7 +435,7 @@ namespace OpenMS
         if (osw_level == OSWLevel::TRANSITION)
         {
           throw Exception::Precondition(__FILE__, __LINE__, __FUNCTION__,
-              OpenMS::String("PercolatorAdapter needs to be applied on MS1 & MS2 levels before conducting transition-level scoring."));
+              std::string("PercolatorAdapter needs to be applied on MS1 & MS2 levels before conducting transition-level scoring."));
         }
         else
         {
@@ -493,8 +493,8 @@ namespace OpenMS
         insert_sql << "INSERT INTO " << table;
         if (osw_level == OSWLevel::TRANSITION)
         {
-          std::vector<String> ids;
-          String(feat.first).split("_", ids);
+          std::vector<std::string> ids;
+          StringUtils::split(feat.first, "_", ids);
           insert_sql << " (FEATURE_ID, TRANSITION_ID, SCORE, QVALUE, PEP) VALUES (";
           insert_sql <<  ids[0] << ",";
           insert_sql <<  ids[1] << ",";
@@ -522,7 +522,7 @@ namespace OpenMS
       conn.executeStatement("END TRANSACTION");
     }
 
-    OSWFile::OSWFile(const String& filename)
+    OSWFile::OSWFile(const std::string& filename)
       : filename_(filename),
         conn_(filename, SqliteConnector::SqlOpenMode::READ_ONLY)
     {
@@ -535,7 +535,7 @@ namespace OpenMS
 
       readTransitions_(swath_result);
 
-      String select_sql = "select PROTEIN.ID as prot_id, PROTEIN_ACCESSION as prot_accession from PROTEIN order by prot_id";
+      std::string select_sql = "select PROTEIN.ID as prot_id, PROTEIN_ACCESSION as prot_accession from PROTEIN order by prot_id";
       sqlite3_stmt* stmt;
       conn_.prepareStatement(&stmt, select_sql);
       enum CBIG
@@ -549,7 +549,7 @@ namespace OpenMS
       {
         throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Query was changed! Please report this bug!");
       }
-      String accession;
+      std::string accession;
       // protein loop
       while (rc == Sql::SqlState::SQL_ROW)
       {
@@ -579,7 +579,7 @@ namespace OpenMS
       getFullProteins_(swath_result, index);
       if (swath_result.getProteins()[index].getPeptidePrecursors().empty())
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ID is not known in OSWFile " + filename_, String(swath_result.getProteins()[index].getID()));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ID is not known in OSWFile " + filename_,StringUtils::toStr(swath_result.getProteins()[index].getID()));
       }
     }
 
@@ -617,7 +617,7 @@ namespace OpenMS
       // Layers of information. Whenever the id changes, we know a new item has begun
       // ... PROTEIN
       int prot_id;
-      String accession;
+      std::string accession;
       bool decoy;
 
       void setProt(sqlite3_stmt* stmt)
@@ -635,7 +635,7 @@ namespace OpenMS
 
       // ... PRECURSOR
       int prec_id;
-      String seq;
+      std::string seq;
       short chargePC;
       float precmz;
 
@@ -785,7 +785,7 @@ namespace OpenMS
 
     void OSWFile::getFullProteins_(OSWData& swath_result, Size index)
     {
-      String protein_subselect;
+      std::string protein_subselect;
       if (index == ALL_PROTEINS)
       {
         swath_result.clearProteins();
@@ -793,18 +793,18 @@ namespace OpenMS
       }
       else
       { //  do not use accession to filter -- its as slow as full query
-        protein_subselect = "(select * from PROTEIN  where ID = " + String(swath_result.getProteins().at(index).getID()) + ") as PROTEIN";
+        protein_subselect = "(select * from PROTEIN  where ID = " + StringUtils::toStr(swath_result.getProteins().at(index).getID()) + ") as PROTEIN";
       }
      
 
       // check of SCORE_MS2 table is available (for OSW files which underwent pyProphet)
       // set q_value to -1 if missing
-      String MS2_select = (has_SCOREMS2_ ? "SCORE_MS2.QVALUE as qvalue" : "-1 as qvalue");
-      String MS2_join = (has_SCOREMS2_ ? "inner join(select * from SCORE_MS2) as SCORE_MS2 on SCORE_MS2.FEATURE_ID = FEATURE.ID" : "");
+      std::string MS2_select = (has_SCOREMS2_ ? "SCORE_MS2.QVALUE as qvalue" : "-1 as qvalue");
+      std::string MS2_join = (has_SCOREMS2_ ? "inner join(select * from SCORE_MS2) as SCORE_MS2 on SCORE_MS2.FEATURE_ID = FEATURE.ID" : "");
 
       // assemble the protein-PeptidePrecursor-Feature hierarchy
       // note: when changing the query, make sure to keep the indices in ColProteinSelect in sync!!!
-      String select_sql = "select PROTEIN.ID as prot_id, PROTEIN_ACCESSION as prot_accession, PROTEIN.DECOY as decoy, "
+      std::string select_sql = "select PROTEIN.ID as prot_id, PROTEIN_ACCESSION as prot_accession, PROTEIN.DECOY as decoy, "
                           "       PEPTIDE.MODIFIED_SEQUENCE as modified_sequence,"
                           "       PRECURSOR.ID as prec_id, PRECURSOR.PRECURSOR_MZ as pc_mz, PRECURSOR.CHARGE as pc_charge,"
                           "       FEATURE.ID as feat_id, FEATURE.EXP_RT as rt_experimental, FEATURE.DELTA_RT as rt_delta, FEATURE.LEFT_WIDTH as rt_left_width, FEATURE.RIGHT_WIDTH as rt_right_width,"
@@ -863,29 +863,29 @@ namespace OpenMS
       data.setRunID(getRunID());
     }
 
-    std::map<Int64, String> OSWFile::readRunBasenames() const
+    std::map<Int64, std::string> OSWFile::readRunBasenames() const
     {
       SqliteConnector conn(filename_);
       requireTable_(conn, "RUN", "Run-name lookup requires run metadata.");
 
-      const String query = "SELECT ID, FILENAME FROM RUN ORDER BY ID;";
+      const std::string query = "SELECT ID, FILENAME FROM RUN ORDER BY ID;";
       sqlite3_stmt* stmt = nullptr;
       conn.prepareStatement(&stmt, query);
 
-      std::map<Int64, String> run_names;
+      std::map<Int64, std::string> run_names;
       Sql::SqlState state = Sql::nextRow(stmt);
       while (state == Sql::SqlState::SQL_ROW)
       {
         const Int64 run_id = Sql::extractInt64(stmt, 0);
-        const String filename = Sql::extractString(stmt, 1);
-        String run_name = File::stemName(filename);
+        const std::string filename = Sql::extractString(stmt, 1);
+        std::string run_name = File::stemName(filename);
         if (run_name.empty())
         {
           run_name = File::basename(filename);
         }
         if (run_name.empty())
         {
-          run_name = "RUN_ID " + String(run_id);
+          run_name = "RUN_ID " + StringUtils::toStr(run_id);
         }
         run_names[run_id] = std::move(run_name);
         state = Sql::nextRow(stmt, state);
@@ -940,7 +940,7 @@ namespace OpenMS
         requireTable_(conn, "SCORE_TRANSITION", "Peptidoform inference requires transition-level scores.");
       }
 
-      String query;
+      std::string query;
       if (!config.ipf_ms1_scoring && config.ipf_ms2_scoring)
       {
         query =
@@ -1048,7 +1048,7 @@ namespace OpenMS
 
       std::unordered_map<Int64, Int32> num_peptidoforms;
       {
-        const String num_query =
+        const std::string num_query =
           "SELECT SCORE_TRANSITION.FEATURE_ID, COUNT(DISTINCT TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID) AS NUM_PEPTIDOFORMS "
           "FROM SCORE_TRANSITION "
           "INNER JOIN TRANSITION ON SCORE_TRANSITION.TRANSITION_ID = TRANSITION.ID "
@@ -1069,7 +1069,7 @@ namespace OpenMS
 
       std::vector<std::pair<Int64, Int64>> bitmask_pairs;
       {
-        const String bitmask_query =
+        const std::string bitmask_query =
           "SELECT DISTINCT TRANSITION.ID AS TRANSITION_ID, TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID "
           "FROM SCORE_TRANSITION "
           "INNER JOIN TRANSITION ON SCORE_TRANSITION.TRANSITION_ID = TRANSITION.ID "
@@ -1087,13 +1087,13 @@ namespace OpenMS
         sqlite3_finalize(stmt);
       }
 
-      const String evidence_query =
+      const std::string evidence_query =
         "SELECT SCORE_TRANSITION.FEATURE_ID, SCORE_TRANSITION.TRANSITION_ID, SCORE_TRANSITION.PEP "
         "FROM SCORE_TRANSITION "
         "INNER JOIN TRANSITION ON SCORE_TRANSITION.TRANSITION_ID = TRANSITION.ID "
         "WHERE TRANSITION.TYPE != '' AND TRANSITION.DECOY = 0 AND SCORE_TRANSITION.PEP < ? "
         "ORDER BY SCORE_TRANSITION.FEATURE_ID, SCORE_TRANSITION.TRANSITION_ID;";
-      const String candidate_query =
+      const std::string candidate_query =
         "SELECT DISTINCT SCORE_TRANSITION.FEATURE_ID, TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID "
         "FROM SCORE_TRANSITION "
         "INNER JOIN TRANSITION ON SCORE_TRANSITION.TRANSITION_ID = TRANSITION.ID "
@@ -1216,7 +1216,7 @@ namespace OpenMS
       createIPFIndexes_(conn);
       requireTable_(conn, "FEATURE_MS2_ALIGNMENT_CANDIDATE", "Across-run peptidoform propagation requires candidate-based feature alignment results.");
 
-      const String query =
+      const std::string query =
         "SELECT DENSE_RANK() OVER (ORDER BY FEATURE_LIST.PRECURSOR_ID, FEATURE_LIST.ALIGNMENT_ID) AS ALIGNMENT_GROUP_ID, "
         "       FEATURE_LIST.FEATURE_ID "
         "FROM ("
@@ -1258,7 +1258,7 @@ namespace OpenMS
       requireTable_(conn, "FEATURE_MS2_ALIGNMENT", "Across-run peptidoform propagation requires legacy feature alignment results.");
       requireTable_(conn, "SCORE_ALIGNMENT", "Across-run peptidoform propagation requires legacy alignment scores.");
 
-      const String query =
+      const std::string query =
         "SELECT DENSE_RANK() OVER (ORDER BY FEATURE_LIST.PRECURSOR_ID, FEATURE_LIST.ALIGNMENT_ID) AS ALIGNMENT_GROUP_ID, "
         "       FEATURE_LIST.FEATURE_ID "
         "FROM ("
@@ -1295,9 +1295,9 @@ namespace OpenMS
       return rows;
     }
 
-    void OSWFile::writeIPFResults(const String& output_filename, const std::vector<IPFResultRow>& results) const
+    void OSWFile::writeIPFResults(const std::string& output_filename, const std::vector<IPFResultRow>& results) const
     {
-      const String target_filename = prepareOutputFile_(filename_, output_filename);
+      const std::string target_filename = prepareOutputFile_(filename_, output_filename);
       SqliteConnector conn(target_filename, SqliteConnector::SqlOpenMode::READWRITE);
       sqlite3* db = conn.getDB();
 
@@ -1374,10 +1374,10 @@ namespace OpenMS
       }
 
       const bool global_context = context == InferenceContext::Global;
-      const String run_select = global_context ? "NULL AS RUN_ID" : "FEATURE.RUN_ID AS RUN_ID";
-      const String partition_by = global_context ? "ENTITY_ID" : "RUN_ID, ENTITY_ID";
+      const std::string run_select = global_context ? "NULL AS RUN_ID" : "FEATURE.RUN_ID AS RUN_ID";
+      const std::string partition_by = global_context ? "ENTITY_ID" : "RUN_ID, ENTITY_ID";
 
-      String inner_select;
+      std::string inner_select;
       if (level == InferenceLevel::Peptide)
       {
         inner_select =
@@ -1443,7 +1443,7 @@ namespace OpenMS
           "WHERE SCORE_MS2.SCORE IS NOT NULL";
       }
 
-      const String query =
+      const std::string query =
         "WITH SCORED AS (" + inner_select + "), "
         "RANKED AS ("
         "  SELECT RUN_ID, ENTITY_ID, DECOY, SCORE, "
@@ -1471,7 +1471,7 @@ namespace OpenMS
         row.decoy = Sql::extractInt(stmt, 2) != 0;
         row.score = Sql::extractDouble(stmt, 3);
         row.context = context;
-        row.group_id = row.run_id.has_value() ? String(*row.run_id) + "_" + String(row.entity_id) : String(row.entity_id);
+        row.group_id = row.run_id.has_value() ? StringUtils::toStr(*row.run_id) + "_" + StringUtils::toStr(row.entity_id) : StringUtils::toStr(row.entity_id);
         rows.push_back(std::move(row));
         state = Sql::nextRow(stmt, state);
       }
@@ -1483,7 +1483,7 @@ namespace OpenMS
       return rows;
     }
 
-    void OSWFile::writeLevelContextResults(const String& output_filename,
+    void OSWFile::writeLevelContextResults(const std::string& output_filename,
                                            InferenceLevel level,
                                            InferenceContext context,
                                            const std::vector<LevelContextResultRow>& results) const
@@ -1493,13 +1493,13 @@ namespace OpenMS
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Level-context writing only supports peptide, protein, and gene inference.");
       }
 
-      const String target_filename = prepareOutputFile_(filename_, output_filename);
+      const std::string target_filename = prepareOutputFile_(filename_, output_filename);
       SqliteConnector conn(target_filename, SqliteConnector::SqlOpenMode::READWRITE);
       sqlite3* db = conn.getDB();
 
-      const String table_name = scoreTableName_(level);
-      const String entity_column = entityIdColumnName_(level);
-      const String context_value = toString(context);
+      const std::string table_name = scoreTableName_(level);
+      const std::string entity_column = entityIdColumnName_(level);
+      const std::string context_value = toString(context);
       conn.executeStatement(
         "CREATE TABLE IF NOT EXISTS " + table_name + " ("
         "CONTEXT TEXT NOT NULL, "
@@ -1589,11 +1589,11 @@ namespace OpenMS
         }
         if (row.run_name.empty())
         {
-          row.run_name = "RUN_ID " + String(row.run_id);
+          row.run_name = "RUN_ID " + StringUtils::toStr(row.run_id);
         }
       };
 
-      auto loadRows = [&](const String& query,
+      auto loadRows = [&](const std::string& query,
                           const bool peptidoform_mode,
                           const bool augmented_mode) -> std::vector<OpenSwathExportRow>
       {
@@ -1663,7 +1663,7 @@ namespace OpenMS
             row.pep = Sql::extractDouble(stmt, col);
           }
           ++col;
-          row.transition_group_id = peptidoform_mode ? row.full_peptide_name + "_" + String(row.precursor_id) : String(row.precursor_id);
+          row.transition_group_id = peptidoform_mode ? row.full_peptide_name + "_" + StringUtils::toStr(row.precursor_id) : StringUtils::toStr(row.precursor_id);
           finalizeRunName(row);
           rows.push_back(std::move(row));
           state = Sql::nextRow(stmt, state);
@@ -1672,28 +1672,28 @@ namespace OpenMS
         return rows;
       };
 
-      const String exp_im_select = has_feature_im ? "FEATURE.EXP_IM" : "NULL";
-      const String im_left_select = has_feature_im_boundaries ? "FEATURE.EXP_IM_LEFTWIDTH" : "NULL";
-      const String im_right_select = has_feature_im_boundaries ? "FEATURE.EXP_IM_RIGHTWIDTH" : "NULL";
-      const String ms1_area_select = has_feature_ms1 ? "FEATURE_MS1.AREA_INTENSITY" : "NULL";
-      const String ms1_apex_select = has_feature_ms1 ? "FEATURE_MS1.APEX_INTENSITY" : "NULL";
-      const String ms1_pep_select = has_score_ms1 ? "SCORE_MS1.PEP" : "NULL";
+      const std::string exp_im_select = has_feature_im ? "FEATURE.EXP_IM" : "NULL";
+      const std::string im_left_select = has_feature_im_boundaries ? "FEATURE.EXP_IM_LEFTWIDTH" : "NULL";
+      const std::string im_right_select = has_feature_im_boundaries ? "FEATURE.EXP_IM_RIGHTWIDTH" : "NULL";
+      const std::string ms1_area_select = has_feature_ms1 ? "FEATURE_MS1.AREA_INTENSITY" : "NULL";
+      const std::string ms1_apex_select = has_feature_ms1 ? "FEATURE_MS1.APEX_INTENSITY" : "NULL";
+      const std::string ms1_pep_select = has_score_ms1 ? "SCORE_MS1.PEP" : "NULL";
 
-      const String common_from =
+      const std::string common_from =
         " FROM PRECURSOR "
         "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID "
         "INNER JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID "
         "INNER JOIN FEATURE ON FEATURE.PRECURSOR_ID = PRECURSOR.ID "
         "INNER JOIN RUN ON RUN.ID = FEATURE.RUN_ID "
         "LEFT JOIN FEATURE_MS2 ON FEATURE_MS2.FEATURE_ID = FEATURE.ID "
-        + String(has_feature_ms1 ? "LEFT JOIN FEATURE_MS1 ON FEATURE_MS1.FEATURE_ID = FEATURE.ID " : "")
-        + String(has_score_ms1 ? "LEFT JOIN SCORE_MS1 ON SCORE_MS1.FEATURE_ID = FEATURE.ID " : "")
+        + std::string(has_feature_ms1 ? "LEFT JOIN FEATURE_MS1 ON FEATURE_MS1.FEATURE_ID = FEATURE.ID " : "")
+        + std::string(has_score_ms1 ? "LEFT JOIN SCORE_MS1 ON SCORE_MS1.FEATURE_ID = FEATURE.ID " : "")
         + "LEFT JOIN SCORE_MS2 ON SCORE_MS2.FEATURE_ID = FEATURE.ID ";
 
       std::vector<OpenSwathExportRow> rows;
       if (config.ipf_mode == OpenSwathIPFExportMode::Peptidoform && has_score_ipf)
       {
-        const String query =
+        const std::string query =
           "SELECT RUN.ID, RUN.FILENAME, FEATURE.ID, PEPTIDE.ID, PRECURSOR.ID, PRECURSOR.DECOY, "
           "       PEPTIDE_IPF.UNMODIFIED_SEQUENCE, PEPTIDE_IPF.MODIFIED_SEQUENCE, "
           "       PRECURSOR.CHARGE, PRECURSOR.PRECURSOR_MZ, "
@@ -1714,7 +1714,7 @@ namespace OpenMS
       else
       {
         const bool augmented_mode = config.ipf_mode == OpenSwathIPFExportMode::Augmented && has_score_ipf;
-        const String query =
+        const std::string query =
           "SELECT RUN.ID, RUN.FILENAME, FEATURE.ID, PEPTIDE.ID, PRECURSOR.ID, PRECURSOR.DECOY, "
           "       PEPTIDE.UNMODIFIED_SEQUENCE, PEPTIDE.MODIFIED_SEQUENCE, "
           "       PRECURSOR.CHARGE, PRECURSOR.PRECURSOR_MZ, "
@@ -1725,7 +1725,7 @@ namespace OpenMS
           "       " + exp_im_select + ", " + im_left_select + ", " + im_right_select + ", "
           "       " + ms1_pep_select + ", SCORE_MS2.PEP, NULL, NULL, "
           "       SCORE_MS2.RANK, SCORE_MS2.SCORE, "
-          + String(augmented_mode ? "SCORE_MS2.QVALUE, " : "")
+          + std::string(augmented_mode ? "SCORE_MS2.QVALUE, " : "")
           + "SCORE_MS2.QVALUE, SCORE_MS2.PEP "
           + common_from +
           "WHERE SCORE_MS2.QVALUE < ? "
@@ -1782,7 +1782,7 @@ namespace OpenMS
         }
       }
 
-      auto assignStringMap = [&](const String& query, auto&& assign_fn)
+      auto assignStringMap = [&](const std::string& query, auto&& assign_fn)
       {
         sqlite3_stmt* stmt = nullptr;
         conn.prepareStatement(&stmt, query);
@@ -1795,7 +1795,7 @@ namespace OpenMS
         sqlite3_finalize(stmt);
       };
 
-      std::unordered_map<Int64, String> protein_by_peptide;
+      std::unordered_map<Int64, std::string> protein_by_peptide;
       if (conn.tableExists("PEPTIDE_PROTEIN_MAPPING") && conn.tableExists("PROTEIN"))
       {
         assignStringMap(
@@ -1809,10 +1809,10 @@ namespace OpenMS
           });
       }
 
-      std::unordered_map<Int64, String> gene_by_peptide;
+      std::unordered_map<Int64, std::string> gene_by_peptide;
       if (conn.tableExists("PEPTIDE_GENE_MAPPING") && conn.tableExists("GENE"))
       {
-        const String gene_query =
+        const std::string gene_query =
           "SELECT PEPTIDE_GENE_MAPPING.PEPTIDE_ID, GROUP_CONCAT(" + geneNameSelect_(conn) + ", ';') "
           "FROM PEPTIDE_GENE_MAPPING "
           "INNER JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID "
@@ -1824,10 +1824,10 @@ namespace OpenMS
           });
       }
 
-      std::unordered_map<Int64, std::tuple<String, String, String>> transitions_by_feature;
+      std::unordered_map<Int64, std::tuple<std::string, std::string, std::string>> transitions_by_feature;
       if (config.transition_quantification && conn.tableExists("FEATURE_TRANSITION") && conn.tableExists("TRANSITION"))
       {
-        const String transition_query =
+        const std::string transition_query =
           conn.tableExists("SCORE_TRANSITION") ?
           "SELECT FEATURE_TRANSITION.FEATURE_ID, "
           "       GROUP_CONCAT(FEATURE_TRANSITION.AREA_INTENSITY, ';'), "
@@ -2077,8 +2077,8 @@ namespace OpenMS
 
         if (!new_feature_ids.empty() && config.ipf_mode != OpenSwathIPFExportMode::Peptidoform)
         {
-          const String id_filter = makeIdFilterClause_(new_feature_ids, "FEATURE.ID");
-          const String aligned_query =
+          const std::string id_filter = makeIdFilterClause_(new_feature_ids, "FEATURE.ID");
+          const std::string aligned_query =
             "SELECT RUN.ID, RUN.FILENAME, FEATURE.ID, PEPTIDE.ID, PRECURSOR.ID, PRECURSOR.DECOY, "
             "       PEPTIDE.UNMODIFIED_SEQUENCE, PEPTIDE.MODIFIED_SEQUENCE, "
             "       PRECURSOR.CHARGE, PRECURSOR.PRECURSOR_MZ, "
@@ -2089,7 +2089,7 @@ namespace OpenMS
             "       " + exp_im_select + ", " + im_left_select + ", " + im_right_select + ", "
             "       " + ms1_pep_select + ", SCORE_MS2.PEP, NULL, NULL, "
             "       SCORE_MS2.RANK, SCORE_MS2.SCORE, "
-            + String(config.ipf_mode == OpenSwathIPFExportMode::Augmented && has_score_ipf ? "SCORE_MS2.QVALUE, " : "")
+            + std::string(config.ipf_mode == OpenSwathIPFExportMode::Augmented && has_score_ipf ? "SCORE_MS2.QVALUE, " : "")
             + "SCORE_MS2.QVALUE, SCORE_MS2.PEP "
             + common_from +
             "WHERE " + id_filter + " "
@@ -2178,16 +2178,16 @@ namespace OpenMS
                                              tableHasColumn_(conn, "FEATURE", "EXP_IM_RIGHTWIDTH");
       const bool has_library_drift_time = tableHasColumn_(conn, "PRECURSOR", "LIBRARY_DRIFT_TIME");
 
-      auto feature_ms1_columns = has_feature_ms1 ? getTableColumns_(conn, "FEATURE_MS1") : std::vector<String>{};
+      auto feature_ms1_columns = has_feature_ms1 ? getTableColumns_(conn, "FEATURE_MS1") : std::vector<std::string>{};
       feature_ms1_columns.erase(std::remove(feature_ms1_columns.begin(), feature_ms1_columns.end(), "FEATURE_ID"), feature_ms1_columns.end());
       auto feature_ms2_columns = getTableColumns_(conn, "FEATURE_MS2");
       feature_ms2_columns.erase(std::remove(feature_ms2_columns.begin(), feature_ms2_columns.end(), "FEATURE_ID"), feature_ms2_columns.end());
       table.feature_ms1_column_names = feature_ms1_columns;
       table.feature_ms2_column_names = feature_ms2_columns;
 
-      auto buildDynamicSelect = [](const std::vector<String>& columns, const String& table_name) -> String
+      auto buildDynamicSelect = [](const std::vector<std::string>& columns, const std::string& table_name) -> std::string
       {
-        String select;
+        std::string select;
         for (Size i = 0; i < columns.size(); ++i)
         {
           if (i != 0)
@@ -2199,9 +2199,9 @@ namespace OpenMS
         return select;
       };
 
-      const String feature_ms1_select = buildDynamicSelect(feature_ms1_columns, "FEATURE_MS1");
-      const String feature_ms2_select = buildDynamicSelect(feature_ms2_columns, "FEATURE_MS2");
-      String dynamic_feature_select;
+      const std::string feature_ms1_select = buildDynamicSelect(feature_ms1_columns, "FEATURE_MS1");
+      const std::string feature_ms2_select = buildDynamicSelect(feature_ms2_columns, "FEATURE_MS2");
+      std::string dynamic_feature_select;
       if (!feature_ms1_select.empty())
       {
         dynamic_feature_select += feature_ms1_select;
@@ -2214,9 +2214,9 @@ namespace OpenMS
         }
         dynamic_feature_select += feature_ms2_select;
       }
-      const String decoy_filter = config.filters.exclude_decoys ? "WHERE PRECURSOR.DECOY = 0 " : "";
+      const std::string decoy_filter = config.filters.exclude_decoys ? "WHERE PRECURSOR.DECOY = 0 " : "";
 
-      const String score_ipf_join =
+      const std::string score_ipf_join =
         has_score_ipf ?
         "LEFT JOIN ("
         "  SELECT FEATURE_ID, PEPTIDE_ID, PRECURSOR_PEAKGROUP_PEP, PEP, QVALUE "
@@ -2229,7 +2229,7 @@ namespace OpenMS
         ") AS SCORE_IPF_BEST ON SCORE_IPF_BEST.FEATURE_ID = FEATURE.ID "
         : "";
 
-      const String score_peptide_joins =
+      const std::string score_peptide_joins =
         has_score_peptide ?
         "LEFT JOIN SCORE_PEPTIDE AS SCORE_PEPTIDE_GLOBAL "
         "  ON SCORE_PEPTIDE_GLOBAL.PEPTIDE_ID = PEPTIDE.ID AND SCORE_PEPTIDE_GLOBAL.CONTEXT = 'global' "
@@ -2243,7 +2243,7 @@ namespace OpenMS
         " AND SCORE_PEPTIDE_RUN_SPECIFIC.CONTEXT = 'run-specific' "
         : "";
 
-      const String score_protein_joins =
+      const std::string score_protein_joins =
         has_score_protein && has_protein_tables ?
         "LEFT JOIN SCORE_PROTEIN AS SCORE_PROTEIN_GLOBAL "
         "  ON SCORE_PROTEIN_GLOBAL.PROTEIN_ID = PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID AND SCORE_PROTEIN_GLOBAL.CONTEXT = 'global' "
@@ -2257,7 +2257,7 @@ namespace OpenMS
         " AND SCORE_PROTEIN_RUN_SPECIFIC.CONTEXT = 'run-specific' "
         : "";
 
-      const String score_gene_joins =
+      const std::string score_gene_joins =
         has_score_gene && has_gene_tables ?
         "LEFT JOIN SCORE_GENE AS SCORE_GENE_GLOBAL "
         "  ON SCORE_GENE_GLOBAL.GENE_ID = PEPTIDE_GENE_MAPPING.GENE_ID AND SCORE_GENE_GLOBAL.CONTEXT = 'global' "
@@ -2271,13 +2271,13 @@ namespace OpenMS
         " AND SCORE_GENE_RUN_SPECIFIC.CONTEXT = 'run-specific' "
         : "";
 
-      const String query =
+      const std::string query =
         "SELECT "
-        + String(has_protein_tables ? "PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID" : "NULL") + ", "
+        + std::string(has_protein_tables ? "PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID" : "NULL") + ", "
         "PEPTIDE.ID, "
-        + String(has_score_ipf ? "SCORE_IPF_BEST.PEPTIDE_ID" : "NULL") + ", "
+        + std::string(has_score_ipf ? "SCORE_IPF_BEST.PEPTIDE_ID" : "NULL") + ", "
         "PRECURSOR.ID, "
-        + String(has_protein_tables ? "PROTEIN.PROTEIN_ACCESSION" : "NULL") + ", "
+        + std::string(has_protein_tables ? "PROTEIN.PROTEIN_ACCESSION" : "NULL") + ", "
         "PEPTIDE.UNMODIFIED_SEQUENCE, "
         "PEPTIDE.MODIFIED_SEQUENCE, "
         "PRECURSOR.TRAML_ID, "
@@ -2286,53 +2286,53 @@ namespace OpenMS
         "PRECURSOR.CHARGE, "
         "PRECURSOR.LIBRARY_INTENSITY, "
         "PRECURSOR.LIBRARY_RT, "
-        + String(has_library_drift_time ? "PRECURSOR.LIBRARY_DRIFT_TIME" : "NULL") + ", "
-        + String(has_gene_tables ? "PEPTIDE_GENE_MAPPING.GENE_ID" : "NULL") + ", "
-        + String(has_gene_tables ? geneNameSelect_(conn) : "NULL") + ", "
-        + String(has_gene_tables ? geneDecoySelect_(conn) : "NULL") + ", "
-        + String(has_protein_tables ? "PROTEIN.DECOY" : "NULL") + ", "
+        + std::string(has_library_drift_time ? "PRECURSOR.LIBRARY_DRIFT_TIME" : "NULL") + ", "
+        + std::string(has_gene_tables ? "PEPTIDE_GENE_MAPPING.GENE_ID" : "NULL") + ", "
+        + std::string(has_gene_tables ? geneNameSelect_(conn) : "NULL") + ", "
+        + std::string(has_gene_tables ? geneDecoySelect_(conn) : "NULL") + ", "
+        + std::string(has_protein_tables ? "PROTEIN.DECOY" : "NULL") + ", "
         "PEPTIDE.DECOY, "
         "PRECURSOR.DECOY, "
         "FEATURE.RUN_ID, "
         "RUN.FILENAME, "
         "FEATURE.ID, "
         "FEATURE.EXP_RT, "
-        + String(has_feature_im ? "FEATURE.EXP_IM" : "NULL") + ", "
+        + std::string(has_feature_im ? "FEATURE.EXP_IM" : "NULL") + ", "
         "FEATURE.NORM_RT, "
         "FEATURE.DELTA_RT, "
         "FEATURE.LEFT_WIDTH, "
         "FEATURE.RIGHT_WIDTH, "
-        + String(has_feature_im_boundaries ? "FEATURE.EXP_IM_LEFTWIDTH" : "NULL") + ", "
-        + String(has_feature_im_boundaries ? "FEATURE.EXP_IM_RIGHTWIDTH" : "NULL") + ", "
-        + String(dynamic_feature_select.empty() ? "" : dynamic_feature_select + ", ")
-        + String(has_score_ms1 ? "SCORE_MS1.SCORE, SCORE_MS1.RANK, SCORE_MS1.PVALUE, SCORE_MS1.QVALUE, SCORE_MS1.PEP" : "NULL, NULL, NULL, NULL, NULL") + ", "
-        + String(has_score_ms2 ? "SCORE_MS2.SCORE, SCORE_MS2.RANK, SCORE_MS2.PVALUE, SCORE_MS2.QVALUE, SCORE_MS2.PEP" : "NULL, NULL, NULL, NULL, NULL") + ", "
-        + String(has_score_ipf ? "SCORE_IPF_BEST.PRECURSOR_PEAKGROUP_PEP, SCORE_IPF_BEST.PEP, SCORE_IPF_BEST.QVALUE" : "NULL, NULL, NULL") + ", "
-        + String(has_score_peptide ? "SCORE_PEPTIDE_GLOBAL.SCORE, SCORE_PEPTIDE_GLOBAL.PVALUE, SCORE_PEPTIDE_GLOBAL.QVALUE, SCORE_PEPTIDE_GLOBAL.PEP, "
+        + std::string(has_feature_im_boundaries ? "FEATURE.EXP_IM_LEFTWIDTH" : "NULL") + ", "
+        + std::string(has_feature_im_boundaries ? "FEATURE.EXP_IM_RIGHTWIDTH" : "NULL") + ", "
+        + std::string(dynamic_feature_select.empty() ? "" : dynamic_feature_select + ", ")
+        + std::string(has_score_ms1 ? "SCORE_MS1.SCORE, SCORE_MS1.RANK, SCORE_MS1.PVALUE, SCORE_MS1.QVALUE, SCORE_MS1.PEP" : "NULL, NULL, NULL, NULL, NULL") + ", "
+        + std::string(has_score_ms2 ? "SCORE_MS2.SCORE, SCORE_MS2.RANK, SCORE_MS2.PVALUE, SCORE_MS2.QVALUE, SCORE_MS2.PEP" : "NULL, NULL, NULL, NULL, NULL") + ", "
+        + std::string(has_score_ipf ? "SCORE_IPF_BEST.PRECURSOR_PEAKGROUP_PEP, SCORE_IPF_BEST.PEP, SCORE_IPF_BEST.QVALUE" : "NULL, NULL, NULL") + ", "
+        + std::string(has_score_peptide ? "SCORE_PEPTIDE_GLOBAL.SCORE, SCORE_PEPTIDE_GLOBAL.PVALUE, SCORE_PEPTIDE_GLOBAL.QVALUE, SCORE_PEPTIDE_GLOBAL.PEP, "
                                         "SCORE_PEPTIDE_EXPERIMENT_WIDE.SCORE, SCORE_PEPTIDE_EXPERIMENT_WIDE.PVALUE, SCORE_PEPTIDE_EXPERIMENT_WIDE.QVALUE, SCORE_PEPTIDE_EXPERIMENT_WIDE.PEP, "
                                         "SCORE_PEPTIDE_RUN_SPECIFIC.SCORE, SCORE_PEPTIDE_RUN_SPECIFIC.PVALUE, SCORE_PEPTIDE_RUN_SPECIFIC.QVALUE, SCORE_PEPTIDE_RUN_SPECIFIC.PEP"
                                       : "NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL") + ", "
-        + String(has_score_protein && has_protein_tables ? "SCORE_PROTEIN_GLOBAL.SCORE, SCORE_PROTEIN_GLOBAL.PVALUE, SCORE_PROTEIN_GLOBAL.QVALUE, SCORE_PROTEIN_GLOBAL.PEP, "
+        + std::string(has_score_protein && has_protein_tables ? "SCORE_PROTEIN_GLOBAL.SCORE, SCORE_PROTEIN_GLOBAL.PVALUE, SCORE_PROTEIN_GLOBAL.QVALUE, SCORE_PROTEIN_GLOBAL.PEP, "
                                                           "SCORE_PROTEIN_EXPERIMENT_WIDE.SCORE, SCORE_PROTEIN_EXPERIMENT_WIDE.PVALUE, SCORE_PROTEIN_EXPERIMENT_WIDE.QVALUE, SCORE_PROTEIN_EXPERIMENT_WIDE.PEP, "
                                                           "SCORE_PROTEIN_RUN_SPECIFIC.SCORE, SCORE_PROTEIN_RUN_SPECIFIC.PVALUE, SCORE_PROTEIN_RUN_SPECIFIC.QVALUE, SCORE_PROTEIN_RUN_SPECIFIC.PEP"
                                                         : "NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL") + ", "
-        + String(has_score_gene && has_gene_tables ? "SCORE_GENE_GLOBAL.SCORE, SCORE_GENE_GLOBAL.PVALUE, SCORE_GENE_GLOBAL.QVALUE, SCORE_GENE_GLOBAL.PEP, "
+        + std::string(has_score_gene && has_gene_tables ? "SCORE_GENE_GLOBAL.SCORE, SCORE_GENE_GLOBAL.PVALUE, SCORE_GENE_GLOBAL.QVALUE, SCORE_GENE_GLOBAL.PEP, "
                                                     "SCORE_GENE_EXPERIMENT_WIDE.SCORE, SCORE_GENE_EXPERIMENT_WIDE.PVALUE, SCORE_GENE_EXPERIMENT_WIDE.QVALUE, SCORE_GENE_EXPERIMENT_WIDE.PEP, "
                                                     "SCORE_GENE_RUN_SPECIFIC.SCORE, SCORE_GENE_RUN_SPECIFIC.PVALUE, SCORE_GENE_RUN_SPECIFIC.QVALUE, SCORE_GENE_RUN_SPECIFIC.PEP"
                                                   : "NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL")
         + " FROM PRECURSOR "
         "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID "
         "INNER JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID "
-        + String(has_protein_tables ? "LEFT JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID "
+        + std::string(has_protein_tables ? "LEFT JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID "
                                       "LEFT JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID " : "")
-        + String(has_gene_tables ? "LEFT JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID "
+        + std::string(has_gene_tables ? "LEFT JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID "
                                    "LEFT JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID " : "")
         + "INNER JOIN FEATURE ON FEATURE.PRECURSOR_ID = PRECURSOR.ID "
-        + String(has_feature_ms1 ? "LEFT JOIN FEATURE_MS1 ON FEATURE.ID = FEATURE_MS1.FEATURE_ID " : "")
+        + std::string(has_feature_ms1 ? "LEFT JOIN FEATURE_MS1 ON FEATURE.ID = FEATURE_MS1.FEATURE_ID " : "")
         + "INNER JOIN FEATURE_MS2 ON FEATURE.ID = FEATURE_MS2.FEATURE_ID "
         + "INNER JOIN RUN ON FEATURE.RUN_ID = RUN.ID "
-        + String(has_score_ms1 ? "LEFT JOIN SCORE_MS1 ON FEATURE.ID = SCORE_MS1.FEATURE_ID " : "")
-        + String(has_score_ms2 ? "LEFT JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID " : "")
+        + std::string(has_score_ms1 ? "LEFT JOIN SCORE_MS1 ON FEATURE.ID = SCORE_MS1.FEATURE_ID " : "")
+        + std::string(has_score_ms2 ? "LEFT JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID " : "")
         + score_ipf_join
         + score_peptide_joins
         + score_protein_joins
@@ -2530,35 +2530,35 @@ namespace OpenMS
       requireTable_(conn, "TRANSITION_PRECURSOR_MAPPING", "Transition Parquet export requires transition-to-precursor mappings.");
       const bool has_transition_peptide_mapping = conn.tableExists("TRANSITION_PEPTIDE_MAPPING");
 
-      std::vector<String> feature_transition_columns = getTableColumns_(conn, "FEATURE_TRANSITION");
+      std::vector<std::string> feature_transition_columns = getTableColumns_(conn, "FEATURE_TRANSITION");
       feature_transition_columns.erase(
         std::remove_if(feature_transition_columns.begin(), feature_transition_columns.end(),
                        [](const auto& col) { return col == "FEATURE_ID" || col == "TRANSITION_ID"; }),
         feature_transition_columns.end());
       table.feature_transition_column_names = feature_transition_columns;
 
-      String feature_transition_select;
+      std::string feature_transition_select;
       for (Size i = 0; i < feature_transition_columns.size(); ++i)
       {
         if (i != 0) feature_transition_select += ", ";
         feature_transition_select += "FEATURE_TRANSITION." + feature_transition_columns[i];
       }
-      const String feature_transition_select_with_prefix = feature_transition_select.empty() ? "" : feature_transition_select + " ";
+      const std::string feature_transition_select_with_prefix = feature_transition_select.empty() ? "" : feature_transition_select + " ";
 
-      const String score_join = conn.tableExists("SCORE_TRANSITION")
+      const std::string score_join = conn.tableExists("SCORE_TRANSITION")
         ? "LEFT JOIN SCORE_TRANSITION ON FEATURE_TRANSITION.FEATURE_ID = SCORE_TRANSITION.FEATURE_ID "
           "AND FEATURE_TRANSITION.TRANSITION_ID = SCORE_TRANSITION.TRANSITION_ID "
         : "";
-      const String score_select = conn.tableExists("SCORE_TRANSITION")
+      const std::string score_select = conn.tableExists("SCORE_TRANSITION")
         ? ", SCORE_TRANSITION.SCORE, SCORE_TRANSITION.RANK, SCORE_TRANSITION.PVALUE, SCORE_TRANSITION.QVALUE, SCORE_TRANSITION.PEP "
         : ", NULL, NULL, NULL, NULL, NULL ";
-      const String peptide_select = has_transition_peptide_mapping ? "TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID" : "NULL";
-      const String peptide_join = has_transition_peptide_mapping
+      const std::string peptide_select = has_transition_peptide_mapping ? "TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID" : "NULL";
+      const std::string peptide_join = has_transition_peptide_mapping
         ? "LEFT JOIN TRANSITION_PEPTIDE_MAPPING ON TRANSITION.ID = TRANSITION_PEPTIDE_MAPPING.TRANSITION_ID "
         : "";
-      const String decoy_filter = config.filters.exclude_decoys ? "WHERE TRANSITION.DECOY = 0 " : "";
+      const std::string decoy_filter = config.filters.exclude_decoys ? "WHERE TRANSITION.DECOY = 0 " : "";
 
-      const String query =
+      const std::string query =
         "SELECT FEATURE.RUN_ID, " + peptide_select + ", TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID, TRANSITION.ID, TRANSITION.TRAML_ID, "
         "       TRANSITION.PRODUCT_MZ, TRANSITION.CHARGE, TRANSITION.TYPE, TRANSITION.ORDINAL, "
         "       " + transitionAnnotationSelect_(conn) + ", "
@@ -2655,7 +2655,7 @@ namespace OpenMS
       // does not make the query below any faster...
       //conn.executeStatement("ANALYZE");
 
-      String select_transitions = "SELECT " + ListUtils::concatenate(colnames_tr, ",") + " FROM TRANSITION ORDER BY ID;";
+      std::string select_transitions = "SELECT " + ListUtils::concatenate(colnames_tr, ",") + " FROM TRANSITION ORDER BY ID;";
       sqlite3_stmt* stmt;
       conn_.prepareStatement(&stmt, select_transitions);
       Sql::SqlState rc = Sql::nextRow(stmt);

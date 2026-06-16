@@ -119,7 +119,7 @@ protected:
     BrukerTimsFile::Config c;
     c.calibration_tolerance = getDoubleOption_("bruker:calibration_tolerance");
     c.calibrate = (getStringOption_("bruker:calibrate") == "true");
-    String mode = getStringOption_("bruker:export_mode");
+    std::string mode = getStringOption_("bruker:export_mode");
     if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
     else c.export_mode = BrukerTimsFile::Config::AUTO;
     return c;
@@ -153,19 +153,19 @@ protected:
 
     //Files
     registerOutputFile_("pin_out", "<file>", "", "Output file - for Percolator input", false);
-    setValidFormats_("pin_out", ListUtils::create<String>("tsv"));
-    registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using 'comet.exe -p'", false, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
+    setValidFormats_("pin_out", ListUtils::create<std::string>("tsv"));
+    registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using 'comet.exe -p'", false, false, ListUtils::create<std::string>("skipexists"));
+    setValidFormats_("default_params_file", ListUtils::create<std::string>("txt"));
 
     //Masses
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor monoisotopic mass tolerance (Comet parameter: peptide_mass_tolerance).  See also precursor_error_units to set the unit.",false);
     registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor monoisotopic mass tolerance for parameter precursor_mass_tolerance (Comet parameter: peptide_mass_units)", false);
-    setValidStrings_("precursor_error_units", ListUtils::create<String>("amu,ppm,Da"));
+    setValidStrings_("precursor_error_units", ListUtils::create<std::string>("amu,ppm,Da"));
     //registerIntOption_("mass_type_parent", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, false);
     registerStringOption_(Constants::UserParam::ISOTOPE_ERROR, "<choice>", "off", "This parameter controls whether the peptide_mass_tolerance takes into account possible isotope errors in the precursor mass measurement. Use -8/-4/0/4/8 only for SILAC.", false, false);
-    setValidStrings_(Constants::UserParam::ISOTOPE_ERROR, ListUtils::create<String>("off,0/1,0/1/2,0/1/2/3,-8/-4/0/4/8,-1/0/1/2/3"));
+    setValidStrings_(Constants::UserParam::ISOTOPE_ERROR, ListUtils::create<std::string>("off,0/1,0/1/2,0/1/2/3,-8/-4/0/4/8,-1/0/1/2/3"));
 
     //Fragment Ions
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.01,
@@ -181,24 +181,24 @@ protected:
     setMaxFloat_("fragment_bin_offset", 1.0);
 
     registerStringOption_("instrument", "<choice>", "high_res", "Comets theoretical_fragment_ions parameter: theoretical fragment ion peak representation, high-res: sum of intensities plus flanking bins, ion trap (low-res) ms/ms: sum of intensities of central M bin only", false);
-    setValidStrings_("instrument", ListUtils::create<String>("low_res,high_res"));
+    setValidStrings_("instrument", ListUtils::create<std::string>("low_res,high_res"));
     registerStringOption_("use_A_ions", "<num>", "false", "use A ions for PSM", false, true);
-    setValidStrings_("use_A_ions", ListUtils::create<String>("true,false"));
+    setValidStrings_("use_A_ions", ListUtils::create<std::string>("true,false"));
     registerStringOption_("use_B_ions", "<num>", "true", "use B ions for PSM", false, true);
-    setValidStrings_("use_B_ions", ListUtils::create<String>("true,false"));
+    setValidStrings_("use_B_ions", ListUtils::create<std::string>("true,false"));
     registerStringOption_("use_C_ions", "<num>", "false", "use C ions for PSM", false, true);
-    setValidStrings_("use_C_ions", ListUtils::create<String>("true,false"));
+    setValidStrings_("use_C_ions", ListUtils::create<std::string>("true,false"));
     registerStringOption_("use_X_ions", "<num>", "false", "use X ions for PSM", false, true);
-    setValidStrings_("use_X_ions", ListUtils::create<String>("true,false"));
+    setValidStrings_("use_X_ions", ListUtils::create<std::string>("true,false"));
     registerStringOption_("use_Y_ions", "<num>", "true", "use Y ions for PSM", false, true);
-    setValidStrings_("use_Y_ions", ListUtils::create<String>("true,false"));
+    setValidStrings_("use_Y_ions", ListUtils::create<std::string>("true,false"));
     registerStringOption_("use_Z_ions", "<num>", "false", "use Z ions for PSM", false, true);
-    setValidStrings_("use_Z_ions", ListUtils::create<String>("true,false"));
+    setValidStrings_("use_Z_ions", ListUtils::create<std::string>("true,false"));
     registerStringOption_("use_NL_ions", "<num>", "false", "use neutral loss (NH3, H2O) ions from b/y for PSM", false, true);
-    setValidStrings_("use_NL_ions", ListUtils::create<String>("true,false"));
+    setValidStrings_("use_NL_ions", ListUtils::create<std::string>("true,false"));
 
     //Search Enzyme
-    vector<String> all_enzymes;
+    vector<std::string> all_enzymes;
     ProteaseDB::getInstance()->getAllCometNames(all_enzymes);
     registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
     setValidStrings_("enzyme", all_enzymes);
@@ -224,12 +224,12 @@ protected:
     //mzXML/mzML parameters
     registerStringOption_("precursor_charge", "[min]:[max]", "0:0", "Precursor charge range to search (if spectrum is not annotated with a charge or if override_charge!=keep any known): 0:[num] == search all charges, 2:6 == from +2 to +6, 3:3 == +3", false, false);
     registerStringOption_("override_charge", "<choice>", "keep known search unknown", "_keep any known_: keep any precursor charge state (from input), _ignore known_: ignore known precursor charge state and use precursor_charge parameter, _ignore outside range_: ignore precursor charges outside precursor_charge range, _keep known search unknown_: keep any known precursor charge state. For unknown charge states, search as singly charged if there is no signal above the precursor m/z or use the precursor_charge range", false, false);
-    setValidStrings_("override_charge", ListUtils::create<String>("keep any known,ignore known,ignore outside range,keep known search unknown"));
+    setValidStrings_("override_charge", ListUtils::create<std::string>("keep any known,ignore known,ignore outside range,keep known search unknown"));
     registerIntOption_("ms_level", "<num>", 2, "MS level to analyze, valid are levels 2 (default) or 3", false, false);
     setMinInt_("ms_level", 2);
     setMaxInt_("ms_level", 3);
     registerStringOption_("activation_method", "<method>", "ALL", "If not ALL, only searches spectra of the given method", false, false);
-    setValidStrings_("activation_method", ListUtils::create<String>("ALL,CID,ECD,ETD,PQD,HCD,IRMPD"));
+    setValidStrings_("activation_method", ListUtils::create<std::string>("ALL,CID,ECD,ETD,PQD,HCD,IRMPD"));
 
     //Misc. parameters
     //scan range
@@ -241,7 +241,7 @@ protected:
     setMinInt_("max_precursor_charge", 1);
     setMaxInt_("max_precursor_charge", 9);
     registerStringOption_("clip_nterm_methionine", "<bool>", "false", "If set to true, also considers the peptide sequence w/o N-term methionine separately and applies appropriate N-term mods to it", false, false);
-    setValidStrings_("clip_nterm_methionine", ListUtils::create<String>("true,false"));
+    setValidStrings_("clip_nterm_methionine", ListUtils::create<std::string>("true,false"));
     registerIntOption_("spectrum_batch_size", "<posnum>", 20000, "max. number of spectra to search at a time; use 0 to search the entire scan range in one batch", false, true);
     setMinInt_("spectrum_batch_size", 0);
     registerDoubleList_("mass_offsets", "<doubleoffset1, doubleoffset2,...>", {0.0}, "One or more mass offsets to search (values subtracted from deconvoluted precursor mass). Has to include 0.0 if you want the default mass to be searched.", false, true);
@@ -251,16 +251,16 @@ protected:
     registerDoubleOption_("minimum_intensity", "<posfloat>", 0.0, "Minimum intensity value to read in", false, true);
     setMinFloat_("minimum_intensity", 0.0);
     registerStringOption_("remove_precursor_peak", "<choice>", "no", "no = no removal, yes = remove all peaks around precursor m/z, charge_reduced = remove all charge reduced precursor peaks (for ETD/ECD). phosphate_loss = remove the HPO3 (-80) and H3PO4 (-98) precursor phosphate neutral loss peaks. See also remove_precursor_tolerance", false, true);
-    setValidStrings_("remove_precursor_peak", ListUtils::create<String>("no,yes,charge_reduced,phosphate_loss"));
+    setValidStrings_("remove_precursor_peak", ListUtils::create<std::string>("no,yes,charge_reduced,phosphate_loss"));
     registerDoubleOption_("remove_precursor_tolerance", "<posfloat>", 1.5, "one-sided tolerance for precursor removal in Thompson", false, true);
     registerStringOption_("clear_mz_range", "[minfloatmz]:[maxfloatmz]", "0:0", "for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range, if not 0:0", false, true);
 
     //Modifications
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<std::string>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<std::string>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
     registerIntList_("binary_modifications", "<mods>", {}, 
@@ -272,7 +272,7 @@ protected:
 
     registerIntOption_("max_variable_mods_in_peptide", "<num>", 5, "Set a maximum number of variable modifications per peptide", false, true);
     registerStringOption_("require_variable_mod", "<bool>", "false", "If true, requires at least one variable modification per peptide", false, true);
-    setValidStrings_("require_variable_mod", ListUtils::create<String>("true,false"));
+    setValidStrings_("require_variable_mod", ListUtils::create<std::string>("true,false"));
 
 #ifdef WITH_OPENTIMS
     registerTOPPSubsection_("bruker", "Options for reading Bruker TimsTOF .d files (requires WITH_OPENTIMS)");
@@ -306,7 +306,7 @@ protected:
     return modifications;
   }
 
-  ExitCodes createParamFile_(ostream& os, const String& comet_version)
+  ExitCodes createParamFile_(ostream& os, const std::string& comet_version)
   {
     os << comet_version << "\n";              // required as first line in the param file
     os << "# Comet MS/MS search engine parameters file.\n";
@@ -319,7 +319,7 @@ protected:
     os << "num_threads = " << getIntOption_("threads") << "\n";                         // 0=poll CPU to set num threads; else specify num threads directly (max 64)
 
     // masses
-    map<String,int> precursor_error_units;
+    map<std::string,int> precursor_error_units;
     precursor_error_units["amu"] = 0;
     precursor_error_units["mmu"] = 1;
     precursor_error_units["ppm"] = 2;
@@ -341,7 +341,7 @@ protected:
     if (std::regex_search(version_no_spaces, match, comet_version_regex))
     {
       const int comet_year = std::stoi(match[1].str());
-      if (comet_version.hasSubstring("2024.01 rev. 0"))
+      if (StringUtils::hasSubstring(comet_version, "2024.01 rev. 0"))
       {
         OPENMS_LOG_WARN << "Comet v2024.01.0 is known to have several bugs (see https://github.com/UWPR/Comet/issues/63). Please use a different version if possible." << std::endl;
       }
@@ -373,13 +373,13 @@ protected:
 
     // search enzyme
 
-    String enzyme_name = getStringOption_("enzyme");
-    String enzyme_number = String(ProteaseDB::getInstance()->getEnzyme(enzyme_name)->getCometID());
-    String second_enzyme_name = getStringOption_("second_enzyme");
-    String enzyme2_number = "0";
+    std::string enzyme_name = getStringOption_("enzyme");
+    std::string enzyme_number =StringUtils::toStr(ProteaseDB::getInstance()->getEnzyme(enzyme_name)->getCometID());
+    std::string second_enzyme_name = getStringOption_("second_enzyme");
+    std::string enzyme2_number = "0";
     if (!second_enzyme_name.empty())
     {
-      enzyme2_number = String(ProteaseDB::getInstance()->getEnzyme(second_enzyme_name)->getCometID());
+      enzyme2_number =StringUtils::toStr(ProteaseDB::getInstance()->getEnzyme(second_enzyme_name)->getCometID());
     }
 
     os << "search_enzyme_number = " << enzyme_number << "\n";                // choose from list at end of this params file
@@ -390,7 +390,7 @@ protected:
     // Up to 9 variable modifications are supported
     // # format:  <mass> <residues> <0=variable/else binary> <max_mods_per_peptide> <term_distance> <n/c-term> <required> <neutral_loss>
     //     e.g. 79.966331 STY 0 3 -1 0 0 97.976896
-    vector<String> variable_modifications_names = getStringList_("variable_modifications");
+    vector<std::string> variable_modifications_names = getStringList_("variable_modifications");
     const vector<const ResidueModification*> variable_modifications = getModifications_(variable_modifications_names);
 
     IntList binary_modifications = getIntList_("binary_modifications");
@@ -424,7 +424,7 @@ protected:
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Error: Comet supports at most 9 variable modification entries. After merging compatible modifications, "
-        + String(merged_mods.size()) + " entries remain. Consider using fewer distinct modification types.");
+        + StringUtils::toStr(merged_mods.size()) + " entries remain. Consider using fewer distinct modification types.");
     }
 
     // Write out merged modifications
@@ -448,7 +448,7 @@ protected:
     // ion trap ms/ms:  1.0005 tolerance, 0.4 offset (mono masses), theoretical_fragment_ions = 1
     // high res ms/ms:    0.02 tolerance, 0.0 offset (mono masses), theoretical_fragment_ions = 0
 
-    String instrument = getStringOption_("instrument");
+    std::string instrument = getStringOption_("instrument");
     double bin_tol = getDoubleOption_("fragment_mass_tolerance") * 2; // convert 1-sided tolerance to bin size
     double bin_offset = getDoubleOption_("fragment_bin_offset");
     if (instrument == "low_res" && (bin_tol < 0.8 || bin_offset <= 0.2))
@@ -562,11 +562,11 @@ protected:
     //      add_AA.OneletterCode_AA.ThreeLetterCode = xxx
     // Terminus:
     //      add_N/Cterm_peptide = xxx       protein not available yet
-    vector<String> fixed_modifications_names = getStringList_("fixed_modifications");
+    vector<std::string> fixed_modifications_names = getStringList_("fixed_modifications");
     const vector<const ResidueModification*> fixed_modifications = getModifications_(fixed_modifications_names);
 
     // merge duplicates, targeting the same AA
-    std::map<String, double> mods;
+    std::map<std::string, double> mods;
     // Comet sets Carbamidometyl (C) as modification as default even if not specified.
     // Therefore there is the need to set it to 0, unless its set as flag (see loop below)
     mods["add_C_cysteine"] = 0;
@@ -574,13 +574,13 @@ protected:
     for (const auto& fm : fixed_modifications)
     {
       // check modification (amino acid or terminal)
-      String AA = fm->getOrigin(); // X (constructor) or amino acid (e.g. K)
-      String term_specificity = fm->getTermSpecificityName(); // N-term, C-term, none
+      std::string AA(1, fm->getOrigin()); // X (constructor) or amino acid (e.g. K)
+      std::string term_specificity = fm->getTermSpecificityName(); // N-term, C-term, none
       if ((AA != "X") && (term_specificity == "none"))
       {
         const Residue* r = ResidueDB::getInstance()->getResidue(AA);
-        String name = r->getName();
-        mods["add_" + r->getOneLetterCode() + "_" + name.toLower()] += fm->getDiffMonoMass();
+        std::string name = r->getName();
+        mods["add_" + r->getOneLetterCode() + "_" + StringUtils::toLower(name)] += fm->getDiffMonoMass();
       }
       else if (term_specificity == "N-term" || term_specificity == "C-term")
       {
@@ -643,7 +643,7 @@ protected:
     //-------------------------------------------------------------
 
     // do this early, to see if comet is installed
-    String comet_executable = getStringOption_("comet_executable");
+    std::string comet_executable = getStringOption_("comet_executable");
     File::TempDir tmp_dir(debug_level_ >= 2);
 
     writeDebug_("Comet is writing the default parameter file...", 1);
@@ -654,7 +654,7 @@ protected:
       return exit_code; // will do the right thing, since it's correctly mapping TOPPBase exit codes
     }
     // the first line of 'comet.params.new' contains a string like: "# comet_version 2017.01 rev. 1"
-    String comet_version; 
+    std::string comet_version; 
     {
       std::ifstream ifs(tmp_dir.getPath() + "/comet.params.new");
       getline(ifs, comet_version);
@@ -667,15 +667,15 @@ protected:
 
 
     int ms_level = getIntOption_("ms_level");
-    String inputfile_name = getRawfileName(ms_level);
-    String out = getStringOption_("out");
-    String db_name = getDBFilename();
+    std::string inputfile_name = getRawfileName(ms_level);
+    std::string out = getStringOption_("out");
+    std::string db_name = getDBFilename();
 
     // tmp_dir
-    String tmp_pepxml = tmp_dir.getPath() + "result.pep.xml";
-    String tmp_pin = tmp_dir.getPath() + "result.pin";
-    String default_params = getStringOption_("default_params_file");
-    String tmp_file;
+    std::string tmp_pepxml = tmp_dir.getPath() + "result.pep.xml";
+    std::string tmp_pin = tmp_dir.getPath() + "result.pin";
+    std::string default_params = getStringOption_("default_params_file");
+    std::string tmp_file;
 
     // default params given or to be written
     if (default_params.empty())
@@ -696,7 +696,7 @@ protected:
 
     // Load input data — branch on file type
     MSExperiment exp;
-    String input_file_with_index = inputfile_name;
+    std::string input_file_with_index = inputfile_name;
 
 #ifdef WITH_THERMO_RAW
     const bool is_thermo_raw = (FileHandler::getType(inputfile_name) == FileTypes::RAW);
@@ -772,7 +772,7 @@ protected:
       for (auto& spec : exp.getSpectra())
       {
         spec.setMetaValue("original_native_id", spec.getNativeID());
-        spec.setNativeID("index=" + String(idx++));
+        spec.setNativeID("index=" + StringUtils::toStr(idx++));
       }
 
       // Write to temporary indexed mzML for Comet
@@ -799,7 +799,7 @@ protected:
       mzml_file.load(inputfile_name, exp);
 
       const bool is_bruker_mzml = !exp.empty()
-        && exp[0].getNativeID().hasSubstring("frame=");
+        && StringUtils::hasSubstring(exp[0].getNativeID(), "frame=");
 
       if (is_bruker_mzml)
       {
@@ -821,7 +821,7 @@ protected:
         for (auto& spec : exp.getSpectra())
         {
           spec.setMetaValue("original_native_id", spec.getNativeID());
-          spec.setNativeID("index=" + String(idx++));
+          spec.setNativeID("index=" + StringUtils::toStr(idx++));
         }
 
         auto tmp_mzml = File::getTemporaryFile() + ".mzML";
@@ -854,9 +854,9 @@ protected:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    String paramP = "-P" + tmp_file;
-    String paramN = "-N" + FileHandler::stripExtension(FileHandler::stripExtension(tmp_pepxml));
-    std::vector<String> arguments = {paramP, paramN, input_file_with_index};
+    std::string paramP = "-P" + tmp_file;
+    std::string paramN = "-N" + FileHandler::stripExtension(FileHandler::stripExtension(tmp_pepxml));
+    std::vector<std::string> arguments = {paramP, paramN, input_file_with_index};
 
     //-------------------------------------------------------------
     // run comet
@@ -873,8 +873,8 @@ protected:
 
     // read the pep.xml put of Comet and write it to idXML
 
-    vector<String> fixed_modifications_names = getStringList_("fixed_modifications");
-    vector<String> variable_modifications_names = getStringList_("variable_modifications");
+    vector<std::string> fixed_modifications_names = getStringList_("fixed_modifications");
+    vector<std::string> variable_modifications_names = getStringList_("variable_modifications");
 
     PeptideIdentificationList peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
@@ -932,7 +932,7 @@ protected:
     if (!exp.empty() && exp[0].metaValueExists("original_native_id"))
     {
       // Build rewritten-id → original-id map once (O(N) vs O(N*M) linear scan).
-      std::unordered_map<String, String> id_map;
+      std::unordered_map<std::string, std::string> id_map;
       id_map.reserve(exp.size());
       for (const auto& spec : exp.getSpectra())
       {
@@ -963,7 +963,7 @@ protected:
     // create (move) optional pin output
     //-------------------------------------------------------------
 
-    String pin_out = getStringOption_("pin_out");
+    std::string pin_out = getStringOption_("pin_out");
     if (!pin_out.empty())
     { // move the temporary file to the actual destination:
       if (!File::rename(tmp_pin, pin_out))

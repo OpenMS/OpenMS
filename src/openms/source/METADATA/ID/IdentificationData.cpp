@@ -61,14 +61,14 @@ namespace OpenMS
 
   /// Helper function to add a meta value to an element in a multi-index container
   template <typename RefType, typename ContainerType>
-  void setMetaValue_(const RefType ref, const String& key, const DataValue& value,
+  void setMetaValue_(const RefType ref, const std::string& key, const DataValue& value,
                      ContainerType& container, bool no_checks,
                      const IdentificationData::AddressLookup& lookup = IdentificationData::AddressLookup())
   {
     if (!no_checks && ((lookup.empty() && !isValidReference_(ref, container)) ||
                         (!lookup.empty() && !isValidHashedReference_(ref, lookup))))
     {
-      String msg = "invalid reference for the given container";
+      std::string msg = "invalid reference for the given container";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -156,7 +156,7 @@ namespace OpenMS
     {
       if (!isValidReference_(pair.first, score_types_))
       {
-        String msg = "invalid reference to a score type - register that first";
+        std::string msg = "invalid reference to a score type - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -171,7 +171,7 @@ namespace OpenMS
       if ((step.processing_step_opt != std::nullopt) &&
           (!isValidReference_(*step.processing_step_opt, processing_steps_)))
       {
-        String msg = "invalid reference to a data processing step - register that first";
+        std::string msg = "invalid reference to a data processing step - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -187,13 +187,13 @@ namespace OpenMS
     {
       if (!isValidHashedReference_(pair.first, parent_lookup_))
       {
-        String msg = "invalid reference to a parent sequence - register that first";
+        std::string msg = "invalid reference to a parent sequence - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
       if (pair.first->molecule_type != expected_type)
       {
-        String msg = "unexpected molecule type for parent sequence";
+        std::string msg = "unexpected molecule type for parent sequence";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -206,7 +206,7 @@ namespace OpenMS
   {
     if (!no_checks_ && file.name.empty()) // key may not be empty
     {
-      String msg = "input file must have a name";
+      std::string msg = "input file must have a name";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -233,7 +233,7 @@ namespace OpenMS
       {
         if (!isValidReference_(score_ref, score_types_))
         {
-          String msg = "invalid reference to a score type - register that first";
+          std::string msg = "invalid reference to a score type - register that first";
           throw Exception::IllegalArgument(__FILE__, __LINE__,
                                            OPENMS_PRETTY_FUNCTION, msg);
         }
@@ -268,7 +268,7 @@ namespace OpenMS
       // valid reference to software is required:
       if (!isValidReference_(step.software_ref, processing_softwares_))
       {
-        String msg = "invalid reference to data processing software - register that first";
+        std::string msg = "invalid reference to data processing software - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -277,7 +277,7 @@ namespace OpenMS
       {
         if (!isValidReference_(ref, input_files_))
         {
-          String msg = "invalid reference to input file - register that first";
+          std::string msg = "invalid reference to input file - register that first";
           throw Exception::IllegalArgument(__FILE__, __LINE__,
                                            OPENMS_PRETTY_FUNCTION, msg);
         }
@@ -290,7 +290,7 @@ namespace OpenMS
     {
       if (!no_checks_ && !isValidReference_(search_ref, db_search_params_))
       {
-        String msg = "invalid reference to database search parameters - register those first";
+        std::string msg = "invalid reference to database search parameters - register those first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -306,7 +306,7 @@ namespace OpenMS
     // @TODO: allow just an accession? (all look-ups are currently by name)
     if (!no_checks_ && score.cv_term.getName().empty())
     {
-      String msg = "score type must have a name (as part of its CV term)";
+      std::string msg = "score type must have a name (as part of its CV term)";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -314,7 +314,7 @@ namespace OpenMS
     result = score_types_.insert(score);
     if (!result.second && (score.higher_better != result.first->higher_better))
     {
-      String msg = "score type already exists with opposite orientation";
+      std::string msg = "score type already exists with opposite orientation";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -329,14 +329,14 @@ namespace OpenMS
       // reference to spectrum or feature is required:
       if (obs.data_id.empty())
       {
-        String msg = "missing identifier in observation";
+        std::string msg = "missing identifier in observation";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
       // ref. to input file must be valid:
       if (!isValidReference_(obs.input_file, input_files_))
       {
-        String msg = "invalid reference to an input file - register that first";
+        std::string msg = "invalid reference to an input file - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -368,7 +368,7 @@ namespace OpenMS
     {
       if (peptide.sequence.empty())
       {
-        String msg = "missing sequence for peptide";
+        std::string msg = "missing sequence for peptide";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -386,7 +386,7 @@ namespace OpenMS
   {
     if (!no_checks_ && compound.identifier.empty())
     {
-      String msg = "missing identifier for compound";
+      std::string msg = "missing identifier for compound";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -403,7 +403,7 @@ namespace OpenMS
     {
       if (oligo.sequence.empty())
       {
-        String msg = "missing sequence for oligonucleotide";
+        std::string msg = "missing sequence for oligonucleotide";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -422,13 +422,13 @@ namespace OpenMS
     {
       if (parent.accession.empty())
       {
-        String msg = "missing accession for parent sequence";
+        std::string msg = "missing accession for parent sequence";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
       if ((parent.coverage < 0.0) || (parent.coverage > 1.0))
       {
-        String msg = "parent sequence coverage must be between 0 and 1";
+        std::string msg = "parent sequence coverage must be between 0 and 1";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -453,7 +453,7 @@ namespace OpenMS
         {
           if (!isValidHashedReference_(ref, parent_lookup_))
           {
-            String msg = "invalid reference to a parent sequence - register that first";
+            std::string msg = "invalid reference to a parent sequence - register that first";
             throw Exception::IllegalArgument(__FILE__, __LINE__,
                                              OPENMS_PRETTY_FUNCTION, msg);
           }
@@ -499,7 +499,7 @@ namespace OpenMS
       {
         if (!isValidHashedReference_(*ref_ptr, identified_peptide_lookup_))
         {
-          String msg = "invalid reference to an identified peptide - register that first";
+          std::string msg = "invalid reference to an identified peptide - register that first";
           throw Exception::IllegalArgument(__FILE__, __LINE__,
                                            OPENMS_PRETTY_FUNCTION, msg);
         }
@@ -509,7 +509,7 @@ namespace OpenMS
       {
         if (!isValidHashedReference_(*ref_ptr, identified_compound_lookup_))
         {
-          String msg = "invalid reference to an identified compound - register that first";
+          std::string msg = "invalid reference to an identified compound - register that first";
           throw Exception::IllegalArgument(__FILE__, __LINE__,
                                            OPENMS_PRETTY_FUNCTION, msg);
         }
@@ -519,7 +519,7 @@ namespace OpenMS
       {
         if (!isValidHashedReference_(*ref_ptr, identified_oligo_lookup_))
         {
-          String msg = "invalid reference to an identified oligonucleotide - register that first";
+          std::string msg = "invalid reference to an identified oligonucleotide - register that first";
           throw Exception::IllegalArgument(__FILE__, __LINE__,
                                            OPENMS_PRETTY_FUNCTION, msg);
         }
@@ -527,14 +527,14 @@ namespace OpenMS
 
       if (!isValidHashedReference_(match.observation_ref, observation_lookup_))
       {
-        String msg = "invalid reference to an observation - register that first";
+        std::string msg = "invalid reference to an observation - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
 
       if (match.adduct_opt && !isValidReference_(*match.adduct_opt, adducts_))
       {
-        String msg = "invalid reference to an adduct - register that first";
+        std::string msg = "invalid reference to an adduct - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -554,7 +554,7 @@ namespace OpenMS
       {
         if (!isValidHashedReference_(ref, observation_match_lookup_))
         {
-          String msg = "invalid reference to an input match - register that first";
+          std::string msg = "invalid reference to an input match - register that first";
           throw Exception::IllegalArgument(__FILE__, __LINE__,
                                            OPENMS_PRETTY_FUNCTION, msg);
         }
@@ -570,7 +570,7 @@ namespace OpenMS
   {
     if (!no_checks_ && !isValidReference_(score_ref, score_types_))
     {
-      String msg = "invalid reference to a score type - register that first";
+      std::string msg = "invalid reference to a score type - register that first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -584,7 +584,7 @@ namespace OpenMS
   {
     if (!no_checks_ && !isValidReference_(step_ref, processing_steps_))
     {
-      String msg = "invalid reference to a processing step - register that first";
+      std::string msg = "invalid reference to a processing step - register that first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -606,7 +606,7 @@ namespace OpenMS
 
 
   IdentificationData::ScoreTypeRef
-  IdentificationData::findScoreType(const String& score_name) const
+  IdentificationData::findScoreType(const std::string& score_name) const
   {
     for (ScoreTypeRef it = score_types_.begin(); it != score_types_.end(); ++it)
     {
@@ -1308,21 +1308,21 @@ namespace OpenMS
   }
 
 
-  void IdentificationData::setMetaValue(const ObservationMatchRef ref, const String& key,
+  void IdentificationData::setMetaValue(const ObservationMatchRef ref, const std::string& key,
                                         const DataValue& value)
   {
     setMetaValue_(ref, key, value, observation_matches_, no_checks_, observation_match_lookup_);
   }
 
 
-  void IdentificationData::setMetaValue(const ObservationRef ref, const String& key,
+  void IdentificationData::setMetaValue(const ObservationRef ref, const std::string& key,
                                         const DataValue& value)
   {
     setMetaValue_(ref, key, value, observations_, no_checks_, observation_lookup_);
   }
 
 
-  void IdentificationData::setMetaValue(const IdentifiedMolecule& var, const String& key,
+  void IdentificationData::setMetaValue(const IdentifiedMolecule& var, const std::string& key,
                                         const DataValue& value)
   {
     switch (var.getMoleculeType())
@@ -1342,12 +1342,12 @@ namespace OpenMS
   }
 
 
-  void IdentificationData::removeMetaValue(const ObservationMatchRef ref, const String& key)
+  void IdentificationData::removeMetaValue(const ObservationMatchRef ref, const std::string& key)
   {
     if (!no_checks_ && ((observation_match_lookup_.empty() && !isValidReference_(ref, observation_matches_)) ||
                        (!observation_match_lookup_.empty() && !isValidHashedReference_(ref, observation_match_lookup_))))
     {
-      String msg = "invalid reference to an observation match";
+      std::string msg = "invalid reference to an observation match";
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
     }
     observation_matches_.modify(ref, [&key](ObservationMatch& element)
@@ -1382,7 +1382,7 @@ namespace OpenMS
       default:
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "invalid molecule type",
-                                      String(old.getMoleculeType()));
+                                      StringUtils::toStr(old.getMoleculeType()));
     }
     if (allow_missing) return old;
     throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

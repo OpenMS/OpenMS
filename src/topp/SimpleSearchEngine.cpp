@@ -86,10 +86,10 @@ class SimpleSearchEngine :
       });
 
       registerInputFile_("database", "<file>", "", "input file ");
-      setValidFormats_("database", ListUtils::create<String>("fasta"));
+      setValidFormats_("database", ListUtils::create<std::string>("fasta"));
 
       registerOutputFile_("out", "<file>", "", "output file ");
-      setValidFormats_("out", ListUtils::create<String>("idXML"));
+      setValidFormats_("out", ListUtils::create<std::string>("idXML"));
 
       // put search algorithm parameters at Search: subtree of parameters
       Param search_algo_params_with_subsection;
@@ -99,9 +99,9 @@ class SimpleSearchEngine :
 
     ExitCodes main_(int, const char**) override
     {
-      String in = getStringOption_("in");
-      String database = getStringOption_("database");
-      String out = getStringOption_("out");
+      std::string in = getStringOption_("in");
+      std::string database = getStringOption_("database");
+      std::string out = getStringOption_("out");
 
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);

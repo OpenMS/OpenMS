@@ -93,7 +93,7 @@ namespace OpenMS
       else // not found
       {
         // annotate feature_id for later reference
-        it->setMetaValue("feature_id", String(uid));
+        it->setMetaValue("feature_id",StringUtils::toStr(uid));
         // move to "removed" vector
         removed.push_back(std::move(*it));
         // erase and update iterator
@@ -122,7 +122,7 @@ namespace OpenMS
         pep.setHits(best_hit);
       }
       // annotate feature id
-      pep.setMetaValue("feature_id", String(uid));
+      pep.setMetaValue("feature_id",StringUtils::toStr(uid));
     }
 
     PeptideIdentificationList::iterator pos;
@@ -164,7 +164,7 @@ namespace OpenMS
     // Annotate all IDs with feature_id and sort hits (best first)
     for (PeptideIdentification& pep : peptides)
     {
-      pep.setMetaValue("feature_id", String(uid));
+      pep.setMetaValue("feature_id",StringUtils::toStr(uid));
       pep.sort();
     }
 

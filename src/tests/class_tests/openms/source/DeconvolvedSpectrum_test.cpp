@@ -193,7 +193,7 @@ START_SECTION((int getCurrentMaxAbsCharge(const int max_abs_charge) const))
 }
 END_SECTION
 
-START_SECTION(String& getActivationMethod() const)
+START_SECTION(std::string& getActivationMethod() const)
 {
   Precursor::ActivationMethod act_method = ms2_deconv_spec.getActivationMethod();
   TEST_EQUAL(Precursor::ActivationMethod::ETD, act_method); // TODO: why ETD?

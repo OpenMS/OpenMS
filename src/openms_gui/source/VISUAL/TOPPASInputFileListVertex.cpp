@@ -32,7 +32,7 @@ namespace OpenMS
     return std::make_unique<TOPPASInputFileListVertex>(*this);
   }
 
-  String TOPPASInputFileListVertex::getName() const
+  std::string TOPPASInputFileListVertex::getName() const
   {
     return "InputVertex";
   }
@@ -111,7 +111,7 @@ namespace OpenMS
 
   void TOPPASInputFileListVertex::openContainingFolder()
   {
-    std::set<String> directories;
+    std::set<std::string> directories;
     QStringList fl = getFileNames();
     for (int i = 0; i < fl.size(); ++i) // collect unique directories
     {
@@ -120,7 +120,7 @@ namespace OpenMS
     }
 
     // open them
-    for (std::set<String>::const_iterator it = directories.begin(); it != directories.end(); ++it)
+    for (std::set<std::string>::const_iterator it = directories.begin(); it != directories.end(); ++it)
     {
       QString path = QDir::toNativeSeparators(toQString(*it));
       GUIHelpers::openFolder(path);

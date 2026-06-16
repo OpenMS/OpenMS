@@ -165,8 +165,8 @@ START_SECTION([EXTRA] aligned-order constructor uses requested aligned ids and t
   MRMFeature feature = makeMRMFeatureFixture_();
   std::vector<std::string> feature_ids{"tr2", "tr1"};
   std::vector<std::string> precursor_ids{"pr1", "pr0"};
-  std::vector<String> feature_lookup_ids{"tr1", "tr2"};
-  std::vector<String> precursor_lookup_ids{"pr1", "pr0"};
+  std::vector<std::string> feature_lookup_ids{"tr1", "tr2"};
+  std::vector<std::string> precursor_lookup_ids{"pr1", "pr0"};
   MRMFeatureOpenMS access(feature, feature_ids, precursor_ids, feature_lookup_ids, precursor_lookup_ids);
 
   const std::vector<std::string> native_ids = access.getNativeIDs();

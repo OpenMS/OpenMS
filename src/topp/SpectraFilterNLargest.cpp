@@ -62,16 +62,16 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", ListUtils::create<String>("mzML"));
+    setValidFormats_("out", ListUtils::create<std::string>("mzML"));
 
     // register one section for each algorithm
     registerSubsection_("algorithm", "Algorithm parameter subsection.");
 
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const override
+  Param getSubsectionDefaults_(const std::string & /*section*/) const override
   {
     return NLargest().getParameters();
   }
@@ -83,8 +83,8 @@ protected:
     //-------------------------------------------------------------
 
     //input/output files
-    String in(getStringOption_("in"));
-    String out(getStringOption_("out"));
+    std::string in(getStringOption_("in"));
+    std::string out(getStringOption_("out"));
 
     //-------------------------------------------------------------
     // loading input

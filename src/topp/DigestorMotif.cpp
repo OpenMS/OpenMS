@@ -58,14 +58,14 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "FASTA input file");
-    setValidFormats_("in", ListUtils::create<String>("fasta"));
+    setValidFormats_("in", ListUtils::create<std::string>("fasta"));
     registerOutputFile_("out", "<file>", "", "output file (peptides)\n");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML"));
     registerIntOption_("missed_cleavages", "<number>", 1, "the number of allowed missed cleavages", false);
     registerIntOption_("mass_accuracy", "<number>", 1000, "give your mass accuracy in ppb", false);
     registerIntOption_("min_length", "<number>", 6, "minimum length of peptide", false);
     registerIntOption_("out_option", "<number>", 1, "indicate 1 (peptide table only), 2 (statistics only) or (both peptide table + statistics)", false);
-    vector<String> all_enzymes;
+    vector<std::string> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
     setValidStrings_("enzyme", all_enzymes);
@@ -85,9 +85,9 @@ protected:
     ProteinIdentification protein_identification;
     PeptideHit temp_peptide_hit;
     ProteinHit temp_protein_hit;
-    vector<String> protein_accessions;
-    String inputfile_name;
-    String outputfile_name;
+    vector<std::string> protein_accessions;
+    std::string inputfile_name;
+    std::string outputfile_name;
     UInt min_size, counter = 0;
     UInt missed_cleavages;
     double accurate_mass, min_mass, max_mass;
@@ -119,7 +119,7 @@ protected:
     //-------------------------------------------------------------
 
     // This should be updated if more cleavage enzymes are available
-    String enzyme_name = getStringOption_("enzyme");
+    std::string enzyme_name = getStringOption_("enzyme");
     digestor.setEnzyme(enzyme_name);
     search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name));
     digestor.setMissedCleavages(missed_cleavages);
@@ -146,7 +146,7 @@ protected:
       protein_identifications[0].insertHit(temp_protein_hit);
     }
     DateTime date_time;
-    String date_time_string;
+    std::string date_time_string;
     date_time.now();
 
     date_time_string = date_time.get();
@@ -170,7 +170,7 @@ protected:
     while (mass_iter > 0)
     {
       vector<double> MIN, MAX;
-      vector<String> protein_names, PROTEINS;
+      vector<std::string> protein_names, PROTEINS;
       vector<vector<double> > Y;
       vector<UInt> OVER;
       UInt total = 0;
@@ -216,7 +216,7 @@ protected:
               peptide_identification.insertHit(temp_peptide_hit);
               if (out_opt == 1 || out_opt == 3)
               {
-                const String unmodified_peptide = temp_peptides[j].toUnmodifiedString();
+                const std::string unmodified_peptide = temp_peptides[j].toUnmodifiedString();
                 const Size nK = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'K');
                 const Size nD = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'D');
                 const Size nR = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'R');

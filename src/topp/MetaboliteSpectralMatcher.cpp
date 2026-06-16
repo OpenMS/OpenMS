@@ -87,14 +87,14 @@ protected:
     registerInputFile_("database", "<file>", "", "Default spectral database.", true);
     setValidFormats_("database", {"mzML", "msp", "mgf"});
     registerOutputFile_("out", "<file>", "", "mzTab file");
-    setValidFormats_("out", ListUtils::create<String>("mzTab"));
+    setValidFormats_("out", ListUtils::create<std::string>("mzTab"));
     registerOutputFile_("out_spectra", "<file>", "", "Output spectra as mzML file. Can be useful to inspect the peak map after spectra merging.", false);
-    setValidFormats_("out_spectra", ListUtils::create<String>("mzML"));
+    setValidFormats_("out_spectra", ListUtils::create<std::string>("mzML"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+  Param getSubsectionDefaults_(const std::string& /*section*/) const override
   {
     return MetaboliteSpectralMatching().getDefaults();
   }
@@ -105,9 +105,9 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
 
-    String in = getStringOption_("in");
-    String database = getStringOption_("database");
-    String spec_db_filename(database);
+    std::string in = getStringOption_("in");
+    std::string database = getStringOption_("database");
+    std::string spec_db_filename(database);
 
     // default path? retrieve file path in share folder
     if (database == "CHEMISTRY/MetaboliteSpectralDB.mzML")
@@ -116,8 +116,8 @@ protected:
       spec_db_filename = File::find("CHEMISTRY/MetaboliteSpectralDB.mzML");
     }
 
-    String out = getStringOption_("out");
-    String out_spectra = getStringOption_("out_spectra");
+    std::string out = getStringOption_("out");
+    std::string out_spectra = getStringOption_("out_spectra");
 
     //-------------------------------------------------------------
     // loading input

@@ -129,6 +129,7 @@ set(system_executables_list
   File_test
   Network_test
   JavaInfo_test
+  PathUtils_test
   PythonInfo_test
   StopWatch_test
   SysInfo_test
@@ -221,6 +222,8 @@ set(format_executables_list
   MzDataValidator_test
   MzIdentMLValidator_test
   MzMLFile_test
+  ImzMLFile_test
+  ImzMLFile_all_modes_test
   MzMLSpectrumDecoder_test
   MzMLSqliteHandler_test
   MzMLSqliteSwathHandler_test

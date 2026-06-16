@@ -11,7 +11,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/config.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -46,9 +46,9 @@ public:
 
     /// Loads a Swath run from a list of split mzML files
     std::vector<OpenSwath::SwathMap> loadSplit(StringList file_list,
-                                               const String& tmp,
+                                               const std::string& tmp,
                                                std::shared_ptr<ExperimentalSettings>& exp_meta, 
-                                               const String& readoptions = "normal");
+                                               const std::string& readoptions = "normal");
 
     /**
       @brief Loads a Swath run from a single mzML file
@@ -66,10 +66,10 @@ public:
       @param[in] plugin_consumer An intermediate custom consumer
       @return Swath maps for MS2 and MS1 (unless readoptions == split, which returns no data)
     */
-    std::vector<OpenSwath::SwathMap> loadMzML(const String& file, 
-                                              const String& tmp,
+    std::vector<OpenSwath::SwathMap> loadMzML(const std::string& file, 
+                                              const std::string& tmp,
                                               std::shared_ptr<ExperimentalSettings>& exp_meta,
-                                              const String& readoptions = "normal",
+                                              const std::string& readoptions = "normal",
                                               Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
 
     /**
@@ -86,18 +86,18 @@ public:
       @return Swath maps for MS2 and MS1
     */
     std::vector<OpenSwath::SwathMap> loadFromMSExperiment(const std::shared_ptr<PeakMap>& exp,
-                                                          const String& tmp,
+                                                          const std::string& tmp,
                                                           std::shared_ptr<ExperimentalSettings>& exp_meta,
-                                                          const String& readoptions = "normal");
+                                                          const std::string& readoptions = "normal");
 
     /// Loads a Swath run from a single mzXML file
-    std::vector<OpenSwath::SwathMap> loadMzXML(const String& file,
-                                               const String& tmp,
+    std::vector<OpenSwath::SwathMap> loadMzXML(const std::string& file,
+                                               const std::string& tmp,
                                                std::shared_ptr<ExperimentalSettings>& exp_meta,
-                                               const String& readoptions = "normal");
+                                               const std::string& readoptions = "normal");
 
     /// Loads a Swath run from a single sqMass file
-    std::vector<OpenSwath::SwathMap> loadSqMass(const String& file, std::shared_ptr<ExperimentalSettings>& /* exp_meta */);
+    std::vector<OpenSwath::SwathMap> loadSqMass(const std::string& file, std::shared_ptr<ExperimentalSettings>& /* exp_meta */);
 
 #ifdef WITH_OPENTIMS
     /**
@@ -109,24 +109,24 @@ public:
       @param[in] readoptions How spectra are accessed: "normal" (in-memory) or "cache" (disk-cached)
       @return Vector of SwathMap structures representing the loaded Swath maps
     */
-    std::vector<OpenSwath::SwathMap> loadBrukerTdf(const String& file,
-                                                    const String& tmp,
+    std::vector<OpenSwath::SwathMap> loadBrukerTdf(const std::string& file,
+                                                    const std::string& tmp,
                                                     std::shared_ptr<ExperimentalSettings>& exp_meta,
-                                                    const String& readoptions);
+                                                    const std::string& readoptions);
 
     /// @brief Convenience overload: loads Bruker TDF in-memory (readoptions="normal")
-    std::vector<OpenSwath::SwathMap> loadBrukerTdf(const String& file,
+    std::vector<OpenSwath::SwathMap> loadBrukerTdf(const std::string& file,
                                                     std::shared_ptr<ExperimentalSettings>& exp_meta);
 #endif
 
 protected:
 
     /// Cache a file to disk
-    OpenSwath::SpectrumAccessPtr doCacheFile_(const String& in, const String& tmp, const String& tmp_fname,
+    OpenSwath::SpectrumAccessPtr doCacheFile_(const std::string& in, const std::string& tmp, const std::string& tmp_fname,
                                               const std::shared_ptr<PeakMap >& experiment_metadata);
 
     /// Only read the meta data from a file and use it to populate exp_meta
-    std::shared_ptr< PeakMap > populateMetaData_(const String& file);
+    std::shared_ptr< PeakMap > populateMetaData_(const std::string& file);
 
     /// Counts the number of scans in a full Swath file (e.g. concatenated non-split file)
     void countScansInSwath_(const std::vector<MSSpectrum>& exp,

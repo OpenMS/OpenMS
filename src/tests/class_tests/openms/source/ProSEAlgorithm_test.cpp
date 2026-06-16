@@ -138,7 +138,7 @@ static PeakMap build_calibration_spectra_(const vector<double>& ppm_shifts)
     prec.setMZ(mz * (1.0 + ppm_shifts[emitted] * 1e-6));
     prec.setCharge(charge);
     spec.setPrecursors({prec});
-    spec.setNativeID("spectrum=" + String(spectra.size()));
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
 
     spectra.addSpectrum(std::move(spec));
     ++emitted;
@@ -360,7 +360,7 @@ START_SECTION(([EXTRA] Synthetic modification discovery - open search))
       prec.setMZ(shifted_mz);
       prec.setCharge(charge);
       spec.setPrecursors({prec});
-      spec.setNativeID("spectrum=" + String(spectra.size()));
+      spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
 
       spectra.addSpectrum(std::move(spec));
       created++;
@@ -662,7 +662,7 @@ START_SECTION(([EXTRA] FDR-filtered modification discovery))
       prec.setMZ(shifted_mz);
       prec.setCharge(charge);
       spec.setPrecursors({prec});
-      spec.setNativeID("spectrum=" + String(spectra.size()));
+      spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
 
       spectra.addSpectrum(std::move(spec));
       created++;
@@ -808,7 +808,7 @@ START_SECTION(([EXTRA] Closed search baseline))
     prec.setMZ(seq.getMZ(charge));
     prec.setCharge(charge);
     spec.setPrecursors({prec});
-    spec.setNativeID("spectrum=" + String(spectra.size()));
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
 
     spectra.addSpectrum(std::move(spec));
   }
@@ -878,7 +878,7 @@ START_SECTION(([EXTRA] Ion mobility annotation))
     prec.setMZ(seq.getMZ(charge));
     prec.setCharge(charge);
     spec.setPrecursors({prec});
-    spec.setNativeID("spectrum=" + String(spectra.size()));
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
 
     spectra.addSpectrum(std::move(spec));
   }
@@ -921,7 +921,7 @@ START_SECTION(([EXTRA] Ion mobility annotation))
 
   // Verify IM unit on ProteinIdentification
   TEST_EQUAL(prot_ids[0].metaValueExists(Constants::UserParam::IM), true)
-  TEST_STRING_EQUAL(String(prot_ids[0].getMetaValue(Constants::UserParam::IM)), "1/K0")
+  TEST_STRING_EQUAL(StringUtils::toStr(prot_ids[0].getMetaValue(Constants::UserParam::IM)), "1/K0")
 }
 END_SECTION
 
@@ -950,13 +950,13 @@ START_SECTION(([EXTRA] Edge cases - empty inputs))
 }
 END_SECTION
 
-START_SECTION((ExitCodes search(const String &, const String &, std::vector<ProteinIdentification> &, PeptideIdentificationList &) const))
+START_SECTION((ExitCodes search(const std::string &, const std::string &, std::vector<ProteinIdentification> &, PeptideIdentificationList &) const))
 {
   NOT_TESTABLE // tested via TOPP tool
 }
 END_SECTION
 
-START_SECTION((SearchResult searchWithModificationAnalysis(const String &, const String &, const String &) const))
+START_SECTION((SearchResult searchWithModificationAnalysis(const std::string &, const std::string &, const std::string &) const))
 {
   NOT_TESTABLE // tested via TOPP tool
 }
@@ -1018,7 +1018,7 @@ START_SECTION(([EXTRA] prepareContext + context-based search produces same IDs a
       prec.setMZ(pep.getMZ(2));
       prec.setCharge(2);
       spec.setPrecursors({prec});
-      spec.setNativeID("spectrum=" + String(spectra.size()));
+      spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
 
       spectra.addSpectrum(std::move(spec));
     }
@@ -1080,7 +1080,7 @@ START_SECTION(([EXTRA] prepareContext + context-based search produces same IDs a
 }
 END_SECTION
 
-START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<String>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<String>&, const String&) const))
+START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<std::string>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<std::string>&, const std::string&) const))
 {
   // Verify the multi-file in-memory FASTA overload validates input list lengths.
   ProSEAlgorithm algo;
@@ -1089,20 +1089,20 @@ START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::v
   algo.setParameters(p);
 
   vector<FASTAFile::FASTAEntry> fasta_db = {{"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLK"}};
-  vector<String> in_files = {"a.mzML", "b.mzML"};
-  vector<String> mismatched_base_names = {"a"}; // wrong size
+  vector<std::string> in_files = {"a.mzML", "b.mzML"};
+  vector<std::string> mismatched_base_names = {"a"}; // wrong size
 
   TEST_EXCEPTION(Exception::InvalidParameter,
                  algo.searchWithModificationAnalysis(in_files, fasta_db, mismatched_base_names, ""))
 
   // Empty input file list returns INPUT_FILE_EMPTY (no exception).
-  auto empty_res = algo.searchWithModificationAnalysis(std::vector<String>{}, fasta_db, std::vector<String>{}, "");
+  auto empty_res = algo.searchWithModificationAnalysis(std::vector<std::string>{}, fasta_db, std::vector<std::string>{}, "");
   TEST_EQUAL(empty_res.per_file.empty(), true)
   TEST_EQUAL(empty_res.aggregate.exit_code == ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY, true)
 }
 END_SECTION
 
-START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<String>&, const String&, const std::vector<String>&, const String&) const))
+START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<std::string>&, const std::string&, const std::vector<std::string>&, const std::string&) const))
 {
   NOT_TESTABLE // tested via TOPP tool (multi-file integration test)
 }

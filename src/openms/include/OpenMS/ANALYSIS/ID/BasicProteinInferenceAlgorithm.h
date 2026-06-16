@@ -148,7 +148,7 @@ namespace OpenMS
     void aggregatePeptideScores_(
         SequenceToChargeToPSM& best_pep,
         PeptideIdentificationList& pep_ids,
-        const String& overall_score_type,
+        const std::string& overall_score_type,
         bool higher_better,
         const std::string& run_id) const;
 
@@ -187,7 +187,7 @@ namespace OpenMS
       @param[in] aggregation_method Aggregation mode chosen via @c "score_aggregation_method".
     */
     void checkCompat_(
-        const String& score_type,
+        const std::string& score_type,
         const AggregationMethod& aggregation_method
         ) const;
 

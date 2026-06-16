@@ -28,7 +28,7 @@ namespace OpenMS
 namespace ArrowIOHelpers
 {
 
-String generateUuidV4()
+std::string generateUuidV4()
 {
   std::random_device rd;
   std::mt19937 gen(rd());
@@ -48,7 +48,7 @@ String generateUuidV4()
     bytes[4], bytes[5], bytes[6], bytes[7],
     bytes[8], bytes[9], bytes[10], bytes[11],
     bytes[12], bytes[13], bytes[14], bytes[15]);
-  return String(buf);
+  return std::string(buf);
 }
 
 namespace
@@ -69,7 +69,7 @@ namespace
 
 bool writeTableToParquet(
   const std::shared_ptr<arrow::Table>& table,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   if (!table)
@@ -129,7 +129,7 @@ bool writeTableToParquet(
 
 bool concatenateAndWriteToParquet(
   const std::vector<std::shared_ptr<arrow::Table>>& tables,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   if (tables.empty()) { return true; }
@@ -181,7 +181,7 @@ std::shared_ptr<arrow::Array> getColumn(
   return *combined;
 }
 
-String getStringValue(const std::shared_ptr<arrow::Array>& array, int64_t row)
+std::string getStringValue(const std::shared_ptr<arrow::Array>& array, int64_t row)
 {
   if (!array || array->IsNull(row)) return "";
   return std::static_pointer_cast<arrow::StringArray>(array)->GetString(row);
@@ -259,8 +259,8 @@ void readMetaValues(
     {
       try
       {
-        String s(value_str);
-        if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+        std::string s(value_str);
+        if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = s.substr(1, s.size() - 2); }
         target.setMetaValue(name, DataValue(ListUtils::create<Int>(s)));
       }
       catch (...) { target.setMetaValue(name, value_str); }
@@ -269,8 +269,8 @@ void readMetaValues(
     {
       try
       {
-        String s(value_str);
-        if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+        std::string s(value_str);
+        if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = s.substr(1, s.size() - 2); }
         target.setMetaValue(name, DataValue(ListUtils::create<double>(s)));
       }
       catch (...) { target.setMetaValue(name, value_str); }
@@ -279,10 +279,10 @@ void readMetaValues(
     {
       try
       {
-        String s(value_str);
-        if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-        auto sl = ListUtils::create<String>(s);
-        for (auto& e : sl) { e = e.trim(); }
+        std::string s(value_str);
+        if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = s.substr(1, s.size() - 2); }
+        auto sl = ListUtils::create<std::string>(s);
+        for (auto& e : sl) { StringUtils::trim(e); }
         target.setMetaValue(name, DataValue(sl));
       }
       catch (...) { target.setMetaValue(name, value_str); }

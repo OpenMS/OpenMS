@@ -62,55 +62,55 @@ protected:
     });
 
     registerOutputFile_("out", "<file>", "", "Default output tsv file containing deconvolved features");
-    setValidFormats_("out", ListUtils::create<String>("tsv"));
+    setValidFormats_("out", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_(
       "out_spec1", "<file>", "",
       "Output tsv file for deconvolved MS1 spectra. Use -out_spec2, ..., -out_spec4 for MS2, ..., MS4 spectra.", false);
-    setValidFormats_("out_spec1", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_spec1", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out_spec2", "<file>", "", "Output TSV files for deconvolved MS2 spectra.", false, true);
-    setValidFormats_("out_spec2", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_spec2", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out_spec3", "<file>", "", "Output TSV files for deconvolved MS3 spectra.", false, true);
-    setValidFormats_("out_spec3", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_spec3", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out_spec4", "<file>", "", "Output TSV files for deconvolved MS4 spectra.", false, true);
-    setValidFormats_("out_spec4", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_spec4", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out_mzml", "<file>", "", "Output mzML file containing deconvolved spectra (for all MS levels).", false);
-    setValidFormats_("out_mzml", ListUtils::create<String>("mzML"));
+    setValidFormats_("out_mzml", ListUtils::create<std::string>("mzML"));
 
     registerOutputFile_("out_quant", "<file>", "", "Output tsv file with isobaric quantification results for MS2 spectra.", false);
-    setValidFormats_("out_quant", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_quant", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out_annotated_mzml", "<file>", "",
                         "Output annotated mzML file with monoisotopic mass, charge, and isotope index metadata for peaks. Unannotated peaks are also retained without metadata.",
                         false);
-    setValidFormats_("out_annotated_mzml", ListUtils::create<String>("mzML"));
+    setValidFormats_("out_annotated_mzml", ListUtils::create<std::string>("mzML"));
 
     registerOutputFile_(
       "out_msalign1", "<file>", "",
       "Output msalign (TopFD and ProMex compatible) file for MS1 deconvolved spectra. Ensure filename ends with ms1.msalign for TopPIC GUI compatibility (e.g., result_ms1.msalign; refer to TopPIC input formats).",
       false);
-    setValidFormats_("out_msalign1", ListUtils::create<String>("msalign"), false);
+    setValidFormats_("out_msalign1", ListUtils::create<std::string>("msalign"), false);
 
     registerOutputFile_("out_msalign2", "<file>", "",
                         "Output msalign (TopFD and ProMex compatible) file for MS2 deconvolved spectra. Ensure filename ends with ms2.msalign for TopPIC GUI compatibility (e.g., result_ms2.msalign; refer to TopPIC input formats).",
                         false, true);
-    setValidFormats_("out_msalign2", ListUtils::create<String>("msalign"), false);
+    setValidFormats_("out_msalign2", ListUtils::create<std::string>("msalign"), false);
 
     registerOutputFile_("out_feature1", "<file>", "",
                         "Output feature file (TopFD compatible) for MS1 spectra. It is needed for TopPIC feature intensity output (refer to TopPIC input formats).",
                         false);
 
-    setValidFormats_("out_feature1", ListUtils::create<String>("feature"), false);
+    setValidFormats_("out_feature1", ListUtils::create<std::string>("feature"), false);
 
     registerOutputFile_("out_feature2", "<file>", "",
                         "Output feature file (TopFD compatible) for MS2 spectra. It is needed for TopPIC feature intensity output (refer to TopPIC input formats).",
                         false, true);
 
-    setValidFormats_("out_feature2", ListUtils::create<String>("feature"), false);
+    setValidFormats_("out_feature2", ListUtils::create<std::string>("feature"), false);
 
     registerFlag_("keep_empty_out", "Retain empty output files (e.g., *.tsv files with no features).");
 
@@ -143,7 +143,7 @@ protected:
   ///   -SD:*  -> spectral deconvolution parameters
   ///   -ft:*  -> feature tracing parameters
   ///   -iq:*  -> isobaric quantification parameters
-  Param getSubsectionDefaults_(const String& prefix) const override
+  Param getSubsectionDefaults_(const std::string& prefix) const override
   {
     auto fd_param = FLASHDeconvAlgorithm().getDefaults();
 
@@ -178,8 +178,8 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
-    String in_file = getStringOption_("in");
-    String out_file = getStringOption_("out");
+    std::string in_file = getStringOption_("in");
+    std::string out_file = getStringOption_("out");
     bool keep_empty_out = getFlag_("keep_empty_out");
     auto out_spec_file
       = StringList {getStringOption_("out_spec1"), getStringOption_("out_spec2"), getStringOption_("out_spec3"), getStringOption_("out_spec4")};
@@ -187,9 +187,9 @@ protected:
     auto out_topfd_file = StringList {getStringOption_("out_msalign1"), getStringOption_("out_msalign2")};
     auto out_topfd_feature_file = StringList {getStringOption_("out_feature1"), getStringOption_("out_feature2")};
 
-    String out_mzml_file = getStringOption_("out_mzml");
-    String out_anno_mzml_file = getStringOption_("out_annotated_mzml");
-    String out_quant_file = getStringOption_("out_quant");
+    std::string out_mzml_file = getStringOption_("out_mzml");
+    std::string out_anno_mzml_file = getStringOption_("out_annotated_mzml");
+    std::string out_quant_file = getStringOption_("out_quant");
 
     bool write_detail = getFlag_("write_detail");
     int mzml_charge = getIntOption_("mzml_mass_charge");

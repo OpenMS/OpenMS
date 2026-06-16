@@ -50,7 +50,7 @@ START_SECTION((OnDiscMSExperiment(const OnDiscMSExperiment& filename)))
 }
 END_SECTION
 
-// START_SECTION((OnDiscMSExperiment(const String& filename)))
+// START_SECTION((OnDiscMSExperiment(const std::string& filename)))
 // {
 //   OnDiscPeakMap tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 //   TEST_EQUAL(tmp.size(), 2);
@@ -85,7 +85,7 @@ START_SECTION((bool operator!= (const OnDiscMSExperiment& rhs) const))
 }
 END_SECTION
 
-START_SECTION(( bool openFile(const String& filename, bool skipMetaData = false) ))
+START_SECTION(( bool openFile(const std::string& filename, bool skipMetaData = false) ))
 {
   OnDiscPeakMap tmp;
   OnDiscPeakMap same;

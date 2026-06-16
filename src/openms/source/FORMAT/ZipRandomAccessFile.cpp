@@ -118,8 +118,8 @@ private:
 };
 
 
-arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> ZipRandomAccessFile::Open(const String& archive_path,
-																																											const String& entry_name,
+arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> ZipRandomAccessFile::Open(const std::string& archive_path,
+																																											const std::string& entry_name,
 											std::unique_ptr<File::TempDir>& temp_dir)
 {
     // temp_dir is only used on the extraction fallback path; silence unused-parameter

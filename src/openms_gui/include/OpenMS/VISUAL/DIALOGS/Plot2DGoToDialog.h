@@ -24,7 +24,6 @@ namespace Ui
 namespace OpenMS
 {
 
-  class String;
 
   /**
       @brief GoTo dialog used to zoom to a m/z and retention time range or to a feature.
@@ -67,7 +66,7 @@ public:
     ///@name Methods for feature numbers
     //@{
     ///Returns the selected feature numbers. If a number is returned, the feature rather than the range should be displayed.
-    String getFeatureNumber() const;
+    std::string getFeatureNumber() const;
     ///Disables the feature number field
     void enableFeatureNumber(bool);
     //@}

@@ -88,9 +88,9 @@ protected:
     void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "Input files used to generate the mzTab file.", false);
-      setValidFormats_("in", ListUtils::create<String>("featureXML,featureparquet,consensusXML,consensusparquet,idXML,idparquet,mzid"));
+      setValidFormats_("in", ListUtils::create<std::string>("featureXML,featureparquet,consensusXML,consensusparquet,idXML,idparquet,mzid"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
-      setValidFormats_("out", ListUtils::create<String>("mzTab"));
+      setValidFormats_("out", ListUtils::create<std::string>("mzTab"));
       registerFlag_("first_run_inference_only", "Does the first IdentificationRun in the file "
                                                 "only represent (protein) inference results? If so, read peptide information only "
                                                 "from second to last runs.", true);
@@ -102,10 +102,10 @@ protected:
     ExitCodes main_(int, const char**) override
     {
       // parameter handling
-      String in = getStringOption_("in");
+      std::string in = getStringOption_("in");
       FileTypes::Type in_type = FileHandler::getType(in);
 
-      String out = getStringOption_("out");
+      std::string out = getStringOption_("out");
 
       StringList optional_columns = getStringList_("opt_columns");
       bool export_subfeatures = ListUtils::contains(optional_columns, "subfeatures");
@@ -168,7 +168,7 @@ protected:
       // export identification data from mzIdentML
       if (in_type == FileTypes::MZIDENTML)
       {
-        String document_id;
+        std::string document_id;
         vector<ProteinIdentification> prot_ids;
         PeptideIdentificationList pep_ids;
         FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::MZIDENTML});

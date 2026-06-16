@@ -55,7 +55,7 @@ namespace OpenMS
          < std::tie(rhs.fields_.year, rhs.fields_.month, rhs.fields_.day);
   }
 
-  void Date::set(const String& date)
+  void Date::set(const std::string& date)
   {
     clear();
 
@@ -64,7 +64,7 @@ namespace OpenMS
 
     int n = 0; // track how many chars consumed
 
-    if (date.has('.'))
+    if (StringUtils::has(date, '.'))
     {
       if (sscanf(date.c_str(), "%d.%d.%d%n", &day, &month, &year, &n) == 3
           && n == (int)date.size())
@@ -72,7 +72,7 @@ namespace OpenMS
         parsed = true;
       }
     }
-    else if (date.has('/'))
+    else if (StringUtils::has(date, '/'))
     {
       if (sscanf(date.c_str(), "%d/%d/%d%n", &month, &day, &year, &n) == 3
           && n == (int)date.size())
@@ -80,7 +80,7 @@ namespace OpenMS
         parsed = true;
       }
     }
-    else if (date.has('-'))
+    else if (StringUtils::has(date, '-'))
     {
       if (sscanf(date.c_str(), "%d-%d-%d%n", &year, &month, &day, &n) == 3
           && n == (int)date.size())
@@ -105,7 +105,7 @@ namespace OpenMS
     if (!isValidDate_((int)year, (int)month, (int)day))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                  String(year) + "-" + String(month) + "-" + String(day), "Invalid date");
+                                  StringUtils::toStr(year) + "-" + StringUtils::toStr(month) + "-" + StringUtils::toStr(day), "Invalid date");
     }
 
     fields_.year = (int)year;
@@ -133,13 +133,13 @@ namespace OpenMS
     return d;
   }
 
-  String Date::get() const
+  std::string Date::get() const
   {
     if (fields_.valid)
     {
       char buf[16];
       snprintf(buf, sizeof(buf), "%04d-%02d-%02d", fields_.year, fields_.month, fields_.day);
-      return String(buf);
+      return std::string(buf);
     }
     return "0000-00-00";
   }

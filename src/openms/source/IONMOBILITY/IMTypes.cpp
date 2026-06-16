@@ -105,15 +105,15 @@ namespace OpenMS
       auto format = *occs.begin();
       if (format != IMFormat::IM_PEAK && format != IMFormat::IM_SPECTRUM)
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "subfunction returned invalid value(s)", "Number of different values: " + String(occs.size()));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "subfunction returned invalid value(s)", "Number of different values: " + StringUtils::toStr(occs.size()));
       }
       return format;
     }
     else
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "MSExperiment contains MS" + String(ms_level) + " spectra with different IM formats. "
-        "Handle per-spectrum.", "Number of different formats: " + String(occs.size()));
+        "MSExperiment contains MS" + StringUtils::toStr(ms_level) + " spectra with different IM formats. "
+        "Handle per-spectrum.", "Number of different formats: " + StringUtils::toStr(occs.size()));
     }
   }
 
@@ -187,7 +187,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "oneOverK0ToCCS requires one_over_k0 > 0, mz > 0 and charge != 0",
-        "1/K0=" + String(one_over_k0) + ", mz=" + String(mz) + ", charge=" + String(charge));
+        "1/K0=" + StringUtils::toStr(one_over_k0) + ", mz=" + StringUtils::toStr(mz) + ", charge=" + StringUtils::toStr(charge));
     }
     const double mu = reducedMass_(mz, charge, buffer_gas_mass);
     return MASON_SCHAMP_CONSTANT * std::abs(charge) / std::sqrt(mu) * one_over_k0;
@@ -199,7 +199,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "ccsToOneOverK0 requires ccs > 0, mz > 0 and charge != 0",
-        "CCS=" + String(ccs) + ", mz=" + String(mz) + ", charge=" + String(charge));
+        "CCS=" + StringUtils::toStr(ccs) + ", mz=" + StringUtils::toStr(mz) + ", charge=" + StringUtils::toStr(charge));
     }
     const double mu = reducedMass_(mz, charge, buffer_gas_mass);
     return ccs * std::sqrt(mu) / (MASON_SCHAMP_CONSTANT * std::abs(charge));

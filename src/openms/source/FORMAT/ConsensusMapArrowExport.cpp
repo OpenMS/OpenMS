@@ -36,7 +36,7 @@ namespace // anonymous
   /// Try to extract a scan number from a native ID string.
   /// Uses SpectrumNativeIDParser to auto-detect the native ID format.
   /// Returns -1 on failure.
-  Int extractScan(const String& native_id)
+  Int extractScan(const std::string& native_id)
   {
     std::string regex_str = SpectrumNativeIDParser::getRegExFromNativeID(native_id);
     if (regex_str.empty())
@@ -462,7 +462,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     if (best_hit && best_hit->metaValueExists("target_decoy"))
     {
       std::string td = best_hit->getMetaValue("target_decoy").toString();
-      (void)is_decoy_builder.Append(td.substr(0, 5) == "decoy");
+      (void)is_decoy_builder.Append(StringUtils::substr(td, 0, 5) == "decoy");
     }
     else
     {
@@ -473,7 +473,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     (void)additional_scores_builder.Append();
     if (best_hit)
     {
-      std::vector<String> keys;
+      std::vector<std::string> keys;
       best_hit->getKeys(keys);
       for (const auto& key : keys)
       {
@@ -869,7 +869,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
 
 bool ConsensusMapArrowExport::exportToParquet(
   const ConsensusMap& cmap,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   auto table = exportToArrow(cmap);

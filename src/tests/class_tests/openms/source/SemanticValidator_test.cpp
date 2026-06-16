@@ -47,23 +47,23 @@ START_SECTION((virtual ~SemanticValidator()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((void setTag(const String& tag)))
+START_SECTION((void setTag(const std::string& tag)))
 	NOT_TESTABLE
 END_SECTION
 	
-START_SECTION((void setAccessionAttribute(const String& accession)))
+START_SECTION((void setAccessionAttribute(const std::string& accession)))
 	NOT_TESTABLE
 END_SECTION
 	
-START_SECTION((void setNameAttribute(const String& name)))
+START_SECTION((void setNameAttribute(const std::string& name)))
 	NOT_TESTABLE
 END_SECTION
 	
-START_SECTION((void setValueAttribute(const String& value)))
+START_SECTION((void setValueAttribute(const std::string& value)))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((bool validate(const String &filename, StringList &errors, StringList &warnings)))
+START_SECTION((bool validate(const std::string &filename, StringList &errors, StringList &warnings)))
 	StringList errors, warnings;
 	
 	//----------------------------------------------------------------------------------------
@@ -106,13 +106,13 @@ START_SECTION((void setCheckUnits(bool check)))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void setUnitAccessionAttribute(const String &accession)))
+START_SECTION((void setUnitAccessionAttribute(const std::string &accession)))
 	SemanticValidator sv(mapping, cv);
 	sv.setUnitAccessionAttribute("unitAccession");
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void setUnitNameAttribute(const String &name)))
+START_SECTION((void setUnitNameAttribute(const std::string &name)))
 	SemanticValidator sv(mapping, cv);
 	sv.setUnitNameAttribute("unit");
 	NOT_TESTABLE

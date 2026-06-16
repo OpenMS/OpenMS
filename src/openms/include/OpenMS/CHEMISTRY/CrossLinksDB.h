@@ -85,7 +85,7 @@ namespace OpenMS
       @param[out] modifications Sorted list of search-eligible modification
                                 full-IDs. Any previous contents are cleared.
     */
-    void getAllSearchModifications(std::vector<String>& modifications) const;
+    void getAllSearchModifications(std::vector<std::string>& modifications) const;
 
   private:
 

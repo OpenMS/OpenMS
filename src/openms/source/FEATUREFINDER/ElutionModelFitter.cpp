@@ -211,7 +211,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   Size index = 0;
   for (Feature& feat : features)
   {
-    // OPENMS_LOG_DEBUG << String(feat->getMetaValue("PeptideRef")) << endl;
+    // OPENMS_LOG_DEBUG << StringUtils::toStr(feat->getMetaValue("PeptideRef")) << endl;
     double region_start = double(feat.getMetaValue("leftWidth"));
     double region_end = double(feat.getMetaValue("rightWidth"));
 
@@ -268,7 +268,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
         fitAndValidateModel_(fitter, temp, sub, region_start, region_end,
                              asymmetric, area_limit, check_boundaries);
       }
-      trace.theoretical_int = sub.getMetaValue("isotope_probability");
+      trace.theoretical_int = (double)sub.getMetaValue("isotope_probability");
       traces.push_back(trace);
     }
 
@@ -347,7 +347,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     {
       if (feature.getMetaValue("model_status") == "0 (valid)")
       {
-        double width = feature.getMetaValue("model_width");
+        double width = (double)feature.getMetaValue("model_width");
         double z_width = (width - median_width) / mad_width; // mod. z-score
         if (z_width > width_limit)
         {
@@ -384,7 +384,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     {
       if (feature.getMetaValue("model_status") == "0 (valid)")
       {
-        double asym = feature.getMetaValue("model_asymmetry");
+        double asym = (double)feature.getMetaValue("model_asymmetry");
         double z_asym = (asym - median_asym) / mad_asym; // mod. z-score
         if (z_asym > asym_limit)
         {
@@ -408,7 +408,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
        feat_it != features.end(); ++feat_it, ++index)
   {
     feat_it->setMetaValue("raw_intensity", feat_it->getIntensity());
-    if (String(feat_it->getMetaValue("model_status"))[0] != '0')
+    if (StringUtils::toStr(feat_it->getMetaValue("model_status"))[0] != '0')
     {
       if (impute) failed_models.push_back(feat_it);
       else feat_it->setIntensity(0.0);
@@ -436,7 +436,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   {
     TransformationModelLinear lm(quant_values, Param());
     double slope, intercept;
-    String x_weight, y_weight;
+    std::string x_weight, y_weight;
     double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
     lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
     OPENMS_LOG_INFO << "Imputing model failures with a linear model based on log(rawIntensities). Slope: " << slope << ", Intercept: " << intercept << endl;

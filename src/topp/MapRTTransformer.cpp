@@ -86,16 +86,16 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    String file_formats = "mzML,featureXML,featureparquet,consensusXML,consensusparquet,idXML,idparquet";
+    std::string file_formats = "mzML,featureXML,featureparquet,consensusXML,consensusparquet,idXML,idparquet";
     // "in" is not required, in case we only want to invert a transformation:
     registerInputFile_("in", "<file>", "", "Input file to transform (separated by blanks)", false);
-    setValidFormats_("in", ListUtils::create<String>(file_formats));
+    setValidFormats_("in", ListUtils::create<std::string>(file_formats));
     registerOutputFile_("out", "<file>", "", "Output file (same file type as 'in'). This option or 'trafo_out' has to be provided; they can be used together.", false);
-    setValidFormats_("out", ListUtils::create<String>(file_formats));
+    setValidFormats_("out", ListUtils::create<std::string>(file_formats));
     registerInputFile_("trafo_in", "<file>", "", "Transformation to apply");
-    setValidFormats_("trafo_in", ListUtils::create<String>("trafoXML"));
+    setValidFormats_("trafo_in", ListUtils::create<std::string>("trafoXML"));
     registerOutputFile_("trafo_out", "<file>", "", "Transformation output file. This option or 'out' has to be provided; they can be used together.", false);
-    setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
+    setValidFormats_("trafo_out", ListUtils::create<std::string>("trafoXML"));
     registerFlag_("invert", "Invert transformation (approximatively) before applying it");
     registerFlag_("store_original_rt", "Store the original retention times (before transformation) as meta data in the output file");
     addEmptyLine_();
@@ -103,7 +103,7 @@ protected:
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String& /* section */) const override
+  Param getSubsectionDefaults_(const std::string& /* section */) const override
   {
     return MapAlignerBase::getModelDefaults("none");
   }
@@ -122,12 +122,12 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
-    String trafo_in = getStringOption_("trafo_in");
-    String trafo_out = getStringOption_("trafo_out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
+    std::string trafo_in = getStringOption_("trafo_in");
+    std::string trafo_out = getStringOption_("trafo_out");
     Param model_params = getParam_().copy("model:", true);
-    String model_type = model_params.getValue("type").toString();
+    std::string model_type = model_params.getValue("type").toString();
     model_params = model_params.copy(model_type + ":", true);
 
     ProgressLogger progresslogger;

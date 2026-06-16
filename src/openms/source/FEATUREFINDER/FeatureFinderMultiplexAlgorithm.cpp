@@ -95,7 +95,7 @@ namespace OpenMS
     const Param& p = generator.getParameters();
     for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
     {
-      String label_name = "labels:";
+      std::string label_name = "labels:";
       label_name += it->name;
 
       defaults_.setValue(label_name, it->value, it->description, {"advanced"});
@@ -105,18 +105,18 @@ namespace OpenMS
     }
 
     // parameter section: algorithm, get selected charge range
-    String charge_string = defaults_.getValue("algorithm:charge").toString();
-    charge_min_ = charge_string.prefix(':').toInt();
-    charge_max_ = charge_string.suffix(':').toInt();
+    std::string charge_string = defaults_.getValue("algorithm:charge").toString();
+    charge_min_ = StringUtils::toInt32(StringUtils::prefix(charge_string, ':'));
+    charge_max_ = StringUtils::toInt32(StringUtils::suffix(charge_string, ':'));
     if (charge_min_ > charge_max_)
     {
       swap(charge_min_, charge_max_);
     }
 
     // parameter section: algorithm, get isotopes per peptide range
-    String isotopes_per_peptide_string = defaults_.getValue("algorithm:isotopes_per_peptide").toString();
-    isotopes_per_peptide_min_ = isotopes_per_peptide_string.prefix(':').toInt();
-    isotopes_per_peptide_max_ = isotopes_per_peptide_string.suffix(':').toInt();
+    std::string isotopes_per_peptide_string = defaults_.getValue("algorithm:isotopes_per_peptide").toString();
+    isotopes_per_peptide_min_ = StringUtils::toInt32(StringUtils::prefix(isotopes_per_peptide_string, ':'));
+    isotopes_per_peptide_max_ = StringUtils::toInt32(StringUtils::suffix(isotopes_per_peptide_string, ':'));
     if (isotopes_per_peptide_min_ > isotopes_per_peptide_max_)
     {
       swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
@@ -876,18 +876,18 @@ namespace OpenMS
   void FeatureFinderMultiplexAlgorithm::run(MSExperiment& exp, bool progress)
   {
     // parameter section: algorithm, get selected charge range
-    String charge_string = param_.getValue("algorithm:charge").toString();
-    charge_min_ = charge_string.prefix(':').toInt();
-    charge_max_ = charge_string.suffix(':').toInt();
+    std::string charge_string = param_.getValue("algorithm:charge").toString();
+    charge_min_ = StringUtils::toInt32(StringUtils::prefix(charge_string, ':'));
+    charge_max_ = StringUtils::toInt32(StringUtils::suffix(charge_string, ':'));
     if (charge_min_ > charge_max_)
     {
       swap(charge_min_, charge_max_);
     }
 
     // parameter section: algorithm, get isotopes per peptide range
-    String isotopes_per_peptide_string = param_.getValue("algorithm:isotopes_per_peptide").toString();
-    isotopes_per_peptide_min_ = isotopes_per_peptide_string.prefix(':').toInt();
-    isotopes_per_peptide_max_ = isotopes_per_peptide_string.suffix(':').toInt();
+    std::string isotopes_per_peptide_string = param_.getValue("algorithm:isotopes_per_peptide").toString();
+    isotopes_per_peptide_min_ = StringUtils::toInt32(StringUtils::prefix(isotopes_per_peptide_string, ':'));
+    isotopes_per_peptide_max_ = StringUtils::toInt32(StringUtils::suffix(isotopes_per_peptide_string, ':'));
     if (isotopes_per_peptide_min_ > isotopes_per_peptide_max_)
     {
       swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
@@ -994,7 +994,7 @@ namespace OpenMS
     // Switch off averagine_similarity_scaling if we search for single peptide features only.
     // (This scaling parameter is only relevant if we search for multiplets and (!) singlets.)
     double averagine_similarity_scaling;
-    std::vector<std::vector<String> > list = generator.getSamplesLabelsList();
+    std::vector<std::vector<std::string> > list = generator.getSamplesLabelsList();
     if (list.size() == 1 && list[0].size() == 1 && list[0][0] == "no_label")
     {
       // search for singlets only
@@ -1072,10 +1072,10 @@ namespace OpenMS
     }
 
     // construct sample_labels
-    std::vector<std::vector<String> > samples_labels;
-    std::vector<String> temp_samples;
+    std::vector<std::vector<std::string> > samples_labels;
+    std::vector<std::string> temp_samples;
 
-    String labels(param_.getValue("algorithm:labels").toString());
+    std::string labels(param_.getValue("algorithm:labels").toString());
     boost::replace_all(labels, "[]", "no_label");
     boost::replace_all(labels, "()", "no_label");
     boost::replace_all(labels, "{}", "no_label");
@@ -1087,13 +1087,13 @@ namespace OpenMS
       {
         if (temp_samples[i]=="no_label")
         {
-          vector<String> temp_labels;
+          vector<std::string> temp_labels;
           temp_labels.emplace_back("no_label");
           samples_labels.push_back(temp_labels);
         }
         else
         {
-          vector<String> temp_labels;
+          vector<std::string> temp_labels;
           boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: ")); // various separators allowed to separate labels
           samples_labels.push_back(temp_labels);
         }
@@ -1102,7 +1102,7 @@ namespace OpenMS
 
     if (samples_labels.empty())
     {
-      vector<String> temp_labels;
+      vector<std::string> temp_labels;
       temp_labels.emplace_back("no_label");
       samples_labels.push_back(temp_labels);
     }
@@ -1122,7 +1122,7 @@ namespace OpenMS
       }
       else
       {
-        String label_string;
+        std::string label_string;
         for (unsigned j = 0; j < samples_labels[i].size(); ++j)
         {
           label_string.append(samples_labels[i][j]);

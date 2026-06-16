@@ -21,13 +21,13 @@ using namespace std;
 // we just need ANY commandline tool available on (hopefully) all boxes.
 // note that commands like "dir" or "type" are only known within cmd.exe and are not actual executables (unlike on Linux)
 #ifdef OPENMS_WINDOWSPLATFORM
-  const String exe = "cmd";
-  const std::vector<String> args = {"/C", "echo hi"};
-  const std::vector<String> args_broken = {"/C", "doesnotexist"};
+  const std::string exe = "cmd";
+  const std::vector<std::string> args = {"/C", "echo hi"};
+  const std::vector<std::string> args_broken = {"/C", "doesnotexist"};
 #else
-  const String exe = "ls";
-  const std::vector<String> args = {"-l"};
-  const std::vector<String> args_broken = {"-0"};
+  const std::string exe = "ls";
+  const std::vector<std::string> args = {"-l"};
+  const std::vector<std::string> args_broken = {"-0"};
 #endif //
 
 START_TEST(ExternalProcess, "$Id$")
@@ -38,7 +38,7 @@ START_SECTION(ExternalProcess())
   NOT_TESTABLE; // tested below
 END_SECTION
 
-START_SECTION(ExternalProcess(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr))
+START_SECTION(ExternalProcess(std::function<void(const std::string&)> callbackStdOut, std::function<void(const std::string&)> callbackStdErr))
   NOT_TESTABLE; // tested below
 END_SECTION
 
@@ -46,16 +46,16 @@ START_SECTION(~ExternalProcess())
   NOT_TESTABLE; // tested below
 END_SECTION
 
-START_SECTION(void setCallbacks(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr))
+START_SECTION(void setCallbacks(std::function<void(const std::string&)> callbackStdOut, std::function<void(const std::string&)> callbackStdErr))
   NOT_TESTABLE; // tested below
 END_SECTION
 
-START_SECTION(RETURNSTATE run(const String& exe, const std::vector<String>& args, const String& working_dir, bool verbose, String& error_msg, IO_MODE io_mode, const std::map<String, String>& env, std::function<void()> idle_callback))
+START_SECTION(RETURNSTATE run(const std::string& exe, const std::vector<std::string>& args, const std::string& working_dir, bool verbose, std::string& error_msg, IO_MODE io_mode, const std::map<std::string, std::string>& env, std::function<void()> idle_callback))
 {
-  String error_msg;
+  std::string error_msg;
   { // without callbacks
     ExternalProcess ep;
-    String error_msg;
+    std::string error_msg;
     auto r = ep.run(exe, args, "", true, error_msg);
     TEST_EQUAL(r, ExternalProcess::RETURNSTATE::SUCCESS)
     TEST_EQUAL(error_msg.size(), 0)
@@ -69,9 +69,9 @@ START_SECTION(RETURNSTATE run(const String& exe, const std::vector<String>& args
     TEST_NOT_EQUAL(error_msg.size(), 0);
   }
   { // with callbacks
-    String all_out, all_err;
-    auto l_out = [&](const String& out) {all_out += out;};
-    auto l_err = [&](const String& out) {all_err += out;};
+    std::string all_out, all_err;
+    auto l_out = [&](const std::string& out) {all_out += out;};
+    auto l_err = [&](const std::string& out) {all_err += out;};
     ExternalProcess ep(l_out, l_err);
     auto r = ep.run(exe, args, "", true, error_msg);
     TEST_EQUAL(r, ExternalProcess::RETURNSTATE::SUCCESS)
@@ -102,7 +102,7 @@ START_SECTION(RETURNSTATE run(const String& exe, const std::vector<String>& args
 }
 END_SECTION
 
-START_SECTION(RETURNSTATE run(const String& exe, const std::vector<String>& args, const String& working_dir, bool verbose, IO_MODE io_mode, const std::map<String, String>& env, std::function<void()> idle_callback))
+START_SECTION(RETURNSTATE run(const std::string& exe, const std::vector<std::string>& args, const std::string& working_dir, bool verbose, IO_MODE io_mode, const std::map<std::string, std::string>& env, std::function<void()> idle_callback))
  NOT_TESTABLE // tested above..
 END_SECTION
 

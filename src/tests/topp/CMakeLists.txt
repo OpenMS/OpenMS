@@ -1298,6 +1298,29 @@ set_tests_properties("TOPP_MapAlignerPoseClustering_4_out1" PROPERTIES DEPENDS "
 add_test("TOPP_MapAlignerPoseClustering_4_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerPoseClustering_4_trafo2.tmp.trafoXML -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_trafo1.trafoXML )
 set_tests_properties("TOPP_MapAlignerPoseClustering_4_out2" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_4")
 
+# Un-alignable input must not abort the whole run (issue #7010). On develop the mzML branch
+# called align() without a try/catch, so any alignment failure crashed the tool with an
+# uncaught exception. The fix falls back to the identity transformation for the failing file
+# and keeps processing the rest. align() can throw three sibling exceptions; the two tests
+# below cover the two that occur for near-empty input (and that the earlier, incomplete
+# attempt in PR #8376 handled only partially).
+
+# _5: realistic case - a normal reference (input1) plus a near-empty blank (a single peak).
+# The blank cannot be matched to the reference, so the linear fit over zero matched pairs
+# throws Exception::IllegalArgument. The tool must exit 0 and give the blank the identity trafo.
+add_test("TOPP_MapAlignerPoseClustering_5" ${TOPP_BIN_PATH}/MapAlignerPoseClustering -test -ini ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_input1.mzML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_3_blank.mzML -out ${TESTS_TEMP_DIR}/MapAlignerPoseClustering_5_output1.tmp.mzML ${TESTS_TEMP_DIR}/MapAlignerPoseClustering_5_output2.tmp.mzML -trafo_out ${TESTS_TEMP_DIR}/MapAlignerPoseClustering_5_trafo1.tmp.trafoXML ${TESTS_TEMP_DIR}/MapAlignerPoseClustering_5_trafo2.tmp.trafoXML -reference:index 1)
+add_test("TOPP_MapAlignerPoseClustering_5_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerPoseClustering_5_trafo2.tmp.trafoXML -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_trafo1.trafoXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_5_out1" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_5")
+
+# _6: exercises the Exception::InvalidValue path that PR #8376 did NOT catch (it caught only
+# IllegalArgument + UnableToFit). Using the single-peak blank as BOTH reference and scene gives
+# two maps with zero RT span, so the superimposer's slope estimate divides by zero (NaN) and
+# throws InvalidValue. Both develop (no catch) and PR #8376 (no InvalidValue catch) crash here;
+# the fix falls back to the identity trafo for the aligned (non-reference) file.
+add_test("TOPP_MapAlignerPoseClustering_6" ${TOPP_BIN_PATH}/MapAlignerPoseClustering -test -ini ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_3_blank.mzML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_3_blank.mzML -out ${TESTS_TEMP_DIR}/MapAlignerPoseClustering_6_output1.tmp.mzML ${TESTS_TEMP_DIR}/MapAlignerPoseClustering_6_output2.tmp.mzML -trafo_out ${TESTS_TEMP_DIR}/MapAlignerPoseClustering_6_trafo1.tmp.trafoXML ${TESTS_TEMP_DIR}/MapAlignerPoseClustering_6_trafo2.tmp.trafoXML -reference:index 1)
+add_test("TOPP_MapAlignerPoseClustering_6_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MapAlignerPoseClustering_6_trafo2.tmp.trafoXML -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_trafo1.trafoXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_6_out1" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_6")
+
 #------------------------------------------------------------------------------
 # MapAlignerIdentification tests:
 add_test("TOPP_MapAlignerIdentification_1" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML -out ${TESTS_TEMP_DIR}/MapAlignerIdentification_1_output1.tmp.featureXML ${TESTS_TEMP_DIR}/MapAlignerIdentification_1_output2.tmp.featureXML)

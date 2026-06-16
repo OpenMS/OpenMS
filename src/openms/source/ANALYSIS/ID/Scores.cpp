@@ -44,32 +44,32 @@ namespace OpenMS
     return maps;
   }
 
-  bool Scores::isScoreType(const String& score_name, IDType type)
+  bool Scores::isScoreType(const std::string& score_name, IDType type)
   {
     const auto& maps = getMaps_();
 
-    String chopped = score_name;
-    if (chopped.hasSuffix("_score"))
+    std::string chopped = score_name;
+    if (StringUtils::hasSuffix(chopped, "_score"))
     {
-      chopped = chopped.chop(6);
+      chopped = StringUtils::chop(chopped, 6);
     }
-    const std::set<String>& possible_types = maps.type_to_str.at(type);
+    const std::set<std::string>& possible_types = maps.type_to_str.at(type);
     return possible_types.contains(chopped);
   }
 
-  Scores::IDType Scores::parseIDType(const String& score_type_in)
+  Scores::IDType Scores::parseIDType(const std::string& score_type_in)
   {
-    String score_type = score_type_in;
-    if (score_type.hasSuffix("_score"))
+    std::string score_type = score_type_in;
+    if (StringUtils::hasSuffix(score_type, "_score"))
     {
-      score_type = score_type.chop(6);
+      score_type = StringUtils::chop(score_type, 6);
     }
-    score_type.toLower();
+    StringUtils::toLower(score_type);
     score_type.erase(std::remove_if(score_type.begin(), score_type.end(),
               [](unsigned char c) { return c == '-' || c == '_' || c == ' '; }),
               score_type.end());
 
-    const std::map<String, IDType> s_to_type = {
+    const std::map<std::string, IDType> s_to_type = {
       {"raw", IDType::RAW},
       {"rawevalue", IDType::RAW_EVAL},
       {"qvalue", IDType::QVAL},
@@ -88,7 +88,7 @@ namespace OpenMS
     else
     {
       throw Exception::MissingInformation(__FILE__, __LINE__,
-                                          OPENMS_PRETTY_FUNCTION, String("Unknown score type '") + score_type_in + "'.");
+                                          OPENMS_PRETTY_FUNCTION,std::string("Unknown score type '") + score_type_in + "'.");
     }
   }
 
@@ -98,10 +98,10 @@ namespace OpenMS
     return maps.type_to_better.at(type);
   }
 
-  std::vector<String> Scores::getAllIDScoreNames()
+  std::vector<std::string> Scores::getAllIDScoreNames()
   {
     const auto& maps = getMaps_();
-    std::vector<String> names;
+    std::vector<std::string> names;
     for (const auto& [type, name_set] : maps.type_to_str)
     {
       for (const auto& name : name_set)
@@ -112,13 +112,13 @@ namespace OpenMS
     return names;
   }
 
-  const std::set<String>& Scores::getIDNamesForType(IDType type)
+  const std::set<std::string>& Scores::getIDNamesForType(IDType type)
   {
     const auto& maps = getMaps_();
     return maps.type_to_str.at(type);
   }
 
-  bool Scores::findIDTypeByName(const String& name, IDType& type)
+  bool Scores::findIDTypeByName(const std::string& name, IDType& type)
   {
     const auto& maps = getMaps_();
     for (const auto& [scoretype, names] : maps.type_to_str)
@@ -132,20 +132,20 @@ namespace OpenMS
     return false;
   }
 
-  String Scores::normalizeScoreName(const String& score_name)
+  std::string Scores::normalizeScoreName(const std::string& score_name)
   {
-    String result = score_name;
-    if (result.hasSuffix("_score"))
+    std::string result = score_name;
+    if (StringUtils::hasSuffix(result, "_score"))
     {
-      result = result.chop(6);
+      result = StringUtils::chop(result, 6);
     }
     return result;
   }
 
-  bool Scores::isKnownScoreType(const String& score_name)
+  bool Scores::isKnownScoreType(const std::string& score_name)
   {
     const auto& maps = getMaps_();
-    String normalized = normalizeScoreName(score_name);
+    std::string normalized = normalizeScoreName(score_name);
 
     for (const auto& [type, names] : maps.type_to_str)
     {

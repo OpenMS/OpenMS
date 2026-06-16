@@ -9,6 +9,9 @@ ConsensusXMLHandler.h
 FeatureXMLHandler.h
 FidHandler.h
 IndexedMzMLDecoder.h
+ImzMLHandler.h
+ImzMLHandlerHelper.h
+ImzMLWriter.h
 IndexedMzMLHandler.h
 MascotXMLHandler.h
 MzDataHandler.h

@@ -16,7 +16,6 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
-#include <OpenMS/VISUAL/TVToolDiscovery.h>
 #include <OpenMS/VISUAL/MISC/CommonDefs.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
@@ -52,17 +51,15 @@ namespace OpenMS
   ToolsDialog::ToolsDialog(
           QWidget* parent,
           const Param& params,
-          String ini_file,
-          String default_dir,
+          std::string ini_file,
+          std::string default_dir,
           LayerDataBase::DataType layer_type,
-          const String& layer_name,
-          TVToolDiscovery* tool_scanner)
+          const std::string& layer_name)
     : QDialog(parent),
       max_threads_(std::max(1, omp_get_max_threads())),
       ini_file_(std::move(ini_file)),
       default_dir_(std::move(default_dir)),
       tool_params_(params.copy("tool_params:", true)),
-      tool_scanner_(tool_scanner),
       layer_type_(layer_type)
   {
     auto main_grid = new QGridLayout(this);
@@ -93,10 +90,6 @@ namespace OpenMS
     connect(tools_combo_, CONNECTCAST(QComboBox, activated, (int)), this, &ToolsDialog::setTool_);
 
     main_grid->addWidget(tools_combo_, 1, 1);
-
-    reload_plugins_button_ = new QPushButton("Reload Plugins");
-    connect(reload_plugins_button_, &QPushButton::clicked, this, &ToolsDialog::reloadPlugins_);
-    main_grid->addWidget(reload_plugins_button_, 0, 2);
 
     label = new QLabel("input argument:");
     const QString input_tooltip = "Select the input parameter for the tool to which the current layer's data will be forwarded to.";
@@ -175,7 +168,7 @@ namespace OpenMS
         for (auto& file_extension : entry.valid_strings)
         {
           // a file extension in valid_strings is of form "*.TYPE" -> convert to substr "TYPE".
-          const String& file_type = file_extension.substr(2, file_extension.size());
+          const std::string& file_type = StringUtils::substr(file_extension, 2, file_extension.size());
           const auto& iter = tool_map_.find(FileTypes::nameToType(file_type));
           // If mapping was found
           if (iter != tool_map_.end())
@@ -191,7 +184,7 @@ namespace OpenMS
 
   void ToolsDialog::setInputOutputCombo_(const Param &p)
   {
-    String str;
+    std::string str;
     QStringList input_list("<select>");
     QStringList output_list("<select>");
     bool outRequired = false;
@@ -201,7 +194,7 @@ namespace OpenMS
       // Cut off "ToolName:1:"
       str = iter.getName().substr(iter.getName().rfind("1:") + 2, iter.getName().size());
       // Only add items and no nodes
-      if (!str.empty() && str.find(":") == String::npos)
+      if (!str.empty() && str.find(":") == std::string::npos)
       {
         // Only add to input list if item has "input file" tag.
         if (iter->tags.find("input file") != iter->tags.end())
@@ -241,7 +234,6 @@ namespace OpenMS
     QStringList list;
 
     const auto& tools = ToolHandler::getTOPPToolList();
-    plugin_params_ = tool_scanner_->getPluginParams();
 
     for (auto& pair : tools)
     {
@@ -249,15 +241,6 @@ namespace OpenMS
       if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
         list << toQString(pair.first);
-      }
-    }
-    //TODO: Plugins get added to the list just like tools and can't be differentiated in the GUI
-    for (const auto& name : tool_scanner_->getPlugins())
-    {
-      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
-      {
-        list << toQString(String(name));
       }
     }
 
@@ -280,12 +263,8 @@ namespace OpenMS
     }
     auto tool_name = getTool();
     arg_param_ = tool_params_.copy(tool_name + ":");
-    if (arg_param_.empty())
-    {
-      arg_param_ = plugin_params_.copy(tool_name + ":");
-    }
 
-    tool_desc_->setText(toQString(String(arg_param_.getSectionDescription(tool_name))));
+    tool_desc_->setText(toQString(std::string(arg_param_.getSectionDescription(tool_name))));
     single_tool_param_ = arg_param_.copy(tool_name + ":1:", true);
 
     setInputOutputCombo_(arg_param_);
@@ -340,7 +319,7 @@ namespace OpenMS
       arg_param_.insert(getTool() + ":1:", single_tool_param_);
       if (!File::writable(ini_file_))
       {
-        QMessageBox::critical(this, "Error", (String("Could not write to '") + ini_file_ + "'!").c_str());
+        QMessageBox::critical(this, "Error", (std::string("Could not write to '") + ini_file_ + "'!").c_str());
       }
       ParamXMLFile paramFile;
       paramFile.store(ini_file_, arg_param_);
@@ -377,12 +356,12 @@ namespace OpenMS
     }
     //set tool combo
     Param::ParamIterator iter = arg_param_.begin();
-    String str;
+    std::string str;
     string = iter.getName().substr(0, iter.getName().find(":")).c_str();
     Int pos = tools_combo_->findText(string);
     if (pos == -1)
     {
-      QMessageBox::critical(this, "Error", (String("Cannot apply '") + fromQString(string) + "' tool to this layer type. Aborting!").c_str());
+      QMessageBox::critical(this, "Error", (std::string("Cannot apply '") + fromQString(string) + "' tool to this layer type. Aborting!").c_str());
       arg_param_.clear();
       return;
     }
@@ -429,33 +408,7 @@ namespace OpenMS
     }
   }
 
-  void ToolsDialog::reloadPlugins_()
-  {
-    QStringList list = createToolsList_();
-
-    int32_t selected_index = list.indexOf(tools_combo_->currentText());
-
-    if (selected_index < 1)
-    {
-      tool_desc_->clear();
-      arg_param_.clear();
-      single_tool_param_.clear();
-      gui_param_.clear();
-      editor_->clear();
-      input_combo_->clear();
-      output_combo_->clear();
-      disable_();
-    }
-    tools_combo_->clear();
-    tools_combo_->addItems(list);
-    if (selected_index > 0)
-    {
-      tools_combo_->setCurrentIndex(selected_index);
-      createINI_();
-    }
-  }
-
-  String ToolsDialog::getOutput()
+  std::string ToolsDialog::getOutput()
   {
     if (output_combo_->currentText() == "<select>")
       return "";
@@ -463,17 +416,17 @@ namespace OpenMS
     return fromQString(output_combo_->currentText());
   }
 
-  String ToolsDialog::getInput()
+  std::string ToolsDialog::getInput()
   {
     return fromQString(input_combo_->currentText());
   }
 
-  String ToolsDialog::getTool()
+  std::string ToolsDialog::getTool()
   {
     return fromQString(tools_combo_->currentText());
   }
 
-  String ToolsDialog::getExtension()
+  std::string ToolsDialog::getExtension()
   {
     // no explicit output selected (e.g. tools with optional output such as FileInfo)
     if (output_combo_->currentText() == "<select>")
@@ -483,14 +436,14 @@ namespace OpenMS
 
     // Try to Return the first valid string for the extension on the output parameter
     // If we can't get any valid strings show an error.
-    String extension = FileTypes::typeToName(FileTypes::UNKNOWN);
-    auto validStrings = arg_param_.getValidStrings(getTool() + ":1:" + fromQString(output_combo_->currentText())); 
+    std::string extension = FileTypes::typeToName(FileTypes::UNKNOWN);
+    auto validStrings = arg_param_.getValidStrings(getTool() + ":1:" + fromQString(output_combo_->currentText()));
     // If we have only one valid output type -> use that
     if (validStrings.size() == 1)
     {
       extension = validStrings[0];
       // Remove the leading .*
-      extension = extension.suffix(extension.size() - 2);
+      extension = StringUtils::suffix(extension, extension.size() - 2);
     }
     // Otherwise the type is unknown
     else 
@@ -585,7 +538,7 @@ namespace OpenMS
   {
     const int threads = threads_combo_->currentData().toInt();
 
-    if (single_tool_param_.exists("threads")) // safeguard for tools without a threads parameter (could be the case for plugins)
+    if (single_tool_param_.exists("threads")) // safeguard for tools without a threads parameter
     {
       single_tool_param_.setValue("threads", threads);
     }

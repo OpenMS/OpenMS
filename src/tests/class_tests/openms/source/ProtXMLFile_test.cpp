@@ -34,14 +34,14 @@ START_SECTION(~ProtXMLFile())
   delete ptr;
 END_SECTION
 
-START_SECTION(void load(const String &filename, ProteinIdentification &protein_ids, PeptideIdentification &peptide_ids))
+START_SECTION(void load(const std::string &filename, ProteinIdentification &protein_ids, PeptideIdentification &peptide_ids))
 {
   ProtXMLFile f;
   ProteinIdentification proteins;
   PeptideIdentification peptides;
-  String prot_file;
+  std::string prot_file;
 
-  StringList ids = ListUtils::create<String>("16627578304933075941,13229490167902618598");
+  StringList ids = ListUtils::create<std::string>("16627578304933075941,13229490167902618598");
   // we do this twice, just to check that members are correctly reset etc..
   for (Int i=0;i<2;++i)
   {
@@ -90,7 +90,7 @@ START_SECTION(void load(const String &filename, ProteinIdentification &protein_i
     TEST_EQUAL(peptides.getHits()[0].getSequence(), aa_seq);
     TEST_EQUAL(peptides.getHits()[0].getCharge(), 2);
     TEST_EQUAL(peptides.getHits()[0].getScore(), 0.8633);
-    set<String> protein_accessions = peptides.getHits()[0].extractProteinAccessionsSet();
+    set<std::string> protein_accessions = peptides.getHits()[0].extractProteinAccessionsSet();
     TEST_EQUAL(protein_accessions.size(), 1);
     TEST_EQUAL(*protein_accessions.begin(), "P02787|TRFE_HUMAN");
     TEST_EQUAL(peptides.getHits()[0].getMetaValue("is_unique"), true);
@@ -103,7 +103,7 @@ START_SECTION(void load(const String &filename, ProteinIdentification &protein_i
 }
 END_SECTION
 
-START_SECTION(void store(const String &filename, const ProteinIdentification &protein_ids, const PeptideIdentification &peptide_ids, const String &document_id=""))
+START_SECTION(void store(const std::string &filename, const ProteinIdentification &protein_ids, const PeptideIdentification &peptide_ids, const std::string &document_id=""))
 {
   ProtXMLFile f;
   ProteinIdentification proteins;

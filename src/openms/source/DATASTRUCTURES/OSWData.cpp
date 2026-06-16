@@ -39,8 +39,8 @@ namespace OpenMS
     if (chrom_traces.getSqlRunID() != getRunID())
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                    "The RUN.ID of the sqMass/MSExperiment ('" + String(chrom_traces.getSqlRunID()) + 
-                                    "') and the OSW file ('" + String(getRunID()) + "') does not match. "
+                                    "The RUN.ID of the sqMass/MSExperiment ('" + StringUtils::toStr(chrom_traces.getSqlRunID()) + 
+                                    "') and the OSW file ('" + StringUtils::toStr(getRunID()) + "') does not match. "
                                     "Please use a recent version of OpenSwathWorkflow to create matching data.");
     }
     
@@ -51,7 +51,7 @@ namespace OpenMS
       UInt32 nid;
       try
       {
-        nid = chrom.getNativeID().toInt();
+        nid = StringUtils::toInt32(chrom.getNativeID());
       }
       catch (...)
       {
@@ -60,7 +60,7 @@ namespace OpenMS
       }
       if (!transitions_.contains(nid))
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition with nativeID " + (String(nid)) + " not found in OSW data. Make sure the OSW data was loaded!");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition with nativeID " + (StringUtils::toStr(nid)) + " not found in OSW data. Make sure the OSW data was loaded!");
       }
       transID_to_index_[nid] = (UInt32)i;
     }
@@ -71,7 +71,7 @@ namespace OpenMS
     auto it = transID_to_index_.find(transition_id);
     if (it == transID_to_index_.end())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Native ID not found in sqMass file. Did you load the correct file (corresponding sqMass + OSW file)?", String(transition_id));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Native ID not found in sqMass file. Did you load the correct file (corresponding sqMass + OSW file)?",StringUtils::toStr(transition_id));
     }
     return it->second;
   }
@@ -86,20 +86,20 @@ namespace OpenMS
         {
           if (!transitions_.contains(tr))
           {
-            throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition with ID " + String(tr) + " was referenced in Protein/Precursor/Feature but is not known!");
+            throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition with ID " + StringUtils::toStr(tr) + " was referenced in Protein/Precursor/Feature but is not known!");
           }
         }
       }
     }
   }
 
-  OSWProtein::OSWProtein(const String& accession, const Size id, std::vector<OSWPeptidePrecursor>&& peptides)
+  OSWProtein::OSWProtein(const std::string& accession, const Size id, std::vector<OSWPeptidePrecursor>&& peptides)
     : accession_(accession),
     id_(id),
     peptides_(std::move(peptides))
   {}
 
-  OSWPeptidePrecursor::OSWPeptidePrecursor(const String& seq, const short charge, const bool decoy, const float precursor_mz, std::vector<OSWPeakGroup>&& features)
+  OSWPeptidePrecursor::OSWPeptidePrecursor(const std::string& seq, const short charge, const bool decoy, const float precursor_mz, std::vector<OSWPeakGroup>&& features)
     : seq_(seq),
     charge_(charge),
     decoy_(decoy),
@@ -118,7 +118,7 @@ namespace OpenMS
   {
   }
 
-  OSWTransition::OSWTransition(const String& annotation, const UInt32 id, const float product_mz, const char type, const bool is_decoy)
+  OSWTransition::OSWTransition(const std::string& annotation, const UInt32 id, const float product_mz, const char type, const bool is_decoy)
     : annotation_(annotation),
     id_(id),
     product_mz_(product_mz),

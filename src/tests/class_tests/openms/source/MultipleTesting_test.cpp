@@ -72,7 +72,7 @@ START_SECTION("lfdr CSV reference (pyprophet) regression")
     while (std::getline(ss, item, ','))
     {
       // strip optional quotes
-      if (!item.empty() && item.front() == '"' && item.back() == '"') item = item.substr(1, item.size()-2);
+      if (!item.empty() && item.front() == '"' && item.back() == '"') item = StringUtils::substr(item, 1, item.size()-2);
       parts.push_back(item);
     }
     if (parts.size() < 5) continue;
@@ -191,7 +191,7 @@ START_SECTION("pi0est: pyprophet reference checks")
     std::string item;
     while (std::getline(ss, item, ','))
     {
-      if (!item.empty() && item.front() == '"' && item.back() == '"') item = item.substr(1, item.size()-2);
+      if (!item.empty() && item.front() == '"' && item.back() == '"') item = StringUtils::substr(item, 1, item.size()-2);
       parts.push_back(item);
     }
     if (parts.empty()) continue;
@@ -333,7 +333,7 @@ START_SECTION("R reference qvalue CSV matches C++ implementation")
     while (std::getline(ss, item, ','))
     {
       // strip quotes
-      if (!item.empty() && item.front() == '"' && item.back() == '"') item = item.substr(1, item.size()-2);
+      if (!item.empty() && item.front() == '"' && item.back() == '"') item = StringUtils::substr(item, 1, item.size()-2);
       parts.push_back(item);
     }
     if (parts.size() < 3) continue;

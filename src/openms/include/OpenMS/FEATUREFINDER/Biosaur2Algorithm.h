@@ -202,7 +202,7 @@ public:
     @param[in] features Peptide features to export (typically obtained from run())
     @param[in] filename Destination file path for the TSV output
   */
-  void writeTSV(const std::vector<PeptideFeature>& features, const String& filename) const;
+  void writeTSV(const std::vector<PeptideFeature>& features, const std::string& filename) const;
 
   /**
     @brief Export the detected hills as TSV for diagnostic purposes.
@@ -213,7 +213,7 @@ public:
     @param[in] hills Hills to export (typically obtained from run())
     @param[in] filename Destination file path for the TSV output
   */
-  void writeHills(const std::vector<Hill>& hills, const String& filename) const;
+  void writeHills(const std::vector<Hill>& hills, const std::string& filename) const;
 
 protected:
   /// @brief Update internal member variables from parameters (called automatically when parameters change)
@@ -710,7 +710,7 @@ private:
   bool ignore_iso_calib_;     ///< Whether to disable automatic isotope mass calibration
   double paseftol_;           ///< Ion mobility tolerance for PASEF/TIMS data (0=disable)
   double hrttol_;             ///< Maximum RT difference between monoisotopic and isotope apex (0=disable)
-  String convex_hull_mode_;   ///< Representation of feature convex hulls ("mass_traces" vs. "bounding_box")
+  std::string convex_hull_mode_;   ///< Representation of feature convex hulls ("mass_traces" vs. "bounding_box")
   bool faims_merge_features_; ///< Whether to merge features at different FAIMS CV values representing the same analyte
   //@}
 };

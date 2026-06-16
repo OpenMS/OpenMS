@@ -77,7 +77,7 @@ public:
 
 protected:
 
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+  Param getSubsectionDefaults_(const std::string& /*section*/) const override
   {
     return FalseDiscoveryRate().getDefaults();
   }
@@ -85,20 +85,20 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Identifications from searching a target-decoy database.");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("idXML"));
     registerOutputFile_("out", "<file>", "", "Identifications with annotated FDR");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML"));
     registerStringOption_("PSM", "<FDR level>", "true", "Perform FDR calculation on PSM level", false);
-    setValidStrings_("PSM", ListUtils::create<String>("true,false"));
+    setValidStrings_("PSM", ListUtils::create<std::string>("true,false"));
     registerStringOption_("peptide", "<FDR level>", "false", "Perform FDR calculation on peptide level and annotates it as meta value\n(Note: if set, also calculates FDR/q-value on PSM level.)", false);
-    setValidStrings_("peptide", ListUtils::create<String>("true,false"));
+    setValidStrings_("peptide", ListUtils::create<std::string>("true,false"));
     registerStringOption_("PSM_peptide_base_score", "<score name or type>", "", "Set if you want to choose a different score than the last calculated main score for PSM or peptide level.", false);
     registerStringOption_("PSM_peptide_base_score_orientation", "<higher/lower>", "", "In case the score orientation cannot be inferred.", false, true);
-    setValidStrings_("PSM_peptide_base_score_orientation", ListUtils::create<String>("higher_better, lower_better"));
+    setValidStrings_("PSM_peptide_base_score_orientation", ListUtils::create<std::string>("higher_better, lower_better"));
     registerStringOption_("protein", "<FDR level>", "true", "Perform FDR calculation on protein level", false);
-    setValidStrings_("protein", ListUtils::create<String>("true,false"));
+    setValidStrings_("protein", ListUtils::create<std::string>("true,false"));
     registerStringOption_("proteingroup", "<FDR level>", "false", "Perform FDR calculation on (indist.) protein group level, too. Currently, this will enable protein FDR automatically (since internals need to be in-sync) but will affect the level at which it filters (if enabled).", false);
-    setValidStrings_("proteingroup", ListUtils::create<String>("true,false"));
+    setValidStrings_("proteingroup", ListUtils::create<std::string>("true,false"));
 
     registerStringOption_("protein_score", "<type>", "", "The protein score used to calculate the protein FDR. If empty, the main score is used.", false, true);
     auto ids = IDScoreSwitcherAlgorithm();
@@ -106,7 +106,7 @@ protected:
 
     registerStringOption_("protein_base_score", "<score name or type>", "", "Set if you want to choose a different score than the last calculated main score for protein (group) level.", false);
     registerStringOption_("protein_base_score_orientation", "<higher/lower>", "", "Set if you want to choose a different score than the last calculated main score for protein (group) level.", false, true);
-    setValidStrings_("protein_base_score_orientation", ListUtils::create<String>("higher_better, lower_better"));
+    setValidStrings_("protein_base_score_orientation", ListUtils::create<std::string>("higher_better, lower_better"));
 
     registerTOPPSubsection_("FDR", "FDR control");
     registerDoubleOption_("FDR:PSM", "<fraction>", 1, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, disabled for 1)", false);
@@ -145,8 +145,8 @@ protected:
     writeDebug_("Parameters passed to FalseDiscoveryRate", alg_param, 3);
 
     // input/output files
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
     const double protein_fdr = getDoubleOption_("FDR:protein");
     const double psm_fdr = getDoubleOption_("FDR:PSM");
 
@@ -171,7 +171,7 @@ protected:
       bool groups = getStringOption_("proteingroup") == "true";
       if (getStringOption_("protein") == "true" || groups)
       {
-        String protein_score = getStringOption_("protein_score");
+        std::string protein_score = getStringOption_("protein_score");
         if (!protein_score.empty())
         {
           try 

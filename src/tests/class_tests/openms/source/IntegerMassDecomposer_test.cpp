@@ -39,7 +39,7 @@ Weights createWeights()
   IMSAlphabet alphabet;
   for (std::map<char, double>::const_iterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
   {
-    alphabet.push_back(String(it->first), it->second);
+    alphabet.push_back(StringUtils::toStr(it->first), it->second);
   }
 
   // initializes weights

@@ -9,7 +9,9 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+
+#include <string>
 #include <vector>
 
 namespace OpenMS
@@ -22,11 +24,11 @@ public:
     Rectangle, // grid aligned bounding box
     Mask       // per pixel mask inside bounding box
   };
-  static MSImagingRegion rectangle(Size id, const String& name, UInt min_x, UInt min_y, UInt max_x, UInt max_y);
+  static MSImagingRegion rectangle(Size id, const std::string& name, UInt min_x, UInt min_y, UInt max_x, UInt max_y);
 
-  static MSImagingRegion fromMask(Size id, const String& name, UInt origin_x, UInt origin_y, UInt width, UInt height, std::vector<bool> mask);
+  static MSImagingRegion fromMask(Size id, const std::string& name, UInt origin_x, UInt origin_y, UInt width, UInt height, std::vector<bool> mask);
 
-  const String& getName() const;
+  const std::string& getName() const;
   bool contains(UInt x, UInt y) const;
   Shape getShape() const;
   Size getId() const;
@@ -42,7 +44,7 @@ public:
 private:
   Size id_ {0};
   Shape shape_ = Shape::Rectangle;
-  String name_;
+  std::string name_;
   std::vector<bool> mask_; // empty if shape_ is set, otherwise rect is bounding box
   UInt min_x_ {0};
   UInt min_y_ {0};

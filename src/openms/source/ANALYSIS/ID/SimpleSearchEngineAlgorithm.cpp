@@ -21,7 +21,7 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <string_view>
 #include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
@@ -85,7 +85,7 @@ namespace OpenMS
 
     defaults_.setSectionDescription("fragment", "Fragments (Product Ion) Options");
 
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
 
     defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
@@ -95,7 +95,7 @@ namespace OpenMS
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
     defaults_.setSectionDescription("modifications", "Modifications Options");
 
-    vector<String> all_enzymes;
+    vector<std::string> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
 
     defaults_.setValue("enzyme", "Trypsin", "The enzyme used for peptide digestion.");
@@ -163,7 +163,7 @@ namespace OpenMS
     fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
 
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
-    set<String> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
+    set<std::string> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
     if (fixed_unique.size() != modifications_fixed_.size())
     {
       OPENMS_LOG_WARN << "Duplicate fixed modification provided. Making them unique." << endl;
@@ -171,7 +171,7 @@ namespace OpenMS
     }    
 
     modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
-    set<String> var_unique(modifications_variable_.begin(), modifications_variable_.end());
+    set<std::string> var_unique(modifications_variable_.begin(), modifications_variable_.end());
     if (var_unique.size() != modifications_variable_.size())
     {
       OPENMS_LOG_WARN << "Duplicate variable modification provided. Making them unique." << endl;
@@ -256,12 +256,12 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       Int peptide_missed_cleavages,
       double precursor_mass_tolerance,
       double fragment_mass_tolerance,
-      const String& precursor_mass_tolerance_unit_ppm,
-      const String& fragment_mass_tolerance_unit_ppm,
+      const std::string& precursor_mass_tolerance_unit_ppm,
+      const std::string& fragment_mass_tolerance_unit_ppm,
       const Int precursor_min_charge,
       const Int precursor_max_charge,
-      const String& enzyme,
-      const String& database_name) const
+      const std::string& enzyme,
+      const std::string& database_name) const
   {
     // remove all but top n scoring
 #pragma omp parallel for default(none) shared(annotated_hits, top_hits)
@@ -336,7 +336,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           ph.setMetaValue("isotope_error", ah.isotope_error);
 
           // get unmodified string
-          AASequence aas = AASequence::fromString(ah.sequence.getString());
+          AASequence aas = AASequence::fromString(std::string(ah.sequence));
 
           // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
           vector<AASequence> all_modified_peptides;
@@ -444,7 +444,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
               if (annotation_longest_ion_run && ion_names[theo_idx].size() >= 2)
               {
-                const String& name = ion_names[theo_idx];
+                const std::string& name = ion_names[theo_idx];
                 const char c = name[0];
                 const bool is_prefix = (c == 'a' || c == 'b' || c == 'c');
                 const bool is_suffix = (c == 'x' || c == 'y' || c == 'z');
@@ -455,7 +455,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
                   while (pos < name.size() && name[pos] >= '0' && name[pos] <= '9') ++pos;
                   if (pos > 1)
                   {
-                    int ordinal = String(name.substr(1, pos - 1)).toInt();
+                    int ordinal = StringUtils::toInt32(StringUtils::substr(name, 1, pos - 1));
                     (is_prefix ? prefix_ordinals : suffix_ordinals).push_back(ordinal);
                   }
                 }
@@ -524,13 +524,13 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
 
     DateTime now = DateTime::now();
-    String identifier("SSE_" + now.get());
+    std::string identifier("SSE_" + now.get());
     protein_ids[0].setIdentifier(identifier);
     for (auto & pid : peptide_ids) { pid.setIdentifier(identifier); }
 
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.db = database_name;
-    search_parameters.charges = String(precursor_min_charge) + ":" + String(precursor_max_charge);
+    search_parameters.charges =StringUtils::toStr(precursor_min_charge) + ":" + StringUtils::toStr(precursor_max_charge);
 
     ProteinIdentification::PeakMassType mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     search_parameters.mass_type = mass_type;
@@ -611,7 +611,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     return multimap_mass_2_scan_index;
   }
 
-  SimpleSearchEngineAlgorithm::ExitCodes SimpleSearchEngineAlgorithm::search(const String& in_spectra, const String& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
+  SimpleSearchEngineAlgorithm::ExitCodes SimpleSearchEngineAlgorithm::search(const std::string& in_spectra, const std::string& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
   {
     boost::regex peptide_motif_regex(peptide_motif_);
 
@@ -701,7 +701,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
-    set<StringView> processed_petides;
+    set<std::string_view> processed_petides;
 
     Size count_proteins(0), count_peptides(0);
 
@@ -717,12 +717,12 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         setProgress(count_proteins);
       }
 
-      vector<StringView> current_digest;
+      vector<std::string_view> current_digest;
       digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, peptide_min_size_, peptide_max_size_);
 
       for (auto const & c : current_digest)
       { 
-        const String current_peptide = c.getString();
+        const std::string current_peptide = std::string(c);
         if (current_peptide.find_first_of("XBZ") != std::string::npos)
         {
           continue;

@@ -50,7 +50,7 @@ namespace OpenMS
 
   XTandemInfile::~XTandemInfile() = default;
 
-  void XTandemInfile::write(const String& filename, bool ignore_member_parameters, bool force_default_mods)
+  void XTandemInfile::write(const std::string& filename, bool ignore_member_parameters, bool force_default_mods)
   {
     if (!File::writable(filename))
     {
@@ -62,7 +62,7 @@ namespace OpenMS
     return;
   }
 
-  String XTandemInfile::convertModificationSet_(const set<ModificationDefinition>& mods, map<String, double>& affected_origins) const
+  std::string XTandemInfile::convertModificationSet_(const set<ModificationDefinition>& mods, map<std::string, double>& affected_origins) const
   {
     // check if both "Glu->pyro-Glu (N-term E)" and "Gln->pyro-Glu (N-term Q)"
     // are specified:
@@ -84,7 +84,7 @@ namespace OpenMS
       }
     }
 
-    map<String, double> origin_set;
+    map<std::string, double> origin_set;
     StringList xtandem_mods;
     for (set<ModificationDefinition>::const_iterator it = mods.begin();
          it != mods.end(); ++it)
@@ -103,7 +103,7 @@ namespace OpenMS
 
       double mod_mass = it->getModification().getDiffMonoMass();
 
-      String orig = it->getModification().getOrigin();
+      std::string orig(1, it->getModification().getOrigin());
       ResidueModification::TermSpecificity ts = it->getModification().getTermSpecificity();
       if ((ts != ResidueModification::ANYWHERE) && !orig.empty())
       {
@@ -134,14 +134,14 @@ namespace OpenMS
       // insert the (corrected) value
       origin_set.insert(make_pair(orig, mod_mass));
 
-      String mod_string;
+      std::string mod_string;
       if (mod_mass >= 0)
       {
-        mod_string = String("+") + String(mod_mass); // prepend a "+"
+        mod_string ="+" + StringUtils::toStr(mod_mass); // prepend a "+"
       }
       else
       {
-        mod_string = String(mod_mass); // the '-' is implicit
+        mod_string =StringUtils::toStr(mod_mass); // the '-' is implicit
       }
       mod_string += "@" + orig;
       xtandem_mods.push_back(mod_string);
@@ -181,13 +181,13 @@ namespace OpenMS
     {
       //////////////// spectrum parameters
       //<note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
-      writeNote_(os, "spectrum, fragment monoisotopic mass error", String(fragment_mass_tolerance_));
+      writeNote_(os, "spectrum, fragment monoisotopic mass error",StringUtils::toStr(fragment_mass_tolerance_));
       //<note type="input" label="spectrum, parent monoisotopic mass error plus">100</note>
-      writeNote_(os, "spectrum, parent monoisotopic mass error plus", String(precursor_mass_tolerance_plus_));
+      writeNote_(os, "spectrum, parent monoisotopic mass error plus",StringUtils::toStr(precursor_mass_tolerance_plus_));
       //<note type="input" label="spectrum, parent monoisotopic mass error minus">100</note>
-      writeNote_(os, "spectrum, parent monoisotopic mass error minus", String(precursor_mass_tolerance_minus_));
+      writeNote_(os, "spectrum, parent monoisotopic mass error minus",StringUtils::toStr(precursor_mass_tolerance_minus_));
       //<note type="input" label="spectrum, parent monoisotopic mass isotope error">yes</note>
-      String allow = allow_isotope_error_ ? "yes" : "no";
+      std::string allow = allow_isotope_error_ ? "yes" : "no";
       writeNote_(os, "spectrum, parent monoisotopic mass isotope error", allow);
       //<note type="input" label="spectrum, fragment monoisotopic mass error units">Daltons</note>
       //<note>The value for this parameter may be 'Daltons' or 'ppm': all other values are ignored</note>
@@ -230,35 +230,35 @@ namespace OpenMS
       //is set to the dynamic range value. All peaks with values of less that
       //1, using this normalization, are not used. This normalization has the
       //overall effect of setting a threshold value for peak intensities.</note>
-      //writeNote_(os, "spectrum, dynamic range", String(dynamic_range_);
+      //writeNote_(os, "spectrum, dynamic range",StringUtils::toStr(dynamic_range_);
 
       //<note type="input" label="spectrum, total peaks">50</note>
       //<note>If this value is 0, it is ignored. If it is greater than zero (lets say 50),
       //then the number of peaks in the spectrum with be limited to the 50 most intense
       //peaks in the spectrum. X! tandem does not do any peak finding: it only
       //limits the peaks used by this parameter, and the dynamic range parameter.</note>
-      //writeNote_(os, "spectrum, total peaks", String(total_number_peaks_);
+      //writeNote_(os, "spectrum, total peaks",StringUtils::toStr(total_number_peaks_);
 
       //<note type="input" label="spectrum, maximum parent charge">4</note>
-      writeNote_(os, "spectrum, maximum parent charge", String(max_precursor_charge_));
+      writeNote_(os, "spectrum, maximum parent charge",StringUtils::toStr(max_precursor_charge_));
 
       // <note type="input" label="spectrum, use noise suppression">yes</note>
       //writeNote_(os, "spectrum, use noise suppression", noise_suppression_);
 
       //<note type="input" label="spectrum, minimum parent m+h">500.0</note>
-      //writeNote_(os, "spectrum, minimum parent m+h", String(precursor_lower_mz_));
+      //writeNote_(os, "spectrum, minimum parent m+h",StringUtils::toStr(precursor_lower_mz_));
 
       //<note type="input" label="spectrum, minimum fragment mz">150.0</note>
-      //writeNote_(os, "spectrum, minimum fragment mz", String(fragment_lower_mz_));
+      //writeNote_(os, "spectrum, minimum fragment mz",StringUtils::toStr(fragment_lower_mz_));
 
       //<note type="input" label="spectrum, minimum peaks">15</note>
-      //writeNote_(os, "spectrum, minimum peaks", String(min_number_peaks_));
+      //writeNote_(os, "spectrum, minimum peaks",StringUtils::toStr(min_number_peaks_));
 
       //<note type="input" label="spectrum, threads">1</note>
-      writeNote_(os, "spectrum, threads", String(number_of_threads_));
+      writeNote_(os, "spectrum, threads",StringUtils::toStr(number_of_threads_));
 
       //<note type="input" label="spectrum, sequence batch size">1000</note>
-      //writeNote_(os, "spectrum, sequence batch size", String(batch_size_));
+      //writeNote_(os, "spectrum, sequence batch size",StringUtils::toStr(batch_size_));
       ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -287,26 +287,26 @@ namespace OpenMS
       //writeNote_(os, "protein, modified residue mass file", modified_residue_mass_file_);
 
       //<note type="input" label="protein, cleavage C-terminal mass change">+17.002735</note>
-      //writeNote_(os, "protein, cleavage C-terminal mass change", String(cleavage_c_term_mass_change_));
+      //writeNote_(os, "protein, cleavage C-terminal mass change",StringUtils::toStr(cleavage_c_term_mass_change_));
 
       //<note type="input" label="protein, cleavage N-terminal mass change">+1.007825</note>
-      //writeNote_(os, "protein, cleavage N-terminal mass change", String(cleavage_n_term_mass_change_));
+      //writeNote_(os, "protein, cleavage N-terminal mass change",StringUtils::toStr(cleavage_n_term_mass_change_));
 
       //<note type="input" label="protein, N-terminal residue modification mass">0.0</note>
-      //writeNote_(os, "protein, N-terminal residue modification mass", String(protein_n_term_mod_mass_));
+      //writeNote_(os, "protein, N-terminal residue modification mass",StringUtils::toStr(protein_n_term_mod_mass_));
 
       //<note type="input" label="protein, C-terminal residue modification mass">0.0</note>
-      //writeNote_(os, "protein, C-terminal residue modification mass", String(protein_c_term_mod_mass_));
+      //writeNote_(os, "protein, C-terminal residue modification mass",StringUtils::toStr(protein_c_term_mod_mass_));
 
       //<note type="input" label="protein, homolog management">no</note>
       //<note>if yes, an upper limit is set on the number of homologues kept for a particular spectrum</note>
       //writeNote_(os, "protein, homolog management", protein_homolog_management_);
 
       // special cases for default (N-terminal) modifications:
-      set<String> var_mods = modifications_.getVariableModificationNames();
+      set<std::string> var_mods = modifications_.getVariableModificationNames();
       // Ron Beavis: "If a variable modification is set for the peptide N-terminus, the 'quick acetyl' and 'quick pyrolidone' are turned off so that they don't interfere with the specified variable modification." -> check for that
       boost::regex re(" \\(N-term( .)?\\)$");
-      for (set<String>::iterator vm_it = var_mods.begin();
+      for (set<std::string>::iterator vm_it = var_mods.begin();
            vm_it != var_mods.end(); ++vm_it)
       {
         if (boost::regex_search(*vm_it, re) && (*vm_it != "Acetyl (N-term)") &&
@@ -346,7 +346,7 @@ namespace OpenMS
       //Positive and negative values are allowed.
       //</note>
 
-      map<String, double> affected_origins;
+      map<std::string, double> affected_origins;
       writeNote_(os, "residue, modification mass", convertModificationSet_(modifications_.getFixedModifications(), affected_origins));
 
       //<note type="input" label="residue, potential modification mass"></note>
@@ -371,15 +371,15 @@ namespace OpenMS
       //<note type="input" label="refine">yes</note>
       //writeNote_(os, "refine", refine_);
       //<note type="input" label="refine, modification mass"></note>
-      //writeNote_(os, "refine, modification mass", String(refine_mod_mass_));
+      //writeNote_(os, "refine, modification mass",StringUtils::toStr(refine_mod_mass_));
       //<note type="input" label="refine, sequence path"></note>
       //writeNote_(os, "refine, sequence path", refine_sequence_path_);
       //<note type="input" label="refine, tic percent">20</note>
-      //writeNote_(os, "refine, tic percent", String(refine_tic_percent_));
+      //writeNote_(os, "refine, tic percent",StringUtils::toStr(refine_tic_percent_));
       //<note type="input" label="refine, spectrum synthesis">yes</note>
       //writeNote_(os, "refine, spectrum synthesis", refine_spectrum_synthesis_);
       //<note type="input" label="refine, maximum valid expectation value">0.1</note>
-      //writeNote_(os, "refine, maximum valid expectation value", String(refine_max_valid_evalue_));
+      //writeNote_(os, "refine, maximum valid expectation value",StringUtils::toStr(refine_max_valid_evalue_));
       //<note type="input" label="refine, potential N-terminus modifications">+42.010565@[</note>
       //writeNote_(os, "refine, potential N-terminus modifications", refine_variable_n_term_mods_);
       //<note type="input" label="refine, potential C-terminus modifications"></note>
@@ -387,7 +387,7 @@ namespace OpenMS
       //<note type="input" label="refine, unanticipated cleavage">yes</note>
       //writeNote_(os, "refine, unanticipated cleavage", refine_unanticipated_cleavage_);
       //<note type="input" label="refine, potential modification mass"></note>
-      //writeNote_(os, "refine, potential modification mass", String(variable_mod_mass_));
+      //writeNote_(os, "refine, potential modification mass",StringUtils::toStr(variable_mod_mass_));
       //<note type="input" label="refine, point mutations">no</note>
       //writeNote_(os, "refine, point mutations", refine_point_mutations_);
       //<note type="input" label="refine, use potential modifications for full refinement">no</note>
@@ -408,9 +408,9 @@ namespace OpenMS
 
       //////////////// scoring parameters
       //<note type="input" label="scoring, minimum ion count">4</note>
-      //writeNote_(os, "scoring, minimum ion count", String(scoring_min_ion_count_));
+      //writeNote_(os, "scoring, minimum ion count",StringUtils::toStr(scoring_min_ion_count_));
       //<note type="input" label="scoring, maximum missed cleavage sites">1</note>
-      writeNote_(os, "scoring, maximum missed cleavage sites", String(number_of_missed_cleavages_));
+      writeNote_(os, "scoring, maximum missed cleavage sites",StringUtils::toStr(number_of_missed_cleavages_));
       //<note type="input" label="scoring, x ions">no</note>
       //writeNote_(os, "scoring, x ions", score_x_ions_);
       //<note type="input" label="scoring, y ions">yes</note>
@@ -435,7 +435,7 @@ namespace OpenMS
       //////////////// output parameters
       //<note type="input" label="output, log path"></note>
       //<note type="input" label="output, message">...</note>
-      //writeNote_(os, "output, message", String("..."));
+      //writeNote_(os, "output, message",StringUtils::toStr("..."));
       //<note type="input" label="output, one sequence copy">no</note>
       //<note type="input" label="output, sequence path"></note>
       //<note type="input" label="output, path">output.xml</note>
@@ -464,7 +464,7 @@ namespace OpenMS
       writeNote_(os, "output, results", output_results_);
  
       //<note type="input" label="output, maximum valid expectation value">0.1</note>
-      writeNote_(os, "output, maximum valid expectation value", String(max_valid_evalue_));
+      writeNote_(os, "output, maximum valid expectation value",StringUtils::toStr(max_valid_evalue_));
 
       //<note>value is used in the valid|stochastic setting of output, results</note>
       //<note type="input" label="output, histogram column width">30</note>
@@ -499,59 +499,59 @@ namespace OpenMS
     os << "</bioml>\n";
   }
 
-  void XTandemInfile::writeNote_(ostream& os, const String& label, const String& value)
+  void XTandemInfile::writeNote_(ostream& os, const std::string& label, const std::string& value)
   {
     os << "\t<note type=\"input\" label=\"" << label << "\">" << value << "</note>\n";
   }
 
-  void XTandemInfile::writeNote_(ostream& os, const String& label, const char* value)
+  void XTandemInfile::writeNote_(ostream& os, const std::string& label, const char* value)
   {
-    String val(value);
+    std::string val(value);
     writeNote_(os, label, val);
   }
 
-  void XTandemInfile::writeNote_(ostream& os, const String& label, bool value)
+  void XTandemInfile::writeNote_(ostream& os, const std::string& label, bool value)
   {
-    String val = value ? "yes" : "no";
+    std::string val = value ? "yes" : "no";
     writeNote_(os, label, val);
   }
 
-  void XTandemInfile::setOutputFilename(const String& filename)
+  void XTandemInfile::setOutputFilename(const std::string& filename)
   {
     output_filename_ = filename;
   }
 
-  const String& XTandemInfile::getOutputFilename() const
+  const std::string& XTandemInfile::getOutputFilename() const
   {
     return output_filename_;
   }
 
-  void XTandemInfile::setInputFilename(const String& filename)
+  void XTandemInfile::setInputFilename(const std::string& filename)
   {
     input_filename_ = filename;
   }
 
-  const String& XTandemInfile::getInputFilename() const
+  const std::string& XTandemInfile::getInputFilename() const
   {
     return input_filename_;
   }
 
-  void XTandemInfile::setTaxonomyFilename(const String& filename)
+  void XTandemInfile::setTaxonomyFilename(const std::string& filename)
   {
     taxonomy_file_ = filename;
   }
 
-  const String& XTandemInfile::getTaxonomyFilename() const
+  const std::string& XTandemInfile::getTaxonomyFilename() const
   {
     return taxonomy_file_;
   }
 
-  void XTandemInfile::setDefaultParametersFilename(const String& filename)
+  void XTandemInfile::setDefaultParametersFilename(const std::string& filename)
   {
     default_parameters_file_ = filename;
   }
 
-  const String& XTandemInfile::getDefaultParametersFilename() const
+  const std::string& XTandemInfile::getDefaultParametersFilename() const
   {
     return default_parameters_file_;
   }
@@ -566,12 +566,12 @@ namespace OpenMS
     return modifications_;
   }
 
-  void XTandemInfile::setTaxon(const String& taxon)
+  void XTandemInfile::setTaxon(const std::string& taxon)
   {
     taxon_ = taxon;
   }
 
-  const String& XTandemInfile::getTaxon() const
+  const std::string& XTandemInfile::getTaxon() const
   {
     return taxon_;
   }
@@ -676,7 +676,7 @@ namespace OpenMS
     return number_of_missed_cleavages_;
   }
 
-  void XTandemInfile::setOutputResults(const String& result)
+  void XTandemInfile::setOutputResults(const std::string& result)
   {
     if (result == "valid" || result == "all" || result == "stochastic")
     {
@@ -688,7 +688,7 @@ namespace OpenMS
     }
   }
 
-  String XTandemInfile::getOutputResults() const
+  std::string XTandemInfile::getOutputResults() const
   {
     return output_results_;
   }
@@ -703,12 +703,12 @@ namespace OpenMS
     allow_isotope_error_ = allow_isotope_error;
   }
   
-  void XTandemInfile::setCleavageSite(const String& cleavage_site)
+  void XTandemInfile::setCleavageSite(const std::string& cleavage_site)
   {
     cleavage_site_ = cleavage_site;
   }
 
-  const String& XTandemInfile::getCleavageSite() const
+  const std::string& XTandemInfile::getCleavageSite() const
   {
     return cleavage_site_;
   }

@@ -55,6 +55,7 @@ IDRipper
 IDRTCalibration
 IDScoreSwitcher
 IDSplitter
+INIUpdater
 InternalCalibration
 IonMobilityBinning
 IsobaricAnalyzer

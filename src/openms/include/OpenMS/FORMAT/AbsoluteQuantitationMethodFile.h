@@ -39,7 +39,7 @@ public:
       @param[in] filename The input file name.
       @param[out] aqm_list Output variable where the AbsoluteQuantitationMethod data is loaded.
     */
-    void load(const String & filename, std::vector<AbsoluteQuantitationMethod> & aqm_list);
+    void load(const std::string & filename, std::vector<AbsoluteQuantitationMethod> & aqm_list);
 
     /**
       @brief Stores an AbsoluteQuantitationMethod file.
@@ -49,7 +49,7 @@ public:
       @param[in] filename The output file name.
       @param[in] aqm_list The AbsoluteQuantitationMethod data to write into the file.
     */
-    void store(const String & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list);
+    void store(const std::string & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list);
 
 protected:
     /**
@@ -61,7 +61,7 @@ protected:
     */
     void parseLine_(
       const StringList & line,
-      const std::map<String, Size> & headers,
+      const std::map<std::string, Size> & headers,
       AbsoluteQuantitationMethod & aqm
     ) const;
 
@@ -73,7 +73,7 @@ protected:
       @param[in] value The value to be converted
       @param[in,out] params The object where the new value is saved
     */
-    void setCastValue_(const String& key, const String& value, Param& params) const;
+    void setCastValue_(const std::string& key, const std::string& value, Param& params) const;
 
   };
 

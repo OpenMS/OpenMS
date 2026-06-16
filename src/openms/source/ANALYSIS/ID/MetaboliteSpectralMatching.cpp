@@ -167,96 +167,96 @@ namespace OpenMS
   }
 
 
-  String SpectralMatch::getObservedSpectrumNativeID() const
+  std::string SpectralMatch::getObservedSpectrumNativeID() const
   {
     return observed_spectrum_native_id_;
   }
 
 
-  void SpectralMatch::setObservedSpectrumNativeID(const String& obs_spec_native_id)
+  void SpectralMatch::setObservedSpectrumNativeID(const std::string& obs_spec_native_id)
   {
     observed_spectrum_native_id_ = obs_spec_native_id;
   }
 
-  String SpectralMatch::getPrimaryIdentifier() const
+  std::string SpectralMatch::getPrimaryIdentifier() const
   {
     return primary_id_;
   }
 
 
-  void SpectralMatch::setPrimaryIdentifier(const String& pid)
+  void SpectralMatch::setPrimaryIdentifier(const std::string& pid)
   {
     primary_id_ = pid;
   }
 
 
-  String SpectralMatch::getSecondaryIdentifier() const
+  std::string SpectralMatch::getSecondaryIdentifier() const
   {
     return secondary_id_;
   }
 
 
-  void SpectralMatch::setSecondaryIdentifier(const String& sid)
+  void SpectralMatch::setSecondaryIdentifier(const std::string& sid)
   {
     secondary_id_ = sid;
   }
 
 
-  String SpectralMatch::getCommonName() const
+  std::string SpectralMatch::getCommonName() const
   {
     return common_name_;
   }
 
 
-  void SpectralMatch::setCommonName(const String& cname)
+  void SpectralMatch::setCommonName(const std::string& cname)
   {
     common_name_ = cname;
   }
 
 
-  String SpectralMatch::getSumFormula() const
+  std::string SpectralMatch::getSumFormula() const
   {
     return sum_formula_;
   }
 
 
-  void SpectralMatch::setSumFormula(const String& sf)
+  void SpectralMatch::setSumFormula(const std::string& sf)
   {
     sum_formula_ = sf;
   }
 
 
-  String SpectralMatch::getInchiString() const
+  std::string SpectralMatch::getInchiString() const
   {
     return inchi_string_;
   }
 
 
-  void SpectralMatch::setInchiString(const String& istr)
+  void SpectralMatch::setInchiString(const std::string& istr)
   {
     inchi_string_ = istr;
   }
 
 
-  String SpectralMatch::getSMILESString() const
+  std::string SpectralMatch::getSMILESString() const
   {
     return smiles_string_;
   }
 
 
-  void SpectralMatch::setSMILESString(const String& sstr)
+  void SpectralMatch::setSMILESString(const std::string& sstr)
   {
     smiles_string_ = sstr;
   }
 
 
-  String SpectralMatch::getPrecursorAdduct() const
+  std::string SpectralMatch::getPrecursorAdduct() const
   {
     return precursor_adduct_;
   }
 
 
-  void SpectralMatch::setPrecursorAdduct(const String& padd)
+  void SpectralMatch::setPrecursorAdduct(const std::string& padd)
   {
     precursor_adduct_ = padd;
   }
@@ -327,7 +327,7 @@ namespace OpenMS
     {
       try
       {
-        return String(spectrum.getMetaValue(Constants::UserParam::MSM_CCS).toString()).toDouble();
+        return StringUtils::toDouble(spectrum.getMetaValue(Constants::UserParam::MSM_CCS).toString());
       }
       catch (const Exception::ConversionError&)
       {
@@ -502,7 +502,7 @@ namespace OpenMS
   }
 
 
-  void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mztab_out, String& out_spectra)
+  void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mztab_out, std::string& out_spectra)
   {
     sort(spec_db.begin(), spec_db.end(), PrecursorMZLess);
 
@@ -591,7 +591,7 @@ namespace OpenMS
         Size end_idx(upper_it - mz_keys.begin());
 
         {
-          String id_to_log = msexp[spec_idx].metaValueExists("GNPS_Spectrum_ID")
+          std::string id_to_log = msexp[spec_idx].metaValueExists("GNPS_Spectrum_ID")
             ? msexp[spec_idx].getMetaValue("GNPS_Spectrum_ID").toString()
             : msexp[spec_idx].getNativeID();
           OPENMS_LOG_DEBUG << "identifying " << id_to_log << endl;
@@ -604,7 +604,7 @@ namespace OpenMS
           // do spectral matching
           // Debug: list all available metadata keys
           OPENMS_LOG_DEBUG << "Available metadata keys for spectrum " << search_idx << ":";
-          std::vector<String> keys;
+          std::vector<std::string> keys;
           spec_db[search_idx].getKeys(keys);
           for (const auto& key : keys)
           {
@@ -612,7 +612,7 @@ namespace OpenMS
           }
           OPENMS_LOG_DEBUG << endl;
           
-          String metabolite_name = "";
+          std::string metabolite_name;
           if (spec_db[search_idx].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME)) {
             metabolite_name = spec_db[search_idx]
                                 .getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME)
@@ -653,8 +653,8 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << " scored with " << hyperscore << endl;
           if (hyperscore > 0)
           {
-            String massbank_id = "";
-            String metabolite_name = "";
+            std::string massbank_id;
+            std::string metabolite_name;
             
             if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID")) {
               massbank_id = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
@@ -679,7 +679,7 @@ namespace OpenMS
             tmp_match.setMatchingSpectrumIndex(search_idx);
             tmp_match.setObservedSpectrumNativeID(msexp[spec_idx].getNativeID());
 
-            String primary_id_value;
+            std::string primary_id_value;
             if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID"))
             {
               primary_id_value = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
@@ -782,7 +782,7 @@ namespace OpenMS
       MzTabSmallMoleculeSectionRow mztab_row_record;
 
       // set the identifier field
-      String hid_temp = current_id.getPrimaryIdentifier();
+      std::string hid_temp = current_id.getPrimaryIdentifier();
       MzTabString prim_id;
       prim_id.set(hid_temp);
       vector<MzTabString> id_dummy;
@@ -794,27 +794,27 @@ namespace OpenMS
 
       // set the chemical formula field
       MzTabString chem_form;
-      String form_temp = current_id.getSumFormula();
+      std::string form_temp = current_id.getSumFormula();
       chem_form.set(form_temp);
 
       mztab_row_record.chemical_formula = chem_form;
 
       // set the smiles field
-      String smi_temp = current_id.getSMILESString();     // extract SMILES from struct mapping file
+      std::string smi_temp = current_id.getSMILESString();     // extract SMILES from struct mapping file
       MzTabString smi_string;
       smi_string.set(smi_temp);
 
       mztab_row_record.smiles = smi_string;
 
       // set the inchi_key field
-      String inchi_temp = current_id.getInchiString();    // extract INCHIKEY from struct mapping file
+      std::string inchi_temp = current_id.getInchiString();    // extract INCHIKEY from struct mapping file
       MzTabString inchi_key;
       inchi_key.set(inchi_temp);
 
       mztab_row_record.inchi_key = inchi_key;
 
       // set description field (we use it for the common name of the compound)
-      String name_temp = current_id.getCommonName();
+      std::string name_temp = current_id.getCommonName();
       MzTabString common_name;
       common_name.set(name_temp);
 
@@ -846,14 +846,14 @@ namespace OpenMS
       mztab_row_record.retention_time = observed_rt;
 
       // set database field
-      String dbname_temp = "MassBank";
+      std::string dbname_temp = "MassBank";
       MzTabString dbname;
       dbname.set(dbname_temp);
 
       mztab_row_record.database = dbname;
 
       // set database_version field
-      String dbver_temp = "Sep 27, 2013";
+      std::string dbver_temp = "Sep 27, 2013";
       MzTabString dbversion;
       dbversion.set(dbver_temp);
 
@@ -907,14 +907,14 @@ namespace OpenMS
       error_ppm = floor(error_ppm*100)/100;
 
       MzTabString ppmerr;
-      ppmerr.set(String(error_ppm));
+      ppmerr.set(StringUtils::toStr(error_ppm));
       MzTabOptionalColumnEntry col0;
       col0.first = "opt_ppm_error";
       col0.second = ppmerr;
       optionals.push_back(col0);
 
       // set found adduct ion
-      String addion_temp = current_id.getPrecursorAdduct();
+      std::string addion_temp = current_id.getPrecursorAdduct();
       MzTabString addion;
       addion.set(addion_temp);
       MzTabOptionalColumnEntry col1;
@@ -926,7 +926,7 @@ namespace OpenMS
       double sim_score_temp = current_id.getMatchingScore();
       stringstream read_in;
       read_in << sim_score_temp;
-      String sim_score_temp2(read_in.str());
+      std::string sim_score_temp2(read_in.str());
       MzTabString sim_score;
       sim_score.set(sim_score_temp2);
       MzTabOptionalColumnEntry col2;
@@ -935,7 +935,7 @@ namespace OpenMS
       optionals.push_back(col2);
 
       // set secondary ID (here HMDB id)
-      String sec_id = current_id.getSecondaryIdentifier();
+      std::string sec_id = current_id.getSecondaryIdentifier();
       MzTabString sec_id_str;
       sec_id_str.set(sec_id);
       MzTabOptionalColumnEntry col3;
@@ -945,7 +945,7 @@ namespace OpenMS
 
       // set source spectra index
       // TODO: this should use spectra_ref column
-      String source_idx = String(current_id.getObservedSpectrumIndex());
+      std::string source_idx =StringUtils::toStr(current_id.getObservedSpectrumIndex());
       MzTabString source_idx_str;
       source_idx_str.set(source_idx);
       MzTabOptionalColumnEntry col4;
@@ -954,7 +954,7 @@ namespace OpenMS
       optionals.push_back(col4);
 
       // set spectrum native ID
-      String spec_native_id = current_id.getObservedSpectrumNativeID();
+      std::string spec_native_id = current_id.getObservedSpectrumNativeID();
       MzTabString spec_native_id_str;
       spec_native_id_str.set(spec_native_id);
       MzTabOptionalColumnEntry col5;
@@ -968,14 +968,14 @@ namespace OpenMS
       const double lib_ccs = current_id.getFoundCCS();
 
       MzTabString obs_ccs_str;
-      obs_ccs_str.set(obs_ccs > 0.0 ? String(floor(obs_ccs * 100) / 100) : "null");
+      obs_ccs_str.set(obs_ccs > 0.0 ? StringUtils::toStr(floor(obs_ccs * 100) / 100) : "null");
       MzTabOptionalColumnEntry col6;
       col6.first = "opt_observed_ccs";
       col6.second = obs_ccs_str;
       optionals.push_back(col6);
 
       MzTabString lib_ccs_str;
-      lib_ccs_str.set(lib_ccs > 0.0 ? String(floor(lib_ccs * 100) / 100) : "null");
+      lib_ccs_str.set(lib_ccs > 0.0 ? StringUtils::toStr(floor(lib_ccs * 100) / 100) : "null");
       MzTabOptionalColumnEntry col7;
       col7.first = "opt_library_ccs";
       col7.second = lib_ccs_str;
@@ -985,7 +985,7 @@ namespace OpenMS
       if (obs_ccs > 0.0 && lib_ccs > 0.0)
       {
         double ccs_err = std::abs(obs_ccs - lib_ccs) / lib_ccs * 100.0;
-        ccs_err_str.set(String(floor(ccs_err * 100) / 100));
+        ccs_err_str.set(StringUtils::toStr(floor(ccs_err * 100) / 100));
       }
       else
       {

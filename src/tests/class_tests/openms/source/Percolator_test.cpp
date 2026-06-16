@@ -787,7 +787,7 @@ START_SECTION((static void saveModel(const PercolatorModel& model, const String&
 
   PercolatorModel model = p.train(input);
 
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
   Percolator::saveModel(model, tmp);
 
@@ -822,19 +822,19 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 {
   // Covered by the save-model round-trip section above.
   // Verify negative cases here: missing file and malformed content.
-  String nonexistent;
+  std::string nonexistent;
   NEW_TMP_FILE(nonexistent);
   std::remove(nonexistent.c_str());
   TEST_EXCEPTION(Exception::FileNotFound, Percolator::loadModel(nonexistent))
 
-  auto writeModel = [](const String& path, const std::string& body) {
+  auto writeModel = [](const std::string& path, const std::string& body) {
     std::ofstream os(path.c_str());
     os << body;
   };
 
   // Unsupported format_version
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 99\n"
       "normalizer: stdv\n"
@@ -847,7 +847,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Missing 'bias' header
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "normalizer: stdv\n"
@@ -859,7 +859,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Unknown header key (typoed 'normalize:' instead of 'normalizer:')
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "normalize: stdv\n"
@@ -873,7 +873,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Invalid normalizer value
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "normalizer: bogus\n"
@@ -886,7 +886,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Duplicate header key
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "format_version: 1\n"
@@ -900,7 +900,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Declared n_features does not match actual feature row count
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "normalizer: stdv\n"
@@ -931,7 +931,7 @@ START_SECTION([EXTRA] feature named 'm0' round-trips through save/load)
   PercolatorModel model = p.train(input);
   TEST_EQUAL(model.feature_names[0], "m0")
 
-  String tmp; NEW_TMP_FILE(tmp);
+  std::string tmp; NEW_TMP_FILE(tmp);
   Percolator::saveModel(model, tmp);
 
   PercolatorModel loaded = Percolator::loadModel(tmp);

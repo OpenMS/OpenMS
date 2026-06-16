@@ -132,7 +132,7 @@ private:
     double max_fwhm_;
 
     /// Type of width filtering
-    String pw_filtering_;
+    std::string pw_filtering_;
 
     /// Whether to apply S/N filtering
     bool mt_snr_filtering_;

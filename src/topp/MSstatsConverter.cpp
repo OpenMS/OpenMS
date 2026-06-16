@@ -64,18 +64,18 @@ protected:
       // Input consensusXML
       registerInputFile_(param_in, "<in>", "", "Input consensusXML with peptide intensities",
                          true, false);
-      setValidFormats_(param_in, ListUtils::create<String>("consensusXML"), true);
+      setValidFormats_(param_in, ListUtils::create<std::string>("consensusXML"), true);
 
       registerInputFile_(param_in_design, "<in_design>", "", "Experimental Design file", true,
                          false);
-      setValidFormats_(param_in_design, ListUtils::create<String>("tsv"), true);
+      setValidFormats_(param_in_design, ListUtils::create<std::string>("tsv"), true);
 
       registerStringOption_(param_method, "<method>",
                             "LFQ",
                             "Method used in the experiment(label free [LFQ], isobaric labeling [ISO]))", false,
                             false);
       setValidStrings_(param_method,
-                       ListUtils::create<String>("LFQ,ISO"));
+                       ListUtils::create<std::string>("LFQ,ISO"));
 
       registerStringOption_(param_msstats_bioreplicate, "<msstats_bioreplicate>",
                             "MSstats_BioReplicate",
@@ -90,7 +90,7 @@ protected:
       // advanced option to overwrite MS file annotations in consensusXML
       registerInputFileList_(param_reannotate_filenames, "<file(s)>", StringList(),
                              "Overwrite MS file names in consensusXML", false, true);
-      setValidFormats_(param_reannotate_filenames, ListUtils::create<String>("mzML"), true);
+      setValidFormats_(param_reannotate_filenames, ListUtils::create<std::string>("mzML"), true);
                              
 
       // Isotope label type
@@ -101,7 +101,7 @@ protected:
       registerStringOption_(param_remove_shared_peptides, "<true/false>", "true",
                     "If true, shared peptides (mapping to multiple indistinguishable protein groups) "
                     "will be removed. Set to false to keep shared peptides in the output.", false, true);
-      setValidStrings_(param_remove_shared_peptides, ListUtils::create<String>("true,false"));
+      setValidStrings_(param_remove_shared_peptides, ListUtils::create<std::string>("true,false"));
 
       // Specifies how peptide ions eluding at different retention times should be resolved
       registerStringOption_(param_retention_time_summarization_method,
@@ -112,11 +112,11 @@ protected:
                             " does the aggregation itself later and the parameter always resets to manual (i.e. is unused).", false,
                             true);
       setValidStrings_(param_retention_time_summarization_method,
-                       ListUtils::create<String>("manual,max,min,mean,sum"));
+                       ListUtils::create<std::string>("manual,max,min,mean,sum"));
 
       // Output CSV file
       registerOutputFile_(param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
-      setValidFormats_(param_out, ListUtils::create<String>("csv"));
+      setValidFormats_(param_out, ListUtils::create<std::string>("csv"));
     }
 
     // the main_ function is called after all parameters are read
@@ -125,7 +125,7 @@ protected:
       try
       {
         // Input file, must be consensusXML
-        const String arg_in(getStringOption_(param_in));
+        const std::string arg_in(getStringOption_(param_in));
         const FileTypes::Type in_type(FileHandler::getType(arg_in));
 
         fatalErrorIf_(
@@ -133,11 +133,11 @@ protected:
                 "Input type is not consensusXML!",
                 ILLEGAL_PARAMETERS);
         // Tool arguments
-        const String arg_method = getStringOption_(param_method);
-        const String arg_out = getStringOption_(param_out);
+        const std::string arg_method = getStringOption_(param_method);
+        const std::string arg_out = getStringOption_(param_out);
 
         // Experimental Design file
-        const String arg_in_design = getStringOption_(param_in_design);
+        const std::string arg_in_design = getStringOption_(param_in_design);
         const ExperimentalDesign design = ExperimentalDesignFile::load(arg_in_design, false);
         ExperimentalDesign::SampleSection sampleSection = design.getSampleSection();
 
@@ -146,10 +146,10 @@ protected:
 
         StringList reannotate_filenames = getStringList_(param_reannotate_filenames);
         bool is_isotope_label_type = getFlag_(param_labeled_reference_peptides);
-        String bioreplicate = getStringOption_(param_msstats_bioreplicate);
-        String condition = getStringOption_(param_msstats_condition);
-        String mixture = getStringOption_(param_msstats_mixture);
-        String retention_time_summarization_method = getStringOption_(param_retention_time_summarization_method);
+        std::string bioreplicate = getStringOption_(param_msstats_bioreplicate);
+        std::string condition = getStringOption_(param_msstats_condition);
+        std::string mixture = getStringOption_(param_msstats_mixture);
+        std::string retention_time_summarization_method = getStringOption_(param_retention_time_summarization_method);
         bool remove_shared_peptides = (getStringOption_(param_remove_shared_peptides) == "true");
 
         MSstatsFile msStatsFile;
@@ -177,20 +177,20 @@ protected:
 
     }
 
-    static const String param_in;
-    static const String param_in_design;
-    static const String param_method;
-    static const String param_msstats_bioreplicate;
-    static const String param_msstats_condition;
-    static const String param_msstats_mixture;
-    static const String param_out;
-    static const String param_labeled_reference_peptides;
-    static const String param_retention_time_summarization_method;
-    static const String param_reannotate_filenames;
-    static const String param_remove_shared_peptides;
+    static const std::string param_in;
+    static const std::string param_in_design;
+    static const std::string param_method;
+    static const std::string param_msstats_bioreplicate;
+    static const std::string param_msstats_condition;
+    static const std::string param_msstats_mixture;
+    static const std::string param_out;
+    static const std::string param_labeled_reference_peptides;
+    static const std::string param_retention_time_summarization_method;
+    static const std::string param_reannotate_filenames;
+    static const std::string param_remove_shared_peptides;
 
 private:
-    static void fatalErrorIf_(const bool error_condition, const String &message, const int exit_code)
+    static void fatalErrorIf_(const bool error_condition, const std::string &message, const int exit_code)
     {
       if (error_condition)
       {
@@ -200,17 +200,17 @@ private:
     }
 };
 
-const String TOPPMSstatsConverter::param_in = "in";
-const String TOPPMSstatsConverter::param_in_design = "in_design";
-const String TOPPMSstatsConverter::param_method = "method";
-const String TOPPMSstatsConverter::param_msstats_bioreplicate = "msstats_bioreplicate";
-const String TOPPMSstatsConverter::param_msstats_condition = "msstats_condition";
-const String TOPPMSstatsConverter::param_msstats_mixture = "msstats_mixture";
-const String TOPPMSstatsConverter::param_out = "out";
-const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
-const String TOPPMSstatsConverter::param_retention_time_summarization_method = "retention_time_summarization_method";
-const String TOPPMSstatsConverter::param_reannotate_filenames = "reannotate_filenames";
-const String TOPPMSstatsConverter::param_remove_shared_peptides = "remove_shared_peptides";
+const std::string TOPPMSstatsConverter::param_in = "in";
+const std::string TOPPMSstatsConverter::param_in_design = "in_design";
+const std::string TOPPMSstatsConverter::param_method = "method";
+const std::string TOPPMSstatsConverter::param_msstats_bioreplicate = "msstats_bioreplicate";
+const std::string TOPPMSstatsConverter::param_msstats_condition = "msstats_condition";
+const std::string TOPPMSstatsConverter::param_msstats_mixture = "msstats_mixture";
+const std::string TOPPMSstatsConverter::param_out = "out";
+const std::string TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
+const std::string TOPPMSstatsConverter::param_retention_time_summarization_method = "retention_time_summarization_method";
+const std::string TOPPMSstatsConverter::param_reannotate_filenames = "reannotate_filenames";
+const std::string TOPPMSstatsConverter::param_remove_shared_peptides = "remove_shared_peptides";
 
 // the actual main function needed to create an executable
 int main(int argc, const char **argv)

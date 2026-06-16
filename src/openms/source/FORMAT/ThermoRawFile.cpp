@@ -26,7 +26,7 @@
 namespace OpenMS
 {
 
-  void ThermoRawFile::load(const String& path, MSExperiment& exp)
+  void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
   {
     // Loaders are expected to populate the output experiment from scratch.
     exp = MSExperiment();
@@ -191,7 +191,7 @@ namespace OpenMS
     catch (const openms::thermo_bridge::bridge_error& e)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        path, String("Thermo bridge error: ") + e.what());
+        path, std::string("Thermo bridge error: ") + e.what());
     }
   }
 

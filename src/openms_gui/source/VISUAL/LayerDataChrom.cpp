@@ -200,9 +200,9 @@ namespace OpenMS
     return mapper.map(chrom, peak.peak);
   }
 
-  String LayerDataChrom::getDataArrayDescription(const PeakIndex& peak_index)
+  std::string LayerDataChrom::getDataArrayDescription(const PeakIndex& peak_index)
   {
-    String status;
+    std::string status;
     const auto& s = getChromatogram(peak_index.spectrum);
     for (Size m = 0; m < s.getFloatDataArrays().size(); ++m)
     {

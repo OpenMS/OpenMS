@@ -18,7 +18,6 @@
 
 namespace OpenMS
 {
-  class String;
 
   /**
     @brief Interface for classes that can store arbitrary meta information
@@ -66,10 +65,10 @@ public:
     bool operator!=(const MetaInfoInterface& rhs) const;
 
     /// Returns the value corresponding to a string, or DataValue::EMPTY if not found
-    const DataValue& getMetaValue(const String& name) const;
+    const DataValue& getMetaValue(const std::string& name) const;
 
     /// Returns the value corresponding to a string, or a default value (e.g.: DataValue::EMPTY) if not found    
-    DataValue getMetaValue(const String& name, const DataValue& default_value) const; // Note: return needs to be by value to prevent life-time issues at caller site (e.g. if he passes a temporary to default-value)
+    DataValue getMetaValue(const std::string& name, const DataValue& default_value) const; // Note: return needs to be by value to prevent life-time issues at caller site (e.g. if he passes a temporary to default-value)
 
     /// Returns the value corresponding to the index, or DataValue::EMPTY if not found
     const DataValue& getMetaValue(UInt index) const;
@@ -78,21 +77,21 @@ public:
     DataValue getMetaValue(UInt index, const DataValue& default_value) const; // Note: return needs to be by value to prevent life-time issues at caller site
 
     /// Returns whether an entry with the given name exists
-    bool metaValueExists(const String& name) const;
+    bool metaValueExists(const std::string& name) const;
     /// Returns whether an entry with the given index exists
     bool metaValueExists(UInt index) const;
 
     /// Sets the DataValue corresponding to a name
-    void setMetaValue(const String& name, const DataValue& value);
+    void setMetaValue(const std::string& name, const DataValue& value);
     /// Sets the DataValue corresponding to an index
     void setMetaValue(UInt index, const DataValue& value);
 
     /// Removes the DataValue corresponding to @p name if it exists
-    void removeMetaValue(const String& name);
+    void removeMetaValue(const std::string& name);
     /// Removes the DataValue corresponding to @p index if it exists
     void removeMetaValue(UInt index);
 
-    /// Copy all meta values from @p from to this object (both named String and indexed UInt keys).
+    /// Copy all meta values from @p from to this object (both named std::string and indexed UInt keys).
     /// Existing entries with the same key are overwritten; others are preserved.
     void addMetaValues(const MetaInfoInterface& from);
 
@@ -100,7 +99,7 @@ public:
     static MetaInfoRegistry& metaRegistry();
 
     /// Fills the given vector with a list of all keys for which a value is set
-    void getKeys(std::vector<String>& keys) const;
+    void getKeys(std::vector<std::string>& keys) const;
 
     /// Fills the given vector with a list of all keys for which a value is set
     void getKeys(std::vector<UInt>& keys) const;

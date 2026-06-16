@@ -17,7 +17,7 @@ namespace OpenMS
 {
 
   OMSSAXMLFile::OMSSAXMLFile() :
-    XMLHandler("", 1.1),
+    XMLHandler("", "1.1"),
     XMLFile(),
     peptide_identifications_(nullptr)
   {
@@ -26,7 +26,7 @@ namespace OpenMS
 
   OMSSAXMLFile::~OMSSAXMLFile() = default;
 
-  void OMSSAXMLFile::load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& peptide_identifications, bool load_proteins, bool load_empty_hits)
+  void OMSSAXMLFile::load(const std::string& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& peptide_identifications, bool load_proteins, bool load_empty_hits)
   {
     // clear input (in case load() is called more than once)
     protein_identification = ProteinIdentification();
@@ -43,10 +43,10 @@ namespace OpenMS
     parse_(filename, this);
 
     DateTime now = DateTime::now();
-    String identifier("OMSSA_" + now.get());
+    std::string identifier("OMSSA_" + now.get());
 
     // post-processing
-    set<String> accessions;
+    set<std::string> accessions;
     for (PeptideIdentification& pep : peptide_identifications)
     {
       pep.setScoreType("OMSSA");
@@ -58,7 +58,7 @@ namespace OpenMS
       {
         for (const PeptideHit& pit : pep.getHits())
         {
-          set<String> hit_accessions = pit.extractProteinAccessionsSet();
+          set<std::string> hit_accessions = pit.extractProteinAccessionsSet();
           accessions.insert(hit_accessions.begin(), hit_accessions.end());
         }
       }
@@ -66,7 +66,7 @@ namespace OpenMS
 
     if (load_proteins)
     {
-      for (set<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
+      for (set<std::string>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
       {
         ProteinHit hit;
         hit.setAccession(*it);
@@ -89,12 +89,12 @@ namespace OpenMS
 
   void OMSSAXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& /*attributes*/)
   {
-    tag_ = String(sm_.convert(qname)).trim();
+    tag_ = StringUtils::trimmed(std::string(sm_.convert(qname)));
   }
 
   void OMSSAXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
-    tag_ = String(sm_.convert(qname)).trim();
+    tag_ = StringUtils::trimmed(std::string(sm_.convert(qname)));
 
     // protein hits (MSPepHits) are handled in ::characters(...)
 
@@ -127,14 +127,14 @@ namespace OpenMS
           </MSModHit_modtype>
         </MSModHit>
       */
-      if (mods_map_.contains(actual_mod_type_.toInt()) && !mods_map_[actual_mod_type_.toInt()].empty())
+      if (mods_map_.contains(StringUtils::toInt32(actual_mod_type_)) && !mods_map_[StringUtils::toInt32(actual_mod_type_)].empty())
       {
-        if (mods_map_[actual_mod_type_.toInt()].size() > 1)
+        if (mods_map_[StringUtils::toInt32(actual_mod_type_)].size() > 1)
         {
-          warning(LOAD, String("Cannot determine exact type of modification of position ") + actual_mod_site_ + " in sequence " + actual_peptide_hit_.getSequence().toString() + " using modification " + actual_mod_type_ + " - using first possibility!");
+          warning(LOAD,std::string("Cannot determine exact type of modification of position ") + actual_mod_site_ + " in sequence " + actual_peptide_hit_.getSequence().toString() + " using modification " + actual_mod_type_ + " - using first possibility!");
         }
         AASequence pep = actual_peptide_hit_.getSequence();
-        auto mod = *(mods_map_[actual_mod_type_.toInt()].begin());
+        auto mod = *(mods_map_[StringUtils::toInt32(actual_mod_type_)].begin());
         if (mod->getTermSpecificity() == ResidueModification::N_TERM)
         {
           pep.setNTerminalModification(mod->getFullId());
@@ -151,7 +151,7 @@ namespace OpenMS
       }
       else
       {
-        warning(LOAD, String("Cannot find PSI-MOD mapping for mod - ignoring '") + actual_mod_type_ + "'");
+        warning(LOAD,std::string("Cannot find PSI-MOD mapping for mod - ignoring '") + actual_mod_type_ + "'");
       }
     }
 
@@ -162,7 +162,7 @@ namespace OpenMS
   {
     if (tag_.empty()) return;
 
-    String value = ((String)sm_.convert(chars)).trim();
+    std::string value = StringUtils::trimmed(std::string(sm_.convert(chars)));
     // MSPepHit section
     // <MSPepHit_start>0</MSPepHit_start>
     // <MSPepHit_stop>8</MSPepHit_stop>
@@ -219,20 +219,20 @@ namespace OpenMS
     // <MSHits_theomass>1101484</MSHits_theomass>
     else if (tag_ == "MSHits_evalue")
     {
-      actual_peptide_hit_.setScore(value.toDouble());
+      actual_peptide_hit_.setScore(StringUtils::toDouble(value));
       tag_ = "";
       return;
     }
     else if (tag_ == "MSHits_charge")
     {
-      actual_peptide_hit_.setCharge(value.toInt());
+      actual_peptide_hit_.setCharge(StringUtils::toInt32(value));
       tag_ = "";
       return;
     }
     else if (tag_ == "MSHits_pvalue")
     {
       // TODO extra field?
-      //actual_peptide_hit_.setScore(value.toDouble());
+      //actual_peptide_hit_.setScore(StringUtils::toDouble(value));
       tag_ = "";
       return;
     }
@@ -241,7 +241,7 @@ namespace OpenMS
       AASequence seq;
       try
       {
-        seq = AASequence::fromString(value.trim());
+        seq = AASequence::fromString(StringUtils::trim(value));
       }
       catch (Exception::ParseError& /* e */)
       {
@@ -252,10 +252,10 @@ namespace OpenMS
 
       if (mod_def_set_.getNumberOfFixedModifications() != 0)
       {
-        set<String> fixed_mod_names = mod_def_set_.getFixedModificationNames();
-        for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
+        set<std::string> fixed_mod_names = mod_def_set_.getFixedModificationNames();
+        for (set<std::string>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
         {
-          String origin = ModificationsDB::getInstance()->getModification(*it)->getOrigin();
+          std::string origin(1, ModificationsDB::getInstance()->getModification(*it)->getOrigin());
           UInt position(0);
           for (const Residue& ait : seq)
           {
@@ -318,26 +318,26 @@ namespace OpenMS
     }
     else if (tag_ == "MSModHit_site")
     {
-      actual_mod_site_ = value.trim().toInt();
+      actual_mod_site_ = StringUtils::toInt32(StringUtils::trim(value));
     }
     else if (tag_ == "MSMod")
     {
-      actual_mod_type_ = value.trim();
+      actual_mod_type_ = StringUtils::trim(value);
     }
     // m/z value and rt
     else if (tag_ == "MSHitSet_ids_E")
     {
       // value might be  ( OMSSA 2.1.8): 359.213256835938_3000.13720000002_controllerType=0 controllerNumber=1 scan=4655
       //                 (<OMSSA 2.1.8): 359.213256835938_3000.13720000002
-      if (!value.trim().empty())
+      if (!StringUtils::trim(value).empty())
       {
-        if (value.has('_'))
+        if (StringUtils::has(value, '_'))
         {
-          StringList sp = ListUtils::create<String>(value, '_');
+          StringList sp = ListUtils::create<std::string>(value, '_');
           try
           {
-            actual_peptide_id_.setMZ(sp[0].toDouble());
-            actual_peptide_id_.setRT(sp[1].toDouble());
+            actual_peptide_id_.setMZ(StringUtils::toDouble(sp[0]));
+            actual_peptide_id_.setRT(StringUtils::toDouble(sp[1]));
           }
           catch (...)
           {
@@ -350,25 +350,25 @@ namespace OpenMS
 
   void OMSSAXMLFile::readMappingFile_()
   {
-    String file = File::find("CHEMISTRY/OMSSA_modification_mapping");
+    std::string file = File::find("CHEMISTRY/OMSSA_modification_mapping");
     TextFile infile(file);
 
     for (TextFile::ConstIterator it = infile.begin(); it != infile.end(); ++it)
     {
-      vector<String> split;
-      it->split(',', split);
+      vector<std::string> split;
+      StringUtils::split(*it, ',', split);
 
       if (!it->empty() && (*it)[0] != '#')
       {
-        Int omssa_mod_num = split[0].trim().toInt();
+        Int omssa_mod_num = StringUtils::toInt32(StringUtils::trimmed(split[0]));
         if (split.size() < 2)
         {
-          fatalError(LOAD, String("Invalid mapping file line: '") + *it + "'");
+          fatalError(LOAD,std::string("Invalid mapping file line: '") + *it + "'");
         }
         vector<const ResidueModification*> mods;
         for (Size i = 2; i != split.size(); ++i)
         {
-          String tmp(split[i].trim());
+          std::string tmp(StringUtils::trim(split[i]));
           if (!tmp.empty())
           {
             const ResidueModification* mod = ModificationsDB::getInstance()->getModification(tmp);
@@ -385,8 +385,8 @@ namespace OpenMS
   {
     mod_def_set_ = mod_set;
     UInt omssa_mod_num(119);
-    set<String> mod_names = mod_set.getVariableModificationNames();
-    for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
+    set<std::string> mod_names = mod_set.getVariableModificationNames();
+    for (set<std::string>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
     {
       if (!(mods_to_num_.contains(*it)))
       {

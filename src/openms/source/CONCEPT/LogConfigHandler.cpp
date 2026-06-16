@@ -17,12 +17,12 @@ using std::endl;
 
 namespace OpenMS
 {
-  String LogConfigHandler::PARAM_NAME = "log";
+  std::string LogConfigHandler::PARAM_NAME = "log";
   
   namespace 
   {
     // Order of log levels from lowest to highest priority
-    const std::vector<String> LOG_LEVELS = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"};
+    const std::vector<std::string> LOG_LEVELS = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"};
   }
 
   LogConfigHandler::LogConfigHandler()
@@ -53,13 +53,13 @@ namespace OpenMS
   Param LogConfigHandler::parse(const StringList & settings)
   {
     Param p;
-    String suffix = " FILE";
+    std::string suffix = " FILE";
     std::vector<std::string> commands;
     for (StringList::const_iterator iter = settings.begin(); iter != settings.end(); ++iter)
     {
       // split by " " to get all keywords
       StringList l;
-      (*iter).split(' ', l, true);
+      StringUtils::split(*iter, ' ', l, true);
 
       if (l.size() < 2 || l.size() > 3)
       {
@@ -69,7 +69,7 @@ namespace OpenMS
       // we parse a command line here, so we append a FILE to each of the arguments
       // to indicate, that all of these streams are FILE streams
       // for cout/cerr the type parameter is ignored
-      String new_command = *iter + suffix;
+      std::string new_command = *iter + suffix;
       commands.push_back(new_command);
     }
 
@@ -86,18 +86,18 @@ namespace OpenMS
     {
       // split by " " to get the commands
       StringList commands;
-      iter->split(' ', commands, true);
+      StringUtils::split(*iter, ' ', commands, true);
 
       Logger::LogStream & log = getLogStreamByName_(commands[0]);
 
       // convenience variables
-      String & command = commands[1];
+      std::string & command = commands[1];
 
       // identify action
       if (command == "add")
       {
         // convenience variables
-        const String & stream_name = commands[2];
+        const std::string & stream_name = commands[2];
 
         // add the stream given by the 3rd argument to the defined log
         if (stream_name == "cout")
@@ -115,7 +115,7 @@ namespace OpenMS
             std::cerr << "Error during configuring logging: the command '" << (*iter) << "' requires 4 entries but has only " << commands.size() << "\n";
             continue;
           }
-          const String & stream_type = commands[3];
+          const std::string & stream_type = commands[3];
 
           // check if a stream with the same name, but different type was already registered
           auto existing = stream_type_map_.find(stream_name);
@@ -150,7 +150,7 @@ namespace OpenMS
       else if (command == "remove")
       {
         // convenience variables
-        const String & stream_name = commands[2];
+        const std::string & stream_name = commands[2];
 
         // add the stream given by the 3rd argument to the defined log
         if (stream_name == "cout")
@@ -168,7 +168,7 @@ namespace OpenMS
             std::cerr << "Error during configuring logging: the command '" << (*iter) << "' requires 4 entries but has only " << commands.size() << "\n";
             continue;
           }
-          const String & stream_type = commands[3];
+          const std::string & stream_type = commands[3];
           StreamHandler::StreamType type = getStreamTypeByName_(stream_type);
 
           // it is a file, get the ostream from the StreamHandler
@@ -192,7 +192,7 @@ namespace OpenMS
       else if (command == "clear")
       {
         // remove all streams from the given log
-        for (std::set<String>::iterator it = getConfigSetByName_(commands[0]).begin(); it != getConfigSetByName_(commands[0]).end(); ++it)
+        for (std::set<std::string>::iterator it = getConfigSetByName_(commands[0]).begin(); it != getConfigSetByName_(commands[0]).end(); ++it)
         {
           if (*it == "cout")
           {
@@ -222,7 +222,7 @@ namespace OpenMS
     }
   }
 
-  void LogConfigHandler::setLogLevel(const String & log_level)
+  void LogConfigHandler::setLogLevel(const std::string & log_level)
   {
     // Special case: "NONE" means disable all logging
     if (log_level == "NONE")
@@ -253,15 +253,15 @@ namespace OpenMS
     // Restore configured streams for the target level and all levels above it
     for (size_t i = target_index; i < LOG_LEVELS.size(); ++i)
     {
-      const String& lvl = LOG_LEVELS[i];
+      const std::string& lvl = LOG_LEVELS[i];
       Logger::LogStream& log = getLogStreamByName_(lvl);
-      const std::set<String>& configured_streams = getConfigSetByName_(lvl);
+      const std::set<std::string>& configured_streams = getConfigSetByName_(lvl);
       
       // First, remove all current streams
       log.removeAllStreams();
       
       // Then add back the configured streams
-      for (const String& stream_name : configured_streams)
+      for (const std::string& stream_name : configured_streams)
       {
         if (stream_name == "cout")
         {
@@ -289,7 +289,7 @@ namespace OpenMS
     }
   }
 
-  Logger::LogStream & LogConfigHandler::getLogStreamByName_(const String & stream_name)
+  Logger::LogStream & LogConfigHandler::getLogStreamByName_(const std::string & stream_name)
   {
     Logger::LogStream * log = &getGlobalLogDebug(); // default
 
@@ -320,9 +320,9 @@ namespace OpenMS
     return *log;
   }
 
-  std::set<String> & LogConfigHandler::getConfigSetByName_(const String & stream_type)
+  std::set<std::string> & LogConfigHandler::getConfigSetByName_(const std::string & stream_type)
   {
-    std::set<String> * s = &debug_streams_;
+    std::set<std::string> * s = &debug_streams_;
     if (stream_type == "DEBUG")
     {
       s = &debug_streams_;
@@ -351,7 +351,7 @@ namespace OpenMS
     return *s;
   }
 
-  std::ostream & LogConfigHandler::getStream(const String & name)
+  std::ostream & LogConfigHandler::getStream(const std::string & name)
   {
     auto it = stream_type_map_.find(name);
     if (it != stream_type_map_.end())
@@ -365,7 +365,7 @@ namespace OpenMS
     }
   }
 
-  StreamHandler::StreamType LogConfigHandler::getStreamTypeByName_(const String & stream_type)
+  StreamHandler::StreamType LogConfigHandler::getStreamTypeByName_(const std::string & stream_type)
   {
     StreamHandler::StreamType type;
     if (stream_type == "FILE")
@@ -385,11 +385,11 @@ namespace OpenMS
     return type;
   }
 
-  void printStreamConfig_(std::ostream & os, const String & name, const std::set<String> & stream_names, const std::map<String, StreamHandler::StreamType> & stream_type_map);
-  void printStreamConfig_(std::ostream & os, const String & name, const std::set<String> & stream_names, const std::map<String, StreamHandler::StreamType> & stream_type_map)
+  void printStreamConfig_(std::ostream & os, const std::string & name, const std::set<std::string> & stream_names, const std::map<std::string, StreamHandler::StreamType> & stream_type_map);
+  void printStreamConfig_(std::ostream & os, const std::string & name, const std::set<std::string> & stream_names, const std::map<std::string, StreamHandler::StreamType> & stream_type_map)
   {
     os << name << endl;
-    for (std::set<String>::const_iterator it = stream_names.begin(); it != stream_names.end(); ++it)
+    for (std::set<std::string>::const_iterator it = stream_names.begin(); it != stream_names.end(); ++it)
     {
       os << "->" << "\t" << *it;
       // append stream type

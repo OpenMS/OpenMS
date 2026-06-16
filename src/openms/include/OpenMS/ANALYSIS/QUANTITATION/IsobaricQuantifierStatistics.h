@@ -11,10 +11,10 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <map>
+#include <string>
 
 namespace OpenMS
 {
-  class String;
 
   /**
     @brief Statistics for quantitation performance and comparison of NNLS vs. naive method (aka matrix inversion)
@@ -40,7 +40,7 @@ namespace OpenMS
     double iso_total_intensity_negative; ///< only for spectra where naive solution is negative
     Size number_ms2_total; ///< total number of MS2 spectra
     Size number_ms2_empty; ///< number of empty MS2 (no reporters at all)
-    std::map<String, Size> empty_channels; ///< Channel_ID -> Missing; indicating the number of empty channels from all MS2 scans, i.e., numbers are between number_ms2_empty and number_ms2_total
+    std::map<std::string, Size> empty_channels; ///< Channel_ID -> Missing; indicating the number of empty channels from all MS2 scans, i.e., numbers are between number_ms2_empty and number_ms2_total
 
     /// Copy c'tor
     IsobaricQuantifierStatistics(const IsobaricQuantifierStatistics& other);

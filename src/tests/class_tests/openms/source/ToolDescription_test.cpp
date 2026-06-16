@@ -35,7 +35,7 @@ START_SECTION(~ToolDescription())
 }
 END_SECTION
 
-START_SECTION((ToolDescription(const String &p_name, const String &p_category, const StringList &p_types=StringList())))
+START_SECTION((ToolDescription(const std::string &p_name, const std::string &p_category, const StringList &p_types=StringList())))
 {
   // TODO
 }

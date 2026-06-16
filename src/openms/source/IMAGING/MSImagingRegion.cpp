@@ -12,12 +12,12 @@
 
 namespace OpenMS
 {
-MSImagingRegion MSImagingRegion::rectangle(Size id, const String& name, UInt min_x, UInt min_y, UInt max_x, UInt max_y)
+MSImagingRegion MSImagingRegion::rectangle(Size id, const std::string& name, UInt min_x, UInt min_y, UInt max_x, UInt max_y)
 {
   if (max_x < min_x || max_y < min_y)
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Coordinate maximum is less than minimum",
-                                  "min=(" + String(min_x) + "," + String(min_y) + ") max=(" + String(max_x) + "," + String(max_y) + ")");
+                                  "min=(" + StringUtils::toStr(min_x) + "," + StringUtils::toStr(min_y) + ") max=(" + StringUtils::toStr(max_x) + "," + StringUtils::toStr(max_y) + ")");
   }
 
   MSImagingRegion reg;
@@ -32,17 +32,17 @@ MSImagingRegion MSImagingRegion::rectangle(Size id, const String& name, UInt min
   return reg;
 }
 
-MSImagingRegion MSImagingRegion::fromMask(Size id, const String& name, UInt origin_x, UInt origin_y, UInt width, UInt height, std::vector<bool> mask)
+MSImagingRegion MSImagingRegion::fromMask(Size id, const std::string& name, UInt origin_x, UInt origin_y, UInt width, UInt height, std::vector<bool> mask)
 {
   if (width == 0 || height == 0)
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "width or height are 0",
-                                  "(w,h): (" + String(width) + "," + String(height) + ")");
+                                  "(w,h): (" + StringUtils::toStr(width) + "," + StringUtils::toStr(height) + ")");
   }
   if (mask.size() != size_t(width) * height || std::none_of(mask.begin(), mask.end(), [](bool b) { return b; }))
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid mask",
-                                  "(w,h): (" + String(width) + "," + String(height) + ")");
+                                  "(w,h): (" + StringUtils::toStr(width) + "," + StringUtils::toStr(height) + ")");
   }
   MSImagingRegion reg;
   reg.id_ = id;
@@ -57,7 +57,7 @@ MSImagingRegion MSImagingRegion::fromMask(Size id, const String& name, UInt orig
   return reg;
 }
 
-const String& MSImagingRegion::getName() const
+const std::string& MSImagingRegion::getName() const
 { return name_; }
 
 

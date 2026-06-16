@@ -55,7 +55,7 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
     IsobaricQuantifierStatistics stats = IsobaricIsotopeCorrector::correctIsotopicImpurities(cm_in, cm_out, &quant_meth);
 
     // 1. check the actual result
-    String cm_file_out;
+    std::string cm_file_out;
     NEW_TMP_FILE(cm_file_out);
     cm_file.store(cm_file_out,cm_out);
 

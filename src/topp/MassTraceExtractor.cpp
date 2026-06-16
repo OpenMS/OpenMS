@@ -85,16 +85,16 @@ protected:
 #endif
     });
     registerOutputFile_("out", "<file>", "", "output featureXML file with mass traces");
-    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML,consensusXML"));
     registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content", false);
-    setValidStrings_("out_type", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidStrings_("out_type", ListUtils::create<std::string>("featureXML,consensusXML"));
 
     addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm parameters section");
 
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+  Param getSubsectionDefaults_(const std::string& /*section*/) const override
   {
     Param combined;
     Param p_com;
@@ -129,8 +129,8 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
 
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
     if (out_type == FileTypes::UNKNOWN)

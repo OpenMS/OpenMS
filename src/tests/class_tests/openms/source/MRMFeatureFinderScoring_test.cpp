@@ -22,7 +22,7 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef std::map<String, MRMTransitionGroup< MSChromatogram, OpenSwath::LightTransition > > TransitionGroupMapType;
+typedef std::map<std::string, MRMTransitionGroup< MSChromatogram, OpenSwath::LightTransition > > TransitionGroupMapType;
 
 START_TEST(MRMFeatureFinderScoring, "$Id$")
 

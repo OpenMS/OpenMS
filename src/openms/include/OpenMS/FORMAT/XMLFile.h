@@ -10,7 +10,7 @@
 
 // OpenMS includes
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS
 {
@@ -48,7 +48,7 @@ public:
         @param[in] schema_location Path of the XML schema (resolved at @ref isValid time via @c File::find).
         @param[in] version         Schema version string returned by @ref getVersion.
       */
-      XMLFile(const String& schema_location, const String& version);
+      XMLFile(const std::string& schema_location, const std::string& version);
 
       /// Virtual destructor — defaulted; allows safe deletion through a base-class pointer.
       virtual ~XMLFile();
@@ -67,10 +67,10 @@ public:
         @throws OpenMS::Exception::NotImplemented if no schema is bound (default-constructed instance — @c schema_location_ is empty).
         @throws OpenMS::Exception::FileNotFound   if @p filename cannot be found.
       */
-      bool isValid(const String& filename, std::ostream& os);
+      bool isValid(const std::string& filename, std::ostream& os);
 
       /// Return the schema version string passed to the parameterised constructor; empty for default-constructed instances.
-      const String& getVersion() const;
+      const std::string& getVersion() const;
 
 protected:
       /**
@@ -91,7 +91,7 @@ protected:
         @throws OpenMS::Exception::FileNotFound if @p filename does not exist.
         @throws OpenMS::Exception::ParseError   if Xerces initialisation fails or a parse error occurs.
       */
-      void parse_(const String& filename, XMLHandler* handler);
+      void parse_(const std::string& filename, XMLHandler* handler);
 
       /**
         @brief Parse an in-memory XML buffer through @p handler.
@@ -122,11 +122,11 @@ protected:
 
         @exception Exception::UnableToCreateFile is thrown if the file cannot be created
       */
-      void save_(const String& filename, XMLHandler* handler) const;
+      void save_(const std::string& filename, XMLHandler* handler) const;
 
-      String schema_location_;        ///< Path of the XML schema for validation; empty when the default constructor was used (@ref isValid then throws @c NotImplemented).
-      String schema_version_;         ///< Schema version string returned by @ref getVersion.
-      String enforced_encoding_;      ///< Optional XML encoding override applied to the @c InputSource in @ref parse_ and @ref parseBuffer_; empty disables the override. Used as a workaround for XTandem output XML which carries an encoding the parser otherwise stumbles on.
+      std::string schema_location_;        ///< Path of the XML schema for validation; empty when the default constructor was used (@ref isValid then throws @c NotImplemented).
+      std::string schema_version_;         ///< Schema version string returned by @ref getVersion.
+      std::string enforced_encoding_;      ///< Optional XML encoding override applied to the @c InputSource in @ref parse_ and @ref parseBuffer_; empty disables the override. Used as a workaround for XTandem output XML which carries an encoding the parser otherwise stumbles on.
 
       /**
         @brief Set or clear the XML-encoding override applied to subsequent @ref parse_ / @ref parseBuffer_ calls.
@@ -136,16 +136,16 @@ protected:
 
         @param[in] encoding Encoding name (e.g. @c "ISO-8859-1") to apply to the @c InputSource before parsing; empty string disables the override so Xerces consults the XML declaration instead.
       */
-      void enforceEncoding_(const String& encoding);
+      void enforceEncoding_(const std::string& encoding);
     };
 
     /**
       @brief Encodes tabs '\\t' in the string as &amp;\#x9; and returns the encoded string.
 
-      @param[in] to_encode The String to encode.
+      @param[in] to_encode The std::string to encode.
       @return The encoded string.
     */
-    String OPENMS_DLLAPI encodeTab(const String& to_encode);
+    std::string OPENMS_DLLAPI encodeTab(const std::string& to_encode);
   }   // namespace Internal
 } // namespace OpenMS
 

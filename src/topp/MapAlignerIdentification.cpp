@@ -166,7 +166,7 @@ private:
   {
     // find model parameters:
     Param model_params = getParam_().copy("model:", true);
-    String model_type = model_params.getValue("type").toString();
+    std::string model_type = model_params.getValue("type").toString();
 
     try
     {
@@ -231,7 +231,7 @@ private:
     // "TOPPMapAlignerBase::checkParameters_"
 
     Size reference_index = getIntOption_("reference:index");
-    String reference_file = getStringOption_("reference:file");
+    std::string reference_file = getStringOption_("reference:file");
 
     if (!reference_file.empty())
     {
@@ -288,11 +288,11 @@ private:
 
   void registerOptionsAndFlags_() override
   {
-    String formats = "featureXML,featureparquet,consensusXML,consensusparquet,idXML,idparquet,oms";
+    std::string formats = "featureXML,featureparquet,consensusXML,consensusparquet,idXML,idparquet,oms";
     TOPPMapAlignerBase::registerOptionsAndFlagsMapAligners_(formats, REF_FLEXIBLE);
     // TODO: potentially move to base class so every aligner has to support design
     registerInputFile_("design", "<file>", "", "Input file containing the experimental design", false);
-    setValidFormats_("design", ListUtils::create<String>("tsv"));
+    setValidFormats_("design", ListUtils::create<std::string>("tsv"));
 
     registerFlag_("store_original_rt", "Store the original retention times (before transformation) as meta data in the output?");
 
@@ -300,7 +300,7 @@ private:
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String& section) const override
+  Param getSubsectionDefaults_(const std::string& section) const override
   {
     if (section == "algorithm")
     {
@@ -366,10 +366,10 @@ private:
       //-------------------------------------------------------------
       // extract (optional) fraction identifiers and associate with featureXMLs
       //-------------------------------------------------------------
-      String design_file = getStringOption_("design");
+      std::string design_file = getStringOption_("design");
 
       // determine map of fractions to runs
-      map<unsigned, vector<String>> frac2files;
+      map<unsigned, vector<std::string>> frac2files;
 
       // TODO: check if can be put in common helper function
       if (!design_file.empty())
@@ -393,7 +393,7 @@ private:
         for (Size i = 0; i != input_files.size(); ++i)
         {
           // TODO: read proper MS file name from meta data
-          frac2files[1].push_back("file" + String(i)); // associate each file with fraction 1
+          frac2files[1].push_back("file" + StringUtils::toStr(i)); // associate each file with fraction 1
         }
       }
 
@@ -532,13 +532,13 @@ private:
       DateTime processing_time = DateTime::now(); // use same for each file
       IdentificationData::ProcessingSoftware sw(toolName_(), version_);
       if (test_mode_) sw.setVersion("test");
-      String reference_file = getStringOption_("reference:file");
+      std::string reference_file = getStringOption_("reference:file");
       for (IdentificationData& id : id_data)
       {
         IdentificationData::ProcessingSoftwareRef sw_ref =
           id.registerProcessingSoftware(sw);
         IdentificationData::ProcessingStep step(sw_ref);
-        for (const String& input_file : input_files)
+        for (const std::string& input_file : input_files)
         {
           IdentificationData::InputFileRef ref =
             id.registerInputFile(IdentificationData::InputFile(input_file));

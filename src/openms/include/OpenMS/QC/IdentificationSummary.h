@@ -67,11 +67,11 @@ namespace OpenMS
    **/
     Result compute(std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
-    const String& getName() const override;
+    const std::string& getName() const override;
 
     QCBase::Status requirements() const override;
 
   private:
-    const String name_ = "Summary of detected Proteins and Peptides from idXML file";
+    const std::string name_ = "Summary of detected Proteins and Peptides from idXML file";
   };
 } // namespace OpenMS

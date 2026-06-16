@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/FORMAT/FileTypes.h>
+
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
@@ -26,7 +28,6 @@ class QWidget;
 namespace OpenMS
 {
   class ParamEditor;
-  class TVToolDiscovery;
 
   /**
   @brief TOPP tool selection dialog
@@ -57,20 +58,19 @@ public:
       @param[in] default_dir The default directory for loading and storing INI files
       @param[in] layer_type The type of data (determines the applicable tools)
       @param[in] layer_name The name of the selected layer
-      @param[in] tool_scanner Pointer to the tool scanner for access to the plugins and to rerun the plugins detection
     */
-    ToolsDialog(QWidget * parent, const Param& params, String ini_file, String default_dir, LayerDataBase::DataType layer_type, const String& layer_name, TVToolDiscovery* tool_scanner);
+    ToolsDialog(QWidget * parent, const Param& params, std::string ini_file, std::string default_dir, LayerDataBase::DataType layer_type, const std::string& layer_name);
     ///Destructor
     ~ToolsDialog() override;
 
     /// to get the parameter name for output. Empty if no output was selected.
-    String getOutput();
+    std::string getOutput();
     /// to get the parameter name for input
-    String getInput();
+    std::string getInput();
     /// to get the currently selected tool-name
-    String getTool();
+    std::string getTool();
     /// get the default extension for the output file
-    String getExtension();
+    std::string getExtension();
 
 
 private:
@@ -90,8 +90,6 @@ private:
     QLabel * tool_desc_;
     /// ComboBox for choosing a TOPP-tool
     QComboBox * tools_combo_;
-    /// Button to rerun the automatic plugin detection
-    QPushButton * reload_plugins_button_;
     /// for choosing an input parameter
     QComboBox * input_combo_;
     /// for choosing an output parameter
@@ -104,21 +102,17 @@ private:
     Param gui_param_;
     /// Param object containing all TOPP tool/util params
     const Param tool_params_;
-    /// Param object containing all plugin params
-    Param plugin_params_;
     /// ok-button connected with slot ok_()
     QPushButton * ok_button_;
     /// Location of the temporary INI file this dialog works on
-    String ini_file_;
+    std::string ini_file_;
     /// default-dir of ini-file to open
-    String default_dir_;
+    std::string default_dir_;
     /// name of ini-file
     QString filename_;
     /// Mapping of file extension to layer type to determine the type of a tool
-    std::map<String, LayerDataBase::DataType> tool_map_;
-    /// Pointer to the tool scanner for access to the plugins and to rerun the plugins detection
-    TVToolDiscovery * tool_scanner_;
-    /// The layer type of the current layer to determine all usable plugins
+    std::map<FileTypes::Type, LayerDataBase::DataType> tool_map_;
+    /// The layer type of the current layer to determine all usable tools
     LayerDataBase::DataType layer_type_;
 
     /// Disables the ok button and input/output comboboxes
@@ -129,7 +123,7 @@ private:
     std::vector<LayerDataBase::DataType> getTypesFromParam_(const Param& p) const;
     /// Fill input_combo_ and output_combo_ box with the appropriate entries from the specified param object.
     void setInputOutputCombo_(const Param& p);
-    /// Create a list of all TOPP tool/util/plugins that are compatible with the active layer type
+    /// Create a list of all TOPP tools/utils that are compatible with the active layer type
     QStringList createToolsList_();
     /// Populate and initialize thread controls
     void initializeThreadsControls_();
@@ -152,8 +146,6 @@ protected slots:
     void loadINI_();
     /// stores an ini-file from the editor
     void storeINI_();
-    /// rerun the automatic plugin detection
-    void reloadPlugins_();
     /// Slot toggling between fast and manual thread mode
     void fastModeToggled_(bool checked);
   };

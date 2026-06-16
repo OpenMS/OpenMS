@@ -43,7 +43,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2025
+          - os: windows-2022
+            # Pinned to the VS2022 image: the windows-2025 image moved to VS2026, which the
+            # contrib build's CMake generator guard (VS {14..17}) rejects even with
+            # OVERRIDE_GENERATOR. Move back to windows-2025 once contrib supports VS2026
+            # (and bump the msvc2022 Qt arch below to match).
             # cl.exe is currently the only supported. Needs a VS shell to be set up (especially if used without VS CMake Generator)
             # clang.exe is also installed but untested (might crash with our VS specific compiler definitions)
             # clang-cl.exe might be used instead.
@@ -453,14 +457,17 @@ jobs:
     - name: Create tarball
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
       run: |
+        # Write the archive to RUNNER_TEMP, i.e. OUTSIDE ${{ github.workspace }} (the directory
+        # being archived). Writing it in-tree makes the output file grow inside the directory tar
+        # is reading, so GNU tar reports "tar: .: file changed as we read it" and exits 1, which
+        # fails the step under `bash -e`.
         tar --exclude='bld/*' \
-            --exclude='OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz' \
             --exclude='THIRDPARTY/**' \
             --exclude='contrib/**' \
             --exclude='.git/**' \
             --exclude='.github/**' \
             --exclude='vcpkg*/**' \
-            -czf OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz -C ${{ github.workspace }} .
+            -czf ${{ runner.temp }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz -C ${{ github.workspace }} .
 
    # Upload the source tar
     - name: Upload source tar as artifact
@@ -469,7 +476,7 @@ jobs:
       with:
         name: OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
         path: |
-          ${{ github.workspace }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
+          ${{ runner.temp }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
 
 
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
@@ -864,7 +871,7 @@ jobs:
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
+          rsync --progress -avz --mkpath -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
 
       - name: Make KNIME installer latest
         if: inputs.mark_as_latest

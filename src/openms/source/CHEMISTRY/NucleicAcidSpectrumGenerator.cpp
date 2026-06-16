@@ -89,7 +89,7 @@ namespace OpenMS
   NucleicAcidSpectrumGenerator::~NucleicAcidSpectrumGenerator() = default;
 
 
-  void NucleicAcidSpectrumGenerator::addFragmentPeaks_(MSSpectrum& spectrum, const vector<double>& fragment_masses, const String& ion_type, double offset, double intensity, Size start) const
+  void NucleicAcidSpectrumGenerator::addFragmentPeaks_(MSSpectrum& spectrum, const vector<double>& fragment_masses, const std::string& ion_type, double offset, double intensity, Size start) const
   {
     for (Size i = start; i < fragment_masses.size(); ++i)
     {
@@ -100,7 +100,7 @@ namespace OpenMS
     {
       for (Size i = start; i < fragment_masses.size(); ++i)
       {
-        String ion_name = ion_type + String(i + 1);
+        std::string ion_name = ion_type + StringUtils::toStr(i + 1);
         spectrum.getStringDataArrays()[0].push_back(ion_name);
       }
     }
@@ -150,7 +150,7 @@ namespace OpenMS
     {
       for (Size i = start; i < fragment_masses.size(); ++i)
       {
-        String ion_name = "a" + String(i + 1) + "-B";
+        std::string ion_name = "a" + StringUtils::toStr(i + 1) + "-B";
         spectrum.getStringDataArrays()[0].push_back(ion_name);
         if (oligo[i]->isAmbiguous()) // two peaks were added
         {

@@ -126,10 +126,10 @@ class TOPPFeatureFinderMultiplex :
 private:
 
   // input and output files
-  String in_;
-  String out_;
-  String out_multiplets_;
-  String out_blacklist_;
+  std::string in_;
+  std::string out_;
+  std::string out_multiplets_;
+  std::string out_blacklist_;
 
 public:
   TOPPFeatureFinderMultiplex() :
@@ -146,11 +146,11 @@ public:
 #endif
     });
     registerOutputFile_("out", "<file>", "", "Output file containing the individual peptide features.", false);
-    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML"));
     registerOutputFile_("out_multiplets", "<file>", "", "Optional output file containing all detected peptide groups (i.e. peptide pairs or triplets or singlets or ..). The m/z-RT positions correspond to the lightest peptide in each group.", false, true);
-    setValidFormats_("out_multiplets", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("out_multiplets", ListUtils::create<std::string>("consensusXML"));
     registerOutputFile_("out_blacklist", "<file>", "", "Optional output file containing all peaks which have been associated with a peptide feature (and subsequently blacklisted).", false, true);
-    setValidFormats_("out_blacklist", ListUtils::create<String>("mzML"));
+    setValidFormats_("out_blacklist", ListUtils::create<std::string>("mzML"));
 
     addEmptyLine_();
     registerStringOption_("faims_merge_features", "<true/false>", "true",
@@ -179,7 +179,7 @@ public:
    * @param[in] filename    name of featureXML file
    * @param[out] map    feature map for output
    */
-  void writeFeatureMap_(const String& filename, FeatureMap& map) const
+  void writeFeatureMap_(const std::string& filename, FeatureMap& map) const
   {
     FileHandler().storeFeatures(filename, map, {FileTypes::FEATUREXML});
   }
@@ -190,7 +190,7 @@ public:
    * @param[in] filename    name of consensusXML file
    * @param[out] map    consensus map for output
    */
-  void writeConsensusMap_(const String& filename, ConsensusMap& map) const
+  void writeConsensusMap_(const std::string& filename, ConsensusMap& map) const
   {
     for (auto & ch : map.getColumnHeaders())
     {
@@ -205,7 +205,7 @@ public:
    * @param[in] filename    name of mzML file
    * @param[out] blacklist    blacklist for output
    */
-  void writeBlacklist_(const String& filename, const MSExperiment& blacklist) const
+  void writeBlacklist_(const std::string& filename, const MSExperiment& blacklist) const
   {
     FileHandler().storeExperiment(filename, blacklist, {FileTypes::MZML});
   }
@@ -216,11 +216,11 @@ public:
    *
    * @param[in] labels    string describing the labels
    */
-  static size_t numberOfSamples(String labels)
+  static size_t numberOfSamples(std::string labels)
   {
     // samples can be deliminated by any kind of brackets
-    labels.substitute("(", "[");
-    labels.substitute("{", "[");
+    StringUtils::substitute(labels, "(", "[");
+    StringUtils::substitute(labels, "{", "[");
     size_t n = std::count(labels.begin(), labels.end(), '[');
     // if no labels are specified, we have n=1 for simple feature detection
     if (n == 0)

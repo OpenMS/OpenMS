@@ -108,17 +108,17 @@ protected:
     {
       registerInputFile_("in", "<file>", "",
                          "Input file (see below for details)");
-      setValidFormats_("in", ListUtils::create<String>("mzML,idXML,featureXML,consensusXML"));
-      registerOutputPrefix_("out_prefix", "<prefix>", String(), "Output file prefix");
-      setValidFormats_("out_prefix", ListUtils::create<String>("featureXML"));
+      setValidFormats_("in", ListUtils::create<std::string>("mzML,idXML,featureXML,consensusXML"));
+      registerOutputPrefix_("out_prefix", "<prefix>", std::string(), "Output file prefix");
+      setValidFormats_("out_prefix", ListUtils::create<std::string>("featureXML"));
       addEmptyLine_();
       registerFlag_("use_peptide_mass", "[idXML input only] Use the monoisotopic mass of the best peptide hit for the m/z position (default: use precursor m/z)");
     }
 
     ExitCodes main_(int, const char **) override
     {
-      String in = getStringOption_("in");
-      String out_prefix = getStringOption_("out_prefix");
+      std::string in = getStringOption_("in");
+      std::string out_prefix = getStringOption_("out_prefix");
 
       SeedListGenerator seed_gen;
       // results (actually just one result, except for consensusXML input):
@@ -141,13 +141,13 @@ protected:
         out.clear();
         for([[maybe_unused]] const auto& header : ch)
         {           
-          out.push_back(out_prefix + "_" + String(map_count) + ".featureXML"); // we manually set the name here
+          out.push_back(out_prefix + "_" + StringUtils::toStr(map_count) + ".featureXML"); // we manually set the name here
           ++map_count;
         }
 
         if (out.size() != num_maps)
         {
-          writeLogError_("Error: expected " + String(num_maps) +
+          writeLogError_("Error: expected " + StringUtils::toStr(num_maps) +
                     " output filenames");
           return ILLEGAL_PARAMETERS;
         }

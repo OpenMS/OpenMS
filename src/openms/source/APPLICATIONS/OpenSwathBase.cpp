@@ -63,7 +63,7 @@ namespace OpenMS
     }
   }
 
-  TOPPOpenSwathBase::TOPPOpenSwathBase(String name, String description, bool official, const std::vector<Citation>& citations) :
+  TOPPOpenSwathBase::TOPPOpenSwathBase(std::string name, std::string description, bool official, const std::vector<Citation>& citations) :
     TOPPBase(name, description, official, citations)
   {
   }
@@ -74,11 +74,11 @@ namespace OpenMS
 
   void TOPPOpenSwathBase::loadSwathFiles_(const StringList& file_list,
                        const bool split_file,
-                       const String& tmp,
-                       const String& readoptions,
+                       const std::string& tmp,
+                       const std::string& readoptions,
                        std::shared_ptr<ExperimentalSettings > & exp_meta,
                        std::vector< OpenSwath::SwathMap > & swath_maps,
-                       std::vector<String> & swath_map_sources,
+                       std::vector<std::string> & swath_map_sources,
                        Interfaces::IMSDataConsumer* plugin_consumer)
   {
     SwathFile swath_file;
@@ -234,11 +234,11 @@ namespace OpenMS
   bool TOPPOpenSwathBase::loadSwathFiles(const StringList& file_list,
                       std::shared_ptr<ExperimentalSettings >& exp_meta,
                       std::vector< OpenSwath::SwathMap >& swath_maps,
-                      std::vector<String> & swath_map_sources,
+                      std::vector<std::string> & swath_map_sources,
                       const bool split_file,
-                      const String& tmp,
-                      const String& readoptions,
-                      const String& swath_windows_file,
+                      const std::string& tmp,
+                      const std::string& readoptions,
+                      const std::string& swath_windows_file,
                       const double min_upper_edge_dist,
                       const bool force,
                       const bool sort_swath_maps,
@@ -252,11 +252,11 @@ namespace OpenMS
     if (!swath_maps.empty())
     {
       bool first_has_spectra = (swath_maps[0].sptr->getNrSpectra() > 0);
-      String first_file_type = first_has_spectra ? "DIA/PRM (spectra-based)" : "SRM/MRM (chromatogram-only)";
+      std::string first_file_type = first_has_spectra ? "DIA/PRM (spectra-based)" : "SRM/MRM (chromatogram-only)";
       for (Size i = 1; i < swath_maps.size(); ++i)
       {
         bool current_has_spectra = (swath_maps[i].sptr->getNrSpectra() > 0);
-        String current_file_type = current_has_spectra ? "DIA/PRM (spectra-based)" : "SRM/MRM (chromatogram-only)";
+        std::string current_file_type = current_has_spectra ? "DIA/PRM (spectra-based)" : "SRM/MRM (chromatogram-only)";
         if (current_has_spectra != first_has_spectra)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -344,9 +344,9 @@ namespace OpenMS
   void TOPPOpenSwathBase::prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer,
                           const std::shared_ptr<ExperimentalSettings>& exp_meta,
                           const OpenSwath::LightTargetedExperiment& transition_exp,
-                          const String& out_chrom,
+                          const std::string& out_chrom,
                           const UInt64 run_id,
-                          const String& source_file)
+                          const std::string& source_file)
   {
     if (!out_chrom.empty())
     {
@@ -401,9 +401,9 @@ namespace OpenMS
   void TOPPOpenSwathBase::prepareMobilogramOutput(std::unique_ptr<MobilogramParquetConsumer>& mobilogramConsumer,
                                                   const std::shared_ptr<ExperimentalSettings>& /*exp_meta*/,
                                                   const OpenSwath::LightTargetedExperiment& transition_exp,
-                                                  const String& out_mobilogram,
+                                                  const std::string& out_mobilogram,
                                                   const UInt64 run_id,
-                                                  const String& source_file)
+                                                  const std::string& source_file)
   {
     if (!out_mobilogram.empty())
     {
@@ -429,7 +429,7 @@ namespace OpenMS
   }
 
   OpenSwath::LightTargetedExperiment TOPPOpenSwathBase::loadTransitionList(const FileTypes::Type& tr_type,
-                                                        const String& tr_file,
+                                                        const std::string& tr_file,
                                                         const Param& tsv_reader_param)
   {
     OpenSwath::LightTargetedExperiment transition_exp;

@@ -1265,21 +1265,21 @@ namespace OpenMS
     featureFinder.setParameters(feature_finder_param);
     featureFinder.prepareProteinPeptideMaps_(transition_exp);
 
-    std::unordered_map<String, int> ms1_chromatogram_map;
+    std::unordered_map<std::string, int> ms1_chromatogram_map;
     ms1_chromatogram_map.reserve(ms1_chromatograms.size());
     for (Size i = 0; i < ms1_chromatograms.size(); i++)
     {
       ms1_chromatogram_map[ms1_chromatograms[i].getNativeID()] = boost::numeric_cast<int>(i);
     }
 
-    std::unordered_map<String, int> chromatogram_map;
+    std::unordered_map<std::string, int> chromatogram_map;
     chromatogram_map.reserve(ms2_chromatograms.size());
     for (Size i = 0; i < ms2_chromatograms.size(); i++)
     {
-      const String cid = ms2_chromatograms[i].getNativeID();
+      const std::string cid = ms2_chromatograms[i].getNativeID();
       chromatogram_map[cid] = boost::numeric_cast<int>(i);
     }
-    std::unordered_map<String, int> assay_peptide_map;
+    std::unordered_map<std::string, int> assay_peptide_map;
     assay_peptide_map.reserve(transition_exp.getCompounds().size());
     for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
     {
@@ -1287,7 +1287,7 @@ namespace OpenMS
     }
 
     // Map peptide id to corresponding transitions
-    typedef std::map<String, std::vector< const TransitionType* > > AssayMapT;
+    typedef std::map<std::string, std::vector< const TransitionType* > > AssayMapT;
     AssayMapT assay_map;
     // create an entry for each member (ensure there is one even if we don't
     // have any transitions for it, e.g. in the case of ms1 only)
@@ -1317,7 +1317,7 @@ namespace OpenMS
     for (AssayMapT::iterator assay_it = assay_map.begin(); assay_it != assay_map.end(); ++assay_it)
     {
       // Create new MRMTransitionGroup
-      String id = assay_it->first;
+      std::string id = assay_it->first;
       MRMTransitionGroupType transition_group;
       transition_group.setTransitionGroupID(id);
       double expected_rt = transition_exp.getCompounds()[ assay_peptide_map[id] ].rt;
@@ -1388,7 +1388,7 @@ namespace OpenMS
       // isotopic traces)
       for (int iso = 0; iso <= nr_ms1_isotopes; iso++)
       {
-        String prec_id = OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), iso);
+        std::string prec_id = OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), iso);
         if (!ms1_chromatograms.empty() && ms1_chromatogram_map.contains(prec_id))
         {
           const MSChromatogram& chromatogram = ms1_chromatograms[ ms1_chromatogram_map[prec_id] ];
@@ -1411,7 +1411,7 @@ namespace OpenMS
       // Check fragment/transition chromatograms first
       for (const auto & chrom : transition_group.getChromatograms())
       {
-        String nid = chrom.getNativeID();
+        std::string nid = chrom.getNativeID();
         if (transition_group.getTransitions().size() == 0)
         {
           has_detecting_chrom = true; break;

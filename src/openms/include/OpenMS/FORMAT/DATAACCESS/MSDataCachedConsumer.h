@@ -48,7 +48,7 @@ namespace OpenMS
         written to disk as well.
 
       */
-      MSDataCachedConsumer(const String& filename, bool clearData=true);
+      MSDataCachedConsumer(const std::string& filename, bool clearData=true);
 
       /**
         @brief Destructor

@@ -19,7 +19,7 @@ namespace OpenMS
   // Populate the precursor (MS1) extraction coordinate for one compound.
   // Returns false if the compound has no associated transitions, in which case
   // the caller should record an empty coordinate and continue.
-  bool populateMS1Transition(const std::unordered_map<String, std::vector<const OpenSwath::LightTransition*>>& pep2tr,
+  bool populateMS1Transition(const std::unordered_map<std::string, std::vector<const OpenSwath::LightTransition*>>& pep2tr,
                              const OpenSwath::LightCompound & pep,
                              ChromatogramExtractor::ExtractionCoordinates & coord)
   {
@@ -70,13 +70,13 @@ namespace OpenMS
                                                   const bool ms1,
                                                   const int ms1_isotopes)
   {
-    std::unordered_map<String, std::vector<const OpenSwath::LightTransition*> > pep2tr;
+    std::unordered_map<std::string, std::vector<const OpenSwath::LightTransition*> > pep2tr;
     for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
     {
-      String ref = transition_exp_used.getTransitions()[i].getPeptideRef();
+      std::string ref = transition_exp_used.getTransitions()[i].getPeptideRef();
       pep2tr[ref].push_back(&transition_exp_used.getTransitions()[i]);
     }
-    std::unordered_map<String, const OpenSwath::LightCompound*> tr2pep;
+    std::unordered_map<std::string, const OpenSwath::LightCompound*> tr2pep;
     tr2pep.reserve(transition_exp_used.getCompounds().size());
     for (const auto & p : transition_exp_used.getCompounds()) {tr2pep[p.id] = &p;}
 
@@ -199,7 +199,7 @@ namespace OpenMS
     return false;
   }
 
-  int ChromatogramExtractor::getFilterNr_(const String& filter)
+  int ChromatogramExtractor::getFilterNr_(const std::string& filter)
   {
     if (filter == "tophat")
     {

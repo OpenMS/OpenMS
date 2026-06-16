@@ -38,7 +38,7 @@ START_SECTION(~ExperimentalDesignFile())
 }
 END_SECTION
 
-START_SECTION((static ExperimentalDesign load(const String &tsv_file, bool require_spectra_files)))
+START_SECTION((static ExperimentalDesign load(const std::string &tsv_file, bool require_spectra_files)))
 {
 ExperimentalDesign design = ExperimentalDesignFile::load(
   OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_1.tsv"), false);

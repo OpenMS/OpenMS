@@ -137,7 +137,7 @@ namespace OpenMS
     for (UInt i = 0; i < number_of_maps; i++)
     {
       ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().find(i);
-      if (it == map.getColumnHeaders().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
+      if (it == map.getColumnHeaders().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr(i));
       out_intensities[i].reserve(it->second.size);
     }
     //fill out_intensities

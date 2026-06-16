@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS
 {
@@ -132,12 +132,12 @@ public:
     /**@brief Mutable access to unique id.
 
      This is designed to work well with \c id attributes in XML, which are prefixed with letters.
-     The portion of the String after the last underscore is extracted and parsed as a UInt64.  <i>It must consist of digits only.</i>
+     The portion of the std::string after the last underscore is extracted and parsed as a UInt64.  <i>It must consist of digits only.</i>
      For example, <code>some_feature.setUniqueId("f_12345_00067890")</code> is equivalent to <code>some_feature.setUniqueId(67890)</code>
 
      */
     void
-    setUniqueId(const String & rhs);
+    setUniqueId(const std::string & rhs);
 
 protected:
     /// the unique id

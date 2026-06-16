@@ -61,7 +61,7 @@ namespace OpenMS::Internal
     parsing_success_ = (res == 0);
   }
 
-  IndexedMzMLHandler::IndexedMzMLHandler(const String& filename) :
+  IndexedMzMLHandler::IndexedMzMLHandler(const std::string& filename) :
     parsing_success_(false),
     skip_xml_checks_(false) 
   {
@@ -89,7 +89,7 @@ namespace OpenMS::Internal
 
   IndexedMzMLHandler::~IndexedMzMLHandler() = default;
 
-  void IndexedMzMLHandler::openFile(const String& filename) 
+  void IndexedMzMLHandler::openFile(const std::string& filename) 
   {
     if (filestream_.is_open()) // important; otherwise opening again will fail
     {
@@ -127,13 +127,13 @@ namespace OpenMS::Internal
     if (chromToGet < 0)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          String( "id needs to be positive, was " + String(id) ));
+          std::string( "id needs to be positive, was " + StringUtils::toStr(id) ));
     }
     if (chromToGet >= (int)getNrChromatograms())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String( 
-            "id needs to be smaller than the number of spectra, was " + String(id) 
-            + " maximal allowed is " + String(getNrSpectra()) ));
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string(
+            "id needs to be smaller than the number of spectra, was " + StringUtils::toStr(id) 
+            + " maximal allowed is " + StringUtils::toStr(getNrSpectra()) ));
     }
 
     std::streampos startidx = -1;
@@ -187,13 +187,13 @@ namespace OpenMS::Internal
     if (spectrumToGet < 0)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          String( "id needs to be positive, was " + String(id) ));
+          std::string( "id needs to be positive, was " + StringUtils::toStr(id) ));
     }
     if (spectrumToGet >= (int)getNrSpectra())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String( 
-            "id needs to be smaller than the number of spectra, was " + String(id) 
-            + " maximal allowed is " + String(getNrSpectra()) ));
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string(
+            "id needs to be smaller than the number of spectra, was " + StringUtils::toStr(id) 
+            + " maximal allowed is " + StringUtils::toStr(getNrSpectra()) ));
     }
 
     std::streampos startidx = -1;
@@ -255,7 +255,7 @@ namespace OpenMS::Internal
     if (!spectra_native_ids_.contains(id))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          String( "Could not find spectrum id " + String(id) ));
+          std::string( "Could not find spectrum id " + std::string(id) ));
     }
     getMSSpectrumById(spectra_native_ids_[id], s);
   }
@@ -289,7 +289,7 @@ namespace OpenMS::Internal
     if (it == chromatograms_native_ids_.end())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          String("Could not find chromatogram id ") + id );
+          std::string("Could not find chromatogram id ") + id );
     }
     getMSChromatogramById(it->second, c);
   }

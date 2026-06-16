@@ -56,14 +56,14 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<files>", "", "Input file (SWATH/DIA file)");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML,mzXML"));
     registerOutputPrefix_("outputDirectory", "<output>", "./", "Output file prefix", false, true);
     // additional QC data
     registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1). Only works with mzML input files.", false, true);
-    setValidFormats_("out_qc", ListUtils::create<String>("json"));
+    setValidFormats_("out_qc", ListUtils::create<std::string>("json"));
   }
 
-  void loadSwathFiles(const String& file_in, const String& tmp, const String& readoptions, std::shared_ptr<ExperimentalSettings>& exp_meta, std::vector<OpenSwath::SwathMap>& swath_maps,
+  void loadSwathFiles(const std::string& file_in, const std::string& tmp, const std::string& readoptions, std::shared_ptr<ExperimentalSettings>& exp_meta, std::vector<OpenSwath::SwathMap>& swath_maps,
                       Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
   {
     SwathFile swath_file;
@@ -89,15 +89,15 @@ protected:
     ///////////////////////////////////
     // Prepare Parameters
     ///////////////////////////////////
-    String file_in = getStringOption_("in");
+    std::string file_in = getStringOption_("in");
 
     // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
     // File::absolutePath() always uses '/' separators
-    String tmp_dir = File::absolutePath(getStringOption_("outputDirectory")).ensureLastChar('/');
+    std::string tmp_dir = File::absolutePath(getStringOption_("outputDirectory")); StringUtils::ensureLastChar(tmp_dir, '/');
 
-    String tmp = tmp_dir + File::stemName(file_in);
+    std::string tmp = tmp_dir + File::stemName(file_in);
 
-    String out_qc = getStringOption_("out_qc");
+    std::string out_qc = getStringOption_("out_qc");
 
     ///////////////////////////////////
     // Load the SWATH files

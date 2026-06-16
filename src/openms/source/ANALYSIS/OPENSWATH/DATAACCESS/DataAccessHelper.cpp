@@ -243,17 +243,17 @@ namespace OpenMS
 
     if (pep.metaValueExists("GeneName"))
     {
-      p.gene_name = (std::string)pep.getMetaValue("GeneName");
+      p.gene_name = StringUtils::toStr(pep.getMetaValue("GeneName"));
     }
 
     // Is it potentially a metabolomics compound
     if (pep.metaValueExists("SumFormula"))
     {
-      p.sum_formula = (std::string)pep.getMetaValue("SumFormula");
+      p.sum_formula = StringUtils::toStr(pep.getMetaValue("SumFormula"));
     }
     if (pep.metaValueExists("CompoundName"))
     {
-      p.compound_name = (std::string)pep.getMetaValue("CompoundName");
+      p.compound_name = StringUtils::toStr(pep.getMetaValue("CompoundName"));
     }
 
     p.protein_refs.clear();
@@ -338,7 +338,7 @@ namespace OpenMS
     comp.sum_formula = (std::string)compound.molecular_formula;
     if (compound.metaValueExists("CompoundName"))
     {
-      comp.compound_name = (std::string)compound.getMetaValue("CompoundName");
+      comp.compound_name = StringUtils::toStr(compound.getMetaValue("CompoundName"));
     }
   }
 
@@ -353,7 +353,7 @@ namespace OpenMS
       {
         TargetedExperimentHelper::setModification(it.location,
                                                   int(peptide.sequence.size()),
-                                                  "UniMod:" + String(it.unimod_id), aa_sequence);
+                                                  "UniMod:" + StringUtils::toStr(it.unimod_id), aa_sequence);
       }
     }
   }

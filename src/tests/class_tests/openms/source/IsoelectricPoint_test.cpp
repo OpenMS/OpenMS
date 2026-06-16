@@ -113,7 +113,7 @@ START_SECTION(static double computePI(const AASequence& seq, ProteomicsPkaScale 
   double pi_sec = IsoelectricPoint::computePI(sec);
   TEST_REAL_SIMILAR(pi_sec, 4.035);
 
-  AASequence polybasic = AASequence::fromString(String(100, 'R'));
+  AASequence polybasic = AASequence::fromString(std::string(100, 'R'));
   double pi_polybasic = IsoelectricPoint::computePI(polybasic);
   TEST_REAL_SIMILAR(pi_polybasic, 14.0);
 

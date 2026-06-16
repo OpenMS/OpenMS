@@ -25,21 +25,21 @@ namespace OpenMS
 {
   namespace
   {
-    void throwIfArrowAppendFailed_(const arrow::Status& status, const String& context)
+    void throwIfArrowAppendFailed_(const arrow::Status& status, const std::string& context)
     {
       if (!status.ok())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Failed to build parquet matrix column for " + context + ": " + String(status.ToString()));
+                                         "Failed to build parquet matrix column for " + context + ": " + status.ToString());
       }
     }
 
     struct PeptideSummaryRow
     {
-      String sequence;
-      String full_peptide_name;
-      String protein_name;
-      String gene_name;
+      std::string sequence;
+      std::string full_peptide_name;
+      std::string protein_name;
+      std::string gene_name;
       std::map<Int64, double> sample_values;
     };
 
@@ -58,20 +58,20 @@ namespace OpenMS
       return (values[mid - 1] + values[mid]) / 2.0;
     }
 
-    std::map<Int64, String> buildSampleNames_(const std::vector<OpenSwathExportRow>& rows)
+    std::map<Int64, std::string> buildSampleNames_(const std::vector<OpenSwathExportRow>& rows)
     {
-      std::map<Int64, String> names;
-      std::set<String> used;
+      std::map<Int64, std::string> names;
+      std::set<std::string> used;
       for (const auto& row : rows)
       {
         if (names.contains(row.run_id))
         {
           continue;
         }
-        String label = row.run_name.empty() ? (String("RUN_ID_") + String(row.run_id)) : row.run_name;
+        std::string label = row.run_name.empty() ? ("RUN_ID_" + StringUtils::toStr(row.run_id)) : row.run_name;
         if (used.contains(label))
         {
-          label += "_RUN" + String(row.run_id);
+          label += "_RUN" + StringUtils::toStr(row.run_id);
         }
         used.insert(label);
         names[row.run_id] = std::move(label);
@@ -92,7 +92,7 @@ namespace OpenMS
                 });
 
       std::vector<OpenSwathExportRow> best_rows;
-      String current_group;
+      std::string current_group;
       Int64 current_run = std::numeric_limits<Int64>::min();
       for (const auto& row : rows)
       {
@@ -110,9 +110,9 @@ namespace OpenMS
                                                       const Size top_n,
                                                       const bool consistent_top)
     {
-      using PeptideKey = std::pair<String, String>;
-      std::map<PeptideKey, String> protein_by_key;
-      std::map<PeptideKey, String> gene_by_key;
+      using PeptideKey = std::pair<std::string, std::string>;
+      std::map<PeptideKey, std::string> protein_by_key;
+      std::map<PeptideKey, std::string> gene_by_key;
       for (const auto& row : best_rows)
       {
         const PeptideKey key{row.sequence, row.full_peptide_name};
@@ -123,16 +123,16 @@ namespace OpenMS
       std::map<PeptideKey, std::map<Int64, double>> per_run_mean;
       if (consistent_top)
       {
-        std::map<PeptideKey, std::map<String, std::vector<double>>> intensities_by_precursor;
+        std::map<PeptideKey, std::map<std::string, std::vector<double>>> intensities_by_precursor;
         for (const auto& row : best_rows)
         {
           intensities_by_precursor[{row.sequence, row.full_peptide_name}][row.transition_group_id].push_back(row.intensity);
         }
 
-        std::map<PeptideKey, std::set<String>> selected_precursors;
+        std::map<PeptideKey, std::set<std::string>> selected_precursors;
         for (const auto& entry : intensities_by_precursor)
         {
-          std::vector<std::pair<String, double>> medians;
+          std::vector<std::pair<std::string, double>> medians;
           for (const auto& precursor : entry.second)
           {
             medians.emplace_back(precursor.first, median_(precursor.second));
@@ -328,14 +328,14 @@ namespace OpenMS
     if (config.level == OpenSwathMatrixLevel::Precursor)
     {
       matrix.identifier_column_names = {"transition_group_id", "Sequence", "FullPeptideName", "Charge", "ProteinName"};
-      std::map<std::vector<String>, std::map<Int64, double>> grouped;
+      std::map<std::vector<std::string>, std::map<Int64, double>> grouped;
       for (const auto& row : best_rows)
       {
         grouped[{
           row.transition_group_id,
           row.sequence,
           row.full_peptide_name,
-          String(row.charge),
+          StringUtils::toStr(row.charge),
           row.protein_name
         }][row.run_id] = row.intensity;
       }
@@ -353,7 +353,7 @@ namespace OpenMS
     if (config.level == OpenSwathMatrixLevel::Peptide)
     {
       matrix.identifier_column_names = {"Sequence", "FullPeptideName"};
-      std::map<std::vector<String>, std::map<Int64, double>> grouped;
+      std::map<std::vector<std::string>, std::map<Int64, double>> grouped;
       for (const auto& row : peptide_rows)
       {
         grouped[{
@@ -368,10 +368,10 @@ namespace OpenMS
     auto summarizeHigher = [&](const bool gene_level)
     {
       matrix.identifier_column_names = {gene_level ? "GeneName" : "ProteinName"};
-      std::map<String, std::vector<const PeptideSummaryRow*>> grouped_peptides;
+      std::map<std::string, std::vector<const PeptideSummaryRow*>> grouped_peptides;
       for (const auto& row : peptide_rows)
       {
-        const String& key = gene_level ? row.gene_name : row.protein_name;
+        const std::string& key = gene_level ? row.gene_name : row.protein_name;
         if (key.empty())
         {
           continue;
@@ -385,7 +385,7 @@ namespace OpenMS
                                                  : "No protein annotations were available for matrix export.");
       }
 
-      std::map<std::vector<String>, std::map<Int64, double>> grouped;
+      std::map<std::vector<std::string>, std::map<Int64, double>> grouped;
       for (const auto& entry : grouped_peptides)
       {
         std::vector<const PeptideSummaryRow*> selected = entry.second;
@@ -441,7 +441,7 @@ namespace OpenMS
     return matrix;
   }
 
-  void OpenSwathMatrixExporter::writeMatrix(const String& filename,
+  void OpenSwathMatrixExporter::writeMatrix(const std::string& filename,
                                             const OpenSwathQuantMatrix& matrix,
                                             const OpenSwathMatrixExportConfig& config)
   {

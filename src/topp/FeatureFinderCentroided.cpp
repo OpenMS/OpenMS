@@ -145,9 +145,9 @@ protected:
 #endif
     });
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML"));
     registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
-    setValidFormats_("seeds", ListUtils::create<String>("featureXML"));
+    setValidFormats_("seeds", ListUtils::create<std::string>("featureXML"));
 
     addEmptyLine_();
     registerStringOption_("faims_merge_features", "<true/false>", "true",
@@ -162,7 +162,7 @@ protected:
   }
 
 
-  Param getSubsectionDefaults_(const String& ) const override
+  Param getSubsectionDefaults_(const std::string& ) const override
   {
     return FeatureFinderAlgorithmPicked().getDefaultParameters();
   }
@@ -171,8 +171,8 @@ protected:
   ExitCodes main_(int, const char**) override
   {
     //input file names
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
 
     // prevent loading of fragment spectra
     PeakFileOptions options;
@@ -334,7 +334,7 @@ protected:
       {
         if (!ft.isMetaEmpty())
         {
-          vector<String> keys;
+          vector<std::string> keys;
           ft.getKeys(keys);
           OPENMS_LOG_INFO << "Feature " << ft.getUniqueId() << endl;
           for (Size i = 0; i < keys.size(); i++)

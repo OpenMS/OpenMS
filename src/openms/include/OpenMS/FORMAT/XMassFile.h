@@ -55,9 +55,9 @@ public:
 
         @exception Exception::FileNotFound is thrown if the file could not be read
     */
-    void load(const String & filename, MSSpectrum & spectrum)
+    void load(const std::string & filename, MSSpectrum & spectrum)
     {
-      Internal::AcqusHandler acqus(filename.prefix(filename.length() - 3) + String("acqus"));
+      Internal::AcqusHandler acqus(StringUtils::prefix(filename, filename.length() - 3) + std::string("acqus"));
 
       Internal::FidHandler fid(filename);
       if (!fid)
@@ -96,7 +96,7 @@ public:
       spectrum.setMSLevel(1);
       spectrum.setName("Xmass analysis file " + acqus.getParam("$ID_raw"));
       spectrum.setType(SpectrumSettings::SpectrumType::PROFILE);
-      spectrum.setNativeID("spectrum=xsd:" + acqus.getParam("$ID_raw").remove('<').remove('>'));
+      spectrum.setNativeID("spectrum=xsd:" + [](std::string s){ StringUtils::remove(s, '<'); StringUtils::remove(s, '>'); return s; }(acqus.getParam("$ID_raw")));
       spectrum.setComment("no comment");
 
       InstrumentSettings instrument_settings;
@@ -123,7 +123,7 @@ public:
 
       SourceFile source_file;
       source_file.setNameOfFile("fid");
-      source_file.setPathToFile(filename.prefix(filename.length() - 3));
+      source_file.setPathToFile(StringUtils::prefix(filename, filename.length() - 3));
       source_file.setFileSize(4.0 * acqus.getSize() / 1024 / 1024);   // 4 bytes / point
       source_file.setFileType("Xmass analysis file (fid)");
       spectrum.setSourceFile(source_file);
@@ -131,17 +131,17 @@ public:
       DataProcessing data_processing;
       Software software;
       software.setName("FlexControl");
-      String fc_ver = acqus.getParam("$FCVer");   // FlexControlVersion
-      if (fc_ver.hasPrefix("<flexControl "))
+      std::string fc_ver = acqus.getParam("$FCVer");   // FlexControlVersion
+      if (StringUtils::hasPrefix(fc_ver, "<flexControl "))
       {
-        fc_ver = fc_ver.suffix(' ');
+        fc_ver = StringUtils::suffix(fc_ver, ' ');
       }
-      if (fc_ver.hasSuffix(">"))
+      if (StringUtils::hasSuffix(fc_ver, ">"))
       {
-        fc_ver = fc_ver.prefix('>');
+        fc_ver = StringUtils::prefix(fc_ver, '>');
       }
       software.setVersion(fc_ver);
-      software.setMetaValue("Acquisition method", DataValue(acqus.getParam("$ACQMETH").remove('<').remove('>')));
+      software.setMetaValue("Acquisition method", DataValue([](std::string s){ StringUtils::remove(s, '<'); StringUtils::remove(s, '>'); return s; }(acqus.getParam("$ACQMETH"))));
       data_processing.setSoftware(software);
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(DataProcessing::SMOOTHING);
@@ -163,16 +163,16 @@ public:
 
         @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    void importExperimentalSettings(const String & filename, PeakMap & exp)
+    void importExperimentalSettings(const std::string & filename, PeakMap & exp)
     {
-      Internal::AcqusHandler acqus(filename.prefix(filename.length() - 3) + String("acqus"));
+      Internal::AcqusHandler acqus(StringUtils::prefix(filename, filename.length() - 3) + std::string("acqus"));
 
       ExperimentalSettings & experimental_settings = exp.getExperimentalSettings();
 
       Instrument & instrument = experimental_settings.getInstrument();
       instrument.setName(acqus.getParam("SPECTROMETER/DATASYSTEM"));
       instrument.setVendor(acqus.getParam("ORIGIN"));
-      instrument.setModel(acqus.getParam("$InstrID").remove('<').remove('>'));
+      instrument.setModel([](std::string s){ StringUtils::remove(s, '<'); StringUtils::remove(s, '>'); return s; }(acqus.getParam("$InstrID")));
 
       std::vector<IonSource> & ionSourceList = instrument.getIonSources();
       ionSourceList.clear();
@@ -198,7 +198,7 @@ public:
       {
         ionSourceList[0].setPolarity(IonSource::Polarity::POLNULL);
       }
-      ionSourceList[0].setMetaValue("MALDI target reference", DataValue(acqus.getParam("$TgIDS").remove('<').remove('>')));
+      ionSourceList[0].setMetaValue("MALDI target reference", DataValue([](std::string s){ StringUtils::remove(s, '<'); StringUtils::remove(s, '>'); return s; }(acqus.getParam("$TgIDS"))));
       ionSourceList[0].setOrder(0);
 
       std::vector<MassAnalyzer> & massAnalyzerList = instrument.getMassAnalyzers();
@@ -214,7 +214,7 @@ public:
       }
 
       DateTime date;
-      date.set(acqus.getParam("$AQ_DATE").remove('<').remove('>'));
+      date.set([](std::string s){ StringUtils::remove(s, '<'); StringUtils::remove(s, '>'); return s; }(acqus.getParam("$AQ_DATE")));
       experimental_settings.setDateTime(date);
     }
 
@@ -223,7 +223,7 @@ public:
 
         @exception Exception::FileNotWritable is thrown
     */
-    void store(const String & /*filename*/, const MSSpectrum & /*spectrum*/)
+    void store(const std::string & /*filename*/, const MSSpectrum & /*spectrum*/)
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }

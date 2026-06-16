@@ -93,13 +93,13 @@ protected:
     });
 
     registerOutputFile_("out", "<file>", "", "Output featureXML file");
-    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML"));
 
     registerOutputFile_("out_tsv", "<file>", "", "Optional: output TSV file (Biosaur2 format)", false);
-    setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_tsv", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out_hills", "<file>", "", "Optional: write detected hills to TSV", false);
-    setValidFormats_("out_hills", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_hills", ListUtils::create<std::string>("tsv"));
 
     registerFlag_("write_hills", "Force writing of hills file even if no output path was provided", false);
 
@@ -117,10 +117,10 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
-    String out_tsv = getStringOption_("out_tsv");
-    String out_hills = getStringOption_("out_hills");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
+    std::string out_tsv = getStringOption_("out_tsv");
+    std::string out_hills = getStringOption_("out_hills");
     bool write_hills_flag = getFlag_("write_hills");
 
     Param algo_param = getParam_().copySubset(algorithm_.getDefaults());
@@ -153,7 +153,7 @@ protected:
     progresslogger.setProgress(1);
     progresslogger.endProgress();
     stopwatch.stop();
-    String primary_path = getFlag_("test") ? ("file://" + File::basename(in)) : in;
+    std::string primary_path = getFlag_("test") ? ("file://" + File::basename(in)) : in;
     feature_map.setPrimaryMSRunPath({primary_path}, algorithm_.getMSData());
     addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::QUANTITATION));
     OPENMS_LOG_INFO << "Preprocessing and feature finding took " << stopwatch.toString() << endl;
@@ -172,14 +172,14 @@ protected:
     if (write_hills_flag || !out_hills.empty())
     {
       stopwatch.reset();
-      String hills_file = out_hills;
+      std::string hills_file = out_hills;
       if (hills_file.empty())
       {
-        String base = out;
+        std::string base = out;
         Size dot_pos = base.find_last_of('.');
-        if (dot_pos != String::npos)
+        if (dot_pos != std::string::npos)
         {
-          base = base.substr(0, dot_pos);
+          base = StringUtils::substr(base, 0, dot_pos);
         }
         hills_file = base + ".hills.tsv";
       }

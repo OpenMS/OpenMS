@@ -25,12 +25,12 @@ UInt MSImagingGeometry::getWidth() const
 UInt MSImagingGeometry::getHeight() const
 { return height_; }
 
-void MSImagingGeometry::setPixelSize(double x, double y, const String& unit)
-{
-  pixel_size_x_ = x;
-  pixel_size_y_ = y;
-  pixel_size_unit_ = unit;
-}
+  void MSImagingGeometry::setPixelSize(double x, double y, const std::string& unit)
+  {
+    pixel_size_x_ = x;
+    pixel_size_y_ = y;
+    pixel_size_unit_ = unit;
+  }
 
 double MSImagingGeometry::getPixelSizeX() const
 { return pixel_size_x_; }
@@ -38,22 +38,27 @@ double MSImagingGeometry::getPixelSizeX() const
 double MSImagingGeometry::getPixelSizeY() const
 { return pixel_size_y_; }
 
-const String& MSImagingGeometry::getPixelSizeUnit() const
-{ return pixel_size_unit_; }
-
-void MSImagingGeometry::addPixel(UInt x, UInt y, Size spectrum_index)
-{
-  if (width_ > 0 && height_ > 0 && (x >= width_ || y >= height_))
+  const std::string& MSImagingGeometry::getPixelSizeUnit() const
   {
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Pixel coordinate outside configured geometry bounds",
-                                  String(x) + "," + String(y));
+    return pixel_size_unit_;
   }
 
-  const UInt64 key = packKey_(x, y);
-  if (lookup_.contains(key))
+  void MSImagingGeometry::addPixel(UInt x, UInt y, Size spectrum_index)
   {
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Duplicate pixel coordinate", String(x) + "," + String(y));
-  }
+    if (width_ > 0 && height_ > 0 && (x >= width_ || y >= height_))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Pixel coordinate outside configured geometry bounds",
+                                    StringUtils::toStr(x) + "," + StringUtils::toStr(y));
+    }
+
+    const UInt64 key = packKey_(x, y);
+    if (lookup_.contains(key))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Duplicate pixel coordinate",
+                                    StringUtils::toStr(x) + "," + StringUtils::toStr(y));
+    }
 
   lookup_.emplace(key, pixels_.size());
   pixels_.push_back(Pixel {x, y, spectrum_index});
@@ -62,12 +67,16 @@ void MSImagingGeometry::addPixel(UInt x, UInt y, Size spectrum_index)
 bool MSImagingGeometry::hasPixel(UInt x, UInt y) const
 { return lookup_.contains(packKey_(x, y)); }
 
-Size MSImagingGeometry::getSpectrumIndex(UInt x, UInt y) const
-{
-  auto it = lookup_.find(packKey_(x, y));
-  if (it == lookup_.end()) { throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(x) + "," + String(y)); }
-  return pixels_[it->second].spectrum_index;
-}
+  Size MSImagingGeometry::getSpectrumIndex(UInt x, UInt y) const
+  {
+    auto it = lookup_.find(packKey_(x, y));
+    if (it == lookup_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       StringUtils::toStr(x) + "," + StringUtils::toStr(y));
+    }
+    return pixels_[it->second].spectrum_index;
+  }
 
 const std::vector<MSImagingGeometry::Pixel>& MSImagingGeometry::getPixels() const
 { return pixels_; }
@@ -119,7 +128,7 @@ const std::vector<MSImagingRegion>& MSImagingGeometry::getRegions() const
 const MSImagingRegion& MSImagingGeometry::getRegion(Size id) const
 {
   auto it = region_id_to_index_.find(id);
-  if (it == region_id_to_index_.end()) { throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(id)); }
+  if (it == region_id_to_index_.end()) { throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, StringUtils::toStr(id)); }
   return regions_[it->second];
 }
 
@@ -145,11 +154,11 @@ void MSImagingGeometry::addRegion(const MSImagingRegion& region)
 {
   if (region.getId() == NO_REGION)
   {
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "no region is not a valid region", String(NO_REGION));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "NO_REGION sentinel is not a valid region id", StringUtils::toStr(NO_REGION));
   }
   if (region_id_to_index_.contains(region.getId()))
   {
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Duplicate region ID", String(region.getId()));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Duplicate region ID", StringUtils::toStr(region.getId()));
   }
   const auto& pixels = getPixels();
   for (const auto& pixel : pixels)
@@ -158,7 +167,7 @@ void MSImagingGeometry::addRegion(const MSImagingRegion& region)
     const UInt px = pixel.x, py = pixel.y;
     if (std::any_of(regions_.begin(), regions_.end(), [px, py](const MSImagingRegion& r) { return r.contains(px, py); }))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Regions must be disjoint", String(px) + "," + String(py));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Regions must be disjoint", StringUtils::toStr(px) + "," + StringUtils::toStr(py));
     }
   }
   region_id_to_index_[region.getId()] = regions_.size();
@@ -168,7 +177,7 @@ void MSImagingGeometry::addRegion(const MSImagingRegion& region)
 void MSImagingGeometry::removeRegion(Size id)
 {
   auto it = region_id_to_index_.find(id);
-  if (it == region_id_to_index_.end()) { throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(id)); }
+  if (it == region_id_to_index_.end()) { throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, StringUtils::toStr(id)); }
   const Size region_index = it->second;
   regions_.erase(std::next(regions_.begin(), static_cast<ptrdiff_t>(region_index)));
   region_id_to_index_.clear();

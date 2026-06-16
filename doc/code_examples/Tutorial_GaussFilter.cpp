@@ -15,7 +15,7 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  auto file_gauss = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_GaussFilter.mzML");
+  auto file_gauss = OPENMS_DOC_PATH + std::string("/code_examples/data/Tutorial_GaussFilter.mzML");
 
   PeakMap exp;
 

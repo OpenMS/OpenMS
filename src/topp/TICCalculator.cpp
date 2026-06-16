@@ -141,17 +141,17 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false);
-    String formats("mzData,mzXML,mzML,cachedMzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
-    setValidFormats_("in", ListUtils::create<String>(formats));
-    setValidStrings_("in_type", ListUtils::create<String>(formats));
+    std::string formats("mzData,mzXML,mzML,cachedMzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
+    setValidFormats_("in", ListUtils::create<std::string>(formats));
+    setValidStrings_("in_type", ListUtils::create<std::string>(formats));
     
     registerStringOption_("read_method", "<method>", "regular", "Method to read the file", false);
-    String method("regular,indexed,indexed_parallel,streaming,cached,cached_parallel");
-    setValidStrings_("read_method", ListUtils::create<String>(method));
+    std::string method("regular,indexed,indexed_parallel,streaming,cached,cached_parallel");
+    setValidStrings_("read_method", ListUtils::create<std::string>(method));
 
     registerStringOption_("loadData", "<method>", "true", "Whether to actually load and decode the binary data (or whether to skip decoding the binary data)", false);
-    String loadData("true,false");
-    setValidStrings_("loadData", ListUtils::create<String>(loadData));
+    std::string loadData("true,false");
+    setValidStrings_("loadData", ListUtils::create<std::string>(loadData));
   }
 
   ExitCodes main_(int, const char**) override
@@ -161,8 +161,8 @@ protected:
     //-------------------------------------------------------------
 
     //input file names
-    String in = getStringOption_("in");
-    String read_method = getStringOption_("read_method");
+    std::string in = getStringOption_("in");
+    std::string read_method = getStringOption_("read_method");
     bool load_data = getStringOption_("loadData") == "true";
 
     if (read_method == "streaming")
@@ -286,15 +286,15 @@ protected:
 
       // Special handling of cached mzML as input types: 
       // we expect two paired input files which we should read into exp
-      std::vector<String> split_out;
-      in.split(".cachedMzML", split_out);
+      std::vector<std::string> split_out;
+      StringUtils::split(in, ".cachedMzML", split_out);
       if (split_out.size() != 2)
       {
         OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in << 
           "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
-      String in_meta = split_out[0] + ".mzML";
+      std::string in_meta = split_out[0] + ".mzML";
 
       MzMLFile f;
       f.setLogType(log_type_);
@@ -337,15 +337,15 @@ protected:
 
       // Special handling of cached mzML as input types: 
       // we expect two paired input files which we should read into exp
-      std::vector<String> split_out;
-      in.split(".cachedMzML", split_out);
+      std::vector<std::string> split_out;
+      StringUtils::split(in, ".cachedMzML", split_out);
       if (split_out.size() != 2)
       {
         OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in << 
           "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
-      String in_meta = split_out[0] + ".mzML";
+      std::string in_meta = split_out[0] + ".mzML";
 
       MzMLFile f;
       f.setLogType(log_type_);

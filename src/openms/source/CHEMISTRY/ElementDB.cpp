@@ -9,7 +9,7 @@
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
@@ -124,7 +124,7 @@ namespace OpenMS
     auto elem = container.find(key);
     if (elem != container.end())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(key), "Already exists!");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr(key), "Already exists!");
     }
     container[key] = replacement.get();
   }
@@ -604,7 +604,7 @@ namespace OpenMS
     if (old->getAtomicNumber() != new_e->getAtomicNumber())
     { // -- this would invalidate the lookup, since e_ptr->getAtomicNumbers().at(12)->getAtomicNumber() == 14
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(),
-                                    "Replacing element with atomic number " + String(old->getAtomicNumber()) + " has different new atomic number: " + String(new_e->getAtomicNumber()));
+                                    "Replacing element with atomic number " + StringUtils::toStr(old->getAtomicNumber()) + " has different new atomic number: " + StringUtils::toStr(new_e->getAtomicNumber()));
     }
     // ... overwrite
     *(const_cast<Element*>(old)) = *new_e;

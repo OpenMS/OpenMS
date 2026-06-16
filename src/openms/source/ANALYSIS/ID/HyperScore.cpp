@@ -64,11 +64,11 @@ namespace OpenMS
         dot_product += (*it).getIntensity() * it.ref().getIntensity(); /* * mass_error */;
         // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
         auto i = it.refIdx();
-        if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))
+        if ((*ion_names)[i][0] == 'y' || StringUtils::hasSubstring((*ion_names)[i], "$y"))
         {
           ++y_ion_count;
         }
-        else if ((*ion_names)[i][0] == 'b' || (*ion_names)[i].hasSubstring("$b"))
+        else if ((*ion_names)[i][0] == 'b' || StringUtils::hasSubstring((*ion_names)[i], "$b"))
         {
           ++b_ion_count;
         }
@@ -82,11 +82,11 @@ namespace OpenMS
         dot_product += (*it).getIntensity() * it.ref().getIntensity(); /* * mass_error */;
         // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
         auto i = it.refIdx();
-        if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))
+        if ((*ion_names)[i][0] == 'y' || StringUtils::hasSubstring((*ion_names)[i], "$y"))
         {
           ++y_ion_count;
         }
-        else if ((*ion_names)[i][0] == 'b' || (*ion_names)[i].hasSubstring("$b"))
+        else if ((*ion_names)[i][0] == 'b' || StringUtils::hasSubstring((*ion_names)[i], "$b"))
         {
           ++b_ion_count;
         }
@@ -139,11 +139,11 @@ namespace OpenMS
       {
         abs_error += Math::getPPMAbs((*it).getMZ(), it.ref().getMZ());
         dot_product += (*it).getIntensity() * it.ref().getIntensity();
-        const String& name = (*ion_names)[it.refIdx()];
+        const std::string& name = (*ion_names)[it.refIdx()];
         const char c = name[0];
         if (c == 'a' || c == 'b' || c == 'c') ++prefix_ion_count;
         else if (c == 'x' || c == 'y' || c == 'z') ++suffix_ion_count;
-        else if (auto p = name.find('$'); p != String::npos && p + 1 < name.size())
+        else if (auto p = name.find('$'); p != std::string::npos && p + 1 < name.size())
         {
           const char d = name[p + 1];
           if (d == 'a' || d == 'b' || d == 'c') ++prefix_ion_count;
@@ -158,11 +158,11 @@ namespace OpenMS
       {
         abs_error += abs((*it).getMZ() - it.ref().getMZ());
         dot_product += (*it).getIntensity() * it.ref().getIntensity();
-        const String& name = (*ion_names)[it.refIdx()];
+        const std::string& name = (*ion_names)[it.refIdx()];
         const char c = name[0];
         if (c == 'a' || c == 'b' || c == 'c') ++prefix_ion_count;
         else if (c == 'x' || c == 'y' || c == 'z') ++suffix_ion_count;
-        else if (auto p = name.find('$'); p != String::npos && p + 1 < name.size())
+        else if (auto p = name.find('$'); p != std::string::npos && p + 1 < name.size())
         {
           const char d = name[p + 1];
           if (d == 'a' || d == 'b' || d == 'c') ++prefix_ion_count;
@@ -244,7 +244,7 @@ namespace OpenMS
           && exp_z == theo_z)
       {
         // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
-        if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))
+        if ((*ion_names)[i][0] == 'y' || StringUtils::hasSubstring((*ion_names)[i], "$y"))
         {
           dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
           #ifdef DEBUG_HYPERSCORE
@@ -252,7 +252,7 @@ namespace OpenMS
           #endif
           ++y_ion_count;
         }
-        else if ((*ion_names)[i][0] == 'b' || (*ion_names)[i].hasSubstring("$b"))
+        else if ((*ion_names)[i][0] == 'b' || StringUtils::hasSubstring((*ion_names)[i], "$b"))
         {
           dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
 

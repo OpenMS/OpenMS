@@ -11,9 +11,10 @@
 
 #include <OpenMS/config.h>
 
+#include <string>
+
 namespace OpenMS
 {
-  class String;
   /**
     @brief Helper Functions to perform an update query to the OpenMS REST server
 
@@ -22,7 +23,7 @@ namespace OpenMS
   class OPENMS_DLLAPI UpdateCheck
   {
 public:
-  static void run(const String& tool_name, const String& version, int debug_level);
+  static void run(const std::string& tool_name, const std::string& version, int debug_level);
   };
 }
 
