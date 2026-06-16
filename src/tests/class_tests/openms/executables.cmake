@@ -95,6 +95,7 @@ set(metadata_executables_list
   HPLC_test
   IdentificationData_test
   IdentificationDataConverter_test
+  IdentifiedMolecule_test
   InstrumentSettings_test
   Instrument_test
   IonDetector_test
