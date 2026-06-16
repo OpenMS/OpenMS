@@ -514,6 +514,8 @@ set(analysis_executables_list
   IDRipper_test
   IDScoreSwitcherAlgorithm_test
   ILPDCWrapper_test
+  IonIdentityMolecularNetworking_test
+  DDAWorkflowCommons_test
   IsotopeLabelingMDVs_test
   IncludeExcludeTarget_test
   IsobaricChannelExtractor_test
