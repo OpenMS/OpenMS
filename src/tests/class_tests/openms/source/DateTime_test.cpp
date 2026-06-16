@@ -379,9 +379,11 @@ START_SECTION([EXTRA] locale- and timezone-independent parsing and formatting)
   if (had_tz) { setenv("TZ", saved_tz.c_str(), 1); }
   else        { unsetenv("TZ"); }
   tzset();
+#endif
 
-  // --- vary the C locale (guarded: unavailable locales are simply skipped, so the
-  // section still passes on minimal images that lack de_DE / tr_TR) ---
+  // --- vary the C locale (standard setlocale, so this also runs on Windows; unavailable
+  // locales are simply skipped, so the section still passes on minimal images that lack
+  // de_DE / tr_TR) ---
   const char* cur = setlocale(LC_ALL, nullptr);
   const std::string saved_loc = (cur != nullptr) ? std::string(cur) : std::string("C");
 
@@ -393,7 +395,6 @@ START_SECTION([EXTRA] locale- and timezone-independent parsing and formatting)
     }
   }
   setlocale(LC_ALL, saved_loc.c_str());
-#endif
 }
 END_SECTION
 
