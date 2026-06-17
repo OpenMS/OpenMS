@@ -1384,13 +1384,14 @@ START_SECTION(([EXTRA] computeModMatchTolerance_ returns min(lower, upper)))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] preprocessSpectra_ skips deisotoping for low-res fragment tolerance (OpenMS#9619)))
+START_SECTION(([EXTRA] preprocessSpectra_ deisotope modes incl. low-res skip (OpenMS#9619)))
 {
-  // Regression for OpenMS#9619: a fragment tolerance above the Deisotoper limit
-  // (>0.1 Da / >100 ppm) -- as needed for low-resolution ion-trap CID data --
-  // must NOT abort ProSE. preprocessSpectra_ decides whether to deisotope once,
-  // before its OpenMP region, and skips deisotoping (rather than throwing, which
-  // would call std::terminate from inside the parallel region) when out of range.
+  // Regression for OpenMS#9619 + the fragment:deisotope mode. A fragment tolerance
+  // above the Deisotoper limit (>0.1 Da / >100 ppm) -- needed for low-resolution
+  // ion-trap CID data -- must NOT abort ProSE: deisotoping is decided once, before
+  // preprocessSpectra_'s OpenMP region (an exception escaping it calls
+  // std::terminate). "auto" skips deisotoping for low-res, "false" never deisotopes,
+  // and high-res tolerances still run the deisotoping path.
   auto make_exp = []()
   {
     PeakMap exp;
@@ -1412,34 +1413,69 @@ START_SECTION(([EXTRA] preprocessSpectra_ skips deisotoping for low-res fragment
     return exp;
   };
 
-  // Low-res: 0.5 Da > 0.1 Da. Before the fix this threw IllegalArgument inside the
-  // OpenMP region -> std::terminate. Now it completes with deisotoping skipped.
+  // "auto" + low-res (0.5 Da / 150 ppm): skip deisotoping, no throw/abort.
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, "auto");
+    TEST_EQUAL(exp.size(), 1)
+    TEST_EQUAL(exp[0].empty(), false)
+  }
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 150.0, true, "auto");
     TEST_EQUAL(exp.size(), 1)
     TEST_EQUAL(exp[0].empty(), false)
   }
 
-  // 150 ppm > 100 ppm likewise skips deisotoping (no throw / abort).
+  // "false": never deisotope, even for an out-of-range tolerance (no throw).
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 150.0, true);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, "false");
     TEST_EQUAL(exp.size(), 1)
-    TEST_EQUAL(exp[0].empty(), false)
   }
 
-  // High-resolution tolerances still deisotope (<=0.1 Da / <=100 ppm path unchanged).
+  // High-resolution tolerances still run the deisotoping path ("auto" and "true").
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.05, false);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.05, false, "auto");
     TEST_EQUAL(exp.size(), 1)
   }
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, "true");
     TEST_EQUAL(exp.size(), 1)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fragment:deisotope parameter + validation (OpenMS#9619)))
+{
+  ProSEAlgorithm_test algo;
+  // Default is the instrument-aware "auto".
+  TEST_EQUAL(algo.getParameters().getValue("fragment:deisotope").toString(), "auto")
+
+  // deisotope=true with a low-resolution (Da > 0.1) tolerance is rejected up front,
+  // rather than aborting later inside the search.
+  Param p = algo.getParameters();
+  p.setValue("fragment:deisotope", "true");
+  p.setValue("fragment:mass_tolerance", 0.5);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  TEST_EXCEPTION(Exception::InvalidParameter, algo.setParameters(p))
+
+  // deisotope=true with a high-resolution tolerance is accepted.
+  p.setValue("fragment:mass_tolerance", 0.02);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  algo.setParameters(p);
+  TEST_EQUAL(algo.getParameters().getValue("fragment:deisotope").toString(), "true")
+
+  // "auto" and "false" accept any tolerance (incl. low-res).
+  p.setValue("fragment:deisotope", "auto");
+  p.setValue("fragment:mass_tolerance", 0.5);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  algo.setParameters(p);
+  p.setValue("fragment:deisotope", "false");
+  algo.setParameters(p);
+  TEST_EQUAL(algo.getParameters().getValue("fragment:deisotope").toString(), "false")
 }
 END_SECTION
 

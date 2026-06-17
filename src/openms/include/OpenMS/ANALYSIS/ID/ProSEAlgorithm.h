@@ -364,7 +364,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /// @brief filter, deisotope, decharge spectra
-    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm);
+    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::string& deisotope_mode);
 
     /**
      * @brief Build a decoy-augmented copy of the input FASTA.
@@ -485,6 +485,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     double fragment_mass_tolerance_;
 
     std::string fragment_mass_tolerance_unit_;
+
+    /// MS2 deisotoping mode (param fragment:deisotope): "auto" | "true" | "false".
+    std::string deisotope_;
 
     StringList modifications_fixed_;
 
