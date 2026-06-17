@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -14,7 +14,6 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>
-
 #include <algorithm>
 #include <vector>
 
@@ -35,7 +34,7 @@ START_SECTION((static const RNaseDB* getInstance()))
 }
 END_SECTION
 
-START_SECTION([EXTRA] hasEnzyme / getEnzyme (inherited from DigestionEnzymeDB))
+START_SECTION([EXTRA] hasEnzyme / getEnzyme(inherited from DigestionEnzymeDB))
 {
   const RNaseDB* db = RNaseDB::getInstance();
   // known RNases
@@ -54,7 +53,7 @@ START_SECTION([EXTRA] hasEnzyme / getEnzyme (inherited from DigestionEnzymeDB))
 }
 END_SECTION
 
-START_SECTION([EXTRA] getAllNames (inherited from DigestionEnzymeDB))
+START_SECTION([EXTRA] getAllNames(inherited from DigestionEnzymeDB))
 {
   const RNaseDB* db = RNaseDB::getInstance();
   std::vector<std::string> names;
