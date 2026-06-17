@@ -93,9 +93,8 @@ END_SECTION
 START_SECTION(([EXTRA] isotopic_pattern:mz_tolerance and mass_trace:mz_tolerance are not interchangeable (#9247)))
 {
   // PR #9247 fixed a swap in updateMembers_(): pattern_tolerance_ <- isotopic_pattern:mz_tolerance and
-  // trace_tolerance_ <- mass_trace:mz_tolerance. This pins that the two MZ tolerances are NOT
-  // interchangeable -- feeding asymmetric values in one assignment order vs the swapped order yields a
-  // different feature set. If the assignment is ever swapped again, the two runs would converge.
+  // trace_tolerance_ <- mass_trace:mz_tolerance. Pin both asymmetric configurations directionally, so a
+  // repeated assignment swap exchanges the outcomes and fails the test.
   MzMLFile mzml_file;
   mzml_file.getOptions().addMSLevel(1);
   PeakMap input_template;
@@ -129,21 +128,21 @@ START_SECTION(([EXTRA] isotopic_pattern:mz_tolerance and mass_trace:mz_tolerance
     ff.run(std::move(in), out2, p2, FeatureMap());
   }
 
-  // the two parameterizations must produce a different feature set
-  bool differs = (out1.size() != out2.size());
-  if (!differs)
+  TEST_EQUAL(out1.size(), 1)
+  TEST_EQUAL(out2.size(), 0)
+
+  if (out1.size() == 1)
   {
-    for (Size i = 0; i < out1.size(); ++i)
-    {
-      if (std::fabs(out1[i].getIntensity() - out2[i].getIntensity()) > 1.0 ||
-          std::fabs(out1[i].getOverallQuality() - out2[i].getOverallQuality()) > 1e-4)
-      {
-        differs = true;
-        break;
-      }
-    }
+    TEST_EQUAL(out1[0].getMetaValue(Constants::UserParam::NUM_OF_DATAPOINTS), 33)
+
+    TOLERANCE_ABSOLUTE(0.001);
+    TEST_REAL_SIMILAR(out1[0].getRT(), 4278.1601)
+    TEST_REAL_SIMILAR(out1[0].getMZ(), 653.7722)
+    TEST_REAL_SIMILAR(out1[0].getOverallQuality(), 0.9609)
+
+    TOLERANCE_ABSOLUTE(20.0);
+    TEST_REAL_SIMILAR(out1[0].getIntensity(), 18467.8)
   }
-  TEST_EQUAL(differs, true)
 }
 END_SECTION
 
