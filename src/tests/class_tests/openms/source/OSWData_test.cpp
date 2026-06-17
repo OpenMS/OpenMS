@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -14,7 +14,6 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-
 #include <vector>
 
 using namespace OpenMS;
@@ -22,40 +21,36 @@ using namespace std;
 
 namespace
 {
-  // a small OSWData with two transitions and one protein referencing both
-  OSWData makeData()
-  {
-    OSWData d;
-    d.addTransition(OSWTransition("y5/-0.002", 100, 500.25f, 'y', false));
-    d.addTransition(OSWTransition("b3", 101, 300.10f, 'b', true));
+// a small OSWData with two transitions and one protein referencing both
+OSWData makeData()
+{
+  OSWData d;
+  d.addTransition(OSWTransition("y5/-0.002", 100, 500.25f, 'y', false));
+  d.addTransition(OSWTransition("b3", 101, 300.10f, 'b', true));
 
-    std::vector<UInt32> tids{100, 101};
-    OSWPeakGroup pg(120.5f, 118.0f, 123.0f, 1.5f, std::move(tids), 0.01f);
-    std::vector<OSWPeakGroup> feats;
-    feats.push_back(pg);
-    OSWPeptidePrecursor pc("PEPTIDEK", 2, false, 450.7f, std::move(feats));
-    std::vector<OSWPeptidePrecursor> peps;
-    peps.push_back(pc);
-    d.addProtein(OSWProtein("PROT1", 7, std::move(peps)));
-    return d;
-  }
+  std::vector<UInt32> tids {100, 101};
+  OSWPeakGroup pg(120.5f, 118.0f, 123.0f, 1.5f, std::move(tids), 0.01f);
+  std::vector<OSWPeakGroup> feats;
+  feats.push_back(pg);
+  OSWPeptidePrecursor pc("PEPTIDEK", 2, false, 450.7f, std::move(feats));
+  std::vector<OSWPeptidePrecursor> peps;
+  peps.push_back(pc);
+  d.addProtein(OSWProtein("PROT1", 7, std::move(peps)));
+  return d;
 }
+} // namespace
 
 START_TEST(OSWData, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION([EXTRA] OSWHierarchy::LevelName)
-{
-  TEST_STRING_EQUAL(OSWHierarchy::LevelName[OSWHierarchy::PROTEIN], "protein")
-  TEST_STRING_EQUAL(OSWHierarchy::LevelName[OSWHierarchy::PEPTIDE], "peptide")
-  TEST_STRING_EQUAL(OSWHierarchy::LevelName[OSWHierarchy::FEATURE], "feature/peakgroup")
-  TEST_STRING_EQUAL(OSWHierarchy::LevelName[OSWHierarchy::TRANSITION], "transition")
-}
-END_SECTION
+START_SECTION([EXTRA] OSWHierarchy::LevelName) {TEST_STRING_EQUAL(OSWHierarchy::LevelName[OSWHierarchy::PROTEIN], "protein")
+                                                  TEST_STRING_EQUAL(OSWHierarchy::LevelName[OSWHierarchy::PEPTIDE], "peptide")
+                                                    TEST_STRING_EQUAL(OSWHierarchy::LevelName[OSWHierarchy::FEATURE], "feature/peakgroup")
+                                                      TEST_STRING_EQUAL(OSWHierarchy::LevelName[OSWHierarchy::TRANSITION], "transition")} END_SECTION
 
-START_SECTION([EXTRA] OSWIndexTrace::isSet)
+  START_SECTION([EXTRA] OSWIndexTrace::isSet)
 {
   OSWIndexTrace t;
   TEST_EQUAL(t.isSet(), false) // default-constructed -> not pointing anywhere
@@ -82,7 +77,7 @@ START_SECTION([EXTRA] OSWPeakGroup value type)
   OSWPeakGroup empty;
   TEST_REAL_SIMILAR(empty.getQValue(), OSWPeakGroup::QVALUE_MISSING)
 
-  std::vector<UInt32> tids{100, 101};
+  std::vector<UInt32> tids {100, 101};
   OSWPeakGroup pg(120.5f, 118.0f, 123.0f, 1.5f, std::move(tids), 0.01f);
   TEST_REAL_SIMILAR(pg.getRTExperimental(), 120.5f)
   TEST_REAL_SIMILAR(pg.getRTLeftWidth(), 118.0f)
@@ -138,13 +133,9 @@ START_SECTION((void addTransition(OSWTransition&& tr)))
 }
 END_SECTION
 
-START_SECTION((Size transitionCount() const))
-{
-  TEST_EQUAL(makeData().transitionCount(), 2)
-}
-END_SECTION
+START_SECTION((Size transitionCount() const)) {TEST_EQUAL(makeData().transitionCount(), 2)} END_SECTION
 
-START_SECTION((const OSWTransition& getTransition(const UInt32 id) const))
+  START_SECTION((const OSWTransition& getTransition(const UInt32 id) const))
 {
   OSWData d = makeData();
   TEST_STRING_EQUAL(d.getTransition(100).getAnnotation(), "y5/-0.002")
@@ -169,11 +160,13 @@ START_SECTION((void addProtein(OSWProtein&& prot)))
   // referential integrity: a protein referencing an unknown transition is rejected
   OSWData d2;
   d2.addTransition(OSWTransition("y5", 100, 500.0f, 'y', false));
-  std::vector<UInt32> bad{999}; // not added
+  std::vector<UInt32> bad {999}; // not added
   OSWPeakGroup pg(1.0f, 0.0f, 2.0f, 0.0f, std::move(bad));
-  std::vector<OSWPeakGroup> feats; feats.push_back(pg);
+  std::vector<OSWPeakGroup> feats;
+  feats.push_back(pg);
   OSWPeptidePrecursor pc("AAA", 1, false, 100.0f, std::move(feats));
-  std::vector<OSWPeptidePrecursor> peps; peps.push_back(pc);
+  std::vector<OSWPeptidePrecursor> peps;
+  peps.push_back(pc);
   TEST_EXCEPTION(Exception::Precondition, d2.addProtein(OSWProtein("P", 1, std::move(peps))))
 }
 END_SECTION
