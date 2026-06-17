@@ -146,13 +146,13 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
        true, // decreasing isotope model
        2, // enforce only starting from second peak
        true);
-   String temp_file1 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output1.mzML";
+   std::string temp_file1 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output1.mzML";
    MzMLFile().store(temp_file1, input1);
    File::remove(temp_file1);
 
    // load data with small intensity satellite peaks (e.g., amidation)
    MSExperiment input2;
-   String input2_path = OPENMS_GET_TEST_DATA_PATH("Deisotoper_input2.mzML");
+   std::string input2_path = OPENMS_GET_TEST_DATA_PATH("Deisotoper_input2.mzML");
    if (File::exists(input2_path))
    {
      MzMLFile().load(input2_path, input2);
@@ -176,7 +176,7 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
        true, // decreasing isotope model
        2, // enforce only starting from second peak
        true);
-   String temp_file2 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output2.mzML";
+   std::string temp_file2 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output2.mzML";
    MzMLFile().store(temp_file2, input2);
    File::remove(temp_file2);
 }

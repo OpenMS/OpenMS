@@ -188,7 +188,7 @@ START_SECTION((virtual void test_dia_scores()))
 
   // Presence of b/y series score
   double bseries_score = 0, yseries_score = 0;
-  String sequence = "SYVAWDR";
+  std::string sequence = "SYVAWDR";
   OpenMS::AASequence aas = AASequence::fromString(sequence);
   diascoring.dia_by_ion_score(sptrArr, aas, by_charge_state, empty_im_range, bseries_score, yseries_score);
 

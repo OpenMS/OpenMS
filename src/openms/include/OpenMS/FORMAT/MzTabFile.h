@@ -20,7 +20,6 @@
 
 namespace OpenMS
 {
-  class String;
   class SVOutStream;
 /**
     @brief File adapter for MzTab files
@@ -35,24 +34,24 @@ namespace OpenMS
     ///Destructor
     ~MzTabFile();
 
-    typedef std::map<std::pair<String, String>, std::vector<PeptideHit> > MapAccPepType;
+    typedef std::map<std::pair<std::string, std::string>, std::vector<PeptideHit> > MapAccPepType;
 
     // store MzTab file
-    void store(const String& filename, const MzTab& mz_tab) const;
+    void store(const std::string& filename, const MzTab& mz_tab) const;
 
     // stream IDs to file
     void store(
-          const String& filename,
+          const std::string& filename,
           const std::vector<ProteinIdentification>& protein_identifications,
           const PeptideIdentificationList& peptide_identifications,
           bool first_run_inference_only,
           bool export_empty_pep_ids = false,
           bool export_all_psms = false,
-          const String& title = "ID export from OpenMS");
+          const std::string& title = "ID export from OpenMS");
 
     // stream ConsensusMap to file
     void store(
-      const String& filename, 
+      const std::string& filename, 
       const ConsensusMap& cmap,
       const bool first_run_inference_only,
       const bool export_unidentified_features,
@@ -73,7 +72,7 @@ namespace OpenMS
     void storeProteinGoTerms(bool store);
 
     // load MzTab file
-    void load(const String& filename, MzTab& mz_tab);
+    void load(const std::string& filename, MzTab& mz_tab);
 
   protected:
     bool store_protein_reliability_;
@@ -97,40 +96,40 @@ namespace OpenMS
 
     /// Needs a reference row to get the collected optional columns from the MetaValues
     /// TODO refactor this behaviour by e.g. storing it in the MzTab object
-    String generateMzTabProteinHeader_(const MzTabProteinSectionRow& reference_row,
+    std::string generateMzTabProteinHeader_(const MzTabProteinSectionRow& reference_row,
         const Size n_best_search_engine_scores,
-        const std::vector<String>& optional_columns,
+        const std::vector<std::string>& optional_columns,
         const MzTabMetaData& meta,
         size_t& n_columns) const;
 
-    String generateMzTabSectionRow_(const MzTabProteinSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
+    std::string generateMzTabSectionRow_(const MzTabProteinSectionRow& row, const std::vector<std::string>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
 
-    String generateMzTabPeptideHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<String>& optional_columns, size_t& n_columns) const;
+    std::string generateMzTabPeptideHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<std::string>& optional_columns, size_t& n_columns) const;
 
-    String generateMzTabSectionRow_(const MzTabPeptideSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
+    std::string generateMzTabSectionRow_(const MzTabPeptideSectionRow& row, const std::vector<std::string>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
 
-    String generateMzTabPSMHeader_(Size n_search_engine_scores, const std::vector<String>& optional_columns, size_t& n_columns) const;
+    std::string generateMzTabPSMHeader_(Size n_search_engine_scores, const std::vector<std::string>& optional_columns, size_t& n_columns) const;
 
-    String generateMzTabSectionRow_(const MzTabPSMSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
+    std::string generateMzTabSectionRow_(const MzTabPSMSectionRow& row, const std::vector<std::string>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
 
-    String generateMzTabSmallMoleculeHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<String>& optional_columns, size_t& n_columns) const;
+    std::string generateMzTabSmallMoleculeHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<std::string>& optional_columns, size_t& n_columns) const;
 
-    String generateMzTabSectionRow_(const MzTabSmallMoleculeSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
+    std::string generateMzTabSectionRow_(const MzTabSmallMoleculeSectionRow& row, const std::vector<std::string>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
 
-    String generateMzTabNucleicAcidHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_scores, const std::vector<String>& optional_columns, size_t& n_columns) const;
+    std::string generateMzTabNucleicAcidHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_scores, const std::vector<std::string>& optional_columns, size_t& n_columns) const;
 
-    String generateMzTabSectionRow_(const MzTabNucleicAcidSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
+    std::string generateMzTabSectionRow_(const MzTabNucleicAcidSectionRow& row, const std::vector<std::string>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
 
-    String generateMzTabOligonucleotideHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, const std::vector<String>& optional_columns, size_t& n_columns) const;
+    std::string generateMzTabOligonucleotideHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, const std::vector<std::string>& optional_columns, size_t& n_columns) const;
 
-    String generateMzTabSectionRow_(const MzTabOligonucleotideSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
+    std::string generateMzTabSectionRow_(const MzTabOligonucleotideSectionRow& row, const std::vector<std::string>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
 
-    String generateMzTabOSMHeader_(Size n_search_engine_scores, const std::vector<String>& optional_columns, size_t& n_columns) const;
+    std::string generateMzTabOSMHeader_(Size n_search_engine_scores, const std::vector<std::string>& optional_columns, size_t& n_columns) const;
 
-    String generateMzTabSectionRow_(const MzTabOSMSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
+    std::string generateMzTabSectionRow_(const MzTabOSMSectionRow& row, const std::vector<std::string>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
 
     /// Generate an mzTab section comprising multiple rows of the same type and perform sanity check
-    template <typename SectionRow> void generateMzTabSection_(const std::vector<SectionRow>& rows, const std::vector<String>& optional_columns, const MzTabMetaData& meta, StringList& output, size_t n_header_columns) const
+    template <typename SectionRow> void generateMzTabSection_(const std::vector<SectionRow>& rows, const std::vector<std::string>& optional_columns, const MzTabMetaData& meta, StringList& output, size_t n_header_columns) const
     {
       output.reserve(output.size() + rows.size() + 1);
       for (const auto& row : rows)
@@ -144,10 +143,10 @@ namespace OpenMS
     // auxiliary functions
 
     /// Helper function for "generateMzTabSectionRow_" functions
-    static void addOptionalColumnsToSectionRow_(const std::vector<String>& column_names, const std::vector<MzTabOptionalColumnEntry>& column_entries, StringList& output);
+    static void addOptionalColumnsToSectionRow_(const std::vector<std::string>& column_names, const std::vector<MzTabOptionalColumnEntry>& column_entries, StringList& output);
 
     // extract two integers from string (e.g. search_engine_score[1]_ms_run[2] -> 1,2)
-    static std::pair<int, int> extractIndexPairsFromBrackets_(const String& s);
+    static std::pair<int, int> extractIndexPairsFromBrackets_(const std::string& s);
 
     static void sortPSM_(PeptideIdentificationList::iterator begin, PeptideIdentificationList::iterator end);
 
@@ -156,49 +155,49 @@ namespace OpenMS
     /// Extract protein and peptide identifications for each run. maps are assumed empty.
     static void partitionIntoRuns_(const PeptideIdentificationList& pep_ids,
                                    const std::vector<ProteinIdentification>& pro_ids,
-                                   std::map<String, PeptideIdentificationList >& map_run_to_pepids,
-                                   std::map<String, std::vector<ProteinIdentification> >& map_run_to_proids
+                                   std::map<std::string, PeptideIdentificationList >& map_run_to_pepids,
+                                   std::map<std::string, std::vector<ProteinIdentification> >& map_run_to_proids
                                    );
 
 
     /// create links from protein to peptides
-    static void createProteinToPeptideLinks_(const std::map<String, PeptideIdentificationList >& map_run_to_pepids, MapAccPepType& map_run_accession_to_pephits);
+    static void createProteinToPeptideLinks_(const std::map<std::string, PeptideIdentificationList >& map_run_to_pepids, MapAccPepType& map_run_accession_to_pephits);
 
     /// Extracts, if possible a unique protein accession for a peptide hit in mzTab format. Otherwise NA is returned
-    static String extractProteinAccession_(const PeptideHit& peptide_hit);
+    static std::string extractProteinAccession_(const PeptideHit& peptide_hit);
 
     /// Extracts, modifications and positions of a peptide hit in mzTab format
-    static String extractPeptideModifications_(const PeptideHit& peptide_hit);
+    static std::string extractPeptideModifications_(const PeptideHit& peptide_hit);
 
     /// Map search engine identifier to CV, param etc.
-    static String mapSearchEngineToCvParam_(const String& openms_search_engine_name);
+    static std::string mapSearchEngineToCvParam_(const std::string& openms_search_engine_name);
 
-    static String mapSearchEngineScoreToCvParam_(const String& openms_search_engine_name, double score, String score_type);
+    static std::string mapSearchEngineScoreToCvParam_(const std::string& openms_search_engine_name, double score, std::string score_type);
 
-    static String extractNumPeptides_(const String& common_identifier, const String& protein_accession,
+    static std::string extractNumPeptides_(const std::string& common_identifier, const std::string& protein_accession,
                                       const MapAccPepType& map_run_accession_to_peptides);
 
     // mzTab definition of distinct
-    static String extractNumPeptidesDistinct_(String common_identifier, String protein_accession,
+    static std::string extractNumPeptidesDistinct_(std::string common_identifier, std::string protein_accession,
                                               const MapAccPepType& map_run_accession_to_peptides);
 
     // same as distinct but additional constraint of uniqueness (=maps to exactly one Protein)
-    static String extractNumPeptidesUnambiguous_(String common_identifier, String protein_accession,
+    static std::string extractNumPeptidesUnambiguous_(std::string common_identifier, std::string protein_accession,
                                                  const MapAccPepType& map_run_accession_to_peptides);
 
-    static std::map<String, Size> extractNumberOfSubSamples_(const std::map<String, std::vector<ProteinIdentification> >& map_run_to_proids);
+    static std::map<std::string, Size> extractNumberOfSubSamples_(const std::map<std::string, std::vector<ProteinIdentification> >& map_run_to_proids);
 
-    static void writePeptideHeader_(SVOutStream& output, std::map<String, Size> n_sub_samples);
+    static void writePeptideHeader_(SVOutStream& output, std::map<std::string, Size> n_sub_samples);
 
-    static void writeProteinHeader_(SVOutStream& output, std::map<String, Size> n_sub_samples);
+    static void writeProteinHeader_(SVOutStream& output, std::map<std::string, Size> n_sub_samples);
 
     static void writeProteinData_(SVOutStream& output,
                                   const ProteinIdentification& prot_id,
                                   Size run_count,
-                                  String input_filename,
+                                  std::string input_filename,
                                   bool has_coverage,
                                   const MapAccPepType& map_run_accession_to_peptides,
-                                  const std::map<String, Size>& map_run_to_num_sub
+                                  const std::map<std::string, Size>& map_run_to_num_sub
                                   );
 
   private:

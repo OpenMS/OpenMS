@@ -30,7 +30,7 @@
         <ITEM name="type" value="centroided" type="string" description="FeatureFinder algorithm type" restrictions="centroided,isotope_wavelet,mrm" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
-        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores)" />
         <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
         <NODE name="algorithm" description="Algorithm section">
@@ -111,7 +111,7 @@
         <ITEM name="use_subelements" value="false" type="string" description="Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches." restrictions="true,false" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
-        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores)" />
         <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
       </NODE>
@@ -130,7 +130,7 @@
         <ITEM name="type" value="unlabeled" type="string" description="Feature grouping algorithm type" restrictions="labeled,unlabeled,unlabeled_qt" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
-        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores)" />
         <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
         <NODE name="algorithm" description="Algorithm parameters section">

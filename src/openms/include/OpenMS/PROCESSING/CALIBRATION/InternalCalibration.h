@@ -166,11 +166,11 @@ namespace OpenMS
                    bool use_RANSAC,
                    double post_ppm_median,
                    double post_ppm_MAD,
-                   const String& file_models = "",
-                   const String& file_models_plot = "",
-                   const String& file_residuals = "",
-                   const String& file_residuals_plot = "",
-                   const String& rscript_executable = "Rscript");
+                   const std::string& file_models = "",
+                   const std::string& file_models_plot = "",
+                   const std::string& file_residuals = "",
+                   const std::string& file_residuals_plot = "",
+                   const std::string& rscript_executable = "Rscript");
 
     /**
       @brief Transform a precursor's m/z

@@ -15,6 +15,8 @@
 #include <omp.h>
 #endif
 
+#include <exception>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -99,7 +101,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& section) const override
+  Param getSubsectionDefaults_(const std::string& section) const override
   {
     if (section == "algorithm")
     {
@@ -131,10 +133,10 @@ protected:
     StringList out_trafos = getStringList_("trafo_out");
 
     Size reference_index = getIntOption_("reference:index");
-    String reference_file = getStringOption_("reference:file");
+    std::string reference_file = getStringOption_("reference:file");
 
     FileTypes::Type in_type = FileHandler::getType(in_files[0]);
-    String file;
+    std::string file;
     if (!reference_file.empty())
     {
       file = reference_file;
@@ -206,11 +208,46 @@ protected:
 
     plog.startProgress(0, in_files.size(), "Aligning input maps");
     Size progress(0); // thread-safe progress
+
+    // Align a single map to the reference, falling back to the identity
+    // transformation when the alignment fails so that one un-alignable file
+    // (e.g. a blank/near-empty LC-MS run) no longer aborts the whole tool
+    // (fixes #7010). Depending on how degenerate the input is, align() can fail
+    // with several different OpenMS exceptions, e.g.:
+    //  - IllegalArgument: empty map / no data points for the linear model
+    //  - InvalidValue:    superimposer cannot estimate an initial transformation
+    //  - UnableToFit:     degenerate linear fit
+    //  - DivisionByZero:  superimposer estimates a zero slope, then inverts it
+    // These all derive from Exception::BaseException, so we catch that common
+    // base rather than an explicit list of subtypes: any exception escaping this
+    // OpenMP parallel region would call std::terminate and abort the whole tool -
+    // precisely the failure mode #7010 is about - so the catch must be exhaustive.
+    auto alignOrIdentity = [&](auto& map, TransformationDescription& trafo, int i)
+    {
+      try
+      {
+        algorithm.align(map, trafo);
+      }
+      catch (const Exception::BaseException& e)
+      {
+        // reference_index is set to in_files.size() (an invalid index) when
+        // -reference:file is used, so fall back to the user-specified reference
+        // filename in that case.
+        const std::string ref_name = (reference_index < in_files.size()) ? in_files[reference_index] : reference_file;
+        OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << ref_name
+                         << " failed. No transformation will be applied (RT not changed for this file)." << endl;
+        writeLogError_("Alignment failed (" + std::string(e.getName()) + "): " + std::string(e.what()) +
+                       ". Using identity transformation for this file.");
+        trafo.fitModel("identity");
+      }
+    };
+
+    // Process one input file: load it, align it to the reference (or fall back to
+    // the identity transformation, see alignOrIdentity), then transform and store
+    // the requested outputs. Pulled out of the loop so the parallel region can wrap
+    // the whole per-file body in a single try/catch (see below).
     // TODO: it should all work on featureXML files, since we might need them for output anyway. Converting to consensusXML is just wasting memory!
-#ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic, 1)
-#endif
-    for (int i = 0; i < static_cast<int>(in_files.size()); ++i)
+    auto processFile = [&](int i)
     {
       TransformationDescription trafo;
       if (in_type == FileTypes::FEATUREXML)
@@ -220,23 +257,13 @@ protected:
         FileHandler f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
         f_fxml_tmp.getFeatOptions() = f_fxml.getFeatOptions();
         f_fxml_tmp.loadFeatures(in_files[i], map);
-        if (i == static_cast<int>(reference_index)) 
+        if (i == static_cast<int>(reference_index))
         {
           trafo.fitModel("identity");
         }
-        else 
+        else
         {
-          try
-          {
-            algorithm.align(map, trafo);
-          }
-          catch (Exception::IllegalArgument& e)
-          {
-            OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << in_files[reference_index]
-                             << " failed. No transformation will be applied (RT not changed for this file)." << endl;
-            writeLogError_("Illegal argument (" + String(e.getName()) + "): " + String(e.what()) + ".");
-            trafo.fitModel("identity");
-          }
+          alignOrIdentity(map, trafo, i);
         }
 
         if (!out_files.empty())
@@ -257,7 +284,7 @@ protected:
         }
         else
         {
-          algorithm.align(map, trafo);
+          alignOrIdentity(map, trafo, i);
         }
         if (!out_files.empty())
         {
@@ -275,6 +302,33 @@ protected:
       {
         FileHandler().storeTransformations(out_trafos[i], trafo, {FileTypes::TRANSFORMATIONXML});
       }
+    };
+
+    // Unlike alignment failures (handled inside alignOrIdentity by falling back to
+    // identity), I/O failures (unreadable input, unwritable output) are real errors
+    // that must abort the run with a proper exit code. But an exception escaping an
+    // OpenMP parallel region calls std::terminate, so capture the first one here and
+    // rethrow it after the region, where TOPPBase's handler turns it into a clean
+    // error exit instead of aborting the whole tool mid-loop.
+    std::exception_ptr first_error = nullptr;
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic, 1)
+#endif
+    for (int i = 0; i < static_cast<int>(in_files.size()); ++i)
+    {
+      try
+      {
+        processFile(i);
+      }
+      catch (...)
+      {
+#ifdef _OPENMP
+#pragma omp critical (MAPose_Error)
+#endif
+        {
+          if (!first_error) { first_error = std::current_exception(); }
+        }
+      }
 
 #ifdef _OPENMP
 #pragma omp critical (MAPose_Progress)
@@ -285,6 +339,13 @@ protected:
     }
 
     plog.endProgress();
+
+    // Re-throw the first per-file error (if any) now that we are outside the
+    // parallel region, so it propagates to TOPPBase's exception handler.
+    if (first_error)
+    {
+      std::rethrow_exception(first_error);
+    }
     
     // Transform optional spectra files
     // Note: MapAlignerPoseClustering does not support store_original_rt flag

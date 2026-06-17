@@ -27,7 +27,7 @@ namespace OpenMS
     return std::make_unique<TOPPASSplitterVertex>(*this);
   }
 
-  String TOPPASSplitterVertex::getName() const
+  std::string TOPPASSplitterVertex::getName() const
   {
     return "SplitterVertex";
   }
@@ -40,12 +40,12 @@ namespace OpenMS
       return;
     }
     RoundPackages pkg;
-    String error_msg("");
+    std::string error_msg;
     bool success = buildRoundPackages(pkg, error_msg);
     if (!success)
     {
       std::cerr << "Could not retrieve input files from upstream nodes...\n";
-      // emit mergeFailed(toQString((String("Splitter #") + this->getTopoNr() + " failed. " + error_msg)));
+      // emit mergeFailed(toQString((StringUtils::toStr("Splitter #") + this->getTopoNr() + " failed. " + error_msg)));
       return;
     }
 
@@ -75,7 +75,7 @@ namespace OpenMS
     for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
     {
       TOPPASVertex* tv = (*it)->getTargetVertex();
-      debugOut_(String("Starting child ") + tv->getTopoNr());
+      debugOut_(std::string("Starting child ") + tv->getTopoNr());
       tv->run();
     }
   }

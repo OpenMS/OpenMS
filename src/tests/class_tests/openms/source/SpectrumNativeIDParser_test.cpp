@@ -21,7 +21,7 @@ START_TEST(SpectrumNativeIDParser, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION((static bool isNativeID(const String& id)))
+START_SECTION((static bool isNativeID(const std::string& id)))
 {
   // Test recognized native ID prefixes
   TEST_EQUAL(SpectrumNativeIDParser::isNativeID("scan=123"), true);
@@ -43,7 +43,7 @@ START_SECTION((static bool isNativeID(const String& id)))
 END_SECTION
 
 
-START_SECTION((static std::string getRegExFromNativeID(const String& native_id)))
+START_SECTION((static std::string getRegExFromNativeID(const std::string& native_id)))
 {
   // Test Thermo format: "controllerType=0 controllerNumber=1 scan=NUMBER"
   TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("controllerType=0 controllerNumber=1 scan=100"), R"(scan=(?<GROUP>\d+))");
@@ -79,7 +79,7 @@ START_SECTION((static std::string getRegExFromNativeID(const String& native_id))
 END_SECTION
 
 
-START_SECTION((static Int extractScanNumber(const String& native_id, const boost::regex& scan_regexp, bool no_error = false)))
+START_SECTION((static Int extractScanNumber(const std::string& native_id, const boost::regex& scan_regexp, bool no_error = false)))
 {
   // Test successful extraction with spectrum= format
   boost::regex re_spectrum("spectrum=(?<SCAN>\\d+)");
@@ -112,7 +112,7 @@ START_SECTION((static Int extractScanNumber(const String& native_id, const boost
 END_SECTION
 
 
-START_SECTION((static Int extractScanNumber(const String& native_id, const String& native_id_type_accession)))
+START_SECTION((static Int extractScanNumber(const std::string& native_id, const std::string& native_id_type_accession)))
 {
   // Test Thermo nativeID format (MS:1000768) - scan=NUMBER
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("scan=42", "MS:1000768"), 42);
@@ -193,6 +193,31 @@ START_SECTION([EXTRA] Edge cases and error handling)
   boost::smatch match;
   std::string test = "scan=456";
   TEST_EQUAL(boost::regex_search(test, match, re), true);
+}
+END_SECTION
+
+START_SECTION([EXTRA] Bruker TDF frame= / MS:1002818 native ID)
+{
+  // Bruker timsTOF .d (TDF) native IDs use "frame=<F> scan=<S>" with optional trailing
+  // tokens (precursor=, windowGroup=, scanStart=/scanEnd=, merged=) emitted by the OpenMS
+  // DDA/DIA-PASEF reader (MS:1002818). The parser recognizes the frame= prefix and targets
+  // the scan=<int> token as the scan-number proxy. The method-level sections above stop at
+  // scan=/MS:1000776 and never exercise frame=; these cases pin that contract.
+
+  // isNativeID recognizes the frame= prefix
+  TEST_EQUAL(SpectrumNativeIDParser::isNativeID("frame=2 scan=529"), true);
+  TEST_EQUAL(SpectrumNativeIDParser::isNativeID("frame=10 scan=42 precursor=3"), true);
+
+  // getRegExFromNativeID targets the scan= token for the frame= format
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=2 scan=529"), R"(scan=(?<GROUP>\d+))");
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=10 scan=42 precursor=3"), R"(scan=(?<GROUP>\d+))");
+
+  // extractScanNumber via the Bruker TDF accession (MS:1002818) returns the scan= integer
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=2 scan=529", "MS:1002818"), 529);
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=10 scan=42 precursor=3", "MS:1002818"), 42);
+
+  // merged PASEF spectra carry multiple scan= tokens; the last one is the merged scan number
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=1 scan=5 frame=1 scan=9", "MS:1002818"), 9);
 }
 END_SECTION
 

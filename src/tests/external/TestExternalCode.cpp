@@ -24,7 +24,7 @@ int main(int argc, char * argv[])
 
   PeakMap exp;
   FileHandler f;
-  String tmpfilename = "tmpfile.mzML";
+  std::string tmpfilename = "tmpfile.mzML";
 
   f.storeExperiment(tmpfilename,exp, {FileTypes::MZML});
   f.loadExperiment(tmpfilename,exp, {FileTypes::MZML});

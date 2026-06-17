@@ -24,7 +24,7 @@
 using namespace OpenMS;
 
 
-MQMsms::MQMsms(const String& path)
+MQMsms::MQMsms(const std::string& path)
 {
   if (path.empty())
   {
@@ -121,11 +121,11 @@ void MQMsms::exportRowFromFeature_(
   const Feature& f,
   const ConsensusMap& cmap,
   const Size c_feature_number,
-  const String& raw_file,
-  const std::multimap<String, std::pair<Size, Size>>& UIDs,
+  const std::string& raw_file,
+  const std::multimap<std::string, std::pair<Size, Size>>& UIDs,
   const ProteinIdentification::Mapping& mp_f,
   const MSExperiment& exp,
-  const std::map<String,String>& prot_mapper)
+  const std::map<std::string, std::string>& prot_mapper)
 {
 
   // use struct common_outpots from the ExporterHelper
@@ -135,7 +135,7 @@ void MQMsms::exportRowFromFeature_(
   const PeptideIdentification* ptr_best_id = nullptr;
   const ConsensusFeature& cf = cmap[c_feature_number];
 
-  String type;
+  std::string type;
   if (MQExporterHelper::hasValidPepID_(f, c_feature_number, UIDs, mp_f))
   {
     type = "MULTI-MSMS";
@@ -177,7 +177,7 @@ void MQMsms::exportRowFromFeature_(
   file_ << common_outputs.acetyl << "\t"; // Acetyl (Protein N-term)
   file_ << common_outputs.oxidation.str() << "\t"; // Oxidation (M)
 
-  const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();
+  const std::set<std::string>& accessions = ptr_best_hit->extractProteinAccessionsSet();
   file_ << ListUtils::concatenate(accessions, ";") << "\t";  // Proteins
 
   file_ << f.getCharge() << "\t"; // Charge
@@ -241,7 +241,7 @@ void MQMsms::exportRowFromFeature_(
 
 }
 
-void MQMsms::exportFeatureMap(const FeatureMap& feature_map, const ConsensusMap& cmap, const MSExperiment& exp, const std::map<String,String>& prot_mapper)
+void MQMsms::exportFeatureMap(const FeatureMap& feature_map, const ConsensusMap& cmap, const MSExperiment& exp, const std::map<std::string, std::string>& prot_mapper)
 {
   if (!MQExporterHelper::isValid(filename_))
   {
@@ -251,12 +251,12 @@ void MQMsms::exportFeatureMap(const FeatureMap& feature_map, const ConsensusMap&
   const std::map<Size, Size>& fTc = MQExporterHelper::makeFeatureUIDtoConsensusMapIndex_(cmap);
   StringList spectra_data;
   feature_map.getPrimaryMSRunPath(spectra_data);
-  String raw_file = File::basename(spectra_data.empty() ? feature_map.getLoadedFilePath() : spectra_data[0]);
+  std::string raw_file = File::basename(spectra_data.empty() ? feature_map.getLoadedFilePath() : spectra_data[0]);
 
   ProteinIdentification::Mapping mp_f;
   mp_f.create(feature_map.getProteinIdentifications());
 
-  std::multimap<String, std::pair<Size, Size>> UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
+  std::multimap<std::string, std::pair<Size, Size>> UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
 
   for (const Feature& f : feature_map)
   {

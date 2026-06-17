@@ -495,7 +495,7 @@ START_SECTION([EXTRA] getBYSeries_test)
       "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
   generator.setParameters(p);
 
-  String sequence = "SYVAWDR";
+  std::string sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
   OpenMS::DIAHelpers::getBYSeries(a, bseries, yseries, &generator);

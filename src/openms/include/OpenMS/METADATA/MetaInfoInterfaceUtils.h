@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/OpenMSConfig.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <algorithm>
@@ -23,7 +23,7 @@ namespace OpenMS
     template<typename T>
     struct MetaKeyGetter
     {
-      static void getKeys(const T& object, std::vector<String>& keys)
+      static void getKeys(const T& object, std::vector<std::string>& keys)
       {
         object.getKeys(keys);
       };
@@ -56,7 +56,7 @@ public:
       and @p min_frequency = 100 (i.e. take only keys which are common to all elements in the iterator range).
 
       @tparam T_In Input container (e.g. std::vector or alike), containing objects which implement the MetaInfoInterface (i.e. support 'getKeys()')
-      @tparam T_Out Output container of type T<String> (e.g. std::set<String>)
+      @tparam T_Out Output container of type T<std::string> (e.g. std::set<std::string>)
       @param[in] it_start Iterator pointing to the initial position to search. (note: this does not need to correspond to the beginning of the container)
       @param[in] it_end Iterator pointing to the end final position to search.
       @param[in] min_frequency Minimum required frequency (in percent). Must be between 0-100. Other values are corrected to the closest value allowed.
@@ -69,8 +69,8 @@ public:
       // make sure min_frequency is within [0,100]
       min_frequency = std::min(100.0f, std::max(0.0f, min_frequency));
 
-      std::map<String, UInt> counter;
-      typedef std::vector<String> KeysType;
+      std::map<std::string, UInt> counter;
+      typedef std::vector<std::string> KeysType;
       KeysType keys;
       for (typename T_In::const_iterator it = it_start; it != it_end; ++it)
       {

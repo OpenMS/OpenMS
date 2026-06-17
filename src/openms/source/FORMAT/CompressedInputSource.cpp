@@ -10,6 +10,7 @@
 
 #include <OpenMS/FORMAT/GzipInputStream.h>
 #include <OpenMS/FORMAT/Bzip2InputStream.h>
+#include <OpenMS/FORMAT/ZipInputStream.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <xercesc/util/XMLUniDefs.hpp>
@@ -19,7 +20,7 @@ using namespace xercesc;
 namespace OpenMS
 {
 
-  CompressedInputSource::CompressedInputSource(const String & file_path, const String & header, MemoryManager * const manager) :
+  CompressedInputSource::CompressedInputSource(const std::string & file_path, const std::string & header, MemoryManager * const manager) :
     xercesc::InputSource(manager),
     head_(header)
   {
@@ -66,7 +67,7 @@ namespace OpenMS
     }
   }
 
-  CompressedInputSource::CompressedInputSource(const XMLCh * const file, const String & header, MemoryManager * const manager) :
+  CompressedInputSource::CompressedInputSource(const XMLCh * const file, const std::string & header, MemoryManager * const manager) :
     xercesc::InputSource(manager),
     head_(header)
   {
@@ -118,6 +119,16 @@ namespace OpenMS
     if (head_[0] == 'B' && head_[1] == 'Z')
     {
       Bzip2InputStream * retStrm = new Bzip2InputStream(Internal::StringManager().convert(getSystemId()));
+      if (!retStrm->getIsOpen())
+      {
+        delete retStrm;
+        return nullptr;
+      }
+      return retStrm;
+    }
+    else if (head_[0] == 'P' && head_[1] == 'K')
+    {
+      ZipInputStream * retStrm = new ZipInputStream(Internal::StringManager().convert(getSystemId()));
       if (!retStrm->getIsOpen())
       {
         delete retStrm;

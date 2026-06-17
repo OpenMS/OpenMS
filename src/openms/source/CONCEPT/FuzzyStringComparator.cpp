@@ -194,11 +194,11 @@ namespace OpenMS
         << prefix << "\n"
         << prefix << "in1:  " << to_path(File::absolutePath(input_1_name_)).make_preferred().string() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
         << prefix << prefix1.prefix << "!\n"
-        << prefix << prefix1.prefix_whitespaces << OpenMS::String(input_line_1_.line_.str()).suffix(input_line_1_.line_.str().size() - prefix1.prefix.size()) << "\n"
+        << prefix << prefix1.prefix_whitespaces << StringUtils::suffix(std::string(input_line_1_.line_.str()), input_line_1_.line_.str().size() - prefix1.prefix.size()) << "\n"
         << prefix <<  "\n"
         << prefix << "in2:  " << to_path(File::absolutePath(input_2_name_)).make_preferred().string() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
         << prefix << prefix2.prefix << "!\n"
-        << prefix << prefix2.prefix_whitespaces << OpenMS::String(input_line_2_.line_.str()).suffix(input_line_2_.line_.str().size() - prefix2.prefix.size()) << "\n"
+        << prefix << prefix2.prefix_whitespaces << StringUtils::suffix(std::string(input_line_2_.line_.str()), input_line_2_.line_.str().size() - prefix2.prefix.size()) << "\n"
         << prefix << "\n\n"
         << "Easy Access:" << "\n"
         << to_path(File::absolutePath(input_1_name_)).make_preferred().string() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
@@ -280,8 +280,8 @@ namespace OpenMS
     for (StringList::const_iterator slit = whitelist_.begin();
          slit != whitelist_.end(); ++slit)
     {
-      if (line_str_1.find(*slit) != String::npos &&
-          line_str_2.find(*slit) != String::npos)
+      if (line_str_1.contains(*slit) &&
+          line_str_2.contains(*slit))
       {
         ++whitelist_cases_[*slit];
         // *log_dest_ << "whitelist_ case: " << *slit << '\n';
@@ -294,11 +294,11 @@ namespace OpenMS
     for (std::vector< std::pair<std::string, std::string> >::const_iterator pair_it = matched_whitelist_.begin(); 
          pair_it != matched_whitelist_.end(); ++pair_it)
     {
-      if ((line_str_1.find(pair_it->first) != String::npos &&
-           line_str_2.find(pair_it->second) != String::npos
+      if ((line_str_1.contains(pair_it->first) &&
+           line_str_2.contains(pair_it->second)
           ) ||
-          (line_str_1.find(pair_it->second) != String::npos &&
-           line_str_2.find(pair_it->first) != String::npos
+          (line_str_1.contains(pair_it->second) &&
+           line_str_2.contains(pair_it->first)
           )
          )
       {
@@ -323,7 +323,7 @@ namespace OpenMS
           if (element_2_.is_number) // we are comparing numbers
           {
 #ifdef DEBUG_FUZZY
-            std::cout << "cmp number: " << String(element_1_.number) << " : " << String(element_2_.number) << '\n';
+            std::cout << "cmp number: " << StringUtils::toStr(element_1_.number) << " : " << StringUtils::toStr(element_2_.number) << '\n';
 #endif
             if (element_1_.number == element_2_.number)
             {
@@ -639,7 +639,7 @@ namespace OpenMS
         prefix << '\n' <<
         prefix << "  whitelist cases:\n";
       Size length = 0;
-      for (std::map<String, UInt>::const_iterator wlcit = whitelist_cases_.begin();
+      for (std::map<std::string, UInt>::const_iterator wlcit = whitelist_cases_.begin();
            wlcit != whitelist_cases_.end(); ++wlcit)
       {
         if (wlcit->first.size() > length)
@@ -647,7 +647,7 @@ namespace OpenMS
           length = wlcit->first.size();
         }
       }
-      for (std::map<String, UInt>::const_iterator wlcit = whitelist_cases_.begin();
+      for (std::map<std::string, UInt>::const_iterator wlcit = whitelist_cases_.begin();
            wlcit != whitelist_cases_.end(); ++wlcit)
       {
         *log_dest_ <<
@@ -742,9 +742,9 @@ namespace OpenMS
   FuzzyStringComparator::PrefixInfo_::PrefixInfo_(const InputLine& input_line, const int this_tab_width_, const int this_first_column_) :
     prefix(input_line.line_.str()), line_column(0)
   {
-    prefix = prefix.prefix(size_t(input_line.line_position_));
+    prefix = StringUtils::prefix(prefix, size_t(input_line.line_position_));
     prefix_whitespaces = prefix;
-    for (String::iterator iter = prefix_whitespaces.begin(); iter != prefix_whitespaces.end(); ++iter)
+    for (auto iter = prefix_whitespaces.begin(); iter != prefix_whitespaces.end(); ++iter)
     {
       if (*iter != '\t')
       {

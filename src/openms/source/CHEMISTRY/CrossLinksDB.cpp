@@ -29,7 +29,7 @@ namespace OpenMS
 
   CrossLinksDB::~CrossLinksDB() = default;
 
-  void CrossLinksDB::getAllSearchModifications(vector<String>& modifications) const
+  void CrossLinksDB::getAllSearchModifications(vector<std::string>& modifications) const
   {
     modifications.clear();
 

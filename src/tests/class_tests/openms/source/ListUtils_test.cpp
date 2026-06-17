@@ -31,7 +31,7 @@ START_SECTION((template < typename T, typename E > static bool contains(const st
   TEST_EQUAL(ListUtils::contains(iv, 1011),false)
 
   // String
-  std::vector<String> sv;
+  std::vector<std::string> sv;
   sv.push_back("yes");
   sv.push_back("no");
   TEST_EQUAL(ListUtils::contains(sv, "yes"),true)
@@ -60,14 +60,14 @@ START_SECTION((static bool contains(const std::vector< double > &container, cons
 }
 END_SECTION
 
-START_SECTION((template < typename T > static std::vector<T> create(const std::vector< String > &s)))
+START_SECTION((template < typename T > static std::vector<T> create(const std::vector<std::string> &s)))
 {
-  std::vector<String> iv;
+  std::vector<std::string> iv;
   iv.push_back("1.2");
   iv.push_back("1.56");
   iv.push_back("10.4");
 
-  std::vector<String> sv = ListUtils::create<String>(iv);
+  std::vector<std::string> sv = ListUtils::create<std::string>(iv);
   TEST_EQUAL(sv.size(), 3)
   ABORT_IF(sv.size() != 3)
   TEST_EQUAL(sv[0], iv[0])
@@ -83,7 +83,7 @@ START_SECTION((template < typename T > static std::vector<T> create(const std::v
   TEST_EQUAL(dv[2], 10.4)
 
   iv.push_back("a");
-  std::vector<String> sv2 = ListUtils::create<String>(iv);
+  std::vector<std::string> sv2 = ListUtils::create<std::string>(iv);
   TEST_EQUAL(sv2.size(), 4)
   ABORT_IF(sv2.size() != 4)
   TEST_EQUAL(sv2[3], iv[3])
@@ -92,9 +92,9 @@ START_SECTION((template < typename T > static std::vector<T> create(const std::v
 }
 END_SECTION
 
-START_SECTION((template < typename T > static std::vector<T> create(const String &str, const char splitter= ',')))
+START_SECTION((template < typename T > static std::vector<T> create(const std::string &str, const char splitter= ',')))
 {
-  std::vector<String> sv = ListUtils::create<String>("yes,no, maybe");
+  std::vector<std::string> sv = ListUtils::create<std::string>("yes,no, maybe");
   TEST_EQUAL(sv.size(), 3)
   ABORT_IF(sv.size() != 3)
   TEST_EQUAL(sv[0], "yes")
@@ -120,28 +120,28 @@ START_SECTION((template < typename T > static std::vector<T> create(const String
   IntList iv3 = ListUtils::create<Int>("");
   TEST_EQUAL(iv3.size(),0)
 
-  StringList sl1 = ListUtils::create<String>("test string,string2,last string");
+  StringList sl1 = ListUtils::create<std::string>("test string,string2,last string");
   TEST_EQUAL(sl1.size(),3)
   ABORT_IF(sl1.size() != 3)
   TEST_EQUAL(sl1[0], "test string")
   TEST_EQUAL(sl1[1], "string2")
   TEST_EQUAL(sl1[2], "last string")
 
-  StringList list = ListUtils::create<String>("yes,no");
+  StringList list = ListUtils::create<std::string>("yes,no");
   TEST_EQUAL(list.size(),2)
   ABORT_IF(list.size() != 2)
   TEST_STRING_EQUAL(list[0],"yes")
   TEST_STRING_EQUAL(list[1],"no")
 
-  StringList list2 = ListUtils::create<String>("no");
+  StringList list2 = ListUtils::create<std::string>("no");
   TEST_EQUAL(list2.size(),1)
   ABORT_IF(list2.size() != 1)
   TEST_STRING_EQUAL(list2[0],"no")
 
-  StringList list3 = ListUtils::create<String>("");
+  StringList list3 = ListUtils::create<std::string>("");
   TEST_EQUAL(list3.size(),0)
 
-  StringList sl4 = ListUtils::create<String>("test string#string2#last string", '#');
+  StringList sl4 = ListUtils::create<std::string>("test string#string2#last string", '#');
   TEST_EQUAL(sl4.size(),3)
   ABORT_IF(sl4.size() != 3)
   TEST_EQUAL(sl4[0], "test string")
@@ -150,9 +150,9 @@ START_SECTION((template < typename T > static std::vector<T> create(const String
 }
 END_SECTION
 
-START_SECTION((template < typename T > static String concatenate(const std::vector< T > &container, const String &glue="")))
+START_SECTION((template < typename T > static std::string concatenate(const std::vector< T > &container, const std::string &glue="")))
 {
-  std::vector<String> list;
+  std::vector<std::string> list;
   list.push_back("1");
   list.push_back("2");
   list.push_back("3");
@@ -166,7 +166,7 @@ START_SECTION((template < typename T > static String concatenate(const std::vect
   TEST_STRING_EQUAL(ListUtils::concatenate(list, ""),"");
 
   //test2 (from StringList)
-  std::vector<String> tmp;
+  std::vector<std::string> tmp;
   TEST_EQUAL(ListUtils::concatenate(tmp),"")
   tmp.push_back("1\n");
   tmp.push_back("2\n");
@@ -196,12 +196,12 @@ START_SECTION((template <typename T> static Int getIndex(const std::vector<T>& c
   strings.push_back("one");
   strings.push_back("two");
 
-  TEST_EQUAL(ListUtils::getIndex<String>(strings, "zero"), -1);
-  TEST_EQUAL(ListUtils::getIndex<String>(strings, "one"), 2);
-  TEST_EQUAL(ListUtils::getIndex<String>(strings, "two"), 3);
-  TEST_EQUAL(ListUtils::getIndex<String>(strings, "three"), 1);
-  TEST_EQUAL(ListUtils::getIndex<String>(strings, "four"), 0);
-  TEST_EQUAL(ListUtils::getIndex<String>(strings, "five"), -1);
+  TEST_EQUAL(ListUtils::getIndex<std::string>(strings, "zero"), -1);
+  TEST_EQUAL(ListUtils::getIndex<std::string>(strings, "one"), 2);
+  TEST_EQUAL(ListUtils::getIndex<std::string>(strings, "two"), 3);
+  TEST_EQUAL(ListUtils::getIndex<std::string>(strings, "three"), 1);
+  TEST_EQUAL(ListUtils::getIndex<std::string>(strings, "four"), 0);
+  TEST_EQUAL(ListUtils::getIndex<std::string>(strings, "five"), -1);
 }
 END_SECTION
 

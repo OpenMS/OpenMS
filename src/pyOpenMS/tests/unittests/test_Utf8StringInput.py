@@ -39,32 +39,21 @@ class TestMRMRTNormalizerStringInput(unittest.TestCase):
 
 
 class TestElementDBStringInput(unittest.TestCase):
-    """Test ElementDB.addElement accepts str and bytes."""
+    """Test ElementDB.getElement accepts str and bytes."""
 
-    def test_addElement_with_str(self):
-        """Test addElement accepts str for name and symbol."""
-        db = pyopenms.ElementDB()
-        # Add a test element with str parameters (use unique atomic number)
-        # Use random suffix to avoid conflicts with previous test runs
-        import random
-        suffix = random.randint(1000, 9999)
-        abundance = {900 + suffix % 100: 1.0}
-        mass = {900 + suffix % 100: 900.0 + suffix % 100}
-        db.addElement(f"TestElem{suffix}", f"T{suffix % 100}", 900 + suffix % 100, abundance, mass, False)
-        # Verify it was added
-        elem = db.getElement(f"TestElem{suffix}")
+    def test_getElement_with_str(self):
+        """Test getElement accepts str for the element name."""
+        db = pyopenms.ElementDB.getInstance()
+        elem = db.getElement("Carbon")
         self.assertIsNotNone(elem)
+        self.assertEqual(elem.getSymbol(), "C")
 
-    def test_addElement_with_bytes(self):
-        """Test addElement still accepts bytes (backward compatible)."""
-        db = pyopenms.ElementDB()
-        import random
-        suffix = random.randint(1000, 9999)
-        abundance = {800 + suffix % 100: 1.0}
-        mass = {800 + suffix % 100: 800.0 + suffix % 100}
-        db.addElement(f"TestElemB{suffix}".encode(), f"B{suffix % 100}".encode(), 800 + suffix % 100, abundance, mass, False)
-        elem = db.getElement(f"TestElemB{suffix}".encode())
+    def test_getElement_with_bytes(self):
+        """Test getElement still accepts bytes (backward compatible)."""
+        db = pyopenms.ElementDB.getInstance()
+        elem = db.getElement(b"Carbon")
         self.assertIsNotNone(elem)
+        self.assertEqual(elem.getSymbol(), "C")
 
 
 class TestMZTrafoModelStringInput(unittest.TestCase):

@@ -15,12 +15,12 @@ using namespace OpenMS;
 
 START_TEST(MSstatsFile, "$Id$")
 
-START_SECTION(void OpenMS::TriqlerFile::storeLFQ( const OpenMS::String &filename, 
+START_SECTION(void OpenMS::TriqlerFile::storeLFQ( const std::string &filename, 
                                                   ConsensusMap &consensus_map,
                                                   const OpenMS::ExperimentalDesign& design, 
                                                   const StringList& reannotate_filenames,
-                                                  const String& condition,
-                                                  const String& retention_time_summarization_method))
+                                                  const std::string& condition,
+                                                  const std::string& retention_time_summarization_method))
 {
   // tested via TriqlerConverter tool
 }

@@ -39,7 +39,7 @@ namespace bp = boost::process;
 namespace OpenMS
 {
 
-  bool JavaInfo::canRun(const String& java_executable, bool verbose_on_error)
+  bool JavaInfo::canRun(const std::string& java_executable, bool verbose_on_error)
   {
     try
     {
@@ -90,7 +90,7 @@ namespace OpenMS
           << "  Make sure Java is installed and this location is correct.\n";
         if (to_path(java_executable).is_relative())
         {
-          static String path;
+          static std::string path;
           if (path.empty())
           {
             path = getenv("PATH");

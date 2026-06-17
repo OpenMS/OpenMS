@@ -16,7 +16,7 @@ int main(int argc, const char** argv)
 {
   vector<FeatureMap> maps(1, FeatureMap{});
 
-  FileHandler().loadFeatures(OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_Labeled.featureXML"), maps[0], {FileTypes::FEATUREXML});
+  FileHandler().loadFeatures(OPENMS_DOC_PATH + std::string("/code_examples/data/Tutorial_Labeled.featureXML"), maps[0], {FileTypes::FEATUREXML});
   ConsensusMap out;
   out.getColumnHeaders()[0].filename = "data/Tutorial_Labeled.mzML";
   out.getColumnHeaders()[0].size = maps[0].size();

@@ -20,14 +20,14 @@ namespace OpenMS
 
   ToolDescriptionFile::~ToolDescriptionFile() = default;
 
-  void ToolDescriptionFile::load(const String & filename, std::vector<Internal::ToolDescription> & tds)
+  void ToolDescriptionFile::load(const std::string & filename, std::vector<Internal::ToolDescription> & tds)
   {
     Internal::ToolDescriptionHandler handler(filename, schema_version_);
     parse_(filename, &handler);
     tds = handler.getToolDescriptions();
   }
 
-  void ToolDescriptionFile::store(const String & filename, const std::vector<Internal::ToolDescription> & tds) const
+  void ToolDescriptionFile::store(const std::string & filename, const std::vector<Internal::ToolDescription> & tds) const
   {
     Internal::ToolDescriptionHandler handler(filename, schema_version_);
     handler.setToolDescriptions(tds);

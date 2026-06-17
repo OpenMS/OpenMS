@@ -73,10 +73,10 @@ class TOPPClusterMassTraces
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in","<file>","","Mass traces");
-    setValidFormats_("in",ListUtils::create<String>("consensusXML"));
+    setValidFormats_("in",ListUtils::create<std::string>("consensusXML"));
 
     registerOutputFile_("out","<file>","","output file");
-    setValidFormats_("out",ListUtils::create<String>("mzML"));
+    setValidFormats_("out",ListUtils::create<std::string>("mzML"));
 
     registerDoubleOption_("min_pearson_correlation", "<double>", 0.7, "Minimal pearson correlation score", false);
     registerIntOption_("min_peak_nr", "<number>", 1, "Minimal peak nr to output pseudo spectra", false);
@@ -94,8 +94,8 @@ class TOPPClusterMassTraces
 
     setLogType(log_type_); 
 
-    String infile = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string infile = getStringOption_("in");
+    std::string out = getStringOption_("out");
 
     double min_pearson_correlation_ = getDoubleOption_("min_pearson_correlation");
     int max_lag_ = getIntOption_("max_lag");

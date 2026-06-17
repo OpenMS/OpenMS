@@ -48,7 +48,7 @@ START_SECTION(~EmpiricalFormula())
   delete e_ptr;
 END_SECTION
 
-START_SECTION(EmpiricalFormula(const String& rhs))
+START_SECTION(EmpiricalFormula(const std::string& rhs))
   // adding spaces and tabs to test sanitizeIfNotValidFormula.
   // test succeeds when sanitizeIfNotValidFormula has removed
   // all spaces, tabs and newlines from the provided formula
@@ -94,7 +94,7 @@ START_SECTION(const Element* getElement(UInt rounded_mass) const)
   TEST_EQUAL(e->getSymbol(), "C")
 END_SECTION
 
-START_SECTION(const Element* getElement(const String& name) const)
+START_SECTION(const Element* getElement(const std::string& name) const)
   const Element* e = db->getElement("C");
   TEST_EQUAL(e->getSymbol(), "C")
 END_SECTION
@@ -342,11 +342,11 @@ START_SECTION(double getLightestIsotopeWeight() const)
   TEST_REAL_SIMILAR(ef.getLightestIsotopeWeight(), ef.getMonoWeight() - Constants::NEUTRON_MASS_U * 3)
 END_SECTION
 
-START_SECTION(String toString() const)
+START_SECTION(std::string toString() const)
   EmpiricalFormula ef("C2H5");
-  String str = ef.toString();
-  TEST_EQUAL(String(str).hasSubstring("H5"), true)
-  TEST_EQUAL(String(str).hasSubstring("C2"), true)
+  std::string str = ef.toString();
+  TEST_EQUAL(StringUtils::hasSubstring(std::string(str), "H5"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(std::string(str), "C2"), true)
 END_SECTION
 
 START_SECTION((std::map<std::string, int> toMap() const))
@@ -360,8 +360,8 @@ START_SECTION([EXTRA](friend std::ostream& operator<<(std::ostream&, const Empir
   stringstream ss;
   EmpiricalFormula ef("C2H5");
   ss << ef;
-  TEST_EQUAL(String(ss.str()).hasSubstring("H5"), true);
-  TEST_EQUAL(String(ss.str()).hasSubstring("C2"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(ss.str(), "H5"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(ss.str(), "C2"), true);
 END_SECTION
 
 START_SECTION(bool operator!=(const EmpiricalFormula& rhs) const)
@@ -385,7 +385,7 @@ END_SECTION
 
 START_SECTION(ConstIterator begin() const)
   EmpiricalFormula ef("C6H12O6");
-  std::map<String, SignedSize> formula;
+  std::map<std::string, SignedSize> formula;
   formula["C"] = 6;
   formula["H"] = 12;
   formula["O"] = 6;

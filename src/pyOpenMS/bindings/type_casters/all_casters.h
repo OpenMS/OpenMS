@@ -23,7 +23,10 @@
 #include <nanobind/ndarray.h>
 
 // OpenMS-specific type casters (prefixed to avoid collision with system headers)
-#include "openms_string_caster.h"
+// openms_string_caster.h removed: after the OpenMS::String -> std::string migration
+// its type_caster<std::string> duplicated std_string_bytes_caster.h's (included
+// above) -> redefinition error gating every binding module. The str+bytes caster
+// is now the single owner; the std::string* None-caster it also defined is unused.
 #include "openms_dposition_caster.h"
 #include "openms_datavalue_caster.h"
 #include "openms_stl_caster.h"

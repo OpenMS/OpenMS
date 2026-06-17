@@ -26,7 +26,7 @@ namespace OpenMS
   }
 
   /// Returns the name of the metric
-  const String& SpectrumCount::getName() const
+  const std::string& SpectrumCount::getName() const
   {
     return name_;
   }

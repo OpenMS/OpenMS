@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
@@ -127,16 +128,16 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file ('TraML' or 'csv')");
-    setValidFormats_("tr", ListUtils::create<String>("csv,traML"));
+    setValidFormats_("tr", ListUtils::create<std::string>("csv,traML"));
     
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library)", false);
-    setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
+    setValidFormats_("rt_norm", ListUtils::create<std::string>("trafoXML"));
 
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", ListUtils::create<String>("mzML"));
+    setValidFormats_("out", ListUtils::create<std::string>("mzML"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false);
 
@@ -159,7 +160,7 @@ protected:
     registerModelOptions_("linear");
   }
 
-  void registerModelOptions_(const String & default_model)
+  void registerModelOptions_(const std::string & default_model)
   {
     registerTOPPSubsection_("model", "Options to control the modeling of retention time transformations from data");
     registerStringOption_("model:type", "<name>", default_model, "Type of model", false, true);
@@ -176,8 +177,8 @@ protected:
   ExitCodes main_(int, const char **) override
   {
     StringList file_list = getStringList_("in");
-    String tr_file_str = getStringOption_("tr");
-    String out = getStringOption_("out");
+    std::string tr_file_str = getStringOption_("tr");
+    std::string out = getStringOption_("out");
     bool is_swath = getFlag_("is_swath");
     bool ppm = getFlag_("ppm");
     bool extract_MS1 = getFlag_("extract_MS1");
@@ -186,16 +187,16 @@ protected:
     double rt_extraction_window = getDoubleOption_("rt_window");
     double im_window = getDoubleOption_("ion_mobility_window");
 
-    String extraction_function = getStringOption_("extraction_function");
+    std::string extraction_function = getStringOption_("extraction_function");
 
     // If we have a transformation file, trafo will transform the RT in the
     // scoring according to the model. If we don't have one, it will apply the
     // null transformation.
-    String trafo_in = getStringOption_("rt_norm");
+    std::string trafo_in = getStringOption_("rt_norm");
     TransformationDescription trafo;
     if (!trafo_in.empty()) 
     {
-      String model_type = getStringOption_("model:type");
+      std::string model_type = getStringOption_("model:type");
       Param model_params = getParam_().copy("model:", true);
       FileHandler().loadTransformations(trafo_in, trafo, true, {FileTypes::TRANSFORMATIONXML});
       trafo.fitModel(model_type, model_params);
@@ -257,24 +258,29 @@ protected:
       // continue if the map is not empty
       if (do_continue)
       {
+        // ChromatogramExtractor::prepare_coordinates / return_chromatogram now
+        // operate exclusively on OpenSwath::LightTargetedExperiment (issue #7284
+        // cleanup; the heavyweight OpenMS::TargetedExperiment overload was removed).
+        OpenSwath::LightTargetedExperiment light_exp;
+        OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_used, light_exp);
 
         // Prepare the coordinates (with or without rt extraction) and then extract the chromatograms
         ChromatogramExtractor extractor;
         if (rt_extraction_window < 0)
         {
-          extractor.prepare_coordinates(chromatogram_ptrs, coordinates, transition_exp_used, rt_extraction_window, extract_MS1);
+          extractor.prepare_coordinates(chromatogram_ptrs, coordinates, light_exp, rt_extraction_window, extract_MS1);
         }
         else
         {
           // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
-          extractor.prepare_coordinates(chromatogram_ptrs, coordinates, transition_exp_used, 0.0, extract_MS1);
+          extractor.prepare_coordinates(chromatogram_ptrs, coordinates, light_exp, 0.0, extract_MS1);
           for (ChromatogramExtractor::ExtractionCoordinates& chrom : coordinates)
           {
             chrom.rt_start = trafo_inverse.apply(chrom.rt_start) - rt_extraction_window / 2.0;
             chrom.rt_end = trafo_inverse.apply(chrom.rt_end) + rt_extraction_window / 2.0;
           }
         }
-        extractor.extractChromatograms(expptr, chromatogram_ptrs, coordinates, 
+        extractor.extractChromatograms(expptr, chromatogram_ptrs, coordinates,
             mz_extraction_window, ppm, im_window, extraction_function);
 
 #pragma omp critical (OpenSwathChromatogramExtractor_insertMS1)
@@ -288,7 +294,7 @@ protected:
               exp_settings.getDataProcessing()[j]->removeMetaValue("cached_data");
             }
           }
-          extractor.return_chromatogram(chromatogram_ptrs, coordinates, transition_exp_used, exp_settings, chromatograms, extract_MS1, im_window);
+          extractor.return_chromatogram(chromatogram_ptrs, coordinates, light_exp, exp_settings, chromatograms, extract_MS1, im_window);
         }
 
       } // end of do_continue

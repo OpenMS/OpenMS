@@ -9,6 +9,9 @@ ConsensusXMLHandler.h
 FeatureXMLHandler.h
 FidHandler.h
 IndexedMzMLDecoder.h
+ImzMLHandler.h
+ImzMLHandlerHelper.h
+ImzMLWriter.h
 IndexedMzMLHandler.h
 MascotXMLHandler.h
 MzDataHandler.h
@@ -20,6 +23,7 @@ MzMLSpectrumDecoder.h
 MzMLSqliteHandler.h
 MzMLSqliteSwathHandler.h
 MzXMLHandler.h
+PASEFHillCentroider.h
 PTMXMLHandler.h
 ParamXMLHandler.h
 ToolDescriptionHandler.h

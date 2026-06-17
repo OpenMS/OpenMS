@@ -11,7 +11,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/INTERFACES/DataStructures.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>

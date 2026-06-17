@@ -13,7 +13,10 @@
 
 namespace OpenMS
 {
-  const std::string QCBase::names_of_requires[] = {"fail", "raw.mzML", "postFDR.featureXML", "preFDR.featureXML", "contaminants.fasta", "trafoAlign.trafoXML"};
+  const std::string QCBase::names_of_requires[] = {"fail", "raw.mzML", "postFDR.featureXML", "preFDR.featureXML", "contaminants.fasta", "trafoAlign.trafoXML", "id.idXML"};
+  static_assert(sizeof(QCBase::names_of_requires) / sizeof(QCBase::names_of_requires[0])
+                  == static_cast<Size>(QCBase::Requires::SIZE_OF_REQUIRES),
+                "names_of_requires must have one entry per QCBase::Requires value");
 
   const std::string QCBase::names_of_toleranceUnit[] = {"auto", "ppm", "da"};
 
@@ -31,11 +34,11 @@ namespace OpenMS
     }
   }
 
-  UInt64 QCBase::SpectraMap::at(const String& identifier) const
+  UInt64 QCBase::SpectraMap::at(const std::string& identifier) const
   {
     if (const auto& it = nativeid_to_index_.find(identifier); it == nativeid_to_index_.end())
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No spectrum with identifier '") + identifier + "' in MSExperiment!");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("No spectrum with identifier '") + identifier + "' in MSExperiment!");
     }
     else
     {

@@ -84,9 +84,9 @@ protected:
   {
     // data
     registerInputFile_("in", "<file>", "", "Input peak file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file ");
-    setValidFormats_("out", ListUtils::create<String>("mzML"));
+    setValidFormats_("out", ListUtils::create<std::string>("mzML"));
         
     addEmptyLine_();
 
@@ -104,8 +104,8 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out"); 
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out"); 
     
     IntList ms_level = getIntList_("ms_level");
 

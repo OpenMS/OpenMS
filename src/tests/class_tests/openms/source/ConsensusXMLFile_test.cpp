@@ -60,7 +60,7 @@ file.getOptions().addMSLevel(1);
 TEST_EQUAL(file.getOptions().hasMSLevels(), true);
 END_SECTION
 
-START_SECTION((void load(const String &filename, ConsensusMap & map)))
+START_SECTION((void load(const std::string &filename, ConsensusMap & map)))
 ConsensusMap map;
 ConsensusXMLFile file;
 file.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
@@ -159,7 +159,7 @@ TEST_REAL_SIMILAR(it->getIntensity(), 1.78215e+07)
 TEST_EQUAL(map[0].getMetaValue("myIntList") == ListUtils::create<Int>("1,10,12"), true);
 TEST_EQUAL(map[0].getMetaValue("myDoubleList") == ListUtils::create<double>("1.111,10.999,12.45"), true);
 std::cout << "list: " << map[0].getMetaValue("myStringList") << "\n";
-TEST_EQUAL(map[0].getMetaValue("myStringList") == ListUtils::create<String>("myABC1,Stuff,12"), true);
+TEST_EQUAL(map[0].getMetaValue("myStringList") == ListUtils::create<std::string>("myABC1,Stuff,12"), true);
 TEST_EQUAL(map[4].getMetaValue("myDoubleList") == ListUtils::create<double>("6.442"), true);
 
 //PeakFileOptions tests
@@ -183,7 +183,7 @@ TEST_REAL_SIMILAR(map[0].getIntensity(), 23000.238)
 
 END_SECTION
 
-START_SECTION((void store(const String &filename, const ConsensusMap &consensus_map)))
+START_SECTION((void store(const std::string &filename, const ConsensusMap &consensus_map)))
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
 
@@ -204,7 +204,7 @@ START_SECTION((void store(const String &filename, const ConsensusMap &consensus_
 
 END_SECTION
 
-START_SECTION([EXTRA](bool isValid(const String &filename)))
+START_SECTION([EXTRA](bool isValid(const std::string &filename)))
   ConsensusXMLFile f;
   TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), std::cerr), true);
   TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML"), std::cerr), true);
@@ -214,11 +214,51 @@ START_SECTION([EXTRA](bool isValid(const String &filename)))
 
   //test if written full file is valid
   ConsensusMap m;
-  String tmp_filename;
+  std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), m);
   f.store(tmp_filename, m);
   TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
+END_SECTION
+
+START_SECTION([EXTRA] Compressed file writing - gzip round-trip)
+  ConsensusXMLFile f;
+  ConsensusMap map;
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  // Store as gzip-compressed file
+  std::string tmp_gz;
+  NEW_TMP_FILE(tmp_gz);
+  tmp_gz += ".gz";
+  f.store(tmp_gz, map);
+
+  // Load back from compressed file
+  ConsensusMap map_gz;
+  f.load(tmp_gz, map_gz);
+
+  // Verify round-trip integrity
+  TEST_EQUAL(map_gz.size(), map.size())
+  TEST_EQUAL(map_gz.getColumnHeaders().size(), map.getColumnHeaders().size())
+END_SECTION
+
+START_SECTION([EXTRA] Compressed file writing - bzip2 round-trip)
+  ConsensusXMLFile f;
+  ConsensusMap map;
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  // Store as bzip2-compressed file
+  std::string tmp_bz2;
+  NEW_TMP_FILE(tmp_bz2);
+  tmp_bz2 += ".bz2";
+  f.store(tmp_bz2, map);
+
+  // Load back from compressed file
+  ConsensusMap map_bz2;
+  f.load(tmp_bz2, map_bz2);
+
+  // Verify round-trip integrity
+  TEST_EQUAL(map_bz2.size(), map.size())
+  TEST_EQUAL(map_bz2.getColumnHeaders().size(), map.getColumnHeaders().size())
 END_SECTION
 
 /////////////////////////////////////////////////////////////

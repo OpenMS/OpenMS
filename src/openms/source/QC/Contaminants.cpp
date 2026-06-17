@@ -38,7 +38,7 @@ namespace OpenMS
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No proteinidentifications in FeatureMap.");
       }
       ProteaseDigestion digestor;
-      String enzyme = features.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme.getName();
+      std::string enzyme = features.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme.getName();
 
       // no enzyme is given
       if (enzyme == "unknown_enzyme")
@@ -91,7 +91,7 @@ namespace OpenMS
 
         // the one existing peptideidentification has at least one getHits entry
         PeptideHit& pep_hit = id.getHits()[0];
-        String key = (pep_hit.getSequence().toUnmodifiedString());
+        std::string key = (pep_hit.getSequence().toUnmodifiedString());
         this->compare_(key, pep_hit, total, cont, sum_total, sum_cont, f.getIntensity());
       }
     }
@@ -114,11 +114,11 @@ namespace OpenMS
         continue;
       }
       auto& fu_hit = fu.getHits()[0];
-      String key = (fu_hit.getSequence().toUnmodifiedString());
+      std::string key = (fu_hit.getSequence().toUnmodifiedString());
       ++utotal;
 
       // peptide is not in contaminant database
-      if (!digested_db_.count(key))
+      if (!digested_db_.contains(key))
       {
         fu_hit.setMetaValue("is_contaminant", 0);
         continue;
@@ -141,7 +141,7 @@ namespace OpenMS
     results_.push_back(final);
   }
 
-  const String& Contaminants::getName() const
+  const std::string& Contaminants::getName() const
   {
     return name_;
   }
@@ -154,12 +154,12 @@ namespace OpenMS
 
   // Check if peptide is in contaminants database or not and add the is_contaminant = 0/1.
   // If so, raise the contaminant ratio.
-  void Contaminants::compare_(const String& key, PeptideHit& pep_hit, Int64& total, Int64& cont, double& sum_total, double& sum_cont, double intensity)
+  void Contaminants::compare_(const std::string& key, PeptideHit& pep_hit, Int64& total, Int64& cont, double& sum_total, double& sum_cont, double intensity)
   {
     ++total;
     sum_total += intensity;
     // peptide is not in contaminant database
-    if (!digested_db_.count(key))
+    if (!digested_db_.contains(key))
     {
       pep_hit.setMetaValue("is_contaminant", 0);
       return;

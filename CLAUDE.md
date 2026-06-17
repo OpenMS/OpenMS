@@ -6,6 +6,7 @@
 
 ## Build Gotchas
 
+- **contrib is a git submodule**: run `git submodule update --init contrib` (or clone with `--recurse-submodules`) before building if you need the vendored third-party libraries.
 - **Boost on macOS**: Use `-DBOOST_USE_STATIC_LIBS=OFF` (upstream Boost issue with transitive deps)
 - **CMAKE_PREFIX_PATH**: Use `;` separator with `-D` flag, `:` with env var on Unix
 - **delocate-wheel `-L`**: Destination subdir inside wheel, NOT library search path. Use `delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}`

@@ -80,7 +80,7 @@ namespace OpenMS
     left_splitter_ = max(dist_.minBound(), pos);
   }
 
-  void HistogramWidget::setLegend(const String & legend)
+  void HistogramWidget::setLegend(const std::string & legend)
   {
     bottom_axis_->setLegend(legend);
   }

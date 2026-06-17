@@ -12,6 +12,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <cmath>
+#include <cstdlib>
+
 namespace OpenMS
 {
 
@@ -102,15 +105,15 @@ namespace OpenMS
       auto format = *occs.begin();
       if (format != IMFormat::IM_PEAK && format != IMFormat::IM_SPECTRUM)
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "subfunction returned invalid value(s)", "Number of different values: " + String(occs.size()));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "subfunction returned invalid value(s)", "Number of different values: " + StringUtils::toStr(occs.size()));
       }
       return format;
     }
     else
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "MSExperiment contains MS" + String(ms_level) + " spectra with different IM formats. "
-        "Handle per-spectrum.", "Number of different formats: " + String(occs.size()));
+        "MSExperiment contains MS" + StringUtils::toStr(ms_level) + " spectra with different IM formats. "
+        "Handle per-spectrum.", "Number of different formats: " + StringUtils::toStr(occs.size()));
     }
   }
 
@@ -161,5 +164,44 @@ namespace OpenMS
       default:
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot convert from " + driftTimeUnitToString(from) + " to a DIM_UNIT.");
     }
+  }
+
+  namespace
+  {
+    /// Bruker Mason-Schamp calibration constant relating 1/K0 [V*s/cm^2] and CCS [Angstrom^2] for an N2
+    /// drift gas; value confirmed against alphatims and MaxQuant CCS values (also used by OpenNuXL).
+    /// CCS = (MASON_SCHAMP_CONSTANT * |z| / sqrt(reduced_mass)) * (1/K0).
+    constexpr double MASON_SCHAMP_CONSTANT = 1059.62245;
+
+    /// Ion-gas reduced mass [Da] with the ion mass approximated as mz * |charge|.
+    double reducedMass_(double mz, int charge, double buffer_gas_mass)
+    {
+      const double ion_mass = mz * std::abs(charge);
+      return (ion_mass * buffer_gas_mass) / (ion_mass + buffer_gas_mass);
+    }
+  }
+
+  double IMTypes::oneOverK0ToCCS(double one_over_k0, double mz, int charge, double buffer_gas_mass)
+  {
+    if (one_over_k0 <= 0.0 || mz <= 0.0 || charge == 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "oneOverK0ToCCS requires one_over_k0 > 0, mz > 0 and charge != 0",
+        "1/K0=" + StringUtils::toStr(one_over_k0) + ", mz=" + StringUtils::toStr(mz) + ", charge=" + StringUtils::toStr(charge));
+    }
+    const double mu = reducedMass_(mz, charge, buffer_gas_mass);
+    return MASON_SCHAMP_CONSTANT * std::abs(charge) / std::sqrt(mu) * one_over_k0;
+  }
+
+  double IMTypes::ccsToOneOverK0(double ccs, double mz, int charge, double buffer_gas_mass)
+  {
+    if (ccs <= 0.0 || mz <= 0.0 || charge == 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "ccsToOneOverK0 requires ccs > 0, mz > 0 and charge != 0",
+        "CCS=" + StringUtils::toStr(ccs) + ", mz=" + StringUtils::toStr(mz) + ", charge=" + StringUtils::toStr(charge));
+    }
+    const double mu = reducedMass_(mz, charge, buffer_gas_mass);
+    return ccs * std::sqrt(mu) / (MASON_SCHAMP_CONSTANT * std::abs(charge));
   }
 }// namespace OpenMS

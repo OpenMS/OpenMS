@@ -8,7 +8,7 @@
 //
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <vector>

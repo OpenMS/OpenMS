@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 
 #include <boost/random/mersenne_twister.hpp> // for mt19937_64
@@ -279,8 +280,8 @@ namespace Math
   template<typename T>
   double percentOf(T value, T total, int digits)
   {
-    if (value < 0) { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value must be non-negative", String(value)); }
-    if (total < 0) { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Total must be non-negative", String(total)); }
+    if (value < 0) { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value must be non-negative",StringUtils::toStr(value)); }
+    if (total < 0) { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Total must be non-negative",StringUtils::toStr(total)); }
     if (total <= 0) // avoid float equality compare
     {
       return 0.0; // avoid division by zero

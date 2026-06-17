@@ -18,6 +18,8 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
+#include <utility>
+
 START_TEST(FeatureFinderAlgorithmPicked, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -57,7 +59,7 @@ START_SECTION((virtual void run()))
   param = param.copy("FeatureFinder:1:algorithm:", true);
 
   FFPP ffpp;
-  ffpp.run(input, output, param, FeatureMap());
+  ffpp.run(std::move(input), output, param, FeatureMap());
 
   TEST_EQUAL(output.size(), 8);
 

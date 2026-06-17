@@ -241,7 +241,7 @@ namespace OpenMS
     const PeptideIdentificationList& pep1 = feat1.getPeptideIdentifications();
     const PeptideIdentificationList& pep2 = feat2.getPeptideIdentifications();
 
-    set<String> best1, best2;
+    set<std::string> best1, best2;
     for (PeptideIdentificationList::const_iterator pep_it = pep1.begin(); pep_it != pep1.end(); ++pep_it)
     {
       if (pep_it->getHits().empty())

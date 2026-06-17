@@ -59,10 +59,10 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename,
+    void load(const std::string& filename,
               std::vector<ProteinIdentification>& proteins,
               PeptideIdentificationList& peptides,
-              const String& experiment_name,
+              const std::string& experiment_name,
               const SpectrumMetaDataLookup& lookup);
 
     /**
@@ -71,19 +71,19 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename,
+    void load(const std::string& filename,
               std::vector<ProteinIdentification>& proteins,
               PeptideIdentificationList& peptides,
-              const String& experiment_name = "");
+              const std::string& experiment_name = "");
 
     /**
         @brief Stores idXML as PepXML file
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be opened for writing
     */
-    void store(const String& filename, std::vector<ProteinIdentification>& protein_ids,
-               PeptideIdentificationList& peptide_ids, const String& mz_file = "",
-               const String& mz_name = "", bool peptideprophet_analyzed = false, double rt_tolerance = 0.01);
+    void store(const std::string& filename, std::vector<ProteinIdentification>& protein_ids,
+               PeptideIdentificationList& peptide_ids, const std::string& mz_file = "",
+               const std::string& mz_name = "", bool peptideprophet_analyzed = false, double rt_tolerance = 0.01);
 
     /**
         @brief Whether we should keep the native spectrum name of the pepXML
@@ -126,21 +126,21 @@ private:
     {
       private:
 
-      String aminoacid_;
+      std::string aminoacid_;
       double massdiff_;
       double mass_;
       bool is_variable_;
-      String description_;
-      String terminus_;
+      std::string description_;
+      std::string terminus_;
       bool is_protein_terminus_; // "true" if protein terminus, "false" if peptide terminus
       ResidueModification::TermSpecificity term_spec_;
-      std::vector<String> errors_;
+      std::vector<std::string> errors_;
       const ResidueModification* registered_mod_;
 
       const ResidueModification* lookupModInPreferredMods_(const std::vector<const ResidueModification*>& preferred_fixed_mods,
-                                                           const String& aminoacid,
+                                                           const std::string& aminoacid,
                                                            double massdiff,
-                                                           const String& description,
+                                                           const std::string& description,
                                                            const ResidueModification::TermSpecificity term_spec,
                                                            double tolerance);
 
@@ -152,8 +152,8 @@ private:
       /// OR terminal_modification elements
       /// since we use them ambiguously
       AminoAcidModification(
-          const String& aminoacid, const String& massdiff, const String& mass,
-          String variable, const String& description, String terminus, const String& protein_terminus,
+          const std::string& aminoacid, const std::string& massdiff, const std::string& mass,
+          std::string variable, const std::string& description, std::string terminus, const std::string& protein_terminus,
           const std::vector<const ResidueModification*>& preferred_fixed_mods,
           const std::vector<const ResidueModification*>& preferred_var_mods,
           double tolerance);
@@ -164,9 +164,9 @@ private:
 
       AminoAcidModification& operator=(const AminoAcidModification& rhs) = default;
 
-      String toUnimodLikeString() const;
+      std::string toUnimodLikeString() const;
 
-      const String& getDescription() const;
+      const std::string& getDescription() const;
 
       bool isVariable() const;
 
@@ -176,11 +176,11 @@ private:
 
       double getMass() const;
 
-      const String& getTerminus() const;
+      const std::string& getTerminus() const;
 
-      const String& getAminoAcid() const;
+      const std::string& getAminoAcid() const;
 
-      const std::vector<String>& getErrors() const;
+      const std::vector<std::string>& getErrors() const;
     };
 
     /// Pointer to the list of identified proteins
@@ -193,16 +193,16 @@ private:
     const SpectrumMetaDataLookup* lookup_;
 
     /// Name of the associated experiment (filename of the data file, extension will be removed)
-    String exp_name_;
+    std::string exp_name_;
 
     /// Set name of search engine
-    String search_engine_;
+    std::string search_engine_;
 
     /// Several optional attributes of spectrum_query
-    String native_spectrum_name_;
-    String experiment_label_;
-    String swath_assay_;
-    String status_;
+    std::string native_spectrum_name_;
+    std::string experiment_label_;
+    std::string swath_assay_;
+    std::string status_;
 
     /// Get RT and m/z for peptide ID from precursor scan (should only matter for RT)?
     bool use_precursor_data_{};
@@ -241,10 +241,10 @@ private:
     bool parse_unknown_scores_{};
 
     /// In case it has decoys, what is the prefix?
-    String decoy_prefix_;
+    std::string decoy_prefix_;
 
     /// current base name
-    String current_base_name_;
+    std::string current_base_name_;
 
     /// References to currently active ProteinIdentifications
     std::vector<std::vector<ProteinIdentification>::iterator> current_proteins_;
@@ -253,8 +253,8 @@ private:
     ProteinIdentification::SearchParameters params_;
 
     /// Enzyme name associated with the current identification run
-    String enzyme_;
-    String enzyme_cuttingsite_;
+    std::string enzyme_;
+    std::string enzyme_cuttingsite_;
 
     /// PeptideIdentification instance currently being processed
     PeptideIdentification current_peptide_;
@@ -266,7 +266,7 @@ private:
     PeptideHit peptide_hit_;
 
     /// Sequence of the current peptide hit
-    String current_sequence_;
+    std::string current_sequence_;
 
     /// RT and m/z of current PeptideIdentification (=spectrum)  
     double rt_{}, mz_{};
@@ -281,7 +281,7 @@ private:
     UInt search_id_{};
 
     /// Identifier linking PeptideIdentifications and ProteinIdentifications
-    String prot_id_;
+    std::string prot_id_;
 
     /// Date the pepXML file was generated
     DateTime date_;

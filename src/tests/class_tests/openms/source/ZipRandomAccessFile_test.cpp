@@ -21,11 +21,11 @@ using namespace OpenMS;
 
 START_TEST(ZipRandomAccessFile, "$Id$")
 
-START_SECTION(static arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> Open(const String&, const String&, std::unique_ptr<File::TempDir>&))
+START_SECTION(static arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> Open(const std::string&, const std::string&, std::unique_ptr<File::TempDir>&))
 {
   // create temporary directory
   std::unique_ptr<File::TempDir> tmpdir(new File::TempDir(false));
-  String tmp_path = tmpdir->getPath();
+  std::string tmp_path = tmpdir->getPath();
 
 #if __has_include(<zip.h>)
   // create a zip archive with one entry

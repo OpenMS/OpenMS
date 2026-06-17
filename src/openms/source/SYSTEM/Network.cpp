@@ -29,9 +29,9 @@ namespace
     // extract filename from URL path
     std::string path_part = url;
     auto query_pos = path_part.find('?');
-    if (query_pos != std::string::npos) path_part = path_part.substr(0, query_pos);
+    if (query_pos != std::string::npos) path_part = StringUtils::substr(path_part, 0, query_pos);
     auto frag_pos = path_part.find('#');
-    if (frag_pos != std::string::npos) path_part = path_part.substr(0, frag_pos);
+    if (frag_pos != std::string::npos) path_part = StringUtils::substr(path_part, 0, frag_pos);
 
     std::string basename = fs::path(path_part).filename().string();
     if (basename.empty()) basename = "download";
@@ -77,7 +77,7 @@ void Network::downloadFile(const std::string& url, const std::string& download_f
   }
   else
   {
-    String error = "Download of '" + url + "' failed!. Error: " + query.getErrorString() + '\n';
+    std::string error = "Download of '" + url + "' failed!. Error: " + query.getErrorString() + '\n';
     throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
   }
 }

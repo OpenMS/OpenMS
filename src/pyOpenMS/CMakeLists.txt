@@ -303,7 +303,14 @@ else()
   # In standalone builds, OPENMS_ARROW_TARGET is not exported by OpenMSConfig.cmake.
   # Find Arrow ourselves so we can link the C++ bridge functions (ExportSchema, etc.).
   if(NOT OPENMS_ARROW_TARGET)
-    find_package(Arrow 23 CONFIG REQUIRED)
+    # Don't pin the version in find_package — Arrow's ConfigVersion uses
+    # SameMajorVersion compatibility, so requesting 23 rejects 24.x. Check the
+    # version manually after the call. Mirrors the main cmake path in
+    # cmake/cmake_findExternalLibs.cmake.
+    find_package(Arrow CONFIG REQUIRED)
+    if(Arrow_VERSION VERSION_LESS 23)
+      message(FATAL_ERROR "Apache Arrow >= 23 required (found ${Arrow_VERSION}).")
+    endif()
     if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
       set(OPENMS_ARROW_TARGET Arrow::arrow_static)
     elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_shared)
@@ -517,6 +524,22 @@ if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
       tests/unittests
     WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
   )
+
+  # Mirror the BrukerTimsFile_test pattern: forward optional CMake-configured
+  # paths to real Bruker .d directories as environment variables, so
+  # test_BrukerTimsFile.py can skip when they are unset.
+  if(OPENTIMS_DDA_TEST_DATA OR OPENTIMS_DIA_TEST_DATA)
+    set(_pyopenms_test_env "")
+    if(OPENTIMS_DDA_TEST_DATA)
+      list(APPEND _pyopenms_test_env "OPENTIMS_DDA_TEST_DATA=${OPENTIMS_DDA_TEST_DATA}")
+    endif()
+    if(OPENTIMS_DIA_TEST_DATA)
+      list(APPEND _pyopenms_test_env "OPENTIMS_DIA_TEST_DATA=${OPENTIMS_DIA_TEST_DATA}")
+    endif()
+    set_tests_properties(pyopenms_unittests PROPERTIES
+      ENVIRONMENT "${_pyopenms_test_env}"
+    )
+  endif()
 
   add_test(
     NAME pyopenms_docstring_tests

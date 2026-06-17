@@ -27,7 +27,7 @@ using namespace OpenMS;
 
 
 File::TempDir dir;
-const String path = dir.getPath();
+const std::string path = dir.getPath();
 
 
 
@@ -46,7 +46,7 @@ START_SECTION((void exportFeatureMap(
                 const OpenMS::FeatureMap& feature_map,
                 const OpenMS::ConsensusMap& cmap,
                 const OpenMS::MSExperiment& exp,
-                const std::map<OpenMS::String,OpenMS::String>& prot_map = {})))
+                const std::map<std::string,std::string>& prot_map = {})))
 
 {
   {
@@ -75,7 +75,7 @@ START_SECTION((void exportFeatureMap(
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_6.featureXML"), fmap_six);
     msms.exportFeatureMap(fmap_six, cmap_one, exp);
   }
-  String filename = path + "/msms.txt";
+  std::string filename = path + "/msms.txt";
   TEST_FILE_SIMILAR(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("MQMsms_result.txt"));
 }
 

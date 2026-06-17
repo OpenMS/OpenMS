@@ -48,14 +48,14 @@ namespace OpenMS
          * @param[in] retention_time_summarization_method Method for RT summarization
          * @param[in] remove_shared_peptides If true, shared peptides mapping to multiple indistinguishable protein groups are removed (default)
          */
-        void storeLFQ(const String& filename,
+        void storeLFQ(const std::string& filename,
                       const ConsensusMap &consensus_map, // we might add singleton protein groups
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
                       const bool is_isotope_label_type,
-                      const String& bioreplicate,
-                      const String& condition,
-                      const String& retention_time_summarization_method,
+                      const std::string& bioreplicate,
+                      const std::string& condition,
+                      const std::string& retention_time_summarization_method,
                       const bool remove_shared_peptides = true);
 
         /**
@@ -70,21 +70,21 @@ namespace OpenMS
          * @param[in] retention_time_summarization_method Method for RT summarization
          * @param[in] remove_shared_peptides If true, shared peptides mapping to multiple indistinguishable protein groups are removed (default)
          */
-        void storeISO(const String& filename,
+        void storeISO(const std::string& filename,
                       const ConsensusMap &consensus_map,
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
-                      const String& bioreplicate,
-                      const String& condition,
-                      const String& mixture,
-                      const String& retention_time_summarization_method,
+                      const std::string& bioreplicate,
+                      const std::string& condition,
+                      const std::string& mixture,
+                      const std::string& retention_time_summarization_method,
                       const bool remove_shared_peptides = true);
 
     private:
       typedef OpenMS::Peak2D::IntensityType Intensity;
       typedef OpenMS::Peak2D::CoordinateType Coordinate;
 
-      static const String na_string_;
+      static const std::string na_string_;
       static const char delim_ = ',';
       static const char accdelim_ = ';';
       static const char quote_ = '"';
@@ -95,7 +95,7 @@ namespace OpenMS
         */
       struct AggregatedConsensusInfo
       {
-        std::vector< std::vector< String > > consensus_feature_filenames;           //< Filenames of ConsensusFeature
+        std::vector< std::vector< std::string > > consensus_feature_filenames;           //< Filenames of ConsensusFeature
         std::vector< std::vector< Intensity > > consensus_feature_intensities;       //< Intensities of ConsensusFeature
         std::vector< std::vector< Coordinate > > consensus_feature_retention_times; //< Retention times of ConsensusFeature
         std::vector< std::vector< unsigned > > consensus_feature_labels;          //< Labels of ConsensusFeature
@@ -108,31 +108,31 @@ namespace OpenMS
         *  Stores them in AggregatedConsensusInfo for later processing
         */
       MSstatsFile::AggregatedConsensusInfo aggregateInfo_(const ConsensusMap& consensus_map,
-                                                          const std::vector<String>& spectra_paths);
+                                                          const std::vector<std::string>& spectra_paths);
 
       /*
         *  @brief: Internal function to check if MSstats_BioReplicate and MSstats_Condition exists in Experimental Design
         */
-      static void checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection, const String& bioreplicate, const String& condition);
+      static void checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection, const std::string& bioreplicate, const std::string& condition);
 
       /*
         *  @brief: Internal function to check if MSstats_BioReplicate, MSstats_Condition and MSstats_Mixture in Experimental Design
         */
-      static void checkConditionISO_(const ExperimentalDesign::SampleSection& sampleSection, const String& bioreplicate, const String& condition, const String& mixture);
+      static void checkConditionISO_(const ExperimentalDesign::SampleSection& sampleSection, const std::string& bioreplicate, const std::string& condition, const std::string& mixture);
 
       /*
         *  @brief MSstats treats runs differently than OpenMS. In MSstats, runs are an enumeration of (SpectraFilePath, Fraction)
         *  In OpenMS, a run is split into multiple fractions.
         */
       static void assembleRunMap_(
-              std::map< std::pair< String, unsigned>, unsigned> &run_map,
+              std::map< std::pair< std::string, unsigned>, unsigned> &run_map,
               const ExperimentalDesign &design);
 
       /*
         * @brief checks if the first vector is a subset of the second
         */
-      static bool isSubsetOf_(const std::vector< String> &first, const std::vector< String > &second);
-      static void warnOnSubsetFiles_(const std::vector<String>& spectra_paths, const std::vector<String>& design_filenames);
+      static bool isSubsetOf_(const std::vector< std::string> &first, const std::vector< std::string > &second);
+      static void warnOnSubsetFiles_(const std::vector<std::string>& spectra_paths, const std::vector<std::string>& design_filenames);
 
       OpenMS::Peak2D::IntensityType sumIntensity_(const std::set< OpenMS::Peak2D::IntensityType > &intensities) const
       {
@@ -154,16 +154,16 @@ namespace OpenMS
       public :
         MSstatsLine_(
             bool _has_fraction,
-            const String& _accession,
-            const String& _sequence,
-            const String& _precursor_charge,
-            const String& _fragment_ion,
-            const String& _frag_charge,
-            const String& _isotope_label_type,
-            const String& _condition,
-            const String& _bioreplicate,
-            const String& _run,
-            const String& _fraction
+            const std::string& _accession,
+            const std::string& _sequence,
+            const std::string& _precursor_charge,
+            const std::string& _fragment_ion,
+            const std::string& _frag_charge,
+            const std::string& _isotope_label_type,
+            const std::string& _condition,
+            const std::string& _bioreplicate,
+            const std::string& _run,
+            const std::string& _fraction
         ): has_fraction_(_has_fraction),
             accession_(_accession),
             sequence_(_sequence),
@@ -176,14 +176,14 @@ namespace OpenMS
             run_(_run),
             fraction_(_fraction) {}
 
-        const String& accession() const {return this->accession_;}
-        const String& sequence() const {return this->sequence_;}
-        const String& precursor_charge() const {return this->precursor_charge_;}
-        const String& run() const {return this->run_;}
+        const std::string& accession() const {return this->accession_;}
+        const std::string& sequence() const {return this->sequence_;}
+        const std::string& precursor_charge() const {return this->precursor_charge_;}
+        const std::string& run() const {return this->run_;}
 
-        String toString() const
+        std::string toString() const
         {
-          const String delim(",");
+          const std::string delim(",");
           return  accession_
                   + delim + sequence_
                   + delim + precursor_charge_
@@ -193,7 +193,7 @@ namespace OpenMS
                   + delim + condition_
                   + delim + bioreplicate_
                   + delim + run_
-                  + (this->has_fraction_ ? delim + String(fraction_) : "");
+                  + (this->has_fraction_ ? delim + std::string(fraction_) : "");
         }
 
         friend bool operator<(const MSstatsLine_ &l,
@@ -206,32 +206,32 @@ namespace OpenMS
 
       private:
         bool has_fraction_;
-        String accession_;
-        String sequence_;
-        String precursor_charge_;
-        String fragment_ion_;
-        String frag_charge_;
-        String isotope_label_type_;
-        String condition_;
-        String bioreplicate_;
-        String run_;
-        String fraction_;
+        std::string accession_;
+        std::string sequence_;
+        std::string precursor_charge_;
+        std::string fragment_ion_;
+        std::string frag_charge_;
+        std::string isotope_label_type_;
+        std::string condition_;
+        std::string bioreplicate_;
+        std::string run_;
+        std::string fraction_;
       };
 
       class MSstatsTMTLine_
       {
       public :
         MSstatsTMTLine_(
-            const String& _accession,
-            const String& _sequence,
-            const String& _precursor_charge,
-            const String& _channel,
-            const String& _condition,
-            const String& _bioreplicate,
-            const String& _run,
-            const String& _mixture,
-            const String& _techrepmixture,
-            const String& _fraction
+            const std::string& _accession,
+            const std::string& _sequence,
+            const std::string& _precursor_charge,
+            const std::string& _channel,
+            const std::string& _condition,
+            const std::string& _bioreplicate,
+            const std::string& _run,
+            const std::string& _mixture,
+            const std::string& _techrepmixture,
+            const std::string& _fraction
         ): accession_(_accession),
             sequence_(_sequence),
             precursor_charge_(_precursor_charge),
@@ -243,14 +243,14 @@ namespace OpenMS
             techrepmixture_(_techrepmixture),
             fraction_(_fraction) {}
 
-        const String& accession() const {return this->accession_;}
-        const String& sequence() const {return this->sequence_;}
-        const String& precursor_charge() const {return this->precursor_charge_;}
-        const String& run() const {return this->run_;}
+        const std::string& accession() const {return this->accession_;}
+        const std::string& sequence() const {return this->sequence_;}
+        const std::string& precursor_charge() const {return this->precursor_charge_;}
+        const std::string& run() const {return this->run_;}
 
-        String toString() const
+        std::string toString() const
         {
-          const String delim(",");
+          const std::string delim(",");
           return  accession_
                   + delim + sequence_
                   + delim + precursor_charge_
@@ -260,7 +260,7 @@ namespace OpenMS
                   + delim + run_
                   + delim + mixture_
                   + delim + techrepmixture_
-                  + delim + String(fraction_);
+                  + delim + std::string(fraction_);
         }
 
         friend bool operator<(const MSstatsTMTLine_ &l,
@@ -272,16 +272,16 @@ namespace OpenMS
 
 
       private:
-        String accession_;
-        String sequence_;
-        String precursor_charge_;
-        String channel_;
-        String condition_;
-        String bioreplicate_;
-        String run_;
-        String mixture_;
-        String techrepmixture_;
-        String fraction_;
+        std::string accession_;
+        std::string sequence_;
+        std::string precursor_charge_;
+        std::string channel_;
+        std::string condition_;
+        std::string bioreplicate_;
+        std::string run_;
+        std::string mixture_;
+        std::string techrepmixture_;
+        std::string fraction_;
       };
 
       /*
@@ -289,16 +289,16 @@ namespace OpenMS
         *  @param[out] peptideseq_quantifyable Has to be a set (only) for deterministic  ordered output
         */
       template <class LineType>
-      void constructFile_(const String& retention_time_summarization_method,
+      void constructFile_(const std::string& retention_time_summarization_method,
                           const bool rt_summarization_manual,
                           TextFile& csv_out,
-                          const std::set<String>& peptideseq_quantifyable,
+                          const std::set<std::string>& peptideseq_quantifyable,
                           LineType & peptideseq_to_prefix_to_intensities) const;
 
       /*
       *  @brief Constructs the accession to indist. group mapping
       */
-      static std::unordered_map<OpenMS::String, const IndProtGrp* > getAccessionToGroupMap_(const IndProtGrps& ind_prots);
+      static std::unordered_map<std::string, const IndProtGrp* > getAccessionToGroupMap_(const IndProtGrps& ind_prots);
 
 
       /*
@@ -307,8 +307,8 @@ namespace OpenMS
        *
        */
       bool isQuantifyable_(
-          const std::set<String>& accs,
-          const std::unordered_map<String, const IndProtGrp*>& accession_to_group) const;
+          const std::set<std::string>& accs,
+          const std::unordered_map<std::string, const IndProtGrp*>& accession_to_group) const;
 
     };
 } // namespace OpenMS

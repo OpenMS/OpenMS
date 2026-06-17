@@ -86,7 +86,7 @@ public:
     TransformationDescription& operator=(const TransformationDescription& rhs);
 
     /// Fits a model to the data
-    void fitModel(const String& model_type, const Param& params = Param());
+    void fitModel(const std::string& model_type, const Param& params = Param());
 
     /**
       @brief Applies the transformation to @p value.
@@ -97,7 +97,7 @@ public:
     double apply(double value) const;
 
     /// Gets the type of the fitted model
-    const String& getModelType() const;
+    const std::string& getModelType() const;
 
     /// Gets the possible types of models
     static void getModelTypes(StringList& result);
@@ -189,7 +189,7 @@ protected:
     /// Data points
     DataPoints data_;
     /// Type of model
-    String model_type_;
+    std::string model_type_;
     /// Owned model instance (std::unique_ptr)
     std::unique_ptr<TransformationModel> model_;
   };
