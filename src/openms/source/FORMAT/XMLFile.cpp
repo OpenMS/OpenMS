@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
 #include <OpenMS/FORMAT/CompressedInputSource.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -137,7 +138,7 @@ private:
       // peak ahead into the file: is it bzip2 or gzip compressed?
       std::string bz;
       {
-        std::ifstream file(filename.c_str());
+        std::ifstream file(to_path(filename));
         char tmp_bz[3];
         file.read(tmp_bz, 2);
         tmp_bz[2] = '\0';
@@ -361,7 +362,7 @@ private:
       else
       {
         // Uncompressed: open in binary mode to avoid any line ending conversions
-        std::ofstream os(filename.c_str(), std::ios::out | std::ios::binary);
+        std::ofstream os(to_path(filename), std::ios::out | std::ios::binary);
         os.precision(writtenDigits(double()));
         if (!os)
         {
