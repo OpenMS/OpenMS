@@ -9,7 +9,6 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
 #include <fstream>
 
 using namespace OpenMS;
@@ -28,7 +27,7 @@ START_SECTION(void addOrReplaceFromFile(const std::string&, const std::string&, 
   // write initial content
   {
     std::ofstream ofs(file1.c_str(), std::ios::binary);
-  TEST_TRUE(ofs.is_open());
+    TEST_TRUE(ofs.is_open());
     ofs << "version1";
   }
 
@@ -41,7 +40,8 @@ START_SECTION(void addOrReplaceFromFile(const std::string&, const std::string&, 
   // verify listing contains the entry
   auto entries = ZipArchiveFile::listEntries(archive);
   bool found = false;
-  for (const auto &e : entries) if (e == "library/precursors.parquet") found = true;
+  for (const auto& e : entries)
+    if (e == "library/precursors.parquet") found = true;
   TEST_EQUAL(found, true)
 
   // extract and verify content
@@ -51,7 +51,7 @@ START_SECTION(void addOrReplaceFromFile(const std::string&, const std::string&, 
   TEST_EQUAL(File::exists(extracted), true)
   {
     std::ifstream ifs(extracted.c_str(), std::ios::binary);
-  TEST_TRUE(ifs.is_open());
+    TEST_TRUE(ifs.is_open());
     std::string content;
     std::getline(ifs, content);
     TEST_EQUAL(content, "version1");
@@ -60,7 +60,7 @@ START_SECTION(void addOrReplaceFromFile(const std::string&, const std::string&, 
   // replace source file content
   {
     std::ofstream ofs(file1.c_str(), std::ios::binary | std::ios::trunc);
-  TEST_TRUE(ofs.is_open());
+    TEST_TRUE(ofs.is_open());
     ofs << "version2";
   }
 
@@ -74,7 +74,7 @@ START_SECTION(void addOrReplaceFromFile(const std::string&, const std::string&, 
   TEST_EQUAL(File::exists(extracted2), true)
   {
     std::ifstream ifs(extracted2.c_str(), std::ios::binary);
-  TEST_TRUE(ifs.is_open());
+    TEST_TRUE(ifs.is_open());
     std::string content;
     std::getline(ifs, content);
     TEST_EQUAL(content, "version2");
@@ -89,7 +89,7 @@ START_SECTION([EXTRA] unzipDirectory error paths)
   // Corrupt archive: an existing, readable file that is not a valid ZIP (garbage
   // bytes, no central directory). libzip's zip_open() fails and unzipDirectory
   // must raise a clear exception rather than crash.
-  const std::string corrupt = tmp.getPath() + "/corrupt.oswpq";
+  NEW_TMP_FILE(corrupt);
   {
     std::ofstream ofs(corrupt.c_str(), std::ios::binary);
     TEST_TRUE(ofs.is_open())
@@ -104,8 +104,7 @@ START_SECTION([EXTRA] unzipDirectory error paths)
   // Missing / unreadable input: a clear FileNotFound.
   {
     std::unique_ptr<File::TempDir> td;
-    TEST_EXCEPTION(Exception::FileNotFound,
-                   ZipArchiveFile::unzipDirectory("/nonexistent/path/to/archive.oswpq", td))
+    TEST_EXCEPTION(Exception::FileNotFound, ZipArchiveFile::unzipDirectory("/nonexistent/path/to/archive.oswpq", td))
   }
 
   // Already-unpacked directory input: returned as-is (no extraction), supporting
