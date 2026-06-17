@@ -1,6 +1,8 @@
 """Tests for the library-level FileInfo helper (OpenMS#9596)."""
 
 import os
+import shutil
+import tempfile
 
 import pyopenms as oms
 
@@ -12,7 +14,7 @@ def _path(name):
 
 
 def test_fileinfo_featurexml():
-    r = oms.FileInfo().runAll(_path("BSA1_F1_idmapped.featureXML"))
+    r = oms.FileInfo().run_all(_path("BSA1_F1_idmapped.featureXML"))
     assert r.meta.file_type_name == "featureXML"
     assert r.feature is not None
     assert r.feature.is_consensus is False
@@ -25,7 +27,7 @@ def test_fileinfo_featurexml():
 
 
 def test_fileinfo_consensusxml():
-    r = oms.FileInfo().runAll(_path("ProteinQuantifier_input.consensusXML"))
+    r = oms.FileInfo().run_all(_path("ProteinQuantifier_input.consensusXML"))
     assert r.meta.file_type_name == "consensusXML"
     assert r.feature is not None
     assert r.feature.is_consensus is True
@@ -36,7 +38,7 @@ def test_fileinfo_consensusxml():
 
 
 def test_fileinfo_mzml_peaks():
-    r = oms.FileInfo().runAll(_path("test.mzML"))
+    r = oms.FileInfo().run_all(_path("test.mzML"))
     assert r.meta.file_type_name == "mzML"
     assert r.peak is not None
     assert r.peak.num_spectra > 0
@@ -46,14 +48,14 @@ def test_fileinfo_mzml_peaks():
     # MSExperiment ranges expose the combined / per-level structure
     assert r.ranges.is_experiment is True
     # activation methods come back as (ms_level, name, count) tuples
-    for ms_level, name, count in r.peak.activationMethodsFlat():
+    for ms_level, name, count in r.peak.activation_methods_flat():
         assert isinstance(ms_level, int)
         assert isinstance(name, str)
         assert count >= 1
 
 
 def test_fileinfo_idxml():
-    r = oms.FileInfo().runAll(_path("test.idXML"))
+    r = oms.FileInfo().run_all(_path("test.idXML"))
     assert r.meta.file_type_name == "idXML"
     assert r.ident is not None
     assert r.ident.peptide_hits >= 0
@@ -74,14 +76,28 @@ def test_fileinfo_options_and_renderers():
     assert "-- Statistics --" in r_stats.text
 
     # static renderers return the cached CLI text / tsv
-    assert oms.FileInfo.toText(r_stats) == r_stats.text
-    assert oms.FileInfo.toTSV(r_stats) == r_stats.tsv
+    assert oms.FileInfo.to_text(r_stats) == r_stats.text
+    assert oms.FileInfo.to_tsv(r_stats) == r_stats.tsv
 
 
 def test_fileinfo_forced_type():
-    # forcing the type must bypass auto-detection and still work
-    opt = oms.FileInfo.Options()
-    opt.forced_type = oms.FileTypes.FileType.FEATUREXML
-    r = oms.FileInfo().run(_path("test.featureXML"), opt)
-    assert r.meta.file_type == oms.FileTypes.FileType.FEATUREXML
-    assert r.feature is not None
+    # Test that forced_type bypasses auto-detection by copying a featureXML
+    # file to a .tmp extension and verifying it works with forced_type
+    # but fails without it
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Copy the featureXML file to a neutral extension
+        src = _path("test.featureXML")
+        tmp_file = os.path.join(tmpdir, "test_data.tmp")
+        shutil.copy(src, tmp_file)
+
+        # With forced_type, it should succeed
+        opt = oms.FileInfo.Options()
+        opt.forced_type = oms.FileTypes.FileType.FEATUREXML
+        r = oms.FileInfo().run(tmp_file, opt)
+        assert r.meta.file_type == oms.FileTypes.FileType.FEATUREXML
+        assert r.feature is not None
+
+        # Without forced_type, it should fail to recognize the type
+        # (the file type will be UNKNOWN)
+        r_no_force = oms.FileInfo().run(tmp_file)
+        assert r_no_force.meta.file_type == oms.FileTypes.FileType.UNKNOWN

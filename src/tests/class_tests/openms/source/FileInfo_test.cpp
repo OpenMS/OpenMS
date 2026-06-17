@@ -12,6 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/FileInfo.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <string>
 
@@ -118,12 +119,27 @@ END_SECTION
 
 START_SECTION((forced type bypasses auto-detection))
 {
+  // Test that forced_type bypasses auto-detection by copying a featureXML
+  // file to a neutral extension (.tmp) and verifying it works with forced_type
   FileInfo fi;
   FileInfo::Options opt;
+
+  // Create a temporary copy of a featureXML file with wrong extension
+  String src_path = OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML");
+  String tmp_path = File::getTempDirectory() + "/test_forced_type.tmp";
+
+  // Copy the file
+  bool copy_success = File::copy(src_path, tmp_path);
+  TEST_EQUAL(copy_success, true)
+
+  // With forced_type set to FEATUREXML, it should succeed
   opt.forced_type = FileTypes::FEATUREXML;
-  FileInfo::Result r = fi.run(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), opt);
+  FileInfo::Result r = fi.run(tmp_path, opt);
   TEST_EQUAL(r.meta.file_type == FileTypes::FEATUREXML, true)
   TEST_EQUAL(r.feature.has_value(), true)
+
+  // Clean up
+  File::remove(tmp_path);
 }
 END_SECTION
 

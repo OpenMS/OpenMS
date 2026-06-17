@@ -2664,6 +2664,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
       nb::class_<OpenMS::Math::SummaryStatistics<std::vector<double>>>(m, "SummaryStatistics",
           "Summary statistics: count/mean/min/lower-quartile/median/upper-quartile/max/variance")
           .def(nb::init<>())
+          .def(nb::init<const OpenMS::Math::SummaryStatistics<std::vector<double>>&>())
+          .def("__copy__", [](const OpenMS::Math::SummaryStatistics<std::vector<double>>& self) { return OpenMS::Math::SummaryStatistics<std::vector<double>>(self); })
+          .def("__deepcopy__", [](const OpenMS::Math::SummaryStatistics<std::vector<double>>& self, nb::dict) { return OpenMS::Math::SummaryStatistics<std::vector<double>>(self); }, "memo"_a)
           .def_ro("count", &OpenMS::Math::SummaryStatistics<std::vector<double>>::count)
           .def_ro("mean", &OpenMS::Math::SummaryStatistics<std::vector<double>>::mean)
           .def_ro("min", &OpenMS::Math::SummaryStatistics<std::vector<double>>::min)
@@ -2680,12 +2683,18 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
 
       nb::class_<FileInfo::Range>(fi, "Range", "[min,max] interval for one dimension")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::Range&>())
+          .def("__copy__", [](const FileInfo::Range& self) { return FileInfo::Range(self); })
+          .def("__deepcopy__", [](const FileInfo::Range& self, nb::dict) { return FileInfo::Range(self); }, "memo"_a)
           .def_ro("present", &FileInfo::Range::present)
           .def_ro("min", &FileInfo::Range::min)
           .def_ro("max", &FileInfo::Range::max);
 
       nb::class_<FileInfo::RangeSet>(fi, "RangeSet", "RT / m/z / mobility / intensity ranges")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::RangeSet&>())
+          .def("__copy__", [](const FileInfo::RangeSet& self) { return FileInfo::RangeSet(self); })
+          .def("__deepcopy__", [](const FileInfo::RangeSet& self, nb::dict) { return FileInfo::RangeSet(self); }, "memo"_a)
           .def_ro("rt", &FileInfo::RangeSet::rt)
           .def_ro("mz", &FileInfo::RangeSet::mz)
           .def_ro("mobility", &FileInfo::RangeSet::mobility)
@@ -2694,6 +2703,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
 
       nb::class_<FileInfo::Ranges>(fi, "Ranges", "range categories (MSExperiment carries all four)")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::Ranges&>())
+          .def("__copy__", [](const FileInfo::Ranges& self) { return FileInfo::Ranges(self); })
+          .def("__deepcopy__", [](const FileInfo::Ranges& self, nb::dict) { return FileInfo::Ranges(self); }, "memo"_a)
           .def_ro("combined", &FileInfo::Ranges::combined)
           .def_ro("spectra_overall", &FileInfo::Ranges::spectra_overall)
           .def_ro("per_ms_level", &FileInfo::Ranges::per_ms_level)
@@ -2702,18 +2714,27 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
 
       nb::class_<FileInfo::FileMeta>(fi, "FileMeta", "general file header (always populated)")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::FileMeta&>())
+          .def("__copy__", [](const FileInfo::FileMeta& self) { return FileInfo::FileMeta(self); })
+          .def("__deepcopy__", [](const FileInfo::FileMeta& self, nb::dict) { return FileInfo::FileMeta(self); }, "memo"_a)
           .def_ro("file_name", &FileInfo::FileMeta::file_name)
           .def_ro("file_type", &FileInfo::FileMeta::file_type)
           .def_ro("file_type_name", &FileInfo::FileMeta::file_type_name);
 
       nb::class_<FileInfo::ExperimentMeta::Contact>(fi, "Contact", "a contact person")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::ExperimentMeta::Contact&>())
+          .def("__copy__", [](const FileInfo::ExperimentMeta::Contact& self) { return FileInfo::ExperimentMeta::Contact(self); })
+          .def("__deepcopy__", [](const FileInfo::ExperimentMeta::Contact& self, nb::dict) { return FileInfo::ExperimentMeta::Contact(self); }, "memo"_a)
           .def_ro("first_name", &FileInfo::ExperimentMeta::Contact::first_name)
           .def_ro("last_name", &FileInfo::ExperimentMeta::Contact::last_name)
           .def_ro("email", &FileInfo::ExperimentMeta::Contact::email);
 
       nb::class_<FileInfo::ExperimentMeta>(fi, "ExperimentMeta", "the -m metadata block (peak files)")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::ExperimentMeta&>())
+          .def("__copy__", [](const FileInfo::ExperimentMeta& self) { return FileInfo::ExperimentMeta(self); })
+          .def("__deepcopy__", [](const FileInfo::ExperimentMeta& self, nb::dict) { return FileInfo::ExperimentMeta(self); }, "memo"_a)
           .def_ro("present", &FileInfo::ExperimentMeta::present)
           .def_ro("document_id", &FileInfo::ExperimentMeta::document_id)
           .def_ro("date", &FileInfo::ExperimentMeta::date)
@@ -2730,6 +2751,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
 
       nb::class_<FileInfo::ProcessingStep>(fi, "ProcessingStep", "a data-processing step (-p)")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::ProcessingStep&>())
+          .def("__copy__", [](const FileInfo::ProcessingStep& self) { return FileInfo::ProcessingStep(self); })
+          .def("__deepcopy__", [](const FileInfo::ProcessingStep& self, nb::dict) { return FileInfo::ProcessingStep(self); }, "memo"_a)
           .def_ro("software_name", &FileInfo::ProcessingStep::software_name)
           .def_ro("software_version", &FileInfo::ProcessingStep::software_version)
           .def_ro("completion_time", &FileInfo::ProcessingStep::completion_time)
@@ -2737,11 +2761,17 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
 
       nb::class_<FileInfo::NamedStats>(fi, "NamedStats", "a named SummaryStatistics block (-s)")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::NamedStats&>())
+          .def("__copy__", [](const FileInfo::NamedStats& self) { return FileInfo::NamedStats(self); })
+          .def("__deepcopy__", [](const FileInfo::NamedStats& self, nb::dict) { return FileInfo::NamedStats(self); }, "memo"_a)
           .def_ro("title", &FileInfo::NamedStats::title)
           .def_ro("stats", &FileInfo::NamedStats::stats);
 
       nb::class_<FileInfo::PeakInfo>(fi, "PeakInfo", "peak-file (MSExperiment) specifics")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::PeakInfo&>())
+          .def("__copy__", [](const FileInfo::PeakInfo& self) { return FileInfo::PeakInfo(self); })
+          .def("__deepcopy__", [](const FileInfo::PeakInfo& self, nb::dict) { return FileInfo::PeakInfo(self); }, "memo"_a)
           .def_ro("instrument_name", &FileInfo::PeakInfo::instrument_name)
           .def_ro("mass_analyzers", &FileInfo::PeakInfo::mass_analyzers)
           .def_ro("ms_levels", &FileInfo::PeakInfo::ms_levels)
@@ -2757,11 +2787,14 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
           .def_ro("num_chromatograms", &FileInfo::PeakInfo::num_chromatograms)
           .def_ro("num_chrom_peaks", &FileInfo::PeakInfo::num_chrom_peaks)
           .def_ro("chromatogram_types", &FileInfo::PeakInfo::chromatogram_types)
-          .def("activationMethodsFlat", [](const FileInfo::PeakInfo& self){ return self.activationMethodsFlat(); },
+          .def("activation_methods_flat", [](const FileInfo::PeakInfo& self){ return self.activationMethodsFlat(); },
                "Activation methods as a list of (ms_level, method_name, count) tuples");
 
       nb::class_<FileInfo::FeatureInfo::MapColumn>(fi, "MapColumn", "a consensus map column header")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::FeatureInfo::MapColumn&>())
+          .def("__copy__", [](const FileInfo::FeatureInfo::MapColumn& self) { return FileInfo::FeatureInfo::MapColumn(self); })
+          .def("__deepcopy__", [](const FileInfo::FeatureInfo::MapColumn& self, nb::dict) { return FileInfo::FeatureInfo::MapColumn(self); }, "memo"_a)
           .def_ro("filename", &FileInfo::FeatureInfo::MapColumn::filename)
           .def_ro("identifier", &FileInfo::FeatureInfo::MapColumn::identifier)
           .def_ro("label", &FileInfo::FeatureInfo::MapColumn::label)
@@ -2769,6 +2802,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
 
       nb::class_<FileInfo::FeatureInfo>(fi, "FeatureInfo", "feature / consensus specifics")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::FeatureInfo&>())
+          .def("__copy__", [](const FileInfo::FeatureInfo& self) { return FileInfo::FeatureInfo(self); })
+          .def("__deepcopy__", [](const FileInfo::FeatureInfo& self, nb::dict) { return FileInfo::FeatureInfo(self); }, "memo"_a)
           .def_ro("is_consensus", &FileInfo::FeatureInfo::is_consensus)
           .def_ro("num_features", &FileInfo::FeatureInfo::num_features)
           .def_ro("tic", &FileInfo::FeatureInfo::tic)
@@ -2781,6 +2817,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
 
       nb::class_<FileInfo::IdentInfo>(fi, "IdentInfo", "identification (idXML / mzIdentML) specifics")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::IdentInfo&>())
+          .def("__copy__", [](const FileInfo::IdentInfo& self) { return FileInfo::IdentInfo(self); })
+          .def("__deepcopy__", [](const FileInfo::IdentInfo& self, nb::dict) { return FileInfo::IdentInfo(self); }, "memo"_a)
           .def_ro("db_name", &FileInfo::IdentInfo::db_name)
           .def_ro("db_version", &FileInfo::IdentInfo::db_version)
           .def_ro("taxonomy", &FileInfo::IdentInfo::taxonomy)
@@ -2798,6 +2837,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
 
       nb::class_<FileInfo::FastaInfo>(fi, "FastaInfo", "FASTA specifics")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::FastaInfo&>())
+          .def("__copy__", [](const FileInfo::FastaInfo& self) { return FileInfo::FastaInfo(self); })
+          .def("__deepcopy__", [](const FileInfo::FastaInfo& self, nb::dict) { return FileInfo::FastaInfo(self); }, "memo"_a)
           .def_ro("num_sequences", &FileInfo::FastaInfo::num_sequences)
           .def_ro("total_residues", &FileInfo::FastaInfo::total_residues)
           .def_ro("is_nucleic_acid", &FileInfo::FastaInfo::is_nucleic_acid)
@@ -2809,6 +2851,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
 
       nb::class_<FileInfo::MzTabInfo>(fi, "MzTabInfo", "mzTab specifics")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::MzTabInfo&>())
+          .def("__copy__", [](const FileInfo::MzTabInfo& self) { return FileInfo::MzTabInfo(self); })
+          .def("__deepcopy__", [](const FileInfo::MzTabInfo& self, nb::dict) { return FileInfo::MzTabInfo(self); }, "memo"_a)
           .def_ro("version", &FileInfo::MzTabInfo::version)
           .def_ro("mode", &FileInfo::MzTabInfo::mode)
           .def_ro("type", &FileInfo::MzTabInfo::type)
@@ -2822,6 +2867,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
 
       nb::class_<FileInfo::ValidationInfo>(fi, "ValidationInfo", "the -v / -i blocks")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::ValidationInfo&>())
+          .def("__copy__", [](const FileInfo::ValidationInfo& self) { return FileInfo::ValidationInfo(self); })
+          .def("__deepcopy__", [](const FileInfo::ValidationInfo& self, nb::dict) { return FileInfo::ValidationInfo(self); }, "memo"_a)
           .def_ro("performed", &FileInfo::ValidationInfo::performed)
           .def_ro("supported", &FileInfo::ValidationInfo::supported)
           .def_ro("valid", &FileInfo::ValidationInfo::valid)
@@ -2836,17 +2884,26 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
 
       nb::class_<FileInfo::CorruptionInfo>(fi, "CorruptionInfo", "the -c block")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::CorruptionInfo&>())
+          .def("__copy__", [](const FileInfo::CorruptionInfo& self) { return FileInfo::CorruptionInfo(self); })
+          .def("__deepcopy__", [](const FileInfo::CorruptionInfo& self, nb::dict) { return FileInfo::CorruptionInfo(self); }, "memo"_a)
           .def_ro("performed", &FileInfo::CorruptionInfo::performed)
           .def_ro("errors", &FileInfo::CorruptionInfo::errors)
           .def_ro("warnings", &FileInfo::CorruptionInfo::warnings);
 
       nb::class_<FileInfo::DetailInfo>(fi, "DetailInfo", "the -d per-spectrum listing (pre-rendered)")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::DetailInfo&>())
+          .def("__copy__", [](const FileInfo::DetailInfo& self) { return FileInfo::DetailInfo(self); })
+          .def("__deepcopy__", [](const FileInfo::DetailInfo& self, nb::dict) { return FileInfo::DetailInfo(self); }, "memo"_a)
           .def_ro("performed", &FileInfo::DetailInfo::performed)
           .def_ro("lines", &FileInfo::DetailInfo::lines);
 
       nb::class_<FileInfo::Result>(fi, "Result", "all file-level information")
           .def(nb::init<>())
+          .def(nb::init<const FileInfo::Result&>())
+          .def("__copy__", [](const FileInfo::Result& self) { return FileInfo::Result(self); })
+          .def("__deepcopy__", [](const FileInfo::Result& self, nb::dict) { return FileInfo::Result(self); }, "memo"_a)
           .def_ro("meta", &FileInfo::Result::meta)
           .def_ro("ranges", &FileInfo::Result::ranges)
           .def_ro("peak", &FileInfo::Result::peak)
@@ -2885,11 +2942,11 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
              "filename"_a, "options"_a, "Load the file (type auto-detected unless options.forced_type) and compute all requested information")
         .def("run", [](FileInfo& self, const std::string& filename){ return self.run(filename); },
              "filename"_a, "Load the file with default options")
-        .def("runAll", [](FileInfo& self, const std::string& filename){ return self.runAll(filename); },
+        .def("run_all", [](FileInfo& self, const std::string& filename){ return self.runAll(filename); },
              "filename"_a, "Compute all content metrics (meta/processing/statistics on; no validation/index/detail/corrupt)")
-        .def_static("toText", [](const FileInfo::Result& r){ return FileInfo::toText(r); }, "result"_a,
+        .def_static("to_text", [](const FileInfo::Result& r){ return FileInfo::toText(r); }, "result"_a,
                     "Render the result as the FileInfo CLI human-readable text")
-        .def_static("toTSV", [](const FileInfo::Result& r){ return FileInfo::toTSV(r); }, "result"_a,
+        .def_static("to_tsv", [](const FileInfo::Result& r){ return FileInfo::toTSV(r); }, "result"_a,
                     "Render the result as the FileInfo CLI TSV");
     }
 

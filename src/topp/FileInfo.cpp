@@ -121,7 +121,7 @@ protected:
     // and rendering the human-readable / TSV report) lives in OpenMS::FileInfo now.
     FileInfo::Options opt;
     opt.forced_type   = in_type; // already resolved above
-    opt.meta          = getFlag_("m") || !getStringOption_("out_tsv").empty();
+    opt.meta          = getFlag_("m");
     opt.processing    = getFlag_("p");
     opt.statistics    = getFlag_("s");
     opt.detailed      = getFlag_("d");
