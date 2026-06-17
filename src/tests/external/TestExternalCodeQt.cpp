@@ -13,9 +13,7 @@
 // Qt6 PUBLICly this would compile even without that explicit find (which is exactly what we want to rule out).
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-
 #include <QtCore/QString>
-
 #include <iostream>
 
 using namespace OpenMS;
@@ -28,7 +26,7 @@ int main()
 
   // a Qt type (provided because THIS project found Qt6 itself, not transitively via OpenMS)
   QString msg = QString("OpenMS MSExperiment with %1 spectra; Qt linked explicitly.").arg(exp.size());
-  std::cout << msg.toStdString() << std::endl;
+  std::cout << msg.toStdString() << '\n';
 
   return (exp.size() == 2) ? 0 : 1;
 }
