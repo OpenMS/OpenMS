@@ -16,6 +16,10 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+// issue #9488, ANSW-77: explicit includes for the ppm-tolerance test below
+#include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/METADATA/Precursor.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -233,6 +237,80 @@ START_SECTION(void annotateSpectra(
   TEST_EQUAL(features[29].getMetaValue("transition_name"), "skm.skm_m4-4")
   TEST_REAL_SIMILAR(features[29].getRT(), 166.95400000002)
   TEST_REAL_SIMILAR(features[29].getMZ(), 177.057998657227)
+}
+END_SECTION
+
+START_SECTION([EXTRA] annotateSpectra ppm-mode m/z tolerance scales with m/z (issue #9488, ANSW-77))
+{
+  // helper: build a single-transition TargetedExperiment at precursor m/z = target_mz,
+  // and one MSSpectrum whose precursor m/z is target_mz + offset. The matching window is
+  // [spectrum_mz - tol, spectrum_mz + tol] and is tested against target_mz, so the transition
+  // matches iff |offset| <= tol.
+  auto make_exp = [](double target_mz) -> TargetedExperiment
+  {
+    TargetedExperiment exp;
+    TargetedExperimentHelper::Peptide pep;
+    pep.id = "pep1";
+    TargetedExperimentHelper::RetentionTime rt;
+    rt.setRT(0.0); // matches the default spectrum RT (0) within the default rt_window (30)
+    pep.rts.push_back(rt);
+    exp.addPeptide(pep);
+
+    ReactionMonitoringTransition tr;
+    tr.setPeptideRef("pep1");
+    tr.setPrecursorMZ(target_mz);
+    exp.addTransition(tr);
+    return exp;
+  };
+
+  auto make_spectra = [](double precursor_mz) -> std::vector<MSSpectrum>
+  {
+    MSSpectrum s;
+    s.setRT(0.0);
+    Precursor prec;
+    prec.setMZ(precursor_mz);
+    s.setPrecursors({prec});
+    return std::vector<MSSpectrum>{s};
+  };
+
+  // 20 ppm at m/z 500 -> window = 20 * 500 / 1e6 = 0.01 Th
+  {
+    TargetedSpectraExtractor tse;
+    Param params = tse.getParameters();
+    params.setValue("mz_unit_is_Da", "false");
+    params.setValue("mz_tolerance", 20.0);
+    tse.setParameters(params);
+
+    TargetedExperiment exp = make_exp(500.0);
+    FeatureMap features;
+
+    // offset +0.008 Th is INSIDE the 0.01 Th window -> match
+    std::vector<MSSpectrum> annotated;
+    tse.annotateSpectra(make_spectra(500.008), exp, annotated, features, false);
+    TEST_EQUAL(annotated.size(), 1)
+
+    // offset +0.02 Th is OUTSIDE the 0.01 Th window -> no match
+    annotated.clear();
+    tse.annotateSpectra(make_spectra(500.02), exp, annotated, features, false);
+    TEST_EQUAL(annotated.size(), 0)
+  }
+
+  // 20 ppm at m/z 1000 -> window = 20 * 1000 / 1e6 = 0.02 Th.
+  // offset +0.015 Th MATCHES only because the window scales with m/z; the pre-fix
+  // fixed window (20/1e6 = 2e-5 Th) would have rejected it.
+  {
+    TargetedSpectraExtractor tse;
+    Param params = tse.getParameters();
+    params.setValue("mz_unit_is_Da", "false");
+    params.setValue("mz_tolerance", 20.0);
+    tse.setParameters(params);
+
+    TargetedExperiment exp = make_exp(1000.0);
+    FeatureMap features;
+    std::vector<MSSpectrum> annotated;
+    tse.annotateSpectra(make_spectra(1000.015), exp, annotated, features, false);
+    TEST_EQUAL(annotated.size(), 1)
+  }
 }
 END_SECTION
 

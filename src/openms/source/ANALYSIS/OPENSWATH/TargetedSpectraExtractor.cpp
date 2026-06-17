@@ -367,7 +367,11 @@ namespace OpenMS
         OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0.\n";
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
-      const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : mz_tolerance_ / 1e6;
+      // issue #9488, ANSW-77: in ppm mode the tolerance is relative to the measured m/z, so
+      // convert to an absolute window via ppm * m/z / 1e6 (== Math::ppmToMass). The previous
+      // `mz_tolerance_ / 1e6` forgot the m/z factor, yielding a window ~1e6x too small. Da mode
+      // is already absolute. (When spectrum_mz == 0 the m/z check below is inhibited anyway.)
+      const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : Math::ppmToMass(mz_tolerance_, spectrum_mz);
 
       // When spectrum_mz is 0, the mz check on transitions is inhibited
       const double mz_left_lim = spectrum_mz ? spectrum_mz - mz_tolerance : std::numeric_limits<double>::min();

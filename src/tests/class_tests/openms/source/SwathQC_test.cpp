@@ -185,6 +185,36 @@ START_SECTION((static void storeJSON(const std::string& filename)))
 }
 END_SECTION
 
+START_SECTION([EXTRA] getSpectraProcessingFunc uniform subsampling over ALL MS1 spectra (issue #9488, ANSW-5))
+{
+  // The test data has 3 MS1 spectra. Subsampling 2-of-3 must select the UNIFORMLY
+  // spaced indices 0 and 2 (confirmed by isSubsampledSpectrum_), NOT the front-loaded
+  // indices 0 and 1 that the pre-fix lambda produced (it only advanced its index for
+  // ACCEPTED spectra, so spectrum 2 was checked with idx==1 and rejected).
+  TEST_EQUAL(SwathQCTest::isSubsampledSpectrum_(3, 2, 0), true)
+  TEST_EQUAL(SwathQCTest::isSubsampledSpectrum_(3, 2, 1), false)
+  TEST_EQUAL(SwathQCTest::isSubsampledSpectrum_(3, 2, 2), true)
+
+  // Member path: stream all 3 MS1 spectra through the processing function.
+  SwathQC qc_member(2, 0.04);   // cd_spectra = 2
+  qc_member.setNrMS1Spectra(3); // nr_ms1_spectra = 3
+  auto f = qc_member.getSpectraProcessingFunc();
+  for (auto& s : *exp)
+  {
+    if (s.getMSLevel() == 1) f(s);
+  }
+  const auto cd_member = qc_member.getChargeDistribution();
+
+  // Static path: subsamples 2-of-3 using its own true loop index (always indices 0 and 2).
+  const auto cd_static = SwathQC::getChargeDistribution(swath_maps, 2, 0.04);
+
+  // Both paths must process the SAME two spectra (0 and 2) and yield identical distributions.
+  // Pre-fix, the member path processed spectra 0 and 1 -> a different distribution.
+  TEST_EQUAL(cd_member.size(), cd_static.size())
+  TEST_TRUE(cd_member == cd_static)
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
