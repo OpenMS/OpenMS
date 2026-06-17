@@ -363,6 +363,11 @@ START_SECTION(static bool findExecutable(std::string& exe_filename))
   TEST_EQUAL(File::findExecutable(find), true)
   TEST_EQUAL(StringUtils::hasSuffix(find, "echo"), true) // should be /usr/bin/echo or similar
 #endif
+
+  // negative case: a name that is neither an existing path nor on PATH is not found
+  std::string missing = "openms_no_such_executable_4711";
+  TEST_EQUAL(File::findExecutable(missing), false)
+  TEST_EQUAL(missing, "openms_no_such_executable_4711") // left unchanged when not found
 }
 END_SECTION
 
@@ -388,6 +393,16 @@ START_SECTION(static std::string findSiblingTOPPExecutable(const std::string& to
 {
   TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("executable_does_not_exist"))
   TEST_EQUAL(File::path(File::findSiblingTOPPExecutable("File_test")) + "/", File::getExecutablePath())
+
+  // Sibling resolution looks next to the running executable only; it does NOT (yet) fall back to a
+  // PATH lookup (see the "TODO: probe in PATH" in File::findSiblingTOPPExecutable, cf. #9204). A binary
+  // that exists only on PATH (e.g. the "echo"/"cmd" resolved by findExecutable above) is therefore
+  // reported as not found here. This pins the current "siblings only" contract.
+#ifdef OPENMS_WINDOWSPLATFORM
+  TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("cmd"))
+#else
+  TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("echo"))
+#endif
 }
 END_SECTION
 

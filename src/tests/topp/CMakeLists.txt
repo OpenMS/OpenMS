@@ -604,6 +604,17 @@ add_test("TOPP_FileConverter_36" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA
 add_test("TOPP_FileConverter_36_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_36.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileConverter_36_output.consensusXML)
 set_tests_properties("TOPP_FileConverter_36_out1" PROPERTIES DEPENDS "TOPP_FileConverter_36")
 
+# TOPP_FileConverter_nonascii: read AND write through a non-ASCII (UTF-8) path -- the permanent #9452
+# regression (issue #9460 §1). The non-ASCII name is materialized into the temp dir at test time (not
+# committed as a fixture filename), so the cell exercises FileConverter's non-ASCII -in/-out path handling
+# on every platform. Output equals the plain FileConverter_1 conversion (same input), so the existing
+# FileConverter_1_output.mzML is reused as the reference; the embedded (non-ASCII) source path is whitelisted.
+add_test("TOPP_FileConverter_nonascii_prepare" ${CMAKE_COMMAND} -E copy ${DATA_DIR_TOPP}/FileConverter_1_input.mzData "${TESTS_TEMP_DIR}/FileConverter_äö_in.mzData")
+add_test("TOPP_FileConverter_nonascii" ${TOPP_BIN_PATH}/FileConverter -test -in "${TESTS_TEMP_DIR}/FileConverter_äö_in.mzData" -out "${TESTS_TEMP_DIR}/FileConverter_äö_out.mzML" -out_type mzML)
+add_test("TOPP_FileConverter_nonascii_out1" ${DIFF} -whitelist "id=" "location=" "href=" -in1 "${TESTS_TEMP_DIR}/FileConverter_äö_out.mzML" -in2 ${DATA_DIR_TOPP}/FileConverter_1_output.mzML)
+set_tests_properties("TOPP_FileConverter_nonascii" PROPERTIES DEPENDS "TOPP_FileConverter_nonascii_prepare")
+set_tests_properties("TOPP_FileConverter_nonascii_out1" PROPERTIES DEPENDS "TOPP_FileConverter_nonascii")
+
 #------------------------------------------------------------------------------
 # FileFilter tests
 add_test("TOPP_FileFilter_1" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out ${TESTS_TEMP_DIR}/FileFilter_1.tmp.mzML -rt :30 -mz :1000 -int :20000 -in_type mzML -out_type mzML)
