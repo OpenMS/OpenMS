@@ -132,6 +132,7 @@ set(system_executables_list
   JavaInfo_test
   PathUtils_test
   PythonInfo_test
+  RWrapper_test
   StopWatch_test
   SysInfo_test
 )
