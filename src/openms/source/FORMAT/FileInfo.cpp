@@ -100,7 +100,7 @@ namespace OpenMS
     {
       if (map.RangeRT::isEmpty())
       {
-        os << "Ranges:'\n'  retention time: <none> .. <none> sec (<none> min)\n";
+        os << "Ranges:\n  retention time: <none> .. <none> sec (<none> min)\n";
       }
       else
       {
