@@ -128,9 +128,11 @@ set(system_executables_list
   ExternalProcess_test
   File_test
   Network_test
+  NetworkGetRequest_test
   JavaInfo_test
   PathUtils_test
   PythonInfo_test
+  RWrapper_test
   StopWatch_test
   SysInfo_test
 )
@@ -244,6 +246,7 @@ set(format_executables_list
   ParamCTDFile_test
   ParamJSONFile_test
   ParamXMLFile_test
+  ParquetFilter_test
   PEFFFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test
@@ -319,6 +322,7 @@ set(math_executables_list
   BSpline2d_test
   BSplineSmoothingSpline_test
   CubicSpline2d_test
+  SplineBisection_test
   EmgGradientDescent_test
   GammaDistributionFitter_test
   GaussFitter_test
@@ -674,6 +678,7 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathOSWWriter_test
     OpenSwathScoring_test
     OpenSwathScores_test
+    OpenSwathWorkflowScheduler_test
     PeakIntegrator_test
     PeakPickerChromatogram_test
     PeakPickerMobilogram_test

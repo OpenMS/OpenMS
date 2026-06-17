@@ -2037,6 +2037,16 @@ namespace OpenMS
 
   bool TOPPBase::parseRange_(const std::string& text, double& low, double& high) const
   {
+    // The documented range syntax is "[min]:[max]"; the ':' separator is mandatory.
+    // Without it the input is malformed: since StringUtils::prefix/suffix(.,':') now
+    // return the whole string when the delimiter is absent, a colon-less "400" would
+    // otherwise be silently misread as the degenerate range 400:400. Fail loudly instead.
+    if (text.find(':') == std::string::npos)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Invalid range '" + text + "': expected format '[min]:[max]' (the ':' separator is missing)");
+    }
+
     bool any_set = false;
     try
     {
@@ -2065,6 +2075,16 @@ namespace OpenMS
 
   bool TOPPBase::parseRange_(const std::string& text, Int& low, Int& high) const
   {
+    // The documented range syntax is "[min]:[max]"; the ':' separator is mandatory.
+    // Without it the input is malformed: since StringUtils::prefix/suffix(.,':') now
+    // return the whole string when the delimiter is absent, a colon-less "400" would
+    // otherwise be silently misread as the degenerate range 400:400. Fail loudly instead.
+    if (text.find(':') == std::string::npos)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Invalid range '" + text + "': expected format '[min]:[max]' (the ':' separator is missing)");
+    }
+
     bool any_set = false;
     try
     {
