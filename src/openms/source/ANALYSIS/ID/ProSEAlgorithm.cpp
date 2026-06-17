@@ -334,19 +334,41 @@ namespace OpenMS
 
     NLargest nlargest_filter = NLargest(400);
 
-#pragma omp parallel for default(none) shared(exp, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
+    // Deisotoping (Deisotoper::deisotopeAndSingleCharge) requires a fragment
+    // tolerance within its supported range (<= 100 ppm or <= 0.1 Da) and THROWS
+    // otherwise. Low-resolution data (e.g. ion-trap CID) legitimately needs a
+    // wider fragment tolerance, where deisotoping is both unsupported and
+    // unreliable. Decide ONCE here, before the OpenMP region: an exception that
+    // escapes a parallel region calls std::terminate(). When the tolerance is out
+    // of range we skip deisotoping rather than abort, so ProSE can still search
+    // low-resolution spectra (see OpenMS#9619).
+    const bool do_deisotope =
+      (fragment_mass_tolerance_unit_ppm && fragment_mass_tolerance <= 100.0) ||
+      (!fragment_mass_tolerance_unit_ppm && fragment_mass_tolerance <= 0.1);
+    if (!do_deisotope)
+    {
+      OPENMS_LOG_WARN << "[ProSE] Fragment tolerance " << fragment_mass_tolerance
+                      << (fragment_mass_tolerance_unit_ppm ? " ppm" : " Da")
+                      << " exceeds the deisotoping limit (100 ppm / 0.1 Da); skipping MS2 "
+                      << "deisotoping (expected for low-resolution data)." << endl;
+    }
+
+#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       // sort by mz
       exp[exp_index].sortByPosition();
 
-      // deisotope
-      Deisotoper::deisotopeAndSingleCharge(exp[exp_index], 
-        fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
-        1, 3,   // min / max charge 
-        false,  // keep only deisotoped
-        3, 10,  // min / max isopeaks 
-        true);  // convert fragment m/z to mono-charge
+      // deisotope (skipped for low-resolution data; see do_deisotope above)
+      if (do_deisotope)
+      {
+        Deisotoper::deisotopeAndSingleCharge(exp[exp_index],
+          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
+          1, 3,   // min / max charge
+          false,  // keep only deisotoped
+          3, 10,  // min / max isopeaks
+          true);  // convert fragment m/z to mono-charge
+      }
 
       // remove noise
       window_mower_filter.filterPeakSpectrum(exp[exp_index]);

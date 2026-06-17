@@ -52,6 +52,7 @@ public:
   using ProSEAlgorithm::last_calibration_result_;
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
+  using ProSEAlgorithm::preprocessSpectra_;
 };
 
 // --- Shared calibration fixture -------------------------------------------------
@@ -1380,6 +1381,65 @@ START_SECTION(([EXTRA] computeModMatchTolerance_ returns min(lower, upper)))
   p.setValue("precursor:mass_tolerance_upper", 2.0);
   algo.setParameters(p);
   TEST_REAL_SIMILAR(algo.computeModMatchTolerance_(), 0.5)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] preprocessSpectra_ skips deisotoping for low-res fragment tolerance (OpenMS#9619)))
+{
+  // Regression for OpenMS#9619: a fragment tolerance above the Deisotoper limit
+  // (>0.1 Da / >100 ppm) -- as needed for low-resolution ion-trap CID data --
+  // must NOT abort ProSE. preprocessSpectra_ decides whether to deisotope once,
+  // before its OpenMP region, and skips deisotoping (rather than throwing, which
+  // would call std::terminate from inside the parallel region) when out of range.
+  auto make_exp = []()
+  {
+    PeakMap exp;
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setRT(1.0);
+    Precursor prec;
+    prec.setMZ(500.0);
+    prec.setCharge(2);
+    s.getPrecursors().push_back(prec);
+    for (double mz : {110.07, 120.08, 130.10, 200.10, 201.10, 300.20, 350.25, 500.30})
+    {
+      Peak1D p;
+      p.setMZ(mz);
+      p.setIntensity(1000.0f);
+      s.push_back(p);
+    }
+    exp.addSpectrum(s);
+    return exp;
+  };
+
+  // Low-res: 0.5 Da > 0.1 Da. Before the fix this threw IllegalArgument inside the
+  // OpenMP region -> std::terminate. Now it completes with deisotoping skipped.
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false);
+    TEST_EQUAL(exp.size(), 1)
+    TEST_EQUAL(exp[0].empty(), false)
+  }
+
+  // 150 ppm > 100 ppm likewise skips deisotoping (no throw / abort).
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 150.0, true);
+    TEST_EQUAL(exp.size(), 1)
+    TEST_EQUAL(exp[0].empty(), false)
+  }
+
+  // High-resolution tolerances still deisotope (<=0.1 Da / <=100 ppm path unchanged).
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.05, false);
+    TEST_EQUAL(exp.size(), 1)
+  }
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true);
+    TEST_EQUAL(exp.size(), 1)
+  }
 }
 END_SECTION
 
