@@ -978,6 +978,17 @@ add_test("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1" ${TOPP_BIN_PATH}/Isobaric
 add_test("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/TMTElevenPlexMethod_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/TMTElevenPlexMethod_test.consensusXML )
 set_tests_properties("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1")
 
+# TMT 32-plex / 35-plex end-to-end (issue #9460 §4, L182): the 32/35-plex methods are registered in the
+# IsobaricQuantitationMethod factory; run them on the TMT10 fixture and confirm 32/35 channels are
+# quantified (consensusXML diffs clean). Isotope correction is not yet supported for these methods (the
+# matrix is always identity), so it is disabled to avoid the identity-matrix rejection.
+add_test("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt32plex -quantification:isotope_correction false -out ${TESTS_TEMP_DIR}/TMTThirtyTwoPlexMethod_output.tmp.consensusXML)
+add_test("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/TMTThirtyTwoPlexMethod_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/TMTThirtyTwoPlexMethod_test.consensusXML )
+set_tests_properties("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1")
+add_test("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt35plex -quantification:isotope_correction false -out ${TESTS_TEMP_DIR}/TMTThirtyFivePlexMethod_output.tmp.consensusXML)
+add_test("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/TMTThirtyFivePlexMethod_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/TMTThirtyFivePlexMethod_test.consensusXML )
+set_tests_properties("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1")
+
 add_test("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/MS3_nonHierarchical.mzML -extraction:select_activation "Collision-induced dissociation" -type tmt10plex -out ${TESTS_TEMP_DIR}/MS3TMT10Plex_output.tmp.consensusXML)
 add_test("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/MS3TMT10Plex_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS3TMT10Plex_test.consensusXML )
 set_tests_properties("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_MS3TMT10Plex_1")
@@ -1851,6 +1862,20 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathWorkflow_3_out2" ${DIFF} -whitelist "id=" ${ZLIB_NG_MZML_WHITELIST} -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_3.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_3")
   set_tests_properties("TOPP_OpenSwathWorkflow_3_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_3")
+
+  # Wave-scheduler thread set-invariance (issue #9460 §4, L176): the auto SWATH wave scheduler keys the
+  # wave count off scoring threads and per-wave output uses the unstable FeatureMap::sortByPosition, so
+  # the feature *order* is not byte-identical across -threads. Run the same input at -threads 1 and 4
+  # (in-memory, single batch) and assert the feature SET is equal after a canonical FileFilter -sort,
+  # ignoring the thread/path provenance (a file-order diff would spuriously fail).
+  add_test("TOPP_OpenSwathWorkflow_threads1" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -enable_ms1 "false" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" -readOptions workingInMemory -batchSize 0 -threads 1 -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads1.tmp.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_threads4" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -enable_ms1 "false" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" -readOptions workingInMemory -batchSize 0 -threads 4 -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.tmp.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_threads1_sort" ${TOPP_BIN_PATH}/FileFilter -test -sort -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads1.tmp.featureXML -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads1.sorted.tmp.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_threads4_sort" ${TOPP_BIN_PATH}/FileFilter -test -sort -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.tmp.featureXML -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.sorted.tmp.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_threads_setequal" ${DIFF} -whitelist "id=" "completion_time" "parameter: out" "parameter: in" "parameter: threads" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads1.sorted.tmp.featureXML -in2 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.sorted.tmp.featureXML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_threads1_sort" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_threads1")
+  set_tests_properties("TOPP_OpenSwathWorkflow_threads4_sort" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_threads4")
+  set_tests_properties("TOPP_OpenSwathWorkflow_threads_setequal" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_threads1_sort;TOPP_OpenSwathWorkflow_threads4_sort")
 
   # Also test with readoptions cache
   add_test("TOPP_OpenSwathWorkflow_5" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_5.chrom.tmp.mzML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_5.tmp.featureXML
