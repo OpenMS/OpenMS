@@ -39,22 +39,22 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  void CVReference::setName(const String& name)
+  void CVReference::setName(const std::string& name)
   {
     name_ = name;
   }
 
-  const String& CVReference::getName() const
+  const std::string& CVReference::getName() const
   {
     return name_;
   }
 
-  void CVReference::setIdentifier(const String& identifier)
+  void CVReference::setIdentifier(const std::string& identifier)
   {
     identifier_ = identifier;
   }
 
-  const String& CVReference::getIdentifier() const
+  const std::string& CVReference::getIdentifier() const
   {
     return identifier_;
   }

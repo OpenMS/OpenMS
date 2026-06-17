@@ -1,0 +1,107 @@
+\section{Troubleshooting guide}
+This section will show you where you can turn to when you encounter any problems with this tutorial or with our
+nodes in general. Please see the FAQ first. If your problem is not listed or the proposed solution does not work,
+feel free to leave us a message at the means of support that you see most fit. If that is the case, please provide us 
+with as much information as you can. In an ideal case, that would be:
+\begin{itemize}
+\item Your operating system and its version (e.g. Windows 8, Ubuntu 14.04)
+\item Your KNIME version (e.g. KNIME 3.1.2 full, KNIME 3.1.1 core)
+\item If not full: Which update site did you use for the OpenMS plugin? Trunk (nightly-builds) or Stable?
+\item Your OpenMS plugin version found under\\
+\menu{Help > Install New Software > What is already installed?}
+\item Other installations of OpenMS on your computer (e.g. from the independent OpenMS installer, another KNIME instance etc.)
+\item The log of the error in KNIME and the standard output of the tool (see FAQ: How to debug)
+\item Your description of what you tried to do and experienced instead
+\end{itemize}
+
+\subsection{FAQ}
+
+\subsubsection{How to debug KNIME and/or the OpenMS nodes?}
+\begin{itemize}
+\item \textbf{KNIME:} Start with the normal log on the bottom right of KNIME. In general all warnings and errors will be
+listed there. If the output is not helpful enough, try to set the logging verbosity to the highest (DEBUG) under
+Preferences -> KNIME -> Log file log level.
+\item \textbf{OpenMS nodes:} The first step should also be the log of KNIME. Additionally, you can view the output and the errors of our
+tools by right-clicking on the node and selecting\\
+\menu{View: NODENAME Std Output/Error}. This shows you the output of the OpenMS executable that was called by that 
+node. For advanced users, you can try 
+to execute the underlying executable in your\\
+\menu{KNIME/plugins/de.openms.platform.arch.version/payload/bin} folder, 
+to see if the error is reproducible outside of KNIME.\\
+You can look up temporary files that are created by OpenMS nodes not connected to an Output or Viewer Node by right-
+clicking on a node and selecting the corresponding output view for the output you want to have a look at. The output 
+views are located on the bottom of the menu that shows up after right-clicking. Their icon is a magnifying glass on 
+top of a data table. The names of the output views in that menu may vary from node to node (usually a combination of 
+"file","out","output" and optionally its possible extensions). For example for the Input File node you can open the 
+information on the output files by clicking on "loaded file". In any case, a hierarchy of file descriptions will show 
+up. If there are multiple files on that port they will be numbered (usually beginning from 0). Expand the information 
+for the file you want to see and copy its URI (you might need to erase the "file:" prefix). Now open it with an 
+editor of your choice. Be aware that temporary files are subject to deletion and are usually only stored as long as 
+they are actually needed. There is also a Debug mode for the GKN nodes that keeps temporary files that can be activated
+under Preferences -> KNIME -> Generic KNIME Nodes -> Debug mode.
+For the single nodes you can also increase the debug level in the configuration dialog under the advanced parameters.
+You can also specify a log file there, to save the log output of a specific node on your file system.
+\end{itemize}
+
+\subsubsection{General}
+\textbf{Q:} Can I add my own modifications to the Unimod.xml?\\
+\textbf{A:} Unfortunately not very easy. This is an open issue since the selections are
+hard-coded during creation of the tools. We included 10 places for dummy modifications that can be entered in our Unimod.xml and selected in KNIME.
+\\\\
+\textbf{Q:} I have problem XYZ but it also occurs with other nodes or generally in the KNIME environment/GUI, what should I do?\\
+\textbf{A:} This sounds like a general KNIME bug and we advise to search help directly at the KNIME developers. They also provide a \href{https://tech.knime.org/
+faq}{FAQ} and a \href{https://tech.knime.org/forum}{forum}.
+\\\\
+\textbf{Q:} After exporting and reading in results into a KNIME table (e.g. with a MzTabExporter and MzTabReader combination) numeric values get rounded (e.g. from scientific notation 4.5e-10 to zero) or are in a different representation than in the underlying exported file!\\
+\textbf{A:} Please try a different table column renderer in KNIME. Open the table in question, right-click on the header of an affected column and select another Available Renderer by hovering and finally left-clicking.
+\\\\
+\textbf{Q:} I have checked all the configurations but KNIME complains that it can not find certain output Files (FileStoreObjects).\\
+\textbf{A:} Sometimes KNIME/GKN has hiccups with multiple nodes with a same name, executed at the same time in the same loop. We have seen that a simple save and restart of KNIME usually solves the problem.
+
+\subsubsection{Platform-specific problems}
+\textbf{Linux}\\
+\textbf{Q:} Whenever I try to execute an OpenMS node I get an error similar to these:
+\begin{verbatim}
+/usr/lib/x86_64-linux-gnu/libgomp.so.1: version `GOMP_4.0' not found
+/usr/lib/x86_64-linux-gnu/libstdc++.so.6: version `GLIBCXX_3.4.20' not found
+\end{verbatim}
+\textbf{A:} We currently build the binaries shipped in the OpenMS KNIME plugin with gcc 4.8. We will try to extend our support for older compilers.
+Until then you either need to upgrade your gcc compiler
+or at least the library that the tool complained about or you need to build the
+binaries yourself (see OpenMS documentation) and replace them in your KNIME binary folder\\
+(\menu{YOURKNIMEFOLDER/plugins/de.openms.platform.architecture.version/payload/bin}).
+\\\\
+\textbf{Q:} Why is my configuration dialog closing right away when I double-click or try to configure it? Or why is my GUI responding so slow?\\
+\textbf{A:} If you have any problems with the KNIME GUI or the opening of dialogues under Linux you might be affected by a
+GTK bug. See the KNIME forum (e.g. \href{https://tech.knime.org/forum/knime-general/ubuntu-1604-slow-performance}{here} or \href{https://tech.knime.org/forum/knime-users/knime-300-crashes-after-splash-screen}{here}) for a discussion and a possible solution. In short: set environment variable by calling \texttt{export SWT\_GTK3=0} or edit knime.ini to make Eclipse use GTK2 by adding the following two lines:\\
+\texttt{--launcher.GTK\_version\\
+2}\\\\
+\textbf{macOS}\\
+\textbf{Q:} I have problems installing RServe in my local R installation for the R KNIME Extension:\\
+\textbf{A:} If you encounter linker errors while running install.packages("Rserve") when using an R installation from homebrew, make sure gettext is installed via homebrew and you pass flags to its lib directory. See StackOverflow question \href{http://stackoverflow.com/questions/21370363/link-error-installing-rcpp-library-not-found-for-lintl}{21370363}.
+\\\\
+\textbf{Q:} Although I \keys{Ctrl}+\keys{Leftclick} TOPPAS.app or TOPPView.app and accept the risk of a downloaded application, the icon only shortly blinks and nothing happens:\\
+\textbf{A:} It seems like your OS is not able to remove the quarantine flag. If you trust us, please remove it yourself by typing the following command in your Terminal.app:\\
+\menu{xattr -r -d com.apple.quarantine /Applications/OpenMS-2.7.0}
+\\\\
+\textbf{Windows}\\
+\textbf{Q:} KNIME has problems getting the requirements for some of the OpenMS nodes on Windows, what can I do?\\
+\textbf{A:} Get the prerequisites installer \href{\WindowsPrerequisitesLink}{here} or install .NET3.5, .NET4 and VCRedist10.0 and 12.0 yourself.\\
+\subsubsection{Nodes}
+\textbf{Q:} Why is my XTandemAdapter printing empty or VERY few results, although I did not use an e-value cutoff?\\
+\textbf{A:} Due to a bug in OpenMS 2.0.1 the XTandemAdapter requires a default parameter file. Give it the default configuration in\\
+\menu{YOURKNIMEFOLDER/plugins/de.openms.platform.architecture.version/payload/share/}\\
+\menu{CHEMISTRY/XTandem\_default\_input.xml} as a third input file. This should be resolved in newer versions though, such that it automatically uses this file if the optional inputs is empty. This should be solved in newer versions.
+\\\\
+\textbf{Q:} Do MSGFPlusAdapter, LuciphorAdapter or SiriusAdapter generally behave different/unexpected?\\
+\textbf{A:} These are Java processes that are started underneath. For example they can not be killed during 
+cancellation of the node.
+This should not affect its performance, however. Make sure you set the Java memory parameter in these nodes to a reasonable value. Also MSGFPlus is creating several auxiliary files and accesses them during execution. 
+Some users therefore experienced problems when executing several instances at the same time.
+\subsection{Sources of support}
+If your questions could not be answered by the FAQ, please feel free to turn to our developers via one of the following means:
+\begin{itemize}
+\item File an issue on \href{https://github.com/OpenMS/OpenMS/issues}{GitHub}
+\item Write to the \href{mailto:open-ms-developers@lists.sourceforge.net}{Mailing List}
+\item Open a thread on the KNIME Community Contributions \href{https://tech.knime.org/forum/openms}{forum} for OpenMS
+\end{itemize}

@@ -38,7 +38,7 @@ START_SECTION(~TMTElevenPlexQuantitationMethod())
 }
 END_SECTION
 
-START_SECTION((const String& getMethodName() const ))
+START_SECTION((const std::string& getMethodName() const ))
 {
   TMTElevenPlexQuantitationMethod quant_meth;
   TEST_EQUAL(quant_meth.getMethodName(), "tmt11plex")

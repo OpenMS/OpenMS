@@ -64,9 +64,9 @@ protected:
     // input files
 
     registerInputFile_("control", "<file>", "", "input mzML file");
-    setValidFormats_("control", ListUtils::create<String>("mzML"));
+    setValidFormats_("control", ListUtils::create<std::string>("mzML"));
     registerInputFile_("treatment", "<file>", "", "input mzML file");
-    setValidFormats_("treatment", ListUtils::create<String>("mzML"));
+    setValidFormats_("treatment", ListUtils::create<std::string>("mzML"));
 
     registerDoubleOption_("fold_change", "", 2.0, "fold change between XICs", false, false);
     registerDoubleOption_("rt_tol", "", 20, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
@@ -74,7 +74,7 @@ protected:
 
     // output files
     registerOutputFile_("out", "<file>", "", "output of the treatment file after XIC filtering.");
-    setValidFormats_("out", ListUtils::create<String>("mzML"));    
+    setValidFormats_("out", ListUtils::create<std::string>("mzML"));    
   }
 
   void filterByFoldChange(const PeakMap& exp1, const PeakMap& exp2,

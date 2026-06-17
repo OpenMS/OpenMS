@@ -9,7 +9,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
 
 #include <OpenMS/SYSTEM/File.h>
@@ -80,13 +80,13 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
-    setValidFormats_("in", ListUtils::create<String>("qcML"));
+    setValidFormats_("in", ListUtils::create<std::string>("qcML"));
     registerStringOption_("qp", "<string>", "", "Target attachment qp.");
     registerInputFile_("run", "<file>", "", "The file that defined the run under which the qp for the attachment is aggregated as mzML file. The file is only used to extract the run name from the file name.", false);
-    setValidFormats_("run", ListUtils::create<String>("mzML"));
+    setValidFormats_("run", ListUtils::create<std::string>("mzML"));
     registerStringOption_("name", "<string>", "", "If no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given.", false);
     registerOutputFile_("out_csv", "<file>", "", "Output csv formatted table.");
-    setValidFormats_("out_csv", ListUtils::create<String>("csv"));
+    setValidFormats_("out_csv", ListUtils::create<std::string>("csv"));
   }
 
   ExitCodes main_(int, const char**) override
@@ -94,11 +94,11 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in                    = getStringOption_("in");
-    String csv                  = getStringOption_("out_csv");
-    String target_qp        = getStringOption_("qp");
-    String target_run       = getStringOption_("name");
-    String target_file        = getStringOption_("run");
+    std::string in                    = getStringOption_("in");
+    std::string csv                  = getStringOption_("out_csv");
+    std::string target_qp        = getStringOption_("qp");
+    std::string target_run       = getStringOption_("name");
+    std::string target_file        = getStringOption_("run");
 
     //-------------------------------------------------------------
     // reading input
@@ -114,7 +114,7 @@ protected:
     if (target_run.empty())
     {
       //~ check if only one run in file
-      std::vector<String> nas;
+      std::vector<std::string> nas;
       qcmlfile.getRunNames(nas);
       if (nas.size() == 1)
       {
@@ -127,7 +127,7 @@ protected:
       }
     }
 
-    String csv_str = "";
+    std::string csv_str;
     if (target_qp == "set id")
     {
       if (qcmlfile.existsSet(target_run,true))

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/Gradient.h>
 
 namespace OpenMS
@@ -44,14 +44,14 @@ public:
     bool operator!=(const HPLC & source) const;
 
     /// returns a const reference to the instrument name
-    const String & getInstrument() const;
+    const std::string & getInstrument() const;
     /// sets the instrument name
-    void setInstrument(const String & instrument);
+    void setInstrument(const std::string & instrument);
 
     /// returns a const reference to the column description
-    const String & getColumn() const;
+    const std::string & getColumn() const;
     /// sets the column description
-    void setColumn(const String & column);
+    void setColumn(const std::string & column);
 
     /// returns the temperature (in degree C)
     Int getTemperature() const;
@@ -69,9 +69,9 @@ public:
     void setFlux(UInt flux);
 
     /// returns the comments
-    String getComment() const;
+    std::string getComment() const;
     /// sets the comments
-    void setComment(String comment);
+    void setComment(std::string comment);
 
     /// returns a const reference to the used gradient
     const Gradient & getGradient() const;
@@ -81,12 +81,12 @@ public:
     void setGradient(const Gradient & gradient);
 
 protected:
-    String instrument_;
-    String column_;
+    std::string instrument_;
+    std::string column_;
     Int temperature_;
     Int pressure_;
     Int flux_;
-    String comment_;
+    std::string comment_;
     Gradient gradient_;
   };
 

@@ -10,7 +10,7 @@
 
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/CHEMISTRY/RibonucleotideDataProvider.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <map>
 #include <memory>
 #include <unordered_map>
@@ -33,7 +33,8 @@ namespace OpenMS
     typedef std::vector<std::unique_ptr<Ribonucleotide>>::const_iterator ConstIterator;
 
     /// replacement for constructor (singleton pattern)
-    static RibonucleotideDB* getInstance();
+    /// The database is immutable after construction, so a const pointer is returned.
+    static const RibonucleotideDB* getInstance();
 
     /// destructor
     ~RibonucleotideDB() = default;
@@ -64,21 +65,21 @@ namespace OpenMS
 
        @throw Exception::ElementNotFound if nothing was found
     */
-    ConstRibonucleotidePtr getRibonucleotide(const std::string& code);
+    ConstRibonucleotidePtr getRibonucleotide(const std::string& code) const;
 
     /**
        @brief Get the ribonucleotide with the longest code that matches a prefix of @p seq
 
        @throw Exception::ElementNotFound if nothing was found
     */
-    ConstRibonucleotidePtr getRibonucleotidePrefix(const std::string& seq);
+    ConstRibonucleotidePtr getRibonucleotidePrefix(const std::string& seq) const;
 
     /**
        @brief Get the alternatives for an ambiguous modification code
 
        @throw Exception::ElementNotFound if nothing was found
     */
-    std::pair<ConstRibonucleotidePtr, ConstRibonucleotidePtr> getRibonucleotideAlternatives(const std::string& code);
+    std::pair<ConstRibonucleotidePtr, ConstRibonucleotidePtr> getRibonucleotideAlternatives(const std::string& code) const;
 
 
   protected:

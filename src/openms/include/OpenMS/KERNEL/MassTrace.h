@@ -46,7 +46,7 @@ public:
     static const std::string names_of_quantmethod[SIZE_OF_MT_QUANTMETHOD];
 
     /// converts a string to enum value; returns 'SIZE_OF_MT_QUANTMETHOD' upon error
-    static MT_QUANTMETHOD getQuantMethod(const String& val);
+    static MT_QUANTMETHOD getQuantMethod(const std::string& val);
 
     /** @name Constructors and Destructor
     */
@@ -138,13 +138,13 @@ public:
     }
 
     /// Gets label of mass trace.
-    String getLabel() const
+    std::string getLabel() const
     {
       return label_;
     }
 
     /// Sets label of mass trace.
-    void setLabel(const String & label)
+    void setLabel(const std::string & label)
     {
       label_ = label;
     }
@@ -224,7 +224,7 @@ public:
       if (trace_peaks_.size() != db_vec.size())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Number of smoothed intensities deviates from mass trace size! Aborting...", String(db_vec.size()));
+            "Number of smoothed intensities deviates from mass trace size! Aborting...",StringUtils::toStr(db_vec.size()));
       }
 
       smoothed_intensities_ = db_vec;
@@ -272,6 +272,18 @@ public:
     // double computeFwhmAreaSmoothRobust() const;
     // double computeFwhmAreaRobust() const;
 
+    /**
+      @brief Returns the quantitated value of the mass trace according to the configured quantitation method (see setQuantMethod()).
+
+      Despite the name "intensity", the returned value depends on getQuantMethod():
+        - MT_QUANT_AREA   (default): chromatographic peak area within the FWHM range.
+                          @note This requires a prior call to estimateFWHM(); otherwise the
+                          FWHM borders are unset and 0 is returned silently.
+        - MT_QUANT_MEDIAN: median of the (raw) peak intensities. The @p smoothed flag is ignored in this mode.
+        - MT_QUANT_HEIGHT: apex (maximum) intensity (see getMaxIntensity()).
+
+      @param smoothed If true, smoothed intensities are used where applicable (ignored for MT_QUANT_MEDIAN).
+    */
     double getIntensity(bool smoothed) const;
     double getMaxIntensity(bool smoothed) const;
 
@@ -347,7 +359,7 @@ private:
     double centroid_rt_ = 0.0;
 
     /// Trace label
-    String label_;
+    std::string label_;
 
     /// Container for smoothed intensities. Smoothing must be done externally.
     std::vector<double> smoothed_intensities_;

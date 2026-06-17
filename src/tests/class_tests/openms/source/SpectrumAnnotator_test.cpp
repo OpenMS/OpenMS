@@ -134,7 +134,7 @@ START_SECTION((void SpectrumAnnotator::addPeakAnnotationsToPeptideHit(PeptideHit
   TEST_EQUAL(pas.size(), 11)
   
   // Verify the annotations contain the expected ion names
-  StringList expected_ions = ListUtils::create<String>("y1+,y2+,b2+,y3+,b3+,y4+,b4+,y5+,b5+,b6+,y6+");
+  StringList expected_ions = ListUtils::create<std::string>("y1+,y2+,b2+,y3+,b3+,y4+,b4+,y5+,b5+,b6+,y6+");
   StringList found_ions;
   for (const auto& pa : pas)
   {

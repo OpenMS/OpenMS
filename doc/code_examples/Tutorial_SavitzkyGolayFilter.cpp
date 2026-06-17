@@ -3,7 +3,7 @@
 //
 
 #include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
@@ -14,14 +14,14 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  auto file_dta = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_SavitzkyGolayFilter.dta");
+  auto file_dta = OPENMS_DOC_PATH + std::string("/code_examples/data/Tutorial_SavitzkyGolayFilter.dta");
   
   // A DTA file always has exactly one Spectrum, so we get that
   MSSpectrum spectrum;
   // Load the dta file into the spectrum
   FileHandler().loadSpectrum(file_dta, spectrum);
 
-  LinearResampler lr;
+  LinearResamplerAlign lr;
   Param param_lr;
   param_lr.setValue("spacing", 0.01);
   lr.setParameters(param_lr);

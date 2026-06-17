@@ -32,7 +32,7 @@ std::vector<double> ClusteringGrid::getGridSpacingY() const
 
 void ClusteringGrid::addCluster(const CellIndex &cell_index, const int &cluster_index)
 {
-    if (cells_.find(cell_index) == cells_.end())
+    if (!cells_.contains(cell_index))
     {
         // If hash grid cell does not yet exist, create a new one.
         std::list<int> clusters;
@@ -48,7 +48,7 @@ void ClusteringGrid::addCluster(const CellIndex &cell_index, const int &cluster_
 
 void ClusteringGrid::removeCluster(const CellIndex &cell_index, const int &cluster_index)
 {
-    if (cells_.find(cell_index) != cells_.end())
+    if (cells_.contains(cell_index))
     {
         cells_.find(cell_index)->second.remove(cluster_index);
         if (cells_.find(cell_index)->second.empty())
@@ -85,7 +85,7 @@ ClusteringGrid::CellIndex ClusteringGrid::getIndex(const Point &position) const
 
 bool ClusteringGrid::isNonEmptyCell(const CellIndex &cell_index) const
 {
-    return cells_.find(cell_index) != cells_.end();
+    return cells_.contains(cell_index);
 }
 
 int ClusteringGrid::getCellCount() const

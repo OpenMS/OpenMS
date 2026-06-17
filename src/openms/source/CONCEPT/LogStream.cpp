@@ -144,7 +144,7 @@ namespace OpenMS
     bool LogStreamBuf::isInCache_(std::string const & line)
     {
       //cout << "LogCache (count)" << log_cache_.count(line) << endl;
-      if (log_cache_.count(line) == 0)
+      if (!log_cache_.contains(line))
       {
         return false;
       }
@@ -166,7 +166,7 @@ namespace OpenMS
 
     std::string LogStreamBuf::addToCache_(std::string const & line)
     {
-      std::string extra_message = "";
+      std::string extra_message;
       if (log_cache_.size() > 1) // check if we need to remove one of the entries
       {
         // get smallest key
@@ -335,12 +335,12 @@ namespace OpenMS
       Size copied_index = 0;
       string result;
 
-      while ((index = prefix.find('%', index)) != String::npos)
+      while ((index = prefix.find('%', index)) != std::string::npos)
       {
         // append any constant parts of the string to the result
         if (copied_index < index)
         {
-          result.append(prefix.substr(copied_index, index - copied_index));
+          result.append(StringUtils::substr(prefix, copied_index, index - copied_index));
           copied_index = (SignedSize)index;
         }
 
@@ -399,7 +399,7 @@ namespace OpenMS
 
       if (copied_index < prefix.size())
       {
-        result.append(prefix.substr(copied_index, prefix.size() - copied_index));
+        result.append(StringUtils::substr(prefix, copied_index, prefix.size() - copied_index));
       }
 
       return result;

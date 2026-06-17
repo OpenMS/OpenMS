@@ -258,18 +258,31 @@ namespace OpenSwath
         //@}
 
         /// contains max Peaks from xcorr_contrast_matrix_
+        OpenMS::Matrix<int> xcorr_contrast_matrix_max_peak_;
         OpenMS::Matrix<double> xcorr_contrast_matrix_max_peak_sec_;
 
         /// the precomputed cross correlation matrix of the MS1 trace
         XCorrMatrixType xcorr_precursor_matrix_;
 
+        /// contains max peaks from xcorr_precursor_matrix_
+        OpenMS::Matrix<int> xcorr_precursor_matrix_max_peak_;
+        OpenMS::Matrix<double> xcorr_precursor_matrix_max_peak_sec_;
+
         /// the precomputed cross correlation against the MS1 trace
         XCorrMatrixType xcorr_precursor_contrast_matrix_;
         //@}
 
+        /// contains max peaks from xcorr_precursor_contrast_matrix_
+        OpenMS::Matrix<int> xcorr_precursor_contrast_matrix_max_peak_;
+        OpenMS::Matrix<double> xcorr_precursor_contrast_matrix_max_peak_sec_;
+
         /// the precomputed cross correlation with the MS1 trace
         XCorrMatrixType xcorr_precursor_combined_matrix_;
         //@}
+
+        /// contains max peaks from xcorr_precursor_combined_matrix_
+        OpenMS::Matrix<int> xcorr_precursor_combined_matrix_max_peak_;
+        OpenMS::Matrix<double> xcorr_precursor_combined_matrix_max_peak_sec_;
 
         /// the precomputed mutual information matrix
 

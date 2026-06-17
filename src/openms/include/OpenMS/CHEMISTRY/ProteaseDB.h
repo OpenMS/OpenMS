@@ -10,7 +10,7 @@
 
 #include <OpenMS/CHEMISTRY/DigestionEnzymeDB.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <memory>
 #include <vector>
@@ -43,18 +43,18 @@ namespace OpenMS
     explicit ProteaseDB(std::vector<std::unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeProtein>>> providers);
 
     /// returns all the enzyme names available for XTandem
-    void getAllXTandemNames(std::vector<String>& all_names) const;
+    void getAllXTandemNames(std::vector<std::string>& all_names) const;
 
     /// returns all the enzyme names available for Comet
-    void getAllCometNames(std::vector<String>& all_names) const;
+    void getAllCometNames(std::vector<std::string>& all_names) const;
 
      /// returns all the enzyme names available for OMSSA
-    void getAllOMSSANames(std::vector<String>& all_names) const;
+    void getAllOMSSANames(std::vector<std::string>& all_names) const;
 
     /// returns all the enzyme names available for MSGFPlus
-    void getAllMSGFNames(std::vector<String>& all_names) const;
+    void getAllMSGFNames(std::vector<std::string>& all_names) const;
 
     /// writes the full names to a TSV file
-    void writeTSV(const String& filename);
+    void writeTSV(const std::string& filename) const;
   };
 }

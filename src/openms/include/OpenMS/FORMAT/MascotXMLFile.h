@@ -48,7 +48,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file does not exists.
       @exception Exception::ParseError is thrown if the file does not suit to the standard.
     */
-    void load(const String& filename,
+    void load(const std::string& filename,
               ProteinIdentification& protein_identification,
               PeptideIdentificationList& id_data,
               const SpectrumMetaDataLookup& lookup);
@@ -59,16 +59,16 @@ public:
       @param[in] filename the file to be loaded
       @param[in] protein_identification protein identifications belonging to the whole experiment
       @param[in] id_data the identifications with m/z and RT
-      @param[in,out] peptides a map of modified peptides identified by the String title
+      @param[in,out] peptides a map of modified peptides identified by the std::string title
       @param[in] lookup helper object for looking up spectrum meta data
 
       @exception Exception::FileNotFound is thrown if the file does not exists.
       @exception Exception::ParseError is thrown if the file does not suit to the standard.
     */
-    void load(const String& filename,
+    void load(const std::string& filename,
               ProteinIdentification& protein_identification,
               PeptideIdentificationList& id_data, 
-              std::map<String, std::vector<AASequence> >& peptides, 
+              std::map<std::string, std::vector<AASequence> >& peptides, 
               const SpectrumMetaDataLookup& lookup);
 
     /**
@@ -78,7 +78,7 @@ public:
       @param[in] experiment Experiment containing the spectra
       @param[in] scan_regex Optional regular expression for extracting information from references to spectra
     */  
-    static void initializeLookup(SpectrumMetaDataLookup& lookup, const PeakMap& experiment, const String& scan_regex = "");
+    static void initializeLookup(SpectrumMetaDataLookup& lookup, const PeakMap& experiment, const std::string& scan_regex = "");
 
   };
 

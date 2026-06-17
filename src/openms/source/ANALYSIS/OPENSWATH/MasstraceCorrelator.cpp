@@ -16,8 +16,14 @@
 // #define DEBUG_MASSTRACES
 // #include <assert.h>
 
-bool SortDoubleDoublePairFirst(const std::pair<double, double>& left,
-    const std::pair<double, double>& right);
+namespace
+{
+  bool SortDoubleDoublePairFirst(const std::pair<double, double>& left,
+                                 const std::pair<double, double>& right)
+  {
+    return left.first < right.first;
+  }
+} // namespace
 
 namespace OpenMS
 {
@@ -217,7 +223,7 @@ namespace OpenMS
     {
       setProgress(i);
 
-      if (used_already.find(i) != used_already.end()) 
+      if (used_already.contains(i)) 
       {
         continue;
       }
@@ -317,4 +323,3 @@ namespace OpenMS
 
 
 }
-

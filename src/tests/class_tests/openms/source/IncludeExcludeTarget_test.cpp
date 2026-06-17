@@ -50,37 +50,37 @@ START_SECTION((virtual ~IncludeExcludeTarget()))
 }
 END_SECTION
 
-START_SECTION((void setName(const String &name)))
+START_SECTION((void setName(const std::string &name)))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((const String& getName() const ))
+START_SECTION((const std::string& getName() const ))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((void setPeptideRef(const String &peptide_ref)))
+START_SECTION((void setPeptideRef(const std::string &peptide_ref)))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((const String& getPeptideRef() const ))
+START_SECTION((const std::string& getPeptideRef() const ))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((void setCompoundRef(const String &compound_ref)))
+START_SECTION((void setCompoundRef(const std::string &compound_ref)))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((const String& getCompoundRef() const ))
+START_SECTION((const std::string& getCompoundRef() const ))
 {
   // TODO
 }

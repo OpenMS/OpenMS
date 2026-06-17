@@ -38,7 +38,7 @@ namespace OpenMS
     bin_size_(rhs.bin_size_),
     unit_ppm_(rhs.unit_ppm_),
     offset_(rhs.offset_),
-    bins_(new SparseVectorType(*rhs.bins_)),
+    bins_(rhs.bins_ ? new SparseVectorType(*rhs.bins_) : nullptr),
     precursors_(rhs.precursors_)
   {
   }
@@ -54,7 +54,7 @@ namespace OpenMS
       precursors_ = rhs.precursors_;
 
       delete bins_;
-      bins_ = new SparseVectorType(*rhs.bins_);
+      bins_ = rhs.bins_ ? new SparseVectorType(*rhs.bins_) : nullptr;
     }
 
     return *this;
@@ -126,10 +126,14 @@ namespace OpenMS
   {
     // first compare bin layout and precursors
     if (std::tie(unit_ppm_, bin_size_, bin_spread_, precursors_)
-        != std::tie(rhs.unit_ppm_, rhs.bin_size_, rhs.bin_spread_, rhs.precursors_)) 
+        != std::tie(rhs.unit_ppm_, rhs.bin_size_, rhs.bin_spread_, rhs.precursors_))
     {
-      return false; 
+      return false;
     }
+
+    // handle nullptr bins (default-constructed objects)
+    if (!bins_ && !rhs.bins_) { return true; }
+    if (!bins_ || !rhs.bins_) { return false; }
 
     // efficient look-up of number of non-zero entries, so we use this as-well
     if (bins_->nonZeros() != rhs.bins_->nonZeros())

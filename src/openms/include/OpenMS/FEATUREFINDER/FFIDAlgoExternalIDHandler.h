@@ -109,7 +109,7 @@ namespace Internal
     void getRandomSample_(std::map<Size, double>& training_labels);
 
     /// Check observation counts for SVM
-    void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "") const;
+    void checkNumObservations_(Size n_pos, Size n_neg, const std::string& note = "") const;
 
     /// Get unbiased sample for SVM training
     void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
@@ -157,10 +157,10 @@ namespace Internal
     double svm_quality_cutoff;
 
     /// SVM predictor names
-    std::vector<String> svm_predictor_names_;
+    std::vector<std::string> svm_predictor_names_;
 
     /// SVM cross-validation output file
-    String svm_xval_out_;
+    std::string svm_xval_out_;
 
     /// Debug level
     Int debug_level_;

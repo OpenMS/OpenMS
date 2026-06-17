@@ -90,8 +90,8 @@ protected:
     //----------------------------------------------------------------
     // load data
     //----------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
     double sampling_rate = getDoubleOption_("sampling_rate");
     double min_int_cutoff = getDoubleOption_("min_int_cutoff");
     bool align_sampling = getFlag_("align_sampling");
@@ -119,7 +119,7 @@ protected:
     resampler_param.setValue("spacing", sampling_rate);
     resampler_param.setValue("ppm", ppm ? "true" : "false");
 
-    LinearResamplerAlign lin_resampler; // LinearResampler does not know about ppm!
+    LinearResamplerAlign lin_resampler;
     lin_resampler.setParameters(resampler_param);
     if (!align_sampling)
     {

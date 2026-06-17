@@ -82,20 +82,20 @@ class TOPPMultiplexResolver :
 private:
 
   // input and output files
-  String in_;
-  String in_blacklist_;
-  String out_;
-  String out_conflicts_;
+  std::string in_;
+  std::string in_blacklist_;
+  std::string out_;
+  std::string out_conflicts_;
 
   // section "algorithm"
-  String labels_;
+  std::string labels_;
   unsigned max_nr_labelled_aas_;
   double mass_tolerance_;
   double mz_tolerance_;
   double rt_tolerance_;
 
   // section "labels"
-  map<String, double> label_mass_shift_;
+  map<std::string, double> label_mass_shift_;
   
   // blacklist
   MSExperiment exp_blacklist_;
@@ -103,13 +103,13 @@ private:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Peptide multiplets with assigned sequence information");
-    setValidFormats_("in", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("consensusXML"));
     registerInputFile_("in_blacklist", "<file>", "", "Optional input containing spectral peaks blacklisted during feature detection. Needed for generation of dummy features.", false);
-    setValidFormats_("in_blacklist", ListUtils::create<String>("mzML"));
+    setValidFormats_("in_blacklist", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("out", "<file>", "", "Complete peptide multiplets.");
-    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("consensusXML"));
     registerOutputFile_("out_conflicts", "<file>", "", "Optional output containing peptide multiplets without ID annotation or with conflicting quant/ID information.", false);
-    setValidFormats_("out_conflicts", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("out_conflicts", ListUtils::create<std::string>("consensusXML"));
 
     registerSubsection_("algorithm", "Parameters for the algorithm.");
     registerSubsection_("labels", "Isotopic labels that can be specified in section \'algorithm:labels\'.");
@@ -117,7 +117,7 @@ private:
   }
   
   // create parameters for sections (set default values and restrictions)
-  Param getSubsectionDefaults_(const String& section) const override
+  Param getSubsectionDefaults_(const std::string& section) const override
   {
     Param defaults;
 

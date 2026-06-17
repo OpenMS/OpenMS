@@ -43,7 +43,7 @@ namespace OpenMS
 
       IdentifiedOligoRef getIdentifiedOligoRef() const;
 
-      String toString() const;
+      std::string toString() const;
 
       EmpiricalFormula getFormula(Size fragment_type = 0, Int charge = 0) const;
     };

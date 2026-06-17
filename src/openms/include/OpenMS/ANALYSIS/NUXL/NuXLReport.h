@@ -32,15 +32,15 @@ struct OPENMS_DLLAPI NuXLReportRow
   // columns
   double rt;
   double original_mz;
-  String accessions;
-  String peptide;
-  String NA;
+  std::string accessions;
+  std::string peptide;
+  std::string NA;
   Int charge;
   double score;
   int rank;
   double best_localization_score;
-  String localization_scores;
-  String best_localization;
+  std::string localization_scores;
+  std::string best_localization;
   double peptide_weight;
   double NA_weight;
   double xl_weight;
@@ -52,14 +52,14 @@ struct OPENMS_DLLAPI NuXLReportRow
   double m_2H;
   double m_3H;
   double m_4H;
-  String fragment_annotation;
-  String getString(const String& separator) const;
+  std::string fragment_annotation;
+  std::string getString(const std::string& separator) const;
 };
 
 /// create header line
 struct OPENMS_DLLAPI NuXLReportRowHeader
 {
-  static String getString(const String& separator, const StringList& meta_values_to_export);
+  static std::string getString(const std::string& separator, const StringList& meta_values_to_export);
 };
 
 /// create PSM report
@@ -84,9 +84,9 @@ struct OPENMS_DLLAPI NuXLProteinReport
   static std::map<char, double> getCrossLinkEfficiency(const PeptideIdentificationList& peps);
 
   // returns map of adduct to counts
-  static std::map<String, size_t> countAdducts(const PeptideIdentificationList& peps);
+  static std::map<std::string, size_t> countAdducts(const PeptideIdentificationList& peps);
 
-  static void mapAccessionToTDProteins(ProteinIdentification& prot_id, std::map<String, ProteinHit*>& acc2protein_targets, std::map<String, ProteinHit*>& acc2protein_decoys);
+  static void mapAccessionToTDProteins(ProteinIdentification& prot_id, std::map<std::string, ProteinHit*>& acc2protein_targets, std::map<std::string, ProteinHit*>& acc2protein_decoys);
 };
 
 }

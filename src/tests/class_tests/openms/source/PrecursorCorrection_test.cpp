@@ -172,11 +172,11 @@ END_SECTION
 FuzzyStringComparator fsc;
 fsc.setAcceptableAbsolute(1e-8);
 
-START_SECTION((static void writeHist(const String &out_csv, const std::vector< double > &deltaMZs, const std::vector< double > &mzs, const std::vector< double > &rts)))
+START_SECTION((static void writeHist(const std::string &out_csv, const std::vector< double > &deltaMZs, const std::vector< double > &mzs, const std::vector< double > &rts)))
 {
   MSExperiment write_exp = exp;
 
-  String csv_tmp;
+  std::string csv_tmp;
   NEW_TMP_FILE(csv_tmp);
   vector<double> dmz;
   vector<double> mz;

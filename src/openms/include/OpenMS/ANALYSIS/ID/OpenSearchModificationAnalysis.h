@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <map>
 #include <vector>
@@ -47,7 +47,7 @@ namespace OpenMS
     struct ModificationSummary
     {
       int count;                    ///< Modification rate (number of occurrences)
-      String name;                  ///< Modification name
+      std::string name;                  ///< Modification name
       int num_charge_states;        ///< Number of charge states
       std::vector<double> masses;   ///< Masses associated with the modification
     };
@@ -60,14 +60,14 @@ namespace OpenMS
       int unique_peptides = 0;            ///< Number of unique peptide sequences
       int num_charge_states = 0;          ///< Number of different charge states observed
       double percentage = 0.0;            ///< Percentage of total PSMs
-      String mapped_modification = "";    ///< Name of mapped modification (if any)
+      std::string mapped_modification;    ///< Name of mapped modification (if any)
       bool is_known_modification = false; ///< Whether this maps to a known modification
     };
 
     /// Statistics for a mapped PTM
     struct PTMEntry
     {
-      String name;                        ///< Modification name (e.g., "Oxidation (M)")
+      std::string name;                        ///< Modification name (e.g., "Oxidation (M)")
       double theoretical_mass = 0.0;      ///< Theoretical mass shift from ModificationsDB
       double observed_mass = 0.0;         ///< Mean observed delta mass
       double mass_deviation = 0.0;        ///< Deviation between theoretical and observed
@@ -76,7 +76,7 @@ namespace OpenMS
       int num_charge_states = 0;          ///< Number of different charge states observed
       double percentage = 0.0;            ///< Percentage of total modified PSMs
       std::map<char, int> residue_counts; ///< Count per amino acid residue
-      String target_residues;             ///< Target residues for this modification
+      std::string target_residues;             ///< Target residues for this modification
     };
 
     /// Container for delta mass statistics table
@@ -158,7 +158,7 @@ namespace OpenMS
                                  PeptideIdentificationList& peptide_ids,
                                  double precursor_mass_tolerance = 5.0,
                                  bool precursor_mass_tolerance_unit_ppm = true,
-                                 const String& output_file = "") const;
+                                 const std::string& output_file = "") const;
 
     /**
      * @brief Complete analysis workflow: analyze patterns and map to modifications
@@ -175,7 +175,7 @@ namespace OpenMS
                         double precursor_mass_tolerance = 5.0,
                         bool precursor_mass_tolerance_unit_ppm = true,
                         bool use_smoothing = false,
-                        const String& output_file = "") const;
+                        const std::string& output_file = "") const;
 
     /**
      * @brief Complete analysis returning structured statistics tables
@@ -197,7 +197,7 @@ namespace OpenMS
                                        double precursor_mass_tolerance = 5.0,
                                        bool precursor_mass_tolerance_unit_ppm = true,
                                        bool use_smoothing = false,
-                                       const String& output_file = "") const;
+                                       const std::string& output_file = "") const;
 
     /**
      * @brief Generate delta mass statistics table from histogram data
@@ -258,7 +258,7 @@ namespace OpenMS
      * @param output_file Output file path
      */
     void writeDeltaMassStatistics(const DeltaMassStatistics& stats,
-                                  const String& output_file) const;
+                                  const std::string& output_file) const;
 
     /**
      * @brief Write PTM statistics to a TSV file
@@ -267,7 +267,7 @@ namespace OpenMS
      * @param output_file Output file path
      */
     void writePTMStatistics(const PTMStatistics& stats,
-                            const String& output_file) const;
+                            const std::string& output_file) const;
 
   private:
 
@@ -292,14 +292,14 @@ namespace OpenMS
 
     /// Write modification summary table to file
     void writeModificationSummary_(const std::vector<ModificationSummary>& modifications,
-                                  const String& output_file) const;
+                                  const std::string& output_file) const;
 
     /// Build lookup table mapping mass differences to known modifications
-    std::map<double, String, FuzzyDoubleComparator>
+    std::map<double, std::string, FuzzyDoubleComparator>
     buildModificationMassLookup_() const;
 
     /// Get target residues for a modification name
-    String getTargetResidues_(const String& mod_name) const;
+    std::string getTargetResidues_(const std::string& mod_name) const;
 
     /// Count unique peptide sequences matching a delta mass
     int countUniquePeptides_(const PeptideIdentificationList& peptide_ids,

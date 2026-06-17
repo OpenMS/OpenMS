@@ -70,9 +70,9 @@ namespace OpenMS
       @param[in] source_file Source mzML filename to store with each chromatogram.
       @param[in] transition_exp Transition metadata used to annotate chromatograms.
     */
-    MSChromatogramParquetConsumer(const String& filename,
+    MSChromatogramParquetConsumer(const std::string& filename,
                                   UInt64 run_id,
-                                  const String& source_file,
+                                  const std::string& source_file,
                                   const OpenSwath::LightTargetedExperiment& transition_exp);
 
     /// @brief Destructor flushes pending data and closes the parquet writer.

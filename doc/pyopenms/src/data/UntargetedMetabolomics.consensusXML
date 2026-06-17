@@ -1,0 +1,1871 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_18082548825514729960" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<IdentificationRun id="PI_0" date="2022-06-14T09:13:55" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_1" date="2022-06-14T09:13:55" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<mapList count="2">
+		<map id="0" name="Metabolomics_1.mzML" label="" size="74">
+		</map>
+		<map id="1" name="Metabolomics_2.mzML" label="" size="70">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_16537095601680318483" quality="1.843942e-03" charge="1">
+			<centroid rt="544.29263796698865" mz="209.153597036329131" it="1.576736e06"/>
+			<groupedElementList>
+				<element map="0" id="2228847169375718282" rt="544.292637967000019" mz="209.153596298900368" it="1.468729e06" charge="1"/>
+				<element map="1" id="5450012480861101101" rt="544.292637966977281" mz="209.153597773757895" it="1.684743e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="209.153625488281" RT="543.959726389052" spectrum_reference="controllerType=0 controllerNumber=1 scan=2211" >
+				<UserParam type="int" name="spectrum_index" value="838"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="209.153610229492" RT="548.027626798964" spectrum_reference="controllerType=0 controllerNumber=1 scan=2228" >
+				<UserParam type="int" name="spectrum_index" value="850"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11980224611310600096,2659819885985134403]"/>
+		</consensusElement>
+		<consensusElement id="e_13893219639240747757" quality="0.016148" charge="1">
+			<centroid rt="498.987863855990213" mz="279.093382337335129" it="1.364504e07"/>
+			<groupedElementList>
+				<element map="0" id="11676422754479268079" rt="498.98786385599999" mz="279.093382000153269" it="1.321831e07" charge="1"/>
+				<element map="1" id="4324657479341624785" rt="498.987863855980436" mz="279.093382674517045" it="1.407178e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="279.093414306641" RT="498.386457408" spectrum_reference="controllerType=0 controllerNumber=1 scan=2031" >
+				<UserParam type="int" name="spectrum_index" value="812"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="279.093383789063" RT="502.776433792" spectrum_reference="controllerType=0 controllerNumber=1 scan=2049" >
+				<UserParam type="int" name="spectrum_index" value="822"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="279.093383789063" RT="497.823703387093" spectrum_reference="controllerType=0 controllerNumber=1 scan=2023" >
+				<UserParam type="int" name="spectrum_index" value="736"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="279.093353271484" RT="502.697842551091" spectrum_reference="controllerType=0 controllerNumber=1 scan=2043" >
+				<UserParam type="int" name="spectrum_index" value="749"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11150217222193298742,7920973858509838048]"/>
+		</consensusElement>
+		<consensusElement id="e_13142568344331858381" quality="2.224778e-03" charge="1">
+			<centroid rt="498.987863855990213" mz="301.075331189636017" it="1.990749e06"/>
+			<groupedElementList>
+				<element map="0" id="17935176223160030179" rt="498.98786385599999" mz="301.07533006562079" it="2.007466e06" charge="1"/>
+				<element map="1" id="1876758176293598408" rt="498.987863855980436" mz="301.075332313651245" it="1.974032e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="301.075347900391" RT="499.072566032" spectrum_reference="controllerType=0 controllerNumber=1 scan=2034" >
+				<UserParam type="int" name="spectrum_index" value="814"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="301.075317382813" RT="499.078295598452" spectrum_reference="controllerType=0 controllerNumber=1 scan=2028" >
+				<UserParam type="int" name="spectrum_index" value="740"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+Na]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11150217222193298742,7920973858509838048]"/>
+		</consensusElement>
+		<consensusElement id="e_10328928347235094071" quality="1.637416e-03" charge="1">
+			<centroid rt="261.762536751000027" mz="445.313727159261418" it="5.075244e07"/>
+			<groupedElementList>
+				<element map="0" id="21343505088903114" rt="261.762536751000027" mz="445.313727159261418" it="5.075244e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="445.313659667969" RT="259.395618159" spectrum_reference="controllerType=0 controllerNumber=1 scan=1038" >
+				<UserParam type="int" name="spectrum_index" value="144"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="445.313720703125" RT="264.260685823" spectrum_reference="controllerType=0 controllerNumber=1 scan=1058" >
+				<UserParam type="int" name="spectrum_index" value="160"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4813057781017624395]"/>
+		</consensusElement>
+		<consensusElement id="e_4665702141946731350" quality="2.214926e-04" charge="1">
+			<centroid rt="274.863367599000014" mz="399.296691719140938" it="7.51515e06"/>
+			<groupedElementList>
+				<element map="0" id="75873979479498943" rt="274.863367599000014" mz="399.296691719140938" it="7.51515e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="399.296600341797" RT="274.028435615" spectrum_reference="controllerType=0 controllerNumber=1 scan=1099" >
+				<UserParam type="int" name="spectrum_index" value="192"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[436217149930405905]"/>
+		</consensusElement>
+		<consensusElement id="e_5589778358391484317" quality="4.278481e-04" charge="1">
+			<centroid rt="316.408887262999997" mz="473.34496514823212" it="1.373165e07"/>
+			<groupedElementList>
+				<element map="0" id="435929759483178759" rt="316.408887262999997" mz="473.34496514823212" it="1.373165e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="473.344940185547" RT="315.284476911" spectrum_reference="controllerType=0 controllerNumber=1 scan=1279" >
+				<UserParam type="int" name="spectrum_index" value="361"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="473.344879150391" RT="320.293272591" spectrum_reference="controllerType=0 controllerNumber=1 scan=1300" >
+				<UserParam type="int" name="spectrum_index" value="377"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10609618300353040897]"/>
+		</consensusElement>
+		<consensusElement id="e_6489188533110435412" quality="1.218939e-03" charge="1">
+			<centroid rt="298.998983887000009" mz="254.197539089879484" it="4.224071e07"/>
+			<groupedElementList>
+				<element map="0" id="696283120704624517" rt="298.998983887000009" mz="254.197539089879484" it="4.224071e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="254.197509765625" RT="299.304308127" spectrum_reference="controllerType=0 controllerNumber=1 scan=1212" >
+				<UserParam type="int" name="spectrum_index" value="301"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="254.1976" RT="300.541035727" spectrum_reference="controllerType=0 controllerNumber=1 scan=1217" >
+				<UserParam type="int" name="spectrum_index" value="306"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15736955394343027957]"/>
+		</consensusElement>
+		<consensusElement id="e_468083614762679935" quality="1.932537e-05" charge="1">
+			<centroid rt="323.530030079000028" mz="430.300663378640365" it="6.74935e05"/>
+			<groupedElementList>
+				<element map="0" id="984056432815566501" rt="323.530030079000028" mz="430.300663378640365" it="6.74935e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6229015876798862473]"/>
+		</consensusElement>
+		<consensusElement id="e_5644587338931285949" quality="8.262682e-06" charge="2">
+			<centroid rt="327.185982479000018" mz="418.297888395643042" it="2.582449e05"/>
+			<groupedElementList>
+				<element map="0" id="1111703050277175956" rt="327.185982479000018" mz="418.297888395643042" it="2.582449e05" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[18102057889235227745]"/>
+		</consensusElement>
+		<consensusElement id="e_14822476630456927283" quality="5.915204e-04" charge="1">
+			<centroid rt="285.544818030999977" mz="459.329131071796041" it="1.989066e07"/>
+			<groupedElementList>
+				<element map="0" id="1423660348451629624" rt="285.544818030999977" mz="459.329131071796041" it="1.989066e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="459.329162597656" RT="284.057759759" spectrum_reference="controllerType=0 controllerNumber=1 scan=1144" >
+				<UserParam type="int" name="spectrum_index" value="236"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="459.3292" RT="285.211501359" spectrum_reference="controllerType=0 controllerNumber=1 scan=1149" >
+				<UserParam type="int" name="spectrum_index" value="241"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4518836663344303037]"/>
+		</consensusElement>
+		<consensusElement id="e_7424566866900364495" quality="1.906884e-05" charge="1">
+			<centroid rt="323.530030079000028" mz="548.364683539063208" it="6.209075e05"/>
+			<groupedElementList>
+				<element map="0" id="1502146012908355593" rt="323.530030079000028" mz="548.364683539063208" it="6.209075e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1140777961679035204]"/>
+		</consensusElement>
+		<consensusElement id="e_8099677158879360465" quality="2.250997e-03" charge="1">
+			<centroid rt="298.998983887000009" mz="272.208096320725986" it="7.85601e07"/>
+			<groupedElementList>
+				<element map="0" id="1573316367408197248" rt="298.998983887000009" mz="272.208096320725986" it="7.85601e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="272.208068847656" RT="294.610994703" spectrum_reference="controllerType=0 controllerNumber=1 scan=1191" >
+				<UserParam type="int" name="spectrum_index" value="282"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="272.208068847656" RT="299.559416159" spectrum_reference="controllerType=0 controllerNumber=1 scan=1213" >
+				<UserParam type="int" name="spectrum_index" value="302"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="272.208099365234" RT="303.571610687" spectrum_reference="controllerType=0 controllerNumber=1 scan=1231" >
+				<UserParam type="int" name="spectrum_index" value="320"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15736955394343027957]"/>
+		</consensusElement>
+		<consensusElement id="e_13962732939287320996" quality="2.049119e-05" charge="2">
+			<centroid rt="340.347917343999995" mz="471.334857906656225" it="5.510926e05"/>
+			<groupedElementList>
+				<element map="0" id="1639725828618893268" rt="340.347917343999995" mz="471.334857906656225" it="5.510926e05" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="471.334747314453" RT="342.120680688" spectrum_reference="controllerType=0 controllerNumber=1 scan=1391" >
+				<UserParam type="int" name="spectrum_index" value="449"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6040652166120766116]"/>
+		</consensusElement>
+		<consensusElement id="e_8769703125213083238" quality="3.105987e-05" charge="2">
+			<centroid rt="363.665959008000016" mz="434.310872572717869" it="8.836031e05"/>
+			<groupedElementList>
+				<element map="0" id="1666417140310132599" rt="363.665959008000016" mz="434.310872572717869" it="8.836031e05" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="434.310882568359" RT="364.318739232" spectrum_reference="controllerType=0 controllerNumber=1 scan=1481" >
+				<UserParam type="int" name="spectrum_index" value="504"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[13901270941891040285]"/>
+		</consensusElement>
+		<consensusElement id="e_9593497470529776426" quality="2.683664e-04" charge="1">
+			<centroid rt="269.12868543899998" mz="417.30761246431689" it="8.672688e06"/>
+			<groupedElementList>
+				<element map="0" id="1873755187947587954" rt="269.12868543899998" mz="417.30761246431689" it="8.672688e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="417.3076171875" RT="267.029892207" spectrum_reference="controllerType=0 controllerNumber=1 scan=1069" >
+				<UserParam type="int" name="spectrum_index" value="166"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="417.307434082031" RT="272.027435455" spectrum_reference="controllerType=0 controllerNumber=1 scan=1090" >
+				<UserParam type="int" name="spectrum_index" value="184"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[669344520826683970]"/>
+		</consensusElement>
+		<consensusElement id="e_11426402202406115964" quality="2.37335e-05" charge="1">
+			<centroid rt="338.024452880000013" mz="487.360725788426919" it="7.800514e05"/>
+			<groupedElementList>
+				<element map="0" id="1933759626987908195" rt="338.024452880000013" mz="487.360725788426919" it="7.800514e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="487.360870361328" RT="338.8993792" spectrum_reference="controllerType=0 controllerNumber=1 scan=1377" >
+				<UserParam type="int" name="spectrum_index" value="436"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8670845061832549873]"/>
+		</consensusElement>
+		<consensusElement id="e_8647782774358173258" quality="1.571653e-04" charge="2">
+			<centroid rt="335.567981214999975" mz="457.319397784267721" it="3.918865e06"/>
+			<groupedElementList>
+				<element map="0" id="2011605522654706457" rt="335.567981214999975" mz="457.319397784267721" it="3.918865e06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="457.319396972656" RT="335.056165007" spectrum_reference="controllerType=0 controllerNumber=1 scan=1361" >
+				<UserParam type="int" name="spectrum_index" value="424"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="457.319305419922" RT="339.792103088" spectrum_reference="controllerType=0 controllerNumber=1 scan=1381" >
+				<UserParam type="int" name="spectrum_index" value="439"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[13866057459393488542]"/>
+		</consensusElement>
+		<consensusElement id="e_13038241261280744633" quality="3.933302e-05" charge="1">
+			<centroid rt="319.982463038999981" mz="367.270594408814645" it="1.307579e06"/>
+			<groupedElementList>
+				<element map="0" id="2377852967136685388" rt="319.982463038999981" mz="367.270594408814645" it="1.307579e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="367.270538330078" RT="320.582736959" spectrum_reference="controllerType=0 controllerNumber=1 scan=1301" >
+				<UserParam type="int" name="spectrum_index" value="378"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[13727919366244649792]"/>
+		</consensusElement>
+		<consensusElement id="e_15546348288621627664" quality="1.815174e-04" charge="1">
+			<centroid rt="269.12868543899998" mz="314.229954314858844" it="6.216076e06"/>
+			<groupedElementList>
+				<element map="0" id="2726455339746237289" rt="269.12868543899998" mz="314.229954314858844" it="6.216076e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="314.230010986328" RT="264.823538591" spectrum_reference="controllerType=0 controllerNumber=1 scan=1060" >
+				<UserParam type="int" name="spectrum_index" value="161"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="314.230010986328" RT="269.729968703" spectrum_reference="controllerType=0 controllerNumber=1 scan=1080" >
+				<UserParam type="int" name="spectrum_index" value="175"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11849384497948666707]"/>
+		</consensusElement>
+		<consensusElement id="e_7709370677876289004" quality="9.286737e-06" charge="2">
+			<centroid rt="402.23541353600001" mz="495.333085730044729" it="2.726115e05"/>
+			<groupedElementList>
+				<element map="0" id="2843617178417666846" rt="402.23541353600001" mz="495.333085730044729" it="2.726115e05" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[569233351506410805]"/>
+		</consensusElement>
+		<consensusElement id="e_13337083705246513821" quality="3.073775e-03" charge="2">
+			<centroid rt="339.232940272000008" mz="427.30339036367468" it="8.040252e07"/>
+			<groupedElementList>
+				<element map="0" id="3268584022482411841" rt="339.232940272000008" mz="427.30339036367468" it="8.040252e07" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.303009033203" RT="337.172269456" spectrum_reference="controllerType=0 controllerNumber=1 scan=1370" >
+				<UserParam type="int" name="spectrum_index" value="431"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.3032" RT="340.399460064" spectrum_reference="controllerType=0 controllerNumber=1 scan=1384" >
+				<UserParam type="int" name="spectrum_index" value="442"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.3037" RT="341.57498256" spectrum_reference="controllerType=0 controllerNumber=1 scan=1389" >
+				<UserParam type="int" name="spectrum_index" value="447"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-3H+Na-2O]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16686970134647076323]"/>
+		</consensusElement>
+		<consensusElement id="e_4438961129697915141" quality="6.356242e-04" charge="1">
+			<centroid rt="280.129423087000021" mz="367.270551535848426" it="2.151929e07"/>
+			<groupedElementList>
+				<element map="0" id="3367999785504641169" rt="280.129423087000021" mz="367.270551535848426" it="2.151929e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="367.270538330078" RT="279.535985983" spectrum_reference="controllerType=0 controllerNumber=1 scan=1123" >
+				<UserParam type="int" name="spectrum_index" value="215"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="367.270690917969" RT="283.789765503" spectrum_reference="controllerType=0 controllerNumber=1 scan=1143" >
+				<UserParam type="int" name="spectrum_index" value="235"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6056452843107293376]"/>
+		</consensusElement>
+		<consensusElement id="e_7793952370075458227" quality="1.290812e-04" charge="1">
+			<centroid rt="237.215857486999994" mz="431.298028301672389" it="4.385868e06"/>
+			<groupedElementList>
+				<element map="0" id="3425613362220617319" rt="237.215857486999994" mz="431.298028301672389" it="4.385868e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="431.298034667969" RT="234.897589583" spectrum_reference="controllerType=0 controllerNumber=1 scan=938" >
+				<UserParam type="int" name="spectrum_index" value="79"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="431.298065185547" RT="239.794194127" spectrum_reference="controllerType=0 controllerNumber=1 scan=958" >
+				<UserParam type="int" name="spectrum_index" value="93"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9157068463701752033]"/>
+		</consensusElement>
+		<consensusElement id="e_4080311586536240812" quality="2.331399e-05" charge="1">
+			<centroid rt="317.618744414999981" mz="481.313584186976925" it="7.812118e05"/>
+			<groupedElementList>
+				<element map="0" id="3628266933437084310" rt="317.618744414999981" mz="481.313584186976925" it="7.812118e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="481.313659667969" RT="318.491422959" spectrum_reference="controllerType=0 controllerNumber=1 scan=1292" >
+				<UserParam type="int" name="spectrum_index" value="370"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14148505911154728355]"/>
+		</consensusElement>
+		<consensusElement id="e_16350039136546934720" quality="2.856752e-03" charge="1">
+			<centroid rt="311.516168799000013" mz="427.303337657284771" it="8.78695e07"/>
+			<groupedElementList>
+				<element map="0" id="4238515167072335743" rt="311.516168799000013" mz="427.303337657284771" it="8.78695e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.304" RT="306.892833711" spectrum_reference="controllerType=0 controllerNumber=1 scan=1245" >
+				<UserParam type="int" name="spectrum_index" value="333"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.3034" RT="309.691654431" spectrum_reference="controllerType=0 controllerNumber=1 scan=1256" >
+				<UserParam type="int" name="spectrum_index" value="343"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.303649902344" RT="314.046458207" spectrum_reference="controllerType=0 controllerNumber=1 scan=1274" >
+				<UserParam type="int" name="spectrum_index" value="356"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4387705501578751234]"/>
+		</consensusElement>
+		<consensusElement id="e_10446770523319092871" quality="5.948898e-06" charge="2">
+			<centroid rt="343.902234399999998" mz="461.316255602299918" it="1.668748e05"/>
+			<groupedElementList>
+				<element map="0" id="4390788802385104534" rt="343.902234399999998" mz="461.316255602299918" it="1.668748e05" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14538417323837621742]"/>
+		</consensusElement>
+		<consensusElement id="e_10444255591979519454" quality="8.300212e-05" charge="1">
+			<centroid rt="307.798896078999974" mz="513.34001893612708" it="2.795873e06"/>
+			<groupedElementList>
+				<element map="0" id="4617599052738281501" rt="307.798896078999974" mz="513.34001893612708" it="2.795873e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="513.340148925781" RT="308.434692447" spectrum_reference="controllerType=0 controllerNumber=1 scan=1251" >
+				<UserParam type="int" name="spectrum_index" value="338"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11035437248913492629]"/>
+		</consensusElement>
+		<consensusElement id="e_8026554888518369668" quality="3.678555e-04" charge="1">
+			<centroid rt="280.129423087000021" mz="449.284592346078853" it="1.297202e07"/>
+			<groupedElementList>
+				<element map="0" id="4983555384465772669" rt="280.129423087000021" mz="449.284592346078853" it="1.297202e07" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+Na]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[529471682639336506]"/>
+		</consensusElement>
+		<consensusElement id="e_927595013083944123" quality="0.027242" charge="1">
+			<centroid rt="285.544818030999977" mz="429.317366397744934" it="8.791533e08"/>
+			<groupedElementList>
+				<element map="0" id="5009251366176514165" rt="285.544818030999977" mz="429.317366397744934" it="8.791533e08" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12824108526390653526]"/>
+		</consensusElement>
+		<consensusElement id="e_5191952961737837754" quality="2.546812e-05" charge="1">
+			<centroid rt="309.03697702300002" mz="473.344948209204915" it="8.672958e05"/>
+			<groupedElementList>
+				<element map="0" id="5079771580268633475" rt="309.03697702300002" mz="473.344948209204915" it="8.672958e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="473.345062255859" RT="311.182620735" spectrum_reference="controllerType=0 controllerNumber=1 scan=1262" >
+				<UserParam type="int" name="spectrum_index" value="347"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4135116355208959270]"/>
+		</consensusElement>
+		<consensusElement id="e_15618454397686429336" quality="2.290084e-05" charge="1">
+			<centroid rt="339.232940272000008" mz="518.354001752174781" it="7.401883e05"/>
+			<groupedElementList>
+				<element map="0" id="5387971089065574305" rt="339.232940272000008" mz="518.354001752174781" it="7.401883e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="518.354125976563" RT="341.224819184" spectrum_reference="controllerType=0 controllerNumber=1 scan=1387" >
+				<UserParam type="int" name="spectrum_index" value="445"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15592196037826090433]"/>
+		</consensusElement>
+		<consensusElement id="e_14582785315872282232" quality="6.124691e-04" charge="2">
+			<centroid rt="323.530030079000028" mz="457.319426496408369" it="1.375855e07"/>
+			<groupedElementList>
+				<element map="0" id="5446088485843164363" rt="323.530030079000028" mz="457.319426496408369" it="1.375855e07" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="457.319274902344" RT="323.617074351" spectrum_reference="controllerType=0 controllerNumber=1 scan=1314" >
+				<UserParam type="int" name="spectrum_index" value="390"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="457.319274902344" RT="328.450880751" spectrum_reference="controllerType=0 controllerNumber=1 scan=1334" >
+				<UserParam type="int" name="spectrum_index" value="404"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[5699670227045793251]"/>
+		</consensusElement>
+		<consensusElement id="e_7852034087063372610" quality="2.685887e-04" charge="1">
+			<centroid rt="309.03697702300002" mz="413.287527624929851" it="8.96231e06"/>
+			<groupedElementList>
+				<element map="0" id="5558094103280267906" rt="309.03697702300002" mz="413.287527624929851" it="8.96231e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="413.287506103516" RT="309.392420575" spectrum_reference="controllerType=0 controllerNumber=1 scan=1255" >
+				<UserParam type="int" name="spectrum_index" value="342"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[772402085986646066]"/>
+		</consensusElement>
+		<consensusElement id="e_12542816515726137415" quality="2.939836e-05" charge="2">
+			<centroid rt="339.232940272000008" mz="434.310674467221872" it="9.03549e05"/>
+			<groupedElementList>
+				<element map="0" id="5568122370215408713" rt="339.232940272000008" mz="434.310674467221872" it="9.03549e05" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="434.310607910156" RT="340.95807336" spectrum_reference="controllerType=0 controllerNumber=1 scan=1386" >
+				<UserParam type="int" name="spectrum_index" value="444"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16686970134647076323]"/>
+		</consensusElement>
+		<consensusElement id="e_7973648053959436958" quality="2.822534e-05" charge="2">
+			<centroid rt="340.347917343999995" mz="448.313875250278159" it="8.409058e05"/>
+			<groupedElementList>
+				<element map="0" id="5955885334686062387" rt="340.347917343999995" mz="448.313875250278159" it="8.409058e05" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17448852060008685395]"/>
+		</consensusElement>
+		<consensusElement id="e_15210031429648133062" quality="1.404824e-05" charge="1">
+			<centroid rt="311.516168799000013" mz="449.285013071079163" it="4.7684e05"/>
+			<groupedElementList>
+				<element map="0" id="6068562690596245784" rt="311.516168799000013" mz="449.285013071079163" it="4.7684e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="449.285003662109" RT="313.646629295" spectrum_reference="controllerType=0 controllerNumber=1 scan=1272" >
+				<UserParam type="int" name="spectrum_index" value="354"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+Na]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4387705501578751234]"/>
+		</consensusElement>
+		<consensusElement id="e_17054852003971641846" quality="5.020814e-05" charge="1">
+			<centroid rt="293.420174351000014" mz="576.408406201411481" it="1.678134e06"/>
+			<groupedElementList>
+				<element map="0" id="6151744392491123464" rt="293.420174351000014" mz="576.408406201411481" it="1.678134e06" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9584583671191631993]"/>
+		</consensusElement>
+		<consensusElement id="e_9765784795843035206" quality="3.359571e-05" charge="1">
+			<centroid rt="339.232940272000008" mz="423.308421133347281" it="1.13904e06"/>
+			<groupedElementList>
+				<element map="0" id="6251078444401900397" rt="339.232940272000008" mz="423.308421133347281" it="1.13904e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="423.308288574219" RT="340.66773552" spectrum_reference="controllerType=0 controllerNumber=1 scan=1385" >
+				<UserParam type="int" name="spectrum_index" value="443"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11788793410587010810]"/>
+		</consensusElement>
+		<consensusElement id="e_11243494505451177313" quality="1.105876e-03" charge="1">
+			<centroid rt="269.12868543899998" mz="487.335488138566006" it="3.613303e07"/>
+			<groupedElementList>
+				<element map="0" id="6387312226025714120" rt="269.12868543899998" mz="487.335488138566006" it="3.613303e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="487.335632324219" RT="268.233753951" spectrum_reference="controllerType=0 controllerNumber=1 scan=1074" >
+				<UserParam type="int" name="spectrum_index" value="170"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="487.3355" RT="271.737469791" spectrum_reference="controllerType=0 controllerNumber=1 scan=1089" >
+				<UserParam type="int" name="spectrum_index" value="183"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[7464855173845448930]"/>
+		</consensusElement>
+		<consensusElement id="e_15317322106378983718" quality="1.431226e-03" charge="1">
+			<centroid rt="328.394579390999979" mz="441.318694917550658" it="4.472758e07"/>
+			<groupedElementList>
+				<element map="0" id="6491588797266023955" rt="328.394579390999979" mz="441.318694917550658" it="4.472758e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.318664550781" RT="324.447064287" spectrum_reference="controllerType=0 controllerNumber=1 scan=1317" >
+				<UserParam type="int" name="spectrum_index" value="392"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.318695068359" RT="329.62301824" spectrum_reference="controllerType=0 controllerNumber=1 scan=1339" >
+				<UserParam type="int" name="spectrum_index" value="409"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15174476256783357613]"/>
+		</consensusElement>
+		<consensusElement id="e_11352111528140628012" quality="1.988325e-04" charge="2">
+			<centroid rt="331.984531423000021" mz="464.327016079896225" it="5.468525e06"/>
+			<groupedElementList>
+				<element map="0" id="6885114260817447833" rt="331.984531423000021" mz="464.327016079896225" it="5.468525e06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="464.326965332031" RT="329.275863855" spectrum_reference="controllerType=0 controllerNumber=1 scan=1337" >
+				<UserParam type="int" name="spectrum_index" value="407"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="464.327087402344" RT="333.285315951" spectrum_reference="controllerType=0 controllerNumber=1 scan=1354" >
+				<UserParam type="int" name="spectrum_index" value="419"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15807037470079853476]"/>
+		</consensusElement>
+		<consensusElement id="e_1397937273232886528" quality="0.211765" charge="1">
+			<centroid rt="273.721867262999979" mz="445.3136887307856" it="6.291989e09"/>
+			<groupedElementList>
+				<element map="0" id="7215580023088431669" rt="273.721867262999979" mz="445.3136887307856" it="6.291989e09" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="445.313720703125" RT="269.172601663" spectrum_reference="controllerType=0 controllerNumber=1 scan=1078" >
+				<UserParam type="int" name="spectrum_index" value="173"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="445.31396484375" RT="278.156001471" spectrum_reference="controllerType=0 controllerNumber=1 scan=1117" >
+				<UserParam type="int" name="spectrum_index" value="209"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2601534216908226386]"/>
+		</consensusElement>
+		<consensusElement id="e_12223685331074627757" quality="6.468314e-04" charge="1">
+			<centroid rt="339.232940272000008" mz="441.318649886087542" it="2.130752e07"/>
+			<groupedElementList>
+				<element map="0" id="7554698776465229712" rt="339.232940272000008" mz="441.318649886087542" it="2.130752e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.318756103516" RT="334.536697503" spectrum_reference="controllerType=0 controllerNumber=1 scan=1359" >
+				<UserParam type="int" name="spectrum_index" value="422"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.318664550781" RT="339.279012592" spectrum_reference="controllerType=0 controllerNumber=1 scan=1379" >
+				<UserParam type="int" name="spectrum_index" value="438"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11788793410587010810]"/>
+		</consensusElement>
+		<consensusElement id="e_9446475875444358983" quality="5.079512e-05" charge="2">
+			<centroid rt="354.966055327999982" mz="434.310869900465775" it="1.4857e06"/>
+			<groupedElementList>
+				<element map="0" id="7638445592211852256" rt="354.966055327999982" mz="434.310869900465775" it="1.4857e06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="434.310913085938" RT="351.660194832" spectrum_reference="controllerType=0 controllerNumber=1 scan=1430" >
+				<UserParam type="int" name="spectrum_index" value="474"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="434.310760498047" RT="356.254760512" spectrum_reference="controllerType=0 controllerNumber=1 scan=1449" >
+				<UserParam type="int" name="spectrum_index" value="486"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12365366285237458314]"/>
+		</consensusElement>
+		<consensusElement id="e_2204715518158457297" quality="0.067106" charge="1">
+			<centroid rt="292.353602782999985" mz="459.329525117291098" it="2.031783e09"/>
+			<groupedElementList>
+				<element map="0" id="7899271505765075307" rt="292.353602782999985" mz="459.329525117291098" it="2.031783e09" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="459.329193115234" RT="290.647050111" spectrum_reference="controllerType=0 controllerNumber=1 scan=1173" >
+				<UserParam type="int" name="spectrum_index" value="265"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="459.3295" RT="292.659408191" spectrum_reference="controllerType=0 controllerNumber=1 scan=1182" >
+				<UserParam type="int" name="spectrum_index" value="274"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="459.329498291016" RT="296.884224495" spectrum_reference="controllerType=0 controllerNumber=1 scan=1201" >
+				<UserParam type="int" name="spectrum_index" value="292"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[7565942450280599354]"/>
+		</consensusElement>
+		<consensusElement id="e_3228060471357389586" quality="1.984781e-03" charge="1">
+			<centroid rt="298.998983887000009" mz="367.270524628852229" it="6.633862e07"/>
+			<groupedElementList>
+				<element map="0" id="8246879291177308278" rt="298.998983887000009" mz="367.270524628852229" it="6.633862e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="367.270477294922" RT="299.781536479" spectrum_reference="controllerType=0 controllerNumber=1 scan=1214" >
+				<UserParam type="int" name="spectrum_index" value="303"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11041283482582397552]"/>
+		</consensusElement>
+		<consensusElement id="e_14383918063884481088" quality="7.421717e-04" charge="1">
+			<centroid rt="325.955991727000026" mz="427.803523731615599" it="2.666998e07"/>
+			<groupedElementList>
+				<element map="0" id="8597732871900304961" rt="325.955991727000026" mz="427.803523731615599" it="2.666998e07" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1821356409827874540]"/>
+		</consensusElement>
+		<consensusElement id="e_5489714419748443628" quality="2.185208e-05" charge="1">
+			<centroid rt="316.408887262999997" mz="504.338467763965923" it="7.231652e05"/>
+			<groupedElementList>
+				<element map="0" id="8691282778786794493" rt="316.408887262999997" mz="504.338467763965923" it="7.231652e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="504.338562011719" RT="317.060537247" spectrum_reference="controllerType=0 controllerNumber=1 scan=1286" >
+				<UserParam type="int" name="spectrum_index" value="366"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8537117708280376648]"/>
+		</consensusElement>
+		<consensusElement id="e_11248981617092531461" quality="8.159402e-05" charge="1">
+			<centroid rt="325.955991727000026" mz="473.344925505550521" it="2.727015e06"/>
+			<groupedElementList>
+				<element map="0" id="8839715998761042372" rt="325.955991727000026" mz="473.344925505550521" it="2.727015e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="473.344940185547" RT="326.024939583" spectrum_reference="controllerType=0 controllerNumber=1 scan=1324" >
+				<UserParam type="int" name="spectrum_index" value="397"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17844053437002077784]"/>
+		</consensusElement>
+		<consensusElement id="e_9440042071542583530" quality="0.383949" charge="1">
+			<centroid rt="298.998983887000009" mz="427.303200515218748" it="1.16924e10"/>
+			<groupedElementList>
+				<element map="0" id="9077686133586966169" rt="298.998983887000009" mz="427.303200515218748" it="1.16924e10" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.3036" RT="297.930073007" spectrum_reference="controllerType=0 controllerNumber=1 scan=1206" >
+				<UserParam type="int" name="spectrum_index" value="296"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.3034" RT="300.899021375" spectrum_reference="controllerType=0 controllerNumber=1 scan=1219" >
+				<UserParam type="int" name="spectrum_index" value="308"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[7932311079824288202]"/>
+		</consensusElement>
+		<consensusElement id="e_2440815168393577570" quality="1.574978e-03" charge="1">
+			<centroid rt="259.326586238999994" mz="487.335625991060397" it="4.581281e07"/>
+			<groupedElementList>
+				<element map="0" id="9127989512403801476" rt="259.326586238999994" mz="487.335625991060397" it="4.581281e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="487.335632324219" RT="258.208287871" spectrum_reference="controllerType=0 controllerNumber=1 scan=1033" >
+				<UserParam type="int" name="spectrum_index" value="139"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="487.335601806641" RT="263.056217743" spectrum_reference="controllerType=0 controllerNumber=1 scan=1053" >
+				<UserParam type="int" name="spectrum_index" value="155"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3473630921092303557]"/>
+		</consensusElement>
+		<consensusElement id="e_12233375345803262651" quality="1.326533e-04" charge="2">
+			<centroid rt="243.397188510999996" mz="300.203079514456306" it="4.085774e06"/>
+			<groupedElementList>
+				<element map="0" id="9240257202847493221" rt="243.397188510999996" mz="300.203079514456306" it="4.085774e06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="300.203094482422" RT="243.484220255" spectrum_reference="controllerType=0 controllerNumber=1 scan=973" >
+				<UserParam type="int" name="spectrum_index" value="101"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1974506660865159523]"/>
+		</consensusElement>
+		<consensusElement id="e_91404967432937491" quality="6.153688e-04" charge="1">
+			<centroid rt="270.289258126999982" mz="469.324788102877903" it="2.044854e07"/>
+			<groupedElementList>
+				<element map="0" id="9369934313543338837" rt="270.289258126999982" mz="469.324788102877903" it="2.044854e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="469.324981689453" RT="269.440890895" spectrum_reference="controllerType=0 controllerNumber=1 scan=1079" >
+				<UserParam type="int" name="spectrum_index" value="174"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="469.324798583984" RT="274.307523695" spectrum_reference="controllerType=0 controllerNumber=1 scan=1100" >
+				<UserParam type="int" name="spectrum_index" value="193"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6877638987407071626]"/>
+		</consensusElement>
+		<consensusElement id="e_6599826756038350443" quality="1.448005e-04" charge="1">
+			<centroid rt="271.43140447899998" mz="409.292574416247874" it="4.759436e06"/>
+			<groupedElementList>
+				<element map="0" id="9534018939450161847" rt="271.43140447899998" mz="409.292574416247874" it="4.759436e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.292327880859" RT="270.330242655" spectrum_reference="controllerType=0 controllerNumber=1 scan=1083" >
+				<UserParam type="int" name="spectrum_index" value="177"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[13768350815012474928]"/>
+		</consensusElement>
+		<consensusElement id="e_1736813068406152661" quality="2.906163e-04" charge="1">
+			<centroid rt="316.408887262999997" mz="441.318701567964354" it="9.720844e06"/>
+			<groupedElementList>
+				<element map="0" id="10196540138961233352" rt="316.408887262999997" mz="441.318701567964354" it="9.720844e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.3187" RT="314.314970399" spectrum_reference="controllerType=0 controllerNumber=1 scan=1275" >
+				<UserParam type="int" name="spectrum_index" value="357"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.318603515625" RT="318.868791647" spectrum_reference="controllerType=0 controllerNumber=1 scan=1294" >
+				<UserParam type="int" name="spectrum_index" value="372"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10919198488829345392]"/>
+		</consensusElement>
+		<consensusElement id="e_1355426241509013462" quality="1.519774e-04" charge="2">
+			<centroid rt="350.065520240000012" mz="418.297893154655242" it="3.985371e06"/>
+			<groupedElementList>
+				<element map="0" id="10952348760626667940" rt="350.065520240000012" mz="418.297893154655242" it="3.985371e06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="418.297943115234" RT="347.279732896" spectrum_reference="controllerType=0 controllerNumber=1 scan=1412" >
+				<UserParam type="int" name="spectrum_index" value="463"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="418.297943115234" RT="351.391796832" spectrum_reference="controllerType=0 controllerNumber=1 scan=1429" >
+				<UserParam type="int" name="spectrum_index" value="473"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2490335845531881725]"/>
+		</consensusElement>
+		<consensusElement id="e_17986217909179363247" quality="8.101031e-04" charge="2">
+			<centroid rt="333.216859999000008" mz="418.298128176081264" it="1.90345e07"/>
+			<groupedElementList>
+				<element map="0" id="11190568930224718369" rt="333.216859999000008" mz="418.298128176081264" it="1.90345e07" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="418.298004150391" RT="332.323715039" spectrum_reference="controllerType=0 controllerNumber=1 scan=1350" >
+				<UserParam type="int" name="spectrum_index" value="416"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="418.297943115234" RT="336.903882656" spectrum_reference="controllerType=0 controllerNumber=1 scan=1369" >
+				<UserParam type="int" name="spectrum_index" value="430"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8469990029951104808]"/>
+		</consensusElement>
+		<consensusElement id="e_6163291793026616469" quality="3.895653e-04" charge="1">
+			<centroid rt="319.982463038999981" mz="409.292481335598438" it="1.299398e07"/>
+			<groupedElementList>
+				<element map="0" id="12071298843156911547" rt="319.982463038999981" mz="409.292481335598438" it="1.299398e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.292602539063" RT="316.764192671" spectrum_reference="controllerType=0 controllerNumber=1 scan=1285" >
+				<UserParam type="int" name="spectrum_index" value="365"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.29248046875" RT="321.190981439" spectrum_reference="controllerType=0 controllerNumber=1 scan=1304" >
+				<UserParam type="int" name="spectrum_index" value="381"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17814661367117794664]"/>
+		</consensusElement>
+		<consensusElement id="e_592684914932108338" quality="8.501333e-05" charge="1">
+			<centroid rt="319.982463038999981" mz="449.285022685333445" it="2.866735e06"/>
+			<groupedElementList>
+				<element map="0" id="12341773160978967713" rt="319.982463038999981" mz="449.285022685333445" it="2.866735e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="449.284942626953" RT="319.136789279" spectrum_reference="controllerType=0 controllerNumber=1 scan=1295" >
+				<UserParam type="int" name="spectrum_index" value="373"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+Na]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17814661367117794664]"/>
+		</consensusElement>
+		<consensusElement id="e_15238894568171468616" quality="7.676005e-05" charge="1">
+			<centroid rt="373.332162944000004" mz="427.303066655215162" it="2.536665e06"/>
+			<groupedElementList>
+				<element map="0" id="13282546605635865820" rt="373.332162944000004" mz="427.303066655215162" it="2.536665e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.303039550781" RT="368.656339952" spectrum_reference="controllerType=0 controllerNumber=1 scan=1499" >
+				<UserParam type="int" name="spectrum_index" value="512"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.303070068359" RT="373.687623024" spectrum_reference="controllerType=0 controllerNumber=1 scan=1520" >
+				<UserParam type="int" name="spectrum_index" value="526"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.303070068359" RT="378.278444608" spectrum_reference="controllerType=0 controllerNumber=1 scan=1539" >
+				<UserParam type="int" name="spectrum_index" value="536"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[18220975582002298009]"/>
+		</consensusElement>
+		<consensusElement id="e_4926964840552883562" quality="0.026202" charge="1">
+			<centroid rt="298.998983887000009" mz="409.292349572315629" it="8.759979e08"/>
+			<groupedElementList>
+				<element map="0" id="13619326963810845383" rt="298.998983887000009" mz="409.292349572315629" it="8.759979e08" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.2921" RT="294.236988527" spectrum_reference="controllerType=0 controllerNumber=1 scan=1189" >
+				<UserParam type="int" name="spectrum_index" value="280"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.292266845703" RT="299.036046367" spectrum_reference="controllerType=0 controllerNumber=1 scan=1211" >
+				<UserParam type="int" name="spectrum_index" value="300"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.292388916016" RT="302.404881375" spectrum_reference="controllerType=0 controllerNumber=1 scan=1226" >
+				<UserParam type="int" name="spectrum_index" value="315"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[7932311079824288202]"/>
+		</consensusElement>
+		<consensusElement id="e_15208311337447817230" quality="5.410619e-04" charge="1">
+			<centroid rt="353.758109728000022" mz="207.159058918844693" it="1.87674e07"/>
+			<groupedElementList>
+				<element map="0" id="13845385516040302036" rt="353.758109728000022" mz="207.159058918844693" it="1.87674e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="207.159072875977" RT="353.845015568" spectrum_reference="controllerType=0 controllerNumber=1 scan=1439" >
+				<UserParam type="int" name="spectrum_index" value="481"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15626217915696237033]"/>
+		</consensusElement>
+		<consensusElement id="e_16175867967237526404" quality="7.818006e-05" charge="2">
+			<centroid rt="338.024452880000013" mz="443.316209169735885" it="2.103142e06"/>
+			<groupedElementList>
+				<element map="0" id="14046910416433004468" rt="338.024452880000013" mz="443.316209169735885" it="2.103142e06" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9285983562507218709]"/>
+		</consensusElement>
+		<consensusElement id="e_15596701434536074606" quality="5.755308e-03" charge="1">
+			<centroid rt="280.129423087000021" mz="409.292403053142948" it="1.929299e08"/>
+			<groupedElementList>
+				<element map="0" id="14541481522141480687" rt="280.129423087000021" mz="409.292403053142948" it="1.929299e08" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.293243408203" RT="275.451776303" spectrum_reference="controllerType=0 controllerNumber=1 scan=1105" >
+				<UserParam type="int" name="spectrum_index" value="198"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.2927" RT="276.639743103" spectrum_reference="controllerType=0 controllerNumber=1 scan=1110" >
+				<UserParam type="int" name="spectrum_index" value="203"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="409.292388916016" RT="281.017946447" spectrum_reference="controllerType=0 controllerNumber=1 scan=1130" >
+				<UserParam type="int" name="spectrum_index" value="222"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[529471682639336506]"/>
+		</consensusElement>
+		<consensusElement id="e_9141086188421140793" quality="1.178891e-04" charge="1">
+			<centroid rt="342.721526352000012" mz="308.194528422248595" it="4.064963e06"/>
+			<groupedElementList>
+				<element map="0" id="14989711914861113181" rt="342.721526352000012" mz="308.194528422248595" it="4.064963e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="308.194519042969" RT="342.38830192" spectrum_reference="controllerType=0 controllerNumber=1 scan=1392" >
+				<UserParam type="int" name="spectrum_index" value="450"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="308.194549560547" RT="346.718016032" spectrum_reference="controllerType=0 controllerNumber=1 scan=1410" >
+				<UserParam type="int" name="spectrum_index" value="461"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14805548548153622176]"/>
+		</consensusElement>
+		<consensusElement id="e_2053134394556805035" quality="2.887983e-05" charge="1">
+			<centroid rt="259.326586238999994" mz="469.324990595051588" it="9.706997e05"/>
+			<groupedElementList>
+				<element map="0" id="15266348138576158438" rt="259.326586238999994" mz="469.324990595051588" it="9.706997e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="469.324890136719" RT="259.959379199" spectrum_reference="controllerType=0 controllerNumber=1 scan=1040" >
+				<UserParam type="int" name="spectrum_index" value="146"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3473630921092303557]"/>
+		</consensusElement>
+		<consensusElement id="e_8458158515649851047" quality="4.731938e-05" charge="2">
+			<centroid rt="352.508244848000004" mz="461.316323369529016" it="1.333327e06"/>
+			<groupedElementList>
+				<element map="0" id="15412946083553915887" rt="352.508244848000004" mz="461.316323369529016" it="1.333327e06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="461.316375732422" RT="352.594673984" spectrum_reference="controllerType=0 controllerNumber=1 scan=1434" >
+				<UserParam type="int" name="spectrum_index" value="478"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12138088327080274120]"/>
+		</consensusElement>
+		<consensusElement id="e_14338389286316931164" quality="7.821044e-04" charge="1">
+			<centroid rt="307.798896078999974" mz="441.318633143968953" it="2.520327e07"/>
+			<groupedElementList>
+				<element map="0" id="15625809597318125508" rt="307.798896078999974" mz="441.318633143968953" it="2.520327e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.318389892578" RT="305.025757103" spectrum_reference="controllerType=0 controllerNumber=1 scan=1237" >
+				<UserParam type="int" name="spectrum_index" value="326"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="441.318634033203" RT="309.124034751" spectrum_reference="controllerType=0 controllerNumber=1 scan=1254" >
+				<UserParam type="int" name="spectrum_index" value="341"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15173635883548896251]"/>
+		</consensusElement>
+		<consensusElement id="e_12438635680284554121" quality="0.010957" charge="1">
+			<centroid rt="319.982463038999981" mz="427.303335319054611" it="3.426106e08"/>
+			<groupedElementList>
+				<element map="0" id="15997049391328728630" rt="319.982463038999981" mz="427.303335319054611" it="3.426106e08" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.3031" RT="317.665155775" spectrum_reference="controllerType=0 controllerNumber=1 scan=1289" >
+				<UserParam type="int" name="spectrum_index" value="368"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17814661367117794664]"/>
+		</consensusElement>
+		<consensusElement id="e_5689221426309522628" quality="2.390886e-04" charge="1">
+			<centroid rt="285.544818030999977" mz="501.351209274375321" it="8.033713e06"/>
+			<groupedElementList>
+				<element map="0" id="16424944789331594539" rt="285.544818030999977" mz="501.351209274375321" it="8.033713e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="501.351379394531" RT="284.696762351" spectrum_reference="controllerType=0 controllerNumber=1 scan=1147" >
+				<UserParam type="int" name="spectrum_index" value="239"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="501.351226806641" RT="289.513683743" spectrum_reference="controllerType=0 controllerNumber=1 scan=1168" >
+				<UserParam type="int" name="spectrum_index" value="260"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17777777724916061068]"/>
+		</consensusElement>
+		<consensusElement id="e_8806589003963100988" quality="2.498276e-05" charge="2">
+			<centroid rt="324.780009951000011" mz="448.313979750610145" it="7.166448e05"/>
+			<groupedElementList>
+				<element map="0" id="16884451415184175858" rt="324.780009951000011" mz="448.313979750610145" it="7.166448e05" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="448.31396484375" RT="326.292939951" spectrum_reference="controllerType=0 controllerNumber=1 scan=1325" >
+				<UserParam type="int" name="spectrum_index" value="398"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10955328784388458259]"/>
+		</consensusElement>
+		<consensusElement id="e_4885067143129427445" quality="5.005471e-05" charge="1">
+			<centroid rt="247.019713566999997" mz="413.287484154675326" it="1.692179e06"/>
+			<groupedElementList>
+				<element map="0" id="17304323164086589850" rt="247.019713566999997" mz="413.287484154675326" it="1.692179e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="413.287475585938" RT="244.047961551" spectrum_reference="controllerType=0 controllerNumber=1 scan=975" >
+				<UserParam type="int" name="spectrum_index" value="102"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="413.287506103516" RT="248.314180447" spectrum_reference="controllerType=0 controllerNumber=1 scan=993" >
+				<UserParam type="int" name="spectrum_index" value="114"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[18044944332604630061]"/>
+		</consensusElement>
+		<consensusElement id="e_11064356672239488885" quality="4.468071e-04" charge="1">
+			<centroid rt="271.43140447899998" mz="517.334766586247497" it="1.532946e07"/>
+			<groupedElementList>
+				<element map="0" id="18132980561467193265" rt="271.43140447899998" mz="517.334766586247497" it="1.532946e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="517.335021972656" RT="268.528239519" spectrum_reference="controllerType=0 controllerNumber=1 scan=1075" >
+				<UserParam type="int" name="spectrum_index" value="171"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="517.334838867188" RT="272.614085615" spectrum_reference="controllerType=0 controllerNumber=1 scan=1093" >
+				<UserParam type="int" name="spectrum_index" value="187"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15840540745637220324]"/>
+		</consensusElement>
+		<consensusElement id="e_16039974304193489198" quality="0.201294" charge="1">
+			<centroid rt="280.129423087000021" mz="427.303228374776438" it="5.997969e09"/>
+			<groupedElementList>
+				<element map="0" id="18362955835960499313" rt="280.129423087000021" mz="427.303228374776438" it="5.997969e09" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.303039550781" RT="280.169976863" spectrum_reference="controllerType=0 controllerNumber=1 scan=1126" >
+				<UserParam type="int" name="spectrum_index" value="218"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="427.3035" RT="283.268521599" spectrum_reference="controllerType=0 controllerNumber=1 scan=1141" >
+				<UserParam type="int" name="spectrum_index" value="233"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[529471682639336506]"/>
+		</consensusElement>
+		<consensusElement id="e_3031133816966420428" quality="8.885223e-04" charge="1">
+			<centroid rt="429.116856890153599" mz="617.369144640029731" it="3.742081e05"/>
+			<groupedElementList>
+				<element map="1" id="285474190579803411" rt="429.116856890153599" mz="617.369144640029731" it="3.742081e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3128539651916139900]"/>
+		</consensusElement>
+		<consensusElement id="e_2559472197846868397" quality="1.49068e-03" charge="1">
+			<centroid rt="337.010453380870501" mz="669.385401036245526" it="6.165724e05"/>
+			<groupedElementList>
+				<element map="1" id="775197954886797114" rt="337.010453380870501" mz="669.385401036245526" it="6.165724e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="669.385559082031" RT="337.887716534941" spectrum_reference="controllerType=0 controllerNumber=1 scan=1366" >
+				<UserParam type="int" name="spectrum_index" value="323"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9284997720949632575]"/>
+		</consensusElement>
+		<consensusElement id="e_9989755110457215516" quality="2.524781e-03" charge="1">
+			<centroid rt="501.406761775583618" mz="691.367453096310101" it="1.064413e06"/>
+			<groupedElementList>
+				<element map="1" id="1769915803245682457" rt="501.406761775583618" mz="691.367453096310101" it="1.064413e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="691.367431640625" RT="501.49066960334" spectrum_reference="controllerType=0 controllerNumber=1 scan=2038" >
+				<UserParam type="int" name="spectrum_index" value="746"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+Na]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[18254112384757021286]"/>
+		</consensusElement>
+		<consensusElement id="e_1203675690086634447" quality="8.61421e-03" charge="1">
+			<centroid rt="426.640479209918397" mz="687.396044404506029" it="3.544868e06"/>
+			<groupedElementList>
+				<element map="1" id="3025164753828968980" rt="426.640479209918397" mz="687.396044404506029" it="3.544868e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="687.395690917969" RT="422.744464874571" spectrum_reference="controllerType=0 controllerNumber=1 scan=1716" >
+				<UserParam type="int" name="spectrum_index" value="542"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="687.396057128906" RT="426.99538108369" spectrum_reference="controllerType=0 controllerNumber=1 scan=1734" >
+				<UserParam type="int" name="spectrum_index" value="553"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12350299261294296596]"/>
+		</consensusElement>
+		<consensusElement id="e_17744375517429577995" quality="3.890034e-03" charge="1">
+			<centroid rt="426.640479209918397" mz="669.385521631100232" it="1.580409e06"/>
+			<groupedElementList>
+				<element map="1" id="3952107799615824797" rt="426.640479209918397" mz="669.385521631100232" it="1.580409e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="669.385620117188" RT="427.569776169511" spectrum_reference="controllerType=0 controllerNumber=1 scan=1736" >
+				<UserParam type="int" name="spectrum_index" value="555"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12350299261294296596]"/>
+		</consensusElement>
+		<consensusElement id="e_4372864603489614527" quality="1.434447e-03" charge="1">
+			<centroid rt="434.045244291199936" mz="579.332351009664308" it="5.806919e05"/>
+			<groupedElementList>
+				<element map="1" id="4262704393028394652" rt="434.045244291199936" mz="579.332351009664308" it="5.806919e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="579.33251953125" RT="435.907353339245" spectrum_reference="controllerType=0 controllerNumber=1 scan=1770" >
+				<UserParam type="int" name="spectrum_index" value="578"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-3H-2O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[295342781243050162]"/>
+		</consensusElement>
+		<consensusElement id="e_2807728665479784467" quality="1.586039e-03" charge="1">
+			<centroid rt="337.010453380870501" mz="651.374785169796951" it="6.574663e05"/>
+			<groupedElementList>
+				<element map="1" id="4362338085487094672" rt="337.010453380870501" mz="651.374785169796951" it="6.574663e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="651.374694824219" RT="338.266627042927" spectrum_reference="controllerType=0 controllerNumber=1 scan=1368" >
+				<UserParam type="int" name="spectrum_index" value="325"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9284997720949632575]"/>
+		</consensusElement>
+		<consensusElement id="e_17177959093772874432" quality="1.062132e-03" charge="1">
+			<centroid rt="438.869296770291101" mz="755.353375889169797" it="4.157225e05"/>
+			<groupedElementList>
+				<element map="1" id="4842575918152315189" rt="438.869296770291101" mz="755.353375889169797" it="4.157225e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8046663095167842581]"/>
+		</consensusElement>
+		<consensusElement id="e_14732961732220563015" quality="2.043069e-03" charge="1">
+			<centroid rt="385.659683287803034" mz="669.385502321270565" it="8.606681e05"/>
+			<groupedElementList>
+				<element map="1" id="5430795920659314033" rt="385.659683287803034" mz="669.385502321270565" it="8.606681e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="669.385314941406" RT="384.847824868172" spectrum_reference="controllerType=0 controllerNumber=1 scan=1559" >
+				<UserParam type="int" name="spectrum_index" value="443"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[630401325593541806]"/>
+		</consensusElement>
+		<consensusElement id="e_1173185147095761036" quality="8.420999e-04" charge="1">
+			<centroid rt="438.869296770291101" mz="667.369350437546814" it="3.68284e05"/>
+			<groupedElementList>
+				<element map="1" id="5490196680859258851" rt="438.869296770291101" mz="667.369350437546814" it="3.68284e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17671344589820187900]"/>
+		</consensusElement>
+		<consensusElement id="e_8805039989788635583" quality="1.074924e-03" charge="1">
+			<centroid rt="384.495978564470818" mz="709.378045816671943" it="3.977196e05"/>
+			<groupedElementList>
+				<element map="1" id="5542091088466639085" rt="384.495978564470818" mz="709.378045816671943" it="3.977196e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="709.378295898438" RT="387.755702889118" spectrum_reference="controllerType=0 controllerNumber=1 scan=1571" >
+				<UserParam type="int" name="spectrum_index" value="450"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10114043915238966319]"/>
+		</consensusElement>
+		<consensusElement id="e_16141969859933085129" quality="7.788209e-04" charge="1">
+			<centroid rt="454.58794028545833" mz="633.364258810205115" it="3.248659e05"/>
+			<groupedElementList>
+				<element map="1" id="5591980079125273319" rt="454.58794028545833" mz="633.364258810205115" it="3.248659e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="633.364379882813" RT="454.945087832638" spectrum_reference="controllerType=0 controllerNumber=1 scan=1849" >
+				<UserParam type="int" name="spectrum_index" value="631"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[5297010655701533503]"/>
+		</consensusElement>
+		<consensusElement id="e_14196472798753864036" quality="0.034601" charge="1">
+			<centroid rt="438.869296770291101" mz="617.368995627995332" it="1.376789e07"/>
+			<groupedElementList>
+				<element map="1" id="5735599268711893417" rt="438.869296770291101" mz="617.368995627995332" it="1.376789e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="617.368896484375" RT="440.317985398097" spectrum_reference="controllerType=0 controllerNumber=1 scan=1789" >
+				<UserParam type="int" name="spectrum_index" value="593"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17491188324520250370]"/>
+		</consensusElement>
+		<consensusElement id="e_7232875639322491834" quality="1.279064e-03" charge="1">
+			<centroid rt="352.73897086403116" mz="651.374806862547871" it="5.205967e05"/>
+			<groupedElementList>
+				<element map="1" id="6074148878272246973" rt="352.73897086403116" mz="651.374806862547871" it="5.205967e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M-3H-2O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17753109614695763927]"/>
+		</consensusElement>
+		<consensusElement id="e_3704194288963242710" quality="3.234763e-03" charge="1">
+			<centroid rt="438.869296770291101" mz="651.374960833301998" it="1.39325e06"/>
+			<groupedElementList>
+				<element map="1" id="6113240621043747351" rt="438.869296770291101" mz="651.374960833301998" it="1.39325e06" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M-3H-2O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16454125237102026238]"/>
+		</consensusElement>
+		<consensusElement id="e_9809609354685583284" quality="8.648255e-04" charge="1">
+			<centroid rt="439.999343759068097" mz="685.380172490758923" it="3.617573e05"/>
+			<groupedElementList>
+				<element map="1" id="6488242108431544889" rt="439.999343759068097" mz="685.380172490758923" it="3.617573e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17602651184108116034]"/>
+		</consensusElement>
+		<consensusElement id="e_2785145800254481968" quality="0.035377" charge="1">
+			<centroid rt="396.384892069053876" mz="687.395987122123984" it="1.403924e07"/>
+			<groupedElementList>
+				<element map="1" id="6553294464746806296" rt="396.384892069053876" mz="687.395987122123984" it="1.403924e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="687.396057128906" RT="391.962940617221" spectrum_reference="controllerType=0 controllerNumber=1 scan=1589" >
+				<UserParam type="int" name="spectrum_index" value="460"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="687.396118164063" RT="396.443776669967" spectrum_reference="controllerType=0 controllerNumber=1 scan=1608" >
+				<UserParam type="int" name="spectrum_index" value="473"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9839694259903817413]"/>
+		</consensusElement>
+		<consensusElement id="e_13319285833217662621" quality="6.056734e-04" charge="1">
+			<centroid rt="461.993733128444035" mz="633.364079192483587" it="2.584255e05"/>
+			<groupedElementList>
+				<element map="1" id="6704882173494218471" rt="461.993733128444035" mz="633.364079192483587" it="2.584255e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="633.363952636719" RT="462.353023938463" spectrum_reference="controllerType=0 controllerNumber=1 scan=1879" >
+				<UserParam type="int" name="spectrum_index" value="651"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17684838690156521696]"/>
+		</consensusElement>
+		<consensusElement id="e_3621639749957064087" quality="2.029491e-03" charge="1">
+			<centroid rt="358.849872261990015" mz="651.374670097813237" it="8.525544e05"/>
+			<groupedElementList>
+				<element map="1" id="6899813925880944354" rt="358.849872261990015" mz="651.374670097813237" it="8.525544e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="651.374633789063" RT="355.833593658569" spectrum_reference="controllerType=0 controllerNumber=1 scan=1440" >
+				<UserParam type="int" name="spectrum_index" value="368"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="651.374694824219" RT="360.140815168258" spectrum_reference="controllerType=0 controllerNumber=1 scan=1458" >
+				<UserParam type="int" name="spectrum_index" value="381"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17372000362525628259]"/>
+		</consensusElement>
+		<consensusElement id="e_133601539952066476" quality="5.177198e-03" charge="1">
+			<centroid rt="396.384892069053876" mz="403.232951123850455" it="2.310259e06"/>
+			<groupedElementList>
+				<element map="1" id="7288196958277786073" rt="396.384892069053876" mz="403.232951123850455" it="2.310259e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="403.233001708984" RT="397.015400912533" spectrum_reference="controllerType=0 controllerNumber=1 scan=1610" >
+				<UserParam type="int" name="spectrum_index" value="475"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1876925362180353707]"/>
+		</consensusElement>
+		<consensusElement id="e_14727944187368343333" quality="1.265407e-03" charge="1">
+			<centroid rt="416.967079307934569" mz="709.377900191378444" it="5.251747e05"/>
+			<groupedElementList>
+				<element map="1" id="7459656649635128482" rt="416.967079307934569" mz="709.377900191378444" it="5.251747e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="709.377746582031" RT="418.809872338844" spectrum_reference="controllerType=0 controllerNumber=1 scan=1700" >
+				<UserParam type="int" name="spectrum_index" value="534"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+Na]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6845526688881046187]"/>
+		</consensusElement>
+		<consensusElement id="e_6966042145171474030" quality="2.916779e-03" charge="1">
+			<centroid rt="410.950777853714499" mz="651.374781126079824" it="1.213572e06"/>
+			<groupedElementList>
+				<element map="1" id="7610181272314690963" rt="410.950777853714499" mz="651.374781126079824" it="1.213572e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="651.374633789063" RT="411.306353964944" spectrum_reference="controllerType=0 controllerNumber=1 scan=1669" >
+				<UserParam type="int" name="spectrum_index" value="514"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4616250056576049662]"/>
+		</consensusElement>
+		<consensusElement id="e_778354060646359568" quality="0.071067" charge="1">
+			<centroid rt="438.869296770291101" mz="693.382761852628391" it="2.788267e07"/>
+			<groupedElementList>
+				<element map="1" id="7677692659099491508" rt="438.869296770291101" mz="693.382761852628391" it="2.788267e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="693.382568359375" RT="440.049472181264" spectrum_reference="controllerType=0 controllerNumber=1 scan=1788" >
+				<UserParam type="int" name="spectrum_index" value="592"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[13779611405967603579]"/>
+		</consensusElement>
+		<consensusElement id="e_15972503202601488077" quality="0.070096" charge="1">
+			<centroid rt="438.869296770291101" mz="635.37966361303404" it="2.784853e07"/>
+			<groupedElementList>
+				<element map="1" id="7795903386849251396" rt="438.869296770291101" mz="635.37966361303404" it="2.784853e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="635.379699707031" RT="436.820344413404" spectrum_reference="controllerType=0 controllerNumber=1 scan=1774" >
+				<UserParam type="int" name="spectrum_index" value="581"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="635.379516601563" RT="441.226954311444" spectrum_reference="controllerType=0 controllerNumber=1 scan=1793" >
+				<UserParam type="int" name="spectrum_index" value="597"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17541876783729616894]"/>
+		</consensusElement>
+		<consensusElement id="e_16167224144448114394" quality="3.14276e-03" charge="1">
+			<centroid rt="494.047997498936525" mz="669.38557879145776" it="1.327421e06"/>
+			<groupedElementList>
+				<element map="1" id="8098818082430785689" rt="494.047997498936525" mz="669.38557879145776" it="1.327421e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="669.385559082031" RT="493.758290519578" spectrum_reference="controllerType=0 controllerNumber=1 scan=2006" >
+				<UserParam type="int" name="spectrum_index" value="727"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11515919562936418784]"/>
+		</consensusElement>
+		<consensusElement id="e_3738028919672948787" quality="1.785739e-03" charge="1">
+			<centroid rt="352.73897086403116" mz="687.395798265181497" it="7.517256e05"/>
+			<groupedElementList>
+				<element map="1" id="8284123325987903950" rt="352.73897086403116" mz="687.395798265181497" it="7.517256e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17753109614695763927]"/>
+		</consensusElement>
+		<consensusElement id="e_4385654309777067226" quality="1.157045e-03" charge="1">
+			<centroid rt="438.869296770291101" mz="633.364238938177778" it="4.749519e05"/>
+			<groupedElementList>
+				<element map="1" id="8381976526633977624" rt="438.869296770291101" mz="633.364238938177778" it="4.749519e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14201252384188660091]"/>
+		</consensusElement>
+		<consensusElement id="e_9860047337435418310" quality="2.872852e-03" charge="1">
+			<centroid rt="396.384892069053876" mz="615.353502582470469" it="1.191484e06"/>
+			<groupedElementList>
+				<element map="1" id="8529147031673629561" rt="396.384892069053876" mz="615.353502582470469" it="1.191484e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="615.353515625" RT="398.478257002576" spectrum_reference="controllerType=0 controllerNumber=1 scan=1616" >
+				<UserParam type="int" name="spectrum_index" value="480"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16475040787894862967]"/>
+		</consensusElement>
+		<consensusElement id="e_14426696671930195380" quality="1.875277e-03" charge="1">
+			<centroid rt="501.406761775583618" mz="651.374958418438041" it="7.590384e05"/>
+			<groupedElementList>
+				<element map="1" id="9085888346180200163" rt="501.406761775583618" mz="651.374958418438041" it="7.590384e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="651.375122070313" RT="501.116666214858" spectrum_reference="controllerType=0 controllerNumber=1 scan=2036" >
+				<UserParam type="int" name="spectrum_index" value="744"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="651.374877929688" RT="506.020195879213" spectrum_reference="controllerType=0 controllerNumber=1 scan=2056" >
+				<UserParam type="int" name="spectrum_index" value="755"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[18254112384757021286]"/>
+		</consensusElement>
+		<consensusElement id="e_2615925114169515079" quality="1.297486e-03" charge="1">
+			<centroid rt="439.999343759068097" mz="771.325455521739173" it="5.200204e05"/>
+			<groupedElementList>
+				<element map="1" id="9205761151581904467" rt="439.999343759068097" mz="771.325455521739173" it="5.200204e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16050247899934684132]"/>
+		</consensusElement>
+		<consensusElement id="e_16111345662545045647" quality="5.148567e-03" charge="1">
+			<centroid rt="426.640479209918397" mz="709.378015513492187" it="2.039157e06"/>
+			<groupedElementList>
+				<element map="1" id="10254097748055910864" rt="426.640479209918397" mz="709.378015513492187" it="2.039157e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="709.378112792969" RT="427.301029319994" spectrum_reference="controllerType=0 controllerNumber=1 scan=1735" >
+				<UserParam type="int" name="spectrum_index" value="554"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+Na]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12350299261294296596]"/>
+		</consensusElement>
+		<consensusElement id="e_12902110952026732810" quality="2.268281e-03" charge="1">
+			<centroid rt="416.967079307934569" mz="687.395924015666878" it="9.49622e05"/>
+			<groupedElementList>
+				<element map="1" id="10471825048709956122" rt="416.967079307934569" mz="687.395924015666878" it="9.49622e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="687.396118164063" RT="417.605868316756" spectrum_reference="controllerType=0 controllerNumber=1 scan=1695" >
+				<UserParam type="int" name="spectrum_index" value="531"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6845526688881046187]"/>
+		</consensusElement>
+		<consensusElement id="e_15086634966326488553" quality="2.366106e-03" charge="1">
+			<centroid rt="375.864638015569142" mz="727.388621234975403" it="1.021633e06"/>
+			<groupedElementList>
+				<element map="1" id="10834783882252656829" rt="375.864638015569142" mz="727.388621234975403" it="1.021633e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="727.388488769531" RT="376.784797088512" spectrum_reference="controllerType=0 controllerNumber=1 scan=1526" >
+				<UserParam type="int" name="spectrum_index" value="422"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[13070217126132038936]"/>
+		</consensusElement>
+		<consensusElement id="e_16707790862044485955" quality="1.113408e-03" charge="1">
+			<centroid rt="438.869296770291101" mz="724.312559164657046" it="4.684971e05"/>
+			<groupedElementList>
+				<element map="1" id="10962680202123736947" rt="438.869296770291101" mz="724.312559164657046" it="4.684971e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+4H+N]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1395181875029286967]"/>
+		</consensusElement>
+		<consensusElement id="e_18270706247738798205" quality="1.47135e-03" charge="1">
+			<centroid rt="373.405041015469976" mz="741.404400266495486" it="6.235882e05"/>
+			<groupedElementList>
+				<element map="1" id="11022547606054430434" rt="373.405041015469976" mz="741.404400266495486" it="6.235882e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="741.404479980469" RT="374.321449836824" spectrum_reference="controllerType=0 controllerNumber=1 scan=1516" >
+				<UserParam type="int" name="spectrum_index" value="415"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11117103079466924234]"/>
+		</consensusElement>
+		<consensusElement id="e_4644073658112353005" quality="3.285501e-03" charge="1">
+			<centroid rt="375.864638015569142" mz="651.374854338615705" it="1.367585e06"/>
+			<groupedElementList>
+				<element map="1" id="11287849828049489474" rt="375.864638015569142" mz="651.374854338615705" it="1.367585e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="651.374633789063" RT="375.013042669093" spectrum_reference="controllerType=0 controllerNumber=1 scan=1519" >
+				<UserParam type="int" name="spectrum_index" value="417"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="651.375061035156" RT="379.939978990389" spectrum_reference="controllerType=0 controllerNumber=1 scan=1539" >
+				<UserParam type="int" name="spectrum_index" value="431"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8827204467325577084]"/>
+		</consensusElement>
+		<consensusElement id="e_10642918971231253" quality="9.988968e-03" charge="1">
+			<centroid rt="438.869296770291101" mz="581.347893153353311" it="4.070358e06"/>
+			<groupedElementList>
+				<element map="1" id="11396068732569875586" rt="438.869296770291101" mz="581.347893153353311" it="4.070358e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="581.347839355469" RT="440.61335966036" spectrum_reference="controllerType=0 controllerNumber=1 scan=1790" >
+				<UserParam type="int" name="spectrum_index" value="594"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-3H-2O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17491188324520250370]"/>
+		</consensusElement>
+		<consensusElement id="e_1424239726215898577" quality="4.046787e-03" charge="1">
+			<centroid rt="434.045244291199936" mz="691.367317059545485" it="1.730371e06"/>
+			<groupedElementList>
+				<element map="1" id="11507373925987722033" rt="434.045244291199936" mz="691.367317059545485" it="1.730371e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="691.367553710938" RT="435.340956383646" spectrum_reference="controllerType=0 controllerNumber=1 scan=1768" >
+				<UserParam type="int" name="spectrum_index" value="577"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[7538879689901522298]"/>
+		</consensusElement>
+		<consensusElement id="e_9117341626416360659" quality="0.026512" charge="1">
+			<centroid rt="396.384892069053876" mz="709.37796698367265" it="1.055213e07"/>
+			<groupedElementList>
+				<element map="1" id="12086965397307367481" rt="396.384892069053876" mz="709.37796698367265" it="1.055213e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="709.377990722656" RT="394.799012429073" spectrum_reference="controllerType=0 controllerNumber=1 scan=1601" >
+				<UserParam type="int" name="spectrum_index" value="468"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="709.3781" RT="397.23919900946" spectrum_reference="controllerType=0 controllerNumber=1 scan=1611" >
+				<UserParam type="int" name="spectrum_index" value="476"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="709.378295898438" RT="401.236258375062" spectrum_reference="controllerType=0 controllerNumber=1 scan=1628" >
+				<UserParam type="int" name="spectrum_index" value="490"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+Na]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9839694259903817413]"/>
+		</consensusElement>
+		<consensusElement id="e_10319985087389109204" quality="2.762107e-03" charge="1">
+			<centroid rt="358.849872261990015" mz="669.385366969100119" it="1.174278e06"/>
+			<groupedElementList>
+				<element map="1" id="12302105094261207322" rt="358.849872261990015" mz="669.385366969100119" it="1.174278e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="669.385375976563" RT="359.763801199459" spectrum_reference="controllerType=0 controllerNumber=1 scan=1456" >
+				<UserParam type="int" name="spectrum_index" value="379"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17372000362525628259]"/>
+		</consensusElement>
+		<consensusElement id="e_8725530354349000243" quality="3.419722e-03" charge="1">
+			<centroid rt="375.864638015569142" mz="687.395983344667457" it="1.458801e06"/>
+			<groupedElementList>
+				<element map="1" id="12627313433988952741" rt="375.864638015569142" mz="687.395983344667457" it="1.458801e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="687.39599609375" RT="372.549560384057" spectrum_reference="controllerType=0 controllerNumber=1 scan=1509" >
+				<UserParam type="int" name="spectrum_index" value="413"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="687.396179199219" RT="377.207117965505" spectrum_reference="controllerType=0 controllerNumber=1 scan=1528" >
+				<UserParam type="int" name="spectrum_index" value="424"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10980879607388154733]"/>
+		</consensusElement>
+		<consensusElement id="e_78981834364318240" quality="2.785855e-03" charge="1">
+			<centroid rt="331.066029321453186" mz="737.396463224546096" it="1.163941e06"/>
+			<groupedElementList>
+				<element map="1" id="12817985917011825884" rt="331.066029321453186" mz="737.396463224546096" it="1.163941e06" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6788403392865155474]"/>
+		</consensusElement>
+		<consensusElement id="e_11610946103473807744" quality="3.617731e-03" charge="1">
+			<centroid rt="375.864638015569142" mz="669.385474920675961" it="1.543885e06"/>
+			<groupedElementList>
+				<element map="1" id="12909062343052602301" rt="375.864638015569142" mz="669.385474920675961" it="1.543885e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="669.38525390625" RT="375.575156721986" spectrum_reference="controllerType=0 controllerNumber=1 scan=1521" >
+				<UserParam type="int" name="spectrum_index" value="418"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="669.385620117188" RT="379.671339039601" spectrum_reference="controllerType=0 controllerNumber=1 scan=1538" >
+				<UserParam type="int" name="spectrum_index" value="430"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8827204467325577084]"/>
+		</consensusElement>
+		<consensusElement id="e_13451103180350797683" quality="1.463539e-03" charge="1">
+			<centroid rt="438.869296770291101" mz="709.377355136013421" it="6.381269e05"/>
+			<groupedElementList>
+				<element map="1" id="13023368189315042218" rt="438.869296770291101" mz="709.377355136013421" it="6.381269e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+Na]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16454125237102026238]"/>
+		</consensusElement>
+		<consensusElement id="e_2703705129938424780" quality="2.440474e-03" charge="1">
+			<centroid rt="426.640479209918397" mz="651.374873707206802" it="1.035238e06"/>
+			<groupedElementList>
+				<element map="1" id="13722075099981445568" rt="426.640479209918397" mz="651.374873707206802" it="1.035238e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="651.375" RT="427.950079196867" spectrum_reference="controllerType=0 controllerNumber=1 scan=1738" >
+				<UserParam type="int" name="spectrum_index" value="557"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-3H-2O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12350299261294296596]"/>
+		</consensusElement>
+		<consensusElement id="e_5794237511298164471" quality="4.000937e-03" charge="1">
+			<centroid rt="501.406761775583618" mz="669.385601852597233" it="1.581108e06"/>
+			<groupedElementList>
+				<element map="1" id="13977590932372323696" rt="501.406761775583618" mz="669.385601852597233" it="1.581108e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="669.385559082031" RT="499.642410253369" spectrum_reference="controllerType=0 controllerNumber=1 scan=2030" >
+				<UserParam type="int" name="spectrum_index" value="741"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="669.385620117188" RT="503.949161420467" spectrum_reference="controllerType=0 controllerNumber=1 scan=2048" >
+				<UserParam type="int" name="spectrum_index" value="753"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[18254112384757021286]"/>
+		</consensusElement>
+		<consensusElement id="e_17949750560428870138" quality="1.927407e-03" charge="1">
+			<centroid rt="375.864638015569142" mz="633.364234476017259" it="7.782676e05"/>
+			<groupedElementList>
+				<element map="1" id="14092341043323568419" rt="375.864638015569142" mz="633.364234476017259" it="7.782676e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="633.364318847656" RT="377.774137808078" spectrum_reference="controllerType=0 controllerNumber=1 scan=1530" >
+				<UserParam type="int" name="spectrum_index" value="425"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-3H-2O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8827204467325577084]"/>
+		</consensusElement>
+		<consensusElement id="e_13889620120672571413" quality="0.02888" charge="1">
+			<centroid rt="438.869296770291101" mz="599.358466257417604" it="1.171156e07"/>
+			<groupedElementList>
+				<element map="1" id="14298840365193769493" rt="438.869296770291101" mz="599.358466257417604" it="1.171156e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="599.3583" RT="441.495571671223" spectrum_reference="controllerType=0 controllerNumber=1 scan=1794" >
+				<UserParam type="int" name="spectrum_index" value="598"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17491188324520250370]"/>
+		</consensusElement>
+		<consensusElement id="e_17186425784945520746" quality="0.024842" charge="1">
+			<centroid rt="396.384892069053876" mz="669.385502856176117" it="9.934746e06"/>
+			<groupedElementList>
+				<element map="1" id="14665948954643160277" rt="396.384892069053876" mz="669.385502856176117" it="9.934746e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="669.385314941406" RT="393.435407771396" spectrum_reference="controllerType=0 controllerNumber=1 scan=1595" >
+				<UserParam type="int" name="spectrum_index" value="463"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="669.385498046875" RT="397.643287885236" spectrum_reference="controllerType=0 controllerNumber=1 scan=1613" >
+				<UserParam type="int" name="spectrum_index" value="478"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9839694259903817413]"/>
+		</consensusElement>
+		<consensusElement id="e_6891019097417732374" quality="0.165761" charge="1">
+			<centroid rt="438.869296770291101" mz="653.390196415072296" it="6.315822e07"/>
+			<groupedElementList>
+				<element map="1" id="14756720596007267566" rt="438.869296770291101" mz="653.390196415072296" it="6.315822e07" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="653.390258789063" RT="437.698682274616" spectrum_reference="controllerType=0 controllerNumber=1 scan=1778" >
+				<UserParam type="int" name="spectrum_index" value="585"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="653.390197753906" RT="442.468004334817" spectrum_reference="controllerType=0 controllerNumber=1 scan=1798" >
+				<UserParam type="int" name="spectrum_index" value="601"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11720149995174576116]"/>
+		</consensusElement>
+		<consensusElement id="e_5799226896623465080" quality="8.772107e-04" charge="1">
+			<centroid rt="438.869296770291101" mz="707.362290614614381" it="3.512118e05"/>
+			<groupedElementList>
+				<element map="1" id="14807597476711597075" rt="438.869296770291101" mz="707.362290614614381" it="3.512118e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1395181875029286967]"/>
+		</consensusElement>
+		<consensusElement id="e_15857131863640430167" quality="2.402893e-03" charge="1">
+			<centroid rt="434.045244291199936" mz="597.342943821151152" it="1.003383e06"/>
+			<groupedElementList>
+				<element map="1" id="14939500862185430151" rt="434.045244291199936" mz="597.342943821151152" it="1.003383e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="597.342895507813" RT="432.504488347937" spectrum_reference="controllerType=0 controllerNumber=1 scan=1756" >
+				<UserParam type="int" name="spectrum_index" value="569"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="597.3427734375" RT="437.117873601515" spectrum_reference="controllerType=0 controllerNumber=1 scan=1775" >
+				<UserParam type="int" name="spectrum_index" value="582"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[295342781243050162]"/>
+		</consensusElement>
+		<consensusElement id="e_678592371334341854" quality="1.042521e-03" charge="1">
+			<centroid rt="427.85963305062478" mz="679.367381214101215" it="4.341041e05"/>
+			<groupedElementList>
+				<element map="1" id="15196680515284174455" rt="427.85963305062478" mz="679.367381214101215" it="4.341041e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="679.367370605469" RT="430.982407974733" spectrum_reference="controllerType=0 controllerNumber=1 scan=1750" >
+				<UserParam type="int" name="spectrum_index" value="565"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12605312723341327753]"/>
+		</consensusElement>
+		<consensusElement id="e_16000618993421634447" quality="3.05512e-03" charge="1">
+			<centroid rt="429.116856890153599" mz="693.382901722563474" it="1.289598e06"/>
+			<groupedElementList>
+				<element map="1" id="15409622553498579775" rt="429.116856890153599" mz="693.382901722563474" it="1.289598e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="693.382629394531" RT="429.994437039331" spectrum_reference="controllerType=0 controllerNumber=1 scan=1746" >
+				<UserParam type="int" name="spectrum_index" value="561"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[18138442213954710145]"/>
+		</consensusElement>
+		<consensusElement id="e_10706225476220618976" quality="4.308654e-03" charge="1">
+			<centroid rt="439.999343759068097" mz="672.404288182604773" it="1.830204e06"/>
+			<groupedElementList>
+				<element map="1" id="15849203393453584850" rt="439.999343759068097" mz="672.404288182604773" it="1.830204e06" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8374257275331137348]"/>
+		</consensusElement>
+		<consensusElement id="e_9720745049872827761" quality="9.991996e-04" charge="1">
+			<centroid rt="438.869296770291101" mz="687.395858594819742" it="4.23967e05"/>
+			<groupedElementList>
+				<element map="1" id="16077820328294399172" rt="438.869296770291101" mz="687.395858594819742" it="4.23967e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16454125237102026238]"/>
+		</consensusElement>
+		<consensusElement id="e_6124494292724703961" quality="3.140358e-03" charge="1">
+			<centroid rt="325.030685954332455" mz="753.391255096317991" it="1.296664e06"/>
+			<groupedElementList>
+				<element map="1" id="16606504881827983590" rt="325.030685954332455" mz="753.391255096317991" it="1.296664e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="753.391174316406" RT="325.681890629879" spectrum_reference="controllerType=0 controllerNumber=1 scan=1315" >
+				<UserParam type="int" name="spectrum_index" value="289"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6977033302803296137]"/>
+		</consensusElement>
+		<consensusElement id="e_16556664978076049569" quality="2.389552e-03" charge="1">
+			<centroid rt="434.045244291199936" mz="615.353512356112219" it="9.867863e05"/>
+			<groupedElementList>
+				<element map="1" id="16852208409589016857" rt="434.045244291199936" mz="615.353512356112219" it="9.867863e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="615.353637695313" RT="436.175831644158" spectrum_reference="controllerType=0 controllerNumber=1 scan=1771" >
+				<UserParam type="int" name="spectrum_index" value="579"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[295342781243050162]"/>
+		</consensusElement>
+		<consensusElement id="e_13487753423757893372" quality="3.03901e-03" charge="1">
+			<centroid rt="438.869296770291101" mz="669.385307450081996" it="1.204008e06"/>
+			<groupedElementList>
+				<element map="1" id="17180273217688674844" rt="438.869296770291101" mz="669.385307450081996" it="1.204008e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="669.38525390625" RT="437.342297132913" spectrum_reference="controllerType=0 controllerNumber=1 scan=1776" >
+				<UserParam type="int" name="spectrum_index" value="583"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16454125237102026238]"/>
+		</consensusElement>
+		<consensusElement id="e_7275895866537345558" quality="1.89558e-03" charge="1">
+			<centroid rt="352.73897086403116" mz="727.388595891864156" it="7.717165e05"/>
+			<groupedElementList>
+				<element map="1" id="17425821012993086815" rt="352.73897086403116" mz="727.388595891864156" it="7.717165e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="727.388488769531" RT="354.84488172207" spectrum_reference="controllerType=0 controllerNumber=1 scan=1436" >
+				<UserParam type="int" name="spectrum_index" value="365"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[5748217470063721189]"/>
+		</consensusElement>
+		<consensusElement id="e_6597393915048184020" quality="1.565285e-03" charge="1">
+			<centroid rt="492.83972384035161" mz="691.367429111042725" it="6.695803e05"/>
+			<groupedElementList>
+				<element map="1" id="17474952455838108331" rt="492.83972384035161" mz="691.367429111042725" it="6.695803e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="691.367431640625" RT="494.135178363258" spectrum_reference="controllerType=0 controllerNumber=1 scan=2008" >
+				<UserParam type="int" name="spectrum_index" value="729"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15249471511573655723]"/>
+		</consensusElement>
+		<consensusElement id="e_5006237482953491327" quality="0.023374" charge="1">
+			<centroid rt="396.384892069053876" mz="651.374876257395044" it="9.109984e06"/>
+			<groupedElementList>
+				<element map="1" id="17551951949204202473" rt="396.384892069053876" mz="651.374876257395044" it="9.109984e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="651.374877929688" RT="394.574706435007" spectrum_reference="controllerType=0 controllerNumber=1 scan=1600" >
+				<UserParam type="int" name="spectrum_index" value="467"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="651.375" RT="398.829484905461" spectrum_reference="controllerType=0 controllerNumber=1 scan=1618" >
+				<UserParam type="int" name="spectrum_index" value="482"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M-3H-2O]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9839694259903817413]"/>
+		</consensusElement>
+		<consensusElement id="e_7612874354628457540" quality="1.311748e-03" charge="1">
+			<centroid rt="385.659683287803034" mz="687.395975094794267" it="5.151064e05"/>
+			<groupedElementList>
+				<element map="1" id="17797392528938918494" rt="385.659683287803034" mz="687.395975094794267" it="5.151064e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="687.396240234375" RT="386.928068030771" spectrum_reference="controllerType=0 controllerNumber=1 scan=1568" >
+				<UserParam type="int" name="spectrum_index" value="449"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[630401325593541806]"/>
+		</consensusElement>
+		<consensusElement id="e_3714620029435037753" quality="1.079429e-03" charge="1">
+			<centroid rt="479.463306398127543" mz="685.38044858694218" it="4.389381e05"/>
+			<groupedElementList>
+				<element map="1" id="17918464943108404139" rt="479.463306398127543" mz="685.38044858694218" it="4.389381e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="685.380493164063" RT="480.333307424212" spectrum_reference="controllerType=0 controllerNumber=1 scan=1951" >
+				<UserParam type="int" name="spectrum_index" value="693"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6202859561500682503]"/>
+		</consensusElement>
+		<consensusElement id="e_9610299982428003119" quality="3.649919e-03" charge="1">
+			<centroid rt="431.584687078113859" mz="653.3904077447379" it="1.463147e06"/>
+			<groupedElementList>
+				<element map="1" id="18052036453610678104" rt="431.584687078113859" mz="653.3904077447379" it="1.463147e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="653.390441894531" RT="432.883139812361" spectrum_reference="controllerType=0 controllerNumber=1 scan=1758" >
+				<UserParam type="int" name="spectrum_index" value="571"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10153707740975536483]"/>
+		</consensusElement>
+		<consensusElement id="e_15094976610774056807" quality="1.735244e-03" charge="1">
+			<centroid rt="429.116856890153599" mz="635.379823148663377" it="6.975729e05"/>
+			<groupedElementList>
+				<element map="1" id="18088470029147856741" rt="429.116856890153599" mz="635.379823148663377" it="6.975729e05" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="635.379821777344" RT="430.415887890127" spectrum_reference="controllerType=0 controllerNumber=1 scan=1748" >
+				<UserParam type="int" name="spectrum_index" value="563"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3128539651916139900]"/>
+		</consensusElement>
+		<consensusElement id="e_17303232197386827572" quality="8.770891e-03" charge="1">
+			<centroid rt="396.384892069053876" mz="633.364218641984849" it="3.485948e06"/>
+			<groupedElementList>
+				<element map="1" id="18227474249950575051" rt="396.384892069053876" mz="633.364218641984849" it="3.485948e06" charge="1"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="633.364135742188" RT="395.475685918075" spectrum_reference="controllerType=0 controllerNumber=1 scan=1604" >
+				<UserParam type="int" name="spectrum_index" value="470"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" MZ="633.363891601563" RT="400.040755221253" spectrum_reference="controllerType=0 controllerNumber=1 scan=1623" >
+				<UserParam type="int" name="spectrum_index" value="486"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16475040787894862967]"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

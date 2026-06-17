@@ -1,0 +1,341 @@
+% !TeX document-id = {db57674a-e7c5-4596-bf14-fbd061264f8c}
+% !TEX TS-program = xelatexmk
+
+\documentclass[12pt]{myNotes}
+
+% Only needed for tex4ht (html)
+\ifdefined\HCode %This driver to tex4ht only. For tikz
+   \def\pgfsysdriver{pgfsys-dvisvgm4ht.def}
+   %\def\pgfsysdriver{pgfsys-tex4ht-updated.def}
+   % for some private definitions like filenames, folders, urls
+   \usepackage{defs-private}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[english]{babel}
+\hyphenation{TOPPView}
+\hyphenation{KNIME}
+\hyphenation{OpenMS}
+\hyphenation{MSConvert}
+\hyphenation{MSConvertGUI}
+\hyphenation{msconvert}
+
+% to comment lager blocks 
+\usepackage{comment}
+\usepackage{defsnohtml-private}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% We use UBUNTU font for a more professional look.
+% UBUNTU fonts can be downloaded from: http://font.ubuntu.com.
+% but are also included in this repository at ./fonts.
+% 
+\usepackage{fontspec}
+
+% If (for some reason), this command does not work, manually install the fonts system-wide and use
+% \setmainfont {Ubuntu}
+\setmainfont[
+  Ligatures=TeX,
+  Path=./fonts/,
+  Extension=.ttf,
+  UprightFont=*-R,
+  BoldFont=*-B,
+  BoldItalicFont=*-BI,
+  FontFace={l}{n}{*-L},
+  FontFace={l}{it}{*-LI},
+  FontFace={m}{n}{*-M},
+  FontFace={m}{it}{*-MI},
+  FontFace={k}{n}{*-B},
+  FontFace={k}{it}{*-BI}
+] {Ubuntu}
+
+% If (for some reason), this command does not work, manually install the fonts system-wide and use
+% \setmainfont {UbuntuMono}
+\setmonofont[
+  Ligatures=TeX,
+  Path=./fonts/,
+  Extension=.ttf,
+  UprightFont=*-R,
+  BoldFont=*-B,
+  BoldItalicFont=*-BI
+] {UbuntuMono}
+
+% math fonts
+%\usepackage[math-style=TeX]{unicode-math}
+%\setmathfont{Cambria Math}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{amsmath,amssymb,amscd,bm,dsfont,wasysym}
+\usepackage{graphicx}
+\graphicspath{{./graphics/}}
+\usepackage[xetex,
+      unicode,
+      colorlinks=false,
+      urlcolor=black,       % \href{...}{...} external (URL)
+      filecolor=black,     % \href{...} local file
+      linkcolor=black,       % \ref{...} and \pageref{...}
+      citecolor=black,
+      pdftitle={OpenMS Tutorial Handouts},
+      pdfauthor={Johannes Veit},
+      pdfsubject={},
+      pdfkeywords={},
+      pagebackref,
+      pdfpagemode=UseNone,
+      bookmarksopen=true]{hyperref}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newfontfamily{\menlo}{Menlo-Regular.ttf}
+
+% We try to use minted now
+% \usepackage{listings}
+% \usepackage{color}
+% \usepackage{textcomp}
+% \definecolor{listinggray}{gray}{0.9}
+% \definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
+% \lstset{
+%     backgroundcolor=\color{lbcolor},
+%     tabsize=4,
+%     rulecolor=,
+%     language=python,
+%     basicstyle=\menlo\scriptsize,
+%     upquote=true,
+%     aboveskip={1.5\baselineskip},
+%     columns=fixed,
+%     showstringspaces=false,
+%     extendedchars=true,
+%     breaklines=true,
+%     prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+%     frame=single,
+%     showtabs=false,
+%     showspaces=false,
+%     showstringspaces=false,
+%     identifierstyle=\menlo,
+%     keywordstyle=\color[rgb]{0,0,1},
+%     commentstyle=\color[rgb]{0.133,0.545,0.133},
+%     stringstyle=\color[rgb]{0.627,0.126,0.941},
+% }
+\usepackage{xcolor}
+\definecolor{lbcolor}{rgb}{0.9, 0.9, 0.98}
+
+\usepackage[newfloat]{minted}
+\newenvironment{code}{\captionsetup{type=listing}}{}
+\SetupFloatingEnvironment{listing}{name=Source Code}
+
+\usemintedstyle{tango}
+\setminted{bgcolor=lbcolor, breaklines=true, baselinestretch=0.8, showspaces=false, fontsize=\footnotesize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% only use those two in combination
+\usepackage[textsize=scriptsize]{todonotes}
+%\usepackage[firstpage]{draftwatermark}
+%\SetWatermarkScale{4}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% better key and menu tips
+\usepackage{menukeys}
+\renewmenumacro{\directory}[/]{pathswithfolder}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% easy referencing
+\usepackage[noabbrev,capitalise]{cleveref}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% subfigures
+\usepackage[font=footnotesize,
+            format=plain,
+            labelfont={bf,sf,footnotesize},
+            textfont=footnotesize]{subcaption}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Nicer tables
+\usepackage{booktabs}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% boxes with notes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{tikz}
+\usetikzlibrary[shadows]
+\usepackage[framemethod=TikZ]{mdframed}
+\usetikzlibrary{calc}
+
+%% Add an unused type option to the mdframed environment, that we can use to put in the div class
+%% when converting to html (see my.cfg and mdframed.4ht)
+\makeatletter
+\mdf@dolist{\mdf@do@stringoption}{%
+  {type=={}}%
+}
+
+\global\mdfdefinestyle{note}{topline=false,bottomline=false,rightline=false,leftmargin=1cm,type=note}
+\newcommand{\note}[1]{ \begin{mdframed}[linewidth=1,style=note] \textbf{Note:}~#1 \end{mdframed} }
+
+\global\mdfdefinestyle{question}{ leftmargin=0pt,
+  rightmargin=20pt,
+  innertopmargin=30pt,
+  innerbottommargin=10pt,
+  innerleftmargin=45pt,
+  middlelinewidth=0pt,
+  linecolor=black,
+  topline=false,
+  bottomline=false,
+  rightline=false,
+  font=\normalfont\normalsize,
+  frametitlefont=\normalfont\normalsize\bfseries,
+  frametitleaboveskip=1em,
+  type=question
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\ifdefined\HCode
+\newmdenv[
+  style=question,
+  frametitle=Question,
+  linewidth=1
+]{question}
+\else
+\newmdenv[
+  style=question,
+  singleextra={
+    \node[inner sep=0pt,anchor=north west,xshift=10pt,yshift=-30pt] at (P-|O) {\includegraphics[width=1.3cm]{assets/question23}};
+    \node[inner sep=0pt,anchor=north west,yshift=-.8\baselineskip,font=\bfseries,xshift=10pt] at (P-|O) {Question};
+  },
+  firstextra={
+    \node[inner sep=0pt,anchor=north west,xshift=10pt,yshift=-30pt] at (P-|O) {\includegraphics[width=1.3cm]{assets/question23}};
+    \node[inner sep=0pt,anchor=north west,yshift=-.8\baselineskip,font=\bfseries,xshift=10pt] at (P-|O) {Question};
+  }
+]{question}
+\fi
+
+\global\mdfdefinestyle{task}{ leftmargin=0pt,
+  rightmargin=20pt,
+  innertopmargin=30pt,
+  innerbottommargin=10pt,
+  innerleftmargin=45pt,
+  middlelinewidth=0pt,
+  linecolor=black,
+  topline=false,
+  bottomline=false,
+  rightline=false,
+  font=\normalfont\normalsize,
+  frametitlefont=\normalfont\normalsize\bfseries,
+  frametitleaboveskip=1em,
+  type=task
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\ifdefined\HCode
+\newmdenv[
+  style=task,
+  frametitle=Task,
+  linewidth=1
+]{task}
+\else
+\newmdenv[
+  style=task,
+  singleextra={
+    \node[inner sep=0pt,anchor=north west,xshift=10pt,yshift=-30pt] at (P-|O) {\includegraphics[width=1.3cm]{assets/check30}};
+    \node[inner sep=0pt,anchor=north west,yshift=-.8\baselineskip,font=\bfseries,xshift=10pt] at (P-|O) {Task};
+  },
+  firstextra={
+    \node[inner sep=0pt,anchor=north west,xshift=10pt,yshift=-30pt] at (P-|O) {\includegraphics[width=1.3cm]{assets/check30}};
+    \node[inner sep=0pt,anchor=north west,yshift=-.8\baselineskip,font=\bfseries,xshift=10pt] at (P-|O) {Task};
+  }
+]{task}
+\fi
+
+\newcommand\figstrut[2]{
+	% #1: Height of object
+	% #2: Height of highest object
+	\dimen0=#1%
+	\advance\dimen0 by -#2%
+	\divide\dimen0 by -2%
+	\dimen1=#1%
+	\advance\dimen1 by \dimen0%
+	\vrule height \dimen1 depth \dimen0 width 0pt\relax%
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*\justify{%
+  \fontdimen2\font=0.4em% interword space
+  \fontdimen3\font=0.2em% interword stretch
+  \fontdimen4\font=0.1em% interword shrink
+  \fontdimen7\font=0.1em% extra space
+  \hyphenchar\font=`\-% allowing hyphenation
+}
+
+\newcommand{\KNIMENODE}[1]{\texttt{#1}}
+\newcommand{\OPENMSTOOL}[1]{\texttt{#1}}
+
+\newcommand*{\species}[1]{\textit{#1}}
+
+\usepackage{etoolbox} % simplified if / else checks in latex
+
+% define that this tutorial is based on a prerelease of OpenMS (will output some additional notes)
+\newtoggle{isprerelease}
+\togglefalse{isprerelease}
+
+
+\usepackage[lmargin=25mm,rmargin=25mm,bmargin=25mm,tmargin=25mm]{geometry}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%highlight text 
+\usepackage{xcolor}
+\usepackage{soul}
+\definecolor{lightgray}{RGB}{190,190,190}
+\sethlcolor{lightgray}
+
+\usepackage{tabularx}
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\firstpages
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setcounter{equation}{0}
+\section{General remarks}
+\label{General remarks}
+
+\begin{itemize}
+\item This handout will guide you through an introductory tutorial for the OpenMS/TOPP software package~\cite{OpenMS}.
+\item OpenMS~\cite{Sturm2008,rost2016openms} is a versatile open-source library for mass spectrometry data analysis. Based on this
+	library, we offer a collection of command-line tools ready to be used by end users. These so-called TOPP tools (short for ''The OpenMS Proteomics Pipeline'')~\cite{Kohlbacher2007} can be understood as small building blocks of arbitrarily complex data analysis workflows.
+\item In order to facilitate workflow construction, OpenMS was integrated into \newline
+	KNIME~\cite{KNIME}, the Konstanz
+	Information Miner, an open-source integration platform providing a powerful and flexible workflow system
+	combined with \newline advanced data analytics, visualization, and report capabilities. Raw MS data as well as the
+	results of data processing using TOPP can be visualized using TOPPView~\cite{Sturm2009}.
+\item This tutorial was designed for use in a hands-on tutorial session but can also be worked through at home using the online 
+	resources. You will become familiar with some of the basic functionalities of OpenMS/TOPP, TOPPView, as well as KNIME
+	and learn how to use a selection of TOPP tools used in the tutorial workflows.
+\item All sample data referenced in this tutorial can be found in the \newline
+	\directory{\ExampleDataFolder} folder, on the USB stick that came with this tutorial, or released online on our GitHub repository
+	\hyperlink{https://github.com/OpenMS/OpenMS/tree/develop/doc/tutorials}{OpenMS/OpenMS (doc/tutorials)}.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\newpage
+\include{gettingstarted}
+
+\include{labelfree}
+
+\include{protein_inference}
+
+\include{isobaric}
+
+\include{metabolomics}
+
+\include{openswath}
+
+\include{openswathmetabo}
+
+\include{pyopenms}
+
+\include{qualitycontrol}
+
+\include{troubleshooting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\newpage
+
+\bibliographystyle{phreporturl}
+\bibliography{handout}
+
+\end{document}

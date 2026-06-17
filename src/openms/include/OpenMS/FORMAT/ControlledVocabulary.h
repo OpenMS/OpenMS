@@ -33,7 +33,7 @@ public:
     /// ensure same hash on all platforms (for reproducibility)-
     struct FNV1aHasher
     {
-      size_t operator()(const String& key) const noexcept
+      size_t operator()(const std::string& key) const noexcept
       {
         size_t hash = 14695981039346656037ull;
         for (auto c : key)
@@ -64,21 +64,21 @@ public:
         NONE
       };
 
-      static String getXRefTypeName(XRefType type);
+      static std::string getXRefTypeName(XRefType type);
       //static bool isSearchEngineSpecificScore();
       static bool isHigherBetterScore(ControlledVocabulary::CVTerm term); ///if it is a score type, lookup has_order
 
-      String name; ///< Text name
-      String id; ///< Identifier
-      std::set<String> parents; ///< The parent IDs
-      std::set<String> children; ///< The child IDs
+      std::string name; ///< Text name
+      std::string id; ///< Identifier
+      std::set<std::string> parents; ///< The parent IDs
+      std::set<std::string> children; ///< The child IDs
       bool obsolete; ///< Flag that indicates of the term is obsolete
-      String description; ///< Term description
+      std::string description; ///< Term description
       StringList synonyms; ///< List of synonyms
       StringList unparsed; ///< Unparsed lines from the definition file
       XRefType xref_type; ///< xref value-type for the CV-term
       StringList xref_binary; ///< xref binary-data-type for the CV-term (list of all allowed data value types for the current binary data array)
-      std::set<String> units; ///< unit accession ids, defined by relationship has units
+      std::set<std::string> units; ///< unit accession ids, defined by relationship has units
 
       ///Default constructor
       CVTerm();
@@ -88,10 +88,10 @@ public:
       CVTerm& operator=(const CVTerm& rhs);
 
       /// get mzidentml formatted string. i.e. a cvparam xml element, ref should be the name of the ControlledVocabulary (i.e. cv.name()) containing the CVTerm (e.g. PSI-MS for the psi-ms.obo - gets loaded in all cases like that??), value can be empty if not available
-      String toXMLString(const String& ref, const String& value = String("")) const;
+      std::string toXMLString(const std::string& ref, const std::string& value =std::string("")) const;
 
       /// get mzidentml formatted string. i.e. a cvparam xml element, ref should be the name of the ControlledVocabulary (i.e. cv.name()) containing the CVTerm (e.g. PSI-MS for the psi-ms.obo - gets loaded in all cases like that??), value can be empty if not available
-      String toXMLString(const String& ref, const DataValue& value) const;
+      std::string toXMLString(const std::string& ref, const DataValue& value) const;
 
     };
 
@@ -102,16 +102,16 @@ public:
     virtual ~ControlledVocabulary();
 
     /// Returns the CV name (set in the load method)
-    const String& name() const;
+    const std::string& name() const;
 
     /// Returns the CV label (set in the load method)
-    const String& label() const;
+    const std::string& label() const;
 
     /// Returns the CV version (set in the load method)
-    const String& version() const;
+    const std::string& version() const;
 
     /// Returns the CV url (set in the load method)
-    const String& url() const;
+    const std::string& url() const;
 
     /**
         @brief Loads the CV from an OBO file
@@ -122,31 +122,31 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadFromOBO(const String& name, const String& filename);
+    void loadFromOBO(const std::string& name, const std::string& filename);
 
     /// Returns true if the term is in the CV. Returns false otherwise.
-    bool exists(const String& id) const;
+    bool exists(const std::string& id) const;
 
     /// Returns true if a term with the given name is in the CV. Returns false otherwise.
-    bool hasTermWithName(const String& name) const;
+    bool hasTermWithName(const std::string& name) const;
 
     /**
         @brief Returns a term specified by ID
 
         @exception Exception::InvalidValue is thrown if the term is not present
     */
-    const CVTerm& getTerm(const String& id) const;
+    const CVTerm& getTerm(const std::string& id) const;
 
     /**
         @brief Returns a term specified by name
 
         @exception Exception::InvalidValue is thrown if the term is not present
     */
-    const CVTerm& getTermByName(const String& name, const String& desc = "") const;
+    const CVTerm& getTermByName(const std::string& name, const std::string& desc = "") const;
 
 
     /// returns all the terms stored in the CV
-    const std::map<String, CVTerm>& getTerms() const;
+    const std::map<std::string, CVTerm>& getTerms() const;
 
     /**
         @brief Writes all child terms recursively into terms
@@ -158,7 +158,17 @@ public:
 
         @exception Exception::InvalidValue is thrown if the term is not present
     */
-    void getAllChildTerms(std::set<String>& terms, const String& parent_id) const;
+    void getAllChildTerms(std::set<std::string>& terms, const std::string& parent_id) const;
+
+    /**
+        @brief Writes the parent term and all descendant term IDs into @p terms
+
+        @param[in,out] terms Output set extended with @p parent_id and all descendants
+        @param[in] parent_id The parent term ID
+
+        @exception Exception::InvalidValue is thrown if the term is not present
+    */
+    void addAllChildTerms(std::set<std::string>& terms, const std::string& parent_id) const;
 
     /**
         @brief Iterates over all children (incl. subchildren etc) of parent recursively, i.e. the whole subtree.
@@ -172,7 +182,7 @@ public:
                  you can just return false always to not quit early.
     */
     template <class LAMBDA>
-    bool iterateAllChildren(const String& parent_id, LAMBDA lbd) const
+    bool iterateAllChildren(const std::string& parent_id, LAMBDA lbd) const
     {
       for (const auto& child_id : getTerm(parent_id).children)
       {
@@ -189,7 +199,7 @@ public:
 
         @return const Pointer to found term. When term is not found, returns nullptr
     */
-    const ControlledVocabulary::CVTerm* checkAndGetTermByName(const OpenMS::String& name) const;
+    const ControlledVocabulary::CVTerm* checkAndGetTermByName(const std::string& name) const;
 
     /**
         @brief Returns if @p child is a child of @p parent
@@ -199,7 +209,7 @@ public:
 
         @exception Exception::InvalidValue is thrown if one of the terms is not present
     */
-    bool isChildOf(const String& child_id, const String& parent_id) const;
+    bool isChildOf(const std::string& child_id, const std::string& parent_id) const;
 
 
     /**
@@ -224,21 +234,21 @@ protected:
 
         If the term is not known, 'true' is returned!
     */
-    bool checkName_(const String& id, const String& name, bool ignore_case = true) const;
+    bool checkName_(const std::string& id, const std::string& name, bool ignore_case = true) const;
 
     /// Map from ID to CVTerm
     // note: unordered_map would be faster (5% for loading mzML), but order differs across platforms
-    std::map<String, CVTerm> terms_;
+    std::map<std::string, CVTerm> terms_;
     /// Map from name to id
-    std::map<String, String> namesToIds_;
+    std::map<std::string, std::string> namesToIds_;
     /// Name set in the load method
-    String name_;
+    std::string name_;
     /// CV label
-    String label_;
+    std::string label_;
     /// CV version
-    String version_;
+    std::string version_;
     /// CV URL
-    String url_;
+    std::string url_;
   };
 
   ///Print the contents to a stream.

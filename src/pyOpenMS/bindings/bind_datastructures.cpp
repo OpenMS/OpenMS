@@ -26,7 +26,6 @@
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
@@ -87,7 +86,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
         .def("__copy__", [](const OpenMS::Adduct& self) { return OpenMS::Adduct(self); })
         .def("__deepcopy__", [](const OpenMS::Adduct& self, nb::dict) { return OpenMS::Adduct(self); }, "memo"_a)
         .def(nb::init<int>())
-        .def(nb::init<int, int, double, OpenMS::String, double, double, OpenMS::String>())
+        .def(nb::init<int, int, double, std::string, double, double, std::string>())
         .def("getCharge", [](const OpenMS::Adduct& self) { return self.getCharge(); })
         .def("setCharge", [](OpenMS::Adduct& self, const int& charge) { return self.setCharge(charge); }, "charge"_a)
         .def("getAmount", [](const OpenMS::Adduct& self) { return self.getAmount(); })
@@ -97,7 +96,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
         .def("getLogProb", [](const OpenMS::Adduct& self) { return self.getLogProb(); })
         .def("setLogProb", [](OpenMS::Adduct& self, const double& log_prob) { return self.setLogProb(log_prob); }, "log_prob"_a)
         .def("getFormula", [](const OpenMS::Adduct& self) { return self.getFormula(); })
-        .def("setFormula", [](OpenMS::Adduct& self, const OpenMS::String& formula) { return self.setFormula(formula); }, "formula"_a)
+        .def("setFormula", [](OpenMS::Adduct& self, const std::string& formula) { return self.setFormula(formula); }, "formula"_a)
         .def("getRTShift", [](const OpenMS::Adduct& self) { return self.getRTShift(); })
         .def("getLabel", [](const OpenMS::Adduct& self) { return self.getLabel(); })
         .def("__hash__", [](const OpenMS::Adduct& self) { return std::hash<OpenMS::Adduct>{}(self); })
@@ -130,19 +129,19 @@ NB_MODULE(_pyopenms_datastructures, m) {
         .def(nb::init<const OpenMS::CVMappingTerm &>())
         .def("__copy__", [](const OpenMS::CVMappingTerm& self) { return OpenMS::CVMappingTerm(self); })
         .def("__deepcopy__", [](const OpenMS::CVMappingTerm& self, nb::dict) { return OpenMS::CVMappingTerm(self); }, "memo"_a)
-        .def("setAccession", [](OpenMS::CVMappingTerm& self, const OpenMS::String& accession) { return self.setAccession(accession); }, "accession"_a, "Sets the accession string of the term")
+        .def("setAccession", [](OpenMS::CVMappingTerm& self, const std::string& accession) { return self.setAccession(accession); }, "accession"_a, "Sets the accession string of the term")
         .def("getAccession", [](const OpenMS::CVMappingTerm& self) { return self.getAccession(); }, "Returns the accession string of the term")
         .def("setUseTermName", [](OpenMS::CVMappingTerm& self, bool use_term_name) { return self.setUseTermName(use_term_name); }, "use_term_name"_a, "Sets whether the term name should be used, instead of the accession")
         .def("getUseTermName", [](const OpenMS::CVMappingTerm& self) { return self.getUseTermName(); }, "Returns whether the term name should be used, instead of the accession")
         .def("setUseTerm", [](OpenMS::CVMappingTerm& self, bool use_term) { return self.setUseTerm(use_term); }, "use_term"_a, "Sets whether the term itself can be used (or only its children)")
         .def("getUseTerm", [](const OpenMS::CVMappingTerm& self) { return self.getUseTerm(); }, "Returns true if the term can be used, false if only children are allowed")
-        .def("setTermName", [](OpenMS::CVMappingTerm& self, const OpenMS::String& term_name) { return self.setTermName(term_name); }, "term_name"_a, "Sets the name of the term")
+        .def("setTermName", [](OpenMS::CVMappingTerm& self, const std::string& term_name) { return self.setTermName(term_name); }, "term_name"_a, "Sets the name of the term")
         .def("getTermName", [](const OpenMS::CVMappingTerm& self) { return self.getTermName(); }, "Returns the name of the term")
         .def("setIsRepeatable", [](OpenMS::CVMappingTerm& self, bool is_repeatable) { return self.setIsRepeatable(is_repeatable); }, "is_repeatable"_a, "Sets whether this term can be repeated")
         .def("getIsRepeatable", [](const OpenMS::CVMappingTerm& self) { return self.getIsRepeatable(); }, "Returns true if this term can be repeated, false otherwise")
         .def("setAllowChildren", [](OpenMS::CVMappingTerm& self, bool allow_children) { return self.setAllowChildren(allow_children); }, "allow_children"_a, "Sets whether children of this term are allowed")
         .def("getAllowChildren", [](const OpenMS::CVMappingTerm& self) { return self.getAllowChildren(); }, "Returns true if the children of this term are allowed to be used")
-        .def("setCVIdentifierRef", [](OpenMS::CVMappingTerm& self, const OpenMS::String& cv_identifier_ref) { return self.setCVIdentifierRef(cv_identifier_ref); }, "cv_identifier_ref"_a, "Sets the CV identifier reference string, e.g. UO for unit obo")
+        .def("setCVIdentifierRef", [](OpenMS::CVMappingTerm& self, const std::string& cv_identifier_ref) { return self.setCVIdentifierRef(cv_identifier_ref); }, "cv_identifier_ref"_a, "Sets the CV identifier reference string, e.g. UO for unit obo")
         .def("getCVIdentifierRef", [](const OpenMS::CVMappingTerm& self) { return self.getCVIdentifierRef(); }, "Returns the CV identifier reference string")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
@@ -156,9 +155,9 @@ NB_MODULE(_pyopenms_datastructures, m) {
         .def(nb::init<const OpenMS::CVReference &>())
         .def("__copy__", [](const OpenMS::CVReference& self) { return OpenMS::CVReference(self); })
         .def("__deepcopy__", [](const OpenMS::CVReference& self, nb::dict) { return OpenMS::CVReference(self); }, "memo"_a)
-        .def("setName", [](OpenMS::CVReference& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of the CV reference")
+        .def("setName", [](OpenMS::CVReference& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name of the CV reference")
         .def("getName", [](const OpenMS::CVReference& self) { return self.getName(); }, "Returns the name of the CV reference")
-        .def("setIdentifier", [](OpenMS::CVReference& self, const OpenMS::String& identifier) { return self.setIdentifier(identifier); }, "identifier"_a, "Sets the CV identifier which is referenced")
+        .def("setIdentifier", [](OpenMS::CVReference& self, const std::string& identifier) { return self.setIdentifier(identifier); }, "identifier"_a, "Sets the CV identifier which is referenced")
         .def("getIdentifier", [](const OpenMS::CVReference& self) { return self.getIdentifier(); }, "Returns the CV identifier which is referenced")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
@@ -321,10 +320,10 @@ Numerical Analysis, 4th ed. PWS-Kent, 1989, ISBN 0-53491-585-X, pp.
         .def(nb::init<const OpenMS::Date &>())
         .def("__copy__", [](const OpenMS::Date& self) { return OpenMS::Date(self); })
         .def("__deepcopy__", [](const OpenMS::Date& self, nb::dict) { return OpenMS::Date(self); }, "memo"_a)
-        .def("set", static_cast<void (OpenMS::Date::*)(const OpenMS::String&)>(&OpenMS::Date::set), "date"_a, "Sets date from a string (mm/dd/yyyy, dd.mm.yyyy, or yyyy-mm-dd)")
+        .def("set", static_cast<void (OpenMS::Date::*)(const std::string&)>(&OpenMS::Date::set), "date"_a, "Sets date from a string (mm/dd/yyyy, dd.mm.yyyy, or yyyy-mm-dd)")
         .def("set", static_cast<void (OpenMS::Date::*)(OpenMS::UInt, OpenMS::UInt, OpenMS::UInt)>(&OpenMS::Date::set), "month"_a, "day"_a, "year"_a, "Sets date from three integers")
         .def_static("today", []() { return OpenMS::Date::today(); }, "Returns the current date")
-        .def("get", static_cast<OpenMS::String (OpenMS::Date::*)() const>(&OpenMS::Date::get), "Returns the date as string in iso/ansi format: yyyy-mm-dd")
+        .def("get", static_cast<std::string (OpenMS::Date::*)() const>(&OpenMS::Date::get), "Returns the date as string in iso/ansi format: yyyy-mm-dd")
         .def("clear", [](OpenMS::Date& self) { self.clear(); }, "Sets the undefined date: 00/00/0000")
         .def("isValid", [](const OpenMS::Date& self) { return self.isValid(); }, "Returns if the date is valid")
         .def("isNull", [](const OpenMS::Date& self) { return self.isNull(); }, "Returns if the date is null")
@@ -344,8 +343,8 @@ Numerical Analysis, 4th ed. PWS-Kent, 1989, ISBN 0-53491-585-X, pp.
         .def(nb::init<const OpenMS::DateTime &>())
         .def("__copy__", [](const OpenMS::DateTime& self) { return OpenMS::DateTime(self); })
         .def("__deepcopy__", [](const OpenMS::DateTime& self, nb::dict) { return OpenMS::DateTime(self); }, "memo"_a)
-        .def("setDate", [](OpenMS::DateTime& self, const OpenMS::String& date) { return self.setDate(date); }, "date"_a)
-        .def("setTime", [](OpenMS::DateTime& self, const OpenMS::String& date) { return self.setTime(date); }, "date"_a)
+        .def("setDate", [](OpenMS::DateTime& self, const std::string& date) { return self.setDate(date); }, "date"_a)
+        .def("setTime", [](OpenMS::DateTime& self, const std::string& date) { return self.setTime(date); }, "date"_a)
         .def("setDate", [](OpenMS::DateTime& self, unsigned int month, unsigned int day, unsigned int year) { return self.setDate(month, day, year); }, "month"_a, "day"_a, "year"_a)
         .def("setTime", [](OpenMS::DateTime& self, unsigned int hour, unsigned int minute, unsigned int second) { return self.setTime(hour, minute, second); }, "hour"_a, "minute"_a, "second"_a)
         .def("set", [](OpenMS::DateTime& self, unsigned int month, unsigned int day, unsigned int year, unsigned int hour, unsigned int minute, unsigned int second) { return self.set(month, day, year, hour, minute, second); }, "month"_a, "day"_a, "year"_a, "hour"_a, "minute"_a, "second"_a,
@@ -375,7 +374,7 @@ The following formats are supported:
 @brief Returns a string representation of the date and time
 The format of the string will be yyyy-MM-dd hh:mm:ss
 )doc")
-        .def("set", [](OpenMS::DateTime& self, const OpenMS::String& date) { return self.set(date); }, "date"_a,
+        .def("set", [](OpenMS::DateTime& self, const std::string& date) { return self.set(date); }, "date"_a,
             R"doc(
 @brief Sets date and time
 The following formats are supported:
@@ -483,22 +482,22 @@ The following formats are supported:
     // -----------------------------------------------------------------------
     auto lpwrapper_class = nb::class_<OpenMS::LPWrapper>(m, "LPWrapper", "A wrapper class for linear programming (LP) solvers")
         .def(nb::init<>())
-        .def("addRow", [](OpenMS::LPWrapper& self, const std::vector<int>& row_indices, const std::vector<double>& row_values, const OpenMS::String& name) { return self.addRow(row_indices, row_values, name); }, "row_indices"_a, "row_values"_a, "name"_a, "Adds a row to the LP matrix, returns index")
+        .def("addRow", [](OpenMS::LPWrapper& self, const std::vector<int>& row_indices, const std::vector<double>& row_values, const std::string& name) { return self.addRow(row_indices, row_values, name); }, "row_indices"_a, "row_values"_a, "name"_a, "Adds a row to the LP matrix, returns index")
         .def("addColumn", [](OpenMS::LPWrapper& self) { return self.addColumn(); }, "Adds an empty column to the LP matrix, returns index")
-        .def("addColumn", [](OpenMS::LPWrapper& self, const std::vector<int>& column_indices, const std::vector<double>& column_values, const OpenMS::String& name) { return self.addColumn(column_indices, column_values, name); }, "column_indices"_a, "column_values"_a, "name"_a, "Adds a column to the LP matrix, returns index")
-        .def("addRow", [](OpenMS::LPWrapper& self, const std::vector<int>& row_indices, const std::vector<double>& row_values, const OpenMS::String& name, double lower_bound, double upper_bound, OpenMS::LPWrapper::Type type) { return self.addRow(row_indices, row_values, name, lower_bound, upper_bound, type); }, "row_indices"_a, "row_values"_a, "name"_a, "lower_bound"_a, "upper_bound"_a, "type"_a, "Adds a row with boundaries to the LP matrix, returns index")
-        .def("addColumn", [](OpenMS::LPWrapper& self, const std::vector<int>& column_indices, const std::vector<double>& column_values, const OpenMS::String& name, double lower_bound, double upper_bound, OpenMS::LPWrapper::Type type) { return self.addColumn(column_indices, column_values, name, lower_bound, upper_bound, type); }, "column_indices"_a, "column_values"_a, "name"_a, "lower_bound"_a, "upper_bound"_a, "type"_a, "Adds a column with boundaries to the LP matrix, returns index")
+        .def("addColumn", [](OpenMS::LPWrapper& self, const std::vector<int>& column_indices, const std::vector<double>& column_values, const std::string& name) { return self.addColumn(column_indices, column_values, name); }, "column_indices"_a, "column_values"_a, "name"_a, "Adds a column to the LP matrix, returns index")
+        .def("addRow", [](OpenMS::LPWrapper& self, const std::vector<int>& row_indices, const std::vector<double>& row_values, const std::string& name, double lower_bound, double upper_bound, OpenMS::LPWrapper::Type type) { return self.addRow(row_indices, row_values, name, lower_bound, upper_bound, type); }, "row_indices"_a, "row_values"_a, "name"_a, "lower_bound"_a, "upper_bound"_a, "type"_a, "Adds a row with boundaries to the LP matrix, returns index")
+        .def("addColumn", [](OpenMS::LPWrapper& self, const std::vector<int>& column_indices, const std::vector<double>& column_values, const std::string& name, double lower_bound, double upper_bound, OpenMS::LPWrapper::Type type) { return self.addColumn(column_indices, column_values, name, lower_bound, upper_bound, type); }, "column_indices"_a, "column_values"_a, "name"_a, "lower_bound"_a, "upper_bound"_a, "type"_a, "Adds a column with boundaries to the LP matrix, returns index")
         .def("deleteRow", [](OpenMS::LPWrapper& self, int index) { return self.deleteRow(index); }, "index"_a, "Delete index-th row")
-        .def("setColumnName", [](OpenMS::LPWrapper& self, int index, const OpenMS::String& name) { return self.setColumnName(index, name); }, "index"_a, "name"_a, "Sets name of the index-th column")
+        .def("setColumnName", [](OpenMS::LPWrapper& self, int index, const std::string& name) { return self.setColumnName(index, name); }, "index"_a, "name"_a, "Sets name of the index-th column")
         .def("getColumnName", [](OpenMS::LPWrapper& self, int index) { return self.getColumnName(index); }, "index"_a, "Returns name of the index-th column")
         .def("getRowName", [](OpenMS::LPWrapper& self, int index) { return self.getRowName(index); }, "index"_a, "Sets name of the index-th row")
-        .def("getRowIndex", [](OpenMS::LPWrapper& self, const OpenMS::String& name) { return self.getRowIndex(name); }, "name"_a, "Returns index of the row with name")
-        .def("getColumnIndex", [](OpenMS::LPWrapper& self, const OpenMS::String& name) { return self.getColumnIndex(name); }, "name"_a, "Returns index of the column with name")
+        .def("getRowIndex", [](OpenMS::LPWrapper& self, const std::string& name) { return self.getRowIndex(name); }, "name"_a, "Returns index of the row with name")
+        .def("getColumnIndex", [](OpenMS::LPWrapper& self, const std::string& name) { return self.getColumnIndex(name); }, "name"_a, "Returns index of the column with name")
         .def("getColumnUpperBound", [](OpenMS::LPWrapper& self, int index) { return self.getColumnUpperBound(index); }, "index"_a, "Returns column's upper bound")
         .def("getColumnLowerBound", [](OpenMS::LPWrapper& self, int index) { return self.getColumnLowerBound(index); }, "index"_a, "Returns column's lower bound")
         .def("getRowUpperBound", [](OpenMS::LPWrapper& self, int index) { return self.getRowUpperBound(index); }, "index"_a, "Returns row's upper bound")
         .def("getRowLowerBound", [](OpenMS::LPWrapper& self, int index) { return self.getRowLowerBound(index); }, "index"_a, "Returns row's lower bound")
-        .def("setRowName", [](OpenMS::LPWrapper& self, int index, const OpenMS::String& name) { return self.setRowName(index, name); }, "index"_a, "name"_a, "Sets name of the index-th row")
+        .def("setRowName", [](OpenMS::LPWrapper& self, int index, const std::string& name) { return self.setRowName(index, name); }, "index"_a, "name"_a, "Sets name of the index-th row")
         .def("setColumnBounds", [](OpenMS::LPWrapper& self, int index, double lower_bound, double upper_bound, OpenMS::LPWrapper::Type type) { return self.setColumnBounds(index, lower_bound, upper_bound, type); }, "index"_a, "lower_bound"_a, "upper_bound"_a, "type"_a, "Sets column bounds")
         .def("setRowBounds", [](OpenMS::LPWrapper& self, int index, double lower_bound, double upper_bound, OpenMS::LPWrapper::Type type) { return self.setRowBounds(index, lower_bound, upper_bound, type); }, "index"_a, "lower_bound"_a, "upper_bound"_a, "type"_a, "Sets row bounds")
         .def("setColumnType", [](OpenMS::LPWrapper& self, int index, OpenMS::LPWrapper::VariableType type) { return self.setColumnType(index, type); }, "index"_a, "type"_a, "Sets column/variable type.")
@@ -511,8 +510,8 @@ The following formats are supported:
         .def("getNumberOfRows", [](OpenMS::LPWrapper& self) { return self.getNumberOfRows(); }, "Returns number of rows")
         .def("setElement", [](OpenMS::LPWrapper& self, int row_index, int column_index, double value) { return self.setElement(row_index, column_index, value); }, "row_index"_a, "column_index"_a, "value"_a, "Sets the element")
         .def("getElement", [](OpenMS::LPWrapper& self, int row_index, int column_index) { return self.getElement(row_index, column_index); }, "row_index"_a, "column_index"_a, "Returns the element")
-        .def("readProblem", [](OpenMS::LPWrapper& self, const OpenMS::String& filename, const OpenMS::String& format) { return self.readProblem(filename, format); }, "filename"_a, "format"_a)
-        .def("writeProblem", [](const OpenMS::LPWrapper& self, const OpenMS::String& filename, OpenMS::LPWrapper::WriteFormat format) { return self.writeProblem(filename, format); }, "filename"_a, "format"_a,
+        .def("readProblem", [](OpenMS::LPWrapper& self, const std::string& filename, const std::string& format) { return self.readProblem(filename, format); }, "filename"_a, "format"_a)
+        .def("writeProblem", [](const OpenMS::LPWrapper& self, const std::string& filename, OpenMS::LPWrapper::WriteFormat format) { return self.writeProblem(filename, format); }, "filename"_a, "format"_a,
             R"doc(
 Write LP formulation to a file
 :param filename: Output filename, if the filename ends with '.gz' it will be compressed
@@ -587,7 +586,7 @@ The LogConfigHandler provides the functionality to configure the
 internal logging of OpenMS algorithms that use the global instances of
 LogStream
 )doc")
-        .def("parse", [](OpenMS::LogConfigHandler& self, const std::vector<OpenMS::String>& setting) { return self.parse(setting); }, "setting"_a)
+        .def("parse", [](OpenMS::LogConfigHandler& self, const std::vector<std::string>& setting) { return self.parse(setting); }, "setting"_a)
         .def("configure", [](OpenMS::LogConfigHandler& self, const OpenMS::Param& param) { return self.configure(param); }, "param"_a,
             R"doc(
 Translates the given list of parameter settings into a LogStream configuration
@@ -606,7 +605,7 @@ This function will **not** apply to settings to the log handlers. Use configure(
 :raises ParseError: In case of an invalid configuration.
 :return: Param object containing all settings, that can be applied using the LogConfigHandler.configure() method
 )doc")
-        .def("setLogLevel", [](OpenMS::LogConfigHandler& self, const OpenMS::String& log_level) { return self.setLogLevel(log_level); }, "log_level"_a,
+        .def("setLogLevel", [](OpenMS::LogConfigHandler& self, const std::string& log_level) { return self.setLogLevel(log_level); }, "log_level"_a,
             R"doc(
 Applies the given parameters (@p param) to the current configuration
 <LOG_NAME> <ACTION> <PARAMETER> <STREAMTYPE>
@@ -797,47 +796,47 @@ Each parameter can be annotated with an arbitrary number of tags (e.g., 'advance
         .def("__copy__", [](const OpenMS::Param& self) { return OpenMS::Param(self); })
         .def("__deepcopy__", [](const OpenMS::Param& self, nb::dict) { return OpenMS::Param(self); }, "memo"_a)
         .def(nb::self == nb::self)
-        .def("getValue", [](const OpenMS::Param& self, const OpenMS::String& key) { return self.getValue(key); }, "key"_a, "Returns the value of the parameter specified by key. Raises exception if not found")
-        .def("getValueType", [](const OpenMS::Param& self, const OpenMS::String& key) { return self.getValueType(key); }, "key"_a, "Returns the type of the parameter specified by key. Raises exception if not found")
-        .def("getEntry", [](const OpenMS::Param& self, const OpenMS::String& key) -> const OpenMS::Param::ParamEntry & { return self.getEntry(key); }, "key"_a, nb::rv_policy::reference_internal, "Returns the whole parameter entry (value, description, tags, restrictions). Raises exception if not found")
-        .def("getDescription", [](const OpenMS::Param& self, const OpenMS::String& key) { return self.getDescription(key); }, "key"_a, "Returns the description of the parameter specified by key")
-        .def("exists", [](const OpenMS::Param& self, const OpenMS::String& key) { return self.exists(key); }, "key"_a, "Returns True if the parameter exists, False otherwise")
-        .def("addTag", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::String& tag) { return self.addTag(key, tag); }, "key"_a, "tag"_a, "Adds a tag to the entry specified by key (e.g., 'advanced', 'required', 'input file')")
-        .def("addTags", [](OpenMS::Param& self, const OpenMS::String& key, const std::vector<std::basic_string<char>>& tags) { return self.addTags(key, tags); }, "key"_a, "tags"_a, "Adds multiple tags to the entry specified by key")
-        .def("hasTag", [](const OpenMS::Param& self, const OpenMS::String& key, const OpenMS::String& tag) { return self.hasTag(key, tag); }, "key"_a, "tag"_a, "Returns True if the parameter has the specified tag")
-        .def("getTags", [](const OpenMS::Param& self, const OpenMS::String& key) { return self.getTags(key); }, "key"_a, "Returns the tags of the entry specified by key")
-        .def("clearTags", [](OpenMS::Param& self, const OpenMS::String& key) { return self.clearTags(key); }, "key"_a, "Removes all tags from the entry specified by key")
-        .def("setSectionDescription", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::String& description) { return self.setSectionDescription(key, description); }, "key"_a, "description"_a, "Sets a description for an existing section (not for values)")
-        .def("getSectionDescription", [](const OpenMS::Param& self, const OpenMS::String& key) { return self.getSectionDescription(key); }, "key"_a, "Returns the description of the section specified by key (empty string if not found)")
-        .def("addSection", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::String& description) { return self.addSection(key, description); }, "key"_a, "description"_a, "Adds a parameter section with the given key and description")
+        .def("getValue", [](const OpenMS::Param& self, const std::string& key) { return self.getValue(key); }, "key"_a, "Returns the value of the parameter specified by key. Raises exception if not found")
+        .def("getValueType", [](const OpenMS::Param& self, const std::string& key) { return self.getValueType(key); }, "key"_a, "Returns the type of the parameter specified by key. Raises exception if not found")
+        .def("getEntry", [](const OpenMS::Param& self, const std::string& key) -> const OpenMS::Param::ParamEntry & { return self.getEntry(key); }, "key"_a, nb::rv_policy::reference_internal, "Returns the whole parameter entry (value, description, tags, restrictions). Raises exception if not found")
+        .def("getDescription", [](const OpenMS::Param& self, const std::string& key) { return self.getDescription(key); }, "key"_a, "Returns the description of the parameter specified by key")
+        .def("exists", [](const OpenMS::Param& self, const std::string& key) { return self.exists(key); }, "key"_a, "Returns True if the parameter exists, False otherwise")
+        .def("addTag", [](OpenMS::Param& self, const std::string& key, const std::string& tag) { return self.addTag(key, tag); }, "key"_a, "tag"_a, "Adds a tag to the entry specified by key (e.g., 'advanced', 'required', 'input file')")
+        .def("addTags", [](OpenMS::Param& self, const std::string& key, const std::vector<std::basic_string<char>>& tags) { return self.addTags(key, tags); }, "key"_a, "tags"_a, "Adds multiple tags to the entry specified by key")
+        .def("hasTag", [](const OpenMS::Param& self, const std::string& key, const std::string& tag) { return self.hasTag(key, tag); }, "key"_a, "tag"_a, "Returns True if the parameter has the specified tag")
+        .def("getTags", [](const OpenMS::Param& self, const std::string& key) { return self.getTags(key); }, "key"_a, "Returns the tags of the entry specified by key")
+        .def("clearTags", [](OpenMS::Param& self, const std::string& key) { return self.clearTags(key); }, "key"_a, "Removes all tags from the entry specified by key")
+        .def("setSectionDescription", [](OpenMS::Param& self, const std::string& key, const std::string& description) { return self.setSectionDescription(key, description); }, "key"_a, "description"_a, "Sets a description for an existing section (not for values)")
+        .def("getSectionDescription", [](const OpenMS::Param& self, const std::string& key) { return self.getSectionDescription(key); }, "key"_a, "Returns the description of the section specified by key (empty string if not found)")
+        .def("addSection", [](OpenMS::Param& self, const std::string& key, const std::string& description) { return self.addSection(key, description); }, "key"_a, "description"_a, "Adds a parameter section with the given key and description")
         .def("size", [](const OpenMS::Param& self) { return self.size(); }, "Returns the number of parameter entries (leaves)")
         .def("empty", [](const OpenMS::Param& self) { return self.empty(); }, "Returns True if there are no entries")
         .def("clear", [](OpenMS::Param& self) { return self.clear(); }, "Deletes all entries")
-        .def("insert", [](OpenMS::Param& self, const OpenMS::String& prefix, const OpenMS::Param& param) { return self.insert(prefix, param); }, "prefix"_a, "param"_a, "Inserts all values of another Param object with the given prefix")
-        .def("remove", [](OpenMS::Param& self, const OpenMS::String& key) { return self.remove(key); }, "key"_a, "Removes an entry or section (when key ends with ':') by exact name match")
-        .def("removeAll", [](OpenMS::Param& self, const OpenMS::String& prefix) { return self.removeAll(prefix); }, "prefix"_a, "Removes all entries and sections that start with the given prefix")
-        .def("copy", [](const OpenMS::Param& self, const OpenMS::String& prefix, bool remove_prefix) { return self.copy(prefix, remove_prefix); }, "prefix"_a, "remove_prefix"_a = false,
+        .def("insert", [](OpenMS::Param& self, const std::string& prefix, const OpenMS::Param& param) { return self.insert(prefix, param); }, "prefix"_a, "param"_a, "Inserts all values of another Param object with the given prefix")
+        .def("remove", [](OpenMS::Param& self, const std::string& key) { return self.remove(key); }, "key"_a, "Removes an entry or section (when key ends with ':') by exact name match")
+        .def("removeAll", [](OpenMS::Param& self, const std::string& prefix) { return self.removeAll(prefix); }, "prefix"_a, "Removes all entries and sections that start with the given prefix")
+        .def("copy", [](const OpenMS::Param& self, const std::string& prefix, bool remove_prefix) { return self.copy(prefix, remove_prefix); }, "prefix"_a, "remove_prefix"_a = false,
             R"doc(
 Returns a new Param containing all entries that start with the given prefix.
 If remove_prefix is True, the prefix is removed from the keys in the returned Param
 )doc")
         .def("merge", [](OpenMS::Param& self, const OpenMS::Param& toMerge) { return self.merge(toMerge); }, "toMerge"_a, "Adds missing parameters from another Param object without modifying existing ones")
-        .def("setDefaults", [](OpenMS::Param& self, const OpenMS::Param& defaults, const OpenMS::String& prefix, bool showMessage) { return self.setDefaults(defaults, prefix, showMessage); }, "defaults"_a, "prefix"_a = "", "showMessage"_a = false,
+        .def("setDefaults", [](OpenMS::Param& self, const OpenMS::Param& defaults, const std::string& prefix, bool showMessage) { return self.setDefaults(defaults, prefix, showMessage); }, "defaults"_a, "prefix"_a = "", "showMessage"_a = false,
             R"doc(
 Inserts all values from defaults that are not already set.
 Optionally adds a prefix to all keys and prints a message for each default value set
 )doc")
-        .def("checkDefaults", [](const OpenMS::Param& self, const OpenMS::String& name, const OpenMS::Param& defaults, const OpenMS::String& prefix) { return self.checkDefaults(name, defaults, prefix); }, "name"_a, "defaults"_a, "prefix"_a = "",
+        .def("checkDefaults", [](const OpenMS::Param& self, const std::string& name, const OpenMS::Param& defaults, const std::string& prefix) { return self.checkDefaults(name, defaults, prefix); }, "name"_a, "defaults"_a, "prefix"_a = "",
             R"doc(
 Checks current parameter entries against given defaults.
 Validates types, string restrictions, and numeric ranges. Raises exception on invalid parameters
 )doc")
-        .def("setValidStrings", [](OpenMS::Param& self, const OpenMS::String& key, const std::vector<std::basic_string<char>>& strings) { return self.setValidStrings(key, strings); }, "key"_a, "strings"_a, "Sets the list of valid string values for the parameter (checked by checkDefaults)")
-        .def("getValidStrings", [](const OpenMS::Param& self, const OpenMS::String& key) -> const std::vector<std::basic_string<char>> & { return self.getValidStrings(key); }, "key"_a, nb::rv_policy::reference_internal, "Returns the list of valid string values for the parameter")
-        .def("setMinInt", [](OpenMS::Param& self, const OpenMS::String& key, int min) { return self.setMinInt(key, min); }, "key"_a, "min"_a, "Sets the minimum allowed value for an integer parameter")
-        .def("setMaxInt", [](OpenMS::Param& self, const OpenMS::String& key, int max) { return self.setMaxInt(key, max); }, "key"_a, "max"_a, "Sets the maximum allowed value for an integer parameter")
-        .def("setMinFloat", [](OpenMS::Param& self, const OpenMS::String& key, double min) { return self.setMinFloat(key, min); }, "key"_a, "min"_a, "Sets the minimum allowed value for a float parameter")
-        .def("setMaxFloat", [](OpenMS::Param& self, const OpenMS::String& key, double max) { return self.setMaxFloat(key, max); }, "key"_a, "max"_a, "Sets the maximum allowed value for a float parameter")
+        .def("setValidStrings", [](OpenMS::Param& self, const std::string& key, const std::vector<std::basic_string<char>>& strings) { return self.setValidStrings(key, strings); }, "key"_a, "strings"_a, "Sets the list of valid string values for the parameter (checked by checkDefaults)")
+        .def("getValidStrings", [](const OpenMS::Param& self, const std::string& key) -> const std::vector<std::basic_string<char>> & { return self.getValidStrings(key); }, "key"_a, nb::rv_policy::reference_internal, "Returns the list of valid string values for the parameter")
+        .def("setMinInt", [](OpenMS::Param& self, const std::string& key, int min) { return self.setMinInt(key, min); }, "key"_a, "min"_a, "Sets the minimum allowed value for an integer parameter")
+        .def("setMaxInt", [](OpenMS::Param& self, const std::string& key, int max) { return self.setMaxInt(key, max); }, "key"_a, "max"_a, "Sets the maximum allowed value for an integer parameter")
+        .def("setMinFloat", [](OpenMS::Param& self, const std::string& key, double min) { return self.setMinFloat(key, min); }, "key"_a, "min"_a, "Sets the minimum allowed value for a float parameter")
+        .def("setMaxFloat", [](OpenMS::Param& self, const std::string& key, double max) { return self.setMaxFloat(key, max); }, "key"_a, "max"_a, "Sets the maximum allowed value for a float parameter")
         .def("__iter__", [](OpenMS::Param& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::Param>(), "Param_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::Param& self) { return self.size(); })
         .def("_get_all_keys", [](const OpenMS::Param& self) {
@@ -848,13 +847,13 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
             return keys;
         })
 
-        .def("setValue", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::ParamValue& value, const OpenMS::String& description, const std::vector<std::string>& tags) {
+        .def("setValue", [](OpenMS::Param& self, const std::string& key, const OpenMS::ParamValue& value, const std::string& description, const std::vector<std::string>& tags) {
             self.setValue(key, value, description, tags);
         }, "key"_a, "value"_a, "description"_a = "", "tags"_a = std::vector<std::string>(), "Sets a value with description and tags")
-        .def("setValue", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::ParamValue& value, const OpenMS::String& description) {
+        .def("setValue", [](OpenMS::Param& self, const std::string& key, const OpenMS::ParamValue& value, const std::string& description) {
             self.setValue(key, value, description);
         }, "key"_a, "value"_a, "description"_a = "", "Sets a value with description")
-        .def("setValue", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::ParamValue& value) {
+        .def("setValue", [](OpenMS::Param& self, const std::string& key, const OpenMS::ParamValue& value) {
             self.setValue(key, value);
         }, "key"_a, "value"_a, "Set a value for a key")
 
@@ -1250,20 +1249,20 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def("setCVReferences", [](OpenMS::CVMappings& self, const std::vector<OpenMS::CVReference>& cv_references) { self.setCVReferences(cv_references); }, "cv_references"_a, "Sets the CV references")
         .def("getCVReferences", [](const OpenMS::CVMappings& self) -> const std::vector<OpenMS::CVReference>& { return self.getCVReferences(); }, nb::rv_policy::reference_internal, "Returns the CV references")
         .def("addCVReference", [](OpenMS::CVMappings& self, const OpenMS::CVReference& cv_reference) { self.addCVReference(cv_reference); }, "cv_reference"_a, "Adds a CV reference")
-        .def("hasCVReference", [](OpenMS::CVMappings& self, const OpenMS::String& identifier) { return self.hasCVReference(identifier); }, "identifier"_a, "Returns true if a CV reference with the given identifier exists")
+        .def("hasCVReference", [](OpenMS::CVMappings& self, const std::string& identifier) { return self.hasCVReference(identifier); }, "identifier"_a, "Returns true if a CV reference with the given identifier exists")
         .def("setMappingRules", [](OpenMS::CVMappings& self, const std::vector<OpenMS::CVMappingRule>& cv_mapping_rules) { self.setMappingRules(cv_mapping_rules); }, "cv_mapping_rules"_a, "Sets the mapping rules")
         .def("getMappingRules", [](const OpenMS::CVMappings& self) -> const std::vector<OpenMS::CVMappingRule>& { return self.getMappingRules(); }, nb::rv_policy::reference_internal, "Returns the mapping rules")
         .def("addMappingRule", [](OpenMS::CVMappings& self, const OpenMS::CVMappingRule& cv_mapping_rule) { self.addMappingRule(cv_mapping_rule); }, "cv_mapping_rule"_a, "Adds a mapping rule")
         ;
 
     // -----------------------------------------------------------------------
-    // QuotingMethod (String::QuotingMethod)
+    // QuotingMethod (OpenMS::QuotingMethod)
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::String::QuotingMethod>(m, "QuotingMethod",
+    nb::enum_<OpenMS::QuotingMethod>(m, "QuotingMethod",
         "Method for quoting strings in CSV output", nb::is_arithmetic())
-        .value("NONE", OpenMS::String::NONE)
-        .value("ESCAPE", OpenMS::String::ESCAPE)
-        .value("DOUBLE", OpenMS::String::DOUBLE)
+        .value("NONE", OpenMS::QuotingMethod::NONE)
+        .value("ESCAPE", OpenMS::QuotingMethod::ESCAPE)
+        .value("DOUBLE", OpenMS::QuotingMethod::DOUBLE)
 
         ;
 
@@ -1314,15 +1313,15 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def(nb::init<const OpenMS::CVMappingRule &>())
         .def("__copy__", [](const OpenMS::CVMappingRule& self) { return OpenMS::CVMappingRule(self); })
         .def("__deepcopy__", [](const OpenMS::CVMappingRule& self, nb::dict) { return OpenMS::CVMappingRule(self); }, "memo"_a)
-        .def("setIdentifier", [](OpenMS::CVMappingRule& self, const OpenMS::String& id) { self.setIdentifier(id); }, "identifier"_a)
+        .def("setIdentifier", [](OpenMS::CVMappingRule& self, const std::string& id) { self.setIdentifier(id); }, "identifier"_a)
         .def("getIdentifier", [](const OpenMS::CVMappingRule& self) { return self.getIdentifier(); })
-        .def("setElementPath", [](OpenMS::CVMappingRule& self, const OpenMS::String& path) { self.setElementPath(path); }, "element_path"_a)
+        .def("setElementPath", [](OpenMS::CVMappingRule& self, const std::string& path) { self.setElementPath(path); }, "element_path"_a)
         .def("getElementPath", [](const OpenMS::CVMappingRule& self) { return self.getElementPath(); })
         .def("setRequirementLevel", [](OpenMS::CVMappingRule& self, OpenMS::CVMappingRule::RequirementLevel level) { self.setRequirementLevel(level); }, "level"_a)
         .def("getRequirementLevel", [](const OpenMS::CVMappingRule& self) { return self.getRequirementLevel(); })
         .def("setCombinationsLogic", [](OpenMS::CVMappingRule& self, OpenMS::CVMappingRule::CombinationsLogic logic) { self.setCombinationsLogic(logic); }, "logic"_a)
         .def("getCombinationsLogic", [](const OpenMS::CVMappingRule& self) { return self.getCombinationsLogic(); })
-        .def("setScopePath", [](OpenMS::CVMappingRule& self, const OpenMS::String& path) { self.setScopePath(path); }, "path"_a)
+        .def("setScopePath", [](OpenMS::CVMappingRule& self, const std::string& path) { self.setScopePath(path); }, "path"_a)
         .def("getScopePath", [](const OpenMS::CVMappingRule& self) { return self.getScopePath(); })
         .def("setCVTerms", [](OpenMS::CVMappingRule& self, const std::vector<OpenMS::CVMappingTerm>& terms) { self.setCVTerms(terms); }, "cv_terms"_a)
         .def("getCVTerms", [](const OpenMS::CVMappingRule& self) { return self.getCVTerms(); })
@@ -1342,23 +1341,6 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
             "seed"_a, "Set the random generator seed")
         .def_static("getSeed", []() { return OpenMS::UniqueIdGenerator::getSeed(); },
             "Get the current seed value")
-        ;
-
-    // -----------------------------------------------------------------------
-    // StringView
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::StringView>(m, "StringView",
-        "Lightweight non-owning view on a string")
-        .def(nb::init<>())
-        .def("__copy__", [](const OpenMS::StringView& self) { return OpenMS::StringView(self); })
-        .def("__deepcopy__", [](const OpenMS::StringView& self, nb::dict) { return OpenMS::StringView(self); }, "memo"_a)
-        .def("size", [](const OpenMS::StringView& self) { return self.size(); })
-        .def("getString", [](const OpenMS::StringView& self) { return self.getString(); })
-        .def("__len__", [](const OpenMS::StringView& self) { return self.size(); })
-        .def("__str__", [](const OpenMS::StringView& self) { return self.getString(); })
-        .def(nb::self == nb::self)
-        .def(nb::self < nb::self)
-        .def("substr", [](const OpenMS::StringView& self, size_t start, size_t length) { return self.substr(start, length); }, "start"_a, "length"_a, "Returns a substring view")
         ;
 
     // -----------------------------------------------------------------------
@@ -1441,7 +1423,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     nb::class_<OpenMS::OSWTransition>(m, "OSWTransition", "High-level meta data of a transition")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::OSWTransition&>())
-        .def(nb::init<const OpenMS::String&, const OpenMS::UInt32, const float, const char, const bool>(),
+        .def(nb::init<const std::string&, const OpenMS::UInt32, const float, const char, const bool>(),
             "annotation"_a, "id"_a, "product_mz"_a, "type"_a, "is_decoy"_a)
         .def("getAnnotation", &OpenMS::OSWTransition::getAnnotation, nb::rv_policy::reference_internal)
         .def("getID", &OpenMS::OSWTransition::getID)

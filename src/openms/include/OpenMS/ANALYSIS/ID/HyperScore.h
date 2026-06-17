@@ -46,8 +46,8 @@ struct OPENMS_DLLAPI HyperScore
    */
   struct PSMDetail
   {
-    size_t matched_b_ions = 0;
-    size_t matched_y_ions = 0;
+    size_t matched_prefix_ions = 0;  ///< N-terminal ions (a, b, c)
+    size_t matched_suffix_ions = 0;  ///< C-terminal ions (x, y, z)
     double mean_error = 0.0;
   };
 

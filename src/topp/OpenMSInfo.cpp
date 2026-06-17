@@ -9,7 +9,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Colorizer.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/IndentedStream.h>
 #include <OpenMS/SYSTEM/BuildInfo.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -99,7 +99,7 @@ protected:
     registerInputFile_("dummy", "<ignored>", "", "A fake input file, which is needed for some workflow systems to call this tool", false, true);
   }
 
-  // Param getSubsectionDefaults_(const String& /*section*/) const override
+  // Param getSubsectionDefaults_(const std::string& /*section*/) const override
   //{
   //   return SpectraMerger().getParameters();
   // }
@@ -133,6 +133,8 @@ protected:
        << "Build type   : " << Internal::OpenMSBuildInfo::getBuildType() << '\n';
 #ifdef OPENMS_HAS_COINOR
     is << "LP-Solver    : COIN-OR\n";
+#elif defined(OPENMS_HAS_HIGHS)
+    is << "LP-Solver    : HiGHS\n";
 #else
     cout << "LP-Solver    : GLPK\n";
 #endif

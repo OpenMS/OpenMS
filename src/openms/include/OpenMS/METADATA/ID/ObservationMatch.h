@@ -85,7 +85,7 @@ namespace OpenMS
           throw Exception::InvalidValue(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION,
                                         "Trying to overwrite ObservationMatch charge with conflicting value.",
-                                        String(charge));
+                                        StringUtils::toStr(charge));
         }
 
         if (!adduct_opt)

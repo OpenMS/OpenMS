@@ -116,7 +116,7 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
 }
 END_SECTION
 
-START_SECTION((MSDataCachedConsumer(String filename, bool clearData=true)))
+START_SECTION((MSDataCachedConsumer(std::string filename, bool clearData=true)))
 {
   {
     std::string tmp_filename;

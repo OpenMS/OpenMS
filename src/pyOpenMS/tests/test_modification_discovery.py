@@ -1,5 +1,5 @@
 """
-End-to-end test for synthetic modification discovery using PeptideSearchEngineFIAlgorithm.
+End-to-end test for synthetic modification discovery using ProSEAlgorithm.
 
 Strategy: Generate theoretical MS/MS fragment spectra from unmodified+Carbamidomethyl
 peptides, but shift precursor m/z by known modification masses. This mimics real open
@@ -22,7 +22,7 @@ from pyopenms import (
     Param,
     Peak1D,
     PeptideIdentificationList,
-    PeptideSearchEngineFIAlgorithm,
+    ProSEAlgorithm,
     Precursor,
     ProteaseDigestion,
     ProteinIdentification,
@@ -192,9 +192,10 @@ def test_synthetic_modification_discovery():
     assert spectra.size() > 1000, f"Expected >1000 spectra, got {spectra.size()}"
 
     # 2. Configure open search
-    algo = PeptideSearchEngineFIAlgorithm()
+    algo = ProSEAlgorithm()
     p = algo.getParameters()
-    p.setValue("precursor:mass_tolerance", 500.0)
+    p.setValue("precursor:mass_tolerance_lower", 500.0)
+    p.setValue("precursor:mass_tolerance_upper", 500.0)
     p.setValue("precursor:mass_tolerance_unit", "Da")
     p.setValue("fragment:mass_tolerance", 20.0)
     p.setValue("fragment:mass_tolerance_unit", "ppm")
@@ -211,7 +212,7 @@ def test_synthetic_modification_discovery():
     result = algo.searchWithModificationAnalysis(spectra, fasta_db, "")
 
     # 4. Basic checks
-    ExitCodes = PeptideSearchEngineFIAlgorithm.PeptideSearchEngineFIAlgorithm_ExitCodes
+    ExitCodes = ProSEAlgorithm.ProSEAlgorithm_ExitCodes
     assert result.exit_code == ExitCodes.EXECUTION_OK
     assert result.is_open_search is True
     assert result.peptide_ids.size() > 500
@@ -295,9 +296,10 @@ def test_closed_search_baseline():
         spec.setNativeID(f"spectrum={exp.size()}")
         exp.addSpectrum(spec)
 
-    algo = PeptideSearchEngineFIAlgorithm()
+    algo = ProSEAlgorithm()
     p = algo.getParameters()
-    p.setValue("precursor:mass_tolerance", 10.0)
+    p.setValue("precursor:mass_tolerance_lower", 10.0)
+    p.setValue("precursor:mass_tolerance_upper", 10.0)
     p.setValue("precursor:mass_tolerance_unit", "ppm")
     p.setValue("fragment:mass_tolerance", 20.0)
     p.setValue("fragment:mass_tolerance_unit", "ppm")
@@ -313,18 +315,18 @@ def test_closed_search_baseline():
     pep_ids = PeptideIdentificationList()
     ec = algo.search(exp, fasta_db, prot_ids, pep_ids)
 
-    ExitCodes = PeptideSearchEngineFIAlgorithm.PeptideSearchEngineFIAlgorithm_ExitCodes
+    ExitCodes = ProSEAlgorithm.ProSEAlgorithm_ExitCodes
     assert ec == ExitCodes.EXECUTION_OK
     assert pep_ids.size() > 0
     assert len(prot_ids) == 1
-    assert prot_ids[0].getSearchEngine() == "PeptideDataBaseSearchFI"
+    assert prot_ids[0].getSearchEngine() == "ProSE"
 
 
 def test_empty_spectra():
     """Empty spectra should produce zero PSMs."""
     fasta_db = _build_fasta_db()[:1]
 
-    algo = PeptideSearchEngineFIAlgorithm()
+    algo = ProSEAlgorithm()
     p = algo.getParameters()
     p.setValue("decoys", "false")
     algo.setParameters(p)
@@ -333,7 +335,7 @@ def test_empty_spectra():
     pep_ids = PeptideIdentificationList()
     ec = algo.search(MSExperiment(), fasta_db, prot_ids, pep_ids)
 
-    ExitCodes = PeptideSearchEngineFIAlgorithm.PeptideSearchEngineFIAlgorithm_ExitCodes
+    ExitCodes = ProSEAlgorithm.ProSEAlgorithm_ExitCodes
     assert ec == ExitCodes.EXECUTION_OK
     assert pep_ids.size() == 0
 
@@ -349,9 +351,10 @@ def test_fdr_filtered_modification_discovery():
     assert spectra.size() > 1000
 
     # 2. Configure open search with decoys enabled
-    algo = PeptideSearchEngineFIAlgorithm()
+    algo = ProSEAlgorithm()
     p = algo.getParameters()
-    p.setValue("precursor:mass_tolerance", 500.0)
+    p.setValue("precursor:mass_tolerance_lower", 500.0)
+    p.setValue("precursor:mass_tolerance_upper", 500.0)
     p.setValue("precursor:mass_tolerance_unit", "Da")
     p.setValue("fragment:mass_tolerance", 20.0)
     p.setValue("fragment:mass_tolerance_unit", "ppm")
@@ -369,7 +372,7 @@ def test_fdr_filtered_modification_discovery():
     pep_ids = PeptideIdentificationList()
     ec = algo.search(spectra, fasta_db, prot_ids, pep_ids)
 
-    ExitCodes = PeptideSearchEngineFIAlgorithm.PeptideSearchEngineFIAlgorithm_ExitCodes
+    ExitCodes = ProSEAlgorithm.ProSEAlgorithm_ExitCodes
     assert ec == ExitCodes.EXECUTION_OK
     total_before = pep_ids.size()
     assert total_before > 500
@@ -429,9 +432,10 @@ def test_score_filtered_modification_discovery():
     assert spectra.size() > 1000
 
     # 2. Configure open search (no decoys needed)
-    algo = PeptideSearchEngineFIAlgorithm()
+    algo = ProSEAlgorithm()
     p = algo.getParameters()
-    p.setValue("precursor:mass_tolerance", 500.0)
+    p.setValue("precursor:mass_tolerance_lower", 500.0)
+    p.setValue("precursor:mass_tolerance_upper", 500.0)
     p.setValue("precursor:mass_tolerance_unit", "Da")
     p.setValue("fragment:mass_tolerance", 20.0)
     p.setValue("fragment:mass_tolerance_unit", "ppm")
@@ -449,7 +453,7 @@ def test_score_filtered_modification_discovery():
     pep_ids = PeptideIdentificationList()
     ec = algo.search(spectra, fasta_db, prot_ids, pep_ids)
 
-    ExitCodes = PeptideSearchEngineFIAlgorithm.PeptideSearchEngineFIAlgorithm_ExitCodes
+    ExitCodes = ProSEAlgorithm.ProSEAlgorithm_ExitCodes
     assert ec == ExitCodes.EXECUTION_OK
     total_before = pep_ids.size()
     assert total_before > 500

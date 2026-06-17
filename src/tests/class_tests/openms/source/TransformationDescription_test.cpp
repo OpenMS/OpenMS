@@ -117,7 +117,7 @@ START_SECTION((double apply(double value) const))
 }
 END_SECTION
 
-START_SECTION((const String& getModelType() const))
+START_SECTION((const std::string& getModelType() const))
 {
 	TransformationDescription td;
 	TEST_EQUAL(td.getModelType(), "none");
@@ -136,7 +136,7 @@ START_SECTION((static void getModelTypes(StringList& result)))
 }
 END_SECTION
 
-START_SECTION((void fitModel(const String& model_type, const Param& params=Param())))
+START_SECTION((void fitModel(const std::string& model_type, const Param& params=Param())))
 {
 	TransformationDescription td(data);
 	Param params;
@@ -192,7 +192,7 @@ START_SECTION((void fitModel(const String& model_type, const Param& params=Param
 }
 END_SECTION
 
-START_SECTION(([EXTRA]void fitModel(const String& model_type, const Param& params=Param())))
+START_SECTION(([EXTRA]void fitModel(const std::string& model_type, const Param& params=Param())))
 {
   // Check whether we can change the parameters and get different behavior
 	TransformationDescription td(data);

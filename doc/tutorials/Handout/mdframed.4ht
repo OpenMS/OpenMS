@@ -1,0 +1,41 @@
+% mdframed.4ht (2019-11-07-14:08), generated from tex4ht-4ht.tex
+% Copyright 2017 TeX Users Group
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either
+% version 1.3c of this license or (at your option) any
+% later version. The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3c or later is part of all distributions
+% of LaTeX version 2005/12/01 or later.
+%
+% This work has the LPPL maintenance status "maintained".
+%
+% The Current Maintainer of this work
+% is the TeX4ht Project <http://tug.org/tex4ht>.
+%
+% If you modify this program, changing the
+% version identification would be appreciated.
+\immediate\write-1{version 2019-11-07-14:08}
+
+\NewConfigure{mdframed}{2}
+\NewConfigure{mdframedstyle}{1}
+\NewConfigure{mdframetitle}{2}
+\newcount\mdf:env:cnt
+\def\mdf:id{mdframed-\the\mdf:env:cnt}
+\def\mdf@trivlist#1{\global\advance\mdf:env:cnt by1\relax\a:mdframed\a:mdframedstyle%
+    \ifdefempty{\mdf@frametitle}{}{\mdfframedtitleenv{\mdf@frametitle}\a:mdframetitle\mdf@@frametitle@use\b:mdframetitle}\let\mdf@frametitle\relax%
+    \let\mdf@style\relax
+}
+\def\mdf:type{\mdf@type}
+\def\endmdf@trivlist{\b:mdframed}
+
+% disable frame drawing, it can be supported using CSS
+\def\detected@mdf@put@frame{}%
+
+\append:def\mdf@@ignorelastdescenders{\let\orig:unskip\unskip\def\unskip{\let\unskip\orig:unskip}}%
+\def\mdf@lrbox#1{}
+\def\endmdf@lrbox{}
+
+\Hinput{mdframed}
+\endinput

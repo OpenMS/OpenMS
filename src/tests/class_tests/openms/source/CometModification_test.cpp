@@ -442,7 +442,7 @@ START_SECTION(void merge(const CometModification& other))
 }
 END_SECTION
 
-START_SECTION(String toCometString(Size index) const)
+START_SECTION(std::string toCometString(Size index) const)
 {
   // Basic format check
   {
@@ -455,7 +455,7 @@ START_SECTION(String toCometString(Size index) const)
     mod.nc_term = 0;
     mod.required = false;
 
-    String result = mod.toCometString(1);
+    std::string result = mod.toCometString(1);
     TEST_STRING_EQUAL(result, "variable_mod01 = 15.9949 M 0 3 -1 0 0 0.0")
   }
 
@@ -469,8 +469,8 @@ START_SECTION(String toCometString(Size index) const)
     mod.term_distance = -1;
     mod.nc_term = 0;
 
-    String result = mod.toCometString(9);
-    TEST_EQUAL(result.hasPrefix("variable_mod09"), true)
+    std::string result = mod.toCometString(9);
+    TEST_EQUAL(StringUtils::hasPrefix(result, "variable_mod09"), true)
   }
 
   // Index zero-padding: double digit
@@ -483,8 +483,8 @@ START_SECTION(String toCometString(Size index) const)
     mod.term_distance = -1;
     mod.nc_term = 0;
 
-    String result = mod.toCometString(10);
-    TEST_EQUAL(result.hasPrefix("variable_mod10"), true)
+    std::string result = mod.toCometString(10);
+    TEST_EQUAL(StringUtils::hasPrefix(result, "variable_mod10"), true)
   }
 
   // Terminal modification with amino acids
@@ -498,7 +498,7 @@ START_SECTION(String toCometString(Size index) const)
     mod.term_distance = -1;
     mod.nc_term = 0;
 
-    String result = mod.toCometString(1);
+    std::string result = mod.toCometString(1);
     TEST_STRING_EQUAL(result, "variable_mod01 = 42.0106 nK 0 3 -1 0 0 0.0")
   }
 
@@ -513,7 +513,7 @@ START_SECTION(String toCometString(Size index) const)
     mod.nc_term = 0;
     mod.required = true;
 
-    String result = mod.toCometString(1);
+    std::string result = mod.toCometString(1);
     TEST_STRING_EQUAL(result, "variable_mod01 = 15.9949 M 0 3 -1 0 1 0.0")
   }
 }
@@ -609,10 +609,10 @@ START_SECTION(static std::vector<CometModification> mergeModifications(const std
     TEST_EQUAL(result[0].nc_term, 0)
 
     // Second entry: merged peptide N-term + amino acids
-    TEST_EQUAL(result[1].residues.hasSubstring("n"), true)
-    TEST_EQUAL(result[1].residues.hasSubstring("K"), true)
-    TEST_EQUAL(result[1].residues.hasSubstring("R"), true)
-    TEST_EQUAL(result[1].residues.hasSubstring("S"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(result[1].residues, "n"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(result[1].residues, "K"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(result[1].residues, "R"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(result[1].residues, "S"), true)
     TEST_EQUAL(result[1].term_distance, -1)
     TEST_EQUAL(result[1].nc_term, 0)
   }

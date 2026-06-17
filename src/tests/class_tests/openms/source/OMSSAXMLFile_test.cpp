@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -34,8 +34,8 @@ OMSSAXMLFile* nullPointer = nullptr;
 ProteinIdentification protein_identification;
 PeptideIdentificationList peptide_identifications;
 PeptideIdentificationList peptide_identifications2;
-String date_string_1;
-String date_string_2;
+std::string date_string_1;
+std::string date_string_2;
 PeptideHit peptide_hit;
 
 START_SECTION((OMSSAXMLFile()))
@@ -50,12 +50,12 @@ END_SECTION
 ptr = new OMSSAXMLFile();
 
 START_SECTION(void setModificationDefinitionsSet(const ModificationDefinitionsSet &rhs))
-	ModificationDefinitionsSet mod_set(ListUtils::create<String>(""), ListUtils::create<String>("Carbamidomethyl (C),Oxidation (M),Carboxymethyl (C)"));
+	ModificationDefinitionsSet mod_set(ListUtils::create<std::string>(""), ListUtils::create<std::string>("Carbamidomethyl (C),Oxidation (M),Carboxymethyl (C)"));
 	ptr->setModificationDefinitionsSet(mod_set);
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, bool load_proteins=true, bool load_empty_hits = true))
+START_SECTION(void load(const std::string& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, bool load_proteins=true, bool load_empty_hits = true))
   // two spectra, first with some hits (mapping to 4 proteins), second is empty
 	xml_file.load(OPENMS_GET_TEST_DATA_PATH("OMSSAXMLFile_test_1.xml"),	protein_identification, peptide_identifications);
 

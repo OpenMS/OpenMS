@@ -1,0 +1,52 @@
+name: Documentation Validation
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - 'doc/**'
+      - '.github/workflows/doc-validate.yml'
+  workflow_dispatch:
+
+jobs:
+  build-sphinx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          pip install -r doc/openms/requirements.txt
+          pip install -r doc/pyopenms/docs/requirements.txt
+          pip install blacken-docs
+          python doc/pyopenms/docs/install_pyopenms.py
+
+      - name: Run sphinx build
+        run: |
+          (cd doc/openms && make html)
+          (cd doc/pyopenms/docs && make html)
+
+      # Lint and formatting checks:
+      - uses: astral-sh/ruff-action@v3
+        with: {src: "doc/pyopenms"}
+      - run: ruff format --check --diff doc/pyopenms
+
+      # Not running because there are a *lot* of broken links.
+      #
+      # - name: Restore lychee (linkcheck) cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: .lycheecache
+      #     key: cache-lychee-${{ github.sha }}
+      #     restore-keys: cache-lychee-
+      #
+      # link check of html
+      # - name: Run lychee
+      #   uses: lycheeverse/lychee-action@v2.0.2
+      #   with:
+      #     fail: true
+      #     args: --cache --max-cache-age 1d --timeout 40 --retry-wait-time 3 .

@@ -50,14 +50,14 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, TargetedExperiment & id);
+    void load(const std::string & filename, TargetedExperiment & id);
 
     /**
         @brief Stores a map in a TraML file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const TargetedExperiment & id) const;
+    void store(const std::string & filename, const TargetedExperiment & id) const;
 
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
@@ -68,7 +68,7 @@ public:
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
     */
-    bool isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings);
+    bool isSemanticallyValid(const std::string & filename, StringList & errors, StringList & warnings);
 
 private:
 

@@ -76,18 +76,25 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input spectra.");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerInputFile_("database", "<file>", "", "Default spectral database.", true);
     setValidFormats_("database", {"mzML", "msp", "mgf"});
     registerOutputFile_("out", "<file>", "", "mzTab file");
-    setValidFormats_("out", ListUtils::create<String>("mzTab"));
+    setValidFormats_("out", ListUtils::create<std::string>("mzTab"));
     registerOutputFile_("out_spectra", "<file>", "", "Output spectra as mzML file. Can be useful to inspect the peak map after spectra merging.", false);
-    setValidFormats_("out_spectra", ListUtils::create<String>("mzML"));
+    setValidFormats_("out_spectra", ListUtils::create<std::string>("mzML"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+  Param getSubsectionDefaults_(const std::string& /*section*/) const override
   {
     return MetaboliteSpectralMatching().getDefaults();
   }
@@ -98,9 +105,9 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
 
-    String in = getStringOption_("in");
-    String database = getStringOption_("database");
-    String spec_db_filename(database);
+    std::string in = getStringOption_("in");
+    std::string database = getStringOption_("database");
+    std::string spec_db_filename(database);
 
     // default path? retrieve file path in share folder
     if (database == "CHEMISTRY/MetaboliteSpectralDB.mzML")
@@ -109,8 +116,8 @@ protected:
       spec_db_filename = File::find("CHEMISTRY/MetaboliteSpectralDB.mzML");
     }
 
-    String out = getStringOption_("out");
-    String out_spectra = getStringOption_("out_spectra");
+    std::string out = getStringOption_("out");
+    std::string out_spectra = getStringOption_("out_spectra");
 
     //-------------------------------------------------------------
     // loading input
@@ -121,7 +128,7 @@ protected:
     mz_file.getOptions().setMSLevels(ms_level);
 
     PeakMap ms_peakmap;
-    mz_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML}, log_type_);
+    mz_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
 
     if (ms_peakmap.empty())
     {

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <type_traits> // for is_same
@@ -34,7 +34,10 @@ namespace OpenMS
     /// how an sqlite db should be opened
     enum class SqlOpenMode
     {
-      READONLY,  ///< the DB must exist and is read-only
+      READ_ONLY,  ///< the DB must exist and is read-only
+#ifndef READONLY
+      READONLY = READ_ONLY, ///< compatibility alias for READ_ONLY
+#endif
       READWRITE, ///< the DB is readable and writable, but must exist when opening it
       READWRITE_OR_CREATE ///< the DB readable and writable and is created new if not present already
     };
@@ -44,7 +47,7 @@ namespace OpenMS
 
     /// Constructor which opens a connection to @p filename
     /// @throws Exception::SqlOperationFailed if the file does not exist/cannot be created (depending on @p mode)
-    explicit SqliteConnector(const String& filename, const SqlOpenMode mode = SqlOpenMode::READWRITE_OR_CREATE);
+    explicit SqliteConnector(const std::string& filename, const SqlOpenMode mode = SqlOpenMode::READWRITE_OR_CREATE);
 
     /// Destructor
     ~SqliteConnector();
@@ -70,14 +73,14 @@ namespace OpenMS
 
       @returns Whether the table exists or not
     */
-    bool tableExists(const String& tablename)
+    bool tableExists(const std::string& tablename)
     {
       return tableExists(db_, tablename);
     }
 
     /// Counts the number of entries in SQL table @p table_name
     /// @throws Exception::SqlOperationFailed if table is unknown
-    Size countTableRows(const String& table_name);
+    Size countTableRows(const std::string& table_name);
 
     /**
       @brief Checks whether the given table contains a certain column
@@ -87,7 +90,7 @@ namespace OpenMS
 
       @returns Whether the column exists or not
     */
-    bool columnExists(const String& tablename, const String& colname)
+    bool columnExists(const std::string& tablename, const std::string& colname)
     {
       return columnExists(db_, tablename, colname);
     }
@@ -101,7 +104,7 @@ namespace OpenMS
 
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
-    void executeStatement(const String& statement)
+    void executeStatement(const std::string& statement)
     {
       executeStatement(db_, statement);
     }
@@ -122,7 +125,7 @@ namespace OpenMS
 
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
-    void executeBindStatement(const String& prepare_statement, const std::vector<String>& data)
+    void executeBindStatement(const std::string& prepare_statement, const std::vector<std::string>& data)
     {
       executeBindStatement(db_, prepare_statement, data);
     }
@@ -138,7 +141,7 @@ namespace OpenMS
 
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
-    void prepareStatement(sqlite3_stmt** stmt, const String& prepare_statement)
+    void prepareStatement(sqlite3_stmt** stmt, const std::string& prepare_statement)
     {
       prepareStatement(db_, stmt, prepare_statement);
     }
@@ -151,7 +154,7 @@ namespace OpenMS
 
       @returns Whether the table exists or not
     */
-    static bool tableExists(sqlite3* db, const String& tablename);
+    static bool tableExists(sqlite3* db, const std::string& tablename);
 
     /**
       @brief Checks whether the given table contains a certain column
@@ -162,7 +165,7 @@ namespace OpenMS
 
       @returns Whether the column exists or not
     */
-    static bool columnExists(sqlite3* db, const String& tablename, const String& colname);
+    static bool columnExists(sqlite3* db, const std::string& tablename, const std::string& colname);
 
     /**
       @brief Executes a given SQL statement (insert statement)
@@ -186,7 +189,7 @@ namespace OpenMS
 
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
-    static void executeStatement(sqlite3* db, const String& statement);
+    static void executeStatement(sqlite3* db, const std::string& statement);
 
     /**
       @brief Converts an SQL statement into a prepared statement
@@ -207,7 +210,7 @@ namespace OpenMS
 
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
-    static void prepareStatement(sqlite3* db, sqlite3_stmt** stmt, const String& prepare_statement);
+    static void prepareStatement(sqlite3* db, sqlite3_stmt** stmt, const std::string& prepare_statement);
 
 
     /**
@@ -227,7 +230,7 @@ namespace OpenMS
 
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
-    static void executeBindStatement(sqlite3* db, const String& prepare_statement, const std::vector<String>& data);
+    static void executeBindStatement(sqlite3* db, const std::string& prepare_statement, const std::vector<std::string>& data);
 
   protected:
 
@@ -239,7 +242,7 @@ namespace OpenMS
 
       @note Call this only once!
     */
-    void openDatabase_(const String& filename, const SqlOpenMode mode);
+    void openDatabase_(const std::string& filename, const SqlOpenMode mode);
 
   protected:
     sqlite3* db_ = nullptr;
@@ -323,12 +326,12 @@ namespace OpenMS
       template <> bool extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
       template <> bool extractValue<Int64>(Int64* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
-      template <> bool extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+      template <> bool extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
       template <> bool extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
-      /// Special case where an integer should be stored in a String field
-      bool extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos);
+      /// Special case where an integer should be stored in a std::string field
+      bool extractValueIntStr(std::string* dst, sqlite3_stmt* stmt, int pos);
 
       /** @defgroup sqlThrowingGetters Functions for getting values from sql-select statements
 
@@ -339,7 +342,7 @@ namespace OpenMS
       float extractFloat(sqlite3_stmt* stmt, int pos); ///< convenience function; note: in SQL there is no float, just double. So this might be narrowing.
       int extractInt(sqlite3_stmt* stmt, int pos);
       Int64 extractInt64(sqlite3_stmt* stmt, int pos);
-      String extractString(sqlite3_stmt* stmt, int pos);
+      std::string extractString(sqlite3_stmt* stmt, int pos);
       char extractChar(sqlite3_stmt* stmt, int pos);
       bool extractBool(sqlite3_stmt* stmt, int pos);
       /** @} */ // end of sqlThrowingGetters

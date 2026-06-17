@@ -273,7 +273,7 @@ namespace std
       OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getIonizationMethod())));
       OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getPolarity())));
 
-      // Hash MetaInfoInterface base class (handles both UInt and String keys)
+      // Hash MetaInfoInterface base class (handles both UInt and std::string keys)
       OpenMS::hash_combine(seed, std::hash<OpenMS::MetaInfoInterface>{}(is));
 
       return seed;

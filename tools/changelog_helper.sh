@@ -15,6 +15,8 @@
 # - New tools
 # - Parameter changes from generated INI files
 #
+# Output is in Markdown format.
+#
 # Worked for me on MacOS comparing release 2.0 (built from source) vs.
 # release 1.11.1 (installed using binary installer). Might not run
 # out-of-the-box on linux because of differences in sed syntax etc.
@@ -71,7 +73,7 @@ do
         GREP_CHAR="<"
     fi
     echo
-    echo "- $s:"
+    echo "## $s"
     echo
     diff ${TMP_FILE_OLD} ${TMP_FILE_NEW} \
         | grep -e "^${GREP_CHAR}" \
@@ -82,9 +84,9 @@ do
             TOOL_DESCR=$(LD_LIBRARY_PATH=${BIN_DIR}/../lib:${LD_LIBRARY_PATH} ${BIN_DIR}/${TOOL_NAME} --help 2>&1 | grep " -- " | head -n 1 | sed -E 's/.* -- (.*)$/\1/' | sed -E 's/\.$//')
             if [[ ${TOOL_DESCR} != "" ]]
             then
-                echo "  - ${TOOL_NAME} -- ${TOOL_DESCR}"
+                echo "- ${TOOL_NAME} -- ${TOOL_DESCR}"
             else
-                echo "  - ${TOOL_NAME}"
+                echo "- ${TOOL_NAME}"
             fi
 
 
@@ -95,11 +97,12 @@ done
 # store names of tools present in both old and new release in tmp file
 comm -12 ${TMP_FILE_OLD} ${TMP_FILE_NEW} > ${TMP_FILE_COMM}
 
-# print changed parameters as tab-separated table
+# print changed parameters as markdown table
 echo
-echo "- CHANGED PARAMETERS:"
+echo "## CHANGED PARAMETERS"
 echo
-echo -e "Tool name\tAdded/removed\tParameter name\tType\tDefault value\tRestrictions\tSupported formats"
+echo "| Tool name | Added/removed | Parameter name | Type | Default value | Restrictions | Supported formats |"
+echo "|-----------|:-------------:|----------------|------|---------------|--------------|-------------------|"
 
 # write ini files for old and new tools, modify them on the fly:
 #
@@ -145,7 +148,7 @@ do
     sort ${TMP_DIR}/inis/new/$t.pseudo.ini -o ${TMP_DIR}/inis/new/$t.pseudo.ini
 done \
 
-# compute diffs of pseudo ini files and output tab-separated table of changed parameters
+# compute diffs of pseudo ini files and output markdown table of changed parameters
 cat ${TMP_FILE_COMM} | while read t
 do
     diff -d ${TMP_DIR}/inis/old/$t.pseudo.ini ${TMP_DIR}/inis/new/$t.pseudo.ini
@@ -163,7 +166,7 @@ done \
         P_VALUE=$(echo $l | grep "value=" | sed -E 's/.*value="([^"]*)".*/\1/')
         P_RESTRICTIONS=$(echo $l | grep "restrictions=" | sed -E 's/.*restrictions="([^"]*)".*/\1/')
         P_FORMATS=$(echo $l | grep "supported_formats=" | sed -E 's/.*supported_formats="([^"]*)".*/\1/')
-        echo -e "${T_NAME}\t${P_ADD_REM}\t${P_NAME}\t${P_TYPE}\t${P_VALUE}\t${P_RESTRICTIONS}\t${P_FORMATS}"
+        echo "| ${T_NAME} | ${P_ADD_REM} | ${P_NAME} | ${P_TYPE} | ${P_VALUE} | ${P_RESTRICTIONS} | ${P_FORMATS} |"
     done | sort
 
 #cleanup

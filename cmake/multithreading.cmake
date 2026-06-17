@@ -13,10 +13,40 @@ message(STATUS "OpenMP support requested: ${MT_ENABLE_OPENMP}")
 
 if (MT_ENABLE_OPENMP)
   find_package(OpenMP COMPONENTS CXX)
-  
+
   if (NOT OPENMP_FOUND)
-    message(FATAL_ERROR "OpenMP was requested (MT_ENABLE_OPENMP=ON) but not found. "
-                        "Please install OpenMP support or disable it with -DMT_ENABLE_OPENMP=OFF")
+    # Full OpenMP runtime not found (typical on macOS with stock Apple clang).
+    # Fall back to -fopenmp-simd, which enables `#pragma omp simd` vectorization
+    # WITHOUT requiring libgomp/libomp at link time and WITHOUT defining _OPENMP.
+    # Existing OpenMP::OpenMP_CXX consumers are gated by OPENMP_FOUND, so this
+    # fallback does not activate any OpenMP-runtime-dependent code path.
+    # Note: CHECK_CXX_COMPILER_FLAG caches OPENMS_HAS_FOPENMP_SIMD as an
+    # INTERNAL cache variable (standard CMake behavior). If you upgrade the
+    # compiler and want the probe to re-run, delete that cache entry or pass
+    # -UOPENMS_HAS_FOPENMP_SIMD on the next configure.
+    include(CheckCXXCompilerFlag)
+    CHECK_CXX_COMPILER_FLAG("-fopenmp-simd" OPENMS_HAS_FOPENMP_SIMD)
+    if (OPENMS_HAS_FOPENMP_SIMD)
+      # Plain (non-CACHE) variable on purpose: we want it to reset to undefined
+      # on every reconfigure, so that if the user later installs libomp and
+      # find_package(OpenMP) starts succeeding, the fallback flag stops being
+      # applied. A CACHE INTERNAL value would persist and silently combine with
+      # full OpenMP on subsequent reconfigures.
+      set(OPENMS_OMP_SIMD_FALLBACK_FLAG "-fopenmp-simd")
+      message(STATUS
+        "Full OpenMP not found; falling back to -fopenmp-simd. "
+        "#pragma omp simd will vectorize, but #pragma omp parallel will not. "
+        "On macOS, install Homebrew's libomp (`brew install libomp`) and "
+        "reconfigure with -DOpenMP_ROOT=$(brew --prefix libomp) for full OpenMP. "
+        "On Linux this fallback is uncommon (libgomp/libomp ship with GCC and "
+        "Clang); if it fires here, check that your toolchain installation is "
+        "complete and that find_package(OpenMP) can locate it.")
+    else()
+      message(FATAL_ERROR
+        "OpenMP was requested (MT_ENABLE_OPENMP=ON) but neither full OpenMP "
+        "nor the -fopenmp-simd fallback is supported by this compiler. "
+        "Pass -DMT_ENABLE_OPENMP=OFF to skip OpenMP entirely.")
+    endif()
   endif()
 endif()
 

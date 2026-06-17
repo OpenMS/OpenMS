@@ -72,8 +72,11 @@ Documentation = "https://pyopenms.readthedocs.io"
 
 [project.optional-dependencies]
 dataframes = ["pandas"]
-arrow = ["pyarrow"]
-all = ["pandas", "pyarrow"]
+# pyarrow 24.0.0 on PyPI only shipped cp310 wheels (no source distribution),
+# breaking uv sync on cp311/cp312/cp313 runners. Pin out of 24.0.0 until a
+# release with complete wheel coverage lands.
+arrow = ["pyarrow!=24.0.0"]
+all = ["pandas", "pyarrow!=24.0.0"]
 
 # Dependency groups (PEP 735) - installable with: uv sync --only-group <name>
 [dependency-groups]
@@ -90,7 +93,7 @@ test = [
     "pytest",
     "pytest-cov",
     "pandas",  # tests need pandas for DataFrame functionality
-    "pyarrow",  # tests need pyarrow for Arrow/Parquet export tests
+    "pyarrow!=24.0.0",  # see [project.optional-dependencies].arrow for the 24.0.0 exclusion rationale
 ]
 dev = [
     {include-group = "build"},
@@ -155,7 +158,7 @@ build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
 skip = "*-win32 *-musllinux_* pp*"
 
 # Test the wheel after building
-test-requires = ["pytest", "numpy", "pandas", "pyarrow"]
+test-requires = ["pytest", "numpy", "pandas", "pyarrow!=24.0.0"]
 test-command = "pytest \"{package}/tests\" --import-mode=importlib"
 build-verbosity = 1
 

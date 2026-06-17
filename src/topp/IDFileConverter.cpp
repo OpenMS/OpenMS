@@ -140,7 +140,7 @@ public:
   }
 
 private:
-  bool add_ionmatches_(PeptideIdentificationList& peptide_identifications, String filename, double tolerance)
+  bool add_ionmatches_(PeptideIdentificationList& peptide_identifications, std::string filename, double tolerance)
   {
       TheoreticalSpectrumGenerator tg;
       Param tgp(tg.getDefaults());
@@ -171,7 +171,7 @@ private:
       {
         try
         {
-          String ref = peptide_identifications[i].getSpectrumReference();
+          std::string ref = peptide_identifications[i].getSpectrumReference();
           Size index = lookup.findByNativeID(ref);
           annot.addIonMatchStatistics(peptide_identifications[i], expmap[index], tg, sa);
         }
@@ -188,10 +188,10 @@ private:
   }
 
 protected:
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+  Param getSubsectionDefaults_(const std::string& /*section*/) const override
   {
     Param p(TheoreticalSpectrumGenerator().getDefaults());
-    vector<String> all_enzymes;
+    vector<std::string> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     p.setValue("enzyme", "Trypsin", "Enzym used to digest the fasta proteins");
     p.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
@@ -211,22 +211,22 @@ protected:
                        "- a single file in fasta format (can only be used to generate a theoretical mzML),\n"
                        "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("oms,idXML,mzid,fasta,pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,xquest.xml"));
+    setValidFormats_("in", ListUtils::create<std::string>("oms,idXML,mzid,idparquet,fasta,pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,xquest.xml"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    String formats("oms,idXML,mzid,pepXML,fasta,xquest.xml,mzML");
-    setValidFormats_("out", ListUtils::create<String>(formats));
+    std::string formats("oms,idXML,mzid,idparquet,pepXML,fasta,xquest.xml,mzML");
+    setValidFormats_("out", ListUtils::create<std::string>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
-    setValidStrings_("out_type", ListUtils::create<String>(formats));
+    setValidStrings_("out_type", ListUtils::create<std::string>(formats));
 
     addEmptyLine_();
     registerInputFile_("mz_file", "<file>", "", "[pepXML, Sequest, Mascot, X! Tandem, mzid, Percolator only] Retention times and native spectrum ids (spectrum_references) will be looked up in this file", false);
-    setValidFormats_("mz_file", ListUtils::create<String>("mzML,mzXML,mzData"));
+    setValidFormats_("mz_file", ListUtils::create<std::string>("mzML,mzXML,mzData"));
     addEmptyLine_();
     registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
     registerFlag_("peptideprophet_analyzed", "[pepXML output only] Write output in the format of a PeptideProphet analysis result. By default a 'raw' pepXML is produced that contains only search engine results.", false);
     registerStringOption_("score_type", "<choice>", PercolatorOutfile::score_type_names[0], "[Percolator only] Which of the Percolator scores to report as 'the' score for a peptide hit", false);
-    setValidStrings_("score_type", vector<String>(PercolatorOutfile::score_type_names, PercolatorOutfile::score_type_names + static_cast<int>(PercolatorOutfile::ScoreType::SIZE_OF_SCORETYPE)));
+    setValidStrings_("score_type", vector<std::string>(PercolatorOutfile::score_type_names, PercolatorOutfile::score_type_names + static_cast<int>(PercolatorOutfile::ScoreType::SIZE_OF_SCORETYPE)));
 
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
@@ -255,11 +255,11 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    const String in = getStringOption_("in");
-    const String mz_file = getStringOption_("mz_file");
+    const std::string in = getStringOption_("in");
+    const std::string mz_file = getStringOption_("mz_file");
     FileTypes::Type in_type = FileTypes::UNKNOWN; // set below if 'in' isn't a directory
 
-    const String out = getStringOption_("out");
+    const std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(out, getStringOption_("out_type"));
     if (out_type == FileTypes::UNKNOWN)
     {
@@ -271,17 +271,22 @@ protected:
     logger.setLogType(ProgressLogger::CMD);
     logger.startProgress(0, 1, "Loading...");
 
-    if (File::isDirectory(in))
+    std::string in_for_type = in;
+    while (StringUtils::hasSuffix(in_for_type, "/") || StringUtils::hasSuffix(in_for_type, "\\"))
     {
-      const String in_directory = File::absolutePath(in).ensureLastChar('/');
+      in_for_type = StringUtils::prefix(in_for_type, in_for_type.size() - 1);
+    }
+    if (File::isDirectory(in) && !FileTypes::isDirectoryType(FileHandler::getTypeByFileName(in_for_type)))
+    {
+      std::string in_directory = File::absolutePath(in); StringUtils::ensureLastChar(in_directory, '/');
       const bool ignore_proteins_per_peptide = getFlag_("ignore_proteins_per_peptide");
 
       UInt i = 0;
       FileTypes::Type type;
       PeakMap msexperiment;
-      // Note: we had issues with leading zeroes, so let us represent scan numbers as Int (next line used to be map<String, float> num_and_rt;)  However, now String::toInt() might throw.
+      // Note: we had issues with leading zeroes, so let us represent scan numbers as Int (next line used to be map<std::string, float> num_and_rt;)  However, now String::toInt() might throw.
       map<Int, float> num_and_rt;
-      vector<String> NativeID;
+      vector<std::string> NativeID;
 
       // The mz-File (if given)
       if (!mz_file.empty())
@@ -291,15 +296,15 @@ protected:
 
         for (PeakMap::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it)
         {
-          String(spectra_it->getNativeID()).split('=', NativeID);
+          StringUtils::split(spectra_it->getNativeID(), '=', NativeID);
           try
           {
-            num_and_rt[NativeID[1].toInt()] = spectra_it->getRT();
+            num_and_rt[StringUtils::toInt32(NativeID[1])] = spectra_it->getRT();
             // cout << "num_and_rt: " << NativeID[1] << " = " << NativeID[1].toInt() << " : " << num_and_rt[NativeID[1].toInt()] << endl; // CG debuggging 2009-07-01
           }
           catch (Exception::ConversionError& e)
           {
-            writeLogWarn_(String("Error: Cannot read scan number as integer. '") + e.what());
+            writeLogWarn_(std::string("Error: Cannot read scan number as integer. '") + e.what());
           }
         }
       }
@@ -308,26 +313,26 @@ protected:
       StringList in_files;
       if (!File::fileList(in_directory, "*.out", in_files))
       {
-        writeLogError_(String("Error: No .out files found in '") + in_directory + "'. Aborting!");
+        writeLogError_(std::string("Error: No .out files found in '") + in_directory + "'. Aborting!");
       }
 
       // Now get to work ...
-      for (vector<String>::const_iterator in_files_it = in_files.begin(); in_files_it != in_files.end(); ++in_files_it)
+      for (vector<std::string>::const_iterator in_files_it = in_files.begin(); in_files_it != in_files.end(); ++in_files_it)
       {
         PeptideIdentificationList peptide_ids_seq;
         ProteinIdentification protein_id_seq;
         vector<double> pvalues_seq;
-        vector<String> in_file_vec;
+        vector<std::string> in_file_vec;
 
         SequestOutfile sequest_outfile;
 
-        writeDebug_(String("Reading file ") + *in_files_it, 3);
+        writeDebug_(std::string("Reading file ") + *in_files_it, 3);
 
         try
         {
-          sequest_outfile.load((String) (in_directory + *in_files_it), peptide_ids_seq, protein_id_seq, 1.0, pvalues_seq, "Sequest", ignore_proteins_per_peptide);
+          sequest_outfile.load((std::string) (in_directory + *in_files_it), peptide_ids_seq, protein_id_seq, 1.0, pvalues_seq, "Sequest", ignore_proteins_per_peptide);
 
-          in_files_it->split('.', in_file_vec);
+          StringUtils::split(*in_files_it, '.', in_file_vec);
 
           for (Size j = 0; j < peptide_ids_seq.size(); ++j)
           {
@@ -339,23 +344,23 @@ protected:
             {
               try
               {
-                scan_number = in_file_vec[2].toInt();
+                scan_number = StringUtils::toInt32(in_file_vec[2]);
                 peptide_ids_seq[j].setRT(num_and_rt[scan_number]);
               }
               catch (Exception::ConversionError& e)
               {
-                writeLogError_(String("Error: Cannot read scan number as integer. '") + e.what());
+                writeLogError_(std::string("Error: Cannot read scan number as integer. '") + e.what());
               }
               catch (exception& e)
               {
-                writeLogError_(String("Error: Cannot read scan number as integer. '") + e.what());
+                writeLogError_(std::string("Error: Cannot read scan number as integer. '") + e.what());
               }
               //double real_mz = ( peptide_ids_seq[j].getMZ() - hydrogen_mass )/ (double)peptide_ids_seq[j].getHits()[0].getCharge(); // ???? semantics of mz
               const double real_mz = peptide_ids_seq[j].getMZ() / (double) peptide_ids_seq[j].getHits()[0].getCharge();
               peptide_ids_seq[j].setMZ(real_mz);
             }
 
-            writeDebug_(String("scan: ") + String(scan_number) + String("  RT: ") + String(peptide_ids_seq[j].getRT()) + "  MZ: " + String(peptide_ids_seq[j].getMZ()) + "  Ident: " + peptide_ids_seq[j].getIdentifier(), 4);
+            writeDebug_("scan: " + StringUtils::toStr(scan_number) + std::string("  RT: ") + StringUtils::toStr(peptide_ids_seq[j].getRT()) + "  MZ: " + StringUtils::toStr(peptide_ids_seq[j].getMZ()) + "  Ident: " + peptide_ids_seq[j].getIdentifier(), 4);
 
             peptide_identifications.push_back(peptide_ids_seq[j]);
           }
@@ -366,12 +371,12 @@ protected:
         }
         catch (Exception::ParseError& pe)
         {
-          writeLogError_(pe.what() + String("(file: ") + *in_files_it + ")");
+          writeLogError_(pe.what() + std::string("(file: ") + *in_files_it + ")");
           throw;
         }
         catch (...)
         {
-          writeLogError_(String("Error reading file: ") + *in_files_it);
+          writeLogError_(std::string("Error reading file: ") + *in_files_it);
           throw;
         }
       }
@@ -385,7 +390,7 @@ protected:
       {
       case FileTypes::PEPXML:
       {
-        String mz_name =  getStringOption_("mz_name");
+        std::string mz_name =  getStringOption_("mz_name");
         if (mz_file.empty())
         {
           PepXMLFile().load(in, protein_identifications,
@@ -397,7 +402,7 @@ protected:
           fh.loadExperiment(mz_file, exp, {}, log_type_, false,
                             false);
           if (mz_name.empty()) mz_name = mz_file;
-          String scan_regex = getStringOption_("scan_regex");
+          std::string scan_regex = getStringOption_("scan_regex");
           // we may have to parse Mascot spectrum references in pepXML, too:
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
           PepXMLFile().load(in, protein_identifications,
@@ -454,6 +459,12 @@ protected:
       }
       break;
 
+      case FileTypes::IDPARQUET:
+      {
+        FileHandler().loadIdentifications(in, protein_identifications, peptide_identifications, {FileTypes::IDPARQUET});
+      }
+      break;
+
       case FileTypes::PROTXML:
       {
         FileHandler().loadIdentifications(in, protein_identifications,
@@ -472,7 +483,7 @@ protected:
       {
         if (!mz_file.empty())
         {
-          String scan_regex = getStringOption_("scan_regex");
+          std::string scan_regex = getStringOption_("scan_regex");
           PeakMap exp;
           // load only MS2 spectra:
           fh.getOptions().addMSLevel(2);
@@ -527,7 +538,7 @@ protected:
 
       case FileTypes::PSMS: // Percolator
       {
-        String score_type = getStringOption_("score_type");
+        std::string score_type = getStringOption_("score_type");
         PercolatorOutfile::ScoreType perc_score =
           PercolatorOutfile::getScoreType(score_type);
         if (!mz_file.empty())
@@ -536,7 +547,7 @@ protected:
           fh.loadExperiment(mz_file, experiment, {}, log_type_, false, false);
           lookup.readSpectra(experiment.getSpectra());
         }
-        String scan_regex = getStringOption_("scan_regex");
+        std::string scan_regex = getStringOption_("scan_regex");
         if (!scan_regex.empty()) lookup.addReferenceFormat(scan_regex);
         protein_identifications.resize(1);
         PercolatorOutfile().load(in, protein_identifications[0],
@@ -555,13 +566,13 @@ protected:
         tf.load(in, true, -1, true);
         for (TextFile::Iterator it = tf.begin(); it != tf.end(); ++it)
         {
-          it->trim();
+          StringUtils::trim(*it);
           // skip empty and comment lines
-          if (it->empty() || it->hasPrefix("#")) continue;
+          if (it->empty() || StringUtils::hasPrefix(*it, "#")) continue;
 
           PeptideIdentification pepid;
           StringList peps;
-          it->split('\t', peps, false);
+          StringUtils::split(*it, '\t', peps, false);
           std::vector<PeptideHit> hits;
           for (StringList::const_iterator sit=peps.begin(); sit != peps.end(); ++sit)
           {
@@ -596,7 +607,7 @@ protected:
 
         // extract parameters and remove non tsg params
         Param p = getParam_().copy("fasta_to_mzml:", true);
-        String enzyme = p.getValue("enzyme").toString();
+        std::string enzyme = p.getValue("enzyme").toString();
         Int mc = p.getValue("missed_cleavages");
         Int min_charge = p.getValue("min_charge");
         Int max_charge = p.getValue("max_charge");
@@ -652,7 +663,7 @@ protected:
         }
         if (count_catches > 0)
         {
-          writeLogWarn_("No spectra were calculated for " + String(count_catches) + " peptides because they were to small for generating a C- or X-ion.");
+          writeLogWarn_("No spectra were calculated for " + StringUtils::toStr(count_catches) + " peptides because they were to small for generating a C- or X-ion.");
         }
         logger.endProgress();
 
@@ -693,7 +704,7 @@ protected:
     case FileTypes::PEPXML:
     {
       bool peptideprophet_analyzed = getFlag_("peptideprophet_analyzed");
-      String mz_name = getStringOption_("mz_name");
+      std::string mz_name = getStringOption_("mz_name");
       PepXMLFile().store(out, protein_identifications, peptide_identifications,
                          mz_file, mz_name, peptideprophet_analyzed);
     }
@@ -706,6 +717,10 @@ protected:
     case FileTypes::MZIDENTML:
       FileHandler().storeIdentifications(out, protein_identifications,
                             peptide_identifications, {FileTypes::MZIDENTML});
+      break;
+
+    case FileTypes::IDPARQUET:
+      FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDPARQUET});
       break;
 
     case FileTypes::XQUESTXML:
@@ -726,8 +741,8 @@ protected:
       //Because by concatenation of peptides [KR]|P sites will probably be created, peptides starting with 'P' are
       //saved separately and later moved to the beginning of the concatenated sequence.
       //This is done to avoid losing information about the preceding peptides if a peptides starts with 'P'.
-      String all_p; //peptides beginning with 'P'
-      String all_but_p; //all the others
+      std::string all_p; //peptides beginning with 'P'
+      std::string all_but_p; //all the others
 
       FASTAFile f;
       f.writeStart(out);
@@ -743,7 +758,7 @@ protected:
           }
           ++curr_hit;
 
-          String seq = hit.getSequence().toUnmodifiedString();
+          std::string seq = hit.getSequence().toUnmodifiedString();
           if (concat)
           {
             if (seq[0] == 'P')
@@ -757,10 +772,10 @@ protected:
           }
           else
           {
-            std::set<String> prot = hit.extractProteinAccessionsSet();
+            std::set<std::string> prot = hit.extractProteinAccessionsSet();
             entry.sequence = seq;
             entry.identifier = seq;
-            entry.description = String(count) + " " + hit.getSequence().toString() + " " + ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";");
+            entry.description =StringUtils::toStr(count) + " " + hit.getSequence().toString() + " " + ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";");
 
             f.writeNext(entry);
             ++count;

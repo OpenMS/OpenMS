@@ -72,13 +72,23 @@ START_TEST(SpectraMap, "$Id$")
     TEST_EQUAL(spec_map.empty(),true);
   END_SECTION
   
-  START_SECTION(QCBase::SpectraMap::at(const String& identifier))
+  START_SECTION(QCBase::SpectraMap::at(const std::string& identifier))
     NOT_TESTABLE;
   END_SECTION
   
   START_SECTION(QCBase::SpectraMap::size())
     NOT_TESTABLE;
   END_SECTION
-  
+
+  START_SECTION([EXTRA] names_of_requires has one entry per Requires value)
+  {
+    // regression: isRunnable() indexes names_of_requires by the Requires enum value up to SIZE_OF_REQUIRES.
+    // Requires::ID was previously missing from the array, causing an out-of-bounds read.
+    TEST_EQUAL(QCBase::names_of_requires[(Size)QCBase::Requires::NOTHING], "fail")
+    TEST_EQUAL(QCBase::names_of_requires[(Size)QCBase::Requires::TRAFOALIGN], "trafoAlign.trafoXML")
+    TEST_EQUAL(QCBase::names_of_requires[(Size)QCBase::Requires::ID], "id.idXML")
+  }
+  END_SECTION
+
 END_TEST
 

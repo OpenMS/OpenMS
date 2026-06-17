@@ -1,0 +1,152 @@
+@import "handout-clean.css";
+
+:root {
+  --icon-task: url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjUxMnB0IiB2aWV3Qm94PSItNTkgMCA1MTIgNTEyIiB3aWR0aD0iNTEycHQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0ibTM0NC42NzU3ODEgMzkuMzk4NDM4aC00OC42NzE4NzV2LTE5LjM5ODQzOGMwLTExLjA0Njg3NS04Ljk1MzEyNS0yMC0yMC0yMGgtMTU3LjMzOTg0NGMtMTEuMDQ2ODc0IDAtMjAgOC45NTMxMjUtMjAgMjB2MTkuMzk4NDM4aC00OC42NjQwNjJjLTI3LjU3MDMxMiAwLTUwIDIyLjQyOTY4Ny01MCA1MHYzNzIuNjAxNTYyYzAgMjcuNTcwMzEyIDIyLjQyOTY4OCA1MCA1MCA1MGgyOTQuNjc1NzgxYzI3LjU3MDMxMyAwIDUwLTIyLjQyOTY4OCA1MC01MHYtMzcyLjYwMTU2MmMwLTI3LjU3MDMxMy0yMi40MzM1OTMtNTAtNTAtNTB6bS04OC42NzE4NzUuNjAxNTYydjM4LjgwMDc4MWgtMTE3LjM0Mzc1YzAtMTMuMjkyOTY5IDAtMjQuMjczNDM3IDAtMzguODAwNzgxem05OC42NzE4NzUgNDIyYzAgNS41MTU2MjUtNC40ODgyODEgMTAtMTAgMTBoLTI5NC42NzU3ODFjLTUuNTE1NjI1IDAtMTAtNC40ODQzNzUtMTAtMTB2LTM3Mi42MDE1NjJjMC01LjUxMTcxOSA0LjQ4NDM3NS0xMCAxMC0xMGg0OC42NjAxNTZ2MTkuNDAyMzQzYzAgMTEuMDQ2ODc1IDguOTU3MDMyIDIwIDIwIDIwaDE1Ny4zNDM3NWMxMS4wNDI5NjkgMCAyMC04Ljk1MzEyNSAyMC0yMHYtMTkuNDAyMzQzaDQ4LjY3MTg3NWM1LjUxMTcxOSAwIDEwIDQuNDg4MjgxIDEwIDEwem0tNjQuNTM1MTU2LTIyOC40ODA0NjljNy44MTI1IDcuODEyNSA3LjgxMjUgMjAuNDc2NTYzIDAgMjguMjg1MTU3bC0xMDUuMTAxNTYzIDEwNS4xMDE1NjJjLTcuODA4NTkzIDcuODEyNS0yMC40NzI2NTYgNy44MTI1LTI4LjI4NTE1NiAwbC01Mi4yMzA0NjgtNTIuMjMwNDY5Yy03LjgwODU5NC03LjgwODU5My03LjgwODU5NC0yMC40NzI2NTYgMC0yOC4yODUxNTYgNy44MTI1LTcuODA4NTk0IDIwLjQ3MjY1Ni03LjgwODU5NCAyOC4yODUxNTYgMGwzOC4wODk4NDQgMzguMDg5ODQ0IDkwLjk1NzAzMS05MC45NTcwMzFjNy44MTI1LTcuODEyNSAyMC40NzI2NTYtNy44MTI1IDI4LjI4NTE1Ni0uMDAzOTA3em0wIDAiLz48L3N2Zz4=');
+  --icon-video: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAABmJLR0QA/wD/AP+gvaeTAAAA4klEQVRIie3VQUoDMRSA4W/UVheuWm+hlyjS3kMQhZ5g3PUOBRcivUDrGbyEbvQOrrrQhbSLSUHCFJPWAcX+EPII7+VP4JGwI4OiZq2LC+xvsN8nJnj7LvEGHbTwgn5Yn6EMcYlpiPshrxUOWIrYq5Ecqr9hTBHNK44Sao2w2GKM4g3rbvLj/F/JGR6bljzjHNeYNyWh6qA7XDYpKXCF+9SCg0zBKcbo5RTlSp4y8/FLW/jvSbpo4xUDVUc9qL6BIsyzEA9CXhsnqZIP2z317+sSv9LBEMcJopg5biX8jDvWsgTMLSq1OdtB+QAAAABJRU5ErkJggg==');
+  --color-video: rgb(88, 60, 25);
+}
+
+div.highlight {
+  background-color: #f6f8fa;
+}
+
+.question {
+  border-left: .2rem solid #48983f;
+  
+}
+
+.video {
+  border-left: .2rem solid var(--color-video);
+}
+
+div.admonition.video p:first-of-type {
+  background-color: #dac6aa;
+}
+
+div.admonition.question p:first-of-type {
+  background-color: #89bd5669 !important;
+}
+
+.question-title::before {
+  -webkit-mask-image: var(--icon-question) !important;
+  mask-image: var(--icon-question) !important;
+  background-color:#48983f !important;
+}
+
+div.admonition.task p::before {
+  -webkit-mask-image: var(--icon-task) !important;
+  mask-image: var(--icon-task) !important;
+  -webkit-mask-size: 90%;
+  mask-size: 90%;
+  background-color: var(--color-admonition-title);
+}
+
+div.admonition.question p::before {
+  -webkit-mask-image: var(--icon-question) !important;
+  mask-image: var(--icon-question) !important;
+  background-color:#48983f !important;
+}
+
+div.admonition.video p::before {
+  -webkit-mask-image: var(--icon-video) !important;
+  mask-image: var(--icon-video) !important;
+  -webkit-mask-size: 90%;
+  mask-size: 90%;
+  background-color: rgb(88, 60, 25);
+}
+ 
+
+nobr.path {
+  font-family: monospace;
+}
+nobr>span.pathsep_triangle {
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+nobr>i.fa.fa-folder-open {
+  margin-right: 3px;
+  font-size: 80%;
+}
+
+a.hxr-hoverxref {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--color-link-underline);
+  border-bottom: none;
+}
+
+a.hxr-hoverxref:hover {
+  text-decoration-color: var(--color-link-underline--hover);
+}
+
+span.fa-xl {
+  font-size: 5em;
+  margin-right: 5px;
+}
+
+.flex {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+img.halfwidth {
+    width: 50%;
+    margin-top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+/*add numbers to headings*/
+
+body {
+  counter-reset: h2;
+}
+
+h2 {
+  counter-reset: h3;
+}
+h2::before {
+  counter-increment: h2;
+  content: counter(h2) ". ";
+}
+h3::before {
+  counter-increment: h3;
+  content: counter(h2) "." counter(h3) ". ";
+}
+
+h3 {
+  counter-reset: h4;
+}
+
+h4::before {
+  counter-increment: h4;
+  content: counter(h2) "." counter(h3) "." counter(h4) ". ";
+}
+
+h4 {
+  counter-reset: h5;
+}
+
+h5::before {
+  counter-increment: h5;
+  content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) ". ";
+}
+
+h5 {
+  counter-reset: h6;
+}
+
+h6::before {
+  counter-increment: h6;
+  content: counter(h2) "." counter(h3) "." counter(h4) ". " counter(h5) "." counter(h6) ". ";
+}
+
+h6 {
+  counter-reset: h6;
+}

@@ -82,18 +82,18 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("featureXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("featureXML"));
     registerOutputFile_("out_cm", "<file>", "", "output consensus map", false);
     registerOutputFile_("out_fm", "<file>", "", "output feature map", false);
     registerOutputFile_("outpairs", "<file>", "", "output file", false);
-    setValidFormats_("out_fm", ListUtils::create<String>("featureXML"));
-    setValidFormats_("out_cm", ListUtils::create<String>("consensusXML"));
-    setValidFormats_("outpairs", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("out_fm", ListUtils::create<std::string>("featureXML"));
+    setValidFormats_("out_cm", ListUtils::create<std::string>("consensusXML"));
+    setValidFormats_("outpairs", ListUtils::create<std::string>("consensusXML"));
     addEmptyLine_();
     registerSubsection_("algorithm", "Feature decharging algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const override
+  Param getSubsectionDefaults_(const std::string & /*section*/) const override
   {
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the FeatureDecharger param
     MetaboliteFeatureDeconvolution fdc;
@@ -107,10 +107,10 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String infile = getStringOption_("in");
-    String outfile_fm = getStringOption_("out_fm");
-    String outfile_cm = getStringOption_("out_cm");
-    String outfile_p = getStringOption_("outpairs");
+    std::string infile = getStringOption_("in");
+    std::string outfile_fm = getStringOption_("out_fm");
+    std::string outfile_cm = getStringOption_("out_cm");
+    std::string outfile_p = getStringOption_("outpairs");
 
     MetaboliteFeatureDeconvolution fdc;
     Param const & dc_param = getParam_().copy("algorithm:MetaboliteFeatureDeconvolution:", true);

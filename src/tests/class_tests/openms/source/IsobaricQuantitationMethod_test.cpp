@@ -24,25 +24,20 @@ class TestQuantitationMethod :
 {
 public:
   IsobaricChannelList channel_list;
-  String name;
   StringList correction_list;
 
-  TestQuantitationMethod()
+  // a generic test stub; not a real method, so it reports MethodType::UNKNOWN to the base c'tor
+  TestQuantitationMethod() :
+    IsobaricQuantitationMethod(MethodType::UNKNOWN)
   {
     setName("TestQuantitationMethod");
     channel_list.push_back(IsobaricChannelInformation("114", 0, "", 114.1112, {-1, -1, 1, 2}));
     channel_list.push_back(IsobaricChannelInformation("115", 1, "", 115.1082, {-1, 0, 2, 3}));
     channel_list.push_back(IsobaricChannelInformation("116", 2, "", 116.1116, {0, 1, 3, -1}));
     channel_list.push_back(IsobaricChannelInformation("117", 3, "", 117.1149, {1, 2, -1, -1}));
-    name = "TestQuantitationMethod";
   }
 
   ~TestQuantitationMethod() override = default;
-
-  const String& getMethodName() const override
-  {
-    return name;
-  }
 
   const IsobaricChannelList& getChannelInformation() const override
   {
@@ -73,7 +68,7 @@ START_TEST(IsobaricQuantitationMethod, "$Id$")
 
 IsobaricQuantitationMethod* ptr = nullptr;
 IsobaricQuantitationMethod* null_ptr = nullptr;
-START_SECTION(IsobaricQuantitationMethod())
+START_SECTION(IsobaricQuantitationMethod(MethodType method_type))
 {
 	ptr = new TestQuantitationMethod();
 	TEST_NOT_EQUAL(ptr, null_ptr)
@@ -86,7 +81,7 @@ START_SECTION(~IsobaricQuantitationMethod())
 }
 END_SECTION
 
-START_SECTION((virtual const String& getName() const =0))
+START_SECTION((virtual const std::string& getName() const =0))
 {
   IsobaricQuantitationMethod* quant_method = new TestQuantitationMethod();
   TEST_STRING_EQUAL(quant_method->getName(), "TestQuantitationMethod")
@@ -121,7 +116,7 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const =0 with
 {
   auto* quant_method = new TestQuantitationMethod();
   // missing entry
-  quant_method->correction_list = ListUtils::create<String>("0.0/1.0/5.9/0.2,0.0/2.0/    0.1,0.0/3.0/4.5/0.1,0.1/4.0/3.5/0.1");
+  quant_method->correction_list = ListUtils::create<std::string>("0.0/1.0/5.9/0.2,0.0/2.0/    0.1,0.0/3.0/4.5/0.1,0.1/4.0/3.5/0.1");
   TEST_EXCEPTION(Exception::InvalidValue, quant_method->getIsotopeCorrectionMatrix())
   delete quant_method;
 }
@@ -130,7 +125,7 @@ END_SECTION
 START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const =0))
 {
   auto* quant_method = new TestQuantitationMethod();
-  quant_method->correction_list = ListUtils::create<String>("0.0/1.0/5.9/0.2,0.0/2.0/5.6/0.1,0.0/3.0/4.5/0.1,0.1/4.0/3.5/0.1");
+  quant_method->correction_list = ListUtils::create<std::string>("0.0/1.0/5.9/0.2,0.0/2.0/5.6/0.1,0.0/3.0/4.5/0.1,0.1/4.0/3.5/0.1");
   Matrix<double> m = quant_method->getIsotopeCorrectionMatrix();
 
   ABORT_IF(m.rows() != 4)
@@ -149,7 +144,7 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const =0))
     }
   }
 
-  quant_method->correction_list = ListUtils::create<String>("0.0/1.0/10.9/0.2,0.0/2.0/5.6/0.6,0.0/10.0/4.5/0.1,0.1/4.0/3.5/0.1");
+  quant_method->correction_list = ListUtils::create<std::string>("0.0/1.0/10.9/0.2,0.0/2.0/5.6/0.6,0.0/10.0/4.5/0.1,0.1/4.0/3.5/0.1");
   m = quant_method->getIsotopeCorrectionMatrix();
 
   ABORT_IF(m.rows() != 4)
@@ -179,9 +174,9 @@ START_SECTION((virtual Size getReferenceChannel() const =0))
 }
 END_SECTION
 
-START_SECTION(([IsobaricQuantitationMethod::IsobaricChannelInformation] IsobaricChannelInformation(const Int name, const Int id, const String &description, const Peak2D::CoordinateType &center)))
+START_SECTION(([IsobaricQuantitationMethod::IsobaricChannelInformation] IsobaricChannelInformation(const Int name, const Int id, const std::string &description, const Peak2D::CoordinateType &center)))
 {
-  IsobaricQuantitationMethod::IsobaricChannelInformation cI(114, 0, "", 114.1112, {-1, -1, -1, -1});
+  IsobaricQuantitationMethod::IsobaricChannelInformation cI(StringUtils::toStr(114), 0, "", 114.1112, {-1, -1, -1, -1});
   TEST_STRING_EQUAL(cI.description, "")
   TEST_EQUAL(cI.name, 114)
   TEST_EQUAL(cI.id, 0)
@@ -192,6 +187,79 @@ START_SECTION(([IsobaricQuantitationMethod::IsobaricChannelInformation] Isobaric
   TEST_EQUAL(cI.affected_channels[2], -1)
   TEST_EQUAL(cI.affected_channels[3], -1)
 
+}
+END_SECTION
+
+START_SECTION((static std::unique_ptr<IsobaricQuantitationMethod> create(MethodType mt)))
+{
+  using MT = IsobaricQuantitationMethod::MethodType;
+
+  // UNKNOWN is the disabled/none sentinel and yields a null pointer (no exception).
+  TEST_EQUAL(IsobaricQuantitationMethod::create(MT::UNKNOWN) == nullptr, true)
+
+  // Every concrete method must be instantiable and report back the MethodType it was created from.
+  for (int i = static_cast<int>(MT::UNKNOWN) + 1; i < static_cast<int>(MT::SIZE_OF_METHODTYPE); ++i)
+  {
+    const MT mt = static_cast<MT>(i);
+    auto method = IsobaricQuantitationMethod::create(mt);
+    TEST_EQUAL(method != nullptr, true)
+    ABORT_IF(method == nullptr)
+    TEST_EQUAL(static_cast<int>(method->getMethodType()), i)
+    TEST_STRING_EQUAL(method->getMethodName(), std::string(IsobaricQuantitationMethod::methodTypeName(mt)))
+  }
+
+  // The terminator and any out-of-range value are programming errors and must throw.
+  TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::create(MT::SIZE_OF_METHODTYPE))
+  TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::create(static_cast<MT>(static_cast<int>(MT::SIZE_OF_METHODTYPE) + 1)))
+}
+END_SECTION
+
+START_SECTION((const std::string& getMethodName() const))
+{
+  using MT = IsobaricQuantitationMethod::MethodType;
+  auto m = IsobaricQuantitationMethod::create(MT::TMT_6PLEX);
+  TEST_STRING_EQUAL(m->getMethodName(), "tmt6plex")
+}
+END_SECTION
+
+START_SECTION((MethodType getMethodType() const))
+{
+  using MT = IsobaricQuantitationMethod::MethodType;
+  auto m = IsobaricQuantitationMethod::create(MT::ITRAQ_4PLEX);
+  TEST_EQUAL(m->getMethodType() == MT::ITRAQ_4PLEX, true)
+}
+END_SECTION
+
+START_SECTION((static std::string_view methodTypeName(MethodType mt)))
+{
+  using MT = IsobaricQuantitationMethod::MethodType;
+  TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodTypeName(MT::UNKNOWN)), "unknown")
+  TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodTypeName(MT::TMT_6PLEX)), "tmt6plex")
+  TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodTypeName(MT::ITRAQ_8PLEX)), "itraq8plex")
+  // out-of-range values (the SIZE_OF_METHODTYPE terminator and beyond) are programming errors and must throw
+  TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodTypeName(MT::SIZE_OF_METHODTYPE))
+  TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodTypeName(static_cast<MT>(static_cast<int>(MT::SIZE_OF_METHODTYPE) + 1)))
+}
+END_SECTION
+
+START_SECTION((static std::string_view methodDisplayName(MethodType mt)))
+{
+  using MT = IsobaricQuantitationMethod::MethodType;
+  TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodDisplayName(MT::UNKNOWN)), "none")
+  TEST_STRING_EQUAL(std::string(IsobaricQuantitationMethod::methodDisplayName(MT::TMT_6PLEX)), "TMT 6-plex")
+  // out-of-range values (the SIZE_OF_METHODTYPE terminator and beyond) are programming errors and must throw
+  TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodDisplayName(MT::SIZE_OF_METHODTYPE))
+  TEST_EXCEPTION(Exception::IllegalArgument, IsobaricQuantitationMethod::methodDisplayName(static_cast<MT>(static_cast<int>(MT::SIZE_OF_METHODTYPE) + 1)))
+}
+END_SECTION
+
+START_SECTION((static MethodType methodTypeFromName(std::string_view name)))
+{
+  using MT = IsobaricQuantitationMethod::MethodType;
+  TEST_EQUAL(IsobaricQuantitationMethod::methodTypeFromName("tmt6plex") == MT::TMT_6PLEX, true)
+  TEST_EQUAL(IsobaricQuantitationMethod::methodTypeFromName("itraq4plex") == MT::ITRAQ_4PLEX, true)
+  // an unrecognized name returns the UNKNOWN sentinel (string lookup; does not throw)
+  TEST_EQUAL(IsobaricQuantitationMethod::methodTypeFromName("not_a_method") == MT::UNKNOWN, true)
 }
 END_SECTION
 

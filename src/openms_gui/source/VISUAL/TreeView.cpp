@@ -10,7 +10,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <QHeaderView>
 #include <QMenu>
@@ -100,7 +100,7 @@ namespace OpenMS
     const auto& header = this->headerItem();
     if (header->columnCount() <= header_column)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header index " + String(header_column) + " is too large. There are only " + String(header->columnCount()) + " columns!");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header index " + StringUtils::toStr(header_column) + " is too large. There are only " + StringUtils::toStr(header->columnCount()) + " columns!");
     }
     return header->text(header_column);
   }

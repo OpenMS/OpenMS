@@ -104,11 +104,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
-    setValidFormats_("id", ListUtils::create<String>("mzid,idXML"));
+    setValidFormats_("id", ListUtils::create<std::string>("mzid,idXML"));
     registerInputFile_("in", "<file>", "", "Feature map/consensus map file");
-    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Output file (the format depends on the input file format).");
-    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML,consensusXML"));
 
     addEmptyLine_();
     IDMapper mapper;
@@ -136,12 +136,12 @@ protected:
     addEmptyLine_();
     registerTOPPSubsection_("feature", "Additional options for featureXML input");
     registerStringOption_("feature:use_centroid_rt", "<choice>", "false", "Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces.", false);
-    setValidStrings_("feature:use_centroid_rt", ListUtils::create<String>("true,false"));
+    setValidStrings_("feature:use_centroid_rt", ListUtils::create<std::string>("true,false"));
     registerStringOption_("feature:use_centroid_mz", "<choice>", "true",
                           "Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.\n(If you choose 'peptide' as 'mz_reference', you "
                           "should usually set this flag to avoid false-positive matches.)",
                           false);
-    setValidStrings_("feature:use_centroid_mz", ListUtils::create<String>("true,false"));
+    setValidStrings_("feature:use_centroid_mz", ListUtils::create<std::string>("true,false"));
 
     addEmptyLine_();
     registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
@@ -150,7 +150,7 @@ protected:
 
     registerTOPPSubsection_("spectra", "Additional options for mzML input");
     registerInputFile_("spectra:in", "<file>", "", "MS run used to annotated unidentified spectra to features or consensus features.", false);
-    setValidFormats_("spectra:in", ListUtils::create<String>("mzML"));
+    setValidFormats_("spectra:in", ListUtils::create<std::string>("mzML"));
   }
 
   ExitCodes main_(int, const char**) override
@@ -161,15 +161,15 @@ protected:
     // load ids
     //----------------------------------------------------------------
     // OPENMS_LOG_DEBUG << "Loading idXML..." << endl;
-    String id = getStringOption_("id");
+    std::string id = getStringOption_("id");
     vector<ProteinIdentification> protein_ids;
     PeptideIdentificationList peptide_ids;
     FileTypes::Type in_type = FileHandler::getType(id);
     FileHandler().loadIdentifications(id, protein_ids, peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
 
-    String in = getStringOption_("in");
-    String spectra = getStringOption_("spectra:in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string spectra = getStringOption_("spectra:in");
+    std::string out = getStringOption_("out");
     in_type = FileHandler::getType(in);
     //----------------------------------------------------------------
     // create mapper
