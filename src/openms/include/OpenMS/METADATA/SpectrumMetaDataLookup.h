@@ -250,6 +250,7 @@ namespace OpenMS
        @param[in] flags What meta data to extract
 
        @throw Exception::ElementNotFound if a spectrum look-up was necessary, but no matching spectrum was found
+       @throw Exception::ParseError if @p spectrum_ref does not match any of the configured reference formats
 
        This function is a combination of getSpectrumMetaData() and SpectrumLookup::findByReference(). However, the spectrum is only looked up if necessary, i.e. if the required meta data - as defined by @p flags - cannot be extracted from the spectrum reference itself.
     */
@@ -317,10 +318,19 @@ namespace OpenMS
       const std::string& filename,
       bool stop_on_error = false, 
       bool override_spectra_data = false, 
-      bool override_spectra_references = false, 
-      std::vector<ProteinIdentification> proteins = std::vector<ProteinIdentification>());
+      bool override_spectra_references = false,
+      std::vector<ProteinIdentification>& proteins = emptyProteins_());
 
-
+  private:
+    /// Static empty vector used as the default for the (in/out) @p proteins parameter of
+    /// addMissingSpectrumReferences(): a non-const lvalue reference cannot bind to a
+    /// temporary default argument. Taking @p proteins by reference (was: by value) fixes
+    /// the silent discard of the documented "spectra_data" update (issue #9488, META-9).
+    static std::vector<ProteinIdentification>& emptyProteins_()
+    {
+      static std::vector<ProteinIdentification> empty;
+      return empty;
+    }
 
   protected:
 
