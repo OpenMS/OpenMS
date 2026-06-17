@@ -57,17 +57,17 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em This search engine is mainly for educational/benchmarking/prototyping use cases.
-    It lacks behind in speed and/or quality of results when compared to state-of-the-art search engines.
+@em This search engine is mainly for educational/benchmarking/prototyping use cases.
+It lacks behind in speed and/or quality of results when compared to state-of-the-art search engines.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
-    @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
-    @note Decoy handling: either enable '-Search:decoys' to generate decoys internally, or provide a FASTA database that already contains decoy proteins (e.g., from DecoyDatabase). In both cases, the decoy accession prefix must match '-Search:decoy_prefix' (default: "DECOY_").
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
+@note Decoy handling: either enable '-Search:decoys' to generate decoys internally, or provide a FASTA database that already contains decoy proteins (e.g., from DecoyDatabase). In both cases, the decoy accession prefix must match '-Search:decoy_prefix' (default: "DECOY_").
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_ProSE.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_ProSE.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_ProSE.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_ProSE.html
 */
 
 // We do not want this class to show up in the docu:

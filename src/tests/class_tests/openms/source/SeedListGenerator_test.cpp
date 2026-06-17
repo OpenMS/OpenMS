@@ -57,6 +57,16 @@ START_SECTION((void generateSeedList(const PeakMap& experiment, SeedList& seeds)
 	TEST_EQUAL(seeds[2], DPosition<2>(0.5927, 678.384));
 	// ...
 	TEST_EQUAL(seeds[8], DPosition<2>(3.7572, 512.784));
+
+	// MS2 spectrum without a precursor spectrum / precursor info must be skipped, not crash
+	// (regression: previously dereferenced an end() precursor iterator and indexed precursors[0])
+	PeakMap exp_no_prec;
+	MSSpectrum ms2;
+	ms2.setMSLevel(2); // no precursor spectrum before it, and no Precursor set
+	exp_no_prec.addSpectrum(ms2);
+	SeedListGenerator::SeedList seeds_no_prec;
+	SeedListGenerator().generateSeedList(exp_no_prec, seeds_no_prec);
+	TEST_EQUAL(seeds_no_prec.empty(), true);
 }
 END_SECTION
 

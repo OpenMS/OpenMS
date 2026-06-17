@@ -15,9 +15,12 @@
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Constants.h>
+
+#include <map>
 
 ///////////////////////////
 
@@ -892,6 +895,57 @@ START_SECTION(([EXTRA] test first prefix loss))
   TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-H3N1+") == anno.end(), true)
   TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N2+") == anno.end(), true)
   TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N1O1+") == anno.end(), true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] b-ion and a-ion neutral-loss m/z values)
+{
+  // #9078: a b/a neutral-loss ion's m/z must equal its base ion m/z minus the
+  // neutral-loss mass. The loss sections above pin x-ion loss m/z and b-loss ion
+  // *names*, but never the m/z of the b-/a-ion losses (and never a-ion losses at
+  // all). Here we assert directly that m/z(<ion>-H2O1) == m/z(<ion>) - mass(H2O)
+  // for both the b- and a-ion ladders.
+  AASequence pep = AASequence::fromString("IFSQVGK"); // contains S -> water loss
+  const double water = EmpiricalFormula("H2O").getMonoWeight();
+
+  TheoreticalSpectrumGenerator tsg;
+  Param p = tsg.getParameters();
+  p.setValue("add_a_ions", "true");
+  p.setValue("add_b_ions", "true");
+  p.setValue("add_c_ions", "false");
+  p.setValue("add_x_ions", "false");
+  p.setValue("add_y_ions", "false");
+  p.setValue("add_z_ions", "false");
+  p.setValue("add_precursor_peaks", "false");
+  p.setValue("add_losses", "true");
+  p.setValue("add_metainfo", "true");
+  tsg.setParameters(p);
+
+  PeakSpectrum spec;
+  tsg.getSpectrum(spec, pep, 1, 1);
+
+  std::map<std::string, double> mz;
+  const PeakSpectrum::StringDataArray& names = spec.getStringDataArrays().at(0);
+  for (Size i = 0; i < spec.size(); ++i) { mz[std::string(names[i])] = spec[i].getPosition()[0]; }
+
+  Size b_checked = 0, a_checked = 0;
+  for (const auto& kv : mz)
+  {
+    const std::string& name = kv.first;
+    const std::string::size_type loss_pos = name.find("-H2O1+");
+    if (loss_pos != std::string::npos && (name[0] == 'b' || name[0] == 'a'))
+    {
+      const std::string base = name.substr(0, loss_pos) + "+"; // "b3-H2O1+" -> "b3+"
+      if (mz.count(base))
+      {
+        TEST_REAL_SIMILAR(kv.second, mz[base] - water)
+        if (name[0] == 'b') { ++b_checked; } else { ++a_checked; }
+      }
+    }
+  }
+  // non-vacuous: both ladders must actually contribute water-loss ions
+  TEST_EQUAL(b_checked > 0, true)
+  TEST_EQUAL(a_checked > 0, true)
 }
 END_SECTION
 
