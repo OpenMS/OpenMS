@@ -71,7 +71,7 @@ namespace OpenMS
   {
     if (side >= BOTH)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::add() does not support this value for 'side'!", String(side));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::add() does not support this value for 'side'!",StringUtils::toStr(side));
     }
     if (a.getAmount() < 0)
     {
@@ -82,7 +82,7 @@ namespace OpenMS
     //  std::cerr << "Compomer::add() was given adduct with negative charge! Are you sure this is what you want?!\n";
     //}
 
-    if (cmp_[side].count(a.getFormula()) == 0)
+    if (!cmp_[side].contains(a.getFormula()))
     {
       cmp_[side][a.getFormula()] = a;
     }
@@ -109,11 +109,11 @@ namespace OpenMS
   {
     if (side_this  >= BOTH)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isConflicting() does not support this value for 'side_this'!", String(side_this));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isConflicting() does not support this value for 'side_this'!",StringUtils::toStr(side_this));
     }
     if (side_other >= BOTH)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isConflicting() does not support this value for 'side_other'!", String(side_other));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isConflicting() does not support this value for 'side_other'!",StringUtils::toStr(side_other));
     }
     bool conflict_found = false;
 
@@ -193,23 +193,23 @@ namespace OpenMS
     return rt_shift_;
   }
 
-  String Compomer::getAdductsAsString() const
+  std::string Compomer::getAdductsAsString() const
   {
     return "(" + getAdductsAsString(LEFT) + ") --> (" + getAdductsAsString(RIGHT) + ")";
   }
 
-  String Compomer::getAdductsAsString(UInt side) const
+  std::string Compomer::getAdductsAsString(UInt side) const
   {
     if (side >= BOTH)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getAdductsAsString() does not support this value for 'side'!", String(side));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getAdductsAsString() does not support this value for 'side'!",StringUtils::toStr(side));
     }
-    String r;
+    std::string r;
     for (const auto& [formula, adduct] : cmp_[side])
     {
       Int f = adduct.getAmount();
 
-      if (formula.has('+'))
+      if (StringUtils::has(formula, '+'))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "An Adduct contains implicit charge. This is not allowed!", formula);
       }
@@ -225,13 +225,13 @@ namespace OpenMS
   {
     if (side >= BOTH)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isSimpleAdduct() does not support this value for 'side'!", String(side));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isSimpleAdduct() does not support this value for 'side'!",StringUtils::toStr(side));
     }
     if (cmp_[side].size() != 1)
     {
       return false;
     }
-    if (cmp_[side].count(a.getFormula()) == 0)
+    if (!cmp_[side].contains(a.getFormula()))
     {
       return false;
     }
@@ -249,10 +249,10 @@ namespace OpenMS
   {
     if (side >= BOTH)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::removeAdduct() does not support this value for 'side'!", String(side));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::removeAdduct() does not support this value for 'side'!",StringUtils::toStr(side));
     }
     Compomer tmp(*this);
-    if (tmp.cmp_[side].count(a.getFormula()) > 0)
+    if (tmp.cmp_[side].contains(a.getFormula()))
     {
       { // how many instances does this side contain?
         Int amount = tmp.cmp_[side][a.getFormula()].getAmount();
@@ -276,7 +276,7 @@ namespace OpenMS
   {
     if (side >= BOTH)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getLabels() does not support this value for 'side'!", String(side));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getLabels() does not support this value for 'side'!",StringUtils::toStr(side));
     }
     StringList tmp;
 
@@ -289,6 +289,21 @@ namespace OpenMS
     }
 
     return tmp;
+  }
+
+  double Compomer::getSideMass(const UInt side) const
+  {
+    if (side >= BOTH)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Compomer::getSideMass() only supports LEFT (0) or RIGHT (1), not: ",StringUtils::toStr(side));
+    }
+    double mass = 0.0;
+    for (const auto& [formula, adduct] : cmp_[side])
+    {
+      mass += adduct.getAmount() * adduct.getSingleMass();
+    }
+    return mass;
   }
 
   /// Adds @p add_side to this compomer.

@@ -9,6 +9,7 @@
 #include <OpenMS/VISUAL/VISUALIZER/ExperimentalSettingsVisualizer.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //QT
 #include <QtWidgets/QLineEdit>
@@ -48,7 +49,7 @@ namespace OpenMS
     DateTime date;
     try
     {
-      date.set(datetime_->text());
+      date.set(fromQString(datetime_->text()));
       ptr_->setDateTime(date);
     }
     catch (exception & /*e*/)
@@ -60,8 +61,8 @@ namespace OpenMS
       }
     }
 
-    ptr_->setComment(comment_->toPlainText());
-    ptr_->setFractionIdentifier(fraction_identifier_->text());
+    ptr_->setComment(fromQString(comment_->toPlainText()));
+    ptr_->setFractionIdentifier(fromQString(fraction_identifier_->text()));
 
     temp_ = (*ptr_);
   }

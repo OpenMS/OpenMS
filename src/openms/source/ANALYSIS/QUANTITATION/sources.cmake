@@ -17,12 +17,13 @@ ItraqFourPlexQuantitationMethod.cpp
 KDTreeFeatureMaps.cpp
 KDTreeFeatureNode.cpp
 PeptideAndProteinQuant.cpp
-ProteinInference.cpp
 TMTEighteenPlexQuantitationMethod.cpp
 TMTSixteenPlexQuantitationMethod.cpp
 TMTElevenPlexQuantitationMethod.cpp
 TMTSixPlexQuantitationMethod.cpp
 TMTTenPlexQuantitationMethod.cpp
+TMTThirtyTwoPlexQuantitationMethod.cpp
+TMTThirtyFivePlexQuantitationMethod.cpp
 AbsoluteQuantitation.cpp
 AbsoluteQuantitationMethod.cpp
 )

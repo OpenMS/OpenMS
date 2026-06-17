@@ -11,6 +11,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -22,7 +23,7 @@ using namespace std;
 
 namespace OpenMS::Internal
 {
-  FeatureXMLHandler::FeatureXMLHandler(FeatureMap& map, const String& filename) :
+  FeatureXMLHandler::FeatureXMLHandler(FeatureMap& map, const std::string& filename) :
     Internal::XMLHandler("", "1.9")
   {
     resetMembers_();
@@ -30,7 +31,7 @@ namespace OpenMS::Internal
     file_ = filename;
   }
 
-  FeatureXMLHandler::FeatureXMLHandler(const FeatureMap& map, const String& filename) :
+  FeatureXMLHandler::FeatureXMLHandler(const FeatureMap& map, const std::string& filename) :
     Internal::XMLHandler("", "1.9")
   {
     resetMembers_();
@@ -111,7 +112,7 @@ namespace OpenMS::Internal
       const ProteinIdentification& current_prot_id = feature_map.getProteinIdentifications()[i];
       os << "\t<IdentificationRun ";
       os << "id=\"PI_" << i << "\" ";
-      identifier_id_[current_prot_id.getIdentifier()] = String("PI_") + i;
+      identifier_id_[current_prot_id.getIdentifier()] =std::string("PI_") + i;
       os << "date=\"" << current_prot_id.getDateTime().getDate() << "T" << current_prot_id.getDateTime().getTime() << "\" ";
       os << "search_engine=\"" << writeXMLEscape(current_prot_id.getSearchEngine()) << "\" ";
       os << "search_engine_version=\"" << writeXMLEscape(current_prot_id.getSearchEngineVersion()) << "\">\n";
@@ -131,11 +132,11 @@ namespace OpenMS::Internal
         os << "mass_type=\"average\" ";
       }
       os << "charges=\"" << search_param.charges << "\" ";
-      String enzyme_name = search_param.digestion_enzyme.getName();
-      os << "enzyme=\"" << enzyme_name.toLower() << "\" ";
+      std::string enzyme_name = search_param.digestion_enzyme.getName();
+      os << "enzyme=\"" << StringUtils::toLower(enzyme_name) << "\" ";
 
-      String precursor_unit = search_param.precursor_mass_tolerance_ppm ? "true" : "false";
-      String peak_unit = search_param.fragment_mass_tolerance_ppm ? "true" : "false";
+      std::string precursor_unit = search_param.precursor_mass_tolerance_ppm ? "true" : "false";
+      std::string peak_unit = search_param.fragment_mass_tolerance_ppm ? "true" : "false";
 
       os << "missed_cleavages=\"" << search_param.missed_cleavages << "\" "
          << "precursor_peak_tolerance=\"" << search_param.precursor_mass_tolerance << "\" ";
@@ -251,7 +252,7 @@ namespace OpenMS::Internal
     // TODO The next line should be removed in OpenMS 1.7 or so!
     static const XMLCh* s_unique_id = xercesc::XMLString::transcode("unique_id");
 
-    String tag = sm_.convert(qname);
+    std::string tag = sm_.convert(qname);
 
     // handle skipping of whole sections
     // IMPORTANT: check parent tags first (i.e. tags higher in the tree), since otherwise sections might be enabled/disabled too early/late
@@ -270,7 +271,7 @@ namespace OpenMS::Internal
       return;
     }
     // do the actual parsing:
-    String parent_tag;
+    std::string parent_tag;
     if (!open_tags_.empty())
     {
       parent_tag = open_tags_.back();
@@ -330,8 +331,8 @@ namespace OpenMS::Internal
     }
     else if (tag == "param")
     {
-      String name = attributeAsString_(attributes, s_name);
-      String value = attributeAsString_(attributes, s_value);
+      std::string name = attributeAsString_(attributes, s_name);
+      std::string value = attributeAsString_(attributes, s_value);
       if (!name.empty() && !value.empty())
         param_.setValue(name, value);
     }
@@ -339,11 +340,11 @@ namespace OpenMS::Internal
     {
       if (last_meta_ == nullptr)
       {
-        fatalError(LOAD, String("Unexpected UserParam in tag '") + parent_tag + "'");
+        fatalError(LOAD,std::string("Unexpected UserParam in tag '") + parent_tag + "'");
       }
 
-      String name = attributeAsString_(attributes, s_name);
-      String type = attributeAsString_(attributes, s_type);
+      std::string name = attributeAsString_(attributes, s_name);
+      std::string type = attributeAsString_(attributes, s_type);
 
       if (type == "int")
       {
@@ -355,7 +356,7 @@ namespace OpenMS::Internal
       }
       else if (type == "string")
       {
-        last_meta_->setMetaValue(name, (String)attributeAsString_(attributes, s_value));
+        last_meta_->setMetaValue(name, (std::string)attributeAsString_(attributes, s_value));
       }
       else if (type == "intList")
       {
@@ -371,30 +372,30 @@ namespace OpenMS::Internal
       }
       else
       {
-        fatalError(LOAD, String("Invalid UserParam type '") + type + "'");
+        fatalError(LOAD,std::string("Invalid UserParam type '") + type + "'");
       }
     }
     else if (tag == "featureMap")
     {
       //check file version against schema version
-      String file_version = "";
+      std::string file_version;
       optionalAttributeAsString_(file_version, attributes, s_version);
       if (file_version.empty())
       {
         file_version = "1.0"; //default version is 1.0
       }
-      if (file_version.toDouble() > version_.toDouble())
+      if (StringUtils::toDouble(file_version) > StringUtils::toDouble(version_))
       {
-        warning(LOAD, String("The XML file (") + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
+        warning(LOAD,std::string("The XML file (") + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
       }
       //handle document id
-      String document_id;
+      std::string document_id;
       if (optionalAttributeAsString_(document_id, attributes, s_document_id))
       {
         map_->setIdentifier(document_id);
       }
       //handle unique id
-      String unique_id;
+      std::string unique_id;
       if (optionalAttributeAsString_(unique_id, attributes, s_id))
       {
         map_->setUniqueId(unique_id);
@@ -420,7 +421,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "processingAction" && parent_tag == "dataProcessing")
     {
-      String name = attributeAsString_(attributes, s_name);
+      std::string name = attributeAsString_(attributes, s_name);
       for (Size i = 0; i < DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
       {
         if (name == DataProcessing::NamesOfProcessingAction[i])
@@ -440,13 +441,13 @@ namespace OpenMS::Internal
       // If these FeatureMaps have identical identifiers (SearchEngine time + type match exactly), then ALL PepIDs would be falsely attributed
       // to a single ProtID...
 
-      String id = attributeAsString_(attributes, "id");
+      std::string id = attributeAsString_(attributes, "id");
       while (true)
       { // loop until the identifier is unique (should be on the first iteration -- very(!) unlikely it will not be unique)
         // Note: technically, it would be preferable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
-        String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + String(UniqueIdGenerator::getUniqueId());
+        std::string identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
 
-        if (id_identifier_.find(id) == id_identifier_.end())
+        if (!id_identifier_.contains(id))
         {
           prot_id_.setIdentifier(identifier);
           id_identifier_[id] = identifier;
@@ -463,15 +464,15 @@ namespace OpenMS::Internal
       search_param_.charges = attributeAsString_(attributes, "charges");
       optionalAttributeAsUInt_(search_param_.missed_cleavages, attributes, "missed_cleavages");
       search_param_.fragment_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
-      String peak_unit;
+      std::string peak_unit;
       optionalAttributeAsString_(peak_unit, attributes, "peak_mass_tolerance_ppm");
       search_param_.fragment_mass_tolerance_ppm = peak_unit == "true" ? true : false;
       search_param_.precursor_mass_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
-      String precursor_unit;
+      std::string precursor_unit;
       optionalAttributeAsString_(precursor_unit, attributes, "precursor_peak_tolerance_ppm");
       search_param_.precursor_mass_tolerance_ppm = precursor_unit == "true" ? true : false;
       //mass type
-      String mass_type = attributeAsString_(attributes, "mass_type");
+      std::string mass_type = attributeAsString_(attributes, "mass_type");
       if (mass_type == "monoisotopic")
       {
         search_param_.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
@@ -481,7 +482,7 @@ namespace OpenMS::Internal
         search_param_.mass_type = ProteinIdentification::PeakMassType::AVERAGE;
       }
       //enzyme
-      String enzyme;
+      std::string enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme))
       {
@@ -521,7 +522,7 @@ namespace OpenMS::Internal
     else if (tag == "ProteinHit")
     {
       prot_hit_ = ProteinHit();
-      String accession = attributeAsString_(attributes, "accession");
+      std::string accession = attributeAsString_(attributes, "accession");
       prot_hit_.setAccession(accession);
       prot_hit_.setScore(attributeAsDouble_(attributes, "score"));
 
@@ -534,7 +535,7 @@ namespace OpenMS::Internal
       }
 
       //sequence
-      String tmp = "";
+      std::string tmp;
       optionalAttributeAsString_(tmp, attributes, "sequence");
       prot_hit_.setSequence(tmp);
 
@@ -545,10 +546,10 @@ namespace OpenMS::Internal
     }
     else if (tag == "PeptideIdentification" || tag == "UnassignedPeptideIdentification")
     {
-      String id = attributeAsString_(attributes, "identification_run_ref");
-      if (id_identifier_.find(id) == id_identifier_.end())
+      std::string id = attributeAsString_(attributes, "identification_run_ref");
+      if (!id_identifier_.contains(id))
       {
-        warning(LOAD, String("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
+        warning(LOAD,std::string("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
       }
       pep_id_.setIdentifier(id_identifier_[id]);
 
@@ -579,7 +580,7 @@ namespace OpenMS::Internal
       {
         pep_id_.setRT(tmp2);
       }
-      String tmp3;
+      std::string tmp3;
       optionalAttributeAsString_(tmp3, attributes, "spectrum_reference");
       if (!tmp3.empty())
       {
@@ -595,23 +596,23 @@ namespace OpenMS::Internal
 
       pep_hit_.setCharge(attributeAsInt_(attributes, "charge"));
       pep_hit_.setScore(attributeAsDouble_(attributes, "score"));
-      pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
+      pep_hit_.setSequence(AASequence::fromString(std::string(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
       const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
       if (refs != nullptr)
       {
-        String accession_string = sm_.convert(refs);
-        accession_string.trim();
-        vector<String> accessions;
-        accession_string.split(' ', accessions);
+        std::string accession_string = sm_.convert(refs);
+        StringUtils::trim(accession_string);
+        vector<std::string> accessions;
+        StringUtils::split(accession_string, ' ', accessions);
         if (!accession_string.empty() && accessions.empty())
         {
           accessions.push_back(accession_string);
         }
-        for (vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
+        for (vector<std::string>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
         {
-          std::map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+          std::map<std::string, std::string>::const_iterator it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
             PeptideEvidence pe;
@@ -620,18 +621,18 @@ namespace OpenMS::Internal
           }
           else
           {
-            fatalError(LOAD, String("Invalid protein reference '") + *it + "'");
+            fatalError(LOAD,std::string("Invalid protein reference '") + *it + "'");
           }
         }
       }
 
       //aa_before
-      String tmp = "";
+      std::string tmp;
       optionalAttributeAsString_(tmp, attributes, "aa_before");
       if (!tmp.empty())
       {
-        std::vector<String> splitted;
-        tmp.split(' ', splitted);
+        std::vector<std::string> splitted;
+        StringUtils::split(tmp, ' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
         { 
           if (peptide_evidences_.size() < i + 1) 
@@ -647,8 +648,8 @@ namespace OpenMS::Internal
       optionalAttributeAsString_(tmp, attributes, "aa_after");
       if (!tmp.empty())
       {
-        std::vector<String> splitted;
-        tmp.split(' ', splitted);
+        std::vector<std::string> splitted;
+        StringUtils::split(tmp, ' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
         { 
           if (peptide_evidences_.size() < i + 1) 
@@ -665,15 +666,15 @@ namespace OpenMS::Internal
 
       if (!tmp.empty())
       {
-        std::vector<String> splitted;
-        tmp.split(' ', splitted);
+        std::vector<std::string> splitted;
+        StringUtils::split(tmp, ' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
             peptide_evidences_.emplace_back();
           }
-          peptide_evidences_[i].setStart(splitted[i].toInt());
+          peptide_evidences_[i].setStart(StringUtils::toInt32(splitted[i]));
         }
       }
 
@@ -682,15 +683,15 @@ namespace OpenMS::Internal
       optionalAttributeAsString_(tmp, attributes, "end");
       if (!tmp.empty())
       {
-        std::vector<String> splitted;
-        tmp.split(' ', splitted);
+        std::vector<std::string> splitted;
+        StringUtils::split(tmp, ' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
             peptide_evidences_.emplace_back();
           }
-          peptide_evidences_[i].setEnd(splitted[i].toInt());
+          peptide_evidences_[i].setEnd(StringUtils::toInt32(splitted[i]));
         }
       }
 
@@ -701,7 +702,7 @@ namespace OpenMS::Internal
 
   void FeatureXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
-    String tag = sm_.convert(qname);
+    std::string tag = sm_.convert(qname);
 
     // handle skipping of whole sections
     // IMPORTANT: check parent tags first (i.e. tags higher in the tree), since otherwise sections might be enabled/disabled too early/late
@@ -766,7 +767,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "model")
     {
-      warning(LOAD, String("The featureXML file contains a 'model' description, but the internal datastructure has no model support since OpenMS 1.12. Model will be ignored!"));
+      warning(LOAD,std::string("The featureXML file contains a 'model' description, but the internal datastructure has no model support since OpenMS 1.12. Model will be ignored!"));
     }
     else if (tag == "hullpoint" || tag == "pt")
     {
@@ -851,7 +852,7 @@ namespace OpenMS::Internal
     {
       return;
     }
-    String& current_tag = open_tags_.back();
+    std::string& current_tag = open_tags_.back();
     if (current_tag == "intensity")
     {
       current_feature_->setIntensity(asDouble_(sm_.convert(chars)));
@@ -878,9 +879,9 @@ namespace OpenMS::Internal
     }
   }
 
-  void FeatureXMLHandler::writeFeature_(const String& filename, ostream& os, const Feature& feat, const String& identifier_prefix, UInt64 identifier, UInt indentation_level)
+  void FeatureXMLHandler::writeFeature_(const std::string& filename, ostream& os, const Feature& feat, const std::string& identifier_prefix, UInt64 identifier, UInt indentation_level)
   {
-    String indent = String(indentation_level, '\t');
+    std::string indent =std::string(indentation_level, '\t');
 
     os << indent << "\t\t<feature id=\"" << identifier_prefix << identifier << "\">\n";
     for (Size i = 0; i < 2; i++)
@@ -896,7 +897,7 @@ namespace OpenMS::Internal
     os << indent << "\t\t\t<charge>" << feat.getCharge() << "</charge>\n";
 
     // write convex hull
-    vector<ConvexHull2D> hulls = feat.getConvexHulls();
+    const vector<ConvexHull2D>& hulls = feat.getConvexHulls();
 
     Size hulls_count = hulls.size();
 
@@ -948,13 +949,13 @@ namespace OpenMS::Internal
     os << indent << "\t\t</feature>\n";
   }
 
-  void FeatureXMLHandler::writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level)
+  void FeatureXMLHandler::writePeptideIdentification_(const std::string& filename, std::ostream& os, const PeptideIdentification& id, const std::string& tag_name, UInt indentation_level)
   {
-    String indent = String(indentation_level, '\t');
+    std::string indent =std::string(indentation_level, '\t');
 
-    if (identifier_id_.find(id.getIdentifier()) == identifier_id_.end())
+    if (!identifier_id_.contains(id.getIdentifier()))
     {
-      warning(STORE, String("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier() + "' while writing '" + filename + "'!");
+      warning(STORE,std::string("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier() + "' while writing '" + filename + "'!");
       return;
     }
     os << indent << "<" << tag_name << " ";
@@ -994,20 +995,20 @@ namespace OpenMS::Internal
       IdXMLFile::createFlankingAAXMLString_(pes, os);
       IdXMLFile::createPositionXMLString_(pes, os);
 
-      String accs;
+      std::string accs;
       for (vector<PeptideEvidence>::const_iterator pe = pes.begin(); pe != pes.end(); ++pe)
       {
         if (!accs.empty())
         {
           accs += " ";
         }
-        String protein_accession = pe->getProteinAccession();
+        std::string protein_accession = pe->getProteinAccession();
 
         // empty accessions are not written out (legacy code)
         if (!protein_accession.empty())
         {
           accs += "PH_";
-          accs += String(accession_to_id_[id.getIdentifier() + "_" + protein_accession]);
+          accs +=StringUtils::toStr(accession_to_id_[id.getIdentifier() + "_" + protein_accession]);
         }
       }
 

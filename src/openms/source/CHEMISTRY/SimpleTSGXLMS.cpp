@@ -78,7 +78,7 @@ namespace OpenMS
         vector<EmpiricalFormula> loss_formulas = residues[i].getLossFormulas();
         for (Size k = 0; k != loss_formulas.size(); ++k)
         {
-          String loss_name = loss_formulas[k].toString();
+          std::string loss_name = loss_formulas[k].toString();
           if (loss_name == "H2O1") // for now only these most common losses are considered
           {
             if (loss_H2O_ < 1)

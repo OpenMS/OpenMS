@@ -143,5 +143,8 @@ namespace OpenMS
     double im_tolerance_cluster_{0.1};
 
     double ppm_tolerance_elution_{50.0};
+
+    /// Flag to track if CCS tolerance warning has been shown (mutable for const methods)
+    mutable bool ccs_warning_shown_{false};
   };
 } // namespace OpenMS

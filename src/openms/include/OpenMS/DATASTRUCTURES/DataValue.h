@@ -8,14 +8,12 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/OpenMSConfig.h>
-
-class QString;
 
 namespace OpenMS
 {
@@ -74,10 +72,6 @@ public:
     DataValue(const char*);
     /// specific constructor for std::string values
     DataValue(const std::string&);
-    /// specific constructor for string values
-    DataValue(const String&);
-    /// specific constructor for QString values
-    DataValue(const QString&);
     /// specific constructor for string lists
     DataValue(const StringList&);
     /// specific constructor for integer lists
@@ -124,6 +118,17 @@ public:
 
     /**
       @brief conversion operator to string
+
+      @warning This cast is STRICT: it only succeeds for a STRING_VALUE and throws
+      Exception::ConversionError for any other type (Int, Double, StringList, Empty).
+      This differs from the removed @c String(const DataValue&) constructor, which was
+      LENIENT (it stringified numbers, lists and EMPTY without throwing). Code that used
+      to write @c String s = dv; (or @c String s = obj.getMetaValue(k);) must NOT be
+      ported to @c std::string s = dv; / @c (std::string)dv — that reintroduces the strict
+      cast and will throw at runtime as soon as the value is not a plain string.
+      To reproduce the old lenient behaviour use @c StringUtils::toStr(dv) (see StringUtils.h),
+      which never throws and is a no-op for genuine strings. See the "Class B" note in
+      StringUtils.h::toStr(const DataValue&).
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -300,10 +305,6 @@ public:
     DataValue& operator=(const char*);
     /// specific assignment for std::string values
     DataValue& operator=(const std::string&);
-    /// specific assignment for string values
-    DataValue& operator=(const String&);
-    /// specific assignment for QString values
-    DataValue& operator=(const QString&);
     /// specific assignment for string lists
     DataValue& operator=(const StringList&);
     /// specific assignment for integer lists
@@ -343,10 +344,8 @@ public:
       @brief Conversion to String
       @p full_precision Controls number of fractional digits for all double types or lists of double, 3 digits when false, and 15 when true.
     **/
-    String toString(bool full_precision = true) const;
+    std::string toString(bool full_precision = true) const;
 
-    ///Conversion to QString
-    QString toQString() const;
     //@}
 
     /// returns the type of value stored
@@ -410,7 +409,7 @@ protected:
     {
       SignedSize ssize_;
       double dou_;
-      String* str_;
+      std::string* str_;
       StringList* str_list_;
       IntList* int_list_;
       DoubleList* dou_list_;

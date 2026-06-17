@@ -42,7 +42,7 @@ START_SECTION((Adduct(Int charge)))
 }
 END_SECTION
 
-START_SECTION((Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob, double rt_shift, const String label="")))
+START_SECTION((Adduct(Int charge, Int amount, double singleMass, std::string formula, double log_prob, double rt_shift, const std::string label="")))
 {
 	Adduct a(123, 43, 123.456f, "S", -0.3453, -10);
 	TEST_EQUAL(a.getCharge(), 123);
@@ -127,13 +127,13 @@ START_SECTION((void setLogProb(const double &log_prob)))
 }
 END_SECTION
 
-START_SECTION((const String& getFormula() const))
+START_SECTION((const std::string& getFormula() const))
 {
 	NOT_TESTABLE //well.. tested below...
 }
 END_SECTION
 
-START_SECTION((void setFormula(const String &formula)))
+START_SECTION((void setFormula(const std::string &formula)))
 	Adduct a;
 	a.setFormula("S");
   TEST_EQUAL(a.getFormula()=="S1", true);
@@ -146,7 +146,7 @@ START_SECTION((const double& getRTShift() const))
   TEST_REAL_SIMILAR(a1.getRTShift(), 11);
 END_SECTION
 
-START_SECTION((const String& getLabel() const ))
+START_SECTION((const std::string& getLabel() const ))
 	Adduct a(123, 43, 123.456f, "S", -0.3453, -10);
   TEST_EQUAL(a.getLabel(), "");
 	Adduct a1(123, 43, 123.456f, "S", -0.3453, 11, "mylabel");
@@ -190,6 +190,26 @@ START_SECTION((void operator+=(const Adduct &rhs)))
 }
 END_SECTION
 
+
+START_SECTION((static std::string toAdductString(const std::string& ion_string, const Int& charge, Int mol_multiplier)))
+{
+  // monomer (multiplier=1) — no prefix
+  std::string r1 = Adduct::toAdductString("H1", 1, 1);
+  TEST_EQUAL(r1, "[M+H]+");
+
+  // dimer
+  std::string r2 = Adduct::toAdductString("H1", 1, 2);
+  TEST_EQUAL(r2, "[2M+H]+");
+
+  // trimer with Na
+  std::string r3 = Adduct::toAdductString("Na1", 1, 3);
+  TEST_EQUAL(r3, "[3M+Na]+");
+
+  // dimer negative mode
+  std::string r4 = Adduct::toAdductString("H-1", -1, 2);
+  TEST_EQUAL(r4, "[2M-H]-");
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

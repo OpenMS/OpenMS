@@ -3,6 +3,7 @@ set(directory include/OpenMS/FORMAT/DATAACCESS)
 
 ### list all header files of the directory here
 set(sources_list_h
+  MSChromatogramParquetConsumer.h
   MSDataAggregatingConsumer.h
   MSDataCachedConsumer.h
   MSDataChainingConsumer.h
@@ -32,4 +33,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\FORMAT\\DATAACCESS" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

@@ -8,6 +8,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -33,6 +35,7 @@ Can convert multiple formats to and from TraML (standardized transition format).
         <li> @ref OpenMS::TraMLFile "TraML" </li>
         <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
         <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" </li>
+        <li> @ref OpenMS::TransitionParquetFile "OpenSWATH Parquet library (.oswpq)" </li>
         <li> SpectraST MRM transition lists </li>
         <li> Skyline transition lists </li>
         <li> Spectronaut transition lists </li>
@@ -64,10 +67,12 @@ protected:
                                            "See http://www.openms.de/current_doxygen/html/TOPP_TargetedFileConverter.html for format of OpenSWATH transition TSV file or SpectraST MRM file.");
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
     StringList formats{"tsv", "mrm" ,"pqp", "TraML"};
+    formats.push_back("oswpq");
     setValidFormats_("in", formats);
     setValidStrings_("in_type", formats);
 
     formats = { "tsv", "pqp", "TraML" };
+    formats.push_back("oswpq");
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: not all conversion paths work or make sense.", false);
@@ -78,7 +83,7 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String&) const override
+  Param getSubsectionDefaults_(const std::string&) const override
   {
     return TransitionTSVFile().getDefaults();
   }
@@ -88,13 +93,13 @@ protected:
     FileHandler fh;
 
     //input file type
-    String in = getStringOption_("in");
+    std::string in = getStringOption_("in");
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)
@@ -104,7 +109,7 @@ protected:
     }
 
     //output file names and types
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
     if (out_type == FileTypes::UNKNOWN)
@@ -125,8 +130,12 @@ protected:
     //---------------------------------------------------------------------------
 
     // Use memory-efficient Light path for TSV/PQP → TSV/PQP conversions
-    bool use_light_path = (in_type == FileTypes::TSV || in_type == FileTypes::MRM || in_type == FileTypes::PQP)
-                       && (out_type == FileTypes::TSV || out_type == FileTypes::PQP);
+    bool use_light_path = (in_type == FileTypes::TSV || in_type == FileTypes::MRM || in_type == FileTypes::PQP
+      || in_type == FileTypes::OSWPQ
+      )
+                       && (out_type == FileTypes::TSV || out_type == FileTypes::PQP
+                       || out_type == FileTypes::OSWPQ
+                       );
 
     if (use_light_path)
     {
@@ -150,6 +159,11 @@ protected:
         // Light path uses TRAML_ID (legacy_traml_id=true) to preserve original string identifiers
         pqp_reader.convertPQPToTargetedExperiment(in.c_str(), light_exp, true);
       }
+      else if (in_type == FileTypes::OSWPQ)
+      {
+        TransitionParquetFile parquet_reader;
+        parquet_reader.convertParquetToTargetedExperiment(in, light_exp);
+      }
 
       if (out_type == FileTypes::TSV)
       {
@@ -162,6 +176,11 @@ protected:
         TransitionPQPFile pqp_writer;
         pqp_writer.setLogType(log_type_);
         pqp_writer.convertLightTargetedExperimentToPQP(out.c_str(), light_exp);
+      }
+      else if (out_type == FileTypes::OSWPQ)
+      {
+        TransitionParquetFile parquet_writer;
+        parquet_writer.convertLightTargetedExperimentToParquet(out, light_exp);
       }
     }
     else
@@ -187,6 +206,11 @@ protected:
         pqp_reader.convertPQPToTargetedExperiment(in.c_str(), targeted_exp, legacy_traml_id);
         pqp_reader.validateTargetedExperiment(targeted_exp);
       }
+      else if (in_type == FileTypes::OSWPQ)
+      {
+        writeLogError_("Error: Parquet input is only supported for light-weight conversions.");
+        return PARSE_ERROR;
+      }
       else if (in_type == FileTypes::TRAML)
       {
         FileHandler().loadTransitions(in, targeted_exp, {FileTypes::TRAML});
@@ -207,6 +231,13 @@ protected:
       else if (out_type == FileTypes::TRAML)
       {
         FileHandler().storeTransitions(out, targeted_exp, {FileTypes::TRAML});
+      }
+      else if (out_type == FileTypes::OSWPQ)
+      {
+        OpenSwath::LightTargetedExperiment light_exp;
+        OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
+        TransitionParquetFile parquet_writer;
+        parquet_writer.convertLightTargetedExperimentToParquet(out, light_exp);
       }
     }
 

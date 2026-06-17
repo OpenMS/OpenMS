@@ -75,15 +75,15 @@ namespace OpenMS
       reflectron_state_->setCurrentIndex(static_cast<int>(temp_.getReflectronState()));
     }
 
-    order_->setText(String(temp_.getOrder()).c_str());
-    res_->setText(String(temp_.getResolution()).c_str());
-    acc_->setText(String(temp_.getAccuracy()).c_str());
-    scan_rate_->setText(String(temp_.getScanRate()).c_str());
-    scan_time_->setText(String(temp_.getScanTime()).c_str());
-    TOF_->setText(String(temp_.getTOFTotalPathLength()).c_str());
-    iso_->setText(String(temp_.getIsolationWidth()).c_str());
-    final_MS_->setText(String(temp_.getFinalMSExponent()).c_str());
-    magnetic_fs_->setText(String(temp_.getMagneticFieldStrength()).c_str());
+    order_->setText(StringUtils::toStr(temp_.getOrder()).c_str());
+    res_->setText(StringUtils::toStr(temp_.getResolution()).c_str());
+    acc_->setText(StringUtils::toStr(temp_.getAccuracy()).c_str());
+    scan_rate_->setText(StringUtils::toStr(temp_.getScanRate()).c_str());
+    scan_time_->setText(StringUtils::toStr(temp_.getScanTime()).c_str());
+    TOF_->setText(StringUtils::toStr(temp_.getTOFTotalPathLength()).c_str());
+    iso_->setText(StringUtils::toStr(temp_.getIsolationWidth()).c_str());
+    final_MS_->setText(StringUtils::toStr(temp_.getFinalMSExponent()).c_str());
+    magnetic_fs_->setText(StringUtils::toStr(temp_.getMagneticFieldStrength()).c_str());
   }
 
   void MassAnalyzerVisualizer::store()

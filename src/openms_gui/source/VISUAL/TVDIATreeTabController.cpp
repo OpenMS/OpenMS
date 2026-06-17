@@ -11,7 +11,6 @@
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
@@ -20,6 +19,7 @@
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -40,8 +40,8 @@ namespace OpenMS
     ExperimentSharedPtrType full_chrom_exp_sptr;
     ODExperimentSharedPtrType ondisc_sptr;
     OSWDataSharedPtrType annot_sptr;
-    String filename;
-    String layername;
+    std::string filename;
+    std::string layername;
 
     explicit MiniLayer(LayerDataChrom& layer)
     : full_chrom_exp_sptr(layer.getChromatogramData()),
@@ -71,8 +71,8 @@ namespace OpenMS
     // add data and return if something went wrong
     if (!w->canvas()->addChromLayer(ml.full_chrom_exp_sptr, ml.ondisc_sptr, ml.annot_sptr,
                                     chrom_index, ml.filename, 
-                                    FileHandler::stripExtension(File::basename(ml.filename)),
-                                    String("[") + transition_id + "]"))
+                                    File::stemName(ml.filename),
+                                    "[" + StringUtils::toStr(transition_id) + "]"))
     {
       return false;
     }
@@ -113,11 +113,11 @@ namespace OpenMS
     {
       auto width = feature.getRTRightWidth() - feature.getRTLeftWidth();
       auto center = feature.getRTLeftWidth() + width / 2;
-      String ann = String("RT:\n ") + String(feature.getRTExperimental(), false) + "\ndRT:\n " + String(feature.getRTDelta(), false) + "\nQ:\n " + String(feature.getQValue(), false);
+      std::string ann ="RT:\n " + StringUtils::toStr(feature.getRTExperimental(), false) + "\ndRT:\n " + StringUtils::toStr(feature.getRTDelta(), false) + "\nQ:\n " + StringUtils::toStr(feature.getQValue(), false);
       QColor col = GUIHelpers::ColorBrewer::Distinct().values[(best_feature == &feature) 
                           ? GUIHelpers::ColorBrewer::Distinct::LightGreen
                           : GUIHelpers::ColorBrewer::Distinct::LightGrey];
-      Annotation1DVerticalLineItem* item = new Annotation1DVerticalLineItem(center, width, 150, false, col, ann.toQString());
+      Annotation1DVerticalLineItem* item = new Annotation1DVerticalLineItem(center, width, 150, false, col, toQString(ann));
       item->setSelected(false);
       auto text_size = item->getTextRect(); // this is in px units (Qt widget coordinates)
       // translate to axis units (our native 'data'):

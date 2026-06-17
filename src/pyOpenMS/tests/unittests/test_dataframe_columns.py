@@ -830,7 +830,7 @@ class TestMSExperimentUnifiedToArrow:
 
         exp = pyopenms.MSExperiment()
         # Empty experiments require a fix to handle getMinRT() on empty ranges
-        # The fix is in MSExperiment.pyx addon; after rebuild this will work
+        # The fix is in the MSExperiment addon; after rebuild this will work
         try:
             table = exp.to_arrow(data='spectra')
             assert isinstance(table, pa.Table)

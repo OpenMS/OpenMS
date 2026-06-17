@@ -12,6 +12,7 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 using std::vector;
 

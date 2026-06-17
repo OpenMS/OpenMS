@@ -18,6 +18,7 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/MATH/MISC/SplineBisection.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 #include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
@@ -38,6 +39,7 @@ using namespace std;
 
 namespace OpenMS
 {
+
     double PeakPickerIM::computeOptimalSamplingRate(const vector<MSSpectrum>& spectra)
     {
       vector<double> mz_diffs;
@@ -234,6 +236,16 @@ namespace OpenMS
       }
       const auto [im_data_index, im_unit] = raw_spectrum.getIMData();
       const auto& ion_mobility_array = raw_spectrum.getFloatDataArrays()[im_data_index];
+
+      // Warn if CCS data with small tolerance (only once per PeakPickerIM instance)
+      if (im_unit == DriftTimeUnit::CCS && sum_tolerance_im_ < 1.0 && !ccs_warning_shown_)
+      {
+        OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but sum_tolerance_im"
+                        << " = " << sum_tolerance_im_ << " appears to be set for 1/K0 data. "
+                        << "For CCS data, consider using larger values (e.g., 10-20 for clustering, 1.0 for summing)." << '\n';
+        ccs_warning_shown_ = true;
+      }
+
       // Vector of MSSpectra for each picked m/z peak (each spectrum is a mobilogram trace)
       vector<MSSpectrum> mobility_traces;
 
@@ -660,7 +672,7 @@ namespace OpenMS
       return centroided_frame;
     }
 
-    void removeAllFloatDataArraysExcept(OpenMS::MSSpectrum& spectrum, const String& keep_name)
+    void removeAllFloatDataArraysExcept(OpenMS::MSSpectrum& spectrum, const std::string& keep_name)
     {
       auto& float_arrays = spectrum.getFloatDataArrays();
   
@@ -679,13 +691,13 @@ namespace OpenMS
     {
       // --- PickIMTraces parameters ---
       defaults_.setValue("pickIMTraces:sum_tolerance_mz",        1.0,   "Tolerance for summing adjacent m/z peaks (ppm)");
-      defaults_.setValue("pickIMTraces:sum_tolerance_im",        0.0006,"Tolerance for summing adjacent ion mobility peaks (1/k0)");
+      defaults_.setValue("pickIMTraces:sum_tolerance_im",        0.0006,"Tolerance for summing adjacent ion mobility peaks (in 1/K0 units). For CCS data, use larger values (e.g., 1.0).");
       defaults_.setValue("pickIMTraces:gauss_ppm_tolerance",     5.0,   "Gaussian smoothing m/z tolerance in ppm");
       defaults_.setValue("pickIMTraces:sgolay_frame_length",     5,     "Savitzky-Golay smoothing frame length");
       defaults_.setValue("pickIMTraces:sgolay_polynomial_order", 3,     "Savitzky-Golay smoothing polynomial order");
       // --- PickIMCluster parameters ---
       defaults_.setValue("pickIMCluster:ppm_tolerance_cluster", 50.0, "m/z tolerance in ppm for clustering");
-      defaults_.setValue("pickIMCluster:im_tolerance_cluster", 0.1, "Ion mobility tolerance in 1/k for clustering");
+      defaults_.setValue("pickIMCluster:im_tolerance_cluster", 0.1, "Ion mobility tolerance for clustering (in 1/K0 units). For CCS data, use larger values (e.g., 10-20).");
       // --- PickIMElutionProfiles parameters ---
       defaults_.setValue("pickIMElutionProfiles:ppm_tolerance_elution", 50.0, "Mass trace m/z tolerance in ppm");
 
@@ -722,24 +734,28 @@ namespace OpenMS
         IMFormat format = IMTypes::determineIMFormat(spectrum);
         switch (format)
         {
-            case IMFormat::NONE:
-                return false; // no IM data - skip silently
-            case IMFormat::CENTROIDED:
-                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "Ion mobility data is already centroided. PeakPickerIM expects raw (concatenated) IM data. "
-                    "Re-picking already centroided data is not supported.",
-                    String(NamesOfIMFormat[(size_t)format]));
-            case IMFormat::UNKNOWN:
-                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "IMFormat set to UNKNOWN after determineIMFormat. This should never happen.",
-                    String(NamesOfIMFormat[(size_t)format]));
-            case IMFormat::CONCATENATED:
-                OPENMS_LOG_DEBUG << "Processing concatenated IM data.\n";
-                return true; // continue processing
-            default:
-                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "Unhandled IMFormat after determineIMFormat. This should never happen.",
-                    String(NamesOfIMFormat[(size_t)format]));
+          case IMFormat::NONE:
+            return false;
+          case IMFormat::IM_PEAK:
+          {
+            // Check IM peak type -- reject already-centroided data
+            IMPeakType peak_type = spectrum.getIMPeakType();
+            if (peak_type == IMPeakType::IM_CENTROIDED)
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "Ion mobility data is already centroided. PeakPickerIM expects raw (profile) IM data. "
+                "Re-picking already centroided data is not supported.",
+                imPeakTypeToString(peak_type));
+            }
+            OPENMS_LOG_DEBUG << "Processing IM_PEAK data (profile).\n";
+            return true;
+          }
+          case IMFormat::UNKNOWN:
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "IMFormat is UNKNOWN. Call IMTypes::determineIMFormat() first.", "");
+          default:
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Unsupported IMFormat for picking.", imFormatToString(format));
         }
       }
     }
@@ -753,7 +769,7 @@ namespace OpenMS
       }
       
       
-      // Spectrum is in CONCATENATED IM format. Now sort by m/z to prepare for m/z peak picking
+      // Spectrum is in IM_PEAK IM format. Now sort by m/z to prepare for m/z peak picking
       spectrum.sortByPosition();
 
       // ************************************************* PART I *****************************************************
@@ -861,7 +877,7 @@ namespace OpenMS
 #endif
         MSSpectrum summed_trace;
         summed_trace.reserve(trace.size() + 1);
-        summed_trace.emplace_back(-1.0, -1.0);
+        summed_trace.emplace_back(-1.0, -1.0f);
         sumFrame_(trace, summed_trace, sum_tolerance_im_, false);
 #ifdef DEBUG_PICKER
         OPENMS_LOG_DEBUG << "Trace after sumFrame_ has " << summed_trace.size() << " peaks.\n";
@@ -956,7 +972,8 @@ namespace OpenMS
       centroided_frame.setName(spectrum.getName());
       centroided_frame.setRT(spectrum.getRT());
       removeAllFloatDataArraysExcept(centroided_frame, Constants::UserParam::ION_MOBILITY_CENTROID);
-      centroided_frame.setIMFormat(IMFormat::CENTROIDED);
+      centroided_frame.setIMFormat(IMFormat::IM_PEAK);
+      centroided_frame.setIMPeakType(IMPeakType::IM_CENTROIDED);
       spectrum = std::move(centroided_frame);
       
 #ifdef DEBUG_PICKER
@@ -988,6 +1005,14 @@ namespace OpenMS
       const auto [im_data_index, im_unit] = spectrum.getIMData();
       auto& im_data = spectrum.getFloatDataArrays()[im_data_index];
 
+      // Warn if CCS data with small tolerance (only once per PeakPickerIM instance)
+      if (im_unit == DriftTimeUnit::CCS && im_tolerance_cluster_ < 1.0 && !ccs_warning_shown_)
+      {
+        OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but im_tolerance_cluster"
+                        << " = " << im_tolerance_cluster_ << " appears to be set for 1/K0 data. "
+                        << "For CCS data, consider using larger values (e.g., 10-20 for clustering, 1.0 for summing)." << '\n';
+        ccs_warning_shown_ = true;
+      }
 
       struct Point {
         double mz;
@@ -1198,7 +1223,8 @@ namespace OpenMS
       spectrum.updateRanges();
       // ensure the output IM array is updated
       spectrum.getFloatDataArrays()[im_data_index].setName(Constants::UserParam::ION_MOBILITY_CENTROID);
-      spectrum.setIMFormat(IMFormat::CENTROIDED);
+      spectrum.setIMFormat(IMFormat::IM_PEAK);
+      spectrum.setIMPeakType(IMPeakType::IM_CENTROIDED);
       removeAllFloatDataArraysExcept(spectrum, Constants::UserParam::ION_MOBILITY_CENTROID);
     } // End of pickIMCluster function
 
@@ -1231,7 +1257,7 @@ namespace OpenMS
 
 #ifdef DEBUG_IM_PICKER
   // write out IM frame as RT/MZ for debugging purposes to test algorithm that yet don't support the IM dimension
-  MzMLFile().store("debug" + String(input.getRT()) + ".mzML", frame_as_spectra);
+  MzMLFile().store("debug" + StringUtils::toStr(input.getRT()) + ".mzML", frame_as_spectra);
 #endif
 
       if (frame_as_spectra.size() <= 3 ) return;
@@ -1293,7 +1319,8 @@ namespace OpenMS
       input.updateRanges();
       // ensure the output im name is updated
       input.getFloatDataArrays()[im_data_index].setName(Constants::UserParam::ION_MOBILITY_CENTROID);
-      input.setIMFormat(IMFormat::CENTROIDED);
+      input.setIMFormat(IMFormat::IM_PEAK);
+      input.setIMPeakType(IMPeakType::IM_CENTROIDED);
       removeAllFloatDataArraysExcept(input, Constants::UserParam::ION_MOBILITY_CENTROID);
     }
 

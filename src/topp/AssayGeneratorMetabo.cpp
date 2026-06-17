@@ -15,6 +15,9 @@
 #include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 
 using namespace OpenMS;
@@ -88,24 +91,24 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file(s)>", StringList(), "MzML input file(s) used for assay library generation");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
 
     registerInputFileList_("in_featureinfo", "<file(s)>", StringList(), "FeatureXML input file(s) containing identification information (e.g. AccurateMassSearch)");
-    setValidFormats_("in_featureinfo", ListUtils::create<String>("featureXML"));
+    setValidFormats_("in_featureinfo", ListUtils::create<std::string>("featureXML"));
 
     registerOutputFile_("out", "<file>", "", "Assay library output file");
-    setValidFormats_("out", ListUtils::create<String>("tsv,traML,pqp"));
+    setValidFormats_("out", ListUtils::create<std::string>("tsv,traML,pqp"));
 
     registerDoubleOption_("ambiguity_resolution_mz_tolerance", "<num>", 10.0, "Mz tolerance for the resolution of identification ambiguity over multiple files", false);
     registerStringOption_("ambiguity_resolution_mz_tolerance_unit", "<choice>", "ppm", "Unit of the ambiguity_resolution_mz_tolerance", false, true);
-    setValidStrings_("ambiguity_resolution_mz_tolerance_unit", ListUtils::create<String>("ppm,Da"));
+    setValidStrings_("ambiguity_resolution_mz_tolerance_unit", ListUtils::create<std::string>("ppm,Da"));
     registerDoubleOption_("ambiguity_resolution_rt_tolerance", "<num>", 10.0, "RT tolerance in seconds for the resolution of identification ambiguity over multiple files", false);
     registerDoubleOption_("total_occurrence_filter", "<num>", 0.1, "Filter compound based on total occurrence in analysed samples", false);
     setMinFloat_("total_occurrence_filter", 0.0);
     setMaxFloat_("total_occurrence_filter", 1.0);
 
     registerStringOption_("method", "<choice>", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum is used for assay library construction (if no fragment annotation is used).",false);
-    setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
+    setValidStrings_("method", ListUtils::create<std::string>("highest_intensity,consensus_spectrum"));
 
     registerFlag_("exclude_ms2_precursor", "Excludes precursor in ms2 from transition list", false);
     registerFlag_("use_known_unknowns", "Use features without identification information", false);
@@ -124,14 +127,14 @@ protected:
     registerDoubleOption_("precursor_mz_distance", "<num>", 0.0001, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].", false);
     registerDoubleOption_("precursor_recalibration_window", "<num>", 0.01, "Tolerance window for precursor selection (Annotation of precursor mz and intensity)", false, true);
     registerStringOption_("precursor_recalibration_window_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance_annotation", false, true);
-    setValidStrings_("precursor_recalibration_window_unit", ListUtils::create<String>("Da,ppm"));
+    setValidStrings_("precursor_recalibration_window_unit", ListUtils::create<std::string>("Da,ppm"));
     registerDoubleOption_("precursor_consensus_spectrum_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds], for consensus spectrum generation (only available without fragment annotation)", false);
 
     addEmptyLine_();
     registerFlag_("deisotoping_use_deisotoper", "Use Deisotoper (if no fragment annotation is used)", false);
     registerDoubleOption_("deisotoping_fragment_tolerance", "<num>", 1, "Tolerance used to match isotopic peaks", false);
     registerStringOption_("deisotoping_fragment_unit", "<choice>", "ppm", "Unit of the fragment tolerance", false);
-    setValidStrings_("deisotoping_fragment_unit", ListUtils::create<String>("ppm,Da"));
+    setValidStrings_("deisotoping_fragment_unit", ListUtils::create<std::string>("ppm,Da"));
     registerIntOption_("deisotoping_min_charge", "<num>", 1, "The minimum charge considered", false);
     setMinInt_("deisotoping_min_charge", 1);
     registerIntOption_("deisotoping_max_charge", "<num>", 1, "The maximum charge considered", false);
@@ -160,10 +163,10 @@ protected:
     // param AssayGeneratorMetabo
     StringList in = getStringList_("in");
     StringList id = getStringList_("in_featureinfo");
-    String out = getStringOption_("out");
-    String method = getStringOption_("method");
+    std::string out = getStringOption_("out");
+    std::string method = getStringOption_("method");
     double ar_mz_tol = getDoubleOption_("ambiguity_resolution_mz_tolerance");
-    String ar_mz_tol_unit_res = getStringOption_("ambiguity_resolution_mz_tolerance_unit");
+    std::string ar_mz_tol_unit_res = getStringOption_("ambiguity_resolution_mz_tolerance_unit");
     double ar_rt_tol = getDoubleOption_("ambiguity_resolution_rt_tolerance");
     double total_occurrence_filter = getDoubleOption_("total_occurrence_filter");
     bool method_consensus_spectrum = method == "consensus_spectrum" ? true : false;
@@ -174,7 +177,7 @@ protected:
     double max_fragment_mz = getDoubleOption_("max_fragment_mz");
     double consensus_spectrum_precursor_rt_tolerance = getDoubleOption_("precursor_consensus_spectrum_rt_tolerance");
     double pre_recal_win = getDoubleOption_("precursor_recalibration_window");
-    String pre_recal_win_unit = getStringOption_("precursor_recalibration_window_unit");
+    std::string pre_recal_win_unit = getStringOption_("precursor_recalibration_window_unit");
     bool ppm_recal = pre_recal_win_unit == "ppm" ? true : false;
     double precursor_mz_distance = getDoubleOption_("precursor_mz_distance");
     double cosine_sim_threshold = getDoubleOption_("cosine_similarity_threshold");
@@ -184,7 +187,7 @@ protected:
     // param deisotoper
     bool use_deisotoper = getFlag_("deisotoping_use_deisotoper");
     double fragment_tolerance = getDoubleOption_("deisotoping_fragment_tolerance");
-    String fragment_unit = getStringOption_("deisotoping_fragment_unit");
+    std::string fragment_unit = getStringOption_("deisotoping_fragment_unit");
     bool fragment_unit_ppm = fragment_unit == "ppm" ? true : false;
     int min_charge = getIntOption_("deisotoping_min_charge");
     int max_charge = getIntOption_("deisotoping_max_charge");
@@ -232,7 +235,7 @@ protected:
         OPENMS_LOG_WARN << "Input FeatureXML: " << id[file_counter] << std::endl;
 
         OPENMS_LOG_WARN << "Original paths: " << std::endl;
-                        for (const String& it_fpp : featurexml_primary_path)
+                        for (const std::string& it_fpp : featurexml_primary_path)
                             {
                               OPENMS_LOG_WARN << " " << it_fpp << std::endl;
                             }
@@ -302,9 +305,9 @@ protected:
           if (!(feature->getPeptideIdentifications().empty()) &&
               !(feature->getPeptideIdentifications()[0].getHits().empty()))
               {
-                String description;
+                std::string description;
                 // one hit is enough for prefiltering
-                description = feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("description");
+                description = feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("description").toString();
                 // change format of description [name] to name
                 description.erase(remove_if(begin(description),
                                             end(description),
@@ -423,7 +426,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    String extension = out.substr(out.find_last_of(".")+1);
+    std::string extension = StringUtils::substr(out, out.find_last_of(".")+1);
 
     if (extension == "tsv")
     {

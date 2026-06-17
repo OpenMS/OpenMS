@@ -12,6 +12,7 @@
 ///////////////////////////
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -37,7 +38,7 @@ START_SECTION(~ExperimentalDesignFile())
 }
 END_SECTION
 
-START_SECTION((static ExperimentalDesign load(const String &tsv_file, bool require_spectra_files)))
+START_SECTION((static ExperimentalDesign load(const std::string &tsv_file, bool require_spectra_files)))
 {
 ExperimentalDesign design = ExperimentalDesignFile::load(
   OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_1.tsv"), false);
@@ -45,8 +46,18 @@ ExperimentalDesign design = ExperimentalDesignFile::load(
 }
 END_SECTION
 
+START_SECTION((static ExperimentalDesign load(const TextFile&, bool, String) rejects multiplex one-table design without Sample column))
+{
+  TextFile tf;
+  tf.addLine("Fraction_Group\tFraction\tSpectra_Filepath\tLabel\tMSstats_Condition");
+  tf.addLine("1\t1\tmix_a.mzML\t1\tA");
+  tf.addLine("1\t1\tmix_a.mzML\t2\tA");
+
+  TEST_EXCEPTION(Exception::ParseError, ExperimentalDesignFile::load(tf, false, "inline_multiplex_no_sample.tsv"));
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-

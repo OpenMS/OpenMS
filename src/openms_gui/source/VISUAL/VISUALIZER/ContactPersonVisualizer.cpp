@@ -8,6 +8,7 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/ContactPersonVisualizer.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //QT
 #include <QtWidgets/QLineEdit>
@@ -47,12 +48,13 @@ namespace OpenMS
 
   void ContactPersonVisualizer::store()
   {
-    ptr_->setLastName(lastname_->text());
-    ptr_->setInstitution(institution_->text());
-    ptr_->setEmail(email_->text());
-    ptr_->setContactInfo(contact_info_->text());
-    ptr_->setURL(url_->text());
-    ptr_->setAddress(address_->text());
+    ptr_->setFirstName(fromQString(firstname_->text()));
+    ptr_->setLastName(fromQString(lastname_->text()));
+    ptr_->setInstitution(fromQString(institution_->text()));
+    ptr_->setEmail(fromQString(email_->text()));
+    ptr_->setContactInfo(fromQString(contact_info_->text()));
+    ptr_->setURL(fromQString(url_->text()));
+    ptr_->setAddress(fromQString(address_->text()));
 
     temp_ = (*ptr_);
   }

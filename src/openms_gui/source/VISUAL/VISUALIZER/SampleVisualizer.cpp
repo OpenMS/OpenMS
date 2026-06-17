@@ -8,6 +8,7 @@
 
 
 #include <OpenMS/VISUAL/VISUALIZER/SampleVisualizer.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //QT
 #include <QtWidgets/QTextEdit>
@@ -57,17 +58,17 @@ namespace OpenMS
     sampleorganism_->setText(temp_.getOrganism().c_str());
     samplecomment_->setText(temp_.getComment().c_str());
 
-    samplemass_->setText(String(temp_.getMass()).c_str());
-    samplevolume_->setText(String(temp_.getVolume()).c_str());
-    sampleconcentration_->setText(String(temp_.getConcentration()).c_str());
+    samplemass_->setText(StringUtils::toStr(temp_.getMass()).c_str());
+    samplevolume_->setText(StringUtils::toStr(temp_.getVolume()).c_str());
+    sampleconcentration_->setText(StringUtils::toStr(temp_.getConcentration()).c_str());
   }
 
   void SampleVisualizer::store()
   {
-    ptr_->setName(samplename_->text());
-    ptr_->setNumber(samplenumber_->text());
-    ptr_->setOrganism(sampleorganism_->text());
-    ptr_->setComment(samplecomment_->toPlainText());
+    ptr_->setName(fromQString(samplename_->text()));
+    ptr_->setNumber(fromQString(samplenumber_->text()));
+    ptr_->setOrganism(fromQString(sampleorganism_->text()));
+    ptr_->setComment(fromQString(samplecomment_->toPlainText()));
     ptr_->setState((Sample::SampleState)samplestate_->currentIndex());
     ptr_->setMass(samplemass_->text().toFloat());
     ptr_->setVolume(samplevolume_->text().toFloat());

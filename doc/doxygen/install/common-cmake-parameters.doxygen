@@ -45,6 +45,26 @@ The most important CMake variables are:
     not. If you plan to use OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
   </tr>
   <tr>
+    <th valign="top">WITH_OPENTIMS=On/Off</td>
+    <td>Enables support for reading Bruker TimsTOF <code>.d</code> directories
+    directly (without prior conversion to mzML) via the
+    <a href="https://github.com/michalsta/opentims">opentims</a> library.
+    When enabled, OpenMS will attempt to locate a system installation of
+    opentims; if none is found, it is fetched and built automatically from
+    source via CMake FetchContent.
+    Affects FileConverter, PeakPickerIM, OpenSwathWorkflow, CometAdapter, and
+    ProteomicsLFQ.
+    (Default: On)</td>
+  </tr>
+  <tr>
+    <th valign="top">ENABLE_OPENTIMS_TESTS=On/Off</td>
+    <td>Download Bruker TimsTOF test data sets (DDA and DIA) and enable the
+    corresponding integration tests.  Requires <code>WITH_OPENTIMS=On</code>.
+    The test data are fetched automatically via CMake FetchContent when this
+    option is turned on.
+    (Default: Off)</td>
+  </tr>
+  <tr>
     <th valign="top">ENABLE_DOCS=On/Off</td>
     <td>Enables documentation targets, allowing to build the OpenMS documentation.
     (Default: On)</td>
@@ -109,6 +129,37 @@ The most important CMake variables are:
     <th valign="top">USE_EXTERNAL_SIMDE=Off/On</td>
     <td>Use external SIMDe library from system instead of vendored version. 
     Recommended for Linux distributions. (Default: Off, On for Ubuntu in CI)</td>
+  </tr>
+  <tr>
+    <th valign="top">LP_SOLVER=AUTO/COIN/GLPK/HIGHS</td>
+    <td>Select the linear programming solver backend. <code>AUTO</code> (default) tries COIN-OR first,
+    then GLPK, then fetches HiGHS automatically via FetchContent if neither is installed.
+    Set to <code>COIN</code>, <code>GLPK</code>, or <code>HIGHS</code> to require a specific solver.</td>
+  </tr>
+  <tr>
+    <th valign="top">WITH_THERMO_RAW=On/Off</td>
+    <td>Enable native reading of Thermo Fisher RAW files via the openms-thermo-bridge C++/.NET library
+    (fetched automatically via CMake FetchContent from GitHub).
+    Requires a .NET runtime to be present at run time so that the managed bridge DLLs can be loaded.
+    Install .NET 8 (or later) from <a href="https://dotnet.microsoft.com/download">https://dotnet.microsoft.com/download</a>,
+    or install the <code>dotnet-runtime-8.0</code> (or newer) package from your distribution's package manager.
+    On Windows and macOS the required <code>nethost</code> library is bundled with the .NET SDK/runtime installer.
+    On Linux you may need to install the additional <code>libnethost-dev</code> (Debian/Ubuntu) or
+    <code>dotnet-runtime-8.0</code> package explicitly.
+    Disabled automatically on Linux/aarch64 targets.
+    (Default: On on supported platforms)</td>
+  </tr>
+  <tr>
+    <th valign="top">ENABLE_THERMO_RAW_TESTS=On/Off</td>
+    <td>Download a small Thermo RAW test file and enable integration tests for the Thermo RAW reader.
+    Requires <code>WITH_THERMO_RAW=On</code> and a working internet connection during CMake configuration.
+    (Default: Off)</td>
+  </tr>
+  <tr>
+    <th valign="top">WITH_WNETALIGN=On/Off</td>
+    <td>Enable the Wasserstein network alignment feature (FeatureLinkerWNet TOPP tool).
+    When enabled, the three header-only libraries <code>pylmcf</code>, <code>wnet</code>, and
+    <code>wnetalign</code> are fetched automatically via FetchContent. (Default: On)</td>
   </tr>
   <tr>
     <th valign="top">CMAKE_INSTALL_PREFIX</td>

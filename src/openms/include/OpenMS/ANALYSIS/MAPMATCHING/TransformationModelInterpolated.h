@@ -29,7 +29,7 @@ namespace OpenMS
 
     - two-point-linear: Uses a line through the first and last point to extrapolate 
     - four-point-linear: Uses a line through the first and second point to
-                         extrapolate in front and and a line through the last
+                         extrapolate in front and a line through the last
                          and second-to-last point in the end. If the data is
                          non-linear, this may yield better approximations for
                          extrapolation.

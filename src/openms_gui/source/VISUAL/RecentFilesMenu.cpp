@@ -8,9 +8,10 @@
 
 #include <OpenMS/VISUAL/RecentFilesMenu.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QAction>
 
@@ -59,8 +60,8 @@ namespace OpenMS
     unsigned count{ 0 };
     for (Param::ParamIterator it = filenames.begin(); it != filenames.end(); ++it)
     {
-      QString filename = String(it->value.toString()).toQString();
-      if (File::exists(filename))
+      QString filename = toQString(std::string(it->value.toString()));
+      if (File::exists(fromQString(filename)))
       {
         rfiles.append(filename);
         ++count;
@@ -76,7 +77,7 @@ namespace OpenMS
     int i{ 0 };
     for (const auto& f : recent_files_)
     {
-      p.setValue(String(i), f.toStdString());
+      p.setValue(StringUtils::toStr(i), f.toStdString());
       ++i;
     }
     return p;
@@ -92,14 +93,14 @@ namespace OpenMS
     return recent_files_;
   }
 
-  void RecentFilesMenu::add(const String& filename)
+  void RecentFilesMenu::add(const std::string& filename)
   {
     // find out absolute path
-    String tmp = File::absolutePath(filename);
+    std::string tmp = File::absolutePath(filename);
 
     // remove the new file if already in the recent list and prepend it
-    recent_files_.removeAll(tmp.toQString());
-    recent_files_.prepend(tmp.toQString());
+    recent_files_.removeAll(toQString(tmp));
+    recent_files_.prepend(toQString(tmp));
 
     // remove those files exceeding the defined number
     while (recent_files_.size() > max_entries_)
@@ -116,7 +117,7 @@ namespace OpenMS
     {
       return;
     }
-    String filename = String(action->text());
+    std::string filename = fromQString(action->text());
     emit recentFileClicked(filename);
   }
 

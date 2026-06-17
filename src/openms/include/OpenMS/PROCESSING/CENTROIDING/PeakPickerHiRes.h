@@ -192,6 +192,9 @@ protected:
     /// unit of 'FWHM' float data array (can be absolute or ppm).
     bool report_FWHM_as_ppm_;
 
+    /// allow peaks without flanking data points on both sides (for TimsTOF data)
+    bool allow_missing_flank_;
+
     // docu in base class
     void updateMembers_() override;
 

@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 
 using namespace OpenMS;
@@ -79,6 +80,123 @@ START_SECTION((void readQuantData(vector<ProteinIdentification>& proteins, Pepti
   quantifier_identifications.readQuantData(proteins, peptides, design);
   quantifier_identifications.quantifyPeptides();
   TEST_EQUAL(quantifier_identifications.getPeptideResults().empty(), false);
+}
+END_SECTION
+
+START_SECTION((void readQuantData(ConsensusMap& consensus, ExperimentalDesign& ed) should fail on missing file+label mapping))
+{
+  ConsensusMap consensus;
+  consensus.setExperimentType("label-free");
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "not_in_design.mzML";
+  ch.label = "label-free";
+  consensus.getColumnHeaders()[0] = ch;
+
+  PeptideIdentification pid;
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  hit.setCharge(2);
+  hit.setScore(1.0);
+  pid.setHits({hit});
+
+  ConsensusFeature cf;
+  Peak2D p;
+  p.setIntensity(42.0);
+  p.setRT(1.0);
+  p.setMZ(500.0);
+  cf.insert(0, p, 0);
+  cf.setPeptideIdentifications({pid});
+  consensus.push_back(cf);
+
+  ExperimentalDesign::MSFileSection fs;
+  ExperimentalDesign::MSFileSectionEntry row;
+  row.path = "in_design.mzML";
+  row.label = 1;
+  row.fraction = 1;
+  row.fraction_group = 1;
+  row.sample = 0;
+  row.sample_name = "S1";
+  fs.push_back(row);
+  ExperimentalDesign::SampleSection ss;
+  ss.addSample("S1");
+  ExperimentalDesign design(fs, ss);
+
+  PeptideAndProteinQuant quantifier;
+  TEST_EXCEPTION(Exception::MissingInformation, quantifier.readQuantData(consensus, design));
+}
+END_SECTION
+
+START_SECTION((void readQuantData(ConsensusMap& consensus, ExperimentalDesign& ed) should distinguish all filename+label pairs))
+{
+  ConsensusMap consensus;
+  consensus.setExperimentType("labeled_MS2");
+
+  ConsensusMap::ColumnHeader h0;
+  h0.filename = "A1.mzML";
+  h0.label = "ch2";
+  h0.setMetaValue("channel_id", 1); // label = 2
+  consensus.getColumnHeaders()[0] = h0;
+
+  ConsensusMap::ColumnHeader h1;
+  h1.filename = "A.mzML";
+  h1.label = "ch12";
+  h1.setMetaValue("channel_id", 11); // label = 12
+  consensus.getColumnHeaders()[1] = h1;
+
+  auto make_cf = [](Size map_idx, double intensity)
+  {
+    ConsensusFeature cf;
+    Peak2D p;
+    p.setIntensity(intensity);
+    p.setRT(1.0 + map_idx);
+    p.setMZ(400.0 + map_idx);
+    cf.insert(map_idx, p, map_idx);
+
+    PeptideIdentification pid;
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDE"));
+    hit.setCharge(2);
+    hit.setScore(1.0);
+    pid.setHits({hit});
+    cf.setPeptideIdentifications({pid});
+    return cf;
+  };
+
+  consensus.push_back(make_cf(0, 10.0));
+  consensus.push_back(make_cf(1, 20.0));
+
+  ExperimentalDesign::MSFileSection fs;
+  ExperimentalDesign::MSFileSectionEntry r1;
+  r1.path = "/tmp/A1.mzML";
+  r1.label = 2;
+  r1.fraction = 1;
+  r1.fraction_group = 1;
+  r1.sample = 0;
+  r1.sample_name = "S1";
+  fs.push_back(r1);
+
+  ExperimentalDesign::MSFileSectionEntry r2;
+  r2.path = "/tmp/A.mzML";
+  r2.label = 12;
+  r2.fraction = 2;
+  r2.fraction_group = 2;
+  r2.sample = 1;
+  r2.sample_name = "S2";
+  fs.push_back(r2);
+
+  ExperimentalDesign::SampleSection ss;
+  ss.addSample("S1");
+  ss.addSample("S2");
+  ExperimentalDesign design(fs, ss);
+
+  PeptideAndProteinQuant quantifier;
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+
+  const auto& pep_quant = quantifier.getPeptideResults();
+  const auto seq_it = pep_quant.find(AASequence::fromString("PEPTIDE"));
+  TEST_TRUE(seq_it != pep_quant.end());
+  TEST_EQUAL(seq_it->second.abundances.size(), 2);
 }
 END_SECTION
 
@@ -375,5 +493,4 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 

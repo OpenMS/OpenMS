@@ -28,16 +28,18 @@ namespace OpenSwath
   @brief compute the Euclidean norm of the vector
   */
   template <typename T>
-  double norm(T beg, T end)
-  {
-    double res = 0.0;
-    for (; beg != end; ++beg)
-    {
-      double tmp = *beg;
-      res += tmp * tmp;
-    }
-    return sqrt(res);
-  }
+  double norm(T beg, T end);
+
+  /// @cond
+
+  // Explicit template instantiation declarations
+  extern template double norm<std::vector<double>::const_iterator>(
+    std::vector<double>::const_iterator, std::vector<double>::const_iterator);
+
+  extern template double norm<std::vector<double>::iterator>(
+    std::vector<double>::iterator, std::vector<double>::iterator);
+
+  /// @endcond
 
   /**
   @brief compute dotprod of vectors
@@ -72,15 +74,18 @@ namespace OpenSwath
     @brief compute manhattan distance between Exp and Theo
   */
   template <typename Texp, typename Ttheo>
-  double manhattanDist(Texp itExpBeg, Texp itExpEnd, Ttheo itTheo)
-  {
-    double sum = 0.0;
-    for (; itExpBeg < itExpEnd; ++itExpBeg, ++itTheo)
-    {
-      sum += fabs(*itExpBeg - *itTheo);
-    }
-    return sum;
-  }
+  double manhattanDist(Texp itExpBeg, Texp itExpEnd, Ttheo itTheo);
+
+  /// @cond
+
+  // Explicit template instantiation declarations
+  extern template double manhattanDist<std::vector<double>::iterator, std::vector<double>::iterator>(
+    std::vector<double>::iterator, std::vector<double>::iterator, std::vector<double>::iterator);
+
+  extern template double manhattanDist<std::vector<double>::const_iterator, std::vector<double>::const_iterator>(
+    std::vector<double>::const_iterator, std::vector<double>::const_iterator, std::vector<double>::const_iterator);
+
+  /// @endcond
 
   /**
     @brief manhattan scoring
@@ -94,8 +99,10 @@ namespace OpenSwath
 
 /**
   @brief compute pearson correlation of vector x and y
+  @deprecated Use Math::pearsonCorrelationCoefficient instead
 */
   template <typename TInputIterator, typename TInputIteratorY>
+  [[deprecated("Use Math::pearsonCorrelationCoefficient instead")]]
   typename std::iterator_traits<TInputIterator>::value_type cor_pearson(
     TInputIterator xBeg,
     TInputIterator xEnd,

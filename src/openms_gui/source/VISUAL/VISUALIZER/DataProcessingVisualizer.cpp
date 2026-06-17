@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/VISUALIZER/DataProcessingVisualizer.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //QT
 #include <QtWidgets/QLineEdit>
@@ -68,7 +69,7 @@ namespace OpenMS
     DateTime date;
     try
     {
-      date.set(completion_time_->text());
+      date.set(fromQString(completion_time_->text()));
       ptr_->setCompletionTime(date);
     }
     catch (exception & /*e*/)

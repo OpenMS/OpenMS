@@ -4,6 +4,8 @@ This document is displayed because you either opened an issue or you want to pro
 When interacting with other developers, users or anyone else from our community, please adhere to
 [our CODE OF CONDUCT](https://github.com/OpenMS/OpenMS/blob/develop/CODE_OF_CONDUCT.md)
 
+> **New to open source or the project?** Start with our [Contributor Onboarding Guide](https://openms.de/contribute/) for a beginner-friendly introduction.
+
 # Reporting an Issue:
 
 You most likely came here to:
@@ -27,16 +29,22 @@ If you are an official OpenMS team member:
 
 # Opening a Pull Request
 
-Before getting started we recommend taking a look at our GitHub-Wiki: https://github.com/OpenMS/OpenMS/wiki#-for-developers
+Before getting started we recommend taking a look at the developer guide:
+https://openms.readthedocs.io/en/latest/manual/develop.html
 
 Before you open the pull request, make sure you
- - adhere to [our coding conventions](https://github.com/OpenMS/OpenMS/wiki/Coding-conventions)
- - have [unit tests and functional tests](https://github.com/OpenMS/OpenMS/wiki/Write-tests) - see also [this example](https://github.com/OpenMS/OpenMS/blob/develop/src/tests/class_tests/openms/source/MSNumpressCoder_test.cpp)
- - Have [proper documentation](https://github.com/OpenMS/OpenMS/wiki/Coding-conventions#doxygen) - see also [this example](https://github.com/OpenMS/OpenMS/blob/develop/src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h) 
- - have [Python bindings](https://pyopenms.readthedocs.io/en/latest/wrap_classes.html) - see also [these instructions](https://github.com/OpenMS/OpenMS/wiki/pyOpenMS#wrap) and [this example](https://github.com/OpenMS/OpenMS/blob/develop/src/pyOpenMS/pxds/MSNumpressCoder.pxd)
- 
+ - adhere to [our coding conventions](https://openms.readthedocs.io/en/latest/manual/develop.html#coding-conventions)
+ - have [unit tests and functional tests](https://openms.readthedocs.io/en/latest/manual/develop.html#automated-unit-tests) - see also [this example](https://github.com/OpenMS/OpenMS/blob/develop/src/tests/class_tests/openms/source/MSNumpressCoder_test.cpp)
+ - have [proper documentation](https://openms.readthedocs.io/en/latest/manual/develop/developer-faq.html#doxygen-documentation) - see also [this example](https://github.com/OpenMS/OpenMS/blob/develop/src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h)
+ - have Python bindings — nanobind binding files are in `src/pyOpenMS/bindings/`; see `src/pyOpenMS/CLAUDE.md` for wrapping instructions
 A core developer will review your changes to the main development branch (develop) and approve them (or ask for modifications). You may indicate the prefered reviewer(s) by adding links to them in a comment section (e.g., @cbielow @hendrikweisser @hroest @jpfeuffer @timosachsenberg)
 
 Also consider getting in contact with the core developers early. They might provide additional guidance and valuable information on how your specific aim is achieved. This might give you a head start in, for example, developing novel tools or algorithms.
 
 Happy coding!
+
+---
+
+## Additional Resources
+
+For detailed coding conventions, architectural guidelines, and technical documentation, see the [OpenMS Developer Guide](https://openms.readthedocs.io/en/latest/contribute-to-openms/index.html).

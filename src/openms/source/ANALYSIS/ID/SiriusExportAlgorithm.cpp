@@ -12,6 +12,8 @@
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {
@@ -41,7 +43,7 @@ namespace OpenMS
   // ################
   // Algorithm
   // ################
-  void SiriusExportAlgorithm::preprocessing(const String& featureXML_path,
+  void SiriusExportAlgorithm::preprocessing(const std::string& featureXML_path,
                                             const MSExperiment& spectra,
                                             FeatureMapping::FeatureMappingInfo& feature_mapping_info,
                                             FeatureMapping::FeatureToMs2Indices& feature_ms2_indices) const
@@ -66,7 +68,7 @@ namespace OpenMS
         auto map_it = remove_if(feature_map.begin(), feature_map.end(),
                                 [&preprocessing_filter_by_num_masstraces](const Feature &feat) -> bool
                                 {
-                                  unsigned int n_masstraces = feat.getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
+                                  unsigned int n_masstraces = (int)feat.getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
                                   return n_masstraces < preprocessing_filter_by_num_masstraces;
                                 });
         feature_map.erase(map_it, feature_map.end());
@@ -92,7 +94,7 @@ namespace OpenMS
   }
 
 
-  void SiriusExportAlgorithm::logFeatureSpectraNumber(const String& featureXML_path,
+  void SiriusExportAlgorithm::logFeatureSpectraNumber(const std::string& featureXML_path,
                                                         const FeatureMapping::FeatureToMs2Indices& feature_ms2_indices,
                                                         const MSExperiment& spectra) const
   {
@@ -117,8 +119,8 @@ namespace OpenMS
 
   void SiriusExportAlgorithm::run(const StringList& mzML_files,
                                   const StringList& featureXML_files,
-                                  const String& out_ms,
-                                  const String& out_compoundinfo) const
+                                  const std::string& out_ms,
+                                  const std::string& out_compoundinfo) const
   {
     // loop over all spectra in all files and write data to ofstream
     std::ofstream os;
@@ -143,7 +145,7 @@ namespace OpenMS
       FeatureMapping::FeatureToMs2Indices feature_ms2_indices;
 
       // check if 'featureXML_files' is empty and pass an empty string if it is
-      String feature_info_to_pass = featureXML_files.empty() ? "" : featureXML_files[i];
+      std::string feature_info_to_pass = featureXML_files.empty() ? "" : featureXML_files[i];
       SiriusExportAlgorithm::preprocessing(feature_info_to_pass,
                                     spectra,
                                     feature_mapping_info,

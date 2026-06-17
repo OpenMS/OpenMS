@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <ostream>
 #include <fstream>      // std::ofstream
@@ -40,10 +40,10 @@ public:
       @param[in] replacement If @p quoting is @p NONE, used to replace occurrences of @p sep within strings before writing them
       @param[in] quoting Quoting method for strings (see @p String::quote)
     */
-    SVOutStream(const String& file_out,
-                const String& sep = "\t",
-                const String& replacement = "_",
-                String::QuotingMethod quoting = String::DOUBLE);
+    SVOutStream(const std::string& file_out,
+                const std::string& sep = "\t",
+                const std::string& replacement = "_",
+                OpenMS::QuotingMethod quoting = OpenMS::QuotingMethod::DOUBLE);
 
     /**
       @brief Constructor
@@ -54,9 +54,9 @@ public:
       @param[in] quoting Quoting method for strings (see @p String::quote)
     */
     SVOutStream(std::ostream& out,
-                const String& sep = "\t",
-                const String& replacement = "_",
-                String::QuotingMethod quoting = String::DOUBLE);
+                const std::string& sep = "\t",
+                const std::string& replacement = "_",
+                OpenMS::QuotingMethod quoting = OpenMS::QuotingMethod::DOUBLE);
 
     /** 
       @brief Destructor
@@ -71,15 +71,9 @@ public:
 
       The argument is quoted before writing; it must not contain the newline character
     */
-    SVOutStream& operator<<(String str);    // use call-by-value here
+    SVOutStream& operator<<(std::string str);    // use call-by-value here
 
 
-    /**
-      @brief Stream output operator for @p std::string
-
-      The argument is quoted before writing; it must not contain the newline character
-    */
-    SVOutStream& operator<<(const std::string& str);
 
 
     /**
@@ -107,14 +101,14 @@ public:
     */
     SVOutStream& operator<<(enum Newline);
 
-    /// numeric types should be converted to String first to make use
+    /// numeric types should be converted to std::string first to make use
     /// of StringConversion
     template<typename T>
     typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value, SVOutStream&>::type operator<<(const T& value)
     {
       if (!newline_) static_cast<std::ostream&>(*this) << sep_;
       else newline_ = false;
-      static_cast<std::ostream&>(*this) << String(value);
+      static_cast<std::ostream&>(*this) << StringUtils::toStr(value);
       return *this;
     };
 
@@ -131,7 +125,7 @@ public:
     };
 
     /// Unformatted output (no quoting: useful for comments, but use only on a line of its own!)
-    SVOutStream& write(const String& str);   // write unmodified string
+    SVOutStream& write(const std::string& str);   // write unmodified string
 
 
     /**
@@ -170,19 +164,19 @@ protected:
     std::ofstream* ofs_;
 
     /// Separator string
-    String sep_;
+    std::string sep_;
 
     /// Replacement for separator
-    String replacement_;
+    std::string replacement_;
 
-    /// String to use for NaN values
-    String nan_;
+    /// std::string to use for NaN values
+    std::string nan_;
 
-    /// String to use for Inf values
-    String inf_;
+    /// std::string to use for Inf values
+    std::string inf_;
 
-    /// String quoting method
-    String::QuotingMethod quoting_;
+    /// std::string quoting method
+    OpenMS::QuotingMethod quoting_;
 
     /// On/off switch for modification of strings
     bool modify_strings_;

@@ -73,6 +73,20 @@ jobs:
     - name: Build wheels
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
       run: |
-        gh workflow run pyopenms-wheels-and-packages --ref nightly
+        gh workflow run pyopenms-wheels-cibuildwheel --ref nightly
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Deploy to Bioconda
+      if: steps.compare_branches.outputs.behind == 'true' || inputs.force
+      run: |
+        gh workflow run "Deploy to Bioconda" --ref nightly
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Deploy container images
+      if: steps.compare_branches.outputs.behind == 'true' || inputs.force
+      run: |
+        gh workflow run containerdeploy.yml --ref nightly
       env:
         GH_TOKEN: ${{ github.token }}

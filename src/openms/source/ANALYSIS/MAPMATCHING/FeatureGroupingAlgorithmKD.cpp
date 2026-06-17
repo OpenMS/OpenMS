@@ -66,7 +66,7 @@ namespace OpenMS
     defaults_.remove("distance_MZ:max_difference");
     defaults_.remove("distance_MZ:unit");
     defaults_.remove("ignore_charge");
-    defaults_.remove("ignore_adduct");      
+    defaults_.remove("ignore_adduct");
 
     // LOWESS defaults
     Param lowess_defaults;
@@ -89,7 +89,7 @@ namespace OpenMS
                                           ConsensusMap& out)
   {
     // set parameters
-    String mz_unit(param_.getValue("mz_unit").toString());
+    std::string mz_unit(param_.getValue("mz_unit").toString());
     mz_ppm_ = mz_unit == "ppm";
     mz_tol_ = (double)(param_.getValue("link:mz_tol"));
     rt_tol_secs_ = (double)(param_.getValue("link:rt_tol"));
@@ -129,6 +129,12 @@ namespace OpenMS
     distance_params.setValue("distance_RT:max_difference", rt_tol_secs_);
     distance_params.setValue("distance_MZ:max_difference", mz_tol_);
     distance_params.setValue("distance_MZ:unit", (mz_ppm_ ? "ppm" : "Da"));
+    // charge_merging="Any" allows all charge states into the candidate pool,
+    // so FeatureDistance must not reject charge-mismatched pairs (segfault: #8927)
+    if (param_.getValue("link:charge_merging").toString() == "Any")
+    {
+      distance_params.setValue("ignore_charge", "true");
+    }
     feature_distance_ = FeatureDistance(max_intensity, false);
     feature_distance_.setParameters(distance_params);
 
@@ -348,8 +354,8 @@ namespace OpenMS
   ClusterProxyKD FeatureGroupingAlgorithmKD::computeBestClusterForCenter_(Size i, vector<Size>& cf_indices, const vector<Int>& assigned, const KDTreeFeatureMaps& kd_data) const
   {
     //Parameters how to use charge/adduct information
-    String merge_charge(param_.getValue("link:charge_merging").toString());
-    String merge_adduct(param_.getValue("link:adduct_merging").toString());
+    std::string merge_charge(param_.getValue("link:charge_merging").toString());
+    std::string merge_adduct(param_.getValue("link:adduct_merging").toString());
 
     // compute i's neighborhood, together with a look-up table
     // map index -> corresponding points
@@ -473,7 +479,7 @@ namespace OpenMS
     float best_quality = 0;
     size_t best_quality_index = 0;
     // collect the "Group" MetaValues of Features in a ConsensusFeature MetaValue (Constant::UserParam::IIMN_LINKED_GROUPS)
-    vector<String> linked_groups;
+    vector<std::string> linked_groups;
     for (vector<Size>::const_iterator it = indices.begin(); it != indices.end(); ++it)
     {
       Size i = *it;

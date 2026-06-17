@@ -61,7 +61,7 @@ namespace OpenMS
   void NuXLFDR::mergePeptidesAndXLs(const PeptideIdentificationList& pep_pi, const PeptideIdentificationList& xl_pi, PeptideIdentificationList& peptide_ids) const
   {
     peptide_ids.clear();
-    map<String, size_t> native_id_to_id_index;
+    map<std::string, size_t> native_id_to_id_index;
     size_t id_index = 0;
     for (const auto & pi : pep_pi)
     {
@@ -72,7 +72,7 @@ namespace OpenMS
 
     for (const auto & pi : xl_pi)
     {
-      if (native_id_to_id_index.find(pi.getMetaValue("spectrum_reference")) == native_id_to_id_index.end())
+      if (!native_id_to_id_index.contains(pi.getMetaValue("spectrum_reference")))
       {
         peptide_ids.push_back(pi);
       }
@@ -119,7 +119,7 @@ namespace OpenMS
       PeptideIdentificationList& xl_pi,
       vector<double> xl_PSM_qvalue_thresholds,
       vector<double> xl_peptidelevel_qvalue_thresholds,
-      const String& out_idxml,
+      const std::string& out_idxml,
       int decoy_factor) const
   {
     // calculate separate FDRs
@@ -221,7 +221,7 @@ namespace OpenMS
     {
       vector<ProteinIdentification> tmp_prots = protein_ids;
       IDFilter::removeUnreferencedProteins(tmp_prots, pep_pi);
-      IdXMLFile().store(out_idxml + String::number(peptide_PSM_qvalue_threshold, 4) + "_peptides.idXML", tmp_prots, pep_pi);
+      IdXMLFile().store(out_idxml + StringUtils::number(peptide_PSM_qvalue_threshold, 4) + "_peptides.idXML", tmp_prots, pep_pi);
     }
 
     // treat disabled filtering as 100% FDR
@@ -232,7 +232,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           "q-value list for PSMs and peptides differ in size.", 
-          String(xl_PSM_qvalue_thresholds.size()) + "!=" + String(xl_peptidelevel_qvalue_thresholds.size()));
+          StringUtils::toStr(xl_PSM_qvalue_thresholds.size()) + "!=" + StringUtils::toStr(xl_peptidelevel_qvalue_thresholds.size()));
     }
 
     for (Size i = 0; i != xl_PSM_qvalue_thresholds.size(); ++i)
@@ -269,7 +269,7 @@ namespace OpenMS
       tmp_prots[0].computeCoverage(xl_pi);
 
       // write out XL PSM result
-      IdXMLFile().store(out_idxml + String::number(xlFDR, 4) + "_XLs.idXML", tmp_prots, xl_pi);
+      IdXMLFile().store(out_idxml + StringUtils::number(xlFDR, 4) + "_XLs.idXML", tmp_prots, xl_pi);
 
       // write out XL protein result only for results with FDR < 10% otherwise we get to many protein associations and large memory consumption
       if (xlFDR <= 0.1)
@@ -277,7 +277,7 @@ namespace OpenMS
         OPENMS_LOG_INFO << "Writing XL protein results at xl-FDR: " << xlFDR << endl;
         TextFile tsv_file;
         NuXLProteinReport::annotateProteinModificationForTopHits(tmp_prots, xl_pi, tsv_file);
-        tsv_file.store(out_idxml + "proteins" + String::number(xlFDR, 4) + "_XLs.tsv");
+        tsv_file.store(out_idxml + "proteins" + StringUtils::number(xlFDR, 4) + "_XLs.tsv");
       }      
    }
   }

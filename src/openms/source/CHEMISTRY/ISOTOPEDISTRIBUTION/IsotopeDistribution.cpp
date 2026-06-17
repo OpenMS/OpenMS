@@ -32,7 +32,7 @@ namespace OpenMS
   
   IsotopeDistribution::IsotopeDistribution()
   {
-    distribution_.push_back(Peak1D(0, 1));
+    distribution_.emplace_back(0, 1);
   }
 
   IsotopeDistribution& IsotopeDistribution::operator=(const IsotopeDistribution & iso)

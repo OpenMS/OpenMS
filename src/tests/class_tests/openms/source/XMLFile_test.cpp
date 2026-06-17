@@ -37,32 +37,32 @@ START_SECTION(~XMLFile())
 	delete ptr;
 END_SECTION
 
-START_SECTION(XMLFile(const String &schema_location, const String &version))
+START_SECTION(XMLFile(const std::string &schema_location, const std::string &version))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(bool isValid(const String &filename,  std::ostream& os = std::cerr) )
+START_SECTION(bool isValid(const std::string &filename,  std::ostream& os = std::cerr) )
 	XMLFile f("","");
 	TEST_EXCEPTION(Exception::NotImplemented, f.isValid("", std::cerr))
 END_SECTION
 
-START_SECTION(const String& getVersion() const)
+START_SECTION(const std::string& getVersion() const)
 	XMLFile f("","1.567");
 	TEST_EQUAL( f.getVersion(),"1.567")
 END_SECTION
 
 
-START_SECTION(([EXTRA] String writeXMLEscape(const String& to_escape)))
-  String s1("nothing_to_escape. Just a regular string...");
-  String s2("This string contains an ampersand, &, which must be escaped.");
-  String s3("This string also contains characters which is not allowed, and must be escaped; the characters are '>' and \"<\"");
+START_SECTION(([EXTRA] std::string writeXMLEscape(const std::string& to_escape)))
+  std::string s1("nothing_to_escape. Just a regular string...");
+  std::string s2("This string contains an ampersand, &, which must be escaped.");
+  std::string s3("This string also contains characters which is not allowed, and must be escaped; the characters are '>' and \"<\"");
 
   TEST_STRING_EQUAL(XMLHandler::writeXMLEscape(s1), "nothing_to_escape. Just a regular string...")
   TEST_STRING_EQUAL(XMLHandler::writeXMLEscape(s2), "This string contains an ampersand, &amp;, which must be escaped.")
   TEST_STRING_EQUAL(XMLHandler::writeXMLEscape(s3), "This string also contains characters which is not allowed, and must be escaped; the characters are &apos;&gt;&apos; and &quot;&lt;&quot;");
 END_SECTION
 
-START_SECTION(static DataValue fromXSDString(const String& type, const String& value))
+START_SECTION(static DataValue fromXSDString(const std::string& type, const std::string& value))
 {
   TEST_EQUAL((Int64)XMLHandler::fromXSDString("xsd:int", "2147483647"), 2147483647)
   TEST_EQUAL((Int64)XMLHandler::fromXSDString("xsd:long", "9223372036854775807"), 9223372036854775807)

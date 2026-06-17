@@ -288,7 +288,7 @@ namespace OpenMS
     * @returns             A pair containing the name of the adapter and the parameters used to run it
     * @throws              MissingInformation if none of the adapters above is found in the meta values
     */
-    std::pair<String, Param> extractSearchAdapterInfoFromMetaValues_(const ProteinIdentification::SearchParameters& meta_values) const;
+    std::pair<std::string, Param> extractSearchAdapterInfoFromMetaValues_(const ProteinIdentification::SearchParameters& meta_values) const;
 
     /**
     * @brief Writes parameters into a given file
@@ -297,7 +297,7 @@ namespace OpenMS
     * @param[in] filename      name of the file where the parameters should be written to
     * @throws              UnableToCreateFile if filename isn't writable
     */
-    void writeIniFile_(const Param& parameters, const String& filename) const;
+    void writeIniFile_(const Param& parameters, const std::string& filename) const;
 
     /**
     * @brief Executes the workflow from search adapter, followed by PeptideIndexer and finishes with FDR
@@ -321,7 +321,7 @@ namespace OpenMS
     * @throws               InternalToolError if any error occures while running PeptideIndexer functionalities
     * @throws               InvalidParameter if the needed FDR parameters are not found
     */
-    PeptideIdentificationList runIdentificationSearch_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const;
+    PeptideIdentificationList runIdentificationSearch_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const std::string& adapter_name, Param& parameters) const;
 
     /**
     * @brief Creates a subsampled fasta with the given subsampling rate
@@ -424,7 +424,7 @@ namespace OpenMS
     * @throws                     IllegalArgument if @p score_name isn't found in the metavalues
     * @throws                     Precondition if main score of @p pep_ids isn't 'q-value'
     */
-    double getScoreMatchingFDR_(const PeptideIdentificationList& pep_ids, double FDR, const String& score_name, bool higher_score_better) const;
+    double getScoreMatchingFDR_(const PeptideIdentificationList& pep_ids, double FDR, const std::string& score_name, bool higher_score_better) const;
   };
 
   // friend class to test private member functions
@@ -460,7 +460,7 @@ namespace OpenMS
       return suit_.getIndexWithMedianNovoHits_(data);
     }
 
-    double getScoreMatchingFDR(const PeptideIdentificationList& pep_ids, double FDR, String score_name, bool higher_score_better)
+    double getScoreMatchingFDR(const PeptideIdentificationList& pep_ids, double FDR, std::string score_name, bool higher_score_better)
     {
       return suit_.getScoreMatchingFDR_(pep_ids, FDR, score_name, higher_score_better);
     }

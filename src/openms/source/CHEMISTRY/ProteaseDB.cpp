@@ -8,17 +8,30 @@
 //
 
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/BuiltInProteaseDataProvider.h>
+#include <OpenMS/CHEMISTRY/EnzymeXMLDataProvider.h>
 #include <fstream>
 using namespace std;
 
 namespace OpenMS
 {
   ProteaseDB::ProteaseDB():
-    DigestionEnzymeDB<DigestionEnzymeProtein, ProteaseDB>("CHEMISTRY/Enzymes.xml")
+    DigestionEnzymeDB<DigestionEnzymeProtein, ProteaseDB>()
   {
+    // Create default providers: built-in enzymes + optional XML file for user overrides
+    vector<unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeProtein>>> providers;
+    providers.push_back(make_unique<BuiltInProteaseDataProvider>());
+    providers.push_back(make_unique<EnzymeXMLDataProvider<DigestionEnzymeProtein>>("CHEMISTRY/Enzymes.xml", /*optional=*/true));
+    loadFromProviders_(providers);
   }
 
-  void ProteaseDB::getAllXTandemNames(vector<String>& all_names) const
+  ProteaseDB::ProteaseDB(vector<unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeProtein>>> providers):
+    DigestionEnzymeDB<DigestionEnzymeProtein, ProteaseDB>()
+  {
+    loadFromProviders_(providers);
+  }
+
+  void ProteaseDB::getAllXTandemNames(vector<std::string>& all_names) const
   {
     all_names.clear();
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
@@ -30,7 +43,7 @@ namespace OpenMS
     }
   }
 
-  void ProteaseDB::getAllCometNames(vector<String>& all_names) const
+  void ProteaseDB::getAllCometNames(vector<std::string>& all_names) const
   {
     all_names.clear();
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
@@ -42,7 +55,7 @@ namespace OpenMS
     }
   }
 
-  void ProteaseDB::getAllOMSSANames(vector<String>& all_names) const
+  void ProteaseDB::getAllOMSSANames(vector<std::string>& all_names) const
   {
     all_names.clear();
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
@@ -54,7 +67,7 @@ namespace OpenMS
     }
   }
 
-  void ProteaseDB::getAllMSGFNames(vector<String>& all_names) const
+  void ProteaseDB::getAllMSGFNames(vector<std::string>& all_names) const
   {
     all_names.clear();
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
@@ -66,7 +79,7 @@ namespace OpenMS
     }
   }
 
-  void ProteaseDB::writeTSV(String const& filename)
+  void ProteaseDB::writeTSV(std::string const& filename) const
   {
     std::ofstream ofs(filename, std::ofstream::out);
     ofs << "OpenMS_AllowedEnzymes" << "\n";

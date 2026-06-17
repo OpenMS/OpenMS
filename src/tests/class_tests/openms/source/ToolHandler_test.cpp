@@ -36,16 +36,11 @@ START_SECTION(~ToolHandler())
 }
 END_SECTION
 
-START_SECTION((static ToolListType getTOPPToolList(const bool includeGenericWrapper=false)))
+START_SECTION((static ToolListType getTOPPToolList()))
 {
   ToolListType list = ToolHandler::getTOPPToolList();
   TEST_TRUE(list.find("DecoyDatabase") != list.end())
-  TEST_FALSE(list.find("GenericWrapper") != list.end())
   TEST_TRUE(list.size() > 30)  // assume we have over 30 tools in there
-  list = ToolHandler::getTOPPToolList(true);
-  TEST_TRUE(list.find("DecoyDatabase") != list.end())
-  TEST_TRUE(list.find("GenericWrapper") != list.end())
-  TEST_TRUE(list.size() > 30) // assume we have over 30 tools in there
 #ifdef WITH_GUI
   TEST_TRUE(list.find("ImageCreator") != list.end())
 #else
@@ -54,26 +49,26 @@ START_SECTION((static ToolListType getTOPPToolList(const bool includeGenericWrap
 }
 END_SECTION
 
-START_SECTION((static StringList getTypes(const String &toolname)))
+START_SECTION((static StringList getTypes(const std::string &toolname)))
 {
   TEST_EQUAL(ToolHandler::getTypes("IsobaricAnalyzer").empty(), true);
   TEST_EQUAL(ToolHandler::getTypes("IDMapper").empty(), true);
 }
 END_SECTION
 
-START_SECTION((static String getExternalToolsPath()))
+START_SECTION((static std::string getExternalToolsPath()))
 {
-  TEST_NOT_EQUAL(ToolHandler::getExternalToolsPath(), String())
+  TEST_NOT_EQUAL(ToolHandler::getExternalToolsPath(), std::string())
 }
 END_SECTION
 
-START_SECTION((static String getInternalToolsPath()))
+START_SECTION((static std::string getInternalToolsPath()))
 {
-  TEST_NOT_EQUAL(ToolHandler::getExternalToolsPath(), String())
+  TEST_NOT_EQUAL(ToolHandler::getExternalToolsPath(), std::string())
 }
 END_SECTION
 
-START_SECTION((static String getCategory(const String &toolname)))
+START_SECTION((static std::string getCategory(const std::string &toolname)))
 {
   TEST_EQUAL(ToolHandler::getCategory("IDFilter"), "File Filtering, Extraction and Merging")
   TEST_EQUAL(ToolHandler::getCategory("DOESNOTEXIST"), "")

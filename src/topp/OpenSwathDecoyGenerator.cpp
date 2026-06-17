@@ -9,6 +9,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -90,18 +92,20 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false);
-    String formats("tsv,mrm,pqp,TraML");
-    setValidFormats_("in", ListUtils::create<String>(formats));
-    setValidStrings_("in_type", ListUtils::create<String>(formats));
+    StringList formats = {"tsv", "mrm", "pqp", "TraML"};
+    formats.push_back("oswpq");
+    setValidFormats_("in", formats);
+    setValidStrings_("in_type", formats);
 
-    formats = "tsv,pqp,TraML";
+    formats = {"tsv", "pqp", "TraML"};
+    formats.push_back("oswpq");
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>(formats));
+    setValidFormats_("out", formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("out_type", ListUtils::create<String>(formats));
+    setValidStrings_("out_type", formats);
 
     registerStringOption_("method", "<type>", "shuffle", "Decoy generation method", false);
-    setValidStrings_("method", ListUtils::create<String>(String("shuffle,pseudo-reverse,reverse,shift")));
+    setValidStrings_("method", ListUtils::create<std::string>(std::string("shuffle,pseudo-reverse,reverse,shift")));
 
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);
 
@@ -120,7 +124,7 @@ protected:
     registerFlag_("enable_detection_specific_losses", "set this flag if specific neutral losses for detection fragment ions should be allowed", true);
     registerFlag_("enable_detection_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for detection fragment ions should be allowed", true);
     registerStringOption_("switchKR", "<true/false>", "true", "Whether to switch terminal K and R (to achieve different precursor mass)", false);
-    setValidStrings_("switchKR", ListUtils::create<String>(String("true,false")));
+    setValidStrings_("switchKR", ListUtils::create<std::string>(std::string("true,false")));
 
     registerFlag_("separate", "set this flag if decoys should not be appended to targets.", true);
   }
@@ -130,13 +134,13 @@ protected:
     FileHandler fh;
 
     //input file type
-    String in = getStringOption_("in");
+    std::string in = getStringOption_("in");
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)
@@ -146,7 +150,7 @@ protected:
     }
 
     //output file names and types
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
     if (out_type == FileTypes::UNKNOWN)
@@ -160,8 +164,8 @@ protected:
       return PARSE_ERROR;
     }
 
-    String method = getStringOption_("method");
-    String decoy_tag = getStringOption_("decoy_tag");
+    std::string method = getStringOption_("method");
+    std::string decoy_tag = getStringOption_("decoy_tag");
 
     double min_decoy_fraction = getDoubleOption_("min_decoy_fraction");
     double aim_decoy_fraction = getDoubleOption_("aim_decoy_fraction");
@@ -173,20 +177,20 @@ protected:
     double product_mz_shift = getDoubleOption_("shift_product_mz_shift");
 
     double product_mz_threshold = getDoubleOption_("product_mz_threshold");
-    String allowed_fragment_types_string = getStringOption_("allowed_fragment_types");
-    String allowed_fragment_charges_string = getStringOption_("allowed_fragment_charges");
+    std::string allowed_fragment_types_string = getStringOption_("allowed_fragment_types");
+    std::string allowed_fragment_charges_string = getStringOption_("allowed_fragment_charges");
     bool enable_detection_specific_losses = getFlag_("enable_detection_specific_losses");
     bool enable_detection_unspecific_losses = getFlag_("enable_detection_unspecific_losses");
     bool switchKR = getStringOption_("switchKR") == "true";
 
     bool separate = getFlag_("separate");
 
-    std::vector<String> allowed_fragment_types;
-    allowed_fragment_types_string.split(",", allowed_fragment_types);
+    std::vector<std::string> allowed_fragment_types;
+    StringUtils::split(allowed_fragment_types_string, ",", allowed_fragment_types);
 
-    std::vector<String> allowed_fragment_charges_string_vector;
+    std::vector<std::string> allowed_fragment_charges_string_vector;
     std::vector<size_t> allowed_fragment_charges;
-    allowed_fragment_charges_string.split(",", allowed_fragment_charges_string_vector);
+    StringUtils::split(allowed_fragment_charges_string, ",", allowed_fragment_charges_string_vector);
     for (size_t i = 0; i < allowed_fragment_charges_string_vector.size(); i++)
     {
       size_t charge = std::atoi(allowed_fragment_charges_string_vector.at(i).c_str());
@@ -194,8 +198,12 @@ protected:
     }
 
     // Use memory-efficient Light path for TSV/PQP → TSV/PQP conversions
-    bool use_light_path = (in_type == FileTypes::TSV || in_type == FileTypes::MRM || in_type == FileTypes::PQP)
-                       && (out_type == FileTypes::TSV || out_type == FileTypes::PQP);
+    bool use_light_path = (in_type == FileTypes::TSV || in_type == FileTypes::MRM || in_type == FileTypes::PQP
+                       || in_type == FileTypes::OSWPQ
+                       )
+                       && (out_type == FileTypes::TSV || out_type == FileTypes::PQP
+                       || out_type == FileTypes::OSWPQ
+                       );
 
     if (use_light_path)
     {
@@ -220,6 +228,11 @@ protected:
         pqp_reader.setLogType(log_type_);
         pqp_reader.setParameters(reader_parameters);
         pqp_reader.convertPQPToTargetedExperiment(in.c_str(), light_exp);
+      }
+      else if (in_type == FileTypes::OSWPQ)
+      {
+        TransitionParquetFile parquet_reader;
+        parquet_reader.convertParquetToTargetedExperiment(in, light_exp);
       }
 
       MRMDecoy decoys;
@@ -250,7 +263,7 @@ protected:
           (float)light_decoy.proteins.size() / (float)light_exp.proteins.size() < min_decoy_fraction)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "The number of decoys for peptides or proteins is below the threshold of " + String(min_decoy_fraction * 100) + "% of the number of targets.");
+          "The number of decoys for peptides or proteins is below the threshold of " + StringUtils::toStr(min_decoy_fraction * 100) + "% of the number of targets.");
       }
 
       if (separate)
@@ -283,6 +296,11 @@ protected:
         pqp_writer.setLogType(log_type_);
         pqp_writer.convertLightTargetedExperimentToPQP(out.c_str(), light_merged);
       }
+      else if (out_type == FileTypes::OSWPQ)
+      {
+        TransitionParquetFile parquet_writer;
+        parquet_writer.convertLightTargetedExperimentToParquet(out, light_merged);
+      }
     }
     else
     {
@@ -313,6 +331,11 @@ protected:
           pqp_reader.convertPQPToTargetedExperiment(tr_file, targeted_exp);
           pqp_reader.validateTargetedExperiment(targeted_exp);
         }
+        else if (in_type == FileTypes::OSWPQ)
+        {
+          writeLogError_("Error: Parquet input is only supported for light-weight conversions.");
+          return PARSE_ERROR;
+        }
         else if (in_type == FileTypes::TRAML)
         {
           FileHandler().loadTransitions(in, targeted_exp, {FileTypes::TRAML});
@@ -340,7 +363,7 @@ protected:
             (float)targeted_decoy.getProteins().size() / (float)targeted_exp.getProteins().size() < min_decoy_fraction)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "The number of decoys for peptides or proteins is below the threshold of " + String(min_decoy_fraction * 100) + "% of the number of targets.");
+            "The number of decoys for peptides or proteins is below the threshold of " + StringUtils::toStr(min_decoy_fraction * 100) + "% of the number of targets.");
         }
 
         if (separate)
@@ -373,6 +396,13 @@ protected:
       else if (out_type == FileTypes::TRAML)
       {
         FileHandler().storeTransitions(out, targeted_merged, {FileTypes::TRAML});
+      }
+      else if (out_type == FileTypes::OSWPQ)
+      {
+        OpenSwath::LightTargetedExperiment light_exp;
+        OpenSwathDataAccessHelper::convertTargetedExp(targeted_merged, light_exp);
+        TransitionParquetFile parquet_writer;
+        parquet_writer.convertLightTargetedExperimentToParquet(out, light_exp);
       }
     }
 

@@ -8,12 +8,12 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-
-#include <QtCore/QString>
 
 #include <OpenMS/MATH/StatisticFunctions.h>
 
@@ -147,11 +147,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("featureXML,consensusXML"));
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content", false);
-    setValidStrings_("in_type", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidStrings_("in_type", ListUtils::create<std::string>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Optional output txt file. If empty, the output is written to the command line.", false);
-    setValidFormats_("out", ListUtils::create<String>("txt"));
+    setValidFormats_("out", ListUtils::create<std::string>("txt"));
 
     registerIntOption_("n", "<n>", 4, // 4 slices is the default
                        "Report separate statistics for each of n RT slices of the map.",
@@ -171,7 +171,7 @@ protected:
     //-------------------------------------------------------------
 
     // File names
-    String in = getStringOption_("in");
+    std::string in = getStringOption_("in");
 
     // File type
     FileHandler fh;
@@ -180,7 +180,7 @@ protected:
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)
@@ -272,15 +272,15 @@ protected:
       //-------------------------------------------------------------
       // Content statistics
       //-------------------------------------------------------------
-      std::map<String, int> meta_names;
+      std::map<std::string, int> meta_names;
       if (in_type == FileTypes::FEATUREXML) //features
       {
         os << "Number of features: " << feat.size() << endl
            << endl
            << "Ranges:" << endl
-           << "  retention time:  " << String::number(feat.getMinRT(), 2) << " : " << String::number(feat.getMaxRT(), 2) << endl
-           << "  mass-to-charge:  " << String::number(feat.getMinMZ(), 2) << " : " << String::number(feat.getMaxMZ(), 2) << endl
-           << "  intensity:       " << String::number(feat.getMinIntensity(), 2) << " : " << String::number(feat.getMaxIntensity(), 2) << endl
+           << "  retention time:  " << StringUtils::number(feat.getMinRT(), 2) << " : " << StringUtils::number(feat.getMaxRT(), 2) << endl
+           << "  mass-to-charge:  " << StringUtils::number(feat.getMinMZ(), 2) << " : " << StringUtils::number(feat.getMaxMZ(), 2) << endl
+           << "  intensity:       " << StringUtils::number(feat.getMinIntensity(), 2) << " : " << StringUtils::number(feat.getMaxIntensity(), 2) << endl
            << endl;
 
         // Charge distribution
@@ -314,9 +314,9 @@ protected:
         os << "  total:      " << setw(6) << cons.size() << endl << endl;
 
         os << "Ranges:" << endl
-           << "  retention time:  " << String::number(cons.getMinRT(), 2) << " : " << String::number(cons.getMaxRT(), 2) << endl
-           << "  mass-to-charge:  " << String::number(cons.getMinMZ(), 2) << " : " << String::number(cons.getMaxMZ(), 2) << endl
-           << "  intensity:       " << String::number(cons.getMinIntensity(), 2) << " : " << String::number(cons.getMaxIntensity(), 2) << endl;
+           << "  retention time:  " << StringUtils::number(cons.getMinRT(), 2) << " : " << StringUtils::number(cons.getMaxRT(), 2) << endl
+           << "  mass-to-charge:  " << StringUtils::number(cons.getMinMZ(), 2) << " : " << StringUtils::number(cons.getMaxMZ(), 2) << endl
+           << "  intensity:       " << StringUtils::number(cons.getMinIntensity(), 2) << " : " << StringUtils::number(cons.getMaxIntensity(), 2) << endl;
 
         // file descriptions
         const ConsensusMap::ColumnHeaders& descs = cons.getColumnHeaders();
@@ -478,7 +478,7 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
 
     //output to command line
     if (out.empty())

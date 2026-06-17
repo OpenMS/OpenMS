@@ -10,74 +10,111 @@
 
 #include <OpenMS/config.h>
 
-#include <QtCore/QObject>
-#include <QtCore/QString>
-#include <QtCore/QUrl>
-#include <QtNetwork/QNetworkReply>
+#include <string>
+#include <vector>
 
 namespace OpenMS
 {
+  /**
+    @brief Synchronous HTTP GET request backed by libcurl.
 
-  class NetworkGetRequest :
-    public QObject
+    Typical lifecycle: set the URL via @ref setUrl, optionally set a
+    timeout via @ref setTimeout, call @ref run to perform the request,
+    then read the result via @ref getResponse / @ref getResponseBinary
+    or check @ref hasError / @ref getErrorString. The instance can be
+    reused for further requests; each call to @ref run replaces the
+    previously observed state. Redirects are followed automatically.
+
+    Failures (libcurl initialisation, transport errors, HTTP status
+    @c >= @c 400) are reported through @ref hasError and
+    @ref getErrorString; @ref run does not throw on those conditions.
+
+    Instances are not copyable.
+
+    @ingroup System
+  */
+  class OPENMS_DLLAPI NetworkGetRequest
   {
-    Q_OBJECT
-
   public:
+    NetworkGetRequest();
+    ~NetworkGetRequest();
 
-    /** @name Constructors and destructors
+    /**
+      @brief Set the URL to request.
+
+      The URL is consumed by the next @ref run call; no validation is performed here.
+
+      @param[in] url URL to request on the next @ref run call.
     */
-    //@{
-    /// default constructor
-    OPENMS_DLLAPI NetworkGetRequest(QObject* parent = nullptr);
+    void setUrl(const std::string& url);
 
-    /// destructor
-    OPENMS_DLLAPI ~NetworkGetRequest() override;
-    //@}
+    /**
+      @brief Set the request timeout in seconds.
 
-    // set request parameters
-    OPENMS_DLLAPI void setUrl(const QUrl& url);
+      @param[in] seconds Timeout in seconds. @c 0 (the default) leaves the
+                         timeout unset, so the request blocks until the server
+                         responds or libcurl gives up on its own.
+    */
+    void setTimeout(int seconds);
 
-    /// returns the response
-    OPENMS_DLLAPI QString getResponse() const;
+    /**
+      @brief Execute the GET request synchronously.
 
-    /// returns the response
-    OPENMS_DLLAPI const QByteArray& getResponseBinary() const;
+      Performs the request configured by the last @ref setUrl /
+      @ref setTimeout call, blocking the caller until the response is
+      complete or libcurl reports a timeout / error. Redirects are
+      followed. The previous response and error state are cleared at
+      the start of the call.
 
-    /// returns true if an error occurred during the query
-    OPENMS_DLLAPI bool hasError() const;
+      The call sets @ref hasError to @c true when:
+        - libcurl could not be initialised (error string
+          @c "Failed to initialize libcurl"),
+        - a transport-level libcurl error occurred (error string from
+          @c curl_easy_strerror), or
+        - the server responded with HTTP status @c >= @c 400 (error
+          string @c "HTTP error N", where @c N is the status code).
 
-    /// returns the error message, if hasError can be used to check whether an error has occurred
-    OPENMS_DLLAPI QString getErrorString() const;
+      No exception is thrown for any of these.
+    */
+    void run();
 
-  protected:
+    /**
+      @brief Response body as a string.
 
-    public slots:
+      @return A copy of @ref getResponseBinary materialised as @c std::string.
+    */
+    std::string getResponse() const;
 
-    OPENMS_DLLAPI void run();
+    /**
+      @brief Raw response body.
 
-    OPENMS_DLLAPI void timeOut();
+      @return Reference to the byte buffer; valid until the next @ref run call or destruction.
+    */
+    const std::vector<char>& getResponseBinary() const;
 
-    private slots:
+    /**
+      @brief Whether the last @ref run produced an error.
 
-    OPENMS_DLLAPI void replyFinished(QNetworkReply*);
+      @return @c true if the last @ref run call did not produce a usable
+              response (see @ref run for the conditions).
+    */
+    bool hasError() const;
 
-  signals:
+    /**
+      @brief Human-readable description of the last error.
 
-    OPENMS_DLLAPI void done();
+      @return Error message; empty when @ref hasError is @c false.
+    */
+    std::string getErrorString() const;
 
   private:
-    /// assignment operator
-    OPENMS_DLLAPI NetworkGetRequest& operator=(const NetworkGetRequest& rhs);
-    /// copy constructor
-    OPENMS_DLLAPI NetworkGetRequest(const NetworkGetRequest& rhs);
+    NetworkGetRequest(const NetworkGetRequest&) = delete;
+    NetworkGetRequest& operator=(const NetworkGetRequest&) = delete;
 
-    QByteArray response_bytes_;
-    QUrl url_;
-    QNetworkAccessManager* manager_;
-    QNetworkReply* reply_;
-    QNetworkReply::NetworkError error_;
-    QString error_string_;
+    std::vector<char> response_bytes_;
+    std::string url_;
+    int timeout_ = 0;
+    bool has_error_ = false;
+    std::string error_string_;
   };
 }
-

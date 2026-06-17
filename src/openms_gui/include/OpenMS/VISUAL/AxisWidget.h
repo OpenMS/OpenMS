@@ -17,7 +17,7 @@ class QPaintEvent;
 
 // OpenMS
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/VISUAL/AxisPainter.h>
 
@@ -64,10 +64,10 @@ public:
     bool isLegendShown() const;
 
     /// sets the legend text
-    void setLegend(const String & legend);
+    void setLegend(const std::string & legend);
 
     /// returns the actual legend text
-    const String & getLegend() const;
+    const std::string & getLegend() const;
 
     /// returns the currently used grid lines
     const GridVector & gridLines() const;
@@ -130,7 +130,7 @@ protected:
     double max_;
 
     /// text/unit on axis
-    String legend_;
+    std::string legend_;
 
     /// maximum number of tick levels (default=2)
     UInt tick_level_;

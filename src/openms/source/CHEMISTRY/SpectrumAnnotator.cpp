@@ -154,8 +154,8 @@ namespace OpenMS
       double nint = 0;
       double cint = 0;
 
-      StringList allowed_types = ListUtils::create<String>("y,b,a,c,x,z");
-      map<String, vector<bool> > ion_series;
+      StringList allowed_types = ListUtils::create<std::string>("y,b,a,c,x,z");
+      map<std::string, vector<bool> > ion_series;
       for (StringList::iterator st = allowed_types.begin(); st != allowed_types.end(); ++st)
       {
         ion_series.insert(make_pair(*st, vector<bool>(ph->getSequence().size()-1, false)));
@@ -181,7 +181,7 @@ namespace OpenMS
       for (size_t i = 0; i < spec.size(); ++i)
       {
         sum_intensity += spec[i].getIntensity();
-        String ion_name = type_annotations.at(i);
+        std::string ion_name = type_annotations.at(i);
         if (ion_name.empty()) continue;
          
         fragmenterrors.push_back(error_annotations.at(i));
@@ -203,7 +203,7 @@ namespace OpenMS
 
         if (max_series_)  // without loss max series is sometimes pretty crummy
         {
-          const String& ion_type = ion_name.prefix(1);
+          const std::string& ion_type = StringUtils::prefix(ion_name, 1);
           boost::cmatch what;
           if (boost::regex_match(ion_name.c_str(), what, seriesposition_regex_) &&
                   ListUtils::contains(allowed_types, ion_type))
@@ -217,7 +217,9 @@ namespace OpenMS
             }
             catch (std::out_of_range&)
             {
-              OPENMS_LOG_WARN << "Note: Ions of " << ion_type << ion_name.substr(1).remove('+').toInt()
+              std::string ion_sub = StringUtils::substr(ion_name, 1);
+              StringUtils::remove(ion_sub, '+');
+              OPENMS_LOG_WARN << "Note: Ions of " << ion_type << StringUtils::toInt32(ion_sub)
                        << " will be ignored for max_series " << ph->getSequence().toString() << endl;
               continue;
             }
@@ -292,9 +294,9 @@ namespace OpenMS
       }
       if (max_series_)
       {
-        String max_series;
+        std::string max_series;
         int max_stretch = 0;
-        for (map<String, vector<bool> >::iterator tt = ion_series.begin(); tt != ion_series.end(); ++tt)
+        for (map<std::string, vector<bool> >::iterator tt = ion_series.begin(); tt != ion_series.end(); ++tt)
         {
           int stretch = 0;
           for (vector<bool>::iterator it = tt->second.begin(); it != tt->second.end(); ++it)
@@ -377,7 +379,7 @@ namespace OpenMS
       }
       //TODO add "FragmentArray"s
 
-      Param sap = sa.getParameters();
+      const Param& sap = sa.getParameters();
       pi.setMetaValue("fragment_match_tolerance", (double)sap.getValue("tolerance"));
     }  
   }

@@ -14,22 +14,20 @@
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <QStringList>
-
 using namespace OpenMS;
 
 START_TEST(XQuestResultXMLFile, "$Id$")
 
 
-START_SECTION(void store(const String& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const)
+START_SECTION(void store(const std::string& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const)
 
   std::vector<ProteinIdentification> protein_ids;
   PeptideIdentificationList peptide_ids;
 
-  String xquest_input_file= OPENMS_GET_TEST_DATA_PATH("XQuestResultXMLFile_test_data.xquest.xml");
+  std::string xquest_input_file= OPENMS_GET_TEST_DATA_PATH("XQuestResultXMLFile_test_data.xquest.xml");
   XQuestResultXMLFile().load(xquest_input_file, peptide_ids, protein_ids);
 
-  String out_file;
+  std::string out_file;
   NEW_TMP_FILE(out_file)
 
   XQuestResultXMLFile().store(out_file, protein_ids, peptide_ids);

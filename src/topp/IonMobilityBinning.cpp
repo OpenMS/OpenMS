@@ -9,6 +9,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 
@@ -64,7 +65,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (containing RT, IM, m/z, i.e. IM-frames).");
-    setValidFormats_("in", {"mzML"});
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+    });
     registerOutputPrefix_("out", "<directory>", "", "Path to the output directory to write the binned mzML files to.", true, false);
     registerIntOption_("bins", "<number>", 5, "Number of ion mobility bins to split the input file into", false, false);
     registerDoubleOption_("bin_extension_abs", "<number>", 0.0,
@@ -104,10 +109,10 @@ protected:
 
   void writeOutputFiles_(std::vector<PeakMap>& mzML_bins, 
     const Math::BinContainer& im_ranges,
-    const String& out_prefix,
+    const std::string& out_prefix,
     Size n_bins)
   {
-    const Size width = String(n_bins).size();
+    const Size width =StringUtils::toStr(n_bins).size();
     for (Size i = 0; i < n_bins; ++i)
     {
       ostringstream out_name;
@@ -126,15 +131,15 @@ protected:
 
   ExitCodes main_(int, const char **) override
   {
-    String input_file = getStringOption_("in");
-    String out_prefix = getStringOption_("out");
+    std::string input_file = getStringOption_("in");
+    std::string out_prefix = getStringOption_("out");
     int bins = getIntOption_("bins");
     double bin_extension_abs = getDoubleOption_("bin_extension_abs");
     double mz_binning_width = getDoubleOption_("SpectraMerging:mz_binning_width");
     MZ_UNITS mz_binning_width_unit = getStringOption_("SpectraMerging:mz_binning_width_unit") == "Da" ? MZ_UNITS::DA : MZ_UNITS::PPM;
 
     PeakMap experiment;
-    FileHandler().loadExperiment(input_file, experiment, {FileTypes::MZML}, log_type_);
+    FileHandler().loadExperiment(input_file, experiment, {FileTypes::MZML, FileTypes::BRUKER_TDF}, log_type_);
 
     // Decide FAIMS vs. regular IM processing first (avoid moving 'experiment' before branching)
     const auto cvs = FAIMSHelper::getCompensationVoltages(experiment);

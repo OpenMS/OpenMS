@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <memory>
+
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
@@ -49,11 +51,40 @@
 
 namespace OpenMS
 {
+  /**
+    @brief Shared @ref TOPPBase scaffolding for OpenSWATH-family CLI tools (currently @ref TOPP_OpenSwathWorkflow).
+
+    Bundles the input-loading and output-setup steps that any OpenSWATH DIA tool needs, so the
+    individual TOPP front-ends can stay focused on configuration and workflow wiring. The
+    protected methods cover the three I/O stages of a typical run:
+
+      - loadSwathFiles() — read one or more mzML / mzXML / sqMass SWATH input files via
+        @ref SwathFile (with the @c readoptions parameter selecting in-memory vs. cached
+        access), optionally remap the per-map isolation windows from a @c swath_windows_file,
+        and return both the per-map @ref OpenSwath::SwathMap pointers and a one-to-one list of
+        source-file names.
+      - prepareChromOutput() / prepareMobilogramOutput() — install the output @ref Interfaces::IMSDataConsumer
+        for chromatograms (sqMass / mzML+numpress / Parquet @c .xic) and the optional Parquet
+        mobilogram writer.
+      - loadTransitionList() — read the spectral library from TraML / TSV / PQP into an
+        @ref OpenSwath::LightTargetedExperiment.
+
+    The @ref CalibrationResult inner struct is the return-channel for the per-run RT / m/z /
+    IM calibration step run by the consuming tool (see @ref CalibrationWorkflow).
+
+    @ingroup TargetedQuantitation
+  */
   class OPENMS_DLLAPI TOPPOpenSwathBase : public TOPPBase
   {
 
   public:
-    /// Outputs of RT, m/z, IM calibration
+    /**
+      @brief Per-run outputs of the RT / m/z / IM calibration step.
+
+      Populated by the consuming tool (via @ref CalibrationWorkflow) and consumed later
+      during the analytical extraction phase. Window fields default to @c -1.0 meaning
+      "not computed" — callers must check before using them as extraction windows.
+    */
     struct CalibrationResult
     {
       /// RT normalization transformation (fitted Trafo)
@@ -83,7 +114,7 @@ namespace OpenMS
              If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
       @param[in] citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
     */
-    TOPPOpenSwathBase(String name, String description, bool official = true, const std::vector<Citation>& citations = {});
+    TOPPOpenSwathBase(std::string name, std::string description, bool official = true, const std::vector<Citation>& citations = {});
 
     /// Destructor
     ~TOPPOpenSwathBase() override;
@@ -100,6 +131,7 @@ namespace OpenMS
      * @param[in] file_list The input file(s)
      * @param[out] exp_meta The output (meta data about experiment)
      * @param[out] swath_maps The output (ptr to raw data)
+     * @param[out] swath_map_sources The source files corresponding to each swath map. This is used to track when multiple experiment input files are provided.
      * @param[in] split_file If loading a single file that contains a single SWATH window
      * @param[in] tmp Temporary directory
      * @param[in] readoptions Description on how to read the data ("normal", "cache")
@@ -108,7 +140,6 @@ namespace OpenMS
      * @param[in] force Whether to override the sanity check
      * @param[in] sort_swath_maps Whether to sort the provided windows first before mapping
      * @param[in] prm Whether data is in prm format; allows for overlap
-     * @param[in] pasef Whether data is in PASEF format; allows for overlap
      * @param[in,out] plugin_consumer Intermediate consumer for mzML input. See SwathFile::loadMzML() for details.
      *
      * @return Returns whether loading and sanity check was successful
@@ -117,35 +148,57 @@ namespace OpenMS
     bool loadSwathFiles(const StringList& file_list,
                         std::shared_ptr<ExperimentalSettings >& exp_meta,
                         std::vector< OpenSwath::SwathMap >& swath_maps,
+                        std::vector<std::string> & swath_map_sources,
                         const bool split_file,
-                        const String& tmp,
-                        const String& readoptions,
-                        const String& swath_windows_file,
+                        const std::string& tmp,
+                        const std::string& readoptions,
+                        const std::string& swath_windows_file,
                         const double min_upper_edge_dist,
                         const bool force,
                         const bool sort_swath_maps,
                         const bool prm,
-                        const bool pasef,
                         Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
 
     /**
      * @brief Prepare chromatogram output
      *
-     * Sets up the chromatogram output, either sqMass or mzML (using numpress
-     * lossy compression). This assumes that 0.05 accuracy in RT is sufficient
-     * for all purposes.
+     * Sets up the chromatogram output, either sqMass, mzML (using numpress
+     * lossy compression), or xic (Parquet). This assumes that 0.05 accuracy
+     * in RT is sufficient for all purposes.
      *
      * @param[out] chromatogramConsumer The consumer to process chromatograms
      * @param[in] exp_meta meta data about experiment
      * @param[in] transition_exp The spectral library
      * @param[in] out_chrom The output file for the chromatograms
      * @param[in] run_id Unique identifier which links the sqMass and OSW file
+     * @param[in] source_file Source file name for chromatogram provenance
      */
     void prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer,
                             const std::shared_ptr<ExperimentalSettings>& exp_meta,
                             const OpenSwath::LightTargetedExperiment& transition_exp,
-                            const String& out_chrom,
-                            const UInt64 run_id);
+                            const std::string& out_chrom,
+                            const UInt64 run_id,
+                            const std::string& source_file);
+
+    /**
+     * @brief Prepare mobilogram output
+     *
+     * Sets up the mobilogram output, currently only supports Parquet via MobilogramParquetConsumer.
+     * If no output requested, returns a null consumer by allocating a nullptr.
+     *
+     * @param[out] mobilogramConsumer The consumer to process mobilograms
+     * @param[in] exp_meta meta data about experiment
+     * @param[in] transition_exp The spectral library
+     * @param[in] out_mobilogram The output file for the mobilograms
+     * @param[in] run_id Unique identifier which links the mobilogram and OSW file
+     * @param[in] source_file Source file name for provenance
+     */
+    void prepareMobilogramOutput(std::unique_ptr<class MobilogramParquetConsumer>& mobilogramConsumer,
+                  const std::shared_ptr<ExperimentalSettings>& exp_meta,
+                  const OpenSwath::LightTargetedExperiment& transition_exp,
+                  const std::string& out_mobilogram,
+                  const UInt64 run_id,
+                  const std::string& source_file);
 
     /**
      * @brief Loads transition list from TraML / TSV or PQP
@@ -156,68 +209,17 @@ namespace OpenMS
      *
      */
     OpenSwath::LightTargetedExperiment loadTransitionList(const FileTypes::Type& tr_type,
-                                                          const String& tr_file,
+                                                          const std::string& tr_file,
                                                           const Param& tsv_reader_param);
-
-    /**
-     * @brief Perform retention time and m/z calibration
-     *
-     * This function will create the retention time transformation either by
-     * loading a provided .trafoXML file or determine it from the data itself by
-     * extracting the transitions specified in the irt_tr_file TraML file. It
-     * will also perform the m/z calibration (when an irt_tr_file is provided).
-     *
-     * @note Internally, the retention time and @p m/z calibration are performed
-     * by OpenMS::OpenSwathCalibrationWorkflow::performRTNormalization
-     *
-     * @param[in] trafo_in Input trafoXML file (if not empty, transformation will be
-     *                 loaded from this file)
-     * @param[in] irt_transitions  Input iRT transition experiment (if trafo_in
-     *                     is empty, this will be used for iRT extraction)
-     * @param[in,out] swath_maps The raw data (swath maps)
-     * @param[in] min_rsq Minimal R^2 value that is expected for the RT regression
-     * @param[in] min_coverage Minimal coverage of the chromatographic space that needs to be achieved
-     * @param[in] feature_finder_param Parameter set for the feature finding in chromatographic dimension
-     * @param[in] cp_irt Parameter set for the chromatogram extraction
-     * @param[in] irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
-     * @param[in] calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
-     * @param[in] debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
-     * @param[in] pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor centered around IM) is chosen.
-     * @param[in] load_into_memory Whether to cache the current SWATH map in memory
-     * @param[in] irt_trafo_out Output trafoXML file (if not empty and no input trafoXML file is given,
-     *        the transformation parameters will be stored in this file)
-     * @param[in] irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
-     *        iRT chromatograms will be stored in this file)
-     *
-     * @return CalibrationResult with: \n
-     *           - rt_trafo              : the RT normalization transformation \n
-     *           - ms2_mz_window_ppm     : auto-estimated MS2 m/z window (full width, ppm) \n
-     *           - ms2_im_window         : auto-estimated MS2 IM window (full width, native units) \n
-     *           - ms1_mz_window_ppm     : auto-estimated MS1 m/z window (full width, ppm) \n
-     *           - ms1_im_window         : auto-estimated MS1 IM window (full width, native units)
-     */
-    CalibrationResult performCalibration(String trafo_in,
-                                         const OpenSwath::LightTargetedExperiment& irt_transitions,
-                                         std::vector< OpenSwath::SwathMap > & swath_maps,
-                                         double min_rsq,
-                                         double min_coverage,
-                                         const Param& feature_finder_param,
-                                         const ChromExtractParams& cp_irt,
-                                         const Param& irt_detection_param,
-                                         const Param& calibration_param,
-                                         Size debug_level,
-                                         bool pasef,
-                                         bool load_into_memory,
-                                         const String& irt_trafo_out,
-                                         const String& irt_mzml_out);
 
   private:
     void loadSwathFiles_(const StringList& file_list,
                          const bool split_file,
-                         const String& tmp,
-                         const String& readoptions,
+                         const std::string& tmp,
+                         const std::string& readoptions,
                          std::shared_ptr<ExperimentalSettings > & exp_meta,
                          std::vector< OpenSwath::SwathMap > & swath_maps,
+                         std::vector<std::string> & swath_map_sources,
                          Interfaces::IMSDataConsumer* plugin_consumer);
   }; // end TOPPOpenSwathBase
 } //  end NS OpenMS

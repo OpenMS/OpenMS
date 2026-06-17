@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------s
 
 #include <OpenMS/VISUAL/VISUALIZER/SpectrumSettingsVisualizer.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //QT
 #include <QtWidgets/QComboBox>
@@ -53,8 +54,8 @@ namespace OpenMS
   void SpectrumSettingsVisualizer::store()
   {
     ptr_->setType((SpectrumSettings::SpectrumType)type_->currentIndex());
-    ptr_->setNativeID(native_id_->text());
-    ptr_->setComment(comment_->toPlainText());
+    ptr_->setNativeID(fromQString(native_id_->text()));
+    ptr_->setComment(fromQString(comment_->toPlainText()));
 
     temp_ = (*ptr_);
   }

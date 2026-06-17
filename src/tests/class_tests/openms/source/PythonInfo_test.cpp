@@ -11,13 +11,12 @@
 
 /////////////////////////////////////////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/PythonInfo.h>
 #include <OpenMS/SYSTEM/File.h>
             
 #include <fstream>
-
-#include <QDir>
+#include <filesystem>
 
 using namespace OpenMS;
 using namespace std;
@@ -28,31 +27,31 @@ START_TEST(TextFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-START_SECTION((static bool canRun(String& python_executable, String& error_msg)))
+START_SECTION((static bool canRun(std::string& python_executable, std::string& error_msg)))
   // test for missing python executable
-  String py = "does_not_exist_@@";
-  String error_msg;
+  std::string py = "does_not_exist_@@";
+  std::string error_msg;
   TEST_EQUAL(PythonInfo::canRun(py, error_msg), false)
-  TEST_EQUAL(error_msg.hasSubstring("Python not found at"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(error_msg, "Python not found at"), true)
 
   auto tmp_file = File::getTemporaryFile();
   ofstream f(tmp_file); // create the file
   f.close(); 
   TEST_EQUAL(PythonInfo::canRun(tmp_file, error_msg), false)
-  TEST_EQUAL(error_msg.hasSubstring("failed to run"), true)  
+  TEST_EQUAL(StringUtils::hasSubstring(error_msg, "failed to run"), true)  
 
   py = "python";
   if (PythonInfo::canRun(py, error_msg))
   { 
     TEST_EQUAL(File::exists(py), true)
-    TEST_EQUAL(QDir::isRelativePath(py.toQString()), false)
+    TEST_EQUAL(std::filesystem::path(std::string(py)).is_relative(), false)
   }
 
 END_SECTION
 
-START_SECTION(bool PythonInfo::isPackageInstalled(const String& python_executable, const String& package_name))
-  String error_msg;
-  String py = "python";
+START_SECTION(bool PythonInfo::isPackageInstalled(const std::string& python_executable, const std::string& package_name))
+  std::string error_msg;
+  std::string py = "python";
   if (PythonInfo::canRun(py, error_msg))
   {
     TEST_EQUAL(PythonInfo::isPackageInstalled(py, "veryWeirdPackage___@@__@"), false)
@@ -60,13 +59,13 @@ START_SECTION(bool PythonInfo::isPackageInstalled(const String& python_executabl
   }
 END_SECTION
 
-START_SECTION(static String getVersion(const String& python_executable))
+START_SECTION(static std::string getVersion(const std::string& python_executable))
   
-  String py = "python";
-  String error_msg;
+  std::string py = "python";
+  std::string error_msg;
   if (PythonInfo::canRun(py, error_msg))
   {
-    String version = PythonInfo::getVersion(py);
+    std::string version = PythonInfo::getVersion(py);
     TEST_EQUAL(version.empty(), false)
   }
 END_SECTION

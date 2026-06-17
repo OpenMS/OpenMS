@@ -27,7 +27,7 @@ namespace OpenMS::Internal
     MzDataValidator::~MzDataValidator()
     = default;
 
-    void MzDataValidator::handleTerm_(const String& path, const CVTerm& parsed_term)
+    void MzDataValidator::handleTerm_(const std::string& path, const CVTerm& parsed_term)
     {
       //check if the term is allowed in this element
       //and if there is a mapping rule for this element
@@ -49,7 +49,7 @@ namespace OpenMS::Internal
           }
           if (term.getAllowChildren()) //check if the term's children are allowed
           {
-            auto searcher = [&parsed_term] (const String& child)
+            auto searcher = [&parsed_term] (const std::string& child)
             {
               return child == parsed_term.accession;
             };
@@ -73,7 +73,7 @@ namespace OpenMS::Internal
         {
           if (!parsed_term.has_unit_accession)
           {
-            errors_.push_back(String("CV term must have a unit: " + parsed_term.accession + " - " + parsed_term.name));
+            errors_.emplace_back("CV term must have a unit: " + parsed_term.accession + " - " + parsed_term.name);
           }
           else
           {
@@ -81,16 +81,16 @@ namespace OpenMS::Internal
             if (cv_.exists(parsed_term.unit_accession))
             {
               // check whether this unit is allowed within the cv term
-              if (term.units.find(parsed_term.unit_accession) == term.units.end())
+              if (!term.units.contains(parsed_term.unit_accession))
               {
                 // last chance, a child term of the units was used
-                auto lambda = [&parsed_term] (const String& child)
+                auto lambda = [&parsed_term] (const std::string& child)
                 {
                   return child == parsed_term.unit_accession;
                 };
 
                 bool found_unit(false);
-                for (set<String>::const_iterator it = term.units.begin(); it != term.units.end(); ++it)
+                for (set<std::string>::const_iterator it = term.units.begin(); it != term.units.end(); ++it)
                 {
                   if (cv_.iterateAllChildren(*it, lambda))
                   {
@@ -101,13 +101,13 @@ namespace OpenMS::Internal
 
                 if (!found_unit)
                 {
-                  errors_.push_back(String("Unit CV term not allowed: " + parsed_term.unit_accession + " - " + parsed_term.unit_name + " of term " + parsed_term.accession + " - " + parsed_term.name));
+                  errors_.emplace_back("Unit CV term not allowed: " + parsed_term.unit_accession + " - " + parsed_term.unit_name + " of term " + parsed_term.accession + " - " + parsed_term.name);
                 }
               }
             }
             else
             {
-              errors_.push_back(String("Unit CV term not found: " + parsed_term.unit_accession + " - " + parsed_term.unit_name + " of term " + parsed_term.accession + " - " + parsed_term.name));
+              errors_.emplace_back("Unit CV term not found: " + parsed_term.unit_accession + " - " + parsed_term.unit_name + " of term " + parsed_term.accession + " - " + parsed_term.name);
             }
           }
         }
@@ -116,39 +116,39 @@ namespace OpenMS::Internal
           // check whether unit was used
           if (parsed_term.has_unit_accession || parsed_term.has_unit_name)
           {
-            warnings_.push_back(String("Unit CV term used, but not allowed: " + parsed_term.unit_accession + " - " + parsed_term.unit_name + " of term " + parsed_term.accession + " - " + parsed_term.name));
+            warnings_.emplace_back("Unit CV term used, but not allowed: " + parsed_term.unit_accession + " - " + parsed_term.unit_name + " of term " + parsed_term.accession + " - " + parsed_term.name);
           }
         }
       }
 
       if (!rule_found) //No rule found
       {
-        warnings_.push_back(String("No mapping rule found for element '") + getPath_(1) + "'");
+        warnings_.push_back(std::string("No mapping rule found for element '") + getPath_(1) + "'");
       }
       else if (!allowed) //if rule found and not allowed
       {
-        errors_.push_back(String("CV term used in invalid element: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
+        errors_.push_back(std::string("CV term used in invalid element: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
       }
 
       //check if term accession and term name match
       if (cv_.exists(parsed_term.accession))
       {
-        String parsed_name = parsed_term.name;
-        parsed_name.trim();
-        String correct_name = cv_.getTerm(parsed_term.accession).name;
-        correct_name.trim();
+        std::string parsed_name = parsed_term.name;
+        StringUtils::trim(parsed_name);
+        std::string correct_name = cv_.getTerm(parsed_term.accession).name;
+        StringUtils::trim(correct_name);
 
         //be a bit more soft: ignore upper-lower case
-        parsed_name.toLower();
-        correct_name.toLower();
+        StringUtils::toLower(parsed_name);
+        StringUtils::toLower(correct_name);
 
         //be a bit more soft: ignore spaces
-        parsed_name.removeWhitespaces();
-        correct_name.removeWhitespaces();
+        StringUtils::removeWhitespaces(parsed_name);
+        StringUtils::removeWhitespaces(correct_name);
 
         if (parsed_name != correct_name)
         {
-          errors_.push_back(String("Name of CV term not correct: '") + parsed_term.accession + " - " + parsed_name + "' should be '" + correct_name + "'");
+          errors_.push_back(std::string("Name of CV term not correct: '") + parsed_term.accession + " - " + parsed_name + "' should be '" + correct_name + "'");
         }
       }
     }

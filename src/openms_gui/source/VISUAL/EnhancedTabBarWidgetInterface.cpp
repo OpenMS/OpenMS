@@ -9,6 +9,7 @@
 #include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
 
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QObject>
 
@@ -27,11 +28,11 @@ namespace OpenMS
     sp_.emitAboutToBeDestroyed(window_id_);
   }
 
-  void EnhancedTabBarWidgetInterface::addToTabBar(EnhancedTabBar* const parent, const String& caption, const bool make_active_tab)
+  void EnhancedTabBarWidgetInterface::addToTabBar(EnhancedTabBar* const parent, const std::string& caption, const bool make_active_tab)
   {
     // use signal/slot to communicate, since directly storing the parent pointer for later access is dangerous (it may already be destroyed during program exit)
     QObject::connect(&this->sp_, &SignalProvider::aboutToBeDestroyed, parent, &EnhancedTabBar::removeId);
-    parent->addTab(caption.toQString(), window_id_);
+    parent->addTab(caption, window_id_);
     if (make_active_tab)
     {
       parent->show(window_id_);

@@ -93,7 +93,7 @@ for (size_t i = 0; i < IMs.size(); ++i)
 {
     input.getFloatDataArrays()[0].push_back(IMs[i]);
 }
-input.setIMFormat(IMFormat::CONCATENATED);
+input.setIMFormat(IMFormat::IM_PEAK);
 
 /* TODO make it more robust to also handle sparse data (e.g. asymetrical or even only one m/z value per IM scan) 
 // create dummy ion mobility spectrum with concatenated scans

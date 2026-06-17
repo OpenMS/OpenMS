@@ -53,6 +53,25 @@ list(APPEND DEP_BIN_DIRS $<TARGET_FILE_DIR:OpenMS>)
 # Combine all search directories for comprehensive dependency resolution
 set(RUNTIME_DEP_SEARCH_DIRS ${DEP_BIN_DIRS} ${DEP_LIB_DIRS})
 
+# Ensure Arrow/Parquet shared libs are discoverable during install() dependency collection.
+# This feeds RUNTIME_DEP_SEARCH_DIRS so install(RUNTIME_DEPENDENCY_SET ...) can locate Arrow libs
+# that are not always in the main build tree. It is required for packaging (CPack installers and
+# pyOpenMS wheels) to bundle Arrow runtime deps like libarrow_compute/libarrow_dataset, which are
+# loaded by OpenMS/pyOpenMS at runtime. Without these search paths, the install step can miss those
+# shared libs and the resulting binaries/wheels fail to link or import on user machines.
+foreach(_arrow_dep IN ITEMS OPENMS_ARROW_TARGET OPENMS_ARROW_COMPUTE_TARGET OPENMS_PARQUET_TARGET OPENMS_ARROW_DATASET_TARGET)
+  if(DEFINED ${_arrow_dep} AND NOT "${${_arrow_dep}}" STREQUAL "")
+    if(TARGET ${${_arrow_dep}})
+      list(APPEND RUNTIME_DEP_SEARCH_DIRS $<TARGET_FILE_DIR:${${_arrow_dep}}>)
+    else()
+      get_filename_component(_arrow_dep_dir "${${_arrow_dep}}" DIRECTORY)
+      if(_arrow_dep_dir)
+        list(APPEND RUNTIME_DEP_SEARCH_DIRS "${_arrow_dep_dir}")
+      endif()
+    endif()
+  endif()
+endforeach()
+
 
 ## Info on excluding dependencies:
 # PRE_EXCLUDE_REGEXES: Excludes dependencies at the beginning of the dependency analysis. 
@@ -68,12 +87,17 @@ set(RUNTIME_DEP_SEARCH_DIRS ${DEP_BIN_DIRS} ${DEP_LIB_DIRS})
 
 if(WIN32)
   # exclude dll's which are system dll's and should not be shipped (bloats installer and leads to incompatibilities)
-  set(PRE_EXCLUDE 
+  set(PRE_EXCLUDE
                   ## these two are direct systems deps of TOPPView etc. Exclude to save time
-                  "api-ms" "ext-ms" 
+                  "api-ms" "ext-ms"
                   ## "HvsiFileTrust" "PdmUtilities" are detected as a dependency by CMake which cannot be resolved (and would lead to errors), so ignore it
                   "hvsi" "pdmutilities"  ## make all lower case, since this is what CMake extracts from the targets and the regex is case sensitive
-                  ) ## TODO I have found that sometimes vcruntime140_1.dll cannot be resolved (but vcruntime140.dll is found). Maybe add it here too?
+                  ## MSVC runtime DLLs are handled separately by InstallRequiredSystemLibraries (in package_nsis.cmake).
+                  ## Exclude them here to avoid "Multiple conflicting paths" errors when the same DLL
+                  ## exists in multiple search directories (e.g. Conda env and contrib/bin). CMake 4.x
+                  ## treats such conflicts as fatal errors.
+                  "vcruntime" "msvcp" "concrt" "vccorlib" "ucrtbase"
+                  )
   ## exclude every Dll from c:\Windows\System32
   ## Note: CMake extracts Dll names and will have a list like
   ##-- Resolved runtime dependencies:

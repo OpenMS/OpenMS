@@ -7,6 +7,7 @@ CommonDefs.h
 ExternalProcessMBox.h
 FilterableList.h
 GUIHelpers.h
+Qt5Port.h
 )
 
 ### add path to the filenames

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_5233264595117471314" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FeatureLinkerUnlabeledKD" version="version_string" />
+		<processingAction name="Feature grouping" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<mapList count="2">
+		<map id="0" name="UNKNOWN" unique_id="1" label="" size="2">
+		</map>
+		<map id="1" name="UNKNOWN" unique_id="2" label="" size="2">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_4835329514588776807" quality="0.875" charge="2">
+			<centroid rt="100.25" mz="500.000499999999988" it="1050.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100.0" mz="500.0" it="1000.0" charge="2"/>
+				<element map="1" id="3" rt="100.5" mz="500.000999999999976" it="1100.0" charge="3"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17749660155506638460" quality="0.775" charge="2">
+			<centroid rt="200.25" mz="600.000499999999988" it="2050.0"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="200.0" mz="600.0" it="2000.0" charge="2"/>
+				<element map="1" id="4" rt="200.5" mz="600.000999999999976" it="2100.0" charge="3"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

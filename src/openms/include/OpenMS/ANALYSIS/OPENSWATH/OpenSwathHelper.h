@@ -37,9 +37,9 @@ public:
 
       @return Unique precursor identifier
     */
-    static String computePrecursorId(const String& transition_group_id, int isotope)
+    static std::string computePrecursorId(const std::string& transition_group_id, int isotope)
     {
-      return transition_group_id + "_Precursor_i" + String(isotope);
+      return transition_group_id + "_Precursor_i" + StringUtils::toStr(isotope);
     }
 
     /**
@@ -53,17 +53,17 @@ public:
 
       @return Original transition group id
     */
-    static String computeTransitionGroupId(const String& precursor_id)
+    static std::string computeTransitionGroupId(const std::string& precursor_id)
     {
-      std::vector<String> substrings;
-      precursor_id.split("_", substrings);
+      std::vector<std::string> substrings;
+      StringUtils::split(precursor_id, "_", substrings);
 
       if (substrings.size() == 3) return substrings[0];
       else if (substrings.size() > 3)
       {
-        String r;
+        std::string r;
         for (Size k = 0; k < substrings.size() - 2; k++) r += substrings[k] + "_";
-        return r.prefix(r.size() - 1);
+        return StringUtils::prefix(r, r.size() - 1);
       }
       return "";
     }

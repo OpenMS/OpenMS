@@ -4,6 +4,7 @@ set(directory include/OpenMS/MATH/MISC)
 ### list all header files of the directory here
 set(sources_list_h
 BSpline2d.h
+BSplineSmoothingSpline.h
 CubicSpline2d.h
 EmgGradientDescent.h
 SplineBisection.h

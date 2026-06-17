@@ -13,7 +13,7 @@
 namespace OpenMS
 {
 
-  MSDataSqlConsumer::MSDataSqlConsumer(const String& filename, UInt64 run_id, int flush_after, bool full_meta, bool lossy_compression, double linear_mass_acc) :
+  MSDataSqlConsumer::MSDataSqlConsumer(const std::string& filename, UInt64 run_id, int flush_after, bool full_meta, bool lossy_compression, double linear_mass_acc) :
         filename_(filename),
         handler_(new OpenMS::Internal::MzMLSqliteHandler(filename, run_id) ),
         flush_after_(flush_after),
@@ -32,9 +32,29 @@ namespace OpenMS
 
     // Write run level information into the file (e.g. run id, run name and mzML structure)
     peak_meta_.setLoadedFilePath(filename_);
-    handler_->writeRunLevelInformation(peak_meta_, full_meta_);
+    // Only write run-level information if a run hasn't already been written
+    if (!wrote_any_run_)
+    {
+      handler_->writeRunLevelInformation(peak_meta_, full_meta_);
+      wrote_any_run_ = true;
+    }
 
     delete handler_;
+  }
+
+  void MSDataSqlConsumer::addRun(const std::string& filename, const UInt64 run_id)
+  {
+    // set handler's run id and write run level information
+    handler_->setRunId(run_id);
+    MSExperiment meta;
+    meta.setLoadedFilePath(filename);
+    handler_->writeRunLevelInformation(meta, full_meta_);
+    wrote_any_run_ = true;
+  }
+
+  void MSDataSqlConsumer::setRunId(const UInt64 run_id)
+  {
+    handler_->setRunId(run_id);
   }
 
   void MSDataSqlConsumer::flush()

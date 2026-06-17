@@ -14,12 +14,16 @@
 #include <OpenMS/FEATUREFINDER/TraceFitter.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 
+#include <OpenMS/CHEMISTRY/AdductInfo.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <OpenMS/MATH/MathFunctions.h>
 
@@ -56,7 +60,7 @@ namespace OpenMS
     defaults_.setValue(
       "extract:rt_window",
       0.0,
-      "RT window size (in sec.) for chromatogram extraction. If set, this parameter takes precedence over 'extract:rt_quantile'.",
+      "RT window size (in sec.) for chromatogram extraction. If 0, this parameter is computed as 'detect:peak_width' * 4.",
       vector<string>{"advanced"});
     defaults_.setMinFloat("extract:rt_window", 0.0);
 
@@ -79,7 +83,7 @@ namespace OpenMS
 
     defaults_.setSectionDescription("extract", "Parameters for ion chromatogram extraction");
 
-    defaults_.setValue("detect:peak_width", 60.0, "Expected elution peak width in seconds, for smoothing (Gauss filter). Also determines the RT extration window, unless set explicitly via 'extract:rt_window'.");
+    defaults_.setValue("detect:peak_width", 60.0, "Expected elution peak width in seconds, for smoothing (Gauss filter). Also determines the RT extraction window, unless set explicitly via 'extract:rt_window'.");
     defaults_.setMinFloat("detect:peak_width", 0.0);
     defaults_.setValue(
       "detect:min_peak_width", 
@@ -163,7 +167,7 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable,
     FeatureMap& features,
-    const String& spectra_file)
+    const std::string& spectra_file)
   {
     // Check for FAIMS data
     auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
@@ -264,7 +268,7 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmMetaboIdent::runSingleGroup_(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable,
     FeatureMap& features,
-    const String& spectra_file)
+    const std::string& spectra_file)
   {
     // if proper mzML is annotated in MS data use this as reference. Otherwise, overwrite with spectra_file information.
     features.setPrimaryMSRunPath({spectra_file}, ms_data_);
@@ -278,7 +282,7 @@ namespace OpenMS
     for (const auto& c : metaboIdentTable)
     {
       addTargetToLibrary_(c.getName(), c.getFormula(), c.getMass(), c.getCharges(), c.getRTs(), c.getRTRanges(),
-                      c.getIsotopeDistribution(), c.getIonMobilities());
+                      c.getIsotopeDistribution(), c.getIonMobilities(), c.getAdduct());
     }
 
     // initialize algorithm classes needed later:
@@ -332,11 +336,33 @@ namespace OpenMS
     // run feature detection
     //-------------------------------------------------------------
     // Check if data has ion mobility information
-    IMFormat im_format = IMTypes::determineIMFormat(ms_data_);
-    bool has_IM = (im_format == IMFormat::CONCATENATED || im_format == IMFormat::MULTIPLE_SPECTRA);
+    IMFormat im_format = IMTypes::determineIMFormat(ms_data_, 1);
+    bool has_IM = (im_format == IMFormat::IM_PEAK || im_format == IMFormat::IM_SPECTRUM);
+    if (has_IM)
+    {
+      for (const auto& spec : ms_data_)
+      {
+        IMPeakType pt = spec.getIMPeakType();
+        if (pt != IMPeakType::UNKNOWN)
+        {
+          OPENMS_LOG_INFO << "IM peak type: " << imPeakTypeToString(pt) << endl;
+          break;
+        }
+      }
+    }
     if (has_IM && im_window_ > 0.0)
     {
       OPENMS_LOG_INFO << "Ion mobility data detected. Using IM window: " << im_window_ << endl;
+    }
+    else if (has_IM && im_window_ <= 0.0)
+    {
+      OPENMS_LOG_WARN << "Warning: Ion mobility data detected, but 'extract:im_window' is "
+                      << im_window_ << " (<= 0). The ion mobility dimension will be ignored: peaks "
+                      << "across the whole mobility range are summed within each m/z window, which "
+                      << "merges mobility-separated co-eluting analytes (e.g. on Bruker .d frames) "
+                      << "and can distort extraction/quantification. Set 'extract:im_window' > 0 and "
+                      << "provide IonMobility values for your targets to extract within the "
+                      << "analyte's mobility band." << endl;
     }
 
     OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
@@ -344,7 +370,13 @@ namespace OpenMS
     // extractor.setLogType(ProgressLogger::NONE);
     vector<OpenSwath::ChromatogramPtr> chrom_temp;
     vector<ChromatogramExtractor::ExtractionCoordinates> coords;
-    extractor.prepare_coordinates(chrom_temp, coords, library_,
+    // ChromatogramExtractor::prepare_coordinates / return_chromatogram now
+    // take OpenSwath::LightTargetedExperiment (issue #7284 cleanup). The NaN
+    // window relies on rt_start/rt_end now carried on LightCompound, populated
+    // by convertTargetedExp from library_.peptides[*].rts.
+    OpenSwath::LightTargetedExperiment light_library;
+    OpenSwathDataAccessHelper::convertTargetedExp(library_, light_library);
+    extractor.prepare_coordinates(chrom_temp, coords, light_library,
                                   numeric_limits<double>::quiet_NaN(), false);
 
     std::shared_ptr<PeakMap> shared = std::make_shared<PeakMap>(ms_data_);
@@ -361,7 +393,7 @@ namespace OpenMS
       extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
                                      mz_window_ppm_, "tophat");
     }
-    extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
+    extractor.return_chromatogram(chrom_temp, coords, light_library, (*shared)[0],
                                   chrom_data_.getChromatograms(), false);
 
     OPENMS_LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
@@ -431,13 +463,13 @@ namespace OpenMS
           {
             // update annotations:
             // @TODO: also adjust "formula" and "expected_rt"?
-            String label = cluster_representative.getMetaValue("label");            
-            label += "/" + String(overlap.getMetaValue("label"));
+            std::string label = StringUtils::toStr(cluster_representative.getMetaValue("label"));            
+            label += "/" + StringUtils::toStr(overlap.getMetaValue("label"));
             cluster_representative.setMetaValue("label", label);
             StringList alt_refs;
             if (cluster_representative.metaValueExists("alt_PeptideRef"))
             {
-              alt_refs = cluster_representative.getMetaValue("alt_PeptideRef");
+              alt_refs = cluster_representative.getMetaValue("alt_PeptideRef").toStringList();
             }
             alt_refs.push_back(overlap.getMetaValue("PeptideRef"));
             cluster_representative.setMetaValue("alt_PeptideRef", alt_refs);
@@ -445,10 +477,10 @@ namespace OpenMS
         }
 
         // annotate which features were removed because of overlap with the representative feature
-        String ref = String(overlap.getMetaValue("PeptideRef")) + " (RT " +
-          String(float(overlap.getRT())) + ")";
+        std::string ref =StringUtils::toStr(overlap.getMetaValue("PeptideRef")) + " (RT " +
+          StringUtils::toStr(float(overlap.getRT())) + ")";
 
-        StringList overlap_refs = cluster_representative.getMetaValue("overlap_removed", StringList{});
+        StringList overlap_refs = cluster_representative.metaValueExists("overlap_removed") ? cluster_representative.getMetaValue("overlap_removed").toStringList() : StringList{};
         overlap_refs.push_back(std::move(ref));
         cluster_representative.setMetaValue("overlap_removed", std::move(overlap_refs)); // TODO: implement setMetaValue that takes DataValue as r-value reference &&
 
@@ -497,12 +529,13 @@ namespace OpenMS
   }
 
   /// Add a target (from the input file) to the assay library
-  void FeatureFinderAlgorithmMetaboIdent::addTargetToLibrary_(const String& name, const String& formula,
+  void FeatureFinderAlgorithmMetaboIdent::addTargetToLibrary_(const std::string& name, const std::string& formula,
                            double mass, const vector<Int>& charges,
                            const vector<double>& rts,
                            vector<double> rt_ranges,
                            const vector<double>& iso_distrib,
-                           const vector<double>& ion_mobilities)
+                           const vector<double>& ion_mobilities,
+                           const std::string& adduct)
   {
     if ((mass <= 0) && formula.empty())
     {
@@ -527,7 +560,7 @@ namespace OpenMS
       mass = emp_formula.getMonoWeight();
     }
     target.theoretical_mass = mass;
-    String target_id = name + "_m" + String(float(mass));
+    std::string target_id = name + "_m" + StringUtils::toStr(float(mass));
 
     // get isotope distribution for target:
     IsotopeDistribution iso_dist;
@@ -612,21 +645,58 @@ namespace OpenMS
       }
       target.setChargeState(*z_it);
       double mz = 0.0;
-      if (!mass_given) // calculate m/z from formula
+
+      // Determine which adduct to use for m/z calculation
+      std::string adduct_str = adduct;
+      if (adduct_str.empty())
       {
-        emp_formula.setCharge(*z_it);
-        // "EmpiricalFormula::getMonoWeight()" already includes charges:
-        mz = abs(emp_formula.getMonoWeight() / *z_it);
+        // Default: [M+H]+ for positive charge, [M-H]- for negative charge (backward compatible)
+        if (*z_it > 0)
+        {
+          if (*z_it == 1) adduct_str = "M+H;1+";
+          else adduct_str = "M+" + StringUtils::toStr(*z_it) + "H;" + StringUtils::toStr(*z_it) + "+";
+        }
+        else
+        {
+          if (*z_it == -1) adduct_str = "M-H;1-";
+          else adduct_str = "M-" + StringUtils::toStr(abs(*z_it)) + "H;" + StringUtils::toStr(abs(*z_it)) + "-";
+        }
       }
-      else
+
+      try
       {
-        mz = calculateMZ_(mass, *z_it);
+        AdductInfo adduct_info = AdductInfo::parseAdductString(adduct_str);
+        if (!mass_given) // calculate m/z from formula
+        {
+          // emp_formula has charge 0, so getMonoWeight() returns the neutral monoisotopic mass
+          mz = adduct_info.getMZ(emp_formula.getMonoWeight());
+        }
+        else
+        {
+          mz = adduct_info.getMZ(mass);
+        }
+        target.setMetaValue("adduct", adduct_str);
+      }
+      catch (Exception::BaseException& e)
+      {
+        OPENMS_LOG_ERROR << "Error: Could not parse adduct string '" << adduct_str
+                         << "' for target '" << name << "': " << e.what()
+                         << " - falling back to default calculation." << endl;
+        if (!mass_given)
+        {
+          emp_formula.setCharge(*z_it);
+          mz = abs(emp_formula.getMonoWeight() / *z_it);
+        }
+        else
+        {
+          mz = calculateMZ_(mass, *z_it);
+        }
       }
 
       for (Size i = 0; i < rts.size(); ++i)
       {
-        target.id = target_id + "_z" + String(*z_it) + "_rt" +
-          String(float(rts[i]));
+        target.id = target_id + "_z" + StringUtils::toStr(*z_it) + "_rt" +
+          StringUtils::toStr(float(rts[i]));
         target.setMetaValue("expected_rt", rts[i]);
         target_rts_[target.id] = rts[i];
 
@@ -659,7 +729,7 @@ namespace OpenMS
   }
 
   /// Generate transitions for a target ion and add them to the library
-  void FeatureFinderAlgorithmMetaboIdent::generateTransitions_(const String& target_id, double mz, Int charge,
+  void FeatureFinderAlgorithmMetaboIdent::generateTransitions_(const std::string& target_id, double mz, Int charge,
                             const IsotopeDistribution& iso_dist)
   {
     // go through different isotopes:
@@ -667,8 +737,8 @@ namespace OpenMS
     for (const Peak1D& iso : iso_dist)
     {
       ReactionMonitoringTransition transition;
-      String annotation = "i" + String(counter);
-      String transition_name = target_id + "_" + annotation;
+      std::string annotation = "i" + StringUtils::toStr(counter);
+      std::string transition_name = target_id + "_" + annotation;
 
       transition.setNativeID(transition_name);
       transition.setPrecursorMZ(mz);
@@ -704,7 +774,7 @@ namespace OpenMS
     for (Feature& feat : features)
     {
       feat.setMZ(feat.getMetaValue("PrecursorMZ"));
-      String ref = feat.getMetaValue("PeptideRef");
+      std::string ref = StringUtils::toStr(feat.getMetaValue("PeptideRef"));
       const TargetedExperiment::Compound& compound =
         library_.getCompoundByRef(ref);
       feat.setCharge(compound.getChargeState());
@@ -712,6 +782,10 @@ namespace OpenMS
       feat.getPeptideIdentifications().clear();
       feat.setMetaValue("label", compound.getMetaValue("name"));
       feat.setMetaValue("sum_formula", compound.molecular_formula);
+      if (compound.metaValueExists("adduct"))
+      {
+        feat.setMetaValue("adduct", compound.getMetaValue("adduct"));
+      }
       feat.setMetaValue("expected_rt",
                             compound.getMetaValue("expected_rt"));
       // Add IM annotations if available
@@ -722,7 +796,7 @@ namespace OpenMS
       // annotate subordinates with theoretical isotope intensities:
       for (Feature& sub : feat.getSubordinates())
       {
-        String native_id = sub.getMetaValue("native_id");
+        std::string native_id = StringUtils::toStr(sub.getMetaValue("native_id"));
         sub.setMetaValue("isotope_probability", isotope_probs_[native_id]);
         sub.removeMetaValue("FeatureLevel"); // value "MS2" is misleading
       }
@@ -737,8 +811,8 @@ namespace OpenMS
   {
     if (feature.getConvexHulls().empty())
     {
-      double rt_min = feature.getMetaValue("leftWidth");
-      double rt_max = feature.getMetaValue("rightWidth");
+      double rt_min = (double)feature.getMetaValue("leftWidth");
+      double rt_max = (double)feature.getMetaValue("rightWidth");
       for (Feature& sub : feature.getSubordinates())
       {
         double abs_mz_tol = mz_window_ / 2.0;
@@ -759,14 +833,14 @@ namespace OpenMS
   /// Select the best feature for an assay from a set of candidates
   void FeatureFinderAlgorithmMetaboIdent::selectFeaturesFromCandidates_(FeatureMap& features)
   {
-    String previous_ref;
+    std::string previous_ref;
     double best_rt_dist = numeric_limits<double>::infinity();
     FeatureMap::Iterator best_it = features.begin();
     for (FeatureMap::Iterator it = features.begin(); it != features.end();
          ++it)
     {
       // features from same assay (same "PeptideRef") appear consecutively:
-      String ref = it->getMetaValue("PeptideRef");
+      std::string ref = StringUtils::toStr(it->getMetaValue("PeptideRef"));
       if (ref != previous_ref) // new assay
       {
         previous_ref = ref;
@@ -813,19 +887,19 @@ namespace OpenMS
   }
 
   /// Create a string of identifying information for a compound
-  String FeatureFinderAlgorithmMetaboIdent::prettyPrintCompound(const TargetedExperiment::Compound& compound)
+  std::string FeatureFinderAlgorithmMetaboIdent::prettyPrintCompound(const TargetedExperiment::Compound& compound)
   {
-    return (String(compound.getMetaValue("name")) + " (m=" +
-            String(float(compound.theoretical_mass)) + ", z=" +
-            String(compound.getChargeState()) + ", rt=" +
-            String(float(double(compound.getMetaValue("expected_rt")))) + ")");
+    return (StringUtils::toStr(compound.getMetaValue("name")) + " (m=" +
+            StringUtils::toStr(float(compound.theoretical_mass)) + ", z=" +
+            StringUtils::toStr(compound.getChargeState()) + ", rt=" +
+            StringUtils::toStr(float(double(compound.getMetaValue("expected_rt")))) + ")");
   }
 
   /// Add "peptide" identifications with information about targets to features
   Size FeatureFinderAlgorithmMetaboIdent::addTargetAnnotations_(FeatureMap& features)
   {
     Size n_shared = 0;
-    set<String> found_refs;
+    set<std::string> found_refs;
     for (FeatureMap::Iterator it = features.begin(); it != features.end(); ++it)
     {
       found_refs.insert(it->getMetaValue("PeptideRef"));
@@ -843,7 +917,7 @@ namespace OpenMS
            library_.getCompounds().begin(); it != library_.getCompounds().end();
          ++it)
     {
-      if (!found_refs.count(it->id))
+      if (!found_refs.contains(it->id))
       {
         PeptideIdentification peptide;
         peptide.setIdentifier("id");
@@ -877,9 +951,9 @@ namespace OpenMS
     for (const auto& f : features)
     {
       TransformationDescription::DataPoint point;
-      point.first = f.getMetaValue("expected_rt");
+      point.first = (double)f.getMetaValue("expected_rt");
       point.second = f.getRT();
-      point.note = f.getMetaValue("PeptideRef");
+      point.note = StringUtils::toStr(f.getMetaValue("PeptideRef"));
       points.push_back(point);
     }
     trafo_.setDataPoints(points);

@@ -1,0 +1,17 @@
+Fraction_Group	Fraction	Spectra_Filepath	Label	Sample
+1	1	JD_06232014_sample2_A.mzML	1	4
+2	1	JD_06232014_sample2_B.mzML	1	5
+3	1	JD_06232014_sample2_C.mzML	1	6
+4	1	JD_06232014_sample3_A.mzML	1	7
+5	1	JD_06232014_sample3_B.mzML	1	8
+6	1	JD_06232014_sample3_C.mzML	1	9
+7	1	fake_file_for_subset_test.mzML	1	13
+
+Sample	MSstats_Condition	MSstats_BioReplicate
+4	2	4
+5	2	5
+6	2	6
+7	3	7
+8	3	8
+9	3	9
+13	4	13

@@ -15,7 +15,7 @@
 
 namespace OpenMS
 {
-  MSDataCachedConsumer::MSDataCachedConsumer(const String& filename, bool clearData) :
+  MSDataCachedConsumer::MSDataCachedConsumer(const std::string& filename, bool clearData) :
     ofs_(filename.c_str(), std::ios::binary),
     clearData_(clearData),
     spectra_written_(0),

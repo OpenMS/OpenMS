@@ -18,8 +18,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <QFile>
-
 using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;

@@ -247,18 +247,19 @@ public:
     /// get drift time array (may be null)
     BinaryDataArrayPtr getDriftTimeArray() const
     {
-      // The array name starts with "Ion Mobility", but may carry additional
-      // information such as the actual unit in which it was measured (seconds,
-      // milliseconds, volt-second per square centimeter). We currently ignore
-      // the unit but return the correct array.
-      // For diaPASEF data converted with proteowizard ion mobility arrays are stored in "inverse reduced ion mobility"
+      // Ion mobility arrays can have different names depending on source:
+      //   - "Ion Mobility" / "Ion Mobility Centroid" (OpenMS legacy, PeakPickerIM)
+      //   - "mean inverse reduced ion mobility array" (ProteoWizard diaPASEF)
+      //   - "raw inverse reduced ion mobility array" (BrukerTimsFile via CV MS:1003008)
+      //   - "inverse reduced ion mobility" (MSConvert legacy)
+      //   - "mean ion mobility array" (IMDataConverter for millisecond IM)
+      // We match: starts with "Ion Mobility", or contains "inverse reduced ion mobility",
+      // or contains "ion mobility array".
       for (auto & bda : binaryDataArrayPtrs)
       {
-        if (bda->description.find("Ion Mobility") == 0)
-        {
-          return bda;
-        }
-        else if (bda->description.find("mean inverse reduced ion mobility array") == 0)
+        if (bda->description.find("Ion Mobility") == 0
+            || bda->description.find("inverse reduced ion mobility") != std::string::npos
+            || bda->description.find("ion mobility array") != std::string::npos)
         {
           return bda;
         }

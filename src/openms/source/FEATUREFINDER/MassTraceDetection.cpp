@@ -16,21 +16,25 @@
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 namespace OpenMS
 {
+
     MassTraceDetection::MassTraceDetection() :
             DefaultParamHandler("MassTraceDetection"), ProgressLogger()
     {
       defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm).");
       defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are removed as noise.");
       defaults_.setValue("chrom_peak_snr", 3.0, "Minimum intensity above noise_threshold_int (signal-to-noise) a peak should have to be considered an apex.");
-      defaults_.setValue("ion_mobility_tolerance", 0.01, "Allowed ion mobility deviation (in 1/k0).");
+      defaults_.setValue("ion_mobility_tolerance", 0.01, "Allowed ion mobility deviation (in 1/K0 units, e.g., 0.01-0.05). For CCS data, use larger values (e.g., 2-10 square angstroms).");
 
       defaults_.setValue("reestimate_mt_sd", "true", "Enables dynamic re-estimation of m/z variance during mass trace collection stage.");
       defaults_.setValidStrings("reestimate_mt_sd", {"true","false"});
 
-      defaults_.setValue("quant_method", String(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data. 'max_height' simply uses the most intense peak in the trace.");
+      defaults_.setValue("quant_method",std::string(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data. 'max_height' simply uses the most intense peak in the trace.");
       defaults_.setValidStrings("quant_method", std::vector<std::string>(MassTrace::names_of_quantmethod, MassTrace::names_of_quantmethod +(int)MassTrace::SIZE_OF_MT_QUANTMETHOD));
 
       // advanced parameters
@@ -109,7 +113,7 @@ namespace OpenMS
       }
 
       // validate that all meta arrays are consistently present or absent across all spectra
-      auto validate_meta_array = [&](const String& name, int idx) {
+      auto validate_meta_array = [&](const std::string& name, int idx) {
         if (idx == -1) return;
 
         Size valid_count = 0;
@@ -130,7 +134,7 @@ namespace OpenMS
         {
           throw OpenMS::Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                                 name + " meta arrays must be consistently present or absent across all MS spectra ["
-                                                  + String(valid_count) + "/" + String(spectra.size()) + "].");
+                                                  + StringUtils::toStr(valid_count) + "/" + StringUtils::toStr(spectra.size()) + "].");
         }
       };
 
@@ -192,6 +196,23 @@ namespace OpenMS
       // make sure the output vector is empty
       found_masstraces.clear();
 
+      // Check IM unit and warn if CCS data with small tolerance (single-threaded check at algorithm start)
+      for (const auto& spec : input_exp)
+      {
+        if (spec.containsIMData())
+        {
+          const auto [im_data_index, im_unit] = spec.getIMData();
+          if (im_unit == DriftTimeUnit::CCS && ion_mobility_tolerance_ < 1.0)
+          {
+            OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but "
+                            << "ion_mobility_tolerance = " << ion_mobility_tolerance_
+                            << " appears to be set for 1/K0 data. "
+                            << "For CCS data, consider using larger values (e.g., 2-10)." << '\n';
+          }
+          break; // Found IM data, no need to check further spectra
+        }
+      }
+
       // gather all peaks that are potential chromatographic peak apices
       //   - use work_exp for actual work (remove peaks below noise threshold)
       //   - store potential apices in chrom_apices
@@ -242,7 +263,7 @@ namespace OpenMS
       if (spectra_count < 3)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Input map consists of too few MS1 spectra (less than 3!). Aborting...", String(spectra_count));
+                                      "Input map consists of too few MS1 spectra (less than 3!). Aborting...",StringUtils::toStr(spectra_count));
       }
 
       // discard last spectrum's offset
@@ -648,7 +669,7 @@ namespace OpenMS
 
           new_trace.setQuantMethod(quant_method_);
           new_trace.updateWeightedMZsd();
-          new_trace.setLabel("T" + String(trace_number));
+          new_trace.setLabel("T" + StringUtils::toStr(trace_number));
           ++trace_number;
 
           found_masstraces.push_back(new_trace);
@@ -670,9 +691,9 @@ namespace OpenMS
       noise_threshold_int_ = (double)param_.getValue("noise_threshold_int");
       chrom_peak_snr_ = (double)param_.getValue("chrom_peak_snr");
       ion_mobility_tolerance_ = (double)param_.getValue("ion_mobility_tolerance");
-      quant_method_ = MassTrace::getQuantMethod((String)param_.getValue("quant_method").toString());
+      quant_method_ = MassTrace::getQuantMethod(param_.getValue("quant_method").toString());
 
-      String criterion_str = (String)param_.getValue("trace_termination_criterion").toString();
+      std::string criterion_str = param_.getValue("trace_termination_criterion").toString();
       if (criterion_str == "outlier")
       {
         trace_termination_criterion_ = OUTLIER;

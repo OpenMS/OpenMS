@@ -92,12 +92,12 @@ START_SECTION((ModelDescription(const ModelDescription &source)))
 	TEST_EQUAL(tm1==tm2,true)
 END_SECTION
 
-START_SECTION((const String& getName() const ))
+START_SECTION((const std::string& getName() const ))
   const ModelDescription<2> m;
   TEST_EQUAL(m.getName(), "")
 END_SECTION
 
-START_SECTION((void setName(const String &name)))
+START_SECTION((void setName(const std::string &name)))
   ModelDescription<2> m;
 	m.setName("halligalli2006");
   TEST_EQUAL(m.getName(), "halligalli2006")
@@ -112,7 +112,7 @@ START_SECTION((const Param& getParam() const ))
   TEST_EQUAL(m.getParam(), p)
 END_SECTION
 
-START_SECTION( String& getName() )
+START_SECTION( std::string& getName() )
   ModelDescription<2> m;
 	m.setName("halligalli2006");
   TEST_EQUAL(m.getName(), "halligalli2006")

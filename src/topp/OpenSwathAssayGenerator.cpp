@@ -9,6 +9,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -89,15 +91,17 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false);
-    String formats("tsv,mrm,pqp,TraML");
-    setValidFormats_("in", ListUtils::create<String>(formats));
-    setValidStrings_("in_type", ListUtils::create<String>(formats));
+    StringList formats = {"tsv", "mrm", "pqp", "TraML"};
+    formats.push_back("oswpq");
+    setValidFormats_("in", formats);
+    setValidStrings_("in_type", formats);
 
-    formats = "tsv,pqp,TraML";
+    formats = {"tsv", "pqp", "TraML"};
+    formats.push_back("oswpq");
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>(formats));
+    setValidFormats_("out", formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("out_type", ListUtils::create<String>(formats));
+    setValidStrings_("out_type", formats);
 
     registerIntOption_("min_transitions", "<int>", 6, "minimal number of transitions", false);
     registerIntOption_("max_transitions", "<int>", 6, "maximal number of transitions", false);
@@ -114,10 +118,10 @@ protected:
     registerDoubleOption_("product_upper_mz_limit", "<double>", 2000, "upper MZ limit for fragment ions", false);
 
     registerInputFile_("swath_windows_file", "<file>", "", "Tab separated file containing the SWATH windows for exclusion of fragment ions falling into the precursor isolation window: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, false);
-    setValidFormats_("swath_windows_file", ListUtils::create<String>("txt"));
+    setValidFormats_("swath_windows_file", ListUtils::create<std::string>("txt"));
 
     registerInputFile_("unimod_file", "<file>", "", "(Modified) Unimod XML file (http://www.unimod.org/xml/unimod.xml) describing residue modifiability", false, false);
-    setValidFormats_("unimod_file", ListUtils::create<String>("xml"));
+    setValidFormats_("unimod_file", ListUtils::create<std::string>("xml"));
 
     registerFlag_("enable_ipf", "IPF: set this flag if identification transitions should be generated for IPF. Note: Requires setting 'unimod_file'.");
     registerIntOption_("max_num_alternative_localizations", "<int>", 10000, "IPF: maximum number of site-localization permutations", false, true);
@@ -135,13 +139,13 @@ protected:
     FileHandler fh;
 
     //input file type
-    String in = getStringOption_("in");
+    std::string in = getStringOption_("in");
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)
@@ -151,7 +155,7 @@ protected:
     }
 
     //output file names and types
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
     if (out_type == FileTypes::UNKNOWN)
@@ -167,8 +171,8 @@ protected:
 
     Int min_transitions = getIntOption_("min_transitions");
     Int max_transitions = getIntOption_("max_transitions");
-    String allowed_fragment_types_string = getStringOption_("allowed_fragment_types");
-    String allowed_fragment_charges_string = getStringOption_("allowed_fragment_charges");
+    std::string allowed_fragment_types_string = getStringOption_("allowed_fragment_types");
+    std::string allowed_fragment_charges_string = getStringOption_("allowed_fragment_charges");
     bool enable_detection_specific_losses = getFlag_("enable_detection_specific_losses");
     bool enable_detection_unspecific_losses = getFlag_("enable_detection_unspecific_losses");
     bool enable_identification_specific_losses = !getFlag_("disable_identification_specific_losses");
@@ -183,9 +187,9 @@ protected:
     double product_mz_threshold = getDoubleOption_("product_mz_threshold");
     double product_lower_mz_limit = getDoubleOption_("product_lower_mz_limit");
     double product_upper_mz_limit = getDoubleOption_("product_upper_mz_limit");
-    String swath_windows_file = getStringOption_("swath_windows_file");
+    std::string swath_windows_file = getStringOption_("swath_windows_file");
 
-    String unimod_file = getStringOption_("unimod_file");
+    std::string unimod_file = getStringOption_("unimod_file");
     bool is_test = getFlag_("test");
 
     // Get IPF decoy parameters from command line
@@ -202,12 +206,12 @@ protected:
       disable_decoy_transitions = true;
     }
 
-    std::vector<String> allowed_fragment_types;
-    allowed_fragment_types_string.split(",", allowed_fragment_types);
+    std::vector<std::string> allowed_fragment_types;
+    StringUtils::split(allowed_fragment_types_string, ",", allowed_fragment_types);
 
-    std::vector<String> allowed_fragment_charges_string_vector;
+    std::vector<std::string> allowed_fragment_charges_string_vector;
     std::vector<size_t> allowed_fragment_charges;
-    allowed_fragment_charges_string.split(",", allowed_fragment_charges_string_vector);
+    StringUtils::split(allowed_fragment_charges_string, ",", allowed_fragment_charges_string_vector);
     for (size_t i = 0; i < allowed_fragment_charges_string_vector.size(); i++)
     {
       size_t charge = std::atoi(allowed_fragment_charges_string_vector.at(i).c_str());
@@ -225,7 +229,7 @@ protected:
     {
       if (!ModificationsDB::isInstantiated()) // We need to ensure that ModificationsDB was not instantiated before!
       {
-        ModificationsDB* ptr = ModificationsDB::initializeModificationsDB(unimod_file, String(""), String(""));
+        const ModificationsDB* ptr = ModificationsDB::initializeModificationsDB(unimod_file, std::string(""), std::string(""));
         OPENMS_LOG_INFO << "Unimod XML: " << ptr->getNumberOfModifications() << " modification types and residue specificities imported from file: " << unimod_file << std::endl;
       }
       else
@@ -253,8 +257,12 @@ protected:
 
     // Use memory-efficient Light path for TSV/PQP → TSV/PQP workflows.
     // This includes IPF (identifying transitions) which is now supported via uisTransitionsLight().
-    bool use_light_path = (in_type == FileTypes::TSV || in_type == FileTypes::MRM || in_type == FileTypes::PQP)
-                       && (out_type == FileTypes::TSV || out_type == FileTypes::PQP);
+    bool use_light_path = (in_type == FileTypes::TSV || in_type == FileTypes::MRM || in_type == FileTypes::PQP
+                       || in_type == FileTypes::OSWPQ
+                       )
+                       && (out_type == FileTypes::TSV || out_type == FileTypes::PQP
+                       || out_type == FileTypes::OSWPQ
+                       );
 
     if (use_light_path)
     {
@@ -277,6 +285,11 @@ protected:
         pqp_reader.setLogType(log_type_);
         pqp_reader.setParameters(reader_parameters);
         pqp_reader.convertPQPToTargetedExperiment(in.c_str(), light_exp);
+      }
+      else if (in_type == FileTypes::OSWPQ)
+      {
+        TransitionParquetFile parquet_reader;
+        parquet_reader.convertParquetToTargetedExperiment(in, light_exp);
       }
 
       MRMAssay assays;
@@ -333,6 +346,11 @@ protected:
         pqp_writer.setLogType(log_type_);
         pqp_writer.convertLightTargetedExperimentToPQP(out.c_str(), light_exp);
       }
+      else if (out_type == FileTypes::OSWPQ)
+      {
+        TransitionParquetFile parquet_writer;
+        parquet_writer.convertLightTargetedExperimentToParquet(out, light_exp);
+      }
     }
     else
     {
@@ -359,6 +377,11 @@ protected:
         pqp_reader.setParameters(reader_parameters);
         pqp_reader.convertPQPToTargetedExperiment(tr_file, targeted_exp);
         pqp_reader.validateTargetedExperiment(targeted_exp);
+      }
+      else if (in_type == FileTypes::OSWPQ)
+      {
+        writeLogError_("Error: Parquet input is only supported for light-weight conversions.");
+        return PARSE_ERROR;
       }
       else if (in_type == FileTypes::TRAML)
       {
@@ -419,6 +442,13 @@ protected:
       else if (out_type == FileTypes::TRAML)
       {
         FileHandler().storeTransitions(out, targeted_exp, {FileTypes::TRAML});
+      }
+      else if (out_type == FileTypes::OSWPQ)
+      {
+        OpenSwath::LightTargetedExperiment light_exp;
+        OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
+        TransitionParquetFile parquet_writer;
+        parquet_writer.convertLightTargetedExperimentToParquet(out, light_exp);
       }
     }
 

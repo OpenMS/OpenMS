@@ -1,0 +1,11 @@
+# PEFF 1.0
+# DbName=AnnotIDTest
+# Prefix=test
+# HasAnnotationIdentifiers=true
+# NumberOfEntries=2
+# SequenceType=AA
+# //
+>test:P12345 \PName=(Test Protein with Annotation IDs) \Length=50 \ModResPsi=(0:10|MOD:00046|Phosphorylation)(1:25|UNIMOD:35|Oxidation) \VariantSimple=(2:5|R|dbSNP:rs123) \Processed=(3:1|20|PEFF:0001021|signal peptide)
+MSEQVENCEOFTHEFIRSTPROTEINWITHSOMEMODIFICATIONSOK
+>test:P12346 \PName=(Second Protein) \Length=30 \VariantComplex=(4:5|10|LONGER|ClinVar:12345)
+SHORTPROTEINSECONDENTRYINFILE

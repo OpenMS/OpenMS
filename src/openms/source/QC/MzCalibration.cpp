@@ -96,7 +96,7 @@ namespace OpenMS
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected meta value 'mz_raw' at MSSpectrum, but could not find it.");
         }
-        mz_raw_ = spectrum.getPrecursors()[0].getMetaValue("mz_raw");
+        mz_raw_ = (double)spectrum.getPrecursors()[0].getMetaValue("mz_raw");
       }
       else
       {
@@ -117,9 +117,9 @@ namespace OpenMS
     return QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
   }
 
-  const String& MzCalibration::getName() const
+  const std::string& MzCalibration::getName() const
   {
-    static const String& name = "MzCalibration";
+    static const std::string& name = "MzCalibration";
     return name;
   }
 } // namespace OpenMS

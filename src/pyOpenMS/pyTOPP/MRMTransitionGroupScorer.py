@@ -35,11 +35,11 @@ def algorithm(exp, targeted, picker, scorer, trafo):
         trmap[ tr.getPeptideRef() ] = tmp
 
     swath_maps_dummy = []
-    for key, value in trmap.iteritems():
+    for key, value in trmap.items():
         try:
             transition_group = getTransitionGroup(exp, targeted, key, value, chrom_map)
         except Exception:
-            print "Skip ", key, value
+            print("Skip ", key, value)
             continue
         picker.pickTransitionGroup(transition_group);
         scorer.scorePeakgroups(transition_group, trafo, swath_maps_dummy, output, False);
@@ -123,4 +123,3 @@ def handle_args():
 if __name__ == '__main__':
     options = handle_args()
     main(options)
-

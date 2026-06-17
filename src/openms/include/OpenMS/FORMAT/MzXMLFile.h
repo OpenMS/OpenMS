@@ -16,7 +16,6 @@
 
 namespace OpenMS
 {
-  class String;
 
   /**
       @brief File adapter for MzXML 3.1 files
@@ -52,7 +51,7 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, MapType & map);
+    void load(const std::string & filename, MapType & map);
 
     /**
         @brief Stores a map in a MzXML file.
@@ -61,7 +60,7 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const MapType & map) const;
+    void store(const std::string & filename, const MapType & map) const;
 
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer.
@@ -81,7 +80,7 @@ public:
       @param[in] consumer Consumer class to operate on the input filename (implementing a transformation)
       @param[in] skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
     */
-    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false);
+    void transform(const std::string& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false);
 
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer
@@ -97,12 +96,12 @@ public:
       @param[out] map Map to store the resulting spectra and chromatograms
       @param[in] skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
     */
-    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, MapType& map, bool skip_full_count = false);
+    void transform(const std::string& filename_in, Interfaces::IMSDataConsumer * consumer, MapType& map, bool skip_full_count = false);
 
 protected:
 
     /// Perform first pass through the file and retrieve the meta-data to initialize the consumer
-    void transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count);
+    void transformFirstPass_(const std::string& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count);
 
 private:
 

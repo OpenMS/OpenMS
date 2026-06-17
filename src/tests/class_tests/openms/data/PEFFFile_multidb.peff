@@ -1,0 +1,14 @@
+# PEFF 1.0
+# DbName=Database1
+# Prefix=db1
+# Decoy=false
+# //
+>db1:P00001 \PName=(Protein from DB1)
+SEQUENCEONE
+# PEFF 1.0
+# DbName=Database2
+# Prefix=db2
+# Decoy=true
+# //
+>db2:P00002 \PName=(Protein from DB2)
+SEQUENCETWO

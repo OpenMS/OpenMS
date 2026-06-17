@@ -14,6 +14,7 @@
 // Includes in ClassTest.cpp are ok...
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h> // for StringUtils::toStr in TEST_EQUAL
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/CONCEPT/MacrosTest.h>
 #include <OpenMS/OpenMSConfig.h>
@@ -24,6 +25,7 @@
 #include <string>
 #include <vector>
 #include <type_traits>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 using XMLCh = char16_t; // Xerces-C++ uses char16_t for UTF-16 strings that we need to output in tests
 
@@ -278,7 +280,18 @@ namespace OpenMS
       {
         ++test_count;
         test_line = line;
-        this_test = bool(expression_1 == T1(expression_2)) ;
+        // For std::string targets, stringify the comparison value rather than
+        // constructing std::string(expression_2): the old OpenMS::String had
+        // numeric/char converting constructors (e.g. String(114) == "114") that
+        // std::string lacks. StringUtils::toStr reproduces that behavior.
+        if constexpr (std::is_same_v<T1, std::string>)
+        {
+          this_test = bool(expression_1 == StringUtils::toStr(expression_2));
+        }
+        else
+        {
+          this_test = bool(expression_1 == T1(expression_2));
+        }
         test &= this_test;
         {
           initialNewline();
@@ -606,7 +619,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  */
 #define TEST_NOT_EQUAL(a, b) TEST::testNotEqual(__FILE__, __LINE__, (a), (# a), (b), (# b));
 
-/**	@brief String equality macro.
+/**	@brief std::string equality macro.
 
  Both arguments are converted to std::string and tested for equality.  (That
  is, we check whether <code>(std::string(a) == std::string(b))</code> holds.)
@@ -656,7 +669,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  */
 #define TEST_REAL_SIMILAR(a, b) TEST::testRealSimilar(__FILE__, __LINE__, (a), (# a), TEST::isRealType(a), writtenDigits(a), (b), (# b), TEST::isRealType(b), writtenDigits(b));
 
-/**	@brief String similarity macro.
+/**	@brief std::string similarity macro.
 
  Compares the two strings using @em FuzzyStringComparator with the settings of
  #TOLERANCE_ABSOLUTE and #TOLERANCE_RELATIVE.

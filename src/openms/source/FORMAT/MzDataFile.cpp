@@ -37,7 +37,7 @@ namespace OpenMS
       options_ = options;
   }
 
-  bool MzDataFile::isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings)
+  bool MzDataFile::isSemanticallyValid(const std::string & filename, StringList & errors, StringList & warnings)
   {
     //load mapping
     CVMappings mapping;
@@ -54,7 +54,7 @@ namespace OpenMS
     return result;
   }
 
-  void MzDataFile::load(const String & filename, PeakMap & map)
+  void MzDataFile::load(const std::string & filename, PeakMap & map)
   {
     map.reset();
 
@@ -67,7 +67,7 @@ namespace OpenMS
     parse_(filename, &handler);
   }
 
-  void MzDataFile::store(const String & filename, const PeakMap & map) const
+  void MzDataFile::store(const std::string & filename, const PeakMap & map) const
   {
     Internal::MzDataHandler handler(map, filename, schema_version_, *this);
     handler.setOptions(options_);

@@ -137,7 +137,7 @@ protected:
     bool use_IDs_;
 
     /**
-      @brief Returns the highest scoring peptide hit in the the given peptide identification.
+      @brief Returns the highest scoring peptide hit in the given peptide identification.
 
       @param[in] peptideIdentification The peptideIdentification to scan.
     */

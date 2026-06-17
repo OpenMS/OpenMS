@@ -3,7 +3,7 @@ import os.path
 
 from .collections_ import Counter
 
-def test0():
+def test_mzxml_consumer():
     fh = pyopenms.MzXMLFile()
     here = os.path.dirname(os.path.abspath(__file__))
     path = os.path.join(here, "test2.mzXML").encode()

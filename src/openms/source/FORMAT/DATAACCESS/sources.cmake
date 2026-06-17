@@ -10,12 +10,13 @@ set(sources_list
   MSDataChainingConsumer.cpp
   MSDataStoringConsumer.cpp
   MSDataSqlConsumer.cpp
-  MSDataTransformingConsumer.cpp
-  MSDataWritingConsumer.cpp
   NoopMSDataConsumer.cpp
   SiriusFragmentAnnotation.cpp
   SwathFileConsumer.cpp
 )
+
+list(APPEND sources_list MSChromatogramParquetConsumer.cpp)
+list(APPEND sources_list MobilogramParquetConsumer.cpp)
 
 if(WITH_S3)
   list(APPEND sources_list
@@ -35,4 +36,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\FORMAT\\DATACCESS" FILES ${sources})
-

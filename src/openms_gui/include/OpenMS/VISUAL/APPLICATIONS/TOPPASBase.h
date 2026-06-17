@@ -21,7 +21,6 @@
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
-#include <QtNetwork/QNetworkReply>
 #include <QtWidgets/QSplashScreen>
 
 class QToolBar;
@@ -33,8 +32,6 @@ class QPushButton;
 class QWidget;
 class QTreeWidget;
 class QTreeWidgetItem;
-class QWebView;
-class QNetworkAccessManager;
 
 
 namespace OpenMS
@@ -69,15 +66,15 @@ public:
 
 If the filename is empty, the application name + ".ini" is used as filename
 */
-    void loadPreferences(String filename = "");
+    void loadPreferences(std::string filename = "");
     /// stores the preferences (used when this window is closed)
     void savePreferences();
     /// loads the files and updates the splash screen
-    void loadFiles(const std::vector<String>& list, QSplashScreen* splash_screen);
+    void loadFiles(const std::vector<std::string>& list, QSplashScreen* splash_screen);
 
 public slots:
     /// opens the file in a new window
-    void addTOPPASFile(const String& file_name, bool in_new_window = true);
+    void addTOPPASFile(const std::string& file_name, bool in_new_window = true);
     /// shows the dialog for opening files
     void openFilesByDialog();
     /// shows the dialog for opening example files
@@ -96,8 +93,6 @@ public slots:
     void loadPipelineResourceFile();
     /// shows a file dialog for selecting the resource file to write to
     void savePipelineResourceFile();
-    /// opens the OpenMS Homepage to download example workflows
-    void openOnlinePipelineRepository();
     /// shows the preferences dialog
     void preferencesDialog();
     /// changes the current path according to the currently active window/layer
@@ -134,7 +129,7 @@ public slots:
     /// Called when a tool execution fails
     void toolFailed();
     /// Called when a file was successfully written to an output vertex
-    void outputVertexFinished(const String& file);
+    void outputVertexFinished(const std::string& file);
     /// Called when a TOPP tool produces (error) output.
     void updateTOPPOutputLog(const QString& out);
     /// Called by the scene if the pipeline execution finishes successfully
@@ -163,18 +158,11 @@ protected slots:
     /// enable/disable menu entries depending on the current state
     void updateMenu();
     /// Shows the widget as window in the workspace
-    void showAsWindow_(TOPPASWidget* sw, const String& caption);
+    void showAsWindow_(TOPPASWidget* sw, const std::string& caption);
     /// Inserts a new TOPP tool in the current window at (x,y)
     void insertNewVertex_(double x, double y, QTreeWidgetItem* item = nullptr);
     /// Inserts the @p item in the middle of the current window
     void insertNewVertexInCenter_(QTreeWidgetItem* item);
-
-    /// triggered when user clicks a link - if it ends in .TOPPAS we're done
-    void downloadTOPPASfromHomepage_(const QUrl& url);
-    /// triggered when download of .toppas file is finished, so we can store & open it
-    void toppasFileDownloaded_(QNetworkReply* r);
-    /// debug...
-    void TOPPASreadyRead();
 
     /// user edited the workflow description
     void descriptionUpdated_();
@@ -197,13 +185,6 @@ protected:
 
     /// Main workspace
     EnhancedWorkspace* ws_;
-
-    /// OpenMS homepage workflow browser
-    QWebView* webview_;
-    /// download .toppas files from homepage
-    QNetworkAccessManager* network_manager_;
-    /// the content of the network request
-    QNetworkReply* network_reply_;
 
     ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
     EnhancedTabBar* tab_bar_;
@@ -233,10 +214,10 @@ protected:
 
     /// The current path (used for loading and storing).
     /// Depending on the preferences this is static or changes with the current window/layer.
-    String current_path_;
+    std::string current_path_;
 
     /// The path for temporary files
-    String tmp_path_;
+    std::string tmp_path_;
 
     /// Offset counter for new inserted nodes (to avoid invisible stacking)
     static int node_offset_;

@@ -43,7 +43,7 @@ START_SECTION(virtual ~FIAMSDataProcessor())
 }
 END_SECTION
 
-String filename = "SerumTest";
+std::string filename = "SerumTest";
 
 File::TempDir temp_dir;
 
@@ -63,16 +63,16 @@ fia_processor.setParameters(p);
 
 MSExperiment exp;
 MzMLFile mzml;
-mzml.load(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + ".mzML", exp);
+mzml.load(std::string(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + ".mzML", exp);
 
 MSExperiment exp_merged;
 MzMLFile mzml_merged;
-mzml.load(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + "_merged.mzML", exp_merged);
+mzml.load(std::string(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + "_merged.mzML", exp_merged);
 MSSpectrum spec_merged = exp_merged.getSpectra()[0];
 
 MSExperiment exp_picked;
 MzMLFile mzml_picked;
-mzml.load(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + "_picked.mzML", exp_picked);
+mzml.load(std::string(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + "_picked.mzML", exp_picked);
 MSSpectrum spec_picked = exp_picked.getSpectra()[0];
 
 PeakMap input;
@@ -145,7 +145,7 @@ START_SECTION((test_run_cached))
 {
     MzTab mztab_output_30;
     fia_processor.run(exp, 30, mztab_output_30);
-    String filename_30 = "SerumTest_merged_30.mzML";
+    std::string filename_30 = "SerumTest_merged_30.mzML";
     TEST_EQUAL(File::exists(temp_dir.getPath() + filename_30), true);
     bool is_cached_after = fia_processor.run(exp, 30, mztab_output_30);
     TEST_EQUAL(is_cached_after, true);
@@ -155,8 +155,8 @@ END_SECTION
 START_SECTION((test_run_empty))
 {
     MzTab mztab_output_0;
-    String filename_0 = "SerumTest_picked_0.mzML";
-    String filename_mztab = "SerumTest_0.mzTab";
+    std::string filename_0 = "SerumTest_picked_0.mzML";
+    std::string filename_mztab = "SerumTest_0.mzTab";
     fia_processor.run(exp, 0, mztab_output_0);
     TEST_EQUAL(File::exists(temp_dir.getPath() + filename_0), true);
     TEST_EQUAL(File::exists(temp_dir.getPath() + filename_mztab), true);

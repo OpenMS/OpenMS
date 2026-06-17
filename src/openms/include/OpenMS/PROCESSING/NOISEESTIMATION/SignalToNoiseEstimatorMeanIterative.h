@@ -11,6 +11,7 @@
 
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <vector>
 #include <algorithm> //for std::max_element
@@ -166,7 +167,7 @@ protected:
         // we use a histogram approach here as well.
         if ((auto_max_percentile_ < 0) || (auto_max_percentile_ > 100))
         {
-          String s = auto_max_percentile_;
+          std::string s = StringUtils::toStr(auto_max_percentile_);
           throw Exception::InvalidValue(__FILE__,
                                         __LINE__,
                                         OPENMS_PRETTY_FUNCTION,
@@ -207,7 +208,7 @@ protected:
       {
         if (max_intensity_ <= 0)
         {
-          String s = max_intensity_;
+          std::string s = StringUtils::toStr(max_intensity_);
           throw Exception::InvalidValue(__FILE__,
                                         __LINE__,
                                         OPENMS_PRETTY_FUNCTION,
@@ -218,7 +219,7 @@ protected:
 
       if (max_intensity_ < 0)
       {
-        std::cerr << "TODO SignalToNoiseEstimatorMedian: the max_intensity_ value should be positive! " << max_intensity_ << std::endl;
+        OPENMS_LOG_WARN << "SignalToNoiseEstimatorMeanIterative: the max_intensity_ value should be positive! " << max_intensity_ << std::endl;
         return;
       }
 
@@ -349,12 +350,12 @@ protected:
       // warn if percentage of sparse windows is above 20%
       if (sparse_window_percent > 20)
       {
-        std::cerr << "WARNING in SignalToNoiseEstimatorMeanIterative: "
-                  << sparse_window_percent
-                  << "% of all windows were sparse. You should consider increasing 'win_len' or increasing 'min_required_elements'"
-                  << " You should also check the MaximalIntensity value (or the parameters for its heuristic estimation)"
-                  << " If it is too low, then too many high intensity peaks will be discarded, which leads to a sparse window!"
-                  << std::endl;
+        OPENMS_LOG_WARN << "WARNING in SignalToNoiseEstimatorMeanIterative: "
+                        << sparse_window_percent
+                        << "% of all windows were sparse. You should consider increasing 'win_len' or increasing 'min_required_elements'"
+                        << " You should also check the MaximalIntensity value (or the parameters for its heuristic estimation)"
+                        << " If it is too low, then too many high intensity peaks will be discarded, which leads to a sparse window!"
+                        << std::endl;
       }
 
       return;

@@ -60,52 +60,56 @@ public:
 
     /** @name Helper functions */
     //@{
-    /** @brief Calculate the normalized Manhattan distance between two arrays
+    /** @brief Calculate the normalized Manhattan distance between two vectors
      *
      * Equivalent to the function "delta_ratio_sum" from mQuest to calculate
      * similarity between library intensity and experimental ones.
      *
      * The delta_ratio_sum is calculated as follows:
-     
+
        @f[
        d = \sqrt{\frac{1}{N}  \sum_{i=0}^N |\frac{x_i}{\mu_x} - \frac{y_i}{\mu_y}|) }
        @f]
-    */
-    OPENSWATHALGO_DLLAPI double NormalizedManhattanDist(double x[], double y[], int n);
+     *
+     * @param[in,out] x First intensity vector; normalized in-place via normalize_sum
+     * @param[in,out] y Second intensity vector; normalized in-place via normalize_sum
+     */
+    OPENSWATHALGO_DLLAPI double NormalizedManhattanDist(std::vector<double>& x, std::vector<double>& y);
 
-    /** @brief Calculate the RMSD (root means square deviation)
+    /** @brief Calculate the RMSD (root mean square deviation) between two vectors
      *
      * The RMSD is calculated as follows:
-     
-       @f[
-       RMSD = \sqrt{\frac{1}{N}  \sum_{i=0}^N (x_i - y_i)^2 } 
-       @f]
-    */
-    OPENSWATHALGO_DLLAPI double RootMeanSquareDeviation(double x[], double y[], int n);
 
-    /** @brief Calculate the Spectral angle (acosine of the normalized dotproduct)
+       @f[
+       RMSD = \sqrt{\frac{1}{N}  \sum_{i=0}^N (x_i - y_i)^2 }
+       @f]
+     *
+     * @param[in] x First data vector
+     * @param[in] y Second data vector (must have same size as x)
+     */
+    OPENSWATHALGO_DLLAPI double RootMeanSquareDeviation(const std::vector<double>& x, const std::vector<double>& y);
+
+    /** @brief Calculate the spectral angle (acosine of the normalized dotproduct) between two vectors
      *
      * The spectral angle is calculated as follows:
-     
+
        @f[
        \theta = acos \left( \frac{\sum_{i=0}^N (x_i * y_i))}{\sqrt{\sum_{i=0}^N (x_i * x_i) \sum_{i=0}^N (y_i * y_i)} }  \right)
        @f]
-    */
-    OPENSWATHALGO_DLLAPI double SpectralAngle(double x[], double y[], int n);
-
-    /// Calculate crosscorrelation on std::vector data - Deprecated!
-    /// Legacy code, this is a 1:1 port of the function from mQuest
-    OPENSWATHALGO_DLLAPI XCorrArrayType calcxcorr_legacy_mquest_(std::vector<double>& data1,
-                                                  std::vector<double>& data2, bool normalize);
+     *
+     * @param[in] x First intensity vector
+     * @param[in] y Second intensity vector (must have same size as x)
+     */
+    OPENSWATHALGO_DLLAPI double SpectralAngle(const std::vector<double>& x, const std::vector<double>& y);
 
     /// Calculate crosscorrelation on std::vector data (which is first normalized)
-    /// NOTE: this replaces calcxcorr 
+    /// NOTE: this replaces calcxcorr
     OPENSWATHALGO_DLLAPI XCorrArrayType normalizedCrossCorrelation(std::vector<double>& data1,
                                                                    std::vector<double>& data2, const int maxdelay, const int lag);
 
     /// Calculate crosscorrelation on std::vector data that is already normalized
     OPENSWATHALGO_DLLAPI XCorrArrayType normalizedCrossCorrelationPost(std::vector<double>& normalized_data1,
-                                                                       std::vector<double>& normalized_data2, const int maxdelay, const int lag);                                                                   
+                                                                       std::vector<double>& normalized_data2, const int maxdelay, const int lag);
 
     /// Calculate crosscorrelation on std::vector data without normalization
     OPENSWATHALGO_DLLAPI XCorrArrayType calculateCrossCorrelation(const std::vector<double>& data1,
@@ -117,8 +121,11 @@ public:
     /// Standardize a vector (subtract mean, divide by standard deviation)
     OPENSWATHALGO_DLLAPI void standardize_data(std::vector<double>& data);
 
-    /// Divide each element of x by the sum of the vector
-    OPENSWATHALGO_DLLAPI void normalize_sum(double x[], unsigned int n);
+    /** @brief Divide each element of x by the sum of the vector
+     *
+     * @param[in,out] x Vector to normalize in-place; unchanged if sum is zero
+     */
+    OPENSWATHALGO_DLLAPI void normalize_sum(std::vector<double>& x);
 
     // Compute rank of vector elements, append it to @p ranks and return the highest rank
     OPENSWATHALGO_DLLAPI unsigned int computeAndAppendRank(const std::vector<double>& v, std::vector<unsigned int>& ranks);

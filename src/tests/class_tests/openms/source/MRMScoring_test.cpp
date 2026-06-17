@@ -6,36 +6,14 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h"
-
 #include "OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h"
 #include "OpenMS/DATASTRUCTURES/MatrixEigen.h"
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h"
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h"
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
 
-#ifdef USE_BOOST_UNIT_TEST
-
-// include boost unit test framework
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE MyTest
-#include <boost/test/unit_test.hpp>
-// macros for boost
-#define EPS_05 boost::test_tools::fraction_tolerance(1.e-5)
-#define TEST_REAL_SIMILAR(val1, val2) \
-  BOOST_CHECK ( boost::test_tools::check_is_close(val1, val2, EPS_05 ));
-#define TEST_EQUAL(val1, val2) BOOST_CHECK_EQUAL(val1, val2);
-#define END_SECTION
-#define START_TEST(var1, var2)
-#define END_TEST
-
-#else
-
 #include <OpenMS/CONCEPT/ClassTest.h>
-#define BOOST_AUTO_TEST_CASE START_SECTION
 using namespace OpenMS;
-
-#endif
 
 using namespace std;
 using namespace OpenSwath;
@@ -123,7 +101,6 @@ START_TEST(MRMScoring, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-#ifndef USE_BOOST_UNIT_TEST
     {
       MRMScoring* ptr = nullptr;
       MRMScoring* nullPointer = nullptr;
@@ -141,7 +118,6 @@ START_TEST(MRMScoring, "$Id$")
           }
       END_SECTION
     }
-#endif
 
 
 /*
@@ -190,7 +166,7 @@ mean(xcorr_max) # shape score
 */
 
 //START_SECTION((void initializeXCorrMatrix(MRMFeature& mrmfeature, MRMTransitionGroup< SpectrumType, PeakType >& transition_group, bool normalize)))
-    BOOST_AUTO_TEST_CASE(initializeXCorrMatrix)
+    START_SECTION(initializeXCorrMatrix)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -204,39 +180,39 @@ mean(xcorr_max) # shape score
 
           TEST_EQUAL(mrmscore.getXCorrMatrix().rows(), 2)
           TEST_EQUAL(mrmscore.getXCorrMatrix().cols(), 2)
-          TEST_EQUAL(mrmscore.getXCorrMatrix()(0, 0).data.size(), 23)
+          TEST_EQUAL(mrmscore.getXCorrMatrix()(0, 0).data.size(), 21)  // 2*min(10,11)+1 = 21
 
           // test auto-correlation = xcorrmatrix_0_0
           const OpenSwath::Scoring::XCorrArrayType auto_correlation =
                   mrmscore.getXCorrMatrix()(0, 0);
 
-          TEST_EQUAL(auto_correlation.data[11].first, 0)
-          TEST_EQUAL(auto_correlation.data[12].first, 1)
-          TEST_EQUAL(auto_correlation.data[10].first, -1)
-          TEST_EQUAL(auto_correlation.data[13].first, 2)
-          TEST_EQUAL(auto_correlation.data[ 9].first, -2)
+          TEST_EQUAL(auto_correlation.data[10].first, 0)
+          TEST_EQUAL(auto_correlation.data[11].first, 1)
+          TEST_EQUAL(auto_correlation.data[ 9].first, -1)
+          TEST_EQUAL(auto_correlation.data[12].first, 2)
+          TEST_EQUAL(auto_correlation.data[ 8].first, -2)
 
-          TEST_REAL_SIMILAR(auto_correlation.data[11].second , 1)                   // find(0)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[12].second , -0.227352707759245)  // find(1)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[10].second ,  -0.227352707759245) // find(-1)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[13].second , -0.07501116)         // find(2)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[ 9].second ,  -0.07501116)        // find(-2)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[10].second , 1)                   // find(0)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[11].second , -0.227352707759245)  // find(1)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[ 9].second ,  -0.227352707759245) // find(-1)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[12].second , -0.07501116)         // find(2)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[ 8].second ,  -0.07501116)        // find(-2)->second,
 
           // test cross-correlation = xcorrmatrix_0_1
           const OpenSwath::Scoring::XCorrArrayType cross_correlation =
                   mrmscore.getXCorrMatrix()(0, 1);
 
-          TEST_REAL_SIMILAR(cross_correlation.data[13].second, -0.31165141)   // find(2)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.35036919)   // find(1)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[11].second, 0.03129565)    // find(0)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[10].second,  0.30204049)   // find(-1)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[ 9].second,  0.13012441)   // find(-2)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[ 8].second,  0.39698322)   // find(-3)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[ 7].second,  0.16608774)   // find(-4)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.31165141)   // find(2)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[11].second, -0.35036919)   // find(1)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[10].second, 0.03129565)    // find(0)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 9].second,  0.30204049)   // find(-1)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 8].second,  0.13012441)   // find(-2)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 7].second,  0.39698322)   // find(-3)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 6].second,  0.16608774)   // find(-4)->second,
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(initializeXCorrPrecursorContrastMatrix)
+    START_SECTION(initializeXCorrPrecursorContrastMatrix)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -281,7 +257,7 @@ mean(xcorr_max) # shape score
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(initializeXCorrPrecursorCombinedMatrix)
+    START_SECTION(initializeXCorrPrecursorCombinedMatrix)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -332,7 +308,7 @@ mean(xcorr_max) # shape score
         }
     END_SECTION
 
-/*BOOST_AUTO_TEST_CASE(initializeXCorrPrecursorMatrix)
+/*START_SECTION(initializeXCorrPrecursorMatrix)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
@@ -349,7 +325,7 @@ mean(xcorr_max) # shape score
 }
 END_SECTION*/
 
-    BOOST_AUTO_TEST_CASE(initializeXCorrContrastMatrix)
+    START_SECTION(initializeXCorrContrastMatrix)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -363,31 +339,31 @@ END_SECTION*/
 
           TEST_EQUAL(mrmscore.getXCorrContrastMatrix().rows(), 2)
           TEST_EQUAL(mrmscore.getXCorrContrastMatrix().cols(), 2)
-          TEST_EQUAL(mrmscore.getXCorrContrastMatrix()(0, 0).data.size(), 23)
+          TEST_EQUAL(mrmscore.getXCorrContrastMatrix()(0, 0).data.size(), 21)  // 2*min(10,11)+1 = 21
 
           // test auto-correlation = xcorrmatrix_0_0
           const OpenSwath::Scoring::XCorrArrayType auto_correlation =
                   mrmscore.getXCorrContrastMatrix()(0, 0);
-          TEST_REAL_SIMILAR(auto_correlation.data[11].second, 1)                     // find(0)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[12].second, -0.227352707759245)    // find(1)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[10].second,  -0.227352707759245)   // find(-1)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[13].second, -0.07501116)           // find(2)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[ 9].second,  -0.07501116)          // find(-2)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[10].second, 1)                     // find(0)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[11].second, -0.227352707759245)    // find(1)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[ 9].second,  -0.227352707759245)   // find(-1)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[12].second, -0.07501116)           // find(2)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[ 8].second,  -0.07501116)          // find(-2)->second,
 
           // // test cross-correlation = xcorrmatrix_0_1
           const OpenSwath::Scoring::XCorrArrayType cross_correlation =
                   mrmscore.getXCorrContrastMatrix()(0, 1);
-          TEST_REAL_SIMILAR(cross_correlation.data[13].second, -0.31165141)   // find(2)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.35036919)   // find(1)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[11].second, 0.03129565)    // find(0)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[10].second,  0.30204049)   // find(-1)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[ 9].second,  0.13012441)   // find(-2)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[ 8].second,  0.39698322)   // find(-3)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[ 7].second,  0.16608774)   // find(-4)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.31165141)   // find(2)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[11].second, -0.35036919)   // find(1)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[10].second, 0.03129565)    // find(0)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 9].second,  0.30204049)   // find(-1)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 8].second,  0.13012441)   // find(-2)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 7].second,  0.39698322)   // find(-3)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 6].second,  0.16608774)   // find(-4)->second,
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionScore)
+    START_SECTION(test_calcXcorrCoelutionScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -399,7 +375,7 @@ END_SECTION*/
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(test_calcSeparateXcorrContrastCoelutionScore)
+    START_SECTION(test_calcSeparateXcorrContrastCoelutionScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -413,7 +389,7 @@ END_SECTION*/
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionWeightedScore)
+    START_SECTION(test_calcXcorrCoelutionWeightedScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -430,7 +406,7 @@ END_SECTION*/
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(test_calcXcorrShapeScore)
+    START_SECTION(test_calcXcorrShapeScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -442,7 +418,7 @@ END_SECTION*/
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(test_calcSeparateXcorrContrastShapeScore)
+    START_SECTION(test_calcSeparateXcorrContrastShapeScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -455,7 +431,7 @@ END_SECTION*/
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(test_calcXcorrShapeWeightedScore)
+    START_SECTION(test_calcXcorrShapeWeightedScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -472,7 +448,7 @@ END_SECTION*/
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(calcXcorrPrecursorContrastCoelutionScore)
+    START_SECTION(calcXcorrPrecursorContrastCoelutionScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -485,11 +461,11 @@ END_SECTION*/
           mrmscore.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
           delete imrmfeature;
 
-          TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorContrastCoelutionScore(), 9.5741984 )
+          TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorContrastCoelutionScore(), 8.7328638 )
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(calcXcorrPrecursorCombinedCoelutionScore)
+    START_SECTION(calcXcorrPrecursorCombinedCoelutionScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -502,11 +478,11 @@ END_SECTION*/
           mrmscore.initializeXCorrPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
           delete imrmfeature;
 
-          TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorCombinedCoelutionScore(), 9.2444789 )
+          TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorCombinedCoelutionScore(), 8.4321855 )
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(calcXcorrPrecursorContrastShapeScore)
+    START_SECTION(calcXcorrPrecursorContrastShapeScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -523,7 +499,7 @@ END_SECTION*/
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(calcXcorrPrecursorCombinedShapeScore)
+    START_SECTION(calcXcorrPrecursorCombinedShapeScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -541,7 +517,7 @@ END_SECTION*/
     END_SECTION
 
 //START_SECTION((virtual void test_calcLibraryScore()))
-    BOOST_AUTO_TEST_CASE(test_Library_score)
+    START_SECTION(test_Library_score)
         {
           /*
            * Validation in Python of the different library correlation scores
@@ -627,7 +603,7 @@ END_SECTION*/
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(test_RT_score)
+    START_SECTION(test_RT_score)
         {
           MRMScoring mrmscore;
           OpenSwath::LightCompound pep;
@@ -637,7 +613,7 @@ END_SECTION*/
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(test_SN_score)
+    START_SECTION(test_SN_score)
         {
           MRMScoring mrmscore;
           std::vector<OpenSwath::ISignalToNoisePtr> sn_estimators;
@@ -664,7 +640,7 @@ END_SECTION*/
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(initializeMIMatrix)
+    START_SECTION(initializeMIMatrix)
         {
 /*
 * Requires Octave with installed MIToolbox
@@ -720,7 +696,7 @@ mean(m4)
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(initializeMIPrecursorContrastMatrix)
+    START_SECTION(initializeMIPrecursorContrastMatrix)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -740,7 +716,7 @@ mean(m4)
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(initializeMIPrecursorCombinedMatrix)
+    START_SECTION(initializeMIPrecursorCombinedMatrix)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -761,7 +737,7 @@ mean(m4)
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(initializeMIContrastMatrix)
+    START_SECTION(initializeMIContrastMatrix)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -784,7 +760,7 @@ mean(m4)
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(test_calcMIScore)
+    START_SECTION(test_calcMIScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -796,7 +772,7 @@ mean(m4)
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(test_calcSeparateMIContrastScore)
+    START_SECTION(test_calcSeparateMIContrastScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -813,7 +789,7 @@ mean(m4)
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(test_calcMIWeightedScore)
+    START_SECTION(test_calcMIWeightedScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -830,7 +806,7 @@ mean(m4)
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(test_calcMIPrecursorContrastScore)
+    START_SECTION(test_calcMIPrecursorContrastScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
@@ -847,7 +823,7 @@ mean(m4)
         }
     END_SECTION
 
-    BOOST_AUTO_TEST_CASE(test_calcMIPrecursorCombinedScore)
+    START_SECTION(test_calcMIPrecursorCombinedScore)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;

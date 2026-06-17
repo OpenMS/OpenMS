@@ -27,34 +27,6 @@
 namespace eol_bspline
 {
 
-/*
- * This class simulates a namespace for private symbols used by this template
- * implementation which should not pollute the global namespace.
- */
-class my
-{
-    public:
-        template<class T> static inline
-        T abs(const T t)
-        {
-            return (t < 0) ? -t : t;
-        }
-
-        template<class T> static inline
-        const T& min(const T& a,
-                     const T& b)
-        {
-            return (a < b) ? a : b;
-        }
-
-        template<class T> static inline
-        const T& max(const T& a,
-                     const T& b)
-        {
-            return (a > b) ? a : b;
-        }
-};
-
 //////////////////////////////////////////////////////////////////////
 template<class T> class Matrix : public BandedMatrix<T>
 {

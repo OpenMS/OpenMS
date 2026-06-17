@@ -1,0 +1,25 @@
+# nanobind stubgen pattern file for pyOpenMS
+#
+# Fixes types that stubgen cannot resolve automatically.
+# See: https://nanobind.readthedocs.io/en/latest/typing.html#pattern-files
+
+# Singleton DB classes: stubgen emits the internal CallableSingleton wrapper
+# type which is not valid Python syntax. Replace with a callable that returns
+# the singleton instance.
+pyopenms\.ElementDB$:
+    def ElementDB() -> _pyopenms_chemistry.ElementDB: ...
+
+pyopenms\.ModificationsDB$:
+    def ModificationsDB() -> _pyopenms_chemistry.ModificationsDB: ...
+
+pyopenms\.ResidueDB$:
+    def ResidueDB() -> _pyopenms_chemistry.ResidueDB: ...
+
+pyopenms\.ProteaseDB$:
+    def ProteaseDB() -> _pyopenms_chemistry.ProteaseDB: ...
+
+pyopenms\.RNaseDB$:
+    def RNaseDB() -> _pyopenms_chemistry.RNaseDB: ...
+
+pyopenms\.RibonucleotideDB$:
+    def RibonucleotideDB() -> _pyopenms_chemistry.RibonucleotideDB: ...

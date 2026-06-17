@@ -11,11 +11,17 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/XICParquetFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
+#include <OpenMS/METADATA/USI.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -32,7 +38,7 @@ using namespace std;
 /**
 @page TOPP_TextExporter TextExporter
 
-@brief This application converts several %OpenMS XML formats (featureXML, consensusXML, and idXML) to text files.
+@brief This application converts several %OpenMS XML formats (featureXML, consensusXML, idXML, mzML) and OpenSWATH Parquet chromatogram files (.xic) to text files.
 
 <CENTER>
 <table>
@@ -77,7 +83,6 @@ Output format produced for the @p out parameter:
 - a @p MAP line contains information about a sub-map; further columns: @p id, @p filename, @p label, @p size (potentially followed by further columns containing meta data, depending on the input)
 - a @p CONSENSUS line contains data of a single consensus feature; further columns: @p rt_cf, @p mz_cf, @p intensity_cf, @p charge_cf, @p width_cf, @p quality_cf, @p rt_X0, @p mz_X0, ..., rt_X1, mz_X1, ...
 - @p "..._cf" columns refer to the consensus feature itself, @p "..._Xi" columns refer to a sub-feature from the map with ID "Xi" (no @p quality column in this case); missing sub-features are indicated by "nan" values
-- see above for the formats of @p RUN, @p PROTEIN, @p UNASSIGNEDPEPTIDE, @p PEPTIDE lines
 
 With the @p no_ids flag, only @p MAP and @p CONSENSUS lines are written.
 
@@ -116,6 +121,21 @@ With the @p id:first_dim_rt flag, the additional columns @p rt_first_dim and @p 
 
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
+<B>xic input (OpenSWATH Parquet chromatograms):</B>
+
+The @p xic:mode option controls the output format:
+- @p summary (default): one row per chromatogram with summary statistics.
+- @p explode: one row per RT/intensity point (long format).
+
+In both modes, the following metadata columns are exported:
+@p run_id, @p source_file (basename), @p ms_level, @p precursor_id, @p transition_id, @p modified_sequence,
+@p precursor_charge, @p product_charge, @p detecting_transition, @p precursor_decoy, @p product_decoy,
+@p transition_ordinal, @p transition_type, @p annotation.
+
+Additional columns:
+- summary mode: @p rt_count, @p intensity_count, @p rt_min, @p rt_max, @p intensity_min, @p intensity_max
+- explode mode: @p rt, @p intensity
+
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_TextExporter.cli
 <B>INI file documentation of this tool:</B>
@@ -135,7 +155,7 @@ namespace OpenMS
     out.writeValueOrNan(rt);
     out.writeValueOrNan(mz);
     out.writeValueOrNan(intensity);
-    out << String(charge);
+    out << StringUtils::toStr(charge);
     out.writeValueOrNan(width);
   }
 
@@ -169,10 +189,10 @@ namespace OpenMS
   }
 
   // write the header for feature data
-  void writeFeatureHeader(SVOutStream& out, const String& suffix = "",
+  void writeFeatureHeader(SVOutStream& out, const std::string& suffix = "",
                           bool incl_quality = true, bool comment = true)
   {
-    StringList elements = ListUtils::create<String>("#rt,mz,intensity,charge,width");
+    StringList elements = ListUtils::create<std::string>("#rt,mz,intensity,charge,width");
     if (!comment)
     {
       elements[0] = "rt";
@@ -182,7 +202,7 @@ namespace OpenMS
       elements.push_back("quality");
     }
     bool old = out.modifyStrings(false);
-    for (const String& str : elements)
+    for (const std::string& str : elements)
     {
       out << str + suffix;
     }
@@ -190,7 +210,7 @@ namespace OpenMS
   }
 
   // write meta value keys in header
-  void writeMetaValueKeysHeader(SVOutStream& out, const std::set<String>& meta_value_keys = {})
+  void writeMetaValueKeysHeader(SVOutStream& out, const std::set<std::string>& meta_value_keys = {})
   {
     for (const auto& key: meta_value_keys)
     {
@@ -199,12 +219,12 @@ namespace OpenMS
   }
 
   // write the header for exporting consensusXML
-  void writeConsensusHeader(SVOutStream& out, const String& what,
-                            const String& infile, const String& now,
+  void writeConsensusHeader(SVOutStream& out, const std::string& what,
+                            const std::string& infile, const std::string& now,
                             const StringList& add_comments = StringList())
   {
     out.write("#" + what + " extracted from " + infile + " on " + now + "\n");
-    for (const String& str : add_comments)
+    for (const std::string& str : add_comments)
     {
       out.write("#" + str + "\n");
     }
@@ -241,7 +261,7 @@ namespace OpenMS
   {
     if (!meta_keys.empty())
     {
-      for (const String& str : meta_keys)
+      for (const std::string& str : meta_keys)
       {
         output << str;
       }
@@ -253,11 +273,11 @@ namespace OpenMS
   {
     if (!meta_keys.empty())
     {
-      for (const String& str : meta_keys)
+      for (const std::string& str : meta_keys)
       {
         if (meta_value_provider.metaValueExists(str))
         {
-          output << String(meta_value_provider.getMetaValue(str));
+          output << StringUtils::toStr(meta_value_provider.getMetaValue(str));
         }
         else
         {
@@ -270,16 +290,16 @@ namespace OpenMS
   // stream output operator for a ProteinHit
   SVOutStream& operator<<(SVOutStream& out, const ProteinHit& hit)
   {
-    out << String(hit.getScore()) << hit.getRank() << hit.getAccession() << hit.getDescription()
-        << String(hit.getCoverage()) << hit.getSequence();
+    out << StringUtils::toStr(hit.getScore()) << hit.getRank() << hit.getAccession() << hit.getDescription()
+        << StringUtils::toStr(hit.getCoverage()) << hit.getSequence();
     return out;
   }
 
   // stream output operator for a ProteinGroup
   SVOutStream& operator<<(SVOutStream& out, const ProteinIdentification::ProteinGroup& grp)
   {
-    out << String(grp.probability);
-    String grpaccs = grp.accessions[0];
+    out << StringUtils::toStr(grp.probability);
+    std::string grpaccs = grp.accessions[0];
     for (Size s = 1; s < grp.accessions.size(); s++)
     {
       grpaccs += "," + grp.accessions[s];
@@ -292,7 +312,7 @@ namespace OpenMS
   SVOutStream& operator<<(SVOutStream& out,
                           const ProteinIdentification::SearchParameters sp)
   {
-    String param_line = "db=" + sp.db + ", db_version=" +   sp.db_version +
+    std::string param_line = "db=" + sp.db + ", db_version=" +   sp.db_version +
                         ", taxonomy=" + sp.taxonomy + ", charges=" + sp.charges + ", mass_type=";
     if (sp.mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)
     {
@@ -303,7 +323,7 @@ namespace OpenMS
       param_line += "average";
     }
     param_line += ", fixed_modifications=";
-    for (vector<String>::const_iterator mit = sp.fixed_modifications.begin();
+    for (vector<std::string>::const_iterator mit = sp.fixed_modifications.begin();
          mit != sp.fixed_modifications.end(); ++mit)
     {
       if (mit != sp.fixed_modifications.begin())
@@ -313,7 +333,7 @@ namespace OpenMS
       param_line += *mit;
     }
     param_line += ", variable_modifications=";
-    for (vector<String>::const_iterator mit = sp.variable_modifications.begin();
+    for (vector<std::string>::const_iterator mit = sp.variable_modifications.begin();
          mit != sp.variable_modifications.end(); ++mit)
     {
       if (mit != sp.variable_modifications.begin())
@@ -324,9 +344,9 @@ namespace OpenMS
     }
     param_line += ", enzyme=";
     param_line += sp.digestion_enzyme.getName();
-    param_line += ", missed_cleavages=" + String(sp.missed_cleavages) +
-                  ", peak_mass_tolerance=" + String(sp.fragment_mass_tolerance) +
-                  ", precursor_mass_tolerance=" + String(sp.precursor_mass_tolerance);
+    param_line += ", missed_cleavages=" + StringUtils::toStr(sp.missed_cleavages) +
+                  ", peak_mass_tolerance=" + StringUtils::toStr(sp.fragment_mass_tolerance) +
+                  ", precursor_mass_tolerance=" + StringUtils::toStr(sp.precursor_mass_tolerance);
     out << param_line;
     return out;
   }
@@ -372,40 +392,55 @@ namespace OpenMS
     }
   }
 
+  /// Options for writing peptide identifications
+  struct PeptideWriteOptions
+  {
+    std::string what = "PEPTIDE";
+    bool incl_pred_rt = false;
+    bool incl_pred_pt = false;
+    bool incl_first_dim = false;
+    bool incl_peak_annotations = false;
+    bool incl_usi = false;
+    std::string usi_dataset_id;
+    std::string usi_ms_run;
+    StringList peptide_id_meta_keys;
+    StringList peptide_hit_meta_keys;
+  };
+
   // write the header for peptide data
-  void writePeptideHeader(SVOutStream& out, const String& what = "PEPTIDE",
-                          bool incl_pred_rt = false,
-                          bool incl_pred_pt = false,
-                          bool incl_first_dim = false,
-                          bool incl_peak_annotations = false)
+  void writePeptideHeader(SVOutStream& out, const PeptideWriteOptions& opts = {})
   {
     bool old = out.modifyStrings(false);
-    if (what.empty())
+    if (opts.what.empty())
     {
       out << "#rt";
     }
     else
     {
-      out << "#" + what << "rt";
+      out << "#" + opts.what << "rt";
     }
     out << "mz" << "score" << "rank" << "sequence" << "charge" << "aa_before"
         << "aa_after" << "score_type" << "search_identifier" << "accessions"
         << "start" << "end";
-    if (incl_pred_rt)
+    if (opts.incl_pred_rt)
     {
       out << "predicted_rt";
     }
-    if (incl_first_dim)
+    if (opts.incl_first_dim)
     {
       out << "rt_first_dim" << "predicted_rt_first_dim";
     }
-    if (incl_pred_pt)
+    if (opts.incl_pred_pt)
     {
       out << "predicted_pt";
     }
-    if (incl_peak_annotations)
+    if (opts.incl_peak_annotations)
     {
       out << "peak_annotations";
+    }
+    if (opts.incl_usi)
+    {
+      out << "USI";
     }
     out.modifyStrings(old);
   }
@@ -418,12 +453,12 @@ namespace OpenMS
 
     if (!pes.empty())
     {
-      out << String(hit.getScore()) << hit.getRank() << hit.getSequence()
+      out << StringUtils::toStr(hit.getScore()) << hit.getRank() << hit.getSequence()
           << hit.getCharge() << pes[0].getAABefore() << pes[0].getAAAfter();
     }
     else
     {
-      out << String(hit.getScore()) << hit.getRank() << hit.getSequence()
+      out << StringUtils::toStr(hit.getScore()) << hit.getRank() << hit.getSequence()
           << hit.getCharge() << PeptideEvidence::UNKNOWN_AA << PeptideEvidence::UNKNOWN_AA;
     }
     return out;
@@ -431,19 +466,18 @@ namespace OpenMS
 
   // write a peptide identification to the output stream
   void writePeptideId(SVOutStream& out, const PeptideIdentification& pid,
-                      const String& what = "PEPTIDE", bool incl_pred_rt = false, bool incl_pred_pt = false,
-                      bool incl_first_dim = false, bool incl_peak_annotations = false, const StringList& peptide_id_meta_keys = StringList(), const StringList& peptide_hit_meta_keys = StringList())
+                      const PeptideWriteOptions& opts = {})
   {
     for (const PeptideHit& hit : pid.getHits())
     {
-      if (!what.empty())
+      if (!opts.what.empty())
       {
-        out << what;
+        out << opts.what;
       }
 
       if (pid.hasRT())
       {
-        out << String(pid.getRT());
+        out << StringUtils::toStr(pid.getRT());
       }
       else
       {
@@ -452,7 +486,7 @@ namespace OpenMS
 
       if (pid.hasMZ())
       {
-        out << String(pid.getMZ());
+        out << StringUtils::toStr(pid.getMZ());
       }
       else
       {
@@ -461,10 +495,10 @@ namespace OpenMS
       out << hit << pid.getScoreType() << pid.getIdentifier();
 
       // For each accession/evidence, print the protein, the start and end position in one col each
-      String accessions;
-      String start;
+      std::string accessions;
+      std::string start;
       bool printStart = false;
-      String end;
+      std::string end;
       bool printEnd = false;
       vector<PeptideEvidence> evid = hit.getPeptideEvidences();
       for (vector<PeptideEvidence>::const_iterator evid_it = evid.begin(); evid_it != evid.end(); ++evid_it)
@@ -507,44 +541,57 @@ namespace OpenMS
       {
         out << "";
       }
-      if (incl_pred_rt)
+      if (opts.incl_pred_rt)
       {
         if (hit.metaValueExists("predicted_RT"))
         {
-          out << String(hit.getMetaValue("predicted_RT"));
+          out << StringUtils::toStr(hit.getMetaValue("predicted_RT"));
         }
         else out << "-1";
       }
-      if (incl_first_dim)
+      if (opts.incl_first_dim)
       {
         if (pid.metaValueExists("first_dim_rt"))
         {
-          out << String(pid.getMetaValue("first_dim_rt"));
+          out << StringUtils::toStr(pid.getMetaValue("first_dim_rt"));
         }
         else out << "-1";
         if (hit.metaValueExists("predicted_RT_first_dim"))
         {
-          out << String(hit.getMetaValue("predicted_RT_first_dim"));
+          out << StringUtils::toStr(hit.getMetaValue("predicted_RT_first_dim"));
         }
         else out << "-1";
       }
-      if (incl_pred_pt)
+      if (opts.incl_pred_pt)
       {
         if (hit.metaValueExists("predicted_PT"))
         {
-          out << String(hit.getMetaValue("predicted_PT"));
+          out << StringUtils::toStr(hit.getMetaValue("predicted_PT"));
         }
         else out << "-1";
       }
-      if (incl_peak_annotations && !hit.getPeakAnnotations().empty())
+      if (opts.incl_peak_annotations)
       {
-        String pa;
-        PeptideHit::PeakAnnotation::writePeakAnnotationsString_(pa, hit.getPeakAnnotations());
-        out << pa;
+        if (!hit.getPeakAnnotations().empty())
+        {
+          std::string pa;
+          PeptideHit::PeakAnnotation::writePeakAnnotationsString_(pa, hit.getPeakAnnotations());
+          out << pa;
+        }
+        else
+        {
+          out << "-1";
+        }
       }
-      else out << "-1";
-      writeMetaValues(out, pid, peptide_id_meta_keys);
-      writeMetaValues(out, hit, peptide_hit_meta_keys);
+
+      // Write USI if requested
+      if (opts.incl_usi)
+      {
+        out << pid.buildUSI(opts.usi_ms_run, opts.usi_dataset_id, true).toString();
+      }
+
+      writeMetaValues(out, pid, opts.peptide_id_meta_keys);
+      writeMetaValues(out, hit, opts.peptide_hit_meta_keys);
       out << nl;
     }
   }
@@ -554,7 +601,7 @@ namespace OpenMS
   {
 public:
     TOPPTextExporter() :
-      TOPPBase("TextExporter", "Exports various XML formats to a text file.")
+      TOPPBase("TextExporter", "Exports various OpenMS XML and parquet formats to a text file.")
     {
     }
 
@@ -563,14 +610,14 @@ protected:
     void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "Input file ");
-      setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzML"));
+      setValidFormats_("in", ListUtils::create<std::string>("featureXML,featureparquet,consensusXML,consensusparquet,idXML,idparquet,mzML,xic"));
       registerOutputFile_("out", "<file>", "", "Output file.");
-      setValidFormats_("out", ListUtils::create<String>("tsv,csv,txt"));
+      setValidFormats_("out", ListUtils::create<std::string>("tsv,csv,txt"));
       registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension, ambiguous file extensions are interpreted as tsv", false);
-      setValidStrings_("out_type", ListUtils::create<String>("tsv,csv,txt"));
+      setValidStrings_("out_type", ListUtils::create<std::string>("tsv,csv,txt"));
       registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
       registerStringOption_("quoting", "<method>", "none", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
-      setValidStrings_("quoting", ListUtils::create<String>("none,double,escape"));
+      setValidStrings_("quoting", ListUtils::create<std::string>("none,double,escape"));
       registerFlag_("no_ids", "Suppresses output of identification data.");
       addEmptyLine_();
 
@@ -597,22 +644,29 @@ protected:
       setMaxInt_("id:add_protein_hit_metavalues", 100);
 
       registerStringOption_("id:annotations", "<method>", "none", "Format of peak annotations.", false);
-      setValidStrings_("id:annotations", ListUtils::create<String>("none,default"));
+      setValidStrings_("id:annotations", ListUtils::create<std::string>("none,default"));
+      registerFlag_("id:add_usi", "Add a column with Universal Spectrum Identifiers (USI) for peptide identifications. Requires setting 'id:usi_dataset_id'.", false);
+      registerStringOption_("id:usi_dataset_id", "<dataset>", "", "ProteomeXchange dataset identifier for USI generation (e.g., 'PXD000561'). Required when 'id:add_usi' is set.", false);
       
       addEmptyLine_();
 
       registerTOPPSubsection_("consensus", "Options for consensusXML input files");
       registerOutputFile_("consensus:centroids", "<file>", "", "Output file for centroids of consensus features", false);
-      setValidFormats_("consensus:centroids", ListUtils::create<String>("csv"));
+      setValidFormats_("consensus:centroids", ListUtils::create<std::string>("csv"));
       registerOutputFile_("consensus:elements", "<file>", "", "Output file for elements of consensus features", false);
-      setValidFormats_("consensus:elements", ListUtils::create<String>("csv"));
+      setValidFormats_("consensus:elements", ListUtils::create<std::string>("csv"));
       registerOutputFile_("consensus:features", "<file>", "", "Output file for consensus features and contained elements from all maps (writes 'nan's if elements are missing)", false);
-      setValidFormats_("consensus:features", ListUtils::create<String>("csv"));
+      setValidFormats_("consensus:features", ListUtils::create<std::string>("csv"));
       registerStringOption_("consensus:sorting_method", "<method>", "none", "Sorting options can be combined. The precedence is: sort_by_size, sort_by_maps, sorting_method", false);
-      setValidStrings_("consensus:sorting_method", ListUtils::create<String>("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
+      setValidStrings_("consensus:sorting_method", ListUtils::create<std::string>("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
       registerFlag_("consensus:sort_by_maps", "Apply a stable sort by the covered maps, lexicographically", false);
       registerFlag_("consensus:sort_by_size", "Apply a stable sort by decreasing size (i.e., the number of elements)", false);
       registerFlag_("consensus:add_metavalues", "Add columns for ConsensusFeature meta values.", false);
+
+      addEmptyLine_();
+      registerTOPPSubsection_("xic", "Options for OpenSWATH chromatogram parquet (.xic) input files");
+      registerStringOption_("xic:mode", "<mode>", "summary", "Output mode: 'summary' (one row per chromatogram) or 'explode' (one row per RT/intensity point)", false);
+      setValidStrings_("xic:mode", ListUtils::create<std::string>("summary,explode"));
     }
 
     ExitCodes main_(int, const char**) override
@@ -620,14 +674,22 @@ protected:
       //-------------------------------------------------------------
       // parameter handling
       //-------------------------------------------------------------
-      String in = getStringOption_("in");
-      String out = getStringOption_("out");
+      std::string in = getStringOption_("in");
+      std::string out = getStringOption_("out");
       bool no_ids = getFlag_("no_ids");
       bool first_dim_rt = getFlag_("id:first_dim_rt");
+      bool add_usi = getFlag_("id:add_usi");
+      std::string usi_dataset_id = getStringOption_("id:usi_dataset_id");
       int add_feature_metavalues = getIntOption_("feature:add_metavalues");
       int add_id_metavalues = getIntOption_("id:add_metavalues");
       int add_hit_metavalues = getIntOption_("id:add_hit_metavalues");
       int add_protein_hit_metavalues = getIntOption_("id:add_protein_hit_metavalues");
+      
+      // Validate USI parameters
+      if (add_usi && usi_dataset_id.empty())
+      {
+        writeLogWarn_("'id:add_usi' is set but 'id:usi_dataset_id' is empty. USI column will contain incomplete identifiers.");
+      }
 
       // output file names and types
       FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
@@ -637,7 +699,7 @@ protected:
         out_type = FileHandler::getTypeByFileName(out);
       }
 
-      String sep;
+      std::string sep;
       if (out_type == FileTypes::CSV)
       {
         sep = ",";
@@ -647,24 +709,24 @@ protected:
         sep = "\t";
       }
 
-      String replacement = getStringOption_("replacement");
-      String quoting = getStringOption_("quoting");
-      String::QuotingMethod quoting_method;
+      std::string replacement = getStringOption_("replacement");
+      std::string quoting = getStringOption_("quoting");
+      OpenMS::QuotingMethod quoting_method;
       if (quoting == "none")
       {
-        quoting_method = String::NONE;
+        quoting_method = OpenMS::QuotingMethod::NONE;
       }
       else if (quoting == "double")
       {
-        quoting_method = String::DOUBLE;
+        quoting_method = OpenMS::QuotingMethod::DOUBLE;
       }
       else
       {
-        quoting_method = String::ESCAPE;
+        quoting_method = OpenMS::QuotingMethod::ESCAPE;
       }
       // input file type
       FileTypes::Type in_type = FileHandler::getType(in);
-      writeDebug_(String("Input file type: ") +
+      writeDebug_(std::string("Input file type: ") +
                   FileTypes::typeToName(in_type), 2);
 
       if (in_type == FileTypes::UNKNOWN)
@@ -675,14 +737,14 @@ protected:
 
       StringList meta_keys;
 
-      if (in_type == FileTypes::FEATUREXML)
+      if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::FEATUREPARQUET)
       {
         //-------------------------------------------------------------
         // loading input
         //-------------------------------------------------------------
 
         FeatureMap feature_map;
-        FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML}, log_type_);
+        FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET}, log_type_);
 
         // extract common id and hit meta values
         StringList peptide_id_meta_keys;
@@ -746,6 +808,21 @@ protected:
         bool minimal = getFlag_("feature:minimal");
         no_ids |= minimal; // "minimal" implies "no_ids"
 
+        // Setup peptide write options
+        PeptideWriteOptions unassigned_opts;
+        unassigned_opts.what = "UNASSIGNEDPEPTIDE";
+        unassigned_opts.incl_usi = add_usi;
+        unassigned_opts.usi_dataset_id = usi_dataset_id;
+        unassigned_opts.peptide_id_meta_keys = peptide_id_meta_keys;
+        unassigned_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
+
+        PeptideWriteOptions peptide_opts;
+        peptide_opts.what = "PEPTIDE";
+        peptide_opts.incl_usi = add_usi;
+        peptide_opts.usi_dataset_id = usi_dataset_id;
+        peptide_opts.peptide_id_meta_keys = peptide_id_meta_keys;
+        peptide_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
+
         // write header:
         output.modifyStrings(false);
         bool comment = true;
@@ -755,7 +832,7 @@ protected:
           writeProteinHeader(output);
           writeMetaValuesHeader(output, protein_hit_meta_keys);
           output << nl;
-          writePeptideHeader(output, "UNASSIGNEDPEPTIDE");
+          writePeptideHeader(output, unassigned_opts);
           writeMetaValuesHeader(output, peptide_id_meta_keys);
           writeMetaValuesHeader(output, peptide_hit_meta_keys);
           output << nl;
@@ -775,7 +852,7 @@ protected:
         output << nl;
         if (!no_ids)
         {
-          writePeptideHeader(output);
+          writePeptideHeader(output, peptide_opts);
           writeMetaValuesHeader(output, peptide_id_meta_keys);
           writeMetaValuesHeader(output, peptide_hit_meta_keys);
           output << nl;
@@ -790,7 +867,8 @@ protected:
           }
           for (const PeptideIdentification& pep : feature_map.getUnassignedPeptideIdentifications())
           {
-            writePeptideId(output, pep, "UNASSIGNEDPEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
+            unassigned_opts.usi_ms_run = add_usi ? USI::extractBasename(pep.getBaseName()) : "";
+            writePeptideId(output, pep, unassigned_opts);
           }
         }
 
@@ -802,16 +880,16 @@ protected:
           }
           if (minimal)
           {
-            output << String(feat.getRT()) << String(feat.getMZ())
-                   << String(feat.getIntensity());
+            output << StringUtils::toStr(feat.getRT()) << StringUtils::toStr(feat.getMZ())
+                   << StringUtils::toStr(feat.getIntensity());
           }
           else
           {
-            output << feat << String(feat.getQuality(0)) << String(feat.getQuality(1));
+            output << feat << StringUtils::toStr(feat.getQuality(0)) << StringUtils::toStr(feat.getQuality(1));
             if (!feat.getConvexHulls().empty())
             {
-              output << String(feat.getConvexHulls().begin()->getBoundingBox().minX())
-                     << String(feat.getConvexHulls().begin()->getBoundingBox().maxX());
+              output << StringUtils::toStr(feat.getConvexHulls().begin()->getBoundingBox().minX())
+                     << StringUtils::toStr(feat.getConvexHulls().begin()->getBoundingBox().maxX());
             }
             else
             {
@@ -826,33 +904,34 @@ protected:
           {
             for (const PeptideIdentification& pep : feat.getPeptideIdentifications())
             {
-              writePeptideId(output, pep, "PEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
+              peptide_opts.usi_ms_run = add_usi ? USI::extractBasename(pep.getBaseName()) : "";
+              writePeptideId(output, pep, peptide_opts);
             }
           }
         }
         outstr.close();
       }
-      else if (in_type == FileTypes::CONSENSUSXML)
+      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET)
       {
-        String consensus_centroids = getStringOption_("consensus:centroids");
-        String consensus_elements = getStringOption_("consensus:elements");
-        String consensus_features = getStringOption_("consensus:features");
-        String sorting_method = getStringOption_("consensus:sorting_method");
+        std::string consensus_centroids = getStringOption_("consensus:centroids");
+        std::string consensus_elements = getStringOption_("consensus:elements");
+        std::string consensus_features = getStringOption_("consensus:features");
+        std::string sorting_method = getStringOption_("consensus:sorting_method");
         bool sort_by_maps = getFlag_("consensus:sort_by_maps");
         bool sort_by_size = getFlag_("consensus:sort_by_size");
         bool add_metavalues = getFlag_("consensus:add_metavalues");
 
         ConsensusMap consensus_map;
 
-        FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML}, log_type_);
+        FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET}, log_type_);
 
         // for optional export of ConsensusFeature meta values, collect all possible meta value keys
-        std::set<String> meta_value_keys;
+        std::set<std::string> meta_value_keys;
         if (add_metavalues)
         {
           for (const auto& cf: consensus_map)
           {
-            std::vector<String> cf_meta_value_keys;
+            std::vector<std::string> cf_meta_value_keys;
             cf.getKeys(cf_meta_value_keys);
             for (const auto& key: cf_meta_value_keys)
             {
@@ -947,7 +1026,7 @@ protected:
           consensus_map.sortBySize();
         }
 
-        String date_time_now = DateTime::now().get();
+        std::string date_time_now = DateTime::now().get();
 
         // -------------------------------------------------------------------
 
@@ -1051,26 +1130,26 @@ protected:
             map_num_to_map_id.push_back(fdit->first);
           }
 
-          map<String, Size> prot_runs;
+          map<std::string, Size> prot_runs;
           Size max_prot_run = 0;
           StringList comments;
           if (!no_ids)
           {
-            String pep_line = "Protein identification runs associated with peptide/protein columns below: ";
+            std::string pep_line = "Protein identification runs associated with peptide/protein columns below: ";
             for (vector<ProteinIdentification>::const_iterator prot_it =
                    consensus_map.getProteinIdentifications().begin();
                  prot_it != consensus_map.getProteinIdentifications().end();
                  ++prot_it, ++max_prot_run)
             {
-              String run_id = prot_it->getIdentifier();
+              std::string run_id = prot_it->getIdentifier();
               // add to comment:
               if (max_prot_run > 0)
               {
                 pep_line += ", ";
               }
-              pep_line += String(max_prot_run) + ": '" + run_id + "'";
+              pep_line +=StringUtils::toStr(max_prot_run) + ": '" + run_id + "'";
 
-              map<String, Size>::iterator pos = prot_runs.find(run_id);
+              map<std::string, Size>::iterator pos = prot_runs.find(run_id);
               if (pos != prot_runs.end())
               {
                 cerr << "Warning while exporting '" << in
@@ -1094,16 +1173,16 @@ protected:
                ++fhindex)
           {
             Size map_id = map_num_to_map_id[fhindex];
-            writeFeatureHeader(output, "_" + String(map_id), false, false);
+            writeFeatureHeader(output, "_" + StringUtils::toStr(map_id), false, false);
           }
           if (!no_ids)
           {
             for (Size i = 0; i <= max_prot_run; ++i)
             {
-              output << "peptide_" + String(i)
-                     << "n_diff_peptides_" + String(i)
-                     << "protein_" + String(i)
-                     << "n_diff_proteins_" + String(i);
+              output << "peptide_" + StringUtils::toStr(i)
+                     << "n_diff_peptides_" + StringUtils::toStr(i)
+                     << "protein_" + StringUtils::toStr(i)
+                     << "n_diff_proteins_" + StringUtils::toStr(i);
             }
           }
           // append column header for each meta value key
@@ -1132,7 +1211,7 @@ protected:
             }
             if (!no_ids)
             {
-              vector<set<String> > peptides_by_source(max_prot_run + 1),
+              vector<set<std::string> > peptides_by_source(max_prot_run + 1),
               proteins_by_source(max_prot_run + 1);
               for (PeptideIdentificationList::const_iterator pep_it =
                      cmit->getPeptideIdentifications().begin(); pep_it !=
@@ -1144,20 +1223,20 @@ protected:
                      ++hit_it)
                 {
                   peptides_by_source[index].insert(hit_it->getSequence().toString());
-                  set<String> protein_accessions = hit_it->extractProteinAccessionsSet();
+                  set<std::string> protein_accessions = hit_it->extractProteinAccessionsSet();
                   proteins_by_source[index].insert(protein_accessions.begin(), protein_accessions.end());
                 }
               }
-              vector<set<String> >::iterator pep_it = peptides_by_source.begin(), prot_it = proteins_by_source.begin();
+              vector<set<std::string> >::iterator pep_it = peptides_by_source.begin(), prot_it = proteins_by_source.begin();
               for (; pep_it != peptides_by_source.end(); ++pep_it, ++prot_it)
               {
-                StringList seqs(vector<String>(pep_it->begin(),
+                StringList seqs(vector<std::string>(pep_it->begin(),
                                                pep_it->end())),
-                accs(vector<String>(prot_it->begin(), prot_it->end()));
+                accs(vector<std::string>(prot_it->begin(), prot_it->end()));
                 for (StringList::iterator acc_it = accs.begin();
                      acc_it != accs.end(); ++acc_it)
                 {
-                  acc_it->substitute('/', '_');
+                  StringUtils::substitute(*acc_it, '/', '_');
                 }
                 output << ListUtils::concatenate(seqs, "/") << seqs.size()
                        << ListUtils::concatenate(accs, "/") << accs.size();
@@ -1194,6 +1273,22 @@ protected:
 
           std::map<Size, Size> map_id_to_map_num;
           std::vector<Size> map_num_to_map_id;
+
+          // Setup peptide write options for this block
+          PeptideWriteOptions unassigned_opts;
+          unassigned_opts.what = "UNASSIGNEDPEPTIDE";
+          unassigned_opts.incl_usi = add_usi;
+          unassigned_opts.usi_dataset_id = usi_dataset_id;
+          unassigned_opts.peptide_id_meta_keys = peptide_id_meta_keys;
+          unassigned_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
+
+          PeptideWriteOptions peptide_opts;
+          peptide_opts.what = "PEPTIDE";
+          peptide_opts.incl_usi = add_usi;
+          peptide_opts.usi_dataset_id = usi_dataset_id;
+          peptide_opts.peptide_id_meta_keys = peptide_id_meta_keys;
+          peptide_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
+
           FeatureHandle feature_handle_NaN;
           feature_handle_NaN.setRT(std::numeric_limits<
                                      FeatureHandle::CoordinateType>::quiet_NaN());
@@ -1209,7 +1304,7 @@ protected:
           // It's hard to predict which meta keys will be used in file
           // descriptions. So we assemble a list each time. Represent keys
           // by String, not UInt, for implicit sorting.
-          std::set<String> all_file_desc_meta_keys;
+          std::set<std::string> all_file_desc_meta_keys;
           std::vector<UInt> tmp_meta_keys;
           for (ConsensusMap::ColumnHeaders::const_iterator fdit =
                  consensus_map.getColumnHeaders().begin();
@@ -1228,7 +1323,7 @@ protected:
 
           // headers (same order as the content of the output):
           output << "#MAP" << "id" << "filename" << "label" << "size";
-          for (std::set<String>::const_iterator kit =
+          for (std::set<std::string>::const_iterator kit =
                  all_file_desc_meta_keys.begin(); kit !=
                all_file_desc_meta_keys.end(); ++kit)
           {
@@ -1241,7 +1336,7 @@ protected:
             writeProteinHeader(output);
             writeMetaValuesHeader(output, protein_hit_meta_keys);
             output << nl;
-            writePeptideHeader(output, "UNASSIGNEDPEPTIDE");
+            writePeptideHeader(output, unassigned_opts);
             writeMetaValuesHeader(output, peptide_id_meta_keys);
             writeMetaValuesHeader(output, peptide_hit_meta_keys);
             output << nl;
@@ -1252,7 +1347,7 @@ protected:
                ++fhindex)
           {
             Size map_id = map_num_to_map_id[fhindex];
-            writeFeatureHeader(output, "_" + String(map_id), false, false);
+            writeFeatureHeader(output, "_" + StringUtils::toStr(map_id), false, false);
           }
           // append column header for each meta value key
           if (add_metavalues)
@@ -1262,7 +1357,7 @@ protected:
           output << nl;
           if (!no_ids)
           {
-            writePeptideHeader(output, "PEPTIDE");
+            writePeptideHeader(output, peptide_opts);
             writeMetaValuesHeader(output, peptide_id_meta_keys);
             writeMetaValuesHeader(output, peptide_hit_meta_keys);
             output << nl;
@@ -1276,13 +1371,13 @@ protected:
           {
             output << "MAP" << fdit->first << fdit->second.filename
                    << fdit->second.label << fdit->second.size;
-            for (std::set<String>::const_iterator kit =
+            for (std::set<std::string>::const_iterator kit =
                    all_file_desc_meta_keys.begin(); kit !=
                  all_file_desc_meta_keys.end(); ++kit)
             {
               if (fdit->second.metaValueExists(*kit))
               {
-                output << String(fdit->second.getMetaValue(*kit));
+                output << StringUtils::toStr(fdit->second.getMetaValue(*kit));
               }
               else output << "";
             }
@@ -1302,7 +1397,9 @@ protected:
             // unassigned peptides
             for (PeptideIdentificationList::const_iterator pit = consensus_map.getUnassignedPeptideIdentifications().begin(); pit != consensus_map.getUnassignedPeptideIdentifications().end(); ++pit)
             {
-              writePeptideId(output, *pit, "UNASSIGNEDPEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
+              // For USI, extract basename from the PeptideIdentification's base name
+              unassigned_opts.usi_ms_run = add_usi ? USI::extractBasename(pit->getBaseName()) : "";
+              writePeptideId(output, *pit, unassigned_opts);
               // first_dim_... stuff not supported for now
             }
           }
@@ -1340,18 +1437,20 @@ protected:
                      cmit->getPeptideIdentifications().begin(); pit !=
                    cmit->getPeptideIdentifications().end(); ++pit)
               {
-                writePeptideId(output, *pit, "PEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
+                // For USI, extract basename from the PeptideIdentification's base name
+                peptide_opts.usi_ms_run = add_usi ? USI::extractBasename(pit->getBaseName()) : "";
+                writePeptideId(output, *pit, peptide_opts);
               }
             }
           }
         }
         return EXECUTION_OK;
       }
-      else if (in_type == FileTypes::IDXML)
+      else if (in_type == FileTypes::IDXML || in_type == FileTypes::IDPARQUET)
       {
         vector<ProteinIdentification> prot_ids;
         PeptideIdentificationList pep_ids;
-        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML}, log_type_);
+        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML, FileTypes::IDPARQUET}, log_type_);
         StringList peptide_id_meta_keys;
         StringList peptide_hit_meta_keys;
         StringList protein_hit_meta_keys;
@@ -1396,7 +1495,20 @@ protected:
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'id:proteins_only' and 'id:peptides_only' cannot be used together");
         }
 
-        String what = peptides_only ? "" : "PEPTIDE";
+        std::string what = peptides_only ? "" : "PEPTIDE";
+
+        // Setup peptide write options for IDXML
+        PeptideWriteOptions peptide_opts;
+        peptide_opts.what = what;
+        peptide_opts.incl_pred_rt = true;
+        peptide_opts.incl_pred_pt = true;
+        peptide_opts.incl_first_dim = first_dim_rt;
+        peptide_opts.incl_peak_annotations = true;
+        peptide_opts.incl_usi = add_usi;
+        peptide_opts.usi_dataset_id = usi_dataset_id;
+        peptide_opts.peptide_id_meta_keys = peptide_id_meta_keys;
+        peptide_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
+
         if (!peptides_only)
         {
           writeRunHeader(output);
@@ -1410,7 +1522,7 @@ protected:
         }
         if (!proteins_only)
         {
-          writePeptideHeader(output, what, true, true, first_dim_rt, true);
+          writePeptideHeader(output, peptide_opts);
           writeMetaValuesHeader(output, peptide_id_meta_keys);
           writeMetaValuesHeader(output, peptide_hit_meta_keys);
           output << nl;
@@ -1419,7 +1531,7 @@ protected:
         for (vector<ProteinIdentification>::const_iterator it =
                prot_ids.begin(); it != prot_ids.end(); ++it)
         {
-          String actual_id = it->getIdentifier();
+          std::string actual_id = it->getIdentifier();
 
 
           if (!peptides_only)
@@ -1441,7 +1553,8 @@ protected:
             {
               if (pit->getIdentifier() == actual_id)
               {
-                writePeptideId(output, *pit, what, true, true, first_dim_rt, true, peptide_id_meta_keys, peptide_hit_meta_keys);
+                peptide_opts.usi_ms_run = add_usi ? USI::extractBasename(pit->getBaseName()) : "";
+                writePeptideId(output, *pit, peptide_opts);
               }
             }
           }
@@ -1461,6 +1574,10 @@ protected:
         }
 
         ofstream outstr(out.c_str());
+        if (!outstr)
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out);
+        }
         SVOutStream output(outstr, sep, replacement, quoting_method);
         output.modifyStrings(false);
 
@@ -1476,11 +1593,11 @@ protected:
           for (PeakMap::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
           {
             int index = (it - exp.getSpectra().begin());
-            String name = it->getName();
+            std::string name = it->getName();
             if (it->getMSLevel() == 1)
             {
               ++output_count;
-              output << "MS" << it->getMSLevel() << String(it->getRT()) << "" << "" << it->size() << index << name << nl;
+              output << "MS" << it->getMSLevel() << StringUtils::toStr(it->getRT()) << "" << "" << it->size() << index << name << nl;
             }
             else if (it->getMSLevel() == 2)
             {
@@ -1494,13 +1611,13 @@ protected:
               }
 
               ++output_count;
-              output << "MS" << it->getMSLevel() << String(it->getRT()) << precursor_mz << precursor_charge << it->size() << index << name << nl;
+              output << "MS" << it->getMSLevel() << StringUtils::toStr(it->getRT()) << precursor_mz << precursor_charge << it->size() << index << name << nl;
             }
           }
 
           if (output_count != 0)
           {
-            writeLogInfo_("Exported " + String(output_count) + " spectra!");
+            writeLogInfo_("Exported " + StringUtils::toStr(output_count) + " spectra!");
           }
         }
 
@@ -1518,10 +1635,10 @@ protected:
             if (it->getChromatogramType() == ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
             {
               ++output_count;
-              output << "MRM Q1=" << String(it->getPrecursor().getMZ()) << " Q3=" << String(it->getProduct().getMZ()) << nl;
+              output << "MRM Q1=" << StringUtils::toStr(it->getPrecursor().getMZ()) << " Q3=" << StringUtils::toStr(it->getProduct().getMZ()) << nl;
               for (MSChromatogram::ConstIterator cit = it->begin(); cit != it->end(); ++cit)
               {
-                output << String(cit->getRT()) << " " << String(cit->getIntensity()) << nl;
+                output << StringUtils::toStr(cit->getRT()) << " " << StringUtils::toStr(cit->getIntensity()) << nl;
               }
               output << nl;
             }
@@ -1533,16 +1650,131 @@ protected:
 
           if (output_count != 0)
           {
-            writeLogInfo_("Exported " + String(output_count) + " SRM spectra!");
+            writeLogInfo_("Exported " + StringUtils::toStr(output_count) + " SRM spectra!");
           }
 
           if (unsupported_chromatogram_count != 0)
           {
-            writeLogInfo_("Ignored " + String(unsupported_chromatogram_count) + " chromatograms not supported by TextExporter!");
+            writeLogInfo_("Ignored " + StringUtils::toStr(unsupported_chromatogram_count) + " chromatograms not supported by TextExporter!");
           }
         }
 
         output << nl;
+        outstr.close();
+      }
+      else if (in_type == FileTypes::CHROMPARQUET)
+      {
+        std::string mode = getStringOption_("xic:mode");
+        const bool explode = (mode == "explode");
+
+        XICParquetFile xic(in);
+        std::vector<XICChromatogram> chroms;
+        xic.getChromatograms(chroms);
+
+        if (chroms.empty())
+        {
+          writeLogWarn_("Warning: File does not contain chromatograms. No output generated!");
+          return EXECUTION_OK;
+        }
+
+        ofstream outstr(out.c_str());
+        if (!outstr)
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out);
+        }
+        SVOutStream output(outstr, sep, replacement, quoting_method);
+        output.modifyStrings(false);
+
+        auto writeOptionalInt = [&](bool has_value, Int64 value)
+        {
+          if (has_value)
+          {
+            output << value;
+          }
+          else
+          {
+            output << "";
+          }
+        };
+
+        if (explode)
+        {
+          output << "run_id" << "source_file" << "ms_level"
+                 << "precursor_id" << "transition_id" << "modified_sequence"
+                 << "precursor_charge" << "product_charge"
+                 << "detecting_transition" << "precursor_decoy" << "product_decoy"
+                 << "transition_ordinal" << "transition_type" << "annotation"
+                 << "rt" << "intensity" << nl;
+        }
+        else
+        {
+          output << "run_id" << "source_file" << "ms_level"
+                 << "precursor_id" << "transition_id" << "modified_sequence"
+                 << "precursor_charge" << "product_charge"
+                 << "detecting_transition" << "precursor_decoy" << "product_decoy"
+                 << "transition_ordinal" << "transition_type" << "annotation"
+                 << "rt_count" << "intensity_count"
+                 << "rt_min" << "rt_max" << "intensity_min" << "intensity_max" << nl;
+        }
+        output.modifyStrings(true);
+
+        for (const auto& c : chroms)
+        {
+          const Size n_points = c.rt.size();
+          if (c.intensity.size() != n_points)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "RT/intensity size mismatch in chromatogram",
+                                          StringUtils::toStr(n_points) + " vs " + StringUtils::toStr(c.intensity.size()));
+          }
+          if (explode)
+          {
+            for (Size i = 0; i < n_points; ++i)
+            {
+              output << c.run_id << File::basename(c.source_file) << c.ms_level;
+              writeOptionalInt(c.has_precursor_id, c.precursor_id);
+              writeOptionalInt(c.has_transition_id, c.transition_id);
+              output << c.modified_sequence;
+              writeOptionalInt(c.has_precursor_charge, c.precursor_charge);
+              writeOptionalInt(c.has_product_charge, c.product_charge);
+              writeOptionalInt(c.has_detecting_transition, c.detecting_transition);
+              writeOptionalInt(c.has_precursor_decoy, c.precursor_decoy);
+              writeOptionalInt(c.has_product_decoy, c.product_decoy);
+              writeOptionalInt(c.has_transition_ordinal, c.transition_ordinal);
+              output << c.transition_type << c.annotation;
+              output << StringUtils::toStr(c.rt[i]) << StringUtils::toStr(c.intensity[i]) << nl;
+            }
+          }
+          else
+          {
+            output << c.run_id << File::basename(c.source_file) << c.ms_level;
+            writeOptionalInt(c.has_precursor_id, c.precursor_id);
+            writeOptionalInt(c.has_transition_id, c.transition_id);
+            output << c.modified_sequence;
+            writeOptionalInt(c.has_precursor_charge, c.precursor_charge);
+            writeOptionalInt(c.has_product_charge, c.product_charge);
+            writeOptionalInt(c.has_detecting_transition, c.detecting_transition);
+            writeOptionalInt(c.has_precursor_decoy, c.precursor_decoy);
+            writeOptionalInt(c.has_product_decoy, c.product_decoy);
+            writeOptionalInt(c.has_transition_ordinal, c.transition_ordinal);
+            output << c.transition_type << c.annotation;
+            output << n_points << n_points;
+
+            if (n_points > 0)
+            {
+              const auto rt_minmax = std::minmax_element(c.rt.begin(), c.rt.end());
+              const auto int_minmax = std::minmax_element(c.intensity.begin(), c.intensity.end());
+              output << StringUtils::toStr(*rt_minmax.first) << StringUtils::toStr(*rt_minmax.second)
+                     << StringUtils::toStr(*int_minmax.first) << StringUtils::toStr(*int_minmax.second);
+            }
+            else
+            {
+              output << "" << "" << "" << "";
+            }
+            output << nl;
+          }
+        }
+
         outstr.close();
       }
 

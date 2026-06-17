@@ -245,7 +245,7 @@ END_SECTION
 HasActivationMethod<MSSpectrum>* ptr49 = nullptr;
 HasActivationMethod<MSSpectrum>* nullPointer49 = nullptr;
 START_SECTION((HasActivationMethod(const StringList& methods, bool reverse = false)))
-	ptr49 = new HasActivationMethod<MSSpectrum>(ListUtils::create<String>(""));
+	ptr49 = new HasActivationMethod<MSSpectrum>(ListUtils::create<std::string>(""));
   TEST_NOT_EQUAL(ptr49, nullPointer49)
 END_SECTION
 
@@ -254,8 +254,8 @@ START_SECTION(([EXTRA]~HasActivationMethod()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	HasActivationMethod<MSSpectrum> s(ListUtils::create<String>(Precursor::NamesOfActivationMethod[1]+","+Precursor::NamesOfActivationMethod[2]));
-	HasActivationMethod<MSSpectrum> s2(ListUtils::create<String>(Precursor::NamesOfActivationMethod[1]+","+Precursor::NamesOfActivationMethod[2]),true);
+	HasActivationMethod<MSSpectrum> s(ListUtils::create<std::string>(Precursor::NamesOfActivationMethod[1]+","+Precursor::NamesOfActivationMethod[2]));
+	HasActivationMethod<MSSpectrum> s2(ListUtils::create<std::string>(Precursor::NamesOfActivationMethod[1]+","+Precursor::NamesOfActivationMethod[2]),true);
 	MSSpectrum spec;
 	std::vector<Precursor> pc;
 	Precursor p;

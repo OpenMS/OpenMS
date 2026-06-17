@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
 
@@ -24,33 +24,33 @@ namespace OpenMS
     enum ParameterTypes
     {
       NONE = 0, ///< Undefined type
-      STRING, ///< String parameter
-      INPUT_FILE, ///< String parameter that denotes an input file
-      OUTPUT_FILE, ///< String parameter that denotes an output file
-      OUTPUT_PREFIX, ///< String parameter that denotes an output file prefix
-      OUTPUT_DIR, ///< String parameter that denotes an output directory
+      STRING, ///< std::string parameter
+      INPUT_FILE, ///< std::string parameter that denotes an input file
+      OUTPUT_FILE, ///< std::string parameter that denotes an output file
+      OUTPUT_PREFIX, ///< std::string parameter that denotes an output file prefix
+      OUTPUT_DIR, ///< std::string parameter that denotes an output directory
       DOUBLE, ///< Floating point number parameter
       INT, ///< Integer parameter
-      STRINGLIST, ///< More than one String Parameter
+      STRINGLIST, ///< More than one std::string Parameter
       INTLIST, ///< More than one Integer Parameter
-      DOUBLELIST, ///< More than one String Parameter
-      INPUT_FILE_LIST, ///< More than one String Parameter that denotes input files
-      OUTPUT_FILE_LIST, ///< More than one String Parameter that denotes output files
+      DOUBLELIST, ///< More than one std::string Parameter
+      INPUT_FILE_LIST, ///< More than one std::string Parameter that denotes input files
+      OUTPUT_FILE_LIST, ///< More than one std::string Parameter that denotes output files
       FLAG, ///< Parameter without argument
       TEXT, ///< Left aligned text, see addText_
       NEWLINE ///< An empty line, see addEmptyLine_
     };
 
     /// name of the parameter (internal and external)
-    String name;
+    std::string name;
     /// type of the parameter
     ParameterTypes type;
     /// default value of the parameter stored as string
     ParamValue default_value;
     /// description of the parameter
-    String description;
+    std::string description;
     /// argument in the description
-    String argument;
+    std::string argument;
     /// flag that indicates if this parameter is required i.e. it must differ from the default value
     bool required;
     /// flag the indicates that the parameter is advanced (this is used for writing the INI file only)
@@ -68,7 +68,7 @@ namespace OpenMS
     //@}
 
     /// Constructor that takes all members in declaration order
-    ParameterInformation(const String& n, ParameterTypes t, const String& arg, const ParamValue& def, const String& desc, bool req, bool adv, const StringList& tag_values = StringList());
+    ParameterInformation(const std::string& n, ParameterTypes t, const std::string& arg, const ParamValue& def, const std::string& desc, bool req, bool adv, const StringList& tag_values = StringList());
 
     ParameterInformation();
 

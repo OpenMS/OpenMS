@@ -8,6 +8,8 @@
 #include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/KERNEL/MobilityPeak1D.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/IonMobilityScoring.h>
+// mobilogram consumer to optionally emit mobilograms
+#include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -258,7 +260,10 @@ namespace OpenMS
                                                    RangeMobility im_range,
                                                    const double dia_extract_window_,
                                                    const bool dia_extraction_ppm_,
-                                                   const double drift_extra)
+                                                   const double drift_extra,
+                                                   MobilogramParquetConsumer* mobilogram_consumer,
+                                                   const double feature_rt,
+                                                   Int64 feature_id)
   {
     OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty")
     OPENMS_PRECONDITION(!ms1spectrum.empty(), "MS1 spectrum cannot be empty")
@@ -283,10 +288,12 @@ namespace OpenMS
       }
     }
 
-    double eps = 1e-5; // eps for two grid cells to be considered equal
-
     // extend IM range by drift_extra
     im_range.scaleBy(drift_extra * 2. + 1); // multiple by 2 because want drift extra to be extended by that amount on either side
+
+    // Compute eps as a fraction of the IM range to be scale-invariant across different IM units
+    // For VSSC (~0.8-1.5 range), this gives ~1e-5; for CCS (~300-500 range), this gives ~0.002
+    double eps = std::max(1e-8, im_range.getSpan() * 1e-5);
 
     // Step 1: MS2 extraction
     std::vector< Mobilogram > ms2_mobilograms;
@@ -294,7 +301,7 @@ namespace OpenMS
     {
       double im(0), intensity(0);
       Mobilogram res;
-      const TransitionType transition = transitions[k];
+      const TransitionType& transition = transitions[k];
       // Calculate the difference of the theoretical ion mobility and the actually measured ion mobility
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(transition.getProductMZ(), dia_extract_window_, dia_extraction_ppm_);
 
@@ -328,6 +335,29 @@ namespace OpenMS
     Mobilogram aligned_ms1_mobilograms;
     Size max_peak_idx = 0;
     alignToGrid_(ms1_profile, im_grid, aligned_ms1_mobilograms, eps, max_peak_idx);
+
+    if (mobilogram_consumer)
+    {
+      for (Size k = 0; k < aligned_ms2_mobilograms.size() && k < transitions.size(); ++k)
+      {
+        mobilogram_consumer->consumeMobilogram(aligned_ms2_mobilograms[k],
+                                               "ms1_contrast",
+                                               2,
+                                               -1,
+                                               transitions[k].transition_name,
+                                               feature_rt,
+                                               feature_id);
+      }
+
+      mobilogram_consumer->consumeMobilogram(aligned_ms1_mobilograms,
+                                             "ms1",
+                                             1,
+                                             -1,
+                                             "",
+                                             feature_rt,
+                                             feature_id);
+    }
+
     std::vector<double> ms1_int_values;
     ms1_int_values.reserve(aligned_ms1_mobilograms.size());
     for (const auto & k : aligned_ms1_mobilograms) 
@@ -377,12 +407,15 @@ namespace OpenMS
                                            RangeMobility im_range,
                                            const double dia_extract_window_,
                                            const bool dia_extraction_ppm_,
-                                           const double drift_extra)
+                                           const double drift_extra,
+                                           MobilogramParquetConsumer* mobilogram_consumer,
+                                           const double feature_rt,
+                                           Int64 feature_id)
   {
     OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty")
     OPENMS_PRECONDITION(!transitions.empty(), "Need at least one transition");
 
-    for (auto s:spectra){
+    for (const auto& s:spectra){
       if (s->getDriftTimeArray() == nullptr)
       {
         OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!\n";
@@ -396,6 +429,22 @@ namespace OpenMS
     RangeMZ mz_range = DIAHelpers::createMZRangePPM(transitions[0].getPrecursorMZ(), dia_extract_window_, dia_extraction_ppm_);
 
     DIAHelpers::integrateWindow(spectra, mz, im, intensity, mz_range, im_range);
+
+    if (mobilogram_consumer)
+    {
+      // Preserve existing scoring behavior and only compute the mobilogram when export is requested.
+      const double eps = std::max(1e-8, im_range.getSpan() * 1e-5);
+      double im_export(0.0), intensity_export(0.0);
+      Mobilogram ms1_mobilogram;
+      computeIonMobilogram(spectra, mz_range, im_range, im_export, intensity_export, ms1_mobilogram, eps);
+      mobilogram_consumer->consumeMobilogram(ms1_mobilogram,
+                                             "ms1",
+                                             1,
+                                             -1,
+                                             "",
+                                             feature_rt,
+                                             feature_id);
+    }
 
     // Record the measured ion mobility
     scores.im_ms1_drift = im;
@@ -412,11 +461,14 @@ namespace OpenMS
                                         RangeMobility im_range,
                                         const double dia_extract_window_,
                                         const bool dia_extraction_ppm_,
-                                        const double drift_extra,
-                                        const bool apply_im_peak_picking)
+                                         const double drift_extra,
+                                         const bool apply_im_peak_picking,
+                                         MobilogramParquetConsumer* mobilogram_consumer,
+                                         const double feature_rt,
+                                         Int64 feature_id)
   {
     OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty");
-    for (auto s:spectra)
+    for (const auto& s:spectra)
     {
       if (s->getDriftTimeArray() == nullptr)
       {
@@ -425,9 +477,11 @@ namespace OpenMS
       }
     }
 
-    double eps = 1e-5; // eps for two grid cells to be considered equal
-
     im_range.scaleBy(drift_extra * 2. + 1); // multiple by 2 because want drift extra to be extended by that amount on either side
+
+    // Compute eps as a fraction of the IM range to be scale-invariant across different IM units
+    // For VSSC (~0.8-1.5 range), this gives ~1e-5; for CCS (~300-500 range), this gives ~0.002
+    double eps = std::max(1e-8, im_range.getSpan() * 1e-5);
 
     double delta_drift = 0;
     double delta_drift_abs = 0;
@@ -440,7 +494,7 @@ namespace OpenMS
     std::vector< Mobilogram > ms2_mobilograms;
     for (std::size_t k = 0; k < transitions.size(); k++)
     {
-      const TransitionType transition = transitions[k];
+      const TransitionType& transition = transitions[k];
       Mobilogram res;
       double im(0), intensity(0);
 
@@ -498,7 +552,21 @@ namespace OpenMS
       Mobilogram aligned_mobilogram;
       Size max_peak_idx = 0;
       alignToGrid_(mobilogram, im_grid, aligned_mobilogram, eps, max_peak_idx);
-      if (!aligned_mobilogram.empty()) aligned_ms2_mobilograms.push_back(std::move(aligned_mobilogram));
+      aligned_ms2_mobilograms.push_back(std::move(aligned_mobilogram));
+    }
+
+    if (mobilogram_consumer)
+    {
+      for (Size k = 0; k < aligned_ms2_mobilograms.size() && k < transitions.size(); ++k)
+      {
+        mobilogram_consumer->consumeMobilogram(aligned_ms2_mobilograms[k],
+                                               "ms2",
+                                               2,
+                                               -1,
+                                               transitions[k].transition_name,
+                                               feature_rt,
+                                               feature_id);
+      }
     }
 
     if ( apply_im_peak_picking ) {
@@ -513,11 +581,26 @@ namespace OpenMS
         picker_.setParameters(picker_params);
         Mobilogram picked_mobilogram;
 
-        picker_.pickMobilogram(summed_mobilogram, picked_mobilogram);
-        picker_.filterTopPeak(picked_mobilogram, aligned_ms2_mobilograms, peak_pos);
-
-        scores.im_drift_left = im_grid[peak_pos.left];
-        scores.im_drift_right = im_grid[peak_pos.right];
+        if (summed_mobilogram.size() > 1)
+        {
+          picker_.pickMobilogram(summed_mobilogram, picked_mobilogram);
+          if (picked_mobilogram.getFloatDataArrays().size() > PeakPickerMobilogram::IDX_OF_RIGHTBORDER_IDX)
+          {
+            picker_.filterTopPeak(picked_mobilogram, aligned_ms2_mobilograms, peak_pos);
+            scores.im_drift_left = im_grid[peak_pos.left];
+            scores.im_drift_right = im_grid[peak_pos.right];
+          }
+          else
+          {
+            scores.im_drift_left = -1;
+            scores.im_drift_right = -1;
+          }
+        }
+        else
+        {
+          scores.im_drift_left = -1;
+          scores.im_drift_right = -1;
+        }
       }
       else
       {
@@ -554,8 +637,11 @@ namespace OpenMS
                                           RangeMobility im_range,
                                           const double dia_extract_window_,
                                           const bool dia_extraction_ppm_,
-                                          const double drift_extra,
-                                          const bool apply_im_peak_picking)
+                                           const double drift_extra,
+                                           const bool apply_im_peak_picking,
+                                           MobilogramParquetConsumer* mobilogram_consumer,
+                                           const double feature_rt,
+                                           Int64 feature_id)
   {
       // OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be null");
       // OPENMS_PRECONDITION(!transition.empty(), "Need at least one transition");
@@ -567,7 +653,7 @@ namespace OpenMS
       // }
 
       OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty");
-      for (auto s:spectra)
+      for (const auto& s:spectra)
       {
         if (s->getDriftTimeArray() == nullptr)
         {
@@ -576,9 +662,11 @@ namespace OpenMS
         }
       }
 
-      double eps = 1e-5; // eps for two grid cells to be considered equal
-
       im_range.scaleBy(drift_extra * 2. + 1); // multiple by 2 because want drift extra to be extended by that amount on either side
+
+      // Compute eps as a fraction of the IM range to be scale-invariant across different IM units
+      // For VSSC (~0.8-1.5 range), this gives ~1e-5; for CCS (~300-500 range), this gives ~0.002
+      double eps = std::max(1e-8, im_range.getSpan() * 1e-5);
 
       Mobilogram res;
       double im(0), intensity(0);
@@ -644,6 +732,28 @@ namespace OpenMS
                     eps,
                     max_peak_idx);
 
+        if (mobilogram_consumer)
+        {
+          for (Size k = 0; k < aligned_mobilograms.size() && k < trgr_detect.getTransitions().size(); ++k)
+          {
+            mobilogram_consumer->consumeMobilogram(aligned_mobilograms[k],
+                                                   "ms2",
+                                                   2,
+                                                   -1,
+                                                   trgr_detect.getTransitions()[k].transition_name,
+                                                   feature_rt,
+                                                   feature_id);
+          }
+
+          mobilogram_consumer->consumeMobilogram(aligned_identification_mobilogram,
+                                                 "identification",
+                                                 2,
+                                                 -1,
+                                                 transition[0].transition_name,
+                                                 feature_rt,
+                                                 feature_id);
+        }
+
         if ( apply_im_peak_picking ) 
         {
           PeakPickerMobilogram::PeakPositions peak_pos{};
@@ -657,11 +767,27 @@ namespace OpenMS
           {
             Mobilogram summed_mobilogram = sumAlignedMobilograms(aligned_mobilograms);
 
-            picker_.pickMobilogram(summed_mobilogram, picked_mobilogram);
-            picker_.filterTopPeak(picked_mobilogram, aligned_mobilograms, peak_pos);
+            if (summed_mobilogram.size() > 1)
+            {
+              picker_.pickMobilogram(summed_mobilogram, picked_mobilogram);
+              if (picked_mobilogram.getFloatDataArrays().size() > PeakPickerMobilogram::IDX_OF_RIGHTBORDER_IDX)
+              {
+                picker_.filterTopPeak(picked_mobilogram, aligned_mobilograms, peak_pos);
 
-            scores.im_drift_left = im_grid[peak_pos.left];
-            scores.im_drift_right = im_grid[peak_pos.right];
+                scores.im_drift_left = im_grid[peak_pos.left];
+                scores.im_drift_right = im_grid[peak_pos.right];
+              }
+              else
+              {
+                scores.im_drift_left = -1;
+                scores.im_drift_right = -1;
+              }
+            }
+            else
+            {
+              scores.im_drift_left = -1;
+              scores.im_drift_right = -1;
+            }
           }
           else
           {
@@ -670,7 +796,8 @@ namespace OpenMS
           }
 
           // Identification ion mobilogram cannot be empty and cannot have a single point
-          if ( !aligned_identification_mobilogram.empty() && aligned_identification_mobilogram.size()!=1 )
+          if ( !aligned_identification_mobilogram.empty() && aligned_identification_mobilogram.size()!=1 &&
+               picked_mobilogram.getFloatDataArrays().size() > PeakPickerMobilogram::IDX_OF_RIGHTBORDER_IDX )
           {
             picker_.filterTopPeak(picked_mobilogram, aligned_identification_mobilogram, peak_pos);
           }

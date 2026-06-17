@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 using namespace std;
@@ -21,25 +22,25 @@ namespace OpenMS
 
   EDTAFile::~EDTAFile() = default;
 
-  double EDTAFile::checkedToDouble_(const std::vector<String>& parts, Size index, double def)
+  double EDTAFile::checkedToDouble_(const std::vector<std::string>& parts, Size index, double def)
   {
     if (index < parts.size() && parts[index] != "NA")
     {
-      return parts[index].toDouble();
+      return StringUtils::toDouble(parts[index]);
     }
     return def;
   }
 
-  Int EDTAFile::checkedToInt_(const std::vector<String>& parts, Size index, Int def)
+  Int EDTAFile::checkedToInt_(const std::vector<std::string>& parts, Size index, Int def)
   {
     if (index < parts.size() && parts[index] != "NA")
     {
-      return parts[index].toInt();
+      return StringUtils::toInt32(parts[index]);
     }
     return def;
   }
 
-  void EDTAFile::load(const String& filename, ConsensusMap& consensus_map)
+  void EDTAFile::load(const std::string& filename, ConsensusMap& consensus_map)
   {
     // load input
     TextFile input(filename);
@@ -50,28 +51,28 @@ namespace OpenMS
     consensus_map.setUniqueId();
 
     char separator = ' ';
-    if (input_it->hasSubstring("\t"))
+    if (StringUtils::hasSubstring(*input_it, "\t"))
     {
       separator = '\t';
     }
-    else if (input_it->hasSubstring(" "))
+    else if (StringUtils::hasSubstring(*input_it, " "))
     {
       separator = ' ';
     }
-    else if (input_it->hasSubstring(","))
+    else if (StringUtils::hasSubstring(*input_it, ","))
     {
       separator = ',';
     }
     // parsing header line
-    std::vector<String> headers;
-    input_it->split(separator, headers);
+    std::vector<std::string> headers;
+    StringUtils::split(*input_it, separator, headers);
     int offset = 0;
     for (Size i = 0; i < headers.size(); ++i)
     {
-      headers[i].trim();
+      StringUtils::trim(headers[i]);
     }
-    String header_trimmed = *input.begin();
-    header_trimmed.trim();
+    std::string header_trimmed = *input.begin();
+    StringUtils::trim(header_trimmed);
 
     enum
     {
@@ -90,7 +91,7 @@ namespace OpenMS
 
     if (headers.size() <= 2)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed parsing in line 1: not enough columns! Expected at least 3 columns!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("Failed parsing in line 1: not enough columns! Expected at least 3 columns!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
     }
     else if (headers.size() == 3)
     {
@@ -104,9 +105,9 @@ namespace OpenMS
     try
     {
       // try to convert... if not: that's a header
-      rt = headers[0].toDouble();
-      mz = headers[1].toDouble();
-      it = headers[2].toDouble();
+      rt = StringUtils::toDouble(headers[0]);
+      mz = StringUtils::toDouble(headers[1]);
+      it = StringUtils::toDouble(headers[2]);
     }
     catch (Exception::BaseException&)
     {
@@ -117,7 +118,7 @@ namespace OpenMS
 
     if (headers.size() >= 5)
     {
-      if (String(headers[4].trim()).toUpper() == "RT1")
+      if (StringUtils::toUppered(StringUtils::trim(headers[4])) == "RT1")
       {
         input_type = TYPE_CONSENSUS;
       }
@@ -135,7 +136,7 @@ namespace OpenMS
 
     if (offset == 0 && (input_type == TYPE_OLD_CHARGE || input_type == TYPE_CONSENSUS))
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed parsing in line 1: No HEADER provided. This is only allowed for three columns. You have more!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("Failed parsing in line 1: No HEADER provided. This is only allowed for three columns. You have more!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
     }
 
     SignedSize input_size = input.end() - input.begin();
@@ -151,8 +152,8 @@ namespace OpenMS
     for (; input_it != input.end(); ++input_it)
     {
       //do nothing for empty lines
-      String line_trimmed = *input_it;
-      line_trimmed.trim();
+      std::string line_trimmed = *input_it;
+      StringUtils::trim(line_trimmed);
       if (line_trimmed.empty())
       {
         if ((input_it - input.begin()) < input_size - 1) OPENMS_LOG_WARN << "Notice: Empty line ignored (line " << ((input_it - input.begin()) + 1) << ").";
@@ -160,21 +161,21 @@ namespace OpenMS
       }
 
       //split line to tokens
-      std::vector<String> parts;
-      input_it->split(separator, parts);
+      std::vector<std::string> parts;
+      StringUtils::split(*input_it, separator, parts);
 
       //abort if line does not contain enough fields
       if (parts.size() < 3)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
-                                    String("Failed parsing in line ")
-                                    + String((input_it - input.begin()) + 1)
+                                    "Failed parsing in line "
+                                    + StringUtils::toStr((input_it - input.begin()) + 1)
                                     + ": At least three columns are needed! (got  "
-                                    + String(parts.size())
+                                    + StringUtils::toStr(parts.size())
                                     + ")\nOffending line: '"
                                     + line_trimmed
                                     + "'  (line "
-                                    + String((input_it - input.begin()) + 1)
+                                    + StringUtils::toStr((input_it - input.begin()) + 1)
                                     + ")\n");
       }
 
@@ -197,7 +198,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException&)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + String((input_it - input.begin()) + 1) + ")\n");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "","Failed parsing in line " + StringUtils::toStr((input_it - input.begin()) + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + StringUtils::toStr((input_it - input.begin()) + 1) + ")\n");
       }
 
       // Check all features in one line
@@ -227,23 +228,23 @@ namespace OpenMS
         }
         catch (Exception::BaseException&)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j * 4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + String((input_it - input.begin()) + 1) + ")\n");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "","Failed parsing in line " + StringUtils::toStr((input_it - input.begin()) + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j * 4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + StringUtils::toStr((input_it - input.begin()) + 1) + ")\n");
         }
       }
 
       //parse meta data
       for (Size j = input_features * 4; j < parts.size(); ++j)
       {
-        String part_trimmed = parts[j];
-        part_trimmed.trim();
+        std::string part_trimmed = parts[j];
+        StringUtils::trim(part_trimmed);
         if (!part_trimmed.empty())
         {
           //check if column name is ok
           if (headers.size() <= j || headers[j].empty())
           {
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
-                                        String("Error: Missing meta data header for column ") + (j + 1) + "!"
-                                        + String("Offending header line: '") + header_trimmed + "'  (line 1)");
+                                        std::string("Error: Missing meta data header for column ") + (j + 1) + "!"
+                                        + std::string("Offending header line: '") + header_trimmed + "'  (line 1)");
           }
           //add meta value
           cf.setMetaValue(headers[j], part_trimmed);
@@ -262,13 +263,13 @@ namespace OpenMS
     // (in this case the 'input_features' includes the centroid, which we do not count)
     for (Size i = 0; i < maps; ++i)
     {
-      fd.label = String("EDTA_Map ") + String(i);
+      fd.label ="EDTA_Map " + StringUtils::toStr(i);
       consensus_map.getColumnHeaders()[i] = fd;
     }
 
   }
 
-  void EDTAFile::store(const String& filename, const ConsensusMap& map) const
+  void EDTAFile::store(const std::string& filename, const ConsensusMap& map) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::EDTA))
     {
@@ -285,23 +286,23 @@ namespace OpenMS
     }
 
     // write header
-    String header("RT\tm/z\tintensity\tcharge");
+    std::string header("RT\tm/z\tintensity\tcharge");
     for (Size i = 1; i <= max_sub; ++i)
     {
-      header += "\tRT" + String(i) + "\tm/z" + String(i) + "\tintensity" + String(i) + "\tcharge" + String(i);
+      header += "\tRT" + StringUtils::toStr(i) + "\tm/z" + StringUtils::toStr(i) + "\tintensity" + StringUtils::toStr(i) + "\tcharge" + StringUtils::toStr(i);
     }
     tf.addLine(header);
 
     for (Size i = 0; i < map.size(); ++i)
     {
-      ConsensusFeature f = map[i];
+      const ConsensusFeature& f = map[i];
       // consensus
-      String entry = String(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge();
+      std::string entry =StringUtils::toStr(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge();
       // sub-features
       const ConsensusFeature::HandleSetType& handle = f.getFeatures();
       for (ConsensusFeature::HandleSetType::const_iterator it = handle.begin(); it != handle.end(); ++it)
       {
-        entry += String("\t") + it->getRT() + "\t" + it->getMZ() + "\t" + it->getIntensity() + "\t" + it->getCharge();
+        entry +=std::string("\t") + it->getRT() + "\t" + it->getMZ() + "\t" + it->getIntensity() + "\t" + it->getCharge();
       }
       // missing sub-features
       for (Size j = handle.size(); j < max_sub; ++j)
@@ -315,7 +316,7 @@ namespace OpenMS
     tf.store(filename);
   }
 
-  void EDTAFile::store(const String& filename, const FeatureMap& map) const
+  void EDTAFile::store(const std::string& filename, const FeatureMap& map) const
   {
     TextFile tf;
     tf.addLine("RT\tm/z\tintensity\tcharge");
@@ -323,7 +324,7 @@ namespace OpenMS
     for (Size i = 0; i < map.size(); ++i)
     {
       const Feature& f = map[i];
-      tf.addLine(String(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge());
+      tf.addLine(StringUtils::toStr(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge());
     }
 
     tf.store(filename);

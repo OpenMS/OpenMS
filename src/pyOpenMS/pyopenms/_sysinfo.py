@@ -7,6 +7,7 @@ if sys.platform.startswith("linux"):
     libc = c.CDLL(ctypes.util.find_library("c"))
 
     class SysInfo(c.Structure):
+        """Linux system information structure wrapping sysinfo(2)."""
 
          # for libc5: needs padding
         padding = 20 - 2 * c.sizeof(c.c_long) - c.sizeof(c.c_int)

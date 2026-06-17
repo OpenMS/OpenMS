@@ -1,0 +1,18 @@
+# PEFF 1.0
+# DbName=TestDB
+# Prefix=test
+# DbDescription=Test database for PEFF file parsing
+# Decoy=false
+# DbSource=https://example.com/testdb
+# DbVersion=1.0
+# DbDate=20240115
+# NumberOfEntries=3
+# SequenceType=AA
+# GeneralComment=This is a test file
+# //
+>test:P12345 \PName=(Test Protein 1) \GName=TEST1 \NcbiTaxId=9606 \TaxName=Homo sapiens \Length=49 \SV=1 \EV=1 \PE=1 \ModRes=(10|UNIMOD:35|Oxidation)(25|MOD:00046|Phosphorylation) \VariantSimple=(5|R|dbSNP:rs123456) \Processed=(1|20|PEFF:0001021|signal peptide)
+MSEQVENCEOFTHEFIRSTPROTEINWITHSOMEMODIFICATIONSOK
+>test:P12346 \PName=(Test Protein 2)(Alternative Name) \GName=TEST2 \NcbiTaxId=10090 \Length=40 \PE=2 \VariantComplex=(5|10|LONGER|dbSNP:rs789)
+ANOTHERSEQUENCEOFASECONDPROTEINFORTHTEST
+>test:P12347 \PName=(Simple Protein) \Length=30
+SIMPLEPROTEINSEQUENCEWITHOUTMO

@@ -13,8 +13,7 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
-#include <QtCore/QString>
-
+#include <cstdio>
 #include <iostream>
 
 using namespace std;
@@ -34,7 +33,7 @@ public:
       return new CMDProgressLoggerImpl();
     }
 
-    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const override
+    void startProgress(const SignedSize begin, const SignedSize end, const std::string& label, const int current_recursion_depth) const override
     {
       begin_ = begin;
       current_ = begin_;
@@ -57,7 +56,9 @@ public:
       }
       else
       {
-        cout << '\r' << string(2 * current_recursion_depth, ' ') << QString::number(float(value - begin_) / float(end_ - begin_) * 100.0, 'f', 2).toStdString()  << " %               ";
+        char pct_buf[16];
+        std::snprintf(pct_buf, sizeof(pct_buf), "%.2f", static_cast<float>(value - begin_) / static_cast<float>(end_ - begin_) * 100.0f);
+        cout << '\r' << string(2 * current_recursion_depth, ' ') << pct_buf << " %               ";
         cout << flush;
       }
     }
@@ -71,7 +72,7 @@ public:
     void endProgress(const int current_recursion_depth, UInt64 bytes_processed) const override
     {
       stop_watch_.stop();
-      String IO_stats;
+      std::string IO_stats;
       if (bytes_processed)
       {
         IO_stats = " @ " + bytesToHumanReadable(bytes_processed / stop_watch_.getClockTime()) + "/s";
@@ -96,7 +97,7 @@ public:
       return new NoProgressLoggerImpl();
     }
 
-    void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const String& /* label */, const int /* current_recursion_depth */) const override
+    void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const std::string& /* label */, const int /* current_recursion_depth */) const override
     {
     }
 
@@ -229,7 +230,7 @@ public:
     return type_;
   }
 
-  void ProgressLogger::startProgress(SignedSize begin, SignedSize end, const String& label) const
+  void ProgressLogger::startProgress(SignedSize begin, SignedSize end, const std::string& label) const
   {
     OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
     last_invoke_ = time(nullptr);

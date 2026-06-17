@@ -68,13 +68,13 @@ namespace OpenMS
     PeptideIdentificationList compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum);
 
     /// returns the name of the metric
-    const String& getName() const override;
+    const std::string& getName() const override;
     /// define the required input file: featureXML after FDR (=POSTFDRFEAT), MzML-file (MSExperiment) with all MS2-Spectra (=RAWMZML)
     Status requirements() const override;
 
   private:
     /// name of the metric
-    const String name_ = "Ms2SpectrumStats";
+    const std::string name_ = "Ms2SpectrumStats";
 
     /// ms2_included_ contains for every spectrum the information "ScanEventNumber" and presence MS2-scan in PeptideIDs
     std::vector<ScanEvent> ms2_included_ {};

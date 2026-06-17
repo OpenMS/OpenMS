@@ -9,8 +9,8 @@
 #include <OpenMS/VISUAL/TreeView.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Qt5Port.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <QHeaderView>
 #include <QMenu>
@@ -73,7 +73,7 @@ namespace OpenMS
     }
     if (!hset.empty())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.values().join(", ")));
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + fromQString(hset.values().join(", ")));
     }
   }
 
@@ -100,7 +100,7 @@ namespace OpenMS
     const auto& header = this->headerItem();
     if (header->columnCount() <= header_column)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header index " + String(header_column) + " is too large. There are only " + String(header->columnCount()) + " columns!");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header index " + StringUtils::toStr(header_column) + " is too large. There are only " + StringUtils::toStr(header->columnCount()) + " columns!");
     }
     return header->text(header_column);
   }

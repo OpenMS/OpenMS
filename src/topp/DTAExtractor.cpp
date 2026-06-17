@@ -62,7 +62,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
     registerStringOption_("out", "<file>", "", "base name of DTA output files (RT, m/z and extension are appended)");
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range of precursor peaks to extract.\n"
                                                     "This option is ignored for MS level 1", false);
@@ -77,11 +77,11 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
 
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
 
     //ranges
-    String mz, rt, tmp;
+    std::string mz, rt, tmp;
     double mz_l, mz_u, rt_l, rt_u;
     vector<UInt> levels;
     //initialize ranges
@@ -90,36 +90,36 @@ protected:
 
     rt = getStringOption_("rt");
     mz = getStringOption_("mz");
-    String level = getStringOption_("level");
+    std::string level = getStringOption_("level");
 
     //convert bounds to numbers
     try
     {
       //rt
       parseRange_(rt, rt_l, rt_u);
-      writeDebug_("rt lower/upper bound: " + String(rt_l) + " / " + String(rt_u), 1);
+      writeDebug_("rt lower/upper bound: " + StringUtils::toStr(rt_l) + " / " + StringUtils::toStr(rt_u), 1);
 
       //mz
       parseRange_(mz, mz_l, mz_u);
-      writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u), 1);
+      writeDebug_("mz lower/upper bound: " + StringUtils::toStr(mz_l) + " / " + StringUtils::toStr(mz_u), 1);
 
       //levels
       tmp = level;
-      if (level.has(',')) //several levels given
+      if (StringUtils::has(level, ',')) //several levels given
       {
-        vector<String> tmp2;
-        level.split(',', tmp2);
-        for (vector<String>::iterator it = tmp2.begin(); it != tmp2.end(); ++it)
+        vector<std::string> tmp2;
+        StringUtils::split(level, ',', tmp2);
+        for (vector<std::string>::iterator it = tmp2.begin(); it != tmp2.end(); ++it)
         {
-          levels.push_back(it->toInt());
+          levels.push_back(StringUtils::toInt32(*it));
         }
       }
       else //one level given
       {
-        levels.push_back(level.toInt());
+        levels.push_back(StringUtils::toInt32(level));
       }
 
-      String tmp3("MS levels: ");
+      std::string tmp3("MS levels: ");
       tmp3 = tmp3 + *(levels.begin());
       for (vector<UInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
       {
@@ -129,7 +129,7 @@ protected:
     }
     catch (Exception::ConversionError& /*e*/)
     {
-      writeLogError_(String("Invalid boundary '") + tmp + "' given. Aborting!");
+      writeLogError_(std::string("Invalid boundary '") + tmp + "' given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -171,13 +171,13 @@ protected:
         }
         MSExperiment exp;
         exp.addSpectrum(spec);
-        dta.storeExperiment(out + "_RT" + String(spec.getRT()) + "_MZ" + String(mz_value) + ".dta", exp);
+        dta.storeExperiment(out + "_RT" + StringUtils::toStr(spec.getRT()) + "_MZ" + StringUtils::toStr(mz_value) + ".dta", exp);
       }
       else
       {
         MSExperiment exp;
         exp.addSpectrum(spec);
-        dta.storeExperiment(out + "_RT" + String(spec.getRT()) + ".dta", exp);
+        dta.storeExperiment(out + "_RT" + StringUtils::toStr(spec.getRT()) + ".dta", exp);
       }
     }
 

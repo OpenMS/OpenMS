@@ -35,7 +35,7 @@ START_SECTION(~XMassFile())
 	delete ptr;
 END_SECTION
 
-START_SECTION(template<typename SpectrumType> void load(const String& filename, MSSpectrum& spectrum) )
+START_SECTION(template<typename SpectrumType> void load(const std::string& filename, MSSpectrum& spectrum) )
 	TOLERANCE_ABSOLUTE(0.001)
 	MSSpectrum s;
 	MSSpectrum::ConstIterator it;
@@ -67,9 +67,9 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 
 END_SECTION
 
-START_SECTION(template<typename SpectrumType> void store(const String& filename, const MSSpectrum& spectrum) const)
+START_SECTION(template<typename SpectrumType> void store(const std::string& filename, const MSSpectrum& spectrum) const)
   // not implemented
-	TEST_EXCEPTION(Exception::NotImplemented, XMassFile().store(String(), MSSpectrum()))
+	TEST_EXCEPTION(Exception::NotImplemented, XMassFile().store(std::string(), MSSpectrum()))
 END_SECTION
 
 

@@ -12,6 +12,7 @@
 
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 #include <QtGui/QColor>
@@ -282,7 +283,7 @@ public:
       {
         peak_anno.append("\n").append(lines[1]);
       }
-      fa.annotation = peak_anno;
+      fa.annotation = fromQString(peak_anno);
 
       return fa;
     }

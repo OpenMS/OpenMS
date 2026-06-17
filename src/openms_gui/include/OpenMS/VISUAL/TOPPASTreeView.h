@@ -18,7 +18,6 @@
 
 namespace OpenMS
 {
-  class String;
 
   /**
       @brief Tree view implementation for the list of TOPP tools

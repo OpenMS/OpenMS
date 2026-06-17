@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -49,7 +50,7 @@ START_SECTION((~FeatureXMLFile()))
 }
 END_SECTION
 
-START_SECTION((Size loadSize(const String &filename)))
+START_SECTION((Size loadSize(const std::string &filename)))
 {
   FeatureMap e;
   FeatureXMLFile dfmap_file;
@@ -64,7 +65,7 @@ START_SECTION((Size loadSize(const String &filename)))
 }
 END_SECTION
 
-START_SECTION((void load(const String &filename, FeatureMap&feature_map)))
+START_SECTION((void load(const std::string &filename, FeatureMap&feature_map)))
 {
   TOLERANCE_ABSOLUTE(0.01)
 
@@ -132,7 +133,7 @@ START_SECTION((void load(const String &filename, FeatureMap&feature_map)))
   // test meta values:
   TEST_EQUAL(e[0].getMetaValue("myIntList") == ListUtils::create<Int>("1,10,12"), true);
   TEST_EQUAL(e[0].getMetaValue("myDoubleList") == ListUtils::create<double>("1.111,10.999,12.45"), true);
-  TEST_EQUAL(e[0].getMetaValue("myStringList") == ListUtils::create<String>("myABC1,Stuff,12"), true);
+  TEST_EQUAL(e[0].getMetaValue("myStringList") == ListUtils::create<std::string>("myABC1,Stuff,12"), true);
   TEST_EQUAL(e[1].getMetaValue("myDoubleList") == ListUtils::create<double>("6.442"), true);
 
   //test if loading a second file works (initialization)
@@ -204,7 +205,7 @@ START_SECTION((void load(const String &filename, FeatureMap&feature_map)))
 }
 END_SECTION
 
-START_SECTION((void store(const String &filename, const FeatureMap&feature_map)))
+START_SECTION((void store(const std::string &filename, const FeatureMap&feature_map)))
 {
   FeatureMap map;
   FeatureXMLFile f;
@@ -241,14 +242,14 @@ START_SECTION((FeatureFileOptions & getOptions()))
 }
 END_SECTION
 
-START_SECTION([EXTRA] static bool isValid(const String& filename))
+START_SECTION([EXTRA] static bool isValid(const std::string& filename))
 {
   FeatureXMLFile f;
   TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), std::cerr), true);
   TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), std::cerr), true);
 
   FeatureMap e;
-  String filename;
+  std::string filename;
 
   //test if empty file is valid
   NEW_TMP_FILE(filename)
@@ -339,7 +340,7 @@ START_SECTION([EXTRA])
   f2.setSubordinates(f1_cpy2.getSubordinates());
   TEST_EQUAL(f2, f1_cpy2);
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   FeatureXMLFile f;
   FeatureMap e;
@@ -354,7 +355,7 @@ START_SECTION([EXTRA])
   f.load(filename, e2);
   e.updateRanges();
   TEST_TRUE(e == e2);
-  String filename2;
+  std::string filename2;
   NEW_TMP_FILE(filename2);
   f.store(filename2, e2);
 

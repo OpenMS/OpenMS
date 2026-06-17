@@ -8,11 +8,6 @@ include(GNUInstallDirs)
 # List all TOPP tools
 set(executables ${TOPP_TOOLS})
 
-# Tools that can't export proper CWL files
-list(REMOVE_ITEM executables
-  GenericWrapper # External tool wrapper, would need information about the external tools
-)
-
 # Try to find cwltool for validation (optional)
 find_program(CWLTOOL_EXECUTABLE cwltool)
 if(NOT CWLTOOL_EXECUTABLE)

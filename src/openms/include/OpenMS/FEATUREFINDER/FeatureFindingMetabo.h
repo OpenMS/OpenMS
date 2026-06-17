@@ -48,9 +48,9 @@ public:
     // getter & setter
     Size getSize() const;
 
-    String getLabel() const;
+    std::string getLabel() const;
 
-    std::vector<String> getLabels() const;
+    std::vector<std::string> getLabels() const;
 
     double getScore() const;
 
@@ -65,6 +65,8 @@ public:
     std::vector<double> getAllCentroidMZ() const;
 
     std::vector<double> getAllCentroidRT() const;
+
+    std::vector<double> getAllCentroidIM() const;
 
     std::vector<double> getIsotopeDistances() const;
 
@@ -211,7 +213,7 @@ private:
     */
     int isLegalIsotopePattern_(const FeatureHypothesis& feat_hypo) const;
 
-    void loadIsotopeModel_(const String&);
+    void loadIsotopeModel_(const std::string&);
 
     /** @brief Perform mass to charge scoring of two multiple mass traces
      *
@@ -314,6 +316,7 @@ private:
 
     /// parameter stuff
     double local_rt_range_;
+    double local_im_range_;
     double local_mz_range_;
     Size charge_lower_bound_;
     Size charge_upper_bound_;
@@ -321,7 +324,7 @@ private:
 
     bool report_summed_ints_;
     bool enable_RT_filtering_;
-    String isotope_filtering_model_;
+    std::string isotope_filtering_model_;
     bool use_smoothed_intensities_;
     bool report_smoothed_intensities_;
 
@@ -331,6 +334,7 @@ private:
     bool report_chromatograms_;
 
     bool remove_single_traces_;
+    bool has_im_data_ = false; ///< whether the input mass traces contain ion mobility data
     std::vector<const Element*> elements_;
   };
 

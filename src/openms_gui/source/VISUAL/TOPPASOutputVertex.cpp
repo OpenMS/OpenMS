@@ -13,6 +13,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <QtCore/QDir>
 
 namespace OpenMS
@@ -54,20 +55,20 @@ namespace OpenMS
 
   void TOPPASOutputVertex::openContainingFolder() const
   {
-    GUIHelpers::openFolder(getFullOutputDirectory().toQString());
+    GUIHelpers::openFolder(toQString(getFullOutputDirectory()));
   }
 
-  String TOPPASOutputVertex::getFullOutputDirectory() const
+  std::string TOPPASOutputVertex::getFullOutputDirectory() const
   {
     TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-    auto dir = String(ts->getOutDir()).substitute("\\", "/").ensureLastChar('/') + getOutputDir();
-    String clean_dir = QDir::cleanPath(dir.toQString());
-    return clean_dir.substitute("\\", "/").ensureLastChar('/');
+    auto dir = StringUtils::ensureLastChar(StringUtils::substituted(fromQString(ts->getOutDir()), "\\", "/"), '/') + getOutputDir();
+    std::string clean_dir = fromQString(QDir::cleanPath(toQString(dir)));
+    return StringUtils::ensureLastChar(StringUtils::substitute(clean_dir, "\\", "/"), '/');
   }
 
-  String TOPPASOutputVertex::getOutputDir() const
+  std::string TOPPASOutputVertex::getOutputDir() const
   {
-    String dir = "TOPPAS_out/";
+    std::string dir = "TOPPAS_out/";
     if (output_folder_name_.isEmpty())
     {
       TOPPASEdge* e = *inEdgesBegin();
@@ -78,18 +79,18 @@ namespace OpenMS
       }
       const TOPPASVertex* tv = e->getSourceVertex();
       // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
-      dir += get3CharsNumber_(topo_nr_) + "-" + tv->getName() + "-" + e->getSourceOutParamName().remove(':');
+      dir += get3CharsNumber_(topo_nr_) + "-" + tv->getName() + "-" + fromQString(e->getSourceOutParamName().remove(':'));
     }
     else { 
-      dir += output_folder_name_;
+      dir += fromQString(output_folder_name_);
     }
-    dir.ensureLastChar('/');
+    StringUtils::ensureLastChar(dir, '/');
     return dir;
   }
 
-  String TOPPASOutputVertex::createOutputDir() const
+  std::string TOPPASOutputVertex::createOutputDir() const
   {
-    String full_dir = getFullOutputDirectory();
+    std::string full_dir = getFullOutputDirectory();
     if (! File::exists(full_dir))
     {
       if (! File::makeDir(full_dir)) { std::cerr << "Could not create path " << full_dir << std::endl; }

@@ -718,7 +718,7 @@ START_SECTION((const ParamEntry& getEntry(const std::string &key) const))
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getEntry("key:value"))
 END_SECTION
 
-START_SECTION((void setValue(const std::string &key, const DataValue& value, const std::string &description="", const std::stringList &tags=std::stringList())))
+START_SECTION((void setValue(const std::string &key, const DataValue& value, const std::string &description="", const StringList &tags=StringList())))
 	Param p;
 	p.setValue("key","value");
 	TEST_EQUAL(p.exists("key"), true)

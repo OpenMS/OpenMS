@@ -11,7 +11,8 @@
 #include <ui_Plot2DGoToDialog.h>
 
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtWidgets/QLineEdit>
 
@@ -92,14 +93,14 @@ namespace OpenMS
     }
   }
 
-  String Plot2DGoToDialog::getFeatureNumber() const
+  std::string Plot2DGoToDialog::getFeatureNumber() const
   {
-    return ui_->feature_number_->text();
+    return fromQString(ui_->feature_number_->text());
   }
 
   bool Plot2DGoToDialog::showRange() const
   {
-    return getFeatureNumber().trim().empty();
+    return StringUtils::trimmed(getFeatureNumber()).empty();
   }
 
 } //namespace OpenMS

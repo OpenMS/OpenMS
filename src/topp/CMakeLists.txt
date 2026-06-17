@@ -50,25 +50,13 @@ target_link_libraries(${PROJECT_NAME} OpenMS) # Link the executable with OpenMS
   endif()
 endforeach(i)
 
-# some regular TOPP tools need the GUI lib, only build them when WITH_GUI is enabled
-if(WITH_GUI)
-  foreach(i ${TOPP_executables_with_GUIlib})
-    add_executable(${i} ${i}.cpp)
-    # we also want to install each topp tool
-    openms_add_executable_compiler_flags(${i})
-    install_tool(${i})
-    target_link_libraries(${i} OpenMS OpenMS_GUI)
-  endforeach(i)
-
-  set(TOPP_executables ${TOPP_executables} ${TOPP_executables_with_GUIlib})
-endif()
-
 # special requirements of some tools
 target_link_libraries(FileMerger Boost::regex)
 target_link_libraries(DecoyDatabase Boost::regex)
 target_link_libraries(NucleicAcidSearchEngine Boost::regex)
 target_link_libraries(IsobaricWorkflow Eigen3::Eigen)
 target_link_libraries(MetaProSIP Eigen3::Eigen)
+
 
 # collection target
 add_custom_target(TOPP)

@@ -13,7 +13,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  CVTerm::CVTerm(const String& accession, const String& name, const String& cv_identifier_ref, const String& value, const Unit& unit) :
+  CVTerm::CVTerm(const std::string& accession, const std::string& name, const std::string& cv_identifier_ref, const std::string& value, const Unit& unit) :
     accession_(accession),
     name_(name),
     cv_identifier_ref_(cv_identifier_ref),
@@ -38,32 +38,32 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  void CVTerm::setAccession(const String& accession)
+  void CVTerm::setAccession(const std::string& accession)
   {
     accession_ = accession;
   }
 
-  const String& CVTerm::getAccession() const
+  const std::string& CVTerm::getAccession() const
   {
     return accession_;
   }
 
-  void CVTerm::setName(const String& name)
+  void CVTerm::setName(const std::string& name)
   {
     name_ = name;
   }
 
-  const String& CVTerm::getName() const
+  const std::string& CVTerm::getName() const
   {
     return name_;
   }
 
-  void CVTerm::setCVIdentifierRef(const String& cv_identifier_ref)
+  void CVTerm::setCVIdentifierRef(const std::string& cv_identifier_ref)
   {
     cv_identifier_ref_ = cv_identifier_ref;
   }
 
-  const String& CVTerm::getCVIdentifierRef() const
+  const std::string& CVTerm::getCVIdentifierRef() const
   {
     return cv_identifier_ref_;
   }

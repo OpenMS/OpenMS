@@ -6,7 +6,7 @@ This file provides context and instructions for AI coding agents working on Open
 
 **NEVER do these things:**
 - Build the project unless explicitly asked (extremely resource-intensive)
-- Modify files in `src/openms/extern/` (third-party vendored code)
+- Modify files in `src/openms/extern/` or `src/openms/thirdparty/` (third-party vendored code; use the provided sync scripts to update vendored libraries)
 - Commit secrets, credentials, or `.env` files
 - Add `using namespace` or `using std::...` in header files
 - Modify the contrib tree or third-party dependencies
@@ -45,9 +45,10 @@ OpenMS/
 │   ├── openms_gui/          # Qt-based GUI components
 │   ├── openswathalgo/       # OpenSWATH algorithms
 │   ├── topp/                # Command-line tools (TOPP)
-│   ├── pyOpenMS/            # Python bindings
-│   │   ├── pxds/            # .pxd declarations for autowrap
-│   │   ├── addons/          # Python-only method additions
+│   ├── pyOpenMS/            # Python bindings (nanobind)
+│   │   ├── bindings/        # Hand-maintained nanobind C++ binding files
+│   │   │   └── type_casters/# Custom nanobind type casters
+│   │   ├── pyopenms/addons/ # Pure Python addon methods
 │   │   └── tests/           # Python tests
 │   └── tests/
 │       ├── class_tests/openms/source/  # C++ unit tests
@@ -59,23 +60,29 @@ OpenMS/
 
 ## Build and Install
 
-- **CMake minimum**: 3.21; **C++ standard**: C++20
+- **CMake minimum**: 3.21; **C++ standard**: C++23
 - Out-of-tree build expected in `OpenMS-build/`; build in place for development (install prefixes are for system installs).
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.
 - Dependencies via distro packages or the contrib tree; set `OPENMS_CONTRIB_LIBS` and `CMAKE_PREFIX_PATH` as needed (Qt, contrib).
-- pyOpenMS build deps: install via `uv sync --only-group build` or `pip install -e .[dev]` (see `src/pyOpenMS/pyproject.toml`); enable with `-DPYOPENMS=ON` and optional `-DPY_NUM_THREADS`/`-DPY_NUM_MODULES`.
+- **contrib is a git submodule**: run `git submodule update --init contrib` (or clone with `--recurse-submodules`) before building if you need the vendored third-party libraries.
+- pyOpenMS build deps: install via `uv sync --only-group build` or `pip install -e .[dev]` (see `src/pyOpenMS/pyproject.toml`); enable with `-DPYOPENMS=ON`.
 - Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
 
 **Required dependencies:**
-- XercesC, Boost (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR or GLPK, ZLIB, BZip2, Qt6 (6.1.0+)
+- XercesC, Boost 1.81+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR, GLPK, or HiGHS (LP solver; use `-DLP_SOLVER=AUTO/COIN/GLPK/HIGHS`), ZLIB, BZip2, libcurl
+- Qt6 (6.1.0+) — required for GUI (`openms_gui`); optional for TOPP tools, core library (`libOpenMS`), and pyOpenMS builds
 
-**Optional:** HDF5 (`-DWITH_HDF5=ON`), Apache Arrow/Parquet (`-DWITH_PARQUET=ON`)
+**Optional:** HDF5 (`-DWITH_HDF5=ON`); Bruker TimsTOF `.d` directory support via opentims (`-DWITH_OPENTIMS=ON`, default on; set `-DENABLE_OPENTIMS_TESTS=ON` to also fetch and run integration tests); Thermo RAW file reading via openms-thermo-bridge (`-DWITH_THERMO_RAW=ON`, default on except on Linux/aarch64; requires .NET 8+ runtime at run time; set `-DENABLE_THERMO_RAW_TESTS=ON` to download test data and run integration tests)
+
+**Enabled by default (fetched via FetchContent; requires network or `FETCHCONTENT_SOURCE_DIR_*` override):** WNetAlign/WNet/PyLMCF for `FeatureLinkerWNet` (`-DWITH_WNETALIGN=OFF` to disable)
+
+**Always enabled:** Apache Arrow/Parquet (required dependency since 3.6)
 
 ## Platform-Specific Build Gotchas
 
 ### Windows
 - **MSYS/MinGW NOT supported** — must use Visual Studio environment
-- **MSVC 2019+ required** (version 1920+); AddressSanitizer needs this minimum
+- **Visual Studio 2022 (v17.6+) required** for C++23; AddressSanitizer needs at least MSVC 1920 (VS 2019)
 - **64-bit only**; use Visual Studio generator (not Ninja/Make)
 - **Keep build paths short** to avoid path length issues
 - **Never mix Release/Debug libraries** — causes stack corruption and segfaults
@@ -86,6 +93,7 @@ OpenMS/
 
 ### macOS
 - **Apple Clang (Xcode) required**; Homebrew for dependencies
+- **Xcode 16+ (AppleClang 16+) required** for C++23
 - **AppleClang >= 15.0.0**: Requires `-ld_classic` linker flag (set automatically)
 - Remove older Qt versions if they interfere with Qt6
 - Qt6 requires `PrintSupport` component for platform plugin
@@ -104,7 +112,7 @@ OpenMS/
 - **Minimum version**: 6.1.0
 - If Qt6 not found: `-DCMAKE_PREFIX_PATH='<path_to_Qt6_lib_parent>'`
 - WebEngineWidgets optional; if missing, JavaScript views disabled in TOPPView (warning only)
-- Required components: Core, Network; GUI components need Widgets, Svg, OpenGLWidgets
+- Required components: Core; GUI components need Gui, Widgets, Svg, OpenGLWidgets
 
 ### Boost from Homebrew Warning
 - Statically linked Boost from system installs (brew) NOT fully supported
@@ -156,7 +164,7 @@ END_TEST
 
 ## Coding Conventions
 
-- Indentation: 2 spaces for C++/headers, 4 spaces for Python/Cython (PEP 8); no tabs; Unix line endings.
+- Indentation: 2 spaces for C++/headers, 4 spaces for Python (PEP 8); no tabs; Unix line endings.
 - Spacing: after keywords (`if`, `for`) and around binary operators.
 - Braces: opening/closing braces align; use braces even for single-line blocks (trivial one-liners may stay single-line).
 - File names: class name matches file name; one class per file; always pair `.h` with `.cpp`.
@@ -274,9 +282,10 @@ bool fragment_tolerance_ppm_;
 │   ├── openms_gui/       # Qt-based GUI components
 │   ├── openswathalgo/    # OpenSWATH algorithms
 │   ├── topp/             # Command-line tools (TOPP)
-│   ├── pyOpenMS/         # Python bindings
-│   │   ├── pxds/         # .pxd declarations for autowrap
-│   │   ├── addons/       # Python-only method additions
+│   ├── pyOpenMS/         # Python bindings (nanobind)
+│   │   ├── bindings/        # Hand-maintained nanobind C++ binding files
+│   │   │   └── type_casters/# Custom nanobind type casters
+│   │   ├── pyopenms/addons/ # Pure Python addon methods
 │   │   └── tests/        # Python tests
 │   └── tests/
 │       ├── class_tests/openms/source/  # C++ unit tests
@@ -365,44 +374,30 @@ void MyClass::process(const MSSpectrum& spectrum)
 
 ## pyOpenMS Wrapping
 
-- Autowrap reads `.pxd` in `src/pyOpenMS/pxds/` and generates `pyopenms/pyopenms.pyx` -> `pyopenms.cpp` -> module.
-- Addons in `src/pyOpenMS/addons/` inject Python-only methods (indent only; no `cdef class`).
-- Keep `.pxd` signatures in sync with C++ APIs; update or remove `wrap-ignore` when wrapping changes.
-- Always declare default and copy constructors in `.pxd`; use `cimport`, not Python `import`.
-- For non-inheriting classes use `cdef cppclass ClassName:` with no base.
-- Autowrap hints: `wrap-ignore`, `wrap-as`, `wrap-iter-begin/end`, `wrap-instances`, `wrap-attach`, `wrap-upper-limit`, `wrap-inherits`.
-- Avoid custom `__init__` unless required; it overrides autowrap dispatchers.
+- Bindings are hand-maintained nanobind C++ files in `src/pyOpenMS/bindings/bind_<domain>.cpp`. No code generator — edit binding files directly.
+- Pick the right `bind_<domain>.cpp` based on the C++ header path (e.g., `KERNEL/` → `bind_kernel.cpp`, `FORMAT/` → `bind_format.cpp`).
+- Each class has a `// --- ClassName ---` section comment for navigation.
+- Add `nb::class_<OpenMS::MyClass>(m, "MyClass", "docstring")` with `.def()` chains for methods.
+- Always add default and copy constructors when available: `.def(nb::init<>())`, `.def(nb::init<const OpenMS::MyClass&>())`.
+- Addons in `src/pyOpenMS/pyopenms/addons/` inject pure Python methods at import time via `@addon("ClassName")`.
 - Use snake_case for Python-facing names and DataFrame columns.
-- Do not add Python-only methods to `.pxd`; use addons or `_dataframes.py` wrappers.
+- Do not add Python-only methods to bindings; use addons or `_dataframes.py` wrappers.
 - DataFrame pattern: `get_data_dict()` in addon returns numpy arrays; `get_df()` in `src/pyOpenMS/pyopenms/_dataframes.py` wraps with pandas.
-- Type converters: implement in `src/pyOpenMS/converters/special_autowrap_conversionproviders.py`, register in `src/pyOpenMS/converters/__init__.py`.
-- Gotchas: autowrap returns Python strings; do not `.decode()`. Avoid `cdef` for autowrap string returns. Avoid `cdef` typed variables for autowrap return values inside `def` methods; use Python type checks. Keep addons minimal; avoid redundant aliases.
-- **CRITICAL: `wrap-doc:` formatting** - The autowrap parser (`PXDParser.py`) requires exactly `#  ` (hash + 2 spaces) for all documentation continuation lines. Changing to `#` or `# ` will break parsing:
-  ```python
-  # CORRECT format:
-  void myMethod() except + nogil
-      # wrap-doc:
-      #  This is the documentation.    <- hash + 2 spaces + text
-      #                                 <- hash + 2 spaces (for blank lines)
-      #  :param x: Description          <- hash + 2 spaces + text
-
-  # WRONG format (will cause ValueError):
-  void myMethod() except + nogil
-      # wrap-doc:
-      # This is the documentation.     <- only 1 space after hash - BREAKS!
-      #                                <- just hash - BREAKS!
-  ```
-  The parser uses `line.startswith("#  ")` to validate and continue parsing. Any deviation causes immediate failure.
-- Regenerate after addon changes:
+- Type casters in `bindings/type_casters/` handle C++ ↔ Python type conversion (OpenMS::String ↔ str, DPosition, DataValue, etc.).
+- Keep addons minimal; avoid redundant aliases.
+- Performance-critical methods should be C++ lambdas in the binding files rather than Python addons.
+- All domain modules use `NB_DOMAIN "pyopenms"` for cross-module type sharing.
+- See `src/pyOpenMS/README_WRAPPING_NEW_CLASSES.md` for the full wrapping guide.
+- Build and test:
   ```bash
-  rm OpenMS-build/pyOpenMS/.cpp_extension_generated
-  cmake --build OpenMS-build --target pyopenms -j4
+  cmake --build OpenMS-build --target pyopenms -j$(nproc)
+  cd /tmp && PYTHONPATH=.../OpenMS-build/pyOpenMS python3 -m pytest .../src/pyOpenMS/tests/ -v
   ```
 
 ## Change-Impact Checklist
 
 - New C++ class: add `.h`/`.cpp`, Doxygen docs, class test, `OPENMS_DLLAPI`, register in CMake lists.
-- C++ API change: update `.pxd`/addons, pyOpenMS tests, and relevant docs; tag commits with `API` as needed.
+- C++ API change: update nanobind bindings/addons, pyOpenMS tests, and relevant docs; tag commits with `API` as needed.
 - New/changed TOPP tool: register in `src/topp/executables.cmake` and `ToolHandler.cpp`, add docs, add TOPP tests and data.
 - Parameter or I/O change: update tool docs/CTD, tests, and `CHANGELOG`; use `PARAM`/`IO` commit tags.
 - File format change: update `FileHandler::NamesOfTypes[]`, schemas/validators, and tests.
@@ -418,7 +413,7 @@ void MyClass::process(const MSSpectrum& spectrum)
 
 **Commit message example:**
 **Formatting rules (C++):**
-- 2 spaces indentation, no tabs (Python/Cython uses 4 spaces per PEP 8)
+- 2 spaces indentation, no tabs (Python uses 4 spaces per PEP 8)
 - Unix line endings (LF)
 - Braces on their own lines, aligned
 - Space after keywords (`if`, `for`, `while`)
@@ -486,7 +481,7 @@ Fixes #123
 When you change | Also update
 ----------------|------------
 C++ class (new) | Add `.h`/`.cpp`, Doxygen docs, class test, `OPENMS_DLLAPI`, CMake registration
-C++ API | `.pxd` files, pyOpenMS addons, tests, docs
+C++ API | nanobind bindings (`bind_<domain>.cpp`), pyOpenMS addons, tests, docs
 TOPP tool (new) | `src/topp/executables.cmake`, `ToolHandler.cpp`, docs, TOPP tests
 Parameters | Tool docs, CTD, tests, `CHANGELOG`
 File format | `FileHandler::NamesOfTypes[]`, schemas, tests
@@ -494,13 +489,17 @@ File format | `FileHandler::NamesOfTypes[]`, schemas, tests
 ## pyOpenMS Wrapping
 
 **Key files:**
-- `.pxd` declarations: `src/pyOpenMS/pxds/`
-- Python addons: `src/pyOpenMS/addons/`
-- Type converters: `src/pyOpenMS/converters/`
+- Nanobind bindings: `src/pyOpenMS/bindings/bind_<domain>.cpp` (13 domain files)
+- Type casters: `src/pyOpenMS/bindings/type_casters/`
+- Python addons: `src/pyOpenMS/pyopenms/addons/`
+- Wrapping guide: `src/pyOpenMS/README_WRAPPING_NEW_CLASSES.md`
 
 **Common patterns:**
 ```python
-# In addons/MyClass.pyx - inject Python-only methods
+# In pyopenms/addons/myclass.py - inject Python-only methods
+from pyopenms.addons import addon
+
+@addon("MyClass")
 def get_df(self):
     """Return pandas DataFrame."""
     import pandas as pd
@@ -508,9 +507,8 @@ def get_df(self):
 ```
 
 **Gotchas:**
-- Always declare default and copy constructors in `.pxd`
-- Use `cimport`, not Python `import` for Cython imports
-- Autowrap returns Python strings; do NOT call `.decode()`
+- Always add default and copy constructors: `.def(nb::init<>())`, `.def(nb::init<const OpenMS::MyClass&>())`
+- Use lambdas for explicit control over method wrapping
 - Use snake_case for Python-facing names
 
 ## Verification Commands
@@ -536,7 +534,7 @@ cmake --build OpenMS-build --target test_style
 - `README.md` - Project overview
 - `CONTRIBUTING.md` - Contribution guidelines
 - `src/pyOpenMS/README.md` - pyOpenMS development
-- `src/pyOpenMS/README_WRAPPING_NEW_CLASSES` - Wrapping guide
+- `src/pyOpenMS/README_WRAPPING_NEW_CLASSES.md` - Wrapping guide
 
 **Online resources:**
 - [OpenMS Documentation](https://openms.readthedocs.io/en/latest)
@@ -648,7 +646,7 @@ perf report
 - http://www.doxygen.org/index.html
 - https://llvm.org/builds/
 - https://docs.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/compiler-error-c2471?view=msvc-170
-- https://github.com/OpenMS/autowrap/blob/master/docs/README.md
+- https://nanobind.readthedocs.io/
 
 ### Testing and Profiling Tools
 - https://openms.readthedocs.io/en/latest/docs/topp/adding-new-tool-to-topp.html#how-do-I-add-a-new-TOPP-test

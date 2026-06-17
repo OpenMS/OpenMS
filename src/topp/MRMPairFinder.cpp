@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -92,16 +93,16 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input featureXML file containing the features of the MRM experiment spectra.");
-    setValidFormats_("in", ListUtils::create<String>("featureXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("featureXML"));
 
     registerInputFile_("pair_in", "<file>", "", "Pair-file in the format: prec-m/z-light prec-m/z-heavy frag-m/z-light frag-m/z-heavy rt");
-    setValidFormats_("pair_in", ListUtils::create<String>("csv"));
+    setValidFormats_("pair_in", ListUtils::create<std::string>("csv"));
 
     registerOutputFile_("out", "<file>", "", "Output consensusXML file were the pairs of the features will be written to.");
-    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("consensusXML"));
 
     registerOutputFile_("feature_out", "<file>", "", "Output featureXML file, only written if given, skipped otherwise.", false);
-    setValidFormats_("feature_out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("feature_out", ListUtils::create<std::string>("featureXML"));
 
     registerDoubleOption_("mass_tolerance", "<tolerance>", 0.01, "Precursor mass tolerance which is used for the pair finding and the matching of the given pair m/z values to the features.", false, true);
     setMinFloat_("mass_tolerance", 0.0);
@@ -117,10 +118,10 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in(getStringOption_("in"));
-    String out(getStringOption_("out"));
-    String feature_out(getStringOption_("feature_out"));
-    String pair_in(getStringOption_("pair_in"));
+    std::string in(getStringOption_("in"));
+    std::string out(getStringOption_("out"));
+    std::string feature_out(getStringOption_("feature_out"));
+    std::string pair_in(getStringOption_("pair_in"));
     double mass_tolerance(getDoubleOption_("mass_tolerance"));
     double RT_tolerance(getDoubleOption_("RT_tolerance"));
     double RT_pair_tolerance(getDoubleOption_("RT_pair_tolerance"));
@@ -134,20 +135,20 @@ protected:
 
     // read pair file
     ifstream is(pair_in.c_str());
-    String line;
+    std::string line;
     std::map<double, std::map<double, vector<SILAC_pair> > > pairs;
     while (getline(is, line))
     {
-      line.trim();
+      StringUtils::trim(line);
       if (line.empty() || line[0] == '#')
       {
         continue;
       }
-      vector<String> split;
-      line.split(' ', split);
+      vector<std::string> split;
+      StringUtils::split(line, ' ', split);
       if (split.empty())
       {
-        line.split('\t', split);
+        StringUtils::split(line, '\t', split);
       }
       if (split.size() != 5)
       {
@@ -155,11 +156,11 @@ protected:
         continue;
       }
       SILAC_pair p;
-      double prec_mz_light = split[0].toDouble();
-      double prec_mz_heavy = split[1].toDouble();
-      p.mz_light = split[2].toDouble();
-      p.mz_heavy = split[3].toDouble();
-      p.rt = split[4].toDouble();
+      double prec_mz_light = StringUtils::toDouble(split[0]);
+      double prec_mz_heavy = StringUtils::toDouble(split[1]);
+      p.mz_light = StringUtils::toDouble(split[2]);
+      p.mz_heavy = StringUtils::toDouble(split[3]);
+      p.rt = StringUtils::toDouble(split[4]);
       pairs[prec_mz_light][prec_mz_heavy].push_back(p);
     }
     is.close();
@@ -182,7 +183,7 @@ protected:
       for (std::map<double, vector<SILAC_pair> >::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
         vector<SILACQuantitation> quantlets;
-        writeDebug_("Analyzing SILAC pair: " + String(it1->first) + " <-> " + String(it2->first), 3);
+        writeDebug_("Analyzing SILAC pair: " + StringUtils::toStr(it1->first) + " <-> " + StringUtils::toStr(it2->first), 3);
         Size idx = 0;
         for (vector<SILAC_pair>::const_iterator pit = it2->second.begin(); pit != it2->second.end(); ++pit, ++idx)
         {
@@ -219,7 +220,7 @@ protected:
 
           if (!heavy.empty() && !light.empty())
           {
-            writeDebug_("Finding best feature pair out of " + String(light.size()) + " light and " + String(heavy.size()) + " heavy matching features.", 1);
+            writeDebug_("Finding best feature pair out of " + StringUtils::toStr(light.size()) + " light and " + StringUtils::toStr(heavy.size()) + " heavy matching features.", 1);
             // now find "good" matches, means the pair with the smallest m/z deviation
             Feature best_light, best_heavy;
             double best_deviation(numeric_limits<double>::max());
@@ -257,13 +258,13 @@ protected:
             results_map.push_back(SILAC_feature);
 
             quantlets.push_back(SILACQuantitation(best_light.getIntensity(), best_heavy.getIntensity(), best_idx));
-            writeDebug_("Ratio of XIC: " + String(best_heavy.getIntensity() / best_light.getIntensity()) + " " + String(best_light.getMZ()) + " <-> " + String(best_heavy.getMZ()) + " @" + String(SILAC_feature.getRT()) + " RT-heavy=" + String(best_heavy.getRT()) + ", RT-light=" + String(best_light.getRT()) + ", RT-diff=" + String(best_heavy.getRT() - best_light.getRT()) +
-                        " avg. int " + String((best_heavy.getIntensity() + best_light.getIntensity()) / 2.0), 1);
+            writeDebug_("Ratio of XIC: " + StringUtils::toStr(best_heavy.getIntensity() / best_light.getIntensity()) + " " + StringUtils::toStr(best_light.getMZ()) + " <-> " + StringUtils::toStr(best_heavy.getMZ()) + " @" + StringUtils::toStr(SILAC_feature.getRT()) + " RT-heavy=" + StringUtils::toStr(best_heavy.getRT()) + ", RT-light=" + StringUtils::toStr(best_light.getRT()) + ", RT-diff=" + StringUtils::toStr(best_heavy.getRT() - best_light.getRT()) +
+                        " avg. int " + StringUtils::toStr((best_heavy.getIntensity() + best_light.getIntensity()) / 2.0), 1);
 
           }
         }
 
-        writeDebug_("Quantitation of pair " + String(it1->first) + " <-> " + String(it2->first) + " (#XIC pairs for quantation=" + String(quantlets.size()) + ")", 1);
+        writeDebug_("Quantitation of pair " + StringUtils::toStr(it1->first) + " <-> " + StringUtils::toStr(it2->first) + " (#XIC pairs for quantation=" + StringUtils::toStr(quantlets.size()) + ")", 1);
 
         if (quantlets.empty())
         {
@@ -283,7 +284,7 @@ protected:
         }
 
         double absdev_ratios = Math::absdev(ratios.begin(), ratios.begin() + (ratios.size()) / (light_sum + heavy_sum));
-        cout << "Ratio: " << it1->first << " <-> " << it2->first << " @ " << it2->second.begin()->rt << " s, ratio(h/l) " << heavy_sum / light_sum << " +/- " << absdev_ratios <<  " " << "(#XIC-pairs for quantation: " + String(ratios.size()) + " )" << endl;
+        cout << "Ratio: " << it1->first << " <-> " << it2->first << " @ " << it2->second.begin()->rt << " s, ratio(h/l) " << heavy_sum / light_sum << " +/- " << absdev_ratios <<  " " << "(#XIC-pairs for quantation: " + StringUtils::toStr(ratios.size()) + " )" << endl;
       }
     }
 

@@ -10,7 +10,7 @@
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
@@ -87,7 +87,7 @@ public:
         Int ssl,
         MRMFeatureSelector::VariableType vt,
         double ot,
-        std::map<String, MRMFeatureSelector::LambdaScore>& sw
+        std::map<std::string, MRMFeatureSelector::LambdaScore>& sw
       ) :
         nn_threshold(nn),
         locality_weight(lw),
@@ -102,10 +102,10 @@ public:
       bool   locality_weight         = false; ///< Weight compounds with a nearer Tr greater than compounds with a further Tr
       bool   select_transition_group = true; ///< Use components groups instead of components for retention time optimization
       Int    segment_window_length   = 8; ///< Number of components or component groups to include in the network
-      Int    segment_step_length     = 4; ///< Number of of components or component groups to shift the `segment_window_length` at each loop
+      Int    segment_step_length     = 4; ///< Number of components or component groups to shift the `segment_window_length` at each loop
       MRMFeatureSelector::VariableType variable_type = MRMFeatureSelector::VariableType::CONTINUOUS; ///< INTEGER or CONTINUOUS
       double optimal_threshold       = 0.5; ///< Value above which the transition group or transition is considered optimal (0 < x < 1)
-      std::map<String, MRMFeatureSelector::LambdaScore> score_weights; ///< Weights for the scores
+      std::map<std::string, MRMFeatureSelector::LambdaScore> score_weights; ///< Weights for the scores
     };
 
     /**
@@ -119,9 +119,9 @@ public:
       @param[in] parameters Parameters
     */
     virtual void optimize(
-      const std::vector<std::pair<double, String>>& time_to_name,
-      const std::map<String, std::vector<Feature>>& feature_name_map,
-      std::vector<String>& result,
+      const std::vector<std::pair<double, std::string>>& time_to_name,
+      const std::map<std::string, std::vector<Feature>>& feature_name_map,
+      std::vector<std::string>& result,
       const SelectorParameters& parameters
     ) const = 0;
 
@@ -155,7 +155,7 @@ protected:
     */
     Int addVariable_(
       LPWrapper& problem,
-      const String& name,
+      const std::string& name,
       const bool bounded,
       const double obj,
       const VariableType variableType
@@ -171,7 +171,7 @@ protected:
 
       @return Computed score
     */
-    double computeScore_(const Feature& feature, const std::map<String, LambdaScore>& score_weights) const;
+    double computeScore_(const Feature& feature, const std::map<std::string, LambdaScore>& score_weights) const;
 
     /**
       Add constraint to the LP problem instantiated in `optimize()`
@@ -188,7 +188,7 @@ protected:
       LPWrapper& problem,
       const std::vector<Int>& indices,
       const std::vector<double>& values,
-      const String& name,
+      const std::string& name,
       const double lb,
       const double ub,
       const LPWrapper::Type param
@@ -207,8 +207,8 @@ private:
     */
     void constructTargTransList_(
       const FeatureMap& features,
-      std::vector<std::pair<double, String>>& time_to_name,
-      std::map<String, std::vector<Feature>>& feature_name_map,
+      std::vector<std::pair<double, std::string>>& time_to_name,
+      std::map<std::string, std::vector<Feature>>& feature_name_map,
       const bool select_transition_group
     ) const;
 
@@ -232,53 +232,84 @@ private:
     double weightScore_(const double score, const LambdaScore lambda_score) const;
 
     /// Removes spaces from the given string, not-in-place.
-    String removeSpaces_(String str) const;
+    std::string removeSpaces_(std::string str) const;
   };
 
   /**
-    Class used to select MRMFeatures based on relative retention time using a
-    quadratic mixed integer programming (QMIP) formulation.
-    The method is described in [TODO: update when published]
+    @brief @ref MRMFeatureSelector implementation that selects MRM features via a quadratic-programming formulation over relative retention time.
+
+    For each transition, considers neighbouring transitions inside
+    @ref MRMFeatureSelector::SelectorParameters::nn_threshold and adds locality-weighted
+    pairwise terms keyed on the expected retention-time delta. Per-feature score is
+    normalised by the @c nth root of the number of @c score_weights entries (with @c n
+    the number of weights) so multi-weight configurations don't dominate the QP.
+
+    Companion to @ref MRMFeatureSelectorScore (linear, no nearest-neighbour coupling).
+
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI MRMFeatureSelectorQMIP : public MRMFeatureSelector
   {
 public:
     /**
-      Set up the linear programming problem and solve it.
+      @brief Build the quadratic LP problem for @p time_to_name and write the names of selected features to @p result.
 
-      @param[in] time_to_name Pairs representing a mapping of retention times to transition names
-      @param[in] feature_name_map Transitions' names to their features objects
-      @param[out] result Transitions' names filtered out of the LP problem
-      @param[in] parameters Parameters
+      Uses @c LPWrapper with @c LPWrapper::MIN objective sense. For each transition,
+      registers one binary (or continuous, depending on
+      @ref MRMFeatureSelector::SelectorParameters::variable_type) variable per feature,
+      then for every neighbour within @c nn_threshold adds a locality-weighted pairwise
+      term keyed on the expected RT delta. After solving, every column whose value is
+      @c >= @c parameters.optimal_threshold contributes its name to @p result.
+      @p result is cleared on entry.
+
+      @param[in]  time_to_name      Pairs of (retention time, transition name); the order of this vector defines the neighbour sliding window.
+      @param[in]  feature_name_map  Transition name → its candidate features.
+      @param[out] result            Names of the selected features (one per column whose solver value clears @c optimal_threshold). Cleared on entry.
+      @param[in]  parameters        Algorithm parameters (@c nn_threshold, @c locality_weight, @c variable_type, @c score_weights, @c optimal_threshold, ...).
     */
     void optimize(
-      const std::vector<std::pair<double, String>>& time_to_name,
-      const std::map<String, std::vector<Feature>>& feature_name_map,
-      std::vector<String>& result,
+      const std::vector<std::pair<double, std::string>>& time_to_name,
+      const std::map<std::string, std::vector<Feature>>& feature_name_map,
+      std::vector<std::string>& result,
       const SelectorParameters& parameters
     ) const override;
   };
 
   /**
-    Class used to select MRMFeatures based on a linear programming where each
-    possible transition is weighted by a user defined score (most often retention
-    time and peak intensity). The method is described in [TODO: update when published].
+    @brief @ref MRMFeatureSelector implementation that selects MRM features via a linear program with score-weighted per-feature variables.
+
+    Simpler than @ref MRMFeatureSelectorQMIP — no nearest-neighbour coupling, no
+    pairwise quadratic terms. Each transition contributes one binary (or continuous)
+    variable per candidate feature plus an equality constraint forcing exactly one
+    feature to be picked per transition (sum @c == @c 1). The objective is the sum of
+    per-feature scores produced by @c computeScore_ from
+    @ref MRMFeatureSelector::SelectorParameters::score_weights.
+
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI MRMFeatureSelectorScore : public MRMFeatureSelector
   {
 public:
     /**
-      Set up the linear programming problem and solve it.
+      @brief Build the linear program for @p time_to_name and write the names of selected features to @p result.
 
-      @param[in] time_to_name Pairs representing a mapping of retention times to transition names
-      @param[in] feature_name_map Transitions' names to their features objects
-      @param[out] result Transitions' names filtered out of the LP problem
-      @param[in] parameters Parameters
+      Uses @c LPWrapper with @c LPWrapper::MIN objective sense. For each transition,
+      registers one variable per candidate feature (binary or continuous, per
+      @c parameters.variable_type) scored by @c computeScore_, and adds a
+      @c DOUBLE_BOUNDED constraint with both bounds equal to @c 1.0 (i.e. exactly one
+      feature must be picked per transition). After solving, every column whose value
+      is @c >= @c parameters.optimal_threshold contributes its name to @p result.
+      @p result is cleared on entry.
+
+      @param[in]  time_to_name      Pairs of (retention time, transition name). Order is irrelevant — unlike the QMIP variant, no neighbour window is used.
+      @param[in]  feature_name_map  Transition name → its candidate features.
+      @param[out] result            Names of the selected features (one per column whose solver value clears @c optimal_threshold). Cleared on entry.
+      @param[in]  parameters        Algorithm parameters (@c variable_type, @c score_weights, @c optimal_threshold; @c nn_threshold and @c locality_weight are not consulted).
     */
     void optimize(
-      const std::vector<std::pair<double, String>>& time_to_name,
-      const std::map<String, std::vector<Feature>>& feature_name_map,
-      std::vector<String>& result,
+      const std::vector<std::pair<double, std::string>>& time_to_name,
+      const std::map<std::string, std::vector<Feature>>& feature_name_map,
+      std::vector<std::string>& result,
       const SelectorParameters& parameters
     ) const override;
   };
@@ -291,8 +322,8 @@ public:
 
     void constructTargTransList_(
       const FeatureMap& features,
-      std::vector<std::pair<double, String>>& time_to_name,
-      std::map<String, std::vector<Feature>>& feature_name_map,
+      std::vector<std::pair<double, std::string>>& time_to_name,
+      std::map<std::string, std::vector<Feature>>& feature_name_map,
       const bool select_transition_group
     ) const
     {
@@ -304,12 +335,12 @@ public:
       return selector_.weightScore_(score, lambda_score);
     }
 
-    double computeScore_(const Feature& feature, const std::map<String, LambdaScore>& score_weights) const
+    double computeScore_(const Feature& feature, const std::map<std::string, LambdaScore>& score_weights) const
     {
       return selector_.computeScore_(feature, score_weights);
     }
 
-    String removeSpaces_(String str) const
+    std::string removeSpaces_(std::string str) const
     {
       return selector_.removeSpaces_(str);
     }

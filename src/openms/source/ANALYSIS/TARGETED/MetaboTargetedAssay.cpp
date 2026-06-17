@@ -14,6 +14,7 @@
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
 #include <regex>
@@ -26,10 +27,10 @@ namespace OpenMS
 
   // get charge from adduct in standard format [M+H]+ or [M+H]1+
   // only for singly charged species
-  int MetaboTargetedAssay::getChargeFromAdduct_(const String& adduct)
+  int MetaboTargetedAssay::getChargeFromAdduct_(const std::string& adduct)
   {
     int adduct_charge;
-    String adduct_suffix = adduct.suffix(']').trim();
+    std::string adduct_suffix = StringUtils::trimmed(StringUtils::suffix(adduct, ']'));
     // charge one
     if (adduct_suffix == "+")
     {
@@ -43,15 +44,15 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "The adduct had the suffix '" << adduct_suffix << "', but only singly positive or singly negative charged adducts are supported." << std::endl;
     }
-    String sign = adduct.back();
+    std::string sign(1, adduct.back());
     adduct_suffix.resize(adduct_suffix.size()-1);
     if (sign == "+")
     {
-      adduct_charge = String(adduct_suffix).toInt();
+      adduct_charge =StringUtils::toInt32(std::string(adduct_suffix));
     }
     else
     {
-      adduct_charge = String(sign + adduct_suffix).toInt();
+      adduct_charge =StringUtils::toInt32(std::string(sign + adduct_suffix));
     }
     return adduct_charge;
   }
@@ -85,7 +86,7 @@ namespace OpenMS
 
   void MetaboTargetedAssay::filterBasedOnMolFormAdductOccurrence_(std::vector<MetaboTargetedAssay>& mta)
   {
-    std::map<std::pair<String, String>, int> occ_map;
+    std::map<std::pair<std::string, std::string>, int> occ_map;
     if (!mta.empty())
     {
       for (const auto &t_it : mta)
@@ -138,7 +139,7 @@ namespace OpenMS
 
         vector <ReactionMonitoringTransition> v_rmt;
 
-        String description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
+        std::string description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
         StringList v_description, v_sumformula, v_adduct;
 
         double feature_rt;
@@ -156,20 +157,20 @@ namespace OpenMS
           double min_id_mz_error = std::numeric_limits<double>::max();
           for (const auto& mhit : min_distance_feature->getPeptideIdentifications()[0].getHits())
           {
-            double current_id_mz_error = mhit.getMetaValue("mz_error_ppm");
+            double current_id_mz_error = (double)mhit.getMetaValue("mz_error_ppm");
             // compare the absolute error absolute error
             if (abs(current_id_mz_error) < min_id_mz_error)
             {
-              description = mhit.getMetaValue("description");
-              sumformula = mhit.getMetaValue("chemical_formula");
-              adduct = mhit.getMetaValue("modifications");
+              description = StringUtils::toStr(mhit.getMetaValue("description"));
+              sumformula = StringUtils::toStr(mhit.getMetaValue("chemical_formula"));
+              adduct = StringUtils::toStr(mhit.getMetaValue("modifications"));
 
               // change format of description [name] to name
               description.erase(remove_if(begin(description), end(description), [](char c) { return c == '[' || c == ']'; }), end(description));
 
               // change format of adduct information M+H;1+ -> [M+H]1+
-              String adduct_prefix = adduct.prefix(';').trim();
-              String adduct_suffix = adduct.suffix(';').trim();
+              std::string adduct_prefix = StringUtils::trimmed(StringUtils::prefix(adduct, ';'));
+              std::string adduct_suffix = StringUtils::trimmed(StringUtils::suffix(adduct, ';'));
               adduct = "[" + adduct_prefix + "]" + adduct_suffix;
 
               min_id_mz_error = abs(current_id_mz_error);
@@ -183,7 +184,7 @@ namespace OpenMS
         else
         {
           // count UNKNOWN via transition group counter
-          v_description.push_back(String(description + "_" + transition_group_counter));
+          v_description.push_back(std::string(description + "_" + transition_group_counter));
           v_sumformula.push_back(sumformula);
           v_adduct.push_back(adduct);
         }
@@ -193,7 +194,7 @@ namespace OpenMS
       int highest_precursor_charge = 0;
       MSSpectrum highest_precursor_int_spectrum;
       MSSpectrum transition_spectrum;
-      String native_id;
+      std::string native_id;
 
       // find precursor/spectrum with highest intensity precursor
       vector <size_t> index = it.second;
@@ -352,7 +353,7 @@ namespace OpenMS
       cmp.setChargeState(highest_precursor_charge);
 
       description = ListUtils::concatenate(v_description, ",");
-      cmp.id = String(transition_group_counter) + "_" + description + "_" + file_counter;
+      cmp.id =StringUtils::toStr(transition_group_counter) + "_" + description + "_" + file_counter;
       cmp.setMetaValue("CompoundName", description);
       cmp.smiles_string = "NA";
 
@@ -396,8 +397,8 @@ namespace OpenMS
           rmt.setProduct(product);
           rmt.setLibraryIntensity(rel_int);
           description = ListUtils::concatenate(v_description, ",");
-          rmt.setCompoundRef (String(transition_group_counter) + "_" + description + "_" + file_counter);
-          rmt.setNativeID (String(transition_group_counter)+ "_" + String(transition_counter)+ "_" + description + "_" + file_counter);
+          rmt.setCompoundRef (StringUtils::toStr(transition_group_counter) + "_" + description + "_" + file_counter);
+          rmt.setNativeID (StringUtils::toStr(transition_group_counter)+ "_" + StringUtils::toStr(transition_counter)+ "_" + description + "_" + file_counter);
           rmt.setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::TARGET); // no decoys are generated without SIRIUS
 
           v_rmt.push_back(std::move(rmt));
@@ -461,7 +462,7 @@ namespace OpenMS
         cmp.clearMetaInfo();
         vector <ReactionMonitoringTransition> v_rmt;
 
-        String description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
+        std::string description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
 
         double feature_rt = csp.compound_info.rt;
         description = csp.compound_info.des;
@@ -469,9 +470,9 @@ namespace OpenMS
         double precursor_int = csp.compound_info.pint_mono;
 
         // use annotated metadata
-        sumformula = transition_spectrum.getMetaValue("annotated_sumformula");
-        adduct = transition_spectrum.getMetaValue("annotated_adduct");
-        int decoy = transition_spectrum.getMetaValue("decoy");
+        sumformula = StringUtils::toStr(transition_spectrum.getMetaValue("annotated_sumformula"));
+        adduct = StringUtils::toStr(transition_spectrum.getMetaValue("annotated_adduct"));
+        int decoy = (int)transition_spectrum.getMetaValue("decoy");
 
         // transition calculations
         // calculate max intensity peak and threshold
@@ -539,23 +540,23 @@ namespace OpenMS
         v_cmp_rt = {cmp_rt};
         cmp.rts = {v_cmp_rt};
         cmp.setChargeState(charge);
-        String identifier_suffix = adduct + "_" + int(feature_rt) + "_" + csp.compound_info.file_index;
+        std::string identifier_suffix = adduct + "_" + int(feature_rt) + "_" + csp.compound_info.file_index;
 
         if (description == "UNKNOWN")
         {
-          description = String(description + "_" + entry_counter);
+          description =std::string(description + "_" + entry_counter);
         }
         // compoundID has to be unique over all the files
         // feature_rt if the same ID was detected twice at different retention times in the same file
         if (decoy == 0)
         {
-          cmp.id = String(entry_counter) + "_" + description + "_" + identifier_suffix;
+          cmp.id =StringUtils::toStr(entry_counter) + "_" + description + "_" + identifier_suffix;
           cmp.setMetaValue("CompoundName", description);
         }
         else if (decoy == 1)
         {
-          description = String(description + "_decoy");
-          cmp.id = String(entry_counter) + "_" + description + "_" + identifier_suffix;
+          description =std::string(description + "_decoy");
+          cmp.id =StringUtils::toStr(entry_counter) + "_" + description + "_" + identifier_suffix;
           cmp.setMetaValue("CompoundName", description);
         }
 
@@ -601,7 +602,7 @@ namespace OpenMS
 
           float current_int = spec_it->getIntensity();
           double current_mz = spec_it->getMZ();
-          String current_explanation = explanation_array[peak_index];
+          const std::string& current_explanation = explanation_array[peak_index];
 
           // write row for each transition
           // current int has to be higher than transition threshold and should not be smaller than threshold noise
@@ -621,7 +622,7 @@ namespace OpenMS
             rmt.setProduct(product);
             rmt.setLibraryIntensity(rel_int);
             rmt.setCompoundRef(cmp.id);
-            rmt.setNativeID(String(entry_counter) + "_" + String(transition_counter) + "_" + description + "_" + identifier_suffix);
+            rmt.setNativeID(StringUtils::toStr(entry_counter) + "_" + StringUtils::toStr(transition_counter) + "_" + description + "_" + identifier_suffix);
             rmt.setMetaValue("annotation", DataValue(current_explanation));
             if (!csp.compound_info.native_ids_id.empty())
             {
@@ -692,12 +693,12 @@ namespace OpenMS
     return v_cmp_spec;
   }
 
-  std::unordered_map< UInt64 , vector<MetaboTargetedAssay> > MetaboTargetedAssay::buildAmbiguityGroup(const vector<MetaboTargetedAssay>& v_mta,const double& ar_mz_tol, const double& ar_rt_tol, const String& ar_mz_tol_unit_res, size_t in_files_size)
+  std::unordered_map< UInt64 , vector<MetaboTargetedAssay> > MetaboTargetedAssay::buildAmbiguityGroup(const vector<MetaboTargetedAssay>& v_mta,const double& ar_mz_tol, const double& ar_rt_tol, const std::string& ar_mz_tol_unit_res, size_t in_files_size)
   {
-    String decoy_suffix = "_decoy";
+    std::string decoy_suffix = "_decoy";
 
     // group target and decoy position in vector based on the unique CompoundID/TransitionGroupID
-    std::map<String, MetaboTargetedAssay::TargetDecoyGroup> target_decoy_groups;
+    std::map<std::string, MetaboTargetedAssay::TargetDecoyGroup> target_decoy_groups;
     for (Size i = 0; i < v_mta.size(); ++i)
     {
       MetaboTargetedAssay current_entry = v_mta[i];
@@ -707,7 +708,7 @@ namespace OpenMS
         if (current_entry.potential_rmts[0].getDecoyTransitionType() ==
             ReactionMonitoringTransition::DecoyTransitionType::DECOY)
         {
-          String compoundId = current_entry.potential_cmp.id;
+          std::string compoundId = current_entry.potential_cmp.id;
           compoundId.erase(compoundId.find(decoy_suffix), decoy_suffix.size());
           auto [it , success] = target_decoy_groups.emplace(compoundId, MetaboTargetedAssay::TargetDecoyGroup());
           if (success)
@@ -765,7 +766,7 @@ namespace OpenMS
       FeatureMap fmap;
       fmap.setUniqueId();
       fmap.ensureUniqueId();
-      String internal_file_path = "File" + std::to_string(i) + ".mzML";
+      std::string internal_file_path = "File" + std::to_string(i) + ".mzML";
       fmap.setPrimaryMSRunPath({internal_file_path});
       feature_maps.emplace_back(fmap);
     }
@@ -853,12 +854,12 @@ namespace OpenMS
       {
         if (p_it.metaValueExists("v_mta_target_index"))
         {
-          int index = p_it.getMetaValue("v_mta_target_index");
+          int index = (int)p_it.getMetaValue("v_mta_target_index");
           ambi_group.push_back(v_mta[index]);
         }
         if (p_it.metaValueExists("v_mta_decoy_index"))
         {
-          int index = p_it.getMetaValue("v_mta_decoy_index");
+          int index = (int)p_it.getMetaValue("v_mta_decoy_index");
           ambi_group.push_back(v_mta[index]);
         }
       }

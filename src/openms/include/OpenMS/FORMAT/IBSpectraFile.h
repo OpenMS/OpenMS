@@ -19,7 +19,6 @@ namespace OpenMS
 
   // forward declaration
   class ConsensusMap;
-  class String;
   class IsobaricQuantitationMethod;
   class AASequence;
   
@@ -53,7 +52,7 @@ public:
 
       @throws Exception::InvalidParameter if the ConsensusMap does not hold the result of an isobaric quantification experiment (e.g., itraq).
     */
-    void store(const String& filename, const ConsensusMap& cm);
+    void store(const std::string& filename, const ConsensusMap& cm);
 private:
 
     /**
@@ -76,7 +75,7 @@ private:
       @param[in] sequence The sequence for which the modification string should be generated.
       @return The modification string for the given sequence.
     */
-    String getModifString_(const AASequence& sequence);
+    std::string getModifString_(const AASequence& sequence);
   };
 
 }

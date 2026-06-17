@@ -74,7 +74,7 @@ namespace OpenMS
     protected:
 
     /// Helper function to add (uncharged) fragment peaks to a spectrum
-    void addFragmentPeaks_(MSSpectrum& spectrum, const std::vector<double>& fragment_masses, const String& ion_type, double offset, double intensity, Size start = 0) const;
+    void addFragmentPeaks_(MSSpectrum& spectrum, const std::vector<double>& fragment_masses, const std::string& ion_type, double offset, double intensity, Size start = 0) const;
 
     /// Special version of addFragmentPeaks_() for a-B ions
     void addAMinusBPeaks_(MSSpectrum& spectrum, const std::vector<double>& fragment_masses, const NASequence& oligo, Size start = 0) const;

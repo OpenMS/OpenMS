@@ -150,7 +150,7 @@ namespace OpenMS
 
     ///@}
 
-    ///@name Buffer access (for NumPy/Cython interoperability)
+    ///@name Buffer access (for NumPy interoperability)
     ///@{
 
     /// Pointer to raw data buffer (column-major storage)

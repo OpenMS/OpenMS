@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_2" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<featureList count="2">
+		<feature id="f_3">
+			<position dim="0">100.5</position>
+			<position dim="1">500.001</position>
+			<intensity>1100.0</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.85</overallquality>
+			<charge>3</charge>
+		</feature>
+		<feature id="f_4">
+			<position dim="0">200.5</position>
+			<position dim="1">600.001</position>
+			<intensity>2100.0</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.75</overallquality>
+			<charge>3</charge>
+		</feature>
+	</featureList>
+</featureMap>

@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/METADATA/PeptideHit.h>
 
 
 ///////////////////////////
@@ -26,7 +27,7 @@ class AScoreTest : public AScore
       return computeSiteDeterminingIons_(th_spectra, candidates, site_determining_ions);
     }
 
-    std::vector<Size> getSitesTest_(String& without_phospho) const {
+    std::vector<Size> getSitesTest_(std::string& without_phospho) const {
       return getSites_(without_phospho);
     }
 
@@ -52,9 +53,9 @@ class AScoreTest : public AScore
       return computeCumulativeScore_(N, n, p);
     }  
     
-    //Size numberOfPhosphoEventsTest_(const String sequence) const;
+    //Size numberOfPhosphoEventsTest_(const std::string sequence) const;
     
-    AASequence removePhosphositesFromSequenceTest_(const String sequence) const
+    AASequence removePhosphositesFromSequenceTest_(const std::string sequence) const
     {
       return removePhosphositesFromSequence_(sequence);
     }
@@ -434,7 +435,7 @@ END_SECTION
 START_SECTION(std::vector<Size> getSitesTest_(const AASequence& without_phospho))
 {
   AASequence phospho = AASequence::fromString("VTQSPSSP");
-  String unmodified_sequence = phospho.toUniModString();
+  std::string unmodified_sequence = phospho.toUniModString();
   vector<Size> tupel(ptr_test->getSitesTest_(unmodified_sequence));
   TEST_EQUAL(4, tupel.size())
   TEST_EQUAL(1, tupel[0])
@@ -499,9 +500,9 @@ START_SECTION(std::vector<std::vector<Size>> computePermutationsTest_(const std:
 }
 END_SECTION
 
-START_SECTION(AASequence removePhosphositesFromSequenceTest_(const String sequence))
+START_SECTION(AASequence removePhosphositesFromSequenceTest_(const std::string sequence))
 {
-  String sequence = "QSSVTQVTEQS(Phospho)PK";
+  std::string sequence = "QSSVTQVTEQS(Phospho)PK";
   TEST_EQUAL(ptr_test->removePhosphositesFromSequenceTest_(sequence).toString(), "QSSVTQVTEQSPK");
 }
 END_SECTION

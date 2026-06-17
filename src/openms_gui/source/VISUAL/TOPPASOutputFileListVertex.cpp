@@ -16,6 +16,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtCore>
 #include <QtCore/QFile>
@@ -33,7 +34,7 @@ namespace OpenMS
     return std::make_unique<TOPPASOutputFileListVertex>(*this);
   }
 
-  String TOPPASOutputFileListVertex::getName() const
+  std::string TOPPASOutputFileListVertex::getName() const
     {
       return "OutputFileVertex";
     }
@@ -80,7 +81,7 @@ namespace OpenMS
       return;
     }
 
-    String full_dir = createOutputDir(); // create output dir
+    std::string full_dir = createOutputDir(); // create output dir
 
     round_total_ = (int)pkg.size(); // take number of rounds from previous tool(s) - should all be equal
     round_counter_ = 0;             // once round_counter_ reaches round_total_, we are done
@@ -101,12 +102,12 @@ namespace OpenMS
     {
       for (const QString& f : pkg[round][param_index_src].filenames.get())
       {
-        if (! dry_run && ! File::exists(f))
+        if (! dry_run && ! File::exists(fromQString(f)))
         {
-          OPENMS_LOG_ERROR << "The file '" << String(f) << "' does not exist!" << std::endl;
+          OPENMS_LOG_ERROR << "The file '" << fromQString(f) << "' does not exist!" << std::endl;
           throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, f.toStdString());
         }
-        QString new_file = full_dir.toQString() + QDir::separator() + File::basename(f).toQString();
+        QString new_file = toQString(full_dir) + QDir::separator() + toQString(File::basename(fromQString(f)));
 
         // remove "_tmp<number>" if its a suffix
         QRegularExpression rx("_tmp\\d+$");
@@ -133,13 +134,13 @@ namespace OpenMS
               }
               else
               {
-                ft = FileHandler::getTypeByContent(f); // this will access the file physically
+                ft = FileHandler::getTypeByContent(fromQString(f)); // this will access the file physically
               }
               // do we know the extension already?
               if (ft == FileTypes::UNKNOWN)
               { // if not, try param value of '<name>_type' (more generic, supporting more than just 'out_type')
                 const Param& p = ttv->getParam();
-                String out_type = source_output_files[e->getSourceOutParam()].param_name + "_type";
+                std::string out_type = source_output_files[e->getSourceOutParam()].param_name + "_type";
                 if (p.exists(out_type)) { ft = FileTypes::nameToType(p.getValue(out_type).toString()); }
               }
             }
@@ -147,7 +148,7 @@ namespace OpenMS
         }
 
         // replace old suffix by new suffix
-        FileHandler::swapExtension(new_file, ft);
+        new_file = toQString(FileHandler::swapExtension(fromQString(new_file), ft));
 
         // only scheduled for writing
         output_files_[round][param_index_me].filenames.push_back(QDir::toNativeSeparators(new_file));
@@ -168,13 +169,13 @@ namespace OpenMS
         round_counter_ = (int)round; // for global update, in case someone asks
         for (int i = 0; i < pkg[round][param_index_src].filenames.size(); ++i)
         {
-          String file_from = pkg[round][param_index_src].filenames[i];
-          String file_to = output_files_[round][param_index_me].filenames[i];
+          std::string file_from = fromQString(pkg[round][param_index_src].filenames[i]);
+          std::string file_to = fromQString(output_files_[round][param_index_me].filenames[i]);
           if (File::exists(file_to))
           {
-            if (! QFile::remove(file_to.toQString())) // todo: this goes wrong on first run .... why???
+            if (! QFile::remove(toQString(file_to))) // todo: this goes wrong on first run .... why???
             {
-              String msg = "Error: Could not remove old output file '" + file_to + "' for node '"
+              std::string msg = "Error: Could not remove old output file '" + file_to + "' for node '"
                            + pkg[round][param_index_src].edge->getTargetVertex()->getName()
                            + "' in preparation to write the new one. Please make sure the file is not open in other applications and try again.";
               OPENMS_LOG_ERROR << msg << std::endl;
@@ -201,7 +202,7 @@ namespace OpenMS
           }
           else
           {
-            String msg = "Error: Could not copy temporary output file '" + file_from + "' for node '"
+            std::string msg = "Error: Could not copy temporary output file '" + file_from + "' for node '"
                          + pkg[round][param_index_src].edge->getTargetVertex()->getName() + "' to " + file_to
                          + "'. Probably the old file still exists (see earlier errors).";
             OPENMS_LOG_ERROR << msg << std::endl;

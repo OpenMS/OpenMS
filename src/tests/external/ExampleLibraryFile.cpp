@@ -28,7 +28,7 @@ namespace OpenMSExternal
     FeatureMap fm;
     Feature feature;
     fm.push_back(feature);
-    String tmpfilename = "tmpfile.featureXML";
+    std::string tmpfilename = "tmpfile.featureXML";
     FileHandler().storeFeatures(tmpfilename, fm, {FileTypes::FEATUREXML});
 
     FeatureMap fm2;

@@ -33,11 +33,11 @@ namespace OpenMS
     ///@{
 
     /// Intensity type
-    typedef float IntensityType;
+    using IntensityType = float;
     /// Coordinate type (of the position)
-    typedef double CoordinateType;
+    using CoordinateType = double;
     /// Position type
-    typedef DPosition<2> PositionType;
+    using PositionType = DPosition<2>;
     ///@}
 
     /// @name Dimension descriptions

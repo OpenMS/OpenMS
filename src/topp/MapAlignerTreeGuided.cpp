@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h> // to print newick tree on cml
 
@@ -143,7 +144,7 @@ private:
     setValidStrings_("copy_data", {"true","false"});
   }
 
-  Param getSubsectionDefaults_(const String& section) const override
+  Param getSubsectionDefaults_(const std::string& section) const override
   {
     if (section == "algorithm")
     {

@@ -56,7 +56,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, PeakMap& map);
+    void load(const std::string& filename, PeakMap& map);
 
     /**
       @brief Loads a map from a MzML file stored in a buffer (in memory).
@@ -78,7 +78,7 @@ public:
       parsing skips all intermediate data and ends as soon as both counts are available).
 
     */
-    void loadSize(const String & filename, Size& scount, Size& ccount);
+    void loadSize(const std::string & filename, Size& scount, Size& ccount);
 
     /**
       @brief Stores a map in an MzML file.
@@ -87,7 +87,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String& filename, const PeakMap& map) const;
+    void store(const std::string& filename, const PeakMap& map) const;
 
     /**
       @brief Stores a map in an output string.
@@ -116,7 +116,7 @@ public:
       @param[in] skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
       @param[in] skip_first_pass Skip first file parsing pass, which hands only meta-data (number of spectra/chroms and experimental settings) to the consumer
     */
-    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false, bool skip_first_pass = false);
+    void transform(const std::string& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false, bool skip_first_pass = false);
 
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer
@@ -133,14 +133,14 @@ public:
       @param[in] skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
       @param[in] skip_first_pass Skip first file parsing pass, which hands only meta-data (number of spectra/chroms and experimental settings) to the consumer
     */
-    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, PeakMap& map, bool skip_full_count = false, bool skip_first_pass = false);
+    void transform(const std::string& filename_in, Interfaces::IMSDataConsumer * consumer, PeakMap& map, bool skip_full_count = false, bool skip_first_pass = false);
 
     /**
       @brief Checks if a file validates against the XML schema.
 
       @exception Exception::FileNotFound is thrown if the file cannot be found.
     */
-    bool isValid(const String& filename, std::ostream& os = std::cerr);
+    bool isValid(const std::string& filename, std::ostream& os = std::cerr);
 
     /**
       @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
@@ -151,7 +151,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
     */
-    bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
+    bool isSemanticallyValid(const std::string& filename, StringList& errors, StringList& warnings);
 
     /**
       @brief Checks if a file is an indexed MzML file or not.
@@ -160,7 +160,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
     */
-    bool hasIndex(const String& filename);
+    bool hasIndex(const std::string& filename);
 
     struct SpecInfo
     {
@@ -186,15 +186,15 @@ public:
        
        @exception Exception::FileNotFound is thrown if the file could not be opened
     */
-    std::map<UInt, SpecInfo> getCentroidInfo(const String& filename, const Size first_n_spectra_only = 10);
+    std::map<UInt, SpecInfo> getCentroidInfo(const std::string& filename, const Size first_n_spectra_only = 10);
 
 protected:
 
     /// Perform first pass through the file and retrieve the meta-data to initialize the consumer
-    void transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count);
+    void transformFirstPass_(const std::string& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count);
 
     /// Safe parse that catches exceptions and handles them accordingly
-    void safeParse_(const String & filename, Internal::XMLHandler * handler);
+    void safeParse_(const std::string & filename, Internal::XMLHandler * handler);
 
 private:
 
@@ -202,7 +202,7 @@ private:
     PeakFileOptions options_;
 
     /// Location of indexed mzML schema
-    String indexed_schema_location_;
+    std::string indexed_schema_location_;
   };
 
 } // namespace OpenMS

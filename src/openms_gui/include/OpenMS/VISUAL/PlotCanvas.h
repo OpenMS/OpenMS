@@ -409,8 +409,8 @@ namespace OpenMS
     */
     bool addPeakLayer(const ExperimentSharedPtrType& map,
                       ODExperimentSharedPtrType od_map,
-                      const String& filename = "",
-                      const String& caption = "",
+                      const std::string& filename = "",
+                      const std::string& caption = "",
                       const bool use_noise_cutoff = false);
 
     /**
@@ -423,7 +423,7 @@ namespace OpenMS
 
       @return If a new layer was created
     */
-    bool addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename = "", const String& caption = "");
+    bool addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const std::string& filename = "", const std::string& caption = "");
 
 
     /**
@@ -435,7 +435,7 @@ namespace OpenMS
 
         @return If a new layer was created
     */
-    bool addLayer(FeatureMapSharedPtrType map, const String& filename = "", const String& caption = "");
+    bool addLayer(FeatureMapSharedPtrType map, const std::string& filename = "", const std::string& caption = "");
 
     /**
         @brief Add a consensus feature data layer
@@ -446,7 +446,7 @@ namespace OpenMS
 
         @return If a new layer was created
     */
-    bool addLayer(ConsensusMapSharedPtrType map, const String& filename = "", const String& caption = "");
+    bool addLayer(ConsensusMapSharedPtrType map, const std::string& filename = "", const std::string& caption = "");
     //@}
 
     /**
@@ -460,7 +460,7 @@ namespace OpenMS
 
         @return If a new layer was created
     */
-    bool addLayer(PeptideIdentificationList& peptides, const String& filename = "", const String& caption = "");
+    bool addLayer(PeptideIdentificationList& peptides, const std::string& filename = "", const std::string& caption = "");
 
     /// Returns the minimum intensity of the active layer
     inline float getCurrentMinIntensity() const
@@ -487,10 +487,10 @@ namespace OpenMS
     }
 
     /// Sets the @p name of layer @p i
-    void setLayerName(Size i, const String& name);
+    void setLayerName(Size i, const std::string& name);
 
     /// Gets the name of layer @p i
-    String getLayerName(Size i);
+    std::string getLayerName(Size i);
 
     /// Sets the parameters of the current layer
     inline void setCurrentLayerParameters(const Param& param)
@@ -671,7 +671,7 @@ namespace OpenMS
     void visibleAreaChanged(const VisibleArea& area);
 
     /// Emitted when the cursor position changes (for displaying e.g. in status bar)
-    void sendCursorStatus(const String& x_value, const String& y_value);
+    void sendCursorStatus(const std::string& x_value, const std::string& y_value);
 
     /// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
     void sendStatusMessage(std::string message, OpenMS::UInt time);

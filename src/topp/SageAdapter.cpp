@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
@@ -30,7 +31,6 @@
 #include <fstream>
 #include <regex>
 
-#include <QStringList>
 #include <chrono>
 #include <map>
 #include <vector>
@@ -188,9 +188,9 @@ protected:
 )";
 
   // formats a single mod entry as sage json entry
-  String getModDetails(const ResidueModification* mod, const Residue* res)
+  std::string getModDetails(const ResidueModification* mod, const Residue* res)
   {
-    String origin;
+    std::string origin;
     if (mod->getTermSpecificity() == ResidueModification::N_TERM)
     { 
       origin += "^";
@@ -212,13 +212,13 @@ protected:
      origin += res->getOneLetterCode();
    }
 
-    return String("\"") + origin + "\": " + String(mod->getDiffMonoMass());
+    return std::string("\"") + origin + "\": " + StringUtils::toStr(mod->getDiffMonoMass());
   }
 
   // formats all mod entries into a single multi-line json string
-  String getModDetailsString(const OpenMS::ModifiedPeptideGenerator::MapToResidueType& mod_map)
+  std::string getModDetailsString(const OpenMS::ModifiedPeptideGenerator::MapToResidueType& mod_map)
   {
-    String mod_details;
+    std::string mod_details;
     for (auto it = mod_map.val.begin(); it != mod_map.val.end(); ++it)
     {
       const auto& mod = it->first;
@@ -234,42 +234,42 @@ protected:
 
   // impute values into config_template
   // TODO just iterate over all options??
-  String imputeConfigIntoTemplate()
+  std::string imputeConfigIntoTemplate()
   {
-    String config_file = config_template;
-    config_file.substitute("##bucket_size##", String(getIntOption_("bucket_size")));
-    config_file.substitute("##min_len##", String(getIntOption_("min_len")));
-    config_file.substitute("##max_len##", String(getIntOption_("max_len")));
-    config_file.substitute("##missed_cleavages##", String(getIntOption_("missed_cleavages")));
-    config_file.substitute("##fragment_min_mz##", String(getDoubleOption_("fragment_min_mz")));
-    config_file.substitute("##fragment_max_mz##", String(getDoubleOption_("fragment_max_mz")));
-    config_file.substitute("##peptide_min_mass##", String(getDoubleOption_("peptide_min_mass")));
-    config_file.substitute("##peptide_max_mass##", String(getDoubleOption_("peptide_max_mass")));
-    config_file.substitute("##min_ion_index##", String(getIntOption_("min_ion_index")));
-    config_file.substitute("##max_variable_mods##", String(getIntOption_("max_variable_mods")));
-    config_file.substitute("##precursor_tol_unit##", getStringOption_("precursor_tol_unit") == "Da" ? "da" : "ppm"); // sage might expect lower-case "da"
-    config_file.substitute("##precursor_tol_left##", String(getDoubleOption_("precursor_tol_left")));
-    config_file.substitute("##precursor_tol_right##", String(getDoubleOption_("precursor_tol_right")));
-    config_file.substitute("##fragment_tol_unit##", getStringOption_("fragment_tol_unit") == "Da" ? "da" : "ppm"); // sage might expect lower-case "da"
-    config_file.substitute("##fragment_tol_left##", String(getDoubleOption_("fragment_tol_left")));
-    config_file.substitute("##fragment_tol_right##", String(getDoubleOption_("fragment_tol_right")));
-    config_file.substitute("##isotope_errors##", getStringOption_("isotope_error_range"));
-    config_file.substitute("##charges_if_not_annotated##", getStringOption_("charges"));
-    config_file.substitute("##min_matched_peaks##", String(getIntOption_("min_matched_peaks")));
-    config_file.substitute("##min_peaks##", String(getIntOption_("min_peaks")));
-    config_file.substitute("##max_peaks##", String(getIntOption_("max_peaks")));
-    config_file.substitute("##report_psms##", String(getIntOption_("report_psms")));
-    config_file.substitute("##deisotope##", getStringOption_("deisotope")); 
-    config_file.substitute("##chimera##", getStringOption_("chimera")); 
-    config_file.substitute("##predict_rt##", getStringOption_("predict_rt")); 
-    config_file.substitute("##decoy_prefix##", getStringOption_("decoy_prefix")); 
-    config_file.substitute("##wide_window##", getStringOption_("wide_window")); 
+    std::string config_file = config_template;
+    StringUtils::substitute(config_file, "##bucket_size##",StringUtils::toStr(getIntOption_("bucket_size")));
+    StringUtils::substitute(config_file, "##min_len##",StringUtils::toStr(getIntOption_("min_len")));
+    StringUtils::substitute(config_file, "##max_len##",StringUtils::toStr(getIntOption_("max_len")));
+    StringUtils::substitute(config_file, "##missed_cleavages##",StringUtils::toStr(getIntOption_("missed_cleavages")));
+    StringUtils::substitute(config_file, "##fragment_min_mz##",StringUtils::toStr(getDoubleOption_("fragment_min_mz")));
+    StringUtils::substitute(config_file, "##fragment_max_mz##",StringUtils::toStr(getDoubleOption_("fragment_max_mz")));
+    StringUtils::substitute(config_file, "##peptide_min_mass##",StringUtils::toStr(getDoubleOption_("peptide_min_mass")));
+    StringUtils::substitute(config_file, "##peptide_max_mass##",StringUtils::toStr(getDoubleOption_("peptide_max_mass")));
+    StringUtils::substitute(config_file, "##min_ion_index##",StringUtils::toStr(getIntOption_("min_ion_index")));
+    StringUtils::substitute(config_file, "##max_variable_mods##",StringUtils::toStr(getIntOption_("max_variable_mods")));
+    StringUtils::substitute(config_file, "##precursor_tol_unit##", getStringOption_("precursor_tol_unit") == "Da" ? "da" : "ppm"); // sage might expect lower-case "da"
+    StringUtils::substitute(config_file, "##precursor_tol_left##",StringUtils::toStr(getDoubleOption_("precursor_tol_left")));
+    StringUtils::substitute(config_file, "##precursor_tol_right##",StringUtils::toStr(getDoubleOption_("precursor_tol_right")));
+    StringUtils::substitute(config_file, "##fragment_tol_unit##", getStringOption_("fragment_tol_unit") == "Da" ? "da" : "ppm"); // sage might expect lower-case "da"
+    StringUtils::substitute(config_file, "##fragment_tol_left##",StringUtils::toStr(getDoubleOption_("fragment_tol_left")));
+    StringUtils::substitute(config_file, "##fragment_tol_right##",StringUtils::toStr(getDoubleOption_("fragment_tol_right")));
+    StringUtils::substitute(config_file, "##isotope_errors##", getStringOption_("isotope_error_range"));
+    StringUtils::substitute(config_file, "##charges_if_not_annotated##", getStringOption_("charges"));
+    StringUtils::substitute(config_file, "##min_matched_peaks##",StringUtils::toStr(getIntOption_("min_matched_peaks")));
+    StringUtils::substitute(config_file, "##min_peaks##",StringUtils::toStr(getIntOption_("min_peaks")));
+    StringUtils::substitute(config_file, "##max_peaks##",StringUtils::toStr(getIntOption_("max_peaks")));
+    StringUtils::substitute(config_file, "##report_psms##",StringUtils::toStr(getIntOption_("report_psms")));
+    StringUtils::substitute(config_file, "##deisotope##", getStringOption_("deisotope")); 
+    StringUtils::substitute(config_file, "##chimera##", getStringOption_("chimera")); 
+    StringUtils::substitute(config_file, "##predict_rt##", getStringOption_("predict_rt")); 
+    StringUtils::substitute(config_file, "##decoy_prefix##", getStringOption_("decoy_prefix")); 
+    StringUtils::substitute(config_file, "##wide_window##", getStringOption_("wide_window")); 
 
     
     //Look at decoy handling 
 
-    String enzyme = getStringOption_("enzyme");
-    String enzyme_details;
+    std::string enzyme = getStringOption_("enzyme");
+    std::string enzyme_details;
     if (enzyme == "Trypsin")
     {
       enzyme_details = 
@@ -358,39 +358,39 @@ protected:
       "c_terminal":true)";
     }
 
-    config_file.substitute("##enzyme_details##", enzyme_details);
+    StringUtils::substitute(config_file, "##enzyme_details##", enzyme_details);
 
     
     auto fixed_mods = getStringList_("fixed_modifications");
-    set<String> fixed_unique(fixed_mods.begin(), fixed_mods.end());
+    set<std::string> fixed_unique(fixed_mods.begin(), fixed_mods.end());
     fixed_mods.assign(fixed_unique.begin(), fixed_unique.end());   
     ModifiedPeptideGenerator::MapToResidueType fixed_mod_map = ModifiedPeptideGenerator::getModifications(fixed_mods); // std::unordered_map<const ResidueModification*, const Residue*> val;
-    String static_mods_details = getModDetailsString(fixed_mod_map);
+    std::string static_mods_details = getModDetailsString(fixed_mod_map);
 
     auto variable_mods = getStringList_("variable_modifications");
-    set<String> variable_unique(variable_mods.begin(), variable_mods.end());
+    set<std::string> variable_unique(variable_mods.begin(), variable_mods.end());
     variable_mods.assign(variable_unique.begin(), variable_unique.end());
     ModifiedPeptideGenerator::MapToResidueType variable_mod_map = ModifiedPeptideGenerator::getModifications(variable_mods);
-    String variable_mods_details = getModDetailsString(variable_mod_map);
+    std::string variable_mods_details = getModDetailsString(variable_mod_map);
 
     //Treat variables as list for sage v0.15 and beyond 
     StringList static_mods_details_list; 
     StringList variable_mods_details_list; 
 
-    String static_mods_details_split = static_mods_details; 
-    String variable_mods_details_split = variable_mods_details; 
-    static_mods_details_split.split(",", static_mods_details_list); 
-    variable_mods_details_split.split(",", variable_mods_details_list); 
+    std::string static_mods_details_split = static_mods_details; 
+    std::string variable_mods_details_split = variable_mods_details; 
+    StringUtils::split(static_mods_details_split, ",", static_mods_details_list); 
+    StringUtils::split(variable_mods_details_split, ",", variable_mods_details_list); 
 
-    String temp_String_var; 
+    std::string temp_String_var; 
     for (auto& x : variable_mods_details_list)
     {
       StringList temp_split; 
-      x.split(":", temp_split); 
+      StringUtils::split(x, ":", temp_split); 
       
       temp_split.insert(temp_split.begin()+1, ":["); 
       temp_split.insert(temp_split.end(), "]"); 
-      String temp_split_Str = ""; 
+      std::string temp_split_Str; 
 
       for (auto& y : temp_split)
       {
@@ -398,9 +398,9 @@ protected:
       } 
       temp_String_var = temp_String_var + "," + temp_split_Str ; 
     } 
-    String temp_String_var_Fin = temp_String_var.substr(1, temp_String_var.size()-1); 
-    config_file.substitute("##static_mods##", static_mods_details);
-    config_file.substitute("##variable_mods##", temp_String_var_Fin);
+    std::string temp_String_var_Fin = StringUtils::substr(temp_String_var, 1, temp_String_var.size()-1); 
+    StringUtils::substitute(config_file, "##static_mods##", static_mods_details);
+    StringUtils::substitute(config_file, "##variable_mods##", temp_String_var_Fin);
 
     return config_file;
   }
@@ -410,19 +410,30 @@ protected:
       std::regex version_regex("Version ([0-9]+)\\.([0-9]+)\\.([0-9]+)");
 
       std::sregex_iterator it(multi_line_input.begin(), multi_line_input.end(), version_regex);
-      std::smatch match = *it;
-      std::cout << "Found Sage version string: " << match.str() << std::endl;      
-          
+      std::sregex_iterator end;
+      if (it == end)
+      {
+        throw std::runtime_error("Could not parse Sage version from output: " + StringUtils::substr(multi_line_input, 0, 200));
+      }
+      std::cout << "Found Sage version string: " << it->str() << std::endl;
+
       return make_tuple(it->str(1), it->str(2), it->str(3)); // major, minor, patch
   }
 
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", { "mzML" } );
+    setValidFormats_("in", { "mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
 
-    registerOutputFile_("out", "<file>", "", "Single output file containing all search results.", true, false);
-    setValidFormats_("out", { "idXML" } );
+    registerOutputFile_("out", "<file>", "", "Output file (.idXML) or directory bundle (.idparquet) containing all search results.", true, false);
+    setValidFormats_("out", { "idXML", "idparquet" } );
 
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
     setValidFormats_("database", { "FASTA" } );
@@ -442,12 +453,12 @@ protected:
     registerDoubleOption_("precursor_tol_left", "<double>", -6.0, "Start (left side) of the precursor tolerance window w.r.t. precursor location. This value is relative to the experimental precursor mass and used to define the lower bound of the search window. Must be negative (e.g., -6 ppm means 6 ppm below the observed mass).", false, false);
     registerDoubleOption_("precursor_tol_right", "<double>", 6.0, "End (right side) of the precursor tolerance window w.r.t. precursor location. This value is added to the experimental precursor mass to define the upper bound of the search window. Must be positive (e.g., 6 ppm means 6 ppm above the observed mass).", false, false);
     registerStringOption_("precursor_tol_unit", "<unit>", "ppm", "Unit of precursor tolerance (ppm or Da)", false, false);
-    setValidStrings_("precursor_tol_unit", ListUtils::create<String>("ppm,Da"));
+    setValidStrings_("precursor_tol_unit", ListUtils::create<std::string>("ppm,Da"));
 
     registerDoubleOption_("fragment_tol_left", "<double>", -20.0, "Start (left side) of the fragment tolerance window w.r.t. fragment location. This value reduces the experimental fragment mass to define the lower bound of the search window. Must be negative (e.g., -20 ppm means 20 ppm below the observed mass).", false, false);
     registerDoubleOption_("fragment_tol_right", "<double>", 20.0, "End (right side) of the fragment tolerance window w.r.t. fragment location. This value is added to the experimental fragment mass to define the upper bound of the search window. Must be positive (e.g., 20 ppm means 20 ppm above the observed mass).", false, false);
     registerStringOption_("fragment_tol_unit", "<unit>", "ppm", "Unit of fragment tolerance (ppm or Da)", false, false);
-    setValidStrings_("fragment_tol_unit", ListUtils::create<String>("ppm,Da"));
+    setValidStrings_("fragment_tol_unit", ListUtils::create<std::string>("ppm,Da"));
 
     // add advanced options
     registerIntOption_("min_matched_peaks", "<int>", min_matched_peaks, "Minimum number of b+y ions required to match for PSM to be reported. Default: 6", false, true);
@@ -470,17 +481,17 @@ protected:
     
 
     //Search Enzyme
-    vector<String> all_enzymes;
+    vector<std::string> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
     setValidStrings_("enzyme", all_enzymes);
 
     //Modifications
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<std::string>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<std::string>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
     //FDR and misc 
@@ -537,35 +548,67 @@ protected:
     }
 
     // do this early, to see if Sage is installed
-    String sage_executable = getStringOption_("sage_executable");
+    std::string sage_executable = getStringOption_("sage_executable");
     std::cout << sage_executable << " sage executable" << std::endl; 
-    String proc_stdout, proc_stderr;
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable.toQString(), QStringList() << "--help", proc_stdout, proc_stderr, "");
+    std::string proc_stdout, proc_stderr;
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable, {"--help"}, proc_stdout, proc_stderr, "");
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;
     }
 
-    auto major_minor_patch = getVersionNumber_(proc_stdout);
-    String sage_version = std::get<0>(major_minor_patch) + "." + std::get<1>(major_minor_patch) + "." + std::get<2>(major_minor_patch);
+    std::tuple<std::string, std::string, std::string> major_minor_patch;
+    try
+    {
+      major_minor_patch = getVersionNumber_(proc_stdout);
+    }
+    catch (const std::runtime_error& e)
+    {
+      OPENMS_LOG_ERROR << "Could not determine Sage version: " << e.what() << "\nSage output was:\n" << proc_stdout << std::endl;
+      return EXTERNAL_PROGRAM_NOTFOUND;
+    }
+    std::string sage_version = std::get<0>(major_minor_patch) + "." + std::get<1>(major_minor_patch) + "." + std::get<2>(major_minor_patch);
     
     //-------------------------------------------------------------
     // run sage
     //-------------------------------------------------------------
     StringList input_files = getStringList_("in");
-    String output_file = getStringOption_("out");
-    String output_folder = File::path(output_file);
-    String fasta_file = getStringOption_("database");
+
+#ifdef WITH_THERMO_RAW
+    // Sage does not natively read Thermo .raw files. Pre-convert any .raw
+    // inputs to temp mzML via FileHandler (ThermoRawFile) before passing
+    // to Sage. Track the temp basename → original path mapping so we can
+    // restore the original .raw path in the output run metadata.
+    std::map<std::string, std::string> sage_tmp_basename_to_original;
+    for (auto& f : input_files)
+    {
+      if (FileHandler::getType(f) == FileTypes::RAW)
+      {
+        OPENMS_LOG_INFO << "Converting Thermo .raw to temp mzML for Sage: " << f << std::endl;
+        MSExperiment exp_raw;
+        FileHandler fh_raw;
+        fh_raw.loadExperiment(f, exp_raw, {FileTypes::RAW}, log_type_);
+        auto tmp_mzml = File::getTemporaryFile() + ".mzML";
+        MzMLFile().store(tmp_mzml, exp_raw);
+        sage_tmp_basename_to_original[File::basename(tmp_mzml)] = f;
+        f = tmp_mzml;
+      }
+    }
+#endif
+
+    std::string output_file = getStringOption_("out");
+    std::string output_folder = File::path(output_file);
+    std::string fasta_file = getStringOption_("database");
     int batch = getIntOption_("batch_size");
     int threads = getIntOption_("threads");
-    String decoy_prefix = getStringOption_("decoy_prefix");
+    std::string decoy_prefix = getStringOption_("decoy_prefix");
 
     // create config
-    String config = imputeConfigIntoTemplate();
+    std::string config = imputeConfigIntoTemplate();
 
     // store config in config_file
     OPENMS_LOG_INFO << "Creating temp file name..." << std::endl;
-    String config_file = File::getTempDirectory() + "/" + File::getUniqueName() + ".json";
+    std::string config_file = File::getTempDirectory() + "/" + File::getUniqueName() + ".json";
     OPENMS_LOG_INFO << "Creating Sage config file..." << config_file << std::endl;
     ofstream config_stream(config_file.c_str());
     config_stream << config;
@@ -574,52 +617,49 @@ protected:
     // keep config file if debug mode is set
     if (getIntOption_("debug") > 1)
     {
-      String debug_config_file = output_folder + "/" + File::getUniqueName() + ".json";
+      std::string debug_config_file = output_folder + "/" + File::getUniqueName() + ".json";
       ofstream debug_config_stream(debug_config_file.c_str());
       debug_config_stream << config;
       debug_config_stream.close();     
     }
 
-    String annotation_check;    
+    std::string annotation_check;    
 
-    QStringList arguments;
+    std::vector<std::string> arguments;
 
   if ( (getStringOption_("annotate_matches").compare("true")) == 0)
   {
-    arguments << config_file.toQString() 
-              << "-f" << fasta_file.toQString() 
-              << "-o" << output_folder.toQString() 
-              << "--annotate-matches"
-              << "--write-pin"; 
+    arguments.insert(arguments.end(), {config_file, "-f", fasta_file, "-o", output_folder, "--annotate-matches", "--write-pin"});
   }
   else
   {
-    arguments << config_file.toQString() 
-              << "-f" << fasta_file.toQString() 
-              << "-o" << output_folder.toQString() 
-              << "--write-pin"; 
+    arguments.insert(arguments.end(), {config_file, "-f", fasta_file, "-o", output_folder, "--write-pin"});
   }
 
-    if (batch >= 1) arguments << "--batch-size" << String(batch).toQString();
-    
-    for (auto s : input_files) arguments << s.toQString();
+    if (batch >= 1) { arguments.push_back("--batch-size"); arguments.push_back(StringUtils::toStr(batch)); }
 
-    OPENMS_LOG_INFO << "Sage command line: " << sage_executable << " " << arguments.join(' ').toStdString() << std::endl;
-    
-    //std::chrono lines for testing/writing purposes only! 
+    for (const auto& s : input_files) arguments.push_back(s);
+
+    {
+      std::string args_str;
+      for (const auto& a : arguments) { args_str += " " + a; }
+      OPENMS_LOG_INFO << "Sage command line: " << sage_executable << args_str << std::endl;
+    }
+
+    //std::chrono lines for testing/writing purposes only!
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    
+
     // Set RAYON_NUM_THREADS environment variable to control Sage's thread usage
     // Only set if threads > 0; if threads == 0, let Rayon auto-detect (use all CPUs)
-    std::map<QString, QString> sage_env;
+    std::map<std::string, std::string> sage_env;
     if (threads > 0)
     {
-      sage_env["RAYON_NUM_THREADS"] = String(threads).toQString();
+      sage_env["RAYON_NUM_THREADS"] =StringUtils::toStr(threads);
     }
-    
+
     // Sage execution with the executable and the arguments StringList
-    exit_code = runExternalProcess_(sage_executable.toQString(), arguments, "", sage_env);
+    exit_code = runExternalProcess_(sage_executable, arguments, "", sage_env);
     
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     #ifdef CHRONOSET
@@ -669,7 +709,7 @@ protected:
       }
     }
     
-    String smoothing_string = getStringOption_("smoothing"); 
+    std::string smoothing_string = getStringOption_("smoothing"); 
     bool smoothing = !(smoothing_string.compare("true")); 
 
     // Use shared modification analysis functionality
@@ -684,20 +724,25 @@ protected:
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
     IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
     
-    if (filenames.empty()) filenames = getStringList_("in");
+    // Fallback uses input_files (not getStringList_("in")) so that for Thermo
+    // .raw inputs the fallback gives the temp mzML paths Sage actually saw —
+    // post-processing (native-ID repair, FAIMS) needs those basenames to match
+    // file2specnr2nativeid keys built below from input_files. Equivalent to
+    // getStringList_("in") for mzML/.d inputs where no pre-conversion happened.
+    if (filenames.empty()) filenames = input_files;
 
     // TODO: allow optional split and create multiple idXMLs one per input file
     vector<ProteinIdentification> protein_identifications(1, ProteinIdentification());
 
-    writeDebug_("write idXMLFile", 1);    
-    
-    protein_identifications[0].setPrimaryMSRunPath(filenames);  
+    writeDebug_("write idXMLFile", 1);
+
+    protein_identifications[0].setPrimaryMSRunPath(filenames);
     protein_identifications[0].setDateTime(DateTime::now());
     protein_identifications[0].setSearchEngine("Sage");
     protein_identifications[0].setSearchEngineVersion(sage_version);
 
     DateTime now = DateTime::now();
-    String identifier("Sage_" + now.get());
+    std::string identifier("Sage_" + now.get());
     protein_identifications[0].setIdentifier(identifier);
     for (auto & pid : peptide_identifications) 
     { 
@@ -711,7 +756,7 @@ protected:
     protein_identifications[0].getSearchParameters().db = getStringOption_("database");
     
     // add extra scores for percolator rescoring
-    vector<String> percolator_features = { "score" };
+    vector<std::string> percolator_features = { "score" };
     for (auto s : extra_scores) percolator_features.push_back("SAGE:" + s);
     search_parameters.setMetaValue("extra_features",  ListUtils::concatenate(percolator_features, ","));
     auto enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
@@ -738,43 +783,51 @@ protected:
     // if "reindex" parameter is set to true: will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
-    map<String,unordered_map<int,String>> file2specnr2nativeid;
-    for (const auto& mzml : input_files)
-    {
-      // TODO stream mzml?
-      MzMLFile m;
-      MSExperiment exp;
-      auto opts = m.getOptions();
-      opts.setMSLevels({2,3});
-      opts.setFillData(false);
-      //opts.setMetadataOnly(true);
-      m.setOptions(opts);
-      m.load(mzml, exp);
-      String nIDType = "";
-      if (!exp.getSourceFiles().empty())
-      {
-        // TODO we could also guess the regex from the first nativeID if it is not stored here
-        //  but I refuse to link to Boost::regex just for this
-        //  Someone has to rework the API first!
-        nIDType = exp.getSourceFiles()[0].getNativeIDTypeAccession();
-      }
+    // Check if any input is a Bruker .d folder (not mzML) — skip mzML-specific post-processing
+    bool has_non_mzml_input = std::any_of(input_files.begin(), input_files.end(),
+      [](const std::string& f) { return !StringUtils::hasSuffix(f, ".mzML"); });
 
-      for (const auto& spec : exp)
+    // Build native ID lookup from mzML files (not applicable for .d input)
+    map<std::string,unordered_map<int, std::string>> file2specnr2nativeid;
+    if (!has_non_mzml_input)
+    {
+      for (const auto& mzml : input_files)
       {
-        const String& nID = spec.getNativeID();
-        int nr = SpectrumLookup::extractScanNumber(nID, nIDType);
-        if (nr >= 0)
+        // TODO stream mzml?
+        MzMLFile m;
+        MSExperiment exp;
+        auto opts = m.getOptions();
+        opts.setMSLevels({2,3});
+        opts.setFillData(false);
+        //opts.setMetadataOnly(true);
+        m.setOptions(opts);
+        m.load(mzml, exp);
+        std::string nIDType;
+        if (!exp.getSourceFiles().empty())
         {
-          auto [it, inserted] = file2specnr2nativeid.emplace(File::basename(mzml), unordered_map<int,String>({{nr,nID}}));
-          if (!inserted)
+          // TODO we could also guess the regex from the first nativeID if it is not stored here
+          //  but I refuse to link to Boost::regex just for this
+          //  Someone has to rework the API first!
+          nIDType = exp.getSourceFiles()[0].getNativeIDTypeAccession();
+        }
+
+        for (const auto& spec : exp)
+        {
+          const std::string& nID = spec.getNativeID();
+          int nr = SpectrumLookup::extractScanNumber(nID, nIDType);
+          if (nr >= 0)
           {
-            it->second.emplace(nr,nID);
+            auto [it, inserted] = file2specnr2nativeid.emplace(File::basename(mzml), unordered_map<int, std::string>({{nr,nID}}));
+            if (!inserted)
+            {
+              it->second.emplace(nr,nID);
+            }
           }
         }
       }
     }
 
-    map<Size, String> idxToFile;
+    map<Size, std::string> idxToFile;
     StringList fnInRun;
     protein_identifications[0].getPrimaryMSRunPath(fnInRun);
     Size cnt = 0;
@@ -790,10 +843,10 @@ protected:
 
       try
       { // check if spectrum reference is a string that just contains a number
-        scanNrAsInt = id.getSpectrumReference().toInt64();
+        scanNrAsInt = StringUtils::toInt64(id.getSpectrumReference());
         // no exception -> conversion to int was successful. Now lookup full native ID in corresponding file for given spectrum number.
         // idxToFile values can be full paths but file2specnr2nativeid keys are basenames, so normalize first
-        String file_basename = File::basename(idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]);
+        std::string file_basename = File::basename(idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]);
         auto file_it = file2specnr2nativeid.find(file_basename);
         if (file_it != file2specnr2nativeid.end())
         {
@@ -805,68 +858,90 @@ protected:
       }
     }
 
-    // Annotate FAIMS compensation voltage if present in any input file
-    // Pre-group peptide indices by file for efficient lookup (avoids O(files * peptides))
-    std::map<Size, std::vector<Size>> file_to_peptide_indices;
-    for (Size i = 0; i < peptide_identifications.size(); ++i)
+    // Annotate FAIMS compensation voltage if present in any mzML input file
+    if (!has_non_mzml_input)
     {
-      const auto& pep = peptide_identifications[i];
-      if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+      // Pre-group peptide indices by file for efficient lookup (avoids O(files * peptides))
+      std::map<Size, std::vector<Size>> file_to_peptide_indices;
+      for (Size i = 0; i < peptide_identifications.size(); ++i)
       {
-        file_to_peptide_indices[pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)].push_back(i);
-      }
-    }
-
-    for (const auto& mzml : input_files)
-    {
-      // Find file index for this mzML
-      Size file_idx = 0;
-      for (const auto& [idx, fname] : idxToFile)
-      {
-        if (File::basename(fname) == File::basename(mzml))
+        const auto& pep = peptide_identifications[i];
+        if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
         {
-          file_idx = idx;
-          break;
+          file_to_peptide_indices[pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)].push_back(i);
         }
       }
 
-      // Skip if no peptides for this file
-      auto it = file_to_peptide_indices.find(file_idx);
-      if (it == file_to_peptide_indices.end() || it->second.empty())
+      for (const auto& mzml : input_files)
       {
-        continue;
-      }
-
-      // Load mzML metadata (no peak data needed)
-      MzMLFile m;
-      MSExperiment exp_full;
-      auto opts = m.getOptions();
-      opts.setFillData(false);
-      m.setOptions(opts);
-      m.load(mzml, exp_full);
-
-      // Collect peptide IDs for this file
-      PeptideIdentificationList file_peptides;
-      file_peptides.reserve(it->second.size());
-      for (Size idx : it->second)
-      {
-        file_peptides.push_back(peptide_identifications[idx]);
-      }
-
-      // Annotate FAIMS and copy back
-      SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(file_peptides, exp_full);
-      for (Size i = 0; i < file_peptides.size(); ++i)
-      {
-        if (file_peptides[i].metaValueExists(Constants::UserParam::FAIMS_CV))
+        // Find file index for this mzML
+        Size file_idx = 0;
+        for (const auto& [idx, fname] : idxToFile)
         {
-          peptide_identifications[it->second[i]].setMetaValue(
-            Constants::UserParam::FAIMS_CV,
-            file_peptides[i].getMetaValue(Constants::UserParam::FAIMS_CV));
+          if (File::basename(fname) == File::basename(mzml))
+          {
+            file_idx = idx;
+            break;
+          }
+        }
+
+        // Skip if no peptides for this file
+        auto it = file_to_peptide_indices.find(file_idx);
+        if (it == file_to_peptide_indices.end() || it->second.empty())
+        {
+          continue;
+        }
+
+        // Load mzML metadata (no peak data needed)
+        MzMLFile m;
+        MSExperiment exp_full;
+        auto opts = m.getOptions();
+        opts.setFillData(false);
+        m.setOptions(opts);
+        m.load(mzml, exp_full);
+
+        // Collect peptide IDs for this file
+        PeptideIdentificationList file_peptides;
+        file_peptides.reserve(it->second.size());
+        for (Size idx : it->second)
+        {
+          file_peptides.push_back(peptide_identifications[idx]);
+        }
+
+        // Annotate FAIMS and copy back
+        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(file_peptides, exp_full);
+        for (Size i = 0; i < file_peptides.size(); ++i)
+        {
+          if (file_peptides[i].metaValueExists(Constants::UserParam::FAIMS_CV))
+          {
+            peptide_identifications[it->second[i]].setMetaValue(
+              Constants::UserParam::FAIMS_CV,
+              file_peptides[i].getMetaValue(Constants::UserParam::FAIMS_CV));
+          }
         }
       }
     }
 
-    IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
+#ifdef WITH_THERMO_RAW
+    // After all mzML-based post-processing (native-ID repair, FAIMS annotation)
+    // is done — those steps need temp mzML basenames to match file2specnr2nativeid
+    // / input_files — restore original .raw paths in PrimaryMSRunPath for the
+    // output metadata.
+    if (!sage_tmp_basename_to_original.empty())
+    {
+      StringList run_paths;
+      protein_identifications[0].getPrimaryMSRunPath(run_paths);
+      for (auto& fn : run_paths)
+      {
+        auto it = sage_tmp_basename_to_original.find(File::basename(fn));
+        if (it != sage_tmp_basename_to_original.end()) fn = it->second;
+      }
+      protein_identifications[0].setPrimaryMSRunPath(run_paths);
+    }
+#endif
+
+    FileHandler().storeIdentifications(output_file, protein_identifications, peptide_identifications,
+      {FileTypes::IDXML, FileTypes::IDPARQUET});
     return EXECUTION_OK;
   }
 };

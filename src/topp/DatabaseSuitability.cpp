@@ -12,6 +12,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/QC/DBSuitability.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
@@ -119,7 +121,7 @@ public:
 protected:
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+  Param getSubsectionDefaults_(const std::string& /*section*/) const override
   {
     return DBSuitability().getDefaults();
   }
@@ -150,12 +152,12 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in_id = getStringOption_("in_id");
-    String in_spec = getStringOption_("in_spec");
-    String in_novo = getStringOption_("in_novo");
-    String db = getStringOption_("database");
-    String novo_db = getStringOption_("novo_database");
-    String out = getStringOption_("out");
+    std::string in_id = getStringOption_("in_id");
+    std::string in_spec = getStringOption_("in_spec");
+    std::string in_novo = getStringOption_("in_novo");
+    std::string db = getStringOption_("database");
+    std::string novo_db = getStringOption_("novo_database");
+    std::string out = getStringOption_("out");
 
     double novo_threshold = getDoubleOption_("novo_threshold");
 

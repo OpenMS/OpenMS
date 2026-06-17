@@ -8,15 +8,10 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
 namespace OpenMS
@@ -42,7 +37,13 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
   void TopDownIsobaricQuantification::setDefaultParams_()
   {
     defaults_.setValue("type", "none", "Specifies the isobaric quantification method used in the experiment.");
-    defaults_.setValidStrings("type", {"none", "itraq4plex", "itraq8plex", "tmt10plex", "tmt11plex", "tmt16plex", "tmt18plex", "tmt6plex"});
+    using MT = IsobaricQuantitationMethod::MethodType;
+    std::vector<std::string> valid_types{"none"};
+    for (int i = static_cast<int>(MT::UNKNOWN) + 1; i < static_cast<int>(MT::SIZE_OF_METHODTYPE); ++i)
+    {
+      valid_types.emplace_back(IsobaricQuantitationMethod::methodTypeName(static_cast<MT>(i)));
+    }
+    defaults_.setValidStrings("type", valid_types);
     defaults_.setValue("isotope_correction", "true",
                        "Enable isotope correction (highly recommended).");
     defaults_.setValidStrings("isotope_correction", {"true", "false"});
@@ -54,27 +55,24 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
 
   void TopDownIsobaricQuantification::updateMembers_()
   {
-    addMethod_(std::make_unique<ItraqFourPlexQuantitationMethod>());
-    addMethod_(std::make_unique<ItraqEightPlexQuantitationMethod>());
-    addMethod_(std::make_unique<TMTSixPlexQuantitationMethod>());
-    addMethod_(std::make_unique<TMTTenPlexQuantitationMethod>());
-    addMethod_(std::make_unique<TMTElevenPlexQuantitationMethod>());
-    addMethod_(std::make_unique<TMTSixteenPlexQuantitationMethod>());
-    addMethod_(std::make_unique<TMTEighteenPlexQuantitationMethod>());
     only_fully_quantified_ = param_.getValue("only_fully_quantified").toString() == "true";
   }
 
   void TopDownIsobaricQuantification::quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features)
   {
     // set the parameters for this method
-    String type = getParameters().getValue("type").toString();
+    std::string type = getParameters().getValue("type").toString();
 
     if (type == "none")
     {
       return;
     }
 
-    const auto& quant_method = quant_methods_[type];
+    auto quant_method = IsobaricQuantitationMethod::create(IsobaricQuantitationMethod::methodTypeFromName(type));
+    if (!quant_method) // unrecognized method name -> nothing to quantify
+    {
+      return;
+    }
 
     IsobaricChannelExtractor channel_extractor(quant_method.get());
     Param extract_param = channel_extractor.getDefaults();
@@ -154,7 +152,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
         if (abs(trt.first - p.getRT()) > .01)
           continue;
         int scan = trt.second;
-        if (scan_precursors_map.find(scan) == scan_precursors_map.end())
+        if (!scan_precursors_map.contains(scan))
           continue;
         for (auto& pg : scan_precursors_map[scan])
         {
@@ -182,7 +180,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
         continue;
       }
       auto& precursor = dspec.getPrecursorPeakGroup();
-      if (precursor.empty() || precursor_cluster_index.find(precursor) != precursor_cluster_index.end())
+      if (precursor.empty() || precursor_cluster_index.contains(precursor))
         continue;
       precursor_clusters.push_back(std::vector<PeakGroup> {precursor});
       precursor_cluster_index[precursor] = (int)precursor_clusters.size() - 1;
@@ -225,9 +223,9 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
       std::vector<double> intensities (0);
       for (int ms2_scan : precursor_scan_ms2_scans[ms2_scan_precursor_scan[scan]])
       {
-        if (ms2_ints.find(ms2_scan) == ms2_ints.end() || ms2_ints[ms2_scan].empty())
+        if (!ms2_ints.contains(ms2_scan) || ms2_ints[ms2_scan].empty())
           continue;
-        if (ms2_scan_precursor_mz.find(ms2_scan) == ms2_scan_precursor_mz.end() || abs(ms2_scan_precursor_mz[ms2_scan] - pre_mz) > .01)
+        if (!ms2_scan_precursor_mz.contains(ms2_scan) || abs(ms2_scan_precursor_mz[ms2_scan] - pre_mz) > .01)
           continue;
         if (intensities.empty())
         {

@@ -135,14 +135,14 @@ START_SECTION((void setMSLevel(UInt ms_level)))
 }
 END_SECTION
 
-START_SECTION((const String& getName() const))
+START_SECTION((const std::string& getName() const))
 {
   MSSpectrum s;
   TEST_STRING_EQUAL(s.getName(), "")
 }
 END_SECTION
 
-START_SECTION((void setName(const String &name)))
+START_SECTION((void setName(const std::string &name)))
 {
   MSSpectrum s;
   s.setName("bla");
@@ -536,7 +536,7 @@ START_SECTION((bool operator== (const MSSpectrum& rhs) const))
   TEST_FALSE(edit == empty);
 
   edit = empty;
-  edit.setMetaValue("label",String("bla"));
+  edit.setMetaValue("label",std::string("bla"));
   TEST_FALSE(empty == edit);
 
   edit = empty;
@@ -596,7 +596,7 @@ START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
   TEST_TRUE(edit != empty);
 
   edit = empty;
-  edit.setMetaValue("label",String("bla"));
+  edit.setMetaValue("label",std::string("bla"));
   TEST_TRUE(edit != empty);
 
   edit = empty;
@@ -712,7 +712,7 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
         //metadataarray values == mz values
         TEST_REAL_SIMILAR(it1->getIntensity(), *it);
         TEST_REAL_SIMILAR(*it2 , it1->getMZ());
-        TEST_STRING_EQUAL(*it3 , String::number(it1->getMZ(),2));
+        TEST_STRING_EQUAL(*it3 , StringUtils::number(it1->getMZ(),2));
         TEST_EQUAL(*it4 , (Int)floor(it1->getMZ()));
         ++it1;
         ++it2;
@@ -795,7 +795,7 @@ START_SECTION((void sortByPosition()))
     //metadataarray values == intensity values
     TEST_REAL_SIMILAR(it1->getIntensity(), *rit);
     TEST_REAL_SIMILAR(*it2 , *rit);
-    TEST_STRING_EQUAL(*it3 , String::number(*rit,0));
+    TEST_STRING_EQUAL(*it3 , StringUtils::number(*rit,0));
     TEST_EQUAL(*it4 , (Int)floor(*rit));
     ++it1;
     ++it2;
@@ -882,7 +882,7 @@ START_SECTION((void sortByPositionPresorted()))
     //metadataarray values == intensity values
     TEST_REAL_SIMILAR(it1->getIntensity(), *it);
     TEST_REAL_SIMILAR(*it2 , *it);
-    TEST_STRING_EQUAL(*it3 , String::number(*it,0));
+    TEST_STRING_EQUAL(*it3 , StringUtils::number(*it,0));
     TEST_EQUAL(*it4 , (Int)floor(*it));
     ++it1; ++it2; ++it3; ++it4;
   }
@@ -1394,9 +1394,28 @@ END_SECTION
 
 START_SECTION(void setIMFormat(IMFormat imf))
 {
-  // test invalid format validation
   MSSpectrum spec;
-  TEST_EXCEPTION(Exception::InvalidValue, spec.setIMFormat(IMFormat::MIXED)); // this should trigger the validation check because a single spectrum can't be mixed
+  spec.setIMFormat(IMFormat::IM_PEAK);
+  TEST_EQUAL(spec.getIMFormat() == IMFormat::IM_PEAK, true)
+  spec.setIMFormat(IMFormat::NONE);
+  TEST_EQUAL(spec.getIMFormat() == IMFormat::NONE, true)
+}
+END_SECTION
+
+START_SECTION(IMPeakType getIMPeakType() const)
+{
+  MSSpectrum s;
+  TEST_EQUAL(s.getIMPeakType(), IMPeakType::UNKNOWN)
+}
+END_SECTION
+
+START_SECTION(void setIMPeakType(IMPeakType))
+{
+  MSSpectrum s;
+  s.setIMPeakType(IMPeakType::IM_CENTROIDED);
+  TEST_EQUAL(s.getIMPeakType(), IMPeakType::IM_CENTROIDED)
+  s.setIMPeakType(IMPeakType::IM_PROFILE);
+  TEST_EQUAL(s.getIMPeakType(), IMPeakType::IM_PROFILE)
 }
 END_SECTION
 
@@ -1405,7 +1424,7 @@ START_SECTION(void clear(bool clear_meta_data))
   MSSpectrum edit;
   edit.getInstrumentSettings().getScanWindows().resize(1);
   edit.resize(1);
-  edit.setMetaValue("label",String("bla"));
+  edit.setMetaValue("label",std::string("bla"));
   edit.setRT(5);
   edit.setDriftTime(6);
   edit.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);

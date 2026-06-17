@@ -96,6 +96,12 @@ public:
 
     void setActive(const bool active);
 
+    /// Returns the molecular multiplier (for element 0 or 1). Default is 1 (monomer).
+    Int getMolMultiplier(UInt pairID) const;
+
+    /// Set the molecular multiplier (for element 0 or 1). 1=monomer, 2=dimer, etc.
+    void setMolMultiplier(UInt pairID, Int m);
+
     //@}
 
     /// Equality operator
@@ -122,6 +128,10 @@ protected:
     double score_;
     /// was this pair realized by ILP?
     bool is_active_;
+    /// Molecular multiplier for first feature (1=monomer, 2=dimer, etc.)
+    Int feature0_mol_multiplier_;
+    /// Molecular multiplier for second feature
+    Int feature1_mol_multiplier_;
   };
 
   ///Print the contents of a ChargePair to a stream.
@@ -131,7 +141,8 @@ protected:
 
 // Hash function specialization for ChargePair
 // Note: Only hash fields used in operator== (feature0_index_, feature1_index_,
-// feature0_charge_, feature1_charge_, compomer_, mass_diff_, is_active_)
+// feature0_charge_, feature1_charge_, compomer_, mass_diff_, is_active_,
+// feature0_mol_multiplier_, feature1_mol_multiplier_)
 // Do NOT hash score_ as it is not compared in operator==
 namespace std
 {
@@ -147,6 +158,8 @@ namespace std
       OpenMS::hash_combine(seed, std::hash<OpenMS::Compomer>{}(cp.getCompomer()));
       OpenMS::hash_combine(seed, OpenMS::hash_float(cp.getMassDiff()));
       OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(cp.isActive())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(cp.getMolMultiplier(0)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(cp.getMolMultiplier(1)));
       return seed;
     }
   };

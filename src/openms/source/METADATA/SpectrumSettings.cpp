@@ -79,10 +79,6 @@ namespace OpenMS
 
   void SpectrumSettings::setIMFormat(const IMFormat& im_type)
   {
-    if (im_type == IMFormat::MIXED)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Single spectrum can't have MIXED ion mobility format.", "SIZE_OF_IMFORMAT");
-    }
     im_type_ = im_type;
   }
   
@@ -90,13 +86,23 @@ namespace OpenMS
   {
     return im_type_;
   }
+
+  void SpectrumSettings::setIMPeakType(IMPeakType im_peak_type)
+  {
+    im_peak_type_ = im_peak_type;
+  }
+
+  IMPeakType SpectrumSettings::getIMPeakType() const
+  {
+    return im_peak_type_;
+  }
   
-  const String & SpectrumSettings::getComment() const
+  const std::string & SpectrumSettings::getComment() const
   {
     return comment_;
   }
 
-  void SpectrumSettings::setComment(const String & comment)
+  void SpectrumSettings::setComment(const std::string & comment)
   {
     comment_ = comment;
   }
@@ -183,12 +189,12 @@ namespace OpenMS
     return os;
   }
 
-  const String & SpectrumSettings::getNativeID() const
+  const std::string & SpectrumSettings::getNativeID() const
   {
     return native_id_;
   }
 
-  void SpectrumSettings::setNativeID(const String & native_id)
+  void SpectrumSettings::setNativeID(const std::string & native_id)
   {
     native_id_ = native_id;
   }

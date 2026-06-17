@@ -14,6 +14,7 @@
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtWidgets/QFileDialog>
 
@@ -31,7 +32,6 @@ namespace OpenMS
       ui_->setupUi(this);
       ui_->param_editor_spec_gen_->load(tsg_param_);
       connect(ui_->browse_default, &QPushButton::clicked, this, &TOPPViewPrefDialog::browseDefaultPath_);
-      connect(ui_->browse_plugins, &QPushButton::clicked, this, &TOPPViewPrefDialog::browsePluginsPath_);
     }
 
     TOPPViewPrefDialog::~TOPPViewPrefDialog()
@@ -49,24 +49,23 @@ namespace OpenMS
       param_.update(param, true, true, true, true, getGlobalLogInfo());
 
       // general tab
-      ui_->default_path->setText(String(param_.getValue("default_path").toString()).toQString());
+      ui_->default_path->setText(toQString(std::string(param_.getValue("default_path").toString())));
       ui_->default_path_current->setChecked(param_.getValue("default_path_current").toBool());
-      ui_->plugins_path->setText(String(param_.getValue("plugins_path").toString()).toQString());
       ui_->use_cached_ms1->setChecked(param_.getValue("use_cached_ms1").toBool());
       ui_->use_cached_ms2->setChecked(param_.getValue("use_cached_ms2").toBool());
 
-      ui_->map_default->setCurrentIndex(ui_->map_default->findText(String(param_.getValue("default_map_view").toString()).toQString()));
-      ui_->map_cutoff->setCurrentIndex(ui_->map_cutoff->findText(String(param_.getValue("intensity_cutoff").toString()).toQString()));
-      ui_->on_file_change->setCurrentIndex(ui_->on_file_change->findText(String(param_.getValue("on_file_change").toString()).toQString()));
+      ui_->map_default->setCurrentIndex(ui_->map_default->findText(toQString(std::string(param_.getValue("default_map_view").toString()))));
+      ui_->map_cutoff->setCurrentIndex(ui_->map_cutoff->findText(toQString(std::string(param_.getValue("intensity_cutoff").toString()))));
+      ui_->on_file_change->setCurrentIndex(ui_->on_file_change->findText(toQString(std::string(param_.getValue("on_file_change").toString()))));
 
       // 1D view
-      ui_->color_1D->setColor(QColor(String(param_.getValue("1d:peak_color").toString()).toQString()));
-      ui_->selected_1D->setColor(QColor(String(param_.getValue("1d:highlighted_peak_color").toString()).toQString()));
-      ui_->icon_1D->setColor(QColor(String(param_.getValue("1d:icon_color").toString()).toQString()));
+      ui_->color_1D->setColor(QColor(toQString(std::string(param_.getValue("1d:peak_color").toString()))));
+      ui_->selected_1D->setColor(QColor(toQString(std::string(param_.getValue("1d:highlighted_peak_color").toString()))));
+      ui_->icon_1D->setColor(QColor(toQString(std::string(param_.getValue("1d:icon_color").toString()))));
 
       // 2D view
       ui_->peak_2D->gradient().fromString(param_.getValue("2d:dot:gradient"));
-      ui_->feature_icon_2D->setCurrentIndex(ui_->feature_icon_2D->findText(String(param_.getValue("2d:dot:feature_icon").toString()).toQString()));
+      ui_->feature_icon_2D->setCurrentIndex(ui_->feature_icon_2D->findText(toQString(std::string(param_.getValue("2d:dot:feature_icon").toString()))));
       ui_->feature_icon_size_2D->setValue((Int)param_.getValue("2d:dot:feature_icon_size"));
 
       // 3D view
@@ -78,16 +77,16 @@ namespace OpenMS
       tsg_param_ = param_.copy(tsg_prefix, true);
       ui_->param_editor_spec_gen_->load(tsg_param_);
       ui_->tolerance->setValue((double)param_.getValue("idview:align:tolerance"));
-      ui_->unit->setCurrentIndex(ui_->unit->findText(String(param_.getValue("idview:align:is_relative_tolerance") == "true" ? "ppm" : "Da").toQString()));
+      ui_->unit->setCurrentIndex(ui_->unit->findText(toQString(std::string(param_.getValue("idview:align:is_relative_tolerance") == "true" ? "ppm" : "Da"))));
     }
 
-    String fromCheckState(const Qt::CheckState cs)
+    std::string fromCheckState(const Qt::CheckState cs)
     {
       switch (cs)
       {
         case Qt::CheckState::Checked: return "true";
         case Qt::CheckState::Unchecked: return "false";
-        default: throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Checkbox had unexpected state", String(cs));
+        default: throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Checkbox had unexpected state",StringUtils::toStr(cs));
       }
     }
 
@@ -96,8 +95,6 @@ namespace OpenMS
       Param p; 
       p.setValue("default_path", ui_->default_path->text().toStdString());
       p.setValue("default_path_current", fromCheckState(ui_->default_path_current->checkState()));
-
-      p.setValue("plugins_path", ui_->plugins_path->text().toStdString());
 
       p.setValue("use_cached_ms1", fromCheckState(ui_->use_cached_ms1->checkState()));
       p.setValue("use_cached_ms2", fromCheckState(ui_->use_cached_ms2->checkState()));
@@ -136,15 +133,6 @@ namespace OpenMS
       if (!path.isEmpty())
       {
         ui_->default_path->setText(path);
-      }
-    }
-
-    void TOPPViewPrefDialog::browsePluginsPath_()
-    {
-      QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", ui_->plugins_path->text());
-      if (!path.isEmpty())
-      {
-        ui_->plugins_path->setText(path);
       }
     }
 

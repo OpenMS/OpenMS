@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/MATH/MathFunctions.h>
@@ -53,8 +54,8 @@ namespace OpenMS
       return phospho;
     }
     
-    String sequence_str = phospho.getSequence().toString();
-    String unmodified_sequence_str = phospho.getSequence().toUnmodifiedString();
+    std::string sequence_str = phospho.getSequence().toString();
+    std::string unmodified_sequence_str = phospho.getSequence().toUnmodifiedString();
     
     Size number_of_phosphorylation_events = numberOfPhosphoEvents_(sequence_str);
     AASequence seq_without_phospho = removePhosphositesFromSequence_(sequence_str);
@@ -110,7 +111,7 @@ namespace OpenMS
     multimap<double, Size> ranking = rankWeightedPermutationPeptideScores_(peptide_site_scores);
 
     multimap<double, Size>::reverse_iterator rev = ranking.rbegin();
-    String seq1 = th_spectra[rev->second].getName();
+    std::string seq1 = th_spectra[rev->second].getName();
     phospho.setSequence(AASequence::fromString(seq1));
     phospho.setMetaValue("search_engine_sequence", hit.getSequence().toString());
 
@@ -118,7 +119,7 @@ namespace OpenMS
     phospho.setMetaValue("AScore_pep_score", peptide1_score); // initialize score with highest peptide score (aka highest weighted score)
 
     ++rev;
-    String seq2 = th_spectra[rev->second].getName();
+    std::string seq2 = th_spectra[rev->second].getName();
     double peptide2_score = rev->first;
 
     vector<ProbablePhosphoSites> phospho_sites;
@@ -170,7 +171,7 @@ namespace OpenMS
       {
         best_Ascore = Ascore;
       }
-      phospho.setMetaValue("AScore_" + String(rank), Ascore);
+      phospho.setMetaValue("AScore_" + StringUtils::toStr(rank), Ascore);
       ++rank;      
     }
     phospho.setScore(best_Ascore);
@@ -355,7 +356,7 @@ namespace OpenMS
            / 7.0;
   }
 
-  vector<Size> AScore::getSites_(const String& unmodified) const
+  vector<Size> AScore::getSites_(const std::string& unmodified) const
   {
     vector<Size> tupel;
     for (Size i = 0; i < unmodified.size(); ++i)
@@ -420,7 +421,7 @@ namespace OpenMS
   }
   
   /// Computes number of phospho events in a sequence
-  Size AScore::numberOfPhosphoEvents_(const String& sequence) const 
+  Size AScore::numberOfPhosphoEvents_(const std::string& sequence) const 
   {
     Size cnt_phospho_events = 0;
     
@@ -433,10 +434,10 @@ namespace OpenMS
   }
     
   /// Create variant of the peptide with all phosphorylations removed
-  AASequence AScore::removePhosphositesFromSequence_(const String& sequence) const 
+  AASequence AScore::removePhosphositesFromSequence_(const std::string& sequence) const 
   {
-    String seq(sequence);
-    seq.substitute("(Phospho)", "");
+    std::string seq(sequence);
+    StringUtils::substitute(seq, "(Phospho)", "");
     AASequence without_phospho = AASequence::fromString(seq);
     
     return without_phospho;

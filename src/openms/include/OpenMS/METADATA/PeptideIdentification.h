@@ -11,7 +11,9 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
+#include <OpenMS/METADATA/USI.h>
 
 #include <functional>
 #include <string>
@@ -120,9 +122,9 @@ public:
     void setSignificanceThreshold(double value);
 
     /// returns the peptide score type
-    const String& getScoreType() const;
+    const std::string& getScoreType() const;
     /// sets the peptide score type
-    void setScoreType(const String& type);
+    void setScoreType(const std::string& type);
 
     /// returns the peptide score orientation
     bool isHigherScoreBetter() const;
@@ -130,28 +132,28 @@ public:
     void setHigherScoreBetter(bool value);
 
     /// Returns the identifier which links this PI to its corresponding ProteinIdentification
-    const String& getIdentifier() const;
+    const std::string& getIdentifier() const;
     /// sets the identifier which links this PI to its corresponding ProteinIdentification
-    void setIdentifier(const String& id);
+    void setIdentifier(const std::string& id);
 
     /// returns the base name which links to underlying peak map
-    String getBaseName() const;
+    std::string getBaseName() const;
     /// sets the base name which links to underlying peak map
-    void setBaseName(const String& base_name);
+    void setBaseName(const std::string& base_name);
 
     /// returns the experiment label for this identification 
-    const String getExperimentLabel() const;
+    const std::string getExperimentLabel() const;
     /// sets the experiment label for this identification
-    void setExperimentLabel(const String& type);
+    void setExperimentLabel(const std::string& type);
 
     /// returns the spectrum reference for this identification. Currently it should
     /// almost always be the full native vendor ID.
     // TODO make a mandatory data member, add to idXML schema, think about storing the
     //  extracted spectrum "number" only!
-    String getSpectrumReference() const;
+    std::string getSpectrumReference() const;
     /// sets the spectrum reference for this identification. Currently it should
     ///  almost always be the full native vendor ID.
-    void setSpectrumReference(const String& ref);
+    void setSpectrumReference(const std::string& ref);
 
     // Returns a higher or lower comparator based on @p higher_score_better_
     static std::function<bool(const PeptideHit&, const PeptideHit&)> getScoreComparator(bool higher_score_better);
@@ -167,7 +169,7 @@ public:
     bool empty() const;
 
     /// returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)
-    static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit>&, const std::set<String>& accession);
+    static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit>&, const std::set<std::string>& accession);
 
       /**
       @brief Builds MultiMap over all PI's via their UID (as obtained from buildUIDFromPepID()),
@@ -177,33 +179,86 @@ public:
 
       @return Returns the MultiMap
     */
-    static std::multimap<String, std::pair<Size, Size>> buildUIDsFromAllPepIDs(const ConsensusMap &cmap);
+    static std::multimap<std::string, std::pair<Size, Size>> buildUIDsFromAllPepIDs(const ConsensusMap &cmap);
 
       /**
       @brief Builds UID from PeptideIdentification
-             The UID can be formed in two ways.
-             Either it is composed of the map_index and the spectrum-reference
-             or of the ms_run_path and the spectrum_references, if the path is unique.
-             The parts of the UID are separated by '|'.
+
+      The UID can be formed in two ways:
+      - If there's a single MS run path, it is composed of the ms_run_path and the spectrum_reference
+      - If there are multiple files, it is composed of the map_index and the spectrum_reference
+
+      The parts of the UID are separated by '|'.
 
       @throw Exception::MissingInformation if Spectrum reference missing at PeptideIdentification
       @throw Exception::MissingInformation if Multiple files in a run, but no map_index in PeptideIdentification found
 
       @param[in] pep_id  PeptideIdentification for which the UID is computed
-      @param[in] identifier_to_msrunpath Mapping required to build UID. Can be obtained from
-             ProteinIdentification::Mapping::identifier_to_msrunpath which can be created
-             from the corresponding ProtID's
-
+      @param[in] mapping IdentifierMSRunMapper built from the corresponding ProteinIdentifications
 
       @return Returns the UID for PeptideIdentification
     */
-    static String buildUIDFromPepID(const PeptideIdentification& pep_id,
-                                    const std::map<String, StringList>& identifier_to_msrunpath);
+    static std::string buildUIDFromPepID(const PeptideIdentification& pep_id,
+                                    const IdentifierMSRunMapper& mapping);
+
+    /**
+      @brief Builds a Universal Spectrum Identifier (USI) from the PeptideIdentification.
+
+      The USI format follows the PSI-MS specification (MS:1003063):
+      @code
+      mzspec:<collection>:<ms_run>:<index_type>:<index>[:interpretation]
+      @endcode
+
+      This method uses the spectrum reference (native ID) to extract the scan number.
+      If include_interpretation is true and hits are available, the first hit's peptide
+      sequence and charge are included in the USI. For best results when using
+      interpretation, call sort() before this method to ensure the best-scoring hit is first.
+
+      @note This method assumes a single MS run context. For merged files (e.g., from
+            ConsensusMap or multi-file workflows), use the overload that takes
+            IdentifierMSRunMapper to automatically resolve the correct source file.
+
+      @param ms_run_name Name of the MS run file (e.g., "sample.mzML")
+      @param dataset_id ProteomeXchange dataset identifier (e.g., "PXD000561") or "local" for unpublished data
+      @param include_interpretation If true and hits are available, include peptide sequence/charge from first hit
+
+      @return USI object representing this PeptideIdentification
+    */
+    USI buildUSI(const std::string& ms_run_name,
+                 const std::string& dataset_id = "local",
+                 bool include_interpretation = false) const;
+
+    /**
+      @brief Builds a USI with automatic source file resolution for merged files.
+
+      This overload automatically resolves the correct source file for PeptideIdentifications
+      from merged workflows (e.g., ConsensusMap). It uses the id_merge_index metadata
+      to select the appropriate file from the mapping.
+
+      Usage example:
+      @code
+      IdentifierMSRunMapper mapping(protein_ids);
+      USI usi = pep_id.buildUSI(mapping, "PXD000561");
+      @endcode
+
+      @note ProteinIdentification::Mapping is a type alias for IdentifierMSRunMapper,
+            so either can be used interchangeably.
+
+      @param mapping IdentifierMSRunMapper object that maps identifiers to MS run paths
+                     (constructed from vector of ProteinIdentifications)
+      @param dataset_id ProteomeXchange dataset identifier (e.g., "PXD000561") or "local" for unpublished data
+      @param include_interpretation If true and hits are available, include peptide sequence/charge from first hit
+
+      @return USI object (may be invalid if spectrum reference or mapping is missing)
+    */
+    USI buildUSI(const IdentifierMSRunMapper& mapping,
+                 const std::string& dataset_id = "local",
+                 bool include_interpretation = false) const;
 
 protected:
-    String id_; ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
+    std::string id_; ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
     std::vector<PeptideHit> hits_; ///< A list containing the peptide hits
-    String score_type_; ///< The score type (Mascot, Sequest, e-value, p-value)
+    std::string score_type_; ///< The score type (Mascot, Sequest, e-value, p-value)
     bool higher_score_better_; ///< The score orientation
     double mz_;
     double rt_;
@@ -280,4 +335,3 @@ namespace std
     }
   };
 } // namespace std
-

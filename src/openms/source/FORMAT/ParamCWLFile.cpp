@@ -71,7 +71,7 @@ namespace OpenMS
     tdl_tool_info.metaInfo.docurl = tool_info.docurl_;
     tdl_tool_info.metaInfo.category = tool_info.category_;
     tdl_tool_info.metaInfo.description = tool_info.description_;
-    for (auto cite : tool_info.citations_)
+    for (const auto& cite : tool_info.citations_)
     {
       tdl::Citation tdl_citation;
       tdl_citation.doi = cite;
@@ -244,9 +244,9 @@ namespace OpenMS
       auto& name = element.name;
 
       // strip of the tool namespace part and ignore entries that aren't part of the name space (like ToolName:version)
-      if (name.size() >= toolNamespace.size() && name.substr(0, toolNamespace.size()) == toolNamespace)
+      if (name.size() >= toolNamespace.size() && StringUtils::substr(name, 0, toolNamespace.size()) == toolNamespace)
       {
-        name = name.substr(toolNamespace.size());
+        name = StringUtils::substr(name, toolNamespace.size());
       }
       else
       {
@@ -258,7 +258,7 @@ namespace OpenMS
         name = replaceAll(name, ":", "__");
       } else {
         if (auto pos = name.rfind(':'); pos != std::string::npos) {
-            name = name.substr(pos+1);
+            name = StringUtils::substr(name, pos+1);
         }
       }
 
@@ -323,6 +323,9 @@ namespace OpenMS
 
     os << convertToCWL(tdl_tool_info) << "\n";
 #else
+    (void)os_ptr;
+    (void)param;
+    (void)tool_info;
     throw std::runtime_error{"TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature."};
 #endif
   }

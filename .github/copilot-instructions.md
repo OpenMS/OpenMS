@@ -36,9 +36,12 @@ OpenMS is an open-source software C++ library for LC-MS data management and anal
    - pyOpenMS for Python scripting
 
 4. **pyOpenMS**
-   - Python bindings generated via autowrap
-   - Integration with scientific Python ecosystem
-   - Located in `src/pyOpenMS/`
+   - Hand-maintained nanobind C++ bindings (no code generation)
+   - 13 domain-based modules compiled in parallel
+   - Pure Python addon system for DataFrame export and convenience methods
+   - Custom type casters for OpenMS::String, DataValue, ParamValue, DPosition
+   - Integration with scientific Python ecosystem (numpy, pandas, pyarrow)
+   - Located in `src/pyOpenMS/`; see `src/pyOpenMS/CLAUDE.md` for detailed binding guide
 
 ## Development Guidelines
 
@@ -72,36 +75,72 @@ OpenMS is an open-source software C++ library for LC-MS data management and anal
 - `src/openms/include/OpenMS/` - Header files
 - `src/topp/` - TOPP tools (command-line applications)
 - `src/tests/` - Unit and integration tests
+- `src/pyOpenMS/` - Python bindings (nanobind)
 - `doc/` - Documentation
 
 ## Project Structure
 
 ```
 OpenMS/
-├── cmake/                   # CMake build system files
-├── contrib/                 # Third-party dependencies
-├── doc/                     # Documentation
+├── cmake/                       # CMake build system files
+├── doc/                         # Documentation
+├── share/OpenMS/                # Shared data (enzymes, mods, CV, etc.)
 ├── src/
-│   ├── openms/              # Core library
-│   │   ├── include/OpenMS/  # Header files
-│   │   └── source/          # Implementation files
-│   ├── openms_gui/          # GUI components
-│   ├── pyOpenMS/            # Python bindings
-│   │   ├── pxds/            # Declarations for autowrap
-│   │   └── addons/          # Manual wrapper code
-│   ├── tests/               # Test suites
-│   │   ├── class_tests/     # Unit tests
-│   │   └── topp/            # TOPP tool tests
-│   └── topp/                # TOPP tools
-└── tools/                   # Development utilities
+│   ├── openms/                  # Core library
+│   │   ├── include/OpenMS/      # Header files
+│   │   └── source/              # Implementation files
+│   ├── openms_gui/              # GUI components
+│   ├── pyOpenMS/                # Python bindings
+│   │   ├── bindings/            # Hand-maintained nanobind C++ binding files
+│   │   │   ├── bind_kernel.cpp  # KERNEL/ classes
+│   │   │   ├── bind_spectrum.cpp      # MSSpectrum
+│   │   │   ├── bind_chromatogram.cpp  # MSChromatogram
+│   │   │   ├── bind_experiment.cpp    # MSExperiment
+│   │   │   ├── bind_metadata.cpp      # METADATA/ classes
+│   │   │   ├── bind_chemistry.cpp     # CHEMISTRY/ classes
+│   │   │   ├── bind_analysis.cpp      # ANALYSIS/ classes
+│   │   │   ├── bind_format.cpp        # FORMAT/ classes
+│   │   │   ├── bind_processing.cpp    # PROCESSING/ classes
+│   │   │   ├── bind_featurefinder.cpp # FEATUREFINDER/ classes
+│   │   │   ├── bind_datastructures.cpp # DATASTRUCTURES/, MATH/ classes
+│   │   │   ├── bind_ml.cpp            # ML/ classes
+│   │   │   ├── bind_misc.cpp          # Everything else
+│   │   │   ├── binding_utils.h        # Helper templates for inheritance
+│   │   │   └── type_casters/          # Custom nanobind type casters
+│   │   ├── pyopenms/            # Python package
+│   │   │   ├── __init__.py      # Module imports and addon injection
+│   │   │   ├── addons/          # Pure Python addon methods
+│   │   │   └── _dataframes.py   # DataFrame mixin (pandas optional)
+│   │   └── tests/               # pyOpenMS tests
+│   ├── tests/                   # C++ test suites
+│   │   ├── class_tests/         # Unit tests
+│   │   └── topp/                # TOPP tool tests
+│   └── topp/                    # TOPP tools
+└── tools/                       # Development and CI utilities
 ```
 
 ## Testing Infrastructure
 
-- **Class tests**: Unit tests in `src/tests/class_tests/openms/`
+- **Class tests**: Unit tests in `src/tests/class_tests/openms/source/`
 - **TOPP tests**: Integration tests in `src/tests/topp/`
 - **Python tests**: pyOpenMS tests in `src/pyOpenMS/tests/`
-- Follow naming convention: `ClassNameTest.cpp` for `ClassName`
+- Test naming convention: `ClassName_test.cpp` for C++ class `ClassName`
+
+## Build Commands
+
+```bash
+# Full build
+cmake --build OpenMS-build -j$(nproc)
+
+# pyOpenMS only
+cmake --build OpenMS-build --target pyopenms -j$(nproc)
+
+# Run C++ tests
+ctest --test-dir OpenMS-build
+
+# Run pyOpenMS tests (from /tmp to avoid import shadowing)
+cd /tmp && PYTHONPATH=.../OpenMS-build/pyOpenMS python3 -m pytest .../src/pyOpenMS/tests/ -v
+```
 
 ## Assistance Focus
 
@@ -113,3 +152,5 @@ When providing code suggestions:
 - Use existing OpenMS data structures and algorithms
 - Follow the established error handling patterns
 - Maintain consistency with surrounding code style
+- When CI tests fail, investigate the root cause first before patching reference files
+- For pyOpenMS bindings, follow patterns in `src/pyOpenMS/CLAUDE.md`

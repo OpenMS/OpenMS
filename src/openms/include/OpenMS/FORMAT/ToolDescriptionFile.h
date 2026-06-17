@@ -38,14 +38,14 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, std::vector<Internal::ToolDescription> & tds);
+    void load(const std::string & filename, std::vector<Internal::ToolDescription> & tds);
 
     /**
         @brief Stores a map in a ToolDescriptor file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const std::vector<Internal::ToolDescription> & tds) const;
+    void store(const std::string & filename, const std::vector<Internal::ToolDescription> & tds) const;
 
 private:
 

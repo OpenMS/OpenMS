@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/PeptideHit.h> // for PeakAnnotation
-#include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <string_view>
 
 namespace OpenMS
 {
@@ -22,7 +22,7 @@ class NuXLAnnotatedHit
   /*
      Slim indices/views to lookup the actual sequence
    */
-  StringView sequence;
+  std::string_view sequence;
   SignedSize peptide_mod_index = 0; // enumeration index of the non-NA peptide modification
   Size NA_mod_index = 0; // index of the NA modification
   Size NA_adduct_amb_index = 0; // store index the entry in the set of ambiguous precursor adducts (e.g, C-NH3 vs. U-H2O)
@@ -200,8 +200,8 @@ class NuXLAnnotatedHit
   float sequence_score = 0;
 
   float best_localization_score = 0;
-  String localization_scores = 0;
-  String best_localization;
+  std::string localization_scores = "0";
+  std::string best_localization;
   int best_localization_position = -1; // UNKNOWN
   std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
 

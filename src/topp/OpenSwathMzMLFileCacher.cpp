@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/SqMassFile.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -75,25 +76,25 @@ class TOPPOpenSwathMzMLFileCacher
   {
     registerInputFile_("in","<file>","","Input mzML file");
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-    String formats("mzML,sqMass");
-    setValidFormats_("in", ListUtils::create<String>(formats));
-    setValidStrings_("in_type", ListUtils::create<String>(formats));
+    std::string formats("mzML,sqMass");
+    setValidFormats_("in", ListUtils::create<std::string>(formats));
+    setValidStrings_("in_type", ListUtils::create<std::string>(formats));
 
     formats = "mzML,sqMass";
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>(formats));
+    setValidFormats_("out", ListUtils::create<std::string>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false);
-    setValidStrings_("out_type", ListUtils::create<String>(formats));
+    setValidStrings_("out_type", ListUtils::create<std::string>(formats));
 
     //registerStringOption_("out_meta","<file>","","output file", false);
-    //setValidFormats_("out_meta",ListUtils::create<String>("mzML"));
+    //setValidFormats_("out_meta",ListUtils::create<std::string>("mzML"));
 
     registerFlag_("convert_back", "Convert back to mzML");
 
     registerStringOption_("lossy_compression", "<type>", "true", "Use numpress compression to achieve optimally small file size (attention: may cause small loss of precision; only for mzML data).", false);
-    setValidStrings_("lossy_compression", ListUtils::create<String>("true,false"));
+    setValidStrings_("lossy_compression", ListUtils::create<std::string>("true,false"));
     registerStringOption_("full_meta", "<type>", "true", "Write full meta information into sqMass file (may require large amounts of memory)", false);
-    setValidStrings_("full_meta", ListUtils::create<String>("true,false"));
+    setValidStrings_("full_meta", ListUtils::create<std::string>("true,false"));
 
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
@@ -104,8 +105,8 @@ class TOPPOpenSwathMzMLFileCacher
 
   ExitCodes main_(int , const char**) override
   {
-    String out_meta = getStringOption_("out");
-    String out_cached = out_meta + ".cached";
+    std::string out_meta = getStringOption_("out");
+    std::string out_cached = out_meta + ".cached";
     bool convert_back =  getFlag_("convert_back");
     bool process_lowmemory = getFlag_("process_lowmemory");
     int batchSize = (int)getIntOption_("lowmem_batchsize");
@@ -117,14 +118,14 @@ class TOPPOpenSwathMzMLFileCacher
     FileHandler fh;
 
     //input file type
-    String in = getStringOption_("in");
-    String in_cached = in + ".cached";
+    std::string in = getStringOption_("in");
+    std::string in_cached = in + ".cached";
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)
@@ -134,7 +135,7 @@ class TOPPOpenSwathMzMLFileCacher
     }
 
     //output file names and types
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
     if (out_type == FileTypes::UNKNOWN)

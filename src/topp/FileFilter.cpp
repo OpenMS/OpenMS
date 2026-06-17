@@ -11,11 +11,14 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 #include <OpenMS/CONCEPT/EnumHelpers.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
@@ -27,6 +30,7 @@
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 
 #include <algorithm>
+#include <iterator>
 #include <memory>
 
 using namespace OpenMS;
@@ -83,7 +87,7 @@ Depending on the input file type, additional specific operations are possible:
     - filter by consensus feature charge
     - filter by map (extracts specified maps and re-evaluates consensus centroid)@n e.g. FileFilter -map 2 3 5 -in file1.consensusXML -out file2.consensusXML@n If a single map is specified, the feature itself can be extracted.@n e.g. FileFilter -map 5 -in file1.consensusXML -out file2.featureXML
 - featureXML / consensusXML:
-- remove items with a certain meta value annotation. Allowing for >, < and = comparisons. List types are compared by length, not content. Integer, Double and String are compared using their build-in operators.
+- remove items with a certain meta value annotation. Allowing for >, < and = comparisons. List types are compared by length, not content. Integer, Double and std::string are compared using their build-in operators.
     - filter sequences, e.g. "LYSNLVER" or the modification "(Phospho)"@n e.g. FileFilter -id:sequences_whitelist Phospho -in file1.consensusXML -out file2.consensusXML
     - filter accessions, e.g. "sp|P02662|CASA1_BOVIN"
     - remove features with annotations
@@ -146,15 +150,15 @@ private:
 
   static bool sequenceIsWhiteListed_(const AASequence& peptide_hit_sequence, 
                                      const StringList& whitelist, 
-                                     const String& sequence_comparison_method) 
+                                     const std::string& sequence_comparison_method) 
   {
-    const String& sequence_str = peptide_hit_sequence.toString();
-    const String& sequence_unmodified_str = peptide_hit_sequence.toUnmodifiedString();
+    const std::string& sequence_str = peptide_hit_sequence.toString();
+    const std::string& sequence_unmodified_str = peptide_hit_sequence.toUnmodifiedString();
     if (sequence_comparison_method == "substring") 
     {
-      for (const String & s : whitelist)
+      for (const std::string & s : whitelist)
       {
-        if (sequence_str.hasSubstring(s) || sequence_unmodified_str.hasSubstring(s))
+        if (StringUtils::hasSubstring(sequence_str, s) || StringUtils::hasSubstring(sequence_unmodified_str, s))
         {
           return true;
         }
@@ -162,7 +166,7 @@ private:
     } 
     else if (sequence_comparison_method == "exact")
     {
-      for (const String & s : whitelist)
+      for (const std::string & s : whitelist)
       {
        if (sequence_str == s || sequence_unmodified_str == s)
        {
@@ -192,7 +196,7 @@ private:
                                           const bool remove_annotated_features,
                                           const bool remove_unannotated_features,
                                           const StringList& sequences,
-                                          const String& sequence_comparison_method,
+                                          const std::string& sequence_comparison_method,
                                           const StringList& accessions,
                                           const bool keep_best_score_id,
                                           const bool remove_clashes)
@@ -210,7 +214,7 @@ private:
     //flag: remove_clashes
     if (remove_clashes && !feature.getPeptideIdentifications().empty())
     {
-      String temp = feature.getPeptideIdentifications().begin()->getHits().begin()->getSequence().toString();
+      std::string temp = feature.getPeptideIdentifications().begin()->getHits().begin()->getSequence().toString();
       //loop over all peptideIdentifications
       for (const PeptideIdentification& pep : feature.getPeptideIdentifications())
       {
@@ -265,13 +269,13 @@ private:
           }
           
           //loop over all accessions of the peptideHits
-          set<String> protein_accessions = pep_hit.extractProteinAccessionsSet();
-          for (set<String>::const_iterator p_acc_it = protein_accessions.begin(); p_acc_it != protein_accessions.end(); ++p_acc_it)
+          set<std::string> protein_accessions = pep_hit.extractProteinAccessionsSet();
+          for (set<std::string>::const_iterator p_acc_it = protein_accessions.begin(); p_acc_it != protein_accessions.end(); ++p_acc_it)
           {
             //loop over all accessions entries of the StringList
             for (StringList::const_iterator acc_it = accessions.begin(); acc_it != accessions.end(); ++acc_it)
             {
-              if (p_acc_it->hasSubstring(*acc_it))
+              if (StringUtils::hasSubstring(*p_acc_it, *acc_it))
               {
                 access = true;
               }
@@ -327,6 +331,12 @@ private:
       
       while (last_spec != exp.end() && last_spec->getMSLevel() != min_ms_level) ++last_spec;
       // 'last_spec' now points to the start of a block, but we want it to point to the end of the previous block
+      if (last_spec == exp.begin())
+      { // edge case: no valid block found
+        OPENMS_LOG_WARN << "RTBlockMode: could not find a valid block boundary. Result is empty.\n";
+        exp.clear(true);
+        return;
+      }
       --last_spec;
     }
     else if (rt_block_mode == RTBlockMode::FULL_CYCLE_SHRINK)
@@ -339,6 +349,12 @@ private:
              last_spec != exp.begin() && last_spec->getMSLevel() != min_ms_level)
         --last_spec;
       // 'last_spec' now points to the start of the invalid block, but we want it to point to the end of the previous block
+      if (last_spec == exp.begin())
+      { // edge case: cannot go back further
+        OPENMS_LOG_WARN << "RTBlockMode: there is no full block in the range [" << rt_l << ", " << rt_u << "]. Result is empty. Please extend RT range or use another block strategy.\n";
+        exp.clear(true);
+        return;
+      }
       --last_spec;
       // in some cases, there was no full block inside [rt_l, rt_u]
       if (first_spec >= last_spec)
@@ -356,13 +372,13 @@ private:
 
     // RT filtering uses a half-open interval [min, max), we thus need to move last_spec a tad to the right
     double rt_u_new = last_spec->getRT();
-    if (last_spec == --exp.end())
+    if (std::next(last_spec) == exp.end())
     {// last_spec was the last spectrum in exp; we need to extend the upper RT boundary a bit to include it
       rt_u_new += 1.0;
     }
     else
     {
-      rt_u_new = (rt_u_new + (last_spec + 1)->getRT()) / 2; // take midpoint to next spectrum
+      rt_u_new = (rt_u_new + std::next(last_spec)->getRT()) / 2; // take midpoint to next spectrum
     }
 
     // reload with data and corrected rt range
@@ -378,7 +394,11 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    std::vector<String> formats = ListUtils::create<String>("mzML,featureXML,consensusXML");
+    // FileFilter only processes mzML/featureXML/consensusXML; the input dispatch in main_()
+    // has no branch for vendor formats (Bruker .d / Thermo .raw) and they are not IM-aware
+    // pass-throughs (its m/z/intensity and S/N filters mutate peaks without updating the
+    // parallel ion-mobility array). Use FileConverter to convert vendor data to mzML first.
+    std::vector<std::string> formats = ListUtils::create<std::string>("mzML,featureXML,consensusXML");
 
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", formats);
@@ -393,7 +413,7 @@ protected:
     setValidStrings_("out_type", formats);
 
     registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract [s]", false);
-    registerStringOption_("rt_block_mode", "<mode>", RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS], String("RT filtering mode: '") + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS] + "' uses RT range as given in '-rt'; '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_EXTEND] + "' extends RT range to keep complete spectrum blocks intact, '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_SHRINK] + "' only keeps complete blocks within the given RT range", false);
+    registerStringOption_("rt_block_mode", "<mode>", RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS],std::string("RT filtering mode: '") + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS] + "' uses RT range as given in '-rt'; '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_EXTEND] + "' extends RT range to keep complete spectrum blocks intact, '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_SHRINK] + "' only keeps complete blocks within the given RT range", false);
     setValidStrings_("rt_block_mode", StringList(RT_BLOCK_MODE_NAMES.begin(), RT_BLOCK_MODE_NAMES.end()));
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);
     registerStringOption_("int", "[min]:[max]", ":", "Intensity range to extract", false);
@@ -411,15 +431,15 @@ protected:
     registerFlag_("peak_options:remove_chromatograms", "Removes chromatograms stored in a file");
     registerFlag_("peak_options:remove_empty", "Removes spectra and chromatograms without peaks.");
     registerFlag_("peak_options:remove_metadataarrays", "Remove all binary data (e.g. ion mobility), except m/z and intensity.");
-    registerStringOption_("peak_options:mz_precision", "32 or 64", 64, "Store base64 encoded m/z data using 32 or 64 bit precision", false);
-    setValidStrings_("peak_options:mz_precision", ListUtils::create<String>("32,64"));
-    registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision", false);
-    setValidStrings_("peak_options:int_precision", ListUtils::create<String>("32,64"));
+    registerStringOption_("peak_options:mz_precision", "32 or 64", "64", "Store base64 encoded m/z data using 32 or 64 bit precision", false);
+    setValidStrings_("peak_options:mz_precision", ListUtils::create<std::string>("32,64"));
+    registerStringOption_("peak_options:int_precision", "32 or 64", "32", "Store base64 encoded intensity data using 32 or 64 bit precision", false);
+    setValidStrings_("peak_options:int_precision", ListUtils::create<std::string>("32,64"));
     registerStringOption_("peak_options:indexed_file", "true or false", "true", "Whether to add an index to the file when writing", false);
-    setValidStrings_("peak_options:indexed_file", ListUtils::create<String>("true,false"));
+    setValidStrings_("peak_options:indexed_file", ListUtils::create<std::string>("true,false"));
 
     registerStringOption_("peak_options:zlib_compression", "true or false", "false", "Whether to store data with zlib compression (lossless compression)", false);
-    setValidStrings_("peak_options:zlib_compression", ListUtils::create<String>("true,false"));
+    setValidStrings_("peak_options:zlib_compression", ListUtils::create<std::string>("true,false"));
 
     registerTOPPSubsection_("peak_options:numpress", "Numpress compression for peak data");
     registerStringOption_("peak_options:numpress:masstime", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in m/z or rt dimension (recommended: linear)", false);
@@ -459,13 +479,13 @@ protected:
     registerTOPPSubsection_("spectra:blackorwhitelist", "Black or white listing of of MS2 spectra by spectral similarity");
     registerInputFile_("spectra:blackorwhitelist:file", "<file>", "",   "Input file containing MS2 spectra that should be retained or removed from the mzML file!\n"
                                                                         "Matching tolerances are taken from 'spectra:blackorwhitelist:similarity_threshold|rt|mz' options.\n", false);
-    setValidFormats_("spectra:blackorwhitelist:file", ListUtils::create<String>("mzML"));
+    setValidFormats_("spectra:blackorwhitelist:file", ListUtils::create<std::string>("mzML"));
     registerDoubleOption_("spectra:blackorwhitelist:similarity_threshold", "<similarity>", -1, "Similarity threshold when matching MS2 spectra. (-1 = disabled).", false);
     registerDoubleOption_("spectra:blackorwhitelist:rt", "tolerance", 0.01, "Retention tolerance [s] when matching precursor positions. (-1 = disabled)", false);
     registerDoubleOption_("spectra:blackorwhitelist:mz", "tolerance", 0.01, "m/z tolerance [Th] when matching precursor positions. (-1 = disabled)", false);
     registerStringOption_("spectra:blackorwhitelist:use_ppm_tolerance", "", "false", "If ppm tolerance should be used. Otherwise Da are used.", false, false);
     registerStringOption_("spectra:blackorwhitelist:blacklist", "", "true", "True: remove matched MS2. False: retain matched MS2 spectra. Other levels are kept", false, false);
-    setValidStrings_("spectra:blackorwhitelist:blacklist", ListUtils::create<String>("false,true"));
+    setValidStrings_("spectra:blackorwhitelist:blacklist", ListUtils::create<std::string>("false,true"));
     setMinFloat_("spectra:blackorwhitelist:similarity_threshold", -1.0);
     setMaxFloat_("spectra:blackorwhitelist:similarity_threshold", 1.0);
 
@@ -482,19 +502,19 @@ protected:
     // black and white listing
     registerTOPPSubsection_("consensus:blackorwhitelist", "Black or white listing of of MS2 spectra by consensus features");
     registerStringOption_("consensus:blackorwhitelist:blacklist", "", "true", "True: remove matched MS2. False: retain matched MS2 spectra. Other levels are kept", false, false);
-    setValidStrings_("consensus:blackorwhitelist:blacklist", ListUtils::create<String>("false,true"));
+    setValidStrings_("consensus:blackorwhitelist:blacklist", ListUtils::create<std::string>("false,true"));
 
     registerInputFile_("consensus:blackorwhitelist:file", "<file>", "", "Input file containing consensus features whose corresponding MS2 spectra should be removed from the mzML file!\n"
                                                                         "Matching tolerances are taken from 'consensus:blackorwhitelist:rt' and 'consensus:blackorwhitelist:mz' options.\n"
                                                                         "If consensus:blackorwhitelist:maps is specified, only these will be used.\n", false);
-    setValidFormats_("consensus:blackorwhitelist:file", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("consensus:blackorwhitelist:file", ListUtils::create<std::string>("consensusXML"));
     registerIntList_("consensus:blackorwhitelist:maps", "i j ...", ListUtils::create<Int>(""), "Maps used for black/white list filtering", false);
 
     registerDoubleOption_("consensus:blackorwhitelist:rt", "tolerance", 60.0, "Retention tolerance [s] for precursor to consensus feature position", false);
     registerDoubleOption_("consensus:blackorwhitelist:mz", "tolerance", 0.01, "m/z tolerance [Th] for precursor to consensus feature position", false);
     registerStringOption_("consensus:blackorwhitelist:use_ppm_tolerance", "", "false", "If ppm tolerance should be used. Otherwise Da are used.", false, false);
 
-    setValidStrings_("consensus:blackorwhitelist:use_ppm_tolerance", ListUtils::create<String>("false,true"));
+    setValidStrings_("consensus:blackorwhitelist:use_ppm_tolerance", ListUtils::create<std::string>("false,true"));
 
     setMinFloat_("consensus:blackorwhitelist:rt", 0);
     setMinFloat_("consensus:blackorwhitelist:mz", 0);
@@ -515,14 +535,14 @@ protected:
     registerStringOption_("id:sequence_comparison_method", "substring|exact", "substring", "Comparison method used to determine if a feature is whitelisted.", false, true);
     registerStringList_("id:accessions_whitelist", "<accessions>", StringList(), "keep only features with white listed accessions, e.g. sp|P02662|CASA1_BOVIN", false);
     // XXX: Proper description of this parameter.
-    setValidStrings_("id:sequence_comparison_method", ListUtils::create<String>("substring,exact"));
+    setValidStrings_("id:sequence_comparison_method", ListUtils::create<std::string>("substring,exact"));
     registerFlag_("id:remove_annotated_features", "Remove features with annotations");
     registerFlag_("id:remove_unannotated_features", "Remove features without annotations");
     registerFlag_("id:remove_unassigned_ids", "Remove unassigned peptide identifications");
     registerInputFile_("id:blacklist", "<file>", "", "Input file containing MS2 identifications whose corresponding MS2 spectra should be removed from the mzML file!\n"
                                                      "Matching tolerances are taken from 'id:rt' and 'id:mz' options.\n"
                                                      "This tool will require all IDs to be matched to an MS2 spectrum, and quit with error otherwise. Use 'id:blacklist_imperfect' to allow for mismatches.", false);
-    setValidFormats_("id:blacklist", ListUtils::create<String>("idXML"));
+    setValidFormats_("id:blacklist", ListUtils::create<std::string>("idXML"));
     registerDoubleOption_("id:rt", "tolerance", 0.1, "Retention tolerance [s] for precursor to id position", false);
     registerDoubleOption_("id:mz", "tolerance", 0.001, "m/z tolerance [Th] for precursor to id position", false);
     setMinFloat_("id:rt", 0);
@@ -535,7 +555,7 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+  Param getSubsectionDefaults_(const std::string& /*section*/) const override
   {
     SignalToNoiseEstimatorMedian<MapType::SpectrumType> sn;
     Param tmp;
@@ -553,19 +573,19 @@ protected:
     DataValue v_user;
     if (v_data.valueType() == DataValue::STRING_VALUE)
     {
-      v_user = String(meta_info[2]);
+      v_user =std::string(meta_info[2]);
     }
     else if (v_data.valueType() == DataValue::INT_VALUE)
     {
-      v_user = String(meta_info[2]).toInt();
+      v_user =StringUtils::toInt32(std::string(meta_info[2]));
     }
     else if (v_data.valueType() == DataValue::DOUBLE_VALUE)
     {
-      v_user = String(meta_info[2]).toDouble();
+      v_user = StringUtils::toDouble(meta_info[2]);
     }
     else if (v_data.valueType() == DataValue::STRING_LIST)
     {
-      v_user = (StringList)ListUtils::create<String>(meta_info[2]);
+      v_user = (StringList)ListUtils::create<std::string>(meta_info[2]);
     }
     else if (v_data.valueType() == DataValue::INT_LIST) 
     {
@@ -606,7 +626,7 @@ protected:
     //-------------------------------------------------------------
 
     //input file name and type
-    String in = getStringOption_("in");
+    std::string in = getStringOption_("in");
     FileHandler fh;
 
     FileTypes::Type in_type = fh.getType(in);
@@ -614,11 +634,11 @@ protected:
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = FileTypes::nameToType(getStringOption_("in_type"));
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     //output file name and type
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
 
     FileTypes::Type out_type = fh.getTypeByFileName(out);
 
@@ -626,13 +646,13 @@ protected:
     if (out_type == FileTypes::UNKNOWN)
     {
       out_type = FileTypes::nameToType(getStringOption_("out_type"));
-      writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 2);
+      writeDebug_(std::string("Output file type: ") + FileTypes::typeToName(out_type), 2);
     }
     //use in_type as out_type, if out_type cannot be determined by file or out_type flag
     if (out_type == FileTypes::UNKNOWN)
     {
       out_type = in_type;
-      writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 2);
+      writeDebug_(std::string("Output file type: ") + FileTypes::typeToName(out_type), 2);
     }
 
     bool no_chromatograms(getFlag_("peak_options:no_chromatograms"));
@@ -644,25 +664,25 @@ protected:
     mz_l = rt_l = it_l = charge_l = size_l = q_l = pc_left = select_collision_l = remove_collision_l = select_isolation_width_l = remove_isolation_width_l = replace_pc_charge_in = -1 * numeric_limits<double>::max();
     mz_u = rt_u = it_u = charge_u = size_u = q_u = pc_right = select_collision_u = remove_collision_u = select_isolation_width_u = remove_isolation_width_u = replace_pc_charge_out = numeric_limits<double>::max();
 
-    String rt = getStringOption_("rt");
+    std::string rt = getStringOption_("rt");
     RTBlockMode rt_block_mode = (RTBlockMode)Helpers::indexOf(RT_BLOCK_MODE_NAMES, getStringOption_("rt_block_mode"));
-    String mz = getStringOption_("mz");
-    String pc_mz_range = getStringOption_("peak_options:pc_mz_range");
-    String it = getStringOption_("int");
+    std::string mz = getStringOption_("mz");
+    std::string pc_mz_range = getStringOption_("peak_options:pc_mz_range");
+    std::string it = getStringOption_("int");
     IntList levels = getIntList_("peak_options:level");
     IntList maps = getIntList_("consensus:map");
     double sn = getDoubleOption_("peak_options:sn");
-    String charge = getStringOption_("f_and_c:charge");
-    String size = getStringOption_("f_and_c:size");
-    String q = getStringOption_("feature:q");
-    String remove_collision_energy = getStringOption_("spectra:remove_collision_energy");
-    String select_collision_energy = getStringOption_("spectra:select_collision_energy");
-    String remove_isolation_width = getStringOption_("spectra:remove_isolation_window_width");
-    String select_isolation_width = getStringOption_("spectra:select_isolation_window_width");
-    String replace_pc_charge = getStringOption_("spectra:replace_pc_charge");
+    std::string charge = getStringOption_("f_and_c:charge");
+    std::string size = getStringOption_("f_and_c:size");
+    std::string q = getStringOption_("feature:q");
+    std::string remove_collision_energy = getStringOption_("spectra:remove_collision_energy");
+    std::string select_collision_energy = getStringOption_("spectra:select_collision_energy");
+    std::string remove_isolation_width = getStringOption_("spectra:remove_isolation_window_width");
+    std::string select_isolation_width = getStringOption_("spectra:select_isolation_window_width");
+    std::string replace_pc_charge = getStringOption_("spectra:replace_pc_charge");
 
-    int mz32 = getStringOption_("peak_options:mz_precision").toInt();
-    int int32 = getStringOption_("peak_options:int_precision").toInt();
+    int mz32 = StringUtils::toInt32(getStringOption_("peak_options:mz_precision"));
+    int int32 = StringUtils::toInt32(getStringOption_("peak_options:int_precision"));
     bool indexed_file = getStringOption_("peak_options:indexed_file") == "true";
     bool zlib_compression = getStringOption_("peak_options:zlib_compression") == "true";
 
@@ -689,7 +709,7 @@ protected:
     bool remove_unannotated_features = getFlag_("id:remove_unannotated_features");
     bool remove_unassigned_ids = getFlag_("id:remove_unassigned_ids");
     StringList sequences = getStringList_("id:sequences_whitelist");
-    String sequence_comparison_method = getStringOption_("id:sequence_comparison_method");
+    std::string sequence_comparison_method = getStringOption_("id:sequence_comparison_method");
     StringList accessions = getStringList_("id:accessions_whitelist");
     bool keep_best_score_id = getFlag_("id:keep_best_score_id");
     bool remove_clashes = getFlag_("id:remove_clashes");
@@ -726,21 +746,21 @@ protected:
     }
     catch (Exception::ConversionError& ce)
     {
-      writeLogError_(String("Error: Invalid boundary given: ") + ce.what() + ". Aborting!");
+      writeLogError_(std::string("Error: Invalid boundary given: ") + ce.what() + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
     // sort by RT and m/z
     bool sort = getFlag_("sort");
-    writeDebug_("Sorting output data: " + String(sort), 3);
+    writeDebug_("Sorting output data: " + StringUtils::toStr(sort), 3);
 
     // handle remove_meta
     StringList meta_info = getStringList_("f_and_c:remove_meta");
     bool remove_meta_enabled = (!meta_info.empty());
     if (remove_meta_enabled && meta_info.size() != 3)
     {
-      writeLogError_("Error: Param 'f_and_c:remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
+      writeLogError_("Error: Param 'f_and_c:remove_meta' has invalid number of arguments. Expected 3, got " + StringUtils::toStr(meta_info.size()) + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -881,7 +901,7 @@ protected:
 
 
       // remove by scan mode (might be a lot of spectra)
-      String remove_mode = getStringOption_("spectra:remove_mode");
+      std::string remove_mode = getStringOption_("spectra:remove_mode");
       if (!remove_mode.empty())
       {
         writeDebug_("Removing mode: " + remove_mode, 3);
@@ -895,7 +915,7 @@ protected:
       }
 
       //select by scan mode (might be a lot of spectra)
-      String select_mode = getStringOption_("spectra:select_mode");
+      std::string select_mode = getStringOption_("spectra:select_mode");
       if (!select_mode.empty())
       {
         writeDebug_("Selecting mode: " + select_mode, 3);
@@ -909,7 +929,7 @@ protected:
       }
 
       //remove by activation mode (might be a lot of spectra)
-      String remove_activation = getStringOption_("spectra:remove_activation");
+      std::string remove_activation = getStringOption_("spectra:remove_activation");
       if (!remove_activation.empty())
       {
         writeDebug_("Removing scans with activation mode: " + remove_activation, 3);
@@ -917,13 +937,13 @@ protected:
         {
           if (Precursor::NamesOfActivationMethod[i] == remove_activation)
           {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(ListUtils::create<String>(remove_activation))), exp.end());
+            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(ListUtils::create<std::string>(remove_activation))), exp.end());
           }
         }
       }
 
       //select by activation mode
-      String select_activation = getStringOption_("spectra:select_activation");
+      std::string select_activation = getStringOption_("spectra:select_activation");
       if (!select_activation.empty())
       {
         writeDebug_("Selecting scans with activation mode: " + select_activation, 3);
@@ -931,13 +951,13 @@ protected:
         {
           if (Precursor::NamesOfActivationMethod[i] == select_activation)
           {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(ListUtils::create<String>(select_activation), true)), exp.end());
+            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(ListUtils::create<std::string>(select_activation), true)), exp.end());
           }
         }
       }
 
       //select by scan polarity
-      String select_polarity = getStringOption_("spectra:select_polarity");
+      std::string select_polarity = getStringOption_("spectra:select_polarity");
       if (!select_polarity.empty())
       {
         writeDebug_("Selecting polarity: " + select_polarity, 3);
@@ -961,24 +981,24 @@ protected:
       //remove based on collision energy
       if (remove_collision_l != -1 * numeric_limits<double>::max() || remove_collision_u != numeric_limits<double>::max())
       {
-        writeDebug_(String("Removing collision energy scans in the range: ") + remove_collision_l + ":" + remove_collision_u, 3);
+        writeDebug_(std::string("Removing collision energy scans in the range: ") + remove_collision_l + ":" + remove_collision_u, 3);
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<PeakMap::SpectrumType>(remove_collision_l, remove_collision_u)), exp.end());
       }
       if (select_collision_l != -1 * numeric_limits<double>::max() || select_collision_u != numeric_limits<double>::max())
       {
-        writeDebug_(String("Selecting collision energy scans in the range: ") + select_collision_l + ":" + select_collision_u, 3);
+        writeDebug_(std::string("Selecting collision energy scans in the range: ") + select_collision_l + ":" + select_collision_u, 3);
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<PeakMap::SpectrumType>(select_collision_l, select_collision_u, true)), exp.end());
       }
 
       //remove based on isolation window size
       if (remove_isolation_width_l != -1 * numeric_limits<double>::max() || remove_isolation_width_u != numeric_limits<double>::max())
       {
-        writeDebug_(String("Removing isolation windows with width in the range: ") + remove_isolation_width_l + ":" + remove_isolation_width_u, 3);
+        writeDebug_(std::string("Removing isolation windows with width in the range: ") + remove_isolation_width_l + ":" + remove_isolation_width_u, 3);
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<PeakMap::SpectrumType>(remove_isolation_width_l, remove_isolation_width_u)), exp.end());
       }
       if (select_isolation_width_l != -1 * numeric_limits<double>::max() || select_isolation_width_u != numeric_limits<double>::max())
       {
-        writeDebug_(String("Selecting isolation windows with width in the range: ") + select_isolation_width_l + ":" + select_isolation_width_u, 3);
+        writeDebug_(std::string("Selecting isolation windows with width in the range: ") + select_isolation_width_l + ":" + select_isolation_width_u, 3);
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<PeakMap::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
       }
 
@@ -1026,7 +1046,7 @@ protected:
       }
 
       //
-      String id_blacklist = getStringOption_("id:blacklist");
+      std::string id_blacklist = getStringOption_("id:blacklist");
       if (!id_blacklist.empty())
       {
         OPENMS_LOG_INFO << "Filtering out MS2 spectra from raw file using blacklist ..." << std::endl;
@@ -1040,7 +1060,7 @@ protected:
       }
 
       // check if filtering by consensus feature is enabled
-      String consensus_blackorwhitelist = getStringOption_("consensus:blackorwhitelist:file");
+      std::string consensus_blackorwhitelist = getStringOption_("consensus:blackorwhitelist:file");
       if (!consensus_blackorwhitelist.empty())
       {
         OPENMS_LOG_INFO << "Filtering MS2 spectra from raw file using consensus features ..." << std::endl;
@@ -1065,7 +1085,7 @@ protected:
 
       // filter spectra if they occur in spectra:blackorwhitelist:file 
       // (determined by comparing rt/mz/similarity)
-      String lib_file_name = getStringOption_("spectra:blackorwhitelist:file");
+      std::string lib_file_name = getStringOption_("spectra:blackorwhitelist:file");
       if (!lib_file_name.empty())
       {
         OPENMS_LOG_INFO << "Filtering MS2 spectra based on precursor rt, mz, and spectral similarity ..." << std::endl;
@@ -1340,7 +1360,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes filterByBlackList(MapType& exp, const String& id_blacklist, bool blacklist_imperfect, double rt_tol, double mz_tol)
+  ExitCodes filterByBlackList(MapType& exp, const std::string& id_blacklist, bool blacklist_imperfect, double rt_tol, double mz_tol)
   {
     vector<ProteinIdentification> protein_ids;
     PeptideIdentificationList peptide_ids;
@@ -1435,7 +1455,7 @@ protected:
       for (const FeatureHandle& fh : cm)
       {
         UInt64 map_index = fh.getMapIndex();
-        if (map_ids.empty() || map_ids.find(map_index) != map_ids.end())
+        if (map_ids.empty() || map_ids.contains(map_index))
         {
           Peak2D p;
           p.setMZ(fh.getMZ());
@@ -1486,14 +1506,14 @@ protected:
       if (is_blacklist)
       {
         // blacklist: add all spectra not contained in list
-        if (list_idx.find(i) == list_idx.end())
+        if (!list_idx.contains(i))
         {
           exp2.addSpectrum(exp[i]);
         }
       }
       else   // whitelist: add all non MS2 spectra, and MS2 only if in list
       {
-        if (exp[i].getMSLevel() != 2 || list_idx.find(i) != list_idx.end())
+        if (exp[i].getMSLevel() != 2 || list_idx.contains(i))
         {
           exp2.addSpectrum(exp[i]);
         }
@@ -1556,7 +1576,7 @@ protected:
             continue;
           }
 
-          writeDebug_("Similarity score: " + String((*comp_function)(exp_spectrum, lib_spectrum)), 10);
+          writeDebug_("Similarity score: " + StringUtils::toStr((*comp_function)(exp_spectrum, lib_spectrum)), 10);
 
           // we have matching spectra
           list_idx.insert(exp_index); 
@@ -1574,14 +1594,14 @@ protected:
       if (is_blacklist)
       {
         // blacklist: add all spectra not contained in list
-        if (list_idx.find(i) == list_idx.end())
+        if (!list_idx.contains(i))
         {
           exp2.addSpectrum(exp[i]);
         }
       }
       else   // whitelist: add all non-MS2 spectra + matched MS2 spectra
       {
-        if (exp[i].getMSLevel() != 2 || list_idx.find(i) != list_idx.end())
+        if (exp[i].getMSLevel() != 2 || list_idx.contains(i))
         {
           exp2.addSpectrum(exp[i]);
         }

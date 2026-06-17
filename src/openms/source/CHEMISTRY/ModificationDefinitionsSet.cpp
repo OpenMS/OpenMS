@@ -87,9 +87,9 @@ namespace OpenMS
     return;
   }
 
-  void ModificationDefinitionsSet::setModifications(const String& fixed_modifications, const String& variable_modifications)
+  void ModificationDefinitionsSet::setModifications(const std::string& fixed_modifications, const std::string& variable_modifications)
   {
-    setModifications(ListUtils::create<String>(fixed_modifications), ListUtils::create<String>(variable_modifications));
+    setModifications(ListUtils::create<std::string>(fixed_modifications), ListUtils::create<std::string>(variable_modifications));
   }
 
   void ModificationDefinitionsSet::setModifications(const StringList& fixed_modifications, const StringList& variable_modifications)
@@ -121,9 +121,9 @@ namespace OpenMS
     return mods;
   }
 
-  set<String> ModificationDefinitionsSet::getModificationNames() const
+  set<std::string> ModificationDefinitionsSet::getModificationNames() const
   {
-    set<String> mod_names;
+    set<std::string> mod_names;
     for (set<ModificationDefinition>::const_iterator it = variable_mods_.begin(); it != variable_mods_.end(); ++it)
     {
       mod_names.insert(it->getModificationName());
@@ -161,9 +161,9 @@ namespace OpenMS
     return variable_mods_;
   }
 
-  set<String> ModificationDefinitionsSet::getFixedModificationNames() const
+  set<std::string> ModificationDefinitionsSet::getFixedModificationNames() const
   {
-    set<String> mod_names;
+    set<std::string> mod_names;
     for (set<ModificationDefinition>::const_iterator it = fixed_mods_.begin(); it != fixed_mods_.end(); ++it)
     {
       mod_names.insert(it->getModificationName());
@@ -171,9 +171,9 @@ namespace OpenMS
     return mod_names;
   }
 
-  set<String> ModificationDefinitionsSet::getVariableModificationNames() const
+  set<std::string> ModificationDefinitionsSet::getVariableModificationNames() const
   {
-    set<String> mod_names;
+    set<std::string> mod_names;
     for (set<ModificationDefinition>::const_iterator it = variable_mods_.begin(); it != variable_mods_.end(); ++it)
     {
       mod_names.insert(it->getModificationName());
@@ -194,7 +194,7 @@ namespace OpenMS
 
   bool ModificationDefinitionsSet::isCompatible(const AASequence& peptide) const
   {
-    set<String> var_names(getVariableModificationNames()), fixed_names(getFixedModificationNames());
+    set<std::string> var_names(getVariableModificationNames()), fixed_names(getFixedModificationNames());
     // no modifications present and needed
     if (fixed_names.empty() && !peptide.isModified())
     {
@@ -202,9 +202,9 @@ namespace OpenMS
     }
 
     // check whether the fixed modifications are fulfilled
-    for (set<String>::const_iterator it1 = fixed_names.begin(); it1 != fixed_names.end(); ++it1)
+    for (set<std::string>::const_iterator it1 = fixed_names.begin(); it1 != fixed_names.end(); ++it1)
     {
-      String origin = ModificationsDB::getInstance()->getModification(*it1)->getOrigin();
+      std::string origin(1, ModificationsDB::getInstance()->getModification(*it1)->getOrigin());
       // only single 1lc amino acids are allowed
       if (origin.size() != 1) continue;
      
@@ -231,9 +231,9 @@ namespace OpenMS
     {
       if (it->isModified())
       {
-        String mod = it->getModification()->getFullId();
-        if (var_names.find(mod) == var_names.end() &&
-            fixed_names.find(mod) == fixed_names.end())
+        std::string mod = it->getModification()->getFullId();
+        if (!var_names.contains(mod) &&
+            !fixed_names.contains(mod))
         {
           return false;
         }
@@ -242,9 +242,9 @@ namespace OpenMS
 
     if (peptide.hasNTerminalModification())
     {
-      String mod = peptide.getNTerminalModification()->getFullId();
-      if (var_names.find(mod) == var_names.end() &&
-          fixed_names.find(mod) == fixed_names.end())
+      std::string mod = peptide.getNTerminalModification()->getFullId();
+      if (!var_names.contains(mod) &&
+          !fixed_names.contains(mod))
       {
         return false;
       }
@@ -252,9 +252,9 @@ namespace OpenMS
 
     if (peptide.hasCTerminalModification())
     {
-      String mod = peptide.getCTerminalModification()->getFullId();
-      if (var_names.find(mod) == var_names.end() &&
-          fixed_names.find(mod) == fixed_names.end())
+      std::string mod = peptide.getCTerminalModification()->getFullId();
+      if (!var_names.contains(mod) &&
+          !fixed_names.contains(mod))
       {
         return false;
       }
@@ -275,7 +275,7 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  void ModificationDefinitionsSet::addMatches_(multimap<double, ModificationDefinition>& matches, double mass, const String& residue, ResidueModification::TermSpecificity term_spec, const set<ModificationDefinition>& source, bool is_delta, double tolerance)
+  void ModificationDefinitionsSet::addMatches_(multimap<double, ModificationDefinition>& matches, double mass, const std::string& residue, ResidueModification::TermSpecificity term_spec, const set<ModificationDefinition>& source, bool is_delta, double tolerance)
   {
     for (set<ModificationDefinition>::const_iterator it = source.begin();
          it != source.end(); ++it)
@@ -315,7 +315,7 @@ namespace OpenMS
     }
   }
 
-  void ModificationDefinitionsSet::findMatches(multimap<double, ModificationDefinition>& matches, double mass, const String& residue, ResidueModification::TermSpecificity term_spec, bool consider_fixed, bool consider_variable, bool is_delta, double tolerance) const
+  void ModificationDefinitionsSet::findMatches(multimap<double, ModificationDefinition>& matches, double mass, const std::string& residue, ResidueModification::TermSpecificity term_spec, bool consider_fixed, bool consider_variable, bool is_delta, double tolerance) const
   {
     if (!consider_variable && !consider_fixed)
     {
@@ -337,7 +337,7 @@ namespace OpenMS
   void ModificationDefinitionsSet::inferFromPeptides(const PeptideIdentificationList& peptides)
   {
     // amino acid (or terminus) -> set of modifications (incl. no mod. = 0):
-    map<String, set<const ResidueModification*> > mod_map;
+    map<std::string, set<const ResidueModification*> > mod_map;
 
     for (const PeptideIdentification& pep : peptides)
     {
@@ -356,7 +356,7 @@ namespace OpenMS
 
     fixed_mods_.clear();
     variable_mods_.clear();
-    for (map<String, set<const ResidueModification*> >::const_iterator map_it =
+    for (map<std::string, set<const ResidueModification*> >::const_iterator map_it =
            mod_map.begin(); map_it != mod_map.end(); ++map_it)
     {
       set<const ResidueModification*>::const_iterator set_it =

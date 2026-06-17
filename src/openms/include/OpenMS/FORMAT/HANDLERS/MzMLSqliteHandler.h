@@ -59,7 +59,7 @@ public:
           @param[in] filename The sqMass filename
           @param[in] run_id Unique identifier which links the sqMass and OSW file. It is currently only used for storing and ignored when reading an sqMass file.
       */
-      MzMLSqliteHandler(const String& filename, const UInt64 run_id);
+      MzMLSqliteHandler(const std::string& filename, const UInt64 run_id);
 
       /**@name Functions for reading files 
        *
@@ -128,6 +128,13 @@ public:
         linear_abs_mass_acc_ = linear_abs_mass_acc; 
         sql_batch_size_ = sql_batch_size; 
       }
+
+      /**
+          @brief Set the run id used when writing run-level information
+          
+          @param[in] run_id Run identifier used for RUN table linkage
+      */
+      void setRunId(const UInt64 run_id);
 
       /**
           @brief Get spectral indices around a specific retention time
@@ -211,7 +218,7 @@ protected:
       void createIndices_();
       //@}
 
-      String filename_;
+      std::string filename_;
 
       /*
        * These are spectra and chromatogram ids that are global for a specific

@@ -25,9 +25,9 @@ namespace OpenMS
 
 
   PercolatorOutfile::ScoreType PercolatorOutfile::getScoreType(
-    String score_type_name)
+    std::string score_type_name)
   {
-    score_type_name.toLower();
+    StringUtils::toLower(score_type_name);
     if ((score_type_name == "q-value") || (score_type_name == "qvalue") ||
         (score_type_name == "q value"))
     {
@@ -48,7 +48,7 @@ namespace OpenMS
   }
 
 
-  void PercolatorOutfile::resolveMisassignedNTermMods_(String& peptide) const
+  void PercolatorOutfile::resolveMisassignedNTermMods_(std::string& peptide) const
   {
     boost::regex re(R"(^[A-Z]\[(?<MOD1>-?\d+(\.\d+)?)\](\[(?<MOD2>-?\d+(\.\d+)?)\])?)");
     boost::smatch match;
@@ -57,35 +57,35 @@ namespace OpenMS
     {
       const ResidueModification* null = nullptr;
       vector<const ResidueModification*> maybe_nterm(2, null);
-      String residue = peptide[0];
-      String mod1 = match["MOD1"].str();
-      double mass1 = mod1.toDouble();
+      std::string residue(1, peptide[0]);
+      std::string mod1 = match["MOD1"].str();
+      double mass1 = StringUtils::toDouble(mod1);
       maybe_nterm[0] = ModificationsDB::getInstance()->
         getBestModificationByDiffMonoMass(mass1, 0.01, residue,
                                           ResidueModification::N_TERM);
       if (maybe_nterm[0] && !match["MOD2"].matched &&
           ((maybe_nterm[0]->getId() != "Carbamidomethyl") || (residue != "C")))
       { // only 1 mod, may be terminal -> assume terminal (unless it's CAM!):
-        String replacement = ".(" + maybe_nterm[0]->getId() + ")" + residue;
+        std::string replacement = ".(" + maybe_nterm[0]->getId() + ")" + residue;
         peptide = boost::regex_replace(peptide, re, replacement);
       }
       // only 1 mod, may not be terminal -> nothing to do
       else if (match["MOD2"].matched) // two mods
       {
-        String mod2 = match["MOD2"].str();
-        double mass2 = mod2.toDouble();
+        std::string mod2 = match["MOD2"].str();
+        double mass2 = StringUtils::toDouble(mod2);
         maybe_nterm[1] = ModificationsDB::getInstance()->
           getBestModificationByDiffMonoMass(mass2, 0.01, residue,
                                             ResidueModification::N_TERM);
         if (maybe_nterm[0] && !maybe_nterm[1])
         { // first mod is terminal:
-          String replacement = "(" + maybe_nterm[0]->getId() + ")" + residue +
+          std::string replacement = "(" + maybe_nterm[0]->getId() + ")" + residue +
             "[" + mod2 + "]";
           peptide = boost::regex_replace(peptide, re, replacement);
         }
         else if (maybe_nterm[1] && !maybe_nterm[0])
         { // second mod is terminal:
-          String replacement = "(" + maybe_nterm[1]->getId() + ")" + residue +
+          std::string replacement = "(" + maybe_nterm[1]->getId() + ")" + residue +
             "[" + mod1 + "]";
           peptide = boost::regex_replace(peptide, re, replacement);
         }
@@ -102,19 +102,19 @@ namespace OpenMS
           {
             if (maybe_residue[0] && !maybe_residue[1])
             { // first mod must be non-terminal -> second mod is terminal:
-              String replacement = "(" + maybe_nterm[1]->getId() + ")" +
+              std::string replacement = "(" + maybe_nterm[1]->getId() + ")" +
                 residue + "[" + mod1 + "]";
               peptide = boost::regex_replace(peptide, re, replacement);
             }
             else if (maybe_residue[1] && !maybe_residue[0])
             { // second mod must be non-terminal -> first mod is terminal:
-              String replacement = "(" + maybe_nterm[0]->getId() + ")" +
+              std::string replacement = "(" + maybe_nterm[0]->getId() + ")" +
                 residue + "[" + mod2 + "]";
               peptide = boost::regex_replace(peptide, re, replacement);
             }
             else // both mods may be terminal or non-terminal :-(
             { // arbitrarily assume first mod is terminal
-              String replacement = "(" + maybe_nterm[0]->getId() + ")" +
+              std::string replacement = "(" + maybe_nterm[0]->getId() + ")" +
                 residue + "[" + mod2 + "]";
               peptide = boost::regex_replace(peptide, re, replacement);
             }
@@ -127,7 +127,7 @@ namespace OpenMS
   }
 
 
-  void PercolatorOutfile::getPeptideSequence_(String peptide, AASequence& seq)
+  void PercolatorOutfile::getPeptideSequence_(std::string peptide, AASequence& seq)
     const
   {
     // 'peptide' includes neighboring amino acids, e.g.: K.AAAR.A
@@ -141,15 +141,15 @@ namespace OpenMS
     {
       count = len - start - 2;
     }
-    peptide = peptide.substr(start, count);
+    peptide = StringUtils::substr(peptide, start, count);
 
     // re-format modifications:
-    String unknown_mod = "[unknown]";
-    if (peptide.hasSubstring(unknown_mod))
+    std::string unknown_mod = "[unknown]";
+    if (StringUtils::hasSubstring(peptide, unknown_mod))
     {
       OPENMS_LOG_WARN << "Removing unknown modification(s) from peptide '" << peptide
                << "'" << endl;
-      peptide.substitute(unknown_mod, "");
+      StringUtils::substitute(peptide, unknown_mod, "");
     }
     boost::regex re(R"(\[UNIMOD:(\d+)\])");
     std::string replacement = "(UniMod:$1)";
@@ -167,7 +167,7 @@ namespace OpenMS
   }
 
 
-  void PercolatorOutfile::load(const String& filename,
+  void PercolatorOutfile::load(const std::string& filename,
                                ProteinIdentification& proteins,
                                PeptideIdentificationList& peptides,
                                SpectrumMetaDataLookup& lookup,
@@ -189,10 +189,10 @@ namespace OpenMS
       lookup.addReferenceFormat(R"(_(?<INDEX0>\d+)_(?<CHARGE>\d+)_\d+$)");
     }
 
-    vector<String> items;
+    vector<std::string> items;
     CsvFile source(filename, '\t');
     source.getRow(0, items);
-    String header = ListUtils::concatenate<String>(items, '\t');
+    std::string header = ListUtils::concatenate<std::string>(items, "\t");
     if (header != 
         "PSMId\tscore\tq-value\tposterior_error_prob\tpeptide\tproteinIds")
     {
@@ -200,7 +200,7 @@ namespace OpenMS
                                   header, "Not a valid header for Percolator (PSM level) output");
     }
 
-    set<String> accessions;
+    set<std::string> accessions;
     Size no_charge = 0, no_rt = 0, no_mz = 0; // counters for missing data
     peptides.clear();
 
@@ -215,8 +215,8 @@ namespace OpenMS
       }
       catch (...)
       {
-        String msg = "Error: Could not extract data for spectrum reference '" +
-          items[0] + "' from row " + String(row);
+        std::string msg = "Error: Could not extract data for spectrum reference '" +
+          items[0] + "' from row " + StringUtils::toStr(row);
         OPENMS_LOG_ERROR << msg << endl;
       }
 
@@ -249,9 +249,9 @@ namespace OpenMS
         ++no_mz;
       }
 
-      double score = items[1].toDouble();
-      double qvalue = items[2].toDouble();
-      double posterrprob = items[3].toDouble();
+      double score = StringUtils::toDouble(items[1]);
+      double qvalue = StringUtils::toDouble(items[2]);
+      double posterrprob = StringUtils::toDouble(items[3]);
       hit.setMetaValue("Percolator_score", score);
       hit.setMetaValue("Percolator_qvalue", qvalue);
       hit.setMetaValue("Percolator_PEP", posterrprob);
@@ -297,7 +297,7 @@ namespace OpenMS
     proteins.setDateTime(DateTime::now());
     proteins.setSearchEngine("Percolator");
 
-    for (set<String>::const_iterator it = accessions.begin();
+    for (set<std::string>::const_iterator it = accessions.begin();
          it != accessions.end(); ++it)
     {
       ProteinHit hit;

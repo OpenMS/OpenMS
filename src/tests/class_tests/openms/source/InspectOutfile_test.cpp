@@ -11,6 +11,7 @@
 
 #include <OpenMS/FORMAT/InspectOutfile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -21,11 +22,11 @@ START_TEST(String, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-String spectrum_file1 = OPENMS_GET_TEST_DATA_PATH("InspectOutfile_test_1.mzXML");
-String spectrum_file2 = OPENMS_GET_TEST_DATA_PATH("InspectOutfile_test_2.mzXML");
+std::string spectrum_file1 = OPENMS_GET_TEST_DATA_PATH("InspectOutfile_test_1.mzXML");
+std::string spectrum_file2 = OPENMS_GET_TEST_DATA_PATH("InspectOutfile_test_2.mzXML");
 
 //create input file (they contain absolute paths...)
-String input_file_name;
+std::string input_file_name;
 NEW_TMP_FILE(input_file_name);
 TextFile outfile_content;
 outfile_content.addLine("#SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	CutScore	IntenseBY	BYPresent	Unused	p-value	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	SpecFilePos");
@@ -50,7 +51,7 @@ outfile_content.addLine(spectrum_file1 + "	1045	S.VFYYEI.Q	P68509|1433F_BOVIN	1	
 outfile_content.addLine(spectrum_file1 + "	1962	E.AFEIS.K	P68509|1433F_BOVIN	1	-10496	-742	100	375	0	0.96774	0	0	0	159	19098337");
 outfile_content.store(input_file_name);
 
-String input_file_name2;
+std::string input_file_name2;
 NEW_TMP_FILE(input_file_name2);
 TextFile outfile_content2;
 outfile_content2.addLine("#SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	CutScore	IntenseBY	BYPresent	Unused	p-value	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	SpecFilePos");
@@ -94,7 +95,7 @@ END_SECTION
 
 InspectOutfile file;
 
-START_SECTION(std::vector< Size > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const double p_value_threshold, const String& database_filename = ""))
+START_SECTION(std::vector< Size > load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const double p_value_threshold, const std::string& database_filename = ""))
 	PeptideIdentificationList peptide_identifications;
 	ProteinIdentification protein_identification;
 
@@ -193,7 +194,7 @@ START_SECTION(void generateTrieDB(const std::String& source_database_filename, c
 	remove("InspectOutfile_test.index");
 END_SECTION
 
-START_SECTION(void compressTrieDB(const String& database_filename, const String& index_filename, std::vector< Size >& wanted_records, const String& snd_database_filename, const String& snd_index_filename, bool append = false))
+START_SECTION(void compressTrieDB(const std::string& database_filename, const std::string& index_filename, std::vector< Size >& wanted_records, const std::string& snd_database_filename, const std::string& snd_index_filename, bool append = false))
 	vector< Size > wanted_records(1, 0);
 
 	// test exceptions
@@ -248,11 +249,11 @@ START_SECTION(void compressTrieDB(const String& database_filename, const String&
 END_SECTION
 
 
-START_SECTION(std::vector< Size > getSequences(const String& database_filename, const std::map< Size, Size >& wanted_records, std::vector< String >& sequences))
+START_SECTION(std::vector< Size > getSequences(const std::string& database_filename, const std::map< Size, Size >& wanted_records, std::vector<std::string>& sequences))
 	map< Size, Size > rn_position_map;
 	rn_position_map[0] = 0;
 	rn_position_map[1] = 1;
-	vector< String > sequences, found_sequences;
+	vector<std::string> sequences, found_sequences;
 
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSequences("a", rn_position_map, found_sequences), "the file 'a' could not be found")
@@ -277,8 +278,8 @@ START_SECTION(std::vector< Size > getSequences(const String& database_filename, 
 	found_sequences.clear();
 END_SECTION
 
-START_SECTION(void getACAndACType(String line, String& accession, String& accession_type))
-	String accession, accession_type;
+START_SECTION(void getACAndACType(std::string line, std::string& accession, std::string& accession_type))
+	std::string accession, accession_type;
 	file.getACAndACType(">sp|P02666|CASB_BOVIN Beta-casein precursor - Bos taurus (Bovine).", accession, accession_type);
 	TEST_STRING_EQUAL(accession, "P02666")
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
@@ -328,8 +329,8 @@ START_SECTION(void getACAndACType(String line, String& accession, String& access
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
 END_SECTION
 
-START_SECTION(void getPrecursorRTandMZ(const vector< pair< String, vector< pair < Size, Size > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids))
-	vector< pair< String, vector< pair< Size, Size > > > > files_and_peptide_identification_with_scan_number;
+START_SECTION(void getPrecursorRTandMZ(const vector< pair<std::string, vector< pair < Size, Size > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids))
+	vector< pair<std::string, vector< pair< Size, Size > > > > files_and_peptide_identification_with_scan_number;
 	PeptideIdentificationList ids, ids_found;
 
 	// test exceptions
@@ -360,8 +361,8 @@ START_SECTION(void getPrecursorRTandMZ(const vector< pair< String, vector< pair 
 	TEST_REAL_SIMILAR(ids_found.back().getMZ(), ids.back().getMZ());
 END_SECTION
 
-START_SECTION(void getLabels(const String& source_database_filename, String& ac_label, String& sequence_start_label, String& sequence_end_label, String& comment_label, String& species_label))
-	String ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
+START_SECTION(void getLabels(const std::string& source_database_filename, std::string& ac_label, std::string& sequence_start_label, std::string& sequence_end_label, std::string& comment_label, std::string& species_label))
+	std::string ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
 
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getLabels("a", ac_label, sequence_start_label, sequence_end_label, comment_label, species_label), "the file 'a' could not be found")
@@ -376,7 +377,7 @@ START_SECTION(void getLabels(const String& source_database_filename, String& ac_
 	TEST_STRING_EQUAL(species_label, ">")
 END_SECTION
 
-START_SECTION(vector< Size > getWantedRecords(const String& result_filename, double p_value_threshold))
+START_SECTION(vector< Size > getWantedRecords(const std::string& result_filename, double p_value_threshold))
 
 	// test exceptions
 	TEST_EXCEPTION(Exception::IllegalArgument, file.getWantedRecords("", 2.0))
@@ -391,9 +392,9 @@ START_SECTION(vector< Size > getWantedRecords(const String& result_filename, dou
 	if ( !wanted_records.empty() ) TEST_EQUAL (wanted_records.front(), 0)
 END_SECTION
 
-START_SECTION(template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, String& type, const String& in_filename))
+START_SECTION(template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, std::string& type, const std::string& in_filename))
 	PeakMap exp;
-	String type;
+	std::string type;
 
 	// test the actual program
 	file.getExperiment(exp, type, OPENMS_GET_TEST_DATA_PATH("Inspect.mzXML"));
@@ -402,12 +403,12 @@ START_SECTION(template< typename PeakT > void getExperiment(MSExperiment< PeakT 
 	TEST_STRING_EQUAL(type, "mzData")
 END_SECTION
 
-START_SECTION(bool getSearchEngineAndVersion(const String& cmd_output, ProteinIdentification& protein_identification) )
+START_SECTION(bool getSearchEngineAndVersion(const std::string& cmd_output, ProteinIdentification& protein_identification) )
 	ProteinIdentification protein_identification;
 
 	protein_identification.setHits(vector< ProteinHit >());
 
-  String output = "\
+  std::string output = "\
 InsPecT vesrion 20060907\
   Interpretation of Peptides with Post-translational Modifications.\
   Copyright 2006, The Regents of the University of California\
@@ -461,9 +462,9 @@ Command-line arguments:\
 
 END_SECTION
 
-START_SECTION(void readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, Size &number_of_columns))
+START_SECTION(void readOutHeader(const std::string& filename, const std::string& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, Size &number_of_columns))
 
-	String header_line = "#SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	Length	TotalPRMScore	MedianPRMScore	FractionY	FractionB	Intensity	NTT	p-value	F-Score	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	";
+	std::string header_line = "#SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	Length	TotalPRMScore	MedianPRMScore	FractionY	FractionB	Intensity	NTT	p-value	F-Score	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	";
 
 	Int spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column;
 	Size number_of_columns;

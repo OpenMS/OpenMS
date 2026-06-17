@@ -260,9 +260,9 @@ class TestIMTypesStaticMethods(unittest.TestCase):
 
     def test_toIMFormat(self):
         """Test IMTypes.toIMFormat static method."""
-        fmt = pyopenms.IMTypes.toIMFormat("concatenated")
+        fmt = pyopenms.IMTypes.toIMFormat("im_peak")
         # IMFormat enum is at module level, not nested under IMTypes
-        self.assertEqual(fmt, pyopenms.IMFormat.CONCATENATED)
+        self.assertEqual(fmt, pyopenms.IMFormat.IM_PEAK)
 
 
 class TestTransformationModelStaticMethods(unittest.TestCase):
@@ -299,6 +299,11 @@ class TestMZTrafoModelStaticMethods(unittest.TestCase):
         """Test MZTrafoModel.enumToName static method."""
         name = pyopenms.MZTrafoModel.enumToName(pyopenms.MZTrafoModel.MODELTYPE.LINEAR)
         self.assertEqual(name, "linear")
+
+    def test_setRANSACSeed(self):
+        """Test MZTrafoModel.setRANSACSeed static method."""
+        pyopenms.MZTrafoModel.setRANSACSeed(42)
+        pyopenms.MZTrafoModel.setRANSACSeed(0)
 
 
 class TestSpectrumHelperStaticMethods(unittest.TestCase):
@@ -504,8 +509,8 @@ class TestFileHandlerAdditionalStaticMethods(unittest.TestCase):
         """Test FileHandler.getType static method."""
         file_type = pyopenms.FileHandler.getType("test.mzML")
         self.assertIsNotNone(file_type)
-        # Should return an integer (enum value)
-        self.assertIsInstance(file_type, int)
+        # Should return the correct enum value
+        self.assertEqual(file_type, pyopenms.FileType.MZML)
 
     def test_getTypeByContent(self):
         """Test FileHandler.getTypeByContent static method with a real file."""
@@ -579,8 +584,8 @@ class TestTransformationDescriptionStaticMethods(unittest.TestCase):
         self.assertIsInstance(result, list)
         self.assertGreater(len(result), 0)
         # Should contain known model types like 'linear', 'b_spline', etc.
-        # StringList returns bytes
-        self.assertIn(b"linear", result)
+        # StringList returns str
+        self.assertIn("linear", result)
 
 
 class TestFLASHDeconvStaticMethods(unittest.TestCase):

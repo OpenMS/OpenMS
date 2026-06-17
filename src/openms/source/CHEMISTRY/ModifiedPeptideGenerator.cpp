@@ -28,7 +28,7 @@ namespace OpenMS
   {   
     vector<const ResidueModification*> modifications;
     
-    for (const String& modification : modNames)
+    for (const std::string& modification : modNames)
     {
       const ResidueModification* rm = ModificationsDB::getInstance()->getModification(modification);
       modifications.push_back(rm);
@@ -45,7 +45,7 @@ namespace OpenMS
     ModifiedPeptideGenerator::MapToResidueType m;
     for (auto const & r : mods)
     {
-      String name = r->getFullId();
+      const std::string& name = r->getFullId();
       bool is_terminal = r->getTermSpecificity() == ResidueModification::N_TERM || r->getTermSpecificity() == ResidueModification::C_TERM || r->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM || r->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM;
       if (!is_terminal)
       {

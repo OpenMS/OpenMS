@@ -21,7 +21,6 @@
 namespace OpenMS
 {
 
-  class String;
 
   /**
     @brief Holds information on an edge connecting two features from a (putative) charge ladder
@@ -60,7 +59,7 @@ public:
     enum SIDE {LEFT, RIGHT, BOTH};
 
     /// Type definition for one side of a compomer (maps adduct labels to Adduct objects)
-    typedef std::map<String, Adduct> CompomerSide;
+    typedef std::map<std::string, Adduct> CompomerSide;
     
     /**
       @brief Container for both sides of a compomer
@@ -196,17 +195,17 @@ public:
     /**
       @brief Get a string representation of all adducts in this compomer
       
-      @return String representation of adducts on both sides
+      @return std::string representation of adducts on both sides
     */
-    String getAdductsAsString() const;
+    std::string getAdductsAsString() const;
 
     /**
       @brief Get a string representation of adducts on a specific side
 
       @param[in] side Which side to get adducts for (LEFT, RIGHT, or BOTH)
-      @return String representation of adducts on the specified side
+      @return std::string representation of adducts on the specified side
     */
-    String getAdductsAsString(UInt side) const;
+    std::string getAdductsAsString(UInt side) const;
 
     /**
       @brief Check if the compomer contains only a single adduct on the specified side
@@ -241,6 +240,15 @@ public:
     */
     StringList getLabels(const UInt side) const;
 
+    /**
+      @brief Get total adduct mass on a specific side
+
+      Computes sum of amount * singleMass for all adducts on the given side.
+
+      @param side Which side (LEFT or RIGHT)
+      @return Total adduct mass contribution on that side
+    */
+    double getSideMass(const UInt side) const;
 
     /**
       @brief Add a complete set of adducts to a specific side of the compomer
@@ -314,7 +322,7 @@ namespace std
       OpenMS::hash_combine(seed, OpenMS::hash_float(c.getLogP()));
       OpenMS::hash_combine(seed, OpenMS::hash_int(c.getID()));
 
-      // Hash the compomer components (vector<map<String, Adduct>>)
+      // Hash the compomer components (vector<map<std::string, Adduct>>)
       const auto& components = c.getComponent();
       OpenMS::hash_combine(seed, OpenMS::hash_int(components.size()));
       for (const auto& side : components)

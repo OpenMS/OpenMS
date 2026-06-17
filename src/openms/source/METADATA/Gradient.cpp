@@ -29,10 +29,10 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  void Gradient::addEluent(const String & eluent)
+  void Gradient::addEluent(const std::string & eluent)
   {
     //check if the eluent is valid
-    std::vector<String>::iterator elu_it = find(eluents_.begin(), eluents_.end(), eluent);
+    std::vector<std::string>::iterator elu_it = find(eluents_.begin(), eluents_.end(), eluent);
     if (elu_it != eluents_.end())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A eluent with this name already exists!", eluent);
@@ -48,7 +48,7 @@ namespace OpenMS
     eluents_.clear();
   }
 
-  const std::vector<String> & Gradient::getEluents() const
+  const std::vector<std::string> & Gradient::getEluents() const
   {
     return eluents_;
   }
@@ -78,12 +78,12 @@ namespace OpenMS
     return times_;
   }
 
-  void Gradient::setPercentage(const String & eluent, Int timepoint, UInt percentage)
+  void Gradient::setPercentage(const std::string & eluent, Int timepoint, UInt percentage)
   {
     // (1) validity check
 
     //check if the eluent is valid
-    std::vector<String>::iterator elu_it = find(eluents_.begin(), eluents_.end(), eluent);
+    std::vector<std::string>::iterator elu_it = find(eluents_.begin(), eluents_.end(), eluent);
     if (elu_it == eluents_.end())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The given eluent does not exist in the list of eluents!", eluent);
@@ -93,20 +93,20 @@ namespace OpenMS
     std::vector<Int>::iterator time_it = find(times_.begin(), times_.end(), timepoint);
     if (time_it == times_.end())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The given timepoint does not exist in the list of timepoints!", String(timepoint));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The given timepoint does not exist in the list of timepoints!",StringUtils::toStr(timepoint));
     }
 
     // percentage is valid?
     if (percentage > 100)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The percentage should be between 0 and 100!", String(percentage));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The percentage should be between 0 and 100!",StringUtils::toStr(percentage));
     }
 
     // (2) Look up indices
 
     UInt elu_index(0), time_index(0);
     //look up eluents index
-    for (std::vector<String>::iterator it = eluents_.begin(); it != eluents_.end(); ++it)
+    for (std::vector<std::string>::iterator it = eluents_.begin(); it != eluents_.end(); ++it)
     {
       if (*it == eluent)
       {
@@ -133,12 +133,12 @@ namespace OpenMS
     return percentages_;
   }
 
-  UInt Gradient::getPercentage(const String & eluent, Int timepoint) const
+  UInt Gradient::getPercentage(const std::string & eluent, Int timepoint) const
   {
     // (1) validity check
 
     //check if the eluent is valid
-    std::vector<String>::const_iterator elu_it = find(eluents_.begin(), eluents_.end(), eluent);
+    std::vector<std::string>::const_iterator elu_it = find(eluents_.begin(), eluents_.end(), eluent);
     if (elu_it == eluents_.end())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The given eluent does not exist in the list of eluents!", eluent);
@@ -148,14 +148,14 @@ namespace OpenMS
     std::vector<Int>::const_iterator time_it = find(times_.begin(), times_.end(), timepoint);
     if (time_it == times_.end())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The given timepoint does not exist in the list of timepoints!", String(timepoint));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The given timepoint does not exist in the list of timepoints!",StringUtils::toStr(timepoint));
     }
 
     // (2) Look up indices
 
     UInt elu_index(0), time_index(0);
     //look up eluents index
-    for (std::vector<String>::const_iterator it = eluents_.begin(); it != eluents_.end(); ++it)
+    for (std::vector<std::string>::const_iterator it = eluents_.begin(); it != eluents_.end(); ++it)
     {
       if (*it == eluent)
       {

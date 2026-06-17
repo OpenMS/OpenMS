@@ -408,6 +408,74 @@ public:
       std::vector<float>& intensity,
       std::vector<float>& ion_mobility) const;
 
+    /**
+     * @brief Aggregation mode for rasterization functions
+     */
+    enum class RasterAggregation
+    {
+      SUM,  ///< Sum intensities of all peaks falling into a pixel
+      MAX   ///< Take maximum intensity of all peaks falling into a pixel
+    };
+
+    /**
+     * @brief Rasterizes peak data from spectra into a 2D intensity matrix for visualization.
+     *
+     * This method creates a 2D heatmap/image representation of the MS data by binning peak
+     * intensities into a regular grid of pixels. It is optimized for high performance with
+     * multithreading (OpenMP) and SIMD vectorization, leveraging the sortedness of spectra
+     * (by RT) and peaks (by m/z) for efficient range queries.
+     *
+     * The output matrix has dimensions [mz_bins x rt_bins] where:
+     * - Rows correspond to m/z bins (y-axis in visualization)
+     * - Columns correspond to RT bins (x-axis in visualization)
+     * - Values are aggregated intensities (sum or max)
+     *
+     * The output buffer must be pre-allocated with size (mz_bins * rt_bins) and will be
+     * filled in row-major order (C-style: mz varies slowest, rt varies fastest).
+     *
+     * @param[out] output Pre-allocated buffer of size (mz_bins * rt_bins) to store the
+     *                    aggregated intensity values. Must not be nullptr.
+     * @param[in] rt_bins Number of bins along the RT axis (image width)
+     * @param[in] mz_bins Number of bins along the m/z axis (image height)
+     * @param[in] min_rt Minimum RT value for the output range
+     * @param[in] max_rt Maximum RT value for the output range
+     * @param[in] min_mz Minimum m/z value for the output range
+     * @param[in] max_mz Maximum m/z value for the output range
+     * @param[in] ms_level MS level of spectra to include (e.g., 1 for MS1, 2 for MS2)
+     * @param[in] aggregation RasterAggregation mode: SUM (default) or MAX
+     *
+    * @note The experiment should be sorted by RT and m/z (call sortSpectra(true) if needed)
+    *       for optimal performance and correct results.
+    * @note The output buffer is zero-initialized at the start of this method.
+    *       Callers must still ensure the buffer is pre-allocated with the
+    *       correct size and layout (mz_bins * rt_bins floats, row-major/C-order).
+    *       For best performance allocate with `numpy.empty((mz_bins, rt_bins), dtype=np.float32)`
+    *       (or ensure the array is C-contiguous and `float32`) — this avoids an
+    *       extra zero-fill on the Python side because the method overwrites and
+    *       zeroes the buffer itself on entry. Using `np.empty` is therefore safe
+    *       and recommended when callers control allocation.
+    * @note This method is thread-safe and uses per-thread accumulation buffers to avoid
+     *       contention, then merges results at the end.
+     *
+     * Example usage with numpy (via pyOpenMS):
+     * @code
+     * import numpy as np
+     * rt_bins, mz_bins = 800, 600
+     * output = np.zeros((mz_bins, rt_bins), dtype=np.float32)
+     * exp.rasterizeRTMZ(output, rt_bins, mz_bins, min_rt, max_rt, min_mz, max_mz, 1)
+     * @endcode
+     */
+    void rasterizeRTMZ(
+      float* output,
+      Size rt_bins,
+      Size mz_bins,
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      UInt ms_level,
+      RasterAggregation aggregation = RasterAggregation::SUM) const;
+
   /**
    * @brief Calculates the sum of intensities for a range of elements.
    *
@@ -1048,7 +1116,7 @@ std::vector<MSChromatogram> extractXICs(
 
     //@}
 
-    /// Clear all internal data (spectra, ranges, metadata)
+    /// Clear all internal data (spectra, chromatograms, ranges, metadata)
     void reset();
 
     /**
@@ -1172,8 +1240,14 @@ std::vector<MSChromatogram> extractXICs(
     /// returns a single chromatogram
     MSChromatogram& getChromatogram(Size id);
 
+    /// returns a single chromatogram (immutable)
+    const MSChromatogram& getChromatogram(Size id) const;
+
     /// returns a single spectrum
     MSSpectrum& getSpectrum(Size id);
+
+    /// returns a single spectrum (immutable)
+    const MSSpectrum& getSpectrum(Size id) const;
 
     /// get the total number of spectra available
     Size getNrSpectra() const;
@@ -1303,10 +1377,10 @@ std::vector<MSChromatogram> extractXICs(
           int charge = (item->getCharge()==0 ? 1 : item->getCharge()); // set to 1 if charge is 0, otherwise div/0 below
           for (Size i = 0; i < mts; ++i)
           {
-            String meta_name = String("masstrace_intensity_") + i;
+            std::string meta_name =std::string("masstrace_intensity_") + i;
             if (!item->metaValueExists(meta_name))
             {
-              throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Meta value '") + meta_name + "' expected but not found in container.");
+              throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Meta value '") + meta_name + "' expected but not found in container.");
             }
             ContainerValueType p;
             p.setIntensity(item->getMetaValue(meta_name));

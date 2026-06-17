@@ -13,6 +13,9 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
@@ -49,6 +52,7 @@
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/SpectraTreeTab.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 // Qt
 #include <QCloseEvent>
@@ -248,10 +252,15 @@ namespace OpenMS
 
     connect(dm_precursors_2d_, &QAction::toggled, this, &TOPPViewBase::changeLayerFlag);
 
-    projections_2d_ = tool_bar_2d_peak_->addAction(QIcon(":/projections.png"), "Show Projections", this, &TOPPViewBase::toggleProjections);
+    projections_2d_ = tool_bar_2d_peak_->addAction(QIcon(":/projections.png"), "Show Projections");
     projections_2d_->setCheckable(true);
     projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.<BR>(Hotkey: 2)");
     projections_2d_->setShortcut(Qt::Key_2);
+    // drive the *actual* projection visibility from the button's (post-toggle) checked state;
+    // the widget reports the resulting state back via projectionsVisibilityChanged (see showPlotWidgetInWindow)
+    connect(projections_2d_, &QAction::triggered, this, [this](bool checked) {
+      if (Plot2DWidget* w = getActive2DWidget()) { w->setProjectionsVisible(checked); }
+    });
 
     //--2D feature toolbar--
     tool_bar_2d_feat_ = addToolBar("2D feature tool bar");
@@ -306,9 +315,9 @@ namespace OpenMS
     group_unassigned_2d_ = new QActionGroup(dm_unassigned_2d_);
     menu = new QMenu(dm_unassigned_2d_);
     StringList options = {"Don't show", "Show by precursor m/z", "Show by peptide mass", "Show label meta data"};
-    for (const String& opt : options)
+    for (const std::string& opt : options)
     {
-      QAction* temp = group_unassigned_2d_->addAction(opt.toQString());
+      QAction* temp = group_unassigned_2d_->addAction(toQString(opt));
       temp->setCheckable(true);
       if (opt == options.front()) temp->setChecked(true);
       menu->addAction(temp);
@@ -396,14 +405,10 @@ namespace OpenMS
     // set current path
     current_path_ = param_.getValue(user_section + "default_path").toString();
 
-    // set plugin search path, create it if it does not already exist
-    if (verbosity_ == VERBOSITY::VERBOSE) 
+    if (verbosity_ == VERBOSITY::VERBOSE)
     {
       tool_scanner_.setVerbose(1);
     }
-
-    String plugin_path = String(param_.getValue(user_section + "plugins_path").toString());
-    tool_scanner_.setPluginPath(plugin_path, true);
 
     // update the menu
     updateMenu();
@@ -433,7 +438,6 @@ namespace OpenMS
     defaults_.setValue(user_section + "default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue(user_section + "default_path_current", "true", "If the current path is preferred over the default path.");
     defaults_.setValidStrings(user_section + "default_path_current", {"true","false"});
-    defaults_.setValue(user_section + "plugins_path", File::getUserDirectory() + "OpenMS_Plugins", "Default path for loading Plugins");
     defaults_.setValue(user_section + "intensity_cutoff", "off", "Low intensity cutoff for maps.");
     defaults_.setValidStrings(user_section + "intensity_cutoff", {"on","off"});
     defaults_.setValue(user_section + "on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
@@ -494,14 +498,14 @@ namespace OpenMS
     }
   }
 
-  TOPPViewBase::LOAD_RESULT TOPPViewBase::addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption, UInt window_id, Size spectrum_id)
+  TOPPViewBase::LOAD_RESULT TOPPViewBase::addDataFile(const std::string& filename, bool show_options, bool add_to_recent, std::string caption, UInt window_id, Size spectrum_id)
   {
-    String abs_filename = File::absolutePath(filename);
+    std::string abs_filename = File::absolutePath(filename);
 
     // check if the file exists
     if (!File::exists(abs_filename))
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Open file error", String("The file '") + abs_filename + "' does not exist!");
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Open file error",std::string("The file '") + abs_filename + "' does not exist!");
       return LOAD_RESULT::FILE_NOT_FOUND;
     }
 
@@ -510,14 +514,14 @@ namespace OpenMS
     FileTypes::Type file_type = fh.getType(abs_filename);
     if (file_type == FileTypes::UNKNOWN)
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Open file error", String("Could not determine file type of '") + abs_filename + "'!");
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Open file error",std::string("Could not determine file type of '") + abs_filename + "'!");
       return LOAD_RESULT::FILETYPE_UNKNOWN;
     }
 
     // abort if file type unsupported
     if (!supported_types.contains(file_type))
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Open file error", String("The type '") + FileTypes::typeToName(file_type) + "' is not supported in TOPPView!");
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Open file error",std::string("The type '") + FileTypes::typeToName(file_type) + "' is not supported in TOPPView!");
       return LOAD_RESULT::FILETYPE_UNSUPPORTED;
     }
 
@@ -535,7 +539,7 @@ namespace OpenMS
     PeptideIdentificationList peptides;
     // not needed in data but for auto annotation
     vector<ProteinIdentification> proteins;
-    String annotate_path;
+    std::string annotate_path;
 
     LayerDataBase::DataType data_type(LayerDataBase::DT_UNKNOWN);
 
@@ -579,9 +583,9 @@ namespace OpenMS
         Size diff = peptides.size() - peptides_with_rt.size();
         if (diff)
         {
-          String msg = String(diff) + " peptide identification(s) without"
+          std::string msg =StringUtils::toStr(diff) + " peptide identification(s) without"
                                       " sequence and/or retention time information were removed.\n" +
-                       peptides_with_rt.size() + " peptide identification(s) remaining.";
+                       StringUtils::toStr(peptides_with_rt.size()) + " peptide identification(s) remaining.";
           log_->appendNewHeader(LogWindow::LogState::WARNING, "While loading file:", msg);
         }
         if (peptides_with_rt.empty())
@@ -595,7 +599,7 @@ namespace OpenMS
           StringList paths;
           proteins[0].getPrimaryMSRunPath(paths);
 
-          for (const String &path : paths)
+          for (const std::string &path : paths)
           {
             if (File::exists(path) && fh.getType(path) == FileTypes::MZML)
             {
@@ -619,7 +623,7 @@ namespace OpenMS
             QMessageBox msg_box;
             auto spectra_file_name = File::basename(annotate_path);
             msg_box.setText("Spectra data for identification data was found.");
-            msg_box.setInformativeText(String("Annotate spectra in " + spectra_file_name + "?").toQString());
+            msg_box.setInformativeText(toQString(std::string("Annotate spectra in " + spectra_file_name + "?")));
             msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
             msg_box.setDefaultButton(QMessageBox::Yes);
             auto ret = msg_box.exec();
@@ -725,7 +729,7 @@ namespace OpenMS
     // try to add the data
     if (caption == "")
     {
-      caption = FileHandler::stripExtension(File::basename(abs_filename));
+      caption = File::stemName(abs_filename);
     }
     else
     {
@@ -791,8 +795,8 @@ namespace OpenMS
                              bool show_as_1d,
                              bool show_options,
                              bool as_new_window,
-                             const String& filename,
-                             const String& caption,
+                             const std::string& filename,
+                             const std::string& caption,
                              UInt window_id,
                              Size spectrum_id)
   {
@@ -845,7 +849,7 @@ namespace OpenMS
       if (target_window)
       {
         PlotCanvas* open_canvas = target_window->canvas();
-        std::map<Size, String> layers;
+        std::map<Size, std::string> layers;
         for (Size i = 0; i < open_canvas->getLayerCount(); ++i)
         {
           if (data_type == open_canvas->getLayer(i).type)
@@ -966,12 +970,12 @@ namespace OpenMS
     //selection_view_->show(DataSelectionTabs::SPECTRA_IDX);
   }
 
-  void TOPPViewBase::addRecentFile_(const String& filename)
+  void TOPPViewBase::addRecentFile_(const std::string& filename)
   {
     recent_files_.add(filename);
   }
 
-  void TOPPViewBase::openFile(const String& filename)
+  void TOPPViewBase::openFile(const std::string& filename)
   {
     addDataFile(filename, true, true);
   }
@@ -1030,11 +1034,11 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::showCursorStatus(const String& x, const String& y)
+  void TOPPViewBase::showCursorStatus(const std::string& x, const std::string& y)
   {
     message_label_->setText("");
-    x_label_->setText(x.toQString());
-    y_label_->setText(y.toQString());
+    x_label_->setText(toQString(x));
+    y_label_->setText(toQString(y));
     statusBar()->update();
   }
 
@@ -1228,6 +1232,8 @@ namespace OpenMS
         if (w2->canvas()->getCurrentLayer().type == LayerDataBase::DT_PEAK)
         {
           dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::P_PRECURSORS));
+          // reflect this window's actual projection state (the button is shared across all 2D windows)
+          projections_2d_->setChecked(w2->projectionsVisible());
           tool_bar_2d_peak_->show();
         }
         // feature draw modes
@@ -1395,6 +1401,11 @@ namespace OpenMS
       connect(sw2, &Plot2DWidget::showSpectrumAsNew1D, selection_view_, &DataSelectionTabs::showSpectrumAsNew1D);
       connect(sw2, &Plot2DWidget::showCurrentPeaksAsIonMobility, this, &TOPPViewBase::showCurrentPeaksAsIonMobility);
       connect(sw2, &Plot2DWidget::showCurrentPeaksAs3D, this, &TOPPViewBase::showCurrentPeaksAs3D);
+      // keep the (shared) toolbar toggle button in sync with this window's projection state.
+      // Only react when the emitting window is the active one (a background window's auto-update must not flip the button).
+      connect(sw2, &Plot2DWidget::projectionsVisibilityChanged, this, [this, sw2](bool visible) {
+        if (getActive2DWidget() == sw2) { projections_2d_->setChecked(visible); }
+      });
       base_name += " (2D)";
     }
 
@@ -1406,7 +1417,7 @@ namespace OpenMS
       base_name += " (3D)";
     }
 
-    sw->setWindowTitle(base_name.toQString());
+    sw->setWindowTitle(toQString(base_name));
     sw->addToTabBar(&tab_bar_, base_name, true);
     
     // show first window maximized (only visible windows are in the list)
@@ -1479,10 +1490,10 @@ namespace OpenMS
     return qobject_cast<Plot3DWidget*>(getActivePlotWidget());
   }
 
-  void TOPPViewBase::loadPreferences(String filename)
+  void TOPPViewBase::loadPreferences(std::string filename)
   {
     // compose default ini file path
-    String default_ini_file = String(QDir::homePath()) + "/.TOPPView.ini";
+    std::string default_ini_file = fromQString(QDir::homePath()) + "/.TOPPView.ini";
 
     bool tool_params_added = false;
 
@@ -1534,12 +1545,6 @@ namespace OpenMS
           param_.insert("tool_params:", tmp.copy("tool_params:", true));
           tool_params_added = true;
         }
-        // If the saved plugin path does not exist
-        if (!tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString()))
-        {
-          // reset it to the default
-          param_.setValue(user_section + "plugins_path", File::getUserDirectory() + "OpenMS_Plugins");
-        }
       }
     }
     else if (filename != default_ini_file)
@@ -1572,12 +1577,6 @@ namespace OpenMS
       tool_scanner_.waitForToolParams();
       param_.insert("tool_params:", tool_scanner_.getToolParams());
     }
-    // check if the plugin path exists
-    if (!tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString()))
-    {
-      // reset if it does not
-      param_.setValue(user_section + "plugins_path", tool_scanner_.getPluginPath());
-    }
 
     // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
     try
@@ -1593,17 +1592,17 @@ namespace OpenMS
     }
   }
 
-  QStringList TOPPViewBase::chooseFilesDialog_(const String& path_overwrite)
+  QStringList TOPPViewBase::chooseFilesDialog_(const std::string& path_overwrite)
   {
-    QString open_path = current_path_.toQString();
+    QString open_path = toQString(current_path_);
     if (!path_overwrite.empty())
     {
-      open_path = path_overwrite.toQString();
+      open_path = toQString(path_overwrite);
     }
     // we use the QT file dialog instead of using QFileDialog::Names(...)
     // On Windows and Mac OS X, this static function will use the native file dialog and not a QFileDialog,
     // which prevents us from doing GUI testing on it.
-    QFileDialog dialog(this, "Open file(s)", open_path, supported_types.toFileDialogFilter(FilterLayout::BOTH, true).toQString());
+    QFileDialog dialog(this, "Open file(s)", open_path, toQString(supported_types.toFileDialogFilter(FilterLayout::BOTH, true)));
     dialog.setFileMode(QFileDialog::ExistingFiles);
     if (dialog.exec())
     {
@@ -1612,14 +1611,14 @@ namespace OpenMS
     return {};
   }
 
-  void TOPPViewBase::openFilesByDialog(const String& dir)
+  void TOPPViewBase::openFilesByDialog(const std::string& dir)
   {
     for (const QString& filename : chooseFilesDialog_(dir))
     {
-      addDataFile(filename, true, true);
+      addDataFile(fromQString(filename), true, true);
     }
   }
-  
+
   void TOPPViewBase::showTOPPDialog()
   {
     QAction* action = qobject_cast<QAction*>(sender());
@@ -1641,7 +1640,7 @@ namespace OpenMS
 
     if (!File::writable(topp_.file_name + "_ini"))
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file",std::string("Cannot write to '") + topp_.file_name + "'_ini!");
       return;
     }
     if (!param_.hasSection("tool_params:"))
@@ -1652,7 +1651,7 @@ namespace OpenMS
 
     ToolsDialog tools_dialog(this, param_,
                              topp_.file_name + "_ini", current_path_, layer.type,
-                             layer.getName(), &tool_scanner_);
+                             layer.getName());
 
     if (tools_dialog.exec() == QDialog::Accepted)
     {
@@ -1662,7 +1661,7 @@ namespace OpenMS
       topp_.out = tools_dialog.getOutput();
       topp_.visible_area_only = visible_area_only;
       // Build the input file name
-      String file_extension;
+      std::string file_extension;
       switch (layer.type)
         {
           case LayerDataBase::DataType::DT_PEAK:
@@ -1721,12 +1720,12 @@ namespace OpenMS
     // test if files are writable
     if (!File::writable(topp_.file_name_in))
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name_in + "'!");
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file",std::string("Cannot write to '") + topp_.file_name_in + "'!");
       return;
     }
     if (!File::writable(topp_.file_name_out))
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name_out + "'!");
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file",std::string("Cannot write to '") + topp_.file_name_out + "'!");
       return;
     }
 
@@ -1748,18 +1747,18 @@ namespace OpenMS
     // compose argument list
     QStringList args;
     args << "-ini"
-         << (topp_.file_name + "_ini").toQString()
-         << QString("-%1").arg(topp_.in.toQString())
-         << topp_.file_name_in.toQString()
+         << toQString(topp_.file_name + "_ini")
+         << QString("-%1").arg(toQString(topp_.in))
+         << toQString(topp_.file_name_in)
          << "-no_progress";
     if (topp_.out != "")
     {
-      args << QString("-%1").arg(topp_.out.toQString())
-           << topp_.file_name_out.toQString();
+      args << QString("-%1").arg(toQString(topp_.out))
+           << toQString(topp_.file_name_out);
     }
 
     // start log and show it
-    log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("Starting '%1'").arg(topp_.tool.toQString()), "");
+    log_->appendNewHeader(LogWindow::LogState::NOTICE, fromQString(QString("Starting '%1'").arg(toQString(topp_.tool))), "");
 
     // initialize process
     topp_.process = new QProcess();
@@ -1768,21 +1767,18 @@ namespace OpenMS
     // connect slots
     connect(topp_.process, &QProcess::readyReadStandardOutput, this, &TOPPViewBase::updateProcessLog);
     connect(topp_.process, CONNECTCAST(QProcess, finished, (int, QProcess::ExitStatus)), this, &TOPPViewBase::finishTOPPToolExecution);
-    QString tool_executable = String(tool_scanner_.findPluginExecutable(topp_.tool)).toQString();
-    if (tool_executable.isEmpty())
+    QString tool_executable;
+    try
     {
-      try
-      {
-        // find correct location of TOPP tool
-        tool_executable = File::findSiblingTOPPExecutable(topp_.tool).toQString();
-      }
-      catch (Exception::FileNotFound & /*ex*/)
-      {
-        log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Could not locate executable!",
-                              QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(
-                                      topp_.tool.toQString()));
-        return;
-      }
+      // find correct location of TOPP tool
+      tool_executable = toQString(File::findSiblingTOPPExecutable(topp_.tool));
+    }
+    catch (Exception::FileNotFound & /*ex*/)
+    {
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Could not locate executable!",
+                            fromQString(QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(
+                                    toQString(topp_.tool))));
+      return;
     }
 
     // update menu entries according to new state
@@ -1795,7 +1791,7 @@ namespace OpenMS
 
     if (topp_.process->error() == QProcess::FailedToStart)
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, QString("Failed to execute '%1'").arg(topp_.tool.toQString()), QString("Execution of TOPP tool '%1' failed with error: %2").arg(topp_.tool.toQString(), topp_.process->errorString()));
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, fromQString(QString("Failed to execute '%1'").arg(toQString(topp_.tool))), fromQString(QString("Execution of TOPP tool '%1' failed with error: %2").arg(toQString(topp_.tool), topp_.process->errorString())));
 
       // ensure that all tool output is emitted into log screen
       updateProcessLog();
@@ -1812,39 +1808,39 @@ namespace OpenMS
     log_->addNewline();
     if (topp_.process->exitStatus() == QProcess::CrashExit)
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, QString("Execution of '%1' not successful!").arg(topp_.tool.toQString()),
-                      QString("The tool crashed during execution. If you want to debug this crash, check the input files in '%1'"
-                              " or enable 'debug' mode in the TOPP ini file.").arg(File::getTempDirectory().toQString()));
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, fromQString(QString("Execution of '%1' not successful!").arg(toQString(topp_.tool))),
+                      fromQString(QString("The tool crashed during execution. If you want to debug this crash, check the input files in '%1'"
+                              " or enable 'debug' mode in the TOPP ini file.").arg(toQString(File::getTempDirectory()))));
     }
     else if (topp_.process->exitCode() != 0) // NormalExit with non-zero exit code
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, QString("Execution of '%1' not successful!").arg(topp_.tool.toQString()),
-                            QString("The tool ended with a non-zero exit code of '%1'. ").arg(topp_.process->exitCode()) +
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, fromQString(QString("Execution of '%1' not successful!").arg(toQString(topp_.tool))),
+                            fromQString(QString("The tool ended with a non-zero exit code of '%1'. ").arg(topp_.process->exitCode()) +
                             QString("If you want to debug this, check the input files in '%1' or"
-                                    " enable 'debug' mode in the TOPP ini file.").arg(File::getTempDirectory().toQString()));
+                                    " enable 'debug' mode in the TOPP ini file.").arg(toQString(File::getTempDirectory()))));
     }
     else if (!topp_.out.empty())
     {
-      log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("'%1' finished successfully").arg(topp_.tool.toQString()),
-                      QString("Execution time: %1 ms").arg(topp_.timer.elapsed()));
+      log_->appendNewHeader(LogWindow::LogState::NOTICE, fromQString(QString("'%1' finished successfully").arg(toQString(topp_.tool))),
+                      fromQString(QString("Execution time: %1 ms").arg(topp_.timer.elapsed())));
       if (!File::readable(topp_.file_name_out))
       {
-        log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot read TOPP output", String("Cannot read '") + topp_.file_name_out + "'!");
+        log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot read TOPP output",std::string("Cannot read '") + topp_.file_name_out + "'!");
       }
       else
       {
         auto l = getCurrentLayer();
         if (l)
         {
-          auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name + "_in");
-          if (annotator.get() == nullptr)
-          { // no suitable annotator? open new layer/window
-            addDataFile(topp_.file_name + "_out", true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
+          auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name_out);
+          // we have an annotator ... let's annotate the current layer
+          if (annotator != nullptr)
+          {
+            annotator->annotateWithFilename(*l, *log_, topp_.file_name_out); // ID tabs are automatically enabled
           }
-          else
-          { // we have an annotator ... let's annotate the current layer
-            annotator->annotateWithFilename(*l, *log_, topp_.out + "_out"); // ID tabs are automatically enabled
-          }
+          
+          // we add a new layer in any case (e.g. useful for mzML layer + idXML output)
+          addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
         }
       }
     }
@@ -1881,24 +1877,6 @@ namespace OpenMS
       return nullptr;
     }
     return &(canvas->getCurrentLayer());
-  }
-
-  void TOPPViewBase::toggleProjections()
-  {
-    Plot2DWidget* w = getActive2DWidget();
-    if (w)
-    {
-      // update minimum size before
-      if (!w->projectionsVisible())
-      {
-        setMinimumSize(700, 700);
-      }
-      else
-      {
-        setMinimumSize(400, 400);
-      }
-      w->toggleProjections();
-    }
   }
 
   void TOPPViewBase::annotateWithAMS()
@@ -1988,7 +1966,7 @@ namespace OpenMS
       Param param;
       double tolerance = spec_align_dialog.getTolerance();
       param.setValue("tolerance", tolerance, "Defines the absolute (in Da) or relative (in ppm) mass tolerance");
-      String unit_is_ppm = spec_align_dialog.isPPM() ? "true" : "false";
+      std::string unit_is_ppm = spec_align_dialog.isPPM() ? "true" : "false";
       param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the mass tolerance is interpreted as ppm value otherwise in Dalton");
 
       active_1d_window->performAlignment((UInt)layer_index_1, (UInt)layer_index_2, param);
@@ -2028,7 +2006,7 @@ namespace OpenMS
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     
     ExperimentSharedPtrType exp = std::make_shared<AnnotatedMSRun>();
-    exp.get()->getMSExperiment() = std::move(IMDataConverter::reshapeIMFrameToMany(spec));
+    exp.get()->getMSExperiment() = IMDataConverter::reshapeIMFrameToMany(spec);
     // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
     // for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
 
@@ -2062,7 +2040,7 @@ namespace OpenMS
 
     // Collect all MS2 spectra with the same precursor as the current spectrum
     // (they are in the same SWATH window)
-    String caption_add = "";
+    std::string caption_add;
 
     double lower = pc.getMZ() - pc.getIsolationWindowLowerOffset();
     double upper = pc.getMZ() + pc.getIsolationWindowUpperOffset();
@@ -2098,7 +2076,7 @@ namespace OpenMS
       }
       k++;
     }
-    caption_add = "(DIA window " + String(lower) + " - " + String(upper) + ")";
+    caption_add = "(DIA window " + StringUtils::toStr(lower) + " - " + StringUtils::toStr(upper) + ")";
     
     tmpe->getMSExperiment().sortSpectra();
     tmpe->getMSExperiment().updateRanges();
@@ -2112,7 +2090,7 @@ namespace OpenMS
       return;
     }
 
-    String caption = layer.getName();
+    std::string caption = layer.getName();
     caption += caption_add;
     w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
     showPlotWidgetInWindow(w);
@@ -2166,12 +2144,12 @@ namespace OpenMS
     if (lp->isIonMobilityData())
     {
       // Determine ion mobility unit (default is milliseconds)
-      String unit = "ms";
+      std::string unit = "ms";
       if (exp_sptr->getMSExperiment().metaValueExists("ion_mobility_unit"))
       {
-        unit = exp_sptr->getMSExperiment().getMetaValue("ion_mobility_unit");
+        unit = StringUtils::toStr(exp_sptr->getMSExperiment().getMetaValue("ion_mobility_unit"));
       }
-      String label = "Ion Mobility [" + unit + "]";
+      std::string label = "Ion Mobility [" + unit + "]";
 
       w->canvas()->openglwidget()->setYLabel(label.c_str());
     }
@@ -2208,7 +2186,7 @@ namespace OpenMS
 
   Param TOPPViewBase::getCanvasParameters(UInt dim) const
   {
-    Param out = param_.copy(String(user_section + "") + dim + "d:", true);
+    Param out = param_.copy(std::string(user_section + "") + StringUtils::toStr(dim) + "d:", true);
     out.setValue("default_path", param_.getValue(user_section + "default_path").toString());
     return out;
   }
@@ -2269,7 +2247,7 @@ namespace OpenMS
         continue;
       }
       
-      splash_screen->showMessage((String("Loading file: ") + *it).toQString());
+      splash_screen->showMessage(toQString((std::string("Loading file: ") + *it)));
       splash_screen->repaint();
       QApplication::processEvents();
 
@@ -2299,7 +2277,7 @@ namespace OpenMS
           auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(*it);
           if (annotator.get() == nullptr)
           {
-            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Error", String("Filename '" + *it + "' has unsupported file type. No annotation performed.").toQString());
+            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Error",std::string("Filename '" + *it + "' has unsupported file type. No annotation performed."));
           }
           else
           { // we have an annotator ...
@@ -2360,7 +2338,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        QMessageBox::critical(this, "Error", (String("Error while reading data: ") + e.what()).c_str());
+        QMessageBox::critical(this, "Error", (std::string("Error while reading data: ") + e.what()).c_str());
         return;
       }
       MetaDataBrowser dlg(false, this);
@@ -2452,7 +2430,7 @@ namespace OpenMS
           QTimer::singleShot(50, [this, urls, new_id]() {
             for (const QUrl& url : urls)
             {
-              addDataFile(url.toLocalFile(), false, true, "", new_id);
+              addDataFile(fromQString(url.toLocalFile()), false, true, "", new_id);
             }
           });
         }
@@ -2488,10 +2466,10 @@ namespace OpenMS
     updateViewBar();
   }
 
-  void TOPPViewBase::fileChanged_(const String& filename)
+  void TOPPViewBase::fileChanged_(const std::string& filename)
   {
     // check if file has been deleted
-    if (!QFileInfo(filename.toQString()).exists())
+    if (!QFileInfo(toQString(filename)).exists())
     {
       watcher_->removeFile(filename);
       return;
@@ -2543,7 +2521,7 @@ namespace OpenMS
       QAbstractButton* ok = msg_box.addButton(QMessageBox::Ok);
       msg_box.addButton(QMessageBox::Cancel);
       msg_box.setWindowTitle("Layer data changed");
-      msg_box.setText((String("The data of file '") + filename + "' has changed.<BR>Update layers?").toQString());
+      msg_box.setText(toQString((std::string("The data of file '") + filename + "' has changed.<BR>Update layers?")));
       msg_box.exec();
       watcher_msgbox_ = false;
       if (msg_box.clickedButton() == ok)
@@ -2566,7 +2544,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+        QMessageBox::critical(this, "Error", toQString(std::string("Error while loading file") + layer.filename + "\nError message: " + e.what()));
         lp->getPeakDataMuteable()->getMSExperiment().clear(true);
       }
       lp->getPeakDataMuteable()->getMSExperiment().sortSpectra(true);
@@ -2580,7 +2558,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+        QMessageBox::critical(this, "Error", toQString(std::string("Error while loading file") + layer.filename + "\nError message: " + e.what()));
         lp->getFeatureMap()->clear(true);
       }
       lp->getFeatureMap()->updateRanges();
@@ -2593,7 +2571,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+        QMessageBox::critical(this, "Error", toQString(std::string("Error while loading file") + layer.filename + "\nError message: " + e.what()));
         lp->getConsensusMap()->clear(true);
       }
       lp->getConsensusMap()->updateRanges();
@@ -2607,7 +2585,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+        QMessageBox::critical(this, "Error", toQString(std::string("Error while loading file") + layer.filename + "\nError message: " + e.what()));
         lp->getChromatogramData()->getMSExperiment().clear(true);
       }
       lp->getChromatogramData()->getMSExperiment().sortChromatograms(true);

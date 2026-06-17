@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -52,7 +52,7 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <typename SpectrumType>
-    void load(const String & filename, SpectrumType & spectrum)
+    void load(const std::string & filename, SpectrumType & spectrum)
     {
       std::ifstream is(filename.c_str());
       if (!is)
@@ -75,8 +75,8 @@ public:
       spectrum.clear(true);
 
       // temporary variables
-      String line;
-      std::vector<String> strings(2);
+      std::string line;
+      std::vector<std::string> strings(2);
       typename SpectrumType::PeakType p;
       char delimiter;
 
@@ -85,10 +85,10 @@ public:
 
       // read first line and store precursor m/z and charge
       getline(is, line, '\n');
-      line.trim();
+      StringUtils::trim(line);
 
       // test which delimiter is used in the line
-      if (line.has('\t'))
+      if (StringUtils::has(line, '\t'))
       {
         delimiter = '\t';
       }
@@ -97,10 +97,10 @@ public:
         delimiter = ' ';
       }
 
-      line.split(delimiter, strings);
+      StringUtils::split(line, delimiter, strings);
       if (strings.size() != 2)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\" (got  " + String(strings.size()) + ", expected 2 entries)", filename);
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + StringUtils::toStr(line_number) + "): \"") + line + "\" (got  " + StringUtils::toStr(strings.size()) + ", expected 2 entries)", filename);
       }
       Precursor precursor;
       double mh_mass;
@@ -108,12 +108,12 @@ public:
       try
       {
         // by convention the first line holds: singly protonated peptide mass, charge state
-        mh_mass = strings[0].toDouble();
-        charge = strings[1].toInt();
+        mh_mass = StringUtils::toDouble(strings[0]);
+        charge = StringUtils::toInt32(strings[1]);
       }
       catch (...)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\": not a float number.", filename);
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + StringUtils::toStr(line_number) + "): \"") + line + "\": not a float number.", filename);
       }
       if (charge != 0)
       {
@@ -130,11 +130,11 @@ public:
       while (getline(is, line, '\n'))
       {
         ++line_number;
-        line.trim();
+        StringUtils::trim(line);
         if (line.empty()) continue;
 
         //test which delimiter is used in the line
-        if (line.has('\t'))
+        if (StringUtils::has(line, '\t'))
         {
           delimiter = '\t';
         }
@@ -143,20 +143,20 @@ public:
           delimiter = ' ';
         }
 
-        line.split(delimiter, strings);
+        StringUtils::split(line, delimiter, strings);
         if (strings.size() != 2)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\" (got  " + String(strings.size()) + ", expected 2 entries)", filename);
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + StringUtils::toStr(line_number) + "): \"") + line + "\" (got  " + StringUtils::toStr(strings.size()) + ", expected 2 entries)", filename);
         }
         try
         {
           //fill peak
-          p.setPosition((typename SpectrumType::PeakType::PositionType)strings[0].toDouble());
-          p.setIntensity((typename SpectrumType::PeakType::IntensityType)strings[1].toDouble());
+          p.setPosition((typename SpectrumType::PeakType::PositionType)StringUtils::toDouble(strings[0]));
+          p.setIntensity((typename SpectrumType::PeakType::IntensityType)StringUtils::toDouble(strings[1]));
         }
         catch (Exception::BaseException & /*e*/)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\": not a float number.", filename);
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + StringUtils::toStr(line_number) + "): \"") + line + "\": not a float number.", filename);
         }
         spectrum.push_back(p);
       }
@@ -174,7 +174,7 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     template <typename SpectrumType>
-    void store(const String & filename, const SpectrumType & spectrum) const
+    void store(const std::string & filename, const SpectrumType & spectrum) const
     {
       std::ofstream os(filename.c_str());
       if (!os)

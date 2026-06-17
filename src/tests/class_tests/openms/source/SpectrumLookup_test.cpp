@@ -59,7 +59,7 @@ START_SECTION((bool empty() const))
 END_SECTION
 
 
-START_SECTION((template <typename SpectrumContainer> void readSpectra(const SpectrumContainer&, const String&)))
+START_SECTION((template <typename SpectrumContainer> void readSpectra(const SpectrumContainer&, const std::string&)))
 {
   lookup.readSpectra(spectra);
   TEST_EQUAL(lookup.empty(), false);
@@ -76,7 +76,7 @@ START_SECTION((Size findByRT(double) const))
 END_SECTION
 
 
-START_SECTION((Size findByNativeID(const String&) const))
+START_SECTION((Size findByNativeID(const std::string&) const))
 {
   TEST_EQUAL(lookup.findByNativeID("spectrum=1"), 1);
 
@@ -105,7 +105,7 @@ START_SECTION((Size findByScanNumber(Size) const))
 END_SECTION
 
 
-START_SECTION((void addReferenceFormat(const String&)))
+START_SECTION((void addReferenceFormat(const std::string&)))
 {
   TEST_EXCEPTION(Exception::IllegalArgument, lookup.addReferenceFormat("XXX"));
 
@@ -116,7 +116,7 @@ START_SECTION((void addReferenceFormat(const String&)))
 END_SECTION
 
 
-START_SECTION((Size findByReference(const String&) const))
+START_SECTION((Size findByReference(const std::string&) const))
 {
   TEST_EQUAL(lookup.findByReference("scan_number=1"), 1);
   TEST_EQUAL(lookup.findByReference("name=bla,spectrum=0"), 0);
@@ -126,7 +126,7 @@ START_SECTION((Size findByReference(const String&) const))
 END_SECTION
 
 
-START_SECTION((static Int extractScanNumber(const String&,
+START_SECTION((static Int extractScanNumber(const std::string&,
                                             const boost::regex&)))
 {
   boost::regex re("spectrum=(?<SCAN>\\d+)");
@@ -137,8 +137,8 @@ START_SECTION((static Int extractScanNumber(const String&,
 }
 END_SECTION
 
-START_SECTION((static Int extractScanNumber(const String&,
-                                            const String&)))
+START_SECTION((static Int extractScanNumber(const std::string&,
+                                            const std::string&)))
 {
   TEST_EQUAL(SpectrumLookup::extractScanNumber("scan=42", "MS:1000768"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("scan=42", "MS:1000769"), 42);

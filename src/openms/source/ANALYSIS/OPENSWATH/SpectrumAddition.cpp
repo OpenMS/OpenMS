@@ -183,7 +183,7 @@ namespace OpenMS
     // since resampling is not supported on 3D data first filter by drift time (if possible) and then add
     // (!im_range.isEmpty())
     SpectrumSequence filteredSpectra;
-    for (auto spec: all_spectra)
+    for (const auto& spec: all_spectra)
     {
       filteredSpectra.push_back(OpenSwath::ISpectrumAccess::filterByDrift(spec, im_range.getMin(), im_range.getMax()));
     }

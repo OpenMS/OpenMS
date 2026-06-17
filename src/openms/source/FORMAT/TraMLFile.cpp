@@ -24,19 +24,19 @@ namespace OpenMS
 
   TraMLFile::~TraMLFile() = default;
 
-  void TraMLFile::load(const String & filename, TargetedExperiment & exp)
+  void TraMLFile::load(const std::string & filename, TargetedExperiment & exp)
   {
     Internal::TraMLHandler handler(exp, filename, schema_version_, *this);
     parse_(filename, &handler);
   }
 
-  void TraMLFile::store(const String & filename, const TargetedExperiment & exp) const
+  void TraMLFile::store(const std::string & filename, const TargetedExperiment & exp) const
   {
     Internal::TraMLHandler handler(exp, filename, schema_version_, *this);
     save_(filename, &handler);
   }
 
-  bool TraMLFile::isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings)
+  bool TraMLFile::isSemanticallyValid(const std::string & filename, StringList & errors, StringList & warnings)
   {
     //load mapping
     CVMappings mapping;

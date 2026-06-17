@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <algorithm>
 #include <cmath>
@@ -318,7 +318,7 @@ namespace OpenMS
       if (q < 0.0 || q > 1.0)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "q must be in [0,1]", String(q));
+                                      "q must be in [0,1]",StringUtils::toStr(q));
       }
       if (n == 1) return static_cast<double>(*begin);
 
@@ -572,16 +572,11 @@ namespace OpenMS
                          double mean = std::numeric_limits<double>::max())
     {
       checkIteratorsNotNULL(begin, end);
-      double sum_value = 0.0;
       if (mean == std::numeric_limits<double>::max())
       {
         mean = Math::mean(begin, end);
       }
-      for (IteratorType iter=begin; iter!=end; ++iter)
-      {
-        sum_value += *iter - mean;
-      }
-      return sum_value / std::distance(begin, end);
+      return MeanAbsoluteDeviation(begin, end, mean);
     }
 
     /**

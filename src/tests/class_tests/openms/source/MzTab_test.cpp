@@ -36,7 +36,7 @@ START_SECTION(~MzTab())
 }
 END_SECTION
 
-START_SECTION(std::vector<String> getPSMOptionalColumnNames() const)
+START_SECTION(std::vector<std::string> getPSMOptionalColumnNames() const)
 {
   MzTab mztab;
   MzTabPSMSectionRow row;
@@ -115,17 +115,17 @@ START_SECTION(std::vector<String> getPSMOptionalColumnNames() const)
   mztab.setPSMSectionRows(rows);
 
   // Tests ///////////////////////////////
-  vector<String> optional_columns = mztab.getPSMOptionalColumnNames();
+  vector<std::string> optional_columns = mztab.getPSMOptionalColumnNames();
 
   TEST_EQUAL(mztab.getPSMSectionRows().size(),2)
   TEST_EQUAL(optional_columns.size(),5)
 }
 END_SECTION
 
-START_SECTION(static void addMetaInfoToOptionalColumns(const std::set<String>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const String& id, const MetaInfoInterface& meta))
+START_SECTION(static void addMetaInfoToOptionalColumns(const std::set<std::string>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const std::string& id, const MetaInfoInterface& meta))
 {
   // keys will have spaces replaced with underscore
-  std::set<String> keys{ "FWHM", "with space", "ppm_errors" };
+  std::set<std::string> keys{ "FWHM", "with space", "ppm_errors" };
   // values should remain as they are
   MetaInfoInterface meta;
   meta.setMetaValue("FWHM", 34.5);
@@ -140,6 +140,19 @@ START_SECTION(static void addMetaInfoToOptionalColumns(const std::set<String>& k
   TEST_EQUAL(opt[0].second.toCellString(), "34.5");
   TEST_EQUAL(opt[1].second.toCellString(), "[0.5, 1.4, -2.0, 0.1]");
   TEST_EQUAL(opt[2].second.toCellString(), "null");
+}
+END_SECTION
+
+START_SECTION([EXTRA] MzTabBoolean setNull / isNull polarity)
+{
+  // regression: setNull(true) must make the cell null, setNull(false) must make it not-null (the branches were inverted).
+  MzTabBoolean b(true);
+  TEST_EQUAL(b.isNull(), false)
+  b.setNull(true);
+  TEST_EQUAL(b.isNull(), true)
+  TEST_EQUAL(b.toCellString(), "null")
+  b.setNull(false);
+  TEST_EQUAL(b.isNull(), false)
 }
 END_SECTION
 

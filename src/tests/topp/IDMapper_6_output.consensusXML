@@ -207,6 +207,11 @@
 		<UserParam type="float" name="parameter: algorithm:SignalToNoise:noise_for_empty_window" value="1.0e20"/>
 		<UserParam type="string" name="parameter: algorithm:SignalToNoise:write_log_messages" value="true"/>
 	</dataProcessing>
+	<dataProcessing completion_time="2023-03-08T08:25:14">
+		<software name="OpenMS/ConsensusID_best" version="2.9.0" />
+		<processingAction name="Identification" />
+		<UserParam type="string" name="parameter: db" value="erwinia_carotovora_decoy.fasta"/>
+	</dataProcessing>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="IDMapper" version="version_string" />
 		<processingAction name="Identification mapping" />

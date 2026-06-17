@@ -22,7 +22,9 @@ namespace OpenMS
     compomer_(),
     mass_diff_(0),
     score_(1),
-    is_active_(false)
+    is_active_(false),
+    feature0_mol_multiplier_(1),
+    feature1_mol_multiplier_(1)
   {
   }
 
@@ -41,7 +43,9 @@ namespace OpenMS
     compomer_(compomer),
     mass_diff_(mass_diff),
     score_(1),
-    is_active_(active)
+    is_active_(active),
+    feature0_mol_multiplier_(1),
+    feature1_mol_multiplier_(1)
   {
   }
 
@@ -63,6 +67,8 @@ namespace OpenMS
     mass_diff_ = rhs.mass_diff_;
     score_ = rhs.score_;
     is_active_ = rhs.is_active_;
+    feature0_mol_multiplier_ = rhs.feature0_mol_multiplier_;
+    feature1_mol_multiplier_ = rhs.feature1_mol_multiplier_;
 
     return *this;
   }
@@ -170,6 +176,30 @@ namespace OpenMS
     is_active_ = active;
   }
 
+  Int ChargePair::getMolMultiplier(UInt pairID) const
+  {
+    if (pairID == 0)
+    {
+      return feature0_mol_multiplier_;
+    }
+    else
+    {
+      return feature1_mol_multiplier_;
+    }
+  }
+
+  void ChargePair::setMolMultiplier(UInt pairID, Int m)
+  {
+    if (pairID == 0)
+    {
+      feature0_mol_multiplier_ = m;
+    }
+    else
+    {
+      feature1_mol_multiplier_ = m;
+    }
+  }
+
   //@}
 
   /// Equality operator
@@ -181,7 +211,9 @@ namespace OpenMS
            (feature1_charge_ == i.feature1_charge_) &&
            (compomer_ == i.compomer_) &&
            (mass_diff_ == i.mass_diff_) &&
-           (is_active_ == i.is_active_);
+           (is_active_ == i.is_active_) &&
+           (feature0_mol_multiplier_ == i.feature0_mol_multiplier_) &&
+           (feature1_mol_multiplier_ == i.feature1_mol_multiplier_);
   }
 
   /// Equality operator
@@ -196,7 +228,8 @@ namespace OpenMS
        << "Mass Diff: " << cp.getMassDiff() << "\n"
        << "Compomer: " << cp.getCompomer() << "\n"
        << "Charge: " << cp.getCharge(0) << " : " << cp.getCharge(1) << "\n"
-       << "Element Index: " << cp.getElementIndex(0) << " : " << cp.getElementIndex(1) << "\n";
+       << "Element Index: " << cp.getElementIndex(0) << " : " << cp.getElementIndex(1) << "\n"
+       << "MolMultiplier: " << cp.getMolMultiplier(0) << " : " << cp.getMolMultiplier(1) << "\n";
     return os;
   }
 

@@ -25,32 +25,25 @@ add_subdirectory(openms)
 #------------------------------------------------------------------------------
 # Note: pyOpenMS is optional and can be disabled with -DPYOPENMS=OFF
 option(PYOPENMS "Build pyOpenMS Python bindings" OFF)
+option(WITH_UV "Install Python dependencies with uv" ON)
+
+# Optional: Python version to use when creating the pyOpenMS venv with uv
+# Example: "3.11". Only used when WITH_UV=ON.
+set(PYOPENMS_UV_PYTHON_VERSION "" CACHE STRING "Python version (e.g. 3.11) for creating pyOpenMS .venv when WITH_UV=ON")
 
 if(PYOPENMS)
-  # Discover uv executable
-  find_program(UV_EXECUTABLE uv)
-  if(NOT UV_EXECUTABLE)
-    message(FATAL_ERROR "uv executable not found. Install uv (https://docs.astral.sh/uv/) and ensure it's on PATH.")
-  endif()
-  message(STATUS "Found uv: ${UV_EXECUTABLE}")
+  if(WITH_UV)
+    # Discover uv executable
+    find_program(UV_EXECUTABLE uv)
+    if(NOT UV_EXECUTABLE)
+      message(FATAL_ERROR "uv executable not found. Install uv (https://docs.astral.sh/uv/) and ensure it's on PATH.")
+    endif()
+    message(STATUS "Found uv: ${UV_EXECUTABLE}")
 
-  set(Python_FIND_VIRTUALENV FIRST)
-  # Install only build dependencies (not pyOpenMS itself)
-  message(STATUS "Installing pyOpenMS build dependencies with uv...")
-  execute_process(
-    COMMAND ${UV_EXECUTABLE} sync --only-group dev
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/pyOpenMS
-    RESULT_VARIABLE _uv_install_result
-    ERROR_VARIABLE _uv_install_error
-  )
-  if(NOT _uv_install_result EQUAL 0)
-    message(WARNING "Failed to install pyOpenMS build dependencies with uv: ${_uv_install_error}")
+    set(Python_FIND_VIRTUALENV FIRST)
+    # We found uv; pyOpenMS will decide later whether to run it and where to place the .venv
   endif()
-  if(WIN32)
-    set(Python_EXECUTABLE "${CMAKE_CURRENT_LIST_DIR}/pyOpenMS/.venv/Scripts/python.exe")
-  else()
-    set(Python_EXECUTABLE "${CMAKE_CURRENT_LIST_DIR}/pyOpenMS/.venv/bin/python")
-  endif()
+
   message(STATUS "pyOpenMS Python environment: ${Python_EXECUTABLE}")
 
   # Build pyOpenMS Python extension modules directly as part of the main build
@@ -60,8 +53,9 @@ if(PYOPENMS)
   # Optional: Package pyOpenMS wheel from already-built modules
   # Usage: cmake --build . --target pyopenms_wheel
   add_custom_target(pyopenms_wheel
-    COMMAND ${UV_EXECUTABLE} build --wheel
-      --out-dir ${CMAKE_BINARY_DIR}/pyopenms_wheels
+    COMMAND ${Python_EXECUTABLE} -m build --wheel
+      --skip-dependency-check --no-isolation
+      --outdir ${CMAKE_BINARY_DIR}/pyopenms_wheels
       --config-setting=override=cmake.0.build_path=${CMAKE_BINARY_DIR}/py-build-cmake_cache/pyopenms
       --config-setting=override=cmake.0.options.PYOPENMS_USE_PREBUILT=ON
       --config-setting=override=cmake.0.options.PYOPENMS_PREBUILT_DIR=${CMAKE_BINARY_DIR}/pyOpenMS
@@ -71,17 +65,18 @@ if(PYOPENMS)
   )
 endif()
 
+#------------------------------------------------------------------------------
+# TOPP tools (must come before openms_gui so TOPP_TOOLS cache is initialized
+# before the GUI appends its tools to it)
+#------------------------------------------------------------------------------
+add_subdirectory(topp)
+
 if(WITH_GUI)
   #------------------------------------------------------------------------------
   # OpenMS gui lib
   #------------------------------------------------------------------------------
   add_subdirectory(openms_gui)
 endif()
-
-#------------------------------------------------------------------------------
-# TOPP tools
-#------------------------------------------------------------------------------
-add_subdirectory(topp)
 
 #------------------------------------------------------------------------------
 # Tests
