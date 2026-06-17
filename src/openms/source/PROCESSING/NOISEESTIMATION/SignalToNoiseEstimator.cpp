@@ -39,13 +39,18 @@ namespace OpenMS
     vector<float> tmp;
     while (count++ < n_scans)
     {
-      UInt scan = (UInt)(distribution(generator) * (spec_indices.size() - 1));
+      // issue #9488, PROC-23: index through the filtered scan-index list (spec_indices)
+      // instead of the full experiment, so only non-empty spectra of the requested
+      // ms_level are sampled; clamp the percentile index to stay in range.
+      Size pick = (Size)(distribution(generator) * (spec_indices.size() - 1));
+      Size scan = spec_indices[pick];
       tmp.clear();
       for (const auto& peak : exp[scan])
       {
         tmp.push_back(peak.getIntensity());
       }
-      Size idx = tmp.size() * percentile / 100.0;
+      Size idx = (Size)(tmp.size() * percentile / 100.0);
+      if (idx >= tmp.size()) idx = tmp.size() - 1; // clamp for percentile==100 / tiny spectra
       std::nth_element(tmp.begin(), tmp.begin() + idx, tmp.end());
       noise += tmp[idx];
     }

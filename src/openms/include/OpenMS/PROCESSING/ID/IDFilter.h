@@ -881,7 +881,7 @@ namespace OpenMS
     static void filterHitsByScore(std::vector<IdentificationType>& ids, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type)
     {
       IDScoreSwitcherAlgorithm switcher;
-      bool at_least_one_found = false;
+      bool any_id_missing_score_type = false;
       for (IdentificationType& id : ids)
       {
         if (switcher.isScoreType(id.getScoreType(), score_type))
@@ -906,11 +906,20 @@ namespace OpenMS
               struct HasMaxMetaValue<typename IdentificationType::HitType> score_filter(metaval, threshold_score);
               keepMatchingItems(id.getHits(), score_filter);
             }
-            at_least_one_found = true;
+          }
+          else
+          {
+            // issue #9488, PROC-32: score_type is not present as main or secondary score for
+            // this ID: remove all of its hits, as documented in the @note above.
+            id.getHits().clear();
+            any_id_missing_score_type = true;
           }
         }
       }
-      if (!at_least_one_found) OPENMS_LOG_WARN << std::string("Warning: No hit with the given score_type found. All hits removed.") << std::endl;
+      if (any_id_missing_score_type)
+      {
+        OPENMS_LOG_WARN << "Warning: At least one identification did not contain the given score_type; all hits of those identifications were removed." << std::endl;
+      }
     }
 
     /**

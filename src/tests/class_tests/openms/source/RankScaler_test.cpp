@@ -59,8 +59,13 @@ START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType&
 	dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
 
 	e_ptr->filterSpectrum(spec);
-	
+
 	TEST_EQUAL(spec.size(), 121)
+
+	// issue #9488, PROC-16: a scaler must return peaks in m/z (position) order
+	TEST_EQUAL(spec.isSorted(), true)
+	TEST_REAL_SIMILAR(spec.begin()->getPosition()[0], 104.0541)        // lowest m/z first
+	TEST_REAL_SIMILAR((spec.end()-1)->getPosition()[0], 1251.3613)     // highest m/z last
 
 	spec.sortByIntensity();
 	TEST_REAL_SIMILAR(spec.begin()->getIntensity(), 96)
@@ -81,6 +86,11 @@ START_SECTION((void filterPeakMap(PeakMap& exp)))
 
   TEST_EQUAL(pm.begin()->size(), 121)
 
+  // issue #9488, PROC-16: a scaler must return peaks in m/z (position) order
+  TEST_EQUAL(pm.begin()->isSorted(), true)
+  TEST_REAL_SIMILAR(pm.begin()->begin()->getPosition()[0], 104.0541)
+  TEST_REAL_SIMILAR((pm.begin()->end()-1)->getPosition()[0], 1251.3613)
+
   pm.begin()->sortByIntensity();
   TEST_REAL_SIMILAR(pm.begin()->begin()->getIntensity(), 96)
   TEST_REAL_SIMILAR((pm.begin()->end()-1)->getIntensity(), 121)
@@ -96,6 +106,11 @@ START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   e_ptr->filterPeakSpectrum(spec);
 
   TEST_EQUAL(spec.size(), 121)
+
+  // issue #9488, PROC-16: a scaler must return peaks in m/z (position) order
+  TEST_EQUAL(spec.isSorted(), true)
+  TEST_REAL_SIMILAR(spec.begin()->getPosition()[0], 104.0541)
+  TEST_REAL_SIMILAR((spec.end()-1)->getPosition()[0], 1251.3613)
 
   spec.sortByIntensity();
   TEST_REAL_SIMILAR(spec.begin()->getIntensity(), 96)

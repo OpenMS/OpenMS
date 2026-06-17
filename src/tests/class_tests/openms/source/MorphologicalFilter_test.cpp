@@ -17,6 +17,7 @@
 #include <OpenMS/KERNEL/Peak2D.h>
 
 #include <fstream>
+#include <thread>
 ///////////////////////////
 
 namespace OpenMS
@@ -670,6 +671,81 @@ START_SECTION((template <typename PeakType > void filterExperiment(MSExperiment<
     }
   }
 
+}
+END_SECTION
+
+START_SECTION([EXTRA] thread-safety / reentrancy of filter)
+{
+  // issue #9488, PROC-33: the scratch buffers in filterRange/applyErosion_/applyDilation_ used
+  // to be function-local 'static', i.e. shared across instances and threads. Run two independent
+  // MorphologicalFilter instances concurrently on different spectra and assert each result matches
+  // a serial reference run. Before the fix this corrupts intermittently; after it is deterministic.
+  const double spacing = 0.25;
+
+  // spec_a uses the existing test data; spec_b uses shifted intensities (different content).
+  MSSpectrum spec_a;
+  MSSpectrum spec_b;
+  for (UInt i = 0; i < data_size; ++i)
+  {
+    Peak1D pa;
+    pa.setIntensity((Peak1D::IntensityType)data[i]);
+    pa.setPos(double(i) * spacing);
+    spec_a.push_back(pa);
+
+    Peak1D pb;
+    pb.setIntensity((Peak1D::IntensityType)(data[i] + 10)); // shifted, overlapping shape
+    pb.setPos(double(i) * spacing);
+    spec_b.push_back(pb);
+  }
+
+  Param parameters;
+  parameters.setValue("method", "tophat");
+  parameters.setValue("struc_elem_length", 1.0);
+  parameters.setValue("struc_elem_unit", "Thomson");
+
+  // serial reference outputs
+  MSSpectrum expected_a(spec_a);
+  MSSpectrum expected_b(spec_b);
+  {
+    MorphologicalFilter mf_ref;
+    mf_ref.setParameters(parameters);
+    mf_ref.filter(expected_a);
+  }
+  {
+    MorphologicalFilter mf_ref;
+    mf_ref.setParameters(parameters);
+    mf_ref.filter(expected_b);
+  }
+
+  // concurrent run: each thread owns its MorphologicalFilter instance (class is non-copyable)
+  const UInt iterations = 200;
+  MSSpectrum result_a;
+  MSSpectrum result_b;
+
+  auto worker = [&parameters](const MSSpectrum& in, MSSpectrum& out, UInt iters)
+  {
+    MorphologicalFilter mf;        // own instance per thread
+    mf.setParameters(parameters);
+    for (UInt n = 0; n < iters; ++n)
+    {
+      MSSpectrum tmp(in);
+      mf.filter(tmp);
+      out = tmp;                   // keep the last result
+    }
+  };
+
+  std::thread t1(worker, std::cref(spec_a), std::ref(result_a), iterations);
+  std::thread t2(worker, std::cref(spec_b), std::ref(result_b), iterations);
+  t1.join();
+  t2.join();
+
+  TEST_EQUAL(result_a.size(), expected_a.size());
+  TEST_EQUAL(result_b.size(), expected_b.size());
+  for (UInt i = 0; i != data_size; ++i)
+  {
+    TEST_REAL_SIMILAR(result_a[i].getIntensity(), expected_a[i].getIntensity());
+    TEST_REAL_SIMILAR(result_b[i].getIntensity(), expected_b[i].getIntensity());
+  }
 }
 END_SECTION
 

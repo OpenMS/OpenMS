@@ -47,7 +47,8 @@ public:
 
     // @}
 
-    ///
+    /// Keeps only the @p n largest (most intense) peaks; the surviving peaks are
+    /// restored to ascending m/z (position) order before returning.
     template <typename SpectrumType>
     void filterSpectrum(SpectrumType & spectrum)
     {
@@ -63,6 +64,11 @@ public:
         indices.push_back(i);
       }
       spectrum.select(indices);
+
+      // issue #9488, PROC-15: restore natural m/z (position) order; select() left the
+      // spectrum in descending-intensity order, which is surprising for an "N largest"
+      // filter. sortByPosition() reorders peaks and parallel data arrays in lockstep.
+      spectrum.sortByPosition();
     }
 
     void filterPeakSpectrum(PeakSpectrum & spectrum);

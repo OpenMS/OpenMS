@@ -49,6 +49,7 @@ public:
     {
       if (spectrum.empty()) return;
 
+      // issue #9488, PROC-16: sort by intensity to assign ranks, but remember to restore m/z order below
       spectrum.sortByIntensity();
       typename SpectrumType::size_type count = spectrum.size();
       ++count;
@@ -65,6 +66,9 @@ public:
         it->setIntensity(count);
       }
       while (it != spectrum.begin());
+
+      // issue #9488, PROC-16: restore positional (m/z) order: a scaler must not change peak ordering
+      spectrum.sortByPosition();
     }
 
     void filterPeakSpectrum(PeakSpectrum & spectrum);

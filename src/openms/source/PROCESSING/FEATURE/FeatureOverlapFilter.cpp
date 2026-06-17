@@ -511,8 +511,12 @@ namespace OpenMS
              tolerances);
     }
 
-    // Combine back: merged FAIMS features + untouched non-FAIMS features
-    feature_map.clear();
+    // Combine back: merged FAIMS features + untouched non-FAIMS features.
+    // issue #9488, PROC-31: pass false to clear ONLY the feature container and preserve
+    // attached metadata (protein/peptide IDs, document/unique IDs, data processing, MetaInfo).
+    // Note: unassigned peptide identifications are kept on feature_map but are NOT
+    // carried over from the temporary faims_features/non_faims_features maps.
+    feature_map.clear(false);
     for (auto& f : faims_features)
     {
       feature_map.push_back(std::move(f));

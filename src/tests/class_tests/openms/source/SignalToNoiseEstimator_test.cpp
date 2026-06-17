@@ -11,6 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -101,6 +102,48 @@ END_SECTION
 START_SECTION((virtual double getSignalToNoise(const Size index)))
   // hard to do without implementing computeSTN_ properly
 	NOT_TESTABLE
+END_SECTION
+
+
+START_SECTION((float estimateNoiseFromRandomScans(const MSExperiment& exp, const UInt ms_level, const UInt n_scans, const double percentile)))
+{
+  // issue #9488, PROC-23: build an interleaved MS1/MS2 experiment where the two
+  // levels have clearly different intensities. The picker must sample only spectra
+  // of the requested ms_level (via the filtered scan-index list), so the result is
+  // level-deterministic even though the random draw is non-deterministic.
+  MSExperiment exp;
+  for (int i = 0; i < 20; ++i)
+  {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    for (int k = 0; k < 10; ++k)
+    {
+      Peak1D p;
+      p.setMZ(100.0 + k);
+      p.setIntensity(1000.0f);
+      ms1.push_back(p);
+    }
+    exp.addSpectrum(ms1);
+
+    MSSpectrum ms2;
+    ms2.setMSLevel(2);
+    for (int k = 0; k < 10; ++k)
+    {
+      Peak1D p;
+      p.setMZ(100.0 + k);
+      p.setIntensity(1.0f);
+      ms2.push_back(p);
+    }
+    exp.addSpectrum(ms2);
+  }
+
+  // all MS1 spectra carry intensity 1000.0 -> any sampled MS1 scan yields 1000.0
+  TEST_REAL_SIMILAR(estimateNoiseFromRandomScans(exp, 1, 10, 80), 1000.0)
+  // all MS2 spectra carry intensity 1.0 -> any sampled MS2 scan yields 1.0
+  TEST_REAL_SIMILAR(estimateNoiseFromRandomScans(exp, 2, 10, 80), 1.0)
+  // empty experiment must return 0.0 (no matching scans)
+  TEST_REAL_SIMILAR(estimateNoiseFromRandomScans(MSExperiment(), 1, 10, 80), 0.0)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -361,6 +361,27 @@ START_SECTION((template <class IdentificationType> static void filterHitsByScore
 }
 END_SECTION
 
+START_SECTION((template <class IdentificationType> static void filterHitsByScore(vector<IdentificationType>& ids, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type)))
+{
+  // issue #9488, PROC-32: documented contract is "Removes a hit if the score_type is not found
+  // at all". Previously such hits were silently KEPT; the fix removes them.
+
+  // Case A: the ID's main score type ("Mascot") IS the requested RAW score type, so this behaves
+  // exactly like the 2-arg overload (threshold 33 keeps 5 hits).
+  PeptideIdentificationList peptides = global_peptides; // score type "Mascot" (registered as RAW)
+  TEST_NOT_EQUAL(peptides[0].getHits().size(), 0);
+  IDFilter::filterHitsByScore(peptides.getData(), 33.0, IDScoreSwitcherAlgorithm::ScoreType::RAW);
+  TEST_EQUAL(peptides[0].getHits().size(), 5);
+
+  // Case B (the regression this fixes): the requested score type (PEP) is present neither as the
+  // main score ("Mascot") nor as any secondary score, so ALL hits of that ID must be removed.
+  PeptideIdentificationList missing = global_peptides;
+  TEST_NOT_EQUAL(missing[0].getHits().size(), 0);
+  IDFilter::filterHitsByScore(missing.getData(), 0.0, IDScoreSwitcherAlgorithm::ScoreType::PEP);
+  TEST_EQUAL(missing[0].getHits().size(), 0); // documented contract: hits removed, NOT kept
+}
+END_SECTION
+
 START_SECTION((template <class IdentificationType> static void keepNBestHits(vector<IdentificationType>& ids, Size n)))
 {
   PeptideIdentificationList peptides = global_peptides;
