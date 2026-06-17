@@ -128,6 +128,7 @@ set(system_executables_list
   ExternalProcess_test
   File_test
   Network_test
+  NetworkGetRequest_test
   JavaInfo_test
   PathUtils_test
   PythonInfo_test
