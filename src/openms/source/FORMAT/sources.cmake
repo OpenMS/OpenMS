@@ -24,6 +24,7 @@ FeatureXMLFile.cpp
 FLASHDeconvFeatureFile.cpp
 FLASHDeconvSpectrumFile.cpp
 FileHandler.cpp
+FileInfo.cpp
 FileTypes.cpp
 GNPSMetaValueFile.cpp
 GNPSMGFFile.cpp

@@ -195,6 +195,7 @@ set(format_executables_list
   FLASHDeconvSpectrumFile_test
   FLASHHelperClasses_test
   FileHandler_test
+  FileInfo_test
   FileTypes_test
   GzipIfstream_test
   GzipInputStream_test
