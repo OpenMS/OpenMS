@@ -506,6 +506,30 @@ START_SECTION((static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(const
 }
 END_SECTION
 
+START_SECTION(([EXTRA] NuXLPresets::getPresets DEB/NM methionine-loss idempotency))
+{
+  // issue #9488, ANAL-51: getPresets() mutates the global ResidueDB singleton for
+  // DEB/NM presets by adding a CH4S1 neutral loss to Methionine. The fix makes this
+  // idempotent: calling getPresets twice must add the loss exactly once, not twice.
+  StringList nucleotides, mapping, modifications, fragment_adducts;
+  std::string can_cross_link;
+
+  // real DEB preset key from share/OpenMS/NUXL/nuxl_presets.json
+  const std::string deb_preset = "RNA-DEB";
+
+  Size before = ResidueDB::getInstance()->getResidue('M')->getLossFormulas().size();
+
+  NuXLPresets::getPresets(deb_preset, nucleotides, mapping, modifications, fragment_adducts, can_cross_link);
+  Size after_one = ResidueDB::getInstance()->getResidue('M')->getLossFormulas().size();
+
+  NuXLPresets::getPresets(deb_preset, nucleotides, mapping, modifications, fragment_adducts, can_cross_link);
+  Size after_two = ResidueDB::getInstance()->getResidue('M')->getLossFormulas().size();
+
+  TEST_EQUAL(after_one, before + 1)   // loss added once
+  TEST_EQUAL(after_two, after_one)    // NOT added again on the second call (the fix)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] std::hash<NuXLFragmentAdductDefinition>))
 {
   // Test that equal definitions have equal hashes

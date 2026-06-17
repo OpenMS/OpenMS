@@ -44,13 +44,16 @@ namespace OpenMS
       vector<PeptideHit> pep_ph, xl_ph;
       for (const auto & ph : pi.getHits())
       {
+         // issue #9488, ANAL-42: keep the first hit of EACH class independently
+         // (previously a shared `pep_ph.empty() && xl_ph.empty()` guard let the
+         // first hit of either class block the first hit of the other class).
          if (static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0)
-         { // only add best hit
-           if (pep_ph.empty() && xl_ph.empty()) pep_ph.push_back(ph); 
+         { // keep only the first plain-peptide hit of this identification
+           if (pep_ph.empty()) pep_ph.push_back(ph);
          }
          else
          {
-           if (pep_ph.empty() && xl_ph.empty()) xl_ph.push_back(ph); 
+           if (xl_ph.empty()) xl_ph.push_back(ph); // keep only the first cross-link hit of this identification
          }
       }
       if (!pep_ph.empty()) { pep_pi.push_back(pi); pep_pi.back().setHits(pep_ph); }
@@ -174,19 +177,26 @@ namespace OpenMS
 
     // add a very small value to q-value to break ties between same q-value but different main score
     double score_range = max_score - min_score;
-    for (auto & pi : xl_pi)
+    // issue #9488, ANAL-43: guard against a degenerate score range. When all XL hits
+    // share the same score (or there are no hits), score_range == 0 (or negative with
+    // the sentinel init) and the division below would yield NaN/inf, corrupting every
+    // XL hit's score. In that case there are no ties to break, so skip the tie-breaker.
+    if (score_range > 0.0)
     {
-      for (auto & p : pi.getHits())
+      for (auto & pi : xl_pi)
       {
-        if (svm_score_exists)
+        for (auto & p : pi.getHits())
         {
-          double small_value = (1.0 - ((double)p.getMetaValue("svm_score") - min_score) / score_range) * 1e-5; // a high score will not or only slightly increase the q-value, lower scores will increase it more
-          p.setScore(p.getScore() + small_value);
-        }
-        else 
-        {
-          double small_value = (1.0 - ((double)p.getMetaValue("NuXL:score") - min_score) / score_range) * 1e-5; // a high score will not or only slightly increase the q-value, lower scores will increase it more          
-          p.setScore(p.getScore() + small_value);
+          if (svm_score_exists)
+          {
+            double small_value = (1.0 - ((double)p.getMetaValue("svm_score") - min_score) / score_range) * 1e-5; // a high score will not or only slightly increase the q-value, lower scores will increase it more
+            p.setScore(p.getScore() + small_value);
+          }
+          else
+          {
+            double small_value = (1.0 - ((double)p.getMetaValue("NuXL:score") - min_score) / score_range) * 1e-5; // a high score will not or only slightly increase the q-value, lower scores will increase it more
+            p.setScore(p.getScore() + small_value);
+          }
         }
       }
     }

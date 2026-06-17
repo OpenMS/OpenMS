@@ -35,8 +35,13 @@ namespace OpenMS
       @param[out] modifications Output parameter for modifications
       @param[out] fragment_adducts Output parameter for fragment adducts
       @param[out] can_cross_link Output parameter for can_cross_link
+
+      @note When @p p contains the substring "DEB" or "NM", this call mutates the global
+            ResidueDB singleton by adding a @c CH4S1 neutral loss to Methionine ('M').
+            This side effect is process-global and affects all other ResidueDB consumers.
+            The addition is idempotent (the loss is added at most once per process).
     */
-   OPENMS_DLLAPI void getPresets(const std::string& p, 
+   OPENMS_DLLAPI void getPresets(const std::string& p,
     const std::string& custom_presets_file,
     StringList& nucleotides, 
     StringList& mapping, 

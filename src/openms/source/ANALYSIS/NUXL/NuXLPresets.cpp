@@ -9,7 +9,9 @@
 #include <OpenMS/ANALYSIS/NUXL/NuXLPresets.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <nlohmann/json.hpp>
+#include <algorithm> // issue #9488, ANAL-51: std::find for idempotent loss-formula guard
 #include <fstream>
+#include <vector>
 
 using json = nlohmann::json;
 
@@ -156,12 +158,21 @@ namespace OpenMS
               can_cross_link = preset["can_cross_link"].get<std::string>();
             }
             
-            // Special handling for DEB and NM presets that need methionine loss
+            // Special handling for DEB and NM presets that need methionine loss.
+            // issue #9488, ANAL-51: this mutates the *global* ResidueDB singleton
+            // (see @note in the header). Guard against re-adding the loss so repeated
+            // getPresets() calls in the same process do not append CH4S1 multiple times
+            // (Residue::addLossFormula does an unconditional push_back).
             if (StringUtils::hasSubstring(p, "DEB") || StringUtils::hasSubstring(p, "NM"))
             {
-              // add special methionine loss
+              // add special methionine loss (idempotent)
+              const EmpiricalFormula met_loss("CH4S1");
               auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
-              r_ptr->addLossFormula(EmpiricalFormula("CH4S1"));
+              const std::vector<EmpiricalFormula>& losses = r_ptr->getLossFormulas();
+              if (std::find(losses.begin(), losses.end(), met_loss) == losses.end())
+              {
+                r_ptr->addLossFormula(met_loss);
+              }
             }
             
             // Preset loaded successfully, return
