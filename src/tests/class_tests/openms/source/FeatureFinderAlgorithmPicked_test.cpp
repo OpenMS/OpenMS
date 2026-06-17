@@ -90,6 +90,63 @@ START_SECTION((virtual void run()))
 
 END_SECTION
 
+START_SECTION(([EXTRA] isotopic_pattern:mz_tolerance and mass_trace:mz_tolerance are not interchangeable (#9247)))
+{
+  // PR #9247 fixed a swap in updateMembers_(): pattern_tolerance_ <- isotopic_pattern:mz_tolerance and
+  // trace_tolerance_ <- mass_trace:mz_tolerance. This pins that the two MZ tolerances are NOT
+  // interchangeable -- feeding asymmetric values in one assignment order vs the swapped order yields a
+  // different feature set. If the assignment is ever swapped again, the two runs would converge.
+  MzMLFile mzml_file;
+  mzml_file.getOptions().addMSLevel(1);
+  PeakMap input_template;
+  mzml_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.mzML"), input_template);
+  input_template.updateRanges();
+
+  Param base;
+  ParamXMLFile paramFile;
+  paramFile.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.ini"), base);
+  base = base.copy("FeatureFinder:1:algorithm:", true);
+
+  // tight isotope-pattern tolerance, loose mass-trace tolerance
+  Param p1 = base;
+  p1.setValue("isotopic_pattern:mz_tolerance", 0.005);
+  p1.setValue("mass_trace:mz_tolerance", 0.5);
+  FeatureMap out1;
+  {
+    PeakMap in = input_template;
+    FFPP ff;
+    ff.run(std::move(in), out1, p1, FeatureMap());
+  }
+
+  // swapped assignment: loose isotope-pattern tolerance, tight mass-trace tolerance
+  Param p2 = base;
+  p2.setValue("isotopic_pattern:mz_tolerance", 0.5);
+  p2.setValue("mass_trace:mz_tolerance", 0.005);
+  FeatureMap out2;
+  {
+    PeakMap in = input_template;
+    FFPP ff;
+    ff.run(std::move(in), out2, p2, FeatureMap());
+  }
+
+  // the two parameterizations must produce a different feature set
+  bool differs = (out1.size() != out2.size());
+  if (!differs)
+  {
+    for (Size i = 0; i < out1.size(); ++i)
+    {
+      if (std::fabs(out1[i].getIntensity() - out2[i].getIntensity()) > 1.0 ||
+          std::fabs(out1[i].getOverallQuality() - out2[i].getOverallQuality()) > 1e-4)
+      {
+        differs = true;
+        break;
+      }
+    }
+  }
+  TEST_EQUAL(differs, true)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
