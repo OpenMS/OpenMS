@@ -269,6 +269,7 @@ set(format_executables_list
   SequestOutfile_test
   SpecArrayFile_test
   SqMassFile_test
+  SqliteConnector_test
   MRMFile_test
   ThermoRawFile_test
   SwathMapMassCorrection_test
