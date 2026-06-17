@@ -303,6 +303,65 @@ START_SECTION(void compute(PeptideIdentificationList& pep_ids, const ProteinIden
   TEST_REAL_SIMILAR(result[0].variance_ppm, 0.0) // offset is constant, i.e. no variance
 
   //--------------------------------------------------------------------
+  // regression for issue #9488, QC-3: the PeptideIdentificationList and FeatureMap
+  // overloads must compute the average/variance identically. The constant-offset data
+  // above always yields variance 0, which cannot distinguish the (old, buggy)
+  // moving-average accumulation from the correct two-pass computation. Here we feed
+  // NON-constant per-spectrum errors (+2 ppm for HIMALAYA, +8 ppm for ALABAMA) through
+  // BOTH overloads using the exact same spectra/peptides and assert that the resulting
+  // average_ppm and variance_ppm match. With the buggy list overload the variance was
+  // accumulated against a moving/partial average and differed from the FeatureMap result.
+  {
+    // build MSExperiment whose peaks carry two different ppm offsets
+    PeakSpectrum himalaya_var = createMSSpectrum(2, 3.7, "XTandem::1");
+    TheoreticalSpectrumGenerator theo_gen_hi_var;
+    theo_gen_hi_var.getSpectrum(himalaya_var, AASequence::fromString("HIMALAYA"), 1, 1);
+    for (Peak1D& peak : himalaya_var)
+      peak.setMZ(Math::ppmToMass(peak.getMZ(), 2.0) + peak.getMZ()); // +2 ppm
+
+    PeakSpectrum alabama_var = createMSSpectrum(2, 2, "XTandem::2", Precursor::ActivationMethod::ECD);
+    TheoreticalSpectrumGenerator theo_gen_al_var;
+    Param theo_gen_settings_al_var = theo_gen_al_var.getParameters();
+    theo_gen_settings_al_var.setValue("add_c_ions", "true");
+    theo_gen_settings_al_var.setValue("add_z_ions", "true");
+    theo_gen_settings_al_var.setValue("add_b_ions", "false");
+    theo_gen_settings_al_var.setValue("add_y_ions", "false");
+    theo_gen_al_var.setParameters(theo_gen_settings_al_var);
+    theo_gen_al_var.getSpectrum(alabama_var, AASequence::fromString("ALABAMA"), 2, 2);
+    for (Peak1D& peak : alabama_var)
+      peak.setMZ(Math::ppmToMass(peak.getMZ(), 8.0) + peak.getMZ()); // +8 ppm
+
+    MSExperiment exp_var;
+    exp_var.setSpectra({MSSpectrum(), alabama_var, himalaya_var});
+    QCBase::SpectraMap spectra_map_var(exp_var);
+
+    // run the PeptideIdentificationList overload
+    PeptideIdentificationList pep_ids_var = {createPeptideIdentification("XTandem::1", "HIMALAYA", 1, 888),
+                                             createPeptideIdentification("XTandem::2", "ALABAMA", 2, 264)};
+    FragmentMassError frag_ma_err_list_var;
+    frag_ma_err_list_var.compute(pep_ids_var, param, exp_var, spectra_map_var);
+    const FragmentMassError::Statistics list_result = frag_ma_err_list_var.getResults()[0];
+
+    // run the FeatureMap overload (already-correct reference) on the SAME data
+    FeatureMap fmap_var;
+    fmap_var.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::1", "HIMALAYA", 1, 888),
+                                                  createPeptideIdentification("XTandem::2", "ALABAMA", 2, 264)});
+    fmap_var.push_back(Feature());
+    ProteinIdentification protId_var;
+    protId_var.setSearchParameters(param);
+    fmap_var.setProteinIdentifications({protId_var});
+    FragmentMassError frag_ma_err_fmap_var;
+    frag_ma_err_fmap_var.compute(fmap_var, exp_var, spectra_map_var);
+    const FragmentMassError::Statistics fmap_result = frag_ma_err_fmap_var.getResults()[0];
+
+    // non-constant errors => non-zero variance (guards against the data being degenerate)
+    TEST_EQUAL(list_result.variance_ppm > 0.0, true)
+    // the two overloads must agree on both average and variance
+    TEST_REAL_SIMILAR(list_result.average_ppm, fmap_result.average_ppm)
+    TEST_REAL_SIMILAR(list_result.variance_ppm, fmap_result.variance_ppm)
+  }
+
+  //--------------------------------------------------------------------
   // test with valid input - ToleranceUnit PPM
   //--------------------------------------------------------------------
 

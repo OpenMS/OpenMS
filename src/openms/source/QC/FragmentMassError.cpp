@@ -288,20 +288,28 @@ namespace OpenMS
     bool print_warning {false};
 
     // computation of ppms
-    // computes the FragmentMassError
+    // issue #9488, QC-3: mirror the FeatureMap overload's two-pass computation so both overloads
+    // compute the average/variance consistently (variance must be accumulated against the FINAL
+    // average over all ppm errors, not a moving/partial average inside the loop).
+    // computes the FragmentMassError (first pass: accumulate all ppm errors)
     for (auto& pep_id : pep_ids)
     {
       calculateFME_(pep_id, exp, map_to_spectrum, print_warning, tolerance, tolerance_unit, accumulator_ppm, counter_ppm, window_mower_filter);
+    }
 
-      // if there are no matching peaks, the counter is zero and it is not possible to find ppms
-      if (counter_ppm == 0)
-      {
-        results_.push_back(result);
-        return;
-      }
-      // computes average
-      result.average_ppm = accumulator_ppm / counter_ppm;
+    // if there are no matching peaks, the counter is zero and it is not possible to find ppms
+    if (counter_ppm == 0)
+    {
+      results_.push_back(result);
+      return;
+    }
 
+    // computes average
+    result.average_ppm = accumulator_ppm / counter_ppm;
+
+    // computes variance (second pass: against the final average)
+    for (const auto& pep_id : pep_ids)
+    {
       calculateVariance_(result, pep_id, counter_ppm);
     }
 
