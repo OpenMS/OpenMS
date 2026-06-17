@@ -2147,6 +2147,8 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
 
   // transition group 1
   cgqcs.component_group_name = "component_group1";
+  cgqcs.retention_time_l = 2; // issue #9597: exercise component-group RT (l/u) through Mean/Var/PercRSD
+  cgqcs.retention_time_u = 3;
   cgqcs.n_heavy_l = 0;
   cgqcs.n_heavy_u = 1;
   cgqcs.n_light_l = 1;
@@ -2179,6 +2181,8 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
   filter_values.push_back(qc_criteria1);
   // transition group 1;
   cgqcs.component_group_name = "component_group1";
+  cgqcs.retention_time_l = 1; // issue #9597
+  cgqcs.retention_time_u = 2;
   cgqcs.n_heavy_l = 1;
   cgqcs.n_heavy_u = 1;
   cgqcs.n_light_l = 2;
@@ -2211,6 +2215,8 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
   filter_values.push_back(qc_criteria2);
   // transition group 1;
   cgqcs.component_group_name = "component_group1";
+  cgqcs.retention_time_l = 1; // issue #9597
+  cgqcs.retention_time_u = 4;
   cgqcs.n_heavy_l = 1;
   cgqcs.n_heavy_u = 2;
   cgqcs.n_light_l = 1;
@@ -2246,6 +2252,8 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
   MRMFeatureQC filter_zeros;
   mrmff.calculateFilterValuesMean(filter_zeros, filter_values, qc_criteria1);  // transition group 1
   TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).component_group_name, "component_group1");
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).retention_time_l, 1.333333333); // issue #9597
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).retention_time_u, 3);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_l, 0.666666667);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_u, 1.333333333);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_light_l, 1.333333333);
@@ -2281,6 +2289,8 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
   mrmff.calculateFilterValuesVar(filter_zeros, filter_values, filter_means, qc_criteria1);
   // transition group 1
   TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).component_group_name, "component_group1");
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).retention_time_l, 0.333333333); // issue #9597
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).retention_time_u, 1);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_l, 1);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_u, 0);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_light_l, 0.333333333);
@@ -2317,6 +2327,10 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
 
   // transition group 1
   TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).component_group_name, "component_group1");
+  // issue #9597: component-group retention_time_u %RSD must be derived from the _u fields (=> 33.33),
+  // not copy-pasted from the _l fields (which would give 43.30, the retention_time_l %RSD).
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).retention_time_l, 43.30127019);
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).retention_time_u, 33.33333333);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_l, 0);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_u, 0);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_light_l, 0);

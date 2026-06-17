@@ -601,7 +601,10 @@ namespace OpenMS
       }
     }
 
-    for (Size l = 1; l < peptide.size() - 1 - 2; ++l) // start at a2/b2, stop at n-1 a/b ion with min length of 2
+    // need at least 4 residues for an interior internal fragment of length >= 2;
+    // the early return also prevents the unsigned loop bound below from underflowing for sizes 1/2.
+    if (peptide.size() < 4) return;
+    for (Size l = 1; l + 2 < peptide.size(); ++l) // start at a2/b2, stop at n-1 a/b ion with min length of 2
     {
       double intensity(1);
 

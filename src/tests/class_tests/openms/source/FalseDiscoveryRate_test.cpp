@@ -286,6 +286,67 @@ START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
   }
 }
 END_SECTION
+
+START_SECTION([EXTRA] applyBasic(run_info, ids) pooled split_charge_variants covers the full charge range (issue #9597))
+{
+  // Build one run whose search parameters span charges 2..3.
+  ProteinIdentification prot;
+  ProteinIdentification::SearchParameters sp;
+  sp.charges = "2:3";
+  prot.setSearchParameters(sp);
+  vector<ProteinIdentification> run_info;
+  run_info.push_back(prot);
+
+  // One single-hit PSM per (score, charge, target/decoy). Identical score sets across
+  // charges so the per-charge q-value maps always have a valid lower_bound for every hit.
+  PeptideIdentificationList pep_ids;
+  auto addPSM = [&pep_ids](double score, int charge, const char* td)
+  {
+    PeptideHit h;
+    h.setScore(score);
+    h.setCharge(charge);
+    h.setMetaValue("target_decoy", td);
+    PeptideIdentification id;
+    id.setScoreType("raw");
+    id.setHigherScoreBetter(true);
+    id.setHits(std::vector<PeptideHit>{h});
+    pep_ids.push_back(id);
+  };
+  for (int z = 2; z <= 3; ++z)
+  {
+    addPSM(0.9, z, "target");
+    addPSM(0.8, z, "decoy");
+    addPSM(0.7, z, "target");
+    addPSM(0.6, z, "decoy");
+  }
+
+  FalseDiscoveryRate fdr;
+  Param fp = fdr.getParameters();
+  fp.setValue("split_charge_variants", "true");
+  fp.setValue("treat_runs_separately", "false");
+  fp.setValue("add_decoy_peptides", "true"); // keep decoys in place so every hit is (re)scored
+  fdr.setParameters(fp);
+
+  fdr.applyBasic(run_info, pep_ids);
+
+  // The pooled loop runs once per charge in [chargeRange.first .. chargeRange.second].
+  // With the bug the upper bound is computed from getChargeRange().first, so the range
+  // collapses to 2..2 and only charge 2 is processed (a single pass). A second pass (only
+  // reached when the upper bound actually reaches 3) re-scores ids that are already typed
+  // "q-value", which stamps a "q-value_score" meta value on their hits. So that meta value
+  // exists iff a second charge pass ran; we look for it on a charge-3 hit.
+  bool charge3_processed = false;
+  for (const auto& id : pep_ids)
+  {
+    for (const auto& h : id.getHits())
+    {
+      if (h.getCharge() == 3 && h.metaValueExists("q-value_score")) charge3_processed = true;
+    }
+  }
+  TEST_EQUAL(charge3_processed, true)
+}
+END_SECTION
+
 delete ptr;
 
 /////////////////////////////////////////////////////////////

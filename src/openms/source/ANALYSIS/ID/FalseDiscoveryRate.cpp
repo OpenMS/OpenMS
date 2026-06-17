@@ -1160,7 +1160,7 @@ namespace OpenMS
       for (const auto& run : run_info)
       {
         chargeRange.first = std::min(run.getSearchParameters().getChargeRange().first, chargeRange.first);
-        chargeRange.second = std::max(run.getSearchParameters().getChargeRange().first, chargeRange.second);
+        chargeRange.second = std::max(run.getSearchParameters().getChargeRange().second, chargeRange.second);
       }
       higher_score_better = ids[0].isHigherScoreBetter();
       for (int c = chargeRange.first; c <= chargeRange.second; ++c)
