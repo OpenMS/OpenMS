@@ -2409,6 +2409,20 @@ set_tests_properties("TOPP_FeatureLinkerUnlabeled_2_out1" PROPERTIES DEPENDS "TO
 add_test("TOPP_FeatureLinkerUnlabeled_3" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_3_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_3_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_3_input2.featureXML -out ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeled_3_output.tmp.consensusXML)
 add_test("TOPP_FeatureLinkerUnlabeled_3_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeled_3_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_3_output.consensusXML)
 set_tests_properties("TOPP_FeatureLinkerUnlabeled_3_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeled_3")
+# Parquet directory-bundle round-trip (issue #9460 §3, L144): prove FeatureLinker reads .featureparquet
+# bundles and writes a .consensusparquet bundle -- FileHandler directory dispatch beyond FileConverter.
+# Inputs are converted from clean (X-free) featureXML fixtures at test time; the output bundle is converted
+# back to consensusXML and diffed against a committed reference. The volatile dataProcessing provenance
+# (input/output temp paths) is whitelisted; timestamps/versions are deterministic under -test.
+add_test("TOPP_FeatureLinkerUnlabeled_parquet_prep1" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input1.featureXML -out ${TESTS_TEMP_DIR}/FLU_parquet_in1.featureparquet -out_type featureparquet)
+add_test("TOPP_FeatureLinkerUnlabeled_parquet_prep2" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input2.featureXML -out ${TESTS_TEMP_DIR}/FLU_parquet_in2.featureparquet -out_type featureparquet)
+add_test("TOPP_FeatureLinkerUnlabeled_parquet_prep3" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input3.featureXML -out ${TESTS_TEMP_DIR}/FLU_parquet_in3.featureparquet -out_type featureparquet)
+add_test("TOPP_FeatureLinkerUnlabeled_parquet" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeled -test -in ${TESTS_TEMP_DIR}/FLU_parquet_in1.featureparquet ${TESTS_TEMP_DIR}/FLU_parquet_in2.featureparquet ${TESTS_TEMP_DIR}/FLU_parquet_in3.featureparquet -out ${TESTS_TEMP_DIR}/FLU_parquet_out.consensusparquet)
+add_test("TOPP_FeatureLinkerUnlabeled_parquet_back" ${TOPP_BIN_PATH}/FileConverter -test -in ${TESTS_TEMP_DIR}/FLU_parquet_out.consensusparquet -out ${TESTS_TEMP_DIR}/FLU_parquet_out.consensusXML -out_type consensusXML)
+add_test("TOPP_FeatureLinkerUnlabeled_parquet_out1" ${DIFF} -whitelist "id=" "href=" "parameter: in" "parameter: out" -in1 ${TESTS_TEMP_DIR}/FLU_parquet_out.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_parquet_output.consensusXML)
+set_tests_properties("TOPP_FeatureLinkerUnlabeled_parquet" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeled_parquet_prep1;TOPP_FeatureLinkerUnlabeled_parquet_prep2;TOPP_FeatureLinkerUnlabeled_parquet_prep3")
+set_tests_properties("TOPP_FeatureLinkerUnlabeled_parquet_back" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeled_parquet")
+set_tests_properties("TOPP_FeatureLinkerUnlabeled_parquet_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeled_parquet_back")
 # "unlabeled" algorithm with "use_identifications" option:
 add_test("TOPP_FeatureLinkerUnlabeled_4" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input3.featureXML -out ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeled_4_output.tmp.consensusXML)
 add_test("TOPP_FeatureLinkerUnlabeled_4_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeled_4_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_4_output.consensusXML)

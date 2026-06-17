@@ -743,6 +743,86 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
 }
 END_SECTION
 
+START_SECTION([EXTRA] exportToParquet / importFromParquet - parquet->parquet content idempotency)
+{
+  // The sections above check memory -> parquet -> memory fidelity. This pins the complementary contract
+  // (issue #9460 §3): a *second* serialization is idempotent -- re-exporting an imported bundle and
+  // re-importing it yields field-identical content. It catches asymmetric export/import bugs where one
+  // side silently drops or rewrites a field. The run identifier is re-synthesized on every load, so we
+  // compare content (features, hulls, subordinates, metavalues, PSMs, protein hits/groups) and assert
+  // identifier consistency *within* each map, not the volatile run-id string across maps.
+  FeatureMap fm;
+
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_idem");
+  prot_id.setSearchEngine("Comet");
+  prot_id.setScoreType("expect");
+  prot_id.setHigherScoreBetter(false);
+  ProteinHit ph; ph.setAccession("Q99999"); ph.setScore(0.002);
+  prot_id.insertHit(ph);
+  ProteinIdentification::ProteinGroup pg; pg.probability = 0.95; pg.accessions = {"Q99999"};
+  prot_id.insertProteinGroup(pg);
+  fm.setProteinIdentifications({prot_id});
+
+  Feature f1;
+  f1.setRT(111.0); f1.setMZ(555.5); f1.setIntensity(1234.0f); f1.setCharge(2); f1.setUniqueId(7001);
+  f1.setMetaValue("label", "alpha");
+  f1.setMetaValue("count", 7);
+  ConvexHull2D hull;
+  hull.setHullPoints({{110.0, 554.0}, {110.0, 557.0}, {112.0, 557.0}, {112.0, 554.0}});
+  f1.getConvexHulls().push_back(hull);
+  Feature sub; sub.setRT(111.2); sub.setMZ(555.6); sub.setIntensity(600.0f); sub.setCharge(2); sub.setUniqueId(7002);
+  f1.getSubordinates().push_back(sub);
+  PeptideIdentification pep; pep.setScoreType("expect"); pep.setHigherScoreBetter(false); pep.setIdentifier("run_idem");
+  PeptideHit pep_hit; pep_hit.setSequence(AASequence::fromString("PEPTIDEK")); pep_hit.setScore(0.002); pep_hit.setCharge(2);
+  pep.insertHit(pep_hit);
+  f1.setPeptideIdentifications({pep});
+  fm.push_back(f1);
+
+  Feature f2;
+  f2.setRT(222.0); f2.setMZ(666.6); f2.setIntensity(4321.0f); f2.setCharge(3); f2.setUniqueId(8001);
+  fm.push_back(f2);
+
+  // first serialization round: memory -> parquet -> fm1
+  std::string dir1; NEW_TMP_FILE(dir1) dir1 += ".fmd";
+  TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, dir1), true)
+  FeatureMap fm1;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(dir1, fm1), true)
+
+  // second serialization round: re-export fm1 -> parquet -> fm2
+  std::string dir2; NEW_TMP_FILE(dir2) dir2 += ".fmd";
+  TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm1, dir2), true)
+  FeatureMap fm2;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(dir2, fm2), true)
+
+  // the two imported maps must be field-identical
+  TEST_EQUAL(fm1.size(), fm2.size())
+  TEST_EQUAL(fm1.size(), 2)
+  for (Size i = 0; i < fm1.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(fm1[i].getRT(), fm2[i].getRT())
+    TEST_REAL_SIMILAR(fm1[i].getMZ(), fm2[i].getMZ())
+    TEST_REAL_SIMILAR(fm1[i].getIntensity(), fm2[i].getIntensity())
+    TEST_EQUAL(fm1[i].getCharge(), fm2[i].getCharge())
+    TEST_EQUAL(fm1[i].getUniqueId(), fm2[i].getUniqueId())
+    TEST_EQUAL(fm1[i].getSubordinates().size(), fm2[i].getSubordinates().size())
+    TEST_EQUAL(fm1[i].getConvexHulls().size(), fm2[i].getConvexHulls().size())
+  }
+  TEST_EQUAL(fm2[0].getMetaValue("label").toString(), "alpha")
+  TEST_EQUAL(int(fm2[0].getMetaValue("count")), 7)
+  TEST_EQUAL(fm2[0].getConvexHulls()[0].getHullPoints().size(), 4)
+  TEST_EQUAL(fm2[0].getSubordinates()[0].getUniqueId(), 7002)
+  TEST_EQUAL(fm1[0].getPeptideIdentifications().size(), fm2[0].getPeptideIdentifications().size())
+  TEST_STRING_EQUAL(fm2[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTIDEK")
+  TEST_REAL_SIMILAR(fm2[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 0.002)
+  TEST_EQUAL(fm1.getProteinIdentifications().size(), fm2.getProteinIdentifications().size())
+  TEST_EQUAL(fm2.getProteinIdentifications()[0].getHits()[0].getAccession(), "Q99999")
+  TEST_EQUAL(fm2.getProteinIdentifications()[0].getProteinGroups().size(), 1)
+  // identifier consistency within fm2: the stamped pep-id identifier equals the protein run identifier
+  TEST_STRING_EQUAL(fm2[0].getPeptideIdentifications()[0].getIdentifier(), fm2.getProteinIdentifications()[0].getIdentifier())
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 // FeatureMap-level metadata round-trip tests
 /////////////////////////////////////////////////////////////
