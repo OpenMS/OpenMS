@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/test_config.h>
@@ -199,6 +200,40 @@ START_TEST(IDBoostGraph, "$Id$")
     START_SECTION(IDBoostGraph on consensusXML TODO)
     {
 
+    }
+    END_SECTION
+
+    START_SECTION([EXTRA] getProteinScores_ requires target_decoy (issue #9488 ANID-10))
+    {
+      vector<ProteinIdentification> prots;
+      PeptideIdentificationList peps;
+      IdXMLFile idf;
+      idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"), prots, peps);
+
+      // Positive path: with "target_decoy" set on every protein hit, scoring labels targets as 1.0.
+      // (meta values are set in place before graph construction, so the graph's ProteinHit*
+      //  pointers observe them; no reallocation occurs.)
+      for (auto& ph : prots[0].getHits()) { ph.setMetaValue("target_decoy", "target"); }
+      {
+        IDBoostGraph idb{prots[0], peps, 1, false, false};
+        idb.computeConnectedComponents();
+        ScoreToTgtDecLabelPairs scores;
+        idb.getProteinScores_(scores);
+        TEST_EQUAL(scores.empty(), false)
+        bool all_target = true;
+        for (const auto& s : scores) { if (s.second != 1.0) { all_target = false; } }
+        TEST_EQUAL(all_target, true)
+      }
+
+      // Negative path: a missing "target_decoy" must now throw MissingInformation instead of
+      // silently being misclassified as a decoy (score label 0).
+      for (auto& ph : prots[0].getHits()) { ph.removeMetaValue("target_decoy"); }
+      {
+        IDBoostGraph idb{prots[0], peps, 1, false, false};
+        idb.computeConnectedComponents();
+        ScoreToTgtDecLabelPairs scores;
+        TEST_EXCEPTION(Exception::MissingInformation, idb.getProteinScores_(scores))
+      }
     }
     END_SECTION
 

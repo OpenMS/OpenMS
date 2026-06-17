@@ -12,6 +12,7 @@
 //#define INFERENCE_BENCH
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -311,7 +312,9 @@ namespace OpenMS
 
     /// @brief Visits nodes in the boost graph (either ptrs to an ID Object or some lightweight surrogates)
     /// and depending on their type gets the score (usually the posterior) plus if it is a decoy or a target.
-    /// If not known or not defined, returns (-1.0, false)
+    /// @throw Exception::MissingInformation if a hit's target/decoy status is unknown (the
+    ///        "target_decoy" meta value is not set; run PeptideIndexer first). Previously a
+    ///        missing value was silently misclassified as a decoy (issue #9488, ANID-10).
     class GetScoreTgTVisitor:
     public boost::static_visitor<std::pair<double,bool>>
         {
@@ -319,12 +322,25 @@ namespace OpenMS
 
           std::pair<double,bool> operator()(PeptideHit* pep) const
           {
-            return {pep->getScore(), pep->getMetaValue("target_decoy").toString()[0] == 't'};
+            const PeptideHit::TargetDecoyType td = pep->getTargetDecoyType();
+            if (td == PeptideHit::TargetDecoyType::UNKNOWN)
+            {
+              throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "PeptideHit lacks the 'target_decoy' meta value (run PeptideIndexer first); cannot compute FDR.");
+            }
+            // TARGET_DECOY counts as target, consistent with FalseDiscoveryRate
+            return {pep->getScore(), td != PeptideHit::TargetDecoyType::DECOY};
           }
 
           std::pair<double,bool> operator()(ProteinHit* prot) const
           {
-            return {prot->getScore(), prot->getMetaValue("target_decoy").toString()[0] == 't'};
+            const ProteinHit::TargetDecoyType td = prot->getTargetDecoyType();
+            if (td == ProteinHit::TargetDecoyType::UNKNOWN)
+            {
+              throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "ProteinHit lacks the 'target_decoy' meta value (run PeptideIndexer first); cannot compute FDR.");
+            }
+            return {prot->getScore(), td == ProteinHit::TargetDecoyType::TARGET};
           }
 
           std::pair<double,bool> operator()(ProteinGroup& pg) const

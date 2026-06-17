@@ -36,6 +36,23 @@ using Internal::IDBoostGraph;
 namespace OpenMS
 {
 
+  namespace
+  {
+    /// Returns true for a target ProteinHit, false for a decoy. Throws if the target/decoy
+    /// status is unknown (the "target_decoy" meta value is not set; run PeptideIndexer first)
+    /// instead of silently treating a missing value as a decoy (issue #9488, ANID-10).
+    bool isTargetProteinOrThrow_(const ProteinHit* ph)
+    {
+      const ProteinHit::TargetDecoyType td = ph->getTargetDecoyType();
+      if (td == ProteinHit::TargetDecoyType::UNKNOWN)
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "ProteinHit lacks the 'target_decoy' meta value (run PeptideIndexer first); cannot compute FDR.");
+      }
+      return td == ProteinHit::TargetDecoyType::TARGET;
+    }
+  }
+
   /// Hasher for sets of uints using boost::hash_range
   struct MyUIntSetHasher
   {
@@ -1398,7 +1415,7 @@ namespace OpenMS
           for (auto const &proteinVID : pepsToGrps.second)
           {
             //check if decoy to count the decoys
-            bool target = boost::get<ProteinHit*>(curr_cc[proteinVID])->getMetaValue("target_decoy").toString()[0] == 't';
+            bool target = isTargetProteinOrThrow_(boost::get<ProteinHit*>(curr_cc[proteinVID]));
             if (target) nr_targets++;
             //ProteinHit *proteinPtr = boost::get<ProteinHit*>(curr_cc[proteinVID]);
             //pg.accessions.push_back(proteinPtr->getAccession());
@@ -1543,7 +1560,7 @@ namespace OpenMS
                 const ProteinHit* ph = boost::get<ProteinHit*>(graph[*ui]);
                 scores_and_tgt.emplace_back(
                     ph->getScore(),
-                    static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't')); // target = 1; false = 0;
+                    static_cast<double>(isTargetProteinOrThrow_(ph))); // target = 1; decoy = 0;
             }
           }
         };
@@ -1581,7 +1598,7 @@ namespace OpenMS
                 const ProteinHit* ph = boost::get<ProteinHit*>(graph[*ui]);
                 scores_and_tgt_fraction.emplace_back(
                     ph->getScore(),
-                    static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't')); // target = 1; false = 0;
+                    static_cast<double>(isTargetProteinOrThrow_(ph))); // target = 1; decoy = 0;
               }
             }
             else if (graph[*ui].which() == 1) //protein group, always include
@@ -1635,7 +1652,7 @@ namespace OpenMS
                 {
                   const ProteinHit* ph = boost::get<ProteinHit*>(fg[prot]);
                   // target = 1/penalty; decoy = 0;
-                  target_fraction = static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't');
+                  target_fraction = static_cast<double>(isTargetProteinOrThrow_(ph));
                   target_fraction /= target_contribution_penalty;
                   auto it_inserted = prot_to_current_max.emplace(prot, target_fraction);
                   if (!it_inserted.second)
