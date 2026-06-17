@@ -56,6 +56,7 @@ brew update
 brew install \
   autoconf \
   automake \
+  dotnet \
   icu4c \
   libtool \
   ninja \
