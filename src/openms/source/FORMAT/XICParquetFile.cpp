@@ -1545,6 +1545,15 @@ namespace OpenMS
   }
 
   void XICParquetFile::getChromatograms(std::vector<XICChromatogram>& output,
+                                        const XICQuery& query) const
+  {
+    // forward to the positional overload; named fields make the column mapping unambiguous
+    getChromatograms(output, query.precursor_id, query.transition_id, query.modified_sequence,
+                      query.precursor_charge, query.product_charge, query.ms_level, query.run_id,
+                      query.filter);
+  }
+
+  void XICParquetFile::getChromatograms(std::vector<XICChromatogram>& output,
                                         const ParquetFilter& filter) const
   {
     getChromatograms_(output, filter.expression(), -1, -1, "", -1, -1, -1, -1, "");

@@ -9,6 +9,7 @@
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 
 // Files
@@ -1404,6 +1405,15 @@ protected:
 
     //// Write out data
 
+    // Surface parquet (.xic) write errors during normal control flow instead of letting
+    // the consumer's destructor swallow them into a log line (issue #9488, FORM-129).
+    // finalize() is not part of the IMSDataConsumer interface, so cast explicitly
+    // (mirrors the MSDataSqlConsumer dynamic_cast above and the mobilogram finalize()).
+    // finalize() is idempotent, so the destructor's later call is a safe no-op.
+    if (auto* xic_cons = dynamic_cast<MSChromatogramParquetConsumer*>(chromatogramConsumer))
+    {
+      xic_cons->finalize();
+    }
     delete chromatogramConsumer;
 
     if (write_parquet)
