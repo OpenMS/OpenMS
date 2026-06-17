@@ -29,6 +29,7 @@ set(qc_executables_list
   PSMExplainedIonCurrent_test
   QCBase_test
   RTAlignment_test
+  SpectrumCount_test
   TIC_test
 )
 
@@ -334,6 +335,7 @@ set(math_executables_list
   LevelContextInference_test
   LinearInterpolation_test
   LinearRegression_test
+  LinearRegressionWithoutIntercept_test
   MathFunctions_test
   MultipleTesting_test
   #MSNumpress_test
