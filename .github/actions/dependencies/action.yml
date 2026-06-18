@@ -105,7 +105,7 @@ runs:
         # pre-merge); conda-forge ships it into Library/bin (already on PATH below).
         # Ghostscript is no longer required: LaTeX formulas are rendered client-side via
         # MathJax (USE_MATHJAX=YES in doc/doxygen/Doxyfile*.in).
-        conda install -c conda-forge libarrow libparquet libzip doxygen -y
+        conda install -c conda-forge libarrow libparquet libzip doxygen uv -y
 
         # Set variables required for the following steps so they
         # don't need a conda environment or login shell:
