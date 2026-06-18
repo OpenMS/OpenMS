@@ -52,6 +52,7 @@ public:
   using ProSEAlgorithm::last_calibration_result_;
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
+  using ProSEAlgorithm::preprocessSpectra_;
 };
 
 // --- Shared calibration fixture -------------------------------------------------
@@ -1380,6 +1381,100 @@ START_SECTION(([EXTRA] computeModMatchTolerance_ returns min(lower, upper)))
   p.setValue("precursor:mass_tolerance_upper", 2.0);
   algo.setParameters(p);
   TEST_REAL_SIMILAR(algo.computeModMatchTolerance_(), 0.5)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] preprocessSpectra_ never aborts; gates deisotoping on the Deisotoper limit (OpenMS#9619)))
+{
+  // Regression for OpenMS#9619: preprocessSpectra_ must never let Deisotoper throw
+  // inside its OpenMP region (an escaping exception calls std::terminate). It gates
+  // the Deisotoper call on Deisotoper::isToleranceSupported(), so even
+  // deisotope_requested=true with a low-resolution (out-of-range) tolerance is a
+  // safe no-op rather than an abort. Mode resolution (auto/true/false) is covered
+  // via the param in the next section.
+  auto make_exp = []()
+  {
+    PeakMap exp;
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setRT(1.0);
+    Precursor prec;
+    prec.setMZ(500.0);
+    prec.setCharge(2);
+    s.getPrecursors().push_back(prec);
+    for (double mz : {110.07, 120.08, 130.10, 200.10, 201.10, 300.20, 350.25, 500.30})
+    {
+      Peak1D p;
+      p.setMZ(mz);
+      p.setIntensity(1000.0f);
+      s.push_back(p);
+    }
+    exp.addSpectrum(s);
+    return exp;
+  };
+
+  // Low-resolution tolerance: requested true OR false -> never throws (deisotoping
+  // is skipped because the tolerance is out of the Deisotoper's supported range).
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, true);
+    TEST_EQUAL(exp.size(), 1)
+    TEST_EQUAL(exp[0].empty(), false)
+  }
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 150.0, true, true);
+    TEST_EQUAL(exp.size(), 1)
+  }
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, false);
+    TEST_EQUAL(exp.size(), 1)
+  }
+
+  // High-resolution tolerance: requested true -> deisotoping path runs (no throw);
+  // requested false -> skipped.
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.05, false, true);
+    TEST_EQUAL(exp.size(), 1)
+  }
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, false);
+    TEST_EQUAL(exp.size(), 1)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fragment:deisotope parameter + validation (OpenMS#9619)))
+{
+  ProSEAlgorithm_test algo;
+  // Default is the instrument-aware "auto".
+  TEST_EQUAL(algo.getParameters().getValue("fragment:deisotope").toString(), "auto")
+
+  // deisotope=true with a low-resolution (Da > 0.1) tolerance is rejected up front,
+  // rather than aborting later inside the search.
+  Param p = algo.getParameters();
+  p.setValue("fragment:deisotope", "true");
+  p.setValue("fragment:mass_tolerance", 0.5);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  TEST_EXCEPTION(Exception::InvalidParameter, algo.setParameters(p))
+
+  // deisotope=true with a high-resolution tolerance is accepted.
+  p.setValue("fragment:mass_tolerance", 0.02);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  algo.setParameters(p);
+  TEST_EQUAL(algo.getParameters().getValue("fragment:deisotope").toString(), "true")
+
+  // "auto" and "false" accept any tolerance (incl. low-res).
+  p.setValue("fragment:deisotope", "auto");
+  p.setValue("fragment:mass_tolerance", 0.5);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  algo.setParameters(p);
+  p.setValue("fragment:deisotope", "false");
+  algo.setParameters(p);
+  TEST_EQUAL(algo.getParameters().getValue("fragment:deisotope").toString(), "false")
 }
 END_SECTION
 
