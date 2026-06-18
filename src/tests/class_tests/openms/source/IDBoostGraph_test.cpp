@@ -203,7 +203,7 @@ START_TEST(IDBoostGraph, "$Id$")
     }
     END_SECTION
 
-    START_SECTION([EXTRA] getProteinScores_ requires target_decoy (issue #9488 ANID-10))
+    START_SECTION([EXTRA] getProteinScores_ requires target_decoy)
     {
       vector<ProteinIdentification> prots;
       PeptideIdentificationList peps;

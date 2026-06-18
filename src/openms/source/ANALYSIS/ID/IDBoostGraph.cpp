@@ -40,7 +40,7 @@ namespace OpenMS
   {
     /// Returns true for a target ProteinHit, false for a decoy. Throws if the target/decoy
     /// status is unknown (the "target_decoy" meta value is not set; run PeptideIndexer first)
-    /// instead of silently treating a missing value as a decoy (issue #9488, ANID-10).
+    /// instead of silently treating a missing value as a decoy.
     bool isTargetProteinOrThrow_(const ProteinHit* ph)
     {
       const ProteinHit::TargetDecoyType td = ph->getTargetDecoyType();

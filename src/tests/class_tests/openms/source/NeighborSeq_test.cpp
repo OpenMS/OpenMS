@@ -205,7 +205,7 @@ END_SECTION
 
 START_SECTION([EXTRA] NeighborSeq owns its peptides (construct from a temporary))
 {
-  // issue #9488 (ANID-34): the constructor takes std::vector<AASequence>&& and the member now
+  // the constructor takes std::vector<AASequence>&& and the member now
   // OWNS the vector (it used to alias the argument via a const-reference, which dangled the
   // instant a temporary argument's lifetime ended). Constructing from a pure temporary and
   // querying after the full expression has ended must be safe and correct (UB under the old

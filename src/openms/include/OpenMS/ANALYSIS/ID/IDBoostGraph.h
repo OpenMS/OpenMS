@@ -314,7 +314,7 @@ namespace OpenMS
     /// and depending on their type gets the score (usually the posterior) plus if it is a decoy or a target.
     /// @throw Exception::MissingInformation if a hit's target/decoy status is unknown (the
     ///        "target_decoy" meta value is not set; run PeptideIndexer first). Previously a
-    ///        missing value was silently misclassified as a decoy (issue #9488, ANID-10).
+    ///        missing value was silently misclassified as a decoy.
     class GetScoreTgTVisitor:
     public boost::static_visitor<std::pair<double,bool>>
         {
