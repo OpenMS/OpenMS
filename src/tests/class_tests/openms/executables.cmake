@@ -208,6 +208,8 @@ set(format_executables_list
   FLASHHelperClasses_test
   FileHandler_test
   FileTypes_test
+  GNPSMetaValueFile_test
+  GNPSQuantificationFile_test
   GzipIfstream_test
   GzipInputStream_test
   IBSpectraFile_test
