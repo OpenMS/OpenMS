@@ -162,7 +162,7 @@ public:
     Param param_common_;
 
     /// Log file stream.  Use the writeLog*_() and writeDebug_() methods to access it.
-    /// Held by pointer (always allocated, see ctor) so the header needs only <iosfwd>, not <fstream>.
+    /// Held by pointer (always allocated, see ctor) so the header needs only \<iosfwd\>, not \<fstream\>.
     mutable std::unique_ptr<std::ofstream> log_;
 
     /**
