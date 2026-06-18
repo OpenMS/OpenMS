@@ -598,11 +598,18 @@ namespace OpenMS
 
     unsigned ExperimentalDesign::getSample(unsigned fraction_group, unsigned label)
     {
-      return std::find_if(msfile_section_.begin(), msfile_section_.end(),
+      auto it = std::find_if(msfile_section_.begin(), msfile_section_.end(),
                           [&fraction_group, &label](const MSFileSectionEntry& r)
                           {
                               return r.fraction_group == fraction_group && r.label == label;
-                          })->sample;
+                          });
+      // guard against an unknown (fraction_group, label) combination: dereferencing end() would be undefined behavior
+      if (it == msfile_section_.end())
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "No sample found for fraction group " + std::to_string(fraction_group) + " and label " + std::to_string(label));
+      }
+      return it->sample;
     }
 
     const ExperimentalDesign::SampleSection& ExperimentalDesign::getSampleSection() const

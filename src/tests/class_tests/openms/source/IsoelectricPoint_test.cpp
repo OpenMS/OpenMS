@@ -133,6 +133,27 @@ START_SECTION(static double computePI(const AASequence& seq, ProteomicsPkaScale 
 }
 END_SECTION
 
+START_SECTION([EXTRA] computePI EMBOSS scale - external numeric cross-check)
+{
+  // Above, the EMBOSS scale is only checked for "differs from Lehninger".
+  // Pin it numerically. OpenMS uses the canonical EMBOSS Epka.dat pKa values
+  // (N-term 8.6, C-term 3.6, C 8.5, D 3.9, E 4.1, H 6.5, K 10.8, R 12.5,
+  // Y 10.1) - the same scale EMBOSS pepstats uses. The reference pI values
+  // below were produced by an independent Henderson-Hasselbalch bisection
+  // using those published EMBOSS constants (not OpenMS code); they agree with
+  // computePI() to < 1e-4 at a fine bisection tolerance.
+  TOLERANCE_ABSOLUTE(0.01)
+
+  const double tol = 1e-6; // fine bisection so the pinned reference is exact
+
+  TEST_REAL_SIMILAR(IsoelectricPoint::computePI(AASequence::fromString("ACDEFGHIK"), ProteomicsPkaScale::EMBOSS, tol), 5.4518)
+  TEST_REAL_SIMILAR(IsoelectricPoint::computePI(AASequence::fromString("PEPTIDER"), ProteomicsPkaScale::EMBOSS, tol), 3.9276)
+  TEST_REAL_SIMILAR(IsoelectricPoint::computePI(AASequence::fromString("SAMPLER"), ProteomicsPkaScale::EMBOSS, tol), 6.4101)
+  TEST_REAL_SIMILAR(IsoelectricPoint::computePI(AASequence::fromString("YGGFMR"), ProteomicsPkaScale::EMBOSS, tol), 9.3488)
+  TEST_REAL_SIMILAR(IsoelectricPoint::computePI(AASequence::fromString("DEEEAANK"), ProteomicsPkaScale::EMBOSS, tol), 3.7782)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

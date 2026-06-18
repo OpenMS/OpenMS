@@ -89,6 +89,11 @@ START_SECTION((MSSpectrum toSpectrum(const int mass_charge)))
   MSSpectrum peakgroup_spec = prec_deconv_spec_1.toSpectrum(9, 1);
   TEST_EQUAL(peakgroup_spec.size(), 1);
   TEST_REAL_SIMILAR(peakgroup_spec.getRT(), 251.72280736002);
+
+  // empty (default-constructed) DeconvolvedSpectrum must not dereference peak_groups_[0] (regression): returns a header-only spectrum
+  DeconvolvedSpectrum empty_dspec;
+  MSSpectrum empty_out = empty_dspec.toSpectrum(1, 1);
+  TEST_EQUAL(empty_out.empty(), true);
 }
 END_SECTION
 

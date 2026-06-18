@@ -99,15 +99,15 @@ window_lower window_upper
       data. No specific header text is required.
 
       @param[in]  filename         Path of the SWATH-window file. A
-                                   missing or unreadable file is not
-                                   reported as an exception; the output
-                                   vectors are left empty.
+                                   missing or unreadable file throws
+                                   Exception::FileNotFound.
       @param[out] swath_prec_lower Lower boundary of each window, in file
                                    order.
       @param[out] swath_prec_upper Upper boundary of each window, in file
                                    order; same length as
                                    @p swath_prec_lower.
 
+      @throws Exception::FileNotFound if @p filename is missing or unreadable.
       @throws Exception::InvalidValue if a row has @c lower >= @c upper.
     */
     static void readSwathWindows(const std::string& filename,
