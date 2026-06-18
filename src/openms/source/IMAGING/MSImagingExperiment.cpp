@@ -3,74 +3,56 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-
 #include <cmath>
+#include <numeric>
 #include <utility>
 
 namespace OpenMS
 {
 
-  MSImagingExperiment::MSImagingExperiment(MSExperiment exp) : experiment_(std::move(exp))
-  {
-  }
+MSImagingExperiment::MSImagingExperiment(MSExperiment exp): experiment_(std::move(exp))
+{
+}
 
-  MSImagingExperiment& MSImagingExperiment::operator=(MSExperiment exp)
-  {
-    experiment_ = std::move(exp);
-    geometry_.clear();
-    return *this;
-  }
+MSImagingExperiment& MSImagingExperiment::operator=(MSExperiment exp)
+{
+  experiment_ = std::move(exp);
+  geometry_.clear();
+  return *this;
+}
 
-  MSExperiment& MSImagingExperiment::getMSExperiment()
-  {
-    return experiment_;
-  }
+MSExperiment& MSImagingExperiment::getMSExperiment()
+{ return experiment_; }
 
-  const MSExperiment& MSImagingExperiment::getMSExperiment() const
-  {
-    return experiment_;
-  }
+const MSExperiment& MSImagingExperiment::getMSExperiment() const
+{ return experiment_; }
 
-  void MSImagingExperiment::setMSExperiment(MSExperiment exp)
-  {
-    experiment_ = std::move(exp);
-  }
+void MSImagingExperiment::setMSExperiment(MSExperiment exp)
+{ experiment_ = std::move(exp); }
 
-  MSImagingGeometry& MSImagingExperiment::getGeometry()
-  {
-    return geometry_;
-  }
+MSImagingGeometry& MSImagingExperiment::getGeometry()
+{ return geometry_; }
 
-  const MSImagingGeometry& MSImagingExperiment::getGeometry() const
-  {
-    return geometry_;
-  }
+const MSImagingGeometry& MSImagingExperiment::getGeometry() const
+{ return geometry_; }
 
-  void MSImagingExperiment::setGeometry(MSImagingGeometry geom)
-  {
-    geometry_ = std::move(geom);
-  }
+void MSImagingExperiment::setGeometry(MSImagingGeometry geom)
+{ geometry_ = std::move(geom); }
 
-  Size MSImagingExperiment::getNumberOfPixels() const
-  {
-    return geometry_.getNumberOfPixels();
-  }
+Size MSImagingExperiment::getNumberOfPixels() const
+{ return geometry_.getNumberOfPixels(); }
 
-  Size MSImagingExperiment::getNumberOfSpectra() const
-  {
-    return experiment_.getNrSpectra();
-  }
+Size MSImagingExperiment::getNumberOfSpectra() const
+{ return experiment_.getNrSpectra(); }
 
-  bool MSImagingExperiment::hasPixel(UInt x, UInt y) const
-  {
-    return geometry_.hasPixel(x, y);
-  }
+bool MSImagingExperiment::hasPixel(UInt x, UInt y) const
+{ return geometry_.hasPixel(x, y); }
 
   MSSpectrum& MSImagingExperiment::getSpectrum(UInt x, UInt y)
   {
@@ -98,8 +80,7 @@ namespace OpenMS
 
   IonImage MSImagingExperiment::extractIonImage(double mz, double tolerance_ppm) const
   {
-    if (!std::isfinite(mz) || !std::isfinite(tolerance_ppm)
-        || mz < 0.0 || tolerance_ppm < 0.0)
+    if (!std::isfinite(mz) || !std::isfinite(tolerance_ppm) || mz < 0.0 || tolerance_ppm < 0.0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "mz and tolerance_ppm must be finite and non-negative",
@@ -112,9 +93,46 @@ namespace OpenMS
     IonImage image(geometry_.getWidth(), geometry_.getHeight());
     image.setMzRange(RangeMZ(mz_lo, mz_hi));
 
-    const Size n_spectra = experiment_.getNrSpectra();
-    for (const auto& p : geometry_.getPixels())
+    // build vector with all indices to satisfy helper
+    std::vector<Size> all(geometry_.getNumberOfPixels());
+    std::iota(all.begin(), all.end(), Size(0));
+    extractIntoImage_(image, mz_lo, mz_hi, geometry_.getPixels(), all);
+    return image;
+  }
+
+  IonImage MSImagingExperiment::extractIonImage(double mz, double tolerance_ppm, Size region_id) const
+  {
+    if (!std::isfinite(mz) || !std::isfinite(tolerance_ppm) || mz < 0.0 || tolerance_ppm < 0.0)
     {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "mz and tolerance_ppm must be finite and non-negative",
+                                    "mz=" + StringUtils::toStr(mz) + ", tolerance_ppm=" + StringUtils::toStr(tolerance_ppm));
+    }
+    const double dm = mz * tolerance_ppm * 1e-6;
+    const double mz_lo = mz - dm;
+    const double mz_hi = mz + dm;
+
+    IonImage image(geometry_.getWidth(), geometry_.getHeight());
+    image.setMzRange(RangeMZ(mz_lo, mz_hi));
+
+    const auto& indices = geometry_.getRegionPixels(region_id);
+    extractIntoImage_(image, mz_lo, mz_hi, geometry_.getPixels(), indices);
+    return image;
+  }
+
+  std::vector<Size> MSImagingExperiment::getRegionSpectrumIndices(Size region_id) const
+  {
+    return geometry_.getRegionSpectrumIndices(region_id);
+  }
+
+  void MSImagingExperiment::extractIntoImage_(IonImage& image, double mz_lo, double mz_hi,
+                                              const std::vector<MSImagingGeometry::Pixel>& pixels,
+                                              const std::vector<Size>& pixel_indices) const
+  {
+    const Size n_spectra = experiment_.getNrSpectra();
+    for (Size i : pixel_indices)
+    {
+      const auto& p = pixels[i];
       if (p.spectrum_index >= n_spectra)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -131,7 +149,6 @@ namespace OpenMS
       }
       image.setIntensity(p.x, p.y, sum);
     }
-    return image;
   }
 
   void MSImagingExperiment::validate() const
