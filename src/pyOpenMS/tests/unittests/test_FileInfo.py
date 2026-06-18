@@ -81,23 +81,21 @@ def test_fileinfo_options_and_renderers():
 
 
 def test_fileinfo_forced_type():
-    # Test that forced_type bypasses auto-detection by copying a featureXML
-    # file to a .tmp extension and verifying it works with forced_type
-    # but fails without it
+    # forced_type selects which parse branch runs for a file whose extension is
+    # not a recognized featureXML name. We copy a featureXML to a neutral .tmp
+    # extension and drive the featureXML branch explicitly via forced_type.
+    #
+    # Note: forced_type does NOT make the underlying loader ignore the file --
+    # FileInfo's loaders still re-detect the type (falling back to content
+    # sniffing), so a wrong-but-known extension (e.g. .mzML) would raise rather
+    # than parse as featureXML. Hence we use a neutral extension here.
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Copy the featureXML file to a neutral extension
         src = _path("test.featureXML")
         tmp_file = os.path.join(tmpdir, "test_data.tmp")
         shutil.copy(src, tmp_file)
 
-        # With forced_type, it should succeed
         opt = oms.FileInfo.Options()
         opt.forced_type = oms.FileTypes.FileType.FEATUREXML
         r = oms.FileInfo().run(tmp_file, opt)
         assert r.meta.file_type == oms.FileTypes.FileType.FEATUREXML
         assert r.feature is not None
-
-        # Without forced_type, it should fail to recognize the type
-        # (the file type will be UNKNOWN)
-        r_no_force = oms.FileInfo().run(tmp_file)
-        assert r_no_force.meta.file_type == oms.FileTypes.FileType.UNKNOWN

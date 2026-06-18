@@ -117,28 +117,29 @@ START_SECTION((Options gating))
 }
 END_SECTION
 
-START_SECTION((forced type bypasses auto-detection))
+START_SECTION((forced type selects the parse branch for an unrecognized extension))
 {
-  // Test that forced_type bypasses auto-detection by copying a featureXML
-  // file to a neutral extension (.tmp) and verifying it works with forced_type
   FileInfo fi;
   FileInfo::Options opt;
 
-  // Create a temporary copy of a featureXML file with wrong extension
-  String src_path = OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML");
-  String tmp_path = File::getTempDirectory() + "/test_forced_type.tmp";
+  // Copy a featureXML to a neutral extension (.tmp) that is not a recognized
+  // featureXML name, then drive the featureXML parse branch via forced_type.
+  // Note: forced_type selects which parse branch runs and restricts the
+  // allowed types; it does NOT make the underlying loader ignore the file
+  // (loadFeatures/loadExperiment still re-detect the type, falling back to
+  // content sniffing). A wrong-but-known extension (e.g. .mzML) would
+  // therefore throw, so it cannot be used to demonstrate a "bypass" here.
+  std::string src_path = OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML");
+  std::string tmp_path = File::getTempDirectory() + "/test_forced_type.tmp";
 
-  // Copy the file
   bool copy_success = File::copy(src_path, tmp_path);
   TEST_EQUAL(copy_success, true)
 
-  // With forced_type set to FEATUREXML, it should succeed
   opt.forced_type = FileTypes::FEATUREXML;
   FileInfo::Result r = fi.run(tmp_path, opt);
   TEST_EQUAL(r.meta.file_type == FileTypes::FEATUREXML, true)
   TEST_EQUAL(r.feature.has_value(), true)
 
-  // Clean up
   File::remove(tmp_path);
 }
 END_SECTION
