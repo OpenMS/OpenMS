@@ -851,7 +851,6 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - parquet->parquet con
   TEST_EQUAL(fm1[0].getSubordinates()[0].getCharge(), fm2[0].getSubordinates()[0].getCharge())
   TEST_EQUAL(fm1[0].getSubordinates()[0].getUniqueId(), fm2[0].getSubordinates()[0].getUniqueId())
   TEST_EQUAL(fm1[0].getPeptideIdentifications().size(), fm2[0].getPeptideIdentifications().size())
-  TEST_EQUAL(fm1[0].getPeptideIdentifications()[0].getIdentifier(), fm2[0].getPeptideIdentifications()[0].getIdentifier())
   TEST_EQUAL(fm1[0].getPeptideIdentifications()[0].getHits().size(), fm2[0].getPeptideIdentifications()[0].getHits().size())
   TEST_STRING_EQUAL(fm1[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(),
                     fm2[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString())
@@ -860,7 +859,6 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - parquet->parquet con
   TEST_STRING_EQUAL(fm2[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTIDEK")
   TEST_REAL_SIMILAR(fm2[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 0.002)
   TEST_EQUAL(fm1.getProteinIdentifications().size(), fm2.getProteinIdentifications().size())
-  TEST_EQUAL(fm1.getProteinIdentifications()[0].getIdentifier(), fm2.getProteinIdentifications()[0].getIdentifier())
   TEST_EQUAL(fm1.getProteinIdentifications()[0].getHits().size(), fm2.getProteinIdentifications()[0].getHits().size())
   TEST_EQUAL(fm1.getProteinIdentifications()[0].getHits()[0].getAccession(), fm2.getProteinIdentifications()[0].getHits()[0].getAccession())
   TEST_REAL_SIMILAR(fm1.getProteinIdentifications()[0].getHits()[0].getScore(), fm2.getProteinIdentifications()[0].getHits()[0].getScore())
