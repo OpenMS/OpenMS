@@ -263,13 +263,13 @@ END_SECTION
 START_SECTION((StringUtils::prefix(char delim)))
   TEST_EQUAL(StringUtils::prefix(s, 'F'), "ACDE")
   TEST_EQUAL(StringUtils::prefix(s, 'A'), "")
-  TEST_EXCEPTION(Exception::ElementNotFound, StringUtils::prefix(s, 'Z'))
+  TEST_EQUAL(StringUtils::prefix(s, 'Z'), s) // delimiter absent -> whole string
 END_SECTION
 
 START_SECTION((StringUtils::suffix(char delim)))
   TEST_EQUAL(StringUtils::suffix(s, 'S'), "TVWY")
   TEST_EQUAL(StringUtils::suffix(s, 'Y'), "")
-  TEST_EXCEPTION(Exception::ElementNotFound, StringUtils::suffix(s, 'Z'))
+  TEST_EQUAL(StringUtils::suffix(s, 'Z'), s) // delimiter absent -> whole string
 END_SECTION
 
 START_SECTION((StringUtils::substr))

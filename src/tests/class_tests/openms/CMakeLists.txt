@@ -198,6 +198,12 @@ if (TARGET OpenSwathResultsExporter_test)
     ${OPENMS_PARQUET_TARGET}
   )
 endif()
+if (TARGET ParquetFile_test)
+  target_link_libraries(ParquetFile_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
 
 if (TARGET BrukerTimsFile_test AND WITH_OPENTIMS)
   target_link_libraries(BrukerTimsFile_test opentims::opentims_cpp sqlite3)
