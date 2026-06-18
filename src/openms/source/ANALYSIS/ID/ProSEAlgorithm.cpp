@@ -262,21 +262,29 @@ namespace OpenMS
 
     fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
 
-    deisotope_ = param_.getValue("fragment:deisotope").toString();
-    // Fail fast if deisotoping is forced on with a low-resolution fragment tolerance
-    // the deisotoper cannot handle (> 0.1 Da / > 100 ppm); otherwise the search would
-    // only crash later, inside preprocessSpectra_'s OpenMP region (OpenMS#9619).
-    // "auto" and "false" are always safe.
-    if (deisotope_ == "true")
+    // Resolve the MS2 deisotoping mode (fragment:deisotope = auto|true|false) ONCE.
+    // The Deisotoper supports a fragment tolerance <= 100 ppm / <= 0.1 Da and throws
+    // otherwise; consult its non-throwing predicate so the limit lives in one place
+    // (OpenMS#9619). 'false' never deisotopes; 'true'/'auto' deisotope only when the
+    // tolerance is supported -- 'true' fails fast here with a clear parameter error
+    // rather than aborting later inside preprocessSpectra_'s OpenMP region, while
+    // 'auto' silently skips deisotoping for low-resolution data.
+    const std::string deisotope_mode = param_.getValue("fragment:deisotope").toString();
+    const bool deisotope_supported =
+      Deisotoper::isToleranceSupported(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ == "ppm");
+    deisotope_requested_ = (deisotope_mode != "false");
+    if (deisotope_mode == "true" && !deisotope_supported)
     {
-      const bool unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
-      const bool in_range = (unit_ppm && fragment_mass_tolerance_ <= 100.0) || (!unit_ppm && fragment_mass_tolerance_ <= 0.1);
-      if (!in_range)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "fragment:deisotope=true requires a high-resolution fragment tolerance (<= 0.1 Da or <= 100 ppm). "
-          "Use 'auto' (deisotopes only for high-resolution data) or 'false' for low-resolution data.");
-      }
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "fragment:deisotope=true requires a high-resolution fragment tolerance (<= 0.1 Da or <= 100 ppm). "
+        "Use 'auto' (deisotopes only for high-resolution data) or 'false' for low-resolution data.");
+    }
+    if (deisotope_mode == "auto" && !deisotope_supported)
+    {
+      OPENMS_LOG_WARN << "[ProSE] Fragment tolerance " << fragment_mass_tolerance_
+                      << (fragment_mass_tolerance_unit_ == "ppm" ? " ppm" : " Da")
+                      << " exceeds the deisotoping limit (100 ppm / 0.1 Da); skipping MS2 "
+                      << "deisotoping (expected for low-resolution data)." << endl;
     }
 
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
@@ -331,7 +339,7 @@ namespace OpenMS
   }
 
   // static
-  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::string& deisotope_mode)
+  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -354,29 +362,13 @@ namespace OpenMS
 
     NLargest nlargest_filter = NLargest(400);
 
-    // Whether to deisotope is an explicit, instrument-aware choice (param
-    // fragment:deisotope), mirroring how data-driven engines gate single-charge
-    // deconvolution per instrument class (off for low-resolution models). The
-    // Deisotoper requires a fragment tolerance <= 100 ppm / <= 0.1 Da and THROWS
-    // otherwise, so we decide ONCE here, before the OpenMP region: an exception
-    // escaping a parallel region calls std::terminate() (OpenMS#9619). The
-    // tol_in_range guard makes the Deisotoper call below unable to throw
-    // regardless of mode; "true" with an out-of-range tolerance is rejected up
-    // front in updateMembers_().
-    //   - "false": never deisotope.
-    //   - "auto"/"true": deisotope only for high-resolution tolerances; for
-    //     low-resolution data "auto" skips it (with a warning) so the search runs.
-    const bool tol_in_range =
-      (fragment_mass_tolerance_unit_ppm && fragment_mass_tolerance <= 100.0) ||
-      (!fragment_mass_tolerance_unit_ppm && fragment_mass_tolerance <= 0.1);
-    const bool do_deisotope = (deisotope_mode != "false") && tol_in_range;
-    if (deisotope_mode == "auto" && !tol_in_range)
-    {
-      OPENMS_LOG_WARN << "[ProSE] Fragment tolerance " << fragment_mass_tolerance
-                      << (fragment_mass_tolerance_unit_ppm ? " ppm" : " Da")
-                      << " exceeds the deisotoping limit (100 ppm / 0.1 Da); skipping MS2 "
-                      << "deisotoping (expected for low-resolution data)." << endl;
-    }
+    // Deisotope only when requested (param fragment:deisotope, resolved in
+    // updateMembers_) AND the tolerance is in the Deisotoper's supported range.
+    // The range guard keeps the Deisotoper call below from ever throwing, so no
+    // exception can escape the OpenMP region (OpenMS#9619). Mode resolution and the
+    // low-resolution warning are handled once, in updateMembers_.
+    const bool do_deisotope = deisotope_requested &&
+      Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
 #pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
@@ -1110,7 +1102,7 @@ namespace OpenMS
 
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
     bool open_search_mode = isOpenSearchMode_();
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_);
+    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_);
 
     // Effective tolerances — may be narrowed by calibration below. Kept asymmetric
     // (lower / upper separately) so the FragmentIndex query can exploit the full
@@ -1349,7 +1341,7 @@ namespace OpenMS
                     << precursor_mass_tolerance_unit_ << ")" << std::endl;
 
     startProgress(0, 1, "Filtering spectra...");
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_);
+    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_);
     endProgress();
 
     // Reference the prepared (decoy-augmented) database and prebuilt fragment index from the context.
@@ -1784,7 +1776,7 @@ namespace OpenMS
         f.getOptions() = options;
         f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         all_spectra[i].sortSpectra(true);
-        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_);
+        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_);
       }
 
       // Per-file calibration: build a strided calibration FI once, run calibration per file.

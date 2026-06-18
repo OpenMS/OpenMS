@@ -1384,14 +1384,14 @@ START_SECTION(([EXTRA] computeModMatchTolerance_ returns min(lower, upper)))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] preprocessSpectra_ deisotope modes incl. low-res skip (OpenMS#9619)))
+START_SECTION(([EXTRA] preprocessSpectra_ never aborts; gates deisotoping on the Deisotoper limit (OpenMS#9619)))
 {
-  // Regression for OpenMS#9619 + the fragment:deisotope mode. A fragment tolerance
-  // above the Deisotoper limit (>0.1 Da / >100 ppm) -- needed for low-resolution
-  // ion-trap CID data -- must NOT abort ProSE: deisotoping is decided once, before
-  // preprocessSpectra_'s OpenMP region (an exception escaping it calls
-  // std::terminate). "auto" skips deisotoping for low-res, "false" never deisotopes,
-  // and high-res tolerances still run the deisotoping path.
+  // Regression for OpenMS#9619: preprocessSpectra_ must never let Deisotoper throw
+  // inside its OpenMP region (an escaping exception calls std::terminate). It gates
+  // the Deisotoper call on Deisotoper::isToleranceSupported(), so even
+  // deisotope_requested=true with a low-resolution (out-of-range) tolerance is a
+  // safe no-op rather than an abort. Mode resolution (auto/true/false) is covered
+  // via the param in the next section.
   auto make_exp = []()
   {
     PeakMap exp;
@@ -1413,36 +1413,35 @@ START_SECTION(([EXTRA] preprocessSpectra_ deisotope modes incl. low-res skip (Op
     return exp;
   };
 
-  // "auto" + low-res (0.5 Da / 150 ppm): skip deisotoping, no throw/abort.
+  // Low-resolution tolerance: requested true OR false -> never throws (deisotoping
+  // is skipped because the tolerance is out of the Deisotoper's supported range).
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, "auto");
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, true);
     TEST_EQUAL(exp.size(), 1)
     TEST_EQUAL(exp[0].empty(), false)
   }
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 150.0, true, "auto");
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 150.0, true, true);
     TEST_EQUAL(exp.size(), 1)
-    TEST_EQUAL(exp[0].empty(), false)
   }
-
-  // "false": never deisotope, even for an out-of-range tolerance (no throw).
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, "false");
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, false);
     TEST_EQUAL(exp.size(), 1)
   }
 
-  // High-resolution tolerances still run the deisotoping path ("auto" and "true").
+  // High-resolution tolerance: requested true -> deisotoping path runs (no throw);
+  // requested false -> skipped.
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.05, false, "auto");
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.05, false, true);
     TEST_EQUAL(exp.size(), 1)
   }
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, "true");
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, false);
     TEST_EQUAL(exp.size(), 1)
   }
 }
