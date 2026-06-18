@@ -276,13 +276,16 @@ TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d
 // after the Qt removal, so this guards the core store/load flow end to end.
 {
   namespace fs = std::filesystem;
-  // Latin-1 only (ä, ö) so path::string() round-trips on the Windows Active Code Page.
+  // Latin-1 only (ä, ö) keeps the directory name representable; the filename below is
+  // passed to to_path() as UTF-8 (derived via u8string(), NOT string() which uses the
+  // Windows Active Code Page).
   fs::path nonascii_dir = fs::path(std::string(File::getTempDirectory())) / u8"openms_störe_täst";
   std::error_code ec;
   fs::create_directories(nonascii_dir, ec);
   if (!ec)
   {
-    const std::string nonascii_mzml = (nonascii_dir / "round_trip.mzML").string();
+    const std::u8string u8name = (nonascii_dir / "round_trip.mzML").u8string();
+    const std::string nonascii_mzml(reinterpret_cast<const char*>(u8name.c_str()), u8name.size());
 
     PeakMap src;
     MSSpectrum s;
