@@ -839,6 +839,117 @@ START_SECTION(([EXTRA] Closed search baseline))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] Closed search with c/z ion annotations))
+{
+  // Exercise the ETD/ECD-style ion toggles end-to-end: candidate generation,
+  // scoring, and reported fragment annotations must all use c/z ions.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_b_ions", "false");
+  tsg_param.setValue("add_y_ions", "false");
+  tsg_param.setValue("add_c_ions", "true");
+  tsg_param.setValue("add_z_ions", "true");
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg_param.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_param);
+
+  vector<string> test_seqs = {"VLGFHQR", "THQPSANLDIK"};
+
+  PeakMap spectra;
+  double rt = 100.0;
+  for (const auto& seq_str : test_seqs)
+  {
+    AASequence seq = AASequence::fromString(seq_str);
+    const int charge = 2;
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, seq, 1, 1);
+    spec.sortByPosition();
+    spec.setMSLevel(2);
+    spec.setRT(rt);
+    rt += 1.0;
+
+    Precursor prec;
+    prec.setMZ(seq.getMZ(charge));
+    prec.setCharge(charge);
+    spec.setPrecursors({prec});
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
+    spectra.addSpectrum(std::move(spec));
+  }
+
+  auto run_search = [&](bool enable_cz) {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("precursor:mass_tolerance_lower", 10.0);
+    p.setValue("precursor:mass_tolerance_upper", 10.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("modifications:fixed", vector<string>{});
+    p.setValue("modifications:variable", vector<string>{});
+    p.setValue("annotate:PSM", vector<string>{Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM});
+    p.setValue("decoys", "false");
+    p.setValue("peptide:min_size", 7);
+    p.setValue("peptide:max_size", 40);
+    p.setValue("peptide:missed_cleavages", 1);
+    if (enable_cz)
+    {
+      p.setValue("ions:add_b_ions", "false");
+      p.setValue("ions:add_y_ions", "false");
+      p.setValue("ions:add_c_ions", "true");
+      p.setValue("ions:add_z_ions", "true");
+    }
+    algo.setParameters(p);
+
+    PeakMap spectra_for_run = spectra;
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    auto ec = algo.search(spectra_for_run, fasta_db, prot_ids, pep_ids);
+    TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    return pep_ids;
+  };
+
+  PeptideIdentificationList cz_ids = run_search(true);
+  TEST_TRUE(cz_ids.size() > 0)
+
+  bool saw_c_or_z_annotation = false;
+  bool saw_other_fragment_annotation = false;
+  for (const auto& pid : cz_ids)
+  {
+    for (const auto& hit : pid.getHits())
+    {
+      for (const auto& annotation : hit.getPeakAnnotations())
+      {
+        TEST_TRUE(!annotation.annotation.empty())
+        const char ion_type = annotation.annotation[0];
+        if (ion_type == 'c' || ion_type == 'z')
+        {
+          saw_c_or_z_annotation = true;
+        }
+        else
+        {
+          saw_other_fragment_annotation = true;
+        }
+      }
+    }
+  }
+  TEST_TRUE(saw_c_or_z_annotation)
+  TEST_EQUAL(saw_other_fragment_annotation, false)
+
+  PeptideIdentificationList by_ids = run_search(false);
+  Size by_hits = 0;
+  for (const auto& pid : by_ids)
+  {
+    by_hits += pid.getHits().size();
+  }
+  TEST_EQUAL(by_hits, 0)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] Ion mobility annotation))
 {
   // Create a small protein database

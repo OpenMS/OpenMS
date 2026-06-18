@@ -480,6 +480,12 @@ namespace OpenMS
             Param tsg_param(tsg.getParameters());
             tsg_param.setValue("add_metainfo", "true");
             tsg_param.setValue("add_first_prefix_ion", "true");
+            tsg_param.setValue("add_a_ions", add_a_ions_ ? "true" : "false");
+            tsg_param.setValue("add_b_ions", add_b_ions_ ? "true" : "false");
+            tsg_param.setValue("add_c_ions", add_c_ions_ ? "true" : "false");
+            tsg_param.setValue("add_x_ions", add_x_ions_ ? "true" : "false");
+            tsg_param.setValue("add_y_ions", add_y_ions_ ? "true" : "false");
+            tsg_param.setValue("add_z_ions", add_z_ions_ ? "true" : "false");
             tsg.setParameters(tsg_param);
 
             const int max_frag_z = (charge >= 2) ? std::min<int>(charge - 1, 2) : 1;
