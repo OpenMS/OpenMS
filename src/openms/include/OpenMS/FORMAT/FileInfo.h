@@ -150,7 +150,7 @@ namespace OpenMS
       UInt64 num_features = 0;                       ///< number of (consensus) features
       double tic = 0.0;                              ///< total ion current (featureXML)
       std::map<Int, UInt64> charges;                 ///< charge -> count
-      std::map<UInt64, UInt64> ids_per_element;      ///< #IDs -> #elements
+      std::map<UInt64, UInt64> ids_per_element;      ///< number of IDs -> number of elements
       UInt64 assigned_ids = 0, unassigned_ids = 0;
       // consensus only:
       std::map<UInt64, UInt64> size_distribution;    ///< consensus-feature size -> count
