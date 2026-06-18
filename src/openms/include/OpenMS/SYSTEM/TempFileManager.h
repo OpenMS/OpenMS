@@ -146,7 +146,8 @@ namespace OpenMS
 
         @param[in] registry_id Logical id used for file naming
         @param[in] lock_timeout_ms Timeout in milliseconds for lock acquisition
-        
+        @param[out] registry_lock Receives the acquired persistent lock for the selected registry slot
+
         @return Registry file path for this manager instance
       */
       static String selectRegistryFilePath_(const String& registry_id, UInt lock_timeout_ms, std::unique_ptr<InterProcessFileLock>& registry_lock);
