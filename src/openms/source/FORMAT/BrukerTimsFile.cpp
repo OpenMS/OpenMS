@@ -729,6 +729,11 @@ namespace OpenMS
   // =====================================================================
   // getSwathWindows: read SWATH window definitions without loading peak data
   // =====================================================================
+  std::vector<BrukerTimsFile::SwathWindow> BrukerTimsFile::getSwathWindows(const String& path)
+  {
+    return getSwathWindows(path, Config());
+  }
+
   std::vector<BrukerTimsFile::SwathWindow> BrukerTimsFile::getSwathWindows(const String& path, const Config& config)
   {
     std::vector<SwathWindow> result;

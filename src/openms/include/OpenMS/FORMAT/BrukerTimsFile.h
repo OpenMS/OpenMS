@@ -96,7 +96,9 @@ namespace OpenMS
 
     /// Read SWATH window definitions from a .d directory without loading peak data.
     /// Returns an empty vector for non-DIA datasets.
-    static std::vector<SwathWindow> getSwathWindows(const String& path, const Config& config = Config());
+    static std::vector<SwathWindow> getSwathWindows(const String& path);
+    /// @overload with explicit configuration
+    static std::vector<SwathWindow> getSwathWindows(const String& path, const Config& config);
 
   private:
     /// Load DDA-PASEF data: MS1 frames (IM_PEAK) + MS2 spectra (scalar IM)
