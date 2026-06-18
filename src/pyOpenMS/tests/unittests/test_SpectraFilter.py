@@ -71,8 +71,8 @@ class TestSpectraFilter(unittest.TestCase):
         self.assertNotEqual(self.exp.size(), 0)
         self.assertNotEqual(old_firstspec, self.exp[0])
 
-        # in most cases, a different spectrum is returned
-        self.assertNotEqual(old_firstspec[10].getMZ(), self.exp[0][10].getMZ())
+        # RankScaler preserves m/z (position) order; only intensities (ranks) change
+        self.assertEqual(old_firstspec[10].getMZ(), self.exp[0][10].getMZ())
         self.assertNotEqual(old_firstspec[10].getIntensity(), self.exp[0][10].getIntensity())
 
     def test_spectrum_Scaler(self):
@@ -84,8 +84,8 @@ class TestSpectraFilter(unittest.TestCase):
         self.assertNotEqual(new_firstspec.size(), 0)
         self.assertNotEqual(new_firstspec, self.exp[0])
 
-        # in most cases, a different spectrum is returned
-        self.assertNotEqual(new_firstspec[10].getMZ(), self.exp[0][10].getMZ())
+        # RankScaler preserves m/z (position) order; only intensities (ranks) change
+        self.assertEqual(new_firstspec[10].getMZ(), self.exp[0][10].getMZ())
         self.assertNotEqual(new_firstspec[10].getIntensity(), self.exp[0][10].getIntensity())
 
     def test_map_SqrtScaler(self):
