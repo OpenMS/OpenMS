@@ -8,10 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/MRMFeature.h>
-#include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS

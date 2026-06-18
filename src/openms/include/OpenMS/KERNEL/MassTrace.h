@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/Peak2D.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 
 
 #include <vector>
