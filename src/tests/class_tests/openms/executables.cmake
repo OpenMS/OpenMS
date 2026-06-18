@@ -216,6 +216,7 @@ set(format_executables_list
   MS2File_test
   MSPFile_test
   MSPGenericFile_test
+  MSstatsFile_test
   MascotGenericFile_test
   MascotRemoteQuery_test
   MascotXMLFile_test
@@ -263,6 +264,7 @@ set(format_executables_list
   PercolatorInfile_test
   PercolatorOutfile_test
   ProtXMLFile_test
+  QcMLFile_test
   SVOutStream_test
   SemanticValidator_test
   SequestInfile_test
@@ -281,6 +283,7 @@ set(format_executables_list
   ToolDescriptionFile_test
   TraMLFile_test
   TransformationXMLFile_test
+  TriqlerFile_test
   UnimodXMLFile_test
   XMassFile_test
   XMLFile_test
@@ -471,6 +474,7 @@ set(chemistry_executables_list
   RibonucleotideDB_test
   RibonucleotideDataProvider_test
   Ribonucleotide_test
+  SequenceCoverage_test
   SimpleTSGXLMS_test
   SpectrumAnnotator_test
   Tagger_test
@@ -517,10 +521,12 @@ set(analysis_executables_list
   FeatureGroupingAlgorithm_test
   FeatureHandle_test
   FIAMSDataProcessor_test
+  FIAMSScheduler_test
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
   OpenSearchModificationAnalysis_test
   IDBoostGraph_test
+  IDDecoyProbability_test
   IDMapper_test
   IDMergerAlgorithm_test
   IDRipper_test
