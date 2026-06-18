@@ -518,6 +518,7 @@ set(analysis_executables_list
   #DataAccessHelper_test
   # DeconvolvedSpectrum_test
   FalseDiscoveryRate_test
+  Scores_test
   FeatureDeconvolution_test
   FeatureDistance_test
   FeatureGroupingAlgorithmKD_test
