@@ -119,7 +119,6 @@ bool MSImagingRegion::intersects(const MSImagingRegion& other) const
   const UInt hi_x = std::min(max_x_, other.max_x_);
   const UInt lo_y = std::max(min_y_, other.min_y_);
   const UInt hi_y = std::min(max_y_, other.max_y_);
-  
   for (UInt y = lo_y; y <= hi_y; y++)
     for (UInt x = lo_x; x <= hi_x; x++)
     {
