@@ -317,6 +317,7 @@ set(format_executables_list
   SpectrumAccessSqMass_test
   SpectrumAccessOpenMS_test
   SpectrumAccessOpenMSInMemory_test
+  MRMFeatureAccessOpenMS_test
   SiriusFragmentAnnotation_test
 )
 
