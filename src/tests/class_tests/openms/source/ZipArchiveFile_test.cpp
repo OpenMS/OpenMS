@@ -89,6 +89,7 @@ START_SECTION([EXTRA] unzipDirectory error paths)
   // Corrupt archive: an existing, readable file that is not a valid ZIP (garbage
   // bytes, no central directory). libzip's zip_open() fails and unzipDirectory
   // must raise a clear exception rather than crash.
+  std::string corrupt;
   NEW_TMP_FILE(corrupt);
   {
     std::ofstream ofs(corrupt.c_str(), std::ios::binary);
