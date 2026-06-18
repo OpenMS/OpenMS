@@ -936,8 +936,6 @@ private:
       Checked early in main(). If one of these options is present, the corresponding tool-description/INI file
       is written and the resulting exit code is returned. If none is present, std::nullopt is returned and main()
       proceeds normally.
-
-      Defined in TOPPBase_writers.cpp (keeps the ParamCTDFile/ParamCWLFile includes out of the main TU).
     */
     std::optional<ExitCodes> handleWriteCommands_();
 
