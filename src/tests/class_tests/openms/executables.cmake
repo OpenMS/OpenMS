@@ -118,6 +118,8 @@ set(metadata_executables_list
   Product_test
   ProteinHit_test
   ProteinIdentification_test
+  ProteinModificationSummary_test
+  IdentifierMSRunMapper_test
   Sample_test
   ScanWindow_test
   Software_test
