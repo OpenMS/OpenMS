@@ -92,6 +92,13 @@ START_SECTION((const ExperimentalDesign::SampleSection& getSampleSection() const
 }
 END_SECTION
 
+START_SECTION((unsigned getSample(unsigned fraction_group, unsigned label)))
+{
+  // an unknown (fraction_group, label) combination must throw instead of dereferencing end() (undefined behavior)
+  TEST_EXCEPTION(Exception::ElementNotFound, labelfree_unfractionated_design.getSample(99999, 99999))
+}
+END_SECTION
+
 START_SECTION((void setSampleSection(const ExperimentalDesign::SampleSection &sample_section)))
 {
   ExperimentalDesign labelfree_unfractionated_design2 = labelfree_unfractionated_design;

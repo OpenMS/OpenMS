@@ -270,9 +270,18 @@ public:
       E.g. for 'PATH=/usr/bin:/home/unicorn' the result is {"/usr/bin/", "/home/unicorn/"}
             or 'PATH=c:\\temp;c:\\Windows' the result is {"c:/temp/", "c:/Windows/"}
 
-      Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).  
+      Uses the value of the $PATH environment variable (or an empty string if $PATH is unset).
     */
-    static StringList getPathLocations(const std::string& path = std::getenv("PATH"));
+    static StringList getPathLocations();
+
+    /**
+      @brief Extract list of directories from an explicit concatenated path string.
+
+      Depending on platform, the components are split based on ":" (Linux/Mac) or ";" (Windows).
+      All paths use the '/' as separator and end in '/'.
+      Note: the path string is passed as input to enable proper testing (env vars are usually read-only).
+    */
+    static StringList getPathLocations(const std::string& path);
 
     /**
       @brief Searches for an executable with the given name (similar to @em where (Windows) or @em which (Linux/MacOS)
@@ -359,10 +368,18 @@ private:
       If the result does not contain at least ".exe", then we assume the environment variable is broken and return a
       fallback, i.e. {".exe", ".bat"}.
 
-      Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).
-
+      Uses the value of the %PATHEXT% environment variable (or an empty string if %PATHEXT% is unset).
     */
-    static StringList executableExtensions_(const std::string& ext = std::getenv("PATHEXT"));
+    static StringList executableExtensions_();
+
+    /**
+      @brief Get list of file suffices to try during search on an explicit PATHEXT-like string.
+
+      Input could be ".COM;.EXE;.BAT;.CMD;.VBS".
+      If the result does not contain at least ".exe", then we assume the input is broken and return a
+      fallback, i.e. {".exe", ".bat"}.
+    */
+    static StringList executableExtensions_(const std::string& ext);
 #endif
 
     /**
@@ -388,4 +405,3 @@ private:
     static TemporaryFiles_ temporary_files_;
   };
 }
-

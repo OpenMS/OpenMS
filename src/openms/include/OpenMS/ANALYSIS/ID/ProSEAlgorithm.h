@@ -364,7 +364,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /// @brief filter, deisotope, decharge spectra
-    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm);
+    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested);
 
     /**
      * @brief Build a decoy-augmented copy of the input FASTA.
@@ -485,6 +485,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     double fragment_mass_tolerance_;
 
     std::string fragment_mass_tolerance_unit_;
+
+    /// Resolved MS2 deisotoping request (param fragment:deisotope != "false").
+    /// preprocessSpectra_ still gates on Deisotoper::isToleranceSupported() so the
+    /// deisotoper is never called out of range (it would throw -> terminate in the
+    /// OpenMP region). See OpenMS#9619.
+    bool deisotope_requested_{true};
 
     StringList modifications_fixed_;
 

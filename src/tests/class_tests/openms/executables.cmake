@@ -4,6 +4,8 @@ set(concept_executables_list
   Exception_Base_test
   FuzzyStringComparator_test
   #GlobalExceptionHandler_test
+  PrecisionWrapper_test
+  RAIICleanup_test
   StreamHandler_test
   Types_test
   VersionInfo_test
@@ -29,6 +31,7 @@ set(qc_executables_list
   PSMExplainedIonCurrent_test
   QCBase_test
   RTAlignment_test
+  SpectrumCount_test
   TIC_test
 )
 
@@ -95,6 +98,7 @@ set(metadata_executables_list
   HPLC_test
   IdentificationData_test
   IdentificationDataConverter_test
+  IdentifiedMolecule_test
   InstrumentSettings_test
   Instrument_test
   IonDetector_test
@@ -114,6 +118,8 @@ set(metadata_executables_list
   Product_test
   ProteinHit_test
   ProteinIdentification_test
+  ProteinModificationSummary_test
+  IdentifierMSRunMapper_test
   Sample_test
   ScanWindow_test
   Software_test
@@ -128,9 +134,11 @@ set(system_executables_list
   ExternalProcess_test
   File_test
   Network_test
+  NetworkGetRequest_test
   JavaInfo_test
   PathUtils_test
   PythonInfo_test
+  RWrapper_test
   StopWatch_test
   SysInfo_test
 )
@@ -211,6 +219,7 @@ set(format_executables_list
   MS2File_test
   MSPFile_test
   MSPGenericFile_test
+  MSstatsFile_test
   MascotGenericFile_test
   MascotRemoteQuery_test
   MascotXMLFile_test
@@ -244,6 +253,7 @@ set(format_executables_list
   ParamCTDFile_test
   ParamJSONFile_test
   ParamXMLFile_test
+  ParquetFilter_test
   PEFFFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test
@@ -257,12 +267,14 @@ set(format_executables_list
   PercolatorInfile_test
   PercolatorOutfile_test
   ProtXMLFile_test
+  QcMLFile_test
   SVOutStream_test
   SemanticValidator_test
   SequestInfile_test
   SequestOutfile_test
   SpecArrayFile_test
   SqMassFile_test
+  SqliteConnector_test
   MRMFile_test
   ThermoRawFile_test
   SwathMapMassCorrection_test
@@ -274,6 +286,7 @@ set(format_executables_list
   ToolDescriptionFile_test
   TraMLFile_test
   TransformationXMLFile_test
+  TriqlerFile_test
   UnimodXMLFile_test
   XMassFile_test
   XMLFile_test
@@ -295,6 +308,8 @@ set(format_executables_list
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
   SpectrumAccessSqMass_test
+  SpectrumAccessOpenMS_test
+  SpectrumAccessOpenMSInMemory_test
   SiriusFragmentAnnotation_test
 )
 
@@ -307,6 +322,7 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   MobilogramParquetConsumer_test
   XICParquetFile_test
   XIMParquetFile_test
+  ParquetFile_test
   ProteinIdentificationArrowIO_test
   FeatureMapArrowIO_test
   ConsensusMapArrowIO_test
@@ -319,10 +335,12 @@ set(math_executables_list
   BSpline2d_test
   BSplineSmoothingSpline_test
   CubicSpline2d_test
+  SplineBisection_test
   EmgGradientDescent_test
   GammaDistributionFitter_test
   GaussFitter_test
   GumbelDistributionFitter_test
+  GumbelMaxLikelihoodFitter_test
   GridSearch_test
   CrossValidation_test
   Histogram_test
@@ -330,6 +348,7 @@ set(math_executables_list
   LevelContextInference_test
   LinearInterpolation_test
   LinearRegression_test
+  LinearRegressionWithoutIntercept_test
   MathFunctions_test
   MultipleTesting_test
   #MSNumpress_test
@@ -419,9 +438,11 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
+  AdductInfo_test
   CoarseIsotopeDistribution_test
   CrossLinksDB_test
   DecoyGenerator_test
+  DigestionEnzyme_test
   DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
@@ -459,6 +480,7 @@ set(chemistry_executables_list
   RibonucleotideDB_test
   RibonucleotideDataProvider_test
   Ribonucleotide_test
+  SequenceCoverage_test
   SimpleTSGXLMS_test
   SpectrumAnnotator_test
   Tagger_test
@@ -496,6 +518,7 @@ set(analysis_executables_list
   #DataAccessHelper_test
   # DeconvolvedSpectrum_test
   FalseDiscoveryRate_test
+  Scores_test
   FeatureDeconvolution_test
   FeatureDistance_test
   FeatureGroupingAlgorithmKD_test
@@ -505,15 +528,19 @@ set(analysis_executables_list
   FeatureGroupingAlgorithm_test
   FeatureHandle_test
   FIAMSDataProcessor_test
+  FIAMSScheduler_test
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
   OpenSearchModificationAnalysis_test
   IDBoostGraph_test
+  IDDecoyProbability_test
   IDMapper_test
   IDMergerAlgorithm_test
   IDRipper_test
   IDScoreSwitcherAlgorithm_test
   ILPDCWrapper_test
+  IonIdentityMolecularNetworking_test
+  DDAWorkflowCommons_test
   IsotopeLabelingMDVs_test
   IncludeExcludeTarget_test
   IsobaricChannelExtractor_test
@@ -576,6 +603,7 @@ set(analysis_executables_list
   PrecursorPurity_test
   QTClusterFinder_test
   ReactionMonitoringTransition_test
+  NuXLFragmentAdductDefinition_test
   NuXLModificationsGenerator_test
   NuXLParameterParsing_test
   ProSEAlgorithm_test
@@ -674,6 +702,7 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathOSWWriter_test
     OpenSwathScoring_test
     OpenSwathScores_test
+    OpenSwathWorkflowScheduler_test
     PeakIntegrator_test
     PeakPickerChromatogram_test
     PeakPickerMobilogram_test
