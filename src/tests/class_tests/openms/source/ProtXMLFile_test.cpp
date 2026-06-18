@@ -120,7 +120,7 @@ START_SECTION([EXTRA] probability zero protein filtering)
   ProtXMLFile f;
   ProteinIdentification proteins;
   PeptideIdentification peptides;
-  String prot_file = OPENMS_GET_TEST_DATA_PATH("ProtXMLFile_input_3.protXML");
+  std::string prot_file = OPENMS_GET_TEST_DATA_PATH("ProtXMLFile_input_3.protXML");
   f.load(prot_file, proteins, peptides);
 
   // 3 protein_groups in input, all should still exist
