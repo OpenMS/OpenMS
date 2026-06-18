@@ -330,7 +330,7 @@ namespace OpenMS
     {
       std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last "
                 << buffersize << " bytes. Maybe this is not a indexedMzML."
-                << buffer.get() << std::endl;
+                << buffer_str << std::endl;
     }
 
     return indexoffset;
