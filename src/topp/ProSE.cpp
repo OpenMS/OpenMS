@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
 
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -74,11 +74,11 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 /// @cond TOPPCLASSES
 
 class ProSE :
-    public TOPPBase
+    public TOPPExternalToolBase
 {
   public:
     ProSE() :
-      TOPPBase("ProSE",
+      TOPPExternalToolBase("ProSE",
         "Annotates bottom-up MS/MS spectra using ProSE.",
         false)
     {

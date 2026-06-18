@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 //TODO remove when we get loadsize support in handler
 #include <OpenMS/FORMAT/FeatureXMLFile.h>

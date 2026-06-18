@@ -8,20 +8,20 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
+#include <OpenMS/APPLICATIONS/TOPPBase_defs.h>
+
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <OpenMS/METADATA/DataProcessing.h>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <fstream>
+#include <iosfwd>
 #include <map>
+#include <memory>
+#include <optional>
 #include <vector>
 
 namespace OpenMS
@@ -29,72 +29,6 @@ namespace OpenMS
   class FeatureMap;
   class ConsensusMap;
   struct ParameterInformation;
-
-  /**
-    @brief Stores Citations for individual TOPP tools.
-
-    An example would be
-    \code{.cpp}
-      Citation c = {"Pfeuffer J, Bielow C, Wein S, Jeong K, Netz E, Walter A, Alka O et al.",
-                    "OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data",
-                    "Nat Methods 21, 365–367 (2024)",
-                    "10.1038/s41592-024-02197-7"};
-    \endcode
-    Suggested format is AMA, e.g. https://www.lib.jmu.edu/citation/amaguide.pdf
-  */
-  struct Citation
-  {
-    std::string authors;    ///< list of authors in AMA style, i.e. "surname initials", ...
-    std::string title;      ///< title of article
-    std::string when_where; ///< suggested format: journal. year; volume, issue: pages
-    std::string doi;        ///< plain DOI (no urls), e.g. 10.1021/pr100177k
-
-    /// mangle members to string
-    std::string toString() const
-    {
-      return authors + ". " + title + ". " + when_where + ". doi:" + doi + ".";
-    }
-  };
-
-  namespace Exception
-  {
-    /// An unregistered parameter was accessed
-    class OPENMS_DLLAPI UnregisteredParameter :
-      public Exception::BaseException
-    {
-public:
-      UnregisteredParameter(const char* file, int line, const char* function, const std::string& parameter) :
-        BaseException(file, line, function, "UnregisteredParameter", parameter)
-      {
-        GlobalExceptionHandler::getInstance().setMessage(what());
-      }
-
-    };
-    /// A parameter was accessed with the wrong type
-    class OPENMS_DLLAPI WrongParameterType :
-      public Exception::BaseException
-    {
-public:
-      WrongParameterType(const char* file, int line, const char* function, const std::string& parameter) :
-        BaseException(file, line, function, "WrongParameterType", parameter)
-      {
-        GlobalExceptionHandler::getInstance().setMessage(what());
-      }
-
-    };
-    /// A required parameter was not given
-    class OPENMS_DLLAPI RequiredParameterNotGiven :
-      public Exception::BaseException
-    {
-public:
-      RequiredParameterNotGiven(const char* file, int line, const char* function, const std::string& parameter) :
-        BaseException(file, line, function, "RequiredParameterNotGiven", parameter)
-      {
-        GlobalExceptionHandler::getInstance().setMessage(what());
-      }
-
-    };
-  }
 
   /**
     @brief Base class for TOPP applications.
@@ -227,8 +161,9 @@ public:
     /// Parameters from common section without tool name.
     Param param_common_;
 
-    /// Log file stream.  Use the writeLog_() and writeDebug_() methods to access it.
-    mutable std::ofstream log_;
+    /// Log file stream.  Use the writeLog*_() and writeDebug_() methods to access it.
+    /// Held by pointer (always allocated, see ctor) so the header needs only <iosfwd>, not <fstream>.
+    mutable std::unique_ptr<std::ofstream> log_;
 
     /**
       @brief Ensures that at least some default logging destination is
@@ -874,15 +809,8 @@ protected:
     void writeDebug_(const std::string& text, const Param& param, UInt min_level) const;
     //@}
 
-    ///@name External processes (TODO consider creating another AdapterBase class)
-    //@{
-    /// Runs an external process via ExternalProcess and prints its stderr output on failure or if debug_level > 4
-    ExitCodes runExternalProcess_(const std::string& executable, const std::vector<std::string>& arguments, const std::string& workdir = "", const std::map<std::string, std::string>& env = {}) const;
-
-    /// Runs an external process via ExternalProcess and prints its stderr output on failure or if debug_level > 4
-    /// Additionally returns the process' stdout and stderr
-    ExitCodes runExternalProcess_(const std::string& executable, const std::vector<std::string>& arguments, std::string& proc_stdout, std::string& proc_stderr, const std::string& workdir = "", const std::map<std::string, std::string>& env = {}) const;
-    //@}
+    // NOTE: runExternalProcess_() moved to the TOPPExternalToolBase subclass
+    // (APPLICATIONS/TOPPExternalToolBase.h); tools that shell out should derive from it.
 
     /**
       @name File IO checking methods
@@ -967,17 +895,6 @@ protected:
     //@}
 
     /**
-       @brief Helper function avoiding repeated code between CTD, JSON and CWL.
-       @param[in,out] writer a parameter writer, designed to be of type ParamCTDFile,
-                     ParamJSONFile or ParamCWLFile
-       @param[in] write_type The type of file that is being written, typically
-                         write_ctd, write_json or write_cwl.
-       @param[in] fileExtension The extension of the requested tool description file.
-    */
-    template <typename Writer>
-    void writeToolDescription_(Writer& writer, std::string write_type, std::string fileExtension);
-
-    /**
       @brief Test mode
 
       Test mode is enabled using the command line parameter @em -test .
@@ -1012,6 +929,17 @@ private:
       @return A reference to the parameter with the given name.
     */
     ParameterInformation& getParameterByName_(const std::string& name);
+
+    /**
+      @brief Handles the '-write_ini/-write_ctd/-write_(nested_)cwl/-write_(nested_)json' command-line options.
+
+      Checked early in main(). If one of these options is present, the corresponding tool-description/INI file
+      is written and the resulting exit code is returned. If none is present, std::nullopt is returned and main()
+      proceeds normally.
+
+      Defined in TOPPBase_writers.cpp (keeps the ParamCTDFile/ParamCWLFile includes out of the main TU).
+    */
+    std::optional<ExitCodes> handleWriteCommands_();
 
   };
 
