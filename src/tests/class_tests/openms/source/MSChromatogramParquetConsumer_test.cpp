@@ -120,7 +120,7 @@ START_SECTION(MSChromatogramParquetConsumer_finalize_surfaces_errors)
   // Unwritable path (non-existent directory) -> finalize()/write_() must throw, NOT swallow.
   std::string out = File::getTempDirectory() + "/openms_missing_dir/xic_finalize.xic";
   MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
-  TEST_EXCEPTION(Exception::BaseException, consumer.finalize())
+  TEST_EXCEPTION(Exception::FileNotWritable, consumer.finalize())
 }
 END_SECTION
 
