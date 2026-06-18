@@ -20,8 +20,10 @@ set(concept_executables_list
 set(qc_executables_list
   Contaminants_test
   DBSuitability_test
+  FeatureSummary_test
   FragmentMassError_test
   FWHM_test
+  IdentificationSummary_test
   MissedCleavages_test
   Ms2IdentificationRate_test
   Ms2SpectrumStats_test
