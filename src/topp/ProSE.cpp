@@ -62,7 +62,7 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
-@note Decoy handling: either enable '-Search:decoys' to generate decoys internally, or provide a FASTA database that already contains decoy proteins (e.g., from DecoyDatabase). In both cases, the decoy accession prefix must match '-Search:decoy_prefix' (default: "DECOY_").
+@note Decoy handling is controlled by '-Search:decoys'. The default 'auto' ensures decoys are available for target-decoy FDR: it reuses decoys already present in the FASTA (the marker is auto-detected, prefix or suffix, e.g. from DecoyDatabase) or generates them internally (prefixing accessions with '-Search:decoy_prefix', default "DECOY_") if none are found. Use 'generate' to always (re)build decoys from the targets, or 'ignore' to search the targets only.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_ProSE.cli
@@ -660,7 +660,11 @@ class ProSE :
       {
         try
         {
-          const std::string decoy_prefix = search_params.getValue("decoy_prefix").toString();
+          // Use the effective decoy marker/position the search resolved (which
+          // may be an auto-detected external marker, prefix or suffix), not the
+          // raw decoy_prefix parameter.
+          const std::string decoy_string = mfres.decoy_string;
+          const bool decoy_is_prefix = mfres.decoy_is_prefix;
 
           // Merge per-file results via IDMergerAlgorithm (accession dedup + identifier remap)
           IDMergerAlgorithm merger;
@@ -681,10 +685,10 @@ class ProSE :
           bpia.run(merged_peptides, merged_protein_ids);
 
           // Optional picked-protein FDR
-          if (user_protein_fdr > 0.0)
+          if (user_protein_fdr > 0.0 && mfres.have_decoys)
           {
             FalseDiscoveryRate fdr;
-            fdr.applyPickedProteinFDR(merged_protein_ids[0], decoy_prefix, true);
+            fdr.applyPickedProteinFDR(merged_protein_ids[0], decoy_string, decoy_is_prefix);
             IDFilter::filterHitsByScore(merged_protein_ids, user_protein_fdr);
 
             OPENMS_LOG_INFO << "[ProSE] Merged protein inference + FDR: "
