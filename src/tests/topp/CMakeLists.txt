@@ -1863,19 +1863,17 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_3")
   set_tests_properties("TOPP_OpenSwathWorkflow_3_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_3")
 
-  # Wave-scheduler thread set-invariance: the auto SWATH wave scheduler keys the
-  # wave count off scoring threads and per-wave output uses the unstable FeatureMap::sortByPosition, so
-  # the feature *order* is not byte-identical across -threads. Run the same input at -threads 1 and 4
-  # (in-memory, single batch) and assert the feature SET is equal after a canonical FileFilter -sort,
-  # ignoring the thread/path provenance (a file-order diff would spuriously fail).
-  add_test("TOPP_OpenSwathWorkflow_threads1" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -enable_ms1 "false" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" -readOptions workingInMemory -batchSize 0 -threads 1 -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads1.tmp.featureXML)
-  add_test("TOPP_OpenSwathWorkflow_threads4" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -enable_ms1 "false" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" -readOptions workingInMemory -batchSize 0 -threads 4 -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.tmp.featureXML)
-  add_test("TOPP_OpenSwathWorkflow_threads1_sort" ${TOPP_BIN_PATH}/FileFilter -test -sort -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads1.tmp.featureXML -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads1.sorted.tmp.featureXML)
+  # Wave-scheduler thread invariance: the auto SWATH wave scheduler derives its wave count from the
+  # scoring-thread count, and parallel scoring jobs append peak groups in completion order (the only
+  # normalization is a per-wave, unstable FeatureMap::sortByPosition). The feature *values* are therefore
+  # thread-count independent, but the on-disk *order* and the synthetic feature ids are not. Run the
+  # parallel path (-threads 4, in-memory, single batch), canonicalize the order with FileFilter -sort,
+  # and diff against the serial-order reference; only the whitelisted feature ids differ.
+  add_test("TOPP_OpenSwathWorkflow_threads4" ${TOPP_BIN_PATH}/OpenSwathWorkflow -test -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -enable_ms1 "false" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" -readOptions workingInMemory -batchSize 0 -threads 4 -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.tmp.featureXML)
   add_test("TOPP_OpenSwathWorkflow_threads4_sort" ${TOPP_BIN_PATH}/FileFilter -test -sort -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.tmp.featureXML -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.sorted.tmp.featureXML)
-  add_test("TOPP_OpenSwathWorkflow_threads_setequal" ${DIFF} -whitelist "id=" "completion_time" "parameter: out" "parameter: in" "parameter: threads" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads1.sorted.tmp.featureXML -in2 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.sorted.tmp.featureXML)
-  set_tests_properties("TOPP_OpenSwathWorkflow_threads1_sort" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_threads1")
+  add_test("TOPP_OpenSwathWorkflow_threads4_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_threads4.sorted.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_threads_output.featureXML)
   set_tests_properties("TOPP_OpenSwathWorkflow_threads4_sort" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_threads4")
-  set_tests_properties("TOPP_OpenSwathWorkflow_threads_setequal" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_threads1_sort;TOPP_OpenSwathWorkflow_threads4_sort")
+  set_tests_properties("TOPP_OpenSwathWorkflow_threads4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_threads4_sort")
 
   # Also test with readoptions cache
   add_test("TOPP_OpenSwathWorkflow_5" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_5.chrom.tmp.mzML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_5.tmp.featureXML
