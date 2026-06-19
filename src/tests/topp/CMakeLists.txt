@@ -3214,54 +3214,28 @@ add_test("TOPP_ProSE_6_fdr_out" ${DIFF}
   -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "InferenceEngineVersion" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_6_fdr_out" PROPERTIES DEPENDS
   "TOPP_ProSE_6_fdr")
-# Decoy-reporting contract (ProSE.cpp): decoys are removed only when protein FDR finalizes a
-# result. Test 6 sets FDR:protein>0 on a single file -> finalized -> decoys absent.
-add_test(NAME "TOPP_ProSE_6_fdr_decoys_absent" COMMAND ${CMAKE_COMMAND} -P
-  ${CMAKE_CURRENT_SOURCE_DIR}/check_decoys.cmake ${TESTS_TEMP_DIR}/ProSE_6_fdr_out.tmp.idXML absent)
-set_tests_properties("TOPP_ProSE_6_fdr_decoys_absent" PROPERTIES DEPENDS "TOPP_ProSE_6_fdr")
-
-# Test 7: single file, PSM-level FDR ON but protein FDR OFF (override the ini's FDR:protein to 0).
-# PSM FDR annotates + filters but must NOT strip decoys -> the per-file output retains decoys as
-# intermediate evidence (e.g. for a later/global protein FDR).
-add_test("TOPP_ProSE_7_psm_only" ${TOPP_BIN_PATH}/ProSE -test
-  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
-  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
-  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
-  -Search:FDR:protein 0
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_7_psm_only_out.tmp.idXML)
-add_test(NAME "TOPP_ProSE_7_psm_only_decoys_present" COMMAND ${CMAKE_COMMAND} -P
-  ${CMAKE_CURRENT_SOURCE_DIR}/check_decoys.cmake ${TESTS_TEMP_DIR}/ProSE_7_psm_only_out.tmp.idXML present)
-set_tests_properties("TOPP_ProSE_7_psm_only_decoys_present" PROPERTIES DEPENDS "TOPP_ProSE_7_psm_only")
-
-# Test 8: multi-file run WITH -out_merged and protein FDR > 0. Per-file outputs are intermediate
-# (decoys retained); the merged output is the finalized complete-experiment result (decoys removed).
-# The same input is searched twice (replicate-merge) to exercise the cross-file merge path.
-add_test("TOPP_ProSE_8_merged" ${TOPP_BIN_PATH}/ProSE -test
+# Test 7: multi-file run with -out_merged (the tool-only cross-file merge path, not covered by
+# ProSEAlgorithm_test). Exercises IDMergerAlgorithm + BasicProteinInferenceAlgorithm + picked-
+# protein FDR on the pooled set (FDR:protein from the ini finalizes the merged result, removing
+# decoys). The same input is searched twice (replicate-merge). Rather than a large golden idXML,
+# diff a small FileInfo summary (protein/peptide/spectrum counts); env-dependent file-name/db/
+# version lines are whitelisted. The decoy-reporting contract itself is pinned by ProSEAlgorithm_test.
+add_test("TOPP_ProSE_7_merged" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
       ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_8_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_8_b.tmp.idXML
-  -out_merged ${TESTS_TEMP_DIR}/ProSE_8_merged.tmp.idXML)
-add_test(NAME "TOPP_ProSE_8_perfile_decoys_present" COMMAND ${CMAKE_COMMAND} -P
-  ${CMAKE_CURRENT_SOURCE_DIR}/check_decoys.cmake ${TESTS_TEMP_DIR}/ProSE_8_a.tmp.idXML present)
-set_tests_properties("TOPP_ProSE_8_perfile_decoys_present" PROPERTIES DEPENDS "TOPP_ProSE_8_merged")
-add_test(NAME "TOPP_ProSE_8_merged_decoys_absent" COMMAND ${CMAKE_COMMAND} -P
-  ${CMAKE_CURRENT_SOURCE_DIR}/check_decoys.cmake ${TESTS_TEMP_DIR}/ProSE_8_merged.tmp.idXML absent)
-set_tests_properties("TOPP_ProSE_8_merged_decoys_absent" PROPERTIES DEPENDS "TOPP_ProSE_8_merged")
-
-# Test 9: multi-file run with protein FDR > 0 but NO -out_merged. No output represents a complete
-# experiment, so protein FDR is deliberately NOT applied (ProSE warns); per-file outputs are left
-# as intermediates with decoys retained (NOT stripped).
-add_test("TOPP_ProSE_9_multi_no_merged" ${TOPP_BIN_PATH}/ProSE -test
-  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
-  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
-      ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
-  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_9_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_9_b.tmp.idXML)
-add_test(NAME "TOPP_ProSE_9_perfile_decoys_present" COMMAND ${CMAKE_COMMAND} -P
-  ${CMAKE_CURRENT_SOURCE_DIR}/check_decoys.cmake ${TESTS_TEMP_DIR}/ProSE_9_a.tmp.idXML present)
-set_tests_properties("TOPP_ProSE_9_perfile_decoys_present" PROPERTIES DEPENDS "TOPP_ProSE_9_multi_no_merged")
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_7_merged_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_7_merged_b.tmp.idXML
+  -out_merged ${TESTS_TEMP_DIR}/ProSE_7_merged.tmp.idXML)
+add_test("TOPP_ProSE_7_merged_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_7_merged.tmp.idXML
+  -out_tsv ${TESTS_TEMP_DIR}/ProSE_7_merged_info.tmp.tsv)
+set_tests_properties("TOPP_ProSE_7_merged_info" PROPERTIES DEPENDS "TOPP_ProSE_7_merged")
+add_test("TOPP_ProSE_7_merged_info_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_7_merged_info.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_7_merged_info.tsv
+  -whitelist "file name" "database" "search engine")
+set_tests_properties("TOPP_ProSE_7_merged_info_out" PROPERTIES DEPENDS "TOPP_ProSE_7_merged_info")
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
