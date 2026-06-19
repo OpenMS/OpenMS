@@ -21,6 +21,7 @@
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -744,6 +745,9 @@ class ProSE :
 
           vector<ProteinIdentification> merged_protein_ids = {std::move(merged_proteins)};
           merged_protein_ids[0].setPrimaryMSRunPath(in_list);
+          // IDMergerAlgorithm carries over search engine/params but not a run date; set one so the
+          // merged idXML is schema-valid (matches the single-file path in ProSEAlgorithm).
+          merged_protein_ids[0].setDateTime(DateTime::now());
 
           // Protein inference: aggregate best PSM score per peptide per protein
           BasicProteinInferenceAlgorithm bpia;
