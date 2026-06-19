@@ -21,8 +21,18 @@ namespace OpenMS
     @brief Reader for Thermo RAW files via the openms-thermo-bridge.
 
     Uses the openms-thermo-bridge library to access Thermo Fisher
-    RawFileReader through the .NET host runtime. Reads spectra (MS1 and MSn)
-    including retention times, precursor information, and instrument metadata.
+    RawFileReader through the .NET host runtime.  Produces an MSExperiment
+    that mirrors the metadata written by msconvert/ProteoWizard, including:
+
+    - Per-spectrum: total ion current, base-peak m/z + intensity,
+      lowest/highest observed m/z, scan filter string, scan window,
+      ion injection time (serialised as MS:1000927 under \<scan\>),
+      FAIMS compensation voltage, and corrected polarity mapping
+      (Thermo PolarityType: Negative=0, Positive=1).
+    - Instrument: ion source, mass analyser(s), ion detector(s),
+      software version (all mapped to PSI-MS CV terms).
+    - Experiment: creation date, sample name.
+    - A total ion current chromatogram.
 
     Requires the openms-thermo-bridge managed runtime files
     (ThermoWrapperManaged.dll and its dependencies) to be installed alongside
@@ -38,7 +48,8 @@ namespace OpenMS
 
       Reads all scans from the RAW file and populates the experiment with
       spectra, retention times, MS levels, precursor information (for MSn),
-      and source file metadata.
+      full mzML-equivalent instrument / sample metadata, and a total ion
+      current chromatogram.
 
       @param[in] path Path to the .raw file
       @param[out] exp The experiment to populate

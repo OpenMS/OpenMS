@@ -139,3 +139,104 @@ experiments (:term:`SRM` / MRM / PRM / DIA).
     targeted_exp = oms.TargetedExperiment()
     oms.TraMLFile().load("test.TraML", targeted_exp)
     oms.TraMLFile().store("test.out.TraML", targeted_exp)
+
+
+Inspecting File Contents (FileInfo)
+-------------------------------------------------------
+
+:py:class:`~.FileInfo` is the library-level equivalent of the ``FileInfo``
+TOPP command-line tool.  It loads any OpenMS-readable file, extracts
+structured information about its contents, and can reproduce the exact
+human-readable or TSV output of the CLI tool — all from Python.
+
+**Quick inspection with runAll()**
+
+:py:meth:`~.FileInfo.run_all` enables all content metrics (metadata,
+processing history, statistics) with a single call:
+
+.. code-block:: python
+    :linenos:
+
+    import pyopenms as oms
+
+    fi = oms.FileInfo()
+    r = fi.run_all("data.mzML")
+
+    # file type is auto-detected
+    print(r.meta.file_type_name)          # e.g. "mzML"
+
+    # peak-file specifics (None for non-peak files)
+    if r.peak is not None:
+        print("spectra:", r.peak.num_spectra)
+        print("MS levels:", r.peak.ms_levels)
+        for ms_level, name, count in r.peak.activation_methods_flat():
+            print(f"  MS{ms_level} {name}: {count}")
+
+    # RT / m/z / intensity ranges
+    print("RT range:", r.ranges.combined.rt.min, "–", r.ranges.combined.rt.max)
+
+    # human-readable output identical to the FileInfo CLI
+    print(r.text)
+
+**Feature and identification files**
+
+The same API works for ``featureXML``, ``consensusXML``, and ``idXML``:
+
+.. code-block:: python
+    :linenos:
+
+    import pyopenms as oms
+
+    r_feat = oms.FileInfo().run_all("data.featureXML")
+    if r_feat.feature is not None:
+        print("features:", r_feat.feature.num_features)
+        print("charges:", r_feat.feature.charges)
+
+    r_id = oms.FileInfo().run_all("data.idXML")
+    if r_id.ident is not None:
+        print("peptide hits:", r_id.ident.peptide_hits)
+        print("search engines:", r_id.ident.search_engines)
+
+**Selective computation with Options**
+
+By default :py:meth:`~.FileInfo.run` skips expensive operations
+(validation, corruption check, detailed spectrum listing).  Pass an
+:py:class:`~.FileInfo.Options` object to opt in:
+
+.. code-block:: python
+    :linenos:
+
+    import pyopenms as oms
+
+    opt = oms.FileInfo.Options()
+    opt.meta        = True   # instrument / sample / contact block (-m)
+    opt.processing  = True   # data-processing history (-p)
+    opt.statistics  = True   # intensity / charge statistics (-s)
+    opt.validate    = True   # schema / semantic validation (-v)
+
+    r = oms.FileInfo().run("data.mzML", opt)
+
+    if r.experiment_meta is not None and r.experiment_meta.present:
+        print("instrument:", r.experiment_meta.instrument_name)
+    print("-- Statistics --" in r.text)   # True
+
+**Rendering to text or TSV**
+
+The cached CLI output is always available as ``r.text`` and ``r.tsv``.
+The static helpers :py:meth:`~.FileInfo.to_text` and
+:py:meth:`~.FileInfo.to_tsv` are provided for API symmetry:
+
+.. code-block:: python
+    :linenos:
+
+    import pyopenms as oms
+
+    r = oms.FileInfo().run_all("data.featureXML")
+
+    # write the human-readable report to a file
+    with open("report.txt", "w") as f:
+        f.write(oms.FileInfo.to_text(r))
+
+    # write the machine-readable TSV
+    with open("report.tsv", "w") as f:
+        f.write(oms.FileInfo.to_tsv(r))
