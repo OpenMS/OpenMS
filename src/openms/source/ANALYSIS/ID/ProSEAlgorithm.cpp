@@ -63,12 +63,12 @@ namespace OpenMS
     DefaultParamHandler("ProSEAlgorithm"),
     ProgressLogger()
   {
-    defaults_.setValue("precursor:mass_tolerance_lower", 20.0,
+    defaults_.setValue("precursor:mass_tolerance_lower", 10.0,
                        "Lower-side precursor-mass tolerance (positive magnitude; effective window "
                        "is [-lower, +upper] around the precursor). "
                        "When strongly asymmetric, also review precursor:isotope_error_min.");
     defaults_.setMinFloat("precursor:mass_tolerance_lower", 0.0);
-    defaults_.setValue("precursor:mass_tolerance_upper", 20.0,
+    defaults_.setValue("precursor:mass_tolerance_upper", 10.0,
                        "Upper-side precursor-mass tolerance (positive magnitude).");
     defaults_.setMinFloat("precursor:mass_tolerance_upper", 0.0);
     defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance.");
@@ -85,7 +85,7 @@ namespace OpenMS
     IntList isotopes = {0, 1};
     defaults_.setValue("precursor:isotopes", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)");
 
-    defaults_.setValue("fragment:mass_tolerance", 10.0, "Fragment mass tolerance");
+    defaults_.setValue("fragment:mass_tolerance", 20.0, "Fragment mass tolerance");
 
     std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
     fragment_mass_tolerance_unit_valid_strings.emplace_back("ppm");
@@ -124,7 +124,7 @@ namespace OpenMS
     defaults_.setValue("decoys", "false", "Should decoys be generated?");
     defaults_.setValidStrings("decoys", {"true","false"} );
 
-    defaults_.setValue("decoy_prefix", "DECOY_", "Accession prefix used for decoy proteins. When decoy generation is enabled (-decoys), this prefix is added to generated decoy accessions. When decoy generation is disabled, the FASTA database may already contain decoy proteins with this prefix (e.g., from DecoyDatabase) and FDR can still be applied.", {"advanced"});
+    defaults_.setValue("decoy_prefix", "DECOY_", "Accession marker used for decoy proteins. When decoy generation is enabled (-decoys), this string is prepended to generated decoy accessions. When decoy generation is disabled, the FASTA database may already contain decoy proteins tagged with this string and FDR can still be applied; existing decoys are recognised whether the marker is a prefix or a suffix of the accession (e.g. 'DECOY_PROT' or 'PROT_DECOY').", {"advanced"});
 
     defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
     defaults_.setValidStrings("annotate:PSM",
@@ -821,6 +821,27 @@ namespace OpenMS
     return db;
   }
 
+  bool ProSEAlgorithm::isDecoyAccession_(const std::string& accession) const
+  {
+    return StringUtils::hasPrefix(accession, decoy_prefix_) ||
+           StringUtils::hasSuffix(accession, decoy_prefix_);
+  }
+
+  std::string ProSEAlgorithm::detectDecoyStringPosition_(
+      const std::vector<FASTAFile::FASTAEntry>& db) const
+  {
+    bool any_prefix = false;
+    bool any_suffix = false;
+    for (const FASTAFile::FASTAEntry& e : db)
+    {
+      if (StringUtils::hasPrefix(e.identifier, decoy_prefix_)) any_prefix = true;
+      else if (StringUtils::hasSuffix(e.identifier, decoy_prefix_)) any_suffix = true;
+      if (any_prefix) break; // prefix is the conventional default; stop once seen
+    }
+    // Only report "suffix" when the marker appears exclusively at the end.
+    return (any_suffix && !any_prefix) ? "suffix" : "prefix";
+  }
+
   // =====================================================================
   // Strided calibration sample. Used by the chunked search paths so that
   // calibration always sees a representative, suitably-sized subset of the
@@ -1253,7 +1274,7 @@ namespace OpenMS
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
     param_pi.setValue("decoy_string", decoy_prefix_);
-    param_pi.setValue("decoy_string_position", "prefix");
+    param_pi.setValue("decoy_string_position", detectDecoyStringPosition_(full_db));
     param_pi.setValue("enzyme:name", enzyme_);
     param_pi.setValue("enzyme:specificity",
                       EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
@@ -1291,7 +1312,7 @@ namespace OpenMS
     //    method also does PSM FDR only; the multi-file wrapper and file-based
     //    searchWithModificationAnalysis apply protein FDR post-call).
     bool has_decoys = std::any_of(full_db.begin(), full_db.end(),
-        [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
+        [this](const FASTAFile::FASTAEntry& e) { return isDecoyAccession_(e.identifier); });
 
     if (fdr_psm_ > 0.0 && has_decoys)
     {
@@ -1520,7 +1541,7 @@ namespace OpenMS
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
     param_pi.setValue("decoy_string", decoy_prefix_);
-    param_pi.setValue("decoy_string_position", "prefix");
+    param_pi.setValue("decoy_string_position", detectDecoyStringPosition_(db));
     param_pi.setValue("enzyme:name", enzyme_);
     param_pi.setValue("enzyme:specificity",
                       EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
@@ -1565,7 +1586,7 @@ namespace OpenMS
     // Decoys may be generated internally (decoys_=true) or present in the
     // input FASTA (external, identified by decoy_prefix_).
     bool has_decoys = std::any_of(db.begin(), db.end(),
-        [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
+        [this](const FASTAFile::FASTAEntry& e) { return isDecoyAccession_(e.identifier); });
 
     if (fdr_psm_ > 0.0 && has_decoys)
     {
@@ -1628,7 +1649,7 @@ namespace OpenMS
     // Must run before decoy removal so both target and decoy proteins
     // receive aggregated scores from BPIA.
     bool has_decoys_single = std::any_of(fasta_db.begin(), fasta_db.end(),
-        [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
+        [this](const FASTAFile::FASTAEntry& e) { return isDecoyAccession_(e.identifier); });
     if (fdr_protein_ > 0.0 && (decoys_ || has_decoys_single))
     {
       BasicProteinInferenceAlgorithm bpia;
@@ -1969,7 +1990,7 @@ namespace OpenMS
         PeptideIndexing indexer;
         Param param_pi = indexer.getParameters();
         param_pi.setValue("decoy_string", decoy_prefix_);
-        param_pi.setValue("decoy_string_position", "prefix");
+        param_pi.setValue("decoy_string_position", detectDecoyStringPosition_(full_db));
         param_pi.setValue("enzyme:name", enzyme_);
         param_pi.setValue("enzyme:specificity",
                           EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
@@ -1995,7 +2016,7 @@ namespace OpenMS
 
         // PSM-level FDR only (matching non-chunked search semantics).
         bool has_decoys = std::any_of(full_db.begin(), full_db.end(),
-            [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
+            [this](const FASTAFile::FASTAEntry& e) { return isDecoyAccession_(e.identifier); });
         if (fdr_psm_ > 0.0 && has_decoys)
         {
           FalseDiscoveryRate fdr;

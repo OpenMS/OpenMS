@@ -53,6 +53,8 @@ public:
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
   using ProSEAlgorithm::preprocessSpectra_;
+  using ProSEAlgorithm::isDecoyAccession_;
+  using ProSEAlgorithm::detectDecoyStringPosition_;
 };
 
 // --- Shared calibration fixture -------------------------------------------------
@@ -190,6 +192,48 @@ END_SECTION
 START_SECTION(~ProSEAlgorithm())
 {
   delete ptr;
+}
+END_SECTION
+
+START_SECTION(([EXTRA] default mass tolerances))
+{
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_REAL_SIMILAR((double)p.getValue("precursor:mass_tolerance_lower"), 10.0)
+  TEST_REAL_SIMILAR((double)p.getValue("precursor:mass_tolerance_upper"), 10.0)
+  TEST_STRING_EQUAL(p.getValue("precursor:mass_tolerance_unit").toString(), "ppm")
+  TEST_REAL_SIMILAR((double)p.getValue("fragment:mass_tolerance"), 20.0)
+  TEST_STRING_EQUAL(p.getValue("fragment:mass_tolerance_unit").toString(), "ppm")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] decoy detection: prefix and suffix))
+{
+  ProSEAlgorithm_test algo;
+  Param p = algo.getParameters();
+  p.setValue("decoy_prefix", "DECOY_");
+  algo.setParameters(p);
+
+  // Both orientations of the marker count as decoy; no extra parameter needed.
+  TEST_EQUAL(algo.isDecoyAccession_("DECOY_sp|P12345|PROT"), true)   // prefix
+  TEST_EQUAL(algo.isDecoyAccession_("sp|P12345|PROT_DECOY_"), true)  // suffix
+  TEST_EQUAL(algo.isDecoyAccession_("sp|P12345|PROT"), false)        // target
+
+  // Position auto-detected from the database for PeptideIndexing.
+  std::vector<FASTAFile::FASTAEntry> db_prefix = {
+    FASTAFile::FASTAEntry("sp|P1|A", "", "PEPTIDEK"),
+    FASTAFile::FASTAEntry("DECOY_sp|P1|A", "", "KEDITPEP") };
+  TEST_STRING_EQUAL(algo.detectDecoyStringPosition_(db_prefix), "prefix")
+
+  std::vector<FASTAFile::FASTAEntry> db_suffix = {
+    FASTAFile::FASTAEntry("sp|P1|A", "", "PEPTIDEK"),
+    FASTAFile::FASTAEntry("sp|P1|A_DECOY_", "", "KEDITPEP") };
+  TEST_STRING_EQUAL(algo.detectDecoyStringPosition_(db_suffix), "suffix")
+
+  // No decoys / only targets -> conventional "prefix" default.
+  std::vector<FASTAFile::FASTAEntry> db_targets = {
+    FASTAFile::FASTAEntry("sp|P1|A", "", "PEPTIDEK") };
+  TEST_STRING_EQUAL(algo.detectDecoyStringPosition_(db_targets), "prefix")
 }
 END_SECTION
 

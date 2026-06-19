@@ -377,6 +377,27 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         const std::vector<FASTAFile::FASTAEntry>& fasta_db) const;
 
     /**
+     * @brief Test whether an accession carries the decoy marker.
+     *
+     * Matches decoy_prefix_ as either a prefix or a suffix of the accession,
+     * so databases that tag decoys at the end (e.g. "PROT_DECOY") are detected
+     * as well as the conventional leading "DECOY_PROT". No extra parameter is
+     * required; both orientations of the same marker string are accepted.
+     */
+    bool isDecoyAccession_(const std::string& accession) const;
+
+    /**
+     * @brief Detect whether decoys are tagged by prefix or suffix in @p db.
+     *
+     * Returns "suffix" only when the decoy marker is found exclusively at the
+     * end of accessions (i.e. some accession ends with it and none begins with
+     * it); otherwise returns "prefix". The result feeds PeptideIndexing's
+     * "decoy_string_position", which accepts a single orientation.
+     */
+    std::string detectDecoyStringPosition_(
+        const std::vector<FASTAFile::FASTAEntry>& db) const;
+
+    /**
      * @brief Build a strided protein sample for chunked calibration.
      *
      * Sample size is tied to database_chunk_size_ so the calibration FI never
