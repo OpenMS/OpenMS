@@ -22,6 +22,7 @@
 #ifdef DC_DEVEL
 #include <fstream>
 #include <OpenMS/ANALYSIS/DECHARGING/ChargeLadder.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>

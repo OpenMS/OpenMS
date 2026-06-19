@@ -16,6 +16,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <iostream>
 #include <cmath>
 #include <string>
