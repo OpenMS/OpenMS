@@ -64,7 +64,7 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
 @note Decoy handling: either enable '-Search:decoys' to generate decoys internally, or provide a FASTA database that already contains decoy proteins (e.g., from DecoyDatabase). In both cases, the decoy accession prefix must match '-Search:decoy_prefix' (default: "DECOY_").
-@note Decoy reporting is tied to protein-level FDR, not to PSM-level FDR. Setting '-Search:FDR:protein' > 0 signals "finalize this result": picked-protein FDR is applied and decoys are removed. PSM-level FDR ('-Search:FDR:PSM') only annotates q-values and filters PSMs — it never removes decoys. With '-Search:FDR:protein' = 0 (the default), decoys are retained in every output (target+decoy evidence with scores). To obtain a clean, decoy-free result without protein FDR, run @ref TOPP_IDFilter with '-remove_decoys' downstream.
+@note Decoy reporting is tied to protein-level FDR, not to PSM-level FDR. Setting '-Search:FDR:protein' > 0 signals "finalize this result": picked-protein FDR is applied and decoys are removed. PSM-level FDR ('-Search:FDR:PSM') filters target and decoy PSMs alike by the q-value threshold; it does no decoy-specific stripping, so decoys that pass the threshold are kept. With '-Search:FDR:protein' = 0 (the default), decoys are retained in every output (target+decoy evidence with scores). To obtain a clean, decoy-free result without protein FDR, run @ref TOPP_IDFilter with '-remove_decoys' downstream.
 @note Protein-level FDR scope: picked-protein FDR does not compose across runs, so it is applied (and decoys removed) only on a @em complete protein set — a single input file, or the pooled '-out_merged' set of a multi-file run. For a multi-file run with '-Search:FDR:protein' > 0 but no '-out_merged', protein FDR is NOT applied (no output represents a complete experiment); ProSE warns and leaves the per-file outputs as intermediates (decoys retained).
 @note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.
 
@@ -384,8 +384,8 @@ class ProSE :
         // scores are already q-values (PercolatorAdapter was invoked with
         // -score_type q-value). For files that fell back to HyperScores (Percolator
         // skipped/failed), compute q-values via FalseDiscoveryRate first.
-        // PSM-level FDR only annotates + filters; decoys are RETAINED here (decoy
-        // removal is a protein-FDR finalization step, see the protein-FDR block below).
+        // PSM-level FDR filters target+decoy PSMs alike by q-value; no decoy-specific stripping
+        // here (categorical decoy removal is a protein-FDR finalization step, see below).
         if (user_psm_fdr > 0.0)
         {
           for (Size i = 0; i < in_list.size(); ++i)
@@ -413,7 +413,7 @@ class ProSE :
               }
               FalseDiscoveryRate fdr;
               Param fdr_params = fdr.getParameters();
-              fdr_params.setValue("add_decoy_peptides", "true"); // retain decoys: PSM FDR annotates, never strips
+              fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
               fdr.setParameters(fdr_params);
               fdr.apply(result.peptide_ids);
             }
