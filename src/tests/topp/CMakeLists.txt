@@ -978,7 +978,7 @@ add_test("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1" ${TOPP_BIN_PATH}/Isobaric
 add_test("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/TMTElevenPlexMethod_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/TMTElevenPlexMethod_test.consensusXML )
 set_tests_properties("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1")
 
-# TMT 32-plex / 35-plex end-to-end (issue #9460 §4, L182): the 32/35-plex methods are registered in the
+# TMT 32-plex / 35-plex end-to-end: the 32/35-plex methods are registered in the
 # IsobaricQuantitationMethod factory; run them on the TMT10 fixture and confirm 32/35 channels are
 # quantified (consensusXML diffs clean). Isotope correction is not yet supported for these methods (the
 # matrix is always identity), so it is disabled to avoid the identity-matrix rejection.
@@ -1863,7 +1863,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_3")
   set_tests_properties("TOPP_OpenSwathWorkflow_3_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_3")
 
-  # Wave-scheduler thread set-invariance (issue #9460 §4, L176): the auto SWATH wave scheduler keys the
+  # Wave-scheduler thread set-invariance: the auto SWATH wave scheduler keys the
   # wave count off scoring threads and per-wave output uses the unstable FeatureMap::sortByPosition, so
   # the feature *order* is not byte-identical across -threads. Run the same input at -threads 1 and 4
   # (in-memory, single batch) and assert the feature SET is equal after a canonical FileFilter -sort,
