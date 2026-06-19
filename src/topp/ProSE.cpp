@@ -423,6 +423,79 @@ class ProSE :
         }
       }
 
+      // Protein-level FDR. FDR does not compose across runs, so picked-protein FDR is
+      // statistically valid only on a COMPLETE protein set: a single input file (handled
+      // here) or the pooled -out_merged set (handled below). Filtering each file of a
+      // multi-file run separately would not control the FDR of the combined protein list
+      // (false positives accumulate across files), so that is deliberately never done.
+      if (user_protein_fdr > 0.0)
+      {
+        if (in_list.size() == 1)
+        {
+          ProSEAlgorithm::SearchResult& result = mfres.per_file[0];
+          if (result.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK
+              && !result.protein_ids.empty() && !result.peptide_ids.empty())
+          {
+            const std::string decoy_prefix = search_params.getValue("decoy_prefix").toString();
+            bool has_decoys = false;
+            for (const auto& ph : result.protein_ids[0].getHits())
+            {
+              if (ph.getAccession().rfind(decoy_prefix, 0) == 0) { has_decoys = true; break; }
+            }
+            if (has_decoys)
+            {
+              // The single file is the complete experiment, so picked-protein FDR is valid:
+              // aggregate the best PSM score per peptide per protein, then apply it
+              // (Savitski et al. 2015) over the file's full target+decoy protein set.
+              BasicProteinInferenceAlgorithm bpia;
+              bpia.run(result.peptide_ids, result.protein_ids);
+              FalseDiscoveryRate fdr;
+              fdr.applyPickedProteinFDR(result.protein_ids[0], decoy_prefix, true);
+              IDFilter::filterHitsByScore(result.protein_ids, user_protein_fdr);
+              IDFilter::removeDecoyHits(result.peptide_ids);
+              IDFilter::removeEmptyIdentifications(result.peptide_ids);
+              IDFilter::removeUnreferencedProteins(result.protein_ids, result.peptide_ids);
+              // Keep indistinguishable-protein and protein groups consistent with the filtered
+              // hit set, else they (and peptide evidence) dangle to removed decoys and idXML store fails.
+              IDFilter::updateProteinGroups(result.protein_ids[0].getIndistinguishableProteins(), result.protein_ids[0].getHits());
+              IDFilter::updateProteinGroups(result.protein_ids[0].getProteinGroups(), result.protein_ids[0].getHits());
+              IDFilter::removeDanglingProteinReferences(result.peptide_ids, result.protein_ids);
+              OPENMS_LOG_INFO << "[ProSE] Single-file protein inference + FDR: "
+                              << result.protein_ids[0].getHits().size() << " proteins at "
+                              << user_protein_fdr * 100 << "% FDR." << endl;
+            }
+            else
+            {
+              OPENMS_LOG_WARN << "FDR:protein is set but no decoy proteins were identified "
+                              << "(decoy_prefix='" << decoy_prefix << "'); picked-protein FDR needs "
+                              << "identified decoys to estimate q-values. Skipping protein FDR "
+                              << "(check that '-Search:decoys' is enabled or the FASTA contains "
+                              << "decoys, and that decoys are actually matched)." << endl;
+            }
+          }
+        }
+        else if (out_merged.empty())
+        {
+          // Multiple inputs but no aggregate to filter. Per-file protein FDR would not
+          // control the combined FDR, so it is not applied. Warn loudly and strip the
+          // now-purposeless decoys so per-file outputs contain clean target PSMs.
+          OPENMS_LOG_WARN << "FDR:protein=" << user_protein_fdr << " was requested for "
+                          << in_list.size() << " input files but -out_merged was not set. "
+                          << "Protein-level FDR is NOT applied to per-file outputs "
+                          << "(-out_idxml/-out_qpx/-out_parquet): filtering each run separately "
+                          << "would not control the FDR of the pooled protein list. Use -out_merged "
+                          << "to obtain protein FDR over the aggregated set." << endl;
+          for (auto& result : mfres.per_file)
+          {
+            if (result.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
+            IDFilter::removeDecoyHits(result.peptide_ids);
+            IDFilter::removeEmptyIdentifications(result.peptide_ids);
+            IDFilter::removeUnreferencedProteins(result.protein_ids, result.peptide_ids);
+            IDFilter::removeDanglingProteinReferences(result.peptide_ids, result.protein_ids);
+          }
+        }
+      }
+
       // Write per-file outputs and track failures.
       // Accumulate Arrow tables for merged parquet output.
       std::vector<std::shared_ptr<arrow::Table>> qpx_psm_tables, qpx_pg_tables;
@@ -696,6 +769,9 @@ class ProSE :
           IDFilter::removeDecoyHits(merged_peptides);
           IDFilter::removeEmptyIdentifications(merged_peptides);
           IDFilter::removeUnreferencedProteins(merged_protein_ids, merged_peptides);
+          // Keep indistinguishable-protein and protein groups consistent with the filtered hit set.
+          IDFilter::updateProteinGroups(merged_protein_ids[0].getIndistinguishableProteins(), merged_protein_ids[0].getHits());
+          IDFilter::updateProteinGroups(merged_protein_ids[0].getProteinGroups(), merged_protein_ids[0].getHits());
           // Strip PeptideEvidence entries pointing to proteins removed by decoy/FDR
           // cleanup (target+decoy PSMs kept by removeDecoyHits would otherwise leave
           // dangling refs that IdXMLFile::store rejects).

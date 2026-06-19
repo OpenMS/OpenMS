@@ -1642,6 +1642,11 @@ namespace OpenMS
       IDFilter::removeDecoyHits(peptide_ids);
       IDFilter::removeEmptyIdentifications(peptide_ids);
       IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+      // Keep indistinguishable-protein and protein groups consistent with the filtered hit set,
+      // and drop peptide evidence to removed (decoy) proteins, else idXML storage fails on dangling refs.
+      IDFilter::updateProteinGroups(protein_ids[0].getIndistinguishableProteins(), protein_ids[0].getHits());
+      IDFilter::updateProteinGroups(protein_ids[0].getProteinGroups(), protein_ids[0].getHits());
+      IDFilter::removeDanglingProteinReferences(peptide_ids, protein_ids);
     }
 
     // patch file-specific metadata

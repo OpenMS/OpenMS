@@ -3197,6 +3197,24 @@ add_test("TOPP_ProSE_5_chunked_out" ${DIFF}
 set_tests_properties("TOPP_ProSE_5_chunked_out" PROPERTIES DEPENDS
   "TOPP_ProSE_5_chunked")
 
+# Test 6: single-file protein-FDR APPLICATION on a realistic search (DatabaseSuitability
+# spectra + 49-protein DB, decoys generated via -Search:decoys in the ini). The identified
+# decoy proteins are removed by picked-protein FDR and the surviving targets are reported
+# with protein q-values; the output must store as valid idXML (no dangling protein-group /
+# peptide-evidence references). The statistical contract (no per-file protein FDR) and the
+# in-memory vs single-file behaviour are pinned by ProSEAlgorithm_test.
+add_test("TOPP_ProSE_6_fdr" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_6_fdr_out.tmp.idXML)
+add_test("TOPP_ProSE_6_fdr_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_6_fdr_out.tmp.idXML
+  -in2 ${DATA_DIR_TOPP}/ProSE_6_fdr_out.idXML
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "name=\"fragment_annotation\"")
+set_tests_properties("TOPP_ProSE_6_fdr_out" PROPERTIES DEPENDS
+  "TOPP_ProSE_6_fdr")
+
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   # Create a symlink with .d suffix so FileHandler recognizes the format
