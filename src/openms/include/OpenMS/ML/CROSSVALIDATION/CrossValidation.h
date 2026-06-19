@@ -12,7 +12,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <algorithm>
 #include <cmath>
@@ -78,12 +78,12 @@ public:
     if (n == 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "n", String(n));
+                                    "n",StringUtils::toStr(n));
     }
     if (K == 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "K", String(K));
+                                    "K",StringUtils::toStr(K));
     }
     if (K > n) K = n;
 

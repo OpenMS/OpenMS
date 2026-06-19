@@ -47,7 +47,7 @@ namespace OpenMS
       uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : deconvolved_spectrum)
       {
-        if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
+        if (pg.getFeatureIndex() > 0 && used_feature_indices.contains(pg.getFeatureIndex()))
           continue;
         used_feature_indices.insert(pg.getFeatureIndex());
 

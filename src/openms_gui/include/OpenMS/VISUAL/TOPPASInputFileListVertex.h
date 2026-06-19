@@ -39,7 +39,7 @@ public:
   virtual std::unique_ptr<TOPPASVertex> clone() const override;
 
   /// returns "InputVertex"
-  String getName() const override;
+  std::string getName() const override;
   /// Sets the list of files
   void setFilenames(const QStringList & files);
   /// Starts all tools below this node

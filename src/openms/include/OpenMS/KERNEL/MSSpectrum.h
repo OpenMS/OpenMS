@@ -104,7 +104,7 @@ public:
     /// Float data array vector type
     typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
-    /// String data array vector type
+    /// std::string data array vector type
     typedef OpenMS::DataArrays::StringDataArray StringDataArray ;
     typedef std::vector<StringDataArray> StringDataArrays;
     /// Integer data array vector type
@@ -225,7 +225,7 @@ public:
     DriftTimeUnit getDriftTimeUnit() const;
 
     /// returns the ion mobility drift time unit as string
-    String getDriftTimeUnitAsString() const;
+    std::string getDriftTimeUnitAsString() const;
 
     /**
       @brief Sets the ion mobility drift time unit
@@ -243,10 +243,10 @@ public:
     void setMSLevel(UInt ms_level);
 
     /// Returns the name
-    const String& getName() const;
+    const std::string& getName() const;
 
     /// Sets the name
-    void setName(const String& name);
+    void setName(const std::string& name);
 
     //@}
 
@@ -699,12 +699,12 @@ protected:
     UInt ms_level_ = 1;
 
     /// Name
-    String name_;
+    std::string name_;
 
     /// Float data arrays
     FloatDataArrays float_data_arrays_;
 
-    /// String data arrays
+    /// std::string data arrays
     StringDataArrays string_data_arrays_;
 
     /// Integer data arrays

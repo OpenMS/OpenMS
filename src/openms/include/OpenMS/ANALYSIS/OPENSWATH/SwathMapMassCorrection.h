@@ -56,7 +56,7 @@ public:
      * @param[in] swath_maps The raw swath maps from the current run, will be modified (replaced with a corrected version)
      * @param[in] pasef Whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
      */
-    void correctMZ(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *>& transition_group_map,
+    void correctMZ(const std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *>& transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
                    std::vector< OpenSwath::SwathMap > & swath_maps, const bool pasef);
 
@@ -75,7 +75,7 @@ public:
      * @param[in] pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
      * @param[out] im_trafo The resulting map containing the transformation
      */
-    void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
+    void correctIM(const std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
                    const std::vector< OpenSwath::SwathMap > & swath_maps,
                    const bool pasef,
@@ -149,10 +149,10 @@ public:
     bool mz_extraction_window_ppm_;
     bool ms1_im_;
     double im_extraction_window_;
-    String mz_correction_function_;
-    String im_correction_function_;
-    String debug_im_file_;
-    String debug_mz_file_;
+    std::string mz_correction_function_;
+    std::string im_correction_function_;
+    std::string debug_im_file_;
+    std::string debug_mz_file_;
 
     /// fields for estimated mz and ion mobility windows
     double mz_estimation_padding_factor_ = 1.0;

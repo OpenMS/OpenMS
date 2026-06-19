@@ -245,7 +245,7 @@ END_SECTION
 START_SECTION(toString single annotation)
 {
   MzPAFAnnotation ann = MzPAF::parse("y4^2-H2O/0.001*0.75");
-  String s = MzPAF::toString(ann);
+  std::string s = MzPAF::toString(ann);
   TEST_EQUAL(s, "y4-H2O1^2/0.001*0.75")
 }
 END_SECTION
@@ -253,7 +253,7 @@ END_SECTION
 START_SECTION(toString simple annotation)
 {
   MzPAFAnnotation ann = MzPAF::parse("y4^2");
-  String s = MzPAF::toString(ann);
+  std::string s = MzPAF::toString(ann);
   TEST_EQUAL(s, "y4^2")
 }
 END_SECTION
@@ -261,14 +261,14 @@ END_SECTION
 START_SECTION(toString multiple annotations)
 {
   MzPAFPeakAnnotations anns = MzPAF::parseMultiple("b2,y4^2");
-  String s = MzPAF::toString(anns);
+  std::string s = MzPAF::toString(anns);
   TEST_EQUAL(s, "b2,y4^2")
 }
 END_SECTION
 
 START_SECTION(Roundtrip test)
 {
-  vector<String> test_cases = {
+  vector<std::string> test_cases = {
     "y4",
     "b2",
     "y4^2",
@@ -286,7 +286,7 @@ START_SECTION(Roundtrip test)
   for (const auto& input : test_cases)
   {
     auto ann = MzPAF::parse(input);
-    String output = MzPAF::toString(ann);
+    std::string output = MzPAF::toString(ann);
     auto reparsed = MzPAF::parse(output);
     TEST_EQUAL(ann, reparsed)
   }
@@ -425,7 +425,7 @@ END_SECTION
 START_SECTION(Roundtrip test with named compound)
 {
   auto ann = MzPAF::parse("_[MyCompound]");
-  String output = MzPAF::toString(ann);
+  std::string output = MzPAF::toString(ann);
   auto reparsed = MzPAF::parse(output);
   TEST_EQUAL(ann, reparsed)
 }

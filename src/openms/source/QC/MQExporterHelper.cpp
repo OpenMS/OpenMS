@@ -20,8 +20,8 @@
 
 using namespace OpenMS;
 
-Size MQExporterHelper::proteinGroupID_(std::map<OpenMS::String, OpenMS::Size>& database,
-                                       const String& protein_accession)
+Size MQExporterHelper::proteinGroupID_(std::map<std::string, OpenMS::Size>& database,
+                                       const std::string& protein_accession)
 {
   if (auto it = database.find(protein_accession); it == database.end())
   {
@@ -45,7 +45,7 @@ std::map<Size, Size> MQExporterHelper::makeFeatureUIDtoConsensusMapIndex_(const 
       if (!was_created_newly)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Adding [" + String(it->first) + "," + String(it->second) +  "] failed. FeatureHandle exists twice in ConsensusMap!");
+                                      "Adding [" + StringUtils::toStr(it->first) + "," + StringUtils::toStr(it->second) +  "] failed. FeatureHandle exists twice in ConsensusMap!");
       }
     }
   }
@@ -56,7 +56,7 @@ std::map<Size, Size> MQExporterHelper::makeFeatureUIDtoConsensusMapIndex_(const 
 bool MQExporterHelper::hasValidPepID_(
   const Feature& f,
   const Size c_feature_number,
-  const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
+  const std::multimap<std::string, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
   const ProteinIdentification::Mapping& mp_f)
 {
   const PeptideIdentificationList& pep_ids_f = f.getPeptideIdentifications();
@@ -66,7 +66,7 @@ bool MQExporterHelper::hasValidPepID_(
   }
   const PeptideIdentification& best_pep_id = pep_ids_f[0]; // PeptideIdentifications are sorted
 
-  String best_uid;
+  std::string best_uid;
   try
   {
     best_uid = PeptideIdentification::buildUIDFromPepID(best_pep_id, mp_f);
@@ -78,7 +78,7 @@ bool MQExporterHelper::hasValidPepID_(
   }
 
   const auto range = UIDs.equal_range(best_uid);
-  for (std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>::const_iterator it_pep = range.first;
+  for (std::multimap<std::string, std::pair<OpenMS::Size, OpenMS::Size>>::const_iterator it_pep = range.first;
        it_pep != range.second; ++it_pep)
   {
     if (c_feature_number == it_pep->second.first)
@@ -104,14 +104,14 @@ bool MQExporterHelper::isValid(const std::string& filename)
   return File::writable(filename);
 }
 
-String MQExporterHelper::extractGeneName(const String& prot_description)
+std::string MQExporterHelper::extractGeneName(const std::string& prot_description)
 {
-  String gene_name;
+  std::string gene_name;
   auto pos_gene = prot_description.find("GN=");
   // description might not contain a gene name ...
   if (pos_gene == std::string::npos) return gene_name;
 
-  gene_name = prot_description.substr(pos_gene +3, prot_description.find(" ", pos_gene +3));
+  gene_name = StringUtils::substr(prot_description, pos_gene +3, prot_description.find(" ", pos_gene +3));
   return gene_name;
 }
 
@@ -119,10 +119,10 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   const OpenMS::Feature& f,
   const OpenMS::ConsensusMap& cmap,
   const OpenMS::Size c_feature_number,
-  const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
+  const std::multimap<std::string, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
   const OpenMS::ProteinIdentification::Mapping& mp_f,
   const OpenMS::MSExperiment& exp,
-  const std::map<OpenMS::String,OpenMS::String>& prot_mapper)
+  const std::map<std::string,std::string>& prot_mapper)
 {
   const OpenMS::PeptideHit* ptr_best_hit; // the best hit referring to score
   const OpenMS::ConsensusFeature& cf = cmap[c_feature_number];
@@ -145,10 +145,10 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
     return; // empty AASequence; nothing to export
   }
 
-  std::map<OpenMS::String, OpenMS::Size> modifications_temp;
+  std::map<std::string, OpenMS::Size> modifications_temp;
   if (pep_seq.hasNTerminalModification())
   {
-    const OpenMS::String& n_terminal_modification = pep_seq.getNTerminalModificationName();
+    const std::string& n_terminal_modification = pep_seq.getNTerminalModificationName();
     modifications_temp.emplace(std::make_pair(n_terminal_modification, 1));
   }
   if (pep_seq.hasCTerminalModification())
@@ -180,15 +180,15 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   }
 
   acetyl = '0';
-  if (pep_seq.hasNTerminalModification() && pep_seq.getNTerminalModificationName().hasSubstring("Acetyl"))
+  if (pep_seq.hasNTerminalModification() && StringUtils::hasSubstring(pep_seq.getNTerminalModificationName(), "Acetyl"))
   {
     acetyl = '1'; // Acetyl (Protein N-term)
   }
 
   oxidation << modifications_temp["Oxidation (M)"];
-  const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();
-  std::vector<String> gene_names_temp;
-  std::vector<String> protein_names_temp;
+  const std::set<std::string>& accessions = ptr_best_hit->extractProteinAccessionsSet();
+  std::vector<std::string> gene_names_temp;
+  std::vector<std::string> protein_names_temp;
   for(const auto& prot_access : accessions)
   {
     if (const auto& prot_mapper_it = prot_mapper.find(prot_access); prot_mapper_it == prot_mapper.end())
@@ -206,8 +206,8 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
       protein_names_temp.push_back(std::move(protein_description));
     }
   }
-  gene_names.str(ListUtils::concatenate(gene_names_temp, ';'));     //Gene Names
-  protein_names.str(ListUtils::concatenate(protein_names_temp, ';'));  //Protein Names
+  gene_names.str(ListUtils::concatenate(gene_names_temp, ";"));     //Gene Names
+  protein_names.str(ListUtils::concatenate(protein_names_temp, ";"));  //Protein Names
 
   if (f.metaValueExists("spectrum_index") && !exp.empty() && exp.getNrSpectra() >= (OpenMS::Size)f.getMetaValue("spectrum_index") && !exp[f.getMetaValue("spectrum_index")].empty())
   {

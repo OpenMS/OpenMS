@@ -40,7 +40,7 @@ class OPENMS_DLLAPI MQMsms
 private:
   std::fstream file_;                                 ///< Stream where the data is added to create msms.txt
   OpenMS::Size id_ = 0;                               ///< number of rows in msms.txt to give each row a specific id
-  OpenMS::String filename_;                           ///< path and name of the msms.txt
+  std::string filename_;                           ///< path and name of the msms.txt
 
   /**
     @brief Writes the header of msms.txt (Names of columns)
@@ -67,11 +67,11 @@ private:
   void exportRowFromFeature_(const OpenMS::Feature& f,
                              const OpenMS::ConsensusMap& cmap,
                              const OpenMS::Size c_feature_number,
-                             const OpenMS::String& raw_file,
-                             const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
+                             const std::string& raw_file,
+                             const std::multimap<std::string, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
                              const OpenMS::ProteinIdentification::Mapping& mp_f,
                              const OpenMS::MSExperiment& exp = {},
-                             const std::map<OpenMS::String,OpenMS::String>& prot_map = {});
+                             const std::map<std::string,std::string>& prot_map = {});
 
 public:
   /**
@@ -86,7 +86,7 @@ public:
     @param[in] path that is the path where msms.txt has to be stored
 
   */
-  explicit MQMsms(const OpenMS::String& path);
+  explicit MQMsms(const std::string& path);
 
   /**
     @brief Closes f_stream
@@ -94,6 +94,6 @@ public:
   ~MQMsms();
 
   void exportFeatureMap(const OpenMS::FeatureMap& feature_map, const OpenMS::ConsensusMap& cmap,
-                        const OpenMS::MSExperiment& exp, const std::map<OpenMS::String,OpenMS::String>& prot_map = {});
+                        const OpenMS::MSExperiment& exp, const std::map<std::string,std::string>& prot_map = {});
 
 };

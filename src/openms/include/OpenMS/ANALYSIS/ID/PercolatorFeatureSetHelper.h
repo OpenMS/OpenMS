@@ -47,7 +47,7 @@ namespace OpenMS
          
           Appends a vector of PeptideIdentification to another and prepares Percolator features in MetaInfo (With the respective key "CONCAT:" + search_engine).
          */
-        static void concatMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const String& search_engine);
+        static void concatMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const std::string& search_engine);
 
         /**
           @brief mergeMULTISEPeptideIds
@@ -57,7 +57,7 @@ namespace OpenMS
          
           Merges a vector of PeptideIdentification into another and prepares the merged MetaInfo and scores for collection in addMULTISEFeatures for feature registration.
          */
-        static void mergeMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const String& search_engine);
+        static void mergeMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const std::string& search_engine);
 
         /**
           @brief mergeMULTISEProteinIds
@@ -150,10 +150,10 @@ namespace OpenMS
         static double rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons);
 
         /// helper function for assigning the frequently occurring feature delta score
-        static void assignDeltaScore_(std::vector<PeptideHit>& hits, const String& score_ref, const String& output_ref);
+        static void assignDeltaScore_(std::vector<PeptideHit>& hits, const std::string& score_ref, const std::string& output_ref);
 
         /// gets the scan identifier to merge by
-        static String getScanMergeKey_(PeptideIdentificationList::iterator it, PeptideIdentificationList::iterator start);
+        static std::string getScanMergeKey_(PeptideIdentificationList::iterator it, PeptideIdentificationList::iterator start);
 
         /// For accession dependent sorting of ProteinHits
         struct lq_ProteinHit

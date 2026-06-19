@@ -48,11 +48,11 @@ namespace // anonymous
     std::shared_ptr<arrow::StructBuilder>& struct_b,
     const std::unordered_set<std::string>& excluded_keys)
   {
-    std::vector<String> keys;
+    std::vector<std::string> keys;
     mii.getKeys(keys);
     for (const auto& key : keys)
     {
-      if (excluded_keys.count(key)) continue;
+      if (excluded_keys.contains(key)) continue;
       const DataValue& val = mii.getMetaValue(key);
       (void)struct_b->Append();
       (void)name_b->Append(key);
@@ -199,7 +199,7 @@ namespace // anonymous
 
       // metavalues
       json += ",\"metavalues\":[";
-      std::vector<String> keys;
+      std::vector<std::string> keys;
       dp.getKeys(keys);
       bool first_mv = true;
       for (const auto& key : keys)
@@ -254,7 +254,7 @@ namespace // anonymous
         raw += s[pos + 1];
         if (s[pos + 1] == 'u' && pos + 5 < s.size())
         {
-          raw += s.substr(pos + 2, 4);
+          raw += StringUtils::substr(s, pos + 2, 4);
           pos += 6;
         }
         else
@@ -383,8 +383,8 @@ namespace // anonymous
                 {
                   try
                   {
-                    String s(mv_value);
-                    if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+                    std::string s(mv_value);
+                    if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
                     dp.setMetaValue(mv_name, DataValue(ListUtils::create<Int>(s)));
                   }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -393,8 +393,8 @@ namespace // anonymous
                 {
                   try
                   {
-                    String s(mv_value);
-                    if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+                    std::string s(mv_value);
+                    if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
                     dp.setMetaValue(mv_name, DataValue(ListUtils::create<double>(s)));
                   }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -403,10 +403,10 @@ namespace // anonymous
                 {
                   try
                   {
-                    String s(mv_value);
-                    if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-                    auto sl = ListUtils::create<String>(s);
-                    for (auto& e : sl) { e = e.trim(); }
+                    std::string s(mv_value);
+                    if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
+                    auto sl = ListUtils::create<std::string>(s);
+                    for (auto& e : sl) { e = StringUtils::trim(e); }
                     dp.setMetaValue(mv_name, DataValue(sl));
                   }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -451,10 +451,137 @@ namespace // anonymous
     return result;
   }
 
+  // ==================== MetaInfoInterface JSON helpers ====================
+
+  /// Serialize all MetaValues of a MetaInfoInterface to a JSON array string
+  /// (shape: `[{"name":..., "value":..., "type":...}, ...]`).
+  /// Mirrors ConsensusMapArrowIO::serializeMetaValues_ — kept in sync.
+  std::string serializeMetaValues_(const MetaInfoInterface& mii)
+  {
+    std::string json = "[";
+    std::vector<std::string> keys;
+    mii.getKeys(keys);
+    bool first = true;
+    for (const auto& key : keys)
+    {
+      if (!first) json += ",";
+      const DataValue& val = mii.getMetaValue(key);
+      std::string type_str;
+      switch (val.valueType())
+      {
+        case DataValue::INT_VALUE: type_str = "int"; break;
+        case DataValue::DOUBLE_VALUE: type_str = "double"; break;
+        case DataValue::STRING_VALUE: type_str = "string"; break;
+        case DataValue::INT_LIST: type_str = "int_list"; break;
+        case DataValue::DOUBLE_LIST: type_str = "double_list"; break;
+        case DataValue::STRING_LIST: type_str = "string_list"; break;
+        default: type_str = "string"; break;
+      }
+      json += "{\"name\":\"" + escapeJsonString_(std::string(key))
+            + "\",\"value\":\"" + escapeJsonString_(val.toString())
+            + "\",\"type\":\"" + type_str + "\"}";
+      first = false;
+    }
+    json += "]";
+    return json;
+  }
+
+  /// Deserialize a JSON array of {name, value, type} objects into a MetaInfoInterface.
+  /// Mirrors ConsensusMapArrowIO::deserializeMetaValues_. On malformed JSON, the
+  /// shape mismatch causes an early return with no meta-values restored (WARN-equivalent
+  /// is the parent caller's responsibility — here we follow the existing helper's
+  /// silent-skip pattern). Per-entry type mismatches fall back to the raw string value.
+  void deserializeMetaValues_(const std::string& json, MetaInfoInterface& target)
+  {
+    if (json.empty()) return;
+
+    size_t pos = 0;
+    skipWhitespace_(json, pos);
+    if (pos >= json.size() || json[pos] != '[') return;
+    ++pos;
+
+    while (pos < json.size())
+    {
+      skipWhitespace_(json, pos);
+      if (pos >= json.size() || json[pos] == ']') break;
+      if (json[pos] == ',') { ++pos; continue; }
+      if (json[pos] != '{') break;
+      ++pos;
+
+      std::string mv_name, mv_value, mv_type;
+      while (pos < json.size())
+      {
+        skipWhitespace_(json, pos);
+        if (pos >= json.size() || json[pos] == '}') { ++pos; break; }
+        if (json[pos] == ',') { ++pos; continue; }
+
+        std::string mk = parseJsonString_(json, pos);
+        skipWhitespace_(json, pos);
+        if (pos < json.size() && json[pos] == ':') ++pos;
+        skipWhitespace_(json, pos);
+
+        if (mk == "name") mv_name = parseJsonString_(json, pos);
+        else if (mk == "value") mv_value = parseJsonString_(json, pos);
+        else if (mk == "type") mv_type = parseJsonString_(json, pos);
+        else parseJsonString_(json, pos);
+      }
+
+      if (!mv_name.empty())
+      {
+        if (mv_type == "int")
+        {
+          try { target.setMetaValue(mv_name, DataValue(std::stoi(mv_value))); }
+          catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
+        }
+        else if (mv_type == "double" || mv_type == "float")
+        {
+          try { target.setMetaValue(mv_name, DataValue(std::stod(mv_value))); }
+          catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
+        }
+        else if (mv_type == "int_list")
+        {
+          try
+          {
+            std::string s(mv_value);
+            if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = s.substr(1, s.size() - 2); }
+            target.setMetaValue(mv_name, DataValue(ListUtils::create<Int>(s)));
+          }
+          catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
+        }
+        else if (mv_type == "double_list")
+        {
+          try
+          {
+            std::string s(mv_value);
+            if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = s.substr(1, s.size() - 2); }
+            target.setMetaValue(mv_name, DataValue(ListUtils::create<double>(s)));
+          }
+          catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
+        }
+        else if (mv_type == "string_list")
+        {
+          try
+          {
+            std::string s(mv_value);
+            if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = s.substr(1, s.size() - 2); }
+            auto sl = ListUtils::create<std::string>(s);
+            for (auto& e : sl) { StringUtils::trim(e); }
+            target.setMetaValue(mv_name, DataValue(sl));
+          }
+          catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
+        }
+        else
+        {
+          target.setMetaValue(mv_name, DataValue(mv_value));
+        }
+      }
+    }
+  }
+
   /// Write an Arrow table to a Parquet file with QPX-style metadata.
   bool writeArrowTableToParquet_(
     std::shared_ptr<arrow::Table> table,
-    const String& filename,
+    const std::string& filename,
     const std::string& file_type,
     const ParquetWriteConfig& config,
     const std::unordered_map<std::string, std::string>& extra_metadata = {})
@@ -582,7 +709,7 @@ namespace // anonymous
   // ==================== Import helpers ====================
 
   /// Read a single Parquet file into an Arrow table.
-  std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
+  std::shared_ptr<arrow::Table> readParquetTable_(const std::string& filename)
   {
     auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
     if (!infile_result.ok())
@@ -653,7 +780,7 @@ namespace // anonymous
   }
 
   /// Get string value at a row, returning empty string if null.
-  String getStringValue_(const std::shared_ptr<arrow::Array>& array, int64_t row)
+  std::string getStringValue_(const std::shared_ptr<arrow::Array>& array, int64_t row)
   {
     if (!array || array->IsNull(row)) return "";
     return std::static_pointer_cast<arrow::StringArray>(array)->GetString(row);
@@ -1080,9 +1207,13 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportPSMsToArrow(
 
 bool FeatureMapArrowIO::exportToParquet(
   const FeatureMap& feature_map,
-  const String& directory,
+  const std::string& directory,
   const ParquetWriteConfig& config)
 {
+  // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
+  // so we never leave a partial .featureparquet behind. Throws Exception::InvalidValue.
+  ProteinIdentificationArrowIO::checkUniqueIdentifiers(feature_map.getProteinIdentifications());
+
   // 1. Create output directory
   try
   {
@@ -1102,12 +1233,16 @@ bool FeatureMapArrowIO::exportToParquet(
     return false;
   }
 
-  // Collect FeatureMap-level metadata (DocumentIdentifier + DataProcessing)
+  // Collect FeatureMap-level metadata (DocumentIdentifier + DataProcessing + MetaValues).
+  // The fmap_metavalues entry carries every FeatureMap-level MetaValue (notably
+  // `spectra_data`, set by FeatureMap::setPrimaryMSRunPath at FeatureMap.cpp:415).
+  // Mirrors the cmap_metavalues key in ConsensusMapArrowIO.cpp.
   std::unordered_map<std::string, std::string> feature_map_metadata;
   feature_map_metadata["document_id"] = feature_map.getIdentifier();
   feature_map_metadata["loaded_file_path"] = feature_map.getLoadedFilePath();
   feature_map_metadata["loaded_file_type"] = FileTypes::typeToName(feature_map.getLoadedFileType());
   feature_map_metadata["data_processing"] = serializeDataProcessing_(feature_map.getDataProcessing());
+  feature_map_metadata["fmap_metavalues"] = serializeMetaValues_(feature_map);
 
   if (!writeArrowTableToParquet_(features_table, directory + "/features.parquet", "features", config, feature_map_metadata))
   {
@@ -1489,7 +1624,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     // Reconstruct sequence from peptidoform (ProForma) if available, else from sequence column
     if (col_peptidoform && !isNull_(col_peptidoform, row))
     {
-      String peptidoform_str = getStringValue_(col_peptidoform, row);
+      std::string peptidoform_str = getStringValue_(col_peptidoform, row);
       if (!peptidoform_str.empty())
       {
         try
@@ -1560,7 +1695,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       int64_t end = start + list_arr->value_length(row);
       for (int64_t k = start; k < end; ++k)
       {
-        String name = names_arr->GetString(k);
+        std::string name = names_arr->GetString(k);
         double value = values_arr->Value(k);
         hit.setMetaValue(name, value);
       }
@@ -1630,7 +1765,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
 }
 
 bool FeatureMapArrowIO::importFromParquet(
-  const String& directory,
+  const std::string& directory,
   FeatureMap& feature_map)
 {
   feature_map = FeatureMap{};
@@ -1673,6 +1808,15 @@ bool FeatureMapArrowIO::importFromParquet(
     {
       feature_map.setDataProcessing(deserializeDataProcessing_(schema_md->value(idx)));
     }
+
+    // FeatureMap-level MetaValues (e.g. `spectra_data` populated by setPrimaryMSRunPath).
+    // Missing key (pre-fix .featureparquet) → no meta-values restored, matching legacy
+    // behavior. Mirrors the cmap_metavalues handling in ConsensusMapArrowIO::importFromParquet.
+    idx = schema_md->FindKey("fmap_metavalues");
+    if (idx >= 0)
+    {
+      deserializeMetaValues_(schema_md->value(idx), feature_map);
+    }
   }
 
   if (!importFeaturesFromArrow(features_table, feature_map))
@@ -1686,6 +1830,23 @@ bool FeatureMapArrowIO::importFromParquet(
   if (!importPSMsFromArrow(psms_table, feature_map))
   {
     return false;
+  }
+
+  // 4. Synthesize fresh ProtID identifiers + apply rename to every pep_id collection
+  //    we own (per-feature + unassigned). Mirrors IdXMLFile.cpp:530 — the stored
+  //    identifier becomes informational; the in-memory identifier downstream sees
+  //    is freshly synthesized with a UniqueIdGenerator suffix.
+  {
+    auto& prot_ids = feature_map.getProteinIdentifications();
+    auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(prot_ids);
+
+    for (auto& feature : feature_map)
+    {
+      ProteinIdentificationArrowIO::applyRunIdentifierRename(
+          rename, feature.getPeptideIdentifications());
+    }
+    ProteinIdentificationArrowIO::applyRunIdentifierRename(
+        rename, feature_map.getUnassignedPeptideIdentifications());
   }
 
   return true;

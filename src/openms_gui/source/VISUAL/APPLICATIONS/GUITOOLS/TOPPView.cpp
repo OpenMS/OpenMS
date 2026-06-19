@@ -116,7 +116,7 @@ int main(int argc, const char** argv)
     // if TOPPView is packed as Mac OS X bundle it will get a -psn_.. parameter by default from the OS
     // if this is the only unknown option it will be ignored .. maybe this should be solved directly
     // in Param.h
-    if (!(String(param.getValue("unknown").toString()).hasSubstring("-psn") && !String(param.getValue("unknown").toString()).hasSubstring(", ")))
+    if (!(StringUtils::hasSubstring(param.getValue("unknown").toString(), "-psn") && !StringUtils::hasSubstring(param.getValue("unknown").toString(), ", ")))
     {
       cout << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
       print_usage();
@@ -203,31 +203,31 @@ int main(int argc, const char** argv)
   //######################## ERROR HANDLING #################################
   catch (Exception::UnableToCreateFile& e)
   {
-    cout << String("Error: Unable to write file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << std::string("Error: Unable to write file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::FileNotFound& e)
   {
-    cout << String("Error: File not found (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << std::string("Error: File not found (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::FileNotReadable& e)
   {
-    cout << String("Error: File not readable (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << std::string("Error: File not readable (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::FileEmpty& e)
   {
-    cout << String("Error: File empty (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << std::string("Error: File empty (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::ParseError& e)
   {
-    cout << String("Error: Unable to read file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << std::string("Error: Unable to read file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::InvalidValue& e)
   {
-    cout << String("Error: Invalid value (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << std::string("Error: Invalid value (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::BaseException& e)
   {
-    cout << String("Error: Unexpected error (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << std::string("Error: Unexpected error (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
 
   return 1;

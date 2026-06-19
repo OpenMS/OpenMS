@@ -44,21 +44,24 @@ jobs:
       matrix:
         include:
           - os: windows-2025
+            # windows-2025 ships Windows Server 2025 + Visual Studio 2026 (v145) since June 2026.
+            # The contrib build now uses the "Visual Studio 18 2026" generator (see the
+            # dependencies action); its generator guard accepts VS {14..18}.
             # cl.exe is currently the only supported. Needs a VS shell to be set up (especially if used without VS CMake Generator)
             # clang.exe is also installed but untested (might crash with our VS specific compiler definitions)
             # clang-cl.exe might be used instead.
             compiler: cl.exe
-            # VS 2022: 14.30-14.39 (corresponds to MSVC v143)
-            # VS 2019: 14.20-14.29 (corresponds to MSVC v142)
-            compiler_ver: 14.44   # Specific toolset version for VS 2022 -- must (roughly) match Qt6 compiler (see below)
+            # VS 2026: 14.50-14.5x (corresponds to MSVC v145)
+            # VS 2022: 14.30-14.4x (corresponds to MSVC v143)
+            compiler_ver: 14.51   # Toolset version for VS 2026; on Windows this only feeds the ccache key / build name (the actual compiler is cl.exe from the VS shell)
 
-          - os: macos-14
+          - os: macos-15
             # Since the appleclang version is dependent on the XCode versions that are installed
             #  on the GH runners, use this as the choice for a specific version
             # TODO currently unused but XCode/appleclang is the default
             compiler: xcode
             # TODO implement support for other versions
-            compiler_ver: "15.4"  # macos-14 runners ship with Xcode 15.4
+            compiler_ver: "16.4"  # macos-15 runners ship with Xcode 16.4 (AppleClang 17)
 
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
@@ -75,7 +78,7 @@ jobs:
 
           - os: ubuntu-24.04
             compiler: clang++
-            compiler_ver: 17
+            compiler_ver: 18
     outputs:
       version_number: ${{ steps.create_changelog.outputs.version_number }}
 
@@ -277,7 +280,7 @@ jobs:
           # TODO allow actual choice of compiler instead of using default.
           #  Problem: not all compilers are always in the PATH.
           CMAKE_CXX_COMPILER: ${{ steps.set-vars.outputs.cxx_compiler }}
-          MACOSX_DEPLOYMENT_TARGET: ${{ startsWith(matrix.os, 'macos') && '14.0' || '' }}
+          MACOSX_DEPLOYMENT_TARGET: ${{ startsWith(matrix.os, 'macos') && '15.0' || '' }}
           PYOPENMS: "${{ startsWith(matrix.os, 'ubuntu') && matrix.compiler == 'g++' && 'ON' || 'OFF' }}"
           NO_DEPENDENCIES: "${{ startsWith(matrix.os, 'ubuntu') && matrix.compiler == 'g++' && 'OFF' || 'ON' }}"
           CMAKE_PREFIX_PATH: "${{ steps.deps.outputs.cmake_prefix }}"
@@ -453,14 +456,17 @@ jobs:
     - name: Create tarball
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
       run: |
+        # Write the archive to RUNNER_TEMP, i.e. OUTSIDE ${{ github.workspace }} (the directory
+        # being archived). Writing it in-tree makes the output file grow inside the directory tar
+        # is reading, so GNU tar reports "tar: .: file changed as we read it" and exits 1, which
+        # fails the step under `bash -e`.
         tar --exclude='bld/*' \
-            --exclude='OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz' \
             --exclude='THIRDPARTY/**' \
             --exclude='contrib/**' \
             --exclude='.git/**' \
             --exclude='.github/**' \
             --exclude='vcpkg*/**' \
-            -czf OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz -C ${{ github.workspace }} .
+            -czf ${{ runner.temp }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz -C ${{ github.workspace }} .
 
    # Upload the source tar
     - name: Upload source tar as artifact
@@ -469,7 +475,7 @@ jobs:
       with:
         name: OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
         path: |
-          ${{ github.workspace }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
+          ${{ runner.temp }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
 
 
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
@@ -864,7 +870,7 @@ jobs:
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
+          rsync --progress -avz --mkpath -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
 
       - name: Make KNIME installer latest
         if: inputs.mark_as_latest

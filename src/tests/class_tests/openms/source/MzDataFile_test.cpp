@@ -77,7 +77,7 @@ START_SECTION(PeakFileOptions& getOptions())
 }
 END_SECTION
 
-START_SECTION((template <typename MapType> void load(const String &filename, MapType & map)))
+START_SECTION((template <typename MapType> void load(const std::string &filename, MapType & map)))
 {
   TOLERANCE_ABSOLUTE(0.01)
 
@@ -646,7 +646,7 @@ START_SECTION(([EXTRA] load with intensity range))
 }
 END_SECTION
 
-START_SECTION((template <typename MapType> void store(const String &filename, const MapType &map) const))
+START_SECTION((template <typename MapType> void store(const std::string &filename, const MapType &map) const))
 {
   PeakMap e1, e2;
   MzDataFile f;
@@ -658,9 +658,9 @@ START_SECTION((template <typename MapType> void store(const String &filename, co
   f.store(tmp_filename, e1);
   f.load(tmp_filename, e2);
   TEST_EQUAL(e2.getIdentifier(), "lsid");
-  e2[0].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
-  e2[1].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
-  e2[2].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
+  e2[0].getDataProcessing()[0]->getSoftware().setMetaValue("comment",std::string("SoftwareComment"));
+  e2[1].getDataProcessing()[0]->getSoftware().setMetaValue("comment",std::string("SoftwareComment"));
+  e2[2].getDataProcessing()[0]->getSoftware().setMetaValue("comment",std::string("SoftwareComment"));
   TEST_TRUE(e1 == e2);
 }
 END_SECTION
@@ -826,7 +826,7 @@ START_SECTION([EXTRA] storing / loading of meta data arrays)
 }
 END_SECTION
 
-START_SECTION([EXTRA] static bool isValid(const String& filename))
+START_SECTION([EXTRA] static bool isValid(const std::string& filename))
 {
   std::string tmp_filename;
   MzDataFile f;
@@ -845,7 +845,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 }
 END_SECTION
 
-START_SECTION(bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))
+START_SECTION(bool isSemanticallyValid(const std::string& filename, StringList& errors, StringList& warnings))
 {
   //This is not officially supported - the mapping file was hand-crafted by Marc Sturm
   NOT_TESTABLE

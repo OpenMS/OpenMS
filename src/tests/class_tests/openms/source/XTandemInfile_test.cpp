@@ -85,7 +85,7 @@ START_SECTION(UInt getNumberOfThreads() const)
 END_SECTION
 
 START_SECTION(void setModifications(const ModificationDefinitionsSet& mods))
-	ModificationDefinitionsSet sets(ListUtils::create<String>("Oxidation (M)"), ListUtils::create<String>("Carboxymethyl (C)"));
+	ModificationDefinitionsSet sets(ListUtils::create<std::string>("Oxidation (M)"), ListUtils::create<std::string>("Carboxymethyl (C)"));
 	xml_file.setModifications(sets);
 	TEST_EQUAL(xml_file.getModifications() == sets, true)
 END_SECTION
@@ -94,48 +94,48 @@ START_SECTION(const ModificationDefinitionsSet& getModifications() const)
   NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(void setOutputFilename(const String& output))
+START_SECTION(void setOutputFilename(const std::string& output))
 	xml_file.setOutputFilename("blubb_new_outputfilename");
 	TEST_STRING_EQUAL(xml_file.getOutputFilename(), "blubb_new_outputfilename")
 END_SECTION
 
-START_SECTION(const String& getOutputFilename() const)
+START_SECTION(const std::string& getOutputFilename() const)
   NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(void setInputFilename(const String& input_file))
+START_SECTION(void setInputFilename(const std::string& input_file))
 	xml_file.setInputFilename("blubb_new_inputfilename");
 	TEST_STRING_EQUAL(xml_file.getInputFilename(), "blubb_new_inputfilename")
 END_SECTION
 
-START_SECTION(const String& getInputFilename() const)
+START_SECTION(const std::string& getInputFilename() const)
 	NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(void setTaxonomyFilename(const String& filename))
+START_SECTION(void setTaxonomyFilename(const std::string& filename))
 	xml_file.setTaxonomyFilename("blubb_new_taxonomy_file");
 	TEST_STRING_EQUAL(xml_file.getTaxonomyFilename(), "blubb_new_taxonomy_file")
 END_SECTION
 
-START_SECTION(const String& getTaxonomyFilename() const)
+START_SECTION(const std::string& getTaxonomyFilename() const)
 	NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(void setDefaultParametersFilename(const String& filename))
+START_SECTION(void setDefaultParametersFilename(const std::string& filename))
 	xml_file.setDefaultParametersFilename("blubb_new_default_parameters_file");
 	TEST_STRING_EQUAL(xml_file.getDefaultParametersFilename(), "blubb_new_default_parameters_file")
 END_SECTION
 
-START_SECTION(const String& getDefaultParametersFilename() const)
+START_SECTION(const std::string& getDefaultParametersFilename() const)
 	NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(void setTaxon(const String& taxon))
+START_SECTION(void setTaxon(const std::string& taxon))
 	xml_file.setTaxon("blubb_taxon");
 	TEST_STRING_EQUAL(xml_file.getTaxon(), "blubb_taxon")
 END_SECTION
 
-START_SECTION(const String& getTaxon() const)
+START_SECTION(const std::string& getTaxon() const)
 	NOT_TESTABLE // tested above
 END_SECTION
 
@@ -192,10 +192,10 @@ START_SECTION(ErrorUnit getFragmentMassErrorUnit() const)
   NOT_TESTABLE // tested above
 END_SECTION
 
-  START_SECTION(void write(const String& filename, bool ignore_member_parameters = false, bool force_default_mods = false))
-	String filename("XTandemInfile_test.tmp");
+  START_SECTION(void write(const std::string& filename, bool ignore_member_parameters = false, bool force_default_mods = false))
+	std::string filename("XTandemInfile_test.tmp");
 	NEW_TMP_FILE(filename);
-  ModificationDefinitionsSet sets(ListUtils::create<String>("Oxidation (M),Dimethyl (N-term),Carboxymethyl (C)"), ListUtils::create<String>("Ammonium (C-term),ICDID (C)"));
+  ModificationDefinitionsSet sets(ListUtils::create<std::string>("Oxidation (M),Dimethyl (N-term),Carboxymethyl (C)"), ListUtils::create<std::string>("Ammonium (C-term),ICDID (C)"));
   xml_file.setModifications(sets);
   xml_file.setAllowIsotopeError(true);
   xml_file.setSemiCleavage(true);

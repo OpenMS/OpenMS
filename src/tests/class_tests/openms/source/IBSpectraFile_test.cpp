@@ -43,7 +43,7 @@ START_SECTION((IBSpectraFile& operator=(const IBSpectraFile& rhs)))
 }
 END_SECTION
 
-START_SECTION((void store(const String& filename, const ConsensusMap& cm)))
+START_SECTION((void store(const std::string& filename, const ConsensusMap& cm)))
 {
   // test invalid ConsensusMap
   ConsensusMap cm_no_ms2quant;

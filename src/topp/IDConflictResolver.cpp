@@ -88,9 +88,9 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");
-    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("featureXML,consensusXML,featureparquet,consensusparquet"));
     registerOutputFile_("out", "<file>", "", "Output file (data with one peptide identification per feature)");
-    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML,consensusXML,featureparquet,consensusparquet"));
     registerStringOption_("resolve_method", "<resolve_method>", "best_score",
       "Method used to select the final peptide identification from (potentially multiple) identifications of a feature.\n"
       "'best_score': Keep the single best-scoring identification per feature (default).\n"
@@ -98,23 +98,23 @@ protected:
       "Each unique sequence receives a rank in every identification in which it appears (rank 0 = best hit). "
       "Sequences absent from an identification receive a penalty rank equal to the maximum number of considered hits. "
       "The sequence with the best average rank score is selected.", false);
-    setValidStrings_("resolve_method", ListUtils::create<String>("best_score,rank_aggregation"));
+    setValidStrings_("resolve_method", ListUtils::create<std::string>("best_score,rank_aggregation"));
     registerStringOption_("resolve_between_features", "<resolve_between_features>", "off", "A map may contain multiple features with both identical (possibly modified i.e. not stripped) sequence and charge state. The feature with the 'highest intensity' is very likely the most reliable one. When switched on, the filter removes the sequence annotation from the lower intensity features, thereby resolving the multiplicity. Only the most reliable features for each (possibly modified i.e. not stripped) sequence maintain annotated with this peptide sequence.", false);
-    setValidStrings_("resolve_between_features", ListUtils::create<String>("off,highest_intensity"));
+    setValidStrings_("resolve_between_features", ListUtils::create<std::string>("off,highest_intensity"));
   }
 
   ExitCodes main_(int, const char **) override
   {
-    String in = getStringOption_("in"), out = getStringOption_("out");
-    String resolve_method = getStringOption_("resolve_method");
-    String resolve_between_features = getStringOption_("resolve_between_features");
+    std::string in = getStringOption_("in"), out = getStringOption_("out");
+    std::string resolve_method = getStringOption_("resolve_method");
+    std::string resolve_between_features = getStringOption_("resolve_between_features");
     
     FileTypes::Type in_type = FileHandler::getType(in);
     
-    if (in_type == FileTypes::FEATUREXML) // featureXML
+    if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::FEATUREPARQUET) // featureXML / featureparquet
     {
       FeatureMap features;
-      FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
+      FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
       
       if (resolve_method == "rank_aggregation")
       {
@@ -131,12 +131,12 @@ protected:
       }
       
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::FILTERING));
-      FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
+      FileHandler().storeFeatures(out, features, {in_type == FileTypes::FEATUREPARQUET ? FileTypes::FEATUREPARQUET : FileTypes::FEATUREXML});
     }
-    else // consensusXML
+    else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET) // consensusXML / consensusparquet
     {
       ConsensusMap consensus;
-      FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
+      FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
       
       if (resolve_method == "rank_aggregation")
       {
@@ -153,7 +153,7 @@ protected:
       }
       
       addDataProcessing_(consensus, getProcessingInfo_(DataProcessing::FILTERING));
-      FileHandler().storeConsensusFeatures(out, consensus, {FileTypes::CONSENSUSXML});
+      FileHandler().storeConsensusFeatures(out, consensus, {in_type == FileTypes::CONSENSUSPARQUET ? FileTypes::CONSENSUSPARQUET : FileTypes::CONSENSUSXML});
     }
     return EXECUTION_OK;
   }

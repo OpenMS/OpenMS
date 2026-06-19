@@ -67,7 +67,7 @@ END_SECTION
 
 TOLERANCE_ABSOLUTE(0.01)
 
-START_SECTION(bool load(const String& filename, OnDiscPeakMap& exp))
+START_SECTION(bool load(const std::string& filename, OnDiscPeakMap& exp))
 {
   IndexedMzMLFileLoader file;
   OnDiscPeakMap exp;
@@ -108,7 +108,7 @@ START_SECTION([EXTRA]CheckParsing)
 }
 END_SECTION
 
-START_SECTION(void store(const String& filename, OnDiscPeakMap& exp))
+START_SECTION(void store(const std::string& filename, OnDiscPeakMap& exp))
 {
   IndexedMzMLFileLoader file;
   OnDiscPeakMap exp, exp_;
@@ -143,7 +143,7 @@ START_SECTION(void store(const String& filename, OnDiscPeakMap& exp))
 }
 END_SECTION
 
-START_SECTION(void store(const String& filename, PeakMap& exp))
+START_SECTION(void store(const std::string& filename, PeakMap& exp))
 {
   IndexedMzMLFileLoader file;
   OnDiscPeakMap exp;

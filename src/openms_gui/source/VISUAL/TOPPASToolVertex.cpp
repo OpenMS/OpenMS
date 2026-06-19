@@ -35,18 +35,18 @@ namespace OpenMS
 {
   struct NameComponent
   {
-    String prefix, suffix;
+    std::string prefix, suffix;
     int counter = -1;
     NameComponent() = default;
 
-    NameComponent(const String& r_prefix, const String& r_suffix)
+    NameComponent(const std::string& r_prefix, const std::string& r_suffix)
     : prefix(r_prefix),
       suffix(r_suffix)
     {}
 
-    String toString() const
+    std::string toString() const
     {
-      return (prefix + (counter != -1 ? String("_") + String(counter).fillLeft('0', 3) : String()) + "." + suffix);
+      return (prefix + (counter != -1 ? std::string("_") + StringUtils::fillLeft(StringUtils::toStr(counter), '0', 3) : std::string()) + "." + suffix);
     }
   };
 
@@ -55,7 +55,7 @@ namespace OpenMS
   {
   }
 
-  TOPPASToolVertex::TOPPASToolVertex(const String& name, const String& type) :
+  TOPPASToolVertex::TOPPASToolVertex(const std::string& name, const std::string& type) :
     name_(name),
     type_(type)
   {
@@ -115,7 +115,7 @@ namespace OpenMS
     {
       if (!File::exists(fromQString(old_ini_file)))
       {
-        String msg = String("Could not open old INI file '") + fromQString(old_ini_file) + "'! File does not exist!";
+        std::string msg =std::string("Could not open old INI file '") + fromQString(old_ini_file) + "'! File does not exist!";
         if (getScene_() && getScene_()->isGUIMode())
         {
           QMessageBox::critical(nullptr, "Error", msg.c_str());
@@ -135,8 +135,8 @@ namespace OpenMS
     p.start(program, arguments);
     if (!p.waitForFinished(-1) || p.exitStatus() != 0 || p.exitCode() != 0)
     {
-      String msg = String("Error! Call to '") + fromQString(program) + "' '" + fromQString(arguments.join("' '")) +
-          " returned with exit code (" + String(p.exitCode()) + "), exit status (" + String(p.exitStatus()) + ")." +
+      std::string msg =std::string("Error! Call to '") + fromQString(program) + "' '" + fromQString(arguments.join("' '")) +
+          " returned with exit code (" + StringUtils::toStr(p.exitCode()) + "), exit status (" + StringUtils::toStr(p.exitStatus()) + ")." +
           "\noutput:\n" + fromQString(QString(p.readAll())) +
           "\n";
       if (getScene_() && getScene_()->isGUIMode())
@@ -152,7 +152,7 @@ namespace OpenMS
     }
     if (!File::exists(fromQString(ini_file)))
     { // it would be weird to get here, since the TOPP tool ran successfully above, so INI file should exist, but nevertheless:
-      String msg = String("Could not open '") + fromQString(ini_file) + "'! It does not exist!";
+      std::string msg =std::string("Could not open '") + fromQString(ini_file) + "'! It does not exist!";
       if (getScene_() && getScene_()->isGUIMode())
       {
         QMessageBox::critical(nullptr, "Error", msg.c_str());
@@ -182,7 +182,7 @@ namespace OpenMS
       QFile q_old_ini(old_ini_file);
       changed = q_ini.size() != q_old_ini.size();
     }
-    setToolTip(toQString(String(param_.getSectionDescription(name_))));
+    setToolTip(toQString(std::string(param_.getSectionDescription(name_))));
 
     return changed;
   }
@@ -197,7 +197,7 @@ namespace OpenMS
     // use a copy for editing
     Param edit_param(param_);
 
-    QVector<String> hidden_entries;
+    QVector<std::string> hidden_entries;
     // remove entries that are handled by edges already, user should not see them
     QVector<IOInfo> input_infos = getInputParameters();
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
@@ -208,7 +208,7 @@ namespace OpenMS
         continue;
       }
 
-      const String& name = input_infos[index].param_name;
+      const std::string& name = input_infos[index].param_name;
       if (edit_param.exists(name))
       {
         hidden_entries.push_back(name);
@@ -224,7 +224,7 @@ namespace OpenMS
         continue;
       }
 
-      const String& name = output_infos[index].param_name;
+      const std::string& name = output_infos[index].param_name;
       if (edit_param.exists(name))
       {
         hidden_entries.push_back(name);
@@ -232,14 +232,14 @@ namespace OpenMS
     }
 
     // remove entries explained by edges
-    for (const String &name : hidden_entries)
+    for (const std::string &name : hidden_entries)
     {
       edit_param.remove(name);
     }
 
     // edit_param no longer contains tool description, take it from the node tooltip
     QWidget* parent_widget = qobject_cast<QWidget*>(scene()->parent());
-    String default_dir;
+    std::string default_dir;
     TOPPASToolConfigDialog dialog(parent_widget, edit_param, default_dir, name_, type_, fromQString(toolTip()), hidden_entries);
     if (dialog.exec())
     {
@@ -284,7 +284,7 @@ namespace OpenMS
   QVector<TOPPASToolVertex::IOInfo> TOPPASToolVertex::getParameters_(bool input_params) const
   {
     QVector<IOInfo> io_infos;
-    auto add_params = [&](const String& search_tag) {
+    auto add_params = [&](const std::string& search_tag) {
       for (Param::ParamIterator it = param_.begin(); it != param_.end(); ++it)
       {
         if (! it->tags.count(search_tag)) continue; // skip irrelevant parameters
@@ -292,12 +292,12 @@ namespace OpenMS
         StringList valid_types(ListUtils::toStringList<std::string>(it->valid_strings));
         for (Size i = 0; i < valid_types.size(); ++i)
         {
-          if (! valid_types[i].hasPrefix("*."))
+          if (! StringUtils::hasPrefix(valid_types[i], "*."))
           {
             std::cerr << "Invalid restriction \"" + valid_types[i] + "\"" + " for parameter \"" + it->name + "\"!" << std::endl;
             break;
           }
-          valid_types[i] = valid_types[i].suffix(valid_types[i].size() - 2);
+          valid_types[i] = StringUtils::suffix(valid_types[i], valid_types[i].size() - 2);
         }
 
         IOInfo io_info;
@@ -437,12 +437,12 @@ namespace OpenMS
     return QRectF(-71, -61, 142, 122);
   }
 
-  String TOPPASToolVertex::getName() const
+  std::string TOPPASToolVertex::getName() const
   {
     return name_;
   }
 
-  const String& TOPPASToolVertex::getType() const
+  const std::string& TOPPASToolVertex::getType() const
   {
     return type_;
   }
@@ -476,7 +476,7 @@ namespace OpenMS
     // do not write the ini yet - we might need to alter it
 
     RoundPackages pkg;
-    String error_msg("");
+    std::string error_msg;
     bool success = buildRoundPackages(pkg, error_msg);
     if (!success)
     {
@@ -517,7 +517,7 @@ namespace OpenMS
 
     for (int round = 0; round < round_total_; ++round)
     {
-      debugOut_(String("Enqueueing process nr ") + round + "/" + round_total_);
+      debugOut_(std::string("Enqueueing process nr ") + round + "/" + round_total_);
       QStringList args = shared_args;
 
       // we might need to modify input/output file parameters before storing to INI
@@ -537,14 +537,14 @@ namespace OpenMS
           return;
         }
 
-        String param_name = in_params[param_index].param_name;
+        std::string param_name = in_params[param_index].param_name;
 
         const QStringList& file_list = ite->second.filenames.get();
 
         bool store_to_ini = false;
         // check for ETool: input/output files and put them in INI file:
         // OR if there are a lot of input files (which might exceed the 8k length limit of cmd.exe on Windows)
-        if (param_name.hasPrefix("ETool:") || file_list.size() > MAX_FILES_CMDLINE)
+        if (StringUtils::hasPrefix(param_name, "ETool:") || file_list.size() > MAX_FILES_CMDLINE)
         {
           store_to_ini = true;
           ini_round_dependent = true;
@@ -579,7 +579,7 @@ namespace OpenMS
            ++it_edge)
       {
         int param_index = it_edge->first;
-        String param_name = out_params[param_index].param_name;
+        std::string param_name = out_params[param_index].param_name;
 
         bool store_to_ini = false;
         
@@ -587,7 +587,7 @@ namespace OpenMS
         
         // check for ETool: input/output files and put them in INI file:
         // OR if there are a lot of input files (which might exceed the 8k length limit of cmd.exe on Windows)
-        if (param_name.hasPrefix("ETool:") || output_files.size() > MAX_FILES_CMDLINE)
+        if (StringUtils::hasPrefix(param_name, "ETool:") || output_files.size() > MAX_FILES_CMDLINE)
         {
           store_to_ini = true;
           ini_round_dependent = true;
@@ -646,7 +646,7 @@ namespace OpenMS
       connect(p, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(executionFinished(int, QProcess::ExitStatus)));
 
       // enqueue process
-      String msg_enqueue = String("\nEnqueue: \"") + File::getExecutablePath() + name_ + "\" \"" + fromQString(args.join("\" \"")) + "\"\n";
+      std::string msg_enqueue =std::string("\nEnqueue: \"") + File::getExecutablePath() + name_ + "\" \"" + fromQString(args.join("\" \"")) + "\"\n";
       if (round == 0)
       {
         // active if TOPPAS is run with --debug; will print to console
@@ -702,7 +702,7 @@ namespace OpenMS
     {
       //** no error ... proceed
       ++round_counter_;
-      //std::cout << (String("Increased iteration_nr_ to ") + round_counter_ + " / " + round_total_ ) << " for " << this->name_ << std::endl;
+      //std::cout << (StringUtils::toStr("Increased iteration_nr_ to ") + round_counter_ + " / " + round_total_ ) << " for " << this->name_ << std::endl;
 
       if (round_counter_ == round_total_) // all iterations performed --> proceed in pipeline
       {
@@ -726,7 +726,7 @@ namespace OpenMS
           for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
           {
             TOPPASVertex* tv = (*it)->getTargetVertex();
-            debugOut_(String("Starting child ") + tv->getTopoNr());
+            debugOut_(std::string("Starting child ") + tv->getTopoNr());
             tv->run();
           }
           debugOut_("All children started!");
@@ -744,21 +744,21 @@ namespace OpenMS
     // get all output names
     QStringList files = this->getFileNames();
 
-    std::map<String, NameComponent> name_old_to_new;
-    std::map<String, int> name_new_count, name_new_idx; // count occurrence (for optional counter infix)
+    std::map<std::string, NameComponent> name_old_to_new;
+    std::map<std::string, int> name_new_count, name_new_idx; // count occurrence (for optional counter infix)
 
     // a first round to find which filenames are not unique (and require augmentation with a counter)
 
     for (const QString& file : files)
     {
-      String sfile = fromQString(file);
+      std::string sfile = fromQString(file);
       if (File::isDirectory(sfile)) continue; // skip output directories
 
-      String new_prefix = FileHandler::stripExtension(sfile);
-      String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(sfile)); // this might replace bla.fasta with bla.FASTA ... which is the same file on Windows
+      std::string new_prefix = FileHandler::stripExtension(sfile);
+      std::string new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(sfile)); // this might replace bla.fasta with bla.FASTA ... which is the same file on Windows
       if (file.endsWith(toQString(new_suffix), Qt::CaseInsensitive)) // --> use the native suffix (to avoid deleting the source file when renaming)
       {
-        new_suffix = sfile.suffix(new_suffix.size());
+        new_suffix = StringUtils::suffix(sfile, new_suffix.size());
       }
       NameComponent nc(new_prefix, new_suffix);
       name_old_to_new[sfile] = nc;
@@ -767,7 +767,7 @@ namespace OpenMS
     // for all names which occur more than once, introduce a counter
     for (const QString& file : files)
     {
-      String sfile = fromQString(file);
+      std::string sfile = fromQString(file);
       if (name_new_count[name_old_to_new[sfile].toString()] > 1) // candidate for counter
       {
         name_old_to_new[sfile].counter = ++name_new_idx[name_old_to_new[sfile].toString()]; // start at index 1
@@ -790,8 +790,8 @@ namespace OpenMS
           }
 
           // rename file and update record
-          String old_filename = fromQString(QDir::toNativeSeparators(it->second.filenames[fi]));
-          String new_filename = fromQString(QDir::toNativeSeparators(toQString(name_old_to_new[fromQString(it->second.filenames[fi])].toString())));
+          std::string old_filename = fromQString(QDir::toNativeSeparators(it->second.filenames[fi]));
+          std::string new_filename = fromQString(QDir::toNativeSeparators(toQString(name_old_to_new[fromQString(it->second.filenames[fi])].toString())));
           if (QFileInfo(toQString(old_filename)).canonicalFilePath() == QFileInfo(toQString(new_filename)).canonicalFilePath())
           { // source and target are identical -- no action required
             continue;
@@ -834,7 +834,7 @@ namespace OpenMS
     return status_;
   }
 
-  bool TOPPASToolVertex::updateCurrentOutputFileNames(const RoundPackages& pkg, String& error_msg)
+  bool TOPPASToolVertex::updateCurrentOutputFileNames(const RoundPackages& pkg, std::string& error_msg)
   {
     const auto number_of_rounds = pkg.size();
     if (pkg.empty())
@@ -939,7 +939,7 @@ namespace OpenMS
       }
 
       // determine output file format if possible (for suffix)
-      String file_suffix;
+      std::string file_suffix;
       if (out_params[i].type == IOInfo::IOT_DIR)
       {
         file_suffix = "_dir"; // we need something non-empty
@@ -958,7 +958,7 @@ namespace OpenMS
           file_suffix = "." + out_params[i].valid_types[0];
         }
       }
-      else if (String p_out_format = out_params[i].param_name + "_type"; // expected parameter name which determines output format
+      else if (std::string p_out_format = out_params[i].param_name + "_type"; // expected parameter name which determines output format
                param_.exists(p_out_format))
       { // 'out_type' or alike is specified
         if (!param_.getValue(p_out_format).toString().empty())
@@ -968,7 +968,7 @@ namespace OpenMS
         else
         {
           OPENMS_LOG_WARN << "TOPPAS cannot determine output file format for param '" << out_params[i].param_name
-                             << "' of Node " + this->name_ + "(" + String(this->getTopoNr()) + "). Format is ambiguous. Use parameter '" + p_out_format + "' to name intermediate output correctly!\n";
+                             << "' of Node " + this->name_ + "(" + StringUtils::toStr(this->getTopoNr()) + "). Format is ambiguous. Use parameter '" + p_out_format + "' to name intermediate output correctly!\n";
         }
       }
       if (file_suffix.empty())
@@ -993,7 +993,7 @@ namespace OpenMS
                      + QDir::separator()
                      + toQString(getOutputDir()) // includes TopoNr
                      + QDir::separator()
-                     + toQString(out_params[param_index].param_name.remove(':')).left(50) // max 50 chars per subdir
+                     + toQString(StringUtils::remove(out_params[param_index].param_name, ':')).left(50) // max 50 chars per subdir
                      + QDir::separator();
 
       VertexRoundPackage vrp;
@@ -1101,9 +1101,9 @@ namespace OpenMS
           continue;
         }
         //std::cout << "PATH: " << p << "\n";
-        String tmp = fromQString(p).suffix(fromQString(QString(QDir::separator()))[0]);
+        std::string tmp = StringUtils::suffix(fromQString(p), fromQString(QString(QDir::separator()))[0]);
         //std::cout << "INTER: " << tmp << "\n";
-        if (tmp.size() <= 2 || tmp.has(':'))
+        if (tmp.size() <= 2 || StringUtils::has(tmp, ':'))
         {
           continue; // too small to be reliable; might even be 'c:'
         }
@@ -1181,21 +1181,21 @@ namespace OpenMS
     GUIHelpers::openFolder(path);
   }
 
-  String TOPPASToolVertex::getFullOutputDirectory() const
+  std::string TOPPASToolVertex::getFullOutputDirectory() const
   {
     TOPPASScene* ts = getScene_();
     return fromQString(QDir::toNativeSeparators(ts->getTempDir() + QDir::separator() + toQString(getOutputDir())));
   }
 
-  String TOPPASToolVertex::getOutputDir() const
+  std::string TOPPASToolVertex::getOutputDir() const
   {
     TOPPASScene* ts = getScene_();
-    String workflow_dir = File::stemName(ts->getSaveFileName());
+    std::string workflow_dir = File::stemName(ts->getSaveFileName());
     if (workflow_dir.empty())
     {
       workflow_dir = "Untitled_workflow";
     }
-    String dir = workflow_dir +
+    std::string dir = workflow_dir +
                  fromQString(QString(QDir::separator())) +
                  get3CharsNumber_(topo_nr_) + "_" + getName();
     if (!getType().empty())
@@ -1250,7 +1250,7 @@ namespace OpenMS
 
     if (reset_all_files)
     {
-      String remove_dir = getFullOutputDirectory();
+      std::string remove_dir = getFullOutputDirectory();
       if (File::exists(remove_dir))
       {
         File::removeDirRecursively(remove_dir);

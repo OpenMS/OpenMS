@@ -36,11 +36,11 @@ namespace OpenMS
     /// opens the folder containing the output data
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*) override;
     /// Returns the full directory (including preceding output path as selected by user and a trailing '/')
-    String getFullOutputDirectory() const;
+    std::string getFullOutputDirectory() const;
     /// Returns the directory where the output files are stored (includes a trailing '/')
-    String getOutputDir() const;
+    std::string getOutputDir() const;
     /// Creates the output directory for this node (includes a trailing '/')
-    String createOutputDir() const;
+    std::string createOutputDir() const;
     /// Sets the topological sort number and removes invalidated tmp files
     void setTopoNr(UInt nr) override;
     /// Opens the folders of the output files
@@ -53,7 +53,7 @@ namespace OpenMS
 
   signals:
     /// Emitted when an output file was written
-    void outputFileWritten(const String& file);
+    void outputFileWritten(const std::string& file);
 
     /// Emitted when user has changed the output folder name (i.e. output dir needs to be newly created and packages updates)
     void outputFolderNameChanged();

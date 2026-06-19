@@ -338,7 +338,7 @@ public:
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
         MSChromatogram& chromatogram = transition_group.getChromatograms()[k];
-        String native_id = chromatogram.getNativeID();
+        std::string native_id = chromatogram.getNativeID();
 
         // only pick detecting transitions (skip all others)
         if (transition_group.getTransitions().size() > 0 && 
@@ -624,7 +624,7 @@ public:
 
         if (compute_peak_quality_)
         {
-          String outlier = "none";
+          std::string outlier = "none";
           double qual = computeQuality_(transition_group, picked_chroms, picked_input_chromatograms,
                                         chr_idx, best_left, best_right, outlier);
           if (qual < min_qual_) 
@@ -838,7 +838,7 @@ public:
         else
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("Peak integration chromatogram ") + peak_integration_ + " is not a valid method for MRMTransitionGroupPicker");
+            std::string("Peak integration chromatogram ") + peak_integration_ + " is not a valid method for MRMTransitionGroupPicker");
         } 
 
         Feature f;
@@ -996,7 +996,7 @@ public:
         else
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("Peak integration chromatogram ") + peak_integration_ + " is not a valid method for MRMTransitionGroupPicker");
+            std::string("Peak integration chromatogram ") + peak_integration_ + " is not a valid method for MRMTransitionGroupPicker");
         }
 
         Feature f;
@@ -1186,7 +1186,7 @@ protected:
       @brief Select matching precursor or fragment ion chromatogram
     */
     template <typename SpectrumT, typename TransitionT>
-    const SpectrumT& selectChromHelper_(const MRMTransitionGroup<SpectrumT, TransitionT>& transition_group, const String& native_id)
+    const SpectrumT& selectChromHelper_(const MRMTransitionGroup<SpectrumT, TransitionT>& transition_group, const std::string& native_id)
     {
       if (transition_group.hasChromatogram(native_id))
       {
@@ -1225,7 +1225,7 @@ protected:
                            const int chr_idx,
                            const double best_left,
                            const double best_right,
-                           String& outlier)
+                           std::string& outlier)
     {
       // Resample all chromatograms around the current estimated peak and
       // collect the raw intensities. For resampling, use a bit more on either
@@ -1344,7 +1344,7 @@ protected:
       if (min_index_shape == max_index_coel)
       {
         OPENMS_LOG_DEBUG << " Element " << min_index_shape << " is a candidate for removal ... " << std::endl;
-        outlier = String(picked_chroms[min_index_shape].getNativeID());
+        outlier =std::string(picked_chroms[min_index_shape].getNativeID());
       }
       else
       {
@@ -1550,8 +1550,8 @@ protected:
     //@}
 
     // Members
-    String peak_integration_;
-    String background_subtraction_;
+    std::string peak_integration_;
+    std::string background_subtraction_;
     bool recalculate_peaks_;
     bool use_precursors_;
     bool use_consensus_;
@@ -1571,7 +1571,7 @@ protected:
 
       Valid values are: "largest", "widest"
     */
-    String boundary_selection_method_;
+    std::string boundary_selection_method_;
 
     PeakPickerChromatogram picker_;
     PeakIntegrator pi_;

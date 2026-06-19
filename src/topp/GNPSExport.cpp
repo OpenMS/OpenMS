@@ -105,7 +105,7 @@ protected:
     registerInputFile_("in_cm", "<file>", "", "Input consensusXML file containing only consensusElements with \"peptide\" annotations.");
     setValidFormats_("in_cm", {"consensusXML"});
 
-    registerInputFileList_("in_mzml", "<files>", ListUtils::create<String>(""), "Original mzml files containing the ms2 spectra (aka peptide annotation). \nMust be in order that the consensusXML file maps the original mzML files.");
+    registerInputFileList_("in_mzml", "<files>", ListUtils::create<std::string>(""), "Original mzml files containing the ms2 spectra (aka peptide annotation). \nMust be in order that the consensusXML file maps the original mzML files.");
     setValidFormats_("in_mzml", {"mzML"});
 
     registerOutputFile_("out", "<file>", "", "Output MGF file.");
@@ -131,12 +131,12 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String consensus_file_path(getStringOption_("in_cm"));
+    std::string consensus_file_path(getStringOption_("in_cm"));
     StringList mzml_file_paths = getStringList_("in_mzml");
-    String out(getStringOption_("out"));
-    String out_quantification(getStringOption_("out_quantification"));
-    String out_pairs(getStringOption_("out_pairs"));
-    String out_meta(getStringOption_("out_meta_values"));
+    std::string out(getStringOption_("out"));
+    std::string out_quantification(getStringOption_("out_quantification"));
+    std::string out_pairs(getStringOption_("out_pairs"));
+    std::string out_meta(getStringOption_("out_meta_values"));
 
     // load ConsensusMap from file
     ConsensusMap cm;

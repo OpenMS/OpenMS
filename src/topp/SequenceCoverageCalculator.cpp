@@ -52,11 +52,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in_database", "<file>", "", "input file containing the database in FASTA format");
-    setValidFormats_("in_database", ListUtils::create<String>("fasta"));
+    setValidFormats_("in_database", ListUtils::create<std::string>("fasta"));
     registerInputFile_("in_peptides", "<file>", "", "input file containing the identified peptides");
-    setValidFormats_("in_peptides", ListUtils::create<String>("idXML"), true);
+    setValidFormats_("in_peptides", ListUtils::create<std::string>("idXML"), true);
     registerOutputFile_("out", "<file>", "", "Optional text output file. If left out, the output is written to the command line.", false);
-    setValidFormats_("out", ListUtils::create<String>("idXML"), true);
+    setValidFormats_("out", ListUtils::create<std::string>("idXML"), true);
   }
 
   struct CoverageInfo
@@ -67,7 +67,7 @@ protected:
     Size unique_modified_peptidoforms {}; // unique modified peptidoforms
   };
 
-  ExitCodes outputTo_(ostream& os, String out)
+  ExitCodes outputTo_(ostream& os, std::string out)
   {
     vector<ProteinIdentification> protein_identifications;
     PeptideIdentificationList identifications;
@@ -82,13 +82,13 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String inputfile_name = getStringOption_("in_peptides");
-    String database_name = getStringOption_("in_database");
+    std::string inputfile_name = getStringOption_("in_peptides");
+    std::string database_name = getStringOption_("in_database");
 
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    String document_id;
+    std::string document_id;
     FileHandler().loadIdentifications(inputfile_name, protein_identifications, identifications, {FileTypes::IDXML});
     FASTAFile().load(database_name, proteins);
 
@@ -98,9 +98,9 @@ protected:
     mod_counts.resize(proteins.size(), 0);
 
     Size identified_spectra = 0;
-    unordered_set<String> unique_peptide_sequences_overall;
-    unordered_set<String> unique_peptidoforms_overall;
-    unordered_set<String> unique_modified_peptidoforms_overall;
+    unordered_set<std::string> unique_peptide_sequences_overall;
+    unordered_set<std::string> unique_peptidoforms_overall;
+    unordered_set<std::string> unique_modified_peptidoforms_overall;
     for (const auto& pid : identifications)
     {
       const auto& hits = pid.getHits();
@@ -129,16 +129,16 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    unordered_map<String, CoverageInfo> prot2cov;
+    unordered_map<std::string, CoverageInfo> prot2cov;
     os << "proteinID\tcoverage (%)\tunique_peptide_sequences\tunique_peptidoforms\tunique_modified_peptidoforms\n";
     for (Size j = 0; j < proteins.size(); ++j)
     {
-      const set<String> accession {proteins[j].identifier};
+      const set<std::string> accession {proteins[j].identifier};
       AASequence protein_seq = AASequence::fromString(proteins[j].sequence);
       std::vector<AASequence> peptides;
-      unordered_set<String> unique_peptide_sequences;
-      unordered_set<String> unique_peptidoforms;
-      unordered_set<String> unique_modified_peptidoforms;
+      unordered_set<std::string> unique_peptide_sequences;
+      unordered_set<std::string> unique_peptidoforms;
+      unordered_set<std::string> unique_modified_peptidoforms;
 
       for (Size i = 0; i < identifications.size(); ++i)
       {
@@ -247,7 +247,7 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     return outputTo_(getGlobalLogInfo(), out);
   }
 };

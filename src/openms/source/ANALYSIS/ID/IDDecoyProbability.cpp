@@ -45,7 +45,7 @@ namespace OpenMS
     // get the forward scores
     for (PeptideIdentification& pep : ids)
     {
-      String score_type = pep.getScoreType();
+      std::string score_type = pep.getScoreType();
       if (!pep.getHits().empty())
       {
         vector<PeptideHit> hits = pep.getHits();
@@ -97,7 +97,7 @@ namespace OpenMS
     // get the forward scores
     for (PeptideIdentification& pep : fwd_ids)
     {
-      String score_type = pep.getScoreType();
+      std::string score_type = pep.getScoreType();
       if (!pep.getHits().empty())
       {
         vector<PeptideHit> hits = pep.getHits();
@@ -191,7 +191,7 @@ namespace OpenMS
 
 #ifdef IDDECOYPROBABILITY_DEBUG
     cerr << gdf.getGnuplotFormula() << endl;
-    String rev_filename = param_.getValue("rev_filename");
+    std::string rev_filename = param_.getValue("rev_filename");
     generateDistributionImage_(rev_scores_normalized, gdf.getGnuplotFormula(), rev_filename);
 #endif
 
@@ -317,10 +317,10 @@ namespace OpenMS
 
 #ifdef IDDECOYPROBABILITY_DEBUG
     cerr << gf.getGnuplotFormula() << endl;
-    String fwd_filename = param_.getValue("fwd_filename");
+    std::string fwd_filename = param_.getValue("fwd_filename");
     if (gf.getGnuplotFormula() == "")
     {
-      String formula("f(x)=" + String(gauss_A) + " * exp(-(x - " + String(gauss_x0) + ") ** 2 / 2 / (" + String(gauss_sigma) + ") ** 2)");
+      std::string formula("f(x)=" + StringUtils::toStr(gauss_A) + " * exp(-(x - " + StringUtils::toStr(gauss_x0) + ") ** 2 / 2 / (" + StringUtils::toStr(gauss_sigma) + ") ** 2)");
       generateDistributionImage_(diff_scores, formula, fwd_filename);
     }
     else
@@ -331,12 +331,12 @@ namespace OpenMS
 
 #ifdef IDDECOYPROBABILITY_DEBUG
     //all_trafo.diff_score + all_trafo.min_score
-    String gauss_formula("f(x)=" + String(result_gauss.A / all_trafo.max_intensity) + " * exp(-(x - " + String(result_gauss.x0 * all_trafo.diff_score + all_trafo.min_score) + ") ** 2 / 2 / (" + String(result_gauss.sigma * all_trafo.diff_score)   + ") ** 2)");
+    std::string gauss_formula("f(x)=" + StringUtils::toStr(result_gauss.A / all_trafo.max_intensity) + " * exp(-(x - " + StringUtils::toStr(result_gauss.x0 * all_trafo.diff_score + all_trafo.min_score) + ") ** 2 / 2 / (" + StringUtils::toStr(result_gauss.sigma * all_trafo.diff_score)   + ") ** 2)");
 
-    String b_str(result_gamma.b), p_str(result_gamma.p);
-    String gamma_formula = "g(x)=(" + b_str + " ** " + p_str + ") / gamma(" + p_str + ") * x ** (" + p_str + " - 1) * exp(- " + b_str + " * x)";
+    std::string b_str(result_gamma.b), p_str(result_gamma.p);
+    std::string gamma_formula = "g(x)=(" + b_str + " ** " + p_str + ") / gamma(" + p_str + ") * x ** (" + p_str + " - 1) * exp(- " + b_str + " * x)";
 
-    generateDistributionImage_(all_scores_normalized, all_trafo, gauss_formula, gamma_formula, (String)param_.getValue("fwd_filename"));
+    generateDistributionImage_(all_scores_normalized, all_trafo, gauss_formula, gamma_formula, param_.getValue("fwd_filename").toString());
 #endif
 
     PeptideIdentificationList new_prob_ids;
@@ -346,7 +346,7 @@ namespace OpenMS
       if (!pep.getHits().empty())
       {
         vector<PeptideHit> hits;
-        String score_type = pep.getScoreType() + "_score";
+        std::string score_type = pep.getScoreType() + "_score";
         for (const PeptideHit& pit : pep.getHits())
         {
           PeptideHit hit = pit;
@@ -476,7 +476,7 @@ namespace OpenMS
     return rho_fwd / (rho_fwd + rho_rev);
   }
 
-  void IDDecoyProbability::generateDistributionImage_(const vector<double> & ids, const String & formula, const String & filename)
+  void IDDecoyProbability::generateDistributionImage_(const vector<double> & ids, const std::string & formula, const std::string & filename)
   {
     Size number_of_bins(param_.getValue("number_of_bins"));
 
@@ -507,7 +507,7 @@ namespace OpenMS
     return;
   }
 
-  void IDDecoyProbability::generateDistributionImage_(const vector<double> & all_ids, const Transformation_ & all_trans, const String & fwd_formula, const String & rev_formula, const String & filename)
+  void IDDecoyProbability::generateDistributionImage_(const vector<double> & all_ids, const Transformation_ & all_trans, const std::string & fwd_formula, const std::string & rev_formula, const std::string & filename)
   {
     Size number_of_bins(param_.getValue("number_of_bins"));
 

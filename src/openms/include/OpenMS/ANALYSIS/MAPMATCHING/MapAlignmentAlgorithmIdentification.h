@@ -70,7 +70,7 @@ public:
       // set these here because "checkParameters_" may not have been called yet:
       use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
       score_cutoff_ = param_.getValue("score_cutoff").toBool();
-      score_type_ = (std::string)param_.getValue("score_type");
+      score_type_ = StringUtils::toStr(param_.getValue("score_type"));
       bool sorted = getRetentionTimes_(data, rt_data);
       computeMedians_(rt_data, reference_, sorted);
 
@@ -140,10 +140,10 @@ public:
 protected:
 
     /// Type to store retention times given for individual peptide sequences
-    typedef std::map<String, DoubleList> SeqToList;
+    typedef std::map<std::string, DoubleList> SeqToList;
 
     /// Type to store one representative retention time per peptide sequence
-    typedef std::map<String, double> SeqToValue;
+    typedef std::map<std::string, double> SeqToValue;
 
     /// Index of input file to use as reference (if any)
     Int reference_index_;
@@ -167,7 +167,7 @@ protected:
     bool score_cutoff_{};
 
     /// Score type to use for filtering
-    String score_type_;
+    std::string score_type_;
 
     /// Score better?
     bool (*better_) (double, double) = [](double, double) {return true;};
@@ -244,7 +244,7 @@ protected:
         if (use_feature_rt_)
         {
           // find the peptide ID closest in RT to the feature centroid:
-          String sequence;
+          std::string sequence;
           double rt_distance = std::numeric_limits<double>::max();
           bool any_hit = false;
           for (PeptideIdentificationList::const_iterator pep_it =

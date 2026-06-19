@@ -121,7 +121,7 @@ namespace OpenMS
         std::cerr << "Trying to convert corrupted / unreadable value to std::streampos : " << s << std::endl;
         std::cerr << "This can also happen if the value exceeds 63 bits, please check your input." << std::endl;
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("Could not convert string '") + s + "' to a 64 bit integer.");
+            std::string("Could not convert string '") + s + "' to a 64 bit integer.");
       }
 
       // Check if the value can fit into std::streampos
@@ -131,14 +131,14 @@ namespace OpenMS
           << " only addresses that fit into a " << sizeof(std::streamsize)*8 <<
           " bit integer are supported on your system." << std::endl;
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("Could not convert string '") + s + "' to an integer on your system.");
+            std::string("Could not convert string '") + s + "' to an integer on your system.");
       }
 
       return res;
     }
   }
 
-  int IndexedMzMLDecoder::parseOffsets(const String& filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
+  int IndexedMzMLDecoder::parseOffsets(const std::string& filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
     std::string buffer_str;
     long long length = 0;
@@ -238,7 +238,7 @@ namespace OpenMS
     return res;
   }
 
-  std::streampos IndexedMzMLDecoder::findIndexListOffset(const String& filename, int buffersize)
+  std::streampos IndexedMzMLDecoder::findIndexListOffset(const std::string& filename, int buffersize)
   {
     // return value
     std::streampos indexoffset = -1;
@@ -427,8 +427,8 @@ namespace OpenMS
             char* x_name = xercesc::XMLString::transcode(currentElement->getAttribute(x_idref_tag));
             char* x_offset = xercesc::XMLString::transcode(currentONode->getTextContent());
 
-            std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos( String(x_offset) );
-            result.emplace_back(String(x_name), thisOffset);
+            std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos(std::string(x_offset) );
+            result.emplace_back(std::string(x_name), thisOffset);
 
             xercesc::XMLString::release(&x_name);
             xercesc::XMLString::release(&x_offset);

@@ -133,7 +133,7 @@ protected:
     /// Whether to write out log messages of the SN estimator
     bool write_sn_log_messages_;
     /// Peak picker method
-    String method_;
+    std::string method_;
 
     /// Temporary vector to hold the integrated intensities
     std::vector<double> integrated_intensities_;

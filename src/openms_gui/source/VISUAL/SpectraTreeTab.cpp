@@ -512,11 +512,11 @@ namespace OpenMS
         QString description;
         if (pc.metaValueExists("peptide_sequence"))
         {
-          description = toQString(String(pc.getMetaValue("peptide_sequence")));
+          description = toQString(StringUtils::toStr(pc.getMetaValue("peptide_sequence")));
         }
         else if (pc.metaValueExists("description"))
         {
-          description = toQString(String(pc.getMetaValue("description")));
+          description = toQString(StringUtils::toStr(pc.getMetaValue("description")));
         }
         toplevel_item->setText(ClmnChrom::DESCRIPTION, description);
         toplevel_item->setData(ClmnChrom::CHARGE, Qt::DisplayRole, pc.getCharge());
@@ -539,7 +539,7 @@ namespace OpenMS
           QString chrom_description = "ion";
           if (pc.metaValueExists("description"))
           {
-            chrom_description = toQString(String(pc.getMetaValue("description")));
+            chrom_description = toQString(StringUtils::toStr(pc.getMetaValue("description")));
           }
 
           sub_item->setText(ClmnChrom::TYPE, "Transition");

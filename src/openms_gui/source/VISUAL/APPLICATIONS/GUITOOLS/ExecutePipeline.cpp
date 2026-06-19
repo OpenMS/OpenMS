@@ -11,6 +11,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
@@ -82,7 +83,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "The workflow to be executed.");
-    setValidFormats_("in", ListUtils::create<String>("toppas"));
+    setValidFormats_("in", ListUtils::create<std::string>("toppas"));
     registerStringOption_("out_dir", "<directory>", "", "Directory for output files (default: user's home directory)", false);
     registerStringOption_("resource_file", "<file>", "", "A TOPPAS resource file (*.trf) specifying the files this workflow is to be applied to", false);
     registerIntOption_("num_jobs", "<integer>", 1, "Maximum number of jobs running in parallel", false, false);
@@ -161,7 +162,7 @@ protected:
     {
       // delete temporary files
       // safety measure: only delete if subdirectory of Temp path; we do not want to delete / or c:
-      if (fromQString(tmp_path).substitute("\\", "/").hasPrefix(File::getTempDirectory().substitute("\\", "/") + "/"))
+      if (StringUtils::hasPrefix(StringUtils::substituted(fromQString(tmp_path), "\\", "/"), StringUtils::substituted(File::getTempDirectory(), "\\", "/") + "/"))
       {
         File::removeDirRecursively(fromQString(tmp_path));
       }

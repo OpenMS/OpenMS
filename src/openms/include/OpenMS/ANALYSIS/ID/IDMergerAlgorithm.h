@@ -65,7 +65,7 @@ namespace OpenMS
      * @param[in] runIdentifier Base identifier for the merged run (default: "merged")
      * @param[in] addTimeStampToID Whether to append a timestamp to the run identifier for uniqueness (default: true)
      */
-    explicit IDMergerAlgorithm (const String& runIdentifier = "merged", bool addTimeStampToID = true);
+    explicit IDMergerAlgorithm (const std::string& runIdentifier = "merged", bool addTimeStampToID = true);
 
     /**
      * @brief Insert runs using move semantics.
@@ -102,7 +102,7 @@ namespace OpenMS
 
     //TODO add methods to just insert prots or just peps. Especially makes sense if you do re-indexing anyway,
     // then you do not need the proteins. But then we need origin information. Either externally in form of a
-    // String or StringList (like the one from ProteinID.getPrimaryMSRunPath). Or by having the file annotated
+    // std::string or StringList (like the one from ProteinID.getPrimaryMSRunPath). Or by having the file annotated
     // at the PeptideID (with getBasename maybe?)
     // Current solution would be to clear the ProteinIdentification if you do not need the proteins and add all the
     // necessary information about origin(s) to this ProteinIdentification.
@@ -136,7 +136,7 @@ namespace OpenMS
      * @param[in] addTimeStampToID Whether to append a timestamp to the identifier
      * @return The generated identifier string
      */
-    String getNewIdentifier_(bool addTimeStampToID) const;
+    std::string getNewIdentifier_(bool addTimeStampToID) const;
 
     /**
      * @brief Copy search parameters between protein identifications.
@@ -163,7 +163,7 @@ namespace OpenMS
      */
     bool checkOldRunConsistency_(
         const std::vector<ProteinIdentification>& protRuns,
-        const String& experiment_type) const;
+        const std::string& experiment_type) const;
 
     /**
      * @brief Check consistency of search engines and settings against a reference.
@@ -182,7 +182,7 @@ namespace OpenMS
     bool checkOldRunConsistency_(
         const std::vector<ProteinIdentification>& protRuns,
         const ProteinIdentification& ref,
-        const String& experiment_type) const;
+        const std::string& experiment_type) const;
 
     /**
      * @brief Insert protein identifications into the merged result.
@@ -208,7 +208,7 @@ namespace OpenMS
      */
     void updateAndMovePepIDs_(
         PeptideIdentificationList&& pepIDs,
-        const std::map<String, Size>& runID_to_runIdx,
+        const std::map<std::string, Size>& runID_to_runIdx,
         const std::vector<StringList>& originFiles,
         bool annotate_origin
     );
@@ -240,7 +240,7 @@ namespace OpenMS
      * @return Hash value for the protein hit
      */
     static size_t accessionHash_(const ProteinHit& p){
-      return std::hash<String>()(p.getAccession());
+      return std::hash<std::string>()(p.getAccession());
     }
     
     /**
@@ -267,10 +267,10 @@ namespace OpenMS
     bool filled_ = false;
 
     /// Mapping to keep track of the mzML origins of spectra
-    std::map<String, Size> file_origin_to_idx_;
+    std::map<std::string, Size> file_origin_to_idx_;
 
     /// The new identifier string for the merged run
-    String id_;
+    std::string id_;
 
     /// Flag indicating whether the identifier should be fixed (i.e., not contain a timestamp)
     bool fixed_identifier_;

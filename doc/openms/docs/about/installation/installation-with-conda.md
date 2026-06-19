@@ -4,7 +4,7 @@
 ## Install via Conda
 
 ```{warning}
-At this time, we do not provide a conda package for our GUI tools. This means if you want to install e.g., TOPPView or SwathWizard
+At this time, we do not provide a conda package for our GUI tools. This means if you want to install e.g., TOPPView
 for use in for example one of our tutorials, please refer to a different installation method below.
 ```
 

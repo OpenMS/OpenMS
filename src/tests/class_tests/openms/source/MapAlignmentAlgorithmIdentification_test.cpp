@@ -160,8 +160,8 @@ END_SECTION
 
 // START_SECTION((void computeMedians_(SeqToList&, SeqToValue&, bool)))
 // {
-// 	map<String, DoubleList> seq_to_list;
-// 	map<String, double> seq_to_value;
+// 	map<std::string, DoubleList> seq_to_list;
+// 	map<std::string, double> seq_to_value;
 // 	seq_to_list["ABC"] << -1.0 << 2.5 << 0.5 << -3.5;
 // 	seq_to_list["DEF"] << 1.5 << -2.5 << -1;
 // 	computeMedians_(seq_to_list, seq_to_value, false);

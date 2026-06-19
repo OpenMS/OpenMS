@@ -534,7 +534,7 @@ namespace OpenMS
     visualizer->load(meta);
 
     QStringList labels;
-    String name = String("MetaInfoDescription ") + meta.getName();
+    std::string name =std::string("MetaInfoDescription ") + meta.getName();
     labels << name.c_str() << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
@@ -581,7 +581,7 @@ namespace OpenMS
     PeptideHitVisualizer * visualizer = new PeptideHitVisualizer(isEditable(), this);
     visualizer->load(meta);
 
-    String name = String("Pep ") + meta.getSequence().toString() + " (" + meta.getScore() + ')';
+    std::string name =std::string("Pep ") + meta.getSequence().toString() + " (" + meta.getScore() + ')';
     QString qs_name(name.c_str());
 
     QStringList labels;
@@ -683,7 +683,7 @@ namespace OpenMS
     ProteinHitVisualizer * visualizer = new ProteinHitVisualizer(isEditable(), this);
     visualizer->load(meta);
 
-    String name = String("Prot ") + meta.getAccession() + " (" + meta.getScore() + ')';
+    std::string name =std::string("Prot ") + meta.getAccession() + " (" + meta.getScore() + ')';
     QString qs_name(name.c_str());
 
     QStringList labels;
@@ -735,7 +735,7 @@ namespace OpenMS
     visualizer->load(meta);
 
     QStringList labels;
-    labels << (String("Sample ") + meta.getName()).c_str() << QString::number(ws_->addWidget(visualizer));
+    labels << (std::string("Sample ") + meta.getName()).c_str() << QString::number(ws_->addWidget(visualizer));
     QTreeWidgetItem * item;
     if (parent == nullptr)
     {

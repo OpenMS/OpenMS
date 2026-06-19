@@ -12,6 +12,7 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -39,7 +40,7 @@ START_TEST(FileHandler, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-START_SECTION((static FileTypes::Type getTypeByFileName(const String &filename)))
+START_SECTION((static FileTypes::Type getTypeByFileName(const std::string &filename)))
 FileHandler tmp;
 TEST_EQUAL(tmp.getTypeByFileName("test.bla"), FileTypes::UNKNOWN)
 TEST_EQUAL(tmp.getTypeByFileName("test.dta"), FileTypes::DTA)
@@ -54,6 +55,8 @@ TEST_EQUAL(tmp.getTypeByFileName("test.ini"), FileTypes::INI)
 TEST_EQUAL(tmp.getTypeByFileName("test.toPPas"), FileTypes::TOPPAS)
 TEST_EQUAL(tmp.getTypeByFileName("test.TraFoXML"), FileTypes::TRANSFORMATIONXML)
 TEST_EQUAL(tmp.getTypeByFileName("test.MzML"), FileTypes::MZML)
+TEST_EQUAL(tmp.getTypeByFileName("test.imzML"), FileTypes::IMZML)
+TEST_EQUAL(tmp.getTypeByFileName(OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML")), FileTypes::IMZML)
 TEST_EQUAL(tmp.getTypeByFileName(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2")), FileTypes::MZML)
 TEST_EQUAL(tmp.getTypeByFileName(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz")), FileTypes::MZML)
 TEST_EQUAL(tmp.getTypeByFileName("test.mS2"), FileTypes::MS2)
@@ -76,9 +79,15 @@ TEST_EQUAL(tmp.getTypeByFileName("test.peff"), FileTypes::PEFF)
 TEST_EQUAL(tmp.getTypeByFileName("test.EDTA"), FileTypes::EDTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.csv"), FileTypes::CSV)
 TEST_EQUAL(tmp.getTypeByFileName("test.txt"), FileTypes::TXT)
+// Bruker TimsTOF: a ".d" directory and its zipped ".d.zip" form both resolve by name.
+// For ".d.zip" the ".zip" compression suffix is stripped, leaving ".d" -> BRUKER_TDF.
+TEST_EQUAL(tmp.getTypeByFileName("sample.d"), FileTypes::BRUKER_TDF)
+TEST_EQUAL(tmp.getTypeByFileName("sample.d.zip"), FileTypes::BRUKER_TDF)
+TEST_EQUAL(tmp.getTypeByFileName("/data/run 1.d.zip"), FileTypes::BRUKER_TDF)
+TEST_EQUAL(tmp.getTypeByFileName("plain_archive.zip"), FileTypes::UNKNOWN) // a plain .zip is not a Bruker .d
 END_SECTION
 
-START_SECTION((static bool hasValidExtension(const String& filename, const FileTypes::Type type)))
+START_SECTION((static bool hasValidExtension(const std::string& filename, const FileTypes::Type type)))
 TEST_EQUAL(FileHandler::hasValidExtension("test.bla", FileTypes::UNKNOWN), true)
 TEST_EQUAL(FileHandler::hasValidExtension("test.idXML", FileTypes::IDXML), true)
 TEST_EQUAL(FileHandler::hasValidExtension("test.consensusXML", FileTypes::CONSENSUSXML), true)
@@ -93,11 +102,12 @@ TEST_EQUAL(FileHandler::hasValidExtension("test.consensusXML", FileTypes::IDXML)
 TEST_EQUAL(FileHandler::hasValidExtension("test.idXML", FileTypes::CONSENSUSXML), false)
 END_SECTION
 
-START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
+START_SECTION((static FileTypes::Type getTypeByContent(const std::string &filename)))
   FileHandler tmp;
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData")), FileTypes::MZDATA)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML")), FileTypes::MZXML)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML")), FileTypes::MZML)
+  TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML")), FileTypes::IMZML)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2")), FileTypes::MZML)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz")), FileTypes::MZML)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid")), FileTypes::MZIDENTML)
@@ -117,7 +127,7 @@ START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
   TEST_EXCEPTION(Exception::FileNotFound, tmp.getTypeByContent("/bli/bla/bluff"))
 END_SECTION
 
-START_SECTION((static FileTypes::Type getType(const String &filename)))
+START_SECTION((static FileTypes::Type getType(const std::string &filename)))
   FileHandler tmp;
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("header_file.h")), FileTypes::UNKNOWN)
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileTypes::TXT)
@@ -127,12 +137,30 @@ START_SECTION((static FileTypes::Type getType(const String &filename)))
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("FileHandler_toppas.toppas")), FileTypes::TOPPAS)
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("pepnovo.txt")), FileTypes::TXT)
 
+  // .d.zip: a zipped Bruker TimsTOF .d directory. getType() resolves this to
+  // BRUKER_TDF for an existing, non-directory ".zip" whose name strips to ".d".
+  // SDK-free: only the name and the file's existence matter for type detection,
+  // not the archive contents.
+  {
+    std::string dzip_base;
+    NEW_TMP_FILE(dzip_base)
+    std::string dzip = dzip_base + ".d.zip";
+    { std::ofstream os(dzip.c_str()); os << "PK\003\004 placeholder (contents irrelevant for type detection)"; }
+    TEST_EQUAL(File::exists(dzip), true)
+#ifdef WITH_OPENTIMS
+    TEST_EQUAL(tmp.getType(dzip), FileTypes::BRUKER_TDF)
+#else
+    TEST_EQUAL(tmp.getType(dzip), FileTypes::UNKNOWN) // the .d family requires WITH_OPENTIMS
+#endif
+    File::remove(dzip);
+  }
+
   TEST_EXCEPTION(Exception::FileNotFound, tmp.getType("/bli/bla/bluff"))
 END_SECTION
 
 
 
-START_SECTION((static String stripExtension(const String& file)))
+START_SECTION((static std::string stripExtension(const std::string& file)))
   TEST_STRING_EQUAL(FileHandler::stripExtension(""), "")
   TEST_STRING_EQUAL(FileHandler::stripExtension(".unknown"), "")
   TEST_STRING_EQUAL(FileHandler::stripExtension(".idXML"), "")
@@ -146,7 +174,7 @@ START_SECTION((static String stripExtension(const String& file)))
   TEST_STRING_EQUAL(FileHandler::stripExtension("./filename"), "./filename")
 END_SECTION
 
-START_SECTION((static String swapExtension(const String& filename, const FileTypes::Type new_type)))
+START_SECTION((static std::string swapExtension(const std::string& filename, const FileTypes::Type new_type)))
   TEST_STRING_EQUAL(FileHandler::swapExtension("", FileTypes::UNKNOWN), ".unknown")
   TEST_STRING_EQUAL(FileHandler::swapExtension(".unknown", FileTypes::UNKNOWN), ".unknown")
   TEST_STRING_EQUAL(FileHandler::swapExtension(".idXML", FileTypes::UNKNOWN), ".unknown")
@@ -160,7 +188,7 @@ START_SECTION((static String swapExtension(const String& filename, const FileTyp
   TEST_STRING_EQUAL(FileHandler::swapExtension("./filename", FileTypes::UNKNOWN), "./filename.unknown")
 END_SECTION
 
-START_SECTION((FileTypes::Type FileHandler::getConsistentOutputfileType(const String& output_filename, const String& requested_type)))
+START_SECTION((FileTypes::Type FileHandler::getConsistentOutputfileType(const std::string& output_filename, const std::string& requested_type)))
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("", ""), FileTypes::UNKNOWN)
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("a.unknown", "weird"), FileTypes::UNKNOWN)
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("a.idXML", ""), FileTypes::IDXML)
@@ -176,7 +204,7 @@ END_SECTION
 
 
 
-START_SECTION((template < class PeakType > bool loadExperiment(const String &filename, MSExperiment< PeakType > &exp, FileTypes::Type force_type=FileTypes::UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE, const bool compute_hash=true)))
+START_SECTION((template < class PeakType > bool loadExperiment(const std::string &filename, MSExperiment< PeakType > &exp, FileTypes::Type force_type=FileTypes::UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE, const bool compute_hash=true)))
 FileHandler tmp;
 PeakMap exp;
 TEST_EXCEPTION(Exception::FileNotFound, tmp.loadExperiment("test.bla", exp))
@@ -232,7 +260,7 @@ TEST_EXCEPTION(Exception::ParseError, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PA
 
 END_SECTION
 
-START_SECTION((static String computeFileHash(const String& filename)))
+START_SECTION((static std::string computeFileHash(const std::string& filename)))
 PeakMap exp;
 FileHandler tmp;
 // Test that we load with the correct file type restriction
@@ -256,7 +284,7 @@ TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d
       std::ofstream ofs{nonascii_file, std::ios::binary};
       ofs << "hello";
     }
-    String hash = FileHandler::computeFileHash(nonascii_file.string());
+    std::string hash = FileHandler::computeFileHash(nonascii_file.string());
     TEST_EQUAL(hash.empty(), false) // must succeed, not return ""
     // Clean up
     fs::remove(nonascii_file, ec);
@@ -293,7 +321,7 @@ a.getOptions().addMSLevel(1);
 TEST_EQUAL(a.getOptions().hasMSLevels(), true);
 END_SECTION
 
-START_SECTION((template <class FeatureType> bool loadFeatures(const String &filename, FeatureMap<FeatureType>&map, FileTypes::Type force_type = FileTypes::UNKNOWN)))
+START_SECTION((template <class FeatureType> bool loadFeatures(const std::string &filename, FeatureMap<FeatureType>&map, FileTypes::Type force_type = FileTypes::UNKNOWN)))
 FileHandler tmp;
 FeatureMap map;
 TEST_EXCEPTION(Exception::FileNotFound, tmp.loadFeatures("test.bla", map))
@@ -303,13 +331,22 @@ tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"
 TEST_EQUAL(map.size(), 7);
 END_SECTION
 
-START_SECTION((void storeExperiment(const String &filename, const MSExperiment<>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))
+START_SECTION((void loadExperiment imzML is rejected by FileHandler))
+  // imzML is a mass spectrometry imaging format; FileHandler no longer loads it into a
+  // flat MSExperiment. Callers must use ImzMLFile to load it into an MSImagingExperiment.
+  FileHandler fh_imz;
+  PeakMap exp_imz;
+  const std::string imzml_path = OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML");
+  TEST_EXCEPTION(Exception::InvalidFileType, fh_imz.loadExperiment(imzml_path, exp_imz))
+END_SECTION
+
+START_SECTION((void storeExperiment(const std::string &filename, const MSExperiment<>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))
 FileHandler fh;
 PeakMap exp;
 fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
 
 //test mzML
-String filename, filename2;
+std::string filename, filename2;
 NEW_TMP_FILE_EXT(filename, ".mzML");
 fh.storeExperiment(filename, exp, {FileTypes::MZML}, ProgressLogger::NONE);
 TEST_EQUAL(fh.getTypeByContent(filename), FileTypes::MZML)
@@ -342,7 +379,7 @@ START_SECTION(([EXTRA] storeIdentifications_loadIdentifications_idparquet_round_
   pid.getHits().push_back(hit);
   pep_ids.push_back(pid);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".idparquet";
 
@@ -356,11 +393,14 @@ START_SECTION(([EXTRA] storeIdentifications_loadIdentifications_idparquet_round_
   TEST_EQUAL(pep_ids_in.size(), 1);
 
   // Verify key fields actually round-trip rather than just counting containers.
-  TEST_STRING_EQUAL(prot_ids_in[0].getIdentifier(), "run_1");
+  // Identifier is synthesized on load per IdXMLFile.cpp:530 parity; stored "run_1"
+  // becomes `<search_engine>_<date>_<UniqueIdGenerator>`. Pep_ids re-stamp in lock-step.
+  TEST_NOT_EQUAL(prot_ids_in[0].getIdentifier(), "");
+  TEST_NOT_EQUAL(prot_ids_in[0].getIdentifier(), "run_1");
   TEST_STRING_EQUAL(prot_ids_in[0].getScoreType(), "score");
   TEST_EQUAL(prot_ids_in[0].isHigherScoreBetter(), true);
 
-  TEST_STRING_EQUAL(pep_ids_in[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(pep_ids_in[0].getIdentifier(), prot_ids_in[0].getIdentifier());
   TEST_STRING_EQUAL(pep_ids_in[0].getScoreType(), "score");
   TEST_EQUAL(pep_ids_in[0].isHigherScoreBetter(), true);
   TEST_EQUAL(pep_ids_in[0].getHits().size(), 1);
@@ -405,7 +445,7 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
 
   fm.push_back(f);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".featureparquet";
 
@@ -422,13 +462,16 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
   TEST_EQUAL(fm_in[0].getCharge(), 2);
   TEST_REAL_SIMILAR(fm_in[0].getOverallQuality(), 0.9f);
 
-  // ID sidecar round-trip
+  // ID sidecar round-trip — identifier is synthesized on load (IdXMLFile.cpp:530
+  // parity); pep_ids re-stamp in lock-step.
   TEST_EQUAL(fm_in.getProteinIdentifications().size(), 1);
-  TEST_STRING_EQUAL(fm_in.getProteinIdentifications()[0].getIdentifier(), "run_1");
+  TEST_NOT_EQUAL(fm_in.getProteinIdentifications()[0].getIdentifier(), "");
+  TEST_NOT_EQUAL(fm_in.getProteinIdentifications()[0].getIdentifier(), "run_1");
   TEST_STRING_EQUAL(fm_in.getProteinIdentifications()[0].getScoreType(), "score");
   TEST_EQUAL(fm_in.getProteinIdentifications()[0].isHigherScoreBetter(), true);
   TEST_EQUAL(fm_in[0].getPeptideIdentifications().size(), 1);
-  TEST_STRING_EQUAL(fm_in[0].getPeptideIdentifications()[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(fm_in[0].getPeptideIdentifications()[0].getIdentifier(),
+                    fm_in.getProteinIdentifications()[0].getIdentifier());
   TEST_EQUAL(fm_in[0].getPeptideIdentifications()[0].getHits().size(), 1);
   const PeptideHit& h_in = fm_in[0].getPeptideIdentifications()[0].getHits()[0];
   TEST_STRING_EQUAL(h_in.getSequence().toString(), "PEPTIDE");
@@ -436,6 +479,56 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
   TEST_REAL_SIMILAR(h_in.getScore(), 0.8);
 
   File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] storeFeatures unknown extension adopts the single allowed type))
+{
+  // FileHandler::storeFeatures adopts a single allowed_type when the output
+  // filename has no informative extension (here ".unknown"): the type stays
+  // UNKNOWN from the name but allowed_types has exactly one entry, so
+  // FEATUREPARQUET is adopted and a parquet bundle is written. The
+  // .featureparquet round-trip above always detects the type from the
+  // extension, so this exercises the size-1 fallback branch instead.
+  FeatureMap fm;
+  Feature f;
+  f.setUniqueId(7);
+  f.setRT(11.5);
+  f.setMZ(222.22);
+  f.setIntensity(345.0f);
+  f.setCharge(3);
+  fm.push_back(f);
+
+  std::string dir;
+  NEW_TMP_FILE(dir)
+  dir += ".unknown"; // getTypeByFileName -> UNKNOWN
+
+  // store: the single allowed type is adopted -- otherwise storeFeatures would
+  // throw InvalidFileType for an UNKNOWN type. A featureparquet bundle is written.
+  FileHandler().storeFeatures(dir, fm, {FileTypes::FEATUREPARQUET});
+
+  // Read the bundle back via the Arrow API and confirm the feature survived the
+  // adopted-type store. (loadFeatures resolves the type via getType(), which
+  // cannot classify a directory whose name ends in ".unknown", so we read the
+  // bundle directly here.)
+  FeatureMap fm_in;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(dir, fm_in), true);
+  TEST_EQUAL(fm_in.size(), 1);
+  TEST_EQUAL(fm_in[0].getUniqueId(), 7);
+  TEST_REAL_SIMILAR(fm_in[0].getRT(), 11.5);
+  TEST_REAL_SIMILAR(fm_in[0].getMZ(), 222.22);
+  TEST_EQUAL(fm_in[0].getCharge(), 3);
+
+  File::removeDirRecursively(dir);
+
+  // negative: an UNKNOWN extension with more than one allowed type is
+  // ambiguous, so the fallback does NOT fire and the type stays UNKNOWN ->
+  // InvalidFileType (proving the adoption is specifically the size-1 case).
+  std::string dir2;
+  NEW_TMP_FILE(dir2)
+  dir2 += ".unknown";
+  TEST_EXCEPTION(Exception::InvalidFileType,
+                 FileHandler().storeFeatures(dir2, fm, {FileTypes::FEATUREPARQUET, FileTypes::FEATUREXML}));
 }
 END_SECTION
 
@@ -462,9 +555,9 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   TEST_EQUAL(cmap_ref.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 18);
   // ConsensusXMLHandler rebuilds the run identifier as "<engine>_<date>_<hash>"
   // on load — the file-level XML id="PI_0" is only an internal cross-reference.
-  TEST_EQUAL(cmap_ref.getProteinIdentifications()[0].getIdentifier().hasPrefix("OMSSA_"), true);
+  TEST_EQUAL(StringUtils::hasPrefix(cmap_ref.getProteinIdentifications()[0].getIdentifier(), "OMSSA_"), true);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".consensusparquet";
 
@@ -513,10 +606,13 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   TEST_EQUAL(handles_per_map(cmap_in) == handles_per_map(cmap_ref), true);
 
   // ---- Run references: every PeptideIdentification points to a known run ----
-  std::set<String> run_ids_ref, run_ids_in;
+  // Both lanes synthesize fresh identifiers on load (IdXMLFile.cpp:530 parity);
+  // identifier SUFFIXES differ between lanes by design, but each lane is internally
+  // consistent (no dangling pep_id->prot_id references) and the set sizes match.
+  std::set<std::string> run_ids_ref, run_ids_in;
   for (const auto& p : cmap_ref.getProteinIdentifications()) run_ids_ref.insert(p.getIdentifier());
   for (const auto& p : cmap_in.getProteinIdentifications()) run_ids_in.insert(p.getIdentifier());
-  TEST_EQUAL(run_ids_in == run_ids_ref, true);
+  TEST_EQUAL(run_ids_in.size(), run_ids_ref.size());
 
   Size dangling_ref = 0, dangling_in = 0;
   for (const auto& cf : cmap_ref)
@@ -535,7 +631,10 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   // ---- ProteinIdentification (run-level) round-trip ----
   const auto& prot_ref = cmap_ref.getProteinIdentifications()[0];
   const auto& prot_in  = cmap_in.getProteinIdentifications()[0];
-  TEST_STRING_EQUAL(prot_in.getIdentifier(), prot_ref.getIdentifier());
+  // Identifier prefix (search_engine_date) must match; the UniqueIdGenerator
+  // suffix differs between lanes by design.
+  TEST_EQUAL(StringUtils::hasPrefix(prot_in.getIdentifier(), "OMSSA_"), true);
+  TEST_EQUAL(StringUtils::hasPrefix(prot_ref.getIdentifier(), "OMSSA_"), true);
   TEST_STRING_EQUAL(prot_in.getSearchEngine(), prot_ref.getSearchEngine());
   TEST_STRING_EQUAL(prot_in.getSearchEngineVersion(), prot_ref.getSearchEngineVersion());
   TEST_STRING_EQUAL(prot_in.getScoreType(), prot_ref.getScoreType());
@@ -551,7 +650,7 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
 
   // ProteinHit accession set must round-trip exactly.
   auto accessions = [](const ProteinIdentification& p) {
-    std::set<String> acc;
+    std::set<std::string> acc;
     for (const auto& h : p.getHits()) acc.insert(h.getAccession());
     return acc;
   };
@@ -561,9 +660,9 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   // Compare as a set of (probability, sorted-accession-list) tuples so group
   // ordering doesn't matter.
   auto group_signature = [](const std::vector<ProteinIdentification::ProteinGroup>& gs) {
-    std::set<std::pair<double, std::vector<String>>> sig;
+    std::set<std::pair<double, std::vector<std::string>>> sig;
     for (const auto& g : gs) {
-      std::vector<String> accs(g.accessions.begin(), g.accessions.end());
+      std::vector<std::string> accs(g.accessions.begin(), g.accessions.end());
       std::sort(accs.begin(), accs.end());
       sig.emplace(g.probability, std::move(accs));
     }
@@ -595,9 +694,12 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   TEST_EQUAL(hist_ref.size(), 5);    // values 0..4 (one per spectra_data entry)
 
   // ---- PSM hit content fidelity (sequence/charge/score) ----
-  // Build (run_id, id_merge_index, RT, MZ, sequence, charge, score) tuples for
-  // unassigned PSMs (best hit only). RT/MZ make the tuple stable across order.
-  using PSMSig = std::tuple<String, int, double, double, String, int, double>;
+  // Build (id_merge_index, RT, MZ, sequence, charge, score) tuples for unassigned
+  // PSMs (best hit only). RT/MZ make the tuple stable across order. The pid
+  // identifier is omitted because both lanes synthesize independently on load
+  // (IdXMLFile.cpp:530 parity); each lane is internally consistent (dangling
+  // checks above prove that) but the UniqueIdGenerator suffixes differ.
+  using PSMSig = std::tuple<int, double, double, std::string, int, double>;
   auto psm_sigs = [](const auto& pids) {
     std::vector<PSMSig> sigs;
     for (const auto& pid : pids) {
@@ -605,7 +707,7 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
       const auto& h = pid.getHits()[0];
       int mi = pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)
                ? (int)pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX) : -1;
-      sigs.emplace_back(pid.getIdentifier(), mi, pid.getRT(), pid.getMZ(),
+      sigs.emplace_back(mi, pid.getRT(), pid.getMZ(),
                         h.getSequence().toString(), h.getCharge(), h.getScore());
     }
     std::sort(sigs.begin(), sigs.end());
@@ -659,7 +761,7 @@ START_SECTION(([EXTRA] storeConsensusFeatures_loadConsensusFeatures_consensuspar
 
   cmap.push_back(cf);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".consensusparquet";
 
@@ -676,13 +778,16 @@ START_SECTION(([EXTRA] storeConsensusFeatures_loadConsensusFeatures_consensuspar
   TEST_EQUAL(cmap_in[0].getCharge(), 3);
   TEST_REAL_SIMILAR(cmap_in[0].getQuality(), 0.8f);
 
-  // ID sidecar round-trip
+  // ID sidecar round-trip — identifier is synthesized on load (IdXMLFile.cpp:530
+  // parity); pep_ids re-stamp in lock-step.
   TEST_EQUAL(cmap_in.getProteinIdentifications().size(), 1);
-  TEST_STRING_EQUAL(cmap_in.getProteinIdentifications()[0].getIdentifier(), "run_1");
+  TEST_NOT_EQUAL(cmap_in.getProteinIdentifications()[0].getIdentifier(), "");
+  TEST_NOT_EQUAL(cmap_in.getProteinIdentifications()[0].getIdentifier(), "run_1");
   TEST_STRING_EQUAL(cmap_in.getProteinIdentifications()[0].getScoreType(), "score");
   TEST_EQUAL(cmap_in.getProteinIdentifications()[0].isHigherScoreBetter(), true);
   TEST_EQUAL(cmap_in[0].getPeptideIdentifications().size(), 1);
-  TEST_STRING_EQUAL(cmap_in[0].getPeptideIdentifications()[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(cmap_in[0].getPeptideIdentifications()[0].getIdentifier(),
+                    cmap_in.getProteinIdentifications()[0].getIdentifier());
   TEST_EQUAL(cmap_in[0].getPeptideIdentifications()[0].getHits().size(), 1);
   const PeptideHit& h_in = cmap_in[0].getPeptideIdentifications()[0].getHits()[0];
   TEST_STRING_EQUAL(h_in.getSequence().toString(), "PEPTIDE");

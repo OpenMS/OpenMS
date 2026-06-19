@@ -25,7 +25,6 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -95,6 +94,9 @@ namespace OpenMS
     defaults_.setValue("fragment:mass_tolerance_unit", "ppm", "Unit of fragment m");
     defaults_.setValidStrings("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
 
+    defaults_.setValue("fragment:deisotope", "auto", "MS2 deisotoping (single-charge deconvolution) before searching. 'auto' deisotopes only when the fragment tolerance is within the high-resolution deisotoper range (<= 0.1 Da / <= 100 ppm) and skips it for low-resolution (e.g. ion-trap CID) data; 'true' always deisotopes (requires a high-resolution fragment tolerance); 'false' never deisotopes.");
+    defaults_.setValidStrings("fragment:deisotope", {"auto", "true", "false"});
+
 
     defaults_.setValue("fragment:min_mz", 150, "Minimal fragment mz for database");
     defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");
@@ -103,7 +105,7 @@ namespace OpenMS
 
     defaults_.setSectionDescription("fragment", "Fragments (Product Ion) Options");
 
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
 
     defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
@@ -113,7 +115,7 @@ namespace OpenMS
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
     defaults_.setSectionDescription("modifications", "Modifications Options");
 
-    vector<String> all_enzymes;
+    vector<std::string> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
 
     defaults_.setValue("enzyme", "Trypsin", "The enzyme used for peptide digestion.");
@@ -260,8 +262,33 @@ namespace OpenMS
 
     fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
 
+    // Resolve the MS2 deisotoping mode (fragment:deisotope = auto|true|false) ONCE.
+    // The Deisotoper supports a fragment tolerance <= 100 ppm / <= 0.1 Da and throws
+    // otherwise; consult its non-throwing predicate so the limit lives in one place
+    // (OpenMS#9619). 'false' never deisotopes; 'true'/'auto' deisotope only when the
+    // tolerance is supported -- 'true' fails fast here with a clear parameter error
+    // rather than aborting later inside preprocessSpectra_'s OpenMP region, while
+    // 'auto' silently skips deisotoping for low-resolution data.
+    const std::string deisotope_mode = param_.getValue("fragment:deisotope").toString();
+    const bool deisotope_supported =
+      Deisotoper::isToleranceSupported(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ == "ppm");
+    deisotope_requested_ = (deisotope_mode != "false");
+    if (deisotope_mode == "true" && !deisotope_supported)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "fragment:deisotope=true requires a high-resolution fragment tolerance (<= 0.1 Da or <= 100 ppm). "
+        "Use 'auto' (deisotopes only for high-resolution data) or 'false' for low-resolution data.");
+    }
+    if (deisotope_mode == "auto" && !deisotope_supported)
+    {
+      OPENMS_LOG_WARN << "[ProSE] Fragment tolerance " << fragment_mass_tolerance_
+                      << (fragment_mass_tolerance_unit_ == "ppm" ? " ppm" : " Da")
+                      << " exceeds the deisotoping limit (100 ppm / 0.1 Da); skipping MS2 "
+                      << "deisotoping (expected for low-resolution data)." << endl;
+    }
+
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
-    set<String> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
+    set<std::string> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
     if (fixed_unique.size() != modifications_fixed_.size())
     {
       OPENMS_LOG_WARN << "Duplicate fixed modification provided. Making them unique." << endl;
@@ -269,7 +296,7 @@ namespace OpenMS
     }    
 
     modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
-    set<String> var_unique(modifications_variable_.begin(), modifications_variable_.end());
+    set<std::string> var_unique(modifications_variable_.begin(), modifications_variable_.end());
     if (var_unique.size() != modifications_variable_.size())
     {
       OPENMS_LOG_WARN << "Duplicate variable modification provided. Making them unique." << endl;
@@ -312,7 +339,7 @@ namespace OpenMS
   }
 
   // static
-  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
+  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -335,19 +362,30 @@ namespace OpenMS
 
     NLargest nlargest_filter = NLargest(400);
 
-#pragma omp parallel for default(none) shared(exp, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
+    // Deisotope only when requested (param fragment:deisotope, resolved in
+    // updateMembers_) AND the tolerance is in the Deisotoper's supported range.
+    // The range guard keeps the Deisotoper call below from ever throwing, so no
+    // exception can escape the OpenMP region (OpenMS#9619). Mode resolution and the
+    // low-resolution warning are handled once, in updateMembers_.
+    const bool do_deisotope = deisotope_requested &&
+      Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+
+#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       // sort by mz
       exp[exp_index].sortByPosition();
 
-      // deisotope
-      Deisotoper::deisotopeAndSingleCharge(exp[exp_index], 
-        fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
-        1, 3,   // min / max charge 
-        false,  // keep only deisotoped
-        3, 10,  // min / max isopeaks 
-        true);  // convert fragment m/z to mono-charge
+      // deisotope (skipped for low-resolution data; see do_deisotope above)
+      if (do_deisotope)
+      {
+        Deisotoper::deisotopeAndSingleCharge(exp[exp_index],
+          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
+          1, 3,   // min / max charge
+          false,  // keep only deisotoped
+          3, 10,  // min / max isopeaks
+          true);  // convert fragment m/z to mono-charge
+      }
 
       // remove noise
       window_mower_filter.filterPeakSpectrum(exp[exp_index]);
@@ -371,12 +409,12 @@ namespace OpenMS
         Int peptide_missed_cleavages,
         double precursor_mass_tolerance,
         double fragment_mass_tolerance,
-        const String& precursor_mass_tolerance_unit_ppm,
-        const String& fragment_mass_tolerance_unit_ppm,
+        const std::string& precursor_mass_tolerance_unit_ppm,
+        const std::string& fragment_mass_tolerance_unit_ppm,
         const Int precursor_min_charge,
         const Int precursor_max_charge,
-        const String& enzyme,
-        const String& database_name) const
+        const std::string& enzyme,
+        const std::string& database_name) const
   {
     // remove all but top n scoring; compute delta_score (best - second-best)
     // before truncation so it's available even when top_hits=1. Delta is stored
@@ -589,7 +627,7 @@ namespace OpenMS
 
               if (annotation_longest_ion_run && ion_names[theo_idx].size() >= 2)
               {
-                const String& name = ion_names[theo_idx];
+                const std::string& name = ion_names[theo_idx];
                 const char c = name[0];
                 const bool is_prefix = (c == 'a' || c == 'b' || c == 'c');
                 const bool is_suffix = (c == 'x' || c == 'y' || c == 'z');
@@ -600,7 +638,7 @@ namespace OpenMS
                   while (pos < name.size() && name[pos] >= '0' && name[pos] <= '9') ++pos;
                   if (pos > 1)
                   {
-                    int ordinal = String(name.substr(1, pos - 1)).toInt();
+                    int ordinal = StringUtils::toInt32(StringUtils::substr(name, 1, pos - 1));
                     (is_prefix ? prefix_ordinals : suffix_ordinals).push_back(ordinal);
                   }
                 }
@@ -697,13 +735,13 @@ namespace OpenMS
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
 
     DateTime now = DateTime::now();
-    String identifier("ProSE_" + now.get());
+    std::string identifier("ProSE_" + now.get());
     protein_ids[0].setIdentifier(identifier);
     for (auto & pid : peptide_ids) { pid.setIdentifier(identifier); }
 
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.db = database_name;
-    search_parameters.charges = String(precursor_min_charge) + ":" + String(precursor_max_charge);
+    search_parameters.charges =StringUtils::toStr(precursor_min_charge) + ":" + StringUtils::toStr(precursor_max_charge);
 
     ProteinIdentification::PeakMassType mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     search_parameters.mass_type = mass_type;
@@ -868,7 +906,7 @@ namespace OpenMS
       bool fragment_mass_tolerance_unit_ppm,
       bool open_search_mode,
       std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
-      const String& progress_label) const
+      const std::string& progress_label) const
   {
     startProgress(0, spectra.size(), progress_label);
     size_t count_spectra{};
@@ -1064,7 +1102,7 @@ namespace OpenMS
 
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
     bool open_search_mode = isOpenSearchMode_();
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
+    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_);
 
     // Effective tolerances — may be narrowed by calibration below. Kept asymmetric
     // (lower / upper separately) so the FragmentIndex query can exploit the full
@@ -1163,7 +1201,7 @@ namespace OpenMS
       scoreSpectraAgainstIndex_(spectra, chunk_fi, chunk_db, spectrum_generator,
                                 effective_fragment_tol, fragment_mass_tolerance_unit_ppm,
                                 open_search_mode, annotated_hits,
-                                String("Scoring chunk ") + String(chunk_idx) + "...");
+                                "Scoring chunk " + StringUtils::toStr(chunk_idx) + "...");
 
       // Prune to top-N per spectrum after each chunk to bound memory growth.
       // Without this, K chunks × T candidates per spectrum could accumulate
@@ -1253,7 +1291,7 @@ namespace OpenMS
     //    method also does PSM FDR only; the multi-file wrapper and file-based
     //    searchWithModificationAnalysis apply protein FDR post-call).
     bool has_decoys = std::any_of(full_db.begin(), full_db.end(),
-        [this](const FASTAFile::FASTAEntry& e) { return e.identifier.hasPrefix(decoy_prefix_); });
+        [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
 
     if (fdr_psm_ > 0.0 && has_decoys)
     {
@@ -1303,7 +1341,7 @@ namespace OpenMS
                     << precursor_mass_tolerance_unit_ << ")" << std::endl;
 
     startProgress(0, 1, "Filtering spectra...");
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
+    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_);
     endProgress();
 
     // Reference the prepared (decoy-augmented) database and prebuilt fragment index from the context.
@@ -1527,7 +1565,7 @@ namespace OpenMS
     // Decoys may be generated internally (decoys_=true) or present in the
     // input FASTA (external, identified by decoy_prefix_).
     bool has_decoys = std::any_of(db.begin(), db.end(),
-        [this](const FASTAFile::FASTAEntry& e) { return e.identifier.hasPrefix(decoy_prefix_); });
+        [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
 
     if (fdr_psm_ > 0.0 && has_decoys)
     {
@@ -1560,7 +1598,7 @@ namespace OpenMS
   // File-based search: thin I/O wrapper that delegates to in-memory search
   // =====================================================================
   ProSEAlgorithm::ExitCodes ProSEAlgorithm::search(
-      const String& in_spectra, const String& in_db,
+      const std::string& in_spectra, const std::string& in_db,
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
@@ -1571,7 +1609,7 @@ namespace OpenMS
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
     spectra.sortSpectra(true);
 
     // load FASTA
@@ -1590,7 +1628,7 @@ namespace OpenMS
     // Must run before decoy removal so both target and decoy proteins
     // receive aggregated scores from BPIA.
     bool has_decoys_single = std::any_of(fasta_db.begin(), fasta_db.end(),
-        [this](const FASTAFile::FASTAEntry& e) { return e.identifier.hasPrefix(decoy_prefix_); });
+        [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
     if (fdr_protein_ > 0.0 && (decoys_ || has_decoys_single))
     {
       BasicProteinInferenceAlgorithm bpia;
@@ -1620,7 +1658,7 @@ namespace OpenMS
   ProSEAlgorithm::searchWithModificationAnalysis(
       PeakMap& spectra,
       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
-      const String& output_base_name) const
+      const std::string& output_base_name) const
   {
     SearchResult result;
     result.is_open_search = isOpenSearchMode_();
@@ -1638,7 +1676,7 @@ namespace OpenMS
 
       OpenSearchModificationAnalysis mod_analyzer;
 
-      String output_file = "";
+      std::string output_file;
       if (!output_base_name.empty())
       {
         output_file = output_base_name + "_ModificationAnalysis.idXML";
@@ -1676,16 +1714,16 @@ namespace OpenMS
   // =====================================================================
   ProSEAlgorithm::MultiFileSearchResult
   ProSEAlgorithm::searchWithModificationAnalysis(
-      const std::vector<String>& in_spectra_files,
+      const std::vector<std::string>& in_spectra_files,
       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
-      const std::vector<String>& output_base_names,
-      const String& aggregate_base_name) const
+      const std::vector<std::string>& output_base_names,
+      const std::string& aggregate_base_name) const
   {
     if (!output_base_names.empty() && output_base_names.size() != in_spectra_files.size())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "output_base_names must be empty or have exactly one entry per spectrum file (got "
-        + String(output_base_names.size()) + " entries for " + String(in_spectra_files.size())
+        + StringUtils::toStr(output_base_names.size()) + " entries for " + StringUtils::toStr(in_spectra_files.size())
         + " spectrum files).");
     }
 
@@ -1736,9 +1774,9 @@ namespace OpenMS
         options.clearMSLevels();
         options.addMSLevel(2);
         f.getOptions() = options;
-        f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF});
+        f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         all_spectra[i].sortSpectra(true);
-        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
+        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_);
       }
 
       // Per-file calibration: build a strided calibration FI once, run calibration per file.
@@ -1881,7 +1919,7 @@ namespace OpenMS
                                     spectrum_generator, per_file_cal[i].effective_fragment_tol,
                                     fragment_mass_tolerance_unit_ppm, open_search_mode,
                                     per_file_hits[i],
-                                    String("  file ") + String(i + 1) + " chunk " + String(chunk_idx));
+                                    "  file " + StringUtils::toStr(i + 1) + " chunk " + StringUtils::toStr(chunk_idx));
         }
         // Restore base FI params for next chunk (in case calibration modified them).
         if (calibration_enabled_ && !open_search_mode)
@@ -1911,8 +1949,8 @@ namespace OpenMS
 
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
-        const String& in_spectra = in_spectra_files[i];
-        const String per_file_base = (i < output_base_names.size()) ? output_base_names[i] : String("");
+        const std::string& in_spectra = in_spectra_files[i];
+        const std::string per_file_base = (i < output_base_names.size()) ? output_base_names[i] : std::string("");
         last_mod_match_tolerance_used_ = per_file_cal[i].mod_match_tol;
 
         SearchResult result;
@@ -1957,7 +1995,7 @@ namespace OpenMS
 
         // PSM-level FDR only (matching non-chunked search semantics).
         bool has_decoys = std::any_of(full_db.begin(), full_db.end(),
-            [this](const FASTAFile::FASTAEntry& e) { return e.identifier.hasPrefix(decoy_prefix_); });
+            [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
         if (fdr_psm_ > 0.0 && has_decoys)
         {
           FalseDiscoveryRate fdr;
@@ -1982,7 +2020,7 @@ namespace OpenMS
         if (result.is_open_search)
         {
           OpenSearchModificationAnalysis mod_analyzer;
-          String output_file = per_file_base.empty() ? "" : per_file_base + "_ModificationAnalysis.idXML";
+          std::string output_file = per_file_base.empty() ? "" : per_file_base + "_ModificationAnalysis.idXML";
           result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
             result.peptide_ids, per_file_cal[i].mod_match_tol,
             precursor_mass_tolerance_unit_ == "ppm", false, output_file);
@@ -2018,8 +2056,8 @@ namespace OpenMS
 
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
-        const String& in_spectra = in_spectra_files[i];
-        const String per_file_base = (i < output_base_names.size()) ? output_base_names[i] : String("");
+        const std::string& in_spectra = in_spectra_files[i];
+        const std::string per_file_base = (i < output_base_names.size()) ? output_base_names[i] : std::string("");
 
         OPENMS_LOG_INFO << "[ProSE] [" << (i + 1) << "/" << in_spectra_files.size()
                         << "] Searching " << in_spectra << std::endl;
@@ -2031,7 +2069,7 @@ namespace OpenMS
           options.clearMSLevels();
           options.addMSLevel(2);
           f.getOptions() = options;
-          f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+          f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         }
         spectra.sortSpectra(true);
 
@@ -2054,7 +2092,7 @@ namespace OpenMS
         {
           OPENMS_LOG_INFO << "[ProSE] Running detailed modification analysis for " << in_spectra << std::endl;
           OpenSearchModificationAnalysis mod_analyzer;
-          String output_file = per_file_base.empty() ? "" : per_file_base + "_ModificationAnalysis.idXML";
+          std::string output_file = per_file_base.empty() ? "" : per_file_base + "_ModificationAnalysis.idXML";
           result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
             result.peptide_ids, last_mod_match_tolerance_used_,
             precursor_mass_tolerance_unit_ == "ppm", false, output_file);
@@ -2134,7 +2172,7 @@ namespace OpenMS
                       << in_spectra_files.size() << " input file(s)." << std::endl;
 
       OpenSearchModificationAnalysis mod_analyzer;
-      String agg_output_file = "";
+      std::string agg_output_file;
       if (!aggregate_base_name.empty())
       {
         agg_output_file = aggregate_base_name + "_ModificationAnalysis.idXML";
@@ -2163,10 +2201,10 @@ namespace OpenMS
   // =====================================================================
   ProSEAlgorithm::MultiFileSearchResult
   ProSEAlgorithm::searchWithModificationAnalysis(
-      const std::vector<String>& in_spectra_files,
-      const String& in_db,
-      const std::vector<String>& output_base_names,
-      const String& aggregate_base_name) const
+      const std::vector<std::string>& in_spectra_files,
+      const std::string& in_db,
+      const std::vector<std::string>& output_base_names,
+      const std::string& aggregate_base_name) const
   {
     // load FASTA once
     vector<FASTAFile::FASTAEntry> fasta_db;
@@ -2196,12 +2234,12 @@ namespace OpenMS
   // the multi-file overload using a single-element list.
   // =====================================================================
   ProSEAlgorithm::SearchResult
-  ProSEAlgorithm::searchWithModificationAnalysis(const String& in_spectra,
-                                                                  const String& in_db,
-                                                                  const String& output_base_name) const
+  ProSEAlgorithm::searchWithModificationAnalysis(const std::string& in_spectra,
+                                                                  const std::string& in_db,
+                                                                  const std::string& output_base_name) const
   {
-    std::vector<String> in_files{in_spectra};
-    std::vector<String> base_names;
+    std::vector<std::string> in_files{in_spectra};
+    std::vector<std::string> base_names;
     if (!output_base_name.empty()) { base_names.push_back(output_base_name); }
 
     MultiFileSearchResult mfres = searchWithModificationAnalysis(in_files, in_db, base_names, "");
@@ -2229,8 +2267,8 @@ namespace OpenMS
                                  [](const MSSpectrum& s) { return s.getMSLevel() == 2; });
     Size num_identified = peptide_ids.size();
 
-    set<String> unique_peptides;
-    set<String> unique_proteins;
+    set<std::string> unique_peptides;
+    set<std::string> unique_proteins;
 
     // Collect per-PSM error values for tolerance estimation (top-ranked hits only)
     vector<double> precursor_errors;
@@ -2572,7 +2610,7 @@ namespace OpenMS
   // =====================================================================
   void ProSEAlgorithm::logModificationAnalysisSummary_(
       const SearchResult& result,
-      const String& output_base_name) const
+      const std::string& output_base_name) const
   {
     OPENMS_LOG_INFO << "[ProSE] ============================================" << std::endl;
     OPENMS_LOG_INFO << "[ProSE] MODIFICATION DISCOVERY SUMMARY" << std::endl;
@@ -2606,8 +2644,8 @@ namespace OpenMS
       for (const auto& ptm : ptm_stats.entries)
       {
         if (rank > 15) break;
-        String name = ptm.name;
-        if (name.size() > 30) name = name.substr(0, 27) + "...";
+        std::string name = ptm.name;
+        if (name.size() > 30) name = StringUtils::substr(name, 0, 27) + "...";
 
         std::ostringstream oss;
         oss << "  " << std::setw(4) << rank++ << " | "

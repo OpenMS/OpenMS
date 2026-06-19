@@ -106,7 +106,7 @@ namespace OpenMS
     FeatureMap& operator=(const FeatureMap& rhs);
 
     /// Move assignment
-    //FeatureMap& FeatureMap::operator=(FeatureMap&&);
+    FeatureMap& operator=(FeatureMap&& rhs);
 
     /// Destructor
     ~FeatureMap() override;
@@ -182,10 +182,10 @@ namespace OpenMS
     void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
 
     /// finds a protein identification by its identifier (returns nullptr if not found)
-    const ProteinIdentification* findProteinIdentification(const String& identifier) const;
+    const ProteinIdentification* findProteinIdentification(const std::string& identifier) const;
 
     /// finds a protein identification by its identifier (returns nullptr if not found)
-    ProteinIdentification* findProteinIdentification(const String& identifier);
+    ProteinIdentification* findProteinIdentification(const std::string& identifier);
 
     /// non-mutable access to the unassigned peptide identifications
     const PeptideIdentificationList& getUnassignedPeptideIdentifications() const;

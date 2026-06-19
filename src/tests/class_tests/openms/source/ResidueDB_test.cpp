@@ -24,9 +24,9 @@ START_TEST(ResidueDB, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-ResidueDB* ptr = nullptr;
-ResidueDB* nullPointer = nullptr;
-START_SECTION(ResidueDB* getInstance())
+const ResidueDB* ptr = nullptr;
+const ResidueDB* nullPointer = nullptr;
+START_SECTION(static const ResidueDB* getInstance())
 	ptr = ResidueDB::getInstance();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
@@ -35,7 +35,7 @@ START_SECTION(virtual ~ResidueDB())
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((const Residue* getResidue(const String& name) const))
+START_SECTION((const Residue* getResidue(const std::string& name) const))
   TEST_EQUAL(ptr->getResidue("C")->getOneLetterCode(), "C")
 END_SECTION
 
@@ -43,7 +43,7 @@ START_SECTION((const Residue* getResidue(const unsigned char& one_letter_code) c
   TEST_EQUAL(ptr->getResidue('C')->getOneLetterCode(), "C")
 END_SECTION
 
-START_SECTION((bool hasResidue(const String& name) const))
+START_SECTION((bool hasResidue(const std::string& name) const))
   TEST_EQUAL(ptr->hasResidue("BLUBB"), false)
 	TEST_EQUAL(ptr->hasResidue("Lys"), true)
 	TEST_EQUAL(ptr->hasResidue("K"), true)
@@ -59,16 +59,20 @@ START_SECTION(Size getNumberOfResidues() const)
 	TEST_EQUAL(ptr->getNumberOfResidues() >= 20 , true);
 END_SECTION
 
-START_SECTION(const Residue* getModifiedResidue(const String& name))
+START_SECTION(const Residue* getModifiedResidue(const String& name) const)
 	const Residue* mod_res = ptr->getModifiedResidue("Oxidation (M)"); // ox methionine
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
 	TEST_STRING_EQUAL(mod_res->getModificationName(), "Oxidation")
+	// logical-const memoization: repeated lookups return the same cached pointer
+	TEST_EQUAL(ptr->getModifiedResidue("Oxidation (M)"), mod_res)
 END_SECTION
 
-START_SECTION(const Residue* getModifiedResidue(const Residue* residue, const String& name))
+START_SECTION(const Residue* getModifiedResidue(const Residue* residue, const String& name) const)
 	const Residue* mod_res = ptr->getModifiedResidue(ptr->getResidue("M"), "Oxidation (M)");
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
 	TEST_STRING_EQUAL(mod_res->getModificationName(), "Oxidation")
+	// logical-const memoization: repeated lookups return the same cached pointer
+	TEST_EQUAL(ptr->getModifiedResidue(ptr->getResidue("M"), "Oxidation (M)"), mod_res)
 
 	const Residue* nterm_mod_res = ptr->getModifiedResidue(ptr->getResidue("C"), "Pyro-carbamidomethyl (N-term C)"); // <umod:specificity hidden="0" site="C" position="Any N-term"
 	TEST_STRING_EQUAL(nterm_mod_res->getOneLetterCode(), "C")
@@ -87,7 +91,7 @@ START_SECTION(const Residue* getModifiedResidue(const Residue* residue, const St
 	TEST_STRING_EQUAL(prot_nterm_mod_res->getModificationName(), "Deamidated")
 END_SECTION
 
-START_SECTION((const std::set<const Residue*> getResidues(const String& residue_set="All") const))
+START_SECTION((const std::set<const Residue*> getResidues(const std::string& residue_set="All") const))
 	set<const Residue*> residues = ptr->getResidues("All");
 	TEST_EQUAL(residues.size() >= 21, true)
 	residues = ptr->getResidues("Natural20");
@@ -96,8 +100,8 @@ START_SECTION((const std::set<const Residue*> getResidues(const String& residue_
 	TEST_EQUAL(residues.size(), 19)
 END_SECTION
 
-START_SECTION((const std::set<String>& getResidueSets() const))
-	set<String> res_sets = ResidueDB::getInstance()->getResidueSets();
+START_SECTION((const std::set<std::string>& getResidueSets() const))
+	set<std::string> res_sets = ResidueDB::getInstance()->getResidueSets();
 	TEST_EQUAL(res_sets.find("All") != res_sets.end(), true)
 	TEST_EQUAL(res_sets.find("Natural20") != res_sets.end(), true)
 	TEST_EQUAL(res_sets.find("Natural19WithoutL") != res_sets.end(), true)
@@ -105,7 +109,7 @@ START_SECTION((const std::set<String>& getResidueSets() const))
 END_SECTION
 
 
-START_SECTION(void setResidues(const String& filename))
+START_SECTION(void setResidues(const std::string& filename))
 	NOT_TESTABLE // this method is hard to test, just provided for convenience
 END_SECTION
 

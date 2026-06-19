@@ -55,26 +55,13 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # Vendored, namespace-isolated Percolator subtree.
-include(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/percolator/sources.cmake)
-list(APPEND OpenMS_sources ${OpenMS_percolator_sources})
-
-# Suppress upstream-originated warnings on vendored files only.
-# GCC/Clang use -Wno-*; MSVC needs /wd<code> with the corresponding warning
-# numbers and chokes on the -Wno-* spellings (D8021).
-if (MSVC)
-  # /wd4100 + /wd4189 explicitly defeat the project-wide /we4100 + /we4189
-  # ("unused parameter" and "unused-but-initialized local variable" elevated
-  # to errors) on the vendored upstream code, which has plenty of both.
-  set_source_files_properties(${OpenMS_percolator_sources}
-    PROPERTIES
-      COMPILE_FLAGS "/wd4018 /wd4100 /wd4189 /wd4244 /wd4267 /wd4996 /wd4458")
-else()
-  set_source_files_properties(${OpenMS_percolator_sources}
-    PROPERTIES
-      COMPILE_FLAGS "-Wno-sign-compare -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unused-variable -Wno-overloaded-virtual -Wno-reorder -Wno-reorder-ctor -Wno-uninitialized -Wno-ignored-qualifiers -Wno-unused-but-set-variable")
-  set_source_files_properties(${OpenMS_percolator_sources}
-    PROPERTIES COMPILE_OPTIONS "-fvisibility=hidden")
-endif()
+# Built as a standalone static library (OpenMS_Percolator) with its OWN compile
+# flags and linked PRIVATE into libOpenMS below. Keeping it a separate target
+# isolates the vendored upstream code from the OpenMS target's treat-warning-as-
+# error flags (/we4100, /we4189, -Werror) — folding the sources into libOpenMS
+# made a clean build depend on the (generator-specific) flag ordering — and
+# keeps the upstream sources out of the OpenMS target's file list in IDEs.
+add_subdirectory(thirdparty/percolator)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
@@ -106,6 +93,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   nlohmann_json::nlohmann_json
   IsoSpec
   eol-bspline
+  OpenMS_Percolator
   )
 
 # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
@@ -125,6 +113,10 @@ endif()
 
 if (WITH_S3)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${AWSSDK_LINK_LIBRARIES})
+endif()
+
+if (WITH_THERMO_RAW)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES OpenMSThermoBridge::openms_thermo_bridge)
 endif()
 
 if (ENABLE_TDL)
@@ -165,9 +157,10 @@ openms_add_library(TARGET_NAME  OpenMS
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
 
-# Vendored percolator headers are resolved via #include "X.h" (no subdir) —
-# add the dir PRIVATE so it's visible only to libOpenMS's own TUs.
-target_include_directories(OpenMS PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/percolator)
+# The vendored percolator headers (#include "X.h", no subdir) are used only by
+# libOpenMS's Percolator pimpl TU. Their directory is made visible via the
+# PUBLIC include dir propagated from the linked OpenMS_Percolator target (see
+# thirdparty/percolator/CMakeLists.txt), so no explicit include dir is needed.
 
 if (OPENMS_ARROW_DATASET_TARGET)
   target_compile_definitions(OpenMS PRIVATE WITH_ARROW_DATASET)
@@ -203,6 +196,15 @@ endif()
 
 if (WITH_S3)
     target_compile_definitions(OpenMS PUBLIC WITH_S3)
+endif()
+
+if (WITH_THERMO_RAW)
+    target_compile_definitions(OpenMS PUBLIC WITH_THERMO_RAW=1)
+    # Copy the thermo bridge managed runtime files (.dll + .runtimeconfig.json)
+    # to the OpenMS library output directory so they can be found at runtime.
+    if (COMMAND openms_thermo_bridge_copy_runtime_files)
+      openms_thermo_bridge_copy_runtime_files(TARGET OpenMS)
+    endif()
 endif()
 
 if(WITH_WNETALIGN)

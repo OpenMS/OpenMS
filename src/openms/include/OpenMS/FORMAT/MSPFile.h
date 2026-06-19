@@ -59,7 +59,7 @@ public:
         @throw ParseError is thrown if the given file could not be parsed
         @throw ElementNotFound is thrown if a annotated modification cannot be found in ModificationsDB (PSI-MOD definitions)
     */
-    void load(const String & filename, PeptideIdentificationList & ids, PeakMap & exp);
+    void load(const std::string & filename, PeptideIdentificationList & ids, PeakMap & exp);
 
     /**
         @brief Loads a map from a MSPFile file.
@@ -71,19 +71,19 @@ public:
         @throw ParseError is thrown if the given file could not be parsed
         @throw ElementNotFound is thrown if a annotated modification cannot be found in ModificationsDB (PSI-MOD definitions)
     */
-    void load(const String & filename, AnnotatedMSRun & annot_exp);
+    void load(const std::string & filename, AnnotatedMSRun & annot_exp);
 
     /**
         @brief Stores a map in a MSPFile file.
 
         @throw UnableToCreateFile is thrown if the given file could not be created
     */
-    void store(const String & filename, const AnnotatedMSRun & exp) const;
+    void store(const std::string & filename, const AnnotatedMSRun & exp) const;
 
 protected:
 
     /// reads the header information and stores it as metainfo in the spectrum
-    void parseHeader_(const String & header, PeakSpectrum & spec);
+    void parseHeader_(const std::string & header, PeakSpectrum & spec);
   };
 
 } // namespace OpenMS

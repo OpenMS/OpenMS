@@ -46,7 +46,7 @@ namespace OpenMS
     // Check if a string is a native ID
     if (SpectrumNativeIDParser::isNativeID(spectrum_id))
     {
-      String regex = SpectrumNativeIDParser::getRegExFromNativeID(spectrum_id);
+      std::string regex = SpectrumNativeIDParser::getRegExFromNativeID(spectrum_id);
       // use regex for further processing...
     }
     @endcode
@@ -58,7 +58,7 @@ namespace OpenMS
   public:
 
     /// Default regular expression for extracting scan numbers from spectrum native IDs
-    static const String& default_scan_regexp;
+    static const std::string& default_scan_regexp;
 
     /// Possible formats of spectrum references, defined as regular expressions
     std::vector<boost::regex> reference_formats;
@@ -90,7 +90,7 @@ namespace OpenMS
     */
     template <typename SpectrumContainer>
     void readSpectra(const SpectrumContainer& spectra,
-                     const String& scan_regexp = default_scan_regexp)
+                     const std::string& scan_regexp = default_scan_regexp)
     {
       rts_.clear();
       ids_.clear();
@@ -100,7 +100,7 @@ namespace OpenMS
       for (Size i = 0; i < n_spectra_; ++i)
       {
         const MSSpectrum& spectrum = spectra[i];
-        const String& native_id = spectrum.getNativeID();
+        const std::string& native_id = spectrum.getNativeID();
         Int scan_no = -1;
         if (!scan_regexp.empty())
         {
@@ -136,7 +136,7 @@ namespace OpenMS
 
        @return Index of the spectrum that matched
     */
-    Size findByNativeID(const String& native_id) const;
+    Size findByNativeID(const std::string& native_id) const;
     
     /**
        @brief Look up spectrum by index (position in the vector of spectra).
@@ -173,7 +173,7 @@ namespace OpenMS
 
        The regular expressions in SpectrumLookup::reference_formats are matched against the spectrum reference in order. The first one that matches is used to look up the spectrum.
     */
-    Size findByReference(const String& spectrum_ref) const;
+    Size findByReference(const std::string& spectrum_ref) const;
 
     /**
        @brief Register a possible format for a spectrum reference
@@ -184,7 +184,7 @@ namespace OpenMS
 
        The regular expression defining the reference format must contain one or more of the recognized named groups defined in SpectrumLookup::regexp_names_.
     */
-    void addReferenceFormat(const String& regexp);
+    void addReferenceFormat(const std::string& regexp);
 
     /**
        @brief Extract the scan number from the native ID of a spectrum
@@ -200,7 +200,7 @@ namespace OpenMS
        @deprecated Use SpectrumNativeIDParser::extractScanNumber() instead for better discoverability.
        @see SpectrumNativeIDParser::extractScanNumber()
     */
-    static Int extractScanNumber(const String& native_id,
+    static Int extractScanNumber(const std::string& native_id,
                                  const boost::regex& scan_regexp,
                                  bool no_error = false);
 
@@ -215,8 +215,8 @@ namespace OpenMS
        @deprecated Use SpectrumNativeIDParser::extractScanNumber() instead for better discoverability.
        @see SpectrumNativeIDParser::extractScanNumber()
     */
-    static Int extractScanNumber(const String& native_id,
-                                 const String& native_id_type_accession);
+    static Int extractScanNumber(const std::string& native_id,
+                                 const std::string& native_id_type_accession);
 
    /**
        @brief Determine the RegEx string to extract scan/index number from native IDs. Can be used for extractScanNumber
@@ -228,7 +228,7 @@ namespace OpenMS
        @deprecated Use SpectrumNativeIDParser::getRegExFromNativeID() instead for better discoverability.
        @see SpectrumNativeIDParser::getRegExFromNativeID()
    */
-    static std::string getRegExFromNativeID(const String& native_id);
+    static std::string getRegExFromNativeID(const std::string& native_id);
 
     /**
        @brief Simple prefix check if a spectrum identifier @p id is a nativeID from a vendor file.
@@ -240,21 +240,21 @@ namespace OpenMS
        @deprecated Use SpectrumNativeIDParser::isNativeID() instead for better discoverability.
        @see SpectrumNativeIDParser::isNativeID()
     */
-    static bool isNativeID(const String& id);
+    static bool isNativeID(const std::string& id);
 
   protected:
 
     /// Named groups recognized in regular expression
-    static const String& regexp_names_;
+    static const std::string& regexp_names_;
 
     Size n_spectra_; ///< Number of spectra
 
     boost::regex scan_regexp_; ///< Regular expression to extract scan numbers
 
-    std::vector<String> regexp_name_list_; ///< Named groups in vector format
+    std::vector<std::string> regexp_name_list_; ///< Named groups in vector format
 
     std::map<double, Size> rts_; ///< Mapping: RT -> spectrum index
-    std::map<String, Size> ids_; ///< Mapping: native ID -> spectrum index
+    std::map<std::string, Size> ids_; ///< Mapping: native ID -> spectrum index
     std::map<Size, Size> scans_; ///< Mapping: scan number -> spectrum index
 
     /**
@@ -266,7 +266,7 @@ namespace OpenMS
        @param[in] native_id Native ID
     */
     void addEntry_(Size index, double rt, Int scan_number,
-                   const String& native_id);
+                   const std::string& native_id);
 
     /**
        @brief Look up spectrum by regular expression match
@@ -279,7 +279,7 @@ namespace OpenMS
 
        @return Index of the spectrum that matched
     */
-    Size findByRegExpMatch_(const String& spectrum_ref, const String& regexp,
+    Size findByRegExpMatch_(const std::string& spectrum_ref, const std::string& regexp,
                             const boost::smatch& match) const;
 
     /**
@@ -287,7 +287,7 @@ namespace OpenMS
 
        @param[in] scan_regexp Regular expression to use (must contain the named group "?<SCAN>")
     */
-    void setScanRegExp_(const String& scan_regexp);
+    void setScanRegExp_(const std::string& scan_regexp);
 
   private:
 

@@ -63,7 +63,7 @@ namespace OpenMS
       for (Size k = 0; k < transition_group.size(); k++)
       {
         // get the id, then find the corresponding transition and features within this peakgroup
-        String native_id = transition_group.getChromatograms()[k].getNativeID();
+        std::string native_id = transition_group.getChromatograms()[k].getNativeID();
         Feature f = mrmfeature.getFeature(native_id);
         OPENMS_PRECONDITION(f.getConvexHulls().size() == 1, "Convex hulls need to have exactly one hull point structure");
 

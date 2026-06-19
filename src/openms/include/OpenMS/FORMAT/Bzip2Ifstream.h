@@ -14,68 +14,105 @@
 
 namespace OpenMS
 {
-/**
-    @brief Decompresses files which are compressed in the bzip2 format (*.bz2)
-*/
+  /**
+    @brief Streaming decompressor for bzip2 (@c .bz2) files.
+
+    Reads raw bytes out of a bzip2-compressed file on demand. The class
+    owns one underlying @c FILE handle and one bzip2 read handle; both are
+    released by @ref close (also called from the destructor). Copy and
+    assignment are deliberately suppressed.
+
+    Typical lifecycle: construct (or call @ref open) with the path of a
+    @c .bz2 file, repeatedly call @ref read until it returns fewer bytes
+    than requested (at which point the stream is closed automatically,
+    @ref isOpen returns @c false and @ref streamEnd returns @c true).
+
+    @ingroup FileIO
+  */
   class OPENMS_DLLAPI Bzip2Ifstream
   {
 public:
-    ///Default Constructor
+    /// Default constructor; leaves the instance in a closed state (@ref isOpen returns @c false, @ref streamEnd returns @c true).
     Bzip2Ifstream();
-    /// Detailed constructor with filename
+
+    /**
+      @brief Construct and open @p filename for reading in one step.
+
+      @param[in] filename Path of the bzip2-compressed file to open
+                          (binary mode is used so the contents are not
+                          translated on Windows).
+
+      @throws Exception::FileNotFound    when @p filename does not exist.
+      @throws Exception::FileNotReadable when @p filename exists but cannot be read.
+      @throws Exception::IOException     when opening the file fails for any other reason.
+      @throws Exception::ConversionError when initialising the bzip2 reader on the opened file fails.
+    */
     explicit Bzip2Ifstream(const char * filename);
-    ///Destructor
+
+    /// Destructor; closes the bzip2 reader and the underlying file handle.
     virtual ~Bzip2Ifstream();
 
     /**
-      * @brief Reads n bytes from the bzip2 compressed file into buffer s
-      *
-      * @param[out] s Buffer to be filled with the output
-      * @param[in] n The size of the buffer s
-      * @return The number of actually read bytes. If it is less than n, the end of the file was reached and the stream is closed
-      *
-      * @note This returns a raw byte stream that is *not* null-terminated. Be careful here.
-      * @note The length of the buffer needs to at least n
-      * @note Closes the stream if the end of file is reached. Check isOpen before reading from the file again
-      *
-      * @exception Exception::ConversionError is thrown if decompression fails
-      * @exception Exception::IllegalArgument is thrown if no file for decompression is given. This can happen even happen if a file was already open but read until the end.
+      @brief Read up to @p n decompressed bytes into @p s.
+
+      Returns the actual number of bytes written into @p s. A return value
+      smaller than @p n indicates that the end of the compressed stream was
+      reached during this call; the stream is then closed automatically
+      (@ref isOpen becomes @c false and @ref streamEnd becomes @c true).
+
+      @param[out] s Buffer that receives the decompressed bytes; must be at
+                    least @p n bytes long.
+      @param[in]  n Number of bytes to attempt to read.
+      @return Number of decompressed bytes actually written into @p s.
+
+      @note The output is a raw byte stream and is @b not null-terminated.
+      @note When the return value is less than @p n the stream has been
+            closed; check @ref isOpen before issuing further reads.
+
+      @throws Exception::ParseError       when bzip2 reports a decompression failure mid-stream.
+      @throws Exception::IllegalArgument  when called on an instance that has no open file (default-constructed, or already closed -- including after the previous call read to end of file).
     */
     size_t read(char * s, size_t n);
 
     /**
-      * @brief indicates whether the read function can be used safely
-      *
-      * @return true if end of file was reached. Otherwise false.
+      @brief Whether the stream has been closed (end of file reached or no file opened).
+
+      @return @c true if no further @ref read calls should be issued, @c false otherwise.
     */
     bool streamEnd() const;
 
     /**
-      * @brief returns whether a file is open.
+      @brief Whether a file is currently open for reading.
+
+      @return @c true if a file is open, @c false otherwise.
     */
     bool isOpen() const;
 
     /**
-      * @brief opens a file for reading (decompression)
-      * @note any previous open files will be closed first!
+      @brief Open @p filename for reading; closes the currently open file first.
+
+      @param[in] filename Path of the bzip2-compressed file to open.
+
+      @throws Exception::FileNotFound    when @p filename does not exist.
+      @throws Exception::FileNotReadable when @p filename exists but cannot be read.
+      @throws Exception::IOException     when opening the file fails for any other reason.
+      @throws Exception::ConversionError when initialising the bzip2 reader on the opened file fails.
     */
     void open(const char * filename);
 
-    /**
-      * @brief closes current file.
-    */
+    /// Close the currently open file (no-op if none is open). After the call, @ref isOpen returns @c false and @ref streamEnd returns @c true.
     void close();
 
 protected:
-    /// pointer to a FILE object. Necessary for opening the file
+    /// Underlying @c FILE handle used to feed the bzip2 reader; @c nullptr when no file is open.
     FILE * file_;
-    /// a pointer to a BZFILE object. Necessary for decompression
+    /// bzip2 read handle attached to @ref file_; @c nullptr when no file is open.
     BZFILE * bzip2file_;
-    ///counts the last read buffer
+    /// Number of bytes produced by the most recent @ref read call.
     size_t     n_buffer_;
-    ///saves the last returned error by the read function
+    /// Most recent bzip2 status code returned to the read API.
     int     bzerror_;
-    ///true if end of file is reached
+    /// @c true once the stream has been closed (either explicitly via @ref close or implicitly because the end of the compressed file was reached).
     bool stream_at_end_;
 
     //not implemented

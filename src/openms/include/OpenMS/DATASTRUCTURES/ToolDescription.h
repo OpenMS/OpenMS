@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/OpenMSConfig.h>
@@ -26,8 +26,8 @@ namespace OpenMS
     */
     struct FileMapping
     {
-      String location; ///< a regex/macro mix; to be expanded by tool;
-      String target; ///< TOPP parameter that determines the desired name
+      std::string location; ///< a regex/macro mix; to be expanded by tool;
+      std::string target; ///< TOPP parameter that determines the desired name
       // thus: move location -> target
 
       /// Default constructor
@@ -46,7 +46,7 @@ namespace OpenMS
     */
     struct MappingParam
     {
-      std::map<Int, String> mapping;
+      std::map<Int, std::string> mapping;
       std::vector<FileMapping> pre_moves;
       std::vector<FileMapping> post_moves;
 
@@ -70,18 +70,18 @@ namespace OpenMS
     struct OPENMS_DLLAPI ToolDescriptionInternal
     {
       bool is_internal = false;
-      String name;
-      String category;
+      std::string name;
+      std::string category;
       StringList types; ///< -types of the tool
 
       /// default C'Tor
       ToolDescriptionInternal() = default;
 
       /// C'Tor with arguments
-      ToolDescriptionInternal(const bool p_is_internal, const String& p_name, const String& p_category, const StringList& p_types);
+      ToolDescriptionInternal(const bool p_is_internal, const std::string& p_name, const std::string& p_category, const StringList& p_types);
 
       /// short C'Tor
-      ToolDescriptionInternal(const String& p_name, const StringList& p_types);
+      ToolDescriptionInternal(const std::string& p_name, const StringList& p_types);
 
       /// Copy assignment
       ToolDescriptionInternal& operator=(const ToolDescriptionInternal& rhs) = default;
@@ -93,13 +93,13 @@ namespace OpenMS
 
     struct OPENMS_DLLAPI ToolExternalDetails
     {
-      String text_startup;
-      String text_fail;
-      String text_finish;
-      String category;
-      String commandline;
-      String path; ///< filename to external tool
-      String working_directory; ///< folder where the command will be executed from
+      std::string text_startup;
+      std::string text_fail;
+      std::string text_finish;
+      std::string category;
+      std::string commandline;
+      std::string path; ///< filename to external tool
+      std::string working_directory; ///< folder where the command will be executed from
       MappingParam tr_table;
       Param param;
     };
@@ -120,7 +120,7 @@ namespace OpenMS
       ToolDescription(const ToolDescription& other) = default;
 
       /// C'Tor for internal TOPP tools
-      ToolDescription(const String& p_name, const String& p_category, const StringList& p_types = StringList());
+      ToolDescription(const std::string& p_name, const std::string& p_category, const StringList& p_types = StringList());
 
       /// Copy assignment
       ToolDescription& operator=(const ToolDescription& rhs) = default;

@@ -41,7 +41,7 @@ namespace // anonymous
   /// Try to extract a scan number from a native ID string.
   /// Uses SpectrumNativeIDParser to auto-detect the native ID format.
   /// Returns -1 on failure.
-  Int extractScan(const String& native_id)
+  Int extractScan(const std::string& native_id)
   {
     std::string regex_str = SpectrumNativeIDParser::getRegExFromNativeID(native_id);
     if (regex_str.empty())
@@ -212,7 +212,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: run_identifier_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Build file name lookup from ProteinIdentification primary MS run paths
-  std::map<String, String> id_to_filename;
+  std::map<std::string, std::string> id_to_filename;
   for (const auto& prot_id : protein_identifications)
   {
     StringList ms_runs;
@@ -309,7 +309,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
               acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
             }
             std::string pos_str = std::string(residue.getOneLetterCode()) + "." + std::to_string(pos + 1);
-            if (mod_map.find(name) == mod_map.end())
+            if (!mod_map.contains(name))
             {
               mod_map[name] = {acc_str, {}};
             }
@@ -328,7 +328,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
             acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
           }
           std::string pos_str = "C-term." + std::to_string(seq.size() + 1);
-          if (mod_map.find(name) == mod_map.end())
+          if (!mod_map.contains(name))
           {
             mod_map[name] = {acc_str, {}};
           }
@@ -381,7 +381,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       if (hit.metaValueExists("target_decoy"))
       {
         std::string td = hit.getMetaValue("target_decoy").toString();
-        (void)is_decoy_builder.Append(td.substr(0, 5) == "decoy");
+        (void)is_decoy_builder.Append(StringUtils::substr(td, 0, 5) == "decoy");
       }
       else
       {
@@ -414,11 +414,11 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       // === additional_scores from hit metavalues ===
       (void)additional_scores_builder.Append();
       {
-        std::vector<String> keys;
+        std::vector<std::string> keys;
         hit.getKeys(keys);
         for (const auto& key : keys)
         {
-          if (excluded_hit_mvs_psm.count(key)) continue;
+          if (excluded_hit_mvs_psm.contains(key)) continue;
           const DataValue& val = hit.getMetaValue(key);
           if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
               && Scores::isKnownScoreType(key))
@@ -564,11 +564,11 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       // === psm_metavalues ===
       (void)psm_metavalues_builder.Append();
       {
-        std::vector<String> keys;
+        std::vector<std::string> keys;
         hit.getKeys(keys);
         for (const auto& key : keys)
         {
-          if (excluded_hit_mvs_psm.count(key)) continue;
+          if (excluded_hit_mvs_psm.contains(key)) continue;
           const DataValue& val = hit.getMetaValue(key);
           // Skip known scores (already in additional_scores)
           if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
@@ -596,7 +596,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       // === spectrum_metavalues ===
       (void)spectrum_metavalues_builder.Append();
       {
-        std::vector<String> keys;
+        std::vector<std::string> keys;
         pep_id.getKeys(keys);
         for (const auto& key : keys)
         {
@@ -889,7 +889,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: missed_cleavages_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Build file name lookup from ProteinIdentification primary MS run paths
-  std::map<String, String> id_to_filename;
+  std::map<std::string, std::string> id_to_filename;
   for (const auto& prot_id : protein_identifications)
   {
     StringList ms_runs;
@@ -981,7 +981,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
             {
               acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
             }
-            if (mod_map.find(name) == mod_map.end())
+            if (!mod_map.contains(name))
             {
               mod_map[name] = {acc_str, {}};
             }
@@ -999,7 +999,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
           {
             acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
           }
-          if (mod_map.find(name) == mod_map.end())
+          if (!mod_map.contains(name))
           {
             mod_map[name] = {acc_str, {}};
           }
@@ -1060,7 +1060,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
       if (hit.metaValueExists("target_decoy"))
       {
         std::string td = hit.getMetaValue("target_decoy").toString();
-        (void)is_decoy_builder.Append(td.substr(0, 5) == "decoy");
+        (void)is_decoy_builder.Append(StringUtils::substr(td, 0, 5) == "decoy");
       }
       else
       {
@@ -1094,11 +1094,11 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
       // === additional_scores from hit metavalues ===
       (void)additional_scores_builder.Append();
       {
-        std::vector<String> keys;
+        std::vector<std::string> keys;
         hit.getKeys(keys);
         for (const auto& key : keys)
         {
-          if (excluded_hit_mvs.count(key)) continue;
+          if (excluded_hit_mvs.contains(key)) continue;
           const DataValue& val = hit.getMetaValue(key);
           if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
               && Scores::isKnownScoreType(key))
@@ -1377,7 +1377,7 @@ namespace
 bool QPXFile::exportToParquet(
   const std::vector<ProteinIdentification>& protein_identifications,
   const PeptideIdentificationList& peptide_identifications,
-  const String& filename,
+  const std::string& filename,
   bool export_all_psms,
   const ParquetWriteConfig& config)
 {
@@ -1392,7 +1392,7 @@ bool QPXFile::exportToParquet(
 
 bool QPXFile::exportToParquet(
   const std::shared_ptr<arrow::Table>& table,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   if (!table)
@@ -1541,7 +1541,7 @@ bool QPXFile::importFromArrow(
     bool sequence_set = false;
     if (col_peptidoform && !ArrowIOHelpers::isNull(col_peptidoform, row))
     {
-      const String peptidoform_str = ArrowIOHelpers::getStringValue(col_peptidoform, row);
+      const std::string peptidoform_str = ArrowIOHelpers::getStringValue(col_peptidoform, row);
       if (!peptidoform_str.empty())
       {
         try
@@ -1622,7 +1622,7 @@ bool QPXFile::importFromArrow(
     }
     if (col_ref_file && !ArrowIOHelpers::isNull(col_ref_file, row))
     {
-      const String ref_file = ArrowIOHelpers::getStringValue(col_ref_file, row);
+      const std::string ref_file = ArrowIOHelpers::getStringValue(col_ref_file, row);
       hit.setMetaValue("reference_file_name", ref_file);
       if (!ref_file.empty())
       {

@@ -111,7 +111,7 @@ namespace OpenMS
     //-----------------------------------------------------------------------
     if (exp_spectrum.empty() || theo_spectrum.empty())
     {
-      OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty."
+      OPENMS_LOG_WARN << "The spectrum with RT: " + StringUtils::toStr(exp_spectrum.getRT()) + " is empty."
                       << "\n";
       return;
     }
@@ -308,9 +308,9 @@ namespace OpenMS
     results_.push_back(result);
   }
 
-  const String& FragmentMassError::getName() const
+  const std::string& FragmentMassError::getName() const
   {
-    static const String& name = "FragmentMassError";
+    static const std::string& name = "FragmentMassError";
     return name;
   }
 

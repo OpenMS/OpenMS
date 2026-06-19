@@ -79,13 +79,13 @@ class TOPPCorrelateMasstraces
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in_ms1","<file>","","MS1 mass traces");
-    setValidFormats_("in_ms1",ListUtils::create<String>("consensusXML"));
+    setValidFormats_("in_ms1",ListUtils::create<std::string>("consensusXML"));
 
     registerInputFile_("in_swath","<file>","","MS2 / SWATH mass traces");
-    setValidFormats_("in_swath",ListUtils::create<String>("consensusXML"));
+    setValidFormats_("in_swath",ListUtils::create<std::string>("consensusXML"));
 
     registerOutputFile_("out","<file>","","output file");
-    setValidFormats_("out",ListUtils::create<String>("mzML"));
+    setValidFormats_("out",ListUtils::create<std::string>("mzML"));
 
     // registerFlag_("ms1_centric","MS1 centric - find MS1 features first and then add MS2s (MSE like)");
     registerFlag_("assign_unassigned_to_all","Assign unassigned MS2 fragments to all precursors (only for ms1_centrif)");
@@ -105,9 +105,9 @@ class TOPPCorrelateMasstraces
   {
     setLogType(log_type_); 
 
-    String ms1 = getStringOption_("in_ms1");
-    String in_swath =  getStringOption_("in_swath");
-    String out = getStringOption_("out");
+    std::string ms1 = getStringOption_("in_ms1");
+    std::string in_swath =  getStringOption_("in_swath");
+    std::string out = getStringOption_("out");
 
     // bool ms1_centric = getFlag_("ms1_centric");
 

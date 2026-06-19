@@ -107,7 +107,7 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   // 6 ion types with 3 charges each are expected
   TEST_EQUAL(spec.size(), 30)
 
-  set<String> ion_names;
+  set<std::string> ion_names;
   ion_names.insert("[alpha|ci$b1]");
   ion_names.insert("[alpha|ci$b2]");
   ion_names.insert("[alpha|ci$b2-H2O1]");
@@ -126,7 +126,7 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   // check if all ion names have been annotated
   for (Size i = 0; i != spec.size(); ++i)
   {
-    String name = string_array[i];
+    std::string name = string_array[i];
     TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
   }
 
@@ -151,7 +151,7 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
 
   for (Size i = 0; i != spec.size(); ++i)
   {
-    String name = string_array[i];
+    std::string name = string_array[i];
     TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
   }
 
@@ -339,7 +339,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   // + KLinked ions and precursors
   TEST_EQUAL(spec.size(), 75)
 
-  set<String> ion_names;
+  set<std::string> ion_names;
   ion_names.insert("[alpha|xi$b4]");
   ion_names.insert("[alpha|xi$b5]");
   ion_names.insert("[alpha|xi$b6]");
@@ -367,7 +367,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   // check if all ion names have been annotated
   for (Size i = 0; i != spec.size(); ++i)
   {
-    String name = string_array[i];
+    std::string name = string_array[i];
     TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
   }
 
@@ -401,7 +401,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
 
   for (Size i = 0; i != spec.size(); ++i)
   {
-    String name = string_array[i];
+    std::string name = string_array[i];
     TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
   }
 
@@ -629,7 +629,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   // + KLinked ions and precursors
   TEST_EQUAL(spec.size(), 79)
 
-  set<String> ion_names;
+  set<std::string> ion_names;
   ion_names.insert("[alpha|xi$b4]");
   ion_names.insert("[alpha|xi$b5]");
   ion_names.insert("[alpha|xi$b6]");
@@ -658,7 +658,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   // check if all ion names have been annotated
   for (Size i = 0; i != spec.size(); ++i)
   {
-    String name = string_array[i];
+    std::string name = string_array[i];
     // TEST_EQUAL(name, "TESTSTRING")
     TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
   }
@@ -697,7 +697,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
 
   for (Size i = 0; i != spec.size(); ++i)
   {
-    String name = string_array[i];
+    std::string name = string_array[i];
     // TEST_EQUAL(name, "TESTSTRING")
     TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
   }

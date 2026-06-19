@@ -60,15 +60,15 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file containing RNA sequences");
-    setValidFormats_("in", ListUtils::create<String>("fasta"));
+    setValidFormats_("in", ListUtils::create<std::string>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output file containing sequence fragments");
-    setValidFormats_("out", ListUtils::create<String>("fasta"));
+    setValidFormats_("out", ListUtils::create<std::string>("fasta"));
 
     registerIntOption_("missed_cleavages", "<number>", 1, "The number of allowed missed cleavages", false);
     setMinInt_("missed_cleavages", 0);
     registerIntOption_("min_length", "<number>", 3, "Minimum length of a fragment", false);
     registerIntOption_("max_length", "<number>", 30, "Maximum length of a fragment", false);
-    vector<String> all_enzymes;
+    vector<std::string> all_enzymes;
     RNaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("enzyme", "<string>", "RNase_T1", "Digestion enzyme (RNase)", false);
     setValidStrings_("enzyme", all_enzymes);
@@ -81,8 +81,8 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
 
     Size min_size = getIntOption_("min_length");
     Size max_size = getIntOption_("max_length");
@@ -100,7 +100,7 @@ protected:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    String enzyme = getStringOption_("enzyme");
+    std::string enzyme = getStringOption_("enzyme");
     RNaseDigestion digestor;
     digestor.setEnzyme(enzyme);
     digestor.setMissedCleavages(missed_cleavages);
@@ -111,19 +111,19 @@ protected:
     for (FASTAFile::FASTAEntry& entry : seq_data)
     {
       vector<NASequence> fragments;
-      if (cdna) entry.sequence.toUpper().substitute('T', 'U');
+      if (cdna) { StringUtils::toUpper(entry.sequence); StringUtils::substitute(entry.sequence, 'T', 'U'); }
       NASequence seq = NASequence::fromString(entry.sequence);
       digestor.digest(seq, fragments, min_size, max_size);
       Size counter = 1;
       for (vector<NASequence>::const_iterator frag_it = fragments.begin();
            frag_it != fragments.end(); ++frag_it)
       {
-        if (!unique || !unique_fragments.count(*frag_it))
+        if (!unique || !unique_fragments.contains(*frag_it))
         {
-          String id = entry.identifier + "_" + String(counter);
-          String desc;
+          std::string id = entry.identifier + "_" + StringUtils::toStr(counter);
+          std::string desc;
           if (!entry.description.empty()) desc = entry.description + " ";
-          desc += "(fragment " + String(counter) + ")";
+          desc += "(fragment " + StringUtils::toStr(counter) + ")";
           FASTAFile::FASTAEntry fragment(id, desc, frag_it->toString());
           all_fragments.push_back(fragment);
           unique_fragments.insert(*frag_it);

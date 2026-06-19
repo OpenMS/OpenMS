@@ -47,13 +47,13 @@ START_SECTION((AASequence reverseProtein(const AASequence& protein)))
   TEST_EQUAL(dg->reverseProtein(AASequence::fromString("PRTEINE")).toString(), "ENIETRP")
 END_SECTION
 
-START_SECTION((AASequence reversePeptides(const AASequence& protein, const String& protease)))
+START_SECTION((AASequence reversePeptides(const AASequence& protein, const std::string& protease)))
   TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTPEPTIDE"), "Trypsin").toString(),"EDITPEPTSET")
   TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P").toString(),"TSETRTPEPREDI")
   TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin").toString(),"TPEPRTSETREDI")
 END_SECTION
 
-START_SECTION((AASequence shufflePeptides(const AASequence& aas, const String& protease, const int max_atempts, int seed)))
+START_SECTION((AASequence shufflePeptides(const AASequence& aas, const std::string& protease, const int max_atempts, int seed)))
   // 1. no cutting site (full peptide is shuffled to minimize sequence identity)
   TEST_EQUAL(dg->shufflePeptides(AASequence::fromString("TESTPEPTIDE"), "Trypsin").toString(),"DIESETEPTTP")
   // 2. cutting site after "TESTR", "RPEPTR" and "IDE" (each peptide is shuffled to minimize sequence identity)
@@ -62,7 +62,7 @@ START_SECTION((AASequence shufflePeptides(const AASequence& aas, const String& p
   TEST_EQUAL(dg->shufflePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin").toString(), "SPERTETTPRIED")
 END_SECTION
 
-START_SECTION((std::vector<AASequence> shuffle(const AASequence& protein, const String& protease, int decoy_factor)))
+START_SECTION((std::vector<AASequence> shuffle(const AASequence& protein, const std::string& protease, int decoy_factor)))
   // Uses shufflePeptides with fixed seed (4711) for each peptide
   // Returns a vector with decoy_factor entries, each containing a complete shuffled protein
   

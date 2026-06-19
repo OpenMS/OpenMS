@@ -39,13 +39,27 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
+// Output is always a ConsensusMap. The serialization track follows the input:
+// parquet inputs → consensusparquet; XML (or other) inputs → consensusXML.
+static FileTypes::Type consensusOutTypeFor(FileTypes::Type in_type)
+{
+  switch (in_type)
+  {
+    case FileTypes::FEATUREPARQUET:
+    case FileTypes::CONSENSUSPARQUET:
+      return FileTypes::CONSENSUSPARQUET;
+    default:
+      return FileTypes::CONSENSUSXML;
+  }
+}
+
 class TOPPFeatureLinkerBase :
   public TOPPBase, 
   public ProgressLogger
 {
 
 public:
-  TOPPFeatureLinkerBase(String name, String description, bool official = true) :
+  TOPPFeatureLinkerBase(std::string name, std::string description, bool official = true) :
     TOPPBase(name, description, official)
   {
   }
@@ -53,14 +67,14 @@ public:
 protected:
   void registerOptionsAndFlags_() override   // only for "unlabeled" algorithms!
   {
-    registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "input files separated by blanks", true);
-    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
+    registerInputFileList_("in", "<files>", ListUtils::create<std::string>(""), "input files separated by blanks", true);
+    setValidFormats_("in", ListUtils::create<std::string>("featureXML,consensusXML,featureparquet,consensusparquet"));
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("consensusXML,consensusparquet"));
     registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
-    setValidFormats_("design", ListUtils::create<String>("tsv"));
+    setValidFormats_("design", ListUtils::create<std::string>("tsv"));
     addEmptyLine_();
-    registerFlag_("keep_subelements", "For consensusXML input only: If set, the sub-features of the inputs are transferred to the output.");
+    registerFlag_("keep_subelements", "For consensusXML/consensusparquet input only: If set, the sub-features of the inputs are transferred to the output.");
   }
 
   ExitCodes common_main_(FeatureGroupingAlgorithm * algorithm,
@@ -78,7 +92,7 @@ protected:
     {
       ins = getStringList_("in");
     }
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     
     //-------------------------------------------------------------
     // check for valid input
@@ -108,7 +122,7 @@ protected:
     ConsensusMap out_map;
     StringList ms_run_locations;
 
-    String design_file;
+    std::string design_file;
 
     // TODO: support design in labeled feature linker
     if (!labeled)
@@ -116,22 +130,22 @@ protected:
       design_file = getStringOption_("design");
     }
 
-    if (file_type == FileTypes::CONSENSUSXML && !design_file.empty())
+    if ((file_type == FileTypes::CONSENSUSXML || file_type == FileTypes::CONSENSUSPARQUET) && !design_file.empty())
     {
-      writeLogError_("Error: Using fractionated design with consensusXML als input is not supported!");
+      writeLogError_("Error: Using fractionated design with consensusXML/consensusparquet as input is not supported!");
       return ILLEGAL_PARAMETERS;
     }
   
-    if (file_type == FileTypes::FEATUREXML)
+    if (file_type == FileTypes::FEATUREXML || file_type == FileTypes::FEATUREPARQUET)
     {
-      OPENMS_LOG_INFO << "Linking " << ins.size() << " featureXMLs." << endl;
+      OPENMS_LOG_INFO << "Linking " << ins.size() << " feature maps." << endl;
   
       //-------------------------------------------------------------
       // Extract (optional) fraction identifiers and associate with featureXMLs
       //-------------------------------------------------------------
 
       // determine map of fractions to MS files
-      map<unsigned, vector<String>> frac2files;
+      map<unsigned, vector<std::string>> frac2files;
 
       if (!design_file.empty())
       {
@@ -141,7 +155,7 @@ protected:
         // determine if design defines more than one fraction
         frac2files = ed.getFractionToMSFilesMapping();
 
-        writeDebug_(String("Grouping ") + String(ed.getNumberOfFractions()) + " fractions.", 3);
+        writeDebug_("Grouping " + StringUtils::toStr(ed.getNumberOfFractions()) + " fractions.", 3);
 
         // check if all fractions have the same number of MS runs associated
         if (!ed.sameNrOfMSFilesPerFraction())
@@ -154,7 +168,7 @@ protected:
       {
         for (Size i = 0; i != ins.size(); ++i)
         {
-          frac2files[1].emplace_back(String("file") + String(i)); // associate each run with fraction 1
+          frac2files[1].emplace_back("file" + StringUtils::toStr(i)); // associate each run with fraction 1
         }
       }
 
@@ -173,7 +187,7 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         FeatureMap tmp;
-        f.loadFeatures(ins[i], tmp, {FileTypes::FEATUREXML});
+        f.loadFeatures(ins[i], tmp, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
 
         StringList ms_runs;
         tmp.getPrimaryMSRunPath(ms_runs);
@@ -198,16 +212,16 @@ protected:
         // to save memory, remove convex hulls, subordinates:
         for (Feature& ft : tmp)
         {
-          String adduct;
-          String group;
+          std::string adduct;
+          std::string group;
           //exception: addduct information
           if (ft.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
           {
-            adduct = ft.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS);
+            adduct = ft.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS).toString();
           }
           if (ft.metaValueExists(Constants::UserParam::ADDUCT_GROUP))
           {
-            group = ft.getMetaValue(Constants::UserParam::ADDUCT_GROUP);
+            group = ft.getMetaValue(Constants::UserParam::ADDUCT_GROUP).toString();
           }
           ft.getSubordinates().clear();
           ft.getConvexHulls().clear();
@@ -248,7 +262,7 @@ protected:
       }
       else // group multiple fractions
       {
-        writeDebug_(String("Stored in ") + String(maps.size()) + " maps.", 3);
+        writeDebug_("Stored in " + StringUtils::toStr(maps.size()) + " maps.", 3);
         for (Size i = 1; i <= frac2files.size(); ++i)
         {
           vector<FeatureMap> fraction_maps;
@@ -271,7 +285,7 @@ protected:
       FileHandler f;
       for (Size i = 0; i < ins.size(); ++i)
       {
-        f.loadConsensusFeatures(ins[i], maps[i], {FileTypes::CONSENSUSXML});
+        f.loadConsensusFeatures(ins[i], maps[i], {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
         maps[i].updateRanges();
         // copy over information on the primary MS run
         StringList ms_runs;
@@ -329,7 +343,7 @@ protected:
     out_map.sortPeptideIdentificationsByMapIndex();
 
     // write output
-    FileHandler().storeConsensusFeatures(out, out_map, {FileTypes::CONSENSUSXML});
+    FileHandler().storeConsensusFeatures(out, out_map, {consensusOutTypeFor(file_type)});
 
     // some statistics
     map<Size, UInt> num_consfeat_of_size;

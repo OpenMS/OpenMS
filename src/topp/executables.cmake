@@ -55,6 +55,7 @@ IDRipper
 IDRTCalibration
 IDScoreSwitcher
 IDSplitter
+INIUpdater
 InternalCalibration
 IonMobilityBinning
 IsobaricAnalyzer
@@ -96,6 +97,8 @@ OpenSwathChromatogramExtractor
 OpenSwathConfidenceScoring
 OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
+OpenSwathExport
+OpenSwathInfer
 OpenSwathRTNormalizer
 PeakPickerHiRes
 PeakPickerIterative

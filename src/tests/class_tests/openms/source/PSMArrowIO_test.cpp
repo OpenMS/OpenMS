@@ -65,7 +65,7 @@ START_SECTION(([EXTRA] export_then_import_round_trip))
   PeptideIdentificationList pep_ids;
   buildMinimalIds(prot_ids, pep_ids);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".idparquet";
 
@@ -81,9 +81,14 @@ START_SECTION(([EXTRA] export_then_import_round_trip))
   TEST_TRUE(PSMArrowIO::importFromParquet(dir, prot_ids_in, pep_ids_in));
 
   TEST_EQUAL(prot_ids_in.size(), 1);
-  TEST_STRING_EQUAL(prot_ids_in[0].getIdentifier(), "run_1");
+  // Identifier is synthesized on load per IdXMLFile.cpp:530 parity — the stored
+  // "run_1" is replaced with `<search_engine>_<date>_<UniqueIdGenerator>`. The
+  // pep_id collection is re-stamped in lock-step so both sides agree.
+  TEST_NOT_EQUAL(prot_ids_in[0].getIdentifier(), "");
+  TEST_NOT_EQUAL(prot_ids_in[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(pep_ids_in[0].getIdentifier(), prot_ids_in[0].getIdentifier());
   TEST_STRING_EQUAL(prot_ids_in[0].getSearchParameters().digestion_enzyme.getName(), "Trypsin");
-  TEST_STRING_EQUAL(String(prot_ids_in[0].getSearchParameters().getMetaValue("extra_features")),
+  TEST_STRING_EQUAL(StringUtils::toStr(prot_ids_in[0].getSearchParameters().getMetaValue("extra_features")),
                     "COMET:deltaCn,MS:1002049");
 
   // Primary MS run path round-trips (spectra_data UserParam).
@@ -116,7 +121,7 @@ START_SECTION(([EXTRA] import_missing_subfile_returns_false))
   PeptideIdentificationList pep_ids;
   buildMinimalIds(prot_ids, pep_ids);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".idparquet";
   TEST_TRUE(PSMArrowIO::exportToParquet(prot_ids, pep_ids, dir));
@@ -138,7 +143,7 @@ START_SECTION(([EXTRA] export_target_is_regular_file_returns_false))
   PeptideIdentificationList pep_ids;
   buildMinimalIds(prot_ids, pep_ids);
 
-  String path;
+  std::string path;
   NEW_TMP_FILE(path)
   path += ".idparquet";
   // Create a regular file at the target path.
@@ -157,7 +162,7 @@ START_SECTION(([EXTRA] empty_psms_round_trips))
   buildMinimalIds(prot_ids, pep_ids);
   pep_ids.clear();
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".idparquet";
 
@@ -200,7 +205,7 @@ START_SECTION(([EXTRA] decoy_round_trips))
   pid.getHits().push_back(hit);
   pep_ids.push_back(pid);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".idparquet";
 
@@ -212,7 +217,7 @@ START_SECTION(([EXTRA] decoy_round_trips))
 
   TEST_EQUAL(pep_ids_in.size(), 1);
   TEST_EQUAL(pep_ids_in[0].getHits().size(), 1);
-  TEST_STRING_EQUAL(String(pep_ids_in[0].getHits()[0].getMetaValue("target_decoy")), "decoy");
+  TEST_STRING_EQUAL(StringUtils::toStr(pep_ids_in[0].getHits()[0].getMetaValue("target_decoy")), "decoy");
 
   File::removeDirRecursively(dir);
 }
@@ -244,13 +249,13 @@ START_SECTION(([EXTRA] multi_rank_round_trips))
     hit.setScore(1.0 / rank);
     hit.setRank(static_cast<UInt>(rank));
     PeptideEvidence ev;
-    ev.setProteinAccession("sp|P" + String(rank) + "|RANK");
+    ev.setProteinAccession("sp|P" + StringUtils::toStr(rank) + "|RANK");
     hit.addPeptideEvidence(ev);
     pid.getHits().push_back(hit);
   }
   pep_ids.push_back(pid);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".idparquet";
 
@@ -272,6 +277,32 @@ START_SECTION(([EXTRA] multi_rank_round_trips))
   TEST_REAL_SIMILAR(pep_ids_in[0].getHits()[2].getScore(), 1.0/3.0);
 
   File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] exportToParquet rejects duplicate ProteinIdentification identifiers))
+{
+  // XML-lane parity (Fix #2b): the store-side checkUniqueIdentifiers guard lives in
+  // PSMArrowIO.cpp, but -- unlike FeatureMapArrowIO_test / ConsensusMapArrowIO_test -- the
+  // PSM lane had no unit test pinning it. A second ProteinIdentification colliding on the
+  // same run identifier must be rejected before anything is written.
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  buildMinimalIds(prot_ids, pep_ids);   // one ProteinIdentification with identifier "run_1"
+
+  ProteinIdentification dup;
+  dup.setIdentifier("run_1");           // duplicate run identifier
+  prot_ids.push_back(dup);
+
+  std::string dir;
+  NEW_TMP_FILE(dir)
+  dir += ".idparquet";
+
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 PSMArrowIO::exportToParquet(prot_ids, pep_ids, dir))
+
+  // clean up if a regression let the export run instead of throwing
+  if (File::exists(dir)) { File::removeDirRecursively(dir); }
 }
 END_SECTION
 

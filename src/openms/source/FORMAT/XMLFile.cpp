@@ -63,7 +63,7 @@ private:
     XMLFile::XMLFile()
     = default;
 
-    XMLFile::XMLFile(const String & schema_location, const String & version) :
+    XMLFile::XMLFile(const std::string & schema_location, const std::string & version) :
       schema_location_(schema_location),
       schema_version_(version)
     {
@@ -72,7 +72,7 @@ private:
     XMLFile::~XMLFile()
     = default;
 
-    void XMLFile::enforceEncoding_(const String& encoding)
+    void XMLFile::enforceEncoding_(const std::string& encoding)
     {
       enforced_encoding_ = encoding;
     }
@@ -95,11 +95,11 @@ private:
       }
       catch (const xercesc::XMLException& toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("XMLException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const xercesc::SAXException& toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("SAXException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const XMLHandler::EndParsingSoftly& /*toCatch*/)
       {
@@ -113,7 +113,7 @@ private:
       }
     }
 
-    void XMLFile::parse_(const String & filename, XMLHandler * handler)
+    void XMLFile::parse_(const std::string & filename, XMLHandler * handler)
     {
       // ensure handler->reset() is called to save memory (in case the XMLFile
       // reader, e.g. FeatureXMLFile, is used again)
@@ -142,8 +142,9 @@ private:
       catch (const xercesc::XMLException & toCatch)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
+            "",std::string("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
+
 
       unique_ptr<xercesc::InputSource> source;
 
@@ -213,12 +214,12 @@ private:
       catch (const xercesc::XMLException & toCatch)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
+            "",std::string("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
       // TODO: handle non-plain text
       // peak ahead into the file: is it bzip2 or gzip compressed?
-      // String bz = buffer.substr(0, 2);
+      // std::string bz = StringUtils::substr(buffer, 0, 2);
 
       unique_ptr<xercesc::InputSource> source;
       {
@@ -235,11 +236,11 @@ private:
       parse(source.get(), handler);
     }
 
-    void XMLFile::save_(const String & filename, XMLHandler * handler) const
+    void XMLFile::save_(const std::string & filename, XMLHandler * handler) const
     {
       // Detect compression from filename extension
-      const bool use_gzip = filename.hasSuffix(".gz");
-      const bool use_bzip2 = filename.hasSuffix(".bz2");
+      const bool use_gzip = StringUtils::hasSuffix(filename, ".gz");
+      const bool use_bzip2 = StringUtils::hasSuffix(filename, ".bz2");
 
       if (use_gzip)
       {
@@ -398,29 +399,31 @@ private:
       }
     }
 
-    String encodeTab(const String& to_encode)
+    std::string encodeTab(const std::string& to_encode)
     {
-      if (!to_encode.has('\t'))
+      if (!StringUtils::has(to_encode, '\t'))
       {
         return to_encode;
       }
       else
       {
-        return String(to_encode).substitute("\t", "&#x9;");
+        std::string result = to_encode;
+        StringUtils::substitute(result, "\t", "&#x9;");
+        return result;
       }
     }
 
-    bool XMLFile::isValid(const String & filename, std::ostream & os)
+    bool XMLFile::isValid(const std::string & filename, std::ostream & os)
     {
       if (schema_location_.empty())
       {
         throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
-      String current_location = File::find(schema_location_);
+      std::string current_location = File::find(schema_location_);
       return XMLValidator().isValid(filename, current_location, os);
     }
 
-    const String & XMLFile::getVersion() const
+    const std::string & XMLFile::getVersion() const
     {
       return schema_version_;
     }

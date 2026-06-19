@@ -9,7 +9,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -77,13 +77,13 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input qcml file", false);
-    setValidFormats_("in", ListUtils::create<String>("qcML"));
+    setValidFormats_("in", ListUtils::create<std::string>("qcML"));
     registerInputFile_("table", "<file>", "", R"(The table containing the additional qp values in the columns. First row is considered containing the header. The target run or set names/ids are indicated by column "raw data file", so each row after the header will contain the values of qps for that run. (csv without "!))", true);
-    setValidFormats_("table", ListUtils::create<String>("csv"));
+    setValidFormats_("table", ListUtils::create<std::string>("csv"));
     registerInputFile_("mapping", "<file>", "", "The mapping of the table header to the according qp cvs, also in csv format. The first row is considered containing the headers as in the table. The second row is considered the according qp cv accessions. (csv without \"!)", true);
-    setValidFormats_("mapping", ListUtils::create<String>("csv"));
+    setValidFormats_("mapping", ListUtils::create<std::string>("csv"));
     registerOutputFile_("out", "<file>", "", "Output extended qcML file", true);
-    setValidFormats_("out", ListUtils::create<String>("qcML"));
+    setValidFormats_("out", ListUtils::create<std::string>("qcML"));
   }
 
   ExitCodes main_(int, const char**) override
@@ -91,10 +91,10 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
-    String mappi = getStringOption_("mapping");
-    String tab = getStringOption_("table");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
+    std::string mappi = getStringOption_("mapping");
+    std::string tab = getStringOption_("table");
 
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
@@ -129,8 +129,8 @@ protected:
         cerr << "Error: You have to give a mapping of your table (first row is the header of table and second row is the according qc). Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
-      //~ std::map<String,String> mapping;
-      //~ std::transform( header.begin(), header.end(), according.begin(), std::inserter(mapping, mapping.end() ), std::make_pair<String,String> );
+      //~ std::map<std::string, std::string> mapping;
+      //~ std::transform( header.begin(), header.end(), according.begin(), std::inserter(mapping, mapping.end() ), std::make_pair<std::string, std::string> );
       int runset_col = -1;
       for (Size i = 0; i < according.size(); ++i)
       {
@@ -144,7 +144,7 @@ protected:
           }
           catch (...)
           {
-            cerr << "Error: You have to specify a correct cv with accession or name in col " << String(i) << ". Aborting!" << endl;
+            cerr << "Error: You have to specify a correct cv with accession or name in col " << StringUtils::toStr(i) << ". Aborting!" << endl;
             //~ cerr << "Header was: "<< header[i] << " , according value was: " << according[i] << endl;
             return ILLEGAL_PARAMETERS;
           }
@@ -174,12 +174,12 @@ protected:
           csv_file.getRow(i, li);
           if (li.size() < according.size())
           {
-            cerr << "Error: You have to give a correct mapping of your table - row " << String(i + 1) << " is too short. Aborting!" << endl;
+            cerr << "Error: You have to give a correct mapping of your table - row " << StringUtils::toStr(i + 1) << " is too short. Aborting!" << endl;
             return ILLEGAL_PARAMETERS;
           }
 
           std::vector<QcMLFile::QualityParameter> qps;
-          String id;
+          std::string id;
           bool set = false;
           for (Size j = 0; j < li.size(); ++j)
           {
@@ -203,7 +203,7 @@ protected:
             }
             QcMLFile::QualityParameter def;
             def.name = header[j]; ///< Name
-            def.id = String(UniqueIdGenerator::getUniqueId());
+            def.id =StringUtils::toStr(UniqueIdGenerator::getUniqueId());
             def.cvRef = "QC"; ///< cv reference ('full name')
             def.cvAcc = according[j];
             def.value = li[j];

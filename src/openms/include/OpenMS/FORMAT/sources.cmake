@@ -35,6 +35,7 @@ ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
+FileInfo.h
 FLASHDeconvFeatureFile.h
 FLASHDeconvSpectrumFile.h
 GNPSMetaValueFile.h
@@ -46,6 +47,7 @@ ZipIfstream.h
 ZipInputStream.h
 IBSpectraFile.h
 IdXMLFile.h
+ImzMLFile.h
 IndentedStream.h
 IndexedMzMLFileLoader.h
 InspectInfile.h
@@ -138,6 +140,10 @@ list(APPEND sources_list_h PSMArrowIO.h)
 if (WITH_OPENTIMS)
   list(APPEND sources_list_h BrukerTimsFile.h)
   list(APPEND sources_list_h RationalScan2ImConverter.h)
+endif()
+
+if (WITH_THERMO_RAW)
+  list(APPEND sources_list_h ThermoRawFile.h)
 endif()
 
 ### add path to the filenames

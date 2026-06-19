@@ -55,14 +55,14 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
     registerOutputPrefix_("out", "<prefix>", "", "Prefix for output files ('_part1of2.mzML' etc. will be appended; default: same as 'in' without the file extension)", false);
     registerIntOption_("parts", "<num>", 1, "Number of parts to split into (takes precedence over 'size' if set)", false);
     setMinInt_("parts", 1);
     registerIntOption_("size", "<num>", 0, "Approximate upper limit for resulting file sizes (in 'unit')", false);
     setMinInt_("size", 0);
     registerStringOption_("unit", "<choice>", "MB", "Unit for 'size' (base 1024)", false);
-    setValidStrings_("unit", ListUtils::create<String>("KB,MB,GB"));
+    setValidStrings_("unit", ListUtils::create<std::string>("KB,MB,GB"));
     // @TODO:
     // registerFlag_("precursor", "Make sure precursor spectra end up in the same part as their fragment spectra");
     registerFlag_("no_chrom", "Remove chromatograms, keep only spectra.");
@@ -71,7 +71,7 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    String in = getStringOption_("in"), out = getStringOption_("out");
+    std::string in = getStringOption_("in"), out = getStringOption_("out");
 
     if (out.empty())
     {
@@ -96,7 +96,7 @@ protected:
 
       // use float here to avoid too many decimals in output below:
       float total_size = static_cast<float>(File::fileSize(in));
-      String unit = getStringOption_("unit");
+      std::string unit = getStringOption_("unit");
       if (unit == "KB")
         total_size /= 1024;
       else if (unit == "MB")
@@ -104,10 +104,10 @@ protected:
       else
         total_size /= (1024 * 1024 * 1024); // "GB"
 
-      writeLogInfo_("File size: " + String(total_size) + " " + unit);
+      writeLogInfo_("File size: " + StringUtils::toStr(total_size) + " " + unit);
       parts = ceil(total_size / size);
     }
-    writeLogInfo_("Splitting file into " + String(parts) + " parts...");
+    writeLogInfo_("Splitting file into " + StringUtils::toStr(parts) + " parts...");
 
     PeakMap experiment;
     FileHandler().loadExperiment(in, experiment, {FileTypes::MZML}, log_type_);
@@ -133,11 +133,11 @@ protected:
       experiment.getChromatograms().swap(chromatograms);
     }
 
-    writeLogInfo_("Total spectra: " + String(spectra.size()));
-    writeLogInfo_("Total chromatograms: " + String(chromatograms.size()));
+    writeLogInfo_("Total spectra: " + StringUtils::toStr(spectra.size()));
+    writeLogInfo_("Total chromatograms: " + StringUtils::toStr(chromatograms.size()));
 
     Size spec_start = 0, chrom_start = 0;
-    Size width = String(parts).size();
+    Size width =StringUtils::toStr(parts).size();
     for (Size counter = 1; counter <= parts; ++counter)
     {
       ostringstream out_name;
@@ -168,7 +168,7 @@ protected:
       }
       chrom_start += n_chrom;
 
-      writeLogInfo_("Part " + String(counter) + ": " + String(n_spec) + " spectra, " + String(n_chrom) + " chromatograms");
+      writeLogInfo_("Part " + StringUtils::toStr(counter) + ": " + StringUtils::toStr(n_spec) + " spectra, " + StringUtils::toStr(n_chrom) + " chromatograms");
       FileHandler().storeExperiment(out_name.str(), part, {FileTypes::MZML}, log_type_);
     }
 

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
 namespace OpenMS
@@ -46,14 +46,14 @@ public:
     bool operator==(const AbsoluteQuantitationMethod& other) const;
     bool operator!=(const AbsoluteQuantitationMethod& other) const;
 
-    void setComponentName(const String& component_name); ///< Component name setter
-    String getComponentName() const; ///< Component name getter
+    void setComponentName(const std::string& component_name); ///< Component name setter
+    std::string getComponentName() const; ///< Component name getter
 
-    void setFeatureName(const String& feature_name); ///< Feature name setter
-    String getFeatureName() const; ///< Feature name getter
+    void setFeatureName(const std::string& feature_name); ///< Feature name setter
+    std::string getFeatureName() const; ///< Feature name getter
 
-    void setISName(const String& IS_name); ///< IS name setter
-    String getISName() const; ///< IS_name getter
+    void setISName(const std::string& IS_name); ///< IS name setter
+    std::string getISName() const; ///< IS_name getter
 
     void setLLOD(const double llod); ///< LLOD setter
     double getLLOD() const; ///< LLOD getter
@@ -73,22 +73,22 @@ public:
     void setCorrelationCoefficient(const double correlation_coefficient); ///< Set the correlation coefficient
     double getCorrelationCoefficient() const; ///< Get the correlation coefficient
 
-    void setConcentrationUnits(const String& concentration_units); ///< Concentration units setter
-    String getConcentrationUnits() const; ///< Concentration units getter
+    void setConcentrationUnits(const std::string& concentration_units); ///< Concentration units setter
+    std::string getConcentrationUnits() const; ///< Concentration units getter
 
-    void setTransformationModel(const String& transformation_model); ///< Transformation model setter
-    String getTransformationModel() const; ///< Transformation model getter
+    void setTransformationModel(const std::string& transformation_model); ///< Transformation model setter
+    std::string getTransformationModel() const; ///< Transformation model getter
 
     void setTransformationModelParams(const Param& transformation_model_params); ///< Transformation model parameters setter
     Param getTransformationModelParams() const; ///< Transformation model parameters getter
 
 private:
     Param transformation_model_params_; ///< transformation model parameters
-    String component_name_; ///< id of the component
-    String feature_name_; ///< name of the feature (i.e., peak_apex_int or peak_area)
-    String IS_name_; ///< the internal standard (IS) name for the transition
-    String concentration_units_; ///< concentration units of the component's concentration
-    String transformation_model_; ///< transformation model
+    std::string component_name_; ///< id of the component
+    std::string feature_name_; ///< name of the feature (i.e., peak_apex_int or peak_area)
+    std::string IS_name_; ///< the internal standard (IS) name for the transition
+    std::string concentration_units_; ///< concentration units of the component's concentration
+    std::string transformation_model_; ///< transformation model
     double llod_ { 0.0 }; ///< lower limit of detection (LLOD) of the transition
     double ulod_ { 0.0 }; ///< upper limit of detection (ULOD) of the transition
     double lloq_ { 0.0 }; ///< lower limit of quantitation (LLOQ) of the transition

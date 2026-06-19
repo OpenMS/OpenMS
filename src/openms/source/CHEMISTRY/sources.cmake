@@ -19,6 +19,7 @@ EmpiricalFormula.cpp
 EnzymaticDigestion.cpp
 EnzymeXMLDataProvider.cpp
 HydrophobicityProfile.cpp
+IsoelectricPoint.cpp
 ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
 ModificationsDB.cpp

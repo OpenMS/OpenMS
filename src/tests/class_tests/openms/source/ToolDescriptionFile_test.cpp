@@ -41,7 +41,7 @@ START_SECTION(virtual ~ToolDescriptionFile())
 }
 END_SECTION
 
-START_SECTION((void load(const String &filename, std::vector< Internal::ToolDescription > &tds)))
+START_SECTION((void load(const std::string &filename, std::vector< Internal::ToolDescription > &tds)))
 {
   ToolDescriptionFile f;
   std::vector< Internal::ToolDescription > tds;
@@ -64,7 +64,7 @@ START_SECTION((void load(const String &filename, std::vector< Internal::ToolDesc
 }
 END_SECTION
 
-START_SECTION((void store(const String &filename, const std::vector< Internal::ToolDescription > &tds) const ))
+START_SECTION((void store(const std::string &filename, const std::vector< Internal::ToolDescription > &tds) const ))
 {
   ToolDescriptionFile f;
   std::vector< Internal::ToolDescription > tds;

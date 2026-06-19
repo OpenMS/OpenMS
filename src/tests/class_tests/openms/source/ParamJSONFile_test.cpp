@@ -28,7 +28,7 @@ START_TEST(ParamJSONFile, "$Id")
 
 START_SECTION((bool ParamJSONFile::load(const std::string& filename, Param& param)))
 {
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   Param param;
   param.setValue("test:1:value", 1, "description");

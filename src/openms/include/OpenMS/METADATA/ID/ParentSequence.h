@@ -22,24 +22,24 @@ namespace OpenMS
     */
     struct ParentSequence: public ScoredProcessingResult
     {
-      String accession;
+      std::string accession;
 
       enum MoleculeType molecule_type;
 
       // @TODO: if there are modifications in the sequence, "sequence.size()"
       // etc. will be misleading!
-      String sequence;
+      std::string sequence;
 
-      String description;
+      std::string description;
 
       double coverage; ///< sequence coverage as a fraction between 0 and 1
 
       bool is_decoy;
 
       explicit ParentSequence(
-        const String& accession,
+        const std::string& accession,
         MoleculeType molecule_type = MoleculeType::PROTEIN,
-        const String& sequence = "", const String& description = "",
+        const std::string& sequence = "", const std::string& description = "",
         double coverage = 0.0, bool is_decoy = false,
         const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps()):
         ScoredProcessingResult(steps_and_scores), accession(accession),
@@ -90,7 +90,7 @@ namespace OpenMS
       ParentSequence,
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<boost::multi_index::member<
-          ParentSequence, String, &ParentSequence::accession>>>
+          ParentSequence, std::string, &ParentSequence::accession>>>
       > ParentSequences;
     typedef IteratorWrapper<ParentSequences::iterator> ParentSequenceRef;
 

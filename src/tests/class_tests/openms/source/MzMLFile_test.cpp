@@ -17,6 +17,8 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <fstream>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -90,9 +92,9 @@ public:
   
   //spectrum 1 - 3 float arrays of size 50,100,200
   spec = template_spec; ++spectrum_number; array_number = 1;
-  spec.setNativeID(String("index=") + spectrum_number);
+  spec.setNativeID(std::string("index=") + spectrum_number);
   spec.setRT(1.0 * spectrum_number);
-  spec.setName(String("spectum number=") + spectrum_number);
+  spec.setName(std::string("spectum number=") + spectrum_number);
   Size array_size=50;
   for (Size i=0; i<3; ++i)
   {
@@ -101,7 +103,7 @@ public:
     {
       spec.getFloatDataArrays()[i].push_back(100*(i+1) + j);
     }
-    spec.getFloatDataArrays()[i].setName(String("array number=") + array_number);
+    spec.getFloatDataArrays()[i].setName(std::string("array number=") + array_number);
     array_size *=2;
     array_number +=1;
   }
@@ -109,18 +111,18 @@ public:
   
   //spectrum 2 - 3 string arrays of size 50,100,200
   spec = template_spec; ++spectrum_number; array_number = 1;
-  spec.setNativeID(String("index=") + spectrum_number);
+  spec.setNativeID(std::string("index=") + spectrum_number);
   spec.setRT(1.0 * spectrum_number);
-  spec.setName(String("spectum number=") + spectrum_number);
+  spec.setName(std::string("spectum number=") + spectrum_number);
   array_size=50;
   for (Size i=0; i<3; ++i)
   {
     spec.getStringDataArrays().resize(i+1);
     for (Size j=0; j<array_size; ++j)
     {
-      spec.getStringDataArrays()[i].push_back(String(100*(i+1) + j));
+      spec.getStringDataArrays()[i].push_back(StringUtils::toStr(100*(i+1) + j));
     }
-    spec.getStringDataArrays()[i].setName(String("array number=") + array_number);
+    spec.getStringDataArrays()[i].setName(std::string("array number=") + array_number);
     array_size *=2;
     array_number +=1;
   }
@@ -128,9 +130,9 @@ public:
   
   //spectrum 3 - 3 integer arrays of size 50,100,200
   spec = template_spec; ++spectrum_number; array_number = 1;
-  spec.setNativeID(String("index=") + spectrum_number);
+  spec.setNativeID(std::string("index=") + spectrum_number);
   spec.setRT(1.0 * spectrum_number);
-  spec.setName(String("spectum number=") + spectrum_number);
+  spec.setName(std::string("spectum number=") + spectrum_number);
   array_size=50;
   for (Size i=0; i<3; ++i)
   {
@@ -139,7 +141,7 @@ public:
     {
       spec.getIntegerDataArrays()[i].push_back(100*(i+1) + j);
     }
-    spec.getIntegerDataArrays()[i].setName(String("array number=") + array_number);
+    spec.getIntegerDataArrays()[i].setName(std::string("array number=") + array_number);
     array_size *=2;
     array_number +=1;
   }
@@ -148,9 +150,9 @@ public:
   
   //spectrum 4 - 2 float arrays of size 50,100 + 1 string arrays of size 200 + 3 integer arrays of size 50,100,200
   spec = template_spec; ++spectrum_number; array_number = 1;
-  spec.setNativeID(String("index=") + spectrum_number);
+  spec.setNativeID(std::string("index=") + spectrum_number);
   spec.setRT(1.0 * spectrum_number);
-  spec.setName(String("spectum number=") + spectrum_number);
+  spec.setName(std::string("spectum number=") + spectrum_number);
   array_size=50;
   for (Size i=0; i<2; ++i)
   {
@@ -159,7 +161,7 @@ public:
     {
       spec.getFloatDataArrays()[i].push_back(100*(i+1) + j);
     }
-    spec.getFloatDataArrays()[i].setName(String("array number=") + array_number);
+    spec.getFloatDataArrays()[i].setName(std::string("array number=") + array_number);
     array_size *=2;
     array_number +=1;
   }
@@ -169,9 +171,9 @@ public:
     spec.getStringDataArrays().resize(i+1);
     for (Size j=0; j<array_size; ++j)
     {
-      spec.getStringDataArrays()[i].push_back(String(100*(i+1) + j));
+      spec.getStringDataArrays()[i].push_back(StringUtils::toStr(100*(i+1) + j));
     }
-    spec.getStringDataArrays()[i].setName(String("array number=") + array_number);
+    spec.getStringDataArrays()[i].setName(std::string("array number=") + array_number);
     array_size *=2;
     array_number +=1;
   }
@@ -183,7 +185,7 @@ public:
     {
       spec.getIntegerDataArrays()[i].push_back(100*(i+1) + j);
     }
-    spec.getIntegerDataArrays()[i].setName(String("array number=") + array_number);
+    spec.getIntegerDataArrays()[i].setName(std::string("array number=") + array_number);
     array_size *=2;
     array_number +=1;
   }
@@ -231,7 +233,7 @@ public:
 TOLERANCE_ABSOLUTE(0.01)
 
 
-START_SECTION((Size loadSize(const String & filename, Size& scount, Size& ccount)))
+START_SECTION((Size loadSize(const std::string & filename, Size& scount, Size& ccount)))
 {
   MzMLFile file;
   Size spectra_count, chrom_count;
@@ -264,7 +266,7 @@ START_SECTION((Size loadSize(const String & filename, Size& scount, Size& ccount
 END_SECTION
 
 
-START_SECTION((template <typename MapType> void load(const String& filename, MapType& map)))
+START_SECTION((template <typename MapType> void load(const std::string& filename, MapType& map)))
 {
   MzMLFile file;
   PeakMap exp;
@@ -585,52 +587,52 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   //run
   TEST_STRING_EQUAL(exp.getMetaValue("mzml_id"),"document_id")
   TEST_EQUAL(exp.getMetaValue("flag").valueType(),DataValue::STRING_VALUE)
-  TEST_STRING_EQUAL((String)exp.getMetaValue("flag"),"")
+  TEST_STRING_EQUAL(exp.getMetaValue("flag"),"")
   TEST_EQUAL(exp.getMetaValue("string").valueType(),DataValue::STRING_VALUE)
-  TEST_STRING_EQUAL((String)exp.getMetaValue("string"),"bla")
+  TEST_STRING_EQUAL(exp.getMetaValue("string"),"bla")
   TEST_EQUAL(exp.getMetaValue("float").valueType(),DataValue::DOUBLE_VALUE)
   TEST_REAL_SIMILAR((double)exp.getMetaValue("float"),5.11)
   TEST_EQUAL(exp.getMetaValue("int").valueType(),DataValue::INT_VALUE)
   TEST_EQUAL((Int)exp.getMetaValue("int"),5)
   //instrumentConfiguration
   TEST_EQUAL(exp.getInstrument().getIonOptics(),Instrument::IonOpticsType::MAGNETIC_DEFLECTION)
-  TEST_STRING_EQUAL((String)exp.getInstrument().getMetaValue("name"),"instrumentConfiguration")
-  TEST_STRING_EQUAL((String)exp.getInstrument().getIonSources()[0].getMetaValue("name"),"source1")
-  TEST_STRING_EQUAL((String)exp.getInstrument().getIonSources()[1].getMetaValue("name"),"source2")
-  TEST_STRING_EQUAL((String)exp.getInstrument().getMassAnalyzers()[0].getMetaValue("name"),"analyzer1")
-  TEST_STRING_EQUAL((String)exp.getInstrument().getMassAnalyzers()[1].getMetaValue("name"),"analyzer2")
-  TEST_STRING_EQUAL((String)exp.getInstrument().getIonDetectors()[0].getMetaValue("name"),"detector1")
-  TEST_STRING_EQUAL((String)exp.getInstrument().getIonDetectors()[1].getMetaValue("name"),"detector2")
+  TEST_STRING_EQUAL(exp.getInstrument().getMetaValue("name"),"instrumentConfiguration")
+  TEST_STRING_EQUAL(exp.getInstrument().getIonSources()[0].getMetaValue("name"),"source1")
+  TEST_STRING_EQUAL(exp.getInstrument().getIonSources()[1].getMetaValue("name"),"source2")
+  TEST_STRING_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getMetaValue("name"),"analyzer1")
+  TEST_STRING_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getMetaValue("name"),"analyzer2")
+  TEST_STRING_EQUAL(exp.getInstrument().getIonDetectors()[0].getMetaValue("name"),"detector1")
+  TEST_STRING_EQUAL(exp.getInstrument().getIonDetectors()[1].getMetaValue("name"),"detector2")
   //sample
-  TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("name"),"sample")
-  TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("brenda source tissue"),"cardiac muscle")
-  TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("GO cellular component"),"nucleus")
-  TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("cellular quality"),"11.11")
+  TEST_STRING_EQUAL(exp.getSample().getMetaValue("name"),"sample")
+  TEST_STRING_EQUAL(exp.getSample().getMetaValue("brenda source tissue"),"cardiac muscle")
+  TEST_STRING_EQUAL(exp.getSample().getMetaValue("GO cellular component"),"nucleus")
+  TEST_STRING_EQUAL(exp.getSample().getMetaValue("cellular quality"),"11.11")
   //contact
-  TEST_STRING_EQUAL((String)exp.getContacts()[0].getMetaValue("name"),"contact1")
-  TEST_STRING_EQUAL((String)exp.getContacts()[1].getMetaValue("name"),"Pirate")
+  TEST_STRING_EQUAL(exp.getContacts()[0].getMetaValue("name"),"contact1")
+  TEST_STRING_EQUAL(exp.getContacts()[1].getMetaValue("name"),"Pirate")
   //spectrum
-  TEST_STRING_EQUAL((String)exp[0].getMetaValue("sdname"),"spectrumdescription1")
-  TEST_STRING_EQUAL((String)exp[1].getMetaValue("sdname"),"spectrumdescription2")
-  TEST_STRING_EQUAL((String)exp[2].getMetaValue("sdname"),"spectrumdescription3")
-  TEST_STRING_EQUAL((String)exp[3].getMetaValue("sdname"),"spectrumdescription4")
-  TEST_STRING_EQUAL((String)exp[0].getMetaValue("mzname"),"mzarray1")
-  TEST_STRING_EQUAL((String)exp[0].getMetaValue("itname"),"itarray1")
-  TEST_STRING_EQUAL((String)exp[1].getMetaValue("mzname"),"mzarray2")
-  TEST_STRING_EQUAL((String)exp[1].getMetaValue("itname"),"itarray2")
+  TEST_STRING_EQUAL((std::string)exp[0].getMetaValue("sdname"),"spectrumdescription1")
+  TEST_STRING_EQUAL((std::string)exp[1].getMetaValue("sdname"),"spectrumdescription2")
+  TEST_STRING_EQUAL((std::string)exp[2].getMetaValue("sdname"),"spectrumdescription3")
+  TEST_STRING_EQUAL((std::string)exp[3].getMetaValue("sdname"),"spectrumdescription4")
+  TEST_STRING_EQUAL((std::string)exp[0].getMetaValue("mzname"),"mzarray1")
+  TEST_STRING_EQUAL((std::string)exp[0].getMetaValue("itname"),"itarray1")
+  TEST_STRING_EQUAL((std::string)exp[1].getMetaValue("mzname"),"mzarray2")
+  TEST_STRING_EQUAL((std::string)exp[1].getMetaValue("itname"),"itarray2")
   //binaryDataArray
-  TEST_STRING_EQUAL((String)exp[1].getFloatDataArrays()[0].getMetaValue("name"),"binaryDataArray_sn")
-  TEST_STRING_EQUAL((String)exp[1].getFloatDataArrays()[0].getMetaValue("name2"),"binaryDataArray_sn2")
-  TEST_STRING_EQUAL((String)exp[1].getFloatDataArrays()[1].getMetaValue("name"),"binaryDataArray_c")
-  TEST_STRING_EQUAL((String)exp[1].getFloatDataArrays()[1].getMetaValue("name2"),"")
+  TEST_STRING_EQUAL((std::string)exp[1].getFloatDataArrays()[0].getMetaValue("name"),"binaryDataArray_sn")
+  TEST_STRING_EQUAL((std::string)exp[1].getFloatDataArrays()[0].getMetaValue("name2"),"binaryDataArray_sn2")
+  TEST_STRING_EQUAL((std::string)exp[1].getFloatDataArrays()[1].getMetaValue("name"),"binaryDataArray_c")
+  TEST_STRING_EQUAL(StringUtils::toStr(exp[1].getFloatDataArrays()[1].getMetaValue("name2")),"")
   //acquisition list
-  TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo().getMetaValue("name"),"acquisition_list")
+  TEST_STRING_EQUAL((std::string)exp[0].getAcquisitionInfo().getMetaValue("name"),"acquisition_list")
   //acquisition
-  TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo()[0].getMetaValue("name"),"acquisition1")
-  TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo()[1].getMetaValue("name"),"acquisition2")
+  TEST_STRING_EQUAL((std::string)exp[0].getAcquisitionInfo()[0].getMetaValue("name"),"acquisition1")
+  TEST_STRING_EQUAL((std::string)exp[0].getAcquisitionInfo()[1].getMetaValue("name"),"acquisition2")
   //source file
-  TEST_STRING_EQUAL((String)exp.getSourceFiles()[0].getMetaValue("name"),"sourcefile1")
-  TEST_STRING_EQUAL((String)exp[1].getSourceFile().getMetaValue("name"),"sourcefile4")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getMetaValue("name"),"sourcefile1")
+  TEST_STRING_EQUAL((std::string)exp[1].getSourceFile().getMetaValue("name"),"sourcefile4")
   //data processing
   TEST_STRING_EQUAL(exp[0].getDataProcessing()[0]->getMetaValue("p1").toString(),"value1")
   TEST_STRING_EQUAL(exp[0].getDataProcessing()[1]->getMetaValue("p2").toString(),"value2")
@@ -649,10 +651,10 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   TEST_STRING_EQUAL(exp[2].getProducts()[0].getMetaValue("iwname").toString(),"isolationwindow3")
   TEST_STRING_EQUAL(exp[2].getProducts()[1].getMetaValue("iwname").toString(),"isolationwindow4")
   //scan window
-  TEST_STRING_EQUAL((String)exp[0].getInstrumentSettings().getScanWindows()[0].getMetaValue("name"),"scanwindow1")
+  TEST_STRING_EQUAL((std::string)exp[0].getInstrumentSettings().getScanWindows()[0].getMetaValue("name"),"scanwindow1")
   //-------------------------- cvParam (but no member => meta data)--------------------------
   //general
-  TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("sample batch"),"4.4")
+  TEST_STRING_EQUAL(exp.getSample().getMetaValue("sample batch"),"4.4")
   //spectrum 1
   TEST_REAL_SIMILAR((double)exp[0].getMetaValue("elution time (seconds)"),55.11)
   TEST_REAL_SIMILAR((double)exp[0].getMetaValue("lowest observed m/z"),400.39)
@@ -662,22 +664,22 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   TEST_REAL_SIMILAR((double)exp[0].getMetaValue("base peak m/z"),445.347)
   TEST_REAL_SIMILAR((double)exp[0].getMetaValue("base peak intensity"),120054)
   TEST_REAL_SIMILAR((double)exp[0].getMetaValue("total ion current"),16675500)
-  TEST_STRING_EQUAL((String)exp[0].getMetaValue("spectrum title"),"title")
-  TEST_STRING_EQUAL((String)exp[0].getMetaValue("peak list scans"),"15 scans")
-  TEST_STRING_EQUAL((String)exp[0].getMetaValue("peak list raw scans"),"16 scans")
+  TEST_STRING_EQUAL((std::string)exp[0].getMetaValue("spectrum title"),"title")
+  TEST_STRING_EQUAL((std::string)exp[0].getMetaValue("peak list scans"),"15 scans")
+  TEST_STRING_EQUAL((std::string)exp[0].getMetaValue("peak list raw scans"),"16 scans")
 
-  TEST_STRING_EQUAL((String)exp[0].getMetaValue("mass resolution"),"4.3")
+  TEST_STRING_EQUAL((std::string)exp[0].getMetaValue("mass resolution"),"4.3")
   TEST_REAL_SIMILAR((double)exp[0].getMetaValue("analyzer scan offset"),-4.5)
   TEST_REAL_SIMILAR((double)exp[0].getMetaValue("dwell time"),123.45)
-  TEST_STRING_EQUAL((String)exp[0].getMetaValue("filter string"),"+ c NSI Full ms [ 400.00-1800.00]")
-  TEST_STRING_EQUAL((String)exp[0].getMetaValue("preset scan configuration"),"3 abc")
+  TEST_STRING_EQUAL((std::string)exp[0].getMetaValue("filter string"),"+ c NSI Full ms [ 400.00-1800.00]")
+  TEST_STRING_EQUAL((std::string)exp[0].getMetaValue("preset scan configuration"),"3 abc")
   TEST_REAL_SIMILAR((double)exp[0].getMetaValue("scan rate"),17.17)
   //spectrum 2
-  TEST_STRING_EQUAL((String)exp[1].getMetaValue("mass resolution"),"4.1")
-  TEST_STRING_EQUAL((String)exp[1].getPrecursors()[0].getMetaValue("collision gas"), "Argon")
-  TEST_STRING_EQUAL((String)exp[1].getPrecursors()[0].getMetaValue("buffer gas"), "Krypton")
-  TEST_STRING_EQUAL((String)exp[1].getPrecursors()[0].getMetaValue("source_file_name"),"pr.dta")
-  TEST_STRING_EQUAL((String)exp[1].getPrecursors()[0].getMetaValue("source_file_path"),"file:///F:/data/Exp03")
+  TEST_STRING_EQUAL((std::string)exp[1].getMetaValue("mass resolution"),"4.1")
+  TEST_STRING_EQUAL((std::string)exp[1].getPrecursors()[0].getMetaValue("collision gas"), "Argon")
+  TEST_STRING_EQUAL((std::string)exp[1].getPrecursors()[0].getMetaValue("buffer gas"), "Krypton")
+  TEST_STRING_EQUAL((std::string)exp[1].getPrecursors()[0].getMetaValue("source_file_name"),"pr.dta")
+  TEST_STRING_EQUAL((std::string)exp[1].getPrecursors()[0].getMetaValue("source_file_path"),"file:///F:/data/Exp03")
 
   /////////////////////// TESTING SPECIAL CASES ///////////////////////
 
@@ -996,7 +998,7 @@ END_SECTION
 #endif // WITH_S3
 
 
-START_SECTION((template <typename MapType> void store(const String& filename, const MapType& map) const))
+START_SECTION((template <typename MapType> void store(const std::string& filename, const MapType& map) const))
 {
   MzMLFile file;
 
@@ -1090,6 +1092,75 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 }
 END_SECTION
 
+START_SECTION([EXTRA] store and load gzip and bzip2 compressed files - round-trip)
+{
+  // The file format is inferred from the extension before the compression
+  // suffix; XMLFile::save_() compresses on the fly when the filename ends in
+  // ".gz"/".bz2" and load() transparently decompresses. This verifies that a
+  // store->load round-trip through a compressed file preserves the content
+  // (mirrors IdXMLFile_test's compressed round-trip).
+  MzMLFile file;
+
+  PeakMap exp_original;
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp_original);
+
+  // uncompressed store->load result used as the reference: this isolates
+  // "does compression preserve data" from "does store/load preserve data".
+  PeakMap exp_plain;
+  {
+    std::string tmp_plain;
+    NEW_TMP_FILE(tmp_plain);
+    file.store(tmp_plain, exp_original);
+    file.load(tmp_plain, exp_plain);
+  }
+
+  // read the leading bytes of a file to confirm it is really compressed
+  auto first_bytes = [](const std::string& fn, size_t n) -> std::string
+  {
+    std::ifstream is(fn.c_str(), std::ios::in | std::ios::binary);
+    std::string buf(n, '\0');
+    is.read(&buf[0], static_cast<std::streamsize>(n));
+    buf.resize(static_cast<size_t>(is.gcount()));
+    return buf;
+  };
+
+  // gzip round-trip
+  {
+    std::string tmp_gz;
+    NEW_TMP_FILE(tmp_gz);
+    tmp_gz += ".mzML.gz";
+    file.store(tmp_gz, exp_original);
+
+    // the written file must really be gzip-compressed (magic bytes 0x1f 0x8b),
+    // otherwise the round-trip could pass on a plain-text file with a .gz name
+    std::string magic = first_bytes(tmp_gz, 2);
+    TEST_EQUAL(magic.size(), 2)
+    TEST_EQUAL(static_cast<int>(static_cast<unsigned char>(magic[0])), 0x1f)
+    TEST_EQUAL(static_cast<int>(static_cast<unsigned char>(magic[1])), 0x8b)
+
+    PeakMap exp_gz;
+    file.load(tmp_gz, exp_gz);
+    TEST_TRUE(exp_gz == exp_plain)
+  }
+
+  // bzip2 round-trip
+  {
+    std::string tmp_bz2;
+    NEW_TMP_FILE(tmp_bz2);
+    tmp_bz2 += ".mzML.bz2";
+    file.store(tmp_bz2, exp_original);
+
+    // the written file must really be bzip2-compressed (magic bytes "BZh")
+    std::string magic = first_bytes(tmp_bz2, 3);
+    TEST_STRING_EQUAL(magic, "BZh")
+
+    PeakMap exp_bz2;
+    file.load(tmp_bz2, exp_bz2);
+    TEST_TRUE(exp_bz2 == exp_plain)
+  }
+}
+END_SECTION
+
 START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const))
 {
   MzMLFile file;
@@ -1104,11 +1175,11 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     std::string out;
     file.storeBuffer(out, exp_original);
     TEST_EQUAL(out.size(), 38070)
-    TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(out.substr(38070 - 99, 38070 - 1), "</indexList>\n<indexListOffset>37622</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_EQUAL(StringUtils::substr(out, 0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
+    TEST_EQUAL(StringUtils::substr(out, 38070 - 99, 38070 - 1), "</indexList>\n<indexListOffset>37622</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
 
-    TEST_EQUAL(String(out).hasSubstring("<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
-    TEST_EQUAL(String(out).hasSubstring("<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(std::string(out), "<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(std::string(out), "<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
   }
 
   //test with empty map
@@ -1119,14 +1190,14 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     std::string out;
     file.storeBuffer(out, empty);
     TEST_EQUAL(out.size(), 3167)
-    TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(out.substr(3167-98, 3167-1), "</indexList>\n<indexListOffset>2978</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_EQUAL(StringUtils::substr(out, 0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
+    TEST_EQUAL(StringUtils::substr(out, 3167-98, 3167-1), "</indexList>\n<indexListOffset>2978</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
   }
 
 }
 END_SECTION
 
-START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr))
+START_SECTION(bool isValid(const std::string& filename, std::ostream& os = std::cerr))
 {
   std::string tmp_filename;
   MzMLFile file;
@@ -1148,7 +1219,7 @@ START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr)
 }
 END_SECTION
 
-START_SECTION(bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))
+START_SECTION(bool isSemanticallyValid(const std::string& filename, StringList& errors, StringList& warnings))
 {
   std::string tmp_filename;
   MzMLFile file;
@@ -1203,12 +1274,12 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
 }
 END_SECTION
 
-START_SECTION(void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false, bool skip_first_pass = false))
+START_SECTION(void transform(const std::string& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false, bool skip_first_pass = false))
 {
   // Create the consumer, set output file name, transform
   TICConsumer consumer;
   MzMLFile mzml;
-  String in = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
+  std::string in = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
 
   PeakFileOptions opt = mzml.getOptions();
   opt.setFillData(true); // whether to actually load any data
@@ -1224,13 +1295,13 @@ START_SECTION(void transform(const String& filename_in, Interfaces::IMSDataConsu
 }
 END_SECTION
 
-START_SECTION(void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, PeakMap& map, bool skip_full_count = false, bool skip_first_pass = false))
+START_SECTION(void transform(const std::string& filename_in, Interfaces::IMSDataConsumer * consumer, PeakMap& map, bool skip_full_count = false, bool skip_first_pass = false))
 {
   // Create the consumer, set output file name, transform
   TICConsumer consumer;
   MzMLFile mzml;
   PeakMap map;
-  String in = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
+  std::string in = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
 
   PeakFileOptions opt = mzml.getOptions();
   opt.setFillData(true); // whether to actually load any data

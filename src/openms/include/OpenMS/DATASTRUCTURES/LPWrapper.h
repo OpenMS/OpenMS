@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h> // for String
+#include <OpenMS/DATASTRUCTURES/StringUtils.h> // for String
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
@@ -212,7 +212,7 @@ public:
       @param[in] name Name of the row (for identification purposes)
       @return Index of the newly added row
     */
-    Int addRow(const std::vector<Int>& row_indices, const std::vector<double>& row_values, const String& name);
+    Int addRow(const std::vector<Int>& row_indices, const std::vector<double>& row_values, const std::string& name);
     
     /**
       @brief Adds an empty column to the LP matrix
@@ -229,7 +229,7 @@ public:
       @param[in] name Name of the column (for identification purposes)
       @return Index of the newly added column
     */
-    Int addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values, const String& name);
+    Int addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values, const std::string& name);
 
     /**
       @brief Adds a row with boundaries to the LP matrix, returns index
@@ -244,7 +244,7 @@ public:
       @param[in] type Type of the row 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
     Int addRow(const std::vector<Int>& row_indices, const std::vector<double>& row_values,
-               const String& name, double lower_bound, double upper_bound, Type type);
+               const std::string& name, double lower_bound, double upper_bound, Type type);
 
     /**
       @brief Adds a column with boundaries to the LP matrix, returns index
@@ -256,7 +256,7 @@ public:
       @param[in] upper_bound
       @param[in] type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
-    Int addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values, const String& name, double lower_bound, double upper_bound, Type type);
+    Int addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values, const std::string& name, double lower_bound, double upper_bound, Type type);
 
     /**
       @brief Delete the row at the specified index
@@ -271,7 +271,7 @@ public:
       @param[in] index Index of the column to rename
       @param[in] name New name for the column
     */
-    void setColumnName(Int index, const String& name);
+    void setColumnName(Int index, const std::string& name);
     
     /**
       @brief Get the name of a column
@@ -279,7 +279,7 @@ public:
       @param[in] index Index of the column
       @return Name of the column
     */
-    String getColumnName(Int index);
+    std::string getColumnName(Int index);
     
     /**
       @brief Get the name of a row
@@ -287,7 +287,7 @@ public:
       @param[in] index Index of the row
       @return Name of the row
     */
-    String getRowName(Int index);
+    std::string getRowName(Int index);
     
     /**
       @brief Find the index of a row by its name
@@ -295,7 +295,7 @@ public:
       @param[in] name Name of the row to find
       @return Index of the row with the given name
     */
-    Int getRowIndex(const String& name);
+    Int getRowIndex(const std::string& name);
     
     /**
       @brief Find the index of a column by its name
@@ -303,7 +303,7 @@ public:
       @param[in] name Name of the column to find
       @return Index of the column with the given name
     */
-    Int getColumnIndex(const String& name);
+    Int getColumnIndex(const std::string& name);
     
     /**
       @brief Get the upper bound of a column
@@ -343,7 +343,7 @@ public:
       @param[in] index Index of the row to rename
       @param[in] name New name for the row
     */
-    void setRowName(Int index, const String& name);
+    void setRowName(Int index, const std::string& name);
 
     /**
       @brief Set column bounds.
@@ -449,7 +449,7 @@ public:
       @param[out] filename Filename where to store the LP problem.
       @param[in] format LP, MPS or GLPK.
      */
-    void readProblem(const String& filename, const String& format);
+    void readProblem(const std::string& filename, const std::string& format);
 
     /**
       @brief Write LP formulation to a file.
@@ -457,7 +457,7 @@ public:
       @param[out] filename output filename, if the filename ends with '.gz' it will be compressed
       @param[in] format MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
      */
-    void writeProblem(const String& filename, const WriteFormat format) const;
+    void writeProblem(const std::string& filename, const WriteFormat format) const;
 
     /**
       @brief solve problems, parameters like enabled heuristics can be given via solver_param

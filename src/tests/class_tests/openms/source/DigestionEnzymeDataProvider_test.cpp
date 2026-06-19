@@ -36,9 +36,9 @@ START_SECTION(InMemoryDigestionEnzymeDataProvider - DigestionEnzymeProtein)
 {
   vector<unique_ptr<DigestionEnzymeProtein>> enzymes;
   enzymes.push_back(make_unique<DigestionEnzymeProtein>(
-    "TestProtease", "(?<=[K])", set<String>{"test_syn"}, "Test protease description"));
+    "TestProtease", "(?<=[K])", set<std::string>{"test_syn"}, "Test protease description"));
   enzymes.push_back(make_unique<DigestionEnzymeProtein>(
-    "TestProtease2", "(?<=[R])", set<String>(), "Another test protease"));
+    "TestProtease2", "(?<=[R])", set<std::string>(), "Another test protease"));
 
   InMemoryDigestionEnzymeDataProvider<DigestionEnzymeProtein> provider(std::move(enzymes));
   auto loaded = provider.loadEnzymes();
@@ -174,9 +174,9 @@ START_SECTION(ProteaseDB - construct from providers)
   // Add just two test enzymes via InMemoryDigestionEnzymeDataProvider
   vector<unique_ptr<DigestionEnzymeProtein>> enzymes;
   enzymes.push_back(make_unique<DigestionEnzymeProtein>(
-    "CustomEnzyme1", "(?<=[K])", set<String>{"custom_syn"}, "Custom enzyme 1"));
+    "CustomEnzyme1", "(?<=[K])", set<std::string>{"custom_syn"}, "Custom enzyme 1"));
   enzymes.push_back(make_unique<DigestionEnzymeProtein>(
-    "CustomEnzyme2", "(?<=[R])", set<String>(), "Custom enzyme 2"));
+    "CustomEnzyme2", "(?<=[R])", set<std::string>(), "Custom enzyme 2"));
   providers.push_back(make_unique<InMemoryDigestionEnzymeDataProvider<DigestionEnzymeProtein>>(std::move(enzymes)));
 
   ProteaseDB db(std::move(providers));
@@ -185,7 +185,7 @@ START_SECTION(ProteaseDB - construct from providers)
   TEST_EQUAL(db.hasEnzyme("custom_syn"), true) // synonym
   TEST_EQUAL(db.hasEnzyme("Trypsin"), false) // not loaded
 
-  vector<String> names;
+  vector<std::string> names;
   db.getAllNames(names);
   TEST_EQUAL(names.size(), 2)
 }
@@ -231,7 +231,7 @@ START_SECTION(RNaseDB - singleton loads from XML)
 {
   auto singleton = RNaseDB::getInstance();
   // The RNA enzyme XML should have loaded at least some enzymes
-  vector<String> names;
+  vector<std::string> names;
   singleton->getAllNames(names);
   TEST_EQUAL(names.size() > 0, true)
 }

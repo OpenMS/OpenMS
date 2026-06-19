@@ -20,7 +20,7 @@ class MRMFeatureQCFile_facade : MRMFeatureQCFile
   public:
     void pushValuesFromLine_(
       const StringList& line,
-      const std::map<String, Size>& headers,
+      const std::map<std::string, Size>& headers,
       std::vector<MRMFeatureQC::ComponentQCs>& c_qcs
     ) const
     {
@@ -29,7 +29,7 @@ class MRMFeatureQCFile_facade : MRMFeatureQCFile
 
     void pushValuesFromLine_(
       const StringList& line,
-      const std::map<String, Size>& headers,
+      const std::map<std::string, Size>& headers,
       std::vector<MRMFeatureQC::ComponentGroupQCs>& cg_qcs
     ) const
     {
@@ -37,19 +37,19 @@ class MRMFeatureQCFile_facade : MRMFeatureQCFile
     }
 
     void setPairValue_(
-      const String& key,
-      const String& value,
-      const String& boundary,
-      std::map<String, std::pair<double,double>>& meta_values_qc
+      const std::string& key,
+      const std::string& value,
+      const std::string& boundary,
+      std::map<std::string, std::pair<double,double>>& meta_values_qc
     ) const
     {
       MRMFeatureQCFile::setPairValue_(key, value, boundary, meta_values_qc);
     }
 
   Int getCastValue_(
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     const StringList& line,
-    const String& header,
+    const std::string& header,
     const Int default_value
   ) const
   {
@@ -57,20 +57,20 @@ class MRMFeatureQCFile_facade : MRMFeatureQCFile
   }
 
   double getCastValue_(
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     const StringList& line,
-    const String& header,
+    const std::string& header,
     const double default_value
   ) const
   {
     return MRMFeatureQCFile::getCastValue_(headers, line, header, default_value);
   }
 
-  String getCastValue_(
-    const std::map<String, Size>& headers,
+  std::string getCastValue_(
+    const std::map<std::string, Size>& headers,
     const StringList& line,
-    const String& header,
-    const String& default_value
+    const std::string& header,
+    const std::string& default_value
   ) const
   {
     return MRMFeatureQCFile::getCastValue_(headers, line, header, default_value);
@@ -98,7 +98,7 @@ START_SECTION(~MRMFeatureQCFile())
 }
 END_SECTION
 
-START_SECTION(void load(const String& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) const)
+START_SECTION(void load(const std::string& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) const)
 {
   MRMFeatureQCFile mrmfqcfile;
   MRMFeatureQC mrmfqc;
@@ -245,12 +245,12 @@ START_SECTION(void load(const String& filename, MRMFeatureQC& mrmfqc, const bool
 }
 END_SECTION
 
-START_SECTION(void store(const String& filename, MRMFeatureQC& mrmfqc, const bool is_component_group))
+START_SECTION(void store(const std::string& filename, MRMFeatureQC& mrmfqc, const bool is_component_group))
 {
   MRMFeatureQCFile mrmfqcfile;
   MRMFeatureQC mrmfqc, mrmfqc_test;
-  String file_comp = File::getTemporaryFile();
-  String file_comp_group = File::getTemporaryFile();
+  std::string file_comp = File::getTemporaryFile();
+  std::string file_comp_group = File::getTemporaryFile();
 
   mrmfqcfile.store(file_comp, mrmfqc, false); // empty components file
   mrmfqcfile.store(file_comp_group, mrmfqc, true); // empty component groups file
@@ -274,11 +274,11 @@ END_SECTION
 
 START_SECTION(void pushValuesFromLine_(
   const StringList& line,
-  const std::map<String, Size>& headers,
+  const std::map<std::string, Size>& headers,
   std::vector<MRMFeatureQC::ComponentQCs>& c_qcs
 ) const)
 {
-  const std::map<String, Size> headers {
+  const std::map<std::string, Size> headers {
     {"component_name", 0},
     {"retention_time_l", 1},
     {"retention_time_u", 2},
@@ -292,7 +292,7 @@ START_SECTION(void pushValuesFromLine_(
     {"metaValue_sn_score_u", 10}
   };
 
-  const std::vector<String> sl1 { // all info are present
+  const std::vector<std::string> sl1 { // all info are present
     "component1",
     "0.1", "0.2",
     "0.3", "0.4",
@@ -301,7 +301,7 @@ START_SECTION(void pushValuesFromLine_(
     "0.9", "1.0"
   };
 
-  const std::vector<String> sl2 { // component_name is empty
+  const std::vector<std::string> sl2 { // component_name is empty
     "",
     "0.1", "0.2",
     "0.3", "0.4",
@@ -310,7 +310,7 @@ START_SECTION(void pushValuesFromLine_(
     "0.9", "1.0"
   };
 
-  const std::vector<String> sl3 { // testing defaults
+  const std::vector<std::string> sl3 { // testing defaults
     "component3",
     "", "",
     "", "",
@@ -355,11 +355,11 @@ END_SECTION
 
 START_SECTION(void pushValuesFromLine_(
   const StringList& line,
-  const std::map<String, Size>& headers,
+  const std::map<std::string, Size>& headers,
   std::vector<MRMFeatureQC::ComponentGroupQCs>& cg_qcs
 ) const)
 {
-  const std::map<String, Size> headers {
+  const std::map<std::string, Size> headers {
     {"component_group_name", 0},
     {"n_heavy_l", 1},
     {"n_heavy_u", 2},
@@ -390,7 +390,7 @@ START_SECTION(void pushValuesFromLine_(
     {"metaValue_sn_score_u", 27}
   };
 
-  const std::vector<String> sl1 { // all info are present
+  const std::vector<std::string> sl1 { // all info are present
     "component_group_1",
     "1", "2",
     "3", "4",
@@ -408,7 +408,7 @@ START_SECTION(void pushValuesFromLine_(
     "0.9", "1.0"
   };
 
-  const std::vector<String> sl2 { // component_name is empty
+  const std::vector<std::string> sl2 { // component_name is empty
     "",
     "1", "2",
     "3", "4",
@@ -426,7 +426,7 @@ START_SECTION(void pushValuesFromLine_(
     "0.9", "1.0"
   };
 
-  const std::vector<String> sl3 { // testing defaults
+  const std::vector<std::string> sl3 { // testing defaults
     "component_group_3",
     "", "",
     "", "",
@@ -513,13 +513,13 @@ START_SECTION(void pushValuesFromLine_(
 END_SECTION
 
 START_SECTION(void setPairValue_(
-  const String& key,
-  const String& value,
-  const String& boundary,
-  std::map<String, std::pair<double,double>>& meta_values_qc
+  const std::string& key,
+  const std::string& value,
+  const std::string& boundary,
+  std::map<std::string, std::pair<double,double>>& meta_values_qc
 ) const)
 {
-  std::map<String, std::pair<double,double>> metavalues;
+  std::map<std::string, std::pair<double,double>> metavalues;
   MRMFeatureQCFile_facade mrmfqcfile_f;
   mrmfqcfile_f.setPairValue_("meta1", "0.123", "u", metavalues); // first pair (initializing the upper bound)
   TEST_EQUAL(metavalues.size(), 1);
@@ -545,14 +545,14 @@ START_SECTION(void setPairValue_(
 END_SECTION
 
 START_SECTION(Int getCastValue_(
-  const std::map<String, Size>& headers,
+  const std::map<std::string, Size>& headers,
   const StringList& line,
-  const String& header,
+  const std::string& header,
   const Int default_value
 ) const)
 {
   MRMFeatureQCFile_facade mrmfqcfile_f;
-  const std::map<String, Size> headers {
+  const std::map<std::string, Size> headers {
     {"component_group_name", 0},
     {"n_heavy_l", 1},
     {"n_heavy_u", 2}
@@ -566,14 +566,14 @@ START_SECTION(Int getCastValue_(
 END_SECTION
 
 START_SECTION(double getCastValue_(
-  const std::map<String, Size>& headers,
+  const std::map<std::string, Size>& headers,
   const StringList& line,
-  const String& header,
+  const std::string& header,
   const double default_value
 ) const)
 {
   MRMFeatureQCFile_facade mrmfqcfile_f;
-  const std::map<String, Size> headers {
+  const std::map<std::string, Size> headers {
     {"component_name", 0},
     {"retention_time_l", 1},
     {"retention_time_u", 2}
@@ -586,15 +586,15 @@ START_SECTION(double getCastValue_(
 }
 END_SECTION
 
-START_SECTION(String getCastValue_(
-  const std::map<String, Size>& headers,
+START_SECTION(std::string getCastValue_(
+  const std::map<std::string, Size>& headers,
   const StringList& line,
-  const String& header,
-  const String& default_value
+  const std::string& header,
+  const std::string& default_value
 ) const)
 {
   MRMFeatureQCFile_facade mrmfqcfile_f;
-  const std::map<String, Size> headers {
+  const std::map<std::string, Size> headers {
     {"component_name", 0},
     {"ion_ratio_feature_name", 1}
   };

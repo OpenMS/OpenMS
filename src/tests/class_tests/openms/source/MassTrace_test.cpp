@@ -79,12 +79,12 @@ PeakType tmp_peak6 = fillPeak(158.238, 230.10254, 339.0);
 peak_vec.push_back(tmp_peak6);
 peak_lst.push_back(tmp_peak6);
 
-String si, sm, sr;
+std::string si, sm, sr;
 for (Size i = 0; i<peak_vec.size(); ++i)
 {
-  si += ", " + String(peak_vec[i].getIntensity());
-  sm += ", " + String(peak_vec[i].getMZ());
-  sr += ", " + String(peak_vec[i].getRT());
+  si += ", " + StringUtils::toStr(peak_vec[i].getIntensity());
+  sm += ", " + StringUtils::toStr(peak_vec[i].getMZ());
+  sr += ", " + StringUtils::toStr(peak_vec[i].getRT());
 }
 std::cout << sr << "\n" << sm << "\n" << si << "\n\n";
 
@@ -291,19 +291,19 @@ END_SECTION
 
 /////
 
-START_SECTION((String getLabel() const ))
+START_SECTION((std::string getLabel() const ))
 {
-  const String test_mt_label = test_mt.getLabel();
+  const std::string test_mt_label = test_mt.getLabel();
   TEST_EQUAL(test_mt_label, "");
 }
 END_SECTION
 
 /////
 
-START_SECTION((void setLabel(const String& label)))
+START_SECTION((void setLabel(const std::string& label)))
 {
   test_mt.setLabel("TEST_TRACE");
-  String test_mt_label = test_mt.getLabel();
+  std::string test_mt_label = test_mt.getLabel();
 
   TEST_EQUAL(test_mt_label, "TEST_TRACE");
 }
@@ -577,7 +577,7 @@ START_SECTION((double estimateFWHM(bool use_smoothed_ints = false)))
 END_SECTION
 
 /////
-START_SECTION(static MT_QUANTMETHOD getQuantMethod(const String& val))
+START_SECTION(static MT_QUANTMETHOD getQuantMethod(const std::string& val))
   
   TEST_EQUAL(MassTrace::getQuantMethod("area"), MassTrace::MT_QUANT_AREA)
   TEST_EQUAL(MassTrace::getQuantMethod("median"), MassTrace::MT_QUANT_MEDIAN)

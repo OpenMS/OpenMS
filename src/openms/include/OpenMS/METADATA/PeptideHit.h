@@ -15,7 +15,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
@@ -85,7 +85,7 @@ public:
    */
   struct OPENMS_DLLAPI PeakAnnotation
   {
-    String annotation = "";  // e.g. [alpha|ci$y3-H2O-NH3]
+    std::string annotation;  // e.g. [alpha|ci$y3-H2O-NH3]
     int charge = 0;
     double mz = -1.;
     double intensity = 0.;
@@ -94,7 +94,7 @@ public:
 
     bool operator==(const PeptideHit::PeakAnnotation& other) const;
 
-    static void writePeakAnnotationsString_(String& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations);
+    static void writePeakAnnotationsString_(std::string& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations);
 
   };
 
@@ -200,10 +200,10 @@ public:
     class OPENMS_DLLAPI PepXMLAnalysisResult
     {
 public:
-      String score_type; /// e.g. peptideprophet / interprophet
+      std::string score_type; /// e.g. peptideprophet / interprophet
       bool higher_is_better{}; /// is higher score better ?
       double main_score{}; /// posterior probability for example
-      std::map<String, double> sub_scores; /// additional scores attached to the original, aggregated score
+      std::map<std::string, double> sub_scores; /// additional scores attached to the original, aggregated score
 
       bool operator==(const PepXMLAnalysisResult& rhs) const
       {
@@ -349,7 +349,7 @@ public:
     //@}
 
     /// extracts the set of non-empty protein accessions from peptide evidences
-    std::set<String> extractProteinAccessionsSet() const;
+    std::set<std::string> extractProteinAccessionsSet() const;
 
 protected:
     AASequence sequence_;

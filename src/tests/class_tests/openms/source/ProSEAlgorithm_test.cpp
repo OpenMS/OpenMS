@@ -52,6 +52,7 @@ public:
   using ProSEAlgorithm::last_calibration_result_;
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
+  using ProSEAlgorithm::preprocessSpectra_;
 };
 
 // --- Shared calibration fixture -------------------------------------------------
@@ -138,7 +139,7 @@ static PeakMap build_calibration_spectra_(const vector<double>& ppm_shifts)
     prec.setMZ(mz * (1.0 + ppm_shifts[emitted] * 1e-6));
     prec.setCharge(charge);
     spec.setPrecursors({prec});
-    spec.setNativeID("spectrum=" + String(spectra.size()));
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
 
     spectra.addSpectrum(std::move(spec));
     ++emitted;
@@ -360,7 +361,7 @@ START_SECTION(([EXTRA] Synthetic modification discovery - open search))
       prec.setMZ(shifted_mz);
       prec.setCharge(charge);
       spec.setPrecursors({prec});
-      spec.setNativeID("spectrum=" + String(spectra.size()));
+      spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
 
       spectra.addSpectrum(std::move(spec));
       created++;
@@ -662,7 +663,7 @@ START_SECTION(([EXTRA] FDR-filtered modification discovery))
       prec.setMZ(shifted_mz);
       prec.setCharge(charge);
       spec.setPrecursors({prec});
-      spec.setNativeID("spectrum=" + String(spectra.size()));
+      spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
 
       spectra.addSpectrum(std::move(spec));
       created++;
@@ -808,7 +809,7 @@ START_SECTION(([EXTRA] Closed search baseline))
     prec.setMZ(seq.getMZ(charge));
     prec.setCharge(charge);
     spec.setPrecursors({prec});
-    spec.setNativeID("spectrum=" + String(spectra.size()));
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
 
     spectra.addSpectrum(std::move(spec));
   }
@@ -836,6 +837,97 @@ START_SECTION(([EXTRA] Closed search baseline))
   TEST_TRUE(pep_ids.size() > 0)
   TEST_EQUAL(prot_ids.size(), 1)
   TEST_EQUAL(prot_ids[0].getSearchEngine(), "ProSE")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Closed search with c/z ions toggled - ETD-style fragmentation))
+{
+  // ProSE can score c/z fragment ions (e.g. ETD/ECD data) via the
+  // ions:add_c_ions / ions:add_z_ions toggles. Build spectra that contain ONLY
+  // c/z ions and confirm a c/z-enabled search identifies the peptides, while a
+  // default (b/y) search on the same spectra does not -- the c/z peaks are
+  // shifted ~16-17 Da from b/y and cannot be matched as b/y.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+
+  // TheoreticalSpectrumGenerator configured to emit c/z ions only
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_b_ions", "false");
+  tsg_param.setValue("add_y_ions", "false");
+  tsg_param.setValue("add_c_ions", "true");
+  tsg_param.setValue("add_z_ions", "true");
+  tsg_param.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_param);
+
+  // fully-tryptic peptides of the protein with no C/M (no fixed/variable mods)
+  vector<string> test_seqs = { "VLGFHQR", "THQPSANLDIK" };
+
+  PeakMap spectra;
+  double rt = 100.0;
+  for (const auto& seq_str : test_seqs)
+  {
+    AASequence seq = AASequence::fromString(seq_str);
+    int charge = 2;
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, seq, 1, 1);
+    spec.sortByPosition();
+    spec.setMSLevel(2);
+    spec.setRT(rt);
+    rt += 1.0;
+    Precursor prec;
+    prec.setMZ(seq.getMZ(charge));
+    prec.setCharge(charge);
+    spec.setPrecursors({prec});
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
+    spectra.addSpectrum(std::move(spec));
+  }
+
+  auto run_search = [&](bool enable_cz) {
+    ProSEAlgorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("precursor:mass_tolerance_lower", 10.0);
+    p.setValue("precursor:mass_tolerance_upper", 10.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("modifications:fixed", vector<string>{});
+    p.setValue("modifications:variable", vector<string>{});
+    p.setValue("decoys", "false");
+    p.setValue("peptide:min_size", 7);
+    p.setValue("peptide:max_size", 40);
+    p.setValue("peptide:missed_cleavages", 1);
+    if (enable_cz)
+    {
+      p.setValue("ions:add_b_ions", "false");
+      p.setValue("ions:add_y_ions", "false");
+      p.setValue("ions:add_c_ions", "true");
+      p.setValue("ions:add_z_ions", "true");
+    }
+    algo.setParameters(p);
+    vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids;
+    auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+    TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    return pep_ids;
+  };
+
+  // (1) c/z-enabled search identifies the peptides from the c/z spectra
+  PeptideIdentificationList cz_ids = run_search(true);
+  TEST_TRUE(cz_ids.size() > 0)
+  std::set<std::string> found;
+  for (const auto& pid : cz_ids)
+    for (const auto& hit : pid.getHits())
+      found.insert(hit.getSequence().toUnmodifiedString());
+  TEST_EQUAL(found.count("VLGFHQR") + found.count("THQPSANLDIK") > 0, true)
+
+  // (2) a default (b/y) search on the same c/z spectra matches nothing
+  PeptideIdentificationList by_ids = run_search(false);
+  Size by_hits = 0;
+  for (const auto& pid : by_ids) by_hits += pid.getHits().size();
+  TEST_EQUAL(by_hits, 0)
 }
 END_SECTION
 
@@ -878,7 +970,7 @@ START_SECTION(([EXTRA] Ion mobility annotation))
     prec.setMZ(seq.getMZ(charge));
     prec.setCharge(charge);
     spec.setPrecursors({prec});
-    spec.setNativeID("spectrum=" + String(spectra.size()));
+    spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
 
     spectra.addSpectrum(std::move(spec));
   }
@@ -921,7 +1013,7 @@ START_SECTION(([EXTRA] Ion mobility annotation))
 
   // Verify IM unit on ProteinIdentification
   TEST_EQUAL(prot_ids[0].metaValueExists(Constants::UserParam::IM), true)
-  TEST_STRING_EQUAL(String(prot_ids[0].getMetaValue(Constants::UserParam::IM)), "1/K0")
+  TEST_STRING_EQUAL(StringUtils::toStr(prot_ids[0].getMetaValue(Constants::UserParam::IM)), "1/K0")
 }
 END_SECTION
 
@@ -950,13 +1042,13 @@ START_SECTION(([EXTRA] Edge cases - empty inputs))
 }
 END_SECTION
 
-START_SECTION((ExitCodes search(const String &, const String &, std::vector<ProteinIdentification> &, PeptideIdentificationList &) const))
+START_SECTION((ExitCodes search(const std::string &, const std::string &, std::vector<ProteinIdentification> &, PeptideIdentificationList &) const))
 {
   NOT_TESTABLE // tested via TOPP tool
 }
 END_SECTION
 
-START_SECTION((SearchResult searchWithModificationAnalysis(const String &, const String &, const String &) const))
+START_SECTION((SearchResult searchWithModificationAnalysis(const std::string &, const std::string &, const std::string &) const))
 {
   NOT_TESTABLE // tested via TOPP tool
 }
@@ -1018,7 +1110,7 @@ START_SECTION(([EXTRA] prepareContext + context-based search produces same IDs a
       prec.setMZ(pep.getMZ(2));
       prec.setCharge(2);
       spec.setPrecursors({prec});
-      spec.setNativeID("spectrum=" + String(spectra.size()));
+      spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
 
       spectra.addSpectrum(std::move(spec));
     }
@@ -1080,7 +1172,7 @@ START_SECTION(([EXTRA] prepareContext + context-based search produces same IDs a
 }
 END_SECTION
 
-START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<String>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<String>&, const String&) const))
+START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<std::string>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<std::string>&, const std::string&) const))
 {
   // Verify the multi-file in-memory FASTA overload validates input list lengths.
   ProSEAlgorithm algo;
@@ -1089,20 +1181,20 @@ START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::v
   algo.setParameters(p);
 
   vector<FASTAFile::FASTAEntry> fasta_db = {{"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLK"}};
-  vector<String> in_files = {"a.mzML", "b.mzML"};
-  vector<String> mismatched_base_names = {"a"}; // wrong size
+  vector<std::string> in_files = {"a.mzML", "b.mzML"};
+  vector<std::string> mismatched_base_names = {"a"}; // wrong size
 
   TEST_EXCEPTION(Exception::InvalidParameter,
                  algo.searchWithModificationAnalysis(in_files, fasta_db, mismatched_base_names, ""))
 
   // Empty input file list returns INPUT_FILE_EMPTY (no exception).
-  auto empty_res = algo.searchWithModificationAnalysis(std::vector<String>{}, fasta_db, std::vector<String>{}, "");
+  auto empty_res = algo.searchWithModificationAnalysis(std::vector<std::string>{}, fasta_db, std::vector<std::string>{}, "");
   TEST_EQUAL(empty_res.per_file.empty(), true)
   TEST_EQUAL(empty_res.aggregate.exit_code == ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY, true)
 }
 END_SECTION
 
-START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<String>&, const String&, const std::vector<String>&, const String&) const))
+START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<std::string>&, const std::string&, const std::vector<std::string>&, const std::string&) const))
 {
   NOT_TESTABLE // tested via TOPP tool (multi-file integration test)
 }
@@ -1380,6 +1472,100 @@ START_SECTION(([EXTRA] computeModMatchTolerance_ returns min(lower, upper)))
   p.setValue("precursor:mass_tolerance_upper", 2.0);
   algo.setParameters(p);
   TEST_REAL_SIMILAR(algo.computeModMatchTolerance_(), 0.5)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] preprocessSpectra_ never aborts; gates deisotoping on the Deisotoper limit (OpenMS#9619)))
+{
+  // Regression for OpenMS#9619: preprocessSpectra_ must never let Deisotoper throw
+  // inside its OpenMP region (an escaping exception calls std::terminate). It gates
+  // the Deisotoper call on Deisotoper::isToleranceSupported(), so even
+  // deisotope_requested=true with a low-resolution (out-of-range) tolerance is a
+  // safe no-op rather than an abort. Mode resolution (auto/true/false) is covered
+  // via the param in the next section.
+  auto make_exp = []()
+  {
+    PeakMap exp;
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setRT(1.0);
+    Precursor prec;
+    prec.setMZ(500.0);
+    prec.setCharge(2);
+    s.getPrecursors().push_back(prec);
+    for (double mz : {110.07, 120.08, 130.10, 200.10, 201.10, 300.20, 350.25, 500.30})
+    {
+      Peak1D p;
+      p.setMZ(mz);
+      p.setIntensity(1000.0f);
+      s.push_back(p);
+    }
+    exp.addSpectrum(s);
+    return exp;
+  };
+
+  // Low-resolution tolerance: requested true OR false -> never throws (deisotoping
+  // is skipped because the tolerance is out of the Deisotoper's supported range).
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, true);
+    TEST_EQUAL(exp.size(), 1)
+    TEST_EQUAL(exp[0].empty(), false)
+  }
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 150.0, true, true);
+    TEST_EQUAL(exp.size(), 1)
+  }
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, false);
+    TEST_EQUAL(exp.size(), 1)
+  }
+
+  // High-resolution tolerance: requested true -> deisotoping path runs (no throw);
+  // requested false -> skipped.
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.05, false, true);
+    TEST_EQUAL(exp.size(), 1)
+  }
+  {
+    PeakMap exp = make_exp();
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, false);
+    TEST_EQUAL(exp.size(), 1)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] fragment:deisotope parameter + validation (OpenMS#9619)))
+{
+  ProSEAlgorithm_test algo;
+  // Default is the instrument-aware "auto".
+  TEST_EQUAL(algo.getParameters().getValue("fragment:deisotope").toString(), "auto")
+
+  // deisotope=true with a low-resolution (Da > 0.1) tolerance is rejected up front,
+  // rather than aborting later inside the search.
+  Param p = algo.getParameters();
+  p.setValue("fragment:deisotope", "true");
+  p.setValue("fragment:mass_tolerance", 0.5);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  TEST_EXCEPTION(Exception::InvalidParameter, algo.setParameters(p))
+
+  // deisotope=true with a high-resolution tolerance is accepted.
+  p.setValue("fragment:mass_tolerance", 0.02);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  algo.setParameters(p);
+  TEST_EQUAL(algo.getParameters().getValue("fragment:deisotope").toString(), "true")
+
+  // "auto" and "false" accept any tolerance (incl. low-res).
+  p.setValue("fragment:deisotope", "auto");
+  p.setValue("fragment:mass_tolerance", 0.5);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  algo.setParameters(p);
+  p.setValue("fragment:deisotope", "false");
+  algo.setParameters(p);
+  TEST_EQUAL(algo.getParameters().getValue("fragment:deisotope").toString(), "false")
 }
 END_SECTION
 

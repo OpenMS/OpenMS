@@ -140,7 +140,7 @@ namespace OpenMS
     {
       NeighborMap& neighbors_ = data_->neighbors_;
 
-      if (neighbors_.find(map_index) == neighbors_.end() || distance < neighbors_[map_index].distance)
+      if (!neighbors_.contains(map_index) || distance < neighbors_[map_index].distance)
       {
         neighbors_[map_index] = Neighbor {distance, element};
         changed_ = true;

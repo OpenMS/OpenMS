@@ -49,7 +49,9 @@ runs:
         if (-not $NPROC) { $NPROC = 4 }
         $env:CMAKE_BUILD_PARALLEL_LEVEL = $NPROC
         Set-Location "${{ github.workspace }}\contrib\build"
-        cmake -G"Visual Studio 17 2022" -Ax64 -DBUILD_TYPE=ALL "${{ github.workspace }}\contrib"
+        # windows-2025 runners ship Visual Studio 2026 (v145). The "Visual Studio 18 2026"
+        # generator needs CMake >= 4.2 (the runner image provides CMake >= 4.3).
+        cmake -G"Visual Studio 18 2026" -Ax64 -DBUILD_TYPE=ALL "${{ github.workspace }}\contrib"
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     - name: Add THIRDPARTY
@@ -103,7 +105,14 @@ runs:
         conda info
 
         # None of the other arrow sublibraries seemed necessary, but it's an easy addition.
-        conda install -c conda-forge libarrow libparquet libzip -y
+        # doxygen and ghostscript are installed here (conda-forge) instead of via Chocolatey:
+        #  - choco 'doxygen.portable' downloads from doxygen.nl, which intermittently returns
+        #    HTTP 403 and aborts the whole job before it can build.
+        #  - choco 'ghostscript' (Ghostscript.app) hangs its installer (gs10071w64.exe) for the
+        #    full 2700s timeout on the windows-2025 (Server 2025) image, failing the job.
+        # Both are needed for the docs (enable_docs=ON, built on Windows to catch errors
+        # pre-merge); conda-forge ships them into Library/bin (already on PATH below).
+        conda install -c conda-forge libarrow libparquet libzip doxygen ghostscript -y
 
         # Set variables required for the following steps so they
         # don't need a conda environment or login shell:
@@ -130,7 +139,8 @@ runs:
       if: inputs.os == 'Windows'
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.8.3'    ## Note this version is build with win64_msvc2022_64 and should always match what we use
+        version: '6.8.3'    ## Qt 6.8.3 ships no msvc2026 build; the win64_msvc2022_64 binaries are
+                            ## ABI-compatible with the VS2026 (v145) toolchain (shared v14x ABI).
         arch: 'win64_msvc2022_64'
         cache: 'false'
         archives: 'qtsvg qtimageformats qtbase'
@@ -140,10 +150,11 @@ runs:
       if: inputs.os == 'Windows'
       shell: bash
       run: |
+        # NOTE: doxygen AND ghostscript are installed via conda-forge in the Conda step above,
+        # not here: choco 'doxygen.portable' frequently 403s from doxygen.nl, and choco
+        # 'ghostscript' hangs its installer for the full 2700s timeout on windows-2025.
         choco install -y --no-progress \
           ccache \
-          doxygen.portable \
-          ghostscript \
           graphviz
 
         # Use a custom NSIS, which provides 8-k string support and has
@@ -181,6 +192,15 @@ runs:
 
         echo "$(brew --prefix)/bin" >>"$GITHUB_PATH"
         echo "cmake_prefix=$(brew --prefix);$(brew --prefix libomp)" >>"$GITHUB_OUTPUT"
+
+    # macOS runners do not ship a .NET SDK. OpenMSThermoBridge targets net8.0
+    # and FindDotNetHost.cmake needs the nethost SDK pack for osx-arm64; the
+    # action installs the SDK and exports DOTNET_ROOT.
+    - name: Install .NET SDK (macOS)
+      if: inputs.os == 'macOS'
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
 
     - name: Combine Outputs
       id: combine

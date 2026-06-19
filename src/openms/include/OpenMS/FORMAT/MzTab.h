@@ -52,9 +52,9 @@ public:
 
     MzTabString getModOrSubstIdentifier() const;
 
-    String toCellString() const;
+    std::string toCellString() const;
 
-    void fromCellString(const String& s);
+    void fromCellString(const std::string& s);
 
     ~MzTabModification() = default;
 protected:
@@ -69,9 +69,9 @@ public:
 
     void setNull(bool b);
 
-    String toCellString() const;
+    std::string toCellString() const;
 
-    void fromCellString(const String& s);
+    void fromCellString(const std::string& s);
 
     std::vector<MzTabModification> get() const;
 
@@ -170,10 +170,10 @@ public:
 
     std::map<Size, MzTabCVMetaData> cv;
 
-    std::vector<String> colunit_protein;
-    std::vector<String> colunit_peptide;
-    std::vector<String> colunit_psm;
-    std::vector<String> colunit_small_molecule;
+    std::vector<std::string> colunit_protein;
+    std::vector<std::string> colunit_peptide;
+    std::vector<std::string> colunit_psm;
+    std::vector<std::string> colunit_small_molecule;
   };
 
   /// PRT - Protein section (Table based)
@@ -185,7 +185,7 @@ public:
     MzTabInteger taxid; ///< NEWT taxonomy for the species.
     MzTabString species; ///< Human readable name of the species
     MzTabString database; ///< Name of the protein database.
-    MzTabString database_version; ///< String Version of the protein database.
+    MzTabString database_version; ///< std::string Version of the protein database.
     MzTabParameterList search_engine; ///< Search engine(s) identifying the protein.
     std::map<Size, MzTabDouble>  best_search_engine_score; ///< best_search_engine_score[1-n]
     std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; ///< search_engine_score[index1]_ms_run[index2]
@@ -319,7 +319,7 @@ public:
     MzTabInteger taxid; ///< NEWT taxonomy for the species.
     MzTabString species; ///< Human readable name of the species
     MzTabString database; ///< Name of the used database.
-    MzTabString database_version; ///< String Version of the database (and optionally # of compounds).
+    MzTabString database_version; ///< std::string Version of the database (and optionally # of compounds).
     MzTabInteger reliability; ///< (1-3) The identification reliability.
     MzTabString uri; ///< The source entry’s location.
     MzTabSpectraRef spectra_ref; ///< Spectra identifying the small molecule.
@@ -500,44 +500,44 @@ public:
 
     void setOSMSectionRows(const MzTabOSMSectionRows& osd);
 
-    void setCommentRows(const std::map<Size, String>& com);
+    void setCommentRows(const std::map<Size, std::string>& com);
 
     void setEmptyRows(const std::vector<Size>& empty);
 
     const std::vector<Size>& getEmptyRows() const;
 
-    const std::map<Size, String>& getCommentRows() const;
+    const std::map<Size, std::string>& getCommentRows() const;
 
     /// Extract opt_ (custom, optional column names)
-    std::vector<String> getProteinOptionalColumnNames() const;
+    std::vector<std::string> getProteinOptionalColumnNames() const;
 
     /// Extract opt_ (custom, optional column names)
-    std::vector<String> getPeptideOptionalColumnNames() const;
+    std::vector<std::string> getPeptideOptionalColumnNames() const;
 
     /// Extract opt_ (custom, optional column names)
-    std::vector<String> getPSMOptionalColumnNames() const;
+    std::vector<std::string> getPSMOptionalColumnNames() const;
 
     /// Extract opt_ (custom, optional column names)
-    std::vector<String> getSmallMoleculeOptionalColumnNames() const;
+    std::vector<std::string> getSmallMoleculeOptionalColumnNames() const;
 
     /// Extract opt_ (custom, optional column names)
-    std::vector<String> getNucleicAcidOptionalColumnNames() const;
+    std::vector<std::string> getNucleicAcidOptionalColumnNames() const;
 
     /// Extract opt_ (custom, optional column names)
-    std::vector<String> getOligonucleotideOptionalColumnNames() const;
+    std::vector<std::string> getOligonucleotideOptionalColumnNames() const;
 
-    static void addMetaInfoToOptionalColumns(const std::set<String>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const String& id, const MetaInfoInterface& meta);
+    static void addMetaInfoToOptionalColumns(const std::set<std::string>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const std::string& id, const MetaInfoInterface& meta);
 
     /// Extract opt_ (custom, optional column names)
-    std::vector<String> getOSMOptionalColumnNames() const;
+    std::vector<std::string> getOSMOptionalColumnNames() const;
 
-    static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromModifications(const std::vector<String>& mods);
+    static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromModifications(const std::vector<std::string>& mods);
 
-    static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromVariableModifications(const std::vector<String>& mods);
+    static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromVariableModifications(const std::vector<std::string>& mods);
 
-    static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromFixedModifications(const std::vector<String>& mods);
+    static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromFixedModifications(const std::vector<std::string>& mods);
 
-    static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const String& filename);
+    static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const std::string& filename);
 
     /**
       * @brief Export peptide and protein identifications to mzTab
@@ -556,18 +556,18 @@ public:
     static MzTab exportIdentificationsToMzTab(
         const std::vector<ProteinIdentification>& prot_ids,
         const PeptideIdentificationList& peptide_ids,
-        const String& filename,
+        const std::string& filename,
         bool first_run_inference_only,
         bool export_empty_pep_ids = false,
         bool export_all_psms = false,
-        const String& title = "ID export from OpenMS");
+        const std::string& title = "ID export from OpenMS");
 
 
     /// Generate MzTab style list of PTMs from PeptideHit (PSM) object.
     /// All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).
     /// In contrast, all modifications are reported in the PSM section (see standard document for details).
     /// If meta values for modification localization are found, this information is added.
-    static MzTabModificationList extractModificationList(const PeptideHit& pep_hit, const std::vector<String>& fixed_mods, const std::vector<String>& localization_mods);
+    static MzTabModificationList extractModificationList(const PeptideHit& pep_hit, const std::vector<std::string>& fixed_mods, const std::vector<std::string>& localization_mods);
 
 	/**
 	 * @brief export linked peptide features aka consensus map
@@ -586,14 +586,14 @@ public:
 	 */
     static MzTab exportConsensusMapToMzTab(
       const ConsensusMap& consensus_map,
-      const String& filename,
+      const std::string& filename,
       const bool first_run_inference_only,
       const bool export_unidentified_features,
       const bool export_unassigned_ids,
       const bool export_subfeatures,
       const bool export_empty_pep_ids = false,
       const bool export_all_psms = false,
-      const String& title = "ConsensusMap export from OpenMS");
+      const std::string& title = "ConsensusMap export from OpenMS");
 
     class IDMzTabStream
     {
@@ -601,41 +601,41 @@ public:
         IDMzTabStream(
           const std::vector<const ProteinIdentification*>& prot_ids,
           const std::vector<const PeptideIdentification*>& peptide_ids,
-          const String& filename,
+          const std::string& filename,
           bool first_run_inference_only,
           bool export_empty_pep_ids = false,
           bool export_all_psms = false,
-          const String& title = "ID export from OpenMS");
+          const std::string& title = "ID export from OpenMS");
 
          const MzTabMetaData& getMetaData() const;
 
-         const std::vector<String>& getProteinOptionalColumnNames() const; 
-         const std::vector<String>& getPeptideOptionalColumnNames() const;
-         const std::vector<String>& getPSMOptionalColumnNames() const;
+         const std::vector<std::string>& getProteinOptionalColumnNames() const; 
+         const std::vector<std::string>& getPeptideOptionalColumnNames() const;
+         const std::vector<std::string>& getPSMOptionalColumnNames() const;
 
          bool nextPRTRow(MzTabProteinSectionRow& row);
          bool nextPEPRow(MzTabPeptideSectionRow& row);
          bool nextPSMRow(MzTabPSMSectionRow& row);
        private:
-         std::set<String> protein_hit_user_value_keys_;
-         std::set<String> peptide_id_user_value_keys_;
-         std::set<String> peptide_hit_user_value_keys_;
+         std::set<std::string> protein_hit_user_value_keys_;
+         std::set<std::string> peptide_id_user_value_keys_;
+         std::set<std::string> peptide_hit_user_value_keys_;
 
          // beautiful mapping structs
          std::map<Size, std::set<Size>> ind2prot_;
          std::map<Size, std::set<Size>> pg2prot_;
-         std::map<String, size_t> idrunid_2_idrunindex_;
-         std::map<Size, std::vector<std::pair<String, String>>> run_to_search_engines_;
-         std::map<Size, std::vector<std::vector<std::pair<String, String>>>> run_to_search_engines_settings_;
+         std::map<std::string, size_t> idrunid_2_idrunindex_;
+         std::map<Size, std::vector<std::pair<std::string, std::string>>> run_to_search_engines_;
+         std::map<Size, std::vector<std::vector<std::pair<std::string, std::string>>>> run_to_search_engines_settings_;
          std::map<std::pair<size_t,size_t>,size_t> map_id_run_fileidx_2_msfileidx_;
-         std::map<std::pair< String, unsigned >, unsigned> path_label_to_assay_;
+         std::map<std::pair< std::string, unsigned >, unsigned> path_label_to_assay_;
 
          std::vector<const ProteinIdentification*> prot_ids_;
          std::vector<const PeptideIdentification*> peptide_ids_;
 
          StringList ms_runs_;
          bool first_run_inference_;
-         String filename_;
+         std::string filename_;
          StringList fixed_mods_;
          /* currently unused
          bool export_unidentified_features_; 
@@ -654,9 +654,9 @@ public:
          size_t current_psm_idx_ = 0;
          MzTabString db_, db_version_;
 
-         std::vector<String> prt_optional_column_names_;
-         std::vector<String> pep_optional_column_names_;
-         std::vector<String> psm_optional_column_names_;
+         std::vector<std::string> prt_optional_column_names_;
+         std::vector<std::string> pep_optional_column_names_;
+         std::vector<std::string> psm_optional_column_names_;
 
          MzTabMetaData meta_data_;
     };
@@ -666,20 +666,20 @@ public:
        public:
         CMMzTabStream(
           const ConsensusMap& consensus_map,
-          const String& filename,
+          const std::string& filename,
           const bool first_run_inference_only,
           const bool export_unidentified_features,
           const bool export_unassigned_ids,
           const bool export_subfeatures,
           const bool export_empty_pep_ids = false,
           const bool export_all_psms = false,
-          const String& title = "ConsensusMap export from OpenMS");
+          const std::string& title = "ConsensusMap export from OpenMS");
 
          const MzTabMetaData& getMetaData() const;
 
-         const std::vector<String>& getProteinOptionalColumnNames() const; 
-         const std::vector<String>& getPeptideOptionalColumnNames() const;
-         const std::vector<String>& getPSMOptionalColumnNames() const;
+         const std::vector<std::string>& getProteinOptionalColumnNames() const; 
+         const std::vector<std::string>& getPeptideOptionalColumnNames() const;
+         const std::vector<std::string>& getPSMOptionalColumnNames() const;
 
          bool nextPRTRow(MzTabProteinSectionRow& row);
          bool nextPEPRow(MzTabPeptideSectionRow& row);
@@ -687,26 +687,26 @@ public:
 
        private:
          const ConsensusMap& consensus_map_;
-         std::set<String> protein_hit_user_value_keys_;
-         std::set<String> consensus_feature_user_value_keys_;
-         std::set<String> consensus_feature_peptide_identification_user_value_keys_;
-         std::set<String> consensus_feature_peptide_hit_user_value_keys_;
+         std::set<std::string> protein_hit_user_value_keys_;
+         std::set<std::string> consensus_feature_user_value_keys_;
+         std::set<std::string> consensus_feature_peptide_identification_user_value_keys_;
+         std::set<std::string> consensus_feature_peptide_hit_user_value_keys_;
 
          // beautiful mapping structs
          std::map<Size, std::set<Size>> ind2prot_;
          std::map<Size, std::set<Size>> pg2prot_;
-         std::map<String, size_t> idrunid_2_idrunindex_;
-         std::map<Size, std::vector<std::pair<String, String>>> run_to_search_engines_;
-         std::map<Size, std::vector<std::vector<std::pair<String, String>>>> run_to_search_engines_settings_;
+         std::map<std::string, size_t> idrunid_2_idrunindex_;
+         std::map<Size, std::vector<std::pair<std::string, std::string>>> run_to_search_engines_;
+         std::map<Size, std::vector<std::vector<std::pair<std::string, std::string>>>> run_to_search_engines_settings_;
          std::map<std::pair<size_t,size_t>,size_t> map_id_run_fileidx_2_msfileidx_;
-         std::map<std::pair< String, unsigned >, unsigned> path_label_to_assay_;
+         std::map<std::pair< std::string, unsigned >, unsigned> path_label_to_assay_;
 
          std::vector<const ProteinIdentification*> prot_ids_;
          std::vector<const PeptideIdentification*> peptide_ids_;
 
          StringList ms_runs_;
          bool first_run_inference_;
-         String filename_;
+         std::string filename_;
          StringList fixed_mods_;
          bool export_unidentified_features_; 
          bool export_subfeatures_;
@@ -725,9 +725,9 @@ public:
          size_t current_psm_idx_ = 0;
          MzTabString db_, db_version_;
 
-         std::vector<String> prt_optional_column_names_;
-         std::vector<String> pep_optional_column_names_;
-         std::vector<String> psm_optional_column_names_;
+         std::vector<std::string> prt_optional_column_names_;
+         std::vector<std::string> pep_optional_column_names_;
+         std::vector<std::string> psm_optional_column_names_;
 
          MzTabMetaData meta_data_;
     };
@@ -736,14 +736,14 @@ public:
   protected:
     // extract basic mappings
 
-    static std::map<String, Size> mapIDRunIdentifier2IDRunIndex_(const std::vector<const ProteinIdentification*>& prot_ids);
+    static std::map<std::string, Size> mapIDRunIdentifier2IDRunIndex_(const std::vector<const ProteinIdentification*>& prot_ids);
 
     static std::optional<MzTabPSMSectionRow> PSMSectionRowFromPeptideID_(
       PeptideIdentification const& pid,
       std::vector<ProteinIdentification const*> const& prot_id,
-      std::map<String, size_t>& idrun_2_run_index,
+      std::map<std::string, size_t>& idrun_2_run_index,
       std::map<std::pair<size_t, size_t>, size_t>& map_run_fileidx_2_msfileidx,
-      std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
+      std::map<Size, std::vector<std::pair<std::string, std::string>>>& run_to_search_engines,
       Size const current_psm_idx,
       Size const psm_id,
       MzTabString const& db,
@@ -756,27 +756,27 @@ public:
       const ConsensusMap& consensus_map,
       const StringList& ms_runs,
       const Size n_study_variables,
-      const std::set<String>& consensus_feature_user_value_keys,
-      const std::set<String>& peptide_identifications_user_value_keys,
-      const std::set<String>& peptide_hit_user_value_keys,
-      const std::map<String, size_t>& idrun_2_run_index,
+      const std::set<std::string>& consensus_feature_user_value_keys,
+      const std::set<std::string>& peptide_identifications_user_value_keys,
+      const std::set<std::string>& peptide_hit_user_value_keys,
+      const std::map<std::string, size_t>& idrun_2_run_index,
       const std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
-      const std::map< std::pair< String, unsigned >, unsigned>& path_label_to_assay,
-      const std::vector<String>& fixed_mods,
+      const std::map< std::pair< std::string, unsigned >, unsigned>& path_label_to_assay,
+      const std::vector<std::string>& fixed_mods,
       bool export_subfeatures);
 
     static MzTabPeptideSectionRow peptideSectionRowFromFeature_(
       const Feature& c, 
-      const std::set<String>& feature_user_value_keys,
-      const std::set<String>& peptide_identifications_user_value_keys,
-      const std::set<String>& peptide_hit_user_value_keys,
-      const std::vector<String>& fixed_mods);
+      const std::set<std::string>& feature_user_value_keys,
+      const std::set<std::string>& peptide_identifications_user_value_keys,
+      const std::set<std::string>& peptide_hit_user_value_keys,
+      const std::vector<std::string>& fixed_mods);
 
     static MzTabProteinSectionRow proteinSectionRowFromProteinHit_(
       const ProteinHit& hit,
       const MzTabString& db,
       const MzTabString& db_version,
-      const std::set<String>& protein_hit_user_value_keys);
+      const std::set<std::string>& protein_hit_user_value_keys);
 
     static MzTabProteinSectionRow nextProteinSectionRowFromProteinGroup_(
       const ProteinIdentification::ProteinGroup& group,
@@ -792,14 +792,14 @@ public:
       const MzTabString& db_version);
 
     static void addMSRunMetaData_(
-      const std::map<size_t, String>& msrunindex_2_msfilename,
+      const std::map<size_t, std::string>& msrunindex_2_msfilename,
       MzTabMetaData& meta_data);
 
     static void mapBetweenMSFileNameAndMSRunIndex_(
       const std::vector<const ProteinIdentification*>& prot_ids, 
       bool skip_first, 
-      std::map<String, size_t>& msfilename_2_msrunindex,
-      std::map<size_t, String>& msrunindex_2_msfilename);
+      std::map<std::string, size_t>& msfilename_2_msrunindex,
+      std::map<size_t, std::string>& msrunindex_2_msfilename);
 
     static size_t getQuantStudyVariables_(const ProteinIdentification& pid);
 
@@ -807,21 +807,21 @@ public:
 
     // TODO: move to core classes?
     static void getConsensusMapMetaValues_(const ConsensusMap& consensus_map, 
-      std::set<String>& consensus_feature_user_value_keys,
-      std::set<String>& peptide_identification_user_value_keys,
-      std::set<String>& peptide_hit_user_value_keys);
+      std::set<std::string>& consensus_feature_user_value_keys,
+      std::set<std::string>& peptide_identification_user_value_keys,
+      std::set<std::string>& peptide_hit_user_value_keys);
 
     static void getFeatureMapMetaValues_(const FeatureMap& feature_map,
-      std::set<String>& feature_user_value_keys,
-      std::set<String>& peptide_identification_user_value_keys,
-      std::set<String>& peptide_hit_user_value_keys);
+      std::set<std::string>& feature_user_value_keys,
+      std::set<std::string>& peptide_identification_user_value_keys,
+      std::set<std::string>& peptide_hit_user_value_keys);
 
     static void getIdentificationMetaValues_(
       const std::vector<const ProteinIdentification*>& prot_ids, 
       std::vector<const PeptideIdentification*>& peptide_ids_,
-      std::set<String>& protein_hit_user_value_keys,
-      std::set<String>& peptide_id_user_value_keys,
-      std::set<String>& peptide_hit_user_value_keys);
+      std::set<std::string>& protein_hit_user_value_keys,
+      std::set<std::string>& peptide_id_user_value_keys,
+      std::set<std::string>& peptide_hit_user_value_keys);
 
     // determine spectrum reference identifier type (e.g., Thermo nativeID) from spectrum references
     static MzTabParameter getMSRunSpectrumIdentifierType_(const std::vector<const PeptideIdentification*>& peptide_ids_);
@@ -830,10 +830,10 @@ public:
       const std::vector<const ProteinIdentification*>& prot_ids,
       const std::vector<const PeptideIdentification*>& pep_ids,
       bool skip_first_run,
-      std::map<std::tuple<String, String, String>, std::set<Size>>& search_engine_to_runs,
-      std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
-      std::map<Size, std::vector<std::vector<std::pair<String, String>>>>& run_to_search_engines_settings,
-      std::map<String, std::vector<std::pair<String, String>>>& search_engine_to_settings);
+      std::map<std::tuple<std::string, std::string, std::string>, std::set<Size>>& search_engine_to_runs,
+      std::map<Size, std::vector<std::pair<std::string, std::string>>>& run_to_search_engines,
+      std::map<Size, std::vector<std::vector<std::pair<std::string, std::string>>>>& run_to_search_engines_settings,
+      std::map<std::string, std::vector<std::pair<std::string, std::string>>>& search_engine_to_settings);
 
     static std::map<Size, std::set<Size>> mapGroupsToProteins_(
       const std::vector<ProteinIdentification::ProteinGroup>& groups, 
@@ -841,14 +841,14 @@ public:
 
     static void addSearchMetaData_(
         const std::vector<const ProteinIdentification*>& prot_ids,
-        const std::map<std::tuple<String, String, String>, std::set<Size>>& search_engine_to_runs,
-        const std::map<String, std::vector<std::pair<String,String>>>& search_engine_to_settings,
+        const std::map<std::tuple<std::string, std::string, std::string>, std::set<Size>>& search_engine_to_runs,
+        const std::map<std::string, std::vector<std::pair<std::string, std::string>>>& search_engine_to_settings,
         MzTabMetaData& meta_data,
         bool first_run_inference_only);
 
     static void mapIDRunFileIndex2MSFileIndex_(
       const std::vector<const ProteinIdentification*>& prot_ids,
-      const std::map<String, size_t>& msfilename_2_msrunindex,
+      const std::map<std::string, size_t>& msfilename_2_msrunindex,
       bool skip_first_run, 
       std::map<std::pair<size_t, size_t>, size_t>& map_run_fileidx_2_msfileidx);
 
@@ -873,7 +873,7 @@ public:
     MzTabOligonucleotideSectionRows oligonucleotide_data_;
     MzTabOSMSectionRows osm_data_; ///</ oligonucleotide-spectrum matches
     std::vector<Size> empty_rows_; ///< index of empty rows
-    std::map<Size, String> comment_rows_; ///< comments
+    std::map<Size, std::string> comment_rows_; ///< comments
   };
 
 } // namespace OpenMS

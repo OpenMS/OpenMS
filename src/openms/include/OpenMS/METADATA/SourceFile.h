@@ -57,14 +57,14 @@ public:
     bool operator!=(const SourceFile& rhs) const;
 
     /// returns the file name
-    const String& getNameOfFile() const;
+    const std::string& getNameOfFile() const;
     /// sets the file name
-    void setNameOfFile(const String& name_of_file);
+    void setNameOfFile(const std::string& name_of_file);
 
     /// returns the file path
-    const String& getPathToFile() const;
+    const std::string& getPathToFile() const;
     /// sets the file path
-    void setPathToFile(const String& path_path_to_file);
+    void setPathToFile(const std::string& path_path_to_file);
 
     /// returns the file size in MB
     float getFileSize() const;
@@ -72,36 +72,36 @@ public:
     void setFileSize(float file_size);
 
     /// returns the file type
-    const String& getFileType() const;
+    const std::string& getFileType() const;
     /// sets the file type
-    void setFileType(const String& file_type);
+    void setFileType(const std::string& file_type);
 
     /// returns the file's checksum
-    const String& getChecksum() const;
+    const std::string& getChecksum() const;
     /// sets the file's checksum
-    void setChecksum(const String& checksum, ChecksumType type);
+    void setChecksum(const std::string& checksum, ChecksumType type);
     /// returns the checksum type
     ChecksumType getChecksumType() const;
 
     /// Returns the native ID type of the spectra
-    const String& getNativeIDType() const;
+    const std::string& getNativeIDType() const;
     /// Sets the native ID type of the spectra
-    void setNativeIDType(const String& type);
+    void setNativeIDType(const std::string& type);
 
     /// Returns the nativeID of the spectra
-    const String& getNativeIDTypeAccession() const;
+    const std::string& getNativeIDTypeAccession() const;
     /// Sets the native ID of the spectra
-    void setNativeIDTypeAccession(const String& accesssion);
+    void setNativeIDTypeAccession(const std::string& accesssion);
 
 protected:
-    String name_of_file_;
-    String path_to_file_;
+    std::string name_of_file_;
+    std::string path_to_file_;
     double file_size_;
-    String file_type_;
-    String checksum_;
+    std::string file_type_;
+    std::string checksum_;
     ChecksumType checksum_type_ = SourceFile::ChecksumType::UNKNOWN_CHECKSUM;
-    String native_id_type_;
-    String native_id_type_accession_;
+    std::string native_id_type_;
+    std::string native_id_type_accession_;
   };
 } // namespace OpenMS
 
