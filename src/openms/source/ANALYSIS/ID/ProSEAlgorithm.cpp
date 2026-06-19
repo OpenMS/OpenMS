@@ -85,7 +85,7 @@ namespace OpenMS
     IntList isotopes = {0, 1};
     defaults_.setValue("precursor:isotopes", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)");
 
-    defaults_.setValue("fragment:mass_tolerance", 10.0, "Fragment mass tolerance");
+    defaults_.setValue("fragment:mass_tolerance", 20.0, "Fragment mass tolerance");
 
     std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
     fragment_mass_tolerance_unit_valid_strings.emplace_back("ppm");
