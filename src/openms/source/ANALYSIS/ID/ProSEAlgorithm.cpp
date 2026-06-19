@@ -822,7 +822,10 @@ namespace OpenMS
     // literal fall-back to the configured decoy_prefix so custom markers
     // outside the vocabulary are still recognised.
     FASTAContainer<TFI_Vector> container(db);
-    const DecoyHelper::Result det = DecoyHelper::findDecoyString(container);
+    // quiet=true: a target-only database is a normal case here (auto/generate
+    // then synthesise decoys), so suppress DecoyHelper's "unable to determine
+    // decoy string" ERROR/WARN noise — we handle the negative result ourselves.
+    const DecoyHelper::Result det = DecoyHelper::findDecoyString(container, /*quiet=*/true);
 
     bool existing = det.success;
     std::string ext_string = det.success ? det.name : decoy_prefix_;
