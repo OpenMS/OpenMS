@@ -103,6 +103,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     {
       std::vector<SearchResult> per_file;
       SearchResult aggregate;
+
+      /// Effective decoy marker resolved from the shared database, for a
+      /// caller-side merged-PSM protein-FDR step (e.g. the ProSE TOPP tool's
+      /// -out_merged path). Empty when the search was target-only (decoys=ignore).
+      std::string decoy_string;
+      /// Position of @c decoy_string (true = prefix, false = suffix).
+      bool decoy_is_prefix = true;
+      /// True when the searched databases contained decoys (FDR possible).
+      bool have_decoys = false;
     };
 
     /**
@@ -128,6 +137,17 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       /// for callers that built ctx via prepareContext() and want to
       /// run multiple search() calls against it.
       bool release_fragment_index_after_scoring = false;
+
+      /// Effective decoy marker carried by `db` (auto-detected for external
+      /// decoys, or the configured prefix for internally generated ones).
+      /// Empty when the search is target-only. Feeds PeptideIndexing and the
+      /// protein-level FDR so they recognise the same decoys that were searched.
+      std::string decoy_string;
+      /// Position of `decoy_string` (true = prefix, false = suffix).
+      bool decoy_is_prefix = true;
+      /// True when `db` contains decoy entries (generated or external), i.e.
+      /// target-decoy FDR is possible.
+      bool have_decoys = false;
     };
 
     /**
@@ -366,36 +386,64 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// @brief filter, deisotope, decharge spectra
     static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested);
 
+    /// How decoys are obtained/recognised for a search (parameter "decoys").
+    enum class DecoyMode_
+    {
+      AUTO,     ///< ensure decoys: use those already present, otherwise generate
+      GENERATE, ///< always (re)generate decoys from the targets (strip existing first)
+      IGNORE    ///< search targets only; remove any decoys present in the database
+    };
+
     /**
-     * @brief Build a decoy-augmented copy of the input FASTA.
+     * @brief Resolved decoy handling for one concrete input database.
      *
-     * Used by prepareContext() and the chunked search path. Produces FASTA
-     * entries only — does not construct a FragmentIndex. If decoys_ is false
-     * the input is returned unchanged.
+     * Produced by resolveDecoyStrategy_() and consumed by
+     * buildDecoyAugmentedDB_() and the downstream PeptideIndexing / FDR steps,
+     * so the same decoys that are searched are also the ones scored.
+     */
+    struct DecoyStrategy_
+    {
+      bool generate{false};       ///< reverse target proteins to synthesise decoys
+      bool strip_existing{false}; ///< drop pre-existing decoy entries before searching
+      bool have_decoys{false};    ///< searched DB will contain decoys (FDR possible)
+      std::string decoy_string;   ///< effective marker for PeptideIndexing + protein FDR
+      bool is_prefix{true};       ///< position of decoy_string
+      std::string strip_string;   ///< marker of pre-existing decoys to strip
+      bool strip_is_prefix{true}; ///< position of strip_string
+    };
+
+    /**
+     * @brief Decide how to obtain/recognise decoys for @p db.
+     *
+     * Detects pre-existing decoys via the common-marker heuristic
+     * (OpenMS::DecoyHelper), falling back to the configured decoy_prefix for
+     * custom markers, then maps the "decoys" mode (auto/generate/ignore) onto a
+     * concrete DecoyStrategy_.
+     */
+    DecoyStrategy_ resolveDecoyStrategy_(
+        const std::vector<FASTAFile::FASTAEntry>& db) const;
+
+    /**
+     * @brief ProSE parameters made safe to hand to a FragmentIndex.
+     *
+     * FragmentIndex declares its own (unused) boolean "decoys" flag with
+     * restrictions {true,false}. ProSE's "decoys" parameter is the richer
+     * auto/generate/ignore enum and manages decoys at the database level, so
+     * forwarding it verbatim would trip FragmentIndex's validation. This returns
+     * getParameters() with "decoys" overridden to "false".
+     */
+    Param fragmentIndexParameters_() const;
+
+    /**
+     * @brief Build the searched database according to @p strategy.
+     *
+     * Optionally strips pre-existing decoys and/or generates fresh decoys by
+     * reversing the target proteins. Produces FASTA entries only — does not
+     * construct a FragmentIndex.
      */
     std::vector<FASTAFile::FASTAEntry> buildDecoyAugmentedDB_(
-        const std::vector<FASTAFile::FASTAEntry>& fasta_db) const;
-
-    /**
-     * @brief Test whether an accession carries the decoy marker.
-     *
-     * Matches decoy_prefix_ as either a prefix or a suffix of the accession,
-     * so databases that tag decoys at the end (e.g. "PROT_DECOY") are detected
-     * as well as the conventional leading "DECOY_PROT". No extra parameter is
-     * required; both orientations of the same marker string are accepted.
-     */
-    bool isDecoyAccession_(const std::string& accession) const;
-
-    /**
-     * @brief Detect whether decoys are tagged by prefix or suffix in @p db.
-     *
-     * Returns "suffix" only when the decoy marker is found exclusively at the
-     * end of accessions (i.e. some accession ends with it and none begins with
-     * it); otherwise returns "prefix". The result feeds PeptideIndexing's
-     * "decoy_string_position", which accepts a single orientation.
-     */
-    std::string detectDecoyStringPosition_(
-        const std::vector<FASTAFile::FASTAEntry>& db) const;
+        const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+        const DecoyStrategy_& strategy) const;
 
     /**
      * @brief Build a strided protein sample for chunked calibration.
@@ -418,9 +466,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *
      * Splits full_db into chunks of database_chunk_size_ proteins, builds a
      * FragmentIndex per chunk, scores all spectra against each chunk, and
-     * accumulates hits before a single post-processing pass. full_db must
-     * already contain decoys if decoys_ is true. Taken by non-const reference
-     * because PeptideIndexing::run() mutates it.
+     * accumulates hits before a single post-processing pass. full_db is the
+     * already-resolved database (decoys generated/stripped per @p strategy);
+     * @p strategy carries the effective decoy marker for PeptideIndexing and
+     * FDR. Taken by non-const reference because PeptideIndexing::run() mutates it.
      *
      * @return EXECUTION_OK on success; INPUT_FILE_EMPTY / UNEXPECTED_RESULT /
      *         UNKNOWN_ERROR on PeptideIndexing failure.
@@ -428,6 +477,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     ExitCodes searchChunked_(
         PeakMap& spectra,
         std::vector<FASTAFile::FASTAEntry>& full_db,
+        const DecoyStrategy_& strategy,
         std::vector<ProteinIdentification>& protein_ids,
         PeptideIdentificationList& peptide_ids) const;
 
@@ -521,7 +571,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     std::string enzyme_;
 
-    bool decoys_;
+    DecoyMode_ decoy_mode_{DecoyMode_::AUTO};
     std::string decoy_prefix_;
 
     double fdr_psm_{0.0};
