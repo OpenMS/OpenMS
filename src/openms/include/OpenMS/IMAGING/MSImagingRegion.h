@@ -25,6 +25,8 @@ namespace OpenMS
     is reusable as a bare footprint (e.g. a microscopy annotation). Construct
     via the rectangle() / fromMask() factories. Coordinates are zero-based and
     bounding boxes are inclusive on both ends.
+
+    @ingroup Imaging
   */
 class OPENMS_DLLAPI MSImagingRegion final
 {

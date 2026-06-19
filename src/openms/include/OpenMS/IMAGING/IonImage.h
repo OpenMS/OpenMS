@@ -26,6 +26,8 @@ namespace OpenMS
     are a stack of independent 2D acquisitions and should be handled as a
     collection of IonImage objects (one per section), matching the OpenMS
     "vector of units" idiom.
+
+    @ingroup Imaging
   */
   class OPENMS_DLLAPI IonImage final
   {

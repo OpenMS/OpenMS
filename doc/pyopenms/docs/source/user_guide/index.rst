@@ -71,6 +71,8 @@ headings and structure.
    reading_raw_ms_data
    other_ms_data_formats
    mzml_files
+   mass_spec_imaging
+   file_inspection
    scoring_spectra_hyperscore
    export_pandas_dataframe
    query_msexperiment_massql

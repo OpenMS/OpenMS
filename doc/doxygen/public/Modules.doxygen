@@ -113,6 +113,20 @@
 
 */
 
+// ----------------------------- Imaging -------------------------------
+
+/**
+	@defgroup Imaging Imaging
+
+	@brief Mass spectrometry imaging (MSI) classes.
+
+	This module contains classes for working with spatially-resolved mass
+	spectrometry data (MSI / MALDI imaging). The key classes are
+	MSImagingExperiment (top-level container), MSImagingGeometry (pixel grid
+	metadata and spectrum-index lookup), MSImagingRegion (spatial sub-region
+	footprint), and IonImage (2D intensity buffer for a single m/z window).
+*/
+
 // ----------------------------- SpectraComparison -------------------------------
 
 /**

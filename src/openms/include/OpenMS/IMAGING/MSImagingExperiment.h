@@ -25,6 +25,8 @@ namespace OpenMS
 
   A 3D / serial-section experiment is modeled as a collection of
   MSImagingExperiment objects, one per section.
+
+  @ingroup Imaging
 */
 class OPENMS_DLLAPI MSImagingExperiment final
 {

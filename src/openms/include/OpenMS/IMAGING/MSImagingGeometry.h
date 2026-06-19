@@ -28,6 +28,8 @@ namespace OpenMS
   3D MSI is intentionally not modeled here. Serial-section experiments
   should be handled as a collection of MSImagingExperiment objects (one
   per section).
+
+  @ingroup Imaging
 */
 class OPENMS_DLLAPI MSImagingGeometry final
 {
