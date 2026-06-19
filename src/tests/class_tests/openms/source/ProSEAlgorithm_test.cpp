@@ -1229,6 +1229,77 @@ START_SECTION((ExitCodes search(const std::string &, const std::string &, std::v
 }
 END_SECTION
 
+START_SECTION(([EXTRA] file-based single-file search retains decoys when protein FDR is OFF))
+{
+  // Decoy reporting is tied to protein-level FDR, NOT to PSM-level FDR. With FDR:protein==0
+  // the single-file (file-path) search must RETAIN decoys after PSM filtering: they are the
+  // intermediate evidence a later/global protein FDR or cross-file merge needs. (FDR:protein>0
+  // finalizes and removes them — see the section above.) This pins the decoupling of PSM-level
+  // FDR from decoy removal.
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  std::string tmp_mzml;
+  NEW_TMP_FILE(tmp_mzml)
+  tmp_mzml += ".mzML";
+  FileHandler().storeExperiment(tmp_mzml, spectra, {FileTypes::MZML});
+  std::string tmp_fasta;
+  NEW_TMP_FILE(tmp_fasta)
+  tmp_fasta += ".fasta";
+  FASTAFile().store(tmp_fasta, fasta_db);
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "true");
+  p.setValue("FDR:PSM", 0.5);       // PSM filtering ON (lenient, so decoys survive the q-value cut) ...
+  p.setValue("FDR:protein", 0.0);   // ... but protein FDR OFF -> decoys must be retained
+  algo.setParameters(p);
+
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(tmp_mzml, tmp_fasta, prot_ids, pep_ids);
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(prot_ids.size(), 1)
+
+  // Decoy proteins survive (no protein-FDR finalization happened).
+  Size decoy_proteins = 0;
+  for (const auto& ph : prot_ids[0].getHits())
+  {
+    if (ph.getAccession().rfind("DECOY_", 0) == 0) { ++decoy_proteins; }
+  }
+  TEST_TRUE(decoy_proteins > 0)
+
+  // Decoy PSMs survive PSM-level FDR filtering (PSM FDR annotates + filters, never strips decoys).
+  Size decoy_psms = 0;
+  for (const auto& pid : pep_ids)
+  {
+    for (const auto& hit : pid.getHits())
+    {
+      if (hit.metaValueExists("target_decoy")
+          && hit.getMetaValue("target_decoy").toString().find("decoy") != std::string::npos) { ++decoy_psms; }
+    }
+  }
+  TEST_TRUE(decoy_psms > 0)
+
+  // The decoy-retaining result is still valid idXML (stores + reloads).
+  std::string tmp_out;
+  NEW_TMP_FILE(tmp_out)
+  tmp_out += ".idXML";
+  FileHandler().storeIdentifications(tmp_out, prot_ids, pep_ids, {FileTypes::IDXML});
+  std::vector<ProteinIdentification> rprot;
+  PeptideIdentificationList rpep;
+  FileHandler().loadIdentifications(tmp_out, rprot, rpep, {FileTypes::IDXML});
+  TEST_EQUAL(rprot.size(), 1)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] in-memory search applies PSM-level FDR only, never protein FDR))
 {
   // Per-file / multi-file searches must NOT apply protein FDR: FDR does not compose across
@@ -1266,6 +1337,49 @@ START_SECTION(([EXTRA] in-memory search applies PSM-level FDR only, never protei
     if (ph.getAccession().rfind("DECOY_", 0) == 0) { ++decoy_proteins; }
   }
   TEST_TRUE(decoy_proteins > 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] in-memory search retains decoys after PSM-level FDR filtering))
+{
+  // PSM-level FDR must NOT remove decoys (decoupled from decoy removal): the in-memory search()
+  // overload produces per-file/multi-file results that a later protein FDR or cross-file merge
+  // relies on having decoys for. With FDR:PSM>0 and FDR:protein==0, decoy PSMs that pass the
+  // q-value threshold are retained (previously they were stripped here).
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "true");
+  p.setValue("FDR:PSM", 0.5);       // PSM filtering ON (lenient) ...
+  p.setValue("FDR:protein", 0.0);   // ... protein FDR OFF -> decoys retained
+  algo.setParameters(p);
+
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(prot_ids.size(), 1)
+
+  // Decoy PSMs survive PSM-level FDR (the contract this overload now pins).
+  Size decoy_psms = 0;
+  for (const auto& pid : pep_ids)
+  {
+    for (const auto& hit : pid.getHits())
+    {
+      if (hit.metaValueExists("target_decoy")
+          && hit.getMetaValue("target_decoy").toString().find("decoy") != std::string::npos) { ++decoy_psms; }
+    }
+  }
+  TEST_TRUE(decoy_psms > 0)
 }
 END_SECTION
 

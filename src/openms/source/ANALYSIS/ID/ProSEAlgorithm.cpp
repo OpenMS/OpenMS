@@ -173,10 +173,10 @@ namespace OpenMS
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
 
-    defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Requires '-decoys' to be set.");
+    defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Decoys are retained (PSM FDR annotates + filters but never removes decoys). Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
-    defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. Requires '-decoys' to be set.");
+    defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR on a complete protein set (single file, or the -out_merged aggregate). Setting this > 0 finalizes the result: identified decoys are removed. With 0, decoys are retained for downstream/merged FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:protein", 0.0);
     defaults_.setMaxFloat("FDR:protein", 1.0);
     defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");
@@ -1295,17 +1295,16 @@ namespace OpenMS
 
     if (fdr_psm_ > 0.0 && has_decoys)
     {
+      // PSM-level FDR: annotate q-values and filter. Decoys are deliberately RETAINED
+      // here (decoupled from decoy removal): downstream protein-level FDR and cross-file
+      // merging need the target+decoy set. Decoys are removed only when protein FDR
+      // finalizes a complete result (file-based single-file search below, or ProSE.cpp).
       FalseDiscoveryRate fdr;
+      Param fdr_params = fdr.getParameters();
+      fdr_params.setValue("add_decoy_peptides", "true"); // retain decoys: PSM FDR annotates, never strips
+      fdr.setParameters(fdr_params);
       fdr.apply(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
-
-      if (fdr_protein_ == 0.0)
-      {
-        // No protein FDR → safe to remove decoys now (matches non-chunked path)
-        IDFilter::removeDecoyHits(peptide_ids);
-        IDFilter::removeEmptyIdentifications(peptide_ids);
-        IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
-      }
     }
     else if (fdr_psm_ > 0.0 && !has_decoys)
     {
@@ -1569,17 +1568,16 @@ namespace OpenMS
 
     if (fdr_psm_ > 0.0 && has_decoys)
     {
+      // PSM-level FDR: annotate q-values and filter. Decoys are deliberately RETAINED
+      // here (decoupled from decoy removal): downstream protein-level FDR and cross-file
+      // merging need the target+decoy set. Decoys are removed only when protein FDR
+      // finalizes a complete result (file-based single-file search below, or ProSE.cpp).
       FalseDiscoveryRate fdr;
+      Param fdr_params = fdr.getParameters();
+      fdr_params.setValue("add_decoy_peptides", "true"); // retain decoys: PSM FDR annotates, never strips
+      fdr.setParameters(fdr_params);
       fdr.apply(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
-
-      if (fdr_protein_ == 0.0)
-      {
-        // No protein FDR → safe to remove decoys now
-        IDFilter::removeDecoyHits(peptide_ids);
-        IDFilter::removeEmptyIdentifications(peptide_ids);
-        IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
-      }
     }
     else if (fdr_psm_ > 0.0 && !has_decoys)
     {
@@ -1998,20 +1996,20 @@ namespace OpenMS
           continue;
         }
 
-        // PSM-level FDR only (matching non-chunked search semantics).
+        // PSM-level FDR only (matching non-chunked search semantics). Decoys are
+        // deliberately RETAINED (decoupled from decoy removal): per-file results feed
+        // cross-file merging and protein-level FDR, which need the target+decoy set.
+        // Decoy removal is a protein-FDR finalization step performed by ProSE.cpp.
         bool has_decoys = std::any_of(full_db.begin(), full_db.end(),
             [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
         if (fdr_psm_ > 0.0 && has_decoys)
         {
           FalseDiscoveryRate fdr;
+          Param fdr_params = fdr.getParameters();
+          fdr_params.setValue("add_decoy_peptides", "true"); // retain decoys: PSM FDR annotates, never strips
+          fdr.setParameters(fdr_params);
           fdr.apply(result.peptide_ids);
           IDFilter::filterHitsByScore(result.peptide_ids, fdr_psm_);
-          if (fdr_protein_ == 0.0)
-          {
-            IDFilter::removeDecoyHits(result.peptide_ids);
-            IDFilter::removeEmptyIdentifications(result.peptide_ids);
-            IDFilter::removeUnreferencedProteins(result.protein_ids, result.peptide_ids);
-          }
         }
 
         result.exit_code = ExitCodes::EXECUTION_OK;
