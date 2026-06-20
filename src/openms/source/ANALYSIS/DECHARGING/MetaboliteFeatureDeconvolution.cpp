@@ -16,6 +16,7 @@
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 //DEBUG:
 #include <fstream>
@@ -25,7 +26,6 @@
 //#define DC_DEVEL 1
 #ifdef DC_DEVEL
 #include <OpenMS/ANALYSIS/DECHARGING/ChargeLadder.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #endif
 
 using namespace std;

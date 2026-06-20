@@ -8,6 +8,15 @@
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <boost/spirit/include/karma.hpp>
+#include <boost/spirit/home/karma/numeric/detail/real_utils.hpp>
+#include <boost/type_traits.hpp>
+
+#include <charconv>
+#include <cstdlib>
+#include <ctime>
+#include <iterator>
+
 // DataValue can now be included here; it depends on String.h which includes StringUtils.h,
 // but since this is a .cpp there is no circularity at compile time.
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
@@ -16,111 +25,381 @@
 
 namespace OpenMS
 {
-  // -------------------------------------------------------------------------
-  // Static Boost.Spirit.Qi parser instances
-  // -------------------------------------------------------------------------
-  boost::spirit::qi::real_parser<double, StringUtilsHelper::real_policies_NANfixed_<double>>
-    StringUtilsHelper::parse_double_{};
-  boost::spirit::qi::real_parser<float, StringUtilsHelper::real_policies_NANfixed_<float>>
-    StringUtilsHelper::parse_float_{};
-  boost::spirit::qi::int_parser<>
-    StringUtilsHelper::parse_int_{};
+  // =========================================================================
+  // Boost.Karma generator policies (precision, NaN handling) — internal
+  // =========================================================================
+  namespace
+  {
+    template<typename T>
+    class BK_PrecPolicyFull : public boost::spirit::karma::real_policies<T>
+    {
+      typedef boost::spirit::karma::real_policies<T> base_policy_type;
+    public:
+      static unsigned precision(T /*n*/) { return writtenDigits<T>(); }
+
+      static unsigned floatfield(T n)
+      {
+        if (boost::spirit::traits::test_zero(n)) return base_policy_type::fmtflags::fixed;
+        T abs_n = boost::spirit::traits::get_absolute_value(n);
+        return (abs_n >= 1e4 || abs_n < 1e-2) ? base_policy_type::fmtflags::scientific
+                                               : base_policy_type::fmtflags::fixed;
+      }
+
+      template<typename CharEncoding, typename Tag, typename OutputIterator>
+      static bool nan(OutputIterator& sink, T n, bool force_sign)
+      {
+        return boost::spirit::karma::sign_inserter::call(
+                 sink, false, boost::spirit::traits::test_negative(n), force_sign)
+               && boost::spirit::karma::string_inserter<CharEncoding, Tag>::call(sink, "NaN");
+      }
+    };
+
+    template<typename T>
+    class BK_PrecPolicyShort : public boost::spirit::karma::real_policies<T>
+    {
+    public:
+      template<typename CharEncoding, typename Tag, typename OutputIterator>
+      static bool nan(OutputIterator& sink, T n, bool force_sign)
+      {
+        return boost::spirit::karma::sign_inserter::call(
+                 sink, false, boost::spirit::traits::test_negative(n), force_sign)
+               && boost::spirit::karma::string_inserter<CharEncoding, Tag>::call(sink, "NaN");
+      }
+    };
+
+    using FloatFullGen  = boost::spirit::karma::real_generator<float,       BK_PrecPolicyFull<float>>;
+    using DoubleFullGen = boost::spirit::karma::real_generator<double,      BK_PrecPolicyFull<double>>;
+    using LDFullGen     = boost::spirit::karma::real_generator<long double, BK_PrecPolicyFull<long double>>;
+
+    using FloatShortGen  = boost::spirit::karma::real_generator<float,       BK_PrecPolicyShort<float>>;
+    using DoubleShortGen = boost::spirit::karma::real_generator<double,      BK_PrecPolicyShort<double>>;
+    using LDShortGen     = boost::spirit::karma::real_generator<long double, BK_PrecPolicyShort<long double>>;
+
+    const FloatFullGen   floatFull{};
+    const DoubleFullGen  doubleFull{};
+    const LDFullGen      ldFull{};
+    const FloatShortGen  floatShort{};
+    const DoubleShortGen doubleShort{};
+    const LDShortGen     ldShort{};
+  } // anonymous namespace
 
 
-  // -------------------------------------------------------------------------
-  // StringUtilsHelper — Boost.Spirit.Qi parsing implementations
-  // -------------------------------------------------------------------------
+  // =========================================================================
+  // StringUtilsHelper — parsing implementations (std::from_chars-based)
+  // =========================================================================
+
+  namespace
+  {
+    /// Try to parse a NaN variant ("nan", "NAN", "NaN(...)") starting at @p p.
+    template <typename T>
+    bool tryParseNaN(const char*& p, const char* end, T& target)
+    {
+      if (p == end) return false;
+      if (*p != 'n' && *p != 'N') return false;
+
+      const char* start = p;
+      if ((end - start) >= 3 &&
+          (start[0] == 'n' || start[0] == 'N') &&
+          (start[1] == 'a' || start[1] == 'A') &&
+          (start[2] == 'n' || start[2] == 'N'))
+      {
+        p += 3;
+        if (p != end && *p == '(')
+        {
+          ++p;
+          while (p != end && *p != ')') ++p;
+          if (p == end) { p = start; return false; }
+          ++p;
+        }
+        target = std::numeric_limits<T>::quiet_NaN();
+        return true;
+      }
+      return false;
+    }
+
+    inline const char* skipWS(const char* p, const char* end)
+    {
+      while (p != end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
+        ++p;
+      return p;
+    }
+  } // anonymous namespace
+
 
   Int32 StringUtilsHelper::toInt32(const std::string& s)
   {
-    Int32 ret;
-    auto it = s.cbegin();
-    if (!boost::spirit::qi::phrase_parse(it, s.cend(),
-          boost::spirit::qi::int_, boost::spirit::ascii::space, ret))
+    const char* f = s.data();
+    const char* l = s.data() + s.size();
+
+    f = skipWS(f, l);
+    if (f == l)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Could not convert string '" + s + "' to an integer value");
     }
-    if (it != s.cend())
+
+    Int32 ret{};
+    auto fc = std::from_chars(f, l, ret);
+    if (fc.ec != std::errc{})
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Could not convert string '" + s + "' to an integer value");
+    }
+    const char* after = skipWS(fc.ptr, l);
+    if (after != l)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Prefix of string '" + s + "' successfully converted to an int32 value. "
         "Additional characters found at position " +
-        std::to_string(static_cast<int>(std::distance(s.cbegin(), it) + 1)));
+        std::to_string(static_cast<int>(std::distance(s.data(), after) + 1)));
     }
     return ret;
   }
 
   Int64 StringUtilsHelper::toInt64(const std::string& s)
   {
-    Int64 ret;
-    auto it = s.cbegin();
-    if (!boost::spirit::qi::phrase_parse(it, s.cend(),
-          boost::spirit::qi::long_long, boost::spirit::ascii::space, ret))
+    const char* f = s.data();
+    const char* l = s.data() + s.size();
+
+    f = skipWS(f, l);
+    if (f == l)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Could not convert string '" + s + "' to an int64 value");
+        "Could not convert string '" + s + "' to an integer value");
     }
-    if (it != s.cend())
+
+    Int64 ret{};
+    auto fc = std::from_chars(f, l, ret);
+    if (fc.ec != std::errc{})
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Could not convert string '" + s + "' to an integer value");
+    }
+    const char* after = skipWS(fc.ptr, l);
+    if (after != l)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Prefix of string '" + s + "' successfully converted to an integer value. "
         "Additional characters found at position " +
-        std::to_string(static_cast<int>(std::distance(s.cbegin(), it) + 1)));
+        std::to_string(static_cast<int>(std::distance(s.data(), after) + 1)));
     }
     return ret;
   }
 
   float StringUtilsHelper::toFloat(const std::string& s)
   {
-    float ret;
-    auto it = s.cbegin();
-    if (!boost::spirit::qi::phrase_parse(it, s.cend(),
-          parse_float_, boost::spirit::ascii::space, ret))
+    const char* f = s.data();
+    const char* l = s.data() + s.size();
+
+    f = skipWS(f, l);
+    if (f == l)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Could not convert string '" + s + "' to a float value");
     }
-    if (it != s.cend())
+
+    float nan_val{};
+    if (tryParseNaN(f, l, nan_val))
+    {
+      const char* after = skipWS(f, l);
+      if (after == l) return nan_val;
+    }
+
+    float ret{};
+    const char* start = skipWS(s.data(), l);
+    auto fc = std::from_chars(start, l, ret);
+    if (fc.ec != std::errc{})
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Could not convert string '" + s + "' to a float value");
+    }
+    const char* after = skipWS(fc.ptr, l);
+    if (after != l)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Prefix of string '" + s + "' successfully converted to a float value. "
         "Additional characters found at position " +
-        std::to_string(static_cast<int>(std::distance(s.cbegin(), it) + 1)));
+        std::to_string(static_cast<int>(std::distance(s.data(), after) + 1)));
     }
     return ret;
   }
 
   double StringUtilsHelper::toDouble(const std::string& s)
   {
-    double ret;
-    auto it = s.cbegin();
-    if (!boost::spirit::qi::phrase_parse(it, s.cend(),
-          parse_double_, boost::spirit::ascii::space, ret))
+    const char* f = s.data();
+    const char* l = s.data() + s.size();
+
+    f = skipWS(f, l);
+    if (f == l)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Could not convert string '" + s + "' to a double value");
     }
-    if (it != s.cend())
+
+    double nan_val{};
+    if (tryParseNaN(f, l, nan_val))
+    {
+      const char* after = skipWS(f, l);
+      if (after == l) return nan_val;
+    }
+
+    double ret{};
+    const char* start = skipWS(s.data(), l);
+    auto fc = std::from_chars(start, l, ret);
+    if (fc.ec != std::errc{})
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Could not convert string '" + s + "' to a double value");
+    }
+    const char* after = skipWS(fc.ptr, l);
+    if (after != l)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Prefix of string '" + s + "' successfully converted to a double value. "
         "Additional characters found at position " +
-        std::to_string(static_cast<int>(std::distance(s.cbegin(), it) + 1)));
+        std::to_string(static_cast<int>(std::distance(s.data(), after) + 1)));
     }
     return ret;
   }
 
+  bool StringUtilsHelper::extractDouble(const char*& begin, const char* end, double& target)
+  {
+    if (tryParseNaN(begin, end, target))
+      return true;
 
-  // -------------------------------------------------------------------------
-  // StringUtils — DataValue overloads (need DataValue.h, hence not inline)
-  // -------------------------------------------------------------------------
+    // std::from_chars doesn't handle leading '+', but boost::spirit did
+    const char* start = begin;
+    if (start != end && *start == '+') ++start;
+
+    auto fc = std::from_chars(start, end, target);
+    if (fc.ec == std::errc{})
+    {
+      begin = fc.ptr;
+      return true;
+    }
+    return false;
+  }
+
+  bool StringUtilsHelper::extractInt(const char*& begin, const char* end, int& target)
+  {
+    // std::from_chars doesn't handle leading '+', but boost::spirit did
+    const char* start = begin;
+    if (start != end && *start == '+') ++start;
+
+    auto fc = std::from_chars(start, end, target);
+    if (fc.ec == std::errc{})
+    {
+      begin = fc.ptr;
+      return true;
+    }
+    return false;
+  }
+
+
+  // =========================================================================
+  // StringUtils — appendToStr implementations (Boost.Karma)
+  // =========================================================================
 
   namespace StringUtils
   {
+    void appendToStr(int i, std::string& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, i);
+    }
+    void appendToStr(unsigned int i, std::string& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, i);
+    }
+    void appendToStr(short int i, std::string& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, i);
+    }
+    void appendToStr(short unsigned int i, std::string& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, i);
+    }
+    void appendToStr(long int i, std::string& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, i);
+    }
+    void appendToStr(long unsigned int i, std::string& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, i);
+    }
+    void appendToStr(long long unsigned int i, std::string& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, i);
+    }
+    void appendToStr(long long signed int i, std::string& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, i);
+    }
+
+    void appendToStr(float f, std::string& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, floatFull, f);
+    }
+    void appendToStrLowP(float f, std::string& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, floatShort, f);
+    }
+
+    void appendToStr(double d, std::string& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, doubleFull, d);
+    }
+    void appendToStrLowP(double d, std::string& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, doubleShort, d);
+    }
+
+    void appendToStr(long double ld, std::string& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, ldFull, ld);
+    }
+    void appendToStrLowP(long double ld, std::string& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, ldShort, ld);
+    }
+
     void appendToStr(const DataValue& d, bool full_precision, std::string& target)
     {
       target += d.toString(full_precision);
+    }
+
+    std::string toStr(float f, bool full_precision)
+    {
+      std::string s;
+      full_precision ? appendToStr(f, s) : appendToStrLowP(f, s);
+      return s;
+    }
+
+    std::string toStr(double d, bool full_precision)
+    {
+      std::string s;
+      full_precision ? appendToStr(d, s) : appendToStrLowP(d, s);
+      return s;
+    }
+
+    std::string toStr(long double ld, bool full_precision)
+    {
+      std::string s;
+      full_precision ? appendToStr(ld, s) : appendToStrLowP(ld, s);
+      return s;
     }
 
     std::string toStr(const DataValue& d, bool full_precision)
@@ -209,6 +488,65 @@ namespace OpenMS
         else ++p;
       }
       return p_end;
+    }
+  } // namespace StringUtils
+
+
+  // -------------------------------------------------------------------------
+  // StringUtils — factory methods
+  // -------------------------------------------------------------------------
+
+  namespace StringUtils
+  {
+    std::string number(double d, UInt n)
+    {
+      char buf[64];
+      std::snprintf(buf, sizeof(buf), "%.*f", static_cast<int>(n), d);
+      return std::string(buf);
+    }
+
+    std::string numberLength(double d, UInt n)
+    {
+      std::stringstream s;
+      Int sign = (d < 0) ? 1 : 0;
+      d = std::fabs(d);
+      if (d < std::pow(10.0, Int(n - sign - 2)))
+      {
+        s.precision(writtenDigits(d));
+        if (sign == 1) s << '-';
+        s << d;
+      }
+      else
+      {
+        UInt exp = 0;
+        while (d > std::pow(10.0, Int(n - sign - 4)))
+        {
+          d /= 10;
+          ++exp;
+        }
+        d = static_cast<int>(d) / 10.0;
+        exp += 1;
+        if (sign == 1) s << '-';
+        s << d << 'e';
+        if (exp < 10) s << '0';
+        s << exp;
+      }
+      return s.str().substr(0, n);
+    }
+
+    std::string random(UInt length)
+    {
+      srand(time(nullptr));
+      std::string tmp(length, '.');
+      for (Size i = 0; i < length; ++i)
+      {
+        size_t r = static_cast<size_t>(
+          std::floor((static_cast<double>(rand()) / (double(RAND_MAX) + 1)) * 62.0));
+        if      (r < 10) tmp[i] = static_cast<char>(r + 48);
+        else if (r < 36) tmp[i] = static_cast<char>(r + 55);
+        else             tmp[i] = static_cast<char>(r + 61);
+      }
+      return tmp;
     }
   } // namespace StringUtils
 

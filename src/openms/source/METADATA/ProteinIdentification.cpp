@@ -98,6 +98,72 @@ namespace OpenMS
     integer_data_arrays_ = ida;
   }
 
+  ProteinIdentification::ProteinGroup::IntegerDataArray& ProteinIdentification::ProteinGroup::getIntegerDataArrayByName(const std::string& name)
+  {
+    auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
+      [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+    if (it == integer_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("IntegerDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  ProteinIdentification::ProteinGroup::StringDataArray& ProteinIdentification::ProteinGroup::getStringDataArrayByName(const std::string& name)
+  {
+    auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
+      [&name](const StringDataArray& da) { return da.getName() == name; } );
+    if (it == string_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("StringDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  ProteinIdentification::ProteinGroup::FloatDataArray& ProteinIdentification::ProteinGroup::getFloatDataArrayByName(const std::string& name)
+  {
+    auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
+      [&name](const FloatDataArray& da) { return da.getName() == name; } );
+    if (it == float_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("FloatDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  const ProteinIdentification::ProteinGroup::IntegerDataArray& ProteinIdentification::ProteinGroup::getIntegerDataArrayByName(const std::string& name) const
+  {
+    auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
+      [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+    if (it == integer_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("IntegerDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  const ProteinIdentification::ProteinGroup::StringDataArray& ProteinIdentification::ProteinGroup::getStringDataArrayByName(const std::string& name) const
+  {
+    auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
+      [&name](const StringDataArray& da) { return da.getName() == name; } );
+    if (it == string_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("StringDataArray: ") + name);
+    }
+    return *it;
+  }
+
+  const ProteinIdentification::ProteinGroup::FloatDataArray& ProteinIdentification::ProteinGroup::getFloatDataArrayByName(const std::string& name) const
+  {
+    auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
+      [&name](const FloatDataArray& da) { return da.getName() == name; } );
+    if (it == float_data_arrays_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("FloatDataArray: ") + name);
+    }
+    return *it;
+  }
+
   ProteinIdentification::SearchParameters::SearchParameters() :
       db(),
       db_version(),

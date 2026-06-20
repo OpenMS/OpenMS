@@ -18,7 +18,6 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 
 #include <functional>
 #include <map>

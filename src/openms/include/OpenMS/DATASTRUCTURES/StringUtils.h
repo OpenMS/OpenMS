@@ -14,11 +14,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/karma.hpp>
-#include <boost/spirit/home/karma/numeric/detail/real_utils.hpp>
-#include <boost/type_traits.hpp>
-#include <boost/functional/hash.hpp>
+#include <charconv>
 
 #include <algorithm>
 #include <cmath>
@@ -44,73 +40,7 @@ namespace OpenMS
 
 
   // =========================================================================
-  // Internal Boost.Karma generator policies (precision, NaN handling)
-  // =========================================================================
-  namespace StringConversions
-  {
-    namespace Detail
-    {
-      /// Karma full-precision float/double/long double policy with NaN→"NaN"
-      template<typename T>
-      class BK_PrecPolicyFull : public boost::spirit::karma::real_policies<T>
-      {
-        typedef boost::spirit::karma::real_policies<T> base_policy_type;
-      public:
-        static unsigned precision(T /*n*/) { return writtenDigits<T>(); }
-
-        static unsigned floatfield(T n)
-        {
-          if (boost::spirit::traits::test_zero(n)) return base_policy_type::fmtflags::fixed;
-          T abs_n = boost::spirit::traits::get_absolute_value(n);
-          // downstream tools (Java-based) read only up to 19 digits — keep scientific for large/small values
-          return (abs_n >= 1e4 || abs_n < 1e-2) ? base_policy_type::fmtflags::scientific
-                                                 : base_policy_type::fmtflags::fixed;
-        }
-
-        template<typename CharEncoding, typename Tag, typename OutputIterator>
-        static bool nan(OutputIterator& sink, T n, bool force_sign)
-        {
-          return boost::spirit::karma::sign_inserter::call(
-                   sink, false, boost::spirit::traits::test_negative(n), force_sign)
-                 && boost::spirit::karma::string_inserter<CharEncoding, Tag>::call(sink, "NaN");
-        }
-      };
-
-      /// Karma low-precision (≤3 fractional digits) policy with NaN→"NaN"
-      template<typename T>
-      class BK_PrecPolicyShort : public boost::spirit::karma::real_policies<T>
-      {
-        typedef boost::spirit::karma::real_policies<T> base_policy_type;
-      public:
-        template<typename CharEncoding, typename Tag, typename OutputIterator>
-        static bool nan(OutputIterator& sink, T n, bool force_sign)
-        {
-          return boost::spirit::karma::sign_inserter::call(
-                   sink, false, boost::spirit::traits::test_negative(n), force_sign)
-                 && boost::spirit::karma::string_inserter<CharEncoding, Tag>::call(sink, "NaN");
-        }
-      };
-
-      using FloatFullGen  = boost::spirit::karma::real_generator<float,       BK_PrecPolicyFull<float>>;
-      using DoubleFullGen = boost::spirit::karma::real_generator<double,      BK_PrecPolicyFull<double>>;
-      using LDFullGen     = boost::spirit::karma::real_generator<long double, BK_PrecPolicyFull<long double>>;
-
-      using FloatShortGen  = boost::spirit::karma::real_generator<float,       BK_PrecPolicyShort<float>>;
-      using DoubleShortGen = boost::spirit::karma::real_generator<double,      BK_PrecPolicyShort<double>>;
-      using LDShortGen     = boost::spirit::karma::real_generator<long double, BK_PrecPolicyShort<long double>>;
-
-      inline const FloatFullGen   floatFull{};
-      inline const DoubleFullGen  doubleFull{};
-      inline const LDFullGen      ldFull{};
-      inline const FloatShortGen  floatShort{};
-      inline const DoubleShortGen doubleShort{};
-      inline const LDShortGen     ldShort{};
-    } // namespace Detail
-  } // namespace StringConversions
-
-
-  // =========================================================================
-  // Internal Boost.Spirit.Qi parser helper (NaN-safe)
+  // StringUtilsHelper — parsing helpers (definitions in StringUtils.cpp)
   // =========================================================================
   class OPENMS_DLLAPI StringUtilsHelper
   {
@@ -126,48 +56,11 @@ namespace OpenMS
 
     /// Parse a double starting at @p begin; advances @p begin on success.
     /// Whitespace is NOT consumed. Returns false if no double found.
-    template <typename IteratorT>
-    static bool extractDouble(IteratorT& begin, const IteratorT& end, double& target)
-    {
-      return boost::spirit::qi::parse(begin, end, parse_double_, target);
-    }
+    static bool extractDouble(const char*& begin, const char* end, double& target);
 
     /// Parse an int starting at @p begin; advances @p begin on success.
     /// Whitespace is NOT consumed. Returns false if no int found.
-    template <typename IteratorT>
-    static bool extractInt(IteratorT& begin, const IteratorT& end, int& target)
-    {
-      return boost::spirit::qi::parse(begin, end, parse_int_, target);
-    }
-
-  private:
-    template <typename T>
-    struct real_policies_NANfixed_ : boost::spirit::qi::real_policies<T>
-    {
-      template <typename Iterator, typename Attribute>
-      static bool parse_nan(Iterator& first, Iterator const& last, Attribute& attr_)
-      {
-        if (first == last) return false;
-        if (*first != 'n' && *first != 'N') return false;
-        if (boost::spirit::qi::detail::string_parse("nan", "NAN", first, last, boost::spirit::qi::unused))
-        {
-          if (first != last && *first == '(')
-          {
-            Iterator i = first;
-            while (++i != last && *i != ')') ;
-            if (i == last) return false;
-            first = ++i;
-          }
-          attr_ = std::numeric_limits<T>::quiet_NaN();
-          return true;
-        }
-        return false;
-      }
-    };
-
-    static boost::spirit::qi::real_parser<double, real_policies_NANfixed_<double>> parse_double_;
-    static boost::spirit::qi::real_parser<float,  real_policies_NANfixed_<float>>  parse_float_;
-    static boost::spirit::qi::int_parser<>                                          parse_int_;
+    static bool extractInt(const char*& begin, const char* end, int& target);
   };
 
 
@@ -178,73 +71,24 @@ namespace OpenMS
   {
 
     // -----------------------------------------------------------------------
-    // Append numeric value to a string (no copy; fastest path)
+    // Append numeric value to a string (non-inline; defined in StringUtils.cpp)
     // -----------------------------------------------------------------------
 
-    /// Append @p i to @p target (Boost.Karma, fast)
-    template <typename T>
-    inline void appendToStr(const T& i, std::string& target)
-    {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, i);
-    }
+    OPENMS_DLLAPI void appendToStr(int i, std::string& target);
+    OPENMS_DLLAPI void appendToStr(unsigned int i, std::string& target);
+    OPENMS_DLLAPI void appendToStr(short int i, std::string& target);
+    OPENMS_DLLAPI void appendToStr(short unsigned int i, std::string& target);
+    OPENMS_DLLAPI void appendToStr(long int i, std::string& target);
+    OPENMS_DLLAPI void appendToStr(long unsigned int i, std::string& target);
+    OPENMS_DLLAPI void appendToStr(long long unsigned int i, std::string& target);
+    OPENMS_DLLAPI void appendToStr(long long signed int i, std::string& target);
 
-    /// Append integer @p i to @p target
-    inline void appendToStr(int i, std::string& target)
-    { appendToStr<int>(i, target); }
-    inline void appendToStr(unsigned int i, std::string& target)
-    { appendToStr<unsigned int>(i, target); }
-    inline void appendToStr(short int i, std::string& target)
-    { appendToStr<short int>(i, target); }
-    inline void appendToStr(short unsigned int i, std::string& target)
-    { appendToStr<short unsigned int>(i, target); }
-    inline void appendToStr(long int i, std::string& target)
-    { appendToStr<long int>(i, target); }
-    inline void appendToStr(long unsigned int i, std::string& target)
-    { appendToStr<long unsigned int>(i, target); }
-    inline void appendToStr(long long unsigned int i, std::string& target)
-    { appendToStr<long long unsigned int>(i, target); }
-    inline void appendToStr(long long signed int i, std::string& target)
-    { appendToStr<long long signed int>(i, target); }
-
-    /// Append float (high precision, 6 fractional digits) to @p target
-    inline void appendToStr(float f, std::string& target)
-    {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, StringConversions::Detail::floatFull, f);
-    }
-    /// Append float (low precision, 3 fractional digits) to @p target
-    inline void appendToStrLowP(float f, std::string& target)
-    {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, StringConversions::Detail::floatShort, f);
-    }
-
-    /// Append double (high precision, 15 fractional digits) to @p target
-    inline void appendToStr(double d, std::string& target)
-    {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, StringConversions::Detail::doubleFull, d);
-    }
-    /// Append double (low precision, 3 fractional digits) to @p target
-    inline void appendToStrLowP(double d, std::string& target)
-    {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, StringConversions::Detail::doubleShort, d);
-    }
-
-    /// Append long double (high precision) to @p target
-    inline void appendToStr(long double ld, std::string& target)
-    {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, StringConversions::Detail::ldFull, ld);
-    }
-    /// Append long double (low precision) to @p target
-    inline void appendToStrLowP(long double ld, std::string& target)
-    {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, StringConversions::Detail::ldShort, ld);
-    }
+    OPENMS_DLLAPI void appendToStr(float f, std::string& target);
+    OPENMS_DLLAPI void appendToStrLowP(float f, std::string& target);
+    OPENMS_DLLAPI void appendToStr(double d, std::string& target);
+    OPENMS_DLLAPI void appendToStrLowP(double d, std::string& target);
+    OPENMS_DLLAPI void appendToStr(long double ld, std::string& target);
+    OPENMS_DLLAPI void appendToStrLowP(long double ld, std::string& target);
 
     /// Append DataValue string representation to @p target (non-inline; defined in StringUtils.cpp)
     OPENMS_DLLAPI void appendToStr(const DataValue& d, bool full_precision, std::string& target);
@@ -272,26 +116,11 @@ namespace OpenMS
     { std::string s; appendToStr(i, s); return s; }
 
     /// Float to string; @p full_precision selects 6-digit (true) or 3-digit (false) output
-    inline std::string toStr(float f, bool full_precision = true)
-    {
-      std::string s;
-      full_precision ? appendToStr(f, s) : appendToStrLowP(f, s);
-      return s;
-    }
+    OPENMS_DLLAPI std::string toStr(float f, bool full_precision = true);
     /// Double to string; @p full_precision selects 15-digit (true) or 3-digit (false) output
-    inline std::string toStr(double d, bool full_precision = true)
-    {
-      std::string s;
-      full_precision ? appendToStr(d, s) : appendToStrLowP(d, s);
-      return s;
-    }
+    OPENMS_DLLAPI std::string toStr(double d, bool full_precision = true);
     /// Long double to string; @p full_precision selects full-precision or 3-digit output
-    inline std::string toStr(long double ld, bool full_precision = true)
-    {
-      std::string s;
-      full_precision ? appendToStr(ld, s) : appendToStrLowP(ld, s);
-      return s;
-    }
+    OPENMS_DLLAPI std::string toStr(long double ld, bool full_precision = true);
 
     inline std::string toStr(char c)
     { return std::string(1, c); }
@@ -328,6 +157,9 @@ namespace OpenMS
     /// ParamValue to string — lenient, like toStr(const DataValue&) (non-inline; defined in StringUtils.cpp)
     OPENMS_DLLAPI std::string toStr(const ParamValue& p, bool full_precision = true);
 
+    /// toStr overload for string_view (returns a copy as std::string)
+    inline std::string toStr(std::string_view sv) { return std::string(sv); }
+
 
     // -----------------------------------------------------------------------
     // Parse string → numeric
@@ -338,13 +170,48 @@ namespace OpenMS
     inline float  toFloat(const std::string& s) { return StringUtilsHelper::toFloat(s); }
     inline double toDouble(const std::string& s) { return StringUtilsHelper::toDouble(s); }
 
-    template <typename IteratorT>
-    inline bool extractDouble(IteratorT& begin, const IteratorT& end, double& target)
+    inline bool extractDouble(const char*& begin, const char* end, double& target)
     { return StringUtilsHelper::extractDouble(begin, end, target); }
 
-    template <typename IteratorT>
-    inline bool extractInt(IteratorT& begin, const IteratorT& end, int& target)
+    inline bool extractInt(const char*& begin, const char* end, int& target)
     { return StringUtilsHelper::extractInt(begin, end, target); }
+
+    /// Overloads for std::string iterators (converts to const char* internally)
+    inline bool extractDouble(std::string::const_iterator& begin, const std::string::const_iterator& end, double& target)
+    {
+      const char* p = &(*begin);
+      const char* e = &(*end);
+      bool ok = StringUtilsHelper::extractDouble(p, e, target);
+      begin = std::string::const_iterator(p);
+      return ok;
+    }
+
+    inline bool extractDouble(std::string::iterator& begin, const std::string::iterator& end, double& target)
+    {
+      const char* p = &(*begin);
+      const char* e = &(*end);
+      bool ok = StringUtilsHelper::extractDouble(p, e, target);
+      begin = std::string::iterator(const_cast<char*>(p));
+      return ok;
+    }
+
+    inline bool extractInt(std::string::const_iterator& begin, const std::string::const_iterator& end, int& target)
+    {
+      const char* p = &(*begin);
+      const char* e = &(*end);
+      bool ok = StringUtilsHelper::extractInt(p, e, target);
+      begin = std::string::const_iterator(p);
+      return ok;
+    }
+
+    inline bool extractInt(std::string::iterator& begin, const std::string::iterator& end, int& target)
+    {
+      const char* p = &(*begin);
+      const char* e = &(*end);
+      bool ok = StringUtilsHelper::extractInt(p, e, target);
+      begin = std::string::iterator(const_cast<char*>(p));
+      return ok;
+    }
 
 
     // -----------------------------------------------------------------------
@@ -377,58 +244,13 @@ namespace OpenMS
     // -----------------------------------------------------------------------
 
     /// Returns a string with exactly @p n decimal places for @p d
-    [[maybe_unused]] inline std::string number(double d, UInt n)
-    {
-      char buf[64];
-      std::snprintf(buf, sizeof(buf), "%.*f", static_cast<int>(n), d);
-      return std::string(buf);
-    }
+    [[maybe_unused]] OPENMS_DLLAPI std::string number(double d, UInt n);
 
     /// Returns a string for @p d with at most @p n characters total (scientific notation if needed)
-    [[maybe_unused]] inline std::string numberLength(double d, UInt n)
-    {
-      std::stringstream s;
-      Int sign = (d < 0) ? 1 : 0;
-      d = std::fabs(d);
-      if (d < std::pow(10.0, Int(n - sign - 2)))
-      {
-        s.precision(writtenDigits(d));
-        if (sign == 1) s << '-';
-        s << d;
-      }
-      else
-      {
-        UInt exp = 0;
-        while (d > std::pow(10.0, Int(n - sign - 4)))
-        {
-          d /= 10;
-          ++exp;
-        }
-        d = static_cast<int>(d) / 10.0;
-        exp += 1;
-        if (sign == 1) s << '-';
-        s << d << 'e';
-        if (exp < 10) s << '0';
-        s << exp;
-      }
-      return s.str().substr(0, n);
-    }
+    [[maybe_unused]] OPENMS_DLLAPI std::string numberLength(double d, UInt n);
 
     /// Returns a random string of @p length characters from [0-9a-zA-Z]
-    inline std::string random(UInt length)
-    {
-      srand(time(nullptr));
-      std::string tmp(length, '.');
-      for (Size i = 0; i < length; ++i)
-      {
-        size_t r = static_cast<size_t>(
-          std::floor((static_cast<double>(rand()) / (double(RAND_MAX) + 1)) * 62.0));
-        if      (r < 10) tmp[i] = static_cast<char>(r + 48);
-        else if (r < 36) tmp[i] = static_cast<char>(r + 55);
-        else             tmp[i] = static_cast<char>(r + 61);
-      }
-      return tmp;
-    }
+    OPENMS_DLLAPI std::string random(UInt length);
 
 
     // -----------------------------------------------------------------------
@@ -528,9 +350,6 @@ namespace OpenMS
       size_t begin = std::min(pos, s.size());
       return std::string(s.substr(begin, n));
     }
-
-    /// toStr overload for string_view (returns a copy as std::string)
-    inline std::string toStr(std::string_view sv) { return std::string(sv); }
 
     /// hasPrefix / hasSuffix / hasSubstring for string_view
     inline bool hasPrefix(std::string_view s, const std::string& prefix)
@@ -961,10 +780,22 @@ namespace OpenMS
   // =========================================================================
   namespace StringConversions
   {
-    template <typename T>
-    inline void append(const T& i, std::string& target)
+    inline void append(int i, std::string& target)
     { StringUtils::appendToStr(i, target); }
-
+    inline void append(unsigned int i, std::string& target)
+    { StringUtils::appendToStr(i, target); }
+    inline void append(short int i, std::string& target)
+    { StringUtils::appendToStr(i, target); }
+    inline void append(short unsigned int i, std::string& target)
+    { StringUtils::appendToStr(i, target); }
+    inline void append(long int i, std::string& target)
+    { StringUtils::appendToStr(i, target); }
+    inline void append(long unsigned int i, std::string& target)
+    { StringUtils::appendToStr(i, target); }
+    inline void append(long long unsigned int i, std::string& target)
+    { StringUtils::appendToStr(i, target); }
+    inline void append(long long signed int i, std::string& target)
+    { StringUtils::appendToStr(i, target); }
     inline void append(float f, std::string& target)
     { StringUtils::appendToStr(f, target); }
     inline void append(double d, std::string& target)
@@ -1008,7 +839,7 @@ namespace OpenMS
 //
 // Placing these in the global namespace ensures they are found by unqualified
 // lookup regardless of which OpenMS namespace the caller is in.
-// Using pass-by-value for operator+ enables move semantics for rvalue strings.
+// Non-inline (defined in StringUtils.cpp) to avoid boost::spirit in the header.
 // =============================================================================
 
 inline std::string& operator+=(std::string& s, int i)

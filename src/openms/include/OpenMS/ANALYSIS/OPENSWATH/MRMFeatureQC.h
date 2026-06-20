@@ -10,6 +10,8 @@
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <map>
+
 namespace OpenMS
 {
 

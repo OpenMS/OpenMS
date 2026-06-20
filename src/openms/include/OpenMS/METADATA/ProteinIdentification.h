@@ -146,76 +146,22 @@ public:
       void setIntegerDataArrays(const IntegerDataArrays& ida);
 
       /// Returns a mutable reference to the first integer meta data array with the given name
-      inline IntegerDataArray& getIntegerDataArrayByName(const std::string& name)
-      {
-        auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
-          [&name](const IntegerDataArray& da) { return da.getName() == name; } );
-        if (it == integer_data_arrays_.end())
-        {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("IntegerDataArray: ") + name);
-        }
-        return *it;
-      }
+      IntegerDataArray& getIntegerDataArrayByName(const std::string& name);
 
       /// Returns a mutable reference to the first string meta data array with the given name
-      inline StringDataArray& getStringDataArrayByName(const std::string& name)
-      {
-        auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
-          [&name](const StringDataArray& da) { return da.getName() == name; } );
-        if (it == string_data_arrays_.end())
-        {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("StringDataArray: ") + name);
-        }
-        return *it;
-      }
+      StringDataArray& getStringDataArrayByName(const std::string& name);
 
       /// Returns a mutable reference to the first float meta data array with the given name
-      inline FloatDataArray& getFloatDataArrayByName(const std::string& name)
-      {
-        auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
-          [&name](const FloatDataArray& da) { return da.getName() == name; } );
-        if (it == float_data_arrays_.end())
-        {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("FloatDataArray: ") + name);
-        }
-        return *it;
-      }
+      FloatDataArray& getFloatDataArrayByName(const std::string& name);
 
       /// Returns a const reference to the first integer meta data array with the given name
-      inline const IntegerDataArray& getIntegerDataArrayByName(const std::string& name) const
-      {
-        auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
-          [&name](const IntegerDataArray& da) { return da.getName() == name; } );
-        if (it == integer_data_arrays_.end())
-        {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("IntegerDataArray: ") + name);
-        }
-        return *it;
-      }
+      const IntegerDataArray& getIntegerDataArrayByName(const std::string& name) const;
 
       /// Returns a const reference to the first string meta data array with the given name
-      inline const StringDataArray& getStringDataArrayByName(const std::string& name) const
-      {
-        auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
-          [&name](const StringDataArray& da) { return da.getName() == name; } );
-        if (it == string_data_arrays_.end())
-        {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("StringDataArray: ") + name);
-        }
-        return *it;
-      }
+      const StringDataArray& getStringDataArrayByName(const std::string& name) const;
 
       /// Returns a const reference to the first float meta data array with the given name
-      inline const FloatDataArray& getFloatDataArrayByName(const std::string& name) const
-      {
-        auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
-          [&name](const FloatDataArray& da) { return da.getName() == name; } );
-        if (it == float_data_arrays_.end())
-        {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("FloatDataArray: ") + name);
-        }
-        return *it;
-      }
+      const FloatDataArray& getFloatDataArrayByName(const std::string& name) const;
 
     private:
       /// Float data arrays
