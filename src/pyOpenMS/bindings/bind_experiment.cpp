@@ -474,16 +474,36 @@ mask. Use setIntensity(x, y, val) when correctness of the mask matters.)doc")
   // --- MSImagingRegion ---
   auto region_cls
     = nb::class_<OpenMS::MSImagingRegion>(m, "MSImagingRegion",
-                                          R"doc(Region handling class that provides membership checks and region local indexing.
-Regions are either Rectangle based and defined by their x/y minima and maxima or bitmasked with a bounding box for irregular shapes.)doc")
+                                          R"doc(A spatial region within an MSI dataset, in global pixel coordinates.
+
+A region is a pure-geometry footprint — either an axis-aligned rectangular
+bounding box (Shape.Rectangle) or a per-pixel bitmask within a bounding box
+(Shape.Mask). It knows nothing about acquired pixels; membership in an
+experiment is resolved via MSImagingGeometry.
+
+Construct via the factory methods ``rectangle()`` or ``fromMask()`` (including
+numpy array overloads). Coordinates are zero-based; bounding boxes are
+inclusive on both ends.
+
+Overlapping regions are rejected by MSImagingGeometry.addRegion().
+
+Example::
+
+    rect = MSImagingRegion.rectangle(1, "tumor", 10, 10, 30, 40)
+    mask_arr = np.zeros((30, 20), dtype=bool)
+    mask_arr[5:15, 3:12] = True
+    masked = MSImagingRegion.fromMask(2, "stroma", 0, 0, mask_arr)
+)doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MSImagingRegion&>())
         .def("__copy__", [](const OpenMS::MSImagingRegion& self) { return OpenMS::MSImagingRegion(self); })
         .def(
           "__deepcopy__", [](const OpenMS::MSImagingRegion& self, nb::dict) { return OpenMS::MSImagingRegion(self); }, "memo"_a)
-        .def_static("rectangle", &OpenMS::MSImagingRegion::rectangle, "id"_a, "name"_a, "min_x"_a, "min_y"_a, "max_x"_a, "max_y"_a)
+        .def_static("rectangle", &OpenMS::MSImagingRegion::rectangle, "id"_a, "name"_a, "min_x"_a, "min_y"_a, "max_x"_a, "max_y"_a,
+          "Create a rectangular region spanning the inclusive bounding box [min_x, max_x] x [min_y, max_y] (zero-based).")
         // introduce overloads for numpy list, 1d np array and 2d np array
-        .def_static("fromMask", &OpenMS::MSImagingRegion::fromMask, "id"_a, "name"_a, "origin_x"_a, "origin_y"_a, "width"_a, "height"_a, "mask"_a)
+        .def_static("fromMask", &OpenMS::MSImagingRegion::fromMask, "id"_a, "name"_a, "origin_x"_a, "origin_y"_a, "width"_a, "height"_a, "mask"_a,
+          "Create a masked region from a row-major bool list of size width*height over the bounding box starting at (origin_x, origin_y).")
         .def_static( //1d np array
           "fromMask",
           [](OpenMS::Size id, const std::string& name, OpenMS::UInt origin_x, OpenMS::UInt origin_y, OpenMS::UInt width, OpenMS::UInt height,
@@ -514,11 +534,13 @@ Regions are either Rectangle based and defined by their x/y minima and maxima or
           },
           "id"_a, "name"_a, "origin_x"_a, "origin_y"_a, "mask"_a,
           "Create a region from a 2D (height, width) boolean numpy array; width/height are taken from the shape.")
-        .def("contains", &OpenMS::MSImagingRegion::contains, "x"_a, "y"_a)
-        .def("intersects", &OpenMS::MSImagingRegion::intersects, "other"_a)
-        .def("getId", &OpenMS::MSImagingRegion::getId)
-        .def("getName", &OpenMS::MSImagingRegion::getName)
-        .def("getShape", &OpenMS::MSImagingRegion::getShape)
+        .def("contains", &OpenMS::MSImagingRegion::contains, "x"_a, "y"_a,
+          "Return True if global pixel (x, y) lies inside the region footprint.")
+        .def("intersects", &OpenMS::MSImagingRegion::intersects, "other"_a,
+          "Return True if this region's footprint geometrically overlaps ``other`` (pixel-independent).")
+        .def("getId", &OpenMS::MSImagingRegion::getId, "Region identifier.")
+        .def("getName", &OpenMS::MSImagingRegion::getName, "Human-readable region name.")
+        .def("getShape", &OpenMS::MSImagingRegion::getShape, "Shape discriminator (Shape.Rectangle or Shape.Mask).")
         .def("getMinX", &OpenMS::MSImagingRegion::getMinX)
         .def("getMinY", &OpenMS::MSImagingRegion::getMinY)
         .def("getMaxX", &OpenMS::MSImagingRegion::getMaxX)
