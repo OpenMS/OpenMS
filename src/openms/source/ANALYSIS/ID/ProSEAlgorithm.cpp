@@ -2419,7 +2419,18 @@ namespace OpenMS
     struct CalHit { double score; double prec_error; double frag_error; };
     vector<CalHit> cal_hits;
 
-    for (Size si = 0; si < subset_size; ++si)
+    // Parallelize over the calibration subset, mirroring the main scoring loop
+    // (scoreSpectraAgainstIndex_). Each iteration is independent: querySpectrum and
+    // the shared TheoreticalSpectrumGenerator expose const, thread-safe methods (the
+    // main loop already calls them concurrently), and every working variable below is
+    // loop-local. The only cross-thread write is the push into cal_hits, guarded by a
+    // critical section. Without this the calibration pass ran single-threaded: on a
+    // many-core machine the 10% subset took about as long as the entire parallel
+    // search, roughly doubling wall time for no extra useful work. Downstream is
+    // order-independent — cal_hits is sorted by score and the error vectors are sorted
+    // before quantiles — so parallel insertion order does not change the result.
+#pragma omp parallel for schedule(dynamic)
+    for (SignedSize si = 0; si < (SignedSize)subset_size; ++si)
     {
       const Size scan_idx = tic_index[si].second;
       const MSSpectrum& spec = spectra[scan_idx];
@@ -2478,6 +2489,7 @@ namespace OpenMS
                           ? Math::getPPM(corrected_exp_mz, theo_mz)
                           : (corrected_exp_mz - theo_mz);
 
+#pragma omp critical (prose_calibration_hits)
       cal_hits.push_back({best_score, prec_err, static_cast<double>(best_mean_error)});
     }
 
