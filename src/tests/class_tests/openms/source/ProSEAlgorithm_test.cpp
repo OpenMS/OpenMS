@@ -1843,18 +1843,18 @@ START_SECTION(([EXTRA] preprocessSpectra_ never aborts; gates deisotoping on the
   // is skipped because the tolerance is out of the Deisotoper's supported range).
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, true);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, true, 0, 20);
     TEST_EQUAL(exp.size(), 1)
     TEST_EQUAL(exp[0].empty(), false)
   }
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 150.0, true, true);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 150.0, true, true, 0, 20);
     TEST_EQUAL(exp.size(), 1)
   }
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, false);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, false, 0, 20);
     TEST_EQUAL(exp.size(), 1)
   }
 
@@ -1862,14 +1862,38 @@ START_SECTION(([EXTRA] preprocessSpectra_ never aborts; gates deisotoping on the
   // requested false -> skipped.
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.05, false, true);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.05, false, true, 0, 20);
     TEST_EQUAL(exp.size(), 1)
   }
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, false);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, false, 0, 20);
     TEST_EQUAL(exp.size(), 1)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] auto peak retention (peaks:keep_n=0) is resolution-aware))
+{
+  // Low-resolution fragment tolerances admit many spurious matches; auto retention keeps far
+  // fewer peaks at low-res than at high-res (where behavior is unchanged). A dense spectrum so
+  // the cap actually bites.
+  auto dense = []() {
+    PeakMap exp; MSSpectrum s; s.setMSLevel(2);
+    Precursor p; p.setMZ(800.0); p.setCharge(2); s.setPrecursors({p}); s.setRT(1.0);
+    for (int i = 0; i < 500; ++i) { Peak1D pk; pk.setMZ(150.0 + i * 3.0); pk.setIntensity(1.0 + (i % 50)); s.push_back(pk); }
+    s.sortByPosition(); exp.addSpectrum(s); return exp;
+  };
+  PeakMap hi = dense();  // high-res (0.02 Da, within deisotoper range) -> legacy cap (400)
+  ProSEAlgorithm_test::preprocessSpectra_(hi, 0.02, false, false, 0, 20);
+  PeakMap lo = dense();  // low-res (0.5 Da) -> auto formula -> ~80
+  ProSEAlgorithm_test::preprocessSpectra_(lo, 0.5, false, false, 0, 20);
+  TEST_TRUE(lo[0].size() < hi[0].size())   // low-res retains strictly fewer peaks
+  TEST_TRUE(lo[0].size() <= 90)            // auto cap at 0.5 Da is 80 (+ headroom)
+  TEST_TRUE(lo[0].size() >= 60)            // clamp floor
+  PeakMap ov = dense();                    // explicit value overrides auto, any resolution
+  ProSEAlgorithm_test::preprocessSpectra_(ov, 0.5, false, false, 50, 20);
+  TEST_TRUE(ov[0].size() <= 50)
 }
 END_SECTION
 

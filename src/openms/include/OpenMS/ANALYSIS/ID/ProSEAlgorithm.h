@@ -364,7 +364,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /// @brief filter, deisotope, decharge spectra
-    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested);
+    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top);
 
     /**
      * @brief Build a decoy-augmented copy of the input FASTA.
@@ -491,6 +491,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// deisotoper is never called out of range (it would throw -> terminate in the
     /// OpenMP region). See OpenMS#9619.
     bool deisotope_requested_{true};
+    Size peaks_keep_n_{0};     ///< NLargest cap on MS2 peaks before scoring; 0 = resolution-aware auto (peaks:keep_n)
+    Int peaks_window_top_{20}; ///< WindowMower peaks-per-100Da before scoring (peaks:window_top)
 
     StringList modifications_fixed_;
 

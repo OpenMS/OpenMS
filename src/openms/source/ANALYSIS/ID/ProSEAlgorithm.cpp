@@ -103,6 +103,11 @@ namespace OpenMS
     defaults_.setValue("fragment:min_ion_index", 2, "Ions with index less than or equal to this value are not added to the fragment index (use 0 to include all ions; 2 skips b1/b2/y1/y2). Low-index ions are often noisy and unreliable.");
     defaults_.setMinInt("fragment:min_ion_index", 0);
 
+    defaults_.setValue("peaks:keep_n", 0, "Maximum number of MS2 peaks kept per spectrum (NLargest) before scoring. 0 = auto: a resolution-aware cap (~400 for high-res, ~80 at 0.5 Da, floor 60) that avoids the spurious low-resolution fragment matching which otherwise inflates HyperScore for targets and decoys alike. Set an explicit value to override (e.g. 400 for the legacy behavior).", {"advanced"});
+    defaults_.setMinInt("peaks:keep_n", 0);
+    defaults_.setValue("peaks:window_top", 20, "Maximum number of MS2 peaks kept per 100 Da window (WindowMower) before scoring.", {"advanced"});
+    defaults_.setMinInt("peaks:window_top", 1);
+
     defaults_.setSectionDescription("fragment", "Fragments (Product Ion) Options");
 
     vector<std::string> all_mods;
@@ -257,6 +262,8 @@ namespace OpenMS
     precursor_max_charge_ = param_.getValue("precursor:max_charge");
 
     precursor_isotopes_ = param_.getValue("precursor:isotopes");
+    peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
+    peaks_window_top_ = (Int)param_.getValue("peaks:window_top");
 
     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
 
@@ -339,7 +346,7 @@ namespace OpenMS
   }
 
   // static
-  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested)
+  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -356,11 +363,35 @@ namespace OpenMS
     WindowMower window_mower_filter;
     Param filter_param = window_mower_filter.getParameters();
     filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
-    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
+    filter_param.setValue("peakcount", peaks_window_top, "The number of peaks that should be kept.");
     filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
     window_mower_filter.setParameters(filter_param);
 
-    NLargest nlargest_filter = NLargest(400);
+    // Resolution-aware peak retention. peaks_keep_n == 0 => auto. For HIGH-resolution fragments
+    // (within the deisotoper range, <= 0.1 Da / <= 100 ppm) keep the legacy cap of 400. For
+    // LOW-resolution data (e.g. 0.5 Da ion-trap CID — the same regime where deisotoping is
+    // skipped) a wide match window admits many spurious low-intensity matches that inflate the
+    // count-sensitive HyperScore for targets AND decoys alike, collapsing the target/decoy
+    // margin; retain far fewer peaks. Random matches scale with peak density x tolerance width,
+    // so sqrt-dampen around the 0.02 Da reference and clamp to [60, 400]:
+    //   0.2 Da -> 126, 0.5 Da -> 80, 1 Da -> 60.
+    Size effective_keep_n = peaks_keep_n;
+    if (effective_keep_n == 0)
+    {
+      if (Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm))
+      {
+        effective_keep_n = 400; // high-resolution: unchanged legacy behavior
+      }
+      else
+      {
+        const double eff_tol_da = fragment_mass_tolerance_unit_ppm
+          ? fragment_mass_tolerance * 500.0 * 1e-6   // ppm -> Da at a 500 m/z reference
+          : fragment_mass_tolerance;
+        const double n = std::round(400.0 * std::sqrt(0.02 / std::max(eff_tol_da, 1e-6)));
+        effective_keep_n = static_cast<Size>(std::min(400.0, std::max(60.0, n)));
+      }
+    }
+    NLargest nlargest_filter = NLargest(effective_keep_n);
 
     // Deisotope only when requested (param fragment:deisotope, resolved in
     // updateMembers_) AND the tolerance is in the Deisotoper's supported range.
@@ -1102,7 +1133,7 @@ namespace OpenMS
 
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
     bool open_search_mode = isOpenSearchMode_();
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_);
+    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
 
     // Effective tolerances — may be narrowed by calibration below. Kept asymmetric
     // (lower / upper separately) so the FragmentIndex query can exploit the full
@@ -1341,7 +1372,7 @@ namespace OpenMS
                     << precursor_mass_tolerance_unit_ << ")" << std::endl;
 
     startProgress(0, 1, "Filtering spectra...");
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_);
+    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
     endProgress();
 
     // Reference the prepared (decoy-augmented) database and prebuilt fragment index from the context.
@@ -1781,7 +1812,7 @@ namespace OpenMS
         f.getOptions() = options;
         f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         all_spectra[i].sortSpectra(true);
-        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_);
+        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
       }
 
       // Per-file calibration: build a strided calibration FI once, run calibration per file.
