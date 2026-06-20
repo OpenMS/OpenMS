@@ -3214,6 +3214,24 @@ add_test("TOPP_ProSE_6_fdr_out" ${DIFF}
   -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "InferenceEngineVersion" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_6_fdr_out" PROPERTIES DEPENDS
   "TOPP_ProSE_6_fdr")
+# Test 6b: chunked equivalence for single-file protein FDR. Identical to Test 6 but with database
+# chunking enabled (-Search:database:chunk_size): the fragment index is built per chunk and hits are
+# accumulated across chunks before a single post-processing + picked-protein FDR pass, so the result
+# must be byte-identical to the non-chunked golden (Test 6). Pins that chunking does not perturb
+# protein-FDR finalization (the chunked + FDR:protein combination, see issue #9640). Diffed against
+# the SAME golden as Test 6; chunk_size is not serialized into the output.
+add_test("TOPP_ProSE_6_fdr_chunked" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -Search:database:chunk_size 20
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_6_fdr_chunked_out.tmp.idXML)
+add_test("TOPP_ProSE_6_fdr_chunked_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_6_fdr_chunked_out.tmp.idXML
+  -in2 ${DATA_DIR_TOPP}/ProSE_6_fdr_out.idXML
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "InferenceEngineVersion" "name=\"fragment_annotation\"")
+set_tests_properties("TOPP_ProSE_6_fdr_chunked_out" PROPERTIES DEPENDS
+  "TOPP_ProSE_6_fdr_chunked")
 # Test 7: multi-file run with -out_merged (the tool-only cross-file merge path, not covered by
 # ProSEAlgorithm_test). Exercises IDMergerAlgorithm + BasicProteinInferenceAlgorithm + picked-
 # protein FDR on the pooled set (FDR:protein from the ini finalizes the merged result, removing
