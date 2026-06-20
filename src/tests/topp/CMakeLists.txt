@@ -3208,18 +3208,33 @@ add_test("TOPP_ProSE_6_fdr" ${TOPP_BIN_PATH}/ProSE -test
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
   -out_idxml ${TESTS_TEMP_DIR}/ProSE_6_fdr_out.tmp.idXML)
-add_test("TOPP_ProSE_6_fdr_out" ${DIFF}
-  -in1 ${TESTS_TEMP_DIR}/ProSE_6_fdr_out.tmp.idXML
-  -in2 ${DATA_DIR_TOPP}/ProSE_6_fdr_out.idXML
-  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "InferenceEngineVersion" "name=\"fragment_annotation\"")
-set_tests_properties("TOPP_ProSE_6_fdr_out" PROPERTIES DEPENDS
-  "TOPP_ProSE_6_fdr")
-# Test 6b: chunked equivalence for single-file protein FDR. Identical to Test 6 but with database
-# chunking enabled (-Search:database:chunk_size): the fragment index is built per chunk and hits are
-# accumulated across chunks before a single post-processing + picked-protein FDR pass, so the result
-# must be byte-identical to the non-chunked golden (Test 6). Pins that chunking does not perturb
-# protein-FDR finalization (the chunked + FDR:protein combination, see issue #9640). Diffed against
-# the SAME golden as Test 6; chunk_size is not serialized into the output.
+# Exact idXML diff is NOT portable for this FDR-thresholded realistic search: HyperScore uses libm
+# lgamma/log1p, whose last ULP differs across macOS/Windows/Linux, flipping ~1 target/decoy near-tie
+# and cascading every scan_index (issue #9640). So verify the END-TO-END result via FileInfo counts
+# with calibrated tolerance. The exact decoy-free + valid-idXML contract is pinned cross-platform by
+# ProSEAlgorithm_test.
+add_test("TOPP_ProSE_6_fdr_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_6_fdr_out.tmp.idXML
+  -out_tsv ${TESTS_TEMP_DIR}/ProSE_6_fdr_info.tmp.tsv)
+set_tests_properties("TOPP_ProSE_6_fdr_info" PROPERTIES DEPENDS "TOPP_ProSE_6_fdr")
+# (a) protein count = the FDR-controlled, decoy-free quantity: 47 targets (+/-1 for the <=1
+#     borderline-match jitter). A decoy-removal regression leaks 2 decoys -> 49 -> caught (diff 2 > 1).
+add_test("TOPP_ProSE_6_fdr_info_proteins" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_6_fdr_info.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_6_fdr_info.tsv -absdiff 1
+  -whitelist "file name" "database" "search engine" "matched spectra" "peptide hits" "modified top-hits")
+set_tests_properties("TOPP_ProSE_6_fdr_info_proteins" PROPERTIES DEPENDS "TOPP_ProSE_6_fdr_info")
+# (b) matched-spectra / peptide-hit counts: ~895 (+/-3 for the borderline-match jitter); catches
+#     gross scoring/ID regressions while tolerating the platform FP noise.
+add_test("TOPP_ProSE_6_fdr_info_psms" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_6_fdr_info.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_6_fdr_info.tsv -absdiff 3
+  -whitelist "file name" "database" "search engine" "protein hits")
+set_tests_properties("TOPP_ProSE_6_fdr_info_psms" PROPERTIES DEPENDS "TOPP_ProSE_6_fdr_info")
+# Test 6b: chunked == non-chunked. Diff the chunked output against the SAME-RUN non-chunked output
+# (Test 6), NOT a committed golden: chunking is deterministic per platform (TOPP_ProSE_5_chunked
+# proves it bit-identical), so this is immune to the cross-platform FP noise above while still
+# pinning that chunking does not perturb single-file protein-FDR finalization (issue #9640).
 add_test("TOPP_ProSE_6_fdr_chunked" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
@@ -3228,10 +3243,10 @@ add_test("TOPP_ProSE_6_fdr_chunked" ${TOPP_BIN_PATH}/ProSE -test
   -out_idxml ${TESTS_TEMP_DIR}/ProSE_6_fdr_chunked_out.tmp.idXML)
 add_test("TOPP_ProSE_6_fdr_chunked_out" ${DIFF}
   -in1 ${TESTS_TEMP_DIR}/ProSE_6_fdr_chunked_out.tmp.idXML
-  -in2 ${DATA_DIR_TOPP}/ProSE_6_fdr_out.idXML
+  -in2 ${TESTS_TEMP_DIR}/ProSE_6_fdr_out.tmp.idXML
   -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "InferenceEngineVersion" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_6_fdr_chunked_out" PROPERTIES DEPENDS
-  "TOPP_ProSE_6_fdr_chunked")
+  "TOPP_ProSE_6_fdr_chunked;TOPP_ProSE_6_fdr")
 # Test 7: multi-file run with -out_merged (the tool-only cross-file merge path, not covered by
 # ProSEAlgorithm_test). Exercises IDMergerAlgorithm + BasicProteinInferenceAlgorithm + picked-
 # protein FDR on the pooled set (FDR:protein from the ini finalizes the merged result, removing
