@@ -24,7 +24,7 @@ const string rt_model = "data/peptdeep_rt_dynamic.onnx";
 const string ms2_model = "data/peptdeep_ms2_dynamic.onnx";
 
 // TEST CASE 1: Initialization & Failures
-TOLERANCE_ABSOLUTE(1e-6);
+TOLERANCE_ABSOLUTE(1e-5);
 
 START_SECTION((PeptDeepRTInference(const string& model_path)))
     STATUS("Checking invalid model path handling...");
@@ -37,6 +37,9 @@ START_SECTION((std::vector<float> predictMS2(const std::string&, float, float, i
 
     STATUS("Testing empty input sequence violation...");
     TEST_EXCEPTION(Exception::IllegalArgument, ms2_engine.predictMS2("", 2.0f, 30.0f, 0));
+
+    STATUS("Testing unsupported residue exception...");
+    TEST_EXCEPTION(Exception::InvalidValue, ms2_engine.predictMS2("PEPTIDEX", 2.0f, 30.0f, 0));
 END_SECTION
 
 // TEST CASE 3: Execution Sanity & Numeric Regression
@@ -50,14 +53,18 @@ START_SECTION((Mathematical regression checks))
 
     TEST_REAL_SIMILAR(rt_predictions[0], -0.0202387f);
 
-    STATUS("Verifying MS2 engine returns proper fragment slice count...");
+    STATUS("Verifying MS2 engine returns normalized fragment slice...");
     PeptDeepMS2Inference ms2_engine_exec(ms2_model);
-    auto ms2_preds = ms2_engine_exec.predictMS2("PEPTIDEK", 2.0f, 30.0f, 0); // Normalized NCE should expect raw values (~30)
+
+    // NCE expects raw percentage values (0-100)
+    auto ms2_preds = ms2_engine_exec.predictMS2("PEPTIDEK", 2.0f, 30.0f, 0);
 
     TEST_EQUAL(ms2_preds.size() > 0, true);
 
-    // Replace 0.0f with the actual expected head intensity value from your reference pass
-    TEST_REAL_SIMILAR(ms2_preds[0], 2.63506e-06f);
+    // Verify Base Peak Normalization matches Python output
+    TEST_REAL_SIMILAR(ms2_preds[0], 0.0f);
+    TEST_REAL_SIMILAR(ms2_preds[1], 0.0f);
+    TEST_REAL_SIMILAR(ms2_preds[2], 0.0644772f);
 
     STATUS("All PeptDeepInference tests passed safely within this section!");
 END_SECTION

@@ -27,7 +27,13 @@ namespace OpenMS
             {
                 session_options_.SetIntraOpNumThreads(1);
                 session_options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+                
+#ifdef _WIN32
+                std::wstring w_model_path(model_path.begin(), model_path.end());
+                session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), w_model_path.c_str(), session_options_);
+#else
                 session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), model_path.c_str(), session_options_);
+#endif
             }
             catch (const Ort::Exception& e)
             {

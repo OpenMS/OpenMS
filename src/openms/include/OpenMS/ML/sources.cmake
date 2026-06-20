@@ -5,10 +5,12 @@ set(directory include/OpenMS/ML)
 set(sources_list_h
 )
 
-set(sources_list_h
-  PeptDeepMS2Inference.h
-  PeptDeepRTInference.h
-)
+if (WITH_ONNX)
+    list(APPEND sources_list_h
+        PeptDeepMS2Inference.h
+        PeptDeepRTInference.h
+    )
+endif()
 
 ### add path to the filenames
 set(sources_h)
