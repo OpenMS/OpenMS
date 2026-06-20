@@ -1626,6 +1626,43 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // Shared protein-FDR finalization for a COMPLETE protein set. Single source
+  // of truth for both the file-based search() below and the ProSE TOPP tool's
+  // single-file path (the two previously held byte-identical copies).
+  // =====================================================================
+  // static
+  void ProSEAlgorithm::applyCompleteSetProteinFDR(
+      std::vector<ProteinIdentification>& protein_ids,
+      PeptideIdentificationList& peptide_ids,
+      const std::string& decoy_prefix,
+      double protein_fdr)
+  {
+    // Aggregate the best PSM score per peptide per protein, then apply picked-protein
+    // FDR (Savitski et al. 2015) over the full target+decoy protein set.
+    BasicProteinInferenceAlgorithm bpia;
+    bpia.run(peptide_ids, protein_ids);
+
+    FalseDiscoveryRate fdr;
+    fdr.applyPickedProteinFDR(protein_ids[0], decoy_prefix, true);
+    IDFilter::filterHitsByScore(protein_ids, protein_fdr);
+
+    // Decoy removal is the finalization step. removeDecoyHits strips decoy PSMs; decoy
+    // proteins then fall out as unreferenced. Repair indistinguishable-protein and
+    // protein-group references and drop peptide evidence pointing at removed proteins,
+    // else idXML storage fails on dangling references.
+    IDFilter::removeDecoyHits(peptide_ids);
+    IDFilter::removeEmptyIdentifications(peptide_ids);
+    IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+    IDFilter::updateProteinGroups(protein_ids[0].getIndistinguishableProteins(), protein_ids[0].getHits());
+    IDFilter::updateProteinGroups(protein_ids[0].getProteinGroups(), protein_ids[0].getHits());
+    IDFilter::removeDanglingProteinReferences(peptide_ids, protein_ids);
+
+    OPENMS_LOG_INFO << "[ProSE] Protein inference + picked-protein FDR: "
+                    << protein_ids[0].getHits().size() << " proteins at "
+                    << protein_fdr * 100 << "% FDR." << std::endl;
+  }
+
+  // =====================================================================
   // File-based search: thin I/O wrapper that delegates to in-memory search
   // =====================================================================
   ProSEAlgorithm::ExitCodes ProSEAlgorithm::search(
@@ -1662,22 +1699,8 @@ namespace OpenMS
         [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
     if (fdr_protein_ > 0.0 && (decoys_ || has_decoys_single))
     {
-      BasicProteinInferenceAlgorithm bpia;
-      bpia.run(peptide_ids, protein_ids);
-
-      FalseDiscoveryRate fdr;
-      fdr.applyPickedProteinFDR(protein_ids[0], decoy_prefix_, true);
-      IDFilter::filterHitsByScore(protein_ids, fdr_protein_);
-
-      // Now safe to remove decoys (deferred from search() above)
-      IDFilter::removeDecoyHits(peptide_ids);
-      IDFilter::removeEmptyIdentifications(peptide_ids);
-      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
-      // Keep indistinguishable-protein and protein groups consistent with the filtered hit set,
-      // and drop peptide evidence to removed (decoy) proteins, else idXML storage fails on dangling refs.
-      IDFilter::updateProteinGroups(protein_ids[0].getIndistinguishableProteins(), protein_ids[0].getHits());
-      IDFilter::updateProteinGroups(protein_ids[0].getProteinGroups(), protein_ids[0].getHits());
-      IDFilter::removeDanglingProteinReferences(peptide_ids, protein_ids);
+      // Single input file = complete experiment, so picked-protein FDR is valid.
+      applyCompleteSetProteinFDR(protein_ids, peptide_ids, decoy_prefix_, fdr_protein_);
     }
 
     // patch file-specific metadata

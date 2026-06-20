@@ -444,25 +444,11 @@ class ProSE :
             }
             if (has_decoys)
             {
-              // The single file is the complete experiment, so picked-protein FDR is valid:
-              // aggregate the best PSM score per peptide per protein, then apply it
-              // (Savitski et al. 2015) over the file's full target+decoy protein set.
-              BasicProteinInferenceAlgorithm bpia;
-              bpia.run(result.peptide_ids, result.protein_ids);
-              FalseDiscoveryRate fdr;
-              fdr.applyPickedProteinFDR(result.protein_ids[0], decoy_prefix, true);
-              IDFilter::filterHitsByScore(result.protein_ids, user_protein_fdr);
-              IDFilter::removeDecoyHits(result.peptide_ids);
-              IDFilter::removeEmptyIdentifications(result.peptide_ids);
-              IDFilter::removeUnreferencedProteins(result.protein_ids, result.peptide_ids);
-              // Keep indistinguishable-protein and protein groups consistent with the filtered
-              // hit set, else they (and peptide evidence) dangle to removed decoys and idXML store fails.
-              IDFilter::updateProteinGroups(result.protein_ids[0].getIndistinguishableProteins(), result.protein_ids[0].getHits());
-              IDFilter::updateProteinGroups(result.protein_ids[0].getProteinGroups(), result.protein_ids[0].getHits());
-              IDFilter::removeDanglingProteinReferences(result.peptide_ids, result.protein_ids);
-              OPENMS_LOG_INFO << "[ProSE] Single-file protein inference + FDR: "
-                              << result.protein_ids[0].getHits().size() << " proteins at "
-                              << user_protein_fdr * 100 << "% FDR." << endl;
+              // The single file is the complete experiment, so picked-protein FDR is valid.
+              // Shared finalization (inference + picked FDR + decoy removal + ref cleanup)
+              // lives in ProSEAlgorithm so this and the library search() path can't drift.
+              ProSEAlgorithm::applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids,
+                                                         decoy_prefix, user_protein_fdr);
             }
             else
             {

@@ -157,6 +157,34 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       PeptideIdentificationList& pep_ids) const;
 
     /**
+     * @brief Finalize protein-level FDR on a COMPLETE protein set (a single input file,
+     * or a merged cross-file aggregate).
+     *
+     * Runs protein inference (BasicProteinInferenceAlgorithm), picked-protein FDR
+     * (Savitski et al. 2015), threshold filtering at @p protein_fdr, then removes decoys
+     * and repairs indistinguishable-protein / protein-group / peptide-evidence references
+     * so the result stores as schema-valid, decoy-free idXML.
+     *
+     * Shared by the file-based single-file search() above and the ProSE TOPP tool's
+     * single-file finalization, so the exact IDFilter sequence and ordering live in one
+     * place (they previously existed as two copies that could drift).
+     *
+     * Precondition: @p protein_ids is non-empty, decoys are present, and the set is
+     * statistically complete — picked-protein FDR does not compose across runs. The caller
+     * gates on "decoys present" and "FDR requested"; this helper unconditionally applies the
+     * finalization to whatever it is given.
+     *
+     * @param[in,out] protein_ids Protein identifications (operates on protein_ids[0]).
+     * @param[in,out] peptide_ids PSMs feeding inference; decoy PSMs are removed.
+     * @param[in] decoy_prefix Accession prefix identifying decoy proteins.
+     * @param[in] protein_fdr Picked-protein q-value threshold (expected > 0).
+     */
+    static void applyCompleteSetProteinFDR(std::vector<ProteinIdentification>& protein_ids,
+                                           PeptideIdentificationList& peptide_ids,
+                                           const std::string& decoy_prefix,
+                                           double protein_fdr);
+
+    /**
      * @brief Search with comprehensive results including modification analysis tables
      *
      * This method performs a peptide database search and additionally returns
