@@ -12,15 +12,17 @@
 #include "AminoAcidVocabulary.h"
 #include <stdexcept>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 namespace OpenMS
 {
-    // 1. THE HIDDEN IMPLEMENTATION STRUCT
     struct PeptDeepRTInference::Impl
     {
         Ort::SessionOptions session_options_;
         std::unique_ptr<Ort::Session> session_;
 
-        // Constructor
         Impl(const std::string& model_path)
         {
             try
@@ -29,8 +31,14 @@ namespace OpenMS
                 session_options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
                 
 #ifdef _WIN32
-                std::wstring w_model_path(model_path.begin(), model_path.end());
-                session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), w_model_path.c_str(), session_options_);
+                if (model_path.empty()) {
+                    session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), L"", session_options_);
+                } else {
+                    int size_needed = MultiByteToWideChar(CP_UTF8, 0, model_path.c_str(), (int)model_path.length(), NULL, 0);
+                    std::wstring w_model_path(size_needed, 0);
+                    MultiByteToWideChar(CP_UTF8, 0, model_path.c_str(), (int)model_path.length(), &w_model_path[0], size_needed);
+                    session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), w_model_path.c_str(), session_options_);
+                }
 #else
                 session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), model_path.c_str(), session_options_);
 #endif
@@ -41,7 +49,6 @@ namespace OpenMS
             }
         }
 
-        // Helper Function (Moved from public class to hidden Impl)
         std::vector<int64_t> tokenizePeptides(const std::vector<std::string>& peptides, size_t& max_length)
         {
             max_length = 132;
@@ -66,14 +73,13 @@ namespace OpenMS
                         }
                         flat_tokens.push_back(aa_index);
                     } else {
-                        flat_tokens.push_back(0); // Padding token
+                        flat_tokens.push_back(0); 
                     }
                 }
             }
             return flat_tokens;
         }
 
-        // Core Prediction Logic
         std::vector<float> predictRT(const std::vector<std::string>& peptides)
         {
             if (peptides.empty())
@@ -89,7 +95,6 @@ namespace OpenMS
             auto mod_tensor_info = mod_type_info.GetTensorTypeAndShapeInfo();
             std::vector<int64_t> mod_shape = mod_tensor_info.GetShape();
 
-            // Guard against unexpected lower-rank shapes
             if (mod_shape.size() < 2)
             {
                 throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -103,15 +108,8 @@ namespace OpenMS
             int64_t total_mod_elements = 1;
             for (int64_t dim : mod_shape)
             {
-                // If a dynamic dimension (-1) is encountered, fallback to standard AlphaPeptDeep feature width
-                if (dim < 0)
-                {
-                    total_mod_elements *= 109;
-                }
-                else
-                {
-                    total_mod_elements *= dim;
-                }
+                if (dim < 0) total_mod_elements *= 109;
+                else total_mod_elements *= dim;
             }
 
             std::vector<float> mod_x_data(total_mod_elements, 0.0f);
@@ -141,16 +139,14 @@ namespace OpenMS
             size_t output_count = output_tensors.front().GetTensorTypeAndShapeInfo().GetElementCount();
             if (output_count < peptides.size()) {
                 throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "ONNX model output shape mismatch: returned fewer elements than requested.",
-                    std::to_string(output_count) + " < " + std::to_string(peptides.size()));
+                    "ONNX model output shape mismatch.",
+                    std::to_string(output_count));
             }
 
             float* floatarr = output_tensors.front().GetTensorMutableData<float>();
             return std::vector<float>(floatarr, floatarr + peptides.size());
         }
     };
-
-    // 2. THE PUBLIC WRAPPER (Forwarding calls to Impl)
 
     PeptDeepRTInference::PeptDeepRTInference(const std::string& model_path)
         : pimpl_(std::make_unique<Impl>(model_path))

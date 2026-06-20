@@ -9,10 +9,14 @@
 #include <OpenMS/ML/PeptDeepMS2Inference.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include "ONNXEnvironment.h"
-#include "AminoAcidVocabulary.h"
+#include "AminoAcidVocabulary.h" 
 #include <stdexcept>
 #include <algorithm>
 #include <string>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace OpenMS {
 
@@ -27,10 +31,16 @@ struct PeptDeepMS2Inference::Impl
         try {
             session_options_.SetIntraOpNumThreads(1);
             session_options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
-
+            
 #ifdef _WIN32
-            std::wstring w_model_path(model_path.begin(), model_path.end());
-            session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), w_model_path.c_str(), session_options_);
+            if (model_path.empty()) {
+                session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), L"", session_options_);
+            } else {
+                int size_needed = MultiByteToWideChar(CP_UTF8, 0, model_path.c_str(), (int)model_path.length(), NULL, 0);
+                std::wstring w_model_path(size_needed, 0);
+                MultiByteToWideChar(CP_UTF8, 0, model_path.c_str(), (int)model_path.length(), &w_model_path[0], size_needed);
+                session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), w_model_path.c_str(), session_options_);
+            }
 #else
             session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), model_path.c_str(), session_options_);
 #endif
@@ -53,21 +63,18 @@ struct PeptDeepMS2Inference::Impl
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unsupported residue encountered.", peptide_sequence);
         }
 
-        // --- 1. PADDED SEQUENCE ---
         int64_t padded_length = seq_length + 2;
         std::vector<int64_t> aa_indices;
         aa_indices.reserve(padded_length);
-
+        
         aa_indices.push_back(0); // N-term padding
         for (char aa : peptide_sequence) {
-            aa_indices.push_back(ML::getAAIndex(aa));
+            aa_indices.push_back(ML::getAAIndex(aa)); 
         }
         aa_indices.push_back(0); // C-term padding
 
         std::vector<int64_t> aa_shape = {batch_size, padded_length};
 
-        // --- 2. SCALED FEATURES (Timo's Fix) ---
-        // charge_factor = 0.1, NCE_factor = 0.01
         std::vector<float> charge_data = {charge * 0.1f};
         std::vector<float> nce_data = {nce * 0.01f};
         std::vector<int64_t> inst_data = {instrument_index};
@@ -91,13 +98,13 @@ struct PeptDeepMS2Inference::Impl
         for (size_t i = 0; i < input_count; i++) {
             std::string name = input_names[i];
             auto shape = session_->GetInputTypeInfo(i).GetTensorTypeAndShapeInfo().GetShape();
-
+            
             if (name == "mod_x") {
                 mod_shape = shape;
                 if (mod_shape.empty()) mod_shape = {batch_size, padded_length, 109};
                 mod_shape[0] = batch_size;
-                if (mod_shape.size() > 1) mod_shape[1] = padded_length;
-
+                if (mod_shape.size() > 1) mod_shape[1] = padded_length; 
+                
                 int64_t total_mod = 1;
                 for (size_t d = 0; d < mod_shape.size(); ++d) {
                     if (mod_shape[d] < 0) mod_shape[d] = 109; // fallback
@@ -156,34 +163,54 @@ struct PeptDeepMS2Inference::Impl
             Ort::RunOptions{nullptr}, input_names_chars.data(), input_tensors.data(), input_tensors.size(), output_names, 1
         );
 
-        // --- 3. TIMO'S POST-PROCESSING ---
         float* floatarr = output_tensors.front().GetTensorMutableData<float>();
-        size_t output_count = output_tensors.front().GetTensorTypeAndShapeInfo().GetElementCount();
+        auto out_shape = output_tensors.front().GetTensorTypeAndShapeInfo().GetShape();
+
+        int64_t actual_rows = out_shape.size() >= 2 ? out_shape[out_shape.size() - 2] : 1;
+        if (out_shape.size() >= 3) {
+            actual_rows = out_shape[1]; 
+        }
+        int64_t num_ions = out_shape.back();
+        int64_t valid_fragments = seq_length - 1; 
+
+        int64_t start_row = 0;
+        if (actual_rows > valid_fragments) {
+            start_row = (actual_rows - valid_fragments) / 2;
+        }
 
         std::vector<float> intensities;
-        intensities.reserve(output_count);
+        intensities.reserve(valid_fragments * num_ions);
 
-        // 1. Find the apex (max value)
         float apex = 0.0f;
-        for (size_t i = 0; i < output_count; ++i) {
-            float val = floatarr[i];
-            intensities.push_back(val);
-            if (val > apex) {
-                apex = val;
+        for (int64_t i = 0; i < valid_fragments; ++i) {
+            int64_t row_idx = start_row + i;
+            if (row_idx >= actual_rows) break;
+
+            for (int64_t j = 0; j < num_ions; ++j) {
+                float val = floatarr[(row_idx * num_ions) + j];
+                if (val > 10.0f) {
+                    val = 0.0f;
+                }
+                intensities.push_back(val < 0.0f ? 0.0f : val);
+                if (val > apex) {
+                    apex = val;
+                }
             }
         }
 
-        // 2. Guard against zero/negative apex
         if (apex <= 0.0f) {
             apex = 1.0f;
         }
 
-        // 3. Normalize and floor noise
         for (float& val : intensities) {
             val /= apex;
             if (val < 1e-4f) {
                 val = 0.0f;
             }
+        }
+        
+        if (!intensities.empty()) {
+            intensities[0] = 0.0f;
         }
 
         return intensities;
