@@ -959,6 +959,17 @@ namespace OpenMS
       }
       Math::RandomShuffler shuffler(42);  // fixed seed for reproducible decoy ordering across runs/files
       shuffler.portable_random_shuffle(db.begin(), db.end());
+
+      // Under the default decoys=auto, decoys are generated whenever the database lacks them —
+      // including no-ProSE-FDR runs, because the decoys are typically consumed by a downstream or
+      // external FDR step (FalseDiscoveryRate / Percolator) or a merged run. This roughly doubles
+      // index build + search; for a genuinely target-only search, use decoys=ignore.
+      if (decoy_mode_ == DecoyMode_::AUTO && fdr_psm_ == 0.0 && fdr_protein_ == 0.0)
+      {
+        OPENMS_LOG_INFO << "[ProSE] decoys=auto generated " << old_size << " decoys (the database had "
+                        << "none) for downstream target-decoy FDR. Use '-Search:decoys ignore' for a "
+                        << "target-only search if you do not need FDR." << std::endl;
+      }
     }
     return db;
   }

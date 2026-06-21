@@ -283,6 +283,18 @@ class ProSE :
         return INTERNAL_ERROR;
       }
 
+      // .pin output feeds an EXTERNAL Percolator, which also needs decoys for target/decoy
+      // competition. Warn once if the run is target-only (decoys=ignore, or no decoys in the
+      // database) so the user knows the .pin will not be usable for FDR. (decoys=auto/generate
+      // ensure decoys are present, so this only fires for an explicit target-only search.)
+      if (!out_pin_list.empty() && !mfres.have_decoys)
+      {
+        OPENMS_LOG_WARN << "-out_pin was requested but the search ran target-only (decoys=ignore, "
+                        << "or no decoys in the database); the .pin file will contain no decoys and "
+                        << "external Percolator cannot estimate FDR from it. Use '-Search:decoys auto' "
+                        << "/ 'generate' or supply a decoy FASTA." << endl;
+      }
+
       // Optional per-file Percolator rescoring (replaces HyperScore with
       // Percolator q-values for downstream FDR / protein inference).
       std::vector<bool> percolator_succeeded(in_list.size(), false);
@@ -308,8 +320,8 @@ class ProSE :
         if (!has_decoys_for_percolator)
         {
           OPENMS_LOG_WARN << "Percolator rescoring requires decoys but none found in results. "
-                          << "Enable '-Search:decoys' or provide a FASTA with decoy proteins. "
-                          << "Skipping rescoring." << endl;
+                          << "Use '-Search:decoys auto' / 'generate' or provide a FASTA with decoy "
+                          << "proteins. Skipping rescoring." << endl;
         }
         else
         {
