@@ -28,7 +28,6 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 
-#include <nlohmann/json.hpp>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
@@ -987,86 +986,16 @@ class ProSE :
           OPENMS_LOG_INFO << r.str() << endl;
         }
 
-        // -- Optional machine-readable JSON. --
+        // -- Optional machine-readable JSON. The nlohmann/json serialization lives in
+        //    the OpenMS library (ProSEAlgorithm::renderRunSummaryJson) so this TOPP tool
+        //    does not need nlohmann on its include path (it is not exported to consumers
+        //    of the library on macOS/Windows); the tool only writes the returned string. --
         if (!summary_out.empty())
         {
-          using nlohmann::json;
-          auto run_to_json = [](const ProSEAlgorithm::RunStatistics& st, const ProSEAlgorithm::SearchResult& res) {
-            json j;
-            j["input_file"] = std::string(st.input_file);
-            j["exit_code"] = static_cast<int>(res.exit_code);
-            j["ms2_spectra"] = st.ms2_spectra;
-            j["matched_spectra"] = st.matched_spectra;
-            j["target_psms"] = st.target_psms;
-            j["decoy_psms"] = st.decoy_psms;
-            j["fdr_applied"] = st.fdr_applied;
-            j["achieved_psm_fdr"] = st.achieved_psm_fdr;
-            j["unique_peptides"] = st.unique_peptides;
-            j["unique_proteins"] = st.unique_proteins;
-            j["hyperscore"] = {{"valid", st.score_stats_valid}, {"min", st.hyperscore_min},
-                               {"median", st.hyperscore_median}, {"max", st.hyperscore_max}};
-            json ch = json::object();
-            for (const auto& [z, c] : st.charge_histogram) { ch[std::to_string(z)] = c; }
-            j["charge_histogram"] = ch;
-            json mc = json::object();
-            for (const auto& [m, c] : st.missed_cleavage_histogram) { mc[std::to_string(m)] = c; }
-            j["missed_cleavage_histogram"] = mc;
-            j["precursor_error"] = {{"valid", st.prec_tol_valid}, {"median_ppm", st.prec_err_median},
-                                    {"mad_ppm", st.prec_err_mad}, {"recommended_ppm", st.prec_err_recommended}};
-            j["fragment_error"] = {{"valid", st.frag_tol_valid}, {"median_ppm", st.frag_err_median},
-                                   {"mad_ppm", st.frag_err_mad}, {"recommended_ppm", st.frag_err_recommended}};
-            j["timing_seconds"] = {{"calibration", st.seconds_calibration},
-                                   {"search", st.seconds_search}, {"fdr", st.seconds_fdr}};
-            return j;
-          };
-
-          json root;
-          json shj;
-          shj["database_file"] = std::string(sh.database_file);
-          shj["enzyme"] = std::string(sh.enzyme);
-          shj["precursor_tol_lower"] = sh.precursor_tol_lower;
-          shj["precursor_tol_upper"] = sh.precursor_tol_upper;
-          shj["precursor_tol_unit"] = std::string(sh.precursor_tol_unit);
-          shj["fragment_tol"] = sh.fragment_tol;
-          shj["fragment_tol_unit"] = std::string(sh.fragment_tol_unit);
-          shj["min_charge"] = sh.min_charge;
-          shj["max_charge"] = sh.max_charge;
-          shj["missed_cleavages"] = sh.missed_cleavages;
-          shj["fixed_mods"] = std::vector<std::string>(sh.fixed_mods.begin(), sh.fixed_mods.end());
-          shj["variable_mods"] = std::vector<std::string>(sh.variable_mods.begin(), sh.variable_mods.end());
-          shj["ion_series"] = std::vector<std::string>(sh.ion_series.begin(), sh.ion_series.end());
-          shj["open_search"] = sh.open_search;
-          shj["calibration_enabled"] = sh.calibration_enabled;
-          shj["snes_mode"] = sh.snes_mode;
-          shj["chunked"] = sh.chunked;
-          shj["decoy_mode"] = std::string(sh.decoy_mode);
-          shj["psm_fdr_threshold"] = sh.psm_fdr_threshold;
-          shj["protein_fdr_threshold"] = sh.protein_fdr_threshold;
-          shj["db_target_proteins"] = sh.db_target_proteins;
-          shj["db_decoy_proteins"] = sh.db_decoy_proteins;
-          shj["indexed_peptides"] = sh.indexed_peptides;
-          shj["indexed_fragments"] = sh.indexed_fragments;
-          shj["seconds_index_build"] = sh.seconds_index_build;
-          shj["seconds_total"] = sh.seconds_total;
-          root["shared"] = shj;
-
-          json files = json::array();
-          for (const auto& pf : mfres.per_file) { files.push_back(run_to_json(pf.stats, pf)); }
-          root["per_file"] = files;
-
-          json man = json::array();
-          for (const auto& [label, paths] : manifest)
-          {
-            man.push_back({{"type", label}, {"paths", paths}});
-          }
-          root["outputs"] = man;
-          root["files_failed"] = failed_count;
-          root["files_total"] = in_list.size();
-
           try
           {
             std::ofstream ofs(summary_out);
-            ofs << root.dump(2) << std::endl;
+            ofs << ProSEAlgorithm::renderRunSummaryJson(mfres, manifest, failed_count, in_list.size()) << std::endl;
             if (!ofs.good())
             {
               OPENMS_LOG_ERROR << "[ProSE] Failed to write summary JSON -> " << summary_out

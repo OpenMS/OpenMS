@@ -841,6 +841,17 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     static void renderModificationSummary(const OpenSearchModificationAnalysis::OpenSearchAnalysisResult& mod_analysis,
                                           std::ostream& os);
 
+    /// Serialize the complete end-of-search report to a machine-readable JSON string:
+    /// shared configuration/database/index facts, per-file identification statistics,
+    /// the output-file @p manifest (label -> written paths) and failed/total file counts.
+    /// Kept in the library so the nlohmann/json dependency stays an implementation detail —
+    /// the TOPP tool simply writes the returned string (it does not link nlohmann itself).
+    static std::string renderRunSummaryJson(
+        const MultiFileSearchResult& mfres,
+        const std::vector<std::pair<std::string, std::vector<std::string>>>& manifest,
+        Size files_failed,
+        Size files_total);
+
   private:
 
     /// Helper function to determine if open search should be used based on tolerance
