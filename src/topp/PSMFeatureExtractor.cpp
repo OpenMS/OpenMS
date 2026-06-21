@@ -53,7 +53,7 @@ PSMFeatureExtractor is search engine sensitive, i.e. it's extra features
 vary, depending on the search engine. Thus, please make sure the input is
 compliant with TOPP SearchengineAdapter output. Also, PeptideIndexer compliant
 target/decoy annotation is mandatory.
-Currently supported search engines are Comet, X!Tandem, MSGF+.
+Currently supported search engines are Comet, X!Tandem, MSGF+, MSFragger, andes.
 Mascot support is available but in beta development.
 </p>
 
@@ -239,9 +239,13 @@ protected:
     {
       PercolatorFeatureSetHelper::addCOMETFeatures(all_peptide_ids, feature_set);
     }
-    else if (search_engine == "MSFragger") 
+    else if (search_engine == "MSFragger")
     {
       PercolatorFeatureSetHelper::addMSFRAGGERFeatures(feature_set);
+    }
+    else if (search_engine == "andes")
+    {
+      PercolatorFeatureSetHelper::addANDESFeatures(all_peptide_ids, feature_set);
     }
     else
     {
