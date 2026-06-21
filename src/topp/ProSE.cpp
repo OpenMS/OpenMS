@@ -63,7 +63,7 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
-@note Decoy handling: either enable '-Search:decoys' to generate decoys internally, or provide a FASTA database that already contains decoy proteins (e.g., from DecoyDatabase). In both cases, the decoy accession prefix must match '-Search:decoy_prefix' (default: "DECOY_").
+@note Decoy handling is controlled by '-Search:decoys'. The default 'auto' ensures decoys are available for target-decoy FDR: it reuses decoys already present in the FASTA (the marker is auto-detected, prefix or suffix, e.g. from DecoyDatabase) or generates them internally (prefixing accessions with '-Search:decoy_prefix', default "DECOY_") if none are found. Use 'generate' to always (re)build decoys from the targets, or 'ignore' to search the targets only.
 @note Decoy reporting is tied to protein-level FDR, not to PSM-level FDR. Setting '-Search:FDR:protein' > 0 signals "finalize this result": picked-protein FDR is applied and decoys are removed. PSM-level FDR ('-Search:FDR:PSM') filters target and decoy PSMs alike by the q-value threshold; it does no decoy-specific stripping, so decoys that pass the threshold are kept. With '-Search:FDR:protein' = 0 (the default), decoys are retained in every output (target+decoy evidence with scores). To obtain a clean, decoy-free result without protein FDR, run @ref TOPP_IDFilter with '-remove_decoys' downstream.
 @note Protein-level FDR scope: picked-protein FDR does not compose across runs, so it is applied (and decoys removed) only on a @em complete protein set — a single input file, or the pooled '-out_merged' set of a multi-file run. For a multi-file run with '-Search:FDR:protein' > 0 but no '-out_merged', protein FDR is NOT applied (no output represents a complete experiment); ProSE warns and leaves the per-file outputs as intermediates (decoys retained).
 @note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.
@@ -152,9 +152,9 @@ class ProSE :
       }
 
       // At least one output must be specified
-      if (out_idxml_list.empty() && out_pin_list.empty() && out_qpx_dir.empty() && out_parquet_dir.empty())
+      if (out_idxml_list.empty() && out_pin_list.empty() && out_qpx_dir.empty() && out_parquet_dir.empty() && out_merged.empty())
       {
-        OPENMS_LOG_ERROR << "No output specified. Provide at least one of -out_idxml, -out_pin, -out_qpx, or -out_parquet." << endl;
+        OPENMS_LOG_ERROR << "No output specified. Provide at least one of -out_idxml, -out_pin, -out_qpx, -out_parquet, or -out_merged." << endl;
         return ILLEGAL_PARAMETERS;
       }
 
@@ -283,6 +283,18 @@ class ProSE :
         return INTERNAL_ERROR;
       }
 
+      // .pin output feeds an EXTERNAL Percolator, which also needs decoys for target/decoy
+      // competition. Warn once if the run is target-only (decoys=ignore, or no decoys in the
+      // database) so the user knows the .pin will not be usable for FDR. (decoys=auto/generate
+      // ensure decoys are present, so this only fires for an explicit target-only search.)
+      if (!out_pin_list.empty() && !mfres.have_decoys)
+      {
+        OPENMS_LOG_WARN << "-out_pin was requested but the search ran target-only (decoys=ignore, "
+                        << "or no decoys in the database); the .pin file will contain no decoys and "
+                        << "external Percolator cannot estimate FDR from it. Use '-Search:decoys auto' "
+                        << "/ 'generate' or supply a decoy FASTA." << endl;
+      }
+
       // Optional per-file Percolator rescoring (replaces HyperScore with
       // Percolator q-values for downstream FDR / protein inference).
       std::vector<bool> percolator_succeeded(in_list.size(), false);
@@ -308,8 +320,8 @@ class ProSE :
         if (!has_decoys_for_percolator)
         {
           OPENMS_LOG_WARN << "Percolator rescoring requires decoys but none found in results. "
-                          << "Enable '-Search:decoys' or provide a FASTA with decoy proteins. "
-                          << "Skipping rescoring." << endl;
+                          << "Use '-Search:decoys auto' / 'generate' or provide a FASTA with decoy "
+                          << "proteins. Skipping rescoring." << endl;
         }
         else
         {
@@ -436,27 +448,21 @@ class ProSE :
           if (result.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK
               && !result.protein_ids.empty() && !result.peptide_ids.empty())
           {
-            const std::string decoy_prefix = search_params.getValue("decoy_prefix").toString();
-            bool has_decoys = false;
-            for (const auto& ph : result.protein_ids[0].getHits())
+            if (mfres.have_decoys)
             {
-              if (ph.getAccession().rfind(decoy_prefix, 0) == 0) { has_decoys = true; break; }
-            }
-            if (has_decoys)
-            {
-              // The single file is the complete experiment, so picked-protein FDR is valid.
-              // Shared finalization (inference + picked FDR + decoy removal + ref cleanup)
-              // lives in ProSEAlgorithm so this and the library search() path can't drift.
+              // The single file is the complete experiment, so picked-protein FDR is valid. Shared
+              // finalization (inference + picked FDR + decoy removal + ref cleanup) lives in
+              // ProSEAlgorithm so this and the library search() path can't drift; it uses the
+              // resolved decoy marker (prefix or suffix) and skips internally if no decoy proteins
+              // survived inference.
               ProSEAlgorithm::applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids,
-                                                         decoy_prefix, user_protein_fdr);
+                                                         mfres.decoy_string, mfres.decoy_is_prefix, user_protein_fdr);
             }
             else
             {
-              OPENMS_LOG_WARN << "FDR:protein is set but no decoy proteins were identified "
-                              << "(decoy_prefix='" << decoy_prefix << "'); picked-protein FDR needs "
-                              << "identified decoys to estimate q-values. Skipping protein FDR "
-                              << "(check that '-Search:decoys' is enabled or the FASTA contains "
-                              << "decoys, and that decoys are actually matched)." << endl;
+              OPENMS_LOG_WARN << "FDR:protein is set but the search ran target-only (decoys=ignore, "
+                              << "or no decoys in the database); skipping protein FDR. Use "
+                              << "'-Search:decoys auto' / 'generate' or supply a decoy FASTA." << endl;
             }
           }
         }
@@ -716,7 +722,11 @@ class ProSE :
       {
         try
         {
-          const std::string decoy_prefix = search_params.getValue("decoy_prefix").toString();
+          // Use the effective decoy marker/position the search resolved (which
+          // may be an auto-detected external marker, prefix or suffix), not the
+          // raw decoy_prefix parameter.
+          const std::string decoy_string = mfres.decoy_string;
+          const bool decoy_is_prefix = mfres.decoy_is_prefix;
 
           // Merge per-file results via IDMergerAlgorithm (accession dedup + identifier remap)
           IDMergerAlgorithm merger;
@@ -739,23 +749,42 @@ class ProSE :
           BasicProteinInferenceAlgorithm bpia;
           bpia.run(merged_peptides, merged_protein_ids);
 
-          // Optional picked-protein FDR
-          if (user_protein_fdr > 0.0)
+          // Optional picked-protein FDR. Needs identified decoy proteins: gate on DB-level decoys
+          // AND a result-level check (the merged inference could be target-only even with a decoy
+          // database if no decoy survived in any file). Track whether FDR was actually applied so
+          // the decoy-removal finalization below only runs when it was.
+          bool merged_fdr_applied = false;
+          if (user_protein_fdr > 0.0 && mfres.have_decoys && !decoy_string.empty())
           {
-            FalseDiscoveryRate fdr;
-            fdr.applyPickedProteinFDR(merged_protein_ids[0], decoy_prefix, true);
-            IDFilter::filterHitsByScore(merged_protein_ids, user_protein_fdr);
+            const bool merged_has_decoy_proteins = std::any_of(
+                merged_protein_ids[0].getHits().begin(), merged_protein_ids[0].getHits().end(),
+                [&](const ProteinHit& ph) {
+                  return decoy_is_prefix ? StringUtils::hasPrefix(ph.getAccession(), decoy_string)
+                                         : StringUtils::hasSuffix(ph.getAccession(), decoy_string);
+                });
+            if (merged_has_decoy_proteins)
+            {
+              FalseDiscoveryRate fdr;
+              fdr.applyPickedProteinFDR(merged_protein_ids[0], decoy_string, decoy_is_prefix);
+              IDFilter::filterHitsByScore(merged_protein_ids, user_protein_fdr);
+              merged_fdr_applied = true;
 
-            OPENMS_LOG_INFO << "[ProSE] Merged protein inference + FDR: "
-                            << merged_protein_ids[0].getHits().size() << " proteins at "
-                            << user_protein_fdr * 100 << "% FDR" << endl;
+              OPENMS_LOG_INFO << "[ProSE] Merged protein inference + FDR: "
+                              << merged_protein_ids[0].getHits().size() << " proteins at "
+                              << user_protein_fdr * 100 << "% FDR" << endl;
+            }
+            else
+            {
+              OPENMS_LOG_WARN << "FDR:protein is set but the merged result has no decoy proteins "
+                              << "(marker '" << decoy_string << "'); skipping merged protein FDR to "
+                              << "avoid target-only q-values." << endl;
+            }
           }
 
-          // Decoy removal is a protein-FDR finalization step: strip decoys only when
-          // protein FDR was applied (user_protein_fdr > 0). With protein FDR off, the
-          // merged output is a pooled intermediate (cross-file inference) and retains
-          // target+decoy evidence for downstream FDR.
-          if (user_protein_fdr > 0.0)
+          // Decoy removal is a protein-FDR finalization step: strip decoys only when protein FDR was
+          // actually applied. Otherwise the merged output is a pooled intermediate (cross-file
+          // inference) that retains target+decoy evidence for downstream FDR.
+          if (merged_fdr_applied)
           {
             IDFilter::removeDecoyHits(merged_peptides);
             IDFilter::removeEmptyIdentifications(merged_peptides);

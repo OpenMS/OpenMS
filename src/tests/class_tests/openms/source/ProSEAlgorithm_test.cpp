@@ -56,6 +56,9 @@ public:
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
   using ProSEAlgorithm::preprocessSpectra_;
+  using ProSEAlgorithm::resolveDecoyStrategy_;
+  using ProSEAlgorithm::DecoyStrategy_;
+  using ProSEAlgorithm::buildDecoyAugmentedDB_;
 };
 
 // --- Shared calibration fixture -------------------------------------------------
@@ -168,7 +171,7 @@ static void configure_calibration_params_(ProSEAlgorithm& algo,
   // crop at ProSEAlgorithm.cpp:1571 is skipped and every collected error reaches the
   // estimator. For our small fixture that's what we want.
   p.setValue("calibration:min_psms", static_cast<Int>(min_psms));
-  p.setValue("decoys", "false");
+  p.setValue("decoys", "ignore");
   p.setValue("peptide:min_size", 7);
   p.setValue("peptide:max_size", 40);
   p.setValue("peptide:missed_cleavages", 1);
@@ -314,6 +317,145 @@ END_SECTION
 START_SECTION(~ProSEAlgorithm())
 {
   delete ptr;
+}
+END_SECTION
+
+START_SECTION(([EXTRA] default mass tolerances))
+{
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  TEST_REAL_SIMILAR((double)p.getValue("precursor:mass_tolerance_lower"), 10.0)
+  TEST_REAL_SIMILAR((double)p.getValue("precursor:mass_tolerance_upper"), 10.0)
+  TEST_STRING_EQUAL(p.getValue("precursor:mass_tolerance_unit").toString(), "ppm")
+  TEST_REAL_SIMILAR((double)p.getValue("fragment:mass_tolerance"), 20.0)
+  TEST_STRING_EQUAL(p.getValue("fragment:mass_tolerance_unit").toString(), "ppm")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] resolveDecoyStrategy_ / buildDecoyAugmentedDB_: auto/generate/ignore))
+{
+  // Target+decoy database (50% decoys, conventional DECOY_ prefix).
+  const std::vector<FASTAFile::FASTAEntry> td_db = {
+    FASTAFile::FASTAEntry("sp|P1|A", "", "PEPTIDEKAAR"),
+    FASTAFile::FASTAEntry("sp|P2|B", "", "SAMPLERPEPTIDEK"),
+    FASTAFile::FASTAEntry("DECOY_sp|P1|A", "", "RAAKEDITPEP"),
+    FASTAFile::FASTAEntry("DECOY_sp|P2|B", "", "KEDITPEPRELPMAS") };
+  // Target-only database.
+  const std::vector<FASTAFile::FASTAEntry> t_db = {
+    FASTAFile::FASTAEntry("sp|P1|A", "", "PEPTIDEKAAR"),
+    FASTAFile::FASTAEntry("sp|P2|B", "", "SAMPLERPEPTIDEK") };
+
+  auto count_prefix = [](const std::vector<FASTAFile::FASTAEntry>& db, const std::string& pre)
+  {
+    Size n = 0;
+    for (const auto& e : db) if (e.identifier.rfind(pre, 0) == 0) ++n;
+    return n;
+  };
+
+  // --- auto: reuse existing decoys (detected), do not generate -------------
+  {
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "auto");
+    algo.setParameters(p);
+    ProSEAlgorithm_test::DecoyStrategy_ s = algo.resolveDecoyStrategy_(td_db);
+    TEST_EQUAL(s.generate, false)
+    TEST_EQUAL(s.strip_existing, false)
+    TEST_EQUAL(s.have_decoys, true)
+    TEST_STRING_EQUAL(s.decoy_string, "DECOY_")
+    TEST_EQUAL(s.is_prefix, true)
+    // DB is searched unchanged.
+    std::vector<FASTAFile::FASTAEntry> built = algo.buildDecoyAugmentedDB_(td_db, s);
+    TEST_EQUAL(built.size(), 4)
+    TEST_EQUAL(count_prefix(built, "DECOY_"), 2)
+  }
+
+  // --- auto: no decoys present -> generate them ---------------------------
+  {
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "auto");
+    algo.setParameters(p);
+    ProSEAlgorithm_test::DecoyStrategy_ s = algo.resolveDecoyStrategy_(t_db);
+    TEST_EQUAL(s.generate, true)
+    TEST_EQUAL(s.strip_existing, false)
+    TEST_EQUAL(s.have_decoys, true)
+    TEST_STRING_EQUAL(s.decoy_string, "DECOY_")
+    std::vector<FASTAFile::FASTAEntry> built = algo.buildDecoyAugmentedDB_(t_db, s);
+    TEST_EQUAL(built.size(), 4)             // 2 targets + 2 generated decoys
+    TEST_EQUAL(count_prefix(built, "DECOY_"), 2)
+  }
+
+  // --- ignore: strip existing decoys, search targets only -----------------
+  {
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "ignore");
+    algo.setParameters(p);
+    ProSEAlgorithm_test::DecoyStrategy_ s = algo.resolveDecoyStrategy_(td_db);
+    TEST_EQUAL(s.generate, false)
+    TEST_EQUAL(s.strip_existing, true)
+    TEST_EQUAL(s.have_decoys, false)
+    std::vector<FASTAFile::FASTAEntry> built = algo.buildDecoyAugmentedDB_(td_db, s);
+    TEST_EQUAL(built.size(), 2)             // decoys removed
+    TEST_EQUAL(count_prefix(built, "DECOY_"), 0)
+  }
+
+  // --- generate: strip pre-existing decoys, then regenerate from targets ---
+  {
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "generate");
+    algo.setParameters(p);
+    ProSEAlgorithm_test::DecoyStrategy_ s = algo.resolveDecoyStrategy_(td_db);
+    TEST_EQUAL(s.generate, true)
+    TEST_EQUAL(s.strip_existing, true)
+    TEST_EQUAL(s.have_decoys, true)
+    std::vector<FASTAFile::FASTAEntry> built = algo.buildDecoyAugmentedDB_(td_db, s);
+    TEST_EQUAL(built.size(), 4)             // 2 targets + 2 freshly generated
+    TEST_EQUAL(count_prefix(built, "DECOY_"), 2)
+  }
+
+  // --- custom marker outside the common vocabulary: literal fall-back -----
+  {
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "auto");
+    p.setValue("decoy_prefix", "BOGUS_");
+    algo.setParameters(p);
+    const std::vector<FASTAFile::FASTAEntry> custom_db = {
+      FASTAFile::FASTAEntry("sp|P1|A", "", "PEPTIDEKAAR"),
+      FASTAFile::FASTAEntry("BOGUS_sp|P1|A", "", "RAAKEDITPEP") };
+    ProSEAlgorithm_test::DecoyStrategy_ s = algo.resolveDecoyStrategy_(custom_db);
+    TEST_EQUAL(s.generate, false)           // existing decoys recognised via fall-back
+    TEST_EQUAL(s.have_decoys, true)
+    TEST_STRING_EQUAL(s.decoy_string, "BOGUS_")
+    TEST_EQUAL(s.is_prefix, true)
+  }
+
+  // --- auto: reuse decoys detected by a SUFFIX marker (prefix/suffix aware) -----
+  // Headline #9634 feature: decoys can be marked as a suffix (e.g. from DecoyDatabase
+  // with -decoy_string_position suffix). DecoyHelper detects it; ProSE must reuse them
+  // (not double-generate) and thread is_prefix=false through the whole FDR chain.
+  {
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "auto");
+    algo.setParameters(p);
+    const std::vector<FASTAFile::FASTAEntry> suffix_db = {
+      FASTAFile::FASTAEntry("sp|P1|A", "", "PEPTIDEKAAR"),
+      FASTAFile::FASTAEntry("sp|P2|B", "", "SAMPLERPEPTIDEK"),
+      FASTAFile::FASTAEntry("sp|P1|A_decoy", "", "RAAKEDITPEP"),
+      FASTAFile::FASTAEntry("sp|P2|B_decoy", "", "KEDITPEPRELPMAS") };
+    ProSEAlgorithm_test::DecoyStrategy_ s = algo.resolveDecoyStrategy_(suffix_db);
+    TEST_EQUAL(s.generate, false)           // reuse existing, do not generate
+    TEST_EQUAL(s.strip_existing, false)
+    TEST_EQUAL(s.have_decoys, true)
+    TEST_EQUAL(s.is_prefix, false)          // detected as a SUFFIX marker
+    // searched unchanged (no double-generation -> no *_decoy_decoy entries).
+    std::vector<FASTAFile::FASTAEntry> built = algo.buildDecoyAugmentedDB_(suffix_db, s);
+    TEST_EQUAL(built.size(), 4)
+  }
 }
 END_SECTION
 
@@ -511,7 +653,7 @@ START_SECTION(([EXTRA] Synthetic modification discovery - open search))
   p.setValue("fragment:mass_tolerance_unit", "ppm");
   p.setValue("modifications:fixed", vector<string>{"Carbamidomethyl (C)"});
   p.setValue("modifications:variable", vector<string>{});
-  p.setValue("decoys", "false");
+  p.setValue("decoys", "ignore");
   p.setValue("peptide:min_size", 7);
   p.setValue("peptide:max_size", 40);
   p.setValue("peptide:missed_cleavages", 1);
@@ -807,7 +949,7 @@ START_SECTION(([EXTRA] FDR-filtered modification discovery))
   p.setValue("fragment:mass_tolerance_unit", "ppm");
   p.setValue("modifications:fixed", vector<string>{"Carbamidomethyl (C)"});
   p.setValue("modifications:variable", vector<string>{});
-  p.setValue("decoys", "true");  // Enable decoys for FDR
+  p.setValue("decoys", "auto");  // Enable decoys for FDR
   p.setValue("peptide:min_size", 7);
   p.setValue("peptide:max_size", 40);
   p.setValue("peptide:missed_cleavages", 1);
@@ -947,7 +1089,7 @@ START_SECTION(([EXTRA] Closed search baseline))
   p.setValue("fragment:mass_tolerance_unit", "ppm");
   p.setValue("modifications:fixed", vector<string>{"Carbamidomethyl (C)"});
   p.setValue("modifications:variable", vector<string>{"Oxidation (M)"});
-  p.setValue("decoys", "false");
+  p.setValue("decoys", "ignore");
   p.setValue("peptide:min_size", 7);
   p.setValue("peptide:max_size", 40);
   p.setValue("peptide:missed_cleavages", 1);
@@ -1019,7 +1161,7 @@ START_SECTION(([EXTRA] Closed search with c/z ions toggled - ETD-style fragmenta
     p.setValue("fragment:mass_tolerance_unit", "ppm");
     p.setValue("modifications:fixed", vector<string>{});
     p.setValue("modifications:variable", vector<string>{});
-    p.setValue("decoys", "false");
+    p.setValue("decoys", "ignore");
     p.setValue("peptide:min_size", 7);
     p.setValue("peptide:max_size", 40);
     p.setValue("peptide:missed_cleavages", 1);
@@ -1108,7 +1250,7 @@ START_SECTION(([EXTRA] Ion mobility annotation))
   p.setValue("fragment:mass_tolerance_unit", "ppm");
   p.setValue("modifications:fixed", vector<string>{});
   p.setValue("modifications:variable", vector<string>{});
-  p.setValue("decoys", "false");
+  p.setValue("decoys", "ignore");
   p.setValue("peptide:min_size", 7);
   p.setValue("peptide:max_size", 40);
   p.setValue("peptide:missed_cleavages", 1);
@@ -1150,7 +1292,7 @@ START_SECTION(([EXTRA] Edge cases - empty inputs))
 
     ProSEAlgorithm algo;
     Param p = algo.getParameters();
-    p.setValue("decoys", "false");
+    p.setValue("decoys", "ignore");
     algo.setParameters(p);
 
     vector<ProteinIdentification> prot_ids;
@@ -1193,7 +1335,7 @@ START_SECTION((ExitCodes search(const std::string &, const std::string &, std::v
   p.setValue("fragment:mass_tolerance", 20.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");
   p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
-  p.setValue("decoys", "true");
+  p.setValue("decoys", "generate");
   p.setValue("FDR:PSM", 0.05);
   p.setValue("FDR:protein", 0.5);   // lenient: keep proteins but exercise the picked-FDR path
   algo.setParameters(p);
@@ -1257,7 +1399,7 @@ START_SECTION(([EXTRA] file-based single-file search retains decoys when protein
   p.setValue("fragment:mass_tolerance", 20.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");
   p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
-  p.setValue("decoys", "true");
+  p.setValue("decoys", "generate");
   p.setValue("FDR:PSM", 0.5);       // PSM filtering ON (lenient, so decoys survive the q-value cut) ...
   p.setValue("FDR:protein", 0.0);   // ... but protein FDR OFF -> decoys must be retained
   algo.setParameters(p);
@@ -1318,7 +1460,7 @@ START_SECTION(([EXTRA] in-memory search applies PSM-level FDR only, never protei
   p.setValue("fragment:mass_tolerance", 20.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");
   p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
-  p.setValue("decoys", "true");
+  p.setValue("decoys", "generate");
   p.setValue("FDR:PSM", 0.0);       // no PSM filtering, so decoys are retained...
   p.setValue("FDR:protein", 0.5);   // ...and this overload must NOT remove them via protein FDR
   algo.setParameters(p);
@@ -1358,7 +1500,7 @@ START_SECTION(([EXTRA] in-memory search retains decoys after PSM-level FDR filte
   p.setValue("fragment:mass_tolerance", 20.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");
   p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
-  p.setValue("decoys", "true");
+  p.setValue("decoys", "generate");
   p.setValue("FDR:PSM", 0.5);       // PSM filtering ON (lenient) ...
   p.setValue("FDR:protein", 0.0);   // ... protein FDR OFF -> decoys retained
   algo.setParameters(p);
@@ -1461,7 +1603,7 @@ START_SECTION(([EXTRA] prepareContext + context-based search produces same IDs a
   p.setValue("fragment:mass_tolerance_unit", "ppm");
   p.setValue("modifications:fixed", vector<string>{"Carbamidomethyl (C)"});
   p.setValue("modifications:variable", vector<string>{});
-  p.setValue("decoys", "false");
+  p.setValue("decoys", "ignore");
   algo.setParameters(p);
 
   // Path A: single-shot search (builds + tears down the index internally).
@@ -1512,7 +1654,7 @@ START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::v
   // Verify the multi-file in-memory FASTA overload validates input list lengths.
   ProSEAlgorithm algo;
   Param p = algo.getParameters();
-  p.setValue("decoys", "false");
+  p.setValue("decoys", "ignore");
   algo.setParameters(p);
 
   vector<FASTAFile::FASTAEntry> fasta_db = {{"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLK"}};
