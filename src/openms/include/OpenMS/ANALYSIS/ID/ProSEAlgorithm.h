@@ -574,8 +574,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// Calibration overwrites these with the calibrated magnitudes for the duration of
     /// search(); pure runtime-state mutation that does not affect the logical const-ness
     /// of search(), matching the `mutable` pattern used by last_calibration_result_.
-    mutable double precursor_mass_tolerance_lower_{20.0};   ///< positive magnitude
-    mutable double precursor_mass_tolerance_upper_{20.0};   ///< positive magnitude
+    mutable double precursor_mass_tolerance_lower_{10.0};   ///< positive magnitude (default matches the param)
+    mutable double precursor_mass_tolerance_upper_{10.0};   ///< positive magnitude (default matches the param)
     std::string precursor_mass_tolerance_unit_{"ppm"};
 
     Size precursor_min_charge_;

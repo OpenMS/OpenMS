@@ -902,6 +902,23 @@ namespace OpenMS
           OPENMS_LOG_WARN << "[ProSE] decoys=generate: removing pre-existing decoys (marker '"
                           << ext_string << "') and regenerating from the target proteins.\n";
         }
+        else
+        {
+          // Nothing detected to strip. If the database still carries some decoy-like accessions
+          // with a non-standard or too-sparse marker (below DecoyHelper's threshold, and not the
+          // configured decoy_prefix), they are treated as targets and reversed into decoys-of-decoys.
+          // Warn so the user can set -Search:decoy_prefix to the real marker or pre-clean the FASTA.
+          FASTAContainer<TFI_Vector> stats_container(db);
+          const DecoyHelper::DecoyStatistics stats = DecoyHelper::countDecoys(stats_container);
+          if (stats.all_prefix_occur + stats.all_suffix_occur > 0)
+          {
+            OPENMS_LOG_WARN << "[ProSE] decoys=generate: " << (stats.all_prefix_occur + stats.all_suffix_occur)
+                            << " accession(s) carry a decoy-like marker but too few to auto-detect, so "
+                            << "they are not stripped and will be treated as targets (risking "
+                            << "decoys-of-decoys). Set -Search:decoy_prefix to the actual marker or "
+                            << "pre-clean the database.\n";
+          }
+        }
         s.generate = true; s.strip_existing = existing; s.have_decoys = true;
         s.decoy_string = decoy_prefix_; s.is_prefix = true;
         s.strip_string = ext_string; s.strip_is_prefix = ext_is_prefix;
@@ -931,6 +948,16 @@ namespace OpenMS
   {
     std::vector<FASTAFile::FASTAEntry> db;
     db.reserve(fasta_db.size() * (strategy.generate ? 2 : 1));
+
+    // decoys=auto reusing pre-existing decoys logs nothing otherwise; surface the auto-detected
+    // marker so a rare DecoyHelper misdetection (a target DB whose accessions start with a decoy
+    // affix) is diagnosable. Single emission: buildDecoyAugmentedDB_ runs once per search.
+    if (decoy_mode_ == DecoyMode_::AUTO && !strategy.generate && strategy.have_decoys)
+    {
+      OPENMS_LOG_INFO << "[ProSE] decoys=auto: reusing existing decoys detected in the database "
+                      << "(marker '" << strategy.decoy_string << "', "
+                      << (strategy.is_prefix ? "prefix" : "suffix") << ")." << std::endl;
+    }
 
     // 1. Copy targets, dropping pre-existing decoys when requested.
     for (const FASTAFile::FASTAEntry& e : fasta_db)
