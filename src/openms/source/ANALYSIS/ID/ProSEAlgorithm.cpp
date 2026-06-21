@@ -2100,8 +2100,13 @@ namespace OpenMS
       mfres.shared.chunked = true;
       for (const auto& e : full_db)
       {
-        if (accessionHasDecoyMarker_(e.identifier, decoy_prefix_, /*is_prefix=*/true))
-        { ++mfres.shared.db_decoy_proteins; }
+        // Count by the RESOLVED decoy marker (prefix OR suffix), not the hardcoded
+        // decoy_prefix_: otherwise reused external/suffix decoys (decoy_mode "external")
+        // would be miscounted as targets. have_decoys is false for target-only (ignore),
+        // where decoys are stripped and decoy_string is empty.
+        const bool is_decoy = strategy.have_decoys &&
+            accessionHasDecoyMarker_(e.identifier, strategy.decoy_string, strategy.is_prefix);
+        if (is_decoy) { ++mfres.shared.db_decoy_proteins; }
         else { ++mfres.shared.db_target_proteins; }
       }
 
@@ -2432,8 +2437,13 @@ namespace OpenMS
       mfres.shared.snes_mode = ctx.fragment_index.isSnesMode();
       for (const auto& e : ctx.db)
       {
-        if (accessionHasDecoyMarker_(e.identifier, decoy_prefix_, /*is_prefix=*/true))
-        { ++mfres.shared.db_decoy_proteins; }
+        // Count by the RESOLVED decoy marker (prefix OR suffix), not the hardcoded
+        // decoy_prefix_: otherwise reused external/suffix decoys (decoy_mode "external")
+        // would be miscounted as targets. have_decoys is false for target-only (ignore),
+        // where decoys are stripped and decoy_string is empty.
+        const bool is_decoy = strategy.have_decoys &&
+            accessionHasDecoyMarker_(e.identifier, strategy.decoy_string, strategy.is_prefix);
+        if (is_decoy) { ++mfres.shared.db_decoy_proteins; }
         else { ++mfres.shared.db_target_proteins; }
       }
 

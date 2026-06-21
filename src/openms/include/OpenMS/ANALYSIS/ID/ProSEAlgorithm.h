@@ -22,6 +22,8 @@
 #include <algorithm>   // std::min (used by inline computeModMatchTolerance_)
 #include <iosfwd>      // std::ostream (renderRunSummary / renderModificationSummary)
 #include <map>
+#include <string>      // std::string (renderRunSummaryJson return / manifest)
+#include <utility>     // std::pair (renderRunSummaryJson manifest)
 #include <vector>
 
 namespace OpenMS
