@@ -177,6 +177,36 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       PeptideIdentificationList& pep_ids) const;
 
     /**
+     * @brief Finalize protein-level FDR on a COMPLETE protein set (a single input file,
+     * or a merged cross-file aggregate).
+     *
+     * Runs protein inference (BasicProteinInferenceAlgorithm), picked-protein FDR
+     * (Savitski et al. 2015), threshold filtering at @p protein_fdr, then removes decoys
+     * and repairs indistinguishable-protein / protein-group / peptide-evidence references
+     * so the result stores as schema-valid, decoy-free idXML.
+     *
+     * Shared by the file-based single-file search() above and the ProSE TOPP tool's
+     * single-file finalization, so the exact IDFilter sequence and ordering live in one
+     * place (they previously existed as two copies that could drift).
+     *
+     * Precondition: @p protein_ids is non-empty and the set is statistically complete —
+     * picked-protein FDR does not compose across runs. The caller gates on "decoys present"
+     * and "FDR requested"; this helper additionally skips (with a warning) when no decoy
+     * proteins survive inference, to avoid target-only q-values.
+     *
+     * @param[in,out] protein_ids Protein identifications (operates on protein_ids[0]).
+     * @param[in,out] peptide_ids PSMs feeding inference; decoy PSMs are removed.
+     * @param[in] decoy_string Accession marker identifying decoy proteins.
+     * @param[in] decoy_is_prefix Whether @p decoy_string is a prefix (true) or suffix (false).
+     * @param[in] protein_fdr Picked-protein q-value threshold (expected > 0).
+     */
+    static void applyCompleteSetProteinFDR(std::vector<ProteinIdentification>& protein_ids,
+                                           PeptideIdentificationList& peptide_ids,
+                                           const std::string& decoy_string,
+                                           bool decoy_is_prefix,
+                                           double protein_fdr);
+
+    /**
      * @brief Search with comprehensive results including modification analysis tables
      *
      * This method performs a peptide database search and additionally returns
@@ -384,7 +414,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /// @brief filter, deisotope, decharge spectra
-    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested);
+    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top);
 
     /// How decoys are obtained/recognised for a search (parameter "decoys").
     enum class DecoyMode_
@@ -562,6 +592,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// deisotoper is never called out of range (it would throw -> terminate in the
     /// OpenMP region). See OpenMS#9619.
     bool deisotope_requested_{true};
+    Size peaks_keep_n_{0};     ///< NLargest cap on MS2 peaks before scoring; 0 = resolution-aware auto (peaks:keep_n)
+    Int peaks_window_top_{20}; ///< WindowMower peaks-per-100Da before scoring (peaks:window_top)
 
     StringList modifications_fixed_;
 

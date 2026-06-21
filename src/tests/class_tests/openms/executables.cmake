@@ -135,6 +135,7 @@ set(metadata_executables_list
   )
 
 set(system_executables_list
+  BuildInfo_test
   ExternalProcess_test
   File_test
   Network_test
@@ -337,7 +338,8 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   FeatureMapArrowIO_test
   ConsensusMapArrowIO_test
   PSMArrowIO_test
-  ArrowSchemaRegistry_test)
+  ArrowSchemaRegistry_test
+  ArrowIOHelpers_test)
 
 set(math_executables_list
   BasicStatistics_test
