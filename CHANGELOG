@@ -226,6 +226,13 @@ TOPP tools:
       - Auto decoy mode: new Search:decoys parameter with three-way enum (auto/generate/ignore, default auto); auto reuses existing decoys detected via DecoyHelper::findDecoyString (supports both prefix and suffix markers) and generates decoys when none are found; generate always strips existing decoys and regenerates from targets; ignore performs a target-only search without FDR; replaces the previous boolean Search:decoys parameter; fixes latent bugs where PeptideIndexing and picked-protein FDR used a hardcoded decoy_prefix position regardless of the actual decoy marker position in the database (#9634)
       - Changed default mass tolerances to typical high-resolution Orbitrap settings: precursor 20 -> 10 ppm (lower/upper) and fragment 10 -> 20 ppm. The tighter precursor window speeds the search and reduces spurious matches; data with calibration drift beyond 10 ppm may need a wider Search:precursor:mass_tolerance or Search:calibration:enabled (#9634)
       - Perf: calibration scoring pass (Search:calibration:enabled) is now parallelized with OpenMP, matching the main search loop; previously the serial subset pass took ~91% additional wall time on a 20-core machine, collapsing CPU utilisation from ~1682% to ~965%; after the fix wall-time overhead drops to ~7% and CPU utilisation is ~1734% — no extra work, the same scoring is simply spread across cores (#9639)
+    PSMFeatureExtractor:
+      - Added support for the andes search engine: PSMs whose search_engine is "andes" now have their
+        engine-specific Percolator features collected. andes annotates each PSM with its own numeric
+        features as MetaValues prefixed with "andes:" (e.g. "andes:RankScore", "andes:RawScore", ...);
+        all numeric "andes:"-prefixed MetaValues are registered as Percolator features (the andes side
+        remains the single source of truth for its feature set), instead of falling back to generic
+        features only. Mirrors the existing per-engine handling (Comet/MSGF+/MSFragger).
     PercolatorAdapter:
       - In-process rescoring backend: PercolatorAdapter now defaults to running Percolator in-process via the new OpenMS::Percolator class (vendored Percolator 3.08 + TRON solver) without requiring an external percolator binary; covers idXML/mzid input with PSM-level FDR; use -use_subprocess true to revert to the external binary path; OSW input, protein-level FDR, and peptide-level FDR still require the subprocess (#9218)
       - -percolator_executable is now optional (not required) when -use_subprocess false (the default); the parameter is still validated when -use_subprocess true (#9218)
