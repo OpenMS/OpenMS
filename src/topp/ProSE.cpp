@@ -21,6 +21,7 @@
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -63,6 +64,9 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
 @note Decoy handling: either enable '-Search:decoys' to generate decoys internally, or provide a FASTA database that already contains decoy proteins (e.g., from DecoyDatabase). In both cases, the decoy accession prefix must match '-Search:decoy_prefix' (default: "DECOY_").
+@note Decoy reporting is tied to protein-level FDR, not to PSM-level FDR. Setting '-Search:FDR:protein' > 0 signals "finalize this result": picked-protein FDR is applied and decoys are removed. PSM-level FDR ('-Search:FDR:PSM') filters target and decoy PSMs alike by the q-value threshold; it does no decoy-specific stripping, so decoys that pass the threshold are kept. With '-Search:FDR:protein' = 0 (the default), decoys are retained in every output (target+decoy evidence with scores). To obtain a clean, decoy-free result without protein FDR, run @ref TOPP_IDFilter with '-remove_decoys' downstream.
+@note Protein-level FDR scope: picked-protein FDR does not compose across runs, so it is applied (and decoys removed) only on a @em complete protein set — a single input file, or the pooled '-out_merged' set of a multi-file run. For a multi-file run with '-Search:FDR:protein' > 0 but no '-out_merged', protein FDR is NOT applied (no output represents a complete experiment); ProSE warns and leaves the per-file outputs as intermediates (decoys retained).
+@note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_ProSE.cli
@@ -380,8 +384,8 @@ class ProSE :
         // scores are already q-values (PercolatorAdapter was invoked with
         // -score_type q-value). For files that fell back to HyperScores (Percolator
         // skipped/failed), compute q-values via FalseDiscoveryRate first.
-        // Decoys are only removed here when protein FDR is disabled — otherwise
-        // they must survive for the merged picked-protein FDR step.
+        // PSM-level FDR filters target+decoy PSMs alike by q-value; no decoy-specific stripping
+        // here (categorical decoy removal is a protein-FDR finalization step, see below).
         if (user_psm_fdr > 0.0)
         {
           for (Size i = 0; i < in_list.size(); ++i)
@@ -408,18 +412,70 @@ class ProSE :
                 continue;
               }
               FalseDiscoveryRate fdr;
+              Param fdr_params = fdr.getParameters();
+              fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
+              fdr.setParameters(fdr_params);
               fdr.apply(result.peptide_ids);
             }
 
             IDFilter::filterHitsByScore(result.peptide_ids, user_psm_fdr);
+          }
+        }
+      }
 
-            if (user_protein_fdr == 0.0)
+      // Protein-level FDR. FDR does not compose across runs, so picked-protein FDR is
+      // statistically valid only on a COMPLETE protein set: a single input file (handled
+      // here) or the pooled -out_merged set (handled below). Filtering each file of a
+      // multi-file run separately would not control the FDR of the combined protein list
+      // (false positives accumulate across files), so that is deliberately never done.
+      if (user_protein_fdr > 0.0)
+      {
+        if (in_list.size() == 1)
+        {
+          ProSEAlgorithm::SearchResult& result = mfres.per_file[0];
+          if (result.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK
+              && !result.protein_ids.empty() && !result.peptide_ids.empty())
+          {
+            const std::string decoy_prefix = search_params.getValue("decoy_prefix").toString();
+            bool has_decoys = false;
+            for (const auto& ph : result.protein_ids[0].getHits())
             {
-              IDFilter::removeDecoyHits(result.peptide_ids);
-              IDFilter::removeEmptyIdentifications(result.peptide_ids);
-              IDFilter::removeUnreferencedProteins(result.protein_ids, result.peptide_ids);
+              if (ph.getAccession().rfind(decoy_prefix, 0) == 0) { has_decoys = true; break; }
+            }
+            if (has_decoys)
+            {
+              // The single file is the complete experiment, so picked-protein FDR is valid.
+              // Shared finalization (inference + picked FDR + decoy removal + ref cleanup)
+              // lives in ProSEAlgorithm so this and the library search() path can't drift.
+              ProSEAlgorithm::applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids,
+                                                         decoy_prefix, user_protein_fdr);
+            }
+            else
+            {
+              OPENMS_LOG_WARN << "FDR:protein is set but no decoy proteins were identified "
+                              << "(decoy_prefix='" << decoy_prefix << "'); picked-protein FDR needs "
+                              << "identified decoys to estimate q-values. Skipping protein FDR "
+                              << "(check that '-Search:decoys' is enabled or the FASTA contains "
+                              << "decoys, and that decoys are actually matched)." << endl;
             }
           }
+        }
+        else if (out_merged.empty())
+        {
+          // Multiple inputs but no complete (aggregate) protein set to finalize. Per-file
+          // protein FDR would not control the combined FDR, so it is NOT applied and no
+          // output represents the requested protein FDR. Per-file outputs are left as
+          // run-level intermediate evidence (target+decoy retained), so they can still be
+          // pooled and FDR-controlled downstream. Warn loudly.
+          OPENMS_LOG_WARN << "FDR:protein=" << user_protein_fdr << " was requested for "
+                          << in_list.size() << " input files but -out_merged was not set. "
+                          << "Protein-level FDR is NOT applied: filtering each run separately "
+                          << "would not control the FDR of the pooled protein list, and no "
+                          << "single output here represents a complete experiment. Per-file "
+                          << "outputs (-out_idxml/-out_qpx/-out_parquet) retain target+decoy "
+                          << "evidence as intermediates. Use -out_merged to obtain protein FDR "
+                          << "over the aggregated set, or pool the per-file outputs and apply "
+                          << "FDR downstream (e.g. IDMerger -> ProteinInference -> FalseDiscoveryRate)." << endl;
         }
       }
 
@@ -675,6 +731,9 @@ class ProSE :
 
           vector<ProteinIdentification> merged_protein_ids = {std::move(merged_proteins)};
           merged_protein_ids[0].setPrimaryMSRunPath(in_list);
+          // IDMergerAlgorithm carries over search engine/params but not a run date; set one so the
+          // merged idXML is schema-valid (matches the single-file path in ProSEAlgorithm).
+          merged_protein_ids[0].setDateTime(DateTime::now());
 
           // Protein inference: aggregate best PSM score per peptide per protein
           BasicProteinInferenceAlgorithm bpia;
@@ -692,14 +751,23 @@ class ProSE :
                             << user_protein_fdr * 100 << "% FDR" << endl;
           }
 
-          // Clean up decoys in merged output
-          IDFilter::removeDecoyHits(merged_peptides);
-          IDFilter::removeEmptyIdentifications(merged_peptides);
-          IDFilter::removeUnreferencedProteins(merged_protein_ids, merged_peptides);
-          // Strip PeptideEvidence entries pointing to proteins removed by decoy/FDR
-          // cleanup (target+decoy PSMs kept by removeDecoyHits would otherwise leave
-          // dangling refs that IdXMLFile::store rejects).
-          IDFilter::removeDanglingProteinReferences(merged_peptides, merged_protein_ids);
+          // Decoy removal is a protein-FDR finalization step: strip decoys only when
+          // protein FDR was applied (user_protein_fdr > 0). With protein FDR off, the
+          // merged output is a pooled intermediate (cross-file inference) and retains
+          // target+decoy evidence for downstream FDR.
+          if (user_protein_fdr > 0.0)
+          {
+            IDFilter::removeDecoyHits(merged_peptides);
+            IDFilter::removeEmptyIdentifications(merged_peptides);
+            IDFilter::removeUnreferencedProteins(merged_protein_ids, merged_peptides);
+            // Keep indistinguishable-protein and protein groups consistent with the filtered hit set.
+            IDFilter::updateProteinGroups(merged_protein_ids[0].getIndistinguishableProteins(), merged_protein_ids[0].getHits());
+            IDFilter::updateProteinGroups(merged_protein_ids[0].getProteinGroups(), merged_protein_ids[0].getHits());
+            // Strip PeptideEvidence entries pointing to proteins removed by decoy/FDR
+            // cleanup (target+decoy PSMs kept by removeDecoyHits would otherwise leave
+            // dangling refs that IdXMLFile::store rejects).
+            IDFilter::removeDanglingProteinReferences(merged_peptides, merged_protein_ids);
+          }
 
           if (getFlag_("test") && !merged_protein_ids.empty())
           {

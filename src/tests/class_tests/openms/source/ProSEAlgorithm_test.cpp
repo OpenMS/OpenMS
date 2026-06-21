@@ -21,11 +21,14 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
+#include <algorithm>
+#include <numeric>
 #include <random>
 #include <set>
 
@@ -170,6 +173,127 @@ static void configure_calibration_params_(ProSEAlgorithm& algo,
   p.setValue("peptide:max_size", 40);
   p.setValue("peptide:missed_cleavages", 1);
   algo.setParameters(p);
+}
+
+// ---------------------------------------------------------------------------
+// Shared synthetic search problem for the protein-FDR contract tests below.
+// 10 proteins + many modified-precursor spectra under a wide precursor window, so
+// ProSEAlgorithm with decoys=true reliably produces BOTH target and decoy protein
+// hits — the prerequisite for exercising picked-protein FDR.
+// ---------------------------------------------------------------------------
+void buildSyntheticProteinFDRData(std::vector<FASTAFile::FASTAEntry>& fasta_db, PeakMap& spectra)
+{
+  fasta_db = {
+    {"P01", "Protein01",
+     "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+     "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"
+     "GITNSEYRQWDLKAPMFHCVSITGNREYWDKLMPAHFQCSTVINEYRWDLK"
+     "APMHSCFTGQNVIREYWDKLMSPAHCFQNTSGIVREYWDKLHMPASCFQGN"},
+    {"P02", "Protein02",
+     "MKAILNHVGSTFREDWQCPYLKMISGDTFNHRVAWQECPLKYMTGISNHFR"
+     "DVEWAQCPLKTMIYGSNHFRDVEWAQCPKLIMTGSYNHFRDVEWAQCKPLIM"
+     "TGSYHFNRDVEWAQCPKLITMGSYHFNRDVEWAQCPKLITMGSYHNFRDVEW"
+     "AQCPKLITMGSYHFNRDVEWAQCPKLITMGSYHFNRDVEWAQCPKLITMGSY"},
+    {"P03", "Protein03",
+     "MGHYIKLTPNRESWDVAFQCKMHGYILKTPNRESWDVAFQCKMHGLIYTKP"
+     "NRESWDVAFQCKHMGIYLTKPNRESWDVAFQCKMHGIYLKTNPRESWDVAFQ"
+     "CKMHGYLIKTPNRESWDVAFQCKMHGIYLTKPNRESWDVAFQCKMHGIYLTK"
+     "PNRESWDVAFQCKMHGIYLTKPNRESWDVAFQCKMHGIYLTKPNRESWDVAF"},
+    {"P04", "Protein04",
+     "MSVDNKTHFRGECAWYPILQMSDKTNHFRGEVAWCYQPILKMSDETKNHFRG"
+     "VAWCEQYPILKMSDTKENHFRGVAWCEYQPILKMSDETKHNFRGVACWEYQPI"
+     "LKMSDETKNHFRGVAWCEYQPILKMSDETKNHFRGVAWCEYQPILKMSDETNK"
+     "HFRGVAWCEYQPILKMSDETKNHFRGVAWCEYQPILKMSDETKNHFRGVAWCE"},
+    {"P05", "Protein05",
+     "MAKLFGYNRSTECWDIPHQVMKALYFGNRSTWECDIPHQVKMALGFYNRSTWE"
+     "CDIPHQVKMALFGYNRSTEWCDIPHQVKMAFGLYNRSTWECDIPHQVKMALFY"
+     "GNRSTEWCDIPHQVKMALFGYNRSTEWCDIPHQVKMALFGYNRSTEWCDIPHQ"
+     "VKMALFGYNRSTEWCDIPHQVKMALFGYNRSTEWCDIPHQVKMALFGYNRSTE"},
+    {"P06", "Protein06",
+     "MTGYLSKFHERNDICWPAQVMTGLYSKHFERNDICWPAQVMTGLYSKFHRNDE"
+     "ICWPAQVKMTGYLSKFHERNDICWPAQVKMTGLYSKHFERNDICWPAQVKMTG"
+     "LYKSFHERNDICWPAQVKMTGLYSKHFERNDICWPAQVKMTGLYSKFHERNDIC"
+     "WPAQVKMTGLYSKFHERNDICWPAQVKMTGLYSKFHERNDICWPAQVKMTGLY"},
+    {"P07", "Protein07",
+     "MDIKHWNRSYPLCTGEFAQVKMDIHKWNRSYPLCTGFAEQVKMDIKHWNRSYP"
+     "LCTGFEAQVKMDIHKWNRSYPLCTGEFAQVKMDIKHWNRSYPLCTGFEAQVKM"
+     "DIHKWNRSYPLCTGEFAQVKMDIHKWNRSYPLCTGFEAQVKMDIHKWNRSYPL"
+     "CTGFEAQVKMDIHKWNRSYPLCTGFEAQVKMDIHKWNRSYPLCTGFEAQVKMD"},
+    {"P08", "Protein08",
+     "MEYKFADLHGSNTCRWQPIVKMEYFKADLHGSNTCRWQPVIKMEYFKADLHGS"
+     "NTCRWQPIVKMEYFKADLHGSNTRWCQPIVKMEYFDKALGHSNTRWCQPIVKM"
+     "EYFKADLGHSNTCRWQPIVKMEYFKADLHGSNTCRWQPIVKMEYFKADLHGSN"
+     "TCRWQPIVKMEYFKADLHGSNTCRWQPIVKMEYFKADLHGSNTCRWQPIVKME"},
+    {"P09", "Protein09",
+     "MQHWVDESYRFTNGPILCKAMQHWVDESYRTFNGPILCKAMQHWVEDYSRTFNG"
+     "PILCKAMQHWVEDYSRFTNGPILCKAMQHWVEDYSRFTNGPILCKAMQHWVEDY"
+     "SRFTNGPILCKAMQHWVEDYSRFTNGPILCKAMQHWVEDYSRFTNGPILCKAMQ"
+     "HWVEDYSRFTNGPILCKAMQHWVEDYSRFTNGPILCKAMQHWVEDYSRFTNGPI"},
+    {"P10", "Protein10",
+     "MTEFLNQGDKSYCRHWPIVAMTEFNLQGDKSYCRHWPIVAMTEFLNQGDKSYCR"
+     "HWPIVAMTEFLNQGDKSYCHRRWPIVAMTEFLNQGDKSYCRHWPIVAMTEFLNQ"
+     "GDKSYCRHWPIVAMTEFLNQGDKSYCRHWPIVAMTEFLNQGDKSYCRHWPIVAM"
+     "TEFLNQGDKSYCRHWPIVAMTEFLNQGDKSYCRHWPIVAMTEFLNQGDKSYCR"},
+  };
+
+  ProteaseDigestion digester;
+  digester.setEnzyme("Trypsin");
+  digester.setMissedCleavages(1);
+  ModifiedPeptideGenerator::MapToResidueType fixed_mods =
+    ModifiedPeptideGenerator::getModifications({"Carbamidomethyl (C)"});
+
+  std::vector<AASequence> all_peptides;
+  for (const auto& entry : fasta_db)
+  {
+    AASequence protein = AASequence::fromString(entry.sequence);
+    std::vector<AASequence> peptides;
+    digester.digest(protein, peptides, 7, 40);
+    for (auto& pep : peptides)
+    {
+      ModifiedPeptideGenerator::applyFixedModifications(fixed_mods, pep);
+      all_peptides.push_back(std::move(pep));
+    }
+  }
+
+  const std::vector<double> shift_masses = {15.9949, 79.9663, 42.0106, 0.9840, 28.0314, 31.9898, 203.0794};
+  std::mt19937 rng(42);
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg_param.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_param);
+
+  double rt = 100.0;
+  const Size target_per_shift = 300;
+  for (double shift : shift_masses)
+  {
+    std::vector<size_t> indices(all_peptides.size());
+    std::iota(indices.begin(), indices.end(), 0);
+    std::shuffle(indices.begin(), indices.end(), rng);
+    Size created = 0;
+    for (size_t idx : indices)
+    {
+      if (created >= target_per_shift) break;
+      const AASequence& pep = all_peptides[idx];
+      if (pep.size() < 8) continue;
+      int charge = 2 + (int)(rng() % 3);
+      MSSpectrum spec;
+      tsg.getSpectrum(spec, pep, 1, std::min(charge - 1, 2));
+      spec.sortByPosition();
+      if (spec.size() < 10) continue;
+      spec.setMSLevel(2);
+      spec.setRT(rt);
+      rt += 0.1;
+      double shifted_mz = pep.getMZ(charge) + shift / (double)charge;
+      Precursor prec;
+      prec.setMZ(shifted_mz);
+      prec.setCharge(charge);
+      spec.setPrecursors({prec});
+      spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
+      spectra.addSpectrum(std::move(spec));
+      created++;
+    }
+  }
 }
 
 START_TEST(ProSEAlgorithm, "$Id$")
@@ -1044,7 +1168,218 @@ END_SECTION
 
 START_SECTION((ExitCodes search(const std::string &, const std::string &, std::vector<ProteinIdentification> &, PeptideIdentificationList &) const))
 {
-  NOT_TESTABLE // tested via TOPP tool
+  // The single-file (file-path) search applies protein-level picked FDR, because a single
+  // input file IS a complete experiment. This locks the valid single-file protein-FDR path
+  // that the ProSE TOPP tool relies on for 1-input runs (see the single-file block in ProSE.cpp).
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+  TEST_TRUE(spectra.size() > 500)
+
+  std::string tmp_mzml;
+  NEW_TMP_FILE(tmp_mzml)
+  tmp_mzml += ".mzML";
+  FileHandler().storeExperiment(tmp_mzml, spectra, {FileTypes::MZML});
+  std::string tmp_fasta;
+  NEW_TMP_FILE(tmp_fasta)
+  tmp_fasta += ".fasta";
+  FASTAFile().store(tmp_fasta, fasta_db);
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "true");
+  p.setValue("FDR:PSM", 0.05);
+  p.setValue("FDR:protein", 0.5);   // lenient: keep proteins but exercise the picked-FDR path
+  algo.setParameters(p);
+
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(tmp_mzml, tmp_fasta, prot_ids, pep_ids);
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(prot_ids.size(), 1)
+  TEST_TRUE(prot_ids[0].getHits().size() > 0)
+
+  // Protein FDR ran: picked-protein FDR + cleanup removes the decoy proteins from the report.
+  Size decoy_proteins = 0;
+  for (const auto& ph : prot_ids[0].getHits())
+  {
+    if (ph.getAccession().rfind("DECOY_", 0) == 0) { ++decoy_proteins; }
+  }
+  TEST_EQUAL(decoy_proteins, 0)
+
+  // The FDR-filtered result must be a valid idXML: storing throws on dangling protein
+  // references (groups or peptide evidence pointing at removed decoy proteins).
+  std::string tmp_out;
+  NEW_TMP_FILE(tmp_out)
+  tmp_out += ".idXML";
+  FileHandler().storeIdentifications(tmp_out, prot_ids, pep_ids, {FileTypes::IDXML});
+  std::vector<ProteinIdentification> rprot;
+  PeptideIdentificationList rpep;
+  FileHandler().loadIdentifications(tmp_out, rprot, rpep, {FileTypes::IDXML});
+  TEST_EQUAL(rprot.size(), 1)
+  Size reloaded_decoys = 0;
+  for (const auto& ph : rprot[0].getHits()) { if (ph.getAccession().rfind("DECOY_", 0) == 0) { ++reloaded_decoys; } }
+  TEST_EQUAL(reloaded_decoys, 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] file-based single-file search retains decoys when protein FDR is OFF))
+{
+  // Decoy reporting is tied to protein-level FDR, NOT to PSM-level FDR. With FDR:protein==0
+  // the single-file (file-path) search must RETAIN decoys after PSM filtering: they are the
+  // intermediate evidence a later/global protein FDR or cross-file merge needs. (FDR:protein>0
+  // finalizes and removes them — see the section above.) This pins the decoupling of PSM-level
+  // FDR from decoy removal.
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  std::string tmp_mzml;
+  NEW_TMP_FILE(tmp_mzml)
+  tmp_mzml += ".mzML";
+  FileHandler().storeExperiment(tmp_mzml, spectra, {FileTypes::MZML});
+  std::string tmp_fasta;
+  NEW_TMP_FILE(tmp_fasta)
+  tmp_fasta += ".fasta";
+  FASTAFile().store(tmp_fasta, fasta_db);
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "true");
+  p.setValue("FDR:PSM", 0.5);       // PSM filtering ON (lenient, so decoys survive the q-value cut) ...
+  p.setValue("FDR:protein", 0.0);   // ... but protein FDR OFF -> decoys must be retained
+  algo.setParameters(p);
+
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(tmp_mzml, tmp_fasta, prot_ids, pep_ids);
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(prot_ids.size(), 1)
+
+  // Decoy proteins survive (no protein-FDR finalization happened).
+  Size decoy_proteins = 0;
+  for (const auto& ph : prot_ids[0].getHits())
+  {
+    if (ph.getAccession().rfind("DECOY_", 0) == 0) { ++decoy_proteins; }
+  }
+  TEST_TRUE(decoy_proteins > 0)
+
+  // Decoy PSMs survive PSM-level FDR filtering (PSM FDR annotates + filters, never strips decoys).
+  Size decoy_psms = 0;
+  for (const auto& pid : pep_ids)
+  {
+    for (const auto& hit : pid.getHits())
+    {
+      if (hit.metaValueExists("target_decoy")
+          && hit.getMetaValue("target_decoy").toString().find("decoy") != std::string::npos) { ++decoy_psms; }
+    }
+  }
+  TEST_TRUE(decoy_psms > 0)
+
+  // The decoy-retaining result is still valid idXML (stores + reloads).
+  std::string tmp_out;
+  NEW_TMP_FILE(tmp_out)
+  tmp_out += ".idXML";
+  FileHandler().storeIdentifications(tmp_out, prot_ids, pep_ids, {FileTypes::IDXML});
+  std::vector<ProteinIdentification> rprot;
+  PeptideIdentificationList rpep;
+  FileHandler().loadIdentifications(tmp_out, rprot, rpep, {FileTypes::IDXML});
+  TEST_EQUAL(rprot.size(), 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] in-memory search applies PSM-level FDR only, never protein FDR))
+{
+  // Per-file / multi-file searches must NOT apply protein FDR: FDR does not compose across
+  // runs, so picked-protein FDR is valid only on a COMPLETE set (a single file, or the merged
+  // aggregate). This pins the "PSM-only" contract of the in-memory search() overload used by
+  // the multi-file wrapper — applying protein FDR per file would inflate the combined FDR.
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "true");
+  p.setValue("FDR:PSM", 0.0);       // no PSM filtering, so decoys are retained...
+  p.setValue("FDR:protein", 0.5);   // ...and this overload must NOT remove them via protein FDR
+  algo.setParameters(p);
+
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(prot_ids.size(), 1)
+
+  // Protein FDR was NOT applied by this overload: decoy proteins survive (picked-protein FDR
+  // would have removed them). That is the multi-file/per-file path's intended contract.
+  Size decoy_proteins = 0;
+  for (const auto& ph : prot_ids[0].getHits())
+  {
+    if (ph.getAccession().rfind("DECOY_", 0) == 0) { ++decoy_proteins; }
+  }
+  TEST_TRUE(decoy_proteins > 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] in-memory search retains decoys after PSM-level FDR filtering))
+{
+  // PSM-level FDR must NOT remove decoys (decoupled from decoy removal): the in-memory search()
+  // overload produces per-file/multi-file results that a later protein FDR or cross-file merge
+  // relies on having decoys for. With FDR:PSM>0 and FDR:protein==0, decoy PSMs that pass the
+  // q-value threshold are retained (previously they were stripped here).
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "true");
+  p.setValue("FDR:PSM", 0.5);       // PSM filtering ON (lenient) ...
+  p.setValue("FDR:protein", 0.0);   // ... protein FDR OFF -> decoys retained
+  algo.setParameters(p);
+
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(prot_ids.size(), 1)
+
+  // Decoy PSMs survive PSM-level FDR (the contract this overload now pins).
+  Size decoy_psms = 0;
+  for (const auto& pid : pep_ids)
+  {
+    for (const auto& hit : pid.getHits())
+    {
+      if (hit.metaValueExists("target_decoy")
+          && hit.getMetaValue("target_decoy").toString().find("decoy") != std::string::npos) { ++decoy_psms; }
+    }
+  }
+  TEST_TRUE(decoy_psms > 0)
 }
 END_SECTION
 
@@ -1508,18 +1843,18 @@ START_SECTION(([EXTRA] preprocessSpectra_ never aborts; gates deisotoping on the
   // is skipped because the tolerance is out of the Deisotoper's supported range).
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, true);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, true, 0, 20);
     TEST_EQUAL(exp.size(), 1)
     TEST_EQUAL(exp[0].empty(), false)
   }
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 150.0, true, true);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 150.0, true, true, 0, 20);
     TEST_EQUAL(exp.size(), 1)
   }
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, false);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.5, false, false, 0, 20);
     TEST_EQUAL(exp.size(), 1)
   }
 
@@ -1527,14 +1862,38 @@ START_SECTION(([EXTRA] preprocessSpectra_ never aborts; gates deisotoping on the
   // requested false -> skipped.
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.05, false, true);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 0.05, false, true, 0, 20);
     TEST_EQUAL(exp.size(), 1)
   }
   {
     PeakMap exp = make_exp();
-    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, false);
+    ProSEAlgorithm_test::preprocessSpectra_(exp, 20.0, true, false, 0, 20);
     TEST_EQUAL(exp.size(), 1)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] auto peak retention (peaks:keep_n=0) is resolution-aware))
+{
+  // Low-resolution fragment tolerances admit many spurious matches; auto retention keeps far
+  // fewer peaks at low-res than at high-res (where behavior is unchanged). A dense spectrum so
+  // the cap actually bites.
+  auto dense = []() {
+    PeakMap exp; MSSpectrum s; s.setMSLevel(2);
+    Precursor p; p.setMZ(800.0); p.setCharge(2); s.setPrecursors({p}); s.setRT(1.0);
+    for (int i = 0; i < 500; ++i) { Peak1D pk; pk.setMZ(150.0 + i * 3.0); pk.setIntensity(1.0 + (i % 50)); s.push_back(pk); }
+    s.sortByPosition(); exp.addSpectrum(s); return exp;
+  };
+  PeakMap hi = dense();  // high-res (0.02 Da, within deisotoper range) -> legacy cap (400)
+  ProSEAlgorithm_test::preprocessSpectra_(hi, 0.02, false, false, 0, 20);
+  PeakMap lo = dense();  // low-res (0.5 Da) -> auto formula -> ~80
+  ProSEAlgorithm_test::preprocessSpectra_(lo, 0.5, false, false, 0, 20);
+  TEST_TRUE(lo[0].size() < hi[0].size())   // low-res retains strictly fewer peaks
+  TEST_TRUE(lo[0].size() <= 90)            // auto cap at 0.5 Da is 80 (+ headroom)
+  TEST_TRUE(lo[0].size() >= 60)            // clamp floor
+  PeakMap ov = dense();                    // explicit value overrides auto, any resolution
+  ProSEAlgorithm_test::preprocessSpectra_(ov, 0.5, false, false, 50, 20);
+  TEST_TRUE(ov[0].size() <= 50)
 }
 END_SECTION
 

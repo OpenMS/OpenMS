@@ -85,7 +85,7 @@ namespace OpenMS
     IntList isotopes = {0, 1};
     defaults_.setValue("precursor:isotopes", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)");
 
-    defaults_.setValue("fragment:mass_tolerance", 10.0, "Fragment mass tolerance");
+    defaults_.setValue("fragment:mass_tolerance", 20.0, "Fragment mass tolerance");
 
     std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
     fragment_mass_tolerance_unit_valid_strings.emplace_back("ppm");
@@ -102,6 +102,11 @@ namespace OpenMS
     defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");
     defaults_.setValue("fragment:min_ion_index", 2, "Ions with index less than or equal to this value are not added to the fragment index (use 0 to include all ions; 2 skips b1/b2/y1/y2). Low-index ions are often noisy and unreliable.");
     defaults_.setMinInt("fragment:min_ion_index", 0);
+
+    defaults_.setValue("peaks:keep_n", 0, "Maximum number of MS2 peaks kept per spectrum (NLargest) before scoring. 0 = auto: a resolution-aware cap (~400 for high-res, ~80 at 0.5 Da, floor 60) that avoids the spurious low-resolution fragment matching which otherwise inflates HyperScore for targets and decoys alike. Set an explicit value to override (e.g. 400 for the legacy behavior).", {"advanced"});
+    defaults_.setMinInt("peaks:keep_n", 0);
+    defaults_.setValue("peaks:window_top", 20, "Maximum number of MS2 peaks kept per 100 Da window (WindowMower) before scoring.", {"advanced"});
+    defaults_.setMinInt("peaks:window_top", 1);
 
     defaults_.setSectionDescription("fragment", "Fragments (Product Ion) Options");
 
@@ -173,10 +178,10 @@ namespace OpenMS
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
 
-    defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Requires '-decoys' to be set.");
+    defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Target and decoy PSMs are filtered alike by the q-value threshold; decoys that pass are kept (no decoy-specific stripping here — decoys are removed only at protein-FDR finalization). Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
-    defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. Requires '-decoys' to be set.");
+    defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR on a complete protein set (single file, or the -out_merged aggregate). Setting this > 0 finalizes the result: identified decoys are removed. With 0, decoys are retained for downstream/merged FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:protein", 0.0);
     defaults_.setMaxFloat("FDR:protein", 1.0);
     defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");
@@ -257,6 +262,8 @@ namespace OpenMS
     precursor_max_charge_ = param_.getValue("precursor:max_charge");
 
     precursor_isotopes_ = param_.getValue("precursor:isotopes");
+    peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
+    peaks_window_top_ = (Int)param_.getValue("peaks:window_top");
 
     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
 
@@ -339,7 +346,7 @@ namespace OpenMS
   }
 
   // static
-  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested)
+  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -356,11 +363,35 @@ namespace OpenMS
     WindowMower window_mower_filter;
     Param filter_param = window_mower_filter.getParameters();
     filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
-    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
+    filter_param.setValue("peakcount", peaks_window_top, "The number of peaks that should be kept.");
     filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
     window_mower_filter.setParameters(filter_param);
 
-    NLargest nlargest_filter = NLargest(400);
+    // Resolution-aware peak retention. peaks_keep_n == 0 => auto. For HIGH-resolution fragments
+    // (within the deisotoper range, <= 0.1 Da / <= 100 ppm) keep the legacy cap of 400. For
+    // LOW-resolution data (e.g. 0.5 Da ion-trap CID — the same regime where deisotoping is
+    // skipped) a wide match window admits many spurious low-intensity matches that inflate the
+    // count-sensitive HyperScore for targets AND decoys alike, collapsing the target/decoy
+    // margin; retain far fewer peaks. Random matches scale with peak density x tolerance width,
+    // so sqrt-dampen around the 0.02 Da reference and clamp to [60, 400]:
+    //   0.2 Da -> 126, 0.5 Da -> 80, 1 Da -> 60.
+    Size effective_keep_n = peaks_keep_n;
+    if (effective_keep_n == 0)
+    {
+      if (Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm))
+      {
+        effective_keep_n = 400; // high-resolution: unchanged legacy behavior
+      }
+      else
+      {
+        const double eff_tol_da = fragment_mass_tolerance_unit_ppm
+          ? fragment_mass_tolerance * 500.0 * 1e-6   // ppm -> Da at a 500 m/z reference
+          : fragment_mass_tolerance;
+        const double n = std::round(400.0 * std::sqrt(0.02 / std::max(eff_tol_da, 1e-6)));
+        effective_keep_n = static_cast<Size>(std::min(400.0, std::max(60.0, n)));
+      }
+    }
+    NLargest nlargest_filter = NLargest(effective_keep_n);
 
     // Deisotope only when requested (param fragment:deisotope, resolved in
     // updateMembers_) AND the tolerance is in the Deisotoper's supported range.
@@ -1102,7 +1133,7 @@ namespace OpenMS
 
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
     bool open_search_mode = isOpenSearchMode_();
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_);
+    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
 
     // Effective tolerances — may be narrowed by calibration below. Kept asymmetric
     // (lower / upper separately) so the FragmentIndex query can exploit the full
@@ -1295,17 +1326,17 @@ namespace OpenMS
 
     if (fdr_psm_ > 0.0 && has_decoys)
     {
+      // PSM-level FDR: annotate q-values and filter target+decoy PSMs alike by the threshold.
+      // No decoy-specific stripping happens here (decoupled from decoy removal); the decoys that
+      // pass are kept because downstream protein-level FDR and cross-file merging need them.
+      // Categorical decoy removal happens only at protein-FDR finalization (file-based
+      // single-file search below, or ProSE.cpp).
       FalseDiscoveryRate fdr;
+      Param fdr_params = fdr.getParameters();
+      fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
+      fdr.setParameters(fdr_params);
       fdr.apply(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
-
-      if (fdr_protein_ == 0.0)
-      {
-        // No protein FDR → safe to remove decoys now (matches non-chunked path)
-        IDFilter::removeDecoyHits(peptide_ids);
-        IDFilter::removeEmptyIdentifications(peptide_ids);
-        IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
-      }
     }
     else if (fdr_psm_ > 0.0 && !has_decoys)
     {
@@ -1341,7 +1372,7 @@ namespace OpenMS
                     << precursor_mass_tolerance_unit_ << ")" << std::endl;
 
     startProgress(0, 1, "Filtering spectra...");
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_);
+    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
     endProgress();
 
     // Reference the prepared (decoy-augmented) database and prebuilt fragment index from the context.
@@ -1569,17 +1600,17 @@ namespace OpenMS
 
     if (fdr_psm_ > 0.0 && has_decoys)
     {
+      // PSM-level FDR: annotate q-values and filter target+decoy PSMs alike by the threshold.
+      // No decoy-specific stripping happens here (decoupled from decoy removal); the decoys that
+      // pass are kept because downstream protein-level FDR and cross-file merging need them.
+      // Categorical decoy removal happens only at protein-FDR finalization (file-based
+      // single-file search below, or ProSE.cpp).
       FalseDiscoveryRate fdr;
+      Param fdr_params = fdr.getParameters();
+      fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
+      fdr.setParameters(fdr_params);
       fdr.apply(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
-
-      if (fdr_protein_ == 0.0)
-      {
-        // No protein FDR → safe to remove decoys now
-        IDFilter::removeDecoyHits(peptide_ids);
-        IDFilter::removeEmptyIdentifications(peptide_ids);
-        IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
-      }
     }
     else if (fdr_psm_ > 0.0 && !has_decoys)
     {
@@ -1592,6 +1623,43 @@ namespace OpenMS
     logSearchDiagnostics_(spectra, protein_ids, peptide_ids);
 
     return ExitCodes::EXECUTION_OK;
+  }
+
+  // =====================================================================
+  // Shared protein-FDR finalization for a COMPLETE protein set. Single source
+  // of truth for both the file-based search() below and the ProSE TOPP tool's
+  // single-file path (the two previously held byte-identical copies).
+  // =====================================================================
+  // static
+  void ProSEAlgorithm::applyCompleteSetProteinFDR(
+      std::vector<ProteinIdentification>& protein_ids,
+      PeptideIdentificationList& peptide_ids,
+      const std::string& decoy_prefix,
+      double protein_fdr)
+  {
+    // Aggregate the best PSM score per peptide per protein, then apply picked-protein
+    // FDR (Savitski et al. 2015) over the full target+decoy protein set.
+    BasicProteinInferenceAlgorithm bpia;
+    bpia.run(peptide_ids, protein_ids);
+
+    FalseDiscoveryRate fdr;
+    fdr.applyPickedProteinFDR(protein_ids[0], decoy_prefix, true);
+    IDFilter::filterHitsByScore(protein_ids, protein_fdr);
+
+    // Decoy removal is the finalization step. removeDecoyHits strips decoy PSMs; decoy
+    // proteins then fall out as unreferenced. Repair indistinguishable-protein and
+    // protein-group references and drop peptide evidence pointing at removed proteins,
+    // else idXML storage fails on dangling references.
+    IDFilter::removeDecoyHits(peptide_ids);
+    IDFilter::removeEmptyIdentifications(peptide_ids);
+    IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+    IDFilter::updateProteinGroups(protein_ids[0].getIndistinguishableProteins(), protein_ids[0].getHits());
+    IDFilter::updateProteinGroups(protein_ids[0].getProteinGroups(), protein_ids[0].getHits());
+    IDFilter::removeDanglingProteinReferences(peptide_ids, protein_ids);
+
+    OPENMS_LOG_INFO << "[ProSE] Protein inference + picked-protein FDR: "
+                    << protein_ids[0].getHits().size() << " proteins at "
+                    << protein_fdr * 100 << "% FDR." << std::endl;
   }
 
   // =====================================================================
@@ -1631,17 +1699,8 @@ namespace OpenMS
         [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
     if (fdr_protein_ > 0.0 && (decoys_ || has_decoys_single))
     {
-      BasicProteinInferenceAlgorithm bpia;
-      bpia.run(peptide_ids, protein_ids);
-
-      FalseDiscoveryRate fdr;
-      fdr.applyPickedProteinFDR(protein_ids[0], decoy_prefix_, true);
-      IDFilter::filterHitsByScore(protein_ids, fdr_protein_);
-
-      // Now safe to remove decoys (deferred from search() above)
-      IDFilter::removeDecoyHits(peptide_ids);
-      IDFilter::removeEmptyIdentifications(peptide_ids);
-      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+      // Single input file = complete experiment, so picked-protein FDR is valid.
+      applyCompleteSetProteinFDR(protein_ids, peptide_ids, decoy_prefix_, fdr_protein_);
     }
 
     // patch file-specific metadata
@@ -1776,7 +1835,7 @@ namespace OpenMS
         f.getOptions() = options;
         f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         all_spectra[i].sortSpectra(true);
-        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_);
+        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
       }
 
       // Per-file calibration: build a strided calibration FI once, run calibration per file.
@@ -1993,20 +2052,21 @@ namespace OpenMS
           continue;
         }
 
-        // PSM-level FDR only (matching non-chunked search semantics).
+        // PSM-level FDR only (matching non-chunked search semantics). Target+decoy PSMs are
+        // filtered alike by the q-value threshold; no decoy-specific stripping happens here
+        // (decoupled from decoy removal). The decoys that pass are kept because per-file results
+        // feed cross-file merging and protein-level FDR. Categorical decoy removal is a
+        // protein-FDR finalization step performed by ProSE.cpp.
         bool has_decoys = std::any_of(full_db.begin(), full_db.end(),
             [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
         if (fdr_psm_ > 0.0 && has_decoys)
         {
           FalseDiscoveryRate fdr;
+          Param fdr_params = fdr.getParameters();
+          fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
+          fdr.setParameters(fdr_params);
           fdr.apply(result.peptide_ids);
           IDFilter::filterHitsByScore(result.peptide_ids, fdr_psm_);
-          if (fdr_protein_ == 0.0)
-          {
-            IDFilter::removeDecoyHits(result.peptide_ids);
-            IDFilter::removeEmptyIdentifications(result.peptide_ids);
-            IDFilter::removeUnreferencedProteins(result.protein_ids, result.peptide_ids);
-          }
         }
 
         result.exit_code = ExitCodes::EXECUTION_OK;
