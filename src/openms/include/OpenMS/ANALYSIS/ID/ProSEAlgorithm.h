@@ -37,6 +37,17 @@ class TheoreticalSpectrumGenerator;
     outputs (ProteinIdentification and PeptideIdentificationList)
   - Intended for educational/prototyping use and to demonstrate FI-backed searching
 
+  Default mass tolerances are 10 ppm precursor (lower and upper) and 20 ppm fragment,
+  matching typical high-resolution Orbitrap settings.  Open-search mode is triggered
+  automatically when the precursor tolerance exceeds 1 Da or 1000 ppm.
+
+  Decoy handling is controlled by the "decoys" parameter (auto/generate/ignore).
+  The default "auto" mode reuses decoys already present in the FASTA database —
+  the decoy marker is auto-detected whether it is a prefix or a suffix of the
+  protein accession — or generates reverse-target decoys internally if none are
+  found.  Protein-level FDR (picked-protein FDR) is applied only on a statistically
+  complete set and does not compose across sharded runs; see applyCompleteSetProteinFDR().
+
   Notes:
   - Used by the ProSE TOPP tool
   - Experimental; interfaces and behavior may change
