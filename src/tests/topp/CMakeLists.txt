@@ -3270,6 +3270,26 @@ add_test("TOPP_ProSE_7_merged_info_out" ${DIFF}
   -whitelist "file name" "database" "search engine")
 set_tests_properties("TOPP_ProSE_7_merged_info_out" PROPERTIES DEPENDS "TOPP_ProSE_7_merged_info")
 
+# Test 8: decoys=auto (the DEFAULT mode) end-to-end, UNCONDITIONAL. The other auto tests live in the
+# WITH_OPENTIMS block below, so without this the default decoy mode has no standard-CI golden coverage.
+# On a target-only FASTA, auto generates decoys -> result is identical to decoys=generate (Test 6),
+# so it diffs the same FileInfo golden (protein count exact-ish; a decoy-removal regression -> 49).
+add_test("TOPP_ProSE_8_auto" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -Search:decoys auto
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_8_auto_out.tmp.idXML)
+add_test("TOPP_ProSE_8_auto_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_8_auto_out.tmp.idXML
+  -out_tsv ${TESTS_TEMP_DIR}/ProSE_8_auto_info.tmp.tsv)
+set_tests_properties("TOPP_ProSE_8_auto_info" PROPERTIES DEPENDS "TOPP_ProSE_8_auto")
+add_test("TOPP_ProSE_8_auto_info_proteins" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_8_auto_info.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_6_fdr_info.tsv -absdiff 1
+  -whitelist "file name" "database" "search engine" "matched spectra" "peptide hits" "modified top-hits")
+set_tests_properties("TOPP_ProSE_8_auto_info_proteins" PROPERTIES DEPENDS "TOPP_ProSE_8_auto_info")
+
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   # Create a symlink with .d suffix so FileHandler recognizes the format

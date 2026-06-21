@@ -944,6 +944,14 @@ namespace OpenMS
     // 2. Generate decoys by reversing the (remaining) target proteins.
     if (strategy.generate)
     {
+      // decoy_string is the prefix prepended to generated accessions; an empty prefix would
+      // produce decoys with the same accession as their targets, silently breaking FDR.
+      if (strategy.decoy_string.empty())
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "decoy_prefix must be non-empty to generate decoys (decoys=auto without existing decoys, "
+          "or decoys=generate).");
+      }
       DecoyGenerator decoy_generator;
       const size_t old_size = db.size();
       db.reserve(old_size * 2);
@@ -1771,6 +1779,16 @@ namespace OpenMS
       bool decoy_is_prefix,
       double protein_fdr)
   {
+    // Defensive: an empty decoy marker would make every protein match the prefix/suffix guard
+    // below (hasPrefix(x, "") is always true) and corrupt picked-protein FDR. Callers gate on
+    // have_decoys (so decoy_string is non-empty in practice), but this is a public static helper.
+    if (decoy_string.empty())
+    {
+      OPENMS_LOG_WARN << "[ProSE] applyCompleteSetProteinFDR called with an empty decoy marker; "
+                      << "skipping protein FDR (cannot identify decoys)." << std::endl;
+      return;
+    }
+
     // Aggregate the best PSM score per peptide per protein, then apply picked-protein
     // FDR (Savitski et al. 2015) over the full target+decoy protein set.
     BasicProteinInferenceAlgorithm bpia;

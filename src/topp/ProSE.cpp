@@ -152,9 +152,9 @@ class ProSE :
       }
 
       // At least one output must be specified
-      if (out_idxml_list.empty() && out_pin_list.empty() && out_qpx_dir.empty() && out_parquet_dir.empty())
+      if (out_idxml_list.empty() && out_pin_list.empty() && out_qpx_dir.empty() && out_parquet_dir.empty() && out_merged.empty())
       {
-        OPENMS_LOG_ERROR << "No output specified. Provide at least one of -out_idxml, -out_pin, -out_qpx, or -out_parquet." << endl;
+        OPENMS_LOG_ERROR << "No output specified. Provide at least one of -out_idxml, -out_pin, -out_qpx, -out_parquet, or -out_merged." << endl;
         return ILLEGAL_PARAMETERS;
       }
 
@@ -754,7 +754,7 @@ class ProSE :
           // database if no decoy survived in any file). Track whether FDR was actually applied so
           // the decoy-removal finalization below only runs when it was.
           bool merged_fdr_applied = false;
-          if (user_protein_fdr > 0.0 && mfres.have_decoys)
+          if (user_protein_fdr > 0.0 && mfres.have_decoys && !decoy_string.empty())
           {
             const bool merged_has_decoy_proteins = std::any_of(
                 merged_protein_ids[0].getHits().begin(), merged_protein_ids[0].getHits().end(),

@@ -432,6 +432,30 @@ START_SECTION(([EXTRA] resolveDecoyStrategy_ / buildDecoyAugmentedDB_: auto/gene
     TEST_STRING_EQUAL(s.decoy_string, "BOGUS_")
     TEST_EQUAL(s.is_prefix, true)
   }
+
+  // --- auto: reuse decoys detected by a SUFFIX marker (prefix/suffix aware) -----
+  // Headline #9634 feature: decoys can be marked as a suffix (e.g. from DecoyDatabase
+  // with -decoy_string_position suffix). DecoyHelper detects it; ProSE must reuse them
+  // (not double-generate) and thread is_prefix=false through the whole FDR chain.
+  {
+    ProSEAlgorithm_test algo;
+    Param p = algo.getParameters();
+    p.setValue("decoys", "auto");
+    algo.setParameters(p);
+    const std::vector<FASTAFile::FASTAEntry> suffix_db = {
+      FASTAFile::FASTAEntry("sp|P1|A", "", "PEPTIDEKAAR"),
+      FASTAFile::FASTAEntry("sp|P2|B", "", "SAMPLERPEPTIDEK"),
+      FASTAFile::FASTAEntry("sp|P1|A_decoy", "", "RAAKEDITPEP"),
+      FASTAFile::FASTAEntry("sp|P2|B_decoy", "", "KEDITPEPRELPMAS") };
+    ProSEAlgorithm_test::DecoyStrategy_ s = algo.resolveDecoyStrategy_(suffix_db);
+    TEST_EQUAL(s.generate, false)           // reuse existing, do not generate
+    TEST_EQUAL(s.strip_existing, false)
+    TEST_EQUAL(s.have_decoys, true)
+    TEST_EQUAL(s.is_prefix, false)          // detected as a SUFFIX marker
+    // searched unchanged (no double-generation -> no *_decoy_decoy entries).
+    std::vector<FASTAFile::FASTAEntry> built = algo.buildDecoyAugmentedDB_(suffix_db, s);
+    TEST_EQUAL(built.size(), 4)
+  }
 }
 END_SECTION
 
