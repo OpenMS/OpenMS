@@ -2706,7 +2706,11 @@ namespace OpenMS
                                         const std::string& enzyme,
                                         bool fdr_applied)
   {
-    stats.matched_spectra = peptide_ids.size();
+    // Count spectra that actually retained a hit. ProSE pushes one PeptideIdentification per
+    // searched spectrum (incl. empty ones for non-matches), and not every caller strips empties
+    // before stats are collected, so peptide_ids.size() would over-count matched spectra / ID rate.
+    stats.matched_spectra = static_cast<Size>(std::count_if(peptide_ids.begin(), peptide_ids.end(),
+      [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }));
     stats.charge_histogram.clear();
     stats.missed_cleavage_histogram.clear();
     Size n_target = 0, n_decoy = 0;
@@ -2766,7 +2770,11 @@ namespace OpenMS
   {
     stats.ms2_spectra = std::count_if(spectra.begin(), spectra.end(),
                                       [](const MSSpectrum& s) { return s.getMSLevel() == 2; });
-    stats.matched_spectra = peptide_ids.size();
+    // Count spectra that actually retained a hit. ProSE pushes one PeptideIdentification per
+    // searched spectrum (incl. empty ones for non-matches), and not every caller strips empties
+    // before stats are collected, so peptide_ids.size() would over-count matched spectra / ID rate.
+    stats.matched_spectra = static_cast<Size>(std::count_if(peptide_ids.begin(), peptide_ids.end(),
+      [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }));
 
     set<std::string> unique_peptides;
     set<std::string> unique_proteins;

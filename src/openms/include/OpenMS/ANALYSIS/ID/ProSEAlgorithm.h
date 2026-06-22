@@ -75,9 +75,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     {
       std::string input_file;                  ///< spectrum file this run searched (basename or path)
       Size ms2_spectra = 0;                    ///< number of MS2 spectra in the input
-      Size matched_spectra = 0;                ///< spectra with >=1 retained PSM (after FDR)
-      Size target_psms = 0;                    ///< target PSMs after indexing, BEFORE FDR
-      Size decoy_psms = 0;                     ///< decoy PSMs after indexing, BEFORE FDR
+      Size matched_spectra = 0;                ///< spectra with >=1 retained PSM in the final IDs (after FDR, if applied)
+      Size target_psms = 0;                    ///< target PSMs in the final IDs (after FDR, if applied)
+      Size decoy_psms = 0;                     ///< decoy PSMs in the final IDs (after FDR, if applied)
       bool fdr_applied = false;                ///< true if PSM-level FDR filtering ran
       double achieved_psm_fdr = -1.0;          ///< max retained q-value after FDR (<0 = n/a)
       Size unique_peptides = 0;                ///< distinct peptide sequences among top hits
