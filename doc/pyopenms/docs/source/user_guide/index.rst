@@ -25,6 +25,7 @@ headings and structure.
    :caption: Mass Spectrometry Concepts
 
    ms_data
+   imaging
    chemistry
    peptides_proteins
    oligonucleotides_rna
@@ -71,6 +72,7 @@ headings and structure.
    reading_raw_ms_data
    other_ms_data_formats
    mzml_files
+   file_inspection
    scoring_spectra_hyperscore
    export_pandas_dataframe
    query_msexperiment_massql
