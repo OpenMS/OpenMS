@@ -24,8 +24,13 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
+
+#include <fstream>
+#include <iomanip>
+#include <sstream>
 
 #include <arrow/table.h>  // only for std::shared_ptr<arrow::Table> declarations
 
@@ -118,6 +123,11 @@ class ProSE :
       setValidFormats_("out_pin", ListUtils::create<std::string>("tsv"));
 
       registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input file's basename and an additional aggregate table is written across all input files. Has no effect in closed-search mode.", false, true);
+
+      registerOutputFile_("summary_out", "<file>", "", "Optional YAML file capturing the end-of-search report (per-file identification statistics, shared configuration/database/index facts, timing and output manifest) for pipeline ingestion. The same information is printed to the command line unless -no_summary is set.", false, true);
+      setValidFormats_("summary_out", ListUtils::create<std::string>("yaml"));
+
+      registerFlag_("no_summary", "Suppress the end-of-search report printed to the command line. The -summary_out YAML file (if requested) is still written.", true);
 
       registerInputFile_("percolator_executable", "<executable>",
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -273,6 +283,8 @@ class ProSE :
       }
 
       // Single-shot multi-file search: builds the fragment index once and iterates over -in.
+      // Timer spans search + Percolator + FDR + output writing (stopped at report time).
+      StopWatch sw_total; sw_total.start();
       ProSEAlgorithm::MultiFileSearchResult mfres =
         sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name);
 
@@ -298,6 +310,9 @@ class ProSE :
       // Optional per-file Percolator rescoring (replaces HyperScore with
       // Percolator q-values for downstream FDR / protein inference).
       std::vector<bool> percolator_succeeded(in_list.size(), false);
+      // Tracks whether PSM-level FDR filtering was actually applied per file in
+      // this (Percolator) branch — false for files skipped for lack of decoys.
+      std::vector<bool> psm_fdr_applied(in_list.size(), false);
       if (!percolator_executable.empty())
       {
         // Percolator requires decoys for target/decoy competition.
@@ -431,6 +446,7 @@ class ProSE :
             }
 
             IDFilter::filterHitsByScore(result.peptide_ids, user_psm_fdr);
+            psm_fdr_applied[i] = true;
           }
         }
       }
@@ -485,12 +501,27 @@ class ProSE :
         }
       }
 
+      // Percolator rescoring, deferred PSM FDR and protein-FDR finalization mutate the
+      // per-file identifications after the search produced RunStatistics. Recompute the
+      // result-level stats so the report reflects the final identifications the user
+      // receives; the HyperScore distribution and per-phase timing captured during the
+      // search are preserved by updateFinalStats().
+      for (Size i = 0; i < in_list.size(); ++i)
+      {
+        auto& result = mfres.per_file[i];
+        if (result.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) { continue; }
+        ProSEAlgorithm::updateFinalStats(result.stats, result.peptide_ids, mfres.shared.enzyme,
+                                         /*fdr_applied=*/ result.stats.fdr_applied || psm_fdr_applied[i]);
+      }
+
       // Write per-file outputs and track failures.
       // Accumulate Arrow tables for merged parquet output.
       std::vector<std::shared_ptr<arrow::Table>> qpx_psm_tables, qpx_pg_tables;
       std::vector<std::shared_ptr<arrow::Table>> oms_psm_tables, oms_prot_tables, oms_pg_tables, oms_sp_tables;
 
       Size failed_count = 0;
+      // Paths actually written, for an accurate output manifest in the report.
+      std::vector<std::string> written_idxml, written_pin;
       for (Size i = 0; i < in_list.size(); ++i)
       {
         const std::string& in_file = in_list[i];
@@ -523,6 +554,7 @@ class ProSE :
           try
           {
             FileHandler().storeIdentifications(out_idxml_list[i], result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
+            written_idxml.push_back(out_idxml_list[i]);
           }
           catch (const Exception::BaseException& e)
           {
@@ -572,6 +604,7 @@ class ProSE :
               feature_set.push_back("Proteins");
               PercolatorInfile::store(out_pin_list[i], result.peptide_ids,
                                      feature_set, enz_str, min_charge, max_charge);
+              written_pin.push_back(out_pin_list[i]);
             }
           }
           catch (const Exception::BaseException& e)
@@ -818,6 +851,164 @@ class ProSE :
       else if (!out_merged.empty() && in_list.size() == 1)
       {
         OPENMS_LOG_WARN << "-out_merged is only useful with multiple -in files. Skipping merged output." << endl;
+      }
+
+      // =====================================================================
+      // End-of-search report (command line + optional YAML).
+      // =====================================================================
+      {
+        sw_total.stop();
+        mfres.shared.seconds_total = sw_total.getClockTime();
+        const std::string summary_out = getStringOption_("summary_out");
+        const bool no_summary = getFlag_("no_summary");
+        const ProSEAlgorithm::SharedSearchStats& sh = mfres.shared;
+
+        // -- Build the output manifest: every file actually written. --
+        std::vector<std::pair<std::string, std::vector<std::string>>> manifest;
+        auto add_manifest = [&manifest](const std::string& label, const std::vector<std::string>& paths) {
+          std::vector<std::string> nonempty;
+          for (const auto& p : paths) { if (!p.empty()) { nonempty.push_back(p); } }
+          if (!nonempty.empty()) { manifest.emplace_back(label, std::move(nonempty)); }
+        };
+        add_manifest("idXML", written_idxml);
+        add_manifest("pin", written_pin);
+        if (!out_merged.empty() && in_list.size() > 1) { add_manifest("merged idXML", {out_merged}); }
+        if (!out_qpx_dir.empty()) { add_manifest("QPX parquet", {out_qpx_dir}); }
+        if (!out_parquet_dir.empty()) { add_manifest("OpenMS parquet", {out_parquet_dir}); }
+        if (!out_mod_analysis_dir.empty() && open_search_mode) { add_manifest("mod-analysis tables", {out_mod_analysis_dir}); }
+
+        // -- Command-line report. --
+        if (!no_summary)
+        {
+          std::ostringstream r;
+          r << "\n[ProSE] ===================== Search Report =====================\n";
+
+          if (in_list.size() == 1)
+          {
+            // Single file: full block.
+            const auto& pf = mfres.per_file[0];
+            if (pf.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+            {
+              r << "[ProSE] " << pf.stats.input_file << ": FAILED (exit code "
+                << static_cast<int>(pf.exit_code) << ")\n";
+            }
+            else
+            {
+              ProSEAlgorithm::renderRunSummary(pf.stats, sh, pf.modification_analysis, pf.is_open_search, r);
+            }
+          }
+          else
+          {
+            // Multi-file: shared config/db/index once, then a per-file table + totals.
+            r << "[ProSE] Database     : " << (sh.database_file.empty() ? std::string("(in-memory)") : sh.database_file)
+              << "  (" << sh.db_target_proteins << " target";
+            if (sh.db_decoy_proteins > 0) { r << " + " << sh.db_decoy_proteins << " decoy"; }
+            r << " proteins, decoys: " << (sh.decoy_mode.empty() ? std::string("n/a") : sh.decoy_mode) << ")\n";
+            r << "[ProSE] Config       : " << sh.enzyme << ", " << sh.missed_cleavages << " MC | prec [-"
+              << sh.precursor_tol_lower << ", +" << sh.precursor_tol_upper << "] " << sh.precursor_tol_unit
+              << " | frag " << sh.fragment_tol << " " << sh.fragment_tol_unit
+              << " | z " << sh.min_charge << "-" << sh.max_charge
+              << " | mode: " << (sh.open_search ? "open" : "closed")
+              << (sh.chunked ? " | chunked" : "") << "\n";
+            r << "[ProSE] Fragment idx : " << sh.indexed_peptides << " peptides / " << sh.indexed_fragments
+              << " fragments (build " << std::fixed << std::setprecision(1) << sh.seconds_index_build << " s)\n";
+            r << "[ProSE] -------------------------------------------------------------\n";
+            r << "[ProSE] " << std::left << std::setw(24) << "File" << std::right
+              << std::setw(8) << "MS2" << std::setw(9) << "Matched" << std::setw(8) << "ID%"
+              << std::setw(9) << "Peptide" << std::setw(8) << "Prot" << std::setw(8) << "Decoy" << "\n";
+
+            Size tot_ms2 = 0, tot_matched = 0, tot_decoy = 0;
+            for (const auto& pf : mfres.per_file)
+            {
+              std::string name = pf.stats.input_file;
+              if (name.size() > 23) { name = "..." + name.substr(name.size() - 20); }
+              if (pf.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+              {
+                r << "[ProSE] " << std::left << std::setw(24) << name << std::right
+                  << std::setw(8) << "FAILED" << "\n";
+                continue;
+              }
+              const auto& st = pf.stats;
+              const double idr = st.ms2_spectra > 0 ? (100.0 * st.matched_spectra / st.ms2_spectra) : 0.0;
+              r << "[ProSE] " << std::left << std::setw(24) << name << std::right
+                << std::setw(8) << st.ms2_spectra << std::setw(9) << st.matched_spectra
+                << std::setw(7) << std::fixed << std::setprecision(1) << idr << "%"
+                << std::setw(9) << st.unique_peptides << std::setw(8) << st.unique_proteins
+                << std::setw(8) << st.decoy_psms << "\n";
+              tot_ms2 += st.ms2_spectra; tot_matched += st.matched_spectra;
+              tot_decoy += st.decoy_psms;
+            }
+            const double tot_idr = tot_ms2 > 0 ? (100.0 * tot_matched / tot_ms2) : 0.0;
+            r << "[ProSE] " << std::left << std::setw(24) << "TOTAL" << std::right
+              << std::setw(8) << tot_ms2 << std::setw(9) << tot_matched
+              << std::setw(7) << std::fixed << std::setprecision(1) << tot_idr << "%"
+              << std::setw(9) << "-" << std::setw(8) << "-" << std::setw(8) << tot_decoy << "\n";
+            if (sh.decoy_mode == "none (target-only)")
+            {
+              r << "[ProSE] FDR          : n/a (target-only database)\n";
+            }
+            // Aggregate modification discovery (pooled PSMs) for open search.
+            if (sh.open_search)
+            {
+              ProSEAlgorithm::renderModificationSummary(mfres.aggregate.modification_analysis, r);
+            }
+            r << "[ProSE] Total time   : " << std::fixed << std::setprecision(1) << sh.seconds_total << " s\n";
+          }
+
+          // -- Percolator rescoring status. --
+          if (!percolator_executable.empty())
+          {
+            Size n_ok = 0;
+            for (bool b : percolator_succeeded) { if (b) { ++n_ok; } }
+            r << "[ProSE] Percolator   : rescored " << n_ok << " / " << in_list.size() << " file(s)\n";
+          }
+
+          // -- Output manifest. --
+          r << "[ProSE] ------------------------- Outputs ----------------------------\n";
+          if (manifest.empty())
+          {
+            r << "[ProSE]   (no output files written)\n";
+          }
+          else
+          {
+            for (const auto& [label, paths] : manifest)
+            {
+              r << "[ProSE]   " << std::left << std::setw(16) << label << std::right << "-> ";
+              for (size_t i = 0; i < paths.size(); ++i) { r << (i ? ", " : "") << paths[i]; }
+              r << "\n";
+            }
+          }
+          if (failed_count > 0)
+          {
+            r << "[ProSE] WARNING: " << failed_count << " of " << in_list.size() << " file(s) failed.\n";
+          }
+          r << "[ProSE] ==============================================================\n";
+          OPENMS_LOG_INFO << r.str() << endl;
+        }
+
+        // -- Optional machine-readable YAML. Serialization lives in the OpenMS library
+        //    (ProSEAlgorithm::renderRunSummaryYaml, hand-rolled, no YAML dependency); the
+        //    tool just writes the returned string. --
+        if (!summary_out.empty())
+        {
+          try
+          {
+            std::ofstream ofs(summary_out);
+            ofs << ProSEAlgorithm::renderRunSummaryYaml(mfres, manifest, failed_count, in_list.size()) << std::endl;
+            if (!ofs.good())
+            {
+              OPENMS_LOG_ERROR << "[ProSE] Failed to write summary YAML -> " << summary_out
+                               << " (stream error)." << endl;
+              return CANNOT_WRITE_OUTPUT_FILE;
+            }
+            OPENMS_LOG_INFO << "[ProSE] Wrote summary YAML -> " << summary_out << endl;
+          }
+          catch (const std::exception& e)
+          {
+            OPENMS_LOG_ERROR << "[ProSE] Failed to write summary YAML -> " << summary_out << ": " << e.what() << endl;
+            return CANNOT_WRITE_OUTPUT_FILE;
+          }
+        }
       }
 
       if (failed_count > 0)

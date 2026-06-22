@@ -20,6 +20,10 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <algorithm>   // std::min (used by inline computeModMatchTolerance_)
+#include <iosfwd>      // std::ostream (renderRunSummary / renderModificationSummary)
+#include <map>
+#include <string>      // std::string (renderRunSummaryJson return / manifest)
+#include <utility>     // std::pair (renderRunSummaryJson manifest)
 #include <vector>
 
 namespace OpenMS
@@ -59,12 +63,81 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /**
+     * @brief Per-run identification statistics for the end-of-search report.
+     *
+     * Populated by collectRunStatistics_() once a single spectrum file has been
+     * searched (post-FDR), plus a few fields captured at well-defined points
+     * during search() (target/decoy counts pre-FDR, achieved q-value, timing).
+     * All counts refer to one input file. Cross-file/shared facts (database,
+     * fragment index, configuration) live in SharedSearchStats instead.
+     */
+    struct RunStatistics
+    {
+      std::string input_file;                  ///< spectrum file this run searched (basename or path)
+      Size ms2_spectra = 0;                    ///< number of MS2 spectra in the input
+      Size matched_spectra = 0;                ///< spectra with >=1 retained PSM in the final IDs (after FDR, if applied)
+      Size target_psms = 0;                    ///< target PSMs in the final IDs (after FDR, if applied)
+      Size decoy_psms = 0;                     ///< decoy PSMs in the final IDs (after FDR, if applied)
+      bool fdr_applied = false;                ///< true if PSM-level FDR filtering ran
+      double achieved_psm_fdr = -1.0;          ///< max retained q-value after FDR (<0 = n/a)
+      Size unique_peptides = 0;                ///< distinct peptide sequences among top hits
+      Size unique_proteins = 0;                ///< distinct protein accessions among top hits
+      std::map<Int, Size> charge_histogram;    ///< precursor charge -> PSM count
+      std::map<Size, Size> missed_cleavage_histogram; ///< missed cleavages -> PSM count
+      bool score_stats_valid = false;          ///< true if hyperscore_* below are meaningful
+      double hyperscore_min = 0.0;
+      double hyperscore_median = 0.0;
+      double hyperscore_max = 0.0;
+      bool prec_tol_valid = false;             ///< true if precursor-error estimate present
+      double prec_err_median = 0.0, prec_err_mad = 0.0, prec_err_recommended = 0.0;
+      bool frag_tol_valid = false;             ///< true if fragment-error estimate present
+      double frag_err_median = 0.0, frag_err_mad = 0.0, frag_err_recommended = 0.0;
+      double seconds_search = 0.0;             ///< scoring + post-processing wall time
+      double seconds_calibration = 0.0;        ///< calibration pass wall time (0 if disabled)
+      double seconds_fdr = 0.0;                ///< FDR filtering wall time (0 if not applied)
+    };
+
+    /**
+     * @brief Configuration, database and fragment-index facts shared across all
+     * input files of one ProSE invocation.
+     *
+     * Computed once (the fragment index is built once and reused), so these
+     * costs/counts must NOT be summed per file. Populated by the multi-file
+     * searchWithModificationAnalysis() overloads.
+     */
+    struct SharedSearchStats
+    {
+      std::string database_file;               ///< FASTA path (empty for in-memory db)
+      std::string enzyme;
+      double precursor_tol_lower = 0.0, precursor_tol_upper = 0.0;
+      std::string precursor_tol_unit;
+      double fragment_tol = 0.0;
+      std::string fragment_tol_unit;
+      Int min_charge = 0, max_charge = 0;
+      Size missed_cleavages = 0;
+      std::vector<std::string> fixed_mods, variable_mods, ion_series;
+      bool open_search = false;
+      bool calibration_enabled = false;
+      bool snes_mode = false;
+      bool chunked = false;
+      std::string decoy_mode;                  ///< "generated" | "external" | "none (target-only)"
+      double psm_fdr_threshold = 0.0, protein_fdr_threshold = 0.0;
+      Size db_target_proteins = 0;             ///< target entries in the searched (augmented) db
+      Size db_decoy_proteins = 0;              ///< decoy entries in the searched (augmented) db
+      Size indexed_peptides = 0;               ///< peptides in the fragment index (summed over chunks)
+      Size indexed_fragments = 0;              ///< theoretical fragments in the index (summed over chunks)
+      double seconds_index_build = 0.0;        ///< decoy generation + fragment index build wall time
+      double seconds_total = 0.0;              ///< whole-search wall time (set by the caller)
+    };
+
+    /**
      * @brief Comprehensive search result including modification analysis
      *
      * This structure contains all outputs from an open search including:
      * - Standard protein and peptide identifications
      * - Delta mass statistics table (histogram of mass shifts)
      * - PTM statistics table (mapped modifications with residue analysis)
+     * - Per-run identification statistics for the end-of-search report
      */
     struct SearchResult
     {
@@ -73,6 +146,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       PeptideIdentificationList peptide_ids;
       OpenSearchModificationAnalysis::OpenSearchAnalysisResult modification_analysis;
       bool is_open_search = false;
+      RunStatistics stats;
     };
 
     /**
@@ -112,6 +186,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       bool decoy_is_prefix = true;
       /// True when the searched databases contained decoys (FDR possible).
       bool have_decoys = false;
+
+      /// Configuration / database / fragment-index facts shared across all input
+      /// files (the index is built once and reused), for the end-of-search report.
+      SharedSearchStats shared;
     };
 
     /**
@@ -657,6 +735,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// diagnostic/telemetry state that doesn't affect the logical const-ness of search().
     mutable CalibrationResult_ last_calibration_result_;
 
+    /// Per-run statistics of the most recent search(spectra, ctx, ...) call.
+    /// Bridges the const search() (which returns ExitCodes, not a SearchResult)
+    /// to its callers, which copy this into SearchResult::stats. Reset at the
+    /// start of each search() call. `mutable` for the same reason as above:
+    /// pure diagnostic state, orthogonal to logical const-ness.
+    mutable RunStatistics last_run_stats_;
+
     /// Scalar tolerance passed to OpenSearchModificationAnalysis on the most recent
     /// search() call. Stored for test observability: because the calibration writeback
     /// restores the tolerance members on exit (to avoid per-file state leaks in the
@@ -699,14 +784,78 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                            FragmentIndex& fragment_index,
                                            const std::vector<FASTAFile::FASTAEntry>& db) const;
 
-    /// Helper: log the modification analysis summary (shared by in-memory and file-based paths)
-    void logModificationAnalysisSummary_(const SearchResult& result,
-                                         const std::string& output_base_name) const;
+    /// Helper: does @p accession carry the decoy @p marker at the given position?
+    /// Empty marker → false. Pure std::string (no String dependency).
+    static bool accessionHasDecoyMarker_(const std::string& accession,
+                                         const std::string& marker, bool is_prefix);
 
-    /// Helper: log search summary statistics and per-run tolerance estimation
-    void logSearchDiagnostics_(const PeakMap& spectra,
+    /// Helper: capture statistics that must be read BEFORE FDR filtering, namely
+    /// target/decoy PSM counts (via the "target_decoy" meta set by PeptideIndexing;
+    /// "target+decoy" counts as target, matching OpenMS FDR semantics) and the
+    /// HyperScore distribution (FDR overwrites each hit's score with its q-value).
+    /// Fills stats.target_psms, stats.decoy_psms, stats.hyperscore_* and
+    /// stats.score_stats_valid.
+    static void capturePreFdrStats_(const PeptideIdentificationList& peptide_ids,
+                                    RunStatistics& stats);
+
+    /// Helper: maximum top-hit score among retained PSMs. After PSM-FDR the score
+    /// is the q-value, so this is the achieved FDR of the filtered set
+    /// (-1.0 if empty).
+    static double maxRetainedScore_(const PeptideIdentificationList& peptide_ids);
+
+    /// Helper: fill a RunStatistics with identification counts, distributions and
+    /// per-run tolerance estimation for one searched file (post-FDR). Silent;
+    /// rendering is done separately (ProSE TOPP tool or renderRunSummary()).
+    /// Fields filled at other points (target/decoy counts, achieved FDR, timing)
+    /// are left untouched.
+    void collectRunStatistics_(const PeakMap& spectra,
                                const std::vector<ProteinIdentification>& protein_ids,
-                               const PeptideIdentificationList& peptide_ids) const;
+                               const PeptideIdentificationList& peptide_ids,
+                               RunStatistics& stats) const;
+
+  public:
+    /// Recompute result-level statistics (matched count, unique peptide/protein
+    /// counts, charge & missed-cleavage histograms, target/decoy counts and
+    /// achieved PSM FDR) from a FINAL, post-processed PSM list. Use this when the
+    /// identifications are mutated AFTER search() returns — e.g. the ProSE TOPP
+    /// tool's Percolator rescoring + deferred FDR — so the report reflects what
+    /// the user actually receives. Does NOT touch @c ms2_spectra, the HyperScore
+    /// distribution (captured pre-FDR during the search) or any timing field.
+    /// @p fdr_applied records whether a PSM-level FDR filter was applied; when
+    /// true @c achieved_psm_fdr is set to the maximum retained q-value.
+    static void updateFinalStats(RunStatistics& stats,
+                                 const PeptideIdentificationList& peptide_ids,
+                                 const std::string& enzyme,
+                                 bool fdr_applied);
+
+    /// Render a human-readable single-run summary block (configuration recap,
+    /// database/index stats, identification results, tolerance estimate, timing
+    /// and — for open searches — modification discovery) to @p os.
+    /// @p shared carries the configuration/db/index context (built once).
+    static void renderRunSummary(const RunStatistics& stats,
+                                 const SharedSearchStats& shared,
+                                 const OpenSearchModificationAnalysis::OpenSearchAnalysisResult& mod_analysis,
+                                 bool is_open_search,
+                                 std::ostream& os);
+
+    /// Render the modification-discovery section (top PTMs, unknown delta masses)
+    /// to @p os. Shared by the per-file and aggregate report blocks.
+    static void renderModificationSummary(const OpenSearchModificationAnalysis::OpenSearchAnalysisResult& mod_analysis,
+                                          std::ostream& os);
+
+    /// Serialize the complete end-of-search report to a machine-readable YAML string:
+    /// shared configuration/database/index facts, per-file identification statistics,
+    /// the output-file @p manifest (label -> written paths) and failed/total file counts.
+    /// Hand-rolled (no YAML library dependency); every string scalar is double-quoted so
+    /// values containing ':' (e.g. Windows paths) or other YAML metacharacters round-trip
+    /// safely, and non-finite numbers are emitted as null.
+    static std::string renderRunSummaryYaml(
+        const MultiFileSearchResult& mfres,
+        const std::vector<std::pair<std::string, std::vector<std::string>>>& manifest,
+        Size files_failed,
+        Size files_total);
+
+  private:
 
     /// Helper function to determine if open search should be used based on tolerance
     bool isOpenSearchMode_() const

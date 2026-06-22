@@ -100,6 +100,7 @@ namespace OpenMS
       CONSENSUSPARQUET,   ///< OpenMS internal consensus map parquet bundle (directory: consensus_features.parquet + psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
       BRUKER_TDF,         ///< Bruker TimsTOF .d directory (TDF format)
       IMZML,              ///< imzML mass spectrometry imaging file (.imzML + .ibd)
+      YAML,               ///< YAML Ain't Markup Language file (.yaml)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 
