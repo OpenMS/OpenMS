@@ -194,7 +194,10 @@ namespace OpenMS
         return res; // invalid_argument, ptr == first
       }
       res.ptr = first + (parse_end - buf);
-      res.ec = (errno == ERANGE) ? std::errc::result_out_of_range : std::errc{};
+      // strtod/strtof set errno==ERANGE on both overflow (returns +/-HUGE_VAL) and
+      // underflow (returns a representable subnormal or 0). std::from_chars only reports
+      // result_out_of_range on overflow, so match that: accept underflow as success.
+      res.ec = (errno == ERANGE && std::isinf(value)) ? std::errc::result_out_of_range : std::errc{};
       return res;
     }
 #endif
