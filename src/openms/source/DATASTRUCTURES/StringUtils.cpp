@@ -8,10 +8,6 @@
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
-#include <boost/spirit/include/karma.hpp>
-#include <boost/spirit/home/karma/numeric/detail/real_utils.hpp>
-#include <boost/type_traits.hpp>
-
 #include <charconv>
 #include <cstdlib>
 #include <ctime>
@@ -26,71 +22,11 @@
 namespace OpenMS
 {
   // =========================================================================
-  // Boost.Karma generator policies (precision, NaN handling) — internal
-  // =========================================================================
-  namespace
-  {
-    template<typename T>
-    class BK_PrecPolicyFull : public boost::spirit::karma::real_policies<T>
-    {
-      typedef boost::spirit::karma::real_policies<T> base_policy_type;
-    public:
-      static unsigned precision(T /*n*/) { return writtenDigits<T>(); }
-
-      static unsigned floatfield(T n)
-      {
-        if (boost::spirit::traits::test_zero(n)) return base_policy_type::fmtflags::fixed;
-        T abs_n = boost::spirit::traits::get_absolute_value(n);
-        return (abs_n >= 1e4 || abs_n < 1e-2) ? base_policy_type::fmtflags::scientific
-                                               : base_policy_type::fmtflags::fixed;
-      }
-
-      template<typename CharEncoding, typename Tag, typename OutputIterator>
-      static bool nan(OutputIterator& sink, T n, bool force_sign)
-      {
-        return boost::spirit::karma::sign_inserter::call(
-                 sink, false, boost::spirit::traits::test_negative(n), force_sign)
-               && boost::spirit::karma::string_inserter<CharEncoding, Tag>::call(sink, "NaN");
-      }
-    };
-
-    template<typename T>
-    class BK_PrecPolicyShort : public boost::spirit::karma::real_policies<T>
-    {
-    public:
-      template<typename CharEncoding, typename Tag, typename OutputIterator>
-      static bool nan(OutputIterator& sink, T n, bool force_sign)
-      {
-        return boost::spirit::karma::sign_inserter::call(
-                 sink, false, boost::spirit::traits::test_negative(n), force_sign)
-               && boost::spirit::karma::string_inserter<CharEncoding, Tag>::call(sink, "NaN");
-      }
-    };
-
-    using FloatFullGen  = boost::spirit::karma::real_generator<float,       BK_PrecPolicyFull<float>>;
-    using DoubleFullGen = boost::spirit::karma::real_generator<double,      BK_PrecPolicyFull<double>>;
-    using LDFullGen     = boost::spirit::karma::real_generator<long double, BK_PrecPolicyFull<long double>>;
-
-    using FloatShortGen  = boost::spirit::karma::real_generator<float,       BK_PrecPolicyShort<float>>;
-    using DoubleShortGen = boost::spirit::karma::real_generator<double,      BK_PrecPolicyShort<double>>;
-    using LDShortGen     = boost::spirit::karma::real_generator<long double, BK_PrecPolicyShort<long double>>;
-
-    const FloatFullGen   floatFull{};
-    const DoubleFullGen  doubleFull{};
-    const LDFullGen      ldFull{};
-    const FloatShortGen  floatShort{};
-    const DoubleShortGen doubleShort{};
-    const LDShortGen     ldShort{};
-  } // anonymous namespace
-
-
-  // =========================================================================
   // StringUtilsHelper — parsing implementations (std::from_chars-based)
   // =========================================================================
 
   namespace
   {
-    /// Try to parse a NaN variant ("nan", "NAN", "NaN(...)") starting at @p p.
     template <typename T>
     bool tryParseNaN(const char*& p, const char* end, T& target)
     {
@@ -123,6 +59,89 @@ namespace OpenMS
         ++p;
       return p;
     }
+
+    /// Append a double/float/long double via std::to_chars.
+    /// NaN is output as "NaN" (uppercase) for backward compatibility.
+    /// Trailing zeros are trimmed but at least one digit after '.' is kept (matches old karma behavior).
+    template <typename T>
+    inline void appendNumeric(T value, std::string& target, int precision, bool fixed_format)
+    {
+      if (std::isnan(value)) { target += "NaN"; return; }
+      char buf[64];
+      std::to_chars_result fc;
+
+      // Determine format: use scientific for extreme values or when fixed_format is requested
+      // but the value is too small/large for fixed notation
+      T abs_val = (value < 0) ? -value : value;
+      bool use_scientific = fixed_format
+        ? (abs_val != T(0) && (abs_val >= T(1e4) || abs_val < T(1e-2)))
+        : (abs_val != T(0) && (abs_val >= T(1e4) || abs_val < T(1e-2)));
+
+      if (use_scientific)
+      {
+        int sci_prec = fixed_format ? 3 : precision;
+        fc = std::to_chars(buf, buf + sizeof(buf), value, std::chars_format::scientific, sci_prec);
+      }
+      else if (fixed_format)
+      {
+        fc = std::to_chars(buf, buf + sizeof(buf), value, std::chars_format::fixed, precision);
+      }
+      else
+      {
+        fc = std::to_chars(buf, buf + sizeof(buf), value, std::chars_format::fixed, precision);
+      }
+
+      if (fc.ec == std::errc{})
+      {
+        const char* end = fc.ptr;
+
+        // For scientific notation: post-process to match expected format
+        // std::to_chars outputs "1.234e+04" but we want "1.234e04"
+        const char* e_pos = reinterpret_cast<const char*>(std::memchr(buf, 'e', end - buf));
+        if (e_pos)
+        {
+          const char* e_orig = e_pos; // save before mantissa trimming
+
+          // Trim trailing zeros from mantissa (before 'e')
+          const char* dot = reinterpret_cast<const char*>(std::memchr(buf, '.', e_orig - buf));
+          if (dot)
+          {
+            while (e_pos > dot + 1 && *(e_pos - 1) == '0') --e_pos;
+            if (e_pos == dot + 1) e_pos = dot + 2; // keep at least one digit after dot
+          }
+          // Append trimmed mantissa (includes 'e')
+          target.append(buf, static_cast<size_t>(e_pos - buf));
+          target += 'e';
+
+          // Fix exponent format: "+04" → "04" (remove '+', keep zero-padding)
+          const char* exp_start = e_orig + 1; // skip 'e'
+          if (exp_start < end && *exp_start == '+')
+            ++exp_start; // skip '+'
+          size_t exp_len = static_cast<size_t>(end - exp_start);
+          target.append(exp_start, exp_len);
+          return;
+        }
+
+        // For fixed notation: trim trailing zeros after decimal point
+        const char* dot = reinterpret_cast<const char*>(std::memchr(buf, '.', end - buf));
+        if (dot)
+        {
+          while (end > dot + 1 && *(end - 1) == '0') --end;
+          if (end == dot + 1) end = dot + 2; // keep at least one digit after dot
+        }
+        else if constexpr (std::is_floating_point_v<T>)
+        {
+          target.append(buf, static_cast<size_t>(end - buf));
+          target += ".0";
+          return;
+        }
+        target.append(buf, static_cast<size_t>(end - buf));
+      }
+      else
+      {
+        target += std::to_string(static_cast<double>(value));
+      }
+    }
   } // anonymous namespace
 
 
@@ -137,6 +156,8 @@ namespace OpenMS
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Could not convert string '" + s + "' to an integer value");
     }
+
+    if (f != l && *f == '+') ++f;
 
     Int32 ret{};
     auto fc = std::from_chars(f, l, ret);
@@ -167,6 +188,8 @@ namespace OpenMS
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Could not convert string '" + s + "' to an integer value");
     }
+
+    if (f != l && *f == '+') ++f;
 
     Int64 ret{};
     auto fc = std::from_chars(f, l, ret);
@@ -207,6 +230,7 @@ namespace OpenMS
 
     float ret{};
     const char* start = skipWS(s.data(), l);
+    if (start != l && *start == '+') ++start;
     auto fc = std::from_chars(start, l, ret);
     if (fc.ec != std::errc{})
     {
@@ -245,6 +269,7 @@ namespace OpenMS
 
     double ret{};
     const char* start = skipWS(s.data(), l);
+    if (start != l && *start == '+') ++start;
     auto fc = std::from_chars(start, l, ret);
     if (fc.ec != std::errc{})
     {
@@ -267,7 +292,6 @@ namespace OpenMS
     if (tryParseNaN(begin, end, target))
       return true;
 
-    // std::from_chars doesn't handle leading '+', but boost::spirit did
     const char* start = begin;
     if (start != end && *start == '+') ++start;
 
@@ -282,7 +306,6 @@ namespace OpenMS
 
   bool StringUtilsHelper::extractInt(const char*& begin, const char* end, int& target)
   {
-    // std::from_chars doesn't handle leading '+', but boost::spirit did
     const char* start = begin;
     if (start != end && *start == '+') ++start;
 
@@ -297,85 +320,99 @@ namespace OpenMS
 
 
   // =========================================================================
-  // StringUtils — appendToStr implementations (Boost.Karma)
+  // StringUtils — appendToStr implementations (std::to_chars-based)
+  //
+  // Precision mapping (matches previous karma policies):
+  //   float:   6 significant digits (general) or 3 fractional digits (low precision)
+  //   double:  15 significant digits (general) or 3 fractional digits (low precision)
+  //   ld:      18 significant digits (general) or 3 fractional digits (low precision)
+  //
+  // NaN output: "NaN" (uppercase) for backward compatibility with karma.
   // =========================================================================
 
   namespace StringUtils
   {
+    // Integer overloads
     void appendToStr(int i, std::string& target)
     {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, i);
+      char buf[32];
+      auto [p, ec] = std::to_chars(buf, buf + sizeof(buf), i);
+      if (ec == std::errc{}) target.append(buf, p);
     }
     void appendToStr(unsigned int i, std::string& target)
     {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, i);
+      char buf[32];
+      auto [p, ec] = std::to_chars(buf, buf + sizeof(buf), i);
+      if (ec == std::errc{}) target.append(buf, p);
     }
     void appendToStr(short int i, std::string& target)
     {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, i);
+      char buf[32];
+      auto [p, ec] = std::to_chars(buf, buf + sizeof(buf), i);
+      if (ec == std::errc{}) target.append(buf, p);
     }
     void appendToStr(short unsigned int i, std::string& target)
     {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, i);
+      char buf[32];
+      auto [p, ec] = std::to_chars(buf, buf + sizeof(buf), i);
+      if (ec == std::errc{}) target.append(buf, p);
     }
     void appendToStr(long int i, std::string& target)
     {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, i);
+      char buf[32];
+      auto [p, ec] = std::to_chars(buf, buf + sizeof(buf), i);
+      if (ec == std::errc{}) target.append(buf, p);
     }
     void appendToStr(long unsigned int i, std::string& target)
     {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, i);
+      char buf[32];
+      auto [p, ec] = std::to_chars(buf, buf + sizeof(buf), i);
+      if (ec == std::errc{}) target.append(buf, p);
     }
     void appendToStr(long long unsigned int i, std::string& target)
     {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, i);
+      char buf[32];
+      auto [p, ec] = std::to_chars(buf, buf + sizeof(buf), i);
+      if (ec == std::errc{}) target.append(buf, p);
     }
     void appendToStr(long long signed int i, std::string& target)
     {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, i);
+      char buf[32];
+      auto [p, ec] = std::to_chars(buf, buf + sizeof(buf), i);
+      if (ec == std::errc{}) target.append(buf, p);
     }
 
+    // Float overloads — 6 significant digits (general) / 3 fractional digits (fixed)
     void appendToStr(float f, std::string& target)
     {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, floatFull, f);
+      appendNumeric(f, target, writtenDigits<float>(), false);
     }
     void appendToStrLowP(float f, std::string& target)
     {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, floatShort, f);
+      appendNumeric(f, target, 3, true);
     }
 
+    // Double overloads — 15 significant digits / 3 fractional digits
     void appendToStr(double d, std::string& target)
     {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, doubleFull, d);
+      appendNumeric(d, target, writtenDigits<double>(), false);
     }
     void appendToStrLowP(double d, std::string& target)
     {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, doubleShort, d);
+      appendNumeric(d, target, 3, true);
     }
 
+    // Long double overloads
     void appendToStr(long double ld, std::string& target)
     {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, ldFull, ld);
+      appendNumeric(ld, target, writtenDigits<long double>(), false);
     }
     void appendToStrLowP(long double ld, std::string& target)
     {
-      std::back_insert_iterator<std::string> sink(target);
-      boost::spirit::karma::generate(sink, ldShort, ld);
+      appendNumeric(ld, target, 3, true);
     }
 
+    // DataValue overload
     void appendToStr(const DataValue& d, bool full_precision, std::string& target)
     {
       target += d.toString(full_precision);
