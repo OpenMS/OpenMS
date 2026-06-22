@@ -179,37 +179,41 @@ namespace OpenMS
     /// Overloads for std::string iterators (converts to const char* internally)
     inline bool extractDouble(std::string::const_iterator& begin, const std::string::const_iterator& end, double& target)
     {
-      const char* p = &(*begin);
+      const char* const p_start = &(*begin);
+      const char* p = p_start;
       const char* e = &(*end);
       bool ok = StringUtilsHelper::extractDouble(p, e, target);
-      begin = std::string::const_iterator(p);
+      begin += (p - p_start); // advance iterator by number of consumed chars (MSVC iterators cannot be built from a raw pointer)
       return ok;
     }
 
     inline bool extractDouble(std::string::iterator& begin, const std::string::iterator& end, double& target)
     {
-      const char* p = &(*begin);
+      const char* const p_start = &(*begin);
+      const char* p = p_start;
       const char* e = &(*end);
       bool ok = StringUtilsHelper::extractDouble(p, e, target);
-      begin = std::string::iterator(const_cast<char*>(p));
+      begin += (p - p_start);
       return ok;
     }
 
     inline bool extractInt(std::string::const_iterator& begin, const std::string::const_iterator& end, int& target)
     {
-      const char* p = &(*begin);
+      const char* const p_start = &(*begin);
+      const char* p = p_start;
       const char* e = &(*end);
       bool ok = StringUtilsHelper::extractInt(p, e, target);
-      begin = std::string::const_iterator(p);
+      begin += (p - p_start);
       return ok;
     }
 
     inline bool extractInt(std::string::iterator& begin, const std::string::iterator& end, int& target)
     {
-      const char* p = &(*begin);
+      const char* const p_start = &(*begin);
+      const char* p = p_start;
       const char* e = &(*end);
       bool ok = StringUtilsHelper::extractInt(p, e, target);
-      begin = std::string::iterator(const_cast<char*>(p));
+      begin += (p - p_start);
       return ok;
     }
 
