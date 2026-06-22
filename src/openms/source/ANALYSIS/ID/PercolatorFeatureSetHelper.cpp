@@ -15,6 +15,8 @@
 
 #include <boost/lexical_cast.hpp>
 
+#include <set>
+
 using namespace std;
 
 namespace OpenMS
@@ -87,6 +89,35 @@ namespace OpenMS
       feature_set.push_back("hyperscore");
       feature_set.push_back("nextscore");
       feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
+    }
+
+    void PercolatorFeatureSetHelper::addANDESFeatures(PeptideIdentificationList& peptide_ids, StringList& feature_set)
+    {
+      // andes annotates each PSM with its own numeric features as MetaValues prefixed with "andes:".
+      // We collect all numeric "andes:"-prefixed MetaValues present on the hits as Percolator features,
+      // so the andes search engine stays the single source of truth for its feature set (currently 47).
+      std::set<std::string> andes_features;
+      for (const auto& p : peptide_ids)
+      {
+        for (const auto& h : p.getHits())
+        {
+          StringList keys;
+          h.getKeys(keys);
+          for (const std::string& key : keys)
+          {
+            if (key.compare(0, 6, "andes:") != 0)
+            {
+              continue;
+            }
+            const DataValue::DataType vt = h.getMetaValue(key).valueType();
+            if (vt == DataValue::DOUBLE_VALUE || vt == DataValue::INT_VALUE)
+            {
+              andes_features.insert(key);
+            }
+          }
+        }
+      }
+      feature_set.insert(feature_set.end(), andes_features.begin(), andes_features.end());
     }
 
     void PercolatorFeatureSetHelper::addCOMETFeatures(PeptideIdentificationList& peptide_ids, StringList& feature_set)

@@ -830,6 +830,12 @@ namespace OpenMS
   }
 
 #ifdef OPENMS_WINDOWSPLATFORM
+  StringList File::executableExtensions_()
+  {
+    const char* pathext = std::getenv("PATHEXT");
+    return executableExtensions_(pathext == nullptr ? "" : std::string(pathext));
+  }
+
   StringList File::executableExtensions_(const std::string& ext)
   {
     // check if content of env-var %PATHEXT% makes sense
@@ -841,6 +847,12 @@ namespace OpenMS
     else return {".exe", ".bat" };
   }
 #endif
+
+  StringList File::getPathLocations()
+  {
+    const char* env_path = std::getenv("PATH");
+    return getPathLocations(env_path == nullptr ? "" : std::string(env_path));
+  }
 
   StringList File::getPathLocations(const std::string& path)
   {

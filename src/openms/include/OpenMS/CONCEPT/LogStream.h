@@ -327,11 +327,13 @@ protected:
       <br>
       Which produces an error message in the log.
 
-      @note The log stream macros are thread safe and can be used in a
-      multithreaded environment, the global variables are not! The macros are
-      protected by a OPENMS_THREAD_CRITICAL directive (which translates to an
-      OpenMP critical pragma), however there may be a small performance penalty
-      to this.
+      @note The OPENMS_LOG_* macros are thread-safe: each thread logs through its
+      own thread-local LogStream/LogStreamBuf (see getThreadLocalLog*()), so the
+      per-stream buffers and caches are never shared. The final writes to the
+      shared sink(s) (e.g. @c std::cerr / @c std::cout) and to the shared Colorizer
+      are serialized by a global mutex inside LogStreamBuf::distribute_(). The global
+      LogStream objects returned by getGlobalLog*() are NOT thread-safe for direct
+      logging and should only be (re)configured before threads are started.
 
     */
     class OPENMS_DLLAPI LogStream :

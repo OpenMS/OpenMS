@@ -720,6 +720,39 @@ START_SECTION(([EXTRA] buildUSI().toString() convenience pattern))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] buildUSI().toString() is well-formed mzspec accepted by USI::isValidUSI))
+{
+  // issue #9460 §7, L299: pin that the generator (buildUSI) and the static validator (isValidUSI) agree.
+  // Every USI string buildUSI emits for a referenced spectrum must begin with the "mzspec:" scheme and be
+  // accepted by USI::isValidUSI; the empty string from an unreferenced ID must be rejected.
+  PeptideIdentification id;
+  id.setSpectrumReference("controllerType=0 controllerNumber=1 scan=12345");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("EM(Oxidation)K"));
+  hit.setCharge(2);
+  id.insertHit(hit);
+  id.sort();
+
+  // scan-based, with and without ProForma interpretation
+  std::string s_plain = id.buildUSI("sample.mzML", "PXD000561", false).toString();
+  std::string s_interp = id.buildUSI("sample.mzML", "PXD000561", true).toString();
+  TEST_EQUAL(s_plain.rfind("mzspec:", 0) == 0, true) // begins with the mzspec: scheme
+  TEST_EQUAL(USI::isValidUSI(s_plain), true)
+  TEST_EQUAL(USI::isValidUSI(s_interp), true)
+  TEST_STRING_EQUAL(s_interp, "mzspec:PXD000561:sample.mzML:scan:12345:EM[UNIMOD:35]K/2")
+
+  // nativeID fallback path (scan number not extractable)
+  PeptideIdentification id_nat;
+  id_nat.setSpectrumReference("custom_format_123");
+  std::string s_nat = id_nat.buildUSI("data.mzML", "PXD000563", false).toString();
+  TEST_EQUAL(USI::isValidUSI(s_nat), true)
+
+  // empty reference -> empty string -> NOT a valid USI
+  PeptideIdentification id_empty;
+  TEST_EQUAL(USI::isValidUSI(id_empty.buildUSI("x.mzML", "PXD0", false).toString()), false)
+}
+END_SECTION
+
 // Additional tests for file path handling in buildUSI
 START_SECTION(([EXTRA] buildUSI with file paths and basenames))
 {
