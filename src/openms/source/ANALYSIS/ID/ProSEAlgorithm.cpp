@@ -47,10 +47,10 @@
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
-#include <nlohmann/json.hpp>
-
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
+#include <locale>
 #include <ostream>
 #include <map>
 #include <set>
@@ -3087,91 +3087,155 @@ namespace OpenMS
   }
 
   // =====================================================================
-  // Serialize the end-of-search report to a JSON string. Lives in the library
-  // (which links nlohmann/json) so the TOPP tool does not need the dependency
-  // on its include path — only the OpenMS library compiles against nlohmann.
+  // Serialize the end-of-search report to a YAML string. Hand-rolled (no YAML
+  // library), so neither the TOPP tool nor the library needs an extra dependency
+  // for this. Every string scalar is double-quoted (q()) so values containing ':'
+  // (e.g. Windows paths) or other metacharacters cannot break the structure, and
+  // non-finite numbers are emitted as null (num()).
   // =====================================================================
-  std::string ProSEAlgorithm::renderRunSummaryJson(
+  std::string ProSEAlgorithm::renderRunSummaryYaml(
       const MultiFileSearchResult& mfres,
       const std::vector<std::pair<std::string, std::vector<std::string>>>& manifest,
       Size files_failed,
       Size files_total)
   {
-    using nlohmann::json;
-    auto run_to_json = [](const RunStatistics& st, const SearchResult& res) {
-      json j;
-      j["input_file"] = std::string(st.input_file);
-      j["exit_code"] = static_cast<int>(res.exit_code);
-      j["ms2_spectra"] = st.ms2_spectra;
-      j["matched_spectra"] = st.matched_spectra;
-      j["target_psms"] = st.target_psms;
-      j["decoy_psms"] = st.decoy_psms;
-      j["fdr_applied"] = st.fdr_applied;
-      j["achieved_psm_fdr"] = st.achieved_psm_fdr;
-      j["unique_peptides"] = st.unique_peptides;
-      j["unique_proteins"] = st.unique_proteins;
-      j["hyperscore"] = {{"valid", st.score_stats_valid}, {"min", st.hyperscore_min},
-                         {"median", st.hyperscore_median}, {"max", st.hyperscore_max}};
-      json ch = json::object();
-      for (const auto& [z, c] : st.charge_histogram) { ch[std::to_string(z)] = c; }
-      j["charge_histogram"] = ch;
-      json mc = json::object();
-      for (const auto& [m, c] : st.missed_cleavage_histogram) { mc[std::to_string(m)] = c; }
-      j["missed_cleavage_histogram"] = mc;
-      j["precursor_error"] = {{"valid", st.prec_tol_valid}, {"median_ppm", st.prec_err_median},
-                              {"mad_ppm", st.prec_err_mad}, {"recommended_ppm", st.prec_err_recommended}};
-      j["fragment_error"] = {{"valid", st.frag_tol_valid}, {"median_ppm", st.frag_err_median},
-                             {"mad_ppm", st.frag_err_mad}, {"recommended_ppm", st.frag_err_recommended}};
-      j["timing_seconds"] = {{"calibration", st.seconds_calibration},
-                             {"search", st.seconds_search}, {"fdr", st.seconds_fdr}};
-      return j;
+    // Double-quoted YAML scalar: escape the two structural chars, the common
+    // whitespace escapes, and every other C0 control + DEL as \xNN. A literal
+    // control character is ill-formed in a double-quoted scalar and would corrupt
+    // or invalidate the document — reachable via arbitrary input file paths.
+    auto q = [](const std::string& s) {
+      static const char* const hex = "0123456789ABCDEF";
+      std::string out;
+      out.reserve(s.size() + 2);
+      out += '"';
+      for (char ch : s)
+      {
+        const unsigned char c = static_cast<unsigned char>(ch);
+        if (c == '\\' || c == '"') { out += '\\'; out += static_cast<char>(c); }
+        else if (c == '\n') { out += "\\n"; }
+        else if (c == '\t') { out += "\\t"; }
+        else if (c == '\r') { out += "\\r"; }
+        else if (c < 0x20 || c == 0x7F) { out += "\\x"; out += hex[c >> 4]; out += hex[c & 0x0F]; }
+        else { out += static_cast<char>(c); }
+      }
+      out += '"';
+      return out;
     };
+    // Locale-independent number; non-finite -> null. YAML 1.1 reads an exponent
+    // without a mantissa dot ("8e-05") as a string, so ensure a '.' before 'e'.
+    auto num = [](double v) -> std::string {
+      if (!std::isfinite(v)) { return "null"; }
+      std::ostringstream o;
+      o.imbue(std::locale::classic());
+      o << v;
+      std::string s = o.str();
+      const auto e = s.find_first_of("eE");
+      if (e != std::string::npos && s.find('.') == std::string::npos) { s.insert(e, ".0"); }
+      return s;
+    };
+    auto bol = [](bool b) -> std::string { return b ? "true" : "false"; };
 
+    std::ostringstream y;
     const SharedSearchStats& sh = mfres.shared;
-    json root;
-    json shj;
-    shj["database_file"] = std::string(sh.database_file);
-    shj["enzyme"] = std::string(sh.enzyme);
-    shj["precursor_tol_lower"] = sh.precursor_tol_lower;
-    shj["precursor_tol_upper"] = sh.precursor_tol_upper;
-    shj["precursor_tol_unit"] = std::string(sh.precursor_tol_unit);
-    shj["fragment_tol"] = sh.fragment_tol;
-    shj["fragment_tol_unit"] = std::string(sh.fragment_tol_unit);
-    shj["min_charge"] = sh.min_charge;
-    shj["max_charge"] = sh.max_charge;
-    shj["missed_cleavages"] = sh.missed_cleavages;
-    shj["fixed_mods"] = std::vector<std::string>(sh.fixed_mods.begin(), sh.fixed_mods.end());
-    shj["variable_mods"] = std::vector<std::string>(sh.variable_mods.begin(), sh.variable_mods.end());
-    shj["ion_series"] = std::vector<std::string>(sh.ion_series.begin(), sh.ion_series.end());
-    shj["open_search"] = sh.open_search;
-    shj["calibration_enabled"] = sh.calibration_enabled;
-    shj["snes_mode"] = sh.snes_mode;
-    shj["chunked"] = sh.chunked;
-    shj["decoy_mode"] = std::string(sh.decoy_mode);
-    shj["psm_fdr_threshold"] = sh.psm_fdr_threshold;
-    shj["protein_fdr_threshold"] = sh.protein_fdr_threshold;
-    shj["db_target_proteins"] = sh.db_target_proteins;
-    shj["db_decoy_proteins"] = sh.db_decoy_proteins;
-    shj["indexed_peptides"] = sh.indexed_peptides;
-    shj["indexed_fragments"] = sh.indexed_fragments;
-    shj["seconds_index_build"] = sh.seconds_index_build;
-    shj["seconds_total"] = sh.seconds_total;
-    root["shared"] = shj;
 
-    json files = json::array();
-    for (const auto& pf : mfres.per_file) { files.push_back(run_to_json(pf.stats, pf)); }
-    root["per_file"] = files;
+    y << "shared:\n";
+    y << "  database_file: " << q(sh.database_file) << "\n";
+    y << "  enzyme: " << q(sh.enzyme) << "\n";
+    y << "  precursor_tol_lower: " << num(sh.precursor_tol_lower) << "\n";
+    y << "  precursor_tol_upper: " << num(sh.precursor_tol_upper) << "\n";
+    y << "  precursor_tol_unit: " << q(sh.precursor_tol_unit) << "\n";
+    y << "  fragment_tol: " << num(sh.fragment_tol) << "\n";
+    y << "  fragment_tol_unit: " << q(sh.fragment_tol_unit) << "\n";
+    y << "  min_charge: " << sh.min_charge << "\n";
+    y << "  max_charge: " << sh.max_charge << "\n";
+    y << "  missed_cleavages: " << sh.missed_cleavages << "\n";
+    auto str_list = [&](const char* key, const std::vector<std::string>& items) {
+      y << "  " << key << ":";
+      if (items.empty()) { y << " []\n"; return; }
+      y << "\n";
+      for (const auto& it : items) { y << "    - " << q(it) << "\n"; }
+    };
+    str_list("fixed_mods", std::vector<std::string>(sh.fixed_mods.begin(), sh.fixed_mods.end()));
+    str_list("variable_mods", std::vector<std::string>(sh.variable_mods.begin(), sh.variable_mods.end()));
+    str_list("ion_series", std::vector<std::string>(sh.ion_series.begin(), sh.ion_series.end()));
+    y << "  open_search: " << bol(sh.open_search) << "\n";
+    y << "  calibration_enabled: " << bol(sh.calibration_enabled) << "\n";
+    y << "  snes_mode: " << bol(sh.snes_mode) << "\n";
+    y << "  chunked: " << bol(sh.chunked) << "\n";
+    y << "  decoy_mode: " << q(sh.decoy_mode) << "\n";
+    y << "  psm_fdr_threshold: " << num(sh.psm_fdr_threshold) << "\n";
+    y << "  protein_fdr_threshold: " << num(sh.protein_fdr_threshold) << "\n";
+    y << "  db_target_proteins: " << sh.db_target_proteins << "\n";
+    y << "  db_decoy_proteins: " << sh.db_decoy_proteins << "\n";
+    y << "  indexed_peptides: " << sh.indexed_peptides << "\n";
+    y << "  indexed_fragments: " << sh.indexed_fragments << "\n";
+    y << "  seconds_index_build: " << num(sh.seconds_index_build) << "\n";
+    y << "  seconds_total: " << num(sh.seconds_total) << "\n";
 
-    json man = json::array();
-    for (const auto& [label, paths] : manifest)
+    y << "per_file:";
+    if (mfres.per_file.empty()) { y << " []\n"; }
+    else
     {
-      man.push_back({{"type", label}, {"paths", paths}});
+      y << "\n";
+      for (const auto& pf : mfres.per_file)
+      {
+        const RunStatistics& st = pf.stats;
+        // The first key of each list item carries the "- " marker; the rest indent to 4.
+        y << "  - input_file: " << q(st.input_file) << "\n";
+        y << "    exit_code: " << static_cast<int>(pf.exit_code) << "\n";
+        y << "    ms2_spectra: " << st.ms2_spectra << "\n";
+        y << "    matched_spectra: " << st.matched_spectra << "\n";
+        y << "    target_psms: " << st.target_psms << "\n";
+        y << "    decoy_psms: " << st.decoy_psms << "\n";
+        y << "    fdr_applied: " << bol(st.fdr_applied) << "\n";
+        y << "    achieved_psm_fdr: " << num(st.achieved_psm_fdr) << "\n";
+        y << "    unique_peptides: " << st.unique_peptides << "\n";
+        y << "    unique_proteins: " << st.unique_proteins << "\n";
+        y << "    hyperscore:\n";
+        y << "      valid: " << bol(st.score_stats_valid) << "\n";
+        y << "      min: " << num(st.hyperscore_min) << "\n";
+        y << "      median: " << num(st.hyperscore_median) << "\n";
+        y << "      max: " << num(st.hyperscore_max) << "\n";
+        y << "    charge_histogram:";
+        if (st.charge_histogram.empty()) { y << " {}\n"; }
+        else { y << "\n"; for (const auto& [z, c] : st.charge_histogram) { y << "      " << q(std::to_string(z)) << ": " << c << "\n"; } }
+        y << "    missed_cleavage_histogram:";
+        if (st.missed_cleavage_histogram.empty()) { y << " {}\n"; }
+        else { y << "\n"; for (const auto& [m, c] : st.missed_cleavage_histogram) { y << "      " << q(std::to_string(m)) << ": " << c << "\n"; } }
+        y << "    precursor_error:\n";
+        y << "      valid: " << bol(st.prec_tol_valid) << "\n";
+        y << "      median_ppm: " << num(st.prec_err_median) << "\n";
+        y << "      mad_ppm: " << num(st.prec_err_mad) << "\n";
+        y << "      recommended_ppm: " << num(st.prec_err_recommended) << "\n";
+        y << "    fragment_error:\n";
+        y << "      valid: " << bol(st.frag_tol_valid) << "\n";
+        y << "      median_ppm: " << num(st.frag_err_median) << "\n";
+        y << "      mad_ppm: " << num(st.frag_err_mad) << "\n";
+        y << "      recommended_ppm: " << num(st.frag_err_recommended) << "\n";
+        y << "    timing_seconds:\n";
+        y << "      calibration: " << num(st.seconds_calibration) << "\n";
+        y << "      search: " << num(st.seconds_search) << "\n";
+        y << "      fdr: " << num(st.seconds_fdr) << "\n";
+      }
     }
-    root["outputs"] = man;
-    root["files_failed"] = files_failed;
-    root["files_total"] = files_total;
 
-    return root.dump(2);
+    y << "outputs:";
+    if (manifest.empty()) { y << " []\n"; }
+    else
+    {
+      y << "\n";
+      for (const auto& [label, paths] : manifest)
+      {
+        y << "  - type: " << q(label) << "\n";
+        y << "    paths:";
+        if (paths.empty()) { y << " []\n"; }
+        else { y << "\n"; for (const auto& p : paths) { y << "      - " << q(p) << "\n"; } }
+      }
+    }
+    y << "files_failed: " << files_failed << "\n";
+    y << "files_total: " << files_total << "\n";
+
+    return y.str();
   }
 
   // =====================================================================

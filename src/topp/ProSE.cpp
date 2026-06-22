@@ -124,10 +124,10 @@ class ProSE :
 
       registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input file's basename and an additional aggregate table is written across all input files. Has no effect in closed-search mode.", false, true);
 
-      registerOutputFile_("summary_out", "<file>", "", "Optional JSON file capturing the end-of-search report (per-file identification statistics, shared configuration/database/index facts, timing and output manifest) for pipeline ingestion. The same information is printed to the command line unless -no_summary is set.", false, true);
-      setValidFormats_("summary_out", ListUtils::create<std::string>("json"));
+      registerOutputFile_("summary_out", "<file>", "", "Optional YAML file capturing the end-of-search report (per-file identification statistics, shared configuration/database/index facts, timing and output manifest) for pipeline ingestion. The same information is printed to the command line unless -no_summary is set.", false, true);
+      setValidFormats_("summary_out", ListUtils::create<std::string>("yaml"));
 
-      registerFlag_("no_summary", "Suppress the end-of-search report printed to the command line. The -summary_out JSON file (if requested) is still written.", true);
+      registerFlag_("no_summary", "Suppress the end-of-search report printed to the command line. The -summary_out YAML file (if requested) is still written.", true);
 
       registerInputFile_("percolator_executable", "<executable>",
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -854,7 +854,7 @@ class ProSE :
       }
 
       // =====================================================================
-      // End-of-search report (command line + optional JSON).
+      // End-of-search report (command line + optional YAML).
       // =====================================================================
       {
         sw_total.stop();
@@ -986,27 +986,26 @@ class ProSE :
           OPENMS_LOG_INFO << r.str() << endl;
         }
 
-        // -- Optional machine-readable JSON. The nlohmann/json serialization lives in
-        //    the OpenMS library (ProSEAlgorithm::renderRunSummaryJson) so this TOPP tool
-        //    does not need nlohmann on its include path (it is not exported to consumers
-        //    of the library on macOS/Windows); the tool only writes the returned string. --
+        // -- Optional machine-readable YAML. Serialization lives in the OpenMS library
+        //    (ProSEAlgorithm::renderRunSummaryYaml, hand-rolled, no YAML dependency); the
+        //    tool just writes the returned string. --
         if (!summary_out.empty())
         {
           try
           {
             std::ofstream ofs(summary_out);
-            ofs << ProSEAlgorithm::renderRunSummaryJson(mfres, manifest, failed_count, in_list.size()) << std::endl;
+            ofs << ProSEAlgorithm::renderRunSummaryYaml(mfres, manifest, failed_count, in_list.size()) << std::endl;
             if (!ofs.good())
             {
-              OPENMS_LOG_ERROR << "[ProSE] Failed to write summary JSON -> " << summary_out
+              OPENMS_LOG_ERROR << "[ProSE] Failed to write summary YAML -> " << summary_out
                                << " (stream error)." << endl;
               return CANNOT_WRITE_OUTPUT_FILE;
             }
-            OPENMS_LOG_INFO << "[ProSE] Wrote summary JSON -> " << summary_out << endl;
+            OPENMS_LOG_INFO << "[ProSE] Wrote summary YAML -> " << summary_out << endl;
           }
           catch (const std::exception& e)
           {
-            OPENMS_LOG_ERROR << "[ProSE] Failed to write summary JSON -> " << summary_out << ": " << e.what() << endl;
+            OPENMS_LOG_ERROR << "[ProSE] Failed to write summary YAML -> " << summary_out << ": " << e.what() << endl;
             return CANNOT_WRITE_OUTPUT_FILE;
           }
         }

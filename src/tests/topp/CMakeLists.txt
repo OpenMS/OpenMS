@@ -3291,8 +3291,8 @@ add_test("TOPP_ProSE_8_auto_info_proteins" ${DIFF}
 set_tests_properties("TOPP_ProSE_8_auto_info_proteins" PROPERTIES DEPENDS "TOPP_ProSE_8_auto_info")
 
 # Test 9: end-of-search report. -no_summary suppresses the console report while
-# -summary_out still writes the machine-readable JSON. The existence check (via
-# sha256sum, which errors if the file is absent) is a smoke test that the JSON
+# -summary_out still writes the machine-readable YAML. The existence check (via
+# sha256sum, which errors if the file is absent) is a smoke test that the YAML
 # artifact is produced; its timing fields are non-deterministic so it is not diffed.
 add_test("TOPP_ProSE_9_summary" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini
@@ -3300,9 +3300,9 @@ add_test("TOPP_ProSE_9_summary" ${TOPP_BIN_PATH}/ProSE -test
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
   -out_idxml ${TESTS_TEMP_DIR}/ProSE_9_out.tmp.idXML
   -no_summary
-  -summary_out ${TESTS_TEMP_DIR}/ProSE_9_summary.tmp.json)
+  -summary_out ${TESTS_TEMP_DIR}/ProSE_9_summary.tmp.yaml)
 add_test(NAME "TOPP_ProSE_9_summary_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
-  ${TESTS_TEMP_DIR}/ProSE_9_summary.tmp.json)
+  ${TESTS_TEMP_DIR}/ProSE_9_summary.tmp.yaml)
 set_tests_properties("TOPP_ProSE_9_summary_exists" PROPERTIES DEPENDS "TOPP_ProSE_9_summary")
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
