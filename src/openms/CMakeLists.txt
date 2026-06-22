@@ -100,6 +100,12 @@ option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
 
 if(WITH_ONNX)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ONNXRuntime::ONNXRuntime)
+
+  # Bundle the ONNX Runtime shared libraries (.dll / .so / .dylib) into installers
+  install(IMPORTED_RUNTIME_ARTIFACTS ONNXRuntime::ONNXRuntime
+      RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
+      LIBRARY DESTINATION "${INSTALL_LIB_DIR}"
+  )
 endif()
 
 # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
