@@ -2759,8 +2759,9 @@ namespace OpenMS
 
   // =====================================================================
   // Helper: fill per-run identification statistics (silent — no logging).
-  // Leaves target/decoy counts, achieved FDR and timing fields untouched;
-  // those are captured at well-defined points inside the search() paths.
+  // Computes target/decoy counts from the (post-FDR) hits it is given, so
+  // SearchResult::stats is consistent for any caller; leaves achieved FDR and
+  // timing fields untouched (captured at well-defined points in the search paths).
   // =====================================================================
   void ProSEAlgorithm::collectRunStatistics_(
       const PeakMap& spectra,
@@ -2778,6 +2779,7 @@ namespace OpenMS
 
     set<std::string> unique_peptides;
     set<std::string> unique_proteins;
+    Size n_target = 0, n_decoy = 0;
 
     // Per-PSM error values for tolerance estimation (top-ranked hits only)
     vector<double> precursor_errors;
@@ -2816,10 +2818,21 @@ namespace OpenMS
       }
 
       ++stats.missed_cleavage_histogram[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())];
+
+      // Target/decoy of the FINAL (post-FDR) hits, so SearchResult::stats stays consistent
+      // for library callers that read it without calling updateFinalStats().
+      if (top.metaValueExists(Constants::UserParam::TARGET_DECOY))
+      {
+        const std::string td = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString();
+        if (td == "decoy") { ++n_decoy; }
+        else if (!td.empty()) { ++n_target; }
+      }
     }
 
     stats.unique_peptides = unique_peptides.size();
     stats.unique_proteins = unique_proteins.size();
+    stats.target_psms = n_target;
+    stats.decoy_psms = n_decoy;
 
     // -- Per-run tolerance estimation (median + 3*MAD, matching prior behaviour) --
     const Size min_psms_for_estimation = 10;
