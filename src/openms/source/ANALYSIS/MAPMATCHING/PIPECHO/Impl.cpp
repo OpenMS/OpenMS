@@ -9,6 +9,7 @@
 #include "FeatureTypes.h"
 #include "Impl.h"
 #include "OpenMS/CONCEPT/Exception.h"
+#include "OpenMS/CONCEPT/LogStream.h"
 #include "OpenMS/CONCEPT/ProgressLogger.h"
 #include "OpenMS/KERNEL/FeatureMap.h"
 #include "Pep.h"
