@@ -8,10 +8,14 @@
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <cerrno>
 #include <charconv>
 #include <cstdlib>
+#include <cstring>
 #include <ctime>
 #include <iterator>
+#include <memory>
+#include <type_traits>
 
 // DataValue can now be included here; it depends on String.h which includes StringUtils.h,
 // but since this is a .cpp there is no circularity at compile time.
@@ -142,6 +146,69 @@ namespace OpenMS
         target += std::to_string(static_cast<double>(value));
       }
     }
+
+    // libc++ (e.g. Apple Clang) does not implement the floating-point overloads of
+    // std::from_chars — only the integer ones. Detect this and provide a strtod/strtof
+    // based fallback with matching semantics (general format, no leading whitespace/'+').
+    // All other standard libraries (libstdc++ >= 11, MSVC) use std::from_chars directly.
+#if defined(_LIBCPP_VERSION)
+  #define OPENMS_NO_FLOAT_FROM_CHARS 1
+#endif
+
+#ifdef OPENMS_NO_FLOAT_FROM_CHARS
+    template <typename T>
+    std::from_chars_result fromCharsFloat(const char* first, const char* last, T& value)
+    {
+      std::from_chars_result res{first, std::errc::invalid_argument};
+      // std::from_chars(general) rejects leading whitespace and a leading '+'; mimic that
+      // so behaviour is identical to the std::from_chars path on other platforms.
+      if (first == last || *first == '+' || *first == ' ' || *first == '\t' ||
+          *first == '\n' || *first == '\r' || *first == '\f' || *first == '\v')
+      {
+        return res;
+      }
+
+      // strtod/strtof need a null-terminated string and may read past 'last', so copy the
+      // range into a bounded buffer first.
+      const std::size_t n = static_cast<std::size_t>(last - first);
+      char stackbuf[64];
+      std::unique_ptr<char[]> heapbuf;
+      char* buf = stackbuf;
+      if (n + 1 > sizeof(stackbuf))
+      {
+        heapbuf = std::make_unique<char[]>(n + 1);
+        buf = heapbuf.get();
+      }
+      std::memcpy(buf, first, n);
+      buf[n] = '\0';
+
+      errno = 0;
+      char* parse_end = nullptr;
+      if constexpr (std::is_same_v<T, float>)
+        value = std::strtof(buf, &parse_end);
+      else
+        value = std::strtod(buf, &parse_end);
+
+      if (parse_end == buf) // nothing consumed
+      {
+        return res; // invalid_argument, ptr == first
+      }
+      res.ptr = first + (parse_end - buf);
+      res.ec = (errno == ERANGE) ? std::errc::result_out_of_range : std::errc{};
+      return res;
+    }
+#endif
+
+    /// Thin wrapper dispatching to std::from_chars or the libc++ fallback above.
+    template <typename T>
+    inline std::from_chars_result parseFloat(const char* first, const char* last, T& value)
+    {
+#ifdef OPENMS_NO_FLOAT_FROM_CHARS
+      return fromCharsFloat(first, last, value);
+#else
+      return std::from_chars(first, last, value);
+#endif
+    }
   } // anonymous namespace
 
 
@@ -231,7 +298,7 @@ namespace OpenMS
     float ret{};
     const char* start = skipWS(s.data(), l);
     if (start != l && *start == '+') ++start;
-    auto fc = std::from_chars(start, l, ret);
+    auto fc = parseFloat(start, l, ret);
     if (fc.ec != std::errc{})
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -270,7 +337,7 @@ namespace OpenMS
     double ret{};
     const char* start = skipWS(s.data(), l);
     if (start != l && *start == '+') ++start;
-    auto fc = std::from_chars(start, l, ret);
+    auto fc = parseFloat(start, l, ret);
     if (fc.ec != std::errc{})
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -295,7 +362,7 @@ namespace OpenMS
     const char* start = begin;
     if (start != end && *start == '+') ++start;
 
-    auto fc = std::from_chars(start, end, target);
+    auto fc = parseFloat(start, end, target);
     if (fc.ec == std::errc{})
     {
       begin = fc.ptr;
