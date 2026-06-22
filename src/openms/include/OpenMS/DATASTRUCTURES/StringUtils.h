@@ -844,7 +844,6 @@ namespace OpenMS
 //
 // Placing these in the global namespace ensures they are found by unqualified
 // lookup regardless of which OpenMS namespace the caller is in.
-// Non-inline (defined in StringUtils.cpp) to avoid boost::spirit in the header.
 // =============================================================================
 
 inline std::string& operator+=(std::string& s, int i)
