@@ -74,6 +74,8 @@ namespace OpenMS::Internal
     /// codepoints to '?' before the consumer has a chance to choose a different
     /// fallback. UniProt taxonomy names contain Greek letters (β, …) and accented
     /// Latin letters; we need both visible to the PEFF emitter's NFKD-style helper.
+    bool isEmpty(const XMLCh* ch) { return ch == nullptr || *ch == 0; }
+
     std::string xmlchToString(const XMLCh* ch)
     {
       if (ch == nullptr) return std::string();
@@ -146,11 +148,16 @@ namespace OpenMS::Internal
     return static_cast<int>(value);
   }
 
-  void UniProtXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/,
+  void UniProtXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const local_name,
                                        const XMLCh* const qname, const xercesc::Attributes& attrs)
   {
     ++depth_;
-    const std::string tag = xmlchToString(qname);
+    // Prefer local_name when the parser populates it (namespace-aware mode); fall back to
+    // qname otherwise. Real UniProtKB XML carries `xmlns="http://uniprot.org/uniprot"`, so
+    // a future switch to namespace-aware Xerces would deliver qname as `uniprot:entry` and
+    // local_name as `entry`; comparing against local_name keeps this handler working in both
+    // configurations.
+    const std::string tag = xmlchToString(isEmpty(local_name) ? qname : local_name);
 
     // Inside the alternative-products comment? swallow the whole subtree.
     if (alt_products_depth_ != 0) return;
@@ -306,10 +313,10 @@ namespace OpenMS::Internal
     appendXmlchUtf8(char_buf_, chars, length);
   }
 
-  void UniProtXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/,
+  void UniProtXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const local_name,
                                      const XMLCh* const qname)
   {
-    const std::string tag = xmlchToString(qname);
+    const std::string tag = xmlchToString(isEmpty(local_name) ? qname : local_name);
 
     // Close the alt-products skip gate at its matching </comment>.
     if (alt_products_depth_ != 0)

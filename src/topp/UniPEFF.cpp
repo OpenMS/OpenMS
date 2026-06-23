@@ -268,31 +268,52 @@ namespace
     // covers UniProtKB's common cases (NFKD of é/ö/ß/… via lookup); for the
     // few remaining cases the C# NFKD would also fall back to '?'.
     static const std::unordered_map<uint32_t, const char*> kMap = {
-      // Latin-1 Supplement
+      // ── Latin-1 Supplement (U+00C0..U+00FF) ──────────────────────────────
       {0x00C0, "A"}, {0x00C1, "A"}, {0x00C2, "A"}, {0x00C3, "A"}, {0x00C4, "A"}, {0x00C5, "A"},
-      {0x00C6, "AE"},
-      {0x00C7, "C"},
+      {0x00C6, "AE"}, {0x00C7, "C"},
       {0x00C8, "E"}, {0x00C9, "E"}, {0x00CA, "E"}, {0x00CB, "E"},
       {0x00CC, "I"}, {0x00CD, "I"}, {0x00CE, "I"}, {0x00CF, "I"},
-      {0x00D1, "N"},
+      {0x00D0, "D"}, {0x00D1, "N"},
       {0x00D2, "O"}, {0x00D3, "O"}, {0x00D4, "O"}, {0x00D5, "O"}, {0x00D6, "O"}, {0x00D8, "O"},
       {0x00D9, "U"}, {0x00DA, "U"}, {0x00DB, "U"}, {0x00DC, "U"},
-      {0x00DD, "Y"},
-      {0x00DF, "ss"},
+      {0x00DD, "Y"}, {0x00DE, "Th"}, {0x00DF, "ss"},
       {0x00E0, "a"}, {0x00E1, "a"}, {0x00E2, "a"}, {0x00E3, "a"}, {0x00E4, "a"}, {0x00E5, "a"},
-      {0x00E6, "ae"},
-      {0x00E7, "c"},
+      {0x00E6, "ae"}, {0x00E7, "c"},
       {0x00E8, "e"}, {0x00E9, "e"}, {0x00EA, "e"}, {0x00EB, "e"},
       {0x00EC, "i"}, {0x00ED, "i"}, {0x00EE, "i"}, {0x00EF, "i"},
-      {0x00F1, "n"},
+      {0x00F0, "d"}, {0x00F1, "n"},
       {0x00F2, "o"}, {0x00F3, "o"}, {0x00F4, "o"}, {0x00F5, "o"}, {0x00F6, "o"}, {0x00F8, "o"},
       {0x00F9, "u"}, {0x00FA, "u"}, {0x00FB, "u"}, {0x00FC, "u"},
-      {0x00FD, "y"}, {0x00FF, "y"},
-      // Latin Extended-A — most common diacritics in scientific names
+      {0x00FD, "y"}, {0x00FE, "th"}, {0x00FF, "y"},
+      // ── Latin Extended-A (U+0100..U+017F) — full block ──────────────────
+      // NFKD of every character in this block decomposes to ASCII (plus the
+      // few digraphs IJ/ij/OE/oe).
+      {0x0100, "A"}, {0x0101, "a"}, {0x0102, "A"}, {0x0103, "a"}, {0x0104, "A"}, {0x0105, "a"},
+      {0x0106, "C"}, {0x0107, "c"}, {0x0108, "C"}, {0x0109, "c"}, {0x010A, "C"}, {0x010B, "c"},
+      {0x010C, "C"}, {0x010D, "c"}, {0x010E, "D"}, {0x010F, "d"}, {0x0110, "D"}, {0x0111, "d"},
+      {0x0112, "E"}, {0x0113, "e"}, {0x0114, "E"}, {0x0115, "e"}, {0x0116, "E"}, {0x0117, "e"},
+      {0x0118, "E"}, {0x0119, "e"}, {0x011A, "E"}, {0x011B, "e"}, {0x011C, "G"}, {0x011D, "g"},
+      {0x011E, "G"}, {0x011F, "g"}, {0x0120, "G"}, {0x0121, "g"}, {0x0122, "G"}, {0x0123, "g"},
+      {0x0124, "H"}, {0x0125, "h"}, {0x0126, "H"}, {0x0127, "h"},
+      {0x0128, "I"}, {0x0129, "i"}, {0x012A, "I"}, {0x012B, "i"}, {0x012C, "I"}, {0x012D, "i"},
+      {0x012E, "I"}, {0x012F, "i"}, {0x0130, "I"}, {0x0131, "i"},
+      {0x0132, "IJ"}, {0x0133, "ij"}, {0x0134, "J"}, {0x0135, "j"},
+      {0x0136, "K"}, {0x0137, "k"}, {0x0138, "k"},
+      {0x0139, "L"}, {0x013A, "l"}, {0x013B, "L"}, {0x013C, "l"}, {0x013D, "L"}, {0x013E, "l"},
+      {0x013F, "L"}, {0x0140, "l"}, {0x0141, "L"}, {0x0142, "l"},
+      {0x0143, "N"}, {0x0144, "n"}, {0x0145, "N"}, {0x0146, "n"}, {0x0147, "N"}, {0x0148, "n"},
+      {0x0149, "n"}, {0x014A, "N"}, {0x014B, "n"},
+      {0x014C, "O"}, {0x014D, "o"}, {0x014E, "O"}, {0x014F, "o"}, {0x0150, "O"}, {0x0151, "o"},
       {0x0152, "OE"}, {0x0153, "oe"},
-      {0x0160, "S"},  {0x0161, "s"},
-      {0x0178, "Y"},
-      {0x017D, "Z"},  {0x017E, "z"},
+      {0x0154, "R"}, {0x0155, "r"}, {0x0156, "R"}, {0x0157, "r"}, {0x0158, "R"}, {0x0159, "r"},
+      {0x015A, "S"}, {0x015B, "s"}, {0x015C, "S"}, {0x015D, "s"}, {0x015E, "S"}, {0x015F, "s"},
+      {0x0160, "S"}, {0x0161, "s"},
+      {0x0162, "T"}, {0x0163, "t"}, {0x0164, "T"}, {0x0165, "t"}, {0x0166, "T"}, {0x0167, "t"},
+      {0x0168, "U"}, {0x0169, "u"}, {0x016A, "U"}, {0x016B, "u"}, {0x016C, "U"}, {0x016D, "u"},
+      {0x016E, "U"}, {0x016F, "u"}, {0x0170, "U"}, {0x0171, "u"}, {0x0172, "U"}, {0x0173, "u"},
+      {0x0174, "W"}, {0x0175, "w"}, {0x0176, "Y"}, {0x0177, "y"}, {0x0178, "Y"},
+      {0x0179, "Z"}, {0x017A, "z"}, {0x017B, "Z"}, {0x017C, "z"}, {0x017D, "Z"}, {0x017E, "z"},
+      {0x017F, "s"},
     };
 
     std::string out;
@@ -741,12 +762,23 @@ namespace
     out << "# //\n";
   }
 
+  /// Tracks how often the OBO-name lookup fell back to the UniProt ptmlist ID.
+  /// Total occurrences vs. distinct missed accessions — "2886 occurrences across
+  /// 30 distinct accessions" tells the user the OBO is ~30 terms out of date
+  /// (actionable refresh); "2886 across 2886" tells them the OBO is broken.
+  struct OboFallbackTracker
+  {
+    size_t total{0};
+    std::set<std::string> distinct;
+  };
+
   /// Resolve the canonical display name for one ModRes via OBO maps (PEFF
   /// requires the OBO "name:" field for ModResPsi/ModResUnimod; PEFF allows
   /// a generic name for plain ModRes). On a miss we fall back to the UniProt
-  /// ptmlist ID — the C# tool does the same and increments @p fallbacks.
+  /// ptmlist ID and record both the occurrence and the distinct accession.
   std::string resolveDisplayName(const ModResItem& m, const std::string& accession,
-                                 const OboNameMap& psi, const OboNameMap& uni, size_t& fallbacks)
+                                 const OboNameMap& psi, const OboNameMap& uni,
+                                 OboFallbackTracker& tracker)
   {
     if (!accession.empty())
     {
@@ -756,19 +788,21 @@ namespace
         auto it = om->find(accession);
         if (it != om->end()) return it->second;
       }
-      ++fallbacks;
+      ++tracker.total;
+      tracker.distinct.insert(accession);
     }
     return m.name;  // UniProt PTM ID
   }
 
-  /// Write the descriptor + sequence for one entry. Returns the number of OBO
-  /// name fallbacks taken (to mirror the C# tool's user warning).
-  size_t writePeffEntry(std::ostream& out, const UniProtEntry& e, EntryAnnotations& a,
-                        const std::string& prefix, bool option_b,
-                        const OboNameMap& psi_obo, const OboNameMap& unimod_obo,
-                        bool emit_processed, bool emit_aa_mods, bool emit_variants)
+  /// Write the descriptor + sequence for one entry. OBO-name fallbacks taken during
+  /// emission are accumulated into @p tracker so the final report can distinguish
+  /// "N occurrences across M distinct accessions".
+  void writePeffEntry(std::ostream& out, const UniProtEntry& e, EntryAnnotations& a,
+                      const std::string& prefix, bool option_b,
+                      const OboNameMap& psi_obo, const OboNameMap& unimod_obo,
+                      OboFallbackTracker& tracker,
+                      bool emit_processed, bool emit_aa_mods, bool emit_variants)
   {
-    size_t fallbacks = 0;
     const int seq_len = static_cast<int>(e.sequence.size());
 
     out << ">" << prefix << ":" << (e.accession.empty() ? std::string() : e.accession);
@@ -823,7 +857,7 @@ namespace
         const std::string acc = accession_of(m);
         val.push_back('|');
         val += escapePeff(acc);
-        const std::string display = resolveDisplayName(m, acc, psi_obo, unimod_obo, fallbacks);
+        const std::string display = resolveDisplayName(m, acc, psi_obo, unimod_obo, tracker);
         if (!display.empty())
         {
           val.push_back('|');
@@ -984,8 +1018,6 @@ namespace
       out.write(seq.data() + offset, take);
       out << "\n";
     }
-
-    return fallbacks;
   }
 
   // ──────────────────────────────────────────────────────────────────
@@ -1065,10 +1097,10 @@ protected:
     registerStringOption_("prefix", "<string>", "", "Force a single PEFF prefix for every entry (e.g. 'sp'); if empty, sp/tr is derived from the UniProt dataset.", false);
     registerStringOption_("dbversion", "<string>", "unknown", "Value for the mandatory '# DbVersion=' PEFF header line.", false);
 
-    registerFlag_("AnnotationIdentifiers", "Emit PEFF Option B: assign a sequential id: prefix to every annotation tuple and emit \\DisulfideBond connectivity.");
-    registerFlag_("OmitMolecularProcessing", "Skip the \\Processed annotations (initiator methionine, signal/transit peptide, propeptide, chain).");
-    registerFlag_("OmitAminoAcidModifications", "Skip \\ModResPsi / \\ModResUnimod / \\ModRes and \\DisulfideBond; ptmlist is not read.");
-    registerFlag_("OmitSequenceVariations", "Skip \\VariantSimple and \\VariantComplex annotations.");
+    registerFlag_("annotation_identifiers", "Emit PEFF Option B: assign a sequential id: prefix to every annotation tuple and emit \\DisulfideBond connectivity.");
+    registerFlag_("omit_molecular_processing", "Skip the \\Processed annotations (initiator methionine, signal/transit peptide, propeptide, chain).");
+    registerFlag_("omit_amino_acid_modifications", "Skip \\ModResPsi / \\ModResUnimod / \\ModRes and \\DisulfideBond; ptmlist is not read.");
+    registerFlag_("omit_sequence_variations", "Skip \\VariantSimple and \\VariantComplex annotations.");
   }
 
   ExitCodes main_(int, const char**) override
@@ -1077,10 +1109,10 @@ protected:
     const std::string out_file       = getStringOption_("out");
     const std::string prefix_override = getStringOption_("prefix");
     const std::string dbversion      = getStringOption_("dbversion");
-    const bool option_b              = getFlag_("AnnotationIdentifiers");
-    const bool omit_proc             = getFlag_("OmitMolecularProcessing");
-    const bool omit_aa               = getFlag_("OmitAminoAcidModifications");
-    const bool omit_var              = getFlag_("OmitSequenceVariations");
+    const bool option_b              = getFlag_("annotation_identifiers");
+    const bool omit_proc             = getFlag_("omit_molecular_processing");
+    const bool omit_aa               = getFlag_("omit_amino_acid_modifications");
+    const bool omit_var              = getFlag_("omit_sequence_variations");
 
     const bool record_processing = !omit_proc;
     const bool record_aa_mods    = !omit_aa;
@@ -1157,7 +1189,6 @@ protected:
     };
     std::map<std::string, PrefixSpool> spools;
     std::vector<std::string> prefixes;  // first-seen order
-    size_t fallbacks = 0;
     size_t skipped_no_accession = 0;
     size_t skipped_no_sequence = 0;
 
@@ -1171,6 +1202,7 @@ protected:
 
     bool spool_open_failed = false;
     std::string spool_open_failed_path;
+    OboFallbackTracker fallback_tracker;
     {
       UniProtXMLFile xml;
       xml.loadStreaming(in_file, [&](UniProtEntry&& entry) {
@@ -1205,9 +1237,9 @@ protected:
           it = spools.emplace(pe.prefix, std::move(s)).first;
           prefixes.push_back(pe.prefix);
         }
-        fallbacks += writePeffEntry(it->second.out, pe.source, pe.annotations, pe.prefix, option_b,
-                                    psi_obo, unimod_obo,
-                                    record_processing, record_aa_mods, record_variants);
+        writePeffEntry(it->second.out, pe.source, pe.annotations, pe.prefix, option_b,
+                       psi_obo, unimod_obo, fallback_tracker,
+                       record_processing, record_aa_mods, record_variants);
         ++it->second.count;
       });
     }
@@ -1276,9 +1308,10 @@ protected:
     out.close();
     cleanup_spools();
 
-    if (fallbacks > 0)
+    if (fallback_tracker.total > 0)
     {
-      OPENMS_LOG_WARN << "UniPEFF: " << fallbacks << " modification name(s) fell back to UniProt ptmlist IDs "
+      OPENMS_LOG_WARN << "UniPEFF: " << fallback_tracker.total << " modification name(s) across "
+                      << fallback_tracker.distinct.size() << " distinct accession(s) fell back to UniProt ptmlist IDs "
                          "(no OBO 'name:' entry found). Provide an updated -psimod_obo / -unimod_obo for strict PEFF "
                          "conformance." << std::endl;
     }

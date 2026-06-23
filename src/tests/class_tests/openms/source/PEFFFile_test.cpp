@@ -1639,14 +1639,12 @@ START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of
   TEST_EQUAL(e1.entry_id, "KSINK_HUMAN")
   TEST_EQUAL(e1.alt_accessions.size(), 1)
   TEST_EQUAL(e1.alt_accessions[0], "P99999")
-  // Protein name must round-trip in full, including the balanced "(test)" parenthetical.
-  // UniPEFF emits PName in list form (\PName=(...)) so a paren-list-aware reader returns the
-  // full name as a single element (not "test", as an earlier scalar-paren-list collision did).
-  // PEFFFile preserves PEFF escape sequences (\|, \\, \)) verbatim in the returned name;
-  // un-escaping is the caller's responsibility, matching parseParenList_'s "treat \\X as a
-  // literal X" pass-through behaviour.
+  // Protein name must round-trip in full: the balanced "(test)" parenthetical is preserved
+  // (UniPEFF emits PName in list form, so a paren-list-aware reader returns the full name as
+  // a single element, not "test"), and the PEFF reserved-char escapes (\|, \\, \)) are reversed
+  // by parseParenList_'s un-escape pass — the consumer sees the logical content.
   TEST_EQUAL(e1.protein_names.size(), 1)
-  TEST_EQUAL(e1.protein_names[0], "Kitchen-sink protein (test) \\| alpha\\\\beta :-\\)")
+  TEST_EQUAL(e1.protein_names[0], "Kitchen-sink protein (test) | alpha\\beta :-)")
   // 18 modifications total = 9 \ModResPsi (incl. 5 half cystines + 2 unknown-position)
   //                       + 1 \ModResUnimod + 8 \ModRes (interchain crosslinks, glycos, etc.)
   TEST_EQUAL(e1.modifications.size(), 18)

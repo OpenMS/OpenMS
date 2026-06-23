@@ -27,6 +27,31 @@ namespace OpenMS
 
   namespace
   {
+    /// Reverse the PEFF 1.0 escape rules: \\, \|, \(, \) → \, |, (, ). Other
+    /// backslash sequences are passed through verbatim (a literal backslash that
+    /// happens to precede an un-escapable character is preserved). Idempotent on
+    /// already-unescaped values.
+    std::string peffUnescape(const std::string& s)
+    {
+      std::string out;
+      out.reserve(s.size());
+      for (size_t i = 0; i < s.size(); ++i)
+      {
+        if (s[i] == '\\' && i + 1 < s.size())
+        {
+          const char next = s[i + 1];
+          if (next == '\\' || next == '|' || next == '(' || next == ')')
+          {
+            out.push_back(next);
+            ++i;
+            continue;
+          }
+        }
+        out.push_back(s[i]);
+      }
+      return out;
+    }
+
     /// Sentinel value for "annotation ID not set"
     constexpr UInt ANNOT_ID_NOT_SET = std::numeric_limits<UInt>::max();
 
@@ -2162,7 +2187,7 @@ namespace OpenMS
         {
           std::string trimmed(value);
           StringUtils::trim(trimmed);
-          entry.protein_names.push_back(trimmed);
+          entry.protein_names.push_back(peffUnescape(trimmed));
         }
       }
       else if (key == "GName")
@@ -2677,7 +2702,10 @@ namespace OpenMS
 
         if (end > start)
         {
-          result.push_back(StringUtils::substr(value, start, end - start));
+          // Reverse PEFF escapes on extracted items so callers see the logical content,
+          // not the raw on-wire form. Balanced inner parens that survived the scan above
+          // are preserved verbatim (they were never escaped by a conformant writer).
+          result.push_back(peffUnescape(StringUtils::substr(value, start, end - start)));
         }
         pos = end + 1;
       }
@@ -2690,7 +2718,7 @@ namespace OpenMS
     // If no parentheses found, treat entire value as single item
     if (result.empty() && !value.empty())
     {
-      result.push_back(value);
+      result.push_back(peffUnescape(value));
     }
 
     return result;

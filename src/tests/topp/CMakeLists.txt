@@ -2805,7 +2805,7 @@ add_test("TOPP_UniPEFF_1" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/Un
 add_test("TOPP_UniPEFF_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_1_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_1_output_A.peff)
 set_tests_properties("TOPP_UniPEFF_1_out" PROPERTIES DEPENDS "TOPP_UniPEFF_1")
 
-add_test("TOPP_UniPEFF_2" ${TOPP_BIN_PATH}/UniPEFF -test -AnnotationIdentifiers -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_2_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_2" ${TOPP_BIN_PATH}/UniPEFF -test -annotation_identifiers -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_2_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
 add_test("TOPP_UniPEFF_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_2_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_1_output_B.peff)
 set_tests_properties("TOPP_UniPEFF_2_out" PROPERTIES DEPENDS "TOPP_UniPEFF_2")
 
@@ -2819,18 +2819,18 @@ add_test("TOPP_UniPEFF_4" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/Un
 add_test("TOPP_UniPEFF_4_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_4_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_2_output_prefix.peff)
 set_tests_properties("TOPP_UniPEFF_4_out" PROPERTIES DEPENDS "TOPP_UniPEFF_4")
 
-# -OmitMolecularProcessing: drops the \Processed annotation block.
-add_test("TOPP_UniPEFF_5" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_5_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo -OmitMolecularProcessing)
+# -omit_molecular_processing: drops the \Processed annotation block.
+add_test("TOPP_UniPEFF_5" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_5_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo -omit_molecular_processing)
 add_test("TOPP_UniPEFF_5_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_5_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_2_output_omitproc.peff)
 set_tests_properties("TOPP_UniPEFF_5_out" PROPERTIES DEPENDS "TOPP_UniPEFF_5")
 
-# -OmitAminoAcidModifications: drops \ModResPsi/\ModResUnimod/\ModRes and \DisulfideBond; ptmlist not read.
-add_test("TOPP_UniPEFF_6" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_6_output.tmp.peff -OmitAminoAcidModifications)
+# -omit_amino_acid_modifications: drops \ModResPsi/\ModResUnimod/\ModRes and \DisulfideBond; ptmlist not read.
+add_test("TOPP_UniPEFF_6" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_6_output.tmp.peff -omit_amino_acid_modifications)
 add_test("TOPP_UniPEFF_6_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_6_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_2_output_omitmods.peff)
 set_tests_properties("TOPP_UniPEFF_6_out" PROPERTIES DEPENDS "TOPP_UniPEFF_6")
 
-# -OmitSequenceVariations: drops \VariantSimple and \VariantComplex.
-add_test("TOPP_UniPEFF_7" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_7_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo -OmitSequenceVariations)
+# -omit_sequence_variations: drops \VariantSimple and \VariantComplex.
+add_test("TOPP_UniPEFF_7" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_7_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo -omit_sequence_variations)
 add_test("TOPP_UniPEFF_7_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_7_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_2_output_omitvar.peff)
 set_tests_properties("TOPP_UniPEFF_7_out" PROPERTIES DEPENDS "TOPP_UniPEFF_7")
 
