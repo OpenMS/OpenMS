@@ -37,7 +37,10 @@ endforeach(i)
 
 ### pass source file list to the upper instance
 set(OpenMS_sources ${OpenMS_sources} ${sources})
-set(OpenMS_sources_h ${OpenMS_private_sources_h} ${sources_h})
+# These are private implementation headers that live next to the .cpp under
+# source/.  includes.cmake resets OpenMS_sources_h after this (source) phase, so
+# register them on the master source list (IDE listing only; not compiled).
+set(OpenMS_sources ${OpenMS_sources} ${sources_h})
 
 ### source group definition
 #source_group("Source Files\\ANALYSIS\\MAPMATCHING\\PIPECHO" FILES ${sources})
