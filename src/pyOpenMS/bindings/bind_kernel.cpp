@@ -35,6 +35,7 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
+#include <OpenMS/IMAGING/IonImage.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/PeakIndex.h>
@@ -1882,6 +1883,16 @@ This is an alias for getChromatogramByNativeId().
             [](const OpenMS::OnDiscImzMLExperiment& self) -> const OpenMS::MSImagingGeometry& { return self.getGeometry(); },
             nb::rv_policy::reference_internal,
             "Return the shared 2D MSImagingGeometry (0-based pixel grid + (x,y)->spectrum index), built lazily from the index")
+        .def("extractIonImage",
+            [](const OpenMS::OnDiscImzMLExperiment& self, double mz, double tolerance_ppm) {
+                return self.extractIonImage(mz, tolerance_ppm);
+            }, "mz"_a, "tolerance_ppm"_a,
+            "Extract a single-mass ion image over the whole dataset by summing intensities in [mz - dm, mz + dm] (dm = mz * tolerance_ppm * 1e-6), decoding each pixel from the .ibd on demand")
+        .def("extractIonImage",
+            [](const OpenMS::OnDiscImzMLExperiment& self, double mz, double tolerance_ppm, OpenMS::Size region_id) {
+                return self.extractIonImage(mz, tolerance_ppm, region_id);
+            }, "mz"_a, "tolerance_ppm"_a, "region_id"_a,
+            "Extract a single-mass ion image restricted to one region, decoding each pixel from the .ibd on demand")
         .def("gridWidth", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.gridWidth(); })
         .def("gridHeight", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.gridHeight(); })
         ;

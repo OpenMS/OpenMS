@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -22,6 +23,7 @@ namespace OpenMS
 {
 
   class MSImagingGeometry; // OpenMS/IMAGING/MSImagingGeometry.h — included in the .cpp
+  class IonImage;          // OpenMS/IMAGING/IonImage.h — included in the .cpp
 
   /**
     @brief Random-access, on-disc reader for imzML mass spectrometry imaging datasets.
@@ -161,6 +163,48 @@ namespace OpenMS
       @throws Exception::ElementNotFound if no spectrum exists at (x, y, z).
     */
     MSSpectrum getSpectrumAtCoord(uint32_t x, uint32_t y, uint32_t z = 1) const;
+
+    // ------------------------------------------------------------------
+    // Ion image extraction — lazy decode, no full dataset in memory
+    // ------------------------------------------------------------------
+
+    /**
+      @brief Extract an ion image over the whole dataset by summing peak
+             intensities inside [mz - dm, mz + dm], with dm = mz * tolerance_ppm * 1e-6.
+
+      This is the on-disc counterpart of @p MSImagingExperiment::extractIonImage:
+      it walks the shared 2D geometry and decodes each pixel's spectrum from the
+      .ibd on demand (one fseek + fread per pixel), so the full dataset never needs
+      to be held in memory. This makes it suitable for visualizing single-mass ion
+      images of large datasets.
+
+      Pixels absent from the geometry stay invalid in the returned image. Pixels with
+      a spectrum but no peaks in the window are marked valid with intensity 0. The
+      returned image's m/z range is set to [mz - dm, mz + dm].
+
+      @param[in] mz             m/z center of the extraction window (>= 0).
+      @param[in] tolerance_ppm  Half-window width in ppm (>= 0).
+      @return Image with the same dimensions as the geometry.
+      @throws Exception::InvalidValue if @p mz or @p tolerance_ppm is negative or non-finite.
+      @throws Exception::FileNotFound if the .ibd is not open.
+    */
+    IonImage extractIonImage(double mz, double tolerance_ppm) const;
+
+    /**
+      @brief Extract an ion image for a single region only.
+
+      Same summation and window semantics as the whole-dataset overload, but limited
+      to the acquired pixels belonging to @p region_id (decoded lazily from the .ibd).
+
+      @param[in] mz             m/z center of the extraction window (>= 0).
+      @param[in] tolerance_ppm  Half-window width in ppm (>= 0).
+      @param[in] region_id      Region of pixels to extract.
+      @return Image with the same dimensions as the geometry.
+      @throws Exception::InvalidValue if @p mz or @p tolerance_ppm is negative or non-finite.
+      @throws Exception::FileNotFound if the .ibd is not open.
+      @throws Exception::ElementNotFound if @p region_id is unknown.
+    */
+    IonImage extractIonImage(double mz, double tolerance_ppm, Size region_id) const;
 
     // ------------------------------------------------------------------
     // Dataset-level metadata
