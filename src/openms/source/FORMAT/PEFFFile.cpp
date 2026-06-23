@@ -2180,7 +2180,7 @@ namespace OpenMS
         {
           for (const std::string& name : parseParenList_(value))
           {
-            entry.protein_names.push_back(name);
+            entry.protein_names.push_back(peffUnescape(name));
           }
         }
         else if (!value.empty())
@@ -2233,11 +2233,12 @@ namespace OpenMS
       }
       else if (key == "AltAC")
       {
-        // May be parenthesized list: (AC1)(AC2) or single value
+        // May be parenthesized list: (AC1)(AC2) or single value. Each accession is a
+        // single scalar (not further pipe-split), so un-escape happens here at the call site.
         std::vector<std::string> acs = parseParenList_(value);
         for (const std::string& ac : acs)
         {
-          entry.alt_accessions.push_back(ac);
+          entry.alt_accessions.push_back(peffUnescape(ac));
         }
       }
       else if (key == "ModRes" || key == "ModResPsi" || key == "ModResUnimod")
@@ -2564,10 +2565,12 @@ namespace OpenMS
       }
       else if (key == "Proteoform")
       {
+        // Each item is a single ProForma string scalar; PEFF-escape applies on the wire,
+        // so reverse it now. ProForma's own grammar inside the value is opaque to us.
         std::vector<std::string> pforms = parseParenList_(value);
         for (const std::string& pf : pforms)
         {
-          entry.proteoforms.push_back(pf);
+          entry.proteoforms.push_back(peffUnescape(pf));
         }
       }
       else
@@ -2702,10 +2705,13 @@ namespace OpenMS
 
         if (end > start)
         {
-          // Reverse PEFF escapes on extracted items so callers see the logical content,
-          // not the raw on-wire form. Balanced inner parens that survived the scan above
-          // are preserved verbatim (they were never escaped by a conformant writer).
-          result.push_back(peffUnescape(StringUtils::substr(value, start, end - start)));
+          // Items are returned with PEFF escapes intact: the structured-tuple parsers
+          // (parseModification_, parseVariantComplex_, parseProcessedRegion_, …) call
+          // splitByPipeEscapeAware() next and need to see the raw `\|` to distinguish
+          // an escaped pipe inside a name from a real field separator. Callers that
+          // take the item as a single scalar (PName list, AltAC, Proteoform) un-escape
+          // via peffUnescape() at the call site.
+          result.push_back(StringUtils::substr(value, start, end - start));
         }
         pos = end + 1;
       }
@@ -2718,7 +2724,7 @@ namespace OpenMS
     // If no parentheses found, treat entire value as single item
     if (result.empty() && !value.empty())
     {
-      result.push_back(peffUnescape(value));
+      result.push_back(value);
     }
 
     return result;
@@ -2776,21 +2782,21 @@ namespace OpenMS
         mod.type = PEFFModification::Type::GENERIC;
       }
 
-      // Name
+      // Name (text field — un-escape PEFF reserved chars now that the pipe split is done)
       if (parts.size() >= 3)
       {
-        mod.name = parts[2];
+        mod.name = peffUnescape(parts[2]);
       }
 
-      // OptionalTag
+      // OptionalTag (text field — same)
       if (parts.size() >= 4)
       {
-        mod.optional_tag = parts[3];
+        mod.optional_tag = peffUnescape(parts[3]);
       }
       if (parts.size() > 4)
       {
         OPENMS_LOG_WARN << "PEFF: Modification tuple has more than 4 fields; treating last field as OptionalTag.\n";
-        mod.optional_tag = parts.back();
+        mod.optional_tag = peffUnescape(parts.back());
       }
     }
 
@@ -2814,7 +2820,7 @@ namespace OpenMS
 
       if (parts.size() >= 3)
       {
-        var.optional_tag = parts[2];
+        var.optional_tag = peffUnescape(parts[2]);
       }
     }
 
@@ -2835,11 +2841,12 @@ namespace OpenMS
       var.annotation_id = annotation_id;
       var.start_position = StringUtils::toInt32(start_field);
       var.end_position = StringUtils::toInt32(parts[1]);
-      var.replacement = parts[2];
+      // replacement and optional_tag are text fields — un-escape now that the pipe split is done.
+      var.replacement = peffUnescape(parts[2]);
 
       if (parts.size() >= 4)
       {
-        var.optional_tag = parts[3];
+        var.optional_tag = peffUnescape(parts[3]);
       }
     }
 
@@ -2862,14 +2869,15 @@ namespace OpenMS
       reg.end_position = StringUtils::toInt32(parts[1]);
       reg.accession = parts[2];
 
+      // name and optional_tag are text fields — un-escape now that the pipe split is done.
       if (parts.size() >= 4)
       {
-        reg.name = parts[3];
+        reg.name = peffUnescape(parts[3]);
       }
 
       if (parts.size() >= 5)
       {
-        reg.optional_tag = parts[4];
+        reg.optional_tag = peffUnescape(parts[4]);
       }
     }
 
@@ -2889,7 +2897,8 @@ namespace OpenMS
 
     if (pipe_pos != std::string::npos)
     {
-      bond.optional_tag = StringUtils::substr(tuple, pipe_pos + 1);
+      // The description after the single '|' separator is a text field — un-escape.
+      bond.optional_tag = peffUnescape(StringUtils::substr(tuple, pipe_pos + 1));
     }
 
     // Extract annotation ID prefix from the IDs portion

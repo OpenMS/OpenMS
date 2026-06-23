@@ -1677,6 +1677,42 @@ START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of
 }
 END_SECTION
 
+START_SECTION([EXTRA] escaped '\\|' inside a structured tuple must not be split as a field separator)
+{
+  // Regression test for an un-escape ordering bug: if parseParenList_ un-escapes its items
+  // BEFORE splitByPipeEscapeAware runs, then "A\|B" in a modification name becomes "A|B"
+  // and the pipe split would store the name as "A" and the optional tag as "B".
+  // Un-escape must happen AFTER pipe splitting, per-field.
+  const std::string peff_text =
+    "# PEFF 1.0\n"
+    "# //\n"
+    "# DbName=Test\n"
+    "# Prefix=sp\n"
+    "# Decoy=false\n"
+    "# DbSource=local\n"
+    "# DbVersion=test\n"
+    "# NumberOfEntries=1\n"
+    "# SequenceType=AA\n"
+    "# //\n"
+    ">sp:P00001 \\PName=(Test) \\Length=5 \\ModResPsi=(1|MOD:00046|name with \\| pipe)\n"
+    "INSUL\n";
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::ofstream(tmp_filename.c_str(), std::ios::binary).write(peff_text.data(), peff_text.size());
+
+  PEFFFile peff;
+  std::vector<PEFFEntry> entries;
+  std::vector<PEFFDatabaseMetadata> headers;
+  peff.load(tmp_filename, entries, headers);
+  TEST_EQUAL(entries.size(), 1)
+  TEST_EQUAL(entries[0].modifications.size(), 1)
+  TEST_EQUAL(entries[0].modifications[0].accession, "MOD:00046")
+  TEST_EQUAL(entries[0].modifications[0].name, "name with | pipe")
+  TEST_EQUAL(entries[0].modifications[0].optional_tag, "")  // no 4th field — pipe was inside the name
+}
+END_SECTION
+
 START_SECTION([EXTRA] scalar \PName= with embedded balanced parens must round-trip in full)
 {
   // Regression: an earlier reader truncated scalar PName values to their first
