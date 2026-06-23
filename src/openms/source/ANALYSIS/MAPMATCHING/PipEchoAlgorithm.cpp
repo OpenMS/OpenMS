@@ -56,12 +56,16 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
                      " (unit defined by 'unit')");
   defaults_.setMinFloat("distance_MZ:max_difference", 0.0);
 
-  defaults_.setValue("distance_MZ:unit", "Da", "Unit of the 'max_difference' parameter");
+  defaults_.setValue("distance_MZ:unit", "ppm", "Unit of the 'max_difference' parameter");
   defaults_.setValidStrings("distance_MZ:unit", {"Da", "ppm"});
 
   defaults_.setValue("fdr", 0.05, "MBR FDR threshold (0.05=5%).");
   defaults_.setMinFloat("fdr", 0.0);
   defaults_.setMaxFloat("fdr", 1.0);
+
+  defaults_.setValue("random_seed", 0,
+                     "Seed for the random number generator used to select decoy"
+                     " donors. A fixed seed makes results reproducible.");
 
   defaultsToParam_();
 }

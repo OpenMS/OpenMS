@@ -15,6 +15,8 @@
 #include "RunStatistics.h"
 #include "Window.h"
 
+#include <random>
+
 namespace OpenMS::PipEcho
 {
 
@@ -80,6 +82,11 @@ private:
 
   std::optional<Window> initial_window(const Donor& donor);
   std::optional<Window> next_window(const std::optional<Window>&);
+
+  /// Random source for decoy donor selection.  Seeded once (from the
+  /// `random_seed` parameter) so results are reproducible and thread-safe.
+  /// Mutable because the (logically const) decoy search advances its state.
+  mutable std::mt19937 rng_;
 };
 
 } // namespace OpenMS::PipEcho

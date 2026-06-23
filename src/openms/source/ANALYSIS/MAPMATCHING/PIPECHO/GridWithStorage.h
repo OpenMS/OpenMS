@@ -51,7 +51,7 @@ struct GridWithStorage
   /// Explore cells near a starting point.
   template<typename Result>
   Result nearby(const grid_index_t&,
-                std::size_t,
+                Int64,
                 Result,
                 std::function<Result(Result, value_type)>) const;
 
@@ -77,7 +77,7 @@ template<typename T>
 template<typename Result>
 Result
 GridWithStorage<T>::nearby(const grid_index_t& index,
-                           std::size_t neighbors,
+                           Int64 neighbors,
                            Result init,
                            std::function<Result(Result, value_type)> op) const
 {
@@ -100,6 +100,9 @@ GridWithStorage<T>::nearby(const grid_index_t& index,
   {
     for (auto j = index_y - neighbors; j <= index_y + neighbors; ++j)
     {
+      // The home cell is already reduced above; skip it to avoid double-counting.
+      if (i == index_x && j == index_y) { continue; }
+
       const auto addr = grid_index_t(i, j);
 
       if (auto cell = this->grid.grid_find(addr); cell != this->grid.grid_end())

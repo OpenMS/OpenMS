@@ -641,7 +641,7 @@ protected:
       PipEchoAlgorithm linker;
 
       Param pe_param = getParam_().copy("PipEcho:", true);
-      pe_param.setValue("distance_RT:max_difference", max_alignment_diff);
+      pe_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
       writeDebug_("Parameters passed to the PIP-ECHO algorithm", pe_param, 3);
 
       linker.setParameters(pe_param);
@@ -652,7 +652,7 @@ protected:
       FeatureGroupingAlgorithmQT linker;
 
       Param fl_param = getParam_().copy("Linking:", true);
-      fl_param.setValue("distance_RT:max_difference", max_alignment_diff);
+      fl_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
       writeDebug_("Parameters passed to feature grouping algorithm", fl_param, 3);
 
       linker.setParameters(fl_param);
@@ -1042,7 +1042,7 @@ protected:
       FeatureMap seeds;
       seeds.setPrimaryMSRunPath({mz_file});
 
-      const bool targeted_only = getStringOption_("targeted_only") != "false" && getStringOption_("pip_echo") != "false";
+      const bool targeted_only = getStringOption_("targeted_only") != "false";
 
       if (! targeted_only && in_feat_list.empty())
       {

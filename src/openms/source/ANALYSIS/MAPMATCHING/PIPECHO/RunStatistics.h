@@ -37,7 +37,7 @@ private:
   normal_t init_mass_error(const Run&) const;
   double calc_score_using(const normal_t&, double) const;
   double calc_intensity_score(const Feature&) const;
-  double calc_mass_error_score(const Feature&) const;
+  double calc_mass_error_score(const Feature& donor, const Feature& acceptor) const;
 
 private:
   // Log intensity distribution.

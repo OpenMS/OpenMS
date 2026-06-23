@@ -6,7 +6,9 @@
 // $Authors: Peter J. Jones $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/CONCEPT/Exception.h"
 #include "OpenMS/CONCEPT/LogStream.h"
+#include "OpenMS/DATASTRUCTURES/ListUtils.h"
 #include "OpenMS/ML/SVM/SimpleSVM.h"
 #include "Pep.h"
 #include "Util.h"
@@ -115,7 +117,20 @@ Pep::Pep(const std::vector<std::shared_ptr<Acceptor>>& acceptors)
 /******************************************************************************/
 const Pep::group_t& Pep::run(double fdr_cutoff)
 {
-  bool pep_okay = internal_run();
+  bool pep_okay = false;
+
+  // SimpleSVM::setup/predict can throw (e.g. too few label classes).  Catch it
+  // so we fall back to MBR scores instead of aborting the whole tool.
+  try
+  {
+    pep_okay = internal_run();
+  }
+  catch (const Exception::BaseException& e)
+  {
+    OPENMS_LOG_WARN << "WARNING: PEP computation threw (" << e.getName() << ": "
+                    << e.what() << ")." << std::endl;
+    pep_okay = false;
+  }
 
   if (! pep_okay)
   {
@@ -302,7 +317,7 @@ bool Pep::round(size_t round_number,
     {
       if (i != j)
       {
-        training.insert(training.end(), groups[i].begin(), groups[i].end());
+        training.insert(training.end(), groups[j].begin(), groups[j].end());
       }
     }
 
@@ -345,14 +360,11 @@ void Pep::compute_qvalues(bool pep_values_are_valid)
 {
   // Sort ascending by PEP score, and then descending by MBR score.
   std::ranges::sort(acceptors_, [&](auto a, auto b) {
-    if (! pep_values_are_valid || std::fabs(a->pep_score - b->pep_score) < 0.01)
+    if (! pep_values_are_valid || a->pep_score == b->pep_score)
     {
       return a->score.mbr_score > b->score.mbr_score;
     }
-    else
-    {
-      return a->pep_score < b->pep_score;
-    }
+    return a->pep_score < b->pep_score;
   });
 
   double decoy_mbr_count {}, decoy_peptide_count {}, decoy_double_count {},

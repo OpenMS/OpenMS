@@ -72,7 +72,9 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     mz_max_diff(params),
     mz_grid_center(0.5),
     rt_sec_max_window(params.getValue("distance_RT:max_difference")),
-    mbr_fdr(params.getValue("fdr"))
+    mbr_fdr(params.getValue("fdr")),
+    rng_(static_cast<std::mt19937::result_type>(
+      static_cast<int>(params.getValue("random_seed"))))
 {
   OPENMS_LOG_INFO << "MBR via PIP-ECHO(" << mz_range.first << ", "
                   << mz_range.second << ", " << mz_grid_center << ", "
@@ -203,7 +205,12 @@ Impl::find_random_donor(const DonorMap& donors,
   /// FIXME: What is a "Base Sequence"?
   const auto base_seq = [](const Donor& donor) -> std::string {
     const auto hit(PipEcho::Util::feature_hit(donor.feature));
-    assert(hit.has_value());
+    if (! hit.has_value())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__,
+                                          OPENMS_PRETTY_FUNCTION,
+                                          "donor feature missing peptide sequence");
+    }
     return hit->getSequence().toUnmodifiedString();
   };
 
@@ -258,8 +265,9 @@ Impl::find_random_donor(const DonorMap& donors,
 
   if (! matching_donors.empty())
   {
-    std::srand(std::time(nullptr));
-    return matching_donors[std::rand() % matching_donors.size()];
+    std::uniform_int_distribution<std::size_t> pick(0,
+                                                    matching_donors.size() - 1);
+    return matching_donors[pick(rng_)];
   }
 
   return {};
@@ -313,13 +321,20 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
   // Put each acceptor into the correct feature bucket.
   for (auto& acceptor : acceptors)
   {
+    ++acceptors_seen;
+
+    // Decoy transfers exist only to estimate the MBR FDR; they must not leak
+    // into the quantitative consensus output.
+    if (! acceptor->is_target())
+    {
+      ++decoys_seen;
+      continue;
+    }
+
     std::string key
       = feature_sequence_key(acceptor->donor_ident, acceptor->donor_charge);
 
     insert(key, acceptor->acceptor);
-
-    ++acceptors_seen;
-    if (! acceptor->is_target()) ++decoys_seen;
   }
 
   OPENMS_LOG_INFO << "PIP-ECHO: added " << acceptors_seen

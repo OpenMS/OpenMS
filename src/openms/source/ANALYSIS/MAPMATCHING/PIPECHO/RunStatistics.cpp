@@ -6,6 +6,7 @@
 // $Authors: Peter J. Jones $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/MATH/MathFunctions.h"
 #include "OpenMS/MATH/StatisticFunctions.h"
 #include "Run.h"
 #include "RunStatistics.h"
@@ -108,8 +109,8 @@ RunStatistics::normal_t RunStatistics::init_mass_error(const Run& run) const
 Score RunStatistics::score(const Feature& donor, const Feature& acceptor) const
 {
   Score s = {.intensity = calc_intensity_score(acceptor),
-             .rt_diff_error = acceptor.getRT() - donor.getRT(),
-             .mass_error = calc_mass_error_score(acceptor),
+             .rt_diff_error = std::abs(acceptor.getRT() - donor.getRT()),
+             .mass_error = calc_mass_error_score(donor, acceptor),
              .mbr_score = MIN_SCORE};
 
   // IMPORTANT: This is the number of individual scores that are
@@ -131,11 +132,16 @@ double RunStatistics::calc_intensity_score(const Feature& acceptor) const
 }
 
 /******************************************************************************/
-double RunStatistics::calc_mass_error_score(const Feature& acceptor) const
+double RunStatistics::calc_mass_error_score(const Feature& donor,
+                                            const Feature& acceptor) const
 {
-  auto me = Util::feature_mass_error(acceptor);
-  if (! me.has_value()) return MIN_SCORE;
-  return calc_score_using(mass_error, *me);
+  // The acceptor is unidentified by construction, so its own ID cannot give a
+  // mass error.  Compute the acceptor m/z error against the donor's peptide
+  // sequence/charge -- the identity that would be transferred to it.
+  auto donor_hit = Util::feature_hit(donor);
+  if (! donor_hit.has_value()) return MIN_SCORE;
+  double theoretical = donor_hit->getSequence().getMZ(donor_hit->getCharge());
+  return calc_score_using(mass_error, Math::getPPM(acceptor.getMZ(), theoretical));
 }
 
 /******************************************************************************/
