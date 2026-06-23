@@ -139,3 +139,76 @@ experiments (:term:`SRM` / MRM / PRM / DIA).
     targeted_exp = oms.TargetedExperiment()
     oms.TraMLFile().load("test.TraML", targeted_exp)
     oms.TraMLFile().store("test.out.TraML", targeted_exp)
+
+
+Inspecting MS File Information (FileInfo)
+-------------------------------------------------------
+
+:py:class:`~.FileInfo` is the library-level equivalent of the OpenMS
+``FileInfo`` command-line tool. It auto-detects the file type and returns a
+structured :py:class:`~.FileInfo.Result` with ranges, per-type counts, and
+statistics — without requiring a subprocess call.
+
+Basic usage: load a file and inspect common fields:
+
+.. code-block:: python
+    :linenos:
+
+    from urllib.request import urlretrieve
+    import pyopenms as oms
+
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
+    urlretrieve(gh + "/src/data/BSA1.mzML", "BSA1.mzML")
+
+    fi = oms.FileInfo()
+
+    # run_all() enables meta/processing/statistics in one call
+    r = fi.run_all("BSA1.mzML")
+
+    print("File type:", r.meta.file_type_name)
+    print("Number of spectra:", r.peak.num_spectra)
+    print("MS levels:", r.peak.ms_levels)
+    print("RT range:", r.ranges.spectra_overall.rt.min, "–", r.ranges.spectra_overall.rt.max)
+
+    # Activation methods as (ms_level, method_name, count) tuples
+    for ms_level, name, count in r.peak.activation_methods_flat():
+        print(f"  MS{ms_level} {name}: {count}")
+
+For a feature map or consensus map:
+
+.. code-block:: python
+    :linenos:
+
+    from urllib.request import urlretrieve
+    import pyopenms as oms
+
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
+    urlretrieve(gh + "/src/data/BSA1_F1_idmapped.featureXML", "test.featureXML")
+    urlretrieve(gh + "/src/data/ConsensusXMLFile_1.consensusXML", "test.consensusXML")
+
+    r = oms.FileInfo().run_all("test.featureXML")
+    print("Features:", r.feature.num_features)
+    print("Is consensus:", r.feature.is_consensus)
+
+    r2 = oms.FileInfo().run_all("test.consensusXML")
+    for col in r2.feature.map_columns:
+        print(col.filename, col.size)
+
+You can opt into specific analyses via :py:class:`~.FileInfo.Options`:
+
+.. code-block:: python
+    :linenos:
+
+    import pyopenms as oms
+
+    opt = oms.FileInfo.Options()
+    opt.statistics = True   # equivalent to FileInfo CLI -s flag
+    opt.validate = True     # equivalent to -v
+    r = oms.FileInfo().run("BSA1.mzML", opt)
+
+    # The same human-readable text the FileInfo CLI would write to -out
+    print(r.text)
+    # TSV output (equivalent to -out_tsv)
+    print(r.tsv)
+    # Validation result
+    print("Valid:", r.validation.valid)
