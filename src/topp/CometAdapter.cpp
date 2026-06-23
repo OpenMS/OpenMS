@@ -32,6 +32,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/ANALYSIS/ID/CometModification.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <unordered_map>
 

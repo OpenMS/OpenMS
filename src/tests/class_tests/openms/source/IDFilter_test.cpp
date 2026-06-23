@@ -24,6 +24,7 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 
 ///////////////////////////

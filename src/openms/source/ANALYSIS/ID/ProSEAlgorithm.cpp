@@ -22,6 +22,8 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -29,6 +31,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -46,7 +49,10 @@
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
+#include <locale>
+#include <ostream>
 #include <map>
 #include <set>
 #include <sstream>
@@ -1244,6 +1250,10 @@ namespace OpenMS
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
+    // Reset per-run stats here so the chunked single-file path (searchChunked_,
+    // which does not route through search(spectra, ctx, ...)) starts clean too.
+    last_run_stats_ = RunStatistics{};
+
     // Chunking disabled → take the existing single-context path (decoys built
     // lazily by prepareContext). The ctx is locally owned and not reused,
     // so opt in to eager FI release (M1) before PeptideIndexing.
@@ -1492,6 +1502,9 @@ namespace OpenMS
     //    searchWithModificationAnalysis apply protein FDR post-call).
     const bool has_decoys = strategy.have_decoys;
 
+    // Pre-FDR stats (target/decoy counts + HyperScore distribution).
+    capturePreFdrStats_(peptide_ids, last_run_stats_);
+
     if (fdr_psm_ > 0.0 && has_decoys)
     {
       // PSM-level FDR: annotate q-values and filter target+decoy PSMs alike by the threshold.
@@ -1499,12 +1512,17 @@ namespace OpenMS
       // pass are kept because downstream protein-level FDR and cross-file merging need them.
       // Categorical decoy removal happens only at protein-FDR finalization (file-based
       // single-file search below, or ProSE.cpp).
+      StopWatch sw_fdr; sw_fdr.start();
       FalseDiscoveryRate fdr;
       Param fdr_params = fdr.getParameters();
       fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
       fdr.setParameters(fdr_params);
       fdr.apply(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
+      last_run_stats_.fdr_applied = true;
+      last_run_stats_.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
+      sw_fdr.stop();
+      last_run_stats_.seconds_fdr = sw_fdr.getClockTime();
     }
     else if (fdr_psm_ > 0.0 && !has_decoys)
     {
@@ -1514,7 +1532,7 @@ namespace OpenMS
 
     restore_tolerances();
 
-    logSearchDiagnostics_(spectra, protein_ids, peptide_ids);
+    collectRunStatistics_(spectra, protein_ids, peptide_ids, last_run_stats_);
 
     return ExitCodes::EXECUTION_OK;
   }
@@ -1531,6 +1549,10 @@ namespace OpenMS
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
+    // Reset the per-run statistics bridge for this file. Callers copy it into
+    // their SearchResult::stats after search() returns OK.
+    last_run_stats_ = RunStatistics{};
+
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
 
     bool open_search = isOpenSearchMode_();
@@ -1569,7 +1591,10 @@ namespace OpenMS
     if (calibration_enabled_ && !open_search)
     {
       startProgress(0, 1, "Running calibration pass...");
+      StopWatch sw_cal; sw_cal.start();
       last_calibration_result_ = runCalibrationPass_(spectra, fragment_index_, db);
+      sw_cal.stop();
+      last_run_stats_.seconds_calibration = sw_cal.getClockTime();
       const CalibrationResult_& cal = last_calibration_result_;
       endProgress();
 
@@ -1649,6 +1674,7 @@ namespace OpenMS
 
     bool open_search_mode = open_search;
 
+    StopWatch sw_search; sw_search.start();
     scoreSpectraAgainstIndex_(spectra, fragment_index_, db, spectrum_generator,
                               effective_fragment_tol, fragment_mass_tolerance_unit_ppm,
                               open_search_mode, annotated_hits,
@@ -1686,6 +1712,8 @@ namespace OpenMS
       "" // no database filename for in-memory search
       );
     endProgress();
+    sw_search.stop();
+    last_run_stats_.seconds_search = sw_search.getClockTime();
 
     // Perform modification analysis for open search results
     if (open_search)
@@ -1766,6 +1794,11 @@ namespace OpenMS
     // (generated internally, or external decoys reused from the input FASTA).
     const bool has_decoys = ctx.have_decoys;
 
+    // Capture pre-FDR stats now — BEFORE FDR, which drops pure-decoy hits
+    // (FalseDiscoveryRate default add_decoy_peptides=false), may strip decoys
+    // entirely, and overwrites each hit's HyperScore with its q-value.
+    capturePreFdrStats_(peptide_ids, last_run_stats_);
+
     if (fdr_psm_ > 0.0 && has_decoys)
     {
       // PSM-level FDR: annotate q-values and filter target+decoy PSMs alike by the threshold.
@@ -1773,12 +1806,17 @@ namespace OpenMS
       // pass are kept because downstream protein-level FDR and cross-file merging need them.
       // Categorical decoy removal happens only at protein-FDR finalization (file-based
       // single-file search below, or ProSE.cpp).
+      StopWatch sw_fdr; sw_fdr.start();
       FalseDiscoveryRate fdr;
       Param fdr_params = fdr.getParameters();
       fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
       fdr.setParameters(fdr_params);
       fdr.apply(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
+      last_run_stats_.fdr_applied = true;
+      last_run_stats_.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
+      sw_fdr.stop();
+      last_run_stats_.seconds_fdr = sw_fdr.getClockTime();
     }
     else if (fdr_psm_ > 0.0 && !has_decoys)
     {
@@ -1788,7 +1826,7 @@ namespace OpenMS
 
     restore_fi_params();
 
-    logSearchDiagnostics_(spectra, protein_ids, peptide_ids);
+    collectRunStatistics_(spectra, protein_ids, peptide_ids, last_run_stats_);
 
     return ExitCodes::EXECUTION_OK;
   }
@@ -1923,6 +1961,9 @@ namespace OpenMS
 
     result.exit_code = search(spectra, fasta_db, result.protein_ids, result.peptide_ids);
 
+    // Carry whatever statistics the search managed to populate, even on failure.
+    result.stats = last_run_stats_;
+
     if (result.exit_code != ExitCodes::EXECUTION_OK)
     {
       return result;
@@ -1950,8 +1991,6 @@ namespace OpenMS
         false, // no smoothing
         output_file
       );
-
-      logModificationAnalysisSummary_(result, output_base_name);
     }
     else
     {
@@ -2003,6 +2042,37 @@ namespace OpenMS
     mfres.decoy_is_prefix = strategy.is_prefix;
     mfres.have_decoys = strategy.have_decoys;
 
+    // -- Shared configuration recap for the end-of-search report (built once) --
+    {
+      SharedSearchStats& sh = mfres.shared;
+      sh.enzyme = enzyme_;
+      sh.precursor_tol_lower = precursor_mass_tolerance_lower_;
+      sh.precursor_tol_upper = precursor_mass_tolerance_upper_;
+      sh.precursor_tol_unit = precursor_mass_tolerance_unit_;
+      sh.fragment_tol = fragment_mass_tolerance_;
+      sh.fragment_tol_unit = fragment_mass_tolerance_unit_;
+      sh.min_charge = static_cast<Int>(precursor_min_charge_);
+      sh.max_charge = static_cast<Int>(precursor_max_charge_);
+      sh.missed_cleavages = peptide_missed_cleavages_;
+      sh.fixed_mods.assign(modifications_fixed_.begin(), modifications_fixed_.end());
+      sh.variable_mods.assign(modifications_variable_.begin(), modifications_variable_.end());
+      if (add_a_ions_) sh.ion_series.push_back("a");
+      if (add_b_ions_) sh.ion_series.push_back("b");
+      if (add_c_ions_) sh.ion_series.push_back("c");
+      if (add_x_ions_) sh.ion_series.push_back("x");
+      if (add_y_ions_) sh.ion_series.push_back("y");
+      if (add_z_ions_) sh.ion_series.push_back("z");
+      sh.open_search = isOpenSearchMode_();
+      sh.calibration_enabled = calibration_enabled_;
+      sh.psm_fdr_threshold = fdr_psm_;
+      sh.protein_fdr_threshold = fdr_protein_;
+      // Decoy handling resolved via the auto/generate/ignore strategy (#9634):
+      // target-only when no decoys are present, "generated" when ProSE synthesises
+      // them, "external" when pre-existing decoys in the FASTA are reused.
+      sh.decoy_mode = !strategy.have_decoys ? "none (target-only)"
+                      : (strategy.generate ? "generated" : "external");
+    }
+
     // Decide chunking on the decoy-augmented DB size (#9180): if decoy generation
     // doubles the target DB, a 3000-protein target against chunk_size=5000 should
     // still chunk because the augmented DB is 6000 — otherwise the resulting FI
@@ -2025,6 +2095,21 @@ namespace OpenMS
       // full_db already built above.
       const bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
       const bool open_search_mode = isOpenSearchMode_();
+
+      // Shared report stats: chunk-major builds C indices (one per chunk),
+      // reused across all files — count/time them once, not per file.
+      mfres.shared.chunked = true;
+      for (const auto& e : full_db)
+      {
+        // Count by the RESOLVED decoy marker (prefix OR suffix), not the hardcoded
+        // decoy_prefix_: otherwise reused external/suffix decoys (decoy_mode "external")
+        // would be miscounted as targets. have_decoys is false for target-only (ignore),
+        // where decoys are stripped and decoy_string is empty.
+        const bool is_decoy = strategy.have_decoys &&
+            accessionHasDecoyMarker_(e.identifier, strategy.decoy_string, strategy.is_prefix);
+        if (is_decoy) { ++mfres.shared.db_decoy_proteins; }
+        else { ++mfres.shared.db_target_proteins; }
+      }
 
       OPENMS_LOG_INFO << "[ProSE] open_search=" << (open_search_mode ? "true" : "false")
                       << " (precursor tolerance [-" << precursor_mass_tolerance_lower_
@@ -2075,7 +2160,10 @@ namespace OpenMS
         std::vector<FASTAFile::FASTAEntry> cal_db = buildCalibrationSample_(full_db);
         FragmentIndex cal_fi;
         cal_fi.setParameters(fragmentIndexParameters_());
+        StopWatch sw_cal_idx; sw_cal_idx.start();
         cal_fi.build(cal_db);
+        sw_cal_idx.stop();
+        mfres.shared.seconds_index_build += sw_cal_idx.getClockTime();
 
         for (Size i = 0; i < in_spectra_files.size(); ++i)
         {
@@ -2162,7 +2250,13 @@ namespace OpenMS
         std::vector<FASTAFile::FASTAEntry> chunk_db(full_db.begin() + start, full_db.begin() + end);
         FragmentIndex chunk_fi;
         chunk_fi.setParameters(fragmentIndexParameters_());
+        StopWatch sw_chunk; sw_chunk.start();
         chunk_fi.build(chunk_db);
+        sw_chunk.stop();
+        mfres.shared.seconds_index_build += sw_chunk.getClockTime();
+        mfres.shared.indexed_peptides += chunk_fi.getPeptides().size();
+        mfres.shared.indexed_fragments += chunk_fi.getNumFragments();
+        if (chunk_fi.isSnesMode()) { mfres.shared.snes_mode = true; }
 
         // Score ALL files against this chunk's index.
         // Each file may have different calibrated tolerances — apply per-file
@@ -2256,6 +2350,7 @@ namespace OpenMS
             result.exit_code = ExitCodes::UNEXPECTED_RESULT;
           else
             result.exit_code = ExitCodes::UNKNOWN_ERROR;
+          result.stats.input_file = File::basename(in_spectra);
           mfres.per_file.push_back(std::move(result));
           continue;
         }
@@ -2267,14 +2362,21 @@ namespace OpenMS
         // protein-FDR finalization step performed by ProSE.cpp. have_decoys is the marker-aware
         // result from resolveDecoyStrategy_ (prefix or suffix, generated or external).
         const bool has_decoys = strategy.have_decoys;
+        // Pre-FDR stats (target/decoy counts + HyperScore distribution).
+        capturePreFdrStats_(result.peptide_ids, result.stats);
         if (fdr_psm_ > 0.0 && has_decoys)
         {
+          StopWatch sw_fdr; sw_fdr.start();
           FalseDiscoveryRate fdr;
           Param fdr_params = fdr.getParameters();
           fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
           fdr.setParameters(fdr_params);
           fdr.apply(result.peptide_ids);
           IDFilter::filterHitsByScore(result.peptide_ids, fdr_psm_);
+          result.stats.fdr_applied = true;
+          result.stats.achieved_psm_fdr = maxRetainedScore_(result.peptide_ids);
+          sw_fdr.stop();
+          result.stats.seconds_fdr = sw_fdr.getClockTime();
         }
 
         result.exit_code = ExitCodes::EXECUTION_OK;
@@ -2282,7 +2384,11 @@ namespace OpenMS
         if (!result.protein_ids.empty())
           result.protein_ids[0].setPrimaryMSRunPath({in_spectra}, all_spectra[i]);
 
-        logSearchDiagnostics_(all_spectra[i], result.protein_ids, result.peptide_ids);
+        // In chunk-major mode scoring is shared across files (one pass per chunk),
+        // so per-file seconds_search is not separable; it is left 0 and the shared
+        // index/total timing carries the cost.
+        collectRunStatistics_(all_spectra[i], result.protein_ids, result.peptide_ids, result.stats);
+        result.stats.input_file = File::basename(in_spectra);
 
         // Per-file modification analysis (uses per-file calibrated tolerance).
         if (result.is_open_search)
@@ -2292,7 +2398,6 @@ namespace OpenMS
           result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
             result.peptide_ids, per_file_cal[i].mod_match_tol,
             precursor_mass_tolerance_unit_ == "ppm", false, output_file);
-          logModificationAnalysisSummary_(result, per_file_base);
         }
 
         mfres.per_file.push_back(std::move(result));
@@ -2304,6 +2409,7 @@ namespace OpenMS
       // Non-chunked multi-file: shared SearchContext (existing path).
       // ================================================================
       SearchContext ctx;
+      StopWatch sw_idx; sw_idx.start();
       if (!full_db.empty())
       {
         // chunk_size was set but augmented DB fits in one chunk — reuse the
@@ -2321,6 +2427,25 @@ namespace OpenMS
       else
       {
         ctx = prepareContext(fasta_db);
+      }
+      sw_idx.stop();
+
+      // Shared report stats: index built once and reused across all files.
+      mfres.shared.chunked = false;
+      mfres.shared.seconds_index_build = sw_idx.getClockTime();
+      mfres.shared.indexed_peptides = ctx.fragment_index.getPeptides().size();
+      mfres.shared.indexed_fragments = ctx.fragment_index.getNumFragments();
+      mfres.shared.snes_mode = ctx.fragment_index.isSnesMode();
+      for (const auto& e : ctx.db)
+      {
+        // Count by the RESOLVED decoy marker (prefix OR suffix), not the hardcoded
+        // decoy_prefix_: otherwise reused external/suffix decoys (decoy_mode "external")
+        // would be miscounted as targets. have_decoys is false for target-only (ignore),
+        // where decoys are stripped and decoy_string is empty.
+        const bool is_decoy = strategy.have_decoys &&
+            accessionHasDecoyMarker_(e.identifier, strategy.decoy_string, strategy.is_prefix);
+        if (is_decoy) { ++mfres.shared.db_decoy_proteins; }
+        else { ++mfres.shared.db_target_proteins; }
       }
 
       mfres.per_file.reserve(in_spectra_files.size());
@@ -2352,9 +2477,14 @@ namespace OpenMS
         {
           OPENMS_LOG_WARN << "[ProSE] Search failed for " << in_spectra
                           << " (exit code " << static_cast<int>(result.exit_code) << "). Continuing." << std::endl;
+          result.stats = last_run_stats_;
+          result.stats.input_file = File::basename(in_spectra);
           mfres.per_file.push_back(std::move(result));
           continue;
         }
+
+        result.stats = last_run_stats_;
+        result.stats.input_file = File::basename(in_spectra);
 
         if (!result.protein_ids.empty())
           result.protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
@@ -2367,7 +2497,6 @@ namespace OpenMS
           result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
             result.peptide_ids, last_mod_match_tolerance_used_,
             precursor_mass_tolerance_unit_ == "ppm", false, output_file);
-          logModificationAnalysisSummary_(result, per_file_base);
         }
         else
         {
@@ -2456,8 +2585,6 @@ namespace OpenMS
         false, // no smoothing
         agg_output_file
       );
-
-      logModificationAnalysisSummary_(mfres.aggregate, aggregate_base_name);
     }
 
     return mfres;
@@ -2483,6 +2610,8 @@ namespace OpenMS
 
     MultiFileSearchResult mfres = searchWithModificationAnalysis(
       in_spectra_files, fasta_db, output_base_names, aggregate_base_name);
+
+    mfres.shared.database_file = in_db;
 
     // Patch database file path into each per-file and aggregate ProteinIdentification.
     for (auto& pf : mfres.per_file)
@@ -2526,33 +2655,143 @@ namespace OpenMS
   }
 
   // =====================================================================
-  // Helper: log search summary statistics and per-run tolerance estimation
+  // Helper: decoy-marker membership test (prefix/suffix), pure std::string.
   // =====================================================================
-  void ProSEAlgorithm::logSearchDiagnostics_(
+  bool ProSEAlgorithm::accessionHasDecoyMarker_(const std::string& accession,
+                                                const std::string& marker, bool is_prefix)
+  {
+    if (marker.empty() || accession.size() < marker.size()) { return false; }
+    return is_prefix ? (accession.compare(0, marker.size(), marker) == 0)
+                     : (accession.compare(accession.size() - marker.size(), marker.size(), marker) == 0);
+  }
+
+  // =====================================================================
+  // Helper: capture pre-FDR statistics (target/decoy counts + HyperScore
+  // distribution). Must run BEFORE FalseDiscoveryRate, which overwrites the
+  // hit score with the q-value and may drop decoy hits.
+  // =====================================================================
+  void ProSEAlgorithm::capturePreFdrStats_(const PeptideIdentificationList& peptide_ids,
+                                           RunStatistics& stats)
+  {
+    stats.target_psms = 0;
+    stats.decoy_psms = 0;
+    std::vector<double> hyperscores;
+    for (const auto& pid : peptide_ids)
+    {
+      if (pid.getHits().empty()) { continue; }
+      const PeptideHit& top = pid.getHits().front();
+      hyperscores.push_back(top.getScore());
+
+      if (!top.metaValueExists(Constants::UserParam::TARGET_DECOY)) { continue; }
+      const std::string td = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString();
+      // "target+decoy" counts as target (OpenMS FDR semantics).
+      if (td == "decoy") { ++stats.decoy_psms; }
+      else if (!td.empty()) { ++stats.target_psms; }
+    }
+
+    if (!hyperscores.empty())
+    {
+      auto [mn, mx] = std::minmax_element(hyperscores.begin(), hyperscores.end());
+      stats.hyperscore_min = *mn;
+      stats.hyperscore_max = *mx;
+      stats.hyperscore_median = Math::median(hyperscores.begin(), hyperscores.end());
+      stats.score_stats_valid = true;
+    }
+  }
+
+  // =====================================================================
+  // Recompute result-level stats from a FINAL (post-rescoring/post-FDR) PSM list.
+  // =====================================================================
+  void ProSEAlgorithm::updateFinalStats(RunStatistics& stats,
+                                        const PeptideIdentificationList& peptide_ids,
+                                        const std::string& enzyme,
+                                        bool fdr_applied)
+  {
+    // Count spectra that actually retained a hit. ProSE pushes one PeptideIdentification per
+    // searched spectrum (incl. empty ones for non-matches), and not every caller strips empties
+    // before stats are collected, so peptide_ids.size() would over-count matched spectra / ID rate.
+    stats.matched_spectra = static_cast<Size>(std::count_if(peptide_ids.begin(), peptide_ids.end(),
+      [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }));
+    stats.charge_histogram.clear();
+    stats.missed_cleavage_histogram.clear();
+    Size n_target = 0, n_decoy = 0;
+
+    EnzymaticDigestion digestor;
+    digestor.setEnzyme(ProteaseDB::getInstance()->getEnzyme(enzyme));
+
+    set<std::string> unique_peptides, unique_proteins;
+    for (const auto& pid : peptide_ids)
+    {
+      if (pid.getHits().empty()) { continue; }
+      const PeptideHit& top = pid.getHits().front();
+      unique_peptides.insert(top.getSequence().toString());
+      for (const auto& ev : top.getPeptideEvidences()) { unique_proteins.insert(ev.getProteinAccession()); }
+      if (top.getCharge() > 0) { ++stats.charge_histogram[top.getCharge()]; }
+      ++stats.missed_cleavage_histogram[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())];
+      if (top.metaValueExists(Constants::UserParam::TARGET_DECOY))
+      {
+        const std::string td = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString();
+        if (td == "decoy") { ++n_decoy; }
+        else if (!td.empty()) { ++n_target; }
+      }
+    }
+    stats.unique_peptides = unique_peptides.size();
+    stats.unique_proteins = unique_proteins.size();
+    stats.target_psms = n_target;
+    stats.decoy_psms = n_decoy;
+    stats.fdr_applied = fdr_applied;
+    stats.achieved_psm_fdr = fdr_applied ? maxRetainedScore_(peptide_ids) : -1.0;
+  }
+
+  // =====================================================================
+  // Helper: maximum top-hit score among retained PSMs (== achieved FDR after
+  // q-value filtering). Returns -1.0 for an empty set.
+  // =====================================================================
+  double ProSEAlgorithm::maxRetainedScore_(const PeptideIdentificationList& peptide_ids)
+  {
+    double max_score = -1.0;
+    for (const auto& pid : peptide_ids)
+    {
+      if (pid.getHits().empty()) { continue; }
+      max_score = std::max(max_score, pid.getHits().front().getScore());
+    }
+    return max_score;
+  }
+
+  // =====================================================================
+  // Helper: fill per-run identification statistics (silent — no logging).
+  // Computes target/decoy counts from the (post-FDR) hits it is given, so
+  // SearchResult::stats is consistent for any caller; leaves achieved FDR and
+  // timing fields untouched (captured at well-defined points in the search paths).
+  // =====================================================================
+  void ProSEAlgorithm::collectRunStatistics_(
       const PeakMap& spectra,
       const std::vector<ProteinIdentification>& /*protein_ids*/,
-      const PeptideIdentificationList& peptide_ids) const
+      const PeptideIdentificationList& peptide_ids,
+      RunStatistics& stats) const
   {
-    // -- Search summary --
-    Size num_ms2 = std::count_if(spectra.begin(), spectra.end(),
-                                 [](const MSSpectrum& s) { return s.getMSLevel() == 2; });
-    Size num_identified = peptide_ids.size();
+    stats.ms2_spectra = std::count_if(spectra.begin(), spectra.end(),
+                                      [](const MSSpectrum& s) { return s.getMSLevel() == 2; });
+    // Count spectra that actually retained a hit. ProSE pushes one PeptideIdentification per
+    // searched spectrum (incl. empty ones for non-matches), and not every caller strips empties
+    // before stats are collected, so peptide_ids.size() would over-count matched spectra / ID rate.
+    stats.matched_spectra = static_cast<Size>(std::count_if(peptide_ids.begin(), peptide_ids.end(),
+      [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }));
 
     set<std::string> unique_peptides;
     set<std::string> unique_proteins;
+    Size n_target = 0, n_decoy = 0;
 
-    // Collect per-PSM error values for tolerance estimation (top-ranked hits only)
+    // Per-PSM error values for tolerance estimation (top-ranked hits only)
     vector<double> precursor_errors;
     vector<double> fragment_errors;
 
-    // Missed cleavages
     EnzymaticDigestion digestor;
     digestor.setEnzyme(ProteaseDB::getInstance()->getEnzyme(enzyme_));
-    map<Size, Size> mc_counts;
 
     for (const auto& pid : peptide_ids)
     {
-      if (pid.getHits().empty()) continue;
+      if (pid.getHits().empty()) { continue; }
       const PeptideHit& top = pid.getHits().front();
       unique_peptides.insert(top.getSequence().toString());
 
@@ -2561,8 +2800,9 @@ namespace OpenMS
         unique_proteins.insert(ev.getProteinAccession());
       }
 
-      // Precursor error: always compute inline (cheap) so tolerance estimation
-      // does not depend on the annotate:PSM setting.
+      if (top.getCharge() > 0) { ++stats.charge_histogram[top.getCharge()]; }
+
+      // Precursor error: always compute inline (cheap), independent of annotate:PSM.
       // Skip hits with unresolved charge (0) — getMZ() would throw.
       if (top.getCharge() > 0)
       {
@@ -2578,63 +2818,43 @@ namespace OpenMS
         fragment_errors.push_back(static_cast<double>(top.getMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM)));
       }
 
-      mc_counts[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())]++;
-    }
+      ++stats.missed_cleavage_histogram[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())];
 
-    OPENMS_LOG_INFO << "\n[ProSE] ============ Search Summary ============" << std::endl;
-    OPENMS_LOG_INFO << "[ProSE]   MS2 spectra:          " << num_ms2 << std::endl;
-    OPENMS_LOG_INFO << "[ProSE]   Matched spectra:      " << num_identified << std::endl;
-    if (num_ms2 > 0)
-    {
-      OPENMS_LOG_INFO << "[ProSE]   MS2 ID rate:          "
-                      << std::fixed << std::setprecision(1) << (100.0 * num_identified / num_ms2) << "%" << std::endl;
-    }
-    OPENMS_LOG_INFO << "[ProSE]   Unique peptides:      " << unique_peptides.size() << std::endl;
-    OPENMS_LOG_INFO << "[ProSE]   Unique proteins:      " << unique_proteins.size() << std::endl;
-
-    // Missed cleavages distribution
-    if (!mc_counts.empty())
-    {
-      std::ostringstream mc_oss;
-      for (const auto& [mc, count] : mc_counts)
+      // Target/decoy of the FINAL (post-FDR) hits, so SearchResult::stats stays consistent
+      // for library callers that read it without calling updateFinalStats().
+      if (top.metaValueExists(Constants::UserParam::TARGET_DECOY))
       {
-        if (mc_oss.tellp() > 0) mc_oss << ", ";
-        mc_oss << mc << ": " << count;
+        const std::string td = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString();
+        if (td == "decoy") { ++n_decoy; }
+        else if (!td.empty()) { ++n_target; }
       }
-      OPENMS_LOG_INFO << "[ProSE]   Missed cleavages:    " << mc_oss.str() << std::endl;
     }
 
-    // -- Per-run tolerance estimation --
+    stats.unique_peptides = unique_peptides.size();
+    stats.unique_proteins = unique_proteins.size();
+    stats.target_psms = n_target;
+    stats.decoy_psms = n_decoy;
+
+    // -- Per-run tolerance estimation (median + 3*MAD, matching prior behaviour) --
     const Size min_psms_for_estimation = 10;
-    if (precursor_errors.size() >= min_psms_for_estimation || fragment_errors.size() >= min_psms_for_estimation)
-    {
-      OPENMS_LOG_INFO << "[ProSE] -------- Tolerance Estimation --------" << std::endl;
-    }
-
     if (precursor_errors.size() >= min_psms_for_estimation)
     {
       double med = Math::median(precursor_errors.begin(), precursor_errors.end());
       double mad = Math::MAD(precursor_errors.begin(), precursor_errors.end(), med);
-      double recommended = std::ceil(med + 3.0 * mad);
-      OPENMS_LOG_INFO << "[ProSE]   Precursor error: median=" << std::fixed << std::setprecision(2) << med
-                      << " ppm, MAD=" << mad << " ppm"
-                      << " -> recommended: " << static_cast<int>(recommended) << " ppm" << std::endl;
+      stats.prec_err_median = med;
+      stats.prec_err_mad = mad;
+      stats.prec_err_recommended = std::ceil(med + 3.0 * mad);
+      stats.prec_tol_valid = true;
     }
-
     if (fragment_errors.size() >= min_psms_for_estimation)
     {
       double med = Math::median(fragment_errors.begin(), fragment_errors.end());
       double mad = Math::MAD(fragment_errors.begin(), fragment_errors.end(), med);
-      double recommended = std::ceil(med + 3.0 * mad);
-      OPENMS_LOG_INFO << "[ProSE]   Fragment error:  median=" << std::fixed << std::setprecision(2) << med
-                      << " ppm, MAD=" << mad << " ppm"
-                      << " -> recommended: " << static_cast<int>(recommended) << " ppm" << std::endl;
+      stats.frag_err_median = med;
+      stats.frag_err_mad = mad;
+      stats.frag_err_recommended = std::ceil(med + 3.0 * mad);
+      stats.frag_tol_valid = true;
     }
-
-    OPENMS_LOG_INFO << "[ProSE]   (configured: precursor=[-" << precursor_mass_tolerance_lower_
-                    << ", +" << precursor_mass_tolerance_upper_ << "] " << precursor_mass_tolerance_unit_
-                    << ", fragment=" << fragment_mass_tolerance_ << " " << fragment_mass_tolerance_unit_ << ")" << std::endl;
-    OPENMS_LOG_INFO << "[ProSE] ============================================\n" << std::endl;
   }
 
   // =====================================================================
@@ -2889,95 +3109,352 @@ namespace OpenMS
   }
 
   // =====================================================================
-  // Helper: log modification analysis summary
+  // Serialize the end-of-search report to a YAML string. Hand-rolled (no YAML
+  // library), so neither the TOPP tool nor the library needs an extra dependency
+  // for this. Every string scalar is double-quoted (q()) so values containing ':'
+  // (e.g. Windows paths) or other metacharacters cannot break the structure, and
+  // non-finite numbers are emitted as null (num()).
   // =====================================================================
-  void ProSEAlgorithm::logModificationAnalysisSummary_(
-      const SearchResult& result,
-      const std::string& output_base_name) const
+  std::string ProSEAlgorithm::renderRunSummaryYaml(
+      const MultiFileSearchResult& mfres,
+      const std::vector<std::pair<std::string, std::vector<std::string>>>& manifest,
+      Size files_failed,
+      Size files_total)
   {
-    OPENMS_LOG_INFO << "[ProSE] ============================================" << std::endl;
-    OPENMS_LOG_INFO << "[ProSE] MODIFICATION DISCOVERY SUMMARY" << std::endl;
-    OPENMS_LOG_INFO << "[ProSE] ============================================" << std::endl;
+    // Double-quoted YAML scalar: escape the two structural chars, the common
+    // whitespace escapes, and every other C0 control + DEL as \xNN. A literal
+    // control character is ill-formed in a double-quoted scalar and would corrupt
+    // or invalidate the document — reachable via arbitrary input file paths.
+    auto q = [](const std::string& s) {
+      static const char* const hex = "0123456789ABCDEF";
+      std::string out;
+      out.reserve(s.size() + 2);
+      out += '"';
+      for (char ch : s)
+      {
+        const unsigned char c = static_cast<unsigned char>(ch);
+        if (c == '\\' || c == '"') { out += '\\'; out += static_cast<char>(c); }
+        else if (c == '\n') { out += "\\n"; }
+        else if (c == '\t') { out += "\\t"; }
+        else if (c == '\r') { out += "\\r"; }
+        else if (c < 0x20 || c == 0x7F) { out += "\\x"; out += hex[c >> 4]; out += hex[c & 0x0F]; }
+        else { out += static_cast<char>(c); }
+      }
+      out += '"';
+      return out;
+    };
+    // Locale-independent number; non-finite -> null. YAML 1.1 reads an exponent
+    // without a mantissa dot ("8e-05") as a string, so ensure a '.' before 'e'.
+    auto num = [](double v) -> std::string {
+      if (!std::isfinite(v)) { return "null"; }
+      std::ostringstream o;
+      o.imbue(std::locale::classic());
+      o << v;
+      std::string s = o.str();
+      const auto e = s.find_first_of("eE");
+      if (e != std::string::npos && s.find('.') == std::string::npos) { s.insert(e, ".0"); }
+      return s;
+    };
+    auto bol = [](bool b) -> std::string { return b ? "true" : "false"; };
 
-    const auto& dm_stats = result.modification_analysis.delta_mass_stats;
-    OPENMS_LOG_INFO << "[ProSE] Delta Mass Analysis:" << std::endl;
-    OPENMS_LOG_INFO << "  Total PSMs analyzed: " << dm_stats.total_psms << std::endl;
-    OPENMS_LOG_INFO << "  Modified PSMs: " << dm_stats.modified_psms
-                    << " (" << (dm_stats.total_psms > 0 ? (100.0 * dm_stats.modified_psms / dm_stats.total_psms) : 0.0)
-                    << "%)" << std::endl;
-    OPENMS_LOG_INFO << "  Unmodified PSMs: " << dm_stats.unmodified_psms << std::endl;
-    OPENMS_LOG_INFO << "  Mean delta mass: " << dm_stats.mean_delta_mass << " Da" << std::endl;
-    OPENMS_LOG_INFO << "  Median delta mass: " << dm_stats.median_delta_mass << " Da" << std::endl;
-    OPENMS_LOG_INFO << "  Unique delta mass bins: " << dm_stats.entries.size() << std::endl;
+    std::ostringstream y;
+    const SharedSearchStats& sh = mfres.shared;
 
-    const auto& ptm_stats = result.modification_analysis.ptm_stats;
-    OPENMS_LOG_INFO << "[ProSE] PTM Analysis:" << std::endl;
-    OPENMS_LOG_INFO << "  PSMs with known PTMs: " << ptm_stats.total_modified_psms << std::endl;
-    OPENMS_LOG_INFO << "  PSMs with unknown modifications: " << ptm_stats.unknown_modification_psms << std::endl;
-    OPENMS_LOG_INFO << "  Unique PTMs identified: " << ptm_stats.num_unique_modifications << std::endl;
+    y << "shared:\n";
+    y << "  database_file: " << q(sh.database_file) << "\n";
+    y << "  enzyme: " << q(sh.enzyme) << "\n";
+    y << "  precursor_tol_lower: " << num(sh.precursor_tol_lower) << "\n";
+    y << "  precursor_tol_upper: " << num(sh.precursor_tol_upper) << "\n";
+    y << "  precursor_tol_unit: " << q(sh.precursor_tol_unit) << "\n";
+    y << "  fragment_tol: " << num(sh.fragment_tol) << "\n";
+    y << "  fragment_tol_unit: " << q(sh.fragment_tol_unit) << "\n";
+    y << "  min_charge: " << sh.min_charge << "\n";
+    y << "  max_charge: " << sh.max_charge << "\n";
+    y << "  missed_cleavages: " << sh.missed_cleavages << "\n";
+    auto str_list = [&](const char* key, const std::vector<std::string>& items) {
+      y << "  " << key << ":";
+      if (items.empty()) { y << " []\n"; return; }
+      y << "\n";
+      for (const auto& it : items) { y << "    - " << q(it) << "\n"; }
+    };
+    str_list("fixed_mods", std::vector<std::string>(sh.fixed_mods.begin(), sh.fixed_mods.end()));
+    str_list("variable_mods", std::vector<std::string>(sh.variable_mods.begin(), sh.variable_mods.end()));
+    str_list("ion_series", std::vector<std::string>(sh.ion_series.begin(), sh.ion_series.end()));
+    y << "  open_search: " << bol(sh.open_search) << "\n";
+    y << "  calibration_enabled: " << bol(sh.calibration_enabled) << "\n";
+    y << "  snes_mode: " << bol(sh.snes_mode) << "\n";
+    y << "  chunked: " << bol(sh.chunked) << "\n";
+    y << "  decoy_mode: " << q(sh.decoy_mode) << "\n";
+    y << "  psm_fdr_threshold: " << num(sh.psm_fdr_threshold) << "\n";
+    y << "  protein_fdr_threshold: " << num(sh.protein_fdr_threshold) << "\n";
+    y << "  db_target_proteins: " << sh.db_target_proteins << "\n";
+    y << "  db_decoy_proteins: " << sh.db_decoy_proteins << "\n";
+    y << "  indexed_peptides: " << sh.indexed_peptides << "\n";
+    y << "  indexed_fragments: " << sh.indexed_fragments << "\n";
+    y << "  seconds_index_build: " << num(sh.seconds_index_build) << "\n";
+    y << "  seconds_total: " << num(sh.seconds_total) << "\n";
+
+    y << "per_file:";
+    if (mfres.per_file.empty()) { y << " []\n"; }
+    else
+    {
+      y << "\n";
+      for (const auto& pf : mfres.per_file)
+      {
+        const RunStatistics& st = pf.stats;
+        // The first key of each list item carries the "- " marker; the rest indent to 4.
+        y << "  - input_file: " << q(st.input_file) << "\n";
+        y << "    exit_code: " << static_cast<int>(pf.exit_code) << "\n";
+        y << "    ms2_spectra: " << st.ms2_spectra << "\n";
+        y << "    matched_spectra: " << st.matched_spectra << "\n";
+        y << "    target_psms: " << st.target_psms << "\n";
+        y << "    decoy_psms: " << st.decoy_psms << "\n";
+        y << "    fdr_applied: " << bol(st.fdr_applied) << "\n";
+        y << "    achieved_psm_fdr: " << num(st.achieved_psm_fdr) << "\n";
+        y << "    unique_peptides: " << st.unique_peptides << "\n";
+        y << "    unique_proteins: " << st.unique_proteins << "\n";
+        y << "    hyperscore:\n";
+        y << "      valid: " << bol(st.score_stats_valid) << "\n";
+        y << "      min: " << num(st.hyperscore_min) << "\n";
+        y << "      median: " << num(st.hyperscore_median) << "\n";
+        y << "      max: " << num(st.hyperscore_max) << "\n";
+        y << "    charge_histogram:";
+        if (st.charge_histogram.empty()) { y << " {}\n"; }
+        else { y << "\n"; for (const auto& [z, c] : st.charge_histogram) { y << "      " << q(std::to_string(z)) << ": " << c << "\n"; } }
+        y << "    missed_cleavage_histogram:";
+        if (st.missed_cleavage_histogram.empty()) { y << " {}\n"; }
+        else { y << "\n"; for (const auto& [m, c] : st.missed_cleavage_histogram) { y << "      " << q(std::to_string(m)) << ": " << c << "\n"; } }
+        y << "    precursor_error:\n";
+        y << "      valid: " << bol(st.prec_tol_valid) << "\n";
+        y << "      median_ppm: " << num(st.prec_err_median) << "\n";
+        y << "      mad_ppm: " << num(st.prec_err_mad) << "\n";
+        y << "      recommended_ppm: " << num(st.prec_err_recommended) << "\n";
+        y << "    fragment_error:\n";
+        y << "      valid: " << bol(st.frag_tol_valid) << "\n";
+        y << "      median_ppm: " << num(st.frag_err_median) << "\n";
+        y << "      mad_ppm: " << num(st.frag_err_mad) << "\n";
+        y << "      recommended_ppm: " << num(st.frag_err_recommended) << "\n";
+        y << "    timing_seconds:\n";
+        y << "      calibration: " << num(st.seconds_calibration) << "\n";
+        y << "      search: " << num(st.seconds_search) << "\n";
+        y << "      fdr: " << num(st.seconds_fdr) << "\n";
+      }
+    }
+
+    y << "outputs:";
+    if (manifest.empty()) { y << " []\n"; }
+    else
+    {
+      y << "\n";
+      for (const auto& [label, paths] : manifest)
+      {
+        y << "  - type: " << q(label) << "\n";
+        y << "    paths:";
+        if (paths.empty()) { y << " []\n"; }
+        else { y << "\n"; for (const auto& p : paths) { y << "      - " << q(p) << "\n"; } }
+      }
+    }
+    y << "files_failed: " << files_failed << "\n";
+    y << "files_total: " << files_total << "\n";
+
+    return y.str();
+  }
+
+  // =====================================================================
+  // Render the modification-discovery section (open search) to an ostream.
+  // =====================================================================
+  void ProSEAlgorithm::renderModificationSummary(
+      const OpenSearchModificationAnalysis::OpenSearchAnalysisResult& mod_analysis,
+      std::ostream& os)
+  {
+    const auto& dm_stats = mod_analysis.delta_mass_stats;
+    const auto& ptm_stats = mod_analysis.ptm_stats;
+
+    os << "[ProSE] ---------------- Modification discovery ---------------\n";
+    os << "[ProSE] Delta mass : " << dm_stats.modified_psms << " modified / "
+       << dm_stats.total_psms << " PSMs ("
+       << std::fixed << std::setprecision(1)
+       << (dm_stats.total_psms > 0 ? (100.0 * dm_stats.modified_psms / dm_stats.total_psms) : 0.0)
+       << "%), median Δ=" << std::setprecision(4) << dm_stats.median_delta_mass
+       << " Da, " << dm_stats.entries.size() << " bins\n";
+    os << "[ProSE] PTMs      : " << ptm_stats.total_modified_psms << " PSMs with known PTMs, "
+       << ptm_stats.unknown_modification_psms << " unknown, "
+       << ptm_stats.num_unique_modifications << " unique PTMs\n";
 
     if (!ptm_stats.entries.empty())
     {
-      OPENMS_LOG_INFO << "[ProSE] Top PTMs Discovered:" << std::endl;
-      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
-      OPENMS_LOG_INFO << "  Rank | Name                            | Count | %     | Mass (Da)" << std::endl;
-      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
-
+      os << "[ProSE]   Top PTMs (rank | name | count | % | mass Da):\n";
       size_t rank = 1;
       for (const auto& ptm : ptm_stats.entries)
       {
-        if (rank > 15) break;
+        if (rank > 15) { break; }
         std::string name = ptm.name;
-        if (name.size() > 30) name = StringUtils::substr(name, 0, 27) + "...";
-
-        std::ostringstream oss;
-        oss << "  " << std::setw(4) << rank++ << " | "
-            << std::setw(31) << std::left << name << " | "
-            << std::setw(5) << std::right << ptm.count << " | "
-            << std::setw(5) << std::fixed << std::setprecision(1) << ptm.percentage << " | "
-            << std::setw(9) << std::fixed << std::setprecision(4) << ptm.theoretical_mass;
-        OPENMS_LOG_INFO << oss.str() << std::endl;
+        if (name.size() > 30) { name = StringUtils::substr(name, 0, 27) + "..."; }
+        os << "[ProSE]   " << std::setw(2) << rank++ << " | "
+           << std::setw(31) << std::left << name << std::right << " | "
+           << std::setw(6) << ptm.count << " | "
+           << std::setw(5) << std::fixed << std::setprecision(1) << ptm.percentage << " | "
+           << std::setw(9) << std::fixed << std::setprecision(4) << ptm.theoretical_mass << "\n";
       }
-      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
     }
 
     std::vector<OpenSearchModificationAnalysis::DeltaMassEntry> unknown_dm;
     for (const auto& entry : dm_stats.entries)
     {
-      if (!entry.is_known_modification && entry.count >= 5)
-      {
-        unknown_dm.push_back(entry);
-      }
+      if (!entry.is_known_modification && entry.count >= 5) { unknown_dm.push_back(entry); }
     }
-
     if (!unknown_dm.empty())
     {
-      OPENMS_LOG_INFO << "[ProSE] Top Unknown Delta Masses (potential novel PTMs):" << std::endl;
-      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
-      OPENMS_LOG_INFO << "  Rank | Delta Mass (Da) | Count | Unique Peptides" << std::endl;
-      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
-
+      os << "[ProSE]   Top unknown delta masses (potential novel PTMs):\n";
       size_t rank = 1;
       for (const auto& dm : unknown_dm)
       {
-        if (rank > 10) break;
-        std::ostringstream oss;
-        oss << "  " << std::setw(4) << rank++ << " | "
-            << std::setw(15) << std::fixed << std::setprecision(4) << dm.delta_mass << " | "
-            << std::setw(5) << dm.count << " | "
-            << std::setw(15) << dm.unique_peptides;
-        OPENMS_LOG_INFO << oss.str() << std::endl;
+        if (rank > 10) { break; }
+        os << "[ProSE]   " << std::setw(2) << rank++ << " | Δ="
+           << std::setw(11) << std::fixed << std::setprecision(4) << dm.delta_mass << " Da | "
+           << std::setw(6) << dm.count << " PSMs | "
+           << dm.unique_peptides << " peptides\n";
       }
-      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
+    }
+  }
+
+  // =====================================================================
+  // Render a human-readable single-run summary block.
+  // =====================================================================
+  void ProSEAlgorithm::renderRunSummary(
+      const RunStatistics& s,
+      const SharedSearchStats& sh,
+      const OpenSearchModificationAnalysis::OpenSearchAnalysisResult& mod_analysis,
+      bool is_open_search,
+      std::ostream& os)
+  {
+    auto join = [](const std::vector<std::string>& v) -> std::string {
+      if (v.empty()) { return "(none)"; }
+      std::string out;
+      for (size_t i = 0; i < v.size(); ++i) { out += (i ? ", " : "") + v[i]; }
+      return out;
+    };
+    auto join_int = [](const std::vector<std::string>& v) -> std::string {
+      std::string out;
+      for (size_t i = 0; i < v.size(); ++i) { out += (i ? "," : "") + v[i]; }
+      return out.empty() ? std::string("(none)") : out;
+    };
+
+    if (!s.input_file.empty())
+    {
+      os << "[ProSE] Input        : " << s.input_file << "  (" << s.ms2_spectra << " MS2 spectra)\n";
+    }
+    // -- Configuration recap --
+    os << "[ProSE] Config       : " << sh.enzyme << ", " << sh.missed_cleavages << " MC | prec [-"
+       << sh.precursor_tol_lower << ", +" << sh.precursor_tol_upper << "] " << sh.precursor_tol_unit
+       << " | frag " << sh.fragment_tol << " " << sh.fragment_tol_unit
+       << " | z " << sh.min_charge << "-" << sh.max_charge << "\n";
+    os << "[ProSE]                fixed: " << join(sh.fixed_mods)
+       << " | variable: " << join(sh.variable_mods) << "\n";
+    os << "[ProSE]                ions: " << join_int(sh.ion_series)
+       << " | calibration: " << (sh.calibration_enabled ? "on" : "off")
+       << " | mode: " << (sh.open_search ? "open" : "closed")
+       << (sh.snes_mode ? " | SNES" : "")
+       << (sh.chunked ? " | chunked" : "") << "\n";
+
+    // -- Database / fragment index --
+    os << "[ProSE] Database     : " << (sh.database_file.empty() ? std::string("(in-memory)") : std::string(sh.database_file))
+       << "  (" << sh.db_target_proteins << " target";
+    if (sh.db_decoy_proteins > 0) { os << " + " << sh.db_decoy_proteins << " decoy"; }
+    os << " proteins, decoys: " << (sh.decoy_mode.empty() ? std::string("n/a") : std::string(sh.decoy_mode)) << ")\n";
+    os << "[ProSE] Fragment idx : " << sh.indexed_peptides << " peptides / "
+       << sh.indexed_fragments << " fragments  (build "
+       << std::fixed << std::setprecision(1) << sh.seconds_index_build << " s)\n";
+
+    // -- Results --
+    os << "[ProSE] --------------------------- Results ---------------------------\n";
+    os << "[ProSE] Matched      : " << s.matched_spectra << " / " << s.ms2_spectra << " spectra";
+    if (s.ms2_spectra > 0)
+    {
+      os << "   (ID rate " << std::fixed << std::setprecision(1)
+         << (100.0 * s.matched_spectra / s.ms2_spectra) << "%)";
+    }
+    os << "\n";
+    os << "[ProSE] Peptides/prot: " << s.unique_peptides << " unique peptides | "
+       << s.unique_proteins << " unique proteins\n";
+
+    // FDR / target-decoy. Decide target-only strictly from the database, not from
+    // a zero PSM count (a decoy DB with no decoy PSMs is still FDR-capable).
+    if (sh.decoy_mode == "none (target-only)")
+    {
+      os << "[ProSE] FDR          : n/a (target-only database)\n";
+    }
+    else
+    {
+      os << "[ProSE] Target/decoy : " << s.target_psms << " target / " << s.decoy_psms << " decoy PSMs";
+      if (s.fdr_applied)
+      {
+        os << "  | PSM FDR <= " << std::fixed << std::setprecision(1) << (sh.psm_fdr_threshold * 100.0) << "%";
+        if (s.achieved_psm_fdr >= 0.0)
+        {
+          os << ", achieved " << std::setprecision(2) << (s.achieved_psm_fdr * 100.0) << "%";
+        }
+        else
+        {
+          os << " (0 PSMs retained)";
+        }
+      }
+      else
+      {
+        os << "  | PSM FDR filtering: off";
+      }
+      os << "\n";
     }
 
-    OPENMS_LOG_INFO << "[ProSE] ============================================" << std::endl;
-
-    if (!output_base_name.empty())
+    // Charge distribution
+    if (!s.charge_histogram.empty())
     {
-      OPENMS_LOG_INFO << "[ProSE] Statistics tables written to:" << std::endl;
-      OPENMS_LOG_INFO << "  - " << output_base_name << "_ModificationAnalysis_DeltaMassStats.tsv" << std::endl;
-      OPENMS_LOG_INFO << "  - " << output_base_name << "_ModificationAnalysis_PTMStats.tsv" << std::endl;
+      os << "[ProSE] Charges      :";
+      for (const auto& [z, c] : s.charge_histogram) { os << " " << z << ":" << c; }
+      os << "\n";
+    }
+    // Missed cleavages
+    if (!s.missed_cleavage_histogram.empty())
+    {
+      os << "[ProSE] Missed clv   :";
+      for (const auto& [mc, c] : s.missed_cleavage_histogram) { os << " " << mc << ":" << c; }
+      os << "\n";
+    }
+    // Score distribution
+    if (s.score_stats_valid)
+    {
+      os << "[ProSE] HyperScore   : min " << std::fixed << std::setprecision(1) << s.hyperscore_min
+         << "  median " << s.hyperscore_median << "  max " << s.hyperscore_max << "\n";
+    }
+
+    // -- Tolerance estimation --
+    if (s.prec_tol_valid || s.frag_tol_valid)
+    {
+      os << "[ProSE] --------------------- Tolerance estimate ---------------------\n";
+      if (s.prec_tol_valid)
+      {
+        os << "[ProSE] Precursor    : median " << std::fixed << std::setprecision(2) << s.prec_err_median
+           << " ppm, MAD " << s.prec_err_mad << "  -> recommend " << static_cast<int>(s.prec_err_recommended) << " ppm\n";
+      }
+      if (s.frag_tol_valid)
+      {
+        os << "[ProSE] Fragment     : median " << std::fixed << std::setprecision(2) << s.frag_err_median
+           << " ppm, MAD " << s.frag_err_mad << "  -> recommend " << static_cast<int>(s.frag_err_recommended) << " ppm\n";
+      }
+    }
+
+    // -- Timing --
+    os << "[ProSE] ------------------------- Timing -----------------------------\n";
+    os << "[ProSE] " << std::fixed << std::setprecision(1);
+    if (s.seconds_calibration > 0.0) { os << "calib " << s.seconds_calibration << "s | "; }
+    if (s.seconds_search > 0.0)      { os << "search " << s.seconds_search << "s | "; }
+    if (s.seconds_fdr > 0.0)         { os << "fdr " << s.seconds_fdr << "s | "; }
+    os << "index(shared) " << sh.seconds_index_build << "s\n";
+
+    // -- Modification discovery (open search only) --
+    if (is_open_search)
+    {
+      renderModificationSummary(mod_analysis, os);
     }
   }
 

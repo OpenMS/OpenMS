@@ -695,7 +695,17 @@ Computes a SHA-1 hash of the file content
         .value("XML", OpenMS::FileTypes::Type::XML)
         .value("BZ2", OpenMS::FileTypes::Type::BZ2)
         .value("GZ", OpenMS::FileTypes::Type::GZ)
+        .value("ZIP", OpenMS::FileTypes::Type::ZIP)
         .value("PARQUET", OpenMS::FileTypes::Type::PARQUET)
+        .value("IDPARQUET", OpenMS::FileTypes::Type::IDPARQUET)
+        .value("FEATUREPARQUET", OpenMS::FileTypes::Type::FEATUREPARQUET)
+        .value("CONSENSUSPARQUET", OpenMS::FileTypes::Type::CONSENSUSPARQUET)
+        .value("BRUKER_TDF", OpenMS::FileTypes::Type::BRUKER_TDF)
+        .value("CHROMPARQUET", OpenMS::FileTypes::Type::CHROMPARQUET)
+        .value("MOBILPARQUET", OpenMS::FileTypes::Type::MOBILPARQUET)
+        .value("OSWPQ", OpenMS::FileTypes::Type::OSWPQ)
+        .value("PEFF", OpenMS::FileTypes::Type::PEFF)
+        .value("YAML", OpenMS::FileTypes::Type::YAML)
         .value("SIZE_OF_TYPE", OpenMS::FileTypes::Type::SIZE_OF_TYPE)
 
         .export_values();
