@@ -474,7 +474,9 @@ namespace OpenMS
     class OPENMS_DLLAPI FileNotFound : public BaseException
     {
     public:
-      /// @param additional_message optional context appended to the message (e.g. which directories were searched)
+      // additional_message: optional context appended to the message (e.g. which directories were searched).
+      // NOTE: deliberately not a Doxygen '@param' to match the other exception ctors here (documenting one
+      // parameter would force Doxygen to demand docs for file/line/function/filename and fail Doxygen_Warning_test).
       FileNotFound(const char* file, int line, const char* function, const std::string& filename, const std::string& additional_message = "") noexcept;
     };
 
