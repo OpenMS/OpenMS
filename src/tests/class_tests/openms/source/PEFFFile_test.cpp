@@ -1607,6 +1607,70 @@ START_SECTION(test_multi_database_store_roundtrip)
 }
 END_SECTION
 
+START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of the UniPEFF TOPP tool)
+{
+  // PEFFFile_UniPEFF_test.peff is a verbatim copy of src/tests/topp/UniPEFF_1_output_A.peff
+  // (the byte-exact golden the UniPEFF TOPP tool is regression-tested against).
+  // This section guards against future drift in either the UniPEFF emitter or
+  // the PEFFFile parser: any change that breaks the round-trip will fail here.
+  PEFFFile peff;
+  std::vector<PEFFEntry> entries;
+  std::vector<PEFFDatabaseMetadata> headers;
+  peff.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_UniPEFF_test.peff"), entries, headers);
+
+  // Two writable entries (sp:P12345 kitchen-sink + tr:Q67890 minimal) under two DB blocks.
+  TEST_EQUAL(entries.size(), 2)
+  TEST_EQUAL(headers.size(), 2)
+  TEST_EQUAL(headers[0].prefix, "sp")
+  TEST_EQUAL(headers[1].prefix, "tr")
+  TEST_EQUAL(headers[0].number_of_entries, 1)
+  TEST_EQUAL(headers[1].number_of_entries, 1)
+  TEST_EQUAL(headers[0].has_annotation_identifiers, false)  // Option A golden
+
+  // Swiss-Prot kitchen-sink entry: P12345.
+  const PEFFEntry& e1 = entries[0];
+  TEST_EQUAL(e1.identifier, "sp:P12345")
+  TEST_EQUAL(e1.prefix, "sp")
+  TEST_EQUAL(e1.sequence_length, 100)
+  TEST_EQUAL(e1.sequence.size(), 100)
+  TEST_EQUAL(e1.ncbi_tax_id, 9606)
+  TEST_EQUAL(e1.taxonomy_name, "Homo sapiens")
+  TEST_EQUAL(e1.gene_name, "GENE1")
+  TEST_EQUAL(e1.entry_id, "KSINK_HUMAN")
+  TEST_EQUAL(e1.alt_accessions.size(), 1)
+  TEST_EQUAL(e1.alt_accessions[0], "P99999")
+  // 18 modifications total = 9 \ModResPsi (incl. 5 half cystines + 2 unknown-position)
+  //                       + 1 \ModResUnimod + 8 \ModRes (interchain crosslinks, glycos, etc.)
+  TEST_EQUAL(e1.modifications.size(), 18)
+  // PSI-MOD half cystines (MOD:00798) must dominate the PSI bucket.
+  Size half_cystines = 0;
+  for (const auto& m : e1.modifications)
+  {
+    if (m.accession == "MOD:00798") ++half_cystines;
+  }
+  TEST_EQUAL(half_cystines, 5)  // 4 known-position + 1 unknown-position
+  TEST_EQUAL(e1.simple_variants.size(), 2)
+  TEST_EQUAL(e1.complex_variants.size(), 5)
+  TEST_EQUAL(e1.processed_regions.size(), 5)
+  // Option A emits no \DisulfideBond (Option C convention).
+  TEST_EQUAL(e1.disulfide_bonds.size(), 0)
+
+  // TrEMBL minimal entry: Q67890 — must be parsed under the second header block.
+  const PEFFEntry& e2 = entries[1];
+  TEST_EQUAL(e2.identifier, "tr:Q67890")
+  TEST_EQUAL(e2.prefix, "tr")
+  TEST_EQUAL(e2.sequence_length, 31)
+
+  // The mature-protein region (chain) is present and trims to the right length.
+  // Use AASequence to round-trip mass calculation.
+  AASequence raw = e1.getSequence();
+  TEST_EQUAL(raw.size(), 100)
+  // getProcessedSequence on the mature-protein PEFF CV slices to the chain region.
+  AASequence mature = e1.getProcessedSequence("PEFF:0001020");
+  TEST_EQUAL(mature.size(), 60)  // chain is 41..100 = 60 residues
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
