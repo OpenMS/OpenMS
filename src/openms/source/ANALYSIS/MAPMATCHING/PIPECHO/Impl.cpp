@@ -239,7 +239,7 @@ Impl::find_random_donor(const DonorMap& donors,
   };
 
   double cur_max_mass_diff = mass_max_diff;
-  std::size_t neighbors = window.grid_neighbors;
+  Int64 neighbors = window.grid_neighbors;
 
   const DonorMap::grid_center_t center(start.feature.getRT(),
                                        start.feature.getMZ());
@@ -321,8 +321,6 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
   // Put each acceptor into the correct feature bucket.
   for (auto& acceptor : acceptors)
   {
-    ++acceptors_seen;
-
     // Decoy transfers exist only to estimate the MBR FDR; they must not leak
     // into the quantitative consensus output.
     if (! acceptor->is_target())
@@ -330,6 +328,8 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
       ++decoys_seen;
       continue;
     }
+
+    ++acceptors_seen;
 
     std::string key
       = feature_sequence_key(acceptor->donor_ident, acceptor->donor_charge);

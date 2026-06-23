@@ -84,8 +84,11 @@ private:
   std::optional<Window> next_window(const std::optional<Window>&);
 
   /// Random source for decoy donor selection.  Seeded once (from the
-  /// `random_seed` parameter) so results are reproducible and thread-safe.
-  /// Mutable because the (logically const) decoy search advances its state.
+  /// `random_seed` parameter) so results are reproducible for the current
+  /// single-threaded decoy search.  NOT thread-safe: a shared std::mt19937
+  /// must not be advanced concurrently -- give each thread its own generator
+  /// before parallelizing the donor loop.  Mutable because the (logically
+  /// const) decoy search advances its state.
   mutable std::mt19937 rng_;
 };
 

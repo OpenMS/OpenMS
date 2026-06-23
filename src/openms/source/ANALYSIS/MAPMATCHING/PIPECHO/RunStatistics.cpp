@@ -109,7 +109,7 @@ RunStatistics::normal_t RunStatistics::init_mass_error(const Run& run) const
 Score RunStatistics::score(const Feature& donor, const Feature& acceptor) const
 {
   Score s = {.intensity = calc_intensity_score(acceptor),
-             .rt_diff_error = std::abs(acceptor.getRT() - donor.getRT()),
+             .rt_diff_error = std::fabs(acceptor.getRT() - donor.getRT()),
              .mass_error = calc_mass_error_score(donor, acceptor),
              .mbr_score = MIN_SCORE};
 
