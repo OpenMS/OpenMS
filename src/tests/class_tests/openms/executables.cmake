@@ -297,6 +297,7 @@ set(format_executables_list
   TransformationXMLFile_test
   TriqlerFile_test
   UnimodXMLFile_test
+  UniProtXMLFile_test
   XMassFile_test
   XMLFile_test
   XMLHandler_test

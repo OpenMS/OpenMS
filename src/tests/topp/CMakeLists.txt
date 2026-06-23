@@ -2797,6 +2797,24 @@ set_tests_properties("TOPP_OpenPepXL_1_out_3" PROPERTIES DEPENDS "TOPP_OpenPepXL
 set_tests_properties("TOPP_OpenPepXL_1_out_4" PROPERTIES DEPENDS "TOPP_OpenPepXL_1")
 
 #------------------------------------------------------------------------------
+# UniPEFF tests — convert UniProtKB XML to PEFF and byte-exact-diff against
+# golden output produced by the upstream C# UniPEFF tool (feat/merge-half-cystines
+# branch). The PSI-MOD / Unimod OBO files are overridden because the test fixture
+# uses synthetic accessions whose canonical names diverge from the real CVs.
+add_test("TOPP_UniPEFF_1" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_1_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_1_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_1_output_A.peff)
+set_tests_properties("TOPP_UniPEFF_1_out" PROPERTIES DEPENDS "TOPP_UniPEFF_1")
+
+add_test("TOPP_UniPEFF_2" ${TOPP_BIN_PATH}/UniPEFF -test -AnnotationIdentifiers -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml -out ${TESTS_TEMP_DIR}/UniPEFF_2_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_2_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_1_output_B.peff)
+set_tests_properties("TOPP_UniPEFF_2_out" PROPERTIES DEPENDS "TOPP_UniPEFF_2")
+
+# Gzipped input must yield identical output to the plain .xml input (transparent gzip).
+add_test("TOPP_UniPEFF_3" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_1_input.xml.gz -out ${TESTS_TEMP_DIR}/UniPEFF_3_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_3_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_3_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_1_output_A.peff)
+set_tests_properties("TOPP_UniPEFF_3_out" PROPERTIES DEPENDS "TOPP_UniPEFF_3")
+
+#------------------------------------------------------------------------------
 # XFDR tests
 add_test("TOPP_XFDR_1" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -in ${DATA_DIR_TOPP}/XFDR_test_in1.idXML -out_idXML ${TESTS_TEMP_DIR}/XFDR_test_out1_temp.idXML -out_mzIdentML ${TESTS_TEMP_DIR}/XFDR_test_out1_temp.mzid -out_xquest ${TESTS_TEMP_DIR}/XFDR_test_out1_temp.xquest.xml)
 add_test("TOPP_XFDR_1_out11" ${DIFF} -whitelist "date=" -in1 ${TESTS_TEMP_DIR}/XFDR_test_out1_temp.idXML  -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.idXML)
