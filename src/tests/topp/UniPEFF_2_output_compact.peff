@@ -9,5 +9,5 @@
 # NumberOfEntries=1
 # SequenceType=AA
 # //
->sp:P00003 \PName=Compact entry \GName=CGENE \Length=6 \SV=1 \EV=1 \ID=CMP_HUMAN \ModResPsi=(3|MOD:00046|O-phospho-L-serine) \VariantSimple=(5|V) \Processed=(1|4|PEFF:0001021|signal peptide)
+>sp:P00003 \PName=(Compact entry) \GName=CGENE \Length=6 \SV=1 \EV=1 \ID=CMP_HUMAN \ModResPsi=(3|MOD:00046|O-phospho-L-serine) \VariantSimple=(5|V) \Processed=(1|4|PEFF:0001021|signal peptide)
 MKSDAV

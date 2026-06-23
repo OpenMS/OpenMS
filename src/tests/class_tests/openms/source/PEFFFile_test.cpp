@@ -1639,6 +1639,14 @@ START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of
   TEST_EQUAL(e1.entry_id, "KSINK_HUMAN")
   TEST_EQUAL(e1.alt_accessions.size(), 1)
   TEST_EQUAL(e1.alt_accessions[0], "P99999")
+  // Protein name must round-trip in full, including the balanced "(test)" parenthetical.
+  // UniPEFF emits PName in list form (\PName=(...)) so a paren-list-aware reader returns the
+  // full name as a single element (not "test", as an earlier scalar-paren-list collision did).
+  // PEFFFile preserves PEFF escape sequences (\|, \\, \)) verbatim in the returned name;
+  // un-escaping is the caller's responsibility, matching parseParenList_'s "treat \\X as a
+  // literal X" pass-through behaviour.
+  TEST_EQUAL(e1.protein_names.size(), 1)
+  TEST_EQUAL(e1.protein_names[0], "Kitchen-sink protein (test) \\| alpha\\\\beta :-\\)")
   // 18 modifications total = 9 \ModResPsi (incl. 5 half cystines + 2 unknown-position)
   //                       + 1 \ModResUnimod + 8 \ModRes (interchain crosslinks, glycos, etc.)
   TEST_EQUAL(e1.modifications.size(), 18)
@@ -1668,6 +1676,42 @@ START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of
   // getProcessedSequence on the mature-protein PEFF CV slices to the chain region.
   AASequence mature = e1.getProcessedSequence("PEFF:0001020");
   TEST_EQUAL(mature.size(), 60)  // chain is 41..100 = 60 residues
+}
+END_SECTION
+
+START_SECTION([EXTRA] scalar \PName= with embedded balanced parens must round-trip in full)
+{
+  // Regression: an earlier reader truncated scalar PName values to their first
+  // parenthesized substring (so "Insulin (Fragment)" became "Fragment"). PEFF 1.0
+  // allows both scalar and list forms for single-value keys; balanced parens in a
+  // scalar value are legal (only UNPAIRED parens must be backslash-escaped).
+  const std::string peff_text =
+    "# PEFF 1.0\n"
+    "# //\n"
+    "# DbName=Test\n"
+    "# Prefix=sp\n"
+    "# Decoy=false\n"
+    "# DbSource=local\n"
+    "# DbVersion=test\n"
+    "# NumberOfEntries=1\n"
+    "# SequenceType=AA\n"
+    "# //\n"
+    ">sp:P00001 \\PName=Insulin (Fragment) \\GName=INS \\Length=5\n"
+    "INSUL\n";
+
+  // Write to a temp file and read it back through PEFFFile.
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::ofstream(tmp_filename.c_str(), std::ios::binary).write(peff_text.data(), peff_text.size());
+
+  PEFFFile peff;
+  std::vector<PEFFEntry> entries;
+  std::vector<PEFFDatabaseMetadata> headers;
+  peff.load(tmp_filename, entries, headers);
+  TEST_EQUAL(entries.size(), 1)
+  TEST_EQUAL(entries[0].protein_names.size(), 1)
+  TEST_EQUAL(entries[0].protein_names[0], "Insulin (Fragment)")
+  TEST_EQUAL(entries[0].gene_name, "INS")
 }
 END_SECTION
 

@@ -2144,18 +2144,25 @@ namespace OpenMS
 
       if (key == "PName")
       {
-        // Protein names can be multiple: (Name1)(Name2)
-        std::vector<std::string> names = parseParenList_(value);
-        if (names.empty() && !value.empty())
+        // PName accepts both scalar form (\PName=Insulin (Fragment)) and list form
+        // (\PName=(Insulin)(Insulin Fragment)). Only the list form is parsed paren-by-paren;
+        // a scalar value that happens to contain a balanced parenthetical (which is legal —
+        // PEFF only requires UNPAIRED parens to be backslash-escaped) is taken verbatim,
+        // otherwise the protein name is silently truncated to its first parenthesized substring.
+        size_t first_non_ws = value.find_first_not_of(" \t");
+        const bool is_list_form = (first_non_ws != std::string::npos && value[first_non_ws] == '(');
+        if (is_list_form)
         {
-          entry.protein_names.push_back(value);
-        }
-        else
-        {
-          for (const std::string& name : names)
+          for (const std::string& name : parseParenList_(value))
           {
             entry.protein_names.push_back(name);
           }
+        }
+        else if (!value.empty())
+        {
+          std::string trimmed(value);
+          StringUtils::trim(trimmed);
+          entry.protein_names.push_back(trimmed);
         }
       }
       else if (key == "GName")

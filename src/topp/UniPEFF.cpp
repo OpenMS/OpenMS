@@ -777,7 +777,15 @@ namespace
       out << " \\" << key << "=" << value;
     };
 
-    if (!e.full_name.empty())    tag_kv("PName", escapePeff(e.full_name));     // scalar (no parens)
+    if (!e.full_name.empty())
+    {
+      // Emit \PName as a one-element list: (value). The PEFF spec permits either form
+      // (scalar OR list) for single-value keys, but the list form is unambiguous to parse
+      // (a scalar value containing a balanced parenthetical can otherwise be silently
+      // truncated by a paren-list-greedy reader). This diverges from the upstream C#
+      // UniPEFF's scalar emission but stays valid PEFF 1.0.
+      tag_kv("PName", std::string("(") + escapePeff(e.full_name) + ")");
+    }
     if (!e.primary_gene.empty()) tag_kv("GName", escapePeff(e.primary_gene));
     if (!e.ncbi_tax_id.empty())  tag_kv("NcbiTaxId", escapePeff(e.ncbi_tax_id));
     if (!e.tax_name.empty())     tag_kv("TaxName", escapePeff(e.tax_name));
@@ -1161,9 +1169,12 @@ protected:
       }
     };
 
+    bool spool_open_failed = false;
+    std::string spool_open_failed_path;
     {
       UniProtXMLFile xml;
       xml.loadStreaming(in_file, [&](UniProtEntry&& entry) {
+        if (spool_open_failed) return;  // abort downstream work once any spool open fails
         if (!isWritableEntry(entry))
         {
           if (entry.accession.empty()) ++skipped_no_accession;
@@ -1179,22 +1190,33 @@ protected:
         auto it = spools.find(pe.prefix);
         if (it == spools.end())
         {
-          prefixes.push_back(pe.prefix);
+          // Open the spool BEFORE registering the prefix — on failure we must not leave a
+          // dangling prefix that would later default-construct a 0-entry DB block from
+          // spools[p] and silently drop everything we tried to write for it.
           PrefixSpool s;
           s.path = out_file + "." + pe.prefix + ".tmp";
           s.out.open(s.path, std::ios::binary | std::ios::trunc);
           if (!s.out)
           {
-            OPENMS_LOG_ERROR << "UniPEFF: cannot open spool file '" << s.path << "'." << std::endl;
+            spool_open_failed = true;
+            spool_open_failed_path = s.path;
             return;
           }
           it = spools.emplace(pe.prefix, std::move(s)).first;
+          prefixes.push_back(pe.prefix);
         }
         fallbacks += writePeffEntry(it->second.out, pe.source, pe.annotations, pe.prefix, option_b,
                                     psi_obo, unimod_obo,
                                     record_processing, record_aa_mods, record_variants);
         ++it->second.count;
       });
+    }
+    if (spool_open_failed)
+    {
+      cleanup_spools();
+      writeLogError_("UniPEFF: cannot open spool file '" + spool_open_failed_path +
+                     "'. Ensure the output directory exists and is writable.");
+      return CANNOT_WRITE_OUTPUT_FILE;
     }
     if (skipped_no_accession > 0)
     {
