@@ -26,8 +26,8 @@ namespace OpenMS
   */
   struct OPENMS_DLLAPI UniProtFeature
   {
-    std::string type;          ///< feature/@type, e.g. "modified residue", "disulfide bond", "sequence variant"
-    std::string description;   ///< feature/@description (raw, before any cleanup)
+    std::string type;          ///< feature/\@type, e.g. "modified residue", "disulfide bond", "sequence variant"
+    std::string description;   ///< feature/\@description (raw, before any cleanup)
     bool has_position{false};  ///< a single &lt;position&gt; element was present
     bool has_range{false};     ///< a &lt;begin&gt; / &lt;end&gt; pair was present
     int  position{0};          ///< 1-based position (0 = unknown / absent)
@@ -46,7 +46,7 @@ namespace OpenMS
   */
   struct OPENMS_DLLAPI UniProtEntry
   {
-    std::string dataset;                       ///< entry/@dataset, e.g. "Swiss-Prot" or "TrEMBL"
+    std::string dataset;                       ///< entry/\@dataset, e.g. "Swiss-Prot" or "TrEMBL"
     std::string accession;                     ///< first &lt;accession&gt; (primary id)
     std::vector<std::string> alt_accessions;   ///< second and subsequent &lt;accession&gt; entries
     std::string name;                          ///< first &lt;name&gt; under &lt;entry&gt; (mnemonic id, e.g. "KSINK_HUMAN")

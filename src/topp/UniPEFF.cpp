@@ -37,9 +37,9 @@ modification, processing, variant and disulfide-bond annotations.
 
 This is an OpenMS-native port of the standalone C# UniPEFF tool
 (David L. Tabb, UMC Groningen). For each entry it emits a PEFF descriptor
-line with \PName \GName \NcbiTaxId \TaxName \Length \SV \EV \PE \ID
-\AltAC \ModResPsi \ModResUnimod \ModRes \VariantSimple \VariantComplex
-\Processed, plus \DisulfideBond when @c -AnnotationIdentifiers is set.
+line with \\PName \\GName \\NcbiTaxId \\TaxName \\Length \\SV \\EV \\PE \\ID
+\\AltAC \\ModResPsi \\ModResUnimod \\ModRes \\VariantSimple \\VariantComplex
+\\Processed, plus \\DisulfideBond when @c -annotation_identifiers is set.
 
 UniProt's <code>\<feature type="disulfide bond"\></code> entries are translated
 into half-cystine modifications (PSI-MOD:00798) which are then merged into
