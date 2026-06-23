@@ -278,9 +278,16 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
 {
   using ident_val_t = std::set<FeatureRef, FeatureRefCmp>;
   using ident_map_t = std::map<std::string, ident_val_t>;
+  struct transfer_info_t
+  {
+    IntList map_indices;
+    DoubleList q_values;
+  };
+  using transfer_map_t = std::map<std::string, transfer_info_t>;
 
   std::size_t acceptors_seen {}, decoys_seen {};
   ident_map_t ident_map;
+  transfer_map_t transfer_map;
 
   auto insert = [&](const std::string key, const FeatureRef& peak) {
     auto [place, inserted]
@@ -334,6 +341,11 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
     std::string key
       = feature_sequence_key(acceptor->donor_ident, acceptor->donor_charge);
 
+    transfer_info_t& transfer_info = transfer_map[key];
+    transfer_info.map_indices.push_back(
+      static_cast<Int>(acceptor->acceptor.get().map_index));
+    transfer_info.q_values.push_back(acceptor->q_value);
+
     insert(key, acceptor->acceptor);
   }
 
@@ -352,6 +364,15 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
       // to a ConsensusFeature.  It does more work, such as copying
       // identifications, that the other insert methods don't do.
       consensus_feature.insert(peak.map_index, peak.feature);
+    }
+
+    auto transfer = transfer_map.find(group.first);
+    if (transfer != transfer_map.end())
+    {
+      consensus_feature.setMetaValue("mbr_transfer_map_indices",
+                                     transfer->second.map_indices);
+      consensus_feature.setMetaValue("mbr_transfer_qvalues",
+                                     transfer->second.q_values);
     }
 
     consensus_feature.computeConsensus();

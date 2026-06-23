@@ -109,6 +109,10 @@ START_SECTION((virtual void group(const std::vector<FeatureMap>& features, Conse
                              makeRun("runB.mzML", runB)};
 
   PipEchoAlgorithm algo;
+  Param param = algo.getParameters();
+  param.setValue("fdr", 1.0);
+  algo.setParameters(param);
+
   ConsensusMap consensus;
   algo.group(maps, consensus);
 
@@ -116,9 +120,32 @@ START_SECTION((virtual void group(const std::vector<FeatureMap>& features, Conse
   // the output is never empty.
   TEST_EQUAL(consensus.empty(), false)
 
+  Size transfer_count = 0;
+  for (const ConsensusFeature& cf : consensus)
+  {
+    if (cf.metaValueExists("mbr_transfer_map_indices"))
+    {
+      TEST_EQUAL(cf.metaValueExists("mbr_transfer_qvalues"), true)
+
+      IntList map_indices = cf.getMetaValue("mbr_transfer_map_indices");
+      DoubleList q_values = cf.getMetaValue("mbr_transfer_qvalues");
+      TEST_EQUAL(map_indices.size(), q_values.size())
+
+      for (Size i = 0; i < map_indices.size(); ++i)
+      {
+        TEST_EQUAL(map_indices[i], 1)
+        TEST_REAL_SIMILAR(q_values[i], 0.5)
+      }
+
+      transfer_count += map_indices.size();
+    }
+  }
+  TEST_EQUAL(transfer_count, 2)
+
   // Determinism: with the default fixed seed, a second run on identical input
   // must produce an identical consensus map (guards the seeded-RNG contract).
   PipEchoAlgorithm algo2;
+  algo2.setParameters(param);
   ConsensusMap consensus2;
   algo2.group(maps, consensus2);
 
