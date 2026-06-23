@@ -31,7 +31,7 @@
   - @subpage TOPP_TargetedFileConverter - Converts targeted files (such as tsv or TraML files).
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
   - @subpage TOPP_TriqlerConverter - Convert to Triqler input file format.
-  - @subpage TOPP_UniPEFF - Convert a UniProtKB XML protein database to PEFF 1.0.
+  - @subpage TOPP_UniPEFF - Convert a UniProtKB XML protein database (.xml or .xml.gz) to PEFF 1.0.
 
 
   <b>File Filtering / Extraction / Merging</b>

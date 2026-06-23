@@ -115,6 +115,13 @@ namespace
 
     while (std::getline(in, line))
     {
+      // std::getline strips the trailing LF but leaves a CR on CRLF files (Windows-edited
+      // ptmlist.txt is a real concern). Trim any trailing whitespace so the fixed-offset
+      // accession extraction below — `rest.size() - 10`/`-9` — doesn't off-by-one.
+      while (!line.empty() && (line.back() == '\r' || line.back() == ' ' || line.back() == '\t'))
+      {
+        line.pop_back();
+      }
       if (line.size() < 2) continue;
       const std::string key = line.substr(0, 2);
       if (key == "ID")

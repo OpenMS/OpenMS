@@ -32,6 +32,9 @@ namespace OpenMS::Internal
     public XMLHandler
   {
   public:
+    /// Callback invoked once per &lt;/entry&gt;: receives ownership of the populated
+    /// UniProtEntry. The handler resets its working state immediately after, so the
+    /// callback is the only place the entry is reachable.
     using EntryCallback = std::function<void(UniProtEntry&&)>;
 
     /// Where the next character-data run, if buffered, should be deposited

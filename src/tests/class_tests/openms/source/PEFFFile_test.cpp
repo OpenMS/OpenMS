@@ -1625,7 +1625,7 @@ START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of
   TEST_EQUAL(headers[1].prefix, "tr")
   TEST_EQUAL(headers[0].number_of_entries, 1)
   TEST_EQUAL(headers[1].number_of_entries, 1)
-  TEST_EQUAL(headers[0].has_annotation_identifiers, false)  // Option A golden
+  TEST_FALSE(headers[0].has_annotation_identifiers)  // Option A golden
 
   // Swiss-Prot kitchen-sink entry: P12345.
   const PEFFEntry& e1 = entries[0];
@@ -1642,7 +1642,8 @@ START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of
   // Protein name must round-trip in full: the balanced "(test)" parenthetical is preserved
   // (UniPEFF emits PName in list form, so a paren-list-aware reader returns the full name as
   // a single element, not "test"), and the PEFF reserved-char escapes (\|, \\, \)) are reversed
-  // by parseParenList_'s un-escape pass — the consumer sees the logical content.
+  // by peffUnescape() at the PName call site — parseParenList_ itself returns items raw so
+  // downstream tuple parsers (which run their own pipe-aware un-escape) don't double-decode.
   TEST_EQUAL(e1.protein_names.size(), 1)
   TEST_EQUAL(e1.protein_names[0], "Kitchen-sink protein (test) | alpha\\beta :-)")
   // 18 modifications total = 9 \ModResPsi (incl. 5 half cystines + 2 unknown-position)
@@ -1710,6 +1711,43 @@ START_SECTION([EXTRA] escaped '\\|' inside a structured tuple must not be split 
   TEST_EQUAL(entries[0].modifications[0].accession, "MOD:00046")
   TEST_EQUAL(entries[0].modifications[0].name, "name with | pipe")
   TEST_EQUAL(entries[0].modifications[0].optional_tag, "")  // no 4th field — pipe was inside the name
+}
+END_SECTION
+
+START_SECTION([EXTRA] literal backslash in a structured tuple text field must not double-decode)
+{
+  // Regression: an earlier patch added peffUnescape() per-field in the tuple parsers, but
+  // splitByPipeEscapeAware() already un-escapes \\, \|, \(, \). The double-decode would
+  // collapse a legitimate literal "\\" (on-wire "\\\\") down to a single "\".
+  // C++ literal: \\\\\\\\ = on-wire \\\\ = logical content "\\" (two literal backslashes).
+  const std::string peff_text =
+    "# PEFF 1.0\n"
+    "# //\n"
+    "# DbName=Test\n"
+    "# Prefix=sp\n"
+    "# Decoy=false\n"
+    "# DbSource=local\n"
+    "# DbVersion=test\n"
+    "# NumberOfEntries=1\n"
+    "# SequenceType=AA\n"
+    "# //\n"
+    ">sp:P00001 \\PName=(Test) \\Length=5 \\ModResPsi=(1|MOD:00046|name with \\\\\\\\ backslashes)\n"
+    "INSUL\n";
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::ofstream(tmp_filename.c_str(), std::ios::binary).write(peff_text.data(), peff_text.size());
+
+  PEFFFile peff;
+  std::vector<PEFFEntry> entries;
+  std::vector<PEFFDatabaseMetadata> headers;
+  peff.load(tmp_filename, entries, headers);
+  TEST_EQUAL(entries.size(), 1)
+  TEST_EQUAL(entries[0].modifications.size(), 1)
+  // On-wire "name with \\\\ backslashes" (four backslashes) → un-escaped once by
+  // splitByPipeEscapeAware to "name with \\ backslashes" (two literal backslashes).
+  // A second pass would (wrongly) collapse to "name with \ backslashes".
+  TEST_EQUAL(entries[0].modifications[0].name, "name with \\\\ backslashes")
 }
 END_SECTION
 

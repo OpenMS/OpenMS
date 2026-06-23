@@ -2170,23 +2170,48 @@ namespace OpenMS
       if (key == "PName")
       {
         // PName accepts both scalar form (\PName=Insulin (Fragment)) and list form
-        // (\PName=(Insulin)(Insulin Fragment)). Only the list form is parsed paren-by-paren;
-        // a scalar value that happens to contain a balanced parenthetical (which is legal —
-        // PEFF only requires UNPAIRED parens to be backslash-escaped) is taken verbatim,
-        // otherwise the protein name is silently truncated to its first parenthesized substring.
-        size_t first_non_ws = value.find_first_not_of(" \t");
-        const bool is_list_form = (first_non_ws != std::string::npos && value[first_non_ws] == '(');
-        if (is_list_form)
+        // (\PName=(Insulin)(Insulin Fragment)). The list form is detected only if the entire
+        // trimmed value is a sequence of paren-balanced groups (starts with '(', ends with ')',
+        // and parens balance to zero only at group boundaries). Anything else — including a
+        // perfectly legal scalar like "(R)-amino acid hydroxylase" — is taken verbatim, so we
+        // don't silently truncate names that happen to begin with a parenthesised qualifier.
+        std::string trimmed(value);
+        StringUtils::trim(trimmed);
+        auto isListForm = [](const std::string& s) {
+          if (s.empty() || s.front() != '(' || s.back() != ')') return false;
+          int depth = 0;
+          bool zero_in_interior = false;
+          for (size_t i = 0; i < s.size(); ++i)
+          {
+            if (s[i] == '\\' && i + 1 < s.size()) { i += 1; continue; }
+            if (s[i] == '(') ++depth;
+            else if (s[i] == ')') --depth;
+            if (depth == 0 && i + 1 < s.size()) zero_in_interior = true;
+            if (depth < 0) return false;
+          }
+          if (depth != 0) return false;
+          // Accept either a single group ((R)-only fails this — there's text after the first
+          // zero-depth point), or several adjacent groups where every zero-depth point sits
+          // immediately before the next '('.
+          if (!zero_in_interior) return true;
+          // Multi-group case: verify the structure is "(...)(...)..." with no text between groups.
+          for (size_t i = 0; i < s.size(); ++i)
+          {
+            if (s[i] == '\\' && i + 1 < s.size()) { i += 1; continue; }
+            if (s[i] == '(') ++depth;
+            else if (s[i] == ')') { --depth; if (depth == 0 && i + 1 < s.size() && s[i + 1] != '(') return false; }
+          }
+          return true;
+        };
+        if (isListForm(trimmed))
         {
-          for (const std::string& name : parseParenList_(value))
+          for (const std::string& name : parseParenList_(trimmed))
           {
             entry.protein_names.push_back(peffUnescape(name));
           }
         }
-        else if (!value.empty())
+        else if (!trimmed.empty())
         {
-          std::string trimmed(value);
-          StringUtils::trim(trimmed);
           entry.protein_names.push_back(peffUnescape(trimmed));
         }
       }
@@ -2782,21 +2807,22 @@ namespace OpenMS
         mod.type = PEFFModification::Type::GENERIC;
       }
 
-      // Name (text field — un-escape PEFF reserved chars now that the pipe split is done)
+      // splitByPipeEscapeAware() already un-escapes PEFF reserved chars in each field, so
+      // we store its output directly here — calling peffUnescape() again would double-decode
+      // legitimate literal-backslash values (e.g. an on-wire "\\\\" survives the split as "\\"
+      // and a second pass would collapse it to "\").
       if (parts.size() >= 3)
       {
-        mod.name = peffUnescape(parts[2]);
+        mod.name = parts[2];
       }
-
-      // OptionalTag (text field — same)
       if (parts.size() >= 4)
       {
-        mod.optional_tag = peffUnescape(parts[3]);
+        mod.optional_tag = parts[3];
       }
       if (parts.size() > 4)
       {
         OPENMS_LOG_WARN << "PEFF: Modification tuple has more than 4 fields; treating last field as OptionalTag.\n";
-        mod.optional_tag = peffUnescape(parts.back());
+        mod.optional_tag = parts.back();
       }
     }
 
@@ -2818,9 +2844,10 @@ namespace OpenMS
       var.position = StringUtils::toInt32(pos_field);
       var.variant_aa = parts[1].empty() ? '\0' : parts[1][0];
 
+      // splitByPipeEscapeAware() un-escapes for us; don't double-decode.
       if (parts.size() >= 3)
       {
-        var.optional_tag = peffUnescape(parts[2]);
+        var.optional_tag = parts[2];
       }
     }
 
@@ -2841,12 +2868,12 @@ namespace OpenMS
       var.annotation_id = annotation_id;
       var.start_position = StringUtils::toInt32(start_field);
       var.end_position = StringUtils::toInt32(parts[1]);
-      // replacement and optional_tag are text fields — un-escape now that the pipe split is done.
-      var.replacement = peffUnescape(parts[2]);
+      // splitByPipeEscapeAware() un-escapes for us; don't double-decode.
+      var.replacement = parts[2];
 
       if (parts.size() >= 4)
       {
-        var.optional_tag = peffUnescape(parts[3]);
+        var.optional_tag = parts[3];
       }
     }
 
@@ -2869,15 +2896,15 @@ namespace OpenMS
       reg.end_position = StringUtils::toInt32(parts[1]);
       reg.accession = parts[2];
 
-      // name and optional_tag are text fields — un-escape now that the pipe split is done.
+      // splitByPipeEscapeAware() un-escapes for us; don't double-decode.
       if (parts.size() >= 4)
       {
-        reg.name = peffUnescape(parts[3]);
+        reg.name = parts[3];
       }
 
       if (parts.size() >= 5)
       {
-        reg.optional_tag = peffUnescape(parts[4]);
+        reg.optional_tag = parts[4];
       }
     }
 
@@ -2897,7 +2924,9 @@ namespace OpenMS
 
     if (pipe_pos != std::string::npos)
     {
-      // The description after the single '|' separator is a text field — un-escape.
+      // The DisulfideBond tuple parser does a plain find('|'), not splitByPipeEscapeAware,
+      // because the IDs part has its own comma syntax that splitByPipe would over-tokenize.
+      // The trailing description IS still PEFF-escaped on the wire, so un-escape it here.
       bond.optional_tag = peffUnescape(StringUtils::substr(tuple, pipe_pos + 1));
     }
 
