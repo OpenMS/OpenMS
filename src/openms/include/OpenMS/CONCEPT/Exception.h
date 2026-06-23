@@ -474,7 +474,8 @@ namespace OpenMS
     class OPENMS_DLLAPI FileNotFound : public BaseException
     {
     public:
-      FileNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept;
+      /// @param additional_message optional context appended to the message (e.g. which directories were searched)
+      FileNotFound(const char* file, int line, const char* function, const std::string& filename, const std::string& additional_message = "") noexcept;
     };
 
     /**

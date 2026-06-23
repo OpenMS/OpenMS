@@ -24,6 +24,7 @@ General:
   - Parquet support enabled across all platforms; Arrow/Parquet is now a required dependency and the WITH_PARQUET CMake option has been removed (#8370, #8422, #8991)
   - Modernized TransformationDescription to use std::unique_ptr for memory safety
   - Fix undefined behavior in ProteinIdentification get*DataArrayByName by throwing ElementNotFound when the name is missing
+  - When a shared-data file (e.g. CHEMISTRY/custom_mods.xml) cannot be found, File::find now reports the resolved OpenMS data directory and where it was resolved from (OPENMS_DATA_PATH vs. compiled/executable-relative), so a stale OPENMS_DATA_PATH or a leftover old installation is easy to spot and fix (#9636)
   - Removed leftover traces of removed doc_internal target (#2256)
   - BREAKING: QDateTime/QDate/QSysInfo/QLocale replaced with std::chrono and platform APIs in DateTime, Date, BuildInfo, DimMapper, and TOPPBase; QDate constructor removed from Date class (#8937)
   - BREAKING: QDir/QFile/QFileInfo replaced with std::filesystem in the core library; copyDirRecursively/removeDir signatures changed from QString& to String&; ToolHandler returns StringList instead of QStringList; new PathUtils.h added with UTF-8-safe to_path() helper (#8938)
