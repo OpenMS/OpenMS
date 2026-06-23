@@ -362,8 +362,9 @@ TOPP tools:
       - New ccs_error_percent parameter (default 0 = disabled) filters spectral-library candidates by relative CCS error |observed − library| / library × 100 %; missing observed CCS is non-filtering (Skyline convention); mzTab output gains opt_observed_ccs, opt_library_ccs, and opt_ccs_error_percent columns; 1/K0 drift times are converted to CCS automatically (#8784, #9412)
   New tools:
     - FeatureLinkerWNet: groups corresponding features across multiple label-free maps using Wasserstein (optimal transport) distance over (m/z, RT) space; solves a minimum-cost network flow problem via the wnetalign library; supports Da and ppm m/z tolerances, L1/L2/L∞ distance metrics, and intensity normalization
-    - OpenSwathInfer: Added topp tool for performing peptidoform, peptide, protein and gene inference for OpenSwath analysis. (#9280) 
+    - OpenSwathInfer: Added topp tool for performing peptidoform, peptide, protein and gene inference for OpenSwath analysis. (#9280)
     - OpenSwathExport: Added topp tool for exporting OpenSwathWorkflow results to TSV/Parquet files (#9377)
+    - UniPEFF: Convert UniProtKB XML protein databases (.xml or .xml.gz) to PEFF 1.0. Each entry is emitted with PName/GName/NcbiTaxId/TaxName/Length/SV/EV/PE/ID/AltAC metadata plus ModResPsi/ModResUnimod/ModRes, VariantSimple/VariantComplex, Processed and (with -AnnotationIdentifiers) DisulfideBond annotations. Modification accessions are resolved via UniProt ptmlist.txt (a snapshot is bundled at share/OpenMS/CHEMISTRY/UniProt_ptmlist.txt); canonical PSI-MOD/Unimod names come from the bundled PSI-MOD.obo and an optional unimod.obo. Half-cystines from disulfide-bond features are merged into the main modified-residue list in position-sorted order so a single emission pass produces a correctly ordered ModResPsi list. Output is byte-exact with the standalone C# UniPEFF tool (https://github.com/timosachsenberg/UniPEFF, feat/merge-half-cystines branch). New OpenMS library class UniProtXMLFile (FORMAT/) parses UniProtKB XML into a parser-neutral UniProtEntry POD via Xerces SAX with transparent gzip support.
 
 OpenMS Library:
   Added:
