@@ -1078,6 +1078,16 @@ protected:
     const bool record_aa_mods    = !omit_aa;
     const bool record_variants   = !omit_var;
 
+    // PEFF is a plain-text format; we do not (yet) write directly into a compressed
+    // container, and TOPPBase's format validation accepts `.peff.gz` etc. via its
+    // recursive suffix stripping. Reject compressed suffixes explicitly rather than
+    // silently writing uncompressed bytes under a compressed file name.
+    if (out_file.ends_with(".gz") || out_file.ends_with(".bz2") || out_file.ends_with(".zip"))
+    {
+      writeLogError_("UniPEFF: compressed PEFF outputs are not supported; pass a plain '.peff' filename.");
+      return ILLEGAL_PARAMETERS;
+    }
+
     // Resolve auxiliary files.
     std::string ptmlist_file = getStringOption_("ptmlist");
     if (record_aa_mods && ptmlist_file.empty())
@@ -1117,83 +1127,132 @@ protected:
       }
     }
 
-    // Pass 1 + 2 in one go: buffer all entries into memory. For very large
-    // (e.g. TrEMBL) inputs, switching to a two-pass streaming model is
-    // straightforward (count entries per prefix first, then re-read XML and
-    // emit one entry at a time) — see UniProtXMLFile::loadStreaming.
-    std::vector<PreparedEntry> prepared;
+    // Streaming pipeline (bounded memory: one entry in flight at a time):
+    //   * For each parsed UniProtEntry, write its serialized PEFF text into a
+    //     per-prefix temporary file as we go. Per-prefix entry counts are
+    //     accumulated alongside so we can emit the right `# NumberOfEntries=`
+    //     in each DB-description block.
+    //   * After the parse finishes, assemble the final file as
+    //         <file header> + <DB blocks per prefix> + <concatenated per-prefix temp files>
+    //     and remove the temp files.
+    //
+    // PEFF requires the entire header section to precede the entries, and
+    // `# NumberOfEntries=` cannot be known until parsing is complete; the
+    // per-prefix spool keeps memory use independent of input size while
+    // preserving entry ordering within each prefix (which the byte-exact
+    // golden tests depend on).
+    struct PrefixSpool
+    {
+      std::string path;
+      std::ofstream out;
+      int count{0};
+    };
+    std::map<std::string, PrefixSpool> spools;
+    std::vector<std::string> prefixes;  // first-seen order
+    size_t fallbacks = 0;
+    size_t skipped_no_accession = 0;
+    size_t skipped_no_sequence = 0;
+
+    auto cleanup_spools = [&]() {
+      for (auto& [_, s] : spools)
+      {
+        if (s.out.is_open()) s.out.close();
+        std::remove(s.path.c_str());
+      }
+    };
+
     {
       UniProtXMLFile xml;
       xml.loadStreaming(in_file, [&](UniProtEntry&& entry) {
-        prepared.push_back(prepareEntry(std::move(entry), ptms, prefix_override, option_b,
-                                        record_processing, record_aa_mods, record_variants));
+        if (!isWritableEntry(entry))
+        {
+          if (entry.accession.empty()) ++skipped_no_accession;
+          else
+          {
+            OPENMS_LOG_WARN << "UniPEFF: skipping entry " << entry.accession << " with no sequence." << std::endl;
+            ++skipped_no_sequence;
+          }
+          return;
+        }
+        PreparedEntry pe = prepareEntry(std::move(entry), ptms, prefix_override, option_b,
+                                        record_processing, record_aa_mods, record_variants);
+        auto it = spools.find(pe.prefix);
+        if (it == spools.end())
+        {
+          prefixes.push_back(pe.prefix);
+          PrefixSpool s;
+          s.path = out_file + "." + pe.prefix + ".tmp";
+          s.out.open(s.path, std::ios::binary | std::ios::trunc);
+          if (!s.out)
+          {
+            OPENMS_LOG_ERROR << "UniPEFF: cannot open spool file '" << s.path << "'." << std::endl;
+            return;
+          }
+          it = spools.emplace(pe.prefix, std::move(s)).first;
+        }
+        fallbacks += writePeffEntry(it->second.out, pe.source, pe.annotations, pe.prefix, option_b,
+                                    psi_obo, unimod_obo,
+                                    record_processing, record_aa_mods, record_variants);
+        ++it->second.count;
       });
     }
-    OPENMS_LOG_INFO << "UniPEFF: parsed " << prepared.size() << " UniProtKB entries." << std::endl;
-
-    // Filter to writable entries and collect prefix groups in document order.
-    int writable = 0;
-    std::vector<std::string> prefixes;  // preserves first-seen order
-    auto register_prefix = [&](const std::string& p) {
-      if (std::find(prefixes.begin(), prefixes.end(), p) == prefixes.end()) prefixes.push_back(p);
-    };
-    for (const auto& pe : prepared)
+    if (skipped_no_accession > 0)
     {
-      if (!isWritableEntry(pe.source))
-      {
-        if (pe.source.accession.empty()) OPENMS_LOG_WARN << "UniPEFF: skipping an entry with no accession." << std::endl;
-        else OPENMS_LOG_WARN << "UniPEFF: skipping entry " << pe.source.accession << " with no sequence." << std::endl;
-        continue;
-      }
-      ++writable;
-      register_prefix(pe.prefix);
+      OPENMS_LOG_WARN << "UniPEFF: skipped " << skipped_no_accession << " entries with no accession." << std::endl;
     }
+
+    int writable = 0;
+    for (const auto& [_, s] : spools) writable += s.count;
+    OPENMS_LOG_INFO << "UniPEFF: parsed " << (writable + static_cast<int>(skipped_no_accession + skipped_no_sequence))
+                    << " UniProtKB entries (" << writable << " writable)." << std::endl;
     if (writable == 0)
     {
+      cleanup_spools();
       writeLogError_("UniPEFF: no writable entries; refusing to write an empty PEFF file.");
       return PARSE_ERROR;
     }
 
-    // Write PEFF.
+    // Close spools so their data is flushed before we read them back.
+    for (auto& [_, s] : spools)
+    {
+      if (s.out.is_open()) s.out.close();
+    }
+
     std::ofstream out(out_file, std::ios::binary | std::ios::trunc);
     if (!out)
     {
+      cleanup_spools();
       writeLogError_("UniPEFF: cannot open output file '" + out_file + "'.");
       return CANNOT_WRITE_OUTPUT_FILE;
     }
 
     writeFileDescriptionBlock(out);
 
-    // Header section: emit ALL db-description blocks first (PEFF requires the
-    // whole header section to precede the sequence-entry section).
+    // PEFF requires every database-description block to appear before any entry.
     for (const std::string& p : prefixes)
     {
       PeffHeader h;
       h.prefix = p;
       h.db_version = dbversion;
       h.has_annotation_identifiers = option_b;
-      h.number_of_entries = 0;
-      for (const auto& pe : prepared)
-      {
-        if (!isWritableEntry(pe.source)) continue;
-        if (pe.prefix == p) ++h.number_of_entries;
-      }
+      h.number_of_entries = spools[p].count;
       writeDbDescriptionBlock(out, h);
     }
 
-    // Sequence-entry section: grouped by prefix.
-    size_t fallbacks = 0;
+    // Now stream the per-prefix entry text in first-seen prefix order.
     for (const std::string& p : prefixes)
     {
-      for (auto& pe : prepared)
+      std::ifstream tmp(spools[p].path, std::ios::binary);
+      if (!tmp)
       {
-        if (!isWritableEntry(pe.source)) continue;
-        if (pe.prefix != p) continue;
-        fallbacks += writePeffEntry(out, pe.source, pe.annotations, p, option_b,
-                                    psi_obo, unimod_obo,
-                                    record_processing, record_aa_mods, record_variants);
+        cleanup_spools();
+        writeLogError_("UniPEFF: cannot re-read spool file '" + spools[p].path + "'.");
+        return CANNOT_WRITE_OUTPUT_FILE;
       }
+      out << tmp.rdbuf();
     }
+    out.close();
+    cleanup_spools();
 
     if (fallbacks > 0)
     {
