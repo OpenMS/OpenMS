@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <boost/foreach.hpp> // must be first, otherwise Q_FOREACH macro will wreak havoc
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <boost/regex.hpp>
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>

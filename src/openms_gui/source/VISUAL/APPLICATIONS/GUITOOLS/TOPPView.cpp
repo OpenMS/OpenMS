@@ -30,6 +30,7 @@
 #include <QMessageBox>
 
 //OpenMS
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 #include <OpenMS/SYSTEM/StopWatch.h>

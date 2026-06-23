@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
