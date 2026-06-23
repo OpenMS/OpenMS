@@ -89,8 +89,23 @@ START_SECTION((static std::string find(const std::string &filename, StringList d
   std::string s_obo = File::find("CV/psi-ms.obo");
   TEST_EQUAL(s_obo.empty(), false);
   TEST_EQUAL(File::find(s_obo), s_obo); // iterative finding should return the identical file
-  
+
   TEST_EXCEPTION(Exception::FileNotFound, File::find(""))
+
+  // a missing standard data file should point the user at the resolved data path and OPENMS_DATA_PATH (issue #9636)
+  {
+    std::string msg;
+    try
+    {
+      File::find("CHEMISTRY/this_file_does_not_exist_9636.xml");
+    }
+    catch (Exception::FileNotFound& e)
+    {
+      msg = e.getMessage();
+    }
+    TEST_EQUAL(msg.find("OPENMS_DATA_PATH") != std::string::npos, true)
+    TEST_EQUAL(msg.find(File::getOpenMSDataPath()) != std::string::npos, true)
+  }
 END_SECTION
 
 #ifdef ENABLE_DOCS
