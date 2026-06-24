@@ -165,4 +165,4 @@ runs:
     ############################################################################
     - name: Test
       shell: bash
-      run: cd build && ninja test --verbose
+      run: ctest --output-on-failure --test-dir build
