@@ -1607,6 +1607,186 @@ START_SECTION(test_multi_database_store_roundtrip)
 }
 END_SECTION
 
+START_SECTION([EXTRA] round-trip: PEFFFile must consume the byte-exact output of the UniPEFF TOPP tool)
+{
+  // PEFFFile_UniPEFF_test.peff is a verbatim copy of src/tests/topp/UniPEFF_1_output_A.peff
+  // (the byte-exact golden the UniPEFF TOPP tool is regression-tested against).
+  // This section guards against future drift in either the UniPEFF emitter or
+  // the PEFFFile parser: any change that breaks the round-trip will fail here.
+  PEFFFile peff;
+  std::vector<PEFFEntry> entries;
+  std::vector<PEFFDatabaseMetadata> headers;
+  peff.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_UniPEFF_test.peff"), entries, headers);
+
+  // Two writable entries (sp:P12345 kitchen-sink + tr:Q67890 minimal) under two DB blocks.
+  TEST_EQUAL(entries.size(), 2)
+  TEST_EQUAL(headers.size(), 2)
+  TEST_EQUAL(headers[0].prefix, "sp")
+  TEST_EQUAL(headers[1].prefix, "tr")
+  TEST_EQUAL(headers[0].number_of_entries, 1)
+  TEST_EQUAL(headers[1].number_of_entries, 1)
+  TEST_FALSE(headers[0].has_annotation_identifiers)  // Option A golden
+
+  // Swiss-Prot kitchen-sink entry: P12345.
+  const PEFFEntry& e1 = entries[0];
+  TEST_EQUAL(e1.identifier, "sp:P12345")
+  TEST_EQUAL(e1.prefix, "sp")
+  TEST_EQUAL(e1.sequence_length, 100)
+  TEST_EQUAL(e1.sequence.size(), 100)
+  TEST_EQUAL(e1.ncbi_tax_id, 9606)
+  TEST_EQUAL(e1.taxonomy_name, "Homo sapiens")
+  TEST_EQUAL(e1.gene_name, "GENE1")
+  TEST_EQUAL(e1.entry_id, "KSINK_HUMAN")
+  TEST_EQUAL(e1.alt_accessions.size(), 1)
+  TEST_EQUAL(e1.alt_accessions[0], "P99999")
+  // Protein name must round-trip in full: the balanced "(test)" parenthetical is preserved
+  // (UniPEFF emits PName in list form, so a paren-list-aware reader returns the full name as
+  // a single element, not "test"), and the PEFF reserved-char escapes (\|, \\, \)) are reversed
+  // by peffUnescape() at the PName call site — parseParenList_ itself returns items raw so
+  // downstream tuple parsers (which run their own pipe-aware un-escape) don't double-decode.
+  TEST_EQUAL(e1.protein_names.size(), 1)
+  TEST_EQUAL(e1.protein_names[0], "Kitchen-sink protein (test) | alpha\\beta :-)")
+  // 18 modifications total = 9 \ModResPsi (incl. 5 half cystines + 2 unknown-position)
+  //                       + 1 \ModResUnimod + 8 \ModRes (interchain crosslinks, glycos, etc.)
+  TEST_EQUAL(e1.modifications.size(), 18)
+  // PSI-MOD half cystines (MOD:00798) must dominate the PSI bucket.
+  Size half_cystines = 0;
+  for (const auto& m : e1.modifications)
+  {
+    if (m.accession == "MOD:00798") ++half_cystines;
+  }
+  TEST_EQUAL(half_cystines, 5)  // 4 known-position + 1 unknown-position
+  TEST_EQUAL(e1.simple_variants.size(), 2)
+  TEST_EQUAL(e1.complex_variants.size(), 5)
+  TEST_EQUAL(e1.processed_regions.size(), 5)
+  // Option A emits no \DisulfideBond (Option C convention).
+  TEST_EQUAL(e1.disulfide_bonds.size(), 0)
+
+  // TrEMBL minimal entry: Q67890 — must be parsed under the second header block.
+  const PEFFEntry& e2 = entries[1];
+  TEST_EQUAL(e2.identifier, "tr:Q67890")
+  TEST_EQUAL(e2.prefix, "tr")
+  TEST_EQUAL(e2.sequence_length, 31)
+
+  // The mature-protein region (chain) is present and trims to the right length.
+  // Use AASequence to round-trip mass calculation.
+  AASequence raw = e1.getSequence();
+  TEST_EQUAL(raw.size(), 100)
+  // getProcessedSequence on the mature-protein PEFF CV slices to the chain region.
+  AASequence mature = e1.getProcessedSequence("PEFF:0001020");
+  TEST_EQUAL(mature.size(), 60)  // chain is 41..100 = 60 residues
+}
+END_SECTION
+
+START_SECTION([EXTRA] escaped '\\|' inside a structured tuple must not be split as a field separator)
+{
+  // Regression test for an un-escape ordering bug: if parseParenList_ un-escapes its items
+  // BEFORE splitByPipeEscapeAware runs, then "A\|B" in a modification name becomes "A|B"
+  // and the pipe split would store the name as "A" and the optional tag as "B".
+  // Un-escape must happen AFTER pipe splitting, per-field.
+  const std::string peff_text =
+    "# PEFF 1.0\n"
+    "# //\n"
+    "# DbName=Test\n"
+    "# Prefix=sp\n"
+    "# Decoy=false\n"
+    "# DbSource=local\n"
+    "# DbVersion=test\n"
+    "# NumberOfEntries=1\n"
+    "# SequenceType=AA\n"
+    "# //\n"
+    ">sp:P00001 \\PName=(Test) \\Length=5 \\ModResPsi=(1|MOD:00046|name with \\| pipe)\n"
+    "INSUL\n";
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::ofstream(tmp_filename.c_str(), std::ios::binary).write(peff_text.data(), peff_text.size());
+
+  PEFFFile peff;
+  std::vector<PEFFEntry> entries;
+  std::vector<PEFFDatabaseMetadata> headers;
+  peff.load(tmp_filename, entries, headers);
+  TEST_EQUAL(entries.size(), 1)
+  TEST_EQUAL(entries[0].modifications.size(), 1)
+  TEST_EQUAL(entries[0].modifications[0].accession, "MOD:00046")
+  TEST_EQUAL(entries[0].modifications[0].name, "name with | pipe")
+  TEST_EQUAL(entries[0].modifications[0].optional_tag, "")  // no 4th field — pipe was inside the name
+}
+END_SECTION
+
+START_SECTION([EXTRA] literal backslash in a structured tuple text field must not double-decode)
+{
+  // Regression: an earlier patch added peffUnescape() per-field in the tuple parsers, but
+  // splitByPipeEscapeAware() already un-escapes \\, \|, \(, \). The double-decode would
+  // collapse a legitimate literal "\\" (on-wire "\\\\") down to a single "\".
+  // C++ literal: \\\\\\\\ = on-wire \\\\ = logical content "\\" (two literal backslashes).
+  const std::string peff_text =
+    "# PEFF 1.0\n"
+    "# //\n"
+    "# DbName=Test\n"
+    "# Prefix=sp\n"
+    "# Decoy=false\n"
+    "# DbSource=local\n"
+    "# DbVersion=test\n"
+    "# NumberOfEntries=1\n"
+    "# SequenceType=AA\n"
+    "# //\n"
+    ">sp:P00001 \\PName=(Test) \\Length=5 \\ModResPsi=(1|MOD:00046|name with \\\\\\\\ backslashes)\n"
+    "INSUL\n";
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::ofstream(tmp_filename.c_str(), std::ios::binary).write(peff_text.data(), peff_text.size());
+
+  PEFFFile peff;
+  std::vector<PEFFEntry> entries;
+  std::vector<PEFFDatabaseMetadata> headers;
+  peff.load(tmp_filename, entries, headers);
+  TEST_EQUAL(entries.size(), 1)
+  TEST_EQUAL(entries[0].modifications.size(), 1)
+  // On-wire "name with \\\\ backslashes" (four backslashes) → un-escaped once by
+  // splitByPipeEscapeAware to "name with \\ backslashes" (two literal backslashes).
+  // A second pass would (wrongly) collapse to "name with \ backslashes".
+  TEST_EQUAL(entries[0].modifications[0].name, "name with \\\\ backslashes")
+}
+END_SECTION
+
+START_SECTION([EXTRA] scalar \PName= with embedded balanced parens must round-trip in full)
+{
+  // Regression: an earlier reader truncated scalar PName values to their first
+  // parenthesized substring (so "Insulin (Fragment)" became "Fragment"). PEFF 1.0
+  // allows both scalar and list forms for single-value keys; balanced parens in a
+  // scalar value are legal (only UNPAIRED parens must be backslash-escaped).
+  const std::string peff_text =
+    "# PEFF 1.0\n"
+    "# //\n"
+    "# DbName=Test\n"
+    "# Prefix=sp\n"
+    "# Decoy=false\n"
+    "# DbSource=local\n"
+    "# DbVersion=test\n"
+    "# NumberOfEntries=1\n"
+    "# SequenceType=AA\n"
+    "# //\n"
+    ">sp:P00001 \\PName=Insulin (Fragment) \\GName=INS \\Length=5\n"
+    "INSUL\n";
+
+  // Write to a temp file and read it back through PEFFFile.
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::ofstream(tmp_filename.c_str(), std::ios::binary).write(peff_text.data(), peff_text.size());
+
+  PEFFFile peff;
+  std::vector<PEFFEntry> entries;
+  std::vector<PEFFDatabaseMetadata> headers;
+  peff.load(tmp_filename, entries, headers);
+  TEST_EQUAL(entries.size(), 1)
+  TEST_EQUAL(entries[0].protein_names.size(), 1)
+  TEST_EQUAL(entries[0].protein_names[0], "Insulin (Fragment)")
+  TEST_EQUAL(entries[0].gene_name, "INS")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
