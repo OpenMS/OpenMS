@@ -59,12 +59,26 @@ public:
   using group_t = std::vector<acceptor_ptr_t>;
 
 public:
-  Pep(const std::vector<std::shared_ptr<Acceptor>>&);
+  /**
+   * Construct the PEP analysis over the given acceptors.
+   *
+   * @param acceptors   The target and decoy acceptor transfers to score.
+   * @param min_decoys  FDR-estimability floor: the minimum number of decoy
+   *                    transfers required before any transfer is kept (see
+   *                    run()).
+   */
+  Pep(const std::vector<std::shared_ptr<Acceptor>>&, std::size_t min_decoys);
 
   /**
    * Run the PEP analysis.
    *
    * Returns a vector of scored acceptors that survived FDR control.
+   *
+   * If the transfer FDR cannot be estimated reliably at the requested cutoff
+   * -- too few decoys to resolve it (1/decoys > cutoff) or fewer than
+   * `min_decoys` -- ALL transfers are dropped (conservative fallback) and an
+   * empty group is returned; the caller keeps only direct identifications. A
+   * cutoff of 1.0 disables FDR control and keeps all transfers regardless.
    *
    * Parameters:
    *
@@ -101,6 +115,9 @@ private:
 
 private:
   group_t acceptors_;
+
+  /// FDR-estimability floor (see run()).
+  std::size_t min_decoys_;
 };
 
 } // namespace OpenMS::PipEcho

@@ -13,6 +13,8 @@
 #include "Pep.h"
 #include "Util.h"
 
+#include <algorithm>
+#include <functional>
 #include <numeric>
 #include <ranges>
 
@@ -95,7 +97,9 @@ private:
 };
 
 /******************************************************************************/
-Pep::Pep(const std::vector<std::shared_ptr<Acceptor>>& acceptors)
+Pep::Pep(const std::vector<std::shared_ptr<Acceptor>>& acceptors,
+         std::size_t min_decoys):
+    min_decoys_(min_decoys)
 {
   auto push_acceptor
     = [&](const Acceptor& acceptor, std::optional<Acceptor::scored_t>& scored,
@@ -117,6 +121,50 @@ Pep::Pep(const std::vector<std::shared_ptr<Acceptor>>& acceptors)
 /******************************************************************************/
 const Pep::group_t& Pep::run(double fdr_cutoff)
 {
+  // Conservative FDR-estimability gate.  Computed up front -- before any
+  // throw-prone work and independent of whether the ML model trains -- so an
+  // SVM hiccup or a small (but FDR-resolvable) experiment still falls through
+  // to the valid MBR-score fallback rather than being dropped here.
+  //
+  // We drop ALL transfers when the requested FDR cannot be resolved by the
+  // available decoys: required_decoys = max(min_decoys_, ceil(1/fdr_cutoff)),
+  // expressed below without ceil/division rounding traps.  A cutoff of 1.0
+  // disables FDR control (a q-value of 1.0 accepts everything), so transfers
+  // are always kept then.  We count MBR decoy transfers -- the kind of decoy
+  // the transfer FDR is estimated from.
+  const std::size_t decoy_count
+    = std::ranges::count_if(acceptors_, std::not_fn(&acceptor_t::is_target));
+  const std::size_t target_count = acceptors_.size() - decoy_count;
+
+  const bool unresolvable
+    = fdr_cutoff <= 0.0 || decoy_count < min_decoys_
+      || static_cast<double>(decoy_count) * fdr_cutoff < 1.0;
+
+  if (target_count > 0 && fdr_cutoff < 1.0 && unresolvable)
+  {
+    OPENMS_LOG_WARN
+      << "WARNING: PIP-ECHO: only " << decoy_count
+      << " MBR decoy transfer(s) were generated, which cannot estimate the "
+      << "match-between-runs transfer FDR at the requested cutoff " << fdr_cutoff
+      << " (a reliable estimate needs at least " << min_decoys_
+      << " decoy(s) and enough decoys to resolve the cutoff, i.e. "
+         "1/decoys <= fdr). "
+      << "The transfer FDR could NOT be controlled. As a conservative "
+      << "fallback, all " << target_count
+      << " transferred (acceptor) feature(s) are being DROPPED; all direct "
+      << "identifications (donors) are RETAINED. Generate more decoys (more "
+      << "runs/identifications), raise 'fdr', or lower 'min_decoys' to enable "
+      << "MBR transfers." << std::endl;
+
+    // Drop every acceptor (target AND decoy) and return empty.  This is safe:
+    // Impl::generate_consensus_map builds the ConsensusMap purely from the
+    // donor ident_map (direct identifications), which never reads acceptor_t,
+    // so the skipped compute_qvalues()/status-update loop below has no
+    // observable effect.
+    acceptors_.clear();
+    return acceptors_;
+  }
+
   bool pep_okay = false;
 
   // SimpleSVM::setup/predict can throw (e.g. too few label classes).  Catch it
@@ -152,7 +200,7 @@ const Pep::group_t& Pep::run(double fdr_cutoff)
                   << " reduced acceptors from " << before << " to "
                   << acceptors_.size() << std::endl;
 
-  // One last pass to update the `Feature` target/decoy status and q-value:
+  // One last pass to update the `Feature` target/decoy status:
   for (auto& acceptor : acceptors_)
   {
     // Only update the status for known decoys.  We don't really
@@ -166,17 +214,21 @@ const Pep::group_t& Pep::run(double fdr_cutoff)
         hit->setTargetDecoyType(PeptideHit::TargetDecoyType::DECOY);
       }
     }
+  }
 
-    // FIXME: Record the q-value.
-    //
-    // From Timo:
-    /*
-      cf.setMetaValue("mbr_transfer_map_indices", IntList{2, 5});   // acceptor
-      runs cf.setMetaValue("mbr_transfer_qvalues",     DoubleList{0.01, 0.03});
-      // parallel q-values
-      where the index is the one you get from the feature handle with
-      getMapIndex()
-     */
+  // The FDR was estimable (we passed the gate above), but the fallback filter
+  // may still have removed every transfer.  Report that loudly rather than
+  // leaving only the soft "falling back to MBR scores" note, so silent
+  // near-total transfer loss is honest.
+  const std::size_t kept_targets
+    = std::ranges::count_if(acceptors_, &acceptor_t::is_target);
+  if (kept_targets == 0 && target_count > 0)
+  {
+    OPENMS_LOG_WARN
+      << "WARNING: PIP-ECHO: the match-between-runs fallback retained 0 of "
+      << target_count << " candidate transfer(s) at FDR " << fdr_cutoff
+      << "; all transferred features were filtered out. Only direct "
+      << "identifications (donors) are retained." << std::endl;
   }
 
   return acceptors_;

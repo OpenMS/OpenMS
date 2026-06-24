@@ -67,6 +67,17 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
                      "Seed for the random number generator used to select decoy"
                      " donors. A fixed seed makes results reproducible.");
 
+  defaults_.setValue("min_decoys", 20,
+                     "Minimum number of MBR decoy transfers required before any"
+                     " transferred feature is kept. Transferred features are also"
+                     " dropped whenever the requested 'fdr' cannot be resolved by"
+                     " the available decoys (1/decoys > fdr). When transfers are"
+                     " dropped, only direct identifications are retained. A 'fdr'"
+                     " of 1.0 disables FDR control and keeps all transfers"
+                     " regardless of this value.",
+                     {"advanced"});
+  defaults_.setMinInt("min_decoys", 1);
+
   defaultsToParam_();
 }
 

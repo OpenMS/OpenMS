@@ -73,6 +73,10 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     mz_grid_center(0.5),
     rt_sec_max_window(params.getValue("distance_RT:max_difference")),
     mbr_fdr(params.getValue("fdr")),
+    // setMinInt("min_decoys", 1) guarantees a positive value, so the cast
+    // through int to size_t cannot underflow.
+    min_decoys(static_cast<std::size_t>(
+      static_cast<int>(params.getValue("min_decoys")))),
     rng_(static_cast<std::mt19937::result_type>(
       static_cast<int>(params.getValue("random_seed"))))
 {
@@ -322,7 +326,7 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
     all_acceptors.push_back(acpt);
   }
 
-  PipEcho::Pep pep(all_acceptors);
+  PipEcho::Pep pep(all_acceptors, min_decoys);
   const PipEcho::Pep::group_t& acceptors = pep.run(mbr_fdr);
 
   // Put each acceptor into the correct feature bucket.

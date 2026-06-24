@@ -75,6 +75,10 @@ public:
   /// The FDR to use for the MBR process.
   double mbr_fdr;
 
+  /// Minimum number of MBR decoy transfers required before transferred
+  /// features are kept (the FDR-estimability floor; see Pep::run).
+  std::size_t min_decoys;
+
 private:
   std::string path_from_feature_map(const FeatureMap&);
   bool is_donor_feature(const Feature&);

@@ -86,6 +86,8 @@ START_SECTION([EXTRA] parameter defaults)
   TEST_REAL_SIMILAR(double(p.getValue("fdr")), 0.05)
   // A seed parameter exists so decoy selection is reproducible.
   TEST_EQUAL(p.exists("random_seed"), true)
+  // FDR-estimability floor: transfers are dropped below this many decoys.
+  TEST_EQUAL(int(p.getValue("min_decoys")), 20)
 }
 END_SECTION
 
@@ -110,6 +112,9 @@ START_SECTION((virtual void group(const std::vector<FeatureMap>& features, Conse
 
   PipEchoAlgorithm algo;
   Param param = algo.getParameters();
+  // fdr=1.0 disables FDR control (the escape hatch): all transfers are kept
+  // regardless of how few decoys this tiny input generates, so we can exercise
+  // the transfer-provenance meta values without needing >= min_decoys decoys.
   param.setValue("fdr", 1.0);
   algo.setParameters(param);
 
@@ -158,6 +163,63 @@ START_SECTION((virtual void group(const std::vector<FeatureMap>& features, Conse
                 && (consensus[i].size() == consensus2[i].size());
   }
   TEST_EQUAL(identical, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] conservative fallback drops transfers when the FDR is not estimable)
+{
+  // Same tiny input as above, which generates 0 decoy transfers.  At an FDR
+  // cutoff < 1.0 the transfer FDR cannot be resolved (decoys < min_decoys),
+  // so the conservative fallback must drop ALL transferred features while
+  // keeping every direct identification (donor).
+  vector<Feature> runA = {
+    makeFeature(50.0, 500.00, 2, 1.0e6, "PEPTIDEAAK", 1),
+    makeFeature(80.0, 600.00, 2, 2.0e6, "PEPTIDEBBR", 2),
+    makeFeature(110.0, 700.00, 2, 3.0e6, "PEPTIDECCK", 3),
+    makeFeature(80.0, 600.00, 2, 1.5e6, "", 4) // unidentified
+  };
+  vector<Feature> runB = {
+    makeFeature(51.0, 500.00, 2, 1.1e6, "PEPTIDEAAK", 11),
+    makeFeature(80.5, 600.00, 2, 1.9e6, "", 12), // acceptor near PEPTIDEBBR
+    makeFeature(110.5, 700.00, 2, 2.9e6, "", 13) // acceptor near PEPTIDECCK
+  };
+
+  vector<FeatureMap> maps = {makeRun("runA.mzML", runA),
+                             makeRun("runB.mzML", runB)};
+
+  PipEchoAlgorithm algo;
+  Param param = algo.getParameters();
+  // Use fdr=0.5 so this test is NOT vacuous: with 0 decoys the q-value of both
+  // transfers collapses to 0.5, which the ordinary q-value filter would KEEP
+  // (0.5 <= 0.5). So the only thing that can remove them is the conservative
+  // FDR-estimability gate (0 decoys < min_decoys, and fdr < 1.0). A tighter
+  // cutoff like 0.01 would pass even without the gate, hiding regressions.
+  param.setValue("fdr", 0.5);
+  algo.setParameters(param);
+
+  ConsensusMap consensus;
+  algo.group(maps, consensus);
+
+  // Direct identifications (donors) are retained in full: the three donor
+  // peptide groups (PEPTIDEAAK across both runs, PEPTIDEBBR, PEPTIDECCK) yield
+  // three consensus features with four feature handles total (2 + 1 + 1) and
+  // NOT one transferred handle.  Contrast the escape-hatch run above, where the
+  // two transfers raise the handle count to six -- so this also proves the
+  // transfers were actually dropped, not merely that donors survived.
+  TEST_EQUAL(consensus.empty(), false)
+  TEST_EQUAL(consensus.size(), 3)
+
+  Size handle_count = 0;
+  for (const ConsensusFeature& cf : consensus) { handle_count += cf.size(); }
+  TEST_EQUAL(handle_count, 4)
+
+  // No transferred features survive, so no consensus feature carries the MBR
+  // transfer provenance meta values.
+  for (const ConsensusFeature& cf : consensus)
+  {
+    TEST_EQUAL(cf.metaValueExists("mbr_transfer_map_indices"), false)
+    TEST_EQUAL(cf.metaValueExists("mbr_transfer_qvalues"), false)
+  }
 }
 END_SECTION
 
