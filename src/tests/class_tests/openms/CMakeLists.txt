@@ -55,6 +55,13 @@ endforeach(_class_test)
 # StopWatch_test needs to be run alone to avoid timing errors
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
 
+# PipEchoAlgorithm_realistic_test synthesises ~10k features across 3 runs and
+# drives the LIBSVM-based MBR FDR path over many rounds. It is slow (seconds to
+# minutes) and skips silently unless OPENMS_RUN_SLOW_TESTS is set, so it does
+# not bloat the default CI run. Labelled "slow" so it can be excluded/selected
+# explicitly (e.g. ctest -LE slow) and given a generous timeout for when it runs.
+set_tests_properties(PipEchoAlgorithm_realistic_test PROPERTIES LABELS "slow" TIMEOUT 1800)
+
 # Percolator_subprocess_parity_test runs side-by-side comparisons against the
 # external `percolator` binary. Tests that need it are gated via the
 # PERCOLATOR_BINARY environment variable and skip silently when unset. Search

@@ -540,6 +540,7 @@ set(analysis_executables_list
   FeatureGroupingAlgorithmUnlabeled_test
   FeatureGroupingAlgorithm_test
   PipEchoAlgorithm_test
+  PipEchoAlgorithm_realistic_test
   FeatureHandle_test
   FIAMSDataProcessor_test
   FIAMSScheduler_test
