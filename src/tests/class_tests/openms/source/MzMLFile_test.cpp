@@ -969,6 +969,27 @@ START_SECTION([EXTRA] load xsd:integer types)
 }
 END_SECTION
 
+#ifdef WITH_S3
+START_SECTION([EXTRA] load from s3 gzipped)
+{
+  MzMLFile file;
+  PeakMap exp;
+  // Note: Requires AWS credentials and network access to S3 bucket
+  file.load("s3://jpmstest/MapAlignmentAlgorithmPoseClustering_in1.mzML.gz", exp);
+  TEST_EQUAL(exp.size(), 2035)
+}
+END_SECTION
+
+START_SECTION([EXTRA] load from s3 uncompressed)
+{
+  MzMLFile file;
+  PeakMap exp;
+  // Note: Requires AWS credentials and network access to S3 bucket
+  file.load("s3://jpmstest/BSA1_F1.mzML", exp);
+  TEST_EQUAL(exp.size(), 767)
+}
+END_SECTION
+#endif // WITH_S3
 
 START_SECTION((template <typename MapType> void store(const std::string& filename, const MapType& map) const))
 {

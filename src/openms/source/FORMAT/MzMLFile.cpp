@@ -143,8 +143,20 @@ namespace OpenMS
     map.reset();
 
     //set DocumentIdentifier
-    map.setLoadedFileType(filename);
-    map.setLoadedFilePath(filename);
+    const auto has_prefix = [](const std::string& value, const char* prefix)
+    {
+      return value.rfind(prefix, 0) == 0;
+    };
+    if (has_prefix(filename, "http:") || has_prefix(filename, "https:") || has_prefix(filename, "ftp:") || has_prefix(filename, "s3:"))
+    {
+      map.setLoadedFileType(FileTypes::MZML);
+      map.setLoadedNetFilePath(filename);
+    }
+    else
+    {
+      map.setLoadedFileType(filename);
+      map.setLoadedFilePath(filename);
+    }
 
     Internal::MzMLHandler handler(map, filename, getVersion(), *this);
     handler.setOptions(options_);

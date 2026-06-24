@@ -240,7 +240,6 @@ if (WITH_HDF5)
   find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
 endif()
 
-
 #------------------------------------------------------------------------------
 # libcurl (used for HTTP in OpenMS core; also needed by Apache Arrow 23+)
 find_package(CURL REQUIRED)
@@ -345,6 +344,12 @@ if(ArrowDataset_FOUND)
     # This avoids missing xmlBufferFree at runtime when dataset pushdown is enabled.
     find_package(LibXml2 REQUIRED)
   endif()
+endif()
+
+#------------------------------------------------------------------------------
+# AWS S3
+if (WITH_S3)
+  find_package(AWSSDK REQUIRED COMPONENTS s3)
 endif()
 
 #------------------------------------------------------------------------------

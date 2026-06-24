@@ -9,12 +9,6 @@
 
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR) ## if you change this, also update doc/doxygen/install/install-<OS>.doxygen
 
-# Handle default build type
-get_property(multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(NOT multiConfig AND NOT DEFINED CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
-endif()
-
 project("OpenMS_host" LANGUAGES CXX)
 
 # required for cmake < 3.13 if ccache is used
@@ -57,6 +51,7 @@ option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
+option(WITH_S3 "Build with S3 loading support" OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
 option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
 set(_openms_with_thermo_raw_default ON)
@@ -253,9 +248,6 @@ else()
 	set(OPENMS_64BIT_ARCHITECTURE 0 CACHE INTERNAL "Architecture-bits")
 	message(STATUS "Architecture: 32 bit")
 endif()
-
-# Force build type into the cache (needs to be set beforehand)
-set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 
 #------------------------------------------------------------------------------
 # Project specific compiler flags

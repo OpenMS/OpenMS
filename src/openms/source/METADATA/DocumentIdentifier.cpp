@@ -57,6 +57,13 @@ namespace OpenMS
     }
   }
 
+  void DocumentIdentifier::setLoadedNetFilePath(const std::string & file_name)
+  {
+    // only change the path if we need to, otherwise low and upper case might be altered by Qt, making comparison in tests more tricky
+    // i.e., a call to this will report unmatched strings
+    file_path_ = file_name;
+  }
+
   const std::string & DocumentIdentifier::getLoadedFilePath() const
   {
     return file_path_;
@@ -65,6 +72,11 @@ namespace OpenMS
   void DocumentIdentifier::setLoadedFileType(const std::string & file_name)
   {
     file_type_ = FileHandler::getTypeByContent(file_name);
+  }
+
+  void DocumentIdentifier::setLoadedFileType(FileTypes::Type type)
+  {
+    file_type_ = type;
   }
 
   const FileTypes::Type & DocumentIdentifier::getLoadedFileType() const
@@ -85,4 +97,3 @@ namespace OpenMS
   }
 
 }
-

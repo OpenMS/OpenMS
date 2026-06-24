@@ -84,16 +84,19 @@ namespace OpenMS::Internal
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =std::string("While loading '") + file_ + "': " + msg;
-	      // test if file has the wrong extension and is therefore passed to the wrong parser
-        // only makes sense if we are loading/parsing a file
-	      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
-        FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
-        if (ft_name != ft_content)
+        error_message = std::string("While loading '") + file_ + "': " + msg;
+        if (!StringUtils::hasPrefix(file_, "http://") && !StringUtils::hasPrefix(file_, "https://") && !StringUtils::hasPrefix(file_, "ftp://") && !StringUtils::hasPrefix(file_, "s3://"))
         {
-          error_message +=std::string("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
-                          + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
-                          + "Rename the file to fix this.";
+          // test if file has the wrong extension and is therefore passed to the wrong parser
+          // only makes sense if we are loading/parsing a file
+          FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
+          FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
+          if (ft_name != ft_content)
+          {
+            error_message += std::string("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
+                            + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
+                            + "Rename the file to fix this.";
+          }
         }
       }
       else if (mode == STORE)

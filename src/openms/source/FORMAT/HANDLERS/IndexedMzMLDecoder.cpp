@@ -10,11 +10,20 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
+#ifdef WITH_S3
+#include <OpenMS/FORMAT/DATAACCESS/S3InputSource.h>  // For AwsSdkHelper
+#include <aws/core/Aws.h>
+#include <aws/s3/S3Client.h>
+#include <aws/s3/model/GetObjectRequest.h>
+#include <aws/s3/model/HeadObjectRequest.h>
+#endif
+
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
@@ -23,6 +32,71 @@
 
 namespace OpenMS
 {
+
+#ifdef WITH_S3
+  namespace
+  {
+    /// Helper to parse S3 URI into bucket and key
+    void parseS3Uri(const String& s3uri, std::string& bucket, std::string& key)
+    {
+      std::string uri = s3uri;
+      // Remove "s3://" prefix
+      if (uri.compare(0, 5, "s3://") == 0)
+      {
+        uri = uri.substr(5);
+      }
+      size_t slashPos = uri.find('/');
+      if (slashPos == std::string::npos)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          s3uri, "Invalid S3 URI format: missing '/' after bucket name");
+      }
+      bucket = uri.substr(0, slashPos);
+      key = uri.substr(slashPos + 1);
+      if (bucket.empty() || key.empty())
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          s3uri, "Invalid S3 URI: bucket name or object key is empty");
+      }
+    }
+
+    /// Get the size of an S3 object
+    long long getS3ObjectSize(const Aws::S3::S3Client& client, const std::string& bucket, const std::string& key)
+    {
+      Aws::S3::Model::HeadObjectRequest request;
+      request.SetBucket(bucket);
+      request.SetKey(key);
+      auto outcome = client.HeadObject(request);
+      if (!outcome.IsSuccess())
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "s3://" + bucket + "/" + key);
+      }
+      return outcome.GetResult().GetContentLength();
+    }
+
+    /// Read a byte range from an S3 object into a string
+    std::string readS3Range(const Aws::S3::S3Client& client, const std::string& bucket,
+                            const std::string& key, long long start, long long end)
+    {
+      Aws::S3::Model::GetObjectRequest request;
+      request.SetBucket(bucket);
+      request.SetKey(key);
+      request.SetRange("bytes=" + std::to_string(start) + "-" + std::to_string(end));
+
+      auto outcome = client.GetObject(request);
+      if (!outcome.IsSuccess())
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Failed to read from s3://" + bucket + "/" + key + ": " + outcome.GetError().GetMessage());
+      }
+
+      std::ostringstream ss;
+      ss << outcome.GetResult().GetBody().rdbuf();
+      return ss.str();
+    }
+  }
+#endif
 
   namespace IndexedMzMLUtils
   {
@@ -67,69 +141,102 @@ namespace OpenMS
 
   int IndexedMzMLDecoder::parseOffsets(const std::string& filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
+    std::string buffer_str;
+    long long length = 0;
+
+#ifdef WITH_S3
     //-------------------------------------------------------------
-    // Open file, jump to end and read last indexoffset bytes into buffer.
+    // Handle S3 URIs
     //-------------------------------------------------------------
-    std::ifstream f(filename.c_str());
-    if (!f.is_open())
+    if (filename.rfind("s3://", 0) == 0)
     {
-      if (!File::exists(filename))
+      AwsSdkHelper::initializeAwsSdk();
+
+      std::string bucket, key;
+      parseS3Uri(filename, bucket, key);
+
+      Aws::Client::ClientConfiguration clientConfig;
+      Aws::S3::S3Client s3Client(clientConfig);
+
+      // Get file size
+      length = getS3ObjectSize(s3Client, bucket, key);
+
+      if (indexoffset < 0 || indexoffset > length)
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " <<
+          indexoffset << " (not between 0 and " << length << ")." << std::endl;
+        return -1;
       }
-      else if (!File::readable(filename))
-      {
-        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-      }
-      else
-      {
-        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-      }
+
+      // Read from indexoffset to end of file
+      buffer_str = readS3Range(s3Client, bucket, key, indexoffset, length - 1);
     }
-
-    // get length of file:
-    f.seekg(0, f.end);
-    std::streampos length = f.tellg();
-
-    if (indexoffset < 0 || indexoffset > length)
+    else
+#endif
     {
-      std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " <<
-        indexoffset << " (not between 0 and " << length << ")." << std::endl;
-      return -1;
+      //-------------------------------------------------------------
+      // Open local file, jump to end and read last indexoffset bytes into buffer.
+      //-------------------------------------------------------------
+      std::ifstream f(filename.c_str());
+      if (!f.is_open())
+      {
+        if (!File::exists(filename))
+        {
+          throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        else if (!File::readable(filename))
+        {
+          throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        else
+        {
+          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+      }
+
+      // get length of file:
+      f.seekg(0, f.end);
+      length = f.tellg();
+
+      if (indexoffset < 0 || indexoffset > length)
+      {
+        std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " <<
+          indexoffset << " (not between 0 and " << length << ")." << std::endl;
+        return -1;
+      }
+
+      //-------------------------------------------------------------
+      // Read full end of file to parse offsets for spectra and chroms
+      //-------------------------------------------------------------
+      // read data as a block into a buffer
+
+      // allocate enough memory in buffer (+1 for string termination)
+      std::streampos readl = length - indexoffset;
+      char* buffer = new(std::nothrow) char[readl + std::streampos(1)];
+
+      // catch case where not enough memory is available
+      if (buffer == nullptr)
+      {
+        std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl;
+        std::cerr << "IndexedMzMLDecoder::parseOffsets calculated index offset " << indexoffset << " and file length " << length <<
+          ", consequently tried to read into memory " << readl << " bytes." << std::endl;
+        return -1;
+      }
+
+      // read into memory
+      f.seekg(-readl, f.end);
+      f.read(buffer, readl);
+      buffer[readl] = '\0';
+      buffer_str = buffer;
+      delete[] buffer;
     }
-
-    //-------------------------------------------------------------
-    // Read full end of file to parse offsets for spectra and chroms
-    //-------------------------------------------------------------
-    // read data as a block into a buffer
-
-    // allocate enough memory in buffer (+1 for string termination)
-    std::streampos readl = length - indexoffset;
-    char* buffer = new(std::nothrow) char[readl + std::streampos(1)];
-
-    // catch case where not enough memory is available
-    if (buffer == nullptr)
-    {
-      // Warning: Index takes up more than 10 % of the whole file, please check your input file.\n";
-      std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl;
-      std::cerr << "IndexedMzMLDecoder::parseOffsets calculated index offset " << indexoffset << " and file length " << length <<
-        ", consequently tried to read into memory " << readl << " bytes." << std::endl;
-      return -1;
-    }
-
-    // read into memory
-    f.seekg(-readl, f.end);
-    f.read(buffer, readl);
-    buffer[readl] = '\0';
 
     //-------------------------------------------------------------
     // Add a sane start element and then give it to a DOM parser
     //-------------------------------------------------------------
     // http://stackoverflow.com/questions/4691039/making-xerces-parse-a-string-insted-of-a-file
-    std::string tmp_fixed_xml = "<indexedmzML>" +  std::string(buffer) + "\n";
+    std::string tmp_fixed_xml = "<indexedmzML>" + buffer_str + "\n";
     int res = domParseIndexedEnd_(tmp_fixed_xml, spectra_offsets, chromatograms_offsets);
-
-    delete[] buffer;
 
     return res;
   }
@@ -138,37 +245,64 @@ namespace OpenMS
   {
     // return value
     std::streampos indexoffset = -1;
+    std::string buffer_str;
 
+#ifdef WITH_S3
     //-------------------------------------------------------------
-    // Open file, jump to end and read last n bytes into buffer.
+    // Handle S3 URIs
     //-------------------------------------------------------------
-    std::ifstream f(filename.c_str());
-
-    if (!f.is_open())
+    if (filename.rfind("s3://", 0) == 0)
     {
-      if (!File::exists(filename))
-      {
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-      }
-      else if (!File::readable(filename))
-      {
-        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-      }
-      else
-      {
-        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-      }
-    }
+      AwsSdkHelper::initializeAwsSdk();
 
-    // Read the last few bytes and hope our offset is there to be found
-    std::unique_ptr<char[]> buffer(new char[buffersize + 1]);
-    f.seekg(-buffersize, f.end);
-    f.read(buffer.get(), buffersize);
-    buffer.get()[buffersize] = '\0';
+      std::string bucket, key;
+      parseS3Uri(filename, bucket, key);
+
+      Aws::Client::ClientConfiguration clientConfig;
+      Aws::S3::S3Client s3Client(clientConfig);
+
+      // Get file size
+      long long fileSize = getS3ObjectSize(s3Client, bucket, key);
+
+      // Read the last buffersize bytes
+      long long start = std::max(0LL, fileSize - buffersize);
+      buffer_str = readS3Range(s3Client, bucket, key, start, fileSize - 1);
+    }
+    else
+#endif
+    {
+      //-------------------------------------------------------------
+      // Open local file, jump to end and read last n bytes into buffer.
+      //-------------------------------------------------------------
+      std::ifstream f(filename.c_str());
+
+      if (!f.is_open())
+      {
+        if (!File::exists(filename))
+        {
+          throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        else if (!File::readable(filename))
+        {
+          throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        else
+        {
+          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+      }
+
+      // Read the last few bytes and hope our offset is there to be found
+      std::unique_ptr<char[]> buffer(new char[buffersize + 1]);
+      f.seekg(-buffersize, f.end);
+      f.read(buffer.get(), buffersize);
+      buffer.get()[buffersize] = '\0';
+      buffer_str = buffer.get();
+    }
 
 #ifdef DEBUG_READER
     std::cout << " reading file " << filename  << " with size " << buffersize << '\n';
-    std::cout << buffer << '\n';
+    std::cout << buffer_str << '\n';
 #endif
 
     //-------------------------------------------------------------
@@ -176,8 +310,8 @@ namespace OpenMS
     // indexListOffset and read its content.
     //-------------------------------------------------------------
     boost::regex listoffset_rx(R"(<[^>/]*indexListOffset\s*>\s*(\d*))");
-    boost::cmatch matches;
-    boost::regex_search(buffer.get(), matches, listoffset_rx);
+    boost::smatch matches;
+    boost::regex_search(buffer_str, matches, listoffset_rx);
     std::string thismatch(matches[1].first, matches[1].second);
     if (!thismatch.empty())
     {
@@ -196,7 +330,7 @@ namespace OpenMS
     {
       std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last "
                 << buffersize << " bytes. Maybe this is not a indexedMzML."
-                << buffer.get() << std::endl;
+                << buffer_str << std::endl;
     }
 
     return indexoffset;
