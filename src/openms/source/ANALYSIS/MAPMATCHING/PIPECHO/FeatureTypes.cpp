@@ -14,10 +14,12 @@ namespace OpenMS::PipEcho
 
 /******************************************************************************/
 bool Acceptor::is_donor_compatible(const Donor& donor,
-                                   const Window& window) const
+                                   const Window& window,
+                                   std::optional<double> donor_rt_override) const
 {
+  const double donor_rt = donor_rt_override.value_or(donor.feature.getRT());
   return donor.feature.getCharge() == this->feature.getCharge()
-         && std::fabs(donor.feature.getRT() - this->feature.getRT())
+         && std::fabs(donor_rt - this->feature.getRT())
               <= window.rt_tol
          && std::fabs(donor.feature.getMZ() - this->feature.getMZ())
               <= window.mz_tol;

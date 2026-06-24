@@ -24,7 +24,15 @@ public:
   RunStatistics(const Run&);
 
   /// Score the given donor and acceptor.
-  Score score(const Feature&, const Feature&) const;
+  ///
+  /// For decoy candidates the donor is hypothetically eluting at a randomised
+  /// (wrong) retention time; pass it via @p donor_rt_override so the
+  /// retention-time-difference feature is measured against that randomised RT
+  /// rather than the donor's true RT (PIP-ECHO: the RT feature is the deviation
+  /// from the predicted/randomised RT). Only the RT feature is affected; mass
+  /// error and intensity remain properties of the donor identity / acceptor.
+  Score score(const Feature&, const Feature&,
+              std::optional<double> donor_rt_override = std::nullopt) const;
 
 private:
   // Normal distribution: <mean, stddev>.

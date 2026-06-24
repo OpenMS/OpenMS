@@ -178,9 +178,9 @@ Impl::match_t Impl::find_acceptor_for(const RunStatistics& stats,
   return acceptors.nearby<match_t>(
     index, window.grid_neighbors, match_t {},
     [&](match_t best_match, AcceptorMap::value_type acceptor) -> match_t {
-      if (acceptor->is_donor_compatible(donor, window))
+      if (acceptor->is_donor_compatible(donor, window, rt_override))
       {
-        Score score(stats.score(donor.feature, acceptor->feature));
+        Score score(stats.score(donor.feature, acceptor->feature, rt_override));
 
         if (! best_match.has_value()
             || best_match->first.mbr_score < score.mbr_score)

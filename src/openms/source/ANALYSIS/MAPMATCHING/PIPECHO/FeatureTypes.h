@@ -101,7 +101,12 @@ struct Acceptor : FeatureRef
   Acceptor(const FeatureRef& peak): FeatureRef(peak.map_index, peak.feature) {};
 
   /// Check if a Donor matches this Acceptor.
-  bool is_donor_compatible(const Donor&, const Window&) const;
+  ///
+  /// For decoy matches the donor is hypothetically eluting at a randomised
+  /// (wrong) retention time; pass it via @p donor_rt_override so the RT
+  /// tolerance is judged against that decoy RT rather than the donor's true RT.
+  bool is_donor_compatible(const Donor&, const Window&,
+                           std::optional<double> donor_rt_override = std::nullopt) const;
 
   /// Add a donor.
   void push_back(const Score&, std::shared_ptr<const Donor>, DonorType);

@@ -106,10 +106,15 @@ RunStatistics::normal_t RunStatistics::init_mass_error(const Run& run) const
 }
 
 /******************************************************************************/
-Score RunStatistics::score(const Feature& donor, const Feature& acceptor) const
+Score RunStatistics::score(const Feature& donor, const Feature& acceptor,
+                           std::optional<double> donor_rt_override) const
 {
+  // For decoys the RT difference is measured against the randomised RT anchor,
+  // not the donor's true RT (otherwise decoys carry an artificially huge RT
+  // error and the classifier separates them trivially -- a label leak).
+  const double donor_rt = donor_rt_override.value_or(donor.getRT());
   Score s = {.intensity = calc_intensity_score(acceptor),
-             .rt_diff_error = std::fabs(acceptor.getRT() - donor.getRT()),
+             .rt_diff_error = std::fabs(acceptor.getRT() - donor_rt),
              .mass_error = calc_mass_error_score(donor, acceptor),
              .mbr_score = MIN_SCORE};
 
