@@ -88,10 +88,11 @@
 	@brief File IO classes.
 
 	This module contains all classes that are involved in file IO.
-	Take a look at the FileHandler class!
-
-	@todo Implement reading of pepXML and protXML (Andreas)
-	@todo Allow reading of zipped XML files (David, Hiwi)
+	The FileHandler class provides auto-detection of file types and unified load/store.
+	Use the FileInfo class for programmatic inspection of any supported file
+	(equivalent to the @ref TOPP_FileInfo command-line tool, and usable from pyOpenMS).
+	Compressed inputs (.gz, .bz2, .zip) are transparently decompressed for all
+	XML-based formats (mzML, idXML, featureXML, etc.).
 
 	@ingroup Format
 */
@@ -111,6 +112,11 @@
 /**
 	@defgroup Chemistry Chemistry
 
+	@brief Molecular chemistry classes.
+
+	Contains residue and modification databases (ResidueDB, ModificationsDB), amino-acid
+	and nucleic-acid sequence types (AASequence, NASequence), and physicochemical property
+	calculators such as IsoelectricPoint (pI / charge-at-pH via multiple pKa scales).
 */
 
 // ----------------------------- SpectraComparison -------------------------------

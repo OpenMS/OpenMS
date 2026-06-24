@@ -1718,7 +1718,15 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .export_values();
 
     // ProteomicsPkaScale enum (namespace-scoped, used by IsoelectricPoint)
-    nb::enum_<OpenMS::ProteomicsPkaScale>(m, "ProteomicsPkaScale", nb::is_arithmetic())
+    nb::enum_<OpenMS::ProteomicsPkaScale>(m, "ProteomicsPkaScale", nb::is_arithmetic(),
+        R"doc(pKa scale for isoelectric-point / net-charge calculations.
+
+Available scales:
+  - LEHNINGER  : Nelson & Cox, Lehninger Principles of Biochemistry (default)
+  - EMBOSS     : EMBOSS pepstats scale
+  - SILLERO    : Sillero & Ribeiro (1989) scale
+  - BJELLQVIST : Bjellqvist (1993) scale with N-terminal-residue-dependent pKa values
+)doc")
         .value("LEHNINGER", OpenMS::ProteomicsPkaScale::LEHNINGER)
         .value("EMBOSS", OpenMS::ProteomicsPkaScale::EMBOSS)
         .value("SILLERO", OpenMS::ProteomicsPkaScale::SILLERO)
@@ -1727,19 +1735,32 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
 
     // IsoelectricPoint
     auto isoelectricpoint_class = nb::class_<OpenMS::IsoelectricPoint>(m, "IsoelectricPoint",
-        "Utility class for computing isoelectric point (pI) and net charge of peptides")
+        R"doc(Utility class for computing the isoelectric point (pI) and net charge of peptides.
+
+Computes the Henderson-Hasselbalch net charge at any pH and finds the pI by
+bisection in the range [0, 14]. Four pKa scales are supported via
+ProteomicsPkaScale (LEHNINGER, EMBOSS, SILLERO, BJELLQVIST); the Bjellqvist
+scale uses per-N-terminal-residue pKa values.
+
+Example::
+
+    seq = IsoelectricPoint.computeCharge(AASequence.fromString("PEPTIDE"), 7.0)
+    pi  = IsoelectricPoint.computePI(AASequence.fromString("PEPTIDE"))
+    pi_sillero = IsoelectricPoint.computePI(
+        AASequence.fromString("PEPTIDE"), ProteomicsPkaScale.SILLERO)
+)doc")
         .def_static("computeCharge",
             [](const OpenMS::AASequence& seq, double pH, OpenMS::ProteomicsPkaScale scale) {
                 return OpenMS::IsoelectricPoint::computeCharge(seq, pH, scale);
             },
             "seq"_a, "pH"_a, "scale"_a = OpenMS::ProteomicsPkaScale::LEHNINGER,
-            "Computes the net charge of an amino acid sequence at a given pH")
+            "Computes the net charge of an amino acid sequence at a given pH using Henderson-Hasselbalch.")
         .def_static("computePI",
             [](const OpenMS::AASequence& seq, OpenMS::ProteomicsPkaScale scale, double tolerance) {
                 return OpenMS::IsoelectricPoint::computePI(seq, scale, tolerance);
             },
             "seq"_a, "scale"_a = OpenMS::ProteomicsPkaScale::LEHNINGER, "tolerance"_a = 1e-4,
-            "Computes the isoelectric point (pI) of an amino acid sequence via bisection")
+            "Computes the isoelectric point (pI) via bisection; returns the pH in [0,14] where net charge ≈ 0.")
         ;
 
     // -----------------------------------------------------------------------
