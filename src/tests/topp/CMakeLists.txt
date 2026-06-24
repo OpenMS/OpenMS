@@ -2390,6 +2390,11 @@ add_test("TOPP_TextExporter_9" ${TOPP_BIN_PATH}/TextExporter -test -in ${DATA_DI
 add_test("TOPP_TextExporter_9_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/TextExporter_9_output.tmp.txt -in2 ${DATA_DIR_TOPP}/TextExporter_9_output.txt )
 set_tests_properties("TOPP_TextExporter_9_out1" PROPERTIES DEPENDS "TOPP_TextExporter_9")
 
+# USI column: ms_run resolved from the protein run's spectra_data (not the per-peptide base_name)
+add_test("TOPP_TextExporter_10" ${TOPP_BIN_PATH}/TextExporter -test -in ${DATA_DIR_TOPP}/TextExporter_10_input.idXML -no_progress -out ${TESTS_TEMP_DIR}/TextExporter_10_output.tmp.txt -id:add_usi -id:usi_dataset_id PXD000001)
+add_test("TOPP_TextExporter_10_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/TextExporter_10_output.tmp.txt -in2 ${DATA_DIR_TOPP}/TextExporter_10_output.txt )
+set_tests_properties("TOPP_TextExporter_10_out1" PROPERTIES DEPENDS "TOPP_TextExporter_10")
+
 #------------------------------------------------------------------------------
 # FeatureLinker tests
 # "labeled" algorithm:
