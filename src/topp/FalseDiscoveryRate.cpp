@@ -237,20 +237,30 @@ protected:
 
       if (psm_level_fdr || peptide_level_fdr)
       {
-        fdr.apply(pep_ids, peptide_level_fdr);
-        // TODO If no decoys are removed in the param settings, we shouldn't need cleanups
-        //  but then all tests need to be changed since cleanup sorts.
-        //if (alg_param.getValue("add_decoy_peptides").toBool())
-        //{
-        //  filter_applied = true;
-        //}
-        filter_applied = true;
-        
-        if (psm_fdr < 1)
+        // use LOH-accelerated combined FDR+filter when only PSM-level FDR with filtering is requested (avoids sorting non-passing elements)
+        if (psm_level_fdr && !peptide_level_fdr && psm_fdr < 1)
         {
+          OPENMS_LOG_INFO << "FDR control: Computing PSM FDR and filtering (LOH-accelerated)..." << endl;
+          fdr.applyBasicAndFilter(pep_ids, psm_fdr);
           filter_applied = true;
-          OPENMS_LOG_INFO << "FDR control: Filtering PSMs..." << endl;
-          IDFilter::filterHitsByScore(pep_ids, psm_fdr);
+        }
+        else
+        {
+          fdr.apply(pep_ids, peptide_level_fdr);
+          // TODO If no decoys are removed in the param settings, we shouldn't need cleanups
+          //  but then all tests need to be changed since cleanup sorts.
+          //if (alg_param.getValue("add_decoy_peptides").toBool())
+          //{
+          //  filter_applied = true;
+          //}
+          filter_applied = true;
+
+          if (psm_fdr < 1)
+          {
+            filter_applied = true;
+            OPENMS_LOG_INFO << "FDR control: Filtering PSMs..." << endl;
+            IDFilter::filterHitsByScore(pep_ids, psm_fdr);
+          }
         }
       }
     }

@@ -131,6 +131,19 @@ public:
 
     /// simpler reimplementation of the apply function above for PSMs or peptides.
     void applyBasic(PeptideIdentificationList & ids, bool higher_score_better, int charge = 0, std::string identifier = "", bool only_best_per_pep = false);
+
+    /**
+      @brief Compute FDR and filter in one step using layer-ordered heap
+
+      uses LOH to quickly determine which PSMs pass the FDR threshold without fully sorting, then sorts only the passing elements to compute their FDR/q-value scores, non-passing hits are removed
+
+      faster than applyBasic + IDFilter::filterHitsByScore for large datasets when most elements will be filtered out
+
+      @param[in,out] ids Peptide identifications, modified in-place
+      @param[in] fdr_threshold FDR threshold (e.g., 0.01 for 1% FDR)
+    */
+    void applyBasicAndFilter(PeptideIdentificationList& ids, double fdr_threshold);
+
     /// like applyBasic with "only_best_per_peptide" but it assigns a score to EVERY PSM sharing the peptide sequence with the
     /// best representative. Useful if all hits need to have a peptide score (e.g., for mzTab report). No support for specific charges, runs etc. yet
     void applyBasicPeptideLevel(PeptideIdentificationList & ids);
@@ -251,6 +264,12 @@ private:
 
     /// calculates the trapezoidal area for a trapezoid with a flat horizontal base e.g. for an AUC
     double trapezoidal_area(double x1, double x2, double y1, double y2) const;
+
+    /// LOH-based FDR+filter on raw score-label pairs, returns number of passing elements
+    static size_t computeFDRAndFilter_(ScoreToTgtDecLabelPairs& scores_labels,
+                                       bool higher_score_better,
+                                       double fdr_threshold,
+                                       bool conservative);
   };
 
 } // namespace OpenMS
