@@ -1807,7 +1807,7 @@ START_SECTION([EXTRA] AASequence materialization from UniPEFF output -- what a t
   AASequence raw = e1.getSequence();
   TEST_EQUAL(raw.size(), 100)
   TEST_EQUAL(raw.toUnmodifiedString(), e1.sequence)
-  TEST_EQUAL(raw.isModified(), false)
+  TEST_FALSE(raw.isModified())
 
   // Modified sequence: same residue count, at least one PTM resolved against the
   // global ModificationsDB. UNIMOD:34 (Methyl) at position 60 lands on Leu, which
@@ -1815,12 +1815,12 @@ START_SECTION([EXTRA] AASequence materialization from UniPEFF output -- what a t
   AASequence mod_seq = e1.getModifiedSequence();
   TEST_EQUAL(mod_seq.size(), 100)
   TEST_EQUAL(mod_seq.toUnmodifiedString(), e1.sequence)
-  TEST_EQUAL(mod_seq.isModified(), true)
-  TEST_EQUAL(mod_seq[59].isModified(), true)              // L60 -> index 59
+  TEST_TRUE(mod_seq.isModified())
+  TEST_TRUE(mod_seq[59].isModified())              // L60 -> index 59
   TEST_EQUAL(mod_seq[59].getOneLetterCode(), "L")
-  TEST_EQUAL(mod_seq.getMonoWeight() > raw.getMonoWeight(), true)
+  TEST_TRUE(mod_seq.getMonoWeight() > raw.getMonoWeight())
   // Precursor mass must reflect at least one Methyl group (+14.01565 Da).
-  TEST_EQUAL(mod_seq.getMonoWeight() - raw.getMonoWeight() >= 14.0, true)
+  TEST_TRUE(mod_seq.getMonoWeight() - raw.getMonoWeight() >= 14.0)
 
   // PEFF "?" (unknown) positions land in PEFFModification::position == 0 and must be
   // silently skipped by getModifiedSequence (top-down engines can't place them).
@@ -1842,7 +1842,7 @@ START_SECTION([EXTRA] AASequence materialization from UniPEFF output -- what a t
   AASequence mod2 = e2.getModifiedSequence();
   TEST_EQUAL(raw2.size(), 31)
   TEST_EQUAL(mod2.size(), 31)
-  TEST_EQUAL(mod2.isModified(), false)
+  TEST_FALSE(mod2.isModified())
   TEST_REAL_SIMILAR(raw2.getMonoWeight(), mod2.getMonoWeight())
 
   // ---- Controlled regression: a programmatic entry whose modification position
@@ -1855,7 +1855,7 @@ START_SECTION([EXTRA] AASequence materialization from UniPEFF output -- what a t
   AASequence ref = crafted.getSequence();
   AASequence with_phos = crafted.getModifiedSequence();
   TEST_EQUAL(with_phos.size(), 8)
-  TEST_EQUAL(with_phos[7].isModified(), true)
+  TEST_TRUE(with_phos[7].isModified())
   // Phospho mono delta is 79.966331 Da; full-protein mass increases by that amount.
   TEST_REAL_SIMILAR(with_phos.getMonoWeight() - ref.getMonoWeight(), 79.966331)
 }
@@ -2141,7 +2141,7 @@ START_SECTION([EXTRA] proteoform enumeration -- exact ProForma strings for a rea
   AASequence mature_chain = full.getProcessedSequence("PEFF:0001020");
   TEST_EQUAL(mature_chain.size(), 21)
   TEST_EQUAL(mature_chain.toString(), "KARGSPKERLAPTDVMGNECS")
-  TEST_EQUAL(mature_chain.isModified(), false)  // chain extraction strips mods (caller re-applies)
+  TEST_FALSE(mature_chain.isModified())  // chain extraction strips mods (caller re-applies)
 
   // ---- Total proteoforms verified by this section ----
   //   BLOCK A (REF_TABLE)  : 32  (every 5-bit mod combination)
