@@ -411,16 +411,12 @@ namespace OpenMS
 
   // Resolve the MS run file name (basename) for a peptide's USI from the protein
   // run's 'spectra_data' (selected per identification via the merge index in @p mapper).
-  // Falls back to a per-ID base_name when no run path is available (some pepXML-derived
-  // inputs set base_name but not spectra_data); idXML/consensusXML set neither otherwise.
+  // When the run path cannot be mapped, getPrimaryMSRunPath() itself falls back to a
+  // legacy per-ID 'base_name' meta value (some pepXML-derived inputs set base_name but
+  // not spectra_data); idXML/consensusXML set neither otherwise.
   std::string resolveUSIMSRun(const IdentifierMSRunMapper& mapper, const PeptideIdentification& pid)
   {
-    std::string ms_run_path = mapper.getPrimaryMSRunPath(pid);
-    if (ms_run_path.empty())
-    {
-      ms_run_path = pid.getBaseName();
-    }
-    return USI::extractBasename(ms_run_path);
+    return USI::extractBasename(mapper.getPrimaryMSRunPath(pid));
   }
 
   // write the header for peptide data

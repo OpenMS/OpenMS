@@ -1093,7 +1093,6 @@ namespace OpenMS
 
     if (element == "msms_run_summary") // parent: "msms_pipeline_analysis"
     {
-      std::string ms_run_path;
       if (!exp_name_.empty())
       {
         std::string base_name = attributeAsString_(attributes, "base_name");
@@ -1110,11 +1109,6 @@ namespace OpenMS
           wrong_experiment_ = false;
           checked_base_name_ = false;
         }
-        std::string raw_data = attributeAsString_(attributes, "raw_data");
-        if (!base_name.empty() && !raw_data.empty())
-        {
-          ms_run_path = base_name + "." + raw_data;
-        }
       }
       if (wrong_experiment_) return;
 
@@ -1125,11 +1119,8 @@ namespace OpenMS
       enzyme_ = "unknown_enzyme";
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
+      // the primary MS run path is recorded in "search_summary" (from its base_name)
       proteins_->push_back(protein);
-      if (!ms_run_path.empty())
-      {
-        protein.setPrimaryMSRunPath(StringList(1, ms_run_path));
-      }
       current_proteins_.clear();
       current_proteins_.push_back(--proteins_->end());
     }
@@ -1379,7 +1370,8 @@ namespace OpenMS
       current_peptide_ = PeptideIdentification();
       current_peptide_.setRT(rt_);
       current_peptide_.setMZ(mz_);
-      current_peptide_.setBaseName(current_base_name_);
+      // Note: the source MS run is recorded on the ProteinIdentification of this run
+      // (see "search_summary"); PeptideIdentifications are linked to it via the identifier.
 
       search_id_ = 1; // default if attr. is missing (ref. to "search_summary")
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
@@ -1909,6 +1901,21 @@ namespace OpenMS
       }
       prot_it->setSearchEngine(search_engine_);
       prot_it->setIdentifier(prot_id_);
+
+      // Record the source MS run on the ProteinIdentification. This is the "new" mechanism
+      // that replaces the (removed) per-PeptideIdentification base_name: "current_base_name_"
+      // is this search_summary's base_name attribute, i.e. the exact value that used to be
+      // stored on every PeptideIdentification of this run. PeptideIdentifications resolve it
+      // via their shared identifier (see IdentifierMSRunMapper).
+      if (!current_base_name_.empty())
+      {
+        StringList existing_ms_run_paths;
+        prot_it->getPrimaryMSRunPath(existing_ms_run_paths);
+        if (existing_ms_run_paths.empty())
+        {
+          prot_it->setPrimaryMSRunPath(StringList(1, current_base_name_));
+        }
+      }
     }
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!

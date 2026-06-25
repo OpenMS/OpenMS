@@ -2290,12 +2290,6 @@ Returns the identifier linking to the parent ProteinIdentification
 :return: Unique identifier string
 Use this to find the corresponding ProteinIdentification with search parameters
 )doc")
-        .def("getBaseName", [](const OpenMS::PeptideIdentification& self) { return self.getBaseName(); }, 
-            R"doc(
-Sets the retention time of the precursor
-:param rt: Retention time in seconds
-)doc")
-        .def("setBaseName", [](OpenMS::PeptideIdentification& self, const std::string& base_name) { return self.setBaseName(base_name); }, "base_name"_a)
         .def("getExperimentLabel", [](const OpenMS::PeptideIdentification& self) { return self.getExperimentLabel(); })
         .def("setExperimentLabel", [](OpenMS::PeptideIdentification& self, const std::string& type) { return self.setExperimentLabel(type); }, "type"_a)
         .def("getSpectrumReference", [](const OpenMS::PeptideIdentification& self) { return self.getSpectrumReference(); }, 

@@ -52,31 +52,33 @@ namespace OpenMS
   {
     const std::string& identifier = pepid.getIdentifier();
     auto it = identifier_to_msrunpath_.find(identifier);
-    if (it == identifier_to_msrunpath_.end())
+    if (it != identifier_to_msrunpath_.end() && !it->second.empty())
     {
-      return std::string();
+      const StringList& ms_run_paths = it->second;
+
+      // Determine which file to use (default to index 0)
+      Size merge_index = 0;
+      if (pepid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+      {
+        merge_index = static_cast<Size>(pepid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX));
+      }
+
+      if (merge_index < ms_run_paths.size())
+      {
+        return ms_run_paths[merge_index];
+      }
     }
 
-    const StringList& ms_run_paths = it->second;
-    if (ms_run_paths.empty())
+    // Legacy fallback: data read from older idXML files or other formats may annotate
+    // the source file directly on the PeptideIdentification via the (deprecated) "base_name"
+    // meta value, instead of via the ProteinIdentification's primary MS run path. Honor it so
+    // that such files keep resolving to a source run after the removal of base_name accessors.
+    if (pepid.metaValueExists(Constants::UserParam::BASE_NAME))
     {
-      return std::string();
+      return StringUtils::toStr(pepid.getMetaValue(Constants::UserParam::BASE_NAME));
     }
 
-    // Determine which file to use (default to index 0)
-    Size merge_index = 0;
-    if (pepid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
-    {
-      merge_index = static_cast<Size>(pepid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX));
-    }
-
-    // Check if index is valid
-    if (merge_index >= ms_run_paths.size())
-    {
-      return std::string(); // Invalid index
-    }
-
-    return ms_run_paths[merge_index];
+    return std::string();
   }
 
   bool IdentifierMSRunMapper::hasIdentifier(const std::string& identifier) const

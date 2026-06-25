@@ -208,6 +208,25 @@ START_SECTION((std::string getPrimaryMSRunPath(const PeptideIdentification& pepi
 }
 END_SECTION
 
+START_SECTION([EXTRA] getPrimaryMSRunPath legacy base_name fallback)
+{
+  IdentifierMSRunMapper m(makeProtIds());
+
+  // Backwards compatibility: a PeptideIdentification whose identifier is not in the mapping
+  // but which carries the (deprecated) "base_name" meta value resolves to that base name.
+  PeptideIdentification pep_legacy;
+  pep_legacy.setIdentifier("DOES_NOT_EXIST");
+  pep_legacy.setMetaValue(Constants::UserParam::BASE_NAME, "legacy_run.mzML");
+  TEST_STRING_EQUAL(m.getPrimaryMSRunPath(pep_legacy), "legacy_run.mzML")
+
+  // The primary MS run path from the mapping takes precedence over a legacy base_name.
+  PeptideIdentification pep_both;
+  pep_both.setIdentifier("ID_A");
+  pep_both.setMetaValue(Constants::UserParam::BASE_NAME, "legacy_run.mzML");
+  TEST_STRING_EQUAL(m.getPrimaryMSRunPath(pep_both), "/data/runA.mzML")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
