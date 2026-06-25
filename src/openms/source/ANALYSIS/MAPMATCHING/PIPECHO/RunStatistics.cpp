@@ -38,9 +38,10 @@ double bound(double d)
 /******************************************************************************/
 // NOTE: A lot of this code needs to collect statistics about
 // *identified* features, which we call donors.
-RunStatistics::RunStatistics(const Run& run):
+RunStatistics::RunStatistics(const Run& run, bool enable_im):
     log_intensity(init_log_intensity(run)),
-    mass_error(init_mass_error(run))
+    mass_error(init_mass_error(run)),
+    im_tolerance(init_im_tolerance(run, enable_im))
 {
 }
 
@@ -106,6 +107,39 @@ RunStatistics::normal_t RunStatistics::init_mass_error(const Run& run) const
 }
 
 /******************************************************************************/
+RunStatistics::normal_t RunStatistics::init_im_tolerance(const Run& run, bool enable_im) const
+{
+  // Ion mobility is enabled globally (all runs) or not at all; when disabled,
+  // build no tolerance so the IM feature is omitted from every run's scores.
+  if (! enable_im) return {};
+
+  // Derive an ion-mobility tolerance from the data, using the IM elution
+  // width (IM_max - IM_min) of identified features as a proxy for the scale on
+  // which the same ion's mobility may vary. Half the typical width is used as
+  // the standard deviation of a zero-mean tolerance distribution. When the run
+  // carries no ion mobility (no widths), this returns nullopt and the IM
+  // feature is silently dropped.
+  std::vector<double> widths;
+  widths.reserve(run.donors.storage.size());
+
+  for (auto& donor : run.donors.storage)
+  {
+    auto w = Util::feature_im_width(donor->feature);
+    if (w.has_value()) widths.push_back(*w);
+  }
+
+  if (widths.size() < 2) return {};
+
+  // Use the median width directly (Math::median is well-defined for >= 2
+  // values, unlike Math::SummaryStatistics whose quantiles hit an empty
+  // sub-range at exactly 2 elements).
+  double stddev = Math::median(widths.begin(), widths.end(), false) / 2.0;
+
+  if (stddev <= 0) return {}; // Guard.
+  return boost::math::normal(0.0, stddev);
+}
+
+/******************************************************************************/
 Score RunStatistics::score(const Feature& donor, const Feature& acceptor,
                            std::optional<double> donor_rt_override) const
 {
@@ -116,16 +150,25 @@ Score RunStatistics::score(const Feature& donor, const Feature& acceptor,
   Score s = {.intensity = calc_intensity_score(acceptor),
              .rt_diff_error = std::fabs(acceptor.getRT() - donor_rt),
              .mass_error = calc_mass_error_score(donor, acceptor),
+             .im_diff_score = -1.0, // sentinel: ion mobility not applicable
              .mbr_score = MIN_SCORE};
 
-  // IMPORTANT: This is the number of individual scores that are
-  // multiplied below.  Please update this if you change the
-  // following call to `std::pow`.
-  const static double measures = 3.0;
+  // The MBR bootstrap score is the geometric mean of the individual feature
+  // scores. Ion mobility is an optional 4th feature, included only when the
+  // data carries it (e.g. timsTOF/.d) -- then the geometric mean becomes a
+  // 4th root instead of a cube root. `measures` tracks how many scores are
+  // multiplied below; keep it in sync with the product.
+  double product = s.intensity * s.rt_diff_error * s.mass_error;
+  double measures = 3.0;
 
-  s.mbr_score = bound(
-    100.0
-    * std::pow(s.intensity * s.rt_diff_error * s.mass_error, 1.0 / measures));
+  if (auto im = calc_im_score(donor, acceptor); im.has_value())
+  {
+    s.im_diff_score = *im;
+    product *= *im;
+    measures += 1.0;
+  }
+
+  s.mbr_score = bound(100.0 * std::pow(product, 1.0 / measures));
 
   return s;
 }
@@ -147,6 +190,30 @@ double RunStatistics::calc_mass_error_score(const Feature& donor,
   if (! donor_hit.has_value()) return MIN_SCORE;
   double theoretical = donor_hit->getSequence().getMZ(donor_hit->getCharge());
   return calc_score_using(mass_error, Math::getPPM(acceptor.getMZ(), theoretical));
+}
+
+/******************************************************************************/
+std::optional<double>
+RunStatistics::calc_im_score(const Feature& donor, const Feature& acceptor) const
+{
+  // Not applicable: ion mobility is globally disabled (no tolerance was built),
+  // so the IM feature is omitted from the geometric mean for EVERY pair.
+  if (! im_tolerance.has_value()) return std::nullopt;
+
+  auto donor_im = Util::feature_ion_mobility(donor);
+  auto acceptor_im = Util::feature_ion_mobility(acceptor);
+
+  // IM is globally enabled but one of these features lacks an IM annotation
+  // (anomalous in IM data). Penalise with MIN_SCORE rather than dropping the
+  // feature, so `measures` (and the SVM IM column) stay consistent across all
+  // pairs -- a per-pair drop would put this acceptor's mbr_score on a different
+  // scale than its peers and desync the global use_im decision in Pep.
+  if (! donor_im.has_value() || ! acceptor_im.has_value()) return MIN_SCORE;
+
+  // Score the IM difference under the zero-mean tolerance: a small difference
+  // (same ion) scores near 1, a large one decays towards MIN_SCORE. Reuses the
+  // two-tailed CDF helper (mean 0 => 2 * cdf(N(0, sigma), -|delta|)).
+  return calc_score_using(im_tolerance, *acceptor_im - *donor_im);
 }
 
 /******************************************************************************/

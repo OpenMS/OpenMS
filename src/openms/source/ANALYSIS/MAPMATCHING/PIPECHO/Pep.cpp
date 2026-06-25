@@ -56,7 +56,8 @@ public:
    */
   predictors_t(double cutoff,
                std::function<double(const Pep::acceptor_t&)> get,
-               std::function<bool(double, double)> cmp);
+               std::function<bool(double, double)> cmp,
+               bool use_im);
 
   /**
    * Train the model with the given data.
@@ -88,6 +89,7 @@ private:
   double cutoff;
   std::function<double(const Pep::acceptor_t&)> getter;
   std::function<bool(double, double)> cmp;
+  bool use_im;
   std::size_t index = 0;
 
   SimpleSVM svm;
@@ -116,6 +118,15 @@ Pep::Pep(const std::vector<std::shared_ptr<Acceptor>>& acceptors,
     push_acceptor(*acceptor, acceptor->target, DonorType::Target);
     push_acceptor(*acceptor, acceptor->decoy, DonorType::Decoy);
   }
+
+  // Ion mobility is used as an SVM feature only when the whole experiment
+  // carries it -- i.e. every acceptor has a valid (non-negative) IM score.
+  // This keeps the SVM predictor columns rectangular (mixed inputs fall back
+  // to the ion-mobility-free feature set).
+  use_im_ = ! acceptors_.empty()
+            && std::ranges::all_of(acceptors_, [](const acceptor_ptr_t& a) {
+                 return a->score.im_diff_score >= 0.0;
+               });
 }
 
 /******************************************************************************/
@@ -402,7 +413,7 @@ bool Pep::train_predict(const group_t& training,
                         std::function<double(const acceptor_t&)> get,
                         std::function<bool(double, double)> cmp)
 {
-  predictors_t predictors(cutoff, get, cmp);
+  predictors_t predictors(cutoff, get, cmp, use_im_);
   if (! predictors.train(training)) return false;
   return predictors.predict(predict);
 }
@@ -471,10 +482,12 @@ void Pep::correct_qvalues()
 /******************************************************************************/
 predictors_t::predictors_t(double cutoff,
                            std::function<double(const Pep::acceptor_t&)> get,
-                           std::function<bool(double, double)> cmp):
+                           std::function<bool(double, double)> cmp,
+                           bool use_im):
     cutoff(cutoff),
     getter(get),
-    cmp(cmp)
+    cmp(cmp),
+    use_im(use_im)
 {
   Param svm_param = svm.getParameters();
 
@@ -554,6 +567,12 @@ void predictors_t::encode(const Pep::acceptor_t& acceptor,
   predictors["intensity"].push_back(acceptor.score.intensity);
   predictors["rt_diff_error"].push_back(acceptor.score.rt_diff_error);
   predictors["mass_error"].push_back(acceptor.score.mass_error);
+  // Ion mobility is added as a predictor only when used experiment-wide, so the
+  // predictor columns stay equal-length (required by SimpleSVM).
+  if (use_im)
+  {
+    predictors["im_diff_score"].push_back(acceptor.score.im_diff_score);
+  }
   predictors["mbr_score"].push_back(acceptor.score.mbr_score);
 
   if (create_labels)

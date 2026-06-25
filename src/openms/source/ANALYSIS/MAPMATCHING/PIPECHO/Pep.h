@@ -118,6 +118,12 @@ private:
 
   /// FDR-estimability floor (see run()).
   std::size_t min_decoys_;
+
+  /// Whether ion mobility is used as an SVM feature. Ion mobility is an
+  /// all-or-nothing property of the acquisition, so this is true only when
+  /// *every* acceptor carries a valid IM score; that keeps the SVM predictor
+  /// columns rectangular (SimpleSVM requires equal-length predictor vectors).
+  bool use_im_ = false;
 };
 
 } // namespace OpenMS::PipEcho

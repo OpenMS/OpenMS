@@ -21,7 +21,12 @@ class RunStatistics
 {
 public:
   /// Generate statistics for the given Run object.
-  RunStatistics(const Run&);
+  ///
+  /// @param enable_im Whether ion mobility is used as a scoring feature. This
+  /// is a global, all-or-nothing decision made by the caller across all runs
+  /// (so the geometric-mean MBR score stays on one scale); when false, no IM
+  /// tolerance is built and the IM feature is omitted everywhere.
+  RunStatistics(const Run&, bool enable_im);
 
   /// Score the given donor and acceptor.
   ///
@@ -43,9 +48,20 @@ private:
 
   normal_t init_log_intensity(const Run&) const;
   normal_t init_mass_error(const Run&) const;
+  normal_t init_im_tolerance(const Run&, bool enable_im) const;
   double calc_score_using(const normal_t&, double) const;
   double calc_intensity_score(const Feature&) const;
   double calc_mass_error_score(const Feature& donor, const Feature& acceptor) const;
+
+  /// Ion-mobility agreement score for a donor/acceptor pair.
+  ///
+  /// Returns nullopt when ion mobility is not applicable -- the run carries no
+  /// ion-mobility data, or either feature lacks an IM annotation -- so the
+  /// caller can omit the feature entirely (rather than penalise the score).
+  /// Otherwise returns a value in [0, 1] (1 = identical mobility). For decoys
+  /// the donor's real IM is used (IM is independent of the randomised decoy
+  /// RT), mirroring the mass-error feature.
+  std::optional<double> calc_im_score(const Feature& donor, const Feature& acceptor) const;
 
 private:
   // Log intensity distribution.
@@ -53,6 +69,10 @@ private:
 
   // Mass error (PPM) distribution.
   normal_t mass_error;
+
+  // Ion-mobility tolerance, modelled as a half-normal centred at 0 (a zero-mean
+  // normal scored two-tailed). Present only when the run carries ion mobility.
+  normal_t im_tolerance;
 };
 
 } // namespace OpenMS::PipEcho

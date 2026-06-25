@@ -40,6 +40,25 @@ std::optional<double> feature_mass_error(const Feature&);
 
 /******************************************************************************/
 /**
+ * Return the feature's ion-mobility value (e.g. 1/K0), or nullopt if the
+ * feature carries no ion-mobility annotation.
+ *
+ * Reads the "IM_median" meta value written by FeatureFinderIdentification
+ * (and kept through ProteomicsLFQ), falling back to the generic
+ * Constants::UserParam::IM key used by other detectors (e.g. Biosaur2).
+ */
+std::optional<double> feature_ion_mobility(const Feature&);
+
+/******************************************************************************/
+/**
+ * Return the feature's ion-mobility spread, i.e. "IM_max" - "IM_min", or
+ * nullopt if those annotations are absent or non-positive. Used to derive a
+ * data-driven ion-mobility tolerance.
+ */
+std::optional<double> feature_im_width(const Feature&);
+
+/******************************************************************************/
+/**
  * Function object that wraps around another function object `F`.
  * When invoked, this function object will dereference a pointer and
  * invoke `F` with the result.

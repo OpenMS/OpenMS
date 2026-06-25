@@ -14,6 +14,10 @@
 #include "PIPECHO/Impl.h"
 #include "PIPECHO/Run.h"
 #include "PIPECHO/RunStatistics.h"
+#include "PIPECHO/Util.h"
+
+#include <algorithm>
+#include <ranges>
 
 namespace OpenMS
 {
@@ -92,6 +96,25 @@ void PipEchoAlgorithm::group(const std::vector<FeatureMap>& feature_maps, Consen
 
   impl.partition_features(feature_maps, runs);
 
+  // Ion mobility is used as a scoring feature only when EVERY run can build an
+  // IM tolerance (>= 2 identified features carrying an IM width). The decision
+  // is global -- all runs use IM or none do -- so the geometric-mean MBR score
+  // stays on a single comparable scale: a per-run decision would mix 3- and
+  // 4-feature scores in the shared SVM `mbr_score` predictor and the fallback
+  // q-value ordering, which aggregate acceptors across all runs.
+  auto run_supports_im = [](const PipEcho::Run& run) {
+    std::size_t n = 0;
+    for (const auto& donor : run.donors.storage)
+    {
+      if (PipEcho::Util::feature_im_width(donor->feature).has_value()) { ++n; }
+    }
+    return n >= 2;
+  };
+  const bool enable_im
+    = ! runs.empty()
+      && std::ranges::all_of(
+        runs, [&](const auto& kv) { return run_supports_im(kv.second); });
+
   auto logger = ProgressLogger();
   std::size_t progress {};
 
@@ -100,7 +123,7 @@ void PipEchoAlgorithm::group(const std::vector<FeatureMap>& feature_maps, Consen
 
   for (auto& acceptor_run : runs)
   {
-    PipEcho::RunStatistics stats(acceptor_run.second);
+    PipEcho::RunStatistics stats(acceptor_run.second, enable_im);
     PipEcho::AcceptorMap& acceptors(acceptor_run.second.acceptors);
 
     for (auto& donor_run : runs)

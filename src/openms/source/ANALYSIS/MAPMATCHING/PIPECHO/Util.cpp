@@ -8,6 +8,7 @@
 
 #include "Util.h"
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
 namespace OpenMS::PipEcho::Util
@@ -46,6 +47,33 @@ std::optional<double> feature_mass_error(const Feature& feature)
   double experimental = feature.getMZ();
   double theoretical = hit->getSequence().getMZ(hit->getCharge());
   return Math::getPPM(experimental, theoretical);
+}
+
+/**************************************************************************/
+std::optional<double> feature_ion_mobility(const Feature& feature)
+{
+  if (feature.metaValueExists("IM_median"))
+  {
+    return (double)feature.getMetaValue("IM_median");
+  }
+  if (feature.metaValueExists(Constants::UserParam::IM))
+  {
+    return (double)feature.getMetaValue(Constants::UserParam::IM);
+  }
+  return {};
+}
+
+/**************************************************************************/
+std::optional<double> feature_im_width(const Feature& feature)
+{
+  if (! feature.metaValueExists("IM_min") || ! feature.metaValueExists("IM_max"))
+  {
+    return {};
+  }
+  double width = (double)feature.getMetaValue("IM_max")
+                 - (double)feature.getMetaValue("IM_min");
+  if (! (width > 0)) return {}; // NaN-safe: only accept a strictly positive width
+  return width;
 }
 
 } // namespace OpenMS::PipEcho::Util

@@ -1303,7 +1303,13 @@ protected:
         }
       } // <--- END OF ELSE BLOCK
 
-      unordered_set<std::string> keep_meta = {"OffsetPeptide", "IM_median", "IM_min", "IM_max"};
+      // "IM" and "n_scans" are written by Biosaur2 (ion-mobility value and true
+      // MS1 scan count); kept for forward compatibility with a direct-Biosaur2
+      // feature path (PIP-ECHO ion-mobility scoring reads "IM" as a fallback to
+      // "IM_median"; "n_scans" feeds the planned scan-count feature, see #9655).
+      // FFID output features carry neither key, so this is a no-op for the
+      // current FFID-based path.
+      unordered_set<std::string> keep_meta = {"OffsetPeptide", "IM_median", "IM_min", "IM_max", "IM", "n_scans"};
       for (auto & f : fm)
       {
         std::vector<std::string> keys;
