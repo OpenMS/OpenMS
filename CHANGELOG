@@ -310,6 +310,7 @@ TOPP tools:
     TextExporter:
       - Added support for XIC Parquet files (#8737, #8738)
       - Added .idparquet, .featureparquet, and .consensusparquet read support on -in (load-only; output is always tsv/csv/txt) (#9405)
+      - Fix: -id:add_usi now populates the USI column for idXML/consensusXML by resolving the MS run from the run's spectra_data (via the merge index) instead of the never-populated per-ID base_name (#9657, fixes #8470)
     FeatureFinderMultiplex, MultiplexResolver:
       - BREAKING: Parameter `missed_cleavages` renamed to `max_nr_labelled_aas` (#8911)
       - Now errors out with INCOMPATIBLE_INPUT_DATA when given IM_PEAK format (per-peak ion mobility) data (#9018)

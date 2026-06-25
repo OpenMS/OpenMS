@@ -1,0 +1,7 @@
+#RUN	run_id	score_type	score_direction	date_time	search_engine_version	parameters
+#PROTEIN	score	rank	accession	protein_description	coverage	sequence
+#PEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier	accessions	start	end	predicted_rt	predicted_pt	peak_annotations	USI
+RUN	TestEngine_2024-01-01T00:00:00_5233264595117471314		higher-score-better	2024-01-01T00:00:00	1.0	db=test.fasta, db_version=, taxonomy=, charges=2:3, mass_type=monoisotopic, fixed_modifications=, variable_modifications=, enzyme=Trypsin, missed_cleavages=1, peak_mass_tolerance=0.02, precursor_mass_tolerance=10.0
+PROTEIN	0.0	0	PROT1		-1.0	
+PEPTIDE	100.5	460.740000000000009	1.5	0	PEPTIDEK	2	K	L	score	TestEngine_2024-01-01T00:00:00_5233264595117471314	PROT1	10	17	-1	-1	-1	mzspec:PXD000001:test_run.mzML:scan:42:PEPTIDEK/2
+PEPTIDE	200.699999999999989	416.529999999999973	2.5	0	HM(Oxidation)WPK	3	R	A	score	TestEngine_2024-01-01T00:00:00_5233264595117471314	PROT1	3	7	-1	-1	-1	mzspec:PXD000001:test_run.mzML:scan:99:HM[UNIMOD:35]WPK/3
