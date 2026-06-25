@@ -1787,6 +1787,374 @@ START_SECTION([EXTRA] scalar \PName= with embedded balanced parens must round-tr
 }
 END_SECTION
 
+START_SECTION([EXTRA] AASequence materialization from UniPEFF output -- what a top-down search engine sees)
+{
+  // A top-down search engine reading a PEFF database materializes the full-protein
+  // AASequence (sequence + all annotated PTMs) so it can compute the precursor mass
+  // and theoretical fragments. PEFFFile_UniPEFF_test.peff is the byte-exact golden
+  // emitted by the UniPEFF TOPP tool, so this guards the entire load -> materialize
+  // path against drift in either the UniPEFF writer, the PEFFFile reader, or the
+  // PEFFEntry::getModifiedSequence resolution against ModificationsDB.
+  PEFFFile peff;
+  std::vector<PEFFEntry> entries;
+  std::vector<PEFFDatabaseMetadata> headers;
+  peff.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_UniPEFF_test.peff"), entries, headers);
+  TEST_EQUAL(entries.size(), 2)
+
+  // ---- Entry 0: kitchen-sink Swiss-Prot P12345 (100 residues, 18 ModRes lines) ----
+  const PEFFEntry& e1 = entries[0];
+
+  AASequence raw = e1.getSequence();
+  TEST_EQUAL(raw.size(), 100)
+  TEST_EQUAL(raw.toUnmodifiedString(), e1.sequence)
+  TEST_EQUAL(raw.isModified(), false)
+
+  // Modified sequence: same residue count, at least one PTM resolved against the
+  // global ModificationsDB. UNIMOD:34 (Methyl) at position 60 lands on Leu, which
+  // has an Anywhere specificity for Methyl, so materialization must apply it.
+  AASequence mod_seq = e1.getModifiedSequence();
+  TEST_EQUAL(mod_seq.size(), 100)
+  TEST_EQUAL(mod_seq.toUnmodifiedString(), e1.sequence)
+  TEST_EQUAL(mod_seq.isModified(), true)
+  TEST_EQUAL(mod_seq[59].isModified(), true)              // L60 -> index 59
+  TEST_EQUAL(mod_seq[59].getOneLetterCode(), "L")
+  TEST_EQUAL(mod_seq.getMonoWeight() > raw.getMonoWeight(), true)
+  // Precursor mass must reflect at least one Methyl group (+14.01565 Da).
+  TEST_EQUAL(mod_seq.getMonoWeight() - raw.getMonoWeight() >= 14.0, true)
+
+  // PEFF "?" (unknown) positions land in PEFFModification::position == 0 and must be
+  // silently skipped by getModifiedSequence (top-down engines can't place them).
+  // The kitchen-sink emits 3 such entries: 2 ModResPsi + 1 ModRes.
+  Size unknown_pos_mods = 0;
+  for (const auto& m : e1.modifications) if (m.position == 0) ++unknown_pos_mods;
+  TEST_EQUAL(unknown_pos_mods, 3)
+
+  // Top-down engines often want the chain region (mature protein), not the precursor
+  // including signal/transit/propeptide. PEFF:0001020 = mature protein, 41..100.
+  AASequence mature = e1.getProcessedSequence("PEFF:0001020");
+  TEST_EQUAL(mature.size(), 60)
+  TEST_EQUAL(mature.toUnmodifiedString(), StringUtils::substr(e1.sequence, 40))
+
+  // ---- Entry 1: minimal TrEMBL Q67890 (31 residues, no modifications) ----
+  const PEFFEntry& e2 = entries[1];
+  TEST_EQUAL(e2.modifications.size(), 0)
+  AASequence raw2 = e2.getSequence();
+  AASequence mod2 = e2.getModifiedSequence();
+  TEST_EQUAL(raw2.size(), 31)
+  TEST_EQUAL(mod2.size(), 31)
+  TEST_EQUAL(mod2.isModified(), false)
+  TEST_REAL_SIMILAR(raw2.getMonoWeight(), mod2.getMonoWeight())
+
+  // ---- Controlled regression: a programmatic entry whose modification position
+  //      matches the target residue exactly, so the PSI-MOD -> UniMod alias path is
+  //      exercised even if the kitchen-sink residues never line up with their mods. ----
+  PEFFEntry crafted;
+  crafted.sequence = "PEPTIDES";
+  // MOD:00046 (O-phospho-L-serine) on S at position 8 -> aliases UniMod:21 (Phospho on S).
+  crafted.modifications.push_back(PEFFModification(8, "MOD:00046", "O-phospho-L-serine"));
+  AASequence ref = crafted.getSequence();
+  AASequence with_phos = crafted.getModifiedSequence();
+  TEST_EQUAL(with_phos.size(), 8)
+  TEST_EQUAL(with_phos[7].isModified(), true)
+  // Phospho mono delta is 79.966331 Da; full-protein mass increases by that amount.
+  TEST_REAL_SIMILAR(with_phos.getMonoWeight() - ref.getMonoWeight(), 79.966331)
+}
+END_SECTION
+
+START_SECTION([EXTRA] proteoform enumeration -- exact ProForma strings for a realistic UniProt-style entry (50+ proteoforms))
+{
+  // ============================================================================
+  // Realistic UniProt-style PEFF entry covering everything UniPEFF emits:
+  //
+  //   Reference sequence (30 residues, designed so every PTM lands on a residue
+  //   the UniMod/PSI-MOD specificity actually targets):
+  //
+  //     Pos:  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30
+  //     AA:   M  K  L  S  L  G  L  L  P  K  A  R  G  S  P  K  E  R  L  A  P  T  D  V  M  G  N  E  C  S
+  //
+  //   Processed regions (\Processed): signal peptide 1..9, mature chain 10..30
+  //
+  //   Five PEFF modifications on their natural residues:
+  //     bit 0:  Phospho   on S14  (UNIMOD:21)
+  //     bit 1:  Acetyl    on K16  (UNIMOD:1)
+  //     bit 2:  Methyl    on R18  (UNIMOD:34)
+  //     bit 3:  Phospho   on T22  (UNIMOD:21)
+  //     bit 4:  Oxidation on M25  (UNIMOD:35)
+  //
+  //   Simple variants (\VariantSimple): K16R, S14A
+  //   Complex variant (\VariantComplex): 5..7 SLG -> AB  (length 30 -> 29)
+  //
+  // Each proteoform below pins the EXACT PEFFFile::toProForma string (true
+  // ProForma square-bracket notation) AND the EXACT AASequence::toString that
+  // PEFFEntry::getModifiedSequence materializes for a top-down search engine.
+  // Reviewers can scan each row by eye to verify both representations.
+  //
+  // ============================================================================
+  const std::string REF_SEQ = "MKLSLGLLPKARGSPKERLAPTDVMGNECS";
+  TEST_EQUAL(REF_SEQ.size(), 30)
+  TEST_EQUAL(REF_SEQ[13], 'S')   // S14
+  TEST_EQUAL(REF_SEQ[15], 'K')   // K16
+  TEST_EQUAL(REF_SEQ[17], 'R')   // R18
+  TEST_EQUAL(REF_SEQ[21], 'T')   // T22
+  TEST_EQUAL(REF_SEQ[24], 'M')   // M25
+
+  struct ModDef { Size pos; const char* accession; const char* name; };
+  const std::vector<ModDef> REF_MODS = {
+    {14, "UNIMOD:21", "Phospho"},
+    {16, "UNIMOD:1",  "Acetyl"},
+    {18, "UNIMOD:34", "Methyl"},
+    {22, "UNIMOD:21", "Phospho"},
+    {25, "UNIMOD:35", "Oxidation"},
+  };
+
+  auto build = [](const std::string& seq, const std::vector<ModDef>& defs, unsigned mask) -> PEFFEntry
+  {
+    PEFFEntry e;
+    e.identifier = "sp:Q9TEST1";
+    e.prefix = "sp";
+    e.sequence = seq;
+    e.sequence_length = seq.size();
+    for (size_t b = 0; b < defs.size(); ++b)
+    {
+      if (mask & (1u << b)) e.modifications.push_back(PEFFModification(defs[b].pos, defs[b].accession, defs[b].name));
+    }
+    return e;
+  };
+
+  struct Row { unsigned mask; const char* proforma; const char* aaseq; };
+
+  // ---- BLOCK A: 32 mod-combinations on the unmutated reference (5-bit mask) ----
+  const Row REF_TABLE[] = {
+    {0x00, "MKLSLGLLPKARGSPKERLAPTDVMGNECS",
+           "MKLSLGLLPKARGSPKERLAPTDVMGNECS"},
+    {0x01, "MKLSLGLLPKARGS[UNIMOD:21]PKERLAPTDVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PKERLAPTDVMGNECS"},
+    {0x02, "MKLSLGLLPKARGSPK[UNIMOD:1]ERLAPTDVMGNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ERLAPTDVMGNECS"},
+    {0x03, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ERLAPTDVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ERLAPTDVMGNECS"},
+    {0x04, "MKLSLGLLPKARGSPKER[UNIMOD:34]LAPTDVMGNECS",
+           "MKLSLGLLPKARGSPKER(Methyl)LAPTDVMGNECS"},
+    {0x05, "MKLSLGLLPKARGS[UNIMOD:21]PKER[UNIMOD:34]LAPTDVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PKER(Methyl)LAPTDVMGNECS"},
+    {0x06, "MKLSLGLLPKARGSPK[UNIMOD:1]ER[UNIMOD:34]LAPTDVMGNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ER(Methyl)LAPTDVMGNECS"},
+    {0x07, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ER[UNIMOD:34]LAPTDVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ER(Methyl)LAPTDVMGNECS"},
+    {0x08, "MKLSLGLLPKARGSPKERLAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGSPKERLAPT(Phospho)DVMGNECS"},
+    {0x09, "MKLSLGLLPKARGS[UNIMOD:21]PKERLAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PKERLAPT(Phospho)DVMGNECS"},
+    {0x0A, "MKLSLGLLPKARGSPK[UNIMOD:1]ERLAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ERLAPT(Phospho)DVMGNECS"},
+    {0x0B, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ERLAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ERLAPT(Phospho)DVMGNECS"},
+    {0x0C, "MKLSLGLLPKARGSPKER[UNIMOD:34]LAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGSPKER(Methyl)LAPT(Phospho)DVMGNECS"},
+    {0x0D, "MKLSLGLLPKARGS[UNIMOD:21]PKER[UNIMOD:34]LAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PKER(Methyl)LAPT(Phospho)DVMGNECS"},
+    {0x0E, "MKLSLGLLPKARGSPK[UNIMOD:1]ER[UNIMOD:34]LAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ER(Methyl)LAPT(Phospho)DVMGNECS"},
+    {0x0F, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ER[UNIMOD:34]LAPT[UNIMOD:21]DVMGNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ER(Methyl)LAPT(Phospho)DVMGNECS"},
+    {0x10, "MKLSLGLLPKARGSPKERLAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPKERLAPTDVM(Oxidation)GNECS"},
+    {0x11, "MKLSLGLLPKARGS[UNIMOD:21]PKERLAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PKERLAPTDVM(Oxidation)GNECS"},
+    {0x12, "MKLSLGLLPKARGSPK[UNIMOD:1]ERLAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ERLAPTDVM(Oxidation)GNECS"},
+    {0x13, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ERLAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ERLAPTDVM(Oxidation)GNECS"},
+    {0x14, "MKLSLGLLPKARGSPKER[UNIMOD:34]LAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPKER(Methyl)LAPTDVM(Oxidation)GNECS"},
+    {0x15, "MKLSLGLLPKARGS[UNIMOD:21]PKER[UNIMOD:34]LAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PKER(Methyl)LAPTDVM(Oxidation)GNECS"},
+    {0x16, "MKLSLGLLPKARGSPK[UNIMOD:1]ER[UNIMOD:34]LAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ER(Methyl)LAPTDVM(Oxidation)GNECS"},
+    {0x17, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ER[UNIMOD:34]LAPTDVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ER(Methyl)LAPTDVM(Oxidation)GNECS"},
+    {0x18, "MKLSLGLLPKARGSPKERLAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPKERLAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0x19, "MKLSLGLLPKARGS[UNIMOD:21]PKERLAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PKERLAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0x1A, "MKLSLGLLPKARGSPK[UNIMOD:1]ERLAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ERLAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0x1B, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ERLAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ERLAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0x1C, "MKLSLGLLPKARGSPKER[UNIMOD:34]LAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPKER(Methyl)LAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0x1D, "MKLSLGLLPKARGS[UNIMOD:21]PKER[UNIMOD:34]LAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PKER(Methyl)LAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0x1E, "MKLSLGLLPKARGSPK[UNIMOD:1]ER[UNIMOD:34]LAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGSPK(Acetyl)ER(Methyl)LAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0x1F, "MKLSLGLLPKARGS[UNIMOD:21]PK[UNIMOD:1]ER[UNIMOD:34]LAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSLGLLPKARGS(Phospho)PK(Acetyl)ER(Methyl)LAPT(Phospho)DVM(Oxidation)GNECS"},
+  };
+
+  for (const auto& row : REF_TABLE)
+  {
+    PEFFEntry e = build(REF_SEQ, REF_MODS, row.mask);
+    TEST_EQUAL(PEFFFile::toProForma(e), row.proforma)
+    AASequence aas = e.getModifiedSequence();
+    TEST_EQUAL(aas.toString(), row.aaseq)
+    TEST_EQUAL(aas.size(), 30)
+    TEST_EQUAL(aas.toUnmodifiedString(), REF_SEQ)
+  }
+
+  // ---- BLOCK B: K16R variant. Re-anchor the 4 mods whose target residue survives.
+  // The Acetyl-K16 mod becomes biologically meaningless when K is mutated to R, so
+  // we drop it from the enumeration (a top-down engine running on this proteoform
+  // would do the same; it would only score the remaining 4 PEFF mods). ----
+  const std::string K16R_SEQ = "MKLSLGLLPKARGSPRERLAPTDVMGNECS";
+  TEST_EQUAL(K16R_SEQ.size(), 30)
+  TEST_EQUAL(K16R_SEQ[15], 'R')
+  const std::vector<ModDef> K16R_MODS = {
+    {14, "UNIMOD:21", "Phospho"},     // S14
+    {18, "UNIMOD:34", "Methyl"},      // R18
+    {22, "UNIMOD:21", "Phospho"},     // T22
+    {25, "UNIMOD:35", "Oxidation"},   // M25
+  };
+  const Row K16R_TABLE[] = {
+    {0x0, "MKLSLGLLPKARGSPRERLAPTDVMGNECS",
+          "MKLSLGLLPKARGSPRERLAPTDVMGNECS"},
+    {0x1, "MKLSLGLLPKARGS[UNIMOD:21]PRERLAPTDVMGNECS",
+          "MKLSLGLLPKARGS(Phospho)PRERLAPTDVMGNECS"},
+    {0x2, "MKLSLGLLPKARGSPRER[UNIMOD:34]LAPTDVMGNECS",
+          "MKLSLGLLPKARGSPRER(Methyl)LAPTDVMGNECS"},
+    {0x4, "MKLSLGLLPKARGSPRERLAPT[UNIMOD:21]DVMGNECS",
+          "MKLSLGLLPKARGSPRERLAPT(Phospho)DVMGNECS"},
+    {0x8, "MKLSLGLLPKARGSPRERLAPTDVM[UNIMOD:35]GNECS",
+          "MKLSLGLLPKARGSPRERLAPTDVM(Oxidation)GNECS"},
+    {0x5, "MKLSLGLLPKARGS[UNIMOD:21]PRERLAPT[UNIMOD:21]DVMGNECS",
+          "MKLSLGLLPKARGS(Phospho)PRERLAPT(Phospho)DVMGNECS"},
+    {0xA, "MKLSLGLLPKARGSPRER[UNIMOD:34]LAPTDVM[UNIMOD:35]GNECS",
+          "MKLSLGLLPKARGSPRER(Methyl)LAPTDVM(Oxidation)GNECS"},
+    {0xF, "MKLSLGLLPKARGS[UNIMOD:21]PRER[UNIMOD:34]LAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+          "MKLSLGLLPKARGS(Phospho)PRER(Methyl)LAPT(Phospho)DVM(Oxidation)GNECS"},
+  };
+  for (const auto& row : K16R_TABLE)
+  {
+    PEFFEntry e = build(K16R_SEQ, K16R_MODS, row.mask);
+    TEST_EQUAL(PEFFFile::toProForma(e), row.proforma)
+    AASequence aas = e.getModifiedSequence();
+    TEST_EQUAL(aas.toString(), row.aaseq)
+    TEST_EQUAL(aas.toUnmodifiedString(), K16R_SEQ)
+  }
+
+  // ---- BLOCK C: S14A variant. Phospho-S14 is invalidated; enumerate the 4 surviving mods. ----
+  const std::string S14A_SEQ = "MKLSLGLLPKARGAPKERLAPTDVMGNECS";
+  TEST_EQUAL(S14A_SEQ[13], 'A')
+  const std::vector<ModDef> S14A_MODS = {
+    {16, "UNIMOD:1",  "Acetyl"},      // K16
+    {18, "UNIMOD:34", "Methyl"},      // R18
+    {22, "UNIMOD:21", "Phospho"},     // T22
+    {25, "UNIMOD:35", "Oxidation"},   // M25
+  };
+  const Row S14A_TABLE[] = {
+    {0x0, "MKLSLGLLPKARGAPKERLAPTDVMGNECS",
+          "MKLSLGLLPKARGAPKERLAPTDVMGNECS"},
+    {0x1, "MKLSLGLLPKARGAPK[UNIMOD:1]ERLAPTDVMGNECS",
+          "MKLSLGLLPKARGAPK(Acetyl)ERLAPTDVMGNECS"},
+    {0x2, "MKLSLGLLPKARGAPKER[UNIMOD:34]LAPTDVMGNECS",
+          "MKLSLGLLPKARGAPKER(Methyl)LAPTDVMGNECS"},
+    {0x4, "MKLSLGLLPKARGAPKERLAPT[UNIMOD:21]DVMGNECS",
+          "MKLSLGLLPKARGAPKERLAPT(Phospho)DVMGNECS"},
+    {0x8, "MKLSLGLLPKARGAPKERLAPTDVM[UNIMOD:35]GNECS",
+          "MKLSLGLLPKARGAPKERLAPTDVM(Oxidation)GNECS"},
+    {0x3, "MKLSLGLLPKARGAPK[UNIMOD:1]ER[UNIMOD:34]LAPTDVMGNECS",
+          "MKLSLGLLPKARGAPK(Acetyl)ER(Methyl)LAPTDVMGNECS"},
+    {0xC, "MKLSLGLLPKARGAPKERLAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+          "MKLSLGLLPKARGAPKERLAPT(Phospho)DVM(Oxidation)GNECS"},
+    {0xF, "MKLSLGLLPKARGAPK[UNIMOD:1]ER[UNIMOD:34]LAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+          "MKLSLGLLPKARGAPK(Acetyl)ER(Methyl)LAPT(Phospho)DVM(Oxidation)GNECS"},
+  };
+  for (const auto& row : S14A_TABLE)
+  {
+    PEFFEntry e = build(S14A_SEQ, S14A_MODS, row.mask);
+    TEST_EQUAL(PEFFFile::toProForma(e), row.proforma)
+    AASequence aas = e.getModifiedSequence();
+    TEST_EQUAL(aas.toString(), row.aaseq)
+    TEST_EQUAL(aas.toUnmodifiedString(), S14A_SEQ)
+  }
+
+  // ---- BLOCK D: complex variant 5..7 SLG -> AB (length 30 -> 29).
+  // Re-anchor every PEFF mod -1 on the shrunk backbone (same residue, new index). ----
+  // Sanity: REF[0..3]="MKLS", REF[4..6]="LGL", REF[7..]="LPKARGSPKERLAPTDVMGNECS".
+  const std::string CV_SEQ = StringUtils::substr(REF_SEQ, 0, 4) + "AB" + StringUtils::substr(REF_SEQ, 7);
+  TEST_EQUAL(CV_SEQ, "MKLSABLPKARGSPKERLAPTDVMGNECS")
+  TEST_EQUAL(CV_SEQ.size(), 29)
+  const std::vector<ModDef> CV_MODS = {
+    {13, "UNIMOD:21", "Phospho"},     // S (was 14)
+    {15, "UNIMOD:1",  "Acetyl"},      // K (was 16)
+    {17, "UNIMOD:34", "Methyl"},      // R (was 18)
+    {21, "UNIMOD:21", "Phospho"},     // T (was 22)
+    {24, "UNIMOD:35", "Oxidation"},   // M (was 25)
+  };
+  const Row CV_TABLE[] = {
+    {0x00, "MKLSABLPKARGSPKERLAPTDVMGNECS",
+           "MKLSABLPKARGSPKERLAPTDVMGNECS"},
+    {0x01, "MKLSABLPKARGS[UNIMOD:21]PKERLAPTDVMGNECS",
+           "MKLSABLPKARGS(Phospho)PKERLAPTDVMGNECS"},
+    {0x10, "MKLSABLPKARGSPKERLAPTDVM[UNIMOD:35]GNECS",
+           "MKLSABLPKARGSPKERLAPTDVM(Oxidation)GNECS"},
+    {0x1F, "MKLSABLPKARGS[UNIMOD:21]PK[UNIMOD:1]ER[UNIMOD:34]LAPT[UNIMOD:21]DVM[UNIMOD:35]GNECS",
+           "MKLSABLPKARGS(Phospho)PK(Acetyl)ER(Methyl)LAPT(Phospho)DVM(Oxidation)GNECS"},
+  };
+  for (const auto& row : CV_TABLE)
+  {
+    PEFFEntry e = build(CV_SEQ, CV_MODS, row.mask);
+    TEST_EQUAL(PEFFFile::toProForma(e), row.proforma)
+    AASequence aas = e.getModifiedSequence();
+    TEST_EQUAL(aas.toString(), row.aaseq)
+    TEST_EQUAL(aas.toUnmodifiedString(), CV_SEQ)
+  }
+
+  // ---- BLOCK E: processed-region extraction, mixed PSI-MOD + UniMod accessions ----
+  // Exercises the PSI-MOD -> UniMod alias path for one mod (MOD:00046 -> UniMod:21
+  // Phospho on S) while a second mod uses the direct UniMod accession (UNIMOD:35,
+  // Oxidation on M). The materializer resolves both into the same internal mod
+  // table, so toString shows the canonical UniMod title in either case. ----
+  PEFFEntry full;
+  full.identifier = "sp:Q9TEST1";
+  full.prefix = "sp";
+  full.sequence = REF_SEQ;
+  full.sequence_length = REF_SEQ.size();
+  full.modifications = {
+    PEFFModification(14, "MOD:00046", "O-phospho-L-serine"),
+    PEFFModification(25, "UNIMOD:35", "Oxidation"),
+  };
+  full.processed_regions = {
+    PEFFProcessedRegion(1, 9,  "PEFF:0001021", "signal peptide"),
+    PEFFProcessedRegion(10, 30, "PEFF:0001020", "mature protein"),
+  };
+
+  // E.1 Full precursor materialized via the PSI-MOD + UniMod mix:
+  AASequence full_aa = full.getModifiedSequence();
+  TEST_EQUAL(full_aa.toString(), "MKLSLGLLPKARGS(Phospho)PKERLAPTDVM(Oxidation)GNECS")
+  TEST_EQUAL(full_aa.toUnmodifiedString(), REF_SEQ)
+  // PEFFFile::toProForma preserves the original accession strings textually
+  // (no aliasing applied during ProForma serialization).
+  TEST_EQUAL(PEFFFile::toProForma(full),
+             "MKLSLGLLPKARGS[MOD:00046]PKERLAPTDVM[UNIMOD:35]GNECS")
+
+  // E.2 Mature chain (10..30, 21 residues) -- top-down search after signal-peptide cleavage.
+  AASequence mature_chain = full.getProcessedSequence("PEFF:0001020");
+  TEST_EQUAL(mature_chain.size(), 21)
+  TEST_EQUAL(mature_chain.toString(), "KARGSPKERLAPTDVMGNECS")
+  TEST_EQUAL(mature_chain.isModified(), false)  // chain extraction strips mods (caller re-applies)
+
+  // ---- Total proteoforms verified by this section ----
+  //   BLOCK A (REF_TABLE)  : 32  (every 5-bit mod combination)
+  //   BLOCK B (K16R_TABLE) :  8  (4 single-mod + 3 multi-mod + reference)
+  //   BLOCK C (S14A_TABLE) :  8
+  //   BLOCK D (CV_TABLE)   :  4  (complex variant, length 30 -> 29)
+  //   BLOCK E (processed)  :  2
+  //                          --
+  //                          54 distinct proteoforms, each with an exact ProForma
+  //                          and an exact AASequence::toString assertion.
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
