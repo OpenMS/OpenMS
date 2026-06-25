@@ -503,9 +503,9 @@ jobs:
       - name: Publish to nightly PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          repository-url: https://pypi.cs.uni-tuebingen.de/
+          repository-url: https://pypi.openms.de/
           user: openms
-          password: ${{ secrets.abiservices_pypi_pw }}
+          password: ${{ secrets.openms_pypi_pw }}
           verbose: true
 
   publish-release-pypi:
