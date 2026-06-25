@@ -360,6 +360,19 @@ private:
     /// Check if the given path is a valid OPENMS_DATA_PATH
     static bool isOpenMSDataPath_(const std::string& path);
 
+    /// Bundles the resolved OpenMS data path with a human-readable description of where it was found (for diagnostics).
+    struct OpenMSDataPath_
+    {
+      std::string path;    ///< the resolved shared-data directory
+      std::string source;  ///< human-readable origin, e.g. "the OPENMS_DATA_PATH environment variable"
+    };
+
+    /// Resolve (once, thread-safe) and return the OpenMS data path together with where it was found.
+    static const OpenMSDataPath_& resolveOpenMSDataPath_();
+
+    /// Human-readable description of where getOpenMSDataPath() was resolved from (for diagnostics in error messages).
+    static const std::string& getOpenMSDataPathSource_();
+
 #ifdef OPENMS_WINDOWSPLATFORM
     /**
       @brief Get list of file suffices to try during search on PATH (usually .exe, .bat etc)

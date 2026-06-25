@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
@@ -733,7 +734,10 @@ namespace OpenMS
     for (auto & p : peptides)
     {
       if (p.getHits().empty()) { continue; }
-      Size id_merge_idx = (Size)p.getMetaValue("id_merge_idx",0);
+      // Origin file index within a merged ID run, annotated by IDMerger as
+      // Constants::UserParam::ID_MERGE_INDEX ("id_merge_index"). Falls back to 0
+      // for unmerged input (single primary MS run path).
+      Size id_merge_idx = (Size)p.getMetaValue(Constants::UserParam::ID_MERGE_INDEX, 0);
       const PeptideHit& hit = p.getHits()[0];
 
       // don't quantify decoys

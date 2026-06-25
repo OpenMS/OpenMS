@@ -96,6 +96,7 @@ TraMLFile.cpp
 TransformationXMLFile.cpp
 TriqlerFile.cpp
 UnimodXMLFile.cpp
+UniProtXMLFile.cpp
 XMassFile.cpp
 XMLFile.cpp
 XQuestResultXMLFile.cpp
