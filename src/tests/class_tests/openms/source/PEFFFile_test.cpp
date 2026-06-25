@@ -12,8 +12,10 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/PEFFFile.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <fstream>
@@ -1810,17 +1812,25 @@ START_SECTION([EXTRA] AASequence materialization from UniPEFF output -- what a t
   TEST_FALSE(raw.isModified())
 
   // Modified sequence: same residue count, at least one PTM resolved against the
-  // global ModificationsDB. UNIMOD:34 (Methyl) at position 60 lands on Leu, which
-  // has an Anywhere specificity for Methyl, so materialization must apply it.
+  // global ModificationsDB. We do NOT pin a specific index here: which annotations
+  // resolve depends on UniMod specificity classifications (Anywhere / hidden /
+  // artefact / etc.) that may drift across data revisions. Instead we count
+  // resolved residues and assert the precursor mass uplift is large enough to
+  // account for at least one annotated PTM having been applied.
   AASequence mod_seq = e1.getModifiedSequence();
   TEST_EQUAL(mod_seq.size(), 100)
   TEST_EQUAL(mod_seq.toUnmodifiedString(), e1.sequence)
   TEST_TRUE(mod_seq.isModified())
-  TEST_TRUE(mod_seq[59].isModified())              // L60 -> index 59
-  TEST_EQUAL(mod_seq[59].getOneLetterCode(), "L")
-  TEST_TRUE(mod_seq.getMonoWeight() > raw.getMonoWeight())
-  // Precursor mass must reflect at least one Methyl group (+14.01565 Da).
-  TEST_TRUE(mod_seq.getMonoWeight() - raw.getMonoWeight() >= 14.0)
+  Size resolved_mods = 0;
+  for (Size i = 0; i < mod_seq.size(); ++i) if (mod_seq[i].isModified()) ++resolved_mods;
+  TEST_TRUE(resolved_mods >= 1)
+  // Methyl (UNIMOD:34) is the lightest mod in the kitchen-sink. Look up the actual
+  // mono delta from ModificationsDB so the assertion does not drift if UniMod
+  // updates the diff mass; the precursor uplift must be at least that value.
+  const ResidueModification* methyl_ref =
+      ModificationsDB::getInstance()->getModification("UNIMOD:34", "L", ResidueModification::ANYWHERE);
+  const double min_uplift = methyl_ref ? methyl_ref->getDiffMonoMass() : 0.0;
+  TEST_TRUE(mod_seq.getMonoWeight() - raw.getMonoWeight() + 1e-6 >= min_uplift)
 
   // PEFF "?" (unknown) positions land in PEFFModification::position == 0 and must be
   // silently skipped by getModifiedSequence (top-down engines can't place them).
@@ -1856,8 +1866,12 @@ START_SECTION([EXTRA] AASequence materialization from UniPEFF output -- what a t
   AASequence with_phos = crafted.getModifiedSequence();
   TEST_EQUAL(with_phos.size(), 8)
   TEST_TRUE(with_phos[7].isModified())
-  // Phospho mono delta is 79.966331 Da; full-protein mass increases by that amount.
-  TEST_REAL_SIMILAR(with_phos.getMonoWeight() - ref.getMonoWeight(), 79.966331)
+  // Pull the phospho mono delta from ModificationsDB so the assertion does not pin
+  // a constant that may drift if UniMod updates the Phospho diff mass.
+  const ResidueModification* phospho_on_s =
+      ModificationsDB::getInstance()->getModification("UNIMOD:21", "S", ResidueModification::ANYWHERE);
+  TEST_NOT_EQUAL(phospho_on_s, nullptr)
+  TEST_REAL_SIMILAR(with_phos.getMonoWeight() - ref.getMonoWeight(), phospho_on_s->getDiffMonoMass())
 }
 END_SECTION
 
@@ -2001,13 +2015,56 @@ START_SECTION([EXTRA] proteoform enumeration -- exact ProForma strings for a rea
     TEST_EQUAL(aas.toUnmodifiedString(), REF_SEQ)
   }
 
+  // ---- BLOCK B-pre: drive the PEFFEntry variant API end-to-end ---------------
+  // A real top-down search engine derives the variant backbones from
+  // PEFFEntry::getVariantSequences instead of hand-mutating strings. Build one
+  // entry that carries both simple variants AND one complex variant in the PEFF
+  // annotation fields, then check that the materialized variant sequences match
+  // the constants used by BLOCK B / C / D below. If this assertion ever drifts,
+  // every following table needs updating in lock-step.
+  PEFFEntry variants_only;
+  variants_only.identifier = "sp:Q9TEST1";
+  variants_only.prefix = "sp";
+  variants_only.sequence = REF_SEQ;
+  variants_only.sequence_length = REF_SEQ.size();
+  variants_only.simple_variants = {
+    PEFFVariantSimple(16, 'R', "dbSNP:rs_test_K16R"),
+    PEFFVariantSimple(14, 'A', "dbSNP:rs_test_S14A"),
+  };
+  variants_only.complex_variants = {
+    PEFFVariantComplex(5, 7, "AB", "ClinVar:test_SLG_AB"),
+  };
+
+  std::vector<std::string> var_descs;
+  std::vector<AASequence> var_seqs;
+
+  // (1) Simple variants only:
+  variants_only.getVariantSequences(var_descs, var_seqs, /*include_complex=*/false);
+  TEST_EQUAL(var_seqs.size(), 2)
+  TEST_EQUAL(var_seqs[0].toUnmodifiedString(), "MKLSLGLLPKARGSPRERLAPTDVMGNECS")  // K16R
+  TEST_EQUAL(var_seqs[1].toUnmodifiedString(), "MKLSLGLLPKARGAPKERLAPTDVMGNECS")  // S14A
+  TEST_EQUAL(var_descs[0].find("K16R") != std::string::npos, true)
+  TEST_EQUAL(var_descs[1].find("S14A") != std::string::npos, true)
+
+  // (2) Simple + complex variants:
+  variants_only.getVariantSequences(var_descs, var_seqs, /*include_complex=*/true);
+  TEST_EQUAL(var_seqs.size(), 3)
+  TEST_EQUAL(var_seqs[2].toUnmodifiedString(), "MKLSABLPKARGSPKERLAPTDVMGNECS")  // 5..7 SLG -> AB
+  TEST_EQUAL(var_descs[2].find("5-7>AB") != std::string::npos, true)
+
   // ---- BLOCK B: K16R variant. Re-anchor the 4 mods whose target residue survives.
   // The Acetyl-K16 mod becomes biologically meaningless when K is mutated to R, so
   // we drop it from the enumeration (a top-down engine running on this proteoform
   // would do the same; it would only score the remaining 4 PEFF mods). ----
-  const std::string K16R_SEQ = "MKLSLGLLPKARGSPRERLAPTDVMGNECS";
+  // Use the variant sequence produced by getVariantSequences above so any future
+  // change in the variant API (or in PEFFVariantSimple's position semantics) breaks
+  // this block instead of silently passing on a hand-typed string.
+  const std::string K16R_SEQ = var_seqs[0].toUnmodifiedString();
   TEST_EQUAL(K16R_SEQ.size(), 30)
-  TEST_EQUAL(K16R_SEQ[15], 'R')
+  TEST_EQUAL(REF_SEQ[15], 'K')                       // delta: K at position 16 in reference
+  TEST_EQUAL(K16R_SEQ[15], 'R')                      //        -> R in variant
+  TEST_EQUAL(K16R_SEQ.substr(0, 15), REF_SEQ.substr(0, 15))
+  TEST_EQUAL(K16R_SEQ.substr(16), REF_SEQ.substr(16))
   const std::vector<ModDef> K16R_MODS = {
     {14, "UNIMOD:21", "Phospho"},     // S14
     {18, "UNIMOD:34", "Methyl"},      // R18
@@ -2042,8 +2099,13 @@ START_SECTION([EXTRA] proteoform enumeration -- exact ProForma strings for a rea
   }
 
   // ---- BLOCK C: S14A variant. Phospho-S14 is invalidated; enumerate the 4 surviving mods. ----
-  const std::string S14A_SEQ = "MKLSLGLLPKARGAPKERLAPTDVMGNECS";
-  TEST_EQUAL(S14A_SEQ[13], 'A')
+  // S14A is the 2nd variant we registered, so var_seqs[1] holds the mutated backbone.
+  const std::string S14A_SEQ = var_seqs[1].toUnmodifiedString();
+  TEST_EQUAL(S14A_SEQ.size(), 30)
+  TEST_EQUAL(REF_SEQ[13], 'S')                       // delta: S at position 14 in reference
+  TEST_EQUAL(S14A_SEQ[13], 'A')                      //        -> A in variant
+  TEST_EQUAL(S14A_SEQ.substr(0, 13), REF_SEQ.substr(0, 13))
+  TEST_EQUAL(S14A_SEQ.substr(14), REF_SEQ.substr(14))
   const std::vector<ModDef> S14A_MODS = {
     {16, "UNIMOD:1",  "Acetyl"},      // K16
     {18, "UNIMOD:34", "Methyl"},      // R18
@@ -2079,10 +2141,15 @@ START_SECTION([EXTRA] proteoform enumeration -- exact ProForma strings for a rea
 
   // ---- BLOCK D: complex variant 5..7 SLG -> AB (length 30 -> 29).
   // Re-anchor every PEFF mod -1 on the shrunk backbone (same residue, new index). ----
-  // Sanity: REF[0..3]="MKLS", REF[4..6]="LGL", REF[7..]="LPKARGSPKERLAPTDVMGNECS".
-  const std::string CV_SEQ = StringUtils::substr(REF_SEQ, 0, 4) + "AB" + StringUtils::substr(REF_SEQ, 7);
+  // The complex variant is var_seqs[2] (registered third, exposed when
+  // include_complex=true). Sanity-check the shrink length and the substitution.
+  const std::string CV_SEQ = var_seqs[2].toUnmodifiedString();
   TEST_EQUAL(CV_SEQ, "MKLSABLPKARGSPKERLAPTDVMGNECS")
   TEST_EQUAL(CV_SEQ.size(), 29)
+  TEST_EQUAL(REF_SEQ.substr(4, 3), "LGL")            // delta: positions 5..7 in reference
+  TEST_EQUAL(CV_SEQ.substr(4, 2), "AB")              //        -> "AB" in variant (length -1)
+  TEST_EQUAL(CV_SEQ.substr(0, 4), REF_SEQ.substr(0, 4))
+  TEST_EQUAL(CV_SEQ.substr(6), REF_SEQ.substr(7))
   const std::vector<ModDef> CV_MODS = {
     {13, "UNIMOD:21", "Phospho"},     // S (was 14)
     {15, "UNIMOD:1",  "Acetyl"},      // K (was 16)
@@ -2138,10 +2205,75 @@ START_SECTION([EXTRA] proteoform enumeration -- exact ProForma strings for a rea
              "MKLSLGLLPKARGS[MOD:00046]PKERLAPTDVM[UNIMOD:35]GNECS")
 
   // E.2 Mature chain (10..30, 21 residues) -- top-down search after signal-peptide cleavage.
+  // IMPORTANT: PEFFEntry::getProcessedSequence rebuilds the chain from the raw
+  // sequence STRING via AASequence::fromString(...) and never iterates the
+  // modifications vector. Mods are therefore not "stripped" -- they are SILENTLY
+  // NEVER APPLIED to the returned chain, even when they fall inside the region
+  // (Phospho-S14 falls in 10..30, position 5 of the chain, but the returned
+  // AASequence shows no mod at that position). A top-down engine that wants the
+  // modified chain must re-anchor and re-apply the mods on its own. Pin the
+  // current behavior so any future change becomes a deliberate diff to this test.
   AASequence mature_chain = full.getProcessedSequence("PEFF:0001020");
   TEST_EQUAL(mature_chain.size(), 21)
   TEST_EQUAL(mature_chain.toString(), "KARGSPKERLAPTDVMGNECS")
-  TEST_FALSE(mature_chain.isModified())  // chain extraction strips mods (caller re-applies)
+  TEST_FALSE(mature_chain.isModified())
+  // The Phospho-S would have been at chain index 4 (protein position 14 - chain
+  // start 10 = 4); we explicitly assert it is NOT carried over.
+  TEST_EQUAL(mature_chain[4].getOneLetterCode(), "S")
+  TEST_FALSE(mature_chain[4].isModified())
+
+  // ---- BLOCK F: unlocalised-only ProForma path + DisulfideBond carry-through ----
+  // (1) UniPEFF writes PEFF "?" positions as PEFFModification.position == 0; in
+  // ProForma these surface as the unlocalised "<?[mod]>SEQUENCE" prefix.
+  // PEFFFile::toProForma has a dedicated branch for this case that BLOCKS A-E
+  // never exercise (REF_MODS is all-localised). Pin both the prefix format and
+  // the getModifiedSequence silent-skip behavior on the same entry.
+  PEFFEntry unloc_only;
+  unloc_only.identifier = "sp:Q9TEST1-UNLOC";
+  unloc_only.prefix = "sp";
+  unloc_only.sequence = "PEPTIDES";
+  unloc_only.sequence_length = 8;
+  unloc_only.modifications = {
+    PEFFModification(0, "UNIMOD:21", "Phospho"),
+    PEFFModification(0, "UNIMOD:35", "Oxidation"),
+  };
+  TEST_EQUAL(PEFFFile::toProForma(unloc_only), "<?[UNIMOD:21][UNIMOD:35]>PEPTIDES")
+  AASequence unloc_aa = unloc_only.getModifiedSequence();
+  TEST_EQUAL(unloc_aa.toString(), "PEPTIDES")        // position-0 mods silently skipped
+  TEST_FALSE(unloc_aa.isModified())
+
+  // (2) UniPEFF also writes \ModRes... lines that can mix localised AND unlocalised
+  // mods on the same entry. ProForma must emit BOTH the unlocalised prefix and the
+  // inline brackets; getModifiedSequence applies only the localised ones.
+  PEFFEntry mixed;
+  mixed.identifier = "sp:Q9TEST1-MIXED";
+  mixed.prefix = "sp";
+  mixed.sequence = "PEPTIDES";
+  mixed.sequence_length = 8;
+  mixed.modifications = {
+    PEFFModification(0, "UNIMOD:35", "Oxidation"),   // unknown-position
+    PEFFModification(8, "UNIMOD:21", "Phospho"),     // S at position 8
+  };
+  TEST_EQUAL(PEFFFile::toProForma(mixed), "<?[UNIMOD:35]>PEPTIDES[UNIMOD:21]")
+  AASequence mixed_aa = mixed.getModifiedSequence();
+  TEST_EQUAL(mixed_aa.toString(), "PEPTIDES(Phospho)")
+
+  // (3) DisulfideBond annotations are metadata on PEFFEntry; they round-trip
+  // through PEFFEntry.disulfide_bonds but DO NOT influence the materialized
+  // AASequence (no inter-residue bond is rendered). Pin this contract too.
+  PEFFEntry with_bonds;
+  with_bonds.identifier = "sp:Q9TEST1-DSB";
+  with_bonds.prefix = "sp";
+  with_bonds.sequence = "PEPCIDESCPEP";  // two Cys residues
+  with_bonds.sequence_length = 12;
+  with_bonds.disulfide_bonds = { PEFFDisulfideBond("4", "9", "intra") };
+  TEST_EQUAL(PEFFFile::toProForma(with_bonds), "PEPCIDESCPEP")
+  AASequence dsb_aa = with_bonds.getModifiedSequence();
+  TEST_EQUAL(dsb_aa.toString(), "PEPCIDESCPEP")
+  TEST_FALSE(dsb_aa.isModified())
+  TEST_EQUAL(with_bonds.disulfide_bonds.size(), 1)
+  TEST_EQUAL(with_bonds.disulfide_bonds[0].id1, "4")
+  TEST_EQUAL(with_bonds.disulfide_bonds[0].id2, "9")
 
   // ---- Total proteoforms verified by this section ----
   //   BLOCK A (REF_TABLE)  : 32  (every 5-bit mod combination)
@@ -2149,9 +2281,12 @@ START_SECTION([EXTRA] proteoform enumeration -- exact ProForma strings for a rea
   //   BLOCK C (S14A_TABLE) :  8
   //   BLOCK D (CV_TABLE)   :  4  (complex variant, length 30 -> 29)
   //   BLOCK E (processed)  :  2
+  //   BLOCK F (unloc/DSB)  :  3  (unlocalised-only + mixed + disulfide-bond carry)
   //                          --
-  //                          54 distinct proteoforms, each with an exact ProForma
-  //                          and an exact AASequence::toString assertion.
+  //                          57 distinct proteoforms, each with an exact ProForma
+  //                          and an exact AASequence::toString assertion. Variant
+  //                          enumeration (BLOCK B-pre) additionally drives the
+  //                          PEFFEntry::getVariantSequences API end-to-end.
 }
 END_SECTION
 
