@@ -611,7 +611,10 @@ namespace OpenMS
       {
         if (StringUtils::hasPrefix(mvkey, se))
         {
-          result.emplace_back(StringUtils::substr(mvkey, se.size()+1), params.getMetaValue(mvkey));
+          // Lenient stringification: settings meta values may be non-string (e.g. an
+          // Int like missed_cleavages). DataValue's implicit operator std::string() is
+          // strict (throws on non-string), so convert explicitly like the cases above.
+          result.emplace_back(StringUtils::substr(mvkey, se.size()+1), StringUtils::toStr(params.getMetaValue(mvkey)));
         }
       }
     }
