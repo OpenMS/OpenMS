@@ -227,6 +227,34 @@ START_SECTION([EXTRA] getPrimaryMSRunPath legacy base_name fallback)
 }
 END_SECTION
 
+START_SECTION([EXTRA] create() leaves a complete forward map even when it throws on duplicate paths)
+{
+  // Runs A and D have distinct paths; B and C collide on the same path. The collision
+  // makes create() throw, but the forward map (identifier -> path) must still be fully
+  // populated for *all* runs - including D, which is listed *after* the duplicate - so
+  // that getPrimaryMSRunPath() does not silently drop run names in an order-dependent way
+  // for callers (e.g. TextExporter's USI export) that catch the exception and continue.
+  ProteinIdentification pA, pB, pC, pD;
+  pA.setIdentifier("ID_A");
+  pA.setPrimaryMSRunPath(StringList{"/data/runA.mzML"});
+  pB.setIdentifier("ID_B");
+  pB.setPrimaryMSRunPath(StringList{"/data/dup.mzML"});
+  pC.setIdentifier("ID_C");
+  pC.setPrimaryMSRunPath(StringList{"/data/dup.mzML"});
+  pD.setIdentifier("ID_D");
+  pD.setPrimaryMSRunPath(StringList{"/data/runD.mzML"});
+
+  IdentifierMSRunMapper m;
+  TEST_EXCEPTION(Exception::InvalidValue, m.create(std::vector<ProteinIdentification>{pA, pB, pC, pD}))
+
+  // Despite the throw, every identifier still resolves through the forward map.
+  PeptideIdentification pepA; pepA.setIdentifier("ID_A");
+  PeptideIdentification pepD; pepD.setIdentifier("ID_D");
+  TEST_STRING_EQUAL(m.getPrimaryMSRunPath(pepA), "/data/runA.mzML")
+  TEST_STRING_EQUAL(m.getPrimaryMSRunPath(pepD), "/data/runD.mzML") // run listed after the duplicate
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

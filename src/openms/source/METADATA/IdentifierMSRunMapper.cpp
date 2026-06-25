@@ -28,13 +28,26 @@ namespace OpenMS
     identifier_to_msrunpath_.clear();
     runpath_to_identifier_.clear();
 
+    // First pass: build the forward map (identifier -> ms-run-paths). This direction is
+    // always unambiguous - even when several runs share the same path - and is all that
+    // getPrimaryMSRunPath() needs. Building it completely up front means that if the
+    // reverse-map duplicate check below throws, callers that catch the exception still
+    // see a fully-populated forward map (i.e. USI resolution degrades cleanly, not in an
+    // order-dependent way).
+    for (const auto& prot_id : prot_ids)
+    {
+      StringList ms_run_paths;
+      prot_id.getPrimaryMSRunPath(ms_run_paths);
+      identifier_to_msrunpath_[prot_id.getIdentifier()] = ms_run_paths;
+    }
+
+    // Second pass: build the reverse map (ms-run-paths -> identifier), rejecting ambiguous
+    // input where different identifiers map to the same paths.
     for (const auto& prot_id : prot_ids)
     {
       StringList ms_run_paths;
       prot_id.getPrimaryMSRunPath(ms_run_paths);
       const std::string& identifier = prot_id.getIdentifier();
-
-      identifier_to_msrunpath_[identifier] = ms_run_paths;
 
       // Check for duplicate ms_run_paths (different identifiers mapping to same paths)
       const auto it = runpath_to_identifier_.find(ms_run_paths);
