@@ -560,6 +560,7 @@ Build System:
   - CI: Windows build migrated from Visual Studio 2022 to Visual Studio 2026 (windows-2025 runner, MSVC v145 toolset, CMake generator "Visual Studio 18 2026") (#9514)
   - Build speedup: Boost.Spirit qi/karma replaced with std::from_chars/to_chars (C++17 charconv) for numeric string conversions in String, DataValue, and related utilities; reduces compile time by 30-40% and improves runtime string-to-number throughput (#9648)
   - Fix: added missing <thread> include in ExternalProcess.cpp for compatibility with LLVM/clang 21+ which no longer provides std::this_thread::sleep_for via transitive includes (#9651)
+  - Fix: added missing <new> include in GlobalExceptionHandler.cpp for compatibility with LLVM/clang 21+ which no longer provides placement-new/delete operators via transitive includes (#9653)
 
 
 ------------------------------------------------------------------------------------------
