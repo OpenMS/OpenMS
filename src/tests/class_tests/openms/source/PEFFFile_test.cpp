@@ -1829,6 +1829,7 @@ START_SECTION([EXTRA] AASequence materialization from UniPEFF output -- what a t
   // updates the diff mass; the precursor uplift must be at least that value.
   const ResidueModification* methyl_ref =
       ModificationsDB::getInstance()->getModification("UNIMOD:34", "L", ResidueModification::ANYWHERE);
+  TEST_NOT_EQUAL(methyl_ref, nullptr)
   const double min_uplift = methyl_ref ? methyl_ref->getDiffMonoMass() : 0.0;
   TEST_TRUE(mod_seq.getMonoWeight() - raw.getMonoWeight() + 1e-6 >= min_uplift)
 
