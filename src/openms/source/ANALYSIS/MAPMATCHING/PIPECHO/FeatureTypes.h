@@ -1,4 +1,4 @@
-// Copyright (c) 2025-present, OpenMS Inc. -- EKU Tuebingen
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "OpenMS/KERNEL/Feature.h"
+#include <OpenMS/KERNEL/Feature.h>
 #include "Score.h"
 #include "Util.h"
 #include "Window.h"

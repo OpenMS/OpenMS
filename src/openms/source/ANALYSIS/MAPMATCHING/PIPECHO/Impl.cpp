@@ -1,4 +1,4 @@
-// Copyright (c) 2025-present, OpenMS Inc. -- EKU Tuebingen
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,11 +8,11 @@
 
 #include "FeatureTypes.h"
 #include "Impl.h"
-#include "OpenMS/CONCEPT/Exception.h"
-#include "OpenMS/CONCEPT/LogStream.h"
-#include "OpenMS/CONCEPT/ProgressLogger.h"
-#include "OpenMS/KERNEL/FeatureMap.h"
-#include "Pep.h"
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include "TransferFDRModel.h"
 #include "Score.h"
 #include "Util.h"
 
@@ -21,6 +21,10 @@
 #include <set>
 
 namespace OpenMS::PipEcho
+{
+
+// File-local helpers (internal linkage); not part of the module's header API.
+namespace
 {
 
 /******************************************************************************/
@@ -66,6 +70,8 @@ void prepare_feature(Feature& feature)
 
   feature.sortPeptideIdentifications();
 }
+
+} // namespace
 
 /******************************************************************************/
 Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
@@ -326,8 +332,8 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
     all_acceptors.push_back(acpt);
   }
 
-  PipEcho::Pep pep(all_acceptors, min_decoys);
-  const PipEcho::Pep::group_t& acceptors = pep.run(mbr_fdr);
+  PipEcho::TransferFDRModel transfer_fdr(all_acceptors, min_decoys);
+  const PipEcho::TransferFDRModel::group_t& acceptors = transfer_fdr.run(mbr_fdr);
 
   // Put each acceptor into the correct feature bucket.
   for (auto& acceptor : acceptors)

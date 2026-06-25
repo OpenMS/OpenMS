@@ -1,4 +1,4 @@
-// Copyright (c) 2025-present, OpenMS Inc. -- EKU Tuebingen
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -6,8 +6,8 @@
 // $Authors: Peter J. Jones $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/MATH/MathFunctions.h"
-#include "OpenMS/MATH/StatisticFunctions.h"
+#include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include "Run.h"
 #include "RunStatistics.h"
 #include "Util.h"
@@ -24,6 +24,9 @@ const static double MIN_SCORE = 3e-7;
 namespace OpenMS::PipEcho
 {
 
+// File-local helper (internal linkage); not part of the module's header API.
+namespace
+{
 /******************************************************************************/
 /// Ensure the given value is within bounds (i.e. not NaN.)
 double bound(double d)
@@ -34,6 +37,7 @@ double bound(double d)
     return d;
   }
 }
+} // namespace
 
 /******************************************************************************/
 // NOTE: A lot of this code needs to collect statistics about
@@ -207,7 +211,7 @@ RunStatistics::calc_im_score(const Feature& donor, const Feature& acceptor) cons
   // (anomalous in IM data). Penalise with MIN_SCORE rather than dropping the
   // feature, so `measures` (and the SVM IM column) stay consistent across all
   // pairs -- a per-pair drop would put this acceptor's mbr_score on a different
-  // scale than its peers and desync the global use_im decision in Pep.
+  // scale than its peers and desync the global use_im decision in TransferFDRModel.
   if (! donor_im.has_value() || ! acceptor_im.has_value()) return MIN_SCORE;
 
   // Score the IM difference under the zero-mean tolerance: a small difference

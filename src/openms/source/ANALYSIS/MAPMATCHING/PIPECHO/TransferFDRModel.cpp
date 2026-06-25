@@ -1,4 +1,4 @@
-// Copyright (c) 2025-present, OpenMS Inc. -- EKU Tuebingen
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -6,11 +6,11 @@
 // $Authors: Peter J. Jones $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/CONCEPT/Exception.h"
-#include "OpenMS/CONCEPT/LogStream.h"
-#include "OpenMS/DATASTRUCTURES/ListUtils.h"
-#include "OpenMS/ML/SVM/SimpleSVM.h"
-#include "Pep.h"
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/ML/SVM/SimpleSVM.h>
+#include "TransferFDRModel.h"
 #include "Util.h"
 
 #include <algorithm>
@@ -44,7 +44,10 @@ const static size_t TRAINING_ROUNDS = 10;
 const static double TRUE_POSITIVE_CUTOFF = 0.25;
 
 /******************************************************************************/
-// A wrapper around the SVM wrapper.
+// A wrapper around the SVM wrapper.  File-local (internal linkage); not part of
+// the module's header API.
+namespace
+{
 struct predictors_t
 {
 public:
@@ -55,7 +58,7 @@ public:
    * @param get A function to call to get the score.
    */
   predictors_t(double cutoff,
-               std::function<double(const Pep::acceptor_t&)> get,
+               std::function<double(const TransferFDRModel::acceptor_t&)> get,
                std::function<bool(double, double)> cmp,
                bool use_im);
 
@@ -64,7 +67,7 @@ public:
    *
    * Returns `true` if this method was able to train the SVM.
    */
-  bool train(const Pep::group_t& training);
+  bool train(const TransferFDRModel::group_t& training);
 
   /**
    * Generate predictions for the given group and update the
@@ -72,7 +75,7 @@ public:
    *
    * Returns `true` if this method was able to make predictions.
    */
-  bool predict(Pep::group_t& group);
+  bool predict(TransferFDRModel::group_t& group);
 
 public:
   std::size_t targets = 0;
@@ -83,11 +86,11 @@ private:
   constexpr static const double LABEL_DECOY = 0.0;
 
   // Encode the given acceptor into the given predictor map.
-  void encode(const Pep::acceptor_t&, SimpleSVM::PredictorMap&, bool);
+  void encode(const TransferFDRModel::acceptor_t&, SimpleSVM::PredictorMap&, bool);
 
 private:
   double cutoff;
-  std::function<double(const Pep::acceptor_t&)> getter;
+  std::function<double(const TransferFDRModel::acceptor_t&)> getter;
   std::function<bool(double, double)> cmp;
   bool use_im;
   std::size_t index = 0;
@@ -97,9 +100,10 @@ private:
   SimpleSVM::PredictorMap prediction_predictors;
   std::map<std::size_t, double> labels;
 };
+} // namespace
 
 /******************************************************************************/
-Pep::Pep(const std::vector<std::shared_ptr<Acceptor>>& acceptors,
+TransferFDRModel::TransferFDRModel(const std::vector<std::shared_ptr<Acceptor>>& acceptors,
          std::size_t min_decoys):
     min_decoys_(min_decoys)
 {
@@ -130,7 +134,7 @@ Pep::Pep(const std::vector<std::shared_ptr<Acceptor>>& acceptors,
 }
 
 /******************************************************************************/
-const Pep::group_t& Pep::run(double fdr_cutoff)
+const TransferFDRModel::group_t& TransferFDRModel::run(double fdr_cutoff)
 {
   // Conservative FDR-estimability gate.  Computed up front -- before any
   // throw-prone work and independent of whether the ML model trains -- so an
@@ -246,7 +250,7 @@ const Pep::group_t& Pep::run(double fdr_cutoff)
 }
 
 /******************************************************************************/
-bool Pep::internal_run()
+bool TransferFDRModel::internal_run()
 {
   size_t decoy_count
     = std::ranges::count_if(acceptors_, std::not_fn(&acceptor_t::is_target));
@@ -287,7 +291,7 @@ bool Pep::internal_run()
  * Separate features into several groups in such a way as to ensure an
  * equal distribution of high scoring targets.
  */
-void Pep::group_acceptors(std::vector<group_t>& groups)
+void TransferFDRModel::group_acceptors(std::vector<group_t>& groups)
 {
   // This code would be so much nicer if we could use C++23.
   namespace rg = std::ranges;
@@ -360,7 +364,7 @@ void Pep::group_acceptors(std::vector<group_t>& groups)
 /// `<=`).
 ///
 /// https://cppreference.com/w/cpp/named_req/Compare.html
-bool Pep::round(size_t round_number,
+bool TransferFDRModel::round(size_t round_number,
                 std::vector<group_t>& groups,
                 std::function<double(const acceptor_t&)> getter,
                 std::function<bool(double, double)> cmp)
@@ -407,7 +411,7 @@ bool Pep::round(size_t round_number,
 }
 
 /******************************************************************************/
-bool Pep::train_predict(const group_t& training,
+bool TransferFDRModel::train_predict(const group_t& training,
                         group_t& predict,
                         double cutoff,
                         std::function<double(const acceptor_t&)> get,
@@ -419,7 +423,7 @@ bool Pep::train_predict(const group_t& training,
 }
 
 /******************************************************************************/
-void Pep::compute_qvalues(bool pep_values_are_valid)
+void TransferFDRModel::compute_qvalues(bool pep_values_are_valid)
 {
   // Sort ascending by PEP score, and then descending by MBR score.
   std::ranges::sort(acceptors_, [&](auto a, auto b) {
@@ -456,7 +460,7 @@ void Pep::compute_qvalues(bool pep_values_are_valid)
 // Standard Q value correct.  Ensures that as you iterate over the
 // list of scored acceptors the Q value either increases or stays the
 // same.
-void Pep::correct_qvalues()
+void TransferFDRModel::correct_qvalues()
 {
   if (acceptors_.size() < 2) return;
   std::size_t i = acceptors_.size() - 2;
@@ -480,8 +484,10 @@ void Pep::correct_qvalues()
 }
 
 /******************************************************************************/
+namespace
+{
 predictors_t::predictors_t(double cutoff,
-                           std::function<double(const Pep::acceptor_t&)> get,
+                           std::function<double(const TransferFDRModel::acceptor_t&)> get,
                            std::function<bool(double, double)> cmp,
                            bool use_im):
     cutoff(cutoff),
@@ -502,9 +508,9 @@ predictors_t::predictors_t(double cutoff,
 }
 
 /******************************************************************************/
-bool predictors_t::train(const Pep::group_t& training)
+bool predictors_t::train(const TransferFDRModel::group_t& training)
 {
-  for (const Pep::acceptor_ptr_t& acceptor : training)
+  for (const TransferFDRModel::acceptor_ptr_t& acceptor : training)
   {
     encode(*acceptor, training_predictors, true);
   }
@@ -524,9 +530,9 @@ bool predictors_t::train(const Pep::group_t& training)
 }
 
 /******************************************************************************/
-bool predictors_t::predict(Pep::group_t& group)
+bool predictors_t::predict(TransferFDRModel::group_t& group)
 {
-  for (const Pep::acceptor_ptr_t& acceptor : group)
+  for (const TransferFDRModel::acceptor_ptr_t& acceptor : group)
   {
     encode(*acceptor, prediction_predictors, false);
   }
@@ -560,7 +566,7 @@ bool predictors_t::predict(Pep::group_t& group)
 }
 
 /******************************************************************************/
-void predictors_t::encode(const Pep::acceptor_t& acceptor,
+void predictors_t::encode(const TransferFDRModel::acceptor_t& acceptor,
                           SimpleSVM::PredictorMap& predictors,
                           bool create_labels)
 {
@@ -596,5 +602,6 @@ void predictors_t::encode(const Pep::acceptor_t& acceptor,
     ++index;
   }
 }
+} // namespace
 
 } // namespace OpenMS::PipEcho

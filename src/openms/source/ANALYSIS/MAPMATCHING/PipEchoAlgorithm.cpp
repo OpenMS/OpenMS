@@ -1,4 +1,4 @@
-// Copyright (c) 2025-present, OpenMS Inc. -- EKU Tuebingen
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -6,10 +6,8 @@
 // $Authors: Peter J. Jones $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h"
-#include "OpenMS/CONCEPT/ProgressLogger.h"
-#include "OpenMS/ML/CLUSTERING/HashGrid.h"
-#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include "PIPECHO/Impl.h"
 #include "PIPECHO/Run.h"
@@ -17,13 +15,17 @@
 #include "PIPECHO/Util.h"
 
 #include <algorithm>
+#include <cmath>
+#include <limits>
 #include <ranges>
 
 namespace OpenMS
 {
 
+namespace
+{
 /******************************************************************************/
-/// Find the largest m/z value among all maps.
+/// Find the smallest and largest m/z value among all maps.
 std::pair<double, double> mz_range(const std::vector<FeatureMap>& feature_maps)
 {
   double mz_min = std::numeric_limits<double>::max();
@@ -31,9 +33,10 @@ std::pair<double, double> mz_range(const std::vector<FeatureMap>& feature_maps)
 
   for (auto& map : feature_maps)
   {
-    // NOTE: map.getMaxMZ() always throws an exception, even if
-    // updateRanges was called on the map before calling getMaxMZ.
-    // Therefore we need to walk the map manually :(
+    // The input maps are const and their m/z ranges are not guaranteed to be
+    // current here (updateRanges() cannot be called on a const map), so we
+    // derive the bounds directly from the features. getMinMZ()/getMaxMZ() would
+    // throw Exception::InvalidRange on an un-updated (empty) range.
     for (auto& feature : map)
     {
       mz_min = std::min(mz_min, feature.getMZ());
@@ -43,6 +46,7 @@ std::pair<double, double> mz_range(const std::vector<FeatureMap>& feature_maps)
 
   return std::make_pair(mz_min, mz_max);
 }
+} // namespace
 
 /******************************************************************************/
 PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()

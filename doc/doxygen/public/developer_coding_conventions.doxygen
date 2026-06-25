@@ -163,6 +163,17 @@
   The convention is to use only lowercase letters for file extensions. There are three exceptions: "ML" and "XML" are written in uppercase letters and "mzData" keeps its capital "D".
   Remember to keep this consistent when adding new data files or writing new TOPP tools (use correct capitalization for file type restrictions, here).
 
+  @subsection private_implementation_headers Private implementation headers
+
+  By default every %OpenMS class is part of the public API: its header lives under <code>src/openms/include/OpenMS/...</code>, is installed, is exported with <code>OPENMS_DLLAPI</code>, and may be wrapped in pyOpenMS. Most code should stay this way.
+
+  A self-contained algorithm with substantial internal-only machinery may instead keep that machinery as <em>private implementation headers</em>. These are headers that live <b>next to their <code>.cpp</code></b> in a dedicated sub-directory under <code>src/openms/source/...</code> (rather than in the <code>include/</code> tree), e.g. <code>source/ANALYSIS/MAPMATCHING/PIPECHO/</code>. The public entry point (here <code>PipEchoAlgorithm</code>) remains a normal public class; only its internals are private. Rules for private headers:
+
+  - They are <b>not installed, not exported</b> (no <code>OPENMS_DLLAPI</code>), and <b>not wrapped</b> in pyOpenMS.
+  - A <b>public (installed) header must never <code>\#include</code> a private header.</b> Within the owning module, private headers are included with quotes (<code>\#include "Foo.h"</code>); public %OpenMS headers are always included with angle brackets (<code>\#include &lt;OpenMS/...&gt;</code>).
+  - The strict "filename == class" and "one class per file" rules above are relaxed: header-only helpers and small grouped types are fine. Because the symbols are confined to the module's own (non-installed, non-exported) namespace (e.g. <code>OpenMS::PipEcho</code>), short internal names are acceptable. File-local helpers in a <code>.cpp</code> should still be placed in an anonymous namespace.
+  - Register the private headers in the sub-directory's <code>sources.cmake</code> by appending them to <code>OpenMS_private_headers</code> (declared in <code>src/openms/includes.cmake</code>). That variable is merged into the IDE source list only; it is never passed to <code>HEADER_FILES</code>, so the headers are not installed. The <code>.cpp</code> files are added to <code>OpenMS_sources</code> as usual.
+
   @section classes Classes
 
   The following section outlines the class requirements with examples.

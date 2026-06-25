@@ -1,4 +1,4 @@
-// Copyright (c) 2025-present, OpenMS Inc. -- EKU Tuebingen
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -76,7 +76,7 @@ public:
   double mbr_fdr;
 
   /// Minimum number of MBR decoy transfers required before transferred
-  /// features are kept (the FDR-estimability floor; see Pep::run).
+  /// features are kept (the FDR-estimability floor; see TransferFDRModel::run).
   std::size_t min_decoys;
 
 private:

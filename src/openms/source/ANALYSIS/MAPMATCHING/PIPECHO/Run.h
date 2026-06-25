@@ -1,4 +1,4 @@
-// Copyright (c) 2025-present, OpenMS Inc. -- EKU Tuebingen
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 
 #include "FeatureTypes.h"
 #include "GridWithStorage.h"
-#include "OpenMS/KERNEL/Feature.h"
+#include <OpenMS/KERNEL/Feature.h>
 
 #include <memory>
 

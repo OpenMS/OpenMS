@@ -1,4 +1,4 @@
-// Copyright (c) 2025-present, OpenMS Inc. -- EKU Tuebingen
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -16,7 +16,16 @@
 namespace OpenMS::PipEcho
 {
 
-class Pep
+/**
+ * Scores match-between-runs (MBR) transfers and applies FDR control to them.
+ *
+ * Given the candidate target and decoy acceptor transfers, an SVM is trained on
+ * the target/decoy labels to assign each transfer a posterior error probability
+ * (PEP), from which q-values are derived. run() returns only the transfers that
+ * survive the requested FDR cutoff (with a conservative fallback when the FDR is
+ * not estimable -- see run()).
+ */
+class TransferFDRModel
 {
 public:
   /// Everything we need to know about an acceptor feature.
@@ -67,7 +76,7 @@ public:
    *                    transfers required before any transfer is kept (see
    *                    run()).
    */
-  Pep(const std::vector<std::shared_ptr<Acceptor>>&, std::size_t min_decoys);
+  TransferFDRModel(const std::vector<std::shared_ptr<Acceptor>>&, std::size_t min_decoys);
 
   /**
    * Run the PEP analysis.

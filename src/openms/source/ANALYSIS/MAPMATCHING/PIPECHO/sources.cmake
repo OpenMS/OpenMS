@@ -7,7 +7,7 @@ set(sources_list_h
   GridWithStorage.h
   Impl.h
   MzDiff.h
-  Pep.h
+  TransferFDRModel.h
   Run.h
   RunStatistics.h
   Score.h
@@ -18,7 +18,7 @@ set(sources_list_h
 set(sources_list
   FeatureTypes.cpp
   Impl.cpp
-  Pep.cpp
+  TransferFDRModel.cpp
   Run.cpp
   RunStatistics.cpp
   Util.cpp
@@ -37,10 +37,12 @@ endforeach(i)
 
 ### pass source file list to the upper instance
 set(OpenMS_sources ${OpenMS_sources} ${sources})
-# These are private implementation headers that live next to the .cpp under
-# source/.  includes.cmake resets OpenMS_sources_h after this (source) phase, so
-# register them on the master source list (IDE listing only; not compiled).
-set(OpenMS_sources ${OpenMS_sources} ${sources_h})
+# Private implementation headers that live next to the .cpp under source/.  They
+# are registered on OpenMS_private_headers (declared in includes.cmake), which is
+# merged into OpenMS_sources for IDE listing only -- never installed, exported,
+# or wrapped.  Public headers must not include them.
+set(OpenMS_private_headers ${OpenMS_private_headers} ${sources_h})
 
 ### source group definition
-#source_group("Source Files\\ANALYSIS\\MAPMATCHING\\PIPECHO" FILES ${sources})
+source_group("Source Files\\ANALYSIS\\MAPMATCHING\\PIPECHO" FILES ${sources})
+source_group("Header Files\\OpenMS\\ANALYSIS\\MAPMATCHING\\PIPECHO" FILES ${sources_h})

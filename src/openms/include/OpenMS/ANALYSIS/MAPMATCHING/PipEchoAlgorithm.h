@@ -1,4 +1,4 @@
-// Copyright (c) 2025-present, OpenMS Inc. -- EKU Tuebingen
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,6 +17,19 @@
 namespace OpenMS
 {
 
+  /**
+    @brief Match-between-runs feature grouping via the PIP-ECHO algorithm.
+
+    Groups features that represent the same identified peptide across multiple
+    retention-time-aligned LC-MS runs of a single fraction. Identifications are
+    transferred to runs in which a feature was detected but not identified
+    (match-between-runs); candidate transfers are scored and filtered at a
+    controlled false-discovery rate using a target/decoy model.
+
+    @htmlinclude OpenMS_PipEchoAlgorithm.parameters
+
+    @ingroup FeatureGrouping
+  */
 class OPENMS_DLLAPI PipEchoAlgorithm : public FeatureGroupingAlgorithm
 {
 public:
@@ -34,15 +47,20 @@ public:
   PipEchoAlgorithm& operator=(const PipEchoAlgorithm& source) = delete;
 
   /// Destructor.
-  ~PipEchoAlgorithm();
+  ~PipEchoAlgorithm() override;
 
   /**
-   * Group together features from multiple LC-MS runs that represent
-   * the same identified peptides.
-   *
-   * The given feature maps must be aligned prior to using this
-   * function and come from the same fraction.
-   */
+    @brief Groups corresponding features across the feature maps of one fraction.
+
+    Features representing the same identified peptide are grouped together and,
+    where possible, identifications are transferred between runs.
+
+    @param features The input feature maps (same fraction) to link.
+    @param consensus The resulting consensus map of grouped features.
+
+    @pre The input maps must be retention-time aligned (e.g. via a map-alignment
+         algorithm) and originate from the same fraction.
+  */
   void group(const std::vector<FeatureMap>& features, ConsensusMap& consensus) override;
 };
 
