@@ -928,17 +928,25 @@ namespace OpenMS
       return sum_model_data / (std::sqrt(sqsum_data) * std::sqrt(sqsum_model));
     }
 
-    /// Helper class to gather (and dump) some statistics from a e.g. vector<double>.
+    /**
+      @brief Helper struct to compute summary statistics (min, Q1, median, Q3, max, mean, variance) from a container.
+
+      All fields are zero-initialized for empty input. For small inputs (n < 3):
+      - @c lowerq equals @c min (Q1 is defined as the minimum when the lower half is empty)
+      - @c upperq equals @c max (Q3 is defined as the maximum when the upper half is empty)
+      - @c variance is 0.0 for n == 1 (undefined for a single point)
+
+      @ingroup MathFunctionsStatistics
+    */
     template<typename T>
     struct SummaryStatistics
     {
       SummaryStatistics() = default;
 
-      // Ctor with data
+      /// Construct from a container; sorts @p data in place.
       SummaryStatistics(T& data)
       {
         count = data.size();
-        // Sanity check: avoid core dump if no data points present.
         if (data.empty())
         {
           mean = variance = min = lowerq = median = upperq = max = 0.0;

@@ -9,13 +9,14 @@ Optionally, identification data can be considered to prevent linking of features
 
 .. image:: img/linking_illustration.png
 
-Different feature grouping algorithms with slightly different implementations are runtime characteristics 
+Different feature grouping algorithms with slightly different implementations and runtime characteristics
 are available in pyOpenMS:
 
 - :py:class:`~.FeatureGroupingAlgorithmQT`
 - :py:class:`~.FeatureGroupingAlgorithmKD`
 - :py:class:`~.FeatureGroupingAlgorithmLabeled`
 - :py:class:`~.FeatureGroupingAlgorithmUnlabeled`
+- :py:class:`~.PipEchoAlgorithm` — match-between-runs (MBR) grouping with FDR-controlled ID transfer
 
 We now perform feature linking using the :py:class:`~.FeatureGroupingAlgorithmQT` algorithm.
 
@@ -159,3 +160,21 @@ Finally, we add some meta-data to the consensus map, which allows us to track th
     file_descriptions = consensus_map.getColumnHeaders()
     for index, header in file_descriptions.items():
         print(f"Map {index}: Filename = {header.filename}, Size = {header.size}, UniqueID = {header.unique_id}")
+
+Match-Between-Runs with PipEchoAlgorithm
+*****************************************
+
+The :py:class:`~.PipEchoAlgorithm` implements match-between-runs (MBR) feature grouping.
+It groups features from retention-time-aligned LC-MS runs and transfers peptide
+identifications to runs where a feature was detected but not identified, using a
+target/decoy FDR model to control the false-discovery rate of transfers.
+
+.. code-block:: python
+    :linenos:
+
+    import pyopenms as oms
+
+    # feature_maps must be RT-aligned and come from the same fraction
+    consensus_map = oms.ConsensusMap()
+    algo = oms.PipEchoAlgorithm()
+    algo.group(feature_maps, consensus_map)
