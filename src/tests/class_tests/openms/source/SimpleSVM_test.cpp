@@ -391,7 +391,7 @@ START_SECTION([EXTRA] predict() stays index-aligned when a predictor is constant
   svm_without_b.setup(train_without_b, y); // trains on a,c
 
   // The constant predictor really was dropped from the trained model.
-  TEST_EQUAL(svm_with_b.getScaling().find("b") == svm_with_b.getScaling().end(), true)
+  TEST_TRUE(svm_with_b.getScaling().find("b") == svm_with_b.getScaling().end())
 
   // Prediction data: identical a,c; for the 'b' model, 'b' is PRESENT and varies
   // (the exact trigger for the index misalignment).
@@ -464,7 +464,7 @@ START_SECTION([EXTRA] setup() handles a predictor that is constant during traini
   svm_a.setup(train_a, lab);        // must NOT crash (previously n_obs == 0)
   svm_plain.setup(train_plain, lab);
 
-  TEST_EQUAL(svm_a.getScaling().find("a") == svm_a.getScaling().end(), true)
+  TEST_TRUE(svm_a.getScaling().find("a") == svm_a.getScaling().end())
 
   auto make_test = [](bool with_a) {
     SimpleSVM::PredictorMap t;
