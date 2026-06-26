@@ -83,8 +83,19 @@ namespace OpenMS
 
       if (use_scientific)
       {
-        int sci_prec = fixed_format ? 3 : precision;
-        fc = std::to_chars(buf, buf + sizeof(buf), value, std::chars_format::scientific, sci_prec);
+        if (fixed_format)
+        {
+          fc = std::to_chars(buf, buf + sizeof(buf), value, std::chars_format::scientific, 3);
+        }
+        else
+        {
+          // Use shortest round-trip representation (no explicit precision). The C++ standard
+          // guarantees a unique shortest decimal that round-trips back to the same double, so
+          // the result is platform-independent. A fixed precision instead rounds differently
+          // across libc++/libstdc++ (the macOS CI divergence this fixes); shortest round-trip
+          // reproduces the existing reference-file values without updates.
+          fc = std::to_chars(buf, buf + sizeof(buf), value, std::chars_format::scientific);
+        }
       }
       else if (fixed_format)
       {
@@ -113,11 +124,16 @@ namespace OpenMS
             while (e_pos > dot + 1 && *(e_pos - 1) == '0') --e_pos;
             if (e_pos == dot + 1) e_pos = dot + 2; // keep at least one digit after dot
           }
-          // Append trimmed mantissa (includes 'e')
+          // Append trimmed mantissa, then 'e'. The shortest round-trip representation can
+          // produce an integer mantissa with no decimal point (e.g. "1e+06"); restore the
+          // historical "1.0e06" form by ensuring at least one digit after the decimal point.
           target.append(buf, static_cast<size_t>(e_pos - buf));
+          if (!dot) target += ".0";
           target += 'e';
 
-          // Fix exponent format: "+04" → "04" (remove '+', keep zero-padding)
+          // Fix exponent format: "+04" → "04" (remove '+', keep '-' and zero-padding).
+          // std::to_chars uses printf %e style, so the exponent always has >= 2 digits and
+          // negative exponents already carry their '-'; only the leading '+' must be removed.
           const char* exp_start = e_orig + 1; // skip 'e'
           if (exp_start < end && *exp_start == '+')
             ++exp_start; // skip '+'
