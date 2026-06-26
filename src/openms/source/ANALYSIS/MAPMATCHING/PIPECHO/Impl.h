@@ -79,6 +79,11 @@ public:
   /// features are kept (the FDR-estimability floor; see TransferFDRModel::run).
   std::size_t min_decoys;
 
+  /// Upper bound on the SVM training-set size per cross-validation fold
+  /// (0 = unlimited). Only the model fit is subsampled; prediction and the
+  /// FDR/q-values still use every transfer (see TransferFDRModel::round).
+  std::size_t max_training_points;
+
 private:
   std::string path_from_feature_map(const FeatureMap&);
   bool is_donor_feature(const Feature&);

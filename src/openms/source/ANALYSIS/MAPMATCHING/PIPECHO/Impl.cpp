@@ -83,6 +83,9 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     // through int to size_t cannot underflow.
     min_decoys(static_cast<std::size_t>(
       static_cast<int>(params.getValue("min_decoys")))),
+    // setMinInt("max_training_points", 0) guarantees a non-negative value.
+    max_training_points(static_cast<std::size_t>(
+      static_cast<int>(params.getValue("max_training_points")))),
     rng_(static_cast<std::mt19937::result_type>(
       static_cast<int>(params.getValue("random_seed"))))
 {
@@ -332,7 +335,7 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
     all_acceptors.push_back(acpt);
   }
 
-  PipEcho::TransferFDRModel transfer_fdr(all_acceptors, min_decoys);
+  PipEcho::TransferFDRModel transfer_fdr(all_acceptors, min_decoys, max_training_points);
   const PipEcho::TransferFDRModel::group_t& acceptors = transfer_fdr.run(mbr_fdr);
 
   // Put each acceptor into the correct feature bucket.

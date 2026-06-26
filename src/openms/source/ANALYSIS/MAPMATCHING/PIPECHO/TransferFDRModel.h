@@ -75,8 +75,13 @@ public:
    * @param min_decoys  FDR-estimability floor: the minimum number of decoy
    *                    transfers required before any transfer is kept (see
    *                    run()).
+   * @param max_training_points  Upper bound on the SVM training-set size per
+   *                    cross-validation fold (0 = unlimited). Only the model
+   *                    fit is subsampled; prediction and the FDR/q-values use
+   *                    every transfer, so q-values stay unbiased (see round()).
    */
-  TransferFDRModel(const std::vector<std::shared_ptr<Acceptor>>&, std::size_t min_decoys);
+  TransferFDRModel(const std::vector<std::shared_ptr<Acceptor>>&, std::size_t min_decoys,
+                   std::size_t max_training_points = 0);
 
   /**
    * Run the PEP analysis.
@@ -127,6 +132,10 @@ private:
 
   /// FDR-estimability floor (see run()).
   std::size_t min_decoys_;
+
+  /// Upper bound on the SVM training-set size per fold (0 = unlimited). Only
+  /// the model fit is subsampled; prediction and FDR use all transfers.
+  std::size_t max_training_points_;
 
   /// Whether ion mobility is used as an SVM feature. Ion mobility is an
   /// all-or-nothing property of the acquisition, so this is true only when

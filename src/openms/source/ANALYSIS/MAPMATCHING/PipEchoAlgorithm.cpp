@@ -86,6 +86,21 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
                      {"advanced"});
   defaults_.setMinInt("min_decoys", 1);
 
+  defaults_.setValue("max_training_points", 50000,
+                     "Upper bound on the number of candidate transfers used to"
+                     " TRAIN the transfer-FDR SVM in each cross-validation fold"
+                     " (0 = unlimited). Predictions and the FDR/q-values are"
+                     " always computed over ALL transfers, so this only bounds"
+                     " the SVM-fitting cost and does not change which transfers"
+                     " are scored. Runs with very many features per run can"
+                     " otherwise make the SVM grid search slow. When the cap is"
+                     " hit, a deterministic stratified subsample is used: both"
+                     " labelled classes (decoys and positives) are kept whole if"
+                     " they fit, otherwise the minority class is kept whole and"
+                     " the majority is score-spread sampled to fit the budget.",
+                     {"advanced"});
+  defaults_.setMinInt("max_training_points", 0);
+
   defaultsToParam_();
 }
 
