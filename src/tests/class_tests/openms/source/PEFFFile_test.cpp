@@ -2041,19 +2041,21 @@ START_SECTION([EXTRA] proteoform enumeration -- exact ProForma strings for a rea
   std::vector<std::string> var_descs;
   std::vector<AASequence> var_seqs;
 
-  // (1) Simple variants only:
+  // (1) Simple variants only. Pin the full description string (shorthand + " (tag)")
+  // so the assertion catches a substitution-shorthand regression instead of merely
+  // accepting any string that mentions the variant somewhere (e.g. inside the tag).
   variants_only.getVariantSequences(var_descs, var_seqs, /*include_complex=*/false);
   TEST_EQUAL(var_seqs.size(), 2)
   TEST_EQUAL(var_seqs[0].toUnmodifiedString(), "MKLSLGLLPKARGSPRERLAPTDVMGNECS")  // K16R
   TEST_EQUAL(var_seqs[1].toUnmodifiedString(), "MKLSLGLLPKARGAPKERLAPTDVMGNECS")  // S14A
-  TEST_EQUAL(var_descs[0].find("K16R") != std::string::npos, true)
-  TEST_EQUAL(var_descs[1].find("S14A") != std::string::npos, true)
+  TEST_EQUAL(var_descs[0], "K16R (dbSNP:rs_test_K16R)")
+  TEST_EQUAL(var_descs[1], "S14A (dbSNP:rs_test_S14A)")
 
-  // (2) Simple + complex variants:
+  // (2) Simple + complex variants. Same exact-string discipline.
   variants_only.getVariantSequences(var_descs, var_seqs, /*include_complex=*/true);
   TEST_EQUAL(var_seqs.size(), 3)
   TEST_EQUAL(var_seqs[2].toUnmodifiedString(), "MKLSABLPKARGSPKERLAPTDVMGNECS")  // 5..7 SLG -> AB
-  TEST_EQUAL(var_descs[2].find("5-7>AB") != std::string::npos, true)
+  TEST_EQUAL(var_descs[2], "5-7>AB (ClinVar:test_SLG_AB)")
 
   // ---- BLOCK B: K16R variant. Re-anchor the 4 mods whose target residue survives.
   // The Acetyl-K16 mod becomes biologically meaningless when K is mutated to R, so
@@ -2208,14 +2210,12 @@ START_SECTION([EXTRA] proteoform enumeration -- exact ProForma strings for a rea
              "MKLSLGLLPKARGS[MOD:00046]PKERLAPTDVM[UNIMOD:35]GNECS")
 
   // E.2 Mature chain (10..30, 21 residues) -- top-down search after signal-peptide cleavage.
-  // IMPORTANT: PEFFEntry::getProcessedSequence rebuilds the chain from the raw
-  // sequence STRING via AASequence::fromString(...) and never iterates the
-  // modifications vector. Mods are therefore not "stripped" -- they are SILENTLY
-  // NEVER APPLIED to the returned chain, even when they fall inside the region
-  // (Phospho-S14 falls in 10..30, position 5 of the chain, but the returned
-  // AASequence shows no mod at that position). A top-down engine that wants the
-  // modified chain must re-anchor and re-apply the mods on its own. Pin the
-  // current behavior so any future change becomes a deliberate diff to this test.
+  // Contract: getProcessedSequence returns the residue slice for the requested
+  // region but does NOT apply any modifications from entry.modifications, even
+  // when those modifications fall inside the region. Callers that need a
+  // modified chain must re-anchor (translate parent positions to chain positions)
+  // and re-apply the mods themselves. The next two assertions pin the current
+  // behavior on Phospho-S14, which falls at chain position 5 of the mature chain.
   AASequence mature_chain = full.getProcessedSequence("PEFF:0001020");
   TEST_EQUAL(mature_chain.size(), 21)
   TEST_EQUAL(mature_chain.toString(), "KARGSPKERLAPTDVMGNECS")
