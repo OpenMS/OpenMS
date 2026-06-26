@@ -26,7 +26,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_6" accession="sp|P25642|IMG2_YEAST" score="0.0" sequence="" >
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/data/lamgroup/iPRG2014/study/oms/JD_06232014_sample1-A.pep.xml]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/data/lamgroup/iPRG2014/study/oms/JD_06232014_sample1-A.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="436.210339680337484" RT="0.0" spectrum_reference="scan=6" >
 			<PeptideHit score="0.806668" sequence="HEEIDTK" charge="2" aa_before="K X" aa_after="N X" protein_refs="PH_0 PH_1" >

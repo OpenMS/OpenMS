@@ -55,7 +55,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_19" accession="rev000459115" score="0.0" sequence="" >
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[PepXMLFile_test]"/>
+			<UserParam type="stringList" name="spectra_data" value="[PepXMLFile_test.mzXML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="538.605091698566639" RT="1.3653" spectrum_reference="scan=2" >
 			<PeptideHit score="8.0" sequence=".(Glu-&gt;pyro-Glu)ELNKEMAAEKAKAAAG" charge="3" aa_before="R X X" aa_after="E X X" protein_refs="PH_0 PH_1 PH_2" >
@@ -139,7 +139,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_27" accession="IPI00027377" score="0.0" sequence="" >
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[./PepXMLFile_test]"/>
+			<UserParam type="stringList" name="spectra_data" value="[PepXMLFile_test.mzXML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0.0" MZ="1143.590525031899915" RT="3.1" spectrum_reference="scan=7" >
 			<PeptideHit score="5.136" sequence="EISPDTTLLDLQNNDISELR" charge="2" aa_before="K" aa_after="K" protein_refs="PH_20" >

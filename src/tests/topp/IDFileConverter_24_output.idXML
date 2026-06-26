@@ -44,7 +44,7 @@
 			<ProteinHit id="PH_11" accession="DECOY_DECOY_tr|E9QEY6|E9QEY6_DANRE_UNMAPPED" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/home/rostlab/annieha/ConvertedRaw_Nina/LakeTroutChromiumsearched/ctl/rep1/1]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/rostlab/annieha/ConvertedRaw_Nina/LakeTroutChromiumsearched/ctl/rep1/1.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="354.990447531899974" RT="75.0" spectrum_reference="scan=7" >
 			<PeptideHit score="0.0" sequence="QRM(Oxidation)ADVKKVAADM(Oxidation)EEEKD" charge="6" aa_before="D X X X X X" aa_after="R X X X X X" protein_refs="PH_0 PH_1 PH_2 PH_3 PH_4 PH_5" >
