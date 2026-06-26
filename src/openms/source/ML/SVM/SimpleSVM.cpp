@@ -577,11 +577,17 @@ void SimpleSVM::predict(PredictorMap& predictors, vector<Prediction>& prediction
   }
 
   Size n_obs = predictors.begin()->second.size(); // length of the first feature ...
-  Size feature_dim = predictors.size();
 
   scaleDataUsingTrainingRanges(predictors, pimpl_->scaling_);
 
-  //std::cout << "Predicting on novel data with obs./feature dimensionality: " << n_obs << "/" << feature_dim << std::endl;
+  // Build the LIBSVM nodes over the TRAINED feature set, indexed in the exact
+  // order convertData_() used during setup() (recorded in predictor_names_).
+  // Iterating the prediction map by position instead would misalign feature
+  // indices whenever a predictor was constant during training -- and therefore
+  // dropped from the model -- but present here, silently corrupting predictions
+  // (issue #9661).
+  const std::vector<std::string>& names = pimpl_->predictor_names_;
+  const Size feature_dim = names.size();
 
   Size n_classes = svm_get_nr_class(pimpl_->model_);
   vector<int> outcomes(n_classes);
@@ -593,12 +599,18 @@ void SimpleSVM::predict(PredictorMap& predictors, vector<Prediction>& prediction
   svm_node *x = new svm_node[feature_dim + 1];
   for (Size i = 0; i != n_obs; ++i)
   {
-    size_t feature_index{0};
-    for (auto p : predictors) 
+    for (Size k = 0; k < feature_dim; ++k)
     {
-      x[feature_index].index = feature_index + 1;
-      x[feature_index].value = p.second[i]; // feature value for observation i
-      ++feature_index;
+      PredictorMap::const_iterator pred_it = predictors.find(names[k]);
+      if (pred_it == predictors.end())
+      {
+        delete[] x;
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "SimpleSVM::predict: predictor '" + names[k] + "' used during training "
+          "is missing from the prediction data.");
+      }
+      x[k].index = static_cast<int>(k + 1); // LIBSVM feature indices are 1-based
+      x[k].value = pred_it->second[i];       // feature value for observation i
     }
     x[feature_dim].index = -1;
     x[feature_dim].value = 0;
@@ -611,7 +623,7 @@ void SimpleSVM::predict(PredictorMap& predictors, vector<Prediction>& prediction
     }
     predictions.push_back(pred);
   }
-  delete[] x;  
+  delete[] x;
 }
 
 // only works in classification mode

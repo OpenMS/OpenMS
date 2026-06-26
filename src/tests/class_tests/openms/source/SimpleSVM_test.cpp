@@ -350,6 +350,86 @@ START_SECTION(regression_train_and_predict_on_separate)
 }
 END_SECTION
 
+START_SECTION([EXTRA] predict() stays index-aligned when a predictor is constant during training but present at prediction (issue #9661))
+{
+  // A predictor that is constant during training is dropped by setup() (it gets
+  // no LIBSVM feature index). If predict() indexed features by prediction-map
+  // position, such a predictor -- still present at prediction -- would shift
+  // every later feature's index and silently corrupt the result. Here 'a'
+  // (which sorts before 'b','c') is constant during training, so the trained
+  // model must behave exactly as if it had only ever seen 'b','c'.
+
+  // Separable two-class problem in informative features a,c. The constant
+  // predictor 'b' sorts BETWEEN them, so it is dropped during training yet
+  // shifts 'c' if predict() indexed by position. (It must NOT sort first: the
+  // alphabetically-first predictor seeds convertData_'s observation count, and
+  // a constant one there would be a different, setup-side issue.)
+  auto make_train = [](bool with_b) {
+    SimpleSVM::PredictorMap m;
+    std::vector<double> a, c;
+    for (int k = 0; k < 10; ++k) { a.push_back(0.02 * k);        c.push_back(0.02 * k); }        // class 0: 0.00..0.18
+    for (int k = 0; k < 10; ++k) { a.push_back(0.82 + 0.02 * k); c.push_back(0.82 + 0.02 * k); } // class 1: 0.82..1.00
+    m["a"] = a; m["c"] = c;
+    if (with_b) { m["b"] = std::vector<double>(20, 7.0); } // constant -> dropped by setup()
+    return m;
+  };
+
+  std::map<Size, double> y;
+  for (Size i = 0; i < 10; ++i) { y[i] = 0.0; }
+  for (Size i = 10; i < 20; ++i) { y[i] = 1.0; }
+
+  Param param;
+  param.setValue("kernel", "linear");
+  param.setValue("log2_C", ListUtils::create<double>("0,3,6"));
+
+  SimpleSVM svm_with_b, svm_without_b;
+  svm_with_b.setParameters(param);
+  svm_without_b.setParameters(param);
+  SimpleSVM::PredictorMap train_with_b = make_train(true);
+  SimpleSVM::PredictorMap train_without_b = make_train(false);
+  svm_with_b.setup(train_with_b, y);       // 'b' constant -> dropped; trains on a,c
+  svm_without_b.setup(train_without_b, y); // trains on a,c
+
+  // The constant predictor really was dropped from the trained model.
+  TEST_EQUAL(svm_with_b.getScaling().find("b") == svm_with_b.getScaling().end(), true)
+
+  // Prediction data: identical a,c; for the 'b' model, 'b' is PRESENT and varies
+  // (the exact trigger for the index misalignment).
+  auto make_test = [](bool with_b) {
+    SimpleSVM::PredictorMap t;
+    t["a"] = std::vector<double>{0.05, 0.15, 0.85, 0.95};
+    t["c"] = std::vector<double>{0.05, 0.15, 0.85, 0.95};
+    if (with_b) { t["b"] = std::vector<double>{1.0, 9.0, 2.0, 8.0}; }
+    return t;
+  };
+  SimpleSVM::PredictorMap test_with_b = make_test(true);
+  SimpleSVM::PredictorMap test_without_b = make_test(false);
+
+  std::vector<SimpleSVM::Prediction> pred_with_b, pred_without_b;
+  svm_with_b.predict(test_with_b, pred_with_b);
+  svm_without_b.predict(test_without_b, pred_without_b);
+
+  TEST_EQUAL(pred_with_b.size(), 4)
+  TEST_EQUAL(pred_without_b.size(), 4)
+
+  // Invariant (#9661): a constant-in-training predictor present at prediction
+  // must not change anything -> identical to the model that never saw 'b'.
+  for (Size i = 0; i < pred_with_b.size(); ++i)
+  {
+    TEST_EQUAL(pred_with_b[i].outcome, pred_without_b[i].outcome)
+    TEST_REAL_SIMILAR(pred_with_b[i].probabilities[0.0], pred_without_b[i].probabilities[0.0])
+    TEST_REAL_SIMILAR(pred_with_b[i].probabilities[1.0], pred_without_b[i].probabilities[1.0])
+  }
+
+  // Sanity: the problem is separable, so the classes are recovered as expected
+  // (this is exactly what silently breaks without the fix).
+  TEST_EQUAL(pred_with_b[0].outcome, 0.0)
+  TEST_EQUAL(pred_with_b[1].outcome, 0.0)
+  TEST_EQUAL(pred_with_b[2].outcome, 1.0)
+  TEST_EQUAL(pred_with_b[3].outcome, 1.0)
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
