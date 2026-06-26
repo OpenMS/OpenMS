@@ -175,26 +175,34 @@ namespace OpenMS
     return best_n_quant > 0; // Return true if at least one abundance was found
   }
 
-  size_t PeptideAndProteinQuant::getSampleIDFromFilenameAndChannel_(const std::string& filename,
-                                                                 UInt channel_or_label,
-                                                                 const ExperimentalDesign& ed) const
+  void PeptideAndProteinQuant::buildSampleIDLookup_()
   {
-    // Map filename and label to sample using experimental design
-    const auto& ms_section = ed.getMSFileSection();
-    for (const auto& entry : ms_section)
+    // Build a (basename, channel/label) -> sample lookup once, so that the
+    // per-peptide/per-channel aggregation below does not have to linearly scan
+    // the MS file section (and recompute File::stemName) for every single lookup.
+    sample_id_lookup_.clear();
+    for (const auto& entry : experimental_design_.getMSFileSection())
     {
-      std::string ed_filename = File::stemName(entry.path);
-      if (ed_filename == filename && entry.label == channel_or_label)
-      {
-        return entry.sample;
-      }
+      // emplace keeps the first occurrence of a (basename, label) pair, matching
+      // the previous linear-scan behaviour which returned the first match.
+      sample_id_lookup_.emplace(std::make_pair(File::stemName(entry.path), entry.label), entry.sample);
     }
-    
+  }
+
+  size_t PeptideAndProteinQuant::getSampleIDFromFilenameAndChannel_(const std::string& filename,
+                                                                 UInt channel_or_label) const
+  {
+    // Map filename and label to sample using the precomputed lookup.
+    if (auto it = sample_id_lookup_.find({filename, channel_or_label}); it != sample_id_lookup_.end())
+    {
+      return it->second;
+    }
+
     // If not found, throw an exception with detailed information
     throw Exception::MissingInformation(
-      __FILE__, 
-      __LINE__, 
-      OPENMS_PRETTY_FUNCTION, 
+      __FILE__,
+      __LINE__,
+      OPENMS_PRETTY_FUNCTION,
       "Could not find sample mapping for filename '" + filename + "' and channel '" + StringUtils::toStr(channel_or_label) + "' in experimental design.");
   }
 
@@ -260,6 +268,9 @@ namespace OpenMS
 
     //////////////////////////////////////////////////////
     // second, perform the actual peptide quantification:
+    // number of labels/channels is constant across the design; compute once
+    // (getNumberOfLabels() scans the whole MS file section on every call).
+    const Size n_labels = experimental_design_.getNumberOfLabels();
     for (auto & pep_q : pep_quant_)
     {
       if (param_.getValue("best_charge_and_fraction") == "true")
@@ -282,7 +293,7 @@ namespace OpenMS
         UInt best_channel = std::get<3>(best_combination);
         
         double abundance = pep_q.second.abundances[best_fraction][best_filename][best_charge][best_channel];
-        size_t sample_id = getSampleIDFromFilenameAndChannel_(best_filename, best_channel, experimental_design_);
+        size_t sample_id = getSampleIDFromFilenameAndChannel_(best_filename, best_channel);
         pep_q.second.total_abundances[sample_id] = abundance;
       }
       else
@@ -300,7 +311,7 @@ namespace OpenMS
                 const double & abundance = cha.second;
                 
                 // Map (filename, channel) to sample using ExperimentalDesign
-                size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel, experimental_design_);
+                size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel);
                 pep_q.second.total_abundances[sample_id] += abundance;
               }
             }
@@ -319,9 +330,9 @@ namespace OpenMS
             const double & psm_counts = ca.second;
             
             // In multiplexed design, e.g. TMT, a signle PSM is associated with all samples measured in the different channels/labels 
-            for (Size channel = 1; channel <= experimental_design_.getNumberOfLabels(); ++channel)
+            for (Size channel = 1; channel <= n_labels; ++channel)
             {
-              size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel, experimental_design_);              
+              size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel);              
               pep_q.second.total_psm_counts[sample_id] += psm_counts; // accumulate PSM counts for spectral counting
             }
           }
@@ -401,7 +412,7 @@ namespace OpenMS
             {
               const std::string & filename = fna.first;
               const UInt & channel = cha.first;
-              size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel, experimental_design_);
+              size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel);
               cha.second *= scale_factors[sample_id];
             }
           }
@@ -555,6 +566,7 @@ namespace OpenMS
   {
     updateMembers_(); // clear data
     experimental_design_ = ed; // store experimental design for aggregation
+    buildSampleIDLookup_(); // precompute (basename, channel) -> sample lookup
 
     stats_.n_samples = ed.getNumberOfSamples();
     stats_.n_fractions = 1;
@@ -603,6 +615,7 @@ namespace OpenMS
     // TODO check that the file section of the experimental design is compatible with what can be parsed from the consensus map.
     updateMembers_(); // clear data
     experimental_design_ = ed; // store experimental design for aggregation
+    buildSampleIDLookup_(); // precompute (basename, channel) -> sample lookup
 
     if (consensus.empty())
     {
@@ -696,6 +709,7 @@ namespace OpenMS
   {
     updateMembers_(); // clear data
     experimental_design_ = ed; // store experimental design for aggregation
+    buildSampleIDLookup_(); // precompute (basename, channel) -> sample lookup
 
     stats_.n_samples = ed.getNumberOfSamples();
     stats_.n_fractions = ed.getNumberOfFractions();
@@ -786,6 +800,7 @@ namespace OpenMS
     stats_ = Statistics();
     pep_quant_.clear();
     prot_quant_.clear();
+    sample_id_lookup_.clear();
   }
 
 
@@ -816,7 +831,11 @@ namespace OpenMS
   {
     // read experimental design as it is needed to annotate quantities in the correct order
     ExperimentalDesign::MSFileSection msfile_section = experimental_design_.getMSFileSection();
-    
+
+    // number of labels/channels is constant across the design; compute once
+    // (getNumberOfLabels() scans the whole MS file section on every call).
+    const Size n_labels = experimental_design_.getNumberOfLabels();
+
     // Extract the Spectra Filepath column from the design
     map<UInt64, map<UInt64, std::string>> design_group_fraction_filename;
     UInt64 n_files = 0;
@@ -917,7 +936,7 @@ namespace OpenMS
             #endif
 
             // for each file in the design, fill the channels quantity
-            for (Size c = 1; c <= experimental_design_.getNumberOfLabels(); ++c) // label/channel numbers are 1-based
+            for (Size c = 1; c <= n_labels; ++c) // label/channel numbers are 1-based
             {
               double channel_abundance{};
 

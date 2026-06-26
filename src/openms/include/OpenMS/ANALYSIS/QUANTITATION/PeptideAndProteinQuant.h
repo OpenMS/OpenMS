@@ -16,6 +16,9 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 
+#include <map>
+#include <string>
+#include <utility>
 
 namespace OpenMS
 {
@@ -206,6 +209,11 @@ private:
     /// Experimental design for filename/channel to sample mapping
     ExperimentalDesign experimental_design_;
 
+    /// Precomputed lookup (basename without extension, channel/label) -> sample ID,
+    /// built once from @p experimental_design_ to avoid linear scans of the MS file
+    /// section for every peptide/channel during aggregation.
+    std::map<std::pair<std::string, UInt>, size_t> sample_id_lookup_;
+
 
     /**
          @brief Get the "canonical" annotation (a single peptide hit) of a feature/consensus feature from the associated list of peptide identifications.
@@ -374,16 +382,24 @@ private:
     void countPeptides_(PeptideIdentificationList& peptides);
 
     /**
-         @brief Map (filename, channel) to sample using ExperimentalDesign.
-         
+         @brief (Re)build @p sample_id_lookup_ from @p experimental_design_.
+
+         Maps each (basename without extension, channel/label) of the MS file section to its
+         sample ID. The first occurrence of a (basename, label) pair wins, matching the
+         previous linear-scan semantics. Called whenever the experimental design is (re)set.
+    */
+    void buildSampleIDLookup_();
+
+    /**
+         @brief Map (filename, channel) to sample using the precomputed @p sample_id_lookup_.
+
          @param[in] filename The base filename (without path/extension)
          @param[in] channel_or_label The channel/label identifier
-         @param[in] ed The experimental design containing the mapping information
          @return The sample ID corresponding to the filename and channel
+         @throw Exception::MissingInformation if the (filename, channel) pair is not in the experimental design
     */
     size_t getSampleIDFromFilenameAndChannel_(const std::string& filename,
-                                           UInt channel_or_label,
-                                           const ExperimentalDesign& ed) const;
+                                           UInt channel_or_label) const;
 
     /// Clear all data when parameters are set
     void updateMembers_() override;
