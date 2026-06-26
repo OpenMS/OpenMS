@@ -424,6 +424,17 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& outcome
 
   // count elements for first feature dimension to determine number of observations
   Size n_obs = predictors.begin()->second.size();
+  // All predictors must describe the same observations; an inconsistent length
+  // would desync this n_obs (and the outcome-index guard below) from the node
+  // arrays that convertData_() sizes from the first informative predictor.
+  for (const auto& predictor : predictors)
+  {
+    if (predictor.second.size() != n_obs)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "All predictors must have the same number of observations.", predictor.first);
+    }
+  }
   pimpl_->n_parts_ = param_.getValue("xval");
 
   // clear old models
@@ -601,19 +612,39 @@ void SimpleSVM::predict(PredictorMap& predictors, vector<Prediction>& prediction
   const std::vector<std::string>& names = pimpl_->predictor_names_;
   const Size feature_dim = names.size();
 
-  // The observation count must come from a TRAINED predictor: the prediction map
-  // may carry extra predictors not in the model (e.g. ones that were constant
-  // during training and dropped), so predictors.begin() need not be a model
-  // feature, and an inconsistent length there would mis-size the loop.
-  PredictorMap::const_iterator first_trained =
-    feature_dim > 0 ? predictors.find(names[0]) : predictors.end();
-  if (first_trained == predictors.end())
+  // Resolve each trained predictor once, in the model's feature order (looking
+  // them up inside the per-observation loop would do feature_dim * n_obs map
+  // searches). The prediction map may carry extra predictors not in the model
+  // (e.g. constant-in-training ones that were dropped) -- those are ignored; a
+  // trained predictor missing here is an error. The observation count comes from
+  // a trained predictor (predictors.begin() need not be one), and all columns
+  // are checked to share it so the node loop cannot read past a shorter column.
+  if (feature_dim == 0)
   {
     throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "SimpleSVM::predict: the trained feature set is empty, or its first "
-      "predictor is missing from the prediction data.");
+                                  "SimpleSVM model has no features.");
   }
-  const Size n_obs = first_trained->second.size();
+  std::vector<const std::vector<double>*> columns(feature_dim);
+  for (Size k = 0; k < feature_dim; ++k)
+  {
+    PredictorMap::const_iterator pred_it = predictors.find(names[k]);
+    if (pred_it == predictors.end())
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "SimpleSVM::predict: predictor '" + names[k] + "' used during training "
+        "is missing from the prediction data.");
+    }
+    columns[k] = &pred_it->second;
+  }
+  const Size n_obs = columns[0]->size();
+  for (Size k = 1; k < feature_dim; ++k)
+  {
+    if (columns[k]->size() != n_obs)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "SimpleSVM::predict: predictors have inconsistent observation counts.", names[k]);
+    }
+  }
 
   Size n_classes = svm_get_nr_class(pimpl_->model_);
   vector<int> outcomes(n_classes);
@@ -627,16 +658,8 @@ void SimpleSVM::predict(PredictorMap& predictors, vector<Prediction>& prediction
   {
     for (Size k = 0; k < feature_dim; ++k)
     {
-      PredictorMap::const_iterator pred_it = predictors.find(names[k]);
-      if (pred_it == predictors.end())
-      {
-        delete[] x;
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "SimpleSVM::predict: predictor '" + names[k] + "' used during training "
-          "is missing from the prediction data.");
-      }
       x[k].index = static_cast<int>(k + 1); // LIBSVM feature indices are 1-based
-      x[k].value = pred_it->second[i];       // feature value for observation i
+      x[k].value = (*columns[k])[i];         // feature value for observation i
     }
     x[feature_dim].index = -1;
     x[feature_dim].value = 0;

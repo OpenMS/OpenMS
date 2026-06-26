@@ -496,6 +496,48 @@ START_SECTION([EXTRA] setup() handles a predictor that is constant during traini
 }
 END_SECTION
 
+START_SECTION([EXTRA] setup() and predict() reject predictors with inconsistent observation counts)
+{
+  // All predictor vectors describe the same observations; a mismatched length
+  // must be rejected rather than silently desyncing the node arrays / loop.
+  std::map<Size, double> y;
+  for (Size i = 0; i < 10; ++i) { y[i] = 0.0; }
+  for (Size i = 10; i < 20; ++i) { y[i] = 1.0; }
+
+  // setup(): mismatched lengths throw (before any training).
+  {
+    SimpleSVM s;
+    SimpleSVM::PredictorMap bad;
+    bad["a"] = std::vector<double>{0, 1, 2, 3, 4, 5}; // 6
+    bad["b"] = std::vector<double>{0, 1, 2};          // 3 -> mismatch
+    std::map<Size, double> lab;
+    lab[0] = 0.0; lab[1] = 1.0;
+    TEST_EXCEPTION(Exception::InvalidValue, s.setup(bad, lab))
+  }
+
+  // predict(): a trained predictor present with the wrong length throws.
+  {
+    std::vector<double> a, b;
+    for (int k = 0; k < 10; ++k) { a.push_back(0.02 * k);        b.push_back(0.02 * k); }
+    for (int k = 0; k < 10; ++k) { a.push_back(0.82 + 0.02 * k); b.push_back(0.82 + 0.02 * k); }
+    SimpleSVM::PredictorMap train;
+    train["a"] = a; train["b"] = b;
+    Param param;
+    param.setValue("kernel", "linear");
+    param.setValue("log2_C", ListUtils::create<double>("0,3"));
+    SimpleSVM s;
+    s.setParameters(param);
+    s.setup(train, y);
+
+    SimpleSVM::PredictorMap bad_pred;
+    bad_pred["a"] = std::vector<double>{0.1, 0.9};
+    bad_pred["b"] = std::vector<double>{0.1}; // mismatch
+    std::vector<SimpleSVM::Prediction> out;
+    TEST_EXCEPTION(Exception::InvalidValue, s.predict(bad_pred, out))
+  }
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
