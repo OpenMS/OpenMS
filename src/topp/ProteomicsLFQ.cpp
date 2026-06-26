@@ -97,12 +97,17 @@ Input: @n
 
 Processing: @n
 ProteomicsLFQ has different methods to extract features: ID-based (targeted only), or both ID-based and untargeted.
-  1. The first method uses targeted feature dectection using RT and m/z information derived from identification data to extract features.
+  1. The first method uses targeted feature detection using RT and m/z information derived from identification data to extract features.
      Note: only identifications found in a particular MS run are used to extract features in the same run.
      No transfer of IDs (match between runs) is performed.
   2. The second method adds untargeted feature detection to obtain quantities from unidentified features.
-     Transfer of Ids (match between runs) is performed by transfering feature identifications to coeluting, unidentified features with similar mass
-and RT in other runs.
+     Transfer of IDs (match between runs) is performed by transferring feature identifications to coeluting, unidentified features with similar
+     mass and RT in other runs.
+  3. Optionally, when @c -pip_echo true is set (requires method 2), match-between-runs is performed by the PIP-ECHO algorithm
+     (PipEchoAlgorithm). PIP-ECHO uses an SVM-based target/decoy model to score candidate transfers and controls the
+     transfer false-discovery rate (FDR) at the level set by the @c PipEcho:fdr parameter (default 5%).
+     This is more sensitive than simple proximity-based MBR and is the recommended approach for label-free experiments
+     with peptide identification data.
 
 @b FAIMS (Field Asymmetric Ion Mobility Spectrometry): @n
 FAIMS data is automatically detected based on compensation voltage (CV) annotations in the mzML file.

@@ -9,13 +9,14 @@ Optionally, identification data can be considered to prevent linking of features
 
 .. image:: img/linking_illustration.png
 
-Different feature grouping algorithms with slightly different implementations are runtime characteristics 
+Different feature grouping algorithms with slightly different implementations and runtime characteristics
 are available in pyOpenMS:
 
-- :py:class:`~.FeatureGroupingAlgorithmQT`
-- :py:class:`~.FeatureGroupingAlgorithmKD`
-- :py:class:`~.FeatureGroupingAlgorithmLabeled`
-- :py:class:`~.FeatureGroupingAlgorithmUnlabeled`
+- :py:class:`~.FeatureGroupingAlgorithmQT` — QT-clustering based grouping (good default for label-free data)
+- :py:class:`~.FeatureGroupingAlgorithmKD` — KD-tree based grouping
+- :py:class:`~.FeatureGroupingAlgorithmLabeled` — for isotope-labeled experiments
+- :py:class:`~.FeatureGroupingAlgorithmUnlabeled` — pairwise grouping for unlabeled data
+- :py:class:`~.PipEchoAlgorithm` — match-between-runs (MBR) grouping with FDR-controlled identification transfer
 
 We now perform feature linking using the :py:class:`~.FeatureGroupingAlgorithmQT` algorithm.
 
@@ -159,3 +160,48 @@ Finally, we add some meta-data to the consensus map, which allows us to track th
     file_descriptions = consensus_map.getColumnHeaders()
     for index, header in file_descriptions.items():
         print(f"Map {index}: Filename = {header.filename}, Size = {header.size}, UniqueID = {header.unique_id}")
+
+Match-Between-Runs with PipEchoAlgorithm
+*****************************************
+
+:py:class:`~.PipEchoAlgorithm` implements the PIP-ECHO match-between-runs (MBR) algorithm.
+Unlike the proximity-only linkers above, PIP-ECHO transfers peptide identifications across runs:
+when a feature is detected but not identified in one run, an identification may be transferred from
+another run in which the same peptide was confidently identified.
+Transfers are scored by an SVM-based model and filtered at a user-defined false-discovery rate (FDR).
+
+PipEchoAlgorithm takes a list of :py:class:`~.FeatureMap` objects (not :py:class:`~.ConsensusMap`)
+and writes its output directly into a :py:class:`~.ConsensusMap`.
+The input maps must be retention-time aligned (e.g. via :py:class:`~.MapAlignmentAlgorithmIdentification`)
+and the features must carry peptide identification data.
+
+Key parameters (set via :py:class:`~.Param`):
+
+- ``distance_RT:max_difference`` — maximum RT gap (seconds) between a donor and acceptor feature (default: 100 s)
+- ``distance_MZ:max_difference`` / ``distance_MZ:unit`` — m/z tolerance for pairing (default: 10 ppm)
+- ``fdr`` — maximum MBR transfer FDR (default: 0.05)
+- ``max_training_points`` — cap on training-set size per SVM fold for large datasets (default: 50 000; 0 = unlimited)
+
+.. code-block:: python
+    :linenos:
+
+    import pyopenms as oms
+
+    # feature_maps must be RT-aligned and carry peptide identifications
+    pip_echo = oms.PipEchoAlgorithm()
+
+    # optionally tighten the FDR threshold
+    params = pip_echo.getParameters()
+    params.setValue("fdr", 0.01)
+    pip_echo.setParameters(params)
+
+    consensus_map = oms.ConsensusMap()
+    pip_echo.group(feature_maps, consensus_map)
+
+.. note::
+
+    PipEchoAlgorithm is integrated into the :ref:`TOPP_ProteomicsLFQ` workflow and is activated
+    by passing ``-pip_echo true`` on the command line.
+    For standalone MBR use, ensure that the input feature maps have been RT-aligned and that
+    each :py:class:`~.FeatureMap` has been annotated with peptide identifications via
+    :py:class:`~.IDMapper`.
