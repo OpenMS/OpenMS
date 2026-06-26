@@ -1,15 +1,15 @@
 name: "OpenMS Vcpkg CI"
 
 on:
-  push:
+  pull_request:
     branches:
       - develop
-      - vcpkg_linux_integration
-      - vcpkg-test-branch
   workflow_dispatch:
 
 jobs:
   configure-build-test:
+    permissions:
+      contents: read
     name: ${{ matrix.variant_name }}
     runs-on: ${{ matrix.os }}
 
@@ -41,6 +41,7 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+          persist-credentials: false
 
       - uses: lukka/get-cmake@latest
 
