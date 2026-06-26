@@ -1136,7 +1136,13 @@ namespace OpenMS
       enzyme_ = "unknown_enzyme";
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
-      // the primary MS run path is recorded in "search_summary"
+      // Record the spectra file as the run's primary MS run path now, so pepXML files
+      // without a "search_summary" still keep run-level provenance. "search_summary" only
+      // fills this in when msms_run_summary had none (e.g. Mascot exports, from its base_name).
+      if (!current_ms_run_path_.empty())
+      {
+        protein.setPrimaryMSRunPath(StringList(1, current_ms_run_path_));
+      }
       proteins_->push_back(protein);
       current_proteins_.clear();
       current_proteins_.push_back(--proteins_->end());
