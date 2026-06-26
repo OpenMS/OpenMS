@@ -71,6 +71,7 @@ General:
   - BREAKING: the immutable singleton databases now return a const pointer from getInstance(), reflecting that they are read-only after construction: RibonucleotideDB::getInstance(), MonosaccharideDB::getInstance(), ElementDB::getInstance(), and (via the DigestionEnzymeDB CRTP base) ProteaseDB::getInstance() and RNaseDB::getInstance() now return const T* instead of T*. Downstream code that stored the result in a non-const pointer (e.g. ProteaseDB* db = ProteaseDB::getInstance();) must switch to const T* or auto. As a consequence, RibonucleotideDB's lookup methods (getRibonucleotide, getRibonucleotidePrefix, getRibonucleotideAlternatives) and ProteaseDB::writeTSV are now const-qualified. ResidueDB returns const as well (via a logical-const cache).
   - BREAKING: ModificationsDB::getInstance() and CrossLinksDB::getInstance() now return const T*. The modification database is immutable from a caller's perspective: the reference modifications (UniMod/PSI-MOD/XLMOD) loaded at construction never change, and the const-qualified API interns runtime-encountered modifications into a thread-safe, idempotent pool (guarded as before by the OpenMS_ModificationsDB critical section). Downstream code storing the result in a non-const pointer (e.g. ModificationsDB* db = ModificationsDB::getInstance();) must switch to const T* or auto. addModification(), searchModificationsByDiffMonoMass(), searchModificationsByDiffMonoMassSorted(), getBestModificationByDiffMonoMass(), and writeTSV() are now const-qualified.
   - BREAKING: ElementDB::addElement() has been removed; the element database is now immutable after construction. Computing isotope-labeled patterns no longer mutates the shared global elements: CoarseIsotopePatternGenerator gains setIsotopeOverride(element, distribution) to apply per-element isotope distributions locally (default behavior and numeric output unchanged). MetaProSIP and FeatureFinderAlgorithmPicked were migrated to this local override instead of const_cast-ing and overwriting global Carbon/Nitrogen/etc., making the calculations thread-safe and fixing a latent bug where FeatureFinderAlgorithmPicked never reset the globally modified isotope abundances after a run. The pyOpenMS ElementDB.addElement binding is removed accordingly.
+  - Fix: Math::quantile1st and Math::quantile3rd threw Exception::InvalidRange for input ranges of size 1 or 2; both now return min/max respectively for n < 3, consistent with existing n=3/4 behavior and median-of-halves conventions (NumPy Tukey hinges, Moore-McCabe); SummaryStatistics::variance is guarded to return 0.0 for n==1 instead of NaN; the n ≥ 3 code path is byte-identical (#9664, fixes #9659)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -256,6 +257,10 @@ TOPP tools:
       - Added PeptideQuantification:seed_apex_rt_tolerance parameter (default 5.0 s, advanced) to FeatureFinderIdentificationAlgorithm; seed features whose detected apex RT deviates more than the tolerance from the seed apex are discarded, removing unreliable extractions (#9102)
       - Added .idparquet and .mzId input support; -ids now accepts .idparquet directories and .mzId files in addition to idXML (#9236)
       - Added Thermo .raw input support; .raw is accepted directly alongside .mzML and .d; requires WITH_THERMO_RAW=ON (#9418)
+      - Added PIP-ECHO match-between-runs algorithm via new PipEchoAlgorithm class (FeatureGroupingAlgorithm subclass); groups features across RT-aligned runs using a target/decoy confidence model with FDR-controlled identification transfer; supports ion-mobility-aware matching; accessible via the PipEcho: parameter group in ProteomicsLFQ; pyOpenMS bindings included (#9647)
+      - Fix: mzTab export no longer aborts when search settings contain non-string DataValues (e.g. integer missed_cleavages); ProteinIdentification::getSearchEngineSettingsAsPairs now uses StringUtils::toStr for lenient DataValue-to-string conversion, matching the rest of the function; previously the strict DataValue::operator std::string() threw ConversionError on any non-STRING_VALUE type after the Qt String removal (#9666)
+    ProteinQuantifier:
+      - Fix: merged ID runs are now correctly split by origin file; the per-PSM origin file index was looked up under the misspelled key "id_merge_idx" (never set anywhere) instead of Constants::UserParam::ID_MERGE_INDEX ("id_merge_index"), causing all PSMs in a merged run to be attributed to the first origin file and leaving all other per-file samples empty; unmerged inputs are unaffected (#9658, fixes #5518)
     MetaProSIP:
       - Added detailed documentation of CSV output column formats (#4400)
         Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
@@ -310,6 +315,7 @@ TOPP tools:
     TextExporter:
       - Added support for XIC Parquet files (#8737, #8738)
       - Added .idparquet, .featureparquet, and .consensusparquet read support on -in (load-only; output is always tsv/csv/txt) (#9405)
+      - Fix: -id:add_usi now populates the USI column for idXML/consensusXML by resolving the MS run from the run's spectra_data (via the merge index) instead of the never-populated per-ID base_name (#9657, fixes #8470)
     FeatureFinderMultiplex, MultiplexResolver:
       - BREAKING: Parameter `missed_cleavages` renamed to `max_nr_labelled_aas` (#8911)
       - Now errors out with INCOMPATIBLE_INPUT_DATA when given IM_PEAK format (per-peak ion mobility) data (#9018)
@@ -559,6 +565,7 @@ Build System:
   - CI: Windows build migrated from Visual Studio 2022 to Visual Studio 2026 (windows-2025 runner, MSVC v145 toolset, CMake generator "Visual Studio 18 2026") (#9514)
   - Build speedup: Boost.Spirit qi/karma replaced with std::from_chars/to_chars (C++17 charconv) for numeric string conversions in String, DataValue, and related utilities; reduces compile time by 30-40% and improves runtime string-to-number throughput (#9648)
   - Fix: added missing <thread> include in ExternalProcess.cpp for compatibility with LLVM/clang 21+ which no longer provides std::this_thread::sleep_for via transitive includes (#9651)
+  - Fix: added missing <new> include in GlobalExceptionHandler.cpp for compatibility with LLVM/clang 21+ which no longer provides placement-new/delete operators via transitive includes (#9653)
 
 
 ------------------------------------------------------------------------------------------
