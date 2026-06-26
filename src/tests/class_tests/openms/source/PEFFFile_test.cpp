@@ -1824,13 +1824,15 @@ START_SECTION([EXTRA] AASequence materialization from UniPEFF output -- what a t
   Size resolved_mods = 0;
   for (Size i = 0; i < mod_seq.size(); ++i) if (mod_seq[i].isModified()) ++resolved_mods;
   TEST_TRUE(resolved_mods >= 1)
-  // Methyl (UNIMOD:34) is the lightest mod in the kitchen-sink. Look up the actual
-  // mono delta from ModificationsDB so the assertion does not drift if UniMod
-  // updates the diff mass; the precursor uplift must be at least that value.
+  // Methyl (UNIMOD:34) is the lightest mod in the kitchen-sink. Pull the mono
+  // delta live from ModificationsDB so the assertion does not drift if UniMod
+  // updates the diff mass. Assert the lookup itself succeeds first -- without
+  // this the precursor-uplift check would silently degenerate to ">= 0.0" and
+  // pass for an unmodified sequence.
   const ResidueModification* methyl_ref =
       ModificationsDB::getInstance()->getModification("UNIMOD:34", "L", ResidueModification::ANYWHERE);
   TEST_NOT_EQUAL(methyl_ref, nullptr)
-  const double min_uplift = methyl_ref ? methyl_ref->getDiffMonoMass() : 0.0;
+  const double min_uplift = methyl_ref->getDiffMonoMass();
   TEST_TRUE(mod_seq.getMonoWeight() - raw.getMonoWeight() + 1e-6 >= min_uplift)
 
   // PEFF "?" (unknown) positions land in PEFFModification::position == 0 and must be
@@ -2259,22 +2261,67 @@ START_SECTION([EXTRA] proteoform enumeration -- exact ProForma strings for a rea
   AASequence mixed_aa = mixed.getModifiedSequence();
   TEST_EQUAL(mixed_aa.toString(), "PEPTIDES(Phospho)")
 
-  // (3) DisulfideBond annotations are metadata on PEFFEntry; they round-trip
-  // through PEFFEntry.disulfide_bonds but DO NOT influence the materialized
-  // AASequence (no inter-residue bond is rendered). Pin this contract too.
+  // (3) DisulfideBond contract: bonds are PEFF metadata that must round-trip
+  // through store()/load() but must NOT influence the materialized AASequence
+  // (PEFFFile does not render inter-residue bonds in toString output, and
+  // toProForma emits no bracket for them).
+  //
+  // Build an entry with two distinct bonds (different optional_tags + one with
+  // a position pair using a CV-prefixed id, matching what UniPEFF emits for
+  // bonds whose endpoint is annotated as unknown), serialize to disk, reload,
+  // and verify every field survived. Without the store/load cycle the bond
+  // assertions would only test the PEFFDisulfideBond constructor, which is
+  // already covered elsewhere in this file.
   PEFFEntry with_bonds;
   with_bonds.identifier = "sp:Q9TEST1-DSB";
   with_bonds.prefix = "sp";
-  with_bonds.sequence = "PEPCIDESCPEP";  // two Cys residues
+  with_bonds.sequence = "PEPCIDESCPEP";  // two Cys residues at positions 4 and 9
   with_bonds.sequence_length = 12;
-  with_bonds.disulfide_bonds = { PEFFDisulfideBond("4", "9", "intra") };
+  with_bonds.disulfide_bonds = {
+    PEFFDisulfideBond("4", "9", "intra"),
+    PEFFDisulfideBond("?", "9", "endpoint-unknown"),
+  };
+
+  // (3a) Materialization is bond-agnostic on the in-memory entry.
   TEST_EQUAL(PEFFFile::toProForma(with_bonds), "PEPCIDESCPEP")
   AASequence dsb_aa = with_bonds.getModifiedSequence();
   TEST_EQUAL(dsb_aa.toString(), "PEPCIDESCPEP")
   TEST_FALSE(dsb_aa.isModified())
-  TEST_EQUAL(with_bonds.disulfide_bonds.size(), 1)
-  TEST_EQUAL(with_bonds.disulfide_bonds[0].id1, "4")
-  TEST_EQUAL(with_bonds.disulfide_bonds[0].id2, "9")
+
+  // (3b) Real store -> load cycle through PEFFFile. The bond block must survive
+  // the on-wire format unchanged.
+  PEFFDatabaseMetadata dsb_header;
+  dsb_header.db_name = "DSBondMaterializeTest";
+  dsb_header.prefix = "sp";
+  dsb_header.db_version = "1.0";
+  dsb_header.db_sources.push_back("test");
+  dsb_header.number_of_entries = 1;
+
+  std::string tmp_dsb;
+  NEW_TMP_FILE(tmp_dsb);
+  PEFFFile dsb_io;
+  std::vector<PEFFEntry> dsb_in = {with_bonds};
+  dsb_io.store(tmp_dsb, dsb_in, dsb_header);
+
+  std::vector<PEFFEntry> dsb_out;
+  std::vector<PEFFDatabaseMetadata> dsb_headers_out;
+  dsb_io.load(tmp_dsb, dsb_out, dsb_headers_out);
+
+  TEST_EQUAL(dsb_out.size(), 1)
+  TEST_EQUAL(dsb_out[0].disulfide_bonds.size(), 2)
+  TEST_EQUAL(dsb_out[0].disulfide_bonds[0].id1, "4")
+  TEST_EQUAL(dsb_out[0].disulfide_bonds[0].id2, "9")
+  TEST_EQUAL(dsb_out[0].disulfide_bonds[0].optional_tag, "intra")
+  TEST_EQUAL(dsb_out[0].disulfide_bonds[1].id1, "?")
+  TEST_EQUAL(dsb_out[0].disulfide_bonds[1].id2, "9")
+  TEST_EQUAL(dsb_out[0].disulfide_bonds[1].optional_tag, "endpoint-unknown")
+
+  // (3c) After the round-trip, materializing the loaded entry must STILL show
+  // no bond influence on the AASequence -- the bond is metadata only.
+  TEST_EQUAL(PEFFFile::toProForma(dsb_out[0]), "PEPCIDESCPEP")
+  AASequence dsb_aa_after = dsb_out[0].getModifiedSequence();
+  TEST_EQUAL(dsb_aa_after.toString(), "PEPCIDESCPEP")
+  TEST_FALSE(dsb_aa_after.isModified())
 
   // ---- Total proteoforms verified by this section ----
   //   BLOCK A (REF_TABLE)  : 32  (every 5-bit mod combination)
