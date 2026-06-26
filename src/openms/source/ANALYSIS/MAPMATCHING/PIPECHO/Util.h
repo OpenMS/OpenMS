@@ -12,6 +12,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 
 #include <optional>
+#include <vector>
 
 namespace OpenMS::PipEcho::Util
 {
@@ -37,6 +38,15 @@ bool feature_is_decoy(const Feature&);
  * Compute the mass error in PPM for the given feature.
  */
 std::optional<double> feature_mass_error(const Feature&);
+
+/******************************************************************************/
+/**
+ * Return the feature's observed isotope envelope (per-isotope intensities), or
+ * nullopt if absent. Reads the "pipecho_obs_envelope" meta value snapshotted by
+ * ProteomicsLFQ from the FeatureFinderIdentification subordinate intensities
+ * before they are stripped.
+ */
+std::optional<std::vector<double>> feature_obs_envelope(const Feature&);
 
 /******************************************************************************/
 /**
