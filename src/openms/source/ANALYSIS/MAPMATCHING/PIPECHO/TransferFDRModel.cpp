@@ -405,18 +405,23 @@ bool TransferFDRModel::round(size_t round_number,
     };
     // Spend the budget on the labelled classes first: decoys + positives are
     // what actually train the SVM (the below-cutoff 'rest' is unlabelled and
-    // only affects predictor scaling). Keep BOTH classes represented -- a fold
-    // with too few labelled positives OR decoys cannot train (predictors_t::
-    // train needs > 4 of each) and would silently fall back to MBR scores. When
-    // the labelled set does not fit, split the cap between the two classes in
-    // proportion to their sizes so neither is starved by a decoy-first fill.
-    const std::size_t n_labelled = decoys.size() + positives.size();
+    // only affects predictor scaling). Keep BOTH classes viable -- a fold with
+    // too few labelled positives OR decoys cannot train (predictors_t::train
+    // needs > 4 of each) and would silently fall back to MBR scores. When the
+    // labelled set does not fit, keep the MINORITY class whole (it almost always
+    // fits) and give the remaining budget to the majority; only when both
+    // classes individually exceed half the cap do we split evenly. A
+    // size-proportional split would starve a small minority (e.g. few decoys
+    // against many positives), defeating the cap.
     std::size_t dec_keep = decoys.size();
     std::size_t pos_keep = positives.size();
-    if (n_labelled > cap)
+    if (decoys.size() + positives.size() > cap)
     {
-      dec_keep = std::min(decoys.size(), cap * decoys.size() / n_labelled);
-      pos_keep = std::min(positives.size(), cap - dec_keep);
+      const std::size_t minority = std::min(decoys.size(), positives.size());
+      const std::size_t minority_keep = (minority <= cap / 2) ? minority : cap / 2;
+      const std::size_t majority_keep = cap - minority_keep;
+      if (decoys.size() <= positives.size()) { dec_keep = minority_keep; pos_keep = majority_keep; }
+      else { pos_keep = minority_keep; dec_keep = majority_keep; }
     }
     group_t sampled;
     sampled.reserve(cap);

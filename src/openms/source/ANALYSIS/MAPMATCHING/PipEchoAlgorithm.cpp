@@ -94,9 +94,10 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
                      " the SVM-fitting cost and does not change which transfers"
                      " are scored. Runs with very many features per run can"
                      " otherwise make the SVM grid search slow. When the cap is"
-                     " hit, a deterministic stratified subsample is used (all"
-                     " decoys and labelled positives are kept; the rest is"
-                     " score-spread sampled).",
+                     " hit, a deterministic stratified subsample is used: both"
+                     " labelled classes (decoys and positives) are kept whole if"
+                     " they fit, otherwise the minority class is kept whole and"
+                     " the majority is score-spread sampled to fit the budget.",
                      {"advanced"});
   defaults_.setMinInt("max_training_points", 0);
 
