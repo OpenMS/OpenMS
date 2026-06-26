@@ -1309,7 +1309,17 @@ protected:
       // "IM_median"; "n_scans" feeds the planned scan-count feature, see #9655).
       // FFID output features carry neither key, so this is a no-op for the
       // current FFID-based path.
+      // "IM"/"n_scans" carry no payload on the FFID path, so keeping them is a no-op.
       unordered_set<std::string> keep_meta = {"OffsetPeptide", "IM_median", "IM_min", "IM_max", "IM", "n_scans"};
+      // "masserror_ppm" is FFID's observed mass-trace deviation from the peptide's
+      // theoretical m/z (DIA mass-difference score) -- the only real per-feature
+      // mass-accuracy signal (FFID seeds the feature's *position* m/z to the
+      // theoretical value, so PIP-ECHO cannot recover the error from getMZ()). It is
+      // ONLY needed by PIP-ECHO's donor mass-error calibration, and keeping it on the
+      // default linker path would leak it into the consensusXML/mzTab output (the
+      // QT-linker path propagates feature metas), changing TOPP_ProteomicsLFQ
+      // references. So keep it only when pip_echo is enabled.
+      if (getStringOption_("pip_echo") == "true") { keep_meta.insert("masserror_ppm"); }
       for (auto & f : fm)
       {
         std::vector<std::string> keys;

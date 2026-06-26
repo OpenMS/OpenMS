@@ -157,13 +157,19 @@ Score RunStatistics::score(const Feature& donor, const Feature& acceptor,
              .im_diff_score = -1.0, // sentinel: ion mobility not applicable
              .mbr_score = MIN_SCORE};
 
-  // The MBR bootstrap score is the geometric mean of the individual feature
-  // scores. Ion mobility is an optional 4th feature, included only when the
-  // data carries it (e.g. timsTOF/.d) -- then the geometric mean becomes a
-  // 4th root instead of a cube root. `measures` tracks how many scores are
-  // multiplied below; keep it in sync with the product.
-  double product = s.intensity * s.rt_diff_error * s.mass_error;
-  double measures = 3.0;
+  // The MBR bootstrap score is the geometric mean of the agreement scores.
+  // Retention time is intentionally EXCLUDED: the current rt_diff_error is a raw,
+  // un-normalised |Δrt| with inverted monotonicity (a larger RT error would
+  // *increase* the score), and on pre-aligned runs the in-window decoys share the
+  // targets' RT range -- so multiplying it in only distorts the geometric mean and
+  // the best-acceptor/bootstrap ranking that mbr_score drives. A faithful RT
+  // agreement score (FlashLFQ uses an anchor-peptide RT prediction-error
+  // distribution) is a follow-up; RT is still given to the SVM as a feature.
+  // Ion mobility is an optional extra factor, included only when the data carries
+  // it (e.g. timsTOF/.d). `measures` tracks how many scores are multiplied below;
+  // keep it in sync with the product.
+  double product = s.intensity * s.mass_error;
+  double measures = 2.0;
 
   if (auto im = calc_im_score(donor, acceptor); im.has_value())
   {
