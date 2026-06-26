@@ -430,6 +430,72 @@ START_SECTION([EXTRA] predict() stays index-aligned when a predictor is constant
 }
 END_SECTION
 
+START_SECTION([EXTRA] setup() handles a predictor that is constant during training and sorts first)
+{
+  // scaleData_ empties the value vector of every constant predictor, so
+  // convertData_ must not take the observation count from a (now-empty) first
+  // predictor. A constant predictor 'a' that sorts BEFORE the informative
+  // features 'x','y' previously yielded n_obs == 0, sized the node arrays to
+  // zero, and crashed setup(). It must now train and predict identically to a
+  // model that never saw it.
+  auto make_train = [](bool with_a) {
+    SimpleSVM::PredictorMap m;
+    std::vector<double> x, y;
+    for (int k = 0; k < 10; ++k) { x.push_back(0.02 * k);        y.push_back(0.02 * k); }
+    for (int k = 0; k < 10; ++k) { x.push_back(0.82 + 0.02 * k); y.push_back(0.82 + 0.02 * k); }
+    m["x"] = x; m["y"] = y;
+    if (with_a) { m["a"] = std::vector<double>(20, 3.0); } // constant, sorts first
+    return m;
+  };
+
+  std::map<Size, double> lab;
+  for (Size i = 0; i < 10; ++i) { lab[i] = 0.0; }
+  for (Size i = 10; i < 20; ++i) { lab[i] = 1.0; }
+
+  Param param;
+  param.setValue("kernel", "linear");
+  param.setValue("log2_C", ListUtils::create<double>("0,3,6"));
+
+  SimpleSVM svm_a, svm_plain;
+  svm_a.setParameters(param);
+  svm_plain.setParameters(param);
+  SimpleSVM::PredictorMap train_a = make_train(true);
+  SimpleSVM::PredictorMap train_plain = make_train(false);
+  svm_a.setup(train_a, lab);        // must NOT crash (previously n_obs == 0)
+  svm_plain.setup(train_plain, lab);
+
+  TEST_EQUAL(svm_a.getScaling().find("a") == svm_a.getScaling().end(), true)
+
+  auto make_test = [](bool with_a) {
+    SimpleSVM::PredictorMap t;
+    t["x"] = std::vector<double>{0.05, 0.95};
+    t["y"] = std::vector<double>{0.05, 0.95};
+    if (with_a) { t["a"] = std::vector<double>{3.0, 3.0}; }
+    return t;
+  };
+  SimpleSVM::PredictorMap test_a = make_test(true);
+  SimpleSVM::PredictorMap test_plain = make_test(false);
+
+  std::vector<SimpleSVM::Prediction> pred_a, pred_plain;
+  svm_a.predict(test_a, pred_a);
+  svm_plain.predict(test_plain, pred_plain);
+
+  TEST_EQUAL(pred_a.size(), 2)
+  TEST_EQUAL(pred_a[0].outcome, pred_plain[0].outcome)
+  TEST_EQUAL(pred_a[1].outcome, pred_plain[1].outcome)
+  TEST_EQUAL(pred_a[0].outcome, 0.0)
+  TEST_EQUAL(pred_a[1].outcome, 1.0)
+
+  // All predictors constant -> a clean error, not a crash or empty model.
+  SimpleSVM svm_bad;
+  svm_bad.setParameters(param);
+  SimpleSVM::PredictorMap all_const;
+  all_const["a"] = std::vector<double>(20, 1.0);
+  all_const["b"] = std::vector<double>(20, 2.0);
+  TEST_EXCEPTION(Exception::MissingInformation, svm_bad.setup(all_const, lab))
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

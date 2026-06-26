@@ -132,7 +132,21 @@ void SimpleSVM::Impl::scaleData_(PredictorMap& predictors)
 
 void SimpleSVM::Impl::convertData_(const SimpleSVM::PredictorMap& predictors)
 {
-  Size n_obs = predictors.begin()->second.size();
+  // The observation count must come from an INFORMATIVE predictor: scaleData_
+  // (called before this in setup()) empties the value vector of every constant
+  // predictor, so predictors.begin() may be empty. Taking n_obs from it would
+  // yield 0 whenever the alphabetically-first predictor is constant, sizing the
+  // node arrays to 0 and crashing setup() (related to #9661).
+  Size n_obs = 0;
+  for (const auto& predictor : predictors)
+  {
+    if (!predictor.second.empty()) { n_obs = predictor.second.size(); break; }
+  }
+  if (n_obs == 0)
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "All predictors are constant (uninformative); the SVM cannot be trained.");
+  }
   nodes_.clear();
   nodes_.resize(n_obs);
   predictor_names_.clear();
