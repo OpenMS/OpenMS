@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
 #include <OpenMS/IMAGING/IonImage.h>
+#include <OpenMS/IMAGING/IonImageExtraction.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <cmath>
@@ -88,36 +89,6 @@ struct OnDiscImzMLExperiment::Impl
     return s;
   }
 
-  // Sum peak intensities inside [mz_lo, mz_hi] for the given subset of geometry pixels,
-  // decoding each pixel's spectrum from the .ibd on demand so the full dataset is never
-  // held in memory. @p pixel_indices indexes into @p pixels (the geometry pixel list).
-  // Decoded spectra are sorted by m/z (see decodeSpectrum), so the window bounds are
-  // located via binary search.
-  void extractIntoImage_(IonImage& image, double mz_lo, double mz_hi,
-                         const std::vector<MSImagingGeometry::Pixel>& pixels,
-                         const std::vector<Size>& pixel_indices) const
-  {
-    const std::size_t n_spectra = index_.size();
-    for (Size i : pixel_indices)
-    {
-      const MSImagingGeometry::Pixel& p = pixels[i];
-      if (p.spectrum_index >= n_spectra)
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "geometry references a spectrum index out of range",
-                                      StringUtils::toStr(p.spectrum_index));
-      }
-      const MSSpectrum spec = decodeSpectrum(p.spectrum_index);
-      double sum = 0.0;
-      MSSpectrum::ConstIterator it_lo = spec.MZBegin(mz_lo);
-      MSSpectrum::ConstIterator it_hi = spec.MZEnd(mz_hi);
-      for (MSSpectrum::ConstIterator it = it_lo; it != it_hi; ++it)
-      {
-        sum += static_cast<double>(it->getIntensity());
-      }
-      image.setIntensity(p.x, p.y, sum);
-    }
-  }
   std::vector<double> readMz_(const ImzMLSpectrumIndex& e) const
   {
     std::vector<double> out;
@@ -256,55 +227,32 @@ MSSpectrum OnDiscImzMLExperiment::getSpectrumAtCoord(uint32_t x, uint32_t y, uin
 
 IonImage OnDiscImzMLExperiment::extractIonImage(double mz, double tolerance_ppm) const
 {
-  if (!std::isfinite(mz) || !std::isfinite(tolerance_ppm) || mz < 0.0 || tolerance_ppm < 0.0)
-  {
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                  "mz and tolerance_ppm must be finite and non-negative",
-                                  "mz=" + StringUtils::toStr(mz) + ", tolerance_ppm=" + StringUtils::toStr(tolerance_ppm));
-  }
   if (!pimpl_->ibd_)
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pimpl_->ibd_path_);
 
-  const double dm = mz * tolerance_ppm * 1e-6;
-  const double mz_lo = mz - dm;
-  const double mz_hi = mz + dm;
-
-  const MSImagingGeometry& geom = pimpl_->geometry_;
-  IonImage image(geom.getWidth(), geom.getHeight());
-  image.setMzRange(RangeMZ(mz_lo, mz_hi));
-
-  std::vector<Size> all(geom.getNumberOfPixels());
+  std::vector<Size> all(pimpl_->geometry_.getNumberOfPixels());
   std::iota(all.begin(), all.end(), Size(0));
-  pimpl_->extractIntoImage_(image, mz_lo, mz_hi, geom.getPixels(), all);
-  return image;
+  return Internal::extractIonImage(pimpl_->geometry_, mz, tolerance_ppm, all, pimpl_->index_.size(),
+                                   [this](Size i) -> MSSpectrum { return pimpl_->decodeSpectrum(i); });
 }
 
 IonImage OnDiscImzMLExperiment::extractIonImage(double mz, double tolerance_ppm, Size region_id) const
 {
-  if (!std::isfinite(mz) || !std::isfinite(tolerance_ppm) || mz < 0.0 || tolerance_ppm < 0.0)
-  {
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                  "mz and tolerance_ppm must be finite and non-negative",
-                                  "mz=" + StringUtils::toStr(mz) + ", tolerance_ppm=" + StringUtils::toStr(tolerance_ppm));
-  }
   if (!pimpl_->ibd_)
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pimpl_->ibd_path_);
 
-  const double dm = mz * tolerance_ppm * 1e-6;
-  const double mz_lo = mz - dm;
-  const double mz_hi = mz + dm;
-
-  const MSImagingGeometry& geom = pimpl_->geometry_;
-  IonImage image(geom.getWidth(), geom.getHeight());
-  image.setMzRange(RangeMZ(mz_lo, mz_hi));
-
   // getRegionPixels throws Exception::ElementNotFound for an unknown region_id.
-  const std::vector<Size> region = geom.getRegionPixels(region_id);
-  pimpl_->extractIntoImage_(image, mz_lo, mz_hi, geom.getPixels(), region);
-  return image;
+  const std::vector<Size> region = pimpl_->geometry_.getRegionPixels(region_id);
+  return Internal::extractIonImage(pimpl_->geometry_, mz, tolerance_ppm, region, pimpl_->index_.size(),
+                                   [this](Size i) -> MSSpectrum { return pimpl_->decodeSpectrum(i); });
 }
 
 const MSImagingGeometry& OnDiscImzMLExperiment::getGeometry() const
+{
+  return pimpl_->geometry_;
+}
+
+MSImagingGeometry& OnDiscImzMLExperiment::getGeometry()
 {
   return pimpl_->geometry_;
 }

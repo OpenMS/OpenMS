@@ -835,4 +835,51 @@ START_SECTION(void store metadata round-trip)
 }
 END_SECTION
 
+
+START_SECTION(IonImage extractIonImage(double mz, double tolerance_ppm, Size region_id) const)
+{
+  // On-disc region extraction must produce the same result as in-memory for the same region.
+  // This covers the 3-arg overload of OnDiscImzMLExperiment which was previously untested.
+  MSImagingExperiment img;
+  ImzMLFile().load(imzml_path, img);
+
+  OnDiscImzMLExperiment od;
+  od.open(imzml_path);
+
+  const MSSpectrum first = od.getSpectrum(0);
+  TEST_EQUAL(first.empty(), false)
+  const double mz      = first[0].getMZ();
+  const double tol_ppm = 1000.0;
+
+  // Add the same region (single-pixel rectangle at origin) to both geometries,
+  // then compare the extracted images pixel-for-pixel.
+  const MSImagingRegion region = MSImagingRegion::rectangle(1, "roi", 0, 0, 0, 0);
+  img.getGeometry().addRegion(region);
+  od.getGeometry().addRegion(region);
+
+  IonImage mem  = img.extractIonImage(mz, tol_ppm, 1);
+  IonImage disc = od.extractIonImage(mz, tol_ppm, 1);
+
+  TEST_EQUAL(disc.getWidth(),  mem.getWidth())
+  TEST_EQUAL(disc.getHeight(), mem.getHeight())
+
+  bool masks_match = true;
+  for (UInt y = 0; y < mem.getHeight(); ++y)
+  {
+    for (UInt x = 0; x < mem.getWidth(); ++x)
+    {
+      if (mem.hasPixel(x, y) != disc.hasPixel(x, y)) { masks_match = false; }
+      if (mem.hasPixel(x, y) && disc.hasPixel(x, y))
+      {
+        TEST_REAL_SIMILAR(disc.getIntensity(x, y), mem.getIntensity(x, y))
+      }
+    }
+  }
+  TEST_EQUAL(masks_match, true)
+
+  // Unknown region id must throw.
+  TEST_EXCEPTION(Exception::ElementNotFound, od.extractIonImage(mz, tol_ppm, 99))
+}
+END_SECTION
+
 END_TEST

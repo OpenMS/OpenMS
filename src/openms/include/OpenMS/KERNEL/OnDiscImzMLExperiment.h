@@ -226,6 +226,17 @@ namespace OpenMS
     */
     const MSImagingGeometry& getGeometry() const;
 
+    /**
+      @brief Mutable access to the imaging geometry.
+
+      The geometry is built eagerly during open(). Use this accessor to annotate
+      the dataset with user-defined regions after loading, e.g.:
+      @code
+        exp.getGeometry().addRegion(MSImagingRegion::rectangle(1, "roi", 0, 0, 3, 3));
+      @endcode
+    */
+    MSImagingGeometry& getGeometry();
+
     /// Shorthand for getImzMLMeta().max_count_x.
     uint32_t gridWidth()  const noexcept;
 
