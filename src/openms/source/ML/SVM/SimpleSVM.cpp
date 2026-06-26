@@ -590,8 +590,6 @@ void SimpleSVM::predict(PredictorMap& predictors, vector<Prediction>& prediction
                                   "'setup' method)");
   }
 
-  Size n_obs = predictors.begin()->second.size(); // length of the first feature ...
-
   scaleDataUsingTrainingRanges(predictors, pimpl_->scaling_);
 
   // Build the LIBSVM nodes over the TRAINED feature set, indexed in the exact
@@ -602,6 +600,20 @@ void SimpleSVM::predict(PredictorMap& predictors, vector<Prediction>& prediction
   // (issue #9661).
   const std::vector<std::string>& names = pimpl_->predictor_names_;
   const Size feature_dim = names.size();
+
+  // The observation count must come from a TRAINED predictor: the prediction map
+  // may carry extra predictors not in the model (e.g. ones that were constant
+  // during training and dropped), so predictors.begin() need not be a model
+  // feature, and an inconsistent length there would mis-size the loop.
+  PredictorMap::const_iterator first_trained =
+    feature_dim > 0 ? predictors.find(names[0]) : predictors.end();
+  if (first_trained == predictors.end())
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "SimpleSVM::predict: the trained feature set is empty, or its first "
+      "predictor is missing from the prediction data.");
+  }
+  const Size n_obs = first_trained->second.size();
 
   Size n_classes = svm_get_nr_class(pimpl_->model_);
   vector<int> outcomes(n_classes);
