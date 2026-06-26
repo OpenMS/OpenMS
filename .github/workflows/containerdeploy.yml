@@ -78,6 +78,9 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+          # No authenticated git operations follow; the later steps only build
+          # and push Docker images. Avoid leaving the token in the workspace.
+          persist-credentials: false
       - name: Test docker build in runtime base
         uses: docker/build-push-action@v7
         with:
