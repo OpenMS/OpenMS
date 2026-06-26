@@ -2364,6 +2364,112 @@ START_SECTION([EXTRA] proteoform enumeration -- exact ProForma strings for a rea
 }
 END_SECTION
 
+START_SECTION([EXTRA] proteoform enumeration -- per-proteoform PTM cap (generatePeptides max_peff_mods_per_proteoform))
+{
+  // ============================================================================
+  // Combinatorial PTM enumeration with a per-proteoform cardinality cap, the
+  // canonical beta-casein (UniProt P02662) phospho-Serine use case: an entry
+  // with 9 phospho-Ser sites, enumerated whole-protein (no cleavage), choosing
+  // up to K simultaneous PTMs per proteoform.
+  //
+  // With n = 9 annotated mod sites and cap K, the number of generated
+  // proteoforms is sum_{j=0..K} C(9, j):
+  //
+  //     K = 1 :  C(9,0)+C(9,1)                          = 1 + 9            = 10
+  //     K = 2 :  + C(9,2)                               = 10 + 36          = 46
+  //     K = 3 :  + C(9,3)                               = 46 + 84          = 130
+  //     K = 0 :  unlimited -> 2^9                                          = 512
+  //
+  // The unmodified proteoform (empty PTM selection) is always retained, so the
+  // counts include it exactly once. include_reference = true keeps the combo == 0
+  // (unmodified) form; with PEFF variants disabled no separate reference peptide
+  // is added, so it appears exactly once. (With include_reference = false the
+  // unmodified form is deliberately erased, which would drop each count by one.)
+  // ============================================================================
+
+  // Synthetic 9-phospho-Ser backbone (P02662-style without a REST dependency):
+  // one Ser per phospho site, each carrying UNIMOD:21.
+  const std::string SEQ = "ASASASASASASASASAS"; // 18 residues, S at even 1-based positions
+  TEST_EQUAL(SEQ.size(), 18)
+
+  PEFFEntry e;
+  e.identifier = "sp:P02662_TEST";
+  e.prefix = "sp";
+  e.sequence = SEQ;
+  e.sequence_length = SEQ.size();
+  const Size phospho_positions[] = {2, 4, 6, 8, 10, 12, 14, 16, 18}; // 9 Ser sites, 1-based
+  for (Size pos : phospho_positions)
+  {
+    TEST_EQUAL(SEQ[pos - 1], 'S')
+    e.modifications.push_back(PEFFModification(pos, "UNIMOD:21", "Phospho"));
+  }
+  TEST_EQUAL(e.modifications.size(), 9)
+
+  // Whole-protein enumeration: "no cleavage" keeps the entire sequence as one
+  // peptide so generatePeptides enumerates entry-level proteoforms.
+  ProteaseDigestion no_cleave;
+  no_cleave.setEnzyme("no cleavage");
+
+  const std::vector<std::string> no_fixed;
+  const std::vector<std::string> no_var;
+
+  auto count_for_cap = [&](Size cap) -> Size
+  {
+    std::vector<std::string> descs;
+    std::vector<AASequence> seqs;
+    e.generatePeptides(no_cleave, descs, seqs,
+                       no_fixed, no_var,
+                       /*max_variable_mods_per_peptide=*/0,
+                       /*min_length=*/1, /*max_length=*/0,
+                       /*include_reference=*/true,
+                       /*include_peff_variants=*/false,
+                       /*include_peff_modifications=*/true,
+                       /*max_peff_mods_per_proteoform=*/cap);
+    TEST_EQUAL(descs.size(), seqs.size())
+    // No generated proteoform may carry more phosphos than the cap.
+    if (cap > 0)
+    {
+      for (const auto& s : seqs)
+      {
+        TEST_EQUAL(s.toUnmodifiedString(), SEQ)
+        Size nmods = 0;
+        for (Size i = 0; i < s.size(); ++i) if (s[i].isModified()) ++nmods;
+        TEST_EQUAL(nmods <= cap, true)
+      }
+    }
+    return seqs.size();
+  };
+
+  // sum_{j=0..K} C(9, j)
+  TEST_EQUAL(count_for_cap(1), 10)
+  TEST_EQUAL(count_for_cap(2), 46)
+  TEST_EQUAL(count_for_cap(3), 130)  // the canonical P02662 number
+  TEST_EQUAL(count_for_cap(0), 512)  // 0 = unlimited -> 2^9
+
+  // Pin representative proteoforms at cap = 3: the unmodified form is present and
+  // every triply-phosphorylated subset is fully phosphorylated at exactly 3 sites.
+  {
+    std::vector<std::string> descs;
+    std::vector<AASequence> seqs;
+    e.generatePeptides(no_cleave, descs, seqs, no_fixed, no_var, 0, 1, 0,
+                       /*include_reference=*/true, false, true,
+                       /*max_peff_mods_per_proteoform=*/3);
+    TEST_EQUAL(seqs.size(), 130)
+
+    bool saw_unmodified = false;
+    bool saw_first_three = false; // phospho on sites 1,2,3 (positions 2,4,6)
+    const std::string TRIPLE = "AS(Phospho)AS(Phospho)AS(Phospho)ASASASASASAS";
+    for (const auto& s : seqs)
+    {
+      if (!s.isModified() && s.toString() == SEQ) saw_unmodified = true;
+      if (s.toString() == TRIPLE) saw_first_three = true;
+    }
+    TEST_EQUAL(saw_unmodified, true)
+    TEST_EQUAL(saw_first_three, true)
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
