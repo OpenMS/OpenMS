@@ -1190,6 +1190,18 @@ protected:
         ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
         ffi_param.setValue("debug", debug_level_); // pass down debug level
 
+        // PIP-ECHO's isotope-distribution MBR feature correlates the acceptor's
+        // observed isotope envelope against the donor peptide's theoretical
+        // envelope; the default 2 isotopes give a degenerate Pearson. Extract 3
+        // (enough for a meaningful correlation) only on the pip_echo path. More
+        // (e.g. 5) measurably perturbs FFID's extraction/candidate set and costs
+        // direct quantifications, so 3 is the sweet spot. The default linker path
+        // (and its TOPP reference outputs) is untouched.
+        if (getStringOption_("pip_echo") == "true")
+        {
+          ffi_param.setValue("extract:n_isotopes", 3);
+        }
+
         // Note: no IM_window override needed — BrukerTimsFile loads with built-in IM centroiding
         // (ms1_centroid_mz_ppm=5, ms1_centroid_im_pct=3), so data is IM_CENTROIDED and the
         // default IM_window=0.06 is appropriate for matching centroided IM positions.
@@ -1313,13 +1325,15 @@ protected:
       unordered_set<std::string> keep_meta = {"OffsetPeptide", "IM_median", "IM_min", "IM_max", "IM", "n_scans"};
       // "masserror_ppm" is FFID's observed mass-trace deviation from the peptide's
       // theoretical m/z (DIA mass-difference score) -- the only real per-feature
-      // mass-accuracy signal (FFID seeds the feature's *position* m/z to the
-      // theoretical value, so PIP-ECHO cannot recover the error from getMZ()). It is
-      // ONLY needed by PIP-ECHO's donor mass-error calibration, and keeping it on the
-      // default linker path would leak it into the consensusXML/mzTab output (the
-      // QT-linker path propagates feature metas), changing TOPP_ProteomicsLFQ
-      // references. So keep it only when pip_echo is enabled.
-      if (getStringOption_("pip_echo") == "true") { keep_meta.insert("masserror_ppm"); }
+      // mass-accuracy signal (FFID seeds the feature's *position* m/z to theoretical,
+      // so PIP-ECHO cannot recover the error from getMZ()). "pipecho_obs_envelope" is
+      // the observed isotope envelope (subordinate intensities), snapshotted below
+      // before subordinates are cleared, for the isotope-distribution feature. BOTH
+      // are needed ONLY by PIP-ECHO; keeping/writing them on the default QT-linker path
+      // leaks them into the consensusXML/mzTab output (shifting TOPP_ProteomicsLFQ
+      // references), so gate on pip_echo.
+      const bool pip_echo_enabled = getStringOption_("pip_echo") == "true";
+      if (pip_echo_enabled) { keep_meta.insert("masserror_ppm"); keep_meta.insert("pipecho_obs_envelope"); }
       for (auto & f : fm)
       {
         std::vector<std::string> keys;
@@ -1327,6 +1341,16 @@ protected:
         for (const auto& k : keys)
         {
           if (auto it = keep_meta.find(k); it == keep_meta.end()) f.removeMetaValue(k);
+        }
+        // Snapshot the observed isotope envelope before subordinates are dropped
+        // (pip_echo only -- otherwise it would leak into the default-path output,
+        // since this writes AFTER the meta-strip above).
+        if (pip_echo_enabled && ! f.getSubordinates().empty())
+        {
+          DoubleList envelope;
+          envelope.reserve(f.getSubordinates().size());
+          for (const Feature& sub : f.getSubordinates()) { envelope.push_back(sub.getIntensity()); }
+          f.setMetaValue("pipecho_obs_envelope", envelope);
         }
         f.setSubordinates({});
         f.setConvexHulls({});

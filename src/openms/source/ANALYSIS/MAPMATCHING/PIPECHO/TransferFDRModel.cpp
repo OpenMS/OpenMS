@@ -635,6 +635,9 @@ void predictors_t::encode(const TransferFDRModel::acceptor_t& acceptor,
   predictors["intensity"].push_back(acceptor.score.intensity);
   predictors["rt_diff_error"].push_back(acceptor.score.rt_diff_error);
   predictors["mass_error"].push_back(acceptor.score.mass_error);
+  // Isotope-distribution agreement is always [0, 1] (0.5 sentinel when absent),
+  // so the column is rectangular and can be pushed unconditionally.
+  predictors["isotope_score"].push_back(acceptor.score.isotope_score);
   // Ion mobility is added as a predictor only when used experiment-wide, so the
   // predictor columns stay equal-length (required by SimpleSVM).
   if (use_im)

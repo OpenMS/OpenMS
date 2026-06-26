@@ -8,9 +8,14 @@
 
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include "Run.h"
 #include "RunStatistics.h"
 #include "Util.h"
+
+#include <algorithm>
+#include <cmath>
 
 // Standard deviation is computed from the interquartile range by
 // dividing by 27/20 ≅ 1.349.
@@ -155,6 +160,7 @@ Score RunStatistics::score(const Feature& donor, const Feature& acceptor,
              .rt_diff_error = std::fabs(acceptor.getRT() - donor_rt),
              .mass_error = calc_mass_error_score(donor, acceptor),
              .im_diff_score = -1.0, // sentinel: ion mobility not applicable
+             .isotope_score = calc_isotope_score(donor, acceptor),
              .mbr_score = MIN_SCORE};
 
   // The MBR bootstrap score is the geometric mean of the agreement scores.
@@ -224,6 +230,35 @@ RunStatistics::calc_im_score(const Feature& donor, const Feature& acceptor) cons
   // (same ion) scores near 1, a large one decays towards MIN_SCORE. Reuses the
   // two-tailed CDF helper (mean 0 => 2 * cdf(N(0, sigma), -|delta|)).
   return calc_score_using(im_tolerance, *acceptor_im - *donor_im);
+}
+
+/******************************************************************************/
+double RunStatistics::calc_isotope_score(const Feature& donor, const Feature& acceptor) const
+{
+  // Neutral "uncorrelated" value when the envelope is unavailable/too short.
+  constexpr double NA = 0.5;
+
+  auto obs = Util::feature_obs_envelope(acceptor);
+  auto donor_hit = Util::feature_hit(donor);
+  if (! obs.has_value() || ! donor_hit.has_value()) { return NA; }
+
+  // Donor peptide's theoretical isotope envelope (neutral formula -- the relative
+  // isotope intensities are charge-independent), to the observed envelope length.
+  IsotopeDistribution iso = donor_hit->getSequence().getFormula().getIsotopeDistribution(
+    CoarseIsotopePatternGenerator(obs->size()));
+
+  std::vector<double> theo;
+  theo.reserve(iso.size());
+  for (const auto& peak : iso) { theo.push_back(peak.getIntensity()); }
+
+  const std::size_t n = std::min(obs->size(), theo.size());
+  if (n < 3) { return NA; } // Pearson is degenerate for < 3 points
+
+  const double r = Math::pearsonCorrelationCoefficient(
+    obs->begin(), obs->begin() + n, theo.begin(), theo.begin() + n);
+  if (! std::isfinite(r)) { return NA; } // a constant envelope yields NaN
+
+  return (r + 1.0) / 2.0; // map [-1, 1] -> [0, 1] (1 = identical envelope shape)
 }
 
 /******************************************************************************/

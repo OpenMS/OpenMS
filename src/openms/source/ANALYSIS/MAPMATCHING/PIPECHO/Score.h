@@ -33,6 +33,13 @@ struct Score
   /// both the geometric-mean MBR score and the SVM feature set.
   double im_diff_score;
 
+  /// Isotope-distribution agreement score in [0, 1]: the Pearson correlation
+  /// between the acceptor's observed isotope envelope and the donor peptide's
+  /// theoretical envelope, mapped from [-1, 1] to [0, 1] (1 = identical shape).
+  /// 0.5 ("uncorrelated") is used when the envelope is unavailable. Currently an
+  /// SVM-only feature (not part of the geometric-mean MBR score).
+  double isotope_score;
+
   /// Single score used for bootstrapping.
   double mbr_score;
 };
