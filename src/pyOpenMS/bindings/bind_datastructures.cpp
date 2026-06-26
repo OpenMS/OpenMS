@@ -568,6 +568,12 @@ Returns the objective value of the solution
     // SOLVER enum nested under LPWrapper
     nb::enum_<OpenMS::LPWrapper::SOLVER>(lpwrapper_class, "SOLVER", nb::is_arithmetic())
         .value("SOLVER_GLPK", OpenMS::LPWrapper::SOLVER::SOLVER_GLPK)
+#ifdef OPENMS_HAS_COINOR
+        .value("SOLVER_COINOR", OpenMS::LPWrapper::SOLVER::SOLVER_COINOR)
+#endif
+#ifdef OPENMS_HAS_HIGHS
+        .value("SOLVER_HIGHS", OpenMS::LPWrapper::SOLVER::SOLVER_HIGHS)
+#endif
         .export_values();
     // SolverStatus enum nested under LPWrapper
     nb::enum_<OpenMS::LPWrapper::SolverStatus>(lpwrapper_class, "SolverStatus", nb::is_arithmetic())
