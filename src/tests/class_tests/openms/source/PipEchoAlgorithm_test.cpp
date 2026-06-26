@@ -101,7 +101,7 @@ START_SECTION([EXTRA] parameter defaults)
   // FDR-estimability floor: transfers are dropped below this many decoys.
   TEST_EQUAL(int(p.getValue("min_decoys")), 20)
   // SVM training-set cap (0 = unlimited); bounds grid-search cost on large runs.
-  TEST_EQUAL(p.exists("max_training_points"), true)
+  TEST_TRUE(p.exists("max_training_points"))
   TEST_EQUAL(int(p.getValue("max_training_points")), 50000)
 }
 END_SECTION

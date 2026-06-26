@@ -542,12 +542,12 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
       double realized = s.n_transfers > 0 ? double(s.n_false) / double(s.n_transfers) : 0.0;
 
       // FDR control is not broken by the cap (same generous bound as above).
-      TEST_EQUAL(realized <= std::max(3.0 * 0.05, 0.05 + 0.05), true)
+      TEST_TRUE(realized <= std::max(3.0 * 0.05, 0.05 + 0.05))
       // The cap must not collapse the method to "drop everything".
-      TEST_EQUAL(s.n_transfers > 0, true)
-      TEST_EQUAL(s.n_correct > 0, true)
+      TEST_TRUE(s.n_transfers > 0)
+      TEST_TRUE(s.n_correct > 0)
       // The q-value filter still respects its own cutoff.
-      TEST_EQUAL(s.all_q_within_cutoff, true)
+      TEST_TRUE(s.all_q_within_cutoff)
 
       // Deterministic subsample (uniform stride, no RNG) -> reproducible.
       PipEchoAlgorithm a2;
@@ -565,7 +565,7 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
                && (cm[i].getMZ() == cm2[i].getMZ())
                && (cm[i].size() == cm2[i].size());
       }
-      TEST_EQUAL(same, true)
+      TEST_TRUE(same)
     }
   }
 }

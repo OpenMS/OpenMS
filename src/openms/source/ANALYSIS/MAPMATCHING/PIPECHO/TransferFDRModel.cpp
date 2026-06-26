@@ -403,10 +403,25 @@ bool TransferFDRModel::round(size_t round_number,
       if (k >= n) { dst.insert(dst.end(), src.begin(), src.end()); return; }
       for (std::size_t j = 0; j < k; ++j) { dst.push_back(src[(j * n) / k]); }
     };
+    // Spend the budget on the labelled classes first: decoys + positives are
+    // what actually train the SVM (the below-cutoff 'rest' is unlabelled and
+    // only affects predictor scaling). Keep BOTH classes represented -- a fold
+    // with too few labelled positives OR decoys cannot train (predictors_t::
+    // train needs > 4 of each) and would silently fall back to MBR scores. When
+    // the labelled set does not fit, split the cap between the two classes in
+    // proportion to their sizes so neither is starved by a decoy-first fill.
+    const std::size_t n_labelled = decoys.size() + positives.size();
+    std::size_t dec_keep = decoys.size();
+    std::size_t pos_keep = positives.size();
+    if (n_labelled > cap)
+    {
+      dec_keep = std::min(decoys.size(), cap * decoys.size() / n_labelled);
+      pos_keep = std::min(positives.size(), cap - dec_keep);
+    }
     group_t sampled;
     sampled.reserve(cap);
-    append_stride(sampled, decoys, std::min(decoys.size(), cap));
-    append_stride(sampled, positives, std::min(positives.size(), cap - sampled.size()));
+    append_stride(sampled, decoys, dec_keep);
+    append_stride(sampled, positives, pos_keep);
     append_stride(sampled, rest, cap - sampled.size());
     return sampled;
   };
