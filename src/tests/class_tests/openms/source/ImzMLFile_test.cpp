@@ -864,6 +864,7 @@ START_SECTION(IonImage extractIonImage(double mz, double tolerance_ppm, Size reg
   TEST_EQUAL(disc.getHeight(), mem.getHeight())
 
   bool masks_match = true;
+  bool compared_region_pixel = false;
   for (UInt y = 0; y < mem.getHeight(); ++y)
   {
     for (UInt x = 0; x < mem.getWidth(); ++x)
@@ -871,11 +872,13 @@ START_SECTION(IonImage extractIonImage(double mz, double tolerance_ppm, Size reg
       if (mem.hasPixel(x, y) != disc.hasPixel(x, y)) { masks_match = false; }
       if (mem.hasPixel(x, y) && disc.hasPixel(x, y))
       {
+        compared_region_pixel = true;
         TEST_REAL_SIMILAR(disc.getIntensity(x, y), mem.getIntensity(x, y))
       }
     }
   }
   TEST_EQUAL(masks_match, true)
+  TEST_TRUE(compared_region_pixel)
 
   // Unknown region id must throw.
   TEST_EXCEPTION(Exception::ElementNotFound, od.extractIonImage(mz, tol_ppm, 99))
