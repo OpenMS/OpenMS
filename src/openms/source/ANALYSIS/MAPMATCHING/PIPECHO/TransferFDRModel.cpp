@@ -104,8 +104,9 @@ private:
 
 /******************************************************************************/
 TransferFDRModel::TransferFDRModel(const std::vector<std::shared_ptr<Acceptor>>& acceptors,
-         std::size_t min_decoys):
-    min_decoys_(min_decoys)
+         std::size_t min_decoys, std::size_t max_training_points):
+    min_decoys_(min_decoys),
+    max_training_points_(max_training_points)
 {
   auto push_acceptor
     = [&](const Acceptor& acceptor, std::optional<Acceptor::scored_t>& scored,
@@ -376,6 +377,40 @@ bool TransferFDRModel::round(size_t round_number,
   auto sizes = groups | std::views::transform(&group_t::size);
   training.reserve(std::accumulate(sizes.begin(), sizes.end(), 0));
 
+  // Deterministic stratified subsample used to cap the per-fold SVM training
+  // set at `max_training_points_` (0 = unlimited). Keeps all decoys (scarce,
+  // they define the FDR null) and all labelled positives (targets above the
+  // cutoff -- the positive training signal), then fills any remaining budget
+  // with a score-spread sample of the below-cutoff targets so the predictor
+  // scaling stays representative. No RNG -> reproducible. Prediction and the
+  // FDR/q-values use EVERY acceptor regardless, so q-values stay unbiased.
+  auto subsample_training =
+    [](const group_t& full, double cutoff,
+       const std::function<double(const acceptor_t&)>& getter,
+       const std::function<bool(double, double)>& cmp, std::size_t cap) -> group_t {
+    group_t decoys, positives, rest; // preserve the incoming score-sorted order
+    for (const acceptor_ptr_t& a : full)
+    {
+      if (! a->is_target()) { decoys.push_back(a); }
+      else if (std::invoke(cmp, std::invoke(getter, *a), cutoff)) { positives.push_back(a); }
+      else { rest.push_back(a); }
+    }
+    // Append `k` score-spread elements of `src` (uniform stride across its full
+    // range), or all of `src` when k >= src.size().
+    auto append_stride = [](group_t& dst, const group_t& src, std::size_t k) {
+      const std::size_t n = src.size();
+      if (k == 0 || n == 0) { return; }
+      if (k >= n) { dst.insert(dst.end(), src.begin(), src.end()); return; }
+      for (std::size_t j = 0; j < k; ++j) { dst.push_back(src[(j * n) / k]); }
+    };
+    group_t sampled;
+    sampled.reserve(cap);
+    append_stride(sampled, decoys, std::min(decoys.size(), cap));
+    append_stride(sampled, positives, std::min(positives.size(), cap - sampled.size()));
+    append_stride(sampled, rest, cap - sampled.size());
+    return sampled;
+  };
+
   for (std::size_t i : std::views::iota(std::size_t {}, groups.size()))
   {
     training.clear();
@@ -394,12 +429,19 @@ bool TransferFDRModel::round(size_t round_number,
       = std::floor(training.size() * TRUE_POSITIVE_CUTOFF);
     double cutoff = std::invoke(getter, *training[cutoff_index]);
 
+    // Cap the training set (cutoff is computed on the full set above, so the
+    // labels stay consistent with the unsubsampled cutoff).
+    const std::size_t full_training_size = training.size();
+    if (max_training_points_ != 0 && training.size() > max_training_points_)
+    {
+      training = subsample_training(training, cutoff, getter, cmp, max_training_points_);
+    }
+
     OPENMS_LOG_INFO << "PIP-ECHO: Acceptor group " << i + 1 << "/"
                     << groups.size() << " will be the prediction group with "
-                    << groups[i].size() << " acceptors"
-                    << " with the remaining " << training.size()
-                    << " acceptors in the training set"
-                    << " with selected cutoff value of " << cutoff << std::endl;
+                    << groups[i].size() << " acceptors, training on "
+                    << training.size() << " of " << full_training_size
+                    << " acceptors (cutoff value " << cutoff << ")" << std::endl;
 
     if (! train_predict(training, groups[i], cutoff, getter, cmp))
     {

@@ -520,6 +520,53 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
       }
       TEST_EQUAL(identical, true)
     }
+
+    // ---- Training-point cap: FDR control + sensitivity survive subsampling ----
+    // This dataset produces thousands of acceptors per fold, so a small
+    // max_training_points forces the stratified-subsample path in round().
+    // Because prediction and q-values still use EVERY acceptor, the realised
+    // FDR must stay bounded and a useful fraction of true transfers must still
+    // be recovered -- the cap may only change the fitted boundary, not the set
+    // of scored transfers.
+    {
+      PipEchoAlgorithm algo;
+      Param p = algo.getParameters();
+      p.setValue("fdr", 0.05);
+      p.setValue("random_seed", 0);
+      p.setValue("max_training_points", 500); // well below the per-fold training size
+      algo.setParameters(p);
+
+      ConsensusMap cm;
+      algo.group(ds.maps, cm);
+      TransferStats s = analyzeTransfers(cm, ds.truth, 0.05);
+      double realized = s.n_transfers > 0 ? double(s.n_false) / double(s.n_transfers) : 0.0;
+
+      // FDR control is not broken by the cap (same generous bound as above).
+      TEST_EQUAL(realized <= std::max(3.0 * 0.05, 0.05 + 0.05), true)
+      // The cap must not collapse the method to "drop everything".
+      TEST_EQUAL(s.n_transfers > 0, true)
+      TEST_EQUAL(s.n_correct > 0, true)
+      // The q-value filter still respects its own cutoff.
+      TEST_EQUAL(s.all_q_within_cutoff, true)
+
+      // Deterministic subsample (uniform stride, no RNG) -> reproducible.
+      PipEchoAlgorithm a2;
+      Param p2 = a2.getParameters();
+      p2.setValue("fdr", 0.05);
+      p2.setValue("random_seed", 0);
+      p2.setValue("max_training_points", 500);
+      a2.setParameters(p2);
+      ConsensusMap cm2;
+      a2.group(ds.maps, cm2);
+      bool same = (cm.size() == cm2.size());
+      for (Size i = 0; same && i < cm.size(); ++i)
+      {
+        same = (cm[i].getRT() == cm2[i].getRT())
+               && (cm[i].getMZ() == cm2[i].getMZ())
+               && (cm[i].size() == cm2[i].size());
+      }
+      TEST_EQUAL(same, true)
+    }
   }
 }
 END_SECTION
