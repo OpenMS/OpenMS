@@ -97,6 +97,17 @@ std::optional<double> feature_mass_error(const Feature& feature)
 }
 
 /**************************************************************************/
+std::optional<std::vector<double>> feature_obs_envelope(const Feature& feature)
+{
+  if (! feature.metaValueExists("pipecho_obs_envelope")) { return {}; }
+  const DataValue dv = feature.getMetaValue("pipecho_obs_envelope");
+  if (dv.valueType() != DataValue::DOUBLE_LIST) { return {}; }
+  std::vector<double> env = dv.toDoubleList();
+  if (env.empty()) { return {}; }
+  return env;
+}
+
+/**************************************************************************/
 std::optional<double> feature_ion_mobility(const Feature& feature)
 {
   if (feature.metaValueExists("IM_median"))
