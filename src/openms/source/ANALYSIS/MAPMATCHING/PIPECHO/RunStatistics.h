@@ -63,6 +63,14 @@ private:
   /// RT), mirroring the mass-error feature.
   std::optional<double> calc_im_score(const Feature& donor, const Feature& acceptor) const;
 
+  /// Isotope-distribution agreement score for a donor/acceptor pair: the Pearson
+  /// correlation between the acceptor's observed isotope envelope and the donor
+  /// peptide's theoretical envelope, mapped to [0, 1]. Returns 0.5
+  /// ("uncorrelated") when the envelope is unavailable or too short. Identity-
+  /// coupled (compares the acceptor signal to the DONOR's theoretical pattern),
+  /// so a coincidental m/z match scores low.
+  double calc_isotope_score(const Feature& donor, const Feature& acceptor) const;
+
 private:
   // Log intensity distribution.
   normal_t log_intensity;
