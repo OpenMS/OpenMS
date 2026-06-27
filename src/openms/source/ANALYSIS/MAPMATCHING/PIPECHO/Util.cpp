@@ -10,6 +10,12 @@
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+
+#include <algorithm>
+#include <cmath>
+#include <vector>
 
 namespace OpenMS::PipEcho::Util
 {
@@ -42,11 +48,52 @@ bool feature_is_decoy(const Feature& feature)
 /**************************************************************************/
 std::optional<double> feature_mass_error(const Feature& feature)
 {
-  auto hit = Util::feature_hit(feature);
-  if (! hit.has_value()) return {};
-  double experimental = feature.getMZ();
-  double theoretical = hit->getSequence().getMZ(hit->getCharge());
-  return Math::getPPM(experimental, theoretical);
+  // Prefer FeatureFinderIdentification's observed mass-trace deviation:
+  // "masserror_ppm" is a per-isotope getPPM(observed, theoretical) from the DIA
+  // mass-difference score (-1 = "no signal" sentinel). It is the identified
+  // feature's REAL MS1 mass accuracy -- the quantity FlashLFQ calibrates its ppm
+  // distribution from. feature.getMZ() is FFID's THEORETICAL assay m/z (FFID seeds
+  // the position m/z), so getPPM(feature.getMZ(), theoretical) is identically 0
+  // and the calibration distribution collapses, leaving the mass feature dead.
+  // (Requires masserror_ppm to survive ProteomicsLFQ's feature-meta strip, where
+  // it is whitelisted in keep_meta.)
+  // A real mass error can be more negative than -1 ppm, so the "no signal"
+  // sentinel must be matched EXACTLY (-1), not as "<= -1". (DIAScoring pushes a
+  // literal -1.0 for an isotope with no observed signal.)
+  auto valid = [](double e) { return std::isfinite(e) && e != -1.0; };
+  if (feature.metaValueExists("masserror_ppm"))
+  {
+    const DataValue dv = feature.getMetaValue("masserror_ppm");
+    if (dv.valueType() == DataValue::DOUBLE_LIST)
+    {
+      std::vector<double> errs = dv.toDoubleList();
+      if (! errs.empty() && valid(errs.front())) { return errs.front(); } // monoisotopic
+      // monoisotopic missing -> robust median of the remaining valid isotopes
+      std::vector<double> rest;
+      for (double e : errs) { if (valid(e)) { rest.push_back(e); } }
+      if (! rest.empty())
+      {
+        std::sort(rest.begin(), rest.end());
+        return rest[rest.size() / 2];
+      }
+    }
+    else if (dv.valueType() == DataValue::DOUBLE_VALUE)
+    {
+      const double e = dv;
+      if (valid(e)) { return e; }
+    }
+  }
+
+  // Fallbacks when masserror_ppm is unavailable (e.g. a non-FFID feature path):
+  // the identification's OBSERVED precursor m/z vs theoretical, else feature.getMZ()
+  // (which is theoretical for FFID, giving a 0 error -- the dead-feature case).
+  const PeptideIdentificationList& peps = feature.getPeptideIdentifications();
+  if (peps.empty() || peps[0].getHits().empty()) { return {}; }
+  const PeptideHit& hit = peps[0].getHits()[0];
+  const double theoretical = hit.getSequence().getMZ(hit.getCharge());
+  double observed = peps[0].hasMZ() ? peps[0].getMZ() : feature.getMZ();
+  if (! std::isfinite(observed) || observed <= 0.0) { observed = feature.getMZ(); }
+  return Math::getPPM(observed, theoretical);
 }
 
 /**************************************************************************/
