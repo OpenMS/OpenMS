@@ -820,7 +820,18 @@ retention-time-aligned LC-MS runs of one fraction and transfers identifications
 between runs, controlling the transfer false-discovery rate.
 )doc")
         .def(nb::init<>())
-        .def("group", [](OpenMS::PipEchoAlgorithm& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
+        .def("group", [](OpenMS::PipEchoAlgorithm& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a,
+             R"doc(Group corresponding features across the feature maps of one fraction.
+
+Features representing the same identified peptide are grouped together and,
+where possible, identifications are transferred between runs (match-between-runs).
+
+:param maps: Input feature maps (same fraction, retention-time aligned).
+:param out: Output consensus map of grouped features.
+
+.. note:: Input maps must be retention-time aligned and originate from the same
+   fraction (e.g. after MapAlignerIdentification).
+)doc")
         .def("transferSubelements", [](const OpenMS::PipEchoAlgorithm& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
         ;
 
