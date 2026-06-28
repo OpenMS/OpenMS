@@ -145,6 +145,22 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
                      " available.", {"advanced"});
   defaults_.setMinFloat("local_rt:fallback_window", 0.0);
 
+  defaults_.setValue("local_rt:auto", "false",
+                     "Estimate the local RT window scales (max_window, min_window,"
+                     " anchor_window, fallback_window) from the data instead of using the"
+                     " fixed values above, so one configuration adapts across short and"
+                     " long gradients. Derived from the RT-shift scatter of shared"
+                     " anchors and the anchor density; uses 'median_fwhm' as a physical"
+                     " lower guard when provided.", {"advanced"});
+  defaults_.setValidStrings("local_rt:auto", {"true", "false"});
+
+  defaults_.setValue("local_rt:median_fwhm", 0.0,
+                     "Chromatographic peak FWHM (seconds) used as a physical lower guard"
+                     " when 'auto' is enabled (0 = estimate window scales from RT"
+                     " residuals and anchor density only). Set by the host tool"
+                     " (e.g. ProteomicsLFQ) which has raw-spectra context.", {"advanced"});
+  defaults_.setMinFloat("local_rt:median_fwhm", 0.0);
+
   defaultsToParam_();
 }
 
@@ -177,6 +193,10 @@ void PipEchoAlgorithm::group(const std::vector<FeatureMap>& feature_maps, Consen
     = ! runs.empty()
       && std::ranges::all_of(
         runs, [&](const auto& kv) { return run_supports_im(kv.second); });
+
+  // [LOCAL-RT auto] Estimate the global window scales from the data before matching
+  // (no-op unless 'local_rt:auto'); sets cap/floor/locality/fallback experiment-wide.
+  impl.estimate_auto_params(runs);
 
   // [LOCAL-RT] Match donors -> acceptors. With the local adaptive window enabled,
   // wrap the O(R^2) matching in an ADAPTIVE-WIDENING loop: if too few decoy

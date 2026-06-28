@@ -20,6 +20,7 @@
 #include <cmath>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <ranges>
 #include <set>
 #include <unordered_map>
@@ -118,28 +119,26 @@ struct LocalRtModel
   /// Apply the adaptive-widening factor, bounded by the global ceiling.
   double scale(double half) const { return std::min(half * widen, hard_ceiling); }
 
-  Pred predict(double r) const
+  /// Nearest <=n_anchors-per-side residuals within locality_s of r, leave-one-out
+  /// (the query donor's own anchor, at ~r, is skipped). Used by predict() and by
+  /// the auto-parameter estimation.
+  std::vector<double> gather(double r) const
   {
     const std::size_t n = anchor_rt.size();
-    if (n == 0) { return {r, scale(fallback_half_s), false}; }
+    std::vector<double> res;
+    if (n == 0) { return res; }
     const std::size_t idx = static_cast<std::size_t>(
       std::lower_bound(anchor_rt.begin(), anchor_rt.end(), r) - anchor_rt.begin());
-
-    // Leave-one-out: skip the query donor's own anchor (a shared peptide at the
-    // query RT) so the prediction is not self-referential.
     constexpr double self_eps = 1e-6;
-    std::vector<double> res;
     res.reserve(2 * n_anchors);
-    // forward anchors (>= r), nearest first, within the locality window
-    for (std::size_t i = idx, k = 0; i < n && k < n_anchors; ++i)
+    for (std::size_t i = idx, k = 0; i < n && k < n_anchors; ++i)  // forward (>= r)
     {
       const double d = std::fabs(anchor_rt[i] - r);
       if (d > locality_s) { break; }
       if (d <= self_eps) { continue; }
       res.push_back(residual[i]); ++k;
     }
-    // backward anchors (< r), nearest first, within the locality window
-    for (std::size_t i = idx, k = 0; i > 0 && k < n_anchors; )
+    for (std::size_t i = idx, k = 0; i > 0 && k < n_anchors; )     // backward (< r)
     {
       --i;
       const double d = std::fabs(r - anchor_rt[i]);
@@ -147,7 +146,40 @@ struct LocalRtModel
       if (d <= self_eps) { continue; }
       res.push_back(residual[i]); ++k;
     }
+    return res;
+  }
 
+  /// Sample standard deviation of the local RT shifts at r (nullopt if <2 local
+  /// anchors). [LOCAL-RT auto] used to estimate the global window scales.
+  std::optional<double> local_sigma_at(double r) const
+  {
+    std::vector<double> res = gather(r);
+    if (res.size() < 2) { return std::nullopt; }
+    double mean = 0.0;
+    for (double v : res) { mean += v; }
+    mean /= static_cast<double>(res.size());
+    double var = 0.0;
+    for (double v : res) { var += (v - mean) * (v - mean); }
+    var /= static_cast<double>(res.size() - 1);
+    const double sd = std::sqrt(var);
+    return std::isfinite(sd) ? std::optional<double>(sd) : std::nullopt;
+  }
+
+  /// Median gap between consecutive anchors (0 if <2). [LOCAL-RT auto]
+  double median_anchor_gap() const
+  {
+    if (anchor_rt.size() < 2) { return 0.0; }
+    std::vector<double> gaps;
+    gaps.reserve(anchor_rt.size() - 1);
+    for (std::size_t i = 1; i < anchor_rt.size(); ++i) { gaps.push_back(anchor_rt[i] - anchor_rt[i - 1]); }
+    std::sort(gaps.begin(), gaps.end());
+    return gaps[gaps.size() / 2];
+  }
+
+  Pred predict(double r) const
+  {
+    if (anchor_rt.empty()) { return {r, scale(fallback_half_s), false}; }
+    std::vector<double> res = gather(r);
     if (res.empty()) { return {r, scale(fallback_half_s), false}; }
     std::sort(res.begin(), res.end());
     // Guard against absurd shifts from unreliable anchors: never center the search
@@ -234,8 +266,10 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     lrt_n_anchors_ = static_cast<std::size_t>(static_cast<int>(params.getValue("local_rt:anchors")));
     lrt_c_ = params.getValue("local_rt:sigma_scale");
     lrt_fallback_half_ = params.getValue("local_rt:fallback_window");
-    OPENMS_LOG_INFO << "PIP-ECHO: local adaptive RT window enabled (max_window="
-                    << lrt_cap_ << " s)." << std::endl;
+    use_auto_ = params.getValue("local_rt:auto").toString() == "true";
+    host_fwhm_ = params.getValue("local_rt:median_fwhm");
+    OPENMS_LOG_INFO << "PIP-ECHO: local adaptive RT window enabled"
+                    << (use_auto_ ? " (auto window estimation)" : "") << "." << std::endl;
   }
 }
 
@@ -259,6 +293,93 @@ void Impl::set_local_rt_model(const DonorMap& donor_donors,
   m.hard_ceiling = rt_sec_max_window;                      // never exceed the global window
   if (m.floor_s > m.cap_s) { m.floor_s = m.cap_s; }         // guard std::clamp(lo>hi) UB
   local_rt_ = std::make_shared<const LocalRtModel>(std::move(m));
+}
+
+/******************************************************************************/
+// [LOCAL-RT auto] Estimate the global (experiment-wide) window scales from the
+// data so one config works across short and long gradients. Self-contained from
+// feature RTs (local-sigma + anchor density); median_fwhm is an OPTIONAL host
+// refinement (features carry no usable width). Sets lrt_cap_/floor_/locality_/
+// fallback_; no-op unless 'local_rt:auto' is enabled.
+void Impl::estimate_auto_params(const RunMap& runs)
+{
+  if (! use_local_rt_ || ! use_auto_) { return; }
+
+  constexpr double MARGIN = 2.0;   // locality = gap_med * anchors * margin
+  constexpr double K_FWHM = 4.0;   // cap FWHM lower-guard multiple
+  const double c = lrt_c_;
+
+  // Build each (donor_run, acceptor_run) pair model once; gather inter-anchor gaps.
+  std::vector<LocalRtModel> models;
+  std::vector<double> gaps;
+  for (const auto& a_run : runs)
+  {
+    for (const auto& d_run : runs)
+    {
+      if (d_run.first == a_run.first) { continue; }
+      LocalRtModel m = build_local_rt_model(d_run.second.donors, a_run.second.donors);
+      m.n_anchors = lrt_n_anchors_;
+      const double g = m.median_anchor_gap();
+      if (g > 0.0) { gaps.push_back(g); }
+      models.push_back(std::move(m));
+    }
+  }
+  if (gaps.empty())
+  {
+    OPENMS_LOG_WARN << "[LOCAL-RT] auto: no shared anchors found; keeping default windows."
+                    << std::endl;
+    return;
+  }
+  std::sort(gaps.begin(), gaps.end());
+  const double gap_med = gaps[gaps.size() / 2];
+  const double locality = gap_med * static_cast<double>(lrt_n_anchors_) * MARGIN;
+
+  // Sample the local RT-shift sigma within that locality across all pairs.
+  std::vector<double> sigmas;
+  for (auto& m : models)
+  {
+    m.locality_s = locality;
+    for (double a : m.anchor_rt)
+    {
+      if (auto s = m.local_sigma_at(a); s.has_value() && *s > 0.0) { sigmas.push_back(*s); }
+    }
+  }
+
+  const bool fwhm_used = host_fwhm_ > 0.0;
+  double cap = 0.0, floor = 0.0;
+  double p25 = 0, p50 = 0, p75 = 0, p90 = 0, p95 = 0;
+  if (sigmas.size() >= 2)
+  {
+    std::sort(sigmas.begin(), sigmas.end());
+    auto pct = [&](double p) {
+      return sigmas[std::min(sigmas.size() - 1, static_cast<std::size_t>(p * sigmas.size()))];
+    };
+    p25 = pct(0.25); p50 = pct(0.50); p75 = pct(0.75); p90 = pct(0.90); p95 = pct(0.95);
+    cap = std::max(c * p90, 0.25 * gap_med);         // sigma-driven, anchor-spacing guard
+    // Floor = minimum window. With FWHM it should reflect chromatographic peak/apex
+    // width, NOT alignment scatter (which already enters via c*sigma and the cap);
+    // otherwise locally well-aligned donors get a needlessly broad minimum. Without
+    // FWHM, fall back to a sigma-based floor (P25, not P10: avoid too-perfect tails).
+    floor = fwhm_used ? std::max(1.5 * host_fwhm_, p25)
+                      : std::max(c * p25, 0.10 * cap);
+  }
+  else  // too few sigma samples -> density-only fallback
+  {
+    cap = std::max(0.25 * gap_med, 1.0);
+    floor = fwhm_used ? 1.5 * host_fwhm_ : 0.10 * cap;
+  }
+  if (fwhm_used) { cap = std::max(cap, K_FWHM * host_fwhm_); }  // physical lower guard on cap
+  floor = std::min(floor, cap);
+
+  lrt_cap_ = cap;
+  lrt_floor_ = floor;
+  lrt_locality_ = locality;
+  lrt_fallback_half_ = floor;
+  OPENMS_LOG_INFO << "[LOCAL-RT] auto windows (" << (fwhm_used ? "FWHM-aware" : "RT-residual only")
+                  << "): cap=" << cap << "s floor=" << floor << "s locality=" << locality
+                  << "s | local-sigma P25/50/75/90/95=" << p25 << "/" << p50 << "/" << p75 << "/"
+                  << p90 << "/" << p95 << "s gap_med=" << gap_med << "s fwhm=" << host_fwhm_
+                  << "s n=" << sigmas.size() << std::endl;
 }
 
 /******************************************************************************/

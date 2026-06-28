@@ -70,6 +70,10 @@ public:
   void set_local_rt_model(const DonorMap& donor_donors,
                           const DonorMap& acceptor_donors);
 
+  /// [LOCAL-RT auto] Estimate global window scales (cap/floor/locality/fallback)
+  /// from the data before matching. No-op unless 'local_rt:auto' is enabled.
+  void estimate_auto_params(const RunMap& runs);
+
   /// [LOCAL-RT] Whether the local adaptive RT window is enabled.
   bool local_rt_enabled() const { return use_local_rt_; }
 
@@ -135,6 +139,8 @@ private:
 
   /// [LOCAL-RT] local adaptive RT window state ('local_rt:' parameters).
   bool use_local_rt_ = false;
+  bool use_auto_ = false;                          ///< auto-estimate window scales from data
+  double host_fwhm_ = 0.0;                          ///< optional host chromatographic FWHM (s; 0 = none)
   std::shared_ptr<const LocalRtModel> local_rt_;   ///< current run-pair model
   double lrt_cap_ = 100.0;                         ///< generous half-window backstop (param)
   double lrt_floor_ = 5.0;                         ///< min half-window (param); widen-ceiling basis

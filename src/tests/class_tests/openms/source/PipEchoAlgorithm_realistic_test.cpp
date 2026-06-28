@@ -594,6 +594,33 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
       TEST_TRUE(double(s.n_correct) >= 0.3 * double(ds.n_recoverable)) // sensitivity preserved
       TEST_TRUE(s.all_q_within_cutoff)
     }
+
+    // ---- Local adaptive RT window in AUTO mode: scales derived from the data ----
+    // Auto-mode estimates the window scales (cap/floor/locality) from the anchor
+    // RT-shift scatter and density; it must keep the realised FDR bounded and
+    // sensitivity intact without any hand-tuned window values.
+    {
+      PipEchoAlgorithm algo;
+      Param p = algo.getParameters();
+      p.setValue("fdr", 0.05);
+      p.setValue("random_seed", 0);
+      p.setValue("local_rt:enabled", "true");
+      p.setValue("local_rt:auto", "true");
+      algo.setParameters(p);
+
+      ConsensusMap cm;
+      algo.group(ds.maps, cm);
+      TransferStats s = analyzeTransfers(cm, ds.truth, 0.05);
+      double realized = s.n_transfers > 0 ? double(s.n_false) / double(s.n_transfers) : 0.0;
+      std::cout << "[local_rt AUTO fdr=0.05] transfers=" << s.n_transfers
+                << " correct=" << s.n_correct << " false=" << s.n_false
+                << " realized_FDR=" << realized << "\n";
+
+      TEST_TRUE(realized <= std::max(3.0 * 0.05, 0.05 + 0.05))
+      TEST_TRUE(s.n_transfers > 0)
+      TEST_TRUE(double(s.n_correct) >= 0.3 * double(ds.n_recoverable))
+      TEST_TRUE(s.all_q_within_cutoff)
+    }
   }
 }
 END_SECTION
