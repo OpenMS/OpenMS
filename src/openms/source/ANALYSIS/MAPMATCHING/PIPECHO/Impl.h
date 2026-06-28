@@ -154,6 +154,7 @@ private:
   double lrt_c_ = 3.0;                             ///< sigma scale for the window (param)
   double lrt_fallback_half_ = 15.0;                ///< half-window when <2 anchors (param)
   double lrt_widen_ = 1.0;                         ///< adaptive-widening multiplier (set per pass)
+  RtScoreMode lrt_rt_mode_ = RtScoreMode::Raw;     ///< how RT feeds the SVM/geomean ('local_rt:rt_score')
   mutable std::size_t lrt_supported_ = 0;          ///< queries with a sigma-sized window
   mutable std::size_t lrt_fallback_ = 0;           ///< queries with a tight fallback window
 };

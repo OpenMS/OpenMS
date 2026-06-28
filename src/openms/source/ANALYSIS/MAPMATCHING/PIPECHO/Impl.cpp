@@ -113,6 +113,13 @@ struct LocalRtModel
   double widen = 1.0;              ///< adaptive-widening multiplier (decoy estimability)
   double hard_ceiling = 1e9;       ///< absolute max half-window (= global rt window)
 
+  /// [LOCAL-RT calibrated] Run-pair RT prediction-error distribution, built
+  /// leave-one-out from the anchors (FlashLFQ AddRtPredErrorDistribution): for
+  /// each anchor, predict its centre from the OTHER local anchors and record the
+  /// residual; fit a robust Normal(median, IQR/1.349). Used to convert a query's
+  /// signed RT residual into a [0, 1] agreement score. Empty when too few anchors.
+  std::optional<boost::math::normal> rt_error;
+
   /// supported = had >=2 local anchors (sigma-sized window); else a tight fallback.
   struct Pred { double center; double half_window; bool supported; };
 
@@ -198,6 +205,49 @@ struct LocalRtModel
     const double half = std::clamp(c * sd, floor_s, cap_s);
     return {r + shift, scale(half), true};
   }
+
+  /// [LOCAL-RT calibrated] Build the run-pair RT prediction-error distribution
+  /// (rt_error) leave-one-out from the anchors. Must be called AFTER the gather
+  /// parameters (locality_s, n_anchors) are set, since it reuses gather(). Mirrors
+  /// FlashLFQ's AddRtPredErrorDistribution: prediction error per anchor =
+  /// actual residual - median(neighbouring residuals). Robust Normal(median,
+  /// IQR/1.349); leaves rt_error empty when too few usable anchors.
+  void build_rt_error_dist()
+  {
+    rt_error.reset();
+    if (anchor_rt.size() < 3) { return; }
+    std::vector<double> errs;
+    errs.reserve(anchor_rt.size());
+    for (std::size_t i = 0; i < anchor_rt.size(); ++i)
+    {
+      std::vector<double> nb = gather(anchor_rt[i]);  // leave-one-out (skips self)
+      if (nb.size() < 2) { continue; }
+      std::sort(nb.begin(), nb.end());
+      const double med_shift = nb[nb.size() / 2];
+      errs.push_back(residual[i] - med_shift);
+    }
+    if (errs.size() < 4) { return; }
+    std::sort(errs.begin(), errs.end());
+    auto pct = [&](double p) {
+      return errs[std::min(errs.size() - 1, static_cast<std::size_t>(p * errs.size()))];
+    };
+    const double centre = errs[errs.size() / 2];  // robust centre (median)
+    double sd = (pct(0.75) - pct(0.25)) / 1.349;  // IQR -> stddev (cf RunStatistics)
+    if (! std::isfinite(sd) || sd <= 0.0)
+    {
+      // Degenerate IQR (heavily tied residuals): fall back to the sample stddev
+      // only; keep the robust median centre (Codex review).
+      double mean = 0.0;
+      for (double e : errs) { mean += e; }
+      mean /= static_cast<double>(errs.size());
+      double var = 0.0;
+      for (double e : errs) { var += (e - mean) * (e - mean); }
+      var /= static_cast<double>(errs.size() - 1);
+      sd = std::sqrt(var);
+    }
+    if (! std::isfinite(sd) || sd <= 0.0) { return; }
+    rt_error = boost::math::normal(centre, sd);
+  }
 };
 
 namespace
@@ -275,8 +325,13 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     lrt_fallback_half_ = params.getValue("local_rt:fallback_window");
     use_auto_ = params.getValue("local_rt:auto").toString() == "true";
     host_fwhm_ = params.getValue("local_rt:median_fwhm");
+    const std::string rt_mode = params.getValue("local_rt:rt_score").toString();
+    if (rt_mode == "svm") { lrt_rt_mode_ = RtScoreMode::Svm; }
+    else if (rt_mode == "svm_and_mbr") { lrt_rt_mode_ = RtScoreMode::SvmAndMbr; }
+    else { lrt_rt_mode_ = RtScoreMode::Raw; }
     OPENMS_LOG_INFO << "PIP-ECHO: local adaptive RT window enabled"
-                    << (use_auto_ ? " (auto window estimation)" : "") << "." << std::endl;
+                    << (use_auto_ ? " (auto window estimation)" : "")
+                    << " [rt_score=" << rt_mode << "]." << std::endl;
   }
 }
 
@@ -299,6 +354,9 @@ void Impl::set_local_rt_model(const DonorMap& donor_donors,
   m.widen = lrt_widen_;                                     // adaptive-widening multiplier
   m.hard_ceiling = rt_sec_max_window;                      // never exceed the global window
   if (m.floor_s > m.cap_s) { m.floor_s = m.cap_s; }         // guard std::clamp(lo>hi) UB
+  // Build the calibrated RT prediction-error distribution AFTER the gather params
+  // are set (it reuses gather()); only needed when a calibrated RT mode is active.
+  if (lrt_rt_mode_ != RtScoreMode::Raw) { m.build_rt_error_dist(); }
   local_rt_ = std::make_shared<const LocalRtModel>(std::move(m));
 }
 
@@ -494,6 +552,15 @@ Impl::match_t Impl::find_acceptor_for(const RunStatistics& stats,
   const std::optional<double> eff_override =
     local_on ? std::optional<double>(center_rt) : rt_override;
 
+  // [LOCAL-RT calibrated] On the local path, score the RT residual against this
+  // run pair's calibrated RT prediction-error distribution (see RtScoreMode). The
+  // baseline/global path stays Raw -> byte-identical.
+  const RtScoreMode rt_mode = local_on ? lrt_rt_mode_ : RtScoreMode::Raw;
+  const boost::math::normal* rt_dist =
+    (local_on && local_rt_ && local_rt_->rt_error.has_value())
+      ? &*local_rt_->rt_error
+      : nullptr;
+
   const AcceptorMap::grid_center_t center(center_rt, donor.feature.getMZ());
   const AcceptorMap::grid_index_t index
     = acceptors.grid.cellIndexAtClusterCenter(center);
@@ -504,7 +571,8 @@ Impl::match_t Impl::find_acceptor_for(const RunStatistics& stats,
       if (acceptor->is_donor_compatible(donor, window, eff_override)
           && std::fabs(acceptor->feature.getRT() - center_rt) <= rt_gate)
       {
-        Score score(stats.score(donor.feature, acceptor->feature, eff_override));
+        Score score(stats.score(donor.feature, acceptor->feature, eff_override,
+                                rt_mode, rt_dist));
 
         if (! best_match.has_value()
             || best_match->first.mbr_score < score.mbr_score)

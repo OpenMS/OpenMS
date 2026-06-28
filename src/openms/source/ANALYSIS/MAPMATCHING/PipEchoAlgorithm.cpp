@@ -161,6 +161,17 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
                      " (e.g. ProteomicsLFQ) which has raw-spectra context.", {"advanced"});
   defaults_.setMinFloat("local_rt:median_fwhm", 0.0);
 
+  defaults_.setValue("local_rt:rt_score", "svm_and_mbr",
+                     "How the retention-time feature is used on the local RT path."
+                     " 'raw': the raw |Δrt| is the SVM predictor (legacy)."
+                     " 'svm': a calibrated [0,1] RT-agreement score (FlashLFQ-style"
+                     " two-tailed CDF against the data-driven RT prediction-error"
+                     " distribution) replaces it as the SVM predictor."
+                     " 'svm_and_mbr': as 'svm', and the calibrated score also enters"
+                     " the bootstrap geometric mean. Ignored unless 'enabled'.",
+                     {"advanced"});
+  defaults_.setValidStrings("local_rt:rt_score", {"raw", "svm", "svm_and_mbr"});
+
   defaultsToParam_();
 }
 
