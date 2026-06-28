@@ -86,6 +86,11 @@ namespace OpenMS
        @param[in] outcomes Mapping from observation index to class label or regression value in the training set.
        @param[in] classification true (default) if SVM classification should be used, SVR otherwise
 
+       @note Predictors whose values are constant across all training observations (min == max)
+             are silently dropped; they carry no discriminatory information and are excluded from
+             the model. When calling predict(PredictorMap&, ...) afterwards, any predictor that
+             was dropped during training is silently ignored.
+
        @throw Exception::IllegalArgument if @p predictors is empty
        @throw Exception::InvalidValue if an invalid index is used in @p outcomes
        @throw Exception::MissingInformation if there are fewer than two class labels in @p outcomes, or if there are not enough observations for cross-validation
@@ -110,7 +115,11 @@ namespace OpenMS
 
        @param[in,out] predictors Mapping from predictor name to vector of predictor values (for different observations). All vectors should have the same length; values will be changed by scaling applied to training data in setup.
        @param[out] predictions Output vector of prediction results (same order as @p indexes).
-       
+
+       @note Predictors present in @p predictors but absent from the trained model (e.g. because
+             they were constant during training and were silently dropped by setup()) are ignored.
+             Predictors present in the model but missing from @p predictors cause an error.
+
        @throw Exception::Precondition if no model has been trained
        @throw Exception::InvalidValue if an invalid index is used in @p indexes
     **/

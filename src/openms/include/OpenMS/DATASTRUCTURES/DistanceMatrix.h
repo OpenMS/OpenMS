@@ -218,6 +218,10 @@ public:
     @param[in] j the j-th col
     @param[in] value the set-value
     @throw Exception::OutOfRange if given coordinates are out of range
+
+    @note The cached minimum element (used by getMinElementCoordinates()) is kept up to date.
+          For bulk updates where performance matters, use setValueQuick() followed by
+          updateMinElement() when all writes are done.
   */
   void setValue(SizeType i, SizeType j, ValueType value)
   {

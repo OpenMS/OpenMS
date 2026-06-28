@@ -2791,7 +2791,10 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
 
       // SummaryStatistics<vector<double>> (reused for FileInfo statistics / FASTA length stats)
       nb::class_<OpenMS::Math::SummaryStatistics<std::vector<double>>>(m, "SummaryStatistics",
-          "Summary statistics: count/mean/min/lower-quartile/median/upper-quartile/max/variance")
+          "Summary statistics gathered from a numeric container.\n\n"
+          "Fields: count, mean, min, lowerq (Q1), median, upperq (Q3), max, variance.\n"
+          "For count < 2, variance is 0.0 (undefined for a single observation).\n"
+          "For count < 3, lowerq equals min and upperq equals max.")
           .def(nb::init<>())
           .def(nb::init<const OpenMS::Math::SummaryStatistics<std::vector<double>>&>())
           .def("__copy__", [](const OpenMS::Math::SummaryStatistics<std::vector<double>>& self) { return OpenMS::Math::SummaryStatistics<std::vector<double>>(self); })

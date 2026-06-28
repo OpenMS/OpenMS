@@ -928,13 +928,24 @@ namespace OpenMS
       return sum_model_data / (std::sqrt(sqsum_data) * std::sqrt(sqsum_model));
     }
 
-    /// Helper class to gather (and dump) some statistics from a e.g. vector<double>.
+    /**
+      @brief Summary statistics gathered from a container (e.g. @c vector<double>).
+
+      All fields are zero-initialised for an empty input.
+
+      @note For @p n == 1, @p variance is reported as 0.0 (the sample variance divides
+            by n-1 and is undefined for a single observation).
+      @note For @p n < 3, @p lowerq equals @p min and @p upperq equals @p max
+            (the half-ranges are empty; see quantile1st / quantile3rd).
+
+      @tparam T A sequence container whose @c value_type is a numeric type (e.g. @c vector<double>).
+    */
     template<typename T>
     struct SummaryStatistics
     {
       SummaryStatistics() = default;
 
-      // Ctor with data
+      /// Construct from data (the container is sorted in place).
       SummaryStatistics(T& data)
       {
         count = data.size();
@@ -957,9 +968,14 @@ namespace OpenMS
         }
       }
 
-      double mean = 0, variance = 0 , lowerq = 0, median = 0, upperq = 0;
-      typename T::value_type min = 0, max = 0;
-      size_t count = 0;
+      double mean = 0;       ///< arithmetic mean
+      double variance = 0;   ///< sample variance (0.0 when count < 2)
+      double lowerq = 0;     ///< first quartile (equals min when count < 3)
+      double median = 0;     ///< median
+      double upperq = 0;     ///< third quartile (equals max when count < 3)
+      typename T::value_type min = 0; ///< minimum value
+      typename T::value_type max = 0; ///< maximum value
+      size_t count = 0;      ///< number of observations
     };
 
   }   // namespace Math
