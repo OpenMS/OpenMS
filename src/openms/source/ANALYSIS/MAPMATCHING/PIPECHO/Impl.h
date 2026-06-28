@@ -81,13 +81,17 @@ public:
   /// widening target): max(min_decoys, ceil(1/fdr)).
   std::size_t target_decoy_count() const
   {
+    if (mbr_fdr >= 1.0) { return 0; }  // FDR control disabled (keep all) -> no decoy requirement
     const double f = mbr_fdr > 0.0 ? mbr_fdr : 1.0;
     return std::max<std::size_t>(min_decoys,
                                  static_cast<std::size_t>(std::ceil(1.0 / f)));
   }
 
-  /// [LOCAL-RT] Set the adaptive-widening multiplier for the next match pass.
-  void set_widen_factor(double w) { lrt_widen_ = w; }
+  /// [LOCAL-RT] Begin a match pass at widening multiplier w: reseed the decoy RNG
+  /// and reset the per-pass diagnostic counters, so each (re-)match pass is
+  /// independent of discarded passes and the final log/result describe the
+  /// retained pass (Codex review).
+  void set_widen_factor(double w) { lrt_widen_ = w; rng_.seed(rng_seed_); lrt_supported_ = 0; lrt_fallback_ = 0; }
 
   /// [LOCAL-RT] Widening multiplier at which even the SMALLEST local window
   /// (the floor) saturates the global ceiling -- widening further cannot add
@@ -135,6 +139,7 @@ private:
   /// must not be advanced concurrently -- give each thread its own generator
   /// before parallelizing the donor loop.  Mutable because the (logically
   /// const) decoy search advances its state.
+  std::mt19937::result_type rng_seed_ = 0;  ///< decoy RNG seed (for per-pass reseed)
   mutable std::mt19937 rng_;
 
   /// [LOCAL-RT] local adaptive RT window state ('local_rt:' parameters).

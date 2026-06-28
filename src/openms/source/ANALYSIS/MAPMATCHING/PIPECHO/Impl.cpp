@@ -207,18 +207,24 @@ namespace
 LocalRtModel build_local_rt_model(const DonorMap& donor_donors,
                                   const DonorMap& acceptor_donors)
 {
-  std::unordered_map<std::string, double> acc;  // key -> acceptor-run donor RT
-  acc.reserve(acceptor_donors.storage.size());
-  for (const auto& d : acceptor_donors.storage)
+  // One robust anchor per peptide (seq+charge) per run: median RT over duplicate
+  // features, so multi-feature/charge-state peptides don't inject arbitrary
+  // residuals that inflate the local-sigma tail driving the auto cap (Codex review).
+  auto median_rt_by_key = [](const auto& storage) {
+    std::unordered_map<std::string, std::vector<double>> tmp;
+    for (const auto& d : storage) { tmp[feature_sequence_key(d->feature)].push_back(d->feature.getRT()); }
+    std::unordered_map<std::string, double> med;
+    med.reserve(tmp.size());
+    for (auto& [k, v] : tmp) { std::sort(v.begin(), v.end()); med[k] = v[v.size() / 2]; }
+    return med;
+  };
+  const auto donor_rt = median_rt_by_key(donor_donors.storage);
+  const auto acc_rt = median_rt_by_key(acceptor_donors.storage);
+  std::vector<std::pair<double, double>> pairs;  // (donor_rt, residual) one per shared key
+  for (const auto& [key, drt] : donor_rt)
   {
-    acc.emplace(feature_sequence_key(d->feature), d->feature.getRT());
-  }
-  std::vector<std::pair<double, double>> pairs;  // (donor_rt, residual)
-  for (const auto& d : donor_donors.storage)
-  {
-    auto it = acc.find(feature_sequence_key(d->feature));
-    if (it == acc.end()) { continue; }
-    const double drt = d->feature.getRT();
+    auto it = acc_rt.find(key);
+    if (it == acc_rt.end()) { continue; }
     pairs.emplace_back(drt, it->second - drt);
   }
   std::sort(pairs.begin(), pairs.end());
@@ -247,8 +253,9 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     // setMinInt("max_training_points", 0) guarantees a non-negative value.
     max_training_points(static_cast<std::size_t>(
       static_cast<int>(params.getValue("max_training_points")))),
-    rng_(static_cast<std::mt19937::result_type>(
-      static_cast<int>(params.getValue("random_seed"))))
+    rng_seed_(static_cast<std::mt19937::result_type>(
+      static_cast<int>(params.getValue("random_seed")))),
+    rng_(rng_seed_)
 {
   OPENMS_LOG_INFO << "MBR via PIP-ECHO(" << mz_range.first << ", "
                   << mz_range.second << ", " << mz_grid_center << ", "
@@ -545,7 +552,10 @@ Impl::find_random_donor(const DonorMap& donors,
   if (use_local_rt_ && local_rt_)
   {
     const LocalRtModel::Pred p = local_rt_->predict(start.feature.getRT());
-    const double lw = p.half_window;  // always bounded (tight fallback or sigma window)
+    // Use the BASE (un-widened) local window for decoy-donor separation: tying it
+    // to the widened window would push decoy donors farther away on each widening
+    // pass, opposing the decoy generation widening is meant to achieve (Codex review).
+    const double lw = p.half_window / std::max(local_rt_->widen, 1.0);
     rt_min_diff = std::max(2.0 * lw, 120.0);
   }
 
