@@ -567,6 +567,33 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
       }
       TEST_TRUE(same)
     }
+
+    // ---- Local adaptive RT window: same FDR control + sensitivity ----
+    // The local-RT path re-centers the candidate search on a local RT prediction
+    // and widens the window adaptively; it must keep the realised FDR bounded
+    // against ground truth and still recover a useful fraction of true transfers
+    // (here the sparse 3-run set forces the adaptive widening to engage).
+    {
+      PipEchoAlgorithm algo;
+      Param p = algo.getParameters();
+      p.setValue("fdr", 0.05);
+      p.setValue("random_seed", 0);
+      p.setValue("local_rt:enabled", "true");
+      algo.setParameters(p);
+
+      ConsensusMap cm;
+      algo.group(ds.maps, cm);
+      TransferStats s = analyzeTransfers(cm, ds.truth, 0.05);
+      double realized = s.n_transfers > 0 ? double(s.n_false) / double(s.n_transfers) : 0.0;
+      std::cout << "[local_rt fdr=0.05] transfers=" << s.n_transfers
+                << " correct=" << s.n_correct << " false=" << s.n_false
+                << " realized_FDR=" << realized << "\n";
+
+      TEST_TRUE(realized <= std::max(3.0 * 0.05, 0.05 + 0.05))         // FDR stays bounded
+      TEST_TRUE(s.n_transfers > 0)                                     // not "drop everything"
+      TEST_TRUE(double(s.n_correct) >= 0.3 * double(ds.n_recoverable)) // sensitivity preserved
+      TEST_TRUE(s.all_q_within_cutoff)
+    }
   }
 }
 END_SECTION

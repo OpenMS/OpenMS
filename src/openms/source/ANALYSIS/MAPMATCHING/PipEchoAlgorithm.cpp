@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include "PIPECHO/Impl.h"
@@ -101,6 +102,49 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
                      {"advanced"});
   defaults_.setMinInt("max_training_points", 0);
 
+  // --- Local adaptive RT window (EXPERIMENTAL; default off = the global window) ---
+  defaults_.setValue("local_rt:enabled", "false",
+                     "Use a LOCAL adaptive retention-time window for MBR candidate"
+                     " search instead of the single global RT window"
+                     " ('distance_RT:max_difference'). For each donor the expected"
+                     " acceptor RT is predicted from nearby peptides identified in BOTH"
+                     " runs (local alignment) and the search window is sized from the"
+                     " local RT scatter, sharpening the RT feature and removing much of"
+                     " the false in-window background. The window is widened adaptively"
+                     " if too few decoys are produced to resolve the FDR.",
+                     {"advanced"});
+  defaults_.setValidStrings("local_rt:enabled", {"true", "false"});
+
+  defaults_.setValue("local_rt:max_window", 100.0,
+                     "Maximum half-width (seconds) of the local RT window before"
+                     " adaptive widening (backstop cap on the data-driven width).",
+                     {"advanced"});
+  defaults_.setMinFloat("local_rt:max_window", 0.0);
+
+  defaults_.setValue("local_rt:min_window", 5.0,
+                     "Minimum half-width (seconds) of the local RT window.", {"advanced"});
+  defaults_.setMinFloat("local_rt:min_window", 0.0);
+
+  defaults_.setValue("local_rt:anchor_window", 120.0,
+                     "Only peptides within this RT distance (seconds) of the donor are"
+                     " used as local-alignment anchors.", {"advanced"});
+  defaults_.setMinFloat("local_rt:anchor_window", 0.0);
+
+  defaults_.setValue("local_rt:anchors", 3,
+                     "Maximum number of anchor peptides per side used for the local RT"
+                     " prediction.", {"advanced"});
+  defaults_.setMinInt("local_rt:anchors", 1);
+
+  defaults_.setValue("local_rt:sigma_scale", 3.0,
+                     "Local RT window half-width = this multiple of the local anchor"
+                     " RT-shift standard deviation.", {"advanced"});
+  defaults_.setMinFloat("local_rt:sigma_scale", 0.0);
+
+  defaults_.setValue("local_rt:fallback_window", 15.0,
+                     "Half-width (seconds) used when fewer than two local anchors are"
+                     " available.", {"advanced"});
+  defaults_.setMinFloat("local_rt:fallback_window", 0.0);
+
   defaultsToParam_();
 }
 
@@ -134,30 +178,71 @@ void PipEchoAlgorithm::group(const std::vector<FeatureMap>& feature_maps, Consen
       && std::ranges::all_of(
         runs, [&](const auto& kv) { return run_supports_im(kv.second); });
 
-  auto logger = ProgressLogger();
-  std::size_t progress {};
-
-  logger.setLogType(ProgressLogger::CMD);
-  logger.startProgress(0, std::pow(runs.size(), 2), "matching donors and acceptors");
-
-  for (auto& acceptor_run : runs)
+  // [LOCAL-RT] Match donors -> acceptors. With the local adaptive window enabled,
+  // wrap the O(R^2) matching in an ADAPTIVE-WIDENING loop: if too few decoy
+  // transfers are generated to resolve the requested FDR, double the local window
+  // scale and re-match, until estimable or the window saturates the global ceiling
+  // (then the existing conservative FDR gate drops transfers). Baseline (env unset)
+  // runs exactly one pass and is byte-identical.
+  const std::size_t target_decoys = impl.target_decoy_count();
+  for (double widen = 1.0;;)
   {
-    PipEcho::RunStatistics stats(acceptor_run.second, enable_im);
-    PipEcho::AcceptorMap& acceptors(acceptor_run.second.acceptors);
+    impl.set_widen_factor(widen);
 
-    for (auto& donor_run : runs)
+    // Clear matches from any previous (tighter) widening pass.
+    for (auto& kv : runs)
     {
-      if (donor_run.first != acceptor_run.first)
-      {
-        PipEcho::DonorMap& donors(donor_run.second.donors);
-        impl.link_donors_and_acceptors(stats, donors, acceptors);
-      }
-
-      logger.setProgress(++progress);
+      for (auto& a : kv.second.acceptors.storage) { a->target.reset(); a->decoy.reset(); }
     }
+
+    auto logger = ProgressLogger();
+    std::size_t progress {};
+    logger.setLogType(ProgressLogger::CMD);
+    logger.startProgress(0, std::pow(runs.size(), 2), "matching donors and acceptors");
+    for (auto& acceptor_run : runs)
+    {
+      PipEcho::RunStatistics stats(acceptor_run.second, enable_im);
+      PipEcho::AcceptorMap& acceptors(acceptor_run.second.acceptors);
+
+      for (auto& donor_run : runs)
+      {
+        if (donor_run.first != acceptor_run.first)
+        {
+          PipEcho::DonorMap& donors(donor_run.second.donors);
+          // [LOCAL-RT] build this pair's local RT calibration first.
+          impl.set_local_rt_model(donors, acceptor_run.second.donors);
+          impl.link_donors_and_acceptors(stats, donors, acceptors);
+        }
+        logger.setProgress(++progress);
+      }
+    }
+    logger.endProgress();
+
+    if (! impl.local_rt_enabled()) { break; }  // baseline: single pass
+
+    std::size_t decoys = 0;
+    for (auto& kv : runs)
+    {
+      for (auto& a : kv.second.acceptors.storage) { if (a->decoy.has_value()) { ++decoys; } }
+    }
+    if (decoys >= target_decoys)
+    {
+      OPENMS_LOG_INFO << "[LOCAL-RT] " << decoys << " decoy transfers (>= " << target_decoys
+                      << " needed) at widen x" << widen << "; FDR estimable." << std::endl;
+      break;
+    }
+    if (widen >= impl.widen_ceiling())
+    {
+      OPENMS_LOG_WARN << "[LOCAL-RT] widened the local RT window to the global ceiling but only "
+                      << decoys << " decoy transfer(s) (< " << target_decoys
+                      << " needed); the conservative FDR gate may drop transfers." << std::endl;
+      break;
+    }
+    widen *= 2.0;
+    OPENMS_LOG_INFO << "[LOCAL-RT] only " << decoys << " decoy transfer(s) (< " << target_decoys
+                    << " needed); widening local RT window x" << widen << " and re-matching." << std::endl;
   }
 
-  logger.endProgress();
   impl.generate_consensus_map(runs, consensus_map);
   postprocess_(feature_maps, consensus_map);
 }

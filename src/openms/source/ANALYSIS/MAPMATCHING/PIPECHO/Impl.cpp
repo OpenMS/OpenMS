@@ -16,9 +16,13 @@
 #include "Score.h"
 #include "Util.h"
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
 #include <memory>
 #include <ranges>
 #include <set>
+#include <unordered_map>
 
 namespace OpenMS::PipEcho
 {
@@ -74,6 +78,131 @@ void prepare_feature(Feature& feature)
 } // namespace
 
 /******************************************************************************/
+// [LOCAL-RT] Per-(donor_run, acceptor_run) local RT calibration built from
+// peptides identified (=donors) in BOTH runs. Models the residual local RT error
+// remaining AFTER the global b-spline alignment (the quantity the single global
+// window -- sized by the worst-case anchor residual -- fails to localise).
+// predict() re-centers on the locally predicted acceptor RT and sizes the
+// half-window from the local residual scatter; sparse queries use a tight fixed
+// fallback (never the global window). Enabled by the 'local_rt:enabled' parameter.
+// Built per pair in the single-threaded matching loop (see group()).
+// Inspired by FlashLfqEngine.PredictRetentionTime: gather up to
+// `n_anchors` shared anchors per side WITHIN `locality_s` of the donor RT,
+// re-center on their median RT shift, and size the half-window as c*stddev,
+// HARD-CAPPED at cap_s (FlashLFQ MaxMbrRtWindow = 1.0 min => +/-30 s). Sparse
+// (<2 local anchors) -> a tight fixed fallback window, NEVER the global window.
+// This is the key fix: PIP-ECHO's window was sized from the global worst-case
+// alignment residual (here +/-1206 s); FlashLFQ never searches wider than ~30 s.
+struct LocalRtModel
+{
+  std::vector<double> anchor_rt;   ///< donor-run RT of shared anchors (ascending)
+  std::vector<double> residual;    ///< acceptor_run_RT - donor_run_RT (parallel)
+  // Defaults are FlashLFQ-INSPIRED but GENEROUS, not the literal constants:
+  // FlashLFQ's +/-30 s cap assumes well-aligned bulk data + a calibrated RT
+  // score in a geomean. PIP-ECHO feeds RAW rt to an SVM on poorly-aligned
+  // single-cell data, where +/-30 s over-tightens (censors the RT dynamic range
+  // and starves decoys). So cap/locality are loosened; the window stays data-
+  // driven (c*sigma) and the cap is only a backstop. See adaptive widening below.
+  double locality_s = 120.0;       ///< anchors within +/- this of donor RT (FlashLFQ 0.5 min, loosened)
+  std::size_t n_anchors = 3;       ///< max anchors per side (FlashLFQ NumberOfAnchorPeptidesForMbr)
+  double c = 3.0;                  ///< half-window = c*stddev (FlashLFQ width 6*SD => 3*SD half)
+  double floor_s = 5.0;            ///< min half-window (guard degenerate near-zero scatter)
+  double cap_s = 100.0;            ///< generous half-window backstop (NOT FlashLFQ's 30 s)
+  double fallback_half_s = 15.0;   ///< half-window when <2 local anchors (FlashLFQ 0.25 min)
+  double widen = 1.0;              ///< adaptive-widening multiplier (decoy estimability)
+  double hard_ceiling = 1e9;       ///< absolute max half-window (= global rt window)
+
+  /// supported = had >=2 local anchors (sigma-sized window); else a tight fallback.
+  struct Pred { double center; double half_window; bool supported; };
+
+  /// Apply the adaptive-widening factor, bounded by the global ceiling.
+  double scale(double half) const { return std::min(half * widen, hard_ceiling); }
+
+  Pred predict(double r) const
+  {
+    const std::size_t n = anchor_rt.size();
+    if (n == 0) { return {r, scale(fallback_half_s), false}; }
+    const std::size_t idx = static_cast<std::size_t>(
+      std::lower_bound(anchor_rt.begin(), anchor_rt.end(), r) - anchor_rt.begin());
+
+    // Leave-one-out: skip the query donor's own anchor (a shared peptide at the
+    // query RT) so the prediction is not self-referential.
+    constexpr double self_eps = 1e-6;
+    std::vector<double> res;
+    res.reserve(2 * n_anchors);
+    // forward anchors (>= r), nearest first, within the locality window
+    for (std::size_t i = idx, k = 0; i < n && k < n_anchors; ++i)
+    {
+      const double d = std::fabs(anchor_rt[i] - r);
+      if (d > locality_s) { break; }
+      if (d <= self_eps) { continue; }
+      res.push_back(residual[i]); ++k;
+    }
+    // backward anchors (< r), nearest first, within the locality window
+    for (std::size_t i = idx, k = 0; i > 0 && k < n_anchors; )
+    {
+      --i;
+      const double d = std::fabs(r - anchor_rt[i]);
+      if (d > locality_s) { break; }
+      if (d <= self_eps) { continue; }
+      res.push_back(residual[i]); ++k;
+    }
+
+    if (res.empty()) { return {r, scale(fallback_half_s), false}; }
+    std::sort(res.begin(), res.end());
+    // Guard against absurd shifts from unreliable anchors: never center the search
+    // outside the donor's global RT window.
+    const double shift = std::clamp(res[res.size() / 2], -hard_ceiling, hard_ceiling);
+    if (res.size() < 2) { return {r + shift, scale(fallback_half_s), false}; }
+
+    double mean = 0.0;
+    for (double v : res) { mean += v; }
+    mean /= static_cast<double>(res.size());
+    double var = 0.0;
+    for (double v : res) { var += (v - mean) * (v - mean); }
+    var /= static_cast<double>(res.size() - 1);      // sample stddev (FlashLFQ)
+    double sd = std::sqrt(var);
+    if (! std::isfinite(sd)) { sd = 0.0; }            // NaN/inf guard -> floor window
+    const double half = std::clamp(c * sd, floor_s, cap_s);
+    return {r + shift, scale(half), true};
+  }
+};
+
+namespace
+{
+// Build a LocalRtModel from the two runs' donors (peptides identified in both),
+// keyed by sequence+charge; residual = acceptor-run RT - donor-run RT.
+LocalRtModel build_local_rt_model(const DonorMap& donor_donors,
+                                  const DonorMap& acceptor_donors)
+{
+  std::unordered_map<std::string, double> acc;  // key -> acceptor-run donor RT
+  acc.reserve(acceptor_donors.storage.size());
+  for (const auto& d : acceptor_donors.storage)
+  {
+    acc.emplace(feature_sequence_key(d->feature), d->feature.getRT());
+  }
+  std::vector<std::pair<double, double>> pairs;  // (donor_rt, residual)
+  for (const auto& d : donor_donors.storage)
+  {
+    auto it = acc.find(feature_sequence_key(d->feature));
+    if (it == acc.end()) { continue; }
+    const double drt = d->feature.getRT();
+    pairs.emplace_back(drt, it->second - drt);
+  }
+  std::sort(pairs.begin(), pairs.end());
+  LocalRtModel m;  // params filled by set_local_rt_model
+  m.anchor_rt.reserve(pairs.size());
+  m.residual.reserve(pairs.size());
+  for (const auto& p : pairs)
+  {
+    m.anchor_rt.push_back(p.first);
+    m.residual.push_back(p.second);
+  }
+  return m;
+}
+} // namespace
+
+/******************************************************************************/
 Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     mz_max_diff(params),
     mz_grid_center(0.5),
@@ -94,6 +223,42 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
                   << mz_max_diff.mz_diff(mz_range.second - mz_range.first)
                   << ", " << rt_sec_max_window << ", " << mbr_fdr << ")"
                   << std::endl;
+
+  // Local adaptive RT window (experimental; default off -> the global window).
+  use_local_rt_ = params.getValue("local_rt:enabled").toString() == "true";
+  if (use_local_rt_)
+  {
+    lrt_cap_ = params.getValue("local_rt:max_window");
+    lrt_floor_ = params.getValue("local_rt:min_window");
+    lrt_locality_ = params.getValue("local_rt:anchor_window");
+    lrt_n_anchors_ = static_cast<std::size_t>(static_cast<int>(params.getValue("local_rt:anchors")));
+    lrt_c_ = params.getValue("local_rt:sigma_scale");
+    lrt_fallback_half_ = params.getValue("local_rt:fallback_window");
+    OPENMS_LOG_INFO << "PIP-ECHO: local adaptive RT window enabled (max_window="
+                    << lrt_cap_ << " s)." << std::endl;
+  }
+}
+
+/******************************************************************************/
+void Impl::set_local_rt_model(const DonorMap& donor_donors,
+                              const DonorMap& acceptor_donors)
+{
+  if (! use_local_rt_) { return; }
+  // FlashLFQ-inspired but generous (single-cell has poorer alignment + raw-RT-to-SVM
+  // vs FlashLFQ's bulk + calibrated-RT-in-geomean): the window is data-driven c*sigma,
+  // the cap is a generous backstop, and adaptive widening (group()) handles decoy
+  // estimability. All values come from the 'local_rt:' parameters.
+  LocalRtModel m = build_local_rt_model(donor_donors, acceptor_donors);
+  m.locality_s = lrt_locality_;
+  m.n_anchors = lrt_n_anchors_;
+  m.c = lrt_c_;
+  m.floor_s = lrt_floor_;
+  m.cap_s = lrt_cap_;
+  m.fallback_half_s = lrt_fallback_half_;
+  m.widen = lrt_widen_;                                     // adaptive-widening multiplier
+  m.hard_ceiling = rt_sec_max_window;                      // never exceed the global window
+  if (m.floor_s > m.cap_s) { m.floor_s = m.cap_s; }         // guard std::clamp(lo>hi) UB
+  local_rt_ = std::make_shared<const LocalRtModel>(std::move(m));
 }
 
 /******************************************************************************/
@@ -179,17 +344,39 @@ Impl::match_t Impl::find_acceptor_for(const RunStatistics& stats,
   // FIXME: What does the paper say about finding acceptor peaks?
   // In FlashLFQ they do some weird envelope cutting and don't use
   // the actual found peak (FindIndividualAcceptorPeak).
-  const double rt = rt_override.value_or(donor.feature.getRT());
-  const AcceptorMap::grid_center_t center(rt, donor.feature.getMZ());
+  const double anchor_rt = rt_override.value_or(donor.feature.getRT());
+
+  // [LOCAL-RT] re-center the search on the locally predicted acceptor RT
+  // and gate to the local residual scatter. Unlike the global baseline, the window
+  // is ALWAYS bounded (<= cap_s; tight fallback when local anchors are sparse) --
+  // there is no fall-through to the +/-1206 s global window. The score's
+  // rt_diff_error is measured against the predicted center. Baseline path (env
+  // unset) is byte-identical: local_on stays false, no re-center, no gate.
+  double center_rt = anchor_rt;
+  double rt_gate = std::numeric_limits<double>::infinity();  // no extra gate (baseline)
+  bool local_on = false;
+  if (use_local_rt_ && local_rt_)
+  {
+    const LocalRtModel::Pred p = local_rt_->predict(anchor_rt);
+    center_rt = p.center;
+    rt_gate = p.half_window;
+    local_on = true;
+    if (p.supported) { ++lrt_supported_; } else { ++lrt_fallback_; }
+  }
+  const std::optional<double> eff_override =
+    local_on ? std::optional<double>(center_rt) : rt_override;
+
+  const AcceptorMap::grid_center_t center(center_rt, donor.feature.getMZ());
   const AcceptorMap::grid_index_t index
     = acceptors.grid.cellIndexAtClusterCenter(center);
 
   return acceptors.nearby<match_t>(
     index, window.grid_neighbors, match_t {},
     [&](match_t best_match, AcceptorMap::value_type acceptor) -> match_t {
-      if (acceptor->is_donor_compatible(donor, window, rt_override))
+      if (acceptor->is_donor_compatible(donor, window, eff_override)
+          && std::fabs(acceptor->feature.getRT() - center_rt) <= rt_gate)
       {
-        Score score(stats.score(donor.feature, acceptor->feature, rt_override));
+        Score score(stats.score(donor.feature, acceptor->feature, eff_override));
 
         if (! best_match.has_value()
             || best_match->first.mbr_score < score.mbr_score)
@@ -229,7 +416,17 @@ Impl::find_random_donor(const DonorMap& donors,
 
   const double mass_min_diff = 5.0 * Constants::PROTON_MASS_U;
   const double mass_max_diff = 11.0 * Constants::PROTON_MASS_U;
-  const double rt_min_diff = window.rt_tol * 2.0; // FIXME: Is this okay?
+  // [LOCAL-RT] with tight local windows, requiring the decoy anchor
+  // > 2*GLOBAL window away starves decoys; require only > ~2 local windows
+  // (>= 120 s) -- far enough to avoid the same elution event, near enough to
+  // keep decoys plentiful for FDR estimation.
+  double rt_min_diff = window.rt_tol * 2.0; // FIXME: Is this okay?
+  if (use_local_rt_ && local_rt_)
+  {
+    const LocalRtModel::Pred p = local_rt_->predict(start.feature.getRT());
+    const double lw = p.half_window;  // always bounded (tight fallback or sigma window)
+    rt_min_diff = std::max(2.0 * lw, 120.0);
+  }
 
   const double start_mass = mass(start);
   const double start_rt = start.feature.getRT();
@@ -289,6 +486,16 @@ Impl::find_random_donor(const DonorMap& donors,
 /******************************************************************************/
 void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
 {
+  // [LOCAL-RT] report how often the local window was used vs fell back.
+  if (use_local_rt_)
+  {
+    const std::size_t tot = lrt_supported_ + lrt_fallback_;
+    const double frac = tot ? (100.0 * lrt_fallback_ / tot) : 0.0;
+    OPENMS_LOG_INFO << "[LOCAL-RT] find_acceptor_for queries: supported="
+                    << lrt_supported_ << " fallback=" << lrt_fallback_ << " ("
+                    << frac << "% fallback)" << std::endl;
+  }
+
   using ident_val_t = std::set<FeatureRef, FeatureRefCmp>;
   using ident_map_t = std::map<std::string, ident_val_t>;
   struct transfer_info_t
