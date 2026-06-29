@@ -154,8 +154,8 @@ NO_DEPENDENCIES = "ON"
 [tool.cibuildwheel]
 # Build for Python 3.10-3.14 (usually overwritten by GitHub Actions)
 build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
-# Skip 32-bit, musllinux, and PyPy builds
-skip = "*-win32 *-musllinux_* pp*"
+# Skip 32-bit and musllinux builds
+skip = "*-win32 *-musllinux_*"
 
 # Test the wheel after building
 test-requires = ["pytest", "numpy", "pandas", "pyarrow!=24.0.0"]
