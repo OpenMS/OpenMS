@@ -62,6 +62,46 @@ def test_pressure_compensation_enum_values():
     assert {Pc.NONE, Pc.GLOBAL, Pc.PER_FRAME} == {Pc.NONE, Pc.GLOBAL, Pc.PER_FRAME}
 
 
+def test_centroid_algo_enum_values():
+    Ca = pyopenms.BrukerTimsFile.Config.CentroidAlgo
+    assert hasattr(Ca, "OFF")
+    assert hasattr(Ca, "GREEDY2D")
+    assert hasattr(Ca, "HILL_BASED")
+
+
+def test_config_centroiding_defaults():
+    cfg = pyopenms.BrukerTimsFile.Config()
+    Ca = pyopenms.BrukerTimsFile.Config.CentroidAlgo
+    assert cfg.ms1_centroid_algo == Ca.OFF
+    assert cfg.ms2_centroid_algo == Ca.OFF
+    assert cfg.ms2_centroid_mz_ppm == pytest.approx(20.0)
+    assert cfg.centroid_valley_factor == pytest.approx(1.3)
+    assert cfg.ms1_centroid_min_hill_length == 1
+    assert cfg.ms2_centroid_min_hill_length == 2
+    assert cfg.centroid_max_scan_gap == 0
+    assert cfg.expose_hill_bounds is False
+    assert cfg.isotopic_prefilter is False
+    assert cfg.isotopic_prefilter_tol_ppm == pytest.approx(50.0)
+
+
+def test_config_range_filter_defaults():
+    cfg = pyopenms.BrukerTimsFile.Config()
+    assert cfg.frame_id_min == 0
+    assert cfg.frame_id_max > 0  # UINT32_MAX
+    assert cfg.rt_min_sec == pytest.approx(0.0)
+    import math
+    assert math.isinf(cfg.rt_max_sec)
+
+
+def test_config_centroid_algo_assignment():
+    cfg = pyopenms.BrukerTimsFile.Config()
+    Ca = pyopenms.BrukerTimsFile.Config.CentroidAlgo
+    cfg.ms1_centroid_algo = Ca.HILL_BASED
+    cfg.ms2_centroid_algo = Ca.GREEDY2D
+    assert cfg.ms1_centroid_algo == Ca.HILL_BASED
+    assert cfg.ms2_centroid_algo == Ca.GREEDY2D
+
+
 def test_dia_streaming_metadata_defaults():
     meta = pyopenms.BrukerTimsFile.DIAStreamingMetadata()
     assert meta.nr_ms1_spectra == 0
