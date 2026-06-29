@@ -1,9 +1,6 @@
 name: "OpenMS Vcpkg CI"
 
 on:
-  pull_request:
-    branches:
-      - develop
   workflow_dispatch:
 
 jobs:
