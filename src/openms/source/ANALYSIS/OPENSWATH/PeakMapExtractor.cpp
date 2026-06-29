@@ -21,7 +21,7 @@ namespace OpenMS
                                          double mz_extraction_window,
                                          bool ppm,
                                          double im_extraction_window,
-                                         const String& filter)
+                                         const std::string& filter)
   {
     const Size input_size = input->getNrSpectra();
     output.clear();
@@ -135,7 +135,7 @@ namespace OpenMS
     endProgress();
   }
 
-  int PeakMapExtractor::getFilterNr_(const String& filter) const
+  int PeakMapExtractor::getFilterNr_(const std::string& filter) const
   {
     if (filter == "tophat")
     {

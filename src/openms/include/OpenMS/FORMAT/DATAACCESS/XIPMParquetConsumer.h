@@ -10,10 +10,10 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakMapExtractor.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <memory>
+#include <string>
 
 namespace OpenMS
 {
@@ -88,7 +88,7 @@ namespace OpenMS
       @param[in] filename Output parquet filename
       @param[in] transition_exp Transition metadata used to annotate rows
     */
-    XIPMParquetConsumer(const String& filename,
+    XIPMParquetConsumer(const std::string& filename,
                         const OpenSwath::LightTargetedExperiment& transition_exp);
 
     /// Destructor flushes pending rows and closes the parquet writer.
@@ -104,7 +104,7 @@ namespace OpenMS
     */
     void consumePeakMap(const PeakMapExtractor::ExtractedPeakMap& peak_map,
                         UInt64 run_id,
-                        const String& source_file,
+                        const std::string& source_file,
                         Int64 ms_level);
 
     /// Finalize and write the parquet file.

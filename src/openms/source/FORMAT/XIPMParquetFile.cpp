@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/XIPMParquetFile.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -27,9 +28,9 @@ namespace OpenMS
 {
   namespace
   {
-    std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
+    std::shared_ptr<arrow::Table> readParquetTable_(const std::string& filename)
     {
-      auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
+      auto infile_result = arrow::io::ReadableFile::Open(filename);
       if (!infile_result.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -63,7 +64,7 @@ namespace OpenMS
       return *combined;
     }
 
-    std::shared_ptr<arrow::Table> readParquetTable_(const std::vector<String>& filenames)
+    std::shared_ptr<arrow::Table> readParquetTable_(const std::vector<std::string>& filenames)
     {
       if (filenames.empty())
       {
@@ -98,9 +99,9 @@ namespace OpenMS
       return *combined;
     }
 
-    std::shared_ptr<arrow::Schema> readParquetSchema_(const String& filename)
+    std::shared_ptr<arrow::Schema> readParquetSchema_(const std::string& filename)
     {
-      auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
+      auto infile_result = arrow::io::ReadableFile::Open(filename);
       if (!infile_result.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -126,7 +127,7 @@ namespace OpenMS
       return schema;
     }
 
-    std::shared_ptr<arrow::Schema> readParquetSchemaAllFiles_(const std::vector<String>& filenames)
+    std::shared_ptr<arrow::Schema> readParquetSchemaAllFiles_(const std::vector<std::string>& filenames)
     {
       if (filenames.empty())
       {
@@ -201,7 +202,7 @@ namespace OpenMS
       return true;
     }
 
-    bool getOptionalString_(const std::shared_ptr<arrow::Array>& array, int64_t row, String& value)
+    bool getOptionalString_(const std::shared_ptr<arrow::Array>& array, int64_t row, std::string& value)
     {
       if (!array || array->IsNull(row))
       {
@@ -212,14 +213,14 @@ namespace OpenMS
       return true;
     }
 
-    String getBinaryView_(const std::shared_ptr<arrow::Array>& array, int64_t row)
+    std::string getBinaryView_(const std::shared_ptr<arrow::Array>& array, int64_t row)
     {
       auto typed = std::static_pointer_cast<arrow::BinaryArray>(array);
       const auto view = typed->GetView(row);
-      return String(view.data(), static_cast<Int>(view.size()));
+      return std::string(view.data(), static_cast<Size>(view.size()));
     }
 
-    void decodeBinary_(const String& data, Int64 compression, std::vector<double>& output)
+    void decodeBinary_(const std::string& data, Int64 compression, std::vector<double>& output)
     {
       output.clear();
       if (data.empty())
@@ -227,7 +228,7 @@ namespace OpenMS
         return;
       }
 
-      auto decodeNumpress = [&](MSNumpressCoder::NumpressCompression type, const String& input)
+      auto decodeNumpress = [&](MSNumpressCoder::NumpressCompression type, const std::string& input)
       {
         MSNumpressCoder::NumpressConfig config;
         config.np_compression = type;
@@ -241,25 +242,25 @@ namespace OpenMS
           if (data.size() % sizeof(double) != 0)
           {
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Invalid binary data size (not divisible by 8)", String(data.size()));
+                                          "Invalid binary data size (not divisible by 8)", StringUtils::toStr(data.size()));
           }
           const size_t count = data.size() / sizeof(double);
           output.resize(count);
-          std::memcpy(output.data(), data.c_str(), count * sizeof(double));
+          std::memcpy(output.data(), data.data(), count * sizeof(double));
           break;
         }
         case 1:
         {
-          String decoded;
+          std::string decoded;
           ZlibCompression::uncompressString(data, decoded);
           if (decoded.size() % sizeof(double) != 0)
           {
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Invalid decompressed binary data size", String(decoded.size()));
+                                          "Invalid decompressed binary data size", StringUtils::toStr(decoded.size()));
           }
           const size_t count = decoded.size() / sizeof(double);
           output.resize(count);
-          std::memcpy(output.data(), decoded.c_str(), count * sizeof(double));
+          std::memcpy(output.data(), decoded.data(), count * sizeof(double));
           break;
         }
         case 2:
@@ -273,26 +274,26 @@ namespace OpenMS
           break;
         case 5:
         {
-          String decoded;
+          std::string decoded;
           ZlibCompression::uncompressString(data, decoded);
           decodeNumpress(MSNumpressCoder::LINEAR, decoded);
           break;
         }
         case 6:
         {
-          String decoded;
+          std::string decoded;
           ZlibCompression::uncompressString(data, decoded);
           decodeNumpress(MSNumpressCoder::SLOF, decoded);
           break;
         }
         default:
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Unknown compression code", String(compression));
+                                        "Unknown compression code", StringUtils::toStr(compression));
       }
     }
   } // namespace
 
-  XIPMParquetFile::XIPMParquetFile(const String& filename) :
+  XIPMParquetFile::XIPMParquetFile(const std::string& filename) :
     filename_(filename),
     filenames_({filename})
   {
@@ -302,8 +303,8 @@ namespace OpenMS
     }
   }
 
-  XIPMParquetFile::XIPMParquetFile(const std::vector<String>& filenames) :
-    filename_(filenames.empty() ? "" : filenames.front()),
+  XIPMParquetFile::XIPMParquetFile(const std::vector<std::string>& filenames) :
+    filename_(filenames.empty() ? std::string() : filenames.front()),
     filenames_(filenames)
   {
     if (filenames.empty())
@@ -319,12 +320,12 @@ namespace OpenMS
     }
   }
 
-  const String& XIPMParquetFile::getFilename() const
+  const std::string& XIPMParquetFile::getFilename() const
   {
     return filename_;
   }
 
-  const std::vector<String>& XIPMParquetFile::getFilenames() const
+  const std::vector<std::string>& XIPMParquetFile::getFilenames() const
   {
     return filenames_;
   }
@@ -337,12 +338,12 @@ namespace OpenMS
   void XIPMParquetFile::getPeakMaps(std::vector<XIPMPeakMap>& output,
                                     Int64 precursor_id,
                                     Int64 transition_id,
-                                    const String& modified_sequence,
+                                    const std::string& modified_sequence,
                                     Int64 precursor_charge,
                                     Int64 product_charge,
                                     Int64 ms_level,
                                     Int64 run_id,
-                                    const String& peakmap_type) const
+                                    const std::string& peakmap_type) const
   {
     output.clear();
     auto table = readParquetTable_(filenames_);
@@ -436,7 +437,7 @@ namespace OpenMS
           peak_map.mz.size() != peak_map.intensity.size())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Peak-map array size mismatch", String(row));
+                                      "Peak-map array size mismatch", StringUtils::toStr(row));
       }
 
       output.push_back(std::move(peak_map));
@@ -469,7 +470,7 @@ namespace OpenMS
     }
   }
 
-  void XIPMParquetFile::getColumns(std::vector<String>& output) const
+  void XIPMParquetFile::getColumns(std::vector<std::string>& output) const
   {
     output.clear();
     std::shared_ptr<arrow::Schema> schema = readParquetSchemaAllFiles_(filenames_);

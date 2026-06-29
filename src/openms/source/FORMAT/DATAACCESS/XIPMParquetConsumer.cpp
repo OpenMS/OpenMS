@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
@@ -38,7 +39,7 @@ namespace OpenMS
       if (!status.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      String("Failed to append value for ") + column, status.ToString());
+                                      std::string("Failed to append value for ") + column, status.ToString());
       }
     }
 
@@ -47,7 +48,7 @@ namespace OpenMS
       if (!status.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      String("Failed to reserve capacity for ") + column, status.ToString());
+                                      std::string("Failed to reserve capacity for ") + column, status.ToString());
       }
     }
 
@@ -59,7 +60,7 @@ namespace OpenMS
       if (!status.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      String("Failed to finish array for ") + name, status.ToString());
+                                      std::string("Failed to finish array for ") + name, status.ToString());
       }
       return array;
     }
@@ -88,7 +89,7 @@ namespace OpenMS
       }
     }
 
-    void appendOptionalString_(arrow::StringBuilder& builder, const String& value, const char* column)
+    void appendOptionalString_(arrow::StringBuilder& builder, const std::string& value, const char* column)
     {
       if (value.empty())
       {
@@ -96,26 +97,26 @@ namespace OpenMS
       }
       else
       {
-        appendOrThrow_(builder.Append(std::string(value)), column);
+        appendOrThrow_(builder.Append(value), column);
       }
     }
 
-    void appendBinary_(arrow::BinaryBuilder& builder, const String& value, const char* column)
+    void appendBinary_(arrow::BinaryBuilder& builder, const std::string& value, const char* column)
     {
       if (value.size() > static_cast<Size>(std::numeric_limits<int32_t>::max()))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      String("Failed to append value for ") + column,
+                                      std::string("Failed to append value for ") + column,
                                       "Single binary payload exceeds Arrow binary cell limit");
       }
-      appendOrThrow_(builder.Append(reinterpret_cast<const uint8_t*>(value.c_str()),
+      appendOrThrow_(builder.Append(reinterpret_cast<const uint8_t*>(value.data()),
                                     static_cast<int32_t>(value.size())), column);
     }
 
     struct CompoundInfo
     {
       int64_t precursor_id = 0;
-      String modified_sequence;
+      std::string modified_sequence;
       int64_t precursor_charge = 0;
       int64_t precursor_decoy = 0;
     };
@@ -124,22 +125,22 @@ namespace OpenMS
     {
       int64_t transition_id = 0;
       int64_t precursor_id = 0;
-      String modified_sequence;
+      std::string modified_sequence;
       int64_t precursor_charge = 0;
       int64_t product_charge = 0;
       int64_t detecting_transition = 0;
       int64_t precursor_decoy = 0;
       int64_t product_decoy = 0;
       int64_t transition_ordinal = 0;
-      String transition_type;
-      String annotation;
+      std::string transition_type;
+      std::string annotation;
     };
 
-    int64_t parseOrAssignId_(const String& text, int64_t& next_id, std::unordered_set<int64_t>& used_ids)
+    int64_t parseOrAssignId_(const std::string& text, int64_t& next_id, std::unordered_set<int64_t>& used_ids)
     {
       try
       {
-        const int64_t value = text.toInt64();
+        const int64_t value = StringUtils::toInt64(text);
         if (value >= 0 && used_ids.insert(value).second)
         {
           if (value >= next_id)
@@ -161,25 +162,25 @@ namespace OpenMS
       return next_id++;
     }
 
-    String buildAnnotation_(const String& transition_type, int64_t ordinal, int64_t charge)
+    std::string buildAnnotation_(const std::string& transition_type, int64_t ordinal, int64_t charge)
     {
       if (transition_type.empty() || ordinal < 0)
       {
         return "";
       }
-      String annotation = transition_type + String(ordinal);
+      std::string annotation = transition_type + StringUtils::toStr(ordinal);
       if (charge > 0)
       {
-        annotation += "^" + String(charge);
+        annotation += "^" + StringUtils::toStr(charge);
       }
       return annotation;
     }
 
-    String buildPrecursorAnnotation_(const String& native_id)
+    std::string buildPrecursorAnnotation_(const std::string& native_id)
     {
-      const String tag = "_Precursor_i";
+      const std::string tag = "_Precursor_i";
       const Size pos = native_id.rfind(tag);
-      if (pos != String::npos)
+      if (pos != std::string::npos)
       {
         return native_id.substr(pos + 1);
       }
@@ -190,7 +191,7 @@ namespace OpenMS
   class XIPMParquetConsumerImpl
   {
   public:
-    XIPMParquetConsumerImpl(const String& filename,
+    XIPMParquetConsumerImpl(const std::string& filename,
                            const OpenSwath::LightTargetedExperiment& transition_exp) :
       filename_(filename)
     {
@@ -217,7 +218,7 @@ namespace OpenMS
 
     void consumePeakMap(const PeakMapExtractor::ExtractedPeakMap& peak_map,
                         UInt64 run_id,
-                        const String& source_file,
+                        const std::string& source_file,
                         Int64 ms_level)
     {
       if (peak_map.mz.size() != peak_map.rt.size() ||
@@ -244,7 +245,7 @@ namespace OpenMS
                                          "XIPMParquetConsumer cannot accept writes after finalize().");
       }
 
-      const bool is_precursor = peak_map.native_id.hasSubstring("_Precursor_i");
+      const bool is_precursor = peak_map.native_id.find("_Precursor_i") != std::string::npos;
       appendOrThrow_(run_id_builder_.Append(static_cast<int64_t>(run_id)), "RUN_ID");
       appendOptionalString_(source_file_builder_, source_file, "SOURCE_FILE");
       appendOrThrow_(ms_level_builder_.Append(ms_level), "MS_LEVEL");
@@ -252,12 +253,12 @@ namespace OpenMS
 
       if (is_precursor)
       {
-        const String group_id = OpenSwathHelper::computeTransitionGroupId(peak_map.native_id);
+        const std::string group_id = OpenSwathHelper::computeTransitionGroupId(peak_map.native_id);
         auto comp_it = compound_info_.find(group_id);
         if (comp_it == compound_info_.end())
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        String("Peak map native ID '") + peak_map.native_id +
+                                        std::string("Peak map native ID '") + peak_map.native_id +
                                         "' looks like a precursor but no matching compound metadata entry was found.", "");
         }
 
@@ -280,7 +281,7 @@ namespace OpenMS
         if (tr_it == transition_info_.end())
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        String("Peak map native ID '") + peak_map.native_id +
+                                        std::string("Peak map native ID '") + peak_map.native_id +
                                         "' does not have a matching transition metadata entry.", "");
         }
 
@@ -402,10 +403,10 @@ namespace OpenMS
   private:
     struct EncodedPeakMap
     {
-      String mz_encoded;
-      String rt_encoded;
-      String mobility_encoded;
-      String intensity_encoded;
+      std::string mz_encoded;
+      std::string rt_encoded;
+      std::string mobility_encoded;
+      std::string intensity_encoded;
       int64_t mz_compression = 0;
       int64_t rt_compression = 0;
       int64_t mobility_compression = 0;
@@ -424,8 +425,8 @@ namespace OpenMS
       std::unordered_set<int64_t> used_precursor_ids;
       std::unordered_set<int64_t> used_transition_ids;
 
-      std::unordered_map<String, bool> precursor_has_target_transition;
-      std::unordered_map<String, bool> precursor_has_decoy_transition;
+      std::unordered_map<std::string, bool> precursor_has_target_transition;
+      std::unordered_map<std::string, bool> precursor_has_decoy_transition;
       precursor_has_target_transition.reserve(transition_exp.getTransitions().size());
       precursor_has_decoy_transition.reserve(transition_exp.getTransitions().size());
       for (const auto& transition : transition_exp.getTransitions())
@@ -443,19 +444,19 @@ namespace OpenMS
       // IPF libraries can contain target detecting transitions and decoy
       // identifying transitions for the same precursor. Treat the precursor as
       // decoy only if it has no target transitions at all.
-      const auto resolve_precursor_decoy = [&](const String& peptide_ref) -> int64_t
+      const auto resolve_precursor_decoy = [&](const std::string& peptide_ref) -> int64_t
       {
         const bool has_target = precursor_has_target_transition.find(peptide_ref) != precursor_has_target_transition.end();
         const bool has_decoy = precursor_has_decoy_transition.find(peptide_ref) != precursor_has_decoy_transition.end();
         return (!has_target && has_decoy) ? 1 : 0;
       };
 
-      std::unordered_map<String, int64_t> precursor_ids;
+      std::unordered_map<std::string, int64_t> precursor_ids;
       precursor_ids.reserve(transition_exp.getCompounds().size());
 
       for (const auto& compound : transition_exp.getCompounds())
       {
-        const String compound_id = compound.id;
+        const std::string compound_id = compound.id;
         const int64_t precursor_id = parseOrAssignId_(compound_id, next_precursor_id, used_precursor_ids);
         precursor_ids[compound_id] = precursor_id;
 
@@ -469,8 +470,8 @@ namespace OpenMS
 
       for (const auto& transition : transition_exp.getTransitions())
       {
-        const String transition_name = transition.transition_name;
-        const String peptide_ref = transition.peptide_ref;
+        const std::string transition_name = transition.transition_name;
+        const std::string peptide_ref = transition.peptide_ref;
 
         int64_t transition_id = 0;
         auto id_it = transition_ids_.find(transition_name);
@@ -626,7 +627,7 @@ namespace OpenMS
       pending_binary_bytes_ = 0;
     }
 
-    static String encodeLinear_(const std::vector<double>& input)
+    static std::string encodeLinear_(const std::vector<double>& input)
     {
       if (input.empty())
       {
@@ -638,14 +639,14 @@ namespace OpenMS
       npcfg.numpressErrorTolerance = -1.0;
       npcfg.setCompression("linear");
 
-      String uncompressed;
+      std::string uncompressed;
       MSNumpressCoder().encodeNPRaw(input, uncompressed, npcfg);
-      String encoded;
+      std::string encoded;
       ZlibCompression::compressString(uncompressed, encoded);
       return encoded;
     }
 
-    static String encodeSlof_(const std::vector<double>& input)
+    static std::string encodeSlof_(const std::vector<double>& input)
     {
       if (input.empty())
       {
@@ -657,9 +658,9 @@ namespace OpenMS
       npcfg.numpressErrorTolerance = -1.0;
       npcfg.setCompression("slof");
 
-      String uncompressed;
+      std::string uncompressed;
       MSNumpressCoder().encodeNPRaw(input, uncompressed, npcfg);
-      String encoded;
+      std::string encoded;
       ZlibCompression::compressString(uncompressed, encoded);
       return encoded;
     }
@@ -696,7 +697,7 @@ namespace OpenMS
         encoded.mobility_encoded.size() + encoded.intensity_encoded.size());
     }
 
-    String filename_;
+    std::string filename_;
     bool wrote_{false};
 
     arrow::Int64Builder run_id_builder_;
@@ -734,12 +735,12 @@ namespace OpenMS
     int64_t pending_rows_{0};
     int64_t pending_binary_bytes_{0};
 
-    std::unordered_map<String, CompoundInfo> compound_info_;
-    std::unordered_map<String, TransitionInfo> transition_info_;
-    std::unordered_map<String, int64_t> transition_ids_;
+    std::unordered_map<std::string, CompoundInfo> compound_info_;
+    std::unordered_map<std::string, TransitionInfo> transition_info_;
+    std::unordered_map<std::string, int64_t> transition_ids_;
   };
 
-  XIPMParquetConsumer::XIPMParquetConsumer(const String& filename,
+  XIPMParquetConsumer::XIPMParquetConsumer(const std::string& filename,
                                            const OpenSwath::LightTargetedExperiment& transition_exp)
   {
     impl_ = std::make_unique<XIPMParquetConsumerImpl>(filename, transition_exp);
@@ -749,7 +750,7 @@ namespace OpenMS
 
   void XIPMParquetConsumer::consumePeakMap(const PeakMapExtractor::ExtractedPeakMap& peak_map,
                                            UInt64 run_id,
-                                           const String& source_file,
+                                           const std::string& source_file,
                                            Int64 ms_level)
   {
     impl_->consumePeakMap(peak_map, run_id, source_file, ms_level);

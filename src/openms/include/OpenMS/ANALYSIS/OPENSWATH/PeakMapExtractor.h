@@ -10,10 +10,10 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <limits>
+#include <string>
 #include <vector>
 
 namespace OpenMS
@@ -22,8 +22,9 @@ namespace OpenMS
     @brief Extract raw mz/RT/IM peak clouds for targeted OpenSWATH coordinates.
 
     The extractor follows the same targeting contract as
-    @ref ChromatogramExtractorAlgorithm: it consumes sorted extraction
-    coordinates and applies RT, m/z, and optionally ion mobility windows.
+    @ref ChromatogramExtractorAlgorithm "ChromatogramExtractorAlgorithm". It
+    consumes sorted extraction coordinates and applies RT, m/z, and optionally
+    ion mobility windows.
     Unlike chromatogram extraction, it retains every matching raw point instead
     of integrating a scalar intensity per spectrum.
 
@@ -43,7 +44,7 @@ namespace OpenMS
     */
     struct OPENMS_DLLAPI ExtractedPeakMap
     {
-      String native_id;
+      std::string native_id;
       double target_mz{0.0};
       double target_rt{std::numeric_limits<double>::quiet_NaN()};
       double target_ion_mobility{-1.0};
@@ -78,9 +79,9 @@ namespace OpenMS
                          double mz_extraction_window,
                          bool ppm,
                          double im_extraction_window,
-                         const String& filter = String("tophat"));
+                         const std::string& filter = "tophat");
 
   private:
-    int getFilterNr_(const String& filter) const;
+    int getFilterNr_(const std::string& filter) const;
   };
 } // namespace OpenMS

@@ -76,11 +76,11 @@ namespace
     return peak_map;
   }
 
-  String writeTestFile_(const UInt64 run_id, const String& source_file)
+  std::string writeTestFile_(const UInt64 run_id, const std::string& source_file)
   {
-    String tmp;
+    std::string tmp;
     NEW_TMP_FILE(tmp);
-    const String out = tmp + ".xipm";
+    const std::string out = tmp + ".xipm";
 
     const auto light_exp = makeExperiment_();
     XIPMParquetConsumer consumer(out, light_exp);
@@ -95,7 +95,7 @@ START_TEST(XIPMParquetFile, "$Id$")
 
 START_SECTION(void load(std::vector<XIPMPeakMap>& output) const)
 {
-  const String file = writeTestFile_(7, "run1.mzML");
+  const std::string file = writeTestFile_(7, "run1.mzML");
   XIPMParquetFile xipm(file);
 
   std::vector<XIPMParquetFile::XIPMPeakMap> peak_maps;
@@ -111,7 +111,7 @@ END_SECTION
 
 START_SECTION(void getPeakMaps(...filters...) const)
 {
-  const String file = writeTestFile_(7, "run1.mzML");
+  const std::string file = writeTestFile_(7, "run1.mzML");
   XIPMParquetFile xipm(file);
 
   std::vector<XIPMParquetFile::XIPMPeakMap> precursor_peak_maps;
@@ -130,8 +130,8 @@ END_SECTION
 
 START_SECTION(void getPeakMaps_multi_file)
 {
-  const String file = writeTestFile_(7, "run1.mzML");
-  std::vector<String> files = {file, file};
+  const std::string file = writeTestFile_(7, "run1.mzML");
+  std::vector<std::string> files = {file, file};
   XIPMParquetFile xipm(files);
 
   std::vector<XIPMParquetFile::XIPMPeakMap> peak_maps;
@@ -142,7 +142,7 @@ END_SECTION
 
 START_SECTION(void getRuns(std::vector<XIPMRunInfo>& output) const)
 {
-  const String file = writeTestFile_(7, "run1.mzML");
+  const std::string file = writeTestFile_(7, "run1.mzML");
   XIPMParquetFile xipm(file);
 
   std::vector<XIPMParquetFile::XIPMRunInfo> runs;
@@ -152,12 +152,12 @@ START_SECTION(void getRuns(std::vector<XIPMRunInfo>& output) const)
 }
 END_SECTION
 
-START_SECTION(void getColumns(std::vector<String>& output) const)
+START_SECTION(void getColumns(std::vector<std::string>& output) const)
 {
-  const String file = writeTestFile_(7, "run1.mzML");
+  const std::string file = writeTestFile_(7, "run1.mzML");
   XIPMParquetFile xipm(file);
 
-  std::vector<String> columns;
+  std::vector<std::string> columns;
   xipm.getColumns(columns);
   TEST_EQUAL(columns.empty(), false)
 

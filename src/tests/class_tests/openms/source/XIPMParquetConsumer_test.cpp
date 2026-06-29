@@ -80,7 +80,7 @@ namespace
     return peak_map;
   }
 
-  PeakMapExtractor::ExtractedPeakMap makeTransitionPeakMap_(const String& native_id,
+  PeakMapExtractor::ExtractedPeakMap makeTransitionPeakMap_(const std::string& native_id,
                                                             const double target_mz,
                                                             const std::vector<double>& mz_values)
   {
@@ -121,9 +121,9 @@ START_SECTION(XIPMParquetConsumer_basic_roundtrip)
 {
   const auto light_exp = makeExperiment_();
 
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
-  const String out = tmp + ".xipm";
+  const std::string out = tmp + ".xipm";
   {
     XIPMParquetConsumer consumer(out, light_exp);
     consumer.consumePeakMap(makeTransitionPeakMap_(), 7, "run1.mzML", 2);
@@ -148,9 +148,9 @@ START_SECTION(XIPMParquetConsumer_empty_file)
 {
   const auto light_exp = makeExperiment_();
 
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
-  const String out = tmp + ".xipm";
+  const std::string out = tmp + ".xipm";
   {
     XIPMParquetConsumer consumer(out, light_exp);
   }
@@ -163,9 +163,9 @@ START_SECTION(XIPMParquetConsumer_mixed_target_and_decoy_identifying_transitions
 {
   const auto light_exp = makeMixedIPFExperiment_();
 
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
-  const String out = tmp + ".xipm";
+  const std::string out = tmp + ".xipm";
   {
     XIPMParquetConsumer consumer(out, light_exp);
     consumer.consumePeakMap(makeTransitionPeakMap_("tr1", 500.2, {500.19, 500.20}), 7, "run1.mzML", 2);

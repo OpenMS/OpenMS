@@ -16,7 +16,7 @@ using namespace std;
 
 START_TEST(PeakMapExtractor, "$Id$")
 
-START_SECTION(void extractPeakMaps(const OpenSwath::SpectrumAccessPtr&, std::vector<ExtractedPeakMap>&, const std::vector<ExtractionCoordinates>&, double, bool, double, const String&))
+START_SECTION(void extractPeakMaps(const OpenSwath::SpectrumAccessPtr&, std::vector<ExtractedPeakMap>&, const std::vector<ExtractionCoordinates>&, double, bool, double, const std::string&))
 {
   typedef OpenMS::DataArrays::FloatDataArray FloatDataArray;
 
