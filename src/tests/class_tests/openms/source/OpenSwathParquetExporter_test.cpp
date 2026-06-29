@@ -42,13 +42,13 @@ START_SECTION((static void writeFeatureScores(const std::string& filename, const
   table.rows = {r, r2};
 
   std::string fn;
-  NEW_TMP_FILE(fn)
-  fn += ".parquet";
+  NEW_TMP_FILE_EXT(fn, ".parquet")
   OpenSwathParquetExporter::writeFeatureScores(fn, table);
 
   // read the parquet back and check the round-tripped key columns
   auto tbl = ParquetFile::readTable(fn);
   TEST_NOT_EQUAL(tbl, nullptr)
+  ABORT_IF(tbl == nullptr)
   TEST_EQUAL(tbl->num_rows(), 2)
 
   auto fid = ParquetFile::getColumn(tbl, "FEATURE_ID");
@@ -59,6 +59,13 @@ START_SECTION((static void writeFeatureScores(const std::string& filename, const
   TEST_EQUAL(ParquetFile::getString(ParquetFile::getColumn(tbl, "MODIFIED_SEQUENCE"), 1), "ACDEFGHIK")
   TEST_REAL_SIMILAR(ParquetFile::getDouble(ParquetFile::getColumn(tbl, "PRECURSOR_MZ"), 0, -1, false), 450.7)
   TEST_REAL_SIMILAR(ParquetFile::getDouble(ParquetFile::getColumn(tbl, "EXP_RT"), 0, -1, false), 120.5)
+
+  // an empty table is allowed (schema-only output) and writes a 0-row file
+  OpenSwathFeatureScoreTable empty;
+  std::string fn2;
+  NEW_TMP_FILE_EXT(fn2, ".parquet")
+  OpenSwathParquetExporter::writeFeatureScores(fn2, empty);
+  TEST_EQUAL(ParquetFile::rowCount(fn2), 0)
 }
 END_SECTION
 
@@ -77,12 +84,12 @@ START_SECTION((static void writeTransitionScores(const std::string& filename, co
   table.rows = {r, r2};
 
   std::string fn;
-  NEW_TMP_FILE(fn)
-  fn += ".parquet";
+  NEW_TMP_FILE_EXT(fn, ".parquet")
   OpenSwathParquetExporter::writeTransitionScores(fn, table);
 
   auto tbl = ParquetFile::readTable(fn);
   TEST_NOT_EQUAL(tbl, nullptr)
+  ABORT_IF(tbl == nullptr)
   TEST_EQUAL(tbl->num_rows(), 2)
 
   auto tid = ParquetFile::getColumn(tbl, "TRANSITION_ID");
@@ -98,8 +105,7 @@ START_SECTION((static void writeTransitionScores(const std::string& filename, co
   // an empty table is allowed (schema-only output) and writes a 0-row file
   OpenSwathTransitionScoreTable empty;
   std::string fn2;
-  NEW_TMP_FILE(fn2)
-  fn2 += ".parquet";
+  NEW_TMP_FILE_EXT(fn2, ".parquet")
   OpenSwathParquetExporter::writeTransitionScores(fn2, empty);
   TEST_EQUAL(ParquetFile::rowCount(fn2), 0)
 }
