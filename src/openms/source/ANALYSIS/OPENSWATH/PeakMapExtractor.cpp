@@ -45,11 +45,7 @@ namespace OpenMS
       return;
     }
 
-    const int used_filter = getFilterNr_(filter);
-    if (used_filter != 1)
-    {
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-    }
+    getFilterNr_(filter);
 
     startProgress(0, input_size, "Extracting targeted peak maps");
     for (Size scan_idx = 0; scan_idx < input_size; ++scan_idx)
@@ -112,13 +108,13 @@ namespace OpenMS
 
         auto mz_it = std::lower_bound(mz_data.begin(), mz_data.end(), left);
         Size idx = static_cast<Size>(std::distance(mz_data.begin(), mz_it));
-        while (mz_it != mz_data.end() && *mz_it < right)
+        while (mz_it != mz_data.end() && *mz_it <= right)
         {
           const double point_mz = *mz_it;
-          if (point_mz > left && point_mz < right)
+          if (point_mz >= left && point_mz <= right)
           {
             const double point_im = im_data[idx];
-            if (!use_im_filter || (point_im > left_im && point_im < right_im))
+            if (!use_im_filter || (point_im >= left_im && point_im <= right_im))
             {
               ExtractedPeakMap& peak_map = output[k];
               peak_map.mz.push_back(point_mz);
@@ -141,11 +137,7 @@ namespace OpenMS
     {
       return 1;
     }
-    if (filter == "bartlett")
-    {
-      return 2;
-    }
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     "Filter either needs to be tophat or bartlett");
+                                     "Filter needs to be tophat");
   }
 } // namespace OpenMS

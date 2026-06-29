@@ -653,7 +653,15 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
-  /// @brief Schema for extracted ion peak-map (XIPM) data table
+  /**
+    @brief Schema for extracted ion peak-map (XIPM) data table.
+
+    Defines the Arrow/Parquet column contract for targeted peak-map
+    extraction, including run and transition metadata, target coordinates,
+    encoded peak payloads, and per-payload compression codes.
+
+    @ingroup FileIO
+  */
   struct OPENMS_DLLAPI XIPMSchema
   {
     static constexpr const char* RUN_ID = "RUN_ID";

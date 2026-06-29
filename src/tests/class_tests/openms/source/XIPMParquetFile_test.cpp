@@ -89,6 +89,18 @@ namespace
     consumer.finalize();
     return out;
   }
+
+  std::string writeEmptyTestFile_()
+  {
+    std::string tmp;
+    NEW_TMP_FILE(tmp);
+    const std::string out = tmp + ".xipm";
+
+    const auto light_exp = makeExperiment_();
+    XIPMParquetConsumer consumer(out, light_exp);
+    consumer.finalize();
+    return out;
+  }
 }
 
 START_TEST(XIPMParquetFile, "$Id$")
@@ -149,6 +161,28 @@ START_SECTION(void getRuns(std::vector<XIPMRunInfo>& output) const)
   xipm.getRuns(runs);
   TEST_EQUAL(runs.size(), 1)
   TEST_EQUAL(runs[0].run_id, 7)
+}
+END_SECTION
+
+START_SECTION(void getPeakMaps_empty_file)
+{
+  const std::string file = writeEmptyTestFile_();
+  XIPMParquetFile xipm(file);
+
+  std::vector<XIPMParquetFile::XIPMPeakMap> peak_maps;
+  xipm.getPeakMaps(peak_maps);
+  TEST_EQUAL(peak_maps.size(), 0)
+}
+END_SECTION
+
+START_SECTION(void getRuns_empty_file)
+{
+  const std::string file = writeEmptyTestFile_();
+  XIPMParquetFile xipm(file);
+
+  std::vector<XIPMParquetFile::XIPMRunInfo> runs;
+  xipm.getRuns(runs);
+  TEST_EQUAL(runs.size(), 0)
 }
 END_SECTION
 

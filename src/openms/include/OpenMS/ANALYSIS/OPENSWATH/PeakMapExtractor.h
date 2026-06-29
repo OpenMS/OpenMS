@@ -72,6 +72,10 @@ namespace OpenMS
       @param[in] filter Extraction profile in m/z space. Only @c "tophat" is
         supported because the output preserves raw points instead of applying
         weighted integration.
+
+      @throws Exception::IllegalArgument if @p filter is not @c "tophat", if a
+        spectrum is missing ion mobility data, or if the m/z, intensity, and
+        ion mobility arrays on a spectrum have inconsistent sizes
     */
     void extractPeakMaps(const OpenSwath::SpectrumAccessPtr& input,
                          std::vector<ExtractedPeakMap>& output,

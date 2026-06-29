@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -29,6 +30,17 @@ namespace OpenMS
 {
   namespace
   {
+    void validateXIPMTable_(const std::shared_ptr<arrow::Table>& table)
+    {
+      auto validation = ArrowSchemaValidation::validate(
+        table, XIPMSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+      if (!validation.valid)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Invalid XIPM parquet schema", validation.toString());
+      }
+    }
+
     std::shared_ptr<arrow::Table> readParquetTable_(const std::string& filename)
     {
       auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
@@ -71,8 +83,9 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to combine parquet chunks", filename);
       }
-
-      return *combined;
+      std::shared_ptr<arrow::Table> table_combined = *combined;
+      validateXIPMTable_(table_combined);
+      return table_combined;
     }
 
     std::shared_ptr<arrow::Table> readParquetTable_(const std::vector<std::string>& filenames)
@@ -107,7 +120,9 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to combine parquet chunks", combined.status().ToString());
       }
-      return *combined;
+      std::shared_ptr<arrow::Table> table_combined = *combined;
+      validateXIPMTable_(table_combined);
+      return table_combined;
     }
 
     std::shared_ptr<arrow::Schema> readParquetSchema_(const std::string& filename)
@@ -358,6 +373,11 @@ namespace OpenMS
   {
     output.clear();
     auto table = readParquetTable_(filenames_);
+    const int64_t rows = table->num_rows();
+    if (rows == 0)
+    {
+      return;
+    }
 
     auto run_id_col = getColumn_(table, "RUN_ID");
     auto source_file_col = getColumn_(table, "SOURCE_FILE", false);
@@ -388,7 +408,6 @@ namespace OpenMS
     auto mobility_compression_col = getColumn_(table, "MOBILITY_COMPRESSION");
     auto intensity_compression_col = getColumn_(table, "INTENSITY_COMPRESSION");
 
-    const int64_t rows = table->num_rows();
     output.reserve(rows);
 
     for (int64_t row = 0; row < rows; ++row)
@@ -459,12 +478,16 @@ namespace OpenMS
   {
     output.clear();
     auto table = readParquetTable_(filenames_);
+    const int64_t rows = table->num_rows();
+    if (rows == 0)
+    {
+      return;
+    }
 
     auto run_id_col = getColumn_(table, "RUN_ID");
     auto source_file_col = getColumn_(table, "SOURCE_FILE", false);
 
     std::unordered_set<std::string> seen;
-    const int64_t rows = table->num_rows();
     output.reserve(rows);
 
     for (int64_t row = 0; row < rows; ++row)
