@@ -70,10 +70,12 @@ def test_xipm_analyte_columns_invalid():
         xipm.get_analyte_dict(columns=["PRECURSOR_CHARGE5"])
 
 
-def test_xipm_analyte_requires_precursor_discriminator_when_nested():
+def test_xipm_analyte_transition_only_projection_when_nested():
     xipm = _get_xipm()
-    with pytest.raises(RuntimeError):
-        xipm.get_analyte_dict(columns=["TRANSITION_ID"], nest_transitions=True)
+    analytes = xipm.get_analyte_dict(columns=["TRANSITION_ID"], nest_transitions=True)
+    assert set(analytes.keys()) == {"transition_id"}
+    assert len(analytes["transition_id"]) > 0
+    assert hasattr(analytes["transition_id"][0], "__iter__")
 
 
 def test_xipm_to_df_summary_and_exploded():
@@ -172,3 +174,31 @@ def test_xipm_analyte_grouping_prefers_target_precursor_decoy_for_mixed_ipf_rows
 
     assert len(result["precursor_id"]) == 1
     assert result["precursor_decoy"] == [0]
+
+
+def test_xipm_analyte_grouping_uses_full_precursor_identity_for_nested_projection():
+    from pyopenms.addons import xipmparquetfile as addon_mod
+
+    data = {
+        "precursor_id": [1001, 1002],
+        "modified_sequence": ["PEPTIDE", "PEPTIDE"],
+        "precursor_charge": [2, 3],
+        "precursor_decoy": [0, 0],
+        "transition_id": [2001, 2002],
+        "product_charge": [1, 1],
+        "detecting_transition": [1, 1],
+        "product_decoy": [0, 0],
+        "transition_ordinal": [3, 3],
+        "transition_type": ["y", "y"],
+        "annotation": ["y3^1", "y3^1"],
+    }
+
+    result = addon_mod._build_analyte_dict(
+        data,
+        ["modified_sequence", "transition_id"],
+        nest_transitions=True,
+    )
+
+    assert len(result["modified_sequence"]) == 2
+    assert result["modified_sequence"] == ["PEPTIDE", "PEPTIDE"]
+    assert result["transition_id"] == [[2001], [2002]]

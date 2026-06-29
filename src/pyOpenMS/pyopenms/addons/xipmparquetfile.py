@@ -38,6 +38,7 @@ _TRANSITION_ANALYTE_FIELDS = (
     "transition_type",
     "annotation",
 )
+_TRANSITION_GROUPING_FIELDS = _TRANSITION_ANALYTE_FIELDS
 _NUMERIC_PUSHDOWN_COLUMNS = {
     "precursor_id",
     "transition_id",
@@ -155,21 +156,21 @@ def _read_metadata_columns(self, columns):
     }
 
 
-def _deduplicate_transition_lists(group, requested_transition_fields):
-    if not requested_transition_fields:
+def _deduplicate_transition_lists(group, requested_transition_fields, transition_grouping_fields):
+    if not requested_transition_fields or not transition_grouping_fields:
         return
 
     seen = set()
     keep = []
-    length = len(group[requested_transition_fields[0]])
+    length = len(group[transition_grouping_fields[0]])
     for i in range(length):
-        key = tuple(group[field][i] for field in requested_transition_fields)
+        key = tuple(group[field][i] for field in transition_grouping_fields)
         if key in seen:
             continue
         seen.add(key)
         keep.append(i)
 
-    for field in requested_transition_fields:
+    for field in transition_grouping_fields:
         group[field] = [group[field][i] for i in keep]
 
 
@@ -182,8 +183,9 @@ def _build_analyte_dict(data, requested, nest_transitions):
         return {column: [] for column in requested}
 
     requested_precursor_fields = [field for field in _PRECURSOR_ANALYTE_FIELDS if field in requested]
-    grouping_precursor_fields = [field for field in _PRECURSOR_GROUPING_FIELDS if field in requested]
+    grouping_precursor_fields = [field for field in _PRECURSOR_GROUPING_FIELDS if field in data]
     requested_transition_fields = [field for field in _TRANSITION_ANALYTE_FIELDS if field in requested]
+    transition_grouping_fields = [field for field in _TRANSITION_GROUPING_FIELDS if field in data]
 
     if not nest_transitions:
         seen = set()
@@ -197,12 +199,6 @@ def _build_analyte_dict(data, requested, nest_transitions):
             rows.append(record)
         return {column: [row[column] for row in rows] for column in requested}
 
-    if not grouping_precursor_fields:
-        raise RuntimeError(
-            "nest_transitions=True requires at least one precursor discriminator column: "
-            "PRECURSOR_ID, MODIFIED_SEQUENCE, or PRECURSOR_CHARGE"
-        )
-
     grouped = {}
     order = []
     transition_ids = data.get("transition_id")
@@ -212,7 +208,7 @@ def _build_analyte_dict(data, requested, nest_transitions):
             grouped[key] = {
                 field: data[field][i] for field in requested_precursor_fields
             }
-            for field in requested_transition_fields:
+            for field in transition_grouping_fields:
                 grouped[key][field] = []
             order.append(key)
         elif "precursor_decoy" in requested_precursor_fields:
@@ -223,11 +219,13 @@ def _build_analyte_dict(data, requested, nest_transitions):
                     grouped[key]["precursor_decoy"] = current_decoy
 
         if requested_transition_fields and transition_ids is not None and transition_ids[i] is not None:
-            for field in requested_transition_fields:
+            for field in transition_grouping_fields:
                 grouped[key][field].append(data[field][i])
 
     for key in order:
-        _deduplicate_transition_lists(grouped[key], requested_transition_fields)
+        _deduplicate_transition_lists(
+            grouped[key], requested_transition_fields, transition_grouping_fields
+        )
 
     result = {}
     for column in requested:
@@ -437,9 +435,16 @@ def get_analyte_dict(self, nest_transitions=True, columns=None):
     """
     requested = _normalize_analyte_columns(columns)
     parquet_columns = [_ANALYTE_REVERSE_COLUMN_MAP[column] for column in requested]
-    if nest_transitions and requested and "TRANSITION_ID" not in parquet_columns:
+    if nest_transitions:
+        for field in _PRECURSOR_GROUPING_FIELDS:
+            parquet_column = _ANALYTE_REVERSE_COLUMN_MAP[field]
+            if parquet_column not in parquet_columns:
+                parquet_columns.append(parquet_column)
         if any(field in requested for field in _TRANSITION_ANALYTE_FIELDS):
-            parquet_columns.append("TRANSITION_ID")
+            for field in _TRANSITION_GROUPING_FIELDS:
+                parquet_column = _ANALYTE_REVERSE_COLUMN_MAP[field]
+                if parquet_column not in parquet_columns:
+                    parquet_columns.append(parquet_column)
     data = _read_metadata_columns(self, parquet_columns)
     if data is None:
         data = self.get_data_dict(explode=False)
