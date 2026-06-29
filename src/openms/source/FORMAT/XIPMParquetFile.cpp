@@ -16,6 +16,7 @@
 
 #include <arrow/api.h>
 #include <arrow/io/api.h>
+#include <arrow/util/config.h>
 #include <parquet/arrow/reader.h>
 
 #include <cstring>
@@ -30,7 +31,7 @@ namespace OpenMS
   {
     std::shared_ptr<arrow::Table> readParquetTable_(const std::string& filename)
     {
-      auto infile_result = arrow::io::ReadableFile::Open(filename);
+      auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
       if (!infile_result.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -44,8 +45,9 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to create parquet reader", filename);
       }
-      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(*reader_result);
+      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
 
+#if ARROW_VERSION_MAJOR >= 24
       auto table_result = reader->ReadTable();
       if (!table_result.ok())
       {
@@ -53,6 +55,15 @@ namespace OpenMS
                                       "Failed to read parquet table: " + table_result.status().ToString(), filename);
       }
       std::shared_ptr<arrow::Table> table = *table_result;
+#else
+      std::shared_ptr<arrow::Table> table;
+      auto read_status = reader->ReadTable(&table);
+      if (!read_status.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to read parquet table: " + read_status.ToString(), filename);
+      }
+#endif
 
       auto combined = table->CombineChunks(arrow::default_memory_pool());
       if (!combined.ok())
@@ -101,7 +112,7 @@ namespace OpenMS
 
     std::shared_ptr<arrow::Schema> readParquetSchema_(const std::string& filename)
     {
-      auto infile_result = arrow::io::ReadableFile::Open(filename);
+      auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
       if (!infile_result.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -115,7 +126,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to create parquet reader", filename);
       }
-      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(*reader_result);
+      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
 
       std::shared_ptr<arrow::Schema> schema;
       auto status = reader->GetSchema(&schema);
