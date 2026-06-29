@@ -653,7 +653,9 @@ namespace OpenMS
     // map filename and label of experimental design to the full experimental design entry for faster lookup
     const auto& ms_section = ed.getMSFileSection();
     using FileAndLabel = std::pair<std::string, UInt>;
-    std::map<FileAndLabel, ExperimentalDesign::MSFileSectionEntry> file_and_label_to_msfile_entry;
+    // Pure lookup (only emplace + find below, never iterated), so an unordered map gives
+    // O(1) access per consensus feature without affecting output order.
+    std::unordered_map<FileAndLabel, ExperimentalDesign::MSFileSectionEntry, FileLabelHash> file_and_label_to_msfile_entry;
     for (const auto& e : ms_section)
     {
       const std::string ed_filename = File::stemName(e.path);
