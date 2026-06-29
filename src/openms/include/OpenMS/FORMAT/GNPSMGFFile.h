@@ -56,7 +56,7 @@ namespace OpenMS
         @param[in] mzml_file_paths     Paths to the mzML files referenced by the consensusXML.
         @param[in] out                 Output MGF path; one spectrum block per consensus feature.
       */
-      void store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const;
+      void store(const std::string& consensus_file_path, const StringList& mzml_file_paths, const std::string& out) const;
 
     private:
       /// Default cosine-similarity threshold used when merging multiple MS2 scans into one representative spectrum

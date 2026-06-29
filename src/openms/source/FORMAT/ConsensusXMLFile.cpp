@@ -37,7 +37,7 @@ namespace OpenMS
     return options_;
   }
 
-  void ConsensusXMLFile::store(const String& filename, const ConsensusMap& consensus_map)
+  void ConsensusXMLFile::store(const std::string& filename, const ConsensusMap& consensus_map)
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::CONSENSUSXML))
     {
@@ -57,7 +57,7 @@ namespace OpenMS
       // We can detect this here but it is too late to fix the problem;
       // there is no straightforward action to be taken in all cases.
       // Note also that we are given a const reference.
-      OPENMS_LOG_INFO << String("ConsensusXMLFile::store():  found ") + invalid_unique_ids + " invalid unique ids" << std::endl;
+      OPENMS_LOG_INFO << std::string("ConsensusXMLFile::store():  found ") + invalid_unique_ids + " invalid unique ids" << std::endl;
     }
 
     // This will throw if the unique ids are not unique,
@@ -79,7 +79,7 @@ namespace OpenMS
     save_(filename, &handler);
   }
 
-  void ConsensusXMLFile::load(const String& filename, ConsensusMap& consensus_map)
+  void ConsensusXMLFile::load(const std::string& filename, ConsensusMap& consensus_map)
   {
     consensus_map.clear(true); // clear map
 

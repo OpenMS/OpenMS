@@ -56,12 +56,12 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  void CVMappingTerm::setAccession(const String& accession)
+  void CVMappingTerm::setAccession(const std::string& accession)
   {
     accession_ = accession;
   }
 
-  const String& CVMappingTerm::getAccession() const
+  const std::string& CVMappingTerm::getAccession() const
   {
     return accession_;
   }
@@ -86,12 +86,12 @@ namespace OpenMS
     return use_term_;
   }
 
-  void CVMappingTerm::setTermName(const String& term_name)
+  void CVMappingTerm::setTermName(const std::string& term_name)
   {
     term_name_ = term_name;
   }
 
-  const String& CVMappingTerm::getTermName() const
+  const std::string& CVMappingTerm::getTermName() const
   {
     return term_name_;
   }
@@ -116,12 +116,12 @@ namespace OpenMS
     return allow_children_;
   }
 
-  void CVMappingTerm::setCVIdentifierRef(const String& cv_identifier_ref)
+  void CVMappingTerm::setCVIdentifierRef(const std::string& cv_identifier_ref)
   {
     cv_identifier_ref_ = cv_identifier_ref;
   }
 
-  const String& CVMappingTerm::getCVIdentifierRef() const
+  const std::string& CVMappingTerm::getCVIdentifierRef() const
   {
     return cv_identifier_ref_;
   }

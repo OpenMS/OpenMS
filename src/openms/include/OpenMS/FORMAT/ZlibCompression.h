@@ -17,7 +17,6 @@
 
 namespace OpenMS
 {
-  class String;
 
   /**
     @brief Compresses and uncompresses arbitrary byte buffers using zlib.
@@ -91,7 +90,7 @@ public:
       @throws Exception::InvalidValue      see @ref uncompressData.
       @throws Exception::InternalToolError see @ref uncompressData.
     */
-    static void uncompressString(const String& in, std::string& out, size_t output_size = 0);
+    static void uncompressString(const std::string& in, std::string& out, size_t output_size = 0);
 
   };
 

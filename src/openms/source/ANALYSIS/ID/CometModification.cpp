@@ -14,7 +14,7 @@ namespace OpenMS
   CometModification::CometModification(const ResidueModification* mod, int binary_grp, int max_mods)
     : mass(mod->getDiffMonoMass()), binary_group(binary_grp), max_mods_per_peptide(max_mods)
   {
-    residues = String(mod->getOrigin());
+    residues =StringUtils::toStr(mod->getOrigin());
 
     auto term_spec = mod->getTermSpecificity();
     if (term_spec == ResidueModification::C_TERM)
@@ -104,7 +104,7 @@ namespace OpenMS
     // Add residues from other (avoiding duplicates)
     for (char c : other.residues)
     {
-      if (residues.find(c) == String::npos)
+      if (!residues.contains(c))
       {
         residues += c;
       }
@@ -132,7 +132,7 @@ namespace OpenMS
     required = required || other.required;
   }
 
-  String CometModification::toCometString(Size index) const
+  std::string CometModification::toCometString(Size index) const
   {
     // Format: variable_modXX = <mass> <residues> <binary_group> <max_mods> <term_distance> <nc_term> <required> <neutral_loss>
     std::ostringstream os;
@@ -147,7 +147,7 @@ namespace OpenMS
        << nc_term << " "
        << (required ? 1 : 0) << " "
        << "0.0";  // neutral loss — not currently supported
-    return String(os.str());
+    return os.str();
   }
 
   std::vector<CometModification> CometModification::mergeModifications(const std::vector<CometModification>& mods)

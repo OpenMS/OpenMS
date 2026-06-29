@@ -55,6 +55,7 @@ IDRipper
 IDRTCalibration
 IDScoreSwitcher
 IDSplitter
+INIUpdater
 InternalCalibration
 IonMobilityBinning
 IsobaricAnalyzer
@@ -138,6 +139,7 @@ StaticModification
 TICCalculator
 TextExporter
 TriqlerConverter
+UniPEFF
 XFDR
 XMLValidator
 )

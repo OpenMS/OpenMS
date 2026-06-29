@@ -94,7 +94,7 @@ START_SECTION(const CalibrationData& getCalibrationPoints() const)
   NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(bool calibrate(PeakMap& exp, const IntList& target_mslvl, MZTrafoModel::MODELTYPE model_type, double rt_chunk, bool use_RANSAC, double post_ppm_median, double post_ppm_MAD, const String& file_models, const String& file_residuals))
+START_SECTION(bool calibrate(PeakMap& exp, const IntList& target_mslvl, MZTrafoModel::MODELTYPE model_type, double rt_chunk, bool use_RANSAC, double post_ppm_median, double post_ppm_MAD, const std::string& file_models, const std::string& file_residuals))
   InternalCalibration ic;
   ic.fillCalibrants(peps, 3.0);
   PeakMap exp;

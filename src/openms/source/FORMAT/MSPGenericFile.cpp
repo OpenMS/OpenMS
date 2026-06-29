@@ -25,7 +25,7 @@ namespace OpenMS
     defaultsToParam_(); // write defaults into Param object param_
   }
 
-  MSPGenericFile::MSPGenericFile(const String& filename, MSExperiment& library) :
+  MSPGenericFile::MSPGenericFile(const std::string& filename, MSExperiment& library) :
     DefaultParamHandler("MSPGenericFile")
   {
     getDefaultParameters(defaults_);
@@ -44,7 +44,7 @@ namespace OpenMS
     synonyms_separator_ = param_.getValue("synonyms_separator").toString();
   }
 
-  void MSPGenericFile::load(const String& filename, MSExperiment& library)
+  void MSPGenericFile::load(const std::string& filename, MSExperiment& library)
   {
     loaded_spectra_names_.clear();
     synonyms_.clear();
@@ -118,14 +118,14 @@ namespace OpenMS
         // OPENMS_LOG_DEBUG << "\n\nName: " << m[1] << "\n";
         spectrum.clear(true);
         synonyms_.clear();
-        spectrum.setName(String(m[1]));
+        spectrum.setName(std::string(m[1]));
         spectrum.setMetaValue(Constants::UserParam::MSM_METABOLITE_NAME, spectrum.getName());
         spectrum.setMetaValue("is_valid", 1);
       }
       // Number of Peaks
       else if (boost::regex_search(line, m, re_num_peaks))
       {
-        spectrum.setMetaValue("Num Peaks", String(m[1]));
+        spectrum.setMetaValue("Num Peaks",std::string(m[1]));
       }
       // Retention Time
       else if (boost::regex_search(line, m, re_retention_time))
@@ -145,25 +145,25 @@ namespace OpenMS
       else if (boost::regex_search(line, m, re_cas_nist))
       {
         // OPENMS_LOG_DEBUG << "CAS#: " << m[1] << "; NIST#: " << m[2] << "\n";
-        spectrum.setMetaValue(String("CAS#"), String(m[1]));
-        spectrum.setMetaValue(String("NIST#"), String(m[2]));
+        spectrum.setMetaValue(std::string("CAS#"),std::string(m[1]));
+        spectrum.setMetaValue(std::string("NIST#"),std::string(m[2]));
       }
       // Meta values for MetaboliteSpectralMatcher
       else if (boost::regex_search(line, m, re_inchi))
       {
-        spectrum.setMetaValue(Constants::UserParam::MSM_INCHI_STRING, String(m[1]));
+        spectrum.setMetaValue(Constants::UserParam::MSM_INCHI_STRING,std::string(m[1]));
       }
       else if (boost::regex_search(line, m, re_smiles))
       {
-        spectrum.setMetaValue(Constants::UserParam::MSM_SMILES_STRING, String(m[1]));
+        spectrum.setMetaValue(Constants::UserParam::MSM_SMILES_STRING,std::string(m[1]));
       }
       else if (boost::regex_search(line, m, re_sum_formula))
       {
-        spectrum.setMetaValue(Constants::UserParam::MSM_SUM_FORMULA, String(m[1]));
+        spectrum.setMetaValue(Constants::UserParam::MSM_SUM_FORMULA,std::string(m[1]));
       }
       else if (boost::regex_search(line, m, re_precursor_type))
       {
-        spectrum.setMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT, String(m[1]));
+        spectrum.setMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT, std::string(m[1]));
       }
       // Collision cross section (CCS). Real MSP libraries (e.g. MS-DIAL, MoNA) store this as a
       // plain number in Angstrom^2; parse it as a typed double so it round-trips cleanly through
@@ -171,11 +171,11 @@ namespace OpenMS
       // non-numeric value is kept verbatim as a string meta value (no data loss, not fatal).
       else if (boost::regex_search(line, m, re_ccs))
       {
-        String val(m[1].str());
-        val.trim();
+        std::string val(m[1].str());
+        StringUtils::trim(val);
         try
         {
-          spectrum.setMetaValue(Constants::UserParam::MSM_CCS, val.toDouble());
+          spectrum.setMetaValue(Constants::UserParam::MSM_CCS, StringUtils::toDouble(val));
         }
         catch (const Exception::ConversionError&)
         {
@@ -186,7 +186,7 @@ namespace OpenMS
       else if (boost::regex_search(line, m, re_metadatum))
       {
         // OPENMS_LOG_DEBUG << m[1] << m[2] << "\n";
-        spectrum.setMetaValue(String(m[1]), String(m[2]));
+        spectrum.setMetaValue(std::string(m[1]),std::string(m[2]));
       }
     }
     // To make sure a spectrum is added even if no empty line is present before EOF
@@ -194,7 +194,7 @@ namespace OpenMS
     OPENMS_LOG_INFO << "Loading spectra from .msp file completed." << std::endl;
   }
 
-  void MSPGenericFile::store(const String& filename, const MSExperiment& library) const
+  void MSPGenericFile::store(const std::string& filename, const MSExperiment& library) const
   {
     std::ofstream output_file(filename.c_str());
 
@@ -219,7 +219,7 @@ namespace OpenMS
         if (synonyms.valueType() == OpenMS::DataValue::DataType::STRING_VALUE)
         {
           StringList list;
-          synonyms.toString().split(synonyms_separator_, list);
+          StringUtils::split(synonyms.toString(), synonyms_separator_, list);
           for (const auto& syn : list)
           {
             output_file << "Synon: " << syn << '\n';
@@ -231,11 +231,11 @@ namespace OpenMS
         }
         // Other metadata
         static const std::array<std::string, 4> ignore_metadata = {"Synon", "CAS#", "NIST#", "Num Peaks"};
-        std::vector<String> keys;
+        std::vector<std::string> keys;
         spectrum.getKeys(keys);
         for (const auto& key : keys)
         {
-          const auto& value = spectrum.getMetaValue(key);
+          const auto& value = StringUtils::toStr(spectrum.getMetaValue(key));
           if (std::find(ignore_metadata.begin(), ignore_metadata.end(), key) == ignore_metadata.end())
           {
             output_file << key << ": " << value << '\n';
@@ -292,7 +292,7 @@ namespace OpenMS
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "The current spectrum misses the Num Peaks information.");
       }
-      const String& num_peaks { spectrum.getMetaValue("Num Peaks") };
+      std::string num_peaks = StringUtils::toStr(spectrum.getMetaValue("Num Peaks"));
       if (spectrum.size() != std::stoul(num_peaks) )
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -302,8 +302,8 @@ namespace OpenMS
 
       if (!synonyms_.empty())
       {
-        String synon;
-        for (const String& s : synonyms_)
+        std::string synon;
+        for (const std::string& s : synonyms_)
         {
           synon += s + synonyms_separator_;
         }

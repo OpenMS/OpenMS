@@ -68,7 +68,7 @@ namespace OpenMS
     }
   }
 
-  const String& RTAlignment::getName() const
+  const std::string& RTAlignment::getName() const
   {
     return name_;
   }

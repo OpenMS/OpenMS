@@ -71,7 +71,7 @@ public:
   */
   static bool exportToParquet(
     const ConsensusMap& cmap,
-    const String& filename,
+    const std::string& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 
   /**
@@ -101,7 +101,7 @@ public:
   static bool exportToParquet(
     const std::vector<ProteinIdentification>& protein_identifications,
     const PeptideIdentificationList& peptide_identifications,
-    const String& filename,
+    const std::string& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 
   /**
@@ -119,7 +119,7 @@ public:
   */
   static bool exportToParquet(
     const std::shared_ptr<arrow::Table>& table,
-    const String& filename,
+    const std::string& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 };
 

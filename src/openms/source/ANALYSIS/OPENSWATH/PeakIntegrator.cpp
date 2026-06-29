@@ -95,8 +95,8 @@ namespace OpenMS
 
   void PeakIntegrator::updateMembers_()
   {
-    integration_type_ = (String)param_.getValue("integration_type").toString();
-    baseline_type_ = (String)param_.getValue("baseline_type").toString();
+    integration_type_ = param_.getValue("integration_type").toString();
+    baseline_type_ = param_.getValue("baseline_type").toString();
     fit_EMG_ = param_.getValue("fit_EMG").toBool();
   }
 

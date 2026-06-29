@@ -39,9 +39,9 @@ namespace OpenMS
 
   /// Loads a Swath run from a list of split mzML files
   std::vector<OpenSwath::SwathMap> SwathFile::loadSplit(StringList file_list,
-        const String& tmp,
+        const std::string& tmp,
     std::shared_ptr<ExperimentalSettings>& exp_meta,
-    const String& readoptions)
+    const std::string& readoptions)
   {
     int progress = 0;
     startProgress(0, file_list.size(), "Loading data");
@@ -60,7 +60,7 @@ namespace OpenMS
         std::cout << "Loading file " << i << " with name " << file_list[i] << " using readoptions " << readoptions << '\n';
       }
 
-      String tmp_fname = "openswath_tmpfile_" + String(i) + ".mzML";
+      std::string tmp_fname = "openswath_tmpfile_" + StringUtils::toStr(i) + ".mzML";
 
       std::shared_ptr<PeakMap > exp(new PeakMap);
       OpenSwath::SpectrumAccessPtr spectra_ptr;
@@ -126,14 +126,14 @@ namespace OpenMS
   }
 
   /// Loads a Swath run from a single mzML file
-  std::vector<OpenSwath::SwathMap> SwathFile::loadMzML(const String& file,
-                                                       const String& tmp,
+  std::vector<OpenSwath::SwathMap> SwathFile::loadMzML(const std::string& file,
+                                                       const std::string& tmp,
                                                        std::shared_ptr<ExperimentalSettings>& exp_meta,
-                                                       const String& readoptions,
+                                                       const std::string& readoptions,
                                                        Interfaces::IMSDataConsumer* plugin_consumer)
   {
     std::cout << "Loading mzML file " << file << " using readoptions " << readoptions << '\n';
-    String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : ""; // use tmp-filename if just a directory was given
+    std::string tmp_fname = StringUtils::hasSuffix(tmp, '/') ? File::getUniqueName() : ""; // use tmp-filename if just a directory was given
 
     startProgress(0, 1, "Loading metadata file " + file);
     std::shared_ptr<PeakMap> exp_stripped = populateMetaData_(file);
@@ -198,13 +198,13 @@ namespace OpenMS
   /// Loads a Swath run from a pre-loaded in-memory MSExperiment
   std::vector<OpenSwath::SwathMap> SwathFile::loadFromMSExperiment(
       const std::shared_ptr<PeakMap>& exp,
-      const String& tmp,
+      const std::string& tmp,
       std::shared_ptr<ExperimentalSettings>& exp_meta,
-      const String& readoptions)
+      const std::string& readoptions)
   {
     OPENMS_LOG_INFO << "Loading Swath run from in-memory MSExperiment with " << exp->size()
                     << " spectra using readoptions " << readoptions << '\n';
-    String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : "";
+    std::string tmp_fname = StringUtils::hasSuffix(tmp, '/') ? File::getUniqueName() : "";
 
     // The provided experiment already contains all metadata + data.
     exp_meta = exp;
@@ -250,13 +250,13 @@ namespace OpenMS
   }
 
   /// Loads a Swath run from a single mzXML file
-  std::vector<OpenSwath::SwathMap> SwathFile::loadMzXML(const String& file,
-    const String& tmp,
+  std::vector<OpenSwath::SwathMap> SwathFile::loadMzXML(const std::string& file,
+    const std::string& tmp,
     std::shared_ptr<ExperimentalSettings>& exp_meta,
-    const String& readoptions)
+    const std::string& readoptions)
   {
     std::cout << "Loading mzXML file " << file << " using readoptions " << readoptions << '\n';
-    String tmp_fname = "openswath_tmpfile";
+    std::string tmp_fname = "openswath_tmpfile";
 
     startProgress(0, 1, "Loading metadata file " + file);
     std::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
@@ -307,7 +307,7 @@ namespace OpenMS
   }
 
   /// Loads a Swath run from a single sqMass file
-  std::vector<OpenSwath::SwathMap> SwathFile::loadSqMass(const String& file, std::shared_ptr<ExperimentalSettings>& /* exp_meta */)
+  std::vector<OpenSwath::SwathMap> SwathFile::loadSqMass(const std::string& file, std::shared_ptr<ExperimentalSettings>& /* exp_meta */)
   {
     startProgress(0, 1, "Loading sqmass data file " + file);
 
@@ -340,10 +340,10 @@ namespace OpenMS
 
 #ifdef WITH_OPENTIMS
   std::vector<OpenSwath::SwathMap> SwathFile::loadBrukerTdf(
-    const String& file,
-    const String& tmp,
+    const std::string& file,
+    const std::string& tmp,
     std::shared_ptr<ExperimentalSettings>& exp_meta,
-    const String& readoptions)
+    const std::string& readoptions)
   {
     OPENMS_LOG_INFO << "Loading Bruker TDF file " << file
                     << " using readoptions " << readoptions << '\n';
@@ -364,7 +364,7 @@ namespace OpenMS
                     << " MS1 spectra" << std::endl;
 
     // Step 2: construct consumer based on readoptions
-    String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : "";
+    std::string tmp_fname = StringUtils::hasSuffix(tmp, '/') ? File::getUniqueName() : "";
     std::shared_ptr<FullSwathFileConsumer> consumer;
     if (readoptions == "normal")
     {
@@ -394,7 +394,7 @@ namespace OpenMS
   }
 
   std::vector<OpenSwath::SwathMap> SwathFile::loadBrukerTdf(
-    const String& file,
+    const std::string& file,
     std::shared_ptr<ExperimentalSettings>& exp_meta)
   {
     return loadBrukerTdf(file, File::getTempDirectory(), exp_meta, "normal");
@@ -402,11 +402,11 @@ namespace OpenMS
 #endif
 
   /// Cache a file to disk
-  OpenSwath::SpectrumAccessPtr SwathFile::doCacheFile_(const String& in, const String& tmp, const String& tmp_fname,
+  OpenSwath::SpectrumAccessPtr SwathFile::doCacheFile_(const std::string& in, const std::string& tmp, const std::string& tmp_fname,
     const std::shared_ptr<PeakMap >& experiment_metadata)
   {
-    String cached_file = tmp + tmp_fname + ".cached";
-    String meta_file = tmp + tmp_fname;
+    std::string cached_file = tmp + tmp_fname + ".cached";
+    std::string meta_file = tmp + tmp_fname;
 
     // Create new consumer, transform infile, write out metadata
     {
@@ -421,7 +421,7 @@ namespace OpenMS
   }
 
   /// Only read the meta data from a file and use it to populate exp_meta
-  std::shared_ptr< PeakMap > SwathFile::populateMetaData_(const String& file)
+  std::shared_ptr< PeakMap > SwathFile::populateMetaData_(const std::string& file)
   {
     std::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
     FileHandler f;
@@ -458,8 +458,8 @@ namespace OpenMS
           double imLower, imUpper;
           if (s.metaValueExists("ion mobility lower limit"))
           {
-            imLower = s.getMetaValue("ion mobility lower limit"); // want this to be -1 if no ion mobility
-            imUpper = s.getMetaValue("ion mobility upper limit");
+            imLower = (double)s.getMetaValue("ion mobility lower limit"); // want this to be -1 if no ion mobility
+            imUpper = (double)s.getMetaValue("ion mobility upper limit");
 
           }
           else

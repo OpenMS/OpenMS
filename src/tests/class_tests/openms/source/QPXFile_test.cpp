@@ -47,7 +47,7 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(...))
   protein_id.setHigherScoreBetter(true);
   protein_ids.push_back(protein_id);
 
-  std::vector<String> pep_strs = {"PEPTIDER", "PEM(Oxidation)TIDER", "DFPIANGER"};
+  std::vector<std::string> pep_strs = {"PEPTIDER", "PEM(Oxidation)TIDER", "DFPIANGER"};
   for (size_t i = 0; i < pep_strs.size(); ++i)
   {
     PeptideIdentification peptide_id;
@@ -55,7 +55,7 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(...))
     peptide_id.setRT(1234.5 + i * 100);
     peptide_id.setMZ(500.25 + i * 50);
     peptide_id.setScoreType("TestScore");
-    peptide_id.setSpectrumReference("controllerType=0 controllerNumber=1 scan=" + String(1000 + i));
+    peptide_id.setSpectrumReference("controllerType=0 controllerNumber=1 scan=" + StringUtils::toStr(1000 + i));
 
     PeptideHit hit;
     hit.setSequence(AASequence::fromString(pep_strs[i]));
@@ -72,7 +72,7 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(...))
     }
 
     PeptideEvidence evidence;
-    evidence.setProteinAccession("TEST_PROTEIN_" + String(i));
+    evidence.setProteinAccession("TEST_PROTEIN_" + StringUtils::toStr(i));
     hit.setPeptideEvidences(vector<PeptideEvidence>{evidence});
 
     // Add multiple hits, but only first should be processed by default
@@ -193,7 +193,7 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(...) wit
   peptide_id.setScoreType("TestScore");
 
   vector<PeptideHit> hits;
-  vector<String> pep_strs = {"PEPTIDER", "ALTERNATIVE", "THIRDPSM"};
+  vector<std::string> pep_strs = {"PEPTIDER", "ALTERNATIVE", "THIRDPSM"};
   for (int i = 0; i < 3; ++i)
   {
     PeptideHit hit;
@@ -203,7 +203,7 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(...) wit
     hit.setMetaValue("target_decoy", "target");
 
     PeptideEvidence evidence;
-    evidence.setProteinAccession("TEST_PROTEIN_" + String(i));
+    evidence.setProteinAccession("TEST_PROTEIN_" + StringUtils::toStr(i));
     hit.setPeptideEvidences(vector<PeptideEvidence>{evidence});
 
     hits.push_back(hit);
@@ -269,7 +269,7 @@ START_SECTION(static bool exportToParquet(...))
   peptide_id.setHits(vector<PeptideHit>{hit});
   peptide_ids.push_back(peptide_id);
 
-  String output_file;
+  std::string output_file;
   NEW_TMP_FILE(output_file)
 
   // Write parquet
@@ -586,7 +586,7 @@ START_SECTION(([EXTRA] importFromArrow_round_trip))
   TEST_STRING_EQUAL(pep_ids_out[0].getHits()[0].getSequence().toString(), "PEPTIDE");
   TEST_EQUAL(pep_ids_out[0].getHits()[0].getCharge(), 2);
   TEST_REAL_SIMILAR(pep_ids_out[0].getHits()[0].getScore(), 0.95);
-  TEST_STRING_EQUAL(String(pep_ids_out[0].getHits()[0].getMetaValue("target_decoy")), "target");
+  TEST_STRING_EQUAL(StringUtils::toStr(pep_ids_out[0].getHits()[0].getMetaValue("target_decoy")), "target");
   TEST_REAL_SIMILAR(double(pep_ids_out[0].getHits()[0].getMetaValue("COMET:deltaCn")), 0.5);
 
   // --- Round-trip detail assertions on the first PID ---

@@ -9,7 +9,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <sqlite3.h>
@@ -89,12 +89,12 @@ namespace OpenMS::Internal
       SqliteConnector conn(filename_);
       sqlite3_stmt * stmt;
 
-      String select_sql = "SELECT " \
+      std::string select_sql = "SELECT " \
                           "SPECTRUM_ID " \
                           "FROM PRECURSOR " \
                           "WHERE ISOLATION_TARGET BETWEEN ";
 
-      select_sql += String(center - 0.01) + " AND " + String(center + 0.01) + ";";
+      select_sql +=StringUtils::toStr(center - 0.01) + " AND " + StringUtils::toStr(center + 0.01) + ";";
       conn.prepareStatement(&stmt, select_sql);
       sqlite3_step(stmt);
 

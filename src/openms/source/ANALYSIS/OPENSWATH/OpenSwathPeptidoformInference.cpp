@@ -193,7 +193,7 @@ namespace OpenMS
     missing_rows_added.reserve(rows.size());
     for (const auto& row : rows)
     {
-      if (features_with_precursor_evidence.find(row.feature_id) == features_with_precursor_evidence.end() &&
+      if (!features_with_precursor_evidence.contains(row.feature_id) &&
           missing_rows_added.insert(row.feature_id).second)
       {
         // No precursor-specific evidence is available for this feature, so fall back
@@ -382,7 +382,7 @@ namespace OpenMS
         (alignment_group_map.count(row.feature_id) ? alignment_group_map[row.feature_id] : -1);
       merged_rows.push_back(std::move(merged_row));
 
-      if (row.num_peptidoforms > 0 && num_peptidoforms_by_feature.find(row.feature_id) == num_peptidoforms_by_feature.end())
+      if (row.num_peptidoforms > 0 && !num_peptidoforms_by_feature.contains(row.feature_id))
       {
         num_peptidoforms_by_feature[row.feature_id] = row.num_peptidoforms;
       }

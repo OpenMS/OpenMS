@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/UnimodXMLFile.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
@@ -42,7 +42,7 @@ END_SECTION
 
 ptr = new UnimodXMLFile();
 
-START_SECTION(void load(const String& filename, vector<ResidueModification*>& modifications))
+START_SECTION(void load(const std::string& filename, vector<ResidueModification*>& modifications))
 	vector<ResidueModification*> modifications;
 	ptr->load("CHEMISTRY/unimod.xml", modifications);
 

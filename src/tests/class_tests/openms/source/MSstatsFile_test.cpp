@@ -15,20 +15,20 @@ using namespace OpenMS;
 
 START_TEST(MSstatsFile, "$Id$")
 
-START_SECTION(void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap &consensus_map,
+START_SECTION(void OpenMS::MSstatsFile::storeLFQ(const std::string &filename, ConsensusMap &consensus_map,
                                                  const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
-                                                 const bool is_isotope_label_type, const String& bioreplicate, const String& condition,
-                                                 const String& retention_time_summarization_method,
+                                                 const bool is_isotope_label_type, const std::string& bioreplicate, const std::string& condition,
+                                                 const std::string& retention_time_summarization_method,
                                                  const bool remove_shared_peptides))
 {
   // tested via MSstatsConverter tool
 }
 END_SECTION
 
-START_SECTION(void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap &consensus_map,
+START_SECTION(void OpenMS::MSstatsFile::storeISO(const std::string &filename, ConsensusMap &consensus_map,
                                                  const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
-                                                 const String& bioreplicate, const String& condition,
-                                                 const String& mixture, const String& retention_time_summarization_method,
+                                                 const std::string& bioreplicate, const std::string& condition,
+                                                 const std::string& mixture, const std::string& retention_time_summarization_method,
                                                  const bool remove_shared_peptides))
 {
   // tested via MSstatsConverter tool

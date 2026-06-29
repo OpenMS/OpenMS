@@ -68,7 +68,7 @@ protected:
 
   static constexpr double summary_fdr_threshold_ = 0.01;
 
-  static bool toBool_(const String& value)
+  static bool toBool_(const std::string& value)
   {
     return value == "true";
   }
@@ -120,7 +120,7 @@ protected:
     }
   }
 
-  static String taskLabel_(const InferenceTask& task)
+  static std::string taskLabel_(const InferenceTask& task)
   {
     if (task.level == InferenceLevel::Peptidoform)
     {
@@ -129,7 +129,7 @@ protected:
     return toString(task.level) + " inference in '" + toString(*task.context) + "' context";
   }
 
-  static String targetLabelPlural_(const InferenceLevel level)
+  static std::string targetLabelPlural_(const InferenceLevel level)
   {
     switch (level)
     {
@@ -162,7 +162,7 @@ protected:
                                       const std::vector<LevelContextResultRow>& results,
                                       const InferenceLevel level,
                                       const InferenceContext context,
-                                      const std::map<Int64, String>& run_basenames)
+                                      const std::map<Int64, std::string>& run_basenames)
   {
     std::map<std::pair<Int64, Int64>, bool> is_target_by_key;
     for (const auto& row : input_rows)
@@ -206,7 +206,7 @@ protected:
     for (const auto& run_count : per_run_targets_at_1pct)
     {
       const auto name_it = run_basenames.find(run_count.first);
-      const String run_label = (name_it != run_basenames.end()) ? name_it->second : String("RUN_ID ") + String(run_count.first);
+      const std::string run_label = (name_it != run_basenames.end()) ? name_it->second : "RUN_ID " + StringUtils::toStr(run_count.first);
       OPENMS_LOG_INFO << run_label << ": " << run_count.second << " " << targetLabelPlural_(level) << std::endl;
     }
   }
@@ -219,13 +219,13 @@ protected:
       appendTask_(tasks, InferenceLevel::Peptidoform, std::nullopt);
     }
 
-    const std::array<std::pair<String, InferenceLevel>, 3> level_prefixes =
+    const std::array<std::pair<std::string, InferenceLevel>, 3> level_prefixes =
     {{
       {"peptide", InferenceLevel::Peptide},
       {"protein", InferenceLevel::Protein},
       {"gene", InferenceLevel::Gene}
     }};
-    const std::array<std::pair<String, InferenceContext>, 3> contexts =
+    const std::array<std::pair<std::string, InferenceContext>, 3> contexts =
     {{
       {"global", InferenceContext::Global},
       {"experiment_wide", InferenceContext::ExperimentWide},
@@ -251,7 +251,7 @@ protected:
     return tasks;
   }
 
-  static String prepareWorkingOutput_(const String& input_file, const String& output_file)
+  static std::string prepareWorkingOutput_(const std::string& input_file, const std::string& output_file)
   {
     if (output_file.empty() || output_file == input_file)
     {
@@ -346,10 +346,10 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    const String input_file = getStringOption_("in");
-    const String output_file = getStringOption_("out");
+    const std::string input_file = getStringOption_("in");
+    const std::string output_file = getStringOption_("out");
     const std::vector<InferenceTask> tasks = getInferenceTasks_();
-    const String working_file = prepareWorkingOutput_(input_file, output_file);
+    const std::string working_file = prepareWorkingOutput_(input_file, output_file);
 
     OSWFile osw(working_file);
     const PeptidoformInferenceConfig peptidoform_config = getPeptidoformConfig_();
@@ -359,10 +359,10 @@ protected:
       {
         return task.context.has_value() && *task.context == InferenceContext::RunSpecific;
       });
-    const std::map<Int64, String> run_basenames = has_run_specific_task ? osw.readRunBasenames() : std::map<Int64, String>{};
+    const std::map<Int64, std::string> run_basenames = has_run_specific_task ? osw.readRunBasenames() : std::map<Int64, std::string>{};
     for (const auto& task : tasks)
     {
-      const String task_label = taskLabel_(task);
+      const std::string task_label = taskLabel_(task);
       ProgressLogger progresslogger;
       progresslogger.setLogType(ProgressLogger::CMD);
       progresslogger.startProgress(0, 1, task_label);

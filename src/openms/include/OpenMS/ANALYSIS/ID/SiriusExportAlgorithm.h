@@ -73,7 +73,7 @@ namespace OpenMS
         @param[out] feature_ms2_indices   Receives the MS2-to-feature assignment / unassigned-MS2 list.
         @throws Exception::FileEmpty If @p featureinfo is non-empty but the file does not exist or is empty.
       */
-      void preprocessing(const String& featureinfo,
+      void preprocessing(const std::string& featureinfo,
                                const MSExperiment& spectra,
                                FeatureMapping::FeatureMappingInfo& feature_mapping_info,
                                FeatureMapping::FeatureToMs2Indices& feature_ms2_indices) const;
@@ -91,7 +91,7 @@ namespace OpenMS
         @param[in] feature_ms2_indices Output of @ref preprocessing — feature/MS2 mapping.
         @param[in] spectra             Spectra container used when no featureXML is given.
       */
-      void logFeatureSpectraNumber(const String& featureinfo,
+      void logFeatureSpectraNumber(const std::string& featureinfo,
                                    const FeatureMapping::FeatureToMs2Indices& feature_ms2_indices,
                                    const MSExperiment& spectra) const;
 
@@ -112,8 +112,8 @@ namespace OpenMS
       */
       void run(const StringList& mzML_files,
                const StringList& featureXML_files,
-               const String& out_ms,
-               const String& out_compoundinfo) const;
+               const std::string& out_ms,
+               const std::string& out_compoundinfo) const;
 
     };
 } // namespace OpenMS

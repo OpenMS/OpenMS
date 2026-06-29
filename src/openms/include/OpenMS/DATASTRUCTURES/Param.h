@@ -263,7 +263,7 @@ protected:
     /**
       @brief Sets a value.
 
-      @param[in] key String key. Can contain ':' which separates section names
+      @param[in] key std::string key. Can contain ':' which separates section names
       @param[in] value The actual value
       @param[in] description Verbose description of the parameter
       @param[in] tags list of tags associated to this parameter

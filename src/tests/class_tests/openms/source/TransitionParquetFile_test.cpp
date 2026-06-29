@@ -45,7 +45,7 @@ namespace
     return nullptr;
   }
 
-  ::arrow::Status writeParquetTable_(const std::shared_ptr<arrow::Table>& table, const String& filename)
+  ::arrow::Status writeParquetTable_(const std::shared_ptr<arrow::Table>& table, const std::string& filename)
   {
     auto outfile_result = arrow::io::FileOutputStream::Open(std::string(filename));
     if (!outfile_result.ok())
@@ -58,7 +58,7 @@ namespace
 
   std::string joinProteinAccessions_(const std::vector<std::string>& accessions)
   {
-    String joined;
+    std::string joined;
     for (Size i = 0; i < accessions.size(); ++i)
     {
       if (i > 0) joined += ";";
@@ -86,9 +86,9 @@ START_SECTION(~TransitionParquetFile())
 }
 END_SECTION
 
-START_SECTION(void convertParquetToTargetedExperiment(const String& oswpq_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const)
+START_SECTION(void convertParquetToTargetedExperiment(const std::string& oswpq_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const)
 {
-  const String input_file = OPENMS_GET_TEST_DATA_PATH("MRMAssay_detectingTransistionCompound_input.TraML");
+  const std::string input_file = OPENMS_GET_TEST_DATA_PATH("MRMAssay_detectingTransistionCompound_input.TraML");
   TraMLFile traml;
   TargetedExperiment targeted_exp;
   traml.load(input_file, targeted_exp);
@@ -99,7 +99,7 @@ START_SECTION(void convertParquetToTargetedExperiment(const String& oswpq_dir, O
   Size compound_count = std::min<Size>(2, light_exp.compounds.size());
   TEST_EQUAL(compound_count > 0, true)
 
-  std::map<String, int64_t> compound_to_precursor;
+  std::map<std::string, int64_t> compound_to_precursor;
   int64_t precursor_id = 1;
   for (Size i = 0; i < compound_count; ++i)
   {
@@ -107,7 +107,7 @@ START_SECTION(void convertParquetToTargetedExperiment(const String& oswpq_dir, O
   }
 
   std::vector<OpenSwath::LightTransition> transitions;
-  std::map<String, double> precursor_mz;
+  std::map<std::string, double> precursor_mz;
   for (const auto& transition : light_exp.transitions)
   {
     if (compound_to_precursor.find(transition.peptide_ref) != compound_to_precursor.end())
@@ -122,8 +122,8 @@ START_SECTION(void convertParquetToTargetedExperiment(const String& oswpq_dir, O
   TEST_EQUAL(transitions.size() > 0, true)
 
   File::TempDir tmp_dir;
-  const String base_dir = tmp_dir.getPath() + "/test.oswpq";
-  const String library_dir = base_dir + "/library";
+  const std::string base_dir = tmp_dir.getPath() + "/test.oswpq";
+  const std::string library_dir = base_dir + "/library";
   File::makeDir(base_dir);
   File::makeDir(library_dir);
 
@@ -142,7 +142,7 @@ START_SECTION(void convertParquetToTargetedExperiment(const String& oswpq_dir, O
   for (Size i = 0; i < compound_count; ++i)
   {
     const auto& compound = light_exp.compounds[i];
-    const String compound_id = compound.id;
+    const std::string compound_id = compound.id;
     const int64_t id = compound_to_precursor[compound_id];
 
     appendOk_(precursor_id_builder, id);
@@ -154,7 +154,7 @@ START_SECTION(void convertParquetToTargetedExperiment(const String& oswpq_dir, O
     appendOk_(traml_id_builder, std::string(compound.id));
     appendOk_(modified_sequence_builder, std::string(compound.sequence));
 
-    String unmodified_sequence;
+    std::string unmodified_sequence;
     if (!compound.sequence.empty())
     {
       try
@@ -282,7 +282,7 @@ START_SECTION(void convertParquetToTargetedExperiment(const String& oswpq_dir, O
   TEST_EQUAL(out_exp.compounds.size(), compound_count)
   TEST_EQUAL(out_exp.transitions.size(), transitions.size())
 
-  std::map<String, int> compound_refs;
+  std::map<std::string, int> compound_refs;
   for (const auto& compound : out_exp.compounds)
   {
     compound_refs[compound.id] = 1;
@@ -294,10 +294,10 @@ START_SECTION(void convertParquetToTargetedExperiment(const String& oswpq_dir, O
 }
 END_SECTION
 
-START_SECTION(void convertLightTargetedExperimentToParquet(const String& oswpq_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const)
+START_SECTION(void convertLightTargetedExperimentToParquet(const std::string& oswpq_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const)
 {
   // --- Build a reference LightTargetedExperiment from a TraML file ---
-  const String input_file = OPENMS_GET_TEST_DATA_PATH("MRMAssay_detectingTransistionCompound_input.TraML");
+  const std::string input_file = OPENMS_GET_TEST_DATA_PATH("MRMAssay_detectingTransistionCompound_input.TraML");
   TraMLFile traml;
   TargetedExperiment targeted_exp;
   traml.load(input_file, targeted_exp);
@@ -309,7 +309,7 @@ START_SECTION(void convertLightTargetedExperimentToParquet(const String& oswpq_p
 
   // --- Write to a temporary .oswpq directory ---
   File::TempDir tmp_dir;
-  const String out_dir = tmp_dir.getPath() + "/roundtrip.oswpq";
+  const std::string out_dir = tmp_dir.getPath() + "/roundtrip.oswpq";
   File::makeDir(out_dir);
 
   TransitionParquetFile writer;
@@ -330,7 +330,7 @@ START_SECTION(void convertLightTargetedExperimentToParquet(const String& oswpq_p
   TEST_EQUAL(roundtrip_exp.proteins.size(), light_exp.proteins.size())
 
   // Verify each transition references a valid compound
-  std::set<String> roundtrip_compound_ids;
+  std::set<std::string> roundtrip_compound_ids;
   for (const auto& compound : roundtrip_exp.compounds)
   {
     roundtrip_compound_ids.insert(compound.id);
@@ -342,7 +342,7 @@ START_SECTION(void convertLightTargetedExperimentToParquet(const String& oswpq_p
 
   // Verify transition product_mz values are preserved
   // Build a map from transition name -> product_mz for the original
-  std::map<String, double> orig_transition_mz;
+  std::map<std::string, double> orig_transition_mz;
   for (const auto& tr : light_exp.transitions)
   {
     orig_transition_mz[tr.transition_name] = tr.product_mz;

@@ -49,7 +49,7 @@ START_SECTION(QCBase::Status requirements() const override)
 }
 END_SECTION
 
-START_SECTION(const String& getName() const override) {TEST_EQUAL(rtA.getName(), "RTAlignment")} END_SECTION
+START_SECTION(const std::string& getName() const override) {TEST_EQUAL(rtA.getName(), "RTAlignment")} END_SECTION
 
   START_SECTION((compute(FeatureMap & features, TransformationDescription& trafo)))
 {

@@ -52,7 +52,7 @@ public:
       @param[in] filename Path of the @c .mzML metadata file; the side-car
                           is expected next to it as @p filename + @c ".cached".
     */
-    CachedmzML(const String& filename);
+    CachedmzML(const std::string& filename);
 
     /**
       @brief Copy constructor.
@@ -145,7 +145,7 @@ public:
 
       @throws Exception::UnableToCreateFile when either output file cannot be created.
     */
-    static void store(const String& filename, const PeakMap& map);
+    static void store(const std::string& filename, const PeakMap& map);
 
     /**
       @brief Load a cached @c .mzML pair into @p map.
@@ -161,11 +161,11 @@ public:
       @throws Exception::FileNotFound when either file cannot be opened.
       @throws Exception::ParseError   when parsing the metadata or building the side-car index fails.
     */
-    static void load(const String& filename, CachedmzML& map);
+    static void load(const std::string& filename, CachedmzML& map);
 
 protected:
 
-    void load_(const String& filename);
+    void load_(const std::string& filename);
 
     /// Meta data
     MSExperiment meta_ms_experiment_;
@@ -174,10 +174,10 @@ protected:
     std::ifstream ifs_;
 
     /// Name of the mzML file
-    String filename_;
+    std::string filename_;
 
     /// Name of the cached mzML file
-    String filename_cached_;
+    std::string filename_cached_;
 
     /// Indices
     std::vector<std::streampos> spectra_index_;

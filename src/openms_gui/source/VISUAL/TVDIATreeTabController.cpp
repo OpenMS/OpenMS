@@ -40,8 +40,8 @@ namespace OpenMS
     ExperimentSharedPtrType full_chrom_exp_sptr;
     ODExperimentSharedPtrType ondisc_sptr;
     OSWDataSharedPtrType annot_sptr;
-    String filename;
-    String layername;
+    std::string filename;
+    std::string layername;
 
     explicit MiniLayer(LayerDataChrom& layer)
     : full_chrom_exp_sptr(layer.getChromatogramData()),
@@ -72,7 +72,7 @@ namespace OpenMS
     if (!w->canvas()->addChromLayer(ml.full_chrom_exp_sptr, ml.ondisc_sptr, ml.annot_sptr,
                                     chrom_index, ml.filename, 
                                     File::stemName(ml.filename),
-                                    String("[") + transition_id + "]"))
+                                    "[" + StringUtils::toStr(transition_id) + "]"))
     {
       return false;
     }
@@ -113,7 +113,7 @@ namespace OpenMS
     {
       auto width = feature.getRTRightWidth() - feature.getRTLeftWidth();
       auto center = feature.getRTLeftWidth() + width / 2;
-      String ann = String("RT:\n ") + String(feature.getRTExperimental(), false) + "\ndRT:\n " + String(feature.getRTDelta(), false) + "\nQ:\n " + String(feature.getQValue(), false);
+      std::string ann ="RT:\n " + StringUtils::toStr(feature.getRTExperimental(), false) + "\ndRT:\n " + StringUtils::toStr(feature.getRTDelta(), false) + "\nQ:\n " + StringUtils::toStr(feature.getQValue(), false);
       QColor col = GUIHelpers::ColorBrewer::Distinct().values[(best_feature == &feature) 
                           ? GUIHelpers::ColorBrewer::Distinct::LightGreen
                           : GUIHelpers::ColorBrewer::Distinct::LightGrey];

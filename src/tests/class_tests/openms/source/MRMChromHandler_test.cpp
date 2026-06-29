@@ -67,8 +67,8 @@ START_SECTION(static void normalizeChromatogramMZ(MSChromatogram& chrom))
     TEST_REAL_SIMILAR(chrom.getProduct().getMZ(), 600.456)
     TEST_REAL_SIMILAR(chrom.getMetaValue("precursor_mz"), 500.123)
     TEST_REAL_SIMILAR(chrom.getMetaValue("product_mz"), 600.456)
-    TEST_EQUAL(chrom.getNativeID().hasPrefix("precursor="), true)
-    TEST_EQUAL(chrom.getNativeID().hasSubstring(",product="), true)
+    TEST_EQUAL(StringUtils::hasPrefix(chrom.getNativeID(), "precursor="), true)
+    TEST_EQUAL(StringUtils::hasSubstring(chrom.getNativeID(), ",product="), true)
   }
 
   // Test parsing from nativeID

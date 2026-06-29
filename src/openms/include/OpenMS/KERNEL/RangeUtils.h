@@ -77,7 +77,7 @@ public:
       @param[in] metavalue MetaValue that needs to be present.
       @param[in] reverse if @p reverse is true, operator() returns true if the metavalue does not exist.
     */
-    HasMetaValue(String metavalue, bool reverse = false) :
+    HasMetaValue(std::string metavalue, bool reverse = false) :
       metavalue_key_(metavalue),
       reverse_(reverse)
     {}
@@ -90,7 +90,7 @@ public:
     }
 
 protected:
-    String metavalue_key_;
+    std::string metavalue_key_;
     bool reverse_;
   };
 

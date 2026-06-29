@@ -89,47 +89,47 @@ namespace OpenMS
     return uloq_;
   }
 
-  void AbsoluteQuantitationMethod::setFeatureName(const String& feature_name)
+  void AbsoluteQuantitationMethod::setFeatureName(const std::string& feature_name)
   {
     feature_name_ = feature_name;
   }
 
-  String AbsoluteQuantitationMethod::getFeatureName() const
+  std::string AbsoluteQuantitationMethod::getFeatureName() const
   {
     return feature_name_;
   } 
 
-  void AbsoluteQuantitationMethod::setISName(const String& IS_name)
+  void AbsoluteQuantitationMethod::setISName(const std::string& IS_name)
   {
     IS_name_ = IS_name;
   }
 
-  String AbsoluteQuantitationMethod::getISName() const
+  std::string AbsoluteQuantitationMethod::getISName() const
   {
     return IS_name_;
   }
 
-  void AbsoluteQuantitationMethod::setComponentName(const String& component_name)
+  void AbsoluteQuantitationMethod::setComponentName(const std::string& component_name)
   {
     component_name_ = component_name;
   }
 
-  String AbsoluteQuantitationMethod::getComponentName() const
+  std::string AbsoluteQuantitationMethod::getComponentName() const
   {
     return component_name_;
   }
 
-  void AbsoluteQuantitationMethod::setConcentrationUnits(const String& concentration_units)
+  void AbsoluteQuantitationMethod::setConcentrationUnits(const std::string& concentration_units)
   {
     concentration_units_ = concentration_units;
   }
 
-  String AbsoluteQuantitationMethod::getConcentrationUnits() const
+  std::string AbsoluteQuantitationMethod::getConcentrationUnits() const
   {
     return concentration_units_;
   }
 
-  void AbsoluteQuantitationMethod::setTransformationModel(const String& transformation_model)
+  void AbsoluteQuantitationMethod::setTransformationModel(const std::string& transformation_model)
   {
     transformation_model_ = transformation_model;
   }
@@ -139,7 +139,7 @@ namespace OpenMS
     transformation_model_params_ = transformation_model_params;
   }
 
-  String AbsoluteQuantitationMethod::getTransformationModel() const
+  std::string AbsoluteQuantitationMethod::getTransformationModel() const
   {
     return transformation_model_;
   }

@@ -46,7 +46,7 @@ namespace OpenMS
       @throws Exception::FileNotFound if the file does not exist
       @throws Exception::ParseError if the file cannot be read by the thermo bridge
     */
-    void load(const String& path, MSExperiment& exp);
+    void load(const std::string& path, MSExperiment& exp);
   };
 
 } // namespace OpenMS

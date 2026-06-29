@@ -69,7 +69,7 @@ START_SECTION([EXTRA] test reading PQP with empty GENE table (issue #8687))
   // Create a minimal PQP file with an empty GENE table
   // This tests the fix for issue #8687 where an empty GENE table caused
   // INNER JOIN to return zero rows
-  String temp_file;
+  std::string temp_file;
   NEW_TMP_FILE(temp_file);
 
   // Create the PQP database structure with empty GENE table
@@ -145,7 +145,7 @@ END_SECTION
 
 START_SECTION([EXTRA] test reading PQP with multiple gene mappings does not duplicate transitions)
 {
-  String temp_file;
+  std::string temp_file;
   NEW_TMP_FILE(temp_file);
 
   {

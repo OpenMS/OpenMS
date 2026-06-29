@@ -113,7 +113,7 @@ START_SECTION(static double computePI(const AASequence& seq, ProteomicsPkaScale 
   double pi_sec = IsoelectricPoint::computePI(sec);
   TEST_REAL_SIMILAR(pi_sec, 4.035);
 
-  AASequence polybasic = AASequence::fromString(String(100, 'R'));
+  AASequence polybasic = AASequence::fromString(std::string(100, 'R'));
   double pi_polybasic = IsoelectricPoint::computePI(polybasic);
   TEST_REAL_SIMILAR(pi_polybasic, 14.0);
 
@@ -130,6 +130,56 @@ START_SECTION(static double computePI(const AASequence& seq, ProteomicsPkaScale 
   AASequence pro = AASequence::fromString("P");
   double pi_pro_bjellqvist = IsoelectricPoint::computePI(pro, ProteomicsPkaScale::BJELLQVIST);
   TEST_REAL_SIMILAR(pi_pro_bjellqvist, 5.955);
+}
+END_SECTION
+
+START_SECTION([EXTRA] computePI EMBOSS scale - external numeric cross-check)
+{
+  // Above, the EMBOSS scale is only checked for "differs from Lehninger".
+  // Pin it numerically. OpenMS uses the canonical EMBOSS Epka.dat pKa values
+  // (N-term 8.6, C-term 3.6, C 8.5, D 3.9, E 4.1, H 6.5, K 10.8, R 12.5,
+  // Y 10.1) - the same scale EMBOSS pepstats uses. The reference pI values
+  // below were produced by an independent Henderson-Hasselbalch bisection
+  // using those published EMBOSS constants (not OpenMS code); they agree with
+  // computePI() to < 1e-4 at a fine bisection tolerance.
+  TOLERANCE_ABSOLUTE(0.01)
+
+  const double tol = 1e-6; // fine bisection so the pinned reference is exact
+
+  TEST_REAL_SIMILAR(IsoelectricPoint::computePI(AASequence::fromString("ACDEFGHIK"), ProteomicsPkaScale::EMBOSS, tol), 5.4518)
+  TEST_REAL_SIMILAR(IsoelectricPoint::computePI(AASequence::fromString("PEPTIDER"), ProteomicsPkaScale::EMBOSS, tol), 3.9276)
+  TEST_REAL_SIMILAR(IsoelectricPoint::computePI(AASequence::fromString("SAMPLER"), ProteomicsPkaScale::EMBOSS, tol), 6.4101)
+  TEST_REAL_SIMILAR(IsoelectricPoint::computePI(AASequence::fromString("YGGFMR"), ProteomicsPkaScale::EMBOSS, tol), 9.3488)
+  TEST_REAL_SIMILAR(IsoelectricPoint::computePI(AASequence::fromString("DEEEAANK"), ProteomicsPkaScale::EMBOSS, tol), 3.7782)
+}
+END_SECTION
+
+START_SECTION([EXTRA] SILLERO scale numeric self-consistency)
+{
+  // LEHNINGER, EMBOSS and BJELLQVIST have numeric checks above; SILLERO had none.
+  // Pin it with reference-free invariants: the net charge spans zero across the pH
+  // range, the computed pI is a genuine zero crossing (net charge ~0 there) inside
+  // the searched [0,14] interval, and SILLERO's distinct pKa table yields a pI
+  // different from the default (Lehninger) scale.
+  AASequence peptide = AASequence::fromString("DEKRPEPTIDE"); // acidic (D,E) + basic (K,R) groups
+
+  // charge spans zero: positive at very acidic pH, negative at very basic pH
+  TEST_EQUAL(IsoelectricPoint::computeCharge(peptide, 1.0, ProteomicsPkaScale::SILLERO) > 0.0, true)
+  TEST_EQUAL(IsoelectricPoint::computeCharge(peptide, 14.0, ProteomicsPkaScale::SILLERO) < 0.0, true)
+
+  double pi_sillero = IsoelectricPoint::computePI(peptide, ProteomicsPkaScale::SILLERO);
+  // pI lies within the searched interval
+  TEST_EQUAL(pi_sillero > 0.0, true)
+  TEST_EQUAL(pi_sillero < 14.0, true)
+
+  // net charge at the pI is ~0 (definition of the isoelectric point)
+  double charge_at_pi = IsoelectricPoint::computeCharge(peptide, pi_sillero, ProteomicsPkaScale::SILLERO);
+  TOLERANCE_ABSOLUTE(1e-3)
+  TEST_REAL_SIMILAR(charge_at_pi, 0.0)
+  TOLERANCE_ABSOLUTE(1e-5)
+
+  // SILLERO's distinct pKa table -> a pI different from the default (Lehninger) scale
+  TEST_NOT_EQUAL(pi_sillero, IsoelectricPoint::computePI(peptide, ProteomicsPkaScale::LEHNINGER))
 }
 END_SECTION
 

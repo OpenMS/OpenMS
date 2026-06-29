@@ -55,22 +55,19 @@ endfunction(convert_to_unity_build)
 ## @note This macro will do nothing outside of Windows since the linker will find the libs.
 macro(copy_dll_to_extern_bin targetname)
   if (WIN32)
-    if (CMAKE_GENERATOR MATCHES "Visual Studio")
-      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TEST_TARGET)
-      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)" DLL_TEST_TARGET_PATH)
+    get_property(_copy_dll_is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    if(_copy_dll_is_multi_config)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$<CONFIG>/$<TARGET_FILE_NAME:${targetname}>" DLL_TEST_TARGET)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$<CONFIG>" DLL_TEST_TARGET_PATH)
 
-      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)/$(TargetFileName)" DLL_DOC_TARGET)
-      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)" DLL_DOC_TARGET_PATH)
-    elseif(NOT GENERATOR_IS_MULTI_CONFIG)
-      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/" DLL_TEST_TARGET)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$<CONFIG>/$<TARGET_FILE_NAME:${targetname}>" DLL_DOC_TARGET)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$<CONFIG>" DLL_DOC_TARGET_PATH)
+    else()
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$<TARGET_FILE_NAME:${targetname}>" DLL_TEST_TARGET)
       file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/" DLL_TEST_TARGET_PATH)
 
-      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/" DLL_DOC_TARGET)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$<TARGET_FILE_NAME:${targetname}>" DLL_DOC_TARGET)
       file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/" DLL_DOC_TARGET_PATH)
-    else()
-      message(WARNING "Sorry, multiconfig generators on windows other than Visual Studio not supported yet.
-              Please look for the line of this error and implement some CMake Generator expressions to copy
-              DLLs to the binaries, or modify your environment for the tests to find all library DLLs.")
     endif()
     add_custom_command(TARGET ${targetname}
             POST_BUILD
@@ -151,10 +148,7 @@ function(openms_add_library)
                              )
   target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PRIVATE ${openms_add_library_PRIVATE_INCLUDES})
   
-  #TODO cxx_std_17 only requires a c++17 flag for the compiler. Not full standard support.
-  # If we want full support, we need our own try_compiles (e.g. for structured bindings first available in GCC7)
-  # or specify a min version of each compiler.
-  target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_20)
+  target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_23)
 
   # Add compiler flags using the new helper function
   openms_add_library_compiler_flags(${openms_add_library_TARGET_NAME})
@@ -240,7 +234,8 @@ function(openms_add_library)
             $<TARGET_FILE_DIR:${openms_add_library_TARGET_NAME}>
             )
 
-    if(GENERATOR_IS_MULTI_CONFIG)
+    get_property(is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    if(is_multi_config)
       file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$<CONFIG>/" DLL_TEST_TARGET_PATH)
       file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$<CONFIG>/" DLL_DOC_TARGET_PATH)
     else()

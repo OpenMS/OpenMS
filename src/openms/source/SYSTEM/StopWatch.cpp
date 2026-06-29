@@ -202,7 +202,7 @@ namespace OpenMS
   }
 
 
-  String StopWatch::toString(const double time_in_seconds)
+  std::string StopWatch::toString(const double time_in_seconds)
   {
     int d(0), h(0), m(0), s(0);
 
@@ -223,19 +223,19 @@ namespace OpenMS
     s = int(time_i);
 
 
-    String s_d = String(d);
-    String s_h = String(h).fillLeft('0', 2) + ":";
-    String s_m = String(m).fillLeft('0', 2) + ":";
-    String s_s = String(s).fillLeft('0', 2); // if we show seconds in combination with minutes, we round to nominal 
+    std::string s_d =StringUtils::toStr(d);
+    std::string s_h =StringUtils::toStr(h); StringUtils::fillLeft(s_h,'0',2); s_h += ":";
+    std::string s_m =StringUtils::toStr(m); StringUtils::fillLeft(s_m,'0',2); s_m += ":";
+    std::string s_s =StringUtils::toStr(s); StringUtils::fillLeft(s_s,'0',2); // if we show seconds in combination with minutes, we round to nominal
 
     return ( (d>0 ? s_d + "d " + s_h + s_m + s_s + " h" :
              (h>0 ?              s_h + s_m + s_s + " h" :
              (m>0 ?                    s_m + s_s + " m" :
-             (      String::number(time_in_seconds, 2) + " s"))))); // second (shown by itself with no minutes) has two digits after decimal
+             (      StringUtils::number(time_in_seconds, 2) + " s"))))); // second (shown by itself with no minutes) has two digits after decimal
 
   }
 
-  String StopWatch::toString() const
+  std::string StopWatch::toString() const
   {
     return(
       StopWatch::toString(this->getClockTime()) + " (wall), " +

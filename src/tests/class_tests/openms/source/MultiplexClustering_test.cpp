@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
@@ -49,7 +50,7 @@ bool mz_tolerance_unit = true;    // ppm (true), Da (false)
 double peptide_similarity = 0.8;
 double averagine_similarity = 0.75;
 double averagine_similarity_scaling = 0.75;
-String averagine_type="peptide";
+std::string averagine_type="peptide";
 
 // construct list of peak patterns
 MultiplexDeltaMasses shifts1;

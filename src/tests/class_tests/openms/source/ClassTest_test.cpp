@@ -8,7 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <fstream>
@@ -709,10 +709,10 @@ START_SECTION("TEST_STRING_SIMILAR")
 
 	const double numbers[] = { -5.1, -5.0, -4.9, -0.1, 0.0, 0.1, 4.9, 5.0, 5.1 };
 	UInt number_of_numbers = sizeof(numbers)/sizeof(*numbers);
-	std::vector<OpenMS::String> number_strings;
+	std::vector<std::string> number_strings;
 	for ( UInt i = 0; i < number_of_numbers; ++i )
 	{
-		number_strings.push_back(OpenMS::String("ABC") + numbers[i] + "XYZ");
+		number_strings.push_back(std::string("ABC") + numbers[i] + "XYZ");
 	}
 
 	const double tolerance_absolute[2] = { 0.0, 0.25 };
@@ -731,12 +731,12 @@ START_SECTION("TEST_STRING_SIMILAR")
 			for ( UInt i = 0; i < number_of_numbers; ++i )
 			{
 				const double ni = numbers[i];
-				const OpenMS::String& si = number_strings[i];
+				const std::string& si = number_strings[i];
 
 				for ( UInt j = 0; j < number_of_numbers; ++j )
 				{
 					const double nj = numbers[j];
-					const OpenMS::String& sj = number_strings[j];
+					const std::string& sj = number_strings[j];
 
           // Bypass the macros to avoid lengthy output. These functions do the real job.
           bool save = TEST::test;

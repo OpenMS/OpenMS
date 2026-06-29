@@ -23,7 +23,7 @@ START_TEST(OpenSwathOSWWriter, "$Id$")
 OpenSwathOSWWriter* ptr = nullptr;
 OpenSwathOSWWriter* nullPointer = nullptr;
 
-START_SECTION(OpenSwathOSWWriter(const String& output_filename, bool uis_scores))
+START_SECTION(OpenSwathOSWWriter(const std::string& output_filename, bool uis_scores))
 {
   ptr = new OpenSwathOSWWriter("", false);
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -41,7 +41,7 @@ START_SECTION(bool isActive() const)
   OpenSwathOSWWriter inactive_writer("", false);
   TEST_EQUAL(inactive_writer.isActive(), false)
 
-  String temp_file = File::getTemporaryFile();
+  std::string temp_file = File::getTemporaryFile();
   OpenSwathOSWWriter active_writer(temp_file, false);
   TEST_EQUAL(active_writer.isActive(), true)
   File::remove(temp_file);
@@ -59,7 +59,7 @@ START_SECTION([EXTRA] RUN.ID is stored as INTEGER not BLOB (regression test for 
   //   1. typeof(RUN.ID) == 'integer'     (was 'blob' before the fix)
   //   2. A JOIN between RUN and FEATURE on run_id returns rows when expected
 
-  String temp_file = File::getTemporaryFile();
+  std::string temp_file = File::getTemporaryFile();
 
   // Use a large 64-bit value that previously triggered the BLOB storage bug
   const UInt64 large_run_id = 6130996817540441879ULL;
@@ -76,7 +76,7 @@ START_SECTION([EXTRA] RUN.ID is stored as INTEGER not BLOB (regression test for 
     const UInt64 rid = large_run_id & ~(1ULL << 63); // mirrors clearSignBit
     OpenSwathOSWWriter::OSWData rows;
     rows.feature_rows.push_back({
-      String(rid + 1), String(rid), "999", "100.0", "NULL", "100.0",
+      StringUtils::toStr(rid + 1), StringUtils::toStr(rid), "999", "100.0", "NULL", "100.0",
       "0.0", "90.0", "110.0", "NULL", "NULL"
     });
     writer.writeRows(rows);
@@ -105,7 +105,7 @@ START_SECTION([EXTRA] RUN.ID is stored as INTEGER not BLOB (regression test for 
     // 3. Verify the stored RUN.ID value round-trips correctly
     const UInt64 rid = large_run_id & ~(1ULL << 63);
     conn.executeStatement(
-      "CREATE TEMP TABLE _id_match AS SELECT 1 FROM RUN WHERE ID = " + String(rid) + ";");
+      "CREATE TEMP TABLE _id_match AS SELECT 1 FROM RUN WHERE ID = " + StringUtils::toStr(rid) + ";");
     TEST_EQUAL(conn.countTableRows("_id_match"), 1)
   }
 

@@ -1,4 +1,6 @@
 # Build artifacts and generated files
+.ccache/
+_thirdparty/
 *.cached
 *.deb
 *.pyc
