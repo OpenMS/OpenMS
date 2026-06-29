@@ -126,6 +126,43 @@
     export PATH="$OPENMS_DIR/OpenMS/THIRDPARTY/Linux/$(uname -m)/Comet:$PATH"
     \endcode
   
+  @section install_linux_vcpkg Building with vcpkg (alternative dependency manager)
+
+  Instead of installing system packages or building the `contrib` libraries by
+  hand, you can let [vcpkg](https://vcpkg.io) download and build every C++
+  dependency automatically.
+
+  1. Initialise the vcpkg submodule (one-time):
+
+    \code
+    git submodule update --init vcpkg
+    \endcode
+
+  2. Configure and build using one of the bundled CMake presets
+     (requires CMake 3.21+):
+
+    \code
+    # Release build for x64 Linux
+    cmake --preset linux-x64-release "$OPENMS_DIR/OpenMS"
+    cmake --build --preset linux-x64-release
+    \endcode
+
+    Available presets: `linux-x64-debug`, `linux-x64-release`,
+    `linux-x64-relwithdebinfo`, and the `arm64` equivalents.  Run
+    `cmake --list-presets` from the source directory to see all options.
+
+  3. Alternatively, pass the vcpkg option directly without a preset:
+
+    \code
+    cmake -DOPENMS_USE_VCPKG=ON \
+          -DVCPKG_TARGET_TRIPLET=x64-linux-dynamic \
+          -DCMAKE_BUILD_TYPE=Release \
+          "$OPENMS_DIR/OpenMS"
+    \endcode
+
+  @note vcpkg builds take longer on the first run because all dependencies are
+  compiled from source.  Subsequent builds reuse the binary cache automatically.
+
   @section install_linux_cmake_flags Additional CMake Flags
 
   \include{doc} "../doxygen/install/common-cmake-parameters.doxygen"

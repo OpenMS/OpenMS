@@ -653,9 +653,11 @@ and a simple sum-based ion image extraction.
     .def(
       "getSpectrum", [](OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum& { return self.getSpectrum(x, y); },
       "x"_a, "y"_a, nb::rv_policy::reference_internal)
-    .def("extractIonImage", nb::overload_cast<double, double>(&OpenMS::MSImagingExperiment::extractIonImage, nb::const_), "mz"_a, "tolerance_ppm"_a)
+    .def("extractIonImage", nb::overload_cast<double, double>(&OpenMS::MSImagingExperiment::extractIonImage, nb::const_), "mz"_a, "tolerance_ppm"_a,
+         "Extract a single-mass ion image over the whole dataset by summing intensities in [mz - dm, mz + dm] (dm = mz * tolerance_ppm * 1e-6), using in-memory spectra.")
     .def("extractIonImage", nb::overload_cast<double, double, OpenMS::Size>(&OpenMS::MSImagingExperiment::extractIonImage, nb::const_), "mz"_a,
-         "tolerance_ppm"_a, "region_id"_a)
+         "tolerance_ppm"_a, "region_id"_a,
+         "Extract a single-mass ion image restricted to one region, using in-memory spectra.")
     .def("getRegionSpectrumIndices", &OpenMS::MSImagingExperiment::getRegionSpectrumIndices, "region_id"_a)
     .def("validate", &OpenMS::MSImagingExperiment::validate)
     .def("__repr__", [](const OpenMS::MSImagingExperiment& self) {

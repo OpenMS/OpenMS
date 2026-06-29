@@ -5,6 +5,22 @@ The most important CMake variables are:
 
 <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
   <tr>
+    <th valign="top">OPENMS_USE_VCPKG</td>
+    <td>Use <a href="https://vcpkg.io">vcpkg</a> manifest mode to automatically download and build all
+    C++ dependencies instead of relying on a pre-installed contrib or system packages.
+    Requires the <code>vcpkg</code> git submodule to be initialised
+    (<code>git submodule update --init vcpkg</code>).
+    When enabled, CMake automatically selects the vendored vcpkg toolchain
+    (<code>vcpkg/scripts/buildsystems/vcpkg.cmake</code>).
+    Optional library groups can be added via the <code>VCPKG_MANIFEST_FEATURES</code> variable:<br>
+    <code>-DVCPKG_MANIFEST_FEATURES=hdf5</code> — HDF5 C/C++ libraries (needed for <code>-DWITH_HDF5=ON</code>)<br>
+    <code>-DVCPKG_MANIFEST_FEATURES=lp-glpk</code> — GLPK LP solver (needed for <code>-DLP_SOLVER=GLPK</code>)<br>
+    <code>-DVCPKG_MANIFEST_FEATURES=lp-highs</code> — HiGHS LP solver (needed for <code>-DLP_SOLVER=HIGHS</code>)<br>
+    Multiple features can be combined with semicolons, e.g. <code>-DVCPKG_MANIFEST_FEATURES="hdf5;lp-highs"</code>.
+    See <code>CMakePresets.json</code> in the repository root for ready-to-use preset configurations.
+    (Default: Off)</td>
+  </tr>
+  <tr>
     <th valign="top">OPENMS_CONTRIB_LIBS</td>
     <td>Separate search path for the contrib libraries from github.com/OpenMS/contrib that is internally considered before
     CMAKE_PREFIX_PATH for searching, linking and adding include directories.</td>
