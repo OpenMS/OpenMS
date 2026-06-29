@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Getting files (OpenMS)
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Update files with new package version numbers
       - name: update files

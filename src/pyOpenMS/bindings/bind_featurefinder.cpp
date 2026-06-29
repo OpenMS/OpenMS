@@ -289,11 +289,13 @@ estimated for arbitrary m/z using a spline interpolation.
         R"doc(
 Represents one target compound in the assay library for FeatureFinderAlgorithmMetaboIdent.
 
-Constructor:
+Constructor::
+
     FeatureFinderMetaboIdentCompound(name, formula, mass, charges, rts, rt_ranges,
                                      iso_distrib, ion_mobilities=[], adduct="")
 
-Arguments:
+Arguments::
+
     name           Unique target name.
     formula        Sum formula (e.g. 'C6H12O6'); may be empty if mass > 0.
     mass           Neutral mass; <= 0 means "derive from formula".

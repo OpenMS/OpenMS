@@ -502,10 +502,7 @@ namespace OpenMS
 
   void MzTabBoolean::setNull(bool b)
   {
-    if (!b)
-      value_ = -1;
-    else
-      value_ = 0;
+    value_ = b ? -1 : 0;
   }
 
   std::string MzTabBoolean::toCellString() const

@@ -405,14 +405,10 @@ namespace OpenMS
     // set current path
     current_path_ = param_.getValue(user_section + "default_path").toString();
 
-    // set plugin search path, create it if it does not already exist
-    if (verbosity_ == VERBOSITY::VERBOSE) 
+    if (verbosity_ == VERBOSITY::VERBOSE)
     {
       tool_scanner_.setVerbose(1);
     }
-
-    std::string plugin_path =std::string(param_.getValue(user_section + "plugins_path").toString());
-    tool_scanner_.setPluginPath(plugin_path, true);
 
     // update the menu
     updateMenu();
@@ -442,7 +438,6 @@ namespace OpenMS
     defaults_.setValue(user_section + "default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue(user_section + "default_path_current", "true", "If the current path is preferred over the default path.");
     defaults_.setValidStrings(user_section + "default_path_current", {"true","false"});
-    defaults_.setValue(user_section + "plugins_path", File::getUserDirectory() + "OpenMS_Plugins", "Default path for loading Plugins");
     defaults_.setValue(user_section + "intensity_cutoff", "off", "Low intensity cutoff for maps.");
     defaults_.setValidStrings(user_section + "intensity_cutoff", {"on","off"});
     defaults_.setValue(user_section + "on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
@@ -1550,12 +1545,6 @@ namespace OpenMS
           param_.insert("tool_params:", tmp.copy("tool_params:", true));
           tool_params_added = true;
         }
-        // If the saved plugin path does not exist
-        if (!tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString()))
-        {
-          // reset it to the default
-          param_.setValue(user_section + "plugins_path", File::getUserDirectory() + "OpenMS_Plugins");
-        }
       }
     }
     else if (filename != default_ini_file)
@@ -1587,12 +1576,6 @@ namespace OpenMS
     {
       tool_scanner_.waitForToolParams();
       param_.insert("tool_params:", tool_scanner_.getToolParams());
-    }
-    // check if the plugin path exists
-    if (!tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString()))
-    {
-      // reset if it does not
-      param_.setValue(user_section + "plugins_path", tool_scanner_.getPluginPath());
     }
 
     // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
@@ -1668,7 +1651,7 @@ namespace OpenMS
 
     ToolsDialog tools_dialog(this, param_,
                              topp_.file_name + "_ini", current_path_, layer.type,
-                             layer.getName(), &tool_scanner_);
+                             layer.getName());
 
     if (tools_dialog.exec() == QDialog::Accepted)
     {
@@ -1784,21 +1767,18 @@ namespace OpenMS
     // connect slots
     connect(topp_.process, &QProcess::readyReadStandardOutput, this, &TOPPViewBase::updateProcessLog);
     connect(topp_.process, CONNECTCAST(QProcess, finished, (int, QProcess::ExitStatus)), this, &TOPPViewBase::finishTOPPToolExecution);
-    QString tool_executable = toQString(std::string(tool_scanner_.findPluginExecutable(topp_.tool)));
-    if (tool_executable.isEmpty())
+    QString tool_executable;
+    try
     {
-      try
-      {
-        // find correct location of TOPP tool
-        tool_executable = toQString(File::findSiblingTOPPExecutable(topp_.tool));
-      }
-      catch (Exception::FileNotFound & /*ex*/)
-      {
-        log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Could not locate executable!",
-                              fromQString(QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(
-                                      toQString(topp_.tool))));
-        return;
-      }
+      // find correct location of TOPP tool
+      tool_executable = toQString(File::findSiblingTOPPExecutable(topp_.tool));
+    }
+    catch (Exception::FileNotFound & /*ex*/)
+    {
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Could not locate executable!",
+                            fromQString(QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(
+                                    toQString(topp_.tool))));
+      return;
     }
 
     // update menu entries according to new state

@@ -203,9 +203,6 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="3" column="2">
-        <widget class="QLineEdit" name="plugins_path"/>
-       </item>
        <item row="1" column="2">
         <widget class="QCheckBox" name="default_path_current">
          <property name="toolTip">
@@ -216,20 +213,6 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="text">
           <string>use current path</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_23">
-         <property name="text">
-          <string>Plugins path:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="3">
-        <widget class="QPushButton" name="browse_plugins">
-         <property name="text">
-          <string>Browse</string>
          </property>
         </widget>
        </item>

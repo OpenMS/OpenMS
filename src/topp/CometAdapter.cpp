@@ -24,6 +24,7 @@
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/CometNativeIDRemapper.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -31,6 +32,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/ANALYSIS/ID/CometModification.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <unordered_map>
 
@@ -768,12 +770,7 @@ protected:
       // Workaround: rewrite native IDs to `index=N` (counter path, no atoi
       // on scan=) before handing the mzML to Comet. Preserve the original
       // native ID on each spectrum so post-Comet PSMs can be translated back.
-      size_t idx = 0;
-      for (auto& spec : exp.getSpectra())
-      {
-        spec.setMetaValue("original_native_id", spec.getNativeID());
-        spec.setNativeID("index=" + StringUtils::toStr(idx++));
-      }
+      CometNativeIDRemapper::rewriteToIndex(exp);
 
       // Write to temporary indexed mzML for Comet
       auto tmp_mzml = File::getTemporaryFile() + ".mzML";
@@ -817,12 +814,7 @@ protected:
         mzml_full.getOptions().addMSLevel(ms_level);
         mzml_full.load(inputfile_name, exp);
 
-        size_t idx = 0;
-        for (auto& spec : exp.getSpectra())
-        {
-          spec.setMetaValue("original_native_id", spec.getNativeID());
-          spec.setNativeID("index=" + StringUtils::toStr(idx++));
-        }
+        CometNativeIDRemapper::rewriteToIndex(exp);
 
         auto tmp_mzml = File::getTemporaryFile() + ".mzML";
         MzMLFile().store(tmp_mzml, exp);
@@ -929,22 +921,7 @@ protected:
     // mzML (.d → FileConverter → .mzML → CometAdapter). Detection is via the
     // original_native_id MetaValue set during the rewrite — no is_bruker_d
     // guard needed.
-    if (!exp.empty() && exp[0].metaValueExists("original_native_id"))
-    {
-      // Build rewritten-id → original-id map once (O(N) vs O(N*M) linear scan).
-      std::unordered_map<std::string, std::string> id_map;
-      id_map.reserve(exp.size());
-      for (const auto& spec : exp.getSpectra())
-      {
-        if (spec.metaValueExists("original_native_id"))
-          id_map.emplace(spec.getNativeID(), spec.getMetaValue("original_native_id").toString());
-      }
-      for (auto& pid : peptide_identifications)
-      {
-        auto it = id_map.find(pid.getSpectrumReference());
-        if (it != id_map.end()) pid.setSpectrumReference(it->second);
-      }
-    }
+    CometNativeIDRemapper::translateReferencesBack(exp, peptide_identifications);
 
     // remove base_name meta value from peptide identifications
     for (auto& peptide_identification : peptide_identifications)

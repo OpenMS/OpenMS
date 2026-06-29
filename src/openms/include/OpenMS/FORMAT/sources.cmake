@@ -35,6 +35,7 @@ ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
+FileInfo.h
 FLASHDeconvFeatureFile.h
 FLASHDeconvSpectrumFile.h
 GNPSMetaValueFile.h
@@ -46,6 +47,7 @@ ZipIfstream.h
 ZipInputStream.h
 IBSpectraFile.h
 IdXMLFile.h
+ImzMLFile.h
 IndentedStream.h
 IndexedMzMLFileLoader.h
 InspectInfile.h
@@ -104,6 +106,7 @@ ToolDescriptionFile.h
 TransformationXMLFile.h
 TriqlerFile.h
 UnimodXMLFile.h
+UniProtXMLFile.h
 XMLFile.h
 XTandemInfile.h
 XTandemXMLFile.h

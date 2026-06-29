@@ -13,7 +13,7 @@
 
 using namespace OpenMS;
 
-START_TEST(MSstatsFile, "$Id$")
+START_TEST(TriqlerFile, "$Id$")
 
 START_SECTION(void OpenMS::TriqlerFile::storeLFQ( const std::string &filename, 
                                                   ConsensusMap &consensus_map,

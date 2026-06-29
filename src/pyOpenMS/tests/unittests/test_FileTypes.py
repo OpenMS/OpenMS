@@ -6,17 +6,24 @@ def test_enum_values_accessible():
     expected = [
         "UNKNOWN", "DTA", "DTA2D", "MZDATA", "MZXML", "FEATUREXML", "IDXML",
         "CONSENSUSXML", "MGF", "INI", "TOPPAS", "TRANSFORMATIONXML", "MZML",
-        "CACHEDMZML", "MS2", "PEPXML", "PROTXML", "MZIDENTML", "QCML", "MZQC",
+        "CACHEDMZML", "IMZML", "MS2", "PEPXML", "PROTXML", "MZIDENTML", "QCML", "MZQC",
         "GELML", "TRAML", "MSP", "OMSSAXML", "MASCOTXML", "PNG", "XMASS",
         "TSV", "MZTAB", "PEPLIST", "HARDKLOER", "KROENIK", "FASTA", "EDTA",
         "CSV", "TXT", "OBO", "HTML", "ANALYSISXML", "XSD", "PSQ", "MRM",
         "SQMASS", "PQP", "MS", "OSW", "PSMS", "PIN", "PARAMXML", "SPLIB",
         "NOVOR", "XQUESTXML", "SPECXML", "JSON", "RAW", "OMS", "EXE", "XML",
-        "BZ2", "GZ", "PARQUET", "SIZE_OF_TYPE",
+        "BZ2", "GZ", "ZIP", "PARQUET", "IDPARQUET", "FEATUREPARQUET",
+        "CONSENSUSPARQUET", "BRUKER_TDF", "CHROMPARQUET", "MOBILPARQUET",
+        "OSWPQ", "PEFF", "YAML", "SIZE_OF_TYPE",
     ]
     for name in expected:
         val = getattr(pyopenms.FileType, name)
         assert val is not None
+
+    # Exhaustiveness: the listed names minus the SIZE_OF_TYPE sentinel must equal the C++
+    # type count, so adding a FileTypes::Type in C++ forces this binding + list to be updated.
+    real_types = [n for n in expected if n != "SIZE_OF_TYPE"]
+    assert len(real_types) == int(pyopenms.FileType.SIZE_OF_TYPE)
 
 
 def test_typeToName():

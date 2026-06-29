@@ -38,6 +38,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/WNetMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
@@ -805,6 +806,22 @@ FeatureGroupingAlgorithm
         .def("group", [](OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
         .def("group", [](OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
         .def("transferSubelements", [](const OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
+        ;
+
+    // -----------------------------------------------------------------------
+    // PipEchoAlgorithm
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::PipEchoAlgorithm, OpenMS::FeatureGroupingAlgorithm>(m, "PipEchoAlgorithm",
+        R"doc(
+Match-between-runs feature grouping via the PIP-ECHO algorithm.
+
+Groups features representing the same identified peptide across multiple
+retention-time-aligned LC-MS runs of one fraction and transfers identifications
+between runs, controlling the transfer false-discovery rate.
+)doc")
+        .def(nb::init<>())
+        .def("group", [](OpenMS::PipEchoAlgorithm& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
+        .def("transferSubelements", [](const OpenMS::PipEchoAlgorithm& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
         ;
 
     // -----------------------------------------------------------------------
