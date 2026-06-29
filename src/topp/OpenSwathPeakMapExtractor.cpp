@@ -383,7 +383,7 @@ protected:
       catch (const Exception::BaseException& e)
       {
         OPENMS_LOG_WARN << "Failed to load priority peptide file " << tsv_file
-                        << ": " << e.what() << std::endl;
+                        << ": " << e.what() << '\n';
       }
     }
     return priority_sequences;
@@ -396,8 +396,9 @@ protected:
 
   static std::string deriveRunOutputPath_(const std::string& out_dir, const StringList& run_files, const Size run_index)
   {
-    const std::string basename = run_files.empty() ? "run_" + StringUtils::toStr(run_index + 1) :
+    const std::string basename_stem = run_files.empty() ? "run" :
       fileBasenameNoExtension_(run_files.front());
+    const std::string basename = basename_stem + "_" + StringUtils::toStr(run_index + 1);
     std::string absolute_out_dir = File::absolutePath(out_dir);
     StringUtils::ensureLastChar(absolute_out_dir, '/');
     return absolute_out_dir + basename + ".xipm";
@@ -481,7 +482,7 @@ protected:
       }
       if (!out.empty())
       {
-        OPENMS_LOG_WARN << "Both -separate_runs and -out were provided. -out will be ignored in favor of per-run files in -out_dir." << std::endl;
+        OPENMS_LOG_WARN << "Both -separate_runs and -out were provided. -out will be ignored in favor of per-run files in -out_dir.\n";
       }
     }
     else if (out.empty())
@@ -565,7 +566,7 @@ protected:
     OpenSwath::LightTargetedExperiment transition_exp = loadTransitionList(tr_type, tr_file, tsv_reader_param);
     OPENMS_LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, "
                     << transition_exp.getCompounds().size() << " compounds with "
-                    << transition_exp.getTransitions().size() << " transitions." << std::endl;
+                    << transition_exp.getTransitions().size() << " transitions.\n";
 
     std::vector<StringList> run_groups;
     if (split_file)
@@ -626,7 +627,7 @@ protected:
     for (Size run_index = 0; run_index < run_groups.size(); ++run_index)
     {
       const StringList& current_run_files = run_groups[run_index];
-      OPENMS_LOG_INFO << "Processing run " << (run_index + 1) << "/" << run_groups.size() << std::endl;
+      OPENMS_LOG_INFO << "Processing run " << (run_index + 1) << "/" << run_groups.size() << '\n';
 
       std::unique_ptr<File::TempDir> per_run_temp_dir;
       std::string per_run_tmp = tmp_dir;
@@ -661,7 +662,7 @@ protected:
           [](const OpenSwath::SwathMap& m) { return !m.ms1 && m.imLower >= 0 && m.imUpper >= 0; });
         if (pasef)
         {
-          OPENMS_LOG_INFO << "Auto-detected ion mobility (PASEF) data from SWATH windows." << std::endl;
+          OPENMS_LOG_INFO << "Auto-detected ion mobility (PASEF) data from SWATH windows.\n";
         }
       }
       if (pasef && prm)
@@ -682,7 +683,7 @@ protected:
         model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
         model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
         rt_trafo.fitModel(irt_detection_param.getValue("alignmentMethod").toString(), model_params);
-        OPENMS_LOG_WARN << "Using existing RT transformation; m/z and ion mobility calibration will be skipped." << std::endl;
+        OPENMS_LOG_WARN << "Using existing RT transformation; m/z and ion mobility calibration will be skipped.\n";
       }
       else
       {
@@ -867,7 +868,7 @@ protected:
         run_writer->finalize();
       }
       OPENMS_LOG_INFO << "Wrote " << written_rows << " extracted peak maps for run "
-                      << (run_index + 1) << std::endl;
+                      << (run_index + 1) << '\n';
     }
 
     if (aggregate_writer)

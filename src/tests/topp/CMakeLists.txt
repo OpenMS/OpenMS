@@ -2046,6 +2046,12 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathWorkflow_27_out1" ${DIFF} -whitelist "id=" "potentialOutlier" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_27.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_27_expected.featureXML)
   set_tests_properties("TOPP_OpenSwathWorkflow_27_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_27")
 
+  add_test("TOPP_OpenSwathPeakMapExtractor_1_prep"
+    ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/OpenSwathPeakMapExtractor_1_out)
+  add_test("TOPP_OpenSwathPeakMapExtractor_1_prep_mkdir"
+    ${CMAKE_COMMAND} -E make_directory ${TESTS_TEMP_DIR}/OpenSwathPeakMapExtractor_1_out)
+  set_tests_properties("TOPP_OpenSwathPeakMapExtractor_1_prep_mkdir" PROPERTIES DEPENDS "TOPP_OpenSwathPeakMapExtractor_1_prep")
+
   add_test("TOPP_OpenSwathPeakMapExtractor_1" ${TOPP_BIN_PATH}/OpenSwathPeakMapExtractor -test
     -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_input.mzML
     -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_input.tsv
@@ -2059,8 +2065,9 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
     -pasef
     -separate_runs
     -out_dir ${TESTS_TEMP_DIR}/OpenSwathPeakMapExtractor_1_out)
+  set_tests_properties("TOPP_OpenSwathPeakMapExtractor_1" PROPERTIES DEPENDS "TOPP_OpenSwathPeakMapExtractor_1_prep_mkdir")
   add_test("TOPP_OpenSwathPeakMapExtractor_1_out1"
-    bash -c "test -f ${TESTS_TEMP_DIR}/OpenSwathPeakMapExtractor_1_out/OpenSwathWorkflow_23_input.xipm")
+    bash -c "test -f ${TESTS_TEMP_DIR}/OpenSwathPeakMapExtractor_1_out/OpenSwathWorkflow_23_input_1.xipm")
   set_tests_properties("TOPP_OpenSwathPeakMapExtractor_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathPeakMapExtractor_1")
 endif(NOT DISABLE_OPENSWATH)
 
