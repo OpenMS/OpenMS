@@ -484,6 +484,24 @@ namespace OpenMS
     }
 
     // Phase 3: Process each protein
+
+    // The accession -> group-leader map depends only on @p proteins and is loop-invariant;
+    // build it once here instead of rebuilding it inside the per-protein loop (which made
+    // this phase O(P^2) in the number of proteins).
+    const std::map<std::string, std::string> accession_to_leader = mapAccessionToLeader(proteins);
+
+    // Reverse index: unmodified peptide -> all pep_quant_ entries (modified peptidoforms)
+    // sharing that unmodified sequence. Built once by a single forward pass over pep_quant_,
+    // so each bucket lists its entries in pep_quant_ (AASequence-sorted) iteration order.
+    // This replaces the previous full rescan of pep_quant_ (with a toUnmodifiedString() per
+    // entry) that calculateFileAndChannelLevelProteinAbundances_ performed for every
+    // (protein, selected peptide) pair - the dominant O(N_pep^2) cost on large inputs.
+    UnmodifiedToEntriesIndex unmod_to_entries;
+    for (const auto& pep_q : pep_quant_)
+    {
+      unmod_to_entries[pep_q.first.toUnmodifiedString()].push_back(&pep_q);
+    }
+
     for (auto& prot_q : prot_quant_)
     {
       const std::string& accession = prot_q.first;
@@ -520,12 +538,10 @@ namespace OpenMS
       // Calculate protein abundances
       calculateProteinAbundances_(accession, selected_peptides, aggregate, top_n, include_all);
 
-      // if information about (indistinguishable) protein groups is available, map
-      // each accession to the accession of the leader of its group of proteins:
-      auto accession_to_leader = mapAccessionToLeader(proteins);
-      
+      // accession_to_leader and unmod_to_entries are loop-invariant and computed once before
+      // the loop (see above).
       calculateFileAndChannelLevelProteinAbundances_(accession, selected_peptides, aggregate,
-                                          top_n, include_all, accession_to_leader);
+                                          top_n, include_all, accession_to_leader, unmod_to_entries);
 
       // Update statistics
       if (prot_q.second.total_abundances.empty())
@@ -848,6 +864,19 @@ namespace OpenMS
 
     auto & id_groups = proteins.getIndistinguishableProteins();
 
+    // Build an accession -> protein-group index once. Previously the group for each
+    // quantified protein was located with a linear std::find_if over all groups, making
+    // annotation O(#quantified_proteins * #groups). For each accession we keep the FIRST
+    // group (in id_groups order) that contains it, matching the previous find_if semantics.
+    std::map<std::string, ProteinIdentification::ProteinGroup*> accession_to_group;
+    for (auto & g : id_groups)
+    {
+      for (const auto & a : g.accessions)
+      {
+        accession_to_group.emplace(a, &g);
+      }
+    }
+
     for (const auto& q : protein_quants)
     {
       // accession of quantified protein(group)
@@ -860,17 +889,12 @@ namespace OpenMS
         continue;
       } // not quantified
  
-      // lambda to check if a ProteinGroup has accession "acc"
-      auto hasProteinInGroup = [&acc] (const ProteinIdentification::ProteinGroup& g)->bool 
-      { 
-        return find(g.accessions.begin(), g.accessions.end(), acc) != g.accessions.end(); 
-      }; 
+      // retrieve protein group with accession "acc" via the precomputed index
+      auto group_it = accession_to_group.find(acc);
 
-      // retrieve protein group with accession "acc"
-      auto id_group = std::find_if(id_groups.begin(), id_groups.end(), hasProteinInGroup);  
-
-      if (id_group != id_groups.end())
+      if (group_it != accession_to_group.end())
       {
+        ProteinIdentification::ProteinGroup* id_group = group_it->second;
         // copy abundances to float data array
         const SampleAbundances& total_abundances = q.second.total_abundances;
         const SampleAbundances& total_psm_counts = q.second.total_psm_counts;
@@ -1052,13 +1076,13 @@ namespace OpenMS
             for (auto const& channel : charge.second)
             {
               prot_quant_[leader_accession].channel_level_abundances[filename.first][channel.first] += channel.second;
-#ifdef DEBUG_PROTEINQUANTIFIER                
-              std::cout << "DEBUG: Adding abundance for protein " << accession
+#ifdef DEBUG_PROTEINQUANTIFIER
+              std::cout << "DEBUG: Adding abundance for protein " << leader_accession
                         << " fraction " << fraction.first
                         << " filename " << filename.first
                         << " charge " << charge.first
                         << " channel " << channel.first
-                        << ": " << channel.second << endl; 
+                        << ": " << channel.second << endl;
 #endif
             }
           }
@@ -1219,7 +1243,8 @@ namespace OpenMS
                                                                   const std::string& aggregate_method,
                                                                   Size top_n,
                                                                   bool include_all,
-                                                                  const std::map<std::string, std::string>& accession_to_leader)
+                                                                  const std::map<std::string, std::string>& accession_to_leader,
+                                                                  const UnmodifiedToEntriesIndex& unmod_to_entries)
   {
     auto prot_it = prot_quant_.find(protein_accession);
     if ( prot_it == prot_quant_.end())
@@ -1235,42 +1260,45 @@ namespace OpenMS
     // collect detailed abundances from selected peptides
     for (const auto& pep : selected_peptides)    // for all selected peptides
     {
-      // find the original peptide data to get detailed abundances
-      for (auto const& pep_q_check : pep_quant_)
-      {
-        if (pep_q_check.first.toUnmodifiedString() == pep)
-        {
-          std::string check_accession = getAccession_(pep_q_check.second.accessions, accession_to_leader);
-          if (check_accession == protein_accession) // this peptide belongs to current protein
-          {
-            // collect detailed abundances from this peptide
-            for (auto const& fraction : pep_q_check.second.abundances)
-            {
-              for (auto const& filename : fraction.second)
-              {
-                for (auto const& charge : filename.second)
-                {
-                  for (auto const& channel : charge.second)
-                  {
-                    auto peptide = make_tuple(fraction.first, filename.first, channel.first);
-                    channel_level_abundances_for_selected_peptides[peptide].push_back(channel.second);
+      // Look up the modified peptidoforms sharing this unmodified sequence via the
+      // precomputed index. The bucket lists entries in pep_quant_ iteration order, so the
+      // first match below is identical to the previous full-scan first-match behaviour.
+      auto idx_it = unmod_to_entries.find(pep);
+      if (idx_it == unmod_to_entries.end()) { continue; }
 
-                    #ifdef DEBUG_PEPTIDEANDPROTEINQUANT
-                    std::cout << "DEBUG: Adding abundance for leader " <<
-                              getAccession_(pep_q_check.second.accessions, const_cast<std::map<std::string, std::string>&>(accession_to_leader))
-                              << pep
-                              << " fraction " << fraction.first
-                              << " filename " << filename.first
-                              << " charge " << charge.first
-                              << " channel " << channel.first
-                              << ": " << channel.second << endl;
-                    #endif
-                  }
+      for (const auto* pep_q_ptr : idx_it->second)
+      {
+        const auto& pep_q_check = *pep_q_ptr;
+        std::string check_accession = getAccession_(pep_q_check.second.accessions, accession_to_leader);
+        if (check_accession == protein_accession) // this peptide belongs to current protein
+        {
+          // collect detailed abundances from this peptide
+          for (auto const& fraction : pep_q_check.second.abundances)
+          {
+            for (auto const& filename : fraction.second)
+            {
+              for (auto const& charge : filename.second)
+              {
+                for (auto const& channel : charge.second)
+                {
+                  auto peptide = make_tuple(fraction.first, filename.first, channel.first);
+                  channel_level_abundances_for_selected_peptides[peptide].push_back(channel.second);
+
+                  #ifdef DEBUG_PEPTIDEANDPROTEINQUANT
+                  std::cout << "DEBUG: Adding abundance for leader " <<
+                            getAccession_(pep_q_check.second.accessions, accession_to_leader)
+                            << pep
+                            << " fraction " << fraction.first
+                            << " filename " << filename.first
+                            << " charge " << charge.first
+                            << " channel " << channel.first
+                            << ": " << channel.second << endl;
+                  #endif
                 }
               }
             }
-            break; // found the peptide, no need to continue searching
           }
+          break; // found the peptide, no need to continue searching
         }
       }
     }
@@ -1306,8 +1334,10 @@ namespace OpenMS
       pd.channel_level_abundances[filename][channel] = abundance_result;
       #ifdef DEBUG_PEPTIDEANDPROTEINQUANT
       Int fraction = get<0>(selected_peptide);
+      auto leader_it = accession_to_leader.find(protein_accession);
+      const std::string& leader_accession = (leader_it != accession_to_leader.end()) ? leader_it->second : protein_accession;
       std::cout << "DEBUG: Protein " << protein_accession
-                << " leader " << getAccession_(protein_accession, const_cast<std::map<std::string, std::string>&>(accession_to_leader))
+                << " leader " << leader_accession
                 << " fraction " << fraction
                 << " filename " << filename
                 << " channel " << channel

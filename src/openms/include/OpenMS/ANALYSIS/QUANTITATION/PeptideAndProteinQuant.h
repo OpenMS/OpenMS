@@ -19,6 +19,7 @@
 #include <map>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace OpenMS
 {
@@ -197,6 +198,13 @@ public:
 
 private:
 
+    /// Index: unmodified peptide sequence -> all @p pep_quant_ entries (modified
+    /// peptidoforms) sharing that unmodified sequence, in @p pep_quant_
+    /// (AASequence-sorted) iteration order. Built once per quantifyProteins() call so
+    /// that channel-level aggregation does not rescan @p pep_quant_ (calling
+    /// AASequence::toUnmodifiedString() on every entry) for every (protein, peptide) pair.
+    typedef std::map<std::string, std::vector<const PeptideQuant::value_type*>> UnmodifiedToEntriesIndex;
+
     /// Processing statistics for output in the end
     Statistics stats_;
 
@@ -344,13 +352,15 @@ private:
          @param[in] top_n Maximum number of peptides to use per sample
          @param[in] include_all Whether to include proteins with insufficient peptides
          @param[in] accession_to_leader Map for resolving protein group leaders
+         @param[in] unmod_to_entries Precomputed index from unmodified peptide sequence to the @p pep_quant_ entries sharing it (avoids rescanning @p pep_quant_)
     */
     void calculateFileAndChannelLevelProteinAbundances_(const std::string& protein_accession,
                                            const std::vector<std::string>& selected_peptides,
                                            const std::string& aggregate_method,
                                            Size top_n,
                                            bool include_all,
-                                           const std::map<std::string, std::string>& accession_to_leader);
+                                           const std::map<std::string, std::string>& accession_to_leader,
+                                           const UnmodifiedToEntriesIndex& unmod_to_entries);
 
     /**
          @brief Perform iBAQ normalization on protein abundances.
