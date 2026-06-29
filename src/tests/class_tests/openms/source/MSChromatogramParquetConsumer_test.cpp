@@ -148,9 +148,9 @@ START_SECTION(MSChromatogramParquetConsumer_mixed_target_and_decoy_identifying_t
   decoy_chrom.setNativeID("tr_ident_decoy");
   decoy_chrom.push_back(peak);
 
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
-  String out = tmp + ".xic";
+  std::string out = tmp + ".xic";
   {
     MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
     consumer.consumeChromatogram(target_chrom);

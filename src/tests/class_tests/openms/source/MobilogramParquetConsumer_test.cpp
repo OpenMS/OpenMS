@@ -166,9 +166,9 @@ START_SECTION(MobilogramParquetConsumer_mixed_target_and_decoy_identifying_trans
   mobilogram.setRT(100.0);
   mobilogram.push_back(MobilityPeak1D(1.0, 1000.0));
 
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
-  String out = tmp + ".xim";
+  std::string out = tmp + ".xim";
   {
     MobilogramParquetConsumer consumer(out, 1, "test_source", light_exp);
     consumer.consumeMobilogram(mobilogram, "transition", 2, -1, "tr_target", 100.0, 7);
