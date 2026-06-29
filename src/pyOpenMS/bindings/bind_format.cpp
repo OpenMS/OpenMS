@@ -704,6 +704,7 @@ Computes a SHA-1 hash of the file content
         .value("BRUKER_TDF", OpenMS::FileTypes::Type::BRUKER_TDF)
         .value("CHROMPARQUET", OpenMS::FileTypes::Type::CHROMPARQUET)
         .value("MOBILPARQUET", OpenMS::FileTypes::Type::MOBILPARQUET)
+        .value("PEAKMAPPARQUET", OpenMS::FileTypes::Type::PEAKMAPPARQUET)
         .value("OSWPQ", OpenMS::FileTypes::Type::OSWPQ)
         .value("PEFF", OpenMS::FileTypes::Type::PEFF)
         .value("YAML", OpenMS::FileTypes::Type::YAML)
@@ -2484,15 +2485,15 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::XIPMParquetFile>(m, "XIPMParquetFile", "OpenMS class XIPMParquetFile")
         .def(nb::init<const OpenMS::XIPMParquetFile &>())
-        .def(nb::init<OpenMS::String>())
-        .def(nb::init<std::vector<OpenMS::String>>())
+        .def(nb::init<std::string>())
+        .def(nb::init<std::vector<std::string>>())
         .def("__copy__", [](const OpenMS::XIPMParquetFile& self) { return OpenMS::XIPMParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XIPMParquetFile& self, nb::dict) { return OpenMS::XIPMParquetFile(self); }, "memo"_a)
         .def("getFilename", [](const OpenMS::XIPMParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH peak-map Parquet files (.xipm).")
-        .def("getFilenames", [](const OpenMS::XIPMParquetFile& self) -> const std::vector<OpenMS::String> & { return self.getFilenames(); }, nb::rv_policy::reference_internal)
+        .def("getFilenames", [](const OpenMS::XIPMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, nb::rv_policy::reference_internal)
 
         .def("getColumns", [](const OpenMS::XIPMParquetFile& self) {
-            std::vector<OpenMS::String> columns;
+            std::vector<std::string> columns;
             self.getColumns(columns);
             nb::list result;
             for (const auto& col : columns) {
@@ -2523,9 +2524,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
                                const std::string& peakmap_type, bool explode) {
             std::vector<OpenMS::XIPMParquetFile::XIPMPeakMap> peak_maps;
             self.getPeakMaps(peak_maps, precursor_id, transition_id,
-                             OpenMS::String(modified_sequence),
+                             modified_sequence,
                              precursor_charge, product_charge,
-                             ms_level, run_id, OpenMS::String(peakmap_type));
+                             ms_level, run_id, peakmap_type);
 
             nb::list run_id_list, source_file_list, ms_level_list, peakmap_type_list;
             nb::list precursor_id_list, transition_id_list, modified_sequence_list;
