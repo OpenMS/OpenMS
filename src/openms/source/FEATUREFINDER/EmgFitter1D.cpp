@@ -33,7 +33,7 @@ namespace OpenMS
     Eigen::Map<Eigen::VectorXd> fvec_map(fvec, m_values);
 
     Size n = m_data->n;
-    EmgFitter1D::RawDataArrayType set = m_data->set;
+    const EmgFitter1D::RawDataArrayType& set = m_data->set;
 
     EmgFitter1D::CoordinateType h = x_map(0);
     EmgFitter1D::CoordinateType w = x_map(1);
@@ -67,7 +67,7 @@ namespace OpenMS
     Eigen::Map<Eigen::MatrixXd> J_map(J, m_values, m_inputs);
 
     Size n =  m_data->n;
-    EmgFitter1D::RawDataArrayType set = m_data->set;
+    const EmgFitter1D::RawDataArrayType& set = m_data->set;
 
     EmgFitter1D::CoordinateType h = x_map(0);
     EmgFitter1D::CoordinateType w = x_map(1);
@@ -209,10 +209,21 @@ namespace OpenMS
       if (in > max_int) { max_int = in; apex_pos = pos; }
       weight_sum += in;
     }
+    // Sanitize the fallback range so a fallback model is ALWAYS finite and in-range, even
+    // when the input itself is non-finite (e.g. a NaN/Inf leading position leaves min_pos/
+    // max_pos non-finite, since NaN comparisons never update them). For well-formed data
+    // (finite positions, positive span) every condition below is false, so the regular path
+    // is unchanged. (issue #6239 contract: never emit non-finite model parameters.)
+    if (!std::isfinite(min_pos) || !std::isfinite(max_pos) || !(max_pos > min_pos))
+    {
+      const double center = std::isfinite(apex_pos) ? apex_pos : 0.0;
+      min_pos = center - 0.5;
+      max_pos = center + 0.5;
+    }
     const double span = max_pos - min_pos;
     const double fb_w = std::max(span / 6.0, 1e-3);
     if (!std::isfinite(apex_pos) || apex_pos < min_pos || apex_pos > max_pos) { apex_pos = min_pos; }
-    if (!std::isfinite(max_int)) { max_int = 1.0; }
+    if (!std::isfinite(max_int) || !(max_int > 0.0)) { max_int = 1.0; }
 
     // Unusable input or fitter settings -> stable fallback + sentinel.
     if (!finite_input || !(span > 0.0) || !std::isfinite(weight_sum) || !(weight_sum > 0.0)

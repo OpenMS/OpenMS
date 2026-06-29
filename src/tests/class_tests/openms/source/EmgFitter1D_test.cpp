@@ -17,6 +17,7 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <memory>
 
 ///////////////////////////
@@ -200,6 +201,29 @@ START_SECTION([EXTRA] fit1d robustness for degenerate and truncated input issue 
     TEST_EQUAL(std::isfinite((double)q), true)
     TEST_EQUAL(std::isfinite((double)m->getParameters().getValue("emg:retention")), true)
     TEST_EQUAL(std::isfinite((double)m->getParameters().getValue("emg:width")), true)
+  }
+
+  // (d) Non-finite leading position (>= 4 points): even with a NaN/Inf at index 0 the
+  //     fallback range cannot recover from comparisons (NaN never updates min/max), so the
+  //     sanitizer must still yield a finite, non-null model and the -1.0 sentinel.
+  {
+    EmgFitter1D ef;
+    EmgFitter1D::RawDataArrayType bad;
+    Peak1D p;
+    p.setPosition(std::numeric_limits<double>::quiet_NaN()); p.setIntensity(5.0f); bad.push_back(p);
+    p.setPosition(11.0); p.setIntensity(7.0f); bad.push_back(p);
+    p.setPosition(12.0); p.setIntensity(4.0f); bad.push_back(p);
+    p.setPosition(13.0); p.setIntensity(3.0f); bad.push_back(p);
+    std::unique_ptr<InterpolationModel> m;
+    EmgFitter1D::QualityType q = ef.fit1d(bad, m);
+    TEST_REAL_SIMILAR(q, -1.0)
+    TEST_EQUAL(m.get() != nullptr, true)
+    TEST_EQUAL(std::isfinite((double)m->getParameters().getValue("emg:height")), true)
+    TEST_EQUAL(std::isfinite((double)m->getParameters().getValue("emg:width")), true)
+    TEST_EQUAL(std::isfinite((double)m->getParameters().getValue("emg:symmetry")), true)
+    TEST_EQUAL(std::isfinite((double)m->getParameters().getValue("emg:retention")), true)
+    TEST_EQUAL(std::isfinite((double)m->getParameters().getValue("bounding_box:min")), true)
+    TEST_EQUAL(std::isfinite((double)m->getParameters().getValue("bounding_box:max")), true)
   }
 }
 END_SECTION
