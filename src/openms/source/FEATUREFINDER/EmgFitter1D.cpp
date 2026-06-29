@@ -12,8 +12,12 @@
 
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <Eigen/Core>
+
+#include <algorithm>
+#include <cmath>
 
 namespace OpenMS
 {
@@ -141,33 +145,94 @@ namespace OpenMS
 
   EmgFitter1D::QualityType EmgFitter1D::fit1d(const RawDataArrayType& set, std::unique_ptr<InterpolationModel>& model)
   {
-    // Calculate bounding box
-    CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
-    for (Size pos = 1; pos < set.size(); ++pos)
+    // Robustness (issue #6239): this method must never throw, never read out of bounds,
+    // and never emit non-finite model parameters. A degenerate or failed fit yields a
+    // stable, in-range fallback model and the quality sentinel -1.0. Well-formed fits are
+    // handled exactly as before (no change to scores feeding OpenSWATH/FeatureFinderId.).
+
+    // Builds an EmgModel from a parameter set; shared by the regular and fallback paths so
+    // they can never diverge on parameter keys / interpolation step.
+    auto build_model = [this](double height, double width, double symmetry, double retention,
+                              double bb_min, double bb_max) -> std::unique_ptr<InterpolationModel>
     {
-      CoordinateType tmp = set[pos].getPos();
-      if (min_bb > tmp)
+      std::unique_ptr<InterpolationModel> m(new EmgModel());
+      m->setInterpolationStep((std::isfinite(interpolation_step_) && interpolation_step_ > 0.0) ? interpolation_step_ : 0.2);
+      Param p;
+      p.setValue("bounding_box:min", bb_min);
+      p.setValue("bounding_box:max", bb_max);
+      p.setValue("statistics:variance", statistics_.variance());
+      p.setValue("statistics:mean", statistics_.mean());
+      p.setValue("emg:height", height);
+      p.setValue("emg:width", width);
+      p.setValue("emg:symmetry", symmetry);
+      p.setValue("emg:retention", retention);
+      m->setParameters(p);
+      return m;
+    };
+
+    const Size n = set.size();
+
+    // Degenerate: fewer points than the 4 EMG parameters (LM requires N >= params).
+    if (n < 4)
+    {
+      double lo = 0.0, hi = 1.0, apex = 0.0, height = 1.0;
+      if (n > 0)
       {
-        min_bb = tmp;
+        lo = hi = apex = set[0].getPos();
+        height = set[0].getIntensity();
+        for (Size i = 1; i < n; ++i)
+        {
+          const double pos = set[i].getPos();
+          if (std::isfinite(pos)) { lo = std::min(lo, pos); hi = std::max(hi, pos); }
+          if (set[i].getIntensity() > height) { height = set[i].getIntensity(); apex = pos; }
+        }
       }
-      if (max_bb < tmp)
-      {
-        max_bb = tmp;
-      }
+      if (!std::isfinite(lo) || !std::isfinite(hi) || hi <= lo) { lo = 0.0; hi = 1.0; }
+      if (!std::isfinite(apex) || apex < lo || apex > hi) { apex = lo; }
+      const double w = std::max((hi - lo) / 6.0, 1e-3);
+      model = build_model(std::isfinite(height) ? height : 1.0, w, w, apex, lo, hi);
+      return -1.0;
     }
 
-    // Enlarge the bounding box by a few multiples of the standard deviation
-    const CoordinateType stdev = sqrt(statistics_.variance()) * tolerance_stdev_box_;
-    min_bb -= stdev;
-    max_bb += stdev;
+    // Single pass: data range, apex (max-intensity position), intensity sum, finiteness.
+    double min_pos = set[0].getPos(), max_pos = set[0].getPos();
+    double apex_pos = set[0].getPos(), max_int = set[0].getIntensity();
+    double weight_sum = 0.0;
+    bool finite_input = std::isfinite(set[0].getPos()) && std::isfinite(set[0].getIntensity());
+    for (Size i = 0; i < n; ++i)
+    {
+      const double pos = set[i].getPos();
+      const double in = set[i].getIntensity();
+      if (!std::isfinite(pos) || !std::isfinite(in)) { finite_input = false; }
+      if (pos < min_pos) { min_pos = pos; }
+      if (pos > max_pos) { max_pos = pos; }
+      if (in > max_int) { max_int = in; apex_pos = pos; }
+      weight_sum += in;
+    }
+    const double span = max_pos - min_pos;
+    const double fb_w = std::max(span / 6.0, 1e-3);
+    if (!std::isfinite(apex_pos) || apex_pos < min_pos || apex_pos > max_pos) { apex_pos = min_pos; }
+    if (!std::isfinite(max_int)) { max_int = 1.0; }
 
+    // Unusable input or fitter settings -> stable fallback + sentinel.
+    if (!finite_input || !(span > 0.0) || !std::isfinite(weight_sum) || !(weight_sum > 0.0)
+        || !std::isfinite(interpolation_step_) || !(interpolation_step_ > 0.0))
+    {
+      model = build_model(max_int, fb_w, fb_w, apex_pos, min_pos, max_pos);
+      return -1.0;
+    }
+
+    // Bounding box enlarged by a few multiples of the standard deviation (unchanged).
+    const CoordinateType stdev = sqrt(statistics_.variance()) * tolerance_stdev_box_;
+    const CoordinateType min_bb = min_pos - stdev;
+    const CoordinateType max_bb = max_pos + stdev;
 
     // Set advanced parameters for residual_  und jacobian_ method
     EmgFitter1D::Data d;
     d.n = set.size();
     d.set = set;
 
-    // Compute start parameters
+    // Compute start parameters (method-of-moments path is OOB-safe, see setInitialParametersMOM_)
     setInitialParameters_(set);
 
     // Optimize parameter with Levenberg-Marquardt algorithm
@@ -177,10 +242,18 @@ namespace OpenMS
     x_init[2] = symmetry_;
     x_init[3] = retention_;
 
+    bool fit_ok = true;
     if (!symmetric_)
     {
+      try
+      {
         EgmFitterFunctor functor(4, &d);
         optimize_(x_init, functor);
+      }
+      catch (const Exception::UnableToFit&)
+      {
+        fit_ok = false;
+      }
     }
 
     // Set optimized parameters
@@ -189,20 +262,16 @@ namespace OpenMS
     symmetry_ = x_init[2];
     retention_ = x_init[3];
 
-    // build model
-    model = std::unique_ptr<InterpolationModel>(new EmgModel());
-    model->setInterpolationStep(interpolation_step_);
+    // Reject non-finite optimizer output: emit a stable fallback model instead of garbage.
+    if (!fit_ok || !std::isfinite(height_) || !std::isfinite(width_)
+        || !std::isfinite(symmetry_) || !std::isfinite(retention_))
+    {
+      model = build_model(max_int, fb_w, fb_w, apex_pos, min_pos, max_pos);
+      return -1.0;
+    }
 
-    Param tmp;
-    tmp.setValue("bounding_box:min", min_bb);
-    tmp.setValue("bounding_box:max", max_bb);
-    tmp.setValue("statistics:variance", statistics_.variance());
-    tmp.setValue("statistics:mean", statistics_.mean());
-    tmp.setValue("emg:height", height_);
-    tmp.setValue("emg:width", width_);
-    tmp.setValue("emg:symmetry", symmetry_);
-    tmp.setValue("emg:retention", retention_);
-    model->setParameters(tmp);
+    // build model
+    model = build_model(height_, width_, symmetry_, retention_, min_bb, max_bb);
 
     // calculate pearson correlation
     std::vector<float> real_data;
@@ -217,9 +286,12 @@ namespace OpenMS
     }
 
     QualityType correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
-    if (std::isnan(correlation))
+
+    // Non-finite correlation -> unusable fit: stable fallback model + sentinel.
+    if (!std::isfinite(correlation))
     {
-      correlation = -1.0;
+      model = build_model(max_int, fb_w, fb_w, apex_pos, min_pos, max_pos);
+      return -1.0;
     }
     return correlation;
   }
@@ -240,7 +312,9 @@ namespace OpenMS
     int weighted_median_idx = 0;
     double sum = weight_sum - set[0].getIntensity(); // sum is the total weight of all `x[i] > x[k]`
 
-    while (sum > weight_sum/2.)
+    // Bound the index (issue #6239): with non-positive/degenerate weights `sum` may not
+    // decrease, so guard against advancing past the last element (out-of-bounds read).
+    while (sum > weight_sum/2. && weighted_median_idx + 1 < static_cast<int>(set.size()))
     {
       ++weighted_median_idx;
       sum -= set[weighted_median_idx].getIntensity();

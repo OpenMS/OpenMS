@@ -16,6 +16,8 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <algorithm>
+#include <cmath>
+#include <memory>
 
 ///////////////////////////
 
@@ -136,6 +138,70 @@ START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationMo
   TEST_REAL_SIMILAR((double)em_fitted1->getParameters().getValue("emg:symmetry"), 5.0);
   TEST_REAL_SIMILAR((double)em_fitted1->getParameters().getValue("emg:retention"), 725.0);
 
+END_SECTION
+
+START_SECTION([EXTRA] fit1d robustness for degenerate and truncated input issue 6239)
+{
+  // (a) Fewer points than parameters: must not throw; sentinel quality (<= 0); finite, non-null model.
+  {
+    EmgFitter1D ef;
+    EmgFitter1D::RawDataArrayType few;
+    Peak1D p;
+    p.setPosition(10.0); p.setIntensity(5.0f); few.push_back(p);
+    p.setPosition(11.0); p.setIntensity(7.0f); few.push_back(p);
+    p.setPosition(12.0); p.setIntensity(4.0f); few.push_back(p);
+    std::unique_ptr<InterpolationModel> m;
+    EmgFitter1D::QualityType q = ef.fit1d(few, m);
+    TEST_EQUAL(q <= 0.0, true)
+    TEST_EQUAL(m.get() != nullptr, true)
+    TEST_EQUAL(std::isfinite((double)m->getParameters().getValue("emg:retention")), true)
+  }
+
+  // (b) All-equal positions (zero span): must not throw; sentinel quality; finite, non-null model.
+  {
+    EmgFitter1D ef;
+    EmgFitter1D::RawDataArrayType flat;
+    for (int i = 0; i < 8; ++i)
+    {
+      Peak1D p; p.setPosition(50.0); p.setIntensity(3.0f); flat.push_back(p);
+    }
+    std::unique_ptr<InterpolationModel> m;
+    EmgFitter1D::QualityType q = ef.fit1d(flat, m);
+    TEST_EQUAL(q <= 0.0, true)
+    TEST_EQUAL(m.get() != nullptr, true)
+  }
+
+  // (c) Right-truncated edge peak (the #6239 scenario): a clean EMG sampled only up to ~1
+  //     step past its apex, no data beyond. Track A guarantees no throw and finite output.
+  //     In-range apex is a Track-B concern and intentionally NOT asserted here.
+  {
+    EmgModel em; em.setInterpolationStep(0.2);
+    Param tp;
+    tp.setValue("bounding_box:min", 0.0);
+    tp.setValue("bounding_box:max", 200.0);
+    tp.setValue("statistics:mean", 180.0);
+    tp.setValue("statistics:variance", 2.0);
+    tp.setValue("emg:height", 100000.0);
+    tp.setValue("emg:width", 5.0);
+    tp.setValue("emg:symmetry", 5.0);
+    tp.setValue("emg:retention", 180.0);
+    em.setParameters(tp);
+    EmgModel::SamplesType full; em.getSamples(full);
+    EmgFitter1D::RawDataArrayType trunc;
+    for (Size i = 0; i < full.size(); ++i)
+    {
+      if (full[i].getPosition()[0] <= 199.0) { trunc.push_back(full[i]); }
+    }
+    TEST_EQUAL(trunc.size() >= 4, true)
+    EmgFitter1D ef;
+    std::unique_ptr<InterpolationModel> m;
+    EmgFitter1D::QualityType q = ef.fit1d(trunc, m);
+    TEST_EQUAL(m.get() != nullptr, true)
+    TEST_EQUAL(std::isfinite((double)q), true)
+    TEST_EQUAL(std::isfinite((double)m->getParameters().getValue("emg:retention")), true)
+    TEST_EQUAL(std::isfinite((double)m->getParameters().getValue("emg:width")), true)
+  }
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
