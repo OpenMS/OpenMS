@@ -22,6 +22,7 @@ General:
   - Ubuntu CI runners updated to 24.04
   - macOS code signing and notarization integrated directly into CI (#8486, #8494, #8527)
   - Parquet support enabled across all platforms; Arrow/Parquet is now a required dependency and the WITH_PARQUET CMake option has been removed (#8370, #8422, #8991)
+  - OpenSWATH parquet readers: deduplicated the shared Arrow/Parquet plumbing between XICParquetFile and XIMParquetFile into one internal helper; XIC now uses the same type-safe DOUBLE/FLOAT/LARGE_STRING extraction path as XIM (#9691)
   - Modernized TransformationDescription to use std::unique_ptr for memory safety
   - Fix undefined behavior in ProteinIdentification get*DataArrayByName by throwing ElementNotFound when the name is missing
   - When a shared-data file (e.g. CHEMISTRY/custom_mods.xml) cannot be found, File::find now reports the resolved OpenMS data directory and where it was resolved from (OPENMS_DATA_PATH vs. compiled/executable-relative), so a stale OPENMS_DATA_PATH or a leftover old installation is easy to spot and fix (#9636, #9650)
