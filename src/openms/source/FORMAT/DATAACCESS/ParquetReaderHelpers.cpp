@@ -97,6 +97,35 @@ namespace OpenMS
           return *combined;
         }
 
+        std::shared_ptr<arrow::Table> readTableFromReader_(parquet::arrow::FileReader& reader,
+                                                           const std::string& filename)
+        {
+          std::shared_ptr<arrow::Table> table;
+          const auto status = reader.ReadTable(&table);
+          if (!status.ok() || !table)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Failed to read parquet table",
+                                          filename + ": " + status.ToString());
+          }
+          return table;
+        }
+
+        std::shared_ptr<arrow::Table> readTableFromReader_(parquet::arrow::FileReader& reader,
+                                                           const std::vector<int>& column_indices,
+                                                           const std::string& filename)
+        {
+          std::shared_ptr<arrow::Table> table;
+          const auto status = reader.ReadTable(column_indices, &table);
+          if (!status.ok() || !table)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Failed to read parquet table",
+                                          filename + ": " + status.ToString());
+          }
+          return table;
+        }
+
         std::string upper_(const std::string& input)
         {
           std::string out = input;
@@ -244,12 +273,19 @@ namespace OpenMS
           return name_map;
         }
 
+        struct PrunedFilterColumns
+        {
+          std::vector<std::string> unsupported_columns;
+          std::vector<std::string> unknown_columns;
+        };
+
         void normalizeAndPruneColumns_(FilterExpression& expr,
                                        const std::shared_ptr<arrow::Schema>& schema,
                                        const std::unordered_set<std::string>& unsupported_columns,
-                                       std::vector<std::string>& dropped_columns)
+                                       PrunedFilterColumns& pruned_columns)
         {
-          dropped_columns.clear();
+          pruned_columns.unsupported_columns.clear();
+          pruned_columns.unknown_columns.clear();
           if (expr.conditions.empty())
           {
             return;
@@ -269,16 +305,16 @@ namespace OpenMS
             const std::string upper_column = upper_(cond.column);
 
             auto it = name_map.find(upper_column);
-            if (it != name_map.end())
+            if (it == name_map.end())
             {
-              cond.column = it->second;
+              pruned_columns.unknown_columns.push_back(original);
+              continue;
             }
+            cond.column = it->second;
 
-            const bool unsupported = unsupported_columns.contains(upper_(cond.column));
-            const bool exists_in_schema = name_map.contains(upper_(cond.column));
-            if (unsupported || !exists_in_schema)
+            if (unsupported_columns.contains(upper_column))
             {
-              dropped_columns.push_back(original);
+              pruned_columns.unsupported_columns.push_back(original);
               continue;
             }
 
@@ -320,12 +356,19 @@ namespace OpenMS
                                          const std::string& filter_context,
                                          const FilterPruningOptions& pruning_options)
         {
-          std::vector<std::string> dropped;
-          normalizeAndPruneColumns_(expr, schema, pruning_options.unsupported_columns, dropped);
+          PrunedFilterColumns pruned_columns;
+          normalizeAndPruneColumns_(expr, schema, pruning_options.unsupported_columns, pruned_columns);
 
-          if (!dropped.empty())
+          if (!pruned_columns.unknown_columns.empty())
           {
-            const std::string dropped_text = joinColumns_(dropped);
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Unknown filter columns",
+                                          joinColumns_(pruned_columns.unknown_columns));
+          }
+
+          if (!pruned_columns.unsupported_columns.empty())
+          {
+            const std::string dropped_text = joinColumns_(pruned_columns.unsupported_columns);
             if (pruning_options.reject_unsupported_after_pruning)
             {
               throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -487,8 +530,17 @@ namespace OpenMS
               value = static_cast<arrow::Int8Array*>(array.get())->Value(row);
               return true;
             case arrow::Type::UINT64:
-              value = static_cast<arrow::UInt64Array*>(array.get())->Value(row);
+            {
+              const uint64_t raw_value = static_cast<arrow::UInt64Array*>(array.get())->Value(row);
+              if (raw_value > static_cast<uint64_t>(std::numeric_limits<Int64>::max()))
+              {
+                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "UINT64 value exceeds Int64 range",
+                                              StringUtils::toStr(raw_value));
+              }
+              value = static_cast<Int64>(raw_value);
               return true;
+            }
             case arrow::Type::UINT32:
               value = static_cast<arrow::UInt32Array*>(array.get())->Value(row);
               return true;
@@ -642,15 +694,8 @@ namespace OpenMS
       std::shared_ptr<arrow::Table> readParquetTable(const std::string& filename)
       {
         auto reader = openReader_(filename);
-
-        auto table_result = reader->ReadTable();
-        if (!table_result.ok())
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Failed to read parquet table: " + table_result.status().ToString(), filename);
-        }
-
-        return combineChunks_(*table_result, filename, "Failed to combine parquet chunks");
+        return combineChunks_(readTableFromReader_(*reader, filename), filename,
+                              "Failed to combine parquet chunks");
       }
 
       std::shared_ptr<arrow::Table> readParquetTable(const std::vector<std::string>& filenames)
@@ -730,14 +775,8 @@ namespace OpenMS
                                               "No requested columns found in parquet file '" + filename + "'");
         }
 
-        auto table_result = reader->ReadTable(column_indices);
-        if (!table_result.ok())
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Failed to read parquet table", filename);
-        }
-
-        return combineChunks_(*table_result, filename, "Failed to combine parquet chunks");
+        return combineChunks_(readTableFromReader_(*reader, column_indices, filename), filename,
+                              "Failed to combine parquet chunks");
       }
 
       std::shared_ptr<arrow::Table> readParquetTableColumns(const std::vector<std::string>& filenames,

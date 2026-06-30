@@ -18,6 +18,8 @@
 #include <arrow/io/api.h>
 #include <parquet/arrow/writer.h>
 
+#include <limits>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -124,6 +126,10 @@ START_SECTION(void getChromatograms(std::vector<XICChromatogram>&, Int64, Int64,
   std::vector<XICChromatogram> chroms_invalid_in;
   TEST_EXCEPTION(Exception::InvalidValue,
                  xic.getChromatograms(chroms_invalid_in, -1, -1, "", -1, -1, -1, -1, "precursor_id IN []"))
+
+  std::vector<XICChromatogram> chroms_unknown_column;
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 xic.getChromatograms(chroms_unknown_column, -1, -1, "", -1, -1, -1, -1, "precusor_id=2"))
 }
 END_SECTION
 
@@ -198,6 +204,57 @@ START_SECTION(void getChromatograms_large_string_columns)
   TEST_EQUAL(chroms[0].intensity.size(), 2)
   TEST_REAL_SIMILAR(chroms[0].rt[0], 100.0)
   TEST_REAL_SIMILAR(chroms[0].intensity[1], 1001.0)
+}
+END_SECTION
+
+START_SECTION(void load_uint64_overflow_throws)
+{
+  std::string filename;
+  NEW_TMP_FILE(filename);
+
+  arrow::UInt64Builder run_id_builder;
+  arrow::Int64Builder precursor_id_builder;
+  arrow::StringBuilder source_file_builder;
+  arrow::BinaryBuilder rt_data_builder;
+  arrow::BinaryBuilder intensity_data_builder;
+  arrow::Int64Builder rt_compression_builder;
+  arrow::Int64Builder intensity_compression_builder;
+
+  const uint64_t overflowing_run_id = static_cast<uint64_t>(std::numeric_limits<Int64>::max()) + 1ULL;
+
+  appendOk_(run_id_builder, overflowing_run_id);
+  appendOk_(precursor_id_builder, static_cast<int64_t>(42));
+  appendOk_(source_file_builder, std::string("overflow.raw"));
+  appendBinaryOk_(rt_data_builder, encodeDoubles_({100.0}));
+  appendBinaryOk_(intensity_data_builder, encodeDoubles_({1000.0}));
+  appendOk_(rt_compression_builder, static_cast<int64_t>(0));
+  appendOk_(intensity_compression_builder, static_cast<int64_t>(0));
+
+  auto table = arrow::Table::Make(
+    arrow::schema({
+      arrow::field(XICSchema::RUN_ID, arrow::uint64()),
+      arrow::field(XICSchema::PRECURSOR_ID, arrow::int64()),
+      arrow::field(XICSchema::SOURCE_FILE, arrow::utf8()),
+      arrow::field(XICSchema::RT_DATA, arrow::binary()),
+      arrow::field(XICSchema::INTENSITY_DATA, arrow::binary()),
+      arrow::field(XICSchema::RT_COMPRESSION, arrow::int64()),
+      arrow::field(XICSchema::INTENSITY_COMPRESSION, arrow::int64())
+    }),
+    {
+      finishArray_(run_id_builder),
+      finishArray_(precursor_id_builder),
+      finishArray_(source_file_builder),
+      finishArray_(rt_data_builder),
+      finishArray_(intensity_data_builder),
+      finishArray_(rt_compression_builder),
+      finishArray_(intensity_compression_builder)
+    });
+
+  TEST_EQUAL(writeParquetTable_(table, filename).ok(), true)
+
+  XICParquetFile xic(filename);
+  std::vector<XICParquetFile::XICChromatogram> chroms;
+  TEST_EXCEPTION(Exception::InvalidValue, xic.load(chroms))
 }
 END_SECTION
 
