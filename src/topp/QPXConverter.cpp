@@ -8,10 +8,12 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -42,9 +44,11 @@ using namespace std;
     </table>
 </CENTER>
 
-QPXConverter reads peptide and protein identifications from idXML files
-and converts them to parquet format following the QPX PSM (Peptide
-Spectrum Match) specification.
+QPXConverter reads peptide and protein identifications from idXML or
+consensusXML files and converts them to parquet format following the QPX
+PSM (Peptide Spectrum Match) specification. When a consensusXML is given,
+the peptide identifications assigned to consensus features as well as the
+unassigned peptide identifications are exported.
 
 The output parquet file contains PSM data with structured columns following
 the QPX PSM specification including ProForma peptidoform notation,
@@ -72,8 +76,8 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "Input idXML file");
-    setValidFormats_("in", ListUtils::create<std::string>("idXML"));
+    registerInputFile_("in", "<file>", "", "Input idXML or consensusXML file");
+    setValidFormats_("in", ListUtils::create<std::string>("idXML,consensusXML"));
 
     registerOutputFile_("out", "<file>", "", "Output parquet file", true);
     setValidFormats_("out", ListUtils::create<std::string>("parquet"));
@@ -96,9 +100,32 @@ protected:
     vector<ProteinIdentification> protein_identifications;
     PeptideIdentificationList peptide_identifications;
 
-    OPENMS_LOG_INFO << "Loading idXML file..." << endl;
-    IdXMLFile idxml_file;
-    idxml_file.load(in, protein_identifications, peptide_identifications);
+    const FileTypes::Type in_type = FileHandler::getType(in);
+
+    if (in_type == FileTypes::CONSENSUSXML)
+    {
+      OPENMS_LOG_INFO << "Loading consensusXML file..." << endl;
+      ConsensusMap consensus_map;
+      ConsensusXMLFile().load(in, consensus_map);
+
+      protein_identifications = consensus_map.getProteinIdentifications();
+
+      // gather PSMs assigned to consensus features ...
+      for (const ConsensusFeature& cf : consensus_map)
+      {
+        const PeptideIdentificationList& assigned = cf.getPeptideIdentifications();
+        peptide_identifications.insert(peptide_identifications.end(), assigned.begin(), assigned.end());
+      }
+      // ... and the unassigned PSMs
+      const PeptideIdentificationList& unassigned = consensus_map.getUnassignedPeptideIdentifications();
+      peptide_identifications.insert(peptide_identifications.end(), unassigned.begin(), unassigned.end());
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "Loading idXML file..." << endl;
+      IdXMLFile idxml_file;
+      idxml_file.load(in, protein_identifications, peptide_identifications);
+    }
 
     if (peptide_identifications.empty())
     {
