@@ -154,6 +154,14 @@ target_link_libraries(ConsensusMapArrowIO_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
 )
+target_link_libraries(XICParquetFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
+target_link_libraries(XIMParquetFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
 target_link_libraries(Libzip_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}

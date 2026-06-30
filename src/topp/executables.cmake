@@ -160,7 +160,6 @@ endif(NOT DISABLE_OPENSWATH)
 
 set(TOPP_executables
   ${TOPP_executables}
-  QPXConverter
   ParquetConverter
 )
 
