@@ -732,9 +732,9 @@ namespace OpenMS
           }
 
           // store PSM
-          phs.push_back(ph);
+          phs.push_back(std::move(ph));
         }
-        pi.setHits(phs);
+        pi.setHits(std::move(phs));
         // Ensure hits are sorted by score (best first), then assign ranks explicitly (0 = top hit)
         pi.sort();
         {
