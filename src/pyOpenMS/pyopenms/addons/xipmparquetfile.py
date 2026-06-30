@@ -141,7 +141,7 @@ def _normalize_analyte_columns(columns):
 
 def _read_metadata_columns(self, columns):
     try:
-        import pyarrow.dataset as ds
+        import pyarrow.parquet as pq
     except ImportError:
         return None
 
@@ -149,11 +149,20 @@ def _read_metadata_columns(self, columns):
     if not filenames:
         return {}
 
-    table = ds.dataset(filenames, format="parquet").to_table(columns=list(columns))
-    return {
-        _ANALYTE_COLUMN_MAP.get(column, column.lower()): table[column].to_pylist()
+    result = {
+        _ANALYTE_COLUMN_MAP.get(column, column.lower()): []
         for column in columns
     }
+
+    for filename in filenames:
+        with open(filename, "rb") as handle:
+            table = pq.read_table(handle, columns=list(columns))
+        for column in columns:
+            result[_ANALYTE_COLUMN_MAP.get(column, column.lower())].extend(
+                table[column].to_pylist()
+            )
+
+    return result
 
 
 def _deduplicate_transition_lists(group, requested_transition_fields, transition_grouping_fields):
