@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/XIPMParquetFile.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include "DATAACCESS/ParquetReaderHelpers.h"
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
@@ -16,12 +17,8 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
-#include <arrow/io/api.h>
-#include <arrow/util/config.h>
-#include <parquet/arrow/reader.h>
 
 #include <cstring>
-#include <limits>
 #include <memory>
 #include <string>
 #include <unordered_set>
@@ -30,6 +27,8 @@ namespace OpenMS
 {
   namespace
   {
+    namespace PRH = Internal::ParquetReaderHelpers;
+
     void validateXIPMTable_(const std::shared_ptr<arrow::Table>& table)
     {
       auto validation = ArrowSchemaValidation::validate(
@@ -43,49 +42,9 @@ namespace OpenMS
 
     std::shared_ptr<arrow::Table> readParquetTable_(const std::string& filename)
     {
-      auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
-      if (!infile_result.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to open parquet file", filename);
-      }
-      const std::shared_ptr<arrow::io::ReadableFile>& infile = *infile_result;
-
-      auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
-      if (!reader_result.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to create parquet reader", filename);
-      }
-      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
-
-#if ARROW_VERSION_MAJOR >= 24
-      auto table_result = reader->ReadTable();
-      if (!table_result.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to read parquet table: " + table_result.status().ToString(), filename);
-      }
-      std::shared_ptr<arrow::Table> table = *table_result;
-#else
-      std::shared_ptr<arrow::Table> table;
-      auto read_status = reader->ReadTable(&table);
-      if (!read_status.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to read parquet table: " + read_status.ToString(), filename);
-      }
-#endif
-
-      auto combined = table->CombineChunks(arrow::default_memory_pool());
-      if (!combined.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to combine parquet chunks", filename);
-      }
-      std::shared_ptr<arrow::Table> table_combined = *combined;
-      validateXIPMTable_(table_combined);
-      return table_combined;
+      auto table = PRH::readParquetTable(filename);
+      validateXIPMTable_(table);
+      return table;
     }
 
     std::shared_ptr<arrow::Table> readParquetTable_(const std::vector<std::string>& filenames)
@@ -100,150 +59,22 @@ namespace OpenMS
         return readParquetTable_(filenames.front());
       }
 
-      std::vector<std::shared_ptr<arrow::Table>> tables;
-      tables.reserve(filenames.size());
-      for (const auto& filename : filenames)
-      {
-        tables.push_back(readParquetTable_(filename));
-      }
-
-      auto concat_result = arrow::ConcatenateTables(tables);
-      if (!concat_result.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to concatenate parquet tables", concat_result.status().ToString());
-      }
-
-      auto combined = (*concat_result)->CombineChunks(arrow::default_memory_pool());
-      if (!combined.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to combine parquet chunks", combined.status().ToString());
-      }
-      std::shared_ptr<arrow::Table> table_combined = *combined;
-      validateXIPMTable_(table_combined);
-      return table_combined;
+      auto table = PRH::readParquetTable(filenames);
+      validateXIPMTable_(table);
+      return table;
     }
 
-    std::shared_ptr<arrow::Schema> readParquetSchema_(const std::string& filename)
-    {
-      auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
-      if (!infile_result.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to open parquet file", filename);
-      }
-      const std::shared_ptr<arrow::io::ReadableFile>& infile = *infile_result;
-
-      auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
-      if (!reader_result.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to create parquet reader", filename);
-      }
-      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
-
-      std::shared_ptr<arrow::Schema> schema;
-      auto status = reader->GetSchema(&schema);
-      if (!status.ok() || !schema)
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to read parquet schema", filename);
-      }
-      return schema;
-    }
-
-    std::shared_ptr<arrow::Schema> readParquetSchemaAllFiles_(const std::vector<std::string>& filenames)
+    std::shared_ptr<arrow::Table> readParquetTableColumns_(const std::vector<std::string>& filenames,
+                                                           const std::vector<std::string>& columns)
     {
       if (filenames.empty())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "No parquet files provided for schema validation", "");
+                                      "No parquet files provided", "");
       }
-      auto base = readParquetSchema_(filenames.front());
-      for (Size i = 1; i < filenames.size(); ++i)
-      {
-        auto other = readParquetSchema_(filenames[i]);
-        if (!other->Equals(*base))
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Parquet input files have incompatible schemas: '" + filenames.front() +
-                                        "' vs '" + filenames[i] + "'", "");
-        }
-      }
-      return base;
-    }
-
-    std::shared_ptr<arrow::Array> getColumn_(const std::shared_ptr<arrow::Table>& table,
-                                             const std::string& name,
-                                             bool required = true)
-    {
-      auto column = table->GetColumnByName(name);
-      if (!column)
-      {
-        if (required)
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                              "Missing required column '" + name + "'");
-        }
-        return nullptr;
-      }
-      if (column->num_chunks() == 0)
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Column has no chunks", name);
-      }
-      if (column->num_chunks() == 1)
-      {
-        return column->chunk(0);
-      }
-      auto combined = arrow::Concatenate(column->chunks(), arrow::default_memory_pool());
-      if (!combined.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to combine column chunks", combined.status().ToString());
-      }
-      return *combined;
-    }
-
-    bool getOptionalInt_(const std::shared_ptr<arrow::Array>& array, int64_t row, Int64& value)
-    {
-      if (!array || array->IsNull(row))
-      {
-        return false;
-      }
-      auto typed = std::static_pointer_cast<arrow::Int64Array>(array);
-      value = typed->Value(row);
-      return true;
-    }
-
-    bool getOptionalDouble_(const std::shared_ptr<arrow::Array>& array, int64_t row, double& value)
-    {
-      if (!array || array->IsNull(row))
-      {
-        return false;
-      }
-      auto typed = std::static_pointer_cast<arrow::DoubleArray>(array);
-      value = typed->Value(row);
-      return true;
-    }
-
-    bool getOptionalString_(const std::shared_ptr<arrow::Array>& array, int64_t row, std::string& value)
-    {
-      if (!array || array->IsNull(row))
-      {
-        return false;
-      }
-      auto typed = std::static_pointer_cast<arrow::StringArray>(array);
-      value = typed->GetString(row);
-      return true;
-    }
-
-    std::string getBinaryView_(const std::shared_ptr<arrow::Array>& array, int64_t row)
-    {
-      auto typed = std::static_pointer_cast<arrow::BinaryArray>(array);
-      const auto view = typed->GetView(row);
-      return std::string(view.data(), static_cast<Size>(view.size()));
+      auto table = PRH::readParquetTableColumns(filenames, columns);
+      validateXIPMTable_(table);
+      return table;
     }
 
     void decodeBinary_(const std::string& data, Int64 compression, std::vector<double>& output)
@@ -379,60 +210,60 @@ namespace OpenMS
       return;
     }
 
-    auto run_id_col = getColumn_(table, "RUN_ID");
-    auto source_file_col = getColumn_(table, "SOURCE_FILE", false);
-    auto ms_level_col = getColumn_(table, "MS_LEVEL");
-    auto peakmap_type_col = getColumn_(table, "PEAKMAP_TYPE", false);
-    auto precursor_id_col = getColumn_(table, "PRECURSOR_ID", false);
-    auto transition_id_col = getColumn_(table, "TRANSITION_ID", false);
-    auto modified_sequence_col = getColumn_(table, "MODIFIED_SEQUENCE", false);
-    auto precursor_charge_col = getColumn_(table, "PRECURSOR_CHARGE", false);
-    auto product_charge_col = getColumn_(table, "PRODUCT_CHARGE", false);
-    auto detecting_transition_col = getColumn_(table, "DETECTING_TRANSITION", false);
-    auto precursor_decoy_col = getColumn_(table, "PRECURSOR_DECOY", false);
-    auto product_decoy_col = getColumn_(table, "PRODUCT_DECOY", false);
-    auto transition_ordinal_col = getColumn_(table, "TRANSITION_ORDINAL", false);
-    auto transition_type_col = getColumn_(table, "TRANSITION_TYPE", false);
-    auto annotation_col = getColumn_(table, "ANNOTATION", false);
-    auto target_mz_col = getColumn_(table, "TARGET_MZ");
-    auto target_rt_col = getColumn_(table, "TARGET_RT", false);
-    auto target_im_col = getColumn_(table, "TARGET_ION_MOBILITY", false);
-    auto rt_start_col = getColumn_(table, "RT_START", false);
-    auto rt_end_col = getColumn_(table, "RT_END", false);
-    auto mz_data_col = getColumn_(table, "MZ_DATA");
-    auto rt_data_col = getColumn_(table, "RT_DATA");
-    auto mobility_data_col = getColumn_(table, "MOBILITY_DATA");
-    auto intensity_data_col = getColumn_(table, "INTENSITY_DATA");
-    auto mz_compression_col = getColumn_(table, "MZ_COMPRESSION");
-    auto rt_compression_col = getColumn_(table, "RT_COMPRESSION");
-    auto mobility_compression_col = getColumn_(table, "MOBILITY_COMPRESSION");
-    auto intensity_compression_col = getColumn_(table, "INTENSITY_COMPRESSION");
+    auto run_id_col = PRH::getColumn(table, "RUN_ID");
+    auto source_file_col = PRH::getColumn(table, "SOURCE_FILE", false);
+    auto ms_level_col = PRH::getColumn(table, "MS_LEVEL");
+    auto peakmap_type_col = PRH::getColumn(table, "PEAKMAP_TYPE", false);
+    auto precursor_id_col = PRH::getColumn(table, "PRECURSOR_ID", false);
+    auto transition_id_col = PRH::getColumn(table, "TRANSITION_ID", false);
+    auto modified_sequence_col = PRH::getColumn(table, "MODIFIED_SEQUENCE", false);
+    auto precursor_charge_col = PRH::getColumn(table, "PRECURSOR_CHARGE", false);
+    auto product_charge_col = PRH::getColumn(table, "PRODUCT_CHARGE", false);
+    auto detecting_transition_col = PRH::getColumn(table, "DETECTING_TRANSITION", false);
+    auto precursor_decoy_col = PRH::getColumn(table, "PRECURSOR_DECOY", false);
+    auto product_decoy_col = PRH::getColumn(table, "PRODUCT_DECOY", false);
+    auto transition_ordinal_col = PRH::getColumn(table, "TRANSITION_ORDINAL", false);
+    auto transition_type_col = PRH::getColumn(table, "TRANSITION_TYPE", false);
+    auto annotation_col = PRH::getColumn(table, "ANNOTATION", false);
+    auto target_mz_col = PRH::getColumn(table, "TARGET_MZ");
+    auto target_rt_col = PRH::getColumn(table, "TARGET_RT", false);
+    auto target_im_col = PRH::getColumn(table, "TARGET_ION_MOBILITY", false);
+    auto rt_start_col = PRH::getColumn(table, "RT_START", false);
+    auto rt_end_col = PRH::getColumn(table, "RT_END", false);
+    auto mz_data_col = PRH::getColumn(table, "MZ_DATA");
+    auto rt_data_col = PRH::getColumn(table, "RT_DATA");
+    auto mobility_data_col = PRH::getColumn(table, "MOBILITY_DATA");
+    auto intensity_data_col = PRH::getColumn(table, "INTENSITY_DATA");
+    auto mz_compression_col = PRH::getColumn(table, "MZ_COMPRESSION");
+    auto rt_compression_col = PRH::getColumn(table, "RT_COMPRESSION");
+    auto mobility_compression_col = PRH::getColumn(table, "MOBILITY_COMPRESSION");
+    auto intensity_compression_col = PRH::getColumn(table, "INTENSITY_COMPRESSION");
 
     output.reserve(rows);
 
     for (int64_t row = 0; row < rows; ++row)
     {
       XIPMPeakMap peak_map;
-      getOptionalInt_(run_id_col, row, peak_map.run_id);
-      getOptionalString_(source_file_col, row, peak_map.source_file);
-      getOptionalString_(peakmap_type_col, row, peak_map.peakmap_type);
-      peak_map.has_precursor_id = getOptionalInt_(precursor_id_col, row, peak_map.precursor_id);
-      peak_map.has_transition_id = getOptionalInt_(transition_id_col, row, peak_map.transition_id);
-      getOptionalString_(modified_sequence_col, row, peak_map.modified_sequence);
-      peak_map.has_precursor_charge = getOptionalInt_(precursor_charge_col, row, peak_map.precursor_charge);
-      peak_map.has_product_charge = getOptionalInt_(product_charge_col, row, peak_map.product_charge);
-      peak_map.has_detecting_transition = getOptionalInt_(detecting_transition_col, row, peak_map.detecting_transition);
-      peak_map.has_precursor_decoy = getOptionalInt_(precursor_decoy_col, row, peak_map.precursor_decoy);
-      peak_map.has_product_decoy = getOptionalInt_(product_decoy_col, row, peak_map.product_decoy);
-      peak_map.has_transition_ordinal = getOptionalInt_(transition_ordinal_col, row, peak_map.transition_ordinal);
-      getOptionalString_(transition_type_col, row, peak_map.transition_type);
-      getOptionalString_(annotation_col, row, peak_map.annotation);
-      getOptionalInt_(ms_level_col, row, peak_map.ms_level);
-      getOptionalDouble_(target_mz_col, row, peak_map.target_mz);
-      peak_map.has_target_rt = getOptionalDouble_(target_rt_col, row, peak_map.target_rt);
-      peak_map.has_target_ion_mobility = getOptionalDouble_(target_im_col, row, peak_map.target_ion_mobility);
-      peak_map.has_rt_start = getOptionalDouble_(rt_start_col, row, peak_map.rt_start);
-      peak_map.has_rt_end = getOptionalDouble_(rt_end_col, row, peak_map.rt_end);
+      PRH::getOptionalInt(run_id_col, row, peak_map.run_id);
+      PRH::getOptionalString(source_file_col, row, peak_map.source_file);
+      PRH::getOptionalString(peakmap_type_col, row, peak_map.peakmap_type);
+      peak_map.has_precursor_id = PRH::getOptionalInt(precursor_id_col, row, peak_map.precursor_id);
+      peak_map.has_transition_id = PRH::getOptionalInt(transition_id_col, row, peak_map.transition_id);
+      PRH::getOptionalString(modified_sequence_col, row, peak_map.modified_sequence);
+      peak_map.has_precursor_charge = PRH::getOptionalInt(precursor_charge_col, row, peak_map.precursor_charge);
+      peak_map.has_product_charge = PRH::getOptionalInt(product_charge_col, row, peak_map.product_charge);
+      peak_map.has_detecting_transition = PRH::getOptionalInt(detecting_transition_col, row, peak_map.detecting_transition);
+      peak_map.has_precursor_decoy = PRH::getOptionalInt(precursor_decoy_col, row, peak_map.precursor_decoy);
+      peak_map.has_product_decoy = PRH::getOptionalInt(product_decoy_col, row, peak_map.product_decoy);
+      peak_map.has_transition_ordinal = PRH::getOptionalInt(transition_ordinal_col, row, peak_map.transition_ordinal);
+      PRH::getOptionalString(transition_type_col, row, peak_map.transition_type);
+      PRH::getOptionalString(annotation_col, row, peak_map.annotation);
+      PRH::getOptionalInt(ms_level_col, row, peak_map.ms_level);
+      PRH::getOptionalDouble(target_mz_col, row, peak_map.target_mz);
+      peak_map.has_target_rt = PRH::getOptionalDouble(target_rt_col, row, peak_map.target_rt);
+      peak_map.has_target_ion_mobility = PRH::getOptionalDouble(target_im_col, row, peak_map.target_ion_mobility);
+      peak_map.has_rt_start = PRH::getOptionalDouble(rt_start_col, row, peak_map.rt_start);
+      peak_map.has_rt_end = PRH::getOptionalDouble(rt_end_col, row, peak_map.rt_end);
       if (!peak_map.has_target_rt && peak_map.has_rt_start && peak_map.has_rt_end && peak_map.rt_end > peak_map.rt_start)
       {
         peak_map.target_rt = (peak_map.rt_start + peak_map.rt_end) / 2.0;
@@ -452,15 +283,15 @@ namespace OpenMS
       Int64 rt_compression = 0;
       Int64 mobility_compression = 0;
       Int64 intensity_compression = 0;
-      getOptionalInt_(mz_compression_col, row, mz_compression);
-      getOptionalInt_(rt_compression_col, row, rt_compression);
-      getOptionalInt_(mobility_compression_col, row, mobility_compression);
-      getOptionalInt_(intensity_compression_col, row, intensity_compression);
+      PRH::getOptionalInt(mz_compression_col, row, mz_compression);
+      PRH::getOptionalInt(rt_compression_col, row, rt_compression);
+      PRH::getOptionalInt(mobility_compression_col, row, mobility_compression);
+      PRH::getOptionalInt(intensity_compression_col, row, intensity_compression);
 
-      decodeBinary_(getBinaryView_(mz_data_col, row), mz_compression, peak_map.mz);
-      decodeBinary_(getBinaryView_(rt_data_col, row), rt_compression, peak_map.rt);
-      decodeBinary_(getBinaryView_(mobility_data_col, row), mobility_compression, peak_map.ion_mobility);
-      decodeBinary_(getBinaryView_(intensity_data_col, row), intensity_compression, peak_map.intensity);
+      decodeBinary_(PRH::getBinaryView(mz_data_col, row), mz_compression, peak_map.mz);
+      decodeBinary_(PRH::getBinaryView(rt_data_col, row), rt_compression, peak_map.rt);
+      decodeBinary_(PRH::getBinaryView(mobility_data_col, row), mobility_compression, peak_map.ion_mobility);
+      decodeBinary_(PRH::getBinaryView(intensity_data_col, row), intensity_compression, peak_map.intensity);
 
       if (peak_map.mz.size() != peak_map.rt.size() ||
           peak_map.mz.size() != peak_map.ion_mobility.size() ||
@@ -477,15 +308,15 @@ namespace OpenMS
   void XIPMParquetFile::getRuns(std::vector<XIPMRunInfo>& output) const
   {
     output.clear();
-    auto table = readParquetTable_(filenames_);
+    auto table = readParquetTableColumns_(filenames_, {"RUN_ID", "SOURCE_FILE"});
     const int64_t rows = table->num_rows();
     if (rows == 0)
     {
       return;
     }
 
-    auto run_id_col = getColumn_(table, "RUN_ID");
-    auto source_file_col = getColumn_(table, "SOURCE_FILE", false);
+    auto run_id_col = PRH::getColumn(table, "RUN_ID");
+    auto source_file_col = PRH::getColumn(table, "SOURCE_FILE", false);
 
     std::unordered_set<std::string> seen;
     output.reserve(rows);
@@ -493,8 +324,8 @@ namespace OpenMS
     for (int64_t row = 0; row < rows; ++row)
     {
       XIPMRunInfo info;
-      getOptionalInt_(run_id_col, row, info.run_id);
-      getOptionalString_(source_file_col, row, info.source_file);
+      PRH::getOptionalInt(run_id_col, row, info.run_id);
+      PRH::getOptionalString(source_file_col, row, info.source_file);
 
       const std::string key = std::to_string(info.run_id) + '\t' + std::string(info.source_file);
       if (seen.insert(key).second)
@@ -507,7 +338,7 @@ namespace OpenMS
   void XIPMParquetFile::getColumns(std::vector<std::string>& output) const
   {
     output.clear();
-    std::shared_ptr<arrow::Schema> schema = readParquetSchemaAllFiles_(filenames_);
+    std::shared_ptr<arrow::Schema> schema = PRH::readParquetSchemaAllFiles(filenames_);
     output.reserve(schema->num_fields());
     for (const auto& field : schema->fields())
     {
