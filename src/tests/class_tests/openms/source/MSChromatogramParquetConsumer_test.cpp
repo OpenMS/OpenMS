@@ -84,6 +84,56 @@ START_SECTION(MSChromatogramParquetConsumer_empty_chromatograms)
 }
 END_SECTION
 
+START_SECTION(MSChromatogramParquetConsumer_trailing_empty_chromatograms_are_written)
+{
+  OpenSwath::LightTargetedExperiment light_exp;
+
+  OpenSwath::LightCompound compound;
+  compound.id = "pep1";
+  compound.sequence = "PEPTIDE";
+  compound.charge = 2;
+  light_exp.compounds.push_back(compound);
+
+  OpenSwath::LightTransition transition;
+  transition.transition_name = "tr1";
+  transition.peptide_ref = "pep1";
+  transition.precursor_mz = 600.2;
+  transition.product_mz = 500.2;
+  transition.fragment_charge = 1;
+  transition.fragment_nr = 7;
+  transition.setFragmentType("y");
+  transition.setDetectingTransition(true);
+  light_exp.transitions.push_back(transition);
+
+  MSChromatogram nonempty_chrom;
+  nonempty_chrom.setNativeID("tr1");
+  ChromatogramPeak peak;
+  peak.setRT(100.0);
+  peak.setIntensity(1000.0);
+  nonempty_chrom.push_back(peak);
+
+  MSChromatogram empty_chrom;
+  empty_chrom.setNativeID("tr1");
+
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  std::string out = tmp + ".xic";
+  {
+    MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
+    consumer.consumeChromatogram(nonempty_chrom);
+    consumer.consumeChromatogram(empty_chrom);
+  }
+
+  XICParquetFile xic(out);
+  std::vector<XICChromatogram> chroms;
+  xic.load(chroms);
+  TEST_EQUAL(chroms.size(), 2)
+  TEST_EQUAL(chroms[0].rt.empty(), false)
+  TEST_EQUAL(chroms[1].rt.empty(), true)
+  TEST_EQUAL(chroms[1].intensity.empty(), true)
+}
+END_SECTION
+
 START_SECTION(MSChromatogramParquetConsumer_destructor_no_throw)
 {
   TargetedExperiment targeted_exp;

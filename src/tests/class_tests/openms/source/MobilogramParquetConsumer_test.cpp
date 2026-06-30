@@ -131,6 +131,26 @@ START_SECTION(MobilogramParquetConsumer_destructor_flushes)
 }
 END_SECTION
 
+START_SECTION(MobilogramParquetConsumer_explicit_finalize_writes_file)
+{
+  Mobilogram m;
+  m.push_back(MobilityPeak1D(1.0, 100.0));
+
+  OpenSwath::LightTargetedExperiment light_exp;
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  std::string out = tmp + ".xim";
+  {
+    MobilogramParquetConsumer consumer(out, 1, "test_source", light_exp);
+    consumer.consumeMobilogram(m);
+    consumer.finalize();
+  }
+
+  TEST_EQUAL(File::exists(out), true)
+  TEST_EQUAL(File::fileSize(out) > 0, true)
+}
+END_SECTION
+
 START_SECTION(MobilogramParquetConsumer_mixed_target_and_decoy_identifying_transitions_keep_single_target_analyte)
 {
   OpenSwath::LightTargetedExperiment light_exp;

@@ -159,6 +159,24 @@ START_SECTION(XIPMParquetConsumer_empty_file)
 }
 END_SECTION
 
+START_SECTION(XIPMParquetConsumer_explicit_finalize_writes_file)
+{
+  const auto light_exp = makeExperiment_();
+
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  const std::string out = tmp + ".xipm";
+  {
+    XIPMParquetConsumer consumer(out, light_exp);
+    consumer.consumePeakMap(makeTransitionPeakMap_(), 7, "run1.mzML", 2);
+    consumer.finalize();
+  }
+
+  TEST_EQUAL(File::exists(out), true)
+  TEST_EQUAL(File::fileSize(out) > 0, true)
+}
+END_SECTION
+
 START_SECTION(XIPMParquetConsumer_mixed_target_and_decoy_identifying_transitions_keep_target_precursor_decoy)
 {
   const auto light_exp = makeMixedIPFExperiment_();

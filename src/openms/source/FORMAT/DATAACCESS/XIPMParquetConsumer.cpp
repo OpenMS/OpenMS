@@ -380,24 +380,27 @@ namespace OpenMS
       if (writer_)
       {
         auto status = writer_->Close();
+        writer_.reset();
         if (!status.ok())
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "Failed to close XIPM parquet writer", status.ToString());
         }
-        writer_.reset();
       }
+      // Mark as written before closing the file so the destructor cannot
+      // reopen and truncate a successfully written file if outfile_->Close()
+      // throws afterwards.
+      wrote_ = true;
       if (outfile_)
       {
         auto status = outfile_->Close();
+        outfile_.reset();
         if (!status.ok())
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "Failed to close XIPM parquet output stream", status.ToString());
         }
-        outfile_.reset();
       }
-      wrote_ = true;
     }
 
   private:

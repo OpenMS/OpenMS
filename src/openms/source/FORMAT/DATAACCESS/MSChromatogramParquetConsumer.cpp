@@ -452,9 +452,8 @@ namespace OpenMS
         appendBinary_(intensity_data_builder_, int_encoded, "INTENSITY_DATA");
         appendOrThrow_(rt_compression_builder_.Append(rt_compression), "RT_COMPRESSION");
         appendOrThrow_(intensity_compression_builder_.Append(intensity_compression), "INTENSITY_COMPRESSION");
-        return;
       }
-      if (use_lossy_compression)
+      else if (use_lossy_compression)
       {
         // MSNumpress encodes doubles to byte strings, then zlib compresses.
         MSNumpressCoder::NumpressConfig npconfig_mz;
@@ -485,14 +484,16 @@ namespace OpenMS
         ZlibCompression::compressString(int_bytes, int_encoded);
       }
 
-      appendBinary_(rt_data_builder_, rt_encoded, "RT_DATA");
-      appendBinary_(intensity_data_builder_, int_encoded, "INTENSITY_DATA");
-      appendOrThrow_(rt_compression_builder_.Append(rt_compression), "RT_COMPRESSION");
-      appendOrThrow_(intensity_compression_builder_.Append(intensity_compression), "INTENSITY_COMPRESSION");
+      if (!rt_data.empty())
+      {
+        appendBinary_(rt_data_builder_, rt_encoded, "RT_DATA");
+        appendBinary_(intensity_data_builder_, int_encoded, "INTENSITY_DATA");
+        appendOrThrow_(rt_compression_builder_.Append(rt_compression), "RT_COMPRESSION");
+        appendOrThrow_(intensity_compression_builder_.Append(intensity_compression), "INTENSITY_COMPRESSION");
+      }
       
-      // Track accumulated binary size and row count. Flush BEFORE the next
-      // append if the thresholds would be exceeded, so we never exceed Arrow's
-      // int32 capacity limits within a single batch.
+      // Track accumulated binary size and row count for both populated and
+      // empty chromatograms so trailing empty rows are flushed as well.
       accumulated_rows_++;
       accumulated_binary_bytes_ += rt_encoded.size();
       accumulated_binary_bytes_ += int_encoded.size();

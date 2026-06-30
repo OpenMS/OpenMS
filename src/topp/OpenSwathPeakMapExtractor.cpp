@@ -101,10 +101,10 @@ protected:
     registerStringOption_("matching_window_only", "<name>", "false", "Assume the input data is targeted / PRM-like data with potentially overlapping DIA windows. Only extract each assay from the best matching DIA window.", false, true);
     setValidStrings_("matching_window_only", ListUtils::create<std::string>("true,false"));
 
-    registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range). This is the full window size.", false);
+    registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value. This is the full window size. Non-positive values disable RT filtering during peak-map extraction.", false);
     registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Extract additional RT beyond the primary window for inspection.", false, true);
     setMinFloat_("extra_rt_extraction_window", 0.0);
-    registerDoubleOption_("ion_mobility_window", "<double>", -1.0, "Extraction window in ion mobility dimension. This is the full window size. -1 extracts the full IM range.", false);
+    registerDoubleOption_("ion_mobility_window", "<double>", -1.0, "Extraction window in ion mobility dimension. This is the full window size. Non-positive values extract the full IM range.", false);
     registerDoubleOption_("mz_extraction_window", "<double>", 50.0, "Extraction window in Thomson or ppm (see mz_extraction_window_unit)", false);
     setMinFloat_("mz_extraction_window", 0.0);
     registerStringOption_("mz_extraction_window_unit", "<name>", "ppm", "Unit for mz extraction", false, true);
@@ -441,6 +441,8 @@ protected:
     const Int64 ms_level = ms1 ? 1 : 2;
     for (const auto& peak_map : peak_maps)
     {
+      // Empty payloads are skipped intentionally so the output only contains
+      // analytes with at least one extracted point.
       if (peak_map.mz.empty())
       {
         continue;
