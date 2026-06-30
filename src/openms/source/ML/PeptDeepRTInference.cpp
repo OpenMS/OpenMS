@@ -8,8 +8,8 @@
 
 #include <OpenMS/ML/PeptDeepRTInference.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include "ONNXEnvironment.h"
-#include "AminoAcidVocabulary.h"
+#include <OpenMS/ML/ONNXEnvironment.h>
+#include <OpenMS/ML/AminoAcidVocabulary.h>
 #include <stdexcept>
 
 #ifdef _WIN32
@@ -29,7 +29,7 @@ namespace OpenMS
             {
                 session_options_.SetIntraOpNumThreads(1);
                 session_options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
-                
+
 #ifdef _WIN32
                 if (model_path.empty()) {
                     session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), L"", session_options_);
@@ -49,31 +49,20 @@ namespace OpenMS
             }
         }
 
-        std::vector<int64_t> tokenizePeptides(const std::vector<std::string>& peptides, size_t& max_length)
+        std::vector<int64_t> tokenizePeptides(const std::vector<std::string>& peptides)
         {
-            max_length = 132;
             std::vector<int64_t> flat_tokens;
-            flat_tokens.reserve(peptides.size() * max_length);
+            flat_tokens.reserve(peptides.size() * ML::PEPTDEEP_MAX_SEQUENCE_LENGTH);
 
             for (const auto& p : peptides) {
-                if (p.length() > max_length) {
-                    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                        "Peptide sequence exceeds the maximum allowed length of 132 residues.",
-                        std::to_string(p.length()));
-                }
+                // Shared utility completely handles validation and error throwing
+                ML::validatePeptide(p);
 
-                for (size_t i = 0; i < max_length; ++i) {
+                for (size_t i = 0; i < ML::PEPTDEEP_MAX_SEQUENCE_LENGTH; ++i) {
                     if (i < p.length()) {
-                        const auto aa_index = ML::getAAIndex(p[i]);
-                        if (aa_index == 0) {
-                            throw Exception::InvalidValue(
-                                __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                "Unsupported residue in peptide sequence.",
-                                std::string(1, p[i]));
-                        }
-                        flat_tokens.push_back(aa_index);
+                        flat_tokens.push_back(ML::getAAIndex(p[i]));
                     } else {
-                        flat_tokens.push_back(0); 
+                        flat_tokens.push_back(0); // Pad sequence to 132
                     }
                 }
             }
@@ -87,10 +76,10 @@ namespace OpenMS
                 throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide list cannot be empty.");
             }
 
-            size_t max_seq_len = 132;
-            std::vector<int64_t> input_tokens = tokenizePeptides(peptides, max_seq_len);
-            std::vector<int64_t> seq_shape = { static_cast<int64_t>(peptides.size()), static_cast<int64_t>(max_seq_len) };
+            std::vector<int64_t> input_tokens = tokenizePeptides(peptides);
+            std::vector<int64_t> seq_shape = { static_cast<int64_t>(peptides.size()), static_cast<int64_t>(ML::PEPTDEEP_MAX_SEQUENCE_LENGTH) };
 
+            // Fetch expected mod_shape dynamically from ONNX
             Ort::TypeInfo mod_type_info = session_->GetInputTypeInfo(1);
             auto mod_tensor_info = mod_type_info.GetTensorTypeAndShapeInfo();
             std::vector<int64_t> mod_shape = mod_tensor_info.GetShape();
@@ -103,16 +92,11 @@ namespace OpenMS
             }
 
             mod_shape[0] = peptides.size();
-            mod_shape[1] = max_seq_len;
+            mod_shape[1] = ML::PEPTDEEP_MAX_SEQUENCE_LENGTH;
 
-            int64_t total_mod_elements = 1;
-            for (int64_t dim : mod_shape)
-            {
-                if (dim < 0) total_mod_elements *= 109;
-                else total_mod_elements *= dim;
-            }
+            // Shared utility generates the 109-element tensor for the batch
+            std::vector<float> mod_x_data = ML::generateUnmodifiedModXTensor(peptides.size(), ML::PEPTDEEP_MAX_SEQUENCE_LENGTH);
 
-            std::vector<float> mod_x_data(total_mod_elements, 0.0f);
             Ort::MemoryInfo memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
             std::vector<Ort::Value> input_tensors;
 

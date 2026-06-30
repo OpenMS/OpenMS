@@ -38,7 +38,7 @@ if(ONNXRuntime_FOUND)
   set(ONNXRuntime_LIBRARIES ${ONNXRuntime_LIBRARY})
 
   if(NOT TARGET ONNXRuntime::ONNXRuntime)
-    add_library(ONNXRuntime::ONNXRuntime UNKNOWN IMPORTED)
+    add_library(ONNXRuntime::ONNXRuntime SHARED IMPORTED)
     set_target_properties(ONNXRuntime::ONNXRuntime PROPERTIES
       IMPORTED_LOCATION "${ONNXRuntime_LIBRARY}"
       INTERFACE_INCLUDE_DIRECTORIES "${ONNXRuntime_INCLUDE_DIR}"

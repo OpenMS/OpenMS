@@ -13,7 +13,6 @@
 #include <memory>
 #include <OpenMS/config.h>
 
-
 namespace OpenMS {
 
 /// @brief Inference engine for PeptDeep MS2 Fragment Intensity prediction.
@@ -30,17 +29,19 @@ public:
     /// @brief Destructor
     ~PeptDeepMS2Inference();
 
-    /// @brief Predicts MS2 fragment intensities for a single peptide sequence.
-    /// @param peptide_sequence The raw uppercase peptide string (e.g., "PEPTIDEK").
-    /// @param charge The precursor charge state.
-    /// @param nce The normalized collision energy (NCE) applied during fragmentation.
-    /// @param instrument_index Categorical integer representing the MS instrument type (default: 0).
-    /// @return A flattened vector of predicted float fragment intensities representing the generated spectra.
-    /// @throws std::invalid_argument if the sequence string is empty or contains unmapped amino acid characters.
-    std::vector<float> predictMS2(const std::string& peptide_sequence,
-                                  float charge,
-                                  float nce,
-                                  int64_t instrument_index = 0);
+    /// @brief Predicts MS2 fragment intensities for a batch of peptide sequences.
+    /// @param peptides A vector of raw uppercase peptide strings.
+    /// @param charges A vector of precursor charge states (must match peptides size).
+    /// @param nces A vector of normalized collision energies (must match peptides size).
+    /// @param instrument_indices A vector of categorical integers representing MS instruments (e.g., 0=Lumos, 1=QE, 2=timsTOF, 3=Sciex).
+    /// @return A vector of flattened fragment intensity arrays, one for each peptide.
+    ///         Native shape ordering is contiguous by fragment and ion type [b_1, y_1, b_2, y_2...].
+    /// @throws std::invalid_argument if the sequence string is empty, too long, or contains unmapped characters.
+    std::vector<std::vector<float>> predictMS2(
+        const std::vector<std::string>& peptides,
+        const std::vector<float>& charges,
+        const std::vector<float>& nces,
+        const std::vector<int64_t>& instrument_indices);
 
 private:
     // Pimpl idiom: hide all ONNX internal objects

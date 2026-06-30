@@ -101,11 +101,16 @@ option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
 if(WITH_ONNX)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ONNXRuntime::ONNXRuntime)
 
-  # Bundle the ONNX Runtime shared libraries (.dll / .so / .dylib) into installers
-  install(IMPORTED_RUNTIME_ARTIFACTS ONNXRuntime::ONNXRuntime
-      RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
-      LIBRARY DESTINATION "${INSTALL_LIB_DIR}"
-  )
+  # Bypass IMPORTED_RUNTIME_ARTIFACTS by grabbing the file path directly.
+  # This avoids the read-only TYPE property error completely.
+  get_target_property(ORT_LIB_PATH ONNXRuntime::ONNXRuntime IMPORTED_LOCATION)
+
+  if(ORT_LIB_PATH)
+      # install(PROGRAMS...) safely copies the .dylib/.so/.dll with executable permissions
+      install(PROGRAMS "${ORT_LIB_PATH}"
+          DESTINATION "${INSTALL_BIN_DIR}"
+      )
+  endif()
 endif()
 
 # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
