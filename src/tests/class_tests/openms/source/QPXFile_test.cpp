@@ -740,4 +740,152 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+START_SECTION((static bool exportToParquetStreaming(const std::vector<ProteinIdentification>&, const std::vector<const PeptideIdentification*>&, const std::string&, bool, size_t, const ParquetWriteConfig&)))
+{
+  arrow::MemoryPool* pool = arrow::default_memory_pool();
+
+  // Read a parquet file into a single-chunk (combined) Arrow table. Streaming writes
+  // multiple row groups, so columns come back multi-chunk; combine before row indexing.
+  auto read_combined = [pool](const std::string& path) -> std::shared_ptr<arrow::Table>
+  {
+    auto open_res = arrow::io::ReadableFile::Open(path.c_str());
+    if (!open_res.ok()) { return nullptr; }
+    auto reader_res = parquet::arrow::OpenFile(open_res.ValueOrDie(), pool);
+    if (!reader_res.ok()) { return nullptr; }
+    auto reader = std::move(reader_res).ValueOrDie();
+    std::shared_ptr<arrow::Table> t;
+    if (!reader->ReadTable(&t).ok()) { return nullptr; }
+    auto comb = t->CombineChunks(pool);
+    if (!comb.ok()) { return nullptr; }
+    return comb.ValueOrDie();
+  };
+
+  // --- Build test data (mix of modified/unmodified, decoys, evidences) ---
+  vector<ProteinIdentification> protein_ids;
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("test_search");
+  protein_id.setScoreType("TestScore");
+  protein_id.setHigherScoreBetter(true);
+  protein_id.setPrimaryMSRunPath({"/data/run1.mzML"});
+  protein_ids.push_back(protein_id);
+
+  PeptideIdentificationList peptide_ids;
+  const size_t M = 2500;
+  for (size_t i = 0; i < M; ++i)
+  {
+    PeptideIdentification pid;
+    pid.setIdentifier("test_search");
+    pid.setRT(100.0 + i);
+    pid.setMZ(400.0 + (i % 500));
+    pid.setScoreType("TestScore");
+    pid.setHigherScoreBetter(true);
+    pid.setSpectrumReference("controllerType=0 controllerNumber=1 scan=" + StringUtils::toStr(1000 + i));
+
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString((i % 3 == 0) ? "PEM(Oxidation)TIDER" : "PEPTIDEK"));
+    hit.setCharge(2 + (i % 3));
+    hit.setScore(0.99 - (i % 100) * 0.001);
+    hit.setMetaValue("target_decoy", (i % 2 == 0) ? "target" : "decoy");
+    PeptideEvidence ev;
+    ev.setProteinAccession("PROT_" + StringUtils::toStr(i % 50));
+    hit.setPeptideEvidences(vector<PeptideEvidence>{ev});
+    pid.setHits(vector<PeptideHit>{hit});
+    peptide_ids.push_back(pid);
+  }
+
+  std::vector<const PeptideIdentification*> ptrs;
+  ptrs.reserve(peptide_ids.size());
+  for (const auto& p : peptide_ids) { ptrs.push_back(&p); }
+
+  // --- Streaming write with a small batch (multiple row groups: 2500 / 1000) ---
+  std::string stream_file;
+  NEW_TMP_FILE(stream_file)
+  TEST_EQUAL(QPXFile::exportToParquetStreaming(protein_ids, ptrs, stream_file, false, 1000), true)
+
+  auto st_table = read_combined(stream_file);
+  TEST_NOT_EQUAL(st_table, nullptr)
+  TEST_EQUAL(st_table->num_rows(), (int64_t)M)
+  TEST_EQUAL(st_table->num_columns(), 24)
+
+  // --- QPX metadata must survive the streaming/metadata-Open path ---
+  {
+    auto md = st_table->schema()->metadata();
+    TEST_NOT_EQUAL(md, nullptr)
+    std::string ft, ver;
+    if (md)
+    {
+      auto r1 = md->Get("file_type");   if (r1.ok()) { ft = r1.ValueOrDie(); }
+      auto r2 = md->Get("qpx_version"); if (r2.ok()) { ver = r2.ValueOrDie(); }
+    }
+    TEST_STRING_EQUAL(ft, "psm")
+    TEST_STRING_EQUAL(ver, "1.0")
+  }
+
+  // --- Equivalence vs the one-shot (non-streaming) path ---
+  std::string ref_file;
+  NEW_TMP_FILE(ref_file)
+  TEST_EQUAL(QPXFile::exportToParquet(protein_ids, peptide_ids, ref_file), true)
+  auto ref_table = read_combined(ref_file);
+  TEST_NOT_EQUAL(ref_table, nullptr)
+  TEST_EQUAL(ref_table->num_rows(), st_table->num_rows())
+
+  {
+    auto seq_s = std::static_pointer_cast<arrow::StringArray>(st_table->GetColumnByName("sequence")->chunk(0));
+    auto seq_r = std::static_pointer_cast<arrow::StringArray>(ref_table->GetColumnByName("sequence")->chunk(0));
+    auto pf_s  = std::static_pointer_cast<arrow::StringArray>(st_table->GetColumnByName("peptidoform")->chunk(0));
+    auto pf_r  = std::static_pointer_cast<arrow::StringArray>(ref_table->GetColumnByName("peptidoform")->chunk(0));
+    auto chg_s = std::static_pointer_cast<arrow::Int16Array>(st_table->GetColumnByName("charge")->chunk(0));
+    auto chg_r = std::static_pointer_cast<arrow::Int16Array>(ref_table->GetColumnByName("charge")->chunk(0));
+    auto sc_s  = std::static_pointer_cast<arrow::DoubleArray>(st_table->GetColumnByName("posterior_error_probability")->chunk(0));
+    auto sc_r  = std::static_pointer_cast<arrow::DoubleArray>(ref_table->GetColumnByName("posterior_error_probability")->chunk(0));
+    bool all_eq = true;
+    for (int64_t r = 0; r < st_table->num_rows(); ++r)
+    {
+      if (seq_s->GetString(r) != seq_r->GetString(r)) { all_eq = false; break; }
+      if (pf_s->GetString(r)  != pf_r->GetString(r))  { all_eq = false; break; }
+      if (chg_s->Value(r)     != chg_r->Value(r))     { all_eq = false; break; }
+      if (sc_s->IsNull(r) != sc_r->IsNull(r))         { all_eq = false; break; }
+      if (!sc_s->IsNull(r) && sc_s->Value(r) != sc_r->Value(r)) { all_eq = false; break; }
+    }
+    TEST_EQUAL(all_eq, true)
+  }
+
+  // --- Edge case: empty input -> valid 0-row file with full schema + metadata ---
+  {
+    std::vector<const PeptideIdentification*> empty_ptrs;
+    std::string empty_file;
+    NEW_TMP_FILE(empty_file)
+    TEST_EQUAL(QPXFile::exportToParquetStreaming(protein_ids, empty_ptrs, empty_file), true)
+    auto e_table = read_combined(empty_file);
+    TEST_NOT_EQUAL(e_table, nullptr)
+    TEST_EQUAL(e_table->num_rows(), 0)
+    TEST_EQUAL(e_table->num_columns(), 24)
+  }
+
+  // --- Edge case: M=1 with batch_size=1 ---
+  {
+    std::vector<const PeptideIdentification*> one_ptr{ptrs[0]};
+    std::string one_file;
+    NEW_TMP_FILE(one_file)
+    TEST_EQUAL(QPXFile::exportToParquetStreaming(protein_ids, one_ptr, one_file, false, 1), true)
+    auto o_table = read_combined(one_file);
+    TEST_NOT_EQUAL(o_table, nullptr)
+    TEST_EQUAL(o_table->num_rows(), 1)
+  }
+
+  // --- Edge case: batch_size=0 must not hang (guarded to default) and write all rows ---
+  {
+    std::string zero_file;
+    NEW_TMP_FILE(zero_file)
+    TEST_EQUAL(QPXFile::exportToParquetStreaming(protein_ids, ptrs, zero_file, false, 0), true)
+    auto z_table = read_combined(zero_file);
+    TEST_NOT_EQUAL(z_table, nullptr)
+    TEST_EQUAL(z_table->num_rows(), (int64_t)M)
+  }
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
 END_TEST

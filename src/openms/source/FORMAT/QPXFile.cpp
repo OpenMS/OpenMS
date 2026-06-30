@@ -24,6 +24,7 @@
 #include <parquet/arrow/writer.h>
 #include <parquet/properties.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <random>
@@ -751,9 +752,38 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   return table;
 }
 
-std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
-  const std::vector<ProteinIdentification>& protein_identifications,
-  const PeptideIdentificationList& peptide_identifications,
+namespace // anonymous
+{
+
+/// Build a run-identifier -> primary-MS-run-path lookup from protein identifications.
+/// Shared by the whole-table and streaming PSM export paths.
+std::map<std::string, std::string> buildIdToFilename(
+  const std::vector<ProteinIdentification>& protein_identifications)
+{
+  std::map<std::string, std::string> id_to_filename;
+  for (const auto& prot_id : protein_identifications)
+  {
+    StringList ms_runs;
+    prot_id.getPrimaryMSRunPath(ms_runs);
+    if (!ms_runs.empty())
+    {
+      id_to_filename[prot_id.getIdentifier()] = ms_runs[0];
+    }
+  }
+  return id_to_filename;
+}
+
+/// Build a QPXPSMSchema Arrow table from the half-open range [range_begin, range_end)
+/// of @p pep_ptrs (non-owning pointers). @p id_to_filename is the prebuilt
+/// run-identifier -> primary-MS-run-path lookup. Each row is independent (no global/
+/// cross-row state), so any contiguous sub-range produces a self-contained table; this
+/// is what makes the streaming export safe. Shared by exportPSMsToQPXArrow() (whole
+/// range) and exportToParquetStreaming() (one batch per call).
+std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
+  const std::map<std::string, std::string>& id_to_filename,
+  const std::vector<const PeptideIdentification*>& pep_ptrs,
+  size_t range_begin,
+  size_t range_end,
   bool export_all_psms)
 {
   // -- Simple column builders --
@@ -856,8 +886,9 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
 
   // Estimate total rows for capacity reservation
   Size num_rows = 0;
-  for (const auto& pep_id : peptide_identifications)
+  for (size_t i = range_begin; i < range_end; ++i)
   {
+    const PeptideIdentification& pep_id = *pep_ptrs[i];
     if (pep_id.getHits().empty()) continue;
     num_rows += export_all_psms ? pep_id.getHits().size() : 1;
   }
@@ -892,18 +923,6 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   status = missed_cleavages_builder.Reserve(num_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: missed_cleavages_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Build file name lookup from ProteinIdentification primary MS run paths
-  std::map<std::string, std::string> id_to_filename;
-  for (const auto& prot_id : protein_identifications)
-  {
-    StringList ms_runs;
-    prot_id.getPrimaryMSRunPath(ms_runs);
-    if (!ms_runs.empty())
-    {
-      id_to_filename[prot_id.getIdentifier()] = ms_runs[0];
-    }
-  }
-
   // Metavalue keys excluded from additional_scores (they have dedicated columns)
   static const std::unordered_set<std::string> excluded_hit_mvs = {
     "target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
@@ -913,11 +932,13 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
 
   IDScoreSwitcherAlgorithm idsa;
 
-  // Lazily-filled MetaInfo index->name cache shared across all PSMs (see cachedMetaName_).
+  // Lazily-filled MetaInfo index->name cache shared across all PSMs in this range
+  // (see cachedMetaName_). Per-call (hence per OpenMP partition) → thread-safe.
   std::vector<std::string> meta_name_cache;
 
-  for (const auto& pep_id : peptide_identifications)
+  for (size_t pep_idx = range_begin; pep_idx < range_end; ++pep_idx)
   {
+    const PeptideIdentification& pep_id = *pep_ptrs[pep_idx];
     const auto& hits = pep_id.getHits();
     if (hits.empty())
     {
@@ -1360,14 +1381,29 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   return table;
 }
 
+} // anonymous namespace (QPX PSM table-range builder + filename lookup)
+
+std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
+  const std::vector<ProteinIdentification>& protein_identifications,
+  const PeptideIdentificationList& peptide_identifications,
+  bool export_all_psms)
+{
+  const auto id_to_filename = buildIdToFilename(protein_identifications);
+  std::vector<const PeptideIdentification*> ptrs;
+  ptrs.reserve(peptide_identifications.size());
+  for (const auto& pep_id : peptide_identifications) { ptrs.push_back(&pep_id); }
+  return buildQPXPSMTableRange(id_to_filename, ptrs, 0, ptrs.size(), export_all_psms);
+}
+
 
 namespace
 {
-  /// Attach the canonical QPX "psm" file metadata (qpx_version, file_type="psm",
-  /// UUID, creation date, scan_format, creator) to the schema of @p table.
-  std::shared_ptr<arrow::Table> attachQPXPsmMetadata(const std::shared_ptr<arrow::Table>& table)
+  /// Build the canonical QPX "psm" file metadata (qpx_version, file_type="psm",
+  /// UUID, creation date, scan_format, creator). Each call mints a fresh uuid and
+  /// creation_date, so callers needing one identity per file must build it once.
+  std::shared_ptr<const arrow::KeyValueMetadata> qpxPsmMetadata()
   {
-    auto metadata = arrow::key_value_metadata({
+    return arrow::key_value_metadata({
       {"qpx_version", "1.0"},
       {"creator", "OpenMS"},
       {"file_type", "psm"},
@@ -1376,7 +1412,45 @@ namespace
       {"scan_format", "scan"},
       {"software_provider", "OpenMS"}
     });
-    return table->ReplaceSchemaMetadata(metadata);
+  }
+
+  /// Attach the canonical QPX "psm" file metadata to the schema of @p table.
+  std::shared_ptr<arrow::Table> attachQPXPsmMetadata(const std::shared_ptr<arrow::Table>& table)
+  {
+    return table->ReplaceSchemaMetadata(qpxPsmMetadata());
+  }
+
+  /// Translate ParquetWriteConfig::Compression to arrow::Compression::type.
+  /// Mirror of the helper in ArrowIOHelpers.cpp; duplicated here to keep Parquet
+  /// types out of the public ArrowIOHelpers header.
+  arrow::Compression::type qpxToArrowCompression(ParquetWriteConfig::Compression c)
+  {
+    switch (c)
+    {
+      case ParquetWriteConfig::Compression::NONE:   return arrow::Compression::UNCOMPRESSED;
+      case ParquetWriteConfig::Compression::SNAPPY: return arrow::Compression::SNAPPY;
+      case ParquetWriteConfig::Compression::GZIP:   return arrow::Compression::GZIP;
+      case ParquetWriteConfig::Compression::LZ4:    return arrow::Compression::LZ4;
+      case ParquetWriteConfig::Compression::ZSTD:   return arrow::Compression::ZSTD;
+    }
+    return arrow::Compression::ZSTD;
+  }
+
+  /// Build Parquet WriterProperties from the OpenMS config (mirror of the property
+  /// setup in ArrowIOHelpers::writeTableToParquet).
+  std::shared_ptr<parquet::WriterProperties> makeWriterProperties(const ParquetWriteConfig& config)
+  {
+    auto builder = parquet::WriterProperties::Builder();
+    builder.compression(qpxToArrowCompression(config.compression));
+    if (config.compression == ParquetWriteConfig::Compression::ZSTD ||
+        config.compression == ParquetWriteConfig::Compression::GZIP)
+    {
+      builder.compression_level(config.compression_level);
+    }
+    builder.data_pagesize(config.data_page_size);
+    if (config.write_statistics) { builder.enable_statistics(); }
+    else                         { builder.disable_statistics(); }
+    return builder.build();
   }
 }
 
@@ -1419,6 +1493,100 @@ bool QPXFile::exportToParquet(
   }
 
   return ArrowIOHelpers::writeTableToParquet(attachQPXPsmMetadata(table), filename, config);
+}
+
+bool QPXFile::exportToParquetStreaming(
+  const std::vector<ProteinIdentification>& protein_identifications,
+  const std::vector<const PeptideIdentification*>& peptide_identification_ptrs,
+  const std::string& filename,
+  bool export_all_psms,
+  size_t batch_size,
+  const ParquetWriteConfig& config)
+{
+  if (batch_size == 0) { batch_size = 1000000; } // guard: a zero step would never advance
+
+  const auto id_to_filename = buildIdToFilename(protein_identifications);
+
+  // One metadata identity (uuid/creation_date) for the whole file. Reused both for the
+  // writer's schema and for each batch table so their schemas are identical.
+  auto meta = qpxPsmMetadata();
+  auto schema_meta = QPXPSMSchema::schema()->WithMetadata(meta);
+
+  auto file_result = arrow::io::FileOutputStream::Open(filename);
+  if (!file_result.ok())
+  {
+    OPENMS_LOG_ERROR << "QPXFile: Failed to open " << filename << " for writing: "
+                     << file_result.status().ToString() << std::endl;
+    return false;
+  }
+  auto outfile = file_result.ValueOrDie();
+
+  auto writer_props = makeWriterProperties(config);
+  auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+
+  auto writer_result = parquet::arrow::FileWriter::Open(
+    *schema_meta, arrow::default_memory_pool(), outfile, writer_props, arrow_props);
+  if (!writer_result.ok())
+  {
+    OPENMS_LOG_ERROR << "QPXFile: Failed to open Parquet writer for " << filename << ": "
+                     << writer_result.status().ToString() << std::endl;
+    return false;
+  }
+  auto writer = std::move(writer_result).ValueOrDie();
+
+  // config.row_group_size is the max rows per Parquet row group (WriteTable chunk size);
+  // batch_size only bounds peak memory (rows materialized at once).
+  const int64_t rg = static_cast<int64_t>(config.row_group_size);
+  auto write_range = [&](size_t b, size_t e) -> bool
+  {
+    auto table = buildQPXPSMTableRange(id_to_filename, peptide_identification_ptrs, b, e, export_all_psms);
+    if (!table)
+    {
+      OPENMS_LOG_ERROR << "QPXFile: Failed to build PSM batch [" << b << ", " << e << ")" << std::endl;
+      return false;
+    }
+    // Attach the shared metadata so the batch schema matches the writer schema exactly.
+    auto st = writer->WriteTable(*table->ReplaceSchemaMetadata(meta), rg);
+    if (!st.ok())
+    {
+      OPENMS_LOG_ERROR << "QPXFile: Failed to write PSM batch [" << b << ", " << e << ") to "
+                       << filename << ": " << st.ToString() << std::endl;
+      return false;
+    }
+    return true;
+  };
+
+  bool ok = true;
+  const size_t N = peptide_identification_ptrs.size();
+  if (N == 0)
+  {
+    // Emit a valid 0-row file (schema + metadata), mirroring MobilogramParquetConsumer.
+    ok = write_range(0, 0);
+  }
+  else
+  {
+    for (size_t b = 0; b < N && ok; b += batch_size)
+    {
+      ok = write_range(b, std::min(b + batch_size, N));
+    }
+  }
+
+  // Close the writer (flushes the footer) then the sink, regardless of write outcome.
+  auto writer_close = writer->Close();
+  if (!writer_close.ok())
+  {
+    OPENMS_LOG_ERROR << "QPXFile: Failed to close Parquet writer for " << filename << ": "
+                     << writer_close.ToString() << std::endl;
+    ok = false;
+  }
+  auto outfile_close = outfile->Close();
+  if (!outfile_close.ok())
+  {
+    OPENMS_LOG_ERROR << "QPXFile: Failed to close output stream for " << filename << ": "
+                     << outfile_close.ToString() << std::endl;
+    ok = false;
+  }
+  return ok;
 }
 
 bool QPXFile::importFromArrow(
