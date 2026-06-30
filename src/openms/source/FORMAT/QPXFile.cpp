@@ -52,6 +52,19 @@ namespace // anonymous
     return SpectrumNativeIDParser::extractScanNumber(native_id, scan_regex, true);
   }
 
+  /// Resolve a MetaInfo index to its registered name, caching results in @p cache.
+  /// The MetaInfoRegistry::getName() lookup takes an `omp critical` lock, so caching
+  /// by index means the lock is paid at most once per unique key for the whole export
+  /// instead of once per metavalue per PSM (as getKeys()/getMetaValue() would).
+  /// Registered names are non-empty, so an empty cache slot reliably means "not yet resolved".
+  inline const std::string& cachedMetaName_(UInt index, std::vector<std::string>& cache)
+  {
+    if (index >= cache.size()) { cache.resize(static_cast<size_t>(index) + 1); }
+    std::string& name = cache[index];
+    if (name.empty()) { name = MetaInfoInterface::metaRegistry().getName(index); }
+    return name;
+  }
+
 } // anonymous namespace
 
 
@@ -235,6 +248,9 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   // metavalue path is the canonical store for rank semantics.
 
   IDScoreSwitcherAlgorithm idsa;
+
+  // Lazily-filled MetaInfo index->name cache shared across all PSMs (see cachedMetaName_).
+  std::vector<std::string> meta_name_cache;
 
   Int p_id_index = 0;
   for (const auto& pep_id : peptide_identifications)
@@ -541,12 +557,11 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       (void)additional_scores_builder.Append();
       (void)psm_metavalues_builder.Append();
       {
-        std::vector<std::string> keys;
-        hit.getKeys(keys);
-        for (const auto& key : keys)
+        for (auto mv_it = hit.metaBegin(); mv_it != hit.metaEnd(); ++mv_it)
         {
+          const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
           if (excluded_hit_mvs_psm.contains(key)) continue;
-          const DataValue& val = hit.getMetaValue(key);
+          const DataValue& val = mv_it->second;
           const auto vt = val.valueType();
           if ((vt == DataValue::INT_VALUE || vt == DataValue::DOUBLE_VALUE)
               && Scores::isKnownScoreType(key))
@@ -586,13 +601,12 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       // === spectrum_metavalues ===
       (void)spectrum_metavalues_builder.Append();
       {
-        std::vector<std::string> keys;
-        pep_id.getKeys(keys);
-        for (const auto& key : keys)
+        for (auto mv_it = pep_id.metaBegin(); mv_it != pep_id.metaEnd(); ++mv_it)
         {
+          const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
           // Skip keys that have dedicated columns
           if (key == "spectrum_reference" || key == "ion_mobility" || key == "IM") continue;
-          const DataValue& val = pep_id.getMetaValue(key);
+          const DataValue& val = mv_it->second;
           (void)smv_struct_b->Append();
           (void)smv_name_b->Append(key);
           (void)smv_value_b->Append(val.toString());
@@ -899,6 +913,9 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
 
   IDScoreSwitcherAlgorithm idsa;
 
+  // Lazily-filled MetaInfo index->name cache shared across all PSMs (see cachedMetaName_).
+  std::vector<std::string> meta_name_cache;
+
   for (const auto& pep_id : peptide_identifications)
   {
     const auto& hits = pep_id.getHits();
@@ -1084,12 +1101,11 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
       // === additional_scores from hit metavalues ===
       (void)additional_scores_builder.Append();
       {
-        std::vector<std::string> keys;
-        hit.getKeys(keys);
-        for (const auto& key : keys)
+        for (auto mv_it = hit.metaBegin(); mv_it != hit.metaEnd(); ++mv_it)
         {
+          const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
           if (excluded_hit_mvs.contains(key)) continue;
-          const DataValue& val = hit.getMetaValue(key);
+          const DataValue& val = mv_it->second;
           if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE)
               && Scores::isKnownScoreType(key))
           {
