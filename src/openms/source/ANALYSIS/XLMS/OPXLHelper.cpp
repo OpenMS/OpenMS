@@ -217,7 +217,7 @@ namespace OpenMS
   }
 
   std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(
-    vector<FASTAFile::FASTAEntry> fasta_db,
+    const vector<FASTAFile::FASTAEntry>& fasta_db,
     const EnzymaticDigestion& digestor,
     Size min_peptide_length,
     const StringList& cross_link_residue1,
@@ -394,9 +394,8 @@ namespace OpenMS
         peptide_second = &(peptide_masses[candidate.beta_index].peptide_seq);
         peptide_pos_second = peptide_masses[candidate.beta_index].position;
       }
-      std::string seq_first = candidate.alpha_seq;
-      std::string seq_second;
-      if (peptide_second) { seq_second = candidate.beta_seq; }
+      const std::string& seq_first = candidate.alpha_seq;
+      const std::string& seq_second = candidate.beta_seq; // empty for mono-/loop-links
 
       // mono-links and loop-links with different masses can be generated for the same precursor mass, but only one of them can be valid each time.
       // Find out which is the case. But it should not happen often enough to slow down the tool significantly.

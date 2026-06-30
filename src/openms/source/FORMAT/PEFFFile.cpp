@@ -14,6 +14,7 @@
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 
 #include <algorithm>
+#include <bitset>
 #include <cctype>
 #include <limits>
 #include <map>
@@ -960,7 +961,8 @@ namespace OpenMS
   std::vector<std::pair<std::string, AASequence>> PEFFEntry::enumeratePEFFModifications_(
     const AASequence& peptide,
     const std::vector<std::pair<Size, const PEFFModification*>>& peff_mods,
-    const std::string& base_description)
+    const std::string& base_description,
+    Size max_selected)
   {
     std::vector<std::pair<std::string, AASequence>> result;
 
@@ -983,6 +985,14 @@ namespace OpenMS
 
     for (size_t combo = 0; combo < num_combinations; ++combo)
     {
+      // Cap the number of simultaneously applied modifications per proteoform.
+      // popcount(combo) is the size of the selected mod subset; the unmodified
+      // peptide (combo == 0, popcount 0) is always retained.
+      if (max_selected > 0 && std::bitset<64>(combo).count() > max_selected)
+      {
+        continue;
+      }
+
       AASequence mod_peptide = peptide;
       std::string description = base_description;
       bool mod_failed = false;
@@ -1067,7 +1077,8 @@ namespace OpenMS
     Size max_length,
     bool include_reference,
     bool include_peff_variants,
-    bool include_peff_modifications) const
+    bool include_peff_modifications,
+    Size max_peff_mods_per_proteoform) const
   {
     descriptions.clear();
     sequences.clear();
@@ -1224,7 +1235,7 @@ namespace OpenMS
         }
 
         // Step 4: Enumerate PEFF modification combinations
-        auto peff_mod_peptides = enumeratePEFFModifications_(variant_peptide, local_mods, variant_desc);
+        auto peff_mod_peptides = enumeratePEFFModifications_(variant_peptide, local_mods, variant_desc, max_peff_mods_per_proteoform);
 
         // Filter out the base (no-PEFF-mod) entry when reference not wanted
         // This handles the case where var_combo == 0 but local_mods is not empty:

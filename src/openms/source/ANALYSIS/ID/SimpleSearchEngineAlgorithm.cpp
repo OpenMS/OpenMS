@@ -361,7 +361,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
 
           // reannotate much more memory heavy AASequence object
-          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index]; 
+          const AASequence& fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index];
           ph.setScore(ah.score);
           ph.setSequence(fixed_and_variable_modified_peptide);
 
@@ -510,9 +510,9 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           }
 
           // store PSM
-          phs.push_back(ph);
+          phs.push_back(std::move(ph));
         }
-        pi.setHits(phs);
+        pi.setHits(std::move(phs));
         pi.sort();
 
 #pragma omp critical (peptide_ids_access)

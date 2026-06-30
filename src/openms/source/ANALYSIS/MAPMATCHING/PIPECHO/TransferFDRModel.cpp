@@ -511,7 +511,7 @@ void TransferFDRModel::compute_qvalues(bool pep_values_are_valid)
   double decoy_mbr_count {}, decoy_peptide_count {}, decoy_double_count {},
     total_so_far {};
 
-  for (auto acceptor : acceptors_)
+  for (const auto& acceptor : acceptors_)
   {
     ++total_so_far;
 
