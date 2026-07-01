@@ -29,6 +29,7 @@ ParamXMLHandler.h
 ToolDescriptionHandler.h
 TraMLHandler.h
 UnimodXMLHandler.h
+UniProtXMLHandler.h
 XMLHandler.h
 XQuestResultXMLHandler.h
 )

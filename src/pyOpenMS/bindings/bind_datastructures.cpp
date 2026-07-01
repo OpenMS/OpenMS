@@ -1010,7 +1010,7 @@ which is a key parameter in FDR estimation.
 Attributes:
 pi0: Estimated proportion of true null hypotheses (0-1)
 pi0_lambda: Vector of pi0 estimates at each lambda threshold
-lambda_: Vector of lambda threshold values used
+``lambda_``: Vector of lambda threshold values used
 pi0_smooth: Whether smoothing was successfully applied
 )doc")
         .def(nb::init<>())
