@@ -51,6 +51,7 @@ On the clustered fragments in an MS2 map, one can then (optionally) do
 
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 class TOPPClusterMassTraces
   : public TOPPBase, 

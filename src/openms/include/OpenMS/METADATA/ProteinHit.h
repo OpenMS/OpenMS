@@ -17,7 +17,6 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
 namespace OpenMS

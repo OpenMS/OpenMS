@@ -24,6 +24,7 @@ MapAlignmentEvaluationAlgorithm.cpp
 MapAlignmentEvaluationAlgorithmPrecision.cpp
 MapAlignmentEvaluationAlgorithmRecall.cpp
 MapAlignmentTransformer.cpp
+PipEchoAlgorithm.cpp
 PoseClusteringAffineSuperimposer.cpp
 PoseClusteringShiftSuperimposer.cpp
 QTClusterFinder.cpp
