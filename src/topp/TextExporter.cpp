@@ -683,8 +683,8 @@ protected:
 
       registerStringOption_("id:annotations", "<method>", "none", "Format of peak annotations.", false);
       setValidStrings_("id:annotations", ListUtils::create<std::string>("none,default"));
-      registerFlag_("id:add_usi", "Add a column with Universal Spectrum Identifiers (USI) for exported peptide identifications. Requires setting 'id:usi_dataset_id'.", false);
-      registerStringOption_("id:usi_dataset_id", "<dataset>", "", "ProteomeXchange dataset identifier for USI generation (e.g., 'PXD000561'). Required when 'id:add_usi' is set.", false);
+      registerFlag_("id:add_usi", "Add a column with Universal Spectrum Identifiers (USI) for exported peptide identifications. Set 'id:usi_dataset_id' to generate complete USIs.", false);
+      registerStringOption_("id:usi_dataset_id", "<dataset>", "", "ProteomeXchange dataset identifier for USI generation (e.g., 'PXD000561'). Needed for complete USIs when 'id:add_usi' is set.", false);
       
       addEmptyLine_();
 
