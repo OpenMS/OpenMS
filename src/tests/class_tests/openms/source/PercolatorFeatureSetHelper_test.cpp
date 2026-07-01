@@ -211,6 +211,36 @@ START_SECTION((static void addMASCOTFeatures(std::vector< PeptideIdentification 
 }
 END_SECTION
 
+START_SECTION((static void addANDESFeatures(std::vector< PeptideIdentification > &peptide_ids, StringList &feature_set)))
+{
+    // andes annotates hits with numeric "andes:"-prefixed MetaValues; these (and only these,
+    // when numeric) should be collected as Percolator features. Built in-memory to avoid a
+    // dependency on an andes-produced test-data file.
+    PeptideHit hit;
+    hit.setMetaValue("andes:RankScore", 12.5);          // double -> collected
+    hit.setMetaValue("andes:NumMatchedMainIons", 7);    // int -> collected
+    hit.setMetaValue("andes:DeltaRankScore", 3.25);     // double -> collected
+    hit.setMetaValue("andes:flag", "yes");              // string -> NOT collected
+    hit.setMetaValue("target_decoy", "target");         // non-andes -> NOT collected
+
+    PeptideIdentification pid;
+    pid.insertHit(hit);
+    PeptideIdentificationList andes_pids;
+    andes_pids.push_back(pid);
+
+    StringList fs;
+    PercolatorFeatureSetHelper::addANDESFeatures(andes_pids, fs);
+
+    // only the three numeric andes-prefixed features are registered (sorted/unique via std::set)
+    TEST_EQUAL(fs.size(), 3)
+    TEST_EQUAL(ListUtils::contains(fs, std::string("andes:RankScore")), true)
+    TEST_EQUAL(ListUtils::contains(fs, std::string("andes:NumMatchedMainIons")), true)
+    TEST_EQUAL(ListUtils::contains(fs, std::string("andes:DeltaRankScore")), true)
+    TEST_EQUAL(ListUtils::contains(fs, std::string("andes:flag")), false)
+    TEST_EQUAL(ListUtils::contains(fs, std::string("target_decoy")), false)
+}
+END_SECTION
+
 START_SECTION((static void addMULTISEFeatures(std::vector< PeptideIdentification > &peptide_ids, StringList &search_engines_used, StringList &feature_set, bool complete_only=true, bool limits_imputation=false)))
 {
   NOT_TESTABLE  // actually tested in combination with mergeMULTISEPeptideIds

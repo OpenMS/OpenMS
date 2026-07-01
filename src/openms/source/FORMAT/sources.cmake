@@ -24,6 +24,7 @@ FeatureXMLFile.cpp
 FLASHDeconvFeatureFile.cpp
 FLASHDeconvSpectrumFile.cpp
 FileHandler.cpp
+FileInfo.cpp
 FileTypes.cpp
 GNPSMetaValueFile.cpp
 GNPSMGFFile.cpp
@@ -95,6 +96,7 @@ TraMLFile.cpp
 TransformationXMLFile.cpp
 TriqlerFile.cpp
 UnimodXMLFile.cpp
+UniProtXMLFile.cpp
 XMassFile.cpp
 XMLFile.cpp
 XQuestResultXMLFile.cpp
@@ -118,6 +120,7 @@ list(APPEND sources_list ParquetFilter.cpp)
 list(APPEND sources_list QPXFile.cpp)
 list(APPEND sources_list XICParquetFile.cpp)
 list(APPEND sources_list XIMParquetFile.cpp)
+list(APPEND sources_list XIPMParquetFile.cpp)
 list(APPEND sources_list ProteinGroupArrowExport.cpp)
 list(APPEND sources_list ProteinIdentificationArrowIO.cpp)
 list(APPEND sources_list FeatureMapArrowIO.cpp)

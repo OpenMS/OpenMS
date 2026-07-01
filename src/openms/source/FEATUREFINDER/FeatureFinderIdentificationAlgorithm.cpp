@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FEATUREFINDER/FFIDAlgoExternalIDHandler.h>
 #include <OpenMS/FEATUREFINDER/EGHTraceFitter.h>
 
