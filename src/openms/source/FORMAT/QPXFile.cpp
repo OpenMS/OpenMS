@@ -943,6 +943,25 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
   // (see cachedMetaName_). Per-call (hence per OpenMP partition) → thread-safe.
   std::vector<std::string> meta_name_cache;
 
+  // Pre-resolve the fixed dedicated-column metavalue names to registry indices ONCE for this range.
+  // String-keyed exists()/getValue() take the MetaInfoRegistry omp-critical lock via getIndex() on
+  // every call; resolving once and using the index overloads (lock-free flat_map lookups) keeps the
+  // parallel build from serializing on that lock. UInt(-1) = name never registered on any object =>
+  // treated as absent (matches the sentinel check in the string-keyed exists()).
+  auto& mreg = MetaInfoInterface::metaRegistry();
+  const UInt idx_target_decoy        = mreg.getIndex("target_decoy");
+  const UInt idx_predicted_RT        = mreg.getIndex("predicted_RT");
+  const UInt idx_predicted_rt        = mreg.getIndex("predicted_rt");
+  const UInt idx_ion_mobility        = mreg.getIndex("ion_mobility");
+  const UInt idx_IM                  = mreg.getIndex("IM");
+  const UInt idx_missed_cleavages    = mreg.getIndex("missed_cleavages");
+  const UInt idx_reference_file_name = mreg.getIndex("reference_file_name");
+  const UInt idx_run_file_name       = mreg.getIndex("run_file_name");
+  // Presence check against a pre-resolved index; UInt(-1) is guarded because the index overload of
+  // metaValueExists() does not special-case the sentinel the way the string overload does.
+  auto metaHas = [](const MetaInfoInterface& m, UInt idx) -> bool
+  { return idx != static_cast<UInt>(-1) && m.metaValueExists(idx); };
+
   for (size_t pep_idx = range_begin; pep_idx < range_end; ++pep_idx)
   {
     const PeptideIdentification& pep_id = *pep_ptrs[pep_idx];
@@ -964,6 +983,10 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       pep_result = idsa.findScoreType(pep_id, IDScoreSwitcherAlgorithm::ScoreType::PEP);
     }
     catch (...) {} // No PEP score available
+
+    // Resolve the (dynamic) PEP score name to an index once per identification (lock-free per-hit use).
+    const UInt idx_pep = pep_result.score_name.empty()
+                       ? static_cast<UInt>(-1) : mreg.getIndex(pep_result.score_name);
 
     // Lookup reference file name
     auto fn_it = id_to_filename.find(pep_id.getIdentifier());
@@ -1082,9 +1105,9 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       {
         (void)pep_builder.Append(hit.getScore());
       }
-      else if (!pep_result.score_name.empty() && hit.metaValueExists(pep_result.score_name))
+      else if (metaHas(hit, idx_pep))
       {
-        (void)pep_builder.Append(static_cast<double>(hit.getMetaValue(pep_result.score_name)));
+        (void)pep_builder.Append(static_cast<double>(hit.getMetaValue(idx_pep)));
       }
       else
       {
@@ -1092,9 +1115,9 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       }
 
       // === is_decoy (bool, non-nullable) ===
-      if (hit.metaValueExists("target_decoy"))
+      if (metaHas(hit, idx_target_decoy))
       {
-        std::string td = hit.getMetaValue("target_decoy").toString();
+        std::string td = hit.getMetaValue(idx_target_decoy).toString();
         (void)is_decoy_builder.Append(StringUtils::substr(td, 0, 5) == "decoy");
       }
       else
@@ -1154,13 +1177,13 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       }
 
       // === predicted_rt (float32, nullable) ===
-      if (hit.metaValueExists("predicted_RT"))
+      if (metaHas(hit, idx_predicted_RT))
       {
-        (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(hit.getMetaValue("predicted_RT"))));
+        (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(hit.getMetaValue(idx_predicted_RT))));
       }
-      else if (hit.metaValueExists("predicted_rt"))
+      else if (metaHas(hit, idx_predicted_rt))
       {
-        (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(hit.getMetaValue("predicted_rt"))));
+        (void)predicted_rt_builder.Append(static_cast<float>(static_cast<double>(hit.getMetaValue(idx_predicted_rt))));
       }
       else
       {
@@ -1171,17 +1194,17 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       // Prefer per-hit or per-PeptideIdentification file reference, fall back to identifier-level path
       {
         std::string run_file;
-        if (hit.metaValueExists("reference_file_name"))
+        if (metaHas(hit, idx_reference_file_name))
         {
-          run_file = hit.getMetaValue("reference_file_name").toString();
+          run_file = hit.getMetaValue(idx_reference_file_name).toString();
         }
-        else if (hit.metaValueExists("run_file_name"))
+        else if (metaHas(hit, idx_run_file_name))
         {
-          run_file = hit.getMetaValue("run_file_name").toString();
+          run_file = hit.getMetaValue(idx_run_file_name).toString();
         }
-        else if (pep_id.metaValueExists("reference_file_name"))
+        else if (metaHas(pep_id, idx_reference_file_name))
         {
-          run_file = pep_id.getMetaValue("reference_file_name").toString();
+          run_file = pep_id.getMetaValue(idx_reference_file_name).toString();
         }
         if (run_file.empty() && fn_it != id_to_filename.end())
         {
@@ -1217,21 +1240,21 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       }
 
       // === ion_mobility (float32, nullable) ===
-      if (hit.metaValueExists("ion_mobility"))
+      if (metaHas(hit, idx_ion_mobility))
       {
-        (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(hit.getMetaValue("ion_mobility"))));
+        (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(hit.getMetaValue(idx_ion_mobility))));
       }
-      else if (hit.metaValueExists("IM"))
+      else if (metaHas(hit, idx_IM))
       {
-        (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(hit.getMetaValue("IM"))));
+        (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(hit.getMetaValue(idx_IM))));
       }
-      else if (pep_id.metaValueExists("ion_mobility"))
+      else if (metaHas(pep_id, idx_ion_mobility))
       {
-        (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_id.getMetaValue("ion_mobility"))));
+        (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_id.getMetaValue(idx_ion_mobility))));
       }
-      else if (pep_id.metaValueExists("IM"))
+      else if (metaHas(pep_id, idx_IM))
       {
-        (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_id.getMetaValue("IM"))));
+        (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(pep_id.getMetaValue(idx_IM))));
       }
       else
       {
@@ -1239,9 +1262,9 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       }
 
       // === missed_cleavages (int16, nullable) ===
-      if (hit.metaValueExists("missed_cleavages"))
+      if (metaHas(hit, idx_missed_cleavages))
       {
-        (void)missed_cleavages_builder.Append(static_cast<int16_t>(static_cast<int>(hit.getMetaValue("missed_cleavages"))));
+        (void)missed_cleavages_builder.Append(static_cast<int16_t>(static_cast<int>(hit.getMetaValue(idx_missed_cleavages))));
       }
       else
       {

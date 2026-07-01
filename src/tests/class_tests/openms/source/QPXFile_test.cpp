@@ -1061,6 +1061,89 @@ START_SECTION(([EXTRA] exportToParquetStreaming parallel build (n_threads)))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] exportToParquetStreaming dedicated-column values (index path + precedence)))
+{
+  // Locks the Approach-B index-based dedicated-column extraction: exact values + alias precedence,
+  // identical between the parallel streaming path and the one-shot path.
+  arrow::MemoryPool* pool = arrow::default_memory_pool();
+  auto read1 = [pool](const std::string& path) -> std::shared_ptr<arrow::Table>
+  {
+    auto o = arrow::io::ReadableFile::Open(path.c_str());
+    if (!o.ok()) { return nullptr; }
+    auto rr = parquet::arrow::OpenFile(o.ValueOrDie(), pool);
+    if (!rr.ok()) { return nullptr; }
+    auto rd = std::move(rr).ValueOrDie();
+    std::shared_ptr<arrow::Table> t;
+    if (!rd->ReadTable(&t).ok()) { return nullptr; }
+    auto c = t->CombineChunks(pool);
+    return c.ok() ? c.ValueOrDie() : nullptr;
+  };
+
+  vector<ProteinIdentification> prot(1);
+  prot[0].setIdentifier("run1");
+  prot[0].setScoreType("q-value");
+  prot[0].setHigherScoreBetter(false);
+  prot[0].setPrimaryMSRunPath({"/data/fallback.mzML"});
+
+  PeptideIdentificationList peps;
+  PeptideIdentification pid;
+  pid.setIdentifier("run1");
+  pid.setRT(42.0);
+  pid.setMZ(555.5);
+  pid.setScoreType("q-value"); // NOT a PEP type -> PEP is looked up in hit metavalues
+  pid.setHigherScoreBetter(false);
+  pid.setSpectrumReference("controllerType=0 controllerNumber=1 scan=4242");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDEK"));
+  hit.setCharge(3);
+  hit.setScore(0.001);
+  hit.setMetaValue("target_decoy", "decoy");
+  hit.setMetaValue("Posterior Error Probability", 0.25); // -> posterior_error_probability column
+  hit.setMetaValue("predicted_RT", 40.0);
+  hit.setMetaValue("predicted_rt", 999.0);               // precedence: predicted_RT must win
+  hit.setMetaValue("ion_mobility", 1.23);
+  hit.setMetaValue("IM", 9.99);                          // precedence: ion_mobility must win
+  hit.setMetaValue("missed_cleavages", 2);
+  hit.setMetaValue("reference_file_name", "/data/real.mzML"); // must override primary MS run path
+  pid.setHits(vector<PeptideHit>{hit});
+
+  // Replicate so the parallel path actually partitions (n_threads=4, batch_size=3 => multiple
+  // batches AND multiple partitions per batch), then check the first and last row.
+  const size_t NREP = 10;
+  for (size_t i = 0; i < NREP; ++i) { peps.push_back(pid); }
+  std::vector<const PeptideIdentification*> ptrs;
+  ptrs.reserve(peps.size());
+  for (const auto& p : peps) { ptrs.push_back(&p); }
+
+  std::string sf; NEW_TMP_FILE(sf)
+  TEST_EQUAL(QPXFile::exportToParquetStreaming(prot, ptrs, sf, false, 3, ParquetWriteConfig{}, 4), true)
+  std::string of; NEW_TMP_FILE(of)
+  TEST_EQUAL(QPXFile::exportToParquet(prot, peps, of), true)
+
+  for (const std::string& f : {sf, of})
+  {
+    auto t = read1(f);
+    TEST_NOT_EQUAL(t, nullptr)
+    TEST_EQUAL(t->num_rows(), (int64_t)NREP)
+    auto is_decoy = std::static_pointer_cast<arrow::BooleanArray>(t->GetColumnByName("is_decoy")->chunk(0));
+    auto prt      = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("predicted_rt")->chunk(0));
+    auto im       = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("ion_mobility")->chunk(0));
+    auto mc       = std::static_pointer_cast<arrow::Int16Array>(t->GetColumnByName("missed_cleavages")->chunk(0));
+    auto rfn      = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("run_file_name")->chunk(0));
+    auto pep      = std::static_pointer_cast<arrow::DoubleArray>(t->GetColumnByName("posterior_error_probability")->chunk(0));
+    for (int64_t r : {(int64_t)0, (int64_t)(NREP - 1)})
+    {
+      TEST_EQUAL(is_decoy->Value(r), true)
+      TEST_REAL_SIMILAR(prt->Value(r), 40.0)  // predicted_RT wins over predicted_rt
+      TEST_REAL_SIMILAR(im->Value(r), 1.23)   // ion_mobility wins over IM
+      TEST_EQUAL(mc->Value(r), 2)
+      TEST_EQUAL(rfn->GetString(r), "/data/real.mzML") // reference_file_name overrides fallback
+      TEST_REAL_SIMILAR(pep->Value(r), 0.25)
+    }
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

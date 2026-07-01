@@ -127,11 +127,15 @@ public:
     @param[in] config Parquet writing options. config.row_group_size is the maximum number
                of rows per Parquet row group (the WriteTable chunk size).
     @param[in] n_threads OpenMP threads used to build each batch's partitions in parallel.
-               1 = serial (default, preserves prior behaviour); 0 = auto (all available cores);
+               1 = serial (default, preserves prior behaviour); 0 = auto (all available cores,
+               i.e. omp_get_max_threads(), which honours the OMP_NUM_THREADS environment variable);
                N = fixed count. The per-row build dominates export cost, so parallelism here is
                the main speedup. Output is identical in row content and order regardless of
                @p n_threads (contiguous partitions are written in index order). The Parquet write
                itself stays serial. Without OpenMP support the export always runs serially.
+               @note On hyper-threaded CPUs, using all logical cores (0) can be slower than the
+               physical-core count because the build is memory-bandwidth bound; set OMP_NUM_THREADS
+               (or pass N) to the physical-core count for best throughput on such machines.
     @return true on success, false on error (errors are logged)
   */
   static bool exportToParquetStreaming(
