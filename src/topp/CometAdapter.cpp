@@ -923,12 +923,6 @@ protected:
     // guard needed.
     CometNativeIDRemapper::translateReferencesBack(exp, peptide_identifications);
 
-    // remove base_name meta value from peptide identifications
-    for (auto& peptide_identification : peptide_identifications)
-    {
-      peptide_identification.removeMetaValue("base_name");
-    }
-
     // add percolator features
     StringList feature_set;
     PercolatorFeatureSetHelper::addCOMETFeatures(peptide_identifications, feature_set);

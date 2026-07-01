@@ -154,6 +154,14 @@ target_link_libraries(ConsensusMapArrowIO_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
 )
+target_link_libraries(XICParquetFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
+target_link_libraries(XIMParquetFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
 target_link_libraries(Libzip_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
@@ -191,6 +199,13 @@ if (TARGET OpenSwathExport_test)
   target_link_libraries(OpenSwathExport_test
     ${OPENMS_ARROW_TARGET}
     ${OPENMS_PARQUET_TARGET}
+  )
+endif()
+if (TARGET OpenSwathPercolatorScoring_test)
+  target_link_libraries(OpenSwathPercolatorScoring_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+    sqlite3
   )
 endif()
 if (TARGET ArrowSchemaRegistry_test)

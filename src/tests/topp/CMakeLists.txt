@@ -2045,6 +2045,30 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathWorkflow_27" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.tsv -Calibration:files:linear_irt_file "${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML" -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_27.tmp.featureXML -enable_ms1 false -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" -Calibration:RTNormalization:lowess:auto_span false -Calibration:RTNormalization:lowess:span 0.666666666666666666666666666 ${OLD_OSW_PARAM})
   add_test("TOPP_OpenSwathWorkflow_27_out1" ${DIFF} -whitelist "id=" "potentialOutlier" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_27.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_27_expected.featureXML)
   set_tests_properties("TOPP_OpenSwathWorkflow_27_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_27")
+
+  add_test("TOPP_OpenSwathPeakMapExtractor_1_prep"
+    ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/OpenSwathPeakMapExtractor_1_out)
+  add_test("TOPP_OpenSwathPeakMapExtractor_1_prep_mkdir"
+    ${CMAKE_COMMAND} -E make_directory ${TESTS_TEMP_DIR}/OpenSwathPeakMapExtractor_1_out)
+  set_tests_properties("TOPP_OpenSwathPeakMapExtractor_1_prep_mkdir" PROPERTIES DEPENDS "TOPP_OpenSwathPeakMapExtractor_1_prep")
+
+  add_test("TOPP_OpenSwathPeakMapExtractor_1" ${TOPP_BIN_PATH}/OpenSwathPeakMapExtractor -test
+    -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_input.mzML
+    -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_input.tsv
+    -Calibration:auto_irt:enabled "false"
+    -Calibration:windows:estimate_rt "false"
+    -Calibration:windows:estimate_mz "false"
+    -Calibration:windows:estimate_im "false"
+    -enable_ms1 false
+    -readOptions workingInMemory
+    -ion_mobility_window 0.1
+    -pasef
+    -separate_runs
+    -out_dir ${TESTS_TEMP_DIR}/OpenSwathPeakMapExtractor_1_out)
+  set_tests_properties("TOPP_OpenSwathPeakMapExtractor_1" PROPERTIES DEPENDS "TOPP_OpenSwathPeakMapExtractor_1_prep_mkdir")
+  add_test("TOPP_OpenSwathPeakMapExtractor_1_out1"
+    bash -c "test -f ${TESTS_TEMP_DIR}/OpenSwathPeakMapExtractor_1_out/OpenSwathWorkflow_23_input_1.xipm")
+  set_tests_properties("TOPP_OpenSwathPeakMapExtractor_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathPeakMapExtractor_1")
 endif(NOT DISABLE_OPENSWATH)
 
 if(NOT DISABLE_OPENSWATH)
@@ -2052,6 +2076,7 @@ if(NOT DISABLE_OPENSWATH)
   # The shared PyProphet-derived fixture is single-run only, so these tests
   # deliberately avoid alignment-dependent options.
   set(OPENSWATH_SHARED_INFERENCE_OSW ${OPENMS_HOST_DIRECTORY}/src/tests/class_tests/openms/data/PyProphet_inference_test.osw)
+  set(OPENSWATH_SHARED_PERCOLATOR_OSWPQ ${OPENMS_HOST_DIRECTORY}/src/tests/class_tests/openms/data/OpenSwathWorkflow_tworuns_1_17.output.oswpq)
 
   add_test("TOPP_OpenSwathInfer_1_prepare" ${CMAKE_COMMAND} -E copy_if_different ${OPENSWATH_SHARED_INFERENCE_OSW} ${TESTS_TEMP_DIR}/OpenSwathInfer_1_input.osw)
   add_test("TOPP_OpenSwathInfer_1" ${TOPP_BIN_PATH}/OpenSwathInfer -test -in ${TESTS_TEMP_DIR}/OpenSwathInfer_1_input.osw
@@ -2113,6 +2138,20 @@ if(NOT DISABLE_OPENSWATH)
   set_tests_properties("TOPP_OpenSwathExport_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathExport_1")
   set_tests_properties("TOPP_OpenSwathExport_1_out2" PROPERTIES DEPENDS "TOPP_OpenSwathExport_1")
   set_tests_properties("TOPP_OpenSwathExport_1_out3" PROPERTIES DEPENDS "TOPP_OpenSwathExport_1")
+
+  add_test("TOPP_OpenSwathPercolatorScoring_1_prepare" ${CMAKE_COMMAND} -E copy_if_different ${OPENSWATH_SHARED_INFERENCE_OSW} ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_1_input.osw)
+  add_test("TOPP_OpenSwathPercolatorScoring_1" ${TOPP_BIN_PATH}/OpenSwathPercolatorScoring -test
+    -in ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_1_input.osw
+    -out ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_1_output.osw
+    -level ms1ms2 transition)
+  set_tests_properties("TOPP_OpenSwathPercolatorScoring_1" PROPERTIES DEPENDS "TOPP_OpenSwathPercolatorScoring_1_prepare")
+
+  add_test("TOPP_OpenSwathPercolatorScoring_2_prepare" ${CMAKE_COMMAND} -E copy_if_different ${OPENSWATH_SHARED_PERCOLATOR_OSWPQ} ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_2_input.oswpq)
+  add_test("TOPP_OpenSwathPercolatorScoring_2" ${TOPP_BIN_PATH}/OpenSwathPercolatorScoring -test
+    -in ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_2_input.oswpq
+    -out ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_2_output.oswpq
+    -level ms2)
+  set_tests_properties("TOPP_OpenSwathPercolatorScoring_2" PROPERTIES DEPENDS "TOPP_OpenSwathPercolatorScoring_2_prepare")
 endif(NOT DISABLE_OPENSWATH)
 
 #------------------------------------------------------------------------------

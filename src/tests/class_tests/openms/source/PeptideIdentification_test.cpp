@@ -304,12 +304,6 @@ START_SECTION((bool empty() const))
   hits.setSignificanceThreshold(0);
   TEST_TRUE(hits.empty())
 
-  hits.setBaseName("basename");
-  TEST_FALSE(hits.empty())
-
-  hits.setBaseName("");
-  TEST_TRUE(hits.empty())
-
   hits.insertHit(peptide_hit);
   TEST_FALSE(hits.empty())
 END_SECTION
@@ -467,46 +461,6 @@ START_SECTION((static std::string buildUIDFromPepID(const PeptideIdentification&
 {
       NOT_TESTABLE //Tested above
 }
-END_SECTION
-
-START_SECTION((const std::string& getBaseName() const))
-  PeptideIdentification id;
-  TEST_EQUAL(id.getBaseName(), "")
-  
-  id.setBaseName("test_base_name");
-  TEST_EQUAL(id.getBaseName(), "test_base_name")
-  
-  // Test that it's stored as a MetaValue
-  TEST_TRUE(id.metaValueExists(Constants::UserParam::BASE_NAME))
-  TEST_EQUAL(id.getMetaValue(Constants::UserParam::BASE_NAME), "test_base_name")
-
-  // Regression (string refactor #9450): tolerate a non-string base_name DataValue
-  // (lenient stringification, must not throw).
-  PeptideIdentification id_int;
-  int int_base = 0;
-  id_int.setMetaValue(Constants::UserParam::BASE_NAME, int_base);
-  TEST_EQUAL(id_int.getBaseName(), "0")
-END_SECTION
-
-START_SECTION((void setBaseName(const std::string& base_name)))
-  PeptideIdentification id;
-  
-  // Test setting a non-empty base name
-  id.setBaseName("test_base_name");
-  TEST_EQUAL(id.getBaseName(), "test_base_name")
-  TEST_TRUE(id.metaValueExists(Constants::UserParam::BASE_NAME))
-  
-  // Test setting an empty base name (should remove the meta value)
-  id.setBaseName("");
-  TEST_EQUAL(id.getBaseName(), "")
-  TEST_FALSE(id.metaValueExists(Constants::UserParam::BASE_NAME))
-  
-  // Test that empty() method works correctly with base name as meta value
-  TEST_TRUE(id.empty())
-  id.setBaseName("test_base_name");
-  TEST_FALSE(id.empty())
-  id.setBaseName("");
-  TEST_TRUE(id.empty())
 END_SECTION
 
 START_SECTION((std::string getSpectrumReference() const))

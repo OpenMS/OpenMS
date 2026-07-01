@@ -203,9 +203,13 @@ namespace OpenMS
       const std::string& id = pep.getIdentifier();
       ID::ProcessingStepRef step_ref = id_to_step.at(id);
       ID::InputFileRef inputfile;
-      if (!pep.getBaseName().empty())
+      // Legacy fallback: older data may annotate the source file directly on the
+      // PeptideIdentification via the (deprecated) "base_name" meta value.
+      const std::string legacy_base_name = pep.metaValueExists(Constants::UserParam::BASE_NAME) ?
+        StringUtils::toStr(pep.getMetaValue(Constants::UserParam::BASE_NAME)) : std::string();
+      if (!legacy_base_name.empty())
       {
-        inputfile = id_data.registerInputFile(ID::InputFile(pep.getBaseName()));
+        inputfile = id_data.registerInputFile(ID::InputFile(legacy_base_name));
       }
       else
       {

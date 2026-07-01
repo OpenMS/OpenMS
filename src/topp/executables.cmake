@@ -99,6 +99,7 @@ OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
 OpenSwathExport
 OpenSwathInfer
+OpenSwathPercolatorScoring
 OpenSwathRTNormalizer
 PeakPickerHiRes
 PeakPickerIterative
@@ -150,6 +151,7 @@ if(NOT DISABLE_OPENSWATH)
     TargetedFileConverter
     OpenSwathDIAPreScoring
     OpenSwathMzMLFileCacher
+    OpenSwathPeakMapExtractor
     OpenSwathWorkflow
     OpenSwathFileSplitter
     OpenSwathRewriteToFeatureXML
@@ -159,7 +161,6 @@ endif(NOT DISABLE_OPENSWATH)
 
 set(TOPP_executables
   ${TOPP_executables}
-  QPXConverter
   ParquetConverter
 )
 

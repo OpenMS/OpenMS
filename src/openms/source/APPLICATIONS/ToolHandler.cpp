@@ -146,6 +146,8 @@ namespace OpenMS
     tools_map["OpenSwathFileSplitter"] = Internal::ToolDescription("OpenSwathFileSplitter", cat_targeted);
     tools_map["OpenSwathInfer"] = Internal::ToolDescription("OpenSwathInfer", cat_targeted);
     tools_map["OpenSwathMzMLFileCacher"] = Internal::ToolDescription("OpenSwathMzMLFileCacher", cat_targeted);
+    tools_map["OpenSwathPeakMapExtractor"] = Internal::ToolDescription("OpenSwathPeakMapExtractor", cat_targeted);
+    tools_map["OpenSwathPercolatorScoring"] = Internal::ToolDescription("OpenSwathPercolatorScoring", cat_targeted);
     tools_map["OpenSwathRewriteToFeatureXML"] = Internal::ToolDescription("OpenSwathRewriteToFeatureXML", cat_targeted);
     tools_map["OpenSwathRTNormalizer"] = Internal::ToolDescription("OpenSwathRTNormalizer", cat_targeted);
     tools_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", cat_targeted);
@@ -160,7 +162,6 @@ namespace OpenMS
     tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", cat_quant);
     tools_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", cat_quant);
     tools_map["PSMFeatureExtractor"] = Internal::ToolDescription("PSMFeatureExtractor", cat_ID_proc);
-    tools_map["QPXConverter"] = Internal::ToolDescription("QPXConverter", cat_file_converter);
     tools_map["ParquetConverter"] = Internal::ToolDescription("ParquetConverter", cat_file_converter);
     tools_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", cat_QC);
     tools_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", cat_QC);
