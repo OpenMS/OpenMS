@@ -13,6 +13,8 @@
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <string>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -116,7 +118,7 @@ END_SECTION
 
 START_SECTION([EXTRA] prepareLine indexes masserror_ppm by MS2 subordinate position)
 {
-  String temp_file = File::getTemporaryFile();
+  std::string temp_file = File::getTemporaryFile();
 
   {
     OpenSwathOSWWriter writer(temp_file, false);
@@ -153,7 +155,7 @@ START_SECTION([EXTRA] prepareLine indexes masserror_ppm by MS2 subordinate posit
 
     FeatureMap output;
     output.push_back(feature);
-    writer.writeLines(std::vector<String>{writer.prepareLine(OpenSwath::LightCompound(), nullptr, output, "77")});
+    writer.writeLines(std::vector<std::string>{writer.prepareLine(OpenSwath::LightCompound(), nullptr, output, "77")});
   }
 
   {
@@ -170,7 +172,7 @@ END_SECTION
 
 START_SECTION([EXTRA] prepareLine uses available UIS transition names instead of reported count)
 {
-  String temp_file = File::getTemporaryFile();
+  std::string temp_file = File::getTemporaryFile();
 
   {
     OpenSwathOSWWriter writer(temp_file, true);
@@ -195,7 +197,7 @@ START_SECTION([EXTRA] prepareLine uses available UIS transition names instead of
 
     FeatureMap output;
     output.push_back(feature);
-    writer.writeLines(std::vector<String>{writer.prepareLine(OpenSwath::LightCompound(), nullptr, output, "77")});
+    writer.writeLines(std::vector<std::string>{writer.prepareLine(OpenSwath::LightCompound(), nullptr, output, "77")});
   }
 
   {
