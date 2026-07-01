@@ -34,6 +34,7 @@ set(sources_list
   OpenSwathOSWParquetReader.cpp
   OpenSwathOSWParquetWriter.cpp
   OpenSwathOSWWriter.cpp
+  PeakMapExtractor.cpp
   OpenSwathResultsExporter.cpp
   OpenSwathWorkflow.cpp
   OpenSwathWorkflowScheduler.cpp

@@ -41,6 +41,7 @@ set(sources_list_h
   OpenSwathResultsExporter.h
   OpenSwathWorkflow.h
   OpenSwathWorkflowScheduler.h
+  PeakMapExtractor.h
   PeakIntegrator.h
   PeakPickerChromatogram.h
   PeakPickerMobilogram.h
