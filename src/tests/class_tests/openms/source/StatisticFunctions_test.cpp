@@ -118,6 +118,28 @@ START_SECTION([EXTRA](template <typename IteratorType> double MeanAbsoluteDeviat
 }
 END_SECTION
 
+START_SECTION([EXTRA](template <typename IteratorType> static double absdev(IteratorType begin, IteratorType end, double mean = std::numeric_limits<double>::max())))
+{
+  // absdev is the mean absolute deviation: it must accumulate |x - mean|.
+  // (A previous bug accumulated the signed (x - mean), which sums to ~0 for the mean.)
+  int x1[] = {-1, 0, 1, 2, 3}; // mean = 1
+  TEST_REAL_SIMILAR(Math::absdev(x1, x1 + 5, 1.0), 1.2);
+  TEST_REAL_SIMILAR(Math::absdev(x1, x1 + 5), 1.2); // mean computed internally (== 1)
+
+  // symmetric data around the mean: the signed sum is exactly 0, the absolute deviation is clearly non-zero
+  DoubleList sym = ListUtils::create<double>("-2.0, -1.0, 1.0, 2.0"); // mean = 0
+  TEST_REAL_SIMILAR(Math::absdev(sym.begin(), sym.end(), 0.0), 1.5);
+
+  // single element -> 0
+  int x3[] = {-1};
+  TEST_REAL_SIMILAR(Math::absdev(x3, x3 + 1, -1.0), 0.0);
+
+  // empty range -> InvalidRange (documented contract, enforced via checkIteratorsNotNULL)
+  int empty[] = {0};
+  TEST_EXCEPTION(Exception::InvalidRange, Math::absdev(empty, empty));
+}
+END_SECTION
+
 START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType meanSquareError( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
 {
 	std::list<double> numbers1(20, 1.5);
@@ -395,7 +417,7 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 }
 END_SECTION
 
-START_SECTION([EXTRA](template <typename IteratorType> static double quantile(IteratorType begin, IteratorType end, UInt quantile, bool sorted = false) ))
+START_SECTION([EXTRA](static double quantile1st/quantile3rd(IteratorType begin, IteratorType end, bool sorted)))
 {
   std::vector<int> x = {3,6,7,8,8,10,13,15,16,20};
   std::vector<int> y = {3,6,7,8,8,10,13,15,16};
@@ -406,6 +428,76 @@ START_SECTION([EXTRA](template <typename IteratorType> static double quantile(It
   TEST_REAL_SIMILAR(Math::quantile1st(y.begin(), y.end(), true),6.5);
   TEST_REAL_SIMILAR(Math::median(y.begin(), y.end(), true), 8.0);
   TEST_REAL_SIMILAR(Math::quantile3rd(y.begin(), y.end(), true), 14.0);
+
+  // --- small ranges (issue #9659): quantile1st/quantile3rd must be total for n >= 1 ---
+  // n == 1: first and third quantile both collapse to the single value
+  std::vector<double> n1{5.0};
+  TEST_REAL_SIMILAR(Math::quantile1st(n1.begin(), n1.end(), true), 5.0);
+  TEST_REAL_SIMILAR(Math::quantile3rd(n1.begin(), n1.end(), true), 5.0);
+  // n == 2: Q1 == min, Q3 == max (the median-of-halves convention)
+  std::vector<double> n2{1.0, 3.0};
+  TEST_REAL_SIMILAR(Math::quantile1st(n2.begin(), n2.end(), true), 1.0);
+  TEST_REAL_SIMILAR(Math::quantile3rd(n2.begin(), n2.end(), true), 3.0);
+  // unsorted input is sorted internally before the min/max is taken
+  std::vector<double> n2u{3.0, 1.0};
+  TEST_REAL_SIMILAR(Math::quantile1st(n2u.begin(), n2u.end()), 1.0);
+  TEST_REAL_SIMILAR(Math::quantile3rd(n2u.begin(), n2u.end()), 3.0);
+  // n == 3 and n == 4 already returned min/max before the fix; pin that continuity
+  std::vector<double> n3{1.0, 2.0, 3.0};
+  TEST_REAL_SIMILAR(Math::quantile1st(n3.begin(), n3.end(), true), 1.0);
+  TEST_REAL_SIMILAR(Math::quantile3rd(n3.begin(), n3.end(), true), 3.0);
+  std::vector<double> n4{1.0, 2.0, 3.0, 4.0};
+  TEST_REAL_SIMILAR(Math::quantile1st(n4.begin(), n4.end(), true), 1.0);
+  TEST_REAL_SIMILAR(Math::quantile3rd(n4.begin(), n4.end(), true), 4.0);
+  // empty range still throws
+  std::vector<double> none;
+  TEST_EXCEPTION(Exception::InvalidRange, Math::quantile1st(none.begin(), none.end(), true));
+  TEST_EXCEPTION(Exception::InvalidRange, Math::quantile3rd(none.begin(), none.end(), true));
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename T> struct SummaryStatistics))
+{
+  // issue #9659: SummaryStatistics must not throw for n == 1 or n == 2
+  // n == 1: every quantile collapses to the single value; variance reported as 0 (as in the empty case)
+  std::vector<double> one{5.0};
+  Math::SummaryStatistics<std::vector<double>> s1(one);
+  TEST_EQUAL(s1.count, 1)
+  TEST_REAL_SIMILAR(s1.mean, 5.0)
+  TEST_REAL_SIMILAR(s1.variance, 0.0)
+  TEST_REAL_SIMILAR(s1.min, 5.0)
+  TEST_REAL_SIMILAR(s1.lowerq, 5.0)
+  TEST_REAL_SIMILAR(s1.median, 5.0)
+  TEST_REAL_SIMILAR(s1.upperq, 5.0)
+  TEST_REAL_SIMILAR(s1.max, 5.0)
+
+  // n == 2: lowerq == min, upperq == max, median == mean of the two
+  std::vector<double> two{1.0, 3.0};
+  Math::SummaryStatistics<std::vector<double>> s2(two);
+  TEST_EQUAL(s2.count, 2)
+  TEST_REAL_SIMILAR(s2.mean, 2.0)
+  TEST_REAL_SIMILAR(s2.variance, 2.0) // sample variance: ((1-2)^2 + (3-2)^2) / (2-1) == 2
+  TEST_REAL_SIMILAR(s2.min, 1.0)
+  TEST_REAL_SIMILAR(s2.lowerq, 1.0)
+  TEST_REAL_SIMILAR(s2.median, 2.0)
+  TEST_REAL_SIMILAR(s2.upperq, 3.0)
+  TEST_REAL_SIMILAR(s2.max, 3.0)
+
+  // n == 3: sanity check that the 3+ path is unaffected
+  std::vector<double> three{1.0, 2.0, 3.0};
+  Math::SummaryStatistics<std::vector<double>> s3(three);
+  TEST_EQUAL(s3.count, 3)
+  TEST_REAL_SIMILAR(s3.lowerq, 1.0)
+  TEST_REAL_SIMILAR(s3.median, 2.0)
+  TEST_REAL_SIMILAR(s3.upperq, 3.0)
+
+  // empty: all fields zero, no throw
+  std::vector<double> none;
+  Math::SummaryStatistics<std::vector<double>> s0(none);
+  TEST_EQUAL(s0.count, 0)
+  TEST_REAL_SIMILAR(s0.variance, 0.0)
+  TEST_REAL_SIMILAR(s0.lowerq, 0.0)
+  TEST_REAL_SIMILAR(s0.upperq, 0.0)
 }
 END_SECTION
 
