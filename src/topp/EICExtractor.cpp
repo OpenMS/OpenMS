@@ -21,6 +21,7 @@
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <functional>
 #include <numeric>
 

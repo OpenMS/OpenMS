@@ -705,6 +705,11 @@ START_SECTION(([EXTRA]void parseRange_(const std::string& text, double& low, dou
 	TEST_REAL_SIMILAR(a, 6.5);
 	TEST_REAL_SIMILAR(b, 7.5);
   TEST_EQUAL(result, true);
+
+  // a colon-less range string is malformed (documented format is "[min]:[max]") and must
+  // fail loudly, not be silently interpreted as the degenerate range value:value
+  s = "400";
+  TEST_EXCEPTION(Exception::ConversionError, topp.parseRange(s, a, b));
 }
 END_SECTION
 

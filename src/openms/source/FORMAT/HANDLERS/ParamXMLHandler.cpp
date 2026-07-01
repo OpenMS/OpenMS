@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace xercesc;
 using namespace std;

@@ -126,6 +126,8 @@ START_SECTION((StringUtils::toStr(float, bool full_precision)))
   TEST_EQUAL(StringUtils::toStr(17.0123456f),         "17.012346")
   TEST_EQUAL(StringUtils::toStr(17.0123f, false),     "17.012")
   TEST_EQUAL(StringUtils::toStr(50254.199219f),       "5.02542e04")
+  TEST_EQUAL(StringUtils::toStr(1000000.0f),          "1.0e06")   // integer mantissa keeps ".0"
+  TEST_EQUAL(StringUtils::toStr(0.000001f),           "1.0e-06")
 
   constexpr float denorm = std::numeric_limits<float>::min() / 10;
   TEST_EQUAL(StringUtils::toStr(denorm, true),  "1.175495e-39")
@@ -140,6 +142,14 @@ START_SECTION((StringUtils::toStr(double, bool full_precision)))
   TEST_EQUAL(StringUtils::toStr(double(17.012345)),         "17.012345")
   TEST_EQUAL(StringUtils::toStr(double(17.012345), false),  "17.012")
 
+  // scientific notation with an integer mantissa must keep the historical "1.0e06" form
+  // (shortest round-trip emits "1e+06" with no decimal point; we restore the ".0")
+  TEST_EQUAL(StringUtils::toStr(1000000.0),   "1.0e06")
+  TEST_EQUAL(StringUtils::toStr(-1000000.0),  "-1.0e06")
+  TEST_EQUAL(StringUtils::toStr(10000.0),     "1.0e04")
+  TEST_EQUAL(StringUtils::toStr(0.000001),    "1.0e-06")
+  TEST_EQUAL(StringUtils::toStr(1.5e10),      "1.5e10")
+
   constexpr double denorm = std::numeric_limits<double>::min() / 10;
   TEST_EQUAL(StringUtils::toStr(denorm, true),  "2.225073858507203e-309")
   TEST_EQUAL(StringUtils::toStr(denorm, false), "2.225e-309")
@@ -152,6 +162,8 @@ END_SECTION
 START_SECTION((StringUtils::toStr(long double, bool full_precision)))
   TEST_EQUAL(StringUtils::toStr(17.012345L),        "17.012345")
   TEST_EQUAL(StringUtils::toStr(17.012345L, false), "17.012")
+  // exact integer-mantissa value (representable in 64/80/128-bit long double): keeps ".0"
+  TEST_EQUAL(StringUtils::toStr(1000000.0L),        "1.0e06")
 
   constexpr long double nan_ld = std::numeric_limits<long double>::quiet_NaN();
   TEST_EQUAL(StringUtils::toStr(nan_ld, true),  "NaN")
@@ -263,13 +275,13 @@ END_SECTION
 START_SECTION((StringUtils::prefix(char delim)))
   TEST_EQUAL(StringUtils::prefix(s, 'F'), "ACDE")
   TEST_EQUAL(StringUtils::prefix(s, 'A'), "")
-  TEST_EXCEPTION(Exception::ElementNotFound, StringUtils::prefix(s, 'Z'))
+  TEST_EQUAL(StringUtils::prefix(s, 'Z'), s) // delimiter absent -> whole string
 END_SECTION
 
 START_SECTION((StringUtils::suffix(char delim)))
   TEST_EQUAL(StringUtils::suffix(s, 'S'), "TVWY")
   TEST_EQUAL(StringUtils::suffix(s, 'Y'), "")
-  TEST_EXCEPTION(Exception::ElementNotFound, StringUtils::suffix(s, 'Z'))
+  TEST_EQUAL(StringUtils::suffix(s, 'Z'), s) // delimiter absent -> whole string
 END_SECTION
 
 START_SECTION((StringUtils::substr))

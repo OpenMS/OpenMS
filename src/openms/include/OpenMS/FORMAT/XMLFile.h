@@ -10,7 +10,9 @@
 
 // OpenMS includes
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+
+#include <iosfwd>
+#include <string>
 
 namespace OpenMS
 {

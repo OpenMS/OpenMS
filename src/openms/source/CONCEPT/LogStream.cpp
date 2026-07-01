@@ -19,6 +19,9 @@
 #include <string>
 #include <cstring>
 #include <cstdio>
+#include <ctime>
+#include <mutex>
+#include <vector>
 #include <algorithm>    // std::min
 #include <OpenMS/CONCEPT/Colorizer.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -30,6 +33,39 @@
 #define BUFFER_LENGTH 32768
 
 using namespace std;
+
+namespace
+{
+  /// Global mutex that serializes the final sink writes in
+  /// OpenMS::Logger::LogStreamBuf::distribute_(). Multiple thread-local
+  /// LogStreamBuf instances legitimately share the same destination ostream
+  /// (e.g. std::cerr/std::cout) AND the same global Colorizer
+  /// (yellow/red/magenta), so both the stream writes and the Colorizer's
+  /// internal state mutation must be serialized across threads (issue #9515).
+  /// Intentionally heap-allocated and never freed so it stays valid even while
+  /// the global LogStream objects are destroyed during static teardown; unlike
+  /// the former OpenMP critical section, a plain std::mutex does not depend on
+  /// the OpenMP runtime.
+  std::mutex& logSinkMutex_()
+  {
+    static std::mutex* instance = new std::mutex();
+    return *instance;
+  }
+
+  /// Thread-safe local-time conversion. std::localtime returns a pointer to a
+  /// single process-wide static std::tm, which races across threads; the
+  /// reentrant localtime_r/localtime_s write into a caller-provided struct.
+  std::tm toLocalTime_(std::time_t t)
+  {
+    std::tm out{};
+#ifdef OPENMS_WINDOWSPLATFORM
+    localtime_s(&out, &t);
+#else
+    localtime_r(&t, &out);
+#endif
+    return out;
+  }
+}
 
 namespace OpenMS
 {
@@ -74,7 +110,11 @@ namespace OpenMS
 
     LogStreamBuf::~LogStreamBuf()
     {
-      // Prevent issue on OSX with OpenMP: destructors of global objects seem to be called after tearing down the OpenMP context, we therefore cannot use any locks here.
+      // Flush whatever is left. distribute_() serializes on a global std::mutex
+      // that is intentionally leaked (never destroyed), so it stays valid while
+      // the global LogStream objects are torn down at static destruction. Unlike
+      // the former OpenMP critical section, a std::mutex does not depend on the
+      // OpenMP runtime, so locking here during teardown is safe (issue #9515).
       syncLF_();
       {
         clearCache();
@@ -215,28 +255,44 @@ namespace OpenMS
 
     void LogStreamBuf::distribute_(const std::string& outstring)
     {
-      // if there are any streams in our list, we
-      // copy the line into that streams, too and flush them
-      std::list<StreamStruct>::iterator list_it = stream_list_.begin();
-      for (; list_it != stream_list_.end(); ++list_it)
+      // Serialize the final writes across threads. Multiple thread-local
+      // LogStreamBuf instances legitimately share the same destination ostream
+      // (e.g. std::cerr/std::cout) AND the same global Colorizer
+      // (yellow/red/magenta), so both the stream writes and the Colorizer's
+      // internal state mutation must be serialized (issue #9515). Notifier
+      // callbacks are collected and invoked AFTER releasing the lock so that a
+      // notifier which itself logs cannot deadlock on this non-recursive mutex.
+      std::vector<LogStreamNotifier*> to_notify;
       {
-        if (colorizer_) 
-        {
-          *(list_it->stream) << (*colorizer_)(); // enable color
-        }        
+        std::lock_guard<std::mutex> lock(logSinkMutex_());
 
-        *(list_it->stream) << expandPrefix_(list_it->prefix, time(nullptr))
-                           << outstring;
-        if (colorizer_)
+        // if there are any streams in our list, we
+        // copy the line into that streams, too and flush them
+        for (StreamStruct& s : stream_list_)
         {
-          *(list_it->stream) << (*colorizer_).undo(); // disable color
-        }
-        *(list_it->stream) << std::endl;
+          if (colorizer_)
+          {
+            *(s.stream) << (*colorizer_)(); // enable color
+          }
 
-        if (list_it->target != nullptr)
-        {
-          list_it->target->logNotify();
+          *(s.stream) << expandPrefix_(s.prefix, time(nullptr)) << outstring;
+
+          if (colorizer_)
+          {
+            *(s.stream) << (*colorizer_).undo(); // disable color
+          }
+          *(s.stream) << std::endl;
+
+          if (s.target != nullptr)
+          {
+            to_notify.push_back(s.target);
+          }
         }
+      }
+
+      for (LogStreamNotifier* target : to_notify)
+      {
+        target->logNotify();
       }
     }
 
@@ -252,8 +308,6 @@ namespace OpenMS
           char *line_start = pbase();
           char *line_end = pbase();
 
-          static char buf[BUFFER_LENGTH];
-
           while (line_end < pptr())
           {
             // search for the first end of line
@@ -263,31 +317,23 @@ namespace OpenMS
 
             if (line_end >= pptr())
             {
-              // Copy the incomplete line to the incomplete_line_ buffer
-              size_t length = line_end - line_start;
-              length = std::min(length, (size_t) (BUFFER_LENGTH - 1));
-              strncpy(&(buf[0]), line_start, length);
-
-              // if length was too large, we copied one byte less than BUFFER_LENGTH to have
-              // room for the final \0
-              buf[length] = '\0';
-
-              incomplete_line_ += &(buf[0]);
+              // No newline yet: stash the partial line for the next flush.
+              // Appending straight into incomplete_line_ (a std::string) avoids
+              // the former shared function-local 'static' scratch buffer, which
+              // is raced on by concurrent thread-local LogStreamBufs (issue #9515).
+              incomplete_line_.append(line_start, (size_t) (line_end - line_start));
 
               // mark everything as read
               line_end = pptr() + 1;
             }
             else
             {
-              // note: pptr() - pbase() should be bounded by BUFFER_LENGTH, so this should always work
-              memcpy(&(buf[0]), line_start, line_end - line_start + 1);
-              buf[line_end - line_start] = '\0';
-
-              // assemble the string to be written
-              // (consider leftovers of the last buffer from incomplete_line_)
+              // A full line ends at line_end (the '\n'); [line_start, line_end) is
+              // its content without the newline. Assemble the string to be written,
+              // prepending any leftover from the previous flush (incomplete_line_).
               std::string outstring;
               std::swap(outstring, incomplete_line_); // init outstring, while resetting incomplete_line_
-              outstring += &(buf[0]);
+              outstring.append(line_start, (size_t) (line_end - line_start));
 
               // avoid adding empty lines to the cache
               if (outstring.empty())
@@ -348,6 +394,8 @@ namespace OpenMS
         {
           char    buffer[64] = "";
           char * buf = &(buffer[0]);
+          // reentrant local-time; std::localtime would share a static std::tm
+          [[maybe_unused]] std::tm tmv = toLocalTime_(time);
 
           switch (prefix[index + 1])
           {
@@ -360,32 +408,32 @@ namespace OpenMS
             break;
 
           case 'T':           // time: HH:MM:SS
-            strftime(buf, 64, "%H:%M:%S", localtime(&time));
+            strftime(buf, 64, "%H:%M:%S", &tmv);
             result.append(buf);
             break;
 
           case 't':           // time: HH:MM
-            strftime(buf, 64, "%H:%M", localtime(&time));
+            strftime(buf, 64, "%H:%M", &tmv);
             result.append(buf);
             break;
 
           case 'D':           // date: DD.MM.YYYY
-            strftime(buf, 64, "%Y/%m/%d", localtime(&time));
+            strftime(buf, 64, "%Y/%m/%d", &tmv);
             result.append(buf);
             break;
 
           case 'd':           // date: DD.MM.
-            strftime(buf, 64, "%m/%d", localtime(&time));
+            strftime(buf, 64, "%m/%d", &tmv);
             result.append(buf);
             break;
 
           case 'S':           // time+date: DD.MM.YYYY, HH:MM:SS
-            strftime(buf, 64, "%Y/%m/%d, %H:%M:%S", localtime(&time));
+            strftime(buf, 64, "%Y/%m/%d, %H:%M:%S", &tmv);
             result.append(buf);
             break;
 
           case 's':           // time+date: DD.MM., HH:MM
-            strftime(buf, 64, "%m/%d, %H:%M", localtime(&time));
+            strftime(buf, 64, "%m/%d, %H:%M", &tmv);
             result.append(buf);
             break;
 
