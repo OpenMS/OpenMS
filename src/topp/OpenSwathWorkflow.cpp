@@ -592,7 +592,7 @@ protected:
     return priority_sequences;
   }
 
-  static bool hasDecoyPrefix_(const std::string& id, const String& decoy_prefix)
+  static bool hasDecoyPrefix_(const std::string& id, const std::string& decoy_prefix)
   {
     const std::string prefix = decoy_prefix;
     if (!prefix.empty() && id.find(prefix) == 0)
@@ -615,7 +615,7 @@ protected:
 
   static bool mapsToSelectedTarget_(const std::string& decoy_ref,
                                     const std::unordered_set<std::string>& selected_targets,
-                                    const String& decoy_prefix,
+                                    const std::string& decoy_prefix,
                                     const std::unordered_map<std::string, std::string>& traml_to_current,
                                     const std::unordered_map<std::string, std::string>& current_to_traml)
   {
@@ -679,8 +679,8 @@ protected:
   static OpenSwath::LightTargetedExperiment buildPrefilteredLibraryExperiment_(
     const OpenSwath::LightTargetedExperiment& transition_exp,
     const std::unordered_set<std::string>& selected_targets,
-    const String& decoy_handling,
-    const String& decoy_prefix,
+    const std::string& decoy_handling,
+    const std::string& decoy_prefix,
     double precursor_im_scale,
     bool precursor_im_scaled_by_charge,
     const std::unordered_map<std::string, std::string>& traml_to_current)
@@ -752,8 +752,8 @@ protected:
   std::unordered_map<std::string, std::string> getPrecursorTraMLToCurrentIDMap_(
     FileTypes::Type tr_type,
     FileTypes::Type out_features_type,
-    const String& tr_file,
-    const String& out_features) const
+    const std::string& tr_file,
+    const std::string& out_features) const
   {
     if (tr_type == FileTypes::PQP)
     {
@@ -776,10 +776,10 @@ protected:
                                         bool user_pasef,
                                         bool disable_im_windowing,
                                         bool split_file,
-                                        const String& tmp_dir,
-                                        const String& readoptions,
+                                        const std::string& tmp_dir,
+                                        const std::string& readoptions,
                                         bool keep_cached_files,
-                                        const String& swath_windows_file,
+                                        const std::string& swath_windows_file,
                                         double min_upper_edge_dist,
                                         bool force,
                                         bool sort_swath_maps,
@@ -787,10 +787,10 @@ protected:
                                         int outer_loop_threads,
                                         const std::unordered_map<std::string, std::string>& traml_to_current)
   {
-    const String aggregation_method = prefilter_params.getValue("aggregation_method").toString();
+    const std::string aggregation_method = prefilter_params.getValue("aggregation_method").toString();
     const bool require_all_runs = aggregation_method == "all";
-    const String decoy_handling = prefilter_params.getValue("decoy_handling").toString();
-    const String decoy_prefix = prefilter_params.getValue("decoy_prefix").toString();
+    const std::string decoy_handling = prefilter_params.getValue("decoy_handling").toString();
+    const std::string decoy_prefix = prefilter_params.getValue("decoy_prefix").toString();
     const Size min_supported_precursors = static_cast<Size>(prefilter_params.getValue("min_supported_precursors"));
     prefilter_params.setValue("enabled", "false");
     prefilter_params.remove("aggregation_method");
@@ -811,7 +811,7 @@ protected:
       OPENMS_LOG_INFO << "Library:prefilter scanning run " << run_index << "/" << run_groups.size()
                       << ": " << ListUtils::concatenate(current_run_files, ", ") << "\n";
 
-      String per_run_tmp = tmp_dir;
+      std::string per_run_tmp = tmp_dir;
       std::unique_ptr<File::TempDir> per_run_temp_dir;
       if (readoptions == "cache")
       {
@@ -821,7 +821,7 @@ protected:
 
       std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
       std::vector<OpenSwath::SwathMap> swath_maps;
-      std::vector<String> swath_map_sources;
+      std::vector<std::string> swath_map_sources;
       if (!loadSwathFiles(current_run_files, exp_meta, swath_maps, swath_map_sources, split_file,
                           per_run_tmp, readoptions, swath_windows_file,
                           min_upper_edge_dist, force, sort_swath_maps, prm))

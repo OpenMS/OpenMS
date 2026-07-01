@@ -13,6 +13,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -144,7 +145,7 @@ protected:
     registerSubsection_("Library", "Transition TSV/PQP parsing parameters.");
   }
 
-  Param getSubsectionDefaults_(const String& name) const override
+  Param getSubsectionDefaults_(const std::string& name) const override
   {
     if (name == "Algorithm")
     {
@@ -169,7 +170,7 @@ protected:
     }
 
     FileHandler file_handler;
-    const String tr_file = getStringOption_("tr");
+    const std::string tr_file = getStringOption_("tr");
     FileTypes::Type tr_type = FileTypes::nameToType(getStringOption_("tr_type"));
     if (tr_type == FileTypes::UNKNOWN)
     {
@@ -181,7 +182,7 @@ protected:
       return PARSE_ERROR;
     }
 
-    const String out = getStringOption_("out");
+    const std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
     if (out_type == FileTypes::UNKNOWN)
     {
@@ -193,7 +194,7 @@ protected:
       return PARSE_ERROR;
     }
 
-    const String decoy_handling = getStringOption_("decoy_handling");
+    const std::string decoy_handling = getStringOption_("decoy_handling");
     Param tsv_reader_param = getParam_().copy("Library:", true);
     OpenSwath::LightTargetedExperiment transition_exp = loadTransitionListForPrefilter_(tr_type, tr_file, tsv_reader_param, decoy_handling);
     OPENMS_LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, "
@@ -217,15 +218,15 @@ protected:
     filter_params.setValue("enabled", "false");
 
     const bool split_file_input = getFlag_("split_file_input");
-    const String aggregation_method = getStringOption_("aggregation_method");
+    const std::string aggregation_method = getStringOption_("aggregation_method");
     const bool require_all_runs = aggregation_method == "all";
-    const String readoptions = getStringOption_("readOptions");
-    const String tmp_dir = File::absolutePath(getStringOption_("tempDirectory")).ensureLastChar('/');
+    const std::string readoptions = getStringOption_("readOptions");
+    const std::string tmp_dir = StringUtils::ensureLastChar(File::absolutePath(getStringOption_("tempDirectory")), '/');
     const bool keep_cached_files = getFlag_("keep_cached_files");
     const bool force = getFlag_("force");
     const bool sort_swath_maps = getFlag_("sort_swath_maps");
     const bool prm = getFlag_("prm");
-    const String swath_windows_file = getStringOption_("swath_windows_file");
+    const std::string swath_windows_file = getStringOption_("swath_windows_file");
     const int threads = static_cast<int>(getIntOption_("outer_loop_threads"));
 
     std::vector<StringList> run_groups;
@@ -251,7 +252,7 @@ protected:
       OPENMS_LOG_INFO << "Filtering run " << run_index << "/" << run_groups.size()
                       << ": " << ListUtils::concatenate(run_files, ", ") << "\n";
 
-      String per_run_tmp = tmp_dir;
+      std::string per_run_tmp = tmp_dir;
       std::unique_ptr<File::TempDir> per_run_temp_dir;
       if (readoptions == "cache")
       {
@@ -261,12 +262,12 @@ protected:
 
       std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
       std::vector<OpenSwath::SwathMap> swath_maps;
-      std::vector<String> swath_map_sources;
+      std::vector<std::string> swath_map_sources;
       if (!loadSwathFiles(run_files, exp_meta, swath_maps, swath_map_sources, split_file_input,
                           per_run_tmp, readoptions, swath_windows_file,
                           ms2_params.min_upper_edge_dist, force, sort_swath_maps, prm))
       {
-        writeLogError_("Error: Failed to load SWATH files for run " + String(run_index));
+        writeLogError_("Error: Failed to load SWATH files for run " + std::to_string(run_index));
         return PARSE_ERROR;
       }
 
@@ -330,9 +331,9 @@ protected:
 
     if (selected_targets.size() < min_supported_precursors)
     {
-      writeLogError_("Error: retained only " + String(selected_targets.size()) +
+      writeLogError_("Error: retained only " + std::to_string(selected_targets.size()) +
                      " target precursors after aggregation, fewer than Algorithm:min_supported_precursors=" +
-                     String(min_supported_precursors) + ".");
+                     std::to_string(min_supported_precursors) + ".");
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -350,9 +351,9 @@ protected:
 
 private:
   OpenSwath::LightTargetedExperiment loadTransitionListForPrefilter_(const FileTypes::Type& tr_type,
-                                                                     const String& tr_file,
+                                                                     const std::string& tr_file,
                                                                      const Param& tsv_reader_param,
-                                                                     const String& decoy_handling)
+                                                                     const std::string& decoy_handling)
   {
     if (tr_type == FileTypes::PQP && decoy_handling == "keep_matching")
     {
@@ -379,7 +380,7 @@ private:
     return params;
   }
 
-  static bool hasDecoyPrefix_(const std::string& id, const String& decoy_prefix)
+  static bool hasDecoyPrefix_(const std::string& id, const std::string& decoy_prefix)
   {
     const std::string prefix = decoy_prefix;
     if (!prefix.empty() && id.find(prefix) == 0)
@@ -391,7 +392,7 @@ private:
 
   static bool mapsToSelectedTarget_(const std::string& decoy_ref,
                                     const std::unordered_set<std::string>& selected_targets,
-                                    const String& decoy_prefix)
+                                    const std::string& decoy_prefix)
   {
     const std::string prefix = decoy_prefix;
     if (!prefix.empty() && decoy_ref.find(prefix) == 0)
@@ -404,8 +405,8 @@ private:
   static OpenSwath::LightTargetedExperiment buildOutputExperiment_(
     const OpenSwath::LightTargetedExperiment& transition_exp,
     const std::unordered_set<std::string>& selected_targets,
-    const String& decoy_handling,
-    const String& decoy_prefix,
+    const std::string& decoy_handling,
+    const std::string& decoy_prefix,
     double precursor_im_scale,
     bool precursor_im_scaled_by_charge)
   {
@@ -487,7 +488,7 @@ private:
     return filtered_exp;
   }
 
-  void writeTransitionList_(const String& out,
+  void writeTransitionList_(const std::string& out,
                             FileTypes::Type out_type,
                             const OpenSwath::LightTargetedExperiment& filtered_exp) const
   {
