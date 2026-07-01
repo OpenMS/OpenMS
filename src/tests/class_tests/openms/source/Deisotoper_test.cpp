@@ -341,6 +341,22 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
 }
 END_SECTION
 
+START_SECTION((static bool isToleranceSupported(double fragment_tolerance, bool fragment_unit_ppm)))
+{
+  // Non-throwing mirror of the deisotopeAndSingleCharge() precondition (<= 100 ppm / <= 0.1 Da).
+  // ppm: supported iff tolerance <= 100
+  TEST_EQUAL(Deisotoper::isToleranceSupported(100.0, true), true)
+  TEST_EQUAL(Deisotoper::isToleranceSupported(20.0, true), true)
+  TEST_EQUAL(Deisotoper::isToleranceSupported(100.0001, true), false)
+  TEST_EQUAL(Deisotoper::isToleranceSupported(150.0, true), false)
+  // Da: supported iff tolerance <= 0.1
+  TEST_EQUAL(Deisotoper::isToleranceSupported(0.1, false), true)
+  TEST_EQUAL(Deisotoper::isToleranceSupported(0.02, false), true)
+  TEST_EQUAL(Deisotoper::isToleranceSupported(0.10001, false), false)
+  TEST_EQUAL(Deisotoper::isToleranceSupported(0.5, false), false)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

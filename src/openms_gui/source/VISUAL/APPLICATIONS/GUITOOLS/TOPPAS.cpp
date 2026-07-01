@@ -84,6 +84,9 @@ void print_usage(Logger::LogStream& stream = getGlobalLogInfo())
          << "  --help           Shows this help" << "\n"
          << "  --debug          Enables debug messages\n"
          << "  -ini <File>      Sets the INI file (default: ~/.TOPPAS.ini)" << "\n"
+         << "\n"
+         << "Note: Qt command line options (e.g. '-style <style>' or '-stylesheet <file>')\n"
+         << "      are supported as well and are passed on to Qt.\n"
          << endl;
 }
 
@@ -106,44 +109,52 @@ int main(int argc, const char** argv)
   param.parseCommandLine(argc, argv, valid_options, valid_flags, option_lists);
 
   // '--help' given
+  // (handled before constructing a QApplication, so that '--help' also works in headless environments)
   if (param.exists("help"))
   {
     print_usage();
     return 0;
   }
 
-  // '-debug' given
-  if (param.exists("debug"))
-  {
-    OPENMS_LOG_INFO << "Debug flag provided. Enabling 'OPENMS_LOG_DEBUG' ..." << std::endl;
-    getGlobalLogDebug().insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
-  }
-
-  // test if unknown options were given
-  if (param.exists("unknown"))
-  {
-    // if TOPPAS is packed as Mac OS X bundle it will get a -psn_.. parameter by default from the OS
-    // if this is the only unknown option it will be ignored .. maybe this should be solved directly
-    // in Param.h
-    if (!(StringUtils::hasSubstring(std::string(param.getValue("unknown").toString()), "-psn") && !StringUtils::hasSubstring(std::string(param.getValue("unknown").toString()), ", ")))
-    {
-      OPENMS_LOG_ERROR << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
-      print_usage(getGlobalLogError());
-      return 1;
-    }
-  }
-
   try
   {
+
+    QApplicationTOPP a(argc, const_cast<char**>(argv));
+    a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
+
+    // Qt has now consumed (and removed from argc/argv) the command line arguments it recognizes,
+    // e.g. '-style', '-stylesheet', '-platform', ... (see https://doc.qt.io/qt-5/qapplication.html#QApplication).
+    // This allows users to customize the GUI appearance. We therefore re-parse the now reduced command
+    // line and only afterwards check for unknown options, so that Qt arguments are not mistaken for them.
+    param.clear();
+    param.parseCommandLine(argc, argv, valid_options, valid_flags, option_lists);
+
+    // '-debug' given
+    if (param.exists("debug"))
+    {
+      OPENMS_LOG_INFO << "Debug flag provided. Enabling 'OPENMS_LOG_DEBUG' ..." << std::endl;
+      getGlobalLogDebug().insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
+    }
+
+    // test if unknown options were given
+    if (param.exists("unknown"))
+    {
+      // if TOPPAS is packed as Mac OS X bundle it will get a -psn_.. parameter by default from the OS
+      // if this is the only unknown option it will be ignored .. maybe this should be solved directly
+      // in Param.h
+      if (!(StringUtils::hasSubstring(std::string(param.getValue("unknown").toString()), "-psn") && !StringUtils::hasSubstring(std::string(param.getValue("unknown").toString()), ", ")))
+      {
+        OPENMS_LOG_ERROR << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
+        print_usage(getGlobalLogError());
+        return 1;
+      }
+    }
 
     if (param.exists("execute") || param.exists("out_dir"))
     {
       OPENMS_LOG_ERROR << "The parameters '-execute' and '-out_dir' are not valid anymore. This functionality has been moved to the ExecutePipeline tool." << endl;
       return 1;
     }
-
-    QApplicationTOPP a(argc, const_cast<char**>(argv));
-    a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
 
     TOPPASBase mw;
     mw.show();

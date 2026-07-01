@@ -16,6 +16,11 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 
+#include <map>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace OpenMS
 {
@@ -194,6 +199,28 @@ public:
 
 private:
 
+    /// Hash functor for (basename without extension, channel/label) keys, so that the
+    /// pure-lookup maps keyed on such pairs can use std::unordered_map. Iteration order of
+    /// those maps is never observed, so hashing does not affect output.
+    struct FileLabelHash
+    {
+      std::size_t operator()(const std::pair<std::string, UInt>& p) const noexcept
+      {
+        const std::size_t h1 = std::hash<std::string>{}(p.first);
+        const std::size_t h2 = std::hash<UInt>{}(p.second);
+        // boost-style hash_combine
+        return h1 ^ (h2 + 0x9e3779b97f4a7c15ULL + (h1 << 6) + (h1 >> 2));
+      }
+    };
+
+    /// Index: unmodified peptide sequence -> all @p pep_quant_ entries (modified
+    /// peptidoforms) sharing that unmodified sequence. Built once per quantifyProteins()
+    /// call so that channel-level aggregation does not rescan @p pep_quant_ (calling
+    /// AASequence::toUnmodifiedString() on every entry) for every (protein, peptide) pair.
+    /// Only looked up by key (never range-iterated); the per-bucket vector preserves
+    /// @p pep_quant_ (AASequence-sorted) order, so an unordered map keeps output identical.
+    typedef std::unordered_map<std::string, std::vector<const PeptideQuant::value_type*>> UnmodifiedToEntriesIndex;
+
     /// Processing statistics for output in the end
     Statistics stats_;
 
@@ -205,6 +232,12 @@ private:
 
     /// Experimental design for filename/channel to sample mapping
     ExperimentalDesign experimental_design_;
+
+    /// Precomputed lookup (basename without extension, channel/label) -> sample ID,
+    /// built once from @p experimental_design_ to avoid linear scans of the MS file
+    /// section for every peptide/channel during aggregation. Pure lookup (never iterated),
+    /// so an unordered map is used for O(1) access without affecting output.
+    std::unordered_map<std::pair<std::string, UInt>, size_t, FileLabelHash> sample_id_lookup_;
 
 
     /**
@@ -336,13 +369,15 @@ private:
          @param[in] top_n Maximum number of peptides to use per sample
          @param[in] include_all Whether to include proteins with insufficient peptides
          @param[in] accession_to_leader Map for resolving protein group leaders
+         @param[in] unmod_to_entries Precomputed index from unmodified peptide sequence to the @p pep_quant_ entries sharing it (avoids rescanning @p pep_quant_)
     */
     void calculateFileAndChannelLevelProteinAbundances_(const std::string& protein_accession,
                                            const std::vector<std::string>& selected_peptides,
                                            const std::string& aggregate_method,
                                            Size top_n,
                                            bool include_all,
-                                           const std::map<std::string, std::string>& accession_to_leader);
+                                           const std::map<std::string, std::string>& accession_to_leader,
+                                           const UnmodifiedToEntriesIndex& unmod_to_entries);
 
     /**
          @brief Perform iBAQ normalization on protein abundances.
@@ -374,16 +409,24 @@ private:
     void countPeptides_(PeptideIdentificationList& peptides);
 
     /**
-         @brief Map (filename, channel) to sample using ExperimentalDesign.
-         
+         @brief (Re)build @p sample_id_lookup_ from @p experimental_design_.
+
+         Maps each (basename without extension, channel/label) of the MS file section to its
+         sample ID. The first occurrence of a (basename, label) pair wins, matching the
+         previous linear-scan semantics. Called whenever the experimental design is (re)set.
+    */
+    void buildSampleIDLookup_();
+
+    /**
+         @brief Map (filename, channel) to sample using the precomputed @p sample_id_lookup_.
+
          @param[in] filename The base filename (without path/extension)
          @param[in] channel_or_label The channel/label identifier
-         @param[in] ed The experimental design containing the mapping information
          @return The sample ID corresponding to the filename and channel
+         @throw Exception::MissingInformation if the (filename, channel) pair is not in the experimental design
     */
     size_t getSampleIDFromFilenameAndChannel_(const std::string& filename,
-                                           UInt channel_or_label,
-                                           const ExperimentalDesign& ed) const;
+                                           UInt channel_or_label) const;
 
     /// Clear all data when parameters are set
     void updateMembers_() override;

@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/SIMDe.h>
 
@@ -564,7 +565,61 @@ namespace OpenMS::Internal
     }
 
     //*******************************************************************************************************************
-    
+
+    DoubleList XMLHandler::attributeAsDoubleList_(const xercesc::Attributes & a, const char * name) const
+    {
+      std::string tmp(expectList_(attributeAsString_(a, name)));
+      return ListUtils::create<double>(StringUtils::substr(tmp, 1, tmp.size() - 2));
+    }
+
+    IntList XMLHandler::attributeAsIntList_(const xercesc::Attributes & a, const char * name) const
+    {
+      std::string tmp(expectList_(attributeAsString_(a, name)));
+      return ListUtils::create<Int>(StringUtils::substr(tmp, 1, tmp.size() - 2));
+    }
+
+    StringList XMLHandler::attributeAsStringList_(const xercesc::Attributes & a, const char * name) const
+    {
+      std::string tmp(expectList_(attributeAsString_(a, name)));
+      StringList tmp_list = ListUtils::create<std::string>(StringUtils::substr(tmp, 1, tmp.size() - 2)); // between [ and ]
+
+      if (StringUtils::hasSubstring(tmp, "\\|")) // check full string for escaped comma
+      {
+        for (std::string& s : tmp_list)
+        {
+          StringUtils::substitute(s, "\\|", ",");
+        }
+      }
+      return tmp_list;
+    }
+
+    DoubleList XMLHandler::attributeAsDoubleList_(const xercesc::Attributes & a, const XMLCh * name) const
+    {
+      std::string tmp(expectList_(attributeAsString_(a, name)));
+      return ListUtils::create<double>(StringUtils::substr(tmp, 1, tmp.size() - 2));
+    }
+
+    IntList XMLHandler::attributeAsIntList_(const xercesc::Attributes & a, const XMLCh * name) const
+    {
+      std::string tmp(expectList_(attributeAsString_(a, name)));
+      return ListUtils::create<Int>(StringUtils::substr(tmp, 1, tmp.size() - 2));
+    }
+
+    StringList XMLHandler::attributeAsStringList_(const xercesc::Attributes & a, const XMLCh * name) const
+    {
+      std::string tmp(expectList_(attributeAsString_(a, name)));
+      StringList tmp_list = ListUtils::create<std::string>(StringUtils::substr(tmp, 1, tmp.size() - 2)); // between [ and ]
+
+      if (StringUtils::hasSubstring(tmp, "\\|")) // check full string for escaped comma
+      {
+        for (std::string& s : tmp_list)
+        {
+          StringUtils::substitute(s, "\\|", ",");
+        }
+      }
+      return tmp_list;
+    }
+
     StringManager::StringManager() = default;
 
     StringManager::~StringManager() = default;

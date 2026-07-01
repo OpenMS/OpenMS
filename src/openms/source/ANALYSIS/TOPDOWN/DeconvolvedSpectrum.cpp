@@ -8,6 +8,8 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 
+#include <unordered_set>
+
 namespace OpenMS
 {
   DeconvolvedSpectrum::DeconvolvedSpectrum(const int scan_number) : scan_number_(scan_number)

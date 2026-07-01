@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
