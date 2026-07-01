@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
@@ -80,6 +81,59 @@ START_SECTION((void readQuantData(vector<ProteinIdentification>& proteins, Pepti
   quantifier_identifications.readQuantData(proteins, peptides, design);
   quantifier_identifications.quantifyPeptides();
   TEST_EQUAL(quantifier_identifications.getPeptideResults().empty(), false);
+}
+END_SECTION
+
+START_SECTION((void readQuantData(vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, ExperimentalDesign& ed) should split a merged ID run by origin file))
+{
+  // Regression test for https://github.com/OpenMS/OpenMS/issues/5518:
+  // a single (merged) ProteinIdentification run with several primary MS run
+  // paths must be split into one sample per origin file, based on the
+  // Constants::UserParam::ID_MERGE_INDEX ("id_merge_index") annotation that
+  // IDMerger writes on each PeptideIdentification. Previously this code read a
+  // mistyped meta key ("id_merge_idx") that never exists, so every PSM was
+  // attributed to the first origin file (id_merge_index defaulting to 0).
+  const std::string run_id = "merged_run";
+
+  ProteinIdentification protein;
+  protein.setIdentifier(run_id);
+  protein.setPrimaryMSRunPath({"/data/fileA.mzML", "/data/fileB.mzML"});
+  vector<ProteinIdentification> proteins{protein};
+
+  // same peptide identified once per origin file
+  auto make_pep = [&run_id](Size merge_idx)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDEK"));
+    hit.setCharge(2);
+    hit.setScore(1.0);
+
+    PeptideIdentification pep;
+    pep.setIdentifier(run_id);
+    pep.setHits({hit});
+    pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, (int)merge_idx);
+    return pep;
+  };
+
+  PeptideIdentificationList peptides{make_pep(0), make_pep(1)};
+
+  // fromIdentifications expands the two origin files into two samples
+  ExperimentalDesign design = ExperimentalDesign::fromIdentifications(proteins);
+  TEST_EQUAL(design.getNumberOfSamples(), 2);
+
+  PeptideAndProteinQuant quantifier;
+  quantifier.readQuantData(proteins, peptides, design);
+  quantifier.quantifyPeptides();
+
+  const auto& pep_quant = quantifier.getPeptideResults();
+  const auto seq_it = pep_quant.find(AASequence::fromString("PEPTIDEK"));
+  TEST_TRUE(seq_it != pep_quant.end());
+  // the two PSMs must be spread over two different origin files (fraction 1)...
+  TEST_EQUAL(seq_it->second.abundances.at(1).size(), 2);
+  // ...and end up in two distinct samples, each with a single PSM count.
+  TEST_EQUAL(seq_it->second.total_abundances.size(), 2);
+  TEST_REAL_SIMILAR(seq_it->second.total_abundances.at(0), 1);
+  TEST_REAL_SIMILAR(seq_it->second.total_abundances.at(1), 1);
 }
 END_SECTION
 

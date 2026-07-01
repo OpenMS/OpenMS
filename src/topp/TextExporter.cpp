@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/MATH/MathFunctions.h>
@@ -20,6 +21,7 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/METADATA/USI.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -407,6 +409,16 @@ namespace OpenMS
     StringList peptide_hit_meta_keys;
   };
 
+  // Resolve the MS run file name (basename) for a peptide's USI from the protein
+  // run's 'spectra_data' (selected per identification via the merge index in @p mapper).
+  // When the run path cannot be mapped, getPrimaryMSRunPath() itself falls back to a
+  // legacy per-ID 'base_name' meta value (some pepXML-derived inputs set base_name but
+  // not spectra_data); idXML/consensusXML set neither otherwise.
+  std::string resolveUSIMSRun(const IdentifierMSRunMapper& mapper, const PeptideIdentification& pid)
+  {
+    return USI::extractBasename(mapper.getPrimaryMSRunPath(pid));
+  }
+
   // write the header for peptide data
   void writePeptideHeader(SVOutStream& out, const PeptideWriteOptions& opts = {})
   {
@@ -606,6 +618,27 @@ public:
     }
 
 protected:
+
+    // Build a mapping from each identification run to its MS run path(s) (from
+    // 'spectra_data') so USIs can reference the correct source file per identification.
+    // Returns an empty mapper when USIs are off or the runs cannot be mapped (e.g.
+    // duplicate spectra_data); ms-run names then fall back to per-ID base names.
+    IdentifierMSRunMapper buildUSIMapper_(const std::vector<ProteinIdentification>& prot_ids, bool add_usi) const
+    {
+      IdentifierMSRunMapper mapper;
+      if (add_usi)
+      {
+        try
+        {
+          mapper.create(prot_ids);
+        }
+        catch (const Exception::BaseException& e)
+        {
+          writeLogWarn_("Could not build MS-run mapping for USI generation: " + std::string(e.getMessage()) + ". Falling back to per-ID base names.");
+        }
+      }
+      return mapper;
+    }
 
     void registerOptionsAndFlags_() override
     {
@@ -823,6 +856,8 @@ protected:
         peptide_opts.peptide_id_meta_keys = peptide_id_meta_keys;
         peptide_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
 
+        IdentifierMSRunMapper usi_mapper = buildUSIMapper_(prot_ids, add_usi);
+
         // write header:
         output.modifyStrings(false);
         bool comment = true;
@@ -867,7 +902,7 @@ protected:
           }
           for (const PeptideIdentification& pep : feature_map.getUnassignedPeptideIdentifications())
           {
-            unassigned_opts.usi_ms_run = add_usi ? USI::extractBasename(pep.getBaseName()) : "";
+            unassigned_opts.usi_ms_run = add_usi ? resolveUSIMSRun(usi_mapper, pep) : "";
             writePeptideId(output, pep, unassigned_opts);
           }
         }
@@ -904,7 +939,7 @@ protected:
           {
             for (const PeptideIdentification& pep : feat.getPeptideIdentifications())
             {
-              peptide_opts.usi_ms_run = add_usi ? USI::extractBasename(pep.getBaseName()) : "";
+              peptide_opts.usi_ms_run = add_usi ? resolveUSIMSRun(usi_mapper, pep) : "";
               writePeptideId(output, pep, peptide_opts);
             }
           }
@@ -1289,6 +1324,8 @@ protected:
           peptide_opts.peptide_id_meta_keys = peptide_id_meta_keys;
           peptide_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
 
+          IdentifierMSRunMapper usi_mapper = buildUSIMapper_(consensus_map.getProteinIdentifications(), add_usi);
+
           FeatureHandle feature_handle_NaN;
           feature_handle_NaN.setRT(std::numeric_limits<
                                      FeatureHandle::CoordinateType>::quiet_NaN());
@@ -1397,8 +1434,7 @@ protected:
             // unassigned peptides
             for (PeptideIdentificationList::const_iterator pit = consensus_map.getUnassignedPeptideIdentifications().begin(); pit != consensus_map.getUnassignedPeptideIdentifications().end(); ++pit)
             {
-              // For USI, extract basename from the PeptideIdentification's base name
-              unassigned_opts.usi_ms_run = add_usi ? USI::extractBasename(pit->getBaseName()) : "";
+              unassigned_opts.usi_ms_run = add_usi ? resolveUSIMSRun(usi_mapper, *pit) : "";
               writePeptideId(output, *pit, unassigned_opts);
               // first_dim_... stuff not supported for now
             }
@@ -1437,8 +1473,7 @@ protected:
                      cmit->getPeptideIdentifications().begin(); pit !=
                    cmit->getPeptideIdentifications().end(); ++pit)
               {
-                // For USI, extract basename from the PeptideIdentification's base name
-                peptide_opts.usi_ms_run = add_usi ? USI::extractBasename(pit->getBaseName()) : "";
+                peptide_opts.usi_ms_run = add_usi ? resolveUSIMSRun(usi_mapper, *pit) : "";
                 writePeptideId(output, *pit, peptide_opts);
               }
             }
@@ -1497,6 +1532,8 @@ protected:
 
         std::string what = peptides_only ? "" : "PEPTIDE";
 
+        IdentifierMSRunMapper usi_mapper = buildUSIMapper_(prot_ids, add_usi);
+
         // Setup peptide write options for IDXML
         PeptideWriteOptions peptide_opts;
         peptide_opts.what = what;
@@ -1553,7 +1590,7 @@ protected:
             {
               if (pit->getIdentifier() == actual_id)
               {
-                peptide_opts.usi_ms_run = add_usi ? USI::extractBasename(pit->getBaseName()) : "";
+                peptide_opts.usi_ms_run = add_usi ? resolveUSIMSRun(usi_mapper, *pit) : "";
                 writePeptideId(output, *pit, peptide_opts);
               }
             }
