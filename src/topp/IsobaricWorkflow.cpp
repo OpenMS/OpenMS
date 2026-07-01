@@ -907,8 +907,10 @@ protected:
       {
         OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
 
-        // Feature-level export
-        if (!ConsensusMapArrowExport::exportToParquet(cmap, out_qpx + "/quantms.feature.parquet"))
+        // Feature-level export: stream in batches so peak memory stays bounded. For isobaric
+        // data there is ~one consensus feature per PSM, so the feature table has millions of
+        // rows; the one-shot path builds it all in memory at once and drives large runs into swap.
+        if (!ConsensusMapArrowExport::exportToParquetStreaming(cmap, out_qpx + "/quantms.feature.parquet"))
         {
           OPENMS_LOG_ERROR << "Failed to write features Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
