@@ -1042,6 +1042,12 @@ namespace OpenMS
 
       if (File::isDirectory(input_path))
       {
+        if (StringUtils::hasSuffix(output_path, ".oswpq.zip"))
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Directory OSWPQ input can only be written to another directory path.",
+                                        output_path);
+        }
         if (File::exists(output_path) && !File::isDirectory(output_path))
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -1102,66 +1108,93 @@ namespace OpenMS
           "QVALUE REAL NOT NULL, "
           "PEP REAL NOT NULL);";
       }
-      conn.executeStatement(create_sql);
-      if (table_name == "SCORE_MS2")
-      {
-        conn.executeStatement("CREATE INDEX IF NOT EXISTS idx_score_ms2_feature_id ON SCORE_MS2 (FEATURE_ID);");
-      }
-      else if (table_name == "SCORE_TRANSITION")
-      {
-        conn.executeStatement("CREATE INDEX IF NOT EXISTS idx_score_transition_feature_id ON SCORE_TRANSITION (FEATURE_ID);");
-        conn.executeStatement("CREATE INDEX IF NOT EXISTS idx_score_transition_transition_id ON SCORE_TRANSITION (TRANSITION_ID);");
-      }
-
       sqlite3* db = conn.getDB();
       sqlite3_stmt* insert_stmt = nullptr;
-      if (transition_level)
+      bool transaction_started = false;
+      conn.executeStatement("BEGIN IMMEDIATE TRANSACTION;");
+      transaction_started = true;
+      try
       {
-        conn.prepareStatement(&insert_stmt,
-          "INSERT INTO SCORE_TRANSITION (FEATURE_ID, TRANSITION_ID, SCORE, RANK, PVALUE, QVALUE, PEP) "
-          "VALUES (?, ?, ?, ?, ?, ?, ?);");
-      }
-      else
-      {
-        conn.prepareStatement(&insert_stmt,
-          "INSERT INTO " + table_name + " (FEATURE_ID, SCORE, RANK, PVALUE, QVALUE, PEP) "
-          "VALUES (?, ?, ?, ?, ?, ?);");
-      }
+        conn.executeStatement(create_sql);
+        if (table_name == "SCORE_MS2")
+        {
+          conn.executeStatement("CREATE INDEX IF NOT EXISTS idx_score_ms2_feature_id ON SCORE_MS2 (FEATURE_ID);");
+        }
+        else if (table_name == "SCORE_TRANSITION")
+        {
+          conn.executeStatement("CREATE INDEX IF NOT EXISTS idx_score_transition_feature_id ON SCORE_TRANSITION (FEATURE_ID);");
+          conn.executeStatement("CREATE INDEX IF NOT EXISTS idx_score_transition_transition_id ON SCORE_TRANSITION (TRANSITION_ID);");
+        }
 
-      conn.executeStatement("BEGIN TRANSACTION;");
-      for (Size i = 0; i < prepared.rows.size(); ++i)
-      {
-        const auto& row = prepared.rows[i];
-        const auto& result = results[i];
-        int rc = sqlite3_bind_int64(insert_stmt, 1, row.feature_id);
-        checkSqliteRc_(db, rc, "Failed to bind FEATURE_ID");
-        int bind_col = 2;
         if (transition_level)
         {
-          rc = sqlite3_bind_int64(insert_stmt, bind_col++, *row.transition_id);
-          checkSqliteRc_(db, rc, "Failed to bind TRANSITION_ID");
+          conn.prepareStatement(&insert_stmt,
+            "INSERT INTO SCORE_TRANSITION (FEATURE_ID, TRANSITION_ID, SCORE, RANK, PVALUE, QVALUE, PEP) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?);");
         }
-        rc = sqlite3_bind_double(insert_stmt, bind_col++, result.score);
-        checkSqliteRc_(db, rc, "Failed to bind SCORE");
-        rc = sqlite3_bind_int(insert_stmt, bind_col++, result.rank);
-        checkSqliteRc_(db, rc, "Failed to bind RANK");
-        bindNullableDouble_(db, insert_stmt, bind_col++, result.pvalue);
-        rc = sqlite3_bind_double(insert_stmt, bind_col++, result.qvalue);
-        checkSqliteRc_(db, rc, "Failed to bind QVALUE");
-        rc = sqlite3_bind_double(insert_stmt, bind_col++, result.pep);
-        checkSqliteRc_(db, rc, "Failed to bind PEP");
-        rc = sqlite3_step(insert_stmt);
-        if (rc != SQLITE_DONE)
+        else
+        {
+          conn.prepareStatement(&insert_stmt,
+            "INSERT INTO " + table_name + " (FEATURE_ID, SCORE, RANK, PVALUE, QVALUE, PEP) "
+            "VALUES (?, ?, ?, ?, ?, ?);");
+        }
+
+        for (Size i = 0; i < prepared.rows.size(); ++i)
+        {
+          const auto& row = prepared.rows[i];
+          const auto& result = results[i];
+          int rc = sqlite3_bind_int64(insert_stmt, 1, row.feature_id);
+          checkSqliteRc_(db, rc, "Failed to bind FEATURE_ID");
+          int bind_col = 2;
+          if (transition_level)
+          {
+            rc = sqlite3_bind_int64(insert_stmt, bind_col++, *row.transition_id);
+            checkSqliteRc_(db, rc, "Failed to bind TRANSITION_ID");
+          }
+          rc = sqlite3_bind_double(insert_stmt, bind_col++, result.score);
+          checkSqliteRc_(db, rc, "Failed to bind SCORE");
+          rc = sqlite3_bind_int(insert_stmt, bind_col++, result.rank);
+          checkSqliteRc_(db, rc, "Failed to bind RANK");
+          bindNullableDouble_(db, insert_stmt, bind_col++, result.pvalue);
+          rc = sqlite3_bind_double(insert_stmt, bind_col++, result.qvalue);
+          checkSqliteRc_(db, rc, "Failed to bind QVALUE");
+          rc = sqlite3_bind_double(insert_stmt, bind_col++, result.pep);
+          checkSqliteRc_(db, rc, "Failed to bind PEP");
+          rc = sqlite3_step(insert_stmt);
+          if (rc != SQLITE_DONE)
+          {
+            throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                "Failed to insert OpenSWATH Percolator score row: " + std::string(sqlite3_errmsg(db)));
+          }
+          rc = sqlite3_reset(insert_stmt);
+          checkSqliteRc_(db, rc, "Failed to reset insert statement");
+          rc = sqlite3_clear_bindings(insert_stmt);
+          checkSqliteRc_(db, rc, "Failed to clear insert statement bindings");
+        }
+        sqlite3_finalize(insert_stmt);
+        insert_stmt = nullptr;
+        conn.executeStatement("COMMIT;");
+        transaction_started = false;
+      }
+      catch (...)
+      {
+        if (insert_stmt != nullptr)
         {
           sqlite3_finalize(insert_stmt);
-          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                              "Failed to insert OpenSWATH Percolator score row: " + std::string(sqlite3_errmsg(db)));
+          insert_stmt = nullptr;
         }
-        sqlite3_reset(insert_stmt);
-        sqlite3_clear_bindings(insert_stmt);
+        if (transaction_started)
+        {
+          try
+          {
+            conn.executeStatement("ROLLBACK;");
+          }
+          catch (...)
+          {
+          }
+        }
+        throw;
       }
-      sqlite3_finalize(insert_stmt);
-      conn.executeStatement("END TRANSACTION;");
     }
 
     ParquetWorkspace prepareParquetWorkspace_(const String& input_path, const String& output_path)
@@ -1173,6 +1206,11 @@ namespace OpenMS
 
       if (input_is_dir)
       {
+        if (!output_path.empty() && StringUtils::hasSuffix(workspace.output_path, ".oswpq.zip"))
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Directory OSWPQ input can only be written to another directory path.", workspace.output_path);
+        }
         if (!output_path.empty() && File::exists(workspace.output_path) && !File::isDirectory(workspace.output_path))
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

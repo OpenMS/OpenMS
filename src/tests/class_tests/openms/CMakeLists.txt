@@ -205,6 +205,7 @@ if (TARGET OpenSwathPercolatorScoring_test)
   target_link_libraries(OpenSwathPercolatorScoring_test
     ${OPENMS_ARROW_TARGET}
     ${OPENMS_PARQUET_TARGET}
+    sqlite3
   )
 endif()
 if (TARGET ArrowSchemaRegistry_test)

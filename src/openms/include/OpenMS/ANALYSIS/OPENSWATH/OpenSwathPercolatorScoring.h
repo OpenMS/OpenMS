@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/config.h>
 
@@ -18,8 +19,6 @@
 
 namespace OpenMS
 {
-  using String = std::string;
-
   /**
     @brief In-process Percolator scoring for OpenSWATH OSW and OSWPQ results.
 
