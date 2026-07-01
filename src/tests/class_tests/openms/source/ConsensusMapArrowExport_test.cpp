@@ -190,7 +190,7 @@ START_SECTION(exportToArrow - empty consensus map)
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 0)
   // Schema should still be present
-  TEST_EQUAL(table->num_columns() > 0, true)
+  TEST_TRUE(table->num_columns() > 0)
 }
 END_SECTION
 
@@ -205,13 +205,13 @@ START_SECTION(exportToArrow - basic export)
 
   // Check schema has expected columns
   auto schema = table->schema();
-  TEST_EQUAL(schema->GetFieldIndex("sequence") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("peptidoform") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("observed_mz") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("rt") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("charge") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("intensities") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("pg_accessions") >= 0, true)
+  TEST_TRUE(schema->GetFieldIndex("sequence") >= 0)
+  TEST_TRUE(schema->GetFieldIndex("peptidoform") >= 0)
+  TEST_TRUE(schema->GetFieldIndex("observed_mz") >= 0)
+  TEST_TRUE(schema->GetFieldIndex("rt") >= 0)
+  TEST_TRUE(schema->GetFieldIndex("charge") >= 0)
+  TEST_TRUE(schema->GetFieldIndex("intensities") >= 0)
+  TEST_TRUE(schema->GetFieldIndex("pg_accessions") >= 0)
 }
 END_SECTION
 
@@ -290,11 +290,11 @@ START_SECTION(exportToParquet - basic export)
   filename += ".parquet";
 
   bool success = ConsensusMapArrowExport::exportToParquet(cmap, filename);
-  TEST_EQUAL(success, true)
+  TEST_TRUE(success)
 
   // Verify file was created
-  TEST_EQUAL(File::exists(filename), true)
-  TEST_EQUAL(File::empty(filename), false)
+  TEST_TRUE(File::exists(filename))
+  TEST_FALSE(File::empty(filename))
 }
 END_SECTION
 
@@ -307,10 +307,10 @@ START_SECTION(exportToParquet - empty consensus map)
   filename += ".parquet";
 
   bool success = ConsensusMapArrowExport::exportToParquet(cmap, filename);
-  TEST_EQUAL(success, true)
+  TEST_TRUE(success)
 
   // Verify file was created (even for empty data)
-  TEST_EQUAL(File::exists(filename), true)
+  TEST_TRUE(File::exists(filename))
 }
 END_SECTION
 
@@ -327,10 +327,10 @@ START_SECTION(exportToParquet - with compression options)
   pq_config.compression = ParquetWriteConfig::Compression::SNAPPY;
 
   bool success = ConsensusMapArrowExport::exportToParquet(cmap, filename, pq_config);
-  TEST_EQUAL(success, true)
+  TEST_TRUE(success)
 
   // Verify file was created
-  TEST_EQUAL(File::exists(filename), true)
+  TEST_TRUE(File::exists(filename))
 }
 END_SECTION
 
@@ -347,9 +347,9 @@ START_SECTION(exportToParquet - ZSTD compression)
   pq_config.compression_level = 9;
 
   bool success = ConsensusMapArrowExport::exportToParquet(cmap, filename, pq_config);
-  TEST_EQUAL(success, true)
+  TEST_TRUE(success)
 
-  TEST_EQUAL(File::exists(filename), true)
+  TEST_TRUE(File::exists(filename))
 }
 END_SECTION
 
@@ -365,9 +365,9 @@ START_SECTION(exportToParquet - no compression)
   pq_config.compression = ParquetWriteConfig::Compression::NONE;
 
   bool success = ConsensusMapArrowExport::exportToParquet(cmap, filename, pq_config);
-  TEST_EQUAL(success, true)
+  TEST_TRUE(success)
 
-  TEST_EQUAL(File::exists(filename), true)
+  TEST_TRUE(File::exists(filename))
 }
 END_SECTION
 
@@ -447,7 +447,7 @@ START_SECTION((static bool exportToParquetStreaming(const ConsensusMap& cmap, co
   for (int nt : {0, 1, 2, 8})
   {
     std::string stream_file; NEW_TMP_FILE(stream_file)
-    TEST_EQUAL(ConsensusMapArrowExport::exportToParquetStreaming(cmap, stream_file, 1000, ParquetWriteConfig{}, nt), true)
+    TEST_TRUE(ConsensusMapArrowExport::exportToParquetStreaming(cmap, stream_file, 1000, ParquetWriteConfig{}, nt))
     auto st_table = read_combined(stream_file);
     TEST_NOT_EQUAL(st_table, nullptr)
     TEST_EQUAL(st_table->num_rows(), (int64_t)N)
@@ -467,23 +467,23 @@ START_SECTION((static bool exportToParquetStreaming(const ConsensusMap& cmap, co
       if (rt_s->Value(r)      != rt_r->Value(r))      { all_eq = false; break; } // order-sensitive
       if (dec_s->Value(r)     != dec_r->Value(r))     { all_eq = false; break; }
     }
-    TEST_EQUAL(all_eq, true)
+    TEST_TRUE(all_eq)
 
     // Full logical equivalence: also covers nested/list columns (modifications, intensities,
     // pg_accessions, gg_*) and lookup-derived columns (pg_global_qvalue). Both tables were
     // CombineChunks()ed and round-tripped through parquet the same way, so schema (incl. nested
     // types) and values must match; ignore schema metadata.
-    TEST_EQUAL(st_table->Equals(*ref_table), true)
+    TEST_TRUE(st_table->Equals(*ref_table))
   }
 
   // --- batch_size >= N: single batch built across all threads, still correct ---
   {
     std::string one_batch; NEW_TMP_FILE(one_batch)
-    TEST_EQUAL(ConsensusMapArrowExport::exportToParquetStreaming(cmap, one_batch, N + 1000, ParquetWriteConfig{}, 8), true)
+    TEST_TRUE(ConsensusMapArrowExport::exportToParquetStreaming(cmap, one_batch, N + 1000, ParquetWriteConfig{}, 8))
     auto t = read_combined(one_batch);
     TEST_NOT_EQUAL(t, nullptr)
     TEST_EQUAL(t->num_rows(), (int64_t)N)
-    TEST_EQUAL(t->Equals(*ref_table), true)
+    TEST_TRUE(t->Equals(*ref_table))
   }
 
   // --- batch_size == 0 guard: treated as default, valid file ---
@@ -586,31 +586,31 @@ START_SECTION([EXTRA] exportToArrow - dedicated metavalue columns resolve to cor
   auto pgq      = std::static_pointer_cast<arrow::DoubleArray>(table->GetColumnByName("pg_global_qvalue")->chunk(0));
   auto as_col   = std::static_pointer_cast<arrow::ListArray>(table->GetColumnByName("additional_scores")->chunk(0));
 
-  TEST_EQUAL(is_decoy->Value(0), true)
-  TEST_EQUAL(pep->IsNull(0), false)
+  TEST_TRUE(is_decoy->Value(0))
+  TEST_FALSE(pep->IsNull(0))
   TEST_REAL_SIMILAR(pep->Value(0), 0.02)
-  TEST_EQUAL(mc->IsNull(0), false)
+  TEST_FALSE(mc->IsNull(0))
   TEST_EQUAL(mc->Value(0), 1)
-  TEST_EQUAL(pgq->IsNull(0), false)
+  TEST_FALSE(pgq->IsNull(0))
   TEST_REAL_SIMILAR(pgq->Value(0), 0.02)
 
-  TEST_EQUAL(f32("predicted_rt")->IsNull(0), false)
+  TEST_FALSE(f32("predicted_rt")->IsNull(0))
   TEST_REAL_SIMILAR(f32("predicted_rt")->Value(0), 319.0)
-  TEST_EQUAL(f32("ion_mobility")->IsNull(0), false)
+  TEST_FALSE(f32("ion_mobility")->IsNull(0))
   TEST_REAL_SIMILAR(f32("ion_mobility")->Value(0), 0.85)
-  TEST_EQUAL(f32("ion_mobility_start")->IsNull(0), false)
+  TEST_FALSE(f32("ion_mobility_start")->IsNull(0))
   TEST_REAL_SIMILAR(f32("ion_mobility_start")->Value(0), 0.80)
-  TEST_EQUAL(f32("ion_mobility_stop")->IsNull(0), false)
+  TEST_FALSE(f32("ion_mobility_stop")->IsNull(0))
   TEST_REAL_SIMILAR(f32("ion_mobility_stop")->Value(0), 0.90)
-  TEST_EQUAL(f32("rt_start")->IsNull(0), false)
+  TEST_FALSE(f32("rt_start")->IsNull(0))
   TEST_REAL_SIMILAR(f32("rt_start")->Value(0), 300.0)
-  TEST_EQUAL(f32("rt_stop")->IsNull(0), false)
+  TEST_FALSE(f32("rt_stop")->IsNull(0))
   TEST_REAL_SIMILAR(f32("rt_stop")->Value(0), 340.0)
 
   // Row 1: fallback precedence (predicted_rt lowercase, IM) must resolve to the right column/value.
-  TEST_EQUAL(f32("predicted_rt")->IsNull(1), false)
+  TEST_FALSE(f32("predicted_rt")->IsNull(1))
   TEST_REAL_SIMILAR(f32("predicted_rt")->Value(1), 405.0)
-  TEST_EQUAL(f32("ion_mobility")->IsNull(1), false)
+  TEST_FALSE(f32("ion_mobility")->IsNull(1))
   TEST_REAL_SIMILAR(f32("ion_mobility")->Value(1), 1.10)
 
   // additional_scores: only the known "q-value" is emitted via the index-based metaBegin pass; the
@@ -625,8 +625,8 @@ START_SECTION([EXTRA] exportToArrow - dedicated metavalue columns resolve to cor
     const int64_t off = as_col->value_offset(0);
     TEST_EQUAL(sname->GetString(off), "q-value")
     TEST_REAL_SIMILAR(sval->Value(off), 0.05)
-    TEST_EQUAL(shb->IsNull(off), false)
-    TEST_EQUAL(shb->Value(off), false)
+    TEST_FALSE(shb->IsNull(off))
+    TEST_FALSE(shb->Value(off))
   }
 }
 END_SECTION
