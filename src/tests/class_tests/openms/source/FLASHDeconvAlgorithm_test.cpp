@@ -318,20 +318,19 @@ START_SECTION(Output validation - deconvolved spectrum structure)
   for (const auto& spec : default_spectra)
   {
     // Verify spectrum has been processed (has some metadata)
-    TEST_EQUAL(spec.getScanNumber() >= 0, true)
+    TEST_TRUE(spec.getScanNumber() >= 0)
   }
 END_SECTION
 
 START_SECTION(Output validation - mass features structure)
-  // Verify features were found (may be empty for some datasets)
-  // Just check that the vector is accessible
-  TEST_EQUAL(default_features.size() >= 0, true)
+  // Verify features were found on this input
+  TEST_FALSE(default_features.empty())
 
-  // If features exist, validate basic properties
+  // Validate basic properties of each feature
   for (const auto& feature : default_features)
   {
     // Verify feature has valid mass range
-    TEST_EQUAL(feature.avg_mass >= 0, true)
+    TEST_TRUE(feature.avg_mass >= 0)
   }
 END_SECTION
 
@@ -349,13 +348,13 @@ START_SECTION(Output validation - PeakGroup properties in deconvolved spectra)
       {
         const auto& pg = spec[i];
         // Peak groups should have positive mass
-        TEST_EQUAL(pg.getMonoMass() >= 0, true)
+        TEST_TRUE(pg.getMonoMass() >= 0)
       }
     }
   }
 
   // At least some spectra should have peak groups
-  TEST_EQUAL(found_peak_groups, true)
+  TEST_TRUE(found_peak_groups)
 END_SECTION
 
 START_SECTION(Output validation - consistent output vector sizes)

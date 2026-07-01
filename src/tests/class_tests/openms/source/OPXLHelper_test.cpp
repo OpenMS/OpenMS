@@ -120,9 +120,6 @@ START_SECTION(static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLin
 
 END_SECTION
 
-// sort the once-enumerated precursors for the buildCandidates test below
-std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
-
 START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector< int > precursor_corrections, std::vector< int >& precursor_correction_positions, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, std::vector< double >& spectrum_precursor_vector, std::vector< double >& allowed_error_vector, std::string cross_link_name))
   double precursor_mass = 11814.50296;
   double allowed_error = 0.1;
@@ -130,12 +127,18 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buil
 
   std::vector< OPXLDataStructs::XLPrecursor > filtered_precursors;
 
+  // buildCandidates needs the precursors sorted by mass for the binary search;
+  // sort a local copy so the shared 'precursors' stays aligned with
+  // 'spectrum_precursor_correction_positions' for the filterPrecursorsByTags test below.
+  std::vector< OPXLDataStructs::XLPrecursor > sorted_precursors(precursors);
+  std::sort(sorted_precursors.begin(), sorted_precursors.end(), OPXLDataStructs::XLPrecursorComparator());
+
   // determine MS2 precursors that match to the current peptide mass
   std::vector< OPXLDataStructs::XLPrecursor >::const_iterator low_it;
   std::vector< OPXLDataStructs::XLPrecursor >::const_iterator up_it;
 
-  low_it = std::lower_bound(precursors.begin(), precursors.end(), precursor_mass - allowed_error, OPXLDataStructs::XLPrecursorComparator());
-  up_it = std::upper_bound(precursors.begin(), precursors.end(), precursor_mass + allowed_error, OPXLDataStructs::XLPrecursorComparator());
+  low_it = std::lower_bound(sorted_precursors.begin(), sorted_precursors.end(), precursor_mass - allowed_error, OPXLDataStructs::XLPrecursorComparator());
+  up_it = std::upper_bound(sorted_precursors.begin(), sorted_precursors.end(), precursor_mass + allowed_error, OPXLDataStructs::XLPrecursorComparator());
 
   if (low_it != up_it) // no matching precursor in data
   {
