@@ -14,7 +14,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 
@@ -27,8 +29,13 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <exception>
 #include <random>
 #include <unordered_map>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include <unordered_set>
 #include <vector>
 #include <map>
@@ -1501,11 +1508,27 @@ bool QPXFile::exportToParquetStreaming(
   const std::string& filename,
   bool export_all_psms,
   size_t batch_size,
-  const ParquetWriteConfig& config)
+  const ParquetWriteConfig& config,
+  int n_threads)
 {
   if (batch_size == 0) { batch_size = 1000000; } // guard: a zero step would never advance
 
+  // Resolve the number of OpenMP threads used to build each batch's partitions.
+  // 1 = serial (default), 0 = all cores, N = fixed. Without OpenMP, always serial.
+  int threads = n_threads;
+#ifdef _OPENMP
+  if (threads <= 0) { threads = omp_get_max_threads(); }
+#endif
+  if (threads < 1) { threads = 1; }
+
   const auto id_to_filename = buildIdToFilename(protein_identifications);
+
+  // Pre-warm lazily-initialized singletons/statics touched by the per-row build, so first-touch
+  // cannot race across the OpenMP workers below. Runs once, serially.
+  ModificationsDB::getInstance();
+  ResidueDB::getInstance();
+  (void)Scores::isKnownScoreType("q-value");
+  (void)AASequence::fromString("PEPTIDEK").getMZ(2); // inits AASequence static residue path
 
   // One metadata identity (uuid/creation_date) for the whole file. Reused both for the
   // writer's schema and for each batch table so their schemas are identical.
@@ -1535,23 +1558,64 @@ bool QPXFile::exportToParquetStreaming(
   auto writer = std::move(writer_result).ValueOrDie();
 
   // config.row_group_size is the max rows per Parquet row group (WriteTable chunk size);
-  // batch_size only bounds peak memory (rows materialized at once).
+  // batch_size only bounds peak memory (PeptideIdentifications materialized at once).
   const int64_t rg = static_cast<int64_t>(config.row_group_size);
-  auto write_range = [&](size_t b, size_t e) -> bool
+
+  // Build one batch [b, e) of PeptideIdentifications: partition it into W contiguous sub-ranges,
+  // build each sub-table in parallel (OpenMP), then write them in index order (serial — the
+  // FileWriter is not thread-safe). Peak memory stays batch-bounded (the W sub-tables together hold
+  // one batch's rows). Row content/order is identical to the serial path (contiguous, in-order).
+  auto write_batch = [&](size_t b, size_t e) -> bool
   {
-    auto table = buildQPXPSMTableRange(id_to_filename, peptide_identification_ptrs, b, e, export_all_psms);
-    if (!table)
+    const size_t rows = e - b;
+    const int W = static_cast<int>(std::min<size_t>(static_cast<size_t>(threads), std::max<size_t>(rows, 1)));
+    std::vector<std::shared_ptr<arrow::Table>> parts(W);
+    std::vector<std::exception_ptr> errs(W);
+
+    #pragma omp parallel for num_threads(W) schedule(static)
+    for (int t = 0; t < W; ++t)
     {
-      OPENMS_LOG_ERROR << "QPXFile: Failed to build PSM batch [" << b << ", " << e << ")" << std::endl;
-      return false;
+      try
+      {
+        const size_t base = rows / W, rem = rows % W;
+        const size_t sb = b + t * base + std::min<size_t>(static_cast<size_t>(t), rem);
+        const size_t se = sb + base + (static_cast<size_t>(t) < rem ? 1 : 0);
+        parts[t] = buildQPXPSMTableRange(id_to_filename, peptide_identification_ptrs, sb, se, export_all_psms);
+      }
+      catch (...)
+      {
+        errs[t] = std::current_exception(); // never let an exception escape the OpenMP region
+      }
     }
-    // Attach the shared metadata so the batch schema matches the writer schema exactly.
-    auto st = writer->WriteTable(*table->ReplaceSchemaMetadata(meta), rg);
-    if (!st.ok())
+
+    // Surface any worker exception as a logged failure (convert to the bool error contract).
+    for (int t = 0; t < W; ++t)
     {
-      OPENMS_LOG_ERROR << "QPXFile: Failed to write PSM batch [" << b << ", " << e << ") to "
-                       << filename << ": " << st.ToString() << std::endl;
-      return false;
+      if (errs[t])
+      {
+        try { std::rethrow_exception(errs[t]); }
+        catch (const std::exception& ex) { OPENMS_LOG_ERROR << "QPXFile: PSM batch build threw: " << ex.what() << std::endl; }
+        catch (...)                      { OPENMS_LOG_ERROR << "QPXFile: PSM batch build threw (unknown exception)" << std::endl; }
+        return false;
+      }
+    }
+
+    // Write partitions in index order (serial). Attach shared metadata so each batch schema matches
+    // the writer schema exactly.
+    for (int t = 0; t < W; ++t)
+    {
+      if (!parts[t])
+      {
+        OPENMS_LOG_ERROR << "QPXFile: Failed to build PSM batch partition " << t << std::endl;
+        return false;
+      }
+      auto st = writer->WriteTable(*parts[t]->ReplaceSchemaMetadata(meta), rg);
+      if (!st.ok())
+      {
+        OPENMS_LOG_ERROR << "QPXFile: Failed to write PSM batch to " << filename << ": "
+                         << st.ToString() << std::endl;
+        return false;
+      }
     }
     return true;
   };
@@ -1561,13 +1625,13 @@ bool QPXFile::exportToParquetStreaming(
   if (N == 0)
   {
     // Emit a valid 0-row file (schema + metadata), mirroring MobilogramParquetConsumer.
-    ok = write_range(0, 0);
+    ok = write_batch(0, 0);
   }
   else
   {
     for (size_t b = 0; b < N && ok; b += batch_size)
     {
-      ok = write_range(b, std::min(b + batch_size, N));
+      ok = write_batch(b, std::min(b + batch_size, N));
     }
   }
 

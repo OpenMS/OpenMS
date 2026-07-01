@@ -126,6 +126,12 @@ public:
                PeptideIdentification can emit several rows). 0 is treated as the default.
     @param[in] config Parquet writing options. config.row_group_size is the maximum number
                of rows per Parquet row group (the WriteTable chunk size).
+    @param[in] n_threads OpenMP threads used to build each batch's partitions in parallel.
+               1 = serial (default, preserves prior behaviour); 0 = auto (all available cores);
+               N = fixed count. The per-row build dominates export cost, so parallelism here is
+               the main speedup. Output is identical in row content and order regardless of
+               @p n_threads (contiguous partitions are written in index order). The Parquet write
+               itself stays serial. Without OpenMP support the export always runs serially.
     @return true on success, false on error (errors are logged)
   */
   static bool exportToParquetStreaming(
@@ -134,7 +140,8 @@ public:
     const std::string& filename,
     bool export_all_psms = false,
     size_t batch_size = 1000000,
-    const ParquetWriteConfig& config = ParquetWriteConfig{});
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    int n_threads = 1);
 
   /**
     @brief Import PSMs from a PSMSchema Arrow table.

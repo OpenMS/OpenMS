@@ -888,4 +888,180 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+START_SECTION(([EXTRA] exportToParquetStreaming parallel build (n_threads)))
+{
+  arrow::MemoryPool* pool = arrow::default_memory_pool();
+
+  auto read_combined = [pool](const std::string& path) -> std::shared_ptr<arrow::Table>
+  {
+    auto open_res = arrow::io::ReadableFile::Open(path.c_str());
+    if (!open_res.ok()) { return nullptr; }
+    auto reader_res = parquet::arrow::OpenFile(open_res.ValueOrDie(), pool);
+    if (!reader_res.ok()) { return nullptr; }
+    auto reader = std::move(reader_res).ValueOrDie();
+    std::shared_ptr<arrow::Table> t;
+    if (!reader->ReadTable(&t).ok()) { return nullptr; }
+    auto comb = t->CombineChunks(pool);
+    if (!comb.ok()) { return nullptr; }
+    return comb.ValueOrDie();
+  };
+
+  // Compare two combined tables row-by-row on stable columns. Returns true if equal.
+  auto tables_equal = [](const std::shared_ptr<arrow::Table>& a, const std::shared_ptr<arrow::Table>& b) -> bool
+  {
+    if (!a || !b) return false;
+    if (a->num_rows() != b->num_rows()) return false;
+    if (a->num_rows() == 0) return true;
+    auto sa = std::static_pointer_cast<arrow::StringArray>(a->GetColumnByName("sequence")->chunk(0));
+    auto sb = std::static_pointer_cast<arrow::StringArray>(b->GetColumnByName("sequence")->chunk(0));
+    auto pa = std::static_pointer_cast<arrow::StringArray>(a->GetColumnByName("peptidoform")->chunk(0));
+    auto pb = std::static_pointer_cast<arrow::StringArray>(b->GetColumnByName("peptidoform")->chunk(0));
+    auto ca = std::static_pointer_cast<arrow::Int16Array>(a->GetColumnByName("charge")->chunk(0));
+    auto cb = std::static_pointer_cast<arrow::Int16Array>(b->GetColumnByName("charge")->chunk(0));
+    for (int64_t r = 0; r < a->num_rows(); ++r)
+    {
+      if (sa->GetString(r) != sb->GetString(r)) return false;
+      if (pa->GetString(r) != pb->GetString(r)) return false;
+      if (ca->Value(r) != cb->Value(r)) return false;
+    }
+    return true;
+  };
+
+  vector<ProteinIdentification> protein_ids;
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("test_search");
+  protein_id.setScoreType("TestScore");
+  protein_id.setHigherScoreBetter(true);
+  protein_id.setPrimaryMSRunPath({"/data/run1.mzML"});
+  protein_ids.push_back(protein_id);
+
+  // --- Single-hit dataset (best-hit export) ---
+  PeptideIdentificationList peptide_ids;
+  const size_t M = 2500;
+  for (size_t i = 0; i < M; ++i)
+  {
+    PeptideIdentification pid;
+    pid.setIdentifier("test_search");
+    pid.setRT(100.0 + i);
+    pid.setMZ(400.0 + (i % 500));
+    pid.setScoreType("TestScore");
+    pid.setHigherScoreBetter(true);
+    pid.setSpectrumReference("controllerType=0 controllerNumber=1 scan=" + StringUtils::toStr(1000 + i));
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString((i % 3 == 0) ? "PEM(Oxidation)TIDEK" : "PEPTIDEK"));
+    hit.setCharge(2 + (i % 3));
+    hit.setScore(0.99 - (i % 100) * 0.001);
+    hit.setMetaValue("target_decoy", (i % 2 == 0) ? "target" : "decoy");
+    PeptideEvidence ev;
+    ev.setProteinAccession("PROT_" + StringUtils::toStr(i % 50));
+    hit.setPeptideEvidences(vector<PeptideEvidence>{ev});
+    pid.setHits(vector<PeptideHit>{hit});
+    peptide_ids.push_back(pid);
+  }
+  std::vector<const PeptideIdentification*> ptrs;
+  ptrs.reserve(peptide_ids.size());
+  for (const auto& p : peptide_ids) { ptrs.push_back(&p); }
+
+  // Reference: one-shot (non-streaming) output.
+  std::string ref_file; NEW_TMP_FILE(ref_file)
+  TEST_EQUAL(QPXFile::exportToParquet(protein_ids, peptide_ids, ref_file), true)
+  auto ref_table = read_combined(ref_file);
+  TEST_NOT_EQUAL(ref_table, nullptr)
+
+  // Determinism/equivalence across thread counts (batch_size small => many batches x partitions).
+  for (int nthreads : {1, 2, 8})
+  {
+    std::string f; NEW_TMP_FILE(f)
+    TEST_EQUAL(QPXFile::exportToParquetStreaming(protein_ids, ptrs, f, false, 1000, ParquetWriteConfig{}, nthreads), true)
+    auto tbl = read_combined(f);
+    TEST_NOT_EQUAL(tbl, nullptr)
+    TEST_EQUAL(tbl->num_rows(), (int64_t)M)
+    TEST_EQUAL(tables_equal(tbl, ref_table), true)
+  }
+
+  // --- export_all_psms=true with variable hit counts across partition boundaries ---
+  PeptideIdentificationList multi_ids;
+  size_t expected_rows = 0;
+  for (size_t i = 0; i < 777; ++i)
+  {
+    PeptideIdentification pid;
+    pid.setIdentifier("test_search");
+    pid.setRT(10.0 + i);
+    pid.setMZ(300.0 + (i % 100));
+    pid.setScoreType("TestScore");
+    pid.setHigherScoreBetter(true);
+    pid.setSpectrumReference("controllerType=0 controllerNumber=1 scan=" + StringUtils::toStr(i));
+    size_t n_hits = 1 + (i % 3); // 1..3 hits
+    vector<PeptideHit> hits;
+    for (size_t h = 0; h < n_hits; ++h)
+    {
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(h == 0 ? "PEPTIDEK" : "DFPIANGER"));
+      hit.setCharge(2 + (int)h);
+      hit.setScore(0.9 - 0.01 * h);
+      hits.push_back(hit);
+    }
+    expected_rows += n_hits;
+    pid.setHits(hits);
+    multi_ids.push_back(pid);
+  }
+  std::vector<const PeptideIdentification*> multi_ptrs;
+  for (const auto& p : multi_ids) { multi_ptrs.push_back(&p); }
+
+  std::string all_ref; NEW_TMP_FILE(all_ref)
+  TEST_EQUAL(QPXFile::exportToParquet(protein_ids, multi_ids, all_ref, /*export_all_psms=*/true), true)
+  auto all_ref_tbl = read_combined(all_ref);
+  TEST_NOT_EQUAL(all_ref_tbl, nullptr)
+  TEST_EQUAL(all_ref_tbl->num_rows(), (int64_t)expected_rows)
+
+  std::string all_par; NEW_TMP_FILE(all_par)
+  TEST_EQUAL(QPXFile::exportToParquetStreaming(protein_ids, multi_ptrs, all_par, /*export_all_psms=*/true, 50, ParquetWriteConfig{}, 8), true)
+  auto all_par_tbl = read_combined(all_par);
+  TEST_NOT_EQUAL(all_par_tbl, nullptr)
+  TEST_EQUAL(all_par_tbl->num_rows(), (int64_t)expected_rows)
+  TEST_EQUAL(tables_equal(all_par_tbl, all_ref_tbl), true)
+
+  // --- Non-empty input that yields zero PSM rows (all hits empty) + 8 threads ---
+  {
+    PeptideIdentificationList empty_hits(50); // 50 default-constructed PeptideIdentifications, no hits
+    std::vector<const PeptideIdentification*> eh_ptrs;
+    for (const auto& p : empty_hits) { eh_ptrs.push_back(&p); }
+    std::string f; NEW_TMP_FILE(f)
+    TEST_EQUAL(QPXFile::exportToParquetStreaming(protein_ids, eh_ptrs, f, false, 10, ParquetWriteConfig{}, 8), true)
+    auto tbl = read_combined(f);
+    TEST_NOT_EQUAL(tbl, nullptr)
+    TEST_EQUAL(tbl->num_rows(), 0)
+    TEST_EQUAL(tbl->num_columns(), 24)
+  }
+
+  // --- Edge cases with parallelism: M=0, M=1, rows < threads ---
+  {
+    std::vector<const PeptideIdentification*> empty_ptrs;
+    std::string f0; NEW_TMP_FILE(f0)
+    TEST_EQUAL(QPXFile::exportToParquetStreaming(protein_ids, empty_ptrs, f0, false, 1000, ParquetWriteConfig{}, 8), true)
+    auto t0 = read_combined(f0);
+    TEST_NOT_EQUAL(t0, nullptr)
+    TEST_EQUAL(t0->num_rows(), 0)
+
+    std::vector<const PeptideIdentification*> one_ptr{ptrs[0]};
+    std::string f1; NEW_TMP_FILE(f1)
+    TEST_EQUAL(QPXFile::exportToParquetStreaming(protein_ids, one_ptr, f1, false, 1000, ParquetWriteConfig{}, 8), true)
+    auto t1 = read_combined(f1);
+    TEST_NOT_EQUAL(t1, nullptr)
+    TEST_EQUAL(t1->num_rows(), 1)
+
+    // rows (3) < threads (8): W clamps to rows
+    std::vector<const PeptideIdentification*> few(ptrs.begin(), ptrs.begin() + 3);
+    std::string f3; NEW_TMP_FILE(f3)
+    TEST_EQUAL(QPXFile::exportToParquetStreaming(protein_ids, few, f3, false, 1000, ParquetWriteConfig{}, 8), true)
+    auto t3 = read_combined(f3);
+    TEST_NOT_EQUAL(t3, nullptr)
+    TEST_EQUAL(t3->num_rows(), 3)
+  }
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
 END_TEST

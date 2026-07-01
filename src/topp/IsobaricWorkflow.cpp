@@ -934,8 +934,14 @@ protected:
           all_pepid_ptrs.push_back(&pepid);
         }
 
-        // Streaming/batched write keeps peak memory bounded for very large PSM counts.
-        if (!QPXFile::exportToParquetStreaming(cmap.getProteinIdentifications(), all_pepid_ptrs, out_qpx + "/quantms.psm.parquet"))
+        // Streaming/batched write keeps peak memory bounded for very large PSM counts;
+        // n_threads=0 builds each batch's partitions in parallel across all available cores.
+        if (!QPXFile::exportToParquetStreaming(cmap.getProteinIdentifications(), all_pepid_ptrs,
+                                               out_qpx + "/quantms.psm.parquet",
+                                               /*export_all_psms=*/false,
+                                               /*batch_size=*/1000000,
+                                               ParquetWriteConfig{},
+                                               /*n_threads=*/0))
         {
           OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
