@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>
 
 #include <OpenMS/FORMAT/SVOutStream.h>
