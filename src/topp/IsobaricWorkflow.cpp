@@ -910,7 +910,11 @@ protected:
         // Feature-level export: stream in batches so peak memory stays bounded. For isobaric
         // data there is ~one consensus feature per PSM, so the feature table has millions of
         // rows; the one-shot path builds it all in memory at once and drives large runs into swap.
-        if (!ConsensusMapArrowExport::exportToParquetStreaming(cmap, out_qpx + "/quantms.feature.parquet"))
+        // n_threads=0 builds each batch's partitions in parallel across all available cores.
+        if (!ConsensusMapArrowExport::exportToParquetStreaming(cmap, out_qpx + "/quantms.feature.parquet",
+                                                               /*batch_size=*/1000000,
+                                                               ParquetWriteConfig{},
+                                                               /*n_threads=*/0))
         {
           OPENMS_LOG_ERROR << "Failed to write features Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
