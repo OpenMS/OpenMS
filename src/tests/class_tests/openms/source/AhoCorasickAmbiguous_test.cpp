@@ -429,6 +429,11 @@ START_SECTION(constexpr AA())
   static_assert(!AA('*').isValidForPeptide());
   static_assert(!AA('3').isValidForPeptide());
   static_assert(!AA('#').isValidForPeptide());
+
+  // extended / non-ASCII bytes (>= 128) must map to the invalid AA, not read past the table
+  // (regression: CharToAA used to have only 128 entries while AA(char) indexes it with 0..255)
+  static_assert(!AA((char)200).isValid());
+  static_assert(!AA((char)255).isValid());
 }
 END_SECTION
 

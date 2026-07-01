@@ -22,12 +22,16 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -45,7 +49,10 @@
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
+#include <locale>
+#include <ostream>
 #include <map>
 #include <set>
 #include <sstream>
@@ -63,12 +70,12 @@ namespace OpenMS
     DefaultParamHandler("ProSEAlgorithm"),
     ProgressLogger()
   {
-    defaults_.setValue("precursor:mass_tolerance_lower", 20.0,
+    defaults_.setValue("precursor:mass_tolerance_lower", 10.0,
                        "Lower-side precursor-mass tolerance (positive magnitude; effective window "
                        "is [-lower, +upper] around the precursor). "
                        "When strongly asymmetric, also review precursor:isotope_error_min.");
     defaults_.setMinFloat("precursor:mass_tolerance_lower", 0.0);
-    defaults_.setValue("precursor:mass_tolerance_upper", 20.0,
+    defaults_.setValue("precursor:mass_tolerance_upper", 10.0,
                        "Upper-side precursor-mass tolerance (positive magnitude).");
     defaults_.setMinFloat("precursor:mass_tolerance_upper", 0.0);
     defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance.");
@@ -85,7 +92,7 @@ namespace OpenMS
     IntList isotopes = {0, 1};
     defaults_.setValue("precursor:isotopes", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)");
 
-    defaults_.setValue("fragment:mass_tolerance", 10.0, "Fragment mass tolerance");
+    defaults_.setValue("fragment:mass_tolerance", 20.0, "Fragment mass tolerance");
 
     std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
     fragment_mass_tolerance_unit_valid_strings.emplace_back("ppm");
@@ -94,11 +101,19 @@ namespace OpenMS
     defaults_.setValue("fragment:mass_tolerance_unit", "ppm", "Unit of fragment m");
     defaults_.setValidStrings("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
 
+    defaults_.setValue("fragment:deisotope", "auto", "MS2 deisotoping (single-charge deconvolution) before searching. 'auto' deisotopes only when the fragment tolerance is within the high-resolution deisotoper range (<= 0.1 Da / <= 100 ppm) and skips it for low-resolution (e.g. ion-trap CID) data; 'true' always deisotopes (requires a high-resolution fragment tolerance); 'false' never deisotopes.");
+    defaults_.setValidStrings("fragment:deisotope", {"auto", "true", "false"});
+
 
     defaults_.setValue("fragment:min_mz", 150, "Minimal fragment mz for database");
     defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");
     defaults_.setValue("fragment:min_ion_index", 2, "Ions with index less than or equal to this value are not added to the fragment index (use 0 to include all ions; 2 skips b1/b2/y1/y2). Low-index ions are often noisy and unreliable.");
     defaults_.setMinInt("fragment:min_ion_index", 0);
+
+    defaults_.setValue("peaks:keep_n", 0, "Maximum number of MS2 peaks kept per spectrum (NLargest) before scoring. 0 = auto: a resolution-aware cap (~400 for high-res, ~80 at 0.5 Da, floor 60) that avoids the spurious low-resolution fragment matching which otherwise inflates HyperScore for targets and decoys alike. Set an explicit value to override (e.g. 400 for the legacy behavior).", {"advanced"});
+    defaults_.setMinInt("peaks:keep_n", 0);
+    defaults_.setValue("peaks:window_top", 20, "Maximum number of MS2 peaks kept per 100 Da window (WindowMower) before scoring.", {"advanced"});
+    defaults_.setMinInt("peaks:window_top", 1);
 
     defaults_.setSectionDescription("fragment", "Fragments (Product Ion) Options");
 
@@ -118,10 +133,16 @@ namespace OpenMS
     defaults_.setValue("enzyme", "Trypsin", "The enzyme used for peptide digestion.");
     defaults_.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
 
-    defaults_.setValue("decoys", "false", "Should decoys be generated?");
-    defaults_.setValidStrings("decoys", {"true","false"} );
+    defaults_.setValue("decoys", "auto",
+      "Decoy handling for target-decoy FDR. "
+      "'auto': ensure decoys are available — reuse decoys already present in the database "
+      "(marker auto-detected, prefix or suffix) or generate them if none are found. "
+      "'generate': always (re)generate decoys from the target proteins (any pre-existing "
+      "decoys are removed first to avoid decoy-of-decoy entries). "
+      "'ignore': search the target proteins only — any decoys present in the database are removed.");
+    defaults_.setValidStrings("decoys", {"auto","generate","ignore"} );
 
-    defaults_.setValue("decoy_prefix", "DECOY_", "Accession prefix used for decoy proteins. When decoy generation is enabled (-decoys), this prefix is added to generated decoy accessions. When decoy generation is disabled, the FASTA database may already contain decoy proteins with this prefix (e.g., from DecoyDatabase) and FDR can still be applied.", {"advanced"});
+    defaults_.setValue("decoy_prefix", "DECOY_", "Accession prefix prepended to decoy proteins when ProSE generates them (modes 'auto' without existing decoys, and 'generate'). Pre-existing decoys in the database are detected automatically (any common marker, used as prefix or suffix) and do not require this setting.", {"advanced"});
 
     defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
     defaults_.setValidStrings("annotate:PSM",
@@ -170,10 +191,10 @@ namespace OpenMS
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
 
-    defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Requires '-decoys' to be set.");
+    defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Target and decoy PSMs are filtered alike by the q-value threshold; decoys that pass are kept (no decoy-specific stripping here — decoys are removed only at protein-FDR finalization). Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
-    defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. Requires '-decoys' to be set.");
+    defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR on a complete protein set (single file, or the -out_merged aggregate). Setting this > 0 finalizes the result: identified decoys are removed. With 0, decoys are retained for downstream/merged FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:protein", 0.0);
     defaults_.setMaxFloat("FDR:protein", 1.0);
     defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");
@@ -254,10 +275,37 @@ namespace OpenMS
     precursor_max_charge_ = param_.getValue("precursor:max_charge");
 
     precursor_isotopes_ = param_.getValue("precursor:isotopes");
+    peaks_keep_n_ = (Size)(int)param_.getValue("peaks:keep_n");
+    peaks_window_top_ = (Int)param_.getValue("peaks:window_top");
 
     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
 
     fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
+
+    // Resolve the MS2 deisotoping mode (fragment:deisotope = auto|true|false) ONCE.
+    // The Deisotoper supports a fragment tolerance <= 100 ppm / <= 0.1 Da and throws
+    // otherwise; consult its non-throwing predicate so the limit lives in one place
+    // (OpenMS#9619). 'false' never deisotopes; 'true'/'auto' deisotope only when the
+    // tolerance is supported -- 'true' fails fast here with a clear parameter error
+    // rather than aborting later inside preprocessSpectra_'s OpenMP region, while
+    // 'auto' silently skips deisotoping for low-resolution data.
+    const std::string deisotope_mode = param_.getValue("fragment:deisotope").toString();
+    const bool deisotope_supported =
+      Deisotoper::isToleranceSupported(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ == "ppm");
+    deisotope_requested_ = (deisotope_mode != "false");
+    if (deisotope_mode == "true" && !deisotope_supported)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "fragment:deisotope=true requires a high-resolution fragment tolerance (<= 0.1 Da or <= 100 ppm). "
+        "Use 'auto' (deisotopes only for high-resolution data) or 'false' for low-resolution data.");
+    }
+    if (deisotope_mode == "auto" && !deisotope_supported)
+    {
+      OPENMS_LOG_WARN << "[ProSE] Fragment tolerance " << fragment_mass_tolerance_
+                      << (fragment_mass_tolerance_unit_ == "ppm" ? " ppm" : " Da")
+                      << " exceeds the deisotoping limit (100 ppm / 0.1 Da); skipping MS2 "
+                      << "deisotoping (expected for low-resolution data)." << endl;
+    }
 
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
     set<std::string> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
@@ -288,7 +336,10 @@ namespace OpenMS
 
     report_top_hits_ = param_.getValue("report:top_hits");
 
-    decoys_ = param_.getValue("decoys") == "true";
+    const std::string decoy_mode_str = param_.getValue("decoys").toString();
+    if (decoy_mode_str == "generate")   { decoy_mode_ = DecoyMode_::GENERATE; }
+    else if (decoy_mode_str == "ignore") { decoy_mode_ = DecoyMode_::IGNORE; }
+    else                                 { decoy_mode_ = DecoyMode_::AUTO; }
     decoy_prefix_ = param_.getValue("decoy_prefix").toString();
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
     fdr_psm_ = param_.getValue("FDR:PSM");
@@ -311,7 +362,7 @@ namespace OpenMS
   }
 
   // static
-  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
+  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool deisotope_requested, Size peaks_keep_n, Int peaks_window_top)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -328,25 +379,60 @@ namespace OpenMS
     WindowMower window_mower_filter;
     Param filter_param = window_mower_filter.getParameters();
     filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
-    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
+    filter_param.setValue("peakcount", peaks_window_top, "The number of peaks that should be kept.");
     filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
     window_mower_filter.setParameters(filter_param);
 
-    NLargest nlargest_filter = NLargest(400);
+    // Resolution-aware peak retention. peaks_keep_n == 0 => auto. For HIGH-resolution fragments
+    // (within the deisotoper range, <= 0.1 Da / <= 100 ppm) keep the legacy cap of 400. For
+    // LOW-resolution data (e.g. 0.5 Da ion-trap CID — the same regime where deisotoping is
+    // skipped) a wide match window admits many spurious low-intensity matches that inflate the
+    // count-sensitive HyperScore for targets AND decoys alike, collapsing the target/decoy
+    // margin; retain far fewer peaks. Random matches scale with peak density x tolerance width,
+    // so sqrt-dampen around the 0.02 Da reference and clamp to [60, 400]:
+    //   0.2 Da -> 126, 0.5 Da -> 80, 1 Da -> 60.
+    Size effective_keep_n = peaks_keep_n;
+    if (effective_keep_n == 0)
+    {
+      if (Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm))
+      {
+        effective_keep_n = 400; // high-resolution: unchanged legacy behavior
+      }
+      else
+      {
+        const double eff_tol_da = fragment_mass_tolerance_unit_ppm
+          ? fragment_mass_tolerance * 500.0 * 1e-6   // ppm -> Da at a 500 m/z reference
+          : fragment_mass_tolerance;
+        const double n = std::round(400.0 * std::sqrt(0.02 / std::max(eff_tol_da, 1e-6)));
+        effective_keep_n = static_cast<Size>(std::min(400.0, std::max(60.0, n)));
+      }
+    }
+    NLargest nlargest_filter = NLargest(effective_keep_n);
 
-#pragma omp parallel for default(none) shared(exp, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
+    // Deisotope only when requested (param fragment:deisotope, resolved in
+    // updateMembers_) AND the tolerance is in the Deisotoper's supported range.
+    // The range guard keeps the Deisotoper call below from ever throwing, so no
+    // exception can escape the OpenMP region (OpenMS#9619). Mode resolution and the
+    // low-resolution warning are handled once, in updateMembers_.
+    const bool do_deisotope = deisotope_requested &&
+      Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+
+#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       // sort by mz
       exp[exp_index].sortByPosition();
 
-      // deisotope
-      Deisotoper::deisotopeAndSingleCharge(exp[exp_index], 
-        fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
-        1, 3,   // min / max charge 
-        false,  // keep only deisotoped
-        3, 10,  // min / max isopeaks 
-        true);  // convert fragment m/z to mono-charge
+      // deisotope (skipped for low-resolution data; see do_deisotope above)
+      if (do_deisotope)
+      {
+        Deisotoper::deisotopeAndSingleCharge(exp[exp_index],
+          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
+          1, 3,   // min / max charge
+          false,  // keep only deisotoped
+          3, 10,  // min / max isopeaks
+          true);  // convert fragment m/z to mono-charge
+      }
 
       // remove noise
       window_mower_filter.filterPeakSpectrum(exp[exp_index]);
@@ -646,9 +732,9 @@ namespace OpenMS
           }
 
           // store PSM
-          phs.push_back(ph);
+          phs.push_back(std::move(ph));
         }
-        pi.setHits(phs);
+        pi.setHits(std::move(phs));
         // Ensure hits are sorted by score (best first), then assign ranks explicitly (0 = top hit)
         pi.sort();
         {
@@ -754,15 +840,151 @@ namespace OpenMS
   // Hoisted out of the in-memory search() body so callers can build the
   // index once and reuse it across many spectrum files.
   // =====================================================================
-  // Build a decoy-augmented copy of a FASTA database without building a
-  // FragmentIndex. Used by prepareContext() and the chunked search path.
+  Param ProSEAlgorithm::fragmentIndexParameters_() const
+  {
+    Param p = getParameters();
+    // FragmentIndex has its own boolean 'decoys' flag {true,false}; ProSE's enum
+    // value (auto/generate/ignore) would fail its validation. ProSE builds the
+    // decoy-augmented database itself, so the FragmentIndex must never generate.
+    p.remove("decoys");
+    p.setValue("decoys", "false");
+    return p;
+  }
+
+  ProSEAlgorithm::DecoyStrategy_
+  ProSEAlgorithm::resolveDecoyStrategy_(const std::vector<FASTAFile::FASTAEntry>& db) const
+  {
+    // Detect pre-existing decoys. First the common-marker heuristic
+    // (DecoyHelper: "decoy", "rev", "xxx", ... as prefix or suffix), then a
+    // literal fall-back to the configured decoy_prefix so custom markers
+    // outside the vocabulary are still recognised.
+    FASTAContainer<TFI_Vector> container(db);
+    // quiet=true: a target-only database is a normal case here (auto/generate
+    // then synthesise decoys), so suppress DecoyHelper's "unable to determine
+    // decoy string" ERROR/WARN noise — we handle the negative result ourselves.
+    const DecoyHelper::Result det = DecoyHelper::findDecoyString(container, /*quiet=*/true);
+
+    bool existing = det.success;
+    std::string ext_string = det.success ? det.name : decoy_prefix_;
+    bool ext_is_prefix = det.success ? det.is_prefix : true;
+
+    if (!existing && !decoy_prefix_.empty())
+    {
+      bool any_prefix = false, any_suffix = false;
+      for (const FASTAFile::FASTAEntry& e : db)
+      {
+        if (StringUtils::hasPrefix(e.identifier, decoy_prefix_)) { any_prefix = true; break; }
+        if (StringUtils::hasSuffix(e.identifier, decoy_prefix_)) { any_suffix = true; }
+      }
+      if (any_prefix || any_suffix)
+      {
+        existing = true;
+        ext_string = decoy_prefix_;
+        ext_is_prefix = any_prefix; // prefer prefix when both orientations occur
+      }
+    }
+
+    DecoyStrategy_ s;
+    switch (decoy_mode_)
+    {
+      case DecoyMode_::AUTO:
+        if (existing)
+        {
+          // Reuse the decoys already in the database; never double-generate.
+          s.generate = false; s.strip_existing = false; s.have_decoys = true;
+          s.decoy_string = ext_string; s.is_prefix = ext_is_prefix;
+        }
+        else
+        {
+          // No decoys present: synthesise them so target-decoy FDR is possible.
+          s.generate = true; s.strip_existing = false; s.have_decoys = true;
+          s.decoy_string = decoy_prefix_; s.is_prefix = true;
+        }
+        break;
+
+      case DecoyMode_::GENERATE:
+        if (existing)
+        {
+          OPENMS_LOG_WARN << "[ProSE] decoys=generate: removing pre-existing decoys (marker '"
+                          << ext_string << "') and regenerating from the target proteins.\n";
+        }
+        else
+        {
+          // Nothing detected to strip. If the database still carries some decoy-like accessions
+          // with a non-standard or too-sparse marker (below DecoyHelper's threshold, and not the
+          // configured decoy_prefix), they are treated as targets and reversed into decoys-of-decoys.
+          // Warn so the user can set -Search:decoy_prefix to the real marker or pre-clean the FASTA.
+          FASTAContainer<TFI_Vector> stats_container(db);
+          const DecoyHelper::DecoyStatistics stats = DecoyHelper::countDecoys(stats_container);
+          if (stats.all_prefix_occur + stats.all_suffix_occur > 0)
+          {
+            OPENMS_LOG_WARN << "[ProSE] decoys=generate: " << (stats.all_prefix_occur + stats.all_suffix_occur)
+                            << " accession(s) carry a decoy-like marker but too few to auto-detect, so "
+                            << "they are not stripped and will be treated as targets (risking "
+                            << "decoys-of-decoys). Set -Search:decoy_prefix to the actual marker or "
+                            << "pre-clean the database.\n";
+          }
+        }
+        s.generate = true; s.strip_existing = existing; s.have_decoys = true;
+        s.decoy_string = decoy_prefix_; s.is_prefix = true;
+        s.strip_string = ext_string; s.strip_is_prefix = ext_is_prefix;
+        break;
+
+      case DecoyMode_::IGNORE:
+        if (existing)
+        {
+          OPENMS_LOG_WARN << "[ProSE] decoys=ignore: removing pre-existing decoys (marker '"
+                          << ext_string << "'); searching the target proteins only.\n";
+        }
+        s.generate = false; s.strip_existing = existing; s.have_decoys = false;
+        s.decoy_string.clear(); s.is_prefix = true;
+        s.strip_string = ext_string; s.strip_is_prefix = ext_is_prefix;
+        break;
+    }
+    return s;
+  }
+
+  // Build the searched database according to @p strategy: optionally strip
+  // pre-existing decoys, optionally generate fresh decoys from the targets.
+  // Produces FASTA entries only — does not build a FragmentIndex.
   std::vector<FASTAFile::FASTAEntry>
   ProSEAlgorithm::buildDecoyAugmentedDB_(
-      const std::vector<FASTAFile::FASTAEntry>& fasta_db) const
+      const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+      const DecoyStrategy_& strategy) const
   {
-    std::vector<FASTAFile::FASTAEntry> db = fasta_db;
-    if (decoys_)
+    std::vector<FASTAFile::FASTAEntry> db;
+    db.reserve(fasta_db.size() * (strategy.generate ? 2 : 1));
+
+    // decoys=auto reusing pre-existing decoys logs nothing otherwise; surface the auto-detected
+    // marker so a rare DecoyHelper misdetection (a target DB whose accessions start with a decoy
+    // affix) is diagnosable. Single emission: buildDecoyAugmentedDB_ runs once per search.
+    if (decoy_mode_ == DecoyMode_::AUTO && !strategy.generate && strategy.have_decoys)
     {
+      OPENMS_LOG_INFO << "[ProSE] decoys=auto: reusing existing decoys detected in the database "
+                      << "(marker '" << strategy.decoy_string << "', "
+                      << (strategy.is_prefix ? "prefix" : "suffix") << ")." << std::endl;
+    }
+
+    // 1. Copy targets, dropping pre-existing decoys when requested.
+    for (const FASTAFile::FASTAEntry& e : fasta_db)
+    {
+      const bool is_existing_decoy = strategy.strip_existing &&
+        (strategy.strip_is_prefix ? StringUtils::hasPrefix(e.identifier, strategy.strip_string)
+                                  : StringUtils::hasSuffix(e.identifier, strategy.strip_string));
+      if (!is_existing_decoy) { db.push_back(e); }
+    }
+
+    // 2. Generate decoys by reversing the (remaining) target proteins.
+    if (strategy.generate)
+    {
+      // decoy_string is the prefix prepended to generated accessions; an empty prefix would
+      // produce decoys with the same accession as their targets, silently breaking FDR.
+      if (strategy.decoy_string.empty())
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "decoy_prefix must be non-empty to generate decoys (decoys=auto without existing decoys, "
+          "or decoys=generate).");
+      }
       DecoyGenerator decoy_generator;
       const size_t old_size = db.size();
       db.reserve(old_size * 2);
@@ -773,11 +995,22 @@ namespace OpenMS
           e.sequence = decoy_generator.reverseProtein(AASequence::fromString(e.sequence)).toString();
         else
           e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
-        e.identifier = decoy_prefix_ + e.identifier;
+        e.identifier = strategy.decoy_string + e.identifier;  // decoy_string is the prefix to add
         db.push_back(std::move(e));
       }
       Math::RandomShuffler shuffler(42);  // fixed seed for reproducible decoy ordering across runs/files
       shuffler.portable_random_shuffle(db.begin(), db.end());
+
+      // Under the default decoys=auto, decoys are generated whenever the database lacks them —
+      // including no-ProSE-FDR runs, because the decoys are typically consumed by a downstream or
+      // external FDR step (FalseDiscoveryRate / Percolator) or a merged run. This roughly doubles
+      // index build + search; for a genuinely target-only search, use decoys=ignore.
+      if (decoy_mode_ == DecoyMode_::AUTO && fdr_psm_ == 0.0 && fdr_protein_ == 0.0)
+      {
+        OPENMS_LOG_INFO << "[ProSE] decoys=auto generated " << old_size << " decoys (the database had "
+                        << "none) for downstream target-decoy FDR. Use '-Search:decoys ignore' for a "
+                        << "target-only search if you do not need FDR." << std::endl;
+      }
     }
     return db;
   }
@@ -841,12 +1074,16 @@ namespace OpenMS
     SearchContext ctx;
 
     startProgress(0, 1, "Generate decoys...");
-    ctx.db = buildDecoyAugmentedDB_(fasta_db);
+    const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
+    ctx.db = buildDecoyAugmentedDB_(fasta_db, strategy);
+    ctx.decoy_string = strategy.decoy_string;
+    ctx.decoy_is_prefix = strategy.is_prefix;
+    ctx.have_decoys = strategy.have_decoys;
     endProgress();
 
     // build fragment index
     startProgress(0, 1, "Building fragment index...");
-    auto this_params = getParameters();
+    Param this_params = fragmentIndexParameters_();
     ctx.fragment_index.setParameters(this_params);
     ctx.fragment_index.build(ctx.db);
     endProgress();
@@ -1013,6 +1250,10 @@ namespace OpenMS
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
+    // Reset per-run stats here so the chunked single-file path (searchChunked_,
+    // which does not route through search(spectra, ctx, ...)) starts clean too.
+    last_run_stats_ = RunStatistics{};
+
     // Chunking disabled → take the existing single-context path (decoys built
     // lazily by prepareContext). The ctx is locally owned and not reused,
     // so opt in to eager FI release (M1) before PeptideIndexing.
@@ -1028,21 +1269,25 @@ namespace OpenMS
     // and chunk_size is 5000 with decoys enabled, the augmented DB (6000)
     // still exceeds chunk_size — decide-before-augment would have skipped
     // chunking and built a full FI 2× the user's declared memory budget.
-    auto full_db = buildDecoyAugmentedDB_(fasta_db);
+    const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
+    auto full_db = buildDecoyAugmentedDB_(fasta_db, strategy);
     if (full_db.size() <= database_chunk_size_)
     {
       // Augmented DB fits in one chunk — use the single-context path but skip
       // prepareContext's internal decoy re-generation by building ctx inline.
       SearchContext ctx;
       ctx.db = std::move(full_db);
+      ctx.decoy_string = strategy.decoy_string;
+      ctx.decoy_is_prefix = strategy.is_prefix;
+      ctx.have_decoys = strategy.have_decoys;
       ctx.release_fragment_index_after_scoring = true; // single-use ctx (M1)
       startProgress(0, 1, "Building fragment index...");
-      ctx.fragment_index.setParameters(getParameters());
+      ctx.fragment_index.setParameters(fragmentIndexParameters_());
       ctx.fragment_index.build(ctx.db);
       endProgress();
       return search(spectra, ctx, protein_ids, peptide_ids);
     }
-    return searchChunked_(spectra, full_db, protein_ids, peptide_ids);
+    return searchChunked_(spectra, full_db, strategy, protein_ids, peptide_ids);
   }
 
   // =====================================================================
@@ -1053,6 +1298,7 @@ namespace OpenMS
   ProSEAlgorithm::ExitCodes ProSEAlgorithm::searchChunked_(
       PeakMap& spectra,
       std::vector<FASTAFile::FASTAEntry>& full_db,
+      const DecoyStrategy_& strategy,
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
@@ -1063,7 +1309,7 @@ namespace OpenMS
 
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
     bool open_search_mode = isOpenSearchMode_();
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
+    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
 
     // Effective tolerances — may be narrowed by calibration below. Kept asymmetric
     // (lower / upper separately) so the FragmentIndex query can exploit the full
@@ -1086,7 +1332,7 @@ namespace OpenMS
     {
       std::vector<FASTAFile::FASTAEntry> cal_db = buildCalibrationSample_(full_db);
       FragmentIndex cal_fi;
-      cal_fi.setParameters(getParameters());
+      cal_fi.setParameters(fragmentIndexParameters_());
       cal_fi.build(cal_db);
 
       CalibrationResult_ cal = runCalibrationPass_(spectra, cal_fi, cal_db);
@@ -1147,7 +1393,7 @@ namespace OpenMS
       std::vector<FASTAFile::FASTAEntry> chunk_db(full_db.begin() + start, full_db.begin() + end);
       FragmentIndex chunk_fi;
       {
-        Param fi_params = getParameters();
+        Param fi_params = fragmentIndexParameters_();
         // Apply calibrated tolerances (if calibration succeeded above). Asymmetric
         // lower/upper preserved — collapsing to max() would re-open the tight side
         // of the calibrated window and admit spurious decoy candidates.
@@ -1213,8 +1459,11 @@ namespace OpenMS
     // 7. PeptideIndexing against the FULL database (not per-chunk).
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
-    param_pi.setValue("decoy_string", decoy_prefix_);
-    param_pi.setValue("decoy_string_position", "prefix");
+    // Use the effective decoy marker/position that was actually searched. A
+    // non-empty string (decoy_prefix_ when target-only) avoids PeptideIndexing's
+    // own auto-detection; missing_decoy_action=silent keeps it quiet when none match.
+    param_pi.setValue("decoy_string", strategy.decoy_string.empty() ? decoy_prefix_ : strategy.decoy_string);
+    param_pi.setValue("decoy_string_position", strategy.is_prefix ? "prefix" : "suffix");
     param_pi.setValue("enzyme:name", enzyme_);
     param_pi.setValue("enzyme:specificity",
                       EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
@@ -1251,32 +1500,39 @@ namespace OpenMS
     //    (matching the non-chunked search(spectra, ctx, ...) semantics — that
     //    method also does PSM FDR only; the multi-file wrapper and file-based
     //    searchWithModificationAnalysis apply protein FDR post-call).
-    bool has_decoys = std::any_of(full_db.begin(), full_db.end(),
-        [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
+    const bool has_decoys = strategy.have_decoys;
+
+    // Pre-FDR stats (target/decoy counts + HyperScore distribution).
+    capturePreFdrStats_(peptide_ids, last_run_stats_);
 
     if (fdr_psm_ > 0.0 && has_decoys)
     {
+      // PSM-level FDR: annotate q-values and filter target+decoy PSMs alike by the threshold.
+      // No decoy-specific stripping happens here (decoupled from decoy removal); the decoys that
+      // pass are kept because downstream protein-level FDR and cross-file merging need them.
+      // Categorical decoy removal happens only at protein-FDR finalization (file-based
+      // single-file search below, or ProSE.cpp).
+      StopWatch sw_fdr; sw_fdr.start();
       FalseDiscoveryRate fdr;
+      Param fdr_params = fdr.getParameters();
+      fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
+      fdr.setParameters(fdr_params);
       fdr.apply(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
-
-      if (fdr_protein_ == 0.0)
-      {
-        // No protein FDR → safe to remove decoys now (matches non-chunked path)
-        IDFilter::removeDecoyHits(peptide_ids);
-        IDFilter::removeEmptyIdentifications(peptide_ids);
-        IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
-      }
+      last_run_stats_.fdr_applied = true;
+      last_run_stats_.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
+      sw_fdr.stop();
+      last_run_stats_.seconds_fdr = sw_fdr.getClockTime();
     }
     else if (fdr_psm_ > 0.0 && !has_decoys)
     {
-      OPENMS_LOG_WARN << "FDR:PSM is set but no decoys found (decoy_prefix='" << decoy_prefix_
-                      << "'). Provide a FASTA with decoy proteins or enable '-decoys'. Skipping FDR filtering." << std::endl;
+      OPENMS_LOG_WARN << "FDR:PSM is set but the search has no decoys (decoys=ignore). "
+                         "Use decoys=auto to search/generate decoys and enable FDR. Skipping FDR filtering." << std::endl;
     }
 
     restore_tolerances();
 
-    logSearchDiagnostics_(spectra, protein_ids, peptide_ids);
+    collectRunStatistics_(spectra, protein_ids, peptide_ids, last_run_stats_);
 
     return ExitCodes::EXECUTION_OK;
   }
@@ -1293,6 +1549,10 @@ namespace OpenMS
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
+    // Reset the per-run statistics bridge for this file. Callers copy it into
+    // their SearchResult::stats after search() returns OK.
+    last_run_stats_ = RunStatistics{};
+
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
 
     bool open_search = isOpenSearchMode_();
@@ -1302,7 +1562,7 @@ namespace OpenMS
                     << precursor_mass_tolerance_unit_ << ")" << std::endl;
 
     startProgress(0, 1, "Filtering spectra...");
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
+    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
     endProgress();
 
     // Reference the prepared (decoy-augmented) database and prebuilt fragment index from the context.
@@ -1331,7 +1591,10 @@ namespace OpenMS
     if (calibration_enabled_ && !open_search)
     {
       startProgress(0, 1, "Running calibration pass...");
+      StopWatch sw_cal; sw_cal.start();
       last_calibration_result_ = runCalibrationPass_(spectra, fragment_index_, db);
+      sw_cal.stop();
+      last_run_stats_.seconds_calibration = sw_cal.getClockTime();
       const CalibrationResult_& cal = last_calibration_result_;
       endProgress();
 
@@ -1411,6 +1674,7 @@ namespace OpenMS
 
     bool open_search_mode = open_search;
 
+    StopWatch sw_search; sw_search.start();
     scoreSpectraAgainstIndex_(spectra, fragment_index_, db, spectrum_generator,
                               effective_fragment_tol, fragment_mass_tolerance_unit_ppm,
                               open_search_mode, annotated_hits,
@@ -1448,6 +1712,8 @@ namespace OpenMS
       "" // no database filename for in-memory search
       );
     endProgress();
+    sw_search.stop();
+    last_run_stats_.seconds_search = sw_search.getClockTime();
 
     // Perform modification analysis for open search results
     if (open_search)
@@ -1480,8 +1746,10 @@ namespace OpenMS
     // semi-specific / non-specific PSMs would be silently filtered out here.
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
-    param_pi.setValue("decoy_string", decoy_prefix_);
-    param_pi.setValue("decoy_string_position", "prefix");
+    // Use the effective decoy marker/position recorded in the context (the same
+    // decoys that were searched), avoiding PeptideIndexing's own auto-detection.
+    param_pi.setValue("decoy_string", ctx.decoy_string.empty() ? decoy_prefix_ : ctx.decoy_string);
+    param_pi.setValue("decoy_string_position", ctx.decoy_is_prefix ? "prefix" : "suffix");
     param_pi.setValue("enzyme:name", enzyme_);
     param_pi.setValue("enzyme:specificity",
                       EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
@@ -1522,37 +1790,111 @@ namespace OpenMS
       }
     }
 
-    // PSM-level FDR filtering.
-    // Decoys may be generated internally (decoys_=true) or present in the
-    // input FASTA (external, identified by decoy_prefix_).
-    bool has_decoys = std::any_of(db.begin(), db.end(),
-        [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
+    // PSM-level FDR filtering. The context records whether decoys are present
+    // (generated internally, or external decoys reused from the input FASTA).
+    const bool has_decoys = ctx.have_decoys;
+
+    // Capture pre-FDR stats now — BEFORE FDR, which drops pure-decoy hits
+    // (FalseDiscoveryRate default add_decoy_peptides=false), may strip decoys
+    // entirely, and overwrites each hit's HyperScore with its q-value.
+    capturePreFdrStats_(peptide_ids, last_run_stats_);
 
     if (fdr_psm_ > 0.0 && has_decoys)
     {
+      // PSM-level FDR: annotate q-values and filter target+decoy PSMs alike by the threshold.
+      // No decoy-specific stripping happens here (decoupled from decoy removal); the decoys that
+      // pass are kept because downstream protein-level FDR and cross-file merging need them.
+      // Categorical decoy removal happens only at protein-FDR finalization (file-based
+      // single-file search below, or ProSE.cpp).
+      StopWatch sw_fdr; sw_fdr.start();
       FalseDiscoveryRate fdr;
+      Param fdr_params = fdr.getParameters();
+      fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
+      fdr.setParameters(fdr_params);
       fdr.apply(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
-
-      if (fdr_protein_ == 0.0)
-      {
-        // No protein FDR → safe to remove decoys now
-        IDFilter::removeDecoyHits(peptide_ids);
-        IDFilter::removeEmptyIdentifications(peptide_ids);
-        IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
-      }
+      last_run_stats_.fdr_applied = true;
+      last_run_stats_.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
+      sw_fdr.stop();
+      last_run_stats_.seconds_fdr = sw_fdr.getClockTime();
     }
     else if (fdr_psm_ > 0.0 && !has_decoys)
     {
-      OPENMS_LOG_WARN << "FDR:PSM is set but no decoys found (decoy_prefix='" << decoy_prefix_
-                      << "'). Provide a FASTA with decoy proteins or enable '-decoys'. Skipping FDR filtering." << endl;
+      OPENMS_LOG_WARN << "FDR:PSM is set but the search has no decoys (decoys=ignore). "
+                         "Use decoys=auto to search/generate decoys and enable FDR. Skipping FDR filtering." << endl;
     }
 
     restore_fi_params();
 
-    logSearchDiagnostics_(spectra, protein_ids, peptide_ids);
+    collectRunStatistics_(spectra, protein_ids, peptide_ids, last_run_stats_);
 
     return ExitCodes::EXECUTION_OK;
+  }
+
+  // =====================================================================
+  // Shared protein-FDR finalization for a COMPLETE protein set. Single source
+  // of truth for both the file-based search() below and the ProSE TOPP tool's
+  // single-file path (the two previously held byte-identical copies).
+  // =====================================================================
+  // static
+  void ProSEAlgorithm::applyCompleteSetProteinFDR(
+      std::vector<ProteinIdentification>& protein_ids,
+      PeptideIdentificationList& peptide_ids,
+      const std::string& decoy_string,
+      bool decoy_is_prefix,
+      double protein_fdr)
+  {
+    // Defensive: an empty decoy marker would make every protein match the prefix/suffix guard
+    // below (hasPrefix(x, "") is always true) and corrupt picked-protein FDR. Callers gate on
+    // have_decoys (so decoy_string is non-empty in practice), but this is a public static helper.
+    if (decoy_string.empty())
+    {
+      OPENMS_LOG_WARN << "[ProSE] applyCompleteSetProteinFDR called with an empty decoy marker; "
+                      << "skipping protein FDR (cannot identify decoys)." << std::endl;
+      return;
+    }
+
+    // Aggregate the best PSM score per peptide per protein, then apply picked-protein
+    // FDR (Savitski et al. 2015) over the full target+decoy protein set.
+    BasicProteinInferenceAlgorithm bpia;
+    bpia.run(peptide_ids, protein_ids);
+
+    // Picked-protein FDR needs identified decoy PROTEINS, not merely a decoy database: if PSM-level
+    // filtering removed all decoy evidence, q-values would be estimated from targets only. The
+    // callers gate on a DB-level / pre-inference "decoys present" check, which does not catch this
+    // post-inference target-only edge -- guard it here.
+    const bool has_decoy_proteins = std::any_of(
+        protein_ids[0].getHits().begin(), protein_ids[0].getHits().end(),
+        [&](const ProteinHit& ph) {
+          return decoy_is_prefix ? StringUtils::hasPrefix(ph.getAccession(), decoy_string)
+                                 : StringUtils::hasSuffix(ph.getAccession(), decoy_string);
+        });
+    if (!has_decoy_proteins)
+    {
+      OPENMS_LOG_WARN << "[ProSE] Protein FDR requested but no decoy proteins remain after inference "
+                      << "(marker '" << decoy_string << "'); skipping picked-protein FDR to avoid "
+                      << "target-only q-values." << std::endl;
+      return;
+    }
+
+    FalseDiscoveryRate fdr;
+    fdr.applyPickedProteinFDR(protein_ids[0], decoy_string, decoy_is_prefix);
+    IDFilter::filterHitsByScore(protein_ids, protein_fdr);
+
+    // Decoy removal is the finalization step. removeDecoyHits strips decoy PSMs; decoy
+    // proteins then fall out as unreferenced. Repair indistinguishable-protein and
+    // protein-group references and drop peptide evidence pointing at removed proteins,
+    // else idXML storage fails on dangling references.
+    IDFilter::removeDecoyHits(peptide_ids);
+    IDFilter::removeEmptyIdentifications(peptide_ids);
+    IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+    IDFilter::updateProteinGroups(protein_ids[0].getIndistinguishableProteins(), protein_ids[0].getHits());
+    IDFilter::updateProteinGroups(protein_ids[0].getProteinGroups(), protein_ids[0].getHits());
+    IDFilter::removeDanglingProteinReferences(peptide_ids, protein_ids);
+
+    OPENMS_LOG_INFO << "[ProSE] Protein inference + picked-protein FDR: "
+                    << protein_ids[0].getHits().size() << " proteins at "
+                    << protein_fdr * 100 << "% FDR." << std::endl;
   }
 
   // =====================================================================
@@ -1587,22 +1929,15 @@ namespace OpenMS
 
     // Protein inference + picked-protein FDR for single-file search.
     // Must run before decoy removal so both target and decoy proteins
-    // receive aggregated scores from BPIA.
-    bool has_decoys_single = std::any_of(fasta_db.begin(), fasta_db.end(),
-        [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
-    if (fdr_protein_ > 0.0 && (decoys_ || has_decoys_single))
+    // receive aggregated scores from BPIA. Resolve the decoy strategy from the
+    // same input FASTA the search used so the marker/position match.
+    const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
+    if (fdr_protein_ > 0.0 && strategy.have_decoys)
     {
-      BasicProteinInferenceAlgorithm bpia;
-      bpia.run(peptide_ids, protein_ids);
-
-      FalseDiscoveryRate fdr;
-      fdr.applyPickedProteinFDR(protein_ids[0], decoy_prefix_, true);
-      IDFilter::filterHitsByScore(protein_ids, fdr_protein_);
-
-      // Now safe to remove decoys (deferred from search() above)
-      IDFilter::removeDecoyHits(peptide_ids);
-      IDFilter::removeEmptyIdentifications(peptide_ids);
-      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+      // Single input file = complete experiment, so picked-protein FDR is valid. Use the resolved
+      // decoy marker (prefix or suffix, detected by DecoyHelper in resolveDecoyStrategy_) so the
+      // shared finalization recognises the same decoys that were searched.
+      applyCompleteSetProteinFDR(protein_ids, peptide_ids, strategy.decoy_string, strategy.is_prefix, fdr_protein_);
     }
 
     // patch file-specific metadata
@@ -1625,6 +1960,9 @@ namespace OpenMS
     result.is_open_search = isOpenSearchMode_();
 
     result.exit_code = search(spectra, fasta_db, result.protein_ids, result.peptide_ids);
+
+    // Carry whatever statistics the search managed to populate, even on failure.
+    result.stats = last_run_stats_;
 
     if (result.exit_code != ExitCodes::EXECUTION_OK)
     {
@@ -1653,8 +1991,6 @@ namespace OpenMS
         false, // no smoothing
         output_file
       );
-
-      logModificationAnalysisSummary_(result, output_base_name);
     }
     else
     {
@@ -1697,15 +2033,55 @@ namespace OpenMS
       return mfres;
     }
 
-    // Decide chunking on the decoy-augmented DB size (#9180): if decoys_ doubles
-    // the target DB, a 3000-protein target against chunk_size=5000 should still
-    // chunk because the augmented DB is 6000 — otherwise the resulting FI would
-    // exceed the user's memory budget by 2×.
+    // Resolve decoy handling once from the shared input FASTA; reused for the
+    // chunk-major path, the single-context path, and the downstream FDR steps.
+    const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
+    // Surface the effective marker so a caller doing merged-PSM protein FDR
+    // (e.g. ProSE -out_merged) recognises the same decoys that were searched.
+    mfres.decoy_string = strategy.decoy_string;
+    mfres.decoy_is_prefix = strategy.is_prefix;
+    mfres.have_decoys = strategy.have_decoys;
+
+    // -- Shared configuration recap for the end-of-search report (built once) --
+    {
+      SharedSearchStats& sh = mfres.shared;
+      sh.enzyme = enzyme_;
+      sh.precursor_tol_lower = precursor_mass_tolerance_lower_;
+      sh.precursor_tol_upper = precursor_mass_tolerance_upper_;
+      sh.precursor_tol_unit = precursor_mass_tolerance_unit_;
+      sh.fragment_tol = fragment_mass_tolerance_;
+      sh.fragment_tol_unit = fragment_mass_tolerance_unit_;
+      sh.min_charge = static_cast<Int>(precursor_min_charge_);
+      sh.max_charge = static_cast<Int>(precursor_max_charge_);
+      sh.missed_cleavages = peptide_missed_cleavages_;
+      sh.fixed_mods.assign(modifications_fixed_.begin(), modifications_fixed_.end());
+      sh.variable_mods.assign(modifications_variable_.begin(), modifications_variable_.end());
+      if (add_a_ions_) sh.ion_series.push_back("a");
+      if (add_b_ions_) sh.ion_series.push_back("b");
+      if (add_c_ions_) sh.ion_series.push_back("c");
+      if (add_x_ions_) sh.ion_series.push_back("x");
+      if (add_y_ions_) sh.ion_series.push_back("y");
+      if (add_z_ions_) sh.ion_series.push_back("z");
+      sh.open_search = isOpenSearchMode_();
+      sh.calibration_enabled = calibration_enabled_;
+      sh.psm_fdr_threshold = fdr_psm_;
+      sh.protein_fdr_threshold = fdr_protein_;
+      // Decoy handling resolved via the auto/generate/ignore strategy (#9634):
+      // target-only when no decoys are present, "generated" when ProSE synthesises
+      // them, "external" when pre-existing decoys in the FASTA are reused.
+      sh.decoy_mode = !strategy.have_decoys ? "none (target-only)"
+                      : (strategy.generate ? "generated" : "external");
+    }
+
+    // Decide chunking on the decoy-augmented DB size (#9180): if decoy generation
+    // doubles the target DB, a 3000-protein target against chunk_size=5000 should
+    // still chunk because the augmented DB is 6000 — otherwise the resulting FI
+    // would exceed the user's memory budget by 2×.
     std::vector<FASTAFile::FASTAEntry> full_db;
     bool use_chunked = false;
     if (database_chunk_size_ > 0)
     {
-      full_db = buildDecoyAugmentedDB_(fasta_db);
+      full_db = buildDecoyAugmentedDB_(fasta_db, strategy);
       use_chunked = (full_db.size() > database_chunk_size_);
     }
 
@@ -1719,6 +2095,21 @@ namespace OpenMS
       // full_db already built above.
       const bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
       const bool open_search_mode = isOpenSearchMode_();
+
+      // Shared report stats: chunk-major builds C indices (one per chunk),
+      // reused across all files — count/time them once, not per file.
+      mfres.shared.chunked = true;
+      for (const auto& e : full_db)
+      {
+        // Count by the RESOLVED decoy marker (prefix OR suffix), not the hardcoded
+        // decoy_prefix_: otherwise reused external/suffix decoys (decoy_mode "external")
+        // would be miscounted as targets. have_decoys is false for target-only (ignore),
+        // where decoys are stripped and decoy_string is empty.
+        const bool is_decoy = strategy.have_decoys &&
+            accessionHasDecoyMarker_(e.identifier, strategy.decoy_string, strategy.is_prefix);
+        if (is_decoy) { ++mfres.shared.db_decoy_proteins; }
+        else { ++mfres.shared.db_target_proteins; }
+      }
 
       OPENMS_LOG_INFO << "[ProSE] open_search=" << (open_search_mode ? "true" : "false")
                       << " (precursor tolerance [-" << precursor_mass_tolerance_lower_
@@ -1737,7 +2128,7 @@ namespace OpenMS
         f.getOptions() = options;
         f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
         all_spectra[i].sortSpectra(true);
-        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
+        preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, deisotope_requested_, peaks_keep_n_, peaks_window_top_);
       }
 
       // Per-file calibration: build a strided calibration FI once, run calibration per file.
@@ -1768,8 +2159,11 @@ namespace OpenMS
         // Build a strided-sample calibration FI once, reused across files.
         std::vector<FASTAFile::FASTAEntry> cal_db = buildCalibrationSample_(full_db);
         FragmentIndex cal_fi;
-        cal_fi.setParameters(getParameters());
+        cal_fi.setParameters(fragmentIndexParameters_());
+        StopWatch sw_cal_idx; sw_cal_idx.start();
         cal_fi.build(cal_db);
+        sw_cal_idx.stop();
+        mfres.shared.seconds_index_build += sw_cal_idx.getClockTime();
 
         for (Size i = 0; i < in_spectra_files.size(); ++i)
         {
@@ -1855,8 +2249,14 @@ namespace OpenMS
 
         std::vector<FASTAFile::FASTAEntry> chunk_db(full_db.begin() + start, full_db.begin() + end);
         FragmentIndex chunk_fi;
-        chunk_fi.setParameters(getParameters());
+        chunk_fi.setParameters(fragmentIndexParameters_());
+        StopWatch sw_chunk; sw_chunk.start();
         chunk_fi.build(chunk_db);
+        sw_chunk.stop();
+        mfres.shared.seconds_index_build += sw_chunk.getClockTime();
+        mfres.shared.indexed_peptides += chunk_fi.getPeptides().size();
+        mfres.shared.indexed_fragments += chunk_fi.getNumFragments();
+        if (chunk_fi.isSnesMode()) { mfres.shared.snes_mode = true; }
 
         // Score ALL files against this chunk's index.
         // Each file may have different calibrated tolerances — apply per-file
@@ -1929,8 +2329,8 @@ namespace OpenMS
 
         PeptideIndexing indexer;
         Param param_pi = indexer.getParameters();
-        param_pi.setValue("decoy_string", decoy_prefix_);
-        param_pi.setValue("decoy_string_position", "prefix");
+        param_pi.setValue("decoy_string", strategy.decoy_string.empty() ? decoy_prefix_ : strategy.decoy_string);
+        param_pi.setValue("decoy_string_position", strategy.is_prefix ? "prefix" : "suffix");
         param_pi.setValue("enzyme:name", enzyme_);
         param_pi.setValue("enzyme:specificity",
                           EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
@@ -1950,24 +2350,33 @@ namespace OpenMS
             result.exit_code = ExitCodes::UNEXPECTED_RESULT;
           else
             result.exit_code = ExitCodes::UNKNOWN_ERROR;
+          result.stats.input_file = File::basename(in_spectra);
           mfres.per_file.push_back(std::move(result));
           continue;
         }
 
-        // PSM-level FDR only (matching non-chunked search semantics).
-        bool has_decoys = std::any_of(full_db.begin(), full_db.end(),
-            [this](const FASTAFile::FASTAEntry& e) { return StringUtils::hasPrefix(e.identifier, decoy_prefix_); });
+        // PSM-level FDR only (matching non-chunked search semantics). Target+decoy PSMs are
+        // filtered alike by the q-value threshold; no decoy-specific stripping happens here
+        // (decoupled from decoy removal). The decoys that pass are kept because per-file results
+        // feed cross-file merging and protein-level FDR. Categorical decoy removal is a
+        // protein-FDR finalization step performed by ProSE.cpp. have_decoys is the marker-aware
+        // result from resolveDecoyStrategy_ (prefix or suffix, generated or external).
+        const bool has_decoys = strategy.have_decoys;
+        // Pre-FDR stats (target/decoy counts + HyperScore distribution).
+        capturePreFdrStats_(result.peptide_ids, result.stats);
         if (fdr_psm_ > 0.0 && has_decoys)
         {
+          StopWatch sw_fdr; sw_fdr.start();
           FalseDiscoveryRate fdr;
+          Param fdr_params = fdr.getParameters();
+          fdr_params.setValue("add_decoy_peptides", "true"); // keep decoys eligible (q-value filtered, but no decoy-specific stripping)
+          fdr.setParameters(fdr_params);
           fdr.apply(result.peptide_ids);
           IDFilter::filterHitsByScore(result.peptide_ids, fdr_psm_);
-          if (fdr_protein_ == 0.0)
-          {
-            IDFilter::removeDecoyHits(result.peptide_ids);
-            IDFilter::removeEmptyIdentifications(result.peptide_ids);
-            IDFilter::removeUnreferencedProteins(result.protein_ids, result.peptide_ids);
-          }
+          result.stats.fdr_applied = true;
+          result.stats.achieved_psm_fdr = maxRetainedScore_(result.peptide_ids);
+          sw_fdr.stop();
+          result.stats.seconds_fdr = sw_fdr.getClockTime();
         }
 
         result.exit_code = ExitCodes::EXECUTION_OK;
@@ -1975,7 +2384,11 @@ namespace OpenMS
         if (!result.protein_ids.empty())
           result.protein_ids[0].setPrimaryMSRunPath({in_spectra}, all_spectra[i]);
 
-        logSearchDiagnostics_(all_spectra[i], result.protein_ids, result.peptide_ids);
+        // In chunk-major mode scoring is shared across files (one pass per chunk),
+        // so per-file seconds_search is not separable; it is left 0 and the shared
+        // index/total timing carries the cost.
+        collectRunStatistics_(all_spectra[i], result.protein_ids, result.peptide_ids, result.stats);
+        result.stats.input_file = File::basename(in_spectra);
 
         // Per-file modification analysis (uses per-file calibrated tolerance).
         if (result.is_open_search)
@@ -1985,7 +2398,6 @@ namespace OpenMS
           result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
             result.peptide_ids, per_file_cal[i].mod_match_tol,
             precursor_mass_tolerance_unit_ == "ppm", false, output_file);
-          logModificationAnalysisSummary_(result, per_file_base);
         }
 
         mfres.per_file.push_back(std::move(result));
@@ -1997,20 +2409,43 @@ namespace OpenMS
       // Non-chunked multi-file: shared SearchContext (existing path).
       // ================================================================
       SearchContext ctx;
+      StopWatch sw_idx; sw_idx.start();
       if (!full_db.empty())
       {
         // chunk_size was set but augmented DB fits in one chunk — reuse the
         // already-built decoy-augmented DB instead of re-augmenting inside
         // prepareContext.
         ctx.db = std::move(full_db);
+        ctx.decoy_string = strategy.decoy_string;
+        ctx.decoy_is_prefix = strategy.is_prefix;
+        ctx.have_decoys = strategy.have_decoys;
         startProgress(0, 1, "Building fragment index...");
-        ctx.fragment_index.setParameters(getParameters());
+        ctx.fragment_index.setParameters(fragmentIndexParameters_());
         ctx.fragment_index.build(ctx.db);
         endProgress();
       }
       else
       {
         ctx = prepareContext(fasta_db);
+      }
+      sw_idx.stop();
+
+      // Shared report stats: index built once and reused across all files.
+      mfres.shared.chunked = false;
+      mfres.shared.seconds_index_build = sw_idx.getClockTime();
+      mfres.shared.indexed_peptides = ctx.fragment_index.getPeptides().size();
+      mfres.shared.indexed_fragments = ctx.fragment_index.getNumFragments();
+      mfres.shared.snes_mode = ctx.fragment_index.isSnesMode();
+      for (const auto& e : ctx.db)
+      {
+        // Count by the RESOLVED decoy marker (prefix OR suffix), not the hardcoded
+        // decoy_prefix_: otherwise reused external/suffix decoys (decoy_mode "external")
+        // would be miscounted as targets. have_decoys is false for target-only (ignore),
+        // where decoys are stripped and decoy_string is empty.
+        const bool is_decoy = strategy.have_decoys &&
+            accessionHasDecoyMarker_(e.identifier, strategy.decoy_string, strategy.is_prefix);
+        if (is_decoy) { ++mfres.shared.db_decoy_proteins; }
+        else { ++mfres.shared.db_target_proteins; }
       }
 
       mfres.per_file.reserve(in_spectra_files.size());
@@ -2042,9 +2477,14 @@ namespace OpenMS
         {
           OPENMS_LOG_WARN << "[ProSE] Search failed for " << in_spectra
                           << " (exit code " << static_cast<int>(result.exit_code) << "). Continuing." << std::endl;
+          result.stats = last_run_stats_;
+          result.stats.input_file = File::basename(in_spectra);
           mfres.per_file.push_back(std::move(result));
           continue;
         }
+
+        result.stats = last_run_stats_;
+        result.stats.input_file = File::basename(in_spectra);
 
         if (!result.protein_ids.empty())
           result.protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
@@ -2057,7 +2497,6 @@ namespace OpenMS
           result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
             result.peptide_ids, last_mod_match_tolerance_used_,
             precursor_mass_tolerance_unit_ == "ppm", false, output_file);
-          logModificationAnalysisSummary_(result, per_file_base);
         }
         else
         {
@@ -2146,8 +2585,6 @@ namespace OpenMS
         false, // no smoothing
         agg_output_file
       );
-
-      logModificationAnalysisSummary_(mfres.aggregate, aggregate_base_name);
     }
 
     return mfres;
@@ -2173,6 +2610,8 @@ namespace OpenMS
 
     MultiFileSearchResult mfres = searchWithModificationAnalysis(
       in_spectra_files, fasta_db, output_base_names, aggregate_base_name);
+
+    mfres.shared.database_file = in_db;
 
     // Patch database file path into each per-file and aggregate ProteinIdentification.
     for (auto& pf : mfres.per_file)
@@ -2216,33 +2655,143 @@ namespace OpenMS
   }
 
   // =====================================================================
-  // Helper: log search summary statistics and per-run tolerance estimation
+  // Helper: decoy-marker membership test (prefix/suffix), pure std::string.
   // =====================================================================
-  void ProSEAlgorithm::logSearchDiagnostics_(
+  bool ProSEAlgorithm::accessionHasDecoyMarker_(const std::string& accession,
+                                                const std::string& marker, bool is_prefix)
+  {
+    if (marker.empty() || accession.size() < marker.size()) { return false; }
+    return is_prefix ? (accession.compare(0, marker.size(), marker) == 0)
+                     : (accession.compare(accession.size() - marker.size(), marker.size(), marker) == 0);
+  }
+
+  // =====================================================================
+  // Helper: capture pre-FDR statistics (target/decoy counts + HyperScore
+  // distribution). Must run BEFORE FalseDiscoveryRate, which overwrites the
+  // hit score with the q-value and may drop decoy hits.
+  // =====================================================================
+  void ProSEAlgorithm::capturePreFdrStats_(const PeptideIdentificationList& peptide_ids,
+                                           RunStatistics& stats)
+  {
+    stats.target_psms = 0;
+    stats.decoy_psms = 0;
+    std::vector<double> hyperscores;
+    for (const auto& pid : peptide_ids)
+    {
+      if (pid.getHits().empty()) { continue; }
+      const PeptideHit& top = pid.getHits().front();
+      hyperscores.push_back(top.getScore());
+
+      if (!top.metaValueExists(Constants::UserParam::TARGET_DECOY)) { continue; }
+      const std::string td = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString();
+      // "target+decoy" counts as target (OpenMS FDR semantics).
+      if (td == "decoy") { ++stats.decoy_psms; }
+      else if (!td.empty()) { ++stats.target_psms; }
+    }
+
+    if (!hyperscores.empty())
+    {
+      auto [mn, mx] = std::minmax_element(hyperscores.begin(), hyperscores.end());
+      stats.hyperscore_min = *mn;
+      stats.hyperscore_max = *mx;
+      stats.hyperscore_median = Math::median(hyperscores.begin(), hyperscores.end());
+      stats.score_stats_valid = true;
+    }
+  }
+
+  // =====================================================================
+  // Recompute result-level stats from a FINAL (post-rescoring/post-FDR) PSM list.
+  // =====================================================================
+  void ProSEAlgorithm::updateFinalStats(RunStatistics& stats,
+                                        const PeptideIdentificationList& peptide_ids,
+                                        const std::string& enzyme,
+                                        bool fdr_applied)
+  {
+    // Count spectra that actually retained a hit. ProSE pushes one PeptideIdentification per
+    // searched spectrum (incl. empty ones for non-matches), and not every caller strips empties
+    // before stats are collected, so peptide_ids.size() would over-count matched spectra / ID rate.
+    stats.matched_spectra = static_cast<Size>(std::count_if(peptide_ids.begin(), peptide_ids.end(),
+      [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }));
+    stats.charge_histogram.clear();
+    stats.missed_cleavage_histogram.clear();
+    Size n_target = 0, n_decoy = 0;
+
+    EnzymaticDigestion digestor;
+    digestor.setEnzyme(ProteaseDB::getInstance()->getEnzyme(enzyme));
+
+    set<std::string> unique_peptides, unique_proteins;
+    for (const auto& pid : peptide_ids)
+    {
+      if (pid.getHits().empty()) { continue; }
+      const PeptideHit& top = pid.getHits().front();
+      unique_peptides.insert(top.getSequence().toString());
+      for (const auto& ev : top.getPeptideEvidences()) { unique_proteins.insert(ev.getProteinAccession()); }
+      if (top.getCharge() > 0) { ++stats.charge_histogram[top.getCharge()]; }
+      ++stats.missed_cleavage_histogram[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())];
+      if (top.metaValueExists(Constants::UserParam::TARGET_DECOY))
+      {
+        const std::string td = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString();
+        if (td == "decoy") { ++n_decoy; }
+        else if (!td.empty()) { ++n_target; }
+      }
+    }
+    stats.unique_peptides = unique_peptides.size();
+    stats.unique_proteins = unique_proteins.size();
+    stats.target_psms = n_target;
+    stats.decoy_psms = n_decoy;
+    stats.fdr_applied = fdr_applied;
+    stats.achieved_psm_fdr = fdr_applied ? maxRetainedScore_(peptide_ids) : -1.0;
+  }
+
+  // =====================================================================
+  // Helper: maximum top-hit score among retained PSMs (== achieved FDR after
+  // q-value filtering). Returns -1.0 for an empty set.
+  // =====================================================================
+  double ProSEAlgorithm::maxRetainedScore_(const PeptideIdentificationList& peptide_ids)
+  {
+    double max_score = -1.0;
+    for (const auto& pid : peptide_ids)
+    {
+      if (pid.getHits().empty()) { continue; }
+      max_score = std::max(max_score, pid.getHits().front().getScore());
+    }
+    return max_score;
+  }
+
+  // =====================================================================
+  // Helper: fill per-run identification statistics (silent — no logging).
+  // Computes target/decoy counts from the (post-FDR) hits it is given, so
+  // SearchResult::stats is consistent for any caller; leaves achieved FDR and
+  // timing fields untouched (captured at well-defined points in the search paths).
+  // =====================================================================
+  void ProSEAlgorithm::collectRunStatistics_(
       const PeakMap& spectra,
       const std::vector<ProteinIdentification>& /*protein_ids*/,
-      const PeptideIdentificationList& peptide_ids) const
+      const PeptideIdentificationList& peptide_ids,
+      RunStatistics& stats) const
   {
-    // -- Search summary --
-    Size num_ms2 = std::count_if(spectra.begin(), spectra.end(),
-                                 [](const MSSpectrum& s) { return s.getMSLevel() == 2; });
-    Size num_identified = peptide_ids.size();
+    stats.ms2_spectra = std::count_if(spectra.begin(), spectra.end(),
+                                      [](const MSSpectrum& s) { return s.getMSLevel() == 2; });
+    // Count spectra that actually retained a hit. ProSE pushes one PeptideIdentification per
+    // searched spectrum (incl. empty ones for non-matches), and not every caller strips empties
+    // before stats are collected, so peptide_ids.size() would over-count matched spectra / ID rate.
+    stats.matched_spectra = static_cast<Size>(std::count_if(peptide_ids.begin(), peptide_ids.end(),
+      [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }));
 
     set<std::string> unique_peptides;
     set<std::string> unique_proteins;
+    Size n_target = 0, n_decoy = 0;
 
-    // Collect per-PSM error values for tolerance estimation (top-ranked hits only)
+    // Per-PSM error values for tolerance estimation (top-ranked hits only)
     vector<double> precursor_errors;
     vector<double> fragment_errors;
 
-    // Missed cleavages
     EnzymaticDigestion digestor;
     digestor.setEnzyme(ProteaseDB::getInstance()->getEnzyme(enzyme_));
-    map<Size, Size> mc_counts;
 
     for (const auto& pid : peptide_ids)
     {
-      if (pid.getHits().empty()) continue;
+      if (pid.getHits().empty()) { continue; }
       const PeptideHit& top = pid.getHits().front();
       unique_peptides.insert(top.getSequence().toString());
 
@@ -2251,8 +2800,9 @@ namespace OpenMS
         unique_proteins.insert(ev.getProteinAccession());
       }
 
-      // Precursor error: always compute inline (cheap) so tolerance estimation
-      // does not depend on the annotate:PSM setting.
+      if (top.getCharge() > 0) { ++stats.charge_histogram[top.getCharge()]; }
+
+      // Precursor error: always compute inline (cheap), independent of annotate:PSM.
       // Skip hits with unresolved charge (0) — getMZ() would throw.
       if (top.getCharge() > 0)
       {
@@ -2268,63 +2818,43 @@ namespace OpenMS
         fragment_errors.push_back(static_cast<double>(top.getMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM)));
       }
 
-      mc_counts[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())]++;
-    }
+      ++stats.missed_cleavage_histogram[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())];
 
-    OPENMS_LOG_INFO << "\n[ProSE] ============ Search Summary ============" << std::endl;
-    OPENMS_LOG_INFO << "[ProSE]   MS2 spectra:          " << num_ms2 << std::endl;
-    OPENMS_LOG_INFO << "[ProSE]   Matched spectra:      " << num_identified << std::endl;
-    if (num_ms2 > 0)
-    {
-      OPENMS_LOG_INFO << "[ProSE]   MS2 ID rate:          "
-                      << std::fixed << std::setprecision(1) << (100.0 * num_identified / num_ms2) << "%" << std::endl;
-    }
-    OPENMS_LOG_INFO << "[ProSE]   Unique peptides:      " << unique_peptides.size() << std::endl;
-    OPENMS_LOG_INFO << "[ProSE]   Unique proteins:      " << unique_proteins.size() << std::endl;
-
-    // Missed cleavages distribution
-    if (!mc_counts.empty())
-    {
-      std::ostringstream mc_oss;
-      for (const auto& [mc, count] : mc_counts)
+      // Target/decoy of the FINAL (post-FDR) hits, so SearchResult::stats stays consistent
+      // for library callers that read it without calling updateFinalStats().
+      if (top.metaValueExists(Constants::UserParam::TARGET_DECOY))
       {
-        if (mc_oss.tellp() > 0) mc_oss << ", ";
-        mc_oss << mc << ": " << count;
+        const std::string td = top.getMetaValue(Constants::UserParam::TARGET_DECOY).toString();
+        if (td == "decoy") { ++n_decoy; }
+        else if (!td.empty()) { ++n_target; }
       }
-      OPENMS_LOG_INFO << "[ProSE]   Missed cleavages:    " << mc_oss.str() << std::endl;
     }
 
-    // -- Per-run tolerance estimation --
+    stats.unique_peptides = unique_peptides.size();
+    stats.unique_proteins = unique_proteins.size();
+    stats.target_psms = n_target;
+    stats.decoy_psms = n_decoy;
+
+    // -- Per-run tolerance estimation (median + 3*MAD, matching prior behaviour) --
     const Size min_psms_for_estimation = 10;
-    if (precursor_errors.size() >= min_psms_for_estimation || fragment_errors.size() >= min_psms_for_estimation)
-    {
-      OPENMS_LOG_INFO << "[ProSE] -------- Tolerance Estimation --------" << std::endl;
-    }
-
     if (precursor_errors.size() >= min_psms_for_estimation)
     {
       double med = Math::median(precursor_errors.begin(), precursor_errors.end());
       double mad = Math::MAD(precursor_errors.begin(), precursor_errors.end(), med);
-      double recommended = std::ceil(med + 3.0 * mad);
-      OPENMS_LOG_INFO << "[ProSE]   Precursor error: median=" << std::fixed << std::setprecision(2) << med
-                      << " ppm, MAD=" << mad << " ppm"
-                      << " -> recommended: " << static_cast<int>(recommended) << " ppm" << std::endl;
+      stats.prec_err_median = med;
+      stats.prec_err_mad = mad;
+      stats.prec_err_recommended = std::ceil(med + 3.0 * mad);
+      stats.prec_tol_valid = true;
     }
-
     if (fragment_errors.size() >= min_psms_for_estimation)
     {
       double med = Math::median(fragment_errors.begin(), fragment_errors.end());
       double mad = Math::MAD(fragment_errors.begin(), fragment_errors.end(), med);
-      double recommended = std::ceil(med + 3.0 * mad);
-      OPENMS_LOG_INFO << "[ProSE]   Fragment error:  median=" << std::fixed << std::setprecision(2) << med
-                      << " ppm, MAD=" << mad << " ppm"
-                      << " -> recommended: " << static_cast<int>(recommended) << " ppm" << std::endl;
+      stats.frag_err_median = med;
+      stats.frag_err_mad = mad;
+      stats.frag_err_recommended = std::ceil(med + 3.0 * mad);
+      stats.frag_tol_valid = true;
     }
-
-    OPENMS_LOG_INFO << "[ProSE]   (configured: precursor=[-" << precursor_mass_tolerance_lower_
-                    << ", +" << precursor_mass_tolerance_upper_ << "] " << precursor_mass_tolerance_unit_
-                    << ", fragment=" << fragment_mass_tolerance_ << " " << fragment_mass_tolerance_unit_ << ")" << std::endl;
-    OPENMS_LOG_INFO << "[ProSE] ============================================\n" << std::endl;
   }
 
   // =====================================================================
@@ -2380,7 +2910,18 @@ namespace OpenMS
     struct CalHit { double score; double prec_error; double frag_error; };
     vector<CalHit> cal_hits;
 
-    for (Size si = 0; si < subset_size; ++si)
+    // Parallelize over the calibration subset, mirroring the main scoring loop
+    // (scoreSpectraAgainstIndex_). Each iteration is independent: querySpectrum and
+    // the shared TheoreticalSpectrumGenerator expose const, thread-safe methods (the
+    // main loop already calls them concurrently), and every working variable below is
+    // loop-local. The only cross-thread write is the push into cal_hits, guarded by a
+    // critical section. Without this the calibration pass ran single-threaded: on a
+    // many-core machine the 10% subset took about as long as the entire parallel
+    // search, roughly doubling wall time for no extra useful work. Downstream is
+    // order-independent — cal_hits is sorted by score and the error vectors are sorted
+    // before quantiles — so parallel insertion order does not change the result.
+#pragma omp parallel for schedule(dynamic)
+    for (SignedSize si = 0; si < (SignedSize)subset_size; ++si)
     {
       const Size scan_idx = tic_index[si].second;
       const MSSpectrum& spec = spectra[scan_idx];
@@ -2439,6 +2980,7 @@ namespace OpenMS
                           ? Math::getPPM(corrected_exp_mz, theo_mz)
                           : (corrected_exp_mz - theo_mz);
 
+#pragma omp critical (prose_calibration_hits)
       cal_hits.push_back({best_score, prec_err, static_cast<double>(best_mean_error)});
     }
 
@@ -2567,95 +3109,352 @@ namespace OpenMS
   }
 
   // =====================================================================
-  // Helper: log modification analysis summary
+  // Serialize the end-of-search report to a YAML string. Hand-rolled (no YAML
+  // library), so neither the TOPP tool nor the library needs an extra dependency
+  // for this. Every string scalar is double-quoted (q()) so values containing ':'
+  // (e.g. Windows paths) or other metacharacters cannot break the structure, and
+  // non-finite numbers are emitted as null (num()).
   // =====================================================================
-  void ProSEAlgorithm::logModificationAnalysisSummary_(
-      const SearchResult& result,
-      const std::string& output_base_name) const
+  std::string ProSEAlgorithm::renderRunSummaryYaml(
+      const MultiFileSearchResult& mfres,
+      const std::vector<std::pair<std::string, std::vector<std::string>>>& manifest,
+      Size files_failed,
+      Size files_total)
   {
-    OPENMS_LOG_INFO << "[ProSE] ============================================" << std::endl;
-    OPENMS_LOG_INFO << "[ProSE] MODIFICATION DISCOVERY SUMMARY" << std::endl;
-    OPENMS_LOG_INFO << "[ProSE] ============================================" << std::endl;
+    // Double-quoted YAML scalar: escape the two structural chars, the common
+    // whitespace escapes, and every other C0 control + DEL as \xNN. A literal
+    // control character is ill-formed in a double-quoted scalar and would corrupt
+    // or invalidate the document — reachable via arbitrary input file paths.
+    auto q = [](const std::string& s) {
+      static const char* const hex = "0123456789ABCDEF";
+      std::string out;
+      out.reserve(s.size() + 2);
+      out += '"';
+      for (char ch : s)
+      {
+        const unsigned char c = static_cast<unsigned char>(ch);
+        if (c == '\\' || c == '"') { out += '\\'; out += static_cast<char>(c); }
+        else if (c == '\n') { out += "\\n"; }
+        else if (c == '\t') { out += "\\t"; }
+        else if (c == '\r') { out += "\\r"; }
+        else if (c < 0x20 || c == 0x7F) { out += "\\x"; out += hex[c >> 4]; out += hex[c & 0x0F]; }
+        else { out += static_cast<char>(c); }
+      }
+      out += '"';
+      return out;
+    };
+    // Locale-independent number; non-finite -> null. YAML 1.1 reads an exponent
+    // without a mantissa dot ("8e-05") as a string, so ensure a '.' before 'e'.
+    auto num = [](double v) -> std::string {
+      if (!std::isfinite(v)) { return "null"; }
+      std::ostringstream o;
+      o.imbue(std::locale::classic());
+      o << v;
+      std::string s = o.str();
+      const auto e = s.find_first_of("eE");
+      if (e != std::string::npos && s.find('.') == std::string::npos) { s.insert(e, ".0"); }
+      return s;
+    };
+    auto bol = [](bool b) -> std::string { return b ? "true" : "false"; };
 
-    const auto& dm_stats = result.modification_analysis.delta_mass_stats;
-    OPENMS_LOG_INFO << "[ProSE] Delta Mass Analysis:" << std::endl;
-    OPENMS_LOG_INFO << "  Total PSMs analyzed: " << dm_stats.total_psms << std::endl;
-    OPENMS_LOG_INFO << "  Modified PSMs: " << dm_stats.modified_psms
-                    << " (" << (dm_stats.total_psms > 0 ? (100.0 * dm_stats.modified_psms / dm_stats.total_psms) : 0.0)
-                    << "%)" << std::endl;
-    OPENMS_LOG_INFO << "  Unmodified PSMs: " << dm_stats.unmodified_psms << std::endl;
-    OPENMS_LOG_INFO << "  Mean delta mass: " << dm_stats.mean_delta_mass << " Da" << std::endl;
-    OPENMS_LOG_INFO << "  Median delta mass: " << dm_stats.median_delta_mass << " Da" << std::endl;
-    OPENMS_LOG_INFO << "  Unique delta mass bins: " << dm_stats.entries.size() << std::endl;
+    std::ostringstream y;
+    const SharedSearchStats& sh = mfres.shared;
 
-    const auto& ptm_stats = result.modification_analysis.ptm_stats;
-    OPENMS_LOG_INFO << "[ProSE] PTM Analysis:" << std::endl;
-    OPENMS_LOG_INFO << "  PSMs with known PTMs: " << ptm_stats.total_modified_psms << std::endl;
-    OPENMS_LOG_INFO << "  PSMs with unknown modifications: " << ptm_stats.unknown_modification_psms << std::endl;
-    OPENMS_LOG_INFO << "  Unique PTMs identified: " << ptm_stats.num_unique_modifications << std::endl;
+    y << "shared:\n";
+    y << "  database_file: " << q(sh.database_file) << "\n";
+    y << "  enzyme: " << q(sh.enzyme) << "\n";
+    y << "  precursor_tol_lower: " << num(sh.precursor_tol_lower) << "\n";
+    y << "  precursor_tol_upper: " << num(sh.precursor_tol_upper) << "\n";
+    y << "  precursor_tol_unit: " << q(sh.precursor_tol_unit) << "\n";
+    y << "  fragment_tol: " << num(sh.fragment_tol) << "\n";
+    y << "  fragment_tol_unit: " << q(sh.fragment_tol_unit) << "\n";
+    y << "  min_charge: " << sh.min_charge << "\n";
+    y << "  max_charge: " << sh.max_charge << "\n";
+    y << "  missed_cleavages: " << sh.missed_cleavages << "\n";
+    auto str_list = [&](const char* key, const std::vector<std::string>& items) {
+      y << "  " << key << ":";
+      if (items.empty()) { y << " []\n"; return; }
+      y << "\n";
+      for (const auto& it : items) { y << "    - " << q(it) << "\n"; }
+    };
+    str_list("fixed_mods", std::vector<std::string>(sh.fixed_mods.begin(), sh.fixed_mods.end()));
+    str_list("variable_mods", std::vector<std::string>(sh.variable_mods.begin(), sh.variable_mods.end()));
+    str_list("ion_series", std::vector<std::string>(sh.ion_series.begin(), sh.ion_series.end()));
+    y << "  open_search: " << bol(sh.open_search) << "\n";
+    y << "  calibration_enabled: " << bol(sh.calibration_enabled) << "\n";
+    y << "  snes_mode: " << bol(sh.snes_mode) << "\n";
+    y << "  chunked: " << bol(sh.chunked) << "\n";
+    y << "  decoy_mode: " << q(sh.decoy_mode) << "\n";
+    y << "  psm_fdr_threshold: " << num(sh.psm_fdr_threshold) << "\n";
+    y << "  protein_fdr_threshold: " << num(sh.protein_fdr_threshold) << "\n";
+    y << "  db_target_proteins: " << sh.db_target_proteins << "\n";
+    y << "  db_decoy_proteins: " << sh.db_decoy_proteins << "\n";
+    y << "  indexed_peptides: " << sh.indexed_peptides << "\n";
+    y << "  indexed_fragments: " << sh.indexed_fragments << "\n";
+    y << "  seconds_index_build: " << num(sh.seconds_index_build) << "\n";
+    y << "  seconds_total: " << num(sh.seconds_total) << "\n";
+
+    y << "per_file:";
+    if (mfres.per_file.empty()) { y << " []\n"; }
+    else
+    {
+      y << "\n";
+      for (const auto& pf : mfres.per_file)
+      {
+        const RunStatistics& st = pf.stats;
+        // The first key of each list item carries the "- " marker; the rest indent to 4.
+        y << "  - input_file: " << q(st.input_file) << "\n";
+        y << "    exit_code: " << static_cast<int>(pf.exit_code) << "\n";
+        y << "    ms2_spectra: " << st.ms2_spectra << "\n";
+        y << "    matched_spectra: " << st.matched_spectra << "\n";
+        y << "    target_psms: " << st.target_psms << "\n";
+        y << "    decoy_psms: " << st.decoy_psms << "\n";
+        y << "    fdr_applied: " << bol(st.fdr_applied) << "\n";
+        y << "    achieved_psm_fdr: " << num(st.achieved_psm_fdr) << "\n";
+        y << "    unique_peptides: " << st.unique_peptides << "\n";
+        y << "    unique_proteins: " << st.unique_proteins << "\n";
+        y << "    hyperscore:\n";
+        y << "      valid: " << bol(st.score_stats_valid) << "\n";
+        y << "      min: " << num(st.hyperscore_min) << "\n";
+        y << "      median: " << num(st.hyperscore_median) << "\n";
+        y << "      max: " << num(st.hyperscore_max) << "\n";
+        y << "    charge_histogram:";
+        if (st.charge_histogram.empty()) { y << " {}\n"; }
+        else { y << "\n"; for (const auto& [z, c] : st.charge_histogram) { y << "      " << q(std::to_string(z)) << ": " << c << "\n"; } }
+        y << "    missed_cleavage_histogram:";
+        if (st.missed_cleavage_histogram.empty()) { y << " {}\n"; }
+        else { y << "\n"; for (const auto& [m, c] : st.missed_cleavage_histogram) { y << "      " << q(std::to_string(m)) << ": " << c << "\n"; } }
+        y << "    precursor_error:\n";
+        y << "      valid: " << bol(st.prec_tol_valid) << "\n";
+        y << "      median_ppm: " << num(st.prec_err_median) << "\n";
+        y << "      mad_ppm: " << num(st.prec_err_mad) << "\n";
+        y << "      recommended_ppm: " << num(st.prec_err_recommended) << "\n";
+        y << "    fragment_error:\n";
+        y << "      valid: " << bol(st.frag_tol_valid) << "\n";
+        y << "      median_ppm: " << num(st.frag_err_median) << "\n";
+        y << "      mad_ppm: " << num(st.frag_err_mad) << "\n";
+        y << "      recommended_ppm: " << num(st.frag_err_recommended) << "\n";
+        y << "    timing_seconds:\n";
+        y << "      calibration: " << num(st.seconds_calibration) << "\n";
+        y << "      search: " << num(st.seconds_search) << "\n";
+        y << "      fdr: " << num(st.seconds_fdr) << "\n";
+      }
+    }
+
+    y << "outputs:";
+    if (manifest.empty()) { y << " []\n"; }
+    else
+    {
+      y << "\n";
+      for (const auto& [label, paths] : manifest)
+      {
+        y << "  - type: " << q(label) << "\n";
+        y << "    paths:";
+        if (paths.empty()) { y << " []\n"; }
+        else { y << "\n"; for (const auto& p : paths) { y << "      - " << q(p) << "\n"; } }
+      }
+    }
+    y << "files_failed: " << files_failed << "\n";
+    y << "files_total: " << files_total << "\n";
+
+    return y.str();
+  }
+
+  // =====================================================================
+  // Render the modification-discovery section (open search) to an ostream.
+  // =====================================================================
+  void ProSEAlgorithm::renderModificationSummary(
+      const OpenSearchModificationAnalysis::OpenSearchAnalysisResult& mod_analysis,
+      std::ostream& os)
+  {
+    const auto& dm_stats = mod_analysis.delta_mass_stats;
+    const auto& ptm_stats = mod_analysis.ptm_stats;
+
+    os << "[ProSE] ---------------- Modification discovery ---------------\n";
+    os << "[ProSE] Delta mass : " << dm_stats.modified_psms << " modified / "
+       << dm_stats.total_psms << " PSMs ("
+       << std::fixed << std::setprecision(1)
+       << (dm_stats.total_psms > 0 ? (100.0 * dm_stats.modified_psms / dm_stats.total_psms) : 0.0)
+       << "%), median Δ=" << std::setprecision(4) << dm_stats.median_delta_mass
+       << " Da, " << dm_stats.entries.size() << " bins\n";
+    os << "[ProSE] PTMs      : " << ptm_stats.total_modified_psms << " PSMs with known PTMs, "
+       << ptm_stats.unknown_modification_psms << " unknown, "
+       << ptm_stats.num_unique_modifications << " unique PTMs\n";
 
     if (!ptm_stats.entries.empty())
     {
-      OPENMS_LOG_INFO << "[ProSE] Top PTMs Discovered:" << std::endl;
-      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
-      OPENMS_LOG_INFO << "  Rank | Name                            | Count | %     | Mass (Da)" << std::endl;
-      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
-
+      os << "[ProSE]   Top PTMs (rank | name | count | % | mass Da):\n";
       size_t rank = 1;
       for (const auto& ptm : ptm_stats.entries)
       {
-        if (rank > 15) break;
+        if (rank > 15) { break; }
         std::string name = ptm.name;
-        if (name.size() > 30) name = StringUtils::substr(name, 0, 27) + "...";
-
-        std::ostringstream oss;
-        oss << "  " << std::setw(4) << rank++ << " | "
-            << std::setw(31) << std::left << name << " | "
-            << std::setw(5) << std::right << ptm.count << " | "
-            << std::setw(5) << std::fixed << std::setprecision(1) << ptm.percentage << " | "
-            << std::setw(9) << std::fixed << std::setprecision(4) << ptm.theoretical_mass;
-        OPENMS_LOG_INFO << oss.str() << std::endl;
+        if (name.size() > 30) { name = StringUtils::substr(name, 0, 27) + "..."; }
+        os << "[ProSE]   " << std::setw(2) << rank++ << " | "
+           << std::setw(31) << std::left << name << std::right << " | "
+           << std::setw(6) << ptm.count << " | "
+           << std::setw(5) << std::fixed << std::setprecision(1) << ptm.percentage << " | "
+           << std::setw(9) << std::fixed << std::setprecision(4) << ptm.theoretical_mass << "\n";
       }
-      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
     }
 
     std::vector<OpenSearchModificationAnalysis::DeltaMassEntry> unknown_dm;
     for (const auto& entry : dm_stats.entries)
     {
-      if (!entry.is_known_modification && entry.count >= 5)
-      {
-        unknown_dm.push_back(entry);
-      }
+      if (!entry.is_known_modification && entry.count >= 5) { unknown_dm.push_back(entry); }
     }
-
     if (!unknown_dm.empty())
     {
-      OPENMS_LOG_INFO << "[ProSE] Top Unknown Delta Masses (potential novel PTMs):" << std::endl;
-      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
-      OPENMS_LOG_INFO << "  Rank | Delta Mass (Da) | Count | Unique Peptides" << std::endl;
-      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
-
+      os << "[ProSE]   Top unknown delta masses (potential novel PTMs):\n";
       size_t rank = 1;
       for (const auto& dm : unknown_dm)
       {
-        if (rank > 10) break;
-        std::ostringstream oss;
-        oss << "  " << std::setw(4) << rank++ << " | "
-            << std::setw(15) << std::fixed << std::setprecision(4) << dm.delta_mass << " | "
-            << std::setw(5) << dm.count << " | "
-            << std::setw(15) << dm.unique_peptides;
-        OPENMS_LOG_INFO << oss.str() << std::endl;
+        if (rank > 10) { break; }
+        os << "[ProSE]   " << std::setw(2) << rank++ << " | Δ="
+           << std::setw(11) << std::fixed << std::setprecision(4) << dm.delta_mass << " Da | "
+           << std::setw(6) << dm.count << " PSMs | "
+           << dm.unique_peptides << " peptides\n";
       }
-      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
+    }
+  }
+
+  // =====================================================================
+  // Render a human-readable single-run summary block.
+  // =====================================================================
+  void ProSEAlgorithm::renderRunSummary(
+      const RunStatistics& s,
+      const SharedSearchStats& sh,
+      const OpenSearchModificationAnalysis::OpenSearchAnalysisResult& mod_analysis,
+      bool is_open_search,
+      std::ostream& os)
+  {
+    auto join = [](const std::vector<std::string>& v) -> std::string {
+      if (v.empty()) { return "(none)"; }
+      std::string out;
+      for (size_t i = 0; i < v.size(); ++i) { out += (i ? ", " : "") + v[i]; }
+      return out;
+    };
+    auto join_int = [](const std::vector<std::string>& v) -> std::string {
+      std::string out;
+      for (size_t i = 0; i < v.size(); ++i) { out += (i ? "," : "") + v[i]; }
+      return out.empty() ? std::string("(none)") : out;
+    };
+
+    if (!s.input_file.empty())
+    {
+      os << "[ProSE] Input        : " << s.input_file << "  (" << s.ms2_spectra << " MS2 spectra)\n";
+    }
+    // -- Configuration recap --
+    os << "[ProSE] Config       : " << sh.enzyme << ", " << sh.missed_cleavages << " MC | prec [-"
+       << sh.precursor_tol_lower << ", +" << sh.precursor_tol_upper << "] " << sh.precursor_tol_unit
+       << " | frag " << sh.fragment_tol << " " << sh.fragment_tol_unit
+       << " | z " << sh.min_charge << "-" << sh.max_charge << "\n";
+    os << "[ProSE]                fixed: " << join(sh.fixed_mods)
+       << " | variable: " << join(sh.variable_mods) << "\n";
+    os << "[ProSE]                ions: " << join_int(sh.ion_series)
+       << " | calibration: " << (sh.calibration_enabled ? "on" : "off")
+       << " | mode: " << (sh.open_search ? "open" : "closed")
+       << (sh.snes_mode ? " | SNES" : "")
+       << (sh.chunked ? " | chunked" : "") << "\n";
+
+    // -- Database / fragment index --
+    os << "[ProSE] Database     : " << (sh.database_file.empty() ? std::string("(in-memory)") : std::string(sh.database_file))
+       << "  (" << sh.db_target_proteins << " target";
+    if (sh.db_decoy_proteins > 0) { os << " + " << sh.db_decoy_proteins << " decoy"; }
+    os << " proteins, decoys: " << (sh.decoy_mode.empty() ? std::string("n/a") : std::string(sh.decoy_mode)) << ")\n";
+    os << "[ProSE] Fragment idx : " << sh.indexed_peptides << " peptides / "
+       << sh.indexed_fragments << " fragments  (build "
+       << std::fixed << std::setprecision(1) << sh.seconds_index_build << " s)\n";
+
+    // -- Results --
+    os << "[ProSE] --------------------------- Results ---------------------------\n";
+    os << "[ProSE] Matched      : " << s.matched_spectra << " / " << s.ms2_spectra << " spectra";
+    if (s.ms2_spectra > 0)
+    {
+      os << "   (ID rate " << std::fixed << std::setprecision(1)
+         << (100.0 * s.matched_spectra / s.ms2_spectra) << "%)";
+    }
+    os << "\n";
+    os << "[ProSE] Peptides/prot: " << s.unique_peptides << " unique peptides | "
+       << s.unique_proteins << " unique proteins\n";
+
+    // FDR / target-decoy. Decide target-only strictly from the database, not from
+    // a zero PSM count (a decoy DB with no decoy PSMs is still FDR-capable).
+    if (sh.decoy_mode == "none (target-only)")
+    {
+      os << "[ProSE] FDR          : n/a (target-only database)\n";
+    }
+    else
+    {
+      os << "[ProSE] Target/decoy : " << s.target_psms << " target / " << s.decoy_psms << " decoy PSMs";
+      if (s.fdr_applied)
+      {
+        os << "  | PSM FDR <= " << std::fixed << std::setprecision(1) << (sh.psm_fdr_threshold * 100.0) << "%";
+        if (s.achieved_psm_fdr >= 0.0)
+        {
+          os << ", achieved " << std::setprecision(2) << (s.achieved_psm_fdr * 100.0) << "%";
+        }
+        else
+        {
+          os << " (0 PSMs retained)";
+        }
+      }
+      else
+      {
+        os << "  | PSM FDR filtering: off";
+      }
+      os << "\n";
     }
 
-    OPENMS_LOG_INFO << "[ProSE] ============================================" << std::endl;
-
-    if (!output_base_name.empty())
+    // Charge distribution
+    if (!s.charge_histogram.empty())
     {
-      OPENMS_LOG_INFO << "[ProSE] Statistics tables written to:" << std::endl;
-      OPENMS_LOG_INFO << "  - " << output_base_name << "_ModificationAnalysis_DeltaMassStats.tsv" << std::endl;
-      OPENMS_LOG_INFO << "  - " << output_base_name << "_ModificationAnalysis_PTMStats.tsv" << std::endl;
+      os << "[ProSE] Charges      :";
+      for (const auto& [z, c] : s.charge_histogram) { os << " " << z << ":" << c; }
+      os << "\n";
+    }
+    // Missed cleavages
+    if (!s.missed_cleavage_histogram.empty())
+    {
+      os << "[ProSE] Missed clv   :";
+      for (const auto& [mc, c] : s.missed_cleavage_histogram) { os << " " << mc << ":" << c; }
+      os << "\n";
+    }
+    // Score distribution
+    if (s.score_stats_valid)
+    {
+      os << "[ProSE] HyperScore   : min " << std::fixed << std::setprecision(1) << s.hyperscore_min
+         << "  median " << s.hyperscore_median << "  max " << s.hyperscore_max << "\n";
+    }
+
+    // -- Tolerance estimation --
+    if (s.prec_tol_valid || s.frag_tol_valid)
+    {
+      os << "[ProSE] --------------------- Tolerance estimate ---------------------\n";
+      if (s.prec_tol_valid)
+      {
+        os << "[ProSE] Precursor    : median " << std::fixed << std::setprecision(2) << s.prec_err_median
+           << " ppm, MAD " << s.prec_err_mad << "  -> recommend " << static_cast<int>(s.prec_err_recommended) << " ppm\n";
+      }
+      if (s.frag_tol_valid)
+      {
+        os << "[ProSE] Fragment     : median " << std::fixed << std::setprecision(2) << s.frag_err_median
+           << " ppm, MAD " << s.frag_err_mad << "  -> recommend " << static_cast<int>(s.frag_err_recommended) << " ppm\n";
+      }
+    }
+
+    // -- Timing --
+    os << "[ProSE] ------------------------- Timing -----------------------------\n";
+    os << "[ProSE] " << std::fixed << std::setprecision(1);
+    if (s.seconds_calibration > 0.0) { os << "calib " << s.seconds_calibration << "s | "; }
+    if (s.seconds_search > 0.0)      { os << "search " << s.seconds_search << "s | "; }
+    if (s.seconds_fdr > 0.0)         { os << "fdr " << s.seconds_fdr << "s | "; }
+    os << "index(shared) " << sh.seconds_index_build << "s\n";
+
+    // -- Modification discovery (open search only) --
+    if (is_open_search)
+    {
+      renderModificationSummary(mod_analysis, os);
     }
   }
 

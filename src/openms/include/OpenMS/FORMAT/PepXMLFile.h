@@ -246,6 +246,9 @@ private:
     /// current base name
     std::string current_base_name_;
 
+    /// spectra file path of the current msms_run_summary (base_name + raw_data extension)
+    std::string current_ms_run_path_;
+
     /// References to currently active ProteinIdentifications
     std::vector<std::vector<ProteinIdentification>::iterator> current_proteins_;
 
