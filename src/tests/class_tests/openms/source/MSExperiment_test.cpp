@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////

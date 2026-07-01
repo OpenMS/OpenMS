@@ -10,6 +10,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 

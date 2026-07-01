@@ -1256,12 +1256,12 @@ namespace OpenMS::Internal
           consumer_->consumeSpectrum(spectrum_data_[i].spectrum);
           if (options_.getAlwaysAppendData())
           {
-            exp_->addSpectrum(spectrum_data_[i].spectrum);
+            exp_->addSpectrum(std::move(spectrum_data_[i].spectrum));
           }
         }
         else
         {
-          exp_->addSpectrum(spectrum_data_[i].spectrum);
+          exp_->addSpectrum(std::move(spectrum_data_[i].spectrum));
         }
       }
 

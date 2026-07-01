@@ -1093,10 +1093,12 @@ namespace OpenMS
 
     if (element == "msms_run_summary") // parent: "msms_pipeline_analysis"
     {
-      std::string ms_run_path;
+      std::string base_name;
+      optionalAttributeAsString_(base_name, attributes, "base_name");
+      current_ms_run_path_.clear();
+
       if (!exp_name_.empty())
       {
-        std::string base_name = attributeAsString_(attributes, "base_name");
         if (!base_name.empty())
         {
           wrong_experiment_ = !StringUtils::hasSuffix(base_name, exp_name_);
@@ -1110,13 +1112,22 @@ namespace OpenMS
           wrong_experiment_ = false;
           checked_base_name_ = false;
         }
-        std::string raw_data = attributeAsString_(attributes, "raw_data");
-        if (!base_name.empty() && !raw_data.empty())
-        {
-          ms_run_path = base_name + "." + raw_data;
-        }
       }
       if (wrong_experiment_) return;
+
+      // Compose this run's primary MS run path (the actual spectra file) from the
+      // 'msms_run_summary' base_name and raw_data extension, e.g. base_name="run1" +
+      // raw_data=".mzML" -> "run1.mzML". raw_data already carries a leading dot in TPP/OpenMS
+      // exports, so only add one if missing. This is recorded on the ProteinIdentification in
+      // 'search_summary'; it is preferred over the search_summary base_name, which may point at
+      // the identification result file (e.g. a .pep.xml) rather than the spectra.
+      if (!base_name.empty())
+      {
+        std::string raw_data;
+        optionalAttributeAsString_(raw_data, attributes, "raw_data");
+        if (!raw_data.empty() && raw_data[0] != '.') { raw_data = "." + raw_data; }
+        current_ms_run_path_ = base_name + raw_data;
+      }
 
       // create a ProteinIdentification in case "search_summary" is missing:
       ProteinIdentification protein;
@@ -1125,11 +1136,14 @@ namespace OpenMS
       enzyme_ = "unknown_enzyme";
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
-      proteins_->push_back(protein);
-      if (!ms_run_path.empty())
+      // Record the spectra file as the run's primary MS run path now, so pepXML files
+      // without a "search_summary" still keep run-level provenance. "search_summary" only
+      // fills this in when msms_run_summary had none (e.g. Mascot exports, from its base_name).
+      if (!current_ms_run_path_.empty())
       {
-        protein.setPrimaryMSRunPath(StringList(1, ms_run_path));
+        protein.setPrimaryMSRunPath(StringList(1, current_ms_run_path_));
       }
+      proteins_->push_back(protein);
       current_proteins_.clear();
       current_proteins_.push_back(--proteins_->end());
     }
@@ -1379,7 +1393,8 @@ namespace OpenMS
       current_peptide_ = PeptideIdentification();
       current_peptide_.setRT(rt_);
       current_peptide_.setMZ(mz_);
-      current_peptide_.setBaseName(current_base_name_);
+      // Note: the source MS run is recorded on the ProteinIdentification of this run
+      // (see "search_summary"); PeptideIdentifications are linked to it via the identifier.
 
       search_id_ = 1; // default if attr. is missing (ref. to "search_summary")
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
@@ -1909,6 +1924,24 @@ namespace OpenMS
       }
       prot_it->setSearchEngine(search_engine_);
       prot_it->setIdentifier(prot_id_);
+
+      // Record the source MS run (spectra file) on the ProteinIdentification - the "new"
+      // mechanism that replaces the removed per-PeptideIdentification base_name. Prefer the
+      // spectra path composed in "msms_run_summary" (base_name + raw_data, i.e. the actual
+      // mzML/mzXML); fall back to this search_summary's base_name only when the run summary
+      // had none (e.g. Mascot exports), since that value can reference the identification
+      // result file rather than the spectra. PeptideIdentifications resolve it via their
+      // shared identifier (see IdentifierMSRunMapper).
+      const std::string& ms_run_path = !current_ms_run_path_.empty() ? current_ms_run_path_ : current_base_name_;
+      if (!ms_run_path.empty())
+      {
+        StringList existing_ms_run_paths;
+        prot_it->getPrimaryMSRunPath(existing_ms_run_paths);
+        if (existing_ms_run_paths.empty())
+        {
+          prot_it->setPrimaryMSRunPath(StringList(1, ms_run_path));
+        }
+      }
     }
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!

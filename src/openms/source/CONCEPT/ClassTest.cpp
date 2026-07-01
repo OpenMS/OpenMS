@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>

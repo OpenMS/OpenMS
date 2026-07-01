@@ -79,6 +79,10 @@ TEST_EQUAL(tmp.getTypeByFileName("test.peff"), FileTypes::PEFF)
 TEST_EQUAL(tmp.getTypeByFileName("test.EDTA"), FileTypes::EDTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.csv"), FileTypes::CSV)
 TEST_EQUAL(tmp.getTypeByFileName("test.txt"), FileTypes::TXT)
+// new 3.6 directory-based parquet bundle types
+TEST_EQUAL(tmp.getTypeByFileName("test.idparquet"), FileTypes::IDPARQUET)
+TEST_EQUAL(tmp.getTypeByFileName("test.featureparquet"), FileTypes::FEATUREPARQUET)
+TEST_EQUAL(tmp.getTypeByFileName("test.consensusparquet"), FileTypes::CONSENSUSPARQUET)
 // Bruker TimsTOF: a ".d" directory and its zipped ".d.zip" form both resolve by name.
 // For ".d.zip" the ".zip" compression suffix is stripped, leaving ".d" -> BRUKER_TDF.
 TEST_EQUAL(tmp.getTypeByFileName("sample.d"), FileTypes::BRUKER_TDF)
@@ -186,6 +190,14 @@ START_SECTION((static std::string swapExtension(const std::string& filename, con
   TEST_STRING_EQUAL(FileHandler::swapExtension("/home.with.dot/file", FileTypes::UNKNOWN), "/home.with.dot/file.unknown")
   TEST_STRING_EQUAL(FileHandler::swapExtension("c:\\home.with.dot\\file", FileTypes::UNKNOWN), "c:\\home.with.dot\\file.unknown")
   TEST_STRING_EQUAL(FileHandler::swapExtension("./filename", FileTypes::UNKNOWN), "./filename.unknown")
+  // new 3.6 directory-based parquet bundle types
+  TEST_STRING_EQUAL(FileHandler::swapExtension("/home/doe/file.txt", FileTypes::FEATUREPARQUET), "/home/doe/file.featureparquet")
+  TEST_STRING_EQUAL(FileHandler::swapExtension("/home/doe/file.idXML", FileTypes::IDPARQUET), "/home/doe/file.idparquet")
+  TEST_STRING_EQUAL(FileHandler::swapExtension("/home/doe/file.featureparquet", FileTypes::CONSENSUSPARQUET), "/home/doe/file.consensusparquet")
+  // round-trip: a swapped-in parquet extension is recognised back as the same type
+  TEST_EQUAL(FileHandler::getTypeByFileName(FileHandler::swapExtension("x.txt", FileTypes::FEATUREPARQUET)), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getTypeByFileName(FileHandler::swapExtension("x.txt", FileTypes::IDPARQUET)), FileTypes::IDPARQUET)
+  TEST_EQUAL(FileHandler::getTypeByFileName(FileHandler::swapExtension("x.txt", FileTypes::CONSENSUSPARQUET)), FileTypes::CONSENSUSPARQUET)
 END_SECTION
 
 START_SECTION((FileTypes::Type FileHandler::getConsistentOutputfileType(const std::string& output_filename, const std::string& requested_type)))
@@ -200,6 +212,15 @@ START_SECTION((FileTypes::Type FileHandler::getConsistentOutputfileType(const st
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home/doe/file.unknown", "idxml"), FileTypes::IDXML)
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home.with.dot/file", "mzML"), FileTypes::MZML)
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("c:\\home.with.dot\\file", "mzML"), FileTypes::MZML)
+  // new 3.6 directory-based parquet bundle types: an explicit out_type fills in for a
+  // ".unknown" (or extension-less) output name, a matching extension is accepted, and a
+  // conflicting one is rejected.
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.unknown", "featureparquet"), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.unknown", "idparquet"), FileTypes::IDPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out", "consensusparquet"), FileTypes::CONSENSUSPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.featureparquet", ""), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.featureparquet", "featureparquet"), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.featureparquet", "consensusparquet"), FileTypes::UNKNOWN) // inconsistent
 END_SECTION
 
 

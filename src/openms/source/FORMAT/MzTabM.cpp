@@ -6,6 +6,7 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/MzTabM.h>
 #include <OpenMS/SYSTEM/File.h>
