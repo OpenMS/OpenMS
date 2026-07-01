@@ -14,16 +14,25 @@
 
 #include <array>
 #include <memory>
+#include <string>
 
 namespace OpenMS
 {
+  using String = std::string;
+
   /**
     @brief In-process Percolator scoring for OpenSWATH OSW and OSWPQ results.
 
     The scorer reads OpenSWATH feature tables, converts them into a
     domain-agnostic Percolator::RescoreInput, performs target/decoy rescoring,
     and writes the resulting score, q-value, PEP, and peak-group rank back to
-    the source format.
+    the source format. Rows with missing active OpenSWATH features are skipped
+    instead of being imputed to zero, matching PyProphet's cleanup step.
+
+    Peak-group-level q-values / PEPs follow the OpenSWATH / PyProphet
+    convention: Percolator provides the discriminant, top-ranked target/decoy
+    peak groups define the error model, and the resulting statistics are then
+    projected back onto all scored candidates.
 
     Supported levels:
     - MS1: writes SCORE_MS1 (SQLite) or score_ms1_* columns (.oswpq)

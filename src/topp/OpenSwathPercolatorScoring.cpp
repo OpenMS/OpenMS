@@ -32,6 +32,11 @@ One or more scoring levels can be requested sequentially via @p level:
 - @c ms1ms2 combines MS2 and MS1 features and writes the historical MS2 score table/columns
 - @c transition rescoring writes @c SCORE_TRANSITION or @c score_transition_*
 
+Rows with missing active @c VAR_* features are excluded from rescoring rather
+than being imputed to zero. Peak-group q-values and PEPs are estimated from the
+top-ranked target/decoy peak groups and then propagated back onto all scored
+candidates, mirroring PyProphet's OpenSWATH scoring semantics.
+
 If @p out is empty, the input is updated in place. Otherwise the input is first copied to @p out and all requested rescoring passes are applied there.
 
 Transition rescoring requires prior precursor-level scores in the same file. Starting from an unscored result, run either `-level ms2 transition` or `-level ms1ms2 transition` in one invocation.
@@ -108,7 +113,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Optional output path. If empty, the input is updated in place.", false);
     setValidFormats_("out", {"osw", "oswpq"});
 
-    registerStringList_("level", "<levels>", StringList{String("ms2")},
+    registerStringList_("level", "<levels>", StringList{"ms2"},
                         "One or more scoring levels to run sequentially. Use 'ms2 transition' or 'ms1ms2 transition' to derive transition scores from an unscored input.",
                         false);
     setValidStrings_("level", validLevels_());

@@ -10,11 +10,13 @@
 
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/LevelContextInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetReader.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
@@ -111,10 +113,10 @@ namespace OpenMS
                                        const bool from_ms1_table)
     {
       String out = column_name;
-      out.toLower();
+      StringUtils::toLower(out);
       if (level == Level::MS1MS2 && from_ms1_table)
       {
-        if (out.hasPrefix("var_"))
+        if (StringUtils::hasPrefix(out, "var_"))
         {
           out = "var_ms1_" + out.substr(4);
         }
@@ -128,11 +130,11 @@ namespace OpenMS
     {
       (void)from_ms1_table;
       String out = column_name;
-      if (out.hasPrefix("var_ms2_"))
+      if (StringUtils::hasPrefix(out, "var_ms2_"))
       {
         out = "var_" + out.substr(8);
       }
-      else if (out.hasPrefix("var_ms1_"))
+      else if (StringUtils::hasPrefix(out, "var_ms1_"))
       {
         if (level == Level::MS1MS2)
         {
@@ -143,7 +145,7 @@ namespace OpenMS
           out = "var_" + out.substr(8);
         }
       }
-      return out.toLower();
+      return StringUtils::toLower(out);
     }
 
     std::vector<String> sqliteColumnsWithPrefix_(SqliteConnector& conn,
@@ -157,7 +159,7 @@ namespace OpenMS
       while (state == Sql::SqlState::SQL_ROW)
       {
         const String col_name = Sql::extractString(stmt, 1);
-        if (col_name.hasPrefix(prefix))
+        if (StringUtils::hasPrefix(col_name, prefix))
         {
           columns.push_back(col_name);
         }
@@ -184,6 +186,38 @@ namespace OpenMS
       checkSqliteRc_(db, rc, "Failed to bind nullable REAL");
     }
 
+    std::pair<double, double> meanAndSampleStdDev_(const std::vector<double>& values)
+    {
+      if (values.empty())
+      {
+        return {
+          std::numeric_limits<double>::quiet_NaN(),
+          std::numeric_limits<double>::quiet_NaN()
+        };
+      }
+
+      double mean = 0.0;
+      for (const double value : values)
+      {
+        mean += value;
+      }
+      mean /= static_cast<double>(values.size());
+
+      if (values.size() == 1)
+      {
+        return {mean, 0.0};
+      }
+
+      double squared_sum = 0.0;
+      for (const double value : values)
+      {
+        const double diff = value - mean;
+        squared_sum += diff * diff;
+      }
+      const double variance = squared_sum / static_cast<double>(values.size() - 1);
+      return {mean, std::sqrt(std::max(0.0, variance))};
+    }
+
     PreparedInput finalizeInput_(std::vector<ScoreRow>&& rows,
                                  std::vector<String>&& feature_names,
                                  const bool transition_level)
@@ -201,27 +235,65 @@ namespace OpenMS
 
       const Size n_rows = rows.size();
       const Size n_cols = feature_names.size();
-      std::vector<bool> keep_column(n_cols, false);
+      std::vector<bool> active_column(n_cols, false);
       constexpr double eps = 1e-12;
 
       for (Size col = 0; col < n_cols; ++col)
       {
-        double first = std::numeric_limits<double>::quiet_NaN();
-        bool first_seen = false;
         for (Size row = 0; row < n_rows; ++row)
         {
-          double value = rows[row].feature_values[col];
-          if (!std::isfinite(value))
+          if (std::isfinite(rows[row].feature_values[col]))
           {
-            value = 0.0;
-            rows[row].feature_values[col] = 0.0;
+            active_column[col] = true;
+            break;
           }
-          if (!first_seen)
+        }
+      }
+
+      const Size all_null_columns = static_cast<Size>(std::count(active_column.begin(), active_column.end(), false));
+      if (all_null_columns == n_cols)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "No feature columns available for OpenSWATH Percolator scoring after dropping all-null columns.", "");
+      }
+
+      std::vector<ScoreRow> filtered_rows;
+      filtered_rows.reserve(n_rows);
+      for (auto& row : rows)
+      {
+        bool valid_row = true;
+        for (Size col = 0; col < n_cols; ++col)
+        {
+          if (active_column[col] && !std::isfinite(row.feature_values[col]))
           {
-            first = value;
-            first_seen = true;
+            valid_row = false;
+            break;
           }
-          else if (std::fabs(value - first) > eps)
+        }
+        if (valid_row)
+        {
+          filtered_rows.push_back(std::move(row));
+        }
+      }
+
+      if (filtered_rows.empty())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "No OpenSWATH rows remained after dropping rows with missing active feature values.", "");
+      }
+
+      std::vector<bool> keep_column(n_cols, false);
+      for (Size col = 0; col < n_cols; ++col)
+      {
+        if (!active_column[col])
+        {
+          continue;
+        }
+
+        const double first = filtered_rows[0].feature_values[col];
+        for (Size row = 1; row < filtered_rows.size(); ++row)
+        {
+          if (std::fabs(filtered_rows[row].feature_values[col] - first) > eps)
           {
             keep_column[col] = true;
             break;
@@ -241,16 +313,16 @@ namespace OpenMS
       if (kept_names.empty())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "All OpenSWATH feature columns are constant after null-to-zero normalization.", "");
+                                      "All OpenSWATH feature columns are constant after dropping incomplete rows.", "");
       }
 
       PreparedInput prepared;
-      prepared.rows = std::move(rows);
+      prepared.rows = std::move(filtered_rows);
       prepared.transition_level = transition_level;
       prepared.input.feature_names = kept_names;
-      prepared.input.features.reserve(n_rows);
-      prepared.input.is_decoy.reserve(n_rows);
-      prepared.input.cv_group_keys.reserve(n_rows);
+      prepared.input.features.reserve(prepared.rows.size());
+      prepared.input.is_decoy.reserve(prepared.rows.size());
+      prepared.input.cv_group_keys.reserve(prepared.rows.size());
 
       for (const auto& row : prepared.rows)
       {
@@ -260,7 +332,7 @@ namespace OpenMS
         {
           if (keep_column[col])
           {
-            filtered.push_back(std::isfinite(row.feature_values[col]) ? row.feature_values[col] : 0.0);
+            filtered.push_back(row.feature_values[col]);
           }
         }
         prepared.input.features.push_back(std::move(filtered));
@@ -268,7 +340,84 @@ namespace OpenMS
         prepared.input.cv_group_keys.push_back(row.cv_group_key);
       }
 
+      OPENMS_LOG_INFO << "OpenSWATH Percolator input cleanup: retained "
+                      << prepared.rows.size() << " / " << n_rows
+                      << " rows after dropping rows with missing active scores; removed "
+                      << all_null_columns << " all-null and "
+                      << static_cast<Size>(std::count(keep_column.begin(), keep_column.end(), false)) - all_null_columns
+                      << " constant feature columns.\n";
+
       return prepared;
+    }
+
+    std::vector<double> computeRawModelScores_(const PreparedInput& prepared,
+                                               const PercolatorModel& model)
+    {
+      if (model.weights.size() != prepared.input.feature_names.size() + 1)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Percolator model weights do not match the filtered OpenSWATH feature matrix.", "");
+      }
+
+      std::vector<double> raw_scores(prepared.input.features.size(), model.weights.back());
+      for (Size row_idx = 0; row_idx < prepared.input.features.size(); ++row_idx)
+      {
+        for (Size col_idx = 0; col_idx < prepared.input.features[row_idx].size(); ++col_idx)
+        {
+          raw_scores[row_idx] += prepared.input.features[row_idx][col_idx] * model.weights[col_idx];
+        }
+      }
+      return raw_scores;
+    }
+
+    std::vector<double> computeOpenSwathDScores_(const PreparedInput& prepared,
+                                                 const std::vector<double>& raw_scores)
+    {
+      if (raw_scores.size() != prepared.rows.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "OpenSWATH raw-score vector does not match the prepared row count.", "");
+      }
+
+      std::unordered_map<int, std::vector<Size>> groups;
+      for (Size i = 0; i < prepared.rows.size(); ++i)
+      {
+        groups[prepared.rows[i].cv_group_key].push_back(i);
+      }
+
+      std::vector<double> top_decoy_scores;
+      top_decoy_scores.reserve(groups.size());
+      for (auto& [_, indices] : groups)
+      {
+        const auto best_it = std::max_element(indices.begin(), indices.end(),
+                                              [&](const Size lhs, const Size rhs)
+                                              {
+                                                return raw_scores[lhs] < raw_scores[rhs];
+                                              });
+        if (best_it != indices.end())
+        {
+          const Size top_index = *best_it;
+          if (prepared.rows[top_index].decoy && std::isfinite(raw_scores[top_index]))
+          {
+            top_decoy_scores.push_back(raw_scores[top_index]);
+          }
+        }
+      }
+
+      const auto [decoy_mean, decoy_stddev] = meanAndSampleStdDev_(top_decoy_scores);
+      if (!(std::isfinite(decoy_mean) && std::isfinite(decoy_stddev) && decoy_stddev > 0.0))
+      {
+        OPENMS_LOG_WARN << "OpenSWATH Percolator scoring could not standardize the classifier score with the "
+                        << "top-decoy distribution; writing raw Percolator classifier scores instead.\n";
+        return raw_scores;
+      }
+
+      std::vector<double> d_scores(raw_scores.size());
+      for (Size i = 0; i < raw_scores.size(); ++i)
+      {
+        d_scores[i] = (raw_scores[i] - decoy_mean) / decoy_stddev;
+      }
+      return d_scores;
     }
 
     PreparedInput extractSqliteRows_(const String& osw_path,
@@ -360,11 +509,13 @@ namespace OpenMS
           row.feature_values.reserve(feature_names.size());
           for (Size i = 0; i < ms2_cols.size(); ++i, ++col)
           {
-            row.feature_values.push_back(sqlite3_column_type(stmt, col) == SQLITE_NULL ? 0.0 : sqlite3_column_double(stmt, col));
+            row.feature_values.push_back(sqlite3_column_type(stmt, col) == SQLITE_NULL ?
+              std::numeric_limits<double>::quiet_NaN() : sqlite3_column_double(stmt, col));
           }
           for (Size i = 0; i < ms1_cols.size(); ++i, ++col)
           {
-            row.feature_values.push_back(sqlite3_column_type(stmt, col) == SQLITE_NULL ? 0.0 : sqlite3_column_double(stmt, col));
+            row.feature_values.push_back(sqlite3_column_type(stmt, col) == SQLITE_NULL ?
+              std::numeric_limits<double>::quiet_NaN() : sqlite3_column_double(stmt, col));
           }
           const std::pair<Int64, Int64> group{row.run_id, row.precursor_id};
           auto it = group_to_key.find(group);
@@ -393,10 +544,19 @@ namespace OpenMS
 
       const auto transition_cols = sqliteColumnsWithPrefix_(conn, "FEATURE_TRANSITION", "VAR_");
       feature_names = transition_cols;
+      const auto isotope_it = std::find(feature_names.begin(), feature_names.end(), "VAR_ISOTOPE_OVERLAP_SCORE");
+      const Size isotope_col_idx = isotope_it != feature_names.end() ?
+        static_cast<Size>(std::distance(feature_names.begin(), isotope_it)) :
+        std::numeric_limits<Size>::max();
+      const auto log_sn_it = std::find(feature_names.begin(), feature_names.end(), "VAR_LOG_SN_SCORE");
+      const Size log_sn_col_idx = log_sn_it != feature_names.end() ?
+        static_cast<Size>(std::distance(feature_names.begin(), log_sn_it)) :
+        std::numeric_limits<Size>::max();
 
       String select_sql =
         "SELECT FEATURE.RUN_ID, FEATURE.ID AS FEATURE_ID, FEATURE.PRECURSOR_ID, "
-        "       FEATURE_TRANSITION.TRANSITION_ID, TRANSITION.DECOY";
+        "       FEATURE_TRANSITION.TRANSITION_ID, TRANSITION.DECOY, "
+        "       SCORE_MS2.RANK, SCORE_MS2.PEP";
       for (const auto& c : transition_cols)
       {
         select_sql += ", FEATURE_TRANSITION." + c;
@@ -407,16 +567,17 @@ namespace OpenMS
         "INNER JOIN PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID "
         "INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID "
         "INNER JOIN TRANSITION ON FEATURE_TRANSITION.TRANSITION_ID = TRANSITION.ID "
-        "WHERE SCORE_MS2.RANK <= " + String(transition_peakgroup_max_rank) +
-        "  AND SCORE_MS2.PEP <= " + String(transition_peakgroup_max_pep) +
-        "  AND FEATURE_TRANSITION.VAR_ISOTOPE_OVERLAP_SCORE <= " + String(transition_max_isotope_overlap) +
-        "  AND FEATURE_TRANSITION.VAR_LOG_SN_SCORE > " + String(transition_min_log_sn) +
+        "WHERE SCORE_MS2.RANK <= " + StringUtils::toStr(transition_peakgroup_max_rank) +
         "  AND PRECURSOR.DECOY = 0 "
         "ORDER BY FEATURE.RUN_ID, FEATURE.PRECURSOR_ID, FEATURE.EXP_RT, FEATURE_TRANSITION.TRANSITION_ID;";
 
       conn.prepareStatement(&stmt, select_sql);
       Sql::SqlState state = Sql::nextRow(stmt);
       int next_group_key = 0;
+      std::vector<ScoreRow> base_rows;
+      std::vector<ScoreRow> feature_filtered_rows;
+      std::vector<ScoreRow> relaxed_rows;
+      std::vector<ScoreRow> strict_rows;
       while (state == Sql::SqlState::SQL_ROW)
       {
         ScoreRow row;
@@ -426,16 +587,70 @@ namespace OpenMS
         row.precursor_id = Sql::extractInt64(stmt, col++);
         row.transition_id = Sql::extractInt64(stmt, col++);
         row.decoy = Sql::extractInt(stmt, col++) != 0;
+        (void)Sql::extractInt(stmt, col++);
+        const double peakgroup_pep = sqlite3_column_type(stmt, col) == SQLITE_NULL ?
+          std::numeric_limits<double>::quiet_NaN() : sqlite3_column_double(stmt, col);
+        ++col;
         row.feature_values.reserve(feature_names.size());
         for (Size i = 0; i < transition_cols.size(); ++i, ++col)
         {
-          row.feature_values.push_back(sqlite3_column_type(stmt, col) == SQLITE_NULL ? 0.0 : sqlite3_column_double(stmt, col));
+          row.feature_values.push_back(sqlite3_column_type(stmt, col) == SQLITE_NULL ?
+            std::numeric_limits<double>::quiet_NaN() : sqlite3_column_double(stmt, col));
         }
         row.cv_group_key = next_group_key++;
-        rows.push_back(std::move(row));
+        base_rows.push_back(row);
+
+        bool passes_transition_feature_filters = true;
+        if (isotope_col_idx < row.feature_values.size())
+        {
+          const double isotope_overlap = row.feature_values[isotope_col_idx];
+          if (!std::isfinite(isotope_overlap) || isotope_overlap > transition_max_isotope_overlap)
+          {
+            passes_transition_feature_filters = false;
+          }
+        }
+        if (passes_transition_feature_filters && log_sn_col_idx < row.feature_values.size())
+        {
+          const double log_sn = row.feature_values[log_sn_col_idx];
+          if (!std::isfinite(log_sn) || !(log_sn > transition_min_log_sn))
+          {
+            passes_transition_feature_filters = false;
+          }
+        }
+
+        if (passes_transition_feature_filters)
+        {
+          feature_filtered_rows.push_back(row);
+          relaxed_rows.push_back(row);
+          if (std::isfinite(peakgroup_pep) && peakgroup_pep <= transition_peakgroup_max_pep)
+          {
+            strict_rows.push_back(std::move(row));
+          }
+        }
         state = Sql::nextRow(stmt, state);
       }
       sqlite3_finalize(stmt);
+
+      if (!strict_rows.empty())
+      {
+        rows = std::move(strict_rows);
+      }
+      else if (!feature_filtered_rows.empty())
+      {
+        rows = std::move(relaxed_rows);
+        OPENMS_LOG_WARN << "Transition-level OpenSWATH Percolator scoring found no candidates after applying the "
+                        << "peak-group PEP filter (" << transition_peakgroup_max_pep << "); "
+                        << "falling back to rank- and transition-feature-filtered candidates only.\n";
+      }
+      else
+      {
+        rows = std::move(base_rows);
+        if (!rows.empty())
+        {
+          OPENMS_LOG_WARN << "Transition-level OpenSWATH Percolator scoring found no candidates after applying the "
+                          << "transition feature filters; falling back to rank-filtered precursor transitions only.\n";
+        }
+      }
 
       if (rows.empty())
       {
@@ -464,7 +679,7 @@ namespace OpenMS
         std::vector<Size> selected_cols;
         for (Size i = 0; i < result.ms2_columns.size(); ++i)
         {
-          if (result.ms2_columns[i].hasPrefix("var_ms2_"))
+          if (StringUtils::hasPrefix(result.ms2_columns[i], "var_ms2_"))
           {
             selected_cols.push_back(i);
             feature_names.push_back(canonicalFeatureNameParquet_(result.ms2_columns[i], level, false));
@@ -483,7 +698,8 @@ namespace OpenMS
           for (const Size col_idx : selected_cols)
           {
             const auto& values = result.ms2_values[col_idx];
-            row.feature_values.push_back(i < values.size() && std::isfinite(values[i]) ? values[i] : 0.0);
+            row.feature_values.push_back(i < values.size() && std::isfinite(values[i]) ?
+              values[i] : std::numeric_limits<double>::quiet_NaN());
           }
           const std::pair<Int64, Int64> group{row.run_id, row.precursor_id};
           auto it = group_to_key.find(group);
@@ -506,7 +722,7 @@ namespace OpenMS
         {
           for (Size i = 0; i < result.ms2_columns.size(); ++i)
           {
-            if (result.ms2_columns[i].hasPrefix("var_ms2_"))
+            if (StringUtils::hasPrefix(result.ms2_columns[i], "var_ms2_"))
             {
               ms2_selected.push_back(i);
               feature_names.push_back(canonicalFeatureNameParquet_(result.ms2_columns[i], level, false));
@@ -515,7 +731,7 @@ namespace OpenMS
         }
         for (Size i = 0; i < result.ms1_columns.size(); ++i)
         {
-          if (result.ms1_columns[i].hasPrefix("var_ms1_"))
+          if (StringUtils::hasPrefix(result.ms1_columns[i], "var_ms1_"))
           {
             ms1_selected.push_back(i);
             feature_names.push_back(canonicalFeatureNameParquet_(result.ms1_columns[i], level, true));
@@ -546,12 +762,14 @@ namespace OpenMS
           for (const Size col_idx : ms2_selected)
           {
             const auto& values = result.ms2_values[col_idx];
-            row.feature_values.push_back(i < values.size() && std::isfinite(values[i]) ? values[i] : 0.0);
+            row.feature_values.push_back(i < values.size() && std::isfinite(values[i]) ?
+              values[i] : std::numeric_limits<double>::quiet_NaN());
           }
           for (const Size col_idx : ms1_selected)
           {
             const auto& values = result.ms1_values[col_idx];
-            row.feature_values.push_back(i < values.size() && std::isfinite(values[i]) ? values[i] : 0.0);
+            row.feature_values.push_back(i < values.size() && std::isfinite(values[i]) ?
+              values[i] : std::numeric_limits<double>::quiet_NaN());
           }
           const std::pair<Int64, Int64> group{row.run_id, row.precursor_id};
           auto it = group_to_key.find(group);
@@ -566,10 +784,10 @@ namespace OpenMS
       }
 
       const auto transition_result = reader.fetchTransitionFeatures(oswpq_path);
-      feature_names = transition_result.transition_var_columns;
-      for (auto& feature_name : feature_names)
+      feature_names.reserve(transition_result.transition_var_columns.size());
+      for (const auto& feature_name : transition_result.transition_var_columns)
       {
-        feature_name = feature_name.toLower();
+        feature_names.push_back(StringUtils::toLowered(feature_name));
       }
 
       const auto precursors_table = ParquetFile::readTable(oswpq_path + "/library/precursors.parquet");
@@ -593,7 +811,7 @@ namespace OpenMS
       for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
       {
         const Int64 run_id = ParquetFile::getInt64(run_id_array, run_row, 0, false);
-        const String run_dir = oswpq_path + "/runs/run_id=" + String(run_id);
+        const String run_dir = oswpq_path + "/runs/run_id=" + StringUtils::toStr(run_id);
         const auto features_table = ParquetFile::readTable(run_dir + "/features.parquet");
         const auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
         const auto feature_precursor_col = ParquetFile::getColumn(features_table, "precursor_id");
@@ -620,7 +838,7 @@ namespace OpenMS
           const Int64 precursor_id = ParquetFile::getInt64(feature_precursor_col, feat_row, 0, false);
           const Int32 rank = static_cast<Int32>(ParquetFile::getInt64(score_ms2_rank_col, feat_row, 0, true));
           const double pep = ParquetFile::getDouble(score_ms2_pep_col, feat_row, std::numeric_limits<double>::quiet_NaN(), true);
-          feature_to_score.emplace(FeatureKey{run_id, feature_id}, std::make_tuple(precursor_id, rank, pep));
+          feature_to_score[std::make_pair(run_id, feature_id)] = std::make_tuple(precursor_id, rank, pep);
         }
       }
 
@@ -634,9 +852,14 @@ namespace OpenMS
         std::numeric_limits<Size>::max();
 
       int next_group_key = 0;
+      std::vector<ScoreRow> base_rows;
+      std::vector<ScoreRow> feature_filtered_rows;
+      std::vector<ScoreRow> relaxed_rows;
+      std::vector<ScoreRow> strict_rows;
       for (Size row_idx = 0; row_idx < transition_result.feature_id.size(); ++row_idx)
       {
-        const FeatureKey feature_key{transition_result.run_id[row_idx], transition_result.feature_id[row_idx]};
+        const FeatureKey feature_key = std::make_pair(transition_result.run_id[row_idx],
+                                                      transition_result.feature_id[row_idx]);
         const auto score_it = feature_to_score.find(feature_key);
         if (score_it == feature_to_score.end())
         {
@@ -645,9 +868,7 @@ namespace OpenMS
 
         const auto& [precursor_id, peakgroup_rank, peakgroup_pep] = score_it->second;
         if (peakgroup_rank <= 0 ||
-            peakgroup_rank > transition_peakgroup_max_rank ||
-            !std::isfinite(peakgroup_pep) ||
-            peakgroup_pep > transition_peakgroup_max_pep)
+            peakgroup_rank > transition_peakgroup_max_rank)
         {
           continue;
         }
@@ -663,11 +884,13 @@ namespace OpenMS
         out.precursor_id = precursor_id;
         out.transition_id = transition_result.transition_id[row_idx];
         out.decoy = transition_result.decoy[row_idx];
+        out.cv_group_key = next_group_key++;
         out.feature_values.reserve(feature_names.size());
         for (Size col_idx = 0; col_idx < transition_result.transition_var_values.size(); ++col_idx)
         {
           out.feature_values.push_back(transition_result.transition_var_values[col_idx][row_idx]);
         }
+        base_rows.push_back(out);
         if (isotope_col_idx < out.feature_values.size())
         {
           const double isotope_overlap = out.feature_values[isotope_col_idx];
@@ -684,8 +907,33 @@ namespace OpenMS
             continue;
           }
         }
-        out.cv_group_key = next_group_key++;
-        rows.push_back(std::move(out));
+        feature_filtered_rows.push_back(out);
+        relaxed_rows.push_back(out);
+        if (std::isfinite(peakgroup_pep) && peakgroup_pep <= transition_peakgroup_max_pep)
+        {
+          strict_rows.push_back(std::move(out));
+        }
+      }
+
+      if (!strict_rows.empty())
+      {
+        rows = std::move(strict_rows);
+      }
+      else if (!feature_filtered_rows.empty())
+      {
+        rows = std::move(relaxed_rows);
+        OPENMS_LOG_WARN << "Transition-level OpenSWATH OSWPQ Percolator scoring found no candidates after applying the "
+                        << "peak-group PEP filter (" << transition_peakgroup_max_pep << "); "
+                        << "falling back to rank- and transition-feature-filtered candidates only.\n";
+      }
+      else
+      {
+        rows = std::move(base_rows);
+        if (!rows.empty())
+        {
+          OPENMS_LOG_WARN << "Transition-level OpenSWATH OSWPQ Percolator scoring found no candidates after applying the "
+                          << "transition feature filters; falling back to rank-filtered precursor transitions only.\n";
+        }
       }
 
       if (rows.empty())
@@ -698,32 +946,32 @@ namespace OpenMS
       return finalizeInput_(std::move(rows), std::move(feature_names), true);
     }
 
-    std::vector<ScoreResult> computeRanks_(const PreparedInput& prepared,
-                                           const RescoreOutput& output)
+    std::vector<ScoreResult> computePeakGroupResults_(const PreparedInput& prepared,
+                                                      const RescoreOutput& output,
+                                                      const std::vector<double>& exported_scores)
     {
-      if (output.scores.size() != prepared.rows.size() ||
-          output.q_values.size() != prepared.rows.size() ||
-          output.peps.size() != prepared.rows.size())
+      if (output.scores.size() != prepared.rows.size())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Percolator output size does not match OpenSWATH input size.", "");
+      }
+      if (output.q_values.size() != prepared.rows.size() || output.peps.size() != prepared.rows.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Percolator q-value / PEP output size does not match OpenSWATH input size.", "");
+      }
+      if (exported_scores.size() != prepared.rows.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Exported OpenSWATH score vector size does not match the prepared row count.", "");
       }
 
       std::vector<ScoreResult> results(prepared.rows.size());
       for (Size i = 0; i < prepared.rows.size(); ++i)
       {
-        results[i].score = output.scores[i];
+        results[i].score = exported_scores[i];
         results[i].qvalue = output.q_values[i];
         results[i].pep = output.peps[i];
-      }
-
-      if (prepared.transition_level)
-      {
-        for (auto& result : results)
-        {
-          result.rank = 1;
-        }
-        return results;
       }
 
       std::unordered_map<int, std::vector<Size>> groups;
@@ -744,6 +992,7 @@ namespace OpenMS
           results[indices[rank]].rank = static_cast<Int32>(rank + 1);
         }
       }
+
       return results;
     }
 
@@ -772,10 +1021,10 @@ namespace OpenMS
         return;
       }
 
-      const bool input_is_osw = input_path.hasSuffix(".osw");
+      const bool input_is_osw = StringUtils::hasSuffix(input_path, ".osw");
       if (input_is_osw)
       {
-        if (!output_path.hasSuffix(".osw"))
+        if (!StringUtils::hasSuffix(output_path, ".osw"))
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "SQLite OSW input can only be written to another .osw output path.",
@@ -784,7 +1033,7 @@ namespace OpenMS
         return;
       }
 
-      if (output_path.hasSuffix(".osw"))
+      if (StringUtils::hasSuffix(output_path, ".osw"))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "OSWPQ input can only be written to another OSWPQ path.",
@@ -808,7 +1057,7 @@ namespace OpenMS
                                         "Archive OSWPQ input can only be written to another archive path.",
                                         output_path);
         }
-        if (!(output_path.hasSuffix(".oswpq") || output_path.hasSuffix(".oswpq.zip")))
+        if (!(StringUtils::hasSuffix(output_path, ".oswpq") || StringUtils::hasSuffix(output_path, ".oswpq.zip")))
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "Archive OSWPQ input can only be written to an '.oswpq' or '.oswpq.zip' output path.",
@@ -906,7 +1155,7 @@ namespace OpenMS
         {
           sqlite3_finalize(insert_stmt);
           throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                              "Failed to insert OpenSWATH Percolator score row: " + String(sqlite3_errmsg(db)));
+                                              "Failed to insert OpenSWATH Percolator score row: " + std::string(sqlite3_errmsg(db)));
         }
         sqlite3_reset(insert_stmt);
         sqlite3_clear_bindings(insert_stmt);
@@ -975,7 +1224,7 @@ namespace OpenMS
     {
       for (const auto& prefix : prefixes)
       {
-        if (value.hasPrefix(prefix))
+        if (StringUtils::hasPrefix(value, prefix))
         {
           return true;
         }
@@ -1028,13 +1277,13 @@ namespace OpenMS
         std::unordered_map<Int64, std::unordered_map<FeatureTransitionKey, Size, PairHash<FeatureTransitionKey>>> run_feature_transition_to_index;
         for (Size i = 0; i < prepared.rows.size(); ++i)
         {
-          run_feature_transition_to_index[prepared.rows[i].run_id][FeatureTransitionKey{prepared.rows[i].feature_id, *prepared.rows[i].transition_id}] = i;
+          run_feature_transition_to_index[prepared.rows[i].run_id][std::make_pair(prepared.rows[i].feature_id, *prepared.rows[i].transition_id)] = i;
         }
 
         for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
         {
           const Int64 run_id = ParquetFile::getInt64(run_id_array, run_row, 0, false);
-          const String ft_path = workspace.base_dir + "/runs/run_id=" + String(run_id) + "/feature_transition.parquet";
+          const String ft_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/feature_transition.parquet";
           auto table = ParquetFile::readTable(ft_path);
           const auto feature_id_col = ParquetFile::getColumn(table, "feature_id");
           const auto transition_id_col = ParquetFile::getColumn(table, "transition_id");
@@ -1051,7 +1300,7 @@ namespace OpenMS
             const auto run_it = run_feature_transition_to_index.find(run_id);
             if (run_it != run_feature_transition_to_index.end())
             {
-              const auto row_it = run_it->second.find(FeatureTransitionKey{feature_id, transition_id});
+              const auto row_it = run_it->second.find(std::make_pair(feature_id, transition_id));
               if (row_it != run_it->second.end())
               {
                 const auto& result = results[row_it->second];
@@ -1105,7 +1354,7 @@ namespace OpenMS
         for (int64_t run_row = 0; run_row < runs_table->num_rows(); ++run_row)
         {
           const Int64 run_id = ParquetFile::getInt64(run_id_array, run_row, 0, false);
-          const String features_path = workspace.base_dir + "/runs/run_id=" + String(run_id) + "/features.parquet";
+          const String features_path = workspace.base_dir + "/runs/run_id=" + StringUtils::toStr(run_id) + "/features.parquet";
           auto table = ParquetFile::readTable(features_path);
           const auto feature_id_col = ParquetFile::getColumn(table, "feature_id");
 
@@ -1237,7 +1486,7 @@ namespace OpenMS
                     << ") on '" << input_path << "'\n";
 
     PreparedInput prepared;
-    if (input_path.hasSuffix(".osw"))
+    if (StringUtils::hasSuffix(input_path, ".osw"))
     {
       const String target_path = prepareSqliteOutput_(input_path, output_path);
       prepared = extractSqliteRows_(target_path, level,
@@ -1245,8 +1494,10 @@ namespace OpenMS
                                     impl_->transition_peakgroup_max_pep,
                                     impl_->transition_max_isotope_overlap,
                                     impl_->transition_min_log_sn);
-      const RescoreOutput output = impl_->percolator.rescore(prepared.input);
-      const auto results = computeRanks_(prepared, output);
+      const PercolatorModel model = impl_->percolator.train(prepared.input);
+      const RescoreOutput output = impl_->percolator.score(prepared.input, model);
+      const auto exported_scores = computeOpenSwathDScores_(prepared, computeRawModelScores_(prepared, model));
+      const auto results = computePeakGroupResults_(prepared, output, exported_scores);
       writeSqliteScores_(target_path, level, prepared, results);
       return makeSummary_(prepared);
     }
@@ -1257,8 +1508,10 @@ namespace OpenMS
                                    impl_->transition_peakgroup_max_pep,
                                    impl_->transition_max_isotope_overlap,
                                    impl_->transition_min_log_sn);
-    const RescoreOutput output = impl_->percolator.rescore(prepared.input);
-    const auto results = computeRanks_(prepared, output);
+    const PercolatorModel model = impl_->percolator.train(prepared.input);
+    const RescoreOutput output = impl_->percolator.score(prepared.input, model);
+    const auto exported_scores = computeOpenSwathDScores_(prepared, computeRawModelScores_(prepared, model));
+    const auto results = computePeakGroupResults_(prepared, output, exported_scores);
     writeParquetScores_(workspace, level, prepared, results);
     return makeSummary_(prepared);
   }
