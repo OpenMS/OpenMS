@@ -36,6 +36,7 @@ set(sources_list_h
   OpenSwathScores.h
   OpenSwathScoring.h
   OpenSwathOSWParquetReader.h
+  OpenSwathPercolatorScoring.h
   OpenSwathOSWParquetWriter.h
   OpenSwathOSWWriter.h
   OpenSwathResultsExporter.h

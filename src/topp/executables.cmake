@@ -99,6 +99,7 @@ OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
 OpenSwathExport
 OpenSwathInfer
+OpenSwathPercolatorScoring
 OpenSwathRTNormalizer
 PeakPickerHiRes
 PeakPickerIterative
